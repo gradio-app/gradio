@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
-import { svelte } from "@sveltejs/vite-plugin-svelte";
-import sveltePreprocess from "svelte-preprocess";
+import { svelte, vitePreprocess } from "@sveltejs/vite-plugin-svelte";
+import { sveltePreprocess } from "svelte-preprocess";
 // @ts-ignore
 import custom_media from "postcss-custom-media";
 import global_data from "@csstools/postcss-global-data";
@@ -121,14 +121,17 @@ export default defineConfig(({ mode }) => {
 					accessors: true
 				},
 				hot: !process.env.VITEST && !production,
-				preprocess: sveltePreprocess({
-					postcss: {
-						plugins: [
-							global_data({ files: [theme_token_path] }),
-							custom_media()
-						]
-					}
-				})
+				preprocess: [
+					vitePreprocess(),
+					sveltePreprocess({
+						postcss: {
+							plugins: [
+								global_data({ files: [theme_token_path] }),
+								custom_media()
+							]
+						}
+					})
+				]
 			}),
 			generate_dev_entry({
 				enable: !development && mode !== "test"

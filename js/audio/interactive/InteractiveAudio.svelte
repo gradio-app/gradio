@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { onDestroy, createEventDispatcher } from "svelte";
+	import { onDestroy, createEventDispatcher, tick } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
+	import { StreamingBar } from "@gradio/statustracker";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 
 	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
@@ -37,12 +38,35 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let stream_every: number;
+	export let uploading = false;
+	export let recording = false;
+	export let class_name = "";
+
+	let time_limit: number | null = null;
+	let stream_state: "open" | "waiting" | "closed" = "closed";
+
+	export const modify_stream: (state: "open" | "closed" | "waiting") => void = (
+		state: "open" | "closed" | "waiting"
+	) => {
+		if (state === "closed") {
+			time_limit = null;
+			stream_state = "closed";
+		} else if (state === "waiting") {
+			stream_state = "waiting";
+		} else {
+			stream_state = "open";
+		}
+	};
+
+	export const set_time_limit = (time: number): void => {
+		if (recording) time_limit = time;
+	};
 
 	$: dispatch("drag", dragging);
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
-	let recording = false;
 	let recorder: IMediaRecorder;
 	let mode = "";
 	let header: Uint8Array | undefined = undefined;
@@ -50,7 +74,6 @@
 	let submit_pending_stream_on_pending_end = false;
 	let inited = false;
 
-	const STREAM_TIMESLICE = 500;
 	const NUM_HEADER_BYTES = 44;
 	let audio_chunks: Blob[] = [];
 	let module_promises: [
@@ -65,7 +88,8 @@
 		];
 	}
 
-	if (streaming) {
+	const is_browser = typeof window !== "undefined";
+	if (is_browser && streaming) {
 		get_modules();
 	}
 
@@ -84,6 +108,7 @@
 		start_recording: undefined;
 		pause_recording: undefined;
 		stop_recording: undefined;
+		close_stream: undefined;
 	}>();
 
 	const dispatch_blob = async (
@@ -123,6 +148,7 @@
 			throw err;
 		}
 		if (stream == null) return;
+
 		if (streaming) {
 			const [{ MediaRecorder, register }, { connect }] =
 				await Promise.all(module_promises);
@@ -134,13 +160,14 @@
 			recorder.addEventListener("dataavailable", (event) => {
 				audio_chunks.push(event.data);
 			});
-			recorder.addEventListener("stop", async () => {
-				recording = false;
-				await dispatch_blob(audio_chunks, "change");
-				await dispatch_blob(audio_chunks, "stop_recording");
-				audio_chunks = [];
-			});
 		}
+		recorder.addEventListener("stop", async () => {
+			recording = false;
+			// recorder.stop();
+			await dispatch_blob(audio_chunks, "change");
+			await dispatch_blob(audio_chunks, "stop_recording");
+			audio_chunks = [];
+		});
 		inited = true;
 	}
 
@@ -155,6 +182,7 @@
 			pending_stream.push(payload);
 		} else {
 			let blobParts = [header].concat(pending_stream, [payload]);
+			if (!recording || stream_state === "waiting") return;
 			dispatch_blob(blobParts, "stream");
 			pending_stream = [];
 		}
@@ -174,8 +202,8 @@
 		dispatch("start_recording");
 		if (!inited) await prepare_audio();
 		header = undefined;
-		if (streaming) {
-			recorder.start(STREAM_TIMESLICE);
+		if (streaming && recorder.state != "recording") {
+			recorder.start(stream_every * 1000);
 		}
 	}
 
@@ -192,12 +220,14 @@
 		dispatch("upload", detail);
 	}
 
-	function stop(): void {
+	async function stop(): Promise<void> {
 		recording = false;
 
 		if (streaming) {
+			dispatch("close_stream");
 			dispatch("stop_recording");
 			recorder.stop();
+
 			if (pending) {
 				submit_pending_stream_on_pending_end = true;
 			}
@@ -206,6 +236,9 @@
 			mode = "";
 		}
 	}
+
+	$: if (!recording && recorder) stop();
+	$: if (recording && recorder) record();
 </script>
 
 <BlockLabel
@@ -214,10 +247,11 @@
 	float={active_source === "upload" && value === null}
 	label={label || i18n("audio.audio")}
 />
-<div class="audio-container">
+<div class="audio-container {class_name}">
+	<StreamingBar {time_limit} />
 	{#if value === null || streaming}
 		{#if active_source === "microphone"}
-			<ModifyUpload {i18n} on:clear={clear} absolute={true} />
+			<ModifyUpload {i18n} on:clear={clear} />
 			{#if streaming}
 				<StreamAudio
 					{record}
@@ -226,12 +260,14 @@
 					{i18n}
 					{waveform_settings}
 					{waveform_options}
+					waiting={stream_state === "waiting"}
 				/>
 			{:else}
 				<AudioRecorder
 					bind:mode
 					{i18n}
 					{editable}
+					{recording}
 					{dispatch_blob}
 					{waveform_settings}
 					{waveform_options}
@@ -247,6 +283,7 @@
 				filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
 				on:load={handle_load}
 				bind:dragging
+				bind:uploading
 				on:error={({ detail }) => dispatch("error", detail)}
 				{root}
 				{max_file_size}
@@ -262,7 +299,6 @@
 			on:clear={clear}
 			on:edit={() => (mode = "edit")}
 			download={show_download_button ? value.url : null}
-			absolute={true}
 		/>
 
 		<AudioPlayer
@@ -293,5 +329,31 @@
 		display: flex;
 		flex-direction: column;
 		justify-content: space-between;
+	}
+
+	.audio-container.compact-audio {
+		margin-top: calc(var(--size-8) * -1);
+		height: auto;
+		padding: 0px;
+		gap: var(--size-2);
+		min-height: var(--size-5);
+	}
+
+	.compact-audio :global(.audio-player) {
+		padding: 0px;
+	}
+
+	.compact-audio :global(.controls) {
+		gap: 0px;
+		padding: 0px;
+	}
+
+	.compact-audio :global(.waveform-container) {
+		height: var(--size-12) !important;
+	}
+
+	.compact-audio :global(.player-container) {
+		min-height: unset;
+		height: auto;
 	}
 </style>

@@ -21,7 +21,7 @@
 />
 
 {#if value && (Array.isArray(value) ? value.length > 0 : true)}
-	<FilePreview {i18n} {selectable} on:select {value} {height} />
+	<FilePreview {i18n} {selectable} on:select on:download {value} {height} />
 {:else}
 	<Empty unpadded_box={true} size="large"><File /></Empty>
 {/if}

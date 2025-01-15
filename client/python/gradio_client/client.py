@@ -16,13 +16,14 @@ import time
 import urllib.parse
 import uuid
 import warnings
+from collections.abc import Callable
 from concurrent.futures import Future
 from dataclasses import dataclass
 from datetime import datetime
 from functools import partial
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Literal
+from typing import Any, Literal
 
 import httpx
 import huggingface_hub
@@ -75,7 +76,7 @@ class Client:
     def __init__(
         self,
         src: str,
-        hf_token: str | None = None,
+        hf_token: str | Literal[False] | None = False,
         max_workers: int = 40,
         verbose: bool = True,
         auth: tuple[str, str] | None = None,
@@ -88,14 +89,14 @@ class Client:
     ):
         """
         Parameters:
-            src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
-            hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
-            max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
-            verbose: Whether the client should print statements to the console.
-            headers: Additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. This parameter will override the default headers if they have the same keys.
-            download_files: Directory where the client should download output files  on the local machine from the remote API. By default, uses the value of the GRADIO_TEMP_DIR environment variable which, if not set by the user, is a temporary directory on your machine. If False, the client does not download files and returns a FileData dataclass object with the filepath on the remote machine instead.
-            ssl_verify: If False, skips certificate validation which allows the client to connect to Gradio apps that are using self-signed certificates.
-            httpx_kwargs: Additional keyword arguments to pass to `httpx.Client`, `httpx.stream`, `httpx.get` and `httpx.post`. This can be used to set timeouts, proxies, http auth, etc.
+            src: either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
+            hf_token: optional Hugging Face token to use to access private Spaces. By default, no token is sent to the server. Set `hf_token=None` to use the locally saved token if there is one (warning: only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). Find your tokens here: https://huggingface.co/settings/tokens.
+            max_workers: maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
+            verbose: whether the client should print statements to the console.
+            headers: additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. This parameter will override the default headers if they have the same keys.
+            download_files: directory where the client should download output files  on the local machine from the remote API. By default, uses the value of the GRADIO_TEMP_DIR environment variable which, if not set by the user, is a temporary directory on your machine. If False, the client does not download files and returns a FileData dataclass object with the filepath on the remote machine instead.
+            ssl_verify: if False, skips certificate validation which allows the client to connect to Gradio apps that are using self-signed certificates.
+            httpx_kwargs: additional keyword arguments to pass to `httpx.Client`, `httpx.stream`, `httpx.get` and `httpx.post`. This can be used to set timeouts, proxies, http auth, etc.
         """
         self.verbose = verbose
         self.hf_token = hf_token
@@ -153,20 +154,28 @@ class Client:
         self.protocol: Literal["ws", "sse", "sse_v1", "sse_v2", "sse_v2.1"] = (
             self.config.get("protocol", "ws")
         )
-        self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
-        self.sse_url = urllib.parse.urljoin(
-            self.src, utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL
+        api_prefix: str = self.config.get("api_prefix", "")
+        self.api_prefix = api_prefix.lstrip("/") + "/"
+        self.src_prefixed = (
+            urllib.parse.urljoin(self.src, self.api_prefix).rstrip("/") + "/"
         )
-        self.heartbeat_url = urllib.parse.urljoin(self.src, utils.HEARTBEAT_URL)
+        self.api_url = urllib.parse.urljoin(self.src_prefixed, utils.API_URL)
+        self.sse_url = urllib.parse.urljoin(
+            self.src_prefixed,
+            utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL,
+        )
+        self.heartbeat_url = urllib.parse.urljoin(
+            self.src_prefixed, utils.HEARTBEAT_URL
+        )
         self.sse_data_url = urllib.parse.urljoin(
-            self.src,
+            self.src_prefixed,
             utils.SSE_DATA_URL_V0 if self.protocol == "sse" else utils.SSE_DATA_URL,
         )
         self.ws_url = urllib.parse.urljoin(
-            self.src.replace("http", "ws", 1), utils.WS_URL
+            self.src_prefixed.replace("http", "ws", 1), utils.WS_URL
         )
-        self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
-        self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
+        self.upload_url = urllib.parse.urljoin(self.src_prefixed, utils.UPLOAD_URL)
+        self.reset_url = urllib.parse.urljoin(self.src_prefixed, utils.RESET_URL)
         self.app_version = version.parse(self.config.get("version", "2.0"))
         self._info = self._get_api_info()
         self.session_hash = str(uuid.uuid4())
@@ -286,10 +295,11 @@ class Client:
             raise e
 
     def send_data(self, data, hash_data, protocol):
+        headers = self.add_zero_gpu_headers(self.headers)
         req = httpx.post(
             self.sse_data_url,
             json={**data, **hash_data},
-            headers=self.headers,
+            headers=headers,
             cookies=self.cookies,
             verify=self.ssl_verify,
             **self.httpx_kwargs,
@@ -322,7 +332,7 @@ class Client:
         cls,
         from_id: str,
         to_id: str | None = None,
-        hf_token: str | None = None,
+        hf_token: str | Literal[False] | None = False,
         private: bool = True,
         hardware: Literal[
             "cpu-basic",
@@ -355,7 +365,7 @@ class Client:
         Parameters:
             from_id: The name of the Hugging Face Space to duplicate in the format "{username}/{space_id}", e.g. "gradio/whisper".
             to_id: The name of the new Hugging Face Space to create, e.g. "abidlabs/whisper-duplicate". If not provided, the new Space will be named "{your_HF_username}/{space_id}".
-            hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
+            hf_token: optional Hugging Face token to use to duplicating private Spaces. By default, no token is sent to the server. Set `hf_token=None` to use the locally saved token if there is one. Find your tokens here: https://huggingface.co/settings/tokens.
             private: Whether the new Space should be private (True) or public (False). Defaults to True.
             hardware: The hardware tier to use for the new Space. Defaults to the same hardware tier as the original Space. Options include "cpu-basic", "cpu-upgrade", "t4-small", "t4-medium", "a10g-small", "a10g-large", "a100-large", subject to availability.
             secrets: A dictionary of (secret key, secret value) to pass to the new Space. Defaults to None. Secrets are only used when the Space is duplicated for the first time, and are not updated if the duplicated Space already exists.
@@ -551,7 +561,7 @@ class Client:
         return job
 
     def _get_api_info(self):
-        api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
+        api_info_url = urllib.parse.urljoin(self.src_prefixed, utils.RAW_API_INFO_URL)
         if self.app_version > version.Version("3.36.1"):
             r = httpx.get(
                 api_info_url,
@@ -694,6 +704,27 @@ class Client:
     def reset_session(self) -> None:
         self.session_hash = str(uuid.uuid4())
         self._refresh_heartbeat.set()
+
+    def add_zero_gpu_headers(self, headers: dict[str, str]) -> dict[str, str]:
+        """
+        Adds the x-ip-token header to the headers dictionary to pass it to a Zero-GPU Space. This allows a user's
+        ZeroGPU quota to be tracked and used by the underlying Space. For the x-ip-token header to be present,
+        this method needs to be called when a Gradio app's LocalContext is defined. i.e. this method
+        cannot be called when the Gradio Client is instantiated, but must be called from inside a Gradio app's
+        prediction function.
+        """
+        if not self.space_id:
+            return headers
+        try:
+            from gradio.context import LocalContext
+        except (
+            ImportError
+        ):  # this is not running within a Gradio app as Gradio is not installed
+            return headers
+        request = LocalContext.request.get()
+        if request and hasattr(request, "headers") and "x-ip-token" in request.headers:
+            headers["x-ip-token"] = request.headers["x-ip-token"]
+        return headers
 
     def _render_endpoints_info(
         self,
@@ -861,6 +892,10 @@ class Client:
             raise AuthenticationError(
                 f"Could not load {self.src} as credentials were not provided. Please login."
             )
+        elif r.status_code == 429:
+            raise utils.TooManyRequestsError(
+                "Too many requests to the API, please try again later."
+            ) from None
         else:  # to support older versions of Gradio
             r = httpx.get(
                 self.src,
@@ -890,7 +925,7 @@ class Client:
         discord_bot_token: str | None = None,
         api_names: list[str | tuple[str, str]] | None = None,
         to_id: str | None = None,
-        hf_token: str | None = None,
+        hf_token: str | Literal[False] | None = False,
         private: bool = False,
     ):
         """
@@ -902,7 +937,9 @@ class Client:
             hf_token: HF api token with write priviledges in order to upload the files to HF space. Can be ommitted if logged in via the HuggingFace CLI, unless the upstream space is private. Obtain from: https://huggingface.co/settings/token
             private: Whether the space hosting the discord bot is private. The visibility of the discord bot itself is set via the discord website. See https://huggingface.co/spaces/freddyaboulton/test-discord-bot-v1
         """
-
+        warnings.warn(
+            "This method is deprecated and may be removed in the future. Please see the documentation on how to create a discord bot with Gradio: https://www.gradio.app/guides/creating-a-discord-bot-from-a-gradio-app"
+        )
         if self.config["mode"] == "chat_interface" and not api_names:
             api_names = [("chat", "chat")]
 
@@ -1069,8 +1106,7 @@ class Endpoint:
             self._get_component_type(id_) for id_ in dependency["outputs"]
         ]
         self.parameters_info = self._get_parameters_info()
-
-        self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
+        self.root_url = self.client.src_prefixed
 
         # Disallow hitting endpoints that the Gradio app has disabled
         self.is_valid = self.api_name is not False
@@ -1138,7 +1174,7 @@ class Endpoint:
         if helper is None:
             return
         if self.client.app_version > version.Version("4.29.0"):
-            url = urllib.parse.urljoin(self.client.src, utils.CANCEL_URL)
+            url = urllib.parse.urljoin(self.client.src_prefixed, utils.CANCEL_URL)
 
             # The event_id won't be set on the helper until later
             # so need to create the data in a function that's run at cancel time
@@ -1303,7 +1339,11 @@ class Endpoint:
 
     def remove_skipped_components(self, *data) -> tuple:
         """"""
-        data = [d for d, oct in zip(data, self.output_component_types) if not oct.skip]
+        data = [
+            d
+            for d, oct in zip(data, self.output_component_types, strict=False)
+            if not oct.skip
+        ]
         return tuple(data)
 
     def reduce_singleton_output(self, *data) -> Any:
@@ -1338,8 +1378,8 @@ class Endpoint:
                     f"File {file_path} exceeds the maximum file size of {max_file_size} bytes "
                     f"set in {component_config.get('label', '') + ''} component."
                 )
-            with open(file_path, "rb") as f:
-                files = [("files", (orig_name.name, f))]
+            with open(file_path, "rb") as f_:
+                files = [("files", (orig_name.name, f_))]
                 r = httpx.post(
                     self.client.upload_url,
                     headers=self.client.headers,
@@ -1355,9 +1395,8 @@ class Endpoint:
         # use the suffix of the original name to determine format to save it to in cache.
         return {
             "path": file_path,
-            "orig_name": utils.strip_invalid_filename_characters(orig_name.name)
-            if orig_name.suffix
-            else None,
+            "orig_name": utils.strip_invalid_filename_characters(orig_name.name),
+            "meta": {"_type": "gradio.FileData"} if orig_name.suffix else None,
         }
 
     def _download_file(self, x: dict) -> str:

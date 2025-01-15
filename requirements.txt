@@ -1,27 +1,28 @@
 aiofiles>=22.0,<24.0
 anyio>=3.0,<5.0
-fastapi<1.0
+audioop-lts<1.0; python_version >= "3.13" #it provides support for 'audioop' module removed in latest python version used by pydub
+fastapi>=0.115.2,<1.0
 ffmpy
-gradio_client==1.3.0
+gradio_client==1.5.4
 httpx>=0.24.1
-huggingface_hub>=0.19.3
-importlib_resources>=1.3,<7.0
+huggingface_hub>=0.25.1
 Jinja2<4.0
 markupsafe~=2.0
-matplotlib~=3.0
 numpy>=1.0,<3.0
 orjson~=3.0
 packaging
 pandas>=1.0,<3.0
-pillow>=8.0,<11.0
+pillow>=8.0,<12.0
 pydantic>=2.0
-python-multipart>=0.0.9  # required for fastapi forms
+python-multipart>=0.0.18 # required for fastapi forms.
 pydub
 pyyaml>=5.0,<7.0
-semantic_version~=2.0
-typing_extensions~=4.0
-urllib3~=2.0  # urllib3 is used for Lite support. Version spec can be omitted because urllib3==2.1.0 is prebuilt for Pyodide and urllib>=2.2.0 supports Pyodide as well.
-uvicorn>=0.14.0; sys.platform != 'emscripten'
-typer>=0.12,<1.0; sys.platform != 'emscripten'
-tomlkit==0.12.0
 ruff>=0.2.2; sys.platform != 'emscripten'
+safehttpx>=0.1.6,<0.2.0
+semantic_version~=2.0
+starlette>=0.40.0,<1.0; sys.platform != 'emscripten'
+tomlkit>=0.12.0,<0.14.0
+typer>=0.12,<1.0; sys.platform != 'emscripten'
+typing_extensions~=4.0
+urllib3~=2.0; sys.platform == 'emscripten'  # urllib3 is used for Lite support. Version spec can be omitted because urllib3==2.1.0 is prebuilt for Pyodide and urllib>=2.2.0 supports Pyodide as well.
+uvicorn>=0.14.0; sys.platform != 'emscripten'

@@ -31,7 +31,7 @@ with gr.Blocks(css=".gradio-container {background: url('file=clouds.jpg')}") as 
     ...
 ```
 
-Note: By default, files in the host machine are not accessible to users running the Gradio app. As a result, you should make sure that any referenced files (such as `clouds.jpg` here) are either URLs or allowed via the `allow_list` parameter in `launch()`. Read more in our [section on Security and File Access](/guides/sharing-your-app#security-and-file-access).
+Note: By default, files in the host machine are not accessible to users running the Gradio app. As a result, you should make sure that any referenced files (such as `clouds.jpg` here) are either URLs or allowed via the `allow_list` parameter in `launch()`. Read more in our [section on Security and File Access](/main/guides/file-access).
 
 
 ## The `elem_id` and `elem_classes` Arguments

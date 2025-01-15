@@ -104,7 +104,10 @@ jobs:
           tar -xzf ./gradio-lite-tar/gradio-lite-*.tgz -C ./gradio-lite-files
           aws s3 cp ./gradio-lite-files/package/ s3://gradio-lite-previews/${{ needs.changes.outputs.sha }}/ --recursive
       - name: Install Hub Client Library
-        run: pip install huggingface-hub==0.23.2
+        run: |
+          python3 -m venv venv
+          . venv/bin/activate
+          pip install huggingface-hub==0.23.2
         # temporary, but ensures the script cannot be modified in a PR
       - name: Get deploy scripts
         run: |
@@ -117,6 +120,7 @@ jobs:
         if: github.event.workflow_run.event == 'pull_request'
         id: upload-demo
         run: |
+          . venv/bin/activate
           python scripts/upload_demo_to_space.py all_demos \
           gradio-pr-deploys/pr-${{ needs.changes.outputs.pr_number }}-all-demos \
           ${{ secrets.SPACES_DEPLOY_TOKEN }} \
@@ -126,6 +130,7 @@ jobs:
         if: github.event.workflow_run.event == 'workflow_dispatch'
         id: upload-website-demos
         run: |
+          . venv/bin/activate
           python scripts/upload_website_demos.py --AUTH_TOKEN ${{ secrets.WEBSITE_SPACES_DEPLOY_TOKEN }} \
           --WHEEL_URL https://gradio-pypi-previews.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/ \
           --CLIENT_URL "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python" \

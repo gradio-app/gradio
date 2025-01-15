@@ -12,6 +12,7 @@ const possible_langs = [
 	"html",
 	"css",
 	"javascript",
+	"jinja2",
 	"typescript",
 	"yaml",
 	"dockerfile",
@@ -58,6 +59,10 @@ const lang_map: Record<string, (() => Promise<Extension>) | undefined> = {
 	css: () => import("@codemirror/lang-css").then((m) => m.css()),
 	javascript: () =>
 		import("@codemirror/lang-javascript").then((m) => m.javascript()),
+	jinja2: () =>
+		import("@codemirror/legacy-modes/mode/jinja2").then((m) =>
+			StreamLanguage.define(m.jinja2)
+		),
 	typescript: () =>
 		import("@codemirror/lang-javascript").then((m) =>
 			m.javascript({ typescript: true })

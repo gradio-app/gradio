@@ -1,5 +1,455 @@
 # @gradio/chatbot
 
+## 0.21.0
+
+### Features
+
+- [#10323](https://github.com/gradio-app/gradio/pull/10323) [`391a4d0`](https://github.com/gradio-app/gradio/commit/391a4d09a90406b768eee30e1c12a0bc84fc27a2) - Add `.previous_value` to `gr.EditData`.  Thanks @abidlabs!
+- [#10305](https://github.com/gradio-app/gradio/pull/10305) [`be40307`](https://github.com/gradio-app/gradio/commit/be40307d1d11421e01bf91fa5e05ec4ab97b09d8) - Add support for thinking LLMs directly in `gr.ChatInterface`.  Thanks @abidlabs!
+- [#10226](https://github.com/gradio-app/gradio/pull/10226) [`58b8391`](https://github.com/gradio-app/gradio/commit/58b839196e17776cbd0d48997905496f7746d31f) - Improve tool UI and support nested thoughts.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/video@0.13.1
+- @gradio/atoms@0.13.1
+- @gradio/statustracker@0.10.1
+- @gradio/client@1.10.0
+- @gradio/icons@0.10.0
+- @gradio/upload@0.14.5
+- @gradio/gallery@0.15.1
+- @gradio/plot@0.9.6
+- @gradio/image@0.20.1
+
+## 0.20.1
+
+### Dependency updates
+
+- @gradio/gallery@0.15.0
+
+## 0.20.0
+
+### Features
+
+- [#10203](https://github.com/gradio-app/gradio/pull/10203) [`c3a9e64`](https://github.com/gradio-app/gradio/commit/c3a9e647381f787085662828747e6ac61f8a0c01) - Allow editing chatbot messages.  Thanks @aliabid94!
+- [#10272](https://github.com/gradio-app/gradio/pull/10272) [`a1f2649`](https://github.com/gradio-app/gradio/commit/a1f2649586752a013fb4d36b83d5fea2e137bb81) - Chat Interface flagging and chatbot feedback.  Thanks @aliabid94!
+- [#10225](https://github.com/gradio-app/gradio/pull/10225) [`f0cf3b7`](https://github.com/gradio-app/gradio/commit/f0cf3b789a4ebb5ac2e33243fea80c6c6f080d42) - Dataframe support in Chatbot.  Thanks @dawoodkhan82!
+- [#10292](https://github.com/gradio-app/gradio/pull/10292) [`f2bd72f`](https://github.com/gradio-app/gradio/commit/f2bd72f9ef23552f0c6018396320eca9baef04f5) - Reset flagged values when switching conversations in chat history.  Thanks @abidlabs!
+- [#10191](https://github.com/gradio-app/gradio/pull/10191) [`5ce2832`](https://github.com/gradio-app/gradio/commit/5ce28324971e974ae24dc9a229b2160793140fb2) - Support saving chat history in `gr.ChatInterface`.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10214](https://github.com/gradio-app/gradio/pull/10214) [`501adef`](https://github.com/gradio-app/gradio/commit/501adefd0c3d5769055ef2156c85e586eb60bf84) - Some agent low-hanging issues.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/gallery@0.14.1
+- @gradio/markdown-code@0.3.0
+- @gradio/upload@0.14.4
+- @gradio/client@1.9.0
+- @gradio/icons@0.9.0
+- @gradio/statustracker@0.10.0
+- @gradio/wasm@0.16.0
+- @gradio/plot@0.9.5
+- @gradio/image@0.20.0
+- @gradio/video@0.13.0
+
+## 0.19.0
+
+### Features
+
+- [#10149](https://github.com/gradio-app/gradio/pull/10149) [`9cd291b`](https://github.com/gradio-app/gradio/commit/9cd291b7f1c37ef0ffd3e8721fb2b648003b50fc) - Resizeable chatbot.  Thanks @aliabid94!
+- [#10098](https://github.com/gradio-app/gradio/pull/10098) [`9a6ce6f`](https://github.com/gradio-app/gradio/commit/9a6ce6f6b089d94c06da0b8620f28967f39f8383) - Refactor full screen logic to be reusable.  Thanks @hannahblair!
+- [#10111](https://github.com/gradio-app/gradio/pull/10111) [`3665e81`](https://github.com/gradio-app/gradio/commit/3665e81b53555e2b499b877208686f3027eaceb4) - Allow Chatbot examples to show more than one image.  Thanks @hannahblair!
+- [#10132](https://github.com/gradio-app/gradio/pull/10132) [`6645518`](https://github.com/gradio-app/gradio/commit/6645518a66e01ebcd2746626a4e2a14239172e76) - Tweak Chatbot `bubble_full_width` behaviour.  Thanks @hannahblair!
+- [#10137](https://github.com/gradio-app/gradio/pull/10137) [`fe7a9db`](https://github.com/gradio-app/gradio/commit/fe7a9db659e009bb5ac0e4e9cb4ac0eab1f2c2f4) - Improve uploaded file UI in Chatbot.  Thanks @hannahblair!
+- [#10169](https://github.com/gradio-app/gradio/pull/10169) [`25484f4`](https://github.com/gradio-app/gradio/commit/25484f4bfbffdb18850cbd85d4468ea8324afe1a) - By default, consecutive messages are displayed in the same bubble. This is controlled by the new `display_consecutive_in_same_bubble` param of Chatbot.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#10129](https://github.com/gradio-app/gradio/pull/10129) [`2b55302`](https://github.com/gradio-app/gradio/commit/2b5530274af3936c82176f09db529168263acc2c) - Quick Fix: Fixes autoplay parameter for Audio/Video in Chatbot.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/video@0.12.1
+- @gradio/statustracker@0.9.7
+- @gradio/upload@0.14.3
+- @gradio/atoms@0.12.0
+- @gradio/image@0.19.0
+- @gradio/gallery@0.14.0
+- @gradio/plot@0.9.4
+
+## 0.18.0
+
+### Features
+
+- [#10099](https://github.com/gradio-app/gradio/pull/10099) [`8530b6e`](https://github.com/gradio-app/gradio/commit/8530b6e2f986421adceda98f972e6b843bc03fbe) - Redesign pending bubble in Chatbot.  Thanks @hannahblair!
+
+### Fixes
+
+- [#10123](https://github.com/gradio-app/gradio/pull/10123) [`36e9597`](https://github.com/gradio-app/gradio/commit/36e95977b068a96661f06b56c5f4e73ba8a94a38) - Fixes options in the streaming chatbot case.  Thanks @abidlabs!
+- [#10125](https://github.com/gradio-app/gradio/pull/10125) [`b02c8b7`](https://github.com/gradio-app/gradio/commit/b02c8b7d4f85dab21a9fbd782e459de7b56558ed) - Fix sharing on chatbot with spaces.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/gallery@0.13.10
+- @gradio/image@0.18.0
+- @gradio/video@0.12.0
+
+## 0.17.0
+
+### Features
+
+- [#9979](https://github.com/gradio-app/gradio/pull/9979) [`e7629f7`](https://github.com/gradio-app/gradio/commit/e7629f7eacdc2a8960fae7472669b60405a4a06c) - Adds copy event to `gr.Markdown`, `gr.Chatbot`, and `gr.Textbox`.  Thanks @abidlabs!
+- [#9989](https://github.com/gradio-app/gradio/pull/9989) [`369a44e`](https://github.com/gradio-app/gradio/commit/369a44e7f8c829b3c0e21830d3c2e92b89b4c243) - Add ability to provide preset response options in `gr.Chatbot` / `gr.ChatInterface`.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10055](https://github.com/gradio-app/gradio/pull/10055) [`5da6c1d`](https://github.com/gradio-app/gradio/commit/5da6c1da474cc5cfe2e6abfb242a3b1f3dcdfcb7) - Ensure chatbot messages are aligned correctly.  Thanks @hannahblair!
+- [#10056](https://github.com/gradio-app/gradio/pull/10056) [`e0ed480`](https://github.com/gradio-app/gradio/commit/e0ed480798b237cbf76a711d02a91100e7b6067e) - Remove duplicated share icon in gr.Chatbot.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/video@0.11.9
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+- @gradio/upload@0.14.2
+- @gradio/gallery@0.13.9
+- @gradio/plot@0.9.3
+- @gradio/image@0.17.0
+
+## 0.16.3
+
+### Fixes
+
+- [#9905](https://github.com/gradio-app/gradio/pull/9905) [`08f4b8b`](https://github.com/gradio-app/gradio/commit/08f4b8b000702456e04fac70961a4fbe0058f11c) - Add `allow_file_downloads` param to allow downloading image/video/audio media in chatbot.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/video@0.11.8
+- @gradio/atoms@0.11.1
+- @gradio/client@1.8.0
+- @gradio/utils@0.8.0
+- @gradio/upload@0.14.1
+- @gradio/statustracker@0.9.5
+- @gradio/gallery@0.13.8
+- @gradio/plot@0.9.2
+- @gradio/image@0.16.8
+
+## 0.16.2
+
+### Fixes
+
+- [#9826](https://github.com/gradio-app/gradio/pull/9826) [`69acfeb`](https://github.com/gradio-app/gradio/commit/69acfebffd0d3479a40352de19c8763863557428) - Make sure the Tool accordion is closed if it is not the last message.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/video@0.11.7
+- @gradio/statustracker@0.9.4
+- @gradio/atoms@0.11.0
+- @gradio/upload@0.14.0
+- @gradio/wasm@0.15.0
+- @gradio/image@0.16.7
+- @gradio/gallery@0.13.7
+- @gradio/plot@0.9.1
+
+## 0.16.1
+
+### Fixes
+
+- [#9769](https://github.com/gradio-app/gradio/pull/9769) [`3b9ed29`](https://github.com/gradio-app/gradio/commit/3b9ed299e9ffd7df834299cfcd547be0e844e1bb) - Fix avatar image placement in Chatbot.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/markdown-code@0.2.1
+- @gradio/video@0.11.6
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+- @gradio/client@1.7.1
+- @gradio/image@0.16.6
+- @gradio/upload@0.13.5
+- @gradio/plot@0.9.0
+- @gradio/gallery@0.13.6
+
+## 0.16.0
+
+### Features
+
+- [#9756](https://github.com/gradio-app/gradio/pull/9756) [`92f337c`](https://github.com/gradio-app/gradio/commit/92f337cc85d545060ea343f1cee85c22b85f6444) - Fix website build issue.  Thanks @aliabd!
+
+### Fixes
+
+- [#9653](https://github.com/gradio-app/gradio/pull/9653) [`61cd768`](https://github.com/gradio-app/gradio/commit/61cd768490a12f5d63101d5434092bcd1cfc43a8) - Ensures tabs with visible set to false are not visible.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/video@0.11.5
+- @gradio/statustracker@0.9.2
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+- @gradio/markdown-code@0.2.0
+- @gradio/upload@0.13.4
+- @gradio/plot@0.8.0
+- @gradio/gallery@0.13.5
+- @gradio/image@0.16.5
+
+## 0.15.2
+
+### Fixes
+
+- [#9730](https://github.com/gradio-app/gradio/pull/9730) [`39a0e8c`](https://github.com/gradio-app/gradio/commit/39a0e8c2fb038eb0afc213fa6290c9b2acee7941) - Fix chatbot component streaming bug and visible bug.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/markdown@0.10.3
+- @gradio/statustracker@0.9.1
+- @gradio/upload@0.13.3
+- @gradio/video@0.11.4
+- @gradio/atoms@0.9.2
+- @gradio/gallery@0.13.4
+- @gradio/plot@0.7.3
+- @gradio/image@0.16.4
+
+## 0.15.1
+
+### Dependency updates
+
+- @gradio/video@0.11.3
+- @gradio/markdown@0.10.2
+- @gradio/atoms@0.9.1
+- @gradio/statustracker@0.9.0
+- @gradio/client@1.7.0
+- @gradio/upload@0.13.2
+- @gradio/wasm@0.14.2
+- @gradio/gallery@0.13.3
+- @gradio/plot@0.7.2
+- @gradio/image@0.16.3
+
+## 0.15.0
+
+### Features
+
+- [#9660](https://github.com/gradio-app/gradio/pull/9660) [`3407b50`](https://github.com/gradio-app/gradio/commit/3407b505c706cd8e2bbe03603a5ff825f2d0a08a) - Chat Interface Functional test Fix + Chat Examples Center.  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#9676](https://github.com/gradio-app/gradio/pull/9676) [`fd0264f`](https://github.com/gradio-app/gradio/commit/fd0264f3358ef848690eceacb75481212dceecf0) - Fix Audio in Chatbot bug.  Thanks @freddyaboulton!
+
+## 0.14.2
+
+### Dependency updates
+
+- @gradio/upload@0.13.1
+- @gradio/image@0.16.2
+- @gradio/video@0.11.2
+- @gradio/wasm@0.14.1
+- @gradio/gallery@0.13.2
+
+## 0.14.1
+
+### Features
+
+- [#9617](https://github.com/gradio-app/gradio/pull/9617) [`c163182`](https://github.com/gradio-app/gradio/commit/c163182d1b752ef91629f9caa13bf3cce0fb0869) - Fix dark mode detection and container height.  Thanks @pngwn!
+- [#9623](https://github.com/gradio-app/gradio/pull/9623) [`5923c67`](https://github.com/gradio-app/gradio/commit/5923c679136cca68731393d5e4f3bd338e651f44) - Fix Chatbot Examples Error.  Thanks @freddyaboulton!
+- [#9614](https://github.com/gradio-app/gradio/pull/9614) [`5d98550`](https://github.com/gradio-app/gradio/commit/5d985509b4b71aa4aa6b28acc38fe83c278dbbfa) - Fix `retry` and `undo` reactivity in gr.Chatbot.  Thanks @hannahblair!
+- [#9619](https://github.com/gradio-app/gradio/pull/9619) [`1f3ee97`](https://github.com/gradio-app/gradio/commit/1f3ee97d10415bf7dfa693746517cf97897049b7) - Fix Functional Tests.  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#9630](https://github.com/gradio-app/gradio/pull/9630) [`2eaa066`](https://github.com/gradio-app/gradio/commit/2eaa0667e1d1a0edd1089bf8c3ffa3f563b9bca2) - Fix duplicate attribute error.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/video@0.11.1
+- @gradio/statustracker@0.8.1
+- @gradio/gallery@0.13.1
+- @gradio/markdown@0.10.1
+- @gradio/plot@0.7.1
+- @gradio/image@0.16.1
+
+## 0.14.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Small tweak to how thoughts are shown in `gr.Chatbot`
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Move buttons from chat_interface into Chatbot
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Disable liking user message in chatbot by default but make it configurable
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Chatbot Examples
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Move icons into `IconButtonWrapper`
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix chatinterface embedding height issues
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Chatbot bug fixes
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Chatbot autoscroll
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix markdown code copy/check button in gr.Chatbot
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - 9227 chatinterface retry bug
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Some more chatbot fixes
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fixes: Chatbot examples for custom chatbot + rename `suggestions` -> `examples`
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Standardize `height` across components and add `max_height` and `min_height` parameters where appropriate
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix `gr.Chatbot` panels layout
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Ssr part 2
+
+### Fixes
+
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Ensure undo/try shows for final bot message in gr.Chatbot
+
+### Dependencies
+
+- @gradio/atoms@0.9.0
+- @gradio/client@1.6.0
+- @gradio/gallery@0.13.0
+- @gradio/icons@0.8.0
+- @gradio/markdown@0.10.0
+- @gradio/plot@0.7.0
+- @gradio/statustracker@0.8.0
+- @gradio/theme@0.3.0
+- @gradio/upload@0.13.0
+- @gradio/utils@0.7.0
+- @gradio/wasm@0.14.0
+
+## 0.14.0-beta.9
+
+### Fixes
+
+- [#9600](https://github.com/gradio-app/gradio/pull/9600) [`9f71086`](https://github.com/gradio-app/gradio/commit/9f71086036339bfdd14f3aab29729041a01fc2d4) - Ensure undo/try shows for final bot message in gr.Chatbot.  Thanks @hannahblair!
+
+## 0.14.0-beta.8
+
+### Features
+
+- [#9593](https://github.com/gradio-app/gradio/pull/9593) [`cc61fe7`](https://github.com/gradio-app/gradio/commit/cc61fe7047ac61779a61cce52c666400b9517daa) - Some more chatbot fixes.  Thanks @dawoodkhan82!
+- [#9582](https://github.com/gradio-app/gradio/pull/9582) [`43a7f42`](https://github.com/gradio-app/gradio/commit/43a7f420d8ac34c7f7fa71d6e630a4c8618d3780) - Chatbot autoscroll.  Thanks @whitphx!
+- [#9598](https://github.com/gradio-app/gradio/pull/9598) [`ffc33fa`](https://github.com/gradio-app/gradio/commit/ffc33facaec1bcc92add5892afb86b7b5ba037d4) - Fix markdown code copy/check button in gr.Chatbot.  Thanks @hannahblair!
+- [#9499](https://github.com/gradio-app/gradio/pull/9499) [`17e6c84`](https://github.com/gradio-app/gradio/commit/17e6c84d6b11651cd03c1d47caec85de62030ea0) - Fix `gr.Chatbot` panels layout.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.7
+- @gradio/statustracker@0.8.0-beta.5
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+- @gradio/image@0.16.0-beta.7
+- @gradio/video@0.11.0-beta.7
+- @gradio/markdown@0.10.0-beta.5
+- @gradio/gallery@0.13.0-beta.7
+- @gradio/plot@0.7.0-beta.6
+
+## 0.14.0-beta.7
+
+### Features
+
+- [#9571](https://github.com/gradio-app/gradio/pull/9571) [`148345d`](https://github.com/gradio-app/gradio/commit/148345d107763754710505281ad70368ebc6f3ec) - Fix chatinterface embedding height issues.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.6
+- @gradio/statustracker@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.4
+- @gradio/client@1.6.0-beta.4
+- @gradio/upload@0.13.0-beta.6
+- @gradio/image@0.16.0-beta.6
+- @gradio/gallery@0.13.0-beta.6
+- @gradio/markdown@0.10.0-beta.4
+- @gradio/plot@0.7.0-beta.5
+
+## 0.14.0-beta.6
+
+### Features
+
+- [#9488](https://github.com/gradio-app/gradio/pull/9488) [`4e6a47f`](https://github.com/gradio-app/gradio/commit/4e6a47f5a29cb885d5bc01a79ca4cc45d298f0b1) - Fixes: Chatbot examples for custom chatbot + rename `suggestions` -> `examples`.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.5
+- @gradio/statustracker@0.8.0-beta.3
+- @gradio/video@0.11.0-beta.5
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+- @gradio/markdown@0.10.0-beta.3
+- @gradio/gallery@0.13.0-beta.5
+- @gradio/plot@0.7.0-beta.4
+- @gradio/image@0.16.0-beta.5
+
+## 0.14.0-beta.5
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/upload@0.13.0-beta.4
+- @gradio/markdown@0.10.0-beta.2
+- @gradio/image@0.16.0-beta.4
+- @gradio/video@0.11.0-beta.4
+- @gradio/wasm@0.14.0-beta.3
+- @gradio/plot@0.7.0-beta.3
+- @gradio/gallery@0.13.0-beta.4
+
+## 0.14.0-beta.4
+
+### Features
+
+- [#9453](https://github.com/gradio-app/gradio/pull/9453) [`56dbf77`](https://github.com/gradio-app/gradio/commit/56dbf77671012015efd3c745bc33e5074ab7158f) - Chatbot bug fixes.  Thanks @dawoodkhan82!
+
+## 0.14.0-beta.3
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.3
+- @gradio/video@0.11.0-beta.3
+- @gradio/client@1.6.0-beta.3
+- @gradio/gallery@0.13.0-beta.3
+- @gradio/image@0.16.0-beta.3
+
+## 0.14.0-beta.2
+
+### Features
+
+- [#9359](https://github.com/gradio-app/gradio/pull/9359) [`50c3a7f`](https://github.com/gradio-app/gradio/commit/50c3a7f1541f632853a96f3d979ebeef6ad82869) - Small tweak to how thoughts are shown in `gr.Chatbot`.  Thanks @abidlabs!
+- [#9323](https://github.com/gradio-app/gradio/pull/9323) [`06babda`](https://github.com/gradio-app/gradio/commit/06babda0395fd3fbd323c1c3cb33704ecfd6deb0) - Disable liking user message in chatbot by default but make it configurable.  Thanks @freddyaboulton!
+- [#8966](https://github.com/gradio-app/gradio/pull/8966) [`8e52b6a`](https://github.com/gradio-app/gradio/commit/8e52b6a3e75957462bc7fdbf6ff9c280084d5f08) - Chatbot Examples.  Thanks @dawoodkhan82!
+- [#9261](https://github.com/gradio-app/gradio/pull/9261) [`73647a0`](https://github.com/gradio-app/gradio/commit/73647a07b0439efabe3dd218ff6c366ffa3b84a0) - Move icons into `IconButtonWrapper`.  Thanks @hannahblair!
+- [#9316](https://github.com/gradio-app/gradio/pull/9316) [`4338f29`](https://github.com/gradio-app/gradio/commit/4338f29bce2430d765f20070d1823ecc19d940cb) - 9227 chatinterface retry bug.  Thanks @freddyaboulton!
+- [#9313](https://github.com/gradio-app/gradio/pull/9313) [`1fef9d9`](https://github.com/gradio-app/gradio/commit/1fef9d9a26f0ebce4de18c486702661f6539b1c6) - Standardize `height` across components and add `max_height` and `min_height` parameters where appropriate.  Thanks @abidlabs!
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/gallery@0.13.0-beta.2
+- @gradio/upload@0.13.0-beta.2
+- @gradio/wasm@0.14.0-beta.2
+- @gradio/markdown@0.10.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+- @gradio/plot@0.6.5-beta.2
+- @gradio/image@0.16.0-beta.2
+- @gradio/video@0.11.0-beta.2
+
+## 0.14.0-beta.1
+
+### Features
+
+- [#9201](https://github.com/gradio-app/gradio/pull/9201) [`5492e74`](https://github.com/gradio-app/gradio/commit/5492e742b1f1fa618208cce523f50ad22a6e86f1) - Move buttons from chat_interface into Chatbot.  Thanks @freddyaboulton!
+- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.1
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/client@1.6.0-beta.1
+- @gradio/image@0.16.0-beta.1
+- @gradio/upload@0.12.4-beta.1
+- @gradio/markdown@0.9.4-beta.1
+- @gradio/wasm@0.13.1-beta.1
+- @gradio/theme@0.3.0-beta.1
+- @gradio/gallery@0.13.0-beta.1
+- @gradio/plot@0.6.5-beta.1
+
 ## 0.13.1
 
 ### Features

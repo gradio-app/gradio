@@ -1,5 +1,232 @@
 # @gradio/fileexplorer
 
+## 0.5.12
+
+### Dependency updates
+
+- @gradio/atoms@0.13.1
+- @gradio/statustracker@0.10.1
+- @gradio/client@1.10.0
+- @gradio/icons@0.10.0
+- @gradio/upload@0.14.5
+- @gradio/file@0.12.1
+- @gradio/checkbox@0.4.11
+
+## 0.5.11
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/upload@0.14.4
+- @gradio/client@1.9.0
+- @gradio/icons@0.9.0
+- @gradio/statustracker@0.10.0
+- @gradio/file@0.12.0
+- @gradio/checkbox@0.4.10
+
+## 0.5.10
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.7
+- @gradio/upload@0.14.3
+- @gradio/atoms@0.12.0
+- @gradio/file@0.11.3
+- @gradio/checkbox@0.4.9
+
+## 0.5.9
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+- @gradio/upload@0.14.2
+- @gradio/file@0.11.2
+- @gradio/checkbox@0.4.8
+
+## 0.5.8
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/client@1.8.0
+- @gradio/utils@0.8.0
+- @gradio/upload@0.14.1
+- @gradio/statustracker@0.9.5
+- @gradio/file@0.11.1
+- @gradio/checkbox@0.4.7
+
+## 0.5.7
+
+### Fixes
+
+- [#9835](https://github.com/gradio-app/gradio/pull/9835) [`4d90883`](https://github.com/gradio-app/gradio/commit/4d9088354df528c8edf981f3e756d8927d3e8805) - Allows selection of directories in File Explorer.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.4
+- @gradio/atoms@0.11.0
+- @gradio/file@0.11.0
+- @gradio/upload@0.14.0
+- @gradio/checkbox@0.4.6
+
+## 0.5.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+- @gradio/client@1.7.1
+- @gradio/upload@0.13.5
+- @gradio/checkbox@0.4.5
+- @gradio/file@0.10.6
+
+## 0.5.5
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.2
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+- @gradio/upload@0.13.4
+- @gradio/file@0.10.5
+- @gradio/checkbox@0.4.4
+
+## 0.5.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.1
+- @gradio/upload@0.13.3
+- @gradio/atoms@0.9.2
+- @gradio/checkbox@0.4.3
+- @gradio/file@0.10.4
+
+## 0.5.3
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+- @gradio/statustracker@0.9.0
+- @gradio/client@1.7.0
+- @gradio/upload@0.13.2
+- @gradio/file@0.10.3
+- @gradio/checkbox@0.4.2
+
+## 0.5.2
+
+### Dependency updates
+
+- @gradio/file@0.10.2
+- @gradio/upload@0.13.1
+
+## 0.5.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+- @gradio/checkbox@0.4.1
+- @gradio/file@0.10.1
+
+## 0.5.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Standardize `height` across components and add `max_height` and `min_height` parameters where appropriate
+
+### Dependencies
+
+- @gradio/atoms@0.9.0
+- @gradio/checkbox@0.4.0
+- @gradio/client@1.6.0
+- @gradio/file@0.10.0
+- @gradio/icons@0.8.0
+- @gradio/statustracker@0.8.0
+- @gradio/upload@0.13.0
+- @gradio/utils@0.7.0
+
+## 0.5.0-beta.7
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.7
+- @gradio/statustracker@0.8.0-beta.5
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+- @gradio/checkbox@0.4.0-beta.5
+- @gradio/file@0.10.0-beta.7
+
+## 0.5.0-beta.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.4
+- @gradio/client@1.6.0-beta.4
+- @gradio/upload@0.13.0-beta.6
+- @gradio/checkbox@0.4.0-beta.4
+- @gradio/file@0.10.0-beta.6
+
+## 0.5.0-beta.5
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.5
+- @gradio/statustracker@0.8.0-beta.3
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+- @gradio/file@0.10.0-beta.5
+- @gradio/checkbox@0.4.0-beta.3
+
+## 0.5.0-beta.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/upload@0.13.0-beta.4
+- @gradio/checkbox@0.4.0-beta.2
+- @gradio/file@0.10.0-beta.4
+
+## 0.5.0-beta.3
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.3
+- @gradio/client@1.6.0-beta.3
+- @gradio/file@0.10.0-beta.3
+
+## 0.5.0-beta.2
+
+### Features
+
+- [#9313](https://github.com/gradio-app/gradio/pull/9313) [`1fef9d9`](https://github.com/gradio-app/gradio/commit/1fef9d9a26f0ebce4de18c486702661f6539b1c6) - Standardize `height` across components and add `max_height` and `min_height` parameters where appropriate.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/upload@0.13.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+- @gradio/file@0.10.0-beta.2
+- @gradio/checkbox@0.4.0-beta.2
+
+## 0.4.19-beta.1
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/client@1.6.0-beta.1
+- @gradio/upload@0.12.4-beta.1
+- @gradio/file@0.9.4-beta.1
+- @gradio/checkbox@0.4.0-beta.1
+
 ## 0.4.19
 
 ### Fixes

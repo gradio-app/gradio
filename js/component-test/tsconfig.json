@@ -10,7 +10,11 @@
 		"sourceMap": true,
 		"strict": true,
 		"typeRoots": ["node_modules/@types", "./app.d.ts"],
-		"outDir": "./.svelte-kit"
+		"outDir": "./.svelte-kit",
+		"moduleResolution": "bundler",
+		"module": "esnext",
+		"target": "es2022",
+		"customConditions": ["gradio"]
 	}
 	// Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
 	//

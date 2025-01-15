@@ -41,7 +41,7 @@ export async function view_api(this: Client): Promise<any> {
 					credentials: "include"
 				});
 			} else {
-				const url = join_urls(config.root, API_INFO_URL);
+				const url = join_urls(config.root, this.api_prefix, API_INFO_URL);
 				response = await this.fetch(url, {
 					headers,
 					credentials: "include"

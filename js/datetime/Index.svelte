@@ -5,7 +5,7 @@
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
 	import { Block, BlockTitle } from "@gradio/atoms";
-	import { Back, Calendar } from "@gradio/icons";
+	import { Calendar } from "@gradio/icons";
 
 	export let gradio: Gradio<{
 		change: undefined;
@@ -14,6 +14,8 @@
 	export let label = "Time";
 	export let show_label = true;
 	export let info: string | undefined = undefined;
+	export let interactive: boolean;
+	$: disabled = !interactive;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -21,6 +23,7 @@
 	let old_value = value;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let root: string;
 
 	export let include_time = true;
 	$: if (value !== old_value) {
@@ -53,8 +56,8 @@
 	let datetime: HTMLInputElement;
 	let datevalue = value;
 
-	const date_is_valid_format = (date: string): boolean => {
-		if (date === "") return false;
+	const date_is_valid_format = (date: string | null): boolean => {
+		if (date === null || date === "") return true;
 		const valid_regex = include_time
 			? /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
 			: /^\d{4}-\d{2}-\d{2}$/;
@@ -84,7 +87,7 @@
 	padding={true}
 >
 	<div class="label-content">
-		<BlockTitle {show_label} {info}>{label}</BlockTitle>
+		<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 	</div>
 	<div class="timebox">
 		<input
@@ -98,6 +101,7 @@
 				}
 			}}
 			on:blur={submit_values}
+			{disabled}
 		/>
 		{#if include_time}
 			<input
@@ -111,6 +115,7 @@
 					entered_value = format_date(date);
 					submit_values();
 				}}
+				{disabled}
 			/>
 		{:else}
 			<input
@@ -120,19 +125,23 @@
 				bind:this={datetime}
 				bind:value={datevalue}
 				on:input={() => {
-					const date = new Date(datevalue);
+					const date = new Date(datevalue + "T00:00:00");
 					entered_value = format_date(date);
 					submit_values();
 				}}
+				{disabled}
 			/>
 		{/if}
 
-		<button
-			class="calendar"
-			on:click={() => {
-				datetime.showPicker();
-			}}><Calendar></Calendar></button
-		>
+		{#if interactive}
+			<button
+				class="calendar"
+				{disabled}
+				on:click={() => {
+					datetime.showPicker();
+				}}><Calendar></Calendar></button
+			>
+		{/if}
 	</div>
 </Block>
 
@@ -178,6 +187,11 @@
 		border-bottom-left-radius: var(--input-radius);
 		box-shadow: var(--input-shadow);
 	}
+	.time:disabled {
+		border-right: var(--input-border-width) solid var(--input-border-color);
+		border-top-right-radius: var(--input-radius);
+		border-bottom-right-radius: var(--input-radius);
+	}
 	.time.invalid {
 		color: var(--body-text-color-subdued);
 	}
@@ -186,7 +200,7 @@
 		justify-content: center;
 		align-items: center;
 		transition: var(--button-transition);
-		box-shadow: var(--button-shadow);
+		box-shadow: var(--button-primary-shadow);
 		text-align: center;
 		background: var(--button-secondary-background-fill);
 		color: var(--button-secondary-text-color);
@@ -199,9 +213,10 @@
 	}
 	.calendar:hover {
 		background: var(--button-secondary-background-fill-hover);
+		box-shadow: var(--button-primary-shadow-hover);
 	}
 	.calendar:active {
-		box-shadow: var(--button-shadow-active);
+		box-shadow: var(--button-primary-shadow-active);
 	}
 	.datetime {
 		width: 0px;

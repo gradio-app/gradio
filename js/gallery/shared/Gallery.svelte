@@ -1,30 +1,31 @@
 <script lang="ts">
-	import { BlockLabel, Empty, ShareButton } from "@gradio/atoms";
+	import {
+		BlockLabel,
+		Empty,
+		ShareButton,
+		IconButton,
+		IconButtonWrapper,
+		FullscreenButton
+	} from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
 	import { Image } from "@gradio/image/shared";
+	import { Video } from "@gradio/video/shared";
 	import { dequal } from "dequal";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { tick } from "svelte";
+	import type { GalleryImage, GalleryVideo } from "../types";
 
-	import {
-		Download,
-		Image as ImageIcon,
-		Maximize,
-		Minimize,
-		Clear
-	} from "@gradio/icons";
+	import { Download, Image as ImageIcon, Clear, Play } from "@gradio/icons";
 	import { FileData } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
-	import { IconButton } from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";
 
-	type GalleryImage = { image: FileData; caption: string | null };
-	type GalleryData = GalleryImage[];
+	type GalleryData = GalleryImage | GalleryVideo;
 
 	export let show_label = true;
 	export let label: string;
-	export let value: GalleryData | null = null;
+	export let value: GalleryData[] | null = null;
 	export let columns: number | number[] | undefined = [2];
 	export let rows: number | number[] | undefined = undefined;
 	export let height: number | "auto" = "auto";
@@ -40,13 +41,16 @@
 	export let _fetch: typeof fetch;
 	export let mode: "normal" | "minimal" = "normal";
 	export let show_fullscreen_button = true;
+	export let display_icon_button_wrapper_top_corner = false;
 
 	let is_full_screen = false;
-	let gallery_container: HTMLElement;
+	let image_container: HTMLElement;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		select: SelectData;
+		preview_open: undefined;
+		preview_close: undefined;
 	}>();
 
 	// tracks whether the value of the gallery was reset
@@ -54,16 +58,24 @@
 
 	$: was_reset = value == null || value.length === 0 ? true : was_reset;
 
-	let resolved_value: GalleryData | null = null;
+	let resolved_value: GalleryData[] | null = null;
+
 	$: resolved_value =
 		value == null
 			? null
-			: value.map((data) => ({
-					image: data.image as FileData,
-					caption: data.caption
-				}));
+			: (value.map((data) => {
+					if ("video" in data) {
+						return {
+							video: data.video as FileData,
+							caption: data.caption
+						};
+					} else if ("image" in data) {
+						return { image: data.image as FileData, caption: data.caption };
+					}
+					return {};
+				}) as GalleryData[]);
 
-	let prev_value: GalleryData | null = value;
+	let prev_value: GalleryData[] | null = value;
 	if (selected_index == null && preview && value?.length) {
 		selected_index = 0;
 	}
@@ -201,7 +213,7 @@
 		URL.revokeObjectURL(url);
 	}
 
-	$: selected_image =
+	$: selected_media =
 		selected_index != null && resolved_value != null
 			? resolved_value[selected_index]
 			: null;
@@ -211,14 +223,6 @@
 			is_full_screen = !!document.fullscreenElement;
 		});
 	});
-
-	const toggle_full_screen = async (): Promise<void> => {
-		if (!is_full_screen) {
-			await gallery_container.requestFullscreen();
-		} else {
-			await document.exitFullscreen();
-		}
-	};
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
@@ -229,20 +233,25 @@
 {#if value == null || resolved_value == null || resolved_value.length === 0}
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
-	<div class="gallery-container" bind:this={gallery_container}>
-		{#if selected_image && allow_preview}
+	<div class="gallery-container" bind:this={image_container}>
+		{#if selected_media && allow_preview}
 			<button
 				on:keydown={on_keydown}
 				class="preview"
 				class:minimal={mode === "minimal"}
 			>
-				<div class="icon-buttons">
+				<IconButtonWrapper
+					display_top_corner={display_icon_button_wrapper_top_corner}
+				>
 					{#if show_download_button}
 						<IconButton
 							Icon={Download}
 							label={i18n("common.download")}
 							on:click={() => {
-								const image = selected_image?.image;
+								const image =
+									"image" in selected_media
+										? selected_media?.image
+										: selected_media?.video;
 								if (image == null) {
 									return;
 								}
@@ -254,52 +263,67 @@
 						/>
 					{/if}
 
-					{#if show_fullscreen_button && !is_full_screen}
-						<IconButton
-							Icon={is_full_screen ? Minimize : Maximize}
-							label={is_full_screen
-								? "Exit full screen"
-								: "View in full screen"}
-							on:click={toggle_full_screen}
-						/>
+					{#if show_fullscreen_button}
+						<FullscreenButton container={image_container} />
 					{/if}
 
-					{#if show_fullscreen_button && is_full_screen}
-						<IconButton
-							Icon={Minimize}
-							label="Exit full screen"
-							on:click={toggle_full_screen}
-						/>
+					{#if show_share_button}
+						<div class="icon-button">
+							<ShareButton
+								{i18n}
+								on:share
+								on:error
+								value={resolved_value}
+								formatter={format_gallery_for_sharing}
+							/>
+						</div>
 					{/if}
-
 					{#if !is_full_screen}
 						<IconButton
 							Icon={Clear}
 							label="Close"
-							on:click={() => (selected_index = null)}
+							on:click={() => {
+								selected_index = null;
+								dispatch("preview_close");
+							}}
 						/>
 					{/if}
-				</div>
+				</IconButtonWrapper>
 				<button
-					class="image-button"
-					on:click={(event) => handle_preview_click(event)}
-					style="height: calc(100% - {selected_image.caption
+					class="media-button"
+					on:click={"image" in selected_media
+						? (event) => handle_preview_click(event)
+						: null}
+					style="height: calc(100% - {selected_media.caption
 						? '80px'
 						: '60px'})"
 					aria-label="detailed view of selected image"
 				>
-					<Image
-						data-testid="detailed-image"
-						src={selected_image.image.url}
-						alt={selected_image.caption || ""}
-						title={selected_image.caption || null}
-						class={selected_image.caption && "with-caption"}
-						loading="lazy"
-					/>
+					{#if "image" in selected_media}
+						<Image
+							data-testid="detailed-image"
+							src={selected_media.image.url}
+							alt={selected_media.caption || ""}
+							title={selected_media.caption || null}
+							class={selected_media.caption && "with-caption"}
+							loading="lazy"
+						/>
+					{:else}
+						<Video
+							src={selected_media.video.url}
+							data-testid={"detailed-video"}
+							alt={selected_media.caption || ""}
+							loading="lazy"
+							loop={false}
+							is_stream={false}
+							muted={false}
+							controls={true}
+						/>
+					{/if}
 				</button>
-				{#if selected_image?.caption}
+				{#if selected_media?.caption}
 					<caption class="caption">
-						{selected_image.caption}
+						{selected_media.caption}
 					</caption>
 				{/if}
 				<div
@@ -307,7 +331,7 @@
 					class="thumbnails scroll-hide"
 					data-testid="container_el"
 				>
-					{#each resolved_value as image, i}
+					{#each resolved_value as media, i}
 						<button
 							bind:this={el[i]}
 							on:click={() => (selected_index = i)}
@@ -318,13 +342,26 @@
 								" of " +
 								resolved_value.length}
 						>
-							<Image
-								src={image.image.url}
-								title={image.caption || null}
-								data-testid={"thumbnail " + (i + 1)}
-								alt=""
-								loading="lazy"
-							/>
+							{#if "image" in media}
+								<Image
+									src={media.image.url}
+									title={media.caption || null}
+									data-testid={"thumbnail " + (i + 1)}
+									alt=""
+									loading="lazy"
+								/>
+							{:else}
+								<Play />
+								<Video
+									src={media.video.url}
+									title={media.caption || null}
+									is_stream={false}
+									data-testid={"thumbnail " + (i + 1)}
+									alt=""
+									loading="lazy"
+									loop={false}
+								/>
+							{/if}
 						</button>
 					{/each}
 				</div>
@@ -337,45 +374,46 @@
 			class:fixed-height={mode !== "minimal" && (!height || height == "auto")}
 			class:hidden={is_full_screen}
 		>
+			{#if interactive && selected_index === null}
+				<ModifyUpload {i18n} on:clear={() => (value = [])} />
+			{/if}
 			<div
 				class="grid-container"
 				style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
 				class:pt-6={show_label}
 			>
-				{#if interactive}
-					<div class="icon-button">
-						<ModifyUpload
-							{i18n}
-							absolute={false}
-							on:clear={() => (value = null)}
-						/>
-					</div>
-				{/if}
-				{#if show_share_button}
-					<div class="icon-button">
-						<ShareButton
-							{i18n}
-							on:share
-							on:error
-							value={resolved_value}
-							formatter={format_gallery_for_sharing}
-						/>
-					</div>
-				{/if}
 				{#each resolved_value as entry, i}
 					<button
 						class="thumbnail-item thumbnail-lg"
 						class:selected={selected_index === i}
-						on:click={() => (selected_index = i)}
+						on:click={() => {
+							if (selected_index === null && allow_preview) {
+								dispatch("preview_open");
+							}
+							selected_index = i;
+						}}
 						aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
 					>
-						<Image
-							alt={entry.caption || ""}
-							src={typeof entry.image === "string"
-								? entry.image
-								: entry.image.url}
-							loading="lazy"
-						/>
+						{#if "image" in entry}
+							<Image
+								alt={entry.caption || ""}
+								src={typeof entry.image === "string"
+									? entry.image
+									: entry.image.url}
+								loading="lazy"
+							/>
+						{:else}
+							<Play />
+							<Video
+								src={entry.video.url}
+								title={entry.caption || null}
+								is_stream={false}
+								data-testid={"thumbnail " + (i + 1)}
+								alt=""
+								loading="lazy"
+								loop={false}
+							/>
+						{/if}
 						{#if entry.caption}
 							<div class="caption-label">
 								{entry.caption}
@@ -440,12 +478,13 @@
 		}
 	}
 
-	.image-button {
+	.media-button {
 		height: calc(100% - 60px);
 		width: 100%;
 		display: flex;
 	}
-	.image-button :global(img) {
+	.media-button :global(img),
+	.media-button :global(video) {
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: contain;
@@ -454,6 +493,14 @@
 		object-fit: cover;
 		width: var(--size-full);
 		height: var(--size-full);
+	}
+	.thumbnails :global(svg) {
+		position: absolute;
+		top: var(--size-2);
+		left: var(--size-2);
+		width: 50%;
+		height: 50%;
+		opacity: 50%;
 	}
 	.preview :global(img.with-caption) {
 		height: var(--size-full);
@@ -516,6 +563,23 @@
 		border-color: var(--color-accent);
 	}
 
+	.thumbnail-item :global(svg) {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 50%;
+		height: 50%;
+		opacity: 50%;
+		transform: translate(-50%, -50%);
+	}
+
+	.thumbnail-item :global(video) {
+		width: var(--size-full);
+		height: var(--size-full);
+		overflow: hidden;
+		object-fit: cover;
+	}
+
 	.thumbnail-small {
 		flex: none;
 		transform: scale(0.9);
@@ -523,7 +587,6 @@
 		width: var(--size-9);
 		height: var(--size-9);
 	}
-
 	.thumbnail-small.selected {
 		--ring-color: var(--color-accent);
 		transform: scale(1);
@@ -580,22 +643,6 @@
 		text-align: left;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-	}
-
-	.icon-button {
-		position: absolute;
-		top: 0px;
-		right: 0px;
-		z-index: var(--layer-1);
-	}
-
-	.icon-buttons {
-		display: flex;
-		position: absolute;
-		right: 0;
-		gap: var(--size-1);
-		z-index: 1;
-		margin: var(--size-1);
 	}
 
 	.grid-wrap.minimal {

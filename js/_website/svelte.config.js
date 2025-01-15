@@ -122,14 +122,18 @@ const config = {
 				`/main/docs/js`,
 				`/main/docs/js/storybook`,
 				`/main/docs/js/`,
-				...Object.keys(redirects)
+				...Object.keys(redirects),
+				`/4.44.1/docs`,
+				`/4.44.1/guides`
 			],
 			handleMissingId: "warn"
 		},
 		files: {
 			lib: "src/lib"
 		},
-		adapter: adapter(),
+		adapter: adapter({
+			fallback: "404.html"
+		}),
 		paths: {
 			relative: false
 		}

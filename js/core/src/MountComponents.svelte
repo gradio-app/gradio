@@ -18,13 +18,15 @@
 	});
 </script>
 
-<Render
-	node={rootNode}
-	{root}
-	{target}
-	{theme_mode}
-	{version}
-	{autoscroll}
-	{max_file_size}
-	{client}
-/>
+{#if rootNode}
+	<Render
+		node={rootNode}
+		{root}
+		{target}
+		{theme_mode}
+		{version}
+		{autoscroll}
+		{max_file_size}
+		{client}
+	/>
+{/if}

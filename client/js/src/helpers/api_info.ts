@@ -15,7 +15,7 @@ import type {
 import { determine_protocol } from "./init_helpers";
 
 export const RE_SPACE_NAME = /^[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+$/;
-export const RE_SPACE_DOMAIN = /.*hf\.space\/{0,1}$/;
+export const RE_SPACE_DOMAIN = /.*hf\.space\/{0,1}.*$/;
 
 export async function process_endpoint(
 	app_reference: string,
@@ -58,7 +58,7 @@ export async function process_endpoint(
 			determine_protocol(_app_reference);
 
 		return {
-			space_id: host.replace(".hf.space", ""),
+			space_id: host.split("/")[0].replace(".hf.space", ""),
 			ws_protocol,
 			http_protocol,
 			host
@@ -181,6 +181,7 @@ export function get_type(
 	serializer: string,
 	signature_type: "return" | "parameter"
 ): string | undefined {
+	if (component === "Api") return type.type;
 	switch (type?.type) {
 		case "string":
 			return "string";
@@ -243,9 +244,11 @@ export function handle_message(
 		| "log"
 		| "none"
 		| "heartbeat"
+		| "streaming"
 		| "unexpected_error";
 	data?: any;
 	status?: Status;
+	original_msg?: string;
 } {
 	const queue = true;
 	switch (data.msg) {
@@ -313,9 +316,26 @@ export function handle_message(
 					stage: data.success ? "generating" : "error",
 					code: data.code,
 					progress_data: data.progress_data,
-					eta: data.average_duration
+					eta: data.average_duration,
+					changed_state_ids: data.success
+						? data.output.changed_state_ids
+						: undefined
 				},
 				data: data.success ? data.output : null
+			};
+		case "process_streaming":
+			return {
+				type: "streaming",
+				status: {
+					queue,
+					message: data.output.error,
+					stage: "streaming",
+					time_limit: data.time_limit,
+					code: data.code,
+					progress_data: data.progress_data,
+					eta: data.eta
+				},
+				data: data.output
 			};
 		case "process_completed":
 			if ("error" in data.output) {
@@ -323,6 +343,7 @@ export function handle_message(
 					type: "update",
 					status: {
 						queue,
+						title: data.output.title as string,
 						message: data.output.error as string,
 						visible: data.output.visible as boolean,
 						duration: data.output.duration as number,
@@ -358,7 +379,8 @@ export function handle_message(
 					position: 0,
 					success: data.success,
 					eta: data.eta
-				}
+				},
+				original_msg: "process_starts"
 			};
 	}
 

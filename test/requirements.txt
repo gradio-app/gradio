@@ -55,7 +55,7 @@ cycler==0.12.1
     # via matplotlib
 decorator==5.1.1
     # via ipython
-diffusers==0.26.3
+diffusers==0.30.3
     # via -r requirements.in
 dnspython==2.6.1
     # via email-validator
@@ -86,26 +86,18 @@ gradio-client==0.10.0
     # via gradio
 gradio-pdf==0.0.7
     # via -r requirements.in
-h11==0.12.0
+h11==0.14.0
     # via
     #   httpcore
     #   uvicorn
-httpcore==0.15.0
+httpcore==1.0.5
     # via httpx
-httpx==0.23.0
+httpx==0.28.1
     # via
     #   -r requirements.in
     #   gradio
     #   gradio-client
     #   respx
-huggingface-hub==0.21.4
-    # via
-    #   -r requirements.in
-    #   diffusers
-    #   gradio
-    #   gradio-client
-    #   tokenizers
-    #   transformers
 hypothesis==6.108.9
 idna==3.3
     # via

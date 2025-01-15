@@ -149,7 +149,9 @@ var ignore_list = [
   "tooltip",
   "upload",
   "utils",
-  "wasm"
+  "wasm",
+  "sanitize",
+  "markdown-code"
 ];
 function generate_component_imports() {
   const exports = readdirSync(join(__dirname, "..", "..")).map((dir) => {

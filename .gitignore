@@ -13,7 +13,6 @@ build/
 __tmp/*
 *.pyi
 !gradio/stubs/**/*.pyi
-py.typed
 .ipynb_checkpoints/
 .python-version
 =23.2
@@ -31,10 +30,10 @@ js/gradio-preview/test/*
 *.db
 *.sqlite3
 gradio/launches.json
-flagged/
-gradio_cached_examples/
-tmp.zip
 gradio/hash_seed.txt
+.gradio/
+
+tmp.zip
 
 # Tests
 .coverage
@@ -56,6 +55,9 @@ demo/annotatedimage_component/*.png
 demo/fake_diffusion_with_gif/*.gif
 demo/cancel_events/cancel_events_output_log.txt
 demo/unload_event_test/output_log.txt
+demo/stream_video_out/output_*.ts
+demo/stream_video_out/output_*.mp4
+demo/stream_audio_out/*.mp3
 
 # Etc
 .idea/*

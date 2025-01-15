@@ -16,7 +16,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { type I18nFormatter } from "@gradio/utils";
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
-
+	import { type CommandNode } from "./utils/commands";
 	import ImageEditor from "./ImageEditor.svelte";
 	import Layers from "./layers/Layers.svelte";
 	import { type Brush as IBrush } from "./tools/Brush.svelte";
@@ -44,14 +44,20 @@
 	export let transforms: "crop"[] = ["crop"];
 	export let layers: boolean;
 	export let accept_blobs: (a: any) => void;
-	export let status: "pending" | "complete" | "error" = "complete";
+	export let status:
+		| "pending"
+		| "complete"
+		| "error"
+		| "generating"
+		| "streaming" = "complete";
 	export let canvas_size: [number, number] | undefined;
 	export let realtime: boolean;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let dragging: boolean;
 	export let placeholder: string | undefined = undefined;
-	export let height = 400;
+	export let height = 450;
+	export let full_history: CommandNode | null = null;
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;
@@ -210,6 +216,7 @@
 	label={label || i18n("image.image")}
 />
 <ImageEditor
+	on:history
 	{canvas_size}
 	crop_size={Array.isArray(crop_size) ? crop_size : undefined}
 	bind:this={editor}
@@ -223,6 +230,7 @@
 	bind:bg
 	{sources}
 	crop_constraint={!!crop_constraint}
+	{full_history}
 >
 	<Tools {i18n}>
 		<Layers layer_files={value?.layers || null} enable_layers={layers} />
@@ -237,6 +245,7 @@
 			bind:bg
 			bind:active_mode
 			background_file={value?.background || value?.composite || null}
+			max_height={height}
 		></Sources>
 
 		{#if transforms.includes("crop")}

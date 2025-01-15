@@ -54,7 +54,7 @@
 	--text-lg: 16px;
 	--text-xl: 22px;
 	--text-xxl: 26px;
-	--font: "Source Sans Pro", "ui-sans-serif", "system-ui", sans-serif;
+	--font: "IBM Plex Sans", "ui-sans-serif", "system-ui", sans-serif;
 	--font-mono: "IBM Plex Mono", "ui-monospace", "Consolas", monospace;
 	--body-background-fill: var(--background-fill-primary);
 	--body-text-color: var(--neutral-800);
@@ -432,7 +432,7 @@
 	--text-lg: 16px;
 	--text-xl: 22px;
 	--text-xxl: 26px;
-	--font: "Source Sans Pro", "ui-sans-serif", "system-ui", sans-serif;
+	--font: "IBM Plex Sans", "ui-sans-serif", "system-ui", sans-serif;
 	--font-mono: "IBM Plex Mono", "ui-monospace", "Consolas", monospace;
 	--body-text-size: var(--text-md);
 	--body-text-weight: 400;

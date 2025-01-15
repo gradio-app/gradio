@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, Mapping, Sequence, TypedDict
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING, Literal, TypedDict
 
 from gradio_client.documentation import document
 
@@ -44,7 +45,7 @@ class ParamViewer(Component):
     ):
         """
         Parameters:
-            value: A dictionary of dictionaries. The key in the outer dictionary is the parameter name, while the inner dictionary has keys "type", "description", and "default" for each parameter.
+            value: A dictionary of dictionaries. The key in the outer dictionary is the parameter name, while the inner dictionary has keys "type", "description", and "default" for each parameter. Markdown links are supported in "description".
             language: The language to display the code in. One of "python" or "typescript".
             linkify: A list of strings to linkify. If any of these strings is found in the description, it will be rendered as a link.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.

@@ -7,7 +7,6 @@
 	import { onMount } from "svelte";
 
 	import type { TopLevelSpec as Spec } from "vega-lite";
-	import vegaEmbed from "vega-embed";
 	import type { View } from "vega";
 	import { LineChart as LabelIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
@@ -22,6 +21,7 @@
 	export let x: string;
 	export let y: string;
 	export let color: string | null = null;
+	export let root: string;
 	$: unique_colors =
 		color && value && value.datatypes[color] === "nominal"
 			? Array.from(new Set(_data.map((d) => d[color])))
@@ -44,8 +44,10 @@
 	export let y_lim: [number, number] | null = null;
 	export let x_label_angle: number | null = null;
 	export let y_label_angle: number | null = null;
+	export let x_axis_labels_visible = true;
 	export let caption: string | null = null;
 	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
+	export let tooltip: "axis" | "none" | "all" | string[] = "axis";
 	function reformat_sort(
 		_sort: typeof sort
 	):
@@ -71,7 +73,6 @@
 	}
 	$: _sort = reformat_sort(sort);
 	export let _selectable = false;
-	export let target: HTMLDivElement;
 	let _data: {
 		[x: string]: string | number;
 	}[];
@@ -114,6 +115,15 @@
 	function reformat_data(data: PlotData): {
 		[x: string]: string | number;
 	}[] {
+		if (tooltip == "all" || Array.isArray(tooltip)) {
+			return data.data.map((row) => {
+				const obj: { [x: string]: string | number } = {};
+				data.columns.forEach((col, i) => {
+					obj[col] = row[i];
+				});
+				return obj;
+			});
+		}
 		let x_index = data.columns.indexOf(x);
 		let y_index = data.columns.indexOf(y);
 		let color_index = color ? data.columns.indexOf(color) : null;
@@ -132,14 +142,16 @@
 
 	const is_browser = typeof window !== "undefined";
 	let chart_element: HTMLDivElement;
-	$: computed_style =
-		target && is_browser ? window.getComputedStyle(target) : null;
+	$: computed_style = chart_element
+		? window.getComputedStyle(chart_element)
+		: null;
 	let view: View;
 	let mounted = false;
 	let old_width: number;
 	let resizeObserver: ResizeObserver;
 
-	function load_chart(): void {
+	let vegaEmbed: typeof import("vega-embed").default;
+	async function load_chart(): Promise<void> {
 		if (view) {
 			view.finalize();
 		}
@@ -160,6 +172,10 @@
 				view.signal("width", el[0].target.offsetWidth).run();
 			}
 		});
+
+		if (!vegaEmbed) {
+			vegaEmbed = (await import("vega-embed")).default;
+		}
 		vegaEmbed(chart_element, spec, { actions: false }).then(function (result) {
 			view = result.view;
 
@@ -362,7 +378,11 @@
 											value: 0
 										},
 							x: {
-								axis: x_label_angle ? { labelAngle: x_label_angle } : {},
+								axis: {
+									...(x_label_angle !== null && { labelAngle: x_label_angle }),
+									labels: x_axis_labels_visible,
+									ticks: x_axis_labels_visible
+								},
 								field: x,
 								title: x_title || x,
 								type: value.datatypes[x],
@@ -401,29 +421,46 @@
 										type: value.datatypes[color]
 									}
 								: undefined,
-							tooltip: [
-								{
-									field: y,
-									type: value.datatypes[y],
-									aggregate: aggregating ? _y_aggregate : undefined,
-									title: y_title || y
-								},
-								{
-									field: x,
-									type: value.datatypes[x],
-									title: x_title || x,
-									format: x_temporal ? "%Y-%m-%d %H:%M:%S" : undefined,
-									bin: _x_bin ? { step: _x_bin } : undefined
-								},
-								...(color
-									? [
+							tooltip:
+								tooltip == "none"
+									? undefined
+									: [
 											{
-												field: color,
-												type: value.datatypes[color]
-											}
+												field: y,
+												type: value.datatypes[y],
+												aggregate: aggregating ? _y_aggregate : undefined,
+												title: y_title || y
+											},
+											{
+												field: x,
+												type: value.datatypes[x],
+												title: x_title || x,
+												format: x_temporal ? "%Y-%m-%d %H:%M:%S" : undefined,
+												bin: _x_bin ? { step: _x_bin } : undefined
+											},
+											...(color
+												? [
+														{
+															field: color,
+															type: value.datatypes[color]
+														}
+													]
+												: []),
+											...(tooltip === "axis"
+												? []
+												: value?.columns
+														.filter(
+															(col) =>
+																col !== x &&
+																col !== y &&
+																col !== color &&
+																(tooltip === "all" || tooltip.includes(col))
+														)
+														.map((column) => ({
+															field: column,
+															type: value.datatypes[column]
+														})))
 										]
-									: [])
-							]
 						},
 						strokeDash: {},
 						mark: { clip: true, type: mode === "hover" ? "point" : value.mark },
@@ -507,7 +544,7 @@
 			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 	{/if}
-	<BlockTitle {show_label} info={undefined}>{label}</BlockTitle>
+	<BlockTitle {root} {show_label} info={undefined}>{label}</BlockTitle>
 	{#if value && is_browser}
 		<div bind:this={chart_element}></div>
 

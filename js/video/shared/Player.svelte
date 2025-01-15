@@ -6,6 +6,7 @@
 	import type { FileData, Client } from "@gradio/client";
 	import { prepare_files } from "@gradio/client";
 	import { format_time } from "@gradio/utils";
+	import type { I18nFormatter } from "@gradio/utils";
 
 	export let root = "";
 	export let src: string;
@@ -18,12 +19,19 @@
 	export let handle_change: (video: FileData) => void = () => {};
 	export let handle_reset_value: () => void = () => {};
 	export let upload: Client["upload"];
+	export let is_stream: boolean | undefined;
+	export let i18n: I18nFormatter;
+	export let show_download_button = false;
+	export let value: FileData | null = null;
+	export let handle_clear: () => void = () => {};
+	export let has_change_history = false;
 
 	const dispatch = createEventDispatcher<{
 		play: undefined;
 		pause: undefined;
 		stop: undefined;
 		end: undefined;
+		clear: undefined;
 	}>();
 
 	let time = 0;
@@ -89,6 +97,9 @@
 	function open_full_screen(): void {
 		video.requestFullscreen();
 	}
+
+	$: time = time || 0;
+	$: duration = duration || 0;
 </script>
 
 <div class="wrap">
@@ -98,6 +109,7 @@
 			preload="auto"
 			{autoplay}
 			{loop}
+			{is_stream}
 			on:click={play_pause}
 			on:play
 			on:pause
@@ -108,7 +120,9 @@
 			bind:node={video}
 			data-testid={`${label}-player`}
 			{processingVideo}
-			on:load
+			on:loadstart
+			on:loadeddata
+			on:loadedmetadata
 		>
 			<track kind="captions" src={subtitle} default />
 		</Video>
@@ -165,6 +179,11 @@
 		{handle_trim_video}
 		{handle_reset_value}
 		bind:processingVideo
+		{value}
+		{i18n}
+		{show_download_button}
+		{handle_clear}
+		{has_change_history}
 	/>
 {/if}
 

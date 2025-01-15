@@ -1,5 +1,247 @@
 # @gradio/video
 
+## 0.13.1
+
+### Dependency updates
+
+- @gradio/atoms@0.13.1
+- @gradio/statustracker@0.10.1
+- @gradio/client@1.10.0
+- @gradio/icons@0.10.0
+- @gradio/upload@0.14.5
+- @gradio/image@0.20.1
+
+## 0.13.0
+
+### Features
+
+- [#10192](https://github.com/gradio-app/gradio/pull/10192) [`4fc7fb7`](https://github.com/gradio-app/gradio/commit/4fc7fb777c42af537e4af612423fa44029657d41) - Ensure components can be remounted with their previous data.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/upload@0.14.4
+- @gradio/client@1.9.0
+- @gradio/icons@0.9.0
+- @gradio/statustracker@0.10.0
+- @gradio/wasm@0.16.0
+- @gradio/image@0.20.0
+
+## 0.12.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.7
+- @gradio/upload@0.14.3
+- @gradio/atoms@0.12.0
+- @gradio/image@0.19.0
+
+## 0.12.0
+
+### Features
+
+- [#10032](https://github.com/gradio-app/gradio/pull/10032) [`e450674`](https://github.com/gradio-app/gradio/commit/e450674ce41ca28f1f37a27fb149c728593a6ddf) - add  `webcam_height` and `webcam_width` to specify the resolution of the Webcam.  Thanks @yinsumirage!
+
+### Dependency updates
+
+- @gradio/image@0.18.0
+
+## 0.11.9
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+- @gradio/upload@0.14.2
+- @gradio/image@0.17.0
+
+## 0.11.8
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/client@1.8.0
+- @gradio/utils@0.8.0
+- @gradio/upload@0.14.1
+- @gradio/statustracker@0.9.5
+- @gradio/image@0.16.8
+
+## 0.11.7
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.4
+- @gradio/atoms@0.11.0
+- @gradio/upload@0.14.0
+- @gradio/wasm@0.15.0
+- @gradio/image@0.16.7
+
+## 0.11.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+- @gradio/client@1.7.1
+- @gradio/image@0.16.6
+- @gradio/upload@0.13.5
+
+## 0.11.5
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.2
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+- @gradio/upload@0.13.4
+- @gradio/image@0.16.5
+
+## 0.11.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.1
+- @gradio/upload@0.13.3
+- @gradio/atoms@0.9.2
+- @gradio/image@0.16.4
+
+## 0.11.3
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+- @gradio/statustracker@0.9.0
+- @gradio/client@1.7.0
+- @gradio/upload@0.13.2
+- @gradio/wasm@0.14.2
+- @gradio/image@0.16.3
+
+## 0.11.2
+
+### Dependency updates
+
+- @gradio/upload@0.13.1
+- @gradio/image@0.16.2
+- @gradio/wasm@0.14.1
+
+## 0.11.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+- @gradio/image@0.16.1
+
+## 0.11.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Improve Icon Button consistency
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Adds ability to block event trigger when file is uploading
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Chatbot autoscroll
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Streaming inputs for 5.0
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Ssr part 2
+
+### Dependencies
+
+- @gradio/atoms@0.9.0
+- @gradio/client@1.6.0
+- @gradio/icons@0.8.0
+- @gradio/image@0.16.0
+- @gradio/statustracker@0.8.0
+- @gradio/upload@0.13.0
+- @gradio/utils@0.7.0
+- @gradio/wasm@0.14.0
+
+## 0.11.0-beta.7
+
+### Features
+
+- [#9582](https://github.com/gradio-app/gradio/pull/9582) [`43a7f42`](https://github.com/gradio-app/gradio/commit/43a7f420d8ac34c7f7fa71d6e630a4c8618d3780) - Chatbot autoscroll.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.7
+- @gradio/statustracker@0.8.0-beta.5
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+- @gradio/image@0.16.0-beta.7
+
+## 0.11.0-beta.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.4
+- @gradio/client@1.6.0-beta.4
+- @gradio/upload@0.13.0-beta.6
+- @gradio/image@0.16.0-beta.6
+
+## 0.11.0-beta.5
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.5
+- @gradio/statustracker@0.8.0-beta.3
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+- @gradio/image@0.16.0-beta.5
+
+## 0.11.0-beta.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/upload@0.13.0-beta.4
+- @gradio/image@0.16.0-beta.4
+- @gradio/wasm@0.14.0-beta.3
+
+## 0.11.0-beta.3
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.3
+- @gradio/client@1.6.0-beta.3
+- @gradio/image@0.16.0-beta.3
+
+## 0.11.0-beta.2
+
+### Features
+
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+- [#9250](https://github.com/gradio-app/gradio/pull/9250) [`350b0a5`](https://github.com/gradio-app/gradio/commit/350b0a5cafb9176f914f62e7c90de51d4352cc77) - Improve Icon Button consistency.  Thanks @hannahblair!
+- [#9253](https://github.com/gradio-app/gradio/pull/9253) [`99648ec`](https://github.com/gradio-app/gradio/commit/99648ec7c4443e74799941e47b0015ac9ca581e1) - Adds ability to block event trigger when file is uploading.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/upload@0.13.0-beta.2
+- @gradio/wasm@0.14.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+- @gradio/image@0.16.0-beta.2
+
+## 0.11.0-beta.1
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/client@1.6.0-beta.1
+- @gradio/image@0.16.0-beta.1
+- @gradio/upload@0.12.4-beta.1
+- @gradio/wasm@0.13.1-beta.1
+
+## 0.11.0
+
+### Features
+
+- [#8941](https://github.com/gradio-app/gradio/pull/8941) [`97a7bf6`](https://github.com/gradio-app/gradio/commit/97a7bf66a79179d1b91a3199d68e5c11216ca500) - Streaming inputs for 5.0.  Thanks @freddyaboulton!
 ## 0.10.4
 
 ### Fixes

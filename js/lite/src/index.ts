@@ -21,18 +21,71 @@ import LiteIndex from "./LiteIndex.svelte";
 // As a result, the users of the Wasm app will have to load the CSS file manually.
 // const ENTRY_CSS = "__ENTRY_CSS__";
 
-export interface GradioAppController {
-	run_code: (code: string) => Promise<void>;
-	run_file: (path: string) => Promise<void>;
-	write: (
+export class GradioAppController extends EventTarget {
+	constructor(private lite_svelte_app: LiteIndex) {
+		super();
+
+		this.lite_svelte_app.$on("error", (event: CustomEvent) => {
+			this.dispatchEvent(new CustomEvent("error", { detail: event.detail }));
+		});
+		this.lite_svelte_app.$on("modules-auto-loaded", (event: CustomEvent) => {
+			this.dispatchEvent(
+				new CustomEvent("modules-auto-loaded", { detail: event.detail })
+			);
+		});
+		this.lite_svelte_app.$on("stdout", (event: CustomEvent) => {
+			this.dispatchEvent(new CustomEvent("stdout", { detail: event.detail }));
+		});
+		this.lite_svelte_app.$on("stderr", (event: CustomEvent) => {
+			this.dispatchEvent(new CustomEvent("stderr", { detail: event.detail }));
+		});
+		this.lite_svelte_app.$on("initialization-error", (event: CustomEvent) => {
+			this.dispatchEvent(
+				new CustomEvent("initialization-error", { detail: event.detail })
+			);
+		});
+		this.lite_svelte_app.$on("python-error", (event: CustomEvent) => {
+			this.dispatchEvent(
+				new CustomEvent("python-error", { detail: event.detail })
+			);
+		});
+		this.lite_svelte_app.$on("init-code-run-error", (event: CustomEvent) => {
+			this.dispatchEvent(
+				new CustomEvent("init-code-run-error", { detail: event.detail })
+			);
+		});
+		this.lite_svelte_app.$on("init-file-run-error", (event: CustomEvent) => {
+			this.dispatchEvent(
+				new CustomEvent("init-file-run-error", { detail: event.detail })
+			);
+		});
+	}
+
+	run_code = (code: string): Promise<void> => {
+		return this.lite_svelte_app.run_code(code);
+	};
+	run_file = (path: string): Promise<void> => {
+		return this.lite_svelte_app.run_file(path);
+	};
+	write = (
 		path: string,
 		data: string | ArrayBufferView,
 		opts: any
-	) => Promise<void>;
-	rename: (old_path: string, new_path: string) => Promise<void>;
-	unlink: (path: string) => Promise<void>;
-	install: (requirements: string[]) => Promise<void>;
-	unmount: () => void;
+	): Promise<void> => {
+		return this.lite_svelte_app.write(path, data, opts);
+	};
+	rename = (old_path: string, new_path: string): Promise<void> => {
+		return this.lite_svelte_app.rename(old_path, new_path);
+	};
+	unlink = (path: string): Promise<void> => {
+		return this.lite_svelte_app.unlink(path);
+	};
+	install = (requirements: string[]): Promise<void> => {
+		return this.lite_svelte_app.install(requirements);
+	};
+	unmount = (): void => {
+		this.lite_svelte_app.$destroy();
+	};
 }
 
 export interface Options {
@@ -88,17 +141,7 @@ export function create(options: Options): GradioAppController {
 		}
 	});
 
-	return {
-		run_code: app.run_code,
-		run_file: app.run_file,
-		write: app.write,
-		rename: app.rename,
-		unlink: app.unlink,
-		install: app.install,
-		unmount() {
-			app.$destroy();
-		}
-	};
+	return new GradioAppController(app);
 }
 
 /**
@@ -122,7 +165,18 @@ export function create(options: Options): GradioAppController {
 // @ts-ignore
 globalThis.createGradioApp = create;
 
-bootstrap_custom_element(create);
+// Deferring the custom element registration until the DOM is ready.
+// If not, `this.textContent` will be empty in `connectedCallback`
+// because the browser has not parsed the content yet.
+// Using `setTimeout()` is also a solution but it might not be the best practice as written in the article below.
+// Ref: https://dbushell.com/2024/06/15/custom-elements-unconnected-callback/
+if (document.readyState === "loading") {
+	document.addEventListener("DOMContentLoaded", () => {
+		bootstrap_custom_element(create);
+	});
+} else {
+	bootstrap_custom_element(create);
+}
 
 declare let BUILD_MODE: string;
 if (BUILD_MODE === "dev") {

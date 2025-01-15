@@ -10,7 +10,7 @@ def set_lang(language):
 
 def set_lang_from_path():
     sleep(1)
-    return gr.Code((css_file,), language="css")
+    return gr.Code(open(css_file).read(), language="css")
 
 def code(language, code):
     return gr.Code(code, language=language)

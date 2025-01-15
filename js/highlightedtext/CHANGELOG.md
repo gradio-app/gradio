@@ -1,5 +1,139 @@
 # @gradio/highlightedtext
 
+## 0.8.11
+
+### Dependency updates
+
+- @gradio/atoms@0.13.1
+- @gradio/statustracker@0.10.1
+- @gradio/icons@0.10.0
+
+## 0.8.10
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/icons@0.9.0
+- @gradio/statustracker@0.10.0
+
+## 0.8.9
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.7
+- @gradio/atoms@0.12.0
+
+## 0.8.8
+
+### Fixes
+
+- [#10004](https://github.com/gradio-app/gradio/pull/10004) [`0879be7`](https://github.com/gradio-app/gradio/commit/0879be78b3ae220cb303ac275c8fd47d085aad18) - Ensure `show_label` param is used in HighlightedText.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+
+## 0.8.7
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/utils@0.8.0
+- @gradio/statustracker@0.9.5
+
+## 0.8.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.4
+- @gradio/atoms@0.11.0
+
+## 0.8.5
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+
+## 0.8.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.2
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+
+## 0.8.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.1
+- @gradio/atoms@0.9.2
+
+## 0.8.2
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+- @gradio/statustracker@0.9.0
+
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+
+## 0.7.7-beta.5
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.5
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+
+## 0.7.7-beta.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.4
+
+## 0.7.7-beta.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.3
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+
+## 0.7.7-beta.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+
+## 0.7.7-beta.2
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
+## 0.7.7-beta.1
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/theme@0.3.0-beta.1
+
 ## 0.7.7
 
 ### Fixes

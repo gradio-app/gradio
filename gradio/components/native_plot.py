@@ -2,15 +2,11 @@ from __future__ import annotations
 
 import json
 import warnings
+from collections.abc import Callable, Sequence, Set
 from typing import (
     TYPE_CHECKING,
-    AbstractSet,
     Any,
-    Callable,
-    Dict,
-    List,
     Literal,
-    Sequence,
 )
 
 import pandas as pd
@@ -25,9 +21,9 @@ if TYPE_CHECKING:
 
 
 class PlotData(GradioModel):
-    columns: List[str]
-    data: List[List[Any]]
-    datatypes: Dict[str, Literal["quantitative", "nominal", "temporal"]]
+    columns: list[str]
+    data: list[list[Any]]
+    datatypes: dict[str, Literal["quantitative", "nominal", "temporal"]]
     mark: str
 
 
@@ -59,8 +55,10 @@ class NativePlot(Component):
         y_lim: list[float] | None = None,
         x_label_angle: float = 0,
         y_label_angle: float = 0,
+        x_axis_labels_visible: bool = True,
         caption: str | None = None,
         sort: Literal["x", "y", "-x", "-y"] | list[str] | None = None,
+        tooltip: Literal["axis", "none", "all"] | list[str] = "axis",
         height: int | None = None,
         label: str | None = None,
         show_label: bool | None = None,
@@ -68,7 +66,7 @@ class NativePlot(Component):
         scale: int | None = None,
         min_width: int = 160,
         every: Timer | float | None = None,
-        inputs: Component | Sequence[Component] | AbstractSet[Component] | None = None,
+        inputs: Component | Sequence[Component] | Set[Component] | None = None,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
@@ -94,8 +92,10 @@ class NativePlot(Component):
             y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
             x_label_angle: The angle of the x-axis labels in degrees offset clockwise.
             y_label_angle: The angle of the y-axis labels in degrees offset clockwise.
+            x_axis_labels_visible: Whether the x-axis labels should be visible. Can be hidden when many x-axis labels are present.
             caption: The (optional) caption to display below the plot.
             sort: The sorting order of the x values, if x column is type string/category. Can be "x", "y", "-x", "-y", or list of strings that represent the order of the categories.
+            tooltip: The tooltip to display when hovering on a point. "axis" shows the values for the axis columns, "all" shows all column values, and "none" shows no tooltips. Can also provide a list of strings representing columns to show in the tooltip, which will be displayed along with axis values.
             height: The height of the plot in pixels.
             label: The (optional) label to display on the top left corner of the plot.
             show_label: Whether the label should be displayed.
@@ -124,8 +124,10 @@ class NativePlot(Component):
         self.y_lim = y_lim
         self.x_label_angle = x_label_angle
         self.y_label_angle = y_label_angle
+        self.x_axis_labels_visible = x_axis_labels_visible
         self.caption = caption
         self.sort = sort
+        self.tooltip = tooltip
         self.height = height
 
         if label is None and show_label is None:
@@ -145,13 +147,12 @@ class NativePlot(Component):
             every=every,
             inputs=inputs,
         )
-        for key, val in kwargs.items():
-            if key == "color_legend_title":
+        for key_, val in kwargs.items():
+            if key_ == "color_legend_title":
                 self.color_title = val
-            if key in [
+            if key_ in [
                 "stroke_dash",
                 "overlay_point",
-                "tooltip",
                 "x_label_angle",
                 "y_label_angle",
                 "interactive",
@@ -160,7 +161,7 @@ class NativePlot(Component):
                 "width",
             ]:
                 warnings.warn(
-                    f"Argument '{key}' has been deprecated.", DeprecationWarning
+                    f"Argument '{key_}' has been deprecated.", DeprecationWarning
                 )
 
     def get_block_name(self) -> str:

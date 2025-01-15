@@ -42,6 +42,12 @@
 			description: "Whether to render right-to-left",
 			control: { type: "boolean" },
 			defaultValue: false
+		},
+		sources: {
+			options: ["upload", "microphone"],
+			description: "The sources to enable",
+			control: { type: "select" },
+			defaultValue: ["upload", "microphone"]
 		}
 	}}
 />
@@ -73,3 +79,21 @@
 />
 <Story name="Right aligned textbox" args={{ text_align: "right" }} />
 <Story name="RTL textbox" args={{ rtl: true }} />
+<Story
+	name="Single file upload"
+	args={{
+		file_count: "single",
+		value: {
+			text: "sample text",
+			files: [
+				{
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg"
+				}
+			]
+		}
+	}}
+/>
+<Story
+	name="MultimodalTextbox with microphone input"
+	args={{ sources: ["microphone"] }}
+/>

@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import copy
 import json
-from typing import TYPE_CHECKING, Any, Literal, Sequence
+from collections.abc import Sequence
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
@@ -35,8 +37,8 @@ class ClearButton(Button):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
-        size: Literal["sm", "lg"] | None = None,
-        icon: str | None = None,
+        size: Literal["sm", "md", "lg"] = "lg",
+        icon: str | Path | None = None,
         link: str | None = None,
         visible: bool = True,
         interactive: bool = True,

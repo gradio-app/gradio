@@ -36,6 +36,7 @@
 				on:mouseover={video.play.bind(video)}
 				on:mouseout={video.pause.bind(video)}
 				src={value?.video.url}
+				is_stream={false}
 				{loop}
 			/>
 		</div>

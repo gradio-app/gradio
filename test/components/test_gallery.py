@@ -4,7 +4,8 @@ import numpy as np
 import PIL
 
 import gradio as gr
-from gradio.data_classes import FileData
+from gradio.components.gallery import GalleryImage
+from gradio.data_classes import ImageData
 
 
 class TestGallery:
@@ -16,7 +17,7 @@ class TestGallery:
                 "image": {
                     "path": url,
                     "orig_name": "00015-20230906102032-7778-Wonderwoman VintageMagStyle   _lora_SDXL-VintageMagStyle-Lora_1_, Very detailed, clean, high quality, sharp image.jpg",
-                    "mime_type": None,
+                    "mime_type": "image/jpeg",
                     "size": None,
                     "url": url,
                     "is_stream": False,
@@ -45,7 +46,7 @@ class TestGallery:
                 "image": {
                     "path": str(Path("test") / "test_files" / "foo.png"),
                     "orig_name": "foo.png",
-                    "mime_type": None,
+                    "mime_type": "image/png",
                     "size": None,
                     "url": None,
                     "is_stream": False,
@@ -57,7 +58,7 @@ class TestGallery:
                 "image": {
                     "path": str(Path("test") / "test_files" / "bar.png"),
                     "orig_name": "bar.png",
-                    "mime_type": None,
+                    "mime_type": "image/png",
                     "size": None,
                     "url": None,
                     "is_stream": False,
@@ -69,7 +70,7 @@ class TestGallery:
                 "image": {
                     "path": str(Path("test") / "test_files" / "baz.png"),
                     "orig_name": "baz.png",
-                    "mime_type": None,
+                    "mime_type": "image/png",
                     "size": None,
                     "url": None,
                     "is_stream": False,
@@ -81,7 +82,7 @@ class TestGallery:
                 "image": {
                     "path": str(Path("test") / "test_files" / "qux.png"),
                     "orig_name": "qux.png",
-                    "mime_type": None,
+                    "mime_type": "image/png",
                     "size": None,
                     "url": None,
                     "is_stream": False,
@@ -95,7 +96,7 @@ class TestGallery:
         from gradio.components.gallery import GalleryData, GalleryImage
 
         gallery = gr.Gallery()
-        img = GalleryImage(image=FileData(path="test/test_files/bus.png"))
+        img = GalleryImage(image=ImageData(path="test/test_files/bus.png"))
         data = GalleryData(root=[img])
 
         assert (preprocessed := gallery.preprocess(data))
@@ -114,7 +115,7 @@ class TestGallery:
         )
 
         img_captions = GalleryImage(
-            image=FileData(path="test/test_files/bus.png"), caption="bus"
+            image=ImageData(path="test/test_files/bus.png"), caption="bus"
         )
         data = GalleryData(root=[img_captions])
         assert (preprocess := gr.Gallery().preprocess(data))
@@ -125,4 +126,7 @@ class TestGallery:
         output = gallery.postprocess(
             [np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)]
         )
-        assert output.root[0].image.path.endswith(".jpeg")
+        if isinstance(output.root[0], GalleryImage):
+            assert output.root[0].image.path and output.root[0].image.path.endswith(
+                ".jpeg"
+            )

@@ -9,7 +9,9 @@ import json
 import os
 import warnings
 import weakref
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
+from collections.abc import Callable, Sequence
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
@@ -99,21 +101,22 @@ class Interface(Blocks):
         inputs: str | Component | Sequence[str | Component] | None,
         outputs: str | Component | Sequence[str | Component] | None,
         examples: list[Any] | list[list[Any]] | str | None = None,
-        cache_examples: bool | Literal["lazy"] | None = None,
+        *,
+        cache_examples: bool | None = None,
+        cache_mode: Literal["eager", "lazy"] | None = None,
         examples_per_page: int = 10,
+        example_labels: list[str] | None = None,
         live: bool = False,
         title: str | None = None,
         description: str | None = None,
         article: str | None = None,
-        thumbnail: str | None = None,
         theme: Theme | str | None = None,
-        css: str | None = None,
-        allow_flagging: Literal["never"]
+        flagging_mode: Literal["never"]
         | Literal["auto"]
         | Literal["manual"]
         | None = None,
         flagging_options: list[str] | list[tuple[str, str]] | None = None,
-        flagging_dir: str = "flagged",
+        flagging_dir: str = ".gradio/flagged",
         flagging_callback: FlaggingCallback | None = None,
         analytics_enabled: bool | None = None,
         batch: bool = False,
@@ -122,18 +125,25 @@ class Interface(Blocks):
         _api_mode: bool = False,
         allow_duplication: bool = False,
         concurrency_limit: int | None | Literal["default"] = "default",
+        css: str | None = None,
+        css_paths: str | Path | Sequence[str | Path] | None = None,
         js: str | None = None,
         head: str | None = None,
+        head_paths: str | Path | Sequence[str | Path] | None = None,
         additional_inputs: str | Component | Sequence[str | Component] | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
-        *,
         submit_btn: str | Button = "Submit",
         stop_btn: str | Button = "Stop",
         clear_btn: str | Button | None = "Clear",
         delete_cache: tuple[int, int] | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
-        example_labels: list[str] | None = None,
         fill_width: bool = False,
+        allow_flagging: Literal["never"]
+        | Literal["auto"]
+        | Literal["manual"]
+        | None = None,
+        time_limit: int | None = 30,
+        stream_every: float = 0.5,
         **kwargs,
     ):
         """
@@ -142,18 +152,17 @@ class Interface(Blocks):
             inputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If set to None, then only the output components will be displayed.
             outputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If set to None, then only the input components will be displayed.
             examples: sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided, but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
-            cache_examples: if True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached after their first use. If `fn` is a generator function, then the last yielded value will be used as the output. Can also be set by the GRADIO_CACHE_EXAMPLES environment variable, which takes a case-insensitive value, one of: {"true", "false", "lazy"}. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
+            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter is True (as long as `fn` and `outputs` are also provided). The default option otherwise is False.
+            cache_mode: if "lazy", examples are cached after their first use. If "eager", all examples are cached at app launch. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager".
             examples_per_page: if examples are provided, how many to display per page.
             live: whether the interface should automatically rerun if any of the inputs change.
             title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
             article: an expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content. If it is an HTTP(S) link to a downloadable remote file, the content of this file is displayed.
-            thumbnail: this parameter has been deprecated and has no effect.
             theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
-            css: custom css as a string or path to a css file. This css will be included in the demo webpage.
-            allow_flagging: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged, along with the generated output. If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
-            flagging_options: if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual". Can either be a list of tuples of the form (label, value), where label is the string that will be displayed on the button and value is the string that will be stored in the flagging CSV; or it can be a list of strings ["X", "Y"], in which case the values will be the list of strings and the labels will ["Flag as X", "Flag as Y"], etc.
-            flagging_dir: what to name the directory where flagged data is stored.
+            flagging_mode: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged, along with the generated output. If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_FLAGGING_MODE; otherwise defaults to "manual".
+            flagging_options: if provided, allows user to select from the list of options when flagging. Only applies if flagging_mode is "manual". Can either be a list of tuples of the form (label, value), where label is the string that will be displayed on the button and value is the string that will be stored in the flagging CSV; or it can be a list of strings ["X", "Y"], in which case the values will be the list of strings and the labels will ["Flag as X", "Flag as Y"], etc.
+            flagging_dir: path to the the directory where flagged data is stored. If the directory does not exist, it will be created.
             flagging_callback: either None or an instance of a subclass of FlaggingCallback which will be called when a sample is flagged. If set to None, an instance of gradio.flagging.CSVLogger will be created and logs will be saved to a local CSV file in flagging_dir. Default to None.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             batch: if True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
@@ -161,8 +170,11 @@ class Interface(Blocks):
             api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, the name of the prediction function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
             allow_duplication: if True, then will show a 'Duplicate Spaces' button on Hugging Face Spaces.
             concurrency_limit: if set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which itself is 1 by default).
-            js: custom js as a string or path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
-            head: custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
+            css: Custom css as a code string. This css will be included in the demo webpage.
+            css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
+            js: Custom js as a code string. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+            head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
+            head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
             additional_inputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. These components will be rendered in an accordion below the main input components. By default, no additional input components will be displayed.
             additional_inputs_accordion: if a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
             submit_btn: the button to use for submitting inputs. Defaults to a `gr.Button("Submit", variant="primary")`. This parameter does not apply if the Interface is output-only, in which case the submit button always displays "Generate". Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization).
@@ -172,19 +184,25 @@ class Interface(Blocks):
             show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
             example_labels: a list of labels for each example. If provided, the length of this list should be the same as the number of examples, and these labels will be used in the UI instead of rendering the example values.
             fill_width: whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
+            time_limit: The time limit for the stream to run. Default is 30 seconds. Parameter only used for streaming images or audio if the interface is live and the input components are set to "streaming=True".
+            stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for streaming images or audio if the interface is live and the input components are set to "streaming=True".
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
             mode="interface",
-            css=css,
             title=title or "Gradio",
             theme=theme,
+            css=css,
+            css_paths=css_paths,
             js=js,
             head=head,
+            head_paths=head_paths,
             delete_cache=delete_cache,
             fill_width=fill_width,
             **kwargs,
         )
+        self.time_limit = time_limit
+        self.stream_every = stream_every
         self.api_name: str | Literal[False] | None = api_name
         self.interface_type = InterfaceTypes.STANDARD
         if (inputs is None or inputs == []) and (outputs is None or outputs == []):
@@ -204,27 +222,43 @@ class Interface(Blocks):
                 get_component_instance(i, unrender=True) for i in additional_inputs
             ]
 
-        if not isinstance(inputs, (str, list, Component)):
+        if not isinstance(inputs, (Sequence, Component)):
             raise TypeError(
                 f"inputs must be a string, list, or Component, not {inputs}"
             )
-        if not isinstance(outputs, (str, list, Component)):
+        if not isinstance(outputs, (Sequence, Component)):
             raise TypeError(
                 f"outputs must be a string, list, or Component, not {outputs}"
             )
 
-        if not isinstance(inputs, list):
+        if isinstance(inputs, (str, Component)):
             inputs = [inputs]
-        if not isinstance(outputs, list):
+        if isinstance(outputs, (str, Component)):
             outputs = [outputs]
 
         self.cache_examples = cache_examples
+        self.cache_mode: Literal["eager", "lazy"] | None = cache_mode
+
+        self.main_input_components = [
+            get_component_instance(i, unrender=True) for i in inputs
+        ]
+        self.input_components = (
+            self.main_input_components + self.additional_input_components
+        )
+        self.output_components = [
+            get_component_instance(o, unrender=True)
+            for o in outputs  # type: ignore
+        ]
 
         state_input_indexes = [
-            idx for idx, i in enumerate(inputs) if i == "state" or isinstance(i, State)
+            idx
+            for idx, i in enumerate(self.input_components)
+            if i == "state" or isinstance(i, State)
         ]
         state_output_indexes = [
-            idx for idx, o in enumerate(outputs) if o == "state" or isinstance(o, State)
+            idx
+            for idx, o in enumerate(self.output_components)
+            if o == "state" or isinstance(o, State)
         ]
 
         if len(state_input_indexes) == 0 and len(state_output_indexes) == 0:
@@ -236,14 +270,14 @@ class Interface(Blocks):
         else:
             state_input_index = state_input_indexes[0]
             state_output_index = state_output_indexes[0]
-            if inputs[state_input_index] == "state":
+            if self.input_components[state_input_index] == "state":
                 default = utils.get_default_args(fn)[state_input_index]
                 state_variable = State(value=default)
             else:
-                state_variable = inputs[state_input_index]
+                state_variable = self.input_components[state_input_index]
 
-            inputs[state_input_index] = state_variable
-            outputs[state_output_index] = state_variable
+            self.input_components[state_input_index] = state_variable
+            self.output_components[state_output_index] = state_variable
 
             if cache_examples:
                 warnings.warn(
@@ -251,10 +285,6 @@ class Interface(Blocks):
                     "Setting cache_examples to False."
                 )
             self.cache_examples = False
-
-        self.main_input_components = [
-            get_component_instance(i, unrender=True) for i in inputs
-        ]
 
         if additional_inputs_accordion is None:
             self.additional_inputs_accordion_params = {
@@ -275,13 +305,6 @@ class Interface(Blocks):
             raise ValueError(
                 f"The `additional_inputs_accordion` parameter must be a string or gr.Accordion, not {type(additional_inputs_accordion)}"
             )
-        self.input_components = (
-            self.main_input_components + self.additional_input_components
-        )
-        self.output_components = [
-            get_component_instance(o, unrender=True)
-            for o in outputs  # type: ignore
-        ]
 
         for component in self.input_components + self.output_components:
             if not (isinstance(component, Component)):
@@ -291,7 +314,10 @@ class Interface(Blocks):
 
         if len(self.input_components) == len(self.output_components):
             same_components = [
-                i is o for i, o in zip(self.input_components, self.output_components)
+                i is o
+                for i, o in zip(
+                    self.input_components, self.output_components, strict=False
+                )
             ]
             if all(same_components):
                 self.interface_type = InterfaceTypes.UNIFIED
@@ -322,8 +348,6 @@ class Interface(Blocks):
         if article is not None:
             article = utils.download_if_url(article)
         self.article = article
-
-        self.thumbnail = thumbnail
 
         self.examples = examples
         self.examples_per_page = examples_per_page
@@ -373,38 +397,26 @@ class Interface(Blocks):
 
         self.simple_server = None
 
-        # For allow_flagging: (1) first check for parameter,
-        # (2) check for env variable, (3) default to True/"manual"
-        if allow_flagging is None:
-            allow_flagging = os.getenv("GRADIO_ALLOW_FLAGGING", "manual")  # type: ignore
-        if allow_flagging is True:
+        # For flagging_mode: (1) first check for `flagging_mode` parameter (or its alias `allow_flagging`),
+        # (2) check for env variable, (3) default to "manual"
+        if allow_flagging is not None:
             warnings.warn(
-                "The `allow_flagging` parameter in `Interface` now"
-                "takes a string value ('auto', 'manual', or 'never')"
-                ", not a boolean. Setting parameter to: 'manual'."
+                "The `allow_flagging` parameter in `Interface` is deprecated."
+                "Use `flagging_mode` instead."
             )
-            self.allow_flagging = "manual"
-        elif allow_flagging == "manual":
-            self.allow_flagging = "manual"
-        elif allow_flagging is False:
-            warnings.warn(
-                "The `allow_flagging` parameter in `Interface` now"
-                "takes a string value ('auto', 'manual', or 'never')"
-                ", not a boolean. Setting parameter to: 'never'."
-            )
-            self.allow_flagging = "never"
-        elif allow_flagging == "never":
-            self.allow_flagging = "never"
-        elif allow_flagging == "auto":
-            self.allow_flagging = "auto"
+            flagging_mode = allow_flagging
+        if flagging_mode is None:
+            self.flagging_mode = os.getenv("GRADIO_FLAGGING_MODE", "manual")
+        elif flagging_mode in ["manual", "never", "auto"]:
+            self.flagging_mode = flagging_mode
         else:
             raise ValueError(
-                "Invalid value for `allow_flagging` parameter."
+                "Invalid value for `flagging_mode` parameter."
                 "Must be: 'auto', 'manual', or 'never'."
             )
 
         if flagging_options is None:
-            self.flagging_options = [("Flag", "")]
+            self.flagging_options = [("Flag", None)]
         elif not (isinstance(flagging_options, list)):
             raise ValueError(
                 "flagging_options must be a list of strings or list of (string, string) tuples."
@@ -449,7 +461,9 @@ class Interface(Blocks):
                     param_names.remove(param_name)
         except (TypeError, ValueError):
             param_names = utils.default_input_labels()
-        for component, param_name in zip(self.input_components, param_names):
+        for component, param_name in zip(
+            self.input_components, param_names, strict=False
+        ):
             if not isinstance(component, Component):
                 raise TypeError(
                     f"Input component must be a Component, not {type(component)}"
@@ -467,7 +481,7 @@ class Interface(Blocks):
                 else:
                     component.label = f"output {i}"
 
-        if self.allow_flagging != "never":
+        if self.flagging_mode != "never":
             if self.interface_type == InterfaceTypes.UNIFIED:
                 self.flagging_callback.setup(self.input_components, self.flagging_dir)  # type: ignore
             elif self.interface_type == InterfaceTypes.INPUT_ONLY:
@@ -491,7 +505,7 @@ class Interface(Blocks):
             )  # type: ignore
             input_component_column = None
 
-            with Row(equal_height=False):
+            with Row():
                 if self.interface_type in [
                     InterfaceTypes.STANDARD,
                     InterfaceTypes.INPUT_ONLY,
@@ -556,7 +570,7 @@ class Interface(Blocks):
     ]:
         _submit_btn, _clear_btn, _stop_btn, flag_btns = None, None, None, None
 
-        with Column(variant="panel"):
+        with Column():
             input_component_column = Column()
             with input_component_column:
                 for component in self.main_input_components:
@@ -590,9 +604,9 @@ class Interface(Blocks):
                         or inspect.isasyncgenfunction(self.fn)
                     ) and not self.live:
                         _stop_btn = Button(**self.stop_btn_parms)
-                    if self.allow_flagging == "manual":
+                    if self.flagging_mode == "manual":
                         flag_btns = self.render_flag_btns()
-                    elif self.allow_flagging == "auto":
+                    elif self.flagging_mode == "auto":
                         flag_btns = [_submit_btn]
         return (
             _submit_btn,
@@ -620,7 +634,7 @@ class Interface(Blocks):
             None,
         )
 
-        with Column(variant="panel"):
+        with Column():
             for component in self.output_components:
                 if not (isinstance(component, State)):
                     component.render()
@@ -638,9 +652,9 @@ class Interface(Blocks):
                         # as a proxy of whether the queue will be enabled.
                         # Using a generator function without the queue will raise an error.
                         _stop_btn = Button(**self.stop_btn_parms)
-                if self.allow_flagging == "manual":
+                if self.flagging_mode == "manual":
                     flag_btns = self.render_flag_btns()
-                elif self.allow_flagging == "auto":
+                elif self.flagging_mode == "auto":
                     if _submit_btn is None:
                         raise RenderError("Submit button not rendered")
                     flag_btns = [_submit_btn]
@@ -698,7 +712,9 @@ class Interface(Blocks):
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
                     show_progress="hidden" if streaming_event else self.show_progress,
-                    trigger_mode="always_last",
+                    trigger_mode="always_last" if not streaming_event else "multiple",
+                    time_limit=self.time_limit,
+                    stream_every=self.stream_every,
                 )
         else:
             if _submit_btn is None:
@@ -711,6 +727,12 @@ class Interface(Blocks):
                 for component in self.input_components
                 if component.has_event(Events.submit)
             ]
+
+            for component in self.input_components:
+                if getattr(component, "streaming", None):
+                    warnings.warn(
+                        "Streaming components are only supported in live interfaces."
+                    )
 
             if _stop_btn:
                 extra_output = [_submit_btn, _stop_btn]
@@ -819,9 +841,9 @@ class Interface(Blocks):
         ):
             return
 
-        if self.allow_flagging == "auto":
+        if self.flagging_mode == "auto":
             flag_method = FlagMethod(
-                self.flagging_callback, "", "", visual_feedback=False
+                self.flagging_callback, "", None, visual_feedback=False
             )
             _submit_event.success(
                 flag_method,
@@ -838,8 +860,10 @@ class Interface(Blocks):
         else:
             flag_components = self.input_components + self.output_components
 
-        for flag_btn, (label, value) in zip(flag_btns, self.flagging_options):
-            if not isinstance(value, str):
+        for flag_btn, (label, value) in zip(
+            flag_btns, self.flagging_options, strict=False
+        ):
+            if value is not None and not isinstance(value, str):
                 raise TypeError(
                     f"Flagging option value must be a string, not {value!r}"
                 )
@@ -879,10 +903,11 @@ class Interface(Blocks):
             ]
             self.examples_handler = Examples(
                 examples=self.examples,
-                inputs=non_state_inputs,  # type: ignore
-                outputs=non_state_outputs,  # type: ignore
+                inputs=non_state_inputs,
+                outputs=non_state_outputs,
                 fn=self.fn,
-                cache_examples=self.cache_examples,  # type: ignore
+                cache_examples=self.cache_examples,
+                cache_mode=self.cache_mode,
                 examples_per_page=self.examples_per_page,
                 _api_mode=self.api_mode,
                 batch=self.batch,
@@ -955,7 +980,7 @@ class TabbedInterface(Blocks):
                     f"<h1 style='text-align: center; margin-bottom: 1rem'>{title}</h1>"
                 )
             with Tabs():
-                for interface, tab_name in zip(interface_list, tab_names):
+                for interface, tab_name in zip(interface_list, tab_names, strict=False):
                     with Tab(label=tab_name):
                         interface.render()
 

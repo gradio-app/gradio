@@ -1,0 +1,164 @@
+<script lang="ts">
+	import { afterUpdate, tick } from "svelte";
+	import render_math_in_element from "katex/contrib/auto-render";
+	import "katex/dist/katex.min.css";
+	import { create_marked } from "./utils";
+	import { sanitize } from "@gradio/sanitize";
+	import "./prism.css";
+
+	export let chatbot = true;
+	export let message: string;
+	export let sanitize_html = true;
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[] = [];
+	export let render_markdown = true;
+	export let line_breaks = true;
+	export let header_links = false;
+	export let root: string;
+
+	let el: HTMLSpanElement;
+	let html: string;
+
+	const marked = create_marked({
+		header_links,
+		line_breaks,
+		latex_delimiters: latex_delimiters || []
+	});
+
+	function escapeRegExp(string: string): string {
+		return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	}
+
+	function process_message(value: string): string {
+		let parsedValue = value;
+
+		if (render_markdown) {
+			const latexBlocks: string[] = [];
+			latex_delimiters.forEach((delimiter, index) => {
+				const leftDelimiter = escapeRegExp(delimiter.left);
+				const rightDelimiter = escapeRegExp(delimiter.right);
+				const regex = new RegExp(
+					`${leftDelimiter}([\\s\\S]+?)${rightDelimiter}`,
+					"g"
+				);
+				parsedValue = parsedValue.replace(regex, (match, p1) => {
+					latexBlocks.push(match);
+					return `%%%LATEX_BLOCK_${latexBlocks.length - 1}%%%`;
+				});
+			});
+
+			parsedValue = marked.parse(parsedValue) as string;
+
+			parsedValue = parsedValue.replace(
+				/%%%LATEX_BLOCK_(\d+)%%%/g,
+				(match, p1) => latexBlocks[parseInt(p1, 10)]
+			);
+		}
+
+		if (sanitize_html && sanitize) {
+			parsedValue = sanitize(parsedValue, root);
+		}
+
+		return parsedValue;
+	}
+
+	$: if (message && message.trim()) {
+		html = process_message(message);
+	} else {
+		html = "";
+	}
+
+	async function render_html(value: string): Promise<void> {
+		if (latex_delimiters.length > 0 && value) {
+			const containsDelimiter = latex_delimiters.every(
+				(delimiter) =>
+					value.includes(delimiter.left) && value.includes(delimiter.right)
+			);
+			if (containsDelimiter) {
+				render_math_in_element(el, {
+					delimiters: latex_delimiters,
+					throwOnError: false
+				});
+			}
+		}
+	}
+
+	afterUpdate(async () => {
+		if (el && document.body.contains(el)) {
+			await render_html(message);
+		} else {
+			console.error("Element is not in the DOM");
+		}
+	});
+</script>
+
+<span class:chatbot bind:this={el} class="md" class:prose={render_markdown}>
+	{@html html}
+</span>
+
+<style>
+	span :global(div[class*="code_wrap"]) {
+		position: relative;
+	}
+
+	/* KaTeX */
+	span :global(span.katex) {
+		font-size: var(--text-lg);
+		direction: ltr;
+	}
+
+	span :global(div[class*="code_wrap"] > button) {
+		z-index: 1;
+		cursor: pointer;
+		border-bottom-left-radius: var(--radius-sm);
+		padding: var(--spacing-md);
+		width: 25px;
+		height: 25px;
+		position: absolute;
+		right: 0;
+	}
+
+	span :global(.check) {
+		opacity: 0;
+		z-index: var(--layer-top);
+		transition: opacity 0.2s;
+		background: var(--code-background-fill);
+		color: var(--body-text-color);
+		position: absolute;
+		top: var(--size-1-5);
+		left: var(--size-1-5);
+	}
+
+	span :global(p:not(:first-child)) {
+		margin-top: var(--spacing-xxl);
+	}
+
+	span :global(.md-header-anchor) {
+		/* position: absolute; */
+		margin-left: -25px;
+		padding-right: 8px;
+		line-height: 1;
+		color: var(--body-text-color-subdued);
+		opacity: 0;
+	}
+
+	span :global(h1:hover .md-header-anchor),
+	span :global(h2:hover .md-header-anchor),
+	span :global(h3:hover .md-header-anchor),
+	span :global(h4:hover .md-header-anchor),
+	span :global(h5:hover .md-header-anchor),
+	span :global(h6:hover .md-header-anchor) {
+		opacity: 1;
+	}
+
+	span.md :global(.md-header-anchor > svg) {
+		color: var(--body-text-color-subdued);
+	}
+
+	span :global(table) {
+		word-break: break-word;
+	}
+</style>

@@ -1,5 +1,23 @@
 # @self/storybook
 
+## 0.8.0
+
+### Features
+
+- [#9794](https://github.com/gradio-app/gradio/pull/9794) [`70bda3b`](https://github.com/gradio-app/gradio/commit/70bda3bb187a7219f4707344cf47edd0a021da19) - fix storybook build.  Thanks @pngwn!
+
+## 0.7.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - 🔡 Update default core Gradio font
+
+## 0.7.0-beta.1
+
+### Features
+
+- [#9204](https://github.com/gradio-app/gradio/pull/9204) [`3c73f00`](https://github.com/gradio-app/gradio/commit/3c73f00e3016b16917ebfe0bad390f2dff683457) - 🔡 Update default core Gradio font.  Thanks @hannahblair!
+
 ## 0.6.2
 
 ### Fixes

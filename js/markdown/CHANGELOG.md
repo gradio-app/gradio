@@ -1,10 +1,189 @@
 # @gradio/markdown
 
-## 0.9.4
+## 0.13.1
+
+### Dependency updates
+
+- @gradio/atoms@0.13.1
+- @gradio/statustracker@0.10.1
+- @gradio/icons@0.10.0
+
+## 0.13.0
+
+### Features
+
+- [#10192](https://github.com/gradio-app/gradio/pull/10192) [`4fc7fb7`](https://github.com/gradio-app/gradio/commit/4fc7fb777c42af537e4af612423fa44029657d41) - Ensure components can be remounted with their previous data.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/markdown-code@0.3.0
+- @gradio/icons@0.9.0
+- @gradio/statustracker@0.10.0
+
+## 0.12.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.7
+- @gradio/atoms@0.12.0
+
+## 0.12.0
+
+### Features
+
+- [#9979](https://github.com/gradio-app/gradio/pull/9979) [`e7629f7`](https://github.com/gradio-app/gradio/commit/e7629f7eacdc2a8960fae7472669b60405a4a06c) - Adds copy event to `gr.Markdown`, `gr.Chatbot`, and `gr.Textbox`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+
+## 0.11.3
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/utils@0.8.0
+- @gradio/statustracker@0.9.5
+
+## 0.11.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.4
+- @gradio/atoms@0.11.0
+
+## 0.11.1
+
+### Dependency updates
+
+- @gradio/markdown-code@0.2.1
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+
+## 0.11.0
+
+### Features
+
+- [#9756](https://github.com/gradio-app/gradio/pull/9756) [`92f337c`](https://github.com/gradio-app/gradio/commit/92f337cc85d545060ea343f1cee85c22b85f6444) - Fix website build issue.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.2
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+- @gradio/markdown-code@0.2.0
+
+## 0.10.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.1
+- @gradio/atoms@0.9.2
+
+## 0.10.2
+
+### Fixes
+
+- [#9711](https://github.com/gradio-app/gradio/pull/9711) [`7134fc2`](https://github.com/gradio-app/gradio/commit/7134fc272e9e60be4b80dfd294ff8926d5995188) - Custom component fixes.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+- @gradio/sanitize@0.1.1
+- @gradio/statustracker@0.9.0
+
+## 0.10.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+
+## 0.10.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Use `container` param in `gr.Markdown`
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Prevent HTML and Markdown height changing when status is hidden
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix overflowing markdown in Chatbot
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix markdown code copy/check button in gr.Chatbot
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Standardize `height` across components and add `max_height` and `min_height` parameters where appropriate
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Ssr part 2
+
+### Dependencies
+
+- @gradio/atoms@0.9.0
+- @gradio/icons@0.8.0
+- @gradio/statustracker@0.8.0
+- @gradio/utils@0.7.0
+
+## 0.10.0-beta.5
+
+### Features
+
+- [#9598](https://github.com/gradio-app/gradio/pull/9598) [`ffc33fa`](https://github.com/gradio-app/gradio/commit/ffc33facaec1bcc92add5892afb86b7b5ba037d4) - Fix markdown code copy/check button in gr.Chatbot.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.5
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+
+## 0.10.0-beta.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.4
+
+## 0.10.0-beta.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.3
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+
+## 0.10.0-beta.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+
+## 0.10.0-beta.2
+
+### Features
+
+- [#9313](https://github.com/gradio-app/gradio/pull/9313) [`1fef9d9`](https://github.com/gradio-app/gradio/commit/1fef9d9a26f0ebce4de18c486702661f6539b1c6) - Standardize `height` across components and add `max_height` and `min_height` parameters where appropriate.  Thanks @abidlabs!
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+- [#9356](https://github.com/gradio-app/gradio/pull/9356) [`1daf259`](https://github.com/gradio-app/gradio/commit/1daf259b52d0b1ce16d916ff25a15d322b51ecf5) - Use `container` param in `gr.Markdown`.  Thanks @hannahblair!
+- [#9363](https://github.com/gradio-app/gradio/pull/9363) [`3ad28c7`](https://github.com/gradio-app/gradio/commit/3ad28c7e310e8589e0c53b7efee8031e129bece8) - Prevent HTML and Markdown height changing when status is hidden.  Thanks @hannahblair!
+- [#9260](https://github.com/gradio-app/gradio/pull/9260) [`d47dd1f`](https://github.com/gradio-app/gradio/commit/d47dd1f8417a878ef731d2eeabf60f3069289dee) - Fix overflowing markdown in Chatbot.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
+## 0.9.4-beta.1
 
 ### Features
 
 - [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+
+## 0.9.4
 
 ### Fixes
 

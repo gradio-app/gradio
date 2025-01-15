@@ -28,6 +28,7 @@
 	export let loading_status: LoadingStatus;
 	export let height: number | undefined;
 	export let width: number | undefined;
+	export let webcam_constraints: { [key: string]: any } | null = null;
 
 	export let container = false;
 	export let scale: number | null = null;
@@ -54,6 +55,9 @@
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
 	export let loop = false;
+	export let input_ready: boolean;
+	let uploading = false;
+	$: input_ready = !uploading;
 
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
@@ -158,7 +162,7 @@
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => gradio.dispatch("error", detail)}
 			i18n={gradio.i18n}
-			upload={gradio.client.upload}
+			upload={(...args) => gradio.client.upload(...args)}
 		/>
 	</Block>
 {:else}
@@ -189,6 +193,7 @@
 			on:change={handle_change}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:error={handle_error}
+			bind:uploading
 			{label}
 			{show_label}
 			{show_download_button}
@@ -199,6 +204,7 @@
 			{autoplay}
 			{root}
 			{loop}
+			{webcam_constraints}
 			{handle_reset_value}
 			on:clear={() => gradio.dispatch("clear")}
 			on:play={() => gradio.dispatch("play")}
@@ -210,8 +216,8 @@
 			on:stop_recording={() => gradio.dispatch("stop_recording")}
 			i18n={gradio.i18n}
 			max_file_size={gradio.max_file_size}
-			upload={gradio.client.upload}
-			stream_handler={gradio.client.stream}
+			upload={(...args) => gradio.client.upload(...args)}
+			stream_handler={(...args) => gradio.client.stream(...args)}
 		>
 			<UploadText i18n={gradio.i18n} type="video" />
 		</Video>

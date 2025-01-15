@@ -43,16 +43,18 @@
 	export let color_mode: Brush["color_mode"] | undefined = undefined;
 	export let mode: "erase" | "draw";
 
-	$: processed_colors = colors
-		? colors.map(process_color).filter((_, i) => i < 4)
-		: [];
+	let processed_colors: string[] = [];
+	let old_colors: string[] = [];
+	if (colors && JSON.stringify(old_colors) !== JSON.stringify(colors)) {
+		processed_colors = colors.map(process_color).filter((_, i) => i < 4);
+		old_colors = processed_colors;
+	}
 
-	$: selected_color =
-		default_color === "auto"
-			? processed_colors[0]
-			: !default_color
-				? "black"
-				: process_color(default_color);
+	let selected_color = process_color(default_color || "#000000");
+
+	$: if (mode === "draw") {
+		current_color.set(selected_color);
+	}
 
 	let brush_options: brush_option_type = false;
 

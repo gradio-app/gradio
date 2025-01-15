@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable, Sequence
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    Sequence,
 )
 
 import orjson
@@ -50,11 +49,13 @@ class JSON(Component):
         open: bool = False,
         show_indices: bool = False,
         height: int | str | None = None,
+        max_height: int | str | None = 500,
+        min_height: int | str | None = None,
     ):
         """
         Parameters:
             value: Default value as a valid JSON `str` -- or a `list` or `dict` that can be serialized to a JSON string. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
@@ -89,6 +90,8 @@ class JSON(Component):
         self.show_indices = show_indices
         self.open = open
         self.height = height
+        self.max_height = max_height
+        self.min_height = min_height
 
     def preprocess(self, payload: dict | list | None) -> dict | list | None:
         """

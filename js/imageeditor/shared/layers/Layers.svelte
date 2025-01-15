@@ -12,11 +12,22 @@
 	export let layer_files: (FileData | null)[] | null = [];
 	export let enable_layers = true;
 
-	const { pixi, current_layer, dimensions, register_context } =
-		getContext<EditorContext>(EDITOR_KEY);
+	const {
+		pixi,
+		current_layer,
+		dimensions,
+		register_context,
+		command_manager,
+		current_history
+	} = getContext<EditorContext>(EDITOR_KEY);
+
+	const { can_undo } = command_manager;
 
 	const LayerManager = layer_manager();
-	let layers: LayerScene[] = [];
+	const manager_current_layer = LayerManager.active_layer;
+	const layers = LayerManager.layers;
+
+	$: current_layer.set($manager_current_layer);
 
 	register_context("layers", {
 		init_fn: () => {
@@ -28,7 +39,7 @@
 	});
 
 	async function validate_layers(): Promise<void> {
-		let invalid = layers.some(
+		let invalid = $layers.some(
 			(layer) =>
 				layer.composite.texture?.width != $dimensions[0] ||
 				layer.composite.texture?.height != $dimensions[1]
@@ -44,14 +55,17 @@
 	async function new_layer(): Promise<void> {
 		if (!$pixi) return;
 
-		const [active_layer, all_layers] = LayerManager.add_layer(
+		const new_layer = LayerManager.add_layer(
 			$pixi.layer_container,
 			$pixi.renderer,
 			...$dimensions
 		);
 
-		$current_layer = active_layer;
-		layers = all_layers;
+		if ($can_undo || $layers.length > 0) {
+			command_manager.execute(new_layer);
+		} else {
+			new_layer.execute();
+		}
 	}
 
 	$: render_layer_files(layer_files);
@@ -88,20 +102,20 @@
 
 		LayerManager.reset();
 
-		let last_layer: [LayerScene, LayerScene[]] | null = null;
 		for (const blob of blobs.filter(is_not_null)) {
-			last_layer = await LayerManager.add_layer_from_blob(
+			const new_layer = await LayerManager.add_layer_from_blob(
 				$pixi.layer_container,
 				$pixi.renderer,
 				blob,
 				$pixi.view
 			);
+
+			if ($can_undo && $layers.length === 0) {
+				command_manager.execute(new_layer);
+			} else {
+				new_layer.execute();
+			}
 		}
-
-		if (!last_layer) return;
-
-		$current_layer = last_layer[0];
-		layers = last_layer[1];
 	}
 
 	onMount(async () => {
@@ -121,13 +135,13 @@
 		<button
 			aria-label="Show Layers"
 			on:click={() => (show_layers = !show_layers)}
-			><span class="icon"><Layers /></span> Layer {layers.findIndex(
+			><span class="icon"><Layers /></span> Layer {$layers.findIndex(
 				(l) => l === $current_layer
 			) + 1}
 		</button>
 		{#if show_layers}
 			<ul>
-				{#each layers as layer, i (i)}
+				{#each $layers as layer, i (i)}
 					<li>
 						<button
 							class:selected_layer={$current_layer === layer}

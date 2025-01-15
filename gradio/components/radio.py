@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
 from gradio.components.base import Component, FormComponent
 from gradio.events import Events
+from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -50,8 +52,8 @@ class Radio(FormComponent):
             choices: A list of string or numeric options to select from. An option can also be a tuple of the form (name, value), where name is the displayed name of the radio button and value is the value to be passed to the function, or returned by the function.
             value: The option selected by default. If None, no option is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
-            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            info: Additional component description.
+            label: the label for this component, displayed above the component if `show_label` is `True` and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component corresponds to.
+            info: additional component description, appears below the label in smaller font. Supports markdown / HTML syntax.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
@@ -109,16 +111,19 @@ class Radio(FormComponent):
         Returns:
             Passes the value of the selected radio button as a `str | int | float`, or its index as an `int` into the function, depending on `type`.
         """
+        if payload is None:
+            return None
+
+        choice_values = [value for _, value in self.choices]
+        if payload not in choice_values:
+            raise Error(
+                f"Value: {payload!r} (type: {type(payload)}) is not in the list of choices: {choice_values}"
+            )
+
         if self.type == "value":
             return payload
         elif self.type == "index":
-            if payload is None:
-                return None
-            else:
-                choice_values = [value for _, value in self.choices]
-                return (
-                    choice_values.index(payload) if payload in choice_values else None
-                )
+            return choice_values.index(payload)
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."

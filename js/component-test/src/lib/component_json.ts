@@ -391,7 +391,7 @@ export default [
 			avatar_images: [null, null],
 			sanitize_html: true,
 			render_markdown: true,
-			bubble_full_width: true,
+			bubble_full_width: null,
 			line_breaks: true,
 			show_copy_all_button: false,
 			name: "chatbot",
@@ -481,6 +481,7 @@ export default [
 		name: "code",
 		props: {
 			lines: 5,
+			max_lines: 20,
 			interactive: false,
 			show_label: true,
 			container: true,
@@ -498,6 +499,7 @@ export default [
 		name: "code",
 		props: {
 			lines: 5,
+			max_lines: 20,
 			interactive: true,
 			show_label: true,
 			container: true,

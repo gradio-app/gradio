@@ -15,4 +15,4 @@ aws s3 cp gradio/templates/frontend "s3://gradio/${new_version}/" --recursive --
 
 rm -rf dist/*
 rm -rf build/*
-python3 -m build
+python3 -m build -w

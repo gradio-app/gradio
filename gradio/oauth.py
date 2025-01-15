@@ -10,9 +10,10 @@ from dataclasses import dataclass, field
 
 import fastapi
 from fastapi.responses import RedirectResponse
-from huggingface_hub import HfFolder, whoami
+from huggingface_hub import get_token, whoami
+from starlette.datastructures import URL
 
-from .utils import get_space
+from gradio.utils import get_space
 
 OAUTH_CLIENT_ID = os.environ.get("OAUTH_CLIENT_ID")
 OAUTH_CLIENT_SECRET = os.environ.get("OAUTH_CLIENT_SECRET")
@@ -34,6 +35,7 @@ def attach_oauth(app: fastapi.FastAPI):
     # Add `/login/huggingface`, `/login/callback` and `/logout` routes to enable OAuth in the Gradio app.
     # If the app is running in a Space, OAuth is enabled normally. Otherwise, we mock the "real" routes to make the
     # user log in with a fake user profile - without any calls to hf.co.
+
     if get_space() is not None:
         _add_oauth_routes(app)
     else:
@@ -69,6 +71,7 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
         "OAuth is required but {} environment variable is not set. Make sure you've enabled OAuth in your Space by"
         " setting `hf_oauth: true` in the Space metadata."
     )
+
     if OAUTH_CLIENT_ID is None:
         raise ValueError(msg.format("OAUTH_CLIENT_ID"))
     if OAUTH_CLIENT_SECRET is None:
@@ -184,8 +187,8 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
         request.session.pop("oauth_info", None)
-        logout_url = str(request.url).replace("/logout", "/")  # preserve query params
-        return RedirectResponse(url=logout_url)
+        logout_url = URL("/").include_query_params(**request.query_params)
+        return RedirectResponse(url=logout_url, status_code=302)
 
 
 def _generate_redirect_uri(request: fastapi.Request) -> str:
@@ -295,7 +298,7 @@ class OAuthToken:
 
 
 def _get_mocked_oauth_info() -> typing.Dict:
-    token = HfFolder.get_token()
+    token = get_token()
     if token is None:
         raise ValueError(
             "Your machine must be logged in to HF to debug a Gradio app locally. Please"

@@ -156,7 +156,7 @@ with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.sizes.spacing_sm, 
 
 最后的 2 个构造函数参数设置主题的字体。您可以将一系列字体传递给这些参数，以指定回退字体。如果提供了字符串，它将被加载为系统字体。如果提供了 `gradio.themes.GoogleFont`，则将从 Google Fonts 加载该字体。
 
-- `font`：此设置主题的主要字体。在默认主题中，此值设置为 `gradio.themes.GoogleFont("Source Sans Pro")`。
+- `font`：此设置主题的主要字体。在默认主题中，此值设置为 `gradio.themes.GoogleFont("IBM Plex Sans")`。
 - `font_mono`：此设置主题的等宽字体。在默认主题中，此值设置为 `gradio.themes.GoogleFont("IBM Plex Mono")`。
 
 您可以修改这些值，例如以下方式：

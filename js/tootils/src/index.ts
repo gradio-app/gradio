@@ -21,7 +21,7 @@ const ROOT_DIR = path.resolve(
 	"../../../.."
 );
 
-const is_lite = !!process.env.GRADIO_E2E_TEST_LITE;
+export const is_lite = !!process.env.GRADIO_E2E_TEST_LITE;
 
 const test_normal = base.extend<{ setup: void }>({
 	setup: [
@@ -31,6 +31,9 @@ const test_normal = base.extend<{ setup: void }>({
 			const test_name = path.basename(file, ".spec.ts");
 
 			await page.goto(`localhost:${port}/${test_name}`);
+			if (process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true") {
+				await page.waitForSelector("#svelte-announcer");
+			}
 
 			await use();
 		},
@@ -235,4 +238,7 @@ export async function go_to_testcase(
 ): Promise<void> {
 	const url = page.url();
 	await page.goto(`${url.substring(0, url.length - 1)}_${test_case}_testcase`);
+	if (process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true") {
+		await page.waitForSelector("#svelte-announcer");
+	}
 }

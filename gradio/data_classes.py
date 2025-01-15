@@ -7,32 +7,35 @@ import pathlib
 import secrets
 import shutil
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
 from enum import Enum, auto
 from typing import (
+    Annotated,
     Any,
-    Iterator,
-    List,
     Literal,
     NewType,
     Optional,
-    Tuple,
     TypedDict,
     Union,
 )
 
 from fastapi import Request
 from gradio_client.documentation import document
-from gradio_client.utils import traverse
+from gradio_client.utils import is_file_obj_with_meta, traverse
 from pydantic import (
     BaseModel,
+    ConfigDict,
+    Field,
     GetCoreSchemaHandler,
     GetJsonSchemaHandler,
     RootModel,
     ValidationError,
+    ValidationInfo,
+    model_validator,
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
-from typing_extensions import Annotated, NotRequired
+from typing_extensions import NotRequired
 
 try:
     from pydantic import JsonValue
@@ -50,7 +53,7 @@ class CancelBody(BaseModel):
 
 
 class SimplePredictBody(BaseModel):
-    data: List[Any]
+    data: list[Any]
     session_hash: Optional[str] = None
 
 
@@ -81,7 +84,7 @@ PydanticStarletteRequest = Annotated[Request, _StarletteRequestPydanticAnnotatio
 class PredictBody(BaseModel):
     session_hash: Optional[str] = None
     event_id: Optional[str] = None
-    data: List[Any]
+    data: list[Any]
     event_data: Optional[Any] = None
     fn_index: Optional[int] = None
     trigger_id: Optional[int] = None
@@ -130,7 +133,7 @@ class ComponentServerJSONBody(BaseModel):
 
 class DataWithFiles(BaseModel):
     data: Any
-    files: List[Tuple[str, bytes]]
+    files: list[tuple[str, bytes]]
 
 
 class ComponentServerBlobBody(BaseModel):
@@ -197,12 +200,12 @@ GradioDataModel = Union[GradioModel, GradioRootModel]
 
 class FileDataDict(TypedDict):
     path: str  # server filepath
-    url: Optional[str]  # normalised server url
-    size: Optional[int]  # size in bytes
-    orig_name: Optional[str]  # original filename
-    mime_type: Optional[str]
+    url: NotRequired[Optional[str]]  # normalised server url
+    size: NotRequired[Optional[int]]  # size in bytes
+    orig_name: NotRequired[Optional[str]]  # original filename
+    mime_type: NotRequired[Optional[str]]
     is_stream: bool
-    meta: dict
+    meta: NotRequired[dict]
 
 
 @document()
@@ -227,6 +230,19 @@ class FileData(GradioModel):
     mime_type: Optional[str] = None
     is_stream: bool = False
     meta: dict = {"_type": "gradio.FileData"}
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_model(cls, v, info: ValidationInfo):
+        if (
+            info.context
+            and info.context.get("validate_meta")
+            and not is_file_obj_with_meta(v)
+        ):
+            raise ValueError(
+                "The 'meta' field must be explicitly provided in the input data and be equal to {'_type': 'gradio.FileData'}."
+            )
+        return v
 
     @property
     def is_none(self) -> bool:
@@ -302,7 +318,7 @@ class FileData(GradioModel):
 
 
 class ListFiles(GradioRootModel):
-    root: List[FileData]
+    root: list[FileData]
 
     def __getitem__(self, index):
         return self.root[index]
@@ -368,3 +384,34 @@ class BlocksConfigDict(TypedDict):
     dependencies: NotRequired[list[dict[str, Any]]]
     root: NotRequired[str | None]
     username: NotRequired[str | None]
+    api_prefix: str
+    pwa: NotRequired[bool]
+
+
+class MediaStreamChunk(TypedDict):
+    data: bytes
+    duration: float
+    extension: str
+    id: NotRequired[str]
+
+
+class ImageData(GradioModel):
+    path: Optional[str] = Field(default=None, description="Path to a local file")
+    url: Optional[str] = Field(
+        default=None, description="Publicly available url or base64 encoded image"
+    )
+    size: Optional[int] = Field(default=None, description="Size of image in bytes")
+    orig_name: Optional[str] = Field(default=None, description="Original filename")
+    mime_type: Optional[str] = Field(default=None, description="mime type of image")
+    is_stream: bool = Field(default=False, description="Can always be set to False")
+    meta: dict = {"_type": "gradio.FileData"}
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "description": "For input, either path or url must be provided. For output, path is always provided."
+        }
+    )
+
+
+class Base64ImageData(GradioModel):
+    url: str = Field(description="base64 encoded image")

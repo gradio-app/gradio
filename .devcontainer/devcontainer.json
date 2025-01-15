@@ -1,7 +1,7 @@
 // See https://containers.dev
 {
 	"name": "Python 3",
-	"image": "mcr.microsoft.com/devcontainers/python:1-3.9",
+	"image": "mcr.microsoft.com/devcontainers/python:1-3.10",
 
 	// See https://containers.dev/features
 	"features": {
@@ -37,5 +37,5 @@
 		"9876": { "label": "gradio dev port" }
 	},
 
-	"postCreateCommand": "export NODE_OPTIONS=\"--max-old-space-size=8192\" && chmod +x scripts/install_gradio.sh scripts/install_test_requirements.sh scripts/build_frontend.sh && ./scripts/install_gradio.sh && ./scripts/install_test_requirements.sh && ./scripts/build_frontend.sh"
+	"postCreateCommand": "export NODE_OPTIONS=\"--max-old-space-size=8192\" && chmod +x scripts/install_gradio.sh scripts/install_test_requirements.sh scripts/build_frontend.sh && ./scripts/install_test_requirements.sh && ./scripts/install_gradio.sh  && ./scripts/build_frontend.sh"
 }

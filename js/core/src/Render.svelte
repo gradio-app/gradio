@@ -36,20 +36,24 @@
 		};
 	});
 
-	$: node.children =
-		node.children &&
-		node.children.filter((v) => {
-			const valid_node = node.type !== "statustracker";
-			if (!valid_node) {
-				filtered_children.push(v);
-			}
-			return valid_node;
-		});
+	$: {
+		if (node) {
+			node.children =
+				node.children &&
+				node.children.filter((v) => {
+					const valid_node = node.type !== "statustracker";
+					if (!valid_node) {
+						filtered_children.push(v);
+					}
+					return valid_node;
+				});
+		}
+	}
 
 	setContext("BLOCK_KEY", parent);
 
 	$: {
-		if (node.type === "form") {
+		if (node && node.type === "form") {
 			if (node.children?.every((c) => !c.props.visible)) {
 				node.props.visible = false;
 			} else {
@@ -58,7 +62,7 @@
 		}
 	}
 
-	$: gradio_class = new Gradio<Record<string, any>>(
+	$: node.props.gradio = new Gradio<Record<string, any>>(
 		node.id,
 		target,
 		theme_mode,
@@ -73,7 +77,7 @@
 </script>
 
 <RenderComponent
-	_id={node.id}
+	_id={node?.id}
 	component={node.component}
 	bind:instance={node.instance}
 	bind:value={node.props.value}
@@ -84,7 +88,7 @@
 	{...node.props}
 	{theme_mode}
 	{root}
-	gradio={gradio_class}
+	visible={typeof node.props.visible === "boolean" ? node.props.visible : true}
 >
 	{#if node.children && node.children.length}
 		{#each node.children as _node (_node.id)}

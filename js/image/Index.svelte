@@ -9,7 +9,7 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import type { Gradio, SelectData, ValueData } from "@gradio/utils";
 	import StaticImage from "./shared/ImagePreview.svelte";
 	import ImageUploader from "./shared/ImageUploader.svelte";
 	import { afterUpdate } from "svelte";
@@ -17,11 +17,21 @@
 	import { Block, Empty, UploadText } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { FileData } from "@gradio/client";
+	import { upload, type FileData } from "@gradio/client";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
 	type sources = "upload" | "webcam" | "clipboard" | null;
 
+	let stream_state = "closed";
+	let _modify_stream: (state: "open" | "closed" | "waiting") => void = () => {};
+	export function modify_stream_state(
+		state: "open" | "closed" | "waiting"
+	): void {
+		stream_state = state;
+		_modify_stream(state);
+	}
+	export const get_stream_state: () => void = () => stream_state;
+	export let set_time_limit: (arg0: number) => void;
 	export let value_is_output = false;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -35,6 +45,7 @@
 
 	export let height: number | undefined;
 	export let width: number | undefined;
+	export let stream_every: number;
 
 	export let _selectable = false;
 	export let container = true;
@@ -53,19 +64,23 @@
 	export let mirror_webcam: boolean;
 	export let placeholder: string | undefined = undefined;
 	export let show_fullscreen_button: boolean;
-
+	export let input_ready: boolean;
+	export let webcam_constraints: { [key: string]: any } | undefined = undefined;
+	let uploading = false;
+	$: input_ready = !uploading;
 	export let gradio: Gradio<{
 		input: never;
 		change: never;
 		error: string;
 		edit: never;
-		stream: never;
+		stream: ValueData;
 		drag: never;
 		upload: never;
 		clear: never;
 		select: SelectData;
 		share: ShareData;
 		clear_status: LoadingStatus;
+		close_stream: string;
 	}>;
 
 	$: {
@@ -77,6 +92,7 @@
 			}
 		}
 	}
+
 	afterUpdate(() => {
 		value_is_output = false;
 	});
@@ -171,6 +187,7 @@
 
 		<ImageUploader
 			bind:this={upload_component}
+			bind:uploading
 			bind:active_source
 			bind:value
 			bind:dragging
@@ -181,7 +198,7 @@
 			on:clear={() => {
 				gradio.dispatch("clear");
 			}}
-			on:stream={() => gradio.dispatch("stream")}
+			on:stream={({ detail }) => gradio.dispatch("stream", detail)}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload={() => gradio.dispatch("upload")}
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
@@ -191,15 +208,22 @@
 				loading_status.status = "error";
 				gradio.dispatch("error", detail);
 			}}
+			on:close_stream={() => {
+				gradio.dispatch("close_stream", "stream");
+			}}
 			{label}
 			{show_label}
 			{pending}
 			{streaming}
 			{mirror_webcam}
+			{stream_every}
+			bind:modify_stream={_modify_stream}
+			bind:set_time_limit
+			{webcam_constraints}
 			max_file_size={gradio.max_file_size}
 			i18n={gradio.i18n}
-			upload={gradio.client.upload}
-			stream_handler={gradio.client.stream}
+			upload={(...args) => gradio.client.upload(...args)}
+			stream_handler={gradio.client?.stream}
 		>
 			{#if active_source === "upload" || !active_source}
 				<UploadText i18n={gradio.i18n} type="image" {placeholder} />

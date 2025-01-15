@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional, Union
+from typing import Literal, Optional, Union
 
 from gradio_client.utils import ServerMessage
 from pydantic import BaseModel
@@ -19,15 +19,16 @@ class ProgressUnit(BaseModel):
 
 class ProgressMessage(BaseMessage):
     msg: Literal[ServerMessage.progress] = ServerMessage.progress  # type: ignore
-    progress_data: List[ProgressUnit] = []
+    progress_data: list[ProgressUnit] = []
 
 
 class LogMessage(BaseMessage):
     msg: Literal[ServerMessage.log] = ServerMessage.log  # type: ignore
     log: str
-    level: Literal["info", "warning"]
+    level: Literal["info", "warning", "success"]
     duration: Optional[float] = 10
     visible: bool = True
+    title: str
 
 
 class EstimationMessage(BaseMessage):
@@ -46,12 +47,16 @@ class ProcessCompletedMessage(BaseMessage):
     msg: Literal[ServerMessage.process_completed] = ServerMessage.process_completed  # type: ignore
     output: dict
     success: bool
+    title: Optional[str] = None
 
 
 class ProcessGeneratingMessage(BaseMessage):
-    msg: Literal[ServerMessage.process_generating] = ServerMessage.process_generating  # type: ignore
+    msg: Literal[ServerMessage.process_generating, ServerMessage.process_streaming] = (  # type: ignore
+        ServerMessage.process_generating
+    )
     output: dict
     success: bool
+    time_limit: Optional[float] = None
 
 
 class HeartbeatMessage(BaseMessage):

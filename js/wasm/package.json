@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/wasm",
-	"version": "0.13.1",
+	"version": "0.16.0",
 	"description": "Gradio Wasm package",
 	"type": "module",
 	"main": "./dist/src/index.js",
@@ -19,6 +19,10 @@
 		"./network": {
 			"import": "./network/index.ts",
 			"types": "./dist/network/index.d.ts"
+		},
+		"./webworker": {
+			"import": "./webworker/webworker.js",
+			"types": "./webworker/webworker.d.ts"
 		}
 	},
 	"keywords": [],

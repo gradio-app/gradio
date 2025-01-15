@@ -21,6 +21,8 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let icon_upload = false;
+	export let height: number | string | undefined = undefined;
 
 	let upload_id: string;
 	let file_data: FileData[];
@@ -265,7 +267,14 @@
 		class:center
 		class:boundedheight
 		class:flex
-		style:height="100%"
+		class:icon-mode={icon_upload}
+		style:height={icon_upload
+			? ""
+			: height
+				? typeof height === "number"
+					? height + "px"
+					: height
+				: "100%"}
 		tabindex={hidden ? -1 : 0}
 		on:click={paste_clipboard}
 	>
@@ -282,7 +291,14 @@
 		class:boundedheight
 		class:flex
 		class:disable_click
-		style:height="100%"
+		class:icon-mode={icon_upload}
+		style:height={icon_upload
+			? ""
+			: height
+				? typeof height === "number"
+					? height + "px"
+					: height
+				: "100%"}
 		tabindex={hidden ? -1 : 0}
 		on:drag|preventDefault|stopPropagation
 		on:dragstart|preventDefault|stopPropagation
@@ -317,16 +333,6 @@
 		width: var(--size-full);
 	}
 
-	.hidden {
-		display: none;
-		position: absolute;
-		flex-grow: 0;
-	}
-
-	.hidden :global(svg) {
-		display: none;
-	}
-
 	.center {
 		display: flex;
 		justify-content: center;
@@ -337,11 +343,35 @@
 		justify-content: center;
 		align-items: center;
 	}
+	.hidden {
+		display: none;
+		position: absolute;
+		flex-grow: 0;
+	}
+
+	.hidden :global(svg) {
+		display: none;
+	}
+
 	.disable_click {
 		cursor: default;
 	}
 
 	input {
 		display: none;
+	}
+
+	.icon-mode {
+		position: absolute !important;
+		width: var(--size-4);
+		height: var(--size-4);
+		padding: 0;
+		min-height: 0;
+		border-radius: var(--radius-circle);
+	}
+
+	.icon-mode :global(svg) {
+		width: var(--size-4);
+		height: var(--size-4);
 	}
 </style>

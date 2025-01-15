@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/audio",
-	"version": "0.13.5",
+	"version": "0.15.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -15,12 +15,13 @@
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@gradio/wasm": "workspace:^",
+		"@types/wavesurfer.js": "^6.0.10",
 		"extendable-media-recorder": "^9.0.0",
 		"extendable-media-recorder-wav-encoder": "^7.0.76",
+		"hls.js": "^1.5.13",
 		"resize-observer-polyfill": "^1.5.1",
 		"svelte-range-slider-pips": "^2.0.1",
-		"wavesurfer.js": "^7.4.2",
-		"@types/wavesurfer.js": "^6.0.10"
+		"wavesurfer.js": "^7.4.2"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"

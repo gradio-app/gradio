@@ -8,6 +8,9 @@ import {
 	Filter
 } from "pixi.js";
 
+import { type Command } from "../utils/commands";
+import { get, writable, type Writable } from "svelte/store";
+
 /**
  * GLSL Shader that takes two textures and erases the second texture from the first.
  */
@@ -65,8 +68,9 @@ interface LayerManager {
 		container: Container,
 		renderer: IRenderer,
 		width: number,
-		height: number
-	): [LayerScene, LayerScene[]];
+		height: number,
+		sprite?: Sprite
+	): Command;
 	/**
 	 * Swaps the layer with the layer above or below it.
 	 * @param layer The index layer to swap.
@@ -89,13 +93,15 @@ interface LayerManager {
 	 * @returns The layers.
 	 */
 	get_layers(): LayerScene[];
+	layers: Writable<LayerScene[]>;
+	active_layer: Writable<LayerScene | null>;
 
 	add_layer_from_blob(
 		container: Container,
 		renderer: IRenderer,
 		blob: Blob,
 		view: HTMLCanvasElement
-	): Promise<[LayerScene, LayerScene[]]>;
+	): Promise<Command>;
 }
 
 /**
@@ -126,47 +132,72 @@ export function layer_manager(): LayerManager {
 			container: Container,
 			renderer: IRenderer,
 			width: number,
-			height: number
-		): [LayerScene, LayerScene[]] {
-			const layer_container = new Container() as Container & DisplayObject;
-			position++;
-			layer_container.zIndex = position;
+			height: number,
+			sprite?: Sprite
+		): Command {
+			let layer_container: Container & DisplayObject;
+			let layer_number: number;
+			let that = this;
+			return {
+				execute: function () {
+					layer_container = new Container() as Container & DisplayObject;
+					position++;
+					layer_container.zIndex = position;
 
-			const composite_texture = RenderTexture.create({
-				width,
-				height
-			});
+					const composite_texture = RenderTexture.create({
+						width,
+						height
+					});
 
-			const composite = new Sprite(composite_texture) as Sprite & DisplayObject;
+					const composite = new Sprite(composite_texture) as Sprite &
+						DisplayObject;
 
-			layer_container.addChild(composite);
+					layer_container.addChild(composite);
 
-			composite.zIndex = position;
+					composite.zIndex = position;
 
-			const layer_scene: LayerScene = {
-				draw_texture: RenderTexture.create({
-					width,
-					height
-				}),
-				erase_texture: RenderTexture.create({
-					width,
-					height
-				}),
-				composite
+					const layer_scene: LayerScene = {
+						draw_texture: RenderTexture.create({
+							width,
+							height
+						}),
+						erase_texture: RenderTexture.create({
+							width,
+							height
+						}),
+						composite
+					};
+
+					const erase_filter = new Filter(undefined, erase_shader, {
+						uEraserTexture: layer_scene.erase_texture,
+						uDrawingTexture: layer_scene.draw_texture
+					});
+
+					composite.filters = [erase_filter];
+
+					container.addChild(layer_container);
+					_layers.push(layer_scene);
+					that.layers.update((s) => [...s, layer_scene]);
+					that.active_layer.set(layer_scene);
+
+					layer_number = get(that.layers).length - 1;
+
+					if (sprite) {
+						renderer.render(sprite, {
+							renderTexture: layer_scene.draw_texture
+						});
+					}
+				},
+				undo: function () {
+					container.removeChild(layer_container);
+
+					_layers = get(that.layers);
+					_layers = _layers.filter((_, i) => i !== layer_number);
+					that.layers.set(_layers);
+					const new_layer = _layers[layer_number - 1] || _layers[0] || null;
+					that.active_layer.set(new_layer);
+				}
 			};
-
-			const erase_filter = new Filter(undefined, erase_shader, {
-				uEraserTexture: layer_scene.erase_texture,
-				uDrawingTexture: layer_scene.draw_texture
-			});
-
-			composite.filters = [erase_filter];
-
-			container.addChild(layer_container);
-
-			_layers.push(layer_scene);
-
-			return [layer_scene, _layers];
 		},
 
 		swap_layers: function (
@@ -182,7 +213,8 @@ export function layer_manager(): LayerManager {
 		},
 
 		change_active_layer: function (layer: number): LayerScene {
-			current_layer = layer;
+			// current_layer = layer;
+			this.active_layer.set(get(this.layers)[layer]);
 			return _layers[layer];
 		},
 		reset() {
@@ -194,13 +226,15 @@ export function layer_manager(): LayerManager {
 			_layers = [];
 			current_layer = 0;
 			position = 0;
+			this.active_layer.set(null);
+			this.layers.set([]);
 		},
 		async add_layer_from_blob(
 			container: Container,
 			renderer: IRenderer,
 			blob: Blob,
 			view: HTMLCanvasElement
-		) {
+		): Promise<Command> {
 			const img = await createImageBitmap(blob);
 			const bitmap_texture = Texture.from(img);
 
@@ -217,22 +251,19 @@ export function layer_manager(): LayerManager {
 			sprite.width = w;
 			sprite.height = h;
 
-			const [layer, layers] = this.add_layer(
+			return this.add_layer(
 				container,
 				renderer,
 				view.width,
-				view.height
+				view.height,
+				sprite
 			);
-
-			renderer.render(sprite, {
-				renderTexture: layer.draw_texture
-			});
-
-			return [layer, layers];
 		},
 		get_layers() {
 			return _layers;
-		}
+		},
+		layers: writable([]),
+		active_layer: writable(null)
 	};
 }
 

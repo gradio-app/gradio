@@ -16,38 +16,6 @@ const loading_status: LoadingStatus = {
 	show_progress: "full"
 };
 
-//taken from: https://github.com/microsoft/playwright/issues/20032
-async function changeSlider(
-	page: Page,
-	thumb: Locator,
-	slider: Locator,
-	targetPercentage: number
-) {
-	const thumbBoundingBox = await thumb.boundingBox();
-	const sliderBoundingBox = await slider.boundingBox();
-
-	if (thumbBoundingBox === null || sliderBoundingBox === null) {
-		return; // NOTE it's probably better to throw an error here
-	}
-
-	// Start from the middle of the slider's thumb
-	const startPoint = {
-		x: thumbBoundingBox.x + thumbBoundingBox.width / 2,
-		y: thumbBoundingBox.y + thumbBoundingBox.height / 2
-	};
-
-	// Slide it to some endpoint determined by the target percentage
-	const endPoint = {
-		x: sliderBoundingBox.x + sliderBoundingBox.width * targetPercentage,
-		y: thumbBoundingBox.y + thumbBoundingBox.height / 2
-	};
-
-	await page.mouse.move(startPoint.x, startPoint.y);
-	await page.mouse.down();
-	await page.mouse.move(endPoint.x, endPoint.y);
-	await page.mouse.up();
-}
-
 test("Slider Default Value And Label rendered", async ({ mount }) => {
 	const component = await mount(Slider, {
 		props: {
@@ -92,6 +60,25 @@ test("Slider respects show_label", async ({ mount, page }) => {
 	await expect(component.getByTestId("block-title")).toBeHidden();
 });
 
+test("Slider respects show_reset_button", async ({ mount, page }) => {
+	const component = await mount(Slider, {
+		props: {
+			value: 3,
+			minimum: 0,
+			maximum: 10,
+			label: "My Slider",
+			show_reset_button: true,
+			step: 1,
+			interactive: true,
+			loading_status: loading_status,
+			gradio: {
+				dispatch() {}
+			}
+		}
+	});
+	await expect(component.getByTestId("reset-button")).toBeVisible();
+});
+
 test("Slider Maximum/Minimum values", async ({ mount, page }) => {
 	const component = await mount(Slider, {
 		props: {
@@ -113,22 +100,32 @@ test("Slider Maximum/Minimum values", async ({ mount, page }) => {
 		name: "My Slider"
 	});
 
+	const sliderRangeInput = component.getByRole("slider", {
+		name: "range slider for My Slider"
+	});
+
 	await expect(sliderNumberInput).toHaveValue("3");
 
-	await sliderNumberInput.press("ArrowUp");
-
-	await expect(sliderNumberInput).toHaveValue("4");
-
-	const sliderRangeInput = component.getByRole("slider");
-
-	await sliderRangeInput.focus();
-
-	sliderRangeInput.press("ArrowRight");
-
+	// test number input
+	await sliderNumberInput.fill("5");
+	await sliderNumberInput.press("Enter");
 	await expect(sliderNumberInput).toHaveValue("5");
 
-	changeSlider(page, sliderRangeInput, sliderRangeInput, 2);
+	// test slider thumb movement
+	await sliderRangeInput.focus();
+	await sliderRangeInput.evaluate((el: HTMLInputElement) => {
+		el.value = "7";
+		el.dispatchEvent(new Event("input", { bubbles: true }));
+		el.dispatchEvent(new Event("change", { bubbles: true }));
+	});
+	await expect(sliderNumberInput).toHaveValue("7");
 
+	// test maximum value
+	await sliderRangeInput.evaluate((el: HTMLInputElement) => {
+		el.value = "10";
+		el.dispatchEvent(new Event("input", { bubbles: true }));
+		el.dispatchEvent(new Event("change", { bubbles: true }));
+	});
 	await expect(sliderNumberInput).toHaveValue("10");
 });
 
@@ -162,13 +159,24 @@ test("Slider Change event", async ({ mount, page }) => {
 		name: "My Slider"
 	});
 
-	const sliderRangeInput = component.getByRole("slider");
+	const sliderRangeInput = component.getByRole("slider", {
+		name: "range slider for My Slider"
+	});
 
 	await expect(sliderNumberInput).toHaveValue("3");
 
-	await changeSlider(page, sliderRangeInput, sliderRangeInput, 0.7);
+	// change value using slider thumb
+	await sliderRangeInput.evaluate((el: HTMLInputElement) => {
+		el.value = "7";
+		el.dispatchEvent(new Event("input", { bubbles: true }));
+		el.dispatchEvent(new Event("change", { bubbles: true }));
+	});
 
 	await expect(sliderNumberInput).toHaveValue("7");
+
+	await sliderRangeInput.evaluate((el: HTMLInputElement) => {
+		el.dispatchEvent(new Event("pointerup", { bubbles: true }));
+	});
 
 	// More than one change event and one release event.
 	await expect(events.change).toBeGreaterThanOrEqual(1);

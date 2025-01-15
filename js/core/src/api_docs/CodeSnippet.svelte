@@ -17,6 +17,7 @@
 	export let dependency: Dependency;
 	export let dependency_index: number;
 	export let root: string;
+	export let api_prefix: string;
 	export let space_id: string | null;
 	export let endpoint_parameters: any;
 	export let named: boolean;
@@ -35,6 +36,9 @@
 	let blob_examples: any[] = endpoint_parameters.filter(
 		(param: EndpointParameter) => blob_components.includes(param.component)
 	);
+
+	$: normalised_api_prefix = api_prefix ? api_prefix : "/";
+	$: normalised_root = root.replace(/\/$/, "");
 </script>
 
 <div class="container">
@@ -135,7 +139,7 @@ console.log(result.data);
 				</div>
 
 				<div bind:this={bash_post_code}>
-					<pre>curl -X POST {root}call/{dependency.api_name} -s -H "Content-Type: application/json" -d '{"{"}
+					<pre>curl -X POST {normalised_root}{normalised_api_prefix}/call/{dependency.api_name} -s -H "Content-Type: application/json" -d '{"{"}
   "data": [{#each endpoint_parameters as { label, parameter_name, type, python_type, component, example_input, serializer }, i}
 							<!-- 
 -->{represent_value(
@@ -147,7 +151,7 @@ console.log(result.data);
 						{/each}
 ]{"}"}' \
   | awk -F'"' '{"{"} print $4{"}"}'  \
-  | read EVENT_ID; curl -N {root}call/{dependency.api_name}/$EVENT_ID</pre>
+  | read EVENT_ID; curl -N {normalised_root}{normalised_api_prefix}/call/{dependency.api_name}/$EVENT_ID</pre>
 				</div>
 			</code>
 		</Block>

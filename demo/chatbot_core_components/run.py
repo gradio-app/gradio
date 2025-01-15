@@ -1,3 +1,4 @@
+# type: ignore
 import gradio as gr
 import os
 import plotly.express as px
@@ -148,42 +149,54 @@ def random_matplotlib_plot():
 
 def add_message(history, message):
     for x in message["files"]:
-        history.append(((x,), None))
+        history.append({"role": "user", "content": {"path": x}})
     if message["text"] is not None:
-        history.append((message["text"], None))
+        history.append({"role": "user", "content": message["text"]})
     return history, gr.MultimodalTextbox(value=None, interactive=False)
 
 def bot(history, response_type):
+    msg = {"role": "assistant", "content": ""}
     if response_type == "plot":
-        history[-1][1] = gr.Plot(random_plot())
+        content = gr.Plot(random_plot())
     elif response_type == "bokeh_plot":
-        history[-1][1] = gr.Plot(random_bokeh_plot())
+        content = gr.Plot(random_bokeh_plot())
     elif response_type == "matplotlib_plot":
-        history[-1][1] = gr.Plot(random_matplotlib_plot())
+        content =  gr.Plot(random_matplotlib_plot())
     elif response_type == "gallery":
-        history[-1][1] = gr.Gallery(
+        content = gr.Gallery(
             [os.path.join("files", "avatar.png"), os.path.join("files", "avatar.png")]
         )
+    elif response_type == "dataframe":
+        content = gr.Dataframe(
+            interactive=True,
+            headers=["One", "Two", "Three"],
+            col_count=(3, "fixed"),
+            row_count=(3, "fixed"),
+            value=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+            label="Dataframe",
+        )
     elif response_type == "image":
-        history[-1][1] = gr.Image(os.path.join("files", "avatar.png"))
+       content = gr.Image(os.path.join("files", "avatar.png"))
     elif response_type == "video":
-        history[-1][1] = gr.Video(os.path.join("files", "world.mp4"))
+       content = gr.Video(os.path.join("files", "world.mp4"))
     elif response_type == "audio":
-        history[-1][1] = gr.Audio(os.path.join("files", "audio.wav"))
+        content = gr.Audio(os.path.join("files", "audio.wav"))
     elif response_type == "audio_file":
-        history[-1][1] = (os.path.join("files", "audio.wav"), "description")
+        content = {"path": os.path.join("files", "audio.wav"), "alt_text": "description"}
     elif response_type == "image_file":
-        history[-1][1] = (os.path.join("files", "avatar.png"), "description")
+        content = {"path": os.path.join("files", "avatar.png"), "alt_text": "description"}
     elif response_type == "video_file":
-        history[-1][1] = (os.path.join("files", "world.mp4"), "description")
+        content = {"path": os.path.join("files", "world.mp4"), "alt_text": "description"}
     elif response_type == "txt_file":
-        history[-1][1] = (os.path.join("files", "sample.txt"), "description")
+        content = {"path": os.path.join("files", "sample.txt"), "alt_text": "description"}
     elif response_type == "html":
-        history[-1][1] = gr.HTML(
+        content = gr.HTML(
             html_src(random.choice(["harmful", "neutral", "beneficial"]))
         )
     else:
-        history[-1][1] = txt
+        content = txt
+    msg["content"] = content # type: ignore
+    history.append(msg)
     return history
 
 fig = random_plot()
@@ -191,6 +204,7 @@ fig = random_plot()
 with gr.Blocks(fill_height=True) as demo:
     chatbot = gr.Chatbot(
         elem_id="chatbot",
+        type="messages",
         bubble_full_width=False,
         scale=1,
         show_copy_button=True,
@@ -198,7 +212,6 @@ with gr.Blocks(fill_height=True) as demo:
             None,  # os.path.join("files", "avatar.png"),
             os.path.join("files", "avatar.png"),
         ),
-        # layout="panel",
     )
     response_type = gr.Radio(
         [
@@ -212,6 +225,7 @@ with gr.Blocks(fill_height=True) as demo:
             "image",
             "text",
             "gallery",
+            "dataframe",
             "video",
             "audio",
             "html",

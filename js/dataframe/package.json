@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/dataframe",
-	"version": "0.10.1",
+	"version": "0.12.7",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -12,7 +12,7 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/button": "workspace:^",
 		"@gradio/client": "workspace:^",
-		"@gradio/markdown": "workspace:^",
+		"@gradio/markdown-code": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",

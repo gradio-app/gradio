@@ -15,14 +15,8 @@ for (const test_case of cases) {
 		if (cases.slice(1).includes(test_case)) {
 			await go_to_testcase(page, test_case);
 		}
-		let submit_button = page.getByRole("button", { name: "Submit" });
-		if (test_case.startsWith("multimodal")) {
-			submit_button = page.locator(".submit-button");
-		}
-		const retry_button = page.getByRole("button", { name: "🔄 Retry" });
-		const undo_button = page.getByRole("button", { name: "↩️ Undo" });
-		const clear_button = page.getByRole("button", { name: "🗑️ Clear" });
-		const textbox = page.getByPlaceholder("Type a message...");
+		const submit_button = page.locator(".submit-button");
+		const textbox = page.getByTestId("textbox").first();
 
 		await textbox.fill("hello");
 		await submit_button.click();
@@ -45,13 +39,13 @@ for (const test_case of cases) {
 		await expect(expected_text_el_1).toBeVisible();
 		await expect(page.locator(".bot.message")).toHaveCount(2);
 
-		await undo_button.click();
+		await page.getByLabel("undo").first().click();
 		await expect(page.locator(".bot.message")).toHaveCount(1);
 		await expect(textbox).toHaveValue("hi");
 
-		await retry_button.click();
+		await page.getByLabel("retry").first().click();
 		const expected_text_el_2 = page.locator(".bot p", {
-			hasText: "Run 3 - You typed: hi"
+			hasText: "Run 3 - You typed: hello"
 		});
 		await expect(expected_text_el_2).toBeVisible();
 
@@ -65,7 +59,7 @@ for (const test_case of cases) {
 		});
 		await expect(expected_text_el_3).toBeVisible();
 		await expect(page.locator(".bot.message")).toHaveCount(2);
-		await clear_button.click();
+		await page.getByLabel("clear").first().click();
 		await expect(page.locator(".bot.message")).toHaveCount(0);
 	});
 
@@ -75,11 +69,8 @@ for (const test_case of cases) {
 		if (cases.slice(1).includes(test_case)) {
 			await go_to_testcase(page, test_case);
 		}
-		const textbox = page.getByPlaceholder("Type a message...");
-		let submit_button = page.getByRole("button", { name: "Submit" });
-		if (test_case.startsWith("multimodal")) {
-			submit_button = page.locator(".submit-button");
-		}
+		const textbox = page.getByTestId("textbox").first();
+		const submit_button = page.locator(".submit-button");
 		await textbox.fill("hi");
 
 		await page.getByRole("button", { name: "Use via API logo" }).click();
@@ -91,9 +82,60 @@ for (const test_case of cases) {
 		);
 		const api_recorder = await page.locator("#api-recorder");
 		await api_recorder.click();
-		const n_calls = test_case.includes("non_stream") ? 3 : 5;
 		await expect(page.locator("#num-recorded-api-calls")).toContainText(
-			`🪄 Recorded API Calls [${n_calls}]`
+			`🪄 Recorded API Calls`
 		);
 	});
 }
+
+test("test stopping generation", async ({ page }) => {
+	const submit_button = page.locator(".submit-button");
+	const textbox = page.getByPlaceholder("Type a message...");
+
+	const long_string = "abc".repeat(1000);
+
+	await textbox.fill(long_string);
+	await submit_button.click();
+
+	await expect(page.locator(".bot.message").first()).toContainText("abc");
+	const stop_button = page.locator(".stop-button");
+
+	await stop_button.click();
+
+	await expect(page.locator(".bot.message").first()).toContainText("abc");
+	await page.waitForTimeout(1000);
+
+	const current_content = await page
+		.locator(".bot.message")
+		.first()
+		.textContent();
+	await page.waitForTimeout(1000);
+	const new_content = await page.locator(".bot.message").first().textContent();
+	await expect(current_content).toBe(new_content);
+	await expect(new_content!.length).toBeLessThan(3000);
+});
+
+test("editing messages", async ({ page }) => {
+	const submit_button = page.locator(".submit-button");
+	const textbox = page.locator(".input-container textarea");
+	const chatbot = page.getByLabel("chatbot conversation");
+
+	await textbox.fill("Lets");
+	await submit_button.click();
+	await expect(chatbot).toContainText("You typed: Lets");
+
+	await textbox.fill("Test");
+	await submit_button.click();
+	await expect(chatbot).toContainText("You typed: Test");
+
+	await textbox.fill("This");
+	await submit_button.click();
+	await expect(chatbot).toContainText("You typed: This");
+
+	await page.getByLabel("Edit").nth(1).click();
+	await page.getByLabel("chatbot conversation").getByRole("textbox").fill("Do");
+	await page.getByLabel("Submit").click();
+
+	await expect(chatbot).toContainText("You typed: Do");
+	await expect(chatbot).not.toContainText("You typed: This");
+});

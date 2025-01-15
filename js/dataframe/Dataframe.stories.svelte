@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import Table from "./shared/Table.svelte";
+	import { within } from "@testing-library/dom";
+	import { userEvent } from "@storybook/test";
+	import { get } from "svelte/store";
+	import { format } from "svelte-i18n";
 </script>
 
 <Meta
@@ -17,7 +21,7 @@
 />
 
 <Template let:args>
-	<Table {...args} i18n={(s) => s} />
+	<Table {...args} i18n={get(format)} />
 </Template>
 
 <Story
@@ -159,5 +163,46 @@
 		row_count: [2, "dynamic"],
 		column_widths: ["20%", "30%", "50%"],
 		editable: false
+	}}
+/>
+
+<Story
+	name="Dataframe with zero row count"
+	args={{
+		values: [],
+		headers: ["Narrow", "Wide", "Half"],
+		label: "Test scores",
+		col_count: [0, "dynamic"],
+		row_count: [0, "dynamic"],
+		editable: false
+	}}
+/>
+
+<Story
+	name="Dataframe with dialog interactions"
+	args={{
+		values: [
+			[800, 100, 400],
+			[200, 800, 700]
+		],
+		col_count: [3, "dynamic"],
+		row_count: [2, "dynamic"],
+		headers: ["Math", "Reading", "Writing"],
+		editable: true
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+
+		const cell_400 = canvas.getAllByRole("cell")[5];
+		userEvent.click(cell_400);
+
+		const open_dialog_btn = within(cell_400).getByText("⋮");
+		await userEvent.click(open_dialog_btn);
+
+		const add_row_btn = canvas.getByText("Add row above");
+		await userEvent.click(add_row_btn);
+
+		const new_cell = canvas.getAllByRole("cell")[9];
+		userEvent.click(new_cell);
 	}}
 />

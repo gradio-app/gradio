@@ -32,13 +32,19 @@ import {
 } from "./helpers/init_helpers";
 import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
-import { API_INFO_ERROR_MSG, CONFIG_ERROR_MSG } from "./constants";
+import {
+	API_INFO_ERROR_MSG,
+	CONFIG_ERROR_MSG,
+	HEARTBEAT_URL,
+	COMPONENT_SERVER_URL
+} from "./constants";
 
 export class Client {
 	app_reference: string;
 	options: ClientOptions;
 
 	config: Config | undefined;
+	api_prefix = "";
 	api_info: ApiInfo<JsApiData> | undefined;
 	api_map: Record<string, number> = {};
 	session_hash: string = Math.random().toString(36).substring(2);
@@ -56,11 +62,18 @@ export class Client {
 	heartbeat_event: EventSource | null = null;
 	abort_controller: AbortController | null = null;
 	stream_instance: EventSource | null = null;
+	current_payload: any;
+	ws_map: Record<string, WebSocket | "failed"> = {};
 
 	fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 		const headers = new Headers(init?.headers || {});
 		if (this && this.cookies) {
 			headers.append("Cookie", this.cookies);
+		}
+		if (this && this.options.headers) {
+			for (const name in this.options.headers) {
+				headers.append(name, this.options.headers[name]);
+			}
 		}
 
 		return fetch(input, { ...init, headers });
@@ -70,6 +83,11 @@ export class Client {
 		const headers = new Headers();
 		if (this && this.cookies) {
 			headers.append("Cookie", this.cookies);
+		}
+		if (this && this.options.headers) {
+			for (const name in this.options.headers) {
+				headers.append(name, this.options.headers[name]);
+			}
 		}
 
 		this.abort_controller = new AbortController();
@@ -130,7 +148,7 @@ export class Client {
 		}
 
 		this.options = options;
-
+		this.current_payload = {};
 		this.view_api = view_api.bind(this);
 		this.upload_files = upload_files.bind(this);
 		this.handle_blob = handle_blob.bind(this);
@@ -155,17 +173,13 @@ export class Client {
 			global.WebSocket = ws.WebSocket as unknown as typeof WebSocket;
 		}
 
-		try {
-			if (this.options.auth) {
-				await this.resolve_cookies();
-			}
-
-			await this._resolve_config().then(({ config }) =>
-				this._resolve_hearbeat(config)
-			);
-		} catch (e: any) {
-			throw Error(e);
+		if (this.options.auth) {
+			await this.resolve_cookies();
 		}
+
+		await this._resolve_config().then(({ config }) =>
+			this._resolve_hearbeat(config)
+		);
 
 		this.api_info = await this.view_api();
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
@@ -174,6 +188,8 @@ export class Client {
 	async _resolve_hearbeat(_config: Config): Promise<void> {
 		if (_config) {
 			this.config = _config;
+			this.api_prefix = _config.api_prefix || "";
+
 			if (this.config && this.config.connect_heartbeat) {
 				if (this.config.space_id && this.options.hf_token) {
 					this.jwt = await get_jwt(
@@ -192,7 +208,7 @@ export class Client {
 		if (this.config && this.config.connect_heartbeat) {
 			// connect to the heartbeat endpoint via GET request
 			const heartbeat_url = new URL(
-				`${this.config.root}/heartbeat/${this.session_hash}`
+				`${this.config.root}${this.api_prefix}/${HEARTBEAT_URL}/${this.session_hash}`
 			);
 
 			// if the jwt is available, add it to the query params
@@ -220,6 +236,10 @@ export class Client {
 
 	close(): void {
 		close_stream(this.stream_status, this.abort_controller);
+	}
+
+	set_current_payload(payload: any): void {
+		this.current_payload = payload;
 	}
 
 	static async duplicate(
@@ -277,6 +297,7 @@ export class Client {
 		_config: Config
 	): Promise<Config | client_return> {
 		this.config = _config;
+		this.api_prefix = _config.api_prefix || "";
 
 		if (typeof window !== "undefined" && typeof document !== "undefined") {
 			if (window.location.protocol === "https:") {
@@ -306,6 +327,8 @@ export class Client {
 		if (status.status === "running") {
 			try {
 				this.config = await this._resolve_config();
+				this.api_prefix = this?.config?.api_prefix || "";
+
 				if (!this.config) {
 					throw new Error(CONFIG_ERROR_MSG);
 				}
@@ -385,12 +408,15 @@ export class Client {
 		}
 
 		try {
-			const response = await this.fetch(`${root_url}/component_server/`, {
-				method: "POST",
-				body: body,
-				headers,
-				credentials: "include"
-			});
+			const response = await this.fetch(
+				`${root_url}${this.api_prefix}/${COMPONENT_SERVER_URL}/`,
+				{
+					method: "POST",
+					body: body,
+					headers,
+					credentials: "include"
+				}
+			);
 
 			if (!response.ok) {
 				throw new Error(
@@ -417,6 +443,60 @@ export class Client {
 			view_api: this.view_api,
 			component_server: this.component_server
 		};
+	}
+
+	private async connect_ws(url: string): Promise<void> {
+		return new Promise((resolve, reject) => {
+			let ws;
+			try {
+				ws = new WebSocket(url);
+			} catch (e) {
+				this.ws_map[url] = "failed";
+				return;
+			}
+
+			ws.onopen = () => {
+				resolve();
+			};
+
+			ws.onerror = (error) => {
+				console.error("WebSocket error:", error);
+				this.close_ws(url);
+				this.ws_map[url] = "failed";
+				resolve();
+			};
+
+			ws.onclose = () => {
+				delete this.ws_map[url];
+				this.ws_map[url] = "failed";
+			};
+
+			ws.onmessage = (event) => {};
+			this.ws_map[url] = ws;
+		});
+	}
+
+	async send_ws_message(url: string, data: any): Promise<void> {
+		// connect if not connected
+		if (!(url in this.ws_map)) {
+			await this.connect_ws(url);
+		}
+		const ws = this.ws_map[url];
+		if (ws instanceof WebSocket) {
+			ws.send(JSON.stringify(data));
+		} else {
+			this.post_data(url, data);
+		}
+	}
+
+	async close_ws(url: string): Promise<void> {
+		if (url in this.ws_map) {
+			const ws = this.ws_map[url];
+			if (ws instanceof WebSocket) {
+				ws.close();
+				delete this.ws_map[url];
+			}
+		}
 	}
 }
 

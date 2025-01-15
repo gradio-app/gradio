@@ -19,7 +19,14 @@ import {
 	process_endpoint
 } from "../helpers/api_info";
 import semiver from "semiver";
-import { BROKEN_CONNECTION_MSG, QUEUE_FULL_MSG } from "../constants";
+import {
+	BROKEN_CONNECTION_MSG,
+	QUEUE_FULL_MSG,
+	SSE_URL,
+	SSE_DATA_URL,
+	RESET_URL,
+	CANCEL_URL
+} from "../constants";
 import { apply_diff_stream, close_stream } from "./stream";
 import { Client } from "../client";
 
@@ -46,7 +53,8 @@ export function submit(
 			event_callbacks,
 			unclosed_events,
 			post_data,
-			options
+			options,
+			api_prefix
 		} = this;
 
 		const that = this;
@@ -66,6 +74,8 @@ export function submit(
 		let websocket: WebSocket;
 		let stream: EventSource | null;
 		let protocol = config.protocol ?? "ws";
+		let event_id_final = "";
+		let event_id_cb: () => string = () => event_id_final;
 
 		const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
 		let payload: Payload;
@@ -131,14 +141,14 @@ export function submit(
 				}
 
 				if ("event_id" in cancel_request) {
-					await fetch(`${config.root}/cancel`, {
+					await fetch(`${config.root}${api_prefix}/${CANCEL_URL}`, {
 						headers: { "Content-Type": "application/json" },
 						method: "POST",
 						body: JSON.stringify(cancel_request)
 					});
 				}
 
-				await fetch(`${config.root}/reset`, {
+				await fetch(`${config.root}${api_prefix}/${RESET_URL}`, {
 					headers: { "Content-Type": "application/json" },
 					method: "POST",
 					body: JSON.stringify(reset_request)
@@ -205,7 +215,7 @@ export function submit(
 					});
 
 					post_data(
-						`${config.root}/run${
+						`${config.root}${api_prefix}/run${
 							_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
 						}${url_params ? "?" + url_params : ""}`,
 						{
@@ -340,6 +350,7 @@ export function submit(
 						} else if (type === "log") {
 							fire_event({
 								type: "log",
+								title: data.title,
 								log: data.log,
 								level: data.level,
 								endpoint: _endpoint,
@@ -411,7 +422,7 @@ export function submit(
 						session_hash: session_hash
 					}).toString();
 					let url = new URL(
-						`${config.root}/queue/join?${
+						`${config.root}${api_prefix}/${SSE_URL}?${
 							url_params ? url_params + "&" : ""
 						}${params}`
 					);
@@ -449,12 +460,14 @@ export function submit(
 								close();
 							}
 						} else if (type === "data") {
-							event_id = _data.event_id as string;
-							let [_, status] = await post_data(`${config.root}/queue/data`, {
-								...payload,
-								session_hash,
-								event_id
-							});
+							let [_, status] = await post_data(
+								`${config.root}${api_prefix}/queue/data`,
+								{
+									...payload,
+									session_hash,
+									event_id
+								}
+							);
 							if (status !== 200) {
 								fire_event({
 									type: "status",
@@ -473,6 +486,7 @@ export function submit(
 						} else if (type === "log") {
 							fire_event({
 								type: "log",
+								title: data.title,
 								log: data.log,
 								level: data.level,
 								endpoint: _endpoint,
@@ -480,7 +494,7 @@ export function submit(
 								visible: data.visible,
 								fn_index
 							});
-						} else if (type === "generating") {
+						} else if (type === "generating" || type === "streaming") {
 							fire_event({
 								type: "status",
 								time: new Date(),
@@ -552,18 +566,17 @@ export function submit(
 						? `https://moon-${hostname.split(".")[1]}.${hfhubdev}`
 						: `https://huggingface.co`;
 
-					const is_iframe =
+					const is_zerogpu_iframe =
 						typeof window !== "undefined" &&
 						typeof document !== "undefined" &&
-						window.parent != window;
-					const is_zerogpu_space = dependency.zerogpu && config.space_id;
-					const zerogpu_auth_promise =
-						is_iframe && is_zerogpu_space
-							? post_message<Headers>("zerogpu-headers", origin)
-							: Promise.resolve(null);
+						window.parent != window &&
+						window.supports_zerogpu_headers;
+					const zerogpu_auth_promise = is_zerogpu_iframe
+						? post_message<Map<string, string>>("zerogpu-headers", origin)
+						: Promise.resolve(null);
 					const post_data_promise = zerogpu_auth_promise.then((headers) => {
 						return post_data(
-							`${config.root}/queue/join?${url_params}`,
+							`${config.root}${api_prefix}/${SSE_DATA_URL}?${url_params}`,
 							{
 								...payload,
 								session_hash
@@ -594,9 +607,10 @@ export function submit(
 							});
 						} else {
 							event_id = response.event_id as string;
+							event_id_final = event_id;
 							let callback = async function (_data: object): Promise<void> {
 								try {
-									const { type, status, data } = handle_message(
+									const { type, status, data, original_msg } = handle_message(
 										_data,
 										last_status[fn_index]
 									);
@@ -612,6 +626,7 @@ export function submit(
 											endpoint: _endpoint,
 											fn_index,
 											time: new Date(),
+											original_msg: original_msg,
 											...status
 										});
 									} else if (type === "complete") {
@@ -631,6 +646,7 @@ export function submit(
 									} else if (type === "log") {
 										fire_event({
 											type: "log",
+											title: data.title,
 											log: data.log,
 											level: data.level,
 											endpoint: _endpoint,
@@ -639,7 +655,7 @@ export function submit(
 											fn_index
 										});
 										return;
-									} else if (type === "generating") {
+									} else if (type === "generating" || type === "streaming") {
 										fire_event({
 											type: "status",
 											time: new Date(),
@@ -651,6 +667,7 @@ export function submit(
 										});
 										if (
 											data &&
+											dependency.connection !== "stream" &&
 											["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)
 										) {
 											apply_diff_stream(pending_diff_streams, event_id!, data);
@@ -790,7 +807,8 @@ export function submit(
 				close();
 				return next();
 			},
-			cancel
+			cancel,
+			event_id: event_id_cb
 		};
 
 		return iterator;

@@ -8,7 +8,6 @@
 	import type { View } from "vega";
 
 	export let value;
-	export let target: HTMLDivElement;
 	export let colors: string[] = [];
 	export let caption: string;
 	export let show_actions_button: bool;
@@ -20,7 +19,7 @@
 	let view: View;
 	export let _selectable: bool;
 
-	let computed_style = window.getComputedStyle(target);
+	let computed_style = window.getComputedStyle(document.body);
 
 	let old_spec: Spec;
 	let spec_width: number;

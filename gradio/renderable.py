@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, List, Literal, Sequence, Union, cast
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Literal, Union, cast
 
 from gradio_client.documentation import document
 
@@ -73,6 +74,7 @@ class Renderable:
             with container_copy:
                 self.fn(*args, **kwargs)
                 blocks_config.blocks[self.container_id] = container_copy
+                blocks_config.attach_load_events(self)
         finally:
             LocalContext.renderable.set(None)
 
@@ -119,7 +121,7 @@ def render(
                             btn = gr.Button("Clear")
                             btn.click(lambda: gr.Textbox(value=""), None, text)
     """
-    new_triggers = cast(Union[List[EventListener], EventListener, None], triggers)
+    new_triggers = cast(Union[list[EventListener], EventListener, None], triggers)
 
     if Context.root_block is None:
         raise ValueError("Reactive render must be inside a Blocks context.")
@@ -141,6 +143,11 @@ def render(
             (getattr(t, "__self__", None) if t.has_trigger else None, t.event_name)
             for t in new_triggers
         ]
+
+    if new_triggers:
+        for trigger in new_triggers:
+            if trigger.callback:
+                trigger.callback(trigger.__self__)  # type: ignore
 
     def wrapper_function(fn):
         Renderable(

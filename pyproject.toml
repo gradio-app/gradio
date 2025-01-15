@@ -11,7 +11,7 @@ name = "gradio"
 dynamic = ["version", "dependencies", "optional-dependencies", "readme"]
 description = "Python library for easily interacting with trained machine learning models"
 license = "Apache-2.0"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 authors = [
   { name = "Abubakar Abid", email = "gradio-team@huggingface.co" },
   { name = "Ali Abid", email = "gradio-team@huggingface.co" },
@@ -75,7 +75,7 @@ artifacts = [
   "/gradio/_frontend_code",
   "*.pyi",
   "/gradio/node",
-  "py.typed",
+  "/gradio/py.typed",
 ]
 
 [tool.hatch.build.targets.lite]
@@ -138,6 +138,7 @@ ignore = [
   "B017",    # pytest.raises considered evil
   "B023",    # function definition in loop (TODO: un-ignore this)
   "B028",    # explicit stacklevel for warnings
+  "B905",    # zip without explicit `strict` argument
   "C901",    # function is too complex (TODO: un-ignore this)
   "E501",    # from scripts/lint_backend.sh
   "PLR091",  # complexity rules
@@ -147,6 +148,7 @@ ignore = [
   "SIM117",  # multiple nested with blocks (doesn't look good with gr.Row etc)
   "UP006",   # use `list` instead of `List` for type annotations (fails for 3.8)
   "UP007",   # use X | Y for type annotations (TODO: can be enabled once Pydantic plays nice with them)
+  "UP038",   # uses of isinstance and issubclass that take a tuple of types for comparison.
 ]
 
 [tool.ruff.lint.per-file-ignores]

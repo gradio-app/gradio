@@ -1,5 +1,86 @@
 # @gradio/tabs
 
+## 0.4.0
+
+### Features
+
+- [#10192](https://github.com/gradio-app/gradio/pull/10192) [`4fc7fb7`](https://github.com/gradio-app/gradio/commit/4fc7fb777c42af537e4af612423fa44029657d41) - Ensure components can be remounted with their previous data.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.10.0
+
+## 0.3.5
+
+### Dependency updates
+
+- @gradio/utils@0.9.0
+
+## 0.3.4
+
+### Dependency updates
+
+- @gradio/utils@0.8.0
+
+## 0.3.3
+
+### Fixes
+
+- [#9836](https://github.com/gradio-app/gradio/pull/9836) [`a4e70f3`](https://github.com/gradio-app/gradio/commit/a4e70f3c428d7a43e31b63d296e9c4c73b09eda8) - Fix Tabs in Rows.  Thanks @aliabid94!
+
+## 0.3.2
+
+### Fixes
+
+- [#9653](https://github.com/gradio-app/gradio/pull/9653) [`61cd768`](https://github.com/gradio-app/gradio/commit/61cd768490a12f5d63101d5434092bcd1cfc43a8) - Ensures tabs with visible set to false are not visible.  Thanks @hannahblair!
+- [#9738](https://github.com/gradio-app/gradio/pull/9738) [`2ade59b`](https://github.com/gradio-app/gradio/commit/2ade59b95d4c3610a1a461cc95f020fbf9627305) - Export `Tabs` type from `@gradio/tabs` and fix the Playground to be compatible with the new Tabs API.  Thanks @whitphx!
+
+## 0.3.1
+
+### Fixes
+
+- [#9728](https://github.com/gradio-app/gradio/pull/9728) [`d0b2ce8`](https://github.com/gradio-app/gradio/commit/d0b2ce8c0f150f0b636ad7d2226f7c8c61401996) - Ensure tabs render in SSR mode and reduce time it takes for them to render.  Thanks @pngwn!
+
+## 0.3.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Playground requirements tab
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Redesign `gr.Tabs()`
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - UI theme fixes
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Ssr part 2
+
+### Dependencies
+
+- @gradio/utils@0.7.0
+
+## 0.3.0-beta.3
+
+### Features
+
+- [#9460](https://github.com/gradio-app/gradio/pull/9460) [`7352a89`](https://github.com/gradio-app/gradio/commit/7352a89722da91461c32fd33588531f3edce9c48) - Playground requirements tab.  Thanks @whitphx!
+- [#9496](https://github.com/gradio-app/gradio/pull/9496) [`1647ebd`](https://github.com/gradio-app/gradio/commit/1647ebddc3e2ed6fc143a62629409e32afcc5801) - UI theme fixes.  Thanks @aliabid94!
+
+## 0.3.0-beta.2
+
+### Features
+
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.7.0-beta.2
+
+## 0.3.0-beta.1
+
+### Features
+
+- [#9199](https://github.com/gradio-app/gradio/pull/9199) [`3175c7a`](https://github.com/gradio-app/gradio/commit/3175c7aebc6ad2466d31d6949580f5a3cb4cd698) - Redesign `gr.Tabs()`.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.7.0-beta.1
+
 ## 0.2.14
 
 ### Fixes

@@ -6,10 +6,11 @@
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
-	export let name: string;
+	export let label: string;
 	export let id: string | number | object = {};
 	export let visible: boolean;
 	export let interactive: boolean;
+	export let order: number;
 
 	const dispatch = createEventDispatcher<{ select: SelectData }>();
 
@@ -18,16 +19,20 @@
 
 	let tab_index: number;
 
-	$: tab_index = register_tab({ name, id, elem_id, visible, interactive });
+	$: tab_index = register_tab(
+		{ label, id, elem_id, visible, interactive },
+		order
+	);
 
 	onMount(() => {
-		return (): void => unregister_tab({ name, id, elem_id });
+		return (): void => unregister_tab({ label, id, elem_id }, order);
 	});
 
 	$: $selected_tab_index === tab_index &&
-		tick().then(() => dispatch("select", { value: name, index: tab_index }));
+		tick().then(() => dispatch("select", { value: label, index: tab_index }));
 </script>
 
+<!-- {#if $selected_tab === id && visible} -->
 <div
 	id={elem_id}
 	class="tabitem {elem_classes.join(' ')}"
@@ -39,14 +44,16 @@
 	</Column>
 </div>
 
+<!-- {/if} -->
+
 <style>
 	div {
-		display: flex;
+		display: block;
 		position: relative;
-		border: 1px solid var(--border-color-primary);
-		border-top: none;
-		border-bottom-right-radius: var(--container-radius);
-		border-bottom-left-radius: var(--container-radius);
+		border: none;
+		border-radius: var(--radius-sm);
 		padding: var(--block-padding);
+		width: 100%;
+		box-sizing: border-box;
 	}
 </style>

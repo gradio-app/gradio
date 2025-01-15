@@ -2,6 +2,11 @@ import type { ActionReturn } from "svelte/action";
 import type { Client } from "@gradio/client";
 import type { ComponentType, SvelteComponent } from "svelte";
 
+export interface ValueData {
+	value: any;
+	is_value_data: boolean;
+}
+
 export interface SelectData {
 	row_value?: any[];
 	index: number | [number, number];
@@ -12,7 +17,7 @@ export interface SelectData {
 export interface LikeData {
 	index: number | [number, number];
 	value: any;
-	liked?: boolean;
+	liked?: boolean | string;
 }
 
 export interface KeyUpData {
@@ -23,6 +28,10 @@ export interface KeyUpData {
 export interface ShareData {
 	description: string;
 	title?: string;
+}
+
+export interface CopyData {
+	value: string;
 }
 
 export class ShareError extends Error {
@@ -209,6 +218,8 @@ type component_loader = (args: Args) => {
 	};
 };
 
+const is_browser = typeof window !== "undefined";
+
 export type I18nFormatter = any;
 export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	#id: number;
@@ -250,6 +261,7 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	}
 
 	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {
+		if (!is_browser || !this.#el) return;
 		const e = new CustomEvent("gradio", {
 			bubbles: true,
 			detail: { data, id: this.#id, event: event_name }
@@ -269,3 +281,9 @@ function _load_component(
 		variant
 	});
 }
+
+export const css_units = (dimension_value: string | number): string => {
+	return typeof dimension_value === "number"
+		? dimension_value + "px"
+		: dimension_value;
+};

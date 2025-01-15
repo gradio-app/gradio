@@ -1,6 +1,6 @@
 {
 	"name": "@self/build",
-	"version": "0.0.3",
+	"version": "0.2.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "out/index.js",
@@ -8,7 +8,7 @@
 	"author": "",
 	"license": "ISC",
 	"scripts": {
-		"build": "esbuild src/index.ts --platform=node --format=esm --target=node18 --bundle --packages=external --outfile=out/index.js"
+		"build": "esbuild src/index.ts --platform=node --format=esm --target=node18 --bundle --packages=external --outfile=out/index.js && cp src/component_loader.js out/"
 	},
 	"dependencies": {
 		"@gradio/theme": "workspace:^",

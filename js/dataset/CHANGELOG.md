@@ -1,10 +1,179 @@
 # @gradio/dataset
 
-## 0.2.5
+## 0.4.1
+
+### Dependency updates
+
+- @gradio/atoms@0.13.1
+- @gradio/client@1.10.0
+- @gradio/upload@0.14.5
+- @gradio/textbox@0.10.1
+
+## 0.4.0
+
+### Features
+
+- [#10191](https://github.com/gradio-app/gradio/pull/10191) [`5ce2832`](https://github.com/gradio-app/gradio/commit/5ce28324971e974ae24dc9a229b2160793140fb2) - Support saving chat history in `gr.ChatInterface`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/upload@0.14.4
+- @gradio/client@1.9.0
+- @gradio/textbox@0.10.0
+
+## 0.3.11
+
+### Dependency updates
+
+- @gradio/upload@0.14.3
+- @gradio/atoms@0.12.0
+- @gradio/textbox@0.9.1
+
+## 0.3.10
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/upload@0.14.2
+- @gradio/textbox@0.9.0
+
+## 0.3.9
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/client@1.8.0
+- @gradio/utils@0.8.0
+- @gradio/upload@0.14.1
+- @gradio/textbox@0.8.6
+
+## 0.3.8
+
+### Dependency updates
+
+- @gradio/atoms@0.11.0
+- @gradio/upload@0.14.0
+- @gradio/textbox@0.8.5
+
+## 0.3.7
+
+### Dependency updates
+
+- @gradio/atoms@0.10.1
+- @gradio/client@1.7.1
+- @gradio/upload@0.13.5
+- @gradio/textbox@0.8.4
+
+## 0.3.6
+
+### Dependency updates
+
+- @gradio/atoms@0.10.0
+- @gradio/upload@0.13.4
+- @gradio/textbox@0.8.3
+
+## 0.3.5
+
+### Dependency updates
+
+- @gradio/upload@0.13.3
+- @gradio/atoms@0.9.2
+- @gradio/textbox@0.8.2
+
+## 0.3.4
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+- @gradio/client@1.7.0
+- @gradio/upload@0.13.2
+- @gradio/textbox@0.8.1
+
+## 0.3.3
+
+### Dependency updates
+
+- @gradio/textbox@0.8.0
+
+## 0.3.2
+
+### Dependency updates
+
+- @gradio/upload@0.13.1
+
+## 0.3.1
+
+### Dependency updates
+
+- @gradio/textbox@0.7.1
+
+## 0.2.5-beta.7
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.7
+- @gradio/atoms@0.9.0-beta.5
+- @gradio/textbox@0.7.0-beta.5
+
+## 0.2.5-beta.6
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.4
+- @gradio/client@1.6.0-beta.4
+- @gradio/upload@0.13.0-beta.6
+- @gradio/textbox@0.7.0-beta.4
+
+## 0.2.5-beta.5
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.5
+- @gradio/atoms@0.9.0-beta.3
+- @gradio/textbox@0.7.0-beta.3
+
+## 0.2.5-beta.4
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.4
+- @gradio/textbox@0.7.0-beta.2
+
+## 0.2.5-beta.3
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.3
+- @gradio/client@1.6.0-beta.3
+
+## 0.2.5-beta.2
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/upload@0.13.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+- @gradio/textbox@0.7.0-beta.2
+
+## 0.2.5-beta.1
 
 ### Features
 
 - [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/client@1.6.0-beta.1
+- @gradio/upload@0.12.4-beta.1
+- @gradio/textbox@0.7.0-beta.1
+
+## 0.2.5-beta.0
 
 ### Fixes
 

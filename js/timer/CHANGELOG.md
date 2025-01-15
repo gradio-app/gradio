@@ -1,5 +1,35 @@
 # @gradio/timer
 
+## 0.4.3
+
+### Dependency updates
+
+- @gradio/utils@0.10.0
+
+## 0.4.2
+
+### Dependency updates
+
+- @gradio/utils@0.9.0
+
+## 0.4.1
+
+### Dependency updates
+
+- @gradio/utils@0.8.0
+
+## 0.3.3-beta.2
+
+### Dependency updates
+
+- @gradio/utils@0.7.0-beta.2
+
+## 0.3.3-beta.1
+
+### Dependency updates
+
+- @gradio/utils@0.7.0-beta.1
+
 ## 0.3.3
 
 ### Fixes

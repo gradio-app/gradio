@@ -25,7 +25,7 @@ The Gradio client works with any Gradio Space, whether it be an image generator,
 
 If you already have a recent version of `gradio`, then the `gradio_client` is included as a dependency.
 
-Otherwise, the lightweight `gradio_client` package can be installed from pip (or pip3) and works with Python versions 3.8 or higher:
+Otherwise, the lightweight `gradio_client` package can be installed from pip (or pip3) and works with Python versions 3.10 or higher:
 
 ```bash
 $ pip install gradio_client

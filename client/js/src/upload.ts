@@ -1,4 +1,3 @@
-import type { UploadResponse } from "./types";
 import type { Client } from "./client";
 
 export async function upload(
@@ -34,7 +33,7 @@ export async function upload(
 							const file = new FileData({
 								...file_data[i],
 								path: f,
-								url: root_url + "/file=" + f
+								url: `${root_url}${this.api_prefix}/file=${f}`
 							});
 							return file;
 						});
@@ -73,6 +72,7 @@ export class FileData {
 	is_stream?: boolean;
 	mime_type?: string;
 	alt_text?: string;
+	b64?: string;
 	readonly meta = { _type: "gradio.FileData" };
 
 	constructor({
@@ -83,7 +83,8 @@ export class FileData {
 		blob,
 		is_stream,
 		mime_type,
-		alt_text
+		alt_text,
+		b64
 	}: {
 		path: string;
 		url?: string;
@@ -93,6 +94,7 @@ export class FileData {
 		is_stream?: boolean;
 		mime_type?: string;
 		alt_text?: string;
+		b64?: string;
 	}) {
 		this.path = path;
 		this.url = url;
@@ -102,5 +104,6 @@ export class FileData {
 		this.is_stream = is_stream;
 		this.mime_type = mime_type;
 		this.alt_text = alt_text;
+		this.b64 = b64;
 	}
 }

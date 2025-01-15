@@ -72,16 +72,33 @@ def test_decode_base64_to_file():
 
 
 @pytest.mark.parametrize(
+    "path_or_url, file_types, expected_result",
+    [
+        ("/home/user/documents/example.pdf", [".json", "text", ".mp3", ".pdf"], True),
+        ("C:\\Users\\user\\documents\\example.png", [".png"], True),
+        ("C:\\Users\\user\\documents\\example.png", ["image"], True),
+        ("C:\\Users\\user\\documents\\example.png", ["file"], True),
+        ("/home/user/documents/example.pdf", [".json", "text", ".mp3"], False),
+        ("https://example.com/avatar/xxxx.mp4", ["audio", ".png", ".jpg"], False),
+    ],
+)
+def test_is_valid_file_type(path_or_url, file_types, expected_result):
+    assert utils.is_valid_file(path_or_url, file_types) is expected_result
+
+
+@pytest.mark.parametrize(
     "orig_filename, new_filename",
     [
         ("abc", "abc"),
         ("$$AAabc&3", "AAabc3"),
-        ("$$AAabc&3", "AAabc3"),
-        ("$$AAa..b-c&3_", "AAa..b-c3_"),
-        ("$$AAa..b-c&3_", "AAa..b-c3_"),
+        ("$$AAa&..b-c3_", "AAa..b-c3_"),
         (
             "ゆかりです｡私､こんなかわいい服は初めて着ました…｡なんだかうれしくって､楽しいです｡歌いたくなる気分って､初めてです｡これがｱｲﾄﾞﾙってことなのかもしれませんね",
             "ゆかりです私こんなかわいい服は初めて着ましたなんだかうれしくって楽しいです歌いたくなる気分って初めてですこれがｱｲﾄﾞﾙってことなの",
+        ),
+        (
+            "Bringing-computational-thinking-into-classrooms-a-systematic-review-on-supporting-teachers-in-integrating-computational-thinking-into-K12-classrooms_2024_Springer-Science-and-Business-Media-Deutschland-GmbH.pdf",
+            "Bringing-computational-thinking-into-classrooms-a-systematic-review-on-supporting-teachers-in-integrating-computational-thinking-into-K12-classrooms_2024_Springer-Science-and-Business-Media-Deutsc.pdf",
         ),
     ],
 )
@@ -143,7 +160,7 @@ def test_json_schema_to_python_type(schema):
     elif schema == "StringSerializable":
         answer = "str"
     elif schema == "ListStringSerializable":
-        answer = "List[str]"
+        answer = "list[str]"
     elif schema == "BooleanSerializable":
         answer = "bool"
     elif schema == "NumberSerializable":
@@ -151,19 +168,19 @@ def test_json_schema_to_python_type(schema):
     elif schema == "ImgSerializable":
         answer = "str"
     elif schema == "FileSerializable":
-        answer = "str | Dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file)) | List[str | Dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file))]"
+        answer = "str | dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file)) | list[str | dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file))]"
     elif schema == "JSONSerializable":
-        answer = "Dict[Any, Any]"
+        answer = "str | float | bool | list | dict"
     elif schema == "GallerySerializable":
-        answer = "Tuple[Dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file)), str | None]"
+        answer = "tuple[dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file)), str | None]"
     elif schema == "SingleFileSerializable":
-        answer = "str | Dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file))"
+        answer = "str | dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file))"
     elif schema == "MultipleFileSerializable":
-        answer = "List[str | Dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file))]"
+        answer = "list[str | dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file))]"
     elif schema == "SingleFile":
         answer = "str"
     elif schema == "MultipleFile":
-        answer = "List[str]"
+        answer = "list[str]"
     else:
         raise ValueError(f"This test has not been modified to check {schema}")
     assert utils.json_schema_to_python_type(types[schema]) == answer

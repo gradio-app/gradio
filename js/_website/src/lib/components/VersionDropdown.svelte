@@ -4,7 +4,7 @@
 	import { goto } from "$app/navigation";
 	import { version } from "$lib/json/version.json";
 
-	export let choices = [version, "main"];
+	export let choices = [version, "4.44.1", "main"];
 	export let value: string = $page.params?.version || version;
 	export let docs_type = "python";
 
@@ -39,26 +39,16 @@
 	}`;
 
 	function reload() {
-		if (browser) {
-			if (is_docs) {
-				window.location.href = docs_url;
-			}
-			if (is_guide) {
-				window.location.href = guide_url;
-			}
-		}
+		goto(is_docs ? docs_url : guide_url);
 	}
-
-	$: browser && is_docs && goto(docs_url);
-	$: browser && is_docs && goto(docs_url);
 </script>
 
 <svelte:head>
 	<script
 		type="module"
 		src="https://gradio.s3-us-west-2.amazonaws.com/{value === 'main'
-			? version
-			: value}/gradio.js"
+			? version.replace('b', '-beta.')
+			: value.replace('b', '-beta.')}/gradio.js"
 	></script>
 </svelte:head>
 

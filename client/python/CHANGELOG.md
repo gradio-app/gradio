@@ -1,5 +1,97 @@
 # gradio_client
 
+## 1.5.4
+
+### Fixes
+
+- [#10332](https://github.com/gradio-app/gradio/pull/10332) [`e742dcc`](https://github.com/gradio-app/gradio/commit/e742dcccb376692c9ddd5a6c251080e7c5936574) - Allow users to add a custom API route.  Thanks @aliabid94!
+
+## 1.5.3
+
+### Features
+
+- [#10221](https://github.com/gradio-app/gradio/pull/10221) [`506bd28`](https://github.com/gradio-app/gradio/commit/506bd2884a9790fb6f8dbf5684576e80d2b8ee64) - Update Guides related to deploying Gradio chatbots to Discord, Slack, and website widgets.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10238](https://github.com/gradio-app/gradio/pull/10238) [`3f19210`](https://github.com/gradio-app/gradio/commit/3f192100d6997751d0246b396a4fd8eaa86a826b) - Declare exports in __all__ for type checking.  Thanks @dustalov!
+
+## 1.5.2
+
+### Features
+
+- [#10196](https://github.com/gradio-app/gradio/pull/10196) [`c9ba9a4`](https://github.com/gradio-app/gradio/commit/c9ba9a447596a9ccdd21955adb3b34b15cac7ade) - Use the modern lower-case Python types in the API typing information.  Thanks @abidlabs!
+- [#10193](https://github.com/gradio-app/gradio/pull/10193) [`424365b`](https://github.com/gradio-app/gradio/commit/424365bdbd0b805e3b2d0c44ccc0f47201b1d96a) - JSON type fix in Client and and typing fix for `/chat` endpoint in `gr.ChatInterface`.  Thanks @abidlabs!
+
+## 1.5.1
+
+### Fixes
+
+- [#10090](https://github.com/gradio-app/gradio/pull/10090) [`5ea3cb5`](https://github.com/gradio-app/gradio/commit/5ea3cb51a39ba01fda7f65ff31e59955e1d12cea) - Update `requirements.txt` for `gradio` and `gradio_client`.  Thanks @abidlabs!
+
+## 1.5.0
+
+### Features
+
+- [#10017](https://github.com/gradio-app/gradio/pull/10017) [`a95fda1`](https://github.com/gradio-app/gradio/commit/a95fda1f85e80ce8423f4373bb238422b9b7aa32) - fix small bug when join src & api_prefix.  Thanks @Chandler-Bing!
+
+## 1.4.3
+
+### Fixes
+
+- [#9913](https://github.com/gradio-app/gradio/pull/9913) [`d81f430`](https://github.com/gradio-app/gradio/commit/d81f430fd50546001b76c0ae5fded32c6d3093f7) - fix: Fix filename stripping to preserve extensions.  Thanks @TakaSoap!
+
+## 1.4.2
+
+### Fixes
+
+- [#9754](https://github.com/gradio-app/gradio/pull/9754) [`36a5076`](https://github.com/gradio-app/gradio/commit/36a50769095081a0e77f04f513d47a2e9d4531ba) - Update client.py: raise error on 429 get_config.  Thanks @Pendrokar!
+
+## 1.4.1
+
+### Fixes
+
+- [#9678](https://github.com/gradio-app/gradio/pull/9678) [`a25a26e`](https://github.com/gradio-app/gradio/commit/a25a26e208c3f3675ba857a889553c7ccc95e866) - Fix: `file_types` checking bug.  Thanks @jasongzy!
+
+## 1.4.0-beta.5
+
+### Features
+
+- [#9589](https://github.com/gradio-app/gradio/pull/9589) [`477f45c`](https://github.com/gradio-app/gradio/commit/477f45cb43be957684eb392e3d62c09490c22391) - Only move files to the cache that have a meta key.  Thanks @freddyaboulton!
+
+## 1.4.0-beta.4
+
+### Features
+
+- [#9550](https://github.com/gradio-app/gradio/pull/9550) [`b0fedd7`](https://github.com/gradio-app/gradio/commit/b0fedd7ef718c0df797ec277db7e773543a70a4d) - Fix most flaky Python tests in `5.0-dev` branch.  Thanks @abidlabs!
+- [#9483](https://github.com/gradio-app/gradio/pull/9483) [`8dc7c12`](https://github.com/gradio-app/gradio/commit/8dc7c12389311b60efcde1b9d3e3668a34d2dc00) - Send Streaming data over Websocket if possible. Also support base64 output format for images.  Thanks @freddyaboulton!
+- [#9522](https://github.com/gradio-app/gradio/pull/9522) [`3b71ed2`](https://github.com/gradio-app/gradio/commit/3b71ed21b7e2ecb67eb68fb946d25565169cb4df) - Api info fix.  Thanks @freddyaboulton!
+
+## 1.4.0-beta.3
+
+### Fixes
+
+- [#9431](https://github.com/gradio-app/gradio/pull/9431) [`7065e11`](https://github.com/gradio-app/gradio/commit/7065e11e465fcdfe14688bd6ca2aeed0a25fcc36) - Check for `file_types` parameter in the backend.  Thanks @dawoodkhan82!
+
+## 1.4.0-beta.2
+
+### Features
+
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+
+## 1.4.0-beta.1
+
+### Features
+
+- [#9200](https://github.com/gradio-app/gradio/pull/9200) [`2e179d3`](https://github.com/gradio-app/gradio/commit/2e179d35be6ed60a5a6bfc7303178d63e41781ad) - prefix api routes.  Thanks @pngwn!
+
+## 1.4.0-beta.0
+
+### Features
+
+- [#9140](https://github.com/gradio-app/gradio/pull/9140) [`c054ec8`](https://github.com/gradio-app/gradio/commit/c054ec85e49ab102b15afd305583ee394151d16c) - Drop python 3.8 and 3.9.  Thanks @abidlabs!
+- [#8941](https://github.com/gradio-app/gradio/pull/8941) [`97a7bf6`](https://github.com/gradio-app/gradio/commit/97a7bf66a79179d1b91a3199d68e5c11216ca500) - Streaming inputs for 5.0.  Thanks @freddyaboulton!
+
 ## 1.3.0
 
 ### Features

@@ -38,6 +38,7 @@ class DateTime(FormComponent):
         scale: int | None = None,
         min_width: int = 160,
         visible: bool = True,
+        interactive: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
@@ -46,12 +47,12 @@ class DateTime(FormComponent):
         """
         Parameters:
             value: default value for datetime.
-            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            label: the label for this component, displayed above the component if `show_label` is `True` and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component corresponds to.
+            info: additional component description, appears below the label in smaller font. Supports markdown / HTML syntax.
             show_label: if True, will display label.
             include_time: If True, the component will include time selection. If False, only date selection will be available.
             type: The type of the value. Can be "timestamp", "datetime", or "string". If "timestamp", the value will be a number representing the start and end date in seconds since epoch. If "datetime", the value will be a datetime object. If "string", the value will be the date entered by the user.
             timezone: The timezone to use for timestamps, such as "US/Pacific" or "Europe/Paris". If None, the timezone will be the local timezone.
-            info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
@@ -76,6 +77,7 @@ class DateTime(FormComponent):
         )
         self.type = type
         self.include_time = include_time
+        self.interactive = interactive
         self.time_format = "%Y-%m-%d %H:%M:%S" if include_time else "%Y-%m-%d"
         self.timezone = timezone
 

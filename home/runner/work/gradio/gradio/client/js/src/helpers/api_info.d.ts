@@ -18,9 +18,10 @@ export declare function get_description(type: {
     description: string;
 }, serializer: string): string;
 export declare function handle_message(data: any, last_status: Status["stage"]): {
-    type: "hash" | "data" | "update" | "complete" | "generating" | "log" | "none" | "heartbeat" | "unexpected_error";
+    type: "hash" | "data" | "update" | "complete" | "generating" | "log" | "none" | "heartbeat" | "streaming" | "unexpected_error";
     data?: any;
     status?: Status;
+    original_msg?: string;
 };
 /**
  * Maps the provided `data` to the parameters defined by the `/info` endpoint response.

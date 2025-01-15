@@ -51,8 +51,9 @@ jobs:
       - name: install dependencies
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
-          skip_build: true
           python_version: "3.10"
+          skip_build: true
+          test: true
 
         # generated when installing deps
       - name: upload website json artifacts

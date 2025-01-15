@@ -5,8 +5,8 @@ import re
 import tempfile
 import textwrap
 import warnings
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 import huggingface_hub
 import semantic_version as semver
@@ -27,6 +27,7 @@ class ThemeClass:
     def __init__(self):
         self._stylesheets = []
         self.name = None
+        self._font_css = []
 
     def _get_theme_css(self):
         css = {}
@@ -85,12 +86,14 @@ class ThemeClass:
             + "\n}"
         )
         dark_css_code = (
-            ".dark {\n"
+            "\n:root .dark {\n"
             + "\n".join([f"  --{attr}: {val};" for attr, val in dark_css.items()])
             + "\n}"
         )
 
-        return f"{css_code}\n{dark_css_code}"
+        font_css = "\n".join(self._font_css)
+
+        return f"{font_css}\n{css_code}\n{dark_css_code}"
 
     def _get_computed_value(self, property: str, depth=0) -> str:
         max_depth = 100
@@ -123,8 +126,7 @@ class ThemeClass:
             if (
                 not prop.startswith("_")
                 or prop.startswith("_font")
-                or prop == "_stylesheets"
-                or prop == "name"
+                or prop in ("_stylesheets", "name")
             ) and isinstance(getattr(self, prop), (list, str)):
                 schema["theme"][prop] = getattr(self, prop)
         return schema
@@ -185,7 +187,7 @@ class ThemeClass:
 
         try:
             space_info = api.space_info(name)
-        except huggingface_hub.utils._errors.RepositoryNotFoundError as e:
+        except huggingface_hub.utils.RepositoryNotFoundError as e:
             raise ValueError(f"The space {name} does not exist") from e
 
         assets = get_theme_assets(space_info)
@@ -286,7 +288,7 @@ class ThemeClass:
             mode="w", delete=False, suffix=".json"
         ) as css_file:
             contents = self.to_dict()
-            contents["version"] = version
+            contents["version"] = {"version": version}
             json.dump(contents, css_file, cls=fonts.FontEncoder)
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as readme_file:
             readme_content = README_CONTENT.format(
@@ -347,18 +349,18 @@ class Base(ThemeClass):
         *,
         primary_hue: colors.Color | str = colors.blue,
         secondary_hue: colors.Color | str = colors.blue,
-        neutral_hue: colors.Color | str = colors.gray,
+        neutral_hue: colors.Color | str = colors.zinc,
         text_size: sizes.Size | str = sizes.text_md,
         spacing_size: sizes.Size | str = sizes.spacing_md,
         radius_size: sizes.Size | str = sizes.radius_md,
         font: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("Source Sans Pro"),
+            fonts.LocalFont("IBM Plex Sans"),
             "ui-sans-serif",
             "system-ui",
             "sans-serif",
         ),
         font_mono: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("IBM Plex Mono"),
+            fonts.LocalFont("IBM Plex Mono"),
             "ui-monospace",
             "Consolas",
             "monospace",
@@ -377,6 +379,7 @@ class Base(ThemeClass):
         """
 
         self.name = "base"
+        self._font_css = []
 
         def expand_shortcut(shortcut, mode="color", prefix=None):
             if not isinstance(shortcut, str):
@@ -465,23 +468,29 @@ class Base(ThemeClass):
         if isinstance(font, (fonts.Font, str)):
             font = [font]
         self._font = [
-            fontfam if isinstance(fontfam, fonts.Font) else fonts.Font(fontfam)
+            fontfam if isinstance(fontfam, fonts.Font) else fonts.LocalFont(fontfam)
             for fontfam in font
         ]
-        if isinstance(font, fonts.Font) or isinstance(font_mono, str):
+        if isinstance(font_mono, (fonts.Font, str)):
             font_mono = [font_mono]
         self._font_mono = [
-            fontfam if isinstance(fontfam, fonts.Font) else fonts.Font(fontfam)
+            fontfam if isinstance(fontfam, fonts.Font) else fonts.LocalFont(fontfam)
             for fontfam in font_mono
         ]
         self.font = ", ".join(str(font) for font in self._font)
         self.font_mono = ", ".join(str(font) for font in self._font_mono)
 
         self._stylesheets = []
+        self._font_css = []
         for font in self._font + self._font_mono:
             font_stylesheet = font.stylesheet()
-            if font_stylesheet:
+            if isinstance(font_stylesheet, str):
                 self._stylesheets.append(font_stylesheet)
+            elif isinstance(font_stylesheet, dict):
+                if font_stylesheet["url"]:
+                    self._stylesheets.append(font_stylesheet["url"])
+                elif font_stylesheet["css"]:
+                    self._font_css.append(font_stylesheet["css"])
 
         self.set()
 
@@ -591,6 +600,7 @@ class Base(ThemeClass):
         table_text_color=None,
         table_text_color_dark=None,
         checkbox_background_color=None,
+        chatbot_text_size=None,
         checkbox_background_color_dark=None,
         checkbox_background_color_focus=None,
         checkbox_background_color_focus_dark=None,
@@ -622,6 +632,8 @@ class Base(ThemeClass):
         checkbox_label_border_color_dark=None,
         checkbox_label_border_color_hover=None,
         checkbox_label_border_color_hover_dark=None,
+        checkbox_label_border_color_selected=None,
+        checkbox_label_border_color_selected_dark=None,
         checkbox_label_border_width=None,
         checkbox_label_border_width_dark=None,
         checkbox_label_gap=None,
@@ -685,9 +697,8 @@ class Base(ThemeClass):
         # Buttons: These set the style for buttons.
         button_border_width=None,
         button_border_width_dark=None,
-        button_shadow=None,
-        button_shadow_active=None,
-        button_shadow_hover=None,
+        button_transform_hover=None,
+        button_transform_active=None,
         button_transition=None,
         button_large_padding=None,
         button_large_radius=None,
@@ -697,6 +708,10 @@ class Base(ThemeClass):
         button_small_radius=None,
         button_small_text_size=None,
         button_small_text_weight=None,
+        button_medium_padding=None,
+        button_medium_radius=None,
+        button_medium_text_size=None,
+        button_medium_text_weight=None,
         button_primary_background_fill=None,
         button_primary_background_fill_dark=None,
         button_primary_background_fill_hover=None,
@@ -709,6 +724,12 @@ class Base(ThemeClass):
         button_primary_text_color_dark=None,
         button_primary_text_color_hover=None,
         button_primary_text_color_hover_dark=None,
+        button_primary_shadow=None,
+        button_primary_shadow_hover=None,
+        button_primary_shadow_active=None,
+        button_primary_shadow_dark=None,
+        button_primary_shadow_hover_dark=None,
+        button_primary_shadow_active_dark=None,
         button_secondary_background_fill=None,
         button_secondary_background_fill_dark=None,
         button_secondary_background_fill_hover=None,
@@ -721,6 +742,12 @@ class Base(ThemeClass):
         button_secondary_text_color_dark=None,
         button_secondary_text_color_hover=None,
         button_secondary_text_color_hover_dark=None,
+        button_secondary_shadow=None,
+        button_secondary_shadow_hover=None,
+        button_secondary_shadow_active=None,
+        button_secondary_shadow_dark=None,
+        button_secondary_shadow_hover_dark=None,
+        button_secondary_shadow_active_dark=None,
         button_cancel_background_fill=None,
         button_cancel_background_fill_dark=None,
         button_cancel_background_fill_hover=None,
@@ -832,6 +859,7 @@ class Base(ThemeClass):
             table_text_color_dark: The body text color in the table in dark mode.
             section_header_text_size: The text size of a section header (e.g. tab name).
             section_header_text_weight: The text weight of a section header (e.g. tab name).
+            chatbot_text_size: The text size of the chatbot text.
             checkbox_background_color: The background of a checkbox square or radio circle.
             checkbox_background_color_dark: The background of a checkbox square or radio circle in dark mode.
             checkbox_background_color_focus: The background of a checkbox square or radio circle when focused.
@@ -864,6 +892,8 @@ class Base(ThemeClass):
             checkbox_label_border_color_dark: The border color of the surrounding button of a checkbox or radio element in dark mode.
             checkbox_label_border_color_hover: The border color of the surrounding button of a checkbox or radio element when hovered over.
             checkbox_label_border_color_hover_dark: The border color of the surrounding button of a checkbox or radio element when hovered over in dark mode.
+            checkbox_label_border_color_selected: The border color of the surrounding button of a checkbox or radio element when selected.
+            checkbox_label_border_color_selected_dark: The border color of the surrounding button of a checkbox or radio element when selected in dark mode.
             checkbox_label_border_width: The border width of the surrounding button of a checkbox or radio element.
             checkbox_label_border_width_dark: The border width of the surrounding button of a checkbox or radio element in dark mode.
             checkbox_label_gap: The gap consecutive checkbox or radio elements.
@@ -952,6 +982,12 @@ class Base(ThemeClass):
             button_primary_text_color_dark: The text color of a button of "primary" variant in dark mode.
             button_primary_text_color_hover: The text color of a button of "primary" variant when hovered over.
             button_primary_text_color_hover_dark: The text color of a button of "primary" variant when hovered over in dark mode.
+            button_primary_shadow: The shadow under a primary button.
+            button_primary_shadow_active: The shadow under a primary button when pressed.
+            button_primary_shadow_hover: The shadow under a primary button when hovered over.
+            button_primary_shadow_dark: The shadow under a primary button in dark mode.
+            button_primary_shadow_active_dark: The shadow under a primary button when pressed in dark mode.
+            button_primary_shadow_hover_dark: The shadow under a primary button when hovered over in dark mode.
             button_secondary_background_fill: The background of a button of default "secondary" variant.
             button_secondary_background_fill_dark: The background of a button of default "secondary" variant in dark mode.
             button_secondary_background_fill_hover: The background of a button of default "secondary" variant when hovered over.
@@ -964,14 +1000,23 @@ class Base(ThemeClass):
             button_secondary_text_color_dark: The text color of a button of default "secondary" variant in dark mode.
             button_secondary_text_color_hover: The text color of a button of default "secondary" variant when hovered over.
             button_secondary_text_color_hover_dark: The text color of a button of default "secondary" variant when hovered over in dark mode.
-            button_shadow: The shadow under a button.
-            button_shadow_active: The shadow under a button when pressed.
-            button_shadow_hover: The shadow under a button when hovered over.
+            button_secondary_shadow: The shadow under a secondary button.
+            button_secondary_shadow_active: The shadow under a secondary button when pressed.
+            button_secondary_shadow_hover: The shadow under a secondary button when hovered over.
+            button_secondary_shadow_dark: The shadow under a secondary button in dark mode.
+            button_secondary_shadow_active_dark: The shadow under a secondary button when pressed in dark mode.
+            button_secondary_shadow_hover_dark: The shadow under a secondary button when hovered over in dark mode.
             button_small_padding: The padding of a button set to "small" size.
             button_small_radius: The corner radius of a button set to "small" size.
             button_small_text_size: The text size of a button set to "small" size.
             button_small_text_weight: The text weight of a button set to "small" size.
+            button_medium_padding: The padding of a button set to "medium" size.
+            button_medium_radius: The corner radius of a button set to "medium" size.
+            button_medium_text_size: The text size of a button set to "medium" size.
+            button_medium_text_weight: The text weight of a button set to "medium" size.
             button_transition: The transition animation duration of a button between regular, hover, and focused states.
+            button_transform_hover: The transform animation of a button on hover.
+            button_transform_active: The transform animation of a button when pressed.
         """
 
         # Body
@@ -993,7 +1038,7 @@ class Base(ThemeClass):
         self.body_text_weight = body_text_weight or getattr(
             self, "body_text_weight", "400"
         )
-        self.embed_radius = embed_radius or getattr(self, "embed_radius", "*radius_lg")
+        self.embed_radius = embed_radius or getattr(self, "embed_radius", "*radius_sm")
         # Core Colors
         self.color_accent = color_accent or getattr(
             self, "color_accent", "*primary_500"
@@ -1157,12 +1202,12 @@ class Base(ThemeClass):
         self.block_label_radius = block_label_radius or getattr(
             self,
             "block_label_radius",
-            "calc(*radius_lg - 1px) 0 calc(*radius_lg - 1px) 0",
+            "calc(*radius_sm - 1px) 0 calc(*radius_sm - 1px) 0",
         )
         self.block_label_right_radius = block_label_right_radius or getattr(
             self,
             "block_label_right_radius",
-            "0 calc(*radius_lg - 1px) 0 calc(*radius_lg - 1px)",
+            "0 calc(*radius_sm - 1px) 0 calc(*radius_sm - 1px)",
         )
         self.block_label_text_size = block_label_text_size or getattr(
             self, "block_label_text_size", "*text_sm"
@@ -1173,7 +1218,7 @@ class Base(ThemeClass):
         self.block_padding = block_padding or getattr(
             self, "block_padding", "*spacing_xl calc(*spacing_xl + 2px)"
         )
-        self.block_radius = block_radius or getattr(self, "block_radius", "*radius_lg")
+        self.block_radius = block_radius or getattr(self, "block_radius", "*radius_sm")
         self.block_shadow = block_shadow or getattr(self, "block_shadow", "none")
         self.block_shadow_dark = block_shadow_dark or getattr(
             self, "block_shadow_dark", None
@@ -1216,7 +1261,7 @@ class Base(ThemeClass):
             self, "block_title_text_weight", "400"
         )
         self.container_radius = container_radius or getattr(
-            self, "container_radius", "*radius_lg"
+            self, "container_radius", "*radius_sm"
         )
         self.form_gap_width = form_gap_width or getattr(self, "form_gap_width", "0px")
         self.layout_gap = layout_gap or getattr(self, "layout_gap", "*spacing_xxl")
@@ -1258,6 +1303,9 @@ class Base(ThemeClass):
         self.code_background_fill_dark = code_background_fill_dark or getattr(
             self, "code_background_fill_dark", "*neutral_800"
         )
+        self.chatbot_text_size = chatbot_text_size or getattr(
+            self, "chatbot_text_size", "*text_lg"
+        )
         self.checkbox_background_color = checkbox_background_color or getattr(
             self, "checkbox_background_color", "*background_fill_primary"
         )
@@ -1294,13 +1342,11 @@ class Base(ThemeClass):
         )
         self.checkbox_background_color_selected = (
             checkbox_background_color_selected
-            or getattr(self, "checkbox_background_color_selected", "*secondary_600")
+            or getattr(self, "checkbox_background_color_selected", "*color_accent")
         )
         self.checkbox_background_color_selected_dark = (
             checkbox_background_color_selected_dark
-            or getattr(
-                self, "checkbox_background_color_selected_dark", "*secondary_600"
-            )
+            or getattr(self, "checkbox_background_color_selected_dark", "*color_accent")
         )
         self.checkbox_border_color = checkbox_border_color or getattr(
             self, "checkbox_border_color", "*neutral_300"
@@ -1309,11 +1355,11 @@ class Base(ThemeClass):
             self, "checkbox_border_color_dark", "*neutral_700"
         )
         self.checkbox_border_color_focus = checkbox_border_color_focus or getattr(
-            self, "checkbox_border_color_focus", "*secondary_500"
+            self, "checkbox_border_color_focus", "*color_accent"
         )
         self.checkbox_border_color_focus_dark = (
             checkbox_border_color_focus_dark
-            or getattr(self, "checkbox_border_color_focus_dark", "*secondary_500")
+            or getattr(self, "checkbox_border_color_focus_dark", "*color_accent")
         )
         self.checkbox_border_color_hover = checkbox_border_color_hover or getattr(
             self, "checkbox_border_color_hover", "*neutral_300"
@@ -1323,11 +1369,11 @@ class Base(ThemeClass):
             or getattr(self, "checkbox_border_color_hover_dark", "*neutral_600")
         )
         self.checkbox_border_color_selected = checkbox_border_color_selected or getattr(
-            self, "checkbox_border_color_selected", "*secondary_600"
+            self, "checkbox_border_color_selected", "*color_accent"
         )
         self.checkbox_border_color_selected_dark = (
             checkbox_border_color_selected_dark
-            or getattr(self, "checkbox_border_color_selected_dark", "*secondary_600")
+            or getattr(self, "checkbox_border_color_selected_dark", "*color_accent")
         )
         self.checkbox_border_radius = checkbox_border_radius or getattr(
             self, "checkbox_border_radius", "*radius_sm"
@@ -1403,6 +1449,22 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "checkbox_label_border_color_hover_dark",
+                "*checkbox_label_border_color",
+            )
+        )
+        self.checkbox_label_border_color_selected = (
+            checkbox_label_border_color_selected
+            or getattr(
+                self,
+                "checkbox_label_border_color_selected",
+                "*checkbox_label_border_color",
+            )
+        )
+        self.checkbox_label_border_color_selected_dark = (
+            checkbox_label_border_color_selected_dark
+            or getattr(
+                self,
+                "checkbox_label_border_color_selected_dark",
                 "*checkbox_label_border_color",
             )
         )
@@ -1498,11 +1560,11 @@ class Base(ThemeClass):
             self, "input_background_fill_dark", "*neutral_700"
         )
         self.input_background_fill_focus = input_background_fill_focus or getattr(
-            self, "input_background_fill_focus", "*secondary_500"
+            self, "input_background_fill_focus", "*input_background_fill"
         )
         self.input_background_fill_focus_dark = (
             input_background_fill_focus_dark
-            or getattr(self, "input_background_fill_focus_dark", "*secondary_600")
+            or getattr(self, "input_background_fill_focus_dark", None)
         )
         self.input_background_fill_hover = input_background_fill_hover or getattr(
             self, "input_background_fill_hover", "*input_background_fill"
@@ -1546,7 +1608,7 @@ class Base(ThemeClass):
         self.input_placeholder_color_dark = input_placeholder_color_dark or getattr(
             self, "input_placeholder_color_dark", "*neutral_500"
         )
-        self.input_radius = input_radius or getattr(self, "input_radius", "*radius_lg")
+        self.input_radius = input_radius or getattr(self, "input_radius", "*radius_sm")
         self.input_shadow = input_shadow or getattr(self, "input_shadow", "none")
         self.input_shadow_dark = input_shadow_dark or getattr(
             self, "input_shadow_dark", None
@@ -1579,7 +1641,7 @@ class Base(ThemeClass):
             self, "prose_header_text_weight", "600"
         )
         self.slider_color = slider_color or getattr(
-            self, "slider_color", colors.blue.c600
+            self, "slider_color", "*color_accent"
         )
         self.slider_color_dark = slider_color_dark or getattr(
             self, "slider_color_dark", None
@@ -1609,7 +1671,7 @@ class Base(ThemeClass):
         self.table_odd_background_fill_dark = table_odd_background_fill_dark or getattr(
             self, "table_odd_background_fill_dark", "*neutral_900"
         )
-        self.table_radius = table_radius or getattr(self, "table_radius", "*radius_lg")
+        self.table_radius = table_radius or getattr(self, "table_radius", "*radius_sm")
         self.table_row_focus = table_row_focus or getattr(
             self, "table_row_focus", "*color_accent_soft"
         )
@@ -1621,7 +1683,7 @@ class Base(ThemeClass):
             self, "button_border_width", "*input_border_width"
         )
         self.button_border_width_dark = button_border_width_dark or getattr(
-            self, "button_border_width_dark", "*input_border_width"
+            self, "button_border_width_dark", None
         )
         self.button_cancel_background_fill = button_cancel_background_fill or getattr(
             self, "button_cancel_background_fill", "*button_secondary_background_fill"
@@ -1639,7 +1701,7 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "button_cancel_background_fill_hover",
-                "*button_cancel_background_fill",
+                "*button_secondary_background_fill_hover",
             )
         )
         self.button_cancel_background_fill_hover_dark = (
@@ -1647,7 +1709,7 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "button_cancel_background_fill_hover_dark",
-                "*button_cancel_background_fill",
+                "*button_secondary_background_fill_hover",
             )
         )
         self.button_cancel_border_color = button_cancel_border_color or getattr(
@@ -1661,12 +1723,13 @@ class Base(ThemeClass):
                 "*button_secondary_border_color",
             )
         )
+
         self.button_cancel_border_color_hover = (
             button_cancel_border_color_hover
             or getattr(
                 self,
                 "button_cancel_border_color_hover",
-                "*button_cancel_border_color",
+                "*button_secondary_border_color_hover",
             )
         )
         self.button_cancel_border_color_hover_dark = (
@@ -1674,9 +1737,10 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "button_cancel_border_color_hover_dark",
-                "*button_cancel_border_color",
+                "*button_secondary_border_color_hover",
             )
         )
+
         self.button_cancel_text_color = button_cancel_text_color or getattr(
             self, "button_cancel_text_color", "*button_secondary_text_color"
         )
@@ -1684,19 +1748,28 @@ class Base(ThemeClass):
             self, "button_cancel_text_color_dark", "*button_secondary_text_color"
         )
         self.button_cancel_text_color_hover = button_cancel_text_color_hover or getattr(
-            self, "button_cancel_text_color_hover", "*button_cancel_text_color"
+            self, "button_cancel_text_color_hover", "*button_secondary_text_color_hover"
         )
         self.button_cancel_text_color_hover_dark = (
             button_cancel_text_color_hover_dark
-            or getattr(
-                self, "button_cancel_text_color_hover_dark", "*button_cancel_text_color"
-            )
+            or getattr(self, "button_cancel_text_color_hover_dark", "white")
         )
+
+        self.button_transform_hover = button_transform_hover or getattr(
+            self, "button_transform_hover", "none"
+        )
+        self.button_transform_active = button_transform_active or getattr(
+            self, "button_transform_active", "none"
+        )
+        self.button_transition = button_transition or getattr(
+            self, "button_transition", "all 0.2s ease"
+        )
+
         self.button_large_padding = button_large_padding or getattr(
             self, "button_large_padding", "*spacing_lg calc(2 * *spacing_lg)"
         )
         self.button_large_radius = button_large_radius or getattr(
-            self, "button_large_radius", "*radius_lg"
+            self, "button_large_radius", "*radius_md"
         )
         self.button_large_text_size = button_large_text_size or getattr(
             self, "button_large_text_size", "*text_lg"
@@ -1705,30 +1778,26 @@ class Base(ThemeClass):
             self, "button_large_text_weight", "600"
         )
         self.button_primary_background_fill = button_primary_background_fill or getattr(
-            self, "button_primary_background_fill", "*primary_200"
+            self, "button_primary_background_fill", "*primary_500"
         )
         self.button_primary_background_fill_dark = (
             button_primary_background_fill_dark
-            or getattr(self, "button_primary_background_fill_dark", "*primary_700")
+            or getattr(self, "button_primary_background_fill_dark", "*primary_600")
         )
         self.button_primary_background_fill_hover = (
             button_primary_background_fill_hover
-            or getattr(
-                self,
-                "button_primary_background_fill_hover",
-                "*button_primary_background_fill",
-            )
+            or getattr(self, "button_primary_background_fill_hover", "*primary_600")
         )
         self.button_primary_background_fill_hover_dark = (
             button_primary_background_fill_hover_dark
             or getattr(
                 self,
                 "button_primary_background_fill_hover_dark",
-                "*button_primary_background_fill",
+                "*primary_700",
             )
         )
         self.button_primary_border_color = button_primary_border_color or getattr(
-            self, "button_primary_border_color", "*primary_200"
+            self, "button_primary_border_color", "*primary_500"
         )
         self.button_primary_border_color_dark = (
             button_primary_border_color_dark
@@ -1739,7 +1808,7 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "button_primary_border_color_hover",
-                "*button_primary_border_color",
+                "*primary_500",
             )
         )
         self.button_primary_border_color_hover_dark = (
@@ -1747,11 +1816,11 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "button_primary_border_color_hover_dark",
-                "*button_primary_border_color",
+                "*primary_500",
             )
         )
         self.button_primary_text_color = button_primary_text_color or getattr(
-            self, "button_primary_text_color", "*primary_600"
+            self, "button_primary_text_color", "white"
         )
         self.button_primary_text_color_dark = button_primary_text_color_dark or getattr(
             self, "button_primary_text_color_dark", "white"
@@ -1770,6 +1839,30 @@ class Base(ThemeClass):
                 "*button_primary_text_color",
             )
         )
+        self.button_primary_shadow = button_primary_shadow or getattr(
+            self, "button_primary_shadow", "none"
+        )
+        self.button_primary_shadow_hover = button_primary_shadow_hover or getattr(
+            self, "button_primary_shadow_hover", "*button_primary_shadow"
+        )
+        self.button_primary_shadow_active = button_primary_shadow_active or getattr(
+            self, "button_primary_shadow_active", "*button_primary_shadow"
+        )
+        self.button_primary_shadow_dark = button_primary_shadow_dark or getattr(
+            self, "button_primary_shadow_dark", None
+        )
+        self.button_primary_shadow_hover_dark = (
+            button_primary_shadow_hover_dark
+            or getattr(
+                self, "button_primary_shadow_hover_dark", "*button_primary_shadow"
+            )
+        )
+        self.button_primary_shadow_active_dark = (
+            button_primary_shadow_active_dark
+            or getattr(
+                self, "button_primary_shadow_active_dark", "*button_primary_shadow"
+            )
+        )
         self.button_secondary_background_fill = (
             button_secondary_background_fill
             or getattr(self, "button_secondary_background_fill", "*neutral_200")
@@ -1780,18 +1873,12 @@ class Base(ThemeClass):
         )
         self.button_secondary_background_fill_hover = (
             button_secondary_background_fill_hover
-            or getattr(
-                self,
-                "button_secondary_background_fill_hover",
-                "*button_secondary_background_fill",
-            )
+            or getattr(self, "button_secondary_background_fill_hover", "*neutral_300")
         )
         self.button_secondary_background_fill_hover_dark = (
             button_secondary_background_fill_hover_dark
             or getattr(
-                self,
-                "button_secondary_background_fill_hover_dark",
-                "*button_secondary_background_fill",
+                self, "button_secondary_background_fill_hover_dark", "*neutral_700"
             )
         )
         self.button_secondary_border_color = button_secondary_border_color or getattr(
@@ -1806,7 +1893,7 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "button_secondary_border_color_hover",
-                "*button_secondary_border_color",
+                "*neutral_200",
             )
         )
         self.button_secondary_border_color_hover_dark = (
@@ -1814,11 +1901,11 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "button_secondary_border_color_hover_dark",
-                "*button_secondary_border_color",
+                "*neutral_500",
             )
         )
         self.button_secondary_text_color = button_secondary_text_color or getattr(
-            self, "button_secondary_text_color", "*neutral_700"
+            self, "button_secondary_text_color", "black"
         )
         self.button_secondary_text_color_dark = (
             button_secondary_text_color_dark
@@ -1840,26 +1927,54 @@ class Base(ThemeClass):
                 "*button_secondary_text_color",
             )
         )
-        self.button_shadow = button_shadow or getattr(self, "button_shadow", "none")
-        self.button_shadow_active = button_shadow_active or getattr(
-            self, "button_shadow_active", "none"
+        self.button_secondary_shadow = button_secondary_shadow or getattr(
+            self, "button_secondary_shadow", "*button_primary_shadow"
         )
-        self.button_shadow_hover = button_shadow_hover or getattr(
-            self, "button_shadow_hover", "none"
+        self.button_secondary_shadow_hover = button_secondary_shadow_hover or getattr(
+            self, "button_secondary_shadow_hover", "*button_secondary_shadow"
         )
+        self.button_secondary_shadow_active = button_secondary_shadow_active or getattr(
+            self, "button_secondary_shadow_active", "*button_secondary_shadow"
+        )
+        self.button_secondary_shadow_dark = button_secondary_shadow_dark or getattr(
+            self, "button_secondary_shadow_dark", None
+        )
+        self.button_secondary_shadow_hover_dark = (
+            button_secondary_shadow_hover_dark
+            or getattr(
+                self, "button_secondary_shadow_hover_dark", "*button_secondary_shadow"
+            )
+        )
+        self.button_secondary_shadow_active_dark = (
+            button_secondary_shadow_active_dark
+            or getattr(
+                self, "button_secondary_shadow_active_dark", "*button_secondary_shadow"
+            )
+        )
+
         self.button_small_padding = button_small_padding or getattr(
-            self, "button_small_padding", "*spacing_sm calc(2 * *spacing_sm)"
+            self, "button_small_padding", "*spacing_sm calc(1.5 * *spacing_sm)"
         )
         self.button_small_radius = button_small_radius or getattr(
-            self, "button_small_radius", "*radius_lg"
+            self, "button_small_radius", "*radius_md"
         )
         self.button_small_text_size = button_small_text_size or getattr(
-            self, "button_small_text_size", "*text_md"
+            self, "button_small_text_size", "*text_sm"
         )
         self.button_small_text_weight = button_small_text_weight or getattr(
             self, "button_small_text_weight", "400"
         )
-        self.button_transition = button_transition or getattr(
-            self, "button_transition", "background-color 0.2s ease"
+        self.button_medium_padding = button_medium_padding or getattr(
+            self, "button_medium_padding", "*spacing_md calc(2 * *spacing_md)"
         )
+        self.button_medium_radius = button_medium_radius or getattr(
+            self, "button_medium_radius", "*radius_md"
+        )
+        self.button_medium_text_size = button_medium_text_size or getattr(
+            self, "button_medium_text_size", "*text_md"
+        )
+        self.button_medium_text_weight = button_medium_text_weight or getattr(
+            self, "button_medium_text_weight", "600"
+        )
+
         return self

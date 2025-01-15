@@ -1,4 +1,4 @@
-import { BROKEN_CONNECTION_MSG } from "../constants";
+import { BROKEN_CONNECTION_MSG, SSE_URL } from "../constants";
 import type { Client } from "../client";
 import { stream } from "fetch-event-stream";
 
@@ -25,7 +25,7 @@ export async function open_stream(this: Client): Promise<void> {
 		session_hash: this.session_hash
 	}).toString();
 
-	let url = new URL(`${config.root}/queue/data?${params}`);
+	let url = new URL(`${config.root}${this.api_prefix}/${SSE_URL}?${params}`);
 
 	if (jwt) {
 		url.searchParams.set("__sign", jwt);

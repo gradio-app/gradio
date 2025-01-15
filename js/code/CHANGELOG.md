@@ -1,10 +1,205 @@
 # @gradio/code
 
-## 0.9.1
+## 0.10.12
+
+### Dependency updates
+
+- @gradio/atoms@0.13.1
+- @gradio/statustracker@0.10.1
+- @gradio/icons@0.10.0
+- @gradio/upload@0.14.5
+
+## 0.10.11
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/upload@0.14.4
+- @gradio/icons@0.9.0
+- @gradio/statustracker@0.10.0
+- @gradio/wasm@0.16.0
+
+## 0.10.10
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.7
+- @gradio/upload@0.14.3
+- @gradio/atoms@0.12.0
+
+## 0.10.9
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+- @gradio/upload@0.14.2
+
+## 0.10.8
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/utils@0.8.0
+- @gradio/upload@0.14.1
+- @gradio/statustracker@0.9.5
+
+## 0.10.7
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.4
+- @gradio/atoms@0.11.0
+- @gradio/upload@0.14.0
+- @gradio/wasm@0.15.0
+
+## 0.10.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+- @gradio/upload@0.13.5
+
+## 0.10.5
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.2
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+- @gradio/upload@0.13.4
+
+## 0.10.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.1
+- @gradio/upload@0.13.3
+- @gradio/atoms@0.9.2
+
+## 0.10.3
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+- @gradio/statustracker@0.9.0
+- @gradio/upload@0.13.2
+- @gradio/wasm@0.14.2
+
+## 0.10.2
+
+### Dependency updates
+
+- @gradio/upload@0.13.1
+- @gradio/wasm@0.14.1
+
+## 0.10.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+
+## 0.10.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Improve `gr.Code`
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Add Jinja2 language to Code component
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Added max lines and overflow scrollbar for `gr.Code`
+
+### Dependencies
+
+- @gradio/atoms@0.9.0
+- @gradio/icons@0.8.0
+- @gradio/statustracker@0.8.0
+- @gradio/upload@0.13.0
+- @gradio/utils@0.7.0
+- @gradio/wasm@0.14.0
+
+## 0.10.0-beta.8
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.7
+- @gradio/statustracker@0.8.0-beta.5
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+
+## 0.10.0-beta.7
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.4
+- @gradio/upload@0.13.0-beta.6
+
+## 0.10.0-beta.6
+
+### Features
+
+- [#9545](https://github.com/gradio-app/gradio/pull/9545) [`098a009`](https://github.com/gradio-app/gradio/commit/098a009c05243967bd9e5acc28864eb40a135f6a) - Add Jinja2 language to Code component.  Thanks @CISC!
+
+## 0.10.0-beta.5
+
+### Features
+
+- [#9450](https://github.com/gradio-app/gradio/pull/9450) [`991883e`](https://github.com/gradio-app/gradio/commit/991883e217dc0a3512b3ae3245378812f373b8db) - Improve `gr.Code`.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.5
+- @gradio/statustracker@0.8.0-beta.3
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+
+## 0.10.0-beta.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/upload@0.13.0-beta.4
+- @gradio/wasm@0.14.0-beta.3
+
+## 0.10.0-beta.3
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.3
+
+## 0.10.0-beta.2
+
+### Features
+
+- [#9311](https://github.com/gradio-app/gradio/pull/9311) [`c4afdcd`](https://github.com/gradio-app/gradio/commit/c4afdcdb1f1f80c5f95ab45d527236e9364ace82) - Added max lines and overflow scrollbar for `gr.Code`.  Thanks @micpst!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/upload@0.13.0-beta.2
+- @gradio/wasm@0.14.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
+## 0.9.1-beta.1
 
 ### Features
 
 - [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/upload@0.12.4-beta.1
+- @gradio/wasm@0.13.1-beta.1
+
+## 0.9.1-beta.0
 
 ### Fixes
 

@@ -10,16 +10,24 @@ import json
 import sys
 import warnings
 from abc import ABC, abstractmethod
+from collections.abc import Callable, Sequence
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Sequence, Type
+from typing import TYPE_CHECKING, Any
 
 import gradio_client.utils as client_utils
 
 from gradio import utils
 from gradio.blocks import Block, BlockContext
 from gradio.component_meta import ComponentMeta
-from gradio.data_classes import BaseModel, DeveloperPath, GradioDataModel
+from gradio.data_classes import (
+    BaseModel,
+    DeveloperPath,
+    FileData,
+    FileDataDict,
+    GradioDataModel,
+    MediaStreamChunk,
+)
 from gradio.events import EventListener
 from gradio.layouts import Form
 from gradio.processing_utils import move_files_to_cache
@@ -166,7 +174,7 @@ class Component(ComponentBase, Block):
         # This gets overridden when `select` is called
         self._selectable = False
         if not hasattr(self, "data_model"):
-            self.data_model: Type[GradioDataModel] | None = None
+            self.data_model: type[GradioDataModel] | None = None
 
         Block.__init__(
             self,
@@ -323,11 +331,18 @@ class Component(ComponentBase, Block):
         """
         if self.data_model is not None:
             schema = self.data_model.model_json_schema()
-            schema.pop("description", None)
+            desc = schema.pop("description", None)
+            schema["additional_description"] = desc
             return schema
         raise NotImplementedError(
             f"The api_info method has not been implemented for {self.get_block_name()}"
         )
+
+    def api_info_as_input(self) -> dict[str, Any]:
+        return self.api_info()
+
+    def api_info_as_output(self) -> dict[str, Any]:
+        return self.api_info()
 
     def flag(self, payload: Any, flag_dir: str | Path = "") -> str:
         """
@@ -371,9 +386,24 @@ class StreamingOutput(metaclass=abc.ABCMeta):
         self.streaming: bool
 
     @abc.abstractmethod
-    def stream_output(
+    async def stream_output(
         self, value, output_id: str, first_chunk: bool
-    ) -> tuple[bytes | None, Any]:
+    ) -> tuple[MediaStreamChunk | None, FileDataDict | dict]:
+        pass
+
+    @abc.abstractmethod
+    async def combine_stream(
+        self,
+        stream: list[bytes],
+        desired_output_format: str | None = None,
+        only_file=False,
+    ) -> GradioDataModel | FileData:
+        """Combine all of the stream chunks into a single file.
+
+        This is needed for downloading the stream and for caching examples.
+        If `only_file` is True, only the FileData corresponding to the file should be returned (needed for downloading the stream).
+        The desired_output_format optionally converts the combined file. Should only be used for cached examples.
+        """
         pass
 
 
@@ -418,7 +448,7 @@ def get_component_instance(
         component_obj = comp
     else:
         raise ValueError(
-            f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
+            f"Component must be provided as a `str` or `dict` or `Component` but is {comp}"
         )
 
     if render and not component_obj.is_rendered:

@@ -1,6 +1,7 @@
 let supports_adopted_stylesheets = false;
 
 if (
+	typeof window !== "undefined" &&
 	"attachShadow" in Element.prototype &&
 	"adoptedStyleSheets" in Document.prototype
 ) {
@@ -13,9 +14,12 @@ if (
 
 export function mount_css(url: string, target: HTMLElement): Promise<void> {
 	const base = new URL(import.meta.url).origin;
-	const _url = new URL(url, base).href;
+	var _url = url;
+	if (window.location.origin !== base) {
+		// Serving assets over a CDN, generate absolute url
+		_url = new URL(url, base).href;
+	}
 	const existing_link = document.querySelector(`link[href='${_url}']`);
-
 	if (existing_link) return Promise.resolve();
 
 	const link = document.createElement("link");
@@ -35,9 +39,12 @@ export function mount_css(url: string, target: HTMLElement): Promise<void> {
 export function prefix_css(
 	string: string,
 	version: string,
-	style_element = document.createElement("style")
-): HTMLStyleElement | null {
-	if (!supports_adopted_stylesheets) return null;
+	style_element?: HTMLStyleElement
+): string | null {
+	if (!supports_adopted_stylesheets) return string;
+	if (!style_element) {
+		style_element = document.createElement("style");
+	}
 	style_element.remove();
 
 	const stylesheet = new CSSStyleSheet();
@@ -52,7 +59,7 @@ export function prefix_css(
 	const rules = stylesheet.cssRules;
 
 	let css_string = "";
-	let gradio_css_infix = `gradio-app .gradio-container.gradio-container-${version} .contain `;
+	let gradio_css_infix = `.gradio-container.gradio-container-${version} .contain `;
 
 	for (let i = 0; i < rules.length; i++) {
 		const rule = rules[i];
@@ -108,9 +115,5 @@ export function prefix_css(
 			css_string += `@font-face { ${rule.style.cssText} }`;
 		}
 	}
-	css_string = importString + css_string;
-	style_element.textContent = css_string;
-
-	document.head.appendChild(style_element);
-	return style_element;
+	return importString + css_string;
 }

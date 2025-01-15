@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/chatbot",
-	"version": "0.13.1",
+	"version": "0.21.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -11,7 +11,7 @@
 		"@gradio/client": "workspace:^",
 		"@gradio/gallery": "workspace:^",
 		"@gradio/icons": "workspace:^",
-		"@gradio/markdown": "workspace:^",
+		"@gradio/markdown-code": "workspace:^",
 		"@gradio/plot": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/theme": "workspace:^",

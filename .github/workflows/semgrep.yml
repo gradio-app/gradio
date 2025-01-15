@@ -1,32 +1,33 @@
-name: Semgrep
+name: semgrep ci
 
 on:
-    workflow_run:
-        workflows: ["trigger-semgrep"]
-        types:
-            - completed
-    
+  workflow_run:
+    workflows: ["trigger-semgrep"]
+    types:
+      - completed
+
 env:
   CI: true
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
 
 concurrency:
-    group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
-    cancel-in-progress: true
+  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  cancel-in-progress: true
 
 permissions: {}
 
 jobs:
   semgrep:
     permissions:
-        contents: read  
+      contents: read
     name: semgrep/ci
     runs-on: ubuntu-latest
     container:
       image: semgrep/semgrep
+      options: --volume ${{ github.workspace }}/.github/configs:/mnt/ --name semgrepcontainer
     outputs:
-        pr_number: ${{ steps.json.outputs.pr_number }}
-        sha: ${{ steps.json.outputs.sha }}
+      pr_number: ${{ steps.json.outputs.pr_number }}
+      sha: ${{ steps.json.outputs.sha }}
     if: (github.actor != 'dependabot[bot]')
     steps:
       - name: Download artifact
@@ -38,14 +39,17 @@ jobs:
       - uses: gradio-app/github/actions/json-to-output@main
         id: json
         with:
-          path: output.json  
+          path: output.json
       - uses: actions/checkout@v4
         with:
           repository: ${{ steps.json.outputs.source_repo }}
           ref: ${{ steps.json.outputs.sha }}
-      - run: semgrep ci
-        env:
-          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN2 }}
+      - name: restart docker
+        uses: docker://docker
+        with:
+          args: docker restart semgrepcontainer
+      - run: ls -la /mnt
+      - run: semgrep ci --config=/mnt/semgrep_rules.yaml
   update-status:
     permissions:
       actions: read

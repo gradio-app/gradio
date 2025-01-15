@@ -9,16 +9,17 @@ import traceback
 import uuid
 from collections import defaultdict
 from queue import Queue as ThreadQueue
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, cast
 
 import fastapi
-from typing_extensions import Literal
 
-from gradio import route_utils, routes
+from gradio import route_utils, routes, wasm_utils
 from gradio.data_classes import (
     PredictBodyInternal,
 )
+from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
+from gradio.route_utils import API_PREFIX
 from gradio.server_messages import (
     EstimationMessage,
     EventMessage,
@@ -28,6 +29,7 @@ from gradio.server_messages import (
     ProcessStartsMessage,
     ProgressMessage,
     ProgressUnit,
+    ServerMessage,
 )
 from gradio.utils import (
     LRUCache,
@@ -59,6 +61,21 @@ class Event:
         self.progress: ProgressMessage | None = None
         self.progress_pending: bool = False
         self.alive = True
+        self.n_calls = 0
+        self.run_time: float = 0
+        self.signal = asyncio.Event()
+
+    @property
+    def streaming(self):
+        return self.fn.connection == "stream"
+
+    @property
+    def is_finished(self):
+        if not self.streaming:
+            raise ValueError("Cannot access if_finished during a non-streaming event")
+        if self.fn.time_limit is None:
+            return False
+        return self.run_time >= self.fn.time_limit
 
 
 class EventQueue:
@@ -98,6 +115,7 @@ class Queue:
             LRUCache(2000)
         )
         self.pending_event_ids_session: dict[str, set[str]] = {}
+        self.event_ids_to_events: dict[str, Event] = {}
         self.pending_message_lock = safe_get_lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
         self.stopped = False
@@ -225,6 +243,7 @@ class Queue:
             if body.session_hash not in self.pending_event_ids_session:
                 self.pending_event_ids_session[body.session_hash] = set()
         self.pending_event_ids_session[body.session_hash].add(event._id)
+        self.event_ids_to_events[event._id] = event
         try:
             event_queue = self.event_queue_per_concurrency_id[event.concurrency_id]
         except KeyError as e:
@@ -241,7 +260,6 @@ class Queue:
         }
 
         self.broadcast_estimations(event.concurrency_id, len(event_queue.queue) - 1)
-
         return True, event._id
 
     def _cancel_asyncio_tasks(self):
@@ -377,7 +395,8 @@ class Queue:
         self,
         event_id: str,
         log: str,
-        level: Literal["info", "warning"],
+        title: str,
+        level: Literal["info", "warning", "success"],
         duration: float | None = 10,
         visible: bool = True,
     ):
@@ -389,6 +408,7 @@ class Queue:
                     level=level,
                     duration=duration,
                     visible=visible,
+                    title=title,
                 )
                 self.send_message(event, log_message)
 
@@ -436,7 +456,10 @@ class Queue:
                 if fn not in self.process_time_per_fn:
                     time_till_available_worker = None
                     break
-                process_time = self.process_time_per_fn[fn].avg_time
+                if fn.connection == "stream":
+                    process_time = fn.time_limit or 0
+                else:
+                    process_time = self.process_time_per_fn[fn].avg_time
                 expected_end_times += [
                     start_time + process_time for start_time in start_times
                 ]
@@ -452,6 +475,13 @@ class Queue:
                 if event.fn in self.process_time_per_fn
                 else None
             )
+
+            # eta is the time remaining from now until the result will be returned
+            # process_time_for_fn = time to run fn once worker assigned to it
+            # wait_so_far = time till event gets to the head of the queue
+            # time_till_available_worker = time for a worker to be assigned to it once its at the head
+            # For streaming events, we modify this calculation slightly to be the time until the first
+            # chunk is processed.
             rank_eta = (
                 process_time_for_fn + wait_so_far + time_till_available_worker
                 if process_time_for_fn is not None
@@ -470,7 +500,12 @@ class Queue:
             if event_queue.concurrency_limit is None:
                 wait_so_far = 0
             elif wait_so_far is not None and process_time_for_fn is not None:
-                wait_so_far += process_time_for_fn / event_queue.concurrency_limit
+                delta = process_time_for_fn / event_queue.concurrency_limit
+                if event.streaming:
+                    delta = (
+                        time_till_available_worker or 0
+                    ) / event_queue.concurrency_limit
+                wait_so_far += delta
             else:
                 wait_so_far = None
 
@@ -478,6 +513,53 @@ class Queue:
         return EstimationMessage(
             queue_size=len(self),
         )
+
+    @staticmethod
+    async def wait_for_event(event: Event) -> str:
+        await event.signal.wait()
+        return "signal"
+
+    @staticmethod
+    async def timeout(timeout: float) -> str:
+        await asyncio.sleep(timeout)
+        return "timeout"
+
+    @staticmethod
+    async def wait_for_event_or_timeout(
+        event: Event, timeout: float
+    ) -> Literal["signal", "timeout"]:
+        t1 = asyncio.create_task(Queue.wait_for_event(event))
+        t2 = asyncio.create_task(Queue.timeout(timeout))
+        done, _ = await asyncio.wait(
+            [t1, t2],
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+        done = [d.result() for d in done]
+        event.signal.clear()
+        return cast(Literal["signal", "timeout"], done[0])
+
+    @staticmethod
+    async def wait_for_batch(
+        events: list[Event], timeouts: list[float]
+    ) -> tuple[list[Event], list[Event]]:
+        tasks = []
+        for event, timeout in zip(events, timeouts, strict=False):
+            tasks.append(
+                asyncio.create_task(Queue.wait_for_event_or_timeout(event, timeout))
+            )
+        done, _ = await asyncio.wait(
+            tasks,
+            return_when=asyncio.ALL_COMPLETED,
+        )
+        done = [d.result() for d in done]
+        awake_events = []
+        closed_events = []
+        for result, event in zip(done, events, strict=False):
+            if result == "signal":
+                awake_events.append(event)
+            else:
+                closed_events.append(event)
+        return awake_events, closed_events
 
     async def process_events(
         self, events: list[Event], batch: bool, begin_time: float
@@ -513,7 +595,10 @@ class Queue:
 
             if batch:
                 body.data = list(
-                    zip(*[event.data.data for event in events if event.data])
+                    zip(
+                        *[event.data.data for event in events if event.data],
+                        strict=False,
+                    )
                 )
                 body.request = events[0].request
                 body.batched = True
@@ -530,9 +615,13 @@ class Queue:
             )
             assert body.request is not None  # noqa: S101
             root_path = route_utils.get_root_url(
-                request=body.request, route_path="/queue/join", root_path=app.root_path
+                request=body.request,
+                route_path=f"{API_PREFIX}/queue/join",
+                root_path=app.root_path,
             )
+            first_iteration = 0
             try:
+                start = time.monotonic()
                 response = await route_utils.call_process_api(
                     app=app,
                     body=body,
@@ -540,17 +629,27 @@ class Queue:
                     fn=fn,
                     root_path=root_path,
                 )
+                end = time.monotonic()
+                first_iteration = end - start
                 err = None
+                for event in awake_events:
+                    event.run_time += end - start
+                    if event.streaming:
+                        response["is_generating"] = not event.is_finished
+
             except Exception as e:
-                traceback.print_exc()
+                if not isinstance(e, Error) or e.print_exception:
+                    traceback.print_exc()
                 response = None
                 err = e
                 for event in awake_events:
                     content = error_payload(err, app.get_blocks().show_error)
+                    wasm_utils.send_error(err)
                     self.send_message(
                         event,
                         ProcessCompletedMessage(
                             output=content,
+                            title=content.get("title", "Error"),  # type: ignore
                             success=False,
                         ),
                     )
@@ -558,20 +657,61 @@ class Queue:
                 old_response = response
                 old_err = err
                 while response and response.get("is_generating", False):
+                    start = time.monotonic()
                     old_response = response
                     old_err = err
                     for event in awake_events:
                         self.send_message(
                             event,
                             ProcessGeneratingMessage(
+                                msg=ServerMessage.process_generating
+                                if not event.streaming
+                                else ServerMessage.process_streaming,
                                 output=old_response,
                                 success=old_response is not None,
+                                time_limit=None
+                                if not fn.time_limit
+                                else cast(int, fn.time_limit) - first_iteration
+                                if event.streaming
+                                else None,
                             ),
                         )
                     awake_events = [event for event in awake_events if event.alive]
                     if not awake_events:
                         return
                     try:
+                        start = time.monotonic()
+                        if awake_events[0].streaming:
+                            awake_events, closed_events = await Queue.wait_for_batch(
+                                awake_events,
+                                # We need to wait for all of the events to have the latest input data
+                                # the max time is the time limit of the function or 30 seconds (arbitrary) but should
+                                # never really take that long to make a request from the client to the server unless
+                                # the client disconnected.
+                                [cast(float, fn.time_limit or 30) - first_iteration]
+                                * len(awake_events),
+                            )
+                            for closed_event in closed_events:
+                                self.send_message(
+                                    closed_event,
+                                    ProcessCompletedMessage(
+                                        output=response, success=True
+                                    ),
+                                )
+                        if not awake_events:
+                            break
+                        body = cast(PredictBodyInternal, awake_events[0].data)
+                        if batch:
+                            body.data = list(
+                                zip(
+                                    *[
+                                        event.data.data
+                                        for event in events
+                                        if event.data
+                                    ],
+                                    strict=False,
+                                )
+                            )
                         response = await route_utils.call_process_api(
                             app=app,
                             body=body,
@@ -579,8 +719,14 @@ class Queue:
                             fn=fn,
                             root_path=root_path,
                         )
+                        end = time.monotonic()
+                        for event in awake_events:
+                            event.run_time += end - start
+                            if event.streaming:
+                                response["is_generating"] = not event.is_finished
                     except Exception as e:
-                        traceback.print_exc()
+                        if not isinstance(e, Error) or e.print_exception:
+                            traceback.print_exc()
                         response = None
                         err = e
 
@@ -591,6 +737,7 @@ class Queue:
                     success = False
                     error = err or old_err
                     output = error_payload(error, app.get_blocks().show_error)
+                    wasm_utils.send_error(error)
                 for event in awake_events:
                     self.send_message(
                         event, ProcessCompletedMessage(output=output, success=success)
@@ -600,7 +747,9 @@ class Queue:
                 output = copy.deepcopy(response)
                 for e, event in enumerate(awake_events):
                     if batch and "data" in output:
-                        output["data"] = list(zip(*response.get("data")))[e]
+                        output["data"] = list(zip(*response.get("data"), strict=False))[
+                            e
+                        ]
                     success = response is not None
                     self.send_message(
                         event,
@@ -611,12 +760,17 @@ class Queue:
                     )
             end_time = time.time()
             if response is not None:
-                duration = end_time - begin_time
+                duration = (
+                    end_time - begin_time
+                    if not events[0].streaming
+                    else first_iteration
+                )
                 self.process_time_per_fn[events[0].fn].add(duration)
                 for event in events:
                     self.event_analytics[event._id]["process_time"] = duration
         except Exception as e:
-            traceback.print_exc()
+            if not isinstance(e, Error) or e.print_exception:
+                traceback.print_exc()
         finally:
             event_queue = self.event_queue_per_concurrency_id[events[0].concurrency_id]
             event_queue.current_concurrency -= 1

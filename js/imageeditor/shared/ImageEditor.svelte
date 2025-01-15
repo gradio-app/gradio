@@ -2,7 +2,7 @@
 	import type { Writable, Readable } from "svelte/store";
 	import type { Spring } from "svelte/motion";
 	import { type PixiApp } from "./utils/pixi";
-	import { type CommandManager } from "./utils/commands";
+	import { type CommandManager, type CommandNode } from "./utils/commands";
 
 	export const EDITOR_KEY = Symbol("editor");
 	export type context_type = "bg" | "layers" | "crop" | "draw" | "erase";
@@ -71,10 +71,12 @@
 		clear?: never;
 		save: void;
 		change: void;
+		history: CommandManager["current_history"];
 	}>();
 	export let crop_constraint = false;
 	export let canvas_size: [number, number] | undefined;
 	export let parent_height: number;
+	export let full_history: CommandNode | null = null;
 
 	$: orig_canvas_size = canvas_size;
 
@@ -114,7 +116,15 @@
 
 	const { can_redo, can_undo, current_history } = CommandManager;
 
+	function get_start_history(history: any): any {
+		if (history.previous) {
+			return get_start_history(history.previous);
+		}
+		return history;
+	}
+
 	$: $current_history.previous, dispatch("change");
+	$: dispatch("history", get_start_history($current_history));
 
 	$: {
 		history = !!$current_history.previous || $active_tool !== "bg";
@@ -279,6 +289,9 @@
 			set_tool("bg");
 		}
 		dispatch("clear");
+
+		let _size = (canvas_size ? canvas_size : crop_size) || [800, 600];
+		editor_context.reset(true, _size);
 	}
 
 	onMount(() => {
@@ -312,6 +325,12 @@
 		}
 
 		resize(...$dimensions);
+
+		tick().then(() => {
+			if (full_history) {
+				CommandManager.hydrate(full_history);
+			}
+		});
 
 		return () => {
 			$pixi?.destroy();
@@ -349,29 +368,26 @@
 		on:remove_image={handle_remove}
 		on:save={handle_save}
 	/>
-	<div class="wrap" bind:this={canvas_wrap}>
+	<div class="container">
+		<div class="wrap" bind:this={canvas_wrap}>
+			<div bind:this={pixi_target} class="stage-wrap" class:bg={!bg}></div>
+		</div>
+		<div class="tools-wrap">
+			<slot />
+		</div>
 		<div
-			bind:this={pixi_target}
-			class="stage-wrap"
-			class:bg={!bg}
-			style:transform="translate({$position_spring.x}px, {$position_spring.y}px)"
+			class="canvas"
+			class:no-border={!bg && $active_tool === "bg" && !history}
+			style:width="{$crop[2] * $editor_box.child_width + 1}px"
+			style:height="{$crop[3] * $editor_box.child_height + 1}px"
+			style:top="{$crop[1] * $editor_box.child_height +
+				($editor_box.child_top - $editor_box.parent_top) -
+				0.5}px"
+			style:left="{$crop[0] * $editor_box.child_width +
+				($editor_box.child_left - $editor_box.parent_left) -
+				0.5}px"
 		></div>
 	</div>
-	<div class="tools-wrap">
-		<slot />
-	</div>
-	<div
-		class="canvas"
-		class:no-border={!bg && $active_tool === "bg" && !history}
-		style:width="{$crop[2] * $editor_box.child_width + 1}px"
-		style:height="{$crop[3] * $editor_box.child_height + 1}px"
-		style:top="{$crop[1] * $editor_box.child_height +
-			($editor_box.child_top - $editor_box.parent_top) -
-			0.5}px"
-		style:left="{$crop[0] * $editor_box.child_width +
-			($editor_box.child_left - $editor_box.parent_left) -
-			0.5}px"
-	></div>
 </div>
 
 <style>
@@ -381,7 +397,6 @@
 		height: 100%;
 		position: relative;
 		justify-content: center;
-		align-items: flex-start;
 	}
 	.canvas {
 		position: absolute;
@@ -390,15 +405,21 @@
 		border-radius: var(--radius-md);
 	}
 
+	.container {
+		position: relative;
+		margin: var(--spacing-md);
+	}
+
 	.no-border {
 		border: none;
 	}
 
 	.stage-wrap {
-		margin: var(--size-8);
 		margin-bottom: var(--size-1);
 		border-radius: var(--radius-md);
 		overflow: hidden;
+		height: fit-content;
+		width: auto;
 	}
 
 	.tools-wrap {
@@ -409,6 +430,8 @@
 		border: 1px solid var(--block-border-color);
 		border-radius: var(--radius-sm);
 		margin: var(--spacing-xxl) 0 var(--spacing-xxl) 0;
+		width: fit-content;
+		margin: 0 auto;
 	}
 
 	.image-container {

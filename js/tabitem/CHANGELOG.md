@@ -1,5 +1,145 @@
 # @gradio/tabitem
 
+## 0.4.0
+
+### Dependency updates
+
+- @gradio/column@0.2.0
+
+## 0.4.0
+
+### Features
+
+- [#10192](https://github.com/gradio-app/gradio/pull/10192) [`4fc7fb7`](https://github.com/gradio-app/gradio/commit/4fc7fb777c42af537e4af612423fa44029657d41) - Ensure components can be remounted with their previous data.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.10.0
+- @gradio/tabs@0.4.0
+- @gradio/column@0.2.0
+
+## 0.3.5
+
+### Dependency updates
+
+- @gradio/column@0.2.0
+
+## 0.3.5
+
+### Dependency updates
+
+- @gradio/tabs@0.3.5
+- @gradio/utils@0.9.0
+- @gradio/column@0.2.0
+
+## 0.3.4
+
+### Dependency updates
+
+- @gradio/tabs@0.3.4
+- @gradio/utils@0.8.0
+- @gradio/column@0.2.0
+
+## 0.3.3
+
+### Dependency updates
+
+- @gradio/column@0.2.0
+
+## 0.3.3
+
+### Dependency updates
+
+- @gradio/tabs@0.3.3
+- @gradio/column@0.2.0
+
+## 0.3.2
+
+### Fixes
+
+- [#9653](https://github.com/gradio-app/gradio/pull/9653) [`61cd768`](https://github.com/gradio-app/gradio/commit/61cd768490a12f5d63101d5434092bcd1cfc43a8) - Ensures tabs with visible set to false are not visible.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/tabs@0.3.2
+- @gradio/column@0.2.0
+
+## 0.3.1
+
+### Dependency updates
+
+- @gradio/column@0.2.0
+
+## 0.3.1
+
+### Dependency updates
+
+- @gradio/column@0.2.0
+- @gradio/tabs@0.3.1
+
+## 0.3.0
+
+### Dependency updates
+
+- @gradio/column@0.2.0
+
+## 0.3.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Playground requirements tab
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Redesign `gr.Tabs()`
+
+### Dependencies
+
+- @gradio/column@0.2.0
+- @gradio/tabs@0.3.0
+- @gradio/utils@0.7.0
+
+## 0.3.0-beta.4
+
+### Dependency updates
+
+- @gradio/tabs@0.3.0-beta.3
+- @gradio/column@0.2.0-beta.2
+
+## 0.3.0-beta.4
+
+### Dependency updates
+
+- @gradio/column@0.2.0-beta.2
+
+## 0.3.0-beta.3
+
+### Features
+
+- [#9460](https://github.com/gradio-app/gradio/pull/9460) [`7352a89`](https://github.com/gradio-app/gradio/commit/7352a89722da91461c32fd33588531f3edce9c48) - Playground requirements tab.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/tabs@0.3.0-beta.3
+- @gradio/column@0.2.0-beta.1
+
+## 0.3.0-beta.2
+
+### Dependency updates
+
+- @gradio/utils@0.7.0-beta.2
+- @gradio/column@0.2.0-beta.0
+- @gradio/tabs@0.3.0-beta.2
+
+## 0.3.0-beta.1
+
+### Features
+
+- [#9199](https://github.com/gradio-app/gradio/pull/9199) [`3175c7a`](https://github.com/gradio-app/gradio/commit/3175c7aebc6ad2466d31d6949580f5a3cb4cd698) - Redesign `gr.Tabs()`.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.7.0-beta.1
+- @gradio/tabs@0.3.0-beta.1
+- @gradio/column@0.2.0-beta.0
+
 ## 0.2.15
 
 ### Fixes

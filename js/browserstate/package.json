@@ -1,0 +1,34 @@
+{
+	"name": "@gradio/browserstate",
+	"version": "0.3.0",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"private": false,
+	"main_changeset": true,
+	"exports": {
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		},
+		"./package.json": "./package.json"
+	},
+	"dependencies": {
+		"dequal": "^2.0.2",
+		"crypto-js": "^4.1.1",
+		"@gradio/utils": "workspace:^"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/state"
+	},
+	"devDependencies": {
+		"@types/crypto-js": "^4.1.1"
+	}
+}

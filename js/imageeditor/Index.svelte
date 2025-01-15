@@ -29,7 +29,7 @@
 	export let root: string;
 	export let value_is_output = false;
 
-	export let height: number | undefined = 400;
+	export let height: number | undefined = 450;
 	export let width: number | undefined;
 
 	export let _selectable = false;
@@ -57,6 +57,7 @@
 	};
 	export let canvas_size: [number, number] | undefined;
 	export let show_fullscreen_button = true;
+	export let full_history: any = null;
 
 	export let gradio: Gradio<{
 		change: never;
@@ -91,7 +92,9 @@
 
 	$: value && handle_change();
 	const is_browser = typeof window !== "undefined";
-	const raf = is_browser ? window.requestAnimationFrame : () => {};
+	const raf = is_browser
+		? window.requestAnimationFrame
+		: (cb: (...args: any[]) => void) => cb();
 
 	function wait_for_next_frame(): Promise<void> {
 		return new Promise((resolve) => {
@@ -183,6 +186,7 @@
 		/>
 
 		<InteractiveImageEditor
+			on:history={(e) => (full_history = e.detail)}
 			bind:dragging
 			{canvas_size}
 			on:change={() => handle_history_change()}
@@ -210,15 +214,17 @@
 			{brush}
 			{eraser}
 			changeable={attached_events.includes("apply")}
-			realtime={attached_events.includes("change")}
+			realtime={attached_events.includes("change") ||
+				attached_events.includes("input")}
 			i18n={gradio.i18n}
 			{transforms}
 			accept_blobs={server.accept_blobs}
 			{layers}
 			status={loading_status?.status}
-			upload={gradio.client.upload}
-			stream_handler={gradio.client.stream}
+			upload={(...args) => gradio.client.upload(...args)}
+			stream_handler={(...args) => gradio.client.stream(...args)}
 			{placeholder}
+			{full_history}
 		></InteractiveImageEditor>
 	</Block>
 {/if}

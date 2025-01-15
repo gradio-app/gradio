@@ -1,3 +1,4 @@
 psycopg2
 matplotlib
 SQLAlchemy
+pandas

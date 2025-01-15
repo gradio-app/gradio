@@ -1,78 +1,62 @@
 <script lang="ts">
-	import { format_chat_for_sharing, is_component_message } from "./utils";
-	import type { NormalisedMessage } from "../types";
-	import { Gradio, copy } from "@gradio/utils";
+	import {
+		format_chat_for_sharing,
+		type UndoRetryData,
+		type EditData,
+		is_last_bot_message,
+		group_messages,
+		load_components,
+		get_components_from_messages
+	} from "./utils";
+	import type { NormalisedMessage, Option } from "../types";
+	import { copy } from "@gradio/utils";
+	import type { CopyData } from "@gradio/utils";
+	import Message from "./Message.svelte";
 
 	import { dequal } from "dequal/lite";
 	import {
-		beforeUpdate,
-		afterUpdate,
 		createEventDispatcher,
 		type SvelteComponent,
 		type ComponentType,
 		tick,
 		onMount
 	} from "svelte";
-	import { ShareButton } from "@gradio/atoms";
-	import { Image } from "@gradio/image/shared";
 
-	import { Clear } from "@gradio/icons";
+	import { Trash, Community, ScrollDownArrow } from "@gradio/icons";
+	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
-	import type { MessageRole } from "../types";
-	import { MarkdownCode as Markdown } from "@gradio/markdown";
+	import type { ExampleMessage } from "../types";
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import Pending from "./Pending.svelte";
-	import MessageBox from "./MessageBox.svelte";
+	import { ShareError } from "@gradio/utils";
+	import { Gradio } from "@gradio/utils";
+
+	import Examples from "./Examples.svelte";
 
 	export let value: NormalisedMessage[] | null = [];
 	let old_value: NormalisedMessage[] | null = null;
-
-	import Component from "./Component.svelte";
-	import LikeButtons from "./ButtonPanel.svelte";
-	import type { LoadedComponent } from "../../core/src/types";
 
 	import CopyAll from "./CopyAll.svelte";
 
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
+	export let allow_file_downloads: boolean;
+	export let display_consecutive_in_same_bubble: boolean;
 
 	let _components: Record<string, ComponentType<SvelteComponent>> = {};
 
-	async function load_components(component_names: string[]): Promise<void> {
-		let names: string[] = [];
-		let components: ReturnType<typeof load_component>["component"][] = [];
-		component_names.forEach((component_name) => {
-			if (_components[component_name] || component_name === "file") {
-				return;
-			}
+	const is_browser = typeof window !== "undefined";
 
-			const { name, component } = load_component(component_name, "base");
-			names.push(name);
-			components.push(component);
-			component_name;
-		});
-
-		const loaded_components: LoadedComponent[] = await Promise.all(components);
-		loaded_components.forEach((component, i) => {
-			_components[names[i]] = component.default;
-		});
+	async function update_components(): Promise<void> {
+		_components = await load_components(
+			get_components_from_messages(value),
+			_components,
+			load_component
+		);
 	}
 
-	$: load_components(get_components_from_messages(value));
-
-	function get_components_from_messages(
-		messages: NormalisedMessage[] | null
-	): string[] {
-		if (!messages) return [];
-		let components: Set<string> = new Set();
-		messages.forEach((message) => {
-			if (message.type === "component") {
-				components.add(message.content.component);
-			}
-		});
-		return Array.from(components);
-	}
+	$: value, update_components();
 
 	export let latex_delimiters: {
 		left: string;
@@ -80,101 +64,106 @@
 		display: boolean;
 	}[];
 	export let pending_message = false;
+	export let generating = false;
 	export let selectable = false;
 	export let likeable = false;
+	export let feedback_options: string[];
+	export let feedback_value: (string | null)[] | null = null;
+	export let editable: "user" | "all" | null = null;
 	export let show_share_button = false;
 	export let show_copy_all_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 	export let sanitize_html = true;
-	export let bubble_full_width = true;
 	export let render_markdown = true;
 	export let line_breaks = true;
+	export let autoscroll = true;
 	export let theme_mode: "system" | "light" | "dark";
 	export let i18n: I18nFormatter;
 	export let layout: "bubble" | "panel" = "bubble";
 	export let placeholder: string | null = null;
 	export let upload: Client["upload"];
 	export let msg_format: "tuples" | "messages" = "tuples";
+	export let examples: ExampleMessage[] | null = null;
+	export let _retryable = false;
+	export let _undoable = false;
+	export let like_user_message = false;
 	export let root: string;
 
 	let target: HTMLElement | null = null;
+	let edit_index: number | null = null;
+	let edit_message = "";
 
 	onMount(() => {
 		target = document.querySelector("div.gradio-container");
-		adjust_text_size();
 	});
 
 	let div: HTMLDivElement;
-	let autoscroll: boolean;
 
-	function adjust_text_size(): void {
-		let style = getComputedStyle(document.body);
-		let body_text_size = style.getPropertyValue("--body-text-size");
-		let updated_text_size;
-
-		switch (body_text_size) {
-			case "13px":
-				updated_text_size = 14;
-				break;
-			case "14px":
-				updated_text_size = 16;
-				break;
-			case "16px":
-				updated_text_size = 20;
-				break;
-			default:
-				updated_text_size = 14;
-				break;
-		}
-
-		document.body.style.setProperty(
-			"--chatbot-body-text-size",
-			updated_text_size + "px"
-		);
-	}
+	let show_scroll_button = false;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		select: SelectData;
 		like: LikeData;
+		edit: EditData;
+		undo: UndoRetryData;
+		retry: UndoRetryData;
+		clear: undefined;
+		share: any;
+		error: string;
+		example_select: SelectData;
+		option_select: SelectData;
+		copy: CopyData;
 	}>();
 
-	beforeUpdate(() => {
-		autoscroll =
-			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 100;
+	function is_at_bottom(): boolean {
+		return div && div.offsetHeight + div.scrollTop > div.scrollHeight - 100;
+	}
+
+	function scroll_to_bottom(): void {
+		if (!div) return;
+		div.scrollTo(0, div.scrollHeight);
+		show_scroll_button = false;
+	}
+
+	let scroll_after_component_load = false;
+
+	async function scroll_on_value_update(): Promise<void> {
+		if (!autoscroll) return;
+
+		if (is_at_bottom()) {
+			// Child components may be loaded asynchronously,
+			// so trigger the scroll again after they load.
+			scroll_after_component_load = true;
+
+			await tick(); // Wait for the DOM to update so that the scrollHeight is correct
+			scroll_to_bottom();
+		} else {
+			show_scroll_button = true;
+		}
+	}
+	onMount(() => {
+		scroll_on_value_update();
 	});
+	$: if (value || pending_message || _components) {
+		scroll_on_value_update();
+	}
 
-	async function scroll(): Promise<void> {
-		if (!div) return;
-		await tick();
-		requestAnimationFrame(() => {
-			if (autoscroll) {
-				div?.scrollTo(0, div.scrollHeight);
+	onMount(() => {
+		function handle_scroll(): void {
+			if (is_at_bottom()) {
+				show_scroll_button = false;
+			} else {
+				scroll_after_component_load = false;
 			}
-		});
-	}
+		}
 
-	let image_preview_source: string;
-	let image_preview_source_alt: string;
-	let is_image_preview_open = false;
-
-	$: if (value || autoscroll || _components) {
-		scroll();
-	}
-	afterUpdate(() => {
-		if (!div) return;
-		div.querySelectorAll("img").forEach((n) => {
-			n.addEventListener("click", (e) => {
-				const target = e.target as HTMLImageElement;
-				if (target) {
-					image_preview_source = target.src;
-					image_preview_source_alt = target.alt;
-					is_image_preview_open = true;
-				}
-			});
-		});
+		div?.addEventListener("scroll", handle_scroll);
+		return () => {
+			div?.removeEventListener("scroll", handle_scroll);
+		};
 	});
 
 	$: {
@@ -183,285 +172,215 @@
 			dispatch("change");
 		}
 	}
+	$: groupedMessages = value && group_messages(value, msg_format);
+	$: options = value && get_last_bot_options();
 
-	$: groupedMessages = value && group_messages(value);
-
-	function handle_select(i: number, message: NormalisedMessage): void {
-		dispatch("select", {
-			index: message.index,
-			value: message.content
-		});
-	}
-
-	function handle_like(
+	function handle_action(
 		i: number,
 		message: NormalisedMessage,
 		selected: string | null
 	): void {
-		if (msg_format === "tuples") {
-			dispatch("like", {
+		if (selected === "undo" || selected === "retry") {
+			const val_ = value as NormalisedMessage[];
+			// iterate through messages until we find the last user message
+			// the index of this message is where the user needs to edit the chat history
+			let last_index = val_.length - 1;
+			while (val_[last_index].role === "assistant") {
+				last_index--;
+			}
+			dispatch(selected, {
+				index: val_[last_index].index,
+				value: val_[last_index].content
+			});
+		} else if (selected == "edit") {
+			edit_index = i;
+			edit_message = message.content as string;
+		} else if (selected == "edit_cancel") {
+			edit_index = null;
+		} else if (selected == "edit_submit") {
+			edit_index = null;
+			dispatch("edit", {
 				index: message.index,
-				value: message.content,
-				liked: selected === "like"
+				value: edit_message,
+				previous_value: message.content as string
 			});
 		} else {
-			if (!groupedMessages) return;
-
-			const message_group = groupedMessages[i];
-			const [first, last] = [
-				message_group[0],
-				message_group[message_group.length - 1]
-			];
-
-			dispatch("like", {
-				index: [first.index, last.index] as [number, number],
-				value: message_group.map((m) => m.content),
-				liked: selected === "like"
-			});
-		}
-	}
-
-	function get_message_label_data(message: NormalisedMessage): string {
-		if (message.type === "text") {
-			return message.content;
-		} else if (
-			message.type === "component" &&
-			message.content.component === "file"
-		) {
-			if (Array.isArray(message.content.value)) {
-				return `file of extension type: ${message.content.value[0].orig_name?.split(".").pop()}`;
-			}
-			return (
-				`file of extension type: ${message.content.value?.orig_name?.split(".").pop()}` +
-				(message.content.value?.orig_name ?? "")
-			);
-		}
-		return `a component of type ${message.content.component ?? "unknown"}`;
-	}
-
-	function group_messages(
-		messages: NormalisedMessage[]
-	): NormalisedMessage[][] {
-		const groupedMessages: NormalisedMessage[][] = [];
-		let currentGroup: NormalisedMessage[] = [];
-		let currentRole: MessageRole | null = null;
-
-		for (const message of messages) {
+			let feedback =
+				selected === "Like"
+					? true
+					: selected === "Dislike"
+						? false
+						: selected || "";
 			if (msg_format === "tuples") {
-				currentRole = null;
-			}
-
-			if (!(message.role === "assistant" || message.role === "user")) {
-				continue;
-			}
-			if (message.role === currentRole) {
-				currentGroup.push(message);
+				dispatch("like", {
+					index: message.index,
+					value: message.content,
+					liked: feedback
+				});
 			} else {
-				if (currentGroup.length > 0) {
-					groupedMessages.push(currentGroup);
-				}
-				currentGroup = [message];
-				currentRole = message.role;
+				if (!groupedMessages) return;
+
+				const message_group = groupedMessages[i];
+				const [first, last] = [
+					message_group[0],
+					message_group[message_group.length - 1]
+				];
+
+				dispatch("like", {
+					index: first.index as number,
+					value: message_group.map((m) => m.content),
+					liked: feedback
+				});
 			}
 		}
+	}
 
-		if (currentGroup.length > 0) {
-			groupedMessages.push(currentGroup);
-		}
-
-		return groupedMessages;
+	function get_last_bot_options(): Option[] | undefined {
+		if (!value || !groupedMessages || groupedMessages.length === 0)
+			return undefined;
+		const last_group = groupedMessages[groupedMessages.length - 1];
+		if (last_group[0].role !== "assistant") return undefined;
+		return last_group[last_group.length - 1].options;
 	}
 </script>
 
-{#if show_share_button && value !== null && value.length > 0}
-	<div class="share-button">
-		<ShareButton
-			{i18n}
-			on:error
-			on:share
-			formatter={format_chat_for_sharing}
-			{value}
-		/>
-	</div>
-{/if}
-
-{#if show_copy_all_button}
-	<CopyAll {value} />
+{#if value !== null && value.length > 0}
+	<IconButtonWrapper>
+		{#if show_share_button}
+			<IconButton
+				Icon={Community}
+				on:click={async () => {
+					try {
+						// @ts-ignore
+						const formatted = await format_chat_for_sharing(value);
+						dispatch("share", {
+							description: formatted
+						});
+					} catch (e) {
+						console.error(e);
+						let message = e instanceof ShareError ? e.message : "Share failed.";
+						dispatch("error", message);
+					}
+				}}
+			/>
+		{/if}
+		<IconButton Icon={Trash} on:click={() => dispatch("clear")} label={"Clear"}
+		></IconButton>
+		{#if show_copy_all_button}
+			<CopyAll {value} />
+		{/if}
+	</IconButtonWrapper>
 {/if}
 
 <div
 	class={layout === "bubble" ? "bubble-wrap" : "panel-wrap"}
-	class:placeholder-container={value === null || value.length === 0}
 	bind:this={div}
 	role="log"
 	aria-label="chatbot conversation"
 	aria-live="polite"
 >
-	<div class="message-wrap" use:copy>
-		{#if value !== null && value.length > 0 && groupedMessages !== null}
+	{#if value !== null && value.length > 0 && groupedMessages !== null}
+		<div class="message-wrap" use:copy>
 			{#each groupedMessages as messages, i}
 				{@const role = messages[0].role === "user" ? "user" : "bot"}
 				{@const avatar_img = avatar_images[role === "user" ? 0 : 1]}
 				{@const opposite_avatar_img = avatar_images[role === "user" ? 0 : 1]}
-				{#if is_image_preview_open}
-					<div class="image-preview">
-						<img src={image_preview_source} alt={image_preview_source_alt} />
-						<button
-							class="image-preview-close-button"
-							on:click={() => {
-								is_image_preview_open = false;
-							}}><Clear /></button
-						>
-					</div>
-				{/if}
-				<div
-					class="message-row {layout} {role}-row"
-					class:with_avatar={avatar_img !== null}
-					class:with_opposite_avatar={opposite_avatar_img !== null}
-				>
-					{#if avatar_img !== null}
-						<div class="avatar-container">
-							<Image
-								class="avatar-image"
-								src={avatar_img?.url}
-								alt="{role} avatar"
-							/>
-						</div>
-					{/if}
-					<div
-						class="flex-wrap {role} "
-						class:component-wrap={messages[0].type === "component"}
-					>
-						{#each messages as message, thought_index}
-							{@const msg_type = messages[0].type}
-							<div
-								class="message {role} {is_component_message(message)
-									? message?.content.component
-									: ''}"
-								class:message-fit={!bubble_full_width}
-								class:panel-full-width={true}
-								class:message-markdown-disabled={!render_markdown}
-								style:text-align={rtl && role === "user" ? "left" : "right"}
-								class:component={msg_type === "component"}
-								class:html={is_component_message(message) &&
-									message.content.component === "html"}
-								class:thought={thought_index > 0}
-							>
-								<button
-									data-testid={role}
-									class:latest={i === value.length - 1}
-									class:message-markdown-disabled={!render_markdown}
-									style:user-select="text"
-									class:selectable
-									style:cursor={selectable ? "pointer" : "default"}
-									style:text-align={rtl ? "right" : "left"}
-									on:click={() => handle_select(i, message)}
-									on:keydown={(e) => {
-										if (e.key === "Enter") {
-											handle_select(i, message);
-										}
-									}}
-									dir={rtl ? "rtl" : "ltr"}
-									aria-label={role +
-										"'s message: " +
-										get_message_label_data(message)}
-								>
-									{#if message.type === "text"}
-										{#if message.metadata.title}
-											<MessageBox title={message.metadata.title}>
-												<Markdown
-													message={message.content}
-													{latex_delimiters}
-													{sanitize_html}
-													{render_markdown}
-													{line_breaks}
-													on:load={scroll}
-													{root}
-												/>
-											</MessageBox>
-										{:else}
-											<Markdown
-												message={message.content}
-												{latex_delimiters}
-												{sanitize_html}
-												{render_markdown}
-												{line_breaks}
-												on:load={scroll}
-												{root}
-											/>
-										{/if}
-									{:else if message.type === "component" && message.content.component in _components}
-										<Component
-											{target}
-											{theme_mode}
-											props={message.content.props}
-											type={message.content.component}
-											components={_components}
-											value={message.content.value}
-											{i18n}
-											{upload}
-											{_fetch}
-											on:load={scroll}
-										/>
-									{:else if message.type === "component" && message.content.component === "file"}
-										<a
-											data-testid="chatbot-file"
-											class="file-pil"
-											href={message.content.value.url}
-											target="_blank"
-											download={window.__is_colab__
-												? null
-												: message.content.value?.orig_name ||
-													message.content.value?.path.split("/").pop() ||
-													"file"}
-										>
-											{message.content.value?.orig_name ||
-												message.content.value?.path.split("/").pop() ||
-												"file"}
-										</a>
-									{/if}
-								</button>
-							</div>
-						{/each}
-					</div>
-				</div>
-				<LikeButtons
-					show={likeable || show_copy_button}
-					handle_action={(selected) => handle_like(i, messages[0], selected)}
-					{likeable}
-					{show_copy_button}
-					message={msg_format === "tuples" ? messages[0] : messages}
-					position={role === "user" ? "right" : "left"}
-					avatar={avatar_img}
+				{@const feedback_index = groupedMessages
+					.slice(0, i)
+					.filter((m) => m[0].role === "assistant").length}
+				{@const current_feedback =
+					role === "bot" && feedback_value && feedback_value[feedback_index]
+						? feedback_value[feedback_index]
+						: null}
+				<Message
+					{messages}
+					{display_consecutive_in_same_bubble}
+					{opposite_avatar_img}
+					{avatar_img}
+					{role}
 					{layout}
+					{dispatch}
+					{i18n}
+					{_fetch}
+					{line_breaks}
+					{theme_mode}
+					{target}
+					{root}
+					{upload}
+					{selectable}
+					{sanitize_html}
+					{render_markdown}
+					{rtl}
+					{i}
+					{value}
+					{latex_delimiters}
+					{_components}
+					{generating}
+					{msg_format}
+					{feedback_options}
+					{current_feedback}
+					show_like={role === "user" ? likeable && like_user_message : likeable}
+					show_retry={_retryable && is_last_bot_message(messages, value)}
+					show_undo={_undoable && is_last_bot_message(messages, value)}
+					show_edit={editable === "all" ||
+						(editable == "user" &&
+							role === "user" &&
+							messages.length > 0 &&
+							messages[messages.length - 1].type == "text")}
+					in_edit_mode={edit_index === i}
+					bind:edit_message
+					{show_copy_button}
+					handle_action={(selected) => handle_action(i, messages[0], selected)}
+					scroll={is_browser ? scroll : () => {}}
+					{allow_file_downloads}
+					on:copy={(e) => dispatch("copy", e.detail)}
 				/>
 			{/each}
 			{#if pending_message}
-				<Pending {layout} />
+				<Pending {layout} {avatar_images} />
+			{:else if options}
+				<div class="options">
+					{#each options as option, index}
+						<button
+							class="option"
+							on:click={() =>
+								dispatch("option_select", {
+									index: index,
+									value: option.value
+								})}
+						>
+							{option.label || option.value}
+						</button>
+					{/each}
+				</div>
 			{/if}
-		{:else if placeholder !== null}
-			<center>
-				<Markdown message={placeholder} {latex_delimiters} {root} />
-			</center>
-		{/if}
-	</div>
+		</div>
+	{:else}
+		<Examples
+			{examples}
+			{placeholder}
+			{latex_delimiters}
+			{root}
+			on:example_select={(e) => dispatch("example_select", e.detail)}
+		/>
+	{/if}
 </div>
 
+{#if show_scroll_button}
+	<div class="scroll-down-button-container">
+		<IconButton
+			Icon={ScrollDownArrow}
+			label="Scroll down"
+			size="large"
+			on:click={scroll_to_bottom}
+		/>
+	</div>
+{/if}
+
 <style>
-	.placeholder-container {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		height: 100%;
-	}
 	.panel-wrap {
 		width: 100%;
 		overflow-y: auto;
-	}
-
-	.flex-wrap {
-		width: 100%;
-		height: 100%;
 	}
 
 	.bubble-wrap {
@@ -471,232 +390,18 @@
 		padding-top: var(--spacing-xxl);
 	}
 
-	:global(.dark) .bubble-wrap {
-		background: var(--background-fill-secondary);
+	@media (prefers-color-scheme: dark) {
+		.bubble-wrap {
+			background: var(--background-fill-secondary);
+		}
 	}
 
-	.message-wrap {
-		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-		margin-bottom: var(--spacing-xxl);
-	}
-
-	.bubble-gap {
-		gap: calc(var(--spacing-xxl) + var(--spacing-lg));
-	}
-
-	.message-wrap > div :global(p:not(:first-child)) {
-		margin-top: var(--spacing-xxl);
-	}
-
-	.message {
-		position: relative;
-		display: flex;
-		flex-direction: column;
-
-		width: calc(100% - var(--spacing-xxl));
-		color: var(--body-text-color);
-		font-size: var(--chatbot-body-text-size);
+	.message-wrap :global(.prose.chatbot.md) {
+		opacity: 0.8;
 		overflow-wrap: break-word;
 	}
 
-	.thought {
-		margin-top: var(--spacing-xxl);
-	}
-
-	.message :global(.prose) {
-		font-size: var(--chatbot-body-text-size);
-	}
-
-	.message-bubble-border {
-		border-width: 1px;
-		border-radius: var(--radius-md);
-	}
-
-	.user {
-		align-self: flex-end;
-	}
-
-	.message-fit {
-		width: fit-content !important;
-	}
-
-	.panel-full-width {
-		width: 100%;
-	}
-	.message-markdown-disabled {
-		white-space: pre-line;
-	}
-
-	.flex-wrap.user {
-		border-width: 1px;
-		border-radius: var(--radius-md);
-		align-self: flex-start;
-		border-bottom-right-radius: 0;
-		box-shadow: var(--shadow-drop);
-		align-self: flex-start;
-		text-align: right;
-		padding: var(--spacing-sm) var(--spacing-xl);
-		border-color: var(--border-color-accent-subdued);
-		background-color: var(--color-accent-soft);
-	}
-
-	:not(.component-wrap).flex-wrap.bot {
-		border-width: 1px;
-		border-radius: var(--radius-lg);
-		align-self: flex-start;
-		border-bottom-left-radius: 0;
-		box-shadow: var(--shadow-drop);
-		align-self: flex-start;
-		text-align: right;
-		padding: var(--spacing-sm) var(--spacing-xl);
-		border-color: var(--border-color-primary);
-		background-color: var(--background-fill-secondary);
-	}
-
-	.panel .user :global(*) {
-		text-align: right;
-	}
-
-	/* Colors */
-	.bubble .bot {
-		border-color: var(--border-color-primary);
-	}
-
-	.message-row {
-		display: flex;
-		/* flex-direction: column; */
-		position: relative;
-	}
-
-	.message-row.user-row {
-		align-self: flex-end;
-	}
-	.message-row.bubble {
-		margin: calc(var(--spacing-xl) * 3);
-		margin-bottom: var(--spacing-xl);
-	}
-
-	.with_avatar.message-row.panel {
-		padding-left: calc(var(--spacing-xl) * 2) !important;
-		padding-right: calc(var(--spacing-xl) * 2) !important;
-	}
-
-	.with_avatar.message-row.bubble.user-row {
-		margin-right: calc(var(--spacing-xl) * 2) !important;
-	}
-
-	.with_avatar.message-row.bubble.bot-row {
-		margin-left: calc(var(--spacing-xl) * 2) !important;
-	}
-
-	.with_opposite_avatar.message-row.bubble.user-row {
-		margin-left: calc(var(--spacing-xxl) + 35px + var(--spacing-xxl));
-	}
-
-	.message-row.panel {
-		margin: 0;
-		padding: calc(var(--spacing-xl) * 3) calc(var(--spacing-xxl) * 2);
-	}
-
-	.message-row.panel.bot-row {
-		background: var(--background-fill-secondary);
-	}
-
-	.message-row.panel.user-row {
-		align-self: flex-end;
-	}
-
-	.message-row.bubble.bot-row {
-		align-self: flex-start;
-		max-width: calc(100% - var(--spacing-xl) * 6);
-	}
-
-	.message-row:last-of-type {
-		margin-bottom: calc(var(--spacing-xxl) * 2);
-	}
-
-	.user-row.bubble {
-		flex-direction: row;
-		justify-content: flex-end;
-	}
-	@media (max-width: 480px) {
-		.user-row.bubble {
-			align-self: flex-end;
-		}
-
-		.bot-row.bubble {
-			align-self: flex-start;
-		}
-		.message {
-			width: 100%;
-		}
-	}
-
-	.avatar-container {
-		align-self: flex-start;
-		position: relative;
-		display: flex;
-		justify-content: flex-start;
-		align-items: flex-start;
-		width: 35px;
-		height: 35px;
-		flex-shrink: 0;
-		bottom: 0;
-		border-radius: 50%;
-		border: 1px solid var(--border-color-primary);
-	}
-	.user-row > .avatar-container {
-		order: 2;
-		margin-left: var(--spacing-xxl);
-	}
-	.bot-row > .avatar-container {
-		margin-right: var(--spacing-xxl);
-		margin-left: 0;
-		margin-top: -5px;
-	}
-
-	.avatar-container:not(.thumbnail-item) :global(img) {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		border-radius: 50%;
-		padding: 6px;
-	}
-
-	.share-button {
-		position: absolute;
-		top: 4px;
-		right: 6px;
-	}
-
-	.selectable {
-		cursor: pointer;
-	}
-
-	@keyframes dot-flashing {
-		0% {
-			opacity: 0.8;
-		}
-		50% {
-			opacity: 0.5;
-		}
-		100% {
-			opacity: 0.8;
-		}
-	}
-	.message-wrap > .message :not(.image-button) :global(img) {
-		margin: var(--size-2);
-		max-height: 200px;
-	}
-
-	.message-wrap
-		> div
-		:not(.avatar-container)
-		div
-		:not(.image-button)
-		:global(img) {
+	.message-wrap :global(.message-row .md img) {
 		border-radius: var(--radius-xl);
 		margin: var(--size-2);
 		width: 400px;
@@ -704,22 +409,24 @@
 		max-height: 30vw;
 	}
 
-	.message-wrap .message :global(a) {
+	/* link styles */
+	.message-wrap :global(.message a) {
 		color: var(--color-text-link);
 		text-decoration: underline;
 	}
 
-	.message-wrap .bot :global(table),
-	.message-wrap .bot :global(tr),
-	.message-wrap .bot :global(td),
-	.message-wrap .bot :global(th) {
+	/* table styles */
+	.message-wrap :global(.bot:not(:has(.table-wrap)) table),
+	.message-wrap :global(.bot:not(:has(.table-wrap)) tr),
+	.message-wrap :global(.bot:not(:has(.table-wrap)) td),
+	.message-wrap :global(.bot:not(:has(.table-wrap)) th) {
 		border: 1px solid var(--border-color-primary);
 	}
 
-	.message-wrap .user :global(table),
-	.message-wrap .user :global(tr),
-	.message-wrap .user :global(td),
-	.message-wrap .user :global(th) {
+	.message-wrap :global(.user table),
+	.message-wrap :global(.user tr),
+	.message-wrap :global(.user td),
+	.message-wrap :global(.user th) {
 		border: 1px solid var(--border-color-accent);
 	}
 
@@ -729,38 +436,8 @@
 		direction: ltr;
 	}
 
-	/* Copy button */
-	.message-wrap :global(div[class*="code_wrap"] > button) {
-		position: absolute;
-		top: var(--spacing-md);
-		right: var(--spacing-md);
-		z-index: 1;
-		cursor: pointer;
-		border-bottom-left-radius: var(--radius-sm);
-		padding: var(--spacing-md);
-		width: 25px;
-		height: 25px;
-	}
-
-	.message-wrap :global(code > button > span) {
-		position: absolute;
-		top: var(--spacing-md);
-		right: var(--spacing-md);
-		width: 12px;
-		height: 12px;
-	}
-	.message-wrap :global(.check) {
-		position: absolute;
-		top: 0;
-		right: 0;
-		opacity: 0;
-		z-index: var(--layer-top);
-		transition: opacity 0.2s;
-		background: var(--background-fill-primary);
-		padding: var(--size-1);
-		width: 100%;
-		height: 100%;
-		color: var(--body-text-color);
+	.message-wrap :global(span.katex-display) {
+		margin-top: 0;
 	}
 
 	.message-wrap :global(pre) {
@@ -773,94 +450,69 @@
 		object-fit: contain;
 	}
 
-	/* Image preview */
-	.message :global(.preview) {
-		object-fit: contain;
-		width: 95%;
-		max-height: 93%;
+	.message-wrap > div :global(p:not(:first-child)) {
+		margin-top: var(--spacing-xxl);
 	}
-	.image-preview {
-		position: absolute;
-		z-index: 999;
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: 100%;
-		overflow: auto;
-		background-color: rgba(0, 0, 0, 0.9);
+
+	.message-wrap {
 		display: flex;
-		justify-content: center;
-		align-items: center;
+		flex-direction: column;
+		justify-content: space-between;
+		margin-bottom: var(--spacing-xxl);
 	}
-	.image-preview :global(svg) {
-		stroke: white;
+
+	.panel-wrap :global(.message-row:first-child) {
+		padding-top: calc(var(--spacing-xxl) * 2);
 	}
-	.image-preview-close-button {
+
+	.scroll-down-button-container {
 		position: absolute;
-		top: 10px;
-		right: 10px;
-		background: none;
-		border: none;
-		font-size: 1.5em;
-		cursor: pointer;
-		height: 30px;
-		width: 30px;
-		padding: 3px;
-		background: var(--bg-color);
+		bottom: 10px;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: var(--layer-top);
+	}
+	.scroll-down-button-container :global(button) {
+		border-radius: 50%;
 		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--button-secondary-border-color);
-		border-radius: var(--radius-lg);
+		transition:
+			box-shadow 0.2s ease-in-out,
+			transform 0.2s ease-in-out;
+	}
+	.scroll-down-button-container :global(button:hover) {
+		box-shadow:
+			var(--shadow-drop),
+			0 2px 2px rgba(0, 0, 0, 0.05);
+		transform: translateY(-2px);
 	}
 
-	.component {
-		padding: 0;
+	.options {
+		margin-left: auto;
+		padding: var(--spacing-xxl);
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: var(--spacing-xxl);
+		max-width: calc(min(4 * 200px + 5 * var(--spacing-xxl), 100%));
+		justify-content: end;
+	}
+
+	.option {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: var(--spacing-xl);
+		border: 1px dashed var(--border-color-primary);
 		border-radius: var(--radius-md);
-		width: fit-content;
-		max-width: 80%;
-		max-height: 80%;
-		border: 1px solid var(--border-color-primary);
-		overflow: hidden;
-	}
-
-	.component.gallery {
-		border: none;
-	}
-
-	.file-pil {
-		display: block;
-		width: fit-content;
-		padding: var(--spacing-sm) var(--spacing-lg);
-		border-radius: var(--radius-md);
-		background: var(--background-fill-secondary);
-		color: var(--body-text-color);
-		text-decoration: none;
-		margin: 0;
-		font-family: var(--font-mono);
-		font-size: var(--text-sm);
-	}
-
-	.file {
-		width: auto !important;
-		max-width: fit-content !important;
-	}
-
-	@media (max-width: 600px) or (max-width: 480px) {
-		.component {
-			max-width: calc(100% - var(--spacing-xl) * 3);
-			width: 100%;
-		}
-	}
-
-	:global(.prose.chatbot.md) {
-		opacity: 0.8;
-	}
-
-	.message > button {
+		background-color: var(--background-fill-secondary);
+		cursor: pointer;
+		transition: var(--button-transition);
+		max-width: var(--size-56);
 		width: 100%;
+		justify-content: center;
 	}
-	.html {
-		padding: 0;
-		border: none;
-		background: none;
+
+	.option:hover {
+		background-color: var(--color-accent-soft);
+		border-color: var(--border-color-accent);
 	}
 </style>

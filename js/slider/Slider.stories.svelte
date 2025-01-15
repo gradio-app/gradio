@@ -25,8 +25,11 @@
 />
 
 <Story
-	name="Slider with hidden label"
+	name="Slider with hidden label and negative value"
 	args={{
+		value: -50,
+		minimum: -100,
+		maximum: 0,
 		show_label: false
 	}}
 />
@@ -45,5 +48,15 @@
 	args={{
 		value: 30,
 		interactive: false
+	}}
+/>
+
+<Story
+	name="Slider with reset button hidden"
+	args={{
+		value: 50,
+		minimum: 10,
+		maximum: 100,
+		show_reset_button: false
 	}}
 />

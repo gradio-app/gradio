@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import base64
+from io import BytesIO
 from pathlib import Path
-from typing import Literal
+from typing import Literal, cast
 
+import httpx
 import numpy as np
 import PIL.Image
+from gradio_client.utils import get_mimetype, is_http_url_like
+from PIL import ImageOps
 
 from gradio import processing_utils
 
@@ -97,3 +102,73 @@ def crop_scale(img: PIL.Image.Image, final_width: int, final_height: int):
     img_resized = img_cropped.resize((final_width, final_height))
 
     return img_resized
+
+
+def decode_base64_to_image(encoding: str) -> PIL.Image.Image:
+    image_encoded = processing_utils.extract_base64_data(encoding)
+    img = PIL.Image.open(BytesIO(base64.b64decode(image_encoded)))
+    try:
+        if hasattr(ImageOps, "exif_transpose"):
+            img = ImageOps.exif_transpose(img)
+    except Exception:
+        print(
+            "Failed to transpose image %s based on EXIF data.",
+            img,
+        )
+    return cast(PIL.Image.Image, img)
+
+
+def decode_base64_to_image_array(encoding: str) -> np.ndarray:
+    img = decode_base64_to_image(encoding)
+    return np.asarray(img)
+
+
+def decode_base64_to_file(encoding: str, cache_dir: str, format: str = "webp") -> str:
+    img = decode_base64_to_image(encoding)
+    return save_image(img, cache_dir, format)
+
+
+def encode_image_array_to_base64(image_array: np.ndarray) -> str:
+    with BytesIO() as output_bytes:
+        pil_image = PIL.Image.fromarray(
+            processing_utils._convert(image_array, np.uint8, force_copy=False)
+        )
+        pil_image.save(output_bytes, "JPEG")
+        bytes_data = output_bytes.getvalue()
+    base64_str = str(base64.b64encode(bytes_data), "utf-8")
+    return "data:image/jpeg;base64," + base64_str
+
+
+def encode_image_to_base64(image: PIL.Image.Image) -> str:
+    with BytesIO() as output_bytes:
+        image.save(output_bytes, "JPEG")
+        bytes_data = output_bytes.getvalue()
+    base64_str = str(base64.b64encode(bytes_data), "utf-8")
+    return "data:image/jpeg;base64," + base64_str
+
+
+def encode_image_file_to_base64(image_file: str | Path) -> str:
+    mime_type = get_mimetype(str(image_file))
+    with open(image_file, "rb") as f:
+        bytes_data = f.read()
+    base64_str = str(base64.b64encode(bytes_data), "utf-8")
+    return f"data:{mime_type};base64," + base64_str
+
+
+def extract_svg_content(image_file: str | Path) -> str:
+    """
+    Provided a path or URL to an SVG file, return the SVG content as a string.
+    Parameters:
+        image_file: Local file path or URL to an SVG file
+    Returns:
+        str: The SVG content as a string
+    """
+    image_file = str(image_file)
+    if is_http_url_like(image_file):
+        response = httpx.get(image_file)
+        response.raise_for_status()  # Raise an error for bad status codes
+        return response.text
+    else:
+        with open(image_file) as file:
+            svg_content = file.read()
+        return svg_content

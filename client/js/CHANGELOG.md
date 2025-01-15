@@ -1,5 +1,94 @@
 # @gradio/client
 
+## 1.10.0
+
+### Features
+
+- [#10270](https://github.com/gradio-app/gradio/pull/10270) [`bb11a2a`](https://github.com/gradio-app/gradio/commit/bb11a2a702ca04fde245e7d54d155cbcbde7791e) - [ZeroGPU] Handshake-based postMessage.  Thanks @cbensimon!
+
+### Fixes
+
+- [#10332](https://github.com/gradio-app/gradio/pull/10332) [`e742dcc`](https://github.com/gradio-app/gradio/commit/e742dcccb376692c9ddd5a6c251080e7c5936574) - Allow users to add a custom API route.  Thanks @aliabid94!
+
+## 1.9.0
+
+### Features
+
+- [#10262](https://github.com/gradio-app/gradio/pull/10262) [`f3bedd4`](https://github.com/gradio-app/gradio/commit/f3bedd4011bdfdecc952eb1275a9dd96af3e8d71) - add gr.Success and update windows contributing.  Thanks @not-lain!
+- [#10254](https://github.com/gradio-app/gradio/pull/10254) [`da07707`](https://github.com/gradio-app/gradio/commit/da0770748db9ea40194a43c9138ee2c6536b1247) - Add a `settings` link to the footer with i18n options & pwa instructions.  Thanks @abidlabs!
+
+## 1.8.0
+
+### Features
+
+- [#9930](https://github.com/gradio-app/gradio/pull/9930) [`eae345e`](https://github.com/gradio-app/gradio/commit/eae345e5fde39aea220b57c6a954cd7d72ff32d5) - Allow settings custom headers in js client.  Thanks @elgiano!
+- [#9950](https://github.com/gradio-app/gradio/pull/9950) [`fc06fe4`](https://github.com/gradio-app/gradio/commit/fc06fe41f015678a0545f4e5c99f6ae2704f0031) - Add ability to read and write from LocalStorage.  Thanks @abidlabs!
+
+## 1.7.1
+
+### Fixes
+
+- [#9814](https://github.com/gradio-app/gradio/pull/9814) [`6505d42`](https://github.com/gradio-app/gradio/commit/6505d4289a3e3d27d9133b1c8af41697fdc1476d) - support gradio apps on spaces served on subpaths.  Thanks @pngwn!
+
+## 1.7.0
+
+### Features
+
+- [#9681](https://github.com/gradio-app/gradio/pull/9681) [`2ed2361`](https://github.com/gradio-app/gradio/commit/2ed236187a9aab18e17fc4a8079eddef7dd195a5) - Allow setting title in gr.Info/Warning/Error.  Thanks @ABucket!
+
+## 1.6.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Disable liking user message in chatbot by default but make it configurable
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Open audio/image input stream only when queue is ready
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Send Streaming data over Websocket if possible. Also support base64 output format for images.
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Streaming inputs for 5.0
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - fix SSR apps on spaces
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Ssr part 2
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - prefix api routes
+
+### Fixes
+
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Trigger state change event on iterators
+
+## 1.6.0-beta.4
+
+### Features
+
+- [#9483](https://github.com/gradio-app/gradio/pull/9483) [`8dc7c12`](https://github.com/gradio-app/gradio/commit/8dc7c12389311b60efcde1b9d3e3668a34d2dc00) - Send Streaming data over Websocket if possible. Also support base64 output format for images.  Thanks @freddyaboulton!
+
+## 1.6.0-beta.3
+
+### Features
+
+- [#9412](https://github.com/gradio-app/gradio/pull/9412) [`c2c2fd9`](https://github.com/gradio-app/gradio/commit/c2c2fd989348f826566773c07c0e0bda200199ff) - fix SSR apps on spaces.  Thanks @pngwn!
+
+## 1.6.0-beta.2
+
+### Features
+
+- [#9323](https://github.com/gradio-app/gradio/pull/9323) [`06babda`](https://github.com/gradio-app/gradio/commit/06babda0395fd3fbd323c1c3cb33704ecfd6deb0) - Disable liking user message in chatbot by default but make it configurable.  Thanks @freddyaboulton!
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+
+### Fixes
+
+- [#9299](https://github.com/gradio-app/gradio/pull/9299) [`aa35b07`](https://github.com/gradio-app/gradio/commit/aa35b0788e613fdd45446d267513e6f94fa208ea) - Trigger state change event on iterators.  Thanks @freddyaboulton!
+
+## 1.6.0-beta.1
+
+### Features
+
+- [#9200](https://github.com/gradio-app/gradio/pull/9200) [`2e179d3`](https://github.com/gradio-app/gradio/commit/2e179d35be6ed60a5a6bfc7303178d63e41781ad) - prefix api routes.  Thanks @pngwn!
+
+## 1.6.0-beta.0
+
+### Features
+
+- [#9149](https://github.com/gradio-app/gradio/pull/9149) [`3d7a9b8`](https://github.com/gradio-app/gradio/commit/3d7a9b81f6fef06187eca832471dc1692eb493a0) - Open audio/image input stream only when queue is ready.  Thanks @freddyaboulton!
+- [#8941](https://github.com/gradio-app/gradio/pull/8941) [`97a7bf6`](https://github.com/gradio-app/gradio/commit/97a7bf66a79179d1b91a3199d68e5c11216ca500) - Streaming inputs for 5.0.  Thanks @freddyaboulton!
+
 ## 1.5.2
 
 ### Fixes

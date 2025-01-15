@@ -22,7 +22,7 @@ class TestChatbot:
             [(Path("test/test_files/audio_sample.wav"),), "cool audio"],
             [(Path("test/test_files/bus.png"), "A bus"), "cool pic"],
         ]
-        postprocessed_multimodal_msg = chatbot.postprocess(multimodal_msg).model_dump()
+        postprocessed_multimodal_msg = chatbot.postprocess(multimodal_msg).model_dump()  # type: ignore
         for msg in postprocessed_multimodal_msg:
             assert "file" in msg[0]
             assert msg[1] in {"cool video", "cool audio", "cool pic"}
@@ -39,13 +39,24 @@ class TestChatbot:
             "visible": True,
             "elem_id": None,
             "elem_classes": [],
+            "editable": None,
             "container": True,
             "min_width": 160,
+            "group_consecutive_messages": True,
             "scale": None,
             "placeholder": None,
-            "height": None,
+            "height": 400,
+            "feedback_options": ("Like", "Dislike"),
+            "feedback_value": None,
+            "resizeable": False,
+            "max_height": None,
+            "min_height": None,
+            "autoscroll": True,
             "proxy_url": None,
             "_selectable": False,
+            "_retryable": False,
+            "_undoable": False,
+            "allow_file_downloads": True,
             "key": None,
             "type": "tuples",
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
@@ -55,10 +66,11 @@ class TestChatbot:
             "avatar_images": [None, None],
             "sanitize_html": True,
             "render_markdown": True,
-            "bubble_full_width": True,
+            "bubble_full_width": None,
             "line_breaks": True,
             "layout": None,
             "show_copy_all_button": False,
+            "examples": None,
         }
 
     def test_avatar_images_are_moved_to_cache(self):

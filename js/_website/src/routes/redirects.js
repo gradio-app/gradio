@@ -16,6 +16,13 @@ export const redirects = {
 	"/docs/textbox": "/docs/gradio/textbox",
 	"/docs/interface": "/docs/gradio/interface",
 	"/docs/python-client/python-client": "/docs/python-client/introduction",
+	"/guides/sharing-your-app#security-and-file-access": "/guides/file-access",
 	"/docs/gradio/interface#interface-queue": "/docs/gradio/interface",
-	"/using_hugging_face_integrations": "/guides/using-hugging-face-integrations"
+	"/using_hugging_face_integrations": "/guides/using-hugging-face-integrations",
+	"/main/guides/object-detection-from-webcam":
+		"/main/guides/object-detection-from-webcam-with-webrtc",
+	"/guides/chatbots/chat_interface_examples":
+		"/main/guides/chatinterface-examples",
+	"/guides/chatbots/creating-a-discord-bot-from-a-gradio-app":
+		"/guides/creating-a-discord-bot-from-a-gradio-app"
 };

@@ -1,5 +1,133 @@
 # @self/tootils
 
+## 0.7.12
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.1
+
+## 0.7.11
+
+### Dependency updates
+
+- @gradio/utils@0.10.0
+- @gradio/statustracker@0.10.0
+
+## 0.7.10
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.7
+
+## 0.7.9
+
+### Dependency updates
+
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+
+## 0.7.8
+
+### Dependency updates
+
+- @gradio/utils@0.8.0
+- @gradio/statustracker@0.9.5
+
+## 0.7.7
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.4
+
+## 0.7.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.3
+
+## 0.7.5
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.2
+
+## 0.7.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.1
+
+## 0.7.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.0
+
+## 0.7.2
+
+### Fixes
+
+- [#9528](https://github.com/gradio-app/gradio/pull/9528) [`9004b11`](https://github.com/gradio-app/gradio/commit/9004b110640bdb54995343a870bf080ee15da02d) - Fix Lite to work on FireFox.  Thanks @whitphx!
+
+## 0.7.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+
+## 0.7.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - SSR e2e + fixes
+
+### Dependencies
+
+- @gradio/statustracker@0.8.0
+- @gradio/utils@0.7.0
+
+## 0.7.0-beta.5
+
+### Features
+
+- [#9590](https://github.com/gradio-app/gradio/pull/9590) [`e853c41`](https://github.com/gradio-app/gradio/commit/e853c413583d91186aef3aceb0849d0ec0494834) - SSR e2e + fixes.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.5
+
+## 0.6.5-beta.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.4
+
+## 0.6.5-beta.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.3
+
+## 0.6.5-beta.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+
+## 0.6.5-beta.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
+## 0.6.5-beta.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+
 ## 0.6.5
 
 ### Fixes

@@ -1,5 +1,165 @@
 # @gradio/html
 
+## 0.6.2
+
+### Dependency updates
+
+- @gradio/atoms@0.13.1
+- @gradio/statustracker@0.10.1
+- @gradio/icons@0.10.0
+
+## 0.6.1
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/icons@0.9.0
+- @gradio/statustracker@0.10.0
+
+## 0.6.0
+
+### Features
+
+- [#10155](https://github.com/gradio-app/gradio/pull/10155) [`23a2958`](https://github.com/gradio-app/gradio/commit/23a2958f5e2104b4f371915986251e8ea09bd44b) - Add a `.click()` event and `padding` parameter to the `HTML` component.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.7
+- @gradio/atoms@0.12.0
+
+## 0.5.1
+
+### Fixes
+
+- [#10069](https://github.com/gradio-app/gradio/pull/10069) [`afd75de`](https://github.com/gradio-app/gradio/commit/afd75def9e979d9b255a6d22d33a3aee63b6f225) - Fix label placement in gr.HTML.  Thanks @hannahblair!
+
+## 0.5.0
+
+### Features
+
+- [#10014](https://github.com/gradio-app/gradio/pull/10014) [`4aa0e88`](https://github.com/gradio-app/gradio/commit/4aa0e887a6e4b0245c01aac5a57f2adce67ade9a) - Add `container parameter` to `gr.HTML` component.  Thanks @yinsumirage!
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+
+## 0.4.7
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/utils@0.8.0
+- @gradio/statustracker@0.9.5
+
+## 0.4.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.4
+- @gradio/atoms@0.11.0
+
+## 0.4.5
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+
+## 0.4.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.2
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+
+## 0.4.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.1
+- @gradio/atoms@0.9.2
+
+## 0.4.2
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+- @gradio/statustracker@0.9.0
+
+## 0.4.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+
+## 0.4.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Prevent HTML and Markdown height changing when status is hidden
+
+### Dependencies
+
+- @gradio/atoms@0.9.0
+- @gradio/statustracker@0.8.0
+- @gradio/utils@0.7.0
+- @gradio/icons@0.8.0
+
+## 0.4.0-beta.5
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.5
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+
+## 0.4.0-beta.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.4
+
+## 0.4.0-beta.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.3
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+
+## 0.4.0-beta.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+
+## 0.4.0-beta.2
+
+### Features
+
+- [#9363](https://github.com/gradio-app/gradio/pull/9363) [`3ad28c7`](https://github.com/gradio-app/gradio/commit/3ad28c7e310e8589e0c53b7efee8031e129bece8) - Prevent HTML and Markdown height changing when status is hidden.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
+## 0.3.6-beta.1
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+
 ## 0.3.6
 
 ### Fixes

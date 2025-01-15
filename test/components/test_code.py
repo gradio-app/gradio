@@ -26,14 +26,13 @@ class TestCode:
 
         test_file_dir = Path(__file__).parent.parent / "test_files"
         path = str(test_file_dir / "test_label_json.json")
-        with open(path) as f:
-            assert code.postprocess(path) == path
-            assert code.postprocess((path,)) == f.read()
+        assert code.postprocess(path) == path
 
         assert code.get_config() == {
             "value": None,
             "language": None,
             "lines": 5,
+            "max_lines": None,
             "name": "code",
             "show_label": True,
             "label": None,
@@ -46,6 +45,7 @@ class TestCode:
             "interactive": None,
             "proxy_url": None,
             "_selectable": False,
+            "wrap_lines": False,
             "key": None,
         }
 
@@ -56,4 +56,4 @@ class TestCode:
         )
         assert code.process_example(None) is None
         filename = str(Path("test/test_files/test_label_json.json"))
-        assert code.process_example((filename,)) == "test_label_json.json"
+        assert code.process_example(filename) == filename

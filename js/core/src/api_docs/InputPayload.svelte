@@ -101,6 +101,15 @@
 		height: 6px;
 	}
 
+	@media (prefers-color-scheme: dark) {
+		.toggle-icon {
+			background: var(--color-grey-500);
+		}
+		.toggle-dot {
+			background: var(--color-grey-400);
+		}
+	}
+
 	:global(.dark) .toggle-icon {
 		background: var(--color-grey-500);
 	}

@@ -23,11 +23,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Generate Notebooks
         run: |
+          python3 -m venv venv
+          . venv/bin/activate
           pip install nbformat && python scripts/generate_notebooks.py
       - name: Print Git Status
         run: echo $(git status) && echo $(git diff)
       - name: Assert Notebooks Match
-        run: git status | grep "nothing to commit, working tree clean"
+        run: git status --untracked-files=all demo/ | grep "nothing to commit, working tree clean"
       - name: Check for large files
         uses: actionsdesk/lfs-warning@4b98a8a5e6c429c23c34eee02d71553bca216425 # @v3.3
         with:

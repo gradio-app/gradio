@@ -59,7 +59,9 @@
 		named_endpoints: any;
 		unnamed_endpoints: any;
 	}> {
-		let response = await fetch(root + "info");
+		let response = await fetch(
+			root.replace(/\/$/, "") + app.api_prefix + "/info"
+		);
 		let data = await response.json();
 		return data;
 	}
@@ -143,6 +145,7 @@
 							{api_calls}
 							{dependencies}
 							{root}
+							api_prefix={app.api_prefix}
 							short_root={space_id || root}
 							{username}
 						/>
@@ -235,6 +238,7 @@
 								{root}
 								{space_id}
 								{username}
+								api_prefix={app.api_prefix}
 							/>
 
 							<ParametersSnippet
@@ -364,7 +368,7 @@
 	.endpoint-container {
 		margin-top: var(--size-3);
 		margin-bottom: var(--size-3);
-		border: 1px solid var(--body-text-color);
+		border: 1px solid var(--block-border-color);
 		border-radius: var(--radius-xl);
 		padding: var(--size-3);
 		padding-top: 0;

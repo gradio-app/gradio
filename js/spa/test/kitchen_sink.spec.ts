@@ -23,7 +23,6 @@ test("test inputs", async ({ page, browser }) => {
 
 	// Image Input
 	const image = page.getByTestId("image").nth(0).locator("input");
-	console.log(image);
 	await image.setInputFiles("./test/files/cheetah1.jpg");
 
 	const uploaded_image = await page.locator("img").nth(0);
@@ -67,7 +66,7 @@ test("test outputs", async ({ page }) => {
 		`{     "items": {     "item": [     "0": { Object(6) }    "id": "0001" ,   "type": null ,   "is_good": false ,   "ppu": 0.55 ,   "batters": { Object(1) } ,   "batter": [ Array(4) ]    "0": { Object(2) } ,   "id": "1001" ,   "type": "Regular"    } ,  "1": { Object(2) } ,   "id": "1002" ,   "type": "Chocolate"    } ,  "2": { Object(2) } ,   "id": "1003" ,   "type": "Blueberry"    } ,  "3": { Object(2) }    "id": "1004" ,   "type": "Devil's Food"    }   ]   } ,  "topping": [ Array(7) ]    "0": { Object(2) } ,   "id": "5001" ,   "type": "None"    } ,  "1": { Object(2) } ,   "id": "5002" ,   "type": "Glazed"    } ,  "2": { Object(2) } ,   "id": "5005" ,   "type": "Sugar"    } ,  "3": { Object(2) } ,   "id": "5007" ,   "type": "Powdered Sugar"    } ,  "4": { Object(2) } ,   "id": "5006" ,   "type": "Chocolate with Sprinkles"    } ,  "5": { Object(2) } ,   "id": "5003" ,   "type": "Chocolate"    } ,  "6": { Object(2) }    "id": "5004" ,   "type": "Maple"    }   ]   }   ]   }   } `
 	);
 
-	const image = page.locator("img").nth(0);
+	const image = page.locator("#output-img img");
 	const image_data = await image.getAttribute("src");
 	expect(image_data).toBeTruthy();
 

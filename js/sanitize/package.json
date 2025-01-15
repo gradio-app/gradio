@@ -1,0 +1,39 @@
+{
+	"name": "@gradio/sanitize",
+	"version": "0.1.3",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"author": "",
+	"main": "./dist/server.js",
+	"license": "ISC",
+	"dependencies": {
+		"sanitize-html": "^2.13.0",
+		"amuchina": "^1.0.12"
+	},
+	"devDependencies": {
+		"@types/sanitize-html": "^2.13.0"
+	},
+	"main_changeset": true,
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/utils"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"browser": {
+				"gradio": "./browser.ts",
+				"default": "./dist/browser.js"
+			},
+			"default": {
+				"gradio": "./server.ts",
+				"default": "./dist/server.js"
+			}
+		},
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"package": "svelte-package --input=. --cwd=../../.config/"
+	}
+}

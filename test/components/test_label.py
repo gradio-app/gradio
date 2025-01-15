@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 import gradio as gr
+from gradio import FileData
 
 
 class TestLabel:
@@ -60,6 +61,7 @@ class TestLabel:
             "color": None,
             "_selectable": False,
             "key": None,
+            "show_heading": True,
         }
 
     def test_color_argument(self):
@@ -70,7 +72,7 @@ class TestLabel:
         """
         Interface, process
         """
-        x_img = "test/test_files/bus.png"
+        x_img = FileData(path="test/test_files/bus.png")
 
         def rgb_distribution(img):
             rgb_dist = np.mean(img, axis=(0, 1))

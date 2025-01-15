@@ -1,14 +1,15 @@
 <script lang="ts">
 	// @ts-nocheck
-	import DemosLite from "../../lib/components/DemosLite.svelte";
+	import DemosLite from "../../lib/components/DemosLite";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
 	import { browser } from "$app/environment";
 	import { gradio_logo } from "$lib/assets";
 	import { afterNavigate } from "$app/navigation";
 	import { clickOutside } from "$lib/components/clickOutside.js";
-	import Code from "@gradio/code";
+	import { BaseCode as Code } from "@gradio/code";
 	import version_json from "$lib/json/version.json";
+	import WHEEL from "$lib/json/wheel.json";
 
 	export let data: {
 		demos_by_category: {
@@ -36,11 +37,7 @@
 
 	let show_nav = true;
 
-	$: show_nav;
-
 	let show_mobile_nav = false;
-
-	$: show_mobile_nav;
 
 	let show_preview = false;
 
@@ -56,9 +53,6 @@
 		show_mobile_nav = false;
 	};
 
-	let dummy_elem: any = { classList: { contains: () => false } };
-	let dummy_gradio: any = { dispatch: (_) => {} };
-
 	let version = version_json.version;
 </script>
 
@@ -70,15 +64,15 @@
 />
 
 <svelte:head>
-	<script
-		type="module"
-		src="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js"
-	></script>
+	<script type="module" src="{WHEEL.gradio_lite_url}/dist/lite.js"></script>
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
 	<script
 		id="gradio-js-script"
 		type="module"
-		src="https://gradio.s3-us-west-2.amazonaws.com/{version}/gradio.js"
+		src="https://gradio.s3-us-west-2.amazonaws.com/{version.replace(
+			'b',
+			'-beta.'
+		)}/gradio.js"
 	></script>
 </svelte:head>
 
@@ -107,11 +101,14 @@
 
 <!-- Desktop -->
 {#if on_desktop}
-	<main class="playground flex-col justify-between hidden md:flex">
+	<main
+		class="playground flex-col justify-between hidden md:flex"
+		style="height: 94vh"
+	>
 		<div class="w-full border border-gray-200 shadow-xl h-full relative">
 			<div
-				class="w-[200px] h-full rounded-tr-none rounded-bl-xl overflow-y-scroll mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
-				style="word-break: normal; overflow-wrap: break-word; white-space:nowrap; width: {show_nav
+				class="w-[200px] rounded-tr-none rounded-bl-xl overflow-y-scroll mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
+				style="word-break: normal; overflow-wrap: break-word; white-space:nowrap; height: 100%; width: {show_nav
 					? 200
 					: 37}px;"
 			>
@@ -130,10 +127,10 @@
 						on:click={() => (current_selection = "Blank")}
 						class:current-playground-demo={current_selection == "Blank"}
 						class:shared-link={shared == "Blank"}
-						class="thin-link font-light px-4 mt-2 block">Blank</button
+						class="thin-link font-light px-4 block my-2">New Demo</button
 					>
 					{#each data.demos_by_category as { category, demos } (category)}
-						<p class="px-4 my-2">{category}</p>
+						<p class="px-4 my-2 font-medium">{category}</p>
 						{#each demos as demo, i}
 							<button
 								on:click={() => (current_selection = demo.name)}
@@ -248,12 +245,10 @@
 					{#if !show_preview}
 						<Code
 							bind:value={demos[i].code}
-							label=""
 							language="python"
-							target={dummy_elem}
-							gradio={dummy_gradio}
 							lines={10}
-							interactive="false"
+							readonly
+							dark_mode={false}
 						/>
 					{:else}
 						<gradio-app space={"gradio/" + demo.dir} />
@@ -290,9 +285,6 @@
 {/if}
 
 <style>
-	.code {
-		white-space: pre-wrap;
-	}
 	:global(body) {
 		min-height: 100vh;
 		display: grid;
@@ -343,13 +335,6 @@
 		box-shadow: 0 0 1px #fc963c;
 	}
 
-	input:checked + .code-btn {
-		color: #fc963c !important;
-	}
-	input:focus + .code-btn {
-		color: #fc963c !important;
-	}
-
 	input:checked + .slider:before {
 		-webkit-transform: translateX(26px);
 		-ms-transform: translateX(26px);
@@ -362,10 +347,6 @@
 
 	.slider.round:before {
 		border-radius: 50%;
-	}
-
-	.code-mobile .block {
-		height: 100%;
 	}
 
 	.mobile-window {

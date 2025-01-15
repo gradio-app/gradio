@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Literal, Sequence
+from collections.abc import Sequence
+from typing import Any, Literal
 
 from gradio_client.documentation import document
 
@@ -28,11 +29,13 @@ class Dataset(Component):
         self,
         *,
         label: str | None = None,
+        show_label: bool = True,
         components: Sequence[Component] | list[str] | None = None,
         component_props: list[dict[str, Any]] | None = None,
         samples: list[list[Any]] | None = None,
         headers: list[str] | None = None,
         type: Literal["values", "index", "tuple"] = "values",
+        layout: Literal["gallery", "table"] | None = None,
         samples_per_page: int = 10,
         visible: bool = True,
         elem_id: str | None = None,
@@ -47,11 +50,13 @@ class Dataset(Component):
     ):
         """
         Parameters:
-            label: The label for this component, appears above the component.
+            label: the label for this component, appears above the component.
+            show_label: If True, the label will be shown above the component.
             components: Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances. The following components are supported in a Dataset: Audio, Checkbox, CheckboxGroup, ColorPicker, Dataframe, Dropdown, File, HTML, Image, Markdown, Model3D, Number, Radio, Slider, Textbox, TimeSeries, Video
             samples: a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
             headers: Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
             type: "values" if clicking on a sample should pass the value of the sample, "index" if it should pass the index of the sample, or "tuple" if it should pass both the index and the value of the sample.
+            layout: "gallery" if the dataset should be displayed as a gallery with each sample in a clickable card, or "table" if it should be displayed as a table with each sample in a row. By default, "gallery" is used if there is a single component, and "table" is used if there are more than one component. If there are more than one component, the layout can only be "table".
             samples_per_page: how many examples to show per page.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -74,6 +79,8 @@ class Dataset(Component):
         self.container = container
         self.scale = scale
         self.min_width = min_width
+        self.layout = layout
+        self.show_label = show_label
         self._components = [get_component_instance(c) for c in components or []]
         if component_props is None:
             self.component_props = [
@@ -99,7 +106,7 @@ class Dataset(Component):
         self.samples: list[list] = []
         for example in self.raw_samples:
             self.samples.append([])
-            for component, ex in zip(self._components, example):
+            for component, ex in zip(self._components, example, strict=False):
                 # If proxy_url is set, that means it is being loaded from an external Gradio app
                 # which means that the example has already been processed.
                 if self.proxy_url is None:

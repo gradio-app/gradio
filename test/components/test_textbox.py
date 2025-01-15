@@ -41,6 +41,8 @@ class TestTextbox:
             "info": None,
             "autoscroll": True,
             "max_length": None,
+            "submit_btn": False,
+            "stop_btn": False,
         }
 
     @pytest.mark.asyncio

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
@@ -29,6 +30,8 @@ class Textbox(FormComponent):
         Events.submit,
         Events.focus,
         Events.blur,
+        Events.stop,
+        Events.copy,
     ]
 
     def __init__(
@@ -59,6 +62,8 @@ class Textbox(FormComponent):
         rtl: bool = False,
         show_copy_button: bool = False,
         max_length: int | None = None,
+        submit_btn: str | bool | None = False,
+        stop_btn: str | bool | None = False,
     ):
         """
         Parameters:
@@ -66,8 +71,8 @@ class Textbox(FormComponent):
             lines: minimum number of line rows to provide in textarea.
             max_lines: maximum number of line rows to provide in textarea.
             placeholder: placeholder hint to provide behind textarea.
-            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            info: additional component description.
+            label: the label for this component, displayed above the component if `show_label` is `True` and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component corresponds to.
+            info: additional component description, appears below the label in smaller font. Supports markdown / HTML syntax.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label. If False, the copy button is hidden as well as well as the label.
@@ -87,6 +92,7 @@ class Textbox(FormComponent):
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             max_length: maximum number of characters (including newlines) allowed in the textbox. If None, there is no maximum length.
+            submit_btn: If False, will not show a submit button. If True, will show a submit button with an icon. If a string, will use that string as the submit button text. When the submit button is shown, the border of the textbox will be removed, which is useful for creating a chat interface.
         """
         if type not in ["text", "password", "email"]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
@@ -98,8 +104,11 @@ class Textbox(FormComponent):
             self.max_lines = 1
         self.placeholder = placeholder
         self.show_copy_button = show_copy_button
+        self.submit_btn = submit_btn
+        self.stop_btn = stop_btn
         self.autofocus = autofocus
         self.autoscroll = autoscroll
+
         super().__init__(
             label=label,
             info=info,

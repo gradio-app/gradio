@@ -1,5 +1,300 @@
 # @gradio/multimodaltextbox
 
+## 0.9.1
+
+### Fixes
+
+- [#10322](https://github.com/gradio-app/gradio/pull/10322) [`d2691e7`](https://github.com/gradio-app/gradio/commit/d2691e7436f722781ee61db43ce3f2d5ccc3e253) - Quick Fix: Multimodal microphone audio not clearing.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/video@0.13.1
+- @gradio/atoms@0.13.1
+- @gradio/statustracker@0.10.1
+- @gradio/client@1.10.0
+- @gradio/icons@0.10.0
+- @gradio/upload@0.14.5
+- @gradio/image@0.20.1
+
+## 0.9.0
+
+### Features
+
+- [#10186](https://github.com/gradio-app/gradio/pull/10186) [`9b17032`](https://github.com/gradio-app/gradio/commit/9b17032a6564c8bda4ab1749989a9797c670919c) - Add Microphone Input to MultimodalTextbox.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/upload@0.14.4
+- @gradio/client@1.9.0
+- @gradio/icons@0.9.0
+- @gradio/statustracker@0.10.0
+- @gradio/image@0.20.0
+- @gradio/video@0.13.0
+
+## 0.8.0
+
+### Features
+
+- [#10135](https://github.com/gradio-app/gradio/pull/10135) [`3e93740`](https://github.com/gradio-app/gradio/commit/3e93740f057712278a7c2194a1702f48915683e1) - Improve pasted text behaviour in `Multimodaltextbox`.  Thanks @hannahblair!
+
+### Fixes
+
+- [#10168](https://github.com/gradio-app/gradio/pull/10168) [`7d70596`](https://github.com/gradio-app/gradio/commit/7d70596d0b3343dc4b357758f85420a0afdb65a2) - Multimodal autofocus fix.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/video@0.12.1
+- @gradio/statustracker@0.9.7
+- @gradio/upload@0.14.3
+- @gradio/atoms@0.12.0
+- @gradio/image@0.19.0
+
+## 0.7.8
+
+### Dependency updates
+
+- @gradio/image@0.18.0
+- @gradio/video@0.12.0
+
+## 0.7.7
+
+### Dependency updates
+
+- @gradio/video@0.11.9
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+- @gradio/upload@0.14.2
+- @gradio/image@0.17.0
+
+## 0.7.6
+
+### Fixes
+
+- [#9946](https://github.com/gradio-app/gradio/pull/9946) [`a966e9f`](https://github.com/gradio-app/gradio/commit/a966e9f753af25eb9d813dfdbce39be6f3014d82) - Hide upload button after upload when `file_count="single"`.  Thanks @abidlabs!
+- [#9904](https://github.com/gradio-app/gradio/pull/9904) [`f523c91`](https://github.com/gradio-app/gradio/commit/f523c915d3732859ff4a8019a82cb597b5208ae2) - Ensure dropped files are validated in MultimediaTextbox.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/video@0.11.8
+- @gradio/atoms@0.11.1
+- @gradio/client@1.8.0
+- @gradio/utils@0.8.0
+- @gradio/upload@0.14.1
+- @gradio/statustracker@0.9.5
+- @gradio/image@0.16.8
+
+## 0.7.5
+
+### Dependency updates
+
+- @gradio/video@0.11.7
+- @gradio/statustracker@0.9.4
+- @gradio/atoms@0.11.0
+- @gradio/upload@0.14.0
+- @gradio/image@0.16.7
+
+## 0.7.4
+
+### Fixes
+
+- [#9831](https://github.com/gradio-app/gradio/pull/9831) [`767643f`](https://github.com/gradio-app/gradio/commit/767643fdeccb1ae1481e1d79034317082144b371) - Fix a bug in example textbox rendering when it is initially invisible.  Thanks @cornzz!
+
+### Dependency updates
+
+- @gradio/video@0.11.6
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+- @gradio/client@1.7.1
+- @gradio/image@0.16.6
+- @gradio/upload@0.13.5
+
+## 0.7.3
+
+### Dependency updates
+
+- @gradio/video@0.11.5
+- @gradio/statustracker@0.9.2
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+- @gradio/upload@0.13.4
+- @gradio/image@0.16.5
+
+## 0.7.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.1
+- @gradio/upload@0.13.3
+- @gradio/video@0.11.4
+- @gradio/atoms@0.9.2
+- @gradio/image@0.16.4
+
+## 0.7.1
+
+### Dependency updates
+
+- @gradio/video@0.11.3
+- @gradio/atoms@0.9.1
+- @gradio/statustracker@0.9.0
+- @gradio/client@1.7.0
+- @gradio/upload@0.13.2
+- @gradio/image@0.16.3
+
+## 0.7.0
+
+### Features
+
+- [#9677](https://github.com/gradio-app/gradio/pull/9677) [`3a19e69`](https://github.com/gradio-app/gradio/commit/3a19e690ef8de12c4494429d52988b863065eed3) - Revert text disable.  Thanks @whitphx!
+
+## 0.6.2
+
+### Dependency updates
+
+- @gradio/upload@0.13.1
+- @gradio/image@0.16.2
+- @gradio/video@0.11.2
+
+## 0.6.1
+
+### Dependency updates
+
+- @gradio/video@0.11.1
+- @gradio/statustracker@0.8.1
+- @gradio/image@0.16.1
+
+## 0.6.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Adding new themes to Gradio 5.0
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Built-in submit and stop buttons in `gr.ChatInterface(multimodal=False)`, adding `submit_btn` and `stop_btn` props to `gr.Textbox()` and `gr.MultimodalText()`
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Chatbot Examples
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Allow `info=` to render markdown
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Some more chatbot fixes
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Disable the submit button and enter-key submit when the text is empty
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Match style of textbox stop button to submit button
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Ssr part 2
+
+### Fixes
+
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix File Types for MultimodalTextbox
+
+### Dependencies
+
+- @gradio/atoms@0.9.0
+- @gradio/icons@0.8.0
+- @gradio/statustracker@0.8.0
+- @gradio/utils@0.7.0
+- @gradio/upload@0.13.0
+- @gradio/image@0.16.0
+- @gradio/video@0.11.0
+- @gradio/client@1.6.0
+
+## 0.6.0-beta.7
+
+### Features
+
+- [#9437](https://github.com/gradio-app/gradio/pull/9437) [`c3d93be`](https://github.com/gradio-app/gradio/commit/c3d93bef94b9401747a363f7bad88a1d347d535b) - Adding new themes to Gradio 5.0.  Thanks @allisonwhilden!
+- [#9593](https://github.com/gradio-app/gradio/pull/9593) [`cc61fe7`](https://github.com/gradio-app/gradio/commit/cc61fe7047ac61779a61cce52c666400b9517daa) - Some more chatbot fixes.  Thanks @dawoodkhan82!
+- [#9583](https://github.com/gradio-app/gradio/pull/9583) [`b92a762`](https://github.com/gradio-app/gradio/commit/b92a7623e1ebd801587041e1ccca058a61058da9) - Disable the submit button and enter-key submit when the text is empty.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.7
+- @gradio/statustracker@0.8.0-beta.5
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+- @gradio/image@0.16.0-beta.7
+- @gradio/video@0.11.0-beta.7
+
+## 0.6.0-beta.6
+
+### Features
+
+- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.6
+- @gradio/statustracker@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.4
+- @gradio/client@1.6.0-beta.4
+- @gradio/upload@0.13.0-beta.6
+- @gradio/image@0.16.0-beta.6
+
+## 0.6.0-beta.5
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.5
+- @gradio/statustracker@0.8.0-beta.3
+- @gradio/video@0.11.0-beta.5
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+- @gradio/image@0.16.0-beta.5
+
+## 0.6.0-beta.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/upload@0.13.0-beta.4
+- @gradio/image@0.16.0-beta.4
+- @gradio/video@0.11.0-beta.4
+
+## 0.6.0-beta.3
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.3
+- @gradio/video@0.11.0-beta.3
+- @gradio/client@1.6.0-beta.3
+- @gradio/image@0.16.0-beta.3
+
+## 0.6.0-beta.2
+
+### Features
+
+- [#8966](https://github.com/gradio-app/gradio/pull/8966) [`8e52b6a`](https://github.com/gradio-app/gradio/commit/8e52b6a3e75957462bc7fdbf6ff9c280084d5f08) - Chatbot Examples.  Thanks @dawoodkhan82!
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+- [#9280](https://github.com/gradio-app/gradio/pull/9280) [`7122420`](https://github.com/gradio-app/gradio/commit/712242047fde3a594dfde7f48a44c7ea16239dc8) - Match style of textbox stop button to submit button.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#9393](https://github.com/gradio-app/gradio/pull/9393) [`53ed0f0`](https://github.com/gradio-app/gradio/commit/53ed0f030551ad876a1fea28a9db9015ba6ec33e) - Fix File Types for MultimodalTextbox.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/upload@0.13.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+- @gradio/image@0.16.0-beta.2
+- @gradio/video@0.11.0-beta.2
+
+## 0.6.0-beta.1
+
+### Features
+
+- [#9235](https://github.com/gradio-app/gradio/pull/9235) [`f8b411f`](https://github.com/gradio-app/gradio/commit/f8b411fe282ff0316ed4abebc0a043b044bf4dd9) - Built-in submit and stop buttons in `gr.ChatInterface(multimodal=False)`, adding `submit_btn` and `stop_btn` props to `gr.Textbox()` and `gr.MultimodalText()`.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.1
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/client@1.6.0-beta.1
+- @gradio/image@0.16.0-beta.1
+- @gradio/upload@0.12.4-beta.1
+
 ## 0.5.7
 
 ### Fixes

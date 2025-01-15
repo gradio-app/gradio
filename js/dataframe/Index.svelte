@@ -45,7 +45,7 @@
 		right: string;
 		display: boolean;
 	}[];
-	export let height: number | undefined = undefined;
+	export let max_height: number | undefined = undefined;
 
 	export let loading_status: LoadingStatus;
 	export let interactive: boolean;
@@ -149,11 +149,11 @@
 		{datatype}
 		{latex_delimiters}
 		editable={interactive}
-		{height}
+		{max_height}
 		i18n={gradio.i18n}
 		{line_breaks}
 		{column_widths}
-		upload={gradio.client.upload}
-		stream_handler={gradio.client.stream}
+		upload={(...args) => gradio.client.upload(...args)}
+		stream_handler={(...args) => gradio.client.stream(...args)}
 	/>
 </Block>

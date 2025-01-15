@@ -30,7 +30,10 @@
 	<script
 		id="gradio-js-script"
 		type="module"
-		src="https://gradio.s3-us-west-2.amazonaws.com/{version}/gradio.js"
+		src="https://gradio.s3-us-west-2.amazonaws.com/{version.replace(
+			'b',
+			'-beta.'
+		)}/gradio.js"
 	></script>
 </svelte:head>
 

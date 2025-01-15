@@ -11,8 +11,7 @@
 	export let hasPopup = false;
 	export let color = "var(--block-label-text-color)";
 	export let transparent = false;
-	export let background = "var(--background-fill-primary)";
-	export let offset = 0;
+	export let background = "var(--block-background-fill)";
 	$: _color = highlight ? "var(--color-accent)" : color;
 </script>
 
@@ -28,7 +27,6 @@
 	class:transparent
 	style:color={!disabled && _color ? _color : "var(--block-label-text-color)"}
 	style:--bg-color={!disabled ? background : "auto"}
-	style:margin-left={offset + "px"}
 >
 	{#if show_label}<span>{label}</span>{/if}
 	<div
@@ -36,7 +34,8 @@
 		class:large={size === "large"}
 		class:medium={size === "medium"}
 	>
-		<Icon />
+		<svelte:component this={Icon} />
+		<slot />
 	</div>
 </button>
 
@@ -47,10 +46,14 @@
 		align-items: center;
 		gap: 1px;
 		z-index: var(--layer-2);
-		/* background: var(--background-fill-primary); */
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-xs);
 		color: var(--block-label-text-color);
 		border: 1px solid transparent;
+		padding: var(--spacing-xxs);
+	}
+
+	button:hover {
+		background-color: var(--background-fill-secondary);
 	}
 
 	button[disabled] {
@@ -60,15 +63,10 @@
 
 	button[disabled]:hover {
 		cursor: not-allowed;
-		/* border: 1px solid var(--button-secondary-border-color); */
-		/* padding: 2px; */
 	}
 
 	.padded {
-		padding: 2px;
 		background: var(--bg-color);
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--button-secondary-border-color);
 	}
 
 	button:hover,
@@ -78,8 +76,6 @@
 	}
 
 	.padded:hover {
-		border: 2px solid var(--button-secondary-border-color-hover);
-		padding: 1px;
 		color: var(--block-label-text-color);
 	}
 
@@ -89,9 +85,10 @@
 	}
 
 	div {
-		padding: 2px;
 		display: flex;
-		align-items: flex-end;
+		align-items: center;
+		justify-content: center;
+		transition: filter 0.2s ease-in-out;
 	}
 
 	.small {

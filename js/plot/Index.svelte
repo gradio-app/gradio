@@ -21,7 +21,6 @@
 	export let loading_status: LoadingStatus;
 	export let label: string;
 	export let show_label: boolean;
-	export let target: HTMLElement;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -61,12 +60,12 @@
 	/>
 	<Plot
 		{value}
-		{target}
 		{theme_mode}
 		{caption}
 		{bokeh_version}
 		{show_actions_button}
 		{gradio}
+		{show_label}
 		{_selectable}
 		{x_lim}
 		on:change={() => gradio.dispatch("change")}

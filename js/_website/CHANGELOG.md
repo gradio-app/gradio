@@ -1,5 +1,278 @@
 # website
 
+## 0.46.0
+
+### Features
+
+- [#10305](https://github.com/gradio-app/gradio/pull/10305) [`be40307`](https://github.com/gradio-app/gradio/commit/be40307d1d11421e01bf91fa5e05ec4ab97b09d8) - Add support for thinking LLMs directly in `gr.ChatInterface`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/code@0.10.12
+- @gradio/paramviewer@0.6.3
+
+## 0.45.0
+
+### Features
+
+- [`6edf038`](https://github.com/gradio-app/gradio/commit/6edf0380b9c407e052e29a7fb23511c41ed3e6d9) - AI Playground Auto Fix Errors.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/tabs@0.4.0
+- @gradio/tabitem@0.4.0
+- @gradio/code@0.10.11
+- @gradio/paramviewer@0.6.2
+
+## 0.44.0
+
+### Features
+
+- [#10109](https://github.com/gradio-app/gradio/pull/10109) [`48e4aa9`](https://github.com/gradio-app/gradio/commit/48e4aa9d627b6958a0b215d6312de508845f669c) - adds a `run_examples_on_click` parameter to `gr.ChatInterface` mirroring the the `run_on_click` parameter in `gr.Examples`.  Thanks @abidlabs!
+- [#10126](https://github.com/gradio-app/gradio/pull/10126) [`a623faf`](https://github.com/gradio-app/gradio/commit/a623fafbcfef820243359fe942b356cbbaf09d9a) - Move requirements generation in playground to playground worker.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.10.10
+- @gradio/paramviewer@0.6.1
+
+## 0.43.0
+
+### Features
+
+- [#10096](https://github.com/gradio-app/gradio/pull/10096) [`ec10aa3`](https://github.com/gradio-app/gradio/commit/ec10aa3b9b42d8c3fe930aff9465c469626992d4) - Fix paramviewer descriptions to only render markdown links.  Thanks @aliabd!
+- [#10071](https://github.com/gradio-app/gradio/pull/10071) [`01b919f`](https://github.com/gradio-app/gradio/commit/01b919f04b69732fd8adb52f6d156e5683589221) - Support `additional_outputs` in `gr.ChatInterface`.  Thanks @abidlabs!
+- [#10073](https://github.com/gradio-app/gradio/pull/10073) [`873dab5`](https://github.com/gradio-app/gradio/commit/873dab5bce32de472523b851d443588106223e21) - Fix the Playground to ignore comments in the requirements text.  Thanks @whitphx!
+- [#9998](https://github.com/gradio-app/gradio/pull/9998) [`6cc13f5`](https://github.com/gradio-app/gradio/commit/6cc13f55e00ff29e833fd55493a53b654f23fbcc) - Playground exclude unavailable packages.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/paramviewer@0.6.0
+
+## 0.42.3
+
+### Fixes
+
+- [#10025](https://github.com/gradio-app/gradio/pull/10025) [`368ba73`](https://github.com/gradio-app/gradio/commit/368ba731069583b22fcf7ddc9501db349f6a2953) - Update Chat Interface examples and add more LLM libraries and API providers.  Thanks @abidlabs!
+
+## 0.42.2
+
+### Dependency updates
+
+- @gradio/code@0.10.9
+- @gradio/paramviewer@0.5.8
+- @gradio/tabitem@0.3.5
+- @gradio/tabs@0.3.5
+
+## 0.42.1
+
+### Dependency updates
+
+- @gradio/code@0.10.8
+- @gradio/paramviewer@0.5.7
+- @gradio/tabitem@0.3.4
+- @gradio/tabs@0.3.4
+
+## 0.42.0
+
+### Features
+
+- [#9726](https://github.com/gradio-app/gradio/pull/9726) [`b6725cf`](https://github.com/gradio-app/gradio/commit/b6725cf6c1fe9667dc10e1988976ed36d84d73d3) - Lite auto-load imported modules with `pyodide.loadPackagesFromImports`.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/code@0.10.7
+- @gradio/paramviewer@0.5.6
+
+## 0.41.0
+
+### Features
+
+- [#9811](https://github.com/gradio-app/gradio/pull/9811) [`7b6bd31`](https://github.com/gradio-app/gradio/commit/7b6bd3188199af1eac8f8d6d21b15a0bdc3d5619) - Fix the tab names in the playground.  Thanks @whitphx!
+- [#9647](https://github.com/gradio-app/gradio/pull/9647) [`7cce63e`](https://github.com/gradio-app/gradio/commit/7cce63e29f274b9fbd6c779914adeaab08ea60f7) - Ask LLM to generate the requirements.txt in the playground.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/tabs@0.3.3
+- @gradio/tabitem@0.3.3
+- @gradio/code@0.10.6
+- @gradio/paramviewer@0.5.5
+
+## 0.40.3
+
+### Fixes
+
+- [#9653](https://github.com/gradio-app/gradio/pull/9653) [`61cd768`](https://github.com/gradio-app/gradio/commit/61cd768490a12f5d63101d5434092bcd1cfc43a8) - Ensures tabs with visible set to false are not visible.  Thanks @hannahblair!
+- [#9738](https://github.com/gradio-app/gradio/pull/9738) [`2ade59b`](https://github.com/gradio-app/gradio/commit/2ade59b95d4c3610a1a461cc95f020fbf9627305) - Export `Tabs` type from `@gradio/tabs` and fix the Playground to be compatible with the new Tabs API.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/tabs@0.3.2
+- @gradio/tabitem@0.3.2
+- @gradio/code@0.10.5
+- @gradio/paramviewer@0.5.4
+
+## 0.40.2
+
+### Dependency updates
+
+- @gradio/code@0.10.4
+- @gradio/paramviewer@0.5.3
+
+## 0.40.1
+
+### Dependency updates
+
+- @gradio/tabs@0.3.1
+- @gradio/code@0.10.3
+- @gradio/paramviewer@0.5.2
+- @gradio/tabitem@0.3.1
+
+## 0.40.0
+
+### Features
+
+- [#9635](https://github.com/gradio-app/gradio/pull/9635) [`67e4044`](https://github.com/gradio-app/gradio/commit/67e4044c9ca8358eceeb1fa72fa415df03397d20) - Add website banner for gradio 5.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.10.2
+
+## 0.39.1
+
+### Features
+
+- [#9615](https://github.com/gradio-app/gradio/pull/9615) [`204f3e1`](https://github.com/gradio-app/gradio/commit/204f3e13e110fc0528032a102c9521057e18919d) - fixes to website.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/code@0.10.1
+- @gradio/paramviewer@0.5.1
+
+## 0.39.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Start/stop recoding from the backend. Add guide on conversational chatbots
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Playground requirements tab
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Deprecate type='tuples for chatbot and focus chatbot docs on 'messages' type
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Expanding AI Playground Prompt for Qwen
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Remove grey background behind all components
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fixes website build in 5.0-dev
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - 🔡 Update default core Gradio font
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix. Triggered dataframe change event for header change
+- [#9606](https://github.com/gradio-app/gradio/pull/9606) [`9031324`](https://github.com/gradio-app/gradio/commit/90313243648883abf64a05361110e14e23616813) - Fixes website build
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fixes annoying height bug in playground
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Refactoring playground
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix gradio.js aws path
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - 5.0 merge take 2
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Improve UI on the Playground
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - File access security guide
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Add info about Powershell client
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Adds LLM to the Playground
+
+### Dependencies
+
+- @gradio/code@0.10.0
+- @gradio/tabs@0.3.0
+- @gradio/tabitem@0.3.0
+
+## 0.39.0-beta.9
+
+### Dependency updates
+
+- @gradio/code@0.10.0-beta.8
+- @gradio/paramviewer@0.4.22-beta.5
+- @gradio/tabitem@0.3.0-beta.4
+- @gradio/tabs@0.3.0-beta.3
+
+## 0.39.0-beta.8
+
+### Dependency updates
+
+- @gradio/tabitem@0.3.0-beta.4
+- @gradio/code@0.10.0-beta.7
+- @gradio/paramviewer@0.4.22-beta.4
+
+## 0.39.0-beta.7
+
+### Dependency updates
+
+- @gradio/code@0.10.0-beta.6
+
+## 0.39.0-beta.6
+
+### Features
+
+- [#9460](https://github.com/gradio-app/gradio/pull/9460) [`7352a89`](https://github.com/gradio-app/gradio/commit/7352a89722da91461c32fd33588531f3edce9c48) - Playground requirements tab.  Thanks @whitphx!
+- [#9452](https://github.com/gradio-app/gradio/pull/9452) [`3ec8e63`](https://github.com/gradio-app/gradio/commit/3ec8e636766cc629444bc3cbc6b53deaf65f5ab1) - Expanding AI Playground Prompt for Qwen.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/tabs@0.3.0-beta.3
+- @gradio/tabitem@0.3.0-beta.3
+- @gradio/code@0.10.0-beta.5
+- @gradio/paramviewer@0.4.22-beta.3
+
+## 0.39.0-beta.5
+
+### Dependency updates
+
+- @gradio/code@0.10.0-beta.4
+- @gradio/paramviewer@0.4.22-beta.2
+
+## 0.39.0-beta.4
+
+### Features
+
+- [#9419](https://github.com/gradio-app/gradio/pull/9419) [`018c140`](https://github.com/gradio-app/gradio/commit/018c140ef86cacc8211df05b57b26924dab7fa08) - Start/stop recoding from the backend. Add guide on conversational chatbots.  Thanks @freddyaboulton!
+- [#9469](https://github.com/gradio-app/gradio/pull/9469) [`f7c3396`](https://github.com/gradio-app/gradio/commit/f7c3396f55a5b8364d3880a29d766bd092d7f840) - Fix. Triggered dataframe change event for header change.  Thanks @Joodith!
+- [#9426](https://github.com/gradio-app/gradio/pull/9426) [`4e54105`](https://github.com/gradio-app/gradio/commit/4e5410574002ea24067cf4e82b99a6a39f67632c) - Refactoring playground.  Thanks @whitphx!
+- [#9462](https://github.com/gradio-app/gradio/pull/9462) [`b622b1f`](https://github.com/gradio-app/gradio/commit/b622b1fcce888427e87aa1f70c9c2e60aa240e37) - Improve UI on the Playground.  Thanks @aliabd!
+
+## 0.39.0-beta.3
+
+### Dependency updates
+
+- @gradio/code@0.10.0-beta.3
+
+## 0.39.0-beta.2
+
+### Features
+
+- [#9326](https://github.com/gradio-app/gradio/pull/9326) [`7afb9a1`](https://github.com/gradio-app/gradio/commit/7afb9a14fa64310eb8b70f43a3bad373e46e36c1) - 5.0 merge take 2.  Thanks @pngwn!
+- [#9382](https://github.com/gradio-app/gradio/pull/9382) [`9e70832`](https://github.com/gradio-app/gradio/commit/9e7083286d5681b5fc623304a97d5a24fe6d6080) - Fixes website build in 5.0-dev.  Thanks @aliabd!
+- [#9379](https://github.com/gradio-app/gradio/pull/9379) [`0cad5f3`](https://github.com/gradio-app/gradio/commit/0cad5f348a846024b95b92fb48f88137ccfcd589) - Testing CI.  Thanks @aliabd!
+- [#9402](https://github.com/gradio-app/gradio/pull/9402) [`060acb3`](https://github.com/gradio-app/gradio/commit/060acb3b469530a3ea14275970b7028598052ef1) - Fixes annoying height bug in playground.  Thanks @aliabd!
+- [#9397](https://github.com/gradio-app/gradio/pull/9397) [`4be0933`](https://github.com/gradio-app/gradio/commit/4be0933d3a39099fd573d7db42416d7acef7f40f) - Fix gradio.js aws path.  Thanks @aliabd!
+- [#9343](https://github.com/gradio-app/gradio/pull/9343) [`322ac54`](https://github.com/gradio-app/gradio/commit/322ac5499ec5a8541039bf329e2525e9d24ed2cc) - Add info about Powershell client.  Thanks @abidlabs!
+- [#9233](https://github.com/gradio-app/gradio/pull/9233) [`9a85ccc`](https://github.com/gradio-app/gradio/commit/9a85cccf160118fccfb78dc1edcc7c51ff88de6c) - Adds LLM to the Playground.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.10.0-beta.2
+- @gradio/paramviewer@0.4.22-beta.2
+
+## 0.39.0-beta.1
+
+### Features
+
+- [#9204](https://github.com/gradio-app/gradio/pull/9204) [`3c73f00`](https://github.com/gradio-app/gradio/commit/3c73f00e3016b16917ebfe0bad390f2dff683457) - 🔡 Update default core Gradio font.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/code@0.9.1-beta.1
+- @gradio/paramviewer@0.4.22-beta.1
+
+## 0.39.0-beta.0
+
+### Features
+
+- [#9194](https://github.com/gradio-app/gradio/pull/9194) [`20c0836`](https://github.com/gradio-app/gradio/commit/20c0836ed0e0698dbc81d2a4bda04363fd857334) - Deprecate type='tuples for chatbot and focus chatbot docs on 'messages' type.  Thanks @freddyaboulton!
+- [#9213](https://github.com/gradio-app/gradio/pull/9213) [`ab4580b`](https://github.com/gradio-app/gradio/commit/ab4580bd5f755a07c9a9bd2a775220a9a2085f8c) - Remove grey background behind all components.  Thanks @hannahblair!
+- [#9206](https://github.com/gradio-app/gradio/pull/9206) [`bdbcf7b`](https://github.com/gradio-app/gradio/commit/bdbcf7b0e374c0769178767a1502cd310312278b) - Cloudflare migration.  Thanks @aliabd!
+- [#9156](https://github.com/gradio-app/gradio/pull/9156) [`8deeeb6`](https://github.com/gradio-app/gradio/commit/8deeeb6d1b83296e5174c2891b80fb317991289e) - File access security guide.  Thanks @freddyaboulton!
+
 ## 0.39.1
 
 ### Features
@@ -29,8 +302,8 @@
 
 ### Dependency updates
 
-- @gradio/code@0.9.1
-- @gradio/paramviewer@0.4.22
+- @gradio/paramviewer@0.4.22-beta.0
+- @gradio/code@0.9.1-beta.0
 
 ## 0.38.0
 

@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from gradio_client import handle_file
 
 import gradio as gr
 
@@ -45,11 +46,6 @@ class TestInit:
         with pytest.raises(TypeError):
             gr.ChatInterface()  # type: ignore
 
-    def test_configuring_buttons(self):
-        chatbot = gr.ChatInterface(double, submit_btn=None, retry_btn=None)
-        assert chatbot.submit_btn is None
-        assert chatbot.retry_btn is None
-
     def test_concurrency_limit(self):
         chat = gr.ChatInterface(double, concurrency_limit=10)
         assert chat.concurrency_limit == 10
@@ -69,50 +65,33 @@ class TestInit:
             chatbot=gr.Chatbot(height=400),
             textbox=gr.Textbox(placeholder="Type Message", container=False, scale=7),
             title="Test",
-            clear_btn="Clear",
         )
         gr.ChatInterface(
             chat,
             chatbot=gr.Chatbot(height=400),
             textbox=gr.MultimodalTextbox(container=False, scale=7),
             title="Test",
-            clear_btn="Clear",
         )
 
     def test_events_attached(self):
         chatbot = gr.ChatInterface(double)
         dependencies = chatbot.fns.values()
         textbox = chatbot.textbox._id
-        assert chatbot.submit_btn
-        submit_btn = chatbot.submit_btn._id
         assert next(
-            (
-                d
-                for d in dependencies
-                if d.targets == [(textbox, "submit"), (submit_btn, "click")]
-            ),
+            (d for d in dependencies if d.targets == [(textbox, "submit")]),
             None,
         )
-        assert chatbot.retry_btn and chatbot.clear_btn and chatbot.undo_btn
-        for btn_id in [
-            chatbot.retry_btn._id,
-            chatbot.clear_btn._id,
-            chatbot.undo_btn._id,
-        ]:
-            assert next(
-                (d for d in dependencies if d.targets[0] == (btn_id, "click")),
-                None,
-            )
 
-    def test_example_caching(self):
+    def test_example_caching(self, connect):
         with patch(
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
             chatbot = gr.ChatInterface(
                 double, examples=["hello", "hi"], cache_examples=True
             )
-            prediction_hello = chatbot.examples_handler.load_from_cache(0)
-            prediction_hi = chatbot.examples_handler.load_from_cache(1)
+            with connect(chatbot):
+                prediction_hello = chatbot.examples_handler.load_from_cache(0)
+                prediction_hi = chatbot.examples_handler.load_from_cache(1)
             assert prediction_hello[0].root[0] == ("hello", "hello hello")
             assert prediction_hi[0].root[0] == ("hi", "hi hi")
 
@@ -122,51 +101,53 @@ class TestInit:
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
             chatbot = gr.ChatInterface(
-                double, examples=["hello", "hi"], cache_examples="lazy"
+                double,
+                examples=["hello", "hi"],
+                cache_examples=True,
+                cache_mode="lazy",
             )
-            async for _ in chatbot.examples_handler.async_lazy_cache(
-                (0, ["hello"]), "hello"
-            ):
-                pass
             prediction_hello = chatbot.examples_handler.load_from_cache(0)
             assert prediction_hello[0].root[0] == ("hello", "hello hello")
-            with pytest.raises(IndexError):
-                prediction_hi = chatbot.examples_handler.load_from_cache(1)
-                assert prediction_hi[0].root[0] == ("hi", "hi hi")
+            prediction_hi = chatbot.examples_handler.load_from_cache(1)
+            assert prediction_hi[0].root[0] == ("hi", "hi hi")
 
-    def test_example_caching_async(self):
+    def test_example_caching_async(self, connect):
         with patch(
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
             chatbot = gr.ChatInterface(
                 async_greet, examples=["abubakar", "tom"], cache_examples=True
             )
-            prediction_hello = chatbot.examples_handler.load_from_cache(0)
-            prediction_hi = chatbot.examples_handler.load_from_cache(1)
+
+            with connect(chatbot):
+                prediction_hello = chatbot.examples_handler.load_from_cache(0)
+                prediction_hi = chatbot.examples_handler.load_from_cache(1)
             assert prediction_hello[0].root[0] == ("abubakar", "hi, abubakar")
             assert prediction_hi[0].root[0] == ("tom", "hi, tom")
 
-    def test_example_caching_with_streaming(self):
+    def test_example_caching_with_streaming(self, connect):
         with patch(
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
             chatbot = gr.ChatInterface(
                 stream, examples=["hello", "hi"], cache_examples=True
             )
-            prediction_hello = chatbot.examples_handler.load_from_cache(0)
-            prediction_hi = chatbot.examples_handler.load_from_cache(1)
+            with connect(chatbot):
+                prediction_hello = chatbot.examples_handler.load_from_cache(0)
+                prediction_hi = chatbot.examples_handler.load_from_cache(1)
             assert prediction_hello[0].root[0] == ("hello", "hello")
             assert prediction_hi[0].root[0] == ("hi", "hi")
 
-    def test_example_caching_with_streaming_async(self):
+    def test_example_caching_with_streaming_async(self, connect):
         with patch(
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
             chatbot = gr.ChatInterface(
                 async_stream, examples=["hello", "hi"], cache_examples=True
             )
-            prediction_hello = chatbot.examples_handler.load_from_cache(0)
-            prediction_hi = chatbot.examples_handler.load_from_cache(1)
+            with connect(chatbot):
+                prediction_hello = chatbot.examples_handler.load_from_cache(0)
+                prediction_hi = chatbot.examples_handler.load_from_cache(1)
             assert prediction_hello[0].root[0] == ("hello", "hello")
             assert prediction_hi[0].root[0] == ("hi", "hi")
 
@@ -197,7 +178,7 @@ class TestInit:
         assert accordion.get_config().get("open") is True
         assert accordion.get_config().get("label") == "MOAR"
 
-    def test_example_caching_with_additional_inputs(self, monkeypatch):
+    def test_example_caching_with_additional_inputs(self, monkeypatch, connect):
         with patch(
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
@@ -207,16 +188,19 @@ class TestInit:
                 examples=[["hello", "robot", 100], ["hi", "robot", 2]],
                 cache_examples=True,
             )
-            prediction_hello = chatbot.examples_handler.load_from_cache(0)
-            prediction_hi = chatbot.examples_handler.load_from_cache(1)
+            with connect(chatbot):
+                prediction_hello = chatbot.examples_handler.load_from_cache(0)
+                prediction_hi = chatbot.examples_handler.load_from_cache(1)
             assert prediction_hello[0].root[0] == ("hello", "robot hello")
             assert prediction_hi[0].root[0] == ("hi", "ro")
 
-    def test_example_caching_with_additional_inputs_already_rendered(self, monkeypatch):
+    def test_example_caching_with_additional_inputs_already_rendered(
+        self, monkeypatch, connect
+    ):
         with patch(
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
-            with gr.Blocks():
+            with gr.Blocks() as demo:
                 with gr.Accordion("Inputs"):
                     text = gr.Textbox()
                     slider = gr.Slider()
@@ -226,8 +210,9 @@ class TestInit:
                         examples=[["hello", "robot", 100], ["hi", "robot", 2]],
                         cache_examples=True,
                     )
-            prediction_hello = chatbot.examples_handler.load_from_cache(0)
-            prediction_hi = chatbot.examples_handler.load_from_cache(1)
+            with connect(demo):
+                prediction_hello = chatbot.examples_handler.load_from_cache(0)
+                prediction_hi = chatbot.examples_handler.load_from_cache(1)
             assert prediction_hello[0].root[0] == ("hello", "robot hello")
             assert prediction_hi[0].root[0] == ("hi", "ro")
 
@@ -241,6 +226,26 @@ class TestInit:
             (d for d in dependencies if d.targets == [(chatbot._id, "like")]),
             None,
         )
+
+    def test_chatbot_type_mismatch(self):
+        chatbot = gr.Chatbot()
+        chat_interface = gr.ChatInterface(
+            fn=lambda x, y: x, chatbot=chatbot, type="tuples"
+        )
+        assert chatbot.type == "tuples"
+        assert chat_interface.type == "tuples"
+
+        chatbot = gr.Chatbot()
+        chat_interface = gr.ChatInterface(
+            fn=lambda x, y: x, chatbot=chatbot, type="messages"
+        )
+        assert chatbot.type == "messages"
+        assert chat_interface.type == "messages"
+
+        chatbot = gr.Chatbot()
+        chat_interface = gr.ChatInterface(fn=lambda x, y: x, chatbot=chatbot)
+        assert chatbot.type == "tuples"
+        assert chat_interface.type == "tuples"
 
 
 class TestAPI:
@@ -315,3 +320,98 @@ class TestAPI:
         with connect(chatbot) as client:
             result = client.predict({"text": "hello", "files": []}, api_name="/chat")
             assert result == "hello hello"
+
+    @pytest.mark.parametrize("type", ["tuples", "messages"])
+    def test_component_returned(self, type, connect):
+        def mock_chat_fn(msg, history):
+            return gr.Audio("test/test_files/audio_sample.wav")
+
+        chatbot = gr.ChatInterface(
+            mock_chat_fn,
+            type=type,
+            multimodal=True,
+        )
+        with connect(chatbot) as client:
+            result = client.predict(
+                {
+                    "text": "hello",
+                    "files": [handle_file("test/test_files/audio_sample.wav")],
+                },
+                api_name="/chat",
+            )
+            assert result["value"] == "test/test_files/audio_sample.wav"
+
+    @pytest.mark.parametrize("type", ["tuples", "messages"])
+    def test_multiple_messages(self, type, connect):
+        def multiple_messages(msg, history):
+            return [msg["text"], msg["text"]]
+
+        chatbot = gr.ChatInterface(
+            multiple_messages,
+            type=type,
+            multimodal=True,
+        )
+        with connect(chatbot) as client:
+            result = client.predict({"text": "hello", "files": []}, api_name="/chat")
+            assert result == ["hello", "hello"]
+
+
+class TestExampleMessages:
+    def test_setup_example_messages_with_strings(self):
+        chat = gr.ChatInterface(
+            double,
+            examples=["hello", "hi", "hey"],
+            example_labels=["Greeting 1", "Greeting 2", "Greeting 3"],
+        )
+        assert len(chat.examples_messages) == 3
+        assert chat.examples_messages[0] == {
+            "text": "hello",
+            "display_text": "Greeting 1",
+        }
+        assert chat.examples_messages[1] == {
+            "text": "hi",
+            "display_text": "Greeting 2",
+        }
+        assert chat.examples_messages[2] == {
+            "text": "hey",
+            "display_text": "Greeting 3",
+        }
+
+    def test_setup_example_messages_with_multimodal(self):
+        chat = gr.ChatInterface(
+            double,
+            examples=[
+                {"text": "hello", "files": ["file1.txt"]},
+                {"text": "hi", "files": ["file2.txt", "file3.txt"]},
+                {"text": "", "files": ["file4.txt"]},
+            ],
+        )
+        assert len(chat.examples_messages) == 3
+        assert chat.examples_messages[0]["text"] == "hello"  # type: ignore
+        assert chat.examples_messages[0]["files"][0]["path"].endswith("file1.txt")  # type: ignore
+
+    def test_setup_example_messages_with_lists(self):
+        chat = gr.ChatInterface(
+            double,
+            examples=[
+                ["hello", "other_value"],
+                ["hi", "another_value"],
+            ],
+        )
+        assert len(chat.examples_messages) == 2
+        assert chat.examples_messages[0] == {"text": "hello"}
+        assert chat.examples_messages[1] == {"text": "hi"}
+
+    def test_setup_example_messages_empty(self):
+        chat = gr.ChatInterface(double)
+        chat._setup_example_messages(None)
+        assert chat.examples_messages == []
+
+    def test_chat_interface_api_name(self, connect):
+        chat = gr.ChatInterface(double, api_name=False)
+        assert chat.api_name is False
+        with connect(chat) as client:
+            assert client.view_api(return_format="dict")["named_endpoints"] == {}
+        chat = gr.ChatInterface(double, api_name="double")
+        with connect(chat) as client:
+            assert "/double" in client.view_api(return_format="dict")["named_endpoints"]

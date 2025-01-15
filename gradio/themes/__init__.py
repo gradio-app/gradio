@@ -1,7 +1,10 @@
 from gradio.themes.base import Base, ThemeClass
+from gradio.themes.citrus import Citrus
 from gradio.themes.default import Default
 from gradio.themes.glass import Glass
 from gradio.themes.monochrome import Monochrome
+from gradio.themes.ocean import Ocean
+from gradio.themes.origin import Origin
 from gradio.themes.soft import Soft
 from gradio.themes.utils import colors, sizes
 from gradio.themes.utils.colors import Color
@@ -21,6 +24,9 @@ __all__ = [
     "ThemeClass",
     "colors",
     "sizes",
+    "Origin",
+    "Citrus",
+    "Ocean",
 ]
 
 

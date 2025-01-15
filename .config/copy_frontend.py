@@ -15,6 +15,9 @@ def copy_js_code(root: str | pathlib.Path):
         "playwright-report",
         "workbench",
         "tooltils",
+        "component-test",
+        "core",
+        "spa",
     ]
     for entry in (pathlib.Path(root) / "js").iterdir():
         if (
@@ -46,7 +49,7 @@ def copy_js_code(root: str | pathlib.Path):
     shutil.copytree(
         str(pathlib.Path(root) / "client" / "js"),
         str(pathlib.Path("gradio") / "_frontend_code" / "client"),
-        ignore=lambda d, names: ["node_modules"],
+        ignore=lambda d, names: ["node_modules", "test"],
         dirs_exist_ok=True,
     )
 

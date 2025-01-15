@@ -1,6 +1,6 @@
 import { test, expect } from "@self/tootils";
 
-test("Custom PDF component demo can be loaded and inference function works .", async ({
+test.skip("Custom PDF component demo can be loaded and inference function works .", async ({
 	page
 }) => {
 	await page

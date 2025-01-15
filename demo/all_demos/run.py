@@ -19,11 +19,20 @@ templates = Jinja2Templates(directory="templates")
 
 names = sorted(os.listdir("./demos"))
 
+
 @app.get("/")
 def index(request: Request):
     names = [[p[0], p[2]] for p in all_demos]
-    return templates.TemplateResponse("index.html", {"request": request, "names": names,
-                                                     "initial_demo": names[0][0], "is_space": get_space()})
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "names": names,
+            "initial_demo": names[0][0],
+            "is_space": get_space(),
+        },
+    )
+
 
 all_demos = []
 demo_module = None

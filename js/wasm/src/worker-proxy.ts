@@ -41,7 +41,7 @@ export class WorkerProxy extends EventTarget {
 		// HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
 		// Read the comment in `cross-origin-worker.ts` for the detail.
 		const workerMaker = new Worker(
-			new URL("../webworker/webworker.js", import.meta.url),
+			new URL("../dist/webworker/webworker.js", import.meta.url),
 			{
 				/* @vite-ignore */ shared: sharedWorkerMode // `@vite-ignore` is needed to avoid an error `Vite is unable to parse the worker options as the value is not static.`
 			}
@@ -51,16 +51,12 @@ export class WorkerProxy extends EventTarget {
 		if (sharedWorkerMode) {
 			this.postMessageTarget = (this.worker as SharedWorker).port;
 			this.postMessageTarget.start();
-			this.postMessageTarget.onmessage = (e) => {
-				this._processWorkerMessage(e.data);
-			};
 		} else {
 			this.postMessageTarget = this.worker as globalThis.Worker;
-
-			(this.worker as globalThis.Worker).onmessage = (e) => {
-				this._processWorkerMessage(e.data);
-			};
 		}
+		this.postMessageTarget.onmessage = (e) => {
+			this._processWorkerMessage(e.data);
+		};
 
 		this.postMessageAsync({
 			type: "init-env",
@@ -162,6 +158,38 @@ export class WorkerProxy extends EventTarget {
 				this.dispatchEvent(
 					new CustomEvent("progress-update", {
 						detail: msg.data.log
+					})
+				);
+				break;
+			}
+			case "modules-auto-loaded": {
+				this.dispatchEvent(
+					new CustomEvent("modules-auto-loaded", {
+						detail: msg.data.packages
+					})
+				);
+				break;
+			}
+			case "stdout": {
+				this.dispatchEvent(
+					new CustomEvent("stdout", {
+						detail: msg.data.output
+					})
+				);
+				break;
+			}
+			case "stderr": {
+				this.dispatchEvent(
+					new CustomEvent("stderr", {
+						detail: msg.data.output
+					})
+				);
+				break;
+			}
+			case "python-error": {
+				this.dispatchEvent(
+					new CustomEvent("python-error", {
+						detail: new Error(msg.data.traceback)
 					})
 				);
 				break;

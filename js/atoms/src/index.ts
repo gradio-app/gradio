@@ -8,5 +8,7 @@ export { default as ShareButton } from "./ShareButton.svelte";
 export { default as UploadText } from "./UploadText.svelte";
 export { default as Toolbar } from "./Toolbar.svelte";
 export { default as SelectSource } from "./SelectSource.svelte";
+export { default as IconButtonWrapper } from "./IconButtonWrapper.svelte";
+export { default as FullscreenButton } from "./FullscreenButton.svelte";
 
 export const BLOCK_KEY = {};

@@ -13,11 +13,11 @@ with gr.Blocks() as demo:
         btn2 = gr.Button("Button 2")
 ```
 
-By default, every element in a Row will have the same height. Configure this with the `equal_height` argument.
+You can set every element in a Row to have the same height. Configure this with the `equal_height` argument.
 
 ```python
 with gr.Blocks() as demo:
-    with gr.Row(equal_height=False):
+    with gr.Row(equal_height=True):
         textbox = gr.Textbox()
         btn2 = gr.Button("Button 2")
 ```

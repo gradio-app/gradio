@@ -1,0 +1,5 @@
+safetensors==0.4.3
+opencv-python
+torch
+transformers>=4.43.0
+Pillow

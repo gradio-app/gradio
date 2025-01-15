@@ -105,7 +105,7 @@ demo = gr.Interface(
     title="Voice Authentication with UniSpeech-SAT + X-Vectors",
     description=description,
     article=article,
-    allow_flagging="never",
+    flagging_mode="never",
     live=False,
     examples=examples,
 )

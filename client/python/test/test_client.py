@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import pathlib
 import tempfile
 import time
@@ -16,15 +15,11 @@ import gradio as gr
 import httpx
 import huggingface_hub
 import pytest
-import uvicorn
-from fastapi import FastAPI
-from gradio.http_server import Server
-from huggingface_hub import HfFolder
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client, handle_file
 from gradio_client.client import DEFAULT_TEMP_DIR
-from gradio_client.exceptions import AppError, AuthenticationError
+from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
     Communicator,
     ProgressUnit,
@@ -33,7 +28,7 @@ from gradio_client.utils import (
     StatusUpdate,
 )
 
-HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
+HF_TOKEN = huggingface_hub.get_token()
 
 
 @contextmanager
@@ -133,7 +128,7 @@ class TestClientPredictions:
         space_id = "gradio-tests/not-actually-private-space"
         api = huggingface_hub.HfApi()
         assert api.space_info(space_id).private
-        client = Client(space_id)
+        client = Client(space_id, hf_token=HF_TOKEN)
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
@@ -144,6 +139,7 @@ class TestClientPredictions:
         assert api.space_info(space_id).private
         client = Client(
             space_id,
+            hf_token=HF_TOKEN,
         )
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
@@ -155,6 +151,7 @@ class TestClientPredictions:
         assert api.space_info(space_id).private
         client = Client(
             space_id,
+            hf_token=HF_TOKEN,
         )
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
@@ -562,37 +559,6 @@ class TestClientPredictions:
             ret = client.predict(message, initial_history, api_name="/submit")
             assert ret == ("", [["", None], ["Hello", "I love you"]])
 
-    def test_can_call_mounted_app_via_api(self):
-        def greet(name):
-            return "Hello " + name + "!"
-
-        gradio_app = gr.Interface(
-            fn=greet,
-            inputs=gr.Textbox(lines=2, placeholder="Name Here..."),
-            outputs="text",
-        )
-
-        app = FastAPI()
-        app = gr.mount_gradio_app(app, gradio_app, path="/test/gradio")
-        config = uvicorn.Config(
-            app=app,
-            port=8000,
-            log_level="info",
-        )
-        server = Server(config=config)
-        # Using the gradio Server class to not have
-        # to implement code again to run uvicorn in a separate thread
-        # However, that means we need to set this flag to prevent
-        # run_in_thread_from_blocking
-        server.started = True
-        try:
-            server.run_in_thread()
-            time.sleep(1)
-            client = Client("http://127.0.0.1:8000/test/gradio/")
-            assert client.predict("freddy") == "Hello freddy!"
-        finally:
-            server.thread.join(timeout=1)
-
     @pytest.mark.flaky
     def test_predict_with_space_with_api_name_false(self):
         client = Client("gradio-tests/client-bool-api-name-error")
@@ -659,6 +625,27 @@ class TestClientPredictions:
             time.sleep(5)
         out = capsys.readouterr().out
         assert "STATE DELETED" in out
+
+    def test_add_zero_gpu_headers_no_gradio_context(self):
+        client = Client("gradio/calculator")
+        headers = {"existing": "header"}
+        new_headers = client.add_zero_gpu_headers(headers)
+        assert new_headers == headers  # No changes when not in Gradio context
+
+    def test_add_zero_gpu_headers_with_ip_token(self, monkeypatch):
+        client = Client("gradio/calculator")
+        headers = {"existing": "header"}
+
+        class MockRequest:
+            headers = {"x-ip-token": "test-token"}
+
+        class MockContext:
+            request = MagicMock()
+            request.get.return_value = MockRequest()
+
+        monkeypatch.setattr("gradio.context.LocalContext", MockContext)
+        new_headers = client.add_zero_gpu_headers(headers)
+        assert new_headers == {"existing": "header", "x-ip-token": "test-token"}
 
 
 class TestClientPredictionsWithKwargs:
@@ -917,7 +904,7 @@ class TestAPIInfo:
                             "label": "output",
                             "type": {"type": {}, "description": "any valid json"},
                             "python_type": {
-                                "type": "Dict[Any, Any]",
+                                "type": "dict[Any, Any]",
                                 "description": "any valid json",
                             },
                             "component": "Label",
@@ -957,7 +944,7 @@ class TestAPIInfo:
                             "label": "output",
                             "type": {"type": {}, "description": "any valid json"},
                             "python_type": {
-                                "type": "Dict[Any, Any]",
+                                "type": "dict[Any, Any]",
                                 "description": "any valid json",
                             },
                             "component": "Label",
@@ -997,7 +984,7 @@ class TestAPIInfo:
                             "label": "output",
                             "type": {"type": {}, "description": "any valid json"},
                             "python_type": {
-                                "type": "Dict[Any, Any]",
+                                "type": "dict[Any, Any]",
                                 "description": "any valid json",
                             },
                             "component": "Label",
@@ -1020,6 +1007,7 @@ class TestAPIInfo:
     def test_private_space(self):
         client = Client(
             "gradio-tests/not-actually-private-space",
+            hf_token=HF_TOKEN,
         )
         assert len(client.endpoints) == 3
         assert len([e for e in client.endpoints.values() if e.is_valid]) == 2
@@ -1132,29 +1120,18 @@ class TestAPIInfo:
             outputs = info["named_endpoints"]["/predict"]["returns"]
 
             assert inputs[0]["type"]["type"] == "array"
-            assert inputs[0]["python_type"] == {
-                "type": "List[filepath]",
-                "description": "",
-            }
+            assert inputs[0]["python_type"]["type"] == "list[filepath]"
+
             assert isinstance(inputs[0]["example_input"], list)
             assert isinstance(inputs[0]["example_input"][0], dict)
 
-            assert inputs[1]["python_type"] == {
-                "type": "filepath",
-                "description": "",
-            }
+            assert inputs[1]["python_type"]["type"] == "filepath"
             assert isinstance(inputs[1]["example_input"], dict)
 
-            assert outputs[0]["python_type"] == {
-                "type": "List[filepath]",
-                "description": "",
-            }
+            assert outputs[0]["python_type"]["type"] == "list[filepath]"
             assert outputs[0]["type"]["type"] == "array"
 
-            assert outputs[1]["python_type"] == {
-                "type": "filepath",
-                "description": "",
-            }
+            assert outputs[1]["python_type"]["type"] == "filepath"
 
     def test_layout_components_in_output(self, hello_world_with_group):
         with connect(hello_world_with_group) as client:
@@ -1255,6 +1232,7 @@ class TestEndpoints:
     def test_upload(self):
         client = Client(
             src="gradio-tests/not-actually-private-file-upload",
+            hf_token=HF_TOKEN,
         )
         response = MagicMock(status_code=200)
         response.json.return_value = [
@@ -1396,21 +1374,6 @@ class TestDuplication:
                 "test_value2",
                 token=HF_TOKEN,
             )
-
-
-def test_upstream_exceptions(count_generator_demo_exception):
-    with connect(count_generator_demo_exception, show_error=True) as client:
-        with pytest.raises(
-            AppError, match="The upstream Gradio app has raised an exception: Oh no!"
-        ):
-            client.predict(7, api_name="/count")
-
-    with connect(count_generator_demo_exception) as client:
-        with pytest.raises(
-            AppError,
-            match="The upstream Gradio app has raised an exception but has not enabled verbose error reporting.",
-        ):
-            client.predict(7, api_name="/count")
 
 
 def test_httpx_kwargs(increment_demo):

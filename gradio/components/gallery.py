@@ -2,58 +2,74 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    List,
     Literal,
     Optional,
-    Sequence,
-    Tuple,
     Union,
 )
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 import numpy as np
 import PIL.Image
 from gradio_client import handle_file
+from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import is_http_url_like
 
-from gradio import processing_utils, utils, wasm_utils
+from gradio import image_utils, processing_utils, utils, wasm_utils
 from gradio.components.base import Component
-from gradio.data_classes import FileData, GradioModel, GradioRootModel
-from gradio.events import Events
+from gradio.data_classes import FileData, GradioModel, GradioRootModel, ImageData
+from gradio.events import EventListener, Events
+from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from gradio.components import Timer
 
-GalleryImageType = Union[np.ndarray, PIL.Image.Image, Path, str]
-CaptionedGalleryImageType = Tuple[GalleryImageType, str]
+GalleryMediaType = Union[np.ndarray, PIL.Image.Image, Path, str]
+CaptionedGalleryMediaType = tuple[GalleryMediaType, str]
 
 
 class GalleryImage(GradioModel):
-    image: FileData
+    image: ImageData
+    caption: Optional[str] = None
+
+
+class GalleryVideo(GradioModel):
+    video: FileData
     caption: Optional[str] = None
 
 
 class GalleryData(GradioRootModel):
-    root: List[GalleryImage]
+    root: list[Union[GalleryImage, GalleryVideo]]
 
 
 @document()
 class Gallery(Component):
     """
-    Creates a gallery component that allows displaying a grid of images, and optionally captions. If used as an input, the user can upload images to the gallery.
-    If used as an output, the user can click on individual images to view them at a higher resolution.
+    Creates a gallery component that allows displaying a grid of images or videos, and optionally captions. If used as an input, the user can upload images or videos to the gallery.
+    If used as an output, the user can click on individual images or videos to view them at a higher resolution.
 
     Demos: fake_gan
     """
 
-    EVENTS = [Events.select, Events.upload, Events.change]
+    EVENTS = [
+        Events.select,
+        Events.upload,
+        Events.change,
+        EventListener(
+            "preview_close",
+            doc="This event is triggered when the Gallery preview is closed by the user",
+        ),
+        EventListener(
+            "preview_open",
+            doc="This event is triggered when the Gallery preview is opened by the user",
+        ),
+    ]
 
     data_model = GalleryData
 
@@ -66,6 +82,7 @@ class Gallery(Component):
         ) = None,
         *,
         format: str = "webp",
+        file_types: list[str] | None = None,
         label: str | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
@@ -78,7 +95,7 @@ class Gallery(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        columns: int | list[int] | Tuple[int, ...] | None = 2,
+        columns: int | list[int] | tuple[int, ...] | None = 2,
         rows: int | list[int] | None = None,
         height: int | float | str | None = None,
         allow_preview: bool = True,
@@ -95,9 +112,10 @@ class Gallery(Component):
     ):
         """
         Parameters:
-            value: List of images to display in the gallery by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: List of images or videos to display in the gallery by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             format: Format to save images before they are returned to the frontend, such as 'jpeg' or 'png'. This parameter only applies to images that are returned from the prediction function as numpy arrays or PIL Images. The format should be supported by the PIL library.
-            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.mp4']), when this is used as an input component. "image" allows only image files to be uploaded, "video" allows only video files to be uploaded, ".mp4" allows only mp4 files to be uploaded, etc. If None, any image and video files types are allowed.
+            label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
@@ -137,6 +155,7 @@ class Gallery(Component):
         self.selected_index = selected_index
         self.type = type
         self.show_fullscreen_button = show_fullscreen_button
+        self.file_types = file_types
 
         self.show_share_button = (
             (utils.get_space() is not None)
@@ -163,43 +182,63 @@ class Gallery(Component):
     def preprocess(
         self, payload: GalleryData | None
     ) -> (
-        List[tuple[str, str | None]]
-        | List[tuple[PIL.Image.Image, str | None]]
-        | List[tuple[np.ndarray, str | None]]
+        list[tuple[str, str | None]]
+        | list[tuple[PIL.Image.Image, str | None]]
+        | list[tuple[np.ndarray, str | None]]
         | None
     ):
         """
         Parameters:
-            payload: a list of images, or list of (image, caption) tuples
+            payload: a list of images or videos, or list of (media, caption) tuples
         Returns:
-            Passes the list of images as a list of (image, caption) tuples, or a list of (image, None) tuples if no captions are provided (which is usually the case). The image can be a `str` file path, a `numpy` array, or a `PIL.Image` object depending on `type`.
+            Passes the list of images or videos as a list of (media, caption) tuples, or a list of (media, None) tuples if no captions are provided (which is usually the case). Images can be a `str` file path, a `numpy` array, or a `PIL.Image` object depending on `type`.  Videos are always `str` file path.
         """
         if payload is None or not payload.root:
             return None
         data = []
         for gallery_element in payload.root:
-            image = self.convert_to_type(gallery_element.image.path, self.type)  # type: ignore
-            data.append((image, gallery_element.caption))
+            if isinstance(gallery_element, GalleryVideo):
+                file_path = gallery_element.video.path
+            else:
+                file_path = gallery_element.image.path or ""
+            if self.file_types and not client_utils.is_valid_file(
+                file_path, self.file_types
+            ):
+                raise Error(
+                    f"Invalid file type. Please upload a file that is one of these formats: {self.file_types}"
+                )
+            else:
+                media = (
+                    gallery_element.video.path
+                    if (type(gallery_element) is GalleryVideo)
+                    else self.convert_to_type(gallery_element.image.path, self.type)  # type: ignore
+                )
+                data.append((media, gallery_element.caption))
         return data
 
     def postprocess(
         self,
-        value: list[GalleryImageType | CaptionedGalleryImageType] | None,
+        value: list[GalleryMediaType | CaptionedGalleryMediaType] | None,
     ) -> GalleryData:
         """
         Parameters:
-            value: Expects the function to return a `list` of images, or `list` of (image, `str` caption) tuples. Each image can be a `str` file path, a `numpy` array, or a `PIL.Image` object.
+            value: Expects the function to return a `list` of images or videos, or `list` of (media, `str` caption) tuples. Each image can be a `str` file path, a `numpy` array, or a `PIL.Image` object. Each video can be a `str` file path.
         Returns:
-            a list of images, or list of (image, caption) tuples
+            a list of images or videos, or list of (media, caption) tuples
         """
         if value is None:
             return GalleryData(root=[])
+        if isinstance(value, str):
+            raise ValueError(
+                "The `value` passed into `gr.Gallery` must be a list of images or videos, or list of (media, caption) tuples."
+            )
         output = []
 
         def _save(img):
             url = None
             caption = None
             orig_name = None
+            mime_type = None
             if isinstance(img, (tuple, list)):
                 img, caption = img
             if isinstance(img, np.ndarray):
@@ -213,22 +252,46 @@ class Gallery(Component):
                 )
                 file_path = str(utils.abspath(file))
             elif isinstance(img, str):
-                file_path = img
-                if is_http_url_like(img):
+                mime_type = client_utils.get_mimetype(img)
+                if img.lower().endswith(".svg"):
+                    svg_content = image_utils.extract_svg_content(img)
+                    orig_name = Path(img).name
+                    url = f"data:image/svg+xml,{quote(svg_content)}"
+                    file_path = None
+                elif is_http_url_like(img):
                     url = img
                     orig_name = Path(urlparse(img).path).name
+                    file_path = img
                 else:
                     url = None
                     orig_name = Path(img).name
+                    file_path = img
             elif isinstance(img, Path):
                 file_path = str(img)
                 orig_name = img.name
+                mime_type = client_utils.get_mimetype(file_path)
             else:
                 raise ValueError(f"Cannot process type as image: {type(img)}")
-            return GalleryImage(
-                image=FileData(path=file_path, url=url, orig_name=orig_name),
-                caption=caption,
-            )
+            if mime_type is not None and "video" in mime_type:
+                return GalleryVideo(
+                    video=FileData(
+                        path=file_path,  # type: ignore
+                        url=url,
+                        orig_name=orig_name,
+                        mime_type=mime_type,
+                    ),
+                    caption=caption,
+                )
+            else:
+                return GalleryImage(
+                    image=ImageData(
+                        path=file_path,
+                        url=url,
+                        orig_name=orig_name,
+                        mime_type=mime_type,
+                    ),
+                    caption=caption,
+                )
 
         if wasm_utils.IS_WASM:
             for img in value:

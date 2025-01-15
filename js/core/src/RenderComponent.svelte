@@ -13,10 +13,11 @@
 	export let theme_mode: ThemeMode;
 	export let instance: ComponentMeta["instance"];
 	export let value: any;
-	export let gradio: Gradio;
+	// export let gradio: Gradio;
 	export let elem_id: string;
 	export let elem_classes: string[];
 	export let _id: number;
+	export let visible: boolean;
 
 	const s = (id: number, p: string, v: any): CustomEvent =>
 		new CustomEvent("prop_change", { detail: { id, prop: p, value: v } });
@@ -32,6 +33,7 @@
 
 				function report(props: string) {
 					return function (propargs: any) {
+						if (!target) return;
 						const ev = s(_id, props, propargs);
 						target.dispatchEvent(ev);
 					};
@@ -50,6 +52,7 @@
 	const _component = wrap(component);
 </script>
 
+<!-- {#if visible} -->
 <svelte:component
 	this={_component}
 	bind:this={instance}
@@ -58,10 +61,11 @@
 	{elem_id}
 	{elem_classes}
 	{target}
+	{visible}
 	{...$$restProps}
 	{theme_mode}
 	{root}
-	{gradio}
 >
 	<slot />
 </svelte:component>
+<!-- {/if} -->

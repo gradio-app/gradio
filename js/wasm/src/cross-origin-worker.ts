@@ -26,20 +26,32 @@ function get_blob_url(url: URL): string {
 	return worker_blob_url;
 }
 
+function is_same_origin(url: URL): boolean {
+	return url.origin === window.location.origin;
+}
+
 export class CrossOriginWorkerMaker {
 	public readonly worker: Worker | SharedWorker;
 
 	constructor(url: URL, options?: WorkerOptions & { shared?: boolean }) {
 		const { shared = false, ...workerOptions } = options ?? {};
 
-		try {
+		if (is_same_origin(url)) {
+			console.debug(
+				`Loading a worker script from the same origin: ${url.toString()}.`
+			);
 			// This is the normal way to load a worker script, which is the best straightforward if possible.
 			this.worker = shared
 				? new SharedWorker(url, workerOptions)
 				: new Worker(url, workerOptions);
-		} catch (e) {
+
+			// NOTE: We use here `if-else` checking the origin instead of `try-catch`
+			// because the `try-catch` approach doesn't work on some browsers like FireFox.
+			// In the cross-origin case, FireFox throws a SecurityError asynchronously after the worker is created,
+			// so we can't catch the error synchronously.
+		} else {
 			console.debug(
-				`Failed to load a worker script from ${url.toString()}. Trying to load a cross-origin worker...`
+				`Loading a worker script from a different origin: ${url.toString()}.`
 			);
 			const worker_blob_url = get_blob_url(url);
 			this.worker = shared

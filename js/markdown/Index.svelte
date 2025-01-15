@@ -1,11 +1,10 @@
 <script context="module" lang="ts">
-	export { default as MarkdownCode } from "./shared/MarkdownCode.svelte";
 	export { default as BaseMarkdown } from "./shared/Markdown.svelte";
 	export { default as BaseExample } from "./Example.svelte";
 </script>
 
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
+	import type { Gradio, CopyData } from "@gradio/utils";
 	import Markdown from "./shared/Markdown.svelte";
 
 	import { StatusTracker } from "@gradio/statustracker";
@@ -23,6 +22,7 @@
 	export let line_breaks = false;
 	export let gradio: Gradio<{
 		change: never;
+		copy: CopyData;
 		clear_status: LoadingStatus;
 	}>;
 	export let latex_delimiters: {
@@ -31,8 +31,11 @@
 		display: boolean;
 	}[];
 	export let header_links = false;
-	export let height: number | string | undefined = undefined;
+	export let height: number | string | undefined;
+	export let min_height: number | string | undefined;
+	export let max_height: number | string | undefined;
 	export let show_copy_button = false;
+	export let container = false;
 
 	$: label, gradio.dispatch("change");
 </script>
@@ -41,8 +44,12 @@
 	{visible}
 	{elem_id}
 	{elem_classes}
-	container={false}
+	{container}
 	allow_overflow={true}
+	overflow_behavior="auto"
+	{height}
+	{min_height}
+	{max_height}
 >
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
@@ -53,19 +60,19 @@
 	/>
 	<div class:pending={loading_status?.status === "pending"}>
 		<Markdown
-			min_height={loading_status && loading_status.status !== "complete"}
 			{value}
 			{elem_classes}
 			{visible}
 			{rtl}
 			on:change={() => gradio.dispatch("change")}
+			on:copy={(e) => gradio.dispatch("copy", e.detail)}
 			{latex_delimiters}
 			{sanitize_html}
 			{line_breaks}
 			{header_links}
-			{height}
 			{show_copy_button}
 			root={gradio.root}
+			{loading_status}
 		/>
 	</div>
 </Block>

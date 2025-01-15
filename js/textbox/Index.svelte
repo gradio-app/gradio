@@ -6,7 +6,7 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import type { Gradio, SelectData, CopyData } from "@gradio/utils";
 	import TextBox from "./shared/Textbox.svelte";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -19,7 +19,9 @@
 		select: SelectData;
 		input: never;
 		focus: never;
+		stop: never;
 		clear_status: LoadingStatus;
+		copy: CopyData;
 	}>;
 	export let label = "Textbox";
 	export let info: string | undefined = undefined;
@@ -35,6 +37,8 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let submit_btn: string | boolean | null = null;
+	export let stop_btn: string | boolean | null = null;
 	export let show_copy_button = false;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let value_is_output = false;
@@ -43,6 +47,7 @@
 	export let autofocus = false;
 	export let autoscroll = true;
 	export let interactive: boolean;
+	export let root: string;
 	export let max_length: number | undefined = undefined;
 </script>
 
@@ -69,6 +74,7 @@
 		bind:value_is_output
 		{label}
 		{info}
+		{root}
 		{show_label}
 		{lines}
 		{type}
@@ -76,6 +82,8 @@
 		{text_align}
 		max_lines={!max_lines ? lines + 1 : max_lines}
 		{placeholder}
+		{submit_btn}
+		{stop_btn}
 		{show_copy_button}
 		{autofocus}
 		{container}
@@ -87,6 +95,8 @@
 		on:blur={() => gradio.dispatch("blur")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		on:focus={() => gradio.dispatch("focus")}
+		on:stop={() => gradio.dispatch("stop")}
+		on:copy={(e) => gradio.dispatch("copy", e.detail)}
 		disabled={!interactive}
 	/>
 </Block>

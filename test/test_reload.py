@@ -1,6 +1,5 @@
 import dataclasses
 from pathlib import Path
-from typing import List
 
 import pytest
 
@@ -21,7 +20,7 @@ def build_demo():
 class Config:
     module_name: str
     path: Path
-    watch_dirs: List[str]
+    watch_dirs: list[str]
     demo_name: str
 
 

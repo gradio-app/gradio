@@ -1,5 +1,201 @@
 # @gradio/lite
 
+## 5.12.0
+
+### Dependency updates
+
+- @gradio/atoms@0.13.1
+- @gradio/core@0.6.1
+
+## 5.10.0
+
+### Features
+
+- [#9984](https://github.com/gradio-app/gradio/pull/9984) [`45df1b1`](https://github.com/gradio-app/gradio/commit/45df1b1978e597546a208ecbf5b3aca56137edc5) - Lite: Capture stdout and stderr from the main thread.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/wasm@0.16.0
+- @gradio/core@0.6.0
+
+## 5.9.0
+
+### Dependency updates
+
+- @gradio/atoms@0.12.0
+- @gradio/core@0.5.0
+
+## 5.8.0
+
+### Features
+
+- [#10077](https://github.com/gradio-app/gradio/pull/10077) [`bf03d54`](https://github.com/gradio-app/gradio/commit/bf03d54e2fa413a4c98c4e3d6797b8b6a0a790ae) - Fix to call bootstrap_custom_element() if the script is loaded after the DOMContentLoaded event.  Thanks @whitphx!
+
+## 5.7.0
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/core@0.4.1
+
+## 5.6.0
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/core@0.4.0
+
+## 5.5.0
+
+### Features
+
+- [#9424](https://github.com/gradio-app/gradio/pull/9424) [`a1582a6`](https://github.com/gradio-app/gradio/commit/a1582a6dca494618c734208cade87acfdac91004) - Lite worker refactoring.  Thanks @whitphx!
+- [#9726](https://github.com/gradio-app/gradio/pull/9726) [`b6725cf`](https://github.com/gradio-app/gradio/commit/b6725cf6c1fe9667dc10e1988976ed36d84d73d3) - Lite auto-load imported modules with `pyodide.loadPackagesFromImports`.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/atoms@0.11.0
+- @gradio/wasm@0.15.0
+- @gradio/core@0.3.0
+
+## 4.43.2
+
+### Dependency updates
+
+- @gradio/atoms@0.10.1
+- @gradio/core@0.2.1
+
+## 4.43.2
+
+### Dependency updates
+
+- @gradio/atoms@0.10.0
+- @self/build@0.2.0
+- @gradio/core@0.2.1
+
+## 4.43.2
+
+### Dependency updates
+
+- @gradio/atoms@0.9.2
+
+## 4.43.2
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+- @gradio/wasm@0.14.2
+- @self/build@0.1.1
+- @gradio/core@0.2.0
+
+## 4.43.2
+
+### Fixes
+
+- [#9528](https://github.com/gradio-app/gradio/pull/9528) [`9004b11`](https://github.com/gradio-app/gradio/commit/9004b110640bdb54995343a870bf080ee15da02d) - Fix Lite to work on FireFox.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/wasm@0.14.1
+- @gradio/core@0.1.1
+
+## 4.43.1
+
+### Features
+
+- [#9617](https://github.com/gradio-app/gradio/pull/9617) [`c163182`](https://github.com/gradio-app/gradio/commit/c163182d1b752ef91629f9caa13bf3cce0fb0869) - Fix dark mode detection and container height.  Thanks @pngwn!
+
+### Fixes
+
+- [#9630](https://github.com/gradio-app/gradio/pull/9630) [`2eaa066`](https://github.com/gradio-app/gradio/commit/2eaa0667e1d1a0edd1089bf8c3ffa3f563b9bca2) - Fix duplicate attribute error.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/core@0.1.1
+
+## 4.43.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Playground requirements tab
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Remove lite/theme.css from the Git-managed file tree
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - 🔡 Update default core Gradio font
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Stop using `multiprocessing` in `flagging.CSVLogger` on Lite v5
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Ssr part 2
+
+## 4.43.0-beta.3
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.5
+- @gradio/core@0.1.0-beta.6
+- @self/build@0.1.0-beta.3
+
+## 4.43.0-beta.3
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.4
+- @gradio/core@0.1.0-beta.5
+
+## 4.43.0-beta.3
+
+### Features
+
+- [#9460](https://github.com/gradio-app/gradio/pull/9460) [`7352a89`](https://github.com/gradio-app/gradio/commit/7352a89722da91461c32fd33588531f3edce9c48) - Playground requirements tab.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/core@0.1.0-beta.4
+- @gradio/atoms@0.9.0-beta.3
+
+## 4.43.0-beta.2
+
+### Dependency updates
+
+- @gradio/wasm@0.14.0-beta.3
+- @gradio/core@0.1.0-beta.4
+
+## 4.43.0-beta.2
+
+### Dependency updates
+
+- @gradio/core@0.1.0-beta.3
+
+## 4.43.0-beta.2
+
+### Dependency updates
+
+- @gradio/core@0.1.0-beta.3
+
+## 4.43.0-beta.2
+
+### Features
+
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+- [#9335](https://github.com/gradio-app/gradio/pull/9335) [`b543465`](https://github.com/gradio-app/gradio/commit/b543465d06d7d1b399c4d0755da05e022611a97f) - Remove lite/theme.css from the Git-managed file tree.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/wasm@0.14.0-beta.2
+- @gradio/core@0.1.0-beta.2
+- @self/build@0.1.0-beta.2
+
+## 4.43.0-beta.1
+
+### Features
+
+- [#9204](https://github.com/gradio-app/gradio/pull/9204) [`3c73f00`](https://github.com/gradio-app/gradio/commit/3c73f00e3016b16917ebfe0bad390f2dff683457) - 🔡 Update default core Gradio font.  Thanks @hannahblair!
+- [#9246](https://github.com/gradio-app/gradio/pull/9246) [`38cf712`](https://github.com/gradio-app/gradio/commit/38cf71234bf57fe9da6eea2d32b1d6e7ef35c700) - Stop using `multiprocessing` in `flagging.CSVLogger` on Lite v5.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/wasm@0.13.1-beta.1
+- @gradio/theme@0.3.0-beta.1
+
 ## 4.43.0
 
 ### Fixes

@@ -2,16 +2,21 @@
 	import { createEventDispatcher, onMount } from "svelte";
 	import type { SelectData } from "@gradio/utils";
 	import { uploadToHuggingFace } from "@gradio/utils";
-	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
-	import { Download } from "@gradio/icons";
+	import {
+		BlockLabel,
+		Empty,
+		IconButton,
+		ShareButton,
+		IconButtonWrapper,
+		FullscreenButton
+	} from "@gradio/atoms";
+	import { Download, Image as ImageIcon } from "@gradio/icons";
 	import { get_coordinates_of_clicked_image } from "./utils";
-	import Image from "./Image.svelte";
+	import { Image } from "@gradio/image/shared";
 	import { DownloadLink } from "@gradio/wasm/svelte";
-	import { Maximize, Minimize } from "@gradio/icons";
 
-	import { Image as ImageIcon } from "@gradio/icons";
-	import { type FileData } from "@gradio/client";
 	import type { I18nFormatter } from "@gradio/utils";
+	import type { FileData } from "@gradio/client";
 
 	export let value: null | FileData;
 	export let label: string | undefined = undefined;
@@ -21,6 +26,7 @@
 	export let show_share_button = false;
 	export let i18n: I18nFormatter;
 	export let show_fullscreen_button = true;
+	export let display_icon_button_wrapper_top_corner = false;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
@@ -34,23 +40,7 @@
 		}
 	};
 
-	let is_full_screen = false;
 	let image_container: HTMLElement;
-
-	onMount(() => {
-		document.addEventListener("fullscreenchange", () => {
-			is_full_screen = !!document.fullscreenElement;
-		});
-	});
-
-	const toggle_full_screen = async (): Promise<void> => {
-		if (!is_full_screen) {
-			await image_container.requestFullscreen();
-		} else {
-			await document.exitFullscreen();
-			is_full_screen = !is_full_screen;
-		}
-	};
 </script>
 
 <BlockLabel
@@ -62,21 +52,11 @@
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
 	<div class="image-container" bind:this={image_container}>
-		<div class="icon-buttons">
-			{#if !is_full_screen && show_fullscreen_button}
-				<IconButton
-					Icon={Maximize}
-					label={is_full_screen ? "Exit full screen" : "View in full screen"}
-					on:click={toggle_full_screen}
-				/>
-			{/if}
-
-			{#if is_full_screen && show_fullscreen_button}
-				<IconButton
-					Icon={Minimize}
-					label={is_full_screen ? "Exit full screen" : "View in full screen"}
-					on:click={toggle_full_screen}
-				/>
+		<IconButtonWrapper
+			display_top_corner={display_icon_button_wrapper_top_corner}
+		>
+			{#if show_fullscreen_button}
+				<FullscreenButton container={image_container} />
 			{/if}
 
 			{#if show_download_button}
@@ -97,7 +77,7 @@
 					{value}
 				/>
 			{/if}
-		</div>
+		</IconButtonWrapper>
 		<button on:click={handle_click}>
 			<div class:selectable class="image-frame">
 				<Image src={value.url} alt="" loading="lazy" on:load />
@@ -110,6 +90,7 @@
 	.image-container {
 		height: 100%;
 		position: relative;
+		min-width: var(--size-20);
 	}
 
 	.image-container button {
@@ -137,15 +118,6 @@
 
 	.selectable {
 		cursor: crosshair;
-	}
-
-	.icon-buttons {
-		display: flex;
-		position: absolute;
-		top: 6px;
-		right: 6px;
-		gap: var(--size-1);
-		z-index: 1;
 	}
 
 	:global(.fullscreen-controls svg) {

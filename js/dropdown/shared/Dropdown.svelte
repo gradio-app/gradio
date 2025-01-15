@@ -6,18 +6,21 @@
 	import type { SelectData, KeyUpData } from "@gradio/utils";
 	import { handle_filter, handle_change, handle_shared_keys } from "./utils";
 
+	type Item = string | number;
+
 	export let label: string;
 	export let info: string | undefined = undefined;
-	export let value: string | number | (string | number)[] | undefined = [];
-	let old_value: string | number | (string | number)[] | undefined = [];
+	export let value: Item | Item[] | undefined = undefined;
+	let old_value: typeof value = undefined;
 	export let value_is_output = false;
-	export let choices: [string, string | number][];
-	let old_choices: [string, string | number][];
+	export let choices: [string, Item][];
+	let old_choices: typeof choices;
 	export let disabled = false;
 	export let show_label: boolean;
 	export let container = true;
 	export let allow_custom_value = false;
 	export let filterable = true;
+	export let root: string;
 
 	let filter_input: HTMLElement;
 
@@ -56,12 +59,6 @@
 			old_input_text = input_text;
 		}
 		set_input_text();
-	} else if (choices.length > 0) {
-		old_selected_index = 0;
-		selected_index = 0;
-		[input_text, value] = choices[selected_index];
-		old_value = value;
-		old_input_text = input_text;
 	}
 
 	$: {
@@ -80,12 +77,10 @@
 		}
 	}
 
-	$: {
-		if (value != old_value) {
-			set_input_text();
-			handle_change(dispatch, value, value_is_output);
-			old_value = value;
-		}
+	$: if (JSON.stringify(old_value) !== JSON.stringify(value)) {
+		set_input_text();
+		handle_change(dispatch, value, value_is_output);
+		old_value = value;
 	}
 
 	function set_choice_names_values(): void {
@@ -204,7 +199,7 @@
 </script>
 
 <div class:container>
-	<BlockTitle {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">
 		<div class="wrap-inner" class:show_options>
@@ -277,6 +272,7 @@
 	.wrap:focus-within {
 		box-shadow: var(--input-shadow-focus);
 		border-color: var(--input-border-color-focus);
+		background: var(--input-background-fill-focus);
 	}
 
 	.wrap-inner {

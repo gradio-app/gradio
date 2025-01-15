@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import math
 import random
-from typing import TYPE_CHECKING, Any, Callable, Sequence
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any
 
 from gradio_client.documentation import document
 
@@ -48,6 +49,7 @@ class Slider(FormComponent):
         render: bool = True,
         key: int | str | None = None,
         randomize: bool = False,
+        show_reset_button: bool = True,
     ):
         """
         Parameters:
@@ -55,8 +57,8 @@ class Slider(FormComponent):
             maximum: maximum value for slider.
             value: default value. If callable, the function will be called whenever the app loads to set the initial value of the component. Ignored if randomized=True.
             step: increment between slider values.
-            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            info: additional component description.
+            label: the label for this component, displayed above the component if `show_label` is `True` and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component corresponds to.
+            info: additional component description, appears below the label in smaller font. Supports markdown / HTML syntax.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
@@ -70,6 +72,7 @@ class Slider(FormComponent):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             randomize: If True, the value of the slider when the app loads is taken uniformly at random from the range given by the minimum and maximum.
+            show_reset_button: if False, will hide button to reset slider to default value.
         """
         self.minimum = minimum
         self.maximum = maximum
@@ -79,6 +82,7 @@ class Slider(FormComponent):
             self.step = 10**power
         else:
             self.step = step
+        self.show_reset_button = show_reset_button
         if randomize:
             value = self.get_random_value
         super().__init__(

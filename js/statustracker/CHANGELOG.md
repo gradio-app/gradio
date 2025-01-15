@@ -1,5 +1,151 @@
 # @gradio/statustracker
 
+## 0.10.1
+
+### Dependency updates
+
+- @gradio/atoms@0.13.1
+- @gradio/icons@0.10.0
+
+## 0.10.0
+
+### Features
+
+- [#10262](https://github.com/gradio-app/gradio/pull/10262) [`f3bedd4`](https://github.com/gradio-app/gradio/commit/f3bedd4011bdfdecc952eb1275a9dd96af3e8d71) - add gr.Success and update windows contributing.  Thanks @not-lain!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/icons@0.9.0
+
+## 0.9.7
+
+### Dependency updates
+
+- @gradio/atoms@0.12.0
+
+## 0.9.6
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+
+## 0.9.5
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/utils@0.8.0
+
+## 0.9.4
+
+### Dependency updates
+
+- @gradio/atoms@0.11.0
+
+## 0.9.3
+
+### Dependency updates
+
+- @gradio/atoms@0.10.1
+
+## 0.9.2
+
+### Dependency updates
+
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+
+## 0.9.1
+
+### Dependency updates
+
+- @gradio/atoms@0.9.2
+
+## 0.9.0
+
+### Features
+
+- [#9681](https://github.com/gradio-app/gradio/pull/9681) [`2ed2361`](https://github.com/gradio-app/gradio/commit/2ed236187a9aab18e17fc4a8079eddef7dd195a5) - Allow setting title in gr.Info/Warning/Error.  Thanks @ABucket!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+
+## 0.8.1
+
+### Features
+
+- [#9617](https://github.com/gradio-app/gradio/pull/9617) [`c163182`](https://github.com/gradio-app/gradio/commit/c163182d1b752ef91629f9caa13bf3cce0fb0869) - Fix dark mode detection and container height.  Thanks @pngwn!
+
+## 0.8.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Move buttons from chat_interface into Chatbot
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Move icons into `IconButtonWrapper`
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Streaming inputs for 5.0
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Ssr part 2
+
+### Dependencies
+
+- @gradio/atoms@0.9.0
+- @gradio/icons@0.8.0
+- @gradio/utils@0.7.0
+
+## 0.8.0-beta.5
+
+### Dependency updates
+
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+
+## 0.8.0-beta.4
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.4
+
+## 0.8.0-beta.3
+
+### Dependency updates
+
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+
+## 0.8.0-beta.2
+
+### Features
+
+- [#9261](https://github.com/gradio-app/gradio/pull/9261) [`73647a0`](https://github.com/gradio-app/gradio/commit/73647a07b0439efabe3dd218ff6c366ffa3b84a0) - Move icons into `IconButtonWrapper`.  Thanks @hannahblair!
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
+## 0.8.0-beta.1
+
+### Features
+
+- [#9201](https://github.com/gradio-app/gradio/pull/9201) [`5492e74`](https://github.com/gradio-app/gradio/commit/5492e742b1f1fa618208cce523f50ad22a6e86f1) - Move buttons from chat_interface into Chatbot.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+
+## 0.8.0-beta.0
+
+### Features
+
+- [#8941](https://github.com/gradio-app/gradio/pull/8941) [`97a7bf6`](https://github.com/gradio-app/gradio/commit/97a7bf66a79179d1b91a3199d68e5c11216ca500) - Streaming inputs for 5.0.  Thanks @freddyaboulton!
+
 ## 0.7.6
 
 ### Fixes

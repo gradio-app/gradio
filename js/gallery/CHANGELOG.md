@@ -1,5 +1,288 @@
 # @gradio/gallery
 
+## 0.15.1
+
+### Dependency updates
+
+- @gradio/video@0.13.1
+- @gradio/atoms@0.13.1
+- @gradio/statustracker@0.10.1
+- @gradio/client@1.10.0
+- @gradio/icons@0.10.0
+- @gradio/upload@0.14.5
+- @gradio/image@0.20.1
+- @gradio/file@0.12.1
+
+## 0.15.0
+
+### Features
+
+- [#10303](https://github.com/gradio-app/gradio/pull/10303) [`f19ca89`](https://github.com/gradio-app/gradio/commit/f19ca89cdd4040dbaa41bbc3b9915edc032603a0) - Add preview_open and preview_close events to Gallery.  Thanks @freddyaboulton!
+
+## 0.14.1
+
+### Fixes
+
+- [#10269](https://github.com/gradio-app/gradio/pull/10269) [`890eaa3`](https://github.com/gradio-app/gradio/commit/890eaa3a9e53dab5bcb16c5d017ae0470109b8fb) - Allow displaying SVG images securely in `gr.Image` and `gr.Gallery` components.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/upload@0.14.4
+- @gradio/client@1.9.0
+- @gradio/icons@0.9.0
+- @gradio/statustracker@0.10.0
+- @gradio/image@0.20.0
+- @gradio/video@0.13.0
+- @gradio/file@0.12.0
+
+## 0.14.0
+
+### Features
+
+- [#10098](https://github.com/gradio-app/gradio/pull/10098) [`9a6ce6f`](https://github.com/gradio-app/gradio/commit/9a6ce6f6b089d94c06da0b8620f28967f39f8383) - Refactor full screen logic to be reusable.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/video@0.12.1
+- @gradio/statustracker@0.9.7
+- @gradio/upload@0.14.3
+- @gradio/atoms@0.12.0
+- @gradio/image@0.19.0
+- @gradio/file@0.11.3
+
+## 0.13.10
+
+### Dependency updates
+
+- @gradio/image@0.18.0
+- @gradio/video@0.12.0
+
+## 0.13.9
+
+### Fixes
+
+- [#10016](https://github.com/gradio-app/gradio/pull/10016) [`7b8f1e4`](https://github.com/gradio-app/gradio/commit/7b8f1e447acae4506236db9819c7c4a54f8b8153) - Fix double gallery close button in preview.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/video@0.11.9
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+- @gradio/upload@0.14.2
+- @gradio/image@0.17.0
+- @gradio/file@0.11.2
+
+## 0.13.8
+
+### Dependency updates
+
+- @gradio/video@0.11.8
+- @gradio/atoms@0.11.1
+- @gradio/client@1.8.0
+- @gradio/utils@0.8.0
+- @gradio/upload@0.14.1
+- @gradio/statustracker@0.9.5
+- @gradio/image@0.16.8
+- @gradio/file@0.11.1
+
+## 0.13.7
+
+### Fixes
+
+- [#9881](https://github.com/gradio-app/gradio/pull/9881) [`6866a54`](https://github.com/gradio-app/gradio/commit/6866a5433afe7e29ad73bac10ecbc3b44f5867f4) - Ensure gallery share button is positioned correctly.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/video@0.11.7
+- @gradio/statustracker@0.9.4
+- @gradio/atoms@0.11.0
+- @gradio/file@0.11.0
+- @gradio/upload@0.14.0
+- @gradio/image@0.16.7
+
+## 0.13.6
+
+### Dependency updates
+
+- @gradio/video@0.11.6
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+- @gradio/client@1.7.1
+- @gradio/image@0.16.6
+- @gradio/upload@0.13.5
+- @gradio/file@0.10.6
+
+## 0.13.5
+
+### Dependency updates
+
+- @gradio/video@0.11.5
+- @gradio/statustracker@0.9.2
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+- @gradio/upload@0.13.4
+- @gradio/file@0.10.5
+- @gradio/image@0.16.5
+
+## 0.13.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.1
+- @gradio/upload@0.13.3
+- @gradio/video@0.11.4
+- @gradio/atoms@0.9.2
+- @gradio/file@0.10.4
+- @gradio/image@0.16.4
+
+## 0.13.3
+
+### Dependency updates
+
+- @gradio/video@0.11.3
+- @gradio/atoms@0.9.1
+- @gradio/statustracker@0.9.0
+- @gradio/client@1.7.0
+- @gradio/upload@0.13.2
+- @gradio/image@0.16.3
+- @gradio/file@0.10.3
+
+## 0.13.2
+
+### Dependency updates
+
+- @gradio/file@0.10.2
+- @gradio/upload@0.13.1
+- @gradio/image@0.16.2
+- @gradio/video@0.11.2
+
+## 0.13.1
+
+### Dependency updates
+
+- @gradio/video@0.11.1
+- @gradio/statustracker@0.8.1
+- @gradio/file@0.10.1
+- @gradio/image@0.16.1
+
+## 0.13.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Improve Icon Button consistency
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Video gallery
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Ssr part 2
+
+### Dependencies
+
+- @gradio/atoms@0.9.0
+- @gradio/client@1.6.0
+- @gradio/icons@0.8.0
+- @gradio/image@0.16.0
+- @gradio/statustracker@0.8.0
+- @gradio/upload@0.13.0
+- @gradio/utils@0.7.0
+- @gradio/video@0.11.0
+- @gradio/file@0.10.0
+
+## 0.13.0-beta.7
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.7
+- @gradio/statustracker@0.8.0-beta.5
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+- @gradio/image@0.16.0-beta.7
+- @gradio/video@0.11.0-beta.7
+- @gradio/file@0.10.0-beta.7
+
+## 0.13.0-beta.6
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.6
+- @gradio/statustracker@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.4
+- @gradio/client@1.6.0-beta.4
+- @gradio/upload@0.13.0-beta.6
+- @gradio/image@0.16.0-beta.6
+- @gradio/file@0.10.0-beta.6
+
+## 0.13.0-beta.5
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.5
+- @gradio/statustracker@0.8.0-beta.3
+- @gradio/video@0.11.0-beta.5
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+- @gradio/file@0.10.0-beta.5
+- @gradio/image@0.16.0-beta.5
+
+## 0.13.0-beta.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/upload@0.13.0-beta.4
+- @gradio/file@0.10.0-beta.4
+- @gradio/image@0.16.0-beta.4
+- @gradio/video@0.11.0-beta.4
+
+## 0.13.0-beta.3
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.3
+- @gradio/video@0.11.0-beta.3
+- @gradio/client@1.6.0-beta.3
+- @gradio/file@0.10.0-beta.3
+- @gradio/image@0.16.0-beta.3
+
+## 0.13.0-beta.2
+
+### Features
+
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+- [#9250](https://github.com/gradio-app/gradio/pull/9250) [`350b0a5`](https://github.com/gradio-app/gradio/commit/350b0a5cafb9176f914f62e7c90de51d4352cc77) - Improve Icon Button consistency.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/upload@0.13.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+- @gradio/file@0.10.0-beta.2
+- @gradio/image@0.16.0-beta.2
+- @gradio/video@0.11.0-beta.2
+
+## 0.13.0-beta.1
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.1
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/client@1.6.0-beta.1
+- @gradio/image@0.16.0-beta.1
+- @gradio/upload@0.12.4-beta.1
+- @gradio/file@0.9.4-beta.1
+
+## 0.13.0-beta.0
+
+### Features
+
+- [#9052](https://github.com/gradio-app/gradio/pull/9052) [`f3652eb`](https://github.com/gradio-app/gradio/commit/f3652ebe08211e12739df73c15fd97e5ff81276a) - Video gallery.  Thanks @dawoodkhan82!
+
 ## 0.12.2
 
 ### Fixes

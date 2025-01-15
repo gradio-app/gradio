@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import copy
 import dataclasses
 import hashlib
@@ -15,18 +16,10 @@ import time
 import warnings
 import webbrowser
 from collections import defaultdict
+from collections.abc import AsyncIterator, Callable, Coroutine, Sequence, Set
 from pathlib import Path
 from types import ModuleType
-from typing import (
-    TYPE_CHECKING,
-    AbstractSet,
-    Any,
-    AsyncIterator,
-    Callable,
-    Literal,
-    Sequence,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Literal, Union, cast
 from urllib.parse import urlparse, urlunparse
 
 import anyio
@@ -42,13 +35,12 @@ from gradio import (
     networking,
     processing_utils,
     queueing,
-    routes,
     strings,
     themes,
     utils,
     wasm_utils,
 )
-from gradio.blocks_events import BlocksEvents, BlocksMeta
+from gradio.blocks_events import BLOCKS_EVENTS, BlocksEvents, BlocksMeta
 from gradio.context import (
     Context,
     LocalContext,
@@ -69,11 +61,15 @@ from gradio.events import (
     EventListenerMethod,
 )
 from gradio.exceptions import (
+    ChecksumMismatchError,
     DuplicateBlockError,
     InvalidApiNameError,
     InvalidComponentError,
 )
 from gradio.helpers import create_tracker, skip, special_args
+from gradio.node_server import start_node_server
+from gradio.route_utils import API_PREFIX, MediaStream
+from gradio.routes import VERSION, App, Request
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
@@ -89,6 +85,7 @@ from gradio.utils import (
     check_function_inputs_match,
     component_or_layout_class,
     get_cancelled_fn_indices,
+    get_node_path,
     get_package_version,
     get_upload_folder,
 )
@@ -100,8 +97,6 @@ except Exception:
 
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from fastapi.applications import FastAPI
-
     from gradio.components.base import Component
     from gradio.renderable import Renderable
 
@@ -113,6 +108,9 @@ BUILT_IN_THEMES: dict[str, Theme] = {
         themes.Monochrome(),
         themes.Soft(),
         themes.Glass(),
+        themes.Origin(),
+        themes.Citrus(),
+        themes.Ocean(),
     ]
 }
 
@@ -148,6 +146,7 @@ class Block:
         # Keep tracks of files that should not be deleted when the delete_cache parmameter is set
         # These files are the default value of the component and files that are used in examples
         self.keep_in_cache = set()
+        self.has_launched = False
 
         if render:
             self.render()
@@ -261,8 +260,9 @@ class Block:
         config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_class()}
         if self.rendered_in is not None:
             config["rendered_in"] = self.rendered_in._id
-        if (_selectable := getattr(self, "_selectable", None)) is not None:
-            config["_selectable"] = _selectable
+        for event_attribute in ["_selectable", "_undoable", "_retryable", "likeable"]:
+            if (attributable := getattr(self, event_attribute, None)) is not None:
+                config[event_attribute] = attributable
         return config
 
     @classmethod
@@ -296,7 +296,7 @@ class Block:
             url_or_file_path = str(url_or_file_path)
 
         if client_utils.is_http_url_like(url_or_file_path):
-            temp_file_path = await processing_utils.async_save_url_to_cache(
+            temp_file_path = await processing_utils.async_ssrf_protected_download(
                 url_or_file_path, cache_dir=self.GRADIO_CACHE
             )
 
@@ -382,7 +382,7 @@ class Block:
         if client_utils.is_http_url_like(url_or_file_path):
             return FileData(path=url_or_file_path, url=url_or_file_path).model_dump()
         else:
-            data = {"path": url_or_file_path}
+            data = {"path": url_or_file_path, "meta": {"_type": "gradio.FileData"}}
             try:
                 return client_utils.synchronize_async(
                     processing_utils.async_move_files_to_cache, data, self
@@ -514,6 +514,11 @@ class BlockFunction:
         renderable: Renderable | None = None,
         rendered_in: Renderable | None = None,
         is_cancel_function: bool = False,
+        connection: Literal["stream", "sse"] = "sse",
+        time_limit: float | None = None,
+        stream_every: float = 0.5,
+        like_user_message: bool = False,
+        event_specific_args: list[str] | None = None,
     ):
         self.fn = fn
         self._id = _id
@@ -542,7 +547,6 @@ class BlockFunction:
         self.queue = False if fn is None else queue
         self.scroll_to_output = False if utils.get_space() else scroll_to_output
         self.show_api = show_api
-        self.zero_gpu = hasattr(self.fn, "zerogpu")
         self.types_generator = inspect.isgeneratorfunction(
             self.fn
         ) or inspect.isasyncgenfunction(self.fn)
@@ -552,6 +556,11 @@ class BlockFunction:
         # We need to keep track of which events are cancel events
         # so that the client can call the /cancel route directly
         self.is_cancel_function = is_cancel_function
+        self.time_limit = time_limit
+        self.stream_every = stream_every
+        self.connection = connection
+        self.like_user_message = like_user_message
+        self.event_specific_args = event_specific_args
 
         self.spaces_auto_wrap()
 
@@ -598,8 +607,12 @@ class BlockFunction:
             "trigger_only_on_success": self.trigger_only_on_success,
             "trigger_mode": self.trigger_mode,
             "show_api": self.show_api,
-            "zerogpu": self.zero_gpu,
             "rendered_in": self.rendered_in._id if self.rendered_in else None,
+            "connection": self.connection,
+            "time_limit": self.time_limit,
+            "stream_every": self.stream_every,
+            "like_user_message": self.like_user_message,
+            "event_specific_args": self.event_specific_args,
         }
 
 
@@ -671,14 +684,14 @@ class BlocksConfig:
             Component
             | BlockContext
             | Sequence[Component | BlockContext]
-            | AbstractSet[Component | BlockContext]
+            | Set[Component | BlockContext]
             | None
         ),
         outputs: (
             Component
             | BlockContext
             | Sequence[Component | BlockContext]
-            | AbstractSet[Component | BlockContext]
+            | Set[Component | BlockContext]
             | None
         ),
         preprocess: bool = True,
@@ -701,6 +714,11 @@ class BlocksConfig:
         show_api: bool = True,
         renderable: Renderable | None = None,
         is_cancel_function: bool = False,
+        connection: Literal["stream", "sse"] = "sse",
+        time_limit: float | None = None,
+        stream_every: float = 0.5,
+        like_user_message: bool = False,
+        event_specific_args: list[str] | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -728,6 +746,9 @@ class BlocksConfig:
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
             show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
             is_cancel_function: whether this event cancels another running event.
+            connection: The connection format, either "sse" or "stream".
+            time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
+            stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -738,7 +759,7 @@ class BlocksConfig:
             )
             for target in targets
         ]
-        if isinstance(inputs, AbstractSet):
+        if isinstance(inputs, Set):
             inputs_as_dict = True
             inputs = sorted(inputs, key=lambda x: x._id)
         else:
@@ -748,7 +769,7 @@ class BlocksConfig:
             elif not isinstance(inputs, Sequence):
                 inputs = [inputs]
 
-        if isinstance(outputs, AbstractSet):
+        if isinstance(outputs, Set):
             outputs = sorted(outputs, key=lambda x: x._id)
         elif outputs is None:
             outputs = []
@@ -758,17 +779,21 @@ class BlocksConfig:
         if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
 
-        if _targets[0][1] in ["change", "key_up"] and trigger_mode is None:
-            trigger_mode = "always_last"
-        elif trigger_mode is None:
+        if len(_targets) and trigger_mode is None:
+            if _targets[0][1] in ["change", "key_up"]:
+                trigger_mode = "always_last"
+            elif _targets[0][1] in ["stream"]:
+                trigger_mode = "multiple"
+        if trigger_mode is None:
             trigger_mode = "once"
         elif trigger_mode not in ["once", "multiple", "always_last"]:
             raise ValueError(
                 f"Invalid value for parameter `trigger_mode`: {trigger_mode}. Please choose from: {['once', 'multiple', 'always_last']}"
             )
 
+        fn_to_analyze = renderable.fn if renderable else fn
         _, progress_index, event_data_index = (
-            special_args(fn) if fn else (None, None, None)
+            special_args(fn_to_analyze) if fn_to_analyze else (None, None, None)
         )
 
         # If api_name is None or empty string, use the function name
@@ -839,6 +864,11 @@ class BlocksConfig:
             renderable=renderable,
             rendered_in=rendered_in,
             is_cancel_function=is_cancel_function,
+            connection=connection,
+            time_limit=time_limit,
+            stream_every=stream_every,
+            like_user_message=like_user_message,
+            event_specific_args=event_specific_args,
         )
 
         self.fns[self.fn_id] = block_fn
@@ -866,7 +896,10 @@ class BlocksConfig:
         config["layout"] = get_layout(root_block)
 
         config["components"] = []
-        for _id, block in self.blocks.items():
+        blocks_items = list(
+            self.blocks.items()
+        )  # freeze as list to prevent concurrent re-renders from changing the dict during loop, see https://github.com/gradio-app/gradio/issues/9991
+        for _id, block in blocks_items:
             if renderable:
                 if _id not in rendered_ids:
                     continue
@@ -885,9 +918,14 @@ class BlocksConfig:
                 block_config["renderable"] = renderable._id
             if not block.skip_api:
                 block_config["api_info"] = block.api_info()  # type: ignore
-                # .example_inputs() has been renamed .example_payload() but
-                # we use the old name for backwards compatibility with custom components
-                # created on Gradio 4.20.0 or earlier
+                if hasattr(block, "api_info_as_input"):
+                    block_config["api_info_as_input"] = block.api_info_as_input()  # type: ignore
+                else:
+                    block_config["api_info_as_input"] = block.api_info()  # type: ignore
+                if hasattr(block, "api_info_as_output"):
+                    block_config["api_info_as_output"] = block.api_info_as_output()  # type: ignore
+                else:
+                    block_config["api_info_as_output"] = block.api_info()  # type: ignore
                 block_config["example_inputs"] = block.example_inputs()  # type: ignore
             config["components"].append(block_config)
 
@@ -904,6 +942,30 @@ class BlocksConfig:
         new.fns = copy.copy(self.fns)
         new.fn_id = self.fn_id
         return new
+
+    def attach_load_events(self, rendered_in: Renderable | None = None):
+        """Add a load event for every component whose initial value requires a function call to set."""
+        for component in self.blocks.values():
+            if rendered_in is not None and component.rendered_in != rendered_in:
+                continue
+            if (
+                isinstance(component, components.Component)
+                and component.load_event_to_attach
+            ):
+                load_fn, triggers, inputs = component.load_event_to_attach
+                has_target = len(triggers) > 0
+                triggers += [(self.root_block, "load")]
+                # Use set_event_trigger to avoid ambiguity between load class/instance method
+
+                dep = self.set_event_trigger(
+                    [EventListenerMethod(*trigger) for trigger in triggers],
+                    load_fn,
+                    inputs,
+                    component,
+                    no_target=not has_target,
+                    show_progress="hidden" if has_target else "full",
+                )[0]
+                component.load_event = dep.get_config()
 
 
 @document("launch", "queue", "integrate", "load", "unload")
@@ -949,8 +1011,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         mode: str = "blocks",
         title: str = "Gradio",
         css: str | None = None,
+        css_paths: str | Path | Sequence[str | Path] | None = None,
         js: str | None = None,
         head: str | None = None,
+        head_paths: str | Path | Sequence[str | Path] | None = None,
         fill_height: bool = False,
         fill_width: bool = False,
         delete_cache: tuple[int, int] | None = None,
@@ -962,9 +1026,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: A human-friendly name for the kind of Blocks or Interface being created. Used internally for analytics.
             title: The tab title to display when this is opened in a browser window.
-            css: Custom css as a string or path to a css file. This css will be included in the demo webpage.
-            js: Custom js as a string or path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
-            head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
+            css: Custom css as a code string. This css will be included in the demo webpage.
+            css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
+            js: Custom js as a code string. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+            head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
+            head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width. Only applies if this is the outermost `Blocks` in your Gradio app.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
@@ -998,22 +1064,25 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.pending_streams = defaultdict(dict)
         self.pending_diff_streams = defaultdict(dict)
         self.show_error = True
-        self.head = head
         self.fill_height = fill_height
         self.fill_width = fill_width
         self.delete_cache = delete_cache
-        if css is not None and os.path.exists(css):
-            with open(css, encoding="utf-8") as css_file:
-                self.css = css_file.read()
-        else:
-            self.css = css
-        if js is not None and os.path.exists(js):
-            with open(js, encoding="utf-8") as js_file:
-                self.js = js_file.read()
-        else:
-            self.js = js
+        self.extra_startup_events: list[Callable[..., Coroutine[Any, Any, Any]]] = []
+        self.css = css or ""
+        css_paths = utils.none_or_singleton_to_list(css_paths)
+        for css_path in css_paths or []:
+            with open(css_path, encoding="utf-8") as css_file:
+                self.css += "\n" + css_file.read()
+        self.js = js or ""
+        self.head = head or ""
+        head_paths = utils.none_or_singleton_to_list(head_paths)
+        for head_path in head_paths or []:
+            with open(head_path, encoding="utf-8") as head_file:
+                self.head += "\n" + head_file.read()
         self.renderables: list[Renderable] = []
         self.state_holder: StateHolder
+        self.custom_mount_path: str | None = None
+        self.pwa = False
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -1185,7 +1254,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             original_mapping[0] = root_block = Context.root_block or blocks
 
             if "layout" in config:
-                iterate_over_children(config["layout"]["children"])  #
+                iterate_over_children(config["layout"]["children"])
 
             first_dependency = None
 
@@ -1194,7 +1263,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 raise ValueError(
                     "This config is missing the 'dependencies' field and cannot be loaded."
                 )
-            for dependency, fn in zip(config["dependencies"], fns):
+            for dependency, fn in zip(config["dependencies"], fns, strict=False):
                 # We used to add a "fake_event" to the config to cache examples
                 # without removing it. This was causing bugs in calling gr.load
                 # We fixed the issue by removing "fake_event" from the config in examples.py
@@ -1248,20 +1317,13 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     dependency["no_target"] = True
                 else:
                     targets = [
-                        getattr(
-                            original_mapping[
-                                target if isinstance(target, int) else target[0]
-                            ],
-                            trigger if isinstance(target, int) else target[1],
-                        )
-                        for target in _targets
-                    ]
-                    targets = [
                         EventListenerMethod(
                             t.__self__ if t.has_trigger else None,
                             t.event_name,  # type: ignore
                         )
-                        for t in targets
+                        for t in Blocks.get_event_targets(
+                            original_mapping, _targets, trigger
+                        )
                     ]
                 dependency = root_block.default_config.set_event_trigger(
                     targets=targets, fn=fn, **dependency
@@ -1303,8 +1365,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     def expects_oauth(self):
         """Return whether the app expects user to authenticate via OAuth."""
         return any(
-            isinstance(block, (components.LoginButton, components.LogoutButton))
-            for block in self.blocks.values()
+            isinstance(block, components.LoginButton) for block in self.blocks.values()
         )
 
     def unload(self, fn: Callable[..., Any]) -> None:
@@ -1366,6 +1427,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             ]
             for dependency in self.fns.values():
                 dependency._id += dependency_offset
+                # Any event -- e.g. Blocks.load() -- that is triggered by this Blocks
+                # should now be triggered by the root Blocks instead.
+                for target in dependency.targets:
+                    if target[0] == self._id:
+                        target = (Context.root_block._id, target[1])
                 api_name = dependency.api_name
                 if isinstance(api_name, str):
                     api_name_ = utils.append_unique_suffix(
@@ -1389,6 +1455,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             root_context.fn_id = max(root_context.fns.keys(), default=-1) + 1
             Context.root_block.temp_file_sets.extend(self.temp_file_sets)
             Context.root_block.proxy_urls.update(self.proxy_urls)
+            Context.root_block.extra_startup_events.extend(self.extra_startup_events)
 
         render_context = get_render_context()
         if render_context is not None:
@@ -1406,10 +1473,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             return False
         if any(block.stateful for block in dependency.inputs):
             return False
-        if any(block.stateful for block in dependency.outputs):
-            return False
-
-        return True
+        return not any(block.stateful for block in dependency.outputs)
 
     def __call__(self, *inputs, fn_index: int = 0, api_name: str | None = None):
         """
@@ -1466,7 +1530,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         block_fn: BlockFunction | int,
         processed_input: list[Any],
         iterator: AsyncIterator[Any] | None = None,
-        requests: routes.Request | list[routes.Request] | None = None,
+        requests: Request | list[Request] | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
         in_event_listener: bool = False,
@@ -1501,10 +1565,15 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         if iterator is None:  # If not a generator function that has already run
             if block_fn.inputs_as_dict:
-                processed_input = [dict(zip(block_fn.inputs, processed_input))]
+                processed_input = [
+                    dict(zip(block_fn.inputs, processed_input, strict=False))
+                ]
 
+            fn_to_analyze = (
+                block_fn.renderable.fn if block_fn.renderable else block_fn.fn
+            )
             processed_input, progress_index, _ = special_args(
-                block_fn.fn, processed_input, request, event_data
+                fn_to_analyze, processed_input, request, event_data
             )
             progress_tracker = (
                 processed_input[progress_index] if progress_index is not None else None
@@ -1655,10 +1724,12 @@ Received inputs:
                         check_in_upload_folder=not explicit_call,
                     )
                     if getattr(block, "data_model", None) and inputs_cached is not None:
-                        if issubclass(block.data_model, GradioModel):  # type: ignore
-                            inputs_cached = block.data_model(**inputs_cached)  # type: ignore
-                        elif issubclass(block.data_model, GradioRootModel):  # type: ignore
-                            inputs_cached = block.data_model(root=inputs_cached)  # type: ignore
+                        data_model = cast(
+                            Union[GradioModel, GradioRootModel], block.data_model
+                        )
+                        inputs_cached = data_model.model_validate(
+                            inputs_cached, context={"validate_meta": True}
+                        )
                     processed_input.append(block.preprocess(inputs_cached))
         else:
             processed_input = inputs
@@ -1670,7 +1741,7 @@ Received inputs:
         if not isinstance(predictions, (list, tuple)):
             predictions = [predictions]
 
-        if len(predictions) < len(dep_outputs):
+        if len(predictions) != len(dep_outputs):
             name = (
                 f" ({block_fn.name})"
                 if block_fn.name and block_fn.name != "<lambda>"
@@ -1680,7 +1751,7 @@ Received inputs:
             wanted_args = []
             received_args = []
             for block in dep_outputs:
-                wanted_args.append(str(block))
+                wanted_args.append(str(block.get_block_class()))
             for pred in predictions:
                 v = f'"{pred}"' if isinstance(pred, str) else str(pred)
                 received_args.append(v)
@@ -1688,13 +1759,26 @@ Received inputs:
             wanted = ", ".join(wanted_args)
             received = ", ".join(received_args)
 
-            raise ValueError(
-                f"""An event handler{name} didn't receive enough output values (needed: {len(dep_outputs)}, received: {len(predictions)}).
-Wanted outputs:
-    [{wanted}]
-Received outputs:
-    [{received}]"""
-            )
+            if len(predictions) < len(dep_outputs):
+                raise ValueError(
+                    f"""A  function{name} didn't return enough output values (needed: {len(dep_outputs)}, returned: {len(predictions)}).
+    Output components:
+        [{wanted}]
+    Output values returned:
+        [{received}]"""
+                )
+            else:
+                if len(predictions) == 1 and predictions[0] is None:
+                    # do not throw error if the function did not return anything
+                    # https://github.com/gradio-app/gradio/issues/9742
+                    return
+                warnings.warn(
+                    f"""A function{name} returned too many output values (needed: {len(dep_outputs)}, returned: {len(predictions)}). Ignoring extra values.
+    Output components:
+        [{wanted}]
+    Output values returned:
+        [{received}]"""
+                )
 
     async def postprocess_data(
         self,
@@ -1703,7 +1787,14 @@ Received outputs:
         state: SessionState | None,
     ) -> list[Any]:
         state = state or SessionState(self)
-
+        if (
+            isinstance(predictions, dict)
+            and predictions == skip()
+            and len(block_fn.outputs) > 1
+        ):
+            # For developer convenience, if a function returns a single skip() with multiple outputs,
+            # we will skip updating all outputs.
+            predictions = [skip()] * len(block_fn.outputs)
         if isinstance(predictions, dict) and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
                 [block._id for block in block_fn.outputs], predictions
@@ -1752,7 +1843,6 @@ Received outputs:
                     kwargs["render"] = False
 
                     state[block._id] = block.__class__(**kwargs)
-
                     prediction_value = postprocess_update_dict(
                         block=state[block._id],
                         update_dict=prediction_value,
@@ -1783,23 +1873,39 @@ Received outputs:
         session_hash: str | None,
         run: int | None,
         root_path: str | None = None,
+        final: bool = False,
     ) -> list:
         if session_hash is None or run is None:
             return data
         if run not in self.pending_streams[session_hash]:
             self.pending_streams[session_hash][run] = {}
-        stream_run = self.pending_streams[session_hash][run]
+        stream_run: dict[int, MediaStream] = self.pending_streams[session_hash][run]
 
         for i, block in enumerate(block_fn.outputs):
             output_id = block._id
-            if isinstance(block, components.StreamingOutput) and block.streaming:
+            if (
+                isinstance(block, components.StreamingOutput)
+                and block.streaming
+                and not utils.is_prop_update(data[i])
+            ):
+                if final:
+                    stream_run[output_id].end_stream()
                 first_chunk = output_id not in stream_run
-                binary_data, output_data = block.stream_output(
-                    data[i], f"{session_hash}/{run}/{output_id}", first_chunk
+                binary_data, output_data = await block.stream_output(
+                    data[i],
+                    f"{session_hash}/{run}/{output_id}/playlist.m3u8",
+                    first_chunk,
                 )
                 if first_chunk:
-                    stream_run[output_id] = []
-                self.pending_streams[session_hash][run][output_id].append(binary_data)
+                    desired_output_format = None
+                    if orig_name := output_data.get("orig_name"):
+                        desired_output_format = Path(orig_name).suffix[1:]
+                    stream_run[output_id] = MediaStream(
+                        desired_output_format=desired_output_format
+                    )
+                    stream_run[output_id]
+
+                await stream_run[output_id].add_segment(binary_data)
                 output_data = await processing_utils.async_move_files_to_cache(
                     output_data,
                     block,
@@ -1852,7 +1958,7 @@ Received outputs:
         block_fn: BlockFunction | int,
         inputs: list[Any],
         state: SessionState | None = None,
-        request: routes.Request | list[routes.Request] | None = None,
+        request: Request | list[Request] | None = None,
         iterator: AsyncIterator | None = None,
         session_hash: str | None = None,
         event_id: str | None = None,
@@ -1883,6 +1989,7 @@ Received outputs:
         batch = block_fn.batch
         state_ids_to_track, hashed_values = self.get_state_ids_to_track(block_fn, state)
         changed_state_ids = []
+        LocalContext.blocks.set(self)
 
         if batch:
             max_batch_size = block_fn.max_batch_size
@@ -1902,11 +2009,11 @@ Received outputs:
                 )
             inputs = [
                 await self.preprocess_data(block_fn, list(i), state, explicit_call)
-                for i in zip(*inputs)
+                for i in zip(*inputs, strict=False)
             ]
             result = await self.call_function(
                 block_fn,
-                list(zip(*inputs)),
+                list(zip(*inputs, strict=False)),
                 None,
                 request,
                 event_id,
@@ -1917,11 +2024,11 @@ Received outputs:
             preds = result["prediction"]
             data = [
                 await self.postprocess_data(block_fn, list(o), state)
-                for o in zip(*preds)
+                for o in zip(*preds, strict=False)
             ]
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)  # type: ignore
-            data = list(zip(*data))
+            data = list(zip(*data, strict=False))
             is_generating, iterator = None, None
         else:
             old_iterator = iterator
@@ -1946,7 +2053,9 @@ Received outputs:
             if state:
                 changed_state_ids = [
                     state_id
-                    for hash_value, state_id in zip(hashed_values, state_ids_to_track)
+                    for hash_value, state_id in zip(
+                        hashed_values, state_ids_to_track, strict=False
+                    )
                     if hash_value != utils.deep_hash(state[state_id])
                 ]
 
@@ -1961,6 +2070,7 @@ Received outputs:
                     session_hash=session_hash,
                     run=run,
                     root_path=root_path,
+                    final=not is_generating,
                 )
                 data = self.handle_streaming_diffs(
                     block_fn,
@@ -2003,7 +2113,8 @@ Received outputs:
         hashed_values = []
         for block in block_fn.outputs:
             if block.stateful and any(
-                (block._id, "change") in fn.targets for fn in self.fns.values()
+                (block._id, "change") in fn.targets
+                for fn in state.blocks_config.fns.values()
             ):
                 value = state[block._id]
                 state_ids_to_track.append(block._id)
@@ -2022,7 +2133,8 @@ Received outputs:
 
     def get_config_file(self) -> BlocksConfigDict:
         config: BlocksConfigDict = {
-            "version": routes.VERSION,
+            "version": VERSION,
+            "api_prefix": API_PREFIX,
             "mode": self.mode,
             "app_id": self.app_id,
             "dev_mode": self.dev_mode,
@@ -2057,6 +2169,7 @@ Received outputs:
             "fill_height": self.fill_height,
             "fill_width": self.fill_width,
             "theme_hash": self.theme_hash,
+            "pwa": self.pwa,
         }
         config.update(self.default_config.get_config())  # type: ignore
         config["connect_heartbeat"] = utils.connect_heartbeat(
@@ -2081,13 +2194,13 @@ Received outputs:
         super().fill_expected_parents()
         set_render_context(self.parent)
         # Configure the load events before root_block is reset
-        self.attach_load_events()
+        self.default_config.attach_load_events()
         if self.parent is None:
             Context.root_block = None
         else:
             self.parent.children.extend(self.children)
         self.config = self.get_config_file()
-        self.app = routes.App.create_app(self)
+        self.app = App.create_app(self)
         self.progress_tracking = any(
             block_fn.tracks_progress for block_fn in self.fns.values()
         )
@@ -2106,7 +2219,6 @@ Received outputs:
         status_update_rate: float | Literal["auto"] = "auto",
         api_open: bool | None = None,
         max_size: int | None = None,
-        concurrency_count: int | None = None,
         *,
         default_concurrency_limit: int | None | Literal["not_set"] = "not_set",
     ):
@@ -2116,7 +2228,6 @@ Received outputs:
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
             api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
             max_size: The maximum number of events the queue will store at any given moment. If the queue is full, new events will not be added and a user will receive a message saying that the queue is full. If None, the queue size will be unlimited.
-            concurrency_count: Deprecated. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch().
             default_concurrency_limit: The default value of `concurrency_limit` to use for event listeners that don't specify a value. Can be set by environment variable GRADIO_DEFAULT_CONCURRENCY_LIMIT. Defaults to 1 if not set otherwise.
         Example: (Blocks)
             with gr.Blocks() as demo:
@@ -2129,10 +2240,6 @@ Received outputs:
             demo.queue(max_size=20)
             demo.launch()
         """
-        if concurrency_count:
-            raise DeprecationWarning(
-                "concurrency_count has been deprecated. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch()."
-            )
         if api_open is not None:
             self.api_open = api_open
         if utils.is_zero_gpu_space():
@@ -2146,7 +2253,7 @@ Received outputs:
             default_concurrency_limit=default_concurrency_limit,
         )
         self.config = self.get_config_file()
-        self.app = routes.App.create_app(self)
+        self.app = App.create_app(self)
         return self
 
     def validate_queue_settings(self):
@@ -2197,9 +2304,14 @@ Received outputs:
         share_server_protocol: Literal["http", "https"] | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         max_file_size: str | int | None = None,
-        _frontend: bool = True,
         enable_monitoring: bool | None = None,
-    ) -> tuple[FastAPI, str, str]:
+        strict_cors: bool = True,
+        node_server_name: str | None = None,
+        node_port: int | None = None,
+        ssr_mode: bool | None = None,
+        pwa: bool | None = None,
+        _frontend: bool = True,
+    ) -> tuple[App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
         public link used by anyone to access the demo from their browser by setting share=True.
@@ -2224,7 +2336,7 @@ Received outputs:
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
             show_api: If True, shows the api docs in the footer of the app. Default True.
-            allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app. Can be set by comma separated environment variable GRADIO_ALLOWED_PATHS.
+            allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app. Can be set by comma separated environment variable GRADIO_ALLOWED_PATHS. These files are generally assumed to be secure and will be displayed in the browser when possible.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default. Can be set by comma separated environment variable GRADIO_BLOCKED_PATHS.
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used as the root path in its entirety. Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
             app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
@@ -2234,6 +2346,9 @@ Received outputs:
             auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth. Cannot be used with `auth`.
             max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
             enable_monitoring: Enables traffic monitoring of the app through the /monitoring endpoint. By default is None, which enables this endpoint. If explicitly True, will also print the monitoring URL to the console. If False, will disable monitoring altogether.
+            strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
+            ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
+            pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2297,7 +2412,6 @@ Received outputs:
             self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         else:
             self.root_path = root_path
-
         self.show_api = show_api
 
         if allowed_paths:
@@ -2335,12 +2449,41 @@ Received outputs:
                 if block.key is None:
                     block.key = f"__{block._id}__"
 
-        self.config = self.get_config_file()
+        self.pwa = utils.get_space() is not None if pwa is None else pwa
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
+        self.config = self.get_config_file()
+
+        self.ssr_mode = (
+            False
+            if wasm_utils.IS_WASM
+            else (
+                ssr_mode
+                if ssr_mode is not None
+                else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
+            )
+        )
+        self.node_path = os.environ.get(
+            "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
+        )
+        if self.ssr_mode:
+            self.node_server_name, self.node_process, self.node_port = (
+                start_node_server(
+                    server_name=node_server_name,
+                    server_port=node_port,
+                    node_path=self.node_path,
+                )
+            )
+        else:
+            self.node_server_name = self.node_port = self.node_process = None
+
         # self.server_app is included for backwards compatibility
         self.server_app = self.app = App.create_app(
-            self, auth_dependency=auth_dependency, app_kwargs=app_kwargs
+            self,
+            auth_dependency=auth_dependency,
+            app_kwargs=app_kwargs,
+            strict_cors=strict_cors,
+            ssr_mode=self.ssr_mode,
         )
 
         if self.is_running:
@@ -2378,6 +2521,7 @@ Received outputs:
                 )
             self.server_name = server_name
             self.local_url = local_url
+            self.local_api_url = f"{self.local_url.rstrip('/')}{API_PREFIX}/"
             self.server_port = server_port
             self.server = server
             self.is_running = True
@@ -2387,6 +2531,7 @@ Received outputs:
             self.share_server_protocol = share_server_protocol or (
                 "http" if share_server_address is not None else "https"
             )
+            self.has_launched = True
 
             self.protocol = (
                 "https"
@@ -2394,11 +2539,12 @@ Received outputs:
                 else "http"
             )
             if not wasm_utils.IS_WASM and not self.is_colab and not quiet:
-                print(
-                    strings.en["RUNNING_LOCALLY_SEPARATED"].format(
-                        self.protocol, self.server_name, self.server_port
-                    )
+                s = (
+                    strings.en["RUNNING_LOCALLY_SSR"]
+                    if self.ssr_mode
+                    else strings.en["RUNNING_LOCALLY"]
                 )
+                print(s.format(self.protocol, self.server_name, self.server_port))
 
             self._queue.set_server_app(self.server_app)
 
@@ -2406,7 +2552,9 @@ Received outputs:
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
                 httpx.get(
-                    f"{self.local_url}startup-events", verify=ssl_verify, timeout=None
+                    f"{self.local_api_url}startup-events",
+                    verify=ssl_verify,
+                    timeout=None,
                 )
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
@@ -2415,15 +2563,20 @@ Received outputs:
                 # will be cancelled just by stopping the server.
                 # In contrast, in the Wasm env, we can't do that because `threading` is not supported and all async tasks will run in the same event loop, `pyodide.webloop.WebLoop` in the main thread.
                 # So we need to manually cancel them. See `self.close()`..
-                self.startup_events()
+                self.run_startup_events()
+                # In the normal mode, self.run_extra_startup_events() is awaited like https://github.com/gradio-app/gradio/blob/2afcad80abd489111e47cf586a2a8221cc3dc9b6/gradio/routes.py#L1442.
+                # But in the Wasm env, we need to call the start up events here as described above, so we can't await it as here is not in an async function.
+                # So we use create_task() instead. This is a best-effort fallback in the Wasm env but it doesn't guarantee that all the tasks are completed before they are needed.
+                asyncio.create_task(self.run_extra_startup_events())
 
-        utils.launch_counter()
-        self.is_sagemaker = utils.sagemaker_check()
+        self.is_sagemaker = (
+            False  # TODO: fix Gradio's behavior in sagemaker and other hosted notebooks
+        )
         if share is None:
             if self.is_colab:
                 if not quiet:
                     print(
-                        "Setting queue=True in a Colab notebook requires sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                        "Running Gradio in a Colab notebook requires sharing enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
                     )
                 self.share = True
             elif self.is_kaggle:
@@ -2502,12 +2655,18 @@ Received outputs:
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
-            except (RuntimeError, httpx.ConnectError):
+            except Exception as e:
                 if self.analytics_enabled:
                     analytics.error_analytics("Not able to set up tunnel")
                 self.share_url = None
                 self.share = False
-                if Path(BINARY_PATH).exists():
+                if isinstance(e, ChecksumMismatchError):
+                    print(
+                        strings.en["COULD_NOT_GET_SHARE_LINK_CHECKSUM"].format(
+                            BINARY_PATH
+                        )
+                    )
+                elif Path(BINARY_PATH).exists():
                     print(strings.en["COULD_NOT_GET_SHARE_LINK"])
                 else:
                     print(
@@ -2714,37 +2873,17 @@ Received outputs:
             for tunnel in CURRENT_TUNNELS:
                 tunnel.kill()
 
-    def attach_load_events(self):
-        """Add a load event for every component whose initial value should be randomized."""
-        root_context = Context.root_block
-        if root_context:
-            for component in root_context.blocks.values():
-                if (
-                    isinstance(component, components.Component)
-                    and component.load_event_to_attach
-                ):
-                    load_fn, triggers, inputs = component.load_event_to_attach
-                    has_target = len(triggers) > 0
-                    triggers += [(self, "load")]
-                    # Use set_event_trigger to avoid ambiguity between load class/instance method
-
-                    dep = self.default_config.set_event_trigger(
-                        [EventListenerMethod(*trigger) for trigger in triggers],
-                        load_fn,
-                        inputs,
-                        component,
-                        no_target=not has_target,
-                        show_progress="hidden" if has_target else "full",
-                    )[0]
-                    component.load_event = dep.get_config()
-
-    def startup_events(self):
+    def run_startup_events(self):
         """Events that should be run when the app containing this block starts up."""
         self._queue.start()
         # So that processing can resume in case the queue was stopped
         self._queue.stopped = False
         self.is_running = True
         self.create_limiter()
+
+    async def run_extra_startup_events(self):
+        for startup_event in self.extra_startup_events:
+            await startup_event()
 
     def get_api_info(self, all_endpoints: bool = False) -> dict[str, Any] | None:
         """
@@ -2780,7 +2919,7 @@ Received outputs:
                 comp = self.get_component(component["id"])
                 if not isinstance(comp, components.Component):
                     raise TypeError(f"{comp!r} is not a Component")
-                info = component["api_info"]
+                info = component.get("api_info_as_input", component.get("api_info"))
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
 
@@ -2825,7 +2964,7 @@ Received outputs:
                         "type": info,
                         "python_type": {
                             "type": python_type,
-                            "description": info.get("description", ""),
+                            "description": info.get("additional_description", ""),
                         },
                         "component": type.capitalize(),
                         "example_input": example,
@@ -2847,7 +2986,7 @@ Received outputs:
                 comp = self.get_component(component["id"])
                 if not isinstance(comp, components.Component):
                     raise TypeError(f"{comp!r} is not a Component")
-                info = component["api_info"]
+                info = component.get("api_info_as_output", component["api_info"])
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
                 dependency_info["returns"].append(
@@ -2866,3 +3005,29 @@ Received outputs:
                 api_info["named_endpoints"][f"/{fn.api_name}"] = dependency_info
 
         return api_info
+
+    @staticmethod
+    def get_event_targets(
+        original_mapping: dict[int, Block], _targets: list, trigger: str
+    ) -> list:
+        target_events = []
+        for target in _targets:
+            # If target is just an integer (old format), use it directly with the trigger
+            # Otherwise target is a tuple and we use its components
+            target_id = target if isinstance(target, int) else target[0]
+            event_name = trigger if isinstance(target, int) else target[1]
+            block = original_mapping.get(target_id)
+            # Blocks events are a special case because they are not stored in the blocks list in the config
+            if block is None:
+                if event_name in [
+                    event.event_name if isinstance(event, EventListener) else event
+                    for event in BLOCKS_EVENTS
+                ]:
+                    block = Context.root_block
+                else:
+                    raise ValueError(
+                        f"Cannot find Block with id: {target_id} but is present as a target in the config"
+                    )
+            event = getattr(block, event_name)
+            target_events.append(event)
+        return target_events

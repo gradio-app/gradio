@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick } from "svelte";
+	import { tick, onMount } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
 
@@ -8,15 +8,17 @@
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import type { UpdateTransaction } from "./init";
 	import { setupi18n } from "./i18n";
-	import { ApiDocs, ApiRecorder } from "./api_docs/";
+	import { ApiDocs, ApiRecorder, Settings } from "./api_docs/";
 	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
-	import type { ShareData } from "@gradio/utils";
+	import type { ShareData, ValueData } from "@gradio/utils";
 	import MountComponents from "./MountComponents.svelte";
+	import { prefix_css } from "./css";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
+	import settings_logo from "./api_docs/img/settings-logo.svg";
 	import { create_components, AsyncFunction } from "./init";
 	import type {
 		LogMessage,
@@ -45,36 +47,49 @@
 	export let fill_height = false;
 	export let ready: boolean;
 	export let username: string | null;
-
-	const {
+	export let api_prefix = "";
+	export let max_file_size: number | undefined = undefined;
+	export let initial_layout: ComponentMeta | undefined = undefined;
+	export let css: string | null | undefined = null;
+	let {
 		layout: _layout,
 		targets,
 		update_value,
 		get_data,
+		modify_stream,
+		get_stream_state,
+		set_time_limit,
 		loading_status,
 		scheduled_updates,
 		create_layout,
 		rerender_layout
-	} = create_components();
+	} = create_components(initial_layout);
 
-	$: create_layout({
-		components,
-		layout,
-		dependencies,
-		root,
-		app,
-		options: {
-			fill_height
-		}
-	});
+	$: components, layout, dependencies, root, app, fill_height, target, run();
 
 	$: {
 		ready = !!$_layout;
 	}
 
-	let params = new URLSearchParams(window.location.search);
-	let api_docs_visible = params.get("view") === "api" && show_api;
-	let api_recorder_visible = params.get("view") === "api-recorder" && show_api;
+	async function run(): Promise<void> {
+		await create_layout({
+			components,
+			layout,
+			dependencies,
+			root: root + api_prefix,
+			app,
+			options: {
+				fill_height
+			}
+		});
+	}
+
+	export let search_params: URLSearchParams;
+	let api_docs_visible = search_params.get("view") === "api" && show_api;
+	let settings_visible = search_params.get("view") === "settings";
+	let api_recorder_visible =
+		search_params.get("view") === "api-recorder" && show_api;
+
 	function set_api_docs_visible(visible: boolean): void {
 		api_recorder_visible = false;
 		api_docs_visible = visible;
@@ -86,6 +101,18 @@
 		}
 		history.replaceState(null, "", "?" + params.toString());
 	}
+
+	function set_settings_visible(visible: boolean): void {
+		let params = new URLSearchParams(window.location.search);
+		if (visible) {
+			params.set("view", "settings");
+		} else {
+			params.delete("view");
+		}
+		history.replaceState(null, "", "?" + params.toString());
+		settings_visible = !settings_visible;
+	}
+
 	let api_calls: Payload[] = [];
 
 	export let render_complete = false;
@@ -140,6 +167,7 @@
 
 	let messages: (ToastMessage & { fn_index: number })[] = [];
 	function new_message(
+		title: string,
 		message: string,
 		fn_index: number,
 		type: ToastMessage["type"],
@@ -147,6 +175,7 @@
 		visible = true
 	): ToastMessage & { fn_index: number } {
 		return {
+			title,
 			message,
 			fn_index,
 			type,
@@ -157,34 +186,29 @@
 	}
 
 	export function add_new_message(
+		title: string,
 		message: string,
 		type: ToastMessage["type"]
 	): void {
-		messages = [new_message(message, -1, type), ...messages];
+		messages = [new_message(title, message, -1, type), ...messages];
 	}
 
 	let _error_id = -1;
 
 	let user_left_page = false;
-	document.addEventListener("visibilitychange", function () {
-		if (document.visibilityState === "hidden") {
-			user_left_page = true;
-		}
-	});
 
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 	const DUPLICATE_MESSAGE = $_("blocks.long_requests_queue");
 	const MOBILE_QUEUE_WARNING = $_("blocks.connection_can_break");
 	const MOBILE_RECONNECT_MESSAGE = $_("blocks.lost_connection");
+	const WAITING_FOR_INPUTS_MESSAGE = $_("blocks.waiting_for_inputs");
 	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
 	const SHOW_MOBILE_QUEUE_WARNING_ON_ETA = 10;
-	const is_mobile_device =
-		/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-			navigator.userAgent
-		);
+	let is_mobile_device = false;
 	let showed_duplicate_message = false;
 	let showed_mobile_warning = false;
+	let inputs_waiting: number[] = [];
 
 	// as state updates are not synchronous, we need to ensure updates are flushed before triggering any requests
 	function wait_then_trigger_api_call(
@@ -199,13 +223,31 @@
 		if ($scheduled_updates) {
 			_unsub = scheduled_updates.subscribe((updating) => {
 				if (!updating) {
-					trigger_api_call(dep_index, trigger_id, event_data);
-					unsub();
+					tick().then(() => {
+						trigger_api_call(dep_index, trigger_id, event_data);
+						unsub();
+					});
 				}
 			});
 		} else {
 			trigger_api_call(dep_index, trigger_id, event_data);
 		}
+	}
+
+	async function get_component_value_or_event_data(
+		component_id: number,
+		trigger_id: number | null,
+		event_data: unknown
+	): Promise<any> {
+		if (
+			component_id === trigger_id &&
+			event_data &&
+			(event_data as ValueData).is_value_data === true
+		) {
+			// @ts-ignore
+			return event_data.value;
+		}
+		return get_data(component_id);
 	}
 
 	async function trigger_api_call(
@@ -214,7 +256,14 @@
 		event_data: unknown = null
 	): Promise<void> {
 		let dep = dependencies.find((dep) => dep.id === dep_index)!;
-
+		if (inputs_waiting.length > 0) {
+			for (const input of inputs_waiting) {
+				if (dep.inputs.includes(input)) {
+					add_new_message("Warning", WAITING_FOR_INPUTS_MESSAGE, "warning");
+					return;
+				}
+			}
+		}
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
 		if (current_status === "pending" || current_status === "generating") {
@@ -223,7 +272,11 @@
 
 		let payload: Payload = {
 			fn_index: dep_index,
-			data: await Promise.all(dep.inputs.map((id) => get_data(id))),
+			data: await Promise.all(
+				dep.inputs.map((id) =>
+					get_component_value_or_event_data(id, trigger_id, event_data)
+				)
+			),
 			event_data: dep.collects_event_data ? event_data : null,
 			trigger_id: trigger_id
 		};
@@ -259,24 +312,49 @@
 
 		function trigger_prediction(dep: Dependency, payload: Payload): void {
 			if (dep.trigger_mode === "once") {
-				if (!dep.pending_request) make_prediction(payload);
+				if (!dep.pending_request)
+					make_prediction(payload, dep.connection == "stream");
 			} else if (dep.trigger_mode === "multiple") {
-				make_prediction(payload);
+				make_prediction(payload, dep.connection == "stream");
 			} else if (dep.trigger_mode === "always_last") {
 				if (!dep.pending_request) {
-					make_prediction(payload);
+					make_prediction(payload, dep.connection == "stream");
 				} else {
 					dep.final_event = payload;
 				}
 			}
 		}
 
-		async function make_prediction(payload: Payload): Promise<void> {
+		async function make_prediction(
+			payload: Payload,
+			streaming = false
+		): Promise<void> {
 			if (api_recorder_visible) {
 				api_calls = [...api_calls, JSON.parse(JSON.stringify(payload))];
 			}
 
 			let submission: ReturnType<typeof app.submit>;
+			app.set_current_payload(payload);
+			if (streaming) {
+				if (!submit_map.has(dep_index)) {
+					dep.inputs.forEach((id) => modify_stream(id, "waiting"));
+				} else if (
+					submit_map.has(dep_index) &&
+					dep.inputs.some((id) => get_stream_state(id) === "waiting")
+				) {
+					return;
+				} else if (
+					submit_map.has(dep_index) &&
+					dep.inputs.some((id) => get_stream_state(id) === "open")
+				) {
+					await app.send_ws_message(
+						// @ts-ignore
+						`${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_index).event_id()}`,
+						{ ...payload, session_hash: app.session_hash }
+					);
+					return;
+				}
+			}
 			try {
 				submission = app.submit(
 					payload.fn_index,
@@ -286,7 +364,10 @@
 				);
 			} catch (e) {
 				const fn_index = 0; // Mock value for fn_index
-				messages = [new_message(String(e), fn_index, "error"), ...messages];
+				messages = [
+					new_message("Error", String(e), fn_index, "error"),
+					...messages
+				];
 				loading_status.update({
 					status: "error",
 					fn_index,
@@ -316,7 +397,7 @@
 				const { data, fn_index } = message;
 				if (dep.pending_request && dep.final_event) {
 					dep.pending_request = false;
-					make_prediction(dep.final_event);
+					make_prediction(dep.final_event, dep.connection == "stream");
 				}
 				dep.pending_request = false;
 				handle_update(data, fn_index);
@@ -346,25 +427,48 @@
 				rerender_layout({
 					components: _components,
 					layout: render_layout,
-					root: root,
+					root: root + api_prefix,
 					dependencies: dependencies,
 					render_id: render_id
 				});
 			}
 
 			function handle_log(msg: LogMessage): void {
-				const { log, fn_index, level, duration, visible } = msg;
+				const { title, log, fn_index, level, duration, visible } = msg;
 				messages = [
-					new_message(log, fn_index, level, duration, visible),
+					new_message(title, log, fn_index, level, duration, visible),
 					...messages
 				];
 			}
 
+			function open_stream_events(
+				status: StatusMessage,
+				id: number,
+				dep: Dependency
+			): void {
+				if (
+					status.original_msg === "process_starts" &&
+					dep.connection === "stream"
+				) {
+					modify_stream(id, "open");
+				}
+			}
+
+			/* eslint-disable complexity */
 			function handle_status_update(message: StatusMessage): void {
 				const { fn_index, ...status } = message;
+				if (status.stage === "streaming" && status.time_limit) {
+					dep.inputs.forEach((id) => {
+						set_time_limit(id, status.time_limit);
+					});
+				}
+				dep.inputs.forEach((id) => {
+					open_stream_events(message, id, dep);
+				});
 				//@ts-ignore
 				loading_status.update({
 					...status,
+					time_limit: status.time_limit,
 					status: status.stage,
 					progress: status.progress_data,
 					fn_index
@@ -380,7 +484,7 @@
 				) {
 					showed_duplicate_message = true;
 					messages = [
-						new_message(DUPLICATE_MESSAGE, fn_index, "warning"),
+						new_message("Warning", DUPLICATE_MESSAGE, fn_index, "warning"),
 						...messages
 					];
 				}
@@ -392,12 +496,12 @@
 				) {
 					showed_mobile_warning = true;
 					messages = [
-						new_message(MOBILE_QUEUE_WARNING, fn_index, "warning"),
+						new_message("Warning", MOBILE_QUEUE_WARNING, fn_index, "warning"),
 						...messages
 					];
 				}
 
-				if (status.stage === "complete") {
+				if (status.stage === "complete" || status.stage === "generating") {
 					status.changed_state_ids?.forEach((id) => {
 						dependencies
 							.filter((dep) => dep.targets.some(([_id, _]) => _id === id))
@@ -405,18 +509,22 @@
 								wait_then_trigger_api_call(dep.id, payload.trigger_id);
 							});
 					});
+				}
+				if (status.stage === "complete") {
 					dependencies.forEach(async (dep) => {
 						if (dep.trigger_after === fn_index) {
 							wait_then_trigger_api_call(dep.id, payload.trigger_id);
 						}
 					});
-
-					// submission.destroy();
+					dep.inputs.forEach((id) => {
+						modify_stream(id, "closed");
+					});
+					submit_map.delete(dep_index);
 				}
 				if (status.broken && is_mobile_device && user_left_page) {
 					window.setTimeout(() => {
 						messages = [
-							new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
+							new_message("Error", MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
 							...messages
 						];
 					}, 0);
@@ -428,8 +536,10 @@
 							MESSAGE_QUOTE_RE,
 							(_, b) => b
 						);
+						const _title = status.title ?? "Error";
 						messages = [
 							new_message(
+								_title,
 								_message,
 								fn_index,
 								"error",
@@ -451,6 +561,7 @@
 			}
 		}
 	}
+	/* eslint-enable complexity */
 
 	function trigger_share(title: string | undefined, description: string): void {
 		if (space_id === null) {
@@ -503,12 +614,18 @@
 			}
 		});
 
-		if (render_complete) return;
+		if (!target || render_complete) return;
 
 		target.addEventListener("prop_change", (e: Event) => {
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
 			const { id, prop, value } = e.detail;
 			update_value([{ id, prop, value }]);
+			if (prop === "input_ready" && value === false) {
+				inputs_waiting.push(id);
+			}
+			if (prop === "input_ready" && value === true) {
+				inputs_waiting = inputs_waiting.filter((item) => item !== id);
+			}
 		});
 		target.addEventListener("gradio", (e: Event) => {
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
@@ -518,10 +635,22 @@
 			if (event === "share") {
 				const { title, description } = data as ShareData;
 				trigger_share(title, description);
-			} else if (event === "error" || event === "warning") {
-				messages = [new_message(data, -1, event), ...messages];
+			} else if (event === "error") {
+				messages = [new_message("Error", data, -1, event), ...messages];
+			} else if (event === "warning") {
+				messages = [new_message("Warning", data, -1, event), ...messages];
 			} else if (event == "clear_status") {
 				update_status(id, "complete", data);
+			} else if (event == "close_stream") {
+				const deps = $targets[id]?.[data];
+				deps?.forEach((dep_id) => {
+					if (submit_map.has(dep_id)) {
+						// @ts-ignore
+						const url = `${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_id).event_id()}`;
+						app.post_data(`${url}/close`, {});
+						app.close_ws(url);
+					}
+				});
 			} else {
 				const deps = $targets[id]?.[event];
 
@@ -592,11 +721,27 @@
 	function isCustomEvent(event: Event): event is CustomEvent {
 		return "detail" in event;
 	}
+
+	onMount(() => {
+		document.addEventListener("visibilitychange", function () {
+			if (document.visibilityState === "hidden") {
+				user_left_page = true;
+			}
+		});
+
+		is_mobile_device =
+			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+				navigator.userAgent
+			);
+	});
 </script>
 
 <svelte:head>
 	{#if control_page_title}
 		<title>{title}</title>
+	{/if}
+	{#if css}
+		{@html `\<style\>${prefix_css(css, version)}</style>`}
 	{/if}
 </svelte:head>
 
@@ -611,7 +756,7 @@
 				on:mount={handle_mount}
 				{version}
 				{autoscroll}
-				max_file_size={app.config.max_file_size}
+				{max_file_size}
 				client={app}
 			/>
 		{/if}
@@ -628,8 +773,8 @@
 				>
 					{$_("errors.use_via_api")}
 					<img src={api_logo} alt={$_("common.logo")} />
+					<div>&nbsp;·</div>
 				</button>
-				<div>·</div>
 			{/if}
 			<a
 				href="https://gradio.app"
@@ -640,6 +785,16 @@
 				{$_("common.built_with_gradio")}
 				<img src={logo} alt={$_("common.logo")} />
 			</a>
+			<button
+				on:click={() => {
+					set_settings_visible(!settings_visible);
+				}}
+				class="settings"
+			>
+				<div>· &nbsp;</div>
+				{$_("common.settings")}
+				<img src={settings_logo} alt={$_("common.settings")} />
+			</button>
 		</footer>
 	{/if}
 </div>
@@ -676,7 +831,7 @@
 				on:close={(event) => {
 					set_api_docs_visible(false);
 					api_calls = [];
-					api_recorder_visible = event.detail.api_recorder_visible;
+					api_recorder_visible = event.detail?.api_recorder_visible;
 				}}
 				{dependencies}
 				{root}
@@ -684,6 +839,30 @@
 				{space_id}
 				{api_calls}
 				{username}
+			/>
+		</div>
+	</div>
+{/if}
+
+{#if settings_visible && $_layout && app.config}
+	<div class="api-docs">
+		<!-- TODO: fix -->
+		<!-- svelte-ignore a11y-click-events-have-key-events-->
+		<!-- svelte-ignore a11y-no-static-element-interactions-->
+		<div
+			class="backdrop"
+			on:click={() => {
+				set_settings_visible(false);
+			}}
+		/>
+		<div class="api-docs-wrap">
+			<Settings
+				on:close={(event) => {
+					set_settings_visible(false);
+				}}
+				pwa_enabled={app.config.pwa}
+				{root}
+				{space_id}
 			/>
 		</div>
 	</div>
@@ -719,7 +898,8 @@
 		margin-left: var(--size-2);
 	}
 
-	.show-api {
+	.show-api,
+	.settings {
 		display: flex;
 		align-items: center;
 	}
@@ -733,12 +913,19 @@
 		width: var(--size-3);
 	}
 
+	.settings img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-1);
+		width: var(--size-4);
+	}
+
 	.built-with {
 		display: flex;
 		align-items: center;
 	}
 
-	.built-with:hover {
+	.built-with:hover,
+	.settings:hover {
 		color: var(--body-text-color);
 	}
 
@@ -792,5 +979,20 @@
 		left: 10px;
 		bottom: 10px;
 		z-index: 1000;
+	}
+
+	.show-api {
+		display: flex;
+		align-items: center;
+	}
+
+	@media (max-width: 640px) {
+		.show-api {
+			display: none;
+		}
+	}
+
+	.show-api:hover {
+		color: var(--body-text-color);
 	}
 </style>

@@ -36,6 +36,7 @@
 	export let _selectable = false;
 	export let combine_adjacent = false;
 	export let interactive: boolean;
+	export let show_label = true;
 
 	$: if (!color_map && Object.keys(color_map).length) {
 		color_map = color_map;
@@ -73,12 +74,13 @@
 			{...loading_status}
 			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
-		{#if label}
+		{#if label && show_label}
 			<BlockLabel
 				Icon={TextHighlight}
 				{label}
 				float={false}
 				disable={container === false}
+				{show_label}
 			/>
 		{/if}
 
@@ -115,12 +117,13 @@
 			i18n={gradio.i18n}
 			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
-		{#if label}
+		{#if label && show_label}
 			<BlockLabel
 				Icon={TextHighlight}
 				{label}
 				float={false}
 				disable={container === false}
+				{show_label}
 			/>
 		{/if}
 
@@ -133,7 +136,7 @@
 				{color_map}
 			/>
 		{:else}
-			<Empty>
+			<Empty size="small" unpadded_box={true}>
 				<TextHighlight />
 			</Empty>
 		{/if}

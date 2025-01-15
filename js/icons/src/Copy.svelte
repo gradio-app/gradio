@@ -3,6 +3,8 @@
 	viewBox="0 0 33 33"
 	color="currentColor"
 	aria-hidden="true"
+	width="100%"
+	height="100%"
 	><path
 		fill="currentColor"
 		d="M28 10v18H10V10h18m0-2H10a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2Z"

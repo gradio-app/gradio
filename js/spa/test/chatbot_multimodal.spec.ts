@@ -4,8 +4,8 @@ for (const msg_format of ["tuples", "messages"]) {
 	test(`message format ${msg_format} - text input by a user should be shown in the chatbot as a paragraph`, async ({
 		page
 	}) => {
-		if (msg_format === "messages") {
-			await go_to_testcase(page, "messages");
+		if (msg_format === "tuples") {
+			await go_to_testcase(page, "tuples");
 		}
 		const textbox = await page.getByTestId("textbox");
 		await textbox.fill("Lorem ipsum");
@@ -27,8 +27,8 @@ for (const msg_format of ["tuples", "messages"]) {
 	test(`message format ${msg_format} - images uploaded by a user should be shown in the chat`, async ({
 		page
 	}) => {
-		if (msg_format === "messages") {
-			await go_to_testcase(page, "messages");
+		if (msg_format === "tuples") {
+			await go_to_testcase(page, "tuples");
 		}
 		const fileChooserPromise = page.waitForEvent("filechooser");
 		await page.getByTestId("upload-button").click();
@@ -64,8 +64,8 @@ for (const msg_format of ["tuples", "messages"]) {
 	test(`message format ${msg_format} - audio uploaded by a user should be shown in the chatbot`, async ({
 		page
 	}) => {
-		if (msg_format === "messages") {
-			await go_to_testcase(page, "messages");
+		if (msg_format === "tuples") {
+			await go_to_testcase(page, "tuples");
 		}
 		const fileChooserPromise = page.waitForEvent("filechooser");
 		await page.getByTestId("upload-button").click();
@@ -90,8 +90,8 @@ for (const msg_format of ["tuples", "messages"]) {
 	test(`message format ${msg_format} - videos uploaded by a user should be shown in the chatbot`, async ({
 		page
 	}) => {
-		if (msg_format === "messages") {
-			await go_to_testcase(page, "messages");
+		if (msg_format === "tuples") {
+			await go_to_testcase(page, "tuples");
 		}
 		const fileChooserPromise = page.waitForEvent("filechooser");
 		await page.getByTestId("upload-button").click();
@@ -118,8 +118,8 @@ for (const msg_format of ["tuples", "messages"]) {
 	test(`message format ${msg_format} - markdown input by a user should be correctly formatted: bold, italics, links`, async ({
 		page
 	}) => {
-		if (msg_format === "messages") {
-			await go_to_testcase(page, "messages");
+		if (msg_format === "tuples") {
+			await go_to_testcase(page, "tuples");
 		}
 		const textbox = await page.getByTestId("textbox");
 		await textbox.fill(
@@ -145,8 +145,8 @@ for (const msg_format of ["tuples", "messages"]) {
 	test(`message format ${msg_format} - inline code markdown input by the user should be correctly formatted`, async ({
 		page
 	}) => {
-		if (msg_format === "messages") {
-			await go_to_testcase(page, "messages");
+		if (msg_format === "tuples") {
+			await go_to_testcase(page, "tuples");
 		}
 		const textbox = await page.getByTestId("textbox");
 		await textbox.fill("This is `code`.");
@@ -168,8 +168,8 @@ for (const msg_format of ["tuples", "messages"]) {
 	test(`message format ${msg_format} - markdown code blocks input by a user should be rendered correctly with the correct language tag`, async ({
 		page
 	}) => {
-		if (msg_format === "messages") {
-			await go_to_testcase(page, "messages");
+		if (msg_format === "tuples") {
+			await go_to_testcase(page, "tuples");
 		}
 		const textbox = await page.getByTestId("textbox");
 		await textbox.fill("```python\nprint('Hello')\nprint('World!')\n```");
@@ -191,8 +191,8 @@ for (const msg_format of ["tuples", "messages"]) {
 	test(`message format ${msg_format} - LaTeX input by a user should be rendered correctly`, async ({
 		page
 	}) => {
-		if (msg_format === "messages") {
-			await go_to_testcase(page, "messages");
+		if (msg_format === "tuples") {
+			await go_to_testcase(page, "tuples");
 		}
 		const textbox = await page.getByTestId("textbox");
 		await textbox.fill("This is LaTeX $$x^2$$");
@@ -214,8 +214,8 @@ for (const msg_format of ["tuples", "messages"]) {
 	test(`message format ${msg_format} - when a new message is sent the chatbot should scroll to the latest message`, async ({
 		page
 	}) => {
-		if (msg_format === "messages") {
-			await go_to_testcase(page, "messages");
+		if (msg_format === "tuples") {
+			await go_to_testcase(page, "tuples");
 		}
 		const textbox = await page.getByTestId("textbox");
 		const line_break = "<br>";
@@ -233,8 +233,8 @@ for (const msg_format of ["tuples", "messages"]) {
 	test(`message format ${msg_format} - chatbot like and dislike functionality`, async ({
 		page
 	}) => {
-		if (msg_format === "messages") {
-			await go_to_testcase(page, "messages");
+		if (msg_format === "tuples") {
+			await go_to_testcase(page, "tuples");
 		}
 		await page.getByTestId("textbox").click();
 		await page.getByTestId("textbox").fill("hello");
@@ -252,8 +252,8 @@ for (const msg_format of ["tuples", "messages"]) {
 	test(`message format ${msg_format} - Users can upload multiple images and they will be shown as thumbnails`, async ({
 		page
 	}) => {
-		if (msg_format === "messages") {
-			await go_to_testcase(page, "messages");
+		if (msg_format === "tuples") {
+			await go_to_testcase(page, "tuples");
 		}
 
 		const fileChooserPromise = page.waitForEvent("filechooser");
@@ -265,5 +265,34 @@ for (const msg_format of ["tuples", "messages"]) {
 		]);
 
 		await expect(page.locator(".thumbnail-image")).toHaveCount(2);
+	});
+
+	test(`message format ${msg_format} - pasting large text should create a file upload`, async ({
+		page
+	}) => {
+		if (msg_format === "tuples") {
+			await go_to_testcase(page, "tuples");
+		}
+		const textbox = await page.getByTestId("textbox");
+		const largeText = "x".repeat(2000);
+
+		await textbox.focus();
+		await page.evaluate((text) => {
+			const dataTransfer = new DataTransfer();
+			const clipboardData = new ClipboardEvent("paste", {
+				clipboardData: dataTransfer,
+				bubbles: true,
+				cancelable: true
+			});
+			dataTransfer.setData("text/plain", text);
+			document.activeElement?.dispatchEvent(clipboardData);
+		}, largeText);
+
+		await expect(page.locator(".thumbnail-item")).toBeVisible();
+		const fileIcon = await page.locator(".thumbnail-item").first();
+		await expect(fileIcon).toBeVisible();
+
+		const textboxValue = await textbox.inputValue();
+		await expect(textboxValue).toBe("");
 	});
 }

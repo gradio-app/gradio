@@ -1,5 +1,170 @@
 # @gradio/upload
 
+## 0.14.5
+
+### Dependency updates
+
+- @gradio/atoms@0.13.1
+- @gradio/client@1.10.0
+- @gradio/icons@0.10.0
+
+## 0.14.4
+
+### Fixes
+
+- [#10209](https://github.com/gradio-app/gradio/pull/10209) [`2700d18`](https://github.com/gradio-app/gradio/commit/2700d1898bc8eeb3fd9f65ce77be17c2614a388f) - Ensure the `height` param in `gr.File` works as expected.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/client@1.9.0
+- @gradio/icons@0.9.0
+- @gradio/wasm@0.16.0
+
+## 0.14.3
+
+### Dependency updates
+
+- @gradio/atoms@0.12.0
+
+## 0.14.2
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+
+## 0.14.1
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/client@1.8.0
+- @gradio/utils@0.8.0
+
+## 0.14.0
+
+### Features
+
+- [#9891](https://github.com/gradio-app/gradio/pull/9891) [`fc12496`](https://github.com/gradio-app/gradio/commit/fc124964a1b4922e54a4ca4755f0a536dfae1a21) - Allow uploading more files in gr.File.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.11.0
+- @gradio/wasm@0.15.0
+
+## 0.13.5
+
+### Dependency updates
+
+- @gradio/atoms@0.10.1
+- @gradio/client@1.7.1
+
+## 0.13.4
+
+### Fixes
+
+- [#9770](https://github.com/gradio-app/gradio/pull/9770) [`47b5565`](https://github.com/gradio-app/gradio/commit/47b556523db3b63d6a9c2f9f69e8632bfa4ddff6) - Fix broken image select.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+
+## 0.13.3
+
+### Dependency updates
+
+- @gradio/atoms@0.9.2
+
+## 0.13.2
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+- @gradio/client@1.7.0
+- @gradio/wasm@0.14.2
+
+## 0.13.1
+
+### Dependency updates
+
+- @gradio/wasm@0.14.1
+
+## 0.13.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Improve Icon Button consistency
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Ssr part 2
+
+### Dependencies
+
+- @gradio/atoms@0.9.0
+- @gradio/icons@0.8.0
+- @gradio/client@1.6.0
+- @gradio/utils@0.7.0
+- @gradio/wasm@0.14.0
+
+## 0.13.0-beta.7
+
+### Dependency updates
+
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+
+## 0.13.0-beta.6
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.4
+- @gradio/client@1.6.0-beta.4
+
+## 0.13.0-beta.5
+
+### Dependency updates
+
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+
+## 0.13.0-beta.4
+
+### Dependency updates
+
+- @gradio/wasm@0.14.0-beta.3
+
+## 0.13.0-beta.3
+
+### Dependency updates
+
+- @gradio/client@1.6.0-beta.3
+
+## 0.13.0-beta.2
+
+### Features
+
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+- [#9250](https://github.com/gradio-app/gradio/pull/9250) [`350b0a5`](https://github.com/gradio-app/gradio/commit/350b0a5cafb9176f914f62e7c90de51d4352cc77) - Improve Icon Button consistency.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/wasm@0.14.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
+## 0.12.4-beta.1
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/client@1.6.0-beta.1
+- @gradio/wasm@0.13.1-beta.1
+
 ## 0.12.4
 
 ### Fixes

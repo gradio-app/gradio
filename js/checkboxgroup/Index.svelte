@@ -23,6 +23,7 @@
 	export let label = gradio.i18n("checkbox.checkbox_group");
 	export let info: string | undefined = undefined;
 	export let show_label = true;
+	export let root: string;
 
 	export let loading_status: LoadingStatus;
 	export let interactive = true;
@@ -60,7 +61,7 @@
 		{...loading_status}
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
-	<BlockTitle {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap" data-testid="checkbox-group">
 		{#each choices as [display_value, internal_value], i}
@@ -109,7 +110,7 @@
 		box-shadow: var(--checkbox-label-shadow);
 		border: var(--checkbox-label-border-width) solid
 			var(--checkbox-label-border-color);
-		border-radius: var(--button-small-radius);
+		border-radius: var(--checkbox-border-radius);
 		background: var(--checkbox-label-background-fill);
 		padding: var(--checkbox-label-padding);
 		color: var(--checkbox-label-text-color);
@@ -127,6 +128,7 @@
 	label.selected {
 		background: var(--checkbox-label-background-fill-selected);
 		color: var(--checkbox-label-text-color-selected);
+		border-color: var(--checkbox-label-border-color-selected);
 	}
 
 	label > * + * {
@@ -169,5 +171,9 @@
 	input[disabled],
 	.disabled {
 		cursor: not-allowed;
+	}
+
+	input:hover {
+		cursor: pointer;
 	}
 </style>

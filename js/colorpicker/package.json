@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/colorpicker",
-	"version": "0.3.13",
+	"version": "0.4.11",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -24,7 +24,10 @@
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
-		"@gradio/utils": "workspace:^"
+		"@gradio/utils": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"tinycolor2": "^1.6.0",
+		"@types/tinycolor2": "^1.4.6"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"

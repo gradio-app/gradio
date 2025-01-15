@@ -1,10 +1,58 @@
 # @gradio/wasm
 
-## 0.13.1
+## 0.16.0
+
+### Features
+
+- [#9984](https://github.com/gradio-app/gradio/pull/9984) [`45df1b1`](https://github.com/gradio-app/gradio/commit/45df1b1978e597546a208ecbf5b3aca56137edc5) - Lite: Capture stdout and stderr from the main thread.  Thanks @whitphx!
+
+## 0.15.0
+
+### Features
+
+- [#9424](https://github.com/gradio-app/gradio/pull/9424) [`a1582a6`](https://github.com/gradio-app/gradio/commit/a1582a6dca494618c734208cade87acfdac91004) - Lite worker refactoring.  Thanks @whitphx!
+- [#9726](https://github.com/gradio-app/gradio/pull/9726) [`b6725cf`](https://github.com/gradio-app/gradio/commit/b6725cf6c1fe9667dc10e1988976ed36d84d73d3) - Lite auto-load imported modules with `pyodide.loadPackagesFromImports`.  Thanks @whitphx!
+
+## 0.14.2
+
+### Fixes
+
+- [#9719](https://github.com/gradio-app/gradio/pull/9719) [`7ec57cb`](https://github.com/gradio-app/gradio/commit/7ec57cb018a97270cd00c6e1aa5558e378855c53) - Fix Lite dependencies.  Thanks @whitphx!
+
+## 0.14.1
+
+### Fixes
+
+- [#9528](https://github.com/gradio-app/gradio/pull/9528) [`9004b11`](https://github.com/gradio-app/gradio/commit/9004b110640bdb54995343a870bf080ee15da02d) - Fix Lite to work on FireFox.  Thanks @whitphx!
+
+## 0.14.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Improve Icon Button consistency
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Pre/post-processing download requests
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Proposal: remove `gr.make_waveform` and remove `matplotlib` as a dependency
+
+## 0.14.0-beta.3
+
+### Features
+
+- [#9383](https://github.com/gradio-app/gradio/pull/9383) [`30d13ac`](https://github.com/gradio-app/gradio/commit/30d13ac8a932d53abfd236d3e4e845570480e701) - Pre/post-processing download requests.  Thanks @aliabid94!
+
+## 0.14.0-beta.2
+
+### Features
+
+- [#9250](https://github.com/gradio-app/gradio/pull/9250) [`350b0a5`](https://github.com/gradio-app/gradio/commit/350b0a5cafb9176f914f62e7c90de51d4352cc77) - Improve Icon Button consistency.  Thanks @hannahblair!
+- [#9312](https://github.com/gradio-app/gradio/pull/9312) [`7c0780b`](https://github.com/gradio-app/gradio/commit/7c0780b5677f8a1c05b9d2eee136e982917829b8) - Proposal: remove `gr.make_waveform` and remove `matplotlib` as a dependency.  Thanks @abidlabs!
+
+## 0.13.1-beta.1
 
 ### Features
 
 - [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+
+## 0.13.1-beta.0
 
 ### Fixes
 

@@ -33,8 +33,8 @@ describe("Gallery", () => {
 			value: [
 				{
 					image: {
-						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg"
 					},
 					caption: null
 				}
@@ -43,7 +43,30 @@ describe("Gallery", () => {
 		let item = getByTestId("detailed-image") as HTMLImageElement;
 		assert.equal(
 			item.src,
-			"https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+			"https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg"
+		);
+	});
+
+	test("renders the video provided", async () => {
+		const { getByTestId } = await render(Gallery, {
+			show_label: true,
+			label: "Gallery",
+			loading_status: loading_status,
+			preview: true,
+			value: [
+				{
+					video: {
+						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/world.mp4",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/world.mp4"
+					},
+					caption: null
+				}
+			]
+		});
+		let item = getByTestId("detailed-video") as HTMLVideoElement;
+		assert.equal(
+			item.src,
+			"https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/world.mp4"
 		);
 	});
 
@@ -56,8 +79,8 @@ describe("Gallery", () => {
 			value: [
 				{
 					image: {
-						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg"
 					},
 					caption: null
 				}
@@ -69,8 +92,8 @@ describe("Gallery", () => {
 			value: [
 				{
 					image: {
-						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg"
 					},
 					caption: null
 				}

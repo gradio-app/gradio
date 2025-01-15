@@ -1,12 +1,14 @@
 {
 	"name": "@gradio/video",
-	"version": "0.10.4",
+	"version": "0.13.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
 	"license": "ISC",
 	"private": false,
 	"dependencies": {
+		"@ffmpeg/ffmpeg": "^0.12.7",
+		"@ffmpeg/util": "^0.12.1",
 		"@gradio/atoms": "workspace:^",
 		"@gradio/client": "workspace:^",
 		"@gradio/icons": "workspace:^",
@@ -15,8 +17,7 @@
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@gradio/wasm": "workspace:^",
-		"@ffmpeg/ffmpeg": "^0.12.7",
-		"@ffmpeg/util": "^0.12.1",
+		"hls.js": "^1.5.13",
 		"mrmime": "^2.0.0"
 	},
 	"devDependencies": {

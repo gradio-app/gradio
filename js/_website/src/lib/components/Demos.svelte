@@ -1,4 +1,6 @@
 <script lang="ts">
+	import WHEEL from "$lib/json/wheel.json";
+
 	export let name: string;
 	export let code: string;
 	export let highlighted_code: string;
@@ -8,10 +10,7 @@
 </script>
 
 <svelte:head>
-	<link
-		rel="stylesheet"
-		href="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.css"
-	/>
+	<link rel="stylesheet" href="{WHEEL.gradio_lite_url}/dist/lite.css" />
 </svelte:head>
 
 <div class="hidden lg:block py-2 max-h-[750px] overflow-y-scroll">

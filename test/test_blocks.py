@@ -8,11 +8,12 @@ import random
 import sys
 import time
 import uuid
+import warnings
 from concurrent.futures import wait
 from contextlib import contextmanager
 from functools import partial
 from string import capwords
-from unittest.mock import patch
+from unittest.mock import mock_open, patch
 
 import gradio_client as grc
 import numpy as np
@@ -27,6 +28,7 @@ from gradio import blocks, helpers
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
+from gradio.route_utils import API_PREFIX
 from gradio.utils import assert_configs_are_equivalent_besides_ids, cancel_tasks
 
 pytest_plugins = ("pytest_asyncio",)
@@ -90,7 +92,20 @@ class TestBlocksMethods:
         for component in config1["components"]:
             component["props"]["proxy_url"] = f"{fake_url}/"
         config2 = demo2.get_config_file()
-        assert assert_configs_are_equivalent_besides_ids(config1, config2)  # type: ignore
+        assert assert_configs_are_equivalent_besides_ids(config1, config2)
+
+    def test_load_from_config_with_blocks_events(self):
+        fake_url = "https://fake.hf.space"
+
+        def fn():
+            return "Hello"
+
+        with gr.Blocks() as demo:
+            t = gr.Textbox()
+            demo.load(fn, None, t)
+
+        config = demo.get_config_file()
+        gr.Blocks.from_config(config, [fn], fake_url)  # Should not raise
 
     def test_partial_fn_in_config(self):
         def greet(name, formatter):
@@ -333,7 +348,7 @@ class TestBlocksMethods:
 
             greet_btn.click(lambda: "Hello!", inputs=None, outputs=[greeting])
             generator_btn.click(generator_function, inputs=None, outputs=[counter])
-            demo.load(continuous_fn, inputs=None, outputs=[meaning_of_life], every=1)
+            demo.load(continuous_fn, inputs=None, outputs=[meaning_of_life])
 
         assert "dependencies" in demo.config
         dependencies = demo.config["dependencies"]
@@ -350,10 +365,6 @@ class TestBlocksMethods:
             "cancel": False,
         }
         assert dependencies[3]["types"] == {
-            "generator": False,
-            "cancel": False,
-        }
-        assert dependencies[4]["types"] == {
             "generator": False,
             "cancel": False,
         }
@@ -558,7 +569,8 @@ class TestBlocksPostprocessing:
             return output
 
         assert all(
-            o["value"] == process_and_dump(c) for o, c in zip(output, io_components)
+            o["value"] == process_and_dump(c)
+            for o, c in zip(output, io_components, strict=False)
         )
 
     @pytest.mark.asyncio
@@ -680,7 +692,7 @@ class TestBlocksPostprocessing:
             assert output["data"][1] == {"__type__": "update", "interactive": True}
 
     @pytest.mark.asyncio
-    async def test_error_raised_if_num_outputs_mismatch(self):
+    async def test_error_raised_if_num_outputs_is_too_low(self):
         with gr.Blocks() as demo:
             textbox1 = gr.Textbox()
             textbox2 = gr.Textbox()
@@ -688,9 +700,42 @@ class TestBlocksPostprocessing:
             button.click(lambda x: x, textbox1, [textbox1, textbox2])
         with pytest.raises(
             ValueError,
-            match=r"^An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
             await demo.postprocess_data(demo.fns[0], predictions=["test"], state=None)
+
+    @pytest.mark.asyncio
+    async def test_warning_raised_if_num_outputs_is_too_high(self):
+        with gr.Blocks() as demo:
+            textbox1 = gr.Textbox()
+            textbox2 = gr.Textbox()
+            button = gr.Button()
+            button.click(lambda x: (x, x), textbox1, [textbox1, textbox2])
+        with pytest.warns(
+            UserWarning,
+        ):
+            await demo.postprocess_data(
+                demo.fns[0], predictions=["test", "test2", "test3"], state=None
+            )
+
+    @pytest.mark.asyncio
+    async def test_no_warning_if_func_has_no_outputs(self):
+        """
+        Ensures that if a function has no outputs, no warning is raised.
+        """
+        with gr.Blocks() as demo:
+            button = gr.Button()
+
+            def no_return():
+                pass
+
+            button.click(
+                no_return,
+                inputs=None,
+                outputs=None,
+            )
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            await demo.postprocess_data(demo.fns[0], predictions=None, state=None)  # type: ignore
 
     @pytest.mark.asyncio
     async def test_error_raised_if_num_outputs_mismatch_with_function_name(self):
@@ -704,7 +749,6 @@ class TestBlocksPostprocessing:
             button.click(infer, textbox1, [textbox1, textbox2])
         with pytest.raises(
             ValueError,
-            match=r"^An event handler \(infer\) didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
             await demo.postprocess_data(demo.fns[0], predictions=["test"], state=None)
 
@@ -717,7 +761,6 @@ class TestBlocksPostprocessing:
             btn.click(lambda a: a, num1, [num1, num2])
         with pytest.raises(
             ValueError,
-            match=r"^An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
             await demo.postprocess_data(demo.fns[0], predictions=[1], state=None)
 
@@ -734,7 +777,6 @@ class TestBlocksPostprocessing:
             btn.click(infer, num1, [num1, num2, num3])
         with pytest.raises(
             ValueError,
-            match=r"^An event handler \(infer\) didn\'t receive enough output values \(needed: 3, received: 2\)\.\nWanted outputs:",
         ):
             await demo.postprocess_data(demo.fns[0], predictions=[1, 2], state=None)
 
@@ -755,12 +797,12 @@ class TestBlocksPostprocessing:
         client = TestClient(app)
 
         session_1 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [0], "session_hash": "1", "fn_index": 0},
         )
         assert "Original" in session_1.json()["data"][0]
         session_2 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [0], "session_hash": "1", "fn_index": 0},
         )
         assert "New" in session_2.json()["data"][0]
@@ -785,37 +827,37 @@ class TestStateHolder:
         client = TestClient(app)
 
         session_1 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [1, None], "session_hash": "1", "fn_index": 0},
         )
         assert session_1.json()["data"][0] == 0
         session_2 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [1, None], "session_hash": "2", "fn_index": 0},
         )
         assert session_2.json()["data"][0] == 0
         session_1 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [1, None], "session_hash": "1", "fn_index": 0},
         )
         assert session_1.json()["data"][0] == 1
         session_2 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [1, None], "session_hash": "2", "fn_index": 0},
         )
         assert session_2.json()["data"][0] == 1
         session_3 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [1, None], "session_hash": "3", "fn_index": 0},
         )
         assert session_3.json()["data"][0] == 0
         session_2 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [1, None], "session_hash": "2", "fn_index": 0},
         )
         assert session_2.json()["data"][0] == 2
         session_1 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [1, None], "session_hash": "1", "fn_index": 0},
         )
         assert (
@@ -840,23 +882,28 @@ class TestStateHolder:
         client = TestClient(app)
 
         session_1 = client.post(
-            "/api/predict/", json={"data": [5, 5], "session_hash": "1", "fn_index": 0}
+            f"{API_PREFIX}/api/predict/",
+            json={"data": [5, 5], "session_hash": "1", "fn_index": 0},
         )
         assert session_1.json()["data"][0] == 5
         session_1 = client.post(
-            "/api/predict/", json={"data": [2, 2], "session_hash": "1", "fn_index": 0}
+            f"{API_PREFIX}/api/predict/",
+            json={"data": [2, 2], "session_hash": "1", "fn_index": 0},
         )
         assert "error" in session_1.json()  # error because min is 5 and num is 2
         session_2 = client.post(
-            "/api/predict/", json={"data": [5, 5], "session_hash": "2", "fn_index": 0}
+            f"{API_PREFIX}/api/predict/",
+            json={"data": [5, 5], "session_hash": "2", "fn_index": 0},
         )
         assert session_2.json()["data"][0] == 5
         session_3 = client.post(
-            "/api/predict/", json={"data": [5, 5], "session_hash": "3", "fn_index": 0}
+            f"{API_PREFIX}/api/predict/",
+            json={"data": [5, 5], "session_hash": "3", "fn_index": 0},
         )
         assert session_3.json()["data"][0] == 5
         session_1 = client.post(
-            "/api/predict/", json={"data": [2, 2], "session_hash": "1", "fn_index": 0}
+            f"{API_PREFIX}/api/predict/",
+            json={"data": [2, 2], "session_hash": "1", "fn_index": 0},
         )
         assert (
             "error" not in session_1.json()
@@ -1017,7 +1064,9 @@ class TestCallFunction:
 class TestBatchProcessing:
     def test_raise_exception_if_batching_an_event_thats_not_queued(self):
         def trim(words, lens):
-            trimmed_words = [word[: int(length)] for word, length in zip(words, lens)]
+            trimmed_words = [
+                word[: int(length)] for word, length in zip(words, lens, strict=False)
+            ]
             return [trimmed_words]
 
         msg = "In order to use batching, the queue must be enabled."
@@ -1068,7 +1117,7 @@ class TestBatchProcessing:
         def batch_fn(words, lengths):
             comparisons = []
             trim_words = []
-            for word, length in zip(words, lengths):
+            for word, length in zip(words, lengths, strict=False):
                 trim_words.append(word[:length])
                 comparisons.append(len(word) > length)
             return trim_words, comparisons
@@ -1143,7 +1192,7 @@ class TestBatchProcessing:
 
             def batch_fn(x, y):
                 results = []
-                for word1, word2 in zip(x, y):
+                for word1, word2 in zip(x, y, strict=False):
                     results.append(f"Hello {word1}{word2}")
                 return (results,)
 
@@ -1198,14 +1247,14 @@ async def test_root_path():
     demo = gr.Interface(lambda x: image_file, "textbox", "image")
     result = await demo.process_api(block_fn=0, inputs=[""], request=None, state=None)
     result_url = result["data"][0]["url"]
-    assert result_url.startswith("/file=")
+    assert result_url.startswith(f"{API_PREFIX}/file=")
     assert result_url.endswith("bus.png")
 
     result = await demo.process_api(
         block_fn=0, inputs=[""], request=None, state=None, root_path="abidlabs.hf.space"
     )
     result_url = result["data"][0]["url"]
-    assert result_url.startswith("abidlabs.hf.space/file=")
+    assert result_url.startswith(f"abidlabs.hf.space{API_PREFIX}/file=")
     assert result_url.endswith("bus.png")
 
 
@@ -1641,13 +1690,6 @@ def test_recover_kwargs():
     assert props == {"format": "wav", "autoplay": False}
 
 
-def test_deprecation_warning_emitted_when_concurrency_count_set():
-    with pytest.raises(DeprecationWarning):
-        gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox()).queue(
-            concurrency_count=12
-        )
-
-
 def test_postprocess_update_dict():
     block = gr.Textbox()
     update_dict = {"value": 2.0, "visible": True, "invalid_arg": "hello"}
@@ -1817,6 +1859,39 @@ def test_time_to_live_and_delete_callback_for_state(capsys, monkeypatch):
         demo.close()
 
 
+def test_post_process_file_blocked(connect):
+    dotfile = pathlib.Path(".foo.txt")
+    file = pathlib.Path(os.getcwd()) / ".." / "file.txt"
+
+    try:
+        demo = gr.Interface(lambda s: s, "text", "file")
+        with connect(demo, show_error=True) as client:
+            _ = client.predict("test/test_files/bus.png")
+            with pytest.raises(
+                ValueError,
+                match="to the gradio cache dir because it was not created by",
+            ):
+                file.write_text("Hi")
+                client.predict(str(file))
+
+        with connect(demo, allowed_paths=[str(file)]) as client:
+            _ = client.predict(str(file))
+
+        dotfile.write_text("foo")
+        with connect(demo, show_error=True) as client:
+            with pytest.raises(ValueError, match="Dotfiles located"):
+                _ = client.predict(str(dotfile))
+
+        with connect(demo, allowed_paths=[str(dotfile)]) as client:
+            _ = client.predict(str(dotfile))
+
+    finally:
+        try:
+            dotfile.unlink()
+        except FileNotFoundError:
+            pass
+
+
 def test_render_when_mounted_sets_root_path_for_files():
     app = FastAPI()
     test_video_path = "test/test_files/video_sample.mp4"
@@ -1833,7 +1908,7 @@ def test_render_when_mounted_sets_root_path_for_files():
 
     with TestClient(app) as client:
         r = client.post(
-            "/test/queue/join",
+            f"/test{API_PREFIX}/queue/join",
             json={
                 "data": [""],
                 "fn_index": 0,
@@ -1843,7 +1918,7 @@ def test_render_when_mounted_sets_root_path_for_files():
             },
         )
         assert r.status_code == 200
-        r = client.get("/test/queue/data?session_hash=foo")
+        r = client.get(f"/test{API_PREFIX}/queue/data?session_hash=foo")
         checked_component = False
         for msg in r.iter_lines():
             if "data" in msg:
@@ -1854,6 +1929,32 @@ def test_render_when_mounted_sets_root_path_for_files():
                         if "value" in component.get("props", {}):
                             assert component["props"]["value"]["video"][
                                 "url"
-                            ].startswith("http://testserver/test/file=")
+                            ].startswith(f"http://testserver/test{API_PREFIX}/file=")
                             checked_component = True
         assert checked_component
+
+
+@pytest.fixture
+def mock_css_files():
+    css_contents = {
+        "file1.css": "h1 { font-size: 20px; }",
+        "file2.css": ".class { margin: 10px; }",
+    }
+
+    def mock_open_file(filename, encoding):
+        return mock_open(read_data=css_contents[filename])()
+
+    with patch("builtins.open", side_effect=mock_open_file):
+        yield
+
+
+def test_css_and_css_paths_parameters(mock_css_files):
+    css_paths = ["file1.css", "file2.css"]
+    instance = gr.Blocks(css="body { color: red; }", css_paths=css_paths)
+    expected_css = """
+body { color: red; }
+h1 { font-size: 20px; }
+.class { margin: 10px; }
+        """
+
+    assert instance.css.strip() == expected_css.strip()

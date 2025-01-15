@@ -9,12 +9,11 @@
 	let el: HTMLDivElement;
 
 	function set_styles(element: HTMLElement, el_width: number): void {
-		if (!element || !el_width) return;
-		el.style.setProperty(
+		element.style.setProperty(
 			"--local-text-width",
-			`${el_width < 150 ? el_width : 200}px`
+			`${el_width && el_width < 150 ? el_width : 200}px`
 		);
-		el.style.whiteSpace = "unset";
+		element.style.whiteSpace = "unset";
 	}
 
 	onMount(() => {

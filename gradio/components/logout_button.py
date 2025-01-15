@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Literal, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document
 
@@ -31,11 +32,11 @@ class LogoutButton(Button):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
-        size: Literal["sm", "lg"] | None = None,
+        size: Literal["sm", "lg"] = "lg",
         icon: str
         | None = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
         # Link to logout page (which will delete the session cookie and redirect to landing page).
-        link: str | None = "/logout",
+        link: str | None = "/gradio_api/logout",
         visible: bool = True,
         interactive: bool = True,
         elem_id: str | None = None,

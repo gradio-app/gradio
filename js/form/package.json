@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/form",
-	"version": "0.1.25",
+	"version": "0.2.10",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

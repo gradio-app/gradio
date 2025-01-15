@@ -13,22 +13,20 @@
 	let editorFiles: EditorFile[] = [
 		{
 			name: "app.py",
-			content: `import time
+			content: `
 import gradio as gr
 
 
-def greet_with_time():
-    return "Time is " + time.ctime()
+def fn(x):
+    return x
 
+demo = gr.Interface(
+    fn=fn,
+    inputs=gr.Textbox(),
+    outputs=gr.Textbox(),
+)
 
-with gr.Blocks() as demo:
-    text = gr.Markdown(f"Time is {time.time()}")
-
-    dep = demo.load(greet_with_time, None, text, every=1)
-
-
-if __name__ == "__main__":
-    demo.queue().launch()
+demo.launch()
 `
 		},
 		{
@@ -61,6 +59,9 @@ def hi(name):
 
 	const requirements = parse_requirements(requirements_txt);
 
+	let stdouts: string[] = [];
+	let stderrs: string[] = [];
+
 	let controller: ReturnType<typeof create>;
 	onMount(() => {
 		controller = create({
@@ -80,6 +81,20 @@ def hi(name):
 			appMode: true,
 			playground: false,
 			layout: null
+		});
+		controller.addEventListener("modules-auto-loaded", (event) => {
+			const packages = (event as CustomEvent).detail as { name: string }[];
+			const packageNames = packages.map((pkg) => pkg.name);
+			requirements_txt +=
+				"\n" + packageNames.map((line) => line + "  # auto-loaded").join("\n");
+		});
+		controller.addEventListener("stdout", (event) => {
+			const message = (event as CustomEvent).detail as string;
+			stdouts = stdouts.concat(message);
+		});
+		controller.addEventListener("stderr", (event) => {
+			const message = (event as CustomEvent).detail as string;
+			stderrs = stderrs.concat(message);
 		});
 	});
 	onDestroy(() => {
@@ -120,6 +135,27 @@ def hi(name):
 </script>
 
 <div class="container">
+	<div class="panel">
+		<div class="log-panel-container">
+			<div class="log-panel">
+				<h4>stdout</h4>
+				<div class="log-box" id="stdout" style="color: black;">
+					{#each stdouts as stdout}
+						<pre class="log-line">{stdout}</pre>
+					{/each}
+				</div>
+			</div>
+			<div class="log-panel">
+				<h4>stdout</h4>
+				<div class="log-box" id="stderr" style="color: red;">
+					{#each stderrs as stderr}
+						<pre class="log-line">{stderr}</pre>
+					{/each}
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<div class="panel">
 		When the SharedWorker mode is enabled, access the URL below (for Chrome) and
 		click the "inspect" link of the worker to show the console log emitted from
@@ -178,6 +214,25 @@ def hi(name):
 
 	.panel .file-cell {
 		width: 100%;
+	}
+
+	.log-panel-container {
+		height: 300px;
+		position: relative;
+		display: flex;
+		flex-direction: row;
+	}
+	.log-panel {
+		width: 50%;
+		display: flex;
+		flex-direction: column;
+	}
+	.log-box {
+		flex-grow: 1;
+		overflow: scroll;
+	}
+	.log-line {
+		margin: 0;
 	}
 
 	.cell-header {

@@ -71,7 +71,7 @@ def get_param_name(param):
 
 def format_none(value):
     """Formats None and NonType values."""
-    if value is None or value is type(None) or value == "None" or value == "NoneType":
+    if value is None or value is type(None) or value in ("None", "NoneType"):
         return "None"
     return value
 
@@ -145,31 +145,14 @@ def get_type_arguments(type_hint) -> tuple:
 
 def get_container_name(arg):
     """Gets a human readable name for a type."""
-
-    # This is a bit of a hack to get the generic type for python 3.8
-    typing_genericalias = getattr(typing, "_GenericAlias", None)
-    types_genericalias = getattr(types, "GenericAlias", None)
-    types_uniontype = getattr(types, "UnionType", None)
-    if types_genericalias is None:
-        raise ValueError(
-            """Unable to find GenericAlias type. This is likely because you are using an older version of python. Please upgrade to python 3.10 or higher."""
-        )
-
-    generic_type_tuple = (
-        (types_genericalias,)
-        if typing_genericalias is None
-        else (types_genericalias, typing_genericalias)
-    )
-
     if inspect.isclass(arg):
         return arg.__name__
-    if isinstance(arg, (generic_type_tuple)):
+    if isinstance(arg, types.GenericAlias):
         return arg.__origin__.__name__
-    elif types_uniontype and isinstance(arg, types_uniontype):
+    elif isinstance(arg, types.UnionType):
         return "Union"
     elif getattr(arg, "__origin__", None) is typing.Literal:
         return "Literal"
-
     else:
         return str(arg)
 

@@ -1,5 +1,67 @@
 # @gradio/icons
 
+## 0.10.0
+
+### Features
+
+- [#10226](https://github.com/gradio-app/gradio/pull/10226) [`58b8391`](https://github.com/gradio-app/gradio/commit/58b839196e17776cbd0d48997905496f7746d31f) - Improve tool UI and support nested thoughts.  Thanks @hannahblair!
+
+## 0.9.0
+
+### Features
+
+- [#10262](https://github.com/gradio-app/gradio/pull/10262) [`f3bedd4`](https://github.com/gradio-app/gradio/commit/f3bedd4011bdfdecc952eb1275a9dd96af3e8d71) - add gr.Success and update windows contributing.  Thanks @not-lain!
+
+## 0.8.1
+
+### Fixes
+
+- [#9758](https://github.com/gradio-app/gradio/pull/9758) [`38701a9`](https://github.com/gradio-app/gradio/commit/38701a99710f9484dade8a93c5bf3a43ea30a0d3) - Fix icons not showing in Safari.  Thanks @hannahblair!
+
+## 0.8.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Built-in submit and stop buttons in `gr.ChatInterface(multimodal=False)`, adding `submit_btn` and `stop_btn` props to `gr.Textbox()` and `gr.MultimodalText()`
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Move buttons from chat_interface into Chatbot
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Improve `gr.Code`
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Open audio/image input stream only when queue is ready
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Move icons into `IconButtonWrapper`
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Chatbot autoscroll
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Match style of textbox stop button to submit button
+
+## 0.8.0-beta.4
+
+### Features
+
+- [#9582](https://github.com/gradio-app/gradio/pull/9582) [`43a7f42`](https://github.com/gradio-app/gradio/commit/43a7f420d8ac34c7f7fa71d6e630a4c8618d3780) - Chatbot autoscroll.  Thanks @whitphx!
+
+## 0.8.0-beta.3
+
+### Features
+
+- [#9450](https://github.com/gradio-app/gradio/pull/9450) [`991883e`](https://github.com/gradio-app/gradio/commit/991883e217dc0a3512b3ae3245378812f373b8db) - Improve `gr.Code`.  Thanks @hannahblair!
+
+## 0.8.0-beta.2
+
+### Features
+
+- [#9261](https://github.com/gradio-app/gradio/pull/9261) [`73647a0`](https://github.com/gradio-app/gradio/commit/73647a07b0439efabe3dd218ff6c366ffa3b84a0) - Move icons into `IconButtonWrapper`.  Thanks @hannahblair!
+- [#9280](https://github.com/gradio-app/gradio/pull/9280) [`7122420`](https://github.com/gradio-app/gradio/commit/712242047fde3a594dfde7f48a44c7ea16239dc8) - Match style of textbox stop button to submit button.  Thanks @freddyaboulton!
+
+## 0.8.0-beta.1
+
+### Features
+
+- [#9235](https://github.com/gradio-app/gradio/pull/9235) [`f8b411f`](https://github.com/gradio-app/gradio/commit/f8b411fe282ff0316ed4abebc0a043b044bf4dd9) - Built-in submit and stop buttons in `gr.ChatInterface(multimodal=False)`, adding `submit_btn` and `stop_btn` props to `gr.Textbox()` and `gr.MultimodalText()`.  Thanks @whitphx!
+- [#9201](https://github.com/gradio-app/gradio/pull/9201) [`5492e74`](https://github.com/gradio-app/gradio/commit/5492e742b1f1fa618208cce523f50ad22a6e86f1) - Move buttons from chat_interface into Chatbot.  Thanks @freddyaboulton!
+
+## 0.8.0-beta.0
+
+### Features
+
+- [#9149](https://github.com/gradio-app/gradio/pull/9149) [`3d7a9b8`](https://github.com/gradio-app/gradio/commit/3d7a9b81f6fef06187eca832471dc1692eb493a0) - Open audio/image input stream only when queue is ready.  Thanks @freddyaboulton!
+
 ## 0.7.2
 
 ### Fixes

@@ -7,7 +7,7 @@ name = "gradio_client"
 dynamic = ["version", "dependencies", "readme"]
 description = "Python library for easily interacting with trained machine learning models"
 license = "Apache-2.0"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 authors = [
   { name = "Abubakar Abid", email = "gradio-team@huggingface.co" },
   { name = "Ali Abid", email = "gradio-team@huggingface.co" },

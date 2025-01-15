@@ -1,5 +1,258 @@
 # @gradio/imageeditor
 
+## 0.12.2
+
+### Fixes
+
+- [#10308](https://github.com/gradio-app/gradio/pull/10308) [`3543418`](https://github.com/gradio-app/gradio/commit/354341826a629d06640ce3ec5e5881bcccd6e339) - ImageEditor: Trigger input event even if change event not defined.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.1
+- @gradio/statustracker@0.10.1
+- @gradio/client@1.10.0
+- @gradio/icons@0.10.0
+- @gradio/upload@0.14.5
+- @gradio/image@0.20.1
+
+## 0.12.1
+
+### Fixes
+
+- [#10306](https://github.com/gradio-app/gradio/pull/10306) [`9fc988e`](https://github.com/gradio-app/gradio/commit/9fc988ebaf4bea24b71308922bb1889f1d3f4f6e) - Fix bug where ImageEditor always sends empty layers list to the backend.  Thanks @freddyaboulton!
+
+## 0.12.0
+
+### Features
+
+- [#10192](https://github.com/gradio-app/gradio/pull/10192) [`4fc7fb7`](https://github.com/gradio-app/gradio/commit/4fc7fb777c42af537e4af612423fa44029657d41) - Ensure components can be remounted with their previous data.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/upload@0.14.4
+- @gradio/client@1.9.0
+- @gradio/icons@0.9.0
+- @gradio/statustracker@0.10.0
+- @gradio/wasm@0.16.0
+- @gradio/image@0.20.0
+
+## 0.11.11
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.7
+- @gradio/upload@0.14.3
+- @gradio/atoms@0.12.0
+- @gradio/image@0.19.0
+
+## 0.11.10
+
+### Dependency updates
+
+- @gradio/image@0.18.0
+
+## 0.11.9
+
+### Fixes
+
+- [#10037](https://github.com/gradio-app/gradio/pull/10037) [`d0b74ba`](https://github.com/gradio-app/gradio/commit/d0b74ba281b37d8883a4e4fbb98c5922600ca41e) - Ensure toolbar stays visible for large images in ImageEditor.  Thanks @hannahblair!
+- [#10041](https://github.com/gradio-app/gradio/pull/10041) [`c1fa13c`](https://github.com/gradio-app/gradio/commit/c1fa13c9c057ce05a325782e58b409cde79383b8) - Ensure ImageEditor brush colour is updated when changed.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+- @gradio/upload@0.14.2
+- @gradio/image@0.17.0
+
+## 0.11.8
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/client@1.8.0
+- @gradio/utils@0.8.0
+- @gradio/upload@0.14.1
+- @gradio/statustracker@0.9.5
+- @gradio/image@0.16.8
+
+## 0.11.7
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.4
+- @gradio/atoms@0.11.0
+- @gradio/upload@0.14.0
+- @gradio/wasm@0.15.0
+- @gradio/image@0.16.7
+
+## 0.11.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+- @gradio/client@1.7.1
+- @gradio/image@0.16.6
+- @gradio/upload@0.13.5
+
+## 0.11.5
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.2
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+- @gradio/upload@0.13.4
+- @gradio/image@0.16.5
+
+## 0.11.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.1
+- @gradio/upload@0.13.3
+- @gradio/atoms@0.9.2
+- @gradio/image@0.16.4
+
+## 0.11.3
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+- @gradio/statustracker@0.9.0
+- @gradio/client@1.7.0
+- @gradio/upload@0.13.2
+- @gradio/wasm@0.14.2
+- @gradio/image@0.16.3
+
+## 0.11.2
+
+### Dependency updates
+
+- @gradio/upload@0.13.1
+- @gradio/image@0.16.2
+- @gradio/wasm@0.14.1
+
+## 0.11.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+- @gradio/image@0.16.1
+
+## 0.11.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Move buttons from chat_interface into Chatbot
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Improve Icon Button consistency
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix cut off in gr.ImageEditor
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix `gr.ImageEditor` toolbar cutoff
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Ssr part 2
+
+### Dependencies
+
+- @gradio/atoms@0.9.0
+- @gradio/client@1.6.0
+- @gradio/icons@0.8.0
+- @gradio/image@0.16.0
+- @gradio/statustracker@0.8.0
+- @gradio/upload@0.13.0
+- @gradio/utils@0.7.0
+- @gradio/wasm@0.14.0
+
+## 0.11.0-beta.7
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.7
+- @gradio/statustracker@0.8.0-beta.5
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+- @gradio/image@0.16.0-beta.7
+
+## 0.11.0-beta.6
+
+### Features
+
+- [#9525](https://github.com/gradio-app/gradio/pull/9525) [`7c367b6`](https://github.com/gradio-app/gradio/commit/7c367b6cf0472d478671b7c7476e892b4c61c812) - Fix cut off in gr.ImageEditor.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.4
+- @gradio/client@1.6.0-beta.4
+- @gradio/upload@0.13.0-beta.6
+- @gradio/image@0.16.0-beta.6
+
+## 0.11.0-beta.5
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.5
+- @gradio/statustracker@0.8.0-beta.3
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+- @gradio/image@0.16.0-beta.5
+
+## 0.11.0-beta.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/upload@0.13.0-beta.4
+- @gradio/image@0.16.0-beta.4
+- @gradio/wasm@0.14.0-beta.3
+
+## 0.11.0-beta.3
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.3
+- @gradio/client@1.6.0-beta.3
+- @gradio/image@0.16.0-beta.3
+
+## 0.11.0-beta.2
+
+### Features
+
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+- [#9250](https://github.com/gradio-app/gradio/pull/9250) [`350b0a5`](https://github.com/gradio-app/gradio/commit/350b0a5cafb9176f914f62e7c90de51d4352cc77) - Improve Icon Button consistency.  Thanks @hannahblair!
+- [#9371](https://github.com/gradio-app/gradio/pull/9371) [`7bf3e99`](https://github.com/gradio-app/gradio/commit/7bf3e9989392b7edcdc18c1d840fb8130b15040e) - Fix `gr.ImageEditor` toolbar cutoff.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/upload@0.13.0-beta.2
+- @gradio/wasm@0.14.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+- @gradio/image@0.16.0-beta.2
+
+## 0.11.0-beta.1
+
+### Features
+
+- [#9201](https://github.com/gradio-app/gradio/pull/9201) [`5492e74`](https://github.com/gradio-app/gradio/commit/5492e742b1f1fa618208cce523f50ad22a6e86f1) - Move buttons from chat_interface into Chatbot.  Thanks @freddyaboulton!
+- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/client@1.6.0-beta.1
+- @gradio/image@0.16.0-beta.1
+- @gradio/upload@0.12.4-beta.1
+- @gradio/wasm@0.13.1-beta.1
+
 ## 0.10.1
 
 ### Features

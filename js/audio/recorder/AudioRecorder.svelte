@@ -23,6 +23,7 @@
 	};
 	export let handle_reset_value: () => void;
 	export let editable = true;
+	export let recording = false;
 
 	let micWaveform: WaveSurfer;
 	let recordingWaveform: WaveSurfer;
@@ -226,6 +227,7 @@
 			bind:record
 			{i18n}
 			{timing}
+			{recording}
 			show_recording_waveform={waveform_options.show_recording_waveform}
 			record_time={format_time(seconds)}
 		/>

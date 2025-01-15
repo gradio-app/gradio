@@ -1,5 +1,134 @@
 # @gradio/column
 
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.1
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/utils@0.10.0
+- @gradio/statustracker@0.10.0
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.7
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/utils@0.8.0
+- @gradio/statustracker@0.9.5
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.4
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.3
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.2
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.1
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.0
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+
+## 0.2.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Equal height columns
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - UI theme fixes
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Remove grey background behind all components
+
+## 0.2.0-beta.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.5
+
+## 0.2.0-beta.2
+
+### Features
+
+- [#9577](https://github.com/gradio-app/gradio/pull/9577) [`9f532e0`](https://github.com/gradio-app/gradio/commit/9f532e03a6b91b9a5592152c19b9b2611774cae7) - Equal height columns.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.4
+
+## 0.2.0-beta.1
+
+### Features
+
+- [#9496](https://github.com/gradio-app/gradio/pull/9496) [`1647ebd`](https://github.com/gradio-app/gradio/commit/1647ebddc3e2ed6fc143a62629409e32afcc5801) - UI theme fixes.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.3
+
+## 0.2.0-beta.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+
+## 0.2.0-beta.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
+## 0.2.0-beta.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+
+## 0.2.0-beta.0
+
+### Features
+
+- [#9213](https://github.com/gradio-app/gradio/pull/9213) [`ab4580b`](https://github.com/gradio-app/gradio/commit/ab4580bd5f755a07c9a9bd2a775220a9a2085f8c) - Remove grey background behind all components.  Thanks @hannahblair!
+
 ## 0.1.4
 
 ### Fixes

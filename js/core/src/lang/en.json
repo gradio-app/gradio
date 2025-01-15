@@ -1,4 +1,5 @@
 {
+	"_name": "English",
 	"3D_model": {
 		"3d_model": "3D Model"
 	},
@@ -16,12 +17,14 @@
 		"record": "Record",
 		"no_microphone": "No microphone found",
 		"pause": "Pause",
-		"play": "Play"
+		"play": "Play",
+		"waiting": "Waiting"
 	},
 	"blocks": {
 		"connection_can_break": "On mobile, the connection can break if this tab is unfocused or the device sleeps, losing your position in queue.",
 		"long_requests_queue": "There is a long queue of requests pending. Duplicate this Space to skip.",
-		"lost_connection": "Lost connection due to leaving page. Rejoining queue..."
+		"lost_connection": "Lost connection due to leaving page. Rejoining queue...",
+		"waiting_for_inputs": "Waiting for file(s) to finish uploading, please retry."
 	},
 	"checkbox": {
 		"checkbox": "Checkbox",
@@ -46,15 +49,23 @@
 		"logo": "logo",
 		"or": "or",
 		"remove": "Remove",
+		"settings": "Settings",
 		"share": "Share",
 		"submit": "Submit",
 		"undo": "Undo",
-		"no_devices": "No devices found"
+		"no_devices": "No devices found",
+		"language": "Language",
+		"display_theme": "Display Theme",
+		"pwa": "Progressive Web App"
 	},
 	"dataframe": {
 		"incorrect_format": "Incorrect format, only CSV and TSV files are supported",
-		"new_column": "New column",
-		"new_row": "New row"
+		"new_column": "Add column",
+		"new_row": "New row",
+		"add_row_above": "Add row above",
+		"add_row_below": "Add row below",
+		"add_column_left": "Add column to the left",
+		"add_column_right": "Add column to the right"
 	},
 	"dropdown": {
 		"dropdown": "Dropdown"
@@ -91,6 +102,8 @@
 	"login": {
 		"enable_cookies": "If you are visiting a HuggingFace Space in Incognito mode, you must enable third party cookies.",
 		"incorrect_credentials": "Incorrect Credentials",
+		"username": "username",
+		"password": "password",
 		"login": "Login"
 	},
 	"number": {
@@ -112,7 +125,7 @@
 		"drop_file": "Drop File Here",
 		"drop_image": "Drop Image Here",
 		"drop_video": "Drop Video Here",
-		"drop_gallery": "Drop Image(s) Here",
+		"drop_gallery": "Drop Media Here",
 		"paste_clipboard": "Paste from Clipboard"
 	}
 }

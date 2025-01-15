@@ -1,0 +1,43 @@
+{
+	"name": "@gradio/markdown-code",
+	"version": "0.3.0",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"private": false,
+	"main_changeset": true,
+	"main": "Index.svelte",
+	"exports": {
+		".": {
+			"gradio": "./index.ts",
+			"svelte": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		},
+		"./package.json": "./package.json"
+	},
+	"dependencies": {
+		"@gradio/sanitize": "workspace:^",
+		"@types/dompurify": "^3.0.2",
+		"@types/katex": "^0.16.0",
+		"@types/prismjs": "1.26.4",
+		"github-slugger": "^2.0.0",
+		"isomorphic-dompurify": "^2.14.0",
+		"katex": "^0.16.7",
+		"marked": "^12.0.0",
+		"marked-gfm-heading-id": "^3.1.2",
+		"marked-highlight": "^2.0.1",
+		"prismjs": "1.29.0"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/markdown"
+	}
+}

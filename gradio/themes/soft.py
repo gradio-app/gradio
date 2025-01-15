@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
@@ -17,13 +17,13 @@ class Soft(Base):
         radius_size: sizes.Size | str = sizes.radius_md,
         text_size: sizes.Size | str = sizes.text_md,
         font: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("Montserrat"),
+            fonts.LocalFont("Montserrat"),
             "ui-sans-serif",
             "system-ui",
             "sans-serif",
         ),
         font_mono: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("IBM Plex Mono"),
+            fonts.LocalFont("IBM Plex Mono"),
             "ui-monospace",
             "Consolas",
             "monospace",
@@ -73,10 +73,13 @@ class Soft(Base):
             checkbox_shadow="none",
             # Buttons
             shadow_spread="6px",
-            button_shadow="*shadow_drop_lg",
-            button_shadow_hover="*shadow_drop_lg",
+            button_primary_shadow="*shadow_drop_lg",
+            button_primary_shadow_hover="*shadow_drop_lg",
+            button_primary_shadow_active="*shadow_inset",
+            button_secondary_shadow="*shadow_drop_lg",
+            button_secondary_shadow_hover="*shadow_drop_lg",
+            button_secondary_shadow_active="*shadow_inset",
             checkbox_label_shadow="*shadow_drop_lg",
-            button_shadow_active="*shadow_inset",
             button_primary_background_fill="*primary_500",
             button_primary_background_fill_hover="*primary_400",
             button_primary_background_fill_hover_dark="*primary_500",

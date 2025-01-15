@@ -10,7 +10,7 @@
 	import { Upload } from "@gradio/upload";
 	import { Webcam } from "@gradio/image";
 	import { type I18nFormatter } from "@gradio/utils";
-	import { IconButton } from "@gradio/atoms";
+	import { default as IconButton } from "./IconButton.svelte";
 	import { type Client } from "@gradio/client";
 
 	import { add_bg_color, add_bg_image } from "./sources";
@@ -28,6 +28,7 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let dragging: boolean;
+	export let max_height: number;
 
 	const { active_tool } = getContext<ToolContext>(TOOL_KEY);
 	const { pixi, dimensions, register_context, reset, editor_box } =
@@ -108,7 +109,8 @@
 				$pixi.background_container,
 				$pixi.renderer,
 				background,
-				$pixi.resize
+				$pixi.resize,
+				max_height
 			);
 			$dimensions = await add_image.start();
 

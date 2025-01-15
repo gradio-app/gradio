@@ -2,7 +2,7 @@ from collections import namedtuple
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import ClassVar, Dict, List, Literal, Optional, Set, Tuple, Union
+from typing import ClassVar, Literal, Optional, Union
 from uuid import UUID
 
 import pytest
@@ -15,7 +15,7 @@ from gradio.data_classes import GradioModel, GradioRootModel
 
 class StringModel(GradioModel):
     data: str
-    answer: ClassVar = "Dict(data: str)"
+    answer: ClassVar = "dict(data: str)"
 
 
 class IntegerRootModel(GradioRootModel):
@@ -27,31 +27,31 @@ class IntegerRootModel(GradioRootModel):
 class FloatModel(GradioModel):
     data: float
 
-    answer: ClassVar = "Dict(data: float)"
+    answer: ClassVar = "dict(data: float)"
 
 
 class ListModel(GradioModel):
-    items: List[int]
+    items: list[int]
 
-    answer: ClassVar = "Dict(items: List[int])"
+    answer: ClassVar = "dict(items: list[int])"
 
 
 class DictModel(GradioModel):
-    data_dict: Dict[str, int]
+    data_dict: dict[str, int]
 
-    answer: ClassVar = "Dict(data_dict: Dict(str, int))"
+    answer: ClassVar = "dict(data_dict: dict(str, int))"
 
 
 class DictModel2(GradioModel):
-    data_dict: Dict[str, List[float]]
+    data_dict: dict[str, list[float]]
 
-    answer: ClassVar = "Dict(data_dict: Dict(str, List[float]))"
+    answer: ClassVar = "dict(data_dict: dict(str, list[float]))"
 
 
 class OptionalModel(GradioModel):
     optional_data: Optional[int]
 
-    answer: ClassVar = "Dict(optional_data: int | None)"
+    answer: ClassVar = "dict(optional_data: int | None)"
 
 
 class ColorEnum(Enum):
@@ -63,13 +63,13 @@ class ColorEnum(Enum):
 class EnumRootModel(GradioModel):
     color: ColorEnum
 
-    answer: ClassVar = "Dict(color: Literal['red', 'green', 'blue'])"
+    answer: ClassVar = "dict(color: Literal['red', 'green', 'blue'])"
 
 
 class EmailModel(GradioModel):
     email: EmailStr
 
-    answer: ClassVar = "Dict(email: str)"
+    answer: ClassVar = "dict(email: str)"
 
 
 class RootWithNestedModel(GradioModel):
@@ -77,71 +77,71 @@ class RootWithNestedModel(GradioModel):
     nested_enum: EnumRootModel
     nested_dict: DictModel2
 
-    answer: ClassVar = "Dict(nested_int: int, nested_enum: Dict(color: Literal['red', 'green', 'blue']), nested_dict: Dict(data_dict: Dict(str, List[float])))"
+    answer: ClassVar = "dict(nested_int: int, nested_enum: dict(color: Literal['red', 'green', 'blue']), nested_dict: dict(data_dict: dict(str, list[float])))"
 
 
 class LessNestedModel(GradioModel):
     nested_int: int
     nested_enum: ColorEnum
-    nested_dict: Dict[str, List[Union[int, float]]]
+    nested_dict: dict[str, list[Union[int, float]]]
 
-    answer: ClassVar = "Dict(nested_int: int, nested_enum: Literal['red', 'green', 'blue'], nested_dict: Dict(str, List[int | float]))"
+    answer: ClassVar = "dict(nested_int: int, nested_enum: Literal['red', 'green', 'blue'], nested_dict: dict(str, list[int | float]))"
 
 
 class StatusModel(GradioModel):
     status: Literal["active", "inactive"]
 
-    answer: ClassVar = "Dict(status: Literal['active', 'inactive'])"
+    answer: ClassVar = "dict(status: Literal['active', 'inactive'])"
 
 
 class PointModel(GradioRootModel):
-    root: Tuple[float, float]
+    root: tuple[float, float]
 
-    answer: ClassVar = "Tuple[float, float]"
+    answer: ClassVar = "tuple[float, float]"
 
 
 class UuidModel(GradioModel):
     uuid: UUID
 
-    answer: ClassVar = "Dict(uuid: str)"
+    answer: ClassVar = "dict(uuid: str)"
 
 
 class UrlModel(GradioModel):
     url: AnyUrl
 
-    answer: ClassVar = "Dict(url: str)"
+    answer: ClassVar = "dict(url: str)"
 
 
 class CustomFieldModel(GradioModel):
     name: str = Field(..., title="Name of the item", max_length=50)
     price: float = Field(..., title="Price of the item", gt=0)
 
-    answer: ClassVar = "Dict(name: str, price: float)"
+    answer: ClassVar = "dict(name: str, price: float)"
 
 
 class DurationModel(GradioModel):
     duration: timedelta
 
-    answer: ClassVar = "Dict(duration: str)"
+    answer: ClassVar = "dict(duration: str)"
 
 
 class IPv4Model(GradioModel):
     ipv4_address: IPvAnyAddress
 
-    answer: ClassVar = "Dict(ipv4_address: str)"
+    answer: ClassVar = "dict(ipv4_address: str)"
 
 
 class DateTimeModel(GradioModel):
     created_at: datetime
     updated_at: datetime
 
-    answer: ClassVar = "Dict(created_at: str, updated_at: str)"
+    answer: ClassVar = "dict(created_at: str, updated_at: str)"
 
 
 class SetModel(GradioModel):
-    unique_numbers: Set[int]
+    unique_numbers: set[int]
 
-    answer: ClassVar = "Dict(unique_numbers: List[int])"
+    answer: ClassVar = "dict(unique_numbers: list[int])"
 
 
 class ItemModel(GradioModel):
@@ -150,9 +150,9 @@ class ItemModel(GradioModel):
 
 
 class OrderModel(GradioModel):
-    items: List[ItemModel]
+    items: list[ItemModel]
 
-    answer: ClassVar = "Dict(items: List[Dict(name: str, price: float)])"
+    answer: ClassVar = "dict(items: list[dict(name: str, price: float)])"
 
 
 class TemperatureUnitEnum(Enum):
@@ -168,9 +168,9 @@ class CartItemModel(GradioModel):
 
 
 class ShoppingCartModel(GradioModel):
-    items: List[CartItemModel]
+    items: list[CartItemModel]
 
-    answer: ClassVar = "Dict(items: List[Dict(product_name: str, quantity: int, price_per_unit: float)])"
+    answer: ClassVar = "dict(items: list[dict(product_name: str, quantity: int, price_per_unit: float)])"
 
 
 class CoordinateModel(GradioModel):
@@ -179,33 +179,33 @@ class CoordinateModel(GradioModel):
 
 
 class TupleListModel(GradioModel):
-    data: List[Tuple[int, str]]
+    data: list[tuple[int, str]]
 
-    answer: ClassVar = "Dict(data: List[Tuple[int, str]]"
+    answer: ClassVar = "dict(data: list[tuple[int, str]]"
 
 
 class PathListModel(GradioModel):
-    file_paths: List[Path]
+    file_paths: list[Path]
 
-    answer: ClassVar = "Dict(file_paths: List[str])"
+    answer: ClassVar = "dict(file_paths: list[str])"
 
 
 class PostModel(GradioModel):
     author: str
     content: str
-    tags: List[str]
+    tags: list[str]
     likes: int = 0
 
-    answer: ClassVar = "Dict(author: str, content: str, tags: List[str], likes: int)"
+    answer: ClassVar = "dict(author: str, content: str, tags: list[str], likes: int)"
 
 
 Person = namedtuple("Person", ["name", "age"])
 
 
 class NamedTupleDictionaryModel(GradioModel):
-    people: Dict[str, Person]
+    people: dict[str, Person]
 
-    answer: ClassVar = "Dict(people: Dict(str, Tuple[Any, Any]))"
+    answer: ClassVar = "dict(people: dict(str, tuple[Any, Any]))"
 
 
 MODELS = [

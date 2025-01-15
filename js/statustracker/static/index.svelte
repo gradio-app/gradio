@@ -6,6 +6,11 @@
 
 	let called = false;
 
+	const is_browser = typeof window !== "undefined";
+	const raf = is_browser
+		? window.requestAnimationFrame
+		: (cb: (...args: any[]) => void) => {};
+
 	async function scroll_into_view(
 		el: HTMLDivElement,
 		enable: boolean | null = true
@@ -23,7 +28,7 @@
 
 		await tick();
 
-		requestAnimationFrame(() => {
+		raf(() => {
 			let min = [0, 0];
 
 			for (let i = 0; i < items.length; i++) {
@@ -61,7 +66,13 @@
 	export let eta: number | null = null;
 	export let queue_position: number | null;
 	export let queue_size: number | null;
-	export let status: "complete" | "pending" | "error" | "generating" | null;
+	export let status:
+		| "complete"
+		| "pending"
+		| "error"
+		| "generating"
+		| "streaming"
+		| null;
 	export let scroll_to_output = false;
 	export let timer = true;
 	export let show_progress: "full" | "minimal" | "hidden" = "full";
@@ -133,7 +144,7 @@
 	};
 
 	function run(): void {
-		requestAnimationFrame(() => {
+		raf(() => {
 			timer_diff = (performance.now() - timer_start) / 1000;
 			if (_timer) run();
 		});
@@ -193,7 +204,10 @@
 
 <div
 	class="wrap {variant} {show_progress}"
-	class:hide={!status || status === "complete" || show_progress === "hidden"}
+	class:hide={!status ||
+		status === "complete" ||
+		show_progress === "hidden" ||
+		status == "streaming"}
 	class:translucent={(variant === "center" &&
 		(status === "pending" || status === "error")) ||
 		translucent ||
@@ -406,7 +420,7 @@
 
 	.meta-text {
 		position: absolute;
-		top: 0;
+		bottom: 0;
 		right: 0;
 		z-index: var(--layer-2);
 		padding: var(--size-1) var(--size-2);

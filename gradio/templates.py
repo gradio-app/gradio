@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 import numpy as np
 import PIL.Image
@@ -52,6 +53,8 @@ class TextArea(components.Textbox):
         rtl: bool = False,
         show_copy_button: bool = False,
         max_length: int | None = None,
+        submit_btn: str | bool | None = False,
+        stop_btn: str | bool | None = False,
     ):
         super().__init__(
             value=value,
@@ -79,6 +82,8 @@ class TextArea(components.Textbox):
             rtl=rtl,
             show_copy_button=show_copy_button,
             max_length=max_length,
+            submit_btn=submit_btn,
+            stop_btn=stop_btn,
         )
 
 
@@ -385,7 +390,9 @@ class PlayableVideo(components.Video):
         min_length: int | None = None,
         max_length: int | None = None,
         loop: bool = False,
+        streaming: bool = False,
         watermark: str | Path | None = None,
+        webcam_constraints: dict[str, dict[str, int | str]] | None = None,
     ):
         sources = ["upload"]
         super().__init__(
@@ -415,7 +422,9 @@ class PlayableVideo(components.Video):
             min_length=min_length,
             max_length=max_length,
             loop=loop,
+            streaming=streaming,
             watermark=watermark,
+            webcam_constraints=webcam_constraints,
         )
 
 
@@ -460,6 +469,7 @@ class Microphone(components.Audio):
         max_length: int | None = None,
         waveform_options: WaveformOptions | dict | None = None,
         loop: bool = False,
+        recording: bool = False,
     ):
         sources = ["microphone"]
         super().__init__(
@@ -489,6 +499,7 @@ class Microphone(components.Audio):
             max_length=max_length,
             waveform_options=waveform_options,
             loop=loop,
+            recording=recording,
         )
 
 
@@ -523,6 +534,7 @@ class Files(components.File):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
+        allow_reordering: bool = False,
     ):
         super().__init__(
             value,
@@ -543,6 +555,7 @@ class Files(components.File):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            allow_reordering=allow_reordering,
         )
 
 
@@ -570,7 +583,7 @@ class Numpy(components.Dataframe):
         | Sequence[components.Component]
         | set[components.Component]
         | None = None,
-        height: int = 500,
+        max_height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
@@ -603,7 +616,7 @@ class Numpy(components.Dataframe):
             column_widths=column_widths,
             every=every,
             inputs=inputs,
-            height=height,
+            max_height=max_height,
             scale=scale,
             latex_delimiters=latex_delimiters,
             min_width=min_width,
@@ -634,7 +647,7 @@ class Matrix(components.Dataframe):
         | Sequence[components.Component]
         | set[components.Component]
         | None = None,
-        height: int = 500,
+        max_height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
@@ -667,7 +680,7 @@ class Matrix(components.Dataframe):
             column_widths=column_widths,
             every=every,
             inputs=inputs,
-            height=height,
+            max_height=max_height,
             scale=scale,
             latex_delimiters=latex_delimiters,
             min_width=min_width,
@@ -698,7 +711,7 @@ class List(components.Dataframe):
         | Sequence[components.Component]
         | set[components.Component]
         | None = None,
-        height: int = 500,
+        max_height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
@@ -731,7 +744,7 @@ class List(components.Dataframe):
             column_widths=column_widths,
             every=every,
             inputs=inputs,
-            height=height,
+            max_height=max_height,
             scale=scale,
             latex_delimiters=latex_delimiters,
             min_width=min_width,

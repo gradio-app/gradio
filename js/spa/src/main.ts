@@ -112,7 +112,6 @@ function create_custom_element(): void {
 					// embed source
 					space: this.space ? this.space.trim() : this.space,
 					src: this.src ? this.src.trim() : this.src,
-					host: this.host ? this.host.trim() : this.host,
 					// embed info
 					info: this.info === "false" ? false : true,
 					container: this.container === "false" ? false : true,
@@ -179,7 +178,6 @@ function create_custom_element(): void {
 						// embed source
 						space: this.space ? this.space.trim() : this.space,
 						src: this.src ? this.src.trim() : this.src,
-						host: this.host ? this.host.trim() : this.host,
 						// embed info
 						info: this.info === "false" ? false : true,
 						container: this.container === "false" ? false : true,

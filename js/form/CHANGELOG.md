@@ -1,5 +1,123 @@
 # @gradio/form
 
+## 0.2.10
+
+### Dependency updates
+
+- @gradio/atoms@0.13.1
+- @gradio/icons@0.10.0
+
+## 0.2.9
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/icons@0.9.0
+
+## 0.2.8
+
+### Dependency updates
+
+- @gradio/atoms@0.12.0
+
+## 0.2.7
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+
+## 0.2.6
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/utils@0.8.0
+
+## 0.2.5
+
+### Dependency updates
+
+- @gradio/atoms@0.11.0
+
+## 0.2.4
+
+### Dependency updates
+
+- @gradio/atoms@0.10.1
+
+## 0.2.3
+
+### Dependency updates
+
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+
+## 0.2.2
+
+### Dependency updates
+
+- @gradio/atoms@0.9.2
+
+## 0.2.1
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+
+## 0.2.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Adding new themes to Gradio 5.0
+
+### Dependencies
+
+- @gradio/atoms@0.9.0
+- @gradio/utils@0.7.0
+- @gradio/icons@0.8.0
+
+## 0.2.0-beta.5
+
+### Features
+
+- [#9437](https://github.com/gradio-app/gradio/pull/9437) [`c3d93be`](https://github.com/gradio-app/gradio/commit/c3d93bef94b9401747a363f7bad88a1d347d535b) - Adding new themes to Gradio 5.0.  Thanks @allisonwhilden!
+
+### Dependency updates
+
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+
+## 0.1.25-beta.4
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.4
+
+## 0.1.25-beta.3
+
+### Dependency updates
+
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+
+## 0.1.25-beta.2
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
+## 0.1.25-beta.1
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+
 ## 0.1.25
 
 ### Fixes

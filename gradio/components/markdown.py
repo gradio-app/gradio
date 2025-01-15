@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import inspect
-from typing import TYPE_CHECKING, Any, Callable, Sequence
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any
 
 from gradio_client.documentation import document
 
@@ -24,7 +25,10 @@ class Markdown(Component):
     Guides: key-features
     """
 
-    EVENTS = [Events.change]
+    EVENTS = [
+        Events.change,
+        Events.copy,
+    ]
 
     def __init__(
         self,
@@ -45,12 +49,15 @@ class Markdown(Component):
         line_breaks: bool = False,
         header_links: bool = False,
         height: int | str | None = None,
+        max_height: int | str | None = None,
+        min_height: int | str | None = None,
         show_copy_button: bool = False,
+        container: bool = False,
     ):
         """
         Parameters:
             value: Value to show in Markdown component. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            label: The label for this component. Is used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            label: the label for this component. Is used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: This parameter has no effect.
@@ -64,8 +71,11 @@ class Markdown(Component):
             sanitize_html: If False, will disable HTML sanitization when converted from markdown. This is not recommended, as it can lead to security vulnerabilities.
             line_breaks: If True, will enable Github-flavored Markdown line breaks in chatbot messages. If False (default), single new lines will be ignored.
             header_links: If True, will automatically create anchors for headings, displaying a link icon on hover.
-            height: An optional maximum height of this component, specified in pixels if a number is passed, or in CSS units (e.g., '200px') if a stirng is passed in. If context exceeds this height, a scrollbar is added.
+            height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If markdown content exceeds the height, the component will scroll.
+            max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If markdown content exceeds the height, the component will scroll. If markdown content is shorter than the height, the component will shrink to fit the content. Will not have any effect if `height` is set and is smaller than `max_height`.
+            min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If markdown content exceeds the height, the component will expand to fit the content. Will not have any effect if `height` is set and is larger than `min_height`.
             show_copy_button: If True, includes a copy button to copy the text in the Markdown component. Default is False.
+            container: If True, the Markdown component will be displayed in a container. Default is False.
         """
         self.rtl = rtl
         if latex_delimiters is None:
@@ -75,6 +85,8 @@ class Markdown(Component):
         self.line_breaks = line_breaks
         self.header_links = header_links
         self.height = height
+        self.max_height = max_height
+        self.min_height = min_height
         self.show_copy_button = show_copy_button
 
         super().__init__(
@@ -88,6 +100,7 @@ class Markdown(Component):
             render=render,
             key=key,
             value=value,
+            container=container,
         )
 
     def preprocess(self, payload: str | None) -> str | None:

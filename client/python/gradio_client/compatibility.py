@@ -172,7 +172,7 @@ class EndpointV3Compatibility:
                             "orig_name": Path(f).name,
                             "data": None,
                         }
-                        for f, o in zip(fs, output)
+                        for f, o in zip(fs, output, strict=False)
                     ]
                 else:
                     o = next(o for ix, o in enumerate(result) if indices[ix] == i)
@@ -207,7 +207,7 @@ class EndpointV3Compatibility:
     def remove_skipped_components(self, *data) -> tuple:
         data = [
             d
-            for d, oct in zip(data, self.output_component_types)
+            for d, oct in zip(data, self.output_component_types, strict=False)
             if oct not in utils.SKIP_COMPONENTS
         ]
         return tuple(data)
@@ -235,13 +235,15 @@ class EndpointV3Compatibility:
 
         files = [
             f
-            for f, t in zip(data, self.input_component_types)
+            for f, t in zip(data, self.input_component_types, strict=False)
             if t in ["file", "uploadbutton"]
         ]
         uploaded_files = self._upload(files)
         data = list(data)
         self._add_uploaded_files_to_data(uploaded_files, data)
-        o = tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
+        o = tuple(
+            [s.serialize(d) for s, d in zip(self.serializers, data, strict=False)]
+        )
         return o
 
     def deserialize(self, *data) -> tuple:
@@ -257,7 +259,7 @@ class EndpointV3Compatibility:
                     hf_token=self.client.hf_token,
                     root_url=self.root_url,
                 )
-                for s, d in zip(self.deserializers, data)
+                for s, d in zip(self.deserializers, data, strict=False)
             ]
         )
         return outputs

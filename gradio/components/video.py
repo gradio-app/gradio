@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
+import json
+import subprocess
 import tempfile
 import warnings
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Literal, Optional
 
 from gradio_client import handle_file
 from gradio_client import utils as client_utils
@@ -13,12 +17,13 @@ from gradio_client.documentation import document
 
 import gradio as gr
 from gradio import processing_utils, utils, wasm_utils
-from gradio.components.base import Component
-from gradio.data_classes import FileData, GradioModel
+from gradio.components.base import Component, StreamingOutput
+from gradio.data_classes import FileData, GradioModel, MediaStreamChunk
 from gradio.events import Events
 
 if TYPE_CHECKING:
     from gradio.components import Timer
+
 
 if not wasm_utils.IS_WASM:
     # TODO: Support ffmpeg on Wasm
@@ -31,7 +36,7 @@ class VideoData(GradioModel):
 
 
 @document()
-class Video(Component):
+class Video(StreamingOutput, Component):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
     For the video to be playable in the browser it must have a compatible container and codec combination. Allowed
@@ -91,44 +96,48 @@ class Video(Component):
         min_length: int | None = None,
         max_length: int | None = None,
         loop: bool = False,
+        streaming: bool = False,
         watermark: str | Path | None = None,
+        webcam_constraints: dict[str, Any] | None = None,
     ):
         """
         Parameters:
-            value: A path or URL for the default value that Video component is going to take. Can also be a tuple consisting of (video filepath, subtitle filepath). If a subtitle file is provided, it should be of type .srt or .vtt. Or can be callable, in which case the function will be called whenever the app loads to set the initial value of the component.
-            format: Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
-            sources: A list of sources permitted for video. "upload" creates a box where user can drop a video file, "webcam" allows user to record a video from their webcam. If None, defaults to ["upload, "webcam"].
-            height: The height of the displayed video, specified in pixels if a number is passed, or in CSS units if a string is passed.
-            width: The width of the displayed video, specified in pixels if a number is passed, or in CSS units if a string is passed.
-            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
-            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
+            value: path or URL for the default value that Video component is going to take. Can also be a tuple consisting of (video filepath, subtitle filepath). If a subtitle file is provided, it should be of type .srt or .vtt. Or can be callable, in which case the function will be called whenever the app loads to set the initial value of the component.
+            format: the file extension with which to save video, such as 'avi' or 'mp4'. This parameter applies both when this component is used as an input to determine which file format to convert user-provided video to, and when this component is used as an output to determine the format of video returned to the user. If None, no file format conversion is done and the video is kept as is. Use 'mp4' to ensure browser playability.
+            sources: list of sources permitted for video. "upload" creates a box where user can drop a video file, "webcam" allows user to record a video from their webcam. If None, defaults to both ["upload, "webcam"].
+            height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed video file, but will affect the displayed video.
+            width: The width of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed video file, but will affect the displayed video.
+            label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            every: continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            inputs: components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
-            container: If True, will place the component in a container - providing some extra padding around the border.
+            container: if True, will place the component in a container - providing some extra padding around the border.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to upload a video; if False, can only be used to display videos. If not provided, this is inferred based on whether the component is used as an input or output.
-            visible: If False, component will be hidden.
-            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            visible: if False, component will be hidden.
+            elem_id: an optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: an optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: if False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
-            mirror_webcam: If True webcam will be mirrored. Default is True.
-            include_audio: Whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
-            autoplay: Whether to automatically play the video when the component is used as an output. Note: browsers will not autoplay video files if the user has not interacted with the page yet.
-            show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
-            show_download_button: If True, will show a download icon in the corner of the component that allows user to download the output. If False, icon does not appear. By default, it will be True for output components and False for input components.
-            min_length: The minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
-            max_length: The maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
-            loop: If True, the video will loop when it reaches the end and continue playing from the beginning.
-            watermark: An image file to be included as a watermark on the video. The image is not scaled and is displayed on the bottom right of the video. Valid formats for the image are: jpeg, png.
+            mirror_webcam: if True webcam will be mirrored. Default is True.
+            include_audio: whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
+            autoplay: whether to automatically play the video when the component is used as an output. Note: browsers will not autoplay video files if the user has not interacted with the page yet.
+            show_share_button: if True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
+            show_download_button: if True, will show a download icon in the corner of the component that allows user to download the output. If False, icon does not appear. By default, it will be True for output components and False for input components.
+            min_length: the minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
+            max_length: the maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
+            loop: if True, the video will loop when it reaches the end and continue playing from the beginning.
+            streaming: when used set as an output, takes video chunks yielded from the backend and combines them into one streaming video output. Each chunk should be a video file with a .ts extension using an h.264 encoding. Mp4 files are also accepted but they will be converted to h.264 encoding.
+            watermark: an image file to be included as a watermark on the video. The image is not scaled and is displayed on the bottom right of the video. Valid formats for the image are: jpeg, png.
+            webcam_constraints: A dictionary that allows developers to specify custom media constraints for the webcam stream. This parameter provides flexibility to control the video stream's properties, such as resolution and front or rear camera on mobile devices. See $demo/webcam_constraints
         """
         valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
         if sources is None:
             self.sources = valid_sources
         elif isinstance(sources, str) and sources in valid_sources:
             self.sources = [sources]
-        elif isinstance(sources, list):
+        elif isinstance(sources, list) and all(s in valid_sources for s in sources):
             self.sources = sources
         else:
             raise ValueError(
@@ -156,7 +165,9 @@ class Video(Component):
         self.show_download_button = show_download_button
         self.min_length = min_length
         self.max_length = max_length
+        self.streaming = streaming
         self.watermark = watermark
+        self.webcam_constraints = webcam_constraints
         super().__init__(
             label=label,
             every=every,
@@ -263,7 +274,9 @@ class Video(Component):
         Returns:
             VideoData object containing the video and subtitle files.
         """
-        if value is None or value == [None, None] or value == (None, None):
+        if self.streaming:
+            return value  # type: ignore
+        if value is None or value in ([None, None], (None, None)):
             return None
         if isinstance(value, (str, Path)):
             processed_files = (self._format_video(value), None)
@@ -370,9 +383,10 @@ class Video(Component):
 
         def srt_to_vtt(srt_file_path, vtt_file_path):
             """Convert an SRT subtitle file to a VTT subtitle file"""
-            with open(srt_file_path, encoding="utf-8") as srt_file, open(
-                vtt_file_path, "w", encoding="utf-8"
-            ) as vtt_file:
+            with (
+                open(srt_file_path, encoding="utf-8") as srt_file,
+                open(vtt_file_path, "w", encoding="utf-8") as vtt_file,
+            ):
                 vtt_file.write("WEBVTT\n\n")
                 for subtitle_block in srt_file.read().strip().split("\n\n"):
                     subtitle_lines = subtitle_block.split("\n")
@@ -411,3 +425,164 @@ class Video(Component):
 
     def example_value(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+
+    @staticmethod
+    def get_video_duration_ffprobe(filename: str):
+        if wasm_utils.IS_WASM:
+            raise wasm_utils.WasmUnsupportedError(
+                "ffprobe is not supported in the Wasm mode."
+            )
+
+        result = subprocess.run(
+            [
+                "ffprobe",
+                "-v",
+                "quiet",
+                "-print_format",
+                "json",
+                "-show_format",
+                "-show_streams",
+                filename,
+            ],
+            capture_output=True,
+            check=True,
+        )
+
+        data = json.loads(result.stdout)
+
+        duration = None
+        if "format" in data and "duration" in data["format"]:
+            duration = float(data["format"]["duration"])
+        else:
+            for stream in data.get("streams", []):
+                if "duration" in stream:
+                    duration = float(stream["duration"])
+                    break
+
+        return duration
+
+    @staticmethod
+    async def async_convert_mp4_to_ts(mp4_file, ts_file):
+        if wasm_utils.IS_WASM:
+            raise wasm_utils.WasmUnsupportedError(
+                "Streaming is not supported in the Wasm mode."
+            )
+
+        ff = FFmpeg(  # type: ignore
+            inputs={mp4_file: None},
+            outputs={
+                ts_file: "-c:v libx264 -c:a aac -f mpegts -bsf:v h264_mp4toannexb -bsf:a aac_adtstoasc"
+            },
+            global_options=["-y"],
+        )
+
+        command = ff.cmd.split(" ")
+        process = await asyncio.create_subprocess_exec(
+            *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+        )
+
+        _, stderr = await process.communicate()
+
+        if process.returncode != 0:
+            error_message = stderr.decode().strip()
+            raise RuntimeError(f"FFmpeg command failed: {error_message}")
+
+        return ts_file
+
+    async def combine_stream(
+        self,
+        stream: list[bytes],
+        desired_output_format: str | None = None,  # noqa: ARG002
+        only_file=False,
+    ) -> VideoData | FileData:
+        """Combine video chunks into a single video file.
+
+        Do not take desired_output_format into consideration as
+        mp4 is a safe format for playing in browser.
+        """
+        if wasm_utils.IS_WASM:
+            raise wasm_utils.WasmUnsupportedError(
+                "Streaming is not supported in the Wasm mode."
+            )
+
+        # Use an mp4 extension here so that the cached example
+        # is playable in the browser
+        output_file = tempfile.NamedTemporaryFile(
+            delete=False, suffix=".mp4", dir=self.GRADIO_CACHE
+        )
+
+        ts_files = [
+            processing_utils.save_bytes_to_cache(
+                s, "video_chunk.ts", cache_dir=self.GRADIO_CACHE
+            )
+            for s in stream
+        ]
+
+        command = [
+            "ffmpeg",
+            "-i",
+            f'concat:{"|".join(ts_files)}',
+            "-y",
+            "-safe",
+            "0",
+            "-c",
+            "copy",
+            output_file.name,
+        ]
+        process = await asyncio.create_subprocess_exec(
+            *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+        )
+
+        _, stderr = await process.communicate()
+
+        if process.returncode != 0:
+            error_message = stderr.decode().strip()
+            raise RuntimeError(f"FFmpeg command failed: {error_message}")
+        video = FileData(
+            path=output_file.name,
+            is_stream=False,
+            orig_name="video-stream.mp4",
+        )
+        if only_file:
+            return video
+
+        output = VideoData(video=video)
+        return output
+
+    async def stream_output(
+        self,
+        value: str | None,
+        output_id: str,
+        first_chunk: bool,  # noqa: ARG002
+    ) -> tuple[MediaStreamChunk | None, dict]:
+        output_file = {
+            "video": {
+                "path": output_id,
+                "is_stream": True,
+                # Need to set orig_name so that downloaded file has correct
+                # extension
+                "orig_name": "video-stream.mp4",
+                "meta": {"_type": "gradio.FileData"},
+            }
+        }
+        if value is None:
+            return None, output_file
+
+        ts_file = value
+        if not value.endswith(".ts"):
+            if not value.endswith(".mp4"):
+                raise RuntimeError(
+                    "Video must be in .mp4 or .ts format to be streamed as chunks",
+                )
+            ts_file = value.replace(".mp4", ".ts")
+            await self.async_convert_mp4_to_ts(value, ts_file)
+
+        duration = self.get_video_duration_ffprobe(ts_file)
+        if not duration:
+            raise RuntimeError("Cannot determine video chunk duration")
+        chunk: MediaStreamChunk = {
+            "data": Path(ts_file).read_bytes(),
+            "duration": duration,
+            "extension": ".ts",
+        }
+        return chunk, output_file

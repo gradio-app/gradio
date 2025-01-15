@@ -50,7 +50,8 @@
 		<Form>
 			<Block>
 				<Textbox
-					label="username"
+					{root}
+					label={$_("login.username")}
 					lines={1}
 					show_label={true}
 					max_lines={1}
@@ -61,7 +62,8 @@
 
 			<Block>
 				<Textbox
-					label="password"
+					{root}
+					label={$_("login.password")}
 					lines={1}
 					show_label={true}
 					max_lines={1}
