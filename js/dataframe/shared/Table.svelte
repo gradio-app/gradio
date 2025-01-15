@@ -159,7 +159,7 @@
 
 	$: if (!dequal(values, old_val)) {
 		data = process_data(values as (string | number)[][]);
-		old_val = values as (string | number)[][];
+		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
 	}
 
 	let data: { id: string; value: string | number }[][] = [[]];
