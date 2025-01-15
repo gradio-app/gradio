@@ -71,6 +71,7 @@ class TestImageEditor:
             "canvas_size": (800, 600),
             "placeholder": None,
             "show_fullscreen_button": True,
+            "fixed_canvas": False,
         }
 
     def test_process_example(self):
