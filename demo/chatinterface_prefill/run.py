@@ -23,4 +23,5 @@ with gr.Blocks() as demo:
     chat = gr.ChatInterface(random_response, type="messages")
     radio.change(prefill_chatbot, radio, chat.chatbot_value)
 
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()
