@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, tick, onMount } from "svelte";
+	import { createEventDispatcher, tick, onMount, afterUpdate } from "svelte";
 	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
 	import { copy } from "@gradio/utils";
@@ -17,8 +17,8 @@
 	export let label: string | null = null;
 	export let show_label = true;
 	export let headers: Headers = [];
-	export let values: (string | number)[][] = [];
-	let old_values: (string | number)[][] = [];
+	export let cell_values: (string | number)[][] = [];
+	let old_cell_values: (string | number)[][] = [];
 	let data: { id: string; value: string | number }[][] = [[]];
 
 	export let col_count: [number, "fixed" | "dynamic"];
@@ -44,13 +44,11 @@
 	export let display_value: string[][] | null = null;
 	export let styling: string[][] | null = null;
 	let t_rect: DOMRectReadOnly;
+	let value_is_output = false;
 
 	const dispatch = createEventDispatcher<{
-		change: {
-			data: (string | number)[][];
-			headers: string[];
-			metadata: Metadata;
-		};
+		change: undefined;
+		input: undefined;
 		select: SelectData;
 	}>();
 
@@ -160,20 +158,19 @@
 	}
 
 	function handle_values_change(): void {
-		data = process_data(values);
-		old_values = values;
+		if (!dequal(cell_values, old_cell_values)) {
+			data = process_data(cell_values);
+			old_cell_values = cell_values;
+		}
 	}
 
-	$: values && handle_values_change();
+	$: cell_values && handle_values_change();
 
 	async function trigger_change(): Promise<void> {
-		dispatch("change", {
-			data: data.map((r) => r.map(({ value }) => value)),
-			headers: _headers.map((h) => h.value),
-			metadata: editable
-				? null
-				: { display_value: display_value, styling: styling }
-		});
+		dispatch("change");
+		if (!value_is_output) {
+			dispatch("input");
+		}
 	}
 
 	function get_sort_status(
@@ -418,7 +415,7 @@
 
 		if (row_count[1] !== "dynamic") return;
 		if (data.length === 0) {
-			values = [Array(headers.length).fill("")];
+			cell_values = [Array(headers.length).fill("")];
 			return;
 		}
 
@@ -546,7 +543,7 @@
 				col_count[1] === "fixed" ? head.slice(0, col_count[0]) : head
 			);
 
-			values = rest;
+			cell_values = rest;
 			reader.removeEventListener("loadend", handle_read);
 		}
 
@@ -594,7 +591,7 @@
 	}
 
 	let table_height: number =
-		values.slice(0, (max_height / values.length) * 37).length * 37 + 37;
+	cell_values.slice(0, (max_height / cell_values.length) * 37).length * 37 + 37;
 	let scrollbar_width = 0;
 
 	function sort_data(
@@ -784,6 +781,10 @@
 		selected = false;
 		last_selected = null;
 	}
+
+	afterUpdate(() => {
+		value_is_output = false;
+	});
 </script>
 
 <svelte:window
