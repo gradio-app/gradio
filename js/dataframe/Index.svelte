@@ -63,20 +63,6 @@
 	afterUpdate(() => {
 		value_is_output = false;
 	});
-
-	if (
-		(Array.isArray(value) && value?.[0]?.length === 0) ||
-		value.data?.[0]?.length === 0
-	) {
-		value = {
-			data: [Array(col_count?.[0] || 3).fill("")],
-			headers: Array(col_count?.[0] || 3)
-				.fill("")
-				.map((_, i) => `${i + 1}`),
-			metadata: null
-		};
-	}
-
 </script>
 
 <Block
