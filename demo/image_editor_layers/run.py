@@ -33,8 +33,8 @@ with gr.Blocks() as demo:
     set_layers = gr.Button("Set Layers")
     set_layers.click(
         lambda: {
-            "background": str(dir_ / "cheetah.jpg"),
-            "layers": [str(dir_ / "layer1.png")],
+            "background": None,
+            "layers": ["https://nationalzoo.si.edu/sites/default/files/animals/cheetah-003.jpg"],
             "composite": None,
         },
         None,
