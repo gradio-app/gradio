@@ -241,7 +241,7 @@ class Dataframe(Component):
         Parameters:
             value: Expects data any of these formats: `pandas.DataFrame`, `pandas.Styler`, `numpy.array`, `polars.DataFrame`, `list[list]`, `list`, or a `dict` with keys 'data' (and optionally 'headers'), or `str` path to a csv, which is rendered as the spreadsheet.
         Returns:
-            the uploaded spreadsheet data as an object with `headers` and `data` attributes
+            the uploaded spreadsheet data as an object with `headers` and `data` keys and optional `metadata` key
         """
         import pandas as pd
         from pandas.io.formats.style import Styler

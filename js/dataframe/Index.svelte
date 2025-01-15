@@ -20,8 +20,6 @@
 		headers: ["1", "2", "3"],
 		metadata: null
 	};
-	let old_value = "";
-	export let value_is_output = false;
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let label: string | null = null;
@@ -49,72 +47,19 @@
 
 	export let loading_status: LoadingStatus;
 	export let interactive: boolean;
-
-	let _headers: Headers;
 	let display_value: string[][] | null;
 	let styling: string[][] | null;
-	let values: (string | number)[][];
-	async function handle_change(data?: {
-		data: Data;
-		headers: Headers;
-		metadata: Metadata;
-	}): Promise<void> {
-		let _data = data || value;
+	let cell_values: (string | number)[][];
 
-		_headers = [...(_data.headers || headers)];
-		values = _data.data ? [..._data.data] : [];
-		display_value = _data?.metadata?.display_value
-			? [..._data?.metadata?.display_value]
-			: null;
-		styling =
-			!interactive && _data?.metadata?.styling
-				? [..._data?.metadata?.styling]
+	$: _headers = [...(value.headers || headers)];
+	$: cell_values = value.data ? [...value.data] : [];
+	$: display_value = value?.metadata?.display_value
+		? [...value?.metadata?.display_value]
+		: null;
+	$: styling =
+			!interactive && value?.metadata?.styling
+				? [...value?.metadata?.styling]
 				: null;
-		await tick();
-
-		gradio.dispatch("change");
-		if (!value_is_output) {
-			gradio.dispatch("input");
-		}
-	}
-
-	handle_change();
-
-	afterUpdate(() => {
-		value_is_output = false;
-	});
-
-	$: {
-		if (old_value && JSON.stringify(value) !== old_value) {
-			old_value = JSON.stringify(value);
-			handle_change();
-		}
-	}
-
-	if (
-		(Array.isArray(value) && value?.[0]?.length === 0) ||
-		value.data?.[0]?.length === 0
-	) {
-		value = {
-			data: [Array(col_count?.[0] || 3).fill("")],
-			headers: Array(col_count?.[0] || 3)
-				.fill("")
-				.map((_, i) => `${i + 1}`),
-			metadata: null
-		};
-	}
-
-	async function handle_value_change(data: {
-		data: Data;
-		headers: Headers;
-		metadata: Metadata;
-	}): Promise<void> {
-		if (JSON.stringify(data) !== old_value) {
-			value = { ...data };
-			old_value = JSON.stringify(value);
-			handle_change(data);
-		}
-	}
 </script>
 
 <Block
@@ -139,11 +84,12 @@
 		{show_label}
 		{row_count}
 		{col_count}
-		{values}
+		{cell_values}
 		{display_value}
 		{styling}
 		headers={_headers}
-		on:change={(e) => handle_value_change(e.detail)}
+		on:change={(e) => gradio.dispatch("change")}
+		on:input={(e) => gradio.dispatch("input")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		{wrap}
 		{datatype}
