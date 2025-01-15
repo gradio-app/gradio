@@ -346,7 +346,7 @@ class ImageMask(components.ImageEditor):
             eraser=eraser,
             brush=brush,
             format=format,
-            layers=False,
+            layers=layers,
             canvas_size=canvas_size,
             show_fullscreen_button=show_fullscreen_button,
             fixed_canvas=fixed_canvas,
