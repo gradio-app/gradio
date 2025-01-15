@@ -932,10 +932,8 @@
 								event.stopPropagation();
 								clear_on_focus = false;
 								clicked_cell = { row: index, col: j };
-								if (dequal(selected, [index, j])) {
-									editing = [index, j];
-								} else {
-									selected = [index, j];
+								selected = [index, j];
+								if (editable) {
 									editing = [index, j];
 								}
 								toggle_cell_button(index, j);
@@ -951,10 +949,8 @@
 								active_cell_menu = null;
 								active_header_menu = null;
 								clicked_cell = { row: index, col: j };
-								if (dequal(selected, [index, j])) {
-									editing = [index, j];
-								} else {
-									selected = [index, j];
+								selected = [index, j];
+								if (editable) {
 									editing = [index, j];
 								}
 								toggle_cell_button(index, j);
