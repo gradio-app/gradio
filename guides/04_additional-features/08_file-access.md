@@ -1,17 +1,20 @@
 # Security and File Access
 
-Sharing your Gradio app with others (by hosting it on Spaces, on your own server, or through temporary share links) **exposes** certain files on your machine to the internet.
+Sharing your Gradio app with others (by hosting it on Spaces, on your own server, or through temporary share links) **exposes** certain files on your machine to the internet. Files that are exposed can be accessed at a special URL:
+
+```bash
+http://<your-gradio-app-url>/gradio_api/file=<local-file-path>
+```
 
 This guide explains which files are exposed as well as some best practices for making sure the files on your machine are secure.
 
 ## Files Gradio allows users to access 
 
-- **Static files that you explicitly set via the `gr.set_static_paths` function**. This parameter allows you to pass in a list of directories or filenames that will be considered static. This means that they will not be copied to the cache and will be served directly from your computer. This can help save disk space and reduce the time your app takes to launch but be mindful of possible security implications. (By default, this parameter is an empty list).
+- **1. Static files**. You can designate static files or directories using the `gr.set_static_paths` function. Static files  are not be copied to the Gradio cache (see below) and will be served directly from your computer. This can help save disk space and reduce the time your app takes to launch but be mindful of possible security implications as any static files are accessible to all useres of your Gradio app.
 
+- **2. Files in the `allowed_paths` parameter in `launch()`**. This parameter allows you to pass in a list of additional directories or exact filepaths you'd like to allow users to have access to. (By default, this parameter is an empty list).
 
-- **Files in the `allowed_paths` parameter in `launch()`**. This parameter allows you to pass in a list of additional directories or exact filepaths you'd like to allow users to have access to. (By default, this parameter is an empty list).
-
-- **Files in Gradio's cache**. After you launch your Gradio app, Gradio copies certain files into a temporary cache and makes these files accessible to users. Let's unpack this in more detail below.
+- **3. Files in Gradio's cache**. After you launch your Gradio app, Gradio copies certain files into a temporary cache and makes these files accessible to users. Let's unpack this in more detail below.
 
 ## The Gradio cache
 
@@ -24,8 +27,8 @@ Tip: You can customize the location of the cache by setting the `GRADIO_TEMP_DIR
 Gradio moves three kinds of files into the cache
 
 1. Files specified by the developer before runtime, e.g. cached examples, default values of components, or files passed into parameters such as the `avatar_images` of `gr.Chatbot`
-2. File paths returned by a prediction function in your Gradio application, if they ALSO meet one of the conditions below:
 
+2. File paths returned by a prediction function in your Gradio application, if they ALSO meet one of the conditions below:
 
 * It is in the `allowed_paths` parameter of the `Blocks.launch` method.
 * It is in the current working directory of the python interpreter.
@@ -37,7 +40,6 @@ If none of these criteria are met, the prediction function that is returning tha
 
 3. Files uploaded by a user to your Gradio app (e.g. through the `File` or `Image` input components).
 
-
 Tip: If at any time Gradio blocks a file that you would like it to process, add its path to the `allowed_paths` parameter.
 
 
@@ -48,7 +50,6 @@ While running, Gradio apps will NOT ALLOW users to access:
 - **Files that you explicitly block via the `blocked_paths` parameter in `launch()`**. You can pass in a list of additional directories or exact filepaths to the `blocked_paths` parameter in `launch()`. This parameter takes precedence over the files that Gradio exposes by default, or by the `allowed_paths` parameter or the `gr.set_static_paths` function.
 
 - **Any other paths on the host machine**. Users should NOT be able to access other arbitrary paths on the host.
-
 
 ## Uploading Files
 
