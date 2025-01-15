@@ -1,4 +1,4 @@
-# Sharing Your App
+≤# Sharing Your App
 
 In this Guide, we dive more deeply into the various aspects of sharing a Gradio app with others. We will cover:
 
@@ -10,6 +10,7 @@ In this Guide, we dive more deeply into the various aspects of sharing a Gradio 
 6. [Mounting within FastAPI](#mounting-within-another-fast-api-app)
 7. [Authentication](#authentication)
 8. [Analytics](#analytics)
+9. [Progressive Web Apps (PWAs)](#progressive-web-app-pwa)
 
 ## Sharing Demos
 
@@ -22,11 +23,11 @@ def greet(name):
     return "Hello " + name + "!"
 
 demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
-    
+
 demo.launch(share=True)  # Share your demo with just 1 extra parameter 🚀
 ```
 
-This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on), you don't have to worry about any packaging any dependencies. 
+This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on), you don't have to worry about any packaging any dependencies.
 
 ![sharing](https://github.com/gradio-app/gradio/blob/main/guides/assets/sharing.svg?raw=true)
 
@@ -125,7 +126,7 @@ Here's an example of how to use these attributes to create a Gradio app that doe
 ></gradio-app>
 ```
 
-Here's another example of how to use the `render` event. An event listener is used to capture the `render` event and will call the `handleLoadComplete()` function once rendering is complete. 
+Here's another example of how to use the `render` event. An event listener is used to capture the `render` event and will call the `handleLoadComplete()` function once rendering is complete.
 
 ```html
 <script>
@@ -188,7 +189,7 @@ io = gr.Interface(echo, "textbox", "textbox").launch()
 ```
 
 Note: if your function is called directly instead of through the UI (this happens, for
-example, when examples are cached, or when the Gradio app is called via API), then `request` will be `None`. 
+example, when examples are cached, or when the Gradio app is called via API), then `request` will be `None`.
 You should handle this case explicitly to ensure that your app does not throw any errors. That is why
 we have the explicit check `if request`.
 
@@ -236,11 +237,11 @@ def update_message(request: gr.Request):
 with gr.Blocks() as demo:
     m = gr.Markdown()
     demo.load(update_message, None, m)
-    
+
 demo.launch(auth=[("Abubakar", "Abubakar"), ("Ali", "Ali")])
 ```
 
-Note: For authentication to work properly, third party cookies must be enabled in your browser. This is not the case by default for Safari or for Chrome Incognito Mode. 
+Note: For authentication to work properly, third party cookies must be enabled in your browser. This is not the case by default for Safari or for Chrome Incognito Mode.
 
 If users visit the `/logout` page of your Gradio app, they will automatically be logged out and session cookies deleted. This allows you to add logout functionality to your Gradio app as well. Let's update the previous example to include a log out button:
 
@@ -254,7 +255,7 @@ with gr.Blocks() as demo:
     m = gr.Markdown()
     logout_button = gr.Button("Logout", link="/logout")
     demo.load(update_message, None, m)
-    
+
 demo.launch(auth=[("Pete", "Pete"), ("Dawood", "Dawood")])
 ```
 
@@ -287,14 +288,14 @@ Users can revoke access to their profile at any time in their [settings](https:/
 As seen above, OAuth features are available only when your app runs in a Space. However, you often need to test your app
 locally before deploying it. To test OAuth features locally, your machine must be logged in to Hugging Face. Please run `huggingface-cli login` or set `HF_TOKEN` as environment variable with one of your access token. You can generate a new token in your settings page (https://huggingface.co/settings/tokens). Then, clicking on the `gr.LoginButton` will login your local Hugging Face profile, allowing you to debug your app with your Hugging Face account before deploying it to a Space.
 
-**Security Note**: It is important to note that adding a `gr.LoginButton` does not restrict users from using your app, in the same way that adding [username-password authentication](/guides/sharing-your-app#password-protected-app) does. This means that users of your app who have not logged in with Hugging Face can still access and run events in your Gradio app -- the difference is that the `gr.OAuthProfile` or `gr.OAuthToken` will be `None` in the corresponding functions. 
+**Security Note**: It is important to note that adding a `gr.LoginButton` does not restrict users from using your app, in the same way that adding [username-password authentication](/guides/sharing-your-app#password-protected-app) does. This means that users of your app who have not logged in with Hugging Face can still access and run events in your Gradio app -- the difference is that the `gr.OAuthProfile` or `gr.OAuthToken` will be `None` in the corresponding functions.
 
 
 ### OAuth (with external providers)
 
-It is also possible to authenticate with external OAuth providers (e.g. Google OAuth) in your Gradio apps. To do this, first mount your Gradio app within a FastAPI app ([as discussed above](#mounting-within-another-fast-api-app)). Then, you must write an *authentication function*, which gets the user's username from the OAuth provider and returns it. This function should be passed to the `auth_dependency` parameter in `gr.mount_gradio_app`. 
+It is also possible to authenticate with external OAuth providers (e.g. Google OAuth) in your Gradio apps. To do this, first mount your Gradio app within a FastAPI app ([as discussed above](#mounting-within-another-fast-api-app)). Then, you must write an *authentication function*, which gets the user's username from the OAuth provider and returns it. This function should be passed to the `auth_dependency` parameter in `gr.mount_gradio_app`.
 
-Similar to [FastAPI dependency functions](https://fastapi.tiangolo.com/tutorial/dependencies/), the function specified by `auth_dependency` will run before any Gradio-related route in your FastAPI app. The function should accept a single parameter: the FastAPI `Request` and return either a string (representing a user's username) or `None`. If a string is returned, the user will be able to access the Gradio-related routes in your FastAPI app. 
+Similar to [FastAPI dependency functions](https://fastapi.tiangolo.com/tutorial/dependencies/), the function specified by `auth_dependency` will run before any Gradio-related route in your FastAPI app. The function should accept a single parameter: the FastAPI `Request` and return either a string (representing a user's username) or `None`. If a string is returned, the user will be able to access the Gradio-related routes in your FastAPI app.
 
 First, let's show a simplistic example to illustrate the `auth_dependency` parameter:
 
@@ -372,7 +373,7 @@ async def login(request: Request):
     redirect_uri = request.url_for('auth')
     # If your app is running on https, you should ensure that the
     # `redirect_uri` is https, e.g. uncomment the following lines:
-    # 
+    #
     # from urllib.parse import urlparse, urlunparse
     # redirect_uri = urlunparse(urlparse(str(redirect_uri))._replace(scheme='https'))
     return await oauth.google.authorize_redirect(request, redirect_uri)
@@ -414,10 +415,39 @@ By default, Gradio collects certain analytics to help us better understand the u
 
 * What environment the Gradio app is running on (e.g. Colab Notebook, Hugging Face Spaces)
 * What input/output components are being used in the Gradio app
-* Whether the Gradio app is utilizing certain advanced features, such as `auth` or `show_error` 
-* The IP address which is used solely to measure the number of unique developers using Gradio 
-* The version of Gradio that is running 
+* Whether the Gradio app is utilizing certain advanced features, such as `auth` or `show_error`
+* The IP address which is used solely to measure the number of unique developers using Gradio
+* The version of Gradio that is running
 
 No information is collected from _users_ of your Gradio app. If you'd like to diable analytics altogether, you can do so by setting the `analytics_enabled` parameter to `False` in `gr.Blocks`, `gr.Interface`, or `gr.ChatInterface`. Or, you can set the GRADIO_ANALYTICS_ENABLED environment variable to `"False"` to apply this to all Gradio apps created across your system.
 
-*Note*: this reflects the analytics policy as of `gradio>=4.32.0`. 
+*Note*: this reflects the analytics policy as of `gradio>=4.32.0`.
+
+## Progressive Web App (PWA)
+
+[Progressive Web Apps (PWAs)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps) are web applications that are regular web pages or websites, but can appear to the user like installable platform-specific applications.
+
+Gradio apps can be easily served as PWAs by setting the `pwa=True` parameter in the `launch()` method. Here's an example:
+
+```python
+import gradio as gr
+
+def greet(name):
+    return "Hello " + name + "!"
+
+demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
+
+demo.launch(pwa=True)  # Launch your app as a PWA
+```
+
+This will generate a PWA that can be installed on your device. Here's how it looks:
+
+![Installing PWA](https://github.com/gradio-app/gradio/blob/main/guides/assets/install-pwa.gif?raw=true)
+
+When you specify `favicon_path` in the `launch()` method, the icon will be used as the app's icon. Here's an example:
+
+```python
+demo.launch(pwa=True, favicon_path="./hf-logo.svg")  # Use a custom icon for your PWA
+```
+
+![Custom PWA Icon](https://github.com/gradio-app/gradio/blob/main/guides/assets/pwa-favicon.png?raw=true)
