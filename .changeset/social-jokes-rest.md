@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Dataframe changes
+fix:Fix logic for detecthing changes in `gr.Dataframe` table value
