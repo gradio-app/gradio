@@ -380,7 +380,6 @@ class ChatInterface(Blocks):
         # Provided so that developers can update the chatbot value from other events outside of `gr.ChatInterface`.
         self.chatbot_value = State(self.chatbot.value if self.chatbot.value else [])
 
-
     def _render_footer(self):
         if self.examples:
             self.examples_handler = Examples(
@@ -710,13 +709,11 @@ class ChatInterface(Blocks):
             self.chatbot.like(flagging_callback.flag, self.chatbot)
 
         self.chatbot_value.change(
-            lambda x:x,
+            lambda x: x,
             [self.chatbot_value],
             [self.chatbot],
             show_api=False,
-        ).then(
-            **synchronize_chat_state_kwargs
-        )
+        ).then(**synchronize_chat_state_kwargs)
 
     def _setup_stop_events(
         self, event_triggers: list[Callable], events_to_cancel: list[Dependency]
