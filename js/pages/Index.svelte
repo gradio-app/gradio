@@ -46,9 +46,7 @@
     {/if}
 {/each}
 </nav>
-<div class="content">
-    <slot></slot>
-</div>
+<slot></slot>
 
 <style>
     nav {
