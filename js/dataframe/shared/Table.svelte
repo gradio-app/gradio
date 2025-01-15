@@ -533,6 +533,7 @@
 	function get_max(
 		_d: { value: any; id: string }[][]
 	): { value: any; id: string }[] {
+		if (!_d || _d.length === 0 || !_d[0]) return [];
 		let max = _d[0].slice();
 		for (let i = 0; i < _d.length; i++) {
 			for (let j = 0; j < _d[i].length; j++) {

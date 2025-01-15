@@ -11,6 +11,51 @@
 
     let obj = get_object("chatbot");
     let chatmessage_obj = get_object("chatmessage");
+    let chatmessage_optiondict = get_object("optiondict");
+    let chatmessage_metadatadict = get_object("metadatadict");
+
+
+    chatmessage_optiondict.parameters = [
+        {
+            "name": "value",
+            "annotation": "str",
+            "doc": "The value to return when the option is selected."
+        },
+        {
+            "name": "label",
+            "annotation": "str",
+            "doc": "The text to display in the option, if different from the value."
+        }
+    ]
+
+    chatmessage_metadatadict.parameters = [
+        {
+            "name": "title",
+            "annotation": "str",
+            "doc": "The title of the 'thought' message. Only required field."
+        },
+        {
+            "name": "id",
+            "annotation": "int | str",
+            "doc": "The ID of the message. Only used for nested thoughts. Nested thoughts can be nested by setting the parent_id to the id of the parent thought."
+        },
+        {
+            "name": "parent_id",
+            "annotation": "int | str",
+            "doc": "The ID of the parent message. Only used for nested thoughts."
+        },
+        {
+            "name": "duration",
+            "annotation": "float",
+            "doc": "The duration of the message. Appears next to the title in the thought bubble in a subdued font."
+        },
+        {
+            "name": "status",
+            "annotation": "Literal['pending', 'done']",
+            "doc": "The status of the message. If 'pending', the status is displayed as a spinner icon."
+        }
+    ]
+
 
     let embedded_demo_obj = `[
         {"role": "user", "content": "Hello World"},
@@ -184,9 +229,21 @@ gradio.ChatMessage(···)
 #### Description
 ## {@html style_formatted_text(chatmessage_obj.description)}
 
-<!--- Initialization -->
-#### Initialization
 <ParamTable parameters={chatmessage_obj.parameters} />
+
+<!--- Title -->
+### MetadataDict
+
+## {@html style_formatted_text(chatmessage_metadatadict.description)}
+
+<ParamTable parameters={chatmessage_metadatadict.parameters} header="Keys"/>
+
+<!--- Title -->
+### OptionDict
+
+## {@html style_formatted_text(chatmessage_optiondict.description)}
+
+<ParamTable parameters={chatmessage_optiondict.parameters} header="Keys"/>
 
 </div>
 
