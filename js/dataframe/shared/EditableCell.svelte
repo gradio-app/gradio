@@ -20,7 +20,6 @@
 		display: boolean;
 	}[];
 	export let clear_on_focus = false;
-	export let select_on_focus = false;
 	export let line_breaks = true;
 	export let editable = true;
 	export let root: string;
@@ -34,11 +33,10 @@
 		if (clear_on_focus) {
 			_value = "";
 		}
-		if (select_on_focus) {
-			node.select();
-		}
 
-		node.focus();
+		requestAnimationFrame(() => {
+			node.focus();
+		});
 
 		return {};
 	}
@@ -81,6 +79,8 @@
 	class:edit
 	on:focus|preventDefault
 	style={styling}
+	class="table-cell-text"
+	placeholder=" "
 >
 	{#if datatype === "html"}
 		{@html value}
@@ -123,7 +123,7 @@
 
 	.header {
 		transform: translateX(0);
-		font: var(--weight-bold);
+		font-weight: var(--weight-bold);
 	}
 
 	.edit {
