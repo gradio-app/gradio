@@ -373,6 +373,7 @@ class App(FastAPI):
                     and not path.startswith("/login")
                     and not path.startswith("/logout")
                     and not path.startswith("/manifest.json")
+                    and not path.startswith("/pwa_icon")
                 ):
                     if App.app_port is None:
                         App.app_port = request.url.port or int(
