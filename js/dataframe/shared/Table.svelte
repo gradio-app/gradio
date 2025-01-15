@@ -17,10 +17,10 @@
 	export let label: string | null = null;
 	export let show_label = true;
 	export let headers: Headers = [];
+	let old_headers: Headers = headers;
 	export let cell_values: (string | number)[][] = [];
-	let old_cell_values: (string | number)[][] = [];
-	let data: { id: string; value: string | number }[][] = [[]];
-
+	let data: { id: string; value: string | number }[][] = [];
+	let old_data: { id: string; value: string | number }[][] = [];
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let latex_delimiters: {
@@ -143,9 +143,9 @@
 	}
 
 	let _headers = make_headers(headers);
-	let old_headers: string[] | undefined;
 
 	$: {
+		console.log("trigger_headers");
 		if (!dequal(headers, old_headers)) {
 			trigger_headers();
 		}
@@ -158,18 +158,18 @@
 	}
 
 	function handle_values_change(): void {
-		if (!dequal(cell_values, old_cell_values)) {
-			data = process_data(cell_values);
-			old_cell_values = cell_values;
-		}
+		data = process_data(cell_values);
 	}
 
 	$: cell_values && handle_values_change();
 
 	async function trigger_change(): Promise<void> {
-		dispatch("change");
-		if (!value_is_output) {
-			dispatch("input");
+		if (!dequal(data, old_data)) {
+			old_data = data;
+			dispatch("change");
+			if (!value_is_output) {
+				dispatch("input");
+			}
 		}
 	}
 
@@ -437,7 +437,9 @@
 		selected = [index !== undefined ? index : data.length - 1, 0];
 	}
 
-	$: (data || selected_header) && trigger_change();
+	data = process_data(cell_values);
+	
+	$: data && trigger_change();
 
 	async function add_col(index?: number): Promise<void> {
 		parent.focus();
