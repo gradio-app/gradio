@@ -225,6 +225,35 @@ class Dataframe(Component):
                 + ". Please choose from: 'pandas', 'numpy', 'array', 'polars'."
             )
 
+    @staticmethod
+    def _is_empty(
+        value: pd.DataFrame
+        | Styler
+        | np.ndarray
+        | pl.DataFrame
+        | list
+        | list[list]
+        | dict
+        | str
+        | None,
+    ) -> bool:
+        import pandas as pd
+        from pandas.io.formats.style import Styler
+
+        if isinstance(value, pd.DataFrame):
+            return value.empty
+        elif isinstance(value, Styler):
+            return value.data.empty  # type: ignore
+        elif isinstance(value, np.ndarray):
+            return value.size == 0
+        elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
+            return value.is_empty()
+        elif isinstance(value, list) and len(value) and isinstance(value[0], list):
+            return len(value[0]) == 0
+        elif isinstance(value, (list, dict)):
+            return len(value) == 0
+        return False
+
     def postprocess(
         self,
         value: pd.DataFrame
@@ -246,7 +275,14 @@ class Dataframe(Component):
         import pandas as pd
         from pandas.io.formats.style import Styler
 
-        if value is None:
+        if isinstance(value, Styler) and semantic_version.Version(
+            pd.__version__
+        ) < semantic_version.Version("1.5.0"):
+            raise ValueError(
+                "Styler objects are only supported in pandas version 1.5.0 or higher. Please try: `pip install --upgrade pandas` to use this feature."
+            )
+
+        if value is None or self._is_empty(value):
             return self.postprocess(self.empty_input)
         if isinstance(value, dict):
             if len(value) == 0:
@@ -267,12 +303,6 @@ class Dataframe(Component):
                 data=value.to_dict(orient="split")["data"],  # type: ignore
             )
         elif isinstance(value, Styler):
-            if semantic_version.Version(pd.__version__) < semantic_version.Version(
-                "1.5.0"
-            ):
-                raise ValueError(
-                    "Styler objects are only supported in pandas version 1.5.0 or higher. Please try: `pip install --upgrade pandas` to use this feature."
-                )
             if self.interactive:
                 warnings.warn(
                     "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe instead."
