@@ -1,5 +1,5 @@
 {
-	"name": "@gradio/page",
+	"name": "@gradio/pages",
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"type": "module",
@@ -7,7 +7,13 @@
 	"license": "ISC",
 	"private": false,
 	"dependencies": {
-		"@gradio/column": "workspace:^"
+		"@gradio/atoms": "workspace:^",
+		"@gradio/client": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/upload": "workspace:^",
+		"@gradio/utils": "workspace:^",
+		"@gradio/wasm": "workspace:^"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"

@@ -40,6 +40,8 @@
 		"@gradio/multimodaltextbox": "workspace:^",
 		"@gradio/nativeplot": "workspace:^",
 		"@gradio/number": "workspace:^",
+		"@gradio/page": "workspace:^",
+		"@gradio/pages": "workspace:^",
 		"@gradio/paramviewer": "workspace:^",
 		"@gradio/plot": "workspace:^",
 		"@gradio/radio": "workspace:^",

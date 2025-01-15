@@ -5,6 +5,32 @@ from gradio_client.documentation import document
 from gradio.blocks import BlockContext  # noqa: F401
 from gradio.component_meta import ComponentMeta
 
+class Pages(BlockContext, metaclass=ComponentMeta):
+    """
+    Creates a set of pages in a multi-page Gradio app.
+    """
+    EVENTS = []
+
+    def __init__(
+        self,
+        *,
+        elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
+        visible: bool = True,
+        render: bool = True,
+    ):
+        BlockContext.__init__(
+            self,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            visible=visible,
+            render=render,
+        )
+
+    def get_config(self):
+        config = super().get_config()
+        config["pages"] = [(child.title, child.route) for child in self.children]
+        return config
 
 @document()
 class Page(BlockContext, metaclass=ComponentMeta):
@@ -22,7 +48,7 @@ class Page(BlockContext, metaclass=ComponentMeta):
     def __init__(
         self,
         title: str,
-        route: str = "/",
+        route: str | None = None,
         *,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
@@ -37,7 +63,8 @@ class Page(BlockContext, metaclass=ComponentMeta):
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM.
         """
         self.title = title
-        self.route = route
+        route = route or "/" + title.lower().replace(" ", "-")
+        self.route = "/" + route.strip("/")
         BlockContext.__init__(
             self,
             elem_id=elem_id,
@@ -46,3 +73,6 @@ class Page(BlockContext, metaclass=ComponentMeta):
             render=render,
         )
 
+    def get_expected_parent(self) -> type[Pages]:
+        return Pages
+    
