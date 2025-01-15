@@ -19,6 +19,7 @@
 	export let headers: Headers = [];
 	let old_headers: Headers = headers;
 	export let cell_values: (string | number)[][] = [];
+	let old_cell_values: (string | number)[][] = cell_values;
 	let data: { id: string; value: string | number }[][] = [];
 	let old_data: { id: string; value: string | number }[][] = [];
 	export let col_count: [number, "fixed" | "dynamic"];
@@ -152,6 +153,7 @@
 	}
 
 	function trigger_headers(): void {
+		console.log("trigger_headers");
 		_headers = make_headers(headers);
 		old_headers = headers.slice();
 		trigger_change();
@@ -159,6 +161,7 @@
 
 	function handle_values_change(): void {
 		data = process_data(cell_values);
+		old_cell_values = cell_values;
 	}
 
 	$: cell_values && handle_values_change();
