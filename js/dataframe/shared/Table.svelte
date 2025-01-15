@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, tick, onMount, afterUpdate } from "svelte";
+	import { createEventDispatcher, tick, onMount } from "svelte";
 	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
 	import { copy } from "@gradio/utils";
@@ -17,11 +17,7 @@
 	export let label: string | null = null;
 	export let show_label = true;
 	export let headers: Headers = [];
-	let old_headers: Headers = headers;
-	export let cell_values: (string | number)[][] = [];
-	let old_cell_values: (string | number)[][] = cell_values;
-	let data: { id: string; value: string | number }[][] = [];
-	let old_data: { id: string; value: string | number }[][] = [];
+	export let values: (string | number)[][] = [];
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let latex_delimiters: {
@@ -45,11 +41,13 @@
 	export let display_value: string[][] | null = null;
 	export let styling: string[][] | null = null;
 	let t_rect: DOMRectReadOnly;
-	let value_is_output = false;
 
 	const dispatch = createEventDispatcher<{
-		change: undefined;
-		input: undefined;
+		change: {
+			data: (string | number)[][];
+			headers: string[];
+			metadata: Metadata;
+		};
 		select: SelectData;
 	}>();
 
@@ -144,36 +142,38 @@
 	}
 
 	let _headers = make_headers(headers);
+	let old_headers: string[] | undefined;
 
 	$: {
-		console.log("trigger_headers");
 		if (!dequal(headers, old_headers)) {
 			trigger_headers();
 		}
 	}
 
 	function trigger_headers(): void {
-		console.log("trigger_headers");
 		_headers = make_headers(headers);
+
 		old_headers = headers.slice();
 		trigger_change();
 	}
 
-	function handle_values_change(): void {
-		data = process_data(cell_values);
-		old_cell_values = cell_values;
+	$: if (!dequal(values, old_val)) {
+		data = process_data(values as (string | number)[][]);
+		old_val = values as (string | number)[][];
 	}
 
-	$: cell_values && handle_values_change();
+	let data: { id: string; value: string | number }[][] = [[]];
+
+	let old_val: undefined | (string | number)[][] = undefined;
 
 	async function trigger_change(): Promise<void> {
-		if (!dequal(data, old_data)) {
-			old_data = data;
-			dispatch("change");
-			if (!value_is_output) {
-				dispatch("input");
-			}
-		}
+		dispatch("change", {
+			data: data.map((r) => r.map(({ value }) => value)),
+			headers: _headers.map((h) => h.value),
+			metadata: editable
+				? null
+				: { display_value: display_value, styling: styling }
+		});
 	}
 
 	function get_sort_status(
@@ -418,7 +418,7 @@
 
 		if (row_count[1] !== "dynamic") return;
 		if (data.length === 0) {
-			cell_values = [Array(headers.length).fill("")];
+			values = [Array(headers.length).fill("")];
 			return;
 		}
 
@@ -440,9 +440,7 @@
 		selected = [index !== undefined ? index : data.length - 1, 0];
 	}
 
-	data = process_data(cell_values);
-	
-	$: data && trigger_change();
+	$: (data || selected_header) && trigger_change();
 
 	async function add_col(index?: number): Promise<void> {
 		parent.focus();
@@ -548,7 +546,7 @@
 				col_count[1] === "fixed" ? head.slice(0, col_count[0]) : head
 			);
 
-			cell_values = rest;
+			values = rest;
 			reader.removeEventListener("loadend", handle_read);
 		}
 
@@ -596,7 +594,7 @@
 	}
 
 	let table_height: number =
-	cell_values.slice(0, (max_height / cell_values.length) * 37).length * 37 + 37;
+		values.slice(0, (max_height / values.length) * 37).length * 37 + 37;
 	let scrollbar_width = 0;
 
 	function sort_data(
@@ -786,10 +784,6 @@
 		selected = false;
 		last_selected = null;
 	}
-
-	afterUpdate(() => {
-		value_is_output = false;
-	});
 </script>
 
 <svelte:window
