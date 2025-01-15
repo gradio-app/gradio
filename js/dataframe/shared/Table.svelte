@@ -112,26 +112,6 @@
 		});
 	}
 
-	/**
-	 * Transforms a 2D array of raw values into a structured format for the table component.
-	 * 
-	 * @param {(string | number)[][]} _values - Input 2D array containing raw cell values
-	 * @returns {Array<Array<{value: string | number, id: string}>>} Structured 2D array of cell objects
-	 * 
-	 * @description
-	 * This function processes raw table data into a structured format where each cell
-	 * is represented by an object containing the value and a unique identifier. If needed,
-	 * the function will add empty rows or columns to match the specified row or column count,
-	 * or will truncate the data to match the specified row or column count.
-	 * 
-	 * Row count is determined by:
-	 * - Fixed mode: Uses row_count[0]
-	 * - Dynamic mode: Uses max(row_count[0], actual data length)
-	 * 
-	 * Column count is determined by:
-	 * - Fixed mode: Uses col_count[0]
-	 * - Dynamic mode: Uses first row length or headers length
-	 */
 	function process_data(_values: (string | number)[][]): {
 		value: string | number;
 		id: string;
