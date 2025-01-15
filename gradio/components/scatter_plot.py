@@ -104,7 +104,7 @@ class ScatterPlot(Plot):
     ):
         """
         Parameters:
-            value: The pandas dataframe containing the data to display in a scatter plot, or a callable. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: The pandas dataframe containing the data to display in a scatter plot, or a callable. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             x: Column corresponding to the x axis.
             y: Column corresponding to the y axis.
             color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
