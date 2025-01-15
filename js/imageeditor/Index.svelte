@@ -126,6 +126,8 @@
 	}
 
 	$: has_value = value?.background || value?.layers?.length || value?.composite;
+
+	$: console.log("value in index", value);
 </script>
 
 {#if !interactive}
@@ -209,6 +211,11 @@
 				loading_status = loading_status || {};
 				loading_status.status = "error";
 				gradio.dispatch("error", detail);
+			}}
+			on:receive_null={() => value = {
+				background: null,
+				layers: [],
+				composite: null
 			}}
 			on:error
 			{brush}

@@ -1,7 +1,11 @@
 import gradio as gr
+import numpy as np
 
 def predict(im):
     return im["composite"]
+
+def verify_clear(im):
+    return int(not np.any(im['composite']))
 
 with gr.Blocks() as demo:
     with gr.Group():
@@ -35,6 +39,7 @@ with gr.Blocks() as demo:
                 label="apply",
                 elem_id="apply",
             )
+            cleared_properly = gr.Number(label="cleared properly")
     clear_btn = gr.Button("Clear", elem_id="clear")
 
     im.upload(
@@ -54,7 +59,9 @@ with gr.Blocks() as demo:
         lambda: None,
         None,
         im,
-    )
+    ).then(verify_clear,
+           inputs=im,
+           outputs=cleared_properly)
 
 if __name__ == "__main__":
     demo.launch()
