@@ -42,7 +42,6 @@ If none of these criteria are met, the prediction function that is returning tha
 
 Tip: If at any time Gradio blocks a file that you would like it to process, add its path to the `allowed_paths` parameter.
 
-
 ## The files Gradio will not allow others to access
 
 While running, Gradio apps will NOT ALLOW users to access:
