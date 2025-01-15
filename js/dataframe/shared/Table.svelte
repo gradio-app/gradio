@@ -948,6 +948,8 @@
 								event.preventDefault();
 								event.stopPropagation();
 								clear_on_focus = false;
+								active_cell_menu = null;
+								active_header_menu = null;
 								clicked_cell = { row: index, col: j };
 								if (dequal(selected, [index, j])) {
 									editing = [index, j];
