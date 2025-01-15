@@ -16,7 +16,7 @@
 
 
 	interface CodeState {
-		status: 'idle' | 'editing' | 'generating' | 'error' | 'regenerating';
+		status: 'idle' | 'generating' | 'error' | 'regenerating';
 		user_edited: boolean;
 	}
 
@@ -27,7 +27,7 @@
 
 	$: code_state;
 
-	$: console.log(code_state);
+	$: console.log(code_state.status);
 
 
 	let current_code = false;
@@ -179,6 +179,7 @@
 
 		code_state.status = 'idle';
 		code_state.user_edited = false;
+		user_query = "";
 		
 		if (selected_demo.name === demo_name) {
 			highlight_changes(code_to_compare, demos[queried_index].code);
@@ -190,7 +191,7 @@
 		if (abortController) {
 			abortController.abort();
 		}
-		code_state.status = 'editing';
+		code_state.status = 'idle';
 		app_error = null;
 		selected_demo.code = code_to_compare;
 	}
@@ -636,15 +637,11 @@
 		user_query = app_error;
 	}
 
-	$: if (user_query !== app_error) {
-		code_state.status = 'idle';
-	}
-
-	// $: if (!app_error && (code_state.status === 'idle' || code_state.status === 'editing')) {
+	// $: if ((app_error !== user_query) && code_state.status === 'error') { 
+	// 	code_state.status = 'idle';
 	// 	user_query = "";
-	// 	show_regenerate_button = false;
+	// 	app_error = null;
 	// }
-
 
 	let code_to_compare = code;
 	$: code_to_compare;
@@ -823,6 +820,13 @@
 							bind:value={user_query}
 							on:keydown={(e) => {
 								handle_user_query_key_down(e);
+								if (code_state.status === 'error') {
+									user_query = "";
+									app_error = null;
+									code_state.status = 'idle';
+								}
+							}}
+							on:change={(e) => {
 								app_error = null;
 							}}
 							placeholder={current_code
@@ -848,7 +852,7 @@
 							>
 								<div class="enter">Fix Error</div>
 							</button>
-						{:else if code_state.status === 'idle' || code_state.status === 'editing'}
+						{:else if code_state.status === 'idle' }
 							<button
 								on:click={() => {
 									suspend_and_resume_auto_run(() => {
