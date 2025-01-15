@@ -522,9 +522,13 @@ class App(FastAPI):
                 )
             )
 
+        @app.get("/page/{path}", response_class=HTMLResponse)
+        def main_subpath(path: str, request: fastapi.Request, user: str = Depends(get_current_user)):
+            return main(request, user, path)
+
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
-        def main(request: fastapi.Request, user: str = Depends(get_current_user)):
+        def main(request: fastapi.Request, user: str = Depends(get_current_user), subpath: str | None = None):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
             root = route_utils.get_root_url(
@@ -534,6 +538,7 @@ class App(FastAPI):
                 config = utils.safe_deepcopy(blocks.config)
                 config = route_utils.update_root_in_config(config, root)
                 config["username"] = user
+                config["subpath"] = subpath
             elif app.auth_dependency:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
