@@ -50,7 +50,8 @@
 		| "error"
 		| "generating"
 		| "streaming" = "complete";
-	export let canvas_size: [number, number] | undefined;
+	export let canvas_size: [number, number] = [800, 600];
+	export let fixed_canvas = false;
 	export let realtime: boolean;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
@@ -251,10 +252,11 @@
 			{sources}
 			{upload}
 			{stream_handler}
+			{canvas_size}
 			bind:bg
 			bind:active_mode
 			background_file={value?.background || value?.composite || null}
-			max_height={height}
+			{fixed_canvas}
 		></Sources>
 
 		{#if transforms.includes("crop")}

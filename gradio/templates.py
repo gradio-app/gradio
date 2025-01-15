@@ -132,7 +132,8 @@ class Sketchpad(components.ImageEditor):
         brush: Brush | None = None,
         format: str = "webp",
         layers: bool = True,
-        canvas_size: tuple[int, int] | None = None,
+        canvas_size: tuple[int, int] = (800, 600),
+        fixed_canvas: bool = False,
         show_fullscreen_button: bool = True,
     ):
         if not brush:
@@ -170,6 +171,7 @@ class Sketchpad(components.ImageEditor):
             layers=layers,
             canvas_size=canvas_size,
             show_fullscreen_button=show_fullscreen_button,
+            fixed_canvas=fixed_canvas,
         )
 
 
@@ -217,7 +219,8 @@ class Paint(components.ImageEditor):
         brush: Brush | None = None,
         format: str = "webp",
         layers: bool = True,
-        canvas_size: tuple[int, int] | None = None,
+        canvas_size: tuple[int, int] = (800, 600),
+        fixed_canvas: bool = False,
         show_fullscreen_button: bool = True,
         placeholder: str | None = None,
     ):
@@ -254,6 +257,7 @@ class Paint(components.ImageEditor):
             canvas_size=canvas_size,
             show_fullscreen_button=show_fullscreen_button,
             placeholder=placeholder,
+            fixed_canvas=fixed_canvas,
         )
 
 
@@ -306,7 +310,8 @@ class ImageMask(components.ImageEditor):
         brush: Brush | None = None,
         format: str = "webp",
         layers: bool = True,
-        canvas_size: tuple[int, int] | None = None,
+        canvas_size: tuple[int, int] = (800, 600),
+        fixed_canvas: bool = False,
         show_fullscreen_button: bool = True,
     ):
         if not brush:
@@ -344,6 +349,7 @@ class ImageMask(components.ImageEditor):
             layers=layers,
             canvas_size=canvas_size,
             show_fullscreen_button=show_fullscreen_button,
+            fixed_canvas=fixed_canvas,
         )
 
 

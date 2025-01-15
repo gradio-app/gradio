@@ -408,6 +408,9 @@
 	.container {
 		position: relative;
 		margin: var(--spacing-md);
+		/* in case the canvas_size is really small */
+		/* set min-height so that upload text does not cover the toolbar */
+		min-height: 100px;
 	}
 
 	.no-border {
