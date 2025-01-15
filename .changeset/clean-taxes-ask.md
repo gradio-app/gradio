@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Improve docstrings
+feat:Improve component docstrings and misc docs
