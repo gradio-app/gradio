@@ -46,12 +46,11 @@
 		display: boolean;
 	}[];
 	export let max_height: number | undefined = undefined;
-
 	export let loading_status: LoadingStatus;
 	export let interactive: boolean;
 
 	$: _headers = [...(value.headers || headers)];
-	$: values = value.data ? [...value.data] : [];
+	$: cell_values = value.data ? [...value.data] : [];
 	$: display_value = value?.metadata?.display_value
 		? [...value?.metadata?.display_value]
 		: null;
@@ -59,10 +58,6 @@
 		!interactive && value?.metadata?.styling
 			? [...value?.metadata?.styling]
 			: null;
-
-	afterUpdate(() => {
-		value_is_output = false;
-	});
 </script>
 
 <Block
@@ -87,7 +82,7 @@
 		{show_label}
 		{row_count}
 		{col_count}
-		{values}
+		values={cell_values}
 		{display_value}
 		{styling}
 		headers={_headers}
@@ -103,5 +98,6 @@
 		{column_widths}
 		upload={(...args) => gradio.client.upload(...args)}
 		stream_handler={(...args) => gradio.client.stream(...args)}
+		bind:value_is_output
 	/>
 </Block>
