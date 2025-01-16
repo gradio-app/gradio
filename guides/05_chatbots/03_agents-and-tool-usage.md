@@ -1,28 +1,69 @@
 # Building a UI for an LLM Agent
 
 Tags: LLM, AGENTS, CHAT
-Related spaces: https://huggingface.co/spaces/gradio/agent_chatbot, https://huggingface.co/spaces/gradio/langchain-agent
 
-The Gradio Chatbot can natively display intermediate thoughts and tool usage. This makes it perfect for creating UIs for LLM agents and chain-of-thought (CoT) demos. This guide will show you how.
+The Gradio Chatbot can natively display intermediate thoughts and tool usage. This makes it perfect for creating UIs for LLM agents and chain-of-thought (CoT) or reasoning demos. This guide will show you how to display thoughts and tool usage with `gr.Chatbot` and `gr.ChatInterface`.
 
-## The metadata key
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/nested-thoughts.png)
 
-In addition to the `content` and `role` keys, the messages dictionary accepts a `metadata` key. At present, the `metadata` key accepts a dictionary with a single key called `title`. 
-If you specify a `title` for the message, it will be displayed in a collapsible box.
+## The `ChatMessage` dataclass
 
-Here is an example, where we display the agent's thought to use a weather API tool to answer the user query.
+Each message in Gradio's chatbot is a dataclass of type `ChatMessage` (this is assuming that chatbot's `type="message"`, which is strongly recommended). The schema of `ChatMessage` is as follows:
+
+ ```py
+@dataclass
+class ChatMessage:
+    content: str | Component
+    role: Literal["user", "assistant"]
+    metadata: MetadataDict = None
+    options: list[OptionDict] = None
+
+class MetadataDict(TypedDict):
+    title: NotRequired[str]
+    id: NotRequired[int | str]
+    parent_id: NotRequired[int | str]
+    duration: NotRequired[float]
+    status: NotRequired[Literal["pending", "done"]]
+
+class OptionDict(TypedDict):
+    label: NotRequired[str]
+    value: str
+ ```
+
+
+For our purposes, the most important key is the `metadata` key, which accepts a dictionary. If this dictionary includes a `title` for the message, it will be displayed in a collapsible box representing a thought. It's that simple! Take a look at this example:
+
 
 ```python
+import gradio as gr
+
 with gr.Blocks() as demo:
-    chatbot  = gr.Chatbot(type="messages",
-            value=[{"role": "user", "content": "What is the weather in San Francisco?"},
-                    {"role": "assistant", "content": "I need to use the weather API tool",
-                    "metadata": {"title":  "🧠 Thinking"}}]
-            )
+    chatbot = gr.Chatbot(
+        type="messages",
+        value=[
+            gr.ChatMessage(
+                role="user", 
+                content="What is the weather in San Francisco?"
+            ),
+            gr.ChatMessage(
+                role="assistant", 
+                content="I need to use the weather API tool?",
+                metadata={"title":  "🧠 Thinking"}
+        ]
+    )
+
+demo.launch()
 ```
 
-![simple-metadat-chatbot](https://github.com/freddyaboulton/freddyboulton/assets/41651716/3941783f-6835-4e5e-89a6-03f850d9abde)
 
+
+In addition to `title`, the dictionary provided to `metadata` can take several optional keys:
+
+* `duration`: an optional numeric value representing the duration of the thought/tool usage, in seconds.
+* `status`: if set to `pending`, a spinner appears next to the thought title.
+* `id` and `parent_id`: if these are provided, they can be used to nest thoughts inside other thoughts.
+
+Below, we show several complete examples of using `gr.Chatbot` and `gr.ChatInterface` to display tool use or thinking UIs.
 
 ## Building with Agents
 

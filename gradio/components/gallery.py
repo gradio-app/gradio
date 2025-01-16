@@ -112,7 +112,7 @@ class Gallery(Component):
     ):
         """
         Parameters:
-            value: List of images or videos to display in the gallery by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: List of images or videos to display in the gallery by default. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             format: Format to save images before they are returned to the frontend, such as 'jpeg' or 'png'. This parameter only applies to images that are returned from the prediction function as numpy arrays or PIL Images. The format should be supported by the PIL library.
             file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.mp4']), when this is used as an input component. "image" allows only image files to be uploaded, "video" allows only video files to be uploaded, ".mp4" allows only mp4 files to be uploaded, etc. If None, any image and video files types are allowed.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.

@@ -50,7 +50,7 @@ class Radio(FormComponent):
         """
         Parameters:
             choices: A list of string or numeric options to select from. An option can also be a tuple of the form (name, value), where name is the displayed name of the radio button and value is the value to be passed to the function, or returned by the function.
-            value: The option selected by default. If None, no option is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: The option selected by default. If None, no option is selected by default. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             label: the label for this component, displayed above the component if `show_label` is `True` and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component corresponds to.
             info: additional component description, appears below the label in smaller font. Supports markdown / HTML syntax.

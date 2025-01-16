@@ -47,7 +47,7 @@ class DuplicateButton(Button):
         """
         Parameters:
         Parameters:
-            value: default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: default text for the button to display. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             every: continuously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             variant: sets the background and text color of the button. Use 'primary' for main call-to-action buttons, 'secondary' for a more subdued style, 'stop' for a stop button, 'huggingface' for a black background with white text, consistent with Hugging Face's button styles.

@@ -54,7 +54,7 @@ class JSON(Component):
     ):
         """
         Parameters:
-            value: Default value as a valid JSON `str` -- or a `list` or `dict` that can be serialized to a JSON string. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default value as a valid JSON `str` -- or a `list` or `dict` that can be serialized to a JSON string. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
