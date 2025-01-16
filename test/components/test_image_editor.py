@@ -68,7 +68,7 @@ class TestImageEditor:
             "server_fns": ["accept_blobs"],
             "format": "webp",
             "layers": True,
-            "canvas_size": (800, 600),
+            "canvas_size": None,
             "placeholder": None,
             "show_fullscreen_button": True,
             "fixed_canvas": False,

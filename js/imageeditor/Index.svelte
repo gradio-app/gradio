@@ -131,10 +131,11 @@
 
 	// In case no height given, pick a height large enough for the entire canvas
 	// in pixi.ts, the max-height of the canvas is canvas height / pixel ratio
-	$: if(canvas_size) {
+	$: if (canvas_size) {
 		safe_height = Math.max(
 			canvas_size[1] / (is_browser ? window.devicePixelRatio : 1) + 100,
-			250)
+			250
+		);
 	}
 
 	$: has_value = value?.background || value?.layers?.length || value?.composite;
@@ -183,7 +184,7 @@
 		padding={false}
 		{elem_id}
 		{elem_classes}
-		height={height || safe_height || ((dynamic_height ?? 0) + 100)}
+		height={height || safe_height || (dynamic_height ?? 0) + 100}
 		{width}
 		allow_overflow={false}
 		{container}

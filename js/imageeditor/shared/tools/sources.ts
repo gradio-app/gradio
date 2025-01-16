@@ -48,8 +48,7 @@ export function fit_image_to_canvas(
 	if (image_width <= canvas_width && image_height <= canvas_height) {
 		new_width = image_width;
 		new_height = image_height;
-	}
-	else {
+	} else {
 		if (image_aspect_ratio > canvas_aspect_ratio) {
 			// Width is the limiting factor
 			new_width = canvas_width;

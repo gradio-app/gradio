@@ -23,7 +23,7 @@ test("Image editor user can draw after upload", async ({ page }) => {
 	const uploader = page.locator("input[type=file]").first();
 
 	// crucial to use a large image here
-	await uploader.setInputFiles(["./test/files/brown_dog.jpg"]);
+	await uploader.setInputFiles(["./test/files/bike.jpeg"]);
 
 	await expect(page.locator("#upload h2")).toContainText("1");
 	await page.getByLabel("Draw button").click();
