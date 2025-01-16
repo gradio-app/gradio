@@ -52,8 +52,9 @@ with gr.Blocks() as demo:
         im,
         show_progress="hidden",
     )
+    get_layers = gr.Button("Get Layers")
 
-    im.change(
+    get_layers.click(
         predict,
         outputs=[im_preview, num_layers],
         inputs=im,
