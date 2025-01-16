@@ -14,6 +14,7 @@
 	export let height: number | string | undefined;
 	export let min_height: number | string | undefined;
 	export let max_height: number | string | undefined;
+	export let scale: number | null = null;
 
 	const get_dimension = (
 		dimension_value: string | number | undefined
@@ -35,9 +36,11 @@
 	class:unequal-height={equal_height === false}
 	class:stretch={equal_height}
 	class:hide={!visible}
+	class:grow-children={scale && scale >= 1}
 	style:height={get_dimension(height)}
 	style:max-height={get_dimension(max_height)}
 	style:min-height={get_dimension(min_height)}
+	style:flex-grow={scale}
 	id={elem_id}
 	class="row {elem_classes.join(' ')}"
 >
@@ -97,5 +100,9 @@
 		flex: 1 1 0%;
 		flex-wrap: wrap;
 		min-width: min(160px, 100%);
+	}
+
+	.grow-children > :global(.column) {
+		align-self: stretch;
 	}
 </style>
