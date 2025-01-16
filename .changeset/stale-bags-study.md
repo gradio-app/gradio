@@ -1,8 +1,8 @@
 ---
-"@gradio/row": minor
-"@gradio/tabitem": minor
-"@gradio/tabs": minor
-"gradio": minor
+"@gradio/row": patch
+"@gradio/tabitem": patch
+"@gradio/tabs": patch
+"gradio": patch
 ---
 
-feat:Allow propogation of fill_height through Rows and Tabs, via scale
+fix:Allow propogation of fill_height through Rows and Tabs, via scale
