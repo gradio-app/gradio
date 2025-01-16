@@ -62,7 +62,7 @@ class HighlightedText(Component):
     ):
         """
         Parameters:
-            value: Default value to show. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default value to show. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             color_map: A dictionary mapping labels to colors. The colors may be specified as hex codes or by their names. For example: {"person": "red", "location": "#FFEE22"}
             show_legend: whether to show span categories in a separate legend or inline.
             show_inline_category: If False, will not display span category label. Only applies if show_legend=False and interactive=False.

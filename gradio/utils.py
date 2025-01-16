@@ -1171,7 +1171,7 @@ def _is_static_file(file_path: Any, static_files: list[Path]) -> bool:
     return any(is_in_or_equal(file_path, static_file) for static_file in static_files)
 
 
-HTML_TAG_RE = re.compile("<[^>]*?(?:\n[^>]*?)*>", re.DOTALL)
+HTML_TAG_RE = re.compile("<[^\n>]*(?:\n[^\n>]*)*>", re.DOTALL)
 
 
 def remove_html_tags(raw_html: str | None) -> str:
@@ -1332,7 +1332,7 @@ def get_return_types(func: Callable) -> list:
     if return_hint in {inspect.Signature.empty, None, NoneType}:
         return []
 
-    if get_origin(return_hint) == tuple:
+    if get_origin(return_hint) is tuple:
         return list(get_args(return_hint))
 
     return [return_hint]

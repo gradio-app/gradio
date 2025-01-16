@@ -152,7 +152,7 @@
 	{#if gallery}
 		<div class="gallery">
 			{#each selected_samples as sample_row, i}
-				{#if sample_row[0]}
+				{#if sample_row[0] != null}
 					<button
 						class="gallery-item"
 						on:click={() => {

@@ -111,7 +111,7 @@ class Code(Component):
     ):
         """
         Parameters:
-            value: Default value to show in the code editor. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default value to show in the code editor. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             language: The language to display the code as. Supported languages listed in `gr.Code.languages`.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.

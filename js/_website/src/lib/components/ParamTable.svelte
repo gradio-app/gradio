@@ -1,5 +1,6 @@
 <script lang="ts">
 	export let parameters = [] as any[];
+	export let header = "Parameters";
 	import ParamViewer from "@gradio/paramviewer";
 
 	interface OriginalParam {
@@ -61,4 +62,4 @@
 	let new_parameters = convert_params(parameters);
 </script>
 
-<ParamViewer value={new_parameters} header="Parameters" />
+<ParamViewer value={new_parameters} {header} />

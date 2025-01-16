@@ -24,14 +24,14 @@ with gr.Blocks(css=".gradio-container {background-color: red}") as demo:
     ...
 ```
 
-If you'd like to reference external files in your css, preface the file path (which can be a relative or absolute path) with `"file="`, for example:
+If you'd like to reference external files in your css, preface the file path (which can be a relative or absolute path) with `"/gradio_api/file="`, for example:
 
 ```python
-with gr.Blocks(css=".gradio-container {background: url('file=clouds.jpg')}") as demo:
+with gr.Blocks(css=".gradio-container {background: url('/gradio_api/file=clouds.jpg')}") as demo:
     ...
 ```
 
-Note: By default, files in the host machine are not accessible to users running the Gradio app. As a result, you should make sure that any referenced files (such as `clouds.jpg` here) are either URLs or allowed via the `allow_list` parameter in `launch()`. Read more in our [section on Security and File Access](/main/guides/file-access).
+Note: By default, most files in the host machine are not accessible to users running the Gradio app. As a result, you should make sure that any referenced files (such as `clouds.jpg` here) are either URLs or [allowed paths, as described here](/main/guides/file-access).
 
 
 ## The `elem_id` and `elem_classes` Arguments
