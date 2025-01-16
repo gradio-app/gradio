@@ -58,7 +58,7 @@
 	export let dragging: boolean;
 	export let placeholder: string | undefined = undefined;
 	export let dynamic_height: number | undefined = undefined;
-	export let height = 450;
+	export let height;
 	export let full_history: CommandNode | null = null;
 
 	const dispatch = createEventDispatcher<{

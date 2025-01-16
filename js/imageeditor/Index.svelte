@@ -129,8 +129,6 @@
 	let safe_height: number | undefined = undefined;
 	let dynamic_height: number | undefined = undefined;
 
-	$: console.log("final height", dynamic_height + 100);
-
 	// In case no height given, pick a height large enough for the entire canvas
 	// in pixi.ts, the max-height of the canvas is canvas height / pixel ratio
 	$: if(canvas_size) {
