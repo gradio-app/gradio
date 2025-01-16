@@ -186,7 +186,7 @@
 		padding={false}
 		{elem_id}
 		{elem_classes}
-		height={height || safe_height || ((dynamic_height ?? 0) + 100)}
+		height={height || safe_height || (dynamic_height ?? 0) + 100}
 		{width}
 		allow_overflow={false}
 		{container}
