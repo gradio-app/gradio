@@ -111,7 +111,8 @@
 	<p class="padded">
 		{#if pwa_enabled}
 			You can install this app as a Progressive Web App on your device. Visit <a
-				href={root}>{root}</a
+				href={root}
+				target="_blank">{root}</a
 			> and click the install button in the URL address bar of your browser.
 		{:else}
 			Progressive Web App is not enabled for this app. To enable it, start your
