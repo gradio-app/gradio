@@ -4,6 +4,7 @@
 	import { dequal } from "dequal/lite";
 	import { copy } from "@gradio/utils";
 	import { Upload } from "@gradio/upload";
+	import { Maximize, Minimize, Copy } from "@gradio/icons";
 
 	import EditableCell from "./EditableCell.svelte";
 	import type { SelectData } from "@gradio/utils";
@@ -724,9 +725,14 @@
 	onMount(() => {
 		document.addEventListener("click", handle_click_outside);
 		window.addEventListener("resize", handle_resize);
+		document.addEventListener("fullscreenchange", handle_fullscreen_change);
 		return () => {
 			document.removeEventListener("click", handle_click_outside);
 			window.removeEventListener("resize", handle_resize);
+			document.removeEventListener(
+				"fullscreenchange",
+				handle_fullscreen_change
+			);
 		};
 	});
 
@@ -762,6 +768,22 @@
 		y: number;
 	} | null = null;
 
+	let is_fullscreen = false;
+
+	function toggle_fullscreen(): void {
+		if (!document.fullscreenElement) {
+			parent.requestFullscreen();
+			is_fullscreen = true;
+		} else {
+			document.exitFullscreen();
+			is_fullscreen = false;
+		}
+	}
+
+	function handle_fullscreen_change(): void {
+		is_fullscreen = !!document.fullscreenElement;
+	}
+
 	function toggle_header_menu(event: MouseEvent, col: number): void {
 		event.stopPropagation();
 		if (active_header_menu && active_header_menu.col === col) {
@@ -791,12 +813,35 @@
 	on:resize={() => set_cell_widths()}
 />
 
-<div class:label={label && label.length !== 0} use:copy>
+<div class="label" class:label={label && label.length !== 0} use:copy>
 	{#if label && label.length !== 0 && show_label}
 		<p>
 			{label}
 		</p>
 	{/if}
+</div>
+
+<div class="table-container">
+	<div class="toolbar">
+		<button
+			class="toolbar-button"
+			on:click={() => {
+				const csv = data
+					.map((row) => row.map((cell) => cell.value).join(","))
+					.join("\n");
+				navigator.clipboard.writeText(csv);
+			}}
+		>
+			<Copy />
+		</button>
+		<button class="toolbar-button" on:click={toggle_fullscreen}>
+			{#if is_fullscreen}
+				<Minimize />
+			{:else}
+				<Maximize />
+			{/if}
+		</button>
+	</div>
 	<div
 		bind:this={parent}
 		class="table-wrap"
@@ -1249,5 +1294,42 @@
 		white-space: normal;
 		overflow-wrap: break-word;
 		word-break: break-word;
+	}
+
+	.table-container {
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-2);
+	}
+
+	.toolbar {
+		display: flex;
+		justify-content: flex-end;
+		gap: var(--size-1);
+	}
+
+	.toolbar-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: var(--size-6);
+		height: var(--size-6);
+		padding: var(--size-1);
+		border: none;
+		border-radius: var(--radius-sm);
+		background: transparent;
+		color: var(--body-text-color-subdued);
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.toolbar-button:hover {
+		background: var(--background-fill-secondary);
+		color: var(--body-text-color);
+	}
+
+	.toolbar-button :global(svg) {
+		width: var(--size-4);
+		height: var(--size-4);
 	}
 </style>
