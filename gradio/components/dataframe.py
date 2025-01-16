@@ -93,6 +93,8 @@ class Dataframe(Component):
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
+        show_copy_button: bool = False,
+        show_fullscreen_button: bool = False,
     ):
         """
         Parameters:
@@ -120,6 +122,8 @@ class Dataframe(Component):
             wrap: If True, the text in table cells will wrap when appropriate. If False and the `column_width` parameter is not set, the column widths will expand based on the cell contents and the table may need to be horizontally scrolled. If `column_width` is set, then any overflow text will be hidden.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies for columns of type "markdown."
             column_widths: An optional list representing the width of each column. The elements of the list should be in the format "100px" (ints are also accepted and converted to pixel values) or "10%". If not provided, the column widths will be automatically determined based on the content of the cells. Setting this parameter will cause the browser to try to fit the table within the page width.
+            show_copy_button: If False (default), will not show a button to copy the data as CSV.
+            show_fullscreen_button: If False (default), will not show a button to view the table in fullscreen mode.
         """
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
@@ -171,6 +175,8 @@ class Dataframe(Component):
         self.column_widths = [
             w if isinstance(w, str) else f"{w}px" for w in (column_widths or [])
         ]
+        self.show_copy_button = show_copy_button
+        self.show_fullscreen_button = show_fullscreen_button
         super().__init__(
             label=label,
             every=every,

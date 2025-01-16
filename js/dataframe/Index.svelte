@@ -50,6 +50,9 @@
 	export let loading_status: LoadingStatus;
 	export let interactive: boolean;
 
+	export let show_copy_button = true;
+	export let show_fullscreen_button = true;
+
 	let _headers: Headers;
 	let display_value: string[][] | null;
 	let styling: string[][] | null;
@@ -153,6 +156,8 @@
 		i18n={gradio.i18n}
 		{line_breaks}
 		{column_widths}
+		{show_copy_button}
+		{show_fullscreen_button}
 		upload={(...args) => gradio.client.upload(...args)}
 		stream_handler={(...args) => gradio.client.stream(...args)}
 	/>

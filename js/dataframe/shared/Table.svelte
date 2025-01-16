@@ -4,7 +4,6 @@
 	import { dequal } from "dequal/lite";
 	import { copy } from "@gradio/utils";
 	import { Upload } from "@gradio/upload";
-	import { Maximize, Minimize, Copy } from "@gradio/icons";
 
 	import EditableCell from "./EditableCell.svelte";
 	import type { SelectData } from "@gradio/utils";
@@ -13,6 +12,7 @@
 	import VirtualTable from "./VirtualTable.svelte";
 	import type { Headers, HeadersWithIDs, Metadata, Datatype } from "./utils";
 	import CellMenu from "./CellMenu.svelte";
+	import Toolbar from "./Toolbar.svelte";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -37,6 +37,8 @@
 	export let column_widths: string[] = [];
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let show_copy_button = true;
+	export let show_fullscreen_button = true;
 
 	let selected: false | [number, number] = false;
 	export let display_value: string[][] | null = null;
@@ -822,26 +824,13 @@
 </div>
 
 <div class="table-container">
-	<div class="toolbar">
-		<button
-			class="toolbar-button"
-			on:click={() => {
-				const csv = data
-					.map((row) => row.map((cell) => cell.value).join(","))
-					.join("\n");
-				navigator.clipboard.writeText(csv);
-			}}
-		>
-			<Copy />
-		</button>
-		<button class="toolbar-button" on:click={toggle_fullscreen}>
-			{#if is_fullscreen}
-				<Minimize />
-			{:else}
-				<Maximize />
-			{/if}
-		</button>
-	</div>
+	<Toolbar
+		{show_copy_button}
+		{show_fullscreen_button}
+		{is_fullscreen}
+		{data}
+		on:click={toggle_fullscreen}
+	/>
 	<div
 		bind:this={parent}
 		class="table-wrap"
@@ -1300,36 +1289,5 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--size-2);
-	}
-
-	.toolbar {
-		display: flex;
-		justify-content: flex-end;
-		gap: var(--size-1);
-	}
-
-	.toolbar-button {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: var(--size-6);
-		height: var(--size-6);
-		padding: var(--size-1);
-		border: none;
-		border-radius: var(--radius-sm);
-		background: transparent;
-		color: var(--body-text-color-subdued);
-		cursor: pointer;
-		transition: all 0.2s;
-	}
-
-	.toolbar-button:hover {
-		background: var(--background-fill-secondary);
-		color: var(--body-text-color);
-	}
-
-	.toolbar-button :global(svg) {
-		width: var(--size-4);
-		height: var(--size-4);
 	}
 </style>
