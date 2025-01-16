@@ -19,7 +19,6 @@ from typing import (
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
-from pydantic import Field
 from typing_extensions import NotRequired, TypedDict
 
 from gradio import utils
@@ -33,17 +32,39 @@ from gradio.events import Events
 from gradio.exceptions import Error
 
 
+@document()
 class MetadataDict(TypedDict):
-    title: Union[str, None]
+    """
+    A typed dictionary to represent metadata for a message in the Chatbot component. An
+    instance of this dictionary is used for the `metadata` field in a ChatMessage when
+    the chat message should be displayed as a thought.
+    Parameters:
+        title: The title of the "thought" message. Required if the message is to be displayed as a thought.
+        id: The ID of the message. Only used for nested thoughts. Nested thoughts can be nested by setting the parent_id to the id of the parent thought.
+        parent_id: The ID of the parent message. Only used for nested thoughts.
+        duration: The duration of the message. Appears next to the title in the thought bubble in a subdued font.
+        status: The status of the message. If "pending", the status is displayed as a spinner icon.
+    """
+
+    title: NotRequired[str]
     id: NotRequired[int | str]
     parent_id: NotRequired[int | str]
     duration: NotRequired[float]
     status: NotRequired[Literal["pending", "done"]]
 
 
-class Option(TypedDict):
-    label: NotRequired[str]
+@document()
+class OptionDict(TypedDict):
+    """
+    A typed dictionary to represent an option in a ChatMessage. A list of these
+    dictionaries is used for the `options` field in a ChatMessage.
+    Parameters:
+        value: The value to return when the option is selected.
+        label: The text to display in the option, if different from the value.
+    """
+
     value: str
+    label: NotRequired[str]
 
 
 class FileDataDict(TypedDict):
@@ -60,7 +81,7 @@ class MessageDict(TypedDict):
     content: str | FileDataDict | tuple | Component
     role: Literal["user", "assistant", "system"]
     metadata: NotRequired[MetadataDict]
-    options: NotRequired[list[Option]]
+    options: NotRequired[list[OptionDict]]
 
 
 class FileMessage(GradioModel):
@@ -84,25 +105,11 @@ class ChatbotDataTuples(GradioRootModel):
     ]
 
 
-class Metadata(GradioModel):
-    title: Optional[str] = None
-    id: Optional[int | str] = None
-    parent_id: Optional[int | str] = None
-    duration: Optional[float] = None
-    status: Optional[Literal["pending", "done"]] = None
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        setattr(self, key, value)
-
-    def __getitem__(self, key: str) -> Any:
-        return getattr(self, key)
-
-
 class Message(GradioModel):
     role: str
-    metadata: Metadata = Field(default_factory=Metadata)
+    metadata: Optional[MetadataDict] = None
     content: Union[str, FileMessage, ComponentMessage]
-    options: Optional[list[Option]] = None
+    options: Optional[list[OptionDict]] = None
 
 
 class ExampleMessage(TypedDict):
@@ -122,7 +129,7 @@ class ExampleMessage(TypedDict):
 @dataclass
 class ChatMessage:
     """
-    A dataclass to represent a message in the Chatbot component (type="messages").
+    A dataclass that represents a message in the Chatbot component (with type="messages"). The only required field is `content`. The value of `gr.Chatbot` is a list of these dataclasses.
     Parameters:
         content: The content of the message. Can be a string or a Gradio component.
         role: The role of the message, which determines the alignment of the message in the chatbot. Can be "user", "assistant", or "system". Defaults to "assistant".
@@ -132,8 +139,8 @@ class ChatMessage:
 
     content: str | FileData | Component | FileDataDict | tuple | list
     role: Literal["user", "assistant", "system"] = "assistant"
-    metadata: MetadataDict | Metadata = field(default_factory=Metadata)
-    options: Optional[list[Option]] = None
+    metadata: MetadataDict = field(default_factory=MetadataDict)
+    options: list[OptionDict] = field(default_factory=list)
 
 
 class ChatbotDataMessages(GradioRootModel):
@@ -231,7 +238,7 @@ class Chatbot(Component):
     ):
         """
         Parameters:
-            value: Default list of messages to show in chatbot, where each message is of the format {"role": "user", "content": "Help me."}. Role can be one of "user", "assistant", or "system". Content should be either text, or media passed as a Gradio component, e.g. {"content": gr.Image("lion.jpg")}. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default list of messages to show in chatbot, where each message is of the format {"role": "user", "content": "Help me."}. Role can be one of "user", "assistant", or "system". Content should be either text, or media passed as a Gradio component, e.g. {"content": gr.Image("lion.jpg")}. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             type: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the value as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component. At the moment Image, Plot, Video, Gallery, Audio, and HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message, but this format is deprecated.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
