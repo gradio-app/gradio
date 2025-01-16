@@ -48,7 +48,8 @@ export function fit_image_to_canvas(
 	if (image_width <= canvas_width && image_height <= canvas_height) {
 		new_width = image_width;
 		new_height = image_height;
-	} else {
+	}
+	else {
 		if (image_aspect_ratio > canvas_aspect_ratio) {
 			// Width is the limiting factor
 			new_width = canvas_width;
@@ -77,7 +78,7 @@ export function add_bg_image(
 	renderer: IRenderer,
 	background: Blob | File,
 	resize: (width: number, height: number) => void,
-	canvas_size: [number, number],
+	canvas_size: [number, number] | undefined,
 	fixed_canvas: boolean
 ): BgImageCommand {
 	let sprite: Sprite & DisplayObject;
@@ -88,15 +89,17 @@ export function add_bg_image(
 			const img = await createImageBitmap(background);
 			const bitmap_texture = Texture.from(img);
 			sprite = new Sprite(bitmap_texture) as Sprite & DisplayObject;
+			if (!canvas_size) {
+				canvas_size = [sprite.width, sprite.height];
+			}
 
 			if (fixed_canvas) {
-				// If canvas_size is provided, fit the image within those dimensions
-				const [canvasWidth, canvasHeight] = canvas_size;
+				const [canvas_width, canvas_height] = canvas_size;
 				const { width, height, x, y } = fit_image_to_canvas(
 					sprite.width,
 					sprite.height,
-					canvasWidth,
-					canvasHeight
+					canvas_width,
+					canvas_height
 				);
 
 				sprite.width = width;
@@ -121,7 +124,9 @@ export function add_bg_image(
 		},
 		async execute() {
 			resize(
+				// @ts-ignore
 				fixed_canvas ? canvas_size[0] : sprite.width,
+				// @ts-ignore
 				fixed_canvas ? canvas_size[1] : sprite.height
 			);
 

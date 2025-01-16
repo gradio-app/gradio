@@ -1,12 +1,12 @@
 import { test, expect } from "@self/tootils";
 
-test("Image Editor reshapes image to fit default canvas", async ({ page }) => {
+test("Image Editor canvas matches background image size if canvas_size=None", async ({ page }) => {
 	await page.locator("#default >> .upload-container > button").click();
 	const uploader = page.locator("#default >> input[type=file]");
 	await uploader.setInputFiles(["./test/files/brown_dog.jpg"]);
 
-	await expect(page.getByLabel("Width")).toHaveValue("450");
-	await expect(page.getByLabel("Height")).toHaveValue("600");
+	await expect(page.getByLabel("Width")).toHaveValue("3646");
+	await expect(page.getByLabel("Height")).toHaveValue("4861");
 });
 
 test("Image Editor reshapes image to fit small unfixed 100 x 100 canvas", async ({
