@@ -49,6 +49,7 @@
 
 	export let loading_status: LoadingStatus;
 	export let interactive: boolean;
+	export let show_row_numbers = false;
 
 	let _headers: Headers;
 	let display_value: string[][] | null;
@@ -153,6 +154,7 @@
 		i18n={gradio.i18n}
 		{line_breaks}
 		{column_widths}
+		{show_row_numbers}
 		upload={(...args) => gradio.client.upload(...args)}
 		stream_handler={(...args) => gradio.client.stream(...args)}
 	/>

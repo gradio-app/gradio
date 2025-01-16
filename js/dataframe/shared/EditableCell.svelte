@@ -109,6 +109,7 @@
 		outline: none;
 		border: none;
 		background: transparent;
+		cursor: text;
 	}
 
 	span {
@@ -119,6 +120,7 @@
 		-moz-user-select: text;
 		-ms-user-select: text;
 		user-select: text;
+		cursor: text;
 	}
 
 	.header {
