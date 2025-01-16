@@ -212,7 +212,6 @@
 	let _dynamic_height: number;
 
 	$: dynamic_height = _dynamic_height;
-
 	$: [heading, paragraph] = placeholder ? inject(placeholder) : [false, false];
 </script>
 

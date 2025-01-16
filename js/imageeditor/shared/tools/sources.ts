@@ -48,7 +48,8 @@ export function fit_image_to_canvas(
 	if (image_width <= canvas_width && image_height <= canvas_height) {
 		new_width = image_width;
 		new_height = image_height;
-	} else {
+	}
+	else {
 		if (image_aspect_ratio > canvas_aspect_ratio) {
 			// Width is the limiting factor
 			new_width = canvas_width;
@@ -77,7 +78,7 @@ export function add_bg_image(
 	renderer: IRenderer,
 	background: Blob | File,
 	resize: (width: number, height: number) => void,
-	canvas_size: [number, number],
+	canvas_size: [number, number] | undefined,
 	fixed_canvas: boolean
 ): BgImageCommand {
 	let sprite: Sprite & DisplayObject;
