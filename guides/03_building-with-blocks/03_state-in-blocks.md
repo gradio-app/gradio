@@ -1,6 +1,6 @@
 # Managing State
 
-When building a Gradio application with `gr.Blocks()`, you may want to preserve the share certain values between users (e.g. a count of visitors to your page), or persist values for a single user across certain interactions (e.g. a chat history). This referred to as **state** and there are three general ways to manage state in a Gradio application:
+When building a Gradio application with `gr.Blocks()`, you may want to share certain values between users (e.g. a count of visitors to your page), or persist values for a single user across certain interactions (e.g. a chat history). This referred to as **state** and there are three general ways to manage state in a Gradio application:
 
 * **Global state**: persist and share values among all users of your Gradio application while your Gradio application is running
 * **Session state**: persist values for each user of your Gradio application while they are using your Gradio application in a single session. If they refresh the page, session state will be reset.
