@@ -442,7 +442,7 @@ demo.launch(pwa=True)  # Launch your app as a PWA
 
 This will generate a PWA that can be installed on your device. Here's how it looks:
 
-![Installing PWA](https://github.com/gradio-app/gradio/blob/main/guides/assets/install-pwa.gif?raw=true)
+![Installing PWA](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/install-pwa.gif)
 
 When you specify `favicon_path` in the `launch()` method, the icon will be used as the app's icon. Here's an example:
 
@@ -450,4 +450,4 @@ When you specify `favicon_path` in the `launch()` method, the icon will be used 
 demo.launch(pwa=True, favicon_path="./hf-logo.svg")  # Use a custom icon for your PWA
 ```
 
-![Custom PWA Icon](https://github.com/gradio-app/gradio/blob/main/guides/assets/pwa-favicon.png?raw=true)
+![Custom PWA Icon](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/pwa-favicon.png)
