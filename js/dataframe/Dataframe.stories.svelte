@@ -167,6 +167,18 @@
 />
 
 <Story
+	name="Dataframe with zero row count"
+	args={{
+		values: [],
+		headers: ["Narrow", "Wide", "Half"],
+		label: "Test scores",
+		col_count: [0, "dynamic"],
+		row_count: [0, "dynamic"],
+		editable: false
+	}}
+/>
+
+<Story
 	name="Dataframe with dialog interactions"
 	args={{
 		values: [
