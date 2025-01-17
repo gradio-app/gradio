@@ -1259,21 +1259,20 @@
 		position: sticky;
 		left: 0;
 		font-size: var(--input-text-size);
-		color: var(--body-text-color-subdued);
+		color: var(--body-text-color);
 		padding: var(--size-1) var(--size-2);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		font-weight: var(--weight-semibold);
 	}
 
 	.row-number-header {
 		z-index: var(--layer-2);
-		font-weight: var(--weight-semibold);
 	}
 
 	.row-number {
 		z-index: var(--layer-1);
-		font-family: var(--font-mono);
 	}
 
 	:global(tbody > tr:nth-child(odd)) .row-number {
