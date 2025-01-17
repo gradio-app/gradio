@@ -37,7 +37,6 @@
 	export let column_widths: string[] = [];
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
-	export let show_copy_button = true;
 	export let show_fullscreen_button = true;
 
 	let selected: false | [number, number] = false;
@@ -825,10 +824,8 @@
 
 <div class="table-container">
 	<Toolbar
-		{show_copy_button}
 		{show_fullscreen_button}
 		{is_fullscreen}
-		{data}
 		on:click={toggle_fullscreen}
 	/>
 	<div

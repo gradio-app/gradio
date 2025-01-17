@@ -1,35 +1,19 @@
 <script lang="ts">
-	import { Maximize, Minimize, Copy } from "@gradio/icons";
+	import { Maximize, Minimize } from "@gradio/icons";
 
-	export let show_copy_button = true;
 	export let show_fullscreen_button = true;
 	export let is_fullscreen = false;
-	export let data: { value: any }[][] = [];
-
-	function copy_as_csv(): void {
-		const csv = data
-			.map((row) => row.map((cell) => cell.value).join(","))
-			.join("\n");
-		navigator.clipboard.writeText(csv);
-	}
 </script>
 
-{#if show_copy_button || show_fullscreen_button}
+{#if show_fullscreen_button}
 	<div class="toolbar">
-		{#if show_copy_button}
-			<button class="toolbar-button" on:click={copy_as_csv}>
-				<Copy />
-			</button>
-		{/if}
-		{#if show_fullscreen_button}
-			<button class="toolbar-button" on:click>
-				{#if is_fullscreen}
-					<Minimize />
-				{:else}
-					<Maximize />
-				{/if}
-			</button>
-		{/if}
+		<button class="toolbar-button" on:click>
+			{#if is_fullscreen}
+				<Minimize />
+			{:else}
+				<Maximize />
+			{/if}
+		</button>
 	</div>
 {/if}
 
