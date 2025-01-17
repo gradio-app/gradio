@@ -324,11 +324,9 @@ class TestDataframe:
     def test_dataframe_hidden_columns(self):
         """Test that hidden columns are properly excluded from the output"""
         component = gr.Dataframe()
-        df = pd.DataFrame({
-            "a": [1, 2, 3],
-            "b": [4, 5, 6],
-            "color": ["red", "blue", "green"]
-        })
+        df = pd.DataFrame(
+            {"a": [1, 2, 3], "b": [4, 5, 6], "color": ["red", "blue", "green"]}
+        )
         styled_df = df.style.hide(axis=1, subset=["color"])
         output = component.postprocess(styled_df).model_dump()
         assert output == {
