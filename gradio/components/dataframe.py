@@ -13,7 +13,6 @@ from typing import (
 )
 
 import numpy as np
-import semantic_version
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
@@ -268,22 +267,15 @@ class Dataframe(Component):
     ) -> DataframeData:
         """
         Parameters:
-            value: Expects data any of these formats: `pandas.DataFrame`, `pandas.Styler`, `numpy.array`, `polars.DataFrame`, `list[list]`, `list`, or a `dict` with keys 'data' (and optionally 'headers'), or `str` path to a csv, which is rendered as the spreadsheet.
+            value: Expects data in any of these formats: `pandas.DataFrame`, `pandas.Styler`, `numpy.array`, `polars.DataFrame`, `list[list]`, `list`, or a `dict` with keys 'data' (and optionally 'headers'), or `str` path to a csv, which is rendered as the spreadsheet.
         Returns:
             the uploaded spreadsheet data as an object with `headers` and `data` keys and optional `metadata` key
         """
         import pandas as pd
         from pandas.io.formats.style import Styler
 
-        if isinstance(value, Styler) and semantic_version.Version(
-            pd.__version__
-        ) < semantic_version.Version("1.5.0"):
-            raise ValueError(
-                "Styler objects are only supported in pandas version 1.5.0 or higher. Please try: `pip install --upgrade pandas` to use this feature."
-            )
-
         if value is None or self._is_empty(value):
-            return self.postprocess(self.empty_input)
+            return DataframeData(headers=self.headers, data=[[]])
         if isinstance(value, dict):
             if len(value) == 0:
                 return DataframeData(headers=self.headers, data=[[]])
@@ -295,7 +287,7 @@ class Dataframe(Component):
                 value = pd.read_csv(value)  # type: ignore
             if len(value) == 0:
                 return DataframeData(
-                    headers=[str(col) for col in value.columns],  # Convert to strings
+                    headers=list(value.columns),  # Convert to strings
                     data=[[]],  # type: ignore
                 )
             return DataframeData(
@@ -321,12 +313,12 @@ class Dataframe(Component):
                 return DataframeData(
                     headers=list(df.columns),
                     data=[[]],
-                    metadata=self.__extract_metadata(value),  # type: ignore
+                    metadata=self.__extract_metadata(value, hidden_cols),  # type: ignore
                 )
             return DataframeData(
                 headers=list(df.columns),
                 data=df.to_dict(orient="split")["data"],  # type: ignore
-                metadata=self.__extract_metadata(value),  # type: ignore
+                metadata=self.__extract_metadata(value, hidden_cols),  # type: ignore
             )
         elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
             if len(value) == 0:
@@ -366,22 +358,27 @@ class Dataframe(Component):
         return styles_str
 
     @staticmethod
-    def __extract_metadata(df: Styler) -> dict[str, list[list]]:
+    def __extract_metadata(df: Styler, hidden_cols: list = []) -> dict[str, list[list]]:
         metadata = {"display_value": [], "styling": []}
         style_data = df._compute()._translate(None, None)  # type: ignore
         cell_styles = style_data.get("cellstyle", [])
         for i in range(len(style_data["body"])):
-            metadata["display_value"].append([])
-            metadata["styling"].append([])
+            row_display = []
+            row_styling = []
+            col_idx = 0
             for j in range(len(style_data["body"][i])):
                 cell_type = style_data["body"][i][j]["type"]
                 if cell_type != "td":
                     continue
-                display_value = style_data["body"][i][j]["display_value"]
-                cell_id = style_data["body"][i][j]["id"]
-                styles_str = Dataframe.__get_cell_style(cell_id, cell_styles)
-                metadata["display_value"][i].append(display_value)
-                metadata["styling"][i].append(styles_str)
+                if col_idx not in hidden_cols:
+                    display_value = style_data["body"][i][j]["display_value"]
+                    cell_id = style_data["body"][i][j]["id"]
+                    styles_str = Dataframe.__get_cell_style(cell_id, cell_styles)
+                    row_display.append(display_value)
+                    row_styling.append(styles_str)
+                col_idx += 1
+            metadata["display_value"].append(row_display)
+            metadata["styling"].append(row_styling)
         return metadata
 
     @staticmethod
