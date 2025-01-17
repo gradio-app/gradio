@@ -559,37 +559,6 @@ class TestClientPredictions:
             ret = client.predict(message, initial_history, api_name="/submit")
             assert ret == ("", [["", None], ["Hello", "I love you"]])
 
-    # def test_can_call_mounted_app_via_api(self):
-    #     def greet(name):
-    #         return "Hello " + name + "!"
-
-    #     gradio_app = gr.Interface(
-    #         fn=greet,
-    #         inputs=gr.Textbox(lines=2, placeholder="Name Here..."),
-    #         outputs="text",
-    #     )
-
-    #     app = FastAPI()
-    #     app = gr.mount_gradio_app(app, gradio_app, path="/test/gradio")
-    #     config = uvicorn.Config(
-    #         app=app,
-    #         port=8000,
-    #         log_level="info",
-    #     )
-    #     server = Server(config=config)
-    #     # Using the gradio Server class to not have
-    #     # to implement code again to run uvicorn in a separate thread
-    #     # However, that means we need to set this flag to prevent
-    #     # run_in_thread_from_blocking
-    #     server.started = True
-    #     try:
-    #         server.run_in_thread()
-    #         time.sleep(1)
-    #         client = Client("http://127.0.0.1:8000/test/gradio/")
-    #         assert client.predict("freddy") == "Hello freddy!"
-    #     finally:
-    #         server.thread.join(timeout=1)
-
     @pytest.mark.flaky
     def test_predict_with_space_with_api_name_false(self):
         client = Client("gradio-tests/client-bool-api-name-error")
@@ -656,6 +625,27 @@ class TestClientPredictions:
             time.sleep(5)
         out = capsys.readouterr().out
         assert "STATE DELETED" in out
+
+    def test_add_zero_gpu_headers_no_gradio_context(self):
+        client = Client("gradio/calculator")
+        headers = {"existing": "header"}
+        new_headers = client.add_zero_gpu_headers(headers)
+        assert new_headers == headers  # No changes when not in Gradio context
+
+    def test_add_zero_gpu_headers_with_ip_token(self, monkeypatch):
+        client = Client("gradio/calculator")
+        headers = {"existing": "header"}
+
+        class MockRequest:
+            headers = {"x-ip-token": "test-token"}
+
+        class MockContext:
+            request = MagicMock()
+            request.get.return_value = MockRequest()
+
+        monkeypatch.setattr("gradio.context.LocalContext", MockContext)
+        new_headers = client.add_zero_gpu_headers(headers)
+        assert new_headers == {"existing": "header", "x-ip-token": "test-token"}
 
 
 class TestClientPredictionsWithKwargs:

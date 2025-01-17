@@ -14,7 +14,7 @@ This tutorial uses `gr.ChatInterface()`, which is a high-level abstraction that 
 $ pip install --upgrade gradio
 ```
 
-## OpenAI-API compatible endpoints
+## Note for OpenAI-API compatible endpoints
 
 If you have a chat server serving an OpenAI-API compatible endpoint (e.g. Ollama), you can spin up a ChatInterface in a single line of Python. First, also run `pip install openai`. Then, with your own URL, model, and optional token:
 
@@ -346,16 +346,16 @@ The `gr.ChatInterface` class supports displaying intermediate thoughts or tool u
 class ChatMessage:
     content: str | Component
     metadata: MetadataDict = None
-    options: list[Option] = None
+    options: list[OptionDict] = None
 
 class MetadataDict(TypedDict):
-    title: Union[str, None]
+    title: NotRequired[str]
     id: NotRequired[int | str]
     parent_id: NotRequired[int | str]
-    duration: NotRequired[int]
+    duration: NotRequired[float]
     status: NotRequired[Literal["pending", "done"]]
 
-class Option(TypedDict):
+class OptionDict(TypedDict):
     label: NotRequired[str]
     value: str
  ```
@@ -364,7 +364,7 @@ As you can see, the `gr.ChatMessage` dataclass is similar to the openai-style me
 
 $code_chatinterface_thoughts
 
-You can even show nested thoughts, which is useful for agent demos in which one tool may call other tools. To display nested thoughts, include "id" and "parent_id" keys in the "metadata" dictionary. See [this example for a complete demonstration](https://github.com/gradio-app/gradio/blob/main/demo/chatinterface_nested_thoughts/run.py).
+You can even show nested thoughts, which is useful for agent demos in which one tool may call other tools. To display nested thoughts, include "id" and "parent_id" keys in the "metadata" dictionary. See [this example](https://github.com/gradio-app/gradio/blob/main/demo/chatinterface_nested_thoughts/run.py) for a complete demonstration, or read our [dedicated guide on displaying intermediate thoughts and tool usage](/guides/chatbots/agents-and-tool-usage) for more realistic examples.
 
 **Providing preset responses**
 
@@ -375,6 +375,12 @@ As shown in the schema for `gr.ChatMessage` above, the value corresponding to th
 This example illustrates how to use preset responses:
 
 $code_chatinterface_options
+
+## Modifying the Chatbot Value Directly
+
+You may wish to modify the value of the chatbot with your own events, other than those prebuilt in the `gr.ChatInterface`. For example, you could create a dropdown that prefills the chat history with certain conversations or add a separate button to clear the conversation history. The `gr.ChatInterface` supports these events, but you need to use the `gr.ChatInterface.chatbot_value` as the input or output component in such events. In this example, we use a `gr.Radio` component to prefill the the chatbot with certain conversations:
+
+$code_chatinterface_prefill
 
 ## Using Your Chatbot via API
 
