@@ -13,6 +13,7 @@ from typing import (
 )
 
 import numpy as np
+import semantic_version
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
@@ -277,6 +278,13 @@ class Dataframe(Component):
         import pandas as pd
         from pandas.io.formats.style import Styler
 
+        if isinstance(value, Styler) and semantic_version.Version(
+            pd.__version__
+        ) < semantic_version.Version("1.5.0"):
+            raise ValueError(
+                "Styler objects are only supported in pandas version 1.5.0 or higher. Please try: `pip install --upgrade pandas` to use this feature."
+            )
+
         if value is None or self._is_empty(value):
             return DataframeData(headers=self.headers, data=[[]])
         if isinstance(value, dict):
@@ -290,7 +298,7 @@ class Dataframe(Component):
                 value = pd.read_csv(value)  # type: ignore
             if len(value) == 0:
                 return DataframeData(
-                    headers=list(value.columns),  # Convert to strings
+                    headers=[str(col) for col in value.columns],  # Convert to strings
                     data=[[]],  # type: ignore
                 )
             return DataframeData(
@@ -304,7 +312,9 @@ class Dataframe(Component):
                 )
             df: pd.DataFrame = value.data  # type: ignore
             visible_cols = [
-                i for i, col in enumerate(df.columns) if i not in getattr(value, "hidden_columns", [])
+                i
+                for i, col in enumerate(df.columns)
+                if i not in getattr(value, "hidden_columns", [])
             ]
             df = df.iloc[:, visible_cols]
 
@@ -312,12 +322,16 @@ class Dataframe(Component):
                 return DataframeData(
                     headers=list(df.columns),
                     data=[[]],
-                    metadata=self.__extract_metadata(value, getattr(value, "hidden_columns", [])),  # type: ignore
+                    metadata=self.__extract_metadata(
+                        value, getattr(value, "hidden_columns", [])
+                    ),  # type: ignore
                 )
             return DataframeData(
                 headers=list(df.columns),
                 data=df.to_dict(orient="split")["data"],  # type: ignore
-                metadata=self.__extract_metadata(value, getattr(value, "hidden_columns", [])),  # type: ignore
+                metadata=self.__extract_metadata(
+                    value, getattr(value, "hidden_columns", [])
+                ),  # type: ignore
             )
         elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
             if len(value) == 0:
@@ -357,7 +371,9 @@ class Dataframe(Component):
         return styles_str
 
     @staticmethod
-    def __extract_metadata(df: Styler, hidden_cols: list[int] | None = None) -> dict[str, list[list]]:
+    def __extract_metadata(
+        df: Styler, hidden_cols: list[int] | None = None
+    ) -> dict[str, list[list]]:
         metadata = {"display_value": [], "styling": []}
         style_data = df._compute()._translate(None, None)  # type: ignore
         cell_styles = style_data.get("cellstyle", [])
