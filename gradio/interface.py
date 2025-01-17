@@ -963,8 +963,6 @@ class TabbedInterface(Blocks):
         Returns:
             a Gradio Tabbed Interface for the given interfaces
         """
-        from gradio.chat_interface import ChatInterface
-
         super().__init__(
             title=title or "Gradio",
             theme=theme,
@@ -986,7 +984,7 @@ class TabbedInterface(Blocks):
                 for interface, tab_name in zip(interface_list, tab_names, strict=False):
                     with Tab(
                         label=tab_name,
-                        scale=1 if isinstance(interface, ChatInterface) else 0,
+                        scale=1 if interface.fill_height else 0,
                     ):
                         interface.render()
 
