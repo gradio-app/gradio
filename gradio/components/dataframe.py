@@ -312,7 +312,9 @@ class Dataframe(Component):
             if hasattr(value, "hidden_columns"):
                 hidden_cols = value.hidden_columns  # type: ignore
 
-            visible_cols = [i for i, col in enumerate(df.columns) if i not in hidden_cols]
+            visible_cols = [
+                i for i, col in enumerate(df.columns) if i not in hidden_cols
+            ]
             df = df.iloc[:, visible_cols]
 
             if len(df) == 0:
