@@ -358,10 +358,11 @@ class Dataframe(Component):
         return styles_str
 
     @staticmethod
-    def __extract_metadata(df: Styler, hidden_cols: list = []) -> dict[str, list[list]]:
+    def __extract_metadata(df: Styler, hidden_cols: list[int] | None = None) -> dict[str, list[list]]:
         metadata = {"display_value": [], "styling": []}
         style_data = df._compute()._translate(None, None)  # type: ignore
         cell_styles = style_data.get("cellstyle", [])
+        hidden_cols = hidden_cols if hidden_cols is not None else []
         for i in range(len(style_data["body"])):
             row_display = []
             row_styling = []
