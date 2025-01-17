@@ -194,3 +194,14 @@
 		userEvent.click(new_cell);
 	}}
 />
+
+<Story
+	name="Dataframe with fullscreen button"
+	args={{
+		values: [
+			[800, 100, 400],
+			[200, 800, 700]
+		],
+		show_fullscreen_button: true
+	}}
+/>
