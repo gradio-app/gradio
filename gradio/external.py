@@ -33,6 +33,7 @@ from gradio.processing_utils import save_base64_to_cache, to_binary
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
     from gradio.chat_interface import ChatInterface
+    from gradio.components.chatbot import MessageDict
     from gradio.interface import Interface
 
 
@@ -649,40 +650,67 @@ TEXT_FILE_EXTENSIONS = (
     ".toml",
     ".sql",
 )
-IMAGE_FILE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif")
+IMAGE_FILE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".webp")
 
 
-def format_prompt(message: str | MultimodalValue) -> list[dict]:
-    if isinstance(message, str):
-        text = message
-        files = []
-    else:
-        text = message.get("text", None)
-        files = message.get("files", [])
-    image_files, text_files = [], []
-    for file in files:
-        if file.lower().endswith(TEXT_FILE_EXTENSIONS):
-            text_files.append(file)
-        else:
-            image_files.append(file)
-    content = []
-    if text or text_files:
-        text = text or ""
-        text += "\n".join(
-            [f"\n## {Path(file).name}\n{Path(file).read_text()}" for file in text_files]
-        )
-        content.append({"type": "text", "text": text})
-    if image_files:
-        content.extend(
-            [
+def format_conversation(
+    history: list[MessageDict], new_message: str | MultimodalValue
+) -> list[dict]:
+    conversation = []
+    for message in history:
+        if isinstance(message["content"], str):
+            conversation.append(message)
+        elif isinstance(message["content"], tuple):
+            image_message = dict(message)
+            image_message["content"] = [
                 {
                     "type": "image_url",
-                    "image_url": {"url": encode_url_or_file_to_base64(image)},
+                    "image_url": {
+                        "url": encode_url_or_file_to_base64(message["content"][0])
+                    },
+                }
+            ]
+            conversation.append(image_message)
+        else:
+            raise ValueError(
+                f"Invalid message format: {message['content']}. Messages must be either strings or tuples."
+            )
+    if isinstance(new_message, str):
+        text = new_message
+        files = []
+    else:
+        text = new_message.get("text", None)
+        files = new_message.get("files", [])
+    image_files, text_encoded = [], []
+    for file in files:
+        if file.lower().endswith(TEXT_FILE_EXTENSIONS):
+            text_encoded.append(file)
+        else:
+            image_files.append(file)
+    if text or text_encoded:
+        text = text or ""
+        text += "\n".join(
+            [f"\n## {Path(file).name}\n{Path(file).read_text()}" for file in text_encoded]
+        )
+        conversation.append(
+            {"role": "user", "content": [{"type": "text", "text": text}]}
+        )
+    if image_files:
+        conversation.extend(
+            [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": encode_url_or_file_to_base64(image)},
+                        }
+                    ],
                 }
                 for image in image_files
             ]
         )
-    return content
+    return conversation
 
 
 @document()
@@ -691,9 +719,9 @@ def load_chat(
     model: str,
     token: str | None = None,
     *,
-    file_types: Literal["text_files", "images"]
-    | list[Literal["text_files", "images"]]
-    | None = "text_files",
+    file_types: Literal["text_encoded", "image"]
+    | list[Literal["text_encoded", "image"]]
+    | None = "text_encoded",
     system_message: str | None = None,
     streaming: bool = True,
     **kwargs,
@@ -704,7 +732,7 @@ def load_chat(
         base_url: The base URL of the endpoint, e.g. "http://localhost:11434/v1/"
         model: The name of the model you are loading, e.g. "llama3.2"
         token: The API token or a placeholder string if you are using a local model, e.g. "ollama"
-        file_types: The file types allowed to be uploaded by the user. "text_files" allows uploading any text-encoded file (which is simply appended to the prompt), and "images" add image upload support. Set to None to disable file uploads.
+        file_types: The file types allowed to be uploaded by the user. "text_encoded" allows uploading any text-encoded file (which is simply appended to the prompt), and "image" add image upload support. Set to None to disable file uploads.
         system_message: The system message to use for the conversation, if any.
         streaming: Whether the response should be streamed.
         kwargs: Additional keyword arguments to pass into ChatInterface for customization.
@@ -727,11 +755,11 @@ def load_chat(
         history = history or start_message
         if len(history) > 0 and isinstance(history[0], (list, tuple)):
             history = ChatInterface._tuples_to_messages(history)
-        content = format_prompt(message)
+        conversation = format_conversation(history, message)
         return (
             client.chat.completions.create(
                 model=model,
-                messages=history + [{"role": "user", "content": content}],
+                messages=conversation,
             )
             .choices[0]
             .message.content
@@ -743,10 +771,10 @@ def load_chat(
         history = history or start_message
         if len(history) > 0 and isinstance(history[0], (list, tuple)):
             history = ChatInterface._tuples_to_messages(history)
-        content = format_prompt(message)
+        conversation = format_conversation(history, message)
         stream = client.chat.completions.create(
             model=model,
-            messages=history + [{"role": "user", "content": content}],
+            messages=conversation,
             stream=True,
         )
         response = ""
@@ -757,9 +785,9 @@ def load_chat(
 
     supported_extensions = []
     if file_types:
-        if "text_files" in file_types:
+        if "text_encoded" in file_types:
             supported_extensions += TEXT_FILE_EXTENSIONS
-        if "images" in file_types:
+        if "image" in file_types:
             supported_extensions += IMAGE_FILE_EXTENSIONS
 
     return ChatInterface(
