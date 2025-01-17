@@ -210,6 +210,9 @@
 <Story
 	name="Dataframe with fullscreen button"
 	args={{
+		col_count: [3, "dynamic"],
+		row_count: [2, "dynamic"],
+		headers: ["Math", "Reading", "Writing"],
 		values: [
 			[800, 100, 400],
 			[200, 800, 700]
