@@ -55,7 +55,10 @@
 	$: display_value = value?.metadata?.display_value
 		? [...value?.metadata?.display_value]
 		: null;
-	$: styling = value?.metadata?.styling ? [...value?.metadata?.styling] : null;
+	$: styling =
+		!interactive && value?.metadata?.styling
+			? [...value?.metadata?.styling]
+			: null;
 </script>
 
 <Block
@@ -94,9 +97,9 @@
 		i18n={gradio.i18n}
 		{line_breaks}
 		{column_widths}
-		{show_fullscreen_button}
 		upload={(...args) => gradio.client.upload(...args)}
 		stream_handler={(...args) => gradio.client.stream(...args)}
+		{show_fullscreen_button}
 		bind:value_is_output
 	/>
 </Block>
