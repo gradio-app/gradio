@@ -80,7 +80,11 @@
 								console.log("Model used:", model_info);
 							} else if (parsed.error) {
 								console.log(parsed.error);
-								generation_error = "Failed to fetch...";
+								if (parsed.error == "Existing code is too long") {
+									generation_error = "Existing code is too long";
+								} else {
+									generation_error = "Failed to fetch...";
+								}
 								await new Promise((resolve) => setTimeout(resolve, 2000));
 								generation_error = "";
 								// }
