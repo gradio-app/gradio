@@ -1,7 +1,7 @@
 import gradio as gr
 
 with gr.Blocks() as demo:
-    with gr.Page("About", route="/about"):
+    with gr.Page("About", route="/"):
         gr.Markdown("# About Us")
         gr.Textbox("About Us")
     with gr.Page("Calculator", route="/calculator"):

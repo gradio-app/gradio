@@ -1,11 +1,14 @@
 <script lang="ts">
 	import Column from "@gradio/column";
+	import { onMount } from "svelte";
 	export let route: string;
-	export let title: string;
+	let visible = false;
+
+	onMount(() => {
+		visible = window.location.pathname.endsWith(`/page-${route}`) || (window.location.pathname == "/" && route == "");
+	});
 </script>
 
-<div data-route="/page{route}" style:display="none">
-	<Column>
-		<slot></slot>
-	</Column>
-</div>
+<Column {visible}>
+	<slot></slot>
+</Column>
