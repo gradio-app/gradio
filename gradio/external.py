@@ -690,7 +690,10 @@ def format_conversation(
     if text or text_encoded:
         text = text or ""
         text += "\n".join(
-            [f"\n## {Path(file).name}\n{Path(file).read_text()}" for file in text_encoded]
+            [
+                f"\n## {Path(file).name}\n{Path(file).read_text()}"
+                for file in text_encoded
+            ]
         )
         conversation.append(
             {"role": "user", "content": [{"type": "text", "text": text}]}
@@ -739,9 +742,9 @@ def load_chat(
     Example:
         import gradio as gr
         gr.load_chat(
-            "http://localhost:11434/v1/", 
-            model="qwen2.5", t
-            token="***", 
+            "http://localhost:11434/v1/",
+            model="qwen2.5",
+            token="***",
             file_types=["text_encoded", "image"],
             system_message="You are a silly assistant.",
         ).launch()
