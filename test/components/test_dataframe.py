@@ -85,6 +85,7 @@ class TestDataframe:
             "type": "pandas",
             "label": None,
             "show_label": True,
+            "show_row_numbers": False,
             "scale": None,
             "min_width": 160,
             "interactive": None,
