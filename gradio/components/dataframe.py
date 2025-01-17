@@ -278,6 +278,13 @@ class Dataframe(Component):
                     "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe instead."
                 )
             df: pd.DataFrame = value.data  # type: ignore
+            hidden_cols = []
+            if hasattr(value, "hidden_columns"):
+                hidden_cols = value.hidden_columns  # type: ignore
+
+            visible_cols = [i for i, col in enumerate(df.columns) if i not in hidden_cols]
+            df = df.iloc[:, visible_cols]
+
             if len(df) == 0:
                 return DataframeData(
                     headers=list(df.columns),
