@@ -287,14 +287,12 @@ class Dataframe(Component):
 
         if value is None or self._is_empty(value):
             return DataframeData(
-                headers=self.headers,
-                data=[['' for _ in range(len(self.headers))]]
+                headers=self.headers, data=[["" for _ in range(len(self.headers))]]
             )
         if isinstance(value, dict):
             if len(value) == 0:
                 return DataframeData(
-                    headers=self.headers,
-                    data=[['' for _ in range(len(self.headers))]]
+                    headers=self.headers, data=[["" for _ in range(len(self.headers))]]
                 )
             return DataframeData(
                 headers=value.get("headers", []), data=value.get("data", [[]])
@@ -305,7 +303,7 @@ class Dataframe(Component):
             if len(value) == 0:
                 return DataframeData(
                     headers=[str(col) for col in value.columns],  # Convert to strings
-                    data=[['' for _ in range(len(value.columns))]]
+                    data=[["" for _ in range(len(value.columns))]],
                 )
             return DataframeData(
                 headers=[str(col) for col in value.columns],
@@ -327,7 +325,7 @@ class Dataframe(Component):
             if len(df) == 0:
                 return DataframeData(
                     headers=list(df.columns),
-                    data=[['' for _ in range(len(df.columns))]],
+                    data=[["" for _ in range(len(df.columns))]],
                     metadata=self.__extract_metadata(
                         value, getattr(value, "hidden_columns", [])
                     ),  # type: ignore
