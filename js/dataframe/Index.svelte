@@ -48,7 +48,6 @@
 	export let max_height: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let interactive: boolean;
-	export let show_fullscreen_button = true;
 
 	$: _headers = [...(value.headers || headers)];
 	$: cell_values = value.data ? [...value.data] : [];
@@ -99,7 +98,6 @@
 		{column_widths}
 		upload={(...args) => gradio.client.upload(...args)}
 		stream_handler={(...args) => gradio.client.stream(...args)}
-		{show_fullscreen_button}
 		bind:value_is_output
 	/>
 </Block>

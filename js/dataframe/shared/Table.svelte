@@ -35,6 +35,7 @@
 	export let max_height = 500;
 	export let line_breaks = true;
 	export let column_widths: string[] = [];
+	export let show_row_numbers = false;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let show_fullscreen_button = true;
@@ -814,6 +815,9 @@
 			{/if}
 			<thead>
 				<tr>
+					{#if show_row_numbers}
+						<th class="row-number-header"></th>
+					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
 							class:editing={header_edit === i}
@@ -893,6 +897,9 @@
 					<caption class="sr-only">{label}</caption>
 				{/if}
 				<tr slot="thead">
+					{#if show_row_numbers}
+						<th class="row-number-header"></th>
+					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
 							class:focus={header_edit === i || selected_header === i}
@@ -915,13 +922,10 @@
 										header
 										{root}
 									/>
-									<!-- TODO: fix -->
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<div
+									<button
 										class:sorted={sort_by === i}
 										class:des={sort_by === i && sort_direction === "des"}
 										class="sort-button {sort_direction}"
-										role="button"
 										tabindex="0"
 										on:click={(event) => {
 											event.stopPropagation();
@@ -937,7 +941,7 @@
 										>
 											<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
 										</svg>
-									</div>
+									</button>
 								</div>
 
 								{#if editable}
@@ -954,6 +958,9 @@
 				</tr>
 
 				<tr slot="tbody" let:item let:index class:row_odd={index % 2 === 0}>
+					{#if show_row_numbers}
+						<td class="row-number" title={`Row ${index + 1}`}>{index + 1}</td>
+					{/if}
 					{#each item as { value, id }, j (id)}
 						<td
 							tabindex="0"
@@ -1277,5 +1284,34 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--size-2);
+	}
+
+	.row-number,
+	.row-number-header {
+		width: var(--size-7);
+		min-width: var(--size-7);
+		text-align: center;
+		background: var(--table-even-background-fill);
+		position: sticky;
+		left: 0;
+		font-size: var(--input-text-size);
+		color: var(--body-text-color);
+		padding: var(--size-1) var(--size-2);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-weight: var(--weight-semibold);
+	}
+
+	.row-number-header {
+		z-index: var(--layer-2);
+	}
+
+	.row-number {
+		z-index: var(--layer-1);
+	}
+
+	:global(tbody > tr:nth-child(odd)) .row-number {
+		background: var(--table-odd-background-fill);
 	}
 </style>

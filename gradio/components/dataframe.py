@@ -94,6 +94,7 @@ class Dataframe(Component):
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
         show_fullscreen_button: bool = False,
+        show_row_numbers: bool = False,
     ):
         """
         Parameters:
@@ -122,6 +123,7 @@ class Dataframe(Component):
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies for columns of type "markdown."
             column_widths: An optional list representing the width of each column. The elements of the list should be in the format "100px" (ints are also accepted and converted to pixel values) or "10%". If not provided, the column widths will be automatically determined based on the content of the cells. Setting this parameter will cause the browser to try to fit the table within the page width.
             show_fullscreen_button: If False (default), will show a button to view the table in fullscreen mode.
+            show_row_numbers: If True, will display row numbers in a separate column.
         """
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
@@ -174,6 +176,7 @@ class Dataframe(Component):
             w if isinstance(w, str) else f"{w}px" for w in (column_widths or [])
         ]
         self.show_fullscreen_button = show_fullscreen_button
+        self.show_row_numbers = show_row_numbers
         super().__init__(
             label=label,
             every=every,
