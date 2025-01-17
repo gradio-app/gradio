@@ -47,6 +47,7 @@ class TestDataframe:
             "visible": True,
             "elem_id": None,
             "elem_classes": [],
+            "show_row_numbers": False,
             "wrap": False,
             "proxy_url": None,
             "name": "dataframe",
