@@ -16,6 +16,7 @@
 			visible
 			interactive
 			elem_classes={["editor-tabitem"]}
+			scale={0}
 		>
 			<img
 				style="width: 200px;"
@@ -31,6 +32,7 @@
 			visible={false}
 			interactive
 			elem_classes={["editor-tabitem"]}
+			scale={0}
 		>
 			Secret Tab
 		</TabItem>
@@ -42,6 +44,7 @@
 			visible
 			interactive
 			elem_classes={["editor-tabitem"]}
+			scale={0}
 		>
 			Visible Tab
 		</TabItem>
