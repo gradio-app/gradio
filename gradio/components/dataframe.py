@@ -312,12 +312,12 @@ class Dataframe(Component):
                 return DataframeData(
                     headers=list(df.columns),
                     data=[[]],
-                    metadata=self.__extract_metadata(value, hidden_cols),  # type: ignore
+                    metadata=self.__extract_metadata(value, getattr(value, "hidden_columns", [])),  # type: ignore
                 )
             return DataframeData(
                 headers=list(df.columns),
                 data=df.to_dict(orient="split")["data"],  # type: ignore
-                metadata=self.__extract_metadata(value, hidden_cols),  # type: ignore
+                metadata=self.__extract_metadata(value, getattr(value, "hidden_columns", [])),  # type: ignore
             )
         elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
             if len(value) == 0:
