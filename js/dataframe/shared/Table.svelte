@@ -38,7 +38,7 @@
 	export let show_row_numbers = false;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
-	export let show_fullscreen_button = true;
+	export let show_fullscreen_button = false;
 	export let value_is_output = false;
 
 	let selected: false | [number, number] = false;

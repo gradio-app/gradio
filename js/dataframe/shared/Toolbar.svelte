@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Maximize, Minimize } from "@gradio/icons";
 
-	export let show_fullscreen_button = true;
+	export let show_fullscreen_button = false;
 	export let is_fullscreen = false;
 </script>
 
