@@ -38,6 +38,7 @@
 	export let stream_handler: Client["stream"];
 
 	let selected: false | [number, number] = false;
+	let clicked_cell: { row: number; col: number } | undefined = undefined;
 	export let display_value: string[][] | null = null;
 	export let styling: string[][] | null = null;
 	let t_rect: DOMRectReadOnly;
@@ -204,12 +205,6 @@
 		);
 	}
 
-	async function start_edit(i: number, j: number): Promise<void> {
-		if (!editable || dequal(editing, [i, j])) return;
-
-		editing = [i, j];
-	}
-
 	function move_cursor(
 		key: "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp",
 		current_coords: [number, number]
@@ -349,25 +344,6 @@
 		}
 	}
 
-	let active_cell: { row: number; col: number } | null = null;
-
-	async function handle_cell_click(i: number, j: number): Promise<void> {
-		if (active_cell && active_cell.row === i && active_cell.col === j) {
-			active_cell = null;
-		} else {
-			active_cell = { row: i, col: j };
-		}
-		if (dequal(editing, [i, j])) return;
-		header_edit = false;
-		selected_header = false;
-		editing = false;
-		if (!dequal(selected, [i, j])) {
-			selected = [i, j];
-			await tick();
-			parent.focus();
-		}
-	}
-
 	type SortDirection = "asc" | "des";
 	let sort_direction: SortDirection | undefined;
 	let sort_by: number | undefined;
@@ -479,17 +455,16 @@
 			active_header_menu = null;
 		}
 
-		event.stopImmediatePropagation();
 		const [trigger] = event.composedPath() as HTMLElement[];
 		if (parent.contains(trigger)) {
 			return;
 		}
 
+		clicked_cell = undefined;
 		editing = false;
+		selected = false;
 		header_edit = false;
 		selected_header = false;
-		reset_selection();
-		active_cell = null;
 		active_cell_menu = null;
 		active_header_menu = null;
 	}
@@ -779,18 +754,9 @@
 			}
 		}
 	}
-
-	function reset_selection(): void {
-		selected = false;
-		last_selected = null;
-	}
 </script>
 
-<svelte:window
-	on:click={handle_click_outside}
-	on:touchstart={handle_click_outside}
-	on:resize={() => set_cell_widths()}
-/>
+<svelte:window on:resize={() => set_cell_widths()} />
 
 <div class:label={label && label.length !== 0} use:copy>
 	{#if label && label.length !== 0 && show_label}
@@ -916,17 +882,17 @@
 										edit={header_edit === i}
 										on:keydown={end_header_edit}
 										on:dblclick={() => edit_header(i)}
-										{select_on_focus}
 										header
 										{root}
 									/>
 									<!-- TODO: fix -->
 									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<!-- svelte-ignore a11y-no-static-element-interactions-->
 									<div
 										class:sorted={sort_by === i}
 										class:des={sort_by === i && sort_direction === "des"}
 										class="sort-button {sort_direction}"
+										role="button"
+										tabindex="0"
 										on:click={(event) => {
 											event.stopPropagation();
 											handle_sort(i);
@@ -961,12 +927,34 @@
 					{#each item as { value, id }, j (id)}
 						<td
 							tabindex="0"
-							on:touchstart={() => start_edit(index, j)}
-							on:click={() => {
-								handle_cell_click(index, j);
+							on:touchstart={(event) => {
+								event.preventDefault();
+								event.stopPropagation();
+								clear_on_focus = false;
+								clicked_cell = { row: index, col: j };
+								selected = [index, j];
+								if (editable) {
+									editing = [index, j];
+								}
 								toggle_cell_button(index, j);
 							}}
-							on:dblclick={() => start_edit(index, j)}
+							on:mousedown={(event) => {
+								event.preventDefault();
+								event.stopPropagation();
+							}}
+							on:click={(event) => {
+								event.preventDefault();
+								event.stopPropagation();
+								clear_on_focus = false;
+								active_cell_menu = null;
+								active_header_menu = null;
+								clicked_cell = { row: index, col: j };
+								selected = [index, j];
+								if (editable) {
+									editing = [index, j];
+								}
+								toggle_cell_button(index, j);
+							}}
 							style:width="var(--cell-width-{j})"
 							style={styling?.[index]?.[j] || ""}
 							class:focus={dequal(selected, [index, j])}
@@ -984,7 +972,10 @@
 									{editable}
 									edit={dequal(editing, [index, j])}
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
-									on:blur={() => ((clear_on_focus = false), parent.focus())}
+									on:blur={() => {
+										clear_on_focus = false;
+										parent.focus();
+									}}
 									{clear_on_focus}
 									{root}
 								/>
