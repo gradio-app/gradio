@@ -736,6 +736,15 @@ def load_chat(
         system_message: The system message to use for the conversation, if any.
         streaming: Whether the response should be streamed.
         kwargs: Additional keyword arguments to pass into ChatInterface for customization.
+    Example:
+        import gradio as gr
+        gr.load_chat(
+            "http://localhost:11434/v1/", 
+            model="qwen2.5", t
+            token="***", 
+            file_types=["text_encoded", "image"],
+            system_message="You are a silly assistant.",
+        ).launch()
     """
     try:
         from openai import OpenAI
