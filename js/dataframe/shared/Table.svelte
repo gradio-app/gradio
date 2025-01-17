@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, tick, onMount } from "svelte";
+	import { afterUpdate, createEventDispatcher, tick, onMount } from "svelte";
 	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
 	import { copy } from "@gradio/utils";
@@ -36,6 +36,7 @@
 	export let column_widths: string[] = [];
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let value_is_output = false;
 
 	let selected: false | [number, number] = false;
 	let clicked_cell: { row: number; col: number } | undefined = undefined;
@@ -44,11 +45,8 @@
 	let t_rect: DOMRectReadOnly;
 
 	const dispatch = createEventDispatcher<{
-		change: {
-			data: (string | number)[][];
-			headers: string[];
-			metadata: Metadata;
-		};
+		change: undefined;
+		input: undefined;
 		select: SelectData;
 	}>();
 
@@ -160,7 +158,7 @@
 
 	$: if (!dequal(values, old_val)) {
 		data = process_data(values as (string | number)[][]);
-		old_val = values as (string | number)[][];
+		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
 	}
 
 	let data: { id: string; value: string | number }[][] = [[]];
@@ -168,13 +166,10 @@
 	let old_val: undefined | (string | number)[][] = undefined;
 
 	async function trigger_change(): Promise<void> {
-		dispatch("change", {
-			data: data.map((r) => r.map(({ value }) => value)),
-			headers: _headers.map((h) => h.value),
-			metadata: editable
-				? null
-				: { display_value: display_value, styling: styling }
-		});
+		dispatch("change");
+		if (!value_is_output) {
+			dispatch("input");
+		}
 	}
 
 	function get_sort_status(
@@ -754,6 +749,10 @@
 			}
 		}
 	}
+
+	afterUpdate(() => {
+		value_is_output = false;
+	});
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />

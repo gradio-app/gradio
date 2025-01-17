@@ -113,7 +113,11 @@ class TestDataframe:
         """
         dataframe_output = gr.Dataframe()
         output = dataframe_output.postprocess([]).model_dump()
-        assert output == {"data": [[]], "headers": ["1", "2", "3"], "metadata": None}
+        assert output == {
+            "data": [["", "", ""]],
+            "headers": ["1", "2", "3"],
+            "metadata": None,
+        }
         output = dataframe_output.postprocess(np.zeros((2, 2))).model_dump()
         assert output == {
             "data": [[0, 0], [0, 0]],
