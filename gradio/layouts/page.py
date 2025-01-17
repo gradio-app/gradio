@@ -63,8 +63,8 @@ class Page(BlockContext, metaclass=ComponentMeta):
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM.
         """
         self.title = title
-        route = route or "/" + title.lower().replace(" ", "-")
-        self.route = "/" + route.strip("/")
+        route = route if route is not None else title.lower().replace(" ", "-")
+        self.route = route.strip("/")
         BlockContext.__init__(
             self,
             elem_id=elem_id,
