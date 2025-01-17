@@ -42,6 +42,7 @@
 		interactive: "true",
 		label: "Image Editor",
 		show_label: true,
+		canvas_size: [800, 600],
 		brush: {
 			default_size: "auto",
 			colors: ["#ff0000", "#00ff00", "#0000ff"],
