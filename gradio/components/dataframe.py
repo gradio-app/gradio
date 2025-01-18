@@ -93,6 +93,7 @@ class Dataframe(Component):
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
+        show_row_numbers: bool = False,
     ):
         """
         Parameters:
@@ -120,6 +121,7 @@ class Dataframe(Component):
             wrap: If True, the text in table cells will wrap when appropriate. If False and the `column_width` parameter is not set, the column widths will expand based on the cell contents and the table may need to be horizontally scrolled. If `column_width` is set, then any overflow text will be hidden.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies for columns of type "markdown."
             column_widths: An optional list representing the width of each column. The elements of the list should be in the format "100px" (ints are also accepted and converted to pixel values) or "10%". If not provided, the column widths will be automatically determined based on the content of the cells. Setting this parameter will cause the browser to try to fit the table within the page width.
+            show_row_numbers: If True, will display row numbers in a separate column.
         """
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
@@ -171,6 +173,7 @@ class Dataframe(Component):
         self.column_widths = [
             w if isinstance(w, str) else f"{w}px" for w in (column_widths or [])
         ]
+        self.show_row_numbers = show_row_numbers
         super().__init__(
             label=label,
             every=every,
@@ -225,6 +228,35 @@ class Dataframe(Component):
                 + ". Please choose from: 'pandas', 'numpy', 'array', 'polars'."
             )
 
+    @staticmethod
+    def _is_empty(
+        value: pd.DataFrame
+        | Styler
+        | np.ndarray
+        | pl.DataFrame
+        | list
+        | list[list]
+        | dict
+        | str
+        | None,
+    ) -> bool:
+        import pandas as pd
+        from pandas.io.formats.style import Styler
+
+        if isinstance(value, pd.DataFrame):
+            return value.empty
+        elif isinstance(value, Styler):
+            return value.data.empty  # type: ignore
+        elif isinstance(value, np.ndarray):
+            return value.size == 0
+        elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
+            return value.is_empty()
+        elif isinstance(value, list) and len(value) and isinstance(value[0], list):
+            return len(value[0]) == 0
+        elif isinstance(value, (list, dict)):
+            return len(value) == 0
+        return False
+
     def postprocess(
         self,
         value: pd.DataFrame
@@ -239,18 +271,29 @@ class Dataframe(Component):
     ) -> DataframeData:
         """
         Parameters:
-            value: Expects data any of these formats: `pandas.DataFrame`, `pandas.Styler`, `numpy.array`, `polars.DataFrame`, `list[list]`, `list`, or a `dict` with keys 'data' (and optionally 'headers'), or `str` path to a csv, which is rendered as the spreadsheet.
+            value: Expects data in any of these formats: `pandas.DataFrame`, `pandas.Styler`, `numpy.array`, `polars.DataFrame`, `list[list]`, `list`, or a `dict` with keys 'data' (and optionally 'headers'), or `str` path to a csv, which is rendered as the spreadsheet.
         Returns:
-            the uploaded spreadsheet data as an object with `headers` and `data` attributes
+            the uploaded spreadsheet data as an object with `headers` and `data` keys and optional `metadata` key
         """
         import pandas as pd
         from pandas.io.formats.style import Styler
 
-        if value is None:
-            return self.postprocess(self.empty_input)
+        if isinstance(value, Styler) and semantic_version.Version(
+            pd.__version__
+        ) < semantic_version.Version("1.5.0"):
+            raise ValueError(
+                "Styler objects are only supported in pandas version 1.5.0 or higher. Please try: `pip install --upgrade pandas` to use this feature."
+            )
+
+        if value is None or self._is_empty(value):
+            return DataframeData(
+                headers=self.headers, data=[["" for _ in range(len(self.headers))]]
+            )
         if isinstance(value, dict):
             if len(value) == 0:
-                return DataframeData(headers=self.headers, data=[[]])
+                return DataframeData(
+                    headers=self.headers, data=[["" for _ in range(len(self.headers))]]
+                )
             return DataframeData(
                 headers=value.get("headers", []), data=value.get("data", [[]])
             )
@@ -259,35 +302,40 @@ class Dataframe(Component):
                 value = pd.read_csv(value)  # type: ignore
             if len(value) == 0:
                 return DataframeData(
-                    headers=list(value.columns),  # type: ignore
-                    data=[[]],  # type: ignore
+                    headers=[str(col) for col in value.columns],  # Convert to strings
+                    data=[["" for _ in range(len(value.columns))]],
                 )
             return DataframeData(
-                headers=list(value.columns),  # type: ignore
-                data=value.to_dict(orient="split")["data"],  # type: ignore
+                headers=[str(col) for col in value.columns],
+                data=value.to_dict(orient="split")["data"],
             )
         elif isinstance(value, Styler):
-            if semantic_version.Version(pd.__version__) < semantic_version.Version(
-                "1.5.0"
-            ):
-                raise ValueError(
-                    "Styler objects are only supported in pandas version 1.5.0 or higher. Please try: `pip install --upgrade pandas` to use this feature."
-                )
             if self.interactive:
                 warnings.warn(
                     "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe instead."
                 )
             df: pd.DataFrame = value.data  # type: ignore
+            visible_cols = [
+                i
+                for i, col in enumerate(df.columns)
+                if i not in getattr(value, "hidden_columns", [])
+            ]
+            df = df.iloc[:, visible_cols]
+
             if len(df) == 0:
                 return DataframeData(
                     headers=list(df.columns),
-                    data=[[]],
-                    metadata=self.__extract_metadata(value),  # type: ignore
+                    data=[["" for _ in range(len(df.columns))]],
+                    metadata=self.__extract_metadata(
+                        value, getattr(value, "hidden_columns", [])
+                    ),  # type: ignore
                 )
             return DataframeData(
                 headers=list(df.columns),
                 data=df.to_dict(orient="split")["data"],  # type: ignore
-                metadata=self.__extract_metadata(value),  # type: ignore
+                metadata=self.__extract_metadata(
+                    value, getattr(value, "hidden_columns", [])
+                ),  # type: ignore
             )
         elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
             if len(value) == 0:
@@ -327,22 +375,30 @@ class Dataframe(Component):
         return styles_str
 
     @staticmethod
-    def __extract_metadata(df: Styler) -> dict[str, list[list]]:
+    def __extract_metadata(
+        df: Styler, hidden_cols: list[int] | None = None
+    ) -> dict[str, list[list]]:
         metadata = {"display_value": [], "styling": []}
         style_data = df._compute()._translate(None, None)  # type: ignore
         cell_styles = style_data.get("cellstyle", [])
+        hidden_cols = hidden_cols if hidden_cols is not None else []
         for i in range(len(style_data["body"])):
-            metadata["display_value"].append([])
-            metadata["styling"].append([])
+            row_display = []
+            row_styling = []
+            col_idx = 0
             for j in range(len(style_data["body"][i])):
                 cell_type = style_data["body"][i][j]["type"]
                 if cell_type != "td":
                     continue
-                display_value = style_data["body"][i][j]["display_value"]
-                cell_id = style_data["body"][i][j]["id"]
-                styles_str = Dataframe.__get_cell_style(cell_id, cell_styles)
-                metadata["display_value"][i].append(display_value)
-                metadata["styling"][i].append(styles_str)
+                if col_idx not in hidden_cols:
+                    display_value = style_data["body"][i][j]["display_value"]
+                    cell_id = style_data["body"][i][j]["id"]
+                    styles_str = Dataframe.__get_cell_style(cell_id, cell_styles)
+                    row_display.append(display_value)
+                    row_styling.append(styles_str)
+                col_idx += 1
+            metadata["display_value"].append(row_display)
+            metadata["styling"].append(row_styling)
         return metadata
 
     @staticmethod

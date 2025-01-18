@@ -7,6 +7,7 @@
 		elem_id: string | undefined;
 		visible: boolean;
 		interactive: boolean;
+		scale: number | null;
 	}
 </script>
 
@@ -60,6 +61,7 @@
 
 			if ($selected_tab === false && tab.visible && tab.interactive) {
 				$selected_tab = tab.id;
+				$selected_tab_index = order;
 			}
 			return order;
 		},
@@ -153,6 +155,9 @@
 		});
 		return tab_sizes;
 	}
+
+	$: tab_scale =
+		tabs[$selected_tab_index >= 0 ? $selected_tab_index : 0]?.scale;
 </script>
 
 <svelte:window
@@ -160,7 +165,12 @@
 	on:click={handle_outside_click}
 />
 
-<div class="tabs {elem_classes.join(' ')}" class:hide={!visible} id={elem_id}>
+<div
+	class="tabs {elem_classes.join(' ')}"
+	class:hide={!visible}
+	id={elem_id}
+	style:flex-grow={tab_scale}
+>
 	{#if has_tabs}
 		<div class="tab-wrapper">
 			<div class="tab-container visually-hidden" aria-hidden="true">
