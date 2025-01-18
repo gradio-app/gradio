@@ -798,11 +798,15 @@ def load_chat(
                 yield response
 
     supported_extensions = []
-    if file_types:
-        if "text_encoded" in file_types:
+    for file_type in file_types:
+        if file_type == "text_encoded":
             supported_extensions += TEXT_FILE_EXTENSIONS
-        if "image" in file_types:
+        elif file_type == "text_encoded":
             supported_extensions += IMAGE_FILE_EXTENSIONS
+        else:
+            raise ValueError(
+                f"Invalid file type: {file_type}. Must be 'text_encoded' or 'image'."
+            )
 
     return ChatInterface(
         open_api_stream if streaming else open_api,
