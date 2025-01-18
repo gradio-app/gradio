@@ -659,17 +659,21 @@ def format_conversation(
     conversation = []
     for message in history:
         if isinstance(message["content"], str):
-            conversation.append(message)
+            conversation.append(
+                {"role": message["role"], "content": message["content"]}
+            )
         elif isinstance(message["content"], tuple):
-            image_message = dict(message)
-            image_message["content"] = [
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": encode_url_or_file_to_base64(message["content"][0])
-                    },
-                }
-            ]
+            image_message = {
+                "role": message["role"],
+                "content": [
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": encode_url_or_file_to_base64(message["content"][0])
+                        },
+                    }
+                ],
+            }
             conversation.append(image_message)
         else:
             raise ValueError(
@@ -687,6 +691,19 @@ def format_conversation(
             text_encoded.append(file)
         else:
             image_files.append(file)
+
+    for image in image_files:
+        conversation.append(
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": encode_url_or_file_to_base64(image)},
+                    }
+                ],
+            }
+        )
     if text or text_encoded:
         text = text or ""
         text += "\n".join(
@@ -697,21 +714,6 @@ def format_conversation(
         )
         conversation.append(
             {"role": "user", "content": [{"type": "text", "text": text}]}
-        )
-    if image_files:
-        conversation.extend(
-            [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": encode_url_or_file_to_base64(image)},
-                        }
-                    ],
-                }
-                for image in image_files
-            ]
         )
     return conversation
 
