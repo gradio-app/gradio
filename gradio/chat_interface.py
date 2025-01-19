@@ -260,7 +260,7 @@ class ChatInterface(Blocks):
             with Column():
                 self._render_header()
                 if self.save_history:
-                    with Row():
+                    with Row(scale=1):
                         self._render_history_area()
                         with Column(scale=6):
                             self._render_chatbot_area(
@@ -288,6 +288,7 @@ class ChatInterface(Blocks):
                 variant="primary",
                 size="md",
                 icon=utils.get_icon_path("plus.svg"),
+                # scale=0,
             )
             self.chat_history_dataset = Dataset(
                 components=[Textbox(visible=False)],
@@ -367,12 +368,18 @@ class ChatInterface(Blocks):
         # Hide the stop button at the beginning, and show it with the given value during the generator execution.
         self.original_stop_btn = self.textbox.stop_btn
         self.textbox.stop_btn = False
-
-        self.chatbot_state = State(self.chatbot.value if self.chatbot.value else [])
         self.fake_api_btn = Button("Fake API", visible=False)
         self.api_response = JSON(
             label="Response", visible=False
         )  # Used to store the response from the API call
+
+        # Used internally to store the chatbot value when it differs from the value displayed in the chatbot UI.
+        # For example, when a user submits a message, the chatbot UI is immediately updated with the user message,
+        # but the chatbot_state value is not updated until the submit_fn is called.
+        self.chatbot_state = State(self.chatbot.value if self.chatbot.value else [])
+
+        # Provided so that developers can update the chatbot value from other events outside of `gr.ChatInterface`.
+        self.chatbot_value = State(self.chatbot.value if self.chatbot.value else [])
 
     def _render_footer(self):
         if self.examples:
@@ -502,9 +509,9 @@ class ChatInterface(Blocks):
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
 
         synchronize_chat_state_kwargs = {
-            "fn": lambda x: x,
+            "fn": lambda x: (x, x),
             "inputs": [self.chatbot],
-            "outputs": [self.chatbot_state],
+            "outputs": [self.chatbot_state, self.chatbot_value],
             "show_api": False,
             "queue": False,
         }
@@ -701,6 +708,13 @@ class ChatInterface(Blocks):
             flagging_callback.setup(self.flagging_dir)
             self.chatbot.feedback_options = self.flagging_options
             self.chatbot.like(flagging_callback.flag, self.chatbot)
+
+        self.chatbot_value.change(
+            lambda x: x,
+            [self.chatbot_value],
+            [self.chatbot],
+            show_api=False,
+        ).then(**synchronize_chat_state_kwargs)
 
     def _setup_stop_events(
         self, event_triggers: list[Callable], events_to_cancel: list[Dependency]

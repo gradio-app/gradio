@@ -47,6 +47,7 @@ class TestDataframe:
             "visible": True,
             "elem_id": None,
             "elem_classes": [],
+            "show_row_numbers": False,
             "wrap": False,
             "proxy_url": None,
             "name": "dataframe",
@@ -85,6 +86,7 @@ class TestDataframe:
             "type": "pandas",
             "label": None,
             "show_label": True,
+            "show_row_numbers": False,
             "scale": None,
             "min_width": 160,
             "interactive": None,
@@ -113,7 +115,11 @@ class TestDataframe:
         """
         dataframe_output = gr.Dataframe()
         output = dataframe_output.postprocess([]).model_dump()
-        assert output == {"data": [[]], "headers": ["1", "2", "3"], "metadata": None}
+        assert output == {
+            "data": [["", "", ""]],
+            "headers": ["1", "2", "3"],
+            "metadata": None,
+        }
         output = dataframe_output.postprocess(np.zeros((2, 2))).model_dump()
         assert output == {
             "data": [[0, 0], [0, 0]],
@@ -313,6 +319,35 @@ class TestDataframe:
                     ],
                     ["", "", "", "", ""],
                     ["", "", "", "", ""],
+                ],
+            },
+        }
+
+    def test_dataframe_hidden_columns(self):
+        """Test that hidden columns are properly excluded from the output"""
+        component = gr.Dataframe()
+        df = pd.DataFrame(
+            {"a": [1, 2, 3], "b": [4, 5, 6], "color": ["red", "blue", "green"]}
+        )
+        styled_df = df.style.hide(axis=1, subset=["color"])
+        output = component.postprocess(styled_df).model_dump()
+        assert output == {
+            "data": [
+                [1, 4],
+                [2, 5],
+                [3, 6],
+            ],
+            "headers": ["a", "b"],
+            "metadata": {
+                "display_value": [
+                    ["1", "4"],
+                    ["2", "5"],
+                    ["3", "6"],
+                ],
+                "styling": [
+                    ["", ""],
+                    ["", ""],
+                    ["", ""],
                 ],
             },
         }
