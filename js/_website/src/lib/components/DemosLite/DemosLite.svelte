@@ -17,12 +17,12 @@
 
 	interface CodeState {
 		status: 'idle' | 'generating' | 'error' | 'regenerating';
-		user_edited: boolean;
+		code_edited: boolean;
 	}
 
 	let code_state: CodeState = {
 		status: 'idle',
-		user_edited: true,
+		code_edited: true,
 	};
 
 	$: code_state;
@@ -182,7 +182,7 @@
 		}
 
 		code_state.status = 'idle';
-		code_state.user_edited = false;
+		code_state.code_edited = false;
 		user_query = "";
 		
 		if (selected_demo.name === demo_name) {
@@ -628,7 +628,7 @@
 	$: auto_regenerate_user_toggle;
 
 	async function regenerate_on_error(app_error) {
-		if (code_state.status === 'error' && auto_regenerate_user_toggle && app_error && !code_state.user_edited) {
+		if (code_state.status === 'error' && auto_regenerate_user_toggle && app_error && !code_state.code_edited) {
 				user_query = app_error;
 				error_prompt = `There's an error when I run the existing code: ${app_error}`;
 				await generate_code(error_prompt, selected_demo.name, true);
@@ -640,12 +640,6 @@
 	$: if (app_error && !user_query) {
 		user_query = app_error;
 	}
-
-	// $: if ((app_error !== user_query) && code_state.status === 'error') { 
-	// 	code_state.status = 'idle';
-	// 	user_query = "";
-	// 	app_error = null;
-	// }
 
 	let code_to_compare = code;
 	$: code_to_compare;
@@ -717,7 +711,7 @@
 										readonly={false}
 										dark_mode={false}
 										on:change={(e) => {
-											code_state.user_edited = true;
+											code_state.code_edited = true;
 										}}
 									/>
 								</div>
