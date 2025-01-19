@@ -26,6 +26,7 @@
 		"@gradio/code": "workspace:^",
 		"@gradio/tabs": "workspace:^",
 		"@gradio/tabitem": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
 		"@gradio/paramviewer": "workspace:^",
 		"@sindresorhus/slugify": "^2.2.0",
 		"@sveltejs/adapter-vercel": "^5.3.0",

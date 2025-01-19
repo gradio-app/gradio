@@ -2,6 +2,7 @@
 	import { BaseCode as Code, BaseWidget as CodeWidget } from "@gradio/code";
 	import { BaseTabs as Tabs, type Tab } from "@gradio/tabs";
 	import { BaseTabItem as TabItem } from "@gradio/tabitem";
+	import { Toast as ErrorModal } from "@gradio/statustracker";
 	import Slider from "../Slider.svelte";
 	import Fullscreen from "../icons/Fullscreen.svelte";
 	import Close from "../icons/Close.svelte";
@@ -18,25 +19,26 @@
 	interface CodeState {
 		status: 'idle' | 'generating' | 'error' | 'regenerating';
 		code_edited: boolean;
+		code_exists: boolean;
+		model_info: string;
+		generation_error: string;
 	}
 
 	let code_state: CodeState = {
 		status: 'idle',
 		code_edited: true,
+		code_exists: false,
+		model_info: "",
+		generation_error: "",
 	};
 
 	$: code_state;
 
-	$: console.log(code_state.status);
-
-
-	let current_code = false;
-	let compare = false;
+	console.log(code_state);
 
 	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
 	const workerUrl = "http://localhost:5173/api/generate";
-	let model_info = "";
-
+	
 	let abortController: AbortController | null = null;
 
 	async function* streamFromWorker(
@@ -57,9 +59,7 @@
 		});
 
 		if (response.status == 429) {
-			generation_error = "Too busy... :( Please try again later.";
-			await new Promise((resolve) => setTimeout(resolve, 4000));
-			generation_error = "";
+			code_state.generation_error = "Too busy... :( Please try again later.";
 			return;
 		}
 
@@ -90,18 +90,16 @@
 						try {
 							const parsed = JSON.parse(data);
 							if (parsed.model) {
-								model_info = parsed.model;
-								console.log("Model used:", model_info);
+								code_state.model_info = parsed.model;
+								console.log("Model used:", code_state.model_info);
 							} else if (parsed.error) {
 								console.log(parsed.error);
 								if (parsed.error == "Existing code is too long") {
-									generation_error = "Existing code is too long";
+									code_state.generation_error = "Existing code is too long";
+									return;
 								} else {
-									generation_error = "Failed to fetch...";
-								}
-								await new Promise((resolve) => setTimeout(resolve, 2000));
-								generation_error = "";
-								// }
+									code_state.generation_error = "Failed to fetch...";
+								}								// }
 							} else if (parsed.info) {
 								console.log(parsed.info);
 							} else if (parsed.requirements) {
@@ -132,7 +130,7 @@
 		}
 		let out = "";
 
-		if (current_code) {
+		if (code_state.code_exists) {
 			query = "PROMPT: " + query;
 			query +=
 				"\n\nHere is the existing code that either you or the user has written. If it's relevant to the prompt, use it for context. If it's not relevant, ignore it.\n Existing Code: \n\n" +
@@ -160,8 +158,7 @@
 				if (content) {
 					out += content;
 					demos[queried_index].code =
-						out ||
-						"# Describe your app above, and the LLM will generate the code here.";
+						out;
 					demos[queried_index].code = demos[queried_index].code.replaceAll(
 						"```python\n",
 						""
@@ -195,6 +192,7 @@
 		if (abortController) {
 			abortController.abort();
 		}
+		code_state.generation_error = "Cancelled!";
 		code_state.status = 'idle';
 		app_error = null;
 		selected_demo.code = code_to_compare;
@@ -229,7 +227,7 @@
 
 	function clear_code() {
 		selected_demo.code = "";
-		current_code = false;
+		code_state.code_exists = false;
 	}
 
 	demos.push(blank_demo);
@@ -464,9 +462,9 @@
 		shared = false;
 	}
 	$: if (selected_demo.code !== "") {
-		current_code = true;
+		code_state.code_exists = true;
 	} else {
-		current_code = false;
+		code_state.code_exists = false;
 	}
 
 	function create_spaces_url() {
@@ -525,19 +523,6 @@
 		return launch_code.replace(pattern, replacement);
 	};
 
-	let old_answer = "";
-
-	$: if (compare && browser) {
-		if (
-			selected_demo.code !==
-			"# Describe your app above, and the LLM will generate the code here."
-		) {
-			highlight_changes(old_answer, selected_demo.code);
-			old_answer = selected_demo.code;
-			compare = false;
-		}
-	}
-
 	const TABS: Tab[] = [
 		{
 			label: "Code",
@@ -580,9 +565,11 @@
 
 	$: setInterval(cycle_placeholder, 5000);
 
-	let generation_error = "";
-
-	$: generation_error;
+	$: if (code_state.generation_error) {
+		setTimeout(() => {
+			code_state.generation_error = "";
+		}, 4000);
+	};
 
 	let app_error: string | null = "";
 
@@ -591,10 +578,6 @@
 			if (!document.querySelector(".loading")) {
 				if (document.querySelector("div .error-name")) {
 					app_error = document.querySelector(".error-name").textContent;
-				} else if (document.querySelector("div .error .toast-title")) {
-					app_error = document.querySelector(
-						"div .error .toast-text"
-					).textContent;
 				} else if (stderr) {
 					app_error = stderr;
 					stderr = "";
@@ -743,7 +726,7 @@
 						</Tabs>
 					</div>
 
-					<div class="mr-2 items-center flex flex-row -mt-7">
+					<div class="mr-2 items-end flex flex-row -mt-7">
 						<div class="flex-grow">
 							<label
 								class="my-1 pl-2 relative z-10 bg-white float-left flex items-center transition-all duration-200 cursor-pointer font-normal text-sm leading-6"
@@ -761,11 +744,21 @@
 							</label>
 						</div>
 
-						{#if generation_error}
+						{#if code_state.generation_error}
 							<div
-								class="pl-2 relative z-10 bg-red-100 border border-red-200 px-2 my-1 rounded-lg text-red-800 w-fit text-xs float-right"
+								class="my-2 z-10 text-xs float-right w-fit" style="color-scheme: light"
 							>
-								{generation_error}
+
+							<ErrorModal messages={[
+								{
+									type: "error",
+									title: "Error",
+									message: code_state.generation_error,
+									id: 1,
+									duration: 4,
+									visible: true
+								}
+							]} />
 							</div>
 						{:else if code_state.status === 'regenerating'}
 							<div
@@ -773,7 +766,7 @@
 							>
 								Regenerating to fix error
 							</div>
-						{:else if current_code}
+						{:else if code_state.code_exists}
 							<div
 								class="pl-2 relative z-10 bg-white flex items-center float-right"
 							>
@@ -827,7 +820,8 @@
 							on:change={(e) => {
 								app_error = null;
 							}}
-							placeholder={current_code
+							placeholder={
+								code_state.code_exists
 								? update_placeholders[current_placeholder_index]
 								: generate_placeholders[current_placeholder_index]}
 							autocomplete="off"
@@ -866,10 +860,6 @@
 							<button
 								on:click={() => {
 									cancelGeneration();
-									generation_error = "Cancelled!";
-									setInterval(() => {
-										generation_error = "";
-									}, 3000);
 								}}
 								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-red-100 to-red-50 border border-red-200 px-4 py-0.5 rounded-full text-red-800 hover:shadow"
 								class:from-purple-100={code_state.status === 'regenerating'}
@@ -950,6 +940,7 @@
 </div>
 
 <style>
+
 	:global(div.code-editor div.block) {
 		height: calc(100% - 2rem);
 		border-radius: 0;
@@ -1189,4 +1180,15 @@
 	input:hover {
 		cursor: pointer;
 	}
+
+	:global(.toast-body.error) {
+		border: 1px solid var(--color-red-700) !important;
+		background: var(--color-red-50) !important;
+	}
+
+	:global(.toast-wrap) {
+		position: static !important;
+		width: 100% !important;
+	}
 </style>
+
