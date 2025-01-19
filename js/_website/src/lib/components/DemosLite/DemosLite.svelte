@@ -15,9 +15,8 @@
 	import SYSTEM_PROMPT from "$lib/json/system_prompt.json";
 	import WHEEL from "$lib/json/wheel.json";
 
-
 	interface CodeState {
-		status: 'idle' | 'generating' | 'error' | 'regenerating';
+		status: "idle" | "generating" | "error" | "regenerating";
 		code_edited: boolean;
 		code_exists: boolean;
 		model_info: string;
@@ -25,11 +24,11 @@
 	}
 
 	let code_state: CodeState = {
-		status: 'idle',
+		status: "idle",
 		code_edited: true,
 		code_exists: false,
 		model_info: "",
-		generation_error: "",
+		generation_error: ""
 	};
 
 	$: code_state;
@@ -38,7 +37,7 @@
 
 	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
 	const workerUrl = "http://localhost:5173/api/generate";
-	
+
 	let abortController: AbortController | null = null;
 
 	async function* streamFromWorker(
@@ -99,7 +98,7 @@
 									return;
 								} else {
 									code_state.generation_error = "Failed to fetch...";
-								}								// }
+								}
 							} else if (parsed.info) {
 								console.log(parsed.info);
 							} else if (parsed.requirements) {
@@ -122,11 +121,10 @@
 		demo_name: string,
 		regeneration_run = false
 	) {
-
 		if (regeneration_run) {
-			code_state.status = 'regenerating';
+			code_state.status = "regenerating";
 		} else {
-			code_state.status = 'generating';
+			code_state.status = "generating";
 		}
 		let out = "";
 
@@ -157,8 +155,7 @@
 				const content = chunk.choices[0].delta.content;
 				if (content) {
 					out += content;
-					demos[queried_index].code =
-						out;
+					demos[queried_index].code = out;
 					demos[queried_index].code = demos[queried_index].code.replaceAll(
 						"```python\n",
 						""
@@ -178,10 +175,10 @@
 			}
 		}
 
-		code_state.status = 'idle';
+		code_state.status = "idle";
 		code_state.code_edited = false;
 		user_query = "";
-		
+
 		if (selected_demo.name === demo_name) {
 			highlight_changes(code_to_compare, demos[queried_index].code);
 		}
@@ -193,7 +190,7 @@
 			abortController.abort();
 		}
 		code_state.generation_error = "Cancelled!";
-		code_state.status = 'idle';
+		code_state.status = "idle";
 		app_error = null;
 		selected_demo.code = code_to_compare;
 	}
@@ -569,7 +566,7 @@
 		setTimeout(() => {
 			code_state.generation_error = "";
 		}, 4000);
-	};
+	}
 
 	let app_error: string | null = "";
 
@@ -598,7 +595,7 @@
 			app_error = null;
 		}
 		if (app_error) {
-			code_state.status = 'error';
+			code_state.status = "error";
 		}
 	}
 
@@ -611,11 +608,16 @@
 	$: auto_regenerate_user_toggle;
 
 	async function regenerate_on_error(app_error) {
-		if (code_state.status === 'error' && auto_regenerate_user_toggle && app_error && !code_state.code_edited) {
-				user_query = app_error;
-				error_prompt = `There's an error when I run the existing code: ${app_error}`;
-				await generate_code(error_prompt, selected_demo.name, true);
-		} 
+		if (
+			code_state.status === "error" &&
+			auto_regenerate_user_toggle &&
+			app_error &&
+			!code_state.code_edited
+		) {
+			user_query = app_error;
+			error_prompt = `There's an error when I run the existing code: ${app_error}`;
+			await generate_code(error_prompt, selected_demo.name, true);
+		}
 	}
 
 	$: regenerate_on_error(app_error);
@@ -739,28 +741,31 @@
 									class=""
 								/>
 								<span class="text-gray-600 text-xs"
-									><span class="font-semibold">Agent Mode</span>: Auto-fix errors in generated code</span
+									><span class="font-semibold">Agent Mode</span>: Auto-fix
+									errors in generated code</span
 								>
 							</label>
 						</div>
 
 						{#if code_state.generation_error}
 							<div
-								class="my-2 z-10 text-xs float-right w-fit" style="color-scheme: light"
+								class="my-2 z-10 text-xs float-right w-fit"
+								style="color-scheme: light"
 							>
-
-							<ErrorModal messages={[
-								{
-									type: "error",
-									title: "Error",
-									message: code_state.generation_error,
-									id: 1,
-									duration: 4,
-									visible: true
-								}
-							]} />
+								<ErrorModal
+									messages={[
+										{
+											type: "error",
+											title: "Error",
+											message: code_state.generation_error,
+											id: 1,
+											duration: 4,
+											visible: true
+										}
+									]}
+								/>
 							</div>
-						{:else if code_state.status === 'regenerating'}
+						{:else if code_state.status === "regenerating"}
 							<div
 								class="pl-2 relative z-10 bg-purple-100 border border-purple-200 px-2 my-1 rounded-lg text-purple-800 w-fit text-xs float-right"
 							>
@@ -789,18 +794,17 @@
 							<div
 								class="pl-2 relative z-10 bg-white flex items-center float-right"
 							>
-								<p class="text-gray-600 my-1 text-xs">
-								</p>
+								<p class="text-gray-600 my-1 text-xs"></p>
 							</div>
 						{/if}
 					</div>
 
 					<div class="search-bar border-t">
-						{#if code_state.status === 'regenerating'}
+						{#if code_state.status === "regenerating"}
 							<div class="loader-purple"></div>
-						{:else if code_state.status === 'generating'}
+						{:else if code_state.status === "generating"}
 							<div class="loader"></div>
-						{:else if code_state.status === 'error'}
+						{:else if code_state.status === "error"}
 							<span style="color: transparent; text-shadow: 0 0 0 purple;"
 								>✨</span
 							>
@@ -811,17 +815,16 @@
 							bind:value={user_query}
 							on:keydown={(e) => {
 								handle_user_query_key_down(e);
-								if (code_state.status === 'error') {
+								if (code_state.status === "error") {
 									user_query = "";
 									app_error = null;
-									code_state.status = 'idle';
+									code_state.status = "idle";
 								}
 							}}
 							on:change={(e) => {
 								app_error = null;
 							}}
-							placeholder={
-								code_state.code_exists
+							placeholder={code_state.code_exists
 								? update_placeholders[current_placeholder_index]
 								: generate_placeholders[current_placeholder_index]}
 							autocomplete="off"
@@ -831,10 +834,10 @@
 							spellcheck="false"
 							type="search"
 							id="user-query"
-							class:grayed={code_state.status === 'generating'}
+							class:grayed={code_state.status === "generating"}
 							autofocus={true}
 						/>
-						{#if code_state.status === 'error'}
+						{#if code_state.status === "error"}
 							<button
 								on:click={async () => {
 									error_prompt = `There's an error when I run the existing code: ${app_error}`;
@@ -844,7 +847,7 @@
 							>
 								<div class="enter">Fix Error</div>
 							</button>
-						{:else if code_state.status === 'idle' }
+						{:else if code_state.status === "idle"}
 							<button
 								on:click={() => {
 									suspend_and_resume_auto_run(() => {
@@ -856,16 +859,16 @@
 								<div class="enter">Ask AI</div>
 							</button>
 							<sup class="text-orange-800 text-xs ml-0.5">BETA</sup>
-						{:else if code_state.status === 'generating' || code_state.status === 'regenerating'}
+						{:else if code_state.status === "generating" || code_state.status === "regenerating"}
 							<button
 								on:click={() => {
 									cancelGeneration();
 								}}
 								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-red-100 to-red-50 border border-red-200 px-4 py-0.5 rounded-full text-red-800 hover:shadow"
-								class:from-purple-100={code_state.status === 'regenerating'}
-								class:to-purple-50={code_state.status === 'regenerating'}
-								class:border-purple-200={code_state.status === 'regenerating'}
-								class:text-purple-800={code_state.status === 'regenerating'}
+								class:from-purple-100={code_state.status === "regenerating"}
+								class:to-purple-50={code_state.status === "regenerating"}
+								class:border-purple-200={code_state.status === "regenerating"}
+								class:text-purple-800={code_state.status === "regenerating"}
 							>
 								<div class="enter">Cancel</div>
 							</button>
@@ -940,7 +943,6 @@
 </div>
 
 <style>
-
 	:global(div.code-editor div.block) {
 		height: calc(100% - 2rem);
 		border-radius: 0;
@@ -1191,4 +1193,3 @@
 		width: 100% !important;
 	}
 </style>
-
