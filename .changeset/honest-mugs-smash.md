@@ -4,4 +4,4 @@
 "website": minor
 ---
 
-feat:Allow setting Chatbot metadata duration as a str
+feat:Add a `log` parameter to Chatbot metadata that allows displaying `str` content next to the thought title
