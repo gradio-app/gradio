@@ -364,7 +364,7 @@ As you can see, the `gr.ChatMessage` dataclass is similar to the openai-style me
 
 $code_chatinterface_thoughts
 
-You can even show nested thoughts, which is useful for agent demos in which one tool may call other tools. To display nested thoughts, include "id" and "parent_id" keys in the "metadata" dictionary. See [this example](https://github.com/gradio-app/gradio/blob/main/demo/chatinterface_nested_thoughts/run.py) for a complete demonstration, or read our [dedicated guide on displaying intermediate thoughts and tool usage](/guides/chatbots/agents-and-tool-usage) for more realistic examples.
+You can even show nested thoughts, which is useful for agent demos in which one tool may call other tools. To display nested thoughts, include "id" and "parent_id" keys in the "metadata" dictionary. See [this example](https://github.com/gradio-app/gradio/blob/main/demo/chatinterface_nested_thoughts/run.py) for a complete demonstration, or read our [dedicated guide on displaying intermediate thoughts and tool usage](/guides/agents-and-tool-usage) for more realistic examples.
 
 **Providing preset responses**
 
