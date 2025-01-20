@@ -76,7 +76,9 @@
 		{/if}
 		{#if thought_node?.metadata?.duration}
 			<span class="duration">
-				{#if Number.isInteger(thought_node.metadata.duration)}
+				{#if typeof thought_node.metadata.duration === "string"}
+					{thought_node.metadata.duration}
+				{:else if Number.isInteger(thought_node.metadata.duration)}
 					{thought_node.metadata.duration}s
 				{:else if thought_node.metadata.duration >= 0.1}
 					{thought_node.metadata.duration.toFixed(1)}s
