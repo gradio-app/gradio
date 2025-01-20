@@ -1,6 +1,6 @@
 ---
-"@gradio/statustracker": minor
-"gradio": minor
+"@gradio/statustracker": patch
+"gradio": patch
 ---
 
-feat:Removes css tag that overrides Gradio theme setting
+fix:Removes css tag that overrides Gradio theme setting
