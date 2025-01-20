@@ -80,13 +80,13 @@
 					{thought_node.metadata.log}
 				{/if}
 				{#if thought_node.metadata.duration !== undefined}
-					{#if thought_node.metadata.log}&nbsp;({#if Number.isInteger(thought_node.metadata.duration)}{thought_node
-								.metadata
-								.duration}s{:else if thought_node.metadata.duration >= 0.1}{thought_node.metadata.duration.toFixed(
-								1
-							)}s{:else}{(thought_node.metadata.duration * 1000).toFixed(
-								1
-							)}ms{/if}){/if}
+					({#if Number.isInteger(thought_node.metadata.duration)}{thought_node
+							.metadata
+							.duration}s{:else if thought_node.metadata.duration >= 0.1}{thought_node.metadata.duration.toFixed(
+							1
+						)}s{:else}{(thought_node.metadata.duration * 1000).toFixed(
+							1
+						)}ms{/if})
 				{/if}
 			</span>
 		{/if}
