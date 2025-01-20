@@ -35,8 +35,8 @@
 
 	console.log(code_state);
 
-	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	const workerUrl = "http://localhost:5173/api/generate";
+	const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	// const workerUrl = "http://localhost:5173/api/generate";
 
 	let abortController: AbortController | null = null;
 
