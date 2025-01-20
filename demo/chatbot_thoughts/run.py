@@ -7,7 +7,7 @@ def simulate_thinking_chat(message: str, history: list):
         ChatMessage(
             role="assistant",
             content="",
-            metadata={"title": "Thinking... ", "duration": "Starting analysis"}
+            metadata={"title": "Thinking... ", "log": "Starting analysis"}
         )
     )
     time.sleep(0.5)
@@ -32,6 +32,7 @@ def simulate_thinking_chat(message: str, history: list):
             content=accumulated_thoughts.strip(),
             metadata={
                 "title": "Thinking...",
+                "log": f"Step {i+1} completed.",
                 "duration": 0.5 * (i + 1)
             }
         )

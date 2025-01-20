@@ -42,14 +42,16 @@ class MetadataDict(TypedDict):
         title: The title of the "thought" message. Required if the message is to be displayed as a thought.
         id: The ID of the message. Only used for nested thoughts. Nested thoughts can be nested by setting the parent_id to the id of the parent thought.
         parent_id: The ID of the parent message. Only used for nested thoughts.
-        duration: The duration of the message. Appears next to the thought title in a subdued font. Can be a float (which is displayed as a number of seconds) or an arbitrary string (which is displayed as is).
+        duration: The duration of the message in seconds. Appears next to the thought title in a subdued font.
+        log: A string message to display next to the thought title in a subdued font.
         status: The status of the message. If "pending", the status is displayed as a spinner icon.
     """
 
     title: NotRequired[str]
     id: NotRequired[int | str]
     parent_id: NotRequired[int | str]
-    duration: NotRequired[float | str]
+    duration: NotRequired[float]
+    log: NotRequired[str]
     status: NotRequired[Literal["pending", "done"]]
 
 
