@@ -260,7 +260,7 @@ class ChatInterface(Blocks):
             with Column():
                 self._render_header()
                 if self.save_history:
-                    with Row():
+                    with Row(scale=1):
                         self._render_history_area()
                         with Column(scale=6):
                             self._render_chatbot_area(
@@ -288,6 +288,7 @@ class ChatInterface(Blocks):
                 variant="primary",
                 size="md",
                 icon=utils.get_icon_path("plus.svg"),
+                # scale=0,
             )
             self.chat_history_dataset = Dataset(
                 components=[Textbox(visible=False)],
