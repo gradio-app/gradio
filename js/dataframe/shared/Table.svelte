@@ -1319,6 +1319,8 @@
 		justify-content: space-between;
 		align-items: center;
 		gap: var(--size-2);
+		height: var(--size-6);
+		min-height: var(--size-6);
 	}
 
 	.label {

@@ -596,7 +596,7 @@ class Numpy(components.Dataframe):
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
         show_row_numbers: bool = False,
-        show_fullscreen_button: bool = True,
+        show_fullscreen_button: bool = False,
     ):
         super().__init__(
             value=value,
