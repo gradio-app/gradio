@@ -25,6 +25,5 @@ export const redirects = {
 		"/main/guides/chatinterface-examples",
 	"/guides/chatbots/creating-a-discord-bot-from-a-gradio-app":
 		"/guides/creating-a-discord-bot-from-a-gradio-app",
-	"/guides/chatbots/agents-and-tool-usage":
-		"/guides/agents-and-tool-usage"
+	"/guides/chatbots/agents-and-tool-usage": "/guides/agents-and-tool-usage"
 };
