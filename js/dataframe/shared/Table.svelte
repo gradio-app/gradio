@@ -781,20 +781,19 @@
 
 <svelte:window on:resize={() => set_cell_widths()} />
 
-<div class="label" class:label={label && label.length !== 0} use:copy>
-	{#if label && label.length !== 0 && show_label}
-		<p>
-			{label}
-		</p>
-	{/if}
-</div>
-
 <div class="table-container">
-	<Toolbar
-		{show_fullscreen_button}
-		{is_fullscreen}
-		on:click={toggle_fullscreen}
-	/>
+	<div class="header-row">
+		{#if label && label.length !== 0 && show_label}
+			<div class="label">
+				<p>{label}</p>
+			</div>
+		{/if}
+		<Toolbar
+			{show_fullscreen_button}
+			{is_fullscreen}
+			on:click={toggle_fullscreen}
+		/>
+	</div>
 	<div
 		bind:this={parent}
 		class="table-wrap"
@@ -1313,5 +1312,24 @@
 
 	:global(tbody > tr:nth-child(odd)) .row-number {
 		background: var(--table-odd-background-fill);
+	}
+
+	.header-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: var(--size-2);
+	}
+
+	.label {
+		flex: 1;
+	}
+
+	.label p {
+		position: relative;
+		z-index: var(--layer-4);
+		margin: 0;
+		color: var(--block-label-text-color);
+		font-size: var(--block-label-text-size);
 	}
 </style>
