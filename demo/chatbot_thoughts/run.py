@@ -32,7 +32,7 @@ def simulate_thinking_chat(message: str, history: list):
             content=accumulated_thoughts.strip(),
             metadata={
                 "title": "Thinking...",
-                "duration": 0.5 * (i + 1) if i % 2 == 0 else f"Step {i+1} completed in {0.5 * (i+1)}s"
+                "duration": 0.5 * (i + 1)
             }
         )
         yield history
