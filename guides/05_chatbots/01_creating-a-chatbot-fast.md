@@ -352,7 +352,8 @@ class MetadataDict(TypedDict):
     title: NotRequired[str]
     id: NotRequired[int | str]
     parent_id: NotRequired[int | str]
-    duration: NotRequired[int]
+    log: NotRequired[str]
+    duration: NotRequired[float]
     status: NotRequired[Literal["pending", "done"]]
 
 class OptionDict(TypedDict):
@@ -364,7 +365,7 @@ As you can see, the `gr.ChatMessage` dataclass is similar to the openai-style me
 
 $code_chatinterface_thoughts
 
-You can even show nested thoughts, which is useful for agent demos in which one tool may call other tools. To display nested thoughts, include "id" and "parent_id" keys in the "metadata" dictionary. See [this example for a complete demonstration](https://github.com/gradio-app/gradio/blob/main/demo/chatinterface_nested_thoughts/run.py).
+You can even show nested thoughts, which is useful for agent demos in which one tool may call other tools. To display nested thoughts, include "id" and "parent_id" keys in the "metadata" dictionary. Read our [dedicated guide on displaying intermediate thoughts and tool usage](/guides/chatbots/agents-and-tool-usage) for more realistic examples.
 
 **Providing preset responses**
 

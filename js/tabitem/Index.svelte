@@ -18,6 +18,7 @@
 	export let visible = true;
 	export let interactive = true;
 	export let order: number;
+	export let scale: number;
 </script>
 
 <TabItem
@@ -28,6 +29,7 @@
 	{interactive}
 	{id}
 	{order}
+	{scale}
 	on:select={({ detail }) => gradio?.dispatch("select", detail)}
 >
 	<slot />
