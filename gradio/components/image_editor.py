@@ -207,7 +207,7 @@ class ImageEditor(Component):
             placeholder: Custom text for the upload area. Overrides default upload messages when provided. Accepts new lines and `#` to designate a heading.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
-            crop_size: The size of the crop box in pixels. If a tuple, the first value is the width and the second value is the height. If a string, the value must be a ratio in the form `width:height` (e.g. "16:9").
+            crop_size: Deprecated. Used to set the `canvas_size` parameter.
             transforms: The transforms tools to make available to users. "crop" allows the user to crop the image.
             eraser: The options for the eraser tool in the image editor. Should be an instance of the `gr.Eraser` class, or None to use the default settings. Can also be False to hide the eraser tool. [See `gr.Eraser` docs](#eraser).
             brush: The options for the brush tool in the image editor. Should be an instance of the `gr.Brush` class, or None to use the default settings. Can also be False to hide the brush tool, which will also hide the eraser tool. [See `gr.Brush` docs](#brush).
@@ -249,7 +249,23 @@ class ImageEditor(Component):
             else show_share_button
         )
 
-        self.crop_size = crop_size
+        if crop_size is not None:
+            warnings.warn(
+                "`crop_size` parameter is deprecated. Please use `canvas_size` instead."
+            )
+            if isinstance(crop_size, str):
+                # convert ratio to tuple
+                proportion = [
+                    int(crop_size.split(":")[0]),
+                    int(crop_size.split(":")[1]),
+                ]
+                ratio = proportion[0] / proportion[1]
+                canvas_size = (
+                    (int(800 * ratio), 800) if ratio > 1 else (800, int(800 / ratio))
+                )
+            else:
+                canvas_size = (int(crop_size[0]), int(crop_size[1]))
+
         self.transforms = transforms
         self.eraser = Eraser() if eraser is None else eraser
         self.brush = Brush() if brush is None else brush

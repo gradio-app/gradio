@@ -48,7 +48,6 @@ class TestImageEditor:
             "show_share_button": False,
             "_selectable": False,
             "key": None,
-            "crop_size": None,
             "transforms": ("crop",),
             "eraser": {"default_size": "auto"},
             "brush": {
@@ -73,6 +72,16 @@ class TestImageEditor:
             "show_fullscreen_button": True,
             "fixed_canvas": False,
         }
+
+    def test_image_editor_sets_canvas_size_as_crop_size(self):
+        image_editor = gr.ImageEditor(crop_size=(300, 300))
+        assert image_editor.get_config()["canvas_size"] == (300, 300)
+
+        image_editor = gr.ImageEditor(crop_size="4:3")
+        assert image_editor.get_config()["canvas_size"] == (1066, 800)
+
+        image_editor = gr.ImageEditor(crop_size="3:4")
+        assert image_editor.get_config()["canvas_size"] == (800, 1066)
 
     def test_process_example(self):
         test_image_path = "test/test_files/bus.png"
