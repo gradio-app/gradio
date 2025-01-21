@@ -178,7 +178,7 @@ class ImageEditor(Component):
         brush: Brush | None | Literal[False] = None,
         format: str = "webp",
         layers: bool = True,
-        canvas_size: tuple[int, int] | None = None,
+        canvas_size: tuple[int, int] = (800, 800),
         fixed_canvas: bool = False,
         show_fullscreen_button: bool = True,
     ):
@@ -213,8 +213,8 @@ class ImageEditor(Component):
             brush: The options for the brush tool in the image editor. Should be an instance of the `gr.Brush` class, or None to use the default settings. Can also be False to hide the brush tool, which will also hide the eraser tool. [See `gr.Brush` docs](#brush).
             format: Format to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image).  The format should be supported by the PIL library. This parameter has no effect on SVG files.
             layers: If True, will allow users to add layers to the image. If False, the layers option will be hidden.
-            canvas_size: The size of the canvas in pixels. If a tuple, the first value is the width and the second value is the height. If None, the size of the background image sets the canvas size. If its set, uploaded images will be rescaled to fit the canvas size while preserving the aspect ratio.
-            fixed_canvas: If True, the canvas size will not change based on the size of the background image and the image will be rescaled to fit (while preserving the aspect ratio) and placed in the center of the canvas. If False, the image is scaled to fit the canvas_size while preserving the aspect ratio, but the resulting canvas size will match the background image.
+            canvas_size: The size of the canvas in pixels. The first value is the width and the second value is the height. If its set, uploaded images will be rescaled to fit the canvas size while preserving the aspect ratio. The canvas size will always change to match the size of an uploaded image unless fixed_canvas is set to True.
+            fixed_canvas: If True, the canvas size will not change based on the size of the background image and the image will be rescaled to fit (while preserving the aspect ratio) and placed in the center of the canvas.
             show_fullscreen_button: If True, will display button to view image in fullscreen mode.
         """
         self._selectable = _selectable

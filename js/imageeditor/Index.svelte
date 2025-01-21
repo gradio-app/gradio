@@ -55,7 +55,7 @@
 	export let server: {
 		accept_blobs: (a: any) => void;
 	};
-	export let canvas_size: [number, number] | undefined;
+	export let canvas_size: [number, number];
 	export let fixed_canvas = false;
 	export let show_fullscreen_button = true;
 	export let full_history: any = null;
@@ -126,17 +126,17 @@
 		}
 	}
 
-	let safe_height: number | undefined = undefined;
 	let dynamic_height: number | undefined = undefined;
 
 	// In case no height given, pick a height large enough for the entire canvas
 	// in pixi.ts, the max-height of the canvas is canvas height / pixel ratio
-	$: if (canvas_size) {
-		safe_height = Math.max(
-			canvas_size[1] / (is_browser ? window.devicePixelRatio : 1) + 100,
-			250
-		);
-	}
+
+	let safe_height_initial = Math.max(
+		canvas_size[1] / (is_browser ? window.devicePixelRatio : 1),
+		250
+	);
+
+	$: safe_height = Math.max((dynamic_height ?? safe_height_initial) + 100, 250);
 
 	$: has_value = value?.background || value?.layers?.length || value?.composite;
 </script>
@@ -184,7 +184,7 @@
 		padding={false}
 		{elem_id}
 		{elem_classes}
-		height={height || safe_height || (dynamic_height ?? 0) + 100}
+		height={height || safe_height}
 		{width}
 		allow_overflow={false}
 		{container}

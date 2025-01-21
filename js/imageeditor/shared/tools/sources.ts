@@ -77,7 +77,7 @@ export function add_bg_image(
 	renderer: IRenderer,
 	background: Blob | File,
 	resize: (width: number, height: number) => void,
-	canvas_size: [number, number] | undefined,
+	canvas_size: [number, number],
 	fixed_canvas: boolean
 ): BgImageCommand {
 	let sprite: Sprite & DisplayObject;
@@ -88,7 +88,7 @@ export function add_bg_image(
 			const img = await createImageBitmap(background);
 			const bitmap_texture = Texture.from(img);
 			sprite = new Sprite(bitmap_texture) as Sprite & DisplayObject;
-			if (!canvas_size) {
+			if (!fixed_canvas) {
 				canvas_size = [sprite.width, sprite.height];
 			}
 
