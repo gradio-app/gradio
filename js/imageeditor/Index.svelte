@@ -56,7 +56,10 @@
 		accept_blobs: (a: any) => void;
 	};
 	export let canvas_size: [number, number];
+<<<<<<< HEAD
 
+=======
+>>>>>>> e69a2b601 (add code)
 	export let fixed_canvas = false;
 	export let show_fullscreen_button = true;
 	export let full_history: any = null;
@@ -137,7 +140,6 @@
 		250
 	);
 
-
 	$: safe_height = Math.max((dynamic_height ?? safe_height_initial) + 100, 250);
 
 	$: has_value = value?.background || value?.layers?.length || value?.composite;
@@ -186,7 +188,7 @@
 		padding={false}
 		{elem_id}
 		{elem_classes}
-		height={height || safe_height || (dynamic_height ?? 0) + 100}
+		height={height || safe_height}
 		{width}
 		allow_overflow={false}
 		{container}
