@@ -7,6 +7,7 @@ export interface Metadata {
 	id?: number | string | null;
 	parent_id?: number | string | null;
 	duration?: number;
+	log?: string;
 	status?: "pending" | "done" | null;
 }
 

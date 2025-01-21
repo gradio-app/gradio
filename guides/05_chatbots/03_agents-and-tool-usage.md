@@ -22,6 +22,7 @@ class MetadataDict(TypedDict):
     title: NotRequired[str]
     id: NotRequired[int | str]
     parent_id: NotRequired[int | str]
+    log: NotRequired[str]
     duration: NotRequired[float]
     status: NotRequired[Literal["pending", "done"]]
 
@@ -59,7 +60,8 @@ demo.launch()
 
 In addition to `title`, the dictionary provided to `metadata` can take several optional keys:
 
-* `duration`: an optional numeric value representing the duration of the thought/tool usage, in seconds.
+* `log`: an optional string value to be displayed in a subdued font next to the thought title.
+* `duration`: an optional numeric value representing the duration of the thought/tool usage, in seconds. Displayed in a subdued font next inside parentheses next to the thought title.
 * `status`: if set to `pending`, a spinner appears next to the thought title.
 * `id` and `parent_id`: if these are provided, they can be used to nest thoughts inside other thoughts.
 
