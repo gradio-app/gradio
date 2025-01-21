@@ -12,6 +12,7 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/button": "workspace:^",
 		"@gradio/client": "workspace:^",
+		"@gradio/icons": "workspace:^",
 		"@gradio/markdown-code": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
