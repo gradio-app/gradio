@@ -45,9 +45,14 @@
             "doc": "The ID of the parent message. Only used for nested thoughts."
         },
         {
+            "name": "log",
+            "annotation": "str",
+            "doc": "A string message to display next to the thought title in a subdued font."
+        },
+        {
             "name": "duration",
             "annotation": "float",
-            "doc": "The duration of the message. Appears next to the title in the thought bubble in a subdued font."
+            "doc": "The duration of the message in seconds. Appears next to the thought title in a subdued font inside a parentheses."
         },
         {
             "name": "status",
