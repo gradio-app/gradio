@@ -421,11 +421,7 @@
 		selected = [index !== undefined ? index : data.length - 1, 0];
 	}
 
-	$: {
-		if (data) {
-			trigger_change();
-		}
-	}
+	$: data && trigger_change();
 
 	async function add_col(index?: number): Promise<void> {
 		parent.focus();
