@@ -274,10 +274,12 @@
 
 	.time {
 		color: var(--neutral-400);
+		border-radius: var(--button-large-radius);
 	}
 
 	.duration {
 		color: var(--neutral-400);
+		border-radius: var(--button-large-radius);
 	}
 
 	.trim-duration {
