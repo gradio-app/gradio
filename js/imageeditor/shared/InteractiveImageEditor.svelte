@@ -50,7 +50,7 @@
 		| "error"
 		| "generating"
 		| "streaming" = "complete";
-	export let canvas_size: [number, number] | undefined = undefined;
+	export let canvas_size: [number, number];
 	export let fixed_canvas = false;
 	export let realtime: boolean;
 	export let upload: Client["upload"];
