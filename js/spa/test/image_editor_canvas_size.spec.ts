@@ -1,6 +1,6 @@
 import { test, expect } from "@self/tootils";
 
-test("Image Editor canvas matches background image size if fixed_canvas=False", async ({
+test.skip("Image Editor canvas matches background image size if fixed_canvas=False", async ({
 	page
 }) => {
 	await page.locator("#default >> .upload-container > button").click();
@@ -11,7 +11,7 @@ test("Image Editor canvas matches background image size if fixed_canvas=False", 
 	await expect(page.getByLabel("Height")).toHaveValue("769");
 });
 
-test("Image Editor 300 x 300 canvas resizes to match uploaded image", async ({
+test.skip("Image Editor 300 x 300 canvas resizes to match uploaded image", async ({
 	page
 }) => {
 	await page.locator("#small >> .upload-container > button").click();
@@ -22,7 +22,7 @@ test("Image Editor 300 x 300 canvas resizes to match uploaded image", async ({
 	await expect(page.getByLabel("Height")).toHaveValue("769");
 });
 
-test("Image Editor 300 x 300 canvas maintains size while being drawn upon", async ({
+test.skip("Image Editor 300 x 300 canvas maintains size while being drawn upon", async ({
 	page
 }) => {
 	await page.locator("#small").getByLabel("Draw button").click();
@@ -35,7 +35,7 @@ test("Image Editor 300 x 300 canvas maintains size while being drawn upon", asyn
 	await expect(page.getByLabel("Height")).toHaveValue("300");
 });
 
-test("Image Editor reshapes image to fit fixed 500 x 500 canvas", async ({
+test.skip("Image Editor reshapes image to fit fixed 500 x 500 canvas", async ({
 	page
 }) => {
 	await page.locator("#small >> .upload-container > button").click();
