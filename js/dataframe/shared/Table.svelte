@@ -144,7 +144,7 @@
 	}
 
 	let _headers = make_headers(headers);
-	let old_headers: string[] | undefined;
+	let old_headers: string[] | undefined = headers;
 
 	$: {
 		if (!dequal(headers, old_headers)) {
@@ -154,7 +154,6 @@
 
 	function trigger_headers(): void {
 		_headers = make_headers(headers);
-
 		old_headers = headers.slice();
 		trigger_change();
 	}
@@ -168,10 +167,18 @@
 
 	let old_val: undefined | (string | number)[][] = undefined;
 
+	let previous_data_string = "[]";
+
 	async function trigger_change(): Promise<void> {
-		dispatch("change");
-		if (!value_is_output) {
-			dispatch("input");
+		const current_data_string = JSON.stringify(
+			data.map(row => row.map(cell => String(cell.value)))
+		);
+		if (current_data_string !== previous_data_string) {
+			dispatch("change");
+			if (!value_is_output) {
+				dispatch("input");
+			}
+			previous_data_string = current_data_string;
 		}
 	}
 
@@ -414,7 +421,11 @@
 		selected = [index !== undefined ? index : data.length - 1, 0];
 	}
 
-	$: (data || selected_header) && trigger_change();
+	$: {
+		if (data) {
+			trigger_change();
+		}
+	}
 
 	async function add_col(index?: number): Promise<void> {
 		parent.focus();
@@ -639,8 +650,15 @@
 
 		observer.observe(parent);
 
+		document.addEventListener("click", handle_click_outside);
+		window.addEventListener("resize", handle_resize);
+		document.addEventListener("fullscreenchange", handle_fullscreen_change);
+
 		return () => {
 			observer.disconnect();
+			document.removeEventListener("click", handle_click_outside);
+			window.removeEventListener("resize", handle_resize);
+			document.removeEventListener("fullscreenchange", handle_fullscreen_change);
 		};
 	});
 
@@ -694,20 +712,6 @@
 		active_header_menu = null;
 		set_cell_widths();
 	}
-
-	onMount(() => {
-		document.addEventListener("click", handle_click_outside);
-		window.addEventListener("resize", handle_resize);
-		document.addEventListener("fullscreenchange", handle_fullscreen_change);
-		return () => {
-			document.removeEventListener("click", handle_click_outside);
-			window.removeEventListener("resize", handle_resize);
-			document.removeEventListener(
-				"fullscreenchange",
-				handle_fullscreen_change
-			);
-		};
-	});
 
 	let active_button: {
 		type: "header" | "cell";

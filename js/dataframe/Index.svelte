@@ -49,6 +49,7 @@
 	export let loading_status: LoadingStatus;
 	export let interactive: boolean;
 	export let show_fullscreen_button = false;
+	
 
 	$: _headers = [...(value.headers || headers)];
 	$: cell_values = value.data ? [...value.data] : [];
@@ -88,6 +89,7 @@
 		{styling}
 		headers={_headers}
 		on:change={(e) => gradio.dispatch("change")}
+		on:input={(e) => gradio.dispatch("input")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		{wrap}
 		{datatype}
