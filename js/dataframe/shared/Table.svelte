@@ -180,6 +180,8 @@
 			current_data_string !== previous_data_string ||
 			current_headers_string !== previous_headers_string
 		) {
+			// We dispatch the value as part of the change event to ensure that the value is updated
+			// in the parent component and the updated value is passed into the user's function
 			dispatch("change", {
 				data: data.map((row) => row.map((cell) => cell.value)),
 				headers: _headers.map((h) => h.value),
