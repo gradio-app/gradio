@@ -165,13 +165,15 @@
 	let previous_headers_string = "[]";
 
 	async function trigger_change(): Promise<void> {
-		const current_headers_string = JSON.stringify(_headers.map(h => h.value));
+		const current_headers_string = JSON.stringify(_headers.map((h) => h.value));
 		const current_data_string = JSON.stringify(
-			data.map(row => row.map(cell => String(cell.value)))
+			data.map((row) => row.map((cell) => String(cell.value)))
 		);
-		
-		if (current_data_string !== previous_data_string || 
-			current_headers_string !== previous_headers_string) {
+
+		if (
+			current_data_string !== previous_data_string ||
+			current_headers_string !== previous_headers_string
+		) {
 			dispatch("change");
 			if (!value_is_output) {
 				dispatch("input");
@@ -653,7 +655,10 @@
 			observer.disconnect();
 			document.removeEventListener("click", handle_click_outside);
 			window.removeEventListener("resize", handle_resize);
-			document.removeEventListener("fullscreenchange", handle_fullscreen_change);
+			document.removeEventListener(
+				"fullscreenchange",
+				handle_fullscreen_change
+			);
 		};
 	});
 

@@ -49,7 +49,6 @@
 	export let loading_status: LoadingStatus;
 	export let interactive: boolean;
 	export let show_fullscreen_button = false;
-	
 
 	$: _headers = [...(value.headers || headers)];
 	$: cell_values = value.data ? [...value.data] : [];
