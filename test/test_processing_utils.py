@@ -442,3 +442,19 @@ async def test_async_private_request_fail():
         await processing_utils.async_ssrf_protected_download(
             "http://192.168.1.250.nip.io/image.png", tempdir.name
         )
+
+
+@pytest.mark.asyncio
+async def test_download_with_presigned_url():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Test URL with query parameters (simulating a presigned URL)
+        test_url = "https://example.s3.amazonaws.com/video.mp4?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=test"
+        
+        try:
+            downloaded_path = await processing_utils.async_ssrf_protected_download(test_url, temp_dir)
+            
+            # Verify the downloaded file has the correct base name without query params
+            assert os.path.basename(downloaded_path) == "video.mp4"
+            
+        except Exception as e:
+            pytest.fail(f"Download failed with presigned URL: {str(e)}")
