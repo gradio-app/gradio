@@ -71,7 +71,7 @@
 			{sanitize_html}
 			{root}
 		/>
-		{#if thought_node.metadata?.status === "pending" || (thought_node.metadata?.status !== "done" && (thought_node.content === "" || thought_node.content === null))}
+		{#if thought_node.metadata?.status === "pending"}
 			<span class="loading-spinner"></span>
 		{/if}
 		{#if thought_node?.metadata?.log || thought_node?.metadata?.duration}
