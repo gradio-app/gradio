@@ -144,41 +144,40 @@
 	}
 
 	let _headers = make_headers(headers);
-	let old_headers: string[] | undefined = headers;
+	let old_headers: string[] = headers;
 
 	$: {
 		if (!dequal(headers, old_headers)) {
-			trigger_headers();
+			_headers = make_headers(headers);
+			old_headers = JSON.parse(JSON.stringify(headers));
 		}
 	}
 
-	function trigger_headers(): void {
-		_headers = make_headers(headers);
-		old_headers = headers.slice();
-		trigger_change();
-	}
+	let data: { id: string; value: string | number }[][] = [[]];
+	let old_val: undefined | (string | number)[][] = undefined;
 
 	$: if (!dequal(values, old_val)) {
 		data = process_data(values as (string | number)[][]);
 		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
 	}
 
-	let data: { id: string; value: string | number }[][] = [[]];
-
-	let old_val: undefined | (string | number)[][] = undefined;
-
 	let previous_data_string = "[]";
+	let previous_headers_string = "[]";
 
 	async function trigger_change(): Promise<void> {
+		const current_headers_string = JSON.stringify(_headers.map(h => h.value));
 		const current_data_string = JSON.stringify(
 			data.map(row => row.map(cell => String(cell.value)))
 		);
-		if (current_data_string !== previous_data_string) {
+		
+		if (current_data_string !== previous_data_string || 
+			current_headers_string !== previous_headers_string) {
 			dispatch("change");
 			if (!value_is_output) {
 				dispatch("input");
 			}
 			previous_data_string = current_data_string;
+			previous_headers_string = current_headers_string;
 		}
 	}
 
@@ -969,6 +968,8 @@
 								clear_on_focus = false;
 								clicked_cell = { row: index, col: j };
 								selected = [index, j];
+								selected_header = false;
+								header_edit = false;
 								if (editable) {
 									editing = [index, j];
 								}
@@ -986,6 +987,8 @@
 								active_header_menu = null;
 								clicked_cell = { row: index, col: j };
 								selected = [index, j];
+								selected_header = false;
+								header_edit = false;
 								if (editable) {
 									editing = [index, j];
 								}
