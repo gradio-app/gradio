@@ -31,7 +31,7 @@
 	export let i18n: I18nFormatter;
 	export let line_breaks: boolean;
 
-	let expanded = true;
+	let expanded = thought_node.metadata?.status !== "done";
 
 	function is_thought_node(msg: NormalisedMessage): msg is ThoughtNode {
 		return "children" in msg;
