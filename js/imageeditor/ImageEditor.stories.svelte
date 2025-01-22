@@ -217,6 +217,7 @@
 		type: "pil",
 		placeholder: "Upload an image of a cat",
 		sources: ["upload", "webcam"],
+		canvas_size: [800, 800],
 		interactive: "true",
 		brush: {
 			default_size: "auto",
