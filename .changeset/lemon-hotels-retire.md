@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:thanks cursor
+fix:Support presigned URLs with gr.Video, gr.Model3D, and other components
