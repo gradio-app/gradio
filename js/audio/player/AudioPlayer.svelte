@@ -221,12 +221,11 @@
 	<Empty size="small">
 		<Music />
 	</Empty>
-{:else if !value.is_stream}
+{:else if !value.is_stream && waveform_options.show_recording_waveform}
 	<div
 		class="component-wrapper"
 		data-testid={label ? "waveform-" + label : "unlabelled-audio"}
 	>
-	{#if waveform_options.show_recording_waveform}
 	<div class="waveform-container">
 			<div
 				id="waveform"
@@ -262,7 +261,6 @@
 			{trim_region_settings}
 			{editable}
 		/>
-		{/if}
 	</div>
 {/if}
 
