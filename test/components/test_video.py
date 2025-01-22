@@ -99,10 +99,17 @@ class TestVideo:
         output_with_subtitles = output_with_subtitles.model_dump()
         assert output_with_subtitles["subtitles"]["path"].endswith(".vtt")
 
+        video = gr.Video(format="wav")
+        video_url_with_query_param = "https://github.com/gradio-app/gradio/raw/refs/heads/main/test/test_files/playable_but_bad_container.mp4?query=fake"
+        postprocessed_video_with_query_param = video.postprocess(video_url_with_query_param)
+        assert postprocessed_video_with_query_param
+        assert postprocessed_video_with_query_param.model_dump()["video"]["path"].endswith("playable_but_bad_container.wav")
+
         p_video = gr.Video()
         video_with_subtitle = gr.Video()
         postprocessed_video = p_video.postprocess(Path(y_vid_path))
         assert postprocessed_video
+
         postprocessed_video = postprocessed_video.model_dump()
         postprocessed_video_with_subtitle = video_with_subtitle.postprocess(
             (Path(y_vid_path), Path(subtitles_path))
