@@ -2,7 +2,6 @@
 	import { afterUpdate, createEventDispatcher, tick, onMount } from "svelte";
 	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
-	import { copy } from "@gradio/utils";
 	import { Upload } from "@gradio/upload";
 
 	import EditableCell from "./EditableCell.svelte";
@@ -161,8 +160,10 @@
 		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
 	}
 
-	let previous_data_string = "[]";
-	let previous_headers_string = "[]";
+	let previous_headers_string = JSON.stringify(_headers.map((h) => h.value));
+	let previous_data_string = JSON.stringify(
+		data.map((row) => row.map((cell) => String(cell.value)))
+	);
 
 	async function trigger_change(): Promise<void> {
 		const current_headers_string = JSON.stringify(_headers.map((h) => h.value));
