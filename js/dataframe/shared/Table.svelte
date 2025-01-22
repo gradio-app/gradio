@@ -2,7 +2,6 @@
 	import { afterUpdate, createEventDispatcher, tick, onMount } from "svelte";
 	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
-	import { copy } from "@gradio/utils";
 	import { Upload } from "@gradio/upload";
 
 	import EditableCell from "./EditableCell.svelte";
@@ -144,34 +143,44 @@
 	}
 
 	let _headers = make_headers(headers);
-	let old_headers: string[] | undefined;
+	let old_headers: string[] = headers;
 
 	$: {
 		if (!dequal(headers, old_headers)) {
-			trigger_headers();
+			_headers = make_headers(headers);
+			old_headers = JSON.parse(JSON.stringify(headers));
 		}
 	}
 
-	function trigger_headers(): void {
-		_headers = make_headers(headers);
-
-		old_headers = headers.slice();
-		trigger_change();
-	}
+	let data: { id: string; value: string | number }[][] = [[]];
+	let old_val: undefined | (string | number)[][] = undefined;
 
 	$: if (!dequal(values, old_val)) {
 		data = process_data(values as (string | number)[][]);
 		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
 	}
 
-	let data: { id: string; value: string | number }[][] = [[]];
-
-	let old_val: undefined | (string | number)[][] = undefined;
+	let previous_headers_string = JSON.stringify(_headers.map((h) => h.value));
+	let previous_data_string = JSON.stringify(
+		data.map((row) => row.map((cell) => String(cell.value)))
+	);
 
 	async function trigger_change(): Promise<void> {
-		dispatch("change");
-		if (!value_is_output) {
-			dispatch("input");
+		const current_headers_string = JSON.stringify(_headers.map((h) => h.value));
+		const current_data_string = JSON.stringify(
+			data.map((row) => row.map((cell) => String(cell.value)))
+		);
+
+		if (
+			current_data_string !== previous_data_string ||
+			current_headers_string !== previous_headers_string
+		) {
+			dispatch("change");
+			if (!value_is_output) {
+				dispatch("input");
+			}
+			previous_data_string = current_data_string;
+			previous_headers_string = current_headers_string;
 		}
 	}
 
@@ -414,7 +423,7 @@
 		selected = [index !== undefined ? index : data.length - 1, 0];
 	}
 
-	$: (data || selected_header) && trigger_change();
+	$: (data || _headers) && trigger_change();
 
 	async function add_col(index?: number): Promise<void> {
 		parent.focus();
@@ -639,8 +648,18 @@
 
 		observer.observe(parent);
 
+		document.addEventListener("click", handle_click_outside);
+		window.addEventListener("resize", handle_resize);
+		document.addEventListener("fullscreenchange", handle_fullscreen_change);
+
 		return () => {
 			observer.disconnect();
+			document.removeEventListener("click", handle_click_outside);
+			window.removeEventListener("resize", handle_resize);
+			document.removeEventListener(
+				"fullscreenchange",
+				handle_fullscreen_change
+			);
 		};
 	});
 
@@ -694,20 +713,6 @@
 		active_header_menu = null;
 		set_cell_widths();
 	}
-
-	onMount(() => {
-		document.addEventListener("click", handle_click_outside);
-		window.addEventListener("resize", handle_resize);
-		document.addEventListener("fullscreenchange", handle_fullscreen_change);
-		return () => {
-			document.removeEventListener("click", handle_click_outside);
-			window.removeEventListener("resize", handle_resize);
-			document.removeEventListener(
-				"fullscreenchange",
-				handle_fullscreen_change
-			);
-		};
-	});
 
 	let active_button: {
 		type: "header" | "cell";
@@ -969,6 +974,8 @@
 								clear_on_focus = false;
 								clicked_cell = { row: index, col: j };
 								selected = [index, j];
+								selected_header = false;
+								header_edit = false;
 								if (editable) {
 									editing = [index, j];
 								}
@@ -986,6 +993,8 @@
 								active_header_menu = null;
 								clicked_cell = { row: index, col: j };
 								selected = [index, j];
+								selected_header = false;
+								header_edit = false;
 								if (editable) {
 									editing = [index, j];
 								}

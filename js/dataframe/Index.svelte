@@ -88,6 +88,7 @@
 		{styling}
 		headers={_headers}
 		on:change={(e) => gradio.dispatch("change")}
+		on:input={(e) => gradio.dispatch("input")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		{wrap}
 		{datatype}
