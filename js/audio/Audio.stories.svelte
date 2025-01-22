@@ -34,6 +34,22 @@
 />
 
 <Story
+	name="Audio Player without recording waveform"
+	args={{
+		value: {
+			path: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+			url: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+			orig_name: "sample-0.mp3"
+		},
+		waveform_options: {
+			show_recording_waveform: false,
+			show_controls: true
+		},
+		label: "Audio Player"
+	}}
+/>
+
+<Story
 	name="Audio Recorder"
 	args={{
 		value: null,
