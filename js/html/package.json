@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/html",
-	"version": "0.6.2",
+	"version": "0.6.3",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

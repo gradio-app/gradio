@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/highlightedtext",
-	"version": "0.8.11",
+	"version": "0.8.12",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

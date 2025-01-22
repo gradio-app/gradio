@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.6.0
+
+### Features
+
+- [#10352](https://github.com/gradio-app/gradio/pull/10352) [`6a7cfc4`](https://github.com/gradio-app/gradio/commit/6a7cfc4264822209148ad07d8f38a0550bdb32b7) - Compatibility between Client and ZeroGPU.  Thanks @abidlabs!
+
 ## 1.5.4
 
 ### Fixes

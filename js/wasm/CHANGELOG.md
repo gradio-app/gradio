@@ -1,5 +1,11 @@
 # @gradio/wasm
 
+## 0.17.0
+
+### Features
+
+- [#10366](https://github.com/gradio-app/gradio/pull/10366) [`b10f5e1`](https://github.com/gradio-app/gradio/commit/b10f5e150a048ded255efdd34cfb7d5706ae2ff7) - Lite: retry install.  Thanks @whitphx!
+
 ## 0.16.0
 
 ### Features
