@@ -28,7 +28,8 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let dragging: boolean;
-	export let max_height: number;
+	export let canvas_size: [number, number];
+	export let fixed_canvas = false;
 
 	const { active_tool } = getContext<ToolContext>(TOOL_KEY);
 	const { pixi, dimensions, register_context, reset, editor_box } =
@@ -110,7 +111,8 @@
 				$pixi.renderer,
 				background,
 				$pixi.resize,
-				max_height
+				canvas_size,
+				fixed_canvas
 			);
 			$dimensions = await add_image.start();
 
@@ -187,8 +189,11 @@
 		class:click-disabled={!!bg ||
 			active_mode === "webcam" ||
 			$active_tool !== "bg"}
-		style:height="{$editor_box.child_height +
-			($editor_box.child_top - $editor_box.parent_top)}px"
+		style:height="{Math.max(
+			$editor_box.child_height +
+				($editor_box.child_top - $editor_box.parent_top),
+			100
+		)}px"
 	>
 		<Upload
 			hidden={bg || active_mode === "webcam" || $active_tool !== "bg"}
