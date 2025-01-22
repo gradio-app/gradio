@@ -1,5 +1,7 @@
 ---
 "@gradio/audio": patch
+"@gradio/chatbot": patch
+"@gradio/multimodaltextbox": patch
 "gradio": patch
 ---
 
