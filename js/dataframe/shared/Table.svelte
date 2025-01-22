@@ -9,7 +9,12 @@
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import { type Client } from "@gradio/client";
 	import VirtualTable from "./VirtualTable.svelte";
-	import type { Headers, HeadersWithIDs, Metadata, Datatype } from "./utils";
+	import type {
+		Headers,
+		HeadersWithIDs,
+		DataframeValue,
+		Datatype
+	} from "./utils";
 	import CellMenu from "./CellMenu.svelte";
 	import Toolbar from "./Toolbar.svelte";
 
@@ -47,7 +52,7 @@
 	let t_rect: DOMRectReadOnly;
 
 	const dispatch = createEventDispatcher<{
-		change: undefined;
+		change: DataframeValue;
 		input: undefined;
 		select: SelectData;
 	}>();
@@ -175,7 +180,11 @@
 			current_data_string !== previous_data_string ||
 			current_headers_string !== previous_headers_string
 		) {
-			dispatch("change");
+			dispatch("change", {
+				data: data.map((row) => row.map((cell) => cell.value)),
+				headers: _headers.map((h) => h.value),
+				metadata: null
+			});
 			if (!value_is_output) {
 				dispatch("input");
 			}
