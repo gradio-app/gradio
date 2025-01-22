@@ -165,20 +165,18 @@
 		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
 	}
 
-	let previous_headers_string = JSON.stringify(_headers.map((h) => h.value));
-	let previous_data_string = JSON.stringify(
-		data.map((row) => row.map((cell) => String(cell.value)))
-	);
+	let previous_headers = _headers.map((h) => h.value);
+	let previous_data = data.map((row) => row.map((cell) => String(cell.value)));
 
 	async function trigger_change(): Promise<void> {
-		const current_headers_string = JSON.stringify(_headers.map((h) => h.value));
-		const current_data_string = JSON.stringify(
-			data.map((row) => row.map((cell) => String(cell.value)))
+		const current_headers = _headers.map((h) => h.value);
+		const current_data = data.map((row) =>
+			row.map((cell) => String(cell.value))
 		);
 
 		if (
-			current_data_string !== previous_data_string ||
-			current_headers_string !== previous_headers_string
+			!dequal(current_data, previous_data) ||
+			!dequal(current_headers, previous_headers)
 		) {
 			// We dispatch the value as part of the change event to ensure that the value is updated
 			// in the parent component and the updated value is passed into the user's function
@@ -190,8 +188,8 @@
 			if (!value_is_output) {
 				dispatch("input");
 			}
-			previous_data_string = current_data_string;
-			previous_headers_string = current_headers_string;
+			previous_data = current_data;
+			previous_headers = current_headers;
 		}
 	}
 
