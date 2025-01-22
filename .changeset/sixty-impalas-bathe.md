@@ -1,6 +1,6 @@
 ---
-"@gradio/dataframe": minor
-"gradio": minor
+"@gradio/dataframe": patch
+"gradio": patch
 ---
 
-feat:Fix event triggers and recent regressions related to `gr.DataFrame`
+fix:Fix event triggers and recent regressions related to `gr.DataFrame`
