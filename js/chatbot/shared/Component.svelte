@@ -73,7 +73,7 @@
 			{i18n}
 			label=""
 			waveform_settings={{ autoplay: props.autoplay }}
-			waveform_options={{}}
+			waveform_options={{ ...props.waveform_options }}
 			show_download_button={allow_file_downloads}
 			{display_icon_button_wrapper_top_corner}
 			on:load

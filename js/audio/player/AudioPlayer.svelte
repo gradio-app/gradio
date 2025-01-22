@@ -55,6 +55,8 @@
 	}>();
 
 	$: use_default_controls = waveform_options.show_controls || value?.is_stream;
+	$: use_waveform =
+		waveform_options.show_recording_waveform && !value?.is_stream;
 
 	const create_waveform = (): void => {
 		waveform = WaveSurfer.create({
@@ -68,11 +70,7 @@
 		});
 	};
 
-	$: if (
-		!use_default_controls &&
-		container !== undefined &&
-		container !== null
-	) {
+	$: if (!value?.is_stream && container !== undefined && container !== null) {
 		if (waveform !== undefined) waveform.destroy();
 		container.innerHTML = "";
 		create_waveform();
@@ -146,7 +144,9 @@
 			if (waveform_options.show_recording_waveform) {
 				waveform?.load(resolved_src);
 			} else if (waveform_options.show_controls) {
-				audio_player.src = resolved_src;
+				if (audio_player) {
+					audio_player.src = resolved_src;
+				}
 			}
 		});
 	}
@@ -213,7 +213,7 @@
 
 <audio
 	class="standard-player"
-	class:hidden={!use_default_controls}
+	class:hidden={use_waveform}
 	controls
 	autoplay={waveform_settings.autoplay}
 	on:load
@@ -225,7 +225,7 @@
 	<Empty size="small">
 		<Music />
 	</Empty>
-{:else if !value.is_stream && waveform_options.show_recording_waveform}
+{:else if use_waveform}
 	<div
 		class="component-wrapper"
 		data-testid={label ? "waveform-" + label : "unlabelled-audio"}

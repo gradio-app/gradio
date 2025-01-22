@@ -191,7 +191,9 @@ class Audio(
         else:
             self.waveform_options = waveform_options
         if self.waveform_options.show_controls is None:
-            self.waveform_options.show_controls = not self.waveform_options.show_recording_waveform
+            self.waveform_options.show_controls = (
+                not self.waveform_options.show_recording_waveform
+            )
         self.min_length = min_length
         self.max_length = max_length
         self.recording = recording
