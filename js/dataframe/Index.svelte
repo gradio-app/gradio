@@ -1,10 +1,11 @@
+<svelte:options accessors={true} />
+
 <script context="module" lang="ts">
 	export { default as BaseDataFrame } from "./shared/Table.svelte";
 	export { default as BaseExample } from "./Example.svelte";
 </script>
 
 <script lang="ts">
-	import { afterUpdate, tick } from "svelte";
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { Block } from "@gradio/atoms";
 	import Table from "./shared/Table.svelte";
@@ -20,7 +21,6 @@
 		headers: ["1", "2", "3"],
 		metadata: null
 	};
-	let old_value = "";
 	export let value_is_output = false;
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
