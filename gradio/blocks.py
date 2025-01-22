@@ -1112,6 +1112,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.height = None
         self.api_open = utils.get_space() is None
         self.link_title = link_title
+        self.link_route = ""
+        self.parent_blocks: Blocks | None = None
         self.routes: dict[str, Blocks] = {"": self}
 
         self.space_id = utils.get_space()
@@ -2136,50 +2138,55 @@ Received inputs:
         return {"type": "column"}
 
     def get_config_file(self) -> BlocksConfigDict:
+        if self.parent_blocks:
+            blocks = self.parent_blocks
+        else:
+            blocks = self
+
         config: BlocksConfigDict = {
             "version": VERSION,
             "api_prefix": API_PREFIX,
-            "mode": self.mode,
-            "app_id": self.app_id,
-            "dev_mode": self.dev_mode,
-            "analytics_enabled": self.analytics_enabled,
+            "mode": blocks.mode,
+            "app_id": blocks.app_id,
+            "dev_mode": blocks.dev_mode,
+            "analytics_enabled": blocks.analytics_enabled,
             "components": [],
-            "css": self.css,
+            "css": blocks.css,
             "connect_heartbeat": False,
-            "js": self.js,
-            "head": self.head,
-            "title": self.title or "Gradio",
-            "space_id": self.space_id,
+            "js": blocks.js,
+            "head": blocks.head,
+            "title": blocks.title or "Gradio",
+            "space_id": blocks.space_id,
             "enable_queue": True,  # launch attributes
             "show_error": getattr(self, "show_error", False),
-            "show_api": self.show_api,
+            "show_api": blocks.show_api,
             "is_colab": utils.colab_check(),
             "max_file_size": getattr(self, "max_file_size", None),
-            "stylesheets": self.stylesheets,
-            "theme": self.theme.name,
+            "stylesheets": blocks.stylesheets,
+            "theme": blocks.theme.name,
             "protocol": "sse_v3",
-            "link_title": self.link_title,
+            "link_route": self.link_route,
             "body_css": {
-                "body_background_fill": self.theme._get_computed_value(
+                "body_background_fill": blocks.theme._get_computed_value(
                     "body_background_fill"
                 ),
-                "body_text_color": self.theme._get_computed_value("body_text_color"),
-                "body_background_fill_dark": self.theme._get_computed_value(
+                "body_text_color": blocks.theme._get_computed_value("body_text_color"),
+                "body_background_fill_dark": blocks.theme._get_computed_value(
                     "body_background_fill_dark"
                 ),
-                "body_text_color_dark": self.theme._get_computed_value(
+                "body_text_color_dark": blocks.theme._get_computed_value(
                     "body_text_color_dark"
                 ),
             },
-            "fill_height": self.fill_height,
-            "fill_width": self.fill_width,
-            "theme_hash": self.theme_hash,
-            "pwa": self.pwa,
-            "routes": list((path, blocks.link_title) for path, blocks in self.routes.items()),
+            "fill_height": blocks.fill_height,
+            "fill_width": blocks.fill_width,
+            "theme_hash": blocks.theme_hash,
+            "pwa": blocks.pwa,
+            "routes": list((path, blocks.link_title) for path, blocks in blocks.routes.items()),
         }
         config.update(self.default_config.get_config())  # type: ignore
         config["connect_heartbeat"] = utils.connect_heartbeat(
-            config, self.blocks.values()
+            config, blocks.blocks.values()
         )
         return config
 
@@ -3049,5 +3056,7 @@ Received inputs:
                 raise ValueError(f"Route with path '{path}' already exists in app.")
                     
         blocks = Blocks(link_title=name)
+        blocks.link_route = path
+        blocks.parent_blocks = self
         self.routes[path] = blocks
         return blocks
