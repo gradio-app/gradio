@@ -18,6 +18,21 @@ test("change events work as expected", async ({ page }) => {
 	await expect(change_text).toContainText("1");
 });
 
+test("Image editor user can draw after upload", async ({ page }) => {
+	await page.getByLabel("Upload button").first().click();
+	const uploader = page.locator("input[type=file]").first();
+
+	// crucial to use a large image here
+	await uploader.setInputFiles(["./test/files/bike.jpeg"]);
+
+	await expect(page.locator("#upload h2")).toContainText("1");
+	await page.getByLabel("Draw button").click();
+	const canvas = page.locator("canvas");
+	await canvas.click({ position: { x: 100, y: 100 } });
+	const change_text = page.locator("#change h2");
+	await expect(change_text).toContainText("2");
+});
+
 test("input events work as expected", async ({ page }) => {
 	const input_text = page.locator("#input h2");
 

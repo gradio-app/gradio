@@ -100,7 +100,10 @@
 		child_bottom: 0
 	});
 
+	export let canvas_height = undefined;
+
 	$: height = $editor_box.child_height;
+	$: canvas_height = $crop[3] * $editor_box.child_height + 1;
 
 	const crop = writable<[number, number, number, number]>([0, 0, 1, 1]);
 	const position_spring = spring(
@@ -408,6 +411,9 @@
 	.container {
 		position: relative;
 		margin: var(--spacing-md);
+		/* in case the canvas_size is really small */
+		/* set min-height so that upload text does not cover the toolbar */
+		min-height: 100px;
 	}
 
 	.no-border {
