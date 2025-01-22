@@ -31,7 +31,6 @@
 	export let i18n: I18nFormatter;
 	export let line_breaks: boolean;
 
-
 	function is_thought_node(msg: NormalisedMessage): msg is ThoughtNode {
 		return "children" in msg;
 	}
