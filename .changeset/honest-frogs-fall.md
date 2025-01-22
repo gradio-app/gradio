@@ -1,7 +1,7 @@
 ---
-"@gradio/chatbot": minor
-"gradio": minor
-"website": minor
+"@gradio/chatbot": patch
+"gradio": patch
+"website": patch
 ---
 
-feat:Tweak behavior related to the `status` of `gr.Chatbot` thought messages
+fix:Tweak behavior related to the `status` of `gr.Chatbot` thought messages
