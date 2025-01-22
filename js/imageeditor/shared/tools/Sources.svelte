@@ -28,7 +28,7 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let dragging: boolean;
-	export let canvas_size: [number, number] | undefined;
+	export let canvas_size: [number, number];
 	export let fixed_canvas = false;
 
 	const { active_tool } = getContext<ToolContext>(TOOL_KEY);
