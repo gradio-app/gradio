@@ -420,7 +420,7 @@
 		selected = [index !== undefined ? index : data.length - 1, 0];
 	}
 
-	$: data && trigger_change();
+	$: (data || _headers) && trigger_change();
 
 	async function add_col(index?: number): Promise<void> {
 		parent.focus();
