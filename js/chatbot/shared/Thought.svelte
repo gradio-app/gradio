@@ -31,7 +31,6 @@
 	export let i18n: I18nFormatter;
 	export let line_breaks: boolean;
 
-	let expanded = thought_node.metadata?.status !== "done";
 
 	function is_thought_node(msg: NormalisedMessage): msg is ThoughtNode {
 		return "children" in msg;
@@ -46,6 +45,8 @@
 	function toggleExpanded(): void {
 		expanded = !expanded;
 	}
+
+	$: expanded = thought_node.metadata?.status !== "done";
 </script>
 
 <div class="thought-group">
