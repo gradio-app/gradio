@@ -465,6 +465,9 @@ importers:
       '@gradio/paramviewer':
         specifier: workspace:^
         version: link:../paramviewer
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
       '@gradio/tabitem':
         specifier: workspace:^
         version: link:../tabitem
