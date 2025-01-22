@@ -68,7 +68,11 @@
 		});
 	};
 
-	$: if (!use_default_controls && container !== undefined && container !== null) {
+	$: if (
+		!use_default_controls &&
+		container !== undefined &&
+		container !== null
+	) {
 		if (waveform !== undefined) waveform.destroy();
 		container.innerHTML = "";
 		create_waveform();
@@ -226,7 +230,7 @@
 		class="component-wrapper"
 		data-testid={label ? "waveform-" + label : "unlabelled-audio"}
 	>
-	<div class="waveform-container">
+		<div class="waveform-container">
 			<div
 				id="waveform"
 				bind:this={container}
