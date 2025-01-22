@@ -5,3 +5,8 @@ export type Metadata = {
 	[key: string]: string[][] | null;
 } | null;
 export type HeadersWithIDs = { value: string; id: string }[];
+export type DataframeValue = {
+	data: Data;
+	headers: Headers;
+	metadata: Metadata;
+};
