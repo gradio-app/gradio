@@ -1203,6 +1203,9 @@ importers:
       '@gradio/client':
         specifier: workspace:^
         version: link:../../client/js
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
       '@gradio/markdown-code':
         specifier: workspace:^
         version: link:../markdown-code

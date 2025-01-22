@@ -12,6 +12,7 @@
 	import VirtualTable from "./VirtualTable.svelte";
 	import type { Headers, HeadersWithIDs, Metadata, Datatype } from "./utils";
 	import CellMenu from "./CellMenu.svelte";
+	import Toolbar from "./Toolbar.svelte";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -37,6 +38,7 @@
 	export let show_row_numbers = false;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let show_fullscreen_button = false;
 	export let value_is_output = false;
 
 	let selected: false | [number, number] = false;
@@ -696,9 +698,14 @@
 	onMount(() => {
 		document.addEventListener("click", handle_click_outside);
 		window.addEventListener("resize", handle_resize);
+		document.addEventListener("fullscreenchange", handle_fullscreen_change);
 		return () => {
 			document.removeEventListener("click", handle_click_outside);
 			window.removeEventListener("resize", handle_resize);
+			document.removeEventListener(
+				"fullscreenchange",
+				handle_fullscreen_change
+			);
 		};
 	});
 
@@ -734,6 +741,22 @@
 		y: number;
 	} | null = null;
 
+	let is_fullscreen = false;
+
+	function toggle_fullscreen(): void {
+		if (!document.fullscreenElement) {
+			parent.requestFullscreen();
+			is_fullscreen = true;
+		} else {
+			document.exitFullscreen();
+			is_fullscreen = false;
+		}
+	}
+
+	function handle_fullscreen_change(): void {
+		is_fullscreen = !!document.fullscreenElement;
+	}
+
 	function toggle_header_menu(event: MouseEvent, col: number): void {
 		event.stopPropagation();
 		if (active_header_menu && active_header_menu.col === col) {
@@ -758,12 +781,19 @@
 
 <svelte:window on:resize={() => set_cell_widths()} />
 
-<div class:label={label && label.length !== 0} use:copy>
-	{#if label && label.length !== 0 && show_label}
-		<p>
-			{label}
-		</p>
-	{/if}
+<div class="table-container">
+	<div class="header-row">
+		{#if label && label.length !== 0 && show_label}
+			<div class="label">
+				<p>{label}</p>
+			</div>
+		{/if}
+		<Toolbar
+			{show_fullscreen_button}
+			{is_fullscreen}
+			on:click={toggle_fullscreen}
+		/>
+	</div>
 	<div
 		bind:this={parent}
 		class="table-wrap"
@@ -1249,6 +1279,12 @@
 		word-break: break-word;
 	}
 
+	.table-container {
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-2);
+	}
+
 	.row-number,
 	.row-number-header {
 		width: var(--size-7);
@@ -1276,5 +1312,26 @@
 
 	:global(tbody > tr:nth-child(odd)) .row-number {
 		background: var(--table-odd-background-fill);
+	}
+
+	.header-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: var(--size-2);
+		height: var(--size-6);
+		min-height: var(--size-6);
+	}
+
+	.label {
+		flex: 1;
+	}
+
+	.label p {
+		position: relative;
+		z-index: var(--layer-4);
+		margin: 0;
+		color: var(--block-label-text-color);
+		font-size: var(--block-label-text-size);
 	}
 </style>
