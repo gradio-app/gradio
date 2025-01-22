@@ -1018,6 +1018,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         fill_height: bool = False,
         fill_width: bool = False,
         delete_cache: tuple[int, int] | None = None,
+        link_title: str = "Home",
         **kwargs,
     ):
         """
@@ -1034,6 +1035,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width. Only applies if this is the outermost `Blocks` in your Gradio app.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
+            link_title: The title of the link in the nav bar for this page, if this app has multiple routes.
         """
         self.limiter = None
         if theme is None:
@@ -1109,6 +1111,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.width = None
         self.height = None
         self.api_open = utils.get_space() is None
+        self.link_title = link_title
+        self.routes: dict[str, Blocks] = {"": self}
 
         self.space_id = utils.get_space()
         self.favicon_path = None
@@ -2154,6 +2158,7 @@ Received inputs:
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
             "protocol": "sse_v3",
+            "link_title": self.link_title,
             "body_css": {
                 "body_background_fill": self.theme._get_computed_value(
                     "body_background_fill"
@@ -2170,6 +2175,7 @@ Received inputs:
             "fill_width": self.fill_width,
             "theme_hash": self.theme_hash,
             "pwa": self.pwa,
+            "routes": list((path, blocks.link_title) for path, blocks in self.routes.items()),
         }
         config.update(self.default_config.get_config())  # type: ignore
         config["connect_heartbeat"] = utils.connect_heartbeat(
@@ -3031,3 +3037,17 @@ Received inputs:
             event = getattr(block, event_name)
             target_events.append(event)
         return target_events
+
+    def route(self, name: str, path: str | None = None):
+        if self.app is None:
+            raise ValueError("Route cannot be created inside the main Blocks.")
+        if path is None:
+            path = name.lower().replace(" ", "-")
+        path = path.strip("/")
+        for existing_route in self.app.routes:
+            if existing_route.path.strip("/") == path:
+                raise ValueError(f"Route with path '{path}' already exists in app.")
+                    
+        blocks = Blocks(link_title=name)
+        self.routes[path] = blocks
+        return blocks

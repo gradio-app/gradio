@@ -35,6 +35,8 @@
 		username: string | null;
 		api_prefix?: string;
 		max_file_size?: number;
+		routes: [string, string][];
+		link_title: string;
 	}
 
 	let id = -1;

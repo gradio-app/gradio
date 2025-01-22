@@ -524,16 +524,32 @@ class App(FastAPI):
                 )
             )
 
+        @app.get("/page-{path}")
+        async def page_route(path: str, request: fastapi.Request, user: str = Depends(get_current_user)):
+            path = path.strip("/")
+            return main(request, user, path)
+            
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
-        def main(request: fastapi.Request, user: str = Depends(get_current_user)):
+        def main(request: fastapi.Request, user: str = Depends(get_current_user), route: str | None = None):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
             root = route_utils.get_root_url(
-                request=request, route_path="/", root_path=app.root_path
+                request=request, route_path=f"/page-{route}" if route else "/", root_path=app.root_path
             )
-            if (app.auth is None and app.auth_dependency is None) or user is not None:
+            if (app.auth is None and app.auth_dependency is None) or user is not None:                    
                 config = utils.safe_deepcopy(blocks.config)
+                if route is not None:
+                    if route not in blocks.routes:
+                        raise HTTPException(
+                            status_code=status.HTTP_404_NOT_FOUND, detail="Route not found"
+                        )
+                    route_blocks = blocks.routes[route]
+                    route_config = route_blocks.config
+                    config["components"] = route_config["components"]
+                    config["dependencies"] = route_config["dependencies"]
+                    config["layout"] = route_config["layout"]
+                    config["link_title"] = route_config["link_title"]
                 config = route_utils.update_root_in_config(config, root)
                 config["username"] = user
             elif app.auth_dependency:
