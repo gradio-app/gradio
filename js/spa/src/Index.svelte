@@ -36,7 +36,7 @@
 		api_prefix?: string;
 		max_file_size?: number;
 		routes: [string, string][];
-		link_title: string;
+		link_route: string;
 	}
 
 	let id = -1;

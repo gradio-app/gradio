@@ -537,19 +537,17 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request, route_path=f"/page-{route}" if route else "/", root_path=app.root_path
             )
-            if (app.auth is None and app.auth_dependency is None) or user is not None:                    
-                config = utils.safe_deepcopy(blocks.config)
+            if (app.auth is None and app.auth_dependency is None) or user is not None:
                 if route is not None:
                     if route not in blocks.routes:
                         raise HTTPException(
                             status_code=status.HTTP_404_NOT_FOUND, detail="Route not found"
                         )
-                    route_blocks = blocks.routes[route]
-                    route_config = route_blocks.config
-                    config["components"] = route_config["components"]
-                    config["dependencies"] = route_config["dependencies"]
-                    config["layout"] = route_config["layout"]
-                    config["link_title"] = route_config["link_title"]
+                    config = blocks.routes[route].config
+                else:
+                    config = blocks.config
+
+                config = utils.safe_deepcopy(config)
                 config = route_utils.update_root_in_config(config, root)
                 config["username"] = user
             elif app.auth_dependency:
@@ -604,12 +602,20 @@ class App(FastAPI):
                 app.api_info = api_info
             return app.api_info
 
+        @app.get("/page-{path}/config/", dependencies=[Depends(login_check)])
+        @app.get("/page-{path}/config", dependencies=[Depends(login_check)])
+        def get_page_config(request: fastapi.Request, path: str):
+            return get_config(request, path)
+
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
-        def get_config(request: fastapi.Request):
-            config = utils.safe_deepcopy(app.get_blocks().config)
+        def get_config(request: fastapi.Request, path: str | None = None):
+            blocks = app.get_blocks()
+            if path:
+                blocks = blocks.routes[path]
+            config = utils.safe_deepcopy(blocks.config)
             root = route_utils.get_root_url(
-                request=request, route_path="/config", root_path=app.root_path
+                request=request, route_path=f"/page-{path}/config" if path else "/config", root_path=app.root_path
             )
             config = route_utils.update_root_in_config(config, root)
             config["username"] = get_current_user(request)

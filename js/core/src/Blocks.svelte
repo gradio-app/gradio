@@ -52,7 +52,7 @@
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
 	export let routes: [string, string][] = [];
-	export let link_title: string = "";
+	export let link_route: string = "";
 	let {
 		layout: _layout,
 		targets,
@@ -751,7 +751,7 @@
 	{#if routes.length > 1}
 		<nav>
 			{#each routes as [route, label], i}
-				<a href={route.length ? `page-${route}` : "/"} style:font-weight={label === link_title ? "bold" : "normal"}>{label}</a> {i < routes.length - 1 ? "·" : ""}
+				<a href={route.length ? `page-${route}` : "/"} style:font-weight={route === link_route ? "bold" : "normal"}>{label}</a> {i < routes.length - 1 ? "·" : ""}
 			{/each}
 		</nav>
 	{/if}
