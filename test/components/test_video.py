@@ -101,9 +101,13 @@ class TestVideo:
 
         video = gr.Video(format="wav")
         video_url_with_query_param = "https://github.com/gradio-app/gradio/raw/refs/heads/main/test/test_files/playable_but_bad_container.mp4?query=fake"
-        postprocessed_video_with_query_param = video.postprocess(video_url_with_query_param)
+        postprocessed_video_with_query_param = video.postprocess(
+            video_url_with_query_param
+        )
         assert postprocessed_video_with_query_param
-        assert postprocessed_video_with_query_param.model_dump()["video"]["path"].endswith("playable_but_bad_container.wav")
+        assert postprocessed_video_with_query_param.model_dump()["video"][
+            "path"
+        ].endswith("playable_but_bad_container.wav")
 
         p_video = gr.Video()
         video_with_subtitle = gr.Video()
