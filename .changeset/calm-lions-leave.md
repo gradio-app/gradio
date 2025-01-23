@@ -1,6 +1,6 @@
 ---
-"@gradio/imageeditor": patch
-"gradio": patch
+"@gradio/imageeditor": minor
+"gradio": minor
 ---
 
-fix:Fix ImageEditor Size Issues
+feat:Clear Image Editor Value with None
