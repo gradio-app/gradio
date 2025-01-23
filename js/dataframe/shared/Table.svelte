@@ -792,7 +792,6 @@
 		value_is_output = false;
 	});
 
-	// Add new delete functions
 	async function delete_row(index: number): Promise<void> {
 		parent.focus();
 		if (row_count[1] !== "dynamic") return;
@@ -818,7 +817,6 @@
 		selected = false;
 	}
 
-	// Add delete functions to CellMenu
 	function delete_row_at(index: number): void {
 		delete_row(index);
 		active_cell_menu = null;
