@@ -601,6 +601,8 @@ class Numpy(components.Dataframe):
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
+        show_row_numbers: bool = False,
+        show_fullscreen_button: bool = False,
     ):
         super().__init__(
             value=value,
@@ -626,6 +628,8 @@ class Numpy(components.Dataframe):
             scale=scale,
             latex_delimiters=latex_delimiters,
             min_width=min_width,
+            show_row_numbers=show_row_numbers,
+            show_fullscreen_button=show_fullscreen_button,
         )
 
 
@@ -665,6 +669,8 @@ class Matrix(components.Dataframe):
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
+        show_row_numbers: bool = False,
+        show_fullscreen_button: bool = True,
     ):
         super().__init__(
             value=value,
@@ -690,6 +696,8 @@ class Matrix(components.Dataframe):
             scale=scale,
             latex_delimiters=latex_delimiters,
             min_width=min_width,
+            show_row_numbers=show_row_numbers,
+            show_fullscreen_button=show_fullscreen_button,
         )
 
 
@@ -729,6 +737,8 @@ class List(components.Dataframe):
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
+        show_row_numbers: bool = False,
+        show_fullscreen_button: bool = True,
     ):
         super().__init__(
             value=value,
@@ -754,6 +764,8 @@ class List(components.Dataframe):
             scale=scale,
             latex_delimiters=latex_delimiters,
             min_width=min_width,
+            show_row_numbers=show_row_numbers,
+            show_fullscreen_button=show_fullscreen_button,
         )
 
 
