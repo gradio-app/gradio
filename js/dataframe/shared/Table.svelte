@@ -808,11 +808,9 @@
 		if (col_count[1] !== "dynamic") return;
 		if (data[0].length <= 1) return;
 
-		// Remove column from headers
 		_headers.splice(index, 1);
 		_headers = _headers;
 
-		// Remove column from data
 		data.forEach(row => {
 			row.splice(index, 1);
 		});
