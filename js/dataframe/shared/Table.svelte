@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { createEventDispatcher, tick, onMount } from "svelte";
+	import { afterUpdate, createEventDispatcher, tick, onMount } from "svelte";
 	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
-	import { copy } from "@gradio/utils";
 	import { Upload } from "@gradio/upload";
 
 	import EditableCell from "./EditableCell.svelte";
@@ -10,8 +9,14 @@
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import { type Client } from "@gradio/client";
 	import VirtualTable from "./VirtualTable.svelte";
-	import type { Headers, HeadersWithIDs, Metadata, Datatype } from "./utils";
+	import type {
+		Headers,
+		HeadersWithIDs,
+		DataframeValue,
+		Datatype
+	} from "./utils";
 	import CellMenu from "./CellMenu.svelte";
+	import Toolbar from "./Toolbar.svelte";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -34,20 +39,21 @@
 	export let max_height = 500;
 	export let line_breaks = true;
 	export let column_widths: string[] = [];
+	export let show_row_numbers = false;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let show_fullscreen_button = false;
+	export let value_is_output = false;
 
 	let selected: false | [number, number] = false;
+	let clicked_cell: { row: number; col: number } | undefined = undefined;
 	export let display_value: string[][] | null = null;
 	export let styling: string[][] | null = null;
 	let t_rect: DOMRectReadOnly;
 
 	const dispatch = createEventDispatcher<{
-		change: {
-			data: (string | number)[][];
-			headers: string[];
-			metadata: Metadata;
-		};
+		change: DataframeValue;
+		input: undefined;
 		select: SelectData;
 	}>();
 
@@ -142,38 +148,49 @@
 	}
 
 	let _headers = make_headers(headers);
-	let old_headers: string[] | undefined;
+	let old_headers: string[] = headers;
 
 	$: {
 		if (!dequal(headers, old_headers)) {
-			trigger_headers();
+			_headers = make_headers(headers);
+			old_headers = JSON.parse(JSON.stringify(headers));
 		}
 	}
 
-	function trigger_headers(): void {
-		_headers = make_headers(headers);
-
-		old_headers = headers.slice();
-		trigger_change();
-	}
+	let data: { id: string; value: string | number }[][] = [[]];
+	let old_val: undefined | (string | number)[][] = undefined;
 
 	$: if (!dequal(values, old_val)) {
 		data = process_data(values as (string | number)[][]);
-		old_val = values as (string | number)[][];
+		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
 	}
 
-	let data: { id: string; value: string | number }[][] = [[]];
-
-	let old_val: undefined | (string | number)[][] = undefined;
+	let previous_headers = _headers.map((h) => h.value);
+	let previous_data = data.map((row) => row.map((cell) => String(cell.value)));
 
 	async function trigger_change(): Promise<void> {
-		dispatch("change", {
-			data: data.map((r) => r.map(({ value }) => value)),
-			headers: _headers.map((h) => h.value),
-			metadata: editable
-				? null
-				: { display_value: display_value, styling: styling }
-		});
+		const current_headers = _headers.map((h) => h.value);
+		const current_data = data.map((row) =>
+			row.map((cell) => String(cell.value))
+		);
+
+		if (
+			!dequal(current_data, previous_data) ||
+			!dequal(current_headers, previous_headers)
+		) {
+			// We dispatch the value as part of the change event to ensure that the value is updated
+			// in the parent component and the updated value is passed into the user's function
+			dispatch("change", {
+				data: data.map((row) => row.map((cell) => cell.value)),
+				headers: _headers.map((h) => h.value),
+				metadata: null
+			});
+			if (!value_is_output) {
+				dispatch("input");
+			}
+			previous_data = current_data;
+			previous_headers = current_headers;
+		}
 	}
 
 	function get_sort_status(
@@ -202,12 +219,6 @@
 			},
 			[-1, -1]
 		);
-	}
-
-	async function start_edit(i: number, j: number): Promise<void> {
-		if (!editable || dequal(editing, [i, j])) return;
-
-		editing = [i, j];
 	}
 
 	function move_cursor(
@@ -349,25 +360,6 @@
 		}
 	}
 
-	let active_cell: { row: number; col: number } | null = null;
-
-	async function handle_cell_click(i: number, j: number): Promise<void> {
-		if (active_cell && active_cell.row === i && active_cell.col === j) {
-			active_cell = null;
-		} else {
-			active_cell = { row: i, col: j };
-		}
-		if (dequal(editing, [i, j])) return;
-		header_edit = false;
-		selected_header = false;
-		editing = false;
-		if (!dequal(selected, [i, j])) {
-			selected = [i, j];
-			await tick();
-			parent.focus();
-		}
-	}
-
 	type SortDirection = "asc" | "des";
 	let sort_direction: SortDirection | undefined;
 	let sort_by: number | undefined;
@@ -440,7 +432,7 @@
 		selected = [index !== undefined ? index : data.length - 1, 0];
 	}
 
-	$: (data || selected_header) && trigger_change();
+	$: (data || _headers) && trigger_change();
 
 	async function add_col(index?: number): Promise<void> {
 		parent.focus();
@@ -479,17 +471,16 @@
 			active_header_menu = null;
 		}
 
-		event.stopImmediatePropagation();
 		const [trigger] = event.composedPath() as HTMLElement[];
 		if (parent.contains(trigger)) {
 			return;
 		}
 
+		clicked_cell = undefined;
 		editing = false;
+		selected = false;
 		header_edit = false;
 		selected_header = false;
-		reset_selection();
-		active_cell = null;
 		active_cell_menu = null;
 		active_header_menu = null;
 	}
@@ -666,8 +657,18 @@
 
 		observer.observe(parent);
 
+		document.addEventListener("click", handle_click_outside);
+		window.addEventListener("resize", handle_resize);
+		document.addEventListener("fullscreenchange", handle_fullscreen_change);
+
 		return () => {
 			observer.disconnect();
+			document.removeEventListener("click", handle_click_outside);
+			window.removeEventListener("resize", handle_resize);
+			document.removeEventListener(
+				"fullscreenchange",
+				handle_fullscreen_change
+			);
 		};
 	});
 
@@ -722,15 +723,6 @@
 		set_cell_widths();
 	}
 
-	onMount(() => {
-		document.addEventListener("click", handle_click_outside);
-		window.addEventListener("resize", handle_resize);
-		return () => {
-			document.removeEventListener("click", handle_click_outside);
-			window.removeEventListener("resize", handle_resize);
-		};
-	});
-
 	let active_button: {
 		type: "header" | "cell";
 		row?: number;
@@ -763,6 +755,22 @@
 		y: number;
 	} | null = null;
 
+	let is_fullscreen = false;
+
+	function toggle_fullscreen(): void {
+		if (!document.fullscreenElement) {
+			parent.requestFullscreen();
+			is_fullscreen = true;
+		} else {
+			document.exitFullscreen();
+			is_fullscreen = false;
+		}
+	}
+
+	function handle_fullscreen_change(): void {
+		is_fullscreen = !!document.fullscreenElement;
+	}
+
 	function toggle_header_menu(event: MouseEvent, col: number): void {
 		event.stopPropagation();
 		if (active_header_menu && active_header_menu.col === col) {
@@ -780,24 +788,26 @@
 		}
 	}
 
-	function reset_selection(): void {
-		selected = false;
-		last_selected = null;
-	}
+	afterUpdate(() => {
+		value_is_output = false;
+	});
 </script>
 
-<svelte:window
-	on:click={handle_click_outside}
-	on:touchstart={handle_click_outside}
-	on:resize={() => set_cell_widths()}
-/>
+<svelte:window on:resize={() => set_cell_widths()} />
 
-<div class:label={label && label.length !== 0} use:copy>
-	{#if label && label.length !== 0 && show_label}
-		<p>
-			{label}
-		</p>
-	{/if}
+<div class="table-container">
+	<div class="header-row">
+		{#if label && label.length !== 0 && show_label}
+			<div class="label">
+				<p>{label}</p>
+			</div>
+		{/if}
+		<Toolbar
+			{show_fullscreen_button}
+			{is_fullscreen}
+			on:click={toggle_fullscreen}
+		/>
+	</div>
 	<div
 		bind:this={parent}
 		class="table-wrap"
@@ -818,6 +828,9 @@
 			{/if}
 			<thead>
 				<tr>
+					{#if show_row_numbers}
+						<th class="row-number-header"></th>
+					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
 							class:editing={header_edit === i}
@@ -897,6 +910,9 @@
 					<caption class="sr-only">{label}</caption>
 				{/if}
 				<tr slot="thead">
+					{#if show_row_numbers}
+						<th class="row-number-header"></th>
+					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
 							class:focus={header_edit === i || selected_header === i}
@@ -916,17 +932,14 @@
 										edit={header_edit === i}
 										on:keydown={end_header_edit}
 										on:dblclick={() => edit_header(i)}
-										{select_on_focus}
 										header
 										{root}
 									/>
-									<!-- TODO: fix -->
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<!-- svelte-ignore a11y-no-static-element-interactions-->
-									<div
+									<button
 										class:sorted={sort_by === i}
 										class:des={sort_by === i && sort_direction === "des"}
 										class="sort-button {sort_direction}"
+										tabindex="0"
 										on:click={(event) => {
 											event.stopPropagation();
 											handle_sort(i);
@@ -941,7 +954,7 @@
 										>
 											<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
 										</svg>
-									</div>
+									</button>
 								</div>
 
 								{#if editable}
@@ -958,15 +971,44 @@
 				</tr>
 
 				<tr slot="tbody" let:item let:index class:row_odd={index % 2 === 0}>
+					{#if show_row_numbers}
+						<td class="row-number" title={`Row ${index + 1}`}>{index + 1}</td>
+					{/if}
 					{#each item as { value, id }, j (id)}
 						<td
 							tabindex="0"
-							on:touchstart={() => start_edit(index, j)}
-							on:click={() => {
-								handle_cell_click(index, j);
+							on:touchstart={(event) => {
+								event.preventDefault();
+								event.stopPropagation();
+								clear_on_focus = false;
+								clicked_cell = { row: index, col: j };
+								selected = [index, j];
+								selected_header = false;
+								header_edit = false;
+								if (editable) {
+									editing = [index, j];
+								}
 								toggle_cell_button(index, j);
 							}}
-							on:dblclick={() => start_edit(index, j)}
+							on:mousedown={(event) => {
+								event.preventDefault();
+								event.stopPropagation();
+							}}
+							on:click={(event) => {
+								event.preventDefault();
+								event.stopPropagation();
+								clear_on_focus = false;
+								active_cell_menu = null;
+								active_header_menu = null;
+								clicked_cell = { row: index, col: j };
+								selected = [index, j];
+								selected_header = false;
+								header_edit = false;
+								if (editable) {
+									editing = [index, j];
+								}
+								toggle_cell_button(index, j);
+							}}
 							style:width="var(--cell-width-{j})"
 							style={styling?.[index]?.[j] || ""}
 							class:focus={dequal(selected, [index, j])}
@@ -984,7 +1026,10 @@
 									{editable}
 									edit={dequal(editing, [index, j])}
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
-									on:blur={() => ((clear_on_focus = false), parent.focus())}
+									on:blur={() => {
+										clear_on_focus = false;
+										parent.focus();
+									}}
 									{clear_on_focus}
 									{root}
 								/>
@@ -1250,5 +1295,61 @@
 		white-space: normal;
 		overflow-wrap: break-word;
 		word-break: break-word;
+	}
+
+	.table-container {
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-2);
+	}
+
+	.row-number,
+	.row-number-header {
+		width: var(--size-7);
+		min-width: var(--size-7);
+		text-align: center;
+		background: var(--table-even-background-fill);
+		position: sticky;
+		left: 0;
+		font-size: var(--input-text-size);
+		color: var(--body-text-color);
+		padding: var(--size-1) var(--size-2);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-weight: var(--weight-semibold);
+	}
+
+	.row-number-header {
+		z-index: var(--layer-2);
+	}
+
+	.row-number {
+		z-index: var(--layer-1);
+	}
+
+	:global(tbody > tr:nth-child(odd)) .row-number {
+		background: var(--table-odd-background-fill);
+	}
+
+	.header-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: var(--size-2);
+		height: var(--size-6);
+		min-height: var(--size-6);
+	}
+
+	.label {
+		flex: 1;
+	}
+
+	.label p {
+		position: relative;
+		z-index: var(--layer-4);
+		margin: 0;
+		color: var(--block-label-text-color);
+		font-size: var(--block-label-text-size);
 	}
 </style>

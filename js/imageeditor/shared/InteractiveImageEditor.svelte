@@ -50,14 +50,15 @@
 		| "error"
 		| "generating"
 		| "streaming" = "complete";
-	export let canvas_size: [number, number] = [800, 600];
+	export let canvas_size: [number, number];
 	export let fixed_canvas = false;
 	export let realtime: boolean;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let dragging: boolean;
 	export let placeholder: string | undefined = undefined;
-	export let height = 450;
+	export let dynamic_height: number | undefined = undefined;
+	export let height;
 	export let full_history: CommandNode | null = null;
 
 	const dispatch = createEventDispatcher<{
@@ -214,6 +215,10 @@
 	let active_mode: "webcam" | "color" | null = null;
 	let editor_height = height - 100;
 
+	let _dynamic_height: number;
+
+	$: dynamic_height = _dynamic_height;
+
 	$: [heading, paragraph] = placeholder ? inject(placeholder) : [false, false];
 </script>
 
@@ -228,6 +233,7 @@
 	crop_size={Array.isArray(crop_size) ? crop_size : undefined}
 	bind:this={editor}
 	bind:height={editor_height}
+	bind:canvas_height={_dynamic_height}
 	parent_height={height}
 	{changeable}
 	on:save

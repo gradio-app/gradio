@@ -5,7 +5,7 @@ with gr.Blocks() as demo:
         with gr.Column():
             image = gr.ImageEditor(label="Default Canvas. Not fixed", elem_id="default")
         with gr.Column():
-            custom_canvas = gr.ImageEditor(label="Custom Canvas, not fixed", canvas_size=(100, 100),
+            custom_canvas = gr.ImageEditor(label="Custom Canvas, not fixed", canvas_size=(300, 300),
                                            elem_id="small")
         with gr.Column():
             custom_canvas_fixed = gr.ImageEditor(label="Custom Canvas,fixed", canvas_size=(500, 500), fixed_canvas=True,

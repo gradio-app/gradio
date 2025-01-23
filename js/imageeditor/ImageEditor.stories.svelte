@@ -42,6 +42,7 @@
 		interactive: "true",
 		label: "Image Editor",
 		show_label: true,
+		canvas_size: [800, 600],
 		brush: {
 			default_size: "auto",
 			colors: ["#ff0000", "#00ff00", "#0000ff"],
@@ -216,6 +217,7 @@
 		type: "pil",
 		placeholder: "Upload an image of a cat",
 		sources: ["upload", "webcam"],
+		canvas_size: [800, 800],
 		interactive: "true",
 		brush: {
 			default_size: "auto",

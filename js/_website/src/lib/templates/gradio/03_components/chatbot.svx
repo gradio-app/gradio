@@ -45,14 +45,19 @@
             "doc": "The ID of the parent message. Only used for nested thoughts."
         },
         {
+            "name": "log",
+            "annotation": "str",
+            "doc": "A string message to display next to the thought title in a subdued font."
+        },
+        {
             "name": "duration",
             "annotation": "float",
-            "doc": "The duration of the message. Appears next to the title in the thought bubble in a subdued font."
+            "doc": "The duration of the message in seconds. Appears next to the thought title in a subdued font inside a parentheses."
         },
         {
             "name": "status",
             "annotation": "Literal['pending', 'done']",
-            "doc": "The status of the message. If 'pending', the status is displayed as a spinner icon."
+            "doc": "The status of the message. If "pending", a spinner icon appears next to the thought title. If "done", the thought accordion becomes closed. If not provided, the thought accordion is open and no spinner is displayed."
         }
     ]
 

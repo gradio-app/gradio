@@ -1,5 +1,15 @@
 # @gradio/row
 
+## 0.2.1
+
+### Fixes
+
+- [#10372](https://github.com/gradio-app/gradio/pull/10372) [`96bbde2`](https://github.com/gradio-app/gradio/commit/96bbde277e059f79bb2c9898576050e84dab147a) - Allow propogation of fill_height through Rows and Tabs, via scale.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.2
+
 ## 0.2.0
 
 ### Dependency updates

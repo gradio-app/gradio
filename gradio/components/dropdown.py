@@ -78,7 +78,7 @@ class Dropdown(FormComponent):
         """
         Parameters:
             choices: a list of string or numeric options to choose from. An option can also be a tuple of the form (name, value), where name is the displayed name of the dropdown choice and value is the value to be passed to the function, or returned by the function.
-            value: the value selected in dropdown. If `multiselect` is true, this should be list, otherwise a single string or number. By default, the first choice is initally selected. If set to None, no value is initally selected. If a callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: the value selected in dropdown. If `multiselect` is true, this should be list, otherwise a single string or number from among `choices`. By default, the first choice in `choices` is initally selected. If set explicitly to None, no value is initally selected. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             type: type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             multiselect: if True, multiple choices can be selected.
             allow_custom_value: if True, allows user to enter a custom value that is not in the list of choices.

@@ -1,6 +1,6 @@
 {
 	"name": "@self/tootils",
-	"version": "0.7.12",
+	"version": "0.7.13",
 	"description": "Internal test utilities",
 	"type": "module",
 	"main": "src/index.ts",

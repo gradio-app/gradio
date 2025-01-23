@@ -88,15 +88,17 @@ export function add_bg_image(
 			const img = await createImageBitmap(background);
 			const bitmap_texture = Texture.from(img);
 			sprite = new Sprite(bitmap_texture) as Sprite & DisplayObject;
+			if (!fixed_canvas) {
+				canvas_size = [sprite.width, sprite.height];
+			}
 
 			if (fixed_canvas) {
-				// If canvas_size is provided, fit the image within those dimensions
-				const [canvasWidth, canvasHeight] = canvas_size;
+				const [canvas_width, canvas_height] = canvas_size;
 				const { width, height, x, y } = fit_image_to_canvas(
 					sprite.width,
 					sprite.height,
-					canvasWidth,
-					canvasHeight
+					canvas_width,
+					canvas_height
 				);
 
 				sprite.width = width;
@@ -121,7 +123,9 @@ export function add_bg_image(
 		},
 		async execute() {
 			resize(
+				// @ts-ignore
 				fixed_canvas ? canvas_size[0] : sprite.width,
+				// @ts-ignore
 				fixed_canvas ? canvas_size[1] : sprite.height
 			);
 
