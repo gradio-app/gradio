@@ -56,10 +56,6 @@
 		accept_blobs: (a: any) => void;
 	};
 	export let canvas_size: [number, number];
-<<<<<<< HEAD
-
-=======
->>>>>>> e69a2b601 (add code)
 	export let fixed_canvas = false;
 	export let show_fullscreen_button = true;
 	export let full_history: any = null;
