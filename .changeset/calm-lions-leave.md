@@ -1,6 +1,6 @@
 ---
-"@gradio/imageeditor": patch
-"gradio": patch
+"@gradio/imageeditor": minor
+"gradio": minor
 ---
 
-fix:Fix ImageEditor Size Issues
+feat:Fix Image Editor Cropping
