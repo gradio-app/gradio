@@ -112,12 +112,12 @@ As an example:
 import gradio as gr
 
 history = [
-    {"role": "assistant", content="I am happy to provide you that report and plot."}
-    {"role": "assistant", content=gr.Plot(value=make_plot_from_file('quaterly_sales.txt'))}
+    {"role": "assistant", "content": "I am happy to provide you that report and plot."},
+    {"role": "assistant", "content": gr.Plot(value=make_plot_from_file('quaterly_sales.txt'))}
 ]
 
 with gr.Blocks() as demo:
-    gr.Chatbot(history)
+    gr.Chatbot(history, type="messages")
 
 demo.launch()
 ```
@@ -129,12 +129,12 @@ import gradio as gr
 
 history = [
     gr.ChatMessage(role="assistant", content="How can I help you?"),
-    gr.ChatMessage(role="user", content="Can you make me a plot of quarterly sales?"},
-    gr.ChatMessage(role="assistant", content="I am happy to provide you that report and plot."}
+    gr.ChatMessage(role="user", content="Can you make me a plot of quarterly sales?"),
+    gr.ChatMessage(role="assistant", content="I am happy to provide you that report and plot.")
 ]
 
 with gr.Blocks() as demo:
-    gr.Chatbot(history)
+    gr.Chatbot(history, type="messages")
 
 demo.launch()
 ```
