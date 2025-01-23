@@ -12,6 +12,10 @@
 	export let row: number;
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
+	export let on_delete_row: () => void;
+	export let on_delete_col: () => void;
+	export let can_delete_rows: boolean;
+	export let can_delete_cols: boolean;
 
 	export let i18n: I18nFormatter;
 	let menu_element: HTMLDivElement;
@@ -50,23 +54,33 @@
 <div bind:this={menu_element} class="cell-menu">
 	{#if !is_header && can_add_rows}
 		<button on:click={() => on_add_row_above()}>
-			<Arrow transform="rotate(-90 12 12)" />
+			<Arrow transform="rotate(270)" />
 			{i18n("dataframe.add_row_above")}
 		</button>
 		<button on:click={() => on_add_row_below()}>
-			<Arrow transform="rotate(90 12 12)" />
+			<Arrow transform="rotate(90)" />
 			{i18n("dataframe.add_row_below")}
 		</button>
+		{#if can_delete_rows}
+			<button on:click={on_delete_row} class="delete">
+				{i18n("dataframe.delete_row")}
+			</button>
+		{/if}
 	{/if}
 	{#if can_add_columns}
 		<button on:click={() => on_add_column_left()}>
-			<Arrow transform="rotate(180 12 12)" />
+			<Arrow transform="rotate(180)" />
 			{i18n("dataframe.add_column_left")}
 		</button>
 		<button on:click={() => on_add_column_right()}>
-			<Arrow transform="rotate(0 12 12)" />
+			<Arrow transform="rotate(0)" />
 			{i18n("dataframe.add_column_right")}
 		</button>
+		{#if can_delete_cols}
+			<button on:click={on_delete_col} class="delete">
+				{i18n("dataframe.delete_column")}
+			</button>
+		{/if}
 	{/if}
 </div>
 
@@ -113,5 +127,13 @@
 
 	.cell-menu button:hover :global(svg) {
 		fill: var(--color-accent);
+	}
+
+	.delete {
+		color: var(--error-text-color);
+	}
+	
+	.delete:hover {
+		background-color: var(--error-background-fill);
 	}
 </style>
