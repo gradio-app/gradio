@@ -328,15 +328,18 @@ def lru_cache_async(maxsize: int = 128):
 async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
     temp_dir = Path(cache_dir) / hash_url(url)
     temp_dir.mkdir(exist_ok=True, parents=True)
-    filename = client_utils.strip_invalid_filename_characters(Path(url).name)
-    full_temp_file_path = str(abspath(temp_dir / filename))
 
+    parsed_url = urlparse(url)
+    base_path = parsed_url.path.rstrip("/")
+    filename = (
+        client_utils.strip_invalid_filename_characters(Path(base_path).name) or "file"
+    )
+
+    full_temp_file_path = str(abspath(temp_dir / filename))
     if Path(full_temp_file_path).exists():
         return full_temp_file_path
 
-    parsed_url = urlparse(url)
     hostname = parsed_url.hostname
-
     response = await sh.get(
         url, domain_whitelist=PUBLIC_HOSTNAME_WHITELIST, _transport=async_transport
     )
