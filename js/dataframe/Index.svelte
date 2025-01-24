@@ -31,6 +31,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let root: string;
+	export let show_row_numbers = false;
 
 	export let line_breaks = true;
 	export let column_widths: string[] = [];
@@ -104,6 +105,7 @@
 		upload={(...args) => gradio.client.upload(...args)}
 		stream_handler={(...args) => gradio.client.stream(...args)}
 		bind:value_is_output
+		{show_row_numbers}
 		{show_fullscreen_button}
 	/>
 </Block>
