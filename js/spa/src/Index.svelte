@@ -35,6 +35,8 @@
 		username: string | null;
 		api_prefix?: string;
 		max_file_size?: number;
+		pages: [string, string][];
+		current_page: string;
 	}
 
 	let id = -1;

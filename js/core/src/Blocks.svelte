@@ -51,6 +51,9 @@
 	export let max_file_size: number | undefined = undefined;
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
+	export let pages: [string, string][] = [];
+	export let current_page: string = "";
+
 	let {
 		layout: _layout,
 		targets,
@@ -746,6 +749,18 @@
 </svelte:head>
 
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
+	{#if pages.length > 1}
+		<nav>
+			{#each pages as [route, label], i}
+				<a
+					href={route.length ? `page-${route}` : "/"}
+					style:font-weight={route === current_page ? "bold" : "normal"}
+					>{label}</a
+				>
+				{i < pages.length - 1 ? "·" : ""}
+			{/each}
+		</nav>
+	{/if}
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
 		{#if $_layout && app.config}
 			<MountComponents
@@ -873,6 +888,14 @@
 {/if}
 
 <style>
+	nav {
+		display: flex;
+		gap: var(--size-2);
+		margin-bottom: var(--size-2);
+	}
+	nav a:hover {
+		text-decoration: underline;
+	}
 	.wrap {
 		display: flex;
 		flex-grow: 1;

@@ -524,18 +524,35 @@ class App(FastAPI):
                 )
             )
 
+        @app.get("/page-{path}")
+        async def page_route(
+            path: str, request: fastapi.Request, user: str = Depends(get_current_user)
+        ):
+            path = path.strip("/")
+            return main(request, user, path)
+
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
-        def main(request: fastapi.Request, user: str = Depends(get_current_user)):
+        def main(
+            request: fastapi.Request,
+            user: str = Depends(get_current_user),
+            page: str = "",
+        ):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
             root = route_utils.get_root_url(
-                request=request, route_path="/", root_path=app.root_path
+                request=request,
+                route_path=f"/page-{page}" if page else "/",
+                root_path=app.root_path,
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
                 config = route_utils.update_root_in_config(config, root)
                 config["username"] = user
+                config["components"] = config["page"][page]["components"]
+                config["dependencies"] = config["page"][page]["dependencies"]
+                config["layout"] = config["page"][page]["layout"]
+                config["current_page"] = page
             elif app.auth_dependency:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
@@ -592,6 +609,7 @@ class App(FastAPI):
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
             config = utils.safe_deepcopy(app.get_blocks().config)
+            # del config["page"]
             root = route_utils.get_root_url(
                 request=request, route_path="/config", root_path=app.root_path
             )

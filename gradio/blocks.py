@@ -137,6 +137,7 @@ class Block:
         self.share_token = secrets.token_urlsafe(32)
         self.parent: BlockContext | None = None
         self.rendered_in: Renderable | None = None
+        self.page: str
         self.is_rendered: bool = False
         self._constructor_args: list[dict]
         self.state_session_capacity = 10000
@@ -187,6 +188,7 @@ class Block:
                 f"A block with id: {self._id} has already been rendered in the current Blocks."
             )
         if render_context is not None:
+            self.page = root_context.root_block.current_page
             render_context.add(self)
         if root_context is not None:
             root_context.blocks[self._id] = self
@@ -465,6 +467,7 @@ class BlockContext(Block):
                     pseudo_parent.parent = self
                     children.append(pseudo_parent)
                     pseudo_parent.add_child(child)
+                    pseudo_parent.page = child.page
                     if root_context:
                         root_context.blocks[pseudo_parent._id] = pseudo_parent
                 child.parent = pseudo_parent
@@ -519,6 +522,7 @@ class BlockFunction:
         stream_every: float = 0.5,
         like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
+        page: str = "",
     ):
         self.fn = fn
         self._id = _id
@@ -552,6 +556,7 @@ class BlockFunction:
         ) or inspect.isasyncgenfunction(self.fn)
         self.renderable = renderable
         self.rendered_in = rendered_in
+        self.page = page
 
         # We need to keep track of which events are cancel events
         # so that the client can call the /cancel route directly
@@ -869,6 +874,7 @@ class BlocksConfig:
             stream_every=stream_every,
             like_user_message=like_user_message,
             event_specific_args=event_specific_args,
+            page=self.root_block.current_page,
         )
 
         self.fns[self.fn_id] = block_fn
@@ -876,7 +882,19 @@ class BlocksConfig:
         return block_fn, block_fn._id
 
     def get_config(self, renderable: Renderable | None = None):
-        config = {}
+        config = {
+            "page": {},
+            "components": [],
+            "dependencies": [],
+        }
+
+        def setup_page(page: str):
+            if page not in config["page"]:
+                config["page"][page] = {
+                    "layout": {"id": self._id, "children": []},
+                    "components": [],
+                    "dependencies": [],
+                }
 
         rendered_ids = []
 
@@ -886,7 +904,8 @@ class BlocksConfig:
                 return {"id": block._id}
             children_layout = []
             for child in block.children:
-                children_layout.append(get_layout(child))
+                layout = get_layout(child)
+                children_layout.append(layout)
             return {"id": block._id, "children": children_layout}
 
         if renderable:
@@ -894,8 +913,11 @@ class BlocksConfig:
         else:
             root_block = self.root_block
         config["layout"] = get_layout(root_block)
+        for root_child in config["layout"]["children"]:
+            block = self.blocks[root_child["id"]]
+            setup_page(block.page)
+            config["page"][block.page]["layout"]["children"].append(root_child)
 
-        config["components"] = []
         blocks_items = list(
             self.blocks.items()
         )  # freeze as list to prevent concurrent re-renders from changing the dict during loop, see https://github.com/gradio-app/gradio/issues/9991
@@ -928,11 +950,17 @@ class BlocksConfig:
                     block_config["api_info_as_output"] = block.api_info()  # type: ignore
                 block_config["example_inputs"] = block.example_inputs()  # type: ignore
             config["components"].append(block_config)
+            setup_page(block.page)
+            config["page"][block.page]["components"].append(block_config)
 
         dependencies = []
         for fn in self.fns.values():
             if renderable is None or fn.rendered_in == renderable:
-                dependencies.append(fn.get_config())
+                dependency_config = fn.get_config()
+                dependencies.append(dependency_config)
+                setup_page(fn.page)
+                config["page"][fn.page]["dependencies"].append(dependency_config)
+
         config["dependencies"] = dependencies
         return config
 
@@ -1126,6 +1154,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.output_components = None
         self.__name__ = None  # type: ignore
         self.api_mode = None
+        self.pages: list[tuple[str, str]] = [["", "Home"]]
+        self.current_page = ""
 
         self.progress_tracking = None
         self.ssl_verify = True
@@ -2170,6 +2200,7 @@ Received inputs:
             "fill_width": self.fill_width,
             "theme_hash": self.theme_hash,
             "pwa": self.pwa,
+            "pages": self.pages,
         }
         config.update(self.default_config.get_config())  # type: ignore
         config["connect_heartbeat"] = utils.connect_heartbeat(
@@ -2204,6 +2235,7 @@ Received inputs:
         self.progress_tracking = any(
             block_fn.tracks_progress for block_fn in self.fns.values()
         )
+        self.page = ""
         self.exited = True
 
     def clear(self):
@@ -2252,7 +2284,6 @@ Received inputs:
             blocks=self,
             default_concurrency_limit=default_concurrency_limit,
         )
-        self.config = self.get_config_file()
         self.app = App.create_app(self)
         return self
 
@@ -3031,3 +3062,11 @@ Received inputs:
             event = getattr(block, event_name)
             target_events.append(event)
         return target_events
+
+    def route(self, name: str, path: str | None = None):
+        if path is None:
+            path = name.lower().replace(" ", "-")
+        path = path.strip("/")
+        self.pages.append((path, name))
+        self.current_page = path
+        return self

@@ -546,8 +546,6 @@ class Interface(Blocks):
             self.render_examples()
             self.render_article()
 
-        self.config = self.get_config_file()
-
     def render_title_description(self) -> None:
         if self.title:
             Markdown(
