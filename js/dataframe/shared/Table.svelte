@@ -40,6 +40,7 @@
 	export let line_breaks = true;
 	export let column_widths: string[] = [];
 	export let show_row_numbers = false;
+
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let show_fullscreen_button = false;
@@ -572,15 +573,21 @@
 	let table: HTMLTableElement;
 
 	function set_cell_widths(): void {
-		const widths = cells.map((el, i) => {
-			return el?.clientWidth || 0;
-		});
+		// Skip the row number column when calculating widths
+		const dataColumns = show_row_numbers ? cells.slice(1) : cells;
+		const widths = dataColumns.map((el) => el?.clientWidth || 0);
+		
 		if (widths.length === 0) return;
+		
 		for (let i = 0; i < widths.length; i++) {
 			parent.style.setProperty(
 				`--cell-width-${i}`,
 				`${widths[i] - scrollbar_width / widths.length}px`
 			);
+		}
+
+		if (show_row_numbers) {
+			parent.style.setProperty('--row-number-width', '2.5rem');
 		}
 	}
 
@@ -1306,7 +1313,6 @@
 	.row-number,
 	.row-number-header {
 		width: var(--size-7);
-		min-width: var(--size-7);
 		text-align: center;
 		background: var(--table-even-background-fill);
 		position: sticky;
