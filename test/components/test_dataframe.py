@@ -55,6 +55,7 @@ class TestDataframe:
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "line_breaks": True,
             "column_widths": [],
+            "show_fullscreen_button": False,
         }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(DataframeData(**x_data))
@@ -100,6 +101,7 @@ class TestDataframe:
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "line_breaks": True,
             "column_widths": [],
+            "show_fullscreen_button": False,
         }
 
         dataframe_input = gr.Dataframe(column_widths=["100px", 200, "50%"])

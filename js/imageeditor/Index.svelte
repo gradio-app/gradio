@@ -29,7 +29,7 @@
 	export let root: string;
 	export let value_is_output = false;
 
-	export let height: number | undefined = 450;
+	export let height: number | undefined;
 	export let width: number | undefined;
 
 	export let _selectable = false;
@@ -55,7 +55,8 @@
 	export let server: {
 		accept_blobs: (a: any) => void;
 	};
-	export let canvas_size: [number, number] | undefined;
+	export let canvas_size: [number, number];
+	export let fixed_canvas = false;
 	export let show_fullscreen_button = true;
 	export let full_history: any = null;
 
@@ -125,6 +126,18 @@
 		}
 	}
 
+	let dynamic_height: number | undefined = undefined;
+
+	// In case no height given, pick a height large enough for the entire canvas
+	// in pixi.ts, the max-height of the canvas is canvas height / pixel ratio
+
+	let safe_height_initial = Math.max(
+		canvas_size[1] / (is_browser ? window.devicePixelRatio : 1),
+		250
+	);
+
+	$: safe_height = Math.max((dynamic_height ?? safe_height_initial) + 100, 250);
+
 	$: has_value = value?.background || value?.layers?.length || value?.composite;
 </script>
 
@@ -136,7 +149,7 @@
 		padding={false}
 		{elem_id}
 		{elem_classes}
-		height={height || undefined}
+		{height}
 		{width}
 		allow_overflow={false}
 		{container}
@@ -171,7 +184,7 @@
 		padding={false}
 		{elem_id}
 		{elem_classes}
-		height={height || undefined}
+		height={height || safe_height}
 		{width}
 		allow_overflow={false}
 		{container}
@@ -194,11 +207,13 @@
 			{crop_size}
 			{value}
 			bind:this={editor_instance}
+			bind:dynamic_height
 			{root}
 			{sources}
 			{label}
 			{show_label}
 			{height}
+			{fixed_canvas}
 			on:save={(e) => handle_save()}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => gradio.dispatch("clear")}
@@ -210,6 +225,12 @@
 				loading_status.status = "error";
 				gradio.dispatch("error", detail);
 			}}
+			on:receive_null={() =>
+				(value = {
+					background: null,
+					layers: [],
+					composite: null
+				})}
 			on:error
 			{brush}
 			{eraser}

@@ -1,26 +1,26 @@
+<svelte:options accessors={true} />
+
 <script context="module" lang="ts">
 	export { default as BaseDataFrame } from "./shared/Table.svelte";
 	export { default as BaseExample } from "./Example.svelte";
 </script>
 
 <script lang="ts">
-	import { afterUpdate, tick } from "svelte";
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { Block } from "@gradio/atoms";
 	import Table from "./shared/Table.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import type { Headers, Data, Metadata, Datatype } from "./shared/utils";
+	import type { Headers, Datatype, DataframeValue } from "./shared/utils";
 	export let headers: Headers = [];
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: { data: Data; headers: Headers; metadata: Metadata } = {
+	export let value: DataframeValue = {
 		data: [["", "", ""]],
 		headers: ["1", "2", "3"],
 		metadata: null
 	};
-	let old_value = "";
 	export let value_is_output = false;
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
@@ -48,7 +48,7 @@
 	export let max_height: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let interactive: boolean;
-	export let show_row_numbers = false;
+	export let show_fullscreen_button = false;
 
 	$: _headers = [...(value.headers || headers)];
 	$: cell_values = value.data ? [...value.data] : [];
@@ -87,7 +87,11 @@
 		{display_value}
 		{styling}
 		headers={_headers}
-		on:change={(e) => gradio.dispatch("change")}
+		on:change={(e) => {
+			value = e.detail;
+			gradio.dispatch("change");
+		}}
+		on:input={(e) => gradio.dispatch("input")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		{wrap}
 		{datatype}
@@ -97,9 +101,9 @@
 		i18n={gradio.i18n}
 		{line_breaks}
 		{column_widths}
-		{show_row_numbers}
 		upload={(...args) => gradio.client.upload(...args)}
 		stream_handler={(...args) => gradio.client.stream(...args)}
 		bind:value_is_output
+		{show_fullscreen_button}
 	/>
 </Block>
