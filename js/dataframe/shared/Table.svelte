@@ -2,7 +2,6 @@
 	import { afterUpdate, createEventDispatcher, tick, onMount } from "svelte";
 	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
-	import { copy } from "@gradio/utils";
 	import { Upload } from "@gradio/upload";
 
 	import EditableCell from "./EditableCell.svelte";
@@ -10,8 +9,14 @@
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import { type Client } from "@gradio/client";
 	import VirtualTable from "./VirtualTable.svelte";
-	import type { Headers, HeadersWithIDs, Metadata, Datatype } from "./utils";
+	import type {
+		Headers,
+		HeadersWithIDs,
+		DataframeValue,
+		Datatype
+	} from "./utils";
 	import CellMenu from "./CellMenu.svelte";
+	import Toolbar from "./Toolbar.svelte";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -37,6 +42,7 @@
 	export let show_row_numbers = false;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let show_fullscreen_button = false;
 	export let value_is_output = false;
 
 	let selected: false | [number, number] = false;
@@ -46,7 +52,7 @@
 	let t_rect: DOMRectReadOnly;
 
 	const dispatch = createEventDispatcher<{
-		change: undefined;
+		change: DataframeValue;
 		input: undefined;
 		select: SelectData;
 	}>();
@@ -142,34 +148,48 @@
 	}
 
 	let _headers = make_headers(headers);
-	let old_headers: string[] | undefined;
+	let old_headers: string[] = headers;
 
 	$: {
 		if (!dequal(headers, old_headers)) {
-			trigger_headers();
+			_headers = make_headers(headers);
+			old_headers = JSON.parse(JSON.stringify(headers));
 		}
 	}
 
-	function trigger_headers(): void {
-		_headers = make_headers(headers);
-
-		old_headers = headers.slice();
-		trigger_change();
-	}
+	let data: { id: string; value: string | number }[][] = [[]];
+	let old_val: undefined | (string | number)[][] = undefined;
 
 	$: if (!dequal(values, old_val)) {
 		data = process_data(values as (string | number)[][]);
 		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
 	}
 
-	let data: { id: string; value: string | number }[][] = [[]];
-
-	let old_val: undefined | (string | number)[][] = undefined;
+	let previous_headers = _headers.map((h) => h.value);
+	let previous_data = data.map((row) => row.map((cell) => String(cell.value)));
 
 	async function trigger_change(): Promise<void> {
-		dispatch("change");
-		if (!value_is_output) {
-			dispatch("input");
+		const current_headers = _headers.map((h) => h.value);
+		const current_data = data.map((row) =>
+			row.map((cell) => String(cell.value))
+		);
+
+		if (
+			!dequal(current_data, previous_data) ||
+			!dequal(current_headers, previous_headers)
+		) {
+			// We dispatch the value as part of the change event to ensure that the value is updated
+			// in the parent component and the updated value is passed into the user's function
+			dispatch("change", {
+				data: data.map((row) => row.map((cell) => cell.value)),
+				headers: _headers.map((h) => h.value),
+				metadata: null
+			});
+			if (!value_is_output) {
+				dispatch("input");
+			}
+			previous_data = current_data;
+			previous_headers = current_headers;
 		}
 	}
 
@@ -412,7 +432,7 @@
 		selected = [index !== undefined ? index : data.length - 1, 0];
 	}
 
-	$: (data || selected_header) && trigger_change();
+	$: (data || _headers) && trigger_change();
 
 	async function add_col(index?: number): Promise<void> {
 		parent.focus();
@@ -637,8 +657,18 @@
 
 		observer.observe(parent);
 
+		document.addEventListener("click", handle_click_outside);
+		window.addEventListener("resize", handle_resize);
+		document.addEventListener("fullscreenchange", handle_fullscreen_change);
+
 		return () => {
 			observer.disconnect();
+			document.removeEventListener("click", handle_click_outside);
+			window.removeEventListener("resize", handle_resize);
+			document.removeEventListener(
+				"fullscreenchange",
+				handle_fullscreen_change
+			);
 		};
 	});
 
@@ -693,15 +723,6 @@
 		set_cell_widths();
 	}
 
-	onMount(() => {
-		document.addEventListener("click", handle_click_outside);
-		window.addEventListener("resize", handle_resize);
-		return () => {
-			document.removeEventListener("click", handle_click_outside);
-			window.removeEventListener("resize", handle_resize);
-		};
-	});
-
 	let active_button: {
 		type: "header" | "cell";
 		row?: number;
@@ -734,6 +755,22 @@
 		y: number;
 	} | null = null;
 
+	let is_fullscreen = false;
+
+	function toggle_fullscreen(): void {
+		if (!document.fullscreenElement) {
+			parent.requestFullscreen();
+			is_fullscreen = true;
+		} else {
+			document.exitFullscreen();
+			is_fullscreen = false;
+		}
+	}
+
+	function handle_fullscreen_change(): void {
+		is_fullscreen = !!document.fullscreenElement;
+	}
+
 	function toggle_header_menu(event: MouseEvent, col: number): void {
 		event.stopPropagation();
 		if (active_header_menu && active_header_menu.col === col) {
@@ -758,12 +795,19 @@
 
 <svelte:window on:resize={() => set_cell_widths()} />
 
-<div class:label={label && label.length !== 0} use:copy>
-	{#if label && label.length !== 0 && show_label}
-		<p>
-			{label}
-		</p>
-	{/if}
+<div class="table-container">
+	<div class="header-row">
+		{#if label && label.length !== 0 && show_label}
+			<div class="label">
+				<p>{label}</p>
+			</div>
+		{/if}
+		<Toolbar
+			{show_fullscreen_button}
+			{is_fullscreen}
+			on:click={toggle_fullscreen}
+		/>
+	</div>
 	<div
 		bind:this={parent}
 		class="table-wrap"
@@ -939,6 +983,8 @@
 								clear_on_focus = false;
 								clicked_cell = { row: index, col: j };
 								selected = [index, j];
+								selected_header = false;
+								header_edit = false;
 								if (editable) {
 									editing = [index, j];
 								}
@@ -956,6 +1002,8 @@
 								active_header_menu = null;
 								clicked_cell = { row: index, col: j };
 								selected = [index, j];
+								selected_header = false;
+								header_edit = false;
 								if (editable) {
 									editing = [index, j];
 								}
@@ -1249,6 +1297,12 @@
 		word-break: break-word;
 	}
 
+	.table-container {
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-2);
+	}
+
 	.row-number,
 	.row-number-header {
 		width: var(--size-7);
@@ -1276,5 +1330,26 @@
 
 	:global(tbody > tr:nth-child(odd)) .row-number {
 		background: var(--table-odd-background-fill);
+	}
+
+	.header-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: var(--size-2);
+		height: var(--size-6);
+		min-height: var(--size-6);
+	}
+
+	.label {
+		flex: 1;
+	}
+
+	.label p {
+		position: relative;
+		z-index: var(--layer-4);
+		margin: 0;
+		color: var(--block-label-text-color);
+		font-size: var(--block-label-text-size);
 	}
 </style>

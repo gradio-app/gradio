@@ -195,6 +195,10 @@
 		border: 1px solid var(--block-border-color);
 	}
 
+	.duration-button {
+		border-radius: var(--button-large-radius);
+	}
+
 	.stop-button:disabled {
 		cursor: not-allowed;
 	}

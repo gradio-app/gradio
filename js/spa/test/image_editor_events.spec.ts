@@ -18,6 +18,21 @@ test("change events work as expected", async ({ page }) => {
 	await expect(change_text).toContainText("1");
 });
 
+test("Image editor user can draw after upload", async ({ page }) => {
+	await page.getByLabel("Upload button").first().click();
+	const uploader = page.locator("input[type=file]").first();
+
+	// crucial to use a large image here
+	await uploader.setInputFiles(["./test/files/bike.jpeg"]);
+
+	await expect(page.locator("#upload h2")).toContainText("1");
+	await page.getByLabel("Draw button").click();
+	const canvas = page.locator("canvas");
+	await canvas.click({ position: { x: 100, y: 100 } });
+	const change_text = page.locator("#change h2");
+	await expect(change_text).toContainText("2");
+});
+
 test("input events work as expected", async ({ page }) => {
 	const input_text = page.locator("#input h2");
 
@@ -49,4 +64,24 @@ test("apply events work as expected", async ({ page }) => {
 	await canvas.click({ position: { x: 100, y: 100 } });
 	await apply_button.click();
 	await expect(apply_text).toContainText("1");
+});
+
+test("image editor can be cleared twice by setting value to None", async ({
+	page
+}) => {
+	await page.getByLabel("Draw button").first().click();
+	await page.getByLabel("Draw button").first().click();
+	const canvas = page.locator("canvas").first();
+	await canvas.click({ position: { x: 100, y: 100 } });
+	await page.getByRole("button", { name: "Clear Button" }).click();
+	await page.waitForTimeout(1000);
+
+	await page.getByLabel("Draw button").first().click();
+	await page.getByLabel("Draw button").first().click();
+	const canvas_2 = page.locator("canvas").first();
+	await canvas_2.click({ position: { x: 100, y: 100 } });
+	await canvas_2.click({ position: { x: 101, y: 100 } });
+	await page.getByRole("button", { name: "Clear Button" }).click();
+
+	await expect(page.getByLabel("cleared properly")).toHaveValue("1");
 });

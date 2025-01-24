@@ -31,8 +31,6 @@
 	export let i18n: I18nFormatter;
 	export let line_breaks: boolean;
 
-	let expanded = true;
-
 	function is_thought_node(msg: NormalisedMessage): msg is ThoughtNode {
 		return "children" in msg;
 	}
@@ -46,6 +44,8 @@
 	function toggleExpanded(): void {
 		expanded = !expanded;
 	}
+
+	$: expanded = thought_node.metadata?.status !== "done";
 </script>
 
 <div class="thought-group">
@@ -71,17 +71,22 @@
 			{sanitize_html}
 			{root}
 		/>
-		{#if thought_node.content === "" || thought_node.content === null || thought_node.metadata?.status === "pending"}
+		{#if thought_node.metadata?.status === "pending"}
 			<span class="loading-spinner"></span>
 		{/if}
-		{#if thought_node?.metadata?.duration}
+		{#if thought_node?.metadata?.log || thought_node?.metadata?.duration}
 			<span class="duration">
-				{#if Number.isInteger(thought_node.metadata.duration)}
-					{thought_node.metadata.duration}s
-				{:else if thought_node.metadata.duration >= 0.1}
-					{thought_node.metadata.duration.toFixed(1)}s
-				{:else}
-					{(thought_node.metadata.duration * 1000).toFixed(1)}ms
+				{#if thought_node.metadata.log}
+					{thought_node.metadata.log}
+				{/if}
+				{#if thought_node.metadata.duration !== undefined}
+					({#if Number.isInteger(thought_node.metadata.duration)}{thought_node
+							.metadata
+							.duration}s{:else if thought_node.metadata.duration >= 0.1}{thought_node.metadata.duration.toFixed(
+							1
+						)}s{:else}{(thought_node.metadata.duration * 1000).toFixed(
+							1
+						)}ms{/if})
 				{/if}
 			</span>
 		{/if}

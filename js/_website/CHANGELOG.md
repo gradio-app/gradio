@@ -1,5 +1,32 @@
 # website
 
+## 0.47.1
+
+### Fixes
+
+- [#10419](https://github.com/gradio-app/gradio/pull/10419) [`efd358a`](https://github.com/gradio-app/gradio/commit/efd358a54a0f3ec0b201f17f3d61a2b28a733bc1) - Update chatbot.svx for issue#10413.  Thanks @NewJerseyStyle!
+
+## 0.47.0
+
+### Features
+
+- [#10392](https://github.com/gradio-app/gradio/pull/10392) [`4d47e4b`](https://github.com/gradio-app/gradio/commit/4d47e4b4e2f07d4dd5b600f7d9180c7ad3e67a1f) - Add a `log` parameter to Chatbot metadata that allows displaying `str` content next to the thought title.  Thanks @abidlabs!
+- [#10346](https://github.com/gradio-app/gradio/pull/10346) [`43e05d7`](https://github.com/gradio-app/gradio/commit/43e05d72f43c9ac8dc18e4b885c9da08605b09e6) - Document additional helper classes for `gr.Chatbot`.  Thanks @abidlabs!
+- [#10388](https://github.com/gradio-app/gradio/pull/10388) [`812f2d8`](https://github.com/gradio-app/gradio/commit/812f2d8a3f6956546d7aae53ab3ee36f0c9f2857) - Playground fixes and refactoring.  Thanks @aliabd!
+- [#10355](https://github.com/gradio-app/gradio/pull/10355) [`070cab5`](https://github.com/gradio-app/gradio/commit/070cab5d2e5fd3aabf4b1020e46b892446308ace) - Expand token length for existing code and prompt in playground.  Thanks @aliabd!
+
+### Fixes
+
+- [#10404](https://github.com/gradio-app/gradio/pull/10404) [`9dc5d15`](https://github.com/gradio-app/gradio/commit/9dc5d157aaf002f7699d3b2c1652f49d47e53e80) - Tweak behavior related to the `status` of `gr.Chatbot` thought messages.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.2
+- @gradio/tabitem@0.4.1
+- @gradio/tabs@0.4.1
+- @gradio/code@0.10.13
+- @gradio/paramviewer@0.6.4
+
 ## 0.46.0
 
 ### Features

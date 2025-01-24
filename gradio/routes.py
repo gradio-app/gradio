@@ -652,7 +652,7 @@ class App(FastAPI):
             key = f"{id}-{type}-{file_name}"
 
             if key not in app.custom_component_hashes:
-                app.custom_component_hashes[key] = hashlib.md5(
+                app.custom_component_hashes[key] = hashlib.sha256(
                     Path(path).read_text(encoding="utf-8").encode()
                 ).hexdigest()
 
