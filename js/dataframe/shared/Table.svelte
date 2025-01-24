@@ -810,7 +810,7 @@
 		_headers.splice(index, 1);
 		_headers = _headers;
 
-		data.forEach(row => {
+		data.forEach((row) => {
 			row.splice(index, 1);
 		});
 		data = data;
@@ -825,7 +825,7 @@
 
 	function delete_col_at(index: number): void {
 		delete_col(index);
-		active_cell_menu = null; 
+		active_cell_menu = null;
 		active_header_menu = null;
 	}
 </script>
@@ -1119,6 +1119,10 @@
 		on_add_column_left={() => add_col_at(active_header_menu?.col ?? -1, "left")}
 		on_add_column_right={() =>
 			add_col_at(active_header_menu?.col ?? -1, "right")}
+		on_delete_row={() => delete_row_at(active_cell_menu?.row ?? -1)}
+		on_delete_col={() => delete_col_at(active_header_menu?.col ?? -1)}
+		can_delete_rows={false}
+		can_delete_cols={data[0].length > 1}
 	/>
 {/if}
 

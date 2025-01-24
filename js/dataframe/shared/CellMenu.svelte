@@ -134,7 +134,7 @@
 	.delete {
 		color: var(--error-text-color);
 	}
-	
+
 	.delete:hover {
 		background-color: var(--error-background-fill);
 	}
