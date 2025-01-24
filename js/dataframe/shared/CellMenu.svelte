@@ -130,12 +130,4 @@
 	.cell-menu button:hover :global(svg) {
 		fill: var(--color-accent);
 	}
-
-	.delete {
-		color: var(--error-text-color);
-	}
-
-	.delete:hover {
-		background-color: var(--error-background-fill);
-	}
 </style>
