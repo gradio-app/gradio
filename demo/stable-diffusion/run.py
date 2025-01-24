@@ -10,7 +10,7 @@ if not auth_token:
         "ERROR: No Hugging Face access token found.\n"
         "Please define an environment variable 'auth_token' before running.\n"
         "Example:\n"
-        "  export HUGGING_FACE_ACCESS_TOKEN=XXXXXXXX\n"
+        "  export HF_TOKEN=XXXXXXXX\n"
     )
 
 model_id = "CompVis/stable-diffusion-v1-4"
