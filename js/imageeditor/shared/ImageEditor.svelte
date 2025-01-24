@@ -103,7 +103,7 @@
 	export let canvas_height = undefined;
 
 	$: height = $editor_box.child_height;
-	$: canvas_height = $crop[3] * $editor_box.child_height + 1;
+	$: canvas_height = $editor_box.child_height + 1;
 
 	const crop = writable<[number, number, number, number]>([0, 0, 1, 1]);
 	const position_spring = spring(
@@ -250,10 +250,10 @@
 		if (!$editor_box) return;
 		const [l, t, w, h] = $crop;
 
-		const cx = l * $editor_box.child_width;
-		const cy = t * $editor_box.child_height;
-		const cw = w * $editor_box.child_width;
-		const ch = h * $editor_box.child_height;
+		const cx = 0;
+		const cy = 0;
+		const cw = $editor_box.child_width;
+		const ch = $editor_box.child_height;
 
 		const x = 0.5 * $editor_box.child_width - cx - cw / 2;
 		const y = 0.5 * $editor_box.child_height - cy - ch / 2;
@@ -269,10 +269,10 @@
 		return $pixi?.get_blobs(
 			$pixi.get_layers(),
 			new Rectangle(
-				Math.round(l * $dimensions[0]),
-				Math.round(t * $dimensions[1]),
-				Math.round(w * $dimensions[0]),
-				Math.round(h * $dimensions[1])
+				Math.round(0),
+				Math.round(0),
+				Math.round(1 * $dimensions[0]),
+				Math.round(1 * $dimensions[1])
 			),
 			$dimensions
 		);
@@ -381,14 +381,10 @@
 		<div
 			class="canvas"
 			class:no-border={!bg && $active_tool === "bg" && !history}
-			style:width="{$crop[2] * $editor_box.child_width + 1}px"
-			style:height="{$crop[3] * $editor_box.child_height + 1}px"
-			style:top="{$crop[1] * $editor_box.child_height +
-				($editor_box.child_top - $editor_box.parent_top) -
-				0.5}px"
-			style:left="{$crop[0] * $editor_box.child_width +
-				($editor_box.child_left - $editor_box.parent_left) -
-				0.5}px"
+			style:width="{$editor_box.child_width + 1}px"
+			style:height="{$editor_box.child_height + 1}px"
+			style:top="{$editor_box.child_top - $editor_box.parent_top - 0.5}px"
+			style:left="{$editor_box.child_left - $editor_box.parent_left - 0.5}px"
 		></div>
 	</div>
 </div>
