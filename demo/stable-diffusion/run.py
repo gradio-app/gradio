@@ -4,13 +4,22 @@ from diffusers import StableDiffusionPipeline  # type: ignore
 from PIL import Image
 import os
 
-auth_token = os.getenv("auth_token")
+auth_token = os.getenv("HUGGING_FACE_ACCESS_TOKEN")
+if not auth_token:
+    print(
+        "ERROR: No Hugging Face access token found.\n"
+        "Please define an environment variable 'auth_token' before running.\n"
+        "Example:\n"
+        "  export HUGGING_FACE_ACCESS_TOKEN=XXXXXXXX\n"
+    )
+
 model_id = "CompVis/stable-diffusion-v1-4"
 device = "cpu"
 pipe = StableDiffusionPipeline.from_pretrained(
-    model_id, use_auth_token=auth_token, revision="fp16", torch_dtype=torch.float16
+    model_id, token=auth_token, variant="fp16", torch_dtype=torch.float16,
 )
 pipe = pipe.to(device)
+
 
 def infer(prompt, samples, steps, scale, seed):
     generator = torch.Generator(device=device).manual_seed(seed)
@@ -28,6 +37,7 @@ def infer(prompt, samples, steps, scale, seed):
         else:
             images.append(image)
     return images
+
 
 block = gr.Blocks()
 
@@ -63,7 +73,12 @@ with block:
                 step=1,
                 randomize=True,
             )
-        gr.on([text.submit, btn.click], infer, inputs=[text, samples, steps, scale, seed], outputs=gallery)
+        gr.on(
+            [text.submit, btn.click],
+            infer,
+            inputs=[text, samples, steps, scale, seed],
+            outputs=gallery,
+        )
         advanced_button.click(
             None,
             [],
