@@ -309,7 +309,7 @@ class ImageMask(components.ImageEditor):
         eraser: Eraser | None = None,
         brush: Brush | None = None,
         format: str = "webp",
-        layers: bool = True,
+        layers: bool = False,
         canvas_size: tuple[int, int] = (800, 800),
         fixed_canvas: bool = False,
         show_fullscreen_button: bool = True,
