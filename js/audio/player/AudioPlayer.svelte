@@ -54,6 +54,9 @@
 		load: undefined;
 	}>();
 
+	$: use_waveform =
+		waveform_options.show_recording_waveform && !value?.is_stream;
+
 	const create_waveform = (): void => {
 		waveform = WaveSurfer.create({
 			container: container,
@@ -66,7 +69,7 @@
 		});
 	};
 
-	$: if (!value?.is_stream && container !== undefined && container !== null) {
+	$: if (use_waveform && container !== undefined && container !== null) {
 		if (waveform !== undefined) waveform.destroy();
 		container.innerHTML = "";
 		create_waveform();
@@ -137,7 +140,11 @@
 		stream_active = false;
 		await resolve_wasm_src(data).then((resolved_src) => {
 			if (!resolved_src || value?.is_stream) return;
-			return waveform?.load(resolved_src);
+			if (waveform_options.show_recording_waveform) {
+				waveform?.load(resolved_src);
+			} else if (audio_player) {
+				audio_player.src = resolved_src;
+			}
 		});
 	}
 
@@ -203,7 +210,7 @@
 
 <audio
 	class="standard-player"
-	class:hidden={!(value && value.is_stream)}
+	class:hidden={use_waveform}
 	controls
 	autoplay={waveform_settings.autoplay}
 	on:load
@@ -215,7 +222,7 @@
 	<Empty size="small">
 		<Music />
 	</Empty>
-{:else if !value.is_stream}
+{:else if use_waveform}
 	<div
 		class="component-wrapper"
 		data-testid={label ? "waveform-" + label : "unlabelled-audio"}
@@ -238,7 +245,6 @@
 			</div>
 		</div>
 
-		<!-- {#if waveform} -->
 		<WaveformControls
 			{container}
 			{waveform}
@@ -256,7 +262,6 @@
 			{trim_region_settings}
 			{editable}
 		/>
-		<!-- {/if} -->
 	</div>
 {/if}
 
