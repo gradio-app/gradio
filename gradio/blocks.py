@@ -3063,7 +3063,21 @@ Received inputs:
             target_events.append(event)
         return target_events
 
+    @document
     def route(self, name: str, path: str | None = None):
+        """
+        Adds a new page to the Blocks app.
+        Parameters:
+            name: The name of the page as it appears in the nav bar.
+            path: The url path of the page (prefixed by 'page-'). If not provided, it is generated from the name.
+        Example:
+            with gr.Blocks() as demo:
+                name = gr.Textbox(label="Name")
+                ...
+            with demo.route("Test", "/test"):
+                num = gr.Number()
+                ...
+        """
         if path is None:
             path = name.lower().replace(" ", "-")
         path = path.strip("/")
