@@ -225,6 +225,12 @@
 				loading_status.status = "error";
 				gradio.dispatch("error", detail);
 			}}
+			on:receive_null={() =>
+				(value = {
+					background: null,
+					layers: [],
+					composite: null
+				})}
 			on:error
 			{brush}
 			{eraser}

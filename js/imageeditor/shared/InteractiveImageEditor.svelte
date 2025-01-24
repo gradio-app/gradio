@@ -65,6 +65,7 @@
 		clear?: never;
 		upload?: never;
 		change?: never;
+		receive_null?: never;
 	}>();
 
 	let editor: ImageEditor;
@@ -80,7 +81,12 @@
 	$: if (bg) dispatch("upload");
 
 	export async function get_data(): Promise<ImageBlobs> {
-		const blobs = await editor.get_blobs();
+		let blobs;
+		try {
+			blobs = await editor.get_blobs();
+		} catch (e) {
+			return { background: null, layers: [], composite: null };
+		}
 
 		const bg = blobs.background
 			? upload(
@@ -121,11 +127,11 @@
 		if (!editor) return;
 		if (value == null) {
 			editor.handle_remove();
+			dispatch("receive_null");
 		}
 	}
 
 	$: handle_value(value);
-
 	$: crop_constraint = crop_size;
 	let bg = false;
 	let history = false;

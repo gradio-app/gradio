@@ -124,7 +124,9 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     def get_component_class_id(cls) -> str:
         module_name = cls.__module__
         module_path = sys.modules[module_name].__file__
-        module_hash = hashlib.md5(f"{cls.__name__}_{module_path}".encode()).hexdigest()
+        module_hash = hashlib.sha256(
+            f"{cls.__name__}_{module_path}".encode()
+        ).hexdigest()
         return module_hash
 
 
