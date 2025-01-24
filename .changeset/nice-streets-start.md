@@ -1,6 +1,6 @@
 ---
-"@gradio/imageeditor": minor
-"gradio": minor
+"@gradio/imageeditor": patch
+"gradio": patch
 ---
 
 feat:Clear Image Editor Value with None
