@@ -16,6 +16,7 @@ demo = gr.Interface(
         [np.random.randint(0, 10, (10, 3)).tolist()],
         [np.random.randint(0, 10, (10, 10)).tolist()],
     ],
+    live=True,
     cache_examples=False
 )
 

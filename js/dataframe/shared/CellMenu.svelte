@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import Arrow from "./Arrow.svelte";
+	import CellMenuIcons from "./CellMenuIcons.svelte";
 	import type { I18nFormatter } from "js/utils/src";
 
 	export let x: number;
@@ -54,30 +54,32 @@
 <div bind:this={menu_element} class="cell-menu">
 	{#if !is_header && can_add_rows}
 		<button on:click={() => on_add_row_above()}>
-			<Arrow transform="rotate(270)" />
+			<CellMenuIcons icon="add-row-above" />
 			{i18n("dataframe.add_row_above")}
 		</button>
 		<button on:click={() => on_add_row_below()}>
-			<Arrow transform="rotate(90)" />
+			<CellMenuIcons icon="add-row-below" />
 			{i18n("dataframe.add_row_below")}
 		</button>
 		{#if can_delete_rows}
 			<button on:click={on_delete_row} class="delete">
+				<CellMenuIcons icon="delete-row" />
 				{i18n("dataframe.delete_row")}
 			</button>
 		{/if}
 	{/if}
 	{#if can_add_columns}
 		<button on:click={() => on_add_column_left()}>
-			<Arrow transform="rotate(180)" />
+			<CellMenuIcons icon="add-column-left" />
 			{i18n("dataframe.add_column_left")}
 		</button>
 		<button on:click={() => on_add_column_right()}>
-			<Arrow transform="rotate(0)" />
+			<CellMenuIcons icon="add-column-right" />
 			{i18n("dataframe.add_column_right")}
 		</button>
 		{#if can_delete_cols}
 			<button on:click={on_delete_col} class="delete">
+				<CellMenuIcons icon="delete-column" />
 				{i18n("dataframe.delete_column")}
 			</button>
 		{/if}
