@@ -4,7 +4,7 @@ from diffusers import StableDiffusionPipeline  # type: ignore
 from PIL import Image
 import os
 
-auth_token = os.getenv("HUGGING_FACE_ACCESS_TOKEN")
+auth_token = os.getenv("HF_TOKEN")
 if not auth_token:
     print(
         "ERROR: No Hugging Face access token found.\n"
