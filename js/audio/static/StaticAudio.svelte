@@ -23,7 +23,7 @@
 	export let i18n: I18nFormatter;
 	export let waveform_settings: Record<string, any> = {};
 	export let waveform_options: WaveformOptions = {
-		show_recording_waveform: true,
+		show_recording_waveform: true
 	};
 	export let editable = true;
 	export let loop: boolean;

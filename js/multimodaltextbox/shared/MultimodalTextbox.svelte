@@ -55,7 +55,7 @@
 	export let max_plain_text_length = 1000;
 	export let waveform_settings: Record<string, any>;
 	export let waveform_options: WaveformOptions = {
-		show_recording_waveform: true,
+		show_recording_waveform: true
 	};
 	export let sources: ["microphone" | "upload"] = ["upload"];
 	export let active_source: "microphone" | null = null;

@@ -42,7 +42,7 @@
 			orig_name: "sample-0.mp3"
 		},
 		waveform_options: {
-			show_recording_waveform: false,
+			show_recording_waveform: false
 		},
 		label: "Audio Player"
 	}}
