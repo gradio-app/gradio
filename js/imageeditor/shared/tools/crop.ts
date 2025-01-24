@@ -26,7 +26,7 @@ export interface CropCommand extends Command {
 
 export function crop_canvas(
 	renderer: IRenderer,
-	mask_container: Container,
+	background_container: Container,
 	crop: Writable<[number, number, number, number]>,
 	current_opacity = 0
 ): CropCommand {
@@ -89,7 +89,7 @@ export function crop_canvas(
 
 			crop_mask(_width, _height, _previous_crop, _preview);
 			sprite = new Sprite(text);
-			mask_container.mask = sprite;
+			background_container.mask = sprite;
 			width = _width;
 			height = _height;
 			if (set_previous)
@@ -131,16 +131,14 @@ export function crop_canvas(
 				clean = true;
 			} else {
 				if (!stopped) {
-					alpha_spring.set(0);
+					alpha_spring.set(0, { hard: true });
 				}
-
 				crop.set([
 					final_crop[0] / width,
 					final_crop[1] / height,
 					final_crop[2] / width,
 					final_crop[3] / height
 				]);
-
 				clean = true;
 			}
 		}

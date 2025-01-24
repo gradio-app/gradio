@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/row",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
