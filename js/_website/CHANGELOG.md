@@ -1,5 +1,11 @@
 # website
 
+## 0.47.1
+
+### Fixes
+
+- [#10419](https://github.com/gradio-app/gradio/pull/10419) [`efd358a`](https://github.com/gradio-app/gradio/commit/efd358a54a0f3ec0b201f17f3d61a2b28a733bc1) - Update chatbot.svx for issue#10413.  Thanks @NewJerseyStyle!
+
 ## 0.47.0
 
 ### Features

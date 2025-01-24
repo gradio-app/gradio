@@ -1,5 +1,18 @@
 # gradio
 
+## 5.13.1
+
+### Features
+
+- [#10370](https://github.com/gradio-app/gradio/pull/10370) [`71c8b8a`](https://github.com/gradio-app/gradio/commit/71c8b8abbfae0e47eb46561b0104bd452e5dffe8) - Clear Image Editor Value with None.  Thanks @freddyaboulton!
+- [#10416](https://github.com/gradio-app/gradio/pull/10416) [`3c2e12b`](https://github.com/gradio-app/gradio/commit/3c2e12b5ba52441f45565ae8e14cea46ea5b5b2c) - Fix ImageEditor Cropping - Cropping now crops the background image instead of the image + canvas.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#10405](https://github.com/gradio-app/gradio/pull/10405) [`92dda15`](https://github.com/gradio-app/gradio/commit/92dda15f6d1c71929d3bdca1910734309db72458) - Hide the waveform when playing recorded audio if `show_recording_waveform` is `False`.  Thanks @abidlabs!
+- [#10421](https://github.com/gradio-app/gradio/pull/10421) [`90e0b47`](https://github.com/gradio-app/gradio/commit/90e0b47be30687347d5d7f2ec8bff16ac6a99560) - Update all md5 hashes to sha256.  Thanks @LArkema!
+- [#10406](https://github.com/gradio-app/gradio/pull/10406) [`b7a7e59`](https://github.com/gradio-app/gradio/commit/b7a7e590945e938714a5c9a8694d4f188d54b314) - Support presigned URLs with gr.Video, gr.Model3D, and other components.  Thanks @abidlabs!
+
 ## 5.13.0
 
 ### Features
