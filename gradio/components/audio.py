@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 import io
+import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -190,9 +191,9 @@ class Audio(
             self.waveform_options = WaveformOptions(**waveform_options)
         else:
             self.waveform_options = waveform_options
-        if self.waveform_options.show_controls is None:
-            self.waveform_options.show_controls = (
-                not self.waveform_options.show_recording_waveform
+        if self.waveform_options.show_controls is not False:
+            warnings.warn(
+                "The `show_controls` parameter is deprecated. Use `show_recording_waveform` instead."
             )
         self.min_length = min_length
         self.max_length = max_length
