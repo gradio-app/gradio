@@ -585,10 +585,6 @@
 				`${widths[i] - scrollbar_width / widths.length}px`
 			);
 		}
-
-		if (show_row_numbers) {
-			parent.style.setProperty('--row-number-width', '2.5rem');
-		}
 	}
 
 	let table_height: number =
