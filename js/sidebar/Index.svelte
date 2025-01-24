@@ -26,7 +26,6 @@
 />
 
 <Sidebar
-	{label}
 	bind:open
 	on:expand={() => gradio.dispatch("expand")}
 	on:collapse={() => gradio.dispatch("collapse")}

@@ -6,7 +6,6 @@
 	}>();
 
 	export let open = true;
-	export let label = "";
 </script>
 
 <div class="sidebar" class:open>
@@ -19,7 +18,7 @@
                 dispatch("collapse");
             }
         }}
-        class="hamburger-button"
+        class="toggle-button"
         aria-label="Toggle Sidebar"
     >
         <div class="chevron">
@@ -37,51 +36,59 @@
         top: 0;
         left: 0;
         height: 100vh;
-        background-color: var(--background-fill);
-        box-shadow: 2px 0 5px rgba(100, 89, 89, 0.1);
+        background-color: var(--background-fill-secondary);
+        box-shadow: var(--size-1) 0 var(--size-2) rgba(100, 89, 89, 0.1);
         transform: translateX(-100%);
         transition: transform 0.3s ease-in-out;
-        width: 250px;
+        width: var(--size-64);
+        z-index: 1000;
     }
 
     .sidebar.open {
         transform: translateX(0);
     }
 
-    .hamburger-button {
+    .toggle-button {
         position: absolute;
-        top: 15px;
-        right: -40px;
+        top: var(--size-4);
+        right: calc(var(--size-8) * -1);
         background: none;
         border: none;
         cursor: pointer;
-        padding: 8px;
+        padding: var(--size-2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: right 0.3s ease-in-out;
+        width: var(--size-8);
+        height: var(--size-8);
+		z-index: 1001;
+    }
+
+    .open .toggle-button {
+        right: var(--size-2-5);
+        transform: rotate(180deg);
+    }
+
+    .chevron {
+        width: 100%;
+        height: 100%;
+        position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
-    .chevron {
-        width: 20px;
-        height: 20px;
-        position: relative;
-    }
-
     .chevron-left {
-        position: absolute;
-        width: 12px;
-        height: 12px;
-        border-top: 2px solid var(--block-background-fill);
-        border-right: 2px solid var(--block-background-fill);
+        position: relative;
+        width: var(--size-3);
+        height: var(--size-3);
+        border-top: var(--size-0-5) solid var(--button-secondary-background-fill);
+        border-right: var(--size-0-5) solid var(--button-secondary-background-fill);
         transform: rotate(45deg);
-        transition: transform 0.3s ease-in-out;
-    }
-
-    .open .chevron-left {
-        transform: rotate(225deg);
     }
 
     .sidebar-content {
-        padding: 20px;
+        padding: var(--size-5);
     }
 </style>
