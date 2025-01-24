@@ -67,7 +67,7 @@
 		l_p = x_offset / $editor_box.child_width;
 		t_p = y_offset / $editor_box.child_height;
 
-		c = crop_canvas($pixi!.renderer, $pixi!.mask_container, crop, 0.2);
+		c = crop_canvas($pixi!.renderer, $pixi!.background_container, crop, 0.2);
 		c.start(...$dimensions, current_crop, false);
 
 		c.continue(
@@ -111,7 +111,7 @@
 
 			cropper = crop_canvas(
 				$pixi?.renderer,
-				$pixi.mask_container,
+				$pixi.background_container,
 				crop,
 				current_opacity
 			);
