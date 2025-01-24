@@ -801,7 +801,7 @@ def load_chat(
     for file_type in file_types:
         if file_type == "text_encoded":
             supported_extensions += TEXT_FILE_EXTENSIONS
-        elif file_type == "text_encoded":
+        elif file_type == "image":
             supported_extensions += IMAGE_FILE_EXTENSIONS
         else:
             raise ValueError(
