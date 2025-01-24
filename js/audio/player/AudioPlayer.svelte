@@ -54,7 +54,6 @@
 		load: undefined;
 	}>();
 
-	$: use_default_controls = waveform_options.show_controls || value?.is_stream;
 	$: use_waveform =
 		waveform_options.show_recording_waveform && !value?.is_stream;
 
@@ -70,7 +69,7 @@
 		});
 	};
 
-	$: if (!value?.is_stream && container !== undefined && container !== null) {
+	$: if (use_waveform && container !== undefined && container !== null) {
 		if (waveform !== undefined) waveform.destroy();
 		container.innerHTML = "";
 		create_waveform();
@@ -143,10 +142,8 @@
 			if (!resolved_src || value?.is_stream) return;
 			if (waveform_options.show_recording_waveform) {
 				waveform?.load(resolved_src);
-			} else if (waveform_options.show_controls) {
-				if (audio_player) {
-					audio_player.src = resolved_src;
-				}
+			} else if (audio_player) {
+				audio_player.src = resolved_src;
 			}
 		});
 	}

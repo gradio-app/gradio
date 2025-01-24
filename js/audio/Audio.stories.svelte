@@ -43,7 +43,6 @@
 		},
 		waveform_options: {
 			show_recording_waveform: false,
-			show_controls: true
 		},
 		label: "Audio Player"
 	}}

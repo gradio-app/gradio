@@ -24,7 +24,6 @@
 	export let waveform_settings: Record<string, any> = {};
 	export let waveform_options: WaveformOptions = {
 		show_recording_waveform: true,
-		show_controls: false
 	};
 	export let editable = true;
 	export let loop: boolean;

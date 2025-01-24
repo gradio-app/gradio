@@ -36,8 +36,8 @@ class WaveformOptions:
         waveform_color: The color (as a hex string or valid CSS color) of the full waveform representing the amplitude of the audio. Defaults to a light gray color.
         waveform_progress_color: The color (as a hex string or valid CSS color) that the waveform fills with to as the audio plays. Defaults to the accent color.
         trim_region_color: The color (as a hex string or valid CSS color) of the trim region. Defaults to the accent color.
-        show_recording_waveform: If True, shows a waveform when recording audio or playing audio. If False, uses the default browser audio players.
-        show_controls: Deprecated. Use `show_recording_waveform` instead.
+        show_recording_waveform: If True, shows a waveform when recording audio or playing audio. If False, uses the default browser audio players. For streamed audio, the default browser audio player is always used.
+        show_controls: Deprecated and has no effect. Use `show_recording_waveform` instead.
         skip_length: The percentage (between 0 and 100) of the audio to skip when clicking on the skip forward / skip backward buttons.
         sample_rate: The output sample rate (in Hz) of the audio after editing.
     """
@@ -193,7 +193,7 @@ class Audio(
             self.waveform_options = waveform_options
         if self.waveform_options.show_controls is not False:
             warnings.warn(
-                "The `show_controls` parameter is deprecated. Use `show_recording_waveform` instead."
+                "The `show_controls` parameter is deprecated and will be removed in a future release. Use `show_recording_waveform` instead."
             )
         self.min_length = min_length
         self.max_length = max_length

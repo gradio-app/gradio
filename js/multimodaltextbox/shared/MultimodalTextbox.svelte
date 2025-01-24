@@ -56,7 +56,6 @@
 	export let waveform_settings: Record<string, any>;
 	export let waveform_options: WaveformOptions = {
 		show_recording_waveform: true,
-		show_controls: false
 	};
 	export let sources: ["microphone" | "upload"] = ["upload"];
 	export let active_source: "microphone" | null = null;

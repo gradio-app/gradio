@@ -38,7 +38,6 @@
 	export let editable = true;
 	export let waveform_options: WaveformOptions = {
 		show_recording_waveform: true,
-		show_controls: false
 	};
 	export let pending: boolean;
 	export let streaming: boolean;
