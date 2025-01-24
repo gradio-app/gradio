@@ -21,8 +21,10 @@
 	export let show_download_button = true;
 	export let show_share_button = false;
 	export let i18n: I18nFormatter;
-	export let waveform_settings: Record<string, any>;
-	export let waveform_options: WaveformOptions;
+	export let waveform_settings: Record<string, any> = {};
+	export let waveform_options: WaveformOptions = {
+		show_recording_waveform: true
+	};
 	export let editable = true;
 	export let loop: boolean;
 	export let display_icon_button_wrapper_top_corner = false;
