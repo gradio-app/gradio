@@ -18,7 +18,7 @@
 	class="prose {elem_classes.join(' ')}"
 	class:hide={!visible}
 	on:click={() => dispatch("click")}
->	
+>
 	{#if as_iframe}
 		<iframe
 			srcdoc={value}
