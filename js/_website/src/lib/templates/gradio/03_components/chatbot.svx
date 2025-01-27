@@ -57,7 +57,7 @@
         {
             "name": "status",
             "annotation": "Literal['pending', 'done']",
-            "doc": "The status of the message. If "pending", a spinner icon appears next to the thought title. If "done", the thought accordion becomes closed. If not provided, the thought accordion is open and no spinner is displayed."
+            "doc": "The status of the message. If 'pending', a spinner icon appears next to the thought title. If 'done', the thought accordion becomes closed. If not provided, the thought accordion is open and no spinner is displayed."
         }
     ]
 
