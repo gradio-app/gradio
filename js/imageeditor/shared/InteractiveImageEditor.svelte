@@ -50,19 +50,22 @@
 		| "error"
 		| "generating"
 		| "streaming" = "complete";
-	export let canvas_size: [number, number] | undefined;
+	export let canvas_size: [number, number];
+	export let fixed_canvas = false;
 	export let realtime: boolean;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let dragging: boolean;
 	export let placeholder: string | undefined = undefined;
-	export let height = 450;
+	export let dynamic_height: number | undefined = undefined;
+	export let height;
 	export let full_history: CommandNode | null = null;
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;
 		upload?: never;
 		change?: never;
+		receive_null?: never;
 	}>();
 
 	let editor: ImageEditor;
@@ -78,7 +81,12 @@
 	$: if (bg) dispatch("upload");
 
 	export async function get_data(): Promise<ImageBlobs> {
-		const blobs = await editor.get_blobs();
+		let blobs;
+		try {
+			blobs = await editor.get_blobs();
+		} catch (e) {
+			return { background: null, layers: [], composite: null };
+		}
 
 		const bg = blobs.background
 			? upload(
@@ -119,11 +127,11 @@
 		if (!editor) return;
 		if (value == null) {
 			editor.handle_remove();
+			dispatch("receive_null");
 		}
 	}
 
 	$: handle_value(value);
-
 	$: crop_constraint = crop_size;
 	let bg = false;
 	let history = false;
@@ -207,6 +215,10 @@
 	let active_mode: "webcam" | "color" | null = null;
 	let editor_height = height - 100;
 
+	let _dynamic_height: number;
+
+	$: dynamic_height = _dynamic_height;
+
 	$: [heading, paragraph] = placeholder ? inject(placeholder) : [false, false];
 </script>
 
@@ -221,6 +233,7 @@
 	crop_size={Array.isArray(crop_size) ? crop_size : undefined}
 	bind:this={editor}
 	bind:height={editor_height}
+	bind:canvas_height={_dynamic_height}
 	parent_height={height}
 	{changeable}
 	on:save
@@ -242,10 +255,11 @@
 			{sources}
 			{upload}
 			{stream_handler}
+			{canvas_size}
 			bind:bg
 			bind:active_mode
 			background_file={value?.background || value?.composite || null}
-			max_height={height}
+			{fixed_canvas}
 		></Sources>
 
 		{#if transforms.includes("crop")}
