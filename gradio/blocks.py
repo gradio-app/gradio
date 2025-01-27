@@ -3063,7 +3063,7 @@ Received inputs:
             target_events.append(event)
         return target_events
 
-    @document
+    @document()
     def route(self, name: str, path: str | None = None):
         """
         Adds a new page to the Blocks app.
