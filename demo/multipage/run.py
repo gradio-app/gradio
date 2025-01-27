@@ -5,7 +5,7 @@ with gr.Blocks() as demo:
     name = gr.Textbox(label="Name")
     output = gr.Textbox(label="Output Box")
     greet_btn = gr.Button("Greet")
-    @gr.on([greet_btn.click, name.submit], inputs=name, outputs=output, api_name="greet")
+    @gr.on([greet_btn.click, name.submit], inputs=name, outputs=output)
     def greet(name):
         return "Hello " + name + "!"
 
