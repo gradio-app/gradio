@@ -23,6 +23,7 @@
 	export let max_height: number | undefined = undefined;
 	export let container = false;
 	export let padding = true;
+	export let allow_js = false;
 
 	$: label, gradio.dispatch("change");
 </script>
@@ -52,6 +53,7 @@
 			{value}
 			{elem_classes}
 			{visible}
+			{allow_js}
 			on:change={() => gradio.dispatch("change")}
 			on:click={() => gradio.dispatch("click")}
 		/>
