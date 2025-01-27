@@ -1,6 +1,6 @@
 ---
-"@gradio/html": minor
-"gradio": minor
+"@gradio/html": patch
+"gradio": patch
 ---
 
-feat:Allow js
+fix:Allow js
