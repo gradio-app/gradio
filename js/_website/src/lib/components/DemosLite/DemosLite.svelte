@@ -15,6 +15,15 @@
 	import SYSTEM_PROMPT from "$lib/json/system_prompt.json";
 	import WHEEL from "$lib/json/wheel.json";
 
+	export let suggested_links: {
+		title: string;
+		url: string;
+		type: string;
+	}[] = [];
+
+	$: suggested_links;
+
+
 	interface CodeState {
 		status: "idle" | "generating" | "error" | "regenerating";
 		code_edited: boolean;
@@ -28,15 +37,18 @@
 		code_edited: true,
 		code_exists: false,
 		model_info: "",
-		generation_error: ""
+		generation_error: "",
 	};
 
 	$: code_state;
 
 	console.log(code_state);
 
-	const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	// const workerUrl = "http://localhost:5173/api/generate";
+	let system_prompt = SYSTEM_PROMPT.SYSTEM;
+	let fallback_prompt = SYSTEM_PROMPT.FALLBACK;
+
+	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	const workerUrl = "http://localhost:5173/api/generate";
 
 	let abortController: AbortController | null = null;
 
@@ -52,7 +64,8 @@
 			},
 			body: JSON.stringify({
 				query: query,
-				SYSTEM_PROMPT: system_prompt
+				SYSTEM_PROMPT: system_prompt,
+				FALLBACK_PROMPT: fallback_prompt
 			}),
 			signal
 		});
@@ -105,6 +118,10 @@
 								yield { requirements: parsed.requirements };
 							} else if (parsed.choices && parsed.choices.length > 0) {
 								yield parsed;
+							} else if (parsed.suggested_links) {
+								if (suggested_links.length == 0) {
+									suggested_links = parsed.suggested_links;
+								}
 							}
 						} catch (e) {
 							console.error("Error parsing JSON:", e);
@@ -125,6 +142,7 @@
 			code_state.status = "regenerating";
 		} else {
 			code_state.status = "generating";
+			suggested_links = [];
 		}
 		let out = "";
 

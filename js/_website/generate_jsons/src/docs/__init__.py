@@ -312,10 +312,10 @@ demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
 # Launch the interface.
 demo.launch()
 
-
-Below are all the class and function signatures in the Gradio library.
-
 """
+FALLBACK_PROMPT = SYSTEM_PROMPT
+
+FALLBACK_PROMPT += "Below are all the class and function signatures in the Gradio library.\n\n"
 
 for key in gradio_docs:
     if key in ["events", "events_matrix"]:
@@ -327,8 +327,8 @@ for key in gradio_docs:
             ': ' + p['annotation']
             + (' = ' + p['default'] if 'default' in p else '')
             for p in o['parameters']])})"""
-        SYSTEM_PROMPT += f"{signature}\n"
-        SYSTEM_PROMPT += f"{o['description']}\n\n"
+        FALLBACK_PROMPT += f"{signature}\n"
+        FALLBACK_PROMPT += f"{o['description']}\n\n"
     else: 
         for c in gradio_docs[key]:
             o = gradio_docs[key][c]
@@ -337,8 +337,8 @@ for key in gradio_docs:
                 ': ' + p['annotation']
                 + (' = ' + p['default'] if 'default' in p else '')
                 for p in o['parameters']])})"""          
-            SYSTEM_PROMPT += f"{signature}\n"
-            SYSTEM_PROMPT += f"{o['description']}\n\n"
+            FALLBACK_PROMPT += f"{signature}\n"
+            FALLBACK_PROMPT += f"{o['description']}\n\n"
             if "fns" in o and key != "components":
                 for f in o["fns"]:
                     signature = f"""{o['name']}.{f['name']}({', '.join([
@@ -346,12 +346,12 @@ for key in gradio_docs:
                         ': ' + p['annotation']
                         + (' = ' + p['default'] if 'default' in p else '')
                         for p in f['parameters']])})"""
-                    SYSTEM_PROMPT += f"{signature}\n"
-                    SYSTEM_PROMPT += f"{f['description']}\n\n"
+                    FALLBACK_PROMPT += f"{signature}\n"
+                    FALLBACK_PROMPT += f"{f['description']}\n\n"
 
-SYSTEM_PROMPT += "\nEvent listeners allow Gradio to respond to user interactions with the UI components defined in a Blocks app. When a user interacts with an element, such as changing a slider value or uploading an image, a function is called.\n"
+FALLBACK_PROMPT += "\nEvent listeners allow Gradio to respond to user interactions with the UI components defined in a Blocks app. When a user interacts with an element, such as changing a slider value or uploading an image, a function is called.\n"
 
-SYSTEM_PROMPT += "All event listeners have the same signature:\n"
+FALLBACK_PROMPT += "All event listeners have the same signature:\n"
 
 f = gradio_docs["components"]["audio"]["fns"][0]
 signature = f"""<component_name>.<event_name>({', '.join([
@@ -359,18 +359,18 @@ signature = f"""<component_name>.<event_name>({', '.join([
                         ': ' + p['annotation']
                         + (' = ' + p['default'] if 'default' in p else '')
                         for p in f['parameters']])})"""
-SYSTEM_PROMPT += signature
-SYSTEM_PROMPT += "\nEach component only supports some specific events. Below is a list of all gradio components and every event that each component supports. If an event is supported by a component, it is a valid method of the component."
+FALLBACK_PROMPT += signature
+FALLBACK_PROMPT += "\nEach component only supports some specific events. Below is a list of all gradio components and every event that each component supports. If an event is supported by a component, it is a valid method of the component."
 for component in gradio_docs["events_matrix"]:
-    SYSTEM_PROMPT += f"{component}: {', '.join(gradio_docs['events_matrix'][component])}\n\n"
-
+    FALLBACK_PROMPT += f"{component}: {', '.join(gradio_docs['events_matrix'][component])}\n\n"
 
 SYSTEM_PROMPT += "Below are examples of full end-to-end Gradio apps:\n\n"
+FALLBACK_PROMPT += "Below are examples of full end-to-end Gradio apps:\n\n"
 
 # 'audio_component_events', 'audio_mixer', 'blocks_essay', 'blocks_chained_events', 'blocks_xray', 'chatbot_multimodal', 'sentence_builder', 'custom_css', 'blocks_update', 'fake_gan'
 # important_demos = ["annotatedimage_component", "blocks_essay_simple", "blocks_flipper", "blocks_form", "blocks_hello", "blocks_js_load", "blocks_js_methods", "blocks_kinematics", "blocks_layout", "blocks_plug", "blocks_simple_squares", "calculator", "chatbot_consecutive", "chatbot_simple", "chatbot_streaming", "chatinterface_multimodal", "datetimes", "diff_texts", "dropdown_key_up", "fake_diffusion", "fake_gan", "filter_records", "function_values", "gallery_component_events", "generate_tone", "hangman", "hello_blocks", "hello_blocks_decorator", "hello_world", "image_editor", "matrix_transpose", "model3D", "on_listener_decorator", "plot_component", "render_merge", "render_split", "reverse_audio_2", "sales_projections", "sepia_filter", "sort_records", "streaming_simple", "tabbed_interface_lite", "tax_calculator", "theme_soft", "timer", "timer_simple", "variable_outputs", "video_identity"]
 important_demos = ['custom_css', "annotatedimage_component", "blocks_essay_simple", "blocks_flipper", "blocks_form", "blocks_hello", "blocks_js_load", "blocks_js_methods", "blocks_kinematics", "blocks_layout", "blocks_plug", "blocks_simple_squares", "calculator", "chatbot_consecutive", "chatbot_simple", "chatbot_streaming", "datetimes", "diff_texts", "dropdown_key_up", "fake_diffusion", "filter_records", "function_values", "gallery_component_events", "generate_tone", "hangman", "hello_blocks", "hello_blocks_decorator", "hello_world", "image_editor", "matrix_transpose", "model3D", "on_listener_decorator", "plot_component", "render_merge", "render_split", "reverse_audio_2", "sepia_filter", "sort_records", "streaming_simple", "tabbed_interface_lite", "tax_calculator", "theme_soft", "timer", "timer_simple", "variable_outputs", "video_identity"]
-
+very_important_demos = ["blocks_essay_simple", "blocks_flipper", "blocks_form", "blocks_hello","reverse_audio_2", "sepia_filter", "sort_records", "streaming_simple", "tabbed_interface_lite", "tax_calculator", "timer_simple", "video_identity"]
 
 def length(demo):
     if os.path.exists(os.path.join(DEMOS_DIR, demo, "run.py")):
@@ -393,12 +393,23 @@ for demo in important_demos:
     with open(demo_file) as run_py:
         demo_code = run_py.read()
         demo_code = demo_code.replace("# type: ignore", "").replace('if __name__ == "__main__":\n    ', "")
+    FALLBACK_PROMPT += f"Name: {demo.replace('_', ' ')}\n"
+    FALLBACK_PROMPT += "Code: \n\n"
+    FALLBACK_PROMPT += f"{demo_code}\n\n"
+
+for demo in very_important_demos:
+    if os.path.exists(os.path.join(DEMOS_DIR, demo, "run.py")):
+        demo_file = os.path.join(DEMOS_DIR, demo, "run.py")
+    else: 
+        continue
+    with open(demo_file) as run_py:
+        demo_code = run_py.read()
+        demo_code = demo_code.replace("# type: ignore", "").replace('if __name__ == "__main__":\n    ', "")
     SYSTEM_PROMPT += f"Name: {demo.replace('_', ' ')}\n"
     SYSTEM_PROMPT += "Code: \n\n"
     SYSTEM_PROMPT += f"{demo_code}\n\n"
 
-
-SYSTEM_PROMPT += """
+FALLBACK_PROMPT += """
 The latest verstion of Gradio includes some breaking changes, and important new features you should be aware of. Here is a list of the important changes:
 
 1. Streaming audio, images, and video as input and output are now fully supported in Gradio. 
@@ -635,6 +646,7 @@ chatbot = gr.ChatInterface(
 
 """
 
+SYSTEM_PROMPT += "\n\n$INSERT_GUIDES_DOCS_DEMOS"
 
 SYSTEM_PROMPT += """
 
@@ -651,7 +663,28 @@ Only respond with one full Gradio app.
 Add comments explaining the code, but do not include any text that is not formatted as a Python comment.
 """
 
+FALLBACK_PROMPT += """
+
+The following RULES must be followed.  Whenever you are forming a response, after each sentence ensure all rules have been followed otherwise start over, forming a new response and repeat until the finished response follows all the rules.  then send the response.
+
+RULES: 
+Only respond with code, not text.
+Only respond with valid Python syntax.
+Never include backticks in your response such as ``` or ```python. 
+Never import any external library aside from: gradio, numpy, pandas, plotly, transformers_js and matplotlib. Do not import any other library like pytesseract or PIL unless requested in the prompt. 
+Do not include any code that is not necessary for the app to run.
+Respond with a full Gradio app using correct syntax and features of the latest Gradio version. DO NOT write code that doesn't follow the signatures listed.
+Only respond with one full Gradio app.
+Add comments explaining the code, but do not include any text that is not formatted as a Python comment.
+"""
+
+# print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+# print(SYSTEM_PROMPT)
+# print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+
+
+
 def generate(json_path):
     with open(json_path, "w+") as f:
         json.dump(docs, f)
-    return  SYSTEM_PROMPT
+    return  SYSTEM_PROMPT, FALLBACK_PROMPT
