@@ -42,10 +42,11 @@ class HTML(Component):
         max_height: int | None = None,
         container: bool = False,
         padding: bool = True,
+        allow_js: bool = False,
     ):
         """
         Parameters:
-            value: The HTML content to display. Only static HTML is rendered (e.g. no JavaScript. To render JavaScript, use the `js` or `head` parameters in the `Blocks` constructor). If a function is provided, the function will be called each time the app loads to set the initial value of this component.
+            value: The HTML content to display. Only static HTML is rendered by default. Set allow_js=True to enable JavaScript execution.
             label: The label for this component. Is used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
@@ -59,10 +60,12 @@ class HTML(Component):
             max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If content exceeds the height, the component will scroll.
             container: If True, the HTML component will be displayed in a container. Default is False.
             padding: If True, the HTML component will have a certain padding (set by the `--block-padding` CSS variable) in all directions. Default is True.
+            allow_js: If True, allows JavaScript within the HTML to be executed. Note that this can be a security risk if the HTML is not trusted.
         """
         self.min_height = min_height
         self.max_height = max_height
         self.padding = padding
+        self.allow_js = allow_js
         super().__init__(
             label=label,
             every=every,
