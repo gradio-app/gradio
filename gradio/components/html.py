@@ -60,7 +60,7 @@ class HTML(Component):
             max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If content exceeds the height, the component will scroll.
             container: If True, the HTML component will be displayed in a container.
             padding: If True, the HTML component will have a certain padding (set by the `--block-padding` CSS variable) in all directions. Default is True.
-            as_iframe: If True, the HTML component will be displayed in an iframe. Note: This allows for JavaScript execution, so it can be a security risk if the HTML is not trusted.
+            as_iframe: If True, the HTML component will be displayed in an iframe and not inherit the Gradio page's styles. Note: This also allows for JavaScript execution, so it can be a security risk if the HTML is not trusted.
         """
         self.min_height = min_height
         self.max_height = max_height
