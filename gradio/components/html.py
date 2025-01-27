@@ -42,11 +42,11 @@ class HTML(Component):
         max_height: int | None = None,
         container: bool = False,
         padding: bool = True,
-        allow_js: bool = False,
+        as_iframe: bool = False,
     ):
         """
         Parameters:
-            value: The HTML content to display. Only static HTML is rendered by default. Set allow_js=True to enable JavaScript execution.
+            value: The HTML content to display. Only static HTML is rendered by default. To allow JavaScript execution, set as_iframe=True.
             label: The label for this component. Is used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
@@ -58,14 +58,14 @@ class HTML(Component):
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If HTML content exceeds the height, the component will expand to fit the content.
             max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If content exceeds the height, the component will scroll.
-            container: If True, the HTML component will be displayed in a container. Default is False.
+            container: If True, the HTML component will be displayed in a container.
             padding: If True, the HTML component will have a certain padding (set by the `--block-padding` CSS variable) in all directions. Default is True.
-            allow_js: If True, allows JavaScript within the HTML to be executed. Note that this can be a security risk if the HTML is not trusted.
+            as_iframe: If True, the HTML component will be displayed in an iframe. Note: This allows for JavaScript execution, so it can be a security risk if the HTML is not trusted.
         """
         self.min_height = min_height
         self.max_height = max_height
         self.padding = padding
-        self.allow_js = allow_js
+        self.as_iframe = as_iframe
         super().__init__(
             label=label,
             every=every,
