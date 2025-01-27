@@ -7,6 +7,6 @@ value = """
 """
 
 with gr.Blocks() as demo:
-    gr.HTML(value=value, allow_js=False)
+    gr.HTML(value=value, as_iframe=False)
 
 demo.launch()

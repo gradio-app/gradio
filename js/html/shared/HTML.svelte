@@ -4,7 +4,7 @@
 	export let elem_classes: string[] = [];
 	export let value: string;
 	export let visible = true;
-
+	export let as_iframe = false;
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		click: undefined;
@@ -18,12 +18,25 @@
 	class="prose {elem_classes.join(' ')}"
 	class:hide={!visible}
 	on:click={() => dispatch("click")}
->
-	{@html value}
+>	
+	{#if as_iframe}
+		<iframe
+			srcdoc={value}
+			sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"
+			title="HTML content"
+		/>
+	{:else}
+		{@html value}
+	{/if}
 </div>
 
 <style>
 	.hide {
 		display: none;
+	}
+	iframe {
+		border: none;
+		width: 100%;
+		height: 100%;
 	}
 </style>
