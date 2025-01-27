@@ -22,6 +22,7 @@ class TestHTML:
             "max_height": None,
             "container": False,
             "padding": True,
+            "as_iframe": False,
         }
 
     def test_in_interface(self):
