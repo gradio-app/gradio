@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Allow rendering javascripti in `gr.HTML`
+fix:Allow rendering javascript in `gr.HTML`
