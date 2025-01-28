@@ -19,8 +19,12 @@
 	import Toolbar from "./Toolbar.svelte";
 	import {
 		type CellCoordinate,
+		type EditingState,
 		is_cell_selected,
-		handle_selection
+		handle_selection,
+		handle_delete_key,
+		handle_editing_state,
+		should_show_cell_menu
 	} from "./selection_utils";
 
 	export let datatype: Datatype | Datatype[];
@@ -77,7 +81,7 @@
 		select: SelectData;
 	}>();
 
-	let editing: false | [number, number] = false;
+	let editing: EditingState = false;
 
 	const get_data_at = (row: number, col: number): string | number =>
 		data?.[row]?.[col]?.value;
@@ -269,6 +273,36 @@
 					break;
 			}
 		}
+
+		if (event.key === "Delete" || event.key === "Backspace") {
+			event.preventDefault();
+			if (!editable) return;
+
+			if (editing) {
+				const [row, col] = editing;
+				if (
+					selected_cells.length === 1 &&
+					selected_cells[0][0] === row &&
+					selected_cells[0][1] === col
+				) {
+					return;
+				}
+			}
+
+			if (selected_cells.length > 0) {
+				data = handle_delete_key(data, selected_cells);
+				dispatch("change", {
+					data: data.map((row) => row.map((cell) => cell.value)),
+					headers: _headers.map((h) => h.value),
+					metadata: null
+				});
+				if (!value_is_output) {
+					dispatch("input");
+				}
+			}
+			return;
+		}
+
 		if (!selected) {
 			return;
 		}
@@ -670,10 +704,12 @@
 		active_header_menu = null;
 
 		selected_cells = handle_selection([row, col], selected_cells, event);
-
-		if (editable) {
-			editing = [row, col];
-		}
+		editing = handle_editing_state(
+			[row, col],
+			editing,
+			selected_cells,
+			editable
+		);
 		toggle_cell_button(row, col);
 
 		dispatch("select", {
@@ -1035,7 +1071,7 @@
 									{clear_on_focus}
 									{root}
 								/>
-								{#if editable && selected_cells.length === 1}
+								{#if editable && should_show_cell_menu([index, j], selected_cells, editable)}
 									<button
 										class="cell-menu-button"
 										on:click={(event) => toggle_cell_menu(event, index, j)}
