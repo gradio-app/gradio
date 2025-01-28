@@ -3067,12 +3067,12 @@ Received inputs:
         return target_events
 
     @document()
-    def route(self, name: str, path: str | None = None):
+    def route(self, name: str, path: str | None = None) -> Blocks:
         """
         Adds a new page to the Blocks app.
         Parameters:
             name: The name of the page as it appears in the nav bar.
-            path: The url path of the page. If not provided, it is generated from the name.
+            path: The URL suffix appended after your Gradio app's root URL to access this page (e.g. if path="/test", the page may be accessible e.g. at http://localhost:7860/test). If not provided, the path is generated from the name by converting to lowercase and replacing spaces with hyphens. Any leading or trailing forward slashes are stripped. 
         Example:
             with gr.Blocks() as demo:
                 name = gr.Textbox(label="Name")
