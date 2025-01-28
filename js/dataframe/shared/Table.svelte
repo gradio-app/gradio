@@ -17,6 +17,11 @@
 	} from "./utils";
 	import CellMenu from "./CellMenu.svelte";
 	import Toolbar from "./Toolbar.svelte";
+	import {
+		type CellCoordinate,
+		is_cell_selected,
+		handle_selection
+	} from "./selection_utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -45,11 +50,26 @@
 	export let show_fullscreen_button = false;
 	export let value_is_output = false;
 
-	let selected: false | [number, number] = false;
-	let clicked_cell: { row: number; col: number } | undefined = undefined;
-	export let display_value: string[][] | null = null;
-	export let styling: string[][] | null = null;
+	let selected_cells: CellCoordinate[] = [];
+	$: {
+		selected_cells = [...selected_cells];
+	}
+	let selected: CellCoordinate | false = false;
+	$: {
+		selected =
+			selected_cells.length > 0
+				? selected_cells[selected_cells.length - 1]
+				: false;
+	}
+
+	let display_value: string[][] | null = null;
+	let styling: string[][] | null = null;
 	let t_rect: DOMRectReadOnly;
+	let els: Record<
+		string,
+		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
+	> = {};
+	let data_binding: Record<string, (typeof data)[0][0]> = {};
 
 	const dispatch = createEventDispatcher<{
 		change: DataframeValue;
@@ -61,29 +81,6 @@
 
 	const get_data_at = (row: number, col: number): string | number =>
 		data?.[row]?.[col]?.value;
-
-	let last_selected: [number, number] | null = null;
-
-	$: {
-		if (selected !== false && !dequal(selected, last_selected)) {
-			const [row, col] = selected;
-			if (!isNaN(row) && !isNaN(col) && data[row]) {
-				dispatch("select", {
-					index: [row, col],
-					value: get_data_at(row, col),
-					row_value: data[row].map((d) => d.value)
-				});
-				last_selected = selected;
-			}
-		}
-	}
-
-	let els: Record<
-		string,
-		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
-	> = {};
-
-	let data_binding: Record<string, (typeof data)[0][0]> = {};
 
 	function make_id(): string {
 		return Math.random().toString(36).substring(2, 15);
@@ -461,24 +458,13 @@
 	}
 
 	function handle_click_outside(event: Event): void {
-		if (
-			(active_cell_menu &&
-				!(event.target as HTMLElement).closest(".cell-menu")) ||
-			(active_header_menu &&
-				!(event.target as HTMLElement).closest(".cell-menu"))
-		) {
-			active_cell_menu = null;
-			active_header_menu = null;
-		}
-
 		const [trigger] = event.composedPath() as HTMLElement[];
 		if (parent.contains(trigger)) {
 			return;
 		}
 
-		clicked_cell = undefined;
 		editing = false;
-		selected = false;
+		selected_cells = [];
 		header_edit = false;
 		selected_header = false;
 		active_cell_menu = null;
@@ -672,7 +658,30 @@
 		};
 	});
 
-	let highlighted_column: number | null = null;
+	function handle_cell_click(
+		event: MouseEvent,
+		row: number,
+		col: number
+	): void {
+		event.preventDefault();
+		event.stopPropagation();
+		clear_on_focus = false;
+		active_cell_menu = null;
+		active_header_menu = null;
+
+		selected_cells = handle_selection([row, col], selected_cells, event);
+
+		if (editable) {
+			editing = [row, col];
+		}
+		toggle_cell_button(row, col);
+
+		dispatch("select", {
+			index: [row, col],
+			value: get_data_at(row, col),
+			row_value: data[row].map((d) => d.value)
+		});
+	}
 
 	let active_cell_menu: {
 		row: number;
@@ -978,40 +987,24 @@
 						<td
 							tabindex="0"
 							on:touchstart={(event) => {
-								event.preventDefault();
-								event.stopPropagation();
-								clear_on_focus = false;
-								clicked_cell = { row: index, col: j };
-								selected = [index, j];
-								selected_header = false;
-								header_edit = false;
-								if (editable) {
-									editing = [index, j];
-								}
-								toggle_cell_button(index, j);
+								const touch = event.touches[0];
+								const mouseEvent = new MouseEvent("click", {
+									clientX: touch.clientX,
+									clientY: touch.clientY,
+									bubbles: true,
+									cancelable: true,
+									view: window
+								});
+								handle_cell_click(mouseEvent, index, j);
 							}}
 							on:mousedown={(event) => {
 								event.preventDefault();
 								event.stopPropagation();
 							}}
-							on:click={(event) => {
-								event.preventDefault();
-								event.stopPropagation();
-								clear_on_focus = false;
-								active_cell_menu = null;
-								active_header_menu = null;
-								clicked_cell = { row: index, col: j };
-								selected = [index, j];
-								selected_header = false;
-								header_edit = false;
-								if (editable) {
-									editing = [index, j];
-								}
-								toggle_cell_button(index, j);
-							}}
+							on:click={(event) => handle_cell_click(event, index, j)}
 							style:width="var(--cell-width-{j})"
 							style={styling?.[index]?.[j] || ""}
-							class:focus={dequal(selected, [index, j])}
+							class={is_cell_selected([index, j], selected_cells)}
 							class:menu-active={active_cell_menu &&
 								active_cell_menu.row === index &&
 								active_cell_menu.col === j}
@@ -1029,6 +1022,15 @@
 									on:blur={() => {
 										clear_on_focus = false;
 										parent.focus();
+									}}
+									on:focus={() => {
+										const row = index;
+										const col = j;
+										if (
+											!selected_cells.some(([r, c]) => r === row && c === col)
+										) {
+											selected_cells = [[row, col]];
+										}
 									}}
 									{clear_on_focus}
 									{root}
@@ -1185,6 +1187,12 @@
 	th.focus,
 	td.focus {
 		--ring-color: var(--color-accent);
+		box-shadow: inset 0 0 0 2px var(--ring-color);
+		z-index: var(--layer-1);
+	}
+
+	th.focus {
+		z-index: var(--layer-2);
 	}
 
 	tr:last-child td:first-child {
@@ -1285,7 +1293,7 @@
 		background-color: var(--color-bg-hover);
 	}
 
-	td.focus .cell-menu-button {
+	.cell-selected .cell-menu-button {
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -1351,5 +1359,98 @@
 		margin: 0;
 		color: var(--block-label-text-color);
 		font-size: var(--block-label-text-size);
+	}
+
+	/* group cell selection border handling */
+
+	.cell-selected {
+		--ring-color: var(--color-accent);
+		box-shadow: inset 0 0 0 2px var(--ring-color);
+		z-index: var(--layer-1);
+		position: relative;
+	}
+
+	.cell-selected.no-top {
+		box-shadow:
+			inset 2px 0 0 var(--ring-color),
+			inset -2px 0 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-bottom {
+		box-shadow:
+			inset 2px 0 0 var(--ring-color),
+			inset -2px 0 0 var(--ring-color),
+			inset 0 2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-left {
+		box-shadow:
+			inset 0 2px 0 var(--ring-color),
+			inset -2px 0 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-right {
+		box-shadow:
+			inset 0 2px 0 var(--ring-color),
+			inset 2px 0 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-top.no-left {
+		box-shadow:
+			inset -2px 0 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-top.no-right {
+		box-shadow:
+			inset 2px 0 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-bottom.no-left {
+		box-shadow:
+			inset -2px 0 0 var(--ring-color),
+			inset 0 2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-bottom.no-right {
+		box-shadow:
+			inset 2px 0 0 var(--ring-color),
+			inset 0 2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-top.no-bottom {
+		box-shadow:
+			inset 2px 0 0 var(--ring-color),
+			inset -2px 0 0 var(--ring-color);
+	}
+
+	.cell-selected.no-left.no-right {
+		box-shadow:
+			inset 0 2px 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-top.no-left.no-right {
+		box-shadow: inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-bottom.no-left.no-right {
+		box-shadow: inset 0 2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-left.no-top.no-bottom {
+		box-shadow: inset -2px 0 0 var(--ring-color);
+	}
+
+	.cell-selected.no-right.no-top.no-bottom {
+		box-shadow: inset 2px 0 0 var(--ring-color);
+	}
+
+	.cell-selected.no-top.no-bottom.no-left.no-right {
+		box-shadow: none;
 	}
 </style>
