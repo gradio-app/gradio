@@ -7,7 +7,7 @@ def transpose(matrix):
 
 demo = gr.Interface(
     transpose,
-    gr.Dataframe(type="numpy", datatype="number", row_count=(5, "dynamic"), col_count=(3, "dynamic"), show_fullscreen_button=True),
+    gr.Dataframe(type="numpy", datatype="number", row_count=5, col_count=3, show_fullscreen_button=True),
     "numpy",
     examples=[
         [np.zeros((3, 3)).tolist()],
@@ -16,7 +16,6 @@ demo = gr.Interface(
         [np.random.randint(0, 10, (10, 3)).tolist()],
         [np.random.randint(0, 10, (10, 10)).tolist()],
     ],
-    live=True,
     cache_examples=False
 )
 
