@@ -1035,7 +1035,7 @@
 									{clear_on_focus}
 									{root}
 								/>
-								{#if editable}
+								{#if editable && selected_cells.length === 1}
 									<button
 										class="cell-menu-button"
 										on:click={(event) => toggle_cell_menu(event, index, j)}
