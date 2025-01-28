@@ -24,7 +24,8 @@
 		handle_selection,
 		handle_delete_key,
 		handle_editing_state,
-		should_show_cell_menu
+		should_show_cell_menu,
+		get_next_cell_coordinates
 	} from "./selection_utils";
 
 	export let datatype: Datatype | Datatype[];
@@ -347,37 +348,22 @@
 						editing = [i, j];
 					}
 				}
-
-				break;
-			case "Backspace":
-				if (!editable) break;
-				if (!editing) {
-					event.preventDefault();
-					data[i][j].value = "";
-				}
-				break;
-			case "Delete":
-				if (!editable) break;
-				if (!editing) {
-					event.preventDefault();
-					data[i][j].value = "";
-				}
 				break;
 			case "Tab":
-				let direction = event.shiftKey ? -1 : 1;
-
-				let is_data_x = data[i][j + direction];
-				let is_data_y =
-					data?.[i + direction]?.[direction > 0 ? 0 : _headers.length - 1];
-
-				if (is_data_x || is_data_y) {
-					event.preventDefault();
-					selected = is_data_x
-						? [i, j + direction]
-						: [i + direction, direction > 0 ? 0 : _headers.length - 1];
-				}
+				event.preventDefault();
 				editing = false;
-
+				const next_cell = get_next_cell_coordinates(
+					[i, j],
+					data,
+					event.shiftKey
+				);
+				if (next_cell) {
+					selected_cells = [next_cell];
+					selected = next_cell;
+					if (editable) {
+						editing = next_cell;
+					}
+				}
 				break;
 			default:
 				if (!editable) break;

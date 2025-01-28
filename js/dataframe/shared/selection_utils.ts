@@ -110,3 +110,29 @@ export function should_show_cell_menu(
 		selected_cells[0][1] === col
 	);
 }
+
+export function get_next_cell_coordinates(
+	current: CellCoordinate,
+	data: CellData[][],
+	shift_key: boolean
+): CellCoordinate | false {
+	const [row, col] = current;
+	const direction = shift_key ? -1 : 1;
+
+	if (data[row]?.[col + direction]) {
+		return [row, col + direction];
+	}
+
+	const next_row = row + (direction > 0 ? 1 : 0);
+	const prev_row = row + (direction < 0 ? -1 : 0);
+
+	if (direction > 0 && data[next_row]?.[0]) {
+		return [next_row, 0];
+	}
+
+	if (direction < 0 && data[prev_row]?.[data[0].length - 1]) {
+		return [prev_row, data[0].length - 1];
+	}
+
+	return false;
+}
