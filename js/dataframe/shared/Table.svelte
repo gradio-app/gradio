@@ -120,11 +120,7 @@
 		id: string;
 	}[][] {
 		const data_row_length = _values.length;
-		return Array(
-			row_count[1] === "fixed"
-				? row_count[0]
-				: data_row_length
-		)
+		return Array(row_count[1] === "fixed" ? row_count[0] : data_row_length)
 			.fill(0)
 			.map((_, i) =>
 				Array(
