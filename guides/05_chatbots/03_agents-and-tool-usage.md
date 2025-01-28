@@ -161,7 +161,6 @@ tools = load_tools(["serpapi"])
 
 # Get the prompt to use - you can modify this!
 prompt = hub.pull("hwchase17/openai-tools-agent")
-# print(prompt.messages) -- to see the prompt
 agent = create_openai_tools_agent(
     model.with_config({"tags": ["agent_llm"]}), tools, prompt
 )
@@ -345,4 +344,172 @@ This creates a chatbot that:
 - Maintains a clean chat history
 
  That's it! You now have a chatbot that not only responds to users but also shows its thinking process, creating a more transparent and engaging interaction. See our finished Gemini 2.0 Flash Thinking demo [here](https://huggingface.co/spaces/ysharma/Gemini2-Flash-Thinking).
+
+
+ ## Building with Citations 
+
+The Gradio Chatbot can display citations from LLM responses, making it perfect for creating UIs that show source documentation and references. This guide will show you how to build a chatbot that displays Claude's citations in real-time.
+
+### A real example using Anthropic's Citations API
+Let's create a complete chatbot that shows both responses and their supporting citations. We'll use Anthropic's Claude API with citations enabled and Gradio for the UI.
+
+We'll begin with imports and setting up the Anthropic client. Note that you'll need an `ANTHROPIC_API_KEY` environment variable set:
+
+```python
+import gradio as gr
+import anthropic
+import base64
+from typing import List, Dict, Any
+
+client = anthropic.Anthropic()
+```
+
+First, let's set up our message formatting functions that handle document preparation:
+
+```python
+def encode_pdf_to_base64(file_obj) -> str:
+    """Convert uploaded PDF file to base64 string."""
+    if file_obj is None:
+        return None
+    with open(file_obj.name, 'rb') as f:
+        return base64.b64encode(f.read()).decode('utf-8')
+
+def format_message_history(
+    history: list, 
+    enable_citations: bool,
+    doc_type: str,
+    text_input: str,
+    pdf_file: str
+) -> List[Dict]:
+    """Convert Gradio chat history to Anthropic message format."""
+    formatted_messages = []
+    
+    # Add previous messages
+    for msg in history[:-1]:
+        if msg["role"] == "user":
+            formatted_messages.append({"role": "user", "content": msg["content"]})
+    
+    # Prepare the latest message with document
+    latest_message = {"role": "user", "content": []}
+    
+    if enable_citations:
+        if doc_type == "plain_text":
+            latest_message["content"].append({
+                "type": "document",
+                "source": {
+                    "type": "text",
+                    "media_type": "text/plain",
+                    "data": text_input.strip()
+                },
+                "title": "Text Document",
+                "citations": {"enabled": True}
+            })
+        elif doc_type == "pdf" and pdf_file:
+            pdf_data = encode_pdf_to_base64(pdf_file)
+            if pdf_data:
+                latest_message["content"].append({
+                    "type": "document",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "application/pdf",
+                        "data": pdf_data
+                    },
+                    "title": pdf_file.name,
+                    "citations": {"enabled": True}
+                })
+    
+    # Add the user's question
+    latest_message["content"].append({"type": "text", "text": history[-1]["content"]})
+    
+    formatted_messages.append(latest_message)
+    return formatted_messages
+```
+
+Then, let's create our bot response handler that processes citations:
+
+```python
+def bot_response(
+    history: list,
+    enable_citations: bool,
+    doc_type: str,
+    text_input: str,
+    pdf_file: str
+) -> List[Dict[str, Any]]:
+    try:
+        messages = format_message_history(history, enable_citations, doc_type, text_input, pdf_file)
+        response = client.messages.create(model="claude-3-5-sonnet-20241022", max_tokens=1024, messages=messages)
+        
+        # Initialize main response and citations
+        main_response = ""
+        citations = []
+        
+        # Process each content block
+        for block in response.content:
+            if block.type == "text":
+                main_response += block.text
+                if enable_citations and hasattr(block, 'citations') and block.citations:
+                    for citation in block.citations:
+                        if citation.cited_text not in citations:
+                            citations.append(citation.cited_text)
+        
+        # Add main response
+        history.append({"role": "assistant", "content": main_response})
+        
+        # Add citations in a collapsible section
+        if enable_citations and citations:
+            history.append({
+                "role": "assistant",
+                "content": "\n".join([f"• {cite}" for cite in citations]),
+                "metadata": {"title": "📚 Citations"}
+            })
+        
+        return history
+            
+    except Exception as e:
+        history.append({
+            "role": "assistant",
+            "content": "I apologize, but I encountered an error while processing your request."
+        })
+        return history
+```
+
+Finally, let's create the Gradio interface:
+
+```python
+with gr.Blocks() as demo:
+    gr.Markdown("# Chat with Citations")
+    
+    with gr.Row(scale=1):
+        with gr.Column(scale=4):
+            chatbot = gr.Chatbot(type="messages", bubble_full_width=False, show_label=False, scale=1)
+            msg = gr.Textbox(placeholder="Enter your message here...", show_label=False, container=False)
+            
+        with gr.Column(scale=1):
+            enable_citations = gr.Checkbox(label="Enable Citations", value=True, info="Toggle citation functionality" )
+            doc_type_radio = gr.Radio( choices=["plain_text", "pdf"], value="plain_text", label="Document Type", info="Choose the type of document to use")
+            text_input = gr.Textbox(label="Document Content", lines=10, info="Enter the text you want to reference")
+            pdf_input = gr.File(label="Upload PDF", file_types=[".pdf"], file_count="single", visible=False)
+    
+    # Handle message submission
+    msg.submit(
+        user_message,
+        [msg, chatbot, enable_citations, doc_type_radio, text_input, pdf_input],
+        [msg, chatbot]
+    ).then(
+        bot_response,
+        [chatbot, enable_citations, doc_type_radio, text_input, pdf_input],
+        chatbot
+    )
+
+demo.launch()
+```
+
+This creates a chatbot that:
+- Supports both plain text and PDF documents for Claude to cite from 
+- Displays Citations in collapsible sections using our `metadata` feature
+- Shows source quotes directly from the given documents
+
+The citations feature works particularly well with the Gradio Chatbot's `metadata` support, allowing us to create collapsible sections that keep the chat interface clean while still providing easy access to source documentation.
+
+That's it! You now have a chatbot that not only responds to users but also shows its sources, creating a more transparent and trustworthy interaction. See our finished Citations demo [here](https://huggingface.co/spaces/ysharma/anthropic-citations-with-gradio-metadata-key).
 
