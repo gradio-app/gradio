@@ -17,6 +17,7 @@ class Sidebar(BlockContext, metaclass=ComponentMeta):
                 gr.Textbox()
                 gr.Button()
     """
+
     EVENTS = [Events.expand, Events.collapse]
 
     def __init__(
