@@ -787,15 +787,12 @@
 	});
 
 	async function delete_row(index: number): Promise<void> {
-		console.log("delete_row", index);
 		parent.focus();
 		if (row_count[1] !== "dynamic") return;
 		if (data.length <= 1) return;
-		console.log("data", data);
 		data.splice(index, 1);
 		data = data;
 		selected = false;
-		console.log("data", data);
 	}
 
 	async function delete_col(index: number): Promise<void> {
