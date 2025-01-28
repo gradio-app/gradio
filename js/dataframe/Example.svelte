@@ -48,6 +48,7 @@
 <style>
 	table {
 		position: relative;
+		border-collapse: collapse;
 	}
 
 	td {
