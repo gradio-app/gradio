@@ -3067,7 +3067,7 @@ Received inputs:
         return target_events
 
     @document()
-    def route(self, name: str, path: str | None = None):
+    def route(self, name: str, path: str | None = None) -> Blocks:
         """
         Adds a new page to the Blocks app.
         Parameters:
