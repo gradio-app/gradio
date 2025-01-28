@@ -74,6 +74,8 @@
 		ready = !!$_layout;
 	}
 
+	$: dependencies, render_complete && handle_load_triggers(); // re-run load triggers in SSR mode when page changes
+
 	async function run(): Promise<void> {
 		await create_layout({
 			components,
@@ -610,12 +612,7 @@
 				a[i].setAttribute("target", "_blank");
 		}
 
-		// handle load triggers
-		dependencies.forEach((dep) => {
-			if (dep.targets.some((dep) => dep[1] === "load")) {
-				wait_then_trigger_api_call(dep.id);
-			}
-		});
+		handle_load_triggers();
 
 		if (!target || render_complete) return;
 
@@ -667,6 +664,14 @@
 
 		render_complete = true;
 	}
+
+	const handle_load_triggers = () => {
+		dependencies.forEach((dep) => {
+			if (dep.targets.some((dep) => dep[1] === "load")) {
+				wait_then_trigger_api_call(dep.id);
+			}
+		});
+	};
 
 	$: set_status($loading_status);
 
@@ -753,7 +758,7 @@
 		<nav>
 			{#each pages as [route, label], i}
 				<a
-					href={route.length ? `page-${route}` : "/"}
+					href={route.length ? route : "/"}
 					style:font-weight={route === current_page ? "bold" : "normal"}
 					>{label}</a
 				>

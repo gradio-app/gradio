@@ -69,7 +69,7 @@ from gradio.exceptions import (
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream
-from gradio.routes import VERSION, App, Request
+from gradio.routes import EXISTING_ROUTES, VERSION, App, Request
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
@@ -1156,8 +1156,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.output_components = None
         self.__name__ = None  # type: ignore
         self.api_mode = None
-        self.pages: list[tuple[str, str]] = [["", "Home"]]
-        self.current_page = ""
 
         self.progress_tracking = None
         self.ssl_verify = True
@@ -1165,6 +1163,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.blocked_paths = []
         self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         self.proxy_urls = set()
+
+        self.pages: list[tuple[str, str]] = [["", "Home"]]
+        self.current_page = ""
 
         if self.analytics_enabled:
             is_custom_theme = not any(
@@ -3071,7 +3072,7 @@ Received inputs:
         Adds a new page to the Blocks app.
         Parameters:
             name: The name of the page as it appears in the nav bar.
-            path: The url path of the page (prefixed by 'page-'). If not provided, it is generated from the name.
+            path: The url path of the page. If not provided, it is generated from the name.
         Example:
             with gr.Blocks() as demo:
                 name = gr.Textbox(label="Name")
@@ -3080,9 +3081,14 @@ Received inputs:
                 num = gr.Number()
                 ...
         """
+        if path:
+            path = path.strip("/")
+        if path in EXISTING_ROUTES:
+            raise ValueError(f"Route with path '{path}' already exists")
         if path is None:
             path = name.lower().replace(" ", "-")
-        path = path.strip("/")
+        if path in EXISTING_ROUTES:
+            path = "_" + path
         self.pages.append((path, name))
         self.current_page = path
         return self
