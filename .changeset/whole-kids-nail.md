@@ -1,5 +1,6 @@
 ---
 "@gradio/imageeditor": patch
+"@self/storybook": patch
 "gradio": patch
 ---
 
