@@ -249,7 +249,7 @@
 	.message {
 		position: relative;
 		width: 100%;
-		margin-bottom: var(--spacing-md);
+		margin-bottom: var(--spacing-sm);
 	}
 
 	.message.display_consecutive_in_same_bubble {
