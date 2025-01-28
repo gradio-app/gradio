@@ -1,4 +1,4 @@
-import { test, expect, drag_and_drop_file } from "@self/tootils";
+import { test, expect } from "@self/tootils";
 
 test("upload events work as expected", async ({ page }) => {
 	await page.getByLabel("Upload button").first().click();
