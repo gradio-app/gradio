@@ -55,17 +55,29 @@
 	}}
 />
 
-<!-- <Story
-	name="Image Editor Drawing Interactions"
+<Story
+	name="Image Editor Drawing, Cropping Interactions"
 	args={{
 		value: {
-			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			orig_name: "cheetah.jpg"
+			background: {
+				path: "",
+				url: "https://huggingface.co/datasets/freddyaboulton/bucket/resolve/main/ghepardo-primo-piano.jpg",
+				size: null,
+				orig_name: null,
+				mime_type: null,
+				is_stream: false,
+				meta: {
+					_type: "gradio.FileData"
+				}
+			},
+			layers: [],
+			composite: null,
+			id: null
 		},
 		type: "pil",
 		sources: ["upload", "webcam"],
 		interactive: "true",
+		canvas_size: [800, 800],
 		brush: {
 			default_size: "auto",
 			colors: ["#ff0000", "#00ff00", "#0000ff"],
@@ -78,6 +90,12 @@
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
+
+		canvas.getByLabelText("Show Layers").click();
+		await new Promise((r) => setTimeout(r, 1000));
+
+		canvas.getByLabelText("layer-1").click();
+		await new Promise((r) => setTimeout(r, 500));
 
 		const drawButton = canvas.getAllByLabelText("Draw button")[0];
 
@@ -95,116 +113,75 @@
 			target: drawCanvas,
 			coords: { clientX: 300, clientY: 100 }
 		});
-
-		await userEvent.pointer({
-			keys: "[MouseLeft>]",
-			target: drawCanvas,
-			coords: { clientX: 300, clientY: 100 }
-		});
-
-		await userEvent.pointer({
-			keys: "[MouseLeft>]",
-			target: drawCanvas,
-			coords: { clientX: 300, clientY: 100 }
-		});
+		await new Promise((r) => setTimeout(r, 300));
 
 		await userEvent.pointer({
 			target: drawCanvas,
 			coords: { clientX: 300, clientY: 300 }
 		});
-
-		await userEvent.pointer({
-			target: drawCanvas,
-			coords: { clientX: 300, clientY: 300 }
-		});
+		await new Promise((r) => setTimeout(r, 300));
 
 		await userEvent.pointer({
 			target: drawCanvas,
 			coords: { clientX: 100, clientY: 100 }
 		});
+		await new Promise((r) => setTimeout(r, 300));
 
 		await userEvent.click(canvas.getByLabelText("Draw button"));
+		await new Promise((r) => setTimeout(r, 1000));
 
-		var availableColors = document.querySelectorAll(
-			"button.color:not(.empty):not(.selected):not(.hidden)"
-		);
+		var availableColors = document.querySelectorAll("menu > button");
 
-		await userEvent.click(availableColors[0]);
+		await userEvent.click(availableColors[1]);
 
 		await userEvent.keyboard("{Escape}");
 
 		await userEvent.pointer({
 			keys: "[MouseLeft>]",
 			target: drawCanvas,
-			coords: { clientX: 50, clientY: 50 }
+			coords: { clientX: 300, clientY: 100 }
 		});
-
-		await userEvent.pointer({
-			keys: "[MouseLeft>]",
-			target: drawCanvas,
-			coords: { clientX: 100, clientY: 100 }
-		});
-
-		await userEvent.pointer({
-			target: drawCanvas,
-			coords: { clientX: 100, clientY: 300 }
-		});
-
-		await userEvent.pointer({
-			target: drawCanvas,
-			coords: { clientX: 300, clientY: 300 }
-		});
+		await new Promise((r) => setTimeout(r, 300));
 
 		await userEvent.pointer({
 			target: drawCanvas,
 			coords: { clientX: 100, clientY: 100 }
 		});
+		await new Promise((r) => setTimeout(r, 300));
+
+		await userEvent.pointer({
+			target: drawCanvas,
+			coords: { clientX: 100, clientY: 100 }
+		});
+		await new Promise((r) => setTimeout(r, 300));
 
 		await userEvent.click(canvas.getByLabelText("Transform button"));
-
-		const bottomCropHandle =
-			document.getElementsByClassName("handle corner b")[0];
-
-		await userEvent.pointer({
-			keys: "[MouseLeft>]",
-			target: bottomCropHandle,
-			coords: { clientX: 1000, clientY: 200 }
-		});
-
-		await userEvent.pointer({
-			target: bottomCropHandle,
-			coords: { clientX: 500, clientY: 0 }
-		});
+		await new Promise((r) => setTimeout(r, 1000));
+		const right_crop_handle =
+			document.getElementsByClassName("handle corner r")[0];
+		const rect = right_crop_handle.getBoundingClientRect();
 
 		await userEvent.pointer({
 			keys: "[MouseLeft>]",
-			target: bottomCropHandle,
-			coords: { clientX: 500, clientY: 0 }
+			target: right_crop_handle
 		});
-
+		await new Promise((r) => setTimeout(r, 300));
 		await userEvent.pointer({
+			target: right_crop_handle,
+			coords: { clientX: 100, clientY: rect.y }
+		});
+		await userEvent.pointer({
+			target: right_crop_handle,
 			keys: "[MouseLeft>]",
-			coords: { clientX: 500, clientY: 0 }
+			coords: { clientX: 100, clientY: rect.y }
 		});
-
-		await userEvent.pointer({
-			target: drawCanvas,
-			coords: { clientX: 100, clientY: 300 }
-		});
-
-		userEvent.tripleClick(drawCanvas);
-
 		await new Promise((r) => setTimeout(r, 1000));
 
-		userEvent.click(canvas.getByLabelText("Show Layers"));
-
-		await new Promise((r) => setTimeout(r, 1000));
-
-		userEvent.click(canvas.getByLabelText("Add Layer"));
-
-		await userEvent.click(canvas.getByLabelText("Clear canvas"));
+		await userEvent.click(canvas.getByLabelText("Draw button"));
+		await new Promise((r) => setTimeout(r, 300));
+		await userEvent.click(canvas.getByLabelText("Draw button"));
 	}}
-/> -->
+/>
 
 <Story
 	name="Image Editor Undo/Redo Interactions"
