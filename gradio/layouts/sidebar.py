@@ -10,7 +10,7 @@ from gradio.events import Events
 @document()
 class Sidebar(BlockContext, metaclass=ComponentMeta):
     """
-    Sidebar is a layout element within Blocks that renders all children in a panel on the left side of the screen that can be expanded or collapsed.
+    Sidebar is a collapsible panel that renders child components on the left side of the screen within a Blocks layout.
     Example:
         with gr.Blocks() as demo:
             with gr.Sidebar():
