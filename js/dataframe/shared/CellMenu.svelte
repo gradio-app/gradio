@@ -126,8 +126,4 @@
 		fill: currentColor;
 		transition: fill 0.2s;
 	}
-
-	.cell-menu button:hover :global(svg) {
-		fill: var(--color-accent);
-	}
 </style>
