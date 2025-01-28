@@ -106,7 +106,7 @@
 			throw new Error("Could not find canvas");
 		}
 
-		await new Promise((r) => setTimeout(r, 300));
+		await new Promise((r) => setTimeout(r, 100));
 
 		await userEvent.pointer({
 			keys: "[MouseLeft>]",
@@ -124,23 +124,14 @@
 			target: drawCanvas,
 			coords: { clientX: 100, clientY: 100 }
 		});
-		await new Promise((r) => setTimeout(r, 300));
-
-		await userEvent.click(canvas.getByLabelText("Draw button"));
-		await new Promise((r) => setTimeout(r, 300));
-
-		var availableColors = document.querySelectorAll("menu > button");
-
-		await userEvent.click(availableColors[1]);
-
-		await userEvent.keyboard("{Escape}");
+		await new Promise((r) => setTimeout(r, 100));
 
 		await userEvent.pointer({
 			keys: "[MouseLeft>]",
 			target: drawCanvas,
 			coords: { clientX: 300, clientY: 100 }
 		});
-		await new Promise((r) => setTimeout(r, 300));
+		await new Promise((r) => setTimeout(r, 100));
 
 		await userEvent.pointer({
 			target: drawCanvas,
@@ -151,7 +142,7 @@
 			target: drawCanvas,
 			coords: { clientX: 100, clientY: 100 }
 		});
-		await new Promise((r) => setTimeout(r, 300));
+		await new Promise((r) => setTimeout(r, 100));
 
 		await userEvent.click(canvas.getByLabelText("Transform button"));
 		await new Promise((r) => setTimeout(r, 500));
@@ -163,7 +154,7 @@
 			keys: "[MouseLeft>]",
 			target: right_crop_handle
 		});
-		await new Promise((r) => setTimeout(r, 300));
+		await new Promise((r) => setTimeout(r, 100));
 		await userEvent.pointer({
 			target: right_crop_handle,
 			coords: { clientX: 100, clientY: rect.y }
@@ -173,10 +164,10 @@
 			keys: "[MouseLeft>]",
 			coords: { clientX: 100, clientY: rect.y }
 		});
-		await new Promise((r) => setTimeout(r, 500));
+		await new Promise((r) => setTimeout(r, 100));
 
 		await userEvent.click(canvas.getByLabelText("Draw button"));
-		await new Promise((r) => setTimeout(r, 300));
+		await new Promise((r) => setTimeout(r, 100));
 		await userEvent.click(canvas.getByLabelText("Draw button"));
 	}}
 />
