@@ -401,6 +401,7 @@
 	async function edit_header(i: number, _select = false): Promise<void> {
 		if (!editable || col_count[1] !== "dynamic" || header_edit === i) return;
 		selected = false;
+		selected_cells = [];
 		selected_header = i;
 		header_edit = i;
 		select_on_focus = _select;
@@ -688,6 +689,8 @@
 		clear_on_focus = false;
 		active_cell_menu = null;
 		active_header_menu = null;
+		selected_header = false;
+		header_edit = false;
 
 		selected_cells = handle_selection([row, col], selected_cells, event);
 		editing = handle_editing_state(
