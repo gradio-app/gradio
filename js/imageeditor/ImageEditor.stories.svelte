@@ -61,7 +61,7 @@
 		value: {
 			background: {
 				path: "",
-				url: "https://huggingface.co/datasets/freddyaboulton/bucket/resolve/main/ghepardo-primo-piano.jpg",
+				url: "/cheetah.jpg",
 				size: null,
 				orig_name: null,
 				mime_type: null,
@@ -92,7 +92,7 @@
 		const canvas = within(canvasElement);
 
 		canvas.getByLabelText("Show Layers").click();
-		await new Promise((r) => setTimeout(r, 1000));
+		await new Promise((r) => setTimeout(r, 500));
 
 		canvas.getByLabelText("layer-1").click();
 		await new Promise((r) => setTimeout(r, 500));
@@ -106,14 +106,13 @@
 			throw new Error("Could not find canvas");
 		}
 
-		await new Promise((r) => setTimeout(r, 1000));
+		await new Promise((r) => setTimeout(r, 300));
 
 		await userEvent.pointer({
 			keys: "[MouseLeft>]",
 			target: drawCanvas,
 			coords: { clientX: 300, clientY: 100 }
 		});
-		await new Promise((r) => setTimeout(r, 300));
 
 		await userEvent.pointer({
 			target: drawCanvas,
@@ -128,7 +127,7 @@
 		await new Promise((r) => setTimeout(r, 300));
 
 		await userEvent.click(canvas.getByLabelText("Draw button"));
-		await new Promise((r) => setTimeout(r, 1000));
+		await new Promise((r) => setTimeout(r, 300));
 
 		var availableColors = document.querySelectorAll("menu > button");
 
@@ -147,7 +146,6 @@
 			target: drawCanvas,
 			coords: { clientX: 100, clientY: 100 }
 		});
-		await new Promise((r) => setTimeout(r, 300));
 
 		await userEvent.pointer({
 			target: drawCanvas,
@@ -156,7 +154,7 @@
 		await new Promise((r) => setTimeout(r, 300));
 
 		await userEvent.click(canvas.getByLabelText("Transform button"));
-		await new Promise((r) => setTimeout(r, 1000));
+		await new Promise((r) => setTimeout(r, 500));
 		const right_crop_handle =
 			document.getElementsByClassName("handle corner r")[0];
 		const rect = right_crop_handle.getBoundingClientRect();
@@ -175,7 +173,7 @@
 			keys: "[MouseLeft>]",
 			coords: { clientX: 100, clientY: rect.y }
 		});
-		await new Promise((r) => setTimeout(r, 1000));
+		await new Promise((r) => setTimeout(r, 500));
 
 		await userEvent.click(canvas.getByLabelText("Draw button"));
 		await new Promise((r) => setTimeout(r, 300));
