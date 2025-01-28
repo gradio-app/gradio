@@ -32,16 +32,18 @@
 
 <style>
     .sidebar {
+		display: flex;
+        flex-direction: column;
         position: fixed;
         top: 0;
         left: 0;
         height: 100vh;
         background-color: var(--background-fill-secondary);
-        box-shadow: var(--size-1) 0 var(--size-2) rgba(100, 89, 89, 0.1);
         transform: translateX(-100%);
         transition: transform 0.3s ease-in-out;
         width: var(--size-64);
         z-index: 1000;
+
     }
 
     .sidebar.open {
@@ -83,12 +85,13 @@
         position: relative;
         width: var(--size-3);
         height: var(--size-3);
-        border-top: var(--size-0-5) solid var(--button-secondary-background-fill);
-        border-right: var(--size-0-5) solid var(--button-secondary-background-fill);
+        border-top: var(--size-0-5) solid var(--button-secondary-text-color);
+        border-right: var(--size-0-5) solid var(--button-secondary-text-color);
         transform: rotate(45deg);
     }
 
     .sidebar-content {
         padding: var(--size-5);
+        overflow-y: auto;
     }
 </style>
