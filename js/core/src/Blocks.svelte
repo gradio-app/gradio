@@ -753,19 +753,21 @@
 	{/if}
 </svelte:head>
 
+{#if pages.length > 1}
+<nav>
+	{#each pages as [route, label], i}
+		<a
+			href={route.length ? route : "/"}
+			class:active={route === current_page}
+			>{label}</a
+		>
+		{#if i < pages.length - 1}
+			<span>&bull;</span>
+		{/if}
+	{/each}
+</nav>
+{/if}
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
-	{#if pages.length > 1}
-		<nav>
-			{#each pages as [route, label], i}
-				<a
-					href={route.length ? route : "/"}
-					style:font-weight={route === current_page ? "bold" : "normal"}
-					>{label}</a
-				>
-				{i < pages.length - 1 ? "·" : ""}
-			{/each}
-		</nav>
-	{/if}
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
 		{#if $_layout && app.config}
 			<MountComponents
@@ -894,12 +896,24 @@
 
 <style>
 	nav {
-		display: flex;
+		display: inline-flex;
+		flex-wrap: wrap;
 		gap: var(--size-2);
-		margin-bottom: var(--size-2);
+		margin: 0 auto var(--layout-gap);
+		border-width: var(--block-border-width);
+		border-color: var(--block-border-color);
+		border-radius: var(--block-radius);
+		padding: var(--size-2);
+		justify-content: center;
 	}
 	nav a:hover {
 		text-decoration: underline;
+	}
+	nav a.active {
+		font-weight: bold;
+	}
+	nav span {
+		color: var(--body-text-color-subdued);
 	}
 	.wrap {
 		display: flex;
