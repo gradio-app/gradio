@@ -1,14 +1,19 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, onMount } from "svelte";
 	const dispatch = createEventDispatcher<{
 		expand: void;
 		collapse: void;
 	}>();
 
 	export let open = true;
+	let sidebar_div: HTMLElement;
+
+	onMount(() => {
+		sidebar_div.parentElement?.classList.add('sidebar-parent');
+	});
 </script>
 
-<div class="sidebar" class:open>
+<div class="sidebar" class:open bind:this={sidebar_div}>
 	<button
 		on:click={() => {
 			open = !open;
@@ -31,6 +36,17 @@
 </div>
 
 <style>
+	:global(.sidebar-parent) {
+		display: flex !important;
+		min-height: 100vh;
+		padding-left: 0;
+		transition: padding-left 0.3s ease-in-out;
+	}
+
+	:global(.sidebar-parent:has(.sidebar.open)) {
+		padding-left: var(--size-32);
+	}
+
 	.sidebar {
 		display: flex;
 		flex-direction: column;
