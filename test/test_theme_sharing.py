@@ -340,7 +340,7 @@ class TestThemeUploadDownload:
     def test_first_upload_no_version(self, mock_1):
         mock_1.whoami.return_value = {"name": "freddyaboulton"}
 
-        mock_1.HfApi().space_info.side_effect = huggingface_hub.hf_api.HTTPError("Foo")
+        mock_1.HfApi().space_info.side_effect = huggingface_hub.hf_api.HTTPError("Foo")  # type: ignore
 
         gr.themes.Monochrome().push_to_hub(repo_name="does_not_exist")
         repo_call_args = mock_1.HfApi().create_commit.call_args_list[0][1]

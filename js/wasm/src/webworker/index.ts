@@ -27,7 +27,7 @@ import { generateRandomString } from "./random";
 import scriptRunnerPySource from "./py/script_runner.py?raw";
 import unloadModulesPySource from "./py/unload_modules.py?raw";
 
-importScripts("https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js");
+importScripts("https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.js");
 
 type MessageTransceiver = DedicatedWorkerGlobalScope | MessagePort;
 

@@ -249,6 +249,11 @@
 	.message {
 		position: relative;
 		width: 100%;
+		margin-top: var(--spacing-sm);
+	}
+
+	.message.display_consecutive_in_same_bubble {
+		margin-top: 0;
 	}
 
 	/* avatar styles */
