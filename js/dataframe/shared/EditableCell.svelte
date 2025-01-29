@@ -30,6 +30,14 @@
 	export let el: HTMLInputElement | null;
 	$: _value = value;
 
+	function truncate_text(text: string | number, max_length = 20): string {
+		const str = String(text);
+		if (str.length <= max_length) return str;
+		return str.slice(0, max_length) + "...";
+	}
+
+	$: display_text = is_expanded ? value : truncate_text(display_value || value);
+
 	function use_focus(node: HTMLInputElement): any {
 		if (clear_on_focus) {
 			_value = "";
@@ -95,17 +103,17 @@
 	placeholder=" "
 >
 	{#if datatype === "html"}
-		{@html value}
+		{@html display_text}
 	{:else if datatype === "markdown"}
 		<MarkdownCode
-			message={value.toLocaleString()}
+			message={display_text.toLocaleString()}
 			{latex_delimiters}
 			{line_breaks}
 			chatbot={false}
 			{root}
 		/>
 	{:else}
-		{editable ? value : display_value || value}
+		{editable ? display_text : display_value || display_text}
 	{/if}
 </span>
 
@@ -116,6 +124,7 @@
 		right: var(--size-2);
 		bottom: var(--size-2);
 		left: var(--size-2);
+		flex: 1 1 0%;
 		transform: translateX(-0.1px);
 		outline: none;
 		border: none;
@@ -124,6 +133,7 @@
 	}
 
 	span {
+		flex: 1 1 0%;
 		position: relative;
 		display: inline-block;
 		outline: none;
@@ -139,12 +149,6 @@
 
 	input:where(:not(.header), [data-editable="true"]) {
 		width: calc(100% - var(--size-10));
-	}
-
-	span:not(.expanded):not(.header) {
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
 	}
 
 	span.expanded {
@@ -164,6 +168,5 @@
 	.edit {
 		opacity: 0;
 		pointer-events: none;
-		position: absolute;
 	}
 </style>
