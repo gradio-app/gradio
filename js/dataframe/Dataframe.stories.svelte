@@ -231,7 +231,8 @@
 			[800, 100, 400],
 			[200, 800, 700]
 		],
-		show_fullscreen_button: true
+		show_fullscreen_button: true,
+		show_copy_button: true
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);

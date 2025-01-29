@@ -44,6 +44,7 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let show_fullscreen_button = false;
+	export let show_copy_button = false;
 	export let value_is_output = false;
 
 	let selected: false | [number, number] = false;
@@ -812,6 +813,7 @@
 			{is_fullscreen}
 			on:click={toggle_fullscreen}
 			on_copy={handle_copy}
+			{show_copy_button}
 		/>
 	</div>
 	<div
