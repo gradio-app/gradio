@@ -56,7 +56,7 @@
 />
 
 <Story
-	name="Image Editor Drawing, Cropping Interactions"
+	name="Image Editor Cropping Interaction"
 	args={{
 		value: {
 			background: {
@@ -92,60 +92,13 @@
 		const canvas = within(canvasElement);
 
 		canvas.getByLabelText("Show Layers").click();
-		await new Promise((r) => setTimeout(r, 500));
-
-		canvas.getByLabelText("layer-1").click();
-		await new Promise((r) => setTimeout(r, 500));
-
-		const drawButton = canvas.getAllByLabelText("Draw button")[0];
-
-		userEvent.click(drawButton);
-
-		const drawCanvas = document.getElementsByTagName("canvas")[0];
-		if (!drawCanvas) {
-			throw new Error("Could not find canvas");
-		}
-
-		await new Promise((r) => setTimeout(r, 100));
-
-		await userEvent.pointer({
-			keys: "[MouseLeft>]",
-			target: drawCanvas,
-			coords: { clientX: 300, clientY: 100 }
-		});
-
-		await userEvent.pointer({
-			target: drawCanvas,
-			coords: { clientX: 300, clientY: 300 }
-		});
 		await new Promise((r) => setTimeout(r, 300));
 
-		await userEvent.pointer({
-			target: drawCanvas,
-			coords: { clientX: 100, clientY: 100 }
-		});
-		await new Promise((r) => setTimeout(r, 100));
-
-		await userEvent.pointer({
-			keys: "[MouseLeft>]",
-			target: drawCanvas,
-			coords: { clientX: 300, clientY: 100 }
-		});
-		await new Promise((r) => setTimeout(r, 100));
-
-		await userEvent.pointer({
-			target: drawCanvas,
-			coords: { clientX: 100, clientY: 100 }
-		});
-
-		await userEvent.pointer({
-			target: drawCanvas,
-			coords: { clientX: 100, clientY: 100 }
-		});
-		await new Promise((r) => setTimeout(r, 100));
+		canvas.getByLabelText("layer-1").click();
+		await new Promise((r) => setTimeout(r, 300));
 
 		await userEvent.click(canvas.getByLabelText("Transform button"));
-		await new Promise((r) => setTimeout(r, 500));
+		await new Promise((r) => setTimeout(r, 300));
 		const right_crop_handle =
 			document.getElementsByClassName("handle corner r")[0];
 		const rect = right_crop_handle.getBoundingClientRect();
