@@ -55,16 +55,39 @@ let run_script: (
 ) => Promise<void>;
 let unload_local_modules: (target_dir_path?: string) => void;
 
+function getRequirementName(requirement: string): string | undefined {
+	const pyRequirement = pyodide.pyimport("packaging.requirements.Requirement");
+	try {
+		return pyRequirement(requirement).name;
+	} catch (error) {
+		return undefined;
+	}
+}
+
+function patchRequirement(requirement: string): string {
+	// XXX: `micropip` sometimes doesn't resolve the dependency version correctly.
+	// So we explicitly specify the version here for some packages.
+	const name = getRequirementName(requirement);
+	if (name === "plotly") {
+		// Plotly 6.x is not compatible with Pyodide 0.27.2 whose `narwhals` is too old.
+		// Ref: https://github.com/gradio-app/gradio/issues/10458
+		return `plotly==5.*`;
+	}
+	return requirement;
+}
+
 function installPackages(requirements: string[], retries = 3): Promise<void> {
-	// A wrapper function to install packages with retries.
+	// A wrapper function to install packages with retries and requirement patching.
 	// Ref: https://github.com/pyodide/micropip/issues/170#issuecomment-2558887851
 	// Background: https://discord.com/channels/879548962464493619/1318487777779646504/1319516137725231124
 	if (retries <= 0) {
 		throw new Error("Failed to install packages.");
 	}
 
+	const patchedRequirements = requirements.map(patchRequirement);
+
 	return micropip.install
-		.callKwargs(requirements, { keep_going: true })
+		.callKwargs(patchedRequirements, { keep_going: true })
 		.catch((error) => {
 			console.error("Failed to install packages. Retrying...", error);
 			return installPackages(requirements, retries - 1);
