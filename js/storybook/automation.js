@@ -29,7 +29,6 @@ import { chromium } from "playwright";
 	await drawButton.click();
 	await page.waitForTimeout(300);
 	const color = page.locator("menu > button").nth(1);
-	console.log(color);
 	await color.click();
 	await page.mouse.move(300, 100);
 	await page.mouse.down();
