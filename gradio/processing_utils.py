@@ -1094,7 +1094,7 @@ def video_is_playable(video_filepath: str) -> bool:
             inputs={video_filepath: None},
         )
         output = probe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-        output = json.loads(output[0])
+        output = json.loads(output[0])  # type: ignore
         video_codec = output["streams"][0]["codec_name"]
         return (container, video_codec) in [
             (".mp4", "h264"),
