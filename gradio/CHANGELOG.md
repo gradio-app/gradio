@@ -1,5 +1,13 @@
 # gradio
 
+## 5.13.2
+
+### Features
+
+- [#10452](https://github.com/gradio-app/gradio/pull/10452) [`dd178f3`](https://github.com/gradio-app/gradio/commit/dd178f3dd5968df445b43f5e3b8cb86b11374913) - Tiny tweak to example dataframes.  Thanks @hannahblair!
+- [#10426](https://github.com/gradio-app/gradio/pull/10426) [`2167f58`](https://github.com/gradio-app/gradio/commit/2167f58fb8d64141d1b9d567af621c8b4d039e04) - Update Pyodide to 0.27.2.  Thanks @whitphx!
+- [#10448](https://github.com/gradio-app/gradio/pull/10448) [`337b522`](https://github.com/gradio-app/gradio/commit/337b5224a682fe18dc8d1c1e5bab2a3341ce01dc) - Small tweaks to `gr.ChatMessage` and spacing between chatbot messages.  Thanks @abidlabs!
+
 ## 5.13.1
 
 ### Features
