@@ -17,6 +17,7 @@
 	} from "./utils";
 	import CellMenu from "./CellMenu.svelte";
 	import Toolbar from "./Toolbar.svelte";
+	import { copy_table_data } from "./table_utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -771,6 +772,10 @@
 		is_fullscreen = !!document.fullscreenElement;
 	}
 
+	async function handle_copy(): Promise<void> {
+		await copy_table_data(data);
+	}
+
 	function toggle_header_menu(event: MouseEvent, col: number): void {
 		event.stopPropagation();
 		if (active_header_menu && active_header_menu.col === col) {
@@ -806,6 +811,7 @@
 			{show_fullscreen_button}
 			{is_fullscreen}
 			on:click={toggle_fullscreen}
+			on_copy={handle_copy}
 		/>
 	</div>
 	<div
