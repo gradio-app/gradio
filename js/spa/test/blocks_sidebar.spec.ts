@@ -1,6 +1,7 @@
 import { test, expect } from "@self/tootils";
 
 test("shows open sidebar and components in sidebar work", async ({ page }) => {
+	await page.waitForTimeout(1000);
 	await expect(page.getByText("🐾 Pet Name Generator")).toBeVisible();
 	await expect(page.getByLabel("Choose your pet type")).toBeVisible();
 	await expect(page.getByLabel("Personality type")).toBeVisible();
