@@ -24,6 +24,7 @@ from gradio.components import (
     ClearButton,
     Code,
     ColorPicker,
+    Component,
     DataFrame,
     Dataframe,
     Dataset,
