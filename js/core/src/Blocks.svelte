@@ -74,7 +74,12 @@
 		ready = !!$_layout;
 	}
 
-	$: dependencies, render_complete && handle_load_triggers(); // re-run load triggers in SSR mode when page changes
+	let old_dependencies = dependencies;
+	$: if (dependencies !== old_dependencies && render_complete) {
+		// re-run load triggers in SSR mode when page changes
+		handle_load_triggers();
+		old_dependencies = dependencies;
+	}
 
 	async function run(): Promise<void> {
 		await create_layout({
@@ -754,18 +759,16 @@
 </svelte:head>
 
 {#if pages.length > 1}
-<nav>
-	{#each pages as [route, label], i}
-		<a
-			href={route.length ? route : "/"}
-			class:active={route === current_page}
-			>{label}</a
-		>
-		{#if i < pages.length - 1}
-			<span>&bull;</span>
-		{/if}
-	{/each}
-</nav>
+	<nav>
+		{#each pages as [route, label], i}
+			<a href={route.length ? route : "/"} class:active={route === current_page}
+				>{label}</a
+			>
+			{#if i < pages.length - 1}
+				<span>&bull;</span>
+			{/if}
+		{/each}
+	</nav>
 {/if}
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>

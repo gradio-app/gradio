@@ -8,6 +8,7 @@ import inspect
 import json
 import os
 import random
+import re
 import secrets
 import string
 import sys
@@ -69,7 +70,7 @@ from gradio.exceptions import (
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream
-from gradio.routes import EXISTING_ROUTES, VERSION, App, Request
+from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
@@ -3072,7 +3073,7 @@ Received inputs:
         Adds a new page to the Blocks app.
         Parameters:
             name: The name of the page as it appears in the nav bar.
-            path: The URL suffix appended after your Gradio app's root URL to access this page (e.g. if path="/test", the page may be accessible e.g. at http://localhost:7860/test). If not provided, the path is generated from the name by converting to lowercase and replacing spaces with hyphens. Any leading or trailing forward slashes are stripped. 
+            path: The URL suffix appended after your Gradio app's root URL to access this page (e.g. if path="/test", the page may be accessible e.g. at http://localhost:7860/test). If not provided, the path is generated from the name by converting to lowercase and replacing spaces with hyphens. Any leading or trailing forward slashes are stripped.
         Example:
             with gr.Blocks() as demo:
                 name = gr.Textbox(label="Name")
@@ -3081,13 +3082,26 @@ Received inputs:
                 num = gr.Number()
                 ...
         """
+        if get_blocks_context():
+            raise ValueError(
+                "You cannot create a route while inside a Blocks() context. Call route() outside the Blocks() context (unindent this line)."
+            )
+
         if path:
             path = path.strip("/")
-        if path in EXISTING_ROUTES:
+            valid_path_regex = re.compile(r"^[a-zA-Z0-9-._~!$&'()*+,;=:@\[\]]+$")
+            if not valid_path_regex.match(path):
+                raise ValueError(
+                    f"Path '{path}' contains invalid characters. Paths can only contain alphanumeric characters and the following special characters: -._~!$&'()*+,;=:@[]"
+                )
+        if path in INTERNAL_ROUTES:
             raise ValueError(f"Route with path '{path}' already exists")
         if path is None:
             path = name.lower().replace(" ", "-")
-        if path in EXISTING_ROUTES:
+            path = "".join(
+                [letter for letter in path if letter.isalnum() or letter == "-"]
+            )
+        while path in INTERNAL_ROUTES or path in [page[0] for page in self.pages]:
             path = "_" + path
         self.pages.append((path, name))
         self.current_page = path

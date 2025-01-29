@@ -365,15 +365,7 @@ class App(FastAPI):
                 if (
                     getattr(blocks, "node_process", None) is not None
                     and blocks.node_port is not None
-                    and not path.startswith("/gradio_api")
-                    and path not in ["/config", "/favicon.ico"]
-                    and not path.startswith("/theme")
-                    and not path.startswith("/svelte")
-                    and not path.startswith("/static")
-                    and not path.startswith("/login")
-                    and not path.startswith("/logout")
-                    and not path.startswith("/manifest.json")
-                    and not path.startswith("/pwa_icon")
+                    and not any(path.startswith(f"/{url}") for url in INTERNAL_ROUTES)
                 ):
                     if App.app_port is None:
                         App.app_port = request.url.port or int(
@@ -1764,7 +1756,7 @@ def mount_gradio_app(
     return app
 
 
-EXISTING_ROUTES = [
+INTERNAL_ROUTES = [
     "theme.css",
     "robots.txt",
     "pwa_icon",
@@ -1776,4 +1768,5 @@ EXISTING_ROUTES = [
     "static",
     "assets",
     "favicon.ico",
+    "gradio_api",
 ]

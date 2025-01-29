@@ -70,9 +70,3 @@ In the  2 player tic-tac-toe demo below, a user can select a cell in the `DataFr
 
 $code_tictactoe
 $demo_tictactoe
-
-## Multipage Apps
-
-Your Gradio app can support multiple pages with the `gr.Blocks().route()` method. 
-
-$code_multipage
