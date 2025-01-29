@@ -55,20 +55,20 @@ let run_script: (
 ) => Promise<void>;
 let unload_local_modules: (target_dir_path?: string) => void;
 
-function getRequirementName(requirement: string): string | undefined {
+function isPlotly6(requirement: string): boolean {
 	const pyRequirement = pyodide.pyimport("packaging.requirements.Requirement");
 	try {
-		return pyRequirement(requirement).name;
+		const reqObj = pyRequirement(requirement);
+		return reqObj.name === "plotly" && reqObj.specifier.contains("6");
 	} catch (error) {
-		return undefined;
+		return false;
 	}
 }
 
 function patchRequirement(requirement: string): string {
 	// XXX: `micropip` sometimes doesn't resolve the dependency version correctly.
 	// So we explicitly specify the version here for some packages.
-	const name = getRequirementName(requirement);
-	if (name === "plotly") {
+	if (isPlotly6(requirement)) {
 		// Plotly 6.x is not compatible with Pyodide 0.27.2 whose `narwhals` is too old.
 		// Ref: https://github.com/gradio-app/gradio/issues/10458
 		return `plotly==5.*`;
