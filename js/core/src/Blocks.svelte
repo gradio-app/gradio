@@ -52,7 +52,7 @@
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
 	export let pages: [string, string][] = [];
-	export let current_page: string = "";
+	export let current_page = "";
 
 	let {
 		layout: _layout,
@@ -670,7 +670,7 @@
 		render_complete = true;
 	}
 
-	const handle_load_triggers = () => {
+	const handle_load_triggers = (): void => {
 		dependencies.forEach((dep) => {
 			if (dep.targets.some((dep) => dep[1] === "load")) {
 				wait_then_trigger_api_call(dep.id);
