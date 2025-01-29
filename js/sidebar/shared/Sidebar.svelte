@@ -9,7 +9,7 @@
 	let sidebar_div: HTMLElement;
 
 	onMount(() => {
-		sidebar_div.parentElement?.classList.add('sidebar-parent');
+		sidebar_div.parentElement?.classList.add("sidebar-parent");
 	});
 </script>
 
