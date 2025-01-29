@@ -179,3 +179,30 @@
 		await userEvent.click(canvas.getByLabelText("Redo"));
 	}}
 />
+
+<Story
+	name="Static Image Display"
+	args={{
+		value: {
+			composite: {
+				path: "",
+				url: "/output-image.png",
+				size: null,
+				orig_name: null,
+				mime_type: null,
+				is_stream: false,
+				meta: {
+					_type: "gradio.FileData"
+				}
+			},
+			layers: [],
+			background: null,
+			id: null
+		},
+		type: "pil",
+		interactive: false,
+		label: "Image Editor",
+		show_label: true,
+		canvas_size: [800, 600]
+	}}
+/>

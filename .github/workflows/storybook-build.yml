@@ -60,6 +60,7 @@ jobs:
         run: |
           . venv/bin/activate
           python scripts/generate_theme.py --outfile js/storybook/theme.css
+      - run: pnpm exec playwright install chromium
       - name: build storybook
         run: pnpm build-storybook --quiet
       - name: upload  storybook
