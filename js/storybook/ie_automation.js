@@ -47,6 +47,6 @@ import { chromium } from "playwright";
 	await page.waitForTimeout(500);
 
 	await page.getByRole("button", { name: "Get" }).click();
-	await page.waitForTimeout(3000);
+	await page.waitForTimeout(7000);
 	await browser.close();
 })();
