@@ -900,10 +900,6 @@
 		flex-wrap: wrap;
 		gap: var(--size-2);
 		margin: 0 auto var(--layout-gap);
-		border-width: var(--block-border-width);
-		border-color: var(--block-border-color);
-		border-radius: var(--block-radius);
-		padding: var(--size-2);
 		justify-content: center;
 	}
 	nav a:hover {
