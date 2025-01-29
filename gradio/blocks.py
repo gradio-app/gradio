@@ -1293,7 +1293,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             original_mapping[0] = root_block = Context.root_block or blocks
 
             if "layout" in config:
-                iterate_over_children(config["layout"]["children"])
+                iterate_over_children(config["layout"].get("children", []))
 
             first_dependency = None
 

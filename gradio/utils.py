@@ -570,8 +570,8 @@ def assert_configs_are_equivalent_besides_ids(
             raise ValueError(
                 "The first config has a layout key, but the second does not"
             )
-        children1 = config1["layout"]["children"]
-        children2 = config2["layout"]["children"]
+        children1 = config1["layout"].get("children", [])
+        children2 = config2["layout"].get("children", [])
         same_children_recursive(children1, children2)
 
     if "dependencies" in config1:
