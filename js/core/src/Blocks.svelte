@@ -52,7 +52,7 @@
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
 	export let pages: [string, string][] = [];
-	export let current_page: string = "";
+	export let current_page = "";
 
 	let {
 		layout: _layout,
