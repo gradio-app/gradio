@@ -1,5 +1,16 @@
 # @gradio/dataframe
 
+## 0.13.1
+
+### Features
+
+- [#10452](https://github.com/gradio-app/gradio/pull/10452) [`dd178f3`](https://github.com/gradio-app/gradio/commit/dd178f3dd5968df445b43f5e3b8cb86b11374913) - Tiny tweak to example dataframes.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/upload@0.14.7
+- @gradio/button@0.4.3
+
 ## 0.13.0
 
 ### Features
