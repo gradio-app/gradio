@@ -764,9 +764,6 @@
 			<a href={route.length ? route : "/"} class:active={route === current_page}
 				>{label}</a
 			>
-			{#if i < pages.length - 1}
-				<span>&bull;</span>
-			{/if}
 		{/each}
 	</nav>
 {/if}
@@ -899,20 +896,24 @@
 
 <style>
 	nav {
-		display: inline-flex;
+		display: flex;
 		flex-wrap: wrap;
 		gap: var(--size-2);
-		margin: 0 auto var(--layout-gap);
-		justify-content: center;
+		margin-bottom: var(--size-2);
+		justify-content: flex-end;
+		font-size: var(--text-sm)
 	}
-	nav a:hover {
-		text-decoration: underline;
+	nav a {
+		padding: var(--size-1) var(--size-2);
+		border-radius: var(--block-radius);
+		border-width: var(--block-border-width);
+		border-color: transparent;
+		color: var(--body-text-color-subdued);
 	}
 	nav a.active {
-		font-weight: bold;
-	}
-	nav span {
-		color: var(--body-text-color-subdued);
+		color: var(--body-text-color);
+		border-color: var(--block-border-color);
+		background-color: var(--block-background-fill);
 	}
 	.wrap {
 		display: flex;
