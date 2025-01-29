@@ -69,7 +69,7 @@ fsspec==2024.12.0
     #   torch
 gradio==5.10.0
     # via gradio-pdf
-gradio-client==1.6.0
+gradio-client==1.5.3
     # via gradio
 gradio-pdf==0.0.21
     # via -r test/requirements.in
