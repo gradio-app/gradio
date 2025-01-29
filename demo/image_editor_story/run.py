@@ -7,6 +7,7 @@ def predict(im):
     path = str(Path(__file__).parent / "output-image.png")
     with open(path, "wb") as f:
         f.write(Path(im["composite"]).read_bytes())
+    print("Writing to ", path)
     return path
 
 
