@@ -355,6 +355,12 @@ class Layout(TypedDict):
     children: list[int | Layout]
 
 
+class Page(TypedDict):
+    components: list[dict[str, Any]]
+    dependencies: list[dict[str, Any]]
+    layout: Layout
+
+
 class BlocksConfigDict(TypedDict):
     version: str
     mode: str
@@ -386,6 +392,8 @@ class BlocksConfigDict(TypedDict):
     username: NotRequired[str | None]
     api_prefix: str
     pwa: NotRequired[bool]
+    page: NotRequired[dict[str, Page]]
+    pages: NotRequired[list[tuple[str, str]]]
 
 
 class MediaStreamChunk(TypedDict):

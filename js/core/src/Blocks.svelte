@@ -901,7 +901,6 @@
 		gap: var(--size-2);
 		margin-bottom: var(--size-2);
 		justify-content: flex-end;
-		font-size: var(--text-sm);
 	}
 	nav a {
 		padding: var(--size-1) var(--size-2);

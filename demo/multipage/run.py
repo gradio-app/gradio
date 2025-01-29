@@ -20,4 +20,4 @@ with demo.route("Up") as incrementer_demo:
     dec_btn.click(fn=lambda x: x - 1, inputs=num, outputs=num, api_name="decrement")
 
 if __name__ == "__main__":
-    demo.launch(ssr_mode=True)
+    demo.launch()

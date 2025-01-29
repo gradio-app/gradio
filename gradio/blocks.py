@@ -189,7 +189,8 @@ class Block:
                 f"A block with id: {self._id} has already been rendered in the current Blocks."
             )
         if render_context is not None:
-            self.page = root_context.root_block.current_page
+            if root_context:
+                self.page = root_context.root_block.current_page
             render_context.add(self)
         if root_context is not None:
             root_context.blocks[self._id] = self
@@ -1165,7 +1166,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         self.proxy_urls = set()
 
-        self.pages: list[tuple[str, str]] = [["", "Home"]]
+        self.pages: list[tuple[str, str]] = [("", "Home")]
         self.current_page = ""
 
         if self.analytics_enabled:
