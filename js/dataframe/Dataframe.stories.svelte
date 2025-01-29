@@ -220,3 +220,41 @@
 		show_fullscreen_button: true
 	}}
 />
+
+<Story
+	name="Dataframe toolbar interactions"
+	args={{
+		col_count: [3, "dynamic"],
+		row_count: [2, "dynamic"],
+		headers: ["Math", "Reading", "Writing"],
+		values: [
+			[800, 100, 400],
+			[200, 800, 700]
+		],
+		show_fullscreen_button: true
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+
+		// Test copy functionality
+		const copy_button = canvas.getByRole("button", {
+			name: /copy table data/i
+		});
+		await userEvent.click(copy_button);
+
+		// Wait for copy feedback animation
+		await new Promise((resolve) => setTimeout(resolve, 500));
+
+		// Test fullscreen functionality
+		const fullscreen_button = canvas.getByRole("button", {
+			name: /enter fullscreen/i
+		});
+		await userEvent.click(fullscreen_button);
+
+		// Wait to show fullscreen state
+		await new Promise((resolve) => setTimeout(resolve, 1000));
+
+		// Exit fullscreen
+		await userEvent.click(fullscreen_button);
+	}}
+/>
