@@ -1,5 +1,5 @@
 numpy
 matplotlib
 bokeh
-plotly
+plotly==5.*
 altair
