@@ -17,9 +17,8 @@
 	} from "./utils";
 	import CellMenu from "./CellMenu.svelte";
 	import Toolbar from "./Toolbar.svelte";
+	import type { CellCoordinate, EditingState } from "./types";
 	import {
-		type CellCoordinate,
-		type EditingState,
 		is_cell_selected,
 		handle_selection,
 		handle_delete_key,
@@ -67,8 +66,8 @@
 				: false;
 	}
 
-	let display_value: string[][] | null = null;
-	let styling: string[][] | null = null;
+	export let display_value: string[][] | null = null;
+	export let styling: string[][] | null = null;
 	let t_rect: DOMRectReadOnly;
 	let els: Record<
 		string,
