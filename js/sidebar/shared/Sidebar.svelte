@@ -75,17 +75,18 @@
 		flex-direction: column;
 		position: fixed;
 		top: 0;
-		left: 0;
+		left: calc(var(--size-64) * -1);
 		height: 100vh;
 		background-color: var(--background-fill-secondary);
-		transform: translateX(-100%);
+		box-shadow: var(--size-1) 0 var(--size-2) rgba(100, 89, 89, 0.1);
+		transform: translateX(0%);
 		transition: transform 0.3s ease-in-out;
 		width: var(--size-64);
 		z-index: 1000;
 	}
 
 	.sidebar.open {
-		transform: translateX(0);
+		transform: translateX(100%);
 	}
 
 	.toggle-button {
