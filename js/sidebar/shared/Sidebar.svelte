@@ -18,25 +18,25 @@
 		overlapAmount = Math.max(0, sidebarRect.width - availableSpace + 10);
 	}
 
-    onMount(() => {
-        sidebar_div.parentElement?.classList.add("sidebar-parent");
-        checkOverlap();
-        window.addEventListener('resize', checkOverlap);
-        
-        const updateParentOverlap = (): void => {
-            if (sidebar_div?.parentElement) {
-                sidebar_div.parentElement.style.setProperty('--overlap-amount', `${overlapAmount}px`);
-            }
-        };
-        updateParentOverlap();
-        return () => window.removeEventListener('resize', checkOverlap);
-    });
+	onMount(() => {
+		sidebar_div.parentElement?.classList.add("sidebar-parent");
+		checkOverlap();
+		window.addEventListener("resize", checkOverlap);
+
+		const updateParentOverlap = (): void => {
+			if (sidebar_div?.parentElement) {
+				sidebar_div.parentElement.style.setProperty(
+					"--overlap-amount",
+					`${overlapAmount}px`
+				);
+			}
+		};
+		updateParentOverlap();
+		return () => window.removeEventListener("resize", checkOverlap);
+	});
 </script>
 
-<div 
-	class="sidebar" 
-	class:open 
-	bind:this={sidebar_div}>
+<div class="sidebar" class:open bind:this={sidebar_div}>
 	<button
 		on:click={() => {
 			open = !open;
@@ -78,7 +78,7 @@
 		left: 0;
 		height: 100vh;
 		background-color: var(--background-fill-secondary);
-        transform: translateX(-100%);
+		transform: translateX(-100%);
 		transition: transform 0.3s ease-in-out;
 		width: var(--size-64);
 		z-index: 1000;
