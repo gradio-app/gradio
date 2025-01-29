@@ -29,5 +29,5 @@ with gr.Blocks() as demo:
 
 if __name__ == "__main__":
     app, _, _ = demo.launch(prevent_thread_lock=True)
-    subprocess.call(["node", "js/storybook/automation.js"])
+    subprocess.call(["node", "js/storybook/ie_automation.js"])
     demo.close()

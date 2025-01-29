@@ -58,6 +58,7 @@ demo/unload_event_test/output_log.txt
 demo/stream_video_out/output_*.ts
 demo/stream_video_out/output_*.mp4
 demo/stream_audio_out/*.mp3
+demo/image_editor_story/*.png
 
 # Etc
 .idea/*
@@ -93,6 +94,7 @@ client/js/test.js
 storybook-static
 build-storybook.log
 js/storybook/theme.css
+js/storybook/public/output-image.png
 
 # playwright
 .config/playwright/.cache
