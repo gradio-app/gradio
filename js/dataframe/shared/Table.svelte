@@ -996,7 +996,7 @@
 										class="cell-menu-button"
 										on:click={(event) => toggle_header_menu(event, i)}
 									>
-										⋮
+										&#8942;
 									</button>
 								{/if}
 							</div>
@@ -1065,7 +1065,7 @@
 										class="cell-menu-button"
 										on:click={(event) => toggle_cell_menu(event, index, j)}
 									>
-										⋮
+										&#8942;
 									</button>
 								{/if}
 							</div>
