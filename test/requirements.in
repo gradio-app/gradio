@@ -1,11 +1,12 @@
 # Don't forget to run bash scripts/create_test_requirements.sh and scripts/create_test_requirements-37.sh from unix or wsl when you update this file.
+# Make sure the gradio version is less than the one in gradio/package.json so that it can be overridden by the local version.
 IPython
 altair
 asyncio
 boto3
 coverage
-fastapi>=0.101.0
-gradio_pdf==0.0.3
+fastapi>=0.115.7
+gradio_pdf==0.0.21
 httpx
 huggingface_hub
 polars==0.20.5
