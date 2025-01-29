@@ -25,6 +25,7 @@
 	export let root: string;
 
 	const dispatch = createEventDispatcher();
+	let is_expanded = false;
 
 	export let el: HTMLInputElement | null;
 	$: _value = value;
@@ -57,6 +58,12 @@
 		}
 		dispatch("keydown", event);
 	}
+
+	function handle_double_click(): void {
+		if (!edit && !header) {
+			is_expanded = !is_expanded;
+		}
+	}
 </script>
 
 {#if edit}
@@ -76,13 +83,15 @@
 {/if}
 
 <span
-	on:dblclick
+	on:dblclick={handle_double_click}
 	tabindex="-1"
 	role="button"
 	class:edit
+	class:expanded={is_expanded}
 	on:focus|preventDefault
 	style={styling}
 	class="table-cell-text"
+	data-editable={editable}
 	placeholder=" "
 >
 	{#if datatype === "html"}
@@ -107,7 +116,6 @@
 		right: var(--size-2);
 		bottom: var(--size-2);
 		left: var(--size-2);
-		flex: 1 1 0%;
 		transform: translateX(-0.1px);
 		outline: none;
 		border: none;
@@ -116,7 +124,8 @@
 	}
 
 	span {
-		flex: 1 1 0%;
+		position: relative;
+		display: inline-block;
 		outline: none;
 		padding: var(--size-2);
 		-webkit-user-select: text;
@@ -124,15 +133,37 @@
 		-ms-user-select: text;
 		user-select: text;
 		cursor: text;
+		width: 100%;
+		height: 100%;
+	}
+
+	input:where(:not(.header), [data-editable="true"]) {
+		width: calc(100% - var(--size-10));
+	}
+
+	span:not(.expanded):not(.header) {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	span.expanded {
+		height: auto;
+		min-height: 100%;
+		white-space: pre-wrap;
+		word-break: break-word;
 	}
 
 	.header {
 		transform: translateX(0);
 		font-weight: var(--weight-bold);
+		white-space: normal;
+		word-break: break-word;
 	}
 
 	.edit {
 		opacity: 0;
 		pointer-events: none;
+		position: absolute;
 	}
 </style>

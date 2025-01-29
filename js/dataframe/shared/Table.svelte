@@ -1234,11 +1234,11 @@
 
 	.cell-wrap {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		outline: none;
-		height: var(--size-full);
 		min-height: var(--size-9);
-		overflow: hidden;
+		position: relative;
+		height: auto;
 	}
 
 	.header-content {
@@ -1279,10 +1279,10 @@
 		padding: 0;
 		margin-right: var(--spacing-sm);
 		z-index: var(--layer-1);
-	}
-
-	.cell-menu-button:hover {
-		background-color: var(--color-bg-hover);
+		position: absolute;
+		right: var(--size-1);
+		top: 50%;
+		transform: translateY(-50%);
 	}
 
 	td.focus .cell-menu-button {
