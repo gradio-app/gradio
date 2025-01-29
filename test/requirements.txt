@@ -17,6 +17,7 @@ asyncio==3.4.3
     # via -r test/requirements.in
 attrs==25.1.0
     # via
+    #   hypothesis
     #   jsonschema
     #   referencing
 boto3==1.36.8
@@ -68,7 +69,9 @@ fsspec==2024.12.0
     #   huggingface-hub
     #   torch
 gradio==5.10.0
-    # via gradio-pdf
+    # via
+    #   -r test/requirements.in
+    #   gradio-pdf
 gradio-client==1.5.3
     # via gradio
 gradio-pdf==0.0.21
@@ -94,6 +97,8 @@ huggingface-hub==0.28.0
     #   gradio-client
     #   tokenizers
     #   transformers
+hypothesis==6.124.7
+    # via -r test/requirements.in
 idna==3.10
     # via
     #   anyio
@@ -273,6 +278,8 @@ six==1.17.0
     # via python-dateutil
 sniffio==1.3.1
     # via anyio
+sortedcontainers==2.4.0
+    # via hypothesis
 stack-data==0.6.3
     # via ipython
 starlette==0.45.3

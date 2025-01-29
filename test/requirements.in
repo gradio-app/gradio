@@ -7,8 +7,10 @@ boto3
 coverage
 fastapi>=0.115.7
 gradio_pdf==0.0.21
+gradio==5.10.0
 httpx
 huggingface_hub
+hypothesis
 polars==0.20.5
 pydantic[email]
 pytest
