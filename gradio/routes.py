@@ -523,7 +523,6 @@ class App(FastAPI):
             def page_route(
                 request: fastapi.Request,
                 user: str = Depends(get_current_user),
-                page=page,
             ):
                 return main(request, user, page)
 

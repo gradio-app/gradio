@@ -55,6 +55,7 @@ from gradio.data_classes import (
     FileData,
     GradioModel,
     GradioRootModel,
+    Layout,
 )
 from gradio.events import (
     EventData,
@@ -902,7 +903,7 @@ class BlocksConfig:
 
         rendered_ids = []
 
-        def get_layout(block: Block):
+        def get_layout(block: Block) -> Layout:
             rendered_ids.append(block._id)
             if not isinstance(block, BlockContext):
                 return {"id": block._id}

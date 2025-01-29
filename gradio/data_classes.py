@@ -392,8 +392,8 @@ class BlocksConfigDict(TypedDict):
     username: NotRequired[str | None]
     api_prefix: str
     pwa: NotRequired[bool]
-    page: NotRequired[dict[str, Page]]
-    pages: NotRequired[list[tuple[str, str]]]
+    page: dict[str, Page]
+    pages: list[tuple[str, str]]
 
 
 class MediaStreamChunk(TypedDict):
