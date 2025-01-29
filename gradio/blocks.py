@@ -917,11 +917,14 @@ class BlocksConfig:
             root_block = self.blocks[renderable.container_id]
         else:
             root_block = self.root_block
-        config["layout"] = get_layout(root_block)
-        for root_child in config["layout"]["children"]:
-            block = self.blocks[root_child["id"]]
-            setup_page(block.page)
-            config["page"][block.page]["layout"]["children"].append(root_child)
+        layout = get_layout(root_block)
+        config["layout"] = layout
+
+        for root_child in layout.get("children", []):
+            if isinstance(root_child, dict):
+                block = self.blocks[root_child["id"]]
+                setup_page(block.page)
+                config["page"][block.page]["layout"]["children"].append(root_child)
 
         blocks_items = list(
             self.blocks.items()
@@ -2207,6 +2210,7 @@ Received inputs:
             "theme_hash": self.theme_hash,
             "pwa": self.pwa,
             "pages": self.pages,
+            "page": {},
         }
         config.update(self.default_config.get_config())  # type: ignore
         config["connect_heartbeat"] = utils.connect_heartbeat(

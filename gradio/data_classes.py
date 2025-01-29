@@ -352,7 +352,7 @@ class BodyCSS(TypedDict):
 
 class Layout(TypedDict):
     id: int
-    children: list[int | Layout]
+    children: NotRequired[list[int | Layout]]
 
 
 class Page(TypedDict):
@@ -394,6 +394,7 @@ class BlocksConfigDict(TypedDict):
     pwa: NotRequired[bool]
     page: dict[str, Page]
     pages: list[tuple[str, str]]
+    current_page: NotRequired[str]
 
 
 class MediaStreamChunk(TypedDict):

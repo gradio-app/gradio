@@ -516,7 +516,8 @@ class App(FastAPI):
                 )
             )
 
-        for page, _ in blocks.pages:
+        for pageset in blocks.pages:
+            page = pageset[0]
 
             @app.get(f"/{page}", response_class=HTMLResponse)
             @app.get(f"/{page}/", response_class=HTMLResponse)
