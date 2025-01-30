@@ -141,10 +141,12 @@ ignore = [
   "B905",    # zip without explicit `strict` argument
   "C901",    # function is too complex (TODO: un-ignore this)
   "E501",    # from scripts/lint_backend.sh
+  "PLC0206", # less concise code
   "PLR091",  # complexity rules
   "PLR2004", # magic numbers
   "PLW2901", # `for` loop variable overwritten by assignment target
   "SIM105",  # contextlib.suppress (has a performance cost)
+  "SIM115",  # contextlib.suppress (has a performance cost)
   "SIM117",  # multiple nested with blocks (doesn't look good with gr.Row etc)
   "UP006",   # use `list` instead of `List` for type annotations (fails for 3.8)
   "UP007",   # use X | Y for type annotations (TODO: can be enabled once Pydantic plays nice with them)
