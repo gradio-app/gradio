@@ -774,7 +774,7 @@
 	}
 
 	async function handle_copy(): Promise<void> {
-		await copy_table_data(data);
+		await copy_table_data(data, _headers);
 	}
 
 	function toggle_header_menu(event: MouseEvent, col: number): void {
