@@ -6,41 +6,44 @@
 	}>();
 
 	export let open = true;
+	// Using a temporary variable to animate the sidebar opening at the start
+	let _open = false;
 	let sidebar_div: HTMLElement;
-	let overlapAmount = 0;
+	let overlap_amount = 0;
 
 	// Check if the sidebar overlaps with the main content
-	function checkOverlap(): void {
+	function check_overlap(): void {
 		if (!sidebar_div?.parentElement) return;
-		const parentRect = sidebar_div.parentElement.getBoundingClientRect();
-		const sidebarRect = sidebar_div.getBoundingClientRect();
-		const availableSpace = parentRect.left;
-		overlapAmount = Math.max(0, sidebarRect.width - availableSpace + 10);
+		const parent_rect = sidebar_div.parentElement.getBoundingClientRect();
+		const sidebar_rect = sidebar_div.getBoundingClientRect();
+		const available_space = parent_rect.left;
+		overlap_amount = Math.max(0, sidebar_rect.width - available_space + 10);
 	}
 
 	onMount(() => {
 		sidebar_div.parentElement?.classList.add("sidebar-parent");
-		checkOverlap();
-		window.addEventListener("resize", checkOverlap);
+		check_overlap();
+		window.addEventListener("resize", check_overlap);
 
-		const updateParentOverlap = (): void => {
+		const update_parent_overlap = (): void => {
 			if (sidebar_div?.parentElement) {
 				sidebar_div.parentElement.style.setProperty(
 					"--overlap-amount",
-					`${overlapAmount}px`
+					`${overlap_amount}px`
 				);
 			}
 		};
-		updateParentOverlap();
-		return () => window.removeEventListener("resize", checkOverlap);
+		update_parent_overlap();
+		_open = open;
+		return () => window.removeEventListener("resize", check_overlap);
 	});
 </script>
 
-<div class="sidebar" class:open bind:this={sidebar_div}>
+<div class="sidebar" class:open={_open} bind:this={sidebar_div}>
 	<button
 		on:click={() => {
-			open = !open;
-			if (open) {
+			_open = !_open;
+			if (_open) {
 				dispatch("expand");
 			} else {
 				dispatch("collapse");
