@@ -49,6 +49,7 @@
 	export let loading_status: LoadingStatus;
 	export let interactive: boolean;
 	export let show_fullscreen_button = false;
+	export let show_copy_button = false;
 
 	$: _headers = [...(value.headers || headers)];
 	$: cell_values = value.data ? [...value.data] : [];
@@ -105,5 +106,6 @@
 		stream_handler={(...args) => gradio.client.stream(...args)}
 		bind:value_is_output
 		{show_fullscreen_button}
+		{show_copy_button}
 	/>
 </Block>
