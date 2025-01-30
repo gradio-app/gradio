@@ -141,7 +141,6 @@ ignore = [
   "B905",    # zip without explicit `strict` argument
   "C901",    # function is too complex (TODO: un-ignore this)
   "E501",    # from scripts/lint_backend.sh
-  "PLC0206", # less concise code
   "PLR091",  # complexity rules
   "PLR2004", # magic numbers
   "PLW2901", # `for` loop variable overwritten by assignment target
