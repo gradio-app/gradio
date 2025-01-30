@@ -12,9 +12,9 @@
 />
 
 <Story name="Open Sidebar">
-	<Sidebar open={true} />
+	<Sidebar open={true} width={300} />
 </Story>
 
 <Story name="Closed Sidebar">
-	<Sidebar open={false} />
+	<Sidebar open={false} width={300} />
 </Story>
