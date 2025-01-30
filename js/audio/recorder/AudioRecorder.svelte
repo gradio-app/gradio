@@ -156,11 +156,6 @@
 		});
 	};
 
-	const start_recording = async (): void => {
-		await record.startMic();
-		record.startRecording();
-	};
-
 	const create_recording_waveform = (): void => {
 		let recording = recordingContainer;
 		if (!recordedAudio || !recording) return;
