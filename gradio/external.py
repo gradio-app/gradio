@@ -316,7 +316,7 @@ def from_model(
     elif p == "zero-shot-classification":
         inputs = [
             components.Textbox(label="Input"),
-            components.Textbox(label="Possible class names (" "comma-separated)"),
+            components.Textbox(label="Possible class names (comma-separated)"),
             components.Checkbox(label="Allow multiple true classes"),
         ]
         outputs = components.Label(label="Classification")

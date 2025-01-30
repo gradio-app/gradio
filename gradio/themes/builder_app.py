@@ -256,9 +256,9 @@ with gr.Blocks(  # noqa: SIM117
                 for variable in flat_variables:
                     if variable.endswith("_dark"):
                         continue
-                    for style_type in variable_suggestions:
+                    for style_type, suggestions in variable_suggestions.items():
                         if style_type in variable:
-                            variable_suggestions[style_type].append("*" + variable)
+                            suggestions.append("*" + variable)
                             break
 
                 variable_suggestions["fill"], variable_suggestions["color"] = (
@@ -676,7 +676,7 @@ with gr.Blocks(  # noqa: SIM117
                 for var_name in core_var_names:
                     if var_name in specific_core_diffs:
                         cls, vals = specific_core_diffs[var_name]
-                        core_diffs_code += f"""    {var_name}=gr.themes.{cls.__name__}({', '.join(f'''{k}="{v}"''' for k, v in vals.items())}),\n"""
+                        core_diffs_code += f"""    {var_name}=gr.themes.{cls.__name__}({", ".join(f'''{k}="{v}"''' for k, v in vals.items())}),\n"""
                     elif var_name in core_diffs:
                         var_val = core_diffs[var_name]
                         if var_name.endswith("_size"):
@@ -706,7 +706,7 @@ with gr.Blocks(  # noqa: SIM117
             vars_diff_code = ""
             if len(var_diffs) > 0:
                 vars_diff_code = f""".set(
-    {(',' + newline + "    ").join([f"{k}='{v}'" for k, v in var_diffs.items()])}
+    {("," + newline + "    ").join([f"{k}='{v}'" for k, v in var_diffs.items()])}
 )"""
 
             output = f"""

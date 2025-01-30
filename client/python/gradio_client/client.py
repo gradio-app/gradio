@@ -764,7 +764,7 @@ class Client:
                 default_value = info.get("parameter_default")
                 default_value = utils.traverse(
                     default_value,
-                    lambda x: f"handle_file(\"{x['url']}\")",
+                    lambda x: f'handle_file("{x["url"]}")',
                     utils.is_file_obj_with_meta,
                 )
                 default_info = (
@@ -996,7 +996,7 @@ class Client:
             space_id = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
         else:
             if self.space_id:
-                space_id = f'{self.space_id.split("/")[1]}-gradio-discord-bot'
+                space_id = f"{self.space_id.split('/')[1]}-gradio-discord-bot"
             else:
                 space_id = f"gradio-discord-bot-{secrets.token_hex(4)}"
             space_id = huggingface_hub.get_full_repo_name(space_id, token=hf_token)

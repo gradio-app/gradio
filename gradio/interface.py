@@ -809,18 +809,18 @@ class Interface(Blocks):
             None,
             [],
             ([input_component_column] if input_component_column else []),  # type: ignore
-            js=f"""() => {json.dumps(
-
-                    [{'variant': None, 'visible': True, '__type__': 'update'}]
+            js=f"""() => {
+                json.dumps(
+                    [{"variant": None, "visible": True, "__type__": "update"}]
                     if self.interface_type
-                       in [
-                           InterfaceTypes.STANDARD,
-                           InterfaceTypes.INPUT_ONLY,
-                           InterfaceTypes.UNIFIED,
-                       ]
+                    in [
+                        InterfaceTypes.STANDARD,
+                        InterfaceTypes.INPUT_ONLY,
+                        InterfaceTypes.UNIFIED,
+                    ]
                     else []
-
-            )}
+                )
+            }
             """,
         )
 

@@ -73,7 +73,7 @@ class GoogleFont(Font):
         self.weights = weights
 
     def stylesheet(self) -> dict:
-        url = f'https://fonts.googleapis.com/css2?family={self.name.replace(" ", "+")}:wght@{";".join(str(weight) for weight in self.weights)}&display=swap'
+        url = f"https://fonts.googleapis.com/css2?family={self.name.replace(' ', '+')}:wght@{';'.join(str(weight) for weight in self.weights)}&display=swap"
         return {"url": url, "css": None}
 
 
