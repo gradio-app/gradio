@@ -21,7 +21,7 @@ import {
 	getAppHomeDir,
 	resolveAppHomeBasedPath
 } from "./file";
-import { verifyRequirements } from "./requirements";
+import { patchRequirements, verifyRequirements } from "./requirements";
 import { makeAsgiRequest } from "./asgi";
 import { generateRandomString } from "./random";
 import scriptRunnerPySource from "./py/script_runner.py?raw";
@@ -55,27 +55,6 @@ let run_script: (
 ) => Promise<void>;
 let unload_local_modules: (target_dir_path?: string) => void;
 
-function isPlotly6(requirement: string): boolean {
-	const pyRequirement = pyodide.pyimport("packaging.requirements.Requirement");
-	try {
-		const reqObj = pyRequirement(requirement);
-		return reqObj.name === "plotly" && reqObj.specifier.contains("6");
-	} catch (error) {
-		return false;
-	}
-}
-
-function patchRequirement(requirement: string): string {
-	// XXX: `micropip` sometimes doesn't resolve the dependency version correctly.
-	// So we explicitly specify the version here for some packages.
-	if (isPlotly6(requirement)) {
-		// Plotly 6.x is not compatible with Pyodide 0.27.2 whose `narwhals` is too old.
-		// Ref: https://github.com/gradio-app/gradio/issues/10458
-		return `plotly==5.*`;
-	}
-	return requirement;
-}
-
 function installPackages(requirements: string[], retries = 3): Promise<void> {
 	// A wrapper function to install packages with retries and requirement patching.
 	// Ref: https://github.com/pyodide/micropip/issues/170#issuecomment-2558887851
@@ -84,7 +63,7 @@ function installPackages(requirements: string[], retries = 3): Promise<void> {
 		throw new Error("Failed to install packages.");
 	}
 
-	const patchedRequirements = requirements.map(patchRequirement);
+	const patchedRequirements = patchRequirements(pyodide, requirements);
 
 	return micropip.install
 		.callKwargs(patchedRequirements, { keep_going: true })
