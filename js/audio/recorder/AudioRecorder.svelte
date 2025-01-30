@@ -135,7 +135,6 @@
 		});
 
 		record = micWaveform.registerPlugin(RecordPlugin.create());
-		record.startMic();
 		record?.on("record-end", record_end_callback);
 		record?.on("record-start", record_start_callback);
 		record?.on("record-pause", () => {
