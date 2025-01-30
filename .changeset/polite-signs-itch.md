@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Patch plotly requirement to force to install v5
+fix:Patch plotly requirement to force to install v5 along with altair
