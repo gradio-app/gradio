@@ -336,13 +336,13 @@ def generate_documentation():
                 classes_inherit_documentation[cls] = cls_documentation["fns"]
     for mode, class_list in classes_to_document.items():
         for i, (cls, _) in enumerate(class_list):
-            for super_class in classes_inherit_documentation:
+            for super_class, fns in classes_inherit_documentation.items():
                 if (
                     inspect.isclass(cls)
                     and issubclass(cls, super_class)
                     and cls != super_class
                 ):
-                    for inherited_fn in classes_inherit_documentation[super_class]:
+                    for inherited_fn in fns:
                         inherited_fn = dict(inherited_fn)
                         try:
                             inherited_fn["description"] = extract_instance_attr_doc(

@@ -17,7 +17,7 @@ pydantic>=2.0
 python-multipart>=0.0.18 # required for fastapi forms.
 pydub
 pyyaml>=5.0,<7.0
-ruff>=0.2.2; sys.platform != 'emscripten'
+ruff>=0.9.3; sys.platform != 'emscripten'  # needed here for custom component docs generation
 safehttpx>=0.1.6,<0.2.0
 semantic_version~=2.0
 starlette>=0.40.0,<1.0; sys.platform != 'emscripten'
