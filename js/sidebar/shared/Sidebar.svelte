@@ -73,7 +73,6 @@
 <style>
 	:global(.sidebar-parent) {
 		display: flex !important;
-		min-height: 100vh;
 		padding-left: 0;
 		transition: padding-left 0.3s ease-in-out;
 	}
@@ -87,7 +86,7 @@
 		flex-direction: column;
 		position: fixed;
 		top: 0;
-		height: 100vh;
+		height: 100%;
 		background-color: var(--background-fill-secondary);
 		box-shadow: var(--size-1) 0 var(--size-2) rgba(100, 89, 89, 0.1);
 		transform: translateX(0%);
