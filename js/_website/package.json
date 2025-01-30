@@ -1,6 +1,6 @@
 {
 	"name": "website",
-	"version": "0.47.2",
+	"version": "0.47.3",
 	"private": true,
 	"scripts": {
 		"dev": "pip install boto3 && python generate_jsons/generate.py && vite dev",
