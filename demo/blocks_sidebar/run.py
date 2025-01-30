@@ -35,6 +35,36 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
             label="Personality type",
             value="Normal"
         )
+        animal_type = gr.Dropdown(
+            choices=["Cat", "Dog", "Bird", "Rabbit"],
+            label="Choose your pet type",
+            value="Cat"
+        )
+        personality = gr.Radio(
+            choices=["Normal", "Silly", "Royal"],
+            label="Personality type",
+            value="Normal"
+        )
+        animal_type = gr.Dropdown(
+            choices=["Cat", "Dog", "Bird", "Rabbit"],
+            label="Choose your pet type",
+            value="Cat"
+        )
+        personality = gr.Radio(
+            choices=["Normal", "Silly", "Royal"],
+            label="Personality type",
+            value="Normal"
+        )
+        animal_type = gr.Dropdown(
+            choices=["Cat", "Dog", "Bird", "Rabbit"],
+            label="Choose your pet type",
+            value="Cat"
+        )
+        personality = gr.Radio(
+            choices=["Normal", "Silly", "Royal"],
+            label="Personality type",
+            value="Normal"
+        )
 
     name_output = gr.Textbox(label="Your pet's fancy name:", lines=2)
     generate_btn = gr.Button("Generate Name! 🎲", variant="primary")
@@ -45,4 +75,4 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(ssr_mode=True)
