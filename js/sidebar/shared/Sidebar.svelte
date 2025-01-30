@@ -6,10 +6,14 @@
 	}>();
 
 	export let open = true;
+	export let width: number | string;
+
 	// Using a temporary variable to animate the sidebar opening at the start
 	let _open = false;
 	let sidebar_div: HTMLElement;
 	let overlap_amount = 0;
+
+	let width_css = typeof width === "number" ? `${width}px` : width;
 
 	// Check if the sidebar overlaps with the main content
 	function check_overlap(): void {
@@ -17,7 +21,7 @@
 		const parent_rect = sidebar_div.parentElement.getBoundingClientRect();
 		const sidebar_rect = sidebar_div.getBoundingClientRect();
 		const available_space = parent_rect.left;
-		overlap_amount = Math.max(0, sidebar_rect.width - available_space + 10);
+		overlap_amount = Math.max(0, sidebar_rect.width - available_space + 30);
 	}
 
 	onMount(() => {
@@ -39,7 +43,12 @@
 	});
 </script>
 
-<div class="sidebar" class:open={_open} bind:this={sidebar_div}>
+<div
+	class="sidebar"
+	class:open={_open}
+	bind:this={sidebar_div}
+	style="width: {width_css}; left: calc({width_css} * -1)"
+>
 	<button
 		on:click={() => {
 			_open = !_open;
@@ -78,13 +87,11 @@
 		flex-direction: column;
 		position: fixed;
 		top: 0;
-		left: calc(var(--size-64) * -1);
 		height: 100vh;
 		background-color: var(--background-fill-secondary);
 		box-shadow: var(--size-1) 0 var(--size-2) rgba(100, 89, 89, 0.1);
 		transform: translateX(0%);
 		transition: transform 0.3s ease-in-out;
-		width: var(--size-64);
 		z-index: 1000;
 	}
 

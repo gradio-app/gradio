@@ -10,6 +10,7 @@
 		expand: never;
 		collapse: never;
 	}>;
+	export let width: number | string;
 </script>
 
 <StatusTracker
@@ -20,6 +21,7 @@
 
 <Sidebar
 	bind:open
+	{width}
 	on:expand={() => gradio.dispatch("expand")}
 	on:collapse={() => gradio.dispatch("collapse")}
 >
