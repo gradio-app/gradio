@@ -30,7 +30,10 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
             label="Choose your pet type",
             value="Cat"
         )
-        personality = gr.Image(
+        personality = gr.Radio(
+            choices=["Normal", "Silly", "Royal"],
+            label="Personality type",
+            value="Normal"
         )
 
     name_output = gr.Textbox(label="Your pet's fancy name:", lines=2)
