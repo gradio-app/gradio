@@ -39,7 +39,10 @@ function isAltair(pyodide: PyodideInterface, requirement: string): boolean {
 	}
 }
 
-export function patchRequirements(pyodide: PyodideInterface, requirements: string[]): string[] {
+export function patchRequirements(
+	pyodide: PyodideInterface,
+	requirements: string[]
+): string[] {
 	// XXX: `micropip` sometimes doesn't resolve the dependency version correctly.
 	// So we explicitly specify the version here for some packages.
 
