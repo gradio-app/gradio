@@ -1202,6 +1202,7 @@ SKIP_COMPONENTS = {
     "group",
     "interpretation",
     "dataset",
+    "sidebar",
 }
 
 
