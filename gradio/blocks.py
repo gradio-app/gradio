@@ -884,6 +884,13 @@ class BlocksConfig:
 
         def get_layout(block: Block):
             rendered_ids.append(block._id)
+
+            if block.get_block_name() == "sidebar":
+                if hasattr(get_layout, "has_sidebar"):
+                    warnings.warn(
+                        "Multiple sidebars detected in the same Blocks layout. Only one sidebar should be used per Blocks."
+                    )
+                get_layout.has_sidebar = True
             if not isinstance(block, BlockContext):
                 return {"id": block._id}
             children_layout = []
