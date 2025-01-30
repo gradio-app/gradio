@@ -122,13 +122,7 @@
 		id: string;
 	}[][] {
 		const data_row_length = _values.length;
-		return Array(
-			row_count[1] === "fixed"
-				? row_count[0]
-				: data_row_length < row_count[0]
-					? row_count[0]
-					: data_row_length
-		)
+		return Array(row_count[1] === "fixed" ? row_count[0] : data_row_length)
 			.fill(0)
 			.map((_, i) =>
 				Array(
@@ -797,6 +791,42 @@
 	afterUpdate(() => {
 		value_is_output = false;
 	});
+
+	async function delete_row(index: number): Promise<void> {
+		parent.focus();
+		if (row_count[1] !== "dynamic") return;
+		if (data.length <= 1) return;
+		data.splice(index, 1);
+		data = data;
+		selected = false;
+	}
+
+	async function delete_col(index: number): Promise<void> {
+		parent.focus();
+		if (col_count[1] !== "dynamic") return;
+		if (data[0].length <= 1) return;
+
+		_headers.splice(index, 1);
+		_headers = _headers;
+
+		data.forEach((row) => {
+			row.splice(index, 1);
+		});
+		data = data;
+		selected = false;
+	}
+
+	function delete_row_at(index: number): void {
+		delete_row(index);
+		active_cell_menu = null;
+		active_header_menu = null;
+	}
+
+	function delete_col_at(index: number): void {
+		delete_col(index);
+		active_cell_menu = null;
+		active_header_menu = null;
+	}
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
@@ -1058,18 +1088,22 @@
 	</div>
 </div>
 
-{#if active_cell_menu !== null}
+{#if active_cell_menu}
 	<CellMenu
-		{i18n}
 		x={active_cell_menu.x}
 		y={active_cell_menu.y}
-		row={active_cell_menu?.row ?? -1}
+		row={active_cell_menu.row}
 		{col_count}
 		{row_count}
-		on_add_row_above={() => add_row_at(active_cell_menu?.row ?? -1, "above")}
-		on_add_row_below={() => add_row_at(active_cell_menu?.row ?? -1, "below")}
-		on_add_column_left={() => add_col_at(active_cell_menu?.col ?? -1, "left")}
-		on_add_column_right={() => add_col_at(active_cell_menu?.col ?? -1, "right")}
+		on_add_row_above={() => add_row_at(active_cell_menu?.row || 0, "above")}
+		on_add_row_below={() => add_row_at(active_cell_menu?.row || 0, "below")}
+		on_add_column_left={() => add_col_at(active_cell_menu?.col || 0, "left")}
+		on_add_column_right={() => add_col_at(active_cell_menu?.col || 0, "right")}
+		on_delete_row={() => delete_row_at(active_cell_menu?.row || 0)}
+		on_delete_col={() => delete_col_at(active_cell_menu?.col || 0)}
+		can_delete_rows={data.length > 1}
+		can_delete_cols={data[0].length > 1}
+		{i18n}
 	/>
 {/if}
 
@@ -1086,6 +1120,10 @@
 		on_add_column_left={() => add_col_at(active_header_menu?.col ?? -1, "left")}
 		on_add_column_right={() =>
 			add_col_at(active_header_menu?.col ?? -1, "right")}
+		on_delete_row={() => delete_row_at(active_cell_menu?.row ?? -1)}
+		on_delete_col={() => delete_col_at(active_header_menu?.col ?? -1)}
+		can_delete_rows={false}
+		can_delete_cols={data[0].length > 1}
 	/>
 {/if}
 
