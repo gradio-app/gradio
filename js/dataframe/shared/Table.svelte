@@ -24,7 +24,9 @@
 		handle_delete_key,
 		handle_editing_state,
 		should_show_cell_menu,
-		get_next_cell_coordinates
+		get_next_cell_coordinates,
+		get_range_selection,
+		move_cursor
 	} from "./selection_utils";
 	import { copy_table_data } from "./table_utils";
 
@@ -218,29 +220,6 @@
 		);
 	}
 
-	function move_cursor(
-		key: "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp",
-		current_coords: [number, number]
-	): void {
-		const dir = {
-			ArrowRight: [0, 1],
-			ArrowLeft: [0, -1],
-			ArrowDown: [1, 0],
-			ArrowUp: [-1, 0]
-		}[key];
-
-		const i = current_coords[0] + dir[0];
-		const j = current_coords[1] + dir[1];
-
-		if (i < 0 && j <= 0) {
-			selected_header = j;
-			selected = false;
-		} else {
-			const is_data = data[i]?.[j];
-			selected = is_data ? [i, j] : selected;
-		}
-	}
-
 	let clear_on_focus = false;
 	// eslint-disable-next-line complexity
 	async function handle_keydown(event: KeyboardEvent): Promise<void> {
@@ -299,6 +278,14 @@
 			return;
 		}
 
+		if (event.key === "c" && (event.metaKey || event.ctrlKey)) {
+			event.preventDefault();
+			if (selected_cells.length > 0) {
+				await handle_copy();
+			}
+			return;
+		}
+
 		if (!selected) {
 			return;
 		}
@@ -312,7 +299,25 @@
 			case "ArrowUp":
 				if (editing) break;
 				event.preventDefault();
-				move_cursor(event.key, [i, j]);
+				const next_coords = move_cursor(event.key, [i, j], data);
+				if (next_coords) {
+					if (event.shiftKey) {
+						selected_cells = get_range_selection(
+							selected_cells.length > 0 ? selected_cells[0] : [i, j],
+							next_coords
+						);
+					} else {
+						selected_cells = [next_coords];
+					}
+					selected = next_coords;
+				} else if (
+					next_coords === false &&
+					event.key === "ArrowUp" &&
+					i === 0
+				) {
+					selected_header = j;
+					selected = false;
+				}
 				break;
 
 			case "Escape":
@@ -801,7 +806,7 @@
 	}
 
 	async function handle_copy(): Promise<void> {
-		await copy_table_data(data, _headers);
+		await copy_table_data(data, _headers, selected_cells);
 	}
 
 	function toggle_header_menu(event: MouseEvent, col: number): void {

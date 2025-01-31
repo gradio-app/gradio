@@ -136,3 +136,29 @@ export function get_next_cell_coordinates(
 
 	return false;
 }
+
+export function move_cursor(
+	key: "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp",
+	current_coords: CellCoordinate,
+	data: CellData[][]
+): CellCoordinate | false {
+	const dir = {
+		ArrowRight: [0, 1],
+		ArrowLeft: [0, -1],
+		ArrowDown: [1, 0],
+		ArrowUp: [-1, 0]
+	}[key];
+
+	const i = current_coords[0] + dir[0];
+	const j = current_coords[1] + dir[1];
+
+	if (i < 0 && j <= 0) {
+		return false;
+	}
+
+	const is_data = data[i]?.[j];
+	if (is_data) {
+		return [i, j];
+	}
+	return false;
+}
