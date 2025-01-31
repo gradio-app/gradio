@@ -50,6 +50,7 @@
 	export let interactive: boolean;
 	export let show_fullscreen_button = false;
 	export let max_chars: number | undefined = undefined;
+	export let show_copy_button = false;
 
 	$: _headers = [...(value.headers || headers)];
 	$: cell_values = value.data ? [...value.data] : [];
@@ -107,5 +108,6 @@
 		bind:value_is_output
 		{show_fullscreen_button}
 		{max_chars}
+		{show_copy_button}
 	/>
 </Block>

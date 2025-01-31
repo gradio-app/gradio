@@ -689,17 +689,21 @@ def render_class_docs(exports, docs):
 ### Initialization
 \"\"\", elem_classes=["md-custom"], header_links=True)
 
-    gr.ParamViewer(value=_docs["{class_name}"]["members"]["__init__"], linkify={list(linkify.keys())})
+    gr.ParamViewer(value=_docs["{class_name}"]["members"]["__init__"], linkify={
+            list(linkify.keys())
+        })
 
 {render_class_events(docs[class_name].get("events", None), class_name)}
 
-{make_user_fn(
-    class_name,
-    user_fn_input_type,
-    user_fn_input_description,
-    user_fn_output_type,
-    user_fn_output_description,
-)}
+{
+            make_user_fn(
+                class_name,
+                user_fn_input_type,
+                user_fn_input_description,
+                user_fn_output_type,
+                user_fn_output_description,
+            )
+        }
 """
     return docs_classes
 
@@ -752,7 +756,7 @@ def render_param_table(params):
 
 </td>
 <td align="left"><code>{param["default"]}</code></td>
-<td align="left">{param['description']}</td>
+<td align="left">{param["description"]}</td>
 </tr>
 """
     return table + "</tbody></table>"
@@ -783,12 +787,14 @@ def render_class_docs_markdown(exports, docs):
 
 {render_class_events_markdown(docs[class_name].get("events", None))}
 
-{make_user_fn_markdown(
-    user_fn_input_type,
-    user_fn_input_description,
-    user_fn_output_type,
-    user_fn_output_description,
-)}
+{
+            make_user_fn_markdown(
+                user_fn_input_type,
+                user_fn_input_description,
+                user_fn_output_type,
+                user_fn_output_description,
+            )
+        }
 """
     return docs_classes
 
@@ -873,7 +879,7 @@ pip install {name}
 {docs_classes}
 
 {render_additional_interfaces(docs["__meta__"]["additional_interfaces"])}
-    demo.load(None, js=r\"\"\"{make_js(get_deep(docs, ["__meta__", "additional_interfaces"]),get_deep( docs, ["__meta__", "user_fn_refs"]))}
+    demo.load(None, js=r\"\"\"{make_js(get_deep(docs, ["__meta__", "additional_interfaces"]), get_deep(docs, ["__meta__", "user_fn_refs"]))}
 \"\"\")
 
 demo.launch()
