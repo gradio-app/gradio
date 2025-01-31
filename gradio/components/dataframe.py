@@ -150,24 +150,6 @@ class Dataframe(Component):
                 "Polars is not installed. Please install using `pip install polars`."
             )
         self.type = type
-        values = {
-            "str": "",
-            "number": 0,
-            "bool": False,
-            "date": "01/01/1970",
-            "markdown": "",
-            "html": "",
-        }
-        column_dtypes = (
-            [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
-        )
-        self.empty_input = {
-            "headers": self.headers,
-            "data": [
-                [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
-            ],
-            "metadata": None,
-        }
 
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
@@ -252,6 +234,8 @@ class Dataframe(Component):
         import pandas as pd
         from pandas.io.formats.style import Styler
 
+        if value is None:
+            return True
         if isinstance(value, pd.DataFrame):
             return value.empty
         elif isinstance(value, Styler):
@@ -318,6 +302,9 @@ class Dataframe(Component):
         """
         Gets the cell data (as a list of lists) from the value provided.
         """
+        import pandas as pd
+        from pandas.io.formats.style import Styler
+
         if isinstance(value, dict):
             return value.get("data", [[]])
         if isinstance(value, (str, pd.DataFrame)):
@@ -341,6 +328,8 @@ class Dataframe(Component):
                 value = value.tolist()
             if not isinstance(value, list):
                 raise ValueError("output cannot be converted to list")
+            if not isinstance(value[0], list):
+                return [[v] for v in value]
             return value
         else:
             raise ValueError(
@@ -362,6 +351,8 @@ class Dataframe(Component):
         """
         Gets the metadata from the value provided.
         """
+        from pandas.io.formats.style import Styler
+
         if isinstance(value, Styler):
             return Dataframe.__extract_metadata(
                 value, getattr(value, "hidden_columns", [])
@@ -406,8 +397,18 @@ class Dataframe(Component):
             if self.is_empty(value)
             else self.get_cell_data(value)
         )
+        if len(headers) > len(data[0]):
+            headers = headers[: len(data[0])]
+        elif len(headers) < len(data[0]):
+            headers = [
+                *headers,
+                *[str(i) for i in range(len(headers) + 1, len(data[0]) + 1)],
+            ]
+        metadata = self.get_metadata(value)
         return DataframeData(
-            headers=headers, data=data, metadata=self.get_metadata(value)
+            headers=headers,
+            data=data,
+            metadata=metadata,  # type: ignore
         )
 
     @staticmethod
