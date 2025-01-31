@@ -314,6 +314,9 @@ importers:
       '@gradio/row':
         specifier: workspace:^
         version: link:js/row
+      '@gradio/sidebar':
+        specifier: workspace:^
+        version: link:js/sidebar
       '@gradio/simpledropdown':
         specifier: workspace:^
         version: link:js/simpledropdown
@@ -1143,6 +1146,9 @@ importers:
       '@gradio/row':
         specifier: workspace:^
         version: link:../row
+      '@gradio/sidebar':
+        specifier: workspace:^
+        version: link:../sidebar
       '@gradio/simpledropdown':
         specifier: workspace:^
         version: link:../simpledropdown
@@ -2090,6 +2096,28 @@ importers:
       '@types/sanitize-html':
         specifier: ^2.13.0
         version: 2.13.0
+
+  js/sidebar:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/column':
+        specifier: workspace:^
+        version: link:../column
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
 
   js/simpledropdown:
     dependencies:

@@ -521,7 +521,7 @@ class Video(StreamingOutput, Component):
         command = [
             "ffmpeg",
             "-i",
-            f'concat:{"|".join(ts_files)}',
+            f"concat:{'|'.join(ts_files)}",
             "-y",
             "-safe",
             "0",

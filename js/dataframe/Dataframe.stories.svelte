@@ -1,4 +1,5 @@
 <script lang="ts">
+	// @ts-nocheck
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import Table from "./shared/Table.svelte";
 	import { within } from "@testing-library/dom";
@@ -10,6 +11,11 @@
 <Meta
 	title="Components/DataFrame"
 	component={Table}
+	parameters={{
+		test: {
+			dangerouslyIgnoreUnhandledErrors: true // ignore fullscreen permission error
+		}
+	}}
 	argTypes={{
 		editable: {
 			control: [true, false],
@@ -260,5 +266,35 @@
 
 		// verify cells were cleared by clicking one
 		await user.click(cells[2]);
+	}}
+/>
+
+<Story
+	name="Dataframe toolbar interactions"
+	args={{
+		col_count: [3, "dynamic"],
+		row_count: [2, "dynamic"],
+		headers: ["Math", "Reading", "Writing"],
+		values: [
+			[800, 100, 400],
+			[200, 800, 700]
+		],
+		show_fullscreen_button: true,
+		show_copy_button: true
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+
+		const copy_button = canvas.getByRole("button", {
+			name: "copy table data"
+		});
+		await userEvent.click(copy_button);
+
+		const fullscreen_button = canvas.getByRole("button", {
+			name: "enter fullscreen"
+		});
+		await userEvent.click(fullscreen_button);
+
+		await userEvent.click(fullscreen_button);
 	}}
 />

@@ -173,6 +173,8 @@ def from_model(
     model_name: str, hf_token: str | Literal[False] | None, alias: str | None, **kwargs
 ) -> Blocks:
     headers = {"X-Wait-For-Model": "true"}
+    if hf_token is False:
+        hf_token = None
     client = huggingface_hub.InferenceClient(
         model=model_name, headers=headers, token=hf_token
     )
@@ -314,7 +316,7 @@ def from_model(
     elif p == "zero-shot-classification":
         inputs = [
             components.Textbox(label="Input"),
-            components.Textbox(label="Possible class names (" "comma-separated)"),
+            components.Textbox(label="Possible class names (comma-separated)"),
             components.Checkbox(label="Allow multiple true classes"),
         ]
         outputs = components.Label(label="Classification")
@@ -430,7 +432,7 @@ def from_model(
             data = preprocess(*data)
         try:
             data = fn(*data)  # type: ignore
-        except huggingface_hub.utils.HfHubHTTPError as e:
+        except huggingface_hub.utils.HfHubHTTPError as e:  # type: ignore
             if "429" in str(e):
                 raise TooManyRequestsError() from e
         if postprocess is not None:
