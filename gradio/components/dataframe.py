@@ -315,6 +315,9 @@ class Dataframe(Component):
         | str
         | None,
     ) -> list[list[Any]]:
+        """
+        Gets the cell data (as a list of lists) from the value provided.
+        """
         if isinstance(value, dict):
             return value.get("data", [[]])
         if isinstance(value, (str, pd.DataFrame)):
