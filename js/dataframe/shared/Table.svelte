@@ -44,6 +44,7 @@
 	export let stream_handler: Client["stream"];
 	export let show_fullscreen_button = false;
 	export let value_is_output = false;
+	export let max_chars: number | undefined = undefined;
 
 	let selected: false | [number, number] = false;
 	let clicked_cell: { row: number; col: number } | undefined = undefined;
@@ -925,6 +926,7 @@
 							<div class="cell-wrap">
 								<div class="header-content">
 									<EditableCell
+										{max_chars}
 										bind:value={_headers[i].value}
 										bind:el={els[id].input}
 										{latex_delimiters}
@@ -1032,6 +1034,7 @@
 									}}
 									{clear_on_focus}
 									{root}
+									{max_chars}
 								/>
 								{#if editable}
 									<button

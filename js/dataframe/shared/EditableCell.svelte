@@ -23,6 +23,7 @@
 	export let line_breaks = true;
 	export let editable = true;
 	export let root: string;
+	export let max_chars: number | null = null;
 
 	const dispatch = createEventDispatcher();
 	let is_expanded = false;
@@ -30,13 +31,18 @@
 	export let el: HTMLInputElement | null;
 	$: _value = value;
 
-	function truncate_text(text: string | number, max_length = 20): string {
+	function truncate_text(
+		text: string | number,
+		max_length: number | null = null
+	): string {
 		const str = String(text);
-		if (str.length <= max_length) return str;
+		if (!max_length || str.length <= max_length) return str;
 		return str.slice(0, max_length) + "...";
 	}
 
-	$: display_text = is_expanded ? value : truncate_text(display_value || value);
+	$: display_text = is_expanded
+		? value
+		: truncate_text(display_value || value, max_chars);
 
 	function use_focus(node: HTMLInputElement): any {
 		if (clear_on_focus) {
@@ -61,13 +67,17 @@
 
 	function handle_keydown(event: KeyboardEvent): void {
 		if (event.key === "Enter") {
-			value = _value;
-			dispatch("blur");
+			if (edit) {
+				value = _value;
+				dispatch("blur");
+			} else if (!header) {
+				is_expanded = !is_expanded;
+			}
 		}
 		dispatch("keydown", event);
 	}
 
-	function handle_double_click(): void {
+	function handle_click(): void {
 		if (!edit && !header) {
 			is_expanded = !is_expanded;
 		}
@@ -91,8 +101,9 @@
 {/if}
 
 <span
-	on:dblclick={handle_double_click}
-	tabindex="-1"
+	on:click={handle_click}
+	on:keydown={handle_keydown}
+	tabindex="0"
 	role="button"
 	class:edit
 	class:expanded={is_expanded}

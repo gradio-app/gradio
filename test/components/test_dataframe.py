@@ -102,6 +102,7 @@ class TestDataframe:
             "line_breaks": True,
             "column_widths": [],
             "show_fullscreen_button": False,
+            "max_chars": None
         }
 
         dataframe_input = gr.Dataframe(column_widths=["100px", 200, "50%"])

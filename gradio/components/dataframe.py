@@ -95,6 +95,7 @@ class Dataframe(Component):
         column_widths: list[str | int] | None = None,
         show_fullscreen_button: bool = False,
         show_row_numbers: bool = False,
+        max_chars: int | None = None,
     ):
         """
         Parameters:
@@ -124,6 +125,7 @@ class Dataframe(Component):
             column_widths: An optional list representing the width of each column. The elements of the list should be in the format "100px" (ints are also accepted and converted to pixel values) or "10%". If not provided, the column widths will be automatically determined based on the content of the cells. Setting this parameter will cause the browser to try to fit the table within the page width.
             show_fullscreen_button: If True, will show a button to view the values in the table in fullscreen mode.
             show_row_numbers: If True, will display row numbers in a separate column.
+            max_chars: Maximum number of characters to display in each cell before truncating. If None, no truncation is applied.
         """
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
@@ -177,6 +179,7 @@ class Dataframe(Component):
         ]
         self.show_fullscreen_button = show_fullscreen_button
         self.show_row_numbers = show_row_numbers
+        self.max_chars = max_chars
         super().__init__(
             label=label,
             every=every,
