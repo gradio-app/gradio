@@ -65,7 +65,8 @@
 		"add_row_above": "Add row above",
 		"add_row_below": "Add row below",
 		"add_column_left": "Add column to the left",
-		"add_column_right": "Add column to the right"
+		"add_column_right": "Add column to the right",
+		"drop_to_upload": "Drop CSV or TSV files here to import data into dataframe"
 	},
 	"dropdown": {
 		"dropdown": "Dropdown"
@@ -117,6 +118,12 @@
 	},
 	"slider": {
 		"slider": "Slider"
+	},
+	"upload": {
+		"click_or_drop": "Click to select files or drag and drop files here",
+		"click_to_upload": "Click to upload or drop files",
+		"paste_from_clipboard": "Paste from clipboard",
+		"file_input": "File upload"
 	},
 	"upload_text": {
 		"click_to_upload": "Click to Upload",
