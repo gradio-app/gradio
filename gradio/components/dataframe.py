@@ -252,6 +252,8 @@ class Dataframe(Component):
                 return len(value[0]) == 0
             return len(value) == 0
         elif isinstance(value, dict):
+            if "data" in value:
+                return len(value["data"]) == 0
             return len(value) == 0
         return False
 
