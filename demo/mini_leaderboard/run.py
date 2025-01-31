@@ -1,3 +1,4 @@
+# type: ignore
 import gradio as gr
 import pandas as pd
 from pathlib import Path
