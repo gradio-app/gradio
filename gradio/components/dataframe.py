@@ -74,7 +74,10 @@ class Dataframe(Component):
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
         col_count: int | tuple[int, str] | None = None,
-        datatype: str | list[str] = "str",
+        datatype: Literal["str", "number", "bool", "date", "markdown", "html"]
+        | Sequence[
+            Literal["str", "number", "bool", "date", "markdown", "html"]
+        ] = "str",
         type: Literal["pandas", "numpy", "array", "polars"] = "pandas",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
