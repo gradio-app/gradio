@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Clean up `gr.DataFrame.postprocess()` and fix issue with getting headers of empty dataframes
+fix:Clean up `gr.DataFrame.postprocess()` and fix issue with getting headers of empty dataframes
