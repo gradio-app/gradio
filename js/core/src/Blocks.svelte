@@ -51,8 +51,6 @@
 	export let max_file_size: number | undefined = undefined;
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
-	export let pages: [string, string][] = [];
-	export let current_page = "";
 
 	let {
 		layout: _layout,
@@ -758,15 +756,6 @@
 	{/if}
 </svelte:head>
 
-{#if pages.length > 1}
-	<nav>
-		{#each pages as [route, label], i}
-			<a href={route.length ? route : "/"} class:active={route === current_page}
-				>{label}</a
-			>
-		{/each}
-	</nav>
-{/if}
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
 		{#if $_layout && app.config}
@@ -895,25 +884,6 @@
 {/if}
 
 <style>
-	nav {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--size-2);
-		margin-bottom: var(--size-2);
-		justify-content: flex-end;
-	}
-	nav a {
-		padding: var(--size-1) var(--size-2);
-		border-radius: var(--block-radius);
-		border-width: var(--block-border-width);
-		border-color: transparent;
-		color: var(--body-text-color-subdued);
-	}
-	nav a.active {
-		color: var(--body-text-color);
-		border-color: var(--block-border-color);
-		background-color: var(--block-background-fill);
-	}
 	.wrap {
 		display: flex;
 		flex-grow: 1;

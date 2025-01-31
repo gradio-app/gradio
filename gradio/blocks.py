@@ -893,7 +893,7 @@ class BlocksConfig:
             "dependencies": [],
         }
 
-        def setup_page(page: str):
+        for page, _ in self.root_block.pages:
             if page not in config["page"]:
                 config["page"][page] = {
                     "layout": {"id": self._id, "children": []},
@@ -923,7 +923,6 @@ class BlocksConfig:
         for root_child in layout.get("children", []):
             if isinstance(root_child, dict):
                 block = self.blocks[root_child["id"]]
-                setup_page(block.page)
                 config["page"][block.page]["layout"]["children"].append(root_child)
 
         blocks_items = list(
@@ -958,7 +957,6 @@ class BlocksConfig:
                     block_config["api_info_as_output"] = block.api_info()  # type: ignore
                 block_config["example_inputs"] = block.example_inputs()  # type: ignore
             config["components"].append(block_config)
-            setup_page(block.page)
             config["page"][block.page]["components"].append(block_config)
 
         dependencies = []
@@ -966,7 +964,6 @@ class BlocksConfig:
             if renderable is None or fn.rendered_in == renderable:
                 dependency_config = fn.get_config()
                 dependencies.append(dependency_config)
-                setup_page(fn.page)
                 config["page"][fn.page]["dependencies"].append(dependency_config)
 
         config["dependencies"] = dependencies
@@ -1457,6 +1454,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         "At least one block in this Blocks has already been rendered."
                     )
 
+            for block in self.blocks.values():
+                block.page = Context.root_block.current_page
             root_context.blocks.update(self.blocks)
             dependency_offset = max(root_context.fns.keys(), default=-1) + 1
             existing_api_names = [
@@ -1465,6 +1464,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 if isinstance(dep.api_name, str)
             ]
             for dependency in self.fns.values():
+                dependency.page = Context.root_block.current_page
                 dependency._id += dependency_offset
                 # Any event -- e.g. Blocks.load() -- that is triggered by this Blocks
                 # should now be triggered by the root Blocks instead.
