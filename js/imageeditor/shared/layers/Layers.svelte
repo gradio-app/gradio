@@ -145,6 +145,7 @@
 					<li>
 						<button
 							class:selected_layer={$current_layer === layer}
+							aria-label={`layer-${i + 1}`}
 							on:click={() =>
 								($current_layer = LayerManager.change_active_layer(i))}
 							>Layer {i + 1}</button
