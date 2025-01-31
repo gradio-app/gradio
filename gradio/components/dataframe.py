@@ -347,6 +347,27 @@ class Dataframe(Component):
                 f"Cannot process value of type {type(value)} in gr.Dataframe"
             )
 
+    @staticmethod
+    def get_metadata(
+        value: pd.DataFrame
+        | Styler
+        | np.ndarray
+        | pl.DataFrame
+        | list
+        | list[list]
+        | dict
+        | str
+        | None,
+    ) -> dict[str, list[list]] | None:
+        """
+        Gets the metadata from the value provided.
+        """
+        if isinstance(value, Styler):
+            return Dataframe.__extract_metadata(
+                value, getattr(value, "hidden_columns", [])
+            )
+        return None
+
     def postprocess(
         self,
         value: pd.DataFrame
@@ -380,11 +401,14 @@ class Dataframe(Component):
             )
 
         headers = self.get_headers(value) or self.headers
-        if self.is_empty(value):
-            return DataframeData(
-                headers=headers, data=[["" for _ in range(len(headers))]]
-            )
-        return DataframeData(headers=headers, data=self.get_cell_data(value))
+        data = (
+            [["" for _ in range(len(headers))]]
+            if self.is_empty(value)
+            else self.get_cell_data(value)
+        )
+        return DataframeData(
+            headers=headers, data=data, metadata=self.get_metadata(value)
+        )
 
     @staticmethod
     def __get_cell_style(cell_id: str, cell_styles: list[dict]) -> str:
