@@ -3,6 +3,7 @@ from .column import Column
 from .form import Form
 from .group import Group
 from .row import Row
+from .sidebar import Sidebar
 from .tabs import Tab, TabItem, Tabs
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     "Tabs",
     "Tab",
     "TabItem",
+    "Sidebar",
 ]

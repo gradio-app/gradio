@@ -648,7 +648,7 @@ def add_root_url(data: dict | list, root_url: str, previous_root_url: str | None
             file_dict["url"] = file_dict["url"][len(previous_root_url) :]
         elif client_utils.is_http_url_like(file_dict["url"]):
             return file_dict
-        file_dict["url"] = f'{root_url}{file_dict["url"]}'
+        file_dict["url"] = f"{root_url}{file_dict['url']}"
         return file_dict
 
     return client_utils.traverse(data, _add_root_url, client_utils.is_file_obj_with_url)
@@ -1094,7 +1094,7 @@ def video_is_playable(video_filepath: str) -> bool:
             inputs={video_filepath: None},
         )
         output = probe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-        output = json.loads(output[0])
+        output = json.loads(output[0])  # type: ignore
         video_codec = output["streams"][0]["codec_name"]
         return (container, video_codec) in [
             (".mp4", "h264"),

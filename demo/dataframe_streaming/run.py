@@ -10,7 +10,7 @@ def update_dataframe(df):
     yield df, 2
 
 def sum_values(df):
-    return pd.to_numeric(df.values.flatten(), errors='coerce').sum()
+    return pd.to_numeric(df.values.flatten(), errors='coerce').sum() # type: ignore
 
 initial_df = pd.DataFrame(0, index=range(5), columns=range(5))
 

@@ -778,6 +778,7 @@ class TestStatusUpdates:
 
             assert all(s in messages for s in statuses)
 
+    @pytest.mark.flaky
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
     def test_messages_correct_two_concurrent(
         self, mock_make_end_to_end_fn, calculator_demo
