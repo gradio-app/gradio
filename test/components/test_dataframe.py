@@ -57,6 +57,7 @@ class TestDataframe:
             "column_widths": [],
             "show_fullscreen_button": False,
             "show_copy_button": False,
+            "max_chars": None,
         }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(DataframeData(**x_data))

@@ -256,3 +256,31 @@
 		await userEvent.click(fullscreen_button);
 	}}
 />
+
+<Story
+	name="Dataframe with truncated text"
+	args={{
+		values: [
+			[
+				"This is a very long text that should be truncated",
+				"Short text",
+				"Another very long text that needs truncation"
+			],
+			[
+				"Short",
+				"This text is also quite long and should be truncated as well",
+				"Medium length text here"
+			],
+			[
+				"Medium text",
+				"Brief",
+				"This is the longest text in the entire table and it should definitely be truncated"
+			]
+		],
+		headers: ["Column A", "Column B", "Column C"],
+		label: "Truncated Text Example",
+		max_chars: 20,
+		col_count: [3, "dynamic"],
+		row_count: [3, "dynamic"]
+	}}
+/>
