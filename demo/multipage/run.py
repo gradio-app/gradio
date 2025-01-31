@@ -19,5 +19,11 @@ with demo.route("Up") as incrementer_demo:
     inc_btn.click(fn=lambda x: x + 1, inputs=num, outputs=num, api_name="increment")
     dec_btn.click(fn=lambda x: x - 1, inputs=num, outputs=num, api_name="decrement")
 
+identity_iface = gr.Interface(lambda x:x, "image", "image")
+
+with demo.route("Interface") as incrementer_demo:
+    identity_iface.render()
+    gr.ChatInterface(lambda *args: "Cool!")
+
 if __name__ == "__main__":
     demo.launch()

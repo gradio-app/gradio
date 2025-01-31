@@ -928,7 +928,7 @@ class BlocksConfig:
         config["layout"] = layout
 
         for root_child in layout.get("children", []):
-            if isinstance(root_child, dict):
+            if isinstance(root_child, dict) and root_child["id"] in self.blocks:
                 block = self.blocks[root_child["id"]]
                 config["page"][block.page]["layout"]["children"].append(root_child)
 
