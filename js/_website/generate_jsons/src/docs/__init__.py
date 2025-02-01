@@ -10,7 +10,7 @@ import urllib.parse
 
 from gradio_client.documentation import document_cls, generate_documentation
 import gradio
-from ..guides import guides
+from ..guides import guides, guide_names
 
 DIR = os.path.dirname(__file__)
 DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo"))
@@ -313,9 +313,32 @@ demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
 demo.launch()
 
 """
+
+QUERY_AUGMENTATION_SYSTEM_PROMPT = """
+You are a helpful assistant that attempts to respond to a query about using the Gradio python library, by finding the most relevant guide, docs, parameter or demo.
+Your responses will be used for semantic search to find the actual answer to the query. 
+You should only respond with natural language, and not include any code or special formatting. For example write Interface instead of `Interface`.
+Your response should not be more than 35 words. A little longer, but not too much. 
+If you don't know the answer, do not say you don't know. Instead, try to rephrase the query to be around 35 words, using synonyms or repeating the query.
+If the query mentions a specific Gradio component, function or class, include the name of the component, function or class in your response.
+Always reference a guide, docs, parameter or a demo in your response. The list of guides, class and function signatures, and demos are all in this prompt. 
+Do not reference any page, class, function or demo that is not listed later in this prompt.
+
+Here's an example of a valid response:
+
+Query: dashboard
+Response: The demos titled dashboard, live dashboard, and Chicago Bike Share Dashboard. The guides titled Creating A Dashboard From Bigquery Data, Creating A Dashboard From Supabase Data, Creating A Realtime Dashboard From Google Sheets
+
+Query: add title
+Response: The parameter title in Interface, and Blocks.
+
+Below is a list of all the class and function signatures in the Gradio library.
+
+"""
+
 FALLBACK_PROMPT = SYSTEM_PROMPT
 
-FALLBACK_PROMPT += "Below are all the class and function signatures in the Gradio library.\n\n"
+FALLBACK_PROMPT += "Below are all the class and function signatures in the Gradio library: (these are what you will reference as docs)\n\n"
 
 for key in gradio_docs:
     if key in ["events", "events_matrix"]:
@@ -328,7 +351,9 @@ for key in gradio_docs:
             + (' = ' + p['default'] if 'default' in p else '')
             for p in o['parameters']])})"""
         FALLBACK_PROMPT += f"{signature}\n"
+        QUERY_AUGMENTATION_SYSTEM_PROMPT += f"{signature}\n"
         FALLBACK_PROMPT += f"{o['description']}\n\n"
+
     else: 
         for c in gradio_docs[key]:
             o = gradio_docs[key][c]
@@ -338,6 +363,7 @@ for key in gradio_docs:
                 + (' = ' + p['default'] if 'default' in p else '')
                 for p in o['parameters']])})"""          
             FALLBACK_PROMPT += f"{signature}\n"
+            QUERY_AUGMENTATION_SYSTEM_PROMPT += f"{signature}\n"
             FALLBACK_PROMPT += f"{o['description']}\n\n"
             if "fns" in o and key != "components":
                 for f in o["fns"]:
@@ -347,6 +373,7 @@ for key in gradio_docs:
                         + (' = ' + p['default'] if 'default' in p else '')
                         for p in f['parameters']])})"""
                     FALLBACK_PROMPT += f"{signature}\n"
+                    QUERY_AUGMENTATION_SYSTEM_PROMPT += f"{signature}\n"
                     FALLBACK_PROMPT += f"{f['description']}\n\n"
 
 FALLBACK_PROMPT += "\nEvent listeners allow Gradio to respond to user interactions with the UI components defined in a Blocks app. When a user interacts with an element, such as changing a slider value or uploading an image, a function is called.\n"
@@ -366,6 +393,19 @@ for component in gradio_docs["events_matrix"]:
 
 SYSTEM_PROMPT += "Below are examples of full end-to-end Gradio apps:\n\n"
 FALLBACK_PROMPT += "Below are examples of full end-to-end Gradio apps:\n\n"
+
+QUERY_AUGMENTATION_SYSTEM_PROMPT += "Below are the names of all the demos: \n\n"
+
+for demo in os.listdir(DEMOS_DIR):
+    if os.path.exists(os.path.join(DEMOS_DIR, demo, "run.py")):
+        QUERY_AUGMENTATION_SYSTEM_PROMPT += f"{demo.replace('_', ' ').replace('-', ' ')}\n"
+
+QUERY_AUGMENTATION_SYSTEM_PROMPT += "Below are the names of all the guides: \n\n"
+
+for cat in guide_names:
+    for guide in cat["guides"]:
+        QUERY_AUGMENTATION_SYSTEM_PROMPT += f"{guide['pretty_name']}\n"
+
 
 # 'audio_component_events', 'audio_mixer', 'blocks_essay', 'blocks_chained_events', 'blocks_xray', 'chatbot_multimodal', 'sentence_builder', 'custom_css', 'blocks_update', 'fake_gan'
 # important_demos = ["annotatedimage_component", "blocks_essay_simple", "blocks_flipper", "blocks_form", "blocks_hello", "blocks_js_load", "blocks_js_methods", "blocks_kinematics", "blocks_layout", "blocks_plug", "blocks_simple_squares", "calculator", "chatbot_consecutive", "chatbot_simple", "chatbot_streaming", "chatinterface_multimodal", "datetimes", "diff_texts", "dropdown_key_up", "fake_diffusion", "fake_gan", "filter_records", "function_values", "gallery_component_events", "generate_tone", "hangman", "hello_blocks", "hello_blocks_decorator", "hello_world", "image_editor", "matrix_transpose", "model3D", "on_listener_decorator", "plot_component", "render_merge", "render_split", "reverse_audio_2", "sales_projections", "sepia_filter", "sort_records", "streaming_simple", "tabbed_interface_lite", "tax_calculator", "theme_soft", "timer", "timer_simple", "variable_outputs", "video_identity"]
@@ -687,4 +727,4 @@ Add comments explaining the code, but do not include any text that is not format
 def generate(json_path):
     with open(json_path, "w+") as f:
         json.dump(docs, f)
-    return  SYSTEM_PROMPT, FALLBACK_PROMPT
+    return  SYSTEM_PROMPT, FALLBACK_PROMPT, QUERY_AUGMENTATION_SYSTEM_PROMPT

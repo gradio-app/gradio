@@ -106,8 +106,8 @@ create_dir_if_not_exists(make_dir(WEBSITE_DIR, "src/lib/json/guides"))
 
 demos.generate(make_dir(WEBSITE_DIR, "src/lib/json/demos.json"))
 guides.generate(make_dir(WEBSITE_DIR, "src/lib/json/guides/") + "/")
-SYSTEM_PROMPT, FALLBACK_PROMPT = docs.generate(make_dir(WEBSITE_DIR, "src/lib/json/docs.json"))
-_, _ = docs.generate(make_dir(WEBSITE_DIR, "src/lib/templates/docs.json"))
+SYSTEM_PROMPT, FALLBACK_PROMPT, QUERY_AUGMENTATION_PROMPT = docs.generate(make_dir(WEBSITE_DIR, "src/lib/json/docs.json"))
+_, _, _ = docs.generate(make_dir(WEBSITE_DIR, "src/lib/templates/docs.json"))
 changelog.generate(make_dir(WEBSITE_DIR, "src/lib/json/changelog.json"))
 get_latest_release()
 
@@ -121,6 +121,7 @@ with open(make_dir(WEBSITE_DIR, "src/lib/json/system_prompt.json"), "w+") as f:
         {
             "SYSTEM": SYSTEM_PROMPT,
             "FALLBACK": FALLBACK_PROMPT,
+            "QUERY_AUGMENTATION": QUERY_AUGMENTATION_PROMPT,
         },
         f,
     )
