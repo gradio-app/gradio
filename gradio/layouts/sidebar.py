@@ -12,10 +12,10 @@ class Sidebar(BlockContext, metaclass=ComponentMeta):
     """
     Sidebar is a collapsible panel that renders child components on the left side of the screen within a Blocks layout.
     Example:
-        with gr.Blocks() as demo:
             with gr.Sidebar():
                 gr.Textbox()
                 gr.Button()
+        with gr.Blocks() as demo:
     """
 
     EVENTS = [Events.expand, Events.collapse]
