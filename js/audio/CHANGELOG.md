@@ -1,5 +1,40 @@
 # @gradio/audio
 
+## 0.16.0
+
+### Features
+
+- [#10469](https://github.com/gradio-app/gradio/pull/10469) [`62d0669`](https://github.com/gradio-app/gradio/commit/62d06694ddafada677aff0d54d70ac3cf1448c91) - Request mic permissions only after the Record button is clicked in `gr.Audio()`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/upload@0.14.8
+- @gradio/button@0.4.4
+- @gradio/wasm@0.17.2
+
+## 0.15.4
+
+### Dependency updates
+
+- @gradio/upload@0.14.7
+- @gradio/button@0.4.3
+- @gradio/wasm@0.17.1
+
+## 0.15.3
+
+### Fixes
+
+- [#10405](https://github.com/gradio-app/gradio/pull/10405) [`92dda15`](https://github.com/gradio-app/gradio/commit/92dda15f6d1c71929d3bdca1910734309db72458) - Hide the waveform when playing recorded audio if `show_recording_waveform` is `False`.  Thanks @abidlabs!
+
+## 0.15.2
+
+### Dependency updates
+
+- @gradio/upload@0.14.6
+- @gradio/button@0.4.2
+- @gradio/wasm@0.17.0
+- @gradio/statustracker@0.10.2
+
 ## 0.15.1
 
 ### Dependency updates

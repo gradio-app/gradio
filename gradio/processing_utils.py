@@ -328,15 +328,18 @@ def lru_cache_async(maxsize: int = 128):
 async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
     temp_dir = Path(cache_dir) / hash_url(url)
     temp_dir.mkdir(exist_ok=True, parents=True)
-    filename = client_utils.strip_invalid_filename_characters(Path(url).name)
-    full_temp_file_path = str(abspath(temp_dir / filename))
 
+    parsed_url = urlparse(url)
+    base_path = parsed_url.path.rstrip("/")
+    filename = (
+        client_utils.strip_invalid_filename_characters(Path(base_path).name) or "file"
+    )
+
+    full_temp_file_path = str(abspath(temp_dir / filename))
     if Path(full_temp_file_path).exists():
         return full_temp_file_path
 
-    parsed_url = urlparse(url)
     hostname = parsed_url.hostname
-
     response = await sh.get(
         url, domain_whitelist=PUBLIC_HOSTNAME_WHITELIST, _transport=async_transport
     )
@@ -645,7 +648,7 @@ def add_root_url(data: dict | list, root_url: str, previous_root_url: str | None
             file_dict["url"] = file_dict["url"][len(previous_root_url) :]
         elif client_utils.is_http_url_like(file_dict["url"]):
             return file_dict
-        file_dict["url"] = f'{root_url}{file_dict["url"]}'
+        file_dict["url"] = f"{root_url}{file_dict['url']}"
         return file_dict
 
     return client_utils.traverse(data, _add_root_url, client_utils.is_file_obj_with_url)
@@ -1091,7 +1094,7 @@ def video_is_playable(video_filepath: str) -> bool:
             inputs={video_filepath: None},
         )
         output = probe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-        output = json.loads(output[0])
+        output = json.loads(output[0])  # type: ignore
         video_codec = output["streams"][0]["codec_name"]
         return (container, video_codec) in [
             (".mp4", "h264"),

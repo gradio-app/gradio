@@ -3,7 +3,7 @@ anyio>=3.0,<5.0
 audioop-lts<1.0; python_version >= "3.13" #it provides support for 'audioop' module removed in latest python version used by pydub
 fastapi>=0.115.2,<1.0
 ffmpy
-gradio_client==1.5.4
+gradio_client==1.7.0
 httpx>=0.24.1
 huggingface_hub>=0.25.1
 Jinja2<4.0
@@ -17,7 +17,7 @@ pydantic>=2.0
 python-multipart>=0.0.18 # required for fastapi forms.
 pydub
 pyyaml>=5.0,<7.0
-ruff>=0.2.2; sys.platform != 'emscripten'
+ruff>=0.9.3; sys.platform != 'emscripten'  # needed here for custom component docs generation
 safehttpx>=0.1.6,<0.2.0
 semantic_version~=2.0
 starlette>=0.40.0,<1.0; sys.platform != 'emscripten'

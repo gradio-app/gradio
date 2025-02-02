@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/annotatedimage",
-	"version": "0.9.2",
+	"version": "0.9.5",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

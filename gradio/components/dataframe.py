@@ -74,7 +74,10 @@ class Dataframe(Component):
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
         col_count: int | tuple[int, str] | None = None,
-        datatype: str | list[str] = "str",
+        datatype: Literal["str", "number", "bool", "date", "markdown", "html"]
+        | Sequence[
+            Literal["str", "number", "bool", "date", "markdown", "html"]
+        ] = "str",
         type: Literal["pandas", "numpy", "array", "polars"] = "pandas",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
@@ -93,14 +96,16 @@ class Dataframe(Component):
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
+        show_fullscreen_button: bool = False,
+        show_copy_button: bool = False,
         show_row_numbers: bool = False,
     ):
         """
         Parameters:
-            value: Default value to display in the DataFrame. If a Styler is provided, it will be used to set the displayed value in the DataFrame (e.g. to set precision of numbers) if the `interactive` is False. If a Callable function is provided, the function will be called whenever the app loads to set the initial value of the component.
-            headers: List of str header names. If None, no headers are shown.
-            row_count: Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
-            col_count: Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
+            value: Default value to display in the DataFrame. Supports pandas, numpy, polars, and list of lists. If a Styler is provided, it will be used to set the displayed value in the DataFrame (e.g. to set precision of numbers) if the `interactive` is False. If a Callable function is provided, the function will be called whenever the app loads to set the initial value of the component.
+            headers: List of str header names. These are used to set the column headers of the dataframe if the value does not have headers. If None, no headers are shown.
+            row_count: Limit number of rows for input and decide whether user can create new rows or delete existing rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
+            col_count: Limit number of columns for input and decide whether user can create new columns or delete existing columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
             datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown".
             type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, "polars" for polars dataframe, or "array" for a Python list of lists.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
@@ -121,6 +126,8 @@ class Dataframe(Component):
             wrap: If True, the text in table cells will wrap when appropriate. If False and the `column_width` parameter is not set, the column widths will expand based on the cell contents and the table may need to be horizontally scrolled. If `column_width` is set, then any overflow text will be hidden.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies for columns of type "markdown."
             column_widths: An optional list representing the width of each column. The elements of the list should be in the format "100px" (ints are also accepted and converted to pixel values) or "10%". If not provided, the column widths will be automatically determined based on the content of the cells. Setting this parameter will cause the browser to try to fit the table within the page width.
+            show_fullscreen_button: If True, will show a button to view the values in the table in fullscreen mode.
+            show_copy_button: If True, will show a button to copy the table data to the clipboard.
             show_row_numbers: If True, will display row numbers in a separate column.
         """
         self.wrap = wrap
@@ -146,24 +153,6 @@ class Dataframe(Component):
                 "Polars is not installed. Please install using `pip install polars`."
             )
         self.type = type
-        values = {
-            "str": "",
-            "number": 0,
-            "bool": False,
-            "date": "01/01/1970",
-            "markdown": "",
-            "html": "",
-        }
-        column_dtypes = (
-            [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
-        )
-        self.empty_input = {
-            "headers": self.headers,
-            "data": [
-                [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
-            ],
-            "metadata": None,
-        }
 
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
@@ -173,6 +162,8 @@ class Dataframe(Component):
         self.column_widths = [
             w if isinstance(w, str) else f"{w}px" for w in (column_widths or [])
         ]
+        self.show_fullscreen_button = show_fullscreen_button
+        self.show_copy_button = show_copy_button
         self.show_row_numbers = show_row_numbers
         super().__init__(
             label=label,
@@ -229,7 +220,7 @@ class Dataframe(Component):
             )
 
     @staticmethod
-    def _is_empty(
+    def is_empty(
         value: pd.DataFrame
         | Styler
         | np.ndarray
@@ -240,9 +231,14 @@ class Dataframe(Component):
         | str
         | None,
     ) -> bool:
+        """
+        Checks if the value of the dataframe provided is empty.
+        """
         import pandas as pd
         from pandas.io.formats.style import Styler
 
+        if value is None:
+            return True
         if isinstance(value, pd.DataFrame):
             return value.empty
         elif isinstance(value, Styler):
@@ -251,11 +247,122 @@ class Dataframe(Component):
             return value.size == 0
         elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
             return value.is_empty()
-        elif isinstance(value, list) and len(value) and isinstance(value[0], list):
-            return len(value[0]) == 0
-        elif isinstance(value, (list, dict)):
+        elif isinstance(value, list):
+            if len(value) > 0 and isinstance(value[0], list):
+                return len(value[0]) == 0
+            return len(value) == 0
+        elif isinstance(value, dict):
+            if "data" in value:
+                return len(value["data"]) == 0
             return len(value) == 0
         return False
+
+    def get_headers(
+        self,
+        value: pd.DataFrame
+        | Styler
+        | np.ndarray
+        | pl.DataFrame
+        | list
+        | list[list]
+        | dict
+        | str
+        | None,
+    ) -> list[str]:
+        """
+        Returns the headers of the dataframes based on the value provided. For values
+        that do not have headers, an empty list is returned.
+        """
+        import pandas as pd
+        from pandas.io.formats.style import Styler
+
+        if value is None:
+            return []
+        if isinstance(value, pd.DataFrame):
+            return list(value.columns)
+        elif isinstance(value, Styler):
+            return list(value.data.columns)  # type: ignore
+        elif isinstance(value, str):
+            return list(pd.read_csv(value).columns)
+        elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
+            return list(value.columns)
+        elif isinstance(value, dict):
+            return value.get("headers", [])
+        elif isinstance(value, (list, np.ndarray)):
+            return []
+        return []
+
+    @staticmethod
+    def get_cell_data(
+        value: pd.DataFrame
+        | Styler
+        | np.ndarray
+        | pl.DataFrame
+        | list
+        | list[list]
+        | dict
+        | str
+        | None,
+    ) -> list[list[Any]]:
+        """
+        Gets the cell data (as a list of lists) from the value provided.
+        """
+        import pandas as pd
+        from pandas.io.formats.style import Styler
+
+        if isinstance(value, dict):
+            return value.get("data", [[]])
+        if isinstance(value, (str, pd.DataFrame)):
+            if isinstance(value, str):
+                value = pd.read_csv(value)  # type: ignore
+            return value.to_dict(orient="split")["data"]
+        elif isinstance(value, Styler):
+            df: pd.DataFrame = value.data  # type: ignore
+            hidden_columns = getattr(value, "hidden_columns", [])
+            visible_cols = [
+                i for i, _ in enumerate(df.columns) if i not in hidden_columns
+            ]
+            df = df.iloc[:, visible_cols]
+            return df.to_dict(orient="split")["data"]
+        elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
+            df_dict = value.to_dict()  # type: ignore
+            data = list(zip(*df_dict.values()))
+            return data
+        elif isinstance(value, (np.ndarray, list)):
+            if isinstance(value, np.ndarray):
+                value = value.tolist()
+            if not isinstance(value, list):
+                raise ValueError("output cannot be converted to list")
+            if not isinstance(value[0], list):
+                return [[v] for v in value]
+            return value
+        else:
+            raise ValueError(
+                f"Cannot process value of type {type(value)} in gr.Dataframe"
+            )
+
+    @staticmethod
+    def get_metadata(
+        value: pd.DataFrame
+        | Styler
+        | np.ndarray
+        | pl.DataFrame
+        | list
+        | list[list]
+        | dict
+        | str
+        | None,
+    ) -> dict[str, list[list]] | None:
+        """
+        Gets the metadata from the value provided.
+        """
+        from pandas.io.formats.style import Styler
+
+        if isinstance(value, Styler):
+            return Dataframe.__extract_metadata(
+                value, getattr(value, "hidden_columns", [])
+            )
+        return None
 
     def postprocess(
         self,
@@ -284,86 +391,30 @@ class Dataframe(Component):
             raise ValueError(
                 "Styler objects are only supported in pandas version 1.5.0 or higher. Please try: `pip install --upgrade pandas` to use this feature."
             )
+        if isinstance(value, Styler) and self.interactive:
+            warnings.warn(
+                "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe instead."
+            )
 
-        if value is None or self._is_empty(value):
-            return DataframeData(
-                headers=self.headers, data=[["" for _ in range(len(self.headers))]]
-            )
-        if isinstance(value, dict):
-            if len(value) == 0:
-                return DataframeData(
-                    headers=self.headers, data=[["" for _ in range(len(self.headers))]]
-                )
-            return DataframeData(
-                headers=value.get("headers", []), data=value.get("data", [[]])
-            )
-        if isinstance(value, (str, pd.DataFrame)):
-            if isinstance(value, str):
-                value = pd.read_csv(value)  # type: ignore
-            if len(value) == 0:
-                return DataframeData(
-                    headers=[str(col) for col in value.columns],  # Convert to strings
-                    data=[["" for _ in range(len(value.columns))]],
-                )
-            return DataframeData(
-                headers=[str(col) for col in value.columns],
-                data=value.to_dict(orient="split")["data"],
-            )
-        elif isinstance(value, Styler):
-            if self.interactive:
-                warnings.warn(
-                    "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe instead."
-                )
-            df: pd.DataFrame = value.data  # type: ignore
-            visible_cols = [
-                i
-                for i, col in enumerate(df.columns)
-                if i not in getattr(value, "hidden_columns", [])
+        headers = self.get_headers(value) or self.headers
+        data = (
+            [["" for _ in range(len(headers))]]
+            if self.is_empty(value)
+            else self.get_cell_data(value)
+        )
+        if len(headers) > len(data[0]):
+            headers = headers[: len(data[0])]
+        elif len(headers) < len(data[0]):
+            headers = [
+                *headers,
+                *[str(i) for i in range(len(headers) + 1, len(data[0]) + 1)],
             ]
-            df = df.iloc[:, visible_cols]
-
-            if len(df) == 0:
-                return DataframeData(
-                    headers=list(df.columns),
-                    data=[["" for _ in range(len(df.columns))]],
-                    metadata=self.__extract_metadata(
-                        value, getattr(value, "hidden_columns", [])
-                    ),  # type: ignore
-                )
-            return DataframeData(
-                headers=list(df.columns),
-                data=df.to_dict(orient="split")["data"],  # type: ignore
-                metadata=self.__extract_metadata(
-                    value, getattr(value, "hidden_columns", [])
-                ),  # type: ignore
-            )
-        elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
-            if len(value) == 0:
-                return DataframeData(headers=list(value.to_dict().keys()), data=[[]])  # type: ignore
-            df_dict = value.to_dict()  # type: ignore
-            headers = list(df_dict.keys())
-            data = list(zip(*df_dict.values()))
-            return DataframeData(headers=headers, data=data)
-        elif isinstance(value, (np.ndarray, list)):
-            if len(value) == 0:
-                return DataframeData(headers=self.headers, data=[[]])
-            if isinstance(value, np.ndarray):
-                value = value.tolist()
-            if not isinstance(value, list):
-                raise ValueError("output cannot be converted to list")
-
-            _headers = self.headers
-            if len(self.headers) < len(value[0]):
-                _headers: list[str] = [
-                    *self.headers,
-                    *[str(i) for i in range(len(self.headers) + 1, len(value[0]) + 1)],
-                ]
-            elif len(self.headers) > len(value[0]):
-                _headers = self.headers[: len(value[0])]
-
-            return DataframeData(headers=_headers, data=value)
-        else:
-            raise ValueError("Cannot process value as a Dataframe")
+        metadata = self.get_metadata(value)
+        return DataframeData(
+            headers=headers,
+            data=data,
+            metadata=metadata,  # type: ignore
+        )
 
     @staticmethod
     def __get_cell_style(cell_id: str, cell_styles: list[dict]) -> str:

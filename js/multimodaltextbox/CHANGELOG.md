@@ -1,5 +1,36 @@
 # @gradio/multimodaltextbox
 
+## 0.9.5
+
+### Dependency updates
+
+- @gradio/upload@0.14.8
+- @gradio/image@0.20.4
+- @gradio/video@0.13.4
+
+## 0.9.4
+
+### Dependency updates
+
+- @gradio/upload@0.14.7
+- @gradio/image@0.20.3
+- @gradio/video@0.13.3
+
+## 0.9.3
+
+### Fixes
+
+- [#10405](https://github.com/gradio-app/gradio/pull/10405) [`92dda15`](https://github.com/gradio-app/gradio/commit/92dda15f6d1c71929d3bdca1910734309db72458) - Hide the waveform when playing recorded audio if `show_recording_waveform` is `False`.  Thanks @abidlabs!
+
+## 0.9.2
+
+### Dependency updates
+
+- @gradio/upload@0.14.6
+- @gradio/video@0.13.2
+- @gradio/statustracker@0.10.2
+- @gradio/image@0.20.2
+
 ## 0.9.1
 
 ### Fixes

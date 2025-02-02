@@ -36,7 +36,9 @@
 	export let show_download_button: boolean;
 	export let show_share_button = false;
 	export let editable = true;
-	export let waveform_options: WaveformOptions = {};
+	export let waveform_options: WaveformOptions = {
+		show_recording_waveform: true
+	};
 	export let pending: boolean;
 	export let streaming: boolean;
 	export let stream_every: number;

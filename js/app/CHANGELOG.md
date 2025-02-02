@@ -1,5 +1,26 @@
 # @self/app
 
+## 1.46.3
+
+### Dependency updates
+
+- @gradio/wasm@0.17.2
+- @gradio/core@0.8.0
+
+## 1.46.2
+
+### Dependency updates
+
+- @gradio/wasm@0.17.1
+- @gradio/core@0.7.0
+
+## 1.46.1
+
+### Dependency updates
+
+- @gradio/wasm@0.17.0
+- @gradio/core@0.7.0
+
 ## 1.46.0
 
 ### Features

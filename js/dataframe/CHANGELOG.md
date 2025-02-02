@@ -1,5 +1,49 @@
 # @gradio/dataframe
 
+## 0.14.0
+
+### Features
+
+- [#10461](https://github.com/gradio-app/gradio/pull/10461) [`ca7c47e`](https://github.com/gradio-app/gradio/commit/ca7c47e5e50a309cd637c4f928ab90af6355b01d) - Add copy button to dataframe toolbar.  Thanks @hannahblair!
+- [#10420](https://github.com/gradio-app/gradio/pull/10420) [`a69b8e8`](https://github.com/gradio-app/gradio/commit/a69b8e83ad7c89c627db2bdd5d25b0142731aaac) - Support column/row deletion in `gr.DataFrame`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/upload@0.14.8
+- @gradio/button@0.4.4
+
+## 0.13.1
+
+### Features
+
+- [#10452](https://github.com/gradio-app/gradio/pull/10452) [`dd178f3`](https://github.com/gradio-app/gradio/commit/dd178f3dd5968df445b43f5e3b8cb86b11374913) - Tiny tweak to example dataframes.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/upload@0.14.7
+- @gradio/button@0.4.3
+
+## 0.13.0
+
+### Features
+
+- [#10377](https://github.com/gradio-app/gradio/pull/10377) [`feb1e81`](https://github.com/gradio-app/gradio/commit/feb1e81ecabf34fd3f9ec228dcf3bdaa4b0bd75e) - Add toolbar with fullscreen button to `gr.Dataframe`.  Thanks @hannahblair!
+- [#10376](https://github.com/gradio-app/gradio/pull/10376) [`2b7ba48`](https://github.com/gradio-app/gradio/commit/2b7ba4801398b6dd6b72496ea50245a0cd6852d6) - Add `show_row_numbers` param to gr.Dataframe.  Thanks @hannahblair!
+- [#10410](https://github.com/gradio-app/gradio/pull/10410) [`48809c7`](https://github.com/gradio-app/gradio/commit/48809c722bcbb3aaed72edfdb6c59de5413fdbc4) - Fix bug where dataframe `value` prop was not updating when an input value was changed manually.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10365](https://github.com/gradio-app/gradio/pull/10365) [`40e0c48`](https://github.com/gradio-app/gradio/commit/40e0c4832060cef457406896b2ad94639888897a) - Ensure clicking on a cell once enables editing mode.  Thanks @hannahblair!
+- [#10348](https://github.com/gradio-app/gradio/pull/10348) [`62cd4ef`](https://github.com/gradio-app/gradio/commit/62cd4ef302cd7529d1f8842b416f9d8fcf6b5750) - Handle `row_count=0` in gr.Dataframe.  Thanks @hannahblair!
+- [#10403](https://github.com/gradio-app/gradio/pull/10403) [`3219382`](https://github.com/gradio-app/gradio/commit/3219382eeea0a0047c74e0cdd2bf333e69f8f806) - Fix event triggers and recent regressions related to `gr.DataFrame`.  Thanks @abidlabs!
+- [#10360](https://github.com/gradio-app/gradio/pull/10360) [`31cccc3`](https://github.com/gradio-app/gradio/commit/31cccc3e79a3d1b4a840610d9becb235f8829b13) - Fix logic for detecting changes in `gr.Dataframe` table value.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/upload@0.14.6
+- @gradio/button@0.4.2
+- @gradio/statustracker@0.10.2
+
 ## 0.12.7
 
 ### Dependency updates

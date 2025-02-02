@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/wasm",
-	"version": "0.16.0",
+	"version": "0.17.2",
 	"description": "Gradio Wasm package",
 	"type": "module",
 	"main": "./dist/src/index.js",
@@ -40,7 +40,7 @@
 	"dependencies": {
 		"@types/path-browserify": "^1.0.0",
 		"path-browserify": "^1.0.1",
-		"pyodide": "0.26.1"
+		"pyodide": "0.27.2"
 	},
 	"peerDependencies": {
 		"svelte": "^4.0.0"

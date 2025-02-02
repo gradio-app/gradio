@@ -1,5 +1,18 @@
 # gradio_client
 
+## 1.7.0
+
+### Features
+
+- [#10470](https://github.com/gradio-app/gradio/pull/10470) [`3465fdb`](https://github.com/gradio-app/gradio/commit/3465fdb19087471598ca07c93bc4ff3e1b6b2abf) - Format backend with latest `ruff`.  Thanks @abidlabs!
+- [#10435](https://github.com/gradio-app/gradio/pull/10435) [`ef66fe5`](https://github.com/gradio-app/gradio/commit/ef66fe52b22448a5125a314581f2ec6c73c24145) - Sidebar Component.  Thanks @dawoodkhan82!
+
+## 1.6.0
+
+### Features
+
+- [#10352](https://github.com/gradio-app/gradio/pull/10352) [`6a7cfc4`](https://github.com/gradio-app/gradio/commit/6a7cfc4264822209148ad07d8f38a0550bdb32b7) - Compatibility between Client and ZeroGPU.  Thanks @abidlabs!
+
 ## 1.5.4
 
 ### Fixes

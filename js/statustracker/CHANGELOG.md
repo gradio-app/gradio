@@ -1,5 +1,11 @@
 # @gradio/statustracker
 
+## 0.10.2
+
+### Fixes
+
+- [#10390](https://github.com/gradio-app/gradio/pull/10390) [`9e6eded`](https://github.com/gradio-app/gradio/commit/9e6ededef144f3f1a8ebbc47076b55d60f5b2ef3) - Removes css tag that overrides Gradio theme setting.  Thanks @ericwu09!
+
 ## 0.10.1
 
 ### Dependency updates

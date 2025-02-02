@@ -144,7 +144,10 @@
 			code_state.status = "regenerating";
 		} else {
 			code_state.status = "generating";
+<<<<<<< HEAD
 			suggested_links = [];
+=======
+>>>>>>> main
 		}
 		let out = "";
 

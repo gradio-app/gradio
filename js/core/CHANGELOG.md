@@ -1,5 +1,61 @@
 # @gradio/core
 
+## 0.8.0
+
+### Features
+
+- [#10420](https://github.com/gradio-app/gradio/pull/10420) [`a69b8e8`](https://github.com/gradio-app/gradio/commit/a69b8e83ad7c89c627db2bdd5d25b0142731aaac) - Support column/row deletion in `gr.DataFrame`.  Thanks @abidlabs!
+- [#10435](https://github.com/gradio-app/gradio/pull/10435) [`ef66fe5`](https://github.com/gradio-app/gradio/commit/ef66fe52b22448a5125a314581f2ec6c73c24145) - Sidebar Component.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/upload@0.14.8
+- @gradio/button@0.4.4
+- @gradio/code@0.10.15
+- @gradio/file@0.12.4
+- @gradio/image@0.20.4
+- @gradio/video@0.13.4
+- @gradio/wasm@0.17.2
+- @gradio/gallery@0.15.4
+
+## 0.7.0
+
+### Dependency updates
+
+- @gradio/upload@0.14.7
+- @gradio/button@0.4.3
+- @gradio/code@0.10.14
+- @gradio/file@0.12.3
+- @gradio/image@0.20.3
+- @gradio/video@0.13.3
+- @gradio/wasm@0.17.1
+- @gradio/gallery@0.15.3
+
+## 0.7.0
+
+### Features
+
+- [#10341](https://github.com/gradio-app/gradio/pull/10341) [`b0cf92f`](https://github.com/gradio-app/gradio/commit/b0cf92f03ba29f29fa540de8c5803a7263df0106) - PWA icon customization.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/upload@0.14.6
+- @gradio/textbox@0.10.2
+- @gradio/button@0.4.2
+- @gradio/video@0.13.2
+- @gradio/wasm@0.17.0
+- @gradio/statustracker@0.10.2
+- @gradio/image@0.20.2
+- @gradio/gallery@0.15.2
+- @gradio/plot@0.9.7
+- @gradio/tabitem@0.4.1
+- @gradio/tabs@0.4.1
+- @gradio/code@0.10.13
+- @gradio/paramviewer@0.6.4
+- @gradio/column@0.2.0
+- @gradio/file@0.12.2
+- @gradio/checkbox@0.4.12
+
 ## 0.6.1
 
 ### Fixes

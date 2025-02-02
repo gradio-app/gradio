@@ -1,5 +1,55 @@
 # @gradio/chatbot
 
+## 0.22.3
+
+### Dependency updates
+
+- @gradio/upload@0.14.8
+- @gradio/image@0.20.4
+- @gradio/video@0.13.4
+- @gradio/wasm@0.17.2
+- @gradio/gallery@0.15.4
+
+## 0.22.2
+
+### Features
+
+- [#10448](https://github.com/gradio-app/gradio/pull/10448) [`337b522`](https://github.com/gradio-app/gradio/commit/337b5224a682fe18dc8d1c1e5bab2a3341ce01dc) - Small tweaks to `gr.ChatMessage` and spacing between chatbot messages.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/upload@0.14.7
+- @gradio/image@0.20.3
+- @gradio/video@0.13.3
+- @gradio/wasm@0.17.1
+- @gradio/gallery@0.15.3
+
+## 0.22.1
+
+### Fixes
+
+- [#10405](https://github.com/gradio-app/gradio/pull/10405) [`92dda15`](https://github.com/gradio-app/gradio/commit/92dda15f6d1c71929d3bdca1910734309db72458) - Hide the waveform when playing recorded audio if `show_recording_waveform` is `False`.  Thanks @abidlabs!
+
+## 0.22.0
+
+### Features
+
+- [#10392](https://github.com/gradio-app/gradio/pull/10392) [`4d47e4b`](https://github.com/gradio-app/gradio/commit/4d47e4b4e2f07d4dd5b600f7d9180c7ad3e67a1f) - Add a `log` parameter to Chatbot metadata that allows displaying `str` content next to the thought title.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10404](https://github.com/gradio-app/gradio/pull/10404) [`9dc5d15`](https://github.com/gradio-app/gradio/commit/9dc5d157aaf002f7699d3b2c1652f49d47e53e80) - Tweak behavior related to the `status` of `gr.Chatbot` thought messages.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/upload@0.14.6
+- @gradio/video@0.13.2
+- @gradio/wasm@0.17.0
+- @gradio/statustracker@0.10.2
+- @gradio/image@0.20.2
+- @gradio/gallery@0.15.2
+- @gradio/plot@0.9.7
+
 ## 0.21.0
 
 ### Features

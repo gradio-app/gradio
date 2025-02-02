@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/upload",
-	"version": "0.14.5",
+	"version": "0.14.8",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "src/index.ts",
