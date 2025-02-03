@@ -936,7 +936,7 @@
 			{root}
 			on:load={(e) => blob_to_string(data_uri_to_blob(e.detail.data))}
 			bind:dragging
-			aria_label="Drop CSV or TSV files here to import data into dataframe"
+			aria_label={i18n("dataframe.drop_to_upload")}
 		>
 			<VirtualTable
 				bind:items={data}
