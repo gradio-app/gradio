@@ -18,6 +18,7 @@
 	import CellMenu from "./CellMenu.svelte";
 	import Toolbar from "./Toolbar.svelte";
 	import { copy_table_data } from "./table_utils";
+	import SortIcon from "./icons/SortIcon.svelte";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -368,7 +369,8 @@
 			if (sort_direction === "asc") {
 				sort_direction = "des";
 			} else if (sort_direction === "des") {
-				sort_direction = "asc";
+				sort_by = undefined;
+				sort_direction = undefined;
 			}
 		}
 	}
@@ -601,16 +603,24 @@
 		}
 		const indices = [...Array(_data.length).keys()];
 
-		if (dir === "asc") {
-			indices.sort((i, j) =>
-				_data[i][col].value < _data[j][col].value ? -1 : 1
-			);
-		} else if (dir === "des") {
-			indices.sort((i, j) =>
-				_data[i][col].value > _data[j][col].value ? -1 : 1
-			);
+		if (col === -1) {
+			if (dir === "asc") {
+				indices.sort((i, j) => i - j);
+			} else if (dir === "des") {
+				indices.sort((i, j) => j - i);
+			}
 		} else {
-			return;
+			if (dir === "asc") {
+				indices.sort((i, j) =>
+					_data[i][col].value < _data[j][col].value ? -1 : 1
+				);
+			} else if (dir === "des") {
+				indices.sort((i, j) =>
+					_data[i][col].value > _data[j][col].value ? -1 : 1
+				);
+			} else {
+				return;
+			}
 		}
 
 		// sort all the data and metadata based on the values in the data
@@ -827,6 +837,16 @@
 		active_cell_menu = null;
 		active_header_menu = null;
 	}
+
+	let row_order: number[] = [];
+
+	$: {
+		if (sort_by === -1 && sort_direction === "des") {
+			row_order = [...Array(data.length)].map((_, i) => data.length - i - 1);
+		} else {
+			row_order = [...Array(data.length)].map((_, i) => i);
+		}
+	}
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
@@ -867,7 +887,24 @@
 			<thead>
 				<tr>
 					{#if show_row_numbers}
-						<th class="row-number-header"></th>
+						<th class="row-number-header">
+							<div class="cell-wrap">
+								<div class="header-content">
+									<button
+										class:sorted={sort_by === -1}
+										class:des={sort_by === -1 && sort_direction === "des"}
+										class="sort-button {sort_direction}"
+										tabindex="0"
+										on:click={(event) => {
+											event.stopPropagation();
+											handle_sort(-1);
+										}}
+									>
+										<SortIcon />
+									</button>
+								</div>
+							</div>
+						</th>
 					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
@@ -891,15 +928,7 @@
 									class:des={sort_by === i && sort_direction === "des"}
 									class="sort-button {sort_direction} "
 								>
-									<svg
-										width="1em"
-										height="1em"
-										viewBox="0 0 9 7"
-										fill="none"
-										xmlns="http://www.w3.org/2000/svg"
-									>
-										<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
-									</svg>
+									<SortIcon />
 								</div>
 							</div>
 						</th>
@@ -949,7 +978,24 @@
 				{/if}
 				<tr slot="thead">
 					{#if show_row_numbers}
-						<th class="row-number-header"></th>
+						<th class="row-number-header">
+							<div class="cell-wrap">
+								<div class="header-content">
+									<button
+										class:sorted={sort_by === -1}
+										class:des={sort_by === -1 && sort_direction === "des"}
+										class="sort-button {sort_direction}"
+										tabindex="0"
+										on:click={(event) => {
+											event.stopPropagation();
+											handle_sort(-1);
+										}}
+									>
+										<SortIcon />
+									</button>
+								</div>
+							</div>
+						</th>
 					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
@@ -983,15 +1029,7 @@
 											handle_sort(i);
 										}}
 									>
-										<svg
-											width="1em"
-											height="1em"
-											viewBox="0 0 9 7"
-											fill="none"
-											xmlns="http://www.w3.org/2000/svg"
-										>
-											<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
-										</svg>
+										<SortIcon />
 									</button>
 								</div>
 
@@ -1010,7 +1048,9 @@
 
 				<tr slot="tbody" let:item let:index class:row_odd={index % 2 === 0}>
 					{#if show_row_numbers}
-						<td class="row-number" title={`Row ${index + 1}`}>{index + 1}</td>
+						<td class="row-number" title={`Row ${row_order[index] + 1}`}
+							>{row_order[index] + 1}</td
+						>
 					{/if}
 					{#each item as { value, id }, j (id)}
 						<td
@@ -1128,15 +1168,6 @@
 {/if}
 
 <style>
-	.button-wrap:hover svg {
-		color: var(--color-accent);
-	}
-
-	.button-wrap svg {
-		margin-right: var(--size-1);
-		margin-left: -5px;
-	}
-
 	.label p {
 		position: relative;
 		z-index: var(--layer-4);
@@ -1245,11 +1276,6 @@
 		background: var(--table-even-background-fill);
 	}
 
-	th svg {
-		fill: currentColor;
-		font-size: 10px;
-	}
-
 	.sort-button {
 		display: flex;
 		flex: none;
@@ -1290,6 +1316,7 @@
 	.header-content {
 		display: flex;
 		align-items: center;
+		justify-content: center;
 		overflow: hidden;
 		flex-grow: 1;
 		min-width: 0;
@@ -1351,12 +1378,10 @@
 
 	.row-number,
 	.row-number-header {
-		width: var(--size-7);
-		min-width: var(--size-7);
+		width: var(--size-10);
+		min-width: var(--size-10);
 		text-align: center;
 		background: var(--table-even-background-fill);
-		position: sticky;
-		left: 0;
 		font-size: var(--input-text-size);
 		color: var(--body-text-color);
 		padding: var(--size-1) var(--size-2);
