@@ -505,7 +505,7 @@ class BlockFunction:
         api_name: str | Literal[False] = False,
         js: str | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
-        show_progress_on: Component | Sequence[Component] | None = None,
+        show_progress_on: Sequence[Component] | None = None,
         cancels: list[int] | None = None,
         collects_event_data: bool = False,
         trigger_after: int | None = None,
@@ -599,6 +599,7 @@ class BlockFunction:
             "api_name": self.api_name,
             "scroll_to_output": self.scroll_to_output,
             "show_progress": self.show_progress,
+            "show_progress_on": None if self.show_progress_on is None else [block._id for block in self.show_progress_on],
             "batch": self.batch,
             "max_batch_size": self.max_batch_size,
             "cancels": self.cancels,
@@ -781,6 +782,8 @@ class BlocksConfig:
             outputs = []
         elif not isinstance(outputs, Sequence):
             outputs = [outputs]
+        if show_progress_on and not isinstance(show_progress_on, Sequence):
+            show_progress_on = [show_progress_on]
 
         if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
@@ -859,6 +862,7 @@ class BlocksConfig:
             api_name=api_name,
             js=js,
             show_progress=show_progress,
+            show_progress_on=show_progress_on,
             cancels=cancels,
             collects_event_data=collects_event_data,
             trigger_after=trigger_after,
