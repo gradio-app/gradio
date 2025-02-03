@@ -162,3 +162,27 @@ export function move_cursor(
 	}
 	return false;
 }
+
+export function get_current_indices(
+	id: string,
+	data: CellData[][]
+): [number, number] {
+	return data.reduce(
+		(acc, arr, i) => {
+			const j = arr.reduce(
+				(_acc, _data, k) => (id === _data.id ? k : _acc),
+				-1
+			);
+			return j === -1 ? acc : [i, j];
+		},
+		[-1, -1]
+	);
+}
+
+export function handle_click_outside(
+	event: Event,
+	parent: HTMLElement
+): boolean {
+	const [trigger] = event.composedPath() as HTMLElement[];
+	return !parent.contains(trigger);
+}

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { afterUpdate, createEventDispatcher, tick, onMount } from "svelte";
-	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
 	import { Upload } from "@gradio/upload";
 
@@ -22,13 +21,14 @@
 		is_cell_selected,
 		handle_selection,
 		handle_delete_key,
-		handle_editing_state,
 		should_show_cell_menu,
 		get_next_cell_coordinates,
 		get_range_selection,
-		move_cursor
+		move_cursor,
+		get_current_indices,
+		handle_click_outside as handle_click_outside_util
 	} from "./selection_utils";
-	import { copy_table_data } from "./table_utils";
+	import { copy_table_data, get_max, handle_file_upload } from "./table_utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -59,16 +59,12 @@
 	export let value_is_output = false;
 
 	let selected_cells: CellCoordinate[] = [];
-	$: {
-		selected_cells = [...selected_cells];
-	}
+	$: selected_cells = [...selected_cells];
 	let selected: CellCoordinate | false = false;
-	$: {
-		selected =
-			selected_cells.length > 0
-				? selected_cells[selected_cells.length - 1]
-				: false;
-	}
+	$: selected =
+		selected_cells.length > 0
+			? selected_cells[selected_cells.length - 1]
+			: false;
 
 	export let display_value: string[][] | null = null;
 	export let styling: string[][] | null = null;
@@ -86,6 +82,22 @@
 	}>();
 
 	let editing: EditingState = false;
+	let clear_on_focus = false;
+	let header_edit: number | false = false;
+	let selected_header: number | false = false;
+	let active_cell_menu: {
+		row: number;
+		col: number;
+		x: number;
+		y: number;
+	} | null = null;
+	let active_header_menu: {
+		col: number;
+		x: number;
+		y: number;
+	} | null = null;
+	let is_fullscreen = false;
+	let dragging = false;
 
 	const get_data_at = (row: number, col: number): string | number =>
 		data?.[row]?.[col]?.value;
@@ -202,25 +214,9 @@
 			if (direction === "asc") return "ascending";
 			if (direction === "des") return "descending";
 		}
-
 		return "none";
 	}
 
-	function get_current_indices(id: string): [number, number] {
-		return data.reduce(
-			(acc, arr, i) => {
-				const j = arr.reduce(
-					(_acc, _data, k) => (id === _data.id ? k : _acc),
-					-1
-				);
-
-				return j === -1 ? acc : [i, j];
-			},
-			[-1, -1]
-		);
-	}
-
-	let clear_on_focus = false;
 	// eslint-disable-next-line complexity
 	async function handle_keydown(event: KeyboardEvent): Promise<void> {
 		if (selected_header !== false && header_edit === false) {
@@ -250,20 +246,26 @@
 		}
 
 		if (event.key === "Delete" || event.key === "Backspace") {
-			event.preventDefault();
 			if (!editable) return;
 
 			if (editing) {
 				const [row, col] = editing;
+				const input_el = els[data[row][col].id].input;
+				if (input_el && input_el.selectionStart !== input_el.selectionEnd) {
+					return;
+				}
 				if (
-					selected_cells.length === 1 &&
-					selected_cells[0][0] === row &&
-					selected_cells[0][1] === col
+					event.key === "Delete" &&
+					input_el?.selectionStart !== input_el?.value.length
 				) {
+					return;
+				}
+				if (event.key === "Backspace" && input_el?.selectionStart !== 0) {
 					return;
 				}
 			}
 
+			event.preventDefault();
 			if (selected_cells.length > 0) {
 				data = handle_delete_key(data, selected_cells);
 				dispatch("change", {
@@ -306,8 +308,11 @@
 							selected_cells.length > 0 ? selected_cells[0] : [i, j],
 							next_coords
 						);
+						editing = false;
 					} else {
 						selected_cells = [next_coords];
+						editing = next_coords;
+						clear_on_focus = false;
 					}
 					selected = next_coords;
 				} else if (
@@ -317,6 +322,7 @@
 				) {
 					selected_header = j;
 					selected = false;
+					editing = false;
 				}
 				break;
 
@@ -346,6 +352,7 @@
 						selected = [i, j];
 					} else {
 						editing = [i, j];
+						clear_on_focus = false;
 					}
 				}
 				break;
@@ -362,6 +369,7 @@
 					selected = next_cell;
 					if (editable) {
 						editing = next_cell;
+						clear_on_focus = false;
 					}
 				}
 				break;
@@ -394,17 +402,12 @@
 		}
 	}
 
-	let header_edit: number | false;
-
-	let select_on_focus = false;
-	let selected_header: number | false = false;
 	async function edit_header(i: number, _select = false): Promise<void> {
 		if (!editable || col_count[1] !== "dynamic" || header_edit === i) return;
 		selected = false;
 		selected_cells = [];
 		selected_header = i;
 		header_edit = i;
-		select_on_focus = _select;
 	}
 
 	function end_header_edit(event: CustomEvent<KeyboardEvent>): void {
@@ -479,96 +482,14 @@
 	}
 
 	function handle_click_outside(event: Event): void {
-		const [trigger] = event.composedPath() as HTMLElement[];
-		if (parent.contains(trigger)) {
-			return;
+		if (handle_click_outside_util(event, parent)) {
+			editing = false;
+			selected_cells = [];
+			header_edit = false;
+			selected_header = false;
+			active_cell_menu = null;
+			active_header_menu = null;
 		}
-
-		editing = false;
-		selected_cells = [];
-		header_edit = false;
-		selected_header = false;
-		active_cell_menu = null;
-		active_header_menu = null;
-	}
-
-	function guess_delimitaor(
-		text: string,
-		possibleDelimiters: string[]
-	): string[] {
-		return possibleDelimiters.filter(weedOut);
-
-		function weedOut(delimiter: string): boolean {
-			var cache = -1;
-			return text.split("\n").every(checkLength);
-
-			function checkLength(line: string): boolean {
-				if (!line) {
-					return true;
-				}
-
-				var length = line.split(delimiter).length;
-				if (cache < 0) {
-					cache = length;
-				}
-				return cache === length && length > 1;
-			}
-		}
-	}
-
-	function data_uri_to_blob(data_uri: string): Blob {
-		const byte_str = atob(data_uri.split(",")[1]);
-		const mime_str = data_uri.split(",")[0].split(":")[1].split(";")[0];
-
-		const ab = new ArrayBuffer(byte_str.length);
-		const ia = new Uint8Array(ab);
-
-		for (let i = 0; i < byte_str.length; i++) {
-			ia[i] = byte_str.charCodeAt(i);
-		}
-
-		return new Blob([ab], { type: mime_str });
-	}
-
-	function blob_to_string(blob: Blob): void {
-		const reader = new FileReader();
-
-		function handle_read(e: ProgressEvent<FileReader>): void {
-			if (!e?.target?.result || typeof e.target.result !== "string") return;
-
-			const [delimiter] = guess_delimitaor(e.target.result, [",", "\t"]);
-
-			const [head, ...rest] = dsvFormat(delimiter).parseRows(e.target.result);
-
-			_headers = make_headers(
-				col_count[1] === "fixed" ? head.slice(0, col_count[0]) : head
-			);
-
-			values = rest;
-			reader.removeEventListener("loadend", handle_read);
-		}
-
-		reader.addEventListener("loadend", handle_read);
-
-		reader.readAsText(blob);
-	}
-
-	let dragging = false;
-
-	function get_max(
-		_d: { value: any; id: string }[][]
-	): { value: any; id: string }[] {
-		if (!_d || _d.length === 0 || !_d[0]) return [];
-		let max = _d[0].slice();
-		for (let i = 0; i < _d.length; i++) {
-			for (let j = 0; j < _d[i].length; j++) {
-				if (`${max[j].value}`.length < `${_d[i][j].value}`.length) {
-					max[j] = _d[i][j];
-				}
-			}
-		}
-
-		return max;
 	}
 
 	$: max = get_max(data);
@@ -639,7 +560,7 @@
 		data = data;
 
 		if (id) {
-			const [i, j] = get_current_indices(id);
+			const [i, j] = get_current_indices(id, data);
 			selected = [i, j];
 		}
 	}
@@ -651,19 +572,17 @@
 	let is_visible = false;
 
 	onMount(() => {
-		const observer = new IntersectionObserver((entries, observer) => {
+		const observer = new IntersectionObserver((entries) => {
 			entries.forEach((entry) => {
 				if (entry.isIntersecting && !is_visible) {
 					set_cell_widths();
 					data = data;
 				}
-
 				is_visible = entry.isIntersecting;
 			});
 		});
 
 		observer.observe(parent);
-
 		document.addEventListener("click", handle_click_outside);
 		window.addEventListener("resize", handle_resize);
 		document.addEventListener("fullscreenchange", handle_fullscreen_change);
@@ -693,12 +612,21 @@
 		header_edit = false;
 
 		selected_cells = handle_selection([row, col], selected_cells, event);
-		editing = handle_editing_state(
-			[row, col],
-			editing,
-			selected_cells,
-			editable
-		);
+
+		if (selected_cells.length === 1) {
+			editing = [row, col];
+			tick().then(() => {
+				const input_el = els[data[row][col].id].input;
+				if (input_el) {
+					input_el.focus();
+					input_el.selectionStart = input_el.selectionEnd =
+						input_el.value.length;
+				}
+			});
+		} else {
+			editing = false;
+		}
+
 		toggle_cell_button(row, col);
 
 		dispatch("select", {
@@ -707,13 +635,6 @@
 			row_value: data[row].map((d) => d.value)
 		});
 	}
-
-	let active_cell_menu: {
-		row: number;
-		col: number;
-		x: number;
-		y: number;
-	} | null = null;
 
 	function toggle_cell_menu(event: MouseEvent, row: number, col: number): void {
 		event.stopPropagation();
@@ -727,12 +648,7 @@
 			const cell = (event.target as HTMLElement).closest("td");
 			if (cell) {
 				const rect = cell.getBoundingClientRect();
-				active_cell_menu = {
-					row,
-					col,
-					x: rect.right,
-					y: rect.bottom
-				};
+				active_cell_menu = { row, col, x: rect.right, y: rect.bottom };
 			}
 		}
 	}
@@ -764,32 +680,20 @@
 	} | null = null;
 
 	function toggle_header_button(col: number): void {
-		if (active_button?.type === "header" && active_button.col === col) {
-			active_button = null;
-		} else {
-			active_button = { type: "header", col };
-		}
+		active_button =
+			active_button?.type === "header" && active_button.col === col
+				? null
+				: { type: "header", col };
 	}
 
 	function toggle_cell_button(row: number, col: number): void {
-		if (
+		active_button =
 			active_button?.type === "cell" &&
 			active_button.row === row &&
 			active_button.col === col
-		) {
-			active_button = null;
-		} else {
-			active_button = { type: "cell", row, col };
-		}
+				? null
+				: { type: "cell", row, col };
 	}
-
-	let active_header_menu: {
-		col: number;
-		x: number;
-		y: number;
-	} | null = null;
-
-	let is_fullscreen = false;
 
 	function toggle_fullscreen(): void {
 		if (!document.fullscreenElement) {
@@ -817,11 +721,7 @@
 			const header = (event.target as HTMLElement).closest("th");
 			if (header) {
 				const rect = header.getBoundingClientRect();
-				active_header_menu = {
-					col,
-					x: rect.right,
-					y: rect.bottom
-				};
+				active_header_menu = { col, x: rect.right, y: rect.bottom };
 			}
 		}
 	}
@@ -972,7 +872,18 @@
 			boundedheight={false}
 			disable_click={true}
 			{root}
-			on:load={(e) => blob_to_string(data_uri_to_blob(e.detail.data))}
+			on:load={({ detail }) =>
+				handle_file_upload(
+					detail.data,
+					col_count,
+					(head) => {
+						_headers = make_headers(head);
+						return _headers;
+					},
+					(vals) => {
+						values = vals;
+					}
+				)}
 			bind:dragging
 		>
 			<VirtualTable
@@ -1159,21 +1070,10 @@
 {/if}
 
 <style>
-	.button-wrap:hover svg {
-		color: var(--color-accent);
-	}
-
-	.button-wrap svg {
-		margin-right: var(--size-1);
-		margin-left: -5px;
-	}
-
-	.label p {
-		position: relative;
-		z-index: var(--layer-4);
-		margin-bottom: var(--size-2);
-		color: var(--block-label-text-color);
-		font-size: var(--block-label-text-size);
+	.table-container {
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-2);
 	}
 
 	.table-wrap {
@@ -1186,7 +1086,6 @@
 
 	.table-wrap:focus-within {
 		outline: none;
-		background-color: none;
 	}
 
 	.dragging {
@@ -1208,6 +1107,7 @@
 		line-height: var(--line-md);
 		font-family: var(--font-mono);
 		border-spacing: 0;
+		border-collapse: separate;
 	}
 
 	div:not(.no-wrap) td {
@@ -1296,7 +1196,6 @@
 		cursor: pointer;
 		padding: var(--size-2);
 		color: var(--body-text-color-subdued);
-		line-height: var(--text-sm);
 	}
 
 	.sort-button:hover {
@@ -1330,12 +1229,9 @@
 		overflow: hidden;
 		flex-grow: 1;
 		min-width: 0;
-	}
-
-	.controls-wrap {
-		display: flex;
-		justify-content: flex-end;
-		padding-top: var(--size-2);
+		white-space: normal;
+		overflow-wrap: break-word;
+		word-break: break-word;
 	}
 
 	.row_odd {
@@ -1344,10 +1240,6 @@
 
 	.row_odd.focus {
 		background: var(--background-fill-primary);
-	}
-
-	table {
-		border-collapse: separate;
 	}
 
 	.cell-menu-button {
@@ -1374,16 +1266,23 @@
 		justify-content: center;
 	}
 
-	th .header-content {
-		white-space: normal;
-		overflow-wrap: break-word;
-		word-break: break-word;
+	.header-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: var(--size-2);
+		height: var(--size-6);
+		min-height: var(--size-6);
 	}
 
-	.table-container {
-		display: flex;
-		flex-direction: column;
-		gap: var(--size-2);
+	.label {
+		flex: 1;
+	}
+
+	.label p {
+		margin: 0;
+		color: var(--block-label-text-color);
+		font-size: var(--block-label-text-size);
 	}
 
 	.row-number,
@@ -1414,29 +1313,6 @@
 	:global(tbody > tr:nth-child(odd)) .row-number {
 		background: var(--table-odd-background-fill);
 	}
-
-	.header-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: var(--size-2);
-		height: var(--size-6);
-		min-height: var(--size-6);
-	}
-
-	.label {
-		flex: 1;
-	}
-
-	.label p {
-		position: relative;
-		z-index: var(--layer-4);
-		margin: 0;
-		color: var(--block-label-text-color);
-		font-size: var(--block-label-text-size);
-	}
-
-	/* group cell selection border handling */
 
 	.cell-selected {
 		--ring-color: var(--color-accent);
