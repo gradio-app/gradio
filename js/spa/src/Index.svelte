@@ -295,6 +295,9 @@
 			with_null_state: true,
 			events: ["data", "log", "status", "render"]
 		});
+		window.addEventListener("beforeunload", () => {
+			app.close();
+		});
 
 		if (!app.config) {
 			throw new Error("Could not resolve app config");
