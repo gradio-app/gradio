@@ -1,7 +1,7 @@
 import gradio as gr
 
 with gr.Blocks() as demo:
-    gr.Markdown("The `round()` function in Python takes two parameters"*1000)
+    gr.Markdown("The `round()` function in Python takes two parameters")
     gr.ParamViewer(
         {
            "number": {
@@ -12,35 +12,9 @@ with gr.Blocks() as demo:
             "ndigits": {
              "type": "int",
              "description": "The number of digits to round to",
-                "default": "0",
-            },
-            "ndigits2": {
-             "type": "int",
-             "description": "The number of digits to round to",
-                "default": "0",
-            },
-            "ndigits3": {
-             "type": "int",
-             "description": "The number of digits to round to",
-                "default": "0",
-            },
-            "ndigits4": {
-             "type": "int",
-             "description": "The number of digits to round to",
-                "default": "0",
-            },
-            "ndigits5": {
-             "type": "int",
-             "description": "The number of digits to round to",
-                "default": "0",
-            },
-            "ndigits6": {
-             "type": "int",
-             "description": "The number of digits to round to",
-                "default": "0",
-            },
-        },
-        anchor_links=True,
+             "default": "0"
+            }
+         }
     )
 
 if __name__ == "__main__":
