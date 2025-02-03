@@ -10,6 +10,7 @@
 </script>
 
 <svelte:head>
+	<script src="{WHEEL.gradio_lite_url}/dist/lite.js" type="module"></script>
 	<link rel="stylesheet" href="{WHEEL.gradio_lite_url}/dist/lite.css" />
 </svelte:head>
 
