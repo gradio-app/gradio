@@ -256,3 +256,23 @@
 		await userEvent.click(fullscreen_button);
 	}}
 />
+
+<Story
+	name="Dataframe with multiline headers"
+	args={{
+		values: [
+			[95, 92, 88],
+			[89, 90, 85],
+			[92, 88, 91]
+		],
+		headers: [
+			"Dataset A\nAccuracy",
+			"Dataset B\nPrecision",
+			"Dataset C\nRecall"
+		],
+		label: "Model Metrics",
+		col_count: [3, "dynamic"],
+		row_count: [3, "dynamic"],
+		editable: false
+	}}
+/>
