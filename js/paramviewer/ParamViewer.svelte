@@ -5,6 +5,8 @@
 	import "prismjs/components/prism-python";
 	import "prismjs/components/prism-typescript";
 
+	import { onMount } from 'svelte';
+
 	interface Param {
 		type: string | null;
 		description: string;
@@ -16,12 +18,17 @@
 	export let lang: "python" | "typescript" = "python";
 	export let linkify: string[] = [];
 	export let header: string | null;
+	export let anchor_links = false;
 
 	let component_root: HTMLElement;
 	let _docs: Param[];
 	let all_open = false;
 
 	$: _docs = highlight_code(docs, lang);
+
+	function create_slug(name: string): string {
+		return "param-" + name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+	}
 
 	function highlight(code: string, lang: "python" | "typescript"): string {
 		let highlighted = Prism.highlight(code, Prism.languages[lang], lang);
@@ -81,6 +88,28 @@
 		);
 		return markdown_links;
 	}
+
+	onMount(() => {
+		if (window.location.hash) {
+			open_parameter_from_hash(window.location.hash);
+		}
+
+		window.addEventListener('hashchange', (e) => {
+			open_parameter_from_hash(window.location.hash);
+		});
+	});
+
+	function open_parameter_from_hash(hash: string): void {
+		if (!component_root) return;
+		
+		const id = hash.slice(1);
+		const detail = component_root.querySelector(`#${id}`);
+		
+		if (detail instanceof HTMLDetailsElement) {
+			detail.open = true;
+			detail.scrollIntoView({ behavior: 'smooth' });
+		}
+	}
 </script>
 
 <div class="wrap" bind:this={component_root}>
@@ -98,8 +127,13 @@
 	{/if}
 	{#if _docs}
 		{#each _docs as { type, description, default: _default, name } (name)}
-			<details class="param md">
+			<details class="param md" id={anchor_links ? create_slug(name || "") : undefined}>
 				<summary class="type">
+					{#if anchor_links}
+						<a href="#{create_slug(name || "")}" class="param-link">
+							<span class="link-icon">🔗</span>
+						</a>
+					{/if}
 					<pre class="language-{lang}"><code
 							>{name}{#if type}: {@html type}{/if}</code
 						></pre>
@@ -213,6 +247,7 @@
 	.type {
 		position: relative;
 		padding: 0.7rem 1rem;
+		padding-left: 2rem;
 		background: var(--table-odd-background-fill);
 		border-bottom: 0px solid var(--table-border-color);
 		list-style: none;
@@ -272,5 +307,28 @@
 
 	details > summary::-webkit-details-marker {
 		display: none;
+	}
+
+	.param-link {
+		opacity: 0;
+		position: absolute;
+		left: 8px;
+		top: 50%;
+		transform: translateY(-50%);
+		transition: opacity 0.2s;
+		color: var(--body-text-color);
+		text-decoration: none;
+	}
+
+	.link-icon {
+		font-size: 14px;
+	}
+
+	.type:hover .param-link {
+		opacity: 0.7;
+	}
+
+	.param-link:hover {
+		opacity: 1 !important;
 	}
 </style>

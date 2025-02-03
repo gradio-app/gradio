@@ -42,6 +42,7 @@ class ParamViewer(Component):
         render: bool = True,
         key: int | str | None = None,
         header: str | None = "Parameters",
+        anchor_links: bool = False,
     ):
         """
         Parameters:
@@ -53,11 +54,13 @@ class ParamViewer(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             header: The header to display above the table of parameters, also includes a toggle button that closes/opens all details at once. If None, no header will be displayed.
+            anchor_links: If True, creates anchor links for each parameter that can be used to link directly to that parameter.
         """
         self.value = value or {}
         self.language = language
         self.linkify = linkify
         self.header = header
+        self.anchor_links = anchor_links
         super().__init__(
             every=every,
             inputs=inputs,
