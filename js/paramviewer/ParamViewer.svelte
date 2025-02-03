@@ -5,7 +5,7 @@
 	import "prismjs/components/prism-python";
 	import "prismjs/components/prism-typescript";
 
-	import { onMount } from 'svelte';
+	import { onMount } from "svelte";
 
 	interface Param {
 		type: string | null;
@@ -94,20 +94,20 @@
 			open_parameter_from_hash(window.location.hash);
 		}
 
-		window.addEventListener('hashchange', (e) => {
+		window.addEventListener("hashchange", (e) => {
 			open_parameter_from_hash(window.location.hash);
 		});
 	});
 
 	function open_parameter_from_hash(hash: string): void {
 		if (!component_root) return;
-		
+
 		const id = hash.slice(1);
 		const detail = component_root.querySelector(`#${id}`);
-		
+
 		if (detail instanceof HTMLDetailsElement) {
 			detail.open = true;
-			detail.scrollIntoView({ behavior: 'smooth' });
+			detail.scrollIntoView({ behavior: "smooth" });
 		}
 	}
 </script>
@@ -127,10 +127,13 @@
 	{/if}
 	{#if _docs}
 		{#each _docs as { type, description, default: _default, name } (name)}
-			<details class="param md" id={anchor_links ? create_slug(name || "") : undefined}>
+			<details
+				class="param md"
+				id={anchor_links ? create_slug(name || "") : undefined}
+			>
 				<summary class="type">
 					{#if anchor_links}
-						<a href="#{create_slug(name || "")}" class="param-link">
+						<a href="#{create_slug(name || '')}" class="param-link">
 							<span class="link-icon">🔗</span>
 						</a>
 					{/if}

@@ -62,4 +62,4 @@
 	let new_parameters = convert_params(parameters);
 </script>
 
-<ParamViewer value={new_parameters} {header} />
+<ParamViewer value={new_parameters} {header} anchor_links={true} />
