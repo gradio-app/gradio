@@ -555,7 +555,7 @@ class App(FastAPI):
                 ]
                 config["dependencies"] = [
                     dependency
-                    for dependency in config["dependencies"]
+                    for dependency in config.get("dependencies", [])
                     if dependency["id"] in config["page"][page]["dependencies"]
                 ]
                 config["layout"] = config["page"][page]["layout"]
