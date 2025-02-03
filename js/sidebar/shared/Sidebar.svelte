@@ -9,6 +9,7 @@
 	export let width: number | string;
 
 	// Using a temporary variable to animate the sidebar opening at the start
+	let mounted = false;
 	let _open = false;
 	let sidebar_div: HTMLElement;
 	let overlap_amount = 0;
@@ -37,10 +38,11 @@
 			);
 		};
 		update_parent_overlap();
-		_open = open;
+		mounted = true;
 		return () => window.removeEventListener("resize", check_overlap);
 	});
-	$: _open = open;
+
+	$: if (mounted) _open = open;
 </script>
 
 <div
