@@ -107,6 +107,7 @@
 	role="button"
 	class:edit
 	class:expanded={is_expanded}
+	class:multiline={header}
 	on:focus|preventDefault
 	style={styling}
 	class="table-cell-text"
@@ -167,6 +168,11 @@
 		min-height: 100%;
 		white-space: pre-wrap;
 		word-break: break-word;
+		white-space: normal;
+	}
+
+	.multiline {
+		white-space: pre-line;
 	}
 
 	.header {

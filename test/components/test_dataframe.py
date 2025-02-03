@@ -357,3 +357,42 @@ class TestDataframe:
                 ],
             },
         }
+
+    def test_is_empty(self):
+        """Test is_empty method with various data types"""
+        df = gr.Dataframe()
+        assert df.is_empty([])
+        assert df.is_empty([[]])
+        assert df.is_empty(np.array([]))
+        assert df.is_empty(np.zeros((2, 0)))
+        assert df.is_empty(None)
+        assert df.is_empty({})
+        assert df.is_empty({"data": [], "headers": ["a", "b"]})
+        assert not df.is_empty({"data": [1, 2]})
+        assert not df.is_empty([[1, 2], [3, 4]])
+        assert not df.is_empty(pd.DataFrame({"a": [1, 2]}))
+        assert not df.is_empty(pd.DataFrame({"a": [1, 2]}).style)
+
+    def test_get_headers(self):
+        """Test get_headers method with various data types"""
+        df = gr.Dataframe()
+        test_df = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
+        assert df.get_headers(test_df) == ["col1", "col2"]
+        assert df.get_headers(test_df.style) == ["col1", "col2"]
+        assert df.get_headers({"headers": ["a", "b"]}) == ["a", "b"]
+        assert df.get_headers(np.array([[1, 2], [3, 4]])) == []
+        assert df.get_headers(None) == []
+
+    def test_get_cell_data(self):
+        """Test get_cell_data method with various data types"""
+        df = gr.Dataframe()
+        test_data = [[1, 2], [3, 4]]
+        test_df = pd.DataFrame({"col1": [1, 3], "col2": [2, 4]})
+        assert df.get_cell_data(test_data) == [[1, 2], [3, 4]]
+        assert df.get_cell_data(test_df) == [[1, 2], [3, 4]]
+        assert df.get_cell_data({"data": test_data}) == [[1, 2], [3, 4]]
+        assert df.get_cell_data(np.array([1, 2, 3])) == [[1], [2], [3]]
+
+        styled_df = test_df.style
+        styled_df.hide(axis=1, subset=["col2"])
+        assert df.get_cell_data(styled_df) == [[1], [3]]

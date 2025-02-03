@@ -579,7 +579,10 @@ class Numpy(components.Dataframe):
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
         col_count: int | tuple[int, str] | None = None,
-        datatype: str | list[str] = "str",
+        datatype: Literal["str", "number", "bool", "date", "markdown", "html"]
+        | Sequence[
+            Literal["str", "number", "bool", "date", "markdown", "html"]
+        ] = "str",
         type: Literal["numpy"] = "numpy",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
@@ -651,7 +654,10 @@ class Matrix(components.Dataframe):
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
         col_count: int | tuple[int, str] | None = None,
-        datatype: str | list[str] = "str",
+        datatype: Literal["str", "number", "bool", "date", "markdown", "html"]
+        | Sequence[
+            Literal["str", "number", "bool", "date", "markdown", "html"]
+        ] = "str",
         type: Literal["array"] = "array",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
@@ -723,7 +729,10 @@ class List(components.Dataframe):
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
         col_count: Literal[1] = 1,
-        datatype: str | list[str] = "str",
+        datatype: Literal["str", "number", "bool", "date", "markdown", "html"]
+        | Sequence[
+            Literal["str", "number", "bool", "date", "markdown", "html"]
+        ] = "str",
         type: Literal["array"] = "array",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
