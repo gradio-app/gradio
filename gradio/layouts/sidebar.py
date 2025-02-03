@@ -16,6 +16,7 @@ class Sidebar(BlockContext, metaclass=ComponentMeta):
             with gr.Sidebar():
                 gr.Textbox()
                 gr.Button()
+    Guides: controlling-layout
     """
 
     EVENTS = [Events.expand, Events.collapse]
