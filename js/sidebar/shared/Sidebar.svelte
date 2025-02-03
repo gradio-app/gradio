@@ -9,6 +9,7 @@
 	export let width: number | string;
 
 	// Using a temporary variable to animate the sidebar opening at the start
+	let mounted = false;
 	let _open = false;
 	let sidebar_div: HTMLElement;
 	let overlap_amount = 0;
@@ -17,30 +18,33 @@
 
 	// Check if the sidebar overlaps with the main content
 	function check_overlap(): void {
-		if (!sidebar_div?.parentElement) return;
-		const parent_rect = sidebar_div.parentElement.getBoundingClientRect();
+		if (!sidebar_div.closest(".wrap")) return;
+		const parent_rect = sidebar_div.closest(".wrap")?.getBoundingClientRect();
+		if (!parent_rect) return;
 		const sidebar_rect = sidebar_div.getBoundingClientRect();
 		const available_space = parent_rect.left;
 		overlap_amount = Math.max(0, sidebar_rect.width - available_space + 30);
 	}
 
 	onMount(() => {
-		sidebar_div.parentElement?.classList.add("sidebar-parent");
+		sidebar_div.closest(".wrap")?.classList.add("sidebar-parent");
 		check_overlap();
 		window.addEventListener("resize", check_overlap);
 
 		const update_parent_overlap = (): void => {
-			if (sidebar_div?.parentElement) {
-				sidebar_div.parentElement.style.setProperty(
-					"--overlap-amount",
-					`${overlap_amount}px`
-				);
-			}
+			document.documentElement.style.setProperty(
+				"--overlap-amount",
+				`${overlap_amount}px`
+			);
 		};
 		update_parent_overlap();
-		_open = open;
+		mounted = true;
 		return () => window.removeEventListener("resize", check_overlap);
 	});
+
+	// We need to wait for the component to be mounted before we can set the open state
+	// so that it animates correctly.
+	$: if (mounted) _open = open;
 </script>
 
 <div
@@ -140,6 +144,7 @@
 
 	.sidebar-content {
 		padding: var(--size-5);
+		padding-right: var(--size-8);
 		overflow-y: auto;
 	}
 </style>
