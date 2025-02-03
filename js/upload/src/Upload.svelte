@@ -2,7 +2,6 @@
 	import { createEventDispatcher, tick } from "svelte";
 	import type { FileData } from "@gradio/client";
 	import { prepare_files, type Client } from "@gradio/client";
-	import type { I18nFormatter } from "@gradio/utils";
 	import UploadProgress from "./UploadProgress.svelte";
 
 	export let filetype: string | string[] | null = null;
@@ -24,7 +23,6 @@
 	export let icon_upload = false;
 	export let height: number | string | undefined = undefined;
 	export let aria_label: string | undefined = undefined;
-	export let i18n: I18nFormatter;
 
 	let upload_id: string;
 	let file_data: FileData[];
@@ -279,7 +277,7 @@
 				: "100%"}
 		tabindex={hidden ? -1 : 0}
 		on:click={paste_clipboard}
-		aria-label={i18n(aria_label || "upload.paste_from_clipboard")}
+		aria-label={aria_label || "Paste from clipboard"}
 	>
 		<slot />
 	</button>
@@ -314,12 +312,12 @@
 		on:drop={loadFilesFromDrop}
 		on:dragenter={updateDragging}
 		on:dragleave={updateDragging}
-		aria-label={i18n(aria_label || "upload.click_to_upload")}
+		aria-label={aria_label || "Click to upload or drop files"}
 		aria-dropeffect="copy"
 	>
 		<slot />
 		<input
-			aria-label={i18n("upload.file_input")}
+			aria-label="File upload"
 			data-testid="file-upload"
 			type="file"
 			bind:this={hidden_upload}

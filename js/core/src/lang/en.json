@@ -121,12 +121,6 @@
 	"slider": {
 		"slider": "Slider"
 	},
-	"upload": {
-		"click_or_drop": "Click to select files or drag and drop files here",
-		"click_to_upload": "Click to upload or drop files",
-		"paste_from_clipboard": "Paste from clipboard",
-		"file_input": "File upload"
-	},
 	"upload_text": {
 		"click_to_upload": "Click to Upload",
 		"drop_audio": "Drop Audio Here",
