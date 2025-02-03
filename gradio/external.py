@@ -317,7 +317,7 @@ def from_model(
     elif p == "zero-shot-classification":
         inputs = [
             components.Textbox(label="Input"),
-            components.Textbox(label="Possible class names (" "comma-separated)"),
+            components.Textbox(label="Possible class names (comma-separated)"),
             components.Checkbox(label="Allow multiple true classes"),
         ]
         outputs = components.Label(label="Classification")
@@ -763,7 +763,7 @@ def load_chat(
     start_message = (
         [{"role": "system", "content": system_message}] if system_message else []
     )
-    file_types = [file_types] if isinstance(file_types, str) else file_types
+    file_types = utils.none_or_singleton_to_list(file_types)
 
     def open_api(message: str | MultimodalValue, history: list | None) -> str | None:
         history = history or start_message
@@ -773,7 +773,7 @@ def load_chat(
         return (
             client.chat.completions.create(
                 model=model,
-                messages=conversation,
+                messages=conversation,  # type: ignore
             )
             .choices[0]
             .message.content
@@ -788,7 +788,7 @@ def load_chat(
         conversation = format_conversation(history, message)
         stream = client.chat.completions.create(
             model=model,
-            messages=conversation,
+            messages=conversation,  # type: ignore
             stream=True,
         )
         response = ""

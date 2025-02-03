@@ -2819,8 +2819,7 @@ Received inputs:
                 )
             else:
                 print(
-                    "The WandB integration requires you to "
-                    "`launch(share=True)` first."
+                    "The WandB integration requires you to `launch(share=True)` first."
                 )
         if mlflow is not None:
             analytics_integration = "MLFlow"
