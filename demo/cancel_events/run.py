@@ -27,6 +27,7 @@ with gr.Blocks() as demo:
             stop = gr.Button(value="Stop Iterating")
         with gr.Column():
             textbox = gr.Textbox(label="Prompt")
+            loading_box = gr.Textbox(label="Loading indicator for expensive calculation")
             prediction = gr.Number(label="Expensive Calculation")
             run_pred = gr.Button(value="Run Expensive Calculation")
         with gr.Column():
@@ -50,7 +51,7 @@ with gr.Blocks() as demo:
     click_event = run.click(fake_diffusion, n, output)
     stop.click(fn=None, inputs=None, outputs=None, cancels=[click_event])
     pred_event = run_pred.click(
-        fn=long_prediction, inputs=[textbox], outputs=prediction
+        fn=long_prediction, inputs=[textbox], outputs=prediction, show_progress_on=loading_box
     )
 
     cancel_on_change.change(None, None, None, cancels=[click_event, pred_event])

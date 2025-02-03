@@ -505,6 +505,7 @@ class BlockFunction:
         api_name: str | Literal[False] = False,
         js: str | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
+        show_progress_on: Component | Sequence[Component] | None = None,
         cancels: list[int] | None = None,
         collects_event_data: bool = False,
         trigger_after: int | None = None,
@@ -541,6 +542,7 @@ class BlockFunction:
         self.api_name = api_name
         self.js = js
         self.show_progress = show_progress
+        self.show_progress_on = show_progress_on
         self.cancels = cancels or []
         self.collects_event_data = collects_event_data
         self.trigger_after = trigger_after
@@ -700,6 +702,7 @@ class BlocksConfig:
         postprocess: bool = True,
         scroll_to_output: bool = False,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
+        show_progress_on: Component | Sequence[Component] | None = None,
         api_name: str | None | Literal[False] = None,
         js: str | None = None,
         no_target: bool = False,
@@ -733,6 +736,7 @@ class BlocksConfig:
             postprocess: whether to run the postprocess methods of the output components after running the function
             scroll_to_output: whether to scroll to output of dependency on trigger
             show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
+            show_progress_on: Component or list of components to show the progress animation on. If None, will show the progress animation on all of the output components.
             api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for the Blocks.load() event and .then() events
