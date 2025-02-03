@@ -1,5 +1,21 @@
 # website
 
+## 0.47.3
+
+### Dependency updates
+
+- @gradio/code@0.10.15
+
+## 0.47.2
+
+### Features
+
+- [#10443](https://github.com/gradio-app/gradio/pull/10443) [`f40747c`](https://github.com/gradio-app/gradio/commit/f40747c9fd12d160ac9f7b3c5273be6be815efac) - Fix error with website build in chatbot.svx.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.10.14
+
 ## 0.47.1
 
 ### Fixes

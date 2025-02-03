@@ -256,9 +256,9 @@ with gr.Blocks(  # noqa: SIM117
                 for variable in flat_variables:
                     if variable.endswith("_dark"):
                         continue
-                    for style_type in variable_suggestions:
+                    for style_type, suggestions in variable_suggestions.items():
                         if style_type in variable:
-                            variable_suggestions[style_type].append("*" + variable)
+                            suggestions.append("*" + variable)
                             break
 
                 variable_suggestions["fill"], variable_suggestions["color"] = (

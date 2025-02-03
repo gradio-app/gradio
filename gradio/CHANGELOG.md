@@ -1,5 +1,28 @@
 # gradio
 
+## 5.14.0
+
+### Features
+
+- [#10461](https://github.com/gradio-app/gradio/pull/10461) [`ca7c47e`](https://github.com/gradio-app/gradio/commit/ca7c47e5e50a309cd637c4f928ab90af6355b01d) - Add copy button to dataframe toolbar.  Thanks @hannahblair!
+- [#10420](https://github.com/gradio-app/gradio/pull/10420) [`a69b8e8`](https://github.com/gradio-app/gradio/commit/a69b8e83ad7c89c627db2bdd5d25b0142731aaac) - Support column/row deletion in `gr.DataFrame`.  Thanks @abidlabs!
+- [#10470](https://github.com/gradio-app/gradio/pull/10470) [`3465fdb`](https://github.com/gradio-app/gradio/commit/3465fdb19087471598ca07c93bc4ff3e1b6b2abf) - Format backend with latest `ruff`.  Thanks @abidlabs!
+- [#10469](https://github.com/gradio-app/gradio/pull/10469) [`62d0669`](https://github.com/gradio-app/gradio/commit/62d06694ddafada677aff0d54d70ac3cf1448c91) - Request mic permissions only after the Record button is clicked in `gr.Audio()`.  Thanks @abidlabs!
+- [#10435](https://github.com/gradio-app/gradio/pull/10435) [`ef66fe5`](https://github.com/gradio-app/gradio/commit/ef66fe52b22448a5125a314581f2ec6c73c24145) - Sidebar Component.  Thanks @dawoodkhan82!
+- [#10460](https://github.com/gradio-app/gradio/pull/10460) [`324383f`](https://github.com/gradio-app/gradio/commit/324383fb814a955178a1f72ee1080a955ad593d0) - Fix typecheck error due to huggingface_hub update.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#10459](https://github.com/gradio-app/gradio/pull/10459) [`fa220a3`](https://github.com/gradio-app/gradio/commit/fa220a31a54d85f2851bd6717c81d1dbee77868e) - Patch plotly requirement to force to install v5 along with altair.  Thanks @whitphx!
+
+## 5.13.2
+
+### Features
+
+- [#10452](https://github.com/gradio-app/gradio/pull/10452) [`dd178f3`](https://github.com/gradio-app/gradio/commit/dd178f3dd5968df445b43f5e3b8cb86b11374913) - Tiny tweak to example dataframes.  Thanks @hannahblair!
+- [#10426](https://github.com/gradio-app/gradio/pull/10426) [`2167f58`](https://github.com/gradio-app/gradio/commit/2167f58fb8d64141d1b9d567af621c8b4d039e04) - Update Pyodide to 0.27.2.  Thanks @whitphx!
+- [#10448](https://github.com/gradio-app/gradio/pull/10448) [`337b522`](https://github.com/gradio-app/gradio/commit/337b5224a682fe18dc8d1c1e5bab2a3341ce01dc) - Small tweaks to `gr.ChatMessage` and spacing between chatbot messages.  Thanks @abidlabs!
+
 ## 5.13.1
 
 ### Features

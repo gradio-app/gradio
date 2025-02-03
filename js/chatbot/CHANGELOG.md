@@ -1,5 +1,29 @@
 # @gradio/chatbot
 
+## 0.22.3
+
+### Dependency updates
+
+- @gradio/upload@0.14.8
+- @gradio/image@0.20.4
+- @gradio/video@0.13.4
+- @gradio/wasm@0.17.2
+- @gradio/gallery@0.15.4
+
+## 0.22.2
+
+### Features
+
+- [#10448](https://github.com/gradio-app/gradio/pull/10448) [`337b522`](https://github.com/gradio-app/gradio/commit/337b5224a682fe18dc8d1c1e5bab2a3341ce01dc) - Small tweaks to `gr.ChatMessage` and spacing between chatbot messages.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/upload@0.14.7
+- @gradio/image@0.20.3
+- @gradio/video@0.13.3
+- @gradio/wasm@0.17.1
+- @gradio/gallery@0.15.3
+
 ## 0.22.1
 
 ### Fixes

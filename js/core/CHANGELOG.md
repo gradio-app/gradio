@@ -1,5 +1,36 @@
 # @gradio/core
 
+## 0.8.0
+
+### Features
+
+- [#10420](https://github.com/gradio-app/gradio/pull/10420) [`a69b8e8`](https://github.com/gradio-app/gradio/commit/a69b8e83ad7c89c627db2bdd5d25b0142731aaac) - Support column/row deletion in `gr.DataFrame`.  Thanks @abidlabs!
+- [#10435](https://github.com/gradio-app/gradio/pull/10435) [`ef66fe5`](https://github.com/gradio-app/gradio/commit/ef66fe52b22448a5125a314581f2ec6c73c24145) - Sidebar Component.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/upload@0.14.8
+- @gradio/button@0.4.4
+- @gradio/code@0.10.15
+- @gradio/file@0.12.4
+- @gradio/image@0.20.4
+- @gradio/video@0.13.4
+- @gradio/wasm@0.17.2
+- @gradio/gallery@0.15.4
+
+## 0.7.0
+
+### Dependency updates
+
+- @gradio/upload@0.14.7
+- @gradio/button@0.4.3
+- @gradio/code@0.10.14
+- @gradio/file@0.12.3
+- @gradio/image@0.20.3
+- @gradio/video@0.13.3
+- @gradio/wasm@0.17.1
+- @gradio/gallery@0.15.3
+
 ## 0.7.0
 
 ### Features

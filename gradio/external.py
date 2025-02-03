@@ -176,6 +176,8 @@ def from_model(
     model_name: str, hf_token: str | Literal[False] | None, alias: str | None, **kwargs
 ) -> Blocks:
     headers = {"X-Wait-For-Model": "true"}
+    if hf_token is False:
+        hf_token = None
     client = huggingface_hub.InferenceClient(
         model=model_name, headers=headers, token=hf_token
     )
@@ -433,7 +435,7 @@ def from_model(
             data = preprocess(*data)
         try:
             data = fn(*data)  # type: ignore
-        except huggingface_hub.utils.HfHubHTTPError as e:
+        except huggingface_hub.utils.HfHubHTTPError as e:  # type: ignore
             if "429" in str(e):
                 raise TooManyRequestsError() from e
         if postprocess is not None:

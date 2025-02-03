@@ -1,5 +1,17 @@
 # @gradio/wasm
 
+## 0.17.2
+
+### Fixes
+
+- [#10459](https://github.com/gradio-app/gradio/pull/10459) [`fa220a3`](https://github.com/gradio-app/gradio/commit/fa220a31a54d85f2851bd6717c81d1dbee77868e) - Patch plotly requirement to force to install v5 along with altair.  Thanks @whitphx!
+
+## 0.17.1
+
+### Features
+
+- [#10426](https://github.com/gradio-app/gradio/pull/10426) [`2167f58`](https://github.com/gradio-app/gradio/commit/2167f58fb8d64141d1b9d567af621c8b4d039e04) - Update Pyodide to 0.27.2.  Thanks @whitphx!
+
 ## 0.17.0
 
 ### Features
