@@ -256,3 +256,22 @@
 		await userEvent.click(fullscreen_button);
 	}}
 />
+
+<Story
+	name="Dataframe with row numbers"
+	args={{
+		values: [
+			[95, 92, 88],
+			[89, 90, 85],
+			[92, 88, 91],
+			[87, 85, 89],
+			[91, 93, 90]
+		],
+		headers: ["Model A", "Model B", "Model C"],
+		label: "Model Performance",
+		col_count: [3, "dynamic"],
+		row_count: [5, "dynamic"],
+		show_row_numbers: true,
+		editable: false
+	}}
+/>
