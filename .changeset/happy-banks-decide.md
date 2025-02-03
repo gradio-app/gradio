@@ -2,4 +2,4 @@
 "website": minor
 ---
 
-feat:Fix doc embedded lite app
+feat:Fix the embedded Lite apps in the docs
