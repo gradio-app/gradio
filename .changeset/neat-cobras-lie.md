@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Allow showing progress updates on specific components
+feat:Allow showing progress updates on arbitrary components
