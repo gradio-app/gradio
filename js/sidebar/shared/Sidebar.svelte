@@ -42,6 +42,8 @@
 		return () => window.removeEventListener("resize", check_overlap);
 	});
 
+	// We need to wait for the component to be mounted before we can set the open state
+	// so that it animates correctly.
 	$: if (mounted) _open = open;
 </script>
 
