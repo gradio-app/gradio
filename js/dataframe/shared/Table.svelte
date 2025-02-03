@@ -57,6 +57,7 @@
 	export let show_fullscreen_button = false;
 	export let show_copy_button = false;
 	export let value_is_output = false;
+	export let max_chars: number | undefined = undefined;
 
 	let selected_cells: CellCoordinate[] = [];
 	$: selected_cells = [...selected_cells];
@@ -912,6 +913,7 @@
 							<div class="cell-wrap">
 								<div class="header-content">
 									<EditableCell
+										{max_chars}
 										bind:value={_headers[i].value}
 										bind:el={els[id].input}
 										{latex_delimiters}
@@ -1012,6 +1014,7 @@
 									}}
 									{clear_on_focus}
 									{root}
+									{max_chars}
 								/>
 								{#if editable && should_show_cell_menu([index, j], selected_cells, editable)}
 									<button
@@ -1216,11 +1219,11 @@
 
 	.cell-wrap {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		outline: none;
-		height: var(--size-full);
 		min-height: var(--size-9);
-		overflow: hidden;
+		position: relative;
+		height: auto;
 	}
 
 	.header-content {
@@ -1254,10 +1257,10 @@
 		padding: 0;
 		margin-right: var(--spacing-sm);
 		z-index: var(--layer-1);
-	}
-
-	.cell-menu-button:hover {
-		background-color: var(--color-bg-hover);
+		position: absolute;
+		right: var(--size-1);
+		top: 50%;
+		transform: translateY(-50%);
 	}
 
 	.cell-selected .cell-menu-button {

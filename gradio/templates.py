@@ -606,6 +606,7 @@ class Numpy(components.Dataframe):
         column_widths: list[str | int] | None = None,
         show_row_numbers: bool = False,
         show_fullscreen_button: bool = False,
+        max_chars: int | None = None,
         show_copy_button: bool = False,
     ):
         super().__init__(
@@ -634,6 +635,7 @@ class Numpy(components.Dataframe):
             min_width=min_width,
             show_row_numbers=show_row_numbers,
             show_fullscreen_button=show_fullscreen_button,
+            max_chars=max_chars,
             show_copy_button=show_copy_button,
         )
 
@@ -679,6 +681,7 @@ class Matrix(components.Dataframe):
         column_widths: list[str | int] | None = None,
         show_row_numbers: bool = False,
         show_fullscreen_button: bool = True,
+        max_chars: int | None = None,
         show_copy_button: bool = False,
     ):
         super().__init__(
@@ -707,6 +710,7 @@ class Matrix(components.Dataframe):
             min_width=min_width,
             show_row_numbers=show_row_numbers,
             show_fullscreen_button=show_fullscreen_button,
+            max_chars=max_chars,
             show_copy_button=show_copy_button,
         )
 
@@ -752,6 +756,7 @@ class List(components.Dataframe):
         column_widths: list[str | int] | None = None,
         show_row_numbers: bool = False,
         show_fullscreen_button: bool = True,
+        max_chars: int | None = None,
         show_copy_button: bool = False,
     ):
         super().__init__(
@@ -780,6 +785,7 @@ class List(components.Dataframe):
             min_width=min_width,
             show_row_numbers=show_row_numbers,
             show_fullscreen_button=show_fullscreen_button,
+            max_chars=max_chars,
             show_copy_button=show_copy_button,
         )
 
