@@ -286,12 +286,12 @@
 		const canvas = within(canvasElement);
 
 		const copy_button = canvas.getByRole("button", {
-			name: "copy table data"
+			name: "Copy table data"
 		});
 		await userEvent.click(copy_button);
 
 		const fullscreen_button = canvas.getByRole("button", {
-			name: "enter fullscreen"
+			name: "Enter fullscreen"
 		});
 		await userEvent.click(fullscreen_button);
 
