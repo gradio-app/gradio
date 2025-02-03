@@ -64,6 +64,8 @@
 		"new_row": "New row",
 		"add_row_above": "Add row above",
 		"add_row_below": "Add row below",
+		"delete_row": "Delete row",
+		"delete_column": "Delete column",
 		"add_column_left": "Add column to the left",
 		"add_column_right": "Add column to the right",
 		"drop_to_upload": "Drop CSV or TSV files here to import data into dataframe"

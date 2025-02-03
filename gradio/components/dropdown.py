@@ -185,7 +185,7 @@ class Dropdown(FormComponent):
         Parameters:
             payload: the value of the selected dropdown choice(s)
         Returns:
-            Passes the value of the selected dropdown choice as a `str | int | float` or its index as an `int` into the function, depending on `type`. Or, if `multiselect` is True, passes the values of the selected dropdown choices as a list of correspoding values/indices instead.
+            Passes the value of the selected dropdown choice as a `str | int | float` or its index as an `int` into the function, depending on `type`. Or, if `multiselect` is True, passes the values of the selected dropdown choices as a list of corresponding values/indices instead.
         """
         if payload is None:
             return None
