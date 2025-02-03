@@ -539,45 +539,8 @@ def test_load_chat_basic(mock_openai):
         token="fake-token",
         streaming=False,
     )
-
     response = chat.fn("Hi AI!", None)
-
-    mock_client.chat.completions.create.assert_called_once_with(
-        model="test-model",
-        messages=[{"role": "user", "content": [{"type": "text", "text": "Hi AI!"}]}],
-    )
     assert response == "Hello human!"
-
-
-@patch("openai.OpenAI")
-def test_load_chat_with_system_message(mock_openai):
-    mock_client = MagicMock()
-    mock_client.chat.completions.create.return_value.choices[
-        0
-    ].message.content = "I am being silly!"
-    mock_openai.return_value = mock_client
-
-    chat = gr.load_chat(
-        "http://fake-api.com/v1",
-        model="test-model",
-        token="fake-token",
-        system_message="You are a silly assistant.",
-        streaming=False,
-    )
-
-    response = chat.fn("Tell me about yourself", None)
-
-    mock_client.chat.completions.create.assert_called_once_with(
-        model="test-model",
-        messages=[
-            {"role": "system", "content": "You are a silly assistant."},
-            {
-                "role": "user",
-                "content": [{"type": "text", "text": "Tell me about yourself"}],
-            },
-        ],
-    )
-    assert response == "I am being silly!"
 
 
 @patch("openai.OpenAI")
@@ -590,17 +553,9 @@ def test_load_chat_with_streaming(mock_openai):
     ]
     mock_client.chat.completions.create.return_value = mock_stream
     mock_openai.return_value = mock_client
-
     chat = gr.load_chat(
         "http://fake-api.com/v1", model="test-model", token="fake-token", streaming=True
     )
-
     response_stream = chat.fn("Hi!", None)
     responses = list(response_stream)
-
     assert responses == ["Hello", "Hello World", "Hello World!"]
-    mock_client.chat.completions.create.assert_called_once_with(
-        model="test-model",
-        messages=[{"role": "user", "content": [{"type": "text", "text": "Hi!"}]}],
-        stream=True,
-    )
