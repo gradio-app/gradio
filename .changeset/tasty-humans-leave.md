@@ -5,4 +5,4 @@
 "gradio": minor
 ---
 
-feat:Improve dataframe's upload accessbility
+feat:Improve dataframe's upload accessibility
