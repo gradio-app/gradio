@@ -1,9 +1,0 @@
-# Multipage Apps
-
-Your Gradio app can support multiple pages with the `route()` method. 
-
-$code_multipage
-
-This allows you to define links to separate pages, each with a separate URL, which are all linked at the top of the app in a navbar. 
-
-Multipage apps currently do not support interactions between pages, e.g. an event listener on one page cannot output to a component on another page. Use `gr.Tabs()` for this type of functionality instead of routes.
