@@ -18,12 +18,19 @@ with demo.route("Up") as incrementer_demo:
         dec_btn = gr.Button("Decrease")
     inc_btn.click(fn=lambda x: x + 1, inputs=num, outputs=num, api_name="increment")
     dec_btn.click(fn=lambda x: x - 1, inputs=num, outputs=num, api_name="decrement")
+    for i in range(100):
+        gr.Textbox()
 
-identity_iface = gr.Interface(lambda x:x, "image", "image")
+def wait(x):
+    import time
+    time.sleep(2)
+    return x
+
+identity_iface = gr.Interface(wait, "image", "image")
 
 with demo.route("Interface") as incrementer_demo:
     identity_iface.render()
-    gr.ChatInterface(lambda *args: "Cool!")
+    gr.ChatInterface(lambda *args: "Hello")
 
 if __name__ == "__main__":
     demo.launch()

@@ -1160,16 +1160,16 @@ class TestShowAPI:
     @patch.object(wasm_utils, "IS_WASM", True)
     def test_show_api_false_when_is_wasm_true(self):
         interface = Interface(lambda x: x, "text", "text", examples=[["hannah"]])
-        assert (
-            interface.show_api is False
-        ), "show_api should be False when IS_WASM is True"
+        assert interface.show_api is False, (
+            "show_api should be False when IS_WASM is True"
+        )
 
     @patch.object(wasm_utils, "IS_WASM", False)
     def test_show_api_true_when_is_wasm_false(self):
         interface = Interface(lambda x: x, "text", "text", examples=[["hannah"]])
-        assert (
-            interface.show_api is True
-        ), "show_api should be True when IS_WASM is False"
+        assert interface.show_api is True, (
+            "show_api should be True when IS_WASM is False"
+        )
 
 
 def test_component_server_endpoints(connect):

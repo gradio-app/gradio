@@ -516,9 +516,7 @@ class App(FastAPI):
                 )
             )
 
-        for pageset in blocks.pages:
-            page = pageset[0]
-
+        def attach_page(page):
             @app.get(f"/{page}", response_class=HTMLResponse)
             @app.get(f"/{page}/", response_class=HTMLResponse)
             def page_route(
@@ -526,6 +524,11 @@ class App(FastAPI):
                 user: str = Depends(get_current_user),
             ):
                 return main(request, user, page)
+
+        for pageset in blocks.pages:
+            page = pageset[0]
+            if page != "":
+                attach_page(page)
 
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
@@ -545,8 +548,16 @@ class App(FastAPI):
                 config = utils.safe_deepcopy(blocks.config)
                 config = route_utils.update_root_in_config(config, root)
                 config["username"] = user
-                config["components"] = config["page"][page]["components"]
-                config["dependencies"] = config["page"][page]["dependencies"]
+                config["components"] = [
+                    component
+                    for component in config["components"]
+                    if component["id"] in config["page"][page]["components"]
+                ]
+                config["dependencies"] = [
+                    dependency
+                    for dependency in config["dependencies"]
+                    if dependency["id"] in config["page"][page]["dependencies"]
+                ]
                 config["layout"] = config["page"][page]["layout"]
                 config["current_page"] = page
             elif app.auth_dependency:

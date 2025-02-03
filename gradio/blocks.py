@@ -964,14 +964,14 @@ class BlocksConfig:
                     block_config["api_info_as_output"] = block.api_info()  # type: ignore
                 block_config["example_inputs"] = block.example_inputs()  # type: ignore
             config["components"].append(block_config)
-            config["page"][block.page]["components"].append(block_config)
+            config["page"][block.page]["components"].append(block._id)
 
         dependencies = []
         for fn in self.fns.values():
             if renderable is None or fn.rendered_in == renderable:
                 dependency_config = fn.get_config()
                 dependencies.append(dependency_config)
-                config["page"][fn.page]["dependencies"].append(dependency_config)
+                config["page"][fn.page]["dependencies"].append(dependency_config["id"])
 
         config["dependencies"] = dependencies
         return config

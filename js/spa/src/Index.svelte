@@ -97,6 +97,8 @@
 	export let info: boolean;
 	export let eager: boolean;
 	let stream: EventSource;
+	let pages: [string, string][] = [];
+	let current_page: string;
 
 	// These utilities are exported to be injectable for the Wasm version.
 	export let mount_css: typeof default_mount_css = default_mount_css;
@@ -315,6 +317,9 @@
 
 		dispatch("loaded");
 
+		pages = config.pages;
+		current_page = config.current_page;
+
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(api_url);
@@ -449,6 +454,8 @@
 	{space}
 	loaded={loader_status === "complete"}
 	fill_width={config?.fill_width || false}
+	{pages}
+	{current_page}
 	bind:wrapper
 >
 	{#if (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}

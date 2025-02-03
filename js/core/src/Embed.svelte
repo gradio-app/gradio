@@ -31,8 +31,10 @@
 				{#each pages as [route, label], i}
 					<a
 						href={route.length ? route : "/"}
-						class:active={route === current_page}>{label}</a
-					>
+						class:active={route === current_page}
+						data-sveltekit-reload
+						>{label}
+					</a>
 				{/each}
 			</nav>
 		</div>

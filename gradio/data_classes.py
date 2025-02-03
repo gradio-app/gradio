@@ -356,8 +356,8 @@ class Layout(TypedDict):
 
 
 class Page(TypedDict):
-    components: list[dict[str, Any]]
-    dependencies: list[dict[str, Any]]
+    components: list[int]
+    dependencies: list[int]
     layout: Layout
 
 

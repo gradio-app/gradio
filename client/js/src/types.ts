@@ -180,11 +180,11 @@ export interface Config {
 	stylesheets: string[];
 	path: string;
 	current_page: string;
-	page?: Record<
+	page: Record<
 		string,
 		{
-			components: ComponentMeta[];
-			dependencies: Dependency[];
+			components: number[];
+			dependencies: number[];
 			layout: any;
 		}
 	>;
