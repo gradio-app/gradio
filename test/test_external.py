@@ -523,3 +523,39 @@ def test_load_callable():
     )
 
     assert isinstance(result, gr.Blocks)
+
+
+@patch("openai.OpenAI")
+def test_load_chat_basic(mock_openai):
+    mock_client = MagicMock()
+    mock_client.chat.completions.create.return_value.choices[
+        0
+    ].message.content = "Hello human!"
+    mock_openai.return_value = mock_client
+
+    chat = gr.load_chat(
+        "http://fake-api.com/v1",
+        model="test-model",
+        token="fake-token",
+        streaming=False,
+    )
+    response = chat.fn("Hi AI!", None)
+    assert response == "Hello human!"
+
+
+@patch("openai.OpenAI")
+def test_load_chat_with_streaming(mock_openai):
+    mock_client = MagicMock()
+    mock_stream = [
+        MagicMock(choices=[MagicMock(delta=MagicMock(content="Hello"))]),
+        MagicMock(choices=[MagicMock(delta=MagicMock(content=" World"))]),
+        MagicMock(choices=[MagicMock(delta=MagicMock(content="!"))]),
+    ]
+    mock_client.chat.completions.create.return_value = mock_stream
+    mock_openai.return_value = mock_client
+    chat = gr.load_chat(
+        "http://fake-api.com/v1", model="test-model", token="fake-token", streaming=True
+    )
+    response_stream = chat.fn("Hi!", None)
+    responses = list(response_stream)
+    assert responses == ["Hello", "Hello World", "Hello World!"]
