@@ -2,8 +2,8 @@
 	import Sidebar from "./shared/Sidebar.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-
 	import type { Gradio } from "@gradio/utils";
+	import Column from "@gradio/column";
 	export let open = true;
 	export let loading_status: LoadingStatus;
 	export let gradio: Gradio<{
@@ -25,5 +25,7 @@
 	on:expand={() => gradio.dispatch("expand")}
 	on:collapse={() => gradio.dispatch("collapse")}
 >
-	<slot />
+	<Column>
+		<slot />
+	</Column>
 </Sidebar>
