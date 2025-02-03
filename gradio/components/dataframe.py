@@ -127,7 +127,7 @@ class Dataframe(Component):
             show_fullscreen_button: If True, will show a button to view the values in the table in fullscreen mode.
             show_copy_button: If True, will show a button to copy the table data to the clipboard.
             show_row_numbers: If True, will display row numbers in a separate column.
-            max_chars: Maximum number of characters to display in each cell before truncating. If None, no truncation is applied.
+            max_chars: Maximum number of characters to display in each cell before truncating (single-clicking a cell value will still reveal the full content). If None, no truncation is applied.
         """
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
