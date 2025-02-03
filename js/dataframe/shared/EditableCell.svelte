@@ -80,6 +80,7 @@
 	tabindex="-1"
 	role="button"
 	class:edit
+	class:multiline={header}
 	on:focus|preventDefault
 	style={styling}
 	class="table-cell-text"
@@ -124,6 +125,11 @@
 		-ms-user-select: text;
 		user-select: text;
 		cursor: text;
+		white-space: normal;
+	}
+
+	.multiline {
+		white-space: pre-line;
 	}
 
 	.header {
