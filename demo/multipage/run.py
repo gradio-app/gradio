@@ -1,5 +1,6 @@
 import gradio as gr
 import random
+import time
 
 with gr.Blocks() as demo:
     name = gr.Textbox(label="Name")
@@ -11,7 +12,7 @@ with gr.Blocks() as demo:
 
 with demo.route("Up") as incrementer_demo:
     num = gr.Number()
-    incrementer_demo.load(lambda: random.randint(10, 40), None, num)
+    incrementer_demo.load(lambda: time.sleep(1) or random.randint(10, 40), None, num)
 
     with gr.Row():
         inc_btn = gr.Button("Increase")
@@ -22,7 +23,6 @@ with demo.route("Up") as incrementer_demo:
         gr.Textbox()
 
 def wait(x):
-    import time
     time.sleep(2)
     return x
 
@@ -30,7 +30,7 @@ identity_iface = gr.Interface(wait, "image", "image")
 
 with demo.route("Interface") as incrementer_demo:
     identity_iface.render()
-    gr.ChatInterface(lambda *args: "Hello")
+    gr.ChatInterface(lambda *args: "Hello", autofocus=False)
 
 if __name__ == "__main__":
     demo.launch()
