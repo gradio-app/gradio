@@ -31,6 +31,8 @@ from gradio.exceptions import (
 from gradio.processing_utils import save_base64_to_cache, to_binary
 
 if TYPE_CHECKING:
+    from huggingface_hub.inference._providers import PROVIDER_T
+
     from gradio.blocks import Blocks
     from gradio.chat_interface import ChatInterface
     from gradio.components.chatbot import MessageDict
@@ -46,7 +48,7 @@ def load(
     token: str | None = None,
     hf_token: str | None = None,
     accept_token: bool = False,
-    provider: str | None = None,
+    provider: PROVIDER_T | None = None,
     **kwargs,
 ) -> Blocks:
     """
@@ -152,7 +154,7 @@ def load_blocks_from_huggingface(
     src: str,
     hf_token: str | Literal[False] | None = None,
     alias: str | None = None,
-    provider: str | None = None,
+    provider: PROVIDER_T | None = None,
     **kwargs,
 ) -> Blocks:
     """Creates and returns a Blocks instance from a Hugging Face model or Space repo."""
@@ -181,7 +183,7 @@ def from_model(
     model_name: str,
     hf_token: str | Literal[False] | None,
     alias: str | None,
-    provider: str | None = None,
+    provider: PROVIDER_T | None = None,
     **kwargs,
 ) -> Blocks:
     headers = {"X-Wait-For-Model": "true"}
@@ -470,7 +472,7 @@ def from_spaces(
     space_name: str,
     hf_token: str | None | Literal[False],
     alias: str | None,
-    provider: str | None = None,
+    provider: PROVIDER_T | None = None,
     **kwargs,
 ) -> Blocks:
     if provider is not None:
