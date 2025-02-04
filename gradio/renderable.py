@@ -21,7 +21,6 @@ class Renderable:
         fn: Callable,
         inputs: Sequence[Component],
         triggers: list[tuple[Block | None, str]],
-        page: str,
         concurrency_limit: int | None | Literal["default"],
         concurrency_id: str | None,
         trigger_mode: Literal["once", "multiple", "always_last"] | None,
@@ -39,7 +38,7 @@ class Renderable:
         self.fn = fn
         self.inputs = inputs
         self.triggers: list[EventListenerMethod] = []
-        self.page = page
+        self.page = Context.root_block.current_page
 
         self.triggers = [EventListenerMethod(*t) for t in triggers]
         Context.root_block.default_config.set_event_trigger(
@@ -157,7 +156,6 @@ def render(
             fn,
             inputs,
             _triggers,
-            Context.root_block.current_page,
             concurrency_limit,
             concurrency_id,
             trigger_mode,
