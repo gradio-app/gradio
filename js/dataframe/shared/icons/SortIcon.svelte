@@ -18,8 +18,6 @@
 		aria-pressed={direction === "asc"}
 	>
 		<svg
-			width="1em"
-			height="1em"
 			viewBox="0 0 24 24"
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
@@ -43,8 +41,6 @@
 		aria-pressed={direction === "des"}
 	>
 		<svg
-			width="1em"
-			height="1em"
 			viewBox="0 0 24 24"
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
@@ -67,7 +63,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0;
-		margin-right: var(--size-2);
+		margin-right: var(--spacing-md);
 	}
 
 	.sort-button {
@@ -92,8 +88,8 @@
 	}
 
 	svg {
-		width: 14px;
-		height: 14px;
+		width: var(--size-3);
+		height: var(--size-3);
 		display: block;
 	}
 </style>

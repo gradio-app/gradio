@@ -1198,6 +1198,7 @@
 	.sort-buttons {
 		display: flex;
 		align-items: center;
+		flex-shrink: 0;
 	}
 
 	.editing {
@@ -1225,6 +1226,7 @@
 		word-break: break-word;
 		height: 100%;
 		padding: var(--size-1);
+		gap: var(--size-1);
 	}
 
 	.row_odd {
