@@ -30,6 +30,7 @@
 		handle_click_outside as handle_click_outside_util
 	} from "./selection_utils";
 	import { copy_table_data, get_max, handle_file_upload } from "./table_utils";
+	import { sort_table_data } from "./table-utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -503,16 +504,19 @@
 	let table: HTMLTableElement;
 
 	function set_cell_widths(): void {
-		const widths = cells.map((el, i) => {
-			return el?.clientWidth || 0;
-		});
+		const widths = cells.map((el) => el?.clientWidth || 0);
 		if (widths.length === 0) return;
-		for (let i = 0; i < widths.length; i++) {
+
+		if (show_row_numbers) {
+			parent.style.setProperty(`--cell-width-row-number`, `${widths[0]}px`);
+		}
+		const data_cells = show_row_numbers ? widths.slice(1) : widths;
+		data_cells.forEach((width, i) => {
 			parent.style.setProperty(
 				`--cell-width-${i}`,
-				`${widths[i] - scrollbar_width / widths.length}px`
+				`${width - scrollbar_width / data_cells.length}px`
 			);
-		}
+		});
 	}
 
 	let table_height: number =
@@ -527,47 +531,14 @@
 		dir?: SortDirection
 	): void {
 		let id = null;
-		//Checks if the selected cell is still in the data
-		if (selected && selected[0] in data && selected[1] in data[selected[0]]) {
-			id = data[selected[0]][selected[1]].id;
+		if (selected && selected[0] in _data && selected[1] in _data[selected[0]]) {
+			id = _data[selected[0]][selected[1]].id;
 		}
 		if (typeof col !== "number" || !dir) {
 			return;
 		}
-		const indices = [...Array(_data.length).keys()];
 
-		if (col === -1) {
-			if (dir === "asc") {
-				indices.sort((i, j) => i - j);
-			} else if (dir === "des") {
-				indices.sort((i, j) => j - i);
-			}
-		} else {
-			if (dir === "asc") {
-				indices.sort((i, j) =>
-					_data[i][col].value < _data[j][col].value ? -1 : 1
-				);
-			} else if (dir === "des") {
-				indices.sort((i, j) =>
-					_data[i][col].value > _data[j][col].value ? -1 : 1
-				);
-			} else {
-				return;
-			}
-		}
-
-		// sort all the data and metadata based on the values in the data
-		const temp_data = [..._data];
-		const temp_display_value = _display_value ? [..._display_value] : null;
-		const temp_styling = _styling ? [..._styling] : null;
-		indices.forEach((originalIndex, sortedIndex) => {
-			_data[sortedIndex] = temp_data[originalIndex];
-			if (_display_value && temp_display_value)
-				_display_value[sortedIndex] = temp_display_value[originalIndex];
-			if (_styling && temp_styling)
-				_styling[sortedIndex] = temp_styling[originalIndex];
-		});
-
+		sort_table_data(_data, _display_value, _styling, col, dir);
 		data = data;
 
 		if (id) {
@@ -829,6 +800,7 @@
 						<th class="row-number-header">
 							<div class="cell-wrap">
 								<div class="header-content">
+									<div class="header-text"></div>
 									<div class="sort-buttons">
 										<SortIcon
 											direction={sort_by === -1 ? sort_direction : null}
@@ -847,21 +819,23 @@
 							style:width={column_widths.length ? column_widths[i] : undefined}
 						>
 							<div class="cell-wrap">
-								<EditableCell
-									{value}
-									{latex_delimiters}
-									{line_breaks}
-									header
-									edit={false}
-									el={null}
-									{root}
-								/>
-								<div class="sort-buttons">
-									<SortIcon
-										direction={sort_by === i ? sort_direction : null}
-										on:sort={({ detail }) => handle_sort(i, detail)}
-										{i18n}
+								<div class="header-content">
+									<EditableCell
+										{value}
+										{latex_delimiters}
+										{line_breaks}
+										header
+										edit={false}
+										el={null}
+										{root}
 									/>
+									<div class="sort-buttons">
+										<SortIcon
+											direction={sort_by === i ? sort_direction : null}
+											on:sort={({ detail }) => handle_sort(i, detail)}
+											{i18n}
+										/>
+									</div>
 								</div>
 							</div>
 						</th>
@@ -925,6 +899,7 @@
 						<th class="row-number-header">
 							<div class="cell-wrap">
 								<div class="header-content">
+									<div class="header-text"></div>
 									<div class="sort-buttons">
 										<SortIcon
 											direction={sort_by === -1 ? sort_direction : null}
@@ -1238,13 +1213,15 @@
 	.header-content {
 		display: flex;
 		align-items: center;
-		justify-content: center;
+		justify-content: space-between;
 		overflow: hidden;
 		flex-grow: 1;
 		min-width: 0;
 		white-space: normal;
 		overflow-wrap: break-word;
 		word-break: break-word;
+		height: 100%;
+		padding: var(--size-1);
 	}
 
 	.row_odd {
@@ -1305,15 +1282,31 @@
 		font-size: var(--input-text-size);
 		color: var(--body-text-color);
 		padding: var(--size-1);
-		width: var(--size-8);
+		min-width: var(--size-10);
+		width: var(--size-10);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 		font-weight: var(--weight-semibold);
 	}
 
-	.row-number-header {
-		z-index: var(--layer-2);
+	.row-number-header .header-content {
+		justify-content: space-between;
+		padding: var(--size-1);
+		height: var(--size-9);
+		display: flex;
+		align-items: center;
+	}
+
+	.row-number-header .sort-buttons {
+		margin: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.row-number-header :global(.sort-icons) {
+		margin-right: 0;
 	}
 
 	.row-number {
@@ -1413,9 +1406,5 @@
 
 	.cell-selected.no-top.no-bottom.no-left.no-right {
 		box-shadow: none;
-	}
-
-	.row-number-header :global(.sort-icons) {
-		margin-right: 0;
 	}
 </style>
