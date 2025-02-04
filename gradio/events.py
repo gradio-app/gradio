@@ -474,6 +474,7 @@ if TYPE_CHECKING:
             Union[str, None, Literal[False]],
             bool,
             Literal["full", "minimal", "hidden"],
+            Union[Component, Sequence[Component], None],
             Union[bool, None],
             bool,
             int,
