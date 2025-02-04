@@ -6,4 +6,4 @@
 "gradio": minor
 ---
 
-feat:Multipage
+feat:Allow building multipage Gradio apps
