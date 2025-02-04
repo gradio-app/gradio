@@ -391,16 +391,16 @@
 	let sort_direction: SortDirection | undefined;
 	let sort_by: number | undefined;
 
-	function handle_sort(col: number): void {
+	function handle_sort(col: number, direction: SortDirection): void {
 		if (typeof sort_by !== "number" || sort_by !== col) {
-			sort_direction = "asc";
+			sort_direction = direction;
 			sort_by = col;
-		} else {
-			if (sort_direction === "asc") {
-				sort_direction = "des";
-			} else if (sort_direction === "des") {
-				sort_by = undefined;
+		} else if (sort_by === col) {
+			if (sort_direction === direction) {
 				sort_direction = undefined;
+				sort_by = undefined;
+			} else {
+				sort_direction = direction;
 			}
 		}
 	}
@@ -829,18 +829,13 @@
 						<th class="row-number-header">
 							<div class="cell-wrap">
 								<div class="header-content">
-									<button
-										class:sorted={sort_by === -1}
-										class:des={sort_by === -1 && sort_direction === "des"}
-										class="sort-button {sort_direction}"
-										tabindex="0"
-										on:click={(event) => {
-											event.stopPropagation();
-											handle_sort(-1);
-										}}
-									>
-										<SortIcon />
-									</button>
+									<div class="sort-buttons">
+										<SortIcon
+											direction={sort_by === -1 ? sort_direction : null}
+											on:sort={({ detail }) => handle_sort(-1, detail)}
+											{i18n}
+										/>
+									</div>
 								</div>
 							</div>
 						</th>
@@ -861,13 +856,12 @@
 									el={null}
 									{root}
 								/>
-
-								<div
-									class:sorted={sort_by === i}
-									class:des={sort_by === i && sort_direction === "des"}
-									class="sort-button {sort_direction} "
-								>
-									<SortIcon />
+								<div class="sort-buttons">
+									<SortIcon
+										direction={sort_by === i ? sort_direction : null}
+										on:sort={({ detail }) => handle_sort(i, detail)}
+										{i18n}
+									/>
 								</div>
 							</div>
 						</th>
@@ -931,18 +925,13 @@
 						<th class="row-number-header">
 							<div class="cell-wrap">
 								<div class="header-content">
-									<button
-										class:sorted={sort_by === -1}
-										class:des={sort_by === -1 && sort_direction === "des"}
-										class="sort-button {sort_direction}"
-										tabindex="0"
-										on:click={(event) => {
-											event.stopPropagation();
-											handle_sort(-1);
-										}}
-									>
-										<SortIcon />
-									</button>
+									<div class="sort-buttons">
+										<SortIcon
+											direction={sort_by === -1 ? sort_direction : null}
+											on:sort={({ detail }) => handle_sort(-1, detail)}
+											{i18n}
+										/>
+									</div>
 								</div>
 							</div>
 						</th>
@@ -970,18 +959,13 @@
 										header
 										{root}
 									/>
-									<button
-										class:sorted={sort_by === i}
-										class:des={sort_by === i && sort_direction === "des"}
-										class="sort-button {sort_direction}"
-										tabindex="0"
-										on:click={(event) => {
-											event.stopPropagation();
-											handle_sort(i);
-										}}
-									>
-										<SortIcon />
-									</button>
+									<div class="sort-buttons">
+										<SortIcon
+											direction={sort_by === i ? sort_direction : null}
+											on:sort={({ detail }) => handle_sort(i, detail)}
+											{i18n}
+										/>
+									</div>
 								</div>
 
 								{#if editable}
@@ -1233,27 +1217,9 @@
 		background: var(--table-even-background-fill);
 	}
 
-	.sort-button {
+	.sort-buttons {
 		display: flex;
-		flex: none;
-		justify-content: center;
 		align-items: center;
-		transition: 150ms;
-		cursor: pointer;
-		padding: var(--size-2);
-		color: var(--body-text-color-subdued);
-	}
-
-	.sort-button:hover {
-		color: var(--body-text-color);
-	}
-
-	.sort-button.sorted {
-		color: var(--color-accent);
-	}
-
-	.sort-button.sorted:hover {
-		color: var(--color-accent);
 	}
 
 	.editing {
@@ -1338,7 +1304,8 @@
 		background: var(--table-even-background-fill);
 		font-size: var(--input-text-size);
 		color: var(--body-text-color);
-		padding: var(--size-1) var(--size-2);
+		padding: var(--size-1);
+		width: var(--size-8);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
