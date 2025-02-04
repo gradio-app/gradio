@@ -1292,11 +1292,11 @@
 		color: var(--body-text-color);
 	}
 
-	.des {
-		transform: scaleY(-1);
+	.sort-button.sorted {
+		color: var(--color-accent);
 	}
 
-	.sort-button.sorted {
+	.sort-button.sorted:hover {
 		color: var(--color-accent);
 	}
 
@@ -1378,8 +1378,6 @@
 
 	.row-number,
 	.row-number-header {
-		width: var(--size-10);
-		min-width: var(--size-10);
 		text-align: center;
 		background: var(--table-even-background-fill);
 		font-size: var(--input-text-size);
