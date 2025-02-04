@@ -89,6 +89,7 @@ from gradio.flagging import (
 from gradio.helpers import Info, Progress, Success, Warning, skip, update
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.interface import Interface, TabbedInterface, close_all
+from gradio.js_transpiler import js
 from gradio.layouts import Accordion, Column, Group, Row, Sidebar, Tab, TabItem, Tabs
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.renderable import render
@@ -225,6 +226,7 @@ __all__ = [
     "close_all",
     "deploy",
     "get_package_version",
+    "js",
     "load",
     "load_chat",
     "load_ipython_extension",
