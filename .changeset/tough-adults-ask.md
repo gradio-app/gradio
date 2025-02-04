@@ -1,6 +1,6 @@
 ---
-"@gradio/dataframe": minor
-"gradio": minor
+"@gradio/dataframe": patch
+"gradio": patch
 ---
 
 feat:Ensure dataframe is not editable when `interactive` is False
