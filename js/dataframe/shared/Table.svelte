@@ -1414,4 +1414,8 @@
 	.cell-selected.no-top.no-bottom.no-left.no-right {
 		box-shadow: none;
 	}
+
+	.row-number-header :global(.sort-icons) {
+		margin-right: 0;
+	}
 </style>
