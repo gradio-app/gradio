@@ -595,7 +595,7 @@
 
 		selected_cells = handle_selection([row, col], selected_cells, event);
 
-		if (selected_cells.length === 1) {
+		if (selected_cells.length === 1 && editable) {
 			editing = [row, col];
 			tick().then(() => {
 				const input_el = els[data[row][col].id].input;
@@ -828,6 +828,7 @@
 										edit={false}
 										el={null}
 										{root}
+										{editable}
 									/>
 									<div class="sort-buttons">
 										<SortIcon
@@ -855,6 +856,7 @@
 									edit={false}
 									el={null}
 									{root}
+									{editable}
 								/>
 							</div>
 						</td>
@@ -933,6 +935,7 @@
 										on:dblclick={() => edit_header(i)}
 										header
 										{root}
+										{editable}
 									/>
 									<div class="sort-buttons">
 										<SortIcon
