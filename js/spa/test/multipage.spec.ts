@@ -4,7 +4,7 @@ test("Test multipage navigation and events", async ({ page }) => {
 	await page.getByLabel("Name").fill("asdf");
 	await page.getByRole("button", { name: "Greet" }).click();
 	await expect(page.getByLabel("Output")).toHaveValue("Hello asdf!");
-	await expect(page.getByLabel("Textbox")).toHaveCount(0);
+	await expect(page.getByLabel("Textbox")).toHaveCount(4);
 
 	await page.getByRole("link", { name: "Interface" }).click();
 	await page.getByLabel("x").click();

@@ -9,6 +9,12 @@ with gr.Blocks() as demo:
     @gr.on([greet_btn.click, name.submit], inputs=name, outputs=output)
     def greet(name):
         return "Hello " + name + "!"
+    
+    @gr.render(inputs=name, triggers=[output.change])
+    def spell_out(name):
+        with gr.Row():
+            for letter in name:
+                gr.Textbox(letter)
 
 with demo.route("Up") as incrementer_demo:
     num = gr.Number()
