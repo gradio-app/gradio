@@ -12,6 +12,7 @@
 		description: string;
 		default: string | null;
 		name?: string;
+		slug?: string;
 	}
 
 	export let docs: Record<string, Param>;
@@ -27,7 +28,13 @@
 	$: _docs = highlight_code(docs, lang);
 
 	function create_slug(name: string): string {
-		return "param-" + name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+		let random_string = Math.random().toString(36).substring(2, 7);
+		return (
+			"param-" +
+			name.toLowerCase().replace(/[^a-z0-9]+/g, "-") +
+			"-" +
+			random_string
+		);
 	}
 
 	function highlight(code: string, lang: "python" | "typescript"): string {
@@ -58,7 +65,8 @@
 					name: name,
 					type: highlighted_type,
 					description: description,
-					default: _default ? highlight(_default, lang) : null
+					default: _default ? highlight(_default, lang) : null,
+					slug: create_slug(name || "")
 				};
 			}
 		);
@@ -126,14 +134,11 @@
 		</div>
 	{/if}
 	{#if _docs}
-		{#each _docs as { type, description, default: _default, name } (name)}
-			<details
-				class="param md"
-				id={anchor_links ? create_slug(name || "") : undefined}
-			>
+		{#each _docs as { type, description, default: _default, name, slug } (name)}
+			<details class="param md" id={anchor_links ? slug : undefined}>
 				<summary class="type">
 					{#if anchor_links}
-						<a href="#{create_slug(name || '')}" class="param-link">
+						<a href="#{slug}" class="param-link">
 							<span class="link-icon">🔗</span>
 						</a>
 					{/if}
