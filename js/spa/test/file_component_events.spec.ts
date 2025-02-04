@@ -13,7 +13,7 @@ test("File component properly dispatches load event for the single file case.", 
 }) => {
 	const [fileChooser] = await Promise.all([
 		page.waitForEvent("filechooser"),
-		page.getByRole("button", { name: "Drop File Here" }).first().click()
+		page.getByLabel("Click to upload or drop files").first().click()
 	]);
 	await fileChooser.setFiles(["./test/files/cheetah1.jpg"]);
 
