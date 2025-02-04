@@ -93,6 +93,26 @@
 		row_count: [3, "dynamic"],
 		editable: false
 	}}
+	play={async ({ canvasElement }) => {
+		// tests that the cell is not editable
+
+		const canvas = within(canvasElement);
+		const cells = canvas.getAllByRole("cell");
+		const initial_value = cells[0].textContent;
+
+		await userEvent.click(cells[0]);
+		await userEvent.keyboard("new value");
+
+		const final_value = cells[0].textContent;
+		if (initial_value !== final_value) {
+			throw new Error("Cell content changed when it should be non-editable");
+		}
+
+		const inputs = canvas.queryAllByRole("textbox");
+		if (inputs.length > 0) {
+			throw new Error("Input field appeared when table should be non-editable");
+		}
+	}}
 />
 
 <Story
