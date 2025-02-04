@@ -171,12 +171,18 @@ def load_blocks_from_huggingface(
 
     if src == "spaces" and hf_token is None:
         hf_token = False  # Since Spaces can read the token, we don't want to pass it in unless the user explicitly provides it
-    blocks: gradio.Blocks = factory_methods[src](name, hf_token=hf_token, alias=alias, provider=provider, **kwargs)
+    blocks: gradio.Blocks = factory_methods[src](
+        name, hf_token=hf_token, alias=alias, provider=provider, **kwargs
+    )
     return blocks
 
 
 def from_model(
-    model_name: str, hf_token: str | Literal[False] | None, alias: str | None, provider: str | None = None, **kwargs
+    model_name: str,
+    hf_token: str | Literal[False] | None,
+    alias: str | None,
+    provider: str | None = None,
+    **kwargs,
 ) -> Blocks:
     headers = {"X-Wait-For-Model": "true"}
     if hf_token is False:
@@ -461,10 +467,16 @@ def from_model(
 
 
 def from_spaces(
-    space_name: str, hf_token: str | None | Literal[False], alias: str | None, provider: str | None = None, **kwargs
+    space_name: str,
+    hf_token: str | None | Literal[False],
+    alias: str | None,
+    provider: str | None = None,
+    **kwargs,
 ) -> Blocks:
     if provider is not None:
-        warnings.warn("The `provider` parameter is not supported when loading Spaces. It will be ignored.")
+        warnings.warn(
+            "The `provider` parameter is not supported when loading Spaces. It will be ignored."
+        )
 
     space_url = f"https://huggingface.co/spaces/{space_name}"
 
