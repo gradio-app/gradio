@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { afterUpdate, createEventDispatcher, tick, onMount } from "svelte";
-	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
 	import { Upload } from "@gradio/upload";
 
@@ -17,7 +16,19 @@
 	} from "./utils";
 	import CellMenu from "./CellMenu.svelte";
 	import Toolbar from "./Toolbar.svelte";
-	import { copy_table_data } from "./table_utils";
+	import type { CellCoordinate, EditingState } from "./types";
+	import {
+		is_cell_selected,
+		handle_selection,
+		handle_delete_key,
+		should_show_cell_menu,
+		get_next_cell_coordinates,
+		get_range_selection,
+		move_cursor,
+		get_current_indices,
+		handle_click_outside as handle_click_outside_util
+	} from "./selection_utils";
+	import { copy_table_data, get_max, handle_file_upload } from "./table_utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -46,12 +57,24 @@
 	export let show_fullscreen_button = false;
 	export let show_copy_button = false;
 	export let value_is_output = false;
+	export let max_chars: number | undefined = undefined;
 
-	let selected: false | [number, number] = false;
-	let clicked_cell: { row: number; col: number } | undefined = undefined;
+	let selected_cells: CellCoordinate[] = [];
+	$: selected_cells = [...selected_cells];
+	let selected: CellCoordinate | false = false;
+	$: selected =
+		selected_cells.length > 0
+			? selected_cells[selected_cells.length - 1]
+			: false;
+
 	export let display_value: string[][] | null = null;
 	export let styling: string[][] | null = null;
 	let t_rect: DOMRectReadOnly;
+	let els: Record<
+		string,
+		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
+	> = {};
+	let data_binding: Record<string, (typeof data)[0][0]> = {};
 
 	const dispatch = createEventDispatcher<{
 		change: DataframeValue;
@@ -59,33 +82,26 @@
 		select: SelectData;
 	}>();
 
-	let editing: false | [number, number] = false;
+	let editing: EditingState = false;
+	let clear_on_focus = false;
+	let header_edit: number | false = false;
+	let selected_header: number | false = false;
+	let active_cell_menu: {
+		row: number;
+		col: number;
+		x: number;
+		y: number;
+	} | null = null;
+	let active_header_menu: {
+		col: number;
+		x: number;
+		y: number;
+	} | null = null;
+	let is_fullscreen = false;
+	let dragging = false;
 
 	const get_data_at = (row: number, col: number): string | number =>
 		data?.[row]?.[col]?.value;
-
-	let last_selected: [number, number] | null = null;
-
-	$: {
-		if (selected !== false && !dequal(selected, last_selected)) {
-			const [row, col] = selected;
-			if (!isNaN(row) && !isNaN(col) && data[row]) {
-				dispatch("select", {
-					index: [row, col],
-					value: get_data_at(row, col),
-					row_value: data[row].map((d) => d.value)
-				});
-				last_selected = selected;
-			}
-		}
-	}
-
-	let els: Record<
-		string,
-		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
-	> = {};
-
-	let data_binding: Record<string, (typeof data)[0][0]> = {};
 
 	function make_id(): string {
 		return Math.random().toString(36).substring(2, 15);
@@ -199,48 +215,9 @@
 			if (direction === "asc") return "ascending";
 			if (direction === "des") return "descending";
 		}
-
 		return "none";
 	}
 
-	function get_current_indices(id: string): [number, number] {
-		return data.reduce(
-			(acc, arr, i) => {
-				const j = arr.reduce(
-					(_acc, _data, k) => (id === _data.id ? k : _acc),
-					-1
-				);
-
-				return j === -1 ? acc : [i, j];
-			},
-			[-1, -1]
-		);
-	}
-
-	function move_cursor(
-		key: "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp",
-		current_coords: [number, number]
-	): void {
-		const dir = {
-			ArrowRight: [0, 1],
-			ArrowLeft: [0, -1],
-			ArrowDown: [1, 0],
-			ArrowUp: [-1, 0]
-		}[key];
-
-		const i = current_coords[0] + dir[0];
-		const j = current_coords[1] + dir[1];
-
-		if (i < 0 && j <= 0) {
-			selected_header = j;
-			selected = false;
-		} else {
-			const is_data = data[i]?.[j];
-			selected = is_data ? [i, j] : selected;
-		}
-	}
-
-	let clear_on_focus = false;
 	// eslint-disable-next-line complexity
 	async function handle_keydown(event: KeyboardEvent): Promise<void> {
 		if (selected_header !== false && header_edit === false) {
@@ -268,6 +245,50 @@
 					break;
 			}
 		}
+
+		if (event.key === "Delete" || event.key === "Backspace") {
+			if (!editable) return;
+
+			if (editing) {
+				const [row, col] = editing;
+				const input_el = els[data[row][col].id].input;
+				if (input_el && input_el.selectionStart !== input_el.selectionEnd) {
+					return;
+				}
+				if (
+					event.key === "Delete" &&
+					input_el?.selectionStart !== input_el?.value.length
+				) {
+					return;
+				}
+				if (event.key === "Backspace" && input_el?.selectionStart !== 0) {
+					return;
+				}
+			}
+
+			event.preventDefault();
+			if (selected_cells.length > 0) {
+				data = handle_delete_key(data, selected_cells);
+				dispatch("change", {
+					data: data.map((row) => row.map((cell) => cell.value)),
+					headers: _headers.map((h) => h.value),
+					metadata: null
+				});
+				if (!value_is_output) {
+					dispatch("input");
+				}
+			}
+			return;
+		}
+
+		if (event.key === "c" && (event.metaKey || event.ctrlKey)) {
+			event.preventDefault();
+			if (selected_cells.length > 0) {
+				await handle_copy();
+			}
+			return;
+		}
+
 		if (!selected) {
 			return;
 		}
@@ -281,7 +302,29 @@
 			case "ArrowUp":
 				if (editing) break;
 				event.preventDefault();
-				move_cursor(event.key, [i, j]);
+				const next_coords = move_cursor(event.key, [i, j], data);
+				if (next_coords) {
+					if (event.shiftKey) {
+						selected_cells = get_range_selection(
+							selected_cells.length > 0 ? selected_cells[0] : [i, j],
+							next_coords
+						);
+						editing = false;
+					} else {
+						selected_cells = [next_coords];
+						editing = next_coords;
+						clear_on_focus = false;
+					}
+					selected = next_coords;
+				} else if (
+					next_coords === false &&
+					event.key === "ArrowUp" &&
+					i === 0
+				) {
+					selected_header = j;
+					selected = false;
+					editing = false;
+				}
 				break;
 
 			case "Escape":
@@ -310,39 +353,26 @@
 						selected = [i, j];
 					} else {
 						editing = [i, j];
+						clear_on_focus = false;
 					}
-				}
-
-				break;
-			case "Backspace":
-				if (!editable) break;
-				if (!editing) {
-					event.preventDefault();
-					data[i][j].value = "";
-				}
-				break;
-			case "Delete":
-				if (!editable) break;
-				if (!editing) {
-					event.preventDefault();
-					data[i][j].value = "";
 				}
 				break;
 			case "Tab":
-				let direction = event.shiftKey ? -1 : 1;
-
-				let is_data_x = data[i][j + direction];
-				let is_data_y =
-					data?.[i + direction]?.[direction > 0 ? 0 : _headers.length - 1];
-
-				if (is_data_x || is_data_y) {
-					event.preventDefault();
-					selected = is_data_x
-						? [i, j + direction]
-						: [i + direction, direction > 0 ? 0 : _headers.length - 1];
-				}
+				event.preventDefault();
 				editing = false;
-
+				const next_cell = get_next_cell_coordinates(
+					[i, j],
+					data,
+					event.shiftKey
+				);
+				if (next_cell) {
+					selected_cells = [next_cell];
+					selected = next_cell;
+					if (editable) {
+						editing = next_cell;
+						clear_on_focus = false;
+					}
+				}
 				break;
 			default:
 				if (!editable) break;
@@ -373,16 +403,12 @@
 		}
 	}
 
-	let header_edit: number | false;
-
-	let select_on_focus = false;
-	let selected_header: number | false = false;
 	async function edit_header(i: number, _select = false): Promise<void> {
 		if (!editable || col_count[1] !== "dynamic" || header_edit === i) return;
 		selected = false;
+		selected_cells = [];
 		selected_header = i;
 		header_edit = i;
-		select_on_focus = _select;
 	}
 
 	function end_header_edit(event: CustomEvent<KeyboardEvent>): void {
@@ -457,107 +483,14 @@
 	}
 
 	function handle_click_outside(event: Event): void {
-		if (
-			(active_cell_menu &&
-				!(event.target as HTMLElement).closest(".cell-menu")) ||
-			(active_header_menu &&
-				!(event.target as HTMLElement).closest(".cell-menu"))
-		) {
+		if (handle_click_outside_util(event, parent)) {
+			editing = false;
+			selected_cells = [];
+			header_edit = false;
+			selected_header = false;
 			active_cell_menu = null;
 			active_header_menu = null;
 		}
-
-		const [trigger] = event.composedPath() as HTMLElement[];
-		if (parent.contains(trigger)) {
-			return;
-		}
-
-		clicked_cell = undefined;
-		editing = false;
-		selected = false;
-		header_edit = false;
-		selected_header = false;
-		active_cell_menu = null;
-		active_header_menu = null;
-	}
-
-	function guess_delimitaor(
-		text: string,
-		possibleDelimiters: string[]
-	): string[] {
-		return possibleDelimiters.filter(weedOut);
-
-		function weedOut(delimiter: string): boolean {
-			var cache = -1;
-			return text.split("\n").every(checkLength);
-
-			function checkLength(line: string): boolean {
-				if (!line) {
-					return true;
-				}
-
-				var length = line.split(delimiter).length;
-				if (cache < 0) {
-					cache = length;
-				}
-				return cache === length && length > 1;
-			}
-		}
-	}
-
-	function data_uri_to_blob(data_uri: string): Blob {
-		const byte_str = atob(data_uri.split(",")[1]);
-		const mime_str = data_uri.split(",")[0].split(":")[1].split(";")[0];
-
-		const ab = new ArrayBuffer(byte_str.length);
-		const ia = new Uint8Array(ab);
-
-		for (let i = 0; i < byte_str.length; i++) {
-			ia[i] = byte_str.charCodeAt(i);
-		}
-
-		return new Blob([ab], { type: mime_str });
-	}
-
-	function blob_to_string(blob: Blob): void {
-		const reader = new FileReader();
-
-		function handle_read(e: ProgressEvent<FileReader>): void {
-			if (!e?.target?.result || typeof e.target.result !== "string") return;
-
-			const [delimiter] = guess_delimitaor(e.target.result, [",", "\t"]);
-
-			const [head, ...rest] = dsvFormat(delimiter).parseRows(e.target.result);
-
-			_headers = make_headers(
-				col_count[1] === "fixed" ? head.slice(0, col_count[0]) : head
-			);
-
-			values = rest;
-			reader.removeEventListener("loadend", handle_read);
-		}
-
-		reader.addEventListener("loadend", handle_read);
-
-		reader.readAsText(blob);
-	}
-
-	let dragging = false;
-
-	function get_max(
-		_d: { value: any; id: string }[][]
-	): { value: any; id: string }[] {
-		if (!_d || _d.length === 0 || !_d[0]) return [];
-		let max = _d[0].slice();
-		for (let i = 0; i < _d.length; i++) {
-			for (let j = 0; j < _d[i].length; j++) {
-				if (`${max[j].value}`.length < `${_d[i][j].value}`.length) {
-					max[j] = _d[i][j];
-				}
-			}
-		}
-
-		return max;
 	}
 
 	$: max = get_max(data);
@@ -628,7 +561,7 @@
 		data = data;
 
 		if (id) {
-			const [i, j] = get_current_indices(id);
+			const [i, j] = get_current_indices(id, data);
 			selected = [i, j];
 		}
 	}
@@ -640,19 +573,17 @@
 	let is_visible = false;
 
 	onMount(() => {
-		const observer = new IntersectionObserver((entries, observer) => {
+		const observer = new IntersectionObserver((entries) => {
 			entries.forEach((entry) => {
 				if (entry.isIntersecting && !is_visible) {
 					set_cell_widths();
 					data = data;
 				}
-
 				is_visible = entry.isIntersecting;
 			});
 		});
 
 		observer.observe(parent);
-
 		document.addEventListener("click", handle_click_outside);
 		window.addEventListener("resize", handle_resize);
 		document.addEventListener("fullscreenchange", handle_fullscreen_change);
@@ -668,14 +599,43 @@
 		};
 	});
 
-	let highlighted_column: number | null = null;
+	function handle_cell_click(
+		event: MouseEvent,
+		row: number,
+		col: number
+	): void {
+		event.preventDefault();
+		event.stopPropagation();
+		clear_on_focus = false;
+		active_cell_menu = null;
+		active_header_menu = null;
+		selected_header = false;
+		header_edit = false;
 
-	let active_cell_menu: {
-		row: number;
-		col: number;
-		x: number;
-		y: number;
-	} | null = null;
+		selected_cells = handle_selection([row, col], selected_cells, event);
+
+		if (selected_cells.length === 1) {
+			editing = [row, col];
+			tick().then(() => {
+				const input_el = els[data[row][col].id].input;
+				if (input_el) {
+					input_el.focus();
+					input_el.selectionStart = input_el.selectionEnd =
+						input_el.value.length;
+				}
+			});
+		} else {
+			editing = false;
+		}
+
+		toggle_cell_button(row, col);
+
+		dispatch("select", {
+			index: [row, col],
+			value: get_data_at(row, col),
+			row_value: data[row].map((d) => d.value)
+		});
+	}
 
 	function toggle_cell_menu(event: MouseEvent, row: number, col: number): void {
 		event.stopPropagation();
@@ -689,12 +649,7 @@
 			const cell = (event.target as HTMLElement).closest("td");
 			if (cell) {
 				const rect = cell.getBoundingClientRect();
-				active_cell_menu = {
-					row,
-					col,
-					x: rect.right,
-					y: rect.bottom
-				};
+				active_cell_menu = { row, col, x: rect.right, y: rect.bottom };
 			}
 		}
 	}
@@ -726,32 +681,20 @@
 	} | null = null;
 
 	function toggle_header_button(col: number): void {
-		if (active_button?.type === "header" && active_button.col === col) {
-			active_button = null;
-		} else {
-			active_button = { type: "header", col };
-		}
+		active_button =
+			active_button?.type === "header" && active_button.col === col
+				? null
+				: { type: "header", col };
 	}
 
 	function toggle_cell_button(row: number, col: number): void {
-		if (
+		active_button =
 			active_button?.type === "cell" &&
 			active_button.row === row &&
 			active_button.col === col
-		) {
-			active_button = null;
-		} else {
-			active_button = { type: "cell", row, col };
-		}
+				? null
+				: { type: "cell", row, col };
 	}
-
-	let active_header_menu: {
-		col: number;
-		x: number;
-		y: number;
-	} | null = null;
-
-	let is_fullscreen = false;
 
 	function toggle_fullscreen(): void {
 		if (!document.fullscreenElement) {
@@ -768,7 +711,7 @@
 	}
 
 	async function handle_copy(): Promise<void> {
-		await copy_table_data(data, _headers);
+		await copy_table_data(data, _headers, selected_cells);
 	}
 
 	function toggle_header_menu(event: MouseEvent, col: number): void {
@@ -779,11 +722,7 @@
 			const header = (event.target as HTMLElement).closest("th");
 			if (header) {
 				const rect = header.getBoundingClientRect();
-				active_header_menu = {
-					col,
-					x: rect.right,
-					y: rect.bottom
-				};
+				active_header_menu = { col, x: rect.right, y: rect.bottom };
 			}
 		}
 	}
@@ -934,7 +873,18 @@
 			boundedheight={false}
 			disable_click={true}
 			{root}
-			on:load={(e) => blob_to_string(data_uri_to_blob(e.detail.data))}
+			on:load={({ detail }) =>
+				handle_file_upload(
+					detail.data,
+					col_count,
+					(head) => {
+						_headers = make_headers(head);
+						return _headers;
+					},
+					(vals) => {
+						values = vals;
+					}
+				)}
 			bind:dragging
 		>
 			<VirtualTable
@@ -963,6 +913,7 @@
 							<div class="cell-wrap">
 								<div class="header-content">
 									<EditableCell
+										{max_chars}
 										bind:value={_headers[i].value}
 										bind:el={els[id].input}
 										{latex_delimiters}
@@ -1000,7 +951,7 @@
 										class="cell-menu-button"
 										on:click={(event) => toggle_header_menu(event, i)}
 									>
-										⋮
+										&#8942;
 									</button>
 								{/if}
 							</div>
@@ -1016,40 +967,24 @@
 						<td
 							tabindex="0"
 							on:touchstart={(event) => {
-								event.preventDefault();
-								event.stopPropagation();
-								clear_on_focus = false;
-								clicked_cell = { row: index, col: j };
-								selected = [index, j];
-								selected_header = false;
-								header_edit = false;
-								if (editable) {
-									editing = [index, j];
-								}
-								toggle_cell_button(index, j);
+								const touch = event.touches[0];
+								const mouseEvent = new MouseEvent("click", {
+									clientX: touch.clientX,
+									clientY: touch.clientY,
+									bubbles: true,
+									cancelable: true,
+									view: window
+								});
+								handle_cell_click(mouseEvent, index, j);
 							}}
 							on:mousedown={(event) => {
 								event.preventDefault();
 								event.stopPropagation();
 							}}
-							on:click={(event) => {
-								event.preventDefault();
-								event.stopPropagation();
-								clear_on_focus = false;
-								active_cell_menu = null;
-								active_header_menu = null;
-								clicked_cell = { row: index, col: j };
-								selected = [index, j];
-								selected_header = false;
-								header_edit = false;
-								if (editable) {
-									editing = [index, j];
-								}
-								toggle_cell_button(index, j);
-							}}
+							on:click={(event) => handle_cell_click(event, index, j)}
 							style:width="var(--cell-width-{j})"
 							style={styling?.[index]?.[j] || ""}
-							class:focus={dequal(selected, [index, j])}
+							class={is_cell_selected([index, j], selected_cells)}
 							class:menu-active={active_cell_menu &&
 								active_cell_menu.row === index &&
 								active_cell_menu.col === j}
@@ -1068,15 +1003,25 @@
 										clear_on_focus = false;
 										parent.focus();
 									}}
+									on:focus={() => {
+										const row = index;
+										const col = j;
+										if (
+											!selected_cells.some(([r, c]) => r === row && c === col)
+										) {
+											selected_cells = [[row, col]];
+										}
+									}}
 									{clear_on_focus}
 									{root}
+									{max_chars}
 								/>
-								{#if editable}
+								{#if editable && should_show_cell_menu([index, j], selected_cells, editable)}
 									<button
 										class="cell-menu-button"
 										on:click={(event) => toggle_cell_menu(event, index, j)}
 									>
-										⋮
+										&#8942;
 									</button>
 								{/if}
 							</div>
@@ -1128,21 +1073,10 @@
 {/if}
 
 <style>
-	.button-wrap:hover svg {
-		color: var(--color-accent);
-	}
-
-	.button-wrap svg {
-		margin-right: var(--size-1);
-		margin-left: -5px;
-	}
-
-	.label p {
-		position: relative;
-		z-index: var(--layer-4);
-		margin-bottom: var(--size-2);
-		color: var(--block-label-text-color);
-		font-size: var(--block-label-text-size);
+	.table-container {
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-2);
 	}
 
 	.table-wrap {
@@ -1155,7 +1089,6 @@
 
 	.table-wrap:focus-within {
 		outline: none;
-		background-color: none;
 	}
 
 	.dragging {
@@ -1177,6 +1110,7 @@
 		line-height: var(--line-md);
 		font-family: var(--font-mono);
 		border-spacing: 0;
+		border-collapse: separate;
 	}
 
 	div:not(.no-wrap) td {
@@ -1231,6 +1165,12 @@
 	th.focus,
 	td.focus {
 		--ring-color: var(--color-accent);
+		box-shadow: inset 0 0 0 2px var(--ring-color);
+		z-index: var(--layer-1);
+	}
+
+	th.focus {
+		z-index: var(--layer-2);
 	}
 
 	tr:last-child td:first-child {
@@ -1259,7 +1199,6 @@
 		cursor: pointer;
 		padding: var(--size-2);
 		color: var(--body-text-color-subdued);
-		line-height: var(--text-sm);
 	}
 
 	.sort-button:hover {
@@ -1280,11 +1219,11 @@
 
 	.cell-wrap {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		outline: none;
-		height: var(--size-full);
 		min-height: var(--size-9);
-		overflow: hidden;
+		position: relative;
+		height: auto;
 	}
 
 	.header-content {
@@ -1293,12 +1232,9 @@
 		overflow: hidden;
 		flex-grow: 1;
 		min-width: 0;
-	}
-
-	.controls-wrap {
-		display: flex;
-		justify-content: flex-end;
-		padding-top: var(--size-2);
+		white-space: normal;
+		overflow-wrap: break-word;
+		word-break: break-word;
 	}
 
 	.row_odd {
@@ -1307,10 +1243,6 @@
 
 	.row_odd.focus {
 		background: var(--background-fill-primary);
-	}
-
-	table {
-		border-collapse: separate;
 	}
 
 	.cell-menu-button {
@@ -1325,28 +1257,35 @@
 		padding: 0;
 		margin-right: var(--spacing-sm);
 		z-index: var(--layer-1);
+		position: absolute;
+		right: var(--size-1);
+		top: 50%;
+		transform: translateY(-50%);
 	}
 
-	.cell-menu-button:hover {
-		background-color: var(--color-bg-hover);
-	}
-
-	td.focus .cell-menu-button {
+	.cell-selected .cell-menu-button {
 		display: flex;
 		align-items: center;
 		justify-content: center;
 	}
 
-	th .header-content {
-		white-space: normal;
-		overflow-wrap: break-word;
-		word-break: break-word;
+	.header-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: var(--size-2);
+		height: var(--size-6);
+		min-height: var(--size-6);
 	}
 
-	.table-container {
-		display: flex;
-		flex-direction: column;
-		gap: var(--size-2);
+	.label {
+		flex: 1;
+	}
+
+	.label p {
+		margin: 0;
+		color: var(--block-label-text-color);
+		font-size: var(--block-label-text-size);
 	}
 
 	.row-number,
@@ -1378,24 +1317,94 @@
 		background: var(--table-odd-background-fill);
 	}
 
-	.header-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: var(--size-2);
-		height: var(--size-6);
-		min-height: var(--size-6);
-	}
-
-	.label {
-		flex: 1;
-	}
-
-	.label p {
+	.cell-selected {
+		--ring-color: var(--color-accent);
+		box-shadow: inset 0 0 0 2px var(--ring-color);
+		z-index: var(--layer-1);
 		position: relative;
-		z-index: var(--layer-4);
-		margin: 0;
-		color: var(--block-label-text-color);
-		font-size: var(--block-label-text-size);
+	}
+
+	.cell-selected.no-top {
+		box-shadow:
+			inset 2px 0 0 var(--ring-color),
+			inset -2px 0 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-bottom {
+		box-shadow:
+			inset 2px 0 0 var(--ring-color),
+			inset -2px 0 0 var(--ring-color),
+			inset 0 2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-left {
+		box-shadow:
+			inset 0 2px 0 var(--ring-color),
+			inset -2px 0 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-right {
+		box-shadow:
+			inset 0 2px 0 var(--ring-color),
+			inset 2px 0 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-top.no-left {
+		box-shadow:
+			inset -2px 0 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-top.no-right {
+		box-shadow:
+			inset 2px 0 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-bottom.no-left {
+		box-shadow:
+			inset -2px 0 0 var(--ring-color),
+			inset 0 2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-bottom.no-right {
+		box-shadow:
+			inset 2px 0 0 var(--ring-color),
+			inset 0 2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-top.no-bottom {
+		box-shadow:
+			inset 2px 0 0 var(--ring-color),
+			inset -2px 0 0 var(--ring-color);
+	}
+
+	.cell-selected.no-left.no-right {
+		box-shadow:
+			inset 0 2px 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-top.no-left.no-right {
+		box-shadow: inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-bottom.no-left.no-right {
+		box-shadow: inset 0 2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-left.no-top.no-bottom {
+		box-shadow: inset -2px 0 0 var(--ring-color);
+	}
+
+	.cell-selected.no-right.no-top.no-bottom {
+		box-shadow: inset 2px 0 0 var(--ring-color);
+	}
+
+	.cell-selected.no-top.no-bottom.no-left.no-right {
+		box-shadow: none;
 	}
 </style>
