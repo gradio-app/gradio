@@ -46,7 +46,6 @@
 
 	let system_prompt = SYSTEM_PROMPT.SYSTEM;
 	let fallback_prompt = SYSTEM_PROMPT.FALLBACK;
-	let query_augmentation_prompt = SYSTEM_PROMPT.QUERY_AUGMENTATION;
 
 	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
 	const workerUrl = "http://localhost:5173/api/generate";
@@ -66,8 +65,7 @@
 			body: JSON.stringify({
 				query: query,
 				SYSTEM_PROMPT: system_prompt,
-				FALLBACK_PROMPT: fallback_prompt,
-				QUERY_AUGMENTATION_PROMPT: query_augmentation_prompt
+				FALLBACK_PROMPT: fallback_prompt
 			}),
 			signal
 		});
