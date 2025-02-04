@@ -28,9 +28,9 @@ def wait(x):
 
 identity_iface = gr.Interface(wait, "image", "image")
 
-with demo.route("Interface") as incrementer_demo:
+with demo.route("Interfaces") as incrementer_demo:
     identity_iface.render()
-    gr.ChatInterface(lambda *args: "Hello", autofocus=False)
+    gr.Interface(lambda x, y: x * y, ["number", "number"], "number")
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(ssr_mode=True)
