@@ -28,7 +28,7 @@ def wait(x):
 
 identity_iface = gr.Interface(wait, "image", "image")
 
-with demo.route("Interfaces") as incrementer_demo:
+with demo.route("Interface") as incrementer_demo:
     identity_iface.render()
     gr.Interface(lambda x, y: x * y, ["number", "number"], "number")
 

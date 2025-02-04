@@ -33,34 +33,28 @@ export async function load({
 	if (!app.config) {
 		throw new Error("No config found");
 	}
-
-	let pathname = url.toString().substring(app.config.root.length);
-	if (pathname.startsWith("/")) {
-		pathname = pathname.substring(1);
-	}
-	if (pathname.endsWith("/")) {
-		pathname = pathname.substring(0, pathname.length - 1);
-	}
+	
+	const stripSlashes = (str: string) => str.replace(/^\/+|\/+$/g, '');
+	let root_path = stripSlashes((new URL(app.config.root).pathname));
+	let url_path = stripSlashes(new URL(url).pathname)
+	let page_path = stripSlashes(url_path.substring(root_path.length));
 
 	let page: string;
 	let components: ComponentMeta[] = [];
 	let dependencies: Dependency[] = [];
 	let _layout: any;
-	if (app.config.page !== undefined && pathname in app.config.page) {
-		components = app.config.components.filter((c) =>
-			app.config!.page[pathname].components.includes(c.id)
-		);
-		dependencies = app.config.dependencies.filter((d) =>
-			app.config!.page[pathname].dependencies.includes(d.id)
-		);
-		_layout = app.config.page[pathname].layout;
-		page = pathname;
-	} else {
-		components = app.config.components;
-		dependencies = app.config.dependencies;
-		_layout = app.config.layout;
-		page = "";
+
+	if (!(page_path in app.config.page)) {
+		throw new Error(`Page ${page_path} not found - '${root_path}' '${url_path}' '${page_path}'`);
 	}
+	components = app.config.components.filter((c) =>
+		app.config!.page[page_path].components.includes(c.id)
+	);
+	dependencies = app.config.dependencies.filter((d) =>
+		app.config!.page[page_path].dependencies.includes(d.id)
+	);
+	_layout = app.config.page[page_path].layout;
+	page = page_path;
 
 	const { create_layout, layout } = create_components(undefined);
 
