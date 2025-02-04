@@ -33,10 +33,10 @@ export async function load({
 	if (!app.config) {
 		throw new Error("No config found");
 	}
-	
-	const stripSlashes = (str: string) => str.replace(/^\/+|\/+$/g, '');
-	let root_path = stripSlashes((new URL(app.config.root).pathname));
-	let url_path = stripSlashes(new URL(url).pathname)
+
+	const stripSlashes = (str: string) => str.replace(/^\/+|\/+$/g, "");
+	let root_path = stripSlashes(new URL(app.config.root).pathname);
+	let url_path = stripSlashes(new URL(url).pathname);
 	let page_path = stripSlashes(url_path.substring(root_path.length));
 
 	let page: string;
@@ -45,7 +45,9 @@ export async function load({
 	let _layout: any;
 
 	if (!(page_path in app.config.page)) {
-		throw new Error(`Page ${page_path} not found - '${root_path}' '${url_path}' '${page_path}'`);
+		throw new Error(
+			`Page ${page_path} not found - '${root_path}' '${url_path}' '${page_path}'`
+		);
 	}
 	components = app.config.components.filter((c) =>
 		app.config!.page[page_path].components.includes(c.id)

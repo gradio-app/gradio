@@ -372,7 +372,7 @@
 				);
 			} catch (e) {
 				const fn_index = 0; // Mock value for fn_index
-				if (!app.stream_status.open) return;  // when a user navigates away in multipage app.
+				if (!app.stream_status.open) return; // when a user navigates away in multipage app.
 				messages = [
 					new_message("Error", String(e), fn_index, "error"),
 					...messages
@@ -701,7 +701,8 @@
 			value: LoadingStatus;
 		}[] = [];
 		Object.entries(statuses).forEach(([id, loading_status]) => {
-			if (!app.stream_status.open && loading_status.status === "error") { // when a user navigates away in multipage app.
+			if (!app.stream_status.open && loading_status.status === "error") {
+				// when a user navigates away in multipage app.
 				return;
 			}
 			let dependency = dependencies.find(
