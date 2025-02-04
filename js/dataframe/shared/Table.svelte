@@ -1282,8 +1282,8 @@
 		font-size: var(--input-text-size);
 		color: var(--body-text-color);
 		padding: var(--size-1);
-		min-width: var(--size-10);
-		width: var(--size-10);
+		min-width: var(--size-12);
+		width: var(--size-12);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
