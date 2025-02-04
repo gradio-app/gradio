@@ -35,10 +35,7 @@ test("Gallery click-to-upload, upload and change events work correctly", async (
 }) => {
 	const [fileChooser] = await Promise.all([
 		page.waitForEvent("filechooser"),
-		page
-			.getByRole("button", { name: "Drop Media Here - or - Click to Upload" })
-			.first()
-			.click()
+		page.getByLabel("Click to upload or drop files").first().click()
 	]);
 	await fileChooser.setFiles([
 		"./test/files/cheetah1.jpg",

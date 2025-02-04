@@ -173,6 +173,7 @@
 			disable_click={!sources.includes("upload") || value !== null}
 			{upload}
 			{stream_handler}
+			aria_label={i18n("image.drop_to_upload")}
 		>
 			{#if value === null}
 				<slot />

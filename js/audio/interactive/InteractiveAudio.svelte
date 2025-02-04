@@ -289,6 +289,7 @@
 				{max_file_size}
 				{upload}
 				{stream_handler}
+				aria_label={i18n("audio.drop_to_upload")}
 			>
 				<slot />
 			</Upload>
