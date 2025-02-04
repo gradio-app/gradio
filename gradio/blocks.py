@@ -896,7 +896,7 @@ class BlocksConfig:
         for page, _ in self.root_block.pages:
             if page not in config["page"]:
                 config["page"][page] = {
-                    "layout": {"id": self._id, "children": []},
+                    "layout": {"id": self.root_block._id, "children": []},
                     "components": [],
                     "dependencies": [],
                 }
