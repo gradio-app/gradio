@@ -315,16 +315,8 @@
 						.then((js_result) => {
 							handle_update(js_result, dep_index);
 						})
-						.catch((error) => {
-							messages = [
-								new_message("Error", String(error), dep_index, "error"),
-								...messages
-							];
-						});
-					``;
-				} else {
-					trigger_prediction(dep, payload);
 				}
+				trigger_prediction(dep, payload);
 			}
 		}
 
