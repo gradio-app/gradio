@@ -2233,17 +2233,16 @@ Received inputs:
             for fn in self.fns.values()
             if fn.fn and hasattr(fn.fn, "__js_implementation__")
         ]
-        if not quiet:
-            num_to_transpile = len(fns_to_transpile)
-            if num_to_transpile > 0:
-                print("********************************************")
-                print("* Transpiling functions from Python -> JS for performance")
+        num_to_transpile = len(fns_to_transpile)
+        if not quiet and num_to_transpile > 0:
+            print("********************************************")
+            print("* Transpiling functions from Python -> JS for performance")
         for index, fn in enumerate(fns_to_transpile):
             if not quiet:
                 print(f"* ({index + 1}/{num_to_transpile}) {fn.__name__}: ", end="")
-            if fn.__js_implementation__ is None:
+            if fn.__js_implementation__ is None:  # type: ignore
                 try:
-                    fn.__js_implementation__ = transpile(fn)
+                    fn.__js_implementation__ = transpile(fn)  # type: ignore
                     if not quiet:
                         print("✅")
                 except Exception as e:

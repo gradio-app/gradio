@@ -9,7 +9,7 @@ def calculator(num1: float, operation: str, num2: float) -> float:
         return num1 - num2
     elif operation == "multiply":
         return num1 * num2
-    elif operation == "divide":
+    else:
         return num1 / num2
 
 demo = gr.Interface(
