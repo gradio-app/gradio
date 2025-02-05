@@ -53,7 +53,7 @@ Tip: For quick prototyping, the  <a href='https://github.com/gradio-app/sambanov
 
 ## Hyperbolic
 
-The Hyperbolic AI API provides access to many open-source models, such as the Llama family. Here's an example of how to build a Gradio app around the SambaNova API
+The Hyperbolic AI API provides access to many open-source models, such as the Llama family. Here's an example of how to build a Gradio app around the Hyperbolic
 
 $code_llm_hyperbolic
 
