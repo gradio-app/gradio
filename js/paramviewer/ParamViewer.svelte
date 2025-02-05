@@ -12,14 +12,13 @@
 		description: string;
 		default: string | null;
 		name?: string;
-		slug?: string;
 	}
 
 	export let docs: Record<string, Param>;
 	export let lang: "python" | "typescript" = "python";
 	export let linkify: string[] = [];
 	export let header: string | null;
-	export let anchor_links = false;
+	export let anchor_links: string | boolean = false;
 
 	let component_root: HTMLElement;
 	let _docs: Param[];
@@ -27,14 +26,12 @@
 
 	$: _docs = highlight_code(docs, lang);
 
-	function create_slug(name: string): string {
-		let random_string = Math.random().toString(36).substring(2, 7);
-		return (
-			"param-" +
-			name.toLowerCase().replace(/[^a-z0-9]+/g, "-") +
-			"-" +
-			random_string
-		);
+	function create_slug(name: string, anchor_links: string | boolean): string {
+		let prefix = "param-";
+		if (typeof anchor_links === "string") {
+			prefix += anchor_links + "-";
+		}
+		return prefix + name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 	}
 
 	function highlight(code: string, lang: "python" | "typescript"): string {
@@ -65,8 +62,7 @@
 					name: name,
 					type: highlighted_type,
 					description: description,
-					default: _default ? highlight(_default, lang) : null,
-					slug: create_slug(name || "")
+					default: _default ? highlight(_default, lang) : null
 				};
 			}
 		);
@@ -134,11 +130,17 @@
 		</div>
 	{/if}
 	{#if _docs}
-		{#each _docs as { type, description, default: _default, name, slug } (name)}
-			<details class="param md" id={anchor_links ? slug : undefined}>
+		{#each _docs as { type, description, default: _default, name } (name)}
+			<details
+				class="param md"
+				id={anchor_links ? create_slug(name || "", anchor_links) : undefined}
+			>
 				<summary class="type">
 					{#if anchor_links}
-						<a href="#{slug}" class="param-link">
+						<a
+							href="#{create_slug(name || '', anchor_links)}"
+							class="param-link"
+						>
 							<span class="link-icon">🔗</span>
 						</a>
 					{/if}
