@@ -70,6 +70,9 @@
 		"delete_column": "Delete column",
 		"add_column_left": "Add column to the left",
 		"add_column_right": "Add column to the right",
+		"sort_column": "Sort column",
+		"sort_ascending": "Sort ascending",
+		"sort_descending": "Sort descending",
 		"drop_to_upload": "Drop CSV or TSV files here to import data into dataframe"
 	},
 	"dropdown": {
