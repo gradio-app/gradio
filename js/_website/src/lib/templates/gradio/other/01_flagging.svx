@@ -52,7 +52,7 @@ demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
 {#if (simple_csv_logger_obj.parameters.length > 0 && simple_csv_logger_obj.parameters[0].name != "self") || simple_csv_logger_obj.parameters.length > 1}
 <!--- Initialization -->
 ### Initialization
-<ParamTable parameters={simple_csv_logger_obj.parameters} />
+<ParamTable parameters={simple_csv_logger_obj.parameters} anchor_links={simple_csv_logger_obj.name} />
 {/if}
 
 {#if simple_csv_logger_obj.demos && simple_csv_logger_obj.demos.length > 0}
@@ -106,7 +106,7 @@ demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
 {#if (csv_logger_obj.parameters.length > 0 && csv_logger_obj.parameters[0].name != "self") || csv_logger_obj.parameters.length > 1}
 <!--- Initialization -->
 ### Initialization
-<ParamTable parameters={csv_logger_obj.parameters} />
+<ParamTable parameters={csv_logger_obj.parameters} anchor_links={csv_logger_obj.name} />
 {/if}
 
 {#if csv_logger_obj.demos && csv_logger_obj.demos.length > 0}

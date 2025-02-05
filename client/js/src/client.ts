@@ -65,6 +65,40 @@ export class Client {
 	current_payload: any;
 	ws_map: Record<string, WebSocket | "failed"> = {};
 
+	get_url_config(url: string | null = null): Config {
+		if (!this.config) {
+			throw new Error(CONFIG_ERROR_MSG);
+		}
+		if (url === null) {
+			url = window.location.href;
+		}
+		const stripSlashes = (str: string): string => str.replace(/^\/+|\/+$/g, "");
+		let root_path = stripSlashes(new URL(this.config.root).pathname);
+		let url_path = stripSlashes(new URL(url).pathname);
+		let page = stripSlashes(url_path.substring(root_path.length));
+		return this.get_page_config(page);
+	}
+	get_page_config(page: string): Config {
+		if (!this.config) {
+			throw new Error(CONFIG_ERROR_MSG);
+		}
+		let config = this.config;
+		if (!(page in config.page)) {
+			throw new Error(`Page ${page} not found`);
+		}
+		return {
+			...config,
+			current_page: page,
+			layout: config.page[page].layout,
+			components: config.components.filter((c) =>
+				config.page[page].components.includes(c.id)
+			),
+			dependencies: this.config.dependencies.filter((d) =>
+				config.page[page].dependencies.includes(d.id)
+			)
+		};
+	}
+
 	fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 		const headers = new Headers(init?.headers || {});
 		if (this && this.cookies) {

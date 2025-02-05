@@ -56,7 +56,7 @@ None
 
 <!--- Initialization -->
 ### Initialization
-<ParamTable parameters={obj.parameters} />
+<ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
 
 <!--- Attributes -->
 ### Attributes

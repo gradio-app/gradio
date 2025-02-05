@@ -1,5 +1,27 @@
 # gradio
 
+## 5.15.0
+
+### Features
+
+- [#10345](https://github.com/gradio-app/gradio/pull/10345) [`39f0c23`](https://github.com/gradio-app/gradio/commit/39f0c233034449d0d0cdb77d0b34e4fca7b9cc8b) - Allow image uploads to gr.load_chat.  Thanks @aliabid94!
+- [#10456](https://github.com/gradio-app/gradio/pull/10456) [`8e40c15`](https://github.com/gradio-app/gradio/commit/8e40c15669ed1244d6f2288e55c2223279bd37a4) - Implement multiple cell selection.  Thanks @hannahblair!
+- [#10480](https://github.com/gradio-app/gradio/pull/10480) [`90f90b7`](https://github.com/gradio-app/gradio/commit/90f90b7989081b0e4422384ee699cb98781723d1) - Add sidebar to the docs.  Thanks @aliabd!
+- [#10495](https://github.com/gradio-app/gradio/pull/10495) [`35fda36`](https://github.com/gradio-app/gradio/commit/35fda36de9745757298cafb3d8b91cbc1a4358c9) - Add an `anchor_links` parameter to `gr.ParamViewer` that allows linking to specific parameters.  Thanks @abidlabs!
+- [#10433](https://github.com/gradio-app/gradio/pull/10433) [`2e8dc74`](https://github.com/gradio-app/gradio/commit/2e8dc74f751be02f7217f78d241806b42fcdca04) - Allow building multipage Gradio apps.  Thanks @aliabid94!
+- [#10496](https://github.com/gradio-app/gradio/pull/10496) [`a9bfbc3`](https://github.com/gradio-app/gradio/commit/a9bfbc389d325592e83fd85c5f255864dc34c8be) - Add support for inference `providers` in `gr.load()`.  Thanks @abidlabs!
+- [#10463](https://github.com/gradio-app/gradio/pull/10463) [`ed7a091`](https://github.com/gradio-app/gradio/commit/ed7a0919ab6b31184dc4d686b722dbeb013e9ce9) - Expand and collapse dataframe cells.  Thanks @hannahblair!
+- [#10478](https://github.com/gradio-app/gradio/pull/10478) [`afb96c6`](https://github.com/gradio-app/gradio/commit/afb96c64451e5a282bfee89445d831d1c87f9746) - Improve dataframe's upload accessibility.  Thanks @hannahblair!
+- [#10491](https://github.com/gradio-app/gradio/pull/10491) [`ff5f976`](https://github.com/gradio-app/gradio/commit/ff5f976bbb685fdd4f7c1faeda79e094f55a9f56) - Allow multiline headers in gr.Dataframe.  Thanks @hannahblair!
+- [#10494](https://github.com/gradio-app/gradio/pull/10494) [`10932a2`](https://github.com/gradio-app/gradio/commit/10932a291ac7f591bb1d56e4e353b51f10ecc6e3) - Ensure dataframe is not editable when `interactive` is False.  Thanks @hannahblair!
+- [#10485](https://github.com/gradio-app/gradio/pull/10485) [`6401d32`](https://github.com/gradio-app/gradio/commit/6401d32e79074f2e4c4beda6308c194eba4af6eb) - chore: update dropdown.py.  Thanks @eltociear!
+- [#10446](https://github.com/gradio-app/gradio/pull/10446) [`2cf449a`](https://github.com/gradio-app/gradio/commit/2cf449abb38815bb3414ac9bee1535f5f0f834ae) - Add more ImageEditor js tests.  Thanks @freddyaboulton!
+- [#10483](https://github.com/gradio-app/gradio/pull/10483) [`3750082`](https://github.com/gradio-app/gradio/commit/3750082b266464487cd5b7684ae1590ae03d3bef) - Sidebar Fixes.  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#10476](https://github.com/gradio-app/gradio/pull/10476) [`017ed46`](https://github.com/gradio-app/gradio/commit/017ed462720766f1d28205765aade6338f58da07) - Clean up `gr.DataFrame.postprocess()` and fix issue with getting headers of empty dataframes.  Thanks @abidlabs!
+
 ## 5.14.0
 
 ### Features

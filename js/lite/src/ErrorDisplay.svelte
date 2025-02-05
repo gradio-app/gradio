@@ -30,6 +30,7 @@
 	space={null}
 	fill_width={false}
 	bind:wrapper
+	root=""
 >
 	<StatusTracker
 		i18n={$_}

@@ -72,7 +72,7 @@ def predict(···) -> Any
 
 <!--- Initialization -->
 ### Initialization
-<ParamTable parameters={obj.parameters} />
+<ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
 
 
 {#if obj.string_shortcuts && obj.string_shortcuts.length > 0}
