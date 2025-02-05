@@ -159,6 +159,99 @@ class PythonToJSVisitor(ast.NodeVisitor):
         # Use repr() to generate a JS-friendly literal.
         return repr(node.value)
 
+    # === For Loop ===
+    def visit_For(self, node: ast.For):  # noqa: N802
+        # Python: for i in range(10)
+        # JavaScript: for (let i = 0; i < 10; i++)
+        # or
+        # Python: for item in items
+        # JavaScript: for (let item of items)
+        target = self.visit(node.target)
+        iter_expr = self.visit(node.iter)
+
+        # Special case for range()
+        if (
+            isinstance(node.iter, ast.Call)
+            and isinstance(node.iter.func, ast.Name)
+            and node.iter.func.id == "range"
+        ):
+            args = node.iter.args
+            if len(args) == 1:  # range(stop)
+                stop = self.visit(args[0])
+                self.js_lines.append(
+                    f"{self.indent()}for (let {target} = 0; {target} < {stop}; {target}++) "
+                    + "{"
+                )
+            elif len(args) == 2:  # range(start, stop)
+                start = self.visit(args[0])
+                stop = self.visit(args[1])
+                self.js_lines.append(
+                    f"{self.indent()}for (let {target} = {start}; {target} < {stop}; {target}++) "
+                    + "{"
+                )
+        else:
+            # Generic for-of loop
+            self.js_lines.append(
+                f"{self.indent()}for (let {target} of {iter_expr}) " + "{"
+            )
+
+        self.indent_level += 1
+        for stmt in node.body:
+            self.visit(stmt)
+        self.indent_level -= 1
+        self.js_lines.append(f"{self.indent()}" + "}")
+
+    # === While Loop ===
+    def visit_While(self, node: ast.While):  # noqa: N802
+        test = self.visit(node.test)
+        self.js_lines.append(f"{self.indent()}while ({test}) " + "{")
+        self.indent_level += 1
+        for stmt in node.body:
+            self.visit(stmt)
+        self.indent_level -= 1
+        self.js_lines.append(f"{self.indent()}" + "}")
+
+    # === List ===
+    def visit_List(self, node: ast.List):  # noqa: N802
+        elements = [self.visit(elt) for elt in node.elts]
+        return f"[{', '.join(elements)}]"
+
+    # === Subscript ===
+    def visit_Subscript(self, node: ast.Subscript):  # noqa: N802
+        value = self.visit(node.value)
+        slice_value = self.visit(node.slice)
+        return f"{value}[{slice_value}]"
+
+    # === Augmented Assignment ===
+    def visit_AugAssign(self, node: ast.AugAssign):  # noqa: N802
+        target = self.visit(node.target)
+        op = self.visit(node.op).strip()
+        value = self.visit(node.value)
+        self.js_lines.append(f"{self.indent()}{target} {op}= {value};")
+
+    # === Boolean Operations ===
+    def visit_BoolOp(self, node: ast.BoolOp):  # noqa: N802
+        op = self.visit(node.op)
+        values = [self.visit(value) for value in node.values]
+        return f"({' ' + op + ' '.join(values)})"
+
+    def visit_And(self, node: ast.And):  # noqa: N802, ARG002
+        return "&&"
+
+    def visit_Or(self, node: ast.Or):  # noqa: N802, ARG002
+        return "||"
+
+    # === Dictionary ===
+    def visit_Dict(self, node: ast.Dict):  # noqa: N802
+        pairs = []
+        for key, value in zip(node.keys, node.values):
+            if key is None:  # Handle dict unpacking
+                continue
+            key_js = self.visit(key)
+            value_js = self.visit(value)
+            pairs.append(f"{key_js}: {value_js}")
+        return f"{{{', '.join(pairs)}}}"
+
     # === Fallback for Unsupported Nodes ===
     def generic_visit(self, node):
         raise TranspilerError(
