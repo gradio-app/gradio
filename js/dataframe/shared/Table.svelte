@@ -817,6 +817,7 @@
 		class="table-wrap"
 		class:dragging
 		class:no-wrap={!wrap}
+		class:menu-open={active_cell_menu || active_header_menu}
 		style="height:{table_height}px"
 		on:keydown={(e) => handle_keydown(e)}
 		role="grid"
@@ -925,6 +926,8 @@
 				bind:actual_height={table_height}
 				bind:table_scrollbar_width={scrollbar_width}
 				selected={selected_index}
+				disable_scroll={active_cell_menu !== null ||
+					active_header_menu !== null}
 			>
 				{#if label && label.length !== 0}
 					<caption class="sr-only">{label}</caption>
@@ -1120,6 +1123,10 @@
 		transition: 150ms;
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
+		overflow: hidden;
+	}
+
+	.table-wrap.menu-open {
 		overflow: hidden;
 	}
 
