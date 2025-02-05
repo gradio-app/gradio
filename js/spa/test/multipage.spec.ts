@@ -1,10 +1,7 @@
 import { test, expect, is_lite } from "@self/tootils";
 
 test("Test multipage navigation and events", async ({ page }) => {
-	test.fixme(
-		is_lite,
-		"Lite doesn't support multipage gradio apps"
-	);
+	test.fixme(is_lite, "Lite doesn't support multipage gradio apps");
 
 	await page.getByLabel("Name").fill("asdf");
 	await page.getByRole("button", { name: "Greet" }).click();
