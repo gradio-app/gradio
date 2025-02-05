@@ -111,6 +111,9 @@
 
 	function make_headers(_head: Headers): HeadersWithIDs {
 		let _h = _head || [];
+		if (show_row_numbers) {
+			_h = ["", ..._h];
+		}
 		if (col_count[1] === "fixed" && _h.length < col_count[0]) {
 			const fill = Array(col_count[0] - _h.length)
 				.fill("")
@@ -142,8 +145,8 @@
 		const data_row_length = _values.length;
 		return Array(row_count[1] === "fixed" ? row_count[0] : data_row_length)
 			.fill(0)
-			.map((_, i) =>
-				Array(
+			.map((_, i) => {
+				const row_data = Array(
 					col_count[1] === "fixed"
 						? col_count[0]
 						: data_row_length > 0
@@ -157,8 +160,18 @@
 						const obj = { value: _values?.[i]?.[j] ?? "", id };
 						data_binding[id] = obj;
 						return obj;
-					})
-			);
+					});
+
+				if (show_row_numbers) {
+					const id = make_id();
+					els[id] = { cell: null, input: null };
+					const row_num = { value: i + 1, id };
+					data_binding[id] = row_num;
+					return [row_num, ...row_data];
+				}
+
+				return row_data;
+			});
 	}
 
 	let _headers = make_headers(headers);
@@ -587,6 +600,10 @@
 	): void {
 		event.preventDefault();
 		event.stopPropagation();
+
+		// prevent selection of row number cells
+		if (show_row_numbers && col === 0) return;
+
 		clear_on_focus = false;
 		active_cell_menu = null;
 		active_header_menu = null;
@@ -913,15 +930,6 @@
 					<caption class="sr-only">{label}</caption>
 				{/if}
 				<tr slot="thead">
-					{#if show_row_numbers}
-						<th class="row-number-header">
-							<div class="cell-wrap">
-								<div class="header-content">
-									<div class="header-text"></div>
-								</div>
-							</div>
-						</th>
-					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
 							class:focus={header_edit === i || selected_header === i}
@@ -946,16 +954,18 @@
 										{root}
 										{editable}
 									/>
-									<div class="sort-buttons">
-										<SortIcon
-											direction={sort_by === i ? sort_direction : null}
-											on:sort={({ detail }) => handle_sort(i, detail)}
-											{i18n}
-										/>
-									</div>
+									{#if i !== 0 || !show_row_numbers}
+										<div class="sort-buttons">
+											<SortIcon
+												direction={sort_by === i ? sort_direction : null}
+												on:sort={({ detail }) => handle_sort(i, detail)}
+												{i18n}
+											/>
+										</div>
+									{/if}
 								</div>
 
-								{#if editable}
+								{#if editable && (!show_row_numbers || i !== 0)}
 									<button
 										class="cell-menu-button"
 										on:click={(event) => toggle_header_menu(event, i)}
@@ -969,14 +979,9 @@
 				</tr>
 
 				<tr slot="tbody" let:item let:index class:row_odd={index % 2 === 0}>
-					{#if show_row_numbers}
-						<td class="row-number" title={`Row ${row_order[index] + 1}`}
-							>{row_order[index] + 1}</td
-						>
-					{/if}
 					{#each item as { value, id }, j (id)}
 						<td
-							tabindex="0"
+							tabindex={show_row_numbers && j === 0 ? -1 : 0}
 							on:touchstart={(event) => {
 								const touch = event.touches[0];
 								const mouseEvent = new MouseEvent("click", {
@@ -999,6 +1004,7 @@
 							class:menu-active={active_cell_menu &&
 								active_cell_menu.row === index &&
 								active_cell_menu.col === j}
+							class:row-number={show_row_numbers && j === 0}
 						>
 							<div class="cell-wrap">
 								<EditableCell
@@ -1007,7 +1013,7 @@
 									display_value={display_value?.[index]?.[j]}
 									{latex_delimiters}
 									{line_breaks}
-									{editable}
+									editable={editable && (!show_row_numbers || j !== 0)}
 									edit={dequal(editing, [index, j])}
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
 									on:blur={() => {
@@ -1027,7 +1033,7 @@
 									{root}
 									{max_chars}
 								/>
-								{#if editable && should_show_cell_menu([index, j], selected_cells, editable)}
+								{#if editable && (!show_row_numbers || j !== 0) && should_show_cell_menu([index, j], selected_cells, editable)}
 									<button
 										class="cell-menu-button"
 										on:click={(event) => toggle_cell_menu(event, index, j)}
@@ -1314,10 +1320,6 @@
 
 	.row-number-header :global(.sort-icons) {
 		margin-right: 0;
-	}
-
-	.row-number {
-		z-index: var(--layer-1);
 	}
 
 	:global(tbody > tr:nth-child(odd)) .row-number {
