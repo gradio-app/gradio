@@ -1,5 +1,11 @@
 # @self/storybook
 
+## 0.8.1
+
+### Features
+
+- [#10446](https://github.com/gradio-app/gradio/pull/10446) [`2cf449a`](https://github.com/gradio-app/gradio/commit/2cf449abb38815bb3414ac9bee1535f5f0f834ae) - Add more ImageEditor js tests.  Thanks @freddyaboulton!
+
 ## 0.8.0
 
 ### Features

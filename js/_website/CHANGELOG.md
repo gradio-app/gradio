@@ -1,5 +1,17 @@
 # website
 
+## 0.48.0
+
+### Features
+
+- [#10480](https://github.com/gradio-app/gradio/pull/10480) [`90f90b7`](https://github.com/gradio-app/gradio/commit/90f90b7989081b0e4422384ee699cb98781723d1) - Add sidebar to the docs.  Thanks @aliabd!
+- [#10495](https://github.com/gradio-app/gradio/pull/10495) [`35fda36`](https://github.com/gradio-app/gradio/commit/35fda36de9745757298cafb3d8b91cbc1a4358c9) - Add an `anchor_links` parameter to `gr.ParamViewer` that allows linking to specific parameters.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/paramviewer@0.7.0
+- @gradio/code@0.10.16
+
 ## 0.47.3
 
 ### Dependency updates
