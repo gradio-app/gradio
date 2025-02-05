@@ -47,7 +47,7 @@ describe("table_utils", () => {
 				data_binding
 			);
 
-			expect(test_result[0].map((item) => item.value)).toEqual([1, "1", "2"]);
+			expect(test_result[0].map((item) => item.value)).toEqual(["1", "2"]);
 			expect(test_result).toHaveLength(2);
 		});
 

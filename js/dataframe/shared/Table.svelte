@@ -29,8 +29,12 @@
 		get_current_indices,
 		handle_click_outside as handle_click_outside_util
 	} from "./selection_utils";
-	import { copy_table_data, get_max, handle_file_upload } from "./table_utils";
-	import { sort_table_data } from "./table-utils";
+	import {
+		copy_table_data,
+		get_max,
+		handle_file_upload,
+		sort_table_data
+	} from "./utils/table_utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -109,7 +113,14 @@
 		return Math.random().toString(36).substring(2, 15);
 	}
 
-	function make_headers(_head: Headers): HeadersWithIDs {
+	function make_headers(
+		_head: Headers,
+		col_count: [number, "fixed" | "dynamic"],
+		els: Record<
+			string,
+			{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
+		>
+	): HeadersWithIDs {
 		let _h = _head || [];
 		if (col_count[1] === "fixed" && _h.length < col_count[0]) {
 			const fill = Array(col_count[0] - _h.length)
@@ -161,12 +172,12 @@
 			});
 	}
 
-	let _headers = make_headers(headers);
+	let _headers = make_headers(headers, col_count, els);
 	let old_headers: string[] = headers;
 
 	$: {
 		if (!dequal(headers, old_headers)) {
-			_headers = make_headers(headers);
+			_headers = make_headers(headers, col_count, els);
 			old_headers = JSON.parse(JSON.stringify(headers));
 		}
 	}
@@ -538,14 +549,7 @@
 			return;
 		}
 
-		sort_table_data(
-			_data,
-			_display_value,
-			_styling,
-			col,
-			dir,
-			show_row_numbers
-		);
+		sort_table_data(_data, _display_value, _styling, col, dir);
 		data = data;
 
 		if (id) {
@@ -702,7 +706,7 @@
 	}
 
 	async function handle_copy(): Promise<void> {
-		await copy_table_data(data, _headers, selected_cells);
+		await copy_table_data(data, selected_cells);
 	}
 
 	function toggle_header_menu(event: MouseEvent, col: number): void {
@@ -900,9 +904,12 @@
 			on:load={({ detail }) =>
 				handle_file_upload(
 					detail.data,
-					col_count,
 					(head) => {
-						_headers = make_headers(head);
+						_headers = make_headers(
+							head.map((h) => h ?? ""),
+							col_count,
+							els
+						);
 						return _headers;
 					},
 					(vals) => {
