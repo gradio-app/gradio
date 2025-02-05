@@ -23,7 +23,6 @@
 
 	$: suggested_links;
 
-
 	interface CodeState {
 		status: "idle" | "generating" | "error" | "regenerating";
 		code_edited: boolean;
@@ -37,7 +36,7 @@
 		code_edited: true,
 		code_exists: false,
 		model_info: "",
-		generation_error: "",
+		generation_error: ""
 	};
 
 	$: code_state;
@@ -47,7 +46,8 @@
 	let system_prompt = SYSTEM_PROMPT.SYSTEM;
 	let fallback_prompt = SYSTEM_PROMPT.FALLBACK;
 
-	const workerUrl = "https://semantic-search.playground-worker.pages.dev/api/generate";
+	const workerUrl =
+		"https://semantic-search.playground-worker.pages.dev/api/generate";
 	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
 	// const workerUrl = "http://localhost:5173/api/generate";
 

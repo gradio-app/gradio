@@ -10,7 +10,7 @@
 	import { BaseCode as Code } from "@gradio/code";
 	import version_json from "$lib/json/version.json";
 	import WHEEL from "$lib/json/wheel.json";
-	import { fade, fly, slide, blur} from 'svelte/transition';
+	import { fade, fly, slide, blur } from "svelte/transition";
 
 	export let data: {
 		demos_by_category: {
@@ -56,38 +56,20 @@
 
 	let version = version_json.version;
 
-// 	let suggested_links = [{
-// 		title:"Audio",
-// 		url:"/guides/object-detection-from-webcam-with-webrtc",
-// 		type:"DEMO"
-// 	},
-// 	{
-// 		title:"Object Detection From Webcam With Webrtc",
-// 		url:"/guides/object-detection-from-webcam-with-webrtc",
-// 		type:"DEMO"
-// 	},
-// 	{
-// 		title:"Audio Generation",
-// 		url:"/guides/object-detection-from-webcam-with-webrtc",
-// 		type:"DEMO"
-// 	}
-// ];
 	let suggested_links = [];
 
 	$: if (suggested_links) {
-		suggested_links.forEach(link => {
+		suggested_links.forEach((link) => {
 			if (link.type == "DEMO") {
 				console.log(all_demos);
-				all_demos.push(
-					{
-						name: link.title,
-						dir: link.title,
-						code: link.url,
-						requirements: []
-					}
-				)
+				all_demos.push({
+					name: link.title,
+					dir: link.title,
+					code: link.url,
+					requirements: []
+				});
 			}
-		})
+		});
 	}
 	$: all_demos;
 	$: suggested_links;
@@ -162,42 +144,49 @@
 				{#if show_nav}
 					{#each suggested_links as link}
 						{#if link.type == "DEMO"}
-						<div class="flex items-baseline" in:slide out:slide>
-							<p 
-							class:hidden={shared == link.title}
-							class="pl-4 pr-2">✨</p>
-							<button
-							on:click={() => (current_selection = link.title)}
-							class:current-playground-demo={current_selection == link.title}
-							class:shared-link={shared == link.title}
-							class="thin-link pr-4 block mt-1 !pl-0 !pr-0 text-gray-800 break-words w-full text-left capitalize" style="white-space: initial">{link.title.replaceAll("-", " ")}</button
-						>
-						</div>
+							<div class="flex items-baseline" in:slide out:slide>
+								<p class:hidden={shared == link.title} class="pl-4 pr-2">✨</p>
+								<button
+									on:click={() => (current_selection = link.title)}
+									class:current-playground-demo={current_selection ==
+										link.title}
+									class:shared-link={shared == link.title}
+									class="thin-link pr-4 block mt-1 !pl-0 !pr-0 text-gray-800 break-words w-full text-left capitalize"
+									style="white-space: initial"
+									>{link.title.replaceAll("-", " ")}</button
+								>
+							</div>
 						{:else}
-							<a 
-							class:bg-orange-100={link.type == "GUIDE"}
-							class:border-orange-100={link.type == "GUIDE"}
-							class:bg-green-100={link.type == "DOCS"}
-							class:border-green-100={link.type == "DOCS"}
-						class="sug-block my-2" href={link.url} target="_blank" in:slide out:slide>
+							<a
+								class:bg-orange-100={link.type == "GUIDE"}
+								class:border-orange-100={link.type == "GUIDE"}
+								class:bg-green-100={link.type == "DOCS"}
+								class:border-green-100={link.type == "DOCS"}
+								class="sug-block my-2"
+								href={link.url}
+								target="_blank"
+								in:slide
+								out:slide
+							>
 								<div class="flex items-center flex-row">
 									<p
 										class:text-orange-700={link.type == "GUIDE"}
 										class:text-green-700={link.type == "DOCS"}
 										class="text-xs font-semibold flex-grow"
 									>
-									{link.type}
+										{link.type}
 									</p>
-									<p
-										class="float-right text-xs font-semibold mx-1"
-									>
-									✨
-									</p>
+									<p class="float-right text-xs font-semibold mx-1">✨</p>
 								</div>
-								<p class="font-light break-words w-full text-sm" style="white-space: initial">{link.title}</p>
-							</a>	
-					{/if}
-				{/each}
+								<p
+									class="font-light break-words w-full text-sm"
+									style="white-space: initial"
+								>
+									{link.title}
+								</p>
+							</a>
+						{/if}
+					{/each}
 					<button
 						on:click={() => (current_selection = "Blank")}
 						class:current-playground-demo={current_selection == "Blank"}
@@ -222,7 +211,7 @@
 				demos={all_demos}
 				{current_selection}
 				{show_nav}
-				bind:suggested_links={suggested_links}
+				bind:suggested_links
 			/>
 		</div>
 	</main>
@@ -456,7 +445,6 @@
 		overflow: hidden !important;
 	}
 	.sug-block {
-		@apply block m-2 p-2 border rounded-md hover:scale-[1.02] drop-shadow-md ;
+		@apply block m-2 p-2 border rounded-md hover:scale-[1.02] drop-shadow-md;
 	}
 </style>
-
