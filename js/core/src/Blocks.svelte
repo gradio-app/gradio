@@ -306,7 +306,25 @@
 			);
 		} else {
 			if (dep.backend_fn) {
-				trigger_prediction(dep, payload);
+				if (dep.js_implementation) {
+					let js_fn = new AsyncFunction(
+						`let result = await (${dep.js_implementation})(...arguments);
+						return (!Array.isArray(result)) ? [result] : result;`
+					);
+					js_fn(...payload.data)
+						.then((js_result) => {
+							handle_update(js_result, dep_index);
+						})
+						.catch((error) => {
+							messages = [
+								new_message("Error", String(error), dep_index, "error"),
+								...messages
+							];
+						});
+					``;
+				} else {
+					trigger_prediction(dep, payload);
+				}
 			}
 		}
 
