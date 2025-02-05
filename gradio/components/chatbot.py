@@ -278,7 +278,7 @@ class Chatbot(Component):
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
             allow_file_downloads: If True, will show a download button for chatbot messages that contain media. Defaults to True.
             group_consecutive_messages: If True, will display consecutive messages from the same role in the same bubble. If False, will display each message in a separate bubble. Defaults to True.
-            allow_tags: If provided, these tags will be preserved in the output chatbot messages.
+            allow_tags: If provided, these tags will be preserved in the output chatbot messages, even if `sanitize_html` is `True`. For example, if this list is ["thinking"], the tags `<thinking>` and `</thinking>` will not be removed.
         """
         if type is None:
             warnings.warn(
