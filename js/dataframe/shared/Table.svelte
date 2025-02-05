@@ -1249,7 +1249,7 @@
 		min-width: 0;
 		white-space: normal;
 		overflow-wrap: break-word;
-		word-break: break-word;
+		word-break: normal;
 		height: 100%;
 		padding: var(--size-1);
 		gap: var(--size-1);
