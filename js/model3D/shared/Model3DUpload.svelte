@@ -99,6 +99,7 @@
 		bind:dragging
 		bind:uploading
 		on:error
+		aria_label={i18n("model3d.drop_to_upload")}
 	>
 		<slot />
 	</Upload>

@@ -614,7 +614,7 @@
 
 		selected_cells = handle_selection([row, col], selected_cells, event);
 
-		if (selected_cells.length === 1) {
+		if (selected_cells.length === 1 && editable) {
 			editing = [row, col];
 			tick().then(() => {
 				const input_el = els[data[row][col].id].input;
@@ -823,6 +823,7 @@
 									edit={false}
 									el={null}
 									{root}
+									{editable}
 								/>
 
 								<div
@@ -858,6 +859,7 @@
 									edit={false}
 									el={null}
 									{root}
+									{editable}
 								/>
 							</div>
 						</td>
@@ -886,6 +888,7 @@
 					}
 				)}
 			bind:dragging
+			aria_label={i18n("dataframe.drop_to_upload")}
 		>
 			<VirtualTable
 				bind:items={data}
@@ -923,6 +926,7 @@
 										on:dblclick={() => edit_header(i)}
 										header
 										{root}
+										{editable}
 									/>
 									<button
 										class:sorted={sort_by === i}

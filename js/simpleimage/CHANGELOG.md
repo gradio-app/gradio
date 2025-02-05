@@ -1,5 +1,12 @@
 # @gradio/simpleimage
 
+## 0.8.16
+
+### Dependency updates
+
+- @gradio/client@1.11.0
+- @gradio/upload@0.15.0
+
 ## 0.8.15
 
 ### Dependency updates
