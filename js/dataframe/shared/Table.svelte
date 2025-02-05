@@ -995,6 +995,7 @@
 						<td
 							tabindex={show_row_numbers && j === 0 ? -1 : 0}
 							on:touchstart={(event) => {
+								if (!editable) return;
 								const touch = event.touches[0];
 								const mouseEvent = new MouseEvent("click", {
 									clientX: touch.clientX,
@@ -1006,12 +1007,17 @@
 								handle_cell_click(mouseEvent, index, j);
 							}}
 							on:mousedown={(event) => {
+								if (!editable) return;
 								event.preventDefault();
 								event.stopPropagation();
 							}}
-							on:click={(event) => handle_cell_click(event, index, j)}
+							on:click={(event) => {
+								if (!editable) return;
+								handle_cell_click(event, index, j);
+							}}
 							style:width="var(--cell-width-{j})"
 							style={styling?.[index]?.[j] || ""}
+							class:not-editable={!editable}
 							class={is_cell_selected([index, j], selected_cells)}
 							class:menu-active={active_cell_menu &&
 								active_cell_menu.row === index &&
@@ -1426,5 +1432,20 @@
 
 	.cell-selected.no-top.no-bottom.no-left.no-right {
 		box-shadow: none;
+	}
+
+	.not-editable {
+		user-select: text;
+		cursor: text;
+	}
+
+	.not-editable .cell-wrap {
+		pointer-events: none;
+	}
+
+	.not-editable :global(.editable-cell) {
+		pointer-events: auto;
+		user-select: text;
+		cursor: text;
 	}
 </style>
