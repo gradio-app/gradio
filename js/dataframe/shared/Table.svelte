@@ -751,8 +751,30 @@
 	let row_order: number[] = [];
 
 	$: {
-		if (sort_by === -1 && sort_direction === "des") {
-			row_order = [...Array(data.length)].map((_, i) => data.length - i - 1);
+		if (
+			typeof sort_by === "number" &&
+			sort_direction &&
+			sort_by >= 0 &&
+			sort_by < data[0].length
+		) {
+			const indices = [...Array(data.length)].map((_, i) => i);
+			const sort_index = sort_by as number;
+			indices.sort((a, b) => {
+				const row_a = data[a];
+				const row_b = data[b];
+				if (
+					!row_a ||
+					!row_b ||
+					sort_index >= row_a.length ||
+					sort_index >= row_b.length
+				)
+					return 0;
+				const val_a = row_a[sort_index].value;
+				const val_b = row_b[sort_index].value;
+				const comp = val_a < val_b ? -1 : val_a > val_b ? 1 : 0;
+				return sort_direction === "asc" ? comp : -comp;
+			});
+			row_order = indices;
 		} else {
 			row_order = [...Array(data.length)].map((_, i) => i);
 		}
@@ -801,13 +823,6 @@
 							<div class="cell-wrap">
 								<div class="header-content">
 									<div class="header-text"></div>
-									<div class="sort-buttons">
-										<SortIcon
-											direction={sort_by === -1 ? sort_direction : null}
-											on:sort={({ detail }) => handle_sort(-1, detail)}
-											{i18n}
-										/>
-									</div>
 								</div>
 							</div>
 						</th>
@@ -903,13 +918,6 @@
 							<div class="cell-wrap">
 								<div class="header-content">
 									<div class="header-text"></div>
-									<div class="sort-buttons">
-										<SortIcon
-											direction={sort_by === -1 ? sort_direction : null}
-											on:sort={({ detail }) => handle_sort(-1, detail)}
-											{i18n}
-										/>
-									</div>
 								</div>
 							</div>
 						</th>
@@ -1302,13 +1310,6 @@
 		height: var(--size-9);
 		display: flex;
 		align-items: center;
-	}
-
-	.row-number-header .sort-buttons {
-		margin: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
 	}
 
 	.row-number-header :global(.sort-icons) {
