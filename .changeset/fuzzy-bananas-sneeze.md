@@ -1,4 +1,5 @@
 ---
+"@gradio/core": minor
 "gradio": minor
 ---
 
