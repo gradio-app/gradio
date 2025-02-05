@@ -26,5 +26,5 @@ def transpile(fn: Callable) -> str:
     Transpiles a Python function to JavaScript and returns the JavaScript code as a string.
     """
 
-    mock_js_function = "function mock_js_function() { return 'Hello, world!'; }"
+    mock_js_function = "function mock_js_function(a, b, c) { return 786; }"
     return mock_js_function
