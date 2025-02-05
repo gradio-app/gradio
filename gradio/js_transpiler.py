@@ -24,17 +24,20 @@ def js(fn: Callable) -> Callable:
 
     return wrapper
 
+
 class TranspilerError(Exception):
     """Exception raised when transpilation fails or encounters ambiguous syntax."""
+
     def __init__(self, message: str, node: ast.AST | None = None):
         self.node = node
-        if node and hasattr(node, 'lineno'):
+        if node and hasattr(node, "lineno"):
             message = f"Line {node.lineno}: {message}"  # type: ignore
         super().__init__(message)
 
+
 class PythonToJSVisitor(ast.NodeVisitor):
     def __init__(self):
-        self.js_lines = []     # Accumulate lines of JavaScript code.
+        self.js_lines = []  # Accumulate lines of JavaScript code.
         self.indent_level = 0  # Track current indent level for readability.
 
     def indent(self) -> str:
@@ -98,11 +101,11 @@ class PythonToJSVisitor(ast.NodeVisitor):
         left = self.visit(node.left)
         ops = [self.visit(op) for op in node.ops]
         comparators = [self.visit(comp) for comp in node.comparators]
-        
+
         # For now, we only support single comparisons
         if len(ops) != 1 or len(comparators) != 1:
             raise TranspilerError("Only single comparisons are supported")
-            
+
         return f"({left} {ops[0]} {comparators[0]})"
 
     def visit_Gt(self, node: ast.Gt):  # noqa: N802
@@ -158,7 +161,9 @@ class PythonToJSVisitor(ast.NodeVisitor):
 
     # === Fallback for Unsupported Nodes ===
     def generic_visit(self, node):
-        raise TranspilerError(f"Unsupported or ambiguous syntax encountered: {ast.dump(node)}", node)
+        raise TranspilerError(
+            f"Unsupported or ambiguous syntax encountered: {ast.dump(node)}", node
+        )
 
 
 def transpile(fn: Callable) -> str:
@@ -170,7 +175,9 @@ def transpile(fn: Callable) -> str:
         source = inspect.getsource(fn)
         source = textwrap.dedent(source)
     except Exception as e:
-        raise TranspilerError("Could not retrieve source code from the function.") from e
+        raise TranspilerError(
+            "Could not retrieve source code from the function."
+        ) from e
 
     # Parse the source code into an AST.
     try:
@@ -201,6 +208,7 @@ def example_function(x, y):
         return z
     else:
         return 0
+
 
 if __name__ == "__main__":
     try:
