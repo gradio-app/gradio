@@ -1,47 +1,26 @@
-export type SortDirection = "asc" | "des";
+import { sort_data } from "./utils/sort_utils";
+import type { SortDirection } from "./utils/sort_utils";
 
-type TableCell = {
-	id: string;
-	value: string | number;
-};
-
-const compare_values = (a: string | number, b: string | number): number => {
-	const val_a = Number(a);
-	const val_b = Number(b);
-	return !isNaN(val_a) && !isNaN(val_b)
-		? val_a - val_b
-		: String(a).localeCompare(String(b));
-};
-
-export const sort_table_data = (
-	data: TableCell[][],
+export function sort_table_data(
+	data: { id: string; value: string | number }[][],
 	display_value: string[][] | null,
 	styling: string[][] | null,
 	col: number,
-	dir: SortDirection
-): void => {
-	const indices = [...Array(data.length).keys()];
-	const compare =
-		col === -1
-			? (i: number, j: number) => (dir === "asc" ? i - j : j - i)
-			: (i: number, j: number) => {
-					const result = compare_values(data[i][col].value, data[j][col].value);
-					return dir === "asc" ? result : -result;
-				};
+	dir: SortDirection,
+	show_row_numbers = false
+): void {
+	const indices = sort_data(data, col, dir);
 
-	indices.sort(compare);
+	const new_data = indices.map((i: number) => data[i]);
+	data.splice(0, data.length, ...new_data);
 
-	const temp_data = [...data];
-	const temp_display = display_value ? [...display_value] : null;
-	const temp_styling = styling ? [...styling] : null;
+	if (display_value) {
+		const new_display = indices.map((i: number) => display_value[i]);
+		display_value.splice(0, display_value.length, ...new_display);
+	}
 
-	indices.forEach((orig_idx, sorted_idx) => {
-		data[sorted_idx] = temp_data[orig_idx];
-		if (display_value && temp_display) {
-			display_value[sorted_idx] = temp_display[orig_idx];
-		}
-		if (styling && temp_styling) {
-			styling[sorted_idx] = temp_styling[orig_idx];
-		}
-	});
-};
+	if (styling) {
+		const new_styling = indices.map((i: number) => styling[i]);
+		styling.splice(0, styling.length, ...new_styling);
+	}
+}

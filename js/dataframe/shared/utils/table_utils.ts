@@ -29,7 +29,7 @@ export function process_data(
 	return Array(row_count[1] === "fixed" ? row_count[0] : data_row_length)
 		.fill(0)
 		.map((_, row) => {
-			const row_data = Array(
+			return Array(
 				col_count[1] === "fixed"
 					? col_count[0]
 					: data_row_length > 0
@@ -50,29 +50,15 @@ export function process_data(
 					data_binding[cell_id] = cell_obj;
 					return cell_obj;
 				});
-
-			if (show_row_numbers) {
-				const row_num_id = make_cell_id(row, -1);
-				element_refs[row_num_id] = { cell: null, input: null };
-				const row_num_obj: TableCell = { value: row + 1, id: row_num_id };
-				data_binding[row_num_id] = row_num_obj;
-				return [row_num_obj, ...row_data];
-			}
-
-			return row_data;
 		});
 }
 
 export function make_headers(
 	input_headers: Headers,
-	show_row_numbers: boolean,
 	col_count: CountConfig,
 	element_refs: ElementRefs
 ): HeadersWithIDs[] {
 	let header_list = input_headers || [];
-	if (show_row_numbers) {
-		header_list = ["", ...header_list];
-	}
 	if (col_count[1] === "fixed" && header_list.length < col_count[0]) {
 		const fill_headers = Array(col_count[0] - header_list.length)
 			.fill("")

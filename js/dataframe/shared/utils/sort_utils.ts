@@ -43,6 +43,7 @@ export function sort_data(
 				sort_by >= row_b.length
 			)
 				return 0;
+
 			const val_a = row_a[sort_by].value;
 			const val_b = row_b[sort_by].value;
 			const comparison = val_a < val_b ? -1 : val_a > val_b ? 1 : 0;
