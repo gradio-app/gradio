@@ -713,21 +713,11 @@
 			}
 			loading_status.scroll_to_output = dependency.scroll_to_output;
 			loading_status.show_progress = dependency.show_progress;
-			if (dependency.show_progress_on === null) {
-				updates.push({
-					id: parseInt(id),
-					prop: "loading_status",
-					value: loading_status
-				});
-			} else {
-				for (const _id of dependency.show_progress_on) {
-					updates.push({
-						id: _id,
-						prop: "loading_status",
-						value: loading_status
-					});
-				}
-			}
+			updates.push({
+				id: parseInt(id),
+				prop: "loading_status",
+				value: loading_status
+			});
 		});
 
 		const inputs_to_update = loading_status.get_inputs_to_update();
