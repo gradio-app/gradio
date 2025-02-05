@@ -614,60 +614,29 @@ class EventListener(str):
                 show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
             """
 
-            if fn != "decorator" and hasattr(fn, "__js_implementation__"):
-                js = getattr(fn, "__js_implementation__")
-                # When js is provided, we don't need to run on backend
-                backend_fn = False
-            else:
-                backend_fn = True if fn != "decorator" else None
-
             if fn == "decorator":
+
                 def wrapper(func):
-                    # Check if the wrapped function has a JS implementation
-                    if hasattr(func, "__js_implementation__"):
-                        nonlocal js
-                        js = getattr(func, "__js_implementation__")
-                        event_trigger(
-                            block=block,
-                            fn=func,
-                            inputs=inputs,
-                            outputs=outputs,
-                            api_name=api_name,
-                            scroll_to_output=scroll_to_output,
-                            show_progress=show_progress,
-                            queue=queue,
-                            batch=batch,
-                            max_batch_size=max_batch_size,
-                            preprocess=preprocess,
-                            postprocess=postprocess,
-                            cancels=cancels,
-                            trigger_mode=trigger_mode,
-                            js=js,
-                            concurrency_limit=concurrency_limit,
-                            concurrency_id=concurrency_id,
-                            show_api=show_api,
-                        )
-                    else:
-                        event_trigger(
-                            block=block,
-                            fn=func,
-                            inputs=inputs,
-                            outputs=outputs,
-                            api_name=api_name,
-                            scroll_to_output=scroll_to_output,
-                            show_progress=show_progress,
-                            queue=queue,
-                            batch=batch,
-                            max_batch_size=max_batch_size,
-                            preprocess=preprocess,
-                            postprocess=postprocess,
-                            cancels=cancels,
-                            trigger_mode=trigger_mode,
-                            js=js,
-                            concurrency_limit=concurrency_limit,
-                            concurrency_id=concurrency_id,
-                            show_api=show_api,
-                        )
+                    event_trigger(
+                        block=block,
+                        fn=func,
+                        inputs=inputs,
+                        outputs=outputs,
+                        api_name=api_name,
+                        scroll_to_output=scroll_to_output,
+                        show_progress=show_progress,
+                        queue=queue,
+                        batch=batch,
+                        max_batch_size=max_batch_size,
+                        preprocess=preprocess,
+                        postprocess=postprocess,
+                        cancels=cancels,
+                        trigger_mode=trigger_mode,
+                        js=js,
+                        concurrency_limit=concurrency_limit,
+                        concurrency_id=concurrency_id,
+                        show_api=show_api,
+                    )
 
                     @wraps(func)
                     def inner(*args, **kwargs):
