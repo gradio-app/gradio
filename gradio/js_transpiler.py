@@ -16,7 +16,7 @@ def js(fn: Callable) -> Callable:
     Returns:
         The original function wrapped with JavaScript transpilation metadata
     """
-    fn.__js_implementation__ = None
+    fn.__js_implementation__ = None  # type: ignore
 
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -84,16 +84,16 @@ class PythonToJSVisitor(ast.NodeVisitor):
         op = self.visit(node.op)
         return f"({left} {op} {right})"
 
-    def visit_Add(self, node: ast.Add):  # noqa: N802
+    def visit_Add(self, node: ast.Add):  # noqa: N802, ARG002
         return "+"
 
-    def visit_Sub(self, node: ast.Sub):  # noqa: N802
+    def visit_Sub(self, node: ast.Sub):  # noqa: N802, ARG002
         return "-"
 
-    def visit_Mult(self, node: ast.Mult):  # noqa: N802
+    def visit_Mult(self, node: ast.Mult):  # noqa: N802, ARG002
         return "*"
 
-    def visit_Div(self, node: ast.Div):  # noqa: N802
+    def visit_Div(self, node: ast.Div):  # noqa: N802, ARG002
         return "/"
 
     # === Comparison Operations ===
@@ -108,22 +108,22 @@ class PythonToJSVisitor(ast.NodeVisitor):
 
         return f"({left} {ops[0]} {comparators[0]})"
 
-    def visit_Gt(self, node: ast.Gt):  # noqa: N802
+    def visit_Gt(self, node: ast.Gt):  # noqa: N802, ARG002
         return ">"
 
-    def visit_Lt(self, node: ast.Lt):  # noqa: N802
+    def visit_Lt(self, node: ast.Lt):  # noqa: N802, ARG002
         return "<"
 
-    def visit_GtE(self, node: ast.GtE):  # noqa: N802
+    def visit_GtE(self, node: ast.GtE):  # noqa: N802, ARG002
         return ">="
 
-    def visit_LtE(self, node: ast.LtE):  # noqa: N802
+    def visit_LtE(self, node: ast.LtE):  # noqa: N802, ARG002
         return "<="
 
-    def visit_Eq(self, node: ast.Eq):  # noqa: N802
+    def visit_Eq(self, node: ast.Eq):  # noqa: N802, ARG002
         return "==="
 
-    def visit_NotEq(self, node: ast.NotEq):  # noqa: N802
+    def visit_NotEq(self, node: ast.NotEq):  # noqa: N802, ARG002
         return "!=="
 
     # === If Statement ===
