@@ -1,7 +1,7 @@
 ---
-"@gradio/chatbot": patch
-"@gradio/markdown-code": patch
-"gradio": patch
+"@gradio/chatbot": minor
+"@gradio/markdown-code": minor
+"gradio": minor
 ---
 
-fix:Chatbot `allow_tags`
+feat:Chatbot `allow_tags`
