@@ -365,15 +365,7 @@ class App(FastAPI):
                 if (
                     getattr(blocks, "node_process", None) is not None
                     and blocks.node_port is not None
-                    and not path.startswith("/gradio_api")
-                    and path not in ["/config", "/favicon.ico"]
-                    and not path.startswith("/theme")
-                    and not path.startswith("/svelte")
-                    and not path.startswith("/static")
-                    and not path.startswith("/login")
-                    and not path.startswith("/logout")
-                    and not path.startswith("/manifest.json")
-                    and not path.startswith("/pwa_icon")
+                    and not any(path.startswith(f"/{url}") for url in INTERNAL_ROUTES)
                 ):
                     if App.app_port is None:
                         App.app_port = request.url.port or int(
@@ -524,18 +516,50 @@ class App(FastAPI):
                 )
             )
 
+        def attach_page(page):
+            @app.get(f"/{page}", response_class=HTMLResponse)
+            @app.get(f"/{page}/", response_class=HTMLResponse)
+            def page_route(
+                request: fastapi.Request,
+                user: str = Depends(get_current_user),
+            ):
+                return main(request, user, page)
+
+        for pageset in blocks.pages:
+            page = pageset[0]
+            if page != "":
+                attach_page(page)
+
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
-        def main(request: fastapi.Request, user: str = Depends(get_current_user)):
+        def main(
+            request: fastapi.Request,
+            user: str = Depends(get_current_user),
+            page: str = "",
+        ):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
             root = route_utils.get_root_url(
-                request=request, route_path="/", root_path=app.root_path
+                request=request,
+                route_path=f"/{page}",
+                root_path=app.root_path,
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
                 config = route_utils.update_root_in_config(config, root)
                 config["username"] = user
+                config["components"] = [
+                    component
+                    for component in config["components"]
+                    if component["id"] in config["page"][page]["components"]
+                ]
+                config["dependencies"] = [
+                    dependency
+                    for dependency in config.get("dependencies", [])
+                    if dependency["id"] in config["page"][page]["dependencies"]
+                ]
+                config["layout"] = config["page"][page]["layout"]
+                config["current_page"] = page
             elif app.auth_dependency:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
@@ -553,7 +577,7 @@ class App(FastAPI):
                     "frontend/share.html" if blocks.share else "frontend/index.html"
                 )
                 gradio_api_info = api_info(request)
-                return templates.TemplateResponse(
+                resp = templates.TemplateResponse(
                     request=request,
                     name=template,
                     context={
@@ -561,6 +585,7 @@ class App(FastAPI):
                         "gradio_api_info": gradio_api_info,
                     },
                 )
+                return resp
             except TemplateNotFound as err:
                 if blocks.share:
                     raise ValueError(
@@ -1741,3 +1766,19 @@ def mount_gradio_app(
 
     app.mount(path, gradio_app)
     return app
+
+
+INTERNAL_ROUTES = [
+    "theme.css",
+    "robots.txt",
+    "pwa_icon",
+    "manifest.json",
+    "login",
+    "logout",
+    "svelte",
+    "config",
+    "static",
+    "assets",
+    "favicon.ico",
+    "gradio_api",
+]

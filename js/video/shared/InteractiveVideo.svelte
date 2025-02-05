@@ -92,6 +92,7 @@
 					{root}
 					{upload}
 					{stream_handler}
+					aria_label={i18n("video.drop_to_upload")}
 				>
 					<slot />
 				</Upload>
