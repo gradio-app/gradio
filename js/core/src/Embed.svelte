@@ -14,7 +14,6 @@
 	export let pages: [string, string][] = [];
 	export let current_page = "";
 	export let root: string;
-	console.log(root);
 </script>
 
 <div

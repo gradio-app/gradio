@@ -72,7 +72,7 @@ export class Client {
 		if (url === null) {
 			url = window.location.href;
 		}
-		const stripSlashes = (str: string) => str.replace(/^\/+|\/+$/g, "");
+		const stripSlashes = (str: string): string => str.replace(/^\/+|\/+$/g, "");
 		let root_path = stripSlashes(new URL(this.config.root).pathname);
 		let url_path = stripSlashes(new URL(url).pathname);
 		let page = stripSlashes(url_path.substring(root_path.length));
