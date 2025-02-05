@@ -2,16 +2,14 @@ import gradio as gr
 from gradio import js
 
 @js
-def calculator(num1, operation, num2):
+def calculator(num1: float, operation: str, num2: float) -> float:
     if operation == "add":
         return num1 + num2
     elif operation == "subtract":
         return num1 - num2
     elif operation == "multiply":
         return num1 * num2
-    elif operation == "divide":
-        if num2 == 0:
-            raise gr.Error("Cannot divide by zero!")
+    else:
         return num1 / num2
 
 demo = gr.Interface(
