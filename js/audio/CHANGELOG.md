@@ -1,5 +1,17 @@
 # @gradio/audio
 
+## 0.17.0
+
+### Features
+
+- [#10478](https://github.com/gradio-app/gradio/pull/10478) [`afb96c6`](https://github.com/gradio-app/gradio/commit/afb96c64451e5a282bfee89445d831d1c87f9746) - Improve dataframe's upload accessibility.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/client@1.11.0
+- @gradio/upload@0.15.0
+- @gradio/button@0.4.5
+
 ## 0.16.0
 
 ### Features
