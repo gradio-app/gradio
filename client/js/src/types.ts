@@ -179,6 +179,16 @@ export interface Config {
 	show_api: boolean;
 	stylesheets: string[];
 	path: string;
+	current_page: string;
+	page: Record<
+		string,
+		{
+			components: number[];
+			dependencies: number[];
+			layout: any;
+		}
+	>;
+	pages: [string, string][];
 	protocol: "sse_v3" | "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws";
 	max_file_size?: number;
 	theme_hash?: number;
