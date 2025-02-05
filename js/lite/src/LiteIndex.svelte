@@ -11,7 +11,7 @@
 	import type { ThemeMode } from "@gradio/core";
 	import { WorkerProxy, type WorkerProxyOptions } from "@gradio/wasm";
 	import { FAKE_LITE_HOST } from "@gradio/wasm/network";
-	import { Client } from "@gradio/client";
+	import { Client, type Config } from "@gradio/client";
 	import { wasm_proxied_fetch } from "./fetch";
 	import { wasm_proxied_stream_factory } from "./sse";
 	import { wasm_proxied_mount_css, mount_prebuilt_css } from "./css";
@@ -135,6 +135,13 @@
 
 		stream(url: URL): EventSource {
 			return wasm_proxied_stream_factory(worker_proxy, url);
+		}
+
+		get_url_config(url: string | null = null): Config {
+			// A workaround for Lite to work with the multipage Client API.
+			// TODO: Support multiple pages on Lite
+			const page = "";
+			return this.get_page_config(page);
 		}
 	}
 
