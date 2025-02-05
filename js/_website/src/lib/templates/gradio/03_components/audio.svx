@@ -61,7 +61,7 @@ def predict(···) -> str | Path | bytes | tuple[int, np.ndarray] | None
 
 <!--- Initialization -->
 ### Initialization
-<ParamTable parameters={obj.parameters} />
+<ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
 
 
 {#if obj.string_shortcuts && obj.string_shortcuts.length > 0}
@@ -101,7 +101,7 @@ gradio.WaveformOptions(···)
 
 <!--- Initialization -->
 #### Initialization
-<ParamTable parameters={waveform_obj.parameters} />
+<ParamTable parameters={waveform_obj.parameters} anchor_links={waveform_obj.name}/>
 
 </div>
 

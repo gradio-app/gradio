@@ -142,7 +142,7 @@ demo.launch()
 
 <!--- Initialization -->
 ### Initialization
-<ParamTable parameters={obj.parameters} />
+<ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
 
 
 {#if obj.string_shortcuts && obj.string_shortcuts.length > 0}
@@ -234,21 +234,21 @@ gradio.ChatMessage(···)
 #### Description
 ## {@html style_formatted_text(chatmessage_obj.description)}
 
-<ParamTable parameters={chatmessage_obj.parameters} />
+<ParamTable parameters={chatmessage_obj.parameters} anchor_links={chatmessage_obj.name} />
 
 <!--- Title -->
 ### MetadataDict
 
 ## {@html style_formatted_text(chatmessage_metadatadict.description)}
 
-<ParamTable parameters={chatmessage_metadatadict.parameters} header="Keys"/>
+<ParamTable parameters={chatmessage_metadatadict.parameters} header="Keys" anchor_links={chatmessage_metadatadict.name} />
 
 <!--- Title -->
 ### OptionDict
 
 ## {@html style_formatted_text(chatmessage_optiondict.description)}
 
-<ParamTable parameters={chatmessage_optiondict.parameters} header="Keys"/>
+<ParamTable parameters={chatmessage_optiondict.parameters} header="Keys" anchor_links={chatmessage_optiondict.name} />
 
 </div>
 

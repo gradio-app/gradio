@@ -65,7 +65,8 @@
 	>
 		Event Parameters
 	</h4>
-	<ParamTable parameters={fns[0].parameters}></ParamTable>
+	<ParamTable parameters={fns[0].parameters} anchor_links={"event"}
+	></ParamTable>
 </div>
 
 <style>

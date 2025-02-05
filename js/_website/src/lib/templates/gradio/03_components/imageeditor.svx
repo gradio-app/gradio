@@ -63,7 +63,7 @@ def predict(···) -> EditorValue | ImageType | None
 
 <!--- Initialization -->
 ### Initialization
-<ParamTable parameters={obj.parameters} />
+<ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
 
 
 {#if obj.string_shortcuts && obj.string_shortcuts.length > 0}
@@ -103,7 +103,7 @@ gradio.Brush(···)
 
 <!--- Initialization -->
 #### Initialization
-<ParamTable parameters={brush_obj.parameters} />
+<ParamTable parameters={brush_obj.parameters} anchor_links={brush_obj.name} />
 
 <!-- ERASER -->
 <!--- Title -->
@@ -120,8 +120,7 @@ gradio.Eraser(···)
 
 <!--- Initialization -->
 #### Initialization
-<ParamTable parameters={eraser_obj.parameters} />
-
+<ParamTable parameters={eraser_obj.parameters} anchor_links={eraser_obj.name}/>
 
 </div>
 
