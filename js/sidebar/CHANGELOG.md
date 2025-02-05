@@ -1,5 +1,11 @@
 # @gradio/sidebar
 
+## 0.1.1
+
+### Features
+
+- [#10483](https://github.com/gradio-app/gradio/pull/10483) [`3750082`](https://github.com/gradio-app/gradio/commit/3750082b266464487cd5b7684ae1590ae03d3bef) - Sidebar Fixes.  Thanks @dawoodkhan82!
+
 ## 0.1.0
 
 ### Features

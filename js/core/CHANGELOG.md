@@ -1,5 +1,24 @@
 # @gradio/core
 
+## 0.9.0
+
+### Features
+
+- [#10433](https://github.com/gradio-app/gradio/pull/10433) [`2e8dc74`](https://github.com/gradio-app/gradio/commit/2e8dc74f751be02f7217f78d241806b42fcdca04) - Allow building multipage Gradio apps.  Thanks @aliabid94!
+- [#10478](https://github.com/gradio-app/gradio/pull/10478) [`afb96c6`](https://github.com/gradio-app/gradio/commit/afb96c64451e5a282bfee89445d831d1c87f9746) - Improve dataframe's upload accessibility.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/client@1.11.0
+- @gradio/upload@0.15.0
+- @gradio/button@0.4.5
+- @gradio/paramviewer@0.7.0
+- @gradio/code@0.10.16
+- @gradio/image@0.21.0
+- @gradio/gallery@0.15.5
+- @gradio/file@0.12.5
+- @gradio/video@0.14.0
+
 ## 0.8.0
 
 ### Features
