@@ -322,7 +322,12 @@
 					js_fn(...payload.data)
 						.then((js_result) => {
 							handle_update(js_result, dep_index);
+							payload.js_implementation = true;
 						})
+						.catch((error) => {
+							console.error(error);
+							payload.js_implementation = false;
+						});
 				}
 				trigger_prediction(dep, payload);
 			}
@@ -401,6 +406,9 @@
 			submit_map.set(dep_index, submission);
 
 			for await (const message of submission) {
+				if (payload.js_implementation) {
+					return;
+				}
 				if (message.type === "data") {
 					handle_data(message);
 				} else if (message.type === "render") {

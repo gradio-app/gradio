@@ -43,6 +43,7 @@ export interface Payload {
 	data: unknown[];
 	event_data?: unknown | null;
 	trigger_id?: number | null;
+	js_implementation?: boolean | null;
 }
 
 /** A dependency as received from the backend */
