@@ -9,14 +9,14 @@ def calculator(num1: float, operation: str, num2: float) -> float:
         return num1 - num2
     elif operation == "multiply":
         return num1 * num2
-    else:
+    elif operation == "divide":
         return num1 / num2
 
 demo = gr.Interface(
     calculator,
     [
         "number",
-        gr.Radio(["add", "subtract", "multiply", "divide"]),
+        gr.Radio(["add", "subtract", "multiply", "divide"], value="add"),
         "number"
     ],
     "number",
