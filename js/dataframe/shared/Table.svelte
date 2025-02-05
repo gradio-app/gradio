@@ -888,6 +888,7 @@
 					}
 				)}
 			bind:dragging
+			aria_label={i18n("dataframe.drop_to_upload")}
 		>
 			<VirtualTable
 				bind:items={data}

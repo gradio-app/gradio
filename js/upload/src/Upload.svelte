@@ -23,6 +23,7 @@
 	export let stream_handler: Client["stream"];
 	export let icon_upload = false;
 	export let height: number | string | undefined = undefined;
+	export let aria_label: string | undefined = undefined;
 
 	let upload_id: string;
 	let file_data: FileData[];
@@ -277,6 +278,7 @@
 				: "100%"}
 		tabindex={hidden ? -1 : 0}
 		on:click={paste_clipboard}
+		aria-label={aria_label || "Paste from clipboard"}
 	>
 		<slot />
 	</button>
@@ -311,10 +313,12 @@
 		on:drop={loadFilesFromDrop}
 		on:dragenter={updateDragging}
 		on:dragleave={updateDragging}
+		aria-label={aria_label || "Click to upload or drop files"}
+		aria-dropeffect="copy"
 	>
 		<slot />
 		<input
-			aria-label="file upload"
+			aria-label="File upload"
 			data-testid="file-upload"
 			type="file"
 			bind:this={hidden_upload}
