@@ -2,4 +2,4 @@
 "website": minor
 ---
 
-feat:Playground fixes and refactoring
+feat:Semantic search in the playground
