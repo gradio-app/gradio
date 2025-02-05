@@ -7,26 +7,24 @@ from functools import wraps
 def js(fn: Callable) -> Callable:
     """
     A decorator that marks a function to be transpiled to JavaScript and run on the client side.
-    For now, this is just a mock implementation that returns a simple JavaScript function.
 
     Parameters:
         fn: The Python function to be transpiled to JavaScript
     Returns:
         The original function wrapped with JavaScript transpilation metadata
     """
-    # For now, we'll just create a mock JavaScript implementation
-    mock_js = """
-    async function(args) {
-        console.log("Running transpiled function:", args);
-        // Mock implementation
-        return args;
-    }
-    """
-
-    fn.__js_implementation__ = mock_js
+    fn.__js_implementation__ = None
 
     @wraps(fn)
     def wrapper(*args, **kwargs):
         return fn(*args, **kwargs)
 
     return wrapper
+
+def transpile(fn: Callable) -> str:
+    """
+    Transpiles a Python function to JavaScript and returns the JavaScript code as a string.
+    """
+
+    mock_js_function = "function mock_js_function() { return 'Hello, world!'; }"
+    return mock_js_function

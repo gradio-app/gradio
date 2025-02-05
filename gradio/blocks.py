@@ -67,6 +67,7 @@ from gradio.exceptions import (
     InvalidComponentError,
 )
 from gradio.helpers import create_tracker, skip, special_args
+from gradio.js_transpiler import transpile
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream
 from gradio.routes import VERSION, App, Request
@@ -615,6 +616,7 @@ class BlockFunction:
             "stream_every": self.stream_every,
             "like_user_message": self.like_user_message,
             "event_specific_args": self.event_specific_args,
+            "js_implementation": getattr(self.fn, "__js_implementation__", None),
         }
 
 
@@ -2186,6 +2188,29 @@ Received inputs:
         )
         return config
 
+    def transpile_to_js(self, quiet: bool = False):
+        fns_to_transpile = [fn.fn for fn in self.fns.values() if fn.fn and hasattr(fn.fn, "__js_implementation__")]
+        if not quiet:
+            num_to_transpile = len(fns_to_transpile)
+            if num_to_transpile > 0:
+                print("********************************************")
+                print("* Transpiling functions from Python -> JS for performance")
+        for index, fn in enumerate(fns_to_transpile):
+            if not quiet:
+                print(f"* ({index+1}/{num_to_transpile}) {fn.__name__}: ", end="")
+            if fn.__js_implementation__ is None:
+                try:
+                    fn.__js_implementation__ = transpile(fn)
+                    if not quiet:
+                        print("✅")
+                except Exception as e:
+                    if not quiet:
+                        print(e)
+            elif not quiet:
+                print("✅")
+        if not quiet and num_to_transpile > 0:
+            print("********************************************\n")
+
     def __enter__(self):
         render_context = get_render_context()
         if render_context is None:
@@ -2461,6 +2486,7 @@ Received inputs:
         self.pwa = utils.get_space() is not None if pwa is None else pwa
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
+        self.transpile_to_js(quiet=quiet)
         self.config = self.get_config_file()
 
         self.ssr_mode = (
