@@ -19,6 +19,7 @@ Here's a complete example:
 
 $code_multipage
 
+All of these pages will share the same backend, including the same queue.
 
 Note: multipage apps do not support interactions between pages, e.g. an event listener on one page cannot output to a component on another page. Use `gr.Tabs()` for this type of functionality instead of pages.
 
@@ -34,7 +35,7 @@ Create one main file, say `app.py` and create separate Python files for each pag
 - second_page.py
 ```
 
-The Python file corresponding to each page shoudl consist of a regular Gradio Blocks, Interface, or ChatInterface application, e.g.
+The Python file corresponding to each page should consist of a regular Gradio Blocks, Interface, or ChatInterface application, e.g.
 
 `main_page.py`
 

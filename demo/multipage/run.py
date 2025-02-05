@@ -39,4 +39,4 @@ with demo.route("Interface") as incrementer_demo:
     gr.Interface(lambda x, y: x * y, ["number", "number"], "number")
 
 if __name__ == "__main__":
-    demo.launch(ssr_mode=True)
+    demo.launch()

@@ -13,6 +13,8 @@
 	export let loaded: boolean;
 	export let pages: [string, string][] = [];
 	export let current_page = "";
+	export let root: string;
+	console.log(root);
 </script>
 
 <div
@@ -30,7 +32,7 @@
 			<nav class="fillable" class:fill_width>
 				{#each pages as [route, label], i}
 					<a
-						href={route.length ? route : "/"}
+						href="{root}/{route}"
 						class:active={route === current_page}
 						data-sveltekit-reload
 						>{label}

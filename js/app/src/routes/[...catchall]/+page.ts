@@ -34,37 +34,15 @@ export async function load({
 		throw new Error("No config found");
 	}
 
-	const stripSlashes = (str: string) => str.replace(/^\/+|\/+$/g, "");
-	let root_path = stripSlashes(new URL(app.config.root).pathname);
-	let url_path = stripSlashes(new URL(url).pathname);
-	let page_path = stripSlashes(url_path.substring(root_path.length));
-
-	let page: string;
-	let components: ComponentMeta[] = [];
-	let dependencies: Dependency[] = [];
-	let _layout: any;
-
-	if (!(page_path in app.config.page)) {
-		throw new Error(
-			`Page ${page_path} not found - '${root_path}' '${url_path}' '${page_path}'`
-		);
-	}
-	components = app.config.components.filter((c) =>
-		app.config!.page[page_path].components.includes(c.id)
-	);
-	dependencies = app.config.dependencies.filter((d) =>
-		app.config!.page[page_path].dependencies.includes(d.id)
-	);
-	_layout = app.config.page[page_path].layout;
-	page = page_path;
+	let page_config = app.get_url_config(url);
 
 	const { create_layout, layout } = create_components(undefined);
 
 	await create_layout({
 		app,
-		components,
-		dependencies,
-		layout: _layout,
+		components: page_config.components,
+		dependencies: page_config.dependencies,
+		layout: page_config.layout,
 		root: app.config.root + app.config.api_prefix,
 		options: {
 			fill_height: app.config.fill_height
@@ -75,13 +53,7 @@ export async function load({
 
 	return {
 		Render: app.config?.auth_required ? Login : Blocks,
-		config: {
-			...app.config,
-			components,
-			dependencies,
-			layout: _layout,
-			current_page: page
-		},
+		config: page_config,
 		api_url,
 		layout: layouts,
 		app

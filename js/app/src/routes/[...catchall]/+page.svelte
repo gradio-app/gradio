@@ -34,6 +34,16 @@
 		fill_width?: boolean;
 		theme_hash?: number;
 		username: string | null;
+		pages: [string, string][];
+		current_page: string;
+		page: Record<
+			string,
+			{
+				components: number[];
+				dependencies: number[];
+				layout: any;
+			}
+		>;
 	}
 
 	let id = -1;
@@ -317,6 +327,7 @@
 	{space}
 	pages={config.pages}
 	current_page={config.current_page}
+	root={config.root}
 	loaded={loader_status === "complete"}
 	fill_width={config?.fill_width || false}
 	bind:wrapper
