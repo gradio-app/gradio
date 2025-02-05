@@ -29,8 +29,6 @@
 
 		let plotObj = JSON.parse(plot);
 
-		console.log("plotObj", plotObj);
-
 		// the docs aren't very good but this works
 		plotObj.config = plotObj.config || {};
 		plotObj.config.responsive = true;
