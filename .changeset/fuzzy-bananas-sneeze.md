@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Transpile testing
+feat:Experiment: transpile simple Python functions to JS
