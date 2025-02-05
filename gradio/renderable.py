@@ -38,6 +38,7 @@ class Renderable:
         self.fn = fn
         self.inputs = inputs
         self.triggers: list[EventListenerMethod] = []
+        self.page = Context.root_block.current_page
 
         self.triggers = [EventListenerMethod(*t) for t in triggers]
         Context.root_block.default_config.set_event_trigger(
@@ -68,6 +69,7 @@ class Renderable:
 
         container_copy = self.ContainerClass(render=False, show_progress=True)
         container_copy._id = self.container_id
+        container_copy.page = self.page
         LocalContext.renderable.set(self)
 
         try:

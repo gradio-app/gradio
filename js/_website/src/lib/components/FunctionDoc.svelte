@@ -78,6 +78,9 @@
 	{/if}
 
 	{#if (fn.parameters.length > 0 && fn.parameters[0].name != "self") || fn.parameters.length > 1}
-		<ParamTable parameters={fn.parameters} />
+		<ParamTable
+			parameters={fn.parameters}
+			anchor_links={fn.name.toLowerCase()}
+		/>
 	{/if}
 </div>
