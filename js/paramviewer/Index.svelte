@@ -12,6 +12,7 @@
 
 	export let linkify: string[] = [];
 	export let header: string | null = null;
+	export let anchor_links = false;
 </script>
 
-<ParamViewer docs={value} {linkify} {header} />
+<ParamViewer docs={value} {linkify} {header} {anchor_links} />
