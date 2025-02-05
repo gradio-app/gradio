@@ -39,6 +39,9 @@ class PythonToJSVisitor(ast.NodeVisitor):
     def __init__(self):
         self.js_lines = []  # Accumulate lines of JavaScript code.
         self.indent_level = 0  # Track current indent level for readability.
+        self.declared_vars = (
+            set()
+        )  # Track declared variables to avoid redeclaring with 'let'
 
     def indent(self) -> str:
         return "    " * self.indent_level
@@ -74,8 +77,17 @@ class PythonToJSVisitor(ast.NodeVisitor):
             raise TranspilerError("Multiple assignment targets are not supported yet.")
         target = self.visit(node.targets[0])
         value = self.visit(node.value)
-        # Always declare variables with 'let' for now.
-        self.js_lines.append(f"{self.indent()}let {target} = {value};")
+
+        # Only use 'let' for new variable declarations (Name nodes)
+        # Skip 'let' for subscript assignments and reassignments
+        if (
+            isinstance(node.targets[0], ast.Name)
+            and node.targets[0].id not in self.declared_vars
+        ):
+            self.declared_vars.add(node.targets[0].id)
+            self.js_lines.append(f"{self.indent()}let {target} = {value};")
+        else:
+            self.js_lines.append(f"{self.indent()}{target} = {value};")
 
     # === Binary Operations ===
     def visit_BinOp(self, node: ast.BinOp):  # noqa: N802
@@ -136,10 +148,27 @@ class PythonToJSVisitor(ast.NodeVisitor):
         self.indent_level -= 1
         self.js_lines.append(f"{self.indent()}" + "}")
 
-        if node.orelse:
+        # Handle elif and else clauses
+        current = node
+        while (
+            current.orelse
+            and len(current.orelse) == 1
+            and isinstance(current.orelse[0], ast.If)
+        ):
+            current = current.orelse[0]
+            test = self.visit(current.test)
+            self.js_lines.append(f"{self.indent()}else if ({test}) " + "{")
+            self.indent_level += 1
+            for stmt in current.body:
+                self.visit(stmt)
+            self.indent_level -= 1
+            self.js_lines.append(f"{self.indent()}" + "}")
+
+        # Handle final else clause if it exists
+        if current.orelse:
             self.js_lines.append(f"{self.indent()}else " + "{")
             self.indent_level += 1
-            for stmt in node.orelse:
+            for stmt in current.orelse:
                 self.visit(stmt)
             self.indent_level -= 1
             self.js_lines.append(f"{self.indent()}" + "}")

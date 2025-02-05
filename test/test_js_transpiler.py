@@ -100,9 +100,18 @@ def test_comparison_operators():
         else:
             return "less"
 
-    with pytest.raises(TranspilerError):
-        # Should raise error due to Python-specific "===" operator
-        transpile(compare_values)
+    expected = """function compare_values(a, b) {
+    if ((a === b)) {
+        return 'equal';
+    }
+    else if ((a > b)) {
+        return 'greater';
+    }
+    else {
+        return 'less';
+    }
+}"""
+    assert transpile(compare_values).strip() == expected.strip()
 
 
 def test_boolean_operations():
@@ -120,7 +129,7 @@ def test_dict_operations():
         return d
 
     expected = """function create_dict(key, value) {
-    let d = {"fixed": 42, key: value};
+    let d = {'fixed': 42, key: value};
     return d;
 }"""
     assert transpile(create_dict).strip() == expected.strip()
