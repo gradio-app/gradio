@@ -669,6 +669,9 @@
 	function handle_resize(): void {
 		active_cell_menu = null;
 		active_header_menu = null;
+		selected_cells = [];
+		selected = false;
+		editing = false;
 		set_cell_widths();
 	}
 
@@ -1510,5 +1513,6 @@
 
 	.table-wrap:not(:focus-within) .selection-button {
 		opacity: 0;
+		pointer-events: none;
 	}
 </style>
