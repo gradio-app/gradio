@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix interactive plots
+fix:Fix bug where plots wouldn't load when initial value provided
