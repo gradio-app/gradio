@@ -205,6 +205,18 @@
 />
 
 <Story
+	name="Dataframe with link"
+	args={{
+		values: [['<a href="https://www.google.com/">google</a>']],
+		headers: ["link"],
+		datatype: ["markdown"],
+		interactive: false,
+		col_count: [1, "dynamic"],
+		row_count: [1, "dynamic"]
+	}}
+/>
+
+<Story
 	name="Dataframe with dialog interactions"
 	args={{
 		values: [

@@ -596,6 +596,10 @@
 		row: number,
 		col: number
 	): void {
+		if (event.target instanceof HTMLAnchorElement) {
+			return;
+		}
+
 		event.preventDefault();
 		event.stopPropagation();
 
