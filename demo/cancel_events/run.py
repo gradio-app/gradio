@@ -15,8 +15,8 @@ def fake_diffusion(steps):
         yield str(i)
 
 def long_prediction(*args, **kwargs):
-    time.sleep(10)
-    return 42
+    time.sleep(4)
+    return 42, 42
 
 with gr.Blocks() as demo:
     with gr.Row():
@@ -27,7 +27,10 @@ with gr.Blocks() as demo:
             stop = gr.Button(value="Stop Iterating")
         with gr.Column():
             textbox = gr.Textbox(label="Prompt")
+            loading_box = gr.Textbox(label="Loading indicator for expensive calculation")
+            loading_box2 = gr.Textbox(label="Loading indicator for expensive calculation")
             prediction = gr.Number(label="Expensive Calculation")
+            prediction2 = gr.Number(label="Expensive Calculation")
             run_pred = gr.Button(value="Run Expensive Calculation")
         with gr.Column():
             cancel_on_change = gr.Textbox(
@@ -50,7 +53,7 @@ with gr.Blocks() as demo:
     click_event = run.click(fake_diffusion, n, output)
     stop.click(fn=None, inputs=None, outputs=None, cancels=[click_event])
     pred_event = run_pred.click(
-        fn=long_prediction, inputs=[textbox], outputs=prediction
+        fn=long_prediction, inputs=[textbox], outputs=[prediction, prediction2], show_progress_on=[loading_box, loading_box2]
     )
 
     cancel_on_change.change(None, None, None, cancels=[click_event, pred_event])
