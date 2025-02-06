@@ -27,7 +27,10 @@
 		get_range_selection,
 		move_cursor,
 		get_current_indices,
-		handle_click_outside as handle_click_outside_util
+		handle_click_outside as handle_click_outside_util,
+		select_column,
+		select_row,
+		calculate_selection_positions
 	} from "./selection_utils";
 	import {
 		copy_table_data,
@@ -793,6 +796,41 @@
 			row_order = [...Array(data.length)].map((_, i) => i);
 		}
 	}
+
+	function handle_select_column(col: number): void {
+		selected_cells = select_column(data, col);
+		selected = selected_cells[0];
+		editing = false;
+	}
+
+	function handle_select_row(row: number): void {
+		selected_cells = select_row(data, row);
+		selected = selected_cells[0];
+		editing = false;
+	}
+
+	let coords: CellCoordinate;
+	$: if (selected !== false) coords = selected;
+
+	$: if (selected !== false) {
+		const positions = calculate_selection_positions(
+			selected,
+			data,
+			els,
+			parent,
+			table
+		);
+		document.documentElement.style.setProperty(
+			"--selected-col-pos",
+			positions.col_pos
+		);
+		if (positions.row_pos) {
+			document.documentElement.style.setProperty(
+				"--selected-row-pos",
+				positions.row_pos
+			);
+		}
+	}
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
@@ -822,6 +860,22 @@
 		role="grid"
 		tabindex="0"
 	>
+		{#if selected !== false && selected_cells.length === 1}
+			<button
+				class="selection-button selection-button-column"
+				on:click|stopPropagation={() => handle_select_column(coords[1])}
+				aria-label="Select column"
+			>
+				&#8942;
+			</button>
+			<button
+				class="selection-button selection-button-row"
+				on:click|stopPropagation={() => handle_select_row(coords[0])}
+				aria-label="Select row"
+			>
+				&#8942;
+			</button>
+		{/if}
 		<table
 			bind:contentRect={t_rect}
 			bind:this={table}
@@ -994,6 +1048,7 @@
 						{/if}
 						<td
 							tabindex={show_row_numbers && j === 0 ? -1 : 0}
+							bind:this={els[id].cell}
 							on:touchstart={(event) => {
 								const touch = event.touches[0];
 								const mouseEvent = new MouseEvent("click", {
@@ -1120,7 +1175,6 @@
 		transition: 150ms;
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
-		overflow: hidden;
 	}
 
 	.table-wrap:focus-within {
@@ -1426,5 +1480,35 @@
 
 	.cell-selected.no-top.no-bottom.no-left.no-right {
 		box-shadow: none;
+	}
+
+	.selection-button {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--color-accent);
+		color: white;
+		border-radius: var(--radius-sm);
+		z-index: var(--layer-2);
+	}
+
+	.selection-button-column {
+		width: var(--size-3);
+		height: var(--size-5);
+		top: -10px;
+		left: var(--selected-col-pos);
+		transform: rotate(90deg);
+	}
+
+	.selection-button-row {
+		width: var(--size-3);
+		height: var(--size-5);
+		left: -7px;
+		top: calc(var(--selected-row-pos) - var(--size-5) / 2);
+	}
+
+	.table-wrap:not(:focus-within) .selection-button {
+		opacity: 0;
 	}
 </style>

@@ -385,3 +385,43 @@
 		editable: false
 	}}
 />
+
+<Story
+	name="Dataframe with row and column selection"
+	args={{
+		values: [
+			[1, 2, 3, 4],
+			[5, 6, 7, 8],
+			[9, 10, 11, 12],
+			[13, 14, 15, 16]
+		],
+		col_count: [4, "dynamic"],
+		row_count: [4, "dynamic"],
+		headers: ["A", "B", "C", "D"],
+		editable: true
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const user = userEvent.setup();
+
+		const grid = canvas.getByRole("grid");
+		await user.click(grid);
+
+		const cells = canvas.getAllByRole("cell");
+		await user.click(cells[5]); // Click cell with value 6
+
+		const row_button = await canvas.findByRole("button", {
+			name: "Select row"
+		});
+		await user.click(row_button);
+
+		await user.click(cells[6]);
+
+		const col_button = await canvas.findByRole("button", {
+			name: "Select column"
+		});
+		await user.click(col_button);
+
+		await user.keyboard("{Delete}");
+	}}
+/>
