@@ -69,6 +69,7 @@ class TestChatbot:
             "bubble_full_width": None,
             "line_breaks": True,
             "layout": None,
+            "allow_tags": None,
             "show_copy_all_button": False,
             "examples": None,
         }

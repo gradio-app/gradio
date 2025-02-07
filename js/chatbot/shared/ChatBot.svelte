@@ -90,6 +90,7 @@
 	export let _undoable = false;
 	export let like_user_message = false;
 	export let root: string;
+	export let allow_tags: string[] | null = null;
 
 	let target: HTMLElement | null = null;
 	let edit_index: number | null = null;
@@ -319,6 +320,7 @@
 					{msg_format}
 					{feedback_options}
 					{current_feedback}
+					{allow_tags}
 					show_like={role === "user" ? likeable && like_user_message : likeable}
 					show_retry={_retryable && is_last_bot_message(messages, value)}
 					show_undo={_undoable && is_last_bot_message(messages, value)}

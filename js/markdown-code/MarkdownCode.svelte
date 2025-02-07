@@ -18,6 +18,7 @@
 	export let line_breaks = true;
 	export let header_links = false;
 	export let root: string;
+	export let allow_tags: string[] | null = null;
 
 	let el: HTMLSpanElement;
 	let html: string;
@@ -32,9 +33,27 @@
 		return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 	}
 
+	function escapeTags(content: string, tagsToEscape: string[]): string {
+		const tagPattern = tagsToEscape.map((tag) => ({
+			open: new RegExp(`<(${tag})(\\s+[^>]*)?>`, "gi"),
+			close: new RegExp(`</(${tag})>`, "gi")
+		}));
+
+		let result = content;
+
+		tagPattern.forEach((pattern) => {
+			result = result.replace(
+				pattern.open,
+				(match, tag, attributes) => `&lt;${tag}${attributes || ""}&gt;`
+			);
+			result = result.replace(pattern.close, (match, tag) => `&lt;/${tag}&gt;`);
+		});
+
+		return result;
+	}
+
 	function process_message(value: string): string {
 		let parsedValue = value;
-
 		if (render_markdown) {
 			const latexBlocks: string[] = [];
 			latex_delimiters.forEach((delimiter, index) => {
@@ -58,10 +77,13 @@
 			);
 		}
 
+		if (allow_tags) {
+			parsedValue = escapeTags(parsedValue, allow_tags);
+		}
+
 		if (sanitize_html && sanitize) {
 			parsedValue = sanitize(parsedValue, root);
 		}
-
 		return parsedValue;
 	}
 

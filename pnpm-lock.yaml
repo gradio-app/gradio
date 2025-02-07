@@ -1954,8 +1954,8 @@ importers:
         specifier: ^6.0.0
         version: 6.0.0(rollup@3.28.0)
       plotly.js-dist-min:
-        specifier: ^2.10.1
-        version: 2.10.1
+        specifier: ^3.0.0
+        version: 3.0.0
       svelte:
         specifier: ^4.0.0
         version: 4.2.15
@@ -5939,6 +5939,7 @@ packages:
   eslint@8.4.1:
     resolution: {integrity: sha512-TxU/p7LB1KxQ6+7aztTnO7K0i+h0tDi81YRY9VzB6Id71kNz+fFYnf5HD5UOQmxkzcoa0TlVZf9dpMtUv0GpWg==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   eslint@9.1.1:
@@ -7542,11 +7543,11 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  plotly.js-dist-min@2.10.1:
-    resolution: {integrity: sha512-H0ls1C2uu2U+qWw76djo4/zOGtUKfMILwFhu7tCOaG/wH5ypujrYGCH03N9SQVf1SXcctTfW57USf8LmagSiPQ==}
-
   plotly.js-dist-min@2.32.0:
     resolution: {integrity: sha512-UVznwUQVc7NeFih0tnIbvCpxct+Jxt6yxOGTYJF4vkKIUyujvyiTrH+XazglvcXdybFLERMu/IKt6Lhz3+BqMQ==}
+
+  plotly.js-dist-min@3.0.0:
+    resolution: {integrity: sha512-AlU1XkNRzwUI55A+kJYj0xJETp3h7aeFe4O1cmhzOryscYdw9jOywXZo+7Zy+y2kEKq12CnTzII4jV7Vgpy4xQ==}
 
   polished@4.3.1:
     resolution: {integrity: sha512-OBatVyC/N7SCW/FaDHrSd+vn0o5cS855TOmYi4OkdWUMSJCET/xip//ch8xGUvtr3i44X9LVyWwQlRMTN3pwSA==}
@@ -14652,9 +14653,9 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.2
 
-  plotly.js-dist-min@2.10.1: {}
-
   plotly.js-dist-min@2.32.0: {}
+
+  plotly.js-dist-min@3.0.0: {}
 
   polished@4.3.1:
     dependencies:
