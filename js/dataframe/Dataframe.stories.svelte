@@ -205,6 +205,18 @@
 />
 
 <Story
+	name="Dataframe with link"
+	args={{
+		values: [['<a href="https://www.google.com/">google</a>']],
+		headers: ["link"],
+		datatype: ["markdown"],
+		interactive: false,
+		col_count: [1, "dynamic"],
+		row_count: [1, "dynamic"]
+	}}
+/>
+
+<Story
 	name="Dataframe with dialog interactions"
 	args={{
 		values: [
@@ -320,6 +332,25 @@
 />
 
 <Story
+	name="Dataframe with row numbers"
+	args={{
+		values: [
+			[95, 92, 88],
+			[89, 90, 85],
+			[92, 88, 91],
+			[87, 85, 89],
+			[91, 93, 90]
+		],
+		headers: ["Model A", "Model B", "Model C"],
+		label: "Model Performance",
+		col_count: [3, "dynamic"],
+		row_count: [5, "dynamic"],
+		show_row_numbers: true,
+		editable: false
+	}}
+/>
+
+<Story
 	name="Dataframe with truncated text"
 	args={{
 		values: [
@@ -364,5 +395,40 @@
 		col_count: [3, "dynamic"],
 		row_count: [3, "dynamic"],
 		editable: false
+	}}
+/>
+
+<Story
+	name="Dataframe with lots of values"
+	args={{
+		values: [
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+		],
+		col_count: [10, "dynamic"],
+		row_count: [10, "dynamic"],
+		max_height: 700
 	}}
 />

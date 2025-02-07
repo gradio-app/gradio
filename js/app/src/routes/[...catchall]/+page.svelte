@@ -99,7 +99,7 @@
 	export let initial_height: string;
 	export let app_mode = true;
 	export let is_embed = false;
-	export let theme_mode: ThemeMode | null = "system";
+	export let theme_mode: ThemeMode | null = null;
 	export let control_page_title = true;
 	export let container: boolean;
 	let stream: EventSource;
@@ -361,33 +361,3 @@
 		/>
 	{/if}
 </Embed>
-
-<!-- <style>
-	.error {
-		position: relative;
-		padding: var(--size-4);
-		color: var(--body-text-color);
-		text-align: center;
-	}
-
-	.error > * {
-		margin-top: var(--size-4);
-	}
-
-	a {
-		color: var(--link-text-color);
-	}
-
-	a:hover {
-		color: var(--link-text-color-hover);
-		text-decoration: underline;
-	}
-
-	a:visited {
-		color: var(--link-text-color-visited);
-	}
-
-	a:active {
-		color: var(--link-text-color-active);
-	}
-</style> -->
