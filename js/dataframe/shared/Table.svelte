@@ -328,8 +328,10 @@
 						editing = false;
 					} else {
 						selected_cells = [next_coords];
-						editing = next_coords;
-						clear_on_focus = false;
+						if (editable) {
+							editing = next_coords;
+							clear_on_focus = false;
+						}
 					}
 					selected = next_coords;
 				} else if (
@@ -349,27 +351,26 @@
 				editing = false;
 				break;
 			case "Enter":
-				if (!editable) break;
 				event.preventDefault();
-
-				if (event.shiftKey) {
-					add_row(i);
-					await tick();
-
-					selected = [i + 1, j];
-				} else {
-					if (dequal(editing, [i, j])) {
-						const cell_id = data[i][j].id;
-						const input_el = els[cell_id].input;
-						if (input_el) {
-							data[i][j].value = input_el.value;
-						}
-						editing = false;
+				if (editable) {
+					if (event.shiftKey) {
+						add_row(i);
 						await tick();
-						selected = [i, j];
+						selected = [i + 1, j];
 					} else {
-						editing = [i, j];
-						clear_on_focus = false;
+						if (dequal(editing, [i, j])) {
+							const cell_id = data[i][j].id;
+							const input_el = els[cell_id].input;
+							if (input_el) {
+								data[i][j].value = input_el.value;
+							}
+							editing = false;
+							await tick();
+							selected = [i, j];
+						} else {
+							editing = [i, j];
+							clear_on_focus = false;
+						}
 					}
 				}
 				break;
@@ -617,18 +618,20 @@
 		selected_cells = handle_selection([row, col], selected_cells, event);
 		parent.focus();
 
-		if (selected_cells.length === 1 && editable) {
-			editing = [row, col];
-			tick().then(() => {
-				const input_el = els[data[row][col].id].input;
-				if (input_el) {
-					input_el.focus();
-					input_el.selectionStart = input_el.selectionEnd =
-						input_el.value.length;
-				}
-			});
-		} else {
-			editing = false;
+		if (editable) {
+			if (selected_cells.length === 1) {
+				editing = [row, col];
+				tick().then(() => {
+					const input_el = els[data[row][col].id].input;
+					if (input_el) {
+						input_el.focus();
+						input_el.selectionStart = input_el.selectionEnd =
+							input_el.value.length;
+					}
+				});
+			} else {
+				editing = false;
+			}
 		}
 
 		toggle_cell_button(row, col);
