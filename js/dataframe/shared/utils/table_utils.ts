@@ -112,14 +112,6 @@ export function make_headers(
 	});
 }
 
-export function get_data_at(
-	data: TableData,
-	row: number,
-	col: number
-): string | number | undefined {
-	return data?.[row]?.[col]?.value;
-}
-
 export function get_max(data: TableData): TableCell[] {
 	if (!data || !data.length) return [];
 	return data[0];
