@@ -631,7 +631,6 @@
 </script>
 
 <svelte:head>
-	<script src="{WHEEL.gradio_lite_url}/dist/lite.js" type="module"></script>
 	<link rel="stylesheet" href="{WHEEL.gradio_lite_url}/dist/lite.css" />
 
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
