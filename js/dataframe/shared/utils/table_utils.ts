@@ -121,10 +121,31 @@ export async function copy_table_data(
 	data: TableData,
 	selected_cells: [number, number][]
 ): Promise<void> {
-	const selected_data = selected_cells.map(
-		([row, col]) => data[row][col].value
+	const csv = selected_cells.reduce(
+		(acc: { [key: string]: { [key: string]: string } }, [row, col]) => {
+			acc[row] = acc[row] || {};
+			const value = String(data[row][col].value);
+			acc[row][col] =
+				value.includes(",") || value.includes('"') || value.includes("\n")
+					? `"${value.replace(/"/g, '""')}"`
+					: value;
+			return acc;
+		},
+		{}
 	);
-	await navigator.clipboard.writeText(selected_data.join("\t"));
+
+	const rows = Object.keys(csv).sort((a, b) => +a - +b);
+	const cols = Object.keys(csv[rows[0]]).sort((a, b) => +a - +b);
+	const text = rows
+		.map((r) => cols.map((c) => csv[r][c] || "").join(","))
+		.join("\n");
+
+	try {
+		await navigator.clipboard.writeText(text);
+	} catch (err) {
+		console.error("Copy failed:", err);
+		throw new Error("Failed to copy to clipboard: " + (err as Error).message);
+	}
 }
 
 export function handle_file_upload(
