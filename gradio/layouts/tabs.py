@@ -67,7 +67,7 @@ class Tab(BlockContext, metaclass=ComponentMeta):
         id: int | str | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        scale: int = 0,
+        scale: int | None = None,
         render: bool = True,
     ):
         """
