@@ -1034,7 +1034,6 @@
 							on:click={(event) => handle_cell_click(event, index, j)}
 							style:width="var(--cell-width-{j})"
 							style={styling?.[index]?.[j] || ""}
-							class:not-editable={!editable}
 							class:flash={copy_flash &&
 								is_cell_selected([index, j], selected_cells)}
 							class={is_cell_selected([index, j], selected_cells)}
