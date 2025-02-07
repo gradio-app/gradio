@@ -105,6 +105,19 @@
 	} | null = null;
 	let is_fullscreen = false;
 	let dragging = false;
+	let copy_flash = false;
+
+	let color_accent_copied: string;
+	onMount(() => {
+		const color = getComputedStyle(document.documentElement)
+			.getPropertyValue("--color-accent")
+			.trim();
+		color_accent_copied = color + "40"; // 80 is 50% opacity in hex
+		document.documentElement.style.setProperty(
+			"--color-accent-copied",
+			color_accent_copied
+		);
+	});
 
 	const get_data_at = (row: number, col: number): string | number =>
 		data?.[row]?.[col]?.value;
@@ -712,6 +725,10 @@
 
 	async function handle_copy(): Promise<void> {
 		await copy_table_data(data, selected_cells);
+		copy_flash = true;
+		setTimeout(() => {
+			copy_flash = false;
+		}, 800);
 	}
 
 	function toggle_header_menu(event: MouseEvent, col: number): void {
@@ -1017,6 +1034,8 @@
 							on:click={(event) => handle_cell_click(event, index, j)}
 							style:width="var(--cell-width-{j})"
 							style={styling?.[index]?.[j] || ""}
+							class:flash={copy_flash &&
+								is_cell_selected([index, j], selected_cells)}
 							class={is_cell_selected([index, j], selected_cells)}
 							class:menu-active={active_cell_menu &&
 								active_cell_menu.row === index &&
@@ -1431,5 +1450,19 @@
 
 	.cell-selected.no-top.no-bottom.no-left.no-right {
 		box-shadow: none;
+	}
+	.flash.cell-selected {
+		animation: flash-color 700ms ease-out;
+	}
+
+	@keyframes flash-color {
+		0%,
+		30% {
+			background: var(--color-accent-copied);
+		}
+
+		100% {
+			background: transparent;
+		}
 	}
 </style>
