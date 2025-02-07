@@ -3,8 +3,7 @@ import {
 	make_cell_id,
 	make_header_id,
 	process_data,
-	make_headers,
-	get_data_at
+	make_headers
 } from "./table_utils";
 
 describe("table_utils", () => {
@@ -110,29 +109,6 @@ describe("table_utils", () => {
 			expect(
 				test_result.every((header) => typeof header.value === "string")
 			).toBe(true);
-		});
-	});
-
-	describe("get_data_at", () => {
-		const test_data = [
-			[
-				{ id: "1", value: "A" },
-				{ id: "2", value: "B" }
-			],
-			[
-				{ id: "3", value: "C" },
-				{ id: "4", value: "D" }
-			]
-		];
-
-		test("gets data at valid indices", () => {
-			expect(get_data_at(test_data, 0, 0)).toBe("A");
-			expect(get_data_at(test_data, 1, 1)).toBe("D");
-		});
-
-		test("returns undefined for invalid indices", () => {
-			expect(get_data_at(test_data, 2, 0)).toBeUndefined();
-			expect(get_data_at(test_data, 0, 2)).toBeUndefined();
 		});
 	});
 });
