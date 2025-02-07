@@ -55,22 +55,29 @@ let run_script: (
 ) => Promise<void>;
 let unload_local_modules: (target_dir_path?: string) => void;
 
-function installPackages(requirements: string[], retries = 3): Promise<void> {
+async function installPackages(
+	requirements: string[],
+	retries = 3
+): Promise<void> {
 	// A wrapper function to install packages with retries and requirement patching.
 	// Ref: https://github.com/pyodide/micropip/issues/170#issuecomment-2558887851
 	// Background: https://discord.com/channels/879548962464493619/1318487777779646504/1319516137725231124
-	if (retries <= 0) {
-		throw new Error("Failed to install packages.");
-	}
 
 	const patchedRequirements = patchRequirements(pyodide, requirements);
 
-	return micropip.install
-		.callKwargs(patchedRequirements, { keep_going: true })
-		.catch((error) => {
+	for (let i = 0; i < retries; i++) {
+		const isLastTry = i === retries - 1;
+		try {
+			return micropip.install.callKwargs(patchedRequirements, {
+				keep_going: true
+			});
+		} catch (error) {
+			if (isLastTry) {
+				throw error;
+			}
 			console.error("Failed to install packages. Retrying...", error);
-			return installPackages(requirements, retries - 1);
-		});
+		}
+	}
 }
 
 async function initializeEnvironment(
