@@ -72,7 +72,7 @@
 	container={false}
 	{scale}
 	{min_width}
-	allow_overflow={false}
+	overflow_behavior="visible"
 >
 	<StatusTracker
 		autoscroll={gradio.autoscroll}

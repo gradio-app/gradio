@@ -1,6 +1,6 @@
-export type CellCoordinate = [number, number];
+import type { CellCoordinate, EditingState } from "./types";
+
 export type CellData = { id: string; value: string | number };
-export type EditingState = false | CellCoordinate;
 
 export function is_cell_selected(
 	cell: CellCoordinate,
@@ -50,13 +50,12 @@ export function handle_selection(
 	}
 
 	if (event.metaKey || event.ctrlKey) {
-		const index = selected_cells.findIndex(
-			([r, c]) => r === current[0] && c === current[1]
-		);
-		if (index === -1) {
-			return [...selected_cells, current];
-		}
-		return selected_cells.filter((_, i) => i !== index);
+		const is_cell_match = ([r, c]: CellCoordinate): boolean =>
+			r === current[0] && c === current[1];
+		const index = selected_cells.findIndex(is_cell_match);
+		return index === -1
+			? [...selected_cells, current]
+			: selected_cells.filter((_, i) => i !== index);
 	}
 
 	return [current];
@@ -185,4 +184,50 @@ export function handle_click_outside(
 ): boolean {
 	const [trigger] = event.composedPath() as HTMLElement[];
 	return !parent.contains(trigger);
+}
+
+export function select_column(data: any[][], col: number): CellCoordinate[] {
+	return Array.from({ length: data.length }, (_, i) => [i, col]);
+}
+
+export function select_row(data: any[][], row: number): CellCoordinate[] {
+	return Array.from({ length: data[0].length }, (_, i) => [row, i]);
+}
+
+export function calculate_selection_positions(
+	selected: CellCoordinate,
+	data: { id: string; value: string | number }[][],
+	els: Record<string, { cell: HTMLTableCellElement | null }>,
+	parent: HTMLElement,
+	table: HTMLElement
+): { col_pos: string; row_pos: string | undefined } {
+	const [row, col] = selected;
+	if (!data[row]?.[col]) {
+		return { col_pos: "0px", row_pos: undefined };
+	}
+
+	let offset = 0;
+	for (let i = 0; i < col; i++) {
+		offset += parseFloat(
+			getComputedStyle(parent).getPropertyValue(`--cell-width-${i}`)
+		);
+	}
+	const current_width = parseFloat(
+		getComputedStyle(parent).getPropertyValue(`--cell-width-${col}`)
+	);
+	const col_pos = `${offset + current_width / 2}px`;
+
+	const cell_id = data[row][col].id;
+	const cell_el = els[cell_id]?.cell;
+
+	if (!cell_el) {
+		// if we cant get the row position, just return the column position which is static
+		return { col_pos, row_pos: undefined };
+	}
+
+	const cell_rect = cell_el.getBoundingClientRect();
+	const table_rect = table.getBoundingClientRect();
+	const relative_top = cell_rect.top - table_rect.top;
+	const row_pos = `${relative_top + cell_rect.height / 2}px`;
+	return { col_pos, row_pos };
 }
