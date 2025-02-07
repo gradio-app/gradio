@@ -111,3 +111,4 @@ describe("table_utils", () => {
 			).toBe(true);
 		});
 	});
+});
