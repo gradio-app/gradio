@@ -47,6 +47,7 @@
 	export let _retryable = false;
 	export let _undoable = false;
 	export let group_consecutive_messages = true;
+	export let allow_tags: string[] | null = null;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -184,6 +185,7 @@
 			msg_format={type}
 			root={gradio.root}
 			{allow_file_downloads}
+			{allow_tags}
 		/>
 	</div>
 </Block>
