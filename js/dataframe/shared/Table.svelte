@@ -599,6 +599,10 @@
 		row: number,
 		col: number
 	): void {
+		if (event.target instanceof HTMLAnchorElement) {
+			return;
+		}
+
 		event.preventDefault();
 		event.stopPropagation();
 
@@ -611,6 +615,7 @@
 		header_edit = false;
 
 		selected_cells = handle_selection([row, col], selected_cells, event);
+		parent.focus();
 
 		if (selected_cells.length === 1 && editable) {
 			editing = [row, col];
@@ -1306,7 +1311,7 @@
 		min-width: 0;
 		white-space: normal;
 		overflow-wrap: break-word;
-		word-break: break-word;
+		word-break: normal;
 		height: 100%;
 		padding: var(--size-1);
 		gap: var(--size-1);

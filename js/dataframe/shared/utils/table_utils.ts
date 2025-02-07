@@ -90,14 +90,6 @@ export function make_headers(
 	});
 }
 
-export function get_data_at(
-	data: TableData,
-	row: number,
-	col: number
-): string | number | undefined {
-	return data?.[row]?.[col]?.value;
-}
-
 export function get_max(data: TableData): TableCell[] {
 	if (!data || !data.length) return [];
 	let max = data[0].slice();
@@ -138,22 +130,31 @@ export async function copy_table_data(
 	data: TableData,
 	selected_cells: [number, number][]
 ): Promise<void> {
-	const rows = new Map<number, { col: number; value: string | number }[]>();
-	selected_cells.forEach(([row, col]) => {
-		if (!rows.has(row)) rows.set(row, []);
-		rows.get(row)?.push({ col, value: data[row][col].value });
-	});
+	const csv = selected_cells.reduce(
+		(acc: { [key: string]: { [key: string]: string } }, [row, col]) => {
+			acc[row] = acc[row] || {};
+			const value = String(data[row][col].value);
+			acc[row][col] =
+				value.includes(",") || value.includes('"') || value.includes("\n")
+					? `"${value.replace(/"/g, '""')}"`
+					: value;
+			return acc;
+		},
+		{}
+	);
 
-	const sorted_rows = Array.from(rows.entries())
-		.sort(([a], [b]) => a - b)
-		.map(([_, cells]) =>
-			cells
-				.sort((a, b) => a.col - b.col)
-				.map((cell) => String(cell.value))
-				.join(",")
-		);
+	const rows = Object.keys(csv).sort((a, b) => +a - +b);
+	const cols = Object.keys(csv[rows[0]]).sort((a, b) => +a - +b);
+	const text = rows
+		.map((r) => cols.map((c) => csv[r][c] || "").join(","))
+		.join("\n");
 
-	await navigator.clipboard.writeText(sorted_rows.join("\n"));
+	try {
+		await navigator.clipboard.writeText(text);
+	} catch (err) {
+		console.error("Copy failed:", err);
+		throw new Error("Failed to copy to clipboard: " + (err as Error).message);
+	}
 }
 
 // File Import/Export
