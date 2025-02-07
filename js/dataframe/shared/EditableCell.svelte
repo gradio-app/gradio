@@ -160,10 +160,6 @@
 		height: 100%;
 	}
 
-	input:where(:not(.header), [data-editable="true"]) {
-		width: calc(100% - var(--size-10));
-	}
-
 	span.expanded {
 		height: auto;
 		min-height: 100%;
