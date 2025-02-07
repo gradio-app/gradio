@@ -31,7 +31,6 @@
 		change: never;
 		clear_status: LoadingStatus;
 		select: SelectData;
-		load: never;
 	}>;
 	export let show_actions_button = false;
 	export let _selectable = false;
@@ -71,6 +70,5 @@
 		{x_lim}
 		on:change={() => gradio.dispatch("change")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
-		on:load={() => gradio.dispatch("load")}
 	/>
 </Block>

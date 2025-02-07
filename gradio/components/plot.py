@@ -39,7 +39,7 @@ class Plot(Component):
     """
 
     data_model = PlotData
-    EVENTS = [Events.change, Events.clear, Events.load]
+    EVENTS = [Events.change, Events.clear]
 
     def __init__(
         self,
