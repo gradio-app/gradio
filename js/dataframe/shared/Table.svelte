@@ -625,6 +625,7 @@
 		header_edit = false;
 
 		selected_cells = handle_selection([row, col], selected_cells, event);
+		parent.focus();
 
 		if (selected_cells.length === 1 && editable) {
 			editing = [row, col];
@@ -1016,7 +1017,6 @@
 						<td
 							tabindex={show_row_numbers && j === 0 ? -1 : 0}
 							on:touchstart={(event) => {
-								if (!editable) return;
 								const touch = event.touches[0];
 								const mouseEvent = new MouseEvent("click", {
 									clientX: touch.clientX,
@@ -1028,14 +1028,10 @@
 								handle_cell_click(mouseEvent, index, j);
 							}}
 							on:mousedown={(event) => {
-								if (!editable) return;
 								event.preventDefault();
 								event.stopPropagation();
 							}}
-							on:click={(event) => {
-								if (!editable) return;
-								handle_cell_click(event, index, j);
-							}}
+							on:click={(event) => handle_cell_click(event, index, j)}
 							style:width="var(--cell-width-{j})"
 							style={styling?.[index]?.[j] || ""}
 							class:not-editable={!editable}
@@ -1456,22 +1452,6 @@
 	.cell-selected.no-top.no-bottom.no-left.no-right {
 		box-shadow: none;
 	}
-
-	.not-editable {
-		user-select: text;
-		cursor: text;
-	}
-
-	.not-editable .cell-wrap {
-		pointer-events: none;
-	}
-
-	.not-editable :global(.editable-cell) {
-		pointer-events: auto;
-		user-select: text;
-		cursor: text;
-	}
-
 	.flash.cell-selected {
 		animation: flash-color 700ms ease-out;
 	}
