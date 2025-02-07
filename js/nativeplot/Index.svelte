@@ -512,6 +512,7 @@
 					: [])
 			],
 			width: chart_element.offsetWidth,
+			height: height ? "container" : undefined,
 			title: title || undefined
 		};
 		/* eslint-enable complexity */
@@ -561,6 +562,7 @@
 <style>
 	div {
 		width: 100%;
+		height: 100%;
 	}
 	:global(#vg-tooltip-element) {
 		font-family: var(--font) !important;
