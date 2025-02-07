@@ -249,6 +249,7 @@ export interface Dependency {
 	trigger: "click" | "load" | string;
 	max_batch_size: number;
 	show_progress: "full" | "minimal" | "hidden";
+	show_progress_on: number[] | null;
 	frontend_fn: ((...args: unknown[]) => Promise<unknown[]>) | null;
 	status?: string;
 	queue: boolean | null;
