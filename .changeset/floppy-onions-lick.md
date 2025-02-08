@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix DF Postprocess for tuples
+fix:Fix DF Postprocess for tuples
