@@ -75,7 +75,12 @@ export class Client {
 		const stripSlashes = (str: string): string => str.replace(/^\/+|\/+$/g, "");
 		let root_path = stripSlashes(new URL(this.config.root).pathname);
 		let url_path = stripSlashes(new URL(url).pathname);
-		let page = stripSlashes(url_path.substring(root_path.length));
+		let page: string;
+		if (!url_path.startsWith(root_path)) {
+			page = "";
+		} else {
+			page = stripSlashes(url_path.substring(root_path.length));
+		}
 		return this.get_page_config(page);
 	}
 	get_page_config(page: string): Config {
