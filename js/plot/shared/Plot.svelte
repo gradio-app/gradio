@@ -4,6 +4,7 @@
 	import { Empty } from "@gradio/atoms";
 	import type { ThemeMode } from "js/core/src/components/types";
 	import type { Gradio, SelectData } from "@gradio/utils";
+	import { createEventDispatcher } from "svelte";
 
 	export let value;
 	let _value;
@@ -21,6 +22,11 @@
 
 	let PlotComponent: any = null;
 	let _type = value?.type;
+	let loaded_plotly_css = false;
+
+	const dispatch = createEventDispatcher<{
+		change: undefined;
+	}>();
 
 	const plotTypeMapping = {
 		plotly: () => import("./plot_types/PlotlyPlot.svelte"),
@@ -52,6 +58,7 @@
 		}
 		_value = value;
 		_type = type;
+		dispatch("change");
 	}
 </script>
 
@@ -69,6 +76,7 @@
 			{gradio}
 			{_selectable}
 			{x_lim}
+			bind:loaded_plotly_css
 			on:load
 			on:select
 		/>
