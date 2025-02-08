@@ -80,6 +80,36 @@
 />
 
 <Story
+	name="Line Plot with height"
+	args={{
+		value: {
+			columns: ["time", "value"],
+			data: [
+				[1, 10],
+				[2, 15],
+				[3, 13],
+				[4, 17],
+				[5, 14],
+				[6, 20]
+			],
+			datatypes: {
+				time: "quantitative",
+				value: "quantitative"
+			},
+			mark: "line"
+		},
+		x: "time",
+		y: "value",
+		title: "Sample Line Plot",
+		x_title: "Time",
+		y_title: "Value",
+		height: 250,
+		label: "Line Plot",
+		show_label: true
+	}}
+/>
+
+<Story
 	name="Empty Plot"
 	args={{
 		value: null,
