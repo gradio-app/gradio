@@ -84,7 +84,7 @@ export class Client {
 		}
 		let config = this.config;
 		if (!(page in config.page)) {
-			throw new Error(`Page ${page} not found`);
+			page = "";
 		}
 		return {
 			...config,
