@@ -161,6 +161,8 @@ Here's what it looks like in a jupyter notebook:
 
 🪄 This works in colab notebooks too! [Here's a colab notebook](https://colab.research.google.com/drive/1zAuWoiTIb3O2oitbtVb2_ekv1K6ggtC1?usp=sharing) where you can see the Blocks magic in action. Try making some changes and re-running the cell with the Gradio code!
 
+Tip: You may have to use `%%blocks --share` in Colab to get the demo to appear in the cell.
+
 The Notebook Magic is now the author's preferred way of building Gradio demos. Regardless of how you write Python code, we hope either of these methods will give you a much better development experience using Gradio.
 
 ---
