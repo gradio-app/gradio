@@ -1,14 +1,27 @@
 <script lang="ts">
 	import { Maximize, Minimize, Copy, Check } from "@gradio/icons";
 	import { onDestroy } from "svelte";
+	import { createEventDispatcher } from "svelte";
 
 	export let show_fullscreen_button = false;
 	export let show_copy_button = false;
+	export let show_search_input = false;
 	export let is_fullscreen = false;
 	export let on_copy: () => Promise<void>;
 
+	const dispatch = createEventDispatcher<{
+		search: string;
+	}>();
+
 	let copied = false;
 	let timer: ReturnType<typeof setTimeout>;
+	let search_query = "";
+
+	$: dispatch("search", search_query);
+
+	function clear_search(): void {
+		search_query = "";
+	}
 
 	function copy_feedback(): void {
 		copied = true;
@@ -29,40 +42,70 @@
 </script>
 
 <div class="toolbar" role="toolbar" aria-label="Table actions">
-	{#if show_copy_button}
-		<button
-			class="toolbar-button"
-			on:click={handle_copy}
-			aria-label={copied ? "Copied to clipboard" : "Copy table data"}
-			title={copied ? "Copied to clipboard" : "Copy table data"}
-		>
-			{#if copied}
-				<Check />
-			{:else}
-				<Copy />
-			{/if}
-		</button>
-	{/if}
-	{#if show_fullscreen_button}
-		<button
-			class="toolbar-button"
-			on:click
-			aria-label={is_fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-			title={is_fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-		>
-			{#if is_fullscreen}
-				<Minimize />
-			{:else}
-				<Maximize />
-			{/if}
-		</button>
-	{/if}
+	<div class="toolbar-buttons">
+		{#if show_search_input}
+			<div class="search-container">
+				<input
+					type="text"
+					bind:value={search_query}
+					placeholder="Search..."
+					class="search-input"
+				/>
+				{#if search_query}
+					<button
+						class="clear-button"
+						on:click={clear_search}
+						aria-label="Clear search"
+					>
+						×
+					</button>
+				{/if}
+			</div>
+		{/if}
+		{#if show_copy_button}
+			<button
+				class="toolbar-button"
+				on:click={handle_copy}
+				aria-label={copied ? "Copied to clipboard" : "Copy table data"}
+				title={copied ? "Copied to clipboard" : "Copy table data"}
+			>
+				{#if copied}
+					<Check />
+				{:else}
+					<Copy />
+				{/if}
+			</button>
+		{/if}
+		{#if show_fullscreen_button}
+			<button
+				class="toolbar-button"
+				on:click
+				aria-label={is_fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+				title={is_fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+			>
+				{#if is_fullscreen}
+					<Minimize />
+				{:else}
+					<Maximize />
+				{/if}
+			</button>
+		{/if}
+	</div>
 </div>
 
 <style>
 	.toolbar {
 		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: var(--size-2);
+		width: 100%;
+		align-items: center;
 		justify-content: flex-end;
+	}
+
+	.toolbar-buttons {
+		display: flex;
 		gap: var(--size-1);
 	}
 
@@ -89,5 +132,57 @@
 	.toolbar-button :global(svg) {
 		width: var(--size-4);
 		height: var(--size-4);
+	}
+
+	.search-container {
+		position: relative;
+	}
+
+	.search-input {
+		width: var(--size-full);
+		height: var(--size-6);
+		padding: var(--size-1) var(--size-3);
+		padding-right: var(--size-8);
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--table-radius);
+		font-size: var(--text-sm);
+		color: var(--body-text-color);
+		background: var(--background-fill-secondary);
+		transition: all 0.2s ease;
+	}
+
+	.search-input:hover {
+		border-color: var(--border-color-secondary);
+		background: var(--background-fill-primary);
+	}
+
+	.search-input:focus {
+		outline: none;
+		border-color: var(--color-accent);
+		background: var(--background-fill-primary);
+		box-shadow: 0 0 0 1px var(--color-accent);
+	}
+	.clear-button {
+		position: absolute;
+		right: var(--size-2);
+		top: 50%;
+		transform: translateY(-50%);
+		border: none;
+		background: transparent;
+		color: var(--body-text-color-subdued);
+		font-size: var(--text-lg);
+		padding: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: var(--size-4);
+		height: var(--size-4);
+		border-radius: 50%;
+		transition: all 0.2s;
+	}
+
+	.clear-button:hover {
+		background: var(--background-fill-primary);
+		color: var(--body-text-color);
 	}
 </style>

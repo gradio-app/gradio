@@ -465,10 +465,44 @@
 			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
 			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
 			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
 			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 		],
 		col_count: [10, "dynamic"],
 		row_count: [10, "dynamic"],
 		max_height: 700
+	}}
+/>
+
+<Story
+	name="Dataframe with search"
+	args={{
+		values: [
+			["Cat", 5, "Pet"],
+			["Horse", 3, "Farm"],
+			["Snake", 1, "Pet"],
+			["Cow", 4, "Farm"],
+			["Dog", 6, "Pet"]
+		],
+		headers: ["Animal", "Count", "Type"],
+		col_count: [3, "dynamic"],
+		row_count: [5, "dynamic"],
+		show_search_input: true,
+		editable: false
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const user = userEvent.setup();
+
+		const search_input = canvas.getByPlaceholderText("Search...");
+		await user.type(search_input, "Pet");
+
+		await new Promise((resolve) => setTimeout(resolve, 100));
+
+		const clear_button = canvas.getByRole("button", { name: "Clear search" });
+		await user.click(clear_button);
+
+		// Wait for clearing to complete
+		await new Promise((resolve) => setTimeout(resolve, 100));
 	}}
 />

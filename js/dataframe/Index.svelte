@@ -52,6 +52,17 @@
 	export let max_chars: number | undefined = undefined;
 	export let show_copy_button = false;
 	export let show_row_numbers = false;
+	export let show_search_input = true;
+
+	let search_query = "";
+	$: filtered_cell_values =
+		search_query && value.data
+			? value.data.filter((row) =>
+					row.some((cell) =>
+						String(cell).toLowerCase().includes(search_query.toLowerCase())
+					)
+				)
+			: value.data;
 
 	$: _headers = [...(value.headers || headers)];
 	$: cell_values = value.data ? [...value.data] : [];
@@ -86,7 +97,7 @@
 		{show_label}
 		{row_count}
 		{col_count}
-		values={cell_values}
+		values={filtered_cell_values}
 		{display_value}
 		{styling}
 		headers={_headers}
@@ -111,5 +122,6 @@
 		{max_chars}
 		{show_copy_button}
 		{show_row_numbers}
+		{show_search_input}
 	/>
 </Block>

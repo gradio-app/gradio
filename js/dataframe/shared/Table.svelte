@@ -52,6 +52,9 @@
 		display: boolean;
 	}[];
 
+	let original_values = values;
+	$: original_values = values;
+
 	export let editable = true;
 	export let wrap = false;
 	export let root: string;
@@ -67,6 +70,7 @@
 	export let show_copy_button = false;
 	export let value_is_output = false;
 	export let max_chars: number | undefined = undefined;
+	export let show_search_input = false;
 
 	let selected_cells: CellCoordinate[] = [];
 	$: selected_cells = [...selected_cells];
@@ -876,6 +880,19 @@
 			on:click={toggle_fullscreen}
 			on_copy={handle_copy}
 			{show_copy_button}
+			{show_search_input}
+			on:search={(e) => {
+				const search_query = e.detail;
+				if (search_query) {
+					values = values.filter((row) =>
+						row.some((cell) =>
+							String(cell).toLowerCase().includes(search_query.toLowerCase())
+						)
+					);
+				} else {
+					values = original_values;
+				}
+			}}
 		/>
 	</div>
 	<div
