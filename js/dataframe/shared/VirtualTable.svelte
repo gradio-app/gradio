@@ -339,7 +339,12 @@
 		position: sticky;
 		top: 0;
 		left: 0;
-		z-index: var(--layer-1);
-		overflow: hidden;
+		z-index: var(--layer-3);
+		overflow: visible;
+	}
+
+	thead :global(th.frozen-column) {
+		z-index: var(--layer-4);
+		background: var(--background-fill-primary);
 	}
 </style>

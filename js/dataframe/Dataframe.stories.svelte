@@ -465,10 +465,32 @@
 			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
 			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
 			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
 			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 		],
 		col_count: [10, "dynamic"],
 		row_count: [10, "dynamic"],
 		max_height: 700
+	}}
+/>
+
+<Story
+	name="Dataframe with frozen columns"
+	args={{
+		values: [
+			["ID", "Name", "Age", "City", "Country", "Score"],
+			["1", "John", "25", "New York", "USA", "95"],
+			["2", "Emma", "30", "London", "UK", "88"],
+			["3", "Luis", "28", "Madrid", "Spain", "92"],
+			["4", "Anna", "35", "Paris", "France", "90"],
+			["5", "Chen", "27", "Beijing", "China", "94"]
+		],
+		headers: ["ID", "Name", "Age", "City", "Country", "Score"],
+		label: "User Data",
+		col_count: [6, "dynamic"],
+		row_count: [6, "dynamic"],
+		frozen_cols: 2,
+		show_row_numbers: true,
+		editable: false
 	}}
 />

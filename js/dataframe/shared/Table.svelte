@@ -67,6 +67,7 @@
 	export let show_copy_button = false;
 	export let value_is_output = false;
 	export let max_chars: number | undefined = undefined;
+	export let frozen_cols = 0;
 
 	let selected_cells: CellCoordinate[] = [];
 	$: selected_cells = [...selected_cells];
@@ -915,7 +916,10 @@
 			<thead>
 				<tr>
 					{#if show_row_numbers}
-						<th class="row-number-header">
+						<th
+							class="row-number-header frozen-column always-frozen"
+							style="left: 0;"
+						>
 							<div class="cell-wrap">
 								<div class="header-content">
 									<div class="header-text"></div>
@@ -925,9 +929,24 @@
 					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
+							class:frozen-column={i < frozen_cols}
+							class:last-frozen={show_row_numbers
+								? i === frozen_cols - 1
+								: i === frozen_cols - 1}
 							class:editing={header_edit === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-							style:width={column_widths.length ? column_widths[i] : undefined}
+							style="width: var(--cell-width-{i}); left: {i < frozen_cols
+								? i === 0
+									? show_row_numbers
+										? 'var(--cell-width-row-number)'
+										: '0'
+									: `calc(${show_row_numbers ? 'var(--cell-width-row-number) + ' : ''}${Array(
+											i
+										)
+											.fill(0)
+											.map((_, idx) => `var(--cell-width-${idx})`)
+											.join(' + ')})`
+								: 'auto'};"
 						>
 							<div class="cell-wrap">
 								<div class="header-content">
@@ -1013,7 +1032,10 @@
 				{/if}
 				<tr slot="thead">
 					{#if show_row_numbers}
-						<th class="row-number-header">
+						<th
+							class="row-number-header frozen-column always-frozen"
+							style="left: 0;"
+						>
 							<div class="cell-wrap">
 								<div class="header-content">
 									<div class="header-text"></div>
@@ -1023,9 +1045,22 @@
 					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
+							class:frozen-column={i < frozen_cols}
+							class:last-frozen={i === frozen_cols - 1}
 							class:focus={header_edit === i || selected_header === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-							style="width: var(--cell-width-{i});"
+							style="width: var(--cell-width-{i}); left: {i < frozen_cols
+								? i === 0
+									? show_row_numbers
+										? 'var(--cell-width-row-number)'
+										: '0'
+									: `calc(${show_row_numbers ? 'var(--cell-width-row-number) + ' : ''}${Array(
+											i
+										)
+											.fill(0)
+											.map((_, idx) => `var(--cell-width-${idx})`)
+											.join(' + ')})`
+								: 'auto'};"
 							on:click={() => {
 								toggle_header_button(i);
 							}}
@@ -1053,7 +1088,6 @@
 										/>
 									</div>
 								</div>
-
 								{#if editable}
 									<button
 										class="cell-menu-button"
@@ -1066,15 +1100,20 @@
 						</th>
 					{/each}
 				</tr>
-
 				<tr slot="tbody" let:item let:index class:row_odd={index % 2 === 0}>
-					{#each item as { value, id }, j (id)}
-						{#if show_row_numbers && j === 0}
-							<td class="row-number" tabindex="-1">
-								{index + 1}
-							</td>
-						{/if}
+					{#if show_row_numbers}
 						<td
+							class="row-number frozen-column always-frozen"
+							style="left: 0;"
+							tabindex="-1"
+						>
+							{index + 1}
+						</td>
+					{/if}
+					{#each item as { value, id }, j (id)}
+						<td
+							class:frozen-column={j < frozen_cols}
+							class:last-frozen={j === frozen_cols - 1}
 							tabindex={show_row_numbers && j === 0 ? -1 : 0}
 							bind:this={els[id].cell}
 							on:touchstart={(event) => {
@@ -1093,8 +1132,18 @@
 								event.stopPropagation();
 							}}
 							on:click={(event) => handle_cell_click(event, index, j)}
-							style:width="var(--cell-width-{j})"
-							style={styling?.[index]?.[j] || ""}
+							style="width: var(--cell-width-{j}); left: {j < frozen_cols
+								? j === 0
+									? show_row_numbers
+										? 'var(--cell-width-row-number)'
+										: '0'
+									: `calc(${show_row_numbers ? 'var(--cell-width-row-number) + ' : ''}${Array(
+											j
+										)
+											.fill(0)
+											.map((_, idx) => `var(--cell-width-${idx})`)
+											.join(' + ')})`
+								: 'auto'}; {styling?.[index]?.[j] || ''}"
 							class:flash={copy_flash &&
 								is_cell_selected([index, j], selected_cells)}
 							class={is_cell_selected([index, j], selected_cells)}
@@ -1520,7 +1569,7 @@
 		background: var(--color-accent);
 		color: white;
 		border-radius: var(--radius-sm);
-		z-index: var(--layer-2);
+		z-index: var(--layer-4);
 	}
 
 	.selection-button-column {
@@ -1556,5 +1605,26 @@
 		100% {
 			background: transparent;
 		}
+	}
+
+	.frozen-column {
+		position: sticky;
+		background: var(--background-fill-primary);
+		z-index: var(--layer-2);
+		border-right: 1px solid var(--border-color-primary);
+	}
+
+	.always-frozen {
+		z-index: var(--layer-3);
+	}
+
+	.last-frozen::after {
+		content: "";
+		position: absolute;
+		top: 0;
+		right: -1px;
+		bottom: 0;
+		width: 2px;
+		box-shadow: var(--shadow-drop);
 	}
 </style>
