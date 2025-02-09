@@ -11,6 +11,7 @@ themes = [
     gr.themes.Default,
     gr.themes.Soft,
     gr.themes.Monochrome,
+    gr.themes.Beeuty,
     gr.themes.Glass,
     gr.themes.Origin,
     gr.themes.Citrus,

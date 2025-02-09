@@ -1,4 +1,5 @@
 from gradio.themes.base import Base, ThemeClass
+from gradio.themes.beeuty import Beeuty
 from gradio.themes.citrus import Citrus
 from gradio.themes.default import Default
 from gradio.themes.glass import Glass
@@ -24,6 +25,7 @@ __all__ = [
     "ThemeClass",
     "colors",
     "sizes",
+    "Beeuty",
     "Origin",
     "Citrus",
     "Ocean",
