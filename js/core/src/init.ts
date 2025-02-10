@@ -131,7 +131,11 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		components.push(_rootNode);
 
 		dependencies.forEach((dep) => {
-			loading_status.register(dep.id, dep.inputs, dep.outputs);
+			loading_status.register(
+				dep.id,
+				dep.inputs,
+				dep.show_progress_on || dep.outputs
+			);
 			dep.frontend_fn = process_frontend_fn(
 				dep.js,
 				!!dep.backend_fn,

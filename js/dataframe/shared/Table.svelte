@@ -27,7 +27,10 @@
 		get_range_selection,
 		move_cursor,
 		get_current_indices,
-		handle_click_outside as handle_click_outside_util
+		handle_click_outside as handle_click_outside_util,
+		select_column,
+		select_row,
+		calculate_selection_positions
 	} from "./selection_utils";
 	import {
 		copy_table_data,
@@ -105,6 +108,19 @@
 	} | null = null;
 	let is_fullscreen = false;
 	let dragging = false;
+	let copy_flash = false;
+
+	let color_accent_copied: string;
+	onMount(() => {
+		const color = getComputedStyle(document.documentElement)
+			.getPropertyValue("--color-accent")
+			.trim();
+		color_accent_copied = color + "40"; // 80 is 50% opacity in hex
+		document.documentElement.style.setProperty(
+			"--color-accent-copied",
+			color_accent_copied
+		);
+	});
 
 	const get_data_at = (row: number, col: number): string | number =>
 		data?.[row]?.[col]?.value;
@@ -325,8 +341,10 @@
 						editing = false;
 					} else {
 						selected_cells = [next_coords];
-						editing = next_coords;
-						clear_on_focus = false;
+						if (editable) {
+							editing = next_coords;
+							clear_on_focus = false;
+						}
 					}
 					selected = next_coords;
 				} else if (
@@ -346,27 +364,26 @@
 				editing = false;
 				break;
 			case "Enter":
-				if (!editable) break;
 				event.preventDefault();
-
-				if (event.shiftKey) {
-					add_row(i);
-					await tick();
-
-					selected = [i + 1, j];
-				} else {
-					if (dequal(editing, [i, j])) {
-						const cell_id = data[i][j].id;
-						const input_el = els[cell_id].input;
-						if (input_el) {
-							data[i][j].value = input_el.value;
-						}
-						editing = false;
+				if (editable) {
+					if (event.shiftKey) {
+						add_row(i);
 						await tick();
-						selected = [i, j];
+						selected = [i + 1, j];
 					} else {
-						editing = [i, j];
-						clear_on_focus = false;
+						if (dequal(editing, [i, j])) {
+							const cell_id = data[i][j].id;
+							const input_el = els[cell_id].input;
+							if (input_el) {
+								data[i][j].value = input_el.value;
+							}
+							editing = false;
+							await tick();
+							selected = [i, j];
+						} else {
+							editing = [i, j];
+							clear_on_focus = false;
+						}
 					}
 				}
 				break;
@@ -596,6 +613,10 @@
 		row: number,
 		col: number
 	): void {
+		if (event.target instanceof HTMLAnchorElement) {
+			return;
+		}
+
 		event.preventDefault();
 		event.stopPropagation();
 
@@ -608,19 +629,22 @@
 		header_edit = false;
 
 		selected_cells = handle_selection([row, col], selected_cells, event);
+		parent.focus();
 
-		if (selected_cells.length === 1 && editable) {
-			editing = [row, col];
-			tick().then(() => {
-				const input_el = els[data[row][col].id].input;
-				if (input_el) {
-					input_el.focus();
-					input_el.selectionStart = input_el.selectionEnd =
-						input_el.value.length;
-				}
-			});
-		} else {
-			editing = false;
+		if (editable) {
+			if (selected_cells.length === 1) {
+				editing = [row, col];
+				tick().then(() => {
+					const input_el = els[data[row][col].id].input;
+					if (input_el) {
+						input_el.focus();
+						input_el.selectionStart = input_el.selectionEnd =
+							input_el.value.length;
+					}
+				});
+			} else {
+				editing = false;
+			}
 		}
 
 		toggle_cell_button(row, col);
@@ -666,6 +690,9 @@
 	function handle_resize(): void {
 		active_cell_menu = null;
 		active_header_menu = null;
+		selected_cells = [];
+		selected = false;
+		editing = false;
 		set_cell_widths();
 	}
 
@@ -707,6 +734,10 @@
 
 	async function handle_copy(): Promise<void> {
 		await copy_table_data(data, selected_cells);
+		copy_flash = true;
+		setTimeout(() => {
+			copy_flash = false;
+		}, 800);
 	}
 
 	function toggle_header_menu(event: MouseEvent, col: number): void {
@@ -793,6 +824,41 @@
 			row_order = [...Array(data.length)].map((_, i) => i);
 		}
 	}
+
+	function handle_select_column(col: number): void {
+		selected_cells = select_column(data, col);
+		selected = selected_cells[0];
+		editing = false;
+	}
+
+	function handle_select_row(row: number): void {
+		selected_cells = select_row(data, row);
+		selected = selected_cells[0];
+		editing = false;
+	}
+
+	let coords: CellCoordinate;
+	$: if (selected !== false) coords = selected;
+
+	$: if (selected !== false) {
+		const positions = calculate_selection_positions(
+			selected,
+			data,
+			els,
+			parent,
+			table
+		);
+		document.documentElement.style.setProperty(
+			"--selected-col-pos",
+			positions.col_pos
+		);
+		if (positions.row_pos) {
+			document.documentElement.style.setProperty(
+				"--selected-row-pos",
+				positions.row_pos
+			);
+		}
+	}
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
@@ -823,6 +889,22 @@
 		role="grid"
 		tabindex="0"
 	>
+		{#if selected !== false && selected_cells.length === 1}
+			<button
+				class="selection-button selection-button-column"
+				on:click|stopPropagation={() => handle_select_column(coords[1])}
+				aria-label="Select column"
+			>
+				&#8942;
+			</button>
+			<button
+				class="selection-button selection-button-row"
+				on:click|stopPropagation={() => handle_select_row(coords[0])}
+				aria-label="Select row"
+			>
+				&#8942;
+			</button>
+		{/if}
 		<table
 			bind:contentRect={t_rect}
 			bind:this={table}
@@ -997,6 +1079,7 @@
 						{/if}
 						<td
 							tabindex={show_row_numbers && j === 0 ? -1 : 0}
+							bind:this={els[id].cell}
 							on:touchstart={(event) => {
 								const touch = event.touches[0];
 								const mouseEvent = new MouseEvent("click", {
@@ -1015,6 +1098,8 @@
 							on:click={(event) => handle_cell_click(event, index, j)}
 							style:width="var(--cell-width-{j})"
 							style={styling?.[index]?.[j] || ""}
+							class:flash={copy_flash &&
+								is_cell_selected([index, j], selected_cells)}
 							class={is_cell_selected([index, j], selected_cells)}
 							class:menu-active={active_cell_menu &&
 								active_cell_menu.row === index &&
@@ -1123,7 +1208,6 @@
 		transition: 150ms;
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
-		overflow: hidden;
 	}
 
 	.table-wrap.menu-open {
@@ -1256,7 +1340,7 @@
 		min-width: 0;
 		white-space: normal;
 		overflow-wrap: break-word;
-		word-break: break-word;
+		word-break: normal;
 		height: 100%;
 		padding: var(--size-1);
 		gap: var(--size-1);
@@ -1433,5 +1517,51 @@
 
 	.cell-selected.no-top.no-bottom.no-left.no-right {
 		box-shadow: none;
+	}
+
+	.selection-button {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--color-accent);
+		color: white;
+		border-radius: var(--radius-sm);
+		z-index: var(--layer-2);
+	}
+
+	.selection-button-column {
+		width: var(--size-3);
+		height: var(--size-5);
+		top: -10px;
+		left: var(--selected-col-pos);
+		transform: rotate(90deg);
+	}
+
+	.selection-button-row {
+		width: var(--size-3);
+		height: var(--size-5);
+		left: -7px;
+		top: calc(var(--selected-row-pos) - var(--size-5) / 2);
+	}
+
+	.table-wrap:not(:focus-within) .selection-button {
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.flash.cell-selected {
+		animation: flash-color 700ms ease-out;
+	}
+
+	@keyframes flash-color {
+		0%,
+		30% {
+			background: var(--color-accent-copied);
+		}
+
+		100% {
+			background: transparent;
+		}
 	}
 </style>
