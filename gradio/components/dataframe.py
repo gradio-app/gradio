@@ -171,8 +171,15 @@ class Dataframe(Component):
         self.show_row_numbers = show_row_numbers
         self.max_chars = max_chars
         self.frozen_cols = frozen_cols
-        if frozen_cols is not None and isinstance(col_count, tuple) and col_count[1] == "fixed" and frozen_cols > self.col_count[0]:
-            raise ValueError(f"frozen_cols ({frozen_cols}) cannot exceed the total number of columns ({self.col_count[0]}) when using fixed columns")
+        if (
+            frozen_cols is not None
+            and isinstance(col_count, tuple)
+            and col_count[1] == "fixed"
+            and frozen_cols > self.col_count[0]
+        ):
+            raise ValueError(
+                f"frozen_cols ({frozen_cols}) cannot exceed the total number of columns ({self.col_count[0]}) when using fixed columns"
+            )
         super().__init__(
             label=label,
             every=every,
