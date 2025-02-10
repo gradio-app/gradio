@@ -41,6 +41,11 @@
 			return;
 		}
 
+		// force header height calculation first
+		head_height =
+			viewport.querySelector(".thead")?.getBoundingClientRect().height || 0;
+		await tick();
+
 		const { scrollTop } = viewport;
 		table_scrollbar_width = viewport.offsetWidth - viewport.clientWidth;
 
@@ -256,33 +261,59 @@
 </script>
 
 <svelte-virtual-table-viewport>
-	<table
-		class="table"
-		bind:this={viewport}
-		bind:contentRect={viewport_box}
-		on:scroll={handle_scroll}
-		style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px; --max-height: {max_height}px"
-	>
-		<thead class="thead" bind:offsetHeight={head_height}>
-			<slot name="thead" />
-		</thead>
-		<tbody bind:this={contents} class="tbody">
-			{#if visible.length && visible[0].data.length}
-				{#each visible as item (item.data[0].id)}
-					<slot name="tbody" item={item.data} index={item.index}>
-						Missing Table Row
-					</slot>
+	<div class="table-container">
+		<table class="table native-table">
+			<thead class="thead">
+				<slot name="thead" />
+			</thead>
+			<tbody class="tbody">
+				{#each items as item, i}
+					<slot name="tbody" {item} index={i}>Missing Table Row</slot>
 				{/each}
-			{/if}
-		</tbody>
-		<tfoot class="tfoot" bind:offsetHeight={foot_height}>
-			<slot name="tfoot" />
-		</tfoot>
-	</table>
+			</tbody>
+		</table>
+
+		<table
+			class="table"
+			bind:this={viewport}
+			bind:contentRect={viewport_box}
+			on:scroll={handle_scroll}
+			style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px; --max-height: {max_height}px"
+		>
+			<thead class="thead">
+				<slot name="thead" />
+			</thead>
+			<tbody bind:this={contents} class="tbody">
+				{#if visible.length && visible[0].data.length}
+					{#each visible as item (item.data[0].id)}
+						<slot name="tbody" item={item.data} index={item.index}>
+							Missing Table Row
+						</slot>
+					{/each}
+				{/if}
+			</tbody>
+			<tfoot class="tfoot" bind:offsetHeight={foot_height}>
+				<slot name="tfoot" />
+			</tfoot>
+		</table>
+	</div>
 </svelte-virtual-table-viewport>
 
 <style type="text/css">
+	.table-container {
+		display: grid;
+		grid-template-columns: 1fr;
+	}
+
+	.native-table {
+		grid-row: 1;
+		grid-column: 1;
+		opacity: 0;
+	}
+
 	table {
+		grid-row: 1;
+		grid-column: 1;
 		position: relative;
 		overflow-y: scroll;
 		overflow-x: scroll;
@@ -309,8 +340,7 @@
 	}
 
 	tbody {
-		overflow-x: scroll;
-		overflow-y: hidden;
+		overflow: auto;
 	}
 
 	table tbody {
@@ -340,6 +370,7 @@
 		top: 0;
 		left: 0;
 		z-index: var(--layer-1);
+		background: var(--background-fill-primary);
 		overflow: hidden;
 	}
 </style>
