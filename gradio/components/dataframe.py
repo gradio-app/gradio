@@ -100,7 +100,7 @@ class Dataframe(Component):
         show_copy_button: bool = False,
         show_row_numbers: bool = False,
         max_chars: int | None = None,
-        frozen_cols: int | None = None,
+        frozen_columns: int | None = None,
     ):
         """
         Parameters:
@@ -132,7 +132,7 @@ class Dataframe(Component):
             show_copy_button: If True, will show a button to copy the table data to the clipboard.
             show_row_numbers: If True, will display row numbers in a separate column.
             max_chars: Maximum number of characters to display in each cell before truncating (single-clicking a cell value will still reveal the full content). If None, no truncation is applied.
-            frozen_cols: If provided, will freeze the specified number of columns from the left.
+            frozen_columns: If provided, will freeze the specified number of columns from the left.
         """
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
@@ -170,15 +170,15 @@ class Dataframe(Component):
         self.show_copy_button = show_copy_button
         self.show_row_numbers = show_row_numbers
         self.max_chars = max_chars
-        self.frozen_cols = frozen_cols
+        self.frozen_columns = frozen_columns
         if (
-            frozen_cols is not None
+            frozen_columns is not None
             and isinstance(col_count, tuple)
             and col_count[1] == "fixed"
-            and frozen_cols > self.col_count[0]
+            and frozen_columns > self.col_count[0]
         ):
             raise ValueError(
-                f"frozen_cols ({frozen_cols}) cannot exceed the total number of columns ({self.col_count[0]}) when using fixed columns"
+                f"frozen_columns ({frozen_columns}) cannot exceed the total number of columns ({self.col_count[0]}) when using fixed columns"
             )
         super().__init__(
             label=label,
