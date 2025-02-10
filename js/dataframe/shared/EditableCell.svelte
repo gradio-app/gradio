@@ -150,6 +150,7 @@
 		display: inline-block;
 		outline: none;
 		padding: var(--size-2);
+		padding-right: 0;
 		-webkit-user-select: text;
 		-moz-user-select: text;
 		-ms-user-select: text;
@@ -157,10 +158,6 @@
 		cursor: text;
 		width: 100%;
 		height: 100%;
-	}
-
-	input:where(:not(.header), [data-editable="true"]) {
-		width: calc(100% - var(--size-10));
 	}
 
 	span.expanded {

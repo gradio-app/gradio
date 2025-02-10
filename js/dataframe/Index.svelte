@@ -51,6 +51,7 @@
 	export let show_fullscreen_button = false;
 	export let max_chars: number | undefined = undefined;
 	export let show_copy_button = false;
+	export let show_row_numbers = false;
 
 	$: _headers = [...(value.headers || headers)];
 	$: cell_values = value.data ? [...value.data] : [];
@@ -71,7 +72,7 @@
 	container={false}
 	{scale}
 	{min_width}
-	allow_overflow={false}
+	overflow_behavior="visible"
 >
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
@@ -109,5 +110,6 @@
 		{show_fullscreen_button}
 		{max_chars}
 		{show_copy_button}
+		{show_row_numbers}
 	/>
 </Block>
