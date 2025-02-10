@@ -2241,7 +2241,7 @@ Received inputs:
         fns_to_transpile = [
             fn.fn
             for fn in self.fns.values()
-            if fn.fn and hasattr(fn.fn, "__js_implementation__")
+            if fn.fn and fn.js is True
         ]
         num_to_transpile = len(fns_to_transpile)
         if not quiet and num_to_transpile > 0:
