@@ -69,6 +69,12 @@
 	export let max_chars: number | undefined = undefined;
 	export let frozen_cols = 0;
 
+	let actual_frozen_cols = 0;
+	$: actual_frozen_cols =
+		frozen_cols && data?.[0]?.length
+			? Math.min(frozen_cols, data[0].length)
+			: 0;
+
 	let selected_cells: CellCoordinate[] = [];
 	$: selected_cells = [...selected_cells];
 	let selected: CellCoordinate | false = false;
@@ -929,13 +935,13 @@
 					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
-							class:frozen-column={i < frozen_cols}
+							class:frozen-column={i < actual_frozen_cols}
 							class:last-frozen={show_row_numbers
-								? i === frozen_cols - 1
-								: i === frozen_cols - 1}
+								? i === actual_frozen_cols - 1
+								: i === actual_frozen_cols - 1}
 							class:editing={header_edit === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-							style="width: var(--cell-width-{i}); left: {i < frozen_cols
+							style="width: var(--cell-width-{i}); left: {i < actual_frozen_cols
 								? i === 0
 									? show_row_numbers
 										? 'var(--cell-width-row-number)'
@@ -1045,11 +1051,11 @@
 					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
-							class:frozen-column={i < frozen_cols}
-							class:last-frozen={i === frozen_cols - 1}
+							class:frozen-column={i < actual_frozen_cols}
+							class:last-frozen={i === actual_frozen_cols - 1}
 							class:focus={header_edit === i || selected_header === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-							style="width: var(--cell-width-{i}); left: {i < frozen_cols
+							style="width: var(--cell-width-{i}); left: {i < actual_frozen_cols
 								? i === 0
 									? show_row_numbers
 										? 'var(--cell-width-row-number)'
@@ -1112,8 +1118,8 @@
 					{/if}
 					{#each item as { value, id }, j (id)}
 						<td
-							class:frozen-column={j < frozen_cols}
-							class:last-frozen={j === frozen_cols - 1}
+							class:frozen-column={j < actual_frozen_cols}
+							class:last-frozen={j === actual_frozen_cols - 1}
 							tabindex={show_row_numbers && j === 0 ? -1 : 0}
 							bind:this={els[id].cell}
 							on:touchstart={(event) => {
@@ -1132,7 +1138,7 @@
 								event.stopPropagation();
 							}}
 							on:click={(event) => handle_cell_click(event, index, j)}
-							style="width: var(--cell-width-{j}); left: {j < frozen_cols
+							style="width: var(--cell-width-{j}); left: {j < actual_frozen_cols
 								? j === 0
 									? show_row_numbers
 										? 'var(--cell-width-row-number)'
