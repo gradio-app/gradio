@@ -29,6 +29,7 @@ import httpx
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
+from grompy import transpile
 
 from gradio import (
     analytics,
@@ -69,7 +70,6 @@ from gradio.exceptions import (
     InvalidComponentError,
 )
 from gradio.helpers import create_tracker, skip, special_args
-from gradio.js_transpiler import transpile
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
