@@ -10,6 +10,7 @@
 	export let start = 0;
 	export let end = 20;
 	export let selected: number | false;
+	export let disable_scroll = false;
 	let height = "100%";
 
 	let average_height = 30;
@@ -258,6 +259,7 @@
 <svelte-virtual-table-viewport>
 	<table
 		class="table"
+		class:disable-scroll={disable_scroll}
 		bind:this={viewport}
 		bind:contentRect={viewport_box}
 		on:scroll={handle_scroll}
@@ -341,5 +343,9 @@
 		left: 0;
 		z-index: var(--layer-1);
 		overflow: hidden;
+	}
+
+	.table.disable-scroll {
+		overflow: hidden !important;
 	}
 </style>
