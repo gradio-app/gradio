@@ -356,14 +356,12 @@
 		top: 0;
 		left: 0;
 		z-index: var(--layer-3);
-		overflow: visible;
 		background: var(--background-fill-primary);
 	}
 
 	thead :global(th.frozen-column) {
-		z-index: var(--layer-4);
-		background: var(--background-fill-primary);
 		position: sticky;
+		z-index: var(--layer-4);
 	}
 
 	thead :global(th.always-frozen) {
