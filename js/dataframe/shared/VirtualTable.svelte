@@ -261,7 +261,7 @@
 </script>
 
 <svelte-virtual-table-viewport>
-	<div class="table-container">
+	<div>
 		<table
 			class="table"
 			bind:this={viewport}
@@ -289,10 +289,6 @@
 </svelte-virtual-table-viewport>
 
 <style type="text/css">
-	.table-container {
-		position: relative;
-	}
-
 	table {
 		position: relative;
 		overflow-y: scroll;
