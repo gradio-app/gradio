@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Allow freezing columns in `gr.Dataframe`
+feat:Prevent scrolling when the dataframe cell menu is open
