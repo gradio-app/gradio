@@ -2200,7 +2200,7 @@ Received inputs:
             "components": [],
             "css": self.css,
             "connect_heartbeat": False,
-            "js": self.js,
+            "js": cast(str | Literal[True] | None, self.js),
             "head": self.head,
             "title": self.title or "Gradio",
             "space_id": self.space_id,
@@ -2239,9 +2239,7 @@ Received inputs:
 
     def transpile_to_js(self, quiet: bool = False):
         fns_to_transpile = [
-            fn.fn
-            for fn in self.fns.values()
-            if fn.fn and fn.js is True
+            fn.fn for fn in self.fns.values() if fn.fn and fn.js is True
         ]
         num_to_transpile = len(fns_to_transpile)
         if not quiet and num_to_transpile > 0:
