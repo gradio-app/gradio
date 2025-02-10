@@ -1636,14 +1636,4 @@
 	.always-frozen {
 		z-index: var(--layer-3);
 	}
-
-	.last-frozen::after {
-		content: "";
-		position: absolute;
-		top: 0;
-		right: -1px;
-		bottom: 0;
-		width: 2px;
-		box-shadow: var(--shadow-drop);
-	}
 </style>
