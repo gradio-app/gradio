@@ -901,6 +901,7 @@
 		class:dragging
 		class:no-wrap={!wrap}
 		style="height:{table_height}px; {column_width_styles}"
+		class:menu-open={active_cell_menu || active_header_menu}
 		on:keydown={(e) => handle_keydown(e)}
 		role="grid"
 		tabindex="0"
@@ -1043,6 +1044,8 @@
 				bind:table_scrollbar_width={scrollbar_width}
 				selected={selected_index}
 				{column_widths}
+				disable_scroll={active_cell_menu !== null ||
+					active_header_menu !== null}
 			>
 				{#if label && label.length !== 0}
 					<caption class="sr-only">{label}</caption>
@@ -1271,6 +1274,10 @@
 		transition: 150ms;
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
+	}
+
+	.table-wrap.menu-open {
+		overflow: hidden;
 	}
 
 	.table-wrap:focus-within {
