@@ -348,6 +348,17 @@
 		position: sticky;
 		background: var(--background-fill-primary);
 		z-index: var(--layer-2);
+		width: var(--cell-width);
+		min-width: var(--cell-width);
+		max-width: var(--cell-width);
+	}
+
+	tbody :global(tr:nth-child(odd)) :global(td.frozen-column) {
+		background: var(--table-odd-background-fill);
+	}
+
+	tbody :global(tr:nth-child(even)) :global(td.frozen-column) {
+		background: var(--table-even-background-fill);
 	}
 
 	tbody :global(td.always-frozen) {
@@ -366,9 +377,16 @@
 		background: var(--background-fill-primary);
 	}
 
+	thead :global(th) {
+		background: var(--table-even-background-fill) !important;
+	}
+
 	thead :global(th.frozen-column) {
 		position: sticky;
 		z-index: var(--layer-4);
+		width: var(--cell-width);
+		min-width: var(--cell-width);
+		max-width: var(--cell-width);
 	}
 
 	thead :global(th.always-frozen) {
