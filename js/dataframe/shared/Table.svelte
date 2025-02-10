@@ -1633,9 +1633,6 @@
 		position: sticky;
 		z-index: var(--layer-2);
 		border-right: 1px solid var(--border-color-primary);
-		width: var(--cell-width);
-		min-width: var(--cell-width);
-		max-width: var(--cell-width);
 	}
 
 	tr:nth-child(odd) .frozen-column {

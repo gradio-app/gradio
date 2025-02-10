@@ -346,11 +346,7 @@
 
 	tbody :global(td.frozen-column) {
 		position: sticky;
-		background: var(--background-fill-primary);
 		z-index: var(--layer-2);
-		width: var(--cell-width);
-		min-width: var(--cell-width);
-		max-width: var(--cell-width);
 	}
 
 	tbody :global(tr:nth-child(odd)) :global(td.frozen-column) {
@@ -384,9 +380,6 @@
 	thead :global(th.frozen-column) {
 		position: sticky;
 		z-index: var(--layer-4);
-		width: var(--cell-width);
-		min-width: var(--cell-width);
-		max-width: var(--cell-width);
 	}
 
 	thead :global(th.always-frozen) {

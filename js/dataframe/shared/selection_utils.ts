@@ -206,6 +206,13 @@ export function calculate_selection_positions(
 		return { col_pos: "0px", row_pos: undefined };
 	}
 
+	let offset = 0;
+	for (let i = 0; i < col; i++) {
+		offset += parseFloat(
+			getComputedStyle(parent).getPropertyValue(`--cell-width-${i}`)
+		);
+	}
+
 	const cell_id = data[row][col].id;
 	const cell_el = els[cell_id]?.cell;
 
