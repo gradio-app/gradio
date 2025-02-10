@@ -263,23 +263,6 @@
 
 <svelte-virtual-table-viewport>
 	<div class="table-container">
-		<table class="table native-table">
-			<thead class="thead">
-				<slot name="thead" />
-			</thead>
-			<tbody class="tbody">
-				{#each items as item, i}
-					<tr>
-						{#each item as cell, j}
-							<td bind:this={cells[j]}>
-								<slot name="tbody" {item} index={i}>Missing Table Row</slot>
-							</td>
-						{/each}
-					</tr>
-				{/each}
-			</tbody>
-		</table>
-
 		<table
 			class="table"
 			bind:this={viewport}
