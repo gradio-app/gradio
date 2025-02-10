@@ -290,8 +290,7 @@
 
 <style type="text/css">
 	.table-container {
-		display: grid;
-		grid-template-columns: 1fr;
+		position: relative;
 	}
 
 	table {
