@@ -3,7 +3,7 @@
 	import { _ } from "svelte-i18n";
 
 	export let items: any[][] = [];
-	export let column_widths: string[] = [];
+
 	export let max_height: number;
 	export let actual_height: number;
 	export let table_scrollbar_width: number;
@@ -264,7 +264,6 @@
 		bind:contentRect={viewport_box}
 		on:scroll={handle_scroll}
 		style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px; --max-height: {max_height}px"
-		class:fixed-layout={column_widths.length > 0}
 	>
 		<thead class="thead" bind:offsetHeight={head_height}>
 			<slot name="thead" />
@@ -304,26 +303,11 @@
 		scroll-snap-type: x proximity;
 		border-collapse: separate;
 	}
-
-	table.fixed-layout {
-		table-layout: fixed;
-	}
-
-	table.fixed-layout :global(th),
-	table.fixed-layout :global(td) {
-		width: var(--cell-width);
-	}
-
 	table :is(thead, tfoot, tbody) {
 		display: table;
 		table-layout: fixed;
 		width: 100%;
 		box-sizing: border-box;
-	}
-
-	table :global(th),
-	table :global(td) {
-		width: var(--cell-width);
 	}
 
 	tbody {
@@ -353,17 +337,37 @@
 		background: var(--table-even-background-fill);
 	}
 
+	tbody :global(td.frozen-column) {
+		position: sticky;
+		background: var(--background-fill-primary);
+		z-index: var(--layer-2);
+	}
+
+	tbody :global(td.always-frozen) {
+		z-index: var(--layer-3);
+	}
+
+	tbody :global(td.last-frozen) {
+		border-right: 2px solid var(--border-color-primary);
+	}
+
 	thead {
 		position: sticky;
 		top: 0;
 		left: 0;
 		z-index: var(--layer-3);
 		overflow: visible;
+		background: var(--background-fill-primary);
 	}
 
 	thead :global(th.frozen-column) {
 		z-index: var(--layer-4);
 		background: var(--background-fill-primary);
+		position: sticky;
+	}
+
+	thead :global(th.always-frozen) {
+		z-index: var(--layer-5);
 	}
 
 	.table.disable-scroll {

@@ -556,10 +556,6 @@
 		});
 	}
 
-	$: column_width_styles = column_widths
-		.map((w, i) => `--cell-width-${i}: ${w}`)
-		.join("; ");
-
 	function get_cell_width(index: number): string {
 		return column_widths[index] || `var(--cell-width-${index})`;
 	}
@@ -900,7 +896,7 @@
 		class="table-wrap"
 		class:dragging
 		class:no-wrap={!wrap}
-		style="height:{table_height}px; {column_width_styles}"
+		style="height:{table_height}px;"
 		class:menu-open={active_cell_menu || active_header_menu}
 		on:keydown={(e) => handle_keydown(e)}
 		role="grid"
@@ -1043,7 +1039,6 @@
 				bind:actual_height={table_height}
 				bind:table_scrollbar_width={scrollbar_width}
 				selected={selected_index}
-				{column_widths}
 				disable_scroll={active_cell_menu !== null ||
 					active_header_menu !== null}
 			>
