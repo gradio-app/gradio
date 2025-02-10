@@ -1007,7 +1007,6 @@
 				bind:actual_height={table_height}
 				bind:table_scrollbar_width={scrollbar_width}
 				selected={selected_index}
-				bind:cells
 			>
 				{#if label && label.length !== 0}
 					<caption class="sr-only">{label}</caption>

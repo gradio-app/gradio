@@ -10,7 +10,6 @@
 	export let start = 0;
 	export let end = 20;
 	export let selected: number | false;
-	export let cells: HTMLTableCellElement[] = [];
 	let height = "100%";
 
 	let average_height = 30;
@@ -295,15 +294,7 @@
 		grid-template-columns: 1fr;
 	}
 
-	.native-table {
-		grid-row: 1;
-		grid-column: 1;
-		opacity: 0;
-	}
-
 	table {
-		grid-row: 1;
-		grid-column: 1;
 		position: relative;
 		overflow-y: scroll;
 		overflow-x: scroll;
