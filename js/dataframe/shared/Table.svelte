@@ -547,11 +547,21 @@
 		}
 		const data_cells = show_row_numbers ? widths.slice(1) : widths;
 		data_cells.forEach((width, i) => {
-			parent.style.setProperty(
-				`--cell-width-${i}`,
-				`${width - scrollbar_width / data_cells.length}px`
-			);
+			if (!column_widths[i]) {
+				parent.style.setProperty(
+					`--cell-width-${i}`,
+					`${width - scrollbar_width / data_cells.length}px`
+				);
+			}
 		});
+	}
+
+	$: column_width_styles = column_widths
+		.map((w, i) => `--cell-width-${i}: ${w}`)
+		.join("; ");
+
+	function get_cell_width(index: number): string {
+		return column_widths[index] || `var(--cell-width-${index})`;
 	}
 
 	let table_height: number =
@@ -890,7 +900,7 @@
 		class="table-wrap"
 		class:dragging
 		class:no-wrap={!wrap}
-		style="height:{table_height}px"
+		style="height:{table_height}px; {column_width_styles}"
 		on:keydown={(e) => handle_keydown(e)}
 		role="grid"
 		tabindex="0"
@@ -941,7 +951,7 @@
 								: i === actual_frozen_cols - 1}
 							class:editing={header_edit === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-							style="width: var(--cell-width-{i}); left: {i < actual_frozen_cols
+							style="width: {get_cell_width(i)}; left: {i < actual_frozen_cols
 								? i === 0
 									? show_row_numbers
 										? 'var(--cell-width-row-number)'
@@ -1032,6 +1042,7 @@
 				bind:actual_height={table_height}
 				bind:table_scrollbar_width={scrollbar_width}
 				selected={selected_index}
+				{column_widths}
 			>
 				{#if label && label.length !== 0}
 					<caption class="sr-only">{label}</caption>
@@ -1055,7 +1066,7 @@
 							class:last-frozen={i === actual_frozen_cols - 1}
 							class:focus={header_edit === i || selected_header === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-							style="width: var(--cell-width-{i}); left: {i < actual_frozen_cols
+							style="width: {get_cell_width(i)}; left: {i < actual_frozen_cols
 								? i === 0
 									? show_row_numbers
 										? 'var(--cell-width-row-number)'
@@ -1138,7 +1149,7 @@
 								event.stopPropagation();
 							}}
 							on:click={(event) => handle_cell_click(event, index, j)}
-							style="width: var(--cell-width-{j}); left: {j < actual_frozen_cols
+							style="width: {get_cell_width(j)}; left: {j < actual_frozen_cols
 								? j === 0
 									? show_row_numbers
 										? 'var(--cell-width-row-number)'

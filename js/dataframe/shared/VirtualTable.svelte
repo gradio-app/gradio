@@ -3,7 +3,7 @@
 	import { _ } from "svelte-i18n";
 
 	export let items: any[][] = [];
-
+	export let column_widths: string[] = [];
 	export let max_height: number;
 	export let actual_height: number;
 	export let table_scrollbar_width: number;
@@ -262,6 +262,7 @@
 		bind:contentRect={viewport_box}
 		on:scroll={handle_scroll}
 		style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px; --max-height: {max_height}px"
+		class:fixed-layout={column_widths.length > 0}
 	>
 		<thead class="thead" bind:offsetHeight={head_height}>
 			<slot name="thead" />
@@ -301,11 +302,26 @@
 		scroll-snap-type: x proximity;
 		border-collapse: separate;
 	}
+
+	table.fixed-layout {
+		table-layout: fixed;
+	}
+
+	table.fixed-layout :global(th),
+	table.fixed-layout :global(td) {
+		width: var(--cell-width);
+	}
+
 	table :is(thead, tfoot, tbody) {
 		display: table;
 		table-layout: fixed;
 		width: 100%;
 		box-sizing: border-box;
+	}
+
+	table :global(th),
+	table :global(td) {
+		width: var(--cell-width);
 	}
 
 	tbody {
