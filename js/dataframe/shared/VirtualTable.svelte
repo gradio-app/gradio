@@ -340,7 +340,8 @@
 	}
 
 	tbody {
-		overflow: auto;
+		overflow-x: scroll;
+		overflow-y: hidden;
 	}
 
 	table tbody {
@@ -370,7 +371,6 @@
 		top: 0;
 		left: 0;
 		z-index: var(--layer-1);
-		background: var(--background-fill-primary);
 		overflow: hidden;
 	}
 </style>
