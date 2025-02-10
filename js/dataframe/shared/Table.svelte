@@ -904,77 +904,6 @@
 				&#8942;
 			</button>
 		{/if}
-		<table
-			bind:contentRect={t_rect}
-			bind:this={table}
-			class:fixed-layout={column_widths.length != 0}
-		>
-			{#if label && label.length !== 0}
-				<caption class="sr-only">{label}</caption>
-			{/if}
-			<thead>
-				<tr>
-					{#if show_row_numbers}
-						<th class="row-number-header">
-							<div class="cell-wrap">
-								<div class="header-content">
-									<div class="header-text"></div>
-								</div>
-							</div>
-						</th>
-					{/if}
-					{#each _headers as { value, id }, i (id)}
-						<th
-							class:editing={header_edit === i}
-							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-							style:width={column_widths.length ? column_widths[i] : undefined}
-						>
-							<div class="cell-wrap">
-								<div class="header-content">
-									<EditableCell
-										{value}
-										{latex_delimiters}
-										{line_breaks}
-										header
-										edit={false}
-										el={null}
-										{root}
-										{editable}
-									/>
-									<div class="sort-buttons">
-										<SortIcon
-											direction={sort_by === i ? sort_direction : null}
-											on:sort={({ detail }) => handle_sort(i, detail)}
-											{i18n}
-										/>
-									</div>
-								</div>
-							</div>
-						</th>
-					{/each}
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					{#each max as { value, id }, j (id)}
-						<td tabindex="-1" bind:this={cells[j]}>
-							<div class="cell-wrap">
-								<EditableCell
-									{value}
-									{latex_delimiters}
-									{line_breaks}
-									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
-									edit={false}
-									el={null}
-									{root}
-									{editable}
-								/>
-							</div>
-						</td>
-					{/each}
-				</tr>
-			</tbody>
-		</table>
 		<Upload
 			{upload}
 			{stream_handler}
@@ -1007,6 +936,7 @@
 				bind:actual_height={table_height}
 				bind:table_scrollbar_width={scrollbar_width}
 				selected={selected_index}
+				bind:cells
 			>
 				{#if label && label.length !== 0}
 					<caption class="sr-only">{label}</caption>
@@ -1025,7 +955,9 @@
 						<th
 							class:focus={header_edit === i || selected_header === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-							style="width: var(--cell-width-{i});"
+							style:width={column_widths.length
+								? column_widths[i]
+								: `var(--cell-width-${i})`}
 							on:click={() => {
 								toggle_header_button(i);
 							}}
@@ -1239,18 +1171,6 @@
 
 	div.no-wrap td {
 		overflow-x: hidden;
-	}
-
-	table.fixed-layout {
-		table-layout: fixed;
-	}
-
-	thead {
-		position: sticky;
-		top: 0;
-		left: 0;
-		z-index: var(--layer-2);
-		box-shadow: var(--shadow-drop);
 	}
 
 	tr {

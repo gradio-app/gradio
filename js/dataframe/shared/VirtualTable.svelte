@@ -10,6 +10,7 @@
 	export let start = 0;
 	export let end = 20;
 	export let selected: number | false;
+	export let cells: HTMLTableCellElement[] = [];
 	let height = "100%";
 
 	let average_height = 30;
@@ -268,7 +269,13 @@
 			</thead>
 			<tbody class="tbody">
 				{#each items as item, i}
-					<slot name="tbody" {item} index={i}>Missing Table Row</slot>
+					<tr>
+						{#each item as cell, j}
+							<td bind:this={cells[j]}>
+								<slot name="tbody" {item} index={i}>Missing Table Row</slot>
+							</td>
+						{/each}
+					</tr>
 				{/each}
 			</tbody>
 		</table>
