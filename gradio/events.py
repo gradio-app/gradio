@@ -474,6 +474,7 @@ if TYPE_CHECKING:
             Union[str, None, Literal[False]],
             bool,
             Literal["full", "minimal", "hidden"],
+            Union[Component, Sequence[Component], None],
             Union[bool, None],
             bool,
             int,
@@ -578,6 +579,7 @@ class EventListener(str):
             api_name: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
             show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
+            show_progress_on: Component | Sequence[Component] | None = None,
             queue: bool = True,
             batch: bool = False,
             max_batch_size: int = 4,
@@ -601,6 +603,7 @@ class EventListener(str):
                 api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
                 scroll_to_output: If True, will scroll to output component on completion
                 show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
+                show_progress_on: Component or list of components to show the progress animation on. If None, will show the progress animation on all of the output components.
                 queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
                 batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
                 max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
@@ -625,6 +628,7 @@ class EventListener(str):
                         api_name=api_name,
                         scroll_to_output=scroll_to_output,
                         show_progress=show_progress,
+                        show_progress_on=show_progress_on,
                         queue=queue,
                         batch=batch,
                         max_batch_size=max_batch_size,
@@ -672,6 +676,7 @@ class EventListener(str):
                 postprocess=postprocess,
                 scroll_to_output=scroll_to_output,
                 show_progress=show_progress,
+                show_progress_on=show_progress_on,
                 api_name=api_name,
                 js=js,
                 concurrency_limit=concurrency_limit,
@@ -738,6 +743,7 @@ def on(
     api_name: str | None | Literal[False] = None,
     scroll_to_output: bool = False,
     show_progress: Literal["full", "minimal", "hidden"] = "full",
+    show_progress_on: Component | Sequence[Component] | None = None,
     queue: bool = True,
     batch: bool = False,
     max_batch_size: int = 4,
@@ -764,7 +770,8 @@ def on(
         outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
         api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, will use the functions name as the endpoint route. If set to a string, the endpoint will be exposed in the api docs with the given name.
         scroll_to_output: If True, will scroll to output component on completion
-        show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
+        show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all,
+        show_progress_on: Component or list of components to show the progress animation on. If None, will show the progress animation on all of the output components.
         queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
         batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
         max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
@@ -813,6 +820,7 @@ def on(
                 api_name=api_name,
                 scroll_to_output=scroll_to_output,
                 show_progress=show_progress,
+                show_progress_on=show_progress_on,
                 queue=queue,
                 batch=batch,
                 max_batch_size=max_batch_size,
@@ -864,6 +872,7 @@ def on(
         postprocess=postprocess,
         scroll_to_output=scroll_to_output,
         show_progress=show_progress,
+        show_progress_on=show_progress_on,
         api_name=api_name,
         js=js,
         concurrency_limit=concurrency_limit,

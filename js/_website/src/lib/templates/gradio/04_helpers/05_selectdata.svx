@@ -61,9 +61,9 @@ with gr.Blocks() as demo:
     def on_select(evt: gr.SelectData):
         return f"You selected {evt.value} at {evt.index} from {evt.target}"
 
-    table.select(on_select, table, statement)
-    gallery.select(on_select, gallery, statement)
-    textbox.select(on_select, textbox, statement)
+    table.select(on_select, None, statement)
+    gallery.select(on_select, None, statement)
+    textbox.select(on_select, None, statement)
 
 demo.launch()
 ```

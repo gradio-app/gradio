@@ -984,7 +984,7 @@ class TabbedInterface(Blocks):
                 for interface, tab_name in zip(interface_list, tab_names, strict=False):
                     with Tab(
                         label=tab_name,
-                        scale=1 if interface.fill_height else 0,
+                        scale=1 if interface.fill_height else None,
                     ):
                         interface.render()
 

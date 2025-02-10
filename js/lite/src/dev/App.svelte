@@ -53,8 +53,8 @@ def hi(name):
 	function parse_requirements(text: string): string[] {
 		return text
 			.split("\n")
-			.map((line) => line.trim())
-			.filter((line) => line.length > 0 && !line.startsWith("#"));
+			.map((line) => line.split("#")[0].trim())
+			.filter((line) => line.length > 0);
 	}
 
 	const requirements = parse_requirements(requirements_txt);

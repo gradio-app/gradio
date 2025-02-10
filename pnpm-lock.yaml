@@ -1880,10 +1880,10 @@ importers:
         version: 5.23.0
       vega-embed:
         specifier: ^6.25.0
-        version: 6.25.0(vega-lite@5.12.0(vega@5.23.0))(vega@5.23.0)
+        version: 6.25.0(vega-lite@5.17.0(vega@5.23.0))(vega@5.23.0)
       vega-lite:
-        specifier: ^5.12.0
-        version: 5.12.0(vega@5.23.0)
+        specifier: ^5.17.0
+        version: 5.17.0(vega@5.23.0)
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1954,8 +1954,8 @@ importers:
         specifier: ^6.0.0
         version: 6.0.0(rollup@3.28.0)
       plotly.js-dist-min:
-        specifier: ^2.10.1
-        version: 2.10.1
+        specifier: ^3.0.0
+        version: 3.0.0
       svelte:
         specifier: ^4.0.0
         version: 4.2.15
@@ -5939,6 +5939,7 @@ packages:
   eslint@8.4.1:
     resolution: {integrity: sha512-TxU/p7LB1KxQ6+7aztTnO7K0i+h0tDi81YRY9VzB6Id71kNz+fFYnf5HD5UOQmxkzcoa0TlVZf9dpMtUv0GpWg==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   eslint@9.1.1:
@@ -7542,11 +7543,11 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  plotly.js-dist-min@2.10.1:
-    resolution: {integrity: sha512-H0ls1C2uu2U+qWw76djo4/zOGtUKfMILwFhu7tCOaG/wH5ypujrYGCH03N9SQVf1SXcctTfW57USf8LmagSiPQ==}
-
   plotly.js-dist-min@2.32.0:
     resolution: {integrity: sha512-UVznwUQVc7NeFih0tnIbvCpxct+Jxt6yxOGTYJF4vkKIUyujvyiTrH+XazglvcXdybFLERMu/IKt6Lhz3+BqMQ==}
+
+  plotly.js-dist-min@3.0.0:
+    resolution: {integrity: sha512-AlU1XkNRzwUI55A+kJYj0xJETp3h7aeFe4O1cmhzOryscYdw9jOywXZo+7Zy+y2kEKq12CnTzII4jV7Vgpy4xQ==}
 
   polished@4.3.1:
     resolution: {integrity: sha512-OBatVyC/N7SCW/FaDHrSd+vn0o5cS855TOmYi4OkdWUMSJCET/xip//ch8xGUvtr3i44X9LVyWwQlRMTN3pwSA==}
@@ -8771,6 +8772,13 @@ packages:
   vega-lite@5.12.0:
     resolution: {integrity: sha512-mc0vavCp77B7wJwfVbNrJTmFuAUAornyi1nTw7UjBOFlCY6S4FKpUH9OToYC1o8rzv8HZ+QAFjz6MzmxIWfH7A==}
     engines: {node: '>=16'}
+    hasBin: true
+    peerDependencies:
+      vega: ^5.24.0
+
+  vega-lite@5.17.0:
+    resolution: {integrity: sha512-PPm1HRdDFDdl2fga3cHm3lHjJV/xcB+Cn77xe7Av1yRLY1GMbPaJS42s+e7XHGmbeDee+H/KK9lUdQK28xs7nA==}
+    engines: {node: '>=18'}
     hasBin: true
     peerDependencies:
       vega: ^5.24.0
@@ -14652,9 +14660,9 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.2
 
-  plotly.js-dist-min@2.10.1: {}
-
   plotly.js-dist-min@2.32.0: {}
+
+  plotly.js-dist-min@3.0.0: {}
 
   polished@4.3.1:
     dependencies:
@@ -16020,6 +16028,19 @@ snapshots:
       vega-themes: 2.14.0(vega-lite@5.12.0(vega@5.23.0))(vega@5.23.0)
       vega-tooltip: 0.34.0
 
+  vega-embed@6.25.0(vega-lite@5.17.0(vega@5.23.0))(vega@5.23.0):
+    dependencies:
+      fast-json-patch: 3.1.1
+      json-stringify-pretty-compact: 3.0.0
+      semver: 7.6.0
+      tslib: 2.6.2
+      vega: 5.23.0
+      vega-interpreter: 1.0.5
+      vega-lite: 5.17.0(vega@5.23.0)
+      vega-schema-url-parser: 2.2.0
+      vega-themes: 2.14.0(vega-lite@5.17.0(vega@5.23.0))(vega@5.23.0)
+      vega-tooltip: 0.34.0
+
   vega-encode@4.9.2:
     dependencies:
       d3-array: 3.2.4
@@ -16136,6 +16157,16 @@ snapshots:
       vega-util: 1.17.2
       yargs: 17.7.2
 
+  vega-lite@5.17.0(vega@5.23.0):
+    dependencies:
+      json-stringify-pretty-compact: 3.0.0
+      tslib: 2.6.2
+      vega: 5.23.0
+      vega-event-selector: 3.0.1
+      vega-expression: 5.1.0
+      vega-util: 1.17.2
+      yargs: 17.7.2
+
   vega-loader@4.5.1:
     dependencies:
       d3-dsv: 3.0.1
@@ -16213,6 +16244,11 @@ snapshots:
     dependencies:
       vega: 5.23.0
       vega-lite: 5.12.0(vega@5.23.0)
+
+  vega-themes@2.14.0(vega-lite@5.17.0(vega@5.23.0))(vega@5.23.0):
+    dependencies:
+      vega: 5.23.0
+      vega-lite: 5.17.0(vega@5.23.0)
 
   vega-time@2.1.1:
     dependencies:

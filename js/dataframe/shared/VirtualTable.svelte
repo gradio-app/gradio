@@ -10,6 +10,7 @@
 	export let start = 0;
 	export let end = 20;
 	export let selected: number | false;
+	export let disable_scroll = false;
 	let height = "100%";
 
 	let average_height = 30;
@@ -258,10 +259,11 @@
 <svelte-virtual-table-viewport>
 	<table
 		class="table"
+		class:disable-scroll={disable_scroll}
 		bind:this={viewport}
 		bind:contentRect={viewport_box}
 		on:scroll={handle_scroll}
-		style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px"
+		style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px; --max-height: {max_height}px"
 	>
 		<thead class="thead" bind:offsetHeight={head_height}>
 			<slot name="thead" />
@@ -287,7 +289,7 @@
 		overflow-y: scroll;
 		overflow-x: scroll;
 		-webkit-overflow-scrolling: touch;
-		max-height: 100vh;
+		max-height: var(--max-height);
 		box-sizing: border-box;
 		display: block;
 		padding: 0;
@@ -341,5 +343,9 @@
 		left: 0;
 		z-index: var(--layer-1);
 		overflow: hidden;
+	}
+
+	.table.disable-scroll {
+		overflow: hidden !important;
 	}
 </style>

@@ -233,4 +233,19 @@ describe("Chatbot", () => {
 			expect.stringContaining("assistant: bot message one")
 		);
 	});
+
+	test("renders messages with allowed HTML tags", async () => {
+		const { container } = await render(Chatbot, {
+			loading_status,
+			label: "chatbot",
+			value: [["user message", "<thinking>processing query...</thinking>"]],
+			allow_tags: ["thinking"]
+		});
+
+		const botMessage = container.querySelector(".bot > div");
+		assert.exists(botMessage);
+		assert.isTrue(
+			botMessage?.innerHTML.includes("<thinking>processing query...</thinking>")
+		);
+	});
 });

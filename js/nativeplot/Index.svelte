@@ -228,17 +228,6 @@
 	let release_callback: (() => void) | null = null;
 	onMount(() => {
 		mounted = true;
-		chart_element.addEventListener("mousedown", () => {
-			mouse_down_on_chart = true;
-		});
-		chart_element.addEventListener("mouseup", () => {
-			mouse_down_on_chart = false;
-			if (release_callback) {
-				release_callback();
-				release_callback = null;
-			}
-		});
-
 		return () => {
 			mounted = false;
 			if (view) {
@@ -249,6 +238,19 @@
 			}
 		};
 	});
+
+	$: if (mounted && chart_element) {
+		chart_element.addEventListener("mousedown", () => {
+			mouse_down_on_chart = true;
+		});
+		chart_element.addEventListener("mouseup", () => {
+			mouse_down_on_chart = false;
+			if (release_callback) {
+				release_callback();
+				release_callback = null;
+			}
+		});
+	}
 
 	$: title,
 		x_title,
@@ -510,6 +512,7 @@
 					: [])
 			],
 			width: chart_element.offsetWidth,
+			height: height ? "container" : undefined,
 			title: title || undefined
 		};
 		/* eslint-enable complexity */
@@ -559,6 +562,7 @@
 <style>
 	div {
 		width: 100%;
+		height: 100%;
 	}
 	:global(#vg-tooltip-element) {
 		font-family: var(--font) !important;
