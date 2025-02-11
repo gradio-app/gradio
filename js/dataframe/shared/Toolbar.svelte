@@ -165,7 +165,7 @@
 	.clear-button {
 		position: absolute;
 		right: var(--size-2);
-		top: 50%;
+		top: 46%;
 		transform: translateY(-50%);
 		border: none;
 		background: transparent;
