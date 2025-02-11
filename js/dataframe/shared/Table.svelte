@@ -53,7 +53,13 @@
 	}[];
 
 	let original_values = values;
-	$: original_values = values;
+	let initial_values = values;
+	$: {
+		if (!dequal(values, original_values) && !current_search_query) {
+			initial_values = values;
+			original_values = values;
+		}
+	}
 
 	export let editable = true;
 	export let wrap = false;
@@ -70,7 +76,7 @@
 	export let show_copy_button = false;
 	export let value_is_output = false;
 	export let max_chars: number | undefined = undefined;
-	export let show_search_input = false;
+	export let show_search = false;
 
 	let selected_cells: CellCoordinate[] = [];
 	$: selected_cells = [...selected_cells];
@@ -127,7 +133,7 @@
 	});
 
 	const get_data_at = (row: number, col: number): string | number =>
-		data?.[row]?.[col]?.value;
+		display_data?.[row]?.[col]?.value;
 
 	function make_id(): string {
 		return Math.random().toString(36).substring(2, 15);
@@ -203,15 +209,19 @@
 	}
 
 	let data: { id: string; value: string | number }[][] = [[]];
+	let display_data: { id: string; value: string | number }[][] = [[]];
 	let old_val: undefined | (string | number)[][] = undefined;
 
 	$: if (!dequal(values, old_val)) {
 		data = process_data(values as (string | number)[][]);
+		display_data = data;
 		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
 	}
 
 	let previous_headers = _headers.map((h) => h.value);
 	let previous_data = data.map((row) => row.map((cell) => String(cell.value)));
+
+	$: (data || _headers) && trigger_change();
 
 	async function trigger_change(): Promise<void> {
 		const current_headers = _headers.map((h) => h.value);
@@ -466,12 +476,12 @@
 		parent.focus();
 
 		if (row_count[1] !== "dynamic") return;
-		if (data.length === 0) {
+		if (display_data.length === 0) {
 			values = [Array(headers.length).fill("")];
 			return;
 		}
 
-		const new_row = Array(data[0].length)
+		const new_row = Array(display_data[0].length)
 			.fill(0)
 			.map((_, i) => {
 				const _id = make_id();
@@ -479,33 +489,31 @@
 				return { id: _id, value: "" };
 			});
 
-		if (index !== undefined && index >= 0 && index <= data.length) {
-			data.splice(index, 0, new_row);
+		if (index !== undefined && index >= 0 && index <= display_data.length) {
+			display_data.splice(index, 0, new_row);
 		} else {
-			data.push(new_row);
+			display_data.push(new_row);
 		}
 
-		data = data;
-		selected = [index !== undefined ? index : data.length - 1, 0];
+		display_data = display_data;
+		selected = [index !== undefined ? index : display_data.length - 1, 0];
 	}
-
-	$: (data || _headers) && trigger_change();
 
 	async function add_col(index?: number): Promise<void> {
 		parent.focus();
 		if (col_count[1] !== "dynamic") return;
 
-		const insert_index = index !== undefined ? index : data[0].length;
+		const insert_index = index !== undefined ? index : display_data[0].length;
 
-		for (let i = 0; i < data.length; i++) {
+		for (let i = 0; i < display_data.length; i++) {
 			const _id = make_id();
 			els[_id] = { cell: null, input: null };
-			data[i].splice(insert_index, 0, { id: _id, value: "" });
+			display_data[i].splice(insert_index, 0, { id: _id, value: "" });
 		}
 
 		headers.splice(insert_index, 0, `Header ${headers.length + 1}`);
 
-		data = data;
+		display_data = display_data;
 		headers = headers;
 
 		await tick();
@@ -528,7 +536,7 @@
 		}
 	}
 
-	$: max = get_max(data);
+	$: max = get_max(display_data);
 
 	$: cells[0] && set_cell_widths();
 	let cells: HTMLTableCellElement[] = [];
@@ -804,13 +812,13 @@
 			typeof sort_by === "number" &&
 			sort_direction &&
 			sort_by >= 0 &&
-			sort_by < data[0].length
+			sort_by < display_data[0].length
 		) {
-			const indices = [...Array(data.length)].map((_, i) => i);
+			const indices = [...Array(display_data.length)].map((_, i) => i);
 			const sort_index = sort_by as number;
 			indices.sort((a, b) => {
-				const row_a = data[a];
-				const row_b = data[b];
+				const row_a = display_data[a];
+				const row_b = display_data[b];
 				if (
 					!row_a ||
 					!row_b ||
@@ -825,18 +833,18 @@
 			});
 			row_order = indices;
 		} else {
-			row_order = [...Array(data.length)].map((_, i) => i);
+			row_order = [...Array(display_data.length)].map((_, i) => i);
 		}
 	}
 
 	function handle_select_column(col: number): void {
-		selected_cells = select_column(data, col);
+		selected_cells = select_column(display_data, col);
 		selected = selected_cells[0];
 		editing = false;
 	}
 
 	function handle_select_row(row: number): void {
-		selected_cells = select_row(data, row);
+		selected_cells = select_row(display_data, row);
 		selected = selected_cells[0];
 		editing = false;
 	}
@@ -863,6 +871,51 @@
 			);
 		}
 	}
+
+	let current_search_query = "";
+
+	function handle_search(search_query: string): void {
+		current_search_query = search_query;
+		if (search_query) {
+			const filtered = original_values.filter((row) =>
+				row.some((cell) =>
+					String(cell).toLowerCase().includes(search_query.toLowerCase())
+				)
+			);
+			data = process_data(filtered);
+			display_data = data;
+		} else {
+			original_values = initial_values;
+			data = process_data(initial_values);
+			display_data = data;
+		}
+	}
+
+	function commit_filter(): void {
+		if (current_search_query) {
+			const filtered = original_values.filter((row) =>
+				row.some((cell) =>
+					String(cell)
+						.toLowerCase()
+						.includes(current_search_query.toLowerCase())
+				)
+			);
+			values = filtered;
+			initial_values = filtered;
+			original_values = filtered;
+			data = process_data(filtered);
+			display_data = data;
+			dispatch("change", {
+				data: data.map((row) => row.map((cell) => cell.value)),
+				headers: _headers.map((h) => h.value),
+				metadata: null
+			});
+			if (!value_is_output) {
+				dispatch("input");
+			}
+			current_search_query = "";
+		}
+	}
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
@@ -880,19 +933,9 @@
 			on:click={toggle_fullscreen}
 			on_copy={handle_copy}
 			{show_copy_button}
-			{show_search_input}
-			on:search={(e) => {
-				const search_query = e.detail;
-				if (search_query) {
-					values = values.filter((row) =>
-						row.some((cell) =>
-							String(cell).toLowerCase().includes(search_query.toLowerCase())
-						)
-					);
-				} else {
-					values = original_values;
-				}
-			}}
+			{show_search}
+			on:search={(e) => handle_search(e.detail)}
+			on_commit_filter={commit_filter}
 		/>
 	</div>
 	<div
@@ -1020,7 +1063,7 @@
 			aria_label={i18n("dataframe.drop_to_upload")}
 		>
 			<VirtualTable
-				bind:items={data}
+				bind:items={display_data}
 				{max_height}
 				bind:actual_height={table_height}
 				bind:table_scrollbar_width={scrollbar_width}
@@ -1397,21 +1440,28 @@
 
 	.header-row {
 		display: flex;
-		justify-content: space-between;
+		justify-content: flex-end;
 		align-items: center;
 		gap: var(--size-2);
-		height: var(--size-6);
 		min-height: var(--size-6);
+		flex-wrap: nowrap;
+		width: 100%;
 	}
 
 	.label {
-		flex: 1;
+		flex: 1 1 auto;
+		margin-right: auto;
 	}
 
 	.label p {
 		margin: 0;
 		color: var(--block-label-text-color);
 		font-size: var(--block-label-text-size);
+		line-height: var(--line-sm);
+	}
+
+	.toolbar {
+		flex: 0 0 auto;
 	}
 
 	.row-number,

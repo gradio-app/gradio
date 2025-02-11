@@ -248,7 +248,7 @@
 />
 
 <Story
-	name="Dataframe with fullscreen button"
+	name="Dataframe with fullscreen button and label and search"
 	args={{
 		col_count: [3, "dynamic"],
 		row_count: [2, "dynamic"],
@@ -257,7 +257,11 @@
 			[800, 100, 400],
 			[200, 800, 700]
 		],
-		show_fullscreen_button: true
+		show_fullscreen_button: true,
+		show_label: true,
+		show_copy_button: true,
+		show_search: true,
+		label: "Test scores"
 	}}
 />
 
@@ -487,7 +491,7 @@
 		headers: ["Animal", "Count", "Type"],
 		col_count: [3, "dynamic"],
 		row_count: [5, "dynamic"],
-		show_search_input: true,
+		show_search: true,
 		editable: false
 	}}
 	play={async ({ canvasElement }) => {
@@ -499,10 +503,11 @@
 
 		await new Promise((resolve) => setTimeout(resolve, 100));
 
-		const clear_button = canvas.getByRole("button", { name: "Clear search" });
-		await user.click(clear_button);
+		const filter_button = canvas.getByLabelText(
+			"Apply filter and update dataframe values"
+		);
+		await user.click(filter_button);
 
-		// Wait for clearing to complete
 		await new Promise((resolve) => setTimeout(resolve, 100));
 	}}
 />
