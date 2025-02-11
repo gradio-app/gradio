@@ -100,7 +100,7 @@ class Dataframe(Component):
         show_copy_button: bool = False,
         show_row_numbers: bool = False,
         max_chars: int | None = None,
-        show_search: bool = False,
+        show_search: Literal["none", "search", "filter"] = "none",
     ):
         """
         Parameters:
@@ -132,7 +132,7 @@ class Dataframe(Component):
             show_copy_button: If True, will show a button to copy the table data to the clipboard.
             show_row_numbers: If True, will display row numbers in a separate column.
             max_chars: Maximum number of characters to display in each cell before truncating (single-clicking a cell value will still reveal the full content). If None, no truncation is applied.
-            show_search: If True, will show a search input in the toolbar.
+            show_search: Show a search input in the toolbar. If "search", a search input is shown. If "filter", a search input and filter buttons are shown. If "none", no search input is shown.
         """
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)

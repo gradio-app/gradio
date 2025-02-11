@@ -76,7 +76,7 @@
 	export let show_copy_button = false;
 	export let value_is_output = false;
 	export let max_chars: number | undefined = undefined;
-	export let show_search = false;
+	export let show_search: "none" | "search" | "filter" = "none";
 
 	let selected_cells: CellCoordinate[] = [];
 	$: selected_cells = [...selected_cells];
