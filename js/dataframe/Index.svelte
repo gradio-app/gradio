@@ -63,6 +63,7 @@
 					)
 				)
 			: value.data;
+	export let pinned_columns = 0;
 
 	$: _headers = [...(value.headers || headers)];
 	$: display_value = value?.metadata?.display_value
@@ -122,5 +123,6 @@
 		{show_copy_button}
 		{show_row_numbers}
 		{show_search}
+		{pinned_columns}
 	/>
 </Block>

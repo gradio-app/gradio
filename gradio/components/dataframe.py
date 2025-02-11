@@ -101,6 +101,7 @@ class Dataframe(Component):
         show_row_numbers: bool = False,
         max_chars: int | None = None,
         show_search: Literal["none", "search", "filter"] = "none",
+        pinned_columns: int | None = None,
     ):
         """
         Parameters:
@@ -133,6 +134,7 @@ class Dataframe(Component):
             show_row_numbers: If True, will display row numbers in a separate column.
             max_chars: Maximum number of characters to display in each cell before truncating (single-clicking a cell value will still reveal the full content). If None, no truncation is applied.
             show_search: Show a search input in the toolbar. If "search", a search input is shown. If "filter", a search input and filter buttons are shown. If "none", no search input is shown.
+            pinned_columns: If provided, will pin the specified number of columns from the left.
         """
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
@@ -171,6 +173,16 @@ class Dataframe(Component):
         self.show_row_numbers = show_row_numbers
         self.max_chars = max_chars
         self.show_search = show_search
+        self.pinned_columns = pinned_columns
+        if (
+            pinned_columns is not None
+            and isinstance(col_count, tuple)
+            and col_count[1] == "fixed"
+            and pinned_columns > self.col_count[0]
+        ):
+            raise ValueError(
+                f"pinned_columns ({pinned_columns}) cannot exceed the total number of columns ({self.col_count[0]}) when using fixed columns"
+            )
         super().__init__(
             label=label,
             every=every,
