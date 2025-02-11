@@ -948,8 +948,9 @@
 								: i === actual_frozen_columns - 1}
 							class:editing={header_edit === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-							style="width: {get_cell_width(i)}; left: {i <
-							actual_frozen_columns
+							style="width: {column_widths.length
+								? column_widths[i]
+								: undefined}; left: {i < actual_frozen_columns
 								? i === 0
 									? show_row_numbers
 										? 'var(--cell-width-row-number)'
