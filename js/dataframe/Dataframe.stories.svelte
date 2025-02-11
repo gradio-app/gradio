@@ -503,8 +503,10 @@
 
 		await new Promise((resolve) => setTimeout(resolve, 100));
 
-		const clear_button = canvas.getByRole("button", { name: "Clear search" });
-		await user.click(clear_button);
+		const filter_button = canvas.getByLabelText(
+			"Apply filter and update dataframe values"
+		);
+		await user.click(filter_button);
 
 		await new Promise((resolve) => setTimeout(resolve, 100));
 	}}
