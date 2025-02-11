@@ -289,7 +289,7 @@
 			trigger_id: trigger_id
 		};
 
-		if (dep.frontend_fn && !dep.js_implementation) {
+		if (dep.frontend_fn && typeof dep.frontend_fn !== "boolean") {
 			dep
 				.frontend_fn(
 					payload.data.concat(

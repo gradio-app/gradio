@@ -2244,7 +2244,7 @@ Received inputs:
         num_to_transpile = len(fns_to_transpile)
         if not quiet and num_to_transpile > 0:
             print("********************************************")
-            print("* Transpiling functions from Python -> JS for performance")
+            print("* Trying to transpile functions from Python -> JS for performance\n")
         for index, fn in enumerate(fns_to_transpile):
             if not quiet:
                 print(f"* ({index + 1}/{num_to_transpile}) {fn.__name__}: ", end="")
@@ -2255,7 +2255,7 @@ Received inputs:
                         print("✅")
                 except Exception as e:
                     if not quiet:
-                        print(e)
+                        print("❌", e, end="\n\n")
             elif not quiet:
                 print("✅")
         if not quiet and num_to_transpile > 0:
