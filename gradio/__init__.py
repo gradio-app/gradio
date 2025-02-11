@@ -225,7 +225,6 @@ __all__ = [
     "close_all",
     "deploy",
     "get_package_version",
-    "js",
     "load",
     "load_chat",
     "load_ipython_extension",
