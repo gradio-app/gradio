@@ -71,8 +71,8 @@
 
 	let actual_frozen_columns = 0;
 	$: actual_frozen_columns =
-		frozen_columns && data?.[0]?.length && frozen_columns < data[0].length
-			? Math.min(frozen_columns, data[0].length - 1)
+		frozen_columns && data?.[0]?.length
+			? Math.min(frozen_columns, data[0].length)
 			: 0;
 
 	let selected_cells: CellCoordinate[] = [];
@@ -547,28 +547,17 @@
 		}
 		const data_cells = show_row_numbers ? widths.slice(1) : widths;
 		data_cells.forEach((width, i) => {
-			parent.style.setProperty(`--cell-width-${i}`, `${width}px`);
+			if (!column_widths[i]) {
+				parent.style.setProperty(
+					`--cell-width-${i}`,
+					`${width - scrollbar_width / data_cells.length}px`
+				);
+			}
 		});
 	}
 
 	function get_cell_width(index: number): string {
 		return column_widths[index] || `var(--cell-width-${index})`;
-	}
-
-	function get_frozen_left(col_index: number): string {
-		if (!actual_frozen_columns || col_index >= actual_frozen_columns)
-			return "auto";
-
-		if (col_index === 0) {
-			return show_row_numbers ? "var(--cell-width-row-number)" : "0";
-		}
-
-		const widths = Array(col_index)
-			.fill(0)
-			.map((_, idx) => `var(--cell-width-${idx})`)
-			.join(" + ");
-
-		return `calc(${show_row_numbers ? "var(--cell-width-row-number) + " : ""}${widths})`;
 	}
 
 	let table_height: number =
@@ -954,10 +943,24 @@
 					{#each _headers as { value, id }, i (id)}
 						<th
 							class:frozen-column={i < actual_frozen_columns}
-							class:last-frozen={i === actual_frozen_columns - 1}
-							class:focus={header_edit === i || selected_header === i}
+							class:last-frozen={show_row_numbers
+								? i === actual_frozen_columns - 1
+								: i === actual_frozen_columns - 1}
+							class:editing={header_edit === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-							style="width: {get_cell_width(i)}; left: {get_frozen_left(i)};"
+							style="width: {get_cell_width(i)}; left: {i <
+							actual_frozen_columns
+								? i === 0
+									? show_row_numbers
+										? 'var(--cell-width-row-number)'
+										: '0'
+									: `calc(${show_row_numbers ? 'var(--cell-width-row-number) + ' : ''}${Array(
+											i
+										)
+											.fill(0)
+											.map((_, idx) => `var(--cell-width-${idx})`)
+											.join(' + ')})`
+								: 'auto'};"
 						>
 							<div class="cell-wrap">
 								<div class="header-content">
@@ -1062,7 +1065,19 @@
 							class:last-frozen={i === actual_frozen_columns - 1}
 							class:focus={header_edit === i || selected_header === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-							style="width: {get_cell_width(i)}; left: {get_frozen_left(i)};"
+							style="width: {get_cell_width(i)}; left: {i <
+							actual_frozen_columns
+								? i === 0
+									? show_row_numbers
+										? 'var(--cell-width-row-number)'
+										: '0'
+									: `calc(${show_row_numbers ? 'var(--cell-width-row-number) + ' : ''}${Array(
+											i
+										)
+											.fill(0)
+											.map((_, idx) => `var(--cell-width-${idx})`)
+											.join(' + ')})`
+								: 'auto'};"
 							on:click={() => {
 								toggle_header_button(i);
 							}}
@@ -1616,20 +1631,7 @@
 	.frozen-column {
 		position: sticky;
 		z-index: var(--layer-2);
-		background: inherit;
-	}
-
-	thead .frozen-column {
-		z-index: var(--layer-4);
-		background: var(--table-even-background-fill);
-	}
-
-	thead .always-frozen {
-		z-index: var(--layer-5);
-	}
-
-	.last-frozen {
-		border-right: 2px solid var(--border-color-primary);
+		border-right: 1px solid var(--border-color-primary);
 	}
 
 	tr:nth-child(odd) .frozen-column {
@@ -1638,5 +1640,9 @@
 
 	tr:nth-child(even) .frozen-column {
 		background: var(--table-even-background-fill);
+	}
+
+	.always-frozen {
+		z-index: var(--layer-3);
 	}
 </style>
