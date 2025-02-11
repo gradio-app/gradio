@@ -42,6 +42,11 @@
 			return;
 		}
 
+		// force header height calculation first
+		head_height =
+			viewport.querySelector(".thead")?.getBoundingClientRect().height || 0;
+		await tick();
+
 		const { scrollTop } = viewport;
 		table_scrollbar_width = viewport.offsetWidth - viewport.clientWidth;
 
@@ -257,30 +262,32 @@
 </script>
 
 <svelte-virtual-table-viewport>
-	<table
-		class="table"
-		class:disable-scroll={disable_scroll}
-		bind:this={viewport}
-		bind:contentRect={viewport_box}
-		on:scroll={handle_scroll}
-		style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px; --max-height: {max_height}px"
-	>
-		<thead class="thead" bind:offsetHeight={head_height}>
-			<slot name="thead" />
-		</thead>
-		<tbody bind:this={contents} class="tbody">
-			{#if visible.length && visible[0].data.length}
-				{#each visible as item (item.data[0].id)}
-					<slot name="tbody" item={item.data} index={item.index}>
-						Missing Table Row
-					</slot>
-				{/each}
-			{/if}
-		</tbody>
-		<tfoot class="tfoot" bind:offsetHeight={foot_height}>
-			<slot name="tfoot" />
-		</tfoot>
-	</table>
+	<div>
+		<table
+			class="table"
+			class:disable-scroll={disable_scroll}
+			bind:this={viewport}
+			bind:contentRect={viewport_box}
+			on:scroll={handle_scroll}
+			style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px; --max-height: {max_height}px"
+		>
+			<thead class="thead" bind:offsetHeight={head_height}>
+				<slot name="thead" />
+			</thead>
+			<tbody bind:this={contents} class="tbody">
+				{#if visible.length && visible[0].data.length}
+					{#each visible as item (item.data[0].id)}
+						<slot name="tbody" item={item.data} index={item.index}>
+							Missing Table Row
+						</slot>
+					{/each}
+				{/if}
+			</tbody>
+			<tfoot class="tfoot" bind:offsetHeight={foot_height}>
+				<slot name="tfoot" />
+			</tfoot>
+		</table>
+	</div>
 </svelte-virtual-table-viewport>
 
 <style type="text/css">
