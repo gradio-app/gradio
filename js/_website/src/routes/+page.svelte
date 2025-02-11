@@ -319,4 +319,9 @@
 			width: 1050px;
 		}
 	}
+	@media (min-width: 1920px) {
+		#gradio-banner {
+			width: 1350px;
+		}
+	}
 </style>

@@ -340,6 +340,8 @@ class Dataframe(Component):
             if not isinstance(value, list):
                 raise ValueError("output cannot be converted to list")
             if not isinstance(value[0], list):
+                if isinstance(value[0], tuple):
+                    return [list(v) for v in value]
                 return [[v] for v in value]
             return value
         else:
