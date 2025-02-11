@@ -167,6 +167,14 @@ class TestDataframe:
             "metadata": None,
         }
 
+        dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
+        output = dataframe_output.postprocess([(1, 2, 3), (4, 5, 6)]).model_dump()
+        assert output == {
+            "headers": ["one", "two", "three"],
+            "data": [[1, 2, 3], [4, 5, 6]],
+            "metadata": None,
+        }
+
     def test_dataframe_postprocess_all_types(self):
         df = pd.DataFrame(
             {
