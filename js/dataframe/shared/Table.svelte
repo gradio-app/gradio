@@ -499,8 +499,6 @@
 		selected = [index !== undefined ? index : display_data.length - 1, 0];
 	}
 
-	$: (data || _headers) && trigger_change();
-
 	async function add_col(index?: number): Promise<void> {
 		parent.focus();
 		if (col_count[1] !== "dynamic") return;

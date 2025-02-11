@@ -506,7 +506,6 @@
 		const clear_button = canvas.getByRole("button", { name: "Clear search" });
 		await user.click(clear_button);
 
-		// Wait for clearing to complete
 		await new Promise((resolve) => setTimeout(resolve, 100));
 	}}
 />
