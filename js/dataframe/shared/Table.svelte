@@ -67,12 +67,12 @@
 	export let show_copy_button = false;
 	export let value_is_output = false;
 	export let max_chars: number | undefined = undefined;
-	export let frozen_columns = 0;
+	export let pinned_columns = 0;
 
-	let actual_frozen_columns = 0;
-	$: actual_frozen_columns =
-		frozen_columns && data?.[0]?.length
-			? Math.min(frozen_columns, data[0].length)
+	let actual_pinned_columns = 0;
+	$: actual_pinned_columns =
+		pinned_columns && data?.[0]?.length
+			? Math.min(pinned_columns, data[0].length)
 			: 0;
 
 	let selected_cells: CellCoordinate[] = [];
@@ -942,15 +942,15 @@
 					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
-							class:frozen-column={i < actual_frozen_columns}
+							class:frozen-column={i < actual_pinned_columns}
 							class:last-frozen={show_row_numbers
-								? i === actual_frozen_columns - 1
-								: i === actual_frozen_columns - 1}
+								? i === actual_pinned_columns - 1
+								: i === actual_pinned_columns - 1}
 							class:editing={header_edit === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
 							style="width: {column_widths.length
 								? column_widths[i]
-								: undefined}; left: {i < actual_frozen_columns
+								: undefined}; left: {i < actual_pinned_columns
 								? i === 0
 									? show_row_numbers
 										? 'var(--cell-width-row-number)'
@@ -1062,12 +1062,12 @@
 					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
-							class:frozen-column={i < actual_frozen_columns}
-							class:last-frozen={i === actual_frozen_columns - 1}
+							class:frozen-column={i < actual_pinned_columns}
+							class:last-frozen={i === actual_pinned_columns - 1}
 							class:focus={header_edit === i || selected_header === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
 							style="width: {get_cell_width(i)}; left: {i <
-							actual_frozen_columns
+							actual_pinned_columns
 								? i === 0
 									? show_row_numbers
 										? 'var(--cell-width-row-number)'
@@ -1130,8 +1130,8 @@
 					{/if}
 					{#each item as { value, id }, j (id)}
 						<td
-							class:frozen-column={j < actual_frozen_columns}
-							class:last-frozen={j === actual_frozen_columns - 1}
+							class:frozen-column={j < actual_pinned_columns}
+							class:last-frozen={j === actual_pinned_columns - 1}
 							tabindex={show_row_numbers && j === 0 ? -1 : 0}
 							bind:this={els[id].cell}
 							on:touchstart={(event) => {
@@ -1151,7 +1151,7 @@
 							}}
 							on:click={(event) => handle_cell_click(event, index, j)}
 							style="width: {get_cell_width(j)}; left: {j <
-							actual_frozen_columns
+							actual_pinned_columns
 								? j === 0
 									? show_row_numbers
 										? 'var(--cell-width-row-number)'

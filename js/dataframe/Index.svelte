@@ -52,7 +52,7 @@
 	export let max_chars: number | undefined = undefined;
 	export let show_copy_button = false;
 	export let show_row_numbers = false;
-	export let frozen_columns = 0;
+	export let pinned_columns = 0;
 
 	$: _headers = [...(value.headers || headers)];
 	$: cell_values = value.data ? [...value.data] : [];
@@ -112,6 +112,6 @@
 		{max_chars}
 		{show_copy_button}
 		{show_row_numbers}
-		{frozen_columns}
+		{pinned_columns}
 	/>
 </Block>

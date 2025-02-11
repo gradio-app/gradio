@@ -489,7 +489,7 @@
 		label: "User Data",
 		col_count: [6, "dynamic"],
 		row_count: [6, "dynamic"],
-		frozen_columns: 2,
+		pinned_columns: 2,
 		show_row_numbers: true,
 		editable: false
 	}}
