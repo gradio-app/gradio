@@ -260,7 +260,7 @@
 		show_fullscreen_button: true,
 		show_label: true,
 		show_copy_button: true,
-		show_search: true,
+		show_search: "search",
 		label: "Test scores"
 	}}
 />
@@ -479,7 +479,7 @@
 />
 
 <Story
-	name="Dataframe with search"
+	name="Dataframe with search and filter"
 	args={{
 		values: [
 			["Cat", 5, "Pet"],
@@ -491,7 +491,7 @@
 		headers: ["Animal", "Count", "Type"],
 		col_count: [3, "dynamic"],
 		row_count: [5, "dynamic"],
-		show_search: true,
+		show_search: "filter",
 		editable: false
 	}}
 	play={async ({ canvasElement }) => {

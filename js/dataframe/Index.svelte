@@ -52,7 +52,7 @@
 	export let max_chars: number | undefined = undefined;
 	export let show_copy_button = false;
 	export let show_row_numbers = false;
-	export let show_search = true;
+	export let show_search: "none" | "search" | "filter" = "none";
 
 	let search_query = "";
 	$: filtered_cell_values =
