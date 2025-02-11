@@ -8,7 +8,6 @@ const sizes = {
 	xl: "(min-width: 1280px)",
 	"2xl": "(min-width: 1536px)",
 	"3xl": "(min-width: 1920px)"
-
 } as const;
 
 const _default = {
