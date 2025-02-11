@@ -157,6 +157,11 @@
 			max-width: 1536px;
 		}
 	}
+	@media (--screen-xxxl) {
+		.fillable:not(.fill_width) {
+			max-width: 1920px;
+		}
+	}
 
 	.info {
 		display: flex;
