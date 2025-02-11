@@ -644,7 +644,7 @@
 		event.preventDefault();
 		event.stopPropagation();
 
-		if (show_row_numbers && col === 0) return;
+		if (show_row_numbers && col === -1) return;
 
 		clear_on_focus = false;
 		active_cell_menu = null;
