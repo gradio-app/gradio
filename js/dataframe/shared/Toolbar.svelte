@@ -5,7 +5,7 @@
 
 	export let show_fullscreen_button = false;
 	export let show_copy_button = false;
-	export let show_search_input = false;
+	export let show_search = false;
 	export let is_fullscreen = false;
 	export let on_copy: () => Promise<void>;
 	export let on_commit_filter: () => void;
@@ -45,7 +45,7 @@
 
 <div class="toolbar" role="toolbar" aria-label="Table actions">
 	<div class="toolbar-buttons">
-		{#if show_search_input}
+		{#if show_search}
 			<div class="search-container">
 				<input
 					type="text"

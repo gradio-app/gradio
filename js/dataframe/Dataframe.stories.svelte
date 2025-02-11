@@ -260,7 +260,7 @@
 		show_fullscreen_button: true,
 		show_label: true,
 		show_copy_button: true,
-		show_search_input: true,
+		show_search: true,
 		label: "Test scores"
 	}}
 />
@@ -491,7 +491,7 @@
 		headers: ["Animal", "Count", "Type"],
 		col_count: [3, "dynamic"],
 		row_count: [5, "dynamic"],
-		show_search_input: true,
+		show_search: true,
 		editable: false
 	}}
 	play={async ({ canvasElement }) => {

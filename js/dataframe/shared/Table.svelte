@@ -76,7 +76,7 @@
 	export let show_copy_button = false;
 	export let value_is_output = false;
 	export let max_chars: number | undefined = undefined;
-	export let show_search_input = false;
+	export let show_search = false;
 
 	let selected_cells: CellCoordinate[] = [];
 	$: selected_cells = [...selected_cells];
@@ -927,7 +927,7 @@
 			on:click={toggle_fullscreen}
 			on_copy={handle_copy}
 			{show_copy_button}
-			{show_search_input}
+			{show_search}
 			on:search={(e) => handle_search(e.detail)}
 			on_commit_filter={commit_filter}
 		/>
