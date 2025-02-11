@@ -221,8 +221,7 @@
 	let previous_headers = _headers.map((h) => h.value);
 	let previous_data = data.map((row) => row.map((cell) => String(cell.value)));
 
-	let should_trigger_change = true;
-	$: (data || _headers) && should_trigger_change && trigger_change();
+	$: (data || _headers) && trigger_change();
 
 	async function trigger_change(): Promise<void> {
 		const current_headers = _headers.map((h) => h.value);
@@ -500,7 +499,7 @@
 		selected = [index !== undefined ? index : display_data.length - 1, 0];
 	}
 
-	$: (data || _headers) && should_trigger_change && trigger_change();
+	$: (data || _headers) && trigger_change();
 
 	async function add_col(index?: number): Promise<void> {
 		parent.focus();
@@ -900,7 +899,6 @@
 		);
 		original_values = filtered_values;
 		data = process_data(filtered_values);
-		should_trigger_change = true;
 		dispatch("change", {
 			data: data.map((row) => row.map((cell) => cell.value)),
 			headers: _headers.map((h) => h.value),
