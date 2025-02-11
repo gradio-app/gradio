@@ -530,6 +530,7 @@ class BlockFunction:
         like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
         page: str = "",
+        js_implementation: str | None = None,
     ):
         self.fn = fn
         self._id = _id
@@ -565,6 +566,8 @@ class BlockFunction:
         self.renderable = renderable
         self.rendered_in = rendered_in
         self.page = page
+        if js_implementation:
+            self.fn.__js_implementation__ = js_implementation  # type: ignore
 
         # We need to keep track of which events are cancel events
         # so that the client can call the /cancel route directly
@@ -737,6 +740,7 @@ class BlocksConfig:
         stream_every: float = 0.5,
         like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
+        js_implementation: str | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -892,6 +896,7 @@ class BlocksConfig:
             like_user_message=like_user_message,
             event_specific_args=event_specific_args,
             page=self.root_block.current_page,
+            js_implementation=js_implementation,
         )
 
         self.fns[self.fn_id] = block_fn
