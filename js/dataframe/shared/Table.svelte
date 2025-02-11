@@ -53,11 +53,11 @@
 	}[];
 
 	let original_values = values;
-	let filtered_values = values;
+	let initial_values = values;
 	$: {
-		if (!dequal(values, original_values)) {
+		if (!dequal(values, original_values) && !current_search_query) {
+			initial_values = values;
 			original_values = values;
-			filtered_values = values;
 		}
 	}
 
@@ -877,33 +877,40 @@
 	function handle_search(search_query: string): void {
 		current_search_query = search_query;
 		if (search_query) {
-			display_data = process_data(
-				original_values.filter((row) =>
-					row.some((cell) =>
-						String(cell).toLowerCase().includes(search_query.toLowerCase())
-					)
+			const filtered = original_values.filter((row) =>
+				row.some((cell) =>
+					String(cell).toLowerCase().includes(search_query.toLowerCase())
 				)
 			);
+			data = process_data(filtered);
+			display_data = data;
 		} else {
-			display_data = process_data(original_values);
+			original_values = initial_values;
+			data = process_data(initial_values);
+			display_data = data;
 		}
 	}
 
 	function commit_filter(): void {
-		filtered_values = original_values.filter((row) =>
-			row.some((cell) =>
-				String(cell).toLowerCase().includes(current_search_query.toLowerCase())
-			)
-		);
-		original_values = filtered_values;
-		data = process_data(filtered_values);
-		dispatch("change", {
-			data: data.map((row) => row.map((cell) => cell.value)),
-			headers: _headers.map((h) => h.value),
-			metadata: null
-		});
-		if (!value_is_output) {
-			dispatch("input");
+		if (current_search_query) {
+			const filtered = original_values.filter((row) =>
+				row.some((cell) =>
+					String(cell)
+						.toLowerCase()
+						.includes(current_search_query.toLowerCase())
+				)
+			);
+			original_values = filtered;
+			data = process_data(filtered);
+			display_data = data;
+			dispatch("change", {
+				data: data.map((row) => row.map((cell) => cell.value)),
+				headers: _headers.map((h) => h.value),
+				metadata: null
+			});
+			if (!value_is_output) {
+				dispatch("input");
+			}
 		}
 	}
 </script>
