@@ -6,6 +6,8 @@ Gradio and [Transformers](https://huggingface.co/docs/transformers/index) are a 
 In this document, we will introduce how to create a serverless machine learning application using Gradio-Lite and Transformers.js.
 You will just write Python code within a static HTML file and host it without setting up a server-side Python runtime.
 
+<script src="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js" type="module"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.css" />
 
 ## Libraries Used
 
