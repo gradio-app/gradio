@@ -56,7 +56,7 @@
 
 	let search_query = "";
 	$: filtered_cell_values =
-		search_query && value.data
+		search_query && show_search === "search" && value.data
 			? value.data.filter((row) =>
 					row.some((cell) =>
 						String(cell).toLowerCase().includes(search_query.toLowerCase())
@@ -65,7 +65,6 @@
 			: value.data;
 
 	$: _headers = [...(value.headers || headers)];
-	$: cell_values = value.data ? [...value.data] : [];
 	$: display_value = value?.metadata?.display_value
 		? [...value?.metadata?.display_value]
 		: null;

@@ -892,7 +892,7 @@
 	}
 
 	function commit_filter(): void {
-		if (current_search_query) {
+		if (current_search_query && show_search === "filter") {
 			const filtered = original_values.filter((row) =>
 				row.some((cell) =>
 					String(cell)
