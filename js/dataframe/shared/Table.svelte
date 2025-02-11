@@ -900,6 +900,8 @@
 						.includes(current_search_query.toLowerCase())
 				)
 			);
+			values = filtered;
+			initial_values = filtered;
 			original_values = filtered;
 			data = process_data(filtered);
 			display_data = data;
@@ -911,6 +913,7 @@
 			if (!value_is_output) {
 				dispatch("input");
 			}
+			current_search_query = "";
 		}
 	}
 </script>
