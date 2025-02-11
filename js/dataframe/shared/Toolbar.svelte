@@ -8,6 +8,7 @@
 	export let show_search_input = false;
 	export let is_fullscreen = false;
 	export let on_copy: () => Promise<void>;
+	export let on_commit_filter: () => void;
 
 	const dispatch = createEventDispatcher<{
 		search: string;
@@ -18,10 +19,6 @@
 	let search_query = "";
 
 	$: dispatch("search", search_query);
-
-	function clear_search(): void {
-		search_query = "";
-	}
 
 	function copy_feedback(): void {
 		copied = true;
@@ -34,6 +31,11 @@
 	async function handle_copy(): Promise<void> {
 		await on_copy();
 		copy_feedback();
+	}
+
+	function handle_commit_filter(): void {
+		on_commit_filter();
+		search_query = "";
 	}
 
 	onDestroy(() => {
@@ -53,11 +55,12 @@
 				/>
 				{#if search_query}
 					<button
-						class="clear-button"
-						on:click={clear_search}
-						aria-label="Clear search"
+						class="toolbar-button check-button"
+						on:click={handle_commit_filter}
+						aria-label="Apply filter and update dataframe values"
+						title="Apply filter and update dataframe values"
 					>
-						×
+						<Check />
 					</button>
 				{/if}
 			</div>
@@ -139,7 +142,7 @@
 	.search-input {
 		width: var(--size-full);
 		height: var(--size-6);
-		padding: var(--size-1) var(--size-3);
+		padding: var(--size-2);
 		padding-right: var(--size-8);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
@@ -160,27 +163,30 @@
 		background: var(--background-fill-primary);
 		box-shadow: 0 0 0 1px var(--color-accent);
 	}
-	.clear-button {
+
+	.check-button {
 		position: absolute;
-		right: var(--size-2);
-		top: 46%;
+		right: var(--size-1);
+		top: 50%;
 		transform: translateY(-50%);
+		background: var(--color-accent);
+		color: white;
 		border: none;
-		background: transparent;
-		color: var(--body-text-color-subdued);
-		font-size: var(--text-lg);
-		padding: 0;
+		width: var(--size-4);
+		height: var(--size-4);
+		border-radius: var(--radius-sm);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: var(--size-4);
-		height: var(--size-4);
-		border-radius: 50%;
-		transition: all 0.2s;
+		padding: var(--size-1);
 	}
 
-	.clear-button:hover {
-		background: var(--background-fill-primary);
-		color: var(--body-text-color);
+	.check-button :global(svg) {
+		width: var(--size-3);
+		height: var(--size-3);
+	}
+
+	.check-button:hover {
+		background: var(--color-accent-soft);
 	}
 </style>
