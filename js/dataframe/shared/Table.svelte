@@ -1304,7 +1304,6 @@
 	thead {
 		position: sticky;
 		top: 0;
-		left: 0;
 		z-index: var(--layer-2);
 		box-shadow: var(--shadow-drop);
 	}
