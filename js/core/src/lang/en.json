@@ -1,7 +1,8 @@
 {
 	"_name": "English",
 	"3D_model": {
-		"3d_model": "3D Model"
+		"3d_model": "3D Model",
+		"drop_to_upload": "Drop a 3D model (.obj, .glb, .stl, .gltf, .splat, or .ply) file here to upload"
 	},
 	"annotated_image": {
 		"annotated_image": "Annotated Image"
@@ -9,6 +10,7 @@
 	"audio": {
 		"allow_recording_access": "Please allow access to the microphone for recording.",
 		"audio": "Audio",
+		"drop_to_upload": "Drop an audio file here to upload",
 		"record_from_microphone": "Record from microphone",
 		"stop_recording": "Stop recording",
 		"no_device_support": "Media devices could not be accessed. Check that you are running on a secure origin (https) or localhost (or you have passed a valid SSL certificate to ssl_verify), and you have allowed browser access to your device.",
@@ -67,7 +69,11 @@
 		"delete_row": "Delete row",
 		"delete_column": "Delete column",
 		"add_column_left": "Add column to the left",
-		"add_column_right": "Add column to the right"
+		"add_column_right": "Add column to the right",
+		"sort_column": "Sort column",
+		"sort_ascending": "Sort ascending",
+		"sort_descending": "Sort descending",
+		"drop_to_upload": "Drop CSV or TSV files here to import data into dataframe"
 	},
 	"dropdown": {
 		"dropdown": "Dropdown"
@@ -96,7 +102,8 @@
 		"remove_image": "Remove Image",
 		"select_brush_color": "Select brush color",
 		"start_drawing": "Start drawing",
-		"use_brush": "Use brush"
+		"use_brush": "Use brush",
+		"drop_to_upload": "Drop an image file here to upload"
 	},
 	"label": {
 		"label": "Label"
@@ -129,5 +136,8 @@
 		"drop_video": "Drop Video Here",
 		"drop_gallery": "Drop Media Here",
 		"paste_clipboard": "Paste from Clipboard"
+	},
+	"video": {
+		"drop_to_upload": "Drop a video file here to upload"
 	}
 }

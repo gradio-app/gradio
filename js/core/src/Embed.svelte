@@ -11,11 +11,13 @@
 	export let display: boolean;
 	export let info: boolean;
 	export let loaded: boolean;
+	export let pages: [string, string][] = [];
+	export let current_page = "";
+	export let root: string;
 </script>
 
 <div
 	bind:this={wrapper}
-	class:app={!display && !is_embed}
 	class:fill_width
 	class:embed-container={display}
 	class:with-info={info}
@@ -24,32 +26,73 @@
 	style:flex-grow={!display ? "1" : "auto"}
 	data-iframe-height
 >
-	<div class="main">
-		<slot />
-	</div>
-	{#if display && space && info}
-		<div class="info">
-			<span>
-				<a href="https://huggingface.co/spaces/{space}" class="title">{space}</a
-				>
-			</span>
-			<span>
-				{$_("common.built_with")}
-				<a class="gradio" href="https://gradio.app">Gradio</a>.
-			</span>
-			<span>
-				{$_("common.hosted_on")}
-				<a class="hf" href="https://huggingface.co/spaces"
-					><span class="space-logo">
-						<img src={space_logo} alt="Hugging Face Space" />
-					</span> Spaces</a
-				>
-			</span>
+	{#if pages.length > 1}
+		<div class="nav-holder">
+			<nav class="fillable" class:fill_width>
+				{#each pages as [route, label], i}
+					<a
+						href="{root}/{route}"
+						class:active={route === current_page}
+						data-sveltekit-reload
+						>{label}
+					</a>
+				{/each}
+			</nav>
 		</div>
 	{/if}
+	<main class="fillable" class:app={!display && !is_embed}>
+		<slot />
+		<div>
+			{#if display && space && info}
+				<div class="info">
+					<span>
+						<a href="https://huggingface.co/spaces/{space}" class="title"
+							>{space}</a
+						>
+					</span>
+					<span>
+						{$_("common.built_with")}
+						<a class="gradio" href="https://gradio.app">Gradio</a>.
+					</span>
+					<span>
+						{$_("common.hosted_on")}
+						<a class="hf" href="https://huggingface.co/spaces"
+							><span class="space-logo">
+								<img src={space_logo} alt="Hugging Face Space" />
+							</span> Spaces</a
+						>
+					</span>
+				</div>
+			{/if}
+		</div>
+	</main>
 </div>
 
 <style>
+	.nav-holder {
+		padding: var(--size-2) 0;
+		border-bottom: solid 1px var(--border-color-primary);
+	}
+	nav {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--size-2);
+		justify-content: flex-end;
+		margin: 0 auto;
+		padding: 0 var(--size-8);
+	}
+	nav a {
+		padding: var(--size-1) var(--size-2);
+		border-radius: var(--block-radius);
+		border-width: var(--block-border-width);
+		border-color: transparent;
+		color: var(--body-text-color-subdued);
+	}
+	nav a.active {
+		color: var(--body-text-color);
+		border-color: var(--block-border-color);
+		background-color: var(--block-background-fill);
+	}
 	.gradio-container {
 		display: flex;
 		position: relative;
@@ -70,11 +113,12 @@
 		padding-bottom: var(--size-7);
 	}
 
-	.embed-container > .main {
+	.embed-container > main {
 		padding: var(--size-4);
 	}
 
-	.app > .main {
+	main {
+		margin: 0 auto;
 		display: flex;
 		flex-grow: 1;
 		flex-direction: column;
@@ -89,28 +133,33 @@
 	}
 
 	@media (--screen-sm) {
-		.app:not(.fill_width) {
+		.fillable:not(.fill_width) {
 			max-width: 640px;
 		}
 	}
 	@media (--screen-md) {
-		.app:not(.fill_width) {
+		.fillable:not(.fill_width) {
 			max-width: 768px;
 		}
 	}
 	@media (--screen-lg) {
-		.app:not(.fill_width) {
+		.fillable:not(.fill_width) {
 			max-width: 1024px;
 		}
 	}
 	@media (--screen-xl) {
-		.app:not(.fill_width) {
+		.fillable:not(.fill_width) {
 			max-width: 1280px;
 		}
 	}
 	@media (--screen-xxl) {
-		.app:not(.fill_width) {
+		.fillable:not(.fill_width) {
 			max-width: 1536px;
+		}
+	}
+	@media (--screen-xxxl) {
+		.fillable:not(.fill_width) {
+			max-width: 1920px;
 		}
 	}
 
@@ -191,7 +240,7 @@
 		height: 12px;
 	}
 
-	a:hover {
+	main a:hover {
 		text-decoration: underline;
 	}
 </style>

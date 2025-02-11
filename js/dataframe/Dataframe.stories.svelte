@@ -93,6 +93,26 @@
 		row_count: [3, "dynamic"],
 		editable: false
 	}}
+	play={async ({ canvasElement }) => {
+		// tests that the cell is not editable
+
+		const canvas = within(canvasElement);
+		const cells = canvas.getAllByRole("cell");
+		const initial_value = cells[0].textContent;
+
+		await userEvent.click(cells[0]);
+		await userEvent.keyboard("new value");
+
+		const final_value = cells[0].textContent;
+		if (initial_value !== final_value) {
+			throw new Error("Cell content changed when it should be non-editable");
+		}
+
+		const inputs = canvas.queryAllByRole("textbox");
+		if (inputs.length > 0) {
+			throw new Error("Input field appeared when table should be non-editable");
+		}
+	}}
 />
 
 <Story
@@ -185,6 +205,18 @@
 />
 
 <Story
+	name="Dataframe with link"
+	args={{
+		values: [['<a href="https://www.google.com/">google</a>']],
+		headers: ["link"],
+		datatype: ["markdown"],
+		interactive: false,
+		col_count: [1, "dynamic"],
+		row_count: [1, "dynamic"]
+	}}
+/>
+
+<Story
 	name="Dataframe with dialog interactions"
 	args={{
 		values: [
@@ -200,9 +232,11 @@
 		const canvas = within(canvasElement);
 
 		const cell_400 = canvas.getAllByRole("cell")[5];
-		userEvent.click(cell_400);
+		await userEvent.click(cell_400);
 
-		const open_dialog_btn = within(cell_400).getByText("⋮");
+		const open_dialog_btn = await within(cell_400).findByRole("button", {
+			name: "⋮"
+		});
 		await userEvent.click(open_dialog_btn);
 
 		const add_row_btn = canvas.getByText("Add row above");
@@ -228,11 +262,51 @@
 />
 
 <Story
+	name="Dataframe with multiple selection interactions"
+	args={{
+		values: [
+			[1, 2, 3, 4],
+			[5, 6, 7, 8],
+			[9, 10, 11, 12],
+			[13, 14, 15, 16]
+		],
+		col_count: [4, "dynamic"],
+		row_count: [4, "dynamic"],
+		headers: ["A", "B", "C", "D"],
+		editable: true
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const cells = canvas.getAllByRole("cell");
+		const user = userEvent.setup();
+
+		// cmd+click to select non-contiguous cells
+		await user.keyboard("[MetaLeft>]");
+		await user.click(cells[4]);
+		await user.click(cells[6]);
+		await user.click(cells[2]);
+		await user.keyboard("[/MetaLeft]");
+
+		// shift+click to select a range
+		await user.keyboard("[ShiftLeft>]");
+		await user.click(cells[7]);
+		await user.click(cells[6]);
+		await user.keyboard("[/ShiftLeft]");
+
+		// clear selected cells
+		await user.keyboard("{Delete}");
+
+		// verify cells were cleared by clicking one
+		await user.click(cells[2]);
+	}}
+/>
+
+<Story
 	name="Dataframe toolbar interactions"
 	args={{
 		col_count: [3, "dynamic"],
 		row_count: [2, "dynamic"],
-		headers: ["Math", "Reading", "Writifdsfsng"],
+		headers: ["Math", "Reading", "Writing"],
 		values: [
 			[800, 100, 400],
 			[200, 800, 700]
@@ -244,15 +318,157 @@
 		const canvas = within(canvasElement);
 
 		const copy_button = canvas.getByRole("button", {
-			name: /copy table data/i
+			name: "Copy table data"
 		});
 		await userEvent.click(copy_button);
 
 		const fullscreen_button = canvas.getByRole("button", {
-			name: /enter fullscreen/i
+			name: "Enter fullscreen"
 		});
 		await userEvent.click(fullscreen_button);
 
 		await userEvent.click(fullscreen_button);
+	}}
+/>
+
+<Story
+	name="Dataframe with row numbers"
+	args={{
+		values: [
+			[95, 92, 88],
+			[89, 90, 85],
+			[92, 88, 91],
+			[87, 85, 89],
+			[91, 93, 90]
+		],
+		headers: ["Model A", "Model B", "Model C"],
+		label: "Model Performance",
+		col_count: [3, "dynamic"],
+		row_count: [5, "dynamic"],
+		show_row_numbers: true,
+		editable: false
+	}}
+/>
+
+<Story
+	name="Dataframe with truncated text"
+	args={{
+		values: [
+			[
+				"This is a very long text that should be truncated",
+				"Short text",
+				"Another very long text that needs truncation"
+			],
+			[
+				"Short",
+				"This text is also quite long and should be truncated as well",
+				"Medium length text here"
+			],
+			[
+				"Medium text",
+				"Brief",
+				"This is the longest text in the entire table and it should definitely be truncated"
+			]
+		],
+		headers: ["Column A", "Column B", "Column C"],
+		label: "Truncated Text Example",
+		max_chars: 20,
+		col_count: [3, "dynamic"],
+		row_count: [3, "dynamic"]
+	}}
+/>
+
+<Story
+	name="Dataframe with multiline headers"
+	args={{
+		values: [
+			[95, 92, 88],
+			[89, 90, 85],
+			[92, 88, 91]
+		],
+		headers: [
+			"Dataset A\nAccuracy",
+			"Dataset B\nPrecision",
+			"Dataset C\nRecall"
+		],
+		label: "Model Metrics",
+		col_count: [3, "dynamic"],
+		row_count: [3, "dynamic"],
+		editable: false
+	}}
+/>
+
+<Story
+	name="Dataframe with row and column selection"
+	args={{
+		values: [
+			[1, 2, 3, 4],
+			[5, 6, 7, 8],
+			[9, 10, 11, 12],
+			[13, 14, 15, 16]
+		],
+		col_count: [4, "dynamic"],
+		row_count: [4, "dynamic"],
+		headers: ["A", "B", "C", "D"],
+		editable: true
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const user = userEvent.setup();
+
+		const grid = canvas.getByRole("grid");
+		await user.click(grid);
+
+		const cells = canvas.getAllByRole("cell");
+		await user.click(cells[5]); // Click cell with value 6
+
+		const row_button = await canvas.findByRole("button", {
+			name: "Select row"
+		});
+		await user.click(row_button);
+
+		await user.click(cells[6]);
+
+		const col_button = await canvas.findByRole("button", {
+			name: "Select column"
+		});
+		await user.click(col_button);
+
+		await user.keyboard("{Delete}");
+	}}
+/>
+
+<Story
+	name="Dataframe with lots of values"
+	args={{
+		values: [
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+		],
+		col_count: [10, "dynamic"],
+		row_count: [10, "dynamic"],
+		max_height: 700
 	}}
 />

@@ -51,6 +51,7 @@
 	export let max_file_size: number | undefined = undefined;
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
+
 	let {
 		layout: _layout,
 		targets,
@@ -69,6 +70,13 @@
 
 	$: {
 		ready = !!$_layout;
+	}
+
+	let old_dependencies = dependencies;
+	$: if (dependencies !== old_dependencies && render_complete) {
+		// re-run load triggers in SSR mode when page changes
+		handle_load_triggers();
+		old_dependencies = dependencies;
 	}
 
 	async function run(): Promise<void> {
@@ -364,6 +372,7 @@
 				);
 			} catch (e) {
 				const fn_index = 0; // Mock value for fn_index
+				if (!app.stream_status.open) return; // when a user navigates away in multipage app.
 				messages = [
 					new_message("Error", String(e), fn_index, "error"),
 					...messages
@@ -607,12 +616,7 @@
 				a[i].setAttribute("target", "_blank");
 		}
 
-		// handle load triggers
-		dependencies.forEach((dep) => {
-			if (dep.targets.some((dep) => dep[1] === "load")) {
-				wait_then_trigger_api_call(dep.id);
-			}
-		});
+		handle_load_triggers();
 
 		if (!target || render_complete) return;
 
@@ -665,6 +669,14 @@
 		render_complete = true;
 	}
 
+	const handle_load_triggers = (): void => {
+		dependencies.forEach((dep) => {
+			if (dep.targets.some((dep) => dep[1] === "load")) {
+				wait_then_trigger_api_call(dep.id);
+			}
+		});
+	};
+
 	$: set_status($loading_status);
 
 	function update_status(
@@ -689,6 +701,10 @@
 			value: LoadingStatus;
 		}[] = [];
 		Object.entries(statuses).forEach(([id, loading_status]) => {
+			if (!app.stream_status.open && loading_status.status === "error") {
+				// when a user navigates away in multipage app.
+				return;
+			}
 			let dependency = dependencies.find(
 				(dep) => dep.id == loading_status.fn_index
 			);
@@ -773,8 +789,8 @@
 				>
 					{$_("errors.use_via_api")}
 					<img src={api_logo} alt={$_("common.logo")} />
-					<div>&nbsp;·</div>
 				</button>
+				<div class="divider show-api-divider">·</div>
 			{/if}
 			<a
 				href="https://gradio.app"
@@ -785,13 +801,13 @@
 				{$_("common.built_with_gradio")}
 				<img src={logo} alt={$_("common.logo")} />
 			</a>
+			<div class="divider">·</div>
 			<button
 				on:click={() => {
 					set_settings_visible(!settings_visible);
 				}}
 				class="settings"
 			>
-				<div>· &nbsp;</div>
 				{$_("common.settings")}
 				<img src={settings_logo} alt={$_("common.settings")} />
 			</button>
@@ -893,9 +909,9 @@
 		margin-top: var(--size-4);
 		color: var(--body-text-color-subdued);
 	}
-
-	footer > * + * {
-		margin-left: var(--size-2);
+	.divider {
+		margin-left: var(--size-1);
+		margin-right: var(--size-2);
 	}
 
 	.show-api,
@@ -987,7 +1003,8 @@
 	}
 
 	@media (max-width: 640px) {
-		.show-api {
+		.show-api,
+		.show-api-divider {
 			display: none;
 		}
 	}

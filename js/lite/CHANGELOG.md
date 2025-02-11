@@ -1,5 +1,21 @@
 # @gradio/lite
 
+## 5.15.1
+
+### Features
+
+- [#10505](https://github.com/gradio-app/gradio/pull/10505) [`b172c19`](https://github.com/gradio-app/gradio/commit/b172c19a1877d2b47be6189289b6a58b79f6b31e) - Workaround for Lite to work with multipage client API.  Thanks @whitphx!
+
+## 5.15.0
+
+### Features
+
+- [#10433](https://github.com/gradio-app/gradio/pull/10433) [`2e8dc74`](https://github.com/gradio-app/gradio/commit/2e8dc74f751be02f7217f78d241806b42fcdca04) - Allow building multipage Gradio apps.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/core@0.9.0
+
 ## 5.14.0
 
 ### Dependency updates

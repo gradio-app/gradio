@@ -8,6 +8,7 @@ import inspect
 import json
 import os
 import random
+import re
 import secrets
 import string
 import sys
@@ -54,6 +55,7 @@ from gradio.data_classes import (
     FileData,
     GradioModel,
     GradioRootModel,
+    Layout,
 )
 from gradio.events import (
     EventData,
@@ -69,7 +71,7 @@ from gradio.exceptions import (
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream
-from gradio.routes import VERSION, App, Request
+from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
@@ -137,6 +139,7 @@ class Block:
         self.share_token = secrets.token_urlsafe(32)
         self.parent: BlockContext | None = None
         self.rendered_in: Renderable | None = None
+        self.page: str
         self.is_rendered: bool = False
         self._constructor_args: list[dict]
         self.state_session_capacity = 10000
@@ -187,6 +190,8 @@ class Block:
                 f"A block with id: {self._id} has already been rendered in the current Blocks."
             )
         if render_context is not None:
+            if root_context:
+                self.page = root_context.root_block.current_page
             render_context.add(self)
         if root_context is not None:
             root_context.blocks[self._id] = self
@@ -467,6 +472,7 @@ class BlockContext(Block):
                     pseudo_parent.parent = self
                     children.append(pseudo_parent)
                     pseudo_parent.add_child(child)
+                    pseudo_parent.page = child.page
                     if root_context:
                         root_context.blocks[pseudo_parent._id] = pseudo_parent
                 child.parent = pseudo_parent
@@ -505,6 +511,7 @@ class BlockFunction:
         api_name: str | Literal[False] = False,
         js: str | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
+        show_progress_on: Sequence[Component] | None = None,
         cancels: list[int] | None = None,
         collects_event_data: bool = False,
         trigger_after: int | None = None,
@@ -521,6 +528,7 @@ class BlockFunction:
         stream_every: float = 0.5,
         like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
+        page: str = "",
     ):
         self.fn = fn
         self._id = _id
@@ -541,6 +549,7 @@ class BlockFunction:
         self.api_name = api_name
         self.js = js
         self.show_progress = show_progress
+        self.show_progress_on = show_progress_on
         self.cancels = cancels or []
         self.collects_event_data = collects_event_data
         self.trigger_after = trigger_after
@@ -554,6 +563,7 @@ class BlockFunction:
         ) or inspect.isasyncgenfunction(self.fn)
         self.renderable = renderable
         self.rendered_in = rendered_in
+        self.page = page
 
         # We need to keep track of which events are cancel events
         # so that the client can call the /cancel route directly
@@ -597,6 +607,9 @@ class BlockFunction:
             "api_name": self.api_name,
             "scroll_to_output": self.scroll_to_output,
             "show_progress": self.show_progress,
+            "show_progress_on": None
+            if self.show_progress_on is None
+            else [block._id for block in self.show_progress_on],
             "batch": self.batch,
             "max_batch_size": self.max_batch_size,
             "cancels": self.cancels,
@@ -700,6 +713,7 @@ class BlocksConfig:
         postprocess: bool = True,
         scroll_to_output: bool = False,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
+        show_progress_on: Component | Sequence[Component] | None = None,
         api_name: str | None | Literal[False] = None,
         js: str | None = None,
         no_target: bool = False,
@@ -733,6 +747,7 @@ class BlocksConfig:
             postprocess: whether to run the postprocess methods of the output components after running the function
             scroll_to_output: whether to scroll to output of dependency on trigger
             show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
+            show_progress_on: Component or list of components to show the progress animation on. If None, will show the progress animation on all of the output components.
             api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for the Blocks.load() event and .then() events
@@ -777,6 +792,8 @@ class BlocksConfig:
             outputs = []
         elif not isinstance(outputs, Sequence):
             outputs = [outputs]
+        if show_progress_on and not isinstance(show_progress_on, Sequence):
+            show_progress_on = [show_progress_on]
 
         if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
@@ -855,6 +872,7 @@ class BlocksConfig:
             api_name=api_name,
             js=js,
             show_progress=show_progress,
+            show_progress_on=show_progress_on,
             cancels=cancels,
             collects_event_data=collects_event_data,
             trigger_after=trigger_after,
@@ -871,6 +889,7 @@ class BlocksConfig:
             stream_every=stream_every,
             like_user_message=like_user_message,
             event_specific_args=event_specific_args,
+            page=self.root_block.current_page,
         )
 
         self.fns[self.fn_id] = block_fn
@@ -878,12 +897,24 @@ class BlocksConfig:
         return block_fn, block_fn._id
 
     def get_config(self, renderable: Renderable | None = None):
-        config = {}
+        config = {
+            "page": {},
+            "components": [],
+            "dependencies": [],
+        }
+
+        for page, _ in self.root_block.pages:
+            if page not in config["page"]:
+                config["page"][page] = {
+                    "layout": {"id": self.root_block._id, "children": []},
+                    "components": [],
+                    "dependencies": [],
+                }
 
         rendered_ids = []
         sidebar_count = [0]
 
-        def get_layout(block: Block):
+        def get_layout(block: Block) -> Layout:
             rendered_ids.append(block._id)
             if block.get_block_name() == "sidebar":
                 sidebar_count[0] += 1
@@ -895,16 +926,22 @@ class BlocksConfig:
                 return {"id": block._id}
             children_layout = []
             for child in block.children:
-                children_layout.append(get_layout(child))
+                layout = get_layout(child)
+                children_layout.append(layout)
             return {"id": block._id, "children": children_layout}
 
         if renderable:
             root_block = self.blocks[renderable.container_id]
         else:
             root_block = self.root_block
-        config["layout"] = get_layout(root_block)
+        layout = get_layout(root_block)
+        config["layout"] = layout
 
-        config["components"] = []
+        for root_child in layout.get("children", []):
+            if isinstance(root_child, dict) and root_child["id"] in self.blocks:
+                block = self.blocks[root_child["id"]]
+                config["page"][block.page]["layout"]["children"].append(root_child)
+
         blocks_items = list(
             self.blocks.items()
         )  # freeze as list to prevent concurrent re-renders from changing the dict during loop, see https://github.com/gradio-app/gradio/issues/9991
@@ -937,11 +974,15 @@ class BlocksConfig:
                     block_config["api_info_as_output"] = block.api_info()  # type: ignore
                 block_config["example_inputs"] = block.example_inputs()  # type: ignore
             config["components"].append(block_config)
+            config["page"][block.page]["components"].append(block._id)
 
         dependencies = []
         for fn in self.fns.values():
             if renderable is None or fn.rendered_in == renderable:
-                dependencies.append(fn.get_config())
+                dependency_config = fn.get_config()
+                dependencies.append(dependency_config)
+                config["page"][fn.page]["dependencies"].append(dependency_config["id"])
+
         config["dependencies"] = dependencies
         return config
 
@@ -1143,6 +1184,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         self.proxy_urls = set()
 
+        self.pages: list[tuple[str, str]] = [("", "Home")]
+        self.current_page = ""
+
         if self.analytics_enabled:
             is_custom_theme = not any(
                 self.theme.to_dict() == built_in_theme.to_dict()
@@ -1263,7 +1307,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             original_mapping[0] = root_block = Context.root_block or blocks
 
             if "layout" in config:
-                iterate_over_children(config["layout"]["children"])
+                iterate_over_children(config["layout"].get("children", []))
 
             first_dependency = None
 
@@ -1427,6 +1471,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         "At least one block in this Blocks has already been rendered."
                     )
 
+            for block in self.blocks.values():
+                block.page = Context.root_block.current_page
             root_context.blocks.update(self.blocks)
             dependency_offset = max(root_context.fns.keys(), default=-1) + 1
             existing_api_names = [
@@ -1435,6 +1481,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 if isinstance(dep.api_name, str)
             ]
             for dependency in self.fns.values():
+                dependency.page = Context.root_block.current_page
                 dependency._id += dependency_offset
                 # Any event -- e.g. Blocks.load() -- that is triggered by this Blocks
                 # should now be triggered by the root Blocks instead.
@@ -2179,6 +2226,8 @@ Received inputs:
             "fill_width": self.fill_width,
             "theme_hash": self.theme_hash,
             "pwa": self.pwa,
+            "pages": self.pages,
+            "page": {},
         }
         config.update(self.default_config.get_config())  # type: ignore
         config["connect_heartbeat"] = utils.connect_heartbeat(
@@ -2213,6 +2262,7 @@ Received inputs:
         self.progress_tracking = any(
             block_fn.tracks_progress for block_fn in self.fns.values()
         )
+        self.page = ""
         self.exited = True
 
     def clear(self):
@@ -2261,7 +2311,6 @@ Received inputs:
             blocks=self,
             default_concurrency_limit=default_concurrency_limit,
         )
-        self.config = self.get_config_file()
         self.app = App.create_app(self)
         return self
 
@@ -3039,3 +3088,43 @@ Received inputs:
             event = getattr(block, event_name)
             target_events.append(event)
         return target_events
+
+    @document()
+    def route(self, name: str, path: str | None = None) -> Blocks:
+        """
+        Adds a new page to the Blocks app.
+        Parameters:
+            name: The name of the page as it appears in the nav bar.
+            path: The URL suffix appended after your Gradio app's root URL to access this page (e.g. if path="/test", the page may be accessible e.g. at http://localhost:7860/test). If not provided, the path is generated from the name by converting to lowercase and replacing spaces with hyphens. Any leading or trailing forward slashes are stripped.
+        Example:
+            with gr.Blocks() as demo:
+                name = gr.Textbox(label="Name")
+                ...
+            with demo.route("Test", "/test"):
+                num = gr.Number()
+                ...
+        """
+        if get_blocks_context():
+            raise ValueError(
+                "You cannot create a route while inside a Blocks() context. Call route() outside the Blocks() context (unindent this line)."
+            )
+
+        if path:
+            path = path.strip("/")
+            valid_path_regex = re.compile(r"^[a-zA-Z0-9-._~!$&'()*+,;=:@\[\]]+$")
+            if not valid_path_regex.match(path):
+                raise ValueError(
+                    f"Path '{path}' contains invalid characters. Paths can only contain alphanumeric characters and the following special characters: -._~!$&'()*+,;=:@[]"
+                )
+        if path in INTERNAL_ROUTES:
+            raise ValueError(f"Route with path '{path}' already exists")
+        if path is None:
+            path = name.lower().replace(" ", "-")
+            path = "".join(
+                [letter for letter in path if letter.isalnum() or letter == "-"]
+            )
+        while path in INTERNAL_ROUTES or path in [page[0] for page in self.pages]:
+            path = "_" + path
+        self.pages.append((path, name))
+        self.current_page = path
+        return self

@@ -52,7 +52,7 @@ with gr.Blocks() as demo:
 
 <!--- Initialization -->
 ### Initialization
-<ParamTable parameters={obj.parameters} />
+<ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
 
 
 {#if obj.demos && obj.demos.length > 0}

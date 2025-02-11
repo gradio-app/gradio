@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { afterUpdate, createEventDispatcher, tick, onMount } from "svelte";
-	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
 	import { Upload } from "@gradio/upload";
 
@@ -17,7 +16,28 @@
 	} from "./utils";
 	import CellMenu from "./CellMenu.svelte";
 	import Toolbar from "./Toolbar.svelte";
-	import { copy_table_data } from "./table_utils";
+	import SortIcon from "./icons/SortIcon.svelte";
+	import type { CellCoordinate, EditingState } from "./types";
+	import {
+		is_cell_selected,
+		handle_selection,
+		handle_delete_key,
+		should_show_cell_menu,
+		get_next_cell_coordinates,
+		get_range_selection,
+		move_cursor,
+		get_current_indices,
+		handle_click_outside as handle_click_outside_util,
+		select_column,
+		select_row,
+		calculate_selection_positions
+	} from "./selection_utils";
+	import {
+		copy_table_data,
+		get_max,
+		handle_file_upload,
+		sort_table_data
+	} from "./utils/table_utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -46,12 +66,24 @@
 	export let show_fullscreen_button = false;
 	export let show_copy_button = false;
 	export let value_is_output = false;
+	export let max_chars: number | undefined = undefined;
 
-	let selected: false | [number, number] = false;
-	let clicked_cell: { row: number; col: number } | undefined = undefined;
+	let selected_cells: CellCoordinate[] = [];
+	$: selected_cells = [...selected_cells];
+	let selected: CellCoordinate | false = false;
+	$: selected =
+		selected_cells.length > 0
+			? selected_cells[selected_cells.length - 1]
+			: false;
+
 	export let display_value: string[][] | null = null;
 	export let styling: string[][] | null = null;
 	let t_rect: DOMRectReadOnly;
+	let els: Record<
+		string,
+		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
+	> = {};
+	let data_binding: Record<string, (typeof data)[0][0]> = {};
 
 	const dispatch = createEventDispatcher<{
 		change: DataframeValue;
@@ -59,39 +91,52 @@
 		select: SelectData;
 	}>();
 
-	let editing: false | [number, number] = false;
+	let editing: EditingState = false;
+	let clear_on_focus = false;
+	let header_edit: number | false = false;
+	let selected_header: number | false = false;
+	let active_cell_menu: {
+		row: number;
+		col: number;
+		x: number;
+		y: number;
+	} | null = null;
+	let active_header_menu: {
+		col: number;
+		x: number;
+		y: number;
+	} | null = null;
+	let is_fullscreen = false;
+	let dragging = false;
+	let copy_flash = false;
+
+	let color_accent_copied: string;
+	onMount(() => {
+		const color = getComputedStyle(document.documentElement)
+			.getPropertyValue("--color-accent")
+			.trim();
+		color_accent_copied = color + "40"; // 80 is 50% opacity in hex
+		document.documentElement.style.setProperty(
+			"--color-accent-copied",
+			color_accent_copied
+		);
+	});
 
 	const get_data_at = (row: number, col: number): string | number =>
 		data?.[row]?.[col]?.value;
-
-	let last_selected: [number, number] | null = null;
-
-	$: {
-		if (selected !== false && !dequal(selected, last_selected)) {
-			const [row, col] = selected;
-			if (!isNaN(row) && !isNaN(col) && data[row]) {
-				dispatch("select", {
-					index: [row, col],
-					value: get_data_at(row, col),
-					row_value: data[row].map((d) => d.value)
-				});
-				last_selected = selected;
-			}
-		}
-	}
-
-	let els: Record<
-		string,
-		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
-	> = {};
-
-	let data_binding: Record<string, (typeof data)[0][0]> = {};
 
 	function make_id(): string {
 		return Math.random().toString(36).substring(2, 15);
 	}
 
-	function make_headers(_head: Headers): HeadersWithIDs {
+	function make_headers(
+		_head: Headers,
+		col_count: [number, "fixed" | "dynamic"],
+		els: Record<
+			string,
+			{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
+		>
+	): HeadersWithIDs {
 		let _h = _head || [];
 		if (col_count[1] === "fixed" && _h.length < col_count[0]) {
 			const fill = Array(col_count[0] - _h.length)
@@ -124,8 +169,8 @@
 		const data_row_length = _values.length;
 		return Array(row_count[1] === "fixed" ? row_count[0] : data_row_length)
 			.fill(0)
-			.map((_, i) =>
-				Array(
+			.map((_, i) => {
+				return Array(
 					col_count[1] === "fixed"
 						? col_count[0]
 						: data_row_length > 0
@@ -139,16 +184,16 @@
 						const obj = { value: _values?.[i]?.[j] ?? "", id };
 						data_binding[id] = obj;
 						return obj;
-					})
-			);
+					});
+			});
 	}
 
-	let _headers = make_headers(headers);
+	let _headers = make_headers(headers, col_count, els);
 	let old_headers: string[] = headers;
 
 	$: {
 		if (!dequal(headers, old_headers)) {
-			_headers = make_headers(headers);
+			_headers = make_headers(headers, col_count, els);
 			old_headers = JSON.parse(JSON.stringify(headers));
 		}
 	}
@@ -199,48 +244,9 @@
 			if (direction === "asc") return "ascending";
 			if (direction === "des") return "descending";
 		}
-
 		return "none";
 	}
 
-	function get_current_indices(id: string): [number, number] {
-		return data.reduce(
-			(acc, arr, i) => {
-				const j = arr.reduce(
-					(_acc, _data, k) => (id === _data.id ? k : _acc),
-					-1
-				);
-
-				return j === -1 ? acc : [i, j];
-			},
-			[-1, -1]
-		);
-	}
-
-	function move_cursor(
-		key: "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp",
-		current_coords: [number, number]
-	): void {
-		const dir = {
-			ArrowRight: [0, 1],
-			ArrowLeft: [0, -1],
-			ArrowDown: [1, 0],
-			ArrowUp: [-1, 0]
-		}[key];
-
-		const i = current_coords[0] + dir[0];
-		const j = current_coords[1] + dir[1];
-
-		if (i < 0 && j <= 0) {
-			selected_header = j;
-			selected = false;
-		} else {
-			const is_data = data[i]?.[j];
-			selected = is_data ? [i, j] : selected;
-		}
-	}
-
-	let clear_on_focus = false;
 	// eslint-disable-next-line complexity
 	async function handle_keydown(event: KeyboardEvent): Promise<void> {
 		if (selected_header !== false && header_edit === false) {
@@ -268,6 +274,50 @@
 					break;
 			}
 		}
+
+		if (event.key === "Delete" || event.key === "Backspace") {
+			if (!editable) return;
+
+			if (editing) {
+				const [row, col] = editing;
+				const input_el = els[data[row][col].id].input;
+				if (input_el && input_el.selectionStart !== input_el.selectionEnd) {
+					return;
+				}
+				if (
+					event.key === "Delete" &&
+					input_el?.selectionStart !== input_el?.value.length
+				) {
+					return;
+				}
+				if (event.key === "Backspace" && input_el?.selectionStart !== 0) {
+					return;
+				}
+			}
+
+			event.preventDefault();
+			if (selected_cells.length > 0) {
+				data = handle_delete_key(data, selected_cells);
+				dispatch("change", {
+					data: data.map((row) => row.map((cell) => cell.value)),
+					headers: _headers.map((h) => h.value),
+					metadata: null
+				});
+				if (!value_is_output) {
+					dispatch("input");
+				}
+			}
+			return;
+		}
+
+		if (event.key === "c" && (event.metaKey || event.ctrlKey)) {
+			event.preventDefault();
+			if (selected_cells.length > 0) {
+				await handle_copy();
+			}
+			return;
+		}
+
 		if (!selected) {
 			return;
 		}
@@ -281,7 +331,31 @@
 			case "ArrowUp":
 				if (editing) break;
 				event.preventDefault();
-				move_cursor(event.key, [i, j]);
+				const next_coords = move_cursor(event.key, [i, j], data);
+				if (next_coords) {
+					if (event.shiftKey) {
+						selected_cells = get_range_selection(
+							selected_cells.length > 0 ? selected_cells[0] : [i, j],
+							next_coords
+						);
+						editing = false;
+					} else {
+						selected_cells = [next_coords];
+						if (editable) {
+							editing = next_coords;
+							clear_on_focus = false;
+						}
+					}
+					selected = next_coords;
+				} else if (
+					next_coords === false &&
+					event.key === "ArrowUp" &&
+					i === 0
+				) {
+					selected_header = j;
+					selected = false;
+					editing = false;
+				}
 				break;
 
 			case "Escape":
@@ -290,59 +364,45 @@
 				editing = false;
 				break;
 			case "Enter":
-				if (!editable) break;
 				event.preventDefault();
-
-				if (event.shiftKey) {
-					add_row(i);
-					await tick();
-
-					selected = [i + 1, j];
-				} else {
-					if (dequal(editing, [i, j])) {
-						const cell_id = data[i][j].id;
-						const input_el = els[cell_id].input;
-						if (input_el) {
-							data[i][j].value = input_el.value;
-						}
-						editing = false;
+				if (editable) {
+					if (event.shiftKey) {
+						add_row(i);
 						await tick();
-						selected = [i, j];
+						selected = [i + 1, j];
 					} else {
-						editing = [i, j];
+						if (dequal(editing, [i, j])) {
+							const cell_id = data[i][j].id;
+							const input_el = els[cell_id].input;
+							if (input_el) {
+								data[i][j].value = input_el.value;
+							}
+							editing = false;
+							await tick();
+							selected = [i, j];
+						} else {
+							editing = [i, j];
+							clear_on_focus = false;
+						}
 					}
-				}
-
-				break;
-			case "Backspace":
-				if (!editable) break;
-				if (!editing) {
-					event.preventDefault();
-					data[i][j].value = "";
-				}
-				break;
-			case "Delete":
-				if (!editable) break;
-				if (!editing) {
-					event.preventDefault();
-					data[i][j].value = "";
 				}
 				break;
 			case "Tab":
-				let direction = event.shiftKey ? -1 : 1;
-
-				let is_data_x = data[i][j + direction];
-				let is_data_y =
-					data?.[i + direction]?.[direction > 0 ? 0 : _headers.length - 1];
-
-				if (is_data_x || is_data_y) {
-					event.preventDefault();
-					selected = is_data_x
-						? [i, j + direction]
-						: [i + direction, direction > 0 ? 0 : _headers.length - 1];
-				}
+				event.preventDefault();
 				editing = false;
-
+				const next_cell = get_next_cell_coordinates(
+					[i, j],
+					data,
+					event.shiftKey
+				);
+				if (next_cell) {
+					selected_cells = [next_cell];
+					selected = next_cell;
+					if (editable) {
+						editing = next_cell;
+						clear_on_focus = false;
+					}
+				}
 				break;
 			default:
 				if (!editable) break;
@@ -360,29 +420,26 @@
 	let sort_direction: SortDirection | undefined;
 	let sort_by: number | undefined;
 
-	function handle_sort(col: number): void {
+	function handle_sort(col: number, direction: SortDirection): void {
 		if (typeof sort_by !== "number" || sort_by !== col) {
-			sort_direction = "asc";
+			sort_direction = direction;
 			sort_by = col;
-		} else {
-			if (sort_direction === "asc") {
-				sort_direction = "des";
-			} else if (sort_direction === "des") {
-				sort_direction = "asc";
+		} else if (sort_by === col) {
+			if (sort_direction === direction) {
+				sort_direction = undefined;
+				sort_by = undefined;
+			} else {
+				sort_direction = direction;
 			}
 		}
 	}
 
-	let header_edit: number | false;
-
-	let select_on_focus = false;
-	let selected_header: number | false = false;
 	async function edit_header(i: number, _select = false): Promise<void> {
 		if (!editable || col_count[1] !== "dynamic" || header_edit === i) return;
 		selected = false;
+		selected_cells = [];
 		selected_header = i;
 		header_edit = i;
-		select_on_focus = _select;
 	}
 
 	function end_header_edit(event: CustomEvent<KeyboardEvent>): void {
@@ -457,107 +514,14 @@
 	}
 
 	function handle_click_outside(event: Event): void {
-		if (
-			(active_cell_menu &&
-				!(event.target as HTMLElement).closest(".cell-menu")) ||
-			(active_header_menu &&
-				!(event.target as HTMLElement).closest(".cell-menu"))
-		) {
+		if (handle_click_outside_util(event, parent)) {
+			editing = false;
+			selected_cells = [];
+			header_edit = false;
+			selected_header = false;
 			active_cell_menu = null;
 			active_header_menu = null;
 		}
-
-		const [trigger] = event.composedPath() as HTMLElement[];
-		if (parent.contains(trigger)) {
-			return;
-		}
-
-		clicked_cell = undefined;
-		editing = false;
-		selected = false;
-		header_edit = false;
-		selected_header = false;
-		active_cell_menu = null;
-		active_header_menu = null;
-	}
-
-	function guess_delimitaor(
-		text: string,
-		possibleDelimiters: string[]
-	): string[] {
-		return possibleDelimiters.filter(weedOut);
-
-		function weedOut(delimiter: string): boolean {
-			var cache = -1;
-			return text.split("\n").every(checkLength);
-
-			function checkLength(line: string): boolean {
-				if (!line) {
-					return true;
-				}
-
-				var length = line.split(delimiter).length;
-				if (cache < 0) {
-					cache = length;
-				}
-				return cache === length && length > 1;
-			}
-		}
-	}
-
-	function data_uri_to_blob(data_uri: string): Blob {
-		const byte_str = atob(data_uri.split(",")[1]);
-		const mime_str = data_uri.split(",")[0].split(":")[1].split(";")[0];
-
-		const ab = new ArrayBuffer(byte_str.length);
-		const ia = new Uint8Array(ab);
-
-		for (let i = 0; i < byte_str.length; i++) {
-			ia[i] = byte_str.charCodeAt(i);
-		}
-
-		return new Blob([ab], { type: mime_str });
-	}
-
-	function blob_to_string(blob: Blob): void {
-		const reader = new FileReader();
-
-		function handle_read(e: ProgressEvent<FileReader>): void {
-			if (!e?.target?.result || typeof e.target.result !== "string") return;
-
-			const [delimiter] = guess_delimitaor(e.target.result, [",", "\t"]);
-
-			const [head, ...rest] = dsvFormat(delimiter).parseRows(e.target.result);
-
-			_headers = make_headers(
-				col_count[1] === "fixed" ? head.slice(0, col_count[0]) : head
-			);
-
-			values = rest;
-			reader.removeEventListener("loadend", handle_read);
-		}
-
-		reader.addEventListener("loadend", handle_read);
-
-		reader.readAsText(blob);
-	}
-
-	let dragging = false;
-
-	function get_max(
-		_d: { value: any; id: string }[][]
-	): { value: any; id: string }[] {
-		if (!_d || _d.length === 0 || !_d[0]) return [];
-		let max = _d[0].slice();
-		for (let i = 0; i < _d.length; i++) {
-			for (let j = 0; j < _d[i].length; j++) {
-				if (`${max[j].value}`.length < `${_d[i][j].value}`.length) {
-					max[j] = _d[i][j];
-				}
-			}
-		}
-
-		return max;
 	}
 
 	$: max = get_max(data);
@@ -568,16 +532,19 @@
 	let table: HTMLTableElement;
 
 	function set_cell_widths(): void {
-		const widths = cells.map((el, i) => {
-			return el?.clientWidth || 0;
-		});
+		const widths = cells.map((el) => el?.clientWidth || 0);
 		if (widths.length === 0) return;
-		for (let i = 0; i < widths.length; i++) {
+
+		if (show_row_numbers) {
+			parent.style.setProperty(`--cell-width-row-number`, `${widths[0]}px`);
+		}
+		const data_cells = show_row_numbers ? widths.slice(1) : widths;
+		data_cells.forEach((width, i) => {
 			parent.style.setProperty(
 				`--cell-width-${i}`,
-				`${widths[i] - scrollbar_width / widths.length}px`
+				`${width - scrollbar_width / data_cells.length}px`
 			);
-		}
+		});
 	}
 
 	let table_height: number =
@@ -592,43 +559,18 @@
 		dir?: SortDirection
 	): void {
 		let id = null;
-		//Checks if the selected cell is still in the data
-		if (selected && selected[0] in data && selected[1] in data[selected[0]]) {
-			id = data[selected[0]][selected[1]].id;
+		if (selected && selected[0] in _data && selected[1] in _data[selected[0]]) {
+			id = _data[selected[0]][selected[1]].id;
 		}
 		if (typeof col !== "number" || !dir) {
 			return;
 		}
-		const indices = [...Array(_data.length).keys()];
 
-		if (dir === "asc") {
-			indices.sort((i, j) =>
-				_data[i][col].value < _data[j][col].value ? -1 : 1
-			);
-		} else if (dir === "des") {
-			indices.sort((i, j) =>
-				_data[i][col].value > _data[j][col].value ? -1 : 1
-			);
-		} else {
-			return;
-		}
-
-		// sort all the data and metadata based on the values in the data
-		const temp_data = [..._data];
-		const temp_display_value = _display_value ? [..._display_value] : null;
-		const temp_styling = _styling ? [..._styling] : null;
-		indices.forEach((originalIndex, sortedIndex) => {
-			_data[sortedIndex] = temp_data[originalIndex];
-			if (_display_value && temp_display_value)
-				_display_value[sortedIndex] = temp_display_value[originalIndex];
-			if (_styling && temp_styling)
-				_styling[sortedIndex] = temp_styling[originalIndex];
-		});
-
+		sort_table_data(_data, _display_value, _styling, col, dir);
 		data = data;
 
 		if (id) {
-			const [i, j] = get_current_indices(id);
+			const [i, j] = get_current_indices(id, data);
 			selected = [i, j];
 		}
 	}
@@ -640,19 +582,17 @@
 	let is_visible = false;
 
 	onMount(() => {
-		const observer = new IntersectionObserver((entries, observer) => {
+		const observer = new IntersectionObserver((entries) => {
 			entries.forEach((entry) => {
 				if (entry.isIntersecting && !is_visible) {
 					set_cell_widths();
 					data = data;
 				}
-
 				is_visible = entry.isIntersecting;
 			});
 		});
 
 		observer.observe(parent);
-
 		document.addEventListener("click", handle_click_outside);
 		window.addEventListener("resize", handle_resize);
 		document.addEventListener("fullscreenchange", handle_fullscreen_change);
@@ -668,14 +608,53 @@
 		};
 	});
 
-	let highlighted_column: number | null = null;
+	function handle_cell_click(
+		event: MouseEvent,
+		row: number,
+		col: number
+	): void {
+		if (event.target instanceof HTMLAnchorElement) {
+			return;
+		}
 
-	let active_cell_menu: {
-		row: number;
-		col: number;
-		x: number;
-		y: number;
-	} | null = null;
+		event.preventDefault();
+		event.stopPropagation();
+
+		if (show_row_numbers && col === 0) return;
+
+		clear_on_focus = false;
+		active_cell_menu = null;
+		active_header_menu = null;
+		selected_header = false;
+		header_edit = false;
+
+		selected_cells = handle_selection([row, col], selected_cells, event);
+		parent.focus();
+
+		if (editable) {
+			if (selected_cells.length === 1) {
+				editing = [row, col];
+				tick().then(() => {
+					const input_el = els[data[row][col].id].input;
+					if (input_el) {
+						input_el.focus();
+						input_el.selectionStart = input_el.selectionEnd =
+							input_el.value.length;
+					}
+				});
+			} else {
+				editing = false;
+			}
+		}
+
+		toggle_cell_button(row, col);
+
+		dispatch("select", {
+			index: [row, col],
+			value: get_data_at(row, col),
+			row_value: data[row].map((d) => d.value)
+		});
+	}
 
 	function toggle_cell_menu(event: MouseEvent, row: number, col: number): void {
 		event.stopPropagation();
@@ -689,12 +668,7 @@
 			const cell = (event.target as HTMLElement).closest("td");
 			if (cell) {
 				const rect = cell.getBoundingClientRect();
-				active_cell_menu = {
-					row,
-					col,
-					x: rect.right,
-					y: rect.bottom
-				};
+				active_cell_menu = { row, col, x: rect.right, y: rect.bottom };
 			}
 		}
 	}
@@ -716,6 +690,9 @@
 	function handle_resize(): void {
 		active_cell_menu = null;
 		active_header_menu = null;
+		selected_cells = [];
+		selected = false;
+		editing = false;
 		set_cell_widths();
 	}
 
@@ -726,32 +703,20 @@
 	} | null = null;
 
 	function toggle_header_button(col: number): void {
-		if (active_button?.type === "header" && active_button.col === col) {
-			active_button = null;
-		} else {
-			active_button = { type: "header", col };
-		}
+		active_button =
+			active_button?.type === "header" && active_button.col === col
+				? null
+				: { type: "header", col };
 	}
 
 	function toggle_cell_button(row: number, col: number): void {
-		if (
+		active_button =
 			active_button?.type === "cell" &&
 			active_button.row === row &&
 			active_button.col === col
-		) {
-			active_button = null;
-		} else {
-			active_button = { type: "cell", row, col };
-		}
+				? null
+				: { type: "cell", row, col };
 	}
-
-	let active_header_menu: {
-		col: number;
-		x: number;
-		y: number;
-	} | null = null;
-
-	let is_fullscreen = false;
 
 	function toggle_fullscreen(): void {
 		if (!document.fullscreenElement) {
@@ -768,7 +733,11 @@
 	}
 
 	async function handle_copy(): Promise<void> {
-		await copy_table_data(data, _headers);
+		await copy_table_data(data, selected_cells);
+		copy_flash = true;
+		setTimeout(() => {
+			copy_flash = false;
+		}, 800);
 	}
 
 	function toggle_header_menu(event: MouseEvent, col: number): void {
@@ -779,11 +748,7 @@
 			const header = (event.target as HTMLElement).closest("th");
 			if (header) {
 				const rect = header.getBoundingClientRect();
-				active_header_menu = {
-					col,
-					x: rect.right,
-					y: rect.bottom
-				};
+				active_header_menu = { col, x: rect.right, y: rect.bottom };
 			}
 		}
 	}
@@ -827,6 +792,73 @@
 		active_cell_menu = null;
 		active_header_menu = null;
 	}
+
+	let row_order: number[] = [];
+
+	$: {
+		if (
+			typeof sort_by === "number" &&
+			sort_direction &&
+			sort_by >= 0 &&
+			sort_by < data[0].length
+		) {
+			const indices = [...Array(data.length)].map((_, i) => i);
+			const sort_index = sort_by as number;
+			indices.sort((a, b) => {
+				const row_a = data[a];
+				const row_b = data[b];
+				if (
+					!row_a ||
+					!row_b ||
+					sort_index >= row_a.length ||
+					sort_index >= row_b.length
+				)
+					return 0;
+				const val_a = row_a[sort_index].value;
+				const val_b = row_b[sort_index].value;
+				const comp = val_a < val_b ? -1 : val_a > val_b ? 1 : 0;
+				return sort_direction === "asc" ? comp : -comp;
+			});
+			row_order = indices;
+		} else {
+			row_order = [...Array(data.length)].map((_, i) => i);
+		}
+	}
+
+	function handle_select_column(col: number): void {
+		selected_cells = select_column(data, col);
+		selected = selected_cells[0];
+		editing = false;
+	}
+
+	function handle_select_row(row: number): void {
+		selected_cells = select_row(data, row);
+		selected = selected_cells[0];
+		editing = false;
+	}
+
+	let coords: CellCoordinate;
+	$: if (selected !== false) coords = selected;
+
+	$: if (selected !== false) {
+		const positions = calculate_selection_positions(
+			selected,
+			data,
+			els,
+			parent,
+			table
+		);
+		document.documentElement.style.setProperty(
+			"--selected-col-pos",
+			positions.col_pos
+		);
+		if (positions.row_pos) {
+			document.documentElement.style.setProperty(
+				"--selected-row-pos",
+				positions.row_pos
+			);
+		}
+	}
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
@@ -851,11 +883,28 @@
 		class="table-wrap"
 		class:dragging
 		class:no-wrap={!wrap}
+		class:menu-open={active_cell_menu || active_header_menu}
 		style="height:{table_height}px"
 		on:keydown={(e) => handle_keydown(e)}
 		role="grid"
 		tabindex="0"
 	>
+		{#if selected !== false && selected_cells.length === 1}
+			<button
+				class="selection-button selection-button-column"
+				on:click|stopPropagation={() => handle_select_column(coords[1])}
+				aria-label="Select column"
+			>
+				&#8942;
+			</button>
+			<button
+				class="selection-button selection-button-row"
+				on:click|stopPropagation={() => handle_select_row(coords[0])}
+				aria-label="Select row"
+			>
+				&#8942;
+			</button>
+		{/if}
 		<table
 			bind:contentRect={t_rect}
 			bind:this={table}
@@ -867,7 +916,13 @@
 			<thead>
 				<tr>
 					{#if show_row_numbers}
-						<th class="row-number-header"></th>
+						<th class="row-number-header">
+							<div class="cell-wrap">
+								<div class="header-content">
+									<div class="header-text"></div>
+								</div>
+							</div>
+						</th>
 					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
@@ -876,30 +931,24 @@
 							style:width={column_widths.length ? column_widths[i] : undefined}
 						>
 							<div class="cell-wrap">
-								<EditableCell
-									{value}
-									{latex_delimiters}
-									{line_breaks}
-									header
-									edit={false}
-									el={null}
-									{root}
-								/>
-
-								<div
-									class:sorted={sort_by === i}
-									class:des={sort_by === i && sort_direction === "des"}
-									class="sort-button {sort_direction} "
-								>
-									<svg
-										width="1em"
-										height="1em"
-										viewBox="0 0 9 7"
-										fill="none"
-										xmlns="http://www.w3.org/2000/svg"
-									>
-										<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
-									</svg>
+								<div class="header-content">
+									<EditableCell
+										{value}
+										{latex_delimiters}
+										{line_breaks}
+										header
+										edit={false}
+										el={null}
+										{root}
+										{editable}
+									/>
+									<div class="sort-buttons">
+										<SortIcon
+											direction={sort_by === i ? sort_direction : null}
+											on:sort={({ detail }) => handle_sort(i, detail)}
+											{i18n}
+										/>
+									</div>
 								</div>
 							</div>
 						</th>
@@ -919,6 +968,7 @@
 									edit={false}
 									el={null}
 									{root}
+									{editable}
 								/>
 							</div>
 						</td>
@@ -934,8 +984,23 @@
 			boundedheight={false}
 			disable_click={true}
 			{root}
-			on:load={(e) => blob_to_string(data_uri_to_blob(e.detail.data))}
+			on:load={({ detail }) =>
+				handle_file_upload(
+					detail.data,
+					(head) => {
+						_headers = make_headers(
+							head.map((h) => h ?? ""),
+							col_count,
+							els
+						);
+						return _headers;
+					},
+					(vals) => {
+						values = vals;
+					}
+				)}
 			bind:dragging
+			aria_label={i18n("dataframe.drop_to_upload")}
 		>
 			<VirtualTable
 				bind:items={data}
@@ -943,13 +1008,21 @@
 				bind:actual_height={table_height}
 				bind:table_scrollbar_width={scrollbar_width}
 				selected={selected_index}
+				disable_scroll={active_cell_menu !== null ||
+					active_header_menu !== null}
 			>
 				{#if label && label.length !== 0}
 					<caption class="sr-only">{label}</caption>
 				{/if}
 				<tr slot="thead">
 					{#if show_row_numbers}
-						<th class="row-number-header"></th>
+						<th class="row-number-header">
+							<div class="cell-wrap">
+								<div class="header-content">
+									<div class="header-text"></div>
+								</div>
+							</div>
+						</th>
 					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
@@ -963,6 +1036,7 @@
 							<div class="cell-wrap">
 								<div class="header-content">
 									<EditableCell
+										{max_chars}
 										bind:value={_headers[i].value}
 										bind:el={els[id].input}
 										{latex_delimiters}
@@ -972,27 +1046,15 @@
 										on:dblclick={() => edit_header(i)}
 										header
 										{root}
+										{editable}
 									/>
-									<button
-										class:sorted={sort_by === i}
-										class:des={sort_by === i && sort_direction === "des"}
-										class="sort-button {sort_direction}"
-										tabindex="0"
-										on:click={(event) => {
-											event.stopPropagation();
-											handle_sort(i);
-										}}
-									>
-										<svg
-											width="1em"
-											height="1em"
-											viewBox="0 0 9 7"
-											fill="none"
-											xmlns="http://www.w3.org/2000/svg"
-										>
-											<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
-										</svg>
-									</button>
+									<div class="sort-buttons">
+										<SortIcon
+											direction={sort_by === i ? sort_direction : null}
+											on:sort={({ detail }) => handle_sort(i, detail)}
+											{i18n}
+										/>
+									</div>
 								</div>
 
 								{#if editable}
@@ -1000,7 +1062,7 @@
 										class="cell-menu-button"
 										on:click={(event) => toggle_header_menu(event, i)}
 									>
-										⋮
+										&#8942;
 									</button>
 								{/if}
 							</div>
@@ -1009,47 +1071,36 @@
 				</tr>
 
 				<tr slot="tbody" let:item let:index class:row_odd={index % 2 === 0}>
-					{#if show_row_numbers}
-						<td class="row-number" title={`Row ${index + 1}`}>{index + 1}</td>
-					{/if}
 					{#each item as { value, id }, j (id)}
+						{#if show_row_numbers && j === 0}
+							<td class="row-number" tabindex="-1">
+								{index + 1}
+							</td>
+						{/if}
 						<td
-							tabindex="0"
+							tabindex={show_row_numbers && j === 0 ? -1 : 0}
+							bind:this={els[id].cell}
 							on:touchstart={(event) => {
-								event.preventDefault();
-								event.stopPropagation();
-								clear_on_focus = false;
-								clicked_cell = { row: index, col: j };
-								selected = [index, j];
-								selected_header = false;
-								header_edit = false;
-								if (editable) {
-									editing = [index, j];
-								}
-								toggle_cell_button(index, j);
+								const touch = event.touches[0];
+								const mouseEvent = new MouseEvent("click", {
+									clientX: touch.clientX,
+									clientY: touch.clientY,
+									bubbles: true,
+									cancelable: true,
+									view: window
+								});
+								handle_cell_click(mouseEvent, index, j);
 							}}
 							on:mousedown={(event) => {
 								event.preventDefault();
 								event.stopPropagation();
 							}}
-							on:click={(event) => {
-								event.preventDefault();
-								event.stopPropagation();
-								clear_on_focus = false;
-								active_cell_menu = null;
-								active_header_menu = null;
-								clicked_cell = { row: index, col: j };
-								selected = [index, j];
-								selected_header = false;
-								header_edit = false;
-								if (editable) {
-									editing = [index, j];
-								}
-								toggle_cell_button(index, j);
-							}}
+							on:click={(event) => handle_cell_click(event, index, j)}
 							style:width="var(--cell-width-{j})"
 							style={styling?.[index]?.[j] || ""}
-							class:focus={dequal(selected, [index, j])}
+							class:flash={copy_flash &&
+								is_cell_selected([index, j], selected_cells)}
+							class={is_cell_selected([index, j], selected_cells)}
 							class:menu-active={active_cell_menu &&
 								active_cell_menu.row === index &&
 								active_cell_menu.col === j}
@@ -1068,15 +1119,25 @@
 										clear_on_focus = false;
 										parent.focus();
 									}}
+									on:focus={() => {
+										const row = index;
+										const col = j;
+										if (
+											!selected_cells.some(([r, c]) => r === row && c === col)
+										) {
+											selected_cells = [[row, col]];
+										}
+									}}
 									{clear_on_focus}
 									{root}
+									{max_chars}
 								/>
-								{#if editable}
+								{#if editable && should_show_cell_menu([index, j], selected_cells, editable)}
 									<button
 										class="cell-menu-button"
 										on:click={(event) => toggle_cell_menu(event, index, j)}
 									>
-										⋮
+										&#8942;
 									</button>
 								{/if}
 							</div>
@@ -1128,15 +1189,6 @@
 {/if}
 
 <style>
-	.button-wrap:hover svg {
-		color: var(--color-accent);
-	}
-
-	.button-wrap svg {
-		margin-right: var(--size-1);
-		margin-left: -5px;
-	}
-
 	.label p {
 		position: relative;
 		z-index: var(--layer-4);
@@ -1145,17 +1197,25 @@
 		font-size: var(--block-label-text-size);
 	}
 
+	.table-container {
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-2);
+	}
+
 	.table-wrap {
 		position: relative;
 		transition: 150ms;
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
+	}
+
+	.table-wrap.menu-open {
 		overflow: hidden;
 	}
 
 	.table-wrap:focus-within {
 		outline: none;
-		background-color: none;
 	}
 
 	.dragging {
@@ -1177,6 +1237,7 @@
 		line-height: var(--line-md);
 		font-family: var(--font-mono);
 		border-spacing: 0;
+		border-collapse: separate;
 	}
 
 	div:not(.no-wrap) td {
@@ -1195,7 +1256,7 @@
 		position: sticky;
 		top: 0;
 		left: 0;
-		z-index: var(--layer-1);
+		z-index: var(--layer-2);
 		box-shadow: var(--shadow-drop);
 	}
 
@@ -1231,6 +1292,12 @@
 	th.focus,
 	td.focus {
 		--ring-color: var(--color-accent);
+		box-shadow: inset 0 0 0 2px var(--ring-color);
+		z-index: var(--layer-1);
+	}
+
+	th.focus {
+		z-index: var(--layer-2);
 	}
 
 	tr:last-child td:first-child {
@@ -1245,33 +1312,10 @@
 		background: var(--table-even-background-fill);
 	}
 
-	th svg {
-		fill: currentColor;
-		font-size: 10px;
-	}
-
-	.sort-button {
+	.sort-buttons {
 		display: flex;
-		flex: none;
-		justify-content: center;
 		align-items: center;
-		transition: 150ms;
-		cursor: pointer;
-		padding: var(--size-2);
-		color: var(--body-text-color-subdued);
-		line-height: var(--text-sm);
-	}
-
-	.sort-button:hover {
-		color: var(--body-text-color);
-	}
-
-	.des {
-		transform: scaleY(-1);
-	}
-
-	.sort-button.sorted {
-		color: var(--color-accent);
+		flex-shrink: 0;
 	}
 
 	.editing {
@@ -1280,25 +1324,26 @@
 
 	.cell-wrap {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		outline: none;
-		height: var(--size-full);
 		min-height: var(--size-9);
-		overflow: hidden;
+		position: relative;
+		height: auto;
 	}
 
 	.header-content {
 		display: flex;
 		align-items: center;
+		justify-content: space-between;
 		overflow: hidden;
 		flex-grow: 1;
 		min-width: 0;
-	}
-
-	.controls-wrap {
-		display: flex;
-		justify-content: flex-end;
-		padding-top: var(--size-2);
+		white-space: normal;
+		overflow-wrap: break-word;
+		word-break: normal;
+		height: 100%;
+		padding: var(--size-1);
+		gap: var(--size-1);
 	}
 
 	.row_odd {
@@ -1307,10 +1352,6 @@
 
 	.row_odd.focus {
 		background: var(--background-fill-primary);
-	}
-
-	table {
-		border-collapse: separate;
 	}
 
 	.cell-menu-button {
@@ -1325,57 +1366,16 @@
 		padding: 0;
 		margin-right: var(--spacing-sm);
 		z-index: var(--layer-1);
+		position: absolute;
+		right: var(--size-1);
+		top: 50%;
+		transform: translateY(-50%);
 	}
 
-	.cell-menu-button:hover {
-		background-color: var(--color-bg-hover);
-	}
-
-	td.focus .cell-menu-button {
+	.cell-selected .cell-menu-button {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-	}
-
-	th .header-content {
-		white-space: normal;
-		overflow-wrap: break-word;
-		word-break: break-word;
-	}
-
-	.table-container {
-		display: flex;
-		flex-direction: column;
-		gap: var(--size-2);
-	}
-
-	.row-number,
-	.row-number-header {
-		width: var(--size-7);
-		min-width: var(--size-7);
-		text-align: center;
-		background: var(--table-even-background-fill);
-		position: sticky;
-		left: 0;
-		font-size: var(--input-text-size);
-		color: var(--body-text-color);
-		padding: var(--size-1) var(--size-2);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		font-weight: var(--weight-semibold);
-	}
-
-	.row-number-header {
-		z-index: var(--layer-2);
-	}
-
-	.row-number {
-		z-index: var(--layer-1);
-	}
-
-	:global(tbody > tr:nth-child(odd)) .row-number {
-		background: var(--table-odd-background-fill);
 	}
 
 	.header-row {
@@ -1392,10 +1392,176 @@
 	}
 
 	.label p {
-		position: relative;
-		z-index: var(--layer-4);
 		margin: 0;
 		color: var(--block-label-text-color);
 		font-size: var(--block-label-text-size);
+	}
+
+	.row-number,
+	.row-number-header {
+		text-align: center;
+		background: var(--table-even-background-fill);
+		font-size: var(--input-text-size);
+		color: var(--body-text-color);
+		padding: var(--size-1);
+		min-width: var(--size-12);
+		width: var(--size-12);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-weight: var(--weight-semibold);
+	}
+
+	.row-number-header .header-content {
+		justify-content: space-between;
+		padding: var(--size-1);
+		height: var(--size-9);
+		display: flex;
+		align-items: center;
+	}
+
+	.row-number-header :global(.sort-icons) {
+		margin-right: 0;
+	}
+
+	:global(tbody > tr:nth-child(odd)) .row-number {
+		background: var(--table-odd-background-fill);
+	}
+
+	.cell-selected {
+		--ring-color: var(--color-accent);
+		box-shadow: inset 0 0 0 2px var(--ring-color);
+		z-index: var(--layer-1);
+		position: relative;
+	}
+
+	.cell-selected.no-top {
+		box-shadow:
+			inset 2px 0 0 var(--ring-color),
+			inset -2px 0 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-bottom {
+		box-shadow:
+			inset 2px 0 0 var(--ring-color),
+			inset -2px 0 0 var(--ring-color),
+			inset 0 2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-left {
+		box-shadow:
+			inset 0 2px 0 var(--ring-color),
+			inset -2px 0 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-right {
+		box-shadow:
+			inset 0 2px 0 var(--ring-color),
+			inset 2px 0 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-top.no-left {
+		box-shadow:
+			inset -2px 0 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-top.no-right {
+		box-shadow:
+			inset 2px 0 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-bottom.no-left {
+		box-shadow:
+			inset -2px 0 0 var(--ring-color),
+			inset 0 2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-bottom.no-right {
+		box-shadow:
+			inset 2px 0 0 var(--ring-color),
+			inset 0 2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-top.no-bottom {
+		box-shadow:
+			inset 2px 0 0 var(--ring-color),
+			inset -2px 0 0 var(--ring-color);
+	}
+
+	.cell-selected.no-left.no-right {
+		box-shadow:
+			inset 0 2px 0 var(--ring-color),
+			inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-top.no-left.no-right {
+		box-shadow: inset 0 -2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-bottom.no-left.no-right {
+		box-shadow: inset 0 2px 0 var(--ring-color);
+	}
+
+	.cell-selected.no-left.no-top.no-bottom {
+		box-shadow: inset -2px 0 0 var(--ring-color);
+	}
+
+	.cell-selected.no-right.no-top.no-bottom {
+		box-shadow: inset 2px 0 0 var(--ring-color);
+	}
+
+	.cell-selected.no-top.no-bottom.no-left.no-right {
+		box-shadow: none;
+	}
+
+	.selection-button {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--color-accent);
+		color: white;
+		border-radius: var(--radius-sm);
+		z-index: var(--layer-2);
+	}
+
+	.selection-button-column {
+		width: var(--size-3);
+		height: var(--size-5);
+		top: -10px;
+		left: var(--selected-col-pos);
+		transform: rotate(90deg);
+	}
+
+	.selection-button-row {
+		width: var(--size-3);
+		height: var(--size-5);
+		left: -7px;
+		top: calc(var(--selected-row-pos) - var(--size-5) / 2);
+	}
+
+	.table-wrap:not(:focus-within) .selection-button {
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.flash.cell-selected {
+		animation: flash-color 700ms ease-out;
+	}
+
+	@keyframes flash-color {
+		0%,
+		30% {
+			background: var(--color-accent-copied);
+		}
+
+		100% {
+			background: transparent;
+		}
 	}
 </style>

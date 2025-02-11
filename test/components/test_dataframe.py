@@ -57,6 +57,7 @@ class TestDataframe:
             "column_widths": [],
             "show_fullscreen_button": False,
             "show_copy_button": False,
+            "max_chars": None,
         }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(DataframeData(**x_data))
@@ -103,6 +104,7 @@ class TestDataframe:
             "line_breaks": True,
             "column_widths": [],
             "show_fullscreen_button": False,
+            "max_chars": None,
             "show_copy_button": False,
         }
 
@@ -162,6 +164,14 @@ class TestDataframe:
         assert output == {
             "headers": ["one", "two", "three", "4"],
             "data": [[2, True, "ab", 4], [3, True, "cd", 5]],
+            "metadata": None,
+        }
+
+        dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
+        output = dataframe_output.postprocess([(1, 2, 3), (4, 5, 6)]).model_dump()
+        assert output == {
+            "headers": ["one", "two", "three"],
+            "data": [[1, 2, 3], [4, 5, 6]],
             "metadata": None,
         }
 

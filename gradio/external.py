@@ -17,10 +17,12 @@ import huggingface_hub
 from gradio_client import Client
 from gradio_client.client import Endpoint
 from gradio_client.documentation import document
+from gradio_client.utils import encode_url_or_file_to_base64
 from packaging import version
 
 import gradio
 from gradio import components, external_utils, utils
+from gradio.components.multimodal_textbox import MultimodalValue
 from gradio.context import Context
 from gradio.exceptions import (
     GradioVersionIncompatibleError,
@@ -29,8 +31,11 @@ from gradio.exceptions import (
 from gradio.processing_utils import save_base64_to_cache, to_binary
 
 if TYPE_CHECKING:
+    from huggingface_hub.inference._providers import PROVIDER_T
+
     from gradio.blocks import Blocks
     from gradio.chat_interface import ChatInterface
+    from gradio.components.chatbot import MessageDict
     from gradio.interface import Interface
 
 
@@ -43,6 +48,7 @@ def load(
     token: str | None = None,
     hf_token: str | None = None,
     accept_token: bool = False,
+    provider: PROVIDER_T | None = None,
     **kwargs,
 ) -> Blocks:
     """
@@ -53,6 +59,7 @@ def load(
         token: optional token that is passed as the second parameter to the `src` function. If not explicitly provided, will use the HF_TOKEN environment variable or fallback to the locally-saved HF token when loading models but not Spaces (when loading Spaces, only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). Find your HF tokens here: https://huggingface.co/settings/tokens.
         accept_token: if True, a Textbox component is first rendered to allow the user to provide a token, which will be used instead of the `token` parameter when calling the loaded model or Space.
         kwargs: additional keyword parameters to pass into the `src` function. If `src` is "models" or "Spaces", these parameters are passed into the `gr.Interface` or `gr.ChatInterface` constructor.
+        provider: the name of the third-party (non-Hugging Face) providers to use for model inference (e.g. "replicate", "sambanova", "fal-ai", etc). Should be one of the providers supported by `huggingface_hub.InferenceClient`. This parameter is only used when `src` is "models"
     Returns:
         a Gradio Blocks app for the given model
     Example:
@@ -90,7 +97,7 @@ def load(
         if isinstance(src, Callable):
             return src(name, token, **kwargs)
         return load_blocks_from_huggingface(
-            name=name, src=src, hf_token=token, **kwargs
+            name=name, src=src, hf_token=token, provider=provider, **kwargs
         )
     else:
         import gradio as gr
@@ -147,6 +154,7 @@ def load_blocks_from_huggingface(
     src: str,
     hf_token: str | Literal[False] | None = None,
     alias: str | None = None,
+    provider: PROVIDER_T | None = None,
     **kwargs,
 ) -> Blocks:
     """Creates and returns a Blocks instance from a Hugging Face model or Space repo."""
@@ -165,18 +173,24 @@ def load_blocks_from_huggingface(
 
     if src == "spaces" and hf_token is None:
         hf_token = False  # Since Spaces can read the token, we don't want to pass it in unless the user explicitly provides it
-    blocks: gradio.Blocks = factory_methods[src](name, hf_token, alias, **kwargs)
+    blocks: gradio.Blocks = factory_methods[src](
+        name, hf_token=hf_token, alias=alias, provider=provider, **kwargs
+    )
     return blocks
 
 
 def from_model(
-    model_name: str, hf_token: str | Literal[False] | None, alias: str | None, **kwargs
+    model_name: str,
+    hf_token: str | Literal[False] | None,
+    alias: str | None,
+    provider: PROVIDER_T | None = None,
+    **kwargs,
 ) -> Blocks:
     headers = {"X-Wait-For-Model": "true"}
     if hf_token is False:
         hf_token = None
     client = huggingface_hub.InferenceClient(
-        model=model_name, headers=headers, token=hf_token
+        model=model_name, headers=headers, token=hf_token, provider=provider
     )
     p, tags = external_utils.get_model_info(model_name, hf_token)
 
@@ -455,8 +469,17 @@ def from_model(
 
 
 def from_spaces(
-    space_name: str, hf_token: str | None | Literal[False], alias: str | None, **kwargs
+    space_name: str,
+    hf_token: str | None | Literal[False],
+    alias: str | None,
+    provider: PROVIDER_T | None = None,
+    **kwargs,
 ) -> Blocks:
+    if provider is not None:
+        warnings.warn(
+            "The `provider` parameter is not supported when loading Spaces. It will be ignored."
+        )
+
     space_url = f"https://huggingface.co/spaces/{space_name}"
 
     print(f"Fetching Space from: {space_url}")
@@ -586,12 +609,146 @@ def from_spaces_interface(
     return interface
 
 
+TEXT_FILE_EXTENSIONS = (
+    ".doc",
+    ".docx",
+    ".rtf",
+    ".epub",
+    ".odt",
+    ".odp",
+    ".pptx",
+    ".txt",
+    ".md",
+    ".py",
+    ".ipynb",
+    ".js",
+    ".jsx",
+    ".html",
+    ".css",
+    ".java",
+    ".cs",
+    ".php",
+    ".c",
+    ".cc",
+    ".cpp",
+    ".cxx",
+    ".cts",
+    ".h",
+    ".hh",
+    ".hpp",
+    ".rs",
+    ".R",
+    ".Rmd",
+    ".swift",
+    ".go",
+    ".rb",
+    ".kt",
+    ".kts",
+    ".ts",
+    ".tsx",
+    ".m",
+    ".mm",
+    ".mts",
+    ".scala",
+    ".dart",
+    ".lua",
+    ".pl",
+    ".pm",
+    ".t",
+    ".sh",
+    ".bash",
+    ".zsh",
+    ".bat",
+    ".coffee",
+    ".csv",
+    ".log",
+    ".ini",
+    ".cfg",
+    ".config",
+    ".json",
+    ".proto",
+    ".yaml",
+    ".yml",
+    ".toml",
+    ".sql",
+)
+IMAGE_FILE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".webp")
+
+
+def format_conversation(
+    history: list[MessageDict], new_message: str | MultimodalValue
+) -> list[dict]:
+    conversation = []
+    for message in history:
+        if isinstance(message["content"], str):
+            conversation.append(
+                {"role": message["role"], "content": message["content"]}
+            )
+        elif isinstance(message["content"], tuple):
+            image_message = {
+                "role": message["role"],
+                "content": [
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": encode_url_or_file_to_base64(message["content"][0])
+                        },
+                    }
+                ],
+            }
+            conversation.append(image_message)
+        else:
+            raise ValueError(
+                f"Invalid message format: {message['content']}. Messages must be either strings or tuples."
+            )
+    if isinstance(new_message, str):
+        text = new_message
+        files = []
+    else:
+        text = new_message.get("text", None)
+        files = new_message.get("files", [])
+    image_files, text_encoded = [], []
+    for file in files:
+        if file.lower().endswith(TEXT_FILE_EXTENSIONS):
+            text_encoded.append(file)
+        else:
+            image_files.append(file)
+
+    for image in image_files:
+        conversation.append(
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": encode_url_or_file_to_base64(image)},
+                    }
+                ],
+            }
+        )
+    if text or text_encoded:
+        text = text or ""
+        text += "\n".join(
+            [
+                f"\n## {Path(file).name}\n{Path(file).read_text()}"
+                for file in text_encoded
+            ]
+        )
+        conversation.append(
+            {"role": "user", "content": [{"type": "text", "text": text}]}
+        )
+    return conversation
+
+
 @document()
 def load_chat(
     base_url: str,
     model: str,
     token: str | None = None,
     *,
+    file_types: Literal["text_encoded", "image"]
+    | list[Literal["text_encoded", "image"]]
+    | None = "text_encoded",
     system_message: str | None = None,
     streaming: bool = True,
     **kwargs,
@@ -602,9 +759,19 @@ def load_chat(
         base_url: The base URL of the endpoint, e.g. "http://localhost:11434/v1/"
         model: The name of the model you are loading, e.g. "llama3.2"
         token: The API token or a placeholder string if you are using a local model, e.g. "ollama"
+        file_types: The file types allowed to be uploaded by the user. "text_encoded" allows uploading any text-encoded file (which is simply appended to the prompt), and "image" adds image upload support. Set to None to disable file uploads.
         system_message: The system message to use for the conversation, if any.
         streaming: Whether the response should be streamed.
         kwargs: Additional keyword arguments to pass into ChatInterface for customization.
+    Example:
+        import gradio as gr
+        gr.load_chat(
+            "http://localhost:11434/v1/",
+            model="qwen2.5",
+            token="***",
+            file_types=["text_encoded", "image"],
+            system_message="You are a silly assistant.",
+        ).launch()
     """
     try:
         from openai import OpenAI
@@ -618,29 +785,32 @@ def load_chat(
     start_message = (
         [{"role": "system", "content": system_message}] if system_message else []
     )
+    file_types = utils.none_or_singleton_to_list(file_types)
 
-    def open_api(message: str, history: list | None) -> str | None:
+    def open_api(message: str | MultimodalValue, history: list | None) -> str | None:
         history = history or start_message
         if len(history) > 0 and isinstance(history[0], (list, tuple)):
             history = ChatInterface._tuples_to_messages(history)
+        conversation = format_conversation(history, message)
         return (
             client.chat.completions.create(
                 model=model,
-                messages=history + [{"role": "user", "content": message}],
+                messages=conversation,  # type: ignore
             )
             .choices[0]
             .message.content
         )
 
     def open_api_stream(
-        message: str, history: list | None
+        message: str | MultimodalValue, history: list | None
     ) -> Generator[str, None, None]:
         history = history or start_message
         if len(history) > 0 and isinstance(history[0], (list, tuple)):
             history = ChatInterface._tuples_to_messages(history)
+        conversation = format_conversation(history, message)
         stream = client.chat.completions.create(
             model=model,
-            messages=history + [{"role": "user", "content": message}],
+            messages=conversation,  # type: ignore
             stream=True,
         )
         response = ""
@@ -649,6 +819,23 @@ def load_chat(
                 response += chunk.choices[0].delta.content
                 yield response
 
+    supported_extensions = []
+    for file_type in file_types:
+        if file_type == "text_encoded":
+            supported_extensions += TEXT_FILE_EXTENSIONS
+        elif file_type == "image":
+            supported_extensions += IMAGE_FILE_EXTENSIONS
+        else:
+            raise ValueError(
+                f"Invalid file type: {file_type}. Must be 'text_encoded' or 'image'."
+            )
+
     return ChatInterface(
-        open_api_stream if streaming else open_api, type="messages", **kwargs
+        open_api_stream if streaming else open_api,
+        type="messages",
+        multimodal=bool(file_types),
+        textbox=gradio.MultimodalTextbox(file_types=supported_extensions)
+        if file_types
+        else None,
+        **kwargs,
     )
