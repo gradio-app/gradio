@@ -53,7 +53,13 @@
 	}[];
 
 	let original_values = values;
-	$: original_values = values;
+	let filtered_values = values;
+	$: {
+		if (!dequal(values, original_values)) {
+			original_values = values;
+			filtered_values = values;
+		}
+	}
 
 	export let editable = true;
 	export let wrap = false;
@@ -863,6 +869,19 @@
 			);
 		}
 	}
+
+	function handle_search(search_query: string): void {
+		if (search_query) {
+			filtered_values = original_values.filter((row) =>
+				row.some((cell) =>
+					String(cell).toLowerCase().includes(search_query.toLowerCase())
+				)
+			);
+		} else {
+			filtered_values = original_values;
+		}
+		data = process_data(filtered_values);
+	}
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
@@ -881,18 +900,7 @@
 			on_copy={handle_copy}
 			{show_copy_button}
 			{show_search_input}
-			on:search={(e) => {
-				const search_query = e.detail;
-				if (search_query) {
-					values = values.filter((row) =>
-						row.some((cell) =>
-							String(cell).toLowerCase().includes(search_query.toLowerCase())
-						)
-					);
-				} else {
-					values = original_values;
-				}
-			}}
+			on:search={(e) => handle_search(e.detail)}
 		/>
 	</div>
 	<div
