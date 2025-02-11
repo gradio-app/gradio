@@ -96,17 +96,15 @@
 <style>
 	.toolbar {
 		display: flex;
-		justify-content: space-between;
 		align-items: center;
 		gap: var(--size-2);
-		width: 100%;
-		align-items: center;
-		justify-content: flex-end;
+		flex: 0 0 auto;
 	}
 
 	.toolbar-buttons {
 		display: flex;
 		gap: var(--size-1);
+		flex-wrap: nowrap;
 	}
 
 	.toolbar-button {
@@ -165,7 +163,7 @@
 	.clear-button {
 		position: absolute;
 		right: var(--size-2);
-		top: 50%;
+		top: 46%;
 		transform: translateY(-50%);
 		border: none;
 		background: transparent;

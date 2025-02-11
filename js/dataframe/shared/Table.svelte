@@ -1405,21 +1405,28 @@
 
 	.header-row {
 		display: flex;
-		justify-content: space-between;
+		justify-content: flex-end;
 		align-items: center;
 		gap: var(--size-2);
-		height: var(--size-6);
 		min-height: var(--size-6);
+		flex-wrap: nowrap;
+		width: 100%;
 	}
 
 	.label {
-		flex: 1;
+		flex: 1 1 auto;
+		margin-right: auto;
 	}
 
 	.label p {
 		margin: 0;
 		color: var(--block-label-text-color);
 		font-size: var(--block-label-text-size);
+		line-height: var(--line-sm);
+	}
+
+	.toolbar {
+		flex: 0 0 auto;
 	}
 
 	.row-number,
