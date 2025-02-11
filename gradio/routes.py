@@ -570,6 +570,11 @@ class App(FastAPI):
                     "auth_message": blocks.auth_message,
                     "space_id": blocks.space_id,
                     "root": root,
+                    "page": {"": {"layout": {}}},
+                    "pages": [""],
+                    "components": [],
+                    "dependencies": [],
+                    "current_page": "",
                 }
 
             try:
