@@ -2248,7 +2248,7 @@ Received inputs:
         for index, fn in enumerate(fns_to_transpile):
             if not quiet:
                 print(f"* ({index + 1}/{num_to_transpile}) {fn.__name__}: ", end="")
-            if fn.__js_implementation__ is None:  # type: ignore
+            if getattr(fn, "__js_implementation__", None) is None:  # type: ignore
                 try:
                     fn.__js_implementation__ = transpile(fn)  # type: ignore
                     if not quiet:

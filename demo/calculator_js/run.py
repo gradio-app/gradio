@@ -1,6 +1,6 @@
 import gradio as gr
 
-def calculator(num1, operation, num2):
+def calculator(num1: int, operation: str, num2: int):
     if operation == "add":
         return num1 + num2
     elif operation == "subtract":
