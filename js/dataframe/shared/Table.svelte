@@ -880,7 +880,6 @@
 	let current_search_query: string | null = null;
 
 	function handle_search(search_query: string | null): void {
-		current_search_query = search_query;
 		dispatch("search", search_query);
 	}
 
