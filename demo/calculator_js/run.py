@@ -21,7 +21,7 @@ with gr.Blocks() as demo:
             result = gr.Number()
 
     submit_btn.click(
-        calculator, inputs=[num_1, operation, num_2], outputs=[result], js=True
+        calculator, inputs=[num_1, operation, num_2], outputs=[result], js=True, preprocess=False, postprocess=False
     )
     examples = gr.Examples(
         examples=[
