@@ -101,66 +101,64 @@
 </script>
 
 <div class="parent-container" bind:this={parent_container}>
-	<div class="wrapper">
-		<div class="loading-panel">
-			<div class="code-header">app.py</div>
-			{#if !loaded}
-				<div style="display: flex;"></div>
-				<div class="loading-section">
-					<div class="loading-dot"></div>
-					{loading_text}
-				</div>
-			{:else}
-				<div class="buttons">
-					<div class="run">
-						<button
-							class="button"
-							on:click={() => {
-								dispatch("code", { code });
-							}}
-						>
-							Run
-							<div class="shortcut">⌘+↵</div>
-						</button>
-					</div>
-				</div>
-				<div style="flex-grow: 1"></div>
-				<div class="loading-section">
-					<img src={lightning} alt="lightning icon" class="lightning-logo" />
-					Interactive
-				</div>
-			{/if}
-		</div>
-		<div
-			class:horizontal={layout === "horizontal"}
-			class:vertical={layout === "vertical"}
-			class="child-container"
-		>
-			<div class="half-container">
-				<div
-					class:code-editor-border={loaded}
-					class="code-editor"
-					bind:this={code_editor_container}
-				>
-					<Block variant={"solid"} padding={false}>
-						<Code
-							bind:value={code}
-							language="python"
-							lines={10}
-							readonly={!loaded}
-							dark_mode={active_theme_mode === "dark"}
-						/>
-					</Block>
+	<div class="loading-panel">
+		<div class="code-header">app.py</div>
+		{#if !loaded}
+			<div style="display: flex;"></div>
+			<div class="loading-section">
+				<div class="loading-dot"></div>
+				{loading_text}
+			</div>
+		{:else}
+			<div class="buttons">
+				<div class="run">
+					<button
+						class="button"
+						on:click={() => {
+							dispatch("code", { code });
+						}}
+					>
+						Run
+						<div class="shortcut">⌘+↵</div>
+					</button>
 				</div>
 			</div>
-			{#if loaded}
-				<div class="half-container">
-					<div class="preview">
-						<slot></slot>
-					</div>
-				</div>
-			{/if}
+			<div style="flex-grow: 1"></div>
+			<div class="loading-section">
+				<img src={lightning} alt="lightning icon" class="lightning-logo" />
+				Interactive
+			</div>
+		{/if}
+	</div>
+	<div
+		class:horizontal={layout === "horizontal"}
+		class:vertical={layout === "vertical"}
+		class="child-container"
+	>
+		<div class="half-container">
+			<div
+				class:code-editor-border={loaded}
+				class="code-editor"
+				bind:this={code_editor_container}
+			>
+				<Block variant={"solid"} padding={false}>
+					<Code
+						bind:value={code}
+						language="python"
+						lines={10}
+						readonly={!loaded}
+						dark_mode={active_theme_mode === "dark"}
+					/>
+				</Block>
+			</div>
 		</div>
+		{#if loaded}
+			<div class="half-container">
+				<div class="preview">
+					<slot></slot>
+				</div>
+			</div>
+		{/if}
 	</div>
 </div>
 
@@ -172,13 +170,10 @@
 		border: 1px solid rgb(229 231 235);
 		border-radius: 0.375rem;
 		box-sizing: border-box;
-	}
-	.wrapper {
-		width: 100%;
-		height: 100%;
 		display: flex;
 		flex-direction: column;
 	}
+
 	:global(.dark .parent-container) {
 		border-color: #374151 !important;
 		color-scheme: dark !important;
