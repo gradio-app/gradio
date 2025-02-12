@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { Maximize, Minimize, Copy, Check } from "@gradio/icons";
+	import { Maximize, Minimize, Copy } from "@gradio/icons";
 	import { onDestroy } from "svelte";
 	import { createEventDispatcher } from "svelte";
+	import FilterIcon from "./icons/FilterIcon.svelte";
 
 	export let show_fullscreen_button = false;
 	export let show_copy_button = false;
@@ -11,14 +12,14 @@
 	export let on_commit_filter: () => void;
 
 	const dispatch = createEventDispatcher<{
-		search: string;
+		search: string | null;
 	}>();
 
 	let copied = false;
 	let timer: ReturnType<typeof setTimeout>;
-	let search_query = "";
+	export let current_search_query: string | null = null;
 
-	$: dispatch("search", search_query);
+	$: dispatch("search", current_search_query);
 
 	function copy_feedback(): void {
 		copied = true;
@@ -33,11 +34,6 @@
 		copy_feedback();
 	}
 
-	function handle_commit_filter(): void {
-		on_commit_filter();
-		search_query = "";
-	}
-
 	onDestroy(() => {
 		if (timer) clearTimeout(timer);
 	});
@@ -49,18 +45,18 @@
 			<div class="search-container">
 				<input
 					type="text"
-					bind:value={search_query}
+					bind:value={current_search_query}
 					placeholder="Search..."
 					class="search-input"
 				/>
-				{#if search_query && show_search === "filter"}
+				{#if current_search_query && show_search === "filter"}
 					<button
 						class="toolbar-button check-button"
-						on:click={handle_commit_filter}
+						on:click={on_commit_filter}
 						aria-label="Apply filter and update dataframe values"
 						title="Apply filter and update dataframe values"
 					>
-						<Check />
+						<FilterIcon />
 					</button>
 				{/if}
 			</div>
@@ -73,7 +69,7 @@
 				title={copied ? "Copied to clipboard" : "Copy table data"}
 			>
 				{#if copied}
-					<Check />
+					<FilterIcon />
 				{:else}
 					<Copy />
 				{/if}
@@ -167,7 +163,7 @@
 	.check-button {
 		position: absolute;
 		right: var(--size-1);
-		top: 46%;
+		top: 50%;
 		transform: translateY(-50%);
 		background: var(--color-accent);
 		color: white;

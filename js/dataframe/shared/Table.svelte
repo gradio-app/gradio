@@ -877,12 +877,7 @@
 		}
 	}
 
-	let current_search_query = "";
-
-	function handle_search(search_query: string): void {
-		current_search_query = search_query;
-		dispatch("search", search_query);
-	}
+	let current_search_query: string | null = null;
 
 	function commit_filter(): void {
 		if (current_search_query && show_search === "filter") {
@@ -894,7 +889,7 @@
 			if (!value_is_output) {
 				dispatch("input");
 			}
-			current_search_query = "";
+			current_search_query = null;
 		}
 	}
 </script>
@@ -915,8 +910,9 @@
 			on_copy={handle_copy}
 			{show_copy_button}
 			{show_search}
-			on:search={(e) => handle_search(e.detail)}
+			on:search
 			on_commit_filter={commit_filter}
+			{current_search_query}
 		/>
 	</div>
 	<div
