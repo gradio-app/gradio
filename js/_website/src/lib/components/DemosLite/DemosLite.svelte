@@ -218,6 +218,7 @@
 
 	function handle_user_query_key_down(e: KeyboardEvent): void {
 		if (e.key === "Enter") {
+			e.preventDefault();
 			run_as_update = false;
 			suspend_and_resume_auto_run(() => {
 				generate_code(user_query, selected_demo.name);
