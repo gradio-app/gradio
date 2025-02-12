@@ -7,7 +7,7 @@
 
 	export let open = true;
 	export let width: number | string;
-	export let position: "left" | "right" | "bottom" = "left";
+	export let position: "left" | "right" = "left";
 
 	// Using a temporary variable to animate the sidebar opening at the start
 	let mounted = false;
@@ -23,9 +23,10 @@
 		const parent_rect = sidebar_div.closest(".wrap")?.getBoundingClientRect();
 		if (!parent_rect) return;
 		const sidebar_rect = sidebar_div.getBoundingClientRect();
-		const available_space = position === "left" 
-			? parent_rect.left 
-			: (window.innerWidth - parent_rect.right);
+		const available_space =
+			position === "left"
+				? parent_rect.left
+				: window.innerWidth - parent_rect.right;
 		overlap_amount = Math.max(0, sidebar_rect.width - available_space + 30);
 	}
 
@@ -33,7 +34,6 @@
 		sidebar_div.closest(".wrap")?.classList.add("sidebar-parent");
 		check_overlap();
 		window.addEventListener("resize", check_overlap);
-
 		const update_parent_overlap = (): void => {
 			document.documentElement.style.setProperty(
 				"--overlap-amount",
@@ -42,7 +42,9 @@
 		};
 		update_parent_overlap();
 		mounted = true;
-		return () => window.removeEventListener("resize", check_overlap);
+		return () => {
+			window.removeEventListener("resize", check_overlap);
+		};
 	});
 
 	// We need to wait for the component to be mounted before we can set the open state
@@ -54,9 +56,8 @@
 	class="sidebar"
 	class:open={_open}
 	class:right={position === "right"}
-	class:bottom={position === "bottom"}
 	bind:this={sidebar_div}
-    style="width: {width_css}; {position}: calc({width_css} * -1)"
+	style="width: {width_css}; {position}: calc({width_css} * -1)"
 >
 	<button
 		on:click={() => {
@@ -80,91 +81,78 @@
 </div>
 
 <style>
-    :global(.sidebar-parent) {
-        display: flex !important;
-        padding-left: 0;
-        padding-right: 0;
-        transition: padding-left 0.3s ease-in-out, padding-right 0.3s ease-in-out;
-    }
-
-    :global(.sidebar-parent:has(.sidebar.open:not(.right))) {
-        padding-left: var(--overlap-amount);
-    }
-
-    :global(.sidebar-parent:has(.sidebar.open.right)) {
-        padding-right: var(--overlap-amount);
-    }
-
-    .sidebar {
-        display: flex;
-        flex-direction: column;
-        position: fixed;
-        top: 0;
-        height: 100%;
-        background-color: var(--background-fill-secondary);
-        box-shadow: var(--size-1) 0 var(--size-2) rgba(100, 89, 89, 0.1);
-        transform: translateX(0%);
-        transition: transform 0.3s ease-in-out;
-        z-index: 1000;
-    }
-
-	.sidebar.bottom {
-        display: flex;
-        flex-direction: row;
-        position: fixed;
-        bottom: 0;
-        /* height: 100%; */
-		width: 100%;
-        background-color: var(--background-fill-secondary);
-        box-shadow: var(--size-1) 0 var(--size-2) rgba(100, 89, 89, 0.1);
-        transform: translateX(0%);
-        transition: transform 0.3s ease-in-out;
-        z-index: 1000;
+	:global(.sidebar-parent) {
+		display: flex !important;
+		padding-left: 0;
+		padding-right: 0;
+		transition:
+			padding-left 0.3s ease-in-out,
+			padding-right 0.3s ease-in-out;
 	}
 
+	:global(.sidebar-parent:has(.sidebar.open:not(.right))) {
+		padding-left: var(--overlap-amount);
+	}
 
-    .sidebar.open:not(.right) {
-        transform: translateX(100%);
-    }
+	:global(.sidebar-parent:has(.sidebar.open.right)) {
+		padding-right: var(--overlap-amount);
+	}
 
-    .sidebar.open.right {
-        transform: translateX(-100%);
-    }
+	.sidebar {
+		display: flex;
+		flex-direction: column;
+		position: fixed;
+		top: 0;
+		height: 100%;
+		background-color: var(--background-fill-secondary);
+		box-shadow: var(--size-1) 0 var(--size-2) rgba(100, 89, 89, 0.1);
+		transform: translateX(0%);
+		transition: transform 0.3s ease-in-out;
+		z-index: 1000;
+	}
 
-    .toggle-button {
-        position: absolute;
-        top: var(--size-4);
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: var(--size-2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease-in-out;
-        width: var(--size-8);
-        height: var(--size-8);
-        z-index: 1001;
-    }
+	.sidebar.open:not(.right) {
+		transform: translateX(100%);
+	}
 
-    .sidebar:not(.right) .toggle-button {
-        right: calc(var(--size-8) * -1);
-    }
+	.sidebar.open.right {
+		transform: translateX(-100%);
+	}
 
-    .sidebar.right .toggle-button {
-        left: calc(var(--size-8) * -1);
-        transform: rotate(180deg);
-    }
+	.toggle-button {
+		position: absolute;
+		top: var(--size-4);
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: var(--size-2);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: all 0.3s ease-in-out;
+		width: var(--size-8);
+		height: var(--size-8);
+		z-index: 1001;
+	}
 
-    .open:not(.right) .toggle-button {
-        right: var(--size-2-5);
-        transform: rotate(180deg);
-    }
+	.sidebar:not(.right) .toggle-button {
+		right: calc(var(--size-8) * -1);
+	}
 
-    .open.right .toggle-button {
-        left: var(--size-0-5);
-        transform: rotate(0deg);
-    }
+	.sidebar.right .toggle-button {
+		left: calc(var(--size-8) * -1);
+		transform: rotate(180deg);
+	}
+
+	.open:not(.right) .toggle-button {
+		right: var(--size-2-5);
+		transform: rotate(180deg);
+	}
+
+	.open.right .toggle-button {
+		left: var(--size-0-5);
+		transform: rotate(0deg);
+	}
 
 	.chevron {
 		width: 100%;

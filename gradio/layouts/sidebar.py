@@ -33,7 +33,7 @@ class Sidebar(BlockContext, metaclass=ComponentMeta):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         width: int | str = 320,
-        position: Literal["left", "right", "bottom"] = "left",
+        position: Literal["left", "right"] = "left",
     ):
         """
         Parameters:
@@ -43,7 +43,7 @@ class Sidebar(BlockContext, metaclass=ComponentMeta):
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, this layout will not be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             width: The width of the sidebar, specified in pixels if a number is passed, or in CSS units if a string is passed.
-            position: The position of the sidebar in the layout, "left", "right", or "bottom". Defaults to "left".
+            position: The position of the sidebar in the layout, either "left" or "right". Defaults to "left".
         """
         self.label = label
         self.open = open

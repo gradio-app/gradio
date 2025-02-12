@@ -5,7 +5,7 @@
 	import type { Gradio } from "@gradio/utils";
 	import Column from "@gradio/column";
 	export let open = true;
-	export let position: "left" | "right" | "bottom" = "left";
+	export let position: "left" | "right" = "left";
 	export let loading_status: LoadingStatus;
 	export let gradio: Gradio<{
 		expand: never;
