@@ -6,6 +6,7 @@
 	export let initial_height: string;
 	export let fill_width: boolean;
 	export let is_embed: boolean;
+	export let is_lite: boolean;
 
 	export let space: string | null;
 	export let display: boolean;
@@ -31,7 +32,7 @@
 			<nav class="fillable" class:fill_width>
 				{#each pages as [route, label], i}
 					<a
-						href="{root}/{route}"
+						href={is_lite ? `#${route}` : `${root}/${route}`}
 						class:active={route === current_page}
 						data-sveltekit-reload
 						>{label}

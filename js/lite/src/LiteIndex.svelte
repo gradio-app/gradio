@@ -128,6 +128,22 @@
 
 	mount_prebuilt_css(document.head);
 
+	// For Lite, we use the hash in the URL to determine the current page.
+	function get_current_page_from_url(): string {
+		return location.hash.substring(1);
+	}
+
+	let current_page = get_current_page_from_url();
+	const set_page = (page: string): void => {
+		current_page = page;
+		refresh_index_component();
+	};
+
+	window.addEventListener("hashchange", (event) => {
+		const newPage = get_current_page_from_url();
+		set_page(newPage);
+	});
+
 	class LiteClient extends Client {
 		fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 			return wasm_proxied_fetch(worker_proxy, input, init);
@@ -138,10 +154,7 @@
 		}
 
 		get_url_config(url: string | null = null): Config {
-			// A workaround for Lite to work with the multipage Client API.
-			// TODO: Support multiple pages on Lite
-			const page = "";
-			return this.get_page_config(page);
+			return this.get_page_config(current_page);
 		}
 	}
 
