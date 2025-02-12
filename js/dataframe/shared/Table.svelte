@@ -67,6 +67,14 @@
 	export let show_copy_button = false;
 	export let value_is_output = false;
 	export let max_chars: number | undefined = undefined;
+	export let show_search: "none" | "search" | "filter" = "none";
+	export let pinned_columns = 0;
+
+	let actual_pinned_columns = 0;
+	$: actual_pinned_columns =
+		pinned_columns && data?.[0]?.length
+			? Math.min(pinned_columns, data[0].length)
+			: 0;
 
 	let selected_cells: CellCoordinate[] = [];
 	$: selected_cells = [...selected_cells];
@@ -89,6 +97,7 @@
 		change: DataframeValue;
 		input: undefined;
 		select: SelectData;
+		search: string | null;
 	}>();
 
 	let editing: EditingState = false;
@@ -210,6 +219,8 @@
 	let previous_data = data.map((row) => row.map((cell) => String(cell.value)));
 
 	async function trigger_change(): Promise<void> {
+		// shouldnt trigger if data changed due to search
+		if (current_search_query) return;
 		const current_headers = _headers.map((h) => h.value);
 		const current_data = data.map((row) =>
 			row.map((cell) => String(cell.value))
@@ -540,11 +551,17 @@
 		}
 		const data_cells = show_row_numbers ? widths.slice(1) : widths;
 		data_cells.forEach((width, i) => {
-			parent.style.setProperty(
-				`--cell-width-${i}`,
-				`${width - scrollbar_width / data_cells.length}px`
-			);
+			if (!column_widths[i]) {
+				parent.style.setProperty(
+					`--cell-width-${i}`,
+					`${width - scrollbar_width / data_cells.length}px`
+				);
+			}
 		});
+	}
+
+	function get_cell_width(index: number): string {
+		return column_widths[index] || `var(--cell-width-${index})`;
 	}
 
 	let table_height: number =
@@ -620,7 +637,7 @@
 		event.preventDefault();
 		event.stopPropagation();
 
-		if (show_row_numbers && col === 0) return;
+		if (show_row_numbers && col === -1) return;
 
 		clear_on_focus = false;
 		active_cell_menu = null;
@@ -859,6 +876,27 @@
 			);
 		}
 	}
+
+	let current_search_query: string | null = null;
+
+	function handle_search(search_query: string | null): void {
+		current_search_query = search_query;
+		dispatch("search", search_query);
+	}
+
+	function commit_filter(): void {
+		if (current_search_query && show_search === "filter") {
+			dispatch("change", {
+				data: data.map((row) => row.map((cell) => cell.value)),
+				headers: _headers.map((h) => h.value),
+				metadata: null
+			});
+			if (!value_is_output) {
+				dispatch("input");
+			}
+			current_search_query = null;
+		}
+	}
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
@@ -876,6 +914,10 @@
 			on:click={toggle_fullscreen}
 			on_copy={handle_copy}
 			{show_copy_button}
+			{show_search}
+			on:search={(e) => handle_search(e.detail)}
+			on_commit_filter={commit_filter}
+			{current_search_query}
 		/>
 	</div>
 	<div
@@ -883,7 +925,8 @@
 		class="table-wrap"
 		class:dragging
 		class:no-wrap={!wrap}
-		style="height:{table_height}px"
+		style="height:{table_height}px;"
+		class:menu-open={active_cell_menu || active_header_menu}
 		on:keydown={(e) => handle_keydown(e)}
 		role="grid"
 		tabindex="0"
@@ -915,7 +958,10 @@
 			<thead>
 				<tr>
 					{#if show_row_numbers}
-						<th class="row-number-header">
+						<th
+							class="row-number-header frozen-column always-frozen"
+							style="left: 0;"
+						>
 							<div class="cell-wrap">
 								<div class="header-content">
 									<div class="header-text"></div>
@@ -925,9 +971,26 @@
 					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
+							class:frozen-column={i < actual_pinned_columns}
+							class:last-frozen={show_row_numbers
+								? i === actual_pinned_columns - 1
+								: i === actual_pinned_columns - 1}
 							class:editing={header_edit === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-							style:width={column_widths.length ? column_widths[i] : undefined}
+							style="width: {column_widths.length
+								? column_widths[i]
+								: undefined}; left: {i < actual_pinned_columns
+								? i === 0
+									? show_row_numbers
+										? 'var(--cell-width-row-number)'
+										: '0'
+									: `calc(${show_row_numbers ? 'var(--cell-width-row-number) + ' : ''}${Array(
+											i
+										)
+											.fill(0)
+											.map((_, idx) => `var(--cell-width-${idx})`)
+											.join(' + ')})`
+								: 'auto'};"
 						>
 							<div class="cell-wrap">
 								<div class="header-content">
@@ -1007,13 +1070,18 @@
 				bind:actual_height={table_height}
 				bind:table_scrollbar_width={scrollbar_width}
 				selected={selected_index}
+				disable_scroll={active_cell_menu !== null ||
+					active_header_menu !== null}
 			>
 				{#if label && label.length !== 0}
 					<caption class="sr-only">{label}</caption>
 				{/if}
 				<tr slot="thead">
 					{#if show_row_numbers}
-						<th class="row-number-header">
+						<th
+							class="row-number-header frozen-column always-frozen"
+							style="left: 0;"
+						>
 							<div class="cell-wrap">
 								<div class="header-content">
 									<div class="header-text"></div>
@@ -1023,9 +1091,23 @@
 					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
+							class:frozen-column={i < actual_pinned_columns}
+							class:last-frozen={i === actual_pinned_columns - 1}
 							class:focus={header_edit === i || selected_header === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-							style="width: var(--cell-width-{i});"
+							style="width: {get_cell_width(i)}; left: {i <
+							actual_pinned_columns
+								? i === 0
+									? show_row_numbers
+										? 'var(--cell-width-row-number)'
+										: '0'
+									: `calc(${show_row_numbers ? 'var(--cell-width-row-number) + ' : ''}${Array(
+											i
+										)
+											.fill(0)
+											.map((_, idx) => `var(--cell-width-${idx})`)
+											.join(' + ')})`
+								: 'auto'};"
 							on:click={() => {
 								toggle_header_button(i);
 							}}
@@ -1053,7 +1135,6 @@
 										/>
 									</div>
 								</div>
-
 								{#if editable}
 									<button
 										class="cell-menu-button"
@@ -1066,15 +1147,20 @@
 						</th>
 					{/each}
 				</tr>
-
 				<tr slot="tbody" let:item let:index class:row_odd={index % 2 === 0}>
-					{#each item as { value, id }, j (id)}
-						{#if show_row_numbers && j === 0}
-							<td class="row-number" tabindex="-1">
-								{index + 1}
-							</td>
-						{/if}
+					{#if show_row_numbers}
 						<td
+							class="row-number frozen-column always-frozen"
+							style="left: 0;"
+							tabindex="-1"
+						>
+							{index + 1}
+						</td>
+					{/if}
+					{#each item as { value, id }, j (id)}
+						<td
+							class:frozen-column={j < actual_pinned_columns}
+							class:last-frozen={j === actual_pinned_columns - 1}
 							tabindex={show_row_numbers && j === 0 ? -1 : 0}
 							bind:this={els[id].cell}
 							on:touchstart={(event) => {
@@ -1093,8 +1179,19 @@
 								event.stopPropagation();
 							}}
 							on:click={(event) => handle_cell_click(event, index, j)}
-							style:width="var(--cell-width-{j})"
-							style={styling?.[index]?.[j] || ""}
+							style="width: {get_cell_width(j)}; left: {j <
+							actual_pinned_columns
+								? j === 0
+									? show_row_numbers
+										? 'var(--cell-width-row-number)'
+										: '0'
+									: `calc(${show_row_numbers ? 'var(--cell-width-row-number) + ' : ''}${Array(
+											j
+										)
+											.fill(0)
+											.map((_, idx) => `var(--cell-width-${idx})`)
+											.join(' + ')})`
+								: 'auto'}; {styling?.[index]?.[j] || ''}"
 							class:flash={copy_flash &&
 								is_cell_selected([index, j], selected_cells)}
 							class={is_cell_selected([index, j], selected_cells)}
@@ -1207,6 +1304,10 @@
 		border-radius: var(--table-radius);
 	}
 
+	.table-wrap.menu-open {
+		overflow: hidden;
+	}
+
 	.table-wrap:focus-within {
 		outline: none;
 	}
@@ -1248,7 +1349,6 @@
 	thead {
 		position: sticky;
 		top: 0;
-		left: 0;
 		z-index: var(--layer-2);
 		box-shadow: var(--shadow-drop);
 	}
@@ -1373,21 +1473,28 @@
 
 	.header-row {
 		display: flex;
-		justify-content: space-between;
+		justify-content: flex-end;
 		align-items: center;
 		gap: var(--size-2);
-		height: var(--size-6);
 		min-height: var(--size-6);
+		flex-wrap: nowrap;
+		width: 100%;
 	}
 
 	.label {
-		flex: 1;
+		flex: 1 1 auto;
+		margin-right: auto;
 	}
 
 	.label p {
 		margin: 0;
 		color: var(--block-label-text-color);
 		font-size: var(--block-label-text-size);
+		line-height: var(--line-sm);
+	}
+
+	.toolbar {
+		flex: 0 0 auto;
 	}
 
 	.row-number,
@@ -1520,7 +1627,7 @@
 		background: var(--color-accent);
 		color: white;
 		border-radius: var(--radius-sm);
-		z-index: var(--layer-2);
+		z-index: var(--layer-4);
 	}
 
 	.selection-button-column {
@@ -1556,5 +1663,23 @@
 		100% {
 			background: transparent;
 		}
+	}
+
+	.frozen-column {
+		position: sticky;
+		z-index: var(--layer-2);
+		border-right: 1px solid var(--border-color-primary);
+	}
+
+	tr:nth-child(odd) .frozen-column {
+		background: var(--table-odd-background-fill);
+	}
+
+	tr:nth-child(even) .frozen-column {
+		background: var(--table-even-background-fill);
+	}
+
+	.always-frozen {
+		z-index: var(--layer-3);
 	}
 </style>

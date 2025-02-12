@@ -10,6 +10,7 @@
 	export let start = 0;
 	export let end = 20;
 	export let selected: number | false;
+	export let disable_scroll = false;
 	let height = "100%";
 
 	let average_height = 30;
@@ -40,6 +41,11 @@
 		if (viewport_height === 0) {
 			return;
 		}
+
+		// force header height calculation first
+		head_height =
+			viewport.querySelector(".thead")?.getBoundingClientRect().height || 0;
+		await tick();
 
 		const { scrollTop } = viewport;
 		table_scrollbar_width = viewport.offsetWidth - viewport.clientWidth;
@@ -256,29 +262,32 @@
 </script>
 
 <svelte-virtual-table-viewport>
-	<table
-		class="table"
-		bind:this={viewport}
-		bind:contentRect={viewport_box}
-		on:scroll={handle_scroll}
-		style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px; --max-height: {max_height}px"
-	>
-		<thead class="thead" bind:offsetHeight={head_height}>
-			<slot name="thead" />
-		</thead>
-		<tbody bind:this={contents} class="tbody">
-			{#if visible.length && visible[0].data.length}
-				{#each visible as item (item.data[0].id)}
-					<slot name="tbody" item={item.data} index={item.index}>
-						Missing Table Row
-					</slot>
-				{/each}
-			{/if}
-		</tbody>
-		<tfoot class="tfoot" bind:offsetHeight={foot_height}>
-			<slot name="tfoot" />
-		</tfoot>
-	</table>
+	<div>
+		<table
+			class="table"
+			class:disable-scroll={disable_scroll}
+			bind:this={viewport}
+			bind:contentRect={viewport_box}
+			on:scroll={handle_scroll}
+			style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px; --max-height: {max_height}px"
+		>
+			<thead class="thead" bind:offsetHeight={head_height}>
+				<slot name="thead" />
+			</thead>
+			<tbody bind:this={contents} class="tbody">
+				{#if visible.length && visible[0].data.length}
+					{#each visible as item (item.data[0].id)}
+						<slot name="tbody" item={item.data} index={item.index}>
+							Missing Table Row
+						</slot>
+					{/each}
+				{/if}
+			</tbody>
+			<tfoot class="tfoot" bind:offsetHeight={foot_height}>
+				<slot name="tfoot" />
+			</tfoot>
+		</table>
+	</div>
 </svelte-virtual-table-viewport>
 
 <style type="text/css">
@@ -335,11 +344,49 @@
 		background: var(--table-even-background-fill);
 	}
 
+	tbody :global(td.frozen-column) {
+		position: sticky;
+		z-index: var(--layer-2);
+	}
+
+	tbody :global(tr:nth-child(odd)) :global(td.frozen-column) {
+		background: var(--table-odd-background-fill);
+	}
+
+	tbody :global(tr:nth-child(even)) :global(td.frozen-column) {
+		background: var(--table-even-background-fill);
+	}
+
+	tbody :global(td.always-frozen) {
+		z-index: var(--layer-3);
+	}
+
+	tbody :global(td.last-frozen) {
+		border-right: 2px solid var(--border-color-primary);
+	}
+
 	thead {
 		position: sticky;
 		top: 0;
 		left: 0;
-		z-index: var(--layer-1);
-		overflow: hidden;
+		z-index: var(--layer-3);
+		background: var(--background-fill-primary);
+	}
+
+	thead :global(th) {
+		background: var(--table-even-background-fill) !important;
+	}
+
+	thead :global(th.frozen-column) {
+		position: sticky;
+		z-index: var(--layer-4);
+	}
+
+	thead :global(th.always-frozen) {
+		z-index: var(--layer-5);
+	}
+
+	.table.disable-scroll {
+		overflow: hidden !important;
 	}
 </style>
