@@ -1,5 +1,15 @@
 # @gradio/client
 
+## 1.12.0
+
+### Features
+
+- [#10492](https://github.com/gradio-app/gradio/pull/10492) [`29880d5`](https://github.com/gradio-app/gradio/commit/29880d51fbe7fbd222b0765a83c95134dc7d0e90) - Allow showing progress updates on arbitrary components.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10547](https://github.com/gradio-app/gradio/pull/10547) [`083d68b`](https://github.com/gradio-app/gradio/commit/083d68b223be82a65f18c553df9ae690a8118a49) - quick_fix_client.  Thanks @aliabid94!
+
 ## 1.11.0
 
 ### Features
