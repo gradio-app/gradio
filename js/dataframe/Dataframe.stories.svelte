@@ -205,6 +205,18 @@
 />
 
 <Story
+	name="Dataframe with link"
+	args={{
+		values: [['<a href="https://www.google.com/">google</a>']],
+		headers: ["link"],
+		datatype: ["markdown"],
+		interactive: false,
+		col_count: [1, "dynamic"],
+		row_count: [1, "dynamic"]
+	}}
+/>
+
+<Story
 	name="Dataframe with dialog interactions"
 	args={{
 		values: [
@@ -320,6 +332,25 @@
 />
 
 <Story
+	name="Dataframe with row numbers"
+	args={{
+		values: [
+			[95, 92, 88],
+			[89, 90, 85],
+			[92, 88, 91],
+			[87, 85, 89],
+			[91, 93, 90]
+		],
+		headers: ["Model A", "Model B", "Model C"],
+		label: "Model Performance",
+		col_count: [3, "dynamic"],
+		row_count: [5, "dynamic"],
+		show_row_numbers: true,
+		editable: false
+	}}
+/>
+
+<Story
 	name="Dataframe with truncated text"
 	args={{
 		values: [
@@ -363,6 +394,103 @@
 		label: "Model Metrics",
 		col_count: [3, "dynamic"],
 		row_count: [3, "dynamic"],
+		editable: false
+	}}
+/>
+
+<Story
+	name="Dataframe with row and column selection"
+	args={{
+		values: [
+			[1, 2, 3, 4],
+			[5, 6, 7, 8],
+			[9, 10, 11, 12],
+			[13, 14, 15, 16]
+		],
+		col_count: [4, "dynamic"],
+		row_count: [4, "dynamic"],
+		headers: ["A", "B", "C", "D"],
+		editable: true
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const user = userEvent.setup();
+
+		const grid = canvas.getByRole("grid");
+		await user.click(grid);
+
+		const cells = canvas.getAllByRole("cell");
+		await user.click(cells[5]); // Click cell with value 6
+
+		const row_button = await canvas.findByRole("button", {
+			name: "Select row"
+		});
+		await user.click(row_button);
+
+		await user.click(cells[6]);
+
+		const col_button = await canvas.findByRole("button", {
+			name: "Select column"
+		});
+		await user.click(col_button);
+
+		await user.keyboard("{Delete}");
+	}}
+/>
+
+<Story
+	name="Dataframe with lots of values"
+	args={{
+		values: [
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+		],
+		col_count: [10, "dynamic"],
+		row_count: [10, "dynamic"],
+		max_height: 700
+	}}
+/>
+
+<Story
+	name="Dataframe with frozen columns"
+	args={{
+		values: [
+			["ID", "Name", "Age", "City", "Country", "Score"],
+			["1", "John", "25", "New York", "USA", "95"],
+			["2", "Emma", "30", "London", "UK", "88"],
+			["3", "Luis", "28", "Madrid", "Spain", "92"],
+			["4", "Anna", "35", "Paris", "France", "90"],
+			["5", "Chen", "27", "Beijing", "China", "94"]
+		],
+		headers: ["ID", "Name", "Age", "City", "Country", "Score"],
+		label: "User Data",
+		col_count: [6, "dynamic"],
+		row_count: [6, "dynamic"],
+		pinned_columns: 2,
+		show_row_numbers: true,
 		editable: false
 	}}
 />

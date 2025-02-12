@@ -48,6 +48,7 @@ class TestDataframe:
             "elem_id": None,
             "elem_classes": [],
             "show_row_numbers": False,
+            "pinned_columns": None,
             "wrap": False,
             "proxy_url": None,
             "name": "dataframe",
@@ -90,6 +91,7 @@ class TestDataframe:
             "label": None,
             "show_label": True,
             "show_row_numbers": False,
+            "pinned_columns": None,
             "scale": None,
             "min_width": 160,
             "interactive": None,
@@ -164,6 +166,14 @@ class TestDataframe:
         assert output == {
             "headers": ["one", "two", "three", "4"],
             "data": [[2, True, "ab", 4], [3, True, "cd", 5]],
+            "metadata": None,
+        }
+
+        dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
+        output = dataframe_output.postprocess([(1, 2, 3), (4, 5, 6)]).model_dump()
+        assert output == {
+            "headers": ["one", "two", "three"],
+            "data": [[1, 2, 3], [4, 5, 6]],
             "metadata": None,
         }
 

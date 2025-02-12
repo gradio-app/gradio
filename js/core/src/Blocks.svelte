@@ -789,8 +789,8 @@
 				>
 					{$_("errors.use_via_api")}
 					<img src={api_logo} alt={$_("common.logo")} />
-					<div>&nbsp;·</div>
 				</button>
+				<div class="divider show-api-divider">·</div>
 			{/if}
 			<a
 				href="https://gradio.app"
@@ -801,13 +801,13 @@
 				{$_("common.built_with_gradio")}
 				<img src={logo} alt={$_("common.logo")} />
 			</a>
+			<div class="divider">·</div>
 			<button
 				on:click={() => {
 					set_settings_visible(!settings_visible);
 				}}
 				class="settings"
 			>
-				<div>· &nbsp;</div>
 				{$_("common.settings")}
 				<img src={settings_logo} alt={$_("common.settings")} />
 			</button>
@@ -909,9 +909,9 @@
 		margin-top: var(--size-4);
 		color: var(--body-text-color-subdued);
 	}
-
-	footer > * + * {
-		margin-left: var(--size-2);
+	.divider {
+		margin-left: var(--size-1);
+		margin-right: var(--size-2);
 	}
 
 	.show-api,
@@ -1003,7 +1003,8 @@
 	}
 
 	@media (max-width: 640px) {
-		.show-api {
+		.show-api,
+		.show-api-divider {
 			display: none;
 		}
 	}
