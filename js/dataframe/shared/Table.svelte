@@ -218,8 +218,6 @@
 	let previous_headers = _headers.map((h) => h.value);
 	let previous_data = data.map((row) => row.map((cell) => String(cell.value)));
 
-	$: (data || _headers) && trigger_change();
-
 	async function trigger_change(): Promise<void> {
 		// shouldnt trigger if data changed due to search
 		if (current_search_query) return;
@@ -497,6 +495,8 @@
 		data = data;
 		selected = [index !== undefined ? index : data.length - 1, 0];
 	}
+
+	$: (data || _headers) && trigger_change();
 
 	async function add_col(index?: number): Promise<void> {
 		parent.focus();
