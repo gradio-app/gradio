@@ -138,7 +138,7 @@
 		<div class="half-container">
 			<div
 				class:code-editor-border={loaded}
-				class="code-editor"
+				class="absolute-container code-editor"
 				bind:this={code_editor_container}
 			>
 				<Block variant={"solid"} padding={false}>
@@ -154,7 +154,7 @@
 		</div>
 		{#if loaded}
 			<div class="half-container">
-				<div class="preview">
+				<div class="absolute-container preview">
 					<slot></slot>
 				</div>
 			</div>
@@ -196,6 +196,18 @@
 		flex-grow: 1;
 	}
 
+	.absolute-container {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		width: 100%;
+		max-width: 100%;
+		height: 100%;
+		max-height: 100%;
+	}
+
 	.vertical .code-editor-border {
 		border-right: none !important;
 	}
@@ -221,12 +233,6 @@
 	}
 
 	.code-editor {
-		position: absolute;
-		top: 0;
-		bottom: 0;
-		left: 0;
-		right: 0;
-
 		flex: 1 1 50%;
 		display: flex;
 		flex-direction: column;
@@ -285,16 +291,7 @@
 	}
 
 	.preview {
-		position: absolute;
-		top: 0;
-		bottom: 0;
-		left: 0;
-		right: 0;
-
-		height: 100%;
-		max-height: 100%;
 		overflow: scroll;
-		flex: 1 1 50%;
 	}
 
 	.buttons {
