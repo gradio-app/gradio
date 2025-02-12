@@ -852,7 +852,7 @@
 							enterkeyhint="go"
 							spellcheck="false"
 							id="user-query"
-							class="w-full resize-none content-center p-2 border rounded resize-nonr overflow-x-none"
+							class="w-full resize-none content-center px-2 border rounded overflow-x-none !text-[16px]"
 							rows="1"
 
 							class:grayed={code_state.status === "generating"}
@@ -907,7 +907,7 @@
 					class="flex justify-between align-middle h-8 border-b pl-4 pr-2 ml-0 sm:ml-2"
 				>
 					<div class="flex align-middle">
-						<h3 class="pr-2 pt-1">Preview</h3>
+						<h3 class="pr-2 py-1 text-sm font-normal content-center text-[#27272a]">Preview</h3>
 						<p class="pt-1.5 text-sm text-gray-600 hidden sm:block">
 							{preview_width - 13}px
 						</p>
@@ -1212,5 +1212,9 @@
 	:global(.toast-wrap) {
 		position: static !important;
 		width: 100% !important;
+	}
+
+	:global(.ͼ60) {
+		font-size: 13px;
 	}
 </style>

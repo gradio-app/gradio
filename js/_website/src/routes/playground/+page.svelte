@@ -133,7 +133,7 @@
 			>
 				<div class="flex justify-between align-middle h-8 border-b px-2">
 					{#if show_nav}
-						<h3 class="pl-2 pt-1">Demos</h3>
+						<h3 class="pl-2 py-1 my-auto text-sm font-medium text-[#27272a]">Demos</h3>
 					{/if}
 					<button
 						on:click={() => (show_nav = !show_nav)}
@@ -151,7 +151,7 @@
 									class:current-playground-demo={current_selection ==
 										link.title}
 									class:shared-link={shared == link.title}
-									class="thin-link pr-4 block mt-1 !pl-0 !pr-0 text-gray-800 break-words w-full text-left capitalize"
+									class="thin-link pr-4 block mt-1 !pl-0 !pr-0 text-[#27272a] break-words w-full text-left capitalize text-sm"
 									style="white-space: initial"
 									>{link.title.replaceAll("-", " ")}</button
 								>
@@ -191,16 +191,16 @@
 						on:click={() => (current_selection = "Blank")}
 						class:current-playground-demo={current_selection == "Blank"}
 						class:shared-link={shared == "Blank"}
-						class="thin-link font-light px-4 block my-2">New Demo</button
+						class="thin-link font-light px-4 block my-2 text-sm text-[#27272a]">New Demo</button
 					>
 					{#each data.demos_by_category as { category, demos } (category)}
-						<p class="px-4 my-2 font-medium">{category}</p>
+						<p class="px-4 my-2 font-medium text-sm text-[#27272a]">{category}</p>
 						{#each demos as demo, i}
 							<button
 								on:click={() => (current_selection = demo.name)}
 								class:current-playground-demo={current_selection == demo.name}
 								class:shared-link={shared == demo.name}
-								class="thin-link font-light px-4 block">{demo.name}</button
+								class="thin-link font-light px-4 block text-sm text-[#27272a]">{demo.name}</button
 							>
 						{/each}
 					{/each}
