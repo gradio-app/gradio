@@ -58,6 +58,9 @@
 
 	let suggested_links = [];
 
+	let suggested_demos = suggested_links.filter(item => item.type === 'DEMO');
+	let suggested_guides_docs = suggested_links.filter(item => item.type !== 'DEMO');
+
 	$: if (suggested_links) {
 		suggested_links.forEach((link) => {
 			if (link.type == "DEMO") {
@@ -73,6 +76,8 @@
 	}
 	$: all_demos;
 	$: suggested_links;
+	$: suggested_demos = suggested_links.filter(item => item.type === 'DEMO');
+	$: suggested_guides_docs = suggested_links.filter(item => item.type !== 'DEMO');
 </script>
 
 <MetaTags
@@ -142,51 +147,62 @@
 					>
 				</div>
 				{#if show_nav}
-					{#each suggested_links as link}
-						{#if link.type == "DEMO"}
-							<div class="flex items-baseline" in:slide out:slide>
-								<p class:hidden={shared == link.title} class="pl-4 pr-2">✨</p>
-								<button
-									on:click={() => (current_selection = link.title)}
-									class:current-playground-demo={current_selection ==
-										link.title}
-									class:shared-link={shared == link.title}
-									class="thin-link pr-4 block mt-1 !pl-0 !pr-0 text-[#27272a] break-words w-full text-left capitalize text-sm"
-									style="white-space: initial"
-									>{link.title.replaceAll("-", " ")}</button
-								>
-							</div>
-						{:else}
-							<a
-								class:bg-orange-100={link.type == "GUIDE"}
-								class:border-orange-100={link.type == "GUIDE"}
-								class:bg-green-100={link.type == "DOCS"}
-								class:border-green-100={link.type == "DOCS"}
-								class="sug-block my-2"
-								href={link.url}
-								target="_blank"
-								in:slide
-								out:slide
-							>
-								<div class="flex items-center flex-row">
-									<p
-										class:text-orange-700={link.type == "GUIDE"}
-										class:text-green-700={link.type == "DOCS"}
-										class="text-xs font-semibold flex-grow"
-									>
-										{link.type}
-									</p>
-									<p class="float-right text-xs font-semibold mx-1">✨</p>
-								</div>
+					{#each suggested_guides_docs as link}
+						<a
+							class:bg-orange-100={link.type == "GUIDE"}
+							class:border-orange-100={link.type == "GUIDE"}
+							class:bg-green-100={link.type == "DOCS"}
+							class:border-green-100={link.type == "DOCS"}
+							class="sug-block my-2"
+							href={link.url}
+							target="_blank"
+							in:slide
+							out:slide
+						>
+							<div class="flex items-center flex-row">
 								<p
-									class="font-light break-words w-full text-sm"
-									style="white-space: initial"
+									class:text-orange-700={link.type == "GUIDE"}
+									class:text-green-700={link.type == "DOCS"}
+									class="text-xs font-semibold flex-grow"
 								>
-									{link.title}
+									{link.type}
 								</p>
-							</a>
-						{/if}
+								<p class="float-right text-xs font-semibold mx-1">✨</p>
+							</div>
+							<p
+								class="font-light break-words w-full text-sm"
+								style="white-space: initial"
+							>
+								{link.title}
+							</p>
+						</a>
 					{/each}
+					{#if suggested_demos.length > 0}
+					<div in:slide out:slide>
+						<div class="my-1 mx-2 pb-2">
+							<div class="flex items-center flex-row px-2">
+								<p class="my-2 font-medium text-sm text-[#27272a] flex-grow">
+									Related Demos
+								</p>
+								<p class="float-right text-xs font-semibold mx-1">✨</p>
+							</div>
+							{#each suggested_demos as link}
+									<div class="flex items-baseline">
+										<button
+											on:click={() => (current_selection = link.title)}
+											class:current-playground-demo={current_selection ==
+												link.title}
+											class:shared-link={shared == link.title}
+											class="thin-link font-light px-2 block text-sm text-[#27272a] break-words w-full text-left capitalize"
+											style="white-space: initial"
+											>{link.title.replaceAll("-", " ")}</button
+										>
+									</div>
+							{/each}
+						</div>
+						<div class="border-b border-gray-400 ml-4 mr-5"></div>
+					</div>
+					{/if}
 					<button
 						on:click={() => (current_selection = "Blank")}
 						class:current-playground-demo={current_selection == "Blank"}
