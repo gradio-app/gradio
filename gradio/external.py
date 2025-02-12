@@ -804,7 +804,7 @@ def load_chat(
         history = history or start_message
         if len(history) > 0 and isinstance(history[0], (list, tuple)):
             history = ChatInterface._tuples_to_messages(history)
-        conversation = format_conversation(history, message)
+        conversation = format_conversation(history, message)  # type: ignore
         return (
             client.chat.completions.create(
                 model=model,
@@ -820,7 +820,7 @@ def load_chat(
         history = history or start_message
         if len(history) > 0 and isinstance(history[0], (list, tuple)):
             history = ChatInterface._tuples_to_messages(history)
-        conversation = format_conversation(history, message)
+        conversation = format_conversation(history, message)  # type: ignore
         stream = client.chat.completions.create(
             model=model,
             messages=conversation,  # type: ignore
