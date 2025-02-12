@@ -1,5 +1,19 @@
 # @gradio/plot
 
+## 0.9.8
+
+### Fixes
+
+- [#10544](https://github.com/gradio-app/gradio/pull/10544) [`9b87e12`](https://github.com/gradio-app/gradio/commit/9b87e12f1a44e1bcee1373a877a6d39f4e6395e9) - Fix gr.Plot change/load events and plotly css loaded.  Thanks @freddyaboulton!
+- [#10515](https://github.com/gradio-app/gradio/pull/10515) [`1269ad0`](https://github.com/gradio-app/gradio/commit/1269ad0f0096323d613e7c8d15728bb491bcc409) - Plotly 6.0 Fix: Install latest plotly js version.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.3
+- @gradio/atoms@0.13.2
+- @gradio/utils@0.10.1
+- @gradio/theme@0.4.0
+
 ## 0.9.7
 
 ### Dependency updates
