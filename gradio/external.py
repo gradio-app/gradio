@@ -109,6 +109,7 @@ def load(
             @gr.render(triggers=[demo.load])
             def create_blocks(oauth_token: gr.OAuthToken | None):
                 token_value = None if oauth_token is None else oauth_token.token
+                gr.Markdown("token>>>>>")
                 gr.Markdown(token_value)
                 return load_blocks_from_huggingface(
                     name=name, src=src, hf_token=token_value, **kwargs
