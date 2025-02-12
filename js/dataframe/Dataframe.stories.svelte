@@ -248,7 +248,7 @@
 />
 
 <Story
-	name="Dataframe with fullscreen button"
+	name="Dataframe with fullscreen button and label and search"
 	args={{
 		col_count: [3, "dynamic"],
 		row_count: [2, "dynamic"],
@@ -257,7 +257,11 @@
 			[800, 100, 400],
 			[200, 800, 700]
 		],
-		show_fullscreen_button: true
+		show_fullscreen_button: true,
+		show_label: true,
+		show_copy_button: true,
+		show_search: "search",
+		label: "Test scores"
 	}}
 />
 
@@ -465,10 +469,66 @@
 			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
 			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
 			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
 			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 		],
 		col_count: [10, "dynamic"],
 		row_count: [10, "dynamic"],
 		max_height: 700
+	}}
+/>
+
+<Story
+	name="Dataframe with search and filter"
+	args={{
+		values: [
+			["Cat", 5, "Pet"],
+			["Horse", 3, "Farm"],
+			["Snake", 1, "Pet"],
+			["Cow", 4, "Farm"],
+			["Dog", 6, "Pet"]
+		],
+		headers: ["Animal", "Count", "Type"],
+		col_count: [3, "dynamic"],
+		row_count: [5, "dynamic"],
+		show_search: "filter",
+		editable: false
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const user = userEvent.setup();
+
+		const search_input = canvas.getByPlaceholderText("Search...");
+		await user.type(search_input, "Pet");
+
+		await new Promise((resolve) => setTimeout(resolve, 100));
+
+		const filter_button = canvas.getByLabelText(
+			"Apply filter and update dataframe values"
+		);
+		await user.click(filter_button);
+
+		await new Promise((resolve) => setTimeout(resolve, 100));
+	}}
+/>
+
+<Story
+	name="Dataframe with frozen columns"
+	args={{
+		values: [
+			["ID", "Name", "Age", "City", "Country", "Score"],
+			["1", "John", "25", "New York", "USA", "95"],
+			["2", "Emma", "30", "London", "UK", "88"],
+			["3", "Luis", "28", "Madrid", "Spain", "92"],
+			["4", "Anna", "35", "Paris", "France", "90"],
+			["5", "Chen", "27", "Beijing", "China", "94"]
+		],
+		headers: ["ID", "Name", "Age", "City", "Country", "Score"],
+		label: "User Data",
+		col_count: [6, "dynamic"],
+		row_count: [6, "dynamic"],
+		pinned_columns: 2,
+		show_row_numbers: true,
+		editable: false
 	}}
 />

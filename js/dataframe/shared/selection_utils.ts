@@ -212,21 +212,18 @@ export function calculate_selection_positions(
 			getComputedStyle(parent).getPropertyValue(`--cell-width-${i}`)
 		);
 	}
-	const current_width = parseFloat(
-		getComputedStyle(parent).getPropertyValue(`--cell-width-${col}`)
-	);
-	const col_pos = `${offset + current_width / 2}px`;
 
 	const cell_id = data[row][col].id;
 	const cell_el = els[cell_id]?.cell;
 
 	if (!cell_el) {
 		// if we cant get the row position, just return the column position which is static
-		return { col_pos, row_pos: undefined };
+		return { col_pos: "0px", row_pos: undefined };
 	}
 
 	const cell_rect = cell_el.getBoundingClientRect();
 	const table_rect = table.getBoundingClientRect();
+	const col_pos = `${cell_rect.left - table_rect.left + cell_rect.width / 2}px`;
 	const relative_top = cell_rect.top - table_rect.top;
 	const row_pos = `${relative_top + cell_rect.height / 2}px`;
 	return { col_pos, row_pos };

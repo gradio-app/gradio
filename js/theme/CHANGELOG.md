@@ -1,5 +1,11 @@
 # @gradio/theme
 
+## 0.4.0
+
+### Features
+
+- [#10552](https://github.com/gradio-app/gradio/pull/10552) [`ed25a10`](https://github.com/gradio-app/gradio/commit/ed25a1053a55ddd2cf7d3067c72bdf77185ada8d) - Add 1920px wide resolution for wide monitors.  Thanks @Oncorporation!
+
 ## 0.3.0
 
 ### Features

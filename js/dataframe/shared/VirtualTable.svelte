@@ -344,12 +344,46 @@
 		background: var(--table-even-background-fill);
 	}
 
+	tbody :global(td.frozen-column) {
+		position: sticky;
+		z-index: var(--layer-2);
+	}
+
+	tbody :global(tr:nth-child(odd)) :global(td.frozen-column) {
+		background: var(--table-odd-background-fill);
+	}
+
+	tbody :global(tr:nth-child(even)) :global(td.frozen-column) {
+		background: var(--table-even-background-fill);
+	}
+
+	tbody :global(td.always-frozen) {
+		z-index: var(--layer-3);
+	}
+
+	tbody :global(td.last-frozen) {
+		border-right: 2px solid var(--border-color-primary);
+	}
+
 	thead {
 		position: sticky;
 		top: 0;
 		left: 0;
-		z-index: var(--layer-1);
-		overflow: hidden;
+		z-index: var(--layer-3);
+		background: var(--background-fill-primary);
+	}
+
+	thead :global(th) {
+		background: var(--table-even-background-fill) !important;
+	}
+
+	thead :global(th.frozen-column) {
+		position: sticky;
+		z-index: var(--layer-4);
+	}
+
+	thead :global(th.always-frozen) {
+		z-index: var(--layer-5);
 	}
 
 	.table.disable-scroll {
