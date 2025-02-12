@@ -1217,4 +1217,12 @@
 	:global(.ͼ60) {
 		font-size: 13px;
 	}
+
+	:global(.tabs.editor-tabs) {
+		gap: 0px !important;
+	}
+
+	:global(.tabitem.editor-tabitem) {
+		margin-top: -4px !important;
+	}
 </style>
