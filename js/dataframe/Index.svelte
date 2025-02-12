@@ -103,10 +103,8 @@
 		{styling}
 		headers={_headers}
 		on:change={(e) => {
-			if (show_search === "filter") {
-				value = e.detail;
-				gradio.dispatch("change");
-			}
+			value = e.detail;
+			gradio.dispatch("change");
 		}}
 		on:input={(e) => gradio.dispatch("input")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
