@@ -57,6 +57,7 @@
 	let version = version_json.version;
 
 	let suggested_links = [];
+	let edited_demos = [];
 
 	let suggested_demos = suggested_links.filter(item => item.type === 'DEMO');
 	let suggested_guides_docs = suggested_links.filter(item => item.type !== 'DEMO');
@@ -78,6 +79,7 @@
 	$: suggested_links;
 	$: suggested_demos = suggested_links.filter(item => item.type === 'DEMO');
 	$: suggested_guides_docs = suggested_links.filter(item => item.type !== 'DEMO');
+	$: edited_demos;
 </script>
 
 <MetaTags
@@ -187,24 +189,26 @@
 								<p class="float-right text-xs font-semibold mx-1">✨</p>
 							</div>
 							{#each suggested_demos as link}
-									<div class="flex items-baseline">
-										<button
-											on:click={() => (current_selection = link.title)}
-											class:current-playground-demo={current_selection ==
-												link.title}
-											class:shared-link={shared == link.title}
-											class="thin-link font-light px-2 block text-sm text-[#27272a] break-words w-full text-left capitalize"
-											style="white-space: initial"
-											>{link.title.replaceAll("-", " ")}</button
-										>
-									</div>
+								<button
+								on:click={() => (current_selection = link.title)}
+								class:current-playground-demo={current_selection ==
+									link.title}
+								class:shared-link={shared == link.title}
+								class="thin-link font-light !px-2 block text-sm text-[#27272a] break-words w-full text-left capitalize"
+								style="white-space: initial"
+								>{link.title.replaceAll("-", " ")}</button
+							>
 							{/each}
 						</div>
 						<div class="border-b border-gray-400 ml-4 mr-5"></div>
 					</div>
 					{/if}
+						{#if edited_demos.includes("Blank")}
+							<div class="dot float-left !mt-[14px]"></div>
+						{/if}
 					<button
 						on:click={() => (current_selection = "Blank")}
+						class:!pl-1={edited_demos.includes("Blank")}
 						class:current-playground-demo={current_selection == "Blank"}
 						class:shared-link={shared == "Blank"}
 						class="thin-link font-light px-4 block my-2 text-sm text-[#27272a]">New Demo</button
@@ -212,8 +216,13 @@
 					{#each data.demos_by_category as { category, demos } (category)}
 						<p class="px-4 my-2 font-medium text-sm text-[#27272a]">{category}</p>
 						{#each demos as demo, i}
+						{#if edited_demos.includes(demo.name)}
+						<div class="dot float-left"></div>
+						{/if}
 							<button
+
 								on:click={() => (current_selection = demo.name)}
+								class:!pl-1={edited_demos.includes(demo.name)}
 								class:current-playground-demo={current_selection == demo.name}
 								class:shared-link={shared == demo.name}
 								class="thin-link font-light px-4 block text-sm text-[#27272a]">{demo.name}</button
@@ -228,6 +237,7 @@
 				{current_selection}
 				{show_nav}
 				bind:suggested_links
+				bind:edited_demos
 			/>
 		</div>
 	</main>
@@ -462,5 +472,8 @@
 	}
 	.sug-block {
 		@apply block m-2 p-2 border rounded-md hover:scale-[1.02] drop-shadow-md;
+	}
+	.dot {
+		@apply w-[0.4rem] h-[0.4rem] bg-gray-500 rounded-full mt-[6.5px] ml-[6px];
 	}
 </style>

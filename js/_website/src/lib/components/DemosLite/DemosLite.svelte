@@ -23,6 +23,10 @@
 
 	$: suggested_links;
 
+	export let edited_demos: string[] = [];
+
+	$: edited_demos;
+
 	interface CodeState {
 		status: "idle" | "generating" | "error" | "regenerating";
 		code_edited: boolean;
@@ -474,6 +478,12 @@
 
 	const demos_copy: typeof demos = JSON.parse(JSON.stringify(demos));
 
+
+	$: edited_demos = demos_copy.filter((demo) => {
+		const edited = demos.find((d) => d.name === demo.name && d.code !== demo.code);
+		return edited !== undefined;
+	}).map((demo) => demo.name);
+
 	$: show_dialog(demos, demos_copy, shared);
 	$: if (code) {
 		shared = false;
@@ -648,6 +658,7 @@
 
 	let code_to_compare = code;
 	$: code_to_compare;
+
 </script>
 
 <svelte:head>
