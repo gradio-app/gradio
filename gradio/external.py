@@ -473,7 +473,7 @@ def from_model(
         "outputs": outputs,
         "title": model_name,
         "examples": examples,
-        "cache_mode": "lazy",
+        "cache_examples": False,
     }
 
     kwargs = dict(interface_info, **kwargs)
