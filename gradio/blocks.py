@@ -861,6 +861,9 @@ class BlocksConfig:
 
         rendered_in = LocalContext.renderable.get()
 
+        if js is True and (preprocess or postprocess):
+            raise ValueError("Cannot create event: js=True requires preprocess=False and postprocess=False.")
+
         block_fn = BlockFunction(
             fn,
             inputs,

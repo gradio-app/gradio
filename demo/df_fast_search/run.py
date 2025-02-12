@@ -1,21 +1,21 @@
 import gradio as gr
 
-def filter_rows_by_term(data: list, search_term: str) -> list:
-    return [row for row in data if search_term in row[0]]
+def filter_rows_by_term(search_term: str) -> list:
+    data = [
+        ["apple pie", "dessert", "sweet"],
+        ["banana bread", "baked", "breakfast"],
+        ["apple cider", "drink", "autumn"],
+        ["cherry tart", "dessert", "fruit"],
+    ]
+    return data
 
-data = [
-    ["apple pie", "dessert", "sweet"],
-    ["banana bread", "baked", "breakfast"],
-    ["apple cider", "drink", "autumn"],
-    ["cherry tart", "dessert", "fruit"],
-]
 
 with gr.Blocks() as demo:
-    df_orig = gr.Dataframe(type="array", value=data, visible=False)
     t = gr.Textbox(placeholder="Search for a term", show_label=False)
-    df = gr.Dataframe(value=data)
+    df = gr.Dataframe()
 
-    t.change(fn=filter_rows_by_term, inputs=[df_orig, t], outputs=[df], js=True)
+    demo.load(fn=filter_rows_by_term, inputs=[t], outputs=[df], js=True)
+    t.change(fn=filter_rows_by_term, inputs=[t], outputs=[df], js=True)
 
 if __name__ == "__main__":
     demo.launch()
