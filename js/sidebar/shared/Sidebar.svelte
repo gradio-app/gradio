@@ -75,18 +75,7 @@
 </div>
 
 <style>
-	@media (min-width: 768px) {
-		:global(.sidebar-parent) {
-			display: flex !important;
-			padding-left: 0;
-			transition: padding-left 0.3s ease-in-out;
-		}
-
-		:global(.sidebar-parent:has(.sidebar.open)) {
-			padding-left: var(--overlap-amount);
-		}
-	}
-
+	/* Mobile styles (≤ 768px) */
 	@media (max-width: 768px) {
 		.sidebar {
 			width: 100vw !important;
