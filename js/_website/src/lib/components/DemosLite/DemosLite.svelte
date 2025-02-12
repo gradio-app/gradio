@@ -830,7 +830,7 @@
 						{:else}
 							✨
 						{/if}
-						<input
+						<textarea
 							bind:value={user_query}
 							on:keydown={(e) => {
 								handle_user_query_key_down(e);
@@ -851,8 +851,10 @@
 							autocapitalize="off"
 							enterkeyhint="go"
 							spellcheck="false"
-							type="search"
 							id="user-query"
+							class="w-full resize-none content-center p-2 border rounded resize-nonr overflow-x-none"
+							rows="1"
+
 							class:grayed={code_state.status === "generating"}
 							autofocus={true}
 						/>
@@ -1027,7 +1029,7 @@
 		border-color: #e5e7eb;
 	}
 
-	.search-bar input {
+	.search-bar textarea {
 		@apply appearance-none h-14 text-black mx-1	flex-auto min-w-0 border-none cursor-text;
 		outline: none;
 		box-shadow: none;
