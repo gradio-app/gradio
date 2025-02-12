@@ -209,7 +209,7 @@
 	}
 
 	.vertical .code-editor-border {
-		border-right: none !important;
+		border-right: none;
 	}
 
 	.horizontal .code-editor-border {
@@ -217,7 +217,7 @@
 		border-bottom: none;
 	}
 	:global(.dark .horizontal .code-editor-border) {
-		border-right: 1px solid #374151 !important;
+		border-right: 1px solid #374151;
 	}
 
 	@media (min-width: 768px) {
@@ -228,7 +228,7 @@
 			border-right: 1px solid rgb(229 231 235);
 		}
 		:global(.dark .code-editor-border) {
-			border-right: 1px solid #374151 !important;
+			border-right: 1px solid #374151;
 		}
 	}
 
