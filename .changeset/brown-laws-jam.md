@@ -5,4 +5,4 @@
 "gradio": minor
 ---
 
-feat:Update Lite to manage the MPA routes in the URL hash
+feat:Update Lite to support multi-page apps
