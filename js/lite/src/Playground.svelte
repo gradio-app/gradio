@@ -136,24 +136,28 @@
 			class:vertical={layout === "vertical"}
 			class="child-container"
 		>
-			<div
-				class:code-editor-border={loaded}
-				class="code-editor"
-				bind:this={code_editor_container}
-			>
-				<Block variant={"solid"} padding={false}>
-					<Code
-						bind:value={code}
-						language="python"
-						lines={10}
-						readonly={!loaded}
-						dark_mode={active_theme_mode === "dark"}
-					/>
-				</Block>
+			<div class="half-container">
+				<div
+					class:code-editor-border={loaded}
+					class="code-editor"
+					bind:this={code_editor_container}
+				>
+					<Block variant={"solid"} padding={false}>
+						<Code
+							bind:value={code}
+							language="python"
+							lines={10}
+							readonly={!loaded}
+							dark_mode={active_theme_mode === "dark"}
+						/>
+					</Block>
+				</div>
 			</div>
 			{#if loaded}
-				<div class="preview">
-					<slot></slot>
+				<div class="half-container">
+					<div class="preview">
+						<slot></slot>
+					</div>
 				</div>
 			{/if}
 		</div>
@@ -161,19 +165,19 @@
 </div>
 
 <style>
-	.wrapper {
-		width: 100%;
-		height: 100%;
-		overflow-y: scroll;
-		display: flex;
-		flex-direction: column;
-	}
 	.parent-container {
 		width: 100%;
 		height: 100%;
 		overflow: hidden;
 		border: 1px solid rgb(229 231 235);
 		border-radius: 0.375rem;
+		box-sizing: border-box;
+	}
+	.wrapper {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
 	}
 	:global(.dark .parent-container) {
 		border-color: #374151 !important;
@@ -181,17 +185,20 @@
 	}
 
 	.child-container {
+		flex-grow: 1;
 		display: flex;
 		flex-direction: column;
+	}
+	.child-container.horizontal {
+		flex-direction: row;
+	}
+	.child-container.vertical {
+		flex-direction: column;
+	}
+
+	.half-container {
+		position: relative;
 		flex-grow: 1;
-	}
-
-	.horizontal {
-		flex-direction: row !important;
-	}
-
-	.vertical {
-		flex-direction: column !important;
 	}
 
 	.vertical .code-editor-border {
@@ -219,6 +226,12 @@
 	}
 
 	.code-editor {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+
 		flex: 1 1 50%;
 		display: flex;
 		flex-direction: column;
@@ -277,9 +290,16 @@
 	}
 
 	.preview {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+
+		height: 100%;
+		max-height: 100%;
+		overflow: scroll;
 		flex: 1 1 50%;
-		display: flex;
-		flex-direction: column;
 	}
 
 	.buttons {
