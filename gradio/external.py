@@ -20,7 +20,7 @@ from gradio_client.documentation import document
 from gradio_client.utils import encode_url_or_file_to_base64
 from packaging import version
 
-import gradio
+import gradio as gr
 from gradio import components, external_utils, utils
 from gradio.components.multimodal_textbox import MultimodalValue
 from gradio.context import Context
@@ -105,10 +105,16 @@ def load(
         )
     elif isinstance(accept_token, gr.LoginButton):
         with gr.Blocks(fill_height=True) as demo:
-            accept_token.render()
-            load_blocks_from_huggingface(
-                name=name, src=src, hf_token=token, provider=provider, **kwargs
-            )
+            if not accept_token.is_rendered:
+                accept_token.render()
+
+            @gr.render(triggers=[demo.load])
+            def create_blocks(oauth_token: gr.OAuthToken | None):
+                token_value = "" if oauth_token is None else oauth_token.token
+                return load_blocks_from_huggingface(
+                    name=name, src=src, hf_token=token_value, **kwargs
+                )
+
         return demo
     else:
         with gr.Blocks(fill_height=True) as demo:
@@ -180,7 +186,7 @@ def load_blocks_from_huggingface(
 
     if src == "spaces" and hf_token is None:
         hf_token = False  # Since Spaces can read the token, we don't want to pass it in unless the user explicitly provides it
-    blocks: gradio.Blocks = factory_methods[src](
+    blocks: gr.Blocks = factory_methods[src](
         name, hf_token=hf_token, alias=alias, provider=provider, **kwargs
     )
     return blocks
@@ -471,7 +477,7 @@ def from_model(
     }
 
     kwargs = dict(interface_info, **kwargs)
-    interface = gradio.Interface(**kwargs)
+    interface = gr.Interface(**kwargs)
     return interface
 
 
@@ -567,7 +573,7 @@ def from_spaces_blocks(space: str, hf_token: str | None | Literal[False]) -> Blo
             predict_fns.append(endpoint.make_end_to_end_fn(helper))
         else:
             predict_fns.append(None)
-    return gradio.Blocks.from_config(client.config, predict_fns, client.src)  # type: ignore
+    return gr.Blocks.from_config(client.config, predict_fns, client.src)  # type: ignore
 
 
 def from_spaces_interface(
@@ -612,7 +618,7 @@ def from_spaces_interface(
 
     kwargs = dict(config, **kwargs)
     kwargs["_api_mode"] = True
-    interface = gradio.Interface(**kwargs)
+    interface = gr.Interface(**kwargs)
     return interface
 
 
@@ -786,7 +792,7 @@ def load_chat(
         raise ImportError(
             "To use OpenAI API Client, you must install the `openai` package. You can install it with `pip install openai`."
         ) from e
-    from gradio.chat_interface import ChatInterface
+    from gr.chat_interface import ChatInterface
 
     client = OpenAI(api_key=token, base_url=base_url)
     start_message = (
@@ -841,7 +847,7 @@ def load_chat(
         open_api_stream if streaming else open_api,
         type="messages",
         multimodal=bool(file_types),
-        textbox=gradio.MultimodalTextbox(file_types=supported_extensions)
+        textbox=gr.MultimodalTextbox(file_types=supported_extensions)
         if file_types
         else None,
         **kwargs,
