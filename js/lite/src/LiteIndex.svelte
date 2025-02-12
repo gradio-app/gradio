@@ -4,7 +4,12 @@
 	import "@gradio/theme/pollen.css";
 	import "@gradio/theme/typography.css";
 
-	import { onDestroy, SvelteComponent, createEventDispatcher } from "svelte";
+	import {
+		onDestroy,
+		SvelteComponent,
+		createEventDispatcher,
+		setContext
+	} from "svelte";
 	import Index from "@self/spa";
 	import Playground from "./Playground.svelte";
 	import ErrorDisplay from "./ErrorDisplay.svelte";
@@ -128,21 +133,12 @@
 
 	mount_prebuilt_css(document.head);
 
-	// For Lite, we use the hash in the URL to determine the current page.
-	function get_current_page_from_url(): string {
-		return location.hash.substring(1);
-	}
-
-	let current_page = get_current_page_from_url();
+	let current_page = "";
 	const set_page = (page: string): void => {
 		current_page = page;
 		refresh_index_component();
 	};
-
-	window.addEventListener("hashchange", (event) => {
-		const newPage = get_current_page_from_url();
-		set_page(newPage);
-	});
+	setContext("set_lite_page", set_page);
 
 	class LiteClient extends Client {
 		fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
