@@ -152,29 +152,30 @@ def load(
 def load_blocks_from_huggingface(
     name: str,
     src: str,
-    hf_token: str | None = None,
+    hf_token: str | Literal[False] | None = None,
     alias: str | None = None,
     provider: PROVIDER_T | None = None,
     **kwargs,
 ) -> Blocks:
     """Creates and returns a Blocks instance from a Hugging Face model or Space repo."""
-    if hf_token is not None:
+    factory_methods: dict[str, Callable] = {
+        # for each repo type, we have a method that returns the Interface given the model name & optionally an hf_token
+        "huggingface": from_model,
+        "models": from_model,
+        "spaces": from_spaces,
+    }
+    if hf_token is not None and hf_token is not False:
         if Context.hf_token is not None and Context.hf_token != hf_token:
             warnings.warn(
                 """You are loading a model/Space with a different access token than the one you used to load a previous model/Space. This is not recommended, as it may cause unexpected behavior."""
             )
         Context.hf_token = hf_token
 
-    if src == "spaces":
-        # Spaces can read the token, so we don't want to pass it in unless the user explicitly provides it
-        token = False if hf_token is None else hf_token
-        blocks = from_spaces(
-            name, hf_token=token, alias=alias, provider=provider, **kwargs
-        )
-    else:
-        blocks = from_model(
-            name, hf_token=hf_token, alias=alias, provider=provider, **kwargs
-        )
+    if src == "spaces" and hf_token is None:
+        hf_token = False  # Since Spaces can read the token, we don't want to pass it in unless the user explicitly provides it
+    blocks: gradio.Blocks = factory_methods[src](
+        name, hf_token=hf_token, alias=alias, provider=provider, **kwargs
+    )
     return blocks
 
 
@@ -186,6 +187,8 @@ def from_model(
     **kwargs,
 ) -> Blocks:
     headers = {"X-Wait-For-Model": "true"}
+    if hf_token is False:
+        hf_token = None
     client = huggingface_hub.InferenceClient(
         model=model_name, headers=headers, token=hf_token, provider=provider
     )
