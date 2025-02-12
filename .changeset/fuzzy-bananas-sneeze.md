@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Experiment: transpile simple Python functions to JS
+feat:Support `gr.LoginButton` for `gr.load()`
