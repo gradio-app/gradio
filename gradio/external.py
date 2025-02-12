@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     from gradio.blocks import Blocks
     from gradio.chat_interface import ChatInterface
     from gradio.components.chatbot import MessageDict
+    from gradio.components.login_button import LoginButton
     from gradio.interface import Interface
 
 
@@ -47,7 +48,7 @@ def load(
     | None = None,
     token: str | None = None,
     hf_token: str | None = None,
-    accept_token: bool = False,
+    accept_token: bool | LoginButton = False,
     provider: PROVIDER_T | None = None,
     **kwargs,
 ) -> Blocks:
@@ -57,7 +58,7 @@ def load(
         name: the name of the model (e.g. "google/vit-base-patch16-224") or Space (e.g. "flax-community/spanish-gpt2"). This is the first parameter passed into the `src` function. Can also be formatted as {src}/{repo name} (e.g. "models/google/vit-base-patch16-224") if `src` is not provided.
         src: function that accepts a string model `name` and a string or None `token` and returns a Gradio app. Alternatively, this parameter takes one of two strings for convenience: "models" (for loading a Hugging Face model through the Inference API) or "spaces" (for loading a Hugging Face Space). If None, uses the prefix of the `name` parameter to determine `src`.
         token: optional token that is passed as the second parameter to the `src` function. If not explicitly provided, will use the HF_TOKEN environment variable or fallback to the locally-saved HF token when loading models but not Spaces (when loading Spaces, only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). Find your HF tokens here: https://huggingface.co/settings/tokens.
-        accept_token: if True, a Textbox component is first rendered to allow the user to provide a token, which will be used instead of the `token` parameter when calling the loaded model or Space.
+        accept_token: if True, a Textbox component is first rendered to allow the user to provide a token, which will be used instead of the `token` parameter when calling the loaded model or Space. If LoginButton, a LoginButton component is rendered, which allows the user to login with a Hugging Face account whose token will be used instead of the `token` parameter when calling the loaded model or Space.
         kwargs: additional keyword parameters to pass into the `src` function. If `src` is "models" or "Spaces", these parameters are passed into the `gr.Interface` or `gr.ChatInterface` constructor.
         provider: the name of the third-party (non-Hugging Face) providers to use for model inference (e.g. "replicate", "sambanova", "fal-ai", etc). Should be one of the providers supported by `huggingface_hub.InferenceClient`. This parameter is only used when `src` is "models"
     Returns:
@@ -67,6 +68,8 @@ def load(
         demo = gr.load("gradio/question-answering", src="spaces")
         demo.launch()
     """
+    import gradio as gr
+
     if hf_token is not None and token is None:
         token = hf_token
         warnings.warn(
@@ -93,15 +96,21 @@ def load(
     ):
         token = os.environ.get("HF_TOKEN")
 
+    if isinstance(src, Callable):
+        return src(name, token, **kwargs)
+
     if not accept_token:
-        if isinstance(src, Callable):
-            return src(name, token, **kwargs)
         return load_blocks_from_huggingface(
             name=name, src=src, hf_token=token, provider=provider, **kwargs
         )
+    elif isinstance(accept_token, gr.LoginButton):
+        with gr.Blocks(fill_height=True) as demo:
+            accept_token.render()
+            load_blocks_from_huggingface(
+                name=name, src=src, hf_token=token, provider=provider, **kwargs
+            )
+        return demo
     else:
-        import gradio as gr
-
         with gr.Blocks(fill_height=True) as demo:
             with gr.Accordion("Enter your token and press enter") as accordion:
                 textbox = gr.Textbox(
@@ -140,8 +149,6 @@ def load(
 
             @gr.render(inputs=[textbox], triggers=[textbox.submit])
             def create(token_value):
-                if isinstance(src, Callable):
-                    return src(name, token_value, **kwargs)
                 return load_blocks_from_huggingface(
                     name=name, src=src, hf_token=token_value, **kwargs
                 )
