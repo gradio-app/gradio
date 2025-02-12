@@ -199,6 +199,7 @@ def from_model(
     **kwargs,
 ) -> Blocks:
     headers = {"X-Wait-For-Model": "true"}
+    print("hf_token", hf_token)
     client = huggingface_hub.InferenceClient(
         model=model_name, headers=headers, token=hf_token, provider=provider
     )
@@ -472,6 +473,7 @@ def from_model(
         "outputs": outputs,
         "title": model_name,
         "examples": examples,
+        "cache_mode": "lazy",
     }
 
     kwargs = dict(interface_info, **kwargs)
