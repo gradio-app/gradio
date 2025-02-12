@@ -52,15 +52,6 @@
 		display: boolean;
 	}[];
 
-	let original_values = values;
-	let initial_values = values;
-	$: {
-		if (!dequal(values, original_values) && !current_search_query) {
-			initial_values = values;
-			original_values = values;
-		}
-	}
-
 	export let editable = true;
 	export let wrap = false;
 	export let root: string;
