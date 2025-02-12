@@ -75,6 +75,33 @@
 </div>
 
 <style>
+	@media (min-width: 768px) {
+		:global(.sidebar-parent) {
+			display: flex !important;
+			padding-left: 0;
+			transition: padding-left 0.3s ease-in-out;
+		}
+
+		:global(.sidebar-parent:has(.sidebar.open)) {
+			padding-left: var(--overlap-amount);
+		}
+	}
+
+	@media (max-width: 768px) {
+		.sidebar {
+			width: 100vw !important;
+			left: -100vw !important;
+		}
+
+		:global(.sidebar-parent) {
+			padding-left: 0 !important;
+		}
+
+		:global(.sidebar-parent:has(.sidebar.open)) {
+			padding-left: 0 !important;
+		}
+	}
+
 	:global(.sidebar-parent) {
 		display: flex !important;
 		padding-left: 0;
