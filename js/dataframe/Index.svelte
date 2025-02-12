@@ -54,15 +54,16 @@
 	export let show_row_numbers = false;
 	export let show_search: "none" | "search" | "filter" = "none";
 
-	let search_query = "";
-	$: filtered_cell_values =
-		search_query && show_search === "search" && value.data
-			? value.data.filter((row) =>
-					row.some((cell) =>
+	let search_query: string | null = null;
+	$: filtered_cell_values = search_query
+		? value.data?.filter((row) =>
+				row.some(
+					(cell) =>
+						search_query &&
 						String(cell).toLowerCase().includes(search_query.toLowerCase())
-					)
 				)
-			: value.data;
+			)
+		: null;
 	export let pinned_columns = 0;
 
 	$: _headers = [...(value.headers || headers)];
@@ -97,16 +98,19 @@
 		{show_label}
 		{row_count}
 		{col_count}
-		values={filtered_cell_values}
+		values={filtered_cell_values || value.data}
 		{display_value}
 		{styling}
 		headers={_headers}
 		on:change={(e) => {
-			value = e.detail;
-			gradio.dispatch("change");
+			if (show_search === "filter") {
+				value = e.detail;
+				gradio.dispatch("change");
+			}
 		}}
 		on:input={(e) => gradio.dispatch("input")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
+		on:search={(e) => (search_query = e.detail)}
 		{wrap}
 		{datatype}
 		{latex_delimiters}

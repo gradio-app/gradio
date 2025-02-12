@@ -106,6 +106,7 @@
 		change: DataframeValue;
 		input: undefined;
 		select: SelectData;
+		search: string;
 	}>();
 
 	let editing: EditingState = false;
@@ -140,7 +141,7 @@
 	});
 
 	const get_data_at = (row: number, col: number): string | number =>
-		display_data?.[row]?.[col]?.value;
+		data?.[row]?.[col]?.value;
 
 	function make_id(): string {
 		return Math.random().toString(36).substring(2, 15);
@@ -216,12 +217,10 @@
 	}
 
 	let data: { id: string; value: string | number }[][] = [[]];
-	let display_data: { id: string; value: string | number }[][] = [[]];
 	let old_val: undefined | (string | number)[][] = undefined;
 
 	$: if (!dequal(values, old_val)) {
 		data = process_data(values as (string | number)[][]);
-		display_data = data;
 		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
 	}
 
@@ -231,6 +230,8 @@
 	$: (data || _headers) && trigger_change();
 
 	async function trigger_change(): Promise<void> {
+		// shouldnt trigger if data changed due to search
+		if (current_search_query) return;
 		const current_headers = _headers.map((h) => h.value);
 		const current_data = data.map((row) =>
 			row.map((cell) => String(cell.value))
@@ -483,12 +484,12 @@
 		parent.focus();
 
 		if (row_count[1] !== "dynamic") return;
-		if (display_data.length === 0) {
+		if (data.length === 0) {
 			values = [Array(headers.length).fill("")];
 			return;
 		}
 
-		const new_row = Array(display_data[0].length)
+		const new_row = Array(data[0].length)
 			.fill(0)
 			.map((_, i) => {
 				const _id = make_id();
@@ -496,31 +497,31 @@
 				return { id: _id, value: "" };
 			});
 
-		if (index !== undefined && index >= 0 && index <= display_data.length) {
-			display_data.splice(index, 0, new_row);
+		if (index !== undefined && index >= 0 && index <= data.length) {
+			data.splice(index, 0, new_row);
 		} else {
-			display_data.push(new_row);
+			data.push(new_row);
 		}
 
-		display_data = display_data;
-		selected = [index !== undefined ? index : display_data.length - 1, 0];
+		data = data;
+		selected = [index !== undefined ? index : data.length - 1, 0];
 	}
 
 	async function add_col(index?: number): Promise<void> {
 		parent.focus();
 		if (col_count[1] !== "dynamic") return;
 
-		const insert_index = index !== undefined ? index : display_data[0].length;
+		const insert_index = index !== undefined ? index : data[0].length;
 
-		for (let i = 0; i < display_data.length; i++) {
+		for (let i = 0; i < data.length; i++) {
 			const _id = make_id();
 			els[_id] = { cell: null, input: null };
-			display_data[i].splice(insert_index, 0, { id: _id, value: "" });
+			data[i].splice(insert_index, 0, { id: _id, value: "" });
 		}
 
 		headers.splice(insert_index, 0, `Header ${headers.length + 1}`);
 
-		display_data = display_data;
+		data = data;
 		headers = headers;
 
 		await tick();
@@ -543,7 +544,7 @@
 		}
 	}
 
-	$: max = get_max(display_data);
+	$: max = get_max(data);
 
 	$: cells[0] && set_cell_widths();
 	let cells: HTMLTableCellElement[] = [];
@@ -825,13 +826,13 @@
 			typeof sort_by === "number" &&
 			sort_direction &&
 			sort_by >= 0 &&
-			sort_by < display_data[0].length
+			sort_by < data[0].length
 		) {
-			const indices = [...Array(display_data.length)].map((_, i) => i);
+			const indices = [...Array(data.length)].map((_, i) => i);
 			const sort_index = sort_by as number;
 			indices.sort((a, b) => {
-				const row_a = display_data[a];
-				const row_b = display_data[b];
+				const row_a = data[a];
+				const row_b = data[b];
 				if (
 					!row_a ||
 					!row_b ||
@@ -846,18 +847,18 @@
 			});
 			row_order = indices;
 		} else {
-			row_order = [...Array(display_data.length)].map((_, i) => i);
+			row_order = [...Array(data.length)].map((_, i) => i);
 		}
 	}
 
 	function handle_select_column(col: number): void {
-		selected_cells = select_column(display_data, col);
+		selected_cells = select_column(data, col);
 		selected = selected_cells[0];
 		editing = false;
 	}
 
 	function handle_select_row(row: number): void {
-		selected_cells = select_row(display_data, row);
+		selected_cells = select_row(data, row);
 		selected = selected_cells[0];
 		editing = false;
 	}
@@ -889,35 +890,11 @@
 
 	function handle_search(search_query: string): void {
 		current_search_query = search_query;
-		if (search_query) {
-			const filtered = original_values.filter((row) =>
-				row.some((cell) =>
-					String(cell).toLowerCase().includes(search_query.toLowerCase())
-				)
-			);
-			data = process_data(filtered);
-			display_data = data;
-		} else {
-			original_values = initial_values;
-			data = process_data(initial_values);
-			display_data = data;
-		}
+		dispatch("search", search_query);
 	}
 
 	function commit_filter(): void {
 		if (current_search_query && show_search === "filter") {
-			const filtered = original_values.filter((row) =>
-				row.some((cell) =>
-					String(cell)
-						.toLowerCase()
-						.includes(current_search_query.toLowerCase())
-				)
-			);
-			values = filtered;
-			initial_values = filtered;
-			original_values = filtered;
-			data = process_data(filtered);
-			display_data = data;
 			dispatch("change", {
 				data: data.map((row) => row.map((cell) => cell.value)),
 				headers: _headers.map((h) => h.value),
@@ -1096,7 +1073,7 @@
 			aria_label={i18n("dataframe.drop_to_upload")}
 		>
 			<VirtualTable
-				bind:items={display_data}
+				bind:items={data}
 				{max_height}
 				bind:actual_height={table_height}
 				bind:table_scrollbar_width={scrollbar_width}
