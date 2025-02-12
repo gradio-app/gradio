@@ -97,7 +97,7 @@
 		change: DataframeValue;
 		input: undefined;
 		select: SelectData;
-		search: string;
+		search: string | null;
 	}>();
 
 	let editing: EditingState = false;
@@ -879,6 +879,11 @@
 
 	let current_search_query: string | null = null;
 
+	function handle_search(search_query: string | null): void {
+		current_search_query = search_query;
+		dispatch("search", search_query);
+	}
+
 	function commit_filter(): void {
 		if (current_search_query && show_search === "filter") {
 			dispatch("change", {
@@ -910,7 +915,7 @@
 			on_copy={handle_copy}
 			{show_copy_button}
 			{show_search}
-			on:search
+			on:search={(e) => handle_search(e.detail)}
 			on_commit_filter={commit_filter}
 			{current_search_query}
 		/>
