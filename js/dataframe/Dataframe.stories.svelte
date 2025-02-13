@@ -248,7 +248,7 @@
 />
 
 <Story
-	name="Dataframe with fullscreen button"
+	name="Dataframe with fullscreen button and label and search"
 	args={{
 		col_count: [3, "dynamic"],
 		row_count: [2, "dynamic"],
@@ -257,7 +257,11 @@
 			[800, 100, 400],
 			[200, 800, 700]
 		],
-		show_fullscreen_button: true
+		show_fullscreen_button: true,
+		show_label: true,
+		show_copy_button: true,
+		show_search: "search",
+		label: "Test scores"
 	}}
 />
 
@@ -471,6 +475,40 @@
 		col_count: [10, "dynamic"],
 		row_count: [10, "dynamic"],
 		max_height: 700
+	}}
+/>
+
+<Story
+	name="Dataframe with search and filter"
+	args={{
+		values: [
+			["Cat", 5, "Pet"],
+			["Horse", 3, "Farm"],
+			["Snake", 1, "Pet"],
+			["Cow", 4, "Farm"],
+			["Dog", 6, "Pet"]
+		],
+		headers: ["Animal", "Count", "Type"],
+		col_count: [3, "dynamic"],
+		row_count: [5, "dynamic"],
+		show_search: "filter",
+		editable: false
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const user = userEvent.setup();
+
+		const search_input = canvas.getByPlaceholderText("Search...");
+		await user.type(search_input, "Pet");
+
+		await new Promise((resolve) => setTimeout(resolve, 100));
+
+		const filter_button = canvas.getByLabelText(
+			"Apply filter and update dataframe values"
+		);
+		await user.click(filter_button);
+
+		await new Promise((resolve) => setTimeout(resolve, 100));
 	}}
 />
 
