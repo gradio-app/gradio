@@ -89,9 +89,7 @@
 	let system_prompt = SYSTEM_PROMPT.SYSTEM;
 	let fallback_prompt = SYSTEM_PROMPT.FALLBACK;
 
-	const workerUrl =
-		"https://semantic-search.playground-worker.pages.dev/api/generate";
-	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	const workerUrl = "https://playground-worker.pages.dev/api/generate";
 	// const workerUrl = "http://localhost:5173/api/generate";
 
 	let abortController: AbortController | null = null;
