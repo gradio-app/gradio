@@ -47,7 +47,40 @@
 
 	$: code_state;
 
-	let non_lite_demos = ['chatbot_dialogpt', 'text_generation', 'xgboost-income-prediction-with-explainability', 'same-person-or-different', 'question-answering', 'chicago-bikeshare-dashboard', 'image_classifier_2', 'llm_hf_transformers', 'progress', 'image_classifier', 'translation', 'blocks_speech_text_sentiment', 'yolov10_webcam_stream', 'stream_asr', 'rt-detr-object-detection', 'depth_estimation', 'unispeech-speaker-verification', 'stable-diffusion', 'text_analysis', 'asr', 'streaming_wav2vec', 'magic_8_ball', 'animeganv2', 'generate_english_german', 'musical_instrument_identification', 'ner_pipeline', 'map_airbnb', 'english_translator', 'unified_demo_text_generation', 'timeseries-forecasting-with-prophet', 'image_classification', 'diffusers_with_batching']
+	let non_lite_demos = [
+		"chatbot_dialogpt",
+		"text_generation",
+		"xgboost-income-prediction-with-explainability",
+		"same-person-or-different",
+		"question-answering",
+		"chicago-bikeshare-dashboard",
+		"image_classifier_2",
+		"llm_hf_transformers",
+		"progress",
+		"image_classifier",
+		"translation",
+		"blocks_speech_text_sentiment",
+		"yolov10_webcam_stream",
+		"stream_asr",
+		"rt-detr-object-detection",
+		"depth_estimation",
+		"unispeech-speaker-verification",
+		"stable-diffusion",
+		"text_analysis",
+		"asr",
+		"streaming_wav2vec",
+		"magic_8_ball",
+		"animeganv2",
+		"generate_english_german",
+		"musical_instrument_identification",
+		"ner_pipeline",
+		"map_airbnb",
+		"english_translator",
+		"unified_demo_text_generation",
+		"timeseries-forecasting-with-prophet",
+		"image_classification",
+		"diffusers_with_batching"
+	];
 
 	let hide_preview = false;
 
@@ -396,10 +429,10 @@
 	$: selected_demo =
 		demos.find((demo) => demo.name === current_selection) ?? demos[0];
 	$: if (non_lite_demos.includes(selected_demo.dir)) {
-			hide_preview = true;
-		} else {
-			hide_preview = false;
-		}
+		hide_preview = true;
+	} else {
+		hide_preview = false;
+	}
 	$: code = selected_demo?.code || "";
 	$: requirements = selected_demo?.requirements || [];
 	$: requirementsStr = requirements.join("\n"); // Use the stringified version to trigger reactivity only when the array values actually change, while the `requirements` object's identity always changes.
@@ -491,11 +524,14 @@
 
 	const demos_copy: typeof demos = JSON.parse(JSON.stringify(demos));
 
-
-	$: edited_demos = demos_copy.filter((demo) => {
-		const edited = demos.find((d) => d.name === demo.name && d.code !== demo.code);
-		return edited !== undefined;
-	}).map((demo) => demo.name);
+	$: edited_demos = demos_copy
+		.filter((demo) => {
+			const edited = demos.find(
+				(d) => d.name === demo.name && d.code !== demo.code
+			);
+			return edited !== undefined;
+		})
+		.map((demo) => demo.name);
 
 	$: show_dialog(demos, demos_copy, shared);
 	$: if (code) {
@@ -630,12 +666,13 @@
 			}
 		}
 		if (
-			app_error && (
-			app_error.includes(
+			app_error &&
+			(app_error.includes(
 				"UserWarning: only soft file lock is available  from filelock import BaseFileLock, FileLock, SoftFileLock, Timeout"
-			)
-			|| app_error.includes("Matplotlib is building the font cache; this may take a moment.")
-	)
+			) ||
+				app_error.includes(
+					"Matplotlib is building the font cache; this may take a moment."
+				))
 		) {
 			app_error = null;
 		}
@@ -675,7 +712,6 @@
 	$: code_to_compare;
 
 	$: current_selection && (user_query = "");
-	
 </script>
 
 <svelte:head>
@@ -890,7 +926,6 @@
 							id="user-query"
 							class="w-full resize-none content-center px-2 border rounded overflow-x-none !text-[14px]"
 							rows="1"
-
 							class:grayed={code_state.status === "generating"}
 							autofocus={true}
 						/>
@@ -943,7 +978,11 @@
 					class="flex justify-between align-middle h-8 border-b pl-4 pr-2 ml-0 sm:ml-2"
 				>
 					<div class="flex align-middle">
-						<h3 class="pr-2 py-1 text-sm font-normal content-center text-[#27272a]">Preview</h3>
+						<h3
+							class="pr-2 py-1 text-sm font-normal content-center text-[#27272a]"
+						>
+							Preview
+						</h3>
 						<p class="pt-1.5 text-sm text-gray-600 hidden sm:block">
 							{preview_width - 13}px
 						</p>
@@ -996,23 +1035,35 @@
 				{#if hide_preview}
 					<div class="flex-1 bg-gray-100 flex flex-col justify-center">
 						<img class="mx-auto my-5 w-48 logo grayscale" src={logo_melted} />
-						<div class="mx-auto my-5 text-center max-h-fit leading-7 font-normal text-[14px] text-gray-500">
-							<p>This demo requires packages that we do not support in the Playground.</p>
-							<p>Use it on Spaces: <a 
-								href={`https://huggingface.co/spaces/gradio/${selected_demo.dir}`}
-								target="_blank"
-								class="thin-link text-gray-600 font-mono font-medium text-[14px] "
-								
-							>
-								<img class="inline-block my-0 -mr-1 w-5 max-w-full pb-[2px]" src="data:image/svg+xml,%3csvg%20class='mr-1%20text-gray-400'%20xmlns='http://www.w3.org/2000/svg'%20aria-hidden='true'%20viewBox='0%200%2032%2032'%3e%3cpath%20d='M7.81%2018.746v5.445h5.444v-5.445H7.809Z'%20fill='%23FF3270'/%3e%3cpath%20d='M18.746%2018.746v5.445h5.444v-5.445h-5.444Z'%20fill='%23861FFF'/%3e%3cpath%20d='M7.81%207.81v5.444h5.444V7.81H7.809Z'%20fill='%23097EFF'/%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M4%206.418A2.418%202.418%200%200%201%206.418%204h8.228c1.117%200%202.057.757%202.334%201.786a6.532%206.532%200%200%201%209.234%209.234A2.419%202.419%200%200%201%2028%2017.355v8.227A2.418%202.418%200%200%201%2025.582%2028H6.417A2.418%202.418%200%200%201%204%2025.582V6.417ZM7.81%207.81v5.444h5.444V7.81H7.81Zm0%2016.38v-5.444h5.444v5.445H7.81Zm10.936%200v-5.444h5.445v5.445h-5.445Zm0-13.658a2.722%202.722%200%201%201%205.445%200%202.722%202.722%200%200%201-5.445%200Z'/%3e%3cpath%20d='M21.468%207.81a2.722%202.722%200%201%200%200%205.444%202.722%202.722%200%200%200%200-5.444Z'%20fill='%23FFD702'/%3e%3c/svg%3e">
-								gradio/{selected_demo.dir}
-							</a> </p>
+						<div
+							class="mx-auto my-5 text-center max-h-fit leading-7 font-normal text-[14px] text-gray-500"
+						>
+							<p>
+								This demo requires packages that we do not support in the
+								Playground.
+							</p>
+							<p>
+								Use it on Spaces: <a
+									href={`https://huggingface.co/spaces/gradio/${selected_demo.dir}`}
+									target="_blank"
+									class="thin-link text-gray-600 font-mono font-medium text-[14px]"
+								>
+									<img
+										class="inline-block my-0 -mr-1 w-5 max-w-full pb-[2px]"
+										src="data:image/svg+xml,%3csvg%20class='mr-1%20text-gray-400'%20xmlns='http://www.w3.org/2000/svg'%20aria-hidden='true'%20viewBox='0%200%2032%2032'%3e%3cpath%20d='M7.81%2018.746v5.445h5.444v-5.445H7.809Z'%20fill='%23FF3270'/%3e%3cpath%20d='M18.746%2018.746v5.445h5.444v-5.445h-5.444Z'%20fill='%23861FFF'/%3e%3cpath%20d='M7.81%207.81v5.444h5.444V7.81H7.809Z'%20fill='%23097EFF'/%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M4%206.418A2.418%202.418%200%200%201%206.418%204h8.228c1.117%200%202.057.757%202.334%201.786a6.532%206.532%200%200%201%209.234%209.234A2.419%202.419%200%200%201%2028%2017.355v8.227A2.418%202.418%200%200%201%2025.582%2028H6.417A2.418%202.418%200%200%201%204%2025.582V6.417ZM7.81%207.81v5.444h5.444V7.81H7.81Zm0%2016.38v-5.444h5.444v5.445H7.81Zm10.936%200v-5.444h5.445v5.445h-5.445Zm0-13.658a2.722%202.722%200%201%201%205.445%200%202.722%202.722%200%200%201-5.445%200Z'/%3e%3cpath%20d='M21.468%207.81a2.722%202.722%200%201%200%200%205.444%202.722%202.722%200%200%200%200-5.444Z'%20fill='%23FFD702'/%3e%3c/svg%3e"
+									/>
+									gradio/{selected_demo.dir}
+								</a>
+							</p>
 						</div>
 					</div>
 				{/if}
-				<div 
-				class:hidden={hide_preview}
-				class="flex-1 pl-3" id="lite-demo" bind:this={lite_element} />
+				<div
+					class:hidden={hide_preview}
+					class="flex-1 pl-3"
+					id="lite-demo"
+					bind:this={lite_element}
+				/>
 			</div>
 		</div>
 	</Slider>

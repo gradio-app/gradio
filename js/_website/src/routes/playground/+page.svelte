@@ -59,8 +59,10 @@
 	let suggested_links = [];
 	let edited_demos = [];
 
-	let suggested_demos = suggested_links.filter(item => item.type === 'DEMO');
-	let suggested_guides_docs = suggested_links.filter(item => item.type !== 'DEMO');
+	let suggested_demos = suggested_links.filter((item) => item.type === "DEMO");
+	let suggested_guides_docs = suggested_links.filter(
+		(item) => item.type !== "DEMO"
+	);
 
 	$: if (suggested_links) {
 		suggested_links.forEach((link) => {
@@ -77,8 +79,10 @@
 	}
 	$: all_demos;
 	$: suggested_links;
-	$: suggested_demos = suggested_links.filter(item => item.type === 'DEMO');
-	$: suggested_guides_docs = suggested_links.filter(item => item.type !== 'DEMO');
+	$: suggested_demos = suggested_links.filter((item) => item.type === "DEMO");
+	$: suggested_guides_docs = suggested_links.filter(
+		(item) => item.type !== "DEMO"
+	);
 	$: edited_demos;
 </script>
 
@@ -140,7 +144,9 @@
 			>
 				<div class="flex justify-between align-middle h-8 border-b px-2">
 					{#if show_nav}
-						<h3 class="pl-2 py-1 my-auto text-sm font-medium text-[#27272a]">Demos</h3>
+						<h3 class="pl-2 py-1 my-auto text-sm font-medium text-[#27272a]">
+							Demos
+						</h3>
 					{/if}
 					<button
 						on:click={() => (show_nav = !show_nav)}
@@ -180,54 +186,57 @@
 						</a>
 					{/each}
 					{#if suggested_demos.length > 0}
-					<div in:slide out:slide>
-						<div class="my-1 mx-2 pb-2">
-							<div class="flex items-center flex-row px-2">
-								<p class="my-2 font-medium text-sm text-[#27272a] flex-grow">
-									Related Demos
-								</p>
-								<p class="float-right text-xs font-semibold mx-1">✨</p>
+						<div in:slide out:slide>
+							<div class="my-1 mx-2 pb-2">
+								<div class="flex items-center flex-row px-2">
+									<p class="my-2 font-medium text-sm text-[#27272a] flex-grow">
+										Related Demos
+									</p>
+									<p class="float-right text-xs font-semibold mx-1">✨</p>
+								</div>
+								{#each suggested_demos as link}
+									<button
+										on:click={() => (current_selection = link.title)}
+										class:current-playground-demo={current_selection ==
+											link.title}
+										class:shared-link={shared == link.title}
+										class="thin-link font-light !px-2 block text-sm text-[#27272a] break-words w-full text-left capitalize"
+										style="white-space: initial"
+										>{link.title.replaceAll("-", " ")}</button
+									>
+								{/each}
 							</div>
-							{#each suggested_demos as link}
-								<button
-								on:click={() => (current_selection = link.title)}
-								class:current-playground-demo={current_selection ==
-									link.title}
-								class:shared-link={shared == link.title}
-								class="thin-link font-light !px-2 block text-sm text-[#27272a] break-words w-full text-left capitalize"
-								style="white-space: initial"
-								>{link.title.replaceAll("-", " ")}</button
-							>
-							{/each}
+							<div class="border-b border-gray-400 ml-4 mr-5"></div>
 						</div>
-						<div class="border-b border-gray-400 ml-4 mr-5"></div>
-					</div>
 					{/if}
 					<div>
 						{#if edited_demos.includes("Blank")}
 							<div class="dot float-left !mt-[7px]"></div>
 						{/if}
-					<button
-						on:click={() => (current_selection = "Blank")}
-						class:!pl-1={edited_demos.includes("Blank")}
-						class:current-playground-demo={current_selection == "Blank"}
-						class:shared-link={shared == "Blank"}
-						class="thin-link font-light px-4 block my-2 text-sm text-[#27272a]">New Demo</button
-					>
-				</div>
+						<button
+							on:click={() => (current_selection = "Blank")}
+							class:!pl-1={edited_demos.includes("Blank")}
+							class:current-playground-demo={current_selection == "Blank"}
+							class:shared-link={shared == "Blank"}
+							class="thin-link font-light px-4 block my-2 text-sm text-[#27272a]"
+							>New Demo</button
+						>
+					</div>
 					{#each data.demos_by_category as { category, demos } (category)}
-						<p class="px-4 my-2 font-medium text-sm text-[#27272a]">{category}</p>
+						<p class="px-4 my-2 font-medium text-sm text-[#27272a]">
+							{category}
+						</p>
 						{#each demos as demo, i}
-						{#if edited_demos.includes(demo.name)}
-						<div class="dot float-left"></div>
-						{/if}
+							{#if edited_demos.includes(demo.name)}
+								<div class="dot float-left"></div>
+							{/if}
 							<button
-
 								on:click={() => (current_selection = demo.name)}
 								class:!pl-1={edited_demos.includes(demo.name)}
 								class:current-playground-demo={current_selection == demo.name}
 								class:shared-link={shared == demo.name}
-								class="thin-link font-light px-4 block text-sm text-[#27272a]">{demo.name}</button
+								class="thin-link font-light px-4 block text-sm text-[#27272a]"
+								>{demo.name}</button
 							>
 						{/each}
 					{/each}
