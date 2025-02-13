@@ -864,7 +864,7 @@
 							enterkeyhint="go"
 							spellcheck="false"
 							id="user-query"
-							class="w-full resize-none content-center px-2 border rounded overflow-x-none !text-[16px]"
+							class="w-full resize-none content-center px-2 border rounded overflow-x-none !text-[14px]"
 							rows="1"
 
 							class:grayed={code_state.status === "generating"}
