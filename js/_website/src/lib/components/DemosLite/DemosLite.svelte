@@ -16,7 +16,6 @@
 	import WHEEL from "$lib/json/wheel.json";
 	import logo_melted from "$lib/assets/img/logo-melted.png";
 
-
 	export let suggested_links: {
 		title: string;
 		url: string;
@@ -61,7 +60,7 @@
 
 	const workerUrl =
 		"https://semantic-search.playground-worker.pages.dev/api/generate";
-	const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
 	// const workerUrl = "http://localhost:5173/api/generate";
 
 	let abortController: AbortController | null = null;
@@ -69,6 +68,7 @@
 	async function* streamFromWorker(
 		query: string,
 		system_prompt: string,
+		fallback_prompt: string,
 		signal: AbortSignal
 	) {
 		const response = await fetch(workerUrl, {
@@ -178,7 +178,8 @@
 
 		for await (const chunk of streamFromWorker(
 			query,
-			SYSTEM_PROMPT.SYSTEM,
+			system_prompt,
+			fallback_prompt,
 			abortController.signal
 		)) {
 			if (chunk.requirements) {
