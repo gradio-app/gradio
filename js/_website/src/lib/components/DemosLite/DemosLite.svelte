@@ -47,8 +47,6 @@
 
 	$: code_state;
 
-	console.log(code_state);
-
 	let non_lite_demos = ['chatbot_dialogpt', 'text_generation', 'xgboost-income-prediction-with-explainability', 'same-person-or-different', 'question-answering', 'chicago-bikeshare-dashboard', 'image_classifier_2', 'llm_hf_transformers', 'progress', 'image_classifier', 'translation', 'blocks_speech_text_sentiment', 'yolov10_webcam_stream', 'stream_asr', 'rt-detr-object-detection', 'depth_estimation', 'unispeech-speaker-verification', 'stable-diffusion', 'text_analysis', 'asr', 'streaming_wav2vec', 'magic_8_ball', 'animeganv2', 'generate_english_german', 'musical_instrument_identification', 'ner_pipeline', 'map_airbnb', 'english_translator', 'unified_demo_text_generation', 'timeseries-forecasting-with-prophet', 'image_classification', 'diffusers_with_batching']
 
 	let hide_preview = false;
@@ -632,10 +630,12 @@
 			}
 		}
 		if (
-			app_error &&
+			app_error && (
 			app_error.includes(
 				"UserWarning: only soft file lock is available  from filelock import BaseFileLock, FileLock, SoftFileLock, Timeout"
 			)
+			|| app_error.includes("Matplotlib is building the font cache; this may take a moment.")
+	)
 		) {
 			app_error = null;
 		}
@@ -667,13 +667,15 @@
 
 	$: regenerate_on_error(app_error);
 
-	$: if (app_error && !user_query) {
+	$: if (app_error && !user_query && !hide_preview) {
 		user_query = app_error;
 	}
 
 	let code_to_compare = code;
 	$: code_to_compare;
 
+	$: current_selection && (user_query = "");
+	
 </script>
 
 <svelte:head>
@@ -743,6 +745,10 @@
 										dark_mode={false}
 										on:change={(e) => {
 											code_state.code_edited = true;
+											if (user_query == app_error) {
+												user_query = "";
+											}
+											code_state.status = "idle";
 										}}
 									/>
 								</div>

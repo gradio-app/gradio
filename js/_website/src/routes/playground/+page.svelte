@@ -203,8 +203,9 @@
 						<div class="border-b border-gray-400 ml-4 mr-5"></div>
 					</div>
 					{/if}
+					<div>
 						{#if edited_demos.includes("Blank")}
-							<div class="dot float-left !mt-[14px]"></div>
+							<div class="dot float-left !mt-[7px]"></div>
 						{/if}
 					<button
 						on:click={() => (current_selection = "Blank")}
@@ -213,6 +214,7 @@
 						class:shared-link={shared == "Blank"}
 						class="thin-link font-light px-4 block my-2 text-sm text-[#27272a]">New Demo</button
 					>
+				</div>
 					{#each data.demos_by_category as { category, demos } (category)}
 						<p class="px-4 my-2 font-medium text-sm text-[#27272a]">{category}</p>
 						{#each demos as demo, i}
