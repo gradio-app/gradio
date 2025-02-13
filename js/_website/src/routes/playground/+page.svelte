@@ -68,7 +68,7 @@
 				console.log(all_demos);
 				all_demos.push({
 					name: link.title,
-					dir: link.title,
+					dir: link.title.replaceAll(" ", "_").toLowerCase(),
 					code: link.url,
 					requirements: link.requirements.split("\n")
 				});
