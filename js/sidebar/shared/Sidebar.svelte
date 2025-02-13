@@ -105,7 +105,6 @@
 		top: 0;
 		height: 100%;
 		background-color: var(--background-fill-secondary);
-		box-shadow: var(--size-1) 0 var(--size-2) rgba(100, 89, 89, 0.1);
 		transform: translateX(0%);
 		transition: transform 0.3s ease-in-out;
 		z-index: 1000;
@@ -113,10 +112,12 @@
 
 	.sidebar.open:not(.right) {
 		transform: translateX(100%);
+		box-shadow: var(--size-1) 0 var(--size-2) rgba(100, 89, 89, 0.1);
 	}
 
 	.sidebar.open.right {
 		transform: translateX(-100%);
+		box-shadow: calc(var(--size-1) * -1) 0 var(--size-2) rgba(100, 89, 89, 0.1);
 	}
 
 	.toggle-button {
@@ -150,7 +151,8 @@
 	}
 
 	.open.right .toggle-button {
-		left: var(--size-0-5);
+		left: auto;
+		right: var(--size-2-5);
 		transform: rotate(0deg);
 	}
 
