@@ -1,5 +1,23 @@
 # website
 
+## 0.49.0
+
+### Features
+
+- [#10552](https://github.com/gradio-app/gradio/pull/10552) [`ed25a10`](https://github.com/gradio-app/gradio/commit/ed25a1053a55ddd2cf7d3067c72bdf77185ada8d) - Add 1920px wide resolution for wide monitors.  Thanks @Oncorporation!
+
+### Fixes
+
+- [#10510](https://github.com/gradio-app/gradio/pull/10510) [`71e4cd4`](https://github.com/gradio-app/gradio/commit/71e4cd483e9b43b2aa770db9f834036bb70f9420) - Fixed wrong example usage of docs/gradio/selectdata.  Thanks @PatZer0!
+
+### Dependency updates
+
+- @gradio/code@0.10.17
+- @gradio/paramviewer@0.7.1
+- @gradio/statustracker@0.10.3
+- @gradio/tabitem@0.4.2
+- @gradio/tabs@0.4.2
+
 ## 0.48.0
 
 ### Features
