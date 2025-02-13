@@ -782,9 +782,12 @@
 										on:change={(e) => {
 											code_state.code_edited = true;
 											if (user_query == app_error) {
+												app_error = null;
 												user_query = "";
 											}
-											code_state.status = "idle";
+											if (code_state.status == "error") {
+												code_state.status = "idle";
+											}
 										}}
 									/>
 								</div>
