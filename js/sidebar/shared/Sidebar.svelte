@@ -75,6 +75,22 @@
 </div>
 
 <style>
+	/* Mobile styles (≤ 768px) */
+	@media (max-width: 768px) {
+		.sidebar {
+			width: 100vw !important;
+			left: -100vw !important;
+		}
+
+		:global(.sidebar-parent) {
+			padding-left: 0 !important;
+		}
+
+		:global(.sidebar-parent:has(.sidebar.open)) {
+			padding-left: 0 !important;
+		}
+	}
+
 	:global(.sidebar-parent) {
 		display: flex !important;
 		padding-left: 0;
