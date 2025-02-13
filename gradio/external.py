@@ -203,6 +203,7 @@ def from_model(
     client = huggingface_hub.InferenceClient(
         model=model_name, headers=headers, token=hf_token, provider=provider
     )
+    print("client", client)
     p, tags = external_utils.get_model_info(model_name, hf_token)
 
     # For tasks that are not yet supported by the InferenceClient
@@ -454,15 +455,19 @@ def from_model(
         raise ValueError(f"Unsupported pipeline type: {p}")
 
     def query_huggingface_inference_endpoints(*data):
+        print("data", data)
         if preprocess is not None:
             data = preprocess(*data)
+        print("data after preprocess", data)
         try:
             data = fn(*data)  # type: ignore
+            print("data after fn", data)
         except huggingface_hub.utils.HfHubHTTPError as e:  # type: ignore
             if "429" in str(e):
                 raise TooManyRequestsError() from e
         if postprocess is not None:
             data = postprocess(data)  # type: ignore
+        print("data after postprocess", data)
         return data
 
     query_huggingface_inference_endpoints.__name__ = alias or model_name
