@@ -37,10 +37,23 @@ export async function GET() {
 			path = path.match(/(?:\d{2}_)?(.+)/i)[1];
 			path = "/main/docs/gradio/" + path.split(".svx")[0];
 
+			// content = content.replace(/<div class="codeblock"*>([^]*?)<\/div>/g, '')
+			content = content.replace(/<gradio-lite*?>([^]*?)<\/gradio-lite>/g, "");
+			content = content.replace(
+				/<pre[^>]*><code[^>]*>([^]*?)<\/code><\/pre>/g,
+				"```\n$1\n```"
+			);
+			content = content.replace(
+				/<span[^>]*>|<\/span>|<\/?[^>]*(token)[^>]*>/g,
+				""
+			);
+			content = content.replace(/<[^>]*>?/gm, "");
+			content = content.replace(/Open in 🎢.*?\n\t\t/g, "");
+
 			return {
 				title: title,
 				slug: path,
-				content: content.replaceAll(/<[^>]*>?/gm, ""),
+				content: content,
 				type: "DOCS"
 			};
 		})
@@ -62,10 +75,24 @@ export async function GET() {
 			path = path.match(/(?:\d{2}_)?(.+)/i)[1];
 			path = "/main/docs/python-client/" + path.split(".svx")[0];
 
+			content = content.replace(
+				/<pre[^>]*?language-(\w+)[^>]*?><code[^>]*?>([^]*?)<\/code><\/pre>/g,
+				"```$1\n$2\n```"
+			);
+			content = content.replace(
+				/<span[^>]*>|<\/span>|<\/?[^>]*(token)[^>]*>/g,
+				""
+			);
+			content = content.replace(
+				/<gradio-lite[^>]*>([^]*?)<\/gradio-lite>/g,
+				"```python\n$1\n```"
+			);
+			content = content.replace(/<[^>]*>?/gm, "");
+
 			return {
 				title: title,
 				slug: path,
-				content: content.replaceAll(/<[^>]*>?/gm, ""),
+				content: content,
 				type: "DOCS"
 			};
 		})

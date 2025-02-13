@@ -365,5 +365,5 @@ We can then use the `HelloWorld.svx` file in our components:
 
 ## Conclusion
 
-You now how to create delightful frontends for your components!
+You now know how to create delightful frontends for your components!
 
