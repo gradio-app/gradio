@@ -19,6 +19,7 @@
 		title: string;
 		url: string;
 		type: string;
+		requirements: string[];
 	}[] = [];
 
 	$: suggested_links;

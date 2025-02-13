@@ -70,7 +70,7 @@
 					name: link.title,
 					dir: link.title,
 					code: link.url,
-					requirements: []
+					requirements: link.requirements.split("\n")
 				});
 			}
 		});
