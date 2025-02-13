@@ -784,6 +784,9 @@
 								style="color-scheme: light"
 							>
 								<ErrorModal
+									on:close={() => {
+										code_state.generation_error = "";
+									}}
 									messages={[
 										{
 											type: "error",
