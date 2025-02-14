@@ -116,8 +116,18 @@
 	if (worker_proxy) {
 		setWorkerProxyContext(worker_proxy);
 
+		const total_lite_init_steps = 12; // NOTE: This is hardcoded but can be changed based on the init steps in the Lite worker.
+		let finished_steps = 0;
 		worker_proxy.addEventListener("progress-update", (event) => {
-			loading_text = (event as CustomEvent).detail + "...";
+			finished_steps++; // Increment finished_steps on progress update
+			const progress = Math.round(
+				(finished_steps / total_lite_init_steps) * 100
+			);
+
+			loading_text = `${progress}% ` + (event as CustomEvent).detail + "...";
+			if (finished_steps >= total_lite_init_steps) {
+				loader_status = "complete";
+			}
 		});
 	}
 
