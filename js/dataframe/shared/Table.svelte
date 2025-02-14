@@ -1110,6 +1110,18 @@
 									<button
 										class="cell-menu-button"
 										on:click={(event) => toggle_header_menu(event, i)}
+										on:touchstart={(event) => {
+											event.preventDefault();
+											const touch = event.touches[0];
+											const mouseEvent = new MouseEvent("click", {
+												clientX: touch.clientX,
+												clientY: touch.clientY,
+												bubbles: true,
+												cancelable: true,
+												view: window
+											});
+											toggle_header_menu(mouseEvent, i);
+										}}
 									>
 										&#8942;
 									</button>
@@ -1275,8 +1287,8 @@
 		border-radius: var(--table-radius);
 	}
 
-	.table-wrap.menu-open {
-		overflow: hidden;
+	.table-wrap.menu-open :global(table) {
+		overflow: hidden !important;
 	}
 
 	.table-wrap:focus-within {
@@ -1343,6 +1355,9 @@
 		outline: none;
 		box-shadow: inset 0 0 0 1px var(--ring-color);
 		padding: 0;
+		box-sizing: border-box;
+		height: 100%;
+		overflow: visible;
 	}
 
 	th:first-child {
@@ -1380,6 +1395,7 @@
 		display: flex;
 		align-items: center;
 		flex-shrink: 0;
+		order: -1;
 	}
 
 	.editing {
@@ -1388,17 +1404,23 @@
 
 	.cell-wrap {
 		display: flex;
-		align-items: flex-start;
+		align-items: center;
+		justify-content: flex-start;
 		outline: none;
 		min-height: var(--size-9);
 		position: relative;
-		height: auto;
+		height: 100%;
+		padding: var(--size-2);
+		box-sizing: border-box;
+		margin: 0;
+		gap: var(--size-1);
+		overflow: visible;
+		min-width: 0;
 	}
 
 	.header-content {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
 		overflow: hidden;
 		flex-grow: 1;
 		min-width: 0;
@@ -1406,8 +1428,9 @@
 		overflow-wrap: break-word;
 		word-break: normal;
 		height: 100%;
-		padding: var(--size-1);
 		gap: var(--size-1);
+		position: relative;
+		padding-right: var(--size-6);
 	}
 
 	.row_odd {
@@ -1428,7 +1451,7 @@
 		height: var(--size-5);
 		min-width: var(--size-5);
 		padding: 0;
-		margin-right: var(--spacing-sm);
+		margin: 0;
 		z-index: var(--layer-1);
 		position: absolute;
 		right: var(--size-1);
@@ -1436,7 +1459,9 @@
 		transform: translateY(-50%);
 	}
 
-	.cell-selected .cell-menu-button {
+	.cell-selected .cell-menu-button,
+	th:hover .cell-menu-button,
+	th:active .cell-menu-button {
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -1478,8 +1503,6 @@
 
 	.row-number-header .header-content {
 		justify-content: space-between;
-		padding: var(--size-1);
-		height: var(--size-9);
 		display: flex;
 		align-items: center;
 	}
@@ -1645,5 +1668,20 @@
 
 	.always-frozen {
 		z-index: var(--layer-3);
+	}
+
+	:global(.editable-cell) {
+		display: flex;
+		align-items: center;
+		min-height: var(--size-9);
+		width: auto;
+		max-width: 100%;
+		padding: 0;
+	}
+
+	:global(.editable-cell input) {
+		width: auto;
+		min-width: 0;
+		max-width: 100%;
 	}
 </style>
