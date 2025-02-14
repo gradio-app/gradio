@@ -5,6 +5,7 @@
 	import type { Gradio } from "@gradio/utils";
 	import Column from "@gradio/column";
 	export let open = true;
+	export let position: "left" | "right" = "left";
 	export let loading_status: LoadingStatus;
 	export let gradio: Gradio<{
 		expand: never;
@@ -21,6 +22,7 @@
 
 <Sidebar
 	bind:open
+	bind:position
 	{width}
 	on:expand={() => gradio.dispatch("expand")}
 	on:collapse={() => gradio.dispatch("collapse")}
