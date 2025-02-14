@@ -467,6 +467,7 @@ class ChatInterface(Blocks):
             if index is not None:
                 saved_conversations[index] = conversation
             else:
+                saved_conversations = saved_conversations or []
                 saved_conversations.append(conversation)
                 index = len(saved_conversations) - 1
         return index, saved_conversations
