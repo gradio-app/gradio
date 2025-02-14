@@ -902,6 +902,7 @@
 <svelte:window on:resize={() => set_cell_widths()} />
 
 <div class="table-container">
+	{#if (label && label.length !== 0 && show_label) || (show_fullscreen_button || show_copy_button || show_search !== "none")}
 	<div class="header-row">
 		{#if label && label.length !== 0 && show_label}
 			<div class="label">
@@ -920,6 +921,7 @@
 			{current_search_query}
 		/>
 	</div>
+	{/if}
 	<div
 		bind:this={parent}
 		class="table-wrap"

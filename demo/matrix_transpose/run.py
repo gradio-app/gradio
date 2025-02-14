@@ -2,7 +2,7 @@ import gradio as gr
 
 with gr.Blocks() as demo:
     with gr.Row():
-        gr.Matrix(headers=["test", "bar"])
+        m = gr.Matrix(headers=["test", "bar"])
         gr.Button("FoO")
 
 
