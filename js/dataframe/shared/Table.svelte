@@ -174,15 +174,14 @@
 		id: string;
 	}[][] {
 		const data_row_length = _values.length;
+		if (data_row_length === 0) return [];
 		return Array(row_count[1] === "fixed" ? row_count[0] : data_row_length)
 			.fill(0)
 			.map((_, i) => {
 				return Array(
 					col_count[1] === "fixed"
 						? col_count[0]
-						: data_row_length > 0
-							? _values[0].length
-							: headers.length
+						: _values[0].length || headers.length
 				)
 					.fill(0)
 					.map((_, j) => {
@@ -469,12 +468,8 @@
 		parent.focus();
 
 		if (row_count[1] !== "dynamic") return;
-		if (data.length === 0) {
-			values = [Array(headers.length).fill("")];
-			return;
-		}
 
-		const new_row = Array(data[0].length)
+		const new_row = Array(data[0]?.length || headers.length)
 			.fill(0)
 			.map((_, i) => {
 				const _id = make_id();
@@ -482,7 +477,9 @@
 				return { id: _id, value: "" };
 			});
 
-		if (index !== undefined && index >= 0 && index <= data.length) {
+		if (data.length === 0) {
+			data = [new_row];
+		} else if (index !== undefined && index >= 0 && index <= data.length) {
 			data.splice(index, 0, new_row);
 		} else {
 			data.push(new_row);
@@ -782,15 +779,17 @@
 	async function delete_col(index: number): Promise<void> {
 		parent.focus();
 		if (col_count[1] !== "dynamic") return;
-		if (data[0].length <= 1) return;
+		if (_headers.length <= 1) return;
 
 		_headers.splice(index, 1);
 		_headers = _headers;
 
-		data.forEach((row) => {
-			row.splice(index, 1);
-		});
-		data = data;
+		if (data.length > 0) {
+			data.forEach((row) => {
+				row.splice(index, 1);
+			});
+			data = data;
+		}
 		selected = false;
 	}
 
@@ -1035,196 +1034,205 @@
 			bind:dragging
 			aria_label={i18n("dataframe.drop_to_upload")}
 		>
-			<VirtualTable
-				bind:items={data}
-				{max_height}
-				bind:actual_height={table_height}
-				bind:table_scrollbar_width={scrollbar_width}
-				selected={selected_index}
-				disable_scroll={active_cell_menu !== null ||
-					active_header_menu !== null}
-			>
-				{#if label && label.length !== 0}
-					<caption class="sr-only">{label}</caption>
-				{/if}
-				<tr slot="thead">
-					{#if show_row_numbers}
-						<th
-							class="row-number-header frozen-column always-frozen"
-							style="left: 0;"
-						>
-							<div class="cell-wrap">
-								<div class="header-content">
-									<div class="header-text"></div>
-								</div>
-							</div>
-						</th>
+			<div class="table-wrap">
+				<VirtualTable
+					bind:items={data}
+					{max_height}
+					bind:actual_height={table_height}
+					bind:table_scrollbar_width={scrollbar_width}
+					selected={selected_index}
+					disable_scroll={active_cell_menu !== null ||
+						active_header_menu !== null}
+				>
+					{#if label && label.length !== 0}
+						<caption class="sr-only">{label}</caption>
 					{/if}
-					{#each _headers as { value, id }, i (id)}
-						<th
-							class:frozen-column={i < actual_pinned_columns}
-							class:last-frozen={i === actual_pinned_columns - 1}
-							class:focus={header_edit === i || selected_header === i}
-							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-							style="width: {get_cell_width(i)}; left: {i <
-							actual_pinned_columns
-								? i === 0
-									? show_row_numbers
-										? 'var(--cell-width-row-number)'
-										: '0'
-									: `calc(${show_row_numbers ? 'var(--cell-width-row-number) + ' : ''}${Array(
-											i
-										)
-											.fill(0)
-											.map((_, idx) => `var(--cell-width-${idx})`)
-											.join(' + ')})`
-								: 'auto'};"
-							on:click={() => {
-								toggle_header_button(i);
-							}}
-						>
-							<div class="cell-wrap">
-								<div class="header-content">
-									<EditableCell
-										{max_chars}
-										bind:value={_headers[i].value}
-										bind:el={els[id].input}
-										{latex_delimiters}
-										{line_breaks}
-										edit={header_edit === i}
-										on:keydown={end_header_edit}
-										on:dblclick={() => edit_header(i)}
-										header
-										{root}
-										{editable}
-									/>
-									<div class="sort-buttons">
-										<SortIcon
-											direction={sort_by === i ? sort_direction : null}
-											on:sort={({ detail }) => handle_sort(i, detail)}
-											{i18n}
-										/>
+					<tr slot="thead">
+						{#if show_row_numbers}
+							<th
+								class="row-number-header frozen-column always-frozen"
+								style="left: 0;"
+							>
+								<div class="cell-wrap">
+									<div class="header-content">
+										<div class="header-text"></div>
 									</div>
 								</div>
-								{#if editable}
-									<button
-										class="cell-menu-button"
-										on:click={(event) => toggle_header_menu(event, i)}
-										on:touchstart={(event) => {
-											event.preventDefault();
-											const touch = event.touches[0];
-											const mouseEvent = new MouseEvent("click", {
-												clientX: touch.clientX,
-												clientY: touch.clientY,
-												bubbles: true,
-												cancelable: true,
-												view: window
-											});
-											toggle_header_menu(mouseEvent, i);
+							</th>
+						{/if}
+						{#each _headers as { value, id }, i (id)}
+							<th
+								class:frozen-column={i < actual_pinned_columns}
+								class:last-frozen={i === actual_pinned_columns - 1}
+								class:focus={header_edit === i || selected_header === i}
+								aria-sort={get_sort_status(value, sort_by, sort_direction)}
+								style="width: {get_cell_width(i)}; left: {i <
+								actual_pinned_columns
+									? i === 0
+										? show_row_numbers
+											? 'var(--cell-width-row-number)'
+											: '0'
+										: `calc(${show_row_numbers ? 'var(--cell-width-row-number) + ' : ''}${Array(
+												i
+											)
+												.fill(0)
+												.map((_, idx) => `var(--cell-width-${idx})`)
+												.join(' + ')})`
+									: 'auto'};"
+								on:click={() => {
+									toggle_header_button(i);
+								}}
+							>
+								<div class="cell-wrap">
+									<div class="header-content">
+										<EditableCell
+											{max_chars}
+											bind:value={_headers[i].value}
+											bind:el={els[id].input}
+											{latex_delimiters}
+											{line_breaks}
+											edit={header_edit === i}
+											on:keydown={end_header_edit}
+											on:dblclick={() => edit_header(i)}
+											header
+											{root}
+											{editable}
+										/>
+										<div class="sort-buttons">
+											<SortIcon
+												direction={sort_by === i ? sort_direction : null}
+												on:sort={({ detail }) => handle_sort(i, detail)}
+												{i18n}
+											/>
+										</div>
+									</div>
+									{#if editable}
+										<button
+											class="cell-menu-button"
+											on:click={(event) => toggle_header_menu(event, i)}
+											on:touchstart={(event) => {
+												event.preventDefault();
+												const touch = event.touches[0];
+												const mouseEvent = new MouseEvent("click", {
+													clientX: touch.clientX,
+													clientY: touch.clientY,
+													bubbles: true,
+													cancelable: true,
+													view: window
+												});
+												toggle_header_menu(mouseEvent, i);
+											}}
+										>
+											&#8942;
+										</button>
+									{/if}
+								</div>
+							</th>
+						{/each}
+					</tr>
+					<tr slot="tbody" let:item let:index class:row_odd={index % 2 === 0}>
+						{#if show_row_numbers}
+							<td
+								class="row-number frozen-column always-frozen"
+								style="left: 0;"
+								tabindex="-1"
+							>
+								{index + 1}
+							</td>
+						{/if}
+						{#each item as { value, id }, j (id)}
+							<td
+								class:frozen-column={j < actual_pinned_columns}
+								class:last-frozen={j === actual_pinned_columns - 1}
+								tabindex={show_row_numbers && j === 0 ? -1 : 0}
+								bind:this={els[id].cell}
+								on:touchstart={(event) => {
+									const touch = event.touches[0];
+									const mouseEvent = new MouseEvent("click", {
+										clientX: touch.clientX,
+										clientY: touch.clientY,
+										bubbles: true,
+										cancelable: true,
+										view: window
+									});
+									handle_cell_click(mouseEvent, index, j);
+								}}
+								on:mousedown={(event) => {
+									event.preventDefault();
+									event.stopPropagation();
+								}}
+								on:click={(event) => handle_cell_click(event, index, j)}
+								style="width: {get_cell_width(j)}; left: {j <
+								actual_pinned_columns
+									? j === 0
+										? show_row_numbers
+											? 'var(--cell-width-row-number)'
+											: '0'
+										: `calc(${show_row_numbers ? 'var(--cell-width-row-number) + ' : ''}${Array(
+												j
+											)
+												.fill(0)
+												.map((_, idx) => `var(--cell-width-${idx})`)
+												.join(' + ')})`
+									: 'auto'}; {styling?.[index]?.[j] || ''}"
+								class:flash={copy_flash &&
+									is_cell_selected([index, j], selected_cells)}
+								class={is_cell_selected([index, j], selected_cells)}
+								class:menu-active={active_cell_menu &&
+									active_cell_menu.row === index &&
+									active_cell_menu.col === j}
+							>
+								<div class="cell-wrap">
+									<EditableCell
+										bind:value={data[index][j].value}
+										bind:el={els[id].input}
+										display_value={display_value?.[index]?.[j]}
+										{latex_delimiters}
+										{line_breaks}
+										{editable}
+										edit={dequal(editing, [index, j])}
+										datatype={Array.isArray(datatype) ? datatype[j] : datatype}
+										on:blur={() => {
+											clear_on_focus = false;
+											parent.focus();
 										}}
-									>
-										&#8942;
-									</button>
-								{/if}
-							</div>
-						</th>
-					{/each}
-				</tr>
-				<tr slot="tbody" let:item let:index class:row_odd={index % 2 === 0}>
-					{#if show_row_numbers}
-						<td
-							class="row-number frozen-column always-frozen"
-							style="left: 0;"
-							tabindex="-1"
-						>
-							{index + 1}
-						</td>
-					{/if}
-					{#each item as { value, id }, j (id)}
-						<td
-							class:frozen-column={j < actual_pinned_columns}
-							class:last-frozen={j === actual_pinned_columns - 1}
-							tabindex={show_row_numbers && j === 0 ? -1 : 0}
-							bind:this={els[id].cell}
-							on:touchstart={(event) => {
-								const touch = event.touches[0];
-								const mouseEvent = new MouseEvent("click", {
-									clientX: touch.clientX,
-									clientY: touch.clientY,
-									bubbles: true,
-									cancelable: true,
-									view: window
-								});
-								handle_cell_click(mouseEvent, index, j);
-							}}
-							on:mousedown={(event) => {
-								event.preventDefault();
-								event.stopPropagation();
-							}}
-							on:click={(event) => handle_cell_click(event, index, j)}
-							style="width: {get_cell_width(j)}; left: {j <
-							actual_pinned_columns
-								? j === 0
-									? show_row_numbers
-										? 'var(--cell-width-row-number)'
-										: '0'
-									: `calc(${show_row_numbers ? 'var(--cell-width-row-number) + ' : ''}${Array(
-											j
-										)
-											.fill(0)
-											.map((_, idx) => `var(--cell-width-${idx})`)
-											.join(' + ')})`
-								: 'auto'}; {styling?.[index]?.[j] || ''}"
-							class:flash={copy_flash &&
-								is_cell_selected([index, j], selected_cells)}
-							class={is_cell_selected([index, j], selected_cells)}
-							class:menu-active={active_cell_menu &&
-								active_cell_menu.row === index &&
-								active_cell_menu.col === j}
-						>
-							<div class="cell-wrap">
-								<EditableCell
-									bind:value={data[index][j].value}
-									bind:el={els[id].input}
-									display_value={display_value?.[index]?.[j]}
-									{latex_delimiters}
-									{line_breaks}
-									{editable}
-									edit={dequal(editing, [index, j])}
-									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
-									on:blur={() => {
-										clear_on_focus = false;
-										parent.focus();
-									}}
-									on:focus={() => {
-										const row = index;
-										const col = j;
-										if (
-											!selected_cells.some(([r, c]) => r === row && c === col)
-										) {
-											selected_cells = [[row, col]];
-										}
-									}}
-									{clear_on_focus}
-									{root}
-									{max_chars}
-								/>
-								{#if editable && should_show_cell_menu([index, j], selected_cells, editable)}
-									<button
-										class="cell-menu-button"
-										on:click={(event) => toggle_cell_menu(event, index, j)}
-									>
-										&#8942;
-									</button>
-								{/if}
-							</div>
-						</td>
-					{/each}
-				</tr>
-			</VirtualTable>
+										on:focus={() => {
+											const row = index;
+											const col = j;
+											if (
+												!selected_cells.some(([r, c]) => r === row && c === col)
+											) {
+												selected_cells = [[row, col]];
+											}
+										}}
+										{clear_on_focus}
+										{root}
+										{max_chars}
+									/>
+									{#if editable && should_show_cell_menu([index, j], selected_cells, editable)}
+										<button
+											class="cell-menu-button"
+											on:click={(event) => toggle_cell_menu(event, index, j)}
+										>
+											&#8942;
+										</button>
+									{/if}
+								</div>
+							</td>
+						{/each}
+					</tr>
+				</VirtualTable>
+			</div>
 		</Upload>
 	</div>
 </div>
+{#if data.length === 0 && editable && row_count[1] === "dynamic"}
+	<div class="add-row-container">
+		<button class="add-row-button" on:click={() => add_row()}>
+			<span>+</span>
+		</button>
+	</div>
+{/if}
 
 {#if active_cell_menu}
 	<CellMenu
@@ -1261,7 +1269,7 @@
 		on_delete_row={() => delete_row_at(active_cell_menu?.row ?? -1)}
 		on_delete_col={() => delete_col_at(active_header_menu?.col ?? -1)}
 		can_delete_rows={false}
-		can_delete_cols={data[0].length > 1}
+		can_delete_cols={_headers.length > 1}
 	/>
 {/if}
 
@@ -1460,8 +1468,7 @@
 	}
 
 	.cell-selected .cell-menu-button,
-	th:hover .cell-menu-button,
-	th:active .cell-menu-button {
+	th:hover .cell-menu-button {
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -1683,5 +1690,36 @@
 		width: auto;
 		min-width: 0;
 		max-width: 100%;
+	}
+
+	.add-row-container {
+		position: relative;
+		background: var(--background-fill-primary);
+		border-bottom-left-radius: var(--table-radius);
+		border-bottom-right-radius: var(--table-radius);
+		z-index: var(--layer-1);
+		margin-top: var(--size-2);
+	}
+
+	.add-row-button {
+		width: 100%;
+		padding: var(--size-1);
+		background: transparent;
+		border: 1px dashed var(--border-color-primary);
+		border-radius: var(--radius-sm);
+		color: var(--body-text-color);
+		cursor: pointer;
+		transition: all 150ms;
+	}
+
+	.add-row-button:hover {
+		background: var(--background-fill-secondary);
+		border-style: solid;
+	}
+
+	.add-row-button span {
+		font-size: var(--text-md);
+		font-size: var(--text-lg);
+		line-height: 1;
 	}
 </style>
