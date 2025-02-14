@@ -326,6 +326,9 @@ importers:
       '@gradio/simpletextbox':
         specifier: workspace:^
         version: link:js/simpletextbox
+      '@gradio/sketchbox':
+        specifier: workspace:^
+        version: link:js/sketchbox
       '@gradio/slider':
         specifier: workspace:^
         version: link:js/slider
@@ -1158,6 +1161,9 @@ importers:
       '@gradio/simpletextbox':
         specifier: workspace:^
         version: link:../simpletextbox
+      '@gradio/sketchbox':
+        specifier: workspace:^
+        version: link:../sketchbox
       '@gradio/slider':
         specifier: workspace:^
         version: link:../slider
@@ -2189,6 +2195,28 @@ importers:
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
+
+  js/sketchbox:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/column':
+        specifier: workspace:^
+        version: link:../column
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
@@ -15619,7 +15647,7 @@ snapshots:
   svelte@4.2.15:
     dependencies:
       '@ampproject/remapping': 2.3.0
-      '@jridgewell/sourcemap-codec': 1.4.15
+      '@jridgewell/sourcemap-codec': 1.5.0
       '@jridgewell/trace-mapping': 0.3.25
       '@types/estree': 1.0.5
       acorn: 8.11.3
