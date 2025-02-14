@@ -289,7 +289,7 @@
 			trigger_id: trigger_id
 		};
 
-		if (dep.frontend_fn) {
+		if (dep.frontend_fn && typeof dep.frontend_fn !== "boolean") {
 			dep
 				.frontend_fn(
 					payload.data.concat(
@@ -314,6 +314,21 @@
 			);
 		} else {
 			if (dep.backend_fn) {
+				if (dep.js_implementation) {
+					let js_fn = new AsyncFunction(
+						`let result = await (${dep.js_implementation})(...arguments);
+						return (!Array.isArray(result)) ? [result] : result;`
+					);
+					js_fn(...payload.data)
+						.then((js_result) => {
+							handle_update(js_result, dep_index);
+							payload.js_implementation = true;
+						})
+						.catch((error) => {
+							console.error(error);
+							payload.js_implementation = false;
+						});
+				}
 				trigger_prediction(dep, payload);
 			}
 		}
@@ -391,6 +406,9 @@
 			submit_map.set(dep_index, submission);
 
 			for await (const message of submission) {
+				if (payload.js_implementation) {
+					return;
+				}
 				if (message.type === "data") {
 					handle_data(message);
 				} else if (message.type === "render") {

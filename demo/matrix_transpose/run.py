@@ -7,7 +7,7 @@ def transpose(matrix):
 
 demo = gr.Interface(
     transpose,
-    gr.Dataframe(type="numpy", datatype="number", row_count=5, col_count=3, show_fullscreen_button=True),
+    gr.Dataframe(type="numpy", datatype="number", row_count=5, col_count=3, show_fullscreen_button=True, show_search="search"),
     "numpy",
     examples=[
         [np.zeros((3, 3)).tolist()],

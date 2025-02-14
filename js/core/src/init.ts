@@ -478,12 +478,12 @@ export const AsyncFunction: new (
  * @returns The function, or null if the source code is invalid or missing
  */
 export function process_frontend_fn(
-	source: string | null | undefined | false,
+	source: string | null | undefined | boolean,
 	backend_fn: boolean,
 	input_length: number,
 	output_length: number
 ): ((...args: unknown[]) => Promise<unknown[]>) | null {
-	if (!source) return null;
+	if (!source || source === true) return null;
 
 	const wrap = backend_fn ? input_length === 1 : output_length === 1;
 	try {
