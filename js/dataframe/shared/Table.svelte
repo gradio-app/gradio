@@ -902,24 +902,26 @@
 <svelte:window on:resize={() => set_cell_widths()} />
 
 <div class="table-container">
-	<div class="header-row">
-		{#if label && label.length !== 0 && show_label}
-			<div class="label">
-				<p>{label}</p>
-			</div>
-		{/if}
-		<Toolbar
-			{show_fullscreen_button}
-			{is_fullscreen}
-			on:click={toggle_fullscreen}
-			on_copy={handle_copy}
-			{show_copy_button}
-			{show_search}
-			on:search={(e) => handle_search(e.detail)}
-			on_commit_filter={commit_filter}
-			{current_search_query}
-		/>
-	</div>
+	{#if (label && label.length !== 0 && show_label) || show_fullscreen_button || show_copy_button || show_search !== "none"}
+		<div class="header-row">
+			{#if label && label.length !== 0 && show_label}
+				<div class="label">
+					<p>{label}</p>
+				</div>
+			{/if}
+			<Toolbar
+				{show_fullscreen_button}
+				{is_fullscreen}
+				on:click={toggle_fullscreen}
+				on_copy={handle_copy}
+				{show_copy_button}
+				{show_search}
+				on:search={(e) => handle_search(e.detail)}
+				on_commit_filter={commit_filter}
+				{current_search_query}
+			/>
+		</div>
+	{/if}
 	<div
 		bind:this={parent}
 		class="table-wrap"
