@@ -1,5 +1,17 @@
 # gradio
 
+## 5.17.0
+
+### Features
+
+- [#10579](https://github.com/gradio-app/gradio/pull/10579) [`b640df2`](https://github.com/gradio-app/gradio/commit/b640df2517dee166634f279fcfaac8ba5f5aef2f) - Fix Sidebar for mobile.  Thanks @dawoodkhan82!
+- [#10582](https://github.com/gradio-app/gradio/pull/10582) [`1299267`](https://github.com/gradio-app/gradio/commit/1299267a8a78546d3f9e13d6b3c58231cf88f2b9) - Change sidebar position.  Thanks @dawoodkhan82!
+- [#10511](https://github.com/gradio-app/gradio/pull/10511) [`c4aa886`](https://github.com/gradio-app/gradio/commit/c4aa8864dabec4caeb59af91f6f1aaaf50e33b67) - Semantic search in the playground.  Thanks @aliabd!
+
+### Fixes
+
+- [#10595](https://github.com/gradio-app/gradio/pull/10595) [`12669f4`](https://github.com/gradio-app/gradio/commit/12669f4bf1a4d6bd8df29583b6c185ded51dff48) - Row scale changes.  Thanks @aliabid94!
+
 ## 5.16.0
 
 ### Features
