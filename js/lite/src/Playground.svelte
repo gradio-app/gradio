@@ -190,6 +190,8 @@
 	}
 	.child-container.vertical {
 		flex-direction: column;
+		height: 100%;
+		overflow: hidden;
 	}
 
 	.half-container {
@@ -201,6 +203,7 @@
 	}
 	.child-container.vertical .half-container {
 		height: 50%;
+		overflow: scroll;
 	}
 
 	.child-container.horizontal .code-editor.code-editor-border {
@@ -295,7 +298,7 @@
 	}
 
 	.preview {
-		overflow: scroll;
+		min-height: 100%;
 	}
 
 	.buttons {
