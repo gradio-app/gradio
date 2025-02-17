@@ -1291,12 +1291,10 @@
 	.table-wrap {
 		position: relative;
 		transition: 150ms;
-		border: 1px solid var(--border-color-primary);
-		border-radius: var(--table-radius);
 	}
 
-	.table-wrap.menu-open :global(table) {
-		overflow: hidden !important;
+	.table-wrap.menu-open {
+		overflow: hidden;
 	}
 
 	.table-wrap:focus-within {
@@ -1323,6 +1321,12 @@
 		font-family: var(--font-mono);
 		border-spacing: 0;
 		border-collapse: separate;
+	}
+
+	.table-wrap > :global(button) {
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--table-radius);
+		overflow: hidden;
 	}
 
 	div:not(.no-wrap) td {
@@ -1363,17 +1367,16 @@
 		outline: none;
 		box-shadow: inset 0 0 0 1px var(--ring-color);
 		padding: 0;
-		box-sizing: border-box;
-		height: 100%;
-		overflow: visible;
 	}
 
 	th:first-child {
 		border-top-left-radius: var(--table-radius);
+		border-bottom-left-radius: var(--table-radius);
 	}
 
 	th:last-child {
 		border-top-right-radius: var(--table-radius);
+		border-bottom-right-radius: var(--table-radius);
 	}
 
 	th.focus,
@@ -1424,6 +1427,7 @@
 		gap: var(--size-1);
 		overflow: visible;
 		min-width: 0;
+		border-radius: var(--table-radius);
 	}
 
 	.header-content {
@@ -1437,8 +1441,6 @@
 		word-break: normal;
 		height: 100%;
 		gap: var(--size-1);
-		position: relative;
-		padding-right: var(--size-6);
 	}
 
 	.row_odd {
@@ -1459,7 +1461,7 @@
 		height: var(--size-5);
 		min-width: var(--size-5);
 		padding: 0;
-		margin: 0;
+		margin-right: var(--spacing-sm);
 		z-index: var(--layer-1);
 		position: absolute;
 		right: var(--size-1);
@@ -1510,6 +1512,8 @@
 
 	.row-number-header .header-content {
 		justify-content: space-between;
+		padding: var(--size-1);
+		height: var(--size-9);
 		display: flex;
 		align-items: center;
 	}
@@ -1677,27 +1681,7 @@
 		z-index: var(--layer-3);
 	}
 
-	:global(.editable-cell) {
-		display: flex;
-		align-items: center;
-		min-height: var(--size-9);
-		width: auto;
-		max-width: 100%;
-		padding: 0;
-	}
-
-	:global(.editable-cell input) {
-		width: auto;
-		min-width: 0;
-		max-width: 100%;
-	}
-
 	.add-row-container {
-		position: relative;
-		background: var(--background-fill-primary);
-		border-bottom-left-radius: var(--table-radius);
-		border-bottom-right-radius: var(--table-radius);
-		z-index: var(--layer-1);
 		margin-top: var(--size-2);
 	}
 
@@ -1715,11 +1699,5 @@
 	.add-row-button:hover {
 		background: var(--background-fill-secondary);
 		border-style: solid;
-	}
-
-	.add-row-button span {
-		font-size: var(--text-md);
-		font-size: var(--text-lg);
-		line-height: 1;
 	}
 </style>
