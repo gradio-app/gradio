@@ -1,6 +1,6 @@
 ---
-"@self/spa": minor
-"gradio": minor
+"@self/spa": patch
+"gradio": patch
 ---
 
-feat:[ZeroGPU] Handshake-based postMessage part.2 (non-SSR mode)
+fix:[ZeroGPU] Handshake-based postMessage part.2 (non-SSR mode)
