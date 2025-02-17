@@ -1,6 +1,6 @@
 ---
-"@gradio/core": minor
-"gradio": minor
+"@gradio/core": patch
+"gradio": patch
 "website": minor
 ---
 
