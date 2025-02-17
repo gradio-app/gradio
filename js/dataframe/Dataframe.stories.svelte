@@ -153,6 +153,21 @@
 />
 
 <Story
+	name="Dataframe without a label"
+	args={{
+		values: [
+			[800, 100, 800],
+			[200, 800, 700]
+		],
+		headers: ["Math", "Reading", "Writing"],
+		show_label: false,
+		col_count: [3, "dynamic"],
+		row_count: [2, "dynamic"],
+		editable: false
+	}}
+/>
+
+<Story
 	name="Dataframe with different colors"
 	args={{
 		values: [

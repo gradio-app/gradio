@@ -686,7 +686,7 @@ class Matrix(components.Dataframe):
         show_row_numbers: bool = False,
         show_search: Literal["none", "search", "filter"] = "none",
         pinned_columns: int | None = None,
-        show_fullscreen_button: bool = True,
+        show_fullscreen_button: bool = False,
         max_chars: int | None = None,
         show_copy_button: bool = False,
     ):
@@ -765,7 +765,7 @@ class List(components.Dataframe):
         show_row_numbers: bool = False,
         show_search: Literal["none", "search", "filter"] = "none",
         pinned_columns: int | None = None,
-        show_fullscreen_button: bool = True,
+        show_fullscreen_button: bool = False,
         max_chars: int | None = None,
         show_copy_button: bool = False,
     ):
