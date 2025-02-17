@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Fix Auth
+fix:Row scale changes
