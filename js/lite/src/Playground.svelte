@@ -236,6 +236,7 @@
 	}
 
 	.code-editor {
+		height: 100%;
 		flex: 1 1 50%;
 		display: flex;
 		flex-direction: column;
