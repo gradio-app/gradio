@@ -203,7 +203,7 @@
 		height: 50%;
 	}
 
-	.child-container.horizontal .code-editor {
+	.child-container.horizontal .code-editor.code-editor-border {
 		position: absolute;
 		top: 0;
 		bottom: 0;
