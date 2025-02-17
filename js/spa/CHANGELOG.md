@@ -1,5 +1,15 @@
 # @self/spa
 
+## 0.6.1
+
+### Fixes
+
+- [#10608](https://github.com/gradio-app/gradio/pull/10608) [`b8fada8`](https://github.com/gradio-app/gradio/commit/b8fada87724cdc76b5862f84a1025f7da151db42) - [ZeroGPU] Handshake-based postMessage part.2 (non-SSR mode).  Thanks @cbensimon!
+
+### Dependency updates
+
+- @gradio/core@0.10.1
+
 ## 0.6.0
 
 ### Dependency updates
