@@ -67,6 +67,7 @@
 	export let show_copy_button = false;
 	export let value_is_output = false;
 	export let max_chars: number | undefined = undefined;
+	export let show_search: "none" | "search" | "filter" = "none";
 	export let pinned_columns = 0;
 
 	let actual_pinned_columns = 0;
@@ -96,6 +97,7 @@
 		change: DataframeValue;
 		input: undefined;
 		select: SelectData;
+		search: string | null;
 	}>();
 
 	let editing: EditingState = false;
@@ -216,6 +218,8 @@
 	let previous_data = data.map((row) => row.map((cell) => String(cell.value)));
 
 	async function trigger_change(): Promise<void> {
+		// shouldnt trigger if data changed due to search
+		if (current_search_query) return;
 		const current_headers = _headers.map((h) => h.value);
 		const current_data = data.map((row) =>
 			row.map((cell) => String(cell.value))
@@ -871,25 +875,52 @@
 			);
 		}
 	}
+
+	let current_search_query: string | null = null;
+
+	function handle_search(search_query: string | null): void {
+		current_search_query = search_query;
+		dispatch("search", search_query);
+	}
+
+	function commit_filter(): void {
+		if (current_search_query && show_search === "filter") {
+			dispatch("change", {
+				data: data.map((row) => row.map((cell) => cell.value)),
+				headers: _headers.map((h) => h.value),
+				metadata: null
+			});
+			if (!value_is_output) {
+				dispatch("input");
+			}
+			current_search_query = null;
+		}
+	}
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
 
 <div class="table-container">
-	<div class="header-row">
-		{#if label && label.length !== 0 && show_label}
-			<div class="label">
-				<p>{label}</p>
-			</div>
-		{/if}
-		<Toolbar
-			{show_fullscreen_button}
-			{is_fullscreen}
-			on:click={toggle_fullscreen}
-			on_copy={handle_copy}
-			{show_copy_button}
-		/>
-	</div>
+	{#if (label && label.length !== 0 && show_label) || show_fullscreen_button || show_copy_button || show_search !== "none"}
+		<div class="header-row">
+			{#if label && label.length !== 0 && show_label}
+				<div class="label">
+					<p>{label}</p>
+				</div>
+			{/if}
+			<Toolbar
+				{show_fullscreen_button}
+				{is_fullscreen}
+				on:click={toggle_fullscreen}
+				on_copy={handle_copy}
+				{show_copy_button}
+				{show_search}
+				on:search={(e) => handle_search(e.detail)}
+				on_commit_filter={commit_filter}
+				{current_search_query}
+			/>
+		</div>
+	{/if}
 	<div
 		bind:this={parent}
 		class="table-wrap"
@@ -1478,21 +1509,28 @@
 
 	.header-row {
 		display: flex;
-		justify-content: space-between;
+		justify-content: flex-end;
 		align-items: center;
 		gap: var(--size-2);
-		height: var(--size-6);
 		min-height: var(--size-6);
+		flex-wrap: nowrap;
+		width: 100%;
 	}
 
 	.label {
-		flex: 1;
+		flex: 1 1 auto;
+		margin-right: auto;
 	}
 
 	.label p {
 		margin: 0;
 		color: var(--block-label-text-color);
 		font-size: var(--block-label-text-size);
+		line-height: var(--line-sm);
+	}
+
+	.toolbar {
+		flex: 0 0 auto;
 	}
 
 	.row-number,

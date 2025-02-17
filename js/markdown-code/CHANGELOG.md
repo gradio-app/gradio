@@ -1,5 +1,11 @@
 # @gradio/markdown-code
 
+## 0.4.0
+
+### Features
+
+- [#10507](https://github.com/gradio-app/gradio/pull/10507) [`3748e4c`](https://github.com/gradio-app/gradio/commit/3748e4c902683ff406fdd246fa8c07dbbbed3ad5) - Chatbot `allow_tags`.  Thanks @dawoodkhan82!
+
 ## 0.3.0
 
 ### Features
