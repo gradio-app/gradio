@@ -13,7 +13,8 @@
 		| "html"
 		| "number"
 		| "bool"
-		| "date" = "str";
+		| "date"
+		| "image" = "str";
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -24,6 +25,8 @@
 	export let editable = true;
 	export let root: string;
 	export let max_chars: number | null = null;
+	export let components: Record<string, any> = {};
+	export let i18n: any;
 
 	const dispatch = createEventDispatcher();
 	let is_expanded = false;
@@ -113,7 +116,17 @@
 	data-editable={editable}
 	placeholder=" "
 >
-	{#if datatype === "html"}
+	{#if datatype === "image" && components.image}
+		<svelte:component
+			this={components.image}
+			value={{ url: display_text }}
+			show_label={false}
+			label="cell-image"
+			show_download_button={false}
+			{i18n}
+			gradio={{ dispatch: () => {} }}
+		/>
+	{:else if datatype === "html"}
 		{@html display_text}
 	{:else if datatype === "markdown"}
 		<MarkdownCode
@@ -180,5 +193,11 @@
 	.edit {
 		opacity: 0;
 		pointer-events: none;
+	}
+
+	span :global(img) {
+		max-height: 100px;
+		width: auto;
+		object-fit: contain;
 	}
 </style>

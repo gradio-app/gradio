@@ -12,6 +12,8 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import type { Headers, Datatype, DataframeValue } from "./shared/utils";
+	import Image from "@gradio/image";
+
 	export let headers: Headers = [];
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -126,5 +128,6 @@
 		{show_row_numbers}
 		{show_search}
 		{pinned_columns}
+		components={{ image: Image }}
 	/>
 </Block>

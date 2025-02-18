@@ -51,6 +51,7 @@
 		right: string;
 		display: boolean;
 	}[];
+	export let components: Record<string, any> = {};
 
 	export let editable = true;
 	export let wrap = false;
@@ -1004,6 +1005,8 @@
 										el={null}
 										{root}
 										{editable}
+										{components}
+										{i18n}
 									/>
 									<div class="sort-buttons">
 										<SortIcon
@@ -1032,6 +1035,8 @@
 									el={null}
 									{root}
 									{editable}
+									{components}
+									{i18n}
 								/>
 							</div>
 						</td>
@@ -1128,6 +1133,8 @@
 											header
 											{root}
 											{editable}
+											{components}
+											{i18n}
 										/>
 										<div class="sort-buttons">
 											<SortIcon
@@ -1221,6 +1228,8 @@
 										{latex_delimiters}
 										{line_breaks}
 										{editable}
+										{components}
+										{i18n}
 										edit={dequal(editing, [index, j])}
 										datatype={Array.isArray(datatype) ? datatype[j] : datatype}
 										on:blur={() => {
