@@ -40,7 +40,7 @@
 			</nav>
 		</div>
 	{/if}
-	<main class="fillable" class:app={!display && !is_embed}>
+	<main class="fillable" class:fill_width class:app={!display && !is_embed}>
 		<slot />
 		<div>
 			{#if display && space && info}
