@@ -12,6 +12,7 @@ def launch(app_file: str, config_file: str):
         gr.Number,
         gr.Button,
         gr.Markdown,
+        gr.State,
     ]
     all_component_list = [
         gr.Accordion,
@@ -141,7 +142,7 @@ def launch(app_file: str, config_file: str):
                             code += "    " * depth + var_name + " = gr." + component.__name__ + "(" + ", ".join([f"{k}={v}" for k, v in kwargs.items()]) + ")\n"
                             component(**kwargs)
                         else:
-                            with SketchBox() as box:
+                            with SketchBox(component_type=component.__name__.lower(), var_name=var_name) as box:
                                 component(**kwargs)
                             boxes.append((box, this_index))
 

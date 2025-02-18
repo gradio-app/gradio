@@ -3,6 +3,8 @@
 
 	export let row: boolean;
 	export let is_container: boolean;
+	export let component_type: string;
+	export let var_name: string;
 
 	export let gradio:
 		| Gradio<{
@@ -12,12 +14,17 @@
 	const dispatch = (type: string) => {
 		return () => gradio.dispatch("select", {index: 0, value: type});
 	};
+
+	const invisible_components = ["state"];
 </script>
 
 <div class="sketchbox" class:row>
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div class="interaction" on:click={is_container ? undefined : dispatch("modify")}>
+		{#if invisible_components.includes(component_type)}
+			<div class="component-name"><span>{component_type}:</span>&nbsp;{var_name}</div>
+		{/if}
 		<button class="up" on:click={dispatch("up")}>+</button>
 		<button class="left" on:click={dispatch("left")}>+</button>
 		<button class="right" on:click={dispatch("right")}>+</button>
@@ -104,5 +111,18 @@
 		top: 50%;
 		left: 50%;
 		transform: translate(calc(-50% + 30px), -50%);
+	}
+	.component-name {
+		background: var(--block-background-fill);
+		border: var(--block-border-color) var(--block-border-width) solid;
+		border-radius: var(--block-radius);
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.component-name span {
+		color: var(--body-text-color-subdued);
+		font-style: italic;
 	}
 </style>

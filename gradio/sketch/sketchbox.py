@@ -8,9 +8,11 @@ from gradio.events import Events
 class SketchBox(BlockContext, metaclass=ComponentMeta):
     EVENTS = [Events.select]
 
-    def __init__(self, is_container: bool = False):
+    def __init__(self, is_container: bool = False, component_type: str | None = None, var_name: str | None = None):
         self.row = False
         self.is_container = is_container
+        self.component_type = component_type
+        self.var_name = var_name
         super().__init__()
 
     def __exit__(self, exc_type: type[BaseException] | None = None, *args):
