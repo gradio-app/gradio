@@ -148,6 +148,43 @@ def handle_edit(history, edit_data: gr.EditData):
 chatbot.edit(handle_edit, chatbot, chatbot)
 ```
 
+## The Clear Event
+
+Use the `chatbot.clear` event to handle clearing of additional chatbot state:
+
+```python
+from uuid import uuid4
+import gradio as gr
+
+
+def clear():
+    print("Cleared uuid")
+    return uuid4()
+
+
+def chat_fn(user_input, history, uuid):
+    return f"{user_input} with uuid {uuid}"
+
+
+with gr.Blocks() as demo:
+    uuid_state = gr.State(
+        uuid4
+    )
+    chatbot = gr.Chatbot(type="messages")
+    chatbot.clear(clear, outputs=[uuid_state])
+
+    gr.ChatInterface(
+        chat_fn,
+        additional_inputs=[uuid_state],
+        chatbot=chatbot,
+        type="messages"
+    )
+
+demo.launch()
+```
+
+In this example, the `clear` function, bound to the `chatbot.clear` event, returns a new UUID into our session state, when the chat history is cleared via the trash icon.
+This can be seen in the `chat_fn` function, which references the UUID saved in our session state.
 
 ## Conclusion
 
