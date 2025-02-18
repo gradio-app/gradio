@@ -4,11 +4,8 @@ setlocal EnableDelayedExpansion
 :: Change to parent directory of script location
 cd /d "%~dp0.."
 
-:: Source the helpers script
-call scripts\helpers.bat
-
 :: Check for pnpm
-call :pnpm_required
+call scripts\helpers.bat pnpm_required
 
 :: Generate theme using Python script
 python scripts\generate_theme.py
