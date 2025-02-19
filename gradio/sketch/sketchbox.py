@@ -5,10 +5,16 @@ from gradio.component_meta import ComponentMeta
 
 from gradio.events import Events
 
+
 class SketchBox(BlockContext, metaclass=ComponentMeta):
     EVENTS = [Events.select]
 
-    def __init__(self, is_container: bool = False, component_type: str | None = None, var_name: str | None = None):
+    def __init__(
+        self,
+        is_container: bool = False,
+        component_type: str | None = None,
+        var_name: str | None = None,
+    ):
         self.row = False
         self.is_container = is_container
         self.component_type = component_type

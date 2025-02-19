@@ -6,13 +6,12 @@
 	export let component_type: string;
 	export let var_name: string;
 
-	export let gradio:
-		| Gradio<{
-			select: SelectData;
-		}>;
+	export let gradio: Gradio<{
+		select: SelectData;
+	}>;
 
 	const dispatch = (type: string) => {
-		return () => gradio.dispatch("select", {index: 0, value: type});
+		return () => gradio.dispatch("select", { index: 0, value: type });
 	};
 
 	const invisible_components = ["state"];
@@ -21,9 +20,14 @@
 <div class="sketchbox" class:row>
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
-	<div class="interaction" on:click={is_container ? undefined : dispatch("modify")}>
+	<div
+		class="interaction"
+		on:click={is_container ? undefined : dispatch("modify")}
+	>
 		{#if invisible_components.includes(component_type)}
-			<div class="component-name"><span>{component_type}:</span>&nbsp;{var_name}</div>
+			<div class="component-name">
+				<span>{component_type}:</span>&nbsp;{var_name}
+			</div>
 		{/if}
 		<button class="up" on:click={dispatch("up")}>+</button>
 		<button class="left" on:click={dispatch("left")}>+</button>
@@ -61,14 +65,14 @@
 	}
 	.interaction:hover {
 		border-color: var(--body-text-color);
-		border-width: 1px;		
+		border-width: 1px;
 	}
 	.interaction:hover button {
 		display: flex;
 	}
 	button {
 		border-color: var(--body-text-color);
-		border-width: 1px;		
+		border-width: 1px;
 		position: absolute;
 		background-color: var(--button-secondary-background-fill);
 		border-radius: 50%;
