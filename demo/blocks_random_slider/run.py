@@ -1,8 +1,8 @@
 
 import gradio as gr
 
-def func(slider_1: float, slider_2: float) -> float:
-    return slider_1 * 5.0 + slider_2
+def func(slider_1, slider_2):
+    return slider_1 * 5 + slider_2
 
 with gr.Blocks() as demo:
     slider = gr.Slider(minimum=-10.2, maximum=15, label="Random Slider (Static)", randomize=True)
@@ -10,7 +10,7 @@ with gr.Blocks() as demo:
     slider_2 = gr.Slider(minimum=10, maximum=23.2, label="Random Slider (Input 2)", randomize=True)
     slider_3 = gr.Slider(value=3, label="Non random slider")
     btn = gr.Button("Run")
-    btn.click(func, inputs=[slider_1, slider_2], outputs=gr.Number(), js=True, preprocess=False, postprocess=False)
+    btn.click(func, inputs=[slider_1, slider_2], outputs=gr.Number())
 
 if __name__ == "__main__":
     demo.launch()

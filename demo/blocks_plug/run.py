@@ -30,7 +30,7 @@ with gr.Blocks() as demo:
             tab2.select(lambda: gr.Tabs(selected=2), None, tabs)
             output_demo.render()
     btn = gr.Button("Change tab")
-    btn.click(inputs=None, outputs=tabs, fn=change_tab, js=True, preprocess=False, postprocess=False)
+    btn.click(inputs=None, outputs=tabs, fn=change_tab)
 
 if __name__ == "__main__":
     demo.launch()

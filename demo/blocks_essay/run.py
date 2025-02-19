@@ -6,7 +6,7 @@ countries_cities_dict = {
     "Pakistan": ["Karachi", "Lahore", "Islamabad"],
 }
 
-def change_textbox(choice: str):
+def change_textbox(choice):
     if choice == "short":
         return gr.Textbox(lines=2, visible=True), gr.Button(interactive=True)
     elif choice == "long":
@@ -30,7 +30,6 @@ with gr.Blocks() as demo:
     with gr.Row():
         country = gr.Dropdown(list(countries_cities_dict.keys()), label="Country")
         cities = gr.Dropdown([], label="Cities")
-
     @country.change(inputs=country, outputs=cities)
     def update_cities(country):
         cities = list(countries_cities_dict[country])
@@ -39,7 +38,7 @@ with gr.Blocks() as demo:
     def reset_bounds(minimum, maximum):
         return gr.Number(minimum=minimum, maximum=maximum)
 
-    radio.change(fn=change_textbox, inputs=radio, outputs=[text, submit_btn], js=True, preprocess=False, postprocess=False)
+    radio.change(fn=change_textbox, inputs=radio, outputs=[text, submit_btn])
     gr.on(
         [minimum_slider.change, maximum_slider.change],
         reset_bounds,
