@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { type FileData } from "@gradio/client";
+	import { Image } from "@gradio/image/shared";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -32,7 +33,7 @@
 		id={elem_id}
 	>
 		{#if icon}
-			<img class="button-icon" src={icon.url} alt={`${value} icon`} />
+			<Image class="button-icon" src={icon.url} alt={`${value} icon`} />
 		{/if}
 		<slot />
 	</a>
@@ -50,9 +51,8 @@
 		{disabled}
 	>
 		{#if icon}
-			<img
-				class="button-icon"
-				class:right-padded={value}
+			<Image
+				class={`button-icon ${value ? "right-padded" : ""}`}
 				src={icon.url}
 				alt={`${value} icon`}
 			/>
@@ -188,11 +188,11 @@
 		font-size: var(--button-large-text-size);
 	}
 
-	.button-icon {
+	:global(.button-icon) {
 		width: var(--text-xl);
 		height: var(--text-xl);
 	}
-	.button-icon.right-padded {
+	:global(.button-icon.right-padded) {
 		margin-right: var(--spacing-md);
 	}
 

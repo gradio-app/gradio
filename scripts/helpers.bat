@@ -1,6 +1,12 @@
 @echo off
 setlocal EnableDelayedExpansion
 
+:: A collection of helper functions to check for required programs.
+:: Helper functions can be called using `call scripts\helpers.bat function_name`.
+
+:: Jump to MAIN to avoid running subroutines by default
+goto :MAIN
+
 :: Tell the user what programs to install for a specific task.
 :: Arguments:
 ::   %1 - Name of the program or actual command, a string.
@@ -52,3 +58,10 @@ exit /b %ERRORLEVEL%
 :foo_required
 call :program_required "foo" "https://jqlang.github.io/jq/"
 exit /b %ERRORLEVEL%
+
+:MAIN
+:: Handle command-line arguments to call specific subroutines
+if not "%~1"=="" (
+    call :%~1
+    exit /b %ERRORLEVEL%
+)

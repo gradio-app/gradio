@@ -1,5 +1,65 @@
 # @gradio/core
 
+## 0.10.1
+
+### Dependency updates
+
+- @gradio/image@0.21.2
+- @gradio/upload@0.15.2
+- @gradio/code@0.10.18
+- @gradio/paramviewer@0.7.2
+- @gradio/statustracker@0.10.4
+- @gradio/video@0.14.2
+- @gradio/atoms@0.13.3
+- @gradio/gallery@0.15.7
+- @gradio/plot@0.9.9
+- @gradio/button@0.4.7
+- @gradio/column@0.2.0
+- @gradio/textbox@0.10.4
+- @gradio/checkbox@0.4.14
+- @gradio/file@0.12.7
+
+## 0.10.1
+
+### Features
+
+- [#10511](https://github.com/gradio-app/gradio/pull/10511) [`c4aa886`](https://github.com/gradio-app/gradio/commit/c4aa8864dabec4caeb59af91f6f1aaaf50e33b67) - Semantic search in the playground.  Thanks @aliabd!
+
+## 0.10.0
+
+### Features
+
+- [#10492](https://github.com/gradio-app/gradio/pull/10492) [`29880d5`](https://github.com/gradio-app/gradio/commit/29880d51fbe7fbd222b0765a83c95134dc7d0e90) - Allow showing progress updates on arbitrary components.  Thanks @abidlabs!
+- [#10552](https://github.com/gradio-app/gradio/pull/10552) [`ed25a10`](https://github.com/gradio-app/gradio/commit/ed25a1053a55ddd2cf7d3067c72bdf77185ada8d) - Add 1920px wide resolution for wide monitors.  Thanks @Oncorporation!
+
+### Fixes
+
+- [#10490](https://github.com/gradio-app/gradio/pull/10490) [`178311b`](https://github.com/gradio-app/gradio/commit/178311b72d72a3c5f4a67bee5e0098be4232e68c) - Ensure row numbers functionality in dataframe works as expected.  Thanks @hannahblair!
+- [#10534](https://github.com/gradio-app/gradio/pull/10534) [`855d870`](https://github.com/gradio-app/gradio/commit/855d87001a492afce1aff9c2eb3de765d8855828) - Footer alignment fix.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.10.17
+- @gradio/paramviewer@0.7.1
+- @gradio/statustracker@0.10.3
+- @gradio/tabitem@0.4.2
+- @gradio/tabs@0.4.2
+- @gradio/video@0.14.1
+- @gradio/atoms@0.13.2
+- @gradio/utils@0.10.1
+- @gradio/column@0.2.0
+- @gradio/theme@0.4.0
+- @gradio/client@1.12.0
+- @gradio/upload@0.15.1
+- @gradio/button@0.4.6
+- @gradio/wasm@0.17.3
+- @gradio/plot@0.9.8
+- @gradio/gallery@0.15.6
+- @gradio/image@0.21.1
+- @gradio/textbox@0.10.3
+- @gradio/file@0.12.6
+- @gradio/checkbox@0.4.13
+
 ## 0.9.0
 
 ### Features

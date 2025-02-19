@@ -756,6 +756,9 @@ importers:
       '@gradio/client':
         specifier: workspace:^
         version: link:../../client/js
+      '@gradio/image':
+        specifier: workspace:^
+        version: link:../image
       '@gradio/upload':
         specifier: workspace:^
         version: link:../upload

@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Footer alignment fix
+fix:Fix fill_width

@@ -1,5 +1,31 @@
 # @gradio/lite
 
+## 5.16.2
+
+### Dependency updates
+
+- @gradio/atoms@0.13.3
+
+## 5.16.1
+
+### Dependency updates
+
+- @gradio/core@0.10.1
+
+## 5.16.0
+
+### Fixes
+
+- [#10466](https://github.com/gradio-app/gradio/pull/10466) [`8e2cf2f`](https://github.com/gradio-app/gradio/commit/8e2cf2f32c4ffe4540aed0dd8448089f0a19eedd) - Fix the wrapper function of micropip.install to throw the original error for better debug experience.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.2
+- @gradio/theme@0.4.0
+- @gradio/core@0.10.0
+- @gradio/wasm@0.17.3
+- @self/build@0.2.1
+
 ## 5.15.1
 
 ### Features
