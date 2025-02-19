@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Looking into df styling issue
+fix:Fix issue where styling changes were overridden when value was updated simultaneously
