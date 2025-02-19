@@ -17,10 +17,8 @@
 
 	let width_css = typeof width === "number" ? `${width}px` : width;
 
-	// Add prefers-reduced-motion media query check
 	let prefersReducedMotion: boolean;
 
-	// Check if the sidebar overlaps with the main content
 	function check_overlap(): void {
 		if (!sidebar_div.closest(".gradio-container")) return;
 		const parent_rect = sidebar_div
@@ -28,7 +26,6 @@
 			?.getBoundingClientRect();
 		if (!parent_rect) return;
 
-		// Set sidebar height to parent height
 		const parentHeight = parent_rect.height;
 		sidebar_div.style.height = `${parentHeight}px`;
 
@@ -38,7 +35,6 @@
 				? parent_rect.left
 				: window.innerWidth - parent_rect.right;
 		overlap_amount = Math.max(0, sidebar_rect.width - available_space);
-		console.log(overlap_amount);
 	}
 
 	onMount(() => {
