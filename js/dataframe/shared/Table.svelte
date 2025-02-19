@@ -234,7 +234,7 @@
 			dispatch("change", {
 				data: data.map((row) => row.map((cell) => cell.value)),
 				headers: _headers.map((h) => h.value),
-				metadata: null,  // the metadata (display value, styling) cannot be changed by the user so we don't need to pass it up
+				metadata: null // the metadata (display value, styling) cannot be changed by the user so we don't need to pass it up
 			});
 			if (!value_is_output) {
 				dispatch("input");
