@@ -1152,7 +1152,8 @@ class Endpoint:
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
 
-            data = self.insert_empty_state(*data)
+            if self.client._skip_components:
+                data = self.insert_empty_state(*data)
             data = self.process_input_files(*data)
             predictions = _predict(*data)
             predictions = self.process_predictions(*predictions)
