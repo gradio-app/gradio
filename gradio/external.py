@@ -308,7 +308,11 @@ def from_model(
                 "Explain gravity to a 5-year-old.",
                 "What were the main causes of World War I?",
             ]
-            return ChatInterface(fn, type="messages", examples=examples)
+            chat_interface_kwargs = {
+                "examples": examples,
+            }
+            kwargs = dict(chat_interface_kwargs, **kwargs)
+            return ChatInterface(fn, type="messages", **kwargs)  # type: ignore
         inputs = components.Textbox(label="Text")
         outputs = inputs
         examples = ["Once upon a time"]
