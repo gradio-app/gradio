@@ -1,7 +1,7 @@
 import gradio as gr
 import os
 from gradio.sketch.sketchbox import SketchBox
-
+from inspect import signature
 
 def launch(app_file: str, config_file: str):
     file_name = os.path.basename(app_file)
@@ -15,22 +15,40 @@ def launch(app_file: str, config_file: str):
         gr.State,
     ]
     all_component_list = [
-        gr.Accordion,
+        gr.AnnotatedImage,
+        # gr.Accordion,
         gr.Audio,
+        gr.BarPlot,
+        gr.BrowserState,
         gr.Button,
+        gr.Chatbot,
         gr.Checkbox,
+        gr.CheckboxGroup,
+        gr.Code,
         gr.ColorPicker,
+        gr.Dataframe,
+        gr.DateTime,
+        gr.Dropdown,
         gr.File,
+        gr.Gallery,
+        gr.HighlightedText,
+        gr.HTML,
         gr.Image,
+        gr.ImageEditor,
+        gr.JSON,
+        gr.Label,
+        gr.LinePlot,
         gr.Markdown,
+        gr.Model3D,
+        gr.MultimodalTextbox,
         gr.Number,
         gr.Radio,
-        gr.State,
         gr.Slider,
+        gr.State,
         gr.Textbox,
+        gr.Timer,
         gr.Video,
     ]
-
     def get_box(_slot, i, gp=None):
         parent = _slot
         target = _slot[i[0]] if isinstance(_slot, list) and i[0] < len(_slot) else None
@@ -96,7 +114,7 @@ def launch(app_file: str, config_file: str):
                         [layout, components, mode, modify_id, running_id],
                     )
                 elif _mode == "modify_component":
-                    component, _, var_name = _components[_modify_id]
+                    component, kwargs, var_name = _components[_modify_id]
                     just_created = var_name == ""
                     if just_created:
                         existing_names = [_components[i][2] for i in _components]
@@ -110,7 +128,19 @@ def launch(app_file: str, config_file: str):
                     var_name_box = gr.Textbox(var_name, label="Variable Name", autofocus=just_created) 
                     def set_var_name(name):
                         _components[_modify_id][2] = name
-                    var_name_box.blur(set_var_name, var_name_box, None)
+                        return _components
+                    gr.on([var_name_box.blur, var_name_box.submit], set_var_name, var_name_box, components)
+
+                    gr.Markdown('Set args below with python syntax, e.g. `True`, `5`, or `["choice1", "choice2"]`.')
+
+                    arguments = list(signature(component.__init__).parameters.keys())[1:]
+                    for arg in arguments:
+                        arg_value = kwargs.get(arg, "")
+                        arg_box = gr.Textbox(arg_value, label=arg)
+                        def set_arg(arg, value):
+                            _components[_modify_id][1][arg] = value
+                            return _components
+                        gr.on([arg_box.blur, arg_box.submit], set_arg, arg_box, components)
 
         with gr.Row():
             gr.Markdown("## Sketching *" + folder_name + "/" + file_name + "*")
