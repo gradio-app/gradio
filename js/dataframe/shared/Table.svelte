@@ -1016,6 +1016,8 @@
 										{editable}
 										{components}
 										{i18n}
+										{max_chars}
+										datatype="str"
 									/>
 									<div class="sort-buttons">
 										<SortIcon
@@ -1046,6 +1048,8 @@
 									{editable}
 									{components}
 									{i18n}
+									{max_chars}
+									header={false}
 								/>
 							</div>
 						</td>
@@ -1142,19 +1146,20 @@
 								<div class="cell-wrap">
 									<div class="header-content">
 										<EditableCell
-											{max_chars}
 											bind:value={_headers[i].value}
 											bind:el={els[id].input}
 											{latex_delimiters}
 											{line_breaks}
+											header={true}
 											edit={header_edit === i}
 											on:keydown={end_header_edit}
 											on:dblclick={() => edit_header(i)}
-											header
 											{root}
 											{editable}
 											{components}
 											{i18n}
+											{max_chars}
+											datatype="str"
 										/>
 										<div class="sort-buttons">
 											<SortIcon
@@ -1268,6 +1273,7 @@
 										{clear_on_focus}
 										{root}
 										{max_chars}
+										header={false}
 									/>
 									{#if editable && should_show_cell_menu([index, j], selected_cells, editable)}
 										<button

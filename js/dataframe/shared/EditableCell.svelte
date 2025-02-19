@@ -36,16 +36,19 @@
 
 	function truncate_text(
 		text: string | number,
-		max_length: number | null = null
+		max_length: number | null = null,
+		is_image = false
 	): string {
+		if (is_image) return String(text);
 		const str = String(text);
 		if (!max_length || str.length <= max_length) return str;
 		return str.slice(0, max_length) + "...";
 	}
 
-	$: display_text = is_expanded
-		? value
-		: truncate_text(display_value || value, max_chars);
+	$: display_text =
+		edit || is_expanded
+			? value
+			: truncate_text(display_value || value, max_chars, datatype === "image");
 
 	function use_focus(node: HTMLInputElement): any {
 		if (clear_on_focus) {
@@ -168,6 +171,9 @@
 		cursor: text;
 		width: 100%;
 		height: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	span.expanded {
@@ -175,11 +181,12 @@
 		min-height: 100%;
 		white-space: pre-wrap;
 		word-break: break-word;
-		white-space: normal;
+		overflow: visible;
 	}
 
 	.multiline {
 		white-space: pre-line;
+		overflow: visible;
 	}
 
 	.header {
@@ -188,6 +195,7 @@
 		white-space: normal;
 		word-break: break-word;
 		margin-left: var(--size-1);
+		overflow: visible;
 	}
 
 	.edit {
