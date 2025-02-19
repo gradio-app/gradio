@@ -10,6 +10,7 @@
 	import { BaseCode as Code } from "@gradio/code";
 	import version_json from "$lib/json/version.json";
 	import WHEEL from "$lib/json/wheel.json";
+	import { fade, fly, slide, blur } from "svelte/transition";
 
 	export let data: {
 		demos_by_category: {
@@ -54,6 +55,35 @@
 	};
 
 	let version = version_json.version;
+
+	let suggested_links = [];
+	let edited_demos = [];
+
+	let suggested_demos = suggested_links.filter((item) => item.type === "DEMO");
+	let suggested_guides_docs = suggested_links.filter(
+		(item) => item.type !== "DEMO"
+	);
+
+	$: if (suggested_links) {
+		suggested_links.forEach((link) => {
+			if (link.type == "DEMO") {
+				console.log(all_demos);
+				all_demos.push({
+					name: link.title,
+					dir: link.title.replaceAll(" ", "_").toLowerCase(),
+					code: link.url,
+					requirements: link.requirements.split("\n")
+				});
+			}
+		});
+	}
+	$: all_demos;
+	$: suggested_links;
+	$: suggested_demos = suggested_links.filter((item) => item.type === "DEMO");
+	$: suggested_guides_docs = suggested_links.filter(
+		(item) => item.type !== "DEMO"
+	);
+	$: edited_demos;
 </script>
 
 <MetaTags
@@ -107,14 +137,16 @@
 	>
 		<div class="w-full border border-gray-200 shadow-xl h-full relative">
 			<div
-				class="w-[200px] rounded-tr-none rounded-bl-xl overflow-y-scroll mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
+				class="w-[200px] rounded-tr-none rounded-bl-xl mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip overflow-y-auto"
 				style="word-break: normal; overflow-wrap: break-word; white-space:nowrap; height: 100%; width: {show_nav
 					? 200
 					: 37}px;"
 			>
 				<div class="flex justify-between align-middle h-8 border-b px-2">
 					{#if show_nav}
-						<h3 class="pl-2 pt-1">Demos</h3>
+						<h3 class="pl-2 py-1 my-auto text-sm font-medium text-[#27272a]">
+							Demos
+						</h3>
 					{/if}
 					<button
 						on:click={() => (show_nav = !show_nav)}
@@ -123,27 +155,101 @@
 					>
 				</div>
 				{#if show_nav}
-					<button
-						on:click={() => (current_selection = "Blank")}
-						class:current-playground-demo={current_selection == "Blank"}
-						class:shared-link={shared == "Blank"}
-						class="thin-link font-light px-4 block my-2">New Demo</button
-					>
+					{#each suggested_guides_docs as link}
+						<a
+							class:bg-orange-100={link.type == "GUIDE"}
+							class:border-orange-100={link.type == "GUIDE"}
+							class:bg-green-100={link.type == "DOCS"}
+							class:border-green-100={link.type == "DOCS"}
+							class="sug-block my-2"
+							href={link.url}
+							target="_blank"
+							in:slide
+							out:slide
+						>
+							<div class="flex items-center flex-row">
+								<p
+									class:text-orange-700={link.type == "GUIDE"}
+									class:text-green-700={link.type == "DOCS"}
+									class="text-xs font-semibold flex-grow"
+								>
+									{link.type}
+								</p>
+								<p class="float-right text-xs font-semibold mx-1">✨</p>
+							</div>
+							<p
+								class="font-light break-words w-full text-sm"
+								style="white-space: initial"
+							>
+								{link.title}
+							</p>
+						</a>
+					{/each}
+					{#if suggested_demos.length > 0}
+						<div in:slide out:slide>
+							<div class="my-1 mx-2 pb-2">
+								<div class="flex items-center flex-row px-2">
+									<p class="my-2 font-medium text-sm text-[#27272a] flex-grow">
+										Related Demos
+									</p>
+									<p class="float-right text-xs font-semibold mx-1">✨</p>
+								</div>
+								{#each suggested_demos as link}
+									<button
+										on:click={() => (current_selection = link.title)}
+										class:current-playground-demo={current_selection ==
+											link.title}
+										class:shared-link={shared == link.title}
+										class="thin-link font-light !px-2 block text-sm text-[#27272a] break-words w-full text-left capitalize"
+										style="white-space: initial"
+										>{link.title.replaceAll("-", " ")}</button
+									>
+								{/each}
+							</div>
+							<div class="border-b border-gray-400 ml-4 mr-5"></div>
+						</div>
+					{/if}
+					<div>
+						{#if edited_demos.includes("Blank")}
+							<div class="dot float-left !mt-[7px]"></div>
+						{/if}
+						<button
+							on:click={() => (current_selection = "Blank")}
+							class:!pl-1={edited_demos.includes("Blank")}
+							class:current-playground-demo={current_selection == "Blank"}
+							class:shared-link={shared == "Blank"}
+							class="thin-link font-light px-4 block my-2 text-sm text-[#27272a]"
+							>New Demo</button
+						>
+					</div>
 					{#each data.demos_by_category as { category, demos } (category)}
-						<p class="px-4 my-2 font-medium">{category}</p>
+						<p class="px-4 my-2 font-medium text-sm text-[#27272a]">
+							{category}
+						</p>
 						{#each demos as demo, i}
+							{#if edited_demos.includes(demo.name)}
+								<div class="dot float-left"></div>
+							{/if}
 							<button
 								on:click={() => (current_selection = demo.name)}
+								class:!pl-1={edited_demos.includes(demo.name)}
 								class:current-playground-demo={current_selection == demo.name}
 								class:shared-link={shared == demo.name}
-								class="thin-link font-light px-4 block">{demo.name}</button
+								class="thin-link font-light px-4 block text-sm text-[#27272a]"
+								>{demo.name}</button
 							>
 						{/each}
 					{/each}
 				{/if}
 			</div>
 
-			<DemosLite demos={all_demos} {current_selection} {show_nav} />
+			<DemosLite
+				demos={all_demos}
+				{current_selection}
+				{show_nav}
+				bind:suggested_links
+				bind:edited_demos
+			/>
 		</div>
 	</main>
 {:else}
@@ -374,5 +480,11 @@
 	:global(.mobile-window .block) {
 		height: 100%;
 		overflow: hidden !important;
+	}
+	.sug-block {
+		@apply block m-2 p-2 border rounded-md hover:scale-[1.02] drop-shadow-md;
+	}
+	.dot {
+		@apply w-[0.4rem] h-[0.4rem] bg-gray-500 rounded-full mt-[6.5px] ml-[6px];
 	}
 </style>
