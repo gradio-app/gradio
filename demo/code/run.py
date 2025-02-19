@@ -24,6 +24,7 @@ with gr.Blocks() as demo:
             language="python",
             label="Input",
             value='def all_odd_elements(sequence):\n    """Returns every odd element of the sequence."""',
+            show_line_numbers=False,
         )
         code_out = gr.Code(label="Output")
     btn = gr.Button("Run")

@@ -108,6 +108,7 @@ class Code(Component):
         render: bool = True,
         key: int | str | None = None,
         wrap_lines: bool = False,
+        show_line_numbers: bool = True,
     ):
         """
         Parameters:
@@ -137,6 +138,7 @@ class Code(Component):
         self.lines = lines
         self.max_lines = max(lines, max_lines) if max_lines is not None else None
         self.wrap_lines = wrap_lines
+        self.show_line_numbers = show_line_numbers
         super().__init__(
             label=label,
             every=every,
@@ -180,7 +182,10 @@ class Code(Component):
         return value.strip()
 
     def api_info(self) -> dict[str, Any]:
-        return {"type": "string"}
+        return {
+            "type": "string",
+            "show_line_numbers" : self.show_line_numbers,
+            }
 
     def example_payload(self) -> Any:
         return "print('Hello World')"

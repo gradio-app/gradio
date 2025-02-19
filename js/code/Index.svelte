@@ -39,6 +39,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let wrap_lines = false;
+	export let show_line_numbers : boolean;
 
 	export let interactive: boolean;
 
@@ -91,6 +92,7 @@
 			{max_lines}
 			{dark_mode}
 			{wrap_lines}
+			{show_line_numbers}
 			readonly={!interactive}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
