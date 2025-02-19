@@ -4,6 +4,7 @@ from gradio.sketch.sketchbox import SketchBox
 from gradio.sketch.utils import set_kwarg
 from inspect import signature
 
+
 def launch(app_file: str, config_file: str):
     file_name = os.path.basename(app_file)
     folder_name = os.path.basename(os.path.dirname(app_file))
