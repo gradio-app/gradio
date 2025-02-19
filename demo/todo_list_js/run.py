@@ -1,5 +1,5 @@
 """
-This is a simple todo list app that allows you to add, remove, and mark tasks as complete.
+This is a simple todo list app that allows you to edit tasks and mark tasks as complete.
 All actions are performed on the client side.
 """
 import gradio as gr
