@@ -55,6 +55,7 @@ class Textbox(FormComponent):
         autofocus: bool = False,
         autoscroll: bool = True,
         elem_classes: list[str] | str | None = None,
+        elem_attributes: dict[str, Any] | None = None,
         render: bool = True,
         key: int | str | None = None,
         type: Literal["text", "password", "email"] = "text",
@@ -64,6 +65,7 @@ class Textbox(FormComponent):
         max_length: int | None = None,
         submit_btn: str | bool | None = False,
         stop_btn: str | bool | None = False,
+        autocorrect: bool = True,
     ):
         """
         Parameters:
@@ -84,6 +86,7 @@ class Textbox(FormComponent):
             autofocus: If True, will focus on the textbox when the page loads. Use this carefully, as it can cause usability issues for sighted and non-sighted users.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_attributes: An optional dictionary of attributes to be added to this component's HTML element.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             type: The type of textbox. One of: 'text', 'password', 'email', Default is 'text'.
@@ -93,9 +96,20 @@ class Textbox(FormComponent):
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             max_length: maximum number of characters (including newlines) allowed in the textbox. If None, there is no maximum length.
             submit_btn: If False, will not show a submit button. If True, will show a submit button with an icon. If a string, will use that string as the submit button text. When the submit button is shown, the border of the textbox will be removed, which is useful for creating a chat interface.
+            autocorrect: If False, will disable autocorrect, spellcheck and autocomplete features in the textbox. Default is True.
         """
         if type not in ["text", "password", "email"]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
+
+        if elem_attributes is None:
+            elem_attributes = {}
+
+        if not autocorrect:
+            elem_attributes.update({
+                "autocomplete": "off",
+                "autocorrect": "off",
+                "spellcheck": "false"
+            })
 
         self.lines = lines
         if type == "text":
@@ -122,6 +136,7 @@ class Textbox(FormComponent):
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            elem_attributes=elem_attributes,
             render=render,
             key=key,
             value=value,
