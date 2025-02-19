@@ -216,7 +216,8 @@ class Chatbot(Component):
         render: bool = True,
         key: int | str | None = None,
         height: int | str | None = 400,
-        resizeable: bool = False,
+        resizable: bool = False,
+        resizeable: bool = False,  # Deprecated, TODO: Remove
         max_height: int | str | None = None,
         min_height: int | str | None = None,
         editable: Literal["user", "all"] | None = None,
@@ -257,7 +258,7 @@ class Chatbot(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will scroll.
-            resizeable: If True, the component will be resizeable by the user.
+            resizable: If True, the user of the Gradio app can resize the chatbot by dragging the bottom right corner.
             max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will scroll. If messages are shorter than the height, the component will shrink to fit the content. Will not have any effect if `height` is set and is smaller than `max_height`.
             min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will expand to fit the content. Will not have any effect if `height` is set and is larger than `min_height`.
             editable: Allows user to edit messages in the chatbot. If set to "user", allows editing of user messages. If set to "all", allows editing of assistant messages as well.
@@ -299,7 +300,13 @@ class Chatbot(Component):
         self._setup_data_model()
         self.autoscroll = autoscroll
         self.height = height
-        self.resizeable = resizeable
+        if resizeable is not False:
+            warnings.warn(
+                "The 'resizeable' parameter is deprecated and will be removed in a future version. Please use the 'resizable' (note the corrected spelling) parameter instead.",
+                DeprecationWarning,
+            )
+            self.resizable = resizeable
+        self.resizable = resizable
         self.max_height = max_height
         self.min_height = min_height
         self.editable = editable

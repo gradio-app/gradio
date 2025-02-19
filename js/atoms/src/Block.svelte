@@ -18,7 +18,7 @@
 	export let scale: number | null = null;
 	export let min_width = 0;
 	export let flex = false;
-	export let resizeable = false;
+	export let resizable = false;
 	let element: HTMLElement;
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
@@ -82,7 +82,7 @@
 	class:auto-margin={scale === null}
 >
 	<slot />
-	{#if resizeable}
+	{#if resizable}
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<svg
 			class="resize-handle"
