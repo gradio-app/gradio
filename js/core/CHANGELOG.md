@@ -2,6 +2,25 @@
 
 ## 0.10.1
 
+### Dependency updates
+
+- @gradio/image@0.21.2
+- @gradio/upload@0.15.2
+- @gradio/code@0.10.18
+- @gradio/paramviewer@0.7.2
+- @gradio/statustracker@0.10.4
+- @gradio/video@0.14.2
+- @gradio/atoms@0.13.3
+- @gradio/gallery@0.15.7
+- @gradio/plot@0.9.9
+- @gradio/button@0.4.7
+- @gradio/column@0.2.0
+- @gradio/textbox@0.10.4
+- @gradio/checkbox@0.4.14
+- @gradio/file@0.12.7
+
+## 0.10.1
+
 ### Features
 
 - [#10511](https://github.com/gradio-app/gradio/pull/10511) [`c4aa886`](https://github.com/gradio-app/gradio/commit/c4aa8864dabec4caeb59af91f6f1aaaf50e33b67) - Semantic search in the playground.  Thanks @aliabd!
