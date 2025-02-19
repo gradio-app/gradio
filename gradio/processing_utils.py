@@ -475,6 +475,14 @@ def move_files_to_cache(
         keep_in_cache: If True, the file will not be deleted from cache when the server is shut down.
     """
 
+    def _mark_svg_as_safe(payload: FileData):
+        # If the app has not launched, this path can be considered an "allowed path"
+        # This is mainly so that svg files can be displayed inline for button/chatbot icons
+        if (
+            (blocks := LocalContext.blocks.get()) is None or not blocks.is_running
+        ) and (mimetypes.guess_type(payload.path)[0] == "image/svg+xml"):
+            utils.set_static_paths([payload.path])
+
     def _move_to_cache(d: dict):
         payload = FileData(**d)
         # If the gradio app developer is returning a URL from
@@ -510,7 +518,7 @@ def move_files_to_cache(
         else:
             url = f"{url_prefix}{payload.path}"
         payload.url = url
-
+        _mark_svg_as_safe(payload)
         return payload.model_dump()
 
     if isinstance(data, (GradioRootModel, GradioModel)):

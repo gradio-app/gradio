@@ -8,6 +8,7 @@
 	"private": false,
 	"dependencies": {
 		"@gradio/client": "workspace:^",
+		"@gradio/image": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^"
 	},
