@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, tick } from "svelte";
+	import { onMount, tick, createEventDispatcher } from "svelte";
 	import { _ } from "svelte-i18n";
 
 	export let items: any[][] = [];
@@ -11,6 +11,12 @@
 	export let end = 20;
 	export let selected: number | false;
 	export let disable_scroll = false;
+	export let show_scroll_button = false;
+
+	const dispatch = createEventDispatcher<{
+		scroll_top: number;
+	}>();
+
 	let height = "100%";
 
 	let average_height = 30;
@@ -22,7 +28,7 @@
 	let mounted: boolean;
 	let rows: HTMLCollectionOf<HTMLTableRowElement>;
 	let top = 0;
-	let viewport: HTMLTableElement;
+	export let viewport: HTMLTableElement;
 	let viewport_height = 200;
 	let visible: { index: number; data: any[] }[] = [];
 	let viewport_box: DOMRectReadOnly;
@@ -150,6 +156,12 @@
 
 	async function handle_scroll(e: Event): Promise<void> {
 		const scroll_top = viewport.scrollTop;
+
+		show_scroll_button = scroll_top > 100;
+
+		if (show_scroll_button) {
+			dispatch("scroll_top", scroll_top);
+		}
 
 		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
 		const is_start_overflow = sortedItems.length < start;

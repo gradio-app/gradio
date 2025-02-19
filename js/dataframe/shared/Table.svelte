@@ -897,6 +897,15 @@
 			current_search_query = null;
 		}
 	}
+
+	let viewport: HTMLTableElement;
+	let show_scroll_button = false;
+
+	function scroll_to_top(): void {
+		viewport.scrollTo({
+			top: 0
+		});
+	}
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
@@ -1071,7 +1080,18 @@
 			aria_label={i18n("dataframe.drop_to_upload")}
 		>
 			<div class="table-wrap">
+				{#if show_scroll_button}
+					<button
+						class="scroll-top-button"
+						on:click={scroll_to_top}
+						aria-label="Scroll to top"
+					>
+						&#8593;
+					</button>
+				{/if}
 				<VirtualTable
+					bind:show_scroll_button
+					bind:viewport
 					bind:items={data}
 					{max_height}
 					bind:actual_height={table_height}
@@ -1326,6 +1346,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--size-2);
+		position: relative;
 	}
 
 	.table-wrap {
@@ -1714,6 +1735,7 @@
 		position: sticky;
 		z-index: var(--layer-2);
 		border-right: 1px solid var(--border-color-primary);
+		z-index: var(--layer-3);
 	}
 
 	tr:nth-child(odd) .frozen-column {
@@ -1746,5 +1768,28 @@
 	.add-row-button:hover {
 		background: var(--background-fill-secondary);
 		border-style: solid;
+	}
+
+	.scroll-top-button {
+		position: absolute;
+		right: var(--size-4);
+		bottom: var(--size-4);
+		width: var(--size-8);
+		height: var(--size-8);
+		border-radius: var(--table-radius);
+		background: var(--color-accent);
+		color: white;
+		border: none;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: var(--text-lg);
+		z-index: var(--layer-5);
+		opacity: 0.5;
+	}
+
+	.scroll-top-button:hover {
+		opacity: 1;
 	}
 </style>
