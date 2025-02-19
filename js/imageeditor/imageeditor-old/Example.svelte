@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { BaseImage as Image } from "@gradio/image";
-	import type { EditorData } from "./InteractiveImageEditor.svelte";
+	import type { EditorData } from "./shared/InteractiveImageEditor.svelte";
 
 	export let value: EditorData;
 	export let type: "gallery" | "table";

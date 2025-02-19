@@ -1,12 +1,15 @@
 <svelte:options accessors={true} immutable={true} />
 
 <script lang="ts">
-	import type { Brush, Eraser } from "./shared/brush/types";
-	import type { EditorData, ImageBlobs } from "./InteractiveImageEditor.svelte";
+	import type { Brush, Eraser } from "./shared/tools/Brush.svelte";
+	import type {
+		EditorData,
+		ImageBlobs
+	} from "./shared/InteractiveImageEditor.svelte";
 
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { BaseStaticImage as StaticImage } from "@gradio/image";
-	import InteractiveImageEditor from "./InteractiveImageEditor.svelte";
+	import InteractiveImageEditor from "./shared/InteractiveImageEditor.svelte";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
@@ -18,7 +21,7 @@
 	export let value: EditorData | null = {
 		background: null,
 		layers: [],
-		composite: null,
+		composite: null
 	};
 	export let label: string;
 	export let show_label: boolean;
@@ -38,13 +41,14 @@
 	export let sources: ("clipboard" | "webcam" | "upload")[] = [
 		"upload",
 		"clipboard",
-		"webcam",
+		"webcam"
 	];
 	export let interactive: boolean;
 	export let placeholder: string | undefined;
 
 	export let brush: Brush;
 	export let eraser: Eraser;
+	export let crop_size: [number, number] | `${string}:${string}` | null = null;
 	export let transforms: "crop"[] = ["crop"];
 	export let layers = true;
 	export let attached_events: string[] = [];
@@ -127,7 +131,10 @@
 	// In case no height given, pick a height large enough for the entire canvas
 	// in pixi.ts, the max-height of the canvas is canvas height / pixel ratio
 
-	let safe_height_initial = 350;
+	let safe_height_initial = Math.max(
+		canvas_size[1] / (is_browser ? window.devicePixelRatio : 1),
+		250
+	);
 
 	$: safe_height = Math.max((dynamic_height ?? safe_height_initial) + 100, 250);
 
@@ -197,12 +204,15 @@
 			{canvas_size}
 			on:change={() => handle_history_change()}
 			bind:image_id
+			{crop_size}
 			{value}
 			bind:this={editor_instance}
+			bind:dynamic_height
 			{root}
 			{sources}
 			{label}
 			{show_label}
+			{height}
 			{fixed_canvas}
 			on:save={(e) => handle_save()}
 			on:edit={() => gradio.dispatch("edit")}
@@ -219,7 +229,7 @@
 				(value = {
 					background: null,
 					layers: [],
-					composite: null,
+					composite: null
 				})}
 			on:error
 			{brush}

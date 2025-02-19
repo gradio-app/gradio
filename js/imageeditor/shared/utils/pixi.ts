@@ -10,202 +10,202 @@ import {
 	type ICanvas
 } from "pixi.js";
 
-import { type LayerScene } from "../layers/utils";
+// import { type LayerScene } from "../layers/utils";
 
-/**
- * interface holding references to pixi app components
- */
-export interface PixiApp {
-	/**
-	 * The pixi container for layers
-	 */
-	layer_container: Container;
-	/**
-	 * The pixi container for background images and colors
-	 */
-	background_container: Container;
-	/**
-	 * The pixi renderer
-	 */
-	renderer: IRenderer;
-	/**
-	 * The pixi canvas
-	 */
-	view: HTMLCanvasElement & ICanvas;
-	/**
-	 * The pixi container for masking
-	 */
-	mask_container: Container;
-	destroy(): void;
-	/**
-	 * Resizes the pixi app
-	 * @param width the new width
-	 * @param height the new height
-	 */
-	resize(width: number, height: number): void;
-	/**
-	 * Gets the blobs for the background, layers, and composite
-	 * @param bounds the bounds of the canvas
-	 * @returns a promise with the blobs
-	 */
-	get_blobs(
-		layers: LayerScene[],
-		bounds: Rectangle,
-		dimensions: [number, number]
-	): Promise<ImageBlobs>;
-	// /**
-	//  * Resets the mask
-	//  */
-	// reset?: () => void;
+// /**
+//  * interface holding references to pixi app components
+//  */
+// export interface PixiApp {
+// 	/**
+// 	 * The pixi container for layers
+// 	 */
+// 	layer_container: Container;
+// 	/**
+// 	 * The pixi container for background images and colors
+// 	 */
+// 	background_container: Container;
+// 	/**
+// 	 * The pixi renderer
+// 	 */
+// 	renderer: IRenderer;
+// 	/**
+// 	 * The pixi canvas
+// 	 */
+// 	view: HTMLCanvasElement & ICanvas;
+// 	/**
+// 	 * The pixi container for masking
+// 	 */
+// 	mask_container: Container;
+// 	destroy(): void;
+// 	/**
+// 	 * Resizes the pixi app
+// 	 * @param width the new width
+// 	 * @param height the new height
+// 	 */
+// 	resize(width: number, height: number): void;
+// 	/**
+// 	 * Gets the blobs for the background, layers, and composite
+// 	 * @param bounds the bounds of the canvas
+// 	 * @returns a promise with the blobs
+// 	 */
+// 	get_blobs(
+// 		layers: LayerScene[],
+// 		bounds: Rectangle,
+// 		dimensions: [number, number]
+// 	): Promise<ImageBlobs>;
+// 	// /**
+// 	//  * Resets the mask
+// 	//  */
+// 	// reset?: () => void;
 
-	/**
-	 * Gets the layers
-	 */
-	get_layers?: () => LayerScene[];
-}
+// 	/**
+// 	 * Gets the layers
+// 	 */
+// 	get_layers?: () => LayerScene[];
+// }
 
-/**
- * Creates a PIXI app and attaches it to a DOM element
- * @param target DOM element to attach PIXI app to
- * @param width Width of the PIXI app
- * @param height Height of the PIXI app
- * @param antialias Whether to use antialiasing
- * @returns object with pixi container and renderer
- */
-export function create_pixi_app({
-	target,
-	dimensions: [width, height],
-	antialias
-}: {
-	target: HTMLElement;
-	dimensions: [number, number];
-	antialias: boolean;
-}): PixiApp {
-	const ratio = window.devicePixelRatio || 1;
-	const app = new Application({
-		width,
-		height,
-		antialias: antialias,
-		backgroundAlpha: 0,
-		eventMode: "static"
-	});
-	const view = app.view as HTMLCanvasElement;
-	// ensure that we can sort the background and layer containers
-	app.stage.sortableChildren = true;
-	view.style.maxWidth = `${width / ratio}px`;
-	view.style.maxHeight = `${height / ratio}px`;
-	view.style.width = "100%";
-	view.style.height = "100%";
+// /**
+//  * Creates a PIXI app and attaches it to a DOM element
+//  * @param target DOM element to attach PIXI app to
+//  * @param width Width of the PIXI app
+//  * @param height Height of the PIXI app
+//  * @param antialias Whether to use antialiasing
+//  * @returns object with pixi container and renderer
+//  */
+// export function create_pixi_app({
+// 	target,
+// 	dimensions: [width, height],
+// 	antialias
+// }: {
+// 	target: HTMLElement;
+// 	dimensions: [number, number];
+// 	antialias: boolean;
+// }): PixiApp {
+// 	const ratio = window.devicePixelRatio || 1;
+// 	const app = new Application({
+// 		width,
+// 		height,
+// 		antialias: antialias,
+// 		backgroundAlpha: 0,
+// 		eventMode: "static"
+// 	});
+// 	const view = app.view as HTMLCanvasElement;
+// 	// ensure that we can sort the background and layer containers
+// 	app.stage.sortableChildren = true;
+// 	view.style.maxWidth = `${width / ratio}px`;
+// 	view.style.maxHeight = `${height / ratio}px`;
+// 	view.style.width = "100%";
+// 	view.style.height = "100%";
 
-	target.appendChild(app.view as HTMLCanvasElement);
+// 	target.appendChild(app.view as HTMLCanvasElement);
 
-	// we need a separate container for the background so that we can
-	// clear its content without knowing too much about its children
-	const background_container = new Container() as Container & DisplayObject;
-	background_container.zIndex = 0;
-	const layer_container = new Container() as Container & DisplayObject;
-	layer_container.zIndex = 1;
+// 	// we need a separate container for the background so that we can
+// 	// clear its content without knowing too much about its children
+// 	const background_container = new Container() as Container & DisplayObject;
+// 	background_container.zIndex = 0;
+// 	const layer_container = new Container() as Container & DisplayObject;
+// 	layer_container.zIndex = 1;
 
-	// ensure we can reorder  layers via zIndex
-	layer_container.sortableChildren = true;
+// 	// ensure we can reorder  layers via zIndex
+// 	layer_container.sortableChildren = true;
 
-	const mask_container = new Container() as Container & DisplayObject;
-	mask_container.zIndex = 1;
-	const composite_container = new Container() as Container & DisplayObject;
-	composite_container.zIndex = 0;
+// 	const mask_container = new Container() as Container & DisplayObject;
+// 	mask_container.zIndex = 1;
+// 	const composite_container = new Container() as Container & DisplayObject;
+// 	composite_container.zIndex = 0;
 
-	mask_container.addChild(background_container);
-	mask_container.addChild(layer_container);
+// 	mask_container.addChild(background_container);
+// 	mask_container.addChild(layer_container);
 
-	app.stage.addChild(mask_container);
-	app.stage.addChild(composite_container);
-	const mask = new Graphics();
-	let text = RenderTexture.create({
-		width,
-		height
-	});
-	const sprite = new Sprite(text);
+// 	app.stage.addChild(mask_container);
+// 	app.stage.addChild(composite_container);
+// 	const mask = new Graphics();
+// 	let text = RenderTexture.create({
+// 		width,
+// 		height
+// 	});
+// 	const sprite = new Sprite(text);
 
-	mask_container.mask = sprite;
+// 	mask_container.mask = sprite;
 
-	app.render();
+// 	app.render();
 
-	function reset_mask(width: number, height: number): void {
-		background_container.removeChildren();
-		mask.beginFill(0xffffff, 1);
-		mask.drawRect(0, 0, width, height);
-		mask.endFill();
-		text = RenderTexture.create({
-			width,
-			height
-		});
-		app.renderer.render(mask, {
-			renderTexture: text
-		});
+// 	function reset_mask(width: number, height: number): void {
+// 		background_container.removeChildren();
+// 		mask.beginFill(0xffffff, 1);
+// 		mask.drawRect(0, 0, width, height);
+// 		mask.endFill();
+// 		text = RenderTexture.create({
+// 			width,
+// 			height
+// 		});
+// 		app.renderer.render(mask, {
+// 			renderTexture: text
+// 		});
 
-		const sprite = new Sprite(text);
+// 		const sprite = new Sprite(text);
 
-		mask_container.mask = sprite;
-	}
+// 		mask_container.mask = sprite;
+// 	}
 
-	function resize(width: number, height: number): void {
-		app.renderer.resize(width, height);
-		view.style.maxWidth = `${width / ratio}px`;
-		view.style.maxHeight = `${height / ratio}px`;
-		reset_mask(width, height);
-	}
+// 	function resize(width: number, height: number): void {
+// 		app.renderer.resize(width, height);
+// 		view.style.maxWidth = `${width / ratio}px`;
+// 		view.style.maxHeight = `${height / ratio}px`;
+// 		reset_mask(width, height);
+// 	}
 
-	async function get_blobs(
-		_layers: LayerScene[],
-		bounds: Rectangle,
-		[w, h]: [number, number]
-	): Promise<ImageBlobs> {
-		const background = await get_canvas_blob(
-			app.renderer,
-			background_container,
-			bounds,
-			w,
-			h
-		);
+// 	async function get_blobs(
+// 		_layers: LayerScene[],
+// 		bounds: Rectangle,
+// 		[w, h]: [number, number]
+// 	): Promise<ImageBlobs> {
+// 		const background = await get_canvas_blob(
+// 			app.renderer,
+// 			background_container,
+// 			bounds,
+// 			w,
+// 			h
+// 		);
 
-		const layers = await Promise.all(
-			_layers.map((layer) =>
-				get_canvas_blob(
-					app.renderer,
-					layer.composite as DisplayObject,
-					bounds,
-					w,
-					h
-				)
-			)
-		);
+// 		const layers = await Promise.all(
+// 			_layers.map((layer) =>
+// 				get_canvas_blob(
+// 					app.renderer,
+// 					layer.composite as DisplayObject,
+// 					bounds,
+// 					w,
+// 					h
+// 				)
+// 			)
+// 		);
 
-		const composite = await get_canvas_blob(
-			app.renderer,
-			mask_container,
-			bounds,
-			w,
-			h
-		);
+// 		const composite = await get_canvas_blob(
+// 			app.renderer,
+// 			mask_container,
+// 			bounds,
+// 			w,
+// 			h
+// 		);
 
-		return {
-			background,
-			layers,
-			composite
-		};
-	}
+// 		return {
+// 			background,
+// 			layers,
+// 			composite
+// 		};
+// 	}
 
-	return {
-		layer_container,
-		renderer: app.renderer,
-		destroy: () => app.destroy(true),
-		view: app.view as HTMLCanvasElement & ICanvas,
-		background_container,
-		mask_container,
-		resize,
-		get_blobs
-	};
-}
+// 	return {
+// 		layer_container,
+// 		renderer: app.renderer,
+// 		destroy: () => app.destroy(true),
+// 		view: app.view as HTMLCanvasElement & ICanvas,
+// 		background_container,
+// 		mask_container,
+// 		resize,
+// 		get_blobs
+// 	};
+// }
 
 /**
  * Creates a pixi graphics object.
