@@ -50,6 +50,9 @@ class BrowserState(Component):
         Returns:
             Passes value through unchanged
         """
+        print("payload", payload)
+        if payload is None:
+            return self.default_value
         return payload
 
     def postprocess(self, value: Any) -> Any:
