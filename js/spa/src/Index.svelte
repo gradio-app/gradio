@@ -120,6 +120,7 @@
 			loading_text = (event as CustomEvent).detail + "...";
 		});
 	}
+	let is_lite = worker_proxy !== undefined;
 
 	export let space: string | null;
 	export let src: string | null;
@@ -482,6 +483,7 @@
 	{pages}
 	{current_page}
 	{root}
+	{is_lite}
 	bind:wrapper
 >
 	{#if (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}
