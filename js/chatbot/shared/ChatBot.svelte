@@ -337,7 +337,7 @@
 					{allow_file_downloads}
 					on:copy={(e) => dispatch("copy", e.detail)}
 				/>
-				{#if generating && messages[messages.length - 1].role === "assistant" &&messages[messages.length - 1].metadata.status === "done"}
+				{#if generating && messages[messages.length - 1].role === "assistant" && messages[messages.length - 1].metadata.status === "done"}
 					<Pending {layout} {avatar_images} />
 				{/if}
 			{/each}
