@@ -1,14 +1,15 @@
 import gradio as gr
 
-class Test:
-    pass
+
+def greet(name):
+    return "Hello " + name + "!"
+
 
 with gr.Blocks() as demo:
-    test = gr.State(1)
-    inc = lambda x: x + 1
-    
-    btn = gr.Button("Go")
-    btn.click(fn=inc, inputs=test, outputs=test)
+    name = gr.Textbox(label="Name")
+    output = gr.Textbox(label="Output Box")
+    greet_btn = gr.Button("Greet")
+    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
 
 if __name__ == "__main__":
     demo.launch()
