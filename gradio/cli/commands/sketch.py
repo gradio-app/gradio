@@ -6,7 +6,7 @@ import gradio
 
 
 def launch(
-    app_file: str,
+    app_file: str = "app.py",
 ):
     if not app_file.endswith(".py"):
         app_file += ".py"

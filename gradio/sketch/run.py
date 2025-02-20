@@ -130,13 +130,12 @@ def launch(app_file: str, config_file: str):
                         )
 
                     def add_any_component(component_name, layout):
-                        component = get_component_by_name(component_name)
                         gp, parent, _ = get_box(layout, _add_index)
                         if isinstance(parent, int):
                             parent = [parent]
                             gp[_add_index[-2]] = parent
                         parent.insert(_add_index[-1], _running_id)
-                        _components[_running_id] = [component, {}, ""]
+                        _components[_running_id] = [component_name, {}, ""]
                         return (
                             layout,
                             _components,
@@ -217,8 +216,8 @@ def launch(app_file: str, config_file: str):
             [saved, save_btn],
         )
 
-        @gr.render([layout, components, saved], show_progress="hidden")
-        def app(_layout, _components, saved):
+        @gr.render([layout, components, saved, modify_id], show_progress="hidden")
+        def app(_layout, _components, saved, _modify_id):
             boxes = []
             code = ""
 
@@ -271,6 +270,7 @@ def launch(app_file: str, config_file: str):
                             with SketchBox(
                                 component_type=component.__name__.lower(),
                                 var_name=var_name,
+                                active=_modify_id == element,
                             ) as box:
                                 component(**kwargs)
                             boxes.append((box, this_index))

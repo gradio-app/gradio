@@ -13,11 +13,13 @@ class SketchBox(BlockContext, metaclass=ComponentMeta):
         is_container: bool = False,
         component_type: str | None = None,
         var_name: str | None = None,
+        active: bool = False,
     ):
         self.row = False
         self.is_container = is_container
         self.component_type = component_type
         self.var_name = var_name
+        self.active = active
         super().__init__()
 
     def __exit__(self, exc_type: type[BaseException] | None = None, *args):
