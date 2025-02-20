@@ -53,11 +53,10 @@ def launch(app_file: str, config_file: str):
         gr.Timer,
         gr.Video,
     ]
+
     def get_component_by_name(name):
         return [
-            component
-            for component in all_component_list
-            if component.__name__ == name
+            component for component in all_component_list if component.__name__ == name
         ][0]
 
     def get_box(_slot, i, gp=None):

@@ -29,7 +29,6 @@ class SketchBox(BlockContext, metaclass=ComponentMeta):
         return super().__exit__(exc_type, *args)
 
     def get_config(self):
-
         config = super().get_config()
         config["row"] = self.row
         return config
