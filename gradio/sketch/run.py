@@ -110,7 +110,8 @@ def launch(app_file: str, config_file: str):
                             gp, parent, _ = get_box(layout, _add_index)
                             if isinstance(parent, int):
                                 parent = [parent]
-                                gp[_add_index[-2]] = parent
+                                if gp:
+                                    gp[_add_index[-2]] = parent
                             parent.insert(_add_index[-1], _running_id)
                             _components[_running_id] = [component.__name__, {}, ""]
 
@@ -132,7 +133,8 @@ def launch(app_file: str, config_file: str):
                         gp, parent, _ = get_box(layout, _add_index)
                         if isinstance(parent, int):
                             parent = [parent]
-                            gp[_add_index[-2]] = parent
+                            if gp:
+                                gp[_add_index[-2]] = parent
                         parent.insert(_add_index[-1], _running_id)
                         _components[_running_id] = [component_name, {}, ""]
                         return (
