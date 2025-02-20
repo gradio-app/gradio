@@ -6,7 +6,6 @@ from gradio.blocks import BlockContext, Blocks
 from gradio.component_meta import ComponentMeta
 from gradio.layouts.column import Column
 from gradio.layouts.row import Row
-from gradio.sketch.sketchbox import SketchBox
 
 if TYPE_CHECKING:
     from gradio.blocks import Block

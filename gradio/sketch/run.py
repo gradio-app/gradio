@@ -1,8 +1,10 @@
-import gradio as gr
+import json
 import os
+from inspect import signature
+
+import gradio as gr
 from gradio.sketch.sketchbox import SketchBox
 from gradio.sketch.utils import set_kwarg
-from inspect import signature
 
 
 def launch(app_file: str, config_file: str):
@@ -51,6 +53,12 @@ def launch(app_file: str, config_file: str):
         gr.Timer,
         gr.Video,
     ]
+    def get_component_by_name(name):
+        return [
+            component
+            for component in all_component_list
+            if component.__name__ == name
+        ][0]
 
     def get_box(_slot, i, gp=None):
         parent = _slot
@@ -61,15 +69,27 @@ def launch(app_file: str, config_file: str):
 
     with gr.Blocks() as demo:
         _id = gr.State(0)
-        running_id = gr.State(0)
-        components = gr.State({})
-        layout = gr.State([])
-        mode = gr.State("add_component")
-        add_index = gr.State([0])
+        if os.path.exists(config_file):
+            with open(config_file) as f:
+                config = json.load(f)
+            _layout = config["layout"]
+            _components = {int(k): v for k, v in config["components"].items()}
+            _running_id = len(_components)
+            mode = gr.State("default")
+        else:
+            _layout = []
+            _components = {}
+            _running_id = 0
+            mode = gr.State("add_component")
+
+        running_id = gr.State(_running_id)
+        components = gr.State(_components)
+        layout = gr.State(_layout)
+        add_index = gr.State([_running_id])
         modify_id = gr.State(None)
         saved = gr.State(False)
 
-        with gr.Sidebar() as sidebar:
+        with gr.Sidebar():
 
             @gr.render(
                 [mode, add_index, running_id, components, modify_id],
@@ -93,7 +113,7 @@ def launch(app_file: str, config_file: str):
                                 parent = [parent]
                                 gp[_add_index[-2]] = parent
                             parent.insert(_add_index[-1], _running_id)
-                            _components[_running_id] = [component, {}, ""]
+                            _components[_running_id] = [component.__name__, {}, ""]
 
                             return (
                                 layout,
@@ -110,22 +130,20 @@ def launch(app_file: str, config_file: str):
                         )
 
                     def add_any_component(component_name, layout):
-                        for component in all_component_list:
-                            if component.__name__ == component_name:
-                                gp, parent, _ = get_box(layout, _add_index)
-                                if isinstance(parent, int):
-                                    parent = [parent]
-                                    gp[_add_index[-2]] = parent
-                                parent.insert(_add_index[-1], _running_id)
-                                _components[_running_id] = [component, {}, ""]
-                                return (
-                                    layout,
-                                    _components,
-                                    "modify_component",
-                                    _running_id,
-                                    _running_id + 1,
-                                )
-                        return layout, _components, "add_component", None, _running_id
+                        component = get_component_by_name(component_name)
+                        gp, parent, _ = get_box(layout, _add_index)
+                        if isinstance(parent, int):
+                            parent = [parent]
+                            gp[_add_index[-2]] = parent
+                        parent.insert(_add_index[-1], _running_id)
+                        _components[_running_id] = [component, {}, ""]
+                        return (
+                            layout,
+                            _components,
+                            "modify_component",
+                            _running_id,
+                            _running_id + 1,
+                        )
 
                     any_component_search = gr.Dropdown(
                         ["Search Components..."]
@@ -142,14 +160,14 @@ def launch(app_file: str, config_file: str):
                     gr.Markdown(
                         "## Configuration\nHover over a component to add new components when done configuring."
                     )
-                    component, kwargs, var_name = _components[_modify_id]
+                    component_name, kwargs, var_name = _components[_modify_id]
                     just_created = var_name == ""
                     if just_created:
                         existing_names = [_components[i][2] for i in _components]
-                        var_name = component.__name__.lower()
+                        var_name = component_name.lower()
                         i = 2
                         while var_name in existing_names:
-                            var_name = component.__name__.lower() + "_" + str(i)
+                            var_name = component_name.lower() + "_" + str(i)
                             i += 1
                         _components[_modify_id][2] = var_name
 
@@ -173,6 +191,7 @@ def launch(app_file: str, config_file: str):
                         'Set args below with python syntax, e.g. `True`, `5`, or `["choice1", "choice2"]`.'
                     )
 
+                    component = get_component_by_name(component_name)
                     arguments = list(signature(component.__init__).parameters.keys())[
                         1:
                     ]
@@ -205,8 +224,8 @@ def launch(app_file: str, config_file: str):
 
             def render_slot(slot, is_column, index, depth=1):
                 nonlocal code
-                Container = gr.Column() if is_column else gr.Row()
-                with Container:
+                container = gr.Column() if is_column else gr.Row()
+                with container:
                     for i, element in enumerate(slot):
                         this_index = index + [i]
                         if isinstance(element, list):
@@ -227,13 +246,14 @@ def launch(app_file: str, config_file: str):
                                     )
                                 boxes.append((box, this_index))
                             continue
-                        component, kwargs, var_name = _components[element]
+                        component_name, kwargs, var_name = _components[element]
+                        component = get_component_by_name(component_name)
                         if saved:
                             code += (
                                 "    " * depth
                                 + var_name
                                 + " = gr."
-                                + component.__name__
+                                + component_name
                                 + "("
                             )
                             for i, (k, v) in enumerate(kwargs.items()):
@@ -259,12 +279,20 @@ def launch(app_file: str, config_file: str):
 
             if saved:
                 code = f"""import gradio as gr
-                            
+
 with gr.Blocks() as demo:
 {code}
 demo.launch()"""
                 with open(app_file, "w") as f:
                     f.write(code)
+                with open(config_file, "w") as f:
+                    json.dump(
+                        {
+                            "layout": _layout,
+                            "components": _components,
+                        },
+                        f,
+                    )
                 with gr.Accordion("Gradio Code", open=False):
                     gr.Code(code, language="python")
             for box, index in boxes:
@@ -278,13 +306,12 @@ demo.launch()"""
                                 index.append(0)
                             elif data.value == "right":
                                 index.append(1)
-                        else:  # horizontal
-                            if data.value == "right":
-                                index[-1] += 1
-                            elif data.value == "up":
-                                index.append(0)
-                            elif data.value == "down":
-                                index.append(1)
+                        elif data.value == "right":
+                            index[-1] += 1
+                        elif data.value == "up":
+                            index.append(0)
+                        elif data.value == "down":
+                            index.append(1)
                         return _layout, _components, "add_component", index, None
                     if data.value == "delete":
 

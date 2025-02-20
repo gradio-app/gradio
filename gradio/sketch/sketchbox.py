@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
-
 from gradio.events import Events
 
 
@@ -28,7 +27,6 @@ class SketchBox(BlockContext, metaclass=ComponentMeta):
         return super().__exit__(exc_type, *args)
 
     def get_config(self):
-        from gradio.layouts import Row
 
         config = super().get_config()
         config["row"] = self.row
