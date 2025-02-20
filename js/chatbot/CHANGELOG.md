@@ -1,5 +1,21 @@
 # @gradio/chatbot
 
+## 0.23.1
+
+### Features
+
+- [#10625](https://github.com/gradio-app/gradio/pull/10625) [`ce4fb99`](https://github.com/gradio-app/gradio/commit/ce4fb994e042489d8c6fbcab3e94d97b08369dce) - fix spelling of `resizable` parameter in `gr.Chatbot`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/image@0.21.2
+- @gradio/upload@0.15.2
+- @gradio/statustracker@0.10.4
+- @gradio/video@0.14.2
+- @gradio/atoms@0.13.3
+- @gradio/gallery@0.15.7
+- @gradio/plot@0.9.9
+
 ## 0.23.0
 
 ### Features

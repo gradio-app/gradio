@@ -4,7 +4,12 @@
 	import "@gradio/theme/pollen.css";
 	import "@gradio/theme/typography.css";
 
-	import { onDestroy, SvelteComponent, createEventDispatcher } from "svelte";
+	import {
+		onDestroy,
+		SvelteComponent,
+		createEventDispatcher,
+		setContext
+	} from "svelte";
 	import Index from "@self/spa";
 	import Playground from "./Playground.svelte";
 	import ErrorDisplay from "./ErrorDisplay.svelte";
@@ -128,6 +133,13 @@
 
 	mount_prebuilt_css(document.head);
 
+	let current_page = "";
+	const set_page = (page: string): void => {
+		current_page = page;
+		refresh_index_component();
+	};
+	setContext("set_lite_page", set_page);
+
 	class LiteClient extends Client {
 		fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 			return wasm_proxied_fetch(worker_proxy, input, init);
@@ -138,10 +150,7 @@
 		}
 
 		get_url_config(url: string | null = null): Config {
-			// A workaround for Lite to work with the multipage Client API.
-			// TODO: Support multiple pages on Lite
-			const page = "";
-			return this.get_page_config(page);
+			return this.get_page_config(current_page);
 		}
 	}
 

@@ -1,5 +1,11 @@
 # @gradio/lite
 
+## 5.16.2
+
+### Dependency updates
+
+- @gradio/atoms@0.13.3
+
 ## 5.16.1
 
 ### Dependency updates
