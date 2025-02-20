@@ -68,18 +68,20 @@ def launch(app_file: str, config_file: str):
 
     with gr.Blocks() as demo:
         _id = gr.State(0)
-        if os.path.exists(config_file):
-            with open(config_file) as f:
-                config = json.load(f)
-            _layout = config["layout"]
-            _components = {int(k): v for k, v in config["components"].items()}
-            _running_id = len(_components)
-            mode = gr.State("default")
-        else:
-            _layout = []
-            _components = {}
-            _running_id = 0
-            mode = gr.State("add_component")
+
+        # Below was giving issues, commenting out for now
+        # if os.path.exists(config_file):
+        #     with open(config_file) as f:
+        #         config = json.load(f)
+        #     _layout = config["layout"]
+        #     _components = {int(k): v for k, v in config["components"].items()}
+        #     _running_id = len(_components)
+        #     mode = gr.State("default")
+        # else:
+        _layout = []
+        _components = {}
+        _running_id = 0
+        mode = gr.State("add_component")
 
         running_id = gr.State(_running_id)
         components = gr.State(_components)
@@ -197,7 +199,11 @@ def launch(app_file: str, config_file: str):
                     ]
                     for arg in arguments:
                         arg_value = kwargs.get(arg, "")
-                        arg_box = gr.Textbox(arg_value, label=arg)
+                        arg_box = gr.Textbox(
+                            arg_value,
+                            label=arg,
+                            info=f"<a href='https://www.gradio.app/docs/gradio/{component_name.lower()}#param-{component_name.lower()}-{arg.lower().replace('_', '-')}' target='_blank'>docs</a>",
+                        )
 
                         def set_arg(value, arg=arg):
                             set_kwarg(_components[_modify_id][1], arg, value)
