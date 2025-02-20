@@ -252,8 +252,20 @@
 				Icon={Community}
 				on:click={async () => {
 					try {
+						const CLOUDFRONT_LIMIT = 20 * 1024; // 20KB limit
+						let messages_to_share = value;
 						// @ts-ignore
-						const formatted = await format_chat_for_sharing(value);
+						let formatted = await format_chat_for_sharing(messages_to_share);
+						
+						while (new Blob([formatted]).size > CLOUDFRONT_LIMIT && messages_to_share.length > 1) {
+							messages_to_share = value.slice(1);
+							formatted = await format_chat_for_sharing(messages_to_share);
+						}
+						
+						if (new Blob([formatted]).size > CLOUDFRONT_LIMIT) {
+							throw new ShareError("Chat content too large to share, even with a single message.");
+						}
+						
 						dispatch("share", {
 							description: formatted
 						});
