@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:Fix a few issues with sidebar
+fix:Fix a few issues with sidebar
