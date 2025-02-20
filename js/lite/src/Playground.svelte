@@ -12,6 +12,8 @@
 
 	export let code: string | undefined;
 	export let layout: string | null = null;
+	let vertical = layout === "vertical";
+	let horizontal = !vertical;
 
 	const dispatch = createEventDispatcher();
 
@@ -130,11 +132,7 @@
 			</div>
 		{/if}
 	</div>
-	<div
-		class:horizontal={layout === "horizontal"}
-		class:vertical={layout === "vertical"}
-		class="child-container"
-	>
+	<div class:horizontal class:vertical class="child-container">
 		<div class="half-container">
 			<div
 				class:code-editor-border={loaded}
