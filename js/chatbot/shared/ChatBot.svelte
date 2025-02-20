@@ -256,16 +256,18 @@
 						let messages_to_share = value;
 						// @ts-ignore
 						let formatted = await format_chat_for_sharing(messages_to_share);
-
+						console.log("Formatted chat content:", formatted);
 						while (
 							new Blob([formatted]).size > CLOUDFRONT_LIMIT &&
 							messages_to_share.length > 1
 						) {
 							messages_to_share = value.slice(1);
 							formatted = await format_chat_for_sharing(messages_to_share);
+							console.log("Formatted chat content after slicing:", formatted);
 						}
 
 						if (new Blob([formatted]).size > CLOUDFRONT_LIMIT) {
+							console.log("Chat content too large to share, even with a single message.");
 							throw new ShareError(
 								"Chat content too large to share, even with a single message."
 							);
@@ -274,7 +276,9 @@
 						dispatch("share", {
 							description: formatted
 						});
+						console.log("Chat content shared successfully.");
 					} catch (e) {
+						console.log("Error sharing chat content.", e);
 						console.error(e);
 						let message = e instanceof ShareError ? e.message : "Share failed.";
 						dispatch("error", message);
