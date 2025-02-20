@@ -1,5 +1,11 @@
 # @gradio/sidebar
 
+## 0.1.5
+
+### Fixes
+
+- [#10616](https://github.com/gradio-app/gradio/pull/10616) [`ae4ba46`](https://github.com/gradio-app/gradio/commit/ae4ba46cfb9235904f8bfc197c72ad22275edd67) - Change sidebar to absolute positioning and make accessible.  Thanks @dawoodkhan82!
+
 ## 0.1.4
 
 ### Dependency updates

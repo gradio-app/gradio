@@ -1,5 +1,11 @@
 # @gradio/chatbot
 
+## 0.23.2
+
+### Fixes
+
+- [#10637](https://github.com/gradio-app/gradio/pull/10637) [`75c9748`](https://github.com/gradio-app/gradio/commit/75c9748f50f5825dae601e0a15b85ec666819b6a) - Fix: Chatbot sharing payload too large.  Thanks @dawoodkhan82!
+
 ## 0.23.1
 
 ### Features
