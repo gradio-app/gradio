@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix a few issues with sidebar
+fix:Change sidebar to absolute positioning and make accessible
