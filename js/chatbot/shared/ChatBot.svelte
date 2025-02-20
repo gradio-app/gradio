@@ -268,6 +268,9 @@
 
 						if (new Blob([formatted]).size > CLOUDFRONT_LIMIT) {
 							console.log("Chat content too large to share, even with a single message.");
+						}
+
+						if (new Blob([formatted]).size > CLOUDFRONT_LIMIT) {
 							throw new ShareError(
 								"Chat content too large to share, even with a single message."
 							);
