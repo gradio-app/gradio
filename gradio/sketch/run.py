@@ -210,11 +210,18 @@ def launch(app_file: str, config_file: str):
         with gr.Row():
             gr.Markdown("## Sketching *" + folder_name + "/" + file_name + "*")
             save_btn = gr.Button("Save & Render", scale=0)
+            deploy_to_spaces_btn = gr.Button(
+                "Deploy to Spaces", visible=False, scale=0, min_width=240
+            )
 
         save_btn.click(
-            lambda saved: (not saved, "Save & Render" if saved else "Edit"),
+            lambda saved: (
+                not saved,
+                "Save & Render" if saved else "Edit",
+                gr.Button(visible=not saved),
+            ),
             saved,
-            [saved, save_btn],
+            [saved, save_btn, deploy_to_spaces_btn],
         )
 
         @gr.render([layout, components, saved, modify_id], show_progress="hidden")
@@ -294,8 +301,11 @@ demo.launch()"""
                         },
                         f,
                     )
-                with gr.Accordion("Gradio Code", open=False):
-                    gr.Code(code, language="python")
+                code = code.replace("\n", "%0A")
+                url = f"""https://huggingface.co/new-space?name=new-space&sdk=gradio&files[0][path]=app.py&files[0][content]={code}"""
+                deploy_to_spaces_btn.click(
+                    fn=None, js="() => window.open('" + url + "', '_blank')"
+                )
             for box, index in boxes:
 
                 def box_action(_layout, _components, data: gr.SelectData, index=index):
