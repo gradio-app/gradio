@@ -4,7 +4,8 @@
 		EditorView,
 		ViewUpdate,
 		keymap,
-		placeholder as placeholderExt
+		placeholder as placeholderExt,
+		lineNumbers
 	} from "@codemirror/view";
 	import { StateEffect, EditorState, type Extension } from "@codemirror/state";
 	import { indentWithTab } from "@codemirror/commands";
@@ -26,6 +27,7 @@
 	export let readonly = false;
 	export let placeholder: string | HTMLElement | null | undefined = undefined;
 	export let wrap_lines = false;
+	export let show_line_numbers = true;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
@@ -131,7 +133,8 @@
 				use_tab,
 				placeholder,
 				readonly,
-				lang_extension
+				lang_extension,
+				show_line_numbers
 			),
 			FontTheme,
 			...get_theme(),
@@ -184,7 +187,8 @@
 		use_tab: boolean,
 		placeholder: string | HTMLElement | null | undefined,
 		readonly: boolean,
-		lang: Extension | null | undefined
+		lang: Extension | null | undefined,
+		show_line_numbers: boolean
 	): Extension[] {
 		const extensions: Extension[] = [
 			EditorView.editable.of(!readonly),
@@ -205,10 +209,15 @@
 			extensions.push(lang);
 		}
 
+		if (show_line_numbers) {
+			extensions.push(lineNumbers());
+		}
+
 		extensions.push(EditorView.updateListener.of(handle_change));
 		if (wrap_lines) {
 			extensions.push(EditorView.lineWrapping);
 		}
+
 		return extensions;
 	}
 
