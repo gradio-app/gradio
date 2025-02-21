@@ -9,19 +9,12 @@ df = pd.DataFrame(
         "D": [14, 3, 6, 2, 6],
         "E": [23, 45, 64, 32, 23],
     }
-).values.tolist()
+)
 
-styling = [[
-    "background: linear-gradient(to right, lightgreen 50%, transparent 50%);", "background: linear-gradient(to right, lightgreen 20%, transparent 20%);", "", "", ""
-    "", "", "", "", ""
-    "", "", "", "", ""
-    "", "", "", "", ""
-    "", "", "", "", ""
-]]
-
+t = df.style.highlight_max(color="lightgreen", axis=0)
 
 with gr.Blocks() as demo:
-    gr.Dataframe({"data": df, "metadata": {"styling": styling}})
+    gr.Dataframe(t)
 
 if __name__ == "__main__":
     demo.launch()
