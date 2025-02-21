@@ -455,7 +455,6 @@
 	}
 
 	function end_header_edit(event: CustomEvent<KeyboardEvent>): void {
-		console.log("end_header_edit", event);
 		if (!editable) return;
 
 		switch (event.detail.key) {
