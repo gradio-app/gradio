@@ -447,7 +447,7 @@
 	}
 
 	async function edit_header(i: number, _select = false): Promise<void> {
-		if (!editable || col_count[1] !== "dynamic" || header_edit === i) return;
+		if (!editable || header_edit === i) return;
 		selected = false;
 		selected_cells = [];
 		selected_header = i;
@@ -455,6 +455,7 @@
 	}
 
 	function end_header_edit(event: CustomEvent<KeyboardEvent>): void {
+		console.log("end_header_edit", event);
 		if (!editable) return;
 
 		switch (event.detail.key) {
@@ -907,7 +908,7 @@
 		event.preventDefault();
 		event.stopPropagation();
 
-		if (!editable || col_count[1] !== "dynamic") return;
+		if (!editable) return;
 
 		clear_on_focus = false;
 		active_cell_menu = null;
@@ -1027,6 +1028,7 @@
 										{latex_delimiters}
 										{line_breaks}
 										edit={header_edit === i}
+										on:keydown={end_header_edit}
 										header
 										{root}
 										{editable}
