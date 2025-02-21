@@ -214,10 +214,20 @@ def create(app_file: str, config_file: str):
                         )
 
         with gr.Row():
-            gr.Markdown("<h2> Sketching <code style='font-size: inherit; font-weight: inherit;'>" + folder_name + "/" + file_name + "</code></h2>")
+            gr.Markdown(
+                "<h2> Sketching <code style='font-size: inherit; font-weight: inherit;'>"
+                + folder_name
+                + "/"
+                + file_name
+                + "</code></h2>"
+            )
             save_btn = gr.Button("Save & Render", variant="primary", scale=0)
             deploy_to_spaces_btn = gr.Button(
-                "Deploy to Spaces", visible=False, scale=0, min_width=240, icon=gr.utils.get_icon_path("huggingface-logo.svg")
+                "Deploy to Spaces",
+                visible=False,
+                scale=0,
+                min_width=240,
+                icon=gr.utils.get_icon_path("huggingface-logo.svg"),
             )
 
         save_btn.click(

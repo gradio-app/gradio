@@ -240,6 +240,7 @@ def custom_component_analytics(
         data=data,
     )
 
+
 def sketch_analytics() -> None:
     data = {
         "command": "sketch",
