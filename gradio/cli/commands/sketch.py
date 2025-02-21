@@ -12,6 +12,7 @@ def launch(
         app_file += ".py"
     app_file = os.path.join(os.getcwd(), app_file)
     config_file = os.path.join(os.getcwd(), app_file + ".json")
+    gradio.analytics.sketch_analytics()
     # if not os.path.exists(config_file) and os.path.exists(app_file):
     #     print(
     #         "App file found without corresponding JSON config file. Use another app file name or type 'y' to overwrite."
