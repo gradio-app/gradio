@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix deployed Spaces
+fix:Fix deployed Spaces
