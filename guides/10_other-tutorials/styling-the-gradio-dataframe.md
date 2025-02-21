@@ -160,7 +160,7 @@ So far, we've been restricting ourselves to styling that is supported by the Pan
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/dataframe_custom_styling.png)
 
 
-This isn't possible with `Styler`, but you can do this by creating your own **`styling`** array, which is a 2D array the same size and shape as your data. Each element in this list should be a string of CSS that applies to the `<td>` element containing the cell value (or an empty string if no custom CSS should be applied). Similarly, you can create a **`display_value`** array which controls the value that is displayed in each cell (which can be different the underlying value which is the one that is used for searching/sorting).
+This isn't possible with `Styler`, but you can do this by creating your own **`styling`** array, which is a 2D array the same size and shape as your data. Each element in this list should be a CSS style string (e.g. `"background-color: green"`) that applies to the `<td>` element containing the cell value (or an empty string if no custom CSS should be applied). Similarly, you can create a **`display_value`** array which controls the value that is displayed in each cell (which can be different the underlying value which is the one that is used for searching/sorting).
 
 Here's the complete code for how to can use custom styling with `gr.Dataframe` as in the screenshot above:
 
