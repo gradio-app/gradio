@@ -21,6 +21,7 @@
 		headers: ["1", "2", "3"],
 		metadata: null
 	};
+	console.log("value", value);
 	export let value_is_output = false;
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
