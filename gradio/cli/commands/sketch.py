@@ -19,4 +19,5 @@ def launch(
     #     overwrite = input("Overwrite? (y/n): ")
     #     if overwrite.lower() != "y":
     #         return
-    gradio.gradio.sketch.launch(app_file, config_file)
+    print("* Sketch will be saved to: ", app_file)
+    gradio.gradio.sketch.create(app_file, config_file).launch()

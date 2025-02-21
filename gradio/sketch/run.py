@@ -7,7 +7,7 @@ from gradio.sketch.sketchbox import SketchBox
 from gradio.sketch.utils import set_kwarg
 
 
-def launch(app_file: str, config_file: str):
+def create(app_file: str, config_file: str):
     file_name = os.path.basename(app_file)
     folder_name = os.path.basename(os.path.dirname(app_file))
 
@@ -125,7 +125,7 @@ def launch(app_file: str, config_file: str):
                                 _running_id + 1,
                             )
 
-                        gr.Button(component.__name__, size="sm").click(
+                        gr.Button(component.__name__, size="md").click(
                             add_component,
                             layout,
                             [layout, components, mode, modify_id, running_id],
@@ -148,9 +148,9 @@ def launch(app_file: str, config_file: str):
                         )
 
                     any_component_search = gr.Dropdown(
-                        ["Search Components..."]
-                        + [component.__name__ for component in all_component_list],
-                        container=False,
+                        [component.__name__ for component in all_component_list],
+                        container=True,
+                        label="Other Components...",
                         interactive=True,
                     )
                     any_component_search.change(
@@ -214,10 +214,10 @@ def launch(app_file: str, config_file: str):
                         )
 
         with gr.Row():
-            gr.Markdown("## Sketching *" + folder_name + "/" + file_name + "*")
-            save_btn = gr.Button("Save & Render", scale=0)
+            gr.Markdown("<h2> Sketching <code style='font-size: inherit; font-weight: inherit;'>" + folder_name + "/" + file_name + "</code></h2>")
+            save_btn = gr.Button("Save & Render", variant="primary", scale=0)
             deploy_to_spaces_btn = gr.Button(
-                "Deploy to Spaces", visible=False, scale=0, min_width=240
+                "Deploy to Spaces", visible=False, scale=0, min_width=240, icon=gr.utils.get_icon_path("huggingface-logo.svg")
             )
 
         save_btn.click(
@@ -356,4 +356,9 @@ demo.launch()"""
                     [layout, components, mode, add_index, modify_id],
                 )
 
+    return demo
+
+
+if __name__ == "__main__":
+    demo = create("app.py", "app.json")
     demo.launch()
