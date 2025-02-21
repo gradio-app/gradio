@@ -236,6 +236,7 @@ def from_model(
             "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
         ]
         fn = client.automatic_speech_recognition
+        postprocess = lambda x: x.text  # noqa: E731
     # example model: julien-c/distilbert-feature-extraction
     elif p == "feature-extraction":
         inputs = components.Textbox(label="Input")
