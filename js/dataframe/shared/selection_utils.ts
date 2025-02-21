@@ -43,10 +43,7 @@ export function handle_selection(
 	event: { shiftKey: boolean; metaKey: boolean; ctrlKey: boolean }
 ): CellCoordinate[] {
 	if (event.shiftKey && selected_cells.length > 0) {
-		return get_range_selection(
-			selected_cells[selected_cells.length - 1],
-			current
-		);
+		return get_range_selection(selected_cells[0], current);
 	}
 
 	if (event.metaKey || event.ctrlKey) {
