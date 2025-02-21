@@ -263,6 +263,7 @@
 			switch (event.key) {
 				case "ArrowDown":
 					selected = [0, selected_header];
+					selected_cells = [[0, selected_header]];
 					selected_header = false;
 					return;
 				case "ArrowLeft":
@@ -281,6 +282,9 @@
 					break;
 				case "Enter":
 					event.preventDefault();
+					if (editable) {
+						header_edit = selected_header;
+					}
 					break;
 			}
 		}
@@ -351,10 +355,7 @@
 						editing = false;
 					} else {
 						selected_cells = [next_coords];
-						if (editable) {
-							editing = next_coords;
-							clear_on_focus = false;
-						}
+						editing = false;
 					}
 					selected = next_coords;
 				} else if (
@@ -364,6 +365,7 @@
 				) {
 					selected_header = j;
 					selected = false;
+					selected_cells = [];
 					editing = false;
 				}
 				break;
@@ -445,7 +447,7 @@
 	}
 
 	async function edit_header(i: number, _select = false): Promise<void> {
-		if (!editable || col_count[1] !== "dynamic" || header_edit === i) return;
+		if (!editable || header_edit === i) return;
 		selected = false;
 		selected_cells = [];
 		selected_header = i;
@@ -896,6 +898,27 @@
 			current_search_query = null;
 		}
 	}
+
+	function handle_header_click(event: MouseEvent, col: number): void {
+		if (event.target instanceof HTMLAnchorElement) {
+			return;
+		}
+
+		event.preventDefault();
+		event.stopPropagation();
+
+		if (!editable) return;
+
+		clear_on_focus = false;
+		active_cell_menu = null;
+		active_header_menu = null;
+		selected = false;
+		selected_cells = [];
+		selected_header = col;
+		header_edit = col;
+
+		parent.focus();
+	}
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
@@ -973,14 +996,11 @@
 					{#each _headers as { value, id }, i (id)}
 						<th
 							class:frozen-column={i < actual_pinned_columns}
-							class:last-frozen={show_row_numbers
-								? i === actual_pinned_columns - 1
-								: i === actual_pinned_columns - 1}
-							class:editing={header_edit === i}
+							class:last-frozen={i === actual_pinned_columns - 1}
+							class:focus={header_edit === i || selected_header === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-							style="width: {column_widths.length
-								? column_widths[i]
-								: undefined}; left: {i < actual_pinned_columns
+							style="width: {get_cell_width(i)}; left: {i <
+							actual_pinned_columns
 								? i === 0
 									? show_row_numbers
 										? 'var(--cell-width-row-number)'
@@ -992,27 +1012,56 @@
 											.map((_, idx) => `var(--cell-width-${idx})`)
 											.join(' + ')})`
 								: 'auto'};"
+							on:click={(event) => handle_header_click(event, i)}
+							on:mousedown={(event) => {
+								event.preventDefault();
+								event.stopPropagation();
+							}}
 						>
 							<div class="cell-wrap">
 								<div class="header-content">
 									<EditableCell
-										{value}
+										{max_chars}
+										bind:value={_headers[i].value}
+										bind:el={els[id].input}
 										{latex_delimiters}
 										{line_breaks}
+										edit={header_edit === i}
+										on:keydown={end_header_edit}
 										header
-										edit={false}
-										el={null}
 										{root}
 										{editable}
 									/>
-									<div class="sort-buttons">
-										<SortIcon
-											direction={sort_by === i ? sort_direction : null}
-											on:sort={({ detail }) => handle_sort(i, detail)}
-											{i18n}
-										/>
-									</div>
+									{#if header_edit !== i}
+										<div class="sort-buttons">
+											<SortIcon
+												direction={sort_by === i ? sort_direction : null}
+												on:sort={({ detail }) => handle_sort(i, detail)}
+												{i18n}
+											/>
+										</div>
+									{/if}
 								</div>
+								{#if editable}
+									<button
+										class="cell-menu-button"
+										on:click={(event) => toggle_header_menu(event, i)}
+										on:touchstart={(event) => {
+											event.preventDefault();
+											const touch = event.touches[0];
+											const mouseEvent = new MouseEvent("click", {
+												clientX: touch.clientX,
+												clientY: touch.clientY,
+												bubbles: true,
+												cancelable: true,
+												view: window
+											});
+											toggle_header_menu(mouseEvent, i);
+										}}
+									>
+										&#8942;
+									</button>
+								{/if}
 							</div>
 						</th>
 					{/each}
@@ -1110,8 +1159,10 @@
 												.map((_, idx) => `var(--cell-width-${idx})`)
 												.join(' + ')})`
 									: 'auto'};"
-								on:click={() => {
-									toggle_header_button(i);
+								on:click={(event) => handle_header_click(event, i)}
+								on:mousedown={(event) => {
+									event.preventDefault();
+									event.stopPropagation();
 								}}
 							>
 								<div class="cell-wrap">
@@ -1123,19 +1174,19 @@
 											{latex_delimiters}
 											{line_breaks}
 											edit={header_edit === i}
-											on:keydown={end_header_edit}
-											on:dblclick={() => edit_header(i)}
 											header
 											{root}
 											{editable}
 										/>
-										<div class="sort-buttons">
-											<SortIcon
-												direction={sort_by === i ? sort_direction : null}
-												on:sort={({ detail }) => handle_sort(i, detail)}
-												{i18n}
-											/>
-										</div>
+										{#if header_edit !== i}
+											<div class="sort-buttons">
+												<SortIcon
+													direction={sort_by === i ? sort_direction : null}
+													on:sort={({ detail }) => handle_sort(i, detail)}
+													{i18n}
+												/>
+											</div>
+										{/if}
 									</div>
 									{#if editable}
 										<button

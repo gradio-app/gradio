@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
 feat:Ergonomics improvements & analytics for `gradio sketch`
