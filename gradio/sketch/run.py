@@ -3,6 +3,7 @@ import os
 from inspect import signature
 
 import gradio as gr
+import gradio.utils
 from gradio.sketch.sketchbox import SketchBox
 from gradio.sketch.utils import set_kwarg
 
@@ -227,7 +228,7 @@ def create(app_file: str, config_file: str):
                 visible=False,
                 scale=0,
                 min_width=240,
-                icon=gr.utils.get_icon_path("huggingface-logo.svg"),
+                icon=gradio.utils.get_icon_path("huggingface-logo.svg"),
             )
 
         save_btn.click(
