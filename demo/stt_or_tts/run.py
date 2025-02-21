@@ -10,6 +10,7 @@ tts_demo = gr.load(
     title=None,
     examples=tts_examples,
     description="Give me something to say!",
+    cache_examples=False
 )
 
 stt_demo = gr.load(
@@ -17,6 +18,7 @@ stt_demo = gr.load(
     title=None,
     inputs=gr.Microphone(type="filepath"),
     description="Let me try to guess what you're saying!",
+    cache_examples=False
 )
 
 demo = gr.TabbedInterface([tts_demo, stt_demo], ["Text-to-speech", "Speech-to-text"])
