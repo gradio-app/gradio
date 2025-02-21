@@ -282,6 +282,9 @@
 					break;
 				case "Enter":
 					event.preventDefault();
+					if (editable) {
+						header_edit = selected_header;
+					}
 					break;
 			}
 		}
