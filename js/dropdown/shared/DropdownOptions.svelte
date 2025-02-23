@@ -7,6 +7,7 @@
 	export let disabled = false;
 	export let selected_indices: (string | number)[] = [];
 	export let active_index: number | null = null;
+	export let remember_scroll = false;
 
 	let distance_from_top: number;
 	let distance_from_bottom: number;
@@ -16,6 +17,7 @@
 	let listElement: HTMLUListElement;
 	let top: string | null, bottom: string | null, max_height: number;
 	let innerHeight: number;
+	let listScrollY: number = 0;
 
 	function calculate_window_distance(): void {
 		const { top: ref_top, bottom: ref_bottom } =
@@ -37,17 +39,25 @@
 		}, 10);
 	}
 
+	function restore_last_scroll() {
+		listElement?.scrollTo?.(0, listScrollY);
+	}
+
 	$: {
 		if (show_options && refElement) {
-			if (listElement && selected_indices.length > 0) {
-				let elements = listElement.querySelectorAll("li");
-				for (const element of Array.from(elements)) {
-					if (
-						element.getAttribute("data-index") ===
-						selected_indices[0].toString()
-					) {
-						listElement?.scrollTo?.(0, (element as HTMLLIElement).offsetTop);
-						break;
+			if (remember_scroll) {
+				restore_last_scroll();
+			} else {
+				if (listElement && selected_indices.length > 0) {
+					let elements = listElement.querySelectorAll("li");
+					for (const element of Array.from(elements)) {
+						if (
+							element.getAttribute("data-index") ===
+							selected_indices[0].toString()
+						) {
+							listElement?.scrollTo?.(0, (element as HTMLLIElement).offsetTop);
+							break;
+						}
 					}
 				}
 			}
@@ -78,6 +88,7 @@
 		class="options"
 		transition:fly={{ duration: 200, y: 5 }}
 		on:mousedown|preventDefault={(e) => dispatch("change", e)}
+		on:scroll={(e) => (listScrollY = e.currentTarget.scrollTop)}
 		style:top
 		style:bottom
 		style:max-height={`calc(${max_height}px - var(--window-padding))`}
