@@ -1,5 +1,29 @@
 # gradio
 
+## 5.17.1
+
+### Features
+
+- [#10641](https://github.com/gradio-app/gradio/pull/10641) [`d7607a2`](https://github.com/gradio-app/gradio/commit/d7607a21b5247a9e82638c07359f70a6776f5747) - Ergonomics improvements & analytics for `gradio sketch`.  Thanks @abidlabs!
+- [#10646](https://github.com/gradio-app/gradio/pull/10646) [`b01ce47`](https://github.com/gradio-app/gradio/commit/b01ce47056f5752fbf03e44600bf0f7dab69b64c) - Fixes cell-selection logic in `Table.svelte`.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10650](https://github.com/gradio-app/gradio/pull/10650) [`7c8b0da`](https://github.com/gradio-app/gradio/commit/7c8b0dab0be2e87ad027d0c786bf741e205ae137) - Fix deployed Spaces.  Thanks @abidlabs!
+
+## 5.17.0
+
+### Features
+
+- [#10569](https://github.com/gradio-app/gradio/pull/10569) [`bd4895a`](https://github.com/gradio-app/gradio/commit/bd4895a95a29fa1f0d12fefde26a82a1d60954e9) - Update Lite to support multi-page apps.  Thanks @whitphx!
+- [#10630](https://github.com/gradio-app/gradio/pull/10630) [`77432c7`](https://github.com/gradio-app/gradio/commit/77432c7fa84c56ef76364bf23f4273e889a94a71) - gradio sketch - UI based gradio skeleton builder.  Thanks @aliabid94!
+
+### Fixes
+
+- [#10622](https://github.com/gradio-app/gradio/pull/10622) [`b505df0`](https://github.com/gradio-app/gradio/commit/b505df0b883d119d4660c25519497c4d86eea8d5) - Fix fill_width.  Thanks @aliabid94!
+- [#10616](https://github.com/gradio-app/gradio/pull/10616) [`ae4ba46`](https://github.com/gradio-app/gradio/commit/ae4ba46cfb9235904f8bfc197c72ad22275edd67) - Change sidebar to absolute positioning and make accessible.  Thanks @dawoodkhan82!
+- [#10637](https://github.com/gradio-app/gradio/pull/10637) [`75c9748`](https://github.com/gradio-app/gradio/commit/75c9748f50f5825dae601e0a15b85ec666819b6a) - Fix: Chatbot sharing payload too large.  Thanks @dawoodkhan82!
+
 ## 5.16.2
 
 ### Features

@@ -3,6 +3,7 @@ import json
 import gradio._simple_templates
 import gradio.image_utils
 import gradio.processing_utils
+import gradio.sketch
 import gradio.templates
 from gradio import components, layouts, themes
 from gradio.blocks import Blocks
