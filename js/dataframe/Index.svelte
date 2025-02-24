@@ -52,9 +52,21 @@
 	export let max_chars: number | undefined = undefined;
 	export let show_copy_button = false;
 	export let show_row_numbers = false;
+	export let show_search: "none" | "search" | "filter" = "none";
+
+	let search_query: string | null = null;
+	$: filtered_cell_values = search_query
+		? value.data?.filter((row) =>
+				row.some(
+					(cell) =>
+						search_query &&
+						String(cell).toLowerCase().includes(search_query.toLowerCase())
+				)
+			)
+		: null;
+	export let pinned_columns = 0;
 
 	$: _headers = [...(value.headers || headers)];
-	$: cell_values = value.data ? [...value.data] : [];
 	$: display_value = value?.metadata?.display_value
 		? [...value?.metadata?.display_value]
 		: null;
@@ -86,16 +98,18 @@
 		{show_label}
 		{row_count}
 		{col_count}
-		values={cell_values}
+		values={filtered_cell_values || value.data}
 		{display_value}
 		{styling}
 		headers={_headers}
 		on:change={(e) => {
-			value = e.detail;
+			value.data = e.detail.data;
+			value.headers = e.detail.headers;
 			gradio.dispatch("change");
 		}}
 		on:input={(e) => gradio.dispatch("input")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
+		on:search={(e) => (search_query = e.detail)}
 		{wrap}
 		{datatype}
 		{latex_delimiters}
@@ -111,5 +125,7 @@
 		{max_chars}
 		{show_copy_button}
 		{show_row_numbers}
+		{show_search}
+		{pinned_columns}
 	/>
 </Block>

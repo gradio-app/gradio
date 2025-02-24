@@ -12,6 +12,8 @@
 
 	export let code: string | undefined;
 	export let layout: string | null = null;
+	let vertical = layout === "vertical";
+	let horizontal = !vertical;
 
 	const dispatch = createEventDispatcher();
 
@@ -101,41 +103,37 @@
 </script>
 
 <div class="parent-container" bind:this={parent_container}>
-	<div class="wrapper">
-		<div class="loading-panel">
-			<div class="code-header">app.py</div>
-			{#if !loaded}
-				<div style="display: flex;"></div>
-				<div class="loading-section">
-					<div class="loading-dot"></div>
-					{loading_text}
+	<div class="loading-panel">
+		<div class="code-header">app.py</div>
+		{#if !loaded}
+			<div style="display: flex;"></div>
+			<div class="loading-section">
+				<div class="loading-dot"></div>
+				{loading_text}
+			</div>
+		{:else}
+			<div class="buttons">
+				<div class="run">
+					<button
+						class="button"
+						on:click={() => {
+							dispatch("code", { code });
+						}}
+					>
+						Run
+						<div class="shortcut">⌘+↵</div>
+					</button>
 				</div>
-			{:else}
-				<div class="buttons">
-					<div class="run">
-						<button
-							class="button"
-							on:click={() => {
-								dispatch("code", { code });
-							}}
-						>
-							Run
-							<div class="shortcut">⌘+↵</div>
-						</button>
-					</div>
-				</div>
-				<div style="flex-grow: 1"></div>
-				<div class="loading-section">
-					<img src={lightning} alt="lightning icon" class="lightning-logo" />
-					Interactive
-				</div>
-			{/if}
-		</div>
-		<div
-			class:horizontal={layout === "horizontal"}
-			class:vertical={layout === "vertical"}
-			class="child-container"
-		>
+			</div>
+			<div style="flex-grow: 1"></div>
+			<div class="loading-section">
+				<img src={lightning} alt="lightning icon" class="lightning-logo" />
+				Interactive
+			</div>
+		{/if}
+	</div>
+	<div class:horizontal class:vertical class="child-container">
+		<div class="half-container">
 			<div
 				class:code-editor-border={loaded}
 				class="code-editor"
@@ -151,51 +149,71 @@
 					/>
 				</Block>
 			</div>
-			{#if loaded}
+		</div>
+		{#if loaded}
+			<div class="half-container">
 				<div class="preview">
 					<slot></slot>
 				</div>
-			{/if}
-		</div>
+			</div>
+		{/if}
 	</div>
 </div>
 
 <style>
-	.wrapper {
-		width: 100%;
-		height: 100%;
-		overflow-y: scroll;
-		display: flex;
-		flex-direction: column;
-	}
 	.parent-container {
 		width: 100%;
 		height: 100%;
 		overflow: hidden;
 		border: 1px solid rgb(229 231 235);
 		border-radius: 0.375rem;
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+		overflow: scroll;
 	}
+
 	:global(.dark .parent-container) {
 		border-color: #374151 !important;
 		color-scheme: dark !important;
 	}
 
 	.child-container {
+		flex-grow: 1;
 		display: flex;
 		flex-direction: column;
+	}
+	.child-container.horizontal {
+		flex-direction: row;
+	}
+	.child-container.vertical {
+		flex-direction: column;
+		height: 100%;
+		overflow: hidden;
+	}
+
+	.half-container {
+		position: relative;
 		flex-grow: 1;
 	}
-
-	.horizontal {
-		flex-direction: row !important;
+	.child-container.horizontal .half-container {
+		width: 50%;
+	}
+	.child-container.vertical .half-container {
+		height: 50%;
+		overflow: scroll;
 	}
 
-	.vertical {
-		flex-direction: column !important;
+	.child-container.horizontal .code-editor.code-editor-border {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
 	}
 
 	.vertical .code-editor-border {
-		border-right: none !important;
+		border-right: none;
 	}
 
 	.horizontal .code-editor-border {
@@ -203,7 +221,7 @@
 		border-bottom: none;
 	}
 	:global(.dark .horizontal .code-editor-border) {
-		border-right: 1px solid #374151 !important;
+		border-right: 1px solid #374151;
 	}
 
 	@media (min-width: 768px) {
@@ -214,11 +232,12 @@
 			border-right: 1px solid rgb(229 231 235);
 		}
 		:global(.dark .code-editor-border) {
-			border-right: 1px solid #374151 !important;
+			border-right: 1px solid #374151;
 		}
 	}
 
 	.code-editor {
+		height: 100%;
 		flex: 1 1 50%;
 		display: flex;
 		flex-direction: column;
@@ -277,9 +296,7 @@
 	}
 
 	.preview {
-		flex: 1 1 50%;
-		display: flex;
-		flex-direction: column;
+		min-height: 100%;
 	}
 
 	.buttons {

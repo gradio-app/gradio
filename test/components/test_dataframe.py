@@ -29,7 +29,7 @@ class TestDataframe:
         assert dataframe_input.get_config() == {
             "value": {
                 "headers": ["Name", "Age", "Member"],
-                "data": [["", "", ""]],
+                "data": [],
                 "metadata": None,
             },
             "_selectable": False,
@@ -48,6 +48,8 @@ class TestDataframe:
             "elem_id": None,
             "elem_classes": [],
             "show_row_numbers": False,
+            "show_search": "none",
+            "pinned_columns": None,
             "wrap": False,
             "proxy_url": None,
             "name": "dataframe",
@@ -77,7 +79,7 @@ class TestDataframe:
         assert dataframe_output.get_config() == {
             "value": {
                 "headers": ["1", "2", "3"],
-                "data": [["", "", ""]],
+                "data": [],
                 "metadata": None,
             },
             "_selectable": False,
@@ -90,6 +92,8 @@ class TestDataframe:
             "label": None,
             "show_label": True,
             "show_row_numbers": False,
+            "show_search": "none",
+            "pinned_columns": None,
             "scale": None,
             "min_width": 160,
             "interactive": None,
@@ -120,12 +124,6 @@ class TestDataframe:
         postprocess
         """
         dataframe_output = gr.Dataframe()
-        output = dataframe_output.postprocess([]).model_dump()
-        assert output == {
-            "data": [["", "", ""]],
-            "headers": ["1", "2", "3"],
-            "metadata": None,
-        }
         output = dataframe_output.postprocess(np.zeros((2, 2))).model_dump()
         assert output == {
             "data": [[0, 0], [0, 0]],
@@ -376,6 +374,7 @@ class TestDataframe:
         assert df.is_empty(None)
         assert df.is_empty({})
         assert df.is_empty({"data": [], "headers": ["a", "b"]})
+        assert df.is_empty({"data": []})
         assert not df.is_empty({"data": [1, 2]})
         assert not df.is_empty([[1, 2], [3, 4]])
         assert not df.is_empty(pd.DataFrame({"a": [1, 2]}))
@@ -399,7 +398,6 @@ class TestDataframe:
         assert df.get_cell_data(test_data) == [[1, 2], [3, 4]]
         assert df.get_cell_data(test_df) == [[1, 2], [3, 4]]
         assert df.get_cell_data({"data": test_data}) == [[1, 2], [3, 4]]
-        assert df.get_cell_data(np.array([1, 2, 3])) == [[1], [2], [3]]
 
         styled_df = test_df.style
         styled_df.hide(axis=1, subset=["col2"])

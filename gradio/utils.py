@@ -630,7 +630,14 @@ def get_all_components() -> list[type[Component] | type[BlockContext]]:
         c
         for c in subclasses
         if c.__name__
-        not in ["ChatInterface", "Interface", "Blocks", "TabbedInterface", "NativePlot"]
+        not in [
+            "ChatInterface",
+            "Interface",
+            "Blocks",
+            "TabbedInterface",
+            "NativePlot",
+            "SketchBox",
+        ]
     ]
 
 
