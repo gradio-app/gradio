@@ -1,5 +1,11 @@
 # @gradio/chatbot
 
+## 0.24.0
+
+### Features
+
+- [#10636](https://github.com/gradio-app/gradio/pull/10636) [`d06f3e3`](https://github.com/gradio-app/gradio/commit/d06f3e3e08d0270b58cefa1be748e6cfd2362c21) - Chatbot thoughts generating animation.  Thanks @dawoodkhan82!
+
 ## 0.23.2
 
 ### Fixes
