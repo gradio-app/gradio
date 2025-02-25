@@ -109,8 +109,6 @@ def load(
             @gr.render(triggers=[demo.load])
             def create_blocks(oauth_token: gr.OAuthToken | None):
                 token_value = None if oauth_token is None else oauth_token.token
-                gr.Markdown("token>>>>>")
-                gr.Markdown(token_value)
                 return load_blocks_from_huggingface(
                     name=name, src=src, hf_token=token_value, **kwargs
                 )
@@ -199,11 +197,9 @@ def from_model(
     **kwargs,
 ) -> Blocks:
     headers = {"X-Wait-For-Model": "true"}
-    print("hf_token", hf_token)
     client = huggingface_hub.InferenceClient(
         model=model_name, headers=headers, token=hf_token, provider=provider
     )
-    print("client", client)
     p, tags = external_utils.get_model_info(model_name, hf_token)
 
     # For tasks that are not yet supported by the InferenceClient
