@@ -118,3 +118,4 @@ Here's a simple example that saves a user's username and password across session
 
 $code_browserstate
 
+In order for `gr.BrowserState` to persist between grado app restarts, you must set the `storage_key` and the `secret`. Otherwise, the data will be inaccessible.
