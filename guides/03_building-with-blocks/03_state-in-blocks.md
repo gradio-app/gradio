@@ -118,4 +118,4 @@ Here's a simple example that saves a user's username and password across session
 
 $code_browserstate
 
-In order for `gr.BrowserState` to persist between grado app restarts, you must set the `storage_key` and the `secret`. Otherwise, the data will be inaccessible.
+Note: The value stored in `gr.BrowserState` does not persist if the Grado app is restarted. To persist it, you can hardcode specific values of `storage_key` and `secret` in the `gr.BrowserState` component and restart the Gradio app on the same server name and server port. However, this should only be done if you are running trusted Gradio apps, as in principle, this can allow one Gradio app to access localStorage data that was created by a different Gradio app.
