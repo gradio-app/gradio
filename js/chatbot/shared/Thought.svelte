@@ -36,6 +36,7 @@
 	}
 
 	let thought_node: ThoughtNode;
+	let expanded = false;
 	$: thought_node = {
 		...thought,
 		children: is_thought_node(thought) ? thought.children : []
@@ -45,7 +46,6 @@
 		expanded = !expanded;
 	}
 
-	$: expanded = thought_node.metadata?.status !== "done";
 </script>
 
 <div class="thought-group">
@@ -93,25 +93,50 @@
 	</div>
 
 	{#if expanded}
+	<div class="content" transition:slide>
+		<MessageContent
+			message={thought_node}
+			{sanitize_html}
+			{latex_delimiters}
+			{render_markdown}
+			{_components}
+			{upload}
+			{thought_index}
+			{target}
+			{root}
+			{theme_mode}
+			{_fetch}
+			{scroll}
+			{allow_file_downloads}
+			{display_consecutive_in_same_bubble}
+			{i18n}
+			{line_breaks}
+		/>
+		</div>
+	{:else if thought_node.metadata?.status !== "done"}
 		<div class="content" transition:slide>
-			<MessageContent
-				message={thought_node}
-				{sanitize_html}
-				{latex_delimiters}
-				{render_markdown}
-				{_components}
-				{upload}
-				{thought_index}
-				{target}
-				{root}
-				{theme_mode}
-				{_fetch}
-				{scroll}
-				{allow_file_downloads}
-				{display_consecutive_in_same_bubble}
-				{i18n}
-				{line_breaks}
-			/>
+			<div 
+				class="scrollable-content" 
+			>
+					<MessageContent
+						message={thought_node}
+						{sanitize_html}
+						{latex_delimiters}
+						{render_markdown}
+						{_components}
+						{upload}
+						{thought_index}
+						{target}
+						{root}
+						{theme_mode}
+						{_fetch}
+						{scroll}
+						{allow_file_downloads}
+						{display_consecutive_in_same_bubble}
+						{i18n}
+						{line_breaks}
+					/>
+			</div>
 
 			{#if thought_node.children?.length > 0}
 				<div class="children">
@@ -180,6 +205,19 @@
 		margin-left: var(--spacing-lg);
 		margin-bottom: var(--spacing-sm);
 	}
+	
+	.scrollable-content {
+		position: relative;
+		max-height: calc(5 * 1.5em);
+		overflow-y: auto;
+		overscroll-behavior: contain;
+	}
+
+	/* Make sure the scrollable area has enough space to be interactive */
+	.scrollable-content {
+		cursor: default;
+	}
+	
 	.content :global(*) {
 		font-size: var(--text-sm);
 		color: var(--body-text-color);
