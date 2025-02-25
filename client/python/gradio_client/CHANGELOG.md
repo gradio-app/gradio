@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.7.2
+
+### Features
+
+- [#10664](https://github.com/gradio-app/gradio/pull/10664) [`0b1f729`](https://github.com/gradio-app/gradio/commit/0b1f72941fd50298562102e39f4feafaa16f5968) - Allow websocket version 15.  Thanks @freddyaboulton!
+
 ## 1.7.1
 
 ### Fixes
