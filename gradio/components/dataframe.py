@@ -382,6 +382,8 @@ class Dataframe(Component):
             return Dataframe.__extract_metadata(
                 value, getattr(value, "hidden_columns", [])
             )
+        elif isinstance(value, dict):
+            return value.get("metadata", None)
         return None
 
     def postprocess(
