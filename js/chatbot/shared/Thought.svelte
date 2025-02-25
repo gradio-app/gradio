@@ -37,6 +37,9 @@
 
 	let thought_node: ThoughtNode;
 	let expanded = false;
+	let contentPreviewElement: HTMLElement;
+	let userIsScrolling = false;
+
 	$: thought_node = {
 		...thought,
 		children: is_thought_node(thought) ? thought.children : []
@@ -46,6 +49,30 @@
 		expanded = !expanded;
 	}
 
+	function scrollToBottom(): void {
+		if (contentPreviewElement && !userIsScrolling) {
+			contentPreviewElement.scrollTop = contentPreviewElement.scrollHeight;
+		}
+	}
+
+	function handleScroll(): void {
+		if (contentPreviewElement) {
+			const isAtBottom =
+				contentPreviewElement.scrollHeight - contentPreviewElement.scrollTop <=
+				contentPreviewElement.clientHeight + 10;
+			if (!isAtBottom) {
+				userIsScrolling = true;
+			}
+		}
+	}
+
+	$: if (
+		thought_node.content &&
+		contentPreviewElement &&
+		thought_node.metadata?.status !== "done"
+	) {
+		setTimeout(scrollToBottom, 0);
+	}
 </script>
 
 <div class="thought-group">
@@ -93,50 +120,51 @@
 	</div>
 
 	{#if expanded}
-	<div class="content" transition:slide>
-		<MessageContent
-			message={thought_node}
-			{sanitize_html}
-			{latex_delimiters}
-			{render_markdown}
-			{_components}
-			{upload}
-			{thought_index}
-			{target}
-			{root}
-			{theme_mode}
-			{_fetch}
-			{scroll}
-			{allow_file_downloads}
-			{display_consecutive_in_same_bubble}
-			{i18n}
-			{line_breaks}
-		/>
+		<div class="content" transition:slide>
+			<MessageContent
+				message={thought_node}
+				{sanitize_html}
+				{latex_delimiters}
+				{render_markdown}
+				{_components}
+				{upload}
+				{thought_index}
+				{target}
+				{root}
+				{theme_mode}
+				{_fetch}
+				{scroll}
+				{allow_file_downloads}
+				{display_consecutive_in_same_bubble}
+				{i18n}
+				{line_breaks}
+			/>
 		</div>
 	{:else if thought_node.metadata?.status !== "done"}
-		<div class="content" transition:slide>
-			<div 
-				class="scrollable-content" 
-			>
-					<MessageContent
-						message={thought_node}
-						{sanitize_html}
-						{latex_delimiters}
-						{render_markdown}
-						{_components}
-						{upload}
-						{thought_index}
-						{target}
-						{root}
-						{theme_mode}
-						{_fetch}
-						{scroll}
-						{allow_file_downloads}
-						{display_consecutive_in_same_bubble}
-						{i18n}
-						{line_breaks}
-					/>
-			</div>
+		<div
+			class="content-preview"
+			bind:this={contentPreviewElement}
+			on:scroll={handleScroll}
+			transition:slide
+		>
+			<MessageContent
+				message={thought_node}
+				{sanitize_html}
+				{latex_delimiters}
+				{render_markdown}
+				{_components}
+				{upload}
+				{thought_index}
+				{target}
+				{root}
+				{theme_mode}
+				{_fetch}
+				{scroll}
+				{allow_file_downloads}
+				{display_consecutive_in_same_bubble}
+				{i18n}
+				{line_breaks}
+			/>
 
 			{#if thought_node.children?.length > 0}
 				<div class="children">
@@ -199,26 +227,24 @@
 		font-size: var(--text-sm) !important;
 	}
 
-	.content {
+	.content,
+	.content-preview {
 		overflow-wrap: break-word;
 		word-break: break-word;
 		margin-left: var(--spacing-lg);
 		margin-bottom: var(--spacing-sm);
 	}
-	
-	.scrollable-content {
+
+	.content-preview {
 		position: relative;
 		max-height: calc(5 * 1.5em);
 		overflow-y: auto;
 		overscroll-behavior: contain;
-	}
-
-	/* Make sure the scrollable area has enough space to be interactive */
-	.scrollable-content {
 		cursor: default;
 	}
-	
-	.content :global(*) {
+
+	.content :global(*),
+	.content-preview :global(*) {
 		font-size: var(--text-sm);
 		color: var(--body-text-color);
 	}
