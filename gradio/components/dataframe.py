@@ -42,7 +42,7 @@ def _import_polars():
 
 
 class DataframeData(GradioModel):
-    headers: list[str | int]
+    headers: list[Any]
     data: Union[list[list[Any]], list[tuple[Any, ...]]]
     metadata: Optional[dict[str, Optional[list[Any]]]] = None
 
