@@ -87,3 +87,8 @@ class State(Component):
     @property
     def skip_api(self):
         return True
+
+    def get_config(self):
+        config = super().get_config()
+        del config["value"]
+        return config

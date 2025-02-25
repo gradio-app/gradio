@@ -1,5 +1,11 @@
 # @gradio/dataframe
 
+## 0.16.3
+
+### Features
+
+- [#10646](https://github.com/gradio-app/gradio/pull/10646) [`b01ce47`](https://github.com/gradio-app/gradio/commit/b01ce47056f5752fbf03e44600bf0f7dab69b64c) - Fixes cell-selection logic in `Table.svelte`.  Thanks @abidlabs!
+
 ## 0.16.2
 
 ### Fixes
