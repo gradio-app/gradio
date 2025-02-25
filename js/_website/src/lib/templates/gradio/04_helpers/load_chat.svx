@@ -9,7 +9,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
-    let obj = get_object("load");
+    let obj = get_object("load_chat");
 </script>
 
 <!--- Title -->
