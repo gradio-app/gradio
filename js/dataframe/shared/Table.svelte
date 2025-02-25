@@ -1,5 +1,8 @@
 <script lang="ts" context="module">
-	import { type SortDirection, create_dataframe_context } from "./context";
+	import {
+		type SortDirection,
+		create_dataframe_context
+	} from "./context/table_context";
 	import { create_keyboard_context } from "./context/keyboard_context";
 	import { create_selection_context } from "./context/selection_context";
 </script>

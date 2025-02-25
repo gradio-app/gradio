@@ -10,11 +10,11 @@ describe("sort_utils", () => {
 		});
 
 		test("returns ascending when column is sorted ascending", () => {
-			expect(get_sort_status("A", 0, "asc", headers)).toBe("ascending");
+			expect(get_sort_status("A", 0, "asc", headers)).toBe("asc");
 		});
 
 		test("returns descending when column is sorted descending", () => {
-			expect(get_sort_status("B", 1, "des", headers)).toBe("descending");
+			expect(get_sort_status("B", 1, "des", headers)).toBe("des");
 		});
 
 		test("returns none for non-matching column", () => {

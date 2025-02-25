@@ -1,6 +1,6 @@
 import { getContext, setContext } from "svelte";
 import { tick } from "svelte";
-import type { DataFrameContext } from "./index";
+import type { DataFrameContext } from "./table_context";
 import type { CellData } from "../selection_utils";
 import type { DataframeValue } from "../utils";
 import { handle_selection } from "../selection_utils";

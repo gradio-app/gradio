@@ -1,5 +1,5 @@
 import { getContext, setContext } from "svelte";
-import type { DataFrameContext } from "./index";
+import type { DataFrameContext } from "./table_context";
 import type { CellData } from "../selection_utils";
 import type { DataframeValue } from "../utils";
 import type { CellCoordinate } from "../types";

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { MarkdownCode } from "@gradio/markdown-code";
-
+	import type { I18nFormatter } from "@gradio/utils";
 	export let edit: boolean;
 	export let value: string | number = "";
 	export let display_value: string | null = null;
@@ -26,7 +26,7 @@
 	export let root: string;
 	export let max_chars: number | null = null;
 	export let components: Record<string, any> = {};
-	export let i18n: any;
+	export let i18n: I18nFormatter;
 
 	const dispatch = createEventDispatcher<{
 		blur: void;
