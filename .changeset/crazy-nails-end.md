@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Various dataframe fixes
+feat:Refactor `gr.Dataframe`
