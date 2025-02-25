@@ -1,0 +1,114 @@
+.selection-button {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--color-accent);
+	color: white;
+	border-radius: var(--radius-sm);
+	z-index: var(--layer-4);
+}
+
+.selection-button-column {
+	width: var(--size-3);
+	height: var(--size-5);
+	top: -10px;
+	left: var(--selected-col-pos);
+	transform: rotate(90deg);
+}
+
+.selection-button-row {
+	width: var(--size-3);
+	height: var(--size-5);
+	left: -7px;
+	top: calc(var(--selected-row-pos) - var(--size-5) / 2);
+}
+
+.table-wrap:not(:focus-within) .selection-button {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.cell-selected.no-top {
+	box-shadow:
+		inset 2px 0 0 var(--ring-color),
+		inset -2px 0 0 var(--ring-color),
+		inset 0 -2px 0 var(--ring-color);
+}
+
+.cell-selected.no-bottom {
+	box-shadow:
+		inset 2px 0 0 var(--ring-color),
+		inset -2px 0 0 var(--ring-color),
+		inset 0 2px 0 var(--ring-color);
+}
+
+.cell-selected.no-left {
+	box-shadow:
+		inset 0 2px 0 var(--ring-color),
+		inset -2px 0 0 var(--ring-color),
+		inset 0 -2px 0 var(--ring-color);
+}
+
+.cell-selected.no-right {
+	box-shadow:
+		inset 0 2px 0 var(--ring-color),
+		inset 2px 0 0 var(--ring-color),
+		inset 0 -2px 0 var(--ring-color);
+}
+
+.cell-selected.no-top.no-left {
+	box-shadow:
+		inset -2px 0 0 var(--ring-color),
+		inset 0 -2px 0 var(--ring-color);
+}
+
+.cell-selected.no-top.no-right {
+	box-shadow:
+		inset 2px 0 0 var(--ring-color),
+		inset 0 -2px 0 var(--ring-color);
+}
+
+.cell-selected.no-bottom.no-left {
+	box-shadow:
+		inset -2px 0 0 var(--ring-color),
+		inset 0 2px 0 var(--ring-color);
+}
+
+.cell-selected.no-bottom.no-right {
+	box-shadow:
+		inset 2px 0 0 var(--ring-color),
+		inset 0 2px 0 var(--ring-color);
+}
+
+.cell-selected.no-top.no-bottom {
+	box-shadow:
+		inset 2px 0 0 var(--ring-color),
+		inset -2px 0 0 var(--ring-color);
+}
+
+.cell-selected.no-left.no-right {
+	box-shadow:
+		inset 0 2px 0 var(--ring-color),
+		inset 0 -2px 0 var(--ring-color);
+}
+
+.cell-selected.no-top.no-left.no-right {
+	box-shadow: inset 0 -2px 0 var(--ring-color);
+}
+
+.cell-selected.no-bottom.no-left.no-right {
+	box-shadow: inset 0 2px 0 var(--ring-color);
+}
+
+.cell-selected.no-left.no-top.no-bottom {
+	box-shadow: inset -2px 0 0 var(--ring-color);
+}
+
+.cell-selected.no-right.no-top.no-bottom {
+	box-shadow: inset 2px 0 0 var(--ring-color);
+}
+
+.cell-selected.no-top.no-bottom.no-left.no-right {
+	box-shadow: none;
+} 

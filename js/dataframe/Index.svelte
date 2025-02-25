@@ -35,12 +35,13 @@
 	export let root: string;
 
 	export let line_breaks = true;
-	export let column_widths: string[] = [];
+	// export let column_widths: string[] = [];
 	export let gradio: Gradio<{
 		change: never;
 		select: SelectData;
 		input: never;
 		clear_status: LoadingStatus;
+		search: string | null;
 	}>;
 	export let latex_delimiters: {
 		left: string;
@@ -55,17 +56,6 @@
 	export let show_copy_button = false;
 	export let show_row_numbers = false;
 	export let show_search: "none" | "search" | "filter" = "none";
-
-	let search_query: string | null = null;
-	$: filtered_cell_values = search_query
-		? value.data?.filter((row) =>
-				row.some(
-					(cell) =>
-						search_query &&
-						String(cell).toLowerCase().includes(search_query.toLowerCase())
-				)
-			)
-		: null;
 	export let pinned_columns = 0;
 
 	$: _headers = [...(value.headers || headers)];
@@ -100,7 +90,7 @@
 		{show_label}
 		{row_count}
 		{col_count}
-		values={filtered_cell_values || value.data}
+		values={value.data}
 		{display_value}
 		{styling}
 		headers={_headers}
@@ -110,7 +100,7 @@
 		}}
 		on:input={(e) => gradio.dispatch("input")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
-		on:search={(e) => (search_query = e.detail)}
+		on:search={(e) => gradio.dispatch("search", e.detail)}
 		{wrap}
 		{datatype}
 		{latex_delimiters}
@@ -118,7 +108,6 @@
 		{max_height}
 		i18n={gradio.i18n}
 		{line_breaks}
-		{column_widths}
 		upload={(...args) => gradio.client.upload(...args)}
 		stream_handler={(...args) => gradio.client.stream(...args)}
 		bind:value_is_output

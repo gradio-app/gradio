@@ -7,12 +7,12 @@ export function get_sort_status(
 	sort_by: number | undefined,
 	direction: SortDirection | undefined,
 	headers: Headers
-): "none" | "ascending" | "descending" {
+): "none" | "asc" | "des" {
 	if (typeof sort_by !== "number") return "none";
 	if (sort_by < 0 || sort_by >= headers.length) return "none";
 	if (headers[sort_by] === name) {
-		if (direction === "asc") return "ascending";
-		if (direction === "des") return "descending";
+		if (direction === "asc") return "asc";
+		if (direction === "des") return "des";
 	}
 	return "none";
 }

@@ -28,7 +28,11 @@
 	export let components: Record<string, any> = {};
 	export let i18n: any;
 
-	const dispatch = createEventDispatcher();
+	const dispatch = createEventDispatcher<{
+		blur: void;
+		keydown: KeyboardEvent;
+	}>();
+
 	let is_expanded = false;
 
 	export let el: HTMLInputElement | null;
