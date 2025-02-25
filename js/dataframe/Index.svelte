@@ -101,7 +101,6 @@
 		}}
 		on:input={(e) => gradio.dispatch("input")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
-		on:search={(e) => gradio.dispatch("search", e.detail)}
 		{wrap}
 		{datatype}
 		{latex_delimiters}
