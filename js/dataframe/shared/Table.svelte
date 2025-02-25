@@ -669,6 +669,11 @@
 											.map((_, idx) => `var(--cell-width-${idx})`)
 											.join(' + ')})`
 								: 'auto'};"
+							on:click={(event) => handle_header_click(event, i)}
+							on:mousedown={(event) => {
+								event.preventDefault();
+								event.stopPropagation();
+							}}
 						>
 							<div class="cell-wrap">
 								<div class="header-content">
