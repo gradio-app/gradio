@@ -89,7 +89,8 @@
 	let system_prompt = SYSTEM_PROMPT.SYSTEM;
 	let fallback_prompt = SYSTEM_PROMPT.FALLBACK;
 
-	const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	const workerUrl = "https://llms-txt.playground-worker.pages.dev/api/generate";
+	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
 	// const workerUrl = "http://localhost:5173/api/generate";
 
 	let abortController: AbortController | null = null;
@@ -1147,8 +1148,8 @@
 		border: 1px solid #fcc089;
 		border-top: 2px solid #ff7c00;
 		border-radius: 50%;
-		width: 15px;
-		height: 15px;
+		min-width: 15px;
+		min-height: 15px;
 		animation: spin 1.2s linear infinite;
 	}
 
@@ -1156,8 +1157,8 @@
 		border: 1px solid rgba(208, 35, 208, 0.657);
 		border-top: 2px solid rgb(208, 35, 208);
 		border-radius: 50%;
-		width: 15px;
-		height: 15px;
+		min-width: 15px;
+		min-height: 15px;
 		animation: spin 1.2s linear infinite;
 	}
 
