@@ -110,7 +110,6 @@
 	class:multiline={header}
 	on:focus|preventDefault
 	style={styling}
-	class="table-cell-text"
 	data-editable={editable}
 	placeholder=" "
 >
@@ -149,8 +148,6 @@
 		position: relative;
 		display: inline-block;
 		outline: none;
-		padding: var(--size-2);
-		padding-right: 0;
 		-webkit-user-select: text;
 		-moz-user-select: text;
 		-ms-user-select: text;
@@ -177,6 +174,7 @@
 		font-weight: var(--weight-bold);
 		white-space: normal;
 		word-break: break-word;
+		margin-left: var(--size-1);
 	}
 
 	.edit {

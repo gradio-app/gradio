@@ -241,6 +241,19 @@ def custom_component_analytics(
     )
 
 
+def sketch_analytics() -> None:
+    data = {
+        "command": "sketch",
+    }
+    if not analytics_enabled():
+        return
+
+    _do_analytics_request(
+        topic="gradio/sketch",
+        data=data,
+    )
+
+
 def integration_analytics(data: dict[str, Any]) -> None:
     if not analytics_enabled():
         return

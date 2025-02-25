@@ -248,6 +248,7 @@ def from_model(
             "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
         ]
         fn = client.automatic_speech_recognition
+        postprocess = lambda x: x.text  # noqa: E731
     # example model: julien-c/distilbert-feature-extraction
     elif p == "feature-extraction":
         inputs = components.Textbox(label="Input")
@@ -321,7 +322,11 @@ def from_model(
                 "Explain gravity to a 5-year-old.",
                 "What were the main causes of World War I?",
             ]
-            return ChatInterface(fn, type="messages", examples=examples)
+            chat_interface_kwargs = {
+                "examples": examples,
+            }
+            kwargs = dict(chat_interface_kwargs, **kwargs)
+            return ChatInterface(fn, type="messages", **kwargs)  # type: ignore
         inputs = components.Textbox(label="Text")
         outputs = inputs
         examples = ["Once upon a time"]

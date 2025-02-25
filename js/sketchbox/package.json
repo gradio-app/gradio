@@ -1,0 +1,34 @@
+{
+	"name": "@gradio/sketchbox",
+	"version": "0.6.0",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"main_changeset": true,
+	"dependencies": {
+		"@gradio/atoms": "workspace:^",
+		"@gradio/column": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/utils": "workspace:^"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
+	"exports": {
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		},
+		"./package.json": "./package.json"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/sketchbox"
+	}
+}

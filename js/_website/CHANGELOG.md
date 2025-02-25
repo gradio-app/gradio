@@ -1,5 +1,29 @@
 # website
 
+## 0.50.2
+
+### Fixes
+
+- [#10669](https://github.com/gradio-app/gradio/pull/10669) [`d1b063f`](https://github.com/gradio-app/gradio/commit/d1b063fb0c9d893062d9b47919ed1ba9241a6e07) - Add load_chat documentation.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.11.0
+
+## 0.50.1
+
+### Dependency updates
+
+- @gradio/code@0.10.18
+- @gradio/paramviewer@0.7.2
+- @gradio/statustracker@0.10.4
+
+## 0.50.0
+
+### Features
+
+- [#10511](https://github.com/gradio-app/gradio/pull/10511) [`c4aa886`](https://github.com/gradio-app/gradio/commit/c4aa8864dabec4caeb59af91f6f1aaaf50e33b67) - Semantic search in the playground.  Thanks @aliabd!
+
 ## 0.49.0
 
 ### Features

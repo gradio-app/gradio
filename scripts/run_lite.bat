@@ -6,12 +6,9 @@ set "SCRIPT_DIR=%~dp0"
 set "ROOTDIR=%SCRIPT_DIR%.."
 cd /d "%ROOTDIR%"
 
-:: Source helpers (assuming helpers.bat exists)
-call scripts\helpers.bat
-
-:: Check requirements (assuming these functions exist in helpers.bat)
-call :pnpm_required
-call :jq_required
+:: Check requirements: pnpm and jq
+call scripts\helpers.bat pnpm_required
+call scripts\helpers.bat jq_required
 
 :: Get versions using jq
 for /f "tokens=* usebackq" %%a in (`jq -r .version gradio/package.json`) do (

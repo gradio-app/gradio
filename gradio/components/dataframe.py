@@ -417,11 +417,9 @@ class Dataframe(Component):
             )
 
         headers = self.get_headers(value) or self.headers
-        data = (
-            [["" for _ in range(len(headers))]]
-            if self.is_empty(value)
-            else self.get_cell_data(value)
-        )
+        data = [] if self.is_empty(value) else self.get_cell_data(value)
+        if len(data) == 0:
+            return DataframeData(headers=headers, data=[], metadata=None)
         if len(headers) > len(data[0]):
             headers = headers[: len(data[0])]
         elif len(headers) < len(data[0]):
