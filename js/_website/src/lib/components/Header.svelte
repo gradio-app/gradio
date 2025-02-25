@@ -24,10 +24,10 @@
 		<div class="flex flex-wrap items-center gap-x-4 gap-y-2 flex-grow">
 			<div class="flex flex-wrap items-center gap-x-4 gap-y-2 mx-auto">
 				<p class="text-md leading-6 text-gray-700 text-center mx-auto">
-					<strong class="font-semibold">Introducing Gradio 5.0</strong>
+					<strong class="font-semibold">Introducing FastRTC, a library to build real-time web apps</strong>
 				</p>
 				<a
-					href="https://huggingface.co/blog/gradio-5"
+					href="https://fastrtc.org/"
 					target="_blank"
 					class="mx-auto flex-none rounded-full px-3.5 py-1 text-sm font-semibold text-white bg-gradient-to-br from-orange-300 via-orange-500 to-orange-300 hover:drop-shadow-md"
 					>Read More <span aria-hidden="true">&rarr;</span></a
