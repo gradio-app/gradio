@@ -141,9 +141,7 @@ def conversational_wrapper(client: InferenceClient):
             if "429" in str(e):
                 raise TooManyRequestsError() from e
             elif "401" in str(e) or "You must provide an api_key" in str(e):
-                raise Error(
-                    "Unauthorized, please make sure you are logged in."
-                ) from e
+                raise Error("Unauthorized, please make sure you are logged in.") from e
             else:
                 raise Error(str(e)) from e
 
