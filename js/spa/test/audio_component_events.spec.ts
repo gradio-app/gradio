@@ -4,9 +4,6 @@ import { chromium } from "playwright";
 test("Audio events are dispatched correctly. File downloading works and file has correct name.", async ({
 	page
 }) => {
-	await page
-		.getByRole("button", { name: "Drop Audio Here - or - Click to Upload" })
-		.click();
 	const uploader = await page.locator("input[type=file]");
 	await uploader.setInputFiles(["../../test/test_files/audio_sample.wav"]);
 
@@ -17,10 +14,6 @@ test("Audio events are dispatched correctly. File downloading works and file has
 	await page.getByLabel("Clear").click();
 	await expect(page.getByLabel("# Input Change Events")).toHaveValue("2");
 	await expect(page.getByLabel("# Input Input Events")).toHaveValue("2");
-	await page
-		.getByRole("button", { name: "Drop Audio Here - or - Click to Upload" })
-		.click();
-
 	await uploader.setInputFiles(["../../test/test_files/audio_sample.wav"]);
 
 	await expect(page.getByLabel("# Input Change Events")).toHaveValue("3");
