@@ -382,6 +382,8 @@ class Dataframe(Component):
             return Dataframe.__extract_metadata(
                 value, getattr(value, "hidden_columns", [])
             )
+        elif isinstance(value, dict):
+            return value.get("metadata", None)
         return None
 
     def postprocess(
@@ -417,11 +419,9 @@ class Dataframe(Component):
             )
 
         headers = self.get_headers(value) or self.headers
-        data = (
-            [["" for _ in range(len(headers))]]
-            if self.is_empty(value)
-            else self.get_cell_data(value)
-        )
+        data = [] if self.is_empty(value) else self.get_cell_data(value)
+        if len(data) == 0:
+            return DataframeData(headers=headers, data=[], metadata=None)
         if len(headers) > len(data[0]):
             headers = headers[: len(data[0])]
         elif len(headers) < len(data[0]):

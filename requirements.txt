@@ -4,7 +4,7 @@ audioop-lts<1.0; python_version >= "3.13" #it provides support for 'audioop' mod
 fastapi>=0.115.2,<1.0
 ffmpy
 grompy~=0.0
-gradio_client==1.7.0
+gradio_client==1.7.2
 httpx>=0.24.1
 huggingface_hub>=0.28.1
 Jinja2<4.0
