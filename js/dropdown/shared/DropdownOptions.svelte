@@ -17,7 +17,7 @@
 	let listElement: HTMLUListElement;
 	let top: string | null, bottom: string | null, max_height: number;
 	let innerHeight: number;
-	let listScrollY: number = 0;
+	let list_scroll_y = 0;
 
 	function calculate_window_distance(): void {
 		const { top: ref_top, bottom: ref_bottom } =
@@ -39,8 +39,8 @@
 		}, 10);
 	}
 
-	function restore_last_scroll() {
-		listElement?.scrollTo?.(0, listScrollY);
+	function restore_last_scroll(): void {
+		listElement?.scrollTo?.(0, list_scroll_y);
 	}
 
 	$: {
@@ -88,7 +88,7 @@
 		class="options"
 		transition:fly={{ duration: 200, y: 5 }}
 		on:mousedown|preventDefault={(e) => dispatch("change", e)}
-		on:scroll={(e) => (listScrollY = e.currentTarget.scrollTop)}
+		on:scroll={(e) => (list_scroll_y = e.currentTarget.scrollTop)}
 		style:top
 		style:bottom
 		style:max-height={`calc(${max_height}px - var(--window-padding))`}
