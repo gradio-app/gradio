@@ -15,12 +15,6 @@ class InvalidComponentError(ValueError):
     pass
 
 
-class TooManyRequestsError(Exception):
-    """Raised when the Hugging Face API returns a 429 status code."""
-
-    pass
-
-
 class ModelNotFoundError(Exception):
     """Raised when the provided model doesn't exists or is not found by the provided api url."""
 
@@ -112,3 +106,10 @@ class InvalidPathError(ValueError):
 
 class ChecksumMismatchError(Exception):
     pass
+
+
+class TooManyRequestsError(Error):
+    """Raised when the Hugging Face API returns a 429 status code."""
+
+    def __init__(self, message: str = "Too many requests. Please try again later."):
+        super().__init__(message)
