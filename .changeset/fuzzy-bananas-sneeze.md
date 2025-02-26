@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Let functions that solely update component properties run in the frontend
+feat:Allow functions that solely update component properties to run in the frontend by setting `js=True`
