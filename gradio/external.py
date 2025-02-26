@@ -468,10 +468,12 @@ def from_model(
             data = preprocess(*data)
         try:
             data = fn(*data)  # type: ignore
-            print("data after fn", data)
-        except huggingface_hub.utils.HfHubHTTPError as e:  # type: ignore
+        except huggingface_hub.errors.HfHubHTTPError as e:  # type: ignore
             if "429" in str(e):
                 raise TooManyRequestsError() from e
+            else:
+                raise gr.Error(str(e)) from e
+
         if postprocess is not None:
             data = postprocess(data)  # type: ignore
         return data
