@@ -471,7 +471,7 @@ def from_model(
         except Exception as e:
             if "429" in str(e):
                 raise TooManyRequestsError() from e
-            elif "401" in str(e) or "log in" in str(e):
+            elif "401" in str(e) or "You must provide an api_key" in str(e):
                 raise gr.Error(
                     "Unauthorized, please make sure you are logged in."
                 ) from e
