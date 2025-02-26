@@ -1,8 +1,6 @@
 import { json } from "@sveltejs/kit";
 import SYSTEM_PROMPT from "$lib/json/system_prompt.json";
 
-export const prerender = true;
-
 export async function GET({ url }) {
 	const worker_url = "https://llms-txt.playground-worker.pages.dev/api/prompt";
 	// const worker_url = "https://playground-worker.pages.dev/api/prompt";
