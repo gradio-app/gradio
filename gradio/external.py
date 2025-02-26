@@ -467,11 +467,11 @@ def from_model(
         if preprocess is not None:
             data = preprocess(*data)
         try:
-            data = fn(*data)  # type: ignore
-        except huggingface_hub.errors.HfHubHTTPError as e:  # type: ignore
+            data = fn(*data)
+        except Exception as e:
             if "429" in str(e):
                 raise TooManyRequestsError() from e
-            elif "401" in str(e):
+            elif "401" in str(e) or "log in" in str(e):
                 raise gr.Error(
                     "Unauthorized, please make sure you are logged in."
                 ) from e
