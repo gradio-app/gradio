@@ -125,7 +125,6 @@ const config = {
 				...Object.keys(redirects),
 				`/4.44.1/docs`,
 				`/4.44.1/guides`,
-				`/llms.txt`
 			],
 			handleMissingId: "warn"
 		},
