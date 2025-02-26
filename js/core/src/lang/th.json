@@ -1,0 +1,143 @@
+﻿{
+	"_name": "ภาษาไทย",
+	"3D_model": {
+		"3d_model": "โมเดล 3 มิติ",
+		"drop_to_upload": "ลากและวางไฟล์โมเดล 3 มิติ (.obj, .glb, .stl, .gltf, .splat, หรือ .ply) ที่นี่เพื่ออัปโหลด"
+	},
+	"annotated_image": {
+		"annotated_image": "รูปภาพที่มีคำอธิบาย"
+	},
+	"audio": {
+		"allow_recording_access": "กรุณาอนุญาตการเข้าถึงไมโครโฟนเพื่อบันทึกเสียง",
+		"audio": "เสียง",
+		"drop_to_upload": "ลากและวางไฟล์เสียงที่นี่เพื่ออัปโหลด",
+		"record_from_microphone": "บันทึกจากไมโครโฟน",
+		"stop_recording": "หยุดบันทึก",
+		"no_device_support": "ไม่สามารถเข้าถึงอุปกรณ์สื่อได้ โปรดตรวจสอบว่าคุณใช้งานบนโดเมนที่ปลอดภัย (https) หรือ localhost (หรือคุณได้กำหนดค่า SSL ที่ถูกต้อง) และอนุญาตให้เบราว์เซอร์เข้าถึงอุปกรณ์ของคุณ",
+		"stop": "หยุด",
+		"resume": "ทำงานต่อ",
+		"record": "บันทึก",
+		"no_microphone": "ไม่พบไมโครโฟน",
+		"pause": "หยุดชั่วคราว",
+		"play": "เล่น",
+		"waiting": "กำลังรอ"
+	},
+	"blocks": {
+		"connection_can_break": "บนมือถือ การเชื่อมต่ออาจหลุดหากแท็บนี้ไม่ได้อยู่ในโฟกัสหรืออุปกรณ์เข้าสู่โหมดพัก ส่งผลให้เสียตำแหน่งในคิว",
+		"long_requests_queue": "มีคิวคำขอรออยู่เป็นจำนวนมาก คัดลอก Space นี้เพื่อข้ามคิว",
+		"lost_connection": "การเชื่อมต่อขาดหายเนื่องจากออกจากหน้า กำลังเข้าคิวใหม่...",
+		"waiting_for_inputs": "กำลังรอไฟล์อัปโหลดเสร็จ กรุณาลองใหม่"
+	},
+	"checkbox": {
+		"checkbox": "กล่องเลือก",
+		"checkbox_group": "กลุ่มกล่องเลือก"
+	},
+	"code": {
+		"code": "โค้ด"
+	},
+	"color_picker": {
+		"color_picker": "ตัวเลือกสี"
+	},
+	"common": {
+		"built_with": "สร้างด้วย",
+		"built_with_gradio": "สร้างด้วย Gradio",
+		"clear": "ล้าง",
+		"download": "ดาวน์โหลด",
+		"edit": "แก้ไข",
+		"empty": "ว่างเปล่า",
+		"error": "ข้อผิดพลาด",
+		"hosted_on": "โฮสต์บน",
+		"loading": "กำลังโหลด",
+		"logo": "โลโก้",
+		"or": "หรือ",
+		"remove": "ลบ",
+		"settings": "การตั้งค่า",
+		"share": "แชร์",
+		"submit": "ส่ง",
+		"undo": "เลิกทำ",
+		"no_devices": "ไม่พบอุปกรณ์",
+		"language": "ภาษา",
+		"display_theme": "ธีมการแสดงผล",
+		"pwa": "โปรเกรสซีฟเว็บแอพ"
+	},
+	"dataframe": {
+		"incorrect_format": "รูปแบบไม่ถูกต้อง รองรับเฉพาะไฟล์ CSV และ TSV",
+		"new_column": "เพิ่มคอลัมน์",
+		"new_row": "เพิ่มแถวใหม่",
+		"add_row_above": "เพิ่มแถวด้านบน",
+		"add_row_below": "เพิ่มแถวด้านล่าง",
+		"delete_row": "ลบแถว",
+		"delete_column": "ลบคอลัมน์",
+		"add_column_left": "เพิ่มคอลัมน์ทางซ้าย",
+		"add_column_right": "เพิ่มคอลัมน์ทางขวา",
+		"sort_column": "เรียงลำดับคอลัมน์",
+		"sort_ascending": "เรียงจากน้อยไปมาก",
+		"sort_descending": "เรียงจากมากไปน้อย",
+		"drop_to_upload": "ลากและวางไฟล์ CSV หรือ TSV ที่นี่เพื่อนำเข้าข้อมูล"
+	},
+	"dropdown": {
+		"dropdown": "เมนูดรอปดาวน์"
+	},
+	"errors": {
+		"build_error": "เกิดข้อผิดพลาดในการสร้าง",
+		"config_error": "เกิดข้อผิดพลาดในการกำหนดค่า",
+		"contact_page_author": "โปรดติดต่อผู้ดูแลเพจเพื่อแจ้งให้ทราบ",
+		"no_app_file": "ไม่พบไฟล์แอป",
+		"runtime_error": "เกิดข้อผิดพลาดขณะทำงาน",
+		"space_not_working": "\"Space ใช้งานไม่ได้เนื่องจาก\" {0}",
+		"space_paused": "Space ถูกหยุดชั่วคราว",
+		"use_via_api": "ใช้งานผ่าน API"
+	},
+	"file": {
+		"uploading": "กำลังอัปโหลด..."
+	},
+	"highlighted_text": {
+		"highlighted_text": "ข้อความที่ถูกเน้น"
+	},
+	"image": {
+		"allow_webcam_access": "กรุณาอนุญาตการเข้าถึงเว็บแคมเพื่อบันทึกวิดีโอ",
+		"brush_color": "สีแปรง",
+		"brush_radius": "ขนาดแปรง",
+		"image": "รูปภาพ",
+		"remove_image": "ลบรูปภาพ",
+		"select_brush_color": "เลือกสีแปรง",
+		"start_drawing": "เริ่มวาด",
+		"use_brush": "ใช้แปรง",
+		"drop_to_upload": "ลากและวางไฟล์รูปภาพที่นี่เพื่ออัปโหลด"
+	},
+	"label": {
+		"label": "ป้ายกำกับ"
+	},
+	"login": {
+		"enable_cookies": "หากคุณเข้าใช้งาน HuggingFace Space ในโหมดไม่ระบุตัวตน คุณต้องเปิดใช้งานคุกกี้ของบุคคลที่สาม",
+		"incorrect_credentials": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",
+		"username": "ชื่อผู้ใช้",
+		"password": "รหัสผ่าน",
+		"login": "เข้าสู่ระบบ"
+	},
+	"number": {
+		"number": "ตัวเลข"
+	},
+	"plot": {
+		"plot": "กราฟ"
+	},
+	"radio": {
+		"radio": "ปุ่มตัวเลือก"
+	},
+	"slider": {
+		"slider": "แถบเลื่อน"
+	},
+	"upload_text": {
+		"click_to_upload": "คลิกเพื่ออัปโหลด",
+		"drop_audio": "ลากและวางไฟล์เสียงที่นี่",
+		"drop_csv": "ลากและวางไฟล์ CSV ที่นี่",
+		"drop_file": "ลากและวางไฟล์ที่นี่",
+		"drop_image": "ลากและวางไฟล์รูปภาพที่นี่",
+		"drop_video": "ลากและวางไฟล์วิดีโอที่นี่",
+		"drop_gallery": "ลากและวางไฟล์สื่อที่นี่",
+		"paste_clipboard": "วางจากคลิปบอร์ด"
+	},
+	"video": {
+		"drop_to_upload": "ลากและวางไฟล์วิดีโอที่นี่เพื่ออัปโหลด"
+	}
+}
