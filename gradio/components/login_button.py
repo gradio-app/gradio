@@ -23,7 +23,10 @@ if TYPE_CHECKING:
 @document()
 class LoginButton(Button):
     """
-    Creates a button that redirects the user to Sign with Hugging Face using OAuth.
+    Creates a button that redirects the user to Sign with Hugging Face using OAuth. If
+    created inside of a Blocks context, it will add an event to check if the user is logged in
+    and update the button text accordingly. If created outside of a Blocks context, call the
+    `LoginButton.activate()` method to add the event.
     """
 
     is_template = True
@@ -72,10 +75,6 @@ class LoginButton(Button):
         )
         if get_blocks_context():
             self.activate()
-        else:
-            warnings.warn(
-                "LoginButton created outside of a Blocks context. May not work unless you call its `activate()` method manually."
-            )
 
     def activate(self):
         # Taken from https://cmgdo.com/external-link-in-gradio-button/
