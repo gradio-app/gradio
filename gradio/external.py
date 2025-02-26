@@ -472,7 +472,9 @@ def from_model(
             if "429" in str(e):
                 raise TooManyRequestsError() from e
             elif "401" in str(e):
-                raise gr.Error("Unauthorized, please make sure you are logged in.") from e
+                raise gr.Error(
+                    "Unauthorized, please make sure you are logged in."
+                ) from e
             else:
                 raise gr.Error(str(e)) from e
 
