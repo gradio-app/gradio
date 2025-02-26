@@ -138,12 +138,7 @@ def conversational_wrapper(client: InferenceClient):
             result = client.chat_completion(history)
             return result.choices[0].message.content
         except Exception as e:
-            if "429" in str(e):
-                raise TooManyRequestsError() from e
-            elif "401" in str(e) or "You must provide an api_key" in str(e):
-                raise Error("Unauthorized, please make sure you are logged in.") from e
-            else:
-                raise Error(str(e)) from e
+            handle_hf_error(e)
 
     return chat_fn
 
@@ -282,3 +277,12 @@ def streamline_spaces_interface(config: dict) -> dict:
     }
     config = {k: config[k] for k in parameters}
     return config
+
+
+def handle_hf_error(e: Exception):
+    if "429" in str(e):
+        raise TooManyRequestsError() from e
+    elif "401" in str(e) or "You must provide an api_key" in str(e):
+        raise Error("Unauthorized, please make sure you are signed in.") from e
+    else:
+        raise Error(str(e)) from e

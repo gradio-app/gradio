@@ -469,14 +469,7 @@ def from_model(
         try:
             data = fn(*data)
         except Exception as e:
-            if "429" in str(e):
-                raise TooManyRequestsError() from e
-            elif "401" in str(e) or "You must provide an api_key" in str(e):
-                raise gr.Error(
-                    "Unauthorized, please make sure you are logged in."
-                ) from e
-            else:
-                raise gr.Error(str(e)) from e
+            external_utils.handle_hf_error(e)
 
         if postprocess is not None:
             data = postprocess(data)  # type: ignore
