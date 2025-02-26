@@ -132,7 +132,7 @@ const config = {
 			lib: "src/lib"
 		},
 		adapter: adapter({
-			fallback: "index.html"
+			fallback: "404.html"
 		}),
 		paths: {
 			relative: false
