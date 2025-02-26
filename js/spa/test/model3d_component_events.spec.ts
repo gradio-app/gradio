@@ -3,9 +3,6 @@ import { test, expect, drag_and_drop_file } from "@self/tootils";
 test("Model3D click-to-upload uploads file successfuly. Upload and clear events work correctly. Downloading works.", async ({
 	page
 }) => {
-	await page
-		.getByRole("button", { name: "Drop File Here - or - Click to Upload" })
-		.click();
 	const uploader = await page.locator("input[type=file]");
 	const change_counter = await page.getByLabel("# Change Events");
 	const upload_counter = await page.getByLabel("# Upload Events");
