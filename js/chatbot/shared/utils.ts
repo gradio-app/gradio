@@ -13,9 +13,46 @@ import type {
 } from "../types";
 import type { LoadedComponent } from "../../core/src/types";
 import { Gradio } from "@gradio/utils";
+
 export const format_chat_for_sharing = async (
-	chat: NormalisedMessage[]
+	chat: NormalisedMessage[],
+	url_length_limit = 1800
 ): Promise<string> => {
+	let messages_to_share = [...chat];
+	let formatted = await format_messages(messages_to_share);
+
+	// Use only first and last message if the conversation is too large
+	if (formatted.length > url_length_limit && messages_to_share.length > 2) {
+		const first_message = messages_to_share[0];
+		const last_message = messages_to_share[messages_to_share.length - 1];
+		messages_to_share = [first_message, last_message];
+		formatted = await format_messages(messages_to_share);
+	}
+
+	// Truncate messages if still too large
+	if (formatted.length > url_length_limit && messages_to_share.length > 0) {
+		const truncated_messages = messages_to_share.map((msg) => {
+			if (msg.type === "text") {
+				const max_length =
+					Math.floor(url_length_limit / messages_to_share.length) - 20;
+				if (msg.content.length > max_length) {
+					return {
+						...msg,
+						content: msg.content.substring(0, max_length) + "..."
+					};
+				}
+			}
+			return msg;
+		});
+
+		messages_to_share = truncated_messages;
+		formatted = await format_messages(messages_to_share);
+	}
+
+	return formatted;
+};
+
+const format_messages = async (chat: NormalisedMessage[]): Promise<string> => {
 	let messages = await Promise.all(
 		chat.map(async (message) => {
 			if (message.role === "system") return "";
@@ -59,7 +96,7 @@ export const format_chat_for_sharing = async (
 			return `${speaker_emoji}: ${html_content}`;
 		})
 	);
-	return messages.join("\n");
+	return messages.filter((msg) => msg !== "").join("\n");
 };
 
 export interface UndoRetryData {
