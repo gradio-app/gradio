@@ -21,7 +21,6 @@ export const format_chat_for_sharing = async (
 	let messages_to_share = [...chat];
 	let formatted = await format_messages(messages_to_share);
 
-	// Use only first and last message if the conversation is too large
 	if (formatted.length > url_length_limit && messages_to_share.length > 2) {
 		const first_message = messages_to_share[0];
 		const last_message = messages_to_share[messages_to_share.length - 1];
@@ -29,7 +28,6 @@ export const format_chat_for_sharing = async (
 		formatted = await format_messages(messages_to_share);
 	}
 
-	// Truncate messages if still too large
 	if (formatted.length > url_length_limit && messages_to_share.length > 0) {
 		const truncated_messages = messages_to_share.map((msg) => {
 			if (msg.type === "text") {
