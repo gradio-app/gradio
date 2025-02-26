@@ -29,7 +29,7 @@ import httpx
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
-from grompy import transpile
+from groovy import transpile
 
 from gradio import (
     analytics,
@@ -2258,7 +2258,7 @@ Received inputs:
                 print(f"* ({index + 1}/{num_to_transpile}) {fn.__name__}: ", end="")
             if getattr(fn, "__js_implementation__", None) is None:  # type: ignore
                 try:
-                    fn.__js_implementation__ = transpile(fn)  # type: ignore
+                    fn.__js_implementation__ = transpile(fn, validate=True)  # type: ignore
                     if not quiet:
                         print("✅")
                 except Exception as e:
