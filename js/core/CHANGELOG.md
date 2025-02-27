@@ -1,5 +1,17 @@
 # @gradio/core
 
+## 0.11.1
+
+### Features
+
+- [#10679](https://github.com/gradio-app/gradio/pull/10679) [`cb3c762`](https://github.com/gradio-app/gradio/commit/cb3c76205c3fc1fae55229b5efe223c6d5c5c907) - Add Thai Translate.  Thanks @haihandsome!
+
+## 0.11.0
+
+### Dependency updates
+
+- @gradio/code@0.11.0
+
 ## 0.11.0
 
 ### Features
