@@ -134,7 +134,7 @@ const config = {
 		adapter: adapter({
 			fallback: "404.html",
 			routes: {
-				include: ['/llms.txt'],
+				include: ["/llms.txt"],
 				exclude: [
 					`/docs`,
 					`/docs/*`,
@@ -146,7 +146,7 @@ const config = {
 					`/main/guides/*`,
 					`/playground`
 				]
-			},
+			}
 		}),
 		paths: {
 			relative: false
