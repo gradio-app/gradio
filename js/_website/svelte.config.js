@@ -1,4 +1,4 @@
-import adapter from "@sveltejs/adapter-static";
+import adapter from "@sveltejs/adapter-cloudflare";
 import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 import { redirects } from "./src/routes/redirects.js";
 import fs from "fs";
@@ -132,7 +132,21 @@ const config = {
 			lib: "src/lib"
 		},
 		adapter: adapter({
-			fallback: "404.html"
+			fallback: "404.html",
+			routes: {
+				include: ['/llms.txt'],
+				exclude: [
+					`/docs`,
+					`/docs/*`,
+					`/guides`,
+					`/guides/*`,
+					`/main/docs`,
+					`/main/docs/*`,
+					`/main/guides`,
+					`/main/guides/*`,
+					`/playground`
+				]
+			},
 		}),
 		paths: {
 			relative: false
