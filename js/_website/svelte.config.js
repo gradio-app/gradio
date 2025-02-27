@@ -140,6 +140,11 @@ const config = {
 		}),
 		paths: {
 			relative: false
+		},
+		build: {
+			rollupOptions: {
+				external: ["@sindresorhus/slugify"]
+			}
 		}
 	}
 };
