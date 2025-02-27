@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import { mdsvex, code_highlighter } from "mdsvex";
 import slugify from "@sindresorhus/slugify";
 import { toString as to_string } from "hast-util-to-string";
+import { build } from "vite";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 let version = "4.0.0";
@@ -136,15 +137,15 @@ const config = {
 			routes: {
 				include: ["/llms.txt"],
 				exclude: ["<all>"]
+			},
+			build: {
+				rollupOptions: {
+					external: ["@sindresorhus/slugify"]
+				}
 			}
 		}),
 		paths: {
 			relative: false
-		},
-		build: {
-			rollupOptions: {
-				external: ["@sindresorhus/slugify"]
-			}
 		}
 	}
 };
