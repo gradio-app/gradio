@@ -1,5 +1,11 @@
 # website
 
+## 0.50.3
+
+### Features
+
+- [#10670](https://github.com/gradio-app/gradio/pull/10670) [`a15964d`](https://github.com/gradio-app/gradio/commit/a15964db8772d3cb34e730e75866c5d7460199ab) - Update banner to point to FastRTC.  Thanks @abidlabs!
+
 ## 0.50.2
 
 ### Fixes
