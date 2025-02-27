@@ -33,6 +33,25 @@
 	width: 100%;
 }
 
+.row-number {
+	text-align: center;
+	padding: var(--size-1);
+	min-width: var(--size-12);
+	width: var(--size-12);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-weight: var(--weight-semibold);
+}
+
+tr:nth-child(odd) .row-number {
+	background: var(--table-odd-background-fill);
+}
+
+tr:nth-child(even) .row-number {
+	background: var(--table-even-background-fill);
+}
+
 .sort-buttons {
 	order: -1;
 }

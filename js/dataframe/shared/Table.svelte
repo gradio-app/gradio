@@ -203,6 +203,9 @@
 	}
 
 	$: filtered_data = df_actions.filter_data(data);
+	$: if ($df_state.current_search_query !== undefined) {
+		filtered_data = df_actions.filter_data(data);
+	}
 
 	// $: row_order = $df_state.sort_state.row_order;
 
@@ -459,10 +462,6 @@
 		is_fullscreen = !!document.fullscreenElement;
 	}
 
-	async function handle_copy(): Promise<void> {
-		await copy_table_data(data, null);
-	}
-
 	function toggle_header_menu(event: MouseEvent, col: number): void {
 		event.stopPropagation();
 		if (active_header_menu && active_header_menu.col === col) {
@@ -531,7 +530,7 @@
 	function commit_filter(): void {
 		if ($df_state.current_search_query && show_search === "filter") {
 			dispatch("change", {
-				data: data.map((row) => row.map((cell) => cell.value)),
+				data: filtered_data.map((row) => row.map((cell) => cell.value)),
 				headers: _headers.map((h) => h.value),
 				metadata: null
 			});
@@ -591,7 +590,7 @@
 				{show_fullscreen_button}
 				{is_fullscreen}
 				on:click={toggle_fullscreen}
-				on_copy={handle_copy}
+				on_copy={async () => await copy_table_data(data, null)}
 				{show_copy_button}
 				{show_search}
 				on:search={(e) => df_actions.handle_search(e.detail)}
@@ -638,10 +637,7 @@
 			<thead>
 				<tr>
 					{#if show_row_numbers}
-						<th
-							class="row-number-header frozen-column always-frozen"
-							style="left: 0;"
-						>
+						<th tabindex="-1">
 							<div class="cell-wrap">
 								<div class="header-content">
 									<div class="header-text"></div>
@@ -741,6 +737,16 @@
 			</thead>
 			<tbody>
 				<tr>
+					{#if show_row_numbers}
+						<td
+							class="row-number"
+							tabindex="-1"
+							data-row="0"
+							data-col="row-number"
+						>
+							1
+						</td>
+					{/if}
 					{#each max as { value, id }, j (id)}
 						<td tabindex="-1" bind:this={cells[j]}>
 							<div class="cell-wrap">
@@ -804,10 +810,7 @@
 					{/if}
 					<tr slot="thead">
 						{#if show_row_numbers}
-							<th
-								class="row-number-header frozen-column always-frozen"
-								style="left: 0;"
-							>
+							<th class="row-number">
 								<div class="cell-wrap">
 									<div class="header-content">
 										<div class="header-text"></div>
@@ -901,9 +904,10 @@
 					<tr slot="tbody" let:item let:index class:row_odd={index % 2 === 0}>
 						{#if show_row_numbers}
 							<td
-								class="row-number frozen-column always-frozen"
-								style="left: 0;"
+								class="row-number"
 								tabindex="-1"
+								data-row={index}
+								data-col="row-number"
 							>
 								{index + 1}
 							</td>
@@ -914,6 +918,9 @@
 								class:last-frozen={j === actual_pinned_columns - 1}
 								tabindex={show_row_numbers && j === 0 ? -1 : 0}
 								bind:this={els[id].cell}
+								data-row={index}
+								data-col={j}
+								data-testid={`cell-${index}-${j}`}
 								on:touchstart={(event) => {
 									const touch = event.touches[0];
 									const mouseEvent = new MouseEvent("click", {
