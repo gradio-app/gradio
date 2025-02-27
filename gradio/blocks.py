@@ -621,6 +621,7 @@ class BlockFunction:
             "trigger_mode": self.trigger_mode,
             "show_api": self.show_api,
             "rendered_in": self.rendered_in._id if self.rendered_in else None,
+            "render_id": self.renderable._id if self.renderable else None,
             "connection": self.connection,
             "time_limit": self.time_limit,
             "stream_every": self.stream_every,
