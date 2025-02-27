@@ -198,7 +198,7 @@ def create(app_file: str, config_file: str):
                             new_component_id,
                         ],
                     )
-                component_name, kwargs, var_name = "", {}, ""
+                component_name, kwargs, var_name, just_created = "", {}, "", False
                 if _mode in ["modify_component", "modify_function"]:
                     component_name, kwargs, var_name = _components[_modify_id]
                     just_created = var_name == ""
