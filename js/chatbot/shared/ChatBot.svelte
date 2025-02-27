@@ -252,25 +252,8 @@
 				Icon={Community}
 				on:click={async () => {
 					try {
-						const CLOUDFRONT_LIMIT = 20 * 1024; // 20KB limit
-						let messages_to_share = value;
 						// @ts-ignore
-						let formatted = await format_chat_for_sharing(messages_to_share);
-
-						while (
-							new Blob([formatted]).size > CLOUDFRONT_LIMIT &&
-							messages_to_share.length > 1
-						) {
-							messages_to_share = value.slice(1);
-							formatted = await format_chat_for_sharing(messages_to_share);
-						}
-
-						if (new Blob([formatted]).size > CLOUDFRONT_LIMIT) {
-							throw new ShareError(
-								"Chat content too large to share, even with a single message."
-							);
-						}
-
+						const formatted = await format_chat_for_sharing(value);
 						dispatch("share", {
 							description: formatted
 						});
@@ -354,6 +337,9 @@
 					{allow_file_downloads}
 					on:copy={(e) => dispatch("copy", e.detail)}
 				/>
+				{#if generating && messages[messages.length - 1].role === "assistant" && messages[messages.length - 1].metadata?.status === "done"}
+					<Pending {layout} {avatar_images} />
+				{/if}
 			{/each}
 			{#if pending_message}
 				<Pending {layout} {avatar_images} />

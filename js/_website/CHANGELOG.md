@@ -1,5 +1,21 @@
 # website
 
+## 0.50.3
+
+### Features
+
+- [#10670](https://github.com/gradio-app/gradio/pull/10670) [`a15964d`](https://github.com/gradio-app/gradio/commit/a15964db8772d3cb34e730e75866c5d7460199ab) - Update banner to point to FastRTC.  Thanks @abidlabs!
+
+## 0.50.2
+
+### Fixes
+
+- [#10669](https://github.com/gradio-app/gradio/pull/10669) [`d1b063f`](https://github.com/gradio-app/gradio/commit/d1b063fb0c9d893062d9b47919ed1ba9241a6e07) - Add load_chat documentation.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.11.0
+
 ## 0.50.1
 
 ### Dependency updates

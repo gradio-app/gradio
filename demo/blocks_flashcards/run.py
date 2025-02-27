@@ -2,17 +2,7 @@ import random
 
 import gradio as gr
 
-demo = gr.Blocks()
-
-def is_data_empty(flashcards):
-    if isinstance(flashcards, dict):
-        return all(item == '' for sublist in flashcards['data'] for item in sublist)
-    elif isinstance(flashcards, list):
-        return all(all(item == '' for item in sublist) for sublist in flashcards)
-    else:
-        return True
-
-with demo:
+with gr.Blocks() as demo:
     gr.Markdown(
         "Load the flashcards in the table below, then use the Practice tab to practice."
     )
@@ -38,7 +28,7 @@ with demo:
 
             def start_practice(flashcards):
                 # if no cards entered into dataframe yet, return
-                if is_data_empty(flashcards):
+                if len(flashcards) == 0:
                     practice_tab = gr.Tab("Practice", interactive=False, id=1)
                     raise gr.Error("Please enter word prompts into the table.")
                     return [practice_tab, tabs]
