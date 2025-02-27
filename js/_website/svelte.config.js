@@ -135,17 +135,7 @@ const config = {
 			fallback: "404.html",
 			routes: {
 				include: ["/llms.txt"],
-				exclude: [
-					`/docs`,
-					`/docs/*`,
-					`/guides`,
-					`/guides/*`,
-					`/main/docs`,
-					`/main/docs/*`,
-					`/main/guides`,
-					`/main/guides/*`,
-					`/playground`
-				]
+				exclude: ["<all>"]
 			}
 		}),
 		paths: {
