@@ -1,15 +1,18 @@
 import { json } from "@sveltejs/kit";
 import SYSTEM_PROMPT from "$lib/json/system_prompt.json";
 
-export const prerender = false;
+export const prerender = true;
 
 export async function GET({ url }) {
 	const worker_url = "https://llms-txt.playground-worker.pages.dev/api/prompt";
 	// const worker_url = "https://playground-worker.pages.dev/api/prompt";
 	// const worker_url = "http://localhost:5173/api/prompt";
 
-	const query = url.searchParams.get("q")?.toLowerCase() || "";
-	const format = url.searchParams.get("format")?.toLowerCase() || "text";
+	// const query = url.searchParams.get("q")?.toLowerCase() || "";
+	// const format = url.searchParams.get("format")?.toLowerCase() || "text";
+
+	const query = "";
+	const format = "text";
 
 	const response = await fetch(worker_url, {
 		method: "POST",
