@@ -69,5 +69,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: website
-          path: js/_website/.svelte-kit
+          path: js/_website/build
           include-hidden-files: true
