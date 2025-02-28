@@ -116,3 +116,8 @@ tr:nth-child(even) .frozen-column {
 .scroll-top-button:hover {
 	opacity: 1;
 }
+
+tr {
+	border-bottom: 1px solid var(--border-color-primary);
+	text-align: left;
+}

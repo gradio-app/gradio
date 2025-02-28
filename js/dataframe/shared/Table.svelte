@@ -13,6 +13,12 @@
 	import { Upload } from "@gradio/upload";
 
 	import EditableCell from "./EditableCell.svelte";
+	import RowNumber from "./RowNumber.svelte";
+	import CellMenuButton from "./CellMenuButton.svelte";
+	import SelectionButtons from "./SelectionButtons.svelte";
+	import TableHeader from "./TableHeader.svelte";
+	import TableCell from "./TableCell.svelte";
+	import EmptyRowButton from "./EmptyRowButton.svelte";
 	import type { SelectData } from "@gradio/utils";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import { type Client } from "@gradio/client";
@@ -611,20 +617,11 @@
 		tabindex="0"
 	>
 		{#if selected !== false && selected_cells.length === 1}
-			<button
-				class="selection-button selection-button-column"
-				on:click|stopPropagation={() => handle_select_column(coords[1])}
-				aria-label="Select column"
-			>
-				&#8942;
-			</button>
-			<button
-				class="selection-button selection-button-row"
-				on:click|stopPropagation={() => handle_select_row(coords[0])}
-				aria-label="Select row"
-			>
-				&#8942;
-			</button>
+			<SelectionButtons
+				{coords}
+				on_select_column={handle_select_column}
+				on_select_row={handle_select_row}
+			/>
 		{/if}
 		<table
 			bind:contentRect={t_rect}
@@ -637,115 +634,40 @@
 			<thead>
 				<tr>
 					{#if show_row_numbers}
-						<th tabindex="-1">
-							<div class="cell-wrap">
-								<div class="header-content">
-									<div class="header-text"></div>
-								</div>
-							</div>
-						</th>
+						<RowNumber is_header={true} />
 					{/if}
 					{#each _headers as { value, id }, i (id)}
-						<th
-							class:frozen-column={i < actual_pinned_columns}
-							class:last-frozen={i === actual_pinned_columns - 1}
-							class:focus={header_edit === i || selected_header === i}
-							aria-sort={df_actions.get_sort_status(value, headers) === "none"
-								? "none"
-								: df_actions.get_sort_status(value, headers) === "asc"
-									? "ascending"
-									: "descending"}
-							style="width: {get_cell_width(i)}; left: {i <
-							actual_pinned_columns
-								? i === 0
-									? show_row_numbers
-										? 'var(--cell-width-row-number)'
-										: '0'
-									: `calc(${show_row_numbers ? 'var(--cell-width-row-number) + ' : ''}${Array(
-											i
-										)
-											.fill(0)
-											.map((_, idx) => `var(--cell-width-${idx})`)
-											.join(' + ')})`
-								: 'auto'};"
-							on:click={(event) => handle_header_click(event, i)}
-							on:mousedown={(event) => {
-								event.preventDefault();
-								event.stopPropagation();
-							}}
-						>
-							<div class="cell-wrap">
-								<div class="header-content">
-									{#if header_edit !== i}
-										<div class="sort-buttons">
-											<SortIcon
-												direction={$df_state.sort_state.sort_by === i
-													? $df_state.sort_state.sort_direction
-													: null}
-												on:sort={({ detail }) => handle_sort(i, detail)}
-												{i18n}
-											/>
-										</div>
-									{/if}
-									<button
-										class="header-button"
-										on:click={(event) => handle_header_click(event, i)}
-										on:mousedown={(event) => {
-											event.preventDefault();
-											event.stopPropagation();
-										}}
-									>
-										<EditableCell
-											{max_chars}
-											bind:value={_headers[i].value}
-											bind:el={els[id].input}
-											{latex_delimiters}
-											{line_breaks}
-											edit={header_edit === i}
-											on:keydown={end_header_edit}
-											header
-											{root}
-											{editable}
-											{i18n}
-										/>
-									</button>
-								</div>
-								{#if editable}
-									<button
-										class="cell-menu-button"
-										on:click={(event) => toggle_header_menu(event, i)}
-										on:touchstart={(event) => {
-											event.preventDefault();
-											const touch = event.touches[0];
-											const mouseEvent = new MouseEvent("click", {
-												clientX: touch.clientX,
-												clientY: touch.clientY,
-												bubbles: true,
-												cancelable: true,
-												view: window
-											});
-											toggle_header_menu(mouseEvent, i);
-										}}
-									>
-										&#8942;
-									</button>
-								{/if}
-							</div>
-						</th>
+						<TableHeader
+							bind:value={_headers[i].value}
+							{i}
+							{actual_pinned_columns}
+							{show_row_numbers}
+							{header_edit}
+							{selected_header}
+							get_sort_status={df_actions.get_sort_status}
+							{headers}
+							{get_cell_width}
+							{handle_header_click}
+							{handle_sort}
+							{toggle_header_menu}
+							{end_header_edit}
+							sort_by={$df_state.sort_state.sort_by}
+							sort_direction={$df_state.sort_state.sort_direction}
+							{latex_delimiters}
+							{line_breaks}
+							{max_chars}
+							{root}
+							{editable}
+							{i18n}
+							bind:el={els[id].input}
+						/>
 					{/each}
 				</tr>
 			</thead>
 			<tbody>
 				<tr>
 					{#if show_row_numbers}
-						<td
-							class="row-number"
-							tabindex="-1"
-							data-row="0"
-							data-col="row-number"
-						>
-							1
-						</td>
+						<RowNumber index={0} />
 					{/if}
 					{#each max as { value, id }, j (id)}
 						<td tabindex="-1" bind:this={cells[j]}>
@@ -810,192 +732,68 @@
 					{/if}
 					<tr slot="thead">
 						{#if show_row_numbers}
-							<th class="row-number">
-								<div class="cell-wrap">
-									<div class="header-content">
-										<div class="header-text"></div>
-									</div>
-								</div>
-							</th>
+							<RowNumber is_header={true} />
 						{/if}
 						{#each _headers as { value, id }, i (id)}
-							<th
-								class:frozen-column={i < actual_pinned_columns}
-								class:last-frozen={i === actual_pinned_columns - 1}
-								class:focus={header_edit === i || selected_header === i}
-								aria-sort={df_actions.get_sort_status(value, headers) === "none"
-									? "none"
-									: df_actions.get_sort_status(value, headers) === "asc"
-										? "ascending"
-										: "descending"}
-								style="width: {get_cell_width(i)}; left: {i <
-								actual_pinned_columns
-									? i === 0
-										? show_row_numbers
-											? 'var(--cell-width-row-number)'
-											: '0'
-										: `calc(${show_row_numbers ? 'var(--cell-width-row-number) + ' : ''}${Array(
-												i
-											)
-												.fill(0)
-												.map((_, idx) => `var(--cell-width-${idx})`)
-												.join(' + ')})`
-									: 'auto'};"
-							>
-								<div class="cell-wrap">
-									<div class="header-content">
-										{#if header_edit !== i}
-											<div class="sort-buttons">
-												<SortIcon
-													direction={$df_state.sort_state.sort_by === i
-														? $df_state.sort_state.sort_direction
-														: null}
-													on:sort={({ detail }) => handle_sort(i, detail)}
-													{i18n}
-												/>
-											</div>
-										{/if}
-										<button
-											class="header-button"
-											on:click={(event) => handle_header_click(event, i)}
-											on:mousedown={(event) => {
-												event.preventDefault();
-												event.stopPropagation();
-											}}
-										>
-											<EditableCell
-												{max_chars}
-												bind:value={_headers[i].value}
-												bind:el={els[id].input}
-												{latex_delimiters}
-												{line_breaks}
-												edit={header_edit === i}
-												header
-												{root}
-												{editable}
-												{i18n}
-											/>
-										</button>
-									</div>
-									{#if editable}
-										<button
-											class="cell-menu-button"
-											on:click={(event) => toggle_header_menu(event, i)}
-											on:touchstart={(event) => {
-												event.preventDefault();
-												const touch = event.touches[0];
-												const mouseEvent = new MouseEvent("click", {
-													clientX: touch.clientX,
-													clientY: touch.clientY,
-													bubbles: true,
-													cancelable: true,
-													view: window
-												});
-												toggle_header_menu(mouseEvent, i);
-											}}
-										>
-											&#8942;
-										</button>
-									{/if}
-								</div>
-							</th>
+							<TableHeader
+								bind:value={_headers[i].value}
+								{i}
+								{actual_pinned_columns}
+								{show_row_numbers}
+								{header_edit}
+								{selected_header}
+								get_sort_status={df_actions.get_sort_status}
+								{headers}
+								{get_cell_width}
+								{handle_header_click}
+								{handle_sort}
+								{toggle_header_menu}
+								{end_header_edit}
+								sort_by={$df_state.sort_state.sort_by}
+								sort_direction={$df_state.sort_state.sort_direction}
+								{latex_delimiters}
+								{line_breaks}
+								{max_chars}
+								{root}
+								{editable}
+								{i18n}
+								bind:el={els[id].input}
+							/>
 						{/each}
 					</tr>
 					<tr slot="tbody" let:item let:index class:row_odd={index % 2 === 0}>
 						{#if show_row_numbers}
-							<td
-								class="row-number"
-								tabindex="-1"
-								data-row={index}
-								data-col="row-number"
-							>
-								{index + 1}
-							</td>
+							<RowNumber {index} />
 						{/if}
 						{#each item as { value, id }, j (id)}
-							<td
-								class:frozen-column={j < actual_pinned_columns}
-								class:last-frozen={j === actual_pinned_columns - 1}
-								tabindex={show_row_numbers && j === 0 ? -1 : 0}
-								bind:this={els[id].cell}
-								data-row={index}
-								data-col={j}
-								data-testid={`cell-${index}-${j}`}
-								on:touchstart={(event) => {
-									const touch = event.touches[0];
-									const mouseEvent = new MouseEvent("click", {
-										clientX: touch.clientX,
-										clientY: touch.clientY,
-										bubbles: true,
-										cancelable: true,
-										view: window
-									});
-									handle_cell_click(mouseEvent, index, j);
-								}}
-								on:mousedown={(event) => {
-									event.preventDefault();
-									event.stopPropagation();
-								}}
-								on:click={(event) => handle_cell_click(event, index, j)}
-								style="width: {get_cell_width(j)}; left: {j <
-								actual_pinned_columns
-									? j === 0
-										? show_row_numbers
-											? 'var(--cell-width-row-number)'
-											: '0'
-										: `calc(${show_row_numbers ? 'var(--cell-width-row-number) + ' : ''}${Array(
-												j
-											)
-												.fill(0)
-												.map((_, idx) => `var(--cell-width-${idx})`)
-												.join(' + ')})`
-									: 'auto'}; {styling?.[index]?.[j] || ''}"
-								class:flash={copy_flash &&
-									is_cell_selected([index, j], selected_cells)}
-								class={is_cell_selected([index, j], selected_cells || [])}
-								class:menu-active={active_cell_menu &&
-									active_cell_menu.row === index &&
-									active_cell_menu.col === j}
-							>
-								<div class="cell-wrap">
-									<EditableCell
-										bind:value={data[index][j].value}
-										bind:el={els[id].input}
-										display_value={display_value?.[index]?.[j]}
-										{latex_delimiters}
-										{line_breaks}
-										{editable}
-										{components}
-										{i18n}
-										edit={dequal(editing, [index, j])}
-										datatype={Array.isArray(datatype) ? datatype[j] : datatype}
-										on:blur={() => {
-											clear_on_focus = false;
-											parent.focus();
-										}}
-										on:focus={() => {
-											const row = index;
-											const col = j;
-											if (
-												!selected_cells.some(([r, c]) => r === row && c === col)
-											) {
-												selected_cells = [[row, col]];
-											}
-										}}
-										{clear_on_focus}
-										{root}
-										{max_chars}
-									/>
-									{#if editable && should_show_cell_menu([index, j], selected_cells, editable)}
-										<button
-											class="cell-menu-button"
-											on:click={(event) => toggle_cell_menu(event, index, j)}
-										>
-											&#8942;
-										</button>
-									{/if}
-								</div>
-							</td>
+							<TableCell
+								bind:value={data[index][j].value}
+								{index}
+								{j}
+								{actual_pinned_columns}
+								{show_row_numbers}
+								{get_cell_width}
+								{handle_cell_click}
+								{toggle_cell_menu}
+								{is_cell_selected}
+								{should_show_cell_menu}
+								{selected_cells}
+								{copy_flash}
+								{active_cell_menu}
+								display_value={display_value?.[index]?.[j]}
+								styling={styling?.[index]?.[j]}
+								{latex_delimiters}
+								{line_breaks}
+								datatype={Array.isArray(datatype) ? datatype[j] : datatype}
+								{editing}
+								{clear_on_focus}
+								{max_chars}
+								{root}
+								{editable}
+								{i18n}
+								{components}
+								bind:el={els[id]}
+							/>
 						{/each}
 					</tr>
 				</VirtualTable>
@@ -1004,11 +802,7 @@
 	</div>
 </div>
 {#if data.length === 0 && editable && row_count[1] === "dynamic"}
-	<div class="add-row-container">
-		<button class="add-row-button" on:click={() => add_row()}>
-			<span>+</span>
-		</button>
-	</div>
+	<EmptyRowButton on_click={() => add_row()} />
 {/if}
 
 {#if active_cell_menu || active_header_menu}
@@ -1040,8 +834,6 @@
 {/if}
 
 <style>
-	@import "./styles/cells.css";
-	@import "./styles/selection.css";
 	@import "./styles/misc.css";
 	.table-container {
 		display: flex;
@@ -1069,6 +861,12 @@
 		overflow: hidden;
 	}
 
+	.table-wrap:not(:focus-within) :global(.selection-button),
+	.table-wrap.menu-open :global(.selection-button) {
+		opacity: 0;
+		pointer-events: none;
+	}
+
 	table {
 		position: absolute;
 		opacity: 0;
@@ -1092,21 +890,5 @@
 		top: 0;
 		z-index: var(--layer-2);
 		box-shadow: var(--shadow-drop);
-	}
-
-	tr {
-		border-bottom: 1px solid var(--border-color-primary);
-		text-align: left;
-	}
-
-	tr > * + * {
-		border-right-width: 0px;
-		border-left-width: 1px;
-		border-style: solid;
-		border-color: var(--border-color-primary);
-	}
-
-	tr th {
-		background: var(--table-even-background-fill);
 	}
 </style>
