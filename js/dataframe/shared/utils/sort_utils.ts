@@ -1,18 +1,18 @@
 import type { Headers } from "../types";
 
-export type SortDirection = "asc" | "des";
+export type SortDirection = "asc" | "desc";
 
 export function get_sort_status(
 	name: string,
 	sort_by: number | undefined,
 	direction: SortDirection | undefined,
 	headers: Headers
-): "none" | "asc" | "des" {
+): "none" | "asc" | "desc" {
 	if (typeof sort_by !== "number") return "none";
 	if (sort_by < 0 || sort_by >= headers.length) return "none";
 	if (headers[sort_by] === name) {
 		if (direction === "asc") return "asc";
-		if (direction === "des") return "des";
+		if (direction === "desc") return "desc";
 	}
 	return "none";
 }

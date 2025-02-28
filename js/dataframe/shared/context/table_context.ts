@@ -6,7 +6,7 @@ import type { DataframeValue } from "../utils";
 
 export const DATAFRAME_KEY = Symbol("dataframe");
 
-export type SortDirection = "asc" | "des";
+export type SortDirection = "asc" | "desc";
 
 export type DataFrameState = {
 	config: {
@@ -25,8 +25,8 @@ export type DataFrameState = {
 	};
 	current_search_query: string | null;
 	sort_state: {
-		sort_by: number | undefined;
-		sort_direction: SortDirection | undefined;
+		sort_by: number | null;
+		sort_direction: SortDirection | null;
 		row_order: number[];
 	};
 	ui_state: {
@@ -53,7 +53,7 @@ export interface DataFrameContext {
 		get_sort_status: (
 			name: string,
 			headers: string[]
-		) => "none" | "asc" | "des";
+		) => "none" | "asc" | "desc";
 		sort_data: (
 			data: any[][],
 			display_value: string[][] | null,
@@ -215,8 +215,8 @@ export function create_actions(
 					current_sort_state.sort_by = col;
 					current_sort_state.sort_direction = direction;
 				} else if (current_sort_state.sort_direction === direction) {
-					current_sort_state.sort_by = undefined;
-					current_sort_state.sort_direction = undefined;
+					current_sort_state.sort_by = null;
+					current_sort_state.sort_direction = null;
 				} else {
 					current_sort_state.sort_direction = direction;
 				}
@@ -226,12 +226,12 @@ export function create_actions(
 		get_sort_status: (
 			name: string,
 			headers: string[]
-		): "none" | "asc" | "des" => {
+		): "none" | "asc" | "desc" => {
 			const current_state = get(state);
-			if (!current_state.sort_state.sort_by) return "none";
+			if (current_state.sort_state.sort_by === null) return "none";
 			if (headers[current_state.sort_state.sort_by] === name) {
 				if (current_state.sort_state.sort_direction === "asc") return "asc";
-				if (current_state.sort_state.sort_direction === "des") return "des";
+				if (current_state.sort_state.sort_direction === "desc") return "desc";
 			}
 			return "none";
 		},
@@ -426,10 +426,9 @@ export function create_actions(
 				...s,
 				ui_state: {
 					...s.ui_state,
-					header_edit: header_index,
-					selected: false,
 					selected_cells: [],
-					selected_header: header_index
+					selected_header: header_index,
+					header_edit: header_index
 				}
 			}));
 		},
@@ -544,8 +543,8 @@ export function create_dataframe_context(config: {
 		config,
 		current_search_query: null,
 		sort_state: {
-			sort_by: undefined,
-			sort_direction: undefined,
+			sort_by: null,
+			sort_direction: null,
 			row_order: []
 		},
 		ui_state: {

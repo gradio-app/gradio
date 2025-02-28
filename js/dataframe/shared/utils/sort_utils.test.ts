@@ -14,7 +14,7 @@ describe("sort_utils", () => {
 		});
 
 		test("returns descending when column is sorted descending", () => {
-			expect(get_sort_status("B", 1, "des", headers)).toBe("des");
+			expect(get_sort_status("B", 1, "desc", headers)).toBe("desc");
 		});
 
 		test("returns none for non-matching column", () => {
@@ -49,7 +49,7 @@ describe("sort_utils", () => {
 		});
 
 		test("sorts strings descending", () => {
-			const indices = sort_data(data, 0, "des");
+			const indices = sort_data(data, 0, "desc");
 			expect(indices).toEqual([2, 0, 1]); // C, B, A
 		});
 

@@ -31,7 +31,7 @@
 	export let viewport: HTMLTableElement;
 	let viewport_height = 200;
 	let visible: { index: number; data: any[] }[] = [];
-	let viewport_box: DOMRectReadOnly;
+	let viewport_box: DOMRectReadOnly | null = null;
 
 	$: viewport_height = viewport_box?.height || 200;
 

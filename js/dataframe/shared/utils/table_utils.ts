@@ -107,9 +107,11 @@ export function sort_table_data(
 	data: TableData,
 	display_value: string[][] | null,
 	styling: string[][] | null,
-	col: number,
-	dir: SortDirection
+	col: number | undefined,
+	dir: SortDirection | undefined
 ): void {
+	if (col === undefined || dir === undefined) return;
+
 	const indices = sort_data(data, col, dir);
 
 	const new_data = indices.map((i: number) => data[i]);

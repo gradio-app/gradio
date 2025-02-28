@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 	import type { I18nFormatter } from "@gradio/utils";
 
-	type SortDirection = "asc" | "des";
+	type SortDirection = "asc" | "desc";
 	export let direction: SortDirection | null = null;
 	export let i18n: I18nFormatter;
 
@@ -35,10 +35,10 @@
 	</button>
 	<button
 		class="sort-button down"
-		class:active={direction === "des"}
-		on:click={() => dispatch("sort", "des")}
+		class:active={direction === "desc"}
+		on:click={() => dispatch("sort", "desc")}
 		aria-label={i18n("dataframe.sort_descending")}
-		aria-pressed={direction === "des"}
+		aria-pressed={direction === "desc"}
 	>
 		<svg
 			viewBox="0 0 24 24"
