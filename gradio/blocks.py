@@ -29,6 +29,7 @@ import httpx
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
+from groovy import transpile
 
 from gradio import (
     analytics,
@@ -507,7 +508,7 @@ class BlockFunction:
         concurrency_id: str | None = None,
         tracks_progress: bool = False,
         api_name: str | Literal[False] = False,
-        js: str | None = None,
+        js: str | Literal[True] | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
         show_progress_on: Sequence[Component] | None = None,
         cancels: list[int] | None = None,
@@ -527,6 +528,7 @@ class BlockFunction:
         like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
         page: str = "",
+        js_implementation: str | None = None,
     ):
         self.fn = fn
         self._id = _id
@@ -562,6 +564,8 @@ class BlockFunction:
         self.renderable = renderable
         self.rendered_in = rendered_in
         self.page = page
+        if js_implementation:
+            self.fn.__js_implementation__ = js_implementation  # type: ignore
 
         # We need to keep track of which events are cancel events
         # so that the client can call the /cancel route directly
@@ -626,6 +630,7 @@ class BlockFunction:
             "stream_every": self.stream_every,
             "like_user_message": self.like_user_message,
             "event_specific_args": self.event_specific_args,
+            "js_implementation": getattr(self.fn, "__js_implementation__", None),
         }
 
 
@@ -713,7 +718,7 @@ class BlocksConfig:
         show_progress: Literal["full", "minimal", "hidden"] = "full",
         show_progress_on: Component | Sequence[Component] | None = None,
         api_name: str | None | Literal[False] = None,
-        js: str | None = None,
+        js: str | Literal[True] | None = None,
         no_target: bool = False,
         queue: bool = True,
         batch: bool = False,
@@ -733,6 +738,7 @@ class BlocksConfig:
         stream_every: float = 0.5,
         like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
+        js_implementation: str | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -853,6 +859,11 @@ class BlocksConfig:
 
         rendered_in = LocalContext.renderable.get()
 
+        if js is True and inputs:
+            raise ValueError(
+                "Cannot create event: events with js=True cannot have inputs."
+            )
+
         block_fn = BlockFunction(
             fn,
             inputs,
@@ -888,6 +899,7 @@ class BlocksConfig:
             like_user_message=like_user_message,
             event_specific_args=event_specific_args,
             page=self.root_block.current_page,
+            js_implementation=js_implementation,
         )
 
         self.fns[self.fn_id] = block_fn
@@ -1060,7 +1072,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         title: str = "Gradio",
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
-        js: str | None = None,
+        js: str | Literal[True] | None = None,
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         fill_height: bool = False,
@@ -2196,7 +2208,7 @@ Received inputs:
             "components": [],
             "css": self.css,
             "connect_heartbeat": False,
-            "js": self.js,
+            "js": cast(str | Literal[True] | None, self.js),
             "head": self.head,
             "title": self.title or "Gradio",
             "space_id": self.space_id,
@@ -2232,6 +2244,30 @@ Received inputs:
             config, self.blocks.values()
         )
         return config
+
+    def transpile_to_js(self, quiet: bool = False):
+        fns_to_transpile = [
+            fn.fn for fn in self.fns.values() if fn.fn and fn.js is True
+        ]
+        num_to_transpile = len(fns_to_transpile)
+        if not quiet and num_to_transpile > 0:
+            print("********************************************")
+            print("* Trying to transpile functions from Python -> JS for performance\n")
+        for index, fn in enumerate(fns_to_transpile):
+            if not quiet:
+                print(f"* ({index + 1}/{num_to_transpile}) {fn.__name__}: ", end="")
+            if getattr(fn, "__js_implementation__", None) is None:  # type: ignore
+                try:
+                    fn.__js_implementation__ = transpile(fn, validate=True)  # type: ignore
+                    if not quiet:
+                        print("✅")
+                except Exception as e:
+                    if not quiet:
+                        print("❌", e, end="\n\n")
+            elif not quiet:
+                print("✅")
+        if not quiet and num_to_transpile > 0:
+            print("********************************************\n")
 
     def __enter__(self):
         render_context = get_render_context()
@@ -2508,6 +2544,7 @@ Received inputs:
         self.pwa = utils.get_space() is not None if pwa is None else pwa
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
+        self.transpile_to_js(quiet=quiet)
         self.config = self.get_config_file()
 
         self.ssr_mode = (
