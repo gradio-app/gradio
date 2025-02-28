@@ -2,4 +2,4 @@
 "website": minor
 ---
 
-feat:Dynamic llms.txt route on the website
+feat:Static llms.txt route on the website
