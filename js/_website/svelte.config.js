@@ -137,11 +137,6 @@ const config = {
 			routes: {
 				include: ["/llms.txt"],
 				exclude: ["<all>"]
-			},
-			build: {
-				rollupOptions: {
-					external: ["@sindresorhus/slugify"]
-				}
 			}
 		}),
 		paths: {
