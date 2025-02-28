@@ -89,8 +89,55 @@
 	let system_prompt = SYSTEM_PROMPT.SYSTEM;
 	let fallback_prompt = SYSTEM_PROMPT.FALLBACK;
 
-	const workerUrl = "https://llms-txt.playground-worker.pages.dev/api/generate";
-	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	let prompt_rules = [
+		`Generate code for using the Gradio python library.
+
+	The following RULES must be followed.  Whenever you are forming a response, ensure all rules have been followed otherwise start over.
+
+	RULES:
+	Only respond with code, not text.
+	Only respond with valid Python syntax.
+	Never include backticks in your response such as \`\`\` or \`\`\`python.
+	Do not include any code that is not necessary for the app to run.
+	Respond with a full Gradio app.
+	Respond with a full Gradio app using correct syntax and features of the latest Gradio version. DO NOT write code that doesn't follow the signatures listed.
+	Add comments explaining the code, but do not include any text that is not formatted as a Python comment.
+	Make sure the code includes all necessary imports.
+
+
+	Here's an example of a valid response:
+
+	# This is a simple Gradio app that greets the user.
+	import gradio as gr
+
+	# Define a function that takes a name and returns a greeting.
+	def greet(name):
+		return "Hello " + name + "!"
+
+	# Create a Gradio interface that takes a textbox input, runs it through the greet function, and returns output to a textbox.
+	demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
+
+	# Launch the interface.
+	demo.launch()
+`,
+		`
+	The following RULES must be followed.  Whenever you are forming a response, after each sentence ensure all rules have been followed otherwise start over, forming a new response and repeat until the finished response follows all the rules.  then send the response.
+
+	RULES: 
+	Only respond with code, not text.
+	Only respond with valid Python syntax.
+	Never include backticks in your response such as \`\`\` or \`\`\`python. 
+	Never import any external library aside from: gradio, numpy, pandas, plotly, transformers_js and matplotlib. Do not import any other library like pytesseract or PIL unless requested in the prompt. 
+	Do not include any code that is not necessary for the app to run.
+	Respond with a full Gradio app using correct syntax and features of the latest Gradio version. DO NOT write code that doesn't follow the signatures listed.
+	Only respond with one full Gradio app.
+	Add comments explaining the code, but do not include any text that is not formatted as a Python comment.
+`
+	];
+	system_prompt = prompt_rules[0] + system_prompt + prompt_rules[1];
+	fallback_prompt = prompt_rules[0] + fallback_prompt + prompt_rules[1];
+
+	const workerUrl = "https://playground-worker.pages.dev/api/generate";
 	// const workerUrl = "http://localhost:5173/api/generate";
 
 	let abortController: AbortController | null = null;
