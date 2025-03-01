@@ -13,7 +13,6 @@
 	let mounted = false;
 	let _open = false;
 	let sidebar_div: HTMLElement;
-	let overlap_amount = 0;
 
 	let width_css = typeof width === "number" ? `${width}px` : width;
 
@@ -21,33 +20,41 @@
 
 	function check_overlap(): void {
 		if (!sidebar_div.closest(".gradio-container")) return;
-		const parent_rect = sidebar_div
-			.closest(".gradio-container")
-			?.getBoundingClientRect();
+		const parent_container = sidebar_div.closest(".gradio-container");
+		const parent_rect = parent_container?.getBoundingClientRect();
 		if (!parent_rect) return;
 
 		const parentHeight = parent_rect.height;
 		sidebar_div.style.height = `${parentHeight}px`;
 
-		const sidebar_rect = sidebar_div.getBoundingClientRect();
-		const available_space =
-			position === "left"
-				? parent_rect.left
-				: window.innerWidth - parent_rect.right;
-		overlap_amount = Math.max(0, sidebar_rect.width - available_space);
+		// Find the actual positioned parent that the sidebar is positioned relative to
+		let positioned_parent = sidebar_div.parentElement;
+		while (
+			positioned_parent && 
+			positioned_parent !== parent_container &&
+			getComputedStyle(positioned_parent).position === "static"
+		) {
+			positioned_parent = positioned_parent.parentElement;
+		}
+
+		const positioned_parent_rect = positioned_parent?.getBoundingClientRect();
+
+		if (positioned_parent_rect) {
+			if (position === "left") {
+				const offset = parent_rect.left - positioned_parent_rect.left;
+				sidebar_div.style.left = `${offset}px`;
+			} else {
+				const offset = (positioned_parent_rect.right - parent_rect.right);
+				sidebar_div.style.right = `${offset}px`;
+			}
+		}
 	}
 
 	onMount(() => {
 		sidebar_div.closest(".gradio-container")?.classList.add("sidebar-parent");
 		check_overlap();
+		
 		window.addEventListener("resize", check_overlap);
-		const update_parent_overlap = (): void => {
-			document.documentElement.style.setProperty(
-				"--overlap-amount",
-				`${overlap_amount}px`
-			);
-		};
-		update_parent_overlap();
 		mounted = true;
 
 		const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -76,7 +83,7 @@
 	class:right={position === "right"}
 	class:reduce-motion={prefersReducedMotion}
 	bind:this={sidebar_div}
-	style="width: {width_css}; {position}: calc({width_css} * -1.10)"
+	style="width: {width_css};"
 >
 	<button
 		on:click={() => {
@@ -151,25 +158,19 @@
 		}
 	}
 
-	:global(.sidebar-parent) {
-		display: flex !important;
-		position: relative;
-		/* padding-left: 0 !important; */
-	}
-
-	:global(.sidebar-parent:not(:has(.reduce-motion))) {
+	/* :global(.sidebar-parent:not(:has(.reduce-motion))) {
 		transition:
 			padding-left 0.3s ease-in-out,
 			padding-right 0.3s ease-in-out;
 	}
 
-	:global(.sidebar-parent:has(.sidebar.open:not(.right))) {
-		padding-left: var(--overlap-amount);
+	:global(.sidebar-parent:has(.sidebar.open:not(.right))) > :not(.sidebar) {
+		transform: translateX(320px);
 	}
 
-	:global(.sidebar-parent:has(.sidebar.open.right)) {
-		padding-right: var(--overlap-amount);
-	}
+	:global(.sidebar-parent:has(.sidebar.open.right)) > :not(.sidebar) {
+		transform: translateX(-320px);
+	} */
 
 	.sidebar {
 		display: flex;
@@ -178,8 +179,12 @@
 		top: calc(var(--size-4) * -1);
 		height: 100%;
 		background-color: var(--background-fill-secondary);
-		transform: translateX(0);
+		transform: translateX(-100%);
 		z-index: 1000;
+	}
+
+	.sidebar.open {
+		transform: translateX(0);
 	}
 
 	.sidebar:not(.reduce-motion) {
