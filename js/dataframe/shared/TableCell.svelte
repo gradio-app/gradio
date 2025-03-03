@@ -219,6 +219,14 @@
 		z-index: var(--layer-3);
 	}
 
+	.frozen-column:nth-child(odd) {
+		background: var(--table-odd-background-fill);
+	}
+
+	.frozen-column:nth-child(even) {
+		background: var(--table-even-background-fill);
+	}
+
 	td:first-child {
 		border-left-width: 0px;
 	}

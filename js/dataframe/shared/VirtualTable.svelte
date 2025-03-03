@@ -369,10 +369,6 @@
 		background: var(--table-even-background-fill);
 	}
 
-	tbody :global(td.always-frozen) {
-		z-index: var(--layer-3);
-	}
-
 	tbody :global(td.last-frozen) {
 		border-right: 2px solid var(--border-color-primary);
 	}
@@ -392,10 +388,6 @@
 	thead :global(th.frozen-column) {
 		position: sticky;
 		z-index: var(--layer-4);
-	}
-
-	thead :global(th.always-frozen) {
-		z-index: var(--layer-5);
 	}
 
 	.table.disable-scroll {

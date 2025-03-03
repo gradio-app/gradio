@@ -760,7 +760,7 @@
 							/>
 						{/each}
 					</tr>
-					<tr slot="tbody" let:item let:index class:row_odd={index % 2 === 0}>
+					<tr slot="tbody" let:item let:index class:row-odd={index % 2 === 0}>
 						{#if show_row_numbers}
 							<RowNumber {index} />
 						{/if}
@@ -836,7 +836,6 @@
 {/if}
 
 <style>
-	@import "./styles/misc.css";
 	.table-container {
 		display: flex;
 		flex-direction: column;
@@ -892,5 +891,78 @@
 		top: 0;
 		z-index: var(--layer-2);
 		box-shadow: var(--shadow-drop);
+	}
+
+	.dragging {
+		border-color: var(--color-accent);
+	}
+
+	.no-wrap {
+		white-space: nowrap;
+	}
+
+	div:not(.no-wrap) td {
+		overflow-wrap: anywhere;
+	}
+
+	div.no-wrap td {
+		overflow-x: hidden;
+	}
+
+	.row-odd {
+		background: var(--table-odd-background-fill);
+	}
+
+	.header-row {
+		display: flex;
+		justify-content: flex-end;
+		align-items: center;
+		gap: var(--size-2);
+		min-height: var(--size-6);
+		flex-wrap: nowrap;
+		width: 100%;
+	}
+
+	.header-row .label {
+		flex: 1 1 auto;
+		margin-right: auto;
+	}
+
+	.header-row .label p {
+		margin: 0;
+		color: var(--block-label-text-color);
+		font-size: var(--block-label-text-size);
+		line-height: var(--line-sm);
+		position: relative;
+		z-index: var(--layer-4);
+		margin-bottom: var(--size-2);
+	}
+
+	.scroll-top-button {
+		position: absolute;
+		right: var(--size-4);
+		bottom: var(--size-4);
+		width: var(--size-8);
+		height: var(--size-8);
+		border-radius: var(--table-radius);
+		background: var(--color-accent);
+		color: white;
+		border: none;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: var(--text-lg);
+		z-index: var(--layer-5);
+		opacity: 0.5;
+	}
+
+	.scroll-top-button:hover {
+		opacity: 1;
+	}
+
+	tr {
+		border-bottom: 1px solid var(--border-color-primary);
+		text-align: left;
 	}
 </style>
