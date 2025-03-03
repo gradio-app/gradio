@@ -391,7 +391,9 @@ class Block:
             data = {"path": url_or_file_path, "meta": {"_type": "gradio.FileData"}}
             try:
                 return processing_utils.move_files_to_cache(data, self)
-            except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
+            except (
+                AttributeError
+            ):  # Can be raised if this function is called before the Block is fully initialized.
                 return data
 
 
@@ -609,9 +611,11 @@ class BlockFunction:
             "api_name": self.api_name,
             "scroll_to_output": self.scroll_to_output,
             "show_progress": self.show_progress,
-            "show_progress_on": None
-            if self.show_progress_on is None
-            else [block._id for block in self.show_progress_on],
+            "show_progress_on": (
+                None
+                if self.show_progress_on is None
+                else [block._id for block in self.show_progress_on]
+            ),
             "batch": self.batch,
             "max_batch_size": self.max_batch_size,
             "cancels": self.cancels,
@@ -2556,10 +2560,10 @@ Received inputs:
                 else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
             )
         )
-        self.node_path = os.environ.get(
-            "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
-        )
         if self.ssr_mode:
+            self.node_path = os.environ.get(
+                "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
+            )
             self.node_server_name, self.node_process, self.node_port = (
                 start_node_server(
                     server_name=node_server_name,
