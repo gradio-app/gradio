@@ -936,7 +936,6 @@
 		line-height: var(--line-sm);
 		position: relative;
 		z-index: var(--layer-4);
-		margin-bottom: var(--size-2);
 	}
 
 	.scroll-top-button {
