@@ -304,17 +304,31 @@ export function create_actions(
 		},
 		filter_data: (data: any[][]) => {
 			const current_state = get(state);
-			return current_state.current_search_query
-				? data.filter((row) =>
-						row.some(
-							(cell) =>
-								current_state.current_search_query &&
-								String(cell.value)
-									.toLowerCase()
-									.includes(current_state.current_search_query.toLowerCase())
-						)
-					)
-				: data;
+
+			if (!current_state.current_search_query) {
+				return data;
+			}
+
+			const search_query = current_state.current_search_query.toLowerCase();
+
+			const filtered = data.filter((row) => {
+				return row.some((cell) => {
+					if (!cell) {
+						return false;
+					}
+
+					const cell_value = cell.value;
+
+					if (cell_value === null || cell_value === undefined) {
+						return false;
+					}
+
+					const string_value = String(cell_value).toLowerCase();
+					return string_value.includes(search_query);
+				});
+			});
+
+			return filtered;
 		},
 		add_row,
 		add_col,

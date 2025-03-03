@@ -86,18 +86,38 @@ test("Dataframe filter functionality works", async ({ page }) => {
 	await expect(page.getByLabel("Change events")).not.toHaveValue("0");
 });
 
-test("Dataframe search functionality works", async ({ page }) => {
+test("Dataframe search functionality correctly filters rows", async ({
+	page
+}) => {
 	await page.getByRole("button", { name: "Update dataframe" }).click();
 	await page.waitForTimeout(500);
 
+	await page.waitForSelector(`[data-row='0'][data-col='0']`);
+
+	const all_cells_text = await page.locator("td").allTextContents();
+	expect(all_cells_text.length).toBeGreaterThan(0);
+
+	const search_term = all_cells_text[0].trim();
 	const search_input = page.getByPlaceholder("Search...");
+
+	await page.waitForSelector("input[placeholder='Search...']");
 	await search_input.click();
-	await search_input.fill("test");
+	await search_input.fill(search_term);
 	await search_input.press("Enter");
 
-	await page.waitForTimeout(500);
+	const filtered_cells_text = await page.locator("td").allTextContents();
+	expect(filtered_cells_text.length).toBeGreaterThan(0);
 
-	await expect(page.getByLabel("Change events")).not.toHaveValue("0");
+	const filtered_text = filtered_cells_text.join(" ").toLowerCase();
+	expect(filtered_text).toContain(search_term.toLowerCase());
+
+	await search_input.click();
+	await search_input.clear();
+
+	const restored_cells_text = await page.locator("td").allTextContents();
+	expect(restored_cells_text.length).toBeGreaterThanOrEqual(
+		all_cells_text.length
+	);
 });
 
 test("Dataframe clear functionality works", async ({ page }) => {

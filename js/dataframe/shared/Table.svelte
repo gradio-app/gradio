@@ -767,7 +767,7 @@
 						{/if}
 						{#each item as { value, id }, j (id)}
 							<TableCell
-								bind:value={data[index][j].value}
+								bind:value={filtered_data[index][j].value}
 								{index}
 								{j}
 								{actual_pinned_columns}
