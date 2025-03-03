@@ -1,6 +1,6 @@
 ---
-"@gradio/dataframe": minor
-"gradio": minor
+"@gradio/dataframe": patch
+"gradio": patch
 ---
 
-feat:Refactor `gr.Dataframe`
+fix:Refactor `gr.Dataframe`
