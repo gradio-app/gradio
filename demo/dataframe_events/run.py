@@ -3,15 +3,15 @@ import pandas as pd
 import numpy as np
 
 def update_dataframe():
-    regular_df = pd.DataFrame(np.random.randint(1, 10, size=(5, 5)), columns=[str(i) for i in range(5)])
-    wide_df = pd.DataFrame(np.random.randint(1, 10, size=(5, 15)), columns=[f"col_{i}" for i in range(15)])
-    tall_df = pd.DataFrame(np.random.randint(1, 10, size=(50, 3)), columns=["A", "B", "C"])
+    regular_df = pd.DataFrame(np.random.randint(1, 10, size=(5, 5)), columns=pd.Index([str(i) for i in range(5)]))
+    wide_df = pd.DataFrame(np.random.randint(1, 10, size=(5, 15)), columns=pd.Index([f"col_{i}" for i in range(15)]))
+    tall_df = pd.DataFrame(np.random.randint(1, 10, size=(50, 3)), columns=pd.Index(["A", "B", "C"]))
     return regular_df, wide_df, tall_df
 
 def clear_dataframes():
-    regular_empty_df = pd.DataFrame([], columns=[str(i) for i in range(5)])
-    wide_empty_df = pd.DataFrame([], columns=[f"col_{i}" for i in range(15)])
-    tall_empty_df = pd.DataFrame([], columns=["A", "B", "C"])
+    regular_empty_df = pd.DataFrame([], columns=pd.Index([str(i) for i in range(5)]))
+    wide_empty_df = pd.DataFrame([], columns=pd.Index([f"col_{i}" for i in range(15)]))
+    tall_empty_df = pd.DataFrame([], columns=pd.Index(["A", "B", "C"]))
     return regular_empty_df, wide_empty_df, tall_empty_df
 
 def increment_select_counter(evt: gr.SelectData, count):
@@ -21,10 +21,7 @@ def increment_select_counter(evt: gr.SelectData, count):
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column(scale=1):
-            initial_regular_df = pd.DataFrame(np.zeros((5, 5), dtype=int))
-            initial_regular_df.columns = [
-                str(col) for col in initial_regular_df.columns
-            ]
+            initial_regular_df = pd.DataFrame(np.zeros((5, 5), dtype=int), columns=pd.Index([str(i) for i in range(5)]))
 
             df = gr.Dataframe(
                 value=initial_regular_df,
@@ -38,8 +35,7 @@ with gr.Blocks() as demo:
             )
 
         with gr.Column(scale=1):
-            initial_wide_df = pd.DataFrame(np.zeros((5, 15), dtype=int))
-            initial_wide_df.columns = [f"col_{col}" for col in initial_wide_df.columns]
+            initial_wide_df = pd.DataFrame(np.zeros((5, 15), dtype=int), columns=pd.Index([f"col_{i}" for i in range(15)]))
 
             df_view = gr.Dataframe(
                 value=initial_wide_df,
@@ -54,8 +50,7 @@ with gr.Blocks() as demo:
             )
 
     with gr.Row():
-        initial_tall_df = pd.DataFrame(np.zeros((50, 3), dtype=int))
-        initial_tall_df.columns = ["A", "B", "C"]
+        initial_tall_df = pd.DataFrame(np.zeros((50, 3), dtype=int), columns=pd.Index(["A", "B", "C"]))
 
         df_tall = gr.Dataframe(
             value=initial_tall_df,
