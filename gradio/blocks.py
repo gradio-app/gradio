@@ -391,9 +391,7 @@ class Block:
             data = {"path": url_or_file_path, "meta": {"_type": "gradio.FileData"}}
             try:
                 return processing_utils.move_files_to_cache(data, self)
-            except (
-                AttributeError
-            ):  # Can be raised if this function is called before the Block is fully initialized.
+            except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
                 return data
 
 
