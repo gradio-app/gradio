@@ -3,6 +3,7 @@
 	import CellMenuButton from "./CellMenuButton.svelte";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { Datatype } from "./utils";
+	import { is_cell_in_selection } from "./selection_utils";
 
 	export let value: string | number;
 	export let index: number;
@@ -23,7 +24,7 @@
 	export let is_cell_selected: (
 		coords: [number, number],
 		selected_cells: [number, number][]
-	) => boolean;
+	) => string;
 	export let should_show_cell_menu: (
 		coords: [number, number],
 		selected_cells: [number, number][],
@@ -52,6 +53,7 @@
 	export let root: string;
 	export let editable: boolean;
 	export let i18n: I18nFormatter;
+	export let components: Record<string, any> = {};
 	export let el: {
 		cell: HTMLTableCellElement | null;
 		input: HTMLInputElement | null;
@@ -77,6 +79,13 @@
 
 		return `calc(${row_number_width}${previous_widths})`;
 	}
+
+	$: cell_classes = is_cell_selected([index, j], selected_cells || []);
+	$: is_in_selection = is_cell_in_selection([index, j], selected_cells);
+	$: has_no_top = cell_classes.includes("no-top");
+	$: has_no_bottom = cell_classes.includes("no-bottom");
+	$: has_no_left = cell_classes.includes("no-left");
+	$: has_no_right = cell_classes.includes("no-right");
 </script>
 
 <td
@@ -105,8 +114,12 @@
 	on:click={(event) => handle_cell_click(event, index, j)}
 	style="width: {get_cell_width(j)}; left: {get_cell_position(j)}; {styling ||
 		''}"
-	class:flash={copy_flash && is_cell_selected([index, j], selected_cells)}
-	class={is_cell_selected([index, j], selected_cells || [])}
+	class:flash={copy_flash && is_in_selection}
+	class:cell-selected={is_in_selection}
+	class:no-top={has_no_top}
+	class:no-bottom={has_no_bottom}
+	class:no-left={has_no_left}
+	class:no-right={has_no_right}
 	class:menu-active={active_cell_menu &&
 		active_cell_menu.row === index &&
 		active_cell_menu.col === j}
@@ -135,6 +148,7 @@
 			{root}
 			{max_chars}
 			{i18n}
+			{components}
 		/>
 		{#if editable && should_show_cell_menu([index, j], selected_cells, editable)}
 			<CellMenuButton on_click={(event) => toggle_cell_menu(event, index, j)} />
@@ -153,12 +167,6 @@
 		border-left-width: 1px;
 		border-style: solid;
 		border-color: var(--border-color-primary);
-	}
-
-	td.focus {
-		--ring-color: var(--color-accent);
-		box-shadow: inset 0 0 0 2px var(--ring-color);
-		z-index: var(--layer-1);
 	}
 
 	.cell-wrap {

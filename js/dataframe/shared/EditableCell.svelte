@@ -123,6 +123,7 @@
 	style={styling}
 	data-editable={editable}
 	placeholder=" "
+	class:text={datatype === "str"}
 >
 	{#if datatype === "image" && components.image}
 		<svelte:component
@@ -181,7 +182,7 @@
 		white-space: nowrap;
 	}
 
-	span.expanded {
+	span.text.expanded {
 		height: auto;
 		min-height: 100%;
 		white-space: pre-wrap;

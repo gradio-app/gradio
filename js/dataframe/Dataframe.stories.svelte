@@ -6,6 +6,7 @@
 	import { userEvent } from "@storybook/test";
 	import { get } from "svelte/store";
 	import { format } from "svelte-i18n";
+	import Image from "@gradio/image";
 </script>
 
 <Meta
@@ -414,6 +415,31 @@
 		col_count: [3, "dynamic"],
 		row_count: [3, "dynamic"],
 		editable: false
+	}}
+/>
+
+<Story
+	name="Dataframe with custom components"
+	args={{
+		values: [
+			[
+				"Absol G",
+				70,
+				"https://images.pokemontcg.io/pl3/1_hires.png",
+				"pl3-1",
+				"Supreme Victors"
+			]
+		],
+		datatype: ["str", "number", "image", "str", "str"],
+		headers: ["Pokemon", "HP", "Image", "ID", "Set"],
+		label: "Pokemon Cards",
+		col_count: [5, "fixed"],
+		row_count: [1, "dynamic"],
+		interactive: true,
+		editable: true,
+		components: {
+			image: Image
+		}
 	}}
 />
 

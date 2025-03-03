@@ -14,7 +14,6 @@
 
 	import EditableCell from "./EditableCell.svelte";
 	import RowNumber from "./RowNumber.svelte";
-	import CellMenuButton from "./CellMenuButton.svelte";
 	import SelectionButtons from "./SelectionButtons.svelte";
 	import TableHeader from "./TableHeader.svelte";
 	import TableCell from "./TableCell.svelte";
@@ -26,7 +25,6 @@
 	import type { Headers, DataframeValue, Datatype } from "./utils";
 	import CellMenu from "./CellMenu.svelte";
 	import Toolbar from "./Toolbar.svelte";
-	import SortIcon from "./icons/SortIcon.svelte";
 	import type { CellCoordinate } from "./types";
 	import {
 		is_cell_selected,
@@ -112,7 +110,6 @@
 
 	export let display_value: string[][] | null = null;
 	export let styling: string[][] | null = null;
-	let t_rect: DOMRectReadOnly;
 	let els: Record<
 		string,
 		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
@@ -360,8 +357,12 @@
 		data,
 		display_value,
 		styling,
-		$df_state.sort_state.sort_by,
-		$df_state.sort_state.sort_direction
+		$df_state.sort_state.sort_by === null
+			? undefined
+			: $df_state.sort_state.sort_by,
+		$df_state.sort_state.sort_direction === null
+			? undefined
+			: $df_state.sort_state.sort_direction
 	);
 
 	$: selected_index = !!selected && selected[0];
@@ -616,18 +617,14 @@
 		role="grid"
 		tabindex="0"
 	>
-		{#if selected !== false && selected_cells.length === 1}
+		{#if selected !== false && selected_cells.length === 1 && coords && coords[0] !== undefined && coords[1] !== undefined}
 			<SelectionButtons
 				{coords}
 				on_select_column={handle_select_column}
 				on_select_row={handle_select_row}
 			/>
 		{/if}
-		<table
-			bind:contentRect={t_rect}
-			bind:this={table}
-			class:fixed-layout={column_widths.length != 0}
-		>
+		<table bind:this={table} class:fixed-layout={column_widths.length != 0}>
 			{#if label && label.length !== 0}
 				<caption class="sr-only">{label}</caption>
 			{/if}
