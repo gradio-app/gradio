@@ -2,8 +2,8 @@ import { test, expect } from "@self/tootils";
 import { Locator } from "@playwright/test";
 
 // returns a cell in a dataframe by row and column indices
-function get_cell(page, row, col) {
-	return page.locator(`[data-row='${row}'][data-col='${col}']`).first();
+function get_cell(element: Locator, row: number, col: number) {
+	return element.locator(`[data-row='${row}'][data-col='${col}']`);
 }
 
 const get_column_values = async (df: Locator): Promise<number[]> => {
@@ -32,7 +32,8 @@ test("Dataframe input events work as expected", async ({ page }) => {
 	await page.getByRole("button", { name: "Update dataframe" }).click();
 	await page.waitForTimeout(500);
 
-	await get_cell(page, 0, 0).click();
+	const df = page.locator("#dataframe");
+	await get_cell(df, 0, 0).click();
 
 	// Fill the cell with a new value
 	await page.getByLabel("Edit cell").fill("42");
@@ -41,7 +42,7 @@ test("Dataframe input events work as expected", async ({ page }) => {
 	await expect(input_events).toHaveValue("1");
 
 	// Click on the second cell in the first row
-	await get_cell(page, 0, 1).click();
+	await get_cell(df, 0, 1).click();
 
 	await page.getByLabel("Edit cell").fill("50");
 	await page.getByLabel("Edit cell").press("Enter");
@@ -55,7 +56,8 @@ test("Dataframe select events work as expected", async ({ page }) => {
 	await page.getByRole("button", { name: "Update dataframe" }).click();
 	await page.waitForTimeout(500);
 
-	await get_cell(page, 1, 1).click();
+	const dataframe = page.locator("#dataframe");
+	await get_cell(dataframe, 1, 1).click();
 
 	await expect(page.getByLabel("Select events")).toHaveValue("1");
 
@@ -191,4 +193,107 @@ test("Non-interactive dataframe cannot be edited", async ({ page }) => {
 		.locator("input[aria-label='Edit cell']")
 		.count();
 	expect(editable_cell).toBe(0);
+});
+
+test("Dataframe keyboard operations work as expected", async ({ page }) => {
+	const df = page.locator("#dataframe").first();
+
+	await get_cell(df, 0, 0).dblclick();
+	await page.getByLabel("Edit cell").fill("test_delete_value");
+	await page.getByLabel("Edit cell").press("Enter");
+
+	await get_cell(df, 0, 1).dblclick();
+	await page.getByLabel("Edit cell").fill("test_backspace_value");
+	await page.getByLabel("Edit cell").press("Enter");
+	await page.waitForTimeout(100);
+
+	await get_cell(df, 1, 0).dblclick();
+	await page.getByLabel("Edit cell").fill("test_copy_value");
+	await page.getByLabel("Edit cell").press("Enter");
+	await page.waitForTimeout(100);
+
+	// test delete key
+	await get_cell(df, 0, 0).click();
+	await page.waitForTimeout(100);
+	await page.keyboard.press("Delete");
+
+	expect(await get_cell(df, 0, 0).textContent()).toBe("  ⋮");
+
+	// test backspace key
+	await get_cell(df, 0, 1).click();
+	await page.waitForTimeout(100);
+	await page.keyboard.press("Backspace");
+
+	// test copy key
+	await get_cell(df, 1, 0).click();
+	await page.keyboard.press("ControlOrMeta+c");
+	await page.waitForTimeout(300);
+
+	const clipboard_value = await page.evaluate(() =>
+		navigator.clipboard.readText()
+	);
+	expect(clipboard_value).toBe("test_copy_value");
+});
+
+test("Dataframe shift+click selection works", async ({ page }) => {
+	await page.getByRole("button", { name: "Update dataframe" }).click();
+
+	const df = page.locator("#dataframe").first();
+
+	// First set a known value in the cells we'll select
+	await get_cell(df, 1, 2).dblclick();
+	await page.getByLabel("Edit cell").fill("6");
+	await page.getByLabel("Edit cell").press("Enter");
+	await page.waitForTimeout(100);
+
+	await get_cell(df, 1, 3).dblclick();
+	await page.getByLabel("Edit cell").fill("6");
+	await page.getByLabel("Edit cell").press("Enter");
+	await page.waitForTimeout(100);
+
+	await get_cell(df, 1, 2).click();
+	await page.keyboard.down("Shift");
+	await get_cell(df, 1, 3).click();
+	await page.keyboard.up("Shift");
+	await page.waitForTimeout(100);
+
+	await page.keyboard.press("ControlOrMeta+c");
+
+	const clipboard_value = await page.evaluate(() =>
+		navigator.clipboard.readText()
+	);
+
+	expect(clipboard_value).toBe("6,6");
+});
+
+test("Dataframe cmd + click selection works", async ({ page }) => {
+	await page.getByRole("button", { name: "Update dataframe" }).click();
+	await page.waitForTimeout(500);
+
+	const df = page.locator("#dataframe").first();
+
+	await get_cell(df, 1, 2).dblclick();
+	await page.getByLabel("Edit cell").fill("6");
+	await page.getByLabel("Edit cell").press("Enter");
+
+	await get_cell(df, 1, 3).dblclick();
+	await page.getByLabel("Edit cell").fill("8");
+	await page.getByLabel("Edit cell").press("Enter");
+	await page.waitForTimeout(100);
+
+	await get_cell(df, 1, 2).click();
+
+	await get_cell(df, 1, 3).click({
+		modifiers: ["ControlOrMeta"]
+	});
+
+	await page.waitForTimeout(100);
+
+	await page.keyboard.press("ControlOrMeta+c");
+
+	const clipboard_value = await page.evaluate(() =>
+		navigator.clipboard.readText()
+	);
+
+	expect(clipboard_value).toBe("6,8");
 });
