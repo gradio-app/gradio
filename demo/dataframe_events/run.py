@@ -15,9 +15,9 @@ def update_dataframe():
     return regular_df, wide_df, tall_df
 
 def clear_dataframes():
-    regular_empty_df = pd.DataFrame(columns=[str(i) for i in range(5)])
-    wide_empty_df = pd.DataFrame(columns=[f"col_{i}" for i in range(15)])
-    tall_empty_df = pd.DataFrame(columns=["A", "B", "C"])
+    regular_empty_df = pd.DataFrame(data=[], columns=[str(i) for i in range(5)])
+    wide_empty_df = pd.DataFrame(data=[], columns=[f"col_{i}" for i in range(15)])
+    tall_empty_df = pd.DataFrame(data=[], columns=["A", "B", "C"])
     return regular_empty_df, wide_empty_df, tall_empty_df
 
 def increment_select_counter(evt: gr.SelectData, count):
