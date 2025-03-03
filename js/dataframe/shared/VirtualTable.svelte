@@ -377,7 +377,6 @@
 		position: sticky;
 		top: 0;
 		left: 0;
-		z-index: var(--layer-3);
 		background: var(--background-fill-primary);
 	}
 
