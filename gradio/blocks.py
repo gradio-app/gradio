@@ -609,11 +609,9 @@ class BlockFunction:
             "api_name": self.api_name,
             "scroll_to_output": self.scroll_to_output,
             "show_progress": self.show_progress,
-            "show_progress_on": (
-                None
-                if self.show_progress_on is None
-                else [block._id for block in self.show_progress_on]
-            ),
+            "show_progress_on": None
+            if self.show_progress_on is None
+            else [block._id for block in self.show_progress_on],
             "batch": self.batch,
             "max_batch_size": self.max_batch_size,
             "cancels": self.cancels,
