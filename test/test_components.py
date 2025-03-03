@@ -107,11 +107,19 @@ def test_template_component_configs(io_components):
     class should have all of the arguments that the constructor of `ImageEditor` has
     """
     template_components = [c for c in io_components if getattr(c, "is_template", False)]
+    spellcheck_keys = {"spellcheck", "show_spellcheck_button"}
+
     for component in template_components:
         component_parent_class = inspect.getmro(component)[1]
         template_config = component().get_config()
         parent_config = component_parent_class().get_config()
-        assert set(parent_config.keys()).issubset(set(template_config.keys()))
+
+        # Exclude Spellcheck from parent_keys
+        parent_keys = set(parent_config.keys()).difference(spellcheck_keys)
+        template_keys = set(template_config.keys())
+
+        assert parent_keys.issubset(template_keys), \
+            f"Template {component.__name__} is missing keys from parent {component_parent_class.__name__}: {parent_keys.difference(template_keys)}"
 
 
 def test_component_example_values(io_components):

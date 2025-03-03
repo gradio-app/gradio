@@ -571,6 +571,8 @@ class TestProcessExamples:
                 "type": "text",
                 "stop_btn": False,
                 "submit_btn": False,
+                "spellcheck": False,
+                "show_spellcheck_button": False,
             }
         ]
 
@@ -593,6 +595,8 @@ class TestProcessExamples:
                 "type": "text",
                 "stop_btn": False,
                 "submit_btn": False,
+                "spellcheck": False,
+                "show_spellcheck_button": False,
             }
         ]
 

@@ -43,6 +43,8 @@ class TestTextbox:
             "max_length": None,
             "submit_btn": False,
             "stop_btn": False,
+            "spellcheck": False,
+            "show_spellcheck_button": False,
         }
 
     @pytest.mark.asyncio
