@@ -3,21 +3,15 @@ import pandas as pd
 import numpy as np
 
 def update_dataframe():
-    regular_df = pd.DataFrame(np.random.randint(1, 10, size=(5, 5)))
-    regular_df.columns = [str(col) for col in regular_df.columns]
-
-    wide_df = pd.DataFrame(np.random.randint(1, 10, size=(5, 15)))
-    wide_df.columns = [f"col_{col}" for col in wide_df.columns]
-
-    tall_df = pd.DataFrame(np.random.randint(1, 10, size=(50, 3)))
-    tall_df.columns = ["A", "B", "C"]
-
+    regular_df = pd.DataFrame(np.random.randint(1, 10, size=(5, 5)), columns=[str(i) for i in range(5)])
+    wide_df = pd.DataFrame(np.random.randint(1, 10, size=(5, 15)), columns=[f"col_{i}" for i in range(15)])
+    tall_df = pd.DataFrame(np.random.randint(1, 10, size=(50, 3)), columns=["A", "B", "C"])
     return regular_df, wide_df, tall_df
 
 def clear_dataframes():
-    regular_empty_df = pd.DataFrame(columns=[str(i) for i in range(5)])
-    wide_empty_df = pd.DataFrame(columns=[f"col_{i}" for i in range(15)])
-    tall_empty_df = pd.DataFrame(columns=["A", "B", "C"])
+    regular_empty_df = pd.DataFrame([], columns=[str(i) for i in range(5)])
+    wide_empty_df = pd.DataFrame([], columns=[f"col_{i}" for i in range(15)])
+    tall_empty_df = pd.DataFrame([], columns=["A", "B", "C"])
     return regular_empty_df, wide_empty_df, tall_empty_df
 
 def increment_select_counter(evt: gr.SelectData, count):
