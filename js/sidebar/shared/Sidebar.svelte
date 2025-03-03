@@ -20,14 +20,13 @@
 
 	function check_overlap(): void {
 		if (!sidebar_div.closest(".gradio-container")) return;
-		const parent_container = sidebar_div.closest(".gradio-container");
+		const parent_container = sidebar_div.closest(".gradio-container") as HTMLElement;
 		const parent_rect = parent_container?.getBoundingClientRect();
 		if (!parent_rect) return;
 
 		const parentHeight = parent_rect.height;
 		sidebar_div.style.height = `${parentHeight}px`;
 
-		// Find the actual positioned parent that the sidebar is positioned relative to
 		let positioned_parent = sidebar_div.parentElement;
 		while (
 			positioned_parent && 
@@ -43,9 +42,17 @@
 			if (position === "left") {
 				const offset = parent_rect.left - positioned_parent_rect.left;
 				sidebar_div.style.left = `${offset}px`;
+				sidebar_div.style.setProperty('--sidebar-width', width_css);
+				const numericWidth = parseFloat(width_css);
+				parent_container.style.setProperty('--sidebar-overlap', `${numericWidth + offset}px`);
+				parent_container.style.setProperty('--sidebar-offset', `${offset}px`);
 			} else {
 				const offset = (positioned_parent_rect.right - parent_rect.right);
 				sidebar_div.style.right = `${offset}px`;
+				sidebar_div.style.setProperty('--sidebar-width', width_css);
+				const numericWidth = parseFloat(width_css);
+				parent_container.style.setProperty('--sidebar-overlap', `${numericWidth + offset}px`);		
+				parent_container.style.setProperty('--sidebar-offset', `${offset}px`);
 			}
 		}
 	}
@@ -158,19 +165,19 @@
 		}
 	}
 
-	/* :global(.sidebar-parent:not(:has(.reduce-motion))) {
+	:global(.sidebar-parent:not(:has(.reduce-motion))) {
 		transition:
 			padding-left 0.3s ease-in-out,
 			padding-right 0.3s ease-in-out;
 	}
 
-	:global(.sidebar-parent:has(.sidebar.open:not(.right))) > :not(.sidebar) {
-		transform: translateX(320px);
+	:global(.sidebar-parent:has(.sidebar.open:not(.right))) {
+		padding-left: calc(var(--sidebar-overlap) - var(--sidebar-offset) - var(--size-4));
 	}
 
-	:global(.sidebar-parent:has(.sidebar.open.right)) > :not(.sidebar) {
-		transform: translateX(-320px);
-	} */
+	:global(.sidebar-parent:has(.sidebar.open.right)) {
+		padding-right: calc(var(--sidebar-overlap) - var(--sidebar-offset) - var(--size-4));
+	}
 
 	.sidebar {
 		display: flex;
@@ -179,12 +186,23 @@
 		top: calc(var(--size-4) * -1);
 		height: 100%;
 		background-color: var(--background-fill-secondary);
-		transform: translateX(-100%);
 		z-index: 1000;
 	}
 
-	.sidebar.open {
-		transform: translateX(0);
+	.sidebar:not(.right) {
+		transform: translateX(-100%);
+	}
+
+	.sidebar.right {
+		transform: translateX(100%);
+	}
+
+	.sidebar.open:not(.right) {
+		transform: translateX(calc(-1 * var(--sidebar-overlap) - var(--size-4)));
+	}
+
+	.sidebar.open.right {
+		transform: translateX(calc(var(--sidebar-overlap) + var(--size-4)));
 	}
 
 	.sidebar:not(.reduce-motion) {
