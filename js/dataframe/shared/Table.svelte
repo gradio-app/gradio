@@ -433,7 +433,8 @@
 		show_row_numbers,
 		get_data_at,
 		clear_on_focus,
-		selected_cells
+		selected_cells,
+		parent_element: parent
 	});
 
 	function handle_cell_click(

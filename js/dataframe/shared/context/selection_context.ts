@@ -25,6 +25,7 @@ export type SelectionContext = {
 	get_data_at: (row: number, col: number) => string | number;
 	clear_on_focus: boolean;
 	selected_cells: [number, number][];
+	parent_element: HTMLElement;
 	actions: {
 		handle_cell_click: (event: MouseEvent, row: number, col: number) => void;
 		toggle_cell_menu: (event: MouseEvent, row: number, col: number) => void;
@@ -74,7 +75,10 @@ export function create_selection_context(
 					});
 				} else {
 					context.df_actions.set_editing(false);
+					context.parent_element.focus();
 				}
+			} else {
+				context.parent_element.focus();
 			}
 
 			actions.toggle_cell_button(row, col);
@@ -127,6 +131,10 @@ export function create_selection_context(
 			context.df_actions.set_selected_cells(selected_cells);
 			context.df_actions.set_selected(selected_cells[0]);
 			context.df_actions.set_editing(false);
+
+			setTimeout(() => {
+				context.parent_element.focus();
+			}, 0);
 		},
 
 		handle_select_row: (row: number) => {
@@ -136,6 +144,10 @@ export function create_selection_context(
 			context.df_actions.set_selected_cells(selected_cells);
 			context.df_actions.set_selected(selected_cells[0]);
 			context.df_actions.set_editing(false);
+
+			setTimeout(() => {
+				context.parent_element.focus();
+			}, 0);
 		}
 	};
 
