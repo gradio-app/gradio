@@ -802,7 +802,7 @@ def load_chat(
         raise ImportError(
             "To use OpenAI API Client, you must install the `openai` package. You can install it with `pip install openai`."
         ) from e
-    from gr.chat_interface import ChatInterface
+    from gradio.chat_interface import ChatInterface
 
     client = OpenAI(api_key=token, base_url=base_url)
     start_message = (
