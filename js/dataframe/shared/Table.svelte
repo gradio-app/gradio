@@ -176,6 +176,7 @@
 			make_id
 		);
 		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
+		df_actions.reset_sort_state();
 	}
 
 	let previous_headers = _headers.map((h) => h.value);

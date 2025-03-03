@@ -135,6 +135,7 @@ export interface DataFrameContext {
 		set_active_button: (
 			button: { type: "header" | "cell"; row?: number; col: number } | null
 		) => void;
+		reset_sort_state: () => void;
 	};
 }
 
@@ -202,6 +203,17 @@ export function create_actions(
 		}
 
 		return { data: new_data, headers: new_headers };
+	};
+
+	const reset_sort_state = (): void => {
+		state.update((s) => ({
+			...s,
+			sort_state: {
+				sort_by: null,
+				sort_direction: null,
+				row_order: []
+			}
+		}));
 	};
 
 	return {
@@ -494,6 +506,7 @@ export function create_actions(
 				!dequal(current_data, previous_data) ||
 				!dequal(current_headers, previous_headers)
 			) {
+				reset_sort_state();
 				dispatch("change", {
 					data: data.map((row) => row.map((cell) => cell.value)),
 					headers: headers.map((h) => h.value),
@@ -521,7 +534,8 @@ export function create_actions(
 				...s,
 				ui_state: { ...s.ui_state, active_button: button }
 			}));
-		}
+		},
+		reset_sort_state
 	};
 }
 
