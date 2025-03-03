@@ -723,6 +723,8 @@
 					disable_scroll={active_cell_menu !== null ||
 						active_header_menu !== null}
 					bind:viewport
+					bind:show_scroll_button
+					on:scroll_top={(_) => {}}
 				>
 					{#if label && label.length !== 0}
 						<caption class="sr-only">{label}</caption>
@@ -796,6 +798,9 @@
 				</VirtualTable>
 			</div>
 		</Upload>
+		{#if show_scroll_button}
+			<button class="scroll-top-button" on:click={scroll_to_top}> ↑ </button>
+		{/if}
 	</div>
 </div>
 {#if data.length === 0 && editable && row_count[1] === "dynamic"}

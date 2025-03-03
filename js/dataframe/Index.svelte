@@ -35,7 +35,7 @@
 	export let root: string;
 
 	export let line_breaks = true;
-	// export let column_widths: string[] = [];
+	export let column_widths: string[] = [];
 	export let gradio: Gradio<{
 		change: never;
 		select: SelectData;
@@ -108,6 +108,7 @@
 		{max_height}
 		i18n={gradio.i18n}
 		{line_breaks}
+		{column_widths}
 		upload={(...args) => gradio.client.upload(...args)}
 		stream_handler={(...args) => gradio.client.stream(...args)}
 		bind:value_is_output
