@@ -65,7 +65,7 @@
 		}
 
 		if (col_index === 0) {
-			return show_row_numbers ? "var(--cell-width-row-number)" : "0";
+			return "0";
 		}
 
 		const previous_widths = Array(col_index)
@@ -73,11 +73,7 @@
 			.map((_, idx) => `var(--cell-width-${idx})`)
 			.join(" + ");
 
-		const row_number_width = show_row_numbers
-			? "var(--cell-width-row-number) + "
-			: "";
-
-		return `calc(${row_number_width}${previous_widths})`;
+		return `calc(${previous_widths})`;
 	}
 
 	$: cell_classes = is_cell_selected([index, j], selected_cells || []);
