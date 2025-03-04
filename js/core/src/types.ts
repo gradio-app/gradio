@@ -43,6 +43,7 @@ export interface Payload {
 	data: unknown[];
 	event_data?: unknown | null;
 	trigger_id?: number | null;
+	js_implementation?: boolean | null;
 }
 
 /** A dependency as received from the backend */
@@ -76,6 +77,7 @@ export interface Dependency {
 	stream_every: number;
 	like_user_message: boolean;
 	event_specific_args: string[];
+	js_implementation: string | null;
 }
 
 interface TypeDescription {

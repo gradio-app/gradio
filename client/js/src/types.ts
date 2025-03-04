@@ -272,6 +272,7 @@ export interface Dependency {
 	stream_every: number;
 	like_user_message: boolean;
 	event_specific_args: string[];
+	js_implementation: string | null;
 }
 
 export interface DependencyTypes {

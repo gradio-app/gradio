@@ -58,7 +58,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: website
-          path: js/_website/.svelte-kit
+          path: js/_website/build
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: list files
@@ -67,21 +67,21 @@ jobs:
       - name: Deploy Preview Website to Cloudflare Pages
         if: needs.changes.outputs.pr_number != 'false'
         id: cloudflare-preview
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v3.5.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy js/_website/.svelte-kit/cloudflare --project-name=gradio-website --branch=${{ needs.changes.outputs.source_branch }}
+          command: pages deploy js/_website/build --project-name=gradio-website --branch=${{ needs.changes.outputs.source_branch }}
 
         # production
       - name: Deploy Production Website to Cloudflare Pages
         if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'refs/heads/main'
         id: cloudflare-production
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v3.5.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy js/_website/.svelte-kit/cloudflare --project-name=gradio-website --branch=main
+          command: pages deploy js/_website/build --project-name=gradio-website --branch=main
 
   comment-deploy-success:
     uses: "./.github/workflows/comment-queue.yml"
