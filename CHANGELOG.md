@@ -1,5 +1,26 @@
 # gradio
 
+## 5.20.0
+
+### Features
+
+- [#10688](https://github.com/gradio-app/gradio/pull/10688) [`bd982df`](https://github.com/gradio-app/gradio/commit/bd982df85b07e4686e223241d68f08bf242c3ef9) - Change `gr.load` chatinterface behavior to streaming.  Thanks @abidlabs!
+- [#10500](https://github.com/gradio-app/gradio/pull/10500) [`16d419b`](https://github.com/gradio-app/gradio/commit/16d419b9f1f18ae4507d18a4739eb83ac4f3fae9) - Allow functions that solely update component properties to run in the frontend by setting `js=True`.  Thanks @abidlabs!
+
+## 5.19.0
+
+### Features
+
+- [#10647](https://github.com/gradio-app/gradio/pull/10647) [`b43200d`](https://github.com/gradio-app/gradio/commit/b43200d7df92e40285c1e5fb1a2f010278fce5d2) - Custom styling of the dataframe.  Thanks @abidlabs!
+- [#10577](https://github.com/gradio-app/gradio/pull/10577) [`374b762`](https://github.com/gradio-app/gradio/commit/374b762b7fc94073517a2fd8b28473a558f454fc) - Support `gr.LoginButton` for `gr.load()`.  Thanks @abidlabs!
+- [#10679](https://github.com/gradio-app/gradio/pull/10679) [`cb3c762`](https://github.com/gradio-app/gradio/commit/cb3c76205c3fc1fae55229b5efe223c6d5c5c907) - Add Thai Translate.  Thanks @haihandsome!
+- [#10678](https://github.com/gradio-app/gradio/pull/10678) [`249eccd`](https://github.com/gradio-app/gradio/commit/249eccd81ae289658d0ba8e1033c12f407a07ee7) - Fix Dataframe header type to allow integer values.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10659](https://github.com/gradio-app/gradio/pull/10659) [`36309ea`](https://github.com/gradio-app/gradio/commit/36309ea55fba6017f8a7f2be1484989ecccdac1b) - Automatically restore last scroll position in multiple-choice dropdowns.  Thanks @XcantloadX!
+- [#10683](https://github.com/gradio-app/gradio/pull/10683) [`367fe14`](https://github.com/gradio-app/gradio/commit/367fe14381a971c45528d50052121439a023bfc0) - Fix chatbot share button payload too large.  Thanks @dawoodkhan82!
+
 ## 5.18.0
 
 ### Features

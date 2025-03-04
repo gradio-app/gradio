@@ -1,5 +1,21 @@
 # @gradio/chatbot
 
+## 0.24.2
+
+### Dependency updates
+
+- @gradio/upload@0.15.3
+- @gradio/video@0.14.3
+- @gradio/client@1.13.0
+- @gradio/image@0.21.3
+- @gradio/gallery@0.15.8
+
+## 0.24.1
+
+### Fixes
+
+- [#10683](https://github.com/gradio-app/gradio/pull/10683) [`367fe14`](https://github.com/gradio-app/gradio/commit/367fe14381a971c45528d50052121439a023bfc0) - Fix chatbot share button payload too large.  Thanks @dawoodkhan82!
+
 ## 0.24.0
 
 ### Features

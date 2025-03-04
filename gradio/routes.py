@@ -1733,14 +1733,13 @@ def mount_gradio_app(
         )
     )
 
-    blocks.node_path = os.environ.get(
-        "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
-    )
-
-    blocks.node_server_name = node_server_name
-    blocks.node_port = node_port
-
     if blocks.ssr_mode:
+        blocks.node_path = os.environ.get(
+            "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
+        )
+
+        blocks.node_server_name = node_server_name
+        blocks.node_port = node_port
         blocks.node_server_name, blocks.node_process, blocks.node_port = (
             start_node_server(
                 server_name=blocks.node_server_name,
