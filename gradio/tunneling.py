@@ -60,7 +60,7 @@ CERTIFICATE_PATH = ".gradio/certificate.pem"
 
 
 class Tunnel:
-    def __init__(self, remote_host, remote_port, local_host, local_port, share_token, share_server_tls_certificate):
+    def __init__(self, remote_host: str, remote_port: int, local_host: str, local_port: int, share_token: str, share_server_tls_certificate: str | None):
         self.proc = None
         self.url = None
         self.remote_host = remote_host
@@ -128,10 +128,13 @@ class Tunnel:
             "--server_addr",
             f"{self.remote_host}:{self.remote_port}",
             "--disable_log_color",
-            "--tls_enable",
-            "--tls_trusted_ca_file",
-            CERTIFICATE_PATH,
         ]
+        if self.share_server_tls_certificate is not None:
+            command.extend([
+                "--tls_enable",
+                "--tls_trusted_ca_file",
+                self.share_server_tls_certificate,
+            ])
         self.proc = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
