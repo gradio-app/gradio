@@ -895,7 +895,7 @@
 		box-shadow: var(--shadow-drop);
 	}
 
-	thead :global(th.frozen-column) {
+	thead :global(th.pinned-column) {
 		position: sticky;
 		z-index: 6;
 		background: var(--table-even-background-fill) !important;

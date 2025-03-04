@@ -89,9 +89,9 @@
 </script>
 
 <td
-	class:frozen-column={j < actual_pinned_columns}
-	class:last-frozen={j === actual_pinned_columns - 1}
-	tabindex={show_row_numbers && j === 0 ? -1 : 0}
+	class:pinned-column={j < actual_pinned_columns}
+	class:last-pinned={j === actual_pinned_columns - 1}
+	tabindex={j < actual_pinned_columns ? -1 : 0}
 	bind:this={el.cell}
 	data-row={index}
 	data-col={j}
@@ -212,17 +212,17 @@
 		}
 	}
 
-	.frozen-column {
+	.pinned-column {
 		position: sticky;
 		z-index: 3;
-		border-right: 1px solid var(--border-color-primary);
+		border-right: none;
 	}
 
-	.frozen-column:nth-child(odd) {
+	.pinned-column:nth-child(odd) {
 		background: var(--table-odd-background-fill);
 	}
 
-	.frozen-column:nth-child(even) {
+	.pinned-column:nth-child(even) {
 		background: var(--table-even-background-fill);
 	}
 

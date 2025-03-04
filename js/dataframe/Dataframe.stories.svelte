@@ -554,7 +554,7 @@
 />
 
 <Story
-	name="Dataframe with frozen columns"
+	name="Dataframe with pinned columns"
 	args={{
 		values: [
 			["ID", "Name", "Age", "City", "Country", "Score"],

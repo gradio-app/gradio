@@ -58,8 +58,8 @@
 </script>
 
 <th
-	class:frozen-column={i < actual_pinned_columns}
-	class:last-frozen={i === actual_pinned_columns - 1}
+	class:pinned-column={i < actual_pinned_columns}
+	class:last-pinned={i === actual_pinned_columns - 1}
 	class:focus={header_edit === i || selected_header === i}
 	aria-sort={get_sort_status(value, headers) === "none"
 		? "none"
@@ -187,9 +187,9 @@
 		order: -1;
 	}
 
-	.frozen-column {
+	.pinned-column {
 		position: sticky;
 		z-index: 5;
-		border-right: 1px solid var(--border-color-primary);
+		border-right: none;
 	}
 </style>
