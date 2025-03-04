@@ -1,6 +1,6 @@
 ---
-"@gradio/sidebar": minor
-"gradio": minor
+"@gradio/sidebar": patch
+"gradio": patch
 ---
 
-feat:Sidebar layout fix for large screen sizes
+fix:Sidebar layout fix for large screen sizes
