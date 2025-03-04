@@ -127,7 +127,7 @@ class Interface(Blocks):
         concurrency_limit: int | None | Literal["default"] = "default",
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
-        js: str | None = None,
+        js: str | Literal[True] | None = None,
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         additional_inputs: str | Component | Sequence[str | Component] | None = None,
@@ -947,7 +947,7 @@ class TabbedInterface(Blocks):
         theme: Theme | str | None = None,
         analytics_enabled: bool | None = None,
         css: str | None = None,
-        js: str | None = None,
+        js: str | Literal[True] | None = None,
         head: str | None = None,
     ):
         """

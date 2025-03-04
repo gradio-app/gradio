@@ -1,5 +1,47 @@
 # website
 
+## 0.51.0
+
+### Features
+
+- [#10677](https://github.com/gradio-app/gradio/pull/10677) [`92d5ac8`](https://github.com/gradio-app/gradio/commit/92d5ac8e67147e1dd7a701cc8c3e2a5193e832c6) - Static llms.txt route on the website.  Thanks @aliabd!
+
+## 0.50.4
+
+### Dependency updates
+
+- @gradio/code@0.11.1
+
+## 0.50.3
+
+### Features
+
+- [#10670](https://github.com/gradio-app/gradio/pull/10670) [`a15964d`](https://github.com/gradio-app/gradio/commit/a15964db8772d3cb34e730e75866c5d7460199ab) - Update banner to point to FastRTC.  Thanks @abidlabs!
+
+## 0.50.2
+
+### Fixes
+
+- [#10669](https://github.com/gradio-app/gradio/pull/10669) [`d1b063f`](https://github.com/gradio-app/gradio/commit/d1b063fb0c9d893062d9b47919ed1ba9241a6e07) - Add load_chat documentation.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.11.0
+
+## 0.50.1
+
+### Dependency updates
+
+- @gradio/code@0.10.18
+- @gradio/paramviewer@0.7.2
+- @gradio/statustracker@0.10.4
+
+## 0.50.0
+
+### Features
+
+- [#10511](https://github.com/gradio-app/gradio/pull/10511) [`c4aa886`](https://github.com/gradio-app/gradio/commit/c4aa8864dabec4caeb59af91f6f1aaaf50e33b67) - Semantic search in the playground.  Thanks @aliabd!
+
 ## 0.49.0
 
 ### Features

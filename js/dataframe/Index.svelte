@@ -103,7 +103,8 @@
 		{styling}
 		headers={_headers}
 		on:change={(e) => {
-			value = e.detail;
+			value.data = e.detail.data;
+			value.headers = e.detail.headers;
 			gradio.dispatch("change");
 		}}
 		on:input={(e) => gradio.dispatch("input")}

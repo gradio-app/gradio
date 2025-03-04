@@ -1,5 +1,24 @@
 # @gradio/button
 
+## 0.4.8
+
+### Dependency updates
+
+- @gradio/upload@0.15.3
+- @gradio/client@1.13.0
+- @gradio/image@0.21.3
+
+## 0.4.7
+
+### Features
+
+- [#10594](https://github.com/gradio-app/gradio/pull/10594) [`f0e4fd0`](https://github.com/gradio-app/gradio/commit/f0e4fd0522dd0f02701e0c4d3e694f6e6198db9d) - Fix `Blocks.serve_static_file` and `Button.svelte` to work on Lite.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/image@0.21.2
+- @gradio/upload@0.15.2
+
 ## 0.4.6
 
 ### Dependency updates

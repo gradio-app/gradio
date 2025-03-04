@@ -1,5 +1,40 @@
 # @gradio/lite
 
+## 5.20.0
+
+### Dependency updates
+
+- @gradio/core@0.12.0
+
+## 5.19.0
+
+### Dependency updates
+
+- @gradio/core@0.11.1
+
+## 5.17.0
+
+### Features
+
+- [#10569](https://github.com/gradio-app/gradio/pull/10569) [`bd4895a`](https://github.com/gradio-app/gradio/commit/bd4895a95a29fa1f0d12fefde26a82a1d60954e9) - Update Lite to support multi-page apps.  Thanks @whitphx!
+- [#10575](https://github.com/gradio-app/gradio/pull/10575) [`866780a`](https://github.com/gradio-app/gradio/commit/866780a7cbeed05b83c1c67eab19013bb6e2cafa) - Independent scrolling of the code editor in an embedded Lite app in the playground mode.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/core@0.11.0
+
+## 5.16.2
+
+### Dependency updates
+
+- @gradio/atoms@0.13.3
+
+## 5.16.1
+
+### Dependency updates
+
+- @gradio/core@0.10.1
+
 ## 5.16.0
 
 ### Fixes

@@ -1,10 +1,10 @@
-# Liking, Retrying and Undoing Messages
+# Chatbot-Specific Events
 
 Tags: LLM, CHAT
 
 Users expect modern chatbot UIs to let them easily interact with individual chat messages: for example, users might want to retry message generations, undo messages, or click on a like/dislike button to upvote or downvote a generated message.
 
-Thankfully, the Gradio Chatbot exposes three events, `.retry`, `.undo`, and `like`, to let you build this functionality into your application. As an application developer, you can attach functions to any of these event, allowing you to run arbitrary Python functions e.g. when a user interacts with a message.
+Thankfully, the Gradio Chatbot exposes several events, such as `.retry`, `.undo`, `.like`, and `.clear`, to let you build this functionality into your application. As an application developer, you can attach functions to any of these event, allowing you to run arbitrary Python functions e.g. when a user interacts with a message.
 
 In this demo, we'll build a UI that implements these events. You can see our finished demo deployed on Hugging Face spaces here:
 
@@ -148,10 +148,48 @@ def handle_edit(history, edit_data: gr.EditData):
 chatbot.edit(handle_edit, chatbot, chatbot)
 ```
 
+## The Clear Event
+
+As a bonus, we'll also cover the `.clear()` event, which is triggered when the user clicks the clear icon to clear all messages. As a developer, you can attach additional events that should happen when this icon is clicked, e.g. to handle clearing of additional chatbot state:
+
+```python
+from uuid import uuid4
+import gradio as gr
+
+
+def clear():
+    print("Cleared uuid")
+    return uuid4()
+
+
+def chat_fn(user_input, history, uuid):
+    return f"{user_input} with uuid {uuid}"
+
+
+with gr.Blocks() as demo:
+    uuid_state = gr.State(
+        uuid4
+    )
+    chatbot = gr.Chatbot(type="messages")
+    chatbot.clear(clear, outputs=[uuid_state])
+
+    gr.ChatInterface(
+        chat_fn,
+        additional_inputs=[uuid_state],
+        chatbot=chatbot,
+        type="messages"
+    )
+
+demo.launch()
+```
+
+In this example, the `clear` function, bound to the `chatbot.clear` event, returns a new UUID into our session state, when the chat history is cleared via the trash icon. This can be seen in the `chat_fn` function, which references the UUID saved in our session state.
+
+This example also shows that you can use these events with `gr.ChatInterface` by passing in a custom `gr.Chatbot` object.
 
 ## Conclusion
 
-That's it! You now know how you can implement the retry, undo, and like events for the Chatbot.
+That's it! You now know how you can implement the retry, undo, like, and clear events for the Chatbot.
 
 
 

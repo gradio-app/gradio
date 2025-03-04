@@ -120,6 +120,7 @@
 			loading_text = (event as CustomEvent).detail + "...";
 		});
 	}
+	let is_lite = worker_proxy !== undefined;
 
 	export let space: string | null;
 	export let src: string | null;
@@ -327,6 +328,18 @@
 		css_ready = true;
 		window.__is_colab__ = config.is_colab;
 
+		const supports_zerogpu_headers = "supports-zerogpu-headers";
+		window.addEventListener("message", (event) => {
+			if (event.data === supports_zerogpu_headers) {
+				window.supports_zerogpu_headers = true;
+			}
+		});
+		const hostname = window.location.hostname;
+		const origin = hostname.includes(".dev.")
+			? `https://moon-${hostname.split(".")[1]}.dev.spaces.huggingface.tech`
+			: `https://huggingface.co`;
+		window.parent.postMessage(supports_zerogpu_headers, origin);
+
 		dispatch("loaded");
 
 		pages = config.pages;
@@ -470,6 +483,7 @@
 	{pages}
 	{current_page}
 	{root}
+	{is_lite}
 	bind:wrapper
 >
 	{#if (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}

@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/button",
-	"version": "0.4.6",
+	"version": "0.4.8",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -8,6 +8,7 @@
 	"private": false,
 	"dependencies": {
 		"@gradio/client": "workspace:^",
+		"@gradio/image": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^"
 	},
