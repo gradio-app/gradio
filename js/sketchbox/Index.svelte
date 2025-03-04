@@ -28,6 +28,7 @@
 </script>
 
 <div class="sketchbox" class:function_mode class:row class:active>
+	<div class="cover"></div>
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div
@@ -86,6 +87,13 @@
 	.sketchbox:not(.function_mode) {
 		cursor: pointer;
 	}
+	.function_mode .cover {
+		background-color: color-mix(
+			in srgb,
+			var(--background-fill-primary),
+			transparent 80%
+		);
+	}
 
 	.row > :global(*),
 	.row > :global(.form),
@@ -99,6 +107,14 @@
 		width: 100%;
 		height: 100%;
 		z-index: 100;
+	}
+	.cover {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 99;
 	}
 	.interaction:hover,
 	.active .interaction {
