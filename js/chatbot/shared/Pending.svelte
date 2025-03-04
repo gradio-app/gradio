@@ -84,6 +84,14 @@
 		margin-right: var(--spacing-xxl);
 	}
 
+	.avatar-container:not(.thumbnail-item) :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border-radius: 50%;
+		padding: 6px;
+	}
+
 	.message-content {
 		padding: var(--spacing-sm) var(--spacing-xl);
 		min-height: var(--size-8);
