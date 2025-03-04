@@ -2394,6 +2394,7 @@ Received inputs:
         state_session_capacity: int = 10000,
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
+        share_server_tls_certificate: str | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         max_file_size: str | int | None = None,
         enable_monitoring: bool | None = None,
@@ -2435,6 +2436,7 @@ Received inputs:
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
             share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
             share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
+            share_server_tls_certificate: The path to a TLS certificate file to use when connecting to a custom share server. This parameter is not used with the default FRP server at https://gradio.live. Otherwise, you must provide a valid TLS certificate file (e.g. a "cert.pem"), otherwise the connection will not use TLS encryption, which is insecure.
             auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth. Cannot be used with `auth`.
             max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
             enable_monitoring: Enables traffic monitoring of the app through the /monitoring endpoint. By default is None, which enables this endpoint. If explicitly True, will also print the monitoring URL to the console. If False, will disable monitoring altogether.
@@ -2624,6 +2626,7 @@ Received inputs:
             self.share_server_protocol = share_server_protocol or (
                 "http" if share_server_address is not None else "https"
             )
+            self.share_server_tls_certificate = share_server_tls_certificate
             self.has_launched = True
 
             self.protocol = (
@@ -2740,6 +2743,7 @@ Received inputs:
                         local_port=self.server_port,
                         share_token=self.share_token,
                         share_server_address=self.share_server_address,
+                        share_server_tls_certificate=self.share_server_tls_certificate,
                     )
                     parsed_url = urlparse(share_url)
                     self.share_url = urlunparse(

@@ -60,7 +60,7 @@ CERTIFICATE_PATH = ".gradio/certificate.pem"
 
 
 class Tunnel:
-    def __init__(self, remote_host, remote_port, local_host, local_port, share_token):
+    def __init__(self, remote_host, remote_port, local_host, local_port, share_token, share_server_tls_certificate):
         self.proc = None
         self.url = None
         self.remote_host = remote_host
@@ -68,6 +68,7 @@ class Tunnel:
         self.local_host = local_host
         self.local_port = local_port
         self.share_token = share_token
+        self.share_server_tls_certificate = share_server_tls_certificate
 
     @staticmethod
     def download_binary():
