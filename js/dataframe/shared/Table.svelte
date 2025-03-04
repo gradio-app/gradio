@@ -311,7 +311,7 @@
 		if (show_row_numbers) {
 			parent.style.setProperty(`--cell-width-row-number`, `${widths[0]}px`);
 		}
-		const data_cells = show_row_numbers ? widths.slice(1) : widths;
+		const data_cells = widths;
 		data_cells.forEach((width, i) => {
 			if (!column_widths[i]) {
 				parent.style.setProperty(
