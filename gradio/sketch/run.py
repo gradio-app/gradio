@@ -94,6 +94,7 @@ def create(app_file: str, config_file: str):
             "modify_component",
             new_component_id,
             new_component_id + 1,
+            gr.Button(interactive=True),
         )
 
     with gr.Blocks() as demo:
@@ -121,8 +122,11 @@ def create(app_file: str, config_file: str):
         add_index = gr.State([_new_component_id])
         modify_id = gr.State(None)
         saved = gr.State(False)
+        add_fn_btn = gr.Button(
+            "+ Add Function", scale=0, interactive=False, render=False
+        )
 
-        with gr.Sidebar():
+        with gr.Sidebar() as left_sidebar:
 
             @gr.render(
                 [
@@ -173,6 +177,7 @@ def create(app_file: str, config_file: str):
                                 mode,
                                 modify_id,
                                 new_component_id,
+                                add_fn_btn,
                             ],
                         )
 
@@ -199,6 +204,7 @@ def create(app_file: str, config_file: str):
                             mode,
                             modify_id,
                             new_component_id,
+                            add_fn_btn,
                         ],
                     )
                 if _mode == "modify_component":
@@ -271,13 +277,17 @@ def create(app_file: str, config_file: str):
 
                     def del_function():
                         del _dependencies[_modify_id]
-                        return ["default", None]
+                        return _dependencies, "default", None
 
-                    del_function_btn.click(del_function, None, [mode, modify_id])
+                    del_function_btn.click(
+                        del_function, None, [dependencies, mode, modify_id]
+                    )
 
         with gr.Row():
             gr.Markdown("## Sketching '" + folder_name + "/" + file_name + "'")
+            add_fn_btn.render()
             save_btn = gr.Button("Save & Render", variant="primary", scale=0)
+
             deploy_to_spaces_btn = gr.Button(
                 "Deploy to Spaces",
                 visible=False,
@@ -461,7 +471,7 @@ def create(app_file: str, config_file: str):
                     [layout, components, dependencies, mode, add_index, modify_id],
                 )
 
-        with gr.Sidebar(position="right"):
+        with gr.Sidebar(position="right", open=False) as right_sidebar:
             gr.Markdown("## Functions")
 
             @gr.render([dependencies], show_progress="hidden")
@@ -474,17 +484,18 @@ def create(app_file: str, config_file: str):
 
                     fn_btn.click(load_fn, outputs=[mode, modify_id])
 
-            add_fn_btn = gr.Button("+ Add Function", variant="primary", size="md")
-
             def add_fn(_dependencies):
                 _dependencies.append([[], [], [], f"fn_{len(_dependencies) + 1}"])
                 return (
                     _dependencies,
                     "modify_function",
                     len(_dependencies) - 1,
+                    gr.Sidebar(open=True),
                 )
 
-            add_fn_btn.click(add_fn, dependencies, [dependencies, mode, modify_id])
+            add_fn_btn.click(
+                add_fn, dependencies, [dependencies, mode, modify_id, right_sidebar]
+            )
 
             gr.Markdown("## Generated File")
             code = gr.Code(language="python", interactive=False, show_label=False)
@@ -550,7 +561,15 @@ demo.launch()"""
 
         @save_btn.click(
             inputs=[saved, code],
-            outputs=[saved, save_btn, deploy_to_spaces_btn, mode],
+            outputs=[
+                saved,
+                save_btn,
+                add_fn_btn,
+                deploy_to_spaces_btn,
+                mode,
+                left_sidebar,
+                right_sidebar,
+            ],
             show_progress="hidden",
         )
         def save(saved, code):
@@ -566,16 +585,19 @@ demo.launch()"""
                 )
             return [
                 not saved,
-                "Save & Render" if saved else "Edit",
+                "Save & Render" if saved else "Edit Sketch",
+                gr.Button(visible=saved),
                 gr.Button(visible=not saved),
                 "default",
+                gr.Sidebar(open=saved),
+                gr.Sidebar(open=False),
             ]
 
         deploy_to_spaces_btn.click(
             fn=None,
             inputs=code,
             js="""(code) => {
-                code = code.replace(/\\n/g, '%0A')
+                code = encodeURIComponent(code);
                 url = `https://huggingface.co/new-space?name=new-space&sdk=gradio&files[0][path]=app.py&files[0][content]=${code}`
                 window.open(url, '_blank')
             }""",
