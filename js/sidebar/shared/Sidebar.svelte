@@ -104,6 +104,7 @@
 			}
 		}}
 		class="toggle-button"
+		class:open
 		aria-label="Toggle Sidebar"
 	>
 		<div class="chevron">
@@ -181,12 +182,12 @@
 		transform: rotate(180deg);
 	}
 
-	.open:not(.right) .toggle-button {
+	.sidebar:not(.right) .toggle-button.open {
 		right: var(--size-2-5);
 		transform: rotate(180deg);
 	}
 
-	.open.right .toggle-button {
+	.sidebar.right .toggle-button.open {
 		left: auto;
 		right: var(--size-2-5);
 		transform: rotate(0deg);
