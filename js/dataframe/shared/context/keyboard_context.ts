@@ -48,10 +48,17 @@ export type KeyboardContext = {
 export function create_keyboard_context(
 	context: KeyboardContext
 ): KeyboardContext {
-	setContext(KEYBOARD_KEY, context);
+	const instance_id = Symbol(
+		`keyboard_${Math.random().toString(36).substring(2)}`
+	);
+	setContext(instance_id, context);
+	setContext(KEYBOARD_KEY, { instance_id, context });
 	return context;
 }
 
-export function get_keyboard_context(): KeyboardContext {
-	return getContext<KeyboardContext>(KEYBOARD_KEY);
+export function get_keyboard_context(): KeyboardContext | undefined {
+	const ctx = getContext<{ instance_id: symbol; context: KeyboardContext }>(
+		KEYBOARD_KEY
+	);
+	return ctx ? ctx.context : getContext<KeyboardContext>(KEYBOARD_KEY);
 }

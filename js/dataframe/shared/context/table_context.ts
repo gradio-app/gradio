@@ -567,6 +567,9 @@ export function create_dataframe_context(config: {
 	column_widths: string[];
 	max_chars: number | undefined;
 }): DataFrameContext {
+	const instance_id = Symbol(
+		`dataframe_${Math.random().toString(36).substring(2)}`
+	);
 	const state = writable<DataFrameState>({
 		config,
 		current_search_query: null,
@@ -589,10 +592,14 @@ export function create_dataframe_context(config: {
 
 	const actions = create_actions(state);
 	const context: DataFrameContext = { state, actions };
-	setContext(DATAFRAME_KEY, context);
+	setContext(instance_id, context);
+	setContext(DATAFRAME_KEY, { instance_id, context });
 	return context;
 }
 
 export function get_dataframe_context(): DataFrameContext {
-	return getContext<DataFrameContext>(DATAFRAME_KEY);
+	const ctx = getContext<{ instance_id: symbol; context: DataFrameContext }>(
+		DATAFRAME_KEY
+	);
+	return ctx ? ctx.context : getContext<DataFrameContext>(DATAFRAME_KEY);
 }

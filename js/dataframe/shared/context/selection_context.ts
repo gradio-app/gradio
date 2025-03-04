@@ -38,6 +38,9 @@ export type SelectionContext = {
 export function create_selection_context(
 	context: Omit<SelectionContext, "actions">
 ): SelectionContext {
+	const instance_id = Symbol(
+		`selection_${Math.random().toString(36).substring(2)}`
+	);
 	const actions = {
 		handle_cell_click: (event: MouseEvent, row: number, col: number) => {
 			if (event.target instanceof HTMLAnchorElement) return;
@@ -152,10 +155,14 @@ export function create_selection_context(
 	};
 
 	const selection_context = { ...context, actions };
-	setContext(SELECTION_KEY, selection_context);
+	setContext(instance_id, selection_context);
+	setContext(SELECTION_KEY, { instance_id, context: selection_context });
 	return selection_context;
 }
 
 export function get_selection_context(): SelectionContext {
-	return getContext<SelectionContext>(SELECTION_KEY);
+	const ctx = getContext<{ instance_id: symbol; context: SelectionContext }>(
+		SELECTION_KEY
+	);
+	return ctx ? ctx.context : getContext<SelectionContext>(SELECTION_KEY);
 }
