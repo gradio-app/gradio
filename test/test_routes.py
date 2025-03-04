@@ -1,6 +1,7 @@
 """Contains tests for networking.py and app.py"""
 
 import functools
+import inspect
 import json
 import os
 import pickle
@@ -1675,11 +1676,9 @@ def test_file_without_meta_key_not_moved():
 
 def test_mount_gradio_app_args_match_launch_args():
     """Test that all arguments in Blocks.launch() are also valid in mount_gradio_app()."""
-    import inspect
-
     # Get the parameters from both functions
     launch_params = inspect.signature(gr.Blocks.launch).parameters
-    mount_params = inspect.signature(gr.routes.mount_gradio_app).parameters
+    mount_params = inspect.signature(routes.mount_gradio_app).parameters
 
     # Parameters that are intentionally not included in mount_gradio_app
     exception_list = {
