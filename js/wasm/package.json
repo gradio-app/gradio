@@ -40,7 +40,7 @@
 	"dependencies": {
 		"@types/path-browserify": "^1.0.0",
 		"path-browserify": "^1.0.1",
-		"pyodide": "0.27.2"
+		"pyodide": "0.27.3"
 	},
 	"peerDependencies": {
 		"svelte": "^4.0.0"

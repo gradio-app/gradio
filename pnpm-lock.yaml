@@ -500,7 +500,7 @@ importers:
         version: 0.5.0
       wrangler:
         specifier: ^3.73.0
-        version: 3.73.0(bufferutil@4.0.7)
+        version: 3.73.0(@cloudflare/workers-types@4.20250224.0)(bufferutil@4.0.7)
     devDependencies:
       '@sveltejs/adapter-auto':
         specifier: ^3.2.2
@@ -2515,8 +2515,8 @@ importers:
         specifier: ^1.0.1
         version: 1.0.1
       pyodide:
-        specifier: 0.27.2
-        version: 0.27.2(bufferutil@4.0.7)
+        specifier: 0.27.3
+        version: 0.27.3(bufferutil@4.0.7)
       svelte:
         specifier: ^4.0.0
         version: 4.2.15
@@ -2754,6 +2754,9 @@ packages:
   '@cloudflare/workers-shared@0.4.1':
     resolution: {integrity: sha512-nYh4r8JwOOjYIdH2zub++CmIKlkYFlpxI1nBHimoiHcytJXD/b7ldJ21TtfzUZMCgI78mxVlymMHA/ReaOxKlA==}
     engines: {node: '>=16.7.0'}
+
+  '@cloudflare/workers-types@4.20250224.0':
+    resolution: {integrity: sha512-j6ZwQ5G2moQRaEtGI2u5TBQhVXv/XwOS5jfBAheZHcpCM07zm8j0i8jZHHLq/6VA8e6VRjKohOyj5j6tZ1KHLQ==}
 
   '@codemirror/autocomplete@6.3.0':
     resolution: {integrity: sha512-4jEvh3AjJZTDKazd10J6ZsCIqaYxDMCeua5ouQxY8hlFIml+nr7le0SgBhT3SIytFBmdzPK3AUhXGuW3T79nVg==}
@@ -7809,8 +7812,8 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
 
-  pyodide@0.27.2:
-    resolution: {integrity: sha512-sfA2kiUuQVRpWI4BYnU3sX5PaTTt/xrcVEmRzRcId8DzZXGGtPgCBC0gCqjUTUYSa8ofPaSjXmzESc86yvvCHg==}
+  pyodide@0.27.3:
+    resolution: {integrity: sha512-6NwKEbPk0M3Wic2T1TCZijgZH9VE4RkHp1VGljS1sou0NjGdsmY2R/fG5oLmdDkjTRMI1iW7WYaY9pofX8gg1g==}
     engines: {node: '>=18.0.0'}
 
   qs@6.11.0:
@@ -9600,6 +9603,9 @@ snapshots:
     optional: true
 
   '@cloudflare/workers-shared@0.4.1': {}
+
+  '@cloudflare/workers-types@4.20250224.0':
+    optional: true
 
   '@codemirror/autocomplete@6.3.0(@codemirror/language@6.6.0)(@codemirror/state@6.1.2)(@codemirror/view@6.4.1)(@lezer/common@1.0.2)':
     dependencies:
@@ -14937,7 +14943,7 @@ snapshots:
 
   punycode@2.3.1: {}
 
-  pyodide@0.27.2(bufferutil@4.0.7):
+  pyodide@0.27.3(bufferutil@4.0.7):
     dependencies:
       ws: 8.18.0(bufferutil@4.0.7)
     transitivePeerDependencies:
@@ -16584,7 +16590,7 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20240821.1
       '@cloudflare/workerd-windows-64': 1.20240821.1
 
-  wrangler@3.73.0(bufferutil@4.0.7):
+  wrangler@3.73.0(@cloudflare/workers-types@4.20250224.0)(bufferutil@4.0.7):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.4
       '@cloudflare/workers-shared': 0.4.1
@@ -16605,6 +16611,7 @@ snapshots:
       workerd: 1.20240821.1
       xxhash-wasm: 1.0.2
     optionalDependencies:
+      '@cloudflare/workers-types': 4.20250224.0
       fsevents: 2.3.3
     transitivePeerDependencies:
       - bufferutil

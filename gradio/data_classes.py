@@ -370,7 +370,7 @@ class BlocksConfigDict(TypedDict):
     components: list[dict[str, Any]]
     css: str | None
     connect_heartbeat: bool
-    js: str | None
+    js: str | Literal[True] | None
     head: str | None
     title: str
     space_id: str | None
