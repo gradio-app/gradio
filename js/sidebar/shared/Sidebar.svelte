@@ -20,7 +20,9 @@
 
 	function check_overlap(): void {
 		if (!sidebar_div.closest(".gradio-container")) return;
-		const parent_container = sidebar_div.closest(".gradio-container") as HTMLElement;
+		const parent_container = sidebar_div.closest(
+			".gradio-container"
+		) as HTMLElement;
 		const parent_rect = parent_container?.getBoundingClientRect();
 		if (!parent_rect) return;
 
@@ -29,7 +31,7 @@
 
 		let positioned_parent = sidebar_div.parentElement;
 		while (
-			positioned_parent && 
+			positioned_parent &&
 			positioned_parent !== parent_container &&
 			getComputedStyle(positioned_parent).position === "static"
 		) {
@@ -39,28 +41,28 @@
 		const positioned_parent_rect = positioned_parent?.getBoundingClientRect();
 
 		if (positioned_parent_rect) {
+			let offset = 0;
+			const numericWidth = parseFloat(width_css);
 			if (position === "left") {
-				const offset = parent_rect.left - positioned_parent_rect.left;
+				offset = parent_rect.left - positioned_parent_rect.left;
 				sidebar_div.style.left = `${offset}px`;
-				sidebar_div.style.setProperty('--sidebar-width', width_css);
-				const numericWidth = parseFloat(width_css);
-				parent_container.style.setProperty('--sidebar-overlap', `${numericWidth + offset}px`);
-				parent_container.style.setProperty('--sidebar-offset', `${offset}px`);
 			} else {
-				const offset = (positioned_parent_rect.right - parent_rect.right);
+				offset = positioned_parent_rect.right - parent_rect.right;
 				sidebar_div.style.right = `${offset}px`;
-				sidebar_div.style.setProperty('--sidebar-width', width_css);
-				const numericWidth = parseFloat(width_css);
-				parent_container.style.setProperty('--sidebar-overlap', `${numericWidth + offset}px`);		
-				parent_container.style.setProperty('--sidebar-offset', `${offset}px`);
 			}
+			parent_container.style.setProperty(
+				"--sidebar-overlap",
+				`${numericWidth + offset}px`
+			);
+			parent_container.style.setProperty("--sidebar-offset", `${offset}px`);
+			sidebar_div.style.setProperty("--sidebar-width", width_css);
 		}
 	}
 
 	onMount(() => {
 		sidebar_div.closest(".gradio-container")?.classList.add("sidebar-parent");
 		check_overlap();
-		
+
 		window.addEventListener("resize", check_overlap);
 		mounted = true;
 
@@ -114,57 +116,6 @@
 </div>
 
 <style>
-	/* Mobile styles (≤ 768px) */
-	@media (max-width: 768px) {
-		.sidebar {
-			width: 100vw !important;
-			left: -110vw !important;
-			right: auto !important;
-			position: absolute !important;
-			top: calc(var(--size-4) * -1);
-			height: 100vh !important;
-		}
-
-		.sidebar:not(.reduce-motion) {
-			transition: transform 0.3s ease-in-out !important;
-		}
-
-		.sidebar.right {
-			left: auto !important;
-			right: -110vw !important;
-		}
-
-		.sidebar.open {
-			transform: translateX(100vw) !important;
-		}
-
-		.sidebar.open.right {
-			transform: translateX(-100vw) !important;
-		}
-
-		:global(.sidebar-parent) {
-			padding-left: 0 !important;
-			padding-right: 0 !important;
-		}
-
-		:global(.sidebar-parent:has(.sidebar.open)) {
-			padding-left: 0 !important;
-			padding-right: 0 !important;
-		}
-
-		.sidebar.right .toggle-button {
-			left: calc(var(--size-8) * -1) !important;
-			right: auto !important;
-			transform: rotate(180deg) !important;
-		}
-
-		.sidebar.open.right .toggle-button {
-			left: auto !important;
-			right: var(--size-2-5) !important;
-			transform: rotate(0deg) !important;
-		}
-	}
-
 	:global(.sidebar-parent:not(:has(.reduce-motion))) {
 		transition:
 			padding-left 0.3s ease-in-out,
@@ -172,11 +123,15 @@
 	}
 
 	:global(.sidebar-parent:has(.sidebar.open:not(.right))) {
-		padding-left: calc(var(--sidebar-overlap) - var(--sidebar-offset) - var(--size-4));
+		padding-left: calc(
+			var(--sidebar-overlap) - var(--sidebar-offset) - var(--size-4)
+		);
 	}
 
 	:global(.sidebar-parent:has(.sidebar.open.right)) {
-		padding-right: calc(var(--sidebar-overlap) - var(--sidebar-offset) - var(--size-4));
+		padding-right: calc(
+			var(--sidebar-overlap) - var(--sidebar-offset) - var(--size-4)
+		);
 	}
 
 	.sidebar {
@@ -187,26 +142,6 @@
 		height: 100%;
 		background-color: var(--background-fill-secondary);
 		z-index: 1000;
-	}
-
-	.sidebar:not(.right) {
-		transform: translateX(-100%);
-	}
-
-	.sidebar.right {
-		transform: translateX(100%);
-	}
-
-	.sidebar.open:not(.right) {
-		transform: translateX(calc(-1 * var(--sidebar-overlap) - var(--size-4)));
-	}
-
-	.sidebar.open.right {
-		transform: translateX(calc(var(--sidebar-overlap) + var(--size-4)));
-	}
-
-	.sidebar:not(.reduce-motion) {
-		transition: transform 0.3s ease-in-out;
 	}
 
 	.sidebar.open:not(.right) {
@@ -283,5 +218,79 @@
 
 	.sidebar.right .sidebar-content {
 		padding-left: var(--size-8);
+	}
+
+	/* Desktop styles (> 768px) */
+	@media (min-width: 769px) {
+		.sidebar:not(.right) {
+			transform: translateX(-100%);
+		}
+
+		.sidebar.right {
+			transform: translateX(100%);
+		}
+
+		.sidebar.open:not(.right) {
+			transform: translateX(calc(-1 * var(--sidebar-overlap) - var(--size-4)));
+		}
+
+		.sidebar.open.right {
+			transform: translateX(calc(var(--sidebar-overlap) + var(--size-4)));
+		}
+
+		.sidebar:not(.reduce-motion) {
+			transition: transform 0.3s ease-in-out;
+		}
+	}
+
+	/* Mobile styles (≤ 768px) */
+	@media (max-width: 768px) {
+		.sidebar {
+			width: 100vw !important;
+			left: -110vw !important;
+			right: auto !important;
+			position: absolute !important;
+			top: calc(var(--size-4) * -1);
+			height: 100vh !important;
+		}
+
+		.sidebar:not(.reduce-motion) {
+			transition: transform 0.3s ease-in-out !important;
+		}
+
+		.sidebar.right {
+			left: auto !important;
+			right: -110vw !important;
+		}
+
+		.sidebar.open {
+			transform: translateX(100vw) !important;
+		}
+
+		.sidebar.open.right {
+			transform: translateX(-100vw) !important;
+		}
+
+		:global(.sidebar-parent) {
+			padding-left: 0 !important;
+			padding-right: 0 !important;
+		}
+
+		:global(.sidebar-parent:has(.sidebar.open)) {
+			padding-left: 0 !important;
+			padding-right: 0 !important;
+		}
+
+		.sidebar.right .toggle-button {
+			left: calc(var(--size-8) * -1) !important;
+			right: auto !important;
+			transform: rotate(180deg) !important;
+		}
+
+		.sidebar.open.right .toggle-button {
+			left: auto !important;
+			right: var(--size-2-5) !important;
+			transform: rotate(0deg) !important;
+		}
 	}
 </style>
