@@ -1646,6 +1646,8 @@ def mount_gradio_app(
     ssr_mode: bool | None = None,
     node_server_name: str | None = None,
     node_port: int | None = None,
+    enable_monitoring: bool | None = None,
+    pwa: bool | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -1695,6 +1697,9 @@ def mount_gradio_app(
     blocks.custom_mount_path = path
     blocks.server_port = server_port
     blocks.server_name = server_name
+    blocks.enable_monitoring = enable_monitoring
+    if pwa is not None:
+        blocks.pwa = pwa
 
     if auth is not None and auth_dependency is not None:
         raise ValueError(
