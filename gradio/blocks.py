@@ -2556,10 +2556,10 @@ Received inputs:
                 else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
             )
         )
-        self.node_path = os.environ.get(
-            "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
-        )
         if self.ssr_mode:
+            self.node_path = os.environ.get(
+                "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
+            )
             self.node_server_name, self.node_process, self.node_port = (
                 start_node_server(
                     server_name=node_server_name,
