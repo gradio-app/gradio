@@ -1,6 +1,7 @@
 """Contains tests for networking.py and app.py"""
 
 import functools
+import inspect
 import json
 import os
 import pickle
@@ -1671,3 +1672,42 @@ def test_file_without_meta_key_not_moved():
             assert req.status_code == 500
     finally:
         demo.close()
+
+
+def test_mount_gradio_app_args_match_launch_args():
+    """Test that all arguments in Blocks.launch() are also valid in mount_gradio_app()."""
+    # Get the parameters from both functions
+    launch_params = inspect.signature(gr.Blocks.launch).parameters
+    mount_params = inspect.signature(routes.mount_gradio_app).parameters
+
+    # Parameters that are intentionally not included in mount_gradio_app
+    exception_list = {
+        "inline",
+        "inbrowser",
+        "prevent_thread_lock",
+        "debug",
+        "quiet",
+        "height",
+        "width",
+        "ssl_keyfile",
+        "ssl_certfile",
+        "ssl_keyfile_password",
+        "ssl_verify",
+        "share",
+        "share_server_address",
+        "share_server_protocol",
+        "state_session_capacity",
+        "_frontend",
+        "self",
+        "strict_cors",
+        "max_threads",
+    }
+
+    missing_params = []
+    for param_name in launch_params:
+        if param_name not in exception_list and param_name not in mount_params:
+            missing_params.append(param_name)
+
+    assert not missing_params, (
+        f"Parameters in launch() but missing in mount_gradio_app(): {missing_params}"
+    )
