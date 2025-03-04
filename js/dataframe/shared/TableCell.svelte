@@ -189,7 +189,7 @@
 	.cell-selected {
 		--ring-color: var(--color-accent);
 		box-shadow: inset 0 0 0 2px var(--ring-color);
-		z-index: var(--layer-1);
+		z-index: 2;
 		position: relative;
 	}
 
@@ -214,9 +214,8 @@
 
 	.frozen-column {
 		position: sticky;
-		z-index: var(--layer-2);
+		z-index: 3;
 		border-right: 1px solid var(--border-color-primary);
-		z-index: var(--layer-3);
 	}
 
 	.frozen-column:nth-child(odd) {

@@ -891,8 +891,14 @@
 	thead {
 		position: sticky;
 		top: 0;
-		z-index: var(--layer-2);
+		z-index: 5;
 		box-shadow: var(--shadow-drop);
+	}
+
+	thead :global(th.frozen-column) {
+		position: sticky;
+		z-index: 6;
+		background: var(--table-even-background-fill) !important;
 	}
 
 	.dragging {
@@ -936,7 +942,7 @@
 		font-size: var(--block-label-text-size);
 		line-height: var(--line-sm);
 		position: relative;
-		z-index: var(--layer-4);
+		z-index: 4;
 	}
 
 	.scroll-top-button {
@@ -954,7 +960,7 @@
 		align-items: center;
 		justify-content: center;
 		font-size: var(--text-lg);
-		z-index: var(--layer-5);
+		z-index: 9;
 		opacity: 0.5;
 	}
 

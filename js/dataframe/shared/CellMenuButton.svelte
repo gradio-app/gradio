@@ -35,7 +35,7 @@
 		min-width: var(--size-5);
 		padding: 0;
 		margin-right: var(--spacing-sm);
-		z-index: var(--layer-1);
+		z-index: 2;
 		position: absolute;
 		right: var(--size-1);
 		top: 50%;

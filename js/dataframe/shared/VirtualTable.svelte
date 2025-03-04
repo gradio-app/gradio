@@ -358,7 +358,7 @@
 
 	tbody :global(td.frozen-column) {
 		position: sticky;
-		z-index: var(--layer-2);
+		z-index: 3;
 	}
 
 	tbody :global(tr:nth-child(odd)) :global(td.frozen-column) {
@@ -378,6 +378,7 @@
 		top: 0;
 		left: 0;
 		background: var(--background-fill-primary);
+		z-index: 7;
 	}
 
 	thead :global(th) {
@@ -386,7 +387,8 @@
 
 	thead :global(th.frozen-column) {
 		position: sticky;
-		z-index: var(--layer-4);
+		z-index: 7;
+		background: var(--table-even-background-fill) !important;
 	}
 
 	.table.disable-scroll {

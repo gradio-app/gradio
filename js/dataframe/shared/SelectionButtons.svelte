@@ -28,7 +28,7 @@
 		background: var(--color-accent);
 		color: white;
 		border-radius: var(--radius-sm);
-		z-index: var(--layer-4);
+		z-index: 8;
 	}
 
 	.selection-button-column {

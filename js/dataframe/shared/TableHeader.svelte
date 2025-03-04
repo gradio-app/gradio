@@ -141,7 +141,7 @@
 	th.focus {
 		--ring-color: var(--color-accent);
 		box-shadow: inset 0 0 0 2px var(--ring-color);
-		z-index: var(--layer-2);
+		z-index: 4;
 	}
 
 	th:hover :global(.cell-menu-button) {
@@ -189,8 +189,7 @@
 
 	.frozen-column {
 		position: sticky;
-		z-index: var(--layer-2);
+		z-index: 5;
 		border-right: 1px solid var(--border-color-primary);
-		z-index: var(--layer-3);
 	}
 </style>
