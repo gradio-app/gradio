@@ -370,7 +370,7 @@
 	}
 
 	tbody :global(td.last-pinned) {
-		border-right: 2px solid var(--border-color-primary);
+		border-right: 1px solid var(--border-color-primary);
 	}
 
 	thead {
@@ -389,6 +389,10 @@
 		position: sticky;
 		z-index: 7;
 		background: var(--table-even-background-fill) !important;
+	}
+
+	thead :global(th.last-pinned) {
+		border-right: 1px solid var(--border-color-primary);
 	}
 
 	.table.disable-scroll {
