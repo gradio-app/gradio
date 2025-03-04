@@ -89,7 +89,7 @@
 		height: 100%;
 		object-fit: cover;
 		border-radius: 50%;
-		padding: 6px;
+		padding: var(--size-1-5);
 	}
 
 	.message-content {
