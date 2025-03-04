@@ -143,8 +143,19 @@
 		font-size: 10px;
 	}
 	.function.selected {
-		background-color: var(--color-accent);
-		border-color: var(--color-accent);
+		color: white;
+	}
+	.input.selected {
+		background-color: oklch(0.707 0.165 254.624);
+		border-color: oklch(0.707 0.165 254.624);
+	}
+	.output.selected {
+		background-color: oklch(0.712 0.194 13.428);
+		border-color: oklch(0.712 0.194 13.428);
+	}
+	.event.selected {
+		background-color: oklch(0.702 0.183 293.541);
+		border-color: oklch(0.702 0.183 293.541);
 	}
 	button:hover {
 		background-color: var(--button-secondary-background-fill-hover);

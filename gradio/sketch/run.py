@@ -8,10 +8,6 @@ from gradio.sketch.sketchbox import SketchBox
 from gradio.sketch.utils import set_kwarg
 
 
-class Function:
-    pass
-
-
 def create(app_file: str, config_file: str):
     file_name = os.path.basename(app_file)
     folder_name = os.path.basename(os.path.dirname(app_file))
@@ -22,7 +18,6 @@ def create(app_file: str, config_file: str):
         gr.Button,
         gr.Markdown,
         gr.State,
-        Function,
     ]
     all_component_list = [
         gr.AnnotatedImage,
@@ -58,7 +53,6 @@ def create(app_file: str, config_file: str):
         gr.Textbox,
         gr.Timer,
         gr.Video,
-        Function,
     ]
 
     def get_component_by_name(name):
@@ -76,7 +70,6 @@ def create(app_file: str, config_file: str):
     def add_component(
         component, layout, components, dependencies, add_index, new_component_id
     ):
-        is_function = component == Function
         gp, parent, _ = get_box(layout, add_index)
         if isinstance(parent, int):
             parent = [parent]
@@ -84,14 +77,21 @@ def create(app_file: str, config_file: str):
                 gp[add_index[-2]] = parent
         parent.insert(add_index[-1], new_component_id)
         components[new_component_id] = [component.__name__, {}, ""]
-        if is_function:
-            dependencies[new_component_id] = [[], [], []]
+
+        component_name = component.__name__.lower()
+        existing_names = [components[i][2] for i in components]
+        var_name = component_name
+        i = 2
+        while var_name in existing_names:
+            var_name = component_name + "_" + str(i)
+            i += 1
+        components[new_component_id][2] = var_name
 
         return (
             layout,
             components,
             dependencies,
-            "modify_function" if is_function else "modify_component",
+            "modify_component",
             new_component_id,
             new_component_id + 1,
         )
@@ -110,7 +110,7 @@ def create(app_file: str, config_file: str):
         # else:
         _layout = []
         _components = {}
-        _dependencies = {}
+        _dependencies = []
         _new_component_id = 0
         mode = gr.State("add_component")
 
@@ -143,6 +143,9 @@ def create(app_file: str, config_file: str):
                 _dependencies,
                 _modify_id,
             ):
+                if _mode == "default" and len(_components) == 0:
+                    _mode = "add_component"
+                    _add_index = [0]
                 if _mode == "default":
                     gr.Markdown("## Placement")
                     gr.Markdown("Click on a '+' button to add a component.")
@@ -198,27 +201,13 @@ def create(app_file: str, config_file: str):
                             new_component_id,
                         ],
                     )
-                component_name, kwargs, var_name, just_created = "", {}, "", False
-                if _mode in ["modify_component", "modify_function"]:
-                    component_name, kwargs, var_name = _components[_modify_id]
-                    just_created = var_name == ""
-                    if just_created:
-                        existing_names = [_components[i][2] for i in _components]
-                        var_name = component_name.lower()
-                        i = 2
-                        while var_name in existing_names:
-                            var_name = component_name.lower() + "_" + str(i)
-                            i += 1
-                        _components[_modify_id][2] = var_name
-
                 if _mode == "modify_component":
+                    component_name, kwargs, var_name = _components[_modify_id]
                     gr.Markdown(
                         "## Configuration\nHover over a component to add new components when done configuring."
                     )
 
-                    var_name_box = gr.Textbox(
-                        var_name, label="Variable Name", autofocus=just_created
-                    )
+                    var_name_box = gr.Textbox(var_name, label="Variable Name")
 
                     def set_var_name(name):
                         _components[_modify_id][2] = name
@@ -255,30 +244,36 @@ def create(app_file: str, config_file: str):
                             [arg_box.blur, arg_box.submit], set_arg, arg_box, components
                         )
                 if _mode == "modify_function":
+                    var_name = _dependencies[_modify_id][3]
                     gr.Markdown("## Event Listeners")
-                    function_name_box = gr.Textbox(
-                        var_name, label="Function Name", autofocus=just_created
-                    )
+                    function_name_box = gr.Textbox(var_name, label="Function Name")
 
                     def set_fn_name(name):
-                        _components[_modify_id][2] = name
-                        return _components
+                        _dependencies[_modify_id][3] = name
+                        return _dependencies
 
                     gr.on(
                         [function_name_box.blur, function_name_box.submit],
                         set_fn_name,
                         function_name_box,
-                        components,
+                        dependencies,
                     )
 
                     gr.Markdown(
                         "Mark the components in the diagram as inputs or outputs, and select their triggers."
                     )
 
-                    done_function_btn = gr.Button("Done", variant="primary")
+                    done_function_btn = gr.Button("Done", variant="primary", size="md")
                     done_function_btn.click(
                         lambda: ["default", None], None, [mode, modify_id]
                     )
+                    del_function_btn = gr.Button("Delete", variant="stop", size="md")
+
+                    def del_function():
+                        del _dependencies[_modify_id]
+                        return ["default", None]
+
+                    del_function_btn.click(del_function, None, [mode, modify_id])
 
         with gr.Row():
             gr.Markdown(
@@ -297,38 +292,21 @@ def create(app_file: str, config_file: str):
                 icon=gradio.utils.get_icon_path("huggingface-logo.svg"),
             )
 
-        save_btn.click(
-            lambda saved: (
-                not saved,
-                "Save & Render" if saved else "Edit",
-                gr.Button(visible=not saved),
-            ),
-            saved,
-            [saved, save_btn, deploy_to_spaces_btn],
-        )
-
         @gr.render(
-            [layout, components, dependencies, saved, modify_id], show_progress="hidden"
+            [layout, components, dependencies, saved, modify_id, mode],
+            show_progress="hidden",
         )
-        def app(_layout, _components, _dependencies, saved, _modify_id):
+        def app(_layout, _components, _dependencies, saved, _modify_id, _mode):
             boxes = []
-            code = ""
-            function_mode = _modify_id in _dependencies
+            function_mode = _mode == "modify_function"
 
             def render_slot(slot, is_column, index, depth=1):
-                nonlocal code
                 container = gr.Column() if is_column else gr.Row()
                 with container:
                     for i, element in enumerate(slot):
                         this_index = index + [i]
                         if isinstance(element, list):
                             if saved:
-                                code += (
-                                    "    " * depth
-                                    + "with gr."
-                                    + ("Row" if is_column else "Column")
-                                    + "():\n"
-                                )
                                 render_slot(
                                     element, not is_column, this_index, depth + 1
                                 )
@@ -344,24 +322,6 @@ def create(app_file: str, config_file: str):
                         component_name, kwargs, var_name = _components[element]
                         component = get_component_by_name(component_name)
                         if saved:
-                            if component_name != "Function":
-                                code += (
-                                    "    " * depth
-                                    + var_name
-                                    + " = gr."
-                                    + component_name
-                                    + "("
-                                )
-                                for i, (k, v) in enumerate(kwargs.items()):
-                                    v = (
-                                        f'"{v}"'.replace("\n", "\\n")
-                                        if isinstance(v, str)
-                                        else v
-                                    )
-                                    if i != 0:
-                                        code += ", "
-                                    code += f"{k}={v}"
-                                code += ")\n"
                             component(**kwargs)
                         else:
                             if function_mode:
@@ -379,7 +339,7 @@ def create(app_file: str, config_file: str):
                             with SketchBox(
                                 component_type=component.__name__.lower(),
                                 var_name=var_name,
-                                active=_modify_id == element,
+                                active=_modify_id == element and not function_mode,
                                 function_mode=function_mode,
                                 event_list=component.EVENTS
                                 if hasattr(component, "EVENTS")
@@ -393,38 +353,6 @@ def create(app_file: str, config_file: str):
 
             render_slot(_layout, True, [])
 
-            if saved:
-                for _id, dep in _dependencies.items():
-                    triggers = [_components[c][2] + "." + t for c, t in dep[0]]
-                    inputs = [_components[c][2] for c in dep[1]]
-                    outputs = [_components[c][2] for c in dep[2]]
-                    code += f"""
-    @{triggers[0] + "(" if len(triggers) == 1 else "gr.on([" + ", ".join(triggers) + "], "}inputs=[{", ".join(inputs)}], outputs=[{", ".join(outputs)}])
-    def {_components[_id][2]}({", ".join(inputs)}):
-        ...
-        return {", ".join(["..." for _ in outputs])}
-"""
-
-                code = f"""import gradio as gr
-
-with gr.Blocks() as demo:
-{code}
-demo.launch()"""
-                with open(app_file, "w") as f:
-                    f.write(code)
-                with open(config_file, "w") as f:
-                    json.dump(
-                        {
-                            "layout": _layout,
-                            "components": _components,
-                        },
-                        f,
-                    )
-                code = code.replace("\n", "%0A")
-                url = f"""https://huggingface.co/new-space?name=new-space&sdk=gradio&files[0][path]=app.py&files[0][content]={code}"""
-                deploy_to_spaces_btn.click(
-                    fn=None, js="() => window.open('" + url + "', '_blank')"
-                )
             for box, index in boxes:
 
                 def box_action(
@@ -495,9 +423,7 @@ demo.launch()"""
                             _layout,
                             _components,
                             _dependencies,
-                            "modify_function"
-                            if target in _dependencies
-                            else "modify_component",
+                            "modify_component",
                             None,
                             target,
                         )
@@ -540,6 +466,126 @@ demo.launch()"""
                     [layout, components, dependencies, modify_id],
                     [layout, components, dependencies, mode, add_index, modify_id],
                 )
+
+        with gr.Sidebar(position="right"):
+            gr.Markdown("## Functions")
+
+            @gr.render([dependencies], show_progress="hidden")
+            def render_deps(_dependencies):
+                for i, dep in enumerate(_dependencies):
+                    fn_btn = gr.Button(dep[3], size="md")
+
+                    def load_fn(i=i):
+                        return "modify_function", i
+
+                    fn_btn.click(load_fn, outputs=[mode, modify_id])
+
+            add_fn_btn = gr.Button("+ Add Function", variant="primary", size="md")
+
+            def add_fn(_dependencies):
+                _dependencies.append([[], [], [], f"fn_{len(_dependencies) + 1}"])
+                return (
+                    _dependencies,
+                    "modify_function",
+                    len(_dependencies) - 1,
+                )
+
+            add_fn_btn.click(add_fn, dependencies, [dependencies, mode, modify_id])
+
+            gr.Markdown("## Generated File")
+            code = gr.Code(language="python", interactive=False, show_label=False)
+
+            @gr.on(
+                inputs=[layout, components, dependencies],
+                outputs=code,
+                show_progress="hidden",
+            )
+            def render_code(_layout, _components, _dependencies):
+                code_str = ""
+
+                def render_code_slot(slot, is_column, index, depth=1):
+                    nonlocal code_str
+                    for i, element in enumerate(slot):
+                        this_index = index + [i]
+                        if isinstance(element, list):
+                            code_str += (
+                                "    " * depth
+                                + "with gr."
+                                + ("Row" if is_column else "Column")
+                                + "():\n"
+                            )
+                            render_code_slot(
+                                element, not is_column, this_index, depth + 1
+                            )
+                            continue
+                        component_name, kwargs, var_name = _components[element]
+                        code_str += (
+                            "    " * depth + var_name + " = gr." + component_name + "("
+                        )
+                        for i, (k, v) in enumerate(kwargs.items()):
+                            v = (
+                                f'"{v}"'.replace("\n", "\\n")
+                                if isinstance(v, str)
+                                else v
+                            )
+                            if i != 0:
+                                code_str += ", "
+                            code_str += f"{k}={v}"
+                        code_str += ")\n"
+
+                render_code_slot(_layout, True, [])
+
+                for dep in _dependencies:
+                    triggers = [_components[c][2] + "." + t for c, t in dep[0]]
+                    inputs = [_components[c][2] for c in dep[1]]
+                    outputs = [_components[c][2] for c in dep[2]]
+                    fn_name = dep[3]
+                    code_str += f"""
+    @{triggers[0] + "(" if len(triggers) == 1 else "gr.on([" + ", ".join(triggers) + "], "}inputs=[{", ".join(inputs)}], outputs=[{", ".join(outputs)}])
+    def {fn_name}({", ".join(inputs)}):
+        ...
+        return {", ".join(["..." for _ in outputs])}
+"""
+
+                code_str = f"""import gradio as gr
+
+with gr.Blocks() as demo:
+{code_str}
+demo.launch()"""
+                return code_str
+
+        @save_btn.click(
+            inputs=[saved, code],
+            outputs=[saved, save_btn, deploy_to_spaces_btn, mode],
+            show_progress="hidden",
+        )
+        def save(saved, code):
+            with open(app_file, "w") as f:
+                f.write(code)
+            with open(config_file, "w") as f:
+                json.dump(
+                    {
+                        "layout": _layout,
+                        "components": _components,
+                    },
+                    f,
+                )
+            return [
+                not saved,
+                "Save & Render" if saved else "Edit",
+                gr.Button(visible=not saved),
+                "default",
+            ]
+
+        deploy_to_spaces_btn.click(
+            fn=None,
+            inputs=code,
+            js="""(code) => {
+                code = code.replace(/\\n/g, '%0A')
+                url = `https://huggingface.co/new-space?name=new-space&sdk=gradio&files[0][path]=app.py&files[0][content]=${code}`
+                window.open(url, '_blank')
+            }""",
+        )
 
     return demo
 
