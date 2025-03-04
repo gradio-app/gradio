@@ -276,13 +276,7 @@ def create(app_file: str, config_file: str):
                     del_function_btn.click(del_function, None, [mode, modify_id])
 
         with gr.Row():
-            gr.Markdown(
-                "<h2> Sketching <code style='font-size: inherit; font-weight: inherit;'>"
-                + folder_name
-                + "/"
-                + file_name
-                + "</code></h2>"
-            )
+            gr.Markdown("## Sketching '" + folder_name + "/" + file_name + "'")
             save_btn = gr.Button("Save & Render", variant="primary", scale=0)
             deploy_to_spaces_btn = gr.Button(
                 "Deploy to Spaces",
