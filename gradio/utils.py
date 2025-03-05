@@ -1519,22 +1519,15 @@ class UnhashableKeyDict(MutableMapping):
 
 
 def safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
-    """Safely path to a base directory to avoid escaping the base directory.
-    Borrowed from: werkzeug.security.safe_join"""
-    _os_alt_seps: list[str] = [
-        sep for sep in [os.path.sep, os.path.altsep] if sep is not None and sep != "/"
-    ]
-
-    filename = posixpath.normpath(path)
-    fullpath = os.path.join(directory, filename)
-    if (
-        any(sep in filename for sep in _os_alt_seps)
-        or os.path.isabs(filename)
-        or filename == ".."
-        or filename.startswith("../")
-    ):
+    """Safely path to a base directory to avoid escaping the base directory."""
+    normalized = posixpath.normpath(path)
+    if posixpath.isabs(normalized):
         raise InvalidPathError()
-
+    if normalized.startswith('..'):
+        raise InvalidPathError()
+    fullpath = os.path.join(directory, normalized)
+    if not fullpath.startswith(directory):
+        raise InvalidPathError()
     return fullpath
 
 
