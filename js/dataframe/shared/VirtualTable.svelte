@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, tick } from "svelte";
+	import { onMount, tick, createEventDispatcher } from "svelte";
 	import { _ } from "svelte-i18n";
 
 	export let items: any[][] = [];
@@ -11,6 +11,13 @@
 	export let end = 20;
 	export let selected: number | false;
 	export let disable_scroll = false;
+	export let show_scroll_button = false;
+	export let viewport: HTMLTableElement;
+
+	const dispatch = createEventDispatcher<{
+		scroll_top: number;
+	}>();
+
 	let height = "100%";
 
 	let average_height = 30;
@@ -22,7 +29,6 @@
 	let mounted: boolean;
 	let rows: HTMLCollectionOf<HTMLTableRowElement>;
 	let top = 0;
-	let viewport: HTMLTableElement;
 	let viewport_height = 200;
 	let visible: { index: number; data: any[] }[] = [];
 	let viewport_box: DOMRectReadOnly;
@@ -150,6 +156,12 @@
 
 	async function handle_scroll(e: Event): Promise<void> {
 		const scroll_top = viewport.scrollTop;
+
+		show_scroll_button = scroll_top > 100;
+
+		if (show_scroll_button) {
+			dispatch("scroll_top", scroll_top);
+		}
 
 		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
 		const is_start_overflow = sortedItems.length < start;
@@ -344,46 +356,43 @@
 		background: var(--table-even-background-fill);
 	}
 
-	tbody :global(td.frozen-column) {
+	tbody :global(td.pinned-column) {
 		position: sticky;
-		z-index: var(--layer-2);
+		z-index: 3;
 	}
 
-	tbody :global(tr:nth-child(odd)) :global(td.frozen-column) {
+	tbody :global(tr:nth-child(odd)) :global(td.pinned-column) {
 		background: var(--table-odd-background-fill);
 	}
 
-	tbody :global(tr:nth-child(even)) :global(td.frozen-column) {
+	tbody :global(tr:nth-child(even)) :global(td.pinned-column) {
 		background: var(--table-even-background-fill);
 	}
 
-	tbody :global(td.always-frozen) {
-		z-index: var(--layer-3);
-	}
-
-	tbody :global(td.last-frozen) {
-		border-right: 2px solid var(--border-color-primary);
+	tbody :global(td.last-pinned) {
+		border-right: 1px solid var(--border-color-primary);
 	}
 
 	thead {
 		position: sticky;
 		top: 0;
 		left: 0;
-		z-index: var(--layer-3);
 		background: var(--background-fill-primary);
+		z-index: 7;
 	}
 
 	thead :global(th) {
 		background: var(--table-even-background-fill) !important;
 	}
 
-	thead :global(th.frozen-column) {
+	thead :global(th.pinned-column) {
 		position: sticky;
-		z-index: var(--layer-4);
+		z-index: 7;
+		background: var(--table-even-background-fill) !important;
 	}
 
-	thead :global(th.always-frozen) {
-		z-index: var(--layer-5);
+	thead :global(th.last-pinned) {
+		border-right: 1px solid var(--border-color-primary);
 	}
 
 	.table.disable-scroll {

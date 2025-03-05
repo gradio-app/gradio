@@ -2,6 +2,14 @@ import type { CellCoordinate, EditingState } from "./types";
 
 export type CellData = { id: string; value: string | number };
 
+export function is_cell_in_selection(
+	coords: [number, number],
+	selected_cells: [number, number][]
+): boolean {
+	const [row, col] = coords;
+	return selected_cells.some(([r, c]) => r === row && c === col);
+}
+
 export function is_cell_selected(
 	cell: CellCoordinate,
 	selected_cells: CellCoordinate[]

@@ -107,9 +107,11 @@ export function sort_table_data(
 	data: TableData,
 	display_value: string[][] | null,
 	styling: string[][] | null,
-	col: number,
-	dir: SortDirection
+	col: number | undefined,
+	dir: SortDirection | undefined
 ): void {
+	if (col === undefined || dir === undefined) return;
+
 	const indices = sort_data(data, col, dir);
 
 	const new_data = indices.map((i: number) => data[i]);
@@ -128,9 +130,15 @@ export function sort_table_data(
 
 export async function copy_table_data(
 	data: TableData,
-	selected_cells: [number, number][]
+	selected_cells: [number, number][] | null
 ): Promise<void> {
-	const csv = selected_cells.reduce(
+	if (!data || !data.length) return;
+
+	const cells_to_copy =
+		selected_cells ||
+		data.flatMap((row, r) => row.map((_, c) => [r, c] as [number, number]));
+
+	const csv = cells_to_copy.reduce(
 		(acc: { [key: string]: { [key: string]: string } }, [row, col]) => {
 			acc[row] = acc[row] || {};
 			const value = String(data[row][col].value);
@@ -144,6 +152,8 @@ export async function copy_table_data(
 	);
 
 	const rows = Object.keys(csv).sort((a, b) => +a - +b);
+	if (!rows.length) return;
+
 	const cols = Object.keys(csv[rows[0]]).sort((a, b) => +a - +b);
 	const text = rows
 		.map((r) => cols.map((c) => csv[r][c] || "").join(","))
@@ -152,7 +162,6 @@ export async function copy_table_data(
 	try {
 		await navigator.clipboard.writeText(text);
 	} catch (err) {
-		console.error("Copy failed:", err);
 		throw new Error("Failed to copy to clipboard: " + (err as Error).message);
 	}
 }

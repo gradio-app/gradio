@@ -12,6 +12,8 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import type { Headers, Datatype, DataframeValue } from "./shared/utils";
+	import Image from "@gradio/image";
+
 	export let headers: Headers = [];
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -39,6 +41,7 @@
 		select: SelectData;
 		input: never;
 		clear_status: LoadingStatus;
+		search: string | null;
 	}>;
 	export let latex_delimiters: {
 		left: string;
@@ -53,17 +56,6 @@
 	export let show_copy_button = false;
 	export let show_row_numbers = false;
 	export let show_search: "none" | "search" | "filter" = "none";
-
-	let search_query: string | null = null;
-	$: filtered_cell_values = search_query
-		? value.data?.filter((row) =>
-				row.some(
-					(cell) =>
-						search_query &&
-						String(cell).toLowerCase().includes(search_query.toLowerCase())
-				)
-			)
-		: null;
 	export let pinned_columns = 0;
 
 	$: _headers = [...(value.headers || headers)];
@@ -98,7 +90,7 @@
 		{show_label}
 		{row_count}
 		{col_count}
-		values={filtered_cell_values || value.data}
+		values={value.data}
 		{display_value}
 		{styling}
 		headers={_headers}
@@ -109,7 +101,6 @@
 		}}
 		on:input={(e) => gradio.dispatch("input")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
-		on:search={(e) => (search_query = e.detail)}
 		{wrap}
 		{datatype}
 		{latex_delimiters}
@@ -127,5 +118,6 @@
 		{show_row_numbers}
 		{show_search}
 		{pinned_columns}
+		components={{ image: Image }}
 	/>
 </Block>
