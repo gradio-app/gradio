@@ -63,7 +63,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0;
-		margin-right: var(--spacing-md);
+		margin-right: var(--spacing-sm);
 	}
 
 	.sort-button {
