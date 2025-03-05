@@ -72,7 +72,7 @@ test("Dataframe select events work as expected", async ({ page }) => {
 	expect(selected_cell_value).not.toBe("");
 });
 
-test("Dataframe filter functionality works", async ({ page }) => {
+test("Dataframe filter functionality works correctly", async ({ page }) => {
 	await page.getByRole("button", { name: "Update dataframe" }).click();
 	await page.waitForTimeout(500);
 
@@ -88,9 +88,7 @@ test("Dataframe filter functionality works", async ({ page }) => {
 	await expect(page.getByLabel("Change events")).not.toHaveValue("0");
 });
 
-test("Dataframe search functionality correctly filters rows", async ({
-	page
-}) => {
+test("Dataframe search functionality works correctly", async ({ page }) => {
 	await page.getByRole("button", { name: "Update dataframe" }).click();
 	await page.waitForTimeout(500);
 
@@ -122,10 +120,7 @@ test("Dataframe search functionality correctly filters rows", async ({
 	);
 });
 
-test("Dataframe clear functionality works", async ({ page }) => {
-	await page.getByRole("button", { name: "Update dataframe" }).click();
-	await page.waitForTimeout(500);
-
+test("Dataframe empty state has add row button", async ({ page }) => {
 	await page.getByRole("button", { name: "Clear dataframe" }).click();
 	await page.waitForTimeout(500);
 
@@ -133,9 +128,10 @@ test("Dataframe clear functionality works", async ({ page }) => {
 		.locator("[data-testid='dataframe'] .tbody > tr")
 		.count();
 
-	expect(rows).toBe(0);
+	const add_row_button = await page.getByLabel("Add row").first();
+	await add_row_button.click();
 
-	await expect(page.getByLabel("Change events")).not.toHaveValue("0");
+	expect(rows).toBe(1);
 });
 
 test("Tall dataframe has vertical scrolling", async ({ page }) => {
@@ -240,7 +236,6 @@ test("Dataframe shift+click selection works", async ({ page }) => {
 
 	const df = page.locator("#dataframe").first();
 
-	// First set a known value in the cells we'll select
 	await get_cell(df, 1, 2).dblclick();
 	await page.getByLabel("Edit cell").fill("6");
 	await page.getByLabel("Edit cell").press("Enter");

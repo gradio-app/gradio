@@ -3,7 +3,7 @@
 </script>
 
 <div class="add-row-container">
-	<button class="add-row-button" on:click={on_click}>
+	<button class="add-row-button" on:click={on_click} aria-label="Add row">
 		<span>+</span>
 	</button>
 </div>
