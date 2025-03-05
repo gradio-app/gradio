@@ -285,12 +285,14 @@ class Chatbot(Component):
             warnings.warn(
                 "You have not specified a value for the `type` parameter. Defaulting to the 'tuples' format for chatbot messages, but this is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style dictionaries with 'role' and 'content' keys.",
                 UserWarning,
+                stacklevel=3,
             )
             type = "tuples"
         elif type == "tuples":
             warnings.warn(
                 "The 'tuples' format for chatbot messages is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style 'role' and 'content' keys.",
                 UserWarning,
+                stacklevel=3,
             )
         if type not in ["messages", "tuples"]:
             raise ValueError(
@@ -304,6 +306,7 @@ class Chatbot(Component):
             warnings.warn(
                 "The 'resizeable' parameter is deprecated and will be removed in a future version. Please use the 'resizable' (note the corrected spelling) parameter instead.",
                 DeprecationWarning,
+                stacklevel=3,
             )
             self.resizable = resizeable
         self.resizable = resizable
@@ -327,6 +330,7 @@ class Chatbot(Component):
             warnings.warn(
                 "The 'bubble_full_width' parameter is deprecated and will be removed in a future version. This parameter no longer has any effect.",
                 DeprecationWarning,
+                stacklevel=3,
             )
         self.bubble_full_width = None
         self.line_breaks = line_breaks
