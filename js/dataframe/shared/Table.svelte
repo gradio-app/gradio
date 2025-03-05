@@ -871,6 +871,7 @@
 	table {
 		position: absolute;
 		opacity: 0;
+		z-index: -1;
 		transition: 150ms;
 		width: var(--size-full);
 		table-layout: auto;
