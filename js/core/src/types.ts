@@ -71,6 +71,7 @@ export interface Dependency {
 	final_event: Payload | null;
 	show_api: boolean;
 	rendered_in: number | null;
+	render_id: number | null;
 	connection: "stream" | "sse";
 	time_limit: number;
 	stream_every: number;
