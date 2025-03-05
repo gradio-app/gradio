@@ -7,7 +7,6 @@ function get_cell(element: Locator, row: number, col: number) {
 }
 
 const get_column_values = async (df: Locator): Promise<number[]> => {
-	// get all the cells in the dataframe
 	const cells = await df.locator(".tbody > tr > td:nth-child(2)").all();
 	const values: number[] = [];
 	for (const cell of cells) {
@@ -35,13 +34,11 @@ test("Dataframe input events work as expected", async ({ page }) => {
 	const df = page.locator("#dataframe");
 	await get_cell(df, 0, 0).click();
 
-	// Fill the cell with a new value
 	await page.getByLabel("Edit cell").fill("42");
 	await page.getByLabel("Edit cell").press("Enter");
 
 	await expect(input_events).toHaveValue("1");
 
-	// Click on the second cell in the first row
 	await get_cell(df, 0, 1).click();
 
 	await page.getByLabel("Edit cell").fill("50");
