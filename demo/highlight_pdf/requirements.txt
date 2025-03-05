@@ -1,0 +1,2 @@
+gradio_pdf>=0.0.22
+pymupdf>=1.25.3
