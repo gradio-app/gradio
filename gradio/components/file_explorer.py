@@ -204,5 +204,7 @@ class FileExplorer(Component):
         if not folders or len(folders) == 0:
             return self.root_dir
         combined_path = UserProvidedPath(os.path.join(*folders))
+        if os.name == "nt":
+            combined_path = combined_path.replace("/", "\\")
         x = safe_join(self.root_dir, combined_path)
         return x
