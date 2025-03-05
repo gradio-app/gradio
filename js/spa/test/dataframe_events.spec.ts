@@ -292,3 +292,48 @@ test("Dataframe cmd + click selection works", async ({ page }) => {
 
 	expect(clipboard_value).toBe("6,8");
 });
+
+test("Static columns cannot be edited", async ({ page }) => {
+	await page.getByRole("button", { name: "Update dataframe" }).click();
+	await page.waitForTimeout(500);
+
+	const static_df = page.locator("#static-dataframe");
+	await expect(static_df).toBeVisible();
+
+	const static_column_cell = get_cell(static_df, 0, 1);
+	await static_column_cell.click();
+	await page.waitForTimeout(100);
+
+	const has_static_class = await static_column_cell
+		.locator("span.static")
+		.count();
+	expect(has_static_class).toBe(1);
+
+	const input_field_count = await static_column_cell
+		.locator("input[aria-label='Edit cell']")
+		.count();
+	expect(input_field_count).toBe(0);
+
+	const editable_cell = get_cell(static_df, 2, 3);
+	await editable_cell.click();
+	await page.waitForTimeout(100);
+
+	const editable_has_static_class = await editable_cell
+		.locator("span.static")
+		.count();
+	expect(editable_has_static_class).toBe(0);
+
+	await editable_cell.dblclick();
+	await page.waitForTimeout(100);
+	const editable_input_field_count = await page
+		.locator("input[aria-label='Edit cell']")
+		.count();
+	expect(editable_input_field_count).toBe(1);
+
+	await page.getByLabel("Edit cell").fill("new_value");
+	await page.getByLabel("Edit cell").press("Enter");
+	await page.waitForTimeout(100);
+
+	const new_cell_value = await editable_cell.textContent();
+	expect(new_cell_value?.trim()).toBe("new_value");
+});

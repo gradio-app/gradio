@@ -76,11 +76,19 @@
 	export let max_chars: number | undefined = undefined;
 	export let show_search: "none" | "search" | "filter" = "none";
 	export let pinned_columns = 0;
+	export let static_columns: (string | number)[] = [];
 
 	$: actual_pinned_columns =
 		pinned_columns && data?.[0]?.length
 			? Math.min(pinned_columns, data[0].length)
 			: 0;
+
+	const is_cell_static = (row_idx: number, col_idx: number): boolean => {
+		return (
+			static_columns.includes(col_idx) ||
+			static_columns.includes(_headers[col_idx]?.value)
+		);
+	};
 
 	const { state: df_state, actions: df_actions } = create_dataframe_context({
 		show_fullscreen_button,
@@ -657,6 +665,7 @@
 							{max_chars}
 							{root}
 							{editable}
+							is_static={is_cell_static(i, i)}
 							{i18n}
 							bind:el={els[id].input}
 						/>
@@ -756,6 +765,7 @@
 								{max_chars}
 								{root}
 								{editable}
+								is_static={is_cell_static(i, i)}
 								{i18n}
 								bind:el={els[id].input}
 							/>
@@ -789,6 +799,7 @@
 								{max_chars}
 								{root}
 								{editable}
+								is_static={is_cell_static(index, j)}
 								{i18n}
 								{components}
 								bind:el={els[id]}

@@ -102,6 +102,7 @@ class Dataframe(Component):
         max_chars: int | None = None,
         show_search: Literal["none", "search", "filter"] = "none",
         pinned_columns: int | None = None,
+        static_columns: list[str | int] | None = None,
     ):
         """
         Parameters:
@@ -135,6 +136,7 @@ class Dataframe(Component):
             max_chars: Maximum number of characters to display in each cell before truncating (single-clicking a cell value will still reveal the full content). If None, no truncation is applied.
             show_search: Show a search input in the toolbar. If "search", a search input is shown. If "filter", a search input and filter buttons are shown. If "none", no search input is shown.
             pinned_columns: If provided, will pin the specified number of columns from the left.
+            static_columns: List of column names (str) or indices (int) that should not be editable by the user. Only applies when interactive=True.
         """
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
@@ -148,6 +150,7 @@ class Dataframe(Component):
             if headers is not None
             else [str(i) for i in (range(1, self.col_count[0] + 1))]
         )
+        self.static_columns = static_columns or []
         self.datatype = datatype
         valid_types = ["pandas", "numpy", "array", "polars"]
         if type not in valid_types:
