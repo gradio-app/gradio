@@ -136,7 +136,7 @@ class Dataframe(Component):
             max_chars: Maximum number of characters to display in each cell before truncating (single-clicking a cell value will still reveal the full content). If None, no truncation is applied.
             show_search: Show a search input in the toolbar. If "search", a search input is shown. If "filter", a search input and filter buttons are shown. If "none", no search input is shown.
             pinned_columns: If provided, will pin the specified number of columns from the left.
-            static_columns: List of column names (str) or indices (int) that should not be editable by the user. Only applies when interactive=True.
+            static_columns: List of column names (str) or indices (int) that should not be editable. Only applies when interactive=True.
         """
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
