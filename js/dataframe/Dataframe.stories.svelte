@@ -221,6 +221,18 @@
 />
 
 <Story
+	name="Interactive dataframe with zero row count"
+	args={{
+		values: [],
+		headers: ["Narrow", "Wide", "Half"],
+		label: "Test scores",
+		col_count: [0, "dynamic"],
+		row_count: [0, "dynamic"],
+		editable: true
+	}}
+/>
+
+<Story
 	name="Dataframe with link"
 	args={{
 		values: [['<a href="https://www.google.com/">google</a>']],

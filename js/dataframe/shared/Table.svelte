@@ -218,8 +218,6 @@
 		filtered_data = df_actions.filter_data(data);
 	}
 
-	// $: row_order = $df_state.sort_state.row_order;
-
 	async function edit_header(i: number, _select = false): Promise<void> {
 		if (!editable || header_edit === i) return;
 		if (!editable || col_count[1] !== "dynamic" || header_edit === i) return;
@@ -318,12 +316,11 @@
 		if (show_row_numbers) {
 			parent.style.setProperty(`--cell-width-row-number`, `${widths[0]}px`);
 		}
-		const data_cells = widths;
-		data_cells.forEach((width, i) => {
+		widths.forEach((width, i) => {
 			if (!column_widths[i]) {
 				parent.style.setProperty(
 					`--cell-width-${i}`,
-					`${width - scrollbar_width / data_cells.length}px`
+					`${width - scrollbar_width / widths.length}px`
 				);
 			}
 		});
@@ -810,7 +807,9 @@
 			</div>
 		</Upload>
 		{#if show_scroll_button}
-			<button class="scroll-top-button" on:click={scroll_to_top}> ↑ </button>
+			<button class="scroll-top-button" on:click={scroll_to_top}>
+				&uarr;
+			</button>
 		{/if}
 	</div>
 </div>
@@ -882,6 +881,7 @@
 	table {
 		position: absolute;
 		opacity: 0;
+		z-index: -1;
 		transition: 150ms;
 		width: var(--size-full);
 		table-layout: auto;

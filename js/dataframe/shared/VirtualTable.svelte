@@ -12,6 +12,7 @@
 	export let selected: number | false;
 	export let disable_scroll = false;
 	export let show_scroll_button = false;
+	export let viewport: HTMLTableElement;
 
 	const dispatch = createEventDispatcher<{
 		scroll_top: number;
@@ -28,10 +29,9 @@
 	let mounted: boolean;
 	let rows: HTMLCollectionOf<HTMLTableRowElement>;
 	let top = 0;
-	export let viewport: HTMLTableElement;
 	let viewport_height = 200;
 	let visible: { index: number; data: any[] }[] = [];
-	let viewport_box: DOMRectReadOnly | null = null;
+	let viewport_box: DOMRectReadOnly;
 
 	$: viewport_height = viewport_box?.height || 200;
 
