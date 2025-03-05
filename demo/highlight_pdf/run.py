@@ -27,7 +27,7 @@ def highlight_text_in_pdf(pdf_file: Path, highlight_text: str):
 def ask(query): 
     result = f"Something about : {query}"
     sources = "Document 1"
-    pdf_path = current_dir / "Lorem ipsum.pdf"
+    pdf_path = current_dir / "Lorem_ipsum.pdf"
     pdf_name = "Document 1"
     context_to_highlight = "Ut velit mauris"
 
