@@ -109,6 +109,7 @@ class Code(Component):
         key: int | str | None = None,
         wrap_lines: bool = False,
         show_line_numbers: bool = True,
+        autocomplete: bool = False,
     ):
         """
         Parameters:
@@ -131,6 +132,7 @@ class Code(Component):
             max_lines: Maximum number of visible lines to show in the code editor. Defaults to None and will fill the height of the container.
             wrap_lines: If True, will wrap lines to the width of the container when overflow occurs. Defaults to False.
             show_line_numbers:  If True, displays line numbers, and if False, hides line numbers.
+            autocomplete: If True, will show autocomplete suggestions. Defaults to False.
         """
         if language not in Code.languages:
             raise ValueError(f"Language {language} not supported.")
@@ -140,6 +142,7 @@ class Code(Component):
         self.max_lines = max(lines, max_lines) if max_lines is not None else None
         self.wrap_lines = wrap_lines
         self.show_line_numbers = show_line_numbers
+        self.autocomplete = autocomplete
         super().__init__(
             label=label,
             every=every,
