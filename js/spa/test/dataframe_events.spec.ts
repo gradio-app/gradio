@@ -232,8 +232,6 @@ test("Dataframe keyboard operations work as expected", async ({ page }) => {
 });
 
 test("Dataframe shift+click selection works", async ({ page }) => {
-	await page.getByRole("button", { name: "Update dataframe" }).click();
-
 	const df = page.locator("#dataframe").first();
 
 	await get_cell(df, 1, 2).dblclick();
@@ -241,14 +239,14 @@ test("Dataframe shift+click selection works", async ({ page }) => {
 	await page.getByLabel("Edit cell").press("Enter");
 	await page.waitForTimeout(100);
 
-	await get_cell(df, 1, 3).dblclick();
+	await get_cell(df, 2, 2).dblclick();
 	await page.getByLabel("Edit cell").fill("6");
 	await page.getByLabel("Edit cell").press("Enter");
 	await page.waitForTimeout(100);
 
 	await get_cell(df, 1, 2).click();
 	await page.keyboard.down("Shift");
-	await get_cell(df, 1, 3).click();
+	await get_cell(df, 2, 1).click();
 	await page.keyboard.up("Shift");
 	await page.waitForTimeout(100);
 
@@ -258,27 +256,24 @@ test("Dataframe shift+click selection works", async ({ page }) => {
 		navigator.clipboard.readText()
 	);
 
-	expect(clipboard_value).toBe("6,6");
+	expect(clipboard_value).toBe("0,6\n0,6");
 });
 
 test("Dataframe cmd + click selection works", async ({ page }) => {
-	await page.getByRole("button", { name: "Update dataframe" }).click();
-	await page.waitForTimeout(500);
-
 	const df = page.locator("#dataframe").first();
 
 	await get_cell(df, 1, 2).dblclick();
 	await page.getByLabel("Edit cell").fill("6");
 	await page.getByLabel("Edit cell").press("Enter");
 
-	await get_cell(df, 1, 3).dblclick();
+	await get_cell(df, 2, 2).dblclick();
 	await page.getByLabel("Edit cell").fill("8");
 	await page.getByLabel("Edit cell").press("Enter");
 	await page.waitForTimeout(100);
 
 	await get_cell(df, 1, 2).click();
 
-	await get_cell(df, 1, 3).click({
+	await get_cell(df, 2, 2).click({
 		modifiers: ["ControlOrMeta"]
 	});
 
@@ -290,5 +285,5 @@ test("Dataframe cmd + click selection works", async ({ page }) => {
 		navigator.clipboard.readText()
 	);
 
-	expect(clipboard_value).toBe("6,8");
+	expect(clipboard_value).toBe("6\n8");
 });
