@@ -12,6 +12,7 @@
 		collapse: never;
 	}>;
 	export let width: number | string;
+	export let visible = true;
 </script>
 
 <StatusTracker
@@ -20,14 +21,22 @@
 	{...loading_status}
 />
 
-<Sidebar
-	bind:open
-	bind:position
-	{width}
-	on:expand={() => gradio.dispatch("expand")}
-	on:collapse={() => gradio.dispatch("collapse")}
->
-	<Column>
-		<slot />
-	</Column>
-</Sidebar>
+<div class:hide={!visible}>
+	<Sidebar
+		bind:open
+		bind:position
+		{width}
+		on:expand={() => gradio.dispatch("expand")}
+		on:collapse={() => gradio.dispatch("collapse")}
+	>
+		<Column>
+			<slot />
+		</Column>
+	</Sidebar>
+</div>
+
+<style>
+	.hide {
+		display: none;
+	}
+</style>

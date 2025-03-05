@@ -471,7 +471,7 @@ def create(app_file: str, config_file: str):
                     [layout, components, dependencies, mode, add_index, modify_id],
                 )
 
-        with gr.Sidebar(position="right", open=False) as right_sidebar:
+        with gr.Sidebar(position="right", visible=False) as right_sidebar:
             gr.Markdown("## Functions")
 
             @gr.render([dependencies], show_progress="hidden")
