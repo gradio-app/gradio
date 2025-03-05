@@ -1525,10 +1525,10 @@ def safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
         raise InvalidPathError()
     if normalized.startswith('..'):
         raise InvalidPathError()
-    full_path = os.path.join(directory, normalized)
-    if not full_path.startswith(directory):
+    fullpath = os.path.join(directory, normalized)
+    if not fullpath.startswith(directory):
         raise InvalidPathError()
-    return full_path
+    return fullpath
 
 
 def is_allowed_file(
