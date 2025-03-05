@@ -1696,6 +1696,7 @@ def test_mount_gradio_app_args_match_launch_args():
         "share",
         "share_server_address",
         "share_server_protocol",
+        "share_server_tls_certificate",
         "state_session_capacity",
         "_frontend",
         "self",
