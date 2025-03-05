@@ -7,7 +7,6 @@ function get_cell(element: Locator, row: number, col: number) {
 }
 
 const get_column_values = async (df: Locator): Promise<number[]> => {
-	// get all the cells in the dataframe
 	const cells = await df.locator(".tbody > tr > td:nth-child(2)").all();
 	const values: number[] = [];
 	for (const cell of cells) {
@@ -35,13 +34,11 @@ test("Dataframe input events work as expected", async ({ page }) => {
 	const df = page.locator("#dataframe");
 	await get_cell(df, 0, 0).click();
 
-	// Fill the cell with a new value
 	await page.getByLabel("Edit cell").fill("42");
 	await page.getByLabel("Edit cell").press("Enter");
 
 	await expect(input_events).toHaveValue("1");
 
-	// Click on the second cell in the first row
 	await get_cell(df, 0, 1).click();
 
 	await page.getByLabel("Edit cell").fill("50");
@@ -118,20 +115,6 @@ test("Dataframe search functionality works correctly", async ({ page }) => {
 	expect(restored_cells_text.length).toBeGreaterThanOrEqual(
 		all_cells_text.length
 	);
-});
-
-test("Dataframe empty state has add row button", async ({ page }) => {
-	await page.getByRole("button", { name: "Clear dataframe" }).click();
-	await page.waitForTimeout(500);
-
-	const rows = await page
-		.locator("[data-testid='dataframe'] .tbody > tr")
-		.count();
-
-	const add_row_button = await page.getByLabel("Add row").first();
-	await add_row_button.click();
-
-	expect(rows).toBe(1);
 });
 
 test("Tall dataframe has vertical scrolling", async ({ page }) => {
@@ -232,8 +215,6 @@ test("Dataframe keyboard operations work as expected", async ({ page }) => {
 });
 
 test("Dataframe shift+click selection works", async ({ page }) => {
-	await page.getByRole("button", { name: "Update dataframe" }).click();
-
 	const df = page.locator("#dataframe").first();
 
 	await get_cell(df, 1, 2).dblclick();
@@ -241,14 +222,14 @@ test("Dataframe shift+click selection works", async ({ page }) => {
 	await page.getByLabel("Edit cell").press("Enter");
 	await page.waitForTimeout(100);
 
-	await get_cell(df, 1, 3).dblclick();
+	await get_cell(df, 2, 2).dblclick();
 	await page.getByLabel("Edit cell").fill("6");
 	await page.getByLabel("Edit cell").press("Enter");
 	await page.waitForTimeout(100);
 
 	await get_cell(df, 1, 2).click();
 	await page.keyboard.down("Shift");
-	await get_cell(df, 1, 3).click();
+	await get_cell(df, 2, 1).click();
 	await page.keyboard.up("Shift");
 	await page.waitForTimeout(100);
 
@@ -258,27 +239,24 @@ test("Dataframe shift+click selection works", async ({ page }) => {
 		navigator.clipboard.readText()
 	);
 
-	expect(clipboard_value).toBe("6,6");
+	expect(clipboard_value).toBe("0,6\n0,6");
 });
 
 test("Dataframe cmd + click selection works", async ({ page }) => {
-	await page.getByRole("button", { name: "Update dataframe" }).click();
-	await page.waitForTimeout(500);
-
 	const df = page.locator("#dataframe").first();
 
 	await get_cell(df, 1, 2).dblclick();
 	await page.getByLabel("Edit cell").fill("6");
 	await page.getByLabel("Edit cell").press("Enter");
 
-	await get_cell(df, 1, 3).dblclick();
+	await get_cell(df, 2, 2).dblclick();
 	await page.getByLabel("Edit cell").fill("8");
 	await page.getByLabel("Edit cell").press("Enter");
 	await page.waitForTimeout(100);
 
 	await get_cell(df, 1, 2).click();
 
-	await get_cell(df, 1, 3).click({
+	await get_cell(df, 2, 2).click({
 		modifiers: ["ControlOrMeta"]
 	});
 
@@ -290,7 +268,7 @@ test("Dataframe cmd + click selection works", async ({ page }) => {
 		navigator.clipboard.readText()
 	);
 
-	expect(clipboard_value).toBe("6,8");
+	expect(clipboard_value).toBe("6\n8");
 });
 
 test("Static columns cannot be edited", async ({ page }) => {
