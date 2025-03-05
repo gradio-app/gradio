@@ -2,17 +2,11 @@
 	export let on_click: () => void;
 </script>
 
-<div class="add-row-container">
-	<button class="add-row-button" on:click={on_click} aria-label="Add row">
-		+
-	</button>
-</div>
+<button class="add-row-button" on:click={on_click} aria-label="Add row">
+	+
+</button>
 
 <style>
-	.add-row-container {
-		margin-top: var(--size-2);
-	}
-
 	.add-row-button {
 		width: 100%;
 		padding: var(--size-1);
@@ -22,6 +16,10 @@
 		color: var(--body-text-color);
 		cursor: pointer;
 		transition: all 150ms;
+		margin-top: var(--size-2);
+		z-index: 10;
+		position: relative;
+		pointer-events: auto;
 	}
 
 	.add-row-button:hover {

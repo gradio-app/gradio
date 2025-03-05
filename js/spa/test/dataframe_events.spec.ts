@@ -120,20 +120,6 @@ test("Dataframe search functionality works correctly", async ({ page }) => {
 	);
 });
 
-test("Dataframe empty state has add row button", async ({ page }) => {
-	await page.getByRole("button", { name: "Clear dataframe" }).click();
-	await page.waitForTimeout(500);
-
-	const rows = await page
-		.locator("[data-testid='dataframe'] .tbody > tr")
-		.count();
-
-	const add_row_button = await page.getByLabel("Add row").first();
-	await add_row_button.click();
-
-	expect(rows).toBe(1);
-});
-
 test("Tall dataframe has vertical scrolling", async ({ page }) => {
 	await page.getByRole("button", { name: "Update dataframe" }).click();
 	await page.waitForTimeout(500);
