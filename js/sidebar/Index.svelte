@@ -21,7 +21,7 @@
 	{...loading_status}
 />
 
-<div class:hide={!visible}>
+{#if visible}
 	<Sidebar
 		bind:open
 		bind:position
@@ -33,10 +33,4 @@
 			<slot />
 		</Column>
 	</Sidebar>
-</div>
-
-<style>
-	.hide {
-		display: none;
-	}
-</style>
+{/if}
