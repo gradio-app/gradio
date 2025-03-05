@@ -89,6 +89,7 @@
 <div
 	class="sidebar"
 	class:open={_open}
+	class:mounted={mounted}
 	class:right={position === "right"}
 	class:reduce-motion={prefersReducedMotion}
 	bind:this={sidebar_div}
@@ -172,7 +173,7 @@
 		transition: all 0.3s ease-in-out;
 	}
 
-	.sidebar:not(.right) .toggle-button {
+	.sidebar.mounted:not(.right):not(.open) .toggle-button {
 		right: calc(var(--size-8) * -1);
 	}
 
@@ -181,15 +182,19 @@
 		transform: rotate(180deg);
 	}
 
-	.open:not(.right) .toggle-button {
+	.open:not(.right) .toggle-button, .sidebar:not(.mounted) .toggle-button {
 		right: var(--size-2-5);
 		transform: rotate(180deg);
 	}
 
-	.open.right .toggle-button {
+	.open.right .toggle-button, .sidebar:not(.mounted) .toggle-button {
 		left: auto;
 		right: var(--size-2-5);
 		transform: rotate(0deg);
+	}
+
+	.sidebar:not(.mounted) .toggle-button {
+		transition: none;
 	}
 
 	.chevron {
