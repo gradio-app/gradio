@@ -96,6 +96,8 @@
 
 {#if edit}
 	<input
+		disabled={!editable}
+		class:static={!editable}
 		role="textbox"
 		aria-label="Edit cell"
 		bind:this={el}
@@ -119,6 +121,7 @@
 	class:edit
 	class:expanded={is_expanded}
 	class:multiline={header}
+	class:static={!editable}
 	on:focus|preventDefault
 	style={styling}
 	data-editable={editable}
@@ -213,5 +216,9 @@
 		max-height: 100px;
 		width: auto;
 		object-fit: contain;
+	}
+
+	span.static {
+		cursor: pointer;
 	}
 </style>

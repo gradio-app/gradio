@@ -33,6 +33,7 @@
 	export let editable: boolean;
 	export let i18n: I18nFormatter;
 	export let el: HTMLInputElement | null;
+	export let is_static: boolean;
 
 	function get_header_position(col_index: number): string {
 		if (col_index >= actual_pinned_columns) {
@@ -99,7 +100,7 @@
 					on:keydown={end_header_edit}
 					header
 					{root}
-					{editable}
+					editable={editable && !is_static}
 					{i18n}
 				/>
 			</button>
