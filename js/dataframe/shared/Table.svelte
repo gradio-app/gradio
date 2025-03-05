@@ -77,7 +77,6 @@
 	export let show_search: "none" | "search" | "filter" = "none";
 	export let pinned_columns = 0;
 
-	let actual_pinned_columns = 0;
 	$: actual_pinned_columns =
 		pinned_columns && data?.[0]?.length
 			? Math.min(pinned_columns, data[0].length)
@@ -323,7 +322,9 @@
 	}
 
 	function get_cell_width(index: number): string {
-		return column_widths[index] || `var(--cell-width-${index})`;
+		return column_widths[index]
+			? `${column_widths[index]}`
+			: `var(--cell-width-${index})`;
 	}
 
 	let table_height: number =
@@ -640,7 +641,6 @@
 							bind:value={_headers[i].value}
 							{i}
 							{actual_pinned_columns}
-							{show_row_numbers}
 							{header_edit}
 							{selected_header}
 							get_sort_status={df_actions.get_sort_status}
@@ -740,7 +740,6 @@
 								bind:value={_headers[i].value}
 								{i}
 								{actual_pinned_columns}
-								{show_row_numbers}
 								{header_edit}
 								{selected_header}
 								get_sort_status={df_actions.get_sort_status}
@@ -772,7 +771,6 @@
 								{index}
 								{j}
 								{actual_pinned_columns}
-								{show_row_numbers}
 								{get_cell_width}
 								{handle_cell_click}
 								{toggle_cell_menu}

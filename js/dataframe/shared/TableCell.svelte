@@ -9,7 +9,6 @@
 	export let index: number;
 	export let j: number;
 	export let actual_pinned_columns: number;
-	export let show_row_numbers: boolean;
 	export let get_cell_width: (index: number) => string;
 	export let handle_cell_click: (
 		event: MouseEvent,
@@ -70,7 +69,9 @@
 
 		const previous_widths = Array(col_index)
 			.fill(0)
-			.map((_, idx) => `var(--cell-width-${idx})`)
+			.map((_, idx) => {
+				return get_cell_width(idx);
+			})
 			.join(" + ");
 
 		return `calc(${previous_widths})`;

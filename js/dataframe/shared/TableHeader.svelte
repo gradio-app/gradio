@@ -8,7 +8,6 @@
 	export let value: string;
 	export let i: number;
 	export let actual_pinned_columns: number;
-	export let show_row_numbers: boolean;
 	export let header_edit: number | false;
 	export let selected_header: number | false;
 	export let get_sort_status: (
@@ -46,7 +45,9 @@
 
 		const previous_widths = Array(col_index)
 			.fill(0)
-			.map((_, idx) => `var(--cell-width-${idx})`)
+			.map((_, idx) => {
+				return get_cell_width(idx);
+			})
 			.join(" + ");
 
 		return `calc(${previous_widths})`;
