@@ -625,6 +625,7 @@ class BlockFunction:
             "trigger_mode": self.trigger_mode,
             "show_api": self.show_api,
             "rendered_in": self.rendered_in._id if self.rendered_in else None,
+            "render_id": self.renderable._id if self.renderable else None,
             "connection": self.connection,
             "time_limit": self.time_limit,
             "stream_every": self.stream_every,
@@ -922,16 +923,9 @@ class BlocksConfig:
                 }
 
         rendered_ids = []
-        sidebar_count = [0]
 
         def get_layout(block: Block) -> Layout:
             rendered_ids.append(block._id)
-            if block.get_block_name() == "sidebar":
-                sidebar_count[0] += 1
-                if sidebar_count[0] > 1:
-                    warnings.warn(
-                        "Multiple sidebars detected in the same Blocks layout. Only one sidebar should be used per Blocks."
-                    )
             if not isinstance(block, BlockContext):
                 return {"id": block._id}
             children_layout = []
@@ -1368,6 +1362,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 dependency.pop("zerogpu", None)
                 dependency.pop("id", None)
                 dependency.pop("rendered_in", None)
+                dependency.pop("render_id", None)
                 dependency.pop("every", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
