@@ -415,6 +415,7 @@
 		get_range_selection,
 		move_cursor,
 		copy_flash,
+		parent_element: parent,
 		set_copy_flash: (value: boolean) => {
 			copy_flash = value;
 			if (value) {

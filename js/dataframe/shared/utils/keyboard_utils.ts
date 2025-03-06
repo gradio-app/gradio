@@ -214,6 +214,12 @@ async function handle_cell_navigation(
 			if (!ctx.editable) return false;
 			event.preventDefault();
 			ctx.df_actions.set_editing(false);
+			tick().then(() => {
+				if (ctx.parent_element) {
+					ctx.parent_element.focus();
+				}
+			});
+
 			return true;
 		case "Enter":
 			return await handle_enter_key(event, ctx, i, j);

@@ -43,6 +43,7 @@ export type KeyboardContext = {
 	) => false | CellCoordinate;
 	copy_flash: boolean;
 	set_copy_flash: (value: boolean) => void;
+	parent_element?: HTMLDivElement;
 };
 
 export function create_keyboard_context(
