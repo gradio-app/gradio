@@ -1,6 +1,7 @@
 ---
 "@gradio/chatbot": minor
+"@gradio/markdown-code": minor
 "gradio": minor
 ---
 
-feat:Fixed size for pending thoughts
+feat:Allow all tags for chatbot
