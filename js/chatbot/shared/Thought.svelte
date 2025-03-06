@@ -120,9 +120,10 @@
 	</div>
 
 	{#if expanded || thought_node.metadata?.status !== "done"}
-		<div 
+		<div
 			class:content={expanded}
-			class:content-preview={!expanded && thought_node.metadata?.status !== "done"}
+			class:content-preview={!expanded &&
+				thought_node.metadata?.status !== "done"}
 			bind:this={contentPreviewElement}
 			on:scroll={handleScroll}
 			transition:slide
