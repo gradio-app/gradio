@@ -2,6 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { MarkdownCode } from "@gradio/markdown-code";
 	import type { I18nFormatter } from "@gradio/utils";
+	import SelectionButtons from "./icons/SelectionButtons.svelte";
 	export let edit: boolean;
 	export let value: string | number = "";
 	export let display_value: string | null = null;
@@ -27,6 +28,11 @@
 	export let max_chars: number | null = null;
 	export let components: Record<string, any> = {};
 	export let i18n: I18nFormatter;
+
+	export let show_selection_buttons = false;
+	export let coords: [number, number] | null = null;
+	export let on_select_column: ((col: number) => void) | null = null;
+	export let on_select_row: ((row: number) => void) | null = null;
 
 	const dispatch = createEventDispatcher<{
 		blur: void;
@@ -153,6 +159,18 @@
 		{editable ? display_text : display_value || display_text}
 	{/if}
 </span>
+{#if show_selection_buttons && coords && on_select_column && on_select_row}
+	<SelectionButtons
+		position="column"
+		{coords}
+		on_click={() => on_select_column(coords[1])}
+	/>
+	<SelectionButtons
+		position="row"
+		{coords}
+		on_click={() => on_select_row(coords[0])}
+	/>
+{/if}
 
 <style>
 	input {

@@ -14,7 +14,6 @@
 
 	import EditableCell from "./EditableCell.svelte";
 	import RowNumber from "./RowNumber.svelte";
-	import SelectionButtons from "./SelectionButtons.svelte";
 	import TableHeader from "./TableHeader.svelte";
 	import TableCell from "./TableCell.svelte";
 	import EmptyRowButton from "./EmptyRowButton.svelte";
@@ -534,12 +533,10 @@
 			"--selected-col-pos",
 			positions.col_pos
 		);
-		if (positions.row_pos) {
-			document.documentElement.style.setProperty(
-				"--selected-row-pos",
-				positions.row_pos
-			);
-		}
+		document.documentElement.style.setProperty(
+			"--selected-row-pos",
+			positions.row_pos || "0px"
+		);
 	}
 
 	function commit_filter(): void {
@@ -587,8 +584,6 @@
 		active_cell_menu = null;
 		active_header_menu = null;
 	}
-
-	$: active_button = $df_state.ui_state.active_button;
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
@@ -625,13 +620,6 @@
 		role="grid"
 		tabindex="0"
 	>
-		{#if selected !== false && selected_cells.length === 1 && coords && coords[0] !== undefined && coords[1] !== undefined}
-			<SelectionButtons
-				{coords}
-				on_select_column={handle_select_column}
-				on_select_row={handle_select_row}
-			/>
-		{/if}
 		<table bind:this={table} class:fixed-layout={column_widths.length != 0}>
 			{#if label && label.length !== 0}
 				<caption class="sr-only">{label}</caption>
@@ -687,6 +675,12 @@
 									{root}
 									{editable}
 									{i18n}
+									show_selection_buttons={selected_cells.length === 1 &&
+										selected_cells[0][0] === 0 &&
+										selected_cells[0][1] === j}
+									coords={[0, j]}
+									on_select_column={handle_select_column}
+									on_select_row={handle_select_row}
 								/>
 							</div>
 						</td>
@@ -799,6 +793,8 @@
 								is_static={is_cell_static(index, j)}
 								{i18n}
 								{components}
+								{handle_select_column}
+								{handle_select_row}
 								bind:el={els[id]}
 							/>
 						{/each}
@@ -870,12 +866,6 @@
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
 		overflow: hidden;
-	}
-
-	.table-wrap:not(:focus-within) :global(.selection-button),
-	.table-wrap.menu-open :global(.selection-button) {
-		opacity: 0;
-		pointer-events: none;
 	}
 
 	table {
