@@ -42,7 +42,7 @@ def _import_polars():
 
 
 class DataframeData(GradioModel):
-    headers: list[str]
+    headers: list[Any]
     data: Union[list[list[Any]], list[tuple[Any, ...]]]
     metadata: Optional[dict[str, Optional[list[Any]]]] = None
 
@@ -382,6 +382,8 @@ class Dataframe(Component):
             return Dataframe.__extract_metadata(
                 value, getattr(value, "hidden_columns", [])
             )
+        elif isinstance(value, dict):
+            return value.get("metadata", None)
         return None
 
     def postprocess(

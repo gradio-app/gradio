@@ -1,5 +1,28 @@
 # @gradio/core
 
+## 0.12.0
+
+### Features
+
+- [#10500](https://github.com/gradio-app/gradio/pull/10500) [`16d419b`](https://github.com/gradio-app/gradio/commit/16d419b9f1f18ae4507d18a4739eb83ac4f3fae9) - Allow functions that solely update component properties to run in the frontend by setting `js=True`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/upload@0.15.3
+- @gradio/video@0.14.3
+- @gradio/code@0.11.1
+- @gradio/client@1.13.0
+- @gradio/button@0.4.8
+- @gradio/image@0.21.3
+- @gradio/gallery@0.15.8
+- @gradio/file@0.12.8
+
+## 0.11.1
+
+### Features
+
+- [#10679](https://github.com/gradio-app/gradio/pull/10679) [`cb3c762`](https://github.com/gradio-app/gradio/commit/cb3c76205c3fc1fae55229b5efe223c6d5c5c907) - Add Thai Translate.  Thanks @haihandsome!
+
 ## 0.11.0
 
 ### Dependency updates
