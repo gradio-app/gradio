@@ -290,5 +290,5 @@ test("Static columns cannot be edited", async ({ page }) => {
 	const is_not_disabled = await editable_cell
 		.locator("input")
 		.getAttribute("aria-disabled");
-	expect(is_not_disabled).toBeNull();
+	expect(is_not_disabled).toEqual("false");
 });
