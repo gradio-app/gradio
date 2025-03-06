@@ -24,6 +24,7 @@
 	export let clear_on_focus = false;
 	export let line_breaks = true;
 	export let editable = true;
+	export let is_static = false;
 	export let root: string;
 	export let max_chars: number | null = null;
 	export let components: Record<string, any> = {};
@@ -102,11 +103,11 @@
 
 {#if edit}
 	<input
-		disabled={!editable}
-		aria-disabled={!editable}
-		class:static={!editable}
+		disabled={is_static}
+		aria-disabled={is_static}
+		class:static={is_static}
 		role="textbox"
-		aria-label="Edit cell"
+		aria-label={is_static ? "Cell is read-only" : "Edit cell"}
 		bind:this={el}
 		bind:value={_value}
 		class:header
@@ -237,7 +238,7 @@
 		object-fit: contain;
 	}
 
-	span.static {
-		cursor: pointer;
+	input:disabled {
+		cursor: not-allowed;
 	}
 </style>

@@ -100,7 +100,8 @@
 					on:keydown={end_header_edit}
 					header
 					{root}
-					editable={editable && !is_static}
+					{editable}
+					{is_static}
 					{i18n}
 				/>
 			</button>

@@ -131,7 +131,8 @@
 			{display_value}
 			{latex_delimiters}
 			{line_breaks}
-			editable={editable && !is_static}
+			{editable}
+			{is_static}
 			edit={editing && editing[0] === index && editing[1] === j}
 			{datatype}
 			on:blur={() => {
@@ -156,6 +157,7 @@
 			on_select_column={handle_select_column}
 			on_select_row={handle_select_row}
 		/>
+
 		{#if editable && should_show_cell_menu([index, j], selected_cells, editable)}
 			<CellMenuButton on_click={(event) => toggle_cell_menu(event, index, j)} />
 		{/if}
