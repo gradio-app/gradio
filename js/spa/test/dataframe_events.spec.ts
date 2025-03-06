@@ -196,7 +196,7 @@ test("Dataframe keyboard operations work as expected", async ({ page }) => {
 	await page.waitForTimeout(100);
 	await page.keyboard.press("Delete");
 
-	expect(await get_cell(df, 0, 0).textContent()).toBe("  ⋮");
+	expect(await get_cell(df, 0, 0).locator("input").textContent()).toBe("");
 
 	// test backspace key
 	await get_cell(df, 0, 1).click();

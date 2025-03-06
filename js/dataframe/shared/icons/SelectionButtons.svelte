@@ -42,7 +42,7 @@
 	}
 
 	.selection-button-column {
-		top: -14px;
+		top: -15px;
 		left: 50%;
 		transform: translateX(-50%) rotate(90deg);
 		border-radius: var(--radius-sm) 0 0 var(--radius-sm);
