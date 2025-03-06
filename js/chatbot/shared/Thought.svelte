@@ -36,10 +36,6 @@
 	}
 
 	let thought_node: ThoughtNode;
-	let expanded = false;
-	let contentPreviewElement: HTMLElement;
-	let userIsScrolling = false;
-
 	$: thought_node = {
 		...thought,
 		children: is_thought_node(thought) ? thought.children : []
@@ -49,30 +45,7 @@
 		expanded = !expanded;
 	}
 
-	function scrollToBottom(): void {
-		if (contentPreviewElement && !userIsScrolling) {
-			contentPreviewElement.scrollTop = contentPreviewElement.scrollHeight;
-		}
-	}
-
-	function handleScroll(): void {
-		if (contentPreviewElement) {
-			const isAtBottom =
-				contentPreviewElement.scrollHeight - contentPreviewElement.scrollTop <=
-				contentPreviewElement.clientHeight + 10;
-			if (!isAtBottom) {
-				userIsScrolling = true;
-			}
-		}
-	}
-
-	$: if (
-		thought_node.content &&
-		contentPreviewElement &&
-		thought_node.metadata?.status !== "done"
-	) {
-		setTimeout(scrollToBottom, 0);
-	}
+	$: expanded = thought_node.metadata?.status !== "done";
 </script>
 
 <div class="thought-group">
@@ -119,15 +92,8 @@
 		{/if}
 	</div>
 
-	{#if expanded || thought_node.metadata?.status !== "done"}
-		<div
-			class:content={expanded}
-			class:content-preview={!expanded &&
-				thought_node.metadata?.status !== "done"}
-			bind:this={contentPreviewElement}
-			on:scroll={handleScroll}
-			transition:slide
-		>
+	{#if expanded}
+		<div class="content" transition:slide>
 			<MessageContent
 				message={thought_node}
 				{sanitize_html}
@@ -208,24 +174,13 @@
 		font-size: var(--text-sm) !important;
 	}
 
-	.content,
-	.content-preview {
+	.content {
 		overflow-wrap: break-word;
 		word-break: break-word;
 		margin-left: var(--spacing-lg);
 		margin-bottom: var(--spacing-sm);
 	}
-
-	.content-preview {
-		position: relative;
-		max-height: calc(5 * 1.5em);
-		overflow-y: auto;
-		overscroll-behavior: contain;
-		cursor: default;
-	}
-
-	.content :global(*),
-	.content-preview :global(*) {
+	.content :global(*) {
 		font-size: var(--text-sm);
 		color: var(--body-text-color);
 	}
