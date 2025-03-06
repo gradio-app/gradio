@@ -2515,8 +2515,8 @@ importers:
         specifier: ^1.0.1
         version: 1.0.1
       pyodide:
-        specifier: 0.27.2
-        version: 0.27.2(bufferutil@4.0.7)
+        specifier: 0.27.3
+        version: 0.27.3(bufferutil@4.0.7)
       svelte:
         specifier: ^4.0.0
         version: 4.2.15
@@ -7812,8 +7812,8 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
 
-  pyodide@0.27.2:
-    resolution: {integrity: sha512-sfA2kiUuQVRpWI4BYnU3sX5PaTTt/xrcVEmRzRcId8DzZXGGtPgCBC0gCqjUTUYSa8ofPaSjXmzESc86yvvCHg==}
+  pyodide@0.27.3:
+    resolution: {integrity: sha512-6NwKEbPk0M3Wic2T1TCZijgZH9VE4RkHp1VGljS1sou0NjGdsmY2R/fG5oLmdDkjTRMI1iW7WYaY9pofX8gg1g==}
     engines: {node: '>=18.0.0'}
 
   qs@6.11.0:
@@ -14943,7 +14943,7 @@ snapshots:
 
   punycode@2.3.1: {}
 
-  pyodide@0.27.2(bufferutil@4.0.7):
+  pyodide@0.27.3(bufferutil@4.0.7):
     dependencies:
       ws: 8.18.0(bufferutil@4.0.7)
     transitivePeerDependencies:

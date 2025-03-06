@@ -195,6 +195,7 @@ export interface Dependency {
     show_api: boolean;
     zerogpu?: boolean;
     rendered_in: number | null;
+    render_id: number | null;
     connection: "stream" | "sse";
     time_limit: number;
     stream_every: number;
