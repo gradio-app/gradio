@@ -82,13 +82,6 @@
 			? Math.min(pinned_columns, data[0].length)
 			: 0;
 
-	const is_cell_static = (row_idx: number, col_idx: number): boolean => {
-		return (
-			static_columns.includes(col_idx) ||
-			static_columns.includes(_headers[col_idx]?.value)
-		);
-	};
-
 	const { state: df_state, actions: df_actions } = create_dataframe_context({
 		show_fullscreen_button,
 		show_copy_button,
@@ -650,7 +643,7 @@
 							{max_chars}
 							{root}
 							{editable}
-							is_static={is_cell_static(i, i)}
+							is_static={static_columns.includes(i)}
 							{i18n}
 							bind:el={els[id].input}
 						/>
@@ -756,7 +749,7 @@
 								{max_chars}
 								{root}
 								{editable}
-								is_static={is_cell_static(i, i)}
+								is_static={static_columns.includes(i)}
 								{i18n}
 								bind:el={els[id].input}
 							/>
@@ -790,7 +783,7 @@
 								{max_chars}
 								{root}
 								{editable}
-								is_static={is_cell_static(index, j)}
+								is_static={static_columns.includes(j)}
 								{i18n}
 								{components}
 								{handle_select_column}
