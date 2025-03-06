@@ -9,25 +9,13 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
-    let obj = get_object("likedata");
+    let obj = get_object("copydata");
 
     obj["attributes"] = [
             {
-                name: "index",
-                annotation: "int | tuple[int, int]",
-                doc: "The index of the liked/disliked item. Is a tuple if the component is two dimensional.",
-                kwargs: null
-            },
-            {
                 name: "value",
                 annotation: "Any",
-                doc: "The value of the liked/disliked item.",
-                kwargs: null
-            },
-            {
-                name: "liked",
-                annotation: "bool",
-                doc: "True if the item was liked, False if disliked, or string value if any other feedback.",
+                doc: "The value that was copied.",
                 kwargs: null
             }
         ]    
@@ -38,7 +26,7 @@
 
 <!--- Usage -->
 ```python
-gradio.LikeData(···)
+gradio.CopyData(···)
 ```
 
 <!--- Description -->
@@ -51,20 +39,12 @@ gradio.LikeData(···)
 ### Example Usage
 ```python
 import gradio as gr
-
-def test(value, like_data: gr.LikeData):
-    return {
-        "chatbot_value": value,
-        "liked_message": like_data.value,
-        "liked_index": like_data.index,
-        "liked_or_disliked_as_bool": like_data.liked
-    }
-
+def on_copy(copy_data: gr.CopyData):
+    return f"Copied text: {copy_data.value}"
 with gr.Blocks() as demo:
-    c = gr.Chatbot([("abc", "def")])
-    t = gr.JSON()
-    c.like(test, c, t)
-
+    textbox = gr.Textbox("Hello World!")
+    copied = gr.Textbox()
+    textbox.copy(on_copy, None, copied)
 demo.launch()
 ```
 {/if}

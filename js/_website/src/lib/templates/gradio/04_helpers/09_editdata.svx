@@ -9,37 +9,25 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
-    let obj = get_object("selectdata");
+    let obj = get_object("editdata");
 
     obj["attributes"] = [
             {
                 name: "index",
                 annotation: "int | tuple[int, int]",
-                doc: "The index of the selected item. Is a tuple if the component is two dimensional or selection is a range.",
+                doc: "The index of the message that was edited.",
+                kwargs: null
+            },
+            {
+                name: "previous_value",
+                annotation: "Any",
+                doc: "The previous content of the message that was edited.",
                 kwargs: null
             },
             {
                 name: "value",
                 annotation: "Any",
-                doc: "The value of the selected item.",
-                kwargs: null
-            },
-            {
-                name: "row_value",
-                annotation: "list[float | str]",
-                doc: "The value of the entire row that the selected item belongs to, as a 1-D list. Only implemented for the `Dataframe` component, returns None for other components.",
-                kwargs: null
-            },
-            {
-                name: "col_value",
-                annotation: "list[float | str]",
-                doc: "The value of the entire row that the selected item belongs to, as a 1-D list. Only implemented for the `Dataframe` component, returns None for other components.",
-                kwargs: null
-            },
-            {
-                name: "selected",
-                annotation: "bool",
-                doc: "True if the item was selected, False if deselected.",
+                doc: "The new content of the message that was edited.",
                 kwargs: null
             }
         ]    
@@ -50,7 +38,7 @@
 
 <!--- Usage -->
 ```python
-gradio.SelectData(···)
+gradio.EditData(···)
 ```
 
 <!--- Description -->
@@ -64,19 +52,14 @@ gradio.SelectData(···)
 ```python
 import gradio as gr
 
+def edit(edit_data: gr.EditData, history: list[gr.MessageDict]):
+    history_up_to_edit = history[:edit_data.index]
+    history_up_to_edit[-1] = edit_data.value
+    return history_up_to_edit
+
 with gr.Blocks() as demo:
-    table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
-    gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
-    textbox = gr.Textbox("Hello World!")
-    statement = gr.Textbox()
-
-    def on_select(evt: gr.SelectData):
-        return f"You selected {evt.value} at {evt.index} from {evt.target}"
-
-    table.select(on_select, None, statement)
-    gallery.select(on_select, None, statement)
-    textbox.select(on_select, None, statement)
-
+    chatbot = gr.Chatbot()
+    chatbot.undo(edit, chatbot, chatbot)
 demo.launch()
 ```
 {/if}

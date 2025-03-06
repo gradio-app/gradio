@@ -9,25 +9,19 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
-    let obj = get_object("likedata");
+    let obj = get_object("undodata");
 
     obj["attributes"] = [
             {
                 name: "index",
                 annotation: "int | tuple[int, int]",
-                doc: "The index of the liked/disliked item. Is a tuple if the component is two dimensional.",
+                doc: "The index of the user message that should be undone.",
                 kwargs: null
             },
             {
                 name: "value",
                 annotation: "Any",
-                doc: "The value of the liked/disliked item.",
-                kwargs: null
-            },
-            {
-                name: "liked",
-                annotation: "bool",
-                doc: "True if the item was liked, False if disliked, or string value if any other feedback.",
+                doc: "The value of the user message that should be undone.",
                 kwargs: null
             }
         ]    
@@ -38,7 +32,7 @@
 
 <!--- Usage -->
 ```python
-gradio.LikeData(···)
+gradio.UndoData(···)
 ```
 
 <!--- Description -->
@@ -52,19 +46,13 @@ gradio.LikeData(···)
 ```python
 import gradio as gr
 
-def test(value, like_data: gr.LikeData):
-    return {
-        "chatbot_value": value,
-        "liked_message": like_data.value,
-        "liked_index": like_data.index,
-        "liked_or_disliked_as_bool": like_data.liked
-    }
+def undo(retry_data: gr.UndoData, history: list[gr.MessageDict]):
+    history_up_to_retry = history[:retry_data.index]
+    return history_up_to_retry
 
 with gr.Blocks() as demo:
-    c = gr.Chatbot([("abc", "def")])
-    t = gr.JSON()
-    c.like(test, c, t)
-
+    chatbot = gr.Chatbot()
+    chatbot.undo(undo, chatbot, chatbot)
 demo.launch()
 ```
 {/if}
