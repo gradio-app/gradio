@@ -94,7 +94,14 @@
 	@media (max-width: 768px) {
 		.sidebar {
 			width: 100vw !important;
+		}
+
+		.sidebar:not(.right) {
 			left: -100vw !important;
+		}
+
+		.sidebar.right {
+			right: -100vw !important;
 		}
 
 		.sidebar:not(.reduce-motion) {
@@ -103,10 +110,15 @@
 
 		:global(.sidebar-parent) {
 			padding-left: 0 !important;
+			padding-right: 0 !important;
 		}
 
 		:global(.sidebar-parent:has(.sidebar.open)) {
 			padding-left: 0 !important;
+			padding-right: 0 !important;
+		}
+		.sidebar.open {
+			z-index: 1001 !important;
 		}
 	}
 
