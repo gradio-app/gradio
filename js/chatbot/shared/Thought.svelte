@@ -140,32 +140,6 @@
 				{line_breaks}
 			/>
 		</div>
-	{:else if thought_node.metadata?.status !== "done"}
-		<div
-			class="content-preview"
-			bind:this={contentPreviewElement}
-			on:scroll={handleScroll}
-			transition:slide
-		>
-			<MessageContent
-				message={thought_node}
-				{sanitize_html}
-				{latex_delimiters}
-				{render_markdown}
-				{_components}
-				{upload}
-				{thought_index}
-				{target}
-				{root}
-				{theme_mode}
-				{_fetch}
-				{scroll}
-				{allow_file_downloads}
-				{display_consecutive_in_same_bubble}
-				{i18n}
-				{line_breaks}
-			/>
-
 			{#if thought_node.children?.length > 0}
 				<div class="children">
 					{#each thought_node.children as child, index}
@@ -191,6 +165,31 @@
 					{/each}
 				</div>
 			{/if}
+		{:else if thought_node.metadata?.status !== "done"}
+		<div
+			class="content-preview"
+			bind:this={contentPreviewElement}
+			on:scroll={handleScroll}
+			transition:slide
+		>
+			<MessageContent
+				message={thought_node}
+				{sanitize_html}
+				{latex_delimiters}
+				{render_markdown}
+				{_components}
+				{upload}
+				{thought_index}
+				{target}
+				{root}
+				{theme_mode}
+				{_fetch}
+				{scroll}
+				{allow_file_downloads}
+				{display_consecutive_in_same_bubble}
+				{i18n}
+				{line_breaks}
+			/>
 		</div>
 	{/if}
 </div>
