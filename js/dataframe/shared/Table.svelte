@@ -175,6 +175,10 @@
 		);
 		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
 		df_actions.reset_sort_state();
+
+		if ($df_state.current_search_query) {
+			df_actions.handle_search(null);
+		}
 	}
 
 	let previous_headers = _headers.map((h) => h.value);
