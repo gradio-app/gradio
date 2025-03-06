@@ -1,5 +1,11 @@
 # @gradio/sketchbox
 
+## 0.6.1
+
+### Features
+
+- [#10694](https://github.com/gradio-app/gradio/pull/10694) [`16244f3`](https://github.com/gradio-app/gradio/commit/16244f3c1cb1a65ac1f719142f8fab67512fbb25) - Event Listeners in gradio sketch.  Thanks @aliabid94!
+
 ## 0.6.0
 
 ### Features

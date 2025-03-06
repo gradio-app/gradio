@@ -1,5 +1,12 @@
 # @gradio/lite
 
+## 5.20.1
+
+### Dependency updates
+
+- @gradio/wasm@0.17.4
+- @gradio/core@0.12.1
+
 ## 5.20.0
 
 ### Dependency updates

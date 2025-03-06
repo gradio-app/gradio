@@ -1,5 +1,23 @@
 # gradio
 
+## 5.20.1
+
+### Features
+
+- [#10694](https://github.com/gradio-app/gradio/pull/10694) [`16244f3`](https://github.com/gradio-app/gradio/commit/16244f3c1cb1a65ac1f719142f8fab67512fbb25) - Event Listeners in gradio sketch.  Thanks @aliabid94!
+- [#10732](https://github.com/gradio-app/gradio/pull/10732) [`2b38420`](https://github.com/gradio-app/gradio/commit/2b3842066bc625518afeb182d65d2ef37a3e835e) - Changed warning stacklevel to improve warnings in console.  Thanks @wolph!
+- [#10720](https://github.com/gradio-app/gradio/pull/10720) [`2248005`](https://github.com/gradio-app/gradio/commit/2248005b10056d858028e1bb65b5921117ab13f5) - Add `pwa` and `enable_monitoring` parameters to `mount_gradio_app`.  Thanks @abidlabs!
+- [#10737](https://github.com/gradio-app/gradio/pull/10737) [`1cf992b`](https://github.com/gradio-app/gradio/commit/1cf992b04225580b9c7c4d4dd0c84e5a7ebe6ad3) - Sidebar fixed positioning.  Thanks @dawoodkhan82!
+- [#10728](https://github.com/gradio-app/gradio/pull/10728) [`9fce28b`](https://github.com/gradio-app/gradio/commit/9fce28b76be0683ac5c9b07beac0479023671622) - Allow sending a custom TLS certificate or no TLS certificate when connecting to custom share servers.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10748](https://github.com/gradio-app/gradio/pull/10748) [`19411c6`](https://github.com/gradio-app/gradio/commit/19411c6b15cde53371425a9eb6037ce4a10f7442) - Fix ClearButton.  Thanks @phos-phophy!
+- [#10721](https://github.com/gradio-app/gradio/pull/10721) [`b3ac430`](https://github.com/gradio-app/gradio/commit/b3ac430d5e8f93ffea993f7af51f9171a50026a1) - Check for Node.js path only if SSR mode is true.  Thanks @anirbanbasu!
+- [#10724](https://github.com/gradio-app/gradio/pull/10724) [`667f8a1`](https://github.com/gradio-app/gradio/commit/667f8a1f820d46a4d87ad0f65b9e3b37c4de449f) - Fix Chatbot avatar image position.  Thanks @abidlabs!
+- [#10719](https://github.com/gradio-app/gradio/pull/10719) [`b710d7c`](https://github.com/gradio-app/gradio/commit/b710d7cf13c1277fd18c7809cad0f707b880ef70) - Fix error display.  Thanks @aliabid94!
+- [#10706](https://github.com/gradio-app/gradio/pull/10706) [`5faa2a3`](https://github.com/gradio-app/gradio/commit/5faa2a34cc3b6ab647cab84d7495bfe8624955e3) - chore: bump Pyodide version to 0.27.3.  Thanks @peter-gy!
+
 ## 5.20.0
 
 ### Features
