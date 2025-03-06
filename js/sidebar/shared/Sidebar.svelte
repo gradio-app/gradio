@@ -16,29 +16,23 @@
 	let overlap_amount = 0;
 
 	let width_css = typeof width === "number" ? `${width}px` : width;
-
 	let prefersReducedMotion: boolean;
 
+	// Check if the sidebar overlaps with the main content
 	function check_overlap(): void {
-		if (!sidebar_div.closest(".gradio-container")) return;
-		const parent_rect = sidebar_div
-			.closest(".gradio-container")
-			?.getBoundingClientRect();
+		if (!sidebar_div.closest(".wrap")) return;
+		const parent_rect = sidebar_div.closest(".wrap")?.getBoundingClientRect();
 		if (!parent_rect) return;
-
-		const parentHeight = parent_rect.height;
-		sidebar_div.style.height = `${parentHeight}px`;
-
 		const sidebar_rect = sidebar_div.getBoundingClientRect();
 		const available_space =
 			position === "left"
 				? parent_rect.left
 				: window.innerWidth - parent_rect.right;
-		overlap_amount = Math.max(0, sidebar_rect.width - available_space);
+		overlap_amount = Math.max(0, sidebar_rect.width - available_space + 30);
 	}
 
 	onMount(() => {
-		sidebar_div.closest(".gradio-container")?.classList.add("sidebar-parent");
+		sidebar_div.closest(".wrap")?.classList.add("sidebar-parent");
 		check_overlap();
 		window.addEventListener("resize", check_overlap);
 		const update_parent_overlap = (): void => {
@@ -49,16 +43,12 @@
 		};
 		update_parent_overlap();
 		mounted = true;
-
 		const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 		prefersReducedMotion = mediaQuery.matches;
-
 		const updateMotionPreference = (e: MediaQueryListEvent): void => {
 			prefersReducedMotion = e.matches;
 		};
-
 		mediaQuery.addEventListener("change", updateMotionPreference);
-
 		return () => {
 			window.removeEventListener("resize", check_overlap);
 			mediaQuery.removeEventListener("change", updateMotionPreference);
@@ -76,7 +66,7 @@
 	class:right={position === "right"}
 	class:reduce-motion={prefersReducedMotion}
 	bind:this={sidebar_div}
-	style="width: {width_css}; {position}: calc({width_css} * -1.10)"
+	style="width: {width_css}; {position}: calc({width_css} * -1)"
 >
 	<button
 		on:click={() => {
@@ -104,60 +94,29 @@
 	@media (max-width: 768px) {
 		.sidebar {
 			width: 100vw !important;
-			left: -110vw !important;
-			right: auto !important;
-			position: absolute !important;
-			top: calc(var(--size-4) * -1);
-			height: 100vh !important;
+			left: -100vw !important;
 		}
 
 		.sidebar:not(.reduce-motion) {
 			transition: transform 0.3s ease-in-out !important;
 		}
 
-		.sidebar.right {
-			left: auto !important;
-			right: -110vw !important;
-		}
-
-		.sidebar.open {
-			transform: translateX(100vw) !important;
-		}
-
-		.sidebar.open.right {
-			transform: translateX(-100vw) !important;
-		}
-
 		:global(.sidebar-parent) {
 			padding-left: 0 !important;
-			padding-right: 0 !important;
 		}
 
 		:global(.sidebar-parent:has(.sidebar.open)) {
 			padding-left: 0 !important;
-			padding-right: 0 !important;
-		}
-
-		.sidebar.right .toggle-button {
-			left: calc(var(--size-8) * -1) !important;
-			right: auto !important;
-			transform: rotate(180deg) !important;
-		}
-
-		.sidebar.open.right .toggle-button {
-			left: auto !important;
-			right: var(--size-2-5) !important;
-			transform: rotate(0deg) !important;
 		}
 	}
 
 	:global(.sidebar-parent) {
 		display: flex !important;
-		position: relative;
-		/* padding-left: 0 !important; */
+		padding-left: 0;
+		padding-right: 0;
 	}
 
-	:global(.sidebar-parent:not(:has(.reduce-motion))) {
+	:global(.sidebar-parent:not(.reduce-motion)) {
 		transition:
 			padding-left 0.3s ease-in-out,
 			padding-right 0.3s ease-in-out;
@@ -174,11 +133,11 @@
 	.sidebar {
 		display: flex;
 		flex-direction: column;
-		position: absolute;
-		top: calc(var(--size-4) * -1);
+		position: fixed;
+		top: 0;
 		height: 100%;
 		background-color: var(--background-fill-secondary);
-		transform: translateX(0);
+		transform: translateX(0%);
 		z-index: 1000;
 	}
 
@@ -187,10 +146,12 @@
 	}
 
 	.sidebar.open:not(.right) {
+		transform: translateX(100%);
 		box-shadow: var(--size-1) 0 var(--size-2) rgba(100, 89, 89, 0.1);
 	}
 
 	.sidebar.open.right {
+		transform: translateX(-100%);
 		box-shadow: calc(var(--size-1) * -1) 0 var(--size-2) rgba(100, 89, 89, 0.1);
 	}
 
@@ -204,7 +165,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		transition: none;
 		width: var(--size-8);
 		height: var(--size-8);
 		z-index: 1001;
