@@ -98,7 +98,6 @@ The sidebar is a collapsible panel that renders child components on the left sid
 For example:
 
 $code_blocks_sidebar
-$demo_blocks_sidebar
 
 Learn more about [Sidebar](https://gradio.app/docs/gradio/sidebar) in the docs.
 
