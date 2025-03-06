@@ -38,6 +38,7 @@
 		background: var(--color-accent);
 		width: var(--size-3);
 		height: var(--size-5);
+		color: var(--background-fill-primary);
 	}
 
 	.selection-button-column {

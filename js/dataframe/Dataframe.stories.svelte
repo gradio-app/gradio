@@ -479,16 +479,16 @@
 		const cells = canvas.getAllByRole("cell");
 		await user.click(cells[5]); // Click cell with value 6
 
-		const row_button = await canvas.findByRole("button", {
+		const row_button = await canvas.findAllByRole("button", {
 			name: "Select row"
-		});
+		})[0];
 		await user.click(row_button);
 
 		await user.click(cells[6]);
 
-		const col_button = await canvas.findByRole("button", {
+		const col_button = await canvas.findAllByRole("button", {
 			name: "Select column"
-		});
+		})[0];
 		await user.click(col_button);
 
 		await user.keyboard("{Delete}");
