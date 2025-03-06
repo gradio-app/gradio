@@ -1,5 +1,15 @@
 # website
 
+## 0.52.0
+
+### Features
+
+- [#10744](https://github.com/gradio-app/gradio/pull/10744) [`a89fa28`](https://github.com/gradio-app/gradio/commit/a89fa288f42022bb489bac655562a8d1eb5030a5) - Add missing docs and fix gaps in website.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.11.2
+
 ## 0.51.0
 
 ### Features
