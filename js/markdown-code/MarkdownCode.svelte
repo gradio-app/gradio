@@ -33,11 +33,14 @@
 		return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 	}
 
-	function escapeTags(content: string, tagsToEscape: string[] | boolean): string {
+	function escapeTags(
+		content: string,
+		tagsToEscape: string[] | boolean
+	): string {
 		if (tagsToEscape === true) {
 			return content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 		}
-		
+
 		if (Array.isArray(tagsToEscape)) {
 			const tagPattern = tagsToEscape.map((tag) => ({
 				open: new RegExp(`<(${tag})(\\s+[^>]*)?>`, "gi"),
@@ -47,13 +50,11 @@
 			let result = content;
 
 			tagPattern.forEach((pattern) => {
-				result = result.replace(
-					pattern.open,
-					(match) => match.replace(/</g, "&lt;").replace(/>/g, "&gt;")
+				result = result.replace(pattern.open, (match) =>
+					match.replace(/</g, "&lt;").replace(/>/g, "&gt;")
 				);
-				result = result.replace(
-					pattern.close,
-					(match) => match.replace(/</g, "&lt;").replace(/>/g, "&gt;")
+				result = result.replace(pattern.close, (match) =>
+					match.replace(/</g, "&lt;").replace(/>/g, "&gt;")
 				);
 			});
 			return result;
