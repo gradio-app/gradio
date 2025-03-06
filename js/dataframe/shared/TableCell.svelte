@@ -57,6 +57,8 @@
 		cell: HTMLTableCellElement | null;
 		input: HTMLInputElement | null;
 	};
+	export let handle_select_column: (col: number) => void;
+	export let handle_select_row: (row: number) => void;
 
 	function get_cell_position(col_index: number): string {
 		if (col_index >= actual_pinned_columns) {
@@ -146,6 +148,12 @@
 			{max_chars}
 			{i18n}
 			{components}
+			show_selection_buttons={selected_cells.length === 1 &&
+				selected_cells[0][0] === index &&
+				selected_cells[0][1] === j}
+			coords={[index, j]}
+			on_select_column={handle_select_column}
+			on_select_row={handle_select_row}
 		/>
 		{#if editable && should_show_cell_menu([index, j], selected_cells, editable)}
 			<CellMenuButton on_click={(event) => toggle_cell_menu(event, index, j)} />
