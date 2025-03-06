@@ -97,6 +97,7 @@
 {#if edit}
 	<input
 		disabled={!editable}
+		aria-disabled={!editable}
 		class:static={!editable}
 		role="textbox"
 		aria-label="Edit cell"
