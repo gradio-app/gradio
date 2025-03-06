@@ -32,7 +32,7 @@
             },
             {
                 name: "col_value",
-                annotation: "int | tuple[int, int]",
+                annotation: "list[float | str]",
                 doc: "The value of the entire row that the selected item belongs to, as a 1-D list. Only implemented for the `Dataframe` component, returns None for other components.",
                 kwargs: null
             },
