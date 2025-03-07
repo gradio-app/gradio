@@ -172,12 +172,10 @@
 	$: if (!dequal(values, old_val)) {
 		data = process_data(
 			values as (string | number)[][],
-			row_count,
-			col_count,
-			headers,
 			els,
 			data_binding,
-			make_id
+			make_id,
+			display_value
 		);
 		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
 		df_actions.reset_sort_state();
@@ -189,29 +187,35 @@
 
 	$: if ($df_state.current_search_query !== undefined) {
 		const filtered = df_actions.filter_data(data);
-		const indices = data.reduce((acc, row, idx) => {
-			if (
-				row &&
-				filtered.some(
-					(f_row) => f_row && f_row[0] && row[0] && f_row[0].id === row[0].id
-				)
-			) {
-				acc.push(idx);
-			}
-			return acc;
-		}, [] as number[]);
 
-		search_results = filtered.map((row, i) =>
-			row.map((cell, j) => ({
-				...cell,
-				display_value:
-					indices[i] !== undefined
-						? display_value?.[indices[i]]?.[j]
-						: undefined,
-				styling:
-					indices[i] !== undefined ? styling?.[indices[i]]?.[j] : undefined
-			}))
-		);
+		const original_data_map = {};
+		data.forEach((row, row_idx) => {
+			row.forEach((cell, col_idx) => {
+				original_data_map[cell.id] = {
+					value: cell.value,
+					display_value: cell.display_value || String(cell.value),
+					row_idx,
+					col_idx
+				};
+			});
+		});
+
+		search_results = filtered.map((row) => {
+			return row.map((cell) => {
+				const original_cell_data = original_data_map[cell.id];
+
+				return {
+					...cell,
+					display_value:
+						original_cell_data?.display_value || String(cell.value),
+					styling: original_cell_data
+						? styling?.[original_cell_data.row_idx]?.[
+								original_cell_data.col_idx
+							] || ""
+						: ""
+				};
+			});
+		});
 	}
 
 	let previous_headers = _headers.map((h) => h.value);
@@ -566,14 +570,43 @@
 
 	function commit_filter(): void {
 		if ($df_state.current_search_query && show_search === "filter") {
-			dispatch("change", {
-				data: search_results.map((row) => row.map((cell) => cell.value)),
-				headers: _headers.map((h) => h.value),
-				metadata: null
+			const filtered_data = [];
+			const filtered_display_values = [];
+			const filtered_styling = [];
+
+			search_results.forEach((row) => {
+				const data_row = [];
+				const display_row = [];
+				const styling_row = [];
+
+				row.forEach((cell) => {
+					data_row.push(cell.value);
+					display_row.push(cell.display_value || String(cell.value));
+					styling_row.push(cell.styling || "");
+				});
+
+				filtered_data.push(data_row);
+				filtered_display_values.push(display_row);
+				filtered_styling.push(styling_row);
 			});
+
+			const change_payload = {
+				data: filtered_data,
+				headers: _headers.map((h) => h.value),
+				metadata: {
+					display_value: filtered_display_values,
+					styling: filtered_styling
+				}
+			};
+
+			// Dispatch the change with the filtered data
+			dispatch("change", change_payload);
+
 			if (!value_is_output) {
 				dispatch("input");
 			}
+
+			// Clear the search query after committing the filter
 			df_actions.handle_search(null);
 		}
 	}

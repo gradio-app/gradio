@@ -127,7 +127,7 @@
 		<EditableCell
 			bind:value
 			bind:el={el.input}
-			{display_value}
+			display_value={String(value)}
 			{latex_delimiters}
 			{line_breaks}
 			{editable}

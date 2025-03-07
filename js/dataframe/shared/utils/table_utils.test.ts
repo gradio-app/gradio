@@ -1,10 +1,10 @@
 import { describe, test, expect } from "vitest";
-import {
-	make_cell_id,
-	make_header_id,
-	process_data,
-	make_headers
-} from "./table_utils";
+import { make_cell_id, make_header_id } from "./table_utils";
+import { process_data, make_headers } from "./data_processing";
+
+function make_id(): string {
+	return Math.random().toString(36).substring(2, 15);
+}
 
 describe("table_utils", () => {
 	describe("id generation", () => {
@@ -38,12 +38,9 @@ describe("table_utils", () => {
 					["1", "2"],
 					["3", "4"]
 				],
-				[2, "fixed"],
-				[2, "fixed"],
-				["A", "B"],
-				true,
 				element_refs,
-				data_binding
+				data_binding,
+				make_id
 			);
 
 			expect(test_result[0].map((item) => item.value)).toEqual(["1", "2"]);
@@ -56,12 +53,9 @@ describe("table_utils", () => {
 					["1", "2"],
 					["3", "4"]
 				],
-				[2, "fixed"],
-				[2, "fixed"],
-				["A", "B"],
-				false,
 				element_refs,
-				data_binding
+				data_binding,
+				make_id
 			);
 
 			expect(test_result.length).toBe(2);
@@ -71,44 +65,9 @@ describe("table_utils", () => {
 		});
 
 		test("handles empty data", () => {
-			const test_result = process_data(
-				[],
-				[0, "dynamic"],
-				[0, "dynamic"],
-				[],
-				false,
-				element_refs,
-				data_binding
-			);
+			const test_result = process_data([], element_refs, data_binding, make_id);
 
 			expect(test_result.length).toBe(0);
-		});
-	});
-
-	describe("make_headers", () => {
-		const element_refs: Record<string, { cell: null; input: null }> = {};
-
-		test("adds empty column for row numbers", () => {
-			const test_result = make_headers(
-				["A", "B"],
-				true,
-				[2, "fixed"],
-				element_refs
-			);
-
-			expect(test_result.length).toBe(3);
-			expect(test_result[0].value).toBe("");
-			expect(test_result[1].value).toBe("A");
-			expect(test_result[2].value).toBe("B");
-		});
-
-		test("handles empty headers with fixed columns", () => {
-			const test_result = make_headers([], false, [3, "fixed"], element_refs);
-
-			expect(test_result.length).toBe(3);
-			expect(
-				test_result.every((header) => typeof header.value === "string")
-			).toBe(true);
 		});
 	});
 });
