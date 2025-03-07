@@ -37,7 +37,6 @@
 		x: number;
 		y: number;
 	} | null;
-	export let display_value: string | undefined;
 	export let styling: string | undefined;
 	export let latex_delimiters: {
 		left: string;
@@ -128,7 +127,7 @@
 		<EditableCell
 			bind:value
 			bind:el={el.input}
-			{display_value}
+			display_value={String(value)}
 			{latex_delimiters}
 			{line_breaks}
 			{editable}
