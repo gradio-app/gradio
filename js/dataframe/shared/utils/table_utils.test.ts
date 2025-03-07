@@ -20,8 +20,8 @@ describe("table_utils", () => {
 
 		test("generates unique header ids", () => {
 			const id_set = new Set();
-			for (let col = 0; col < 10; col++) {
-				id_set.add(make_header_id(col));
+			for (let i = 0; i < 10; i++) {
+				id_set.add(make_header_id(i));
 			}
 			expect(id_set.size).toBe(10);
 		});
@@ -68,6 +68,68 @@ describe("table_utils", () => {
 			const test_result = process_data([], element_refs, data_binding, make_id);
 
 			expect(test_result.length).toBe(0);
+		});
+	});
+
+	describe("make_headers", () => {
+		test("creates headers with ids when headers are provided", () => {
+			const els = {};
+			const headers = ["Name", "Age", "City"];
+			const col_count: [number, "fixed" | "dynamic"] = [3, "fixed"];
+
+			const result = make_headers(headers, col_count, els, make_id);
+
+			expect(result.length).toBe(3);
+			expect(result[0].value).toBe("Name");
+			expect(result[1].value).toBe("Age");
+			expect(result[2].value).toBe("City");
+			expect(result[0].id).toBeDefined();
+			expect(result[1].id).toBeDefined();
+			expect(result[2].id).toBeDefined();
+			expect(Object.keys(els).length).toBe(3);
+		});
+
+		test("fills missing headers when col_count is fixed", () => {
+			const els = {};
+			const headers = ["Name", "Age"];
+			const col_count: [number, "fixed" | "dynamic"] = [4, "fixed"];
+
+			const result = make_headers(headers, col_count, els, make_id);
+
+			expect(result.length).toBe(4);
+			expect(result[0].value).toBe("Name");
+			expect(result[1].value).toBe("Age");
+			expect(result[2].value).toBe("2");
+			expect(result[3].value).toBe("3");
+			expect(Object.keys(els).length).toBe(4);
+		});
+
+		test("creates default headers when no headers are provided", () => {
+			const els = {};
+			const headers = [];
+			const col_count: [number, "fixed" | "dynamic"] = [3, "fixed"];
+
+			const result = make_headers(headers, col_count, els, make_id);
+
+			expect(result.length).toBe(3);
+			expect(result[0].value).toBe("0");
+			expect(result[1].value).toBe("1");
+			expect(result[2].value).toBe("2");
+			expect(Object.keys(els).length).toBe(3);
+		});
+
+		test("handles null values in headers", () => {
+			const els = {};
+			const headers = ["Name", null, "City"] as any;
+			const col_count: [number, "fixed" | "dynamic"] = [3, "fixed"];
+
+			const result = make_headers(headers, col_count, els, make_id);
+
+			expect(result.length).toBe(3);
+			expect(result[0].value).toBe("Name");
+			expect(result[1].value).toBe("");
+			expect(result[2].value).toBe("City");
+			expect(Object.keys(els).length).toBe(3);
 		});
 	});
 });

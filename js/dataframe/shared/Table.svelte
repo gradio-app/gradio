@@ -599,14 +599,12 @@
 				}
 			};
 
-			// Dispatch the change with the filtered data
 			dispatch("change", change_payload);
 
 			if (!value_is_output) {
 				dispatch("input");
 			}
 
-			// Clear the search query after committing the filter
 			df_actions.handle_search(null);
 		}
 	}
