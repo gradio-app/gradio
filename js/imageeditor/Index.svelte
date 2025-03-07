@@ -144,7 +144,8 @@
 		{elem_classes}
 		{height}
 		{width}
-		allow_overflow={false}
+		allow_overflow={true}
+		overflow_behavior="visible"
 		{container}
 		{scale}
 		{min_width}
@@ -179,7 +180,8 @@
 		{elem_classes}
 		height={height || safe_height}
 		{width}
-		allow_overflow={false}
+		allow_overflow={true}
+		overflow_behavior="visible"
 		{container}
 		{scale}
 		{min_width}

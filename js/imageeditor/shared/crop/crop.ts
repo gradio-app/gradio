@@ -70,17 +70,26 @@ export class CropTool implements Tool {
 	private is_dragging_window = false;
 	private drag_start_position: Point | null = null;
 	private drag_start_bounds: CropBounds | null = null;
+	private background_image_watcher: (() => void) | null = null;
+	private has_been_manually_changed = false;
 
 	/**
 	 * @method setup
 	 * @async
 	 * @description Sets up the crop tool with the given context and state
 	 * @param {ImageEditorContext} context - The image editor context
-	 * @param {EditorState} state - The current editor state
+	 * @param {ToolbarTool} tool - The current tool
+	 * @param {Subtool} subtool - The current subtool
 	 * @returns {Promise<void>}
 	 */
-	async setup(context: ImageEditorContext, state: EditorState): Promise<void> {
+	async setup(
+		context: ImageEditorContext,
+		tool: ToolbarTool,
+		subtool: Subtool
+	): Promise<void> {
 		this.image_editor_context = context;
+		this.current_tool = tool;
+		this.current_subtool = subtool;
 
 		context.dimensions.subscribe((dimensions) => {
 			this.dimensions = dimensions;
@@ -97,6 +106,8 @@ export class CropTool implements Tool {
 			if (this.crop_ui_container) {
 				this.update_crop_ui();
 			}
+
+			// Always update the mask when dimensions change
 			this.set_crop_mask();
 			this.update_crop_mask();
 		});
@@ -114,6 +125,12 @@ export class CropTool implements Tool {
 
 		// Setup event listeners
 		this.setup_event_listeners();
+
+		// Ensure the crop UI visibility matches the current tool state
+		const isCropActive = tool === "image" && subtool === "crop";
+		if (this.crop_ui_container) {
+			this.crop_ui_container.visible = isCropActive;
+		}
 	}
 
 	/**
@@ -122,9 +139,39 @@ export class CropTool implements Tool {
 	 * @returns {void}
 	 */
 	cleanup(): void {
+		// Remove the crop UI container
 		if (this.crop_ui_container) {
 			this.image_editor_context.app.stage.removeChild(this.crop_ui_container);
 		}
+
+		// Remove the mask and reset the image container's mask property
+		if (this.crop_mask) {
+			if (this.crop_mask.parent) {
+				this.crop_mask.parent.removeChild(this.crop_mask);
+			}
+
+			// Clear mask from background_image if applied
+			if (
+				this.image_editor_context.background_image &&
+				this.image_editor_context.background_image.mask === this.crop_mask
+			) {
+				this.image_editor_context.background_image.mask = null;
+			}
+
+			// Clear mask from image_container if applied
+			if (this.image_editor_context.image_container.mask === this.crop_mask) {
+				this.image_editor_context.image_container.mask = null;
+			}
+		}
+
+		// Remove the background image watcher from the ticker
+		if (this.background_image_watcher) {
+			this.image_editor_context.app.ticker.remove(
+				this.background_image_watcher
+			);
+			this.background_image_watcher = null;
+		}
+
 		// Remove event listeners
 		this.cleanup_event_listeners();
 	}
@@ -137,11 +184,20 @@ export class CropTool implements Tool {
 	 * @returns {void}
 	 */
 	set_tool(tool: ToolbarTool, subtool: Subtool): void {
+		this.current_tool = tool;
 		this.current_subtool = subtool;
 
 		// Show/hide crop UI based on tool and subtool
+		const isCropActive = tool === "image" && subtool === "crop";
+
+		// Only update the UI visibility, not the mask
 		if (this.crop_ui_container) {
-			this.crop_ui_container.visible = tool === "image" && subtool === "crop";
+			this.crop_ui_container.visible = isCropActive;
+		}
+
+		// If crop tool is active, ensure the mask is up to date
+		if (isCropActive && this.crop_mask) {
+			this.update_crop_mask();
 		}
 	}
 
@@ -152,11 +208,41 @@ export class CropTool implements Tool {
 	 * @returns {void}
 	 */
 	private set_crop_mask(): void {
+		// Remove any existing mask to avoid duplicates
+		if (this.crop_mask) {
+			if (this.crop_mask.parent) {
+				this.crop_mask.parent.removeChild(this.crop_mask);
+			}
+
+			// Clear mask from image_container if it was applied there
+			if (this.image_editor_context.image_container.mask === this.crop_mask) {
+				this.image_editor_context.image_container.mask = null;
+			}
+
+			// Clear mask from background_image if it was applied there
+			if (
+				this.image_editor_context.background_image &&
+				this.image_editor_context.background_image.mask === this.crop_mask
+			) {
+				this.image_editor_context.background_image.mask = null;
+			}
+		}
+
+		// Create a new mask
 		this.crop_mask = new Graphics();
 
-		// Add mask to image container and apply it
+		// Make the mask completely invisible (alpha 0) but still functional as a mask
+		// This is crucial to prevent the white background from appearing
+		this.crop_mask.alpha = 0;
+
+		// Add the mask to the display list for it to work properly
+		// It needs to be in the display list but won't be visible due to alpha=0
 		this.image_editor_context.image_container.addChild(this.crop_mask);
-		this.image_editor_context.image_container.mask = this.crop_mask;
+
+		// Apply it as a mask to the background image only if it exists
+		if (this.image_editor_context.background_image) {
+			this.image_editor_context.background_image.mask = this.crop_mask;
+		}
 	}
 
 	/**
@@ -181,15 +267,14 @@ export class CropTool implements Tool {
 
 		this.image_editor_context.app.stage.addChild(this.crop_ui_container);
 
-		// Create and apply mask directly to the image container
-		const image_container = this.image_editor_context.image_container;
-
+		// Create and apply mask to the image container
 		this.set_crop_mask();
 
-		// Start the update loop
+		// Start the update loop for the UI
 		this.image_editor_context.app.ticker.add(this.update_crop_ui.bind(this));
+
+		// Initialize the mask with the current crop bounds
 		this.update_crop_mask();
-		console.log("init", this.image_editor_context.image_container);
 	}
 
 	/**
@@ -241,7 +326,6 @@ export class CropTool implements Tool {
 	private create_handle(is_edge = false): Container {
 		const handle = new Container();
 		handle.eventMode = "static";
-		handle.cursor = "pointer";
 
 		const handle_graphics = new Graphics();
 
@@ -298,6 +382,7 @@ export class CropTool implements Tool {
 			// Center the handle
 			handle.x = width / 2 - (this.CORNER_SIZE * 3) / 2;
 			handle.y = i < 0 ? -this.LINE_THICKNESS : height;
+			handle.cursor = "ns-resize";
 
 			container.addChild(handle);
 		});
@@ -314,6 +399,7 @@ export class CropTool implements Tool {
 			// Center the handle
 			handle.x = i < 0 ? -this.LINE_THICKNESS : width;
 			handle.y = height / 2 - (this.CORNER_SIZE * 3) / 2;
+			handle.cursor = "ew-resize";
 
 			container.addChild(handle);
 		});
@@ -334,13 +420,13 @@ export class CropTool implements Tool {
 		height: number
 	): void {
 		const corners = [
-			{ x: 0, y: 0, xScale: 1, yScale: 1 }, // Top-left
-			{ x: width, y: 0, xScale: -1, yScale: 1 }, // Top-right
-			{ x: 0, y: height, xScale: 1, yScale: -1 }, // Bottom-left
-			{ x: width, y: height, xScale: -1, yScale: -1 } // Bottom-right
+			{ x: 0, y: 0, xScale: 1, yScale: 1, cursor: "nwse-resize" }, // Top-left
+			{ x: width, y: 0, xScale: -1, yScale: 1, cursor: "nesw-resize" }, // Top-right
+			{ x: 0, y: height, xScale: 1, yScale: -1, cursor: "nesw-resize" }, // Bottom-left
+			{ x: width, y: height, xScale: -1, yScale: -1, cursor: "nwse-resize" } // Bottom-right
 		];
 
-		corners.forEach(({ x, y, xScale, yScale }, i) => {
+		corners.forEach(({ x, y, xScale, yScale, cursor }, i) => {
 			const corner = this.create_handle(false); // false for corner handle
 			corner.x = x - (xScale < 0 ? -this.LINE_THICKNESS : this.LINE_THICKNESS);
 			corner.y = y - (yScale < 0 ? -this.LINE_THICKNESS : this.LINE_THICKNESS);
@@ -349,6 +435,8 @@ export class CropTool implements Tool {
 			corner.on("pointerdown", (event: FederatedPointerEvent) => {
 				this.handle_pointer_down(event, corner, i, -1);
 			});
+
+			corner.cursor = cursor;
 
 			container.addChild(corner);
 		});
@@ -393,66 +481,76 @@ export class CropTool implements Tool {
 	 * @param delta - the change in position
 	 */
 	private update_crop_bounds(delta: Point): void {
+		// Set flag indicating the crop has been manually changed
+		this.has_been_manually_changed = true;
+
 		// Scale the delta to match the image coordinates
 		const scaled_delta = new Point(delta.x, delta.y);
+
+		// Store original values to calculate actual changes
+		const original = {
+			x: this.crop_bounds.x,
+			y: this.crop_bounds.y,
+			width: this.crop_bounds.width,
+			height: this.crop_bounds.height
+		};
 
 		if (this.active_corner_index !== -1) {
 			// Handle corner dragging
 			switch (this.active_corner_index) {
 				case 0: // Top-left
-					this.crop_bounds.width = Math.max(
-						20,
-						this.crop_bounds.width - scaled_delta.x
-					);
-					this.crop_bounds.height = Math.max(
-						20,
-						this.crop_bounds.height - scaled_delta.y
-					);
-					this.crop_bounds.x = Math.min(
-						this.crop_bounds.x + scaled_delta.x,
-						this.crop_bounds.x + this.crop_bounds.width - 20
-					);
-					this.crop_bounds.y = Math.min(
-						this.crop_bounds.y + scaled_delta.y,
-						this.crop_bounds.y + this.crop_bounds.height - 20
-					);
+					// Update width and x position
+					const newWidth0 = Math.max(20, original.width - scaled_delta.x);
+					const widthDiff0 = original.width - newWidth0;
+					this.crop_bounds.width = newWidth0;
+					this.crop_bounds.x = original.x + widthDiff0;
+
+					// Update height and y position
+					const newHeight0 = Math.max(20, original.height - scaled_delta.y);
+					const heightDiff0 = original.height - newHeight0;
+					this.crop_bounds.height = newHeight0;
+					this.crop_bounds.y = original.y + heightDiff0;
 					break;
+
 				case 1: // Top-right
+					// Update width (right side)
 					this.crop_bounds.width = Math.max(
 						20,
-						this.crop_bounds.width + scaled_delta.x
+						original.width + scaled_delta.x
 					);
-					this.crop_bounds.height = Math.max(
-						20,
-						this.crop_bounds.height - scaled_delta.y
-					);
-					this.crop_bounds.y = Math.min(
-						this.crop_bounds.y + scaled_delta.y,
-						this.crop_bounds.y + this.crop_bounds.height - 20
-					);
+
+					// Update height and y position (top side)
+					const newHeight1 = Math.max(20, original.height - scaled_delta.y);
+					const heightDiff1 = original.height - newHeight1;
+					this.crop_bounds.height = newHeight1;
+					this.crop_bounds.y = original.y + heightDiff1;
 					break;
+
 				case 2: // Bottom-left
-					this.crop_bounds.width = Math.max(
-						20,
-						this.crop_bounds.width - scaled_delta.x
-					);
+					// Update width and x position (left side)
+					const newWidth2 = Math.max(20, original.width - scaled_delta.x);
+					const widthDiff2 = original.width - newWidth2;
+					this.crop_bounds.width = newWidth2;
+					this.crop_bounds.x = original.x + widthDiff2;
+
+					// Update height (bottom side)
 					this.crop_bounds.height = Math.max(
 						20,
-						this.crop_bounds.height + scaled_delta.y
-					);
-					this.crop_bounds.x = Math.min(
-						this.crop_bounds.x + scaled_delta.x,
-						this.crop_bounds.x + this.crop_bounds.width - 20
+						original.height + scaled_delta.y
 					);
 					break;
+
 				case 3: // Bottom-right
+					// Update width (right side)
 					this.crop_bounds.width = Math.max(
 						20,
-						this.crop_bounds.width + scaled_delta.x
+						original.width + scaled_delta.x
 					);
+
+					// Update height (bottom side)
 					this.crop_bounds.height = Math.max(
 						20,
-						this.crop_bounds.height + scaled_delta.y
+						original.height + scaled_delta.y
 					);
 					break;
 			}
@@ -460,35 +558,34 @@ export class CropTool implements Tool {
 			// Handle edge dragging
 			switch (this.active_edge_index) {
 				case 0: // Top
-					this.crop_bounds.height = Math.max(
-						20,
-						this.crop_bounds.height - scaled_delta.y
-					);
-					this.crop_bounds.y = Math.min(
-						this.crop_bounds.y + scaled_delta.y,
-						this.crop_bounds.y + this.crop_bounds.height - 20
-					);
+					// Update height and y position
+					const newHeight = Math.max(20, original.height - scaled_delta.y);
+					const heightDiff = original.height - newHeight;
+					this.crop_bounds.height = newHeight;
+					this.crop_bounds.y = original.y + heightDiff;
 					break;
+
 				case 1: // Bottom
+					// Update height only
 					this.crop_bounds.height = Math.max(
 						20,
-						this.crop_bounds.height + scaled_delta.y
+						original.height + scaled_delta.y
 					);
 					break;
+
 				case 2: // Left
-					this.crop_bounds.width = Math.max(
-						20,
-						this.crop_bounds.width - scaled_delta.x
-					);
-					this.crop_bounds.x = Math.min(
-						this.crop_bounds.x + scaled_delta.x,
-						this.crop_bounds.x + this.crop_bounds.width - 20
-					);
+					// Update width and x position
+					const newWidth = Math.max(20, original.width - scaled_delta.x);
+					const widthDiff = original.width - newWidth;
+					this.crop_bounds.width = newWidth;
+					this.crop_bounds.x = original.x + widthDiff;
 					break;
+
 				case 3: // Right
+					// Update width only
 					this.crop_bounds.width = Math.max(
 						20,
-						this.crop_bounds.width + scaled_delta.x
+						original.width + scaled_delta.x
 					);
 					break;
 			}
@@ -502,7 +599,28 @@ export class CropTool implements Tool {
 	 * constrains the crop bounds to the image dimensions
 	 */
 	private constrain_crop_bounds(): void {
-		// Constrain x and y to keep the crop window within the image bounds
+		// Store original values
+		const original = {
+			x: this.crop_bounds.x,
+			y: this.crop_bounds.y,
+			width: this.crop_bounds.width,
+			height: this.crop_bounds.height
+		};
+
+		// First, constrain width and height to prevent exceeding image dimensions
+		// and ensure minimum size
+		this.crop_bounds.width = Math.max(
+			20,
+			Math.min(this.crop_bounds.width, this.dimensions.width)
+		);
+
+		this.crop_bounds.height = Math.max(
+			20,
+			Math.min(this.crop_bounds.height, this.dimensions.height)
+		);
+
+		// Then constrain x and y to keep the crop window within the image bounds
+		const oldX = this.crop_bounds.x;
 		this.crop_bounds.x = Math.max(
 			0,
 			Math.min(
@@ -511,6 +629,17 @@ export class CropTool implements Tool {
 			)
 		);
 
+		// If x position was constrained, adjust width to prevent opposite handle drift
+		if (
+			(this.crop_bounds.x !== oldX && this.active_corner_index === 0) ||
+			this.active_edge_index === 2
+		) {
+			// Left side was constrained, adjust width to compensate
+			const xDiff = this.crop_bounds.x - oldX;
+			this.crop_bounds.width -= xDiff;
+		}
+
+		const oldY = this.crop_bounds.y;
 		this.crop_bounds.y = Math.max(
 			0,
 			Math.min(
@@ -519,7 +648,19 @@ export class CropTool implements Tool {
 			)
 		);
 
-		// Existing width/height constraints
+		// If y position was constrained, adjust height to prevent opposite handle drift
+		if (
+			this.crop_bounds.y !== oldY &&
+			(this.active_corner_index === 0 ||
+				this.active_corner_index === 1 ||
+				this.active_edge_index === 0)
+		) {
+			// Top side was constrained, adjust height to compensate
+			const yDiff = this.crop_bounds.y - oldY;
+			this.crop_bounds.height -= yDiff;
+		}
+
+		// Final check to ensure width and height don't exceed image dimensions from current position
 		this.crop_bounds.width = Math.max(
 			20,
 			Math.min(
@@ -543,11 +684,13 @@ export class CropTool implements Tool {
 	private update_crop_mask(): void {
 		if (!this.crop_mask) return;
 
-		console.log("updating crop mask");
+		// Clear the previous mask shape
+		this.crop_mask.clear();
 
+		// Draw the new mask shape based on crop bounds
+		// Using a white fill with alpha=1 for the mask area
+		// The mask itself has alpha=0 so it's invisible, but the shape works for masking
 		this.crop_mask
-			.clear()
-
 			.rect(
 				this.crop_bounds.x,
 				this.crop_bounds.y,
@@ -555,8 +698,11 @@ export class CropTool implements Tool {
 				this.crop_bounds.height
 			)
 			.fill({ color: 0xffffff, alpha: 1 });
-		console.log(this.image_editor_context.image_container);
-		console.log(this.crop_mask);
+
+		// Ensure the mask is applied to the background image only if it exists
+		if (this.image_editor_context.background_image) {
+			this.image_editor_context.background_image.mask = this.crop_mask;
+		}
 	}
 
 	/**
@@ -743,10 +889,11 @@ export class CropTool implements Tool {
 	 */
 	private handle_window_drag_start(event: FederatedPointerEvent): void {
 		if (this.current_subtool !== "crop") return;
-		console.log("dragging window");
 		event.stopPropagation();
 
 		this.is_dragging_window = true;
+		// Set flag indicating the crop has been manually changed
+		this.has_been_manually_changed = true;
 
 		// Store the initial position and bounds
 		const local_pos = this.image_editor_context.image_container.toLocal(
@@ -754,5 +901,12 @@ export class CropTool implements Tool {
 		);
 		this.drag_start_position = new Point(local_pos.x, local_pos.y);
 		this.drag_start_bounds = { ...this.crop_bounds };
+	}
+
+	/**
+	 * @returns whether the crop has been manually changed by the user
+	 */
+	public get crop_manually_changed(): boolean {
+		return this.has_been_manually_changed;
 	}
 }

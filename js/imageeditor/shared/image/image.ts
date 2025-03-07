@@ -124,13 +124,13 @@ export class AddImageCommand implements BgImageCommand {
 
 		// Get existing layers and their textures before modifying anything
 		const existing_layers = this.context.layer_manager.get_layers();
-		const layer_textures = new Map<Container, RenderTexture>();
+		const layer_textures = new Map<string, RenderTexture>();
 
 		// Store textures of existing layers
 		for (const layer of existing_layers) {
-			const textures = this.context.layer_manager.get_layer_textures(layer);
+			const textures = this.context.layer_manager.get_layer_textures(layer.id);
 			if (textures?.draw) {
-				layer_textures.set(layer, textures.draw);
+				layer_textures.set(layer.id, textures.draw);
 			}
 		}
 
@@ -145,54 +145,12 @@ export class AddImageCommand implements BgImageCommand {
 		// Resize and preserve content of existing layers
 		if (existing_layers && existing_layers.length > 0) {
 			for (const layer of existing_layers) {
-				if (layer !== background_layer) {
-					// Get the old texture before creating new layer
-					const old_texture = layer_textures.get(layer);
-					if (old_texture) {
-						// Create a new layer with the new dimensions
-						const new_layer = this.context.layer_manager.create_layer(
-							width,
-							height
-						);
-						const new_texture =
-							this.context.layer_manager.get_layer_textures(new_layer)?.draw;
-
-						if (new_texture) {
-							// Create a sprite from the old texture, maintaining aspect ratio
-							const sprite = new Sprite(old_texture);
-							const scale = Math.min(
-								width / old_texture.width,
-								height / old_texture.height
-							);
-							sprite.scale.set(scale);
-
-							// Center the sprite in the new dimensions
-							sprite.x = (width - sprite.width) / 2;
-							sprite.y = (height - sprite.height) / 2;
-
-							// Clear the new texture first to ensure transparency
-							this.context.app.renderer.render({
-								container: new Graphics(),
-								target: new_texture,
-								clear: true
-							});
-
-							// Render the scaled sprite onto the new texture
-							this.context.app.renderer.render({
-								container: sprite,
-								target: new_texture,
-								clear: false
-							});
-						}
-					}
-				}
+				this.context.layer_manager.delete_layer(layer.id);
 			}
-		} else {
-			// If no existing layers, create an initial drawing layer
-			this.context.layer_manager.create_layer(width, height);
 		}
 
 		this.context.set_background_image(this.sprite);
+		this.context.layer_manager.create_layer(width, height);
 		this.context.reset();
 	}
 

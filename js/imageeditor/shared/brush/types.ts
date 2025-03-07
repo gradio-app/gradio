@@ -1,5 +1,20 @@
 import { type ColorInput } from "tinycolor2";
 
+/**
+ * Represents the state of the brush tool.
+ * @interface BrushState
+ * @property {number} opacity - The opacity of the brush.
+ * @property {number} brush_size - The size of the brush.
+ * @property {string} color - The color of the brush in hex format.
+ * @property {"draw"|"erase"} mode - The mode of the brush, either draw or erase.
+ */
+export interface BrushState {
+	opacity: number;
+	brush_size: number;
+	color: string;
+	mode: "draw" | "erase";
+}
+
 export interface Eraser {
 	/**
 	 * The default size of the eraser.

@@ -4,7 +4,12 @@ import {
 	type FederatedPointerEvent
 } from "pixi.js";
 import { type ImageEditorContext, type Tool } from "../core/editor";
-import { type ToolbarTool, type Subtool } from "../Toolbar.svelte";
+import { type Tool as ToolbarTool, type Subtool } from "../Toolbar.svelte";
+
+/**
+ * ZoomTool class for handling zoom and pan functionality in the image editor
+ * Implements the Tool interface
+ */
 export class ZoomTool implements Tool {
 	name = "zoom";
 	private image_editor_context!: ImageEditorContext;
@@ -16,34 +21,104 @@ export class ZoomTool implements Tool {
 	// State
 	private is_pinching = false;
 	private is_dragging = false;
+	private is_pointer_dragging = false;
 	private last_touch_position: Point | null = null;
 	private last_pinch_distance = 0;
-	private is_pointer_dragging = false;
 	private drag_start = new Point();
 	private current_tool!: ToolbarTool;
 	private current_subtool!: Subtool;
-
+	private local_scale = 1;
 	private local_dimensions: { width: number; height: number } = {
 		width: 0,
 		height: 0
 	};
-	private local_scale = 1;
 	private local_position: { x: number; y: number } = { x: 0, y: 0 };
 
-	prevent_default(event: FederatedWheelEvent | FederatedPointerEvent): void {
+	/**
+	 * Prevents default behavior for events
+	 * @param {FederatedWheelEvent | FederatedPointerEvent} event - The event to prevent default behavior for
+	 */
+	prevent_default(
+		event: FederatedWheelEvent | FederatedPointerEvent | WheelEvent
+	): void {
 		event.preventDefault();
 		event.stopPropagation();
 	}
 
+	/**
+	 * Sets the current tool and subtool
+	 * @param {ToolbarTool} tool - The tool to set
+	 * @param {Subtool} subtool - The subtool to set
+	 */
 	set_tool(tool: ToolbarTool, subtool: Subtool): void {
 		this.current_tool = tool;
 		this.current_subtool = subtool;
-
-		console.log(tool, subtool);
 	}
 
-	async setup(context: ImageEditorContext): Promise<void> {
+	/**
+	 * Sets the zoom level to a specific percentage or fits the image to the screen
+	 * @param {number | 'fit'} zoom_level - The zoom level to set (0-1) or 'fit' to use min_zoom
+	 * @returns {void}
+	 */
+	set_zoom(zoom_level: number | "fit"): void {
+		// Calculate the min zoom level
+		const min_zoom = this.calculate_min_zoom(
+			this.local_dimensions.width,
+			this.local_dimensions.height
+		);
+
+		// Determine the target zoom level
+		let target_zoom: number;
+		if (zoom_level === "fit") {
+			target_zoom = min_zoom;
+		} else {
+			// Ensure zoom_level is between 0 and 1, then scale it to the range [min_zoom, max_zoom]
+			target_zoom = Math.max(0, Math.min(this.max_zoom, zoom_level));
+			console.log("Target zoom:", target_zoom);
+		}
+
+		// Get the canvas dimensions
+		const canvas = this.image_editor_context.app.screen;
+		const canvas_width = canvas.width;
+		const canvas_height = canvas.height;
+
+		// Determine the center point for zooming
+		let center_point: { x: number; y: number };
+
+		// If the whole image is visible (at min_zoom), use the center of the screen
+		if (Math.abs(this.local_scale - min_zoom) < 0.001) {
+			center_point = {
+				x: canvas_width / 2,
+				y: canvas_height / 2
+			};
+		} else {
+			// Use the center of the currently visible portion of the image
+			center_point = {
+				x: canvas_width / 2,
+				y: canvas_height / 2
+			};
+		}
+
+		// Apply the zoom using the existing zoom_to_point method
+		console.log("Zooming to:", target_zoom, center_point);
+		this.zoom_to_point(target_zoom, center_point, true);
+	}
+
+	/**
+	 * Sets up the zoom tool with the given context and state
+	 * @param {ImageEditorContext} context - The image editor context
+	 * @param {ToolbarTool} tool - The current tool
+	 * @param {Subtool} subtool - The current subtool
+	 * @returns {Promise<void>}
+	 */
+	async setup(
+		context: ImageEditorContext,
+		tool: ToolbarTool,
+		subtool: Subtool
+	): Promise<void> {
 		this.image_editor_context = context;
+		this.current_tool = tool;
+		this.current_subtool = subtool;
 
 		// Initialize zoom and position
 		const { width, height } = await this.get_container_dimensions();
@@ -57,8 +132,7 @@ export class ZoomTool implements Tool {
 
 		const center_x = canvas.width / 2;
 		const center_y = canvas.height / 2;
-		console.log("center_x", center_x);
-		console.log("center_y", center_y);
+
 		// Calculate initial position to center the scaled image
 		const scaled_width = width * min_zoom;
 		const scaled_height = height * min_zoom;
@@ -70,9 +144,7 @@ export class ZoomTool implements Tool {
 		// Setup event listeners
 		this.setup_event_listeners();
 
-		// Update context with initial valuesw
-		console.log("initial_x", initial_x);
-		console.log("initial_y", initial_y);
+		// Update context with initial values
 		this.image_editor_context.set_image_properties({
 			scale: min_zoom,
 			position: { x: initial_x, y: initial_y }
@@ -91,6 +163,10 @@ export class ZoomTool implements Tool {
 		});
 	}
 
+	/**
+	 * Sets up event listeners for zoom and pan functionality
+	 * @private
+	 */
 	private setup_event_listeners(): void {
 		const stage = this.image_editor_context.app.stage;
 		const canvas = this.image_editor_context.app.canvas;
@@ -107,9 +183,18 @@ export class ZoomTool implements Tool {
 
 		// Setup touch/pointer events based on device
 		if ("ontouchstart" in window) {
-			stage.addEventListener("touchstart", this.handle_touch_start.bind(this));
-			stage.addEventListener("touchmove", this.handle_touch_move.bind(this));
-			stage.addEventListener("touchend", this.handle_touch_end.bind(this));
+			stage.addEventListener(
+				"touchstart",
+				this.handle_touch_start.bind(this) as EventListener
+			);
+			stage.addEventListener(
+				"touchmove",
+				this.handle_touch_move.bind(this) as EventListener
+			);
+			stage.addEventListener(
+				"touchend",
+				this.handle_touch_end.bind(this) as EventListener
+			);
 		} else {
 			stage.addEventListener(
 				"pointerdown",
@@ -127,6 +212,11 @@ export class ZoomTool implements Tool {
 		}
 	}
 
+	/**
+	 * Handles wheel events for zooming
+	 * @param {FederatedWheelEvent} event - The wheel event
+	 * @private
+	 */
 	private handle_wheel(event: FederatedWheelEvent): void {
 		const is_trackpad = event.deltaMode === 0 && Math.abs(event.deltaY) < 50;
 		const scroll_speed = is_trackpad ? 30 : 10;
@@ -190,6 +280,9 @@ export class ZoomTool implements Tool {
 		}
 	}
 
+	/**
+	 * Cleans up resources and event listeners
+	 */
 	cleanup(): void {
 		const stage = this.image_editor_context.app.stage;
 		stage.removeEventListener("wheel", this.handle_wheel.bind(this));
@@ -197,10 +290,16 @@ export class ZoomTool implements Tool {
 		if ("ontouchstart" in window) {
 			stage.removeEventListener(
 				"touchstart",
-				this.handle_touch_start.bind(this)
+				this.handle_touch_start.bind(this) as EventListener
 			);
-			stage.removeEventListener("touchmove", this.handle_touch_move.bind(this));
-			stage.removeEventListener("touchend", this.handle_touch_end.bind(this));
+			stage.removeEventListener(
+				"touchmove",
+				this.handle_touch_move.bind(this) as EventListener
+			);
+			stage.removeEventListener(
+				"touchend",
+				this.handle_touch_end.bind(this) as EventListener
+			);
 		} else {
 			stage.removeEventListener(
 				"pointerdown",
@@ -218,6 +317,11 @@ export class ZoomTool implements Tool {
 		}
 	}
 
+	/**
+	 * Gets the dimensions of the container
+	 * @returns {Promise<{width: number, height: number}>} The container dimensions
+	 * @private
+	 */
 	private async get_container_dimensions(): Promise<{
 		width: number;
 		height: number;
@@ -229,6 +333,13 @@ export class ZoomTool implements Tool {
 		};
 	}
 
+	/**
+	 * Calculates the minimum zoom level to fit the image in the viewport
+	 * @param {number} container_width - The width of the container
+	 * @param {number} container_height - The height of the container
+	 * @returns {number} The minimum zoom level
+	 * @private
+	 */
 	private calculate_min_zoom(
 		container_width: number,
 		container_height: number
@@ -236,8 +347,6 @@ export class ZoomTool implements Tool {
 		const canvas = this.image_editor_context.app.screen;
 		const viewport_width = canvas.width;
 		const viewport_height = canvas.height;
-
-		console.log(this.image_editor_context.app);
 
 		if (
 			!container_width ||
@@ -252,14 +361,6 @@ export class ZoomTool implements Tool {
 		const available_width = viewport_width - this.border_padding * 2;
 		const available_height = viewport_height - this.border_padding * 2;
 
-		console.log(
-			"Available space:",
-			available_width,
-			available_height,
-			container_width,
-			container_height
-		);
-
 		// Calculate zoom ratios for both dimensions
 		const width_ratio = available_width / container_width;
 		const height_ratio = available_height / container_height;
@@ -268,132 +369,241 @@ export class ZoomTool implements Tool {
 		return Math.min(width_ratio, height_ratio);
 	}
 
-	// private setup_touch_events(): void {
-	// 	const canvas = this.image_editor_context.app.view;
-
-	// 	canvas.addEventListener("touchstart", this.handle_touch_start.bind(this), {
-	// 		passive: false
-	// 	});
-	// 	canvas.addEventListener("touchmove", this.handle_touch_move.bind(this), {
-	// 		passive: false
-	// 	});
-	// 	canvas.addEventListener("touchend", this.handle_touch_end.bind(this), {
-	// 		passive: false
-	// 	});
-	// }
-
-	// private setup_pointer_events(): void {
-	// 	const stage = this.image_editor_context.app.stage;
-
-	// 	stage.eventMode = "static";
-	// 	stage.hitArea = this.image_editor_context.app.screen;
-
-	// 	stage.addEventListener("pointerdown", this.handle_pointer_down.bind(this));
-	// 	stage.addEventListener("pointermove", this.handle_pointer_move.bind(this));
-	// 	stage.addEventListener("pointerup", this.handle_pointer_up.bind(this));
-	// 	stage.addEventListener(
-	// 		"pointerupoutside",
-	// 		this.handle_pointer_up.bind(this)
-	// 	);
-	// }
-
-	private handle_touch_start(event: TouchEvent): void {
+	/**
+	 * Handles touch start events
+	 * @param {TouchEvent} event - The touch event
+	 * @private
+	 */
+	private handle_touch_start(event: FederatedPointerEvent): void {
 		event.preventDefault();
 
-		if (event.touches.length === 2) {
+		// Cast to any to access TouchEvent properties
+		const touchEvent = event as any;
+
+		if (touchEvent.touches && touchEvent.touches.length === 2) {
 			this.is_pinching = true;
 			this.last_pinch_distance = Math.hypot(
-				event.touches[0].pageX - event.touches[1].pageX,
-				event.touches[0].pageY - event.touches[1].pageY
+				touchEvent.touches[0].pageX - touchEvent.touches[1].pageX,
+				touchEvent.touches[0].pageY - touchEvent.touches[1].pageY
 			);
-		} else if (event.touches.length === 1) {
+		} else if (touchEvent.touches && touchEvent.touches.length === 1) {
 			this.is_dragging = true;
 			const rect = this.image_editor_context.app.view.getBoundingClientRect();
 			this.last_touch_position = new Point(
-				event.touches[0].pageX - rect.left,
-				event.touches[0].pageY - rect.top
+				touchEvent.touches[0].pageX - rect.left,
+				touchEvent.touches[0].pageY - rect.top
 			);
 		}
 	}
 
-	private handle_touch_move(event: TouchEvent): void {
+	/**
+	 * Handles touch move events
+	 * @param {TouchEvent} event - The touch event
+	 * @private
+	 */
+	private handle_touch_move(event: FederatedPointerEvent): void {
 		event.preventDefault();
 
-		if (this.is_pinching && event.touches.length === 2) {
+		// Cast to any to access TouchEvent properties
+		const touchEvent = event as any;
+
+		if (
+			this.is_pinching &&
+			touchEvent.touches &&
+			touchEvent.touches.length === 2
+		) {
 			const rect = this.image_editor_context.app.view.getBoundingClientRect();
 			const current_distance = Math.hypot(
-				event.touches[0].pageX - event.touches[1].pageX,
-				event.touches[0].pageY - event.touches[1].pageY
+				touchEvent.touches[0].pageX - touchEvent.touches[1].pageX,
+				touchEvent.touches[0].pageY - touchEvent.touches[1].pageY
 			);
 
 			const pinch_center = {
-				x: (event.touches[0].pageX + event.touches[1].pageX) / 2 - rect.left,
-				y: (event.touches[0].pageY + event.touches[1].pageY) / 2 - rect.top
+				x:
+					(touchEvent.touches[0].pageX + touchEvent.touches[1].pageX) / 2 -
+					rect.left,
+				y:
+					(touchEvent.touches[0].pageY + touchEvent.touches[1].pageY) / 2 -
+					rect.top
 			};
 
 			const scale_val = current_distance / this.last_pinch_distance;
-			const new_zoom = this.local_scale * scale_val;
-
-			this.zoom_to_point(new_zoom, pinch_center, false);
 			this.last_pinch_distance = current_distance;
+
+			// Update zoom based on pinch
+			this.zoom_to_point(this.local_scale * scale_val, pinch_center);
 		} else if (
 			this.is_dragging &&
-			event.touches.length === 1 &&
+			touchEvent.touches &&
+			touchEvent.touches.length === 1 &&
 			this.last_touch_position
 		) {
 			const rect = this.image_editor_context.app.view.getBoundingClientRect();
 			const current_position = new Point(
-				event.touches[0].pageX - rect.left,
-				event.touches[0].pageY - rect.top
+				touchEvent.touches[0].pageX - rect.left,
+				touchEvent.touches[0].pageY - rect.top
 			);
 
 			const dx = current_position.x - this.last_touch_position.x;
 			const dy = current_position.y - this.last_touch_position.y;
 
-			const new_position = {
-				x: this.local_position.x + dx,
-				y: this.local_position.y + dy
-			};
-
+			// Update position based on drag
 			this.image_editor_context.set_image_properties({
-				scale: this.local_scale,
-				position: new_position
+				position: {
+					x: this.local_position.x + dx,
+					y: this.local_position.y + dy
+				}
 			});
 
 			this.last_touch_position = current_position;
 		}
 	}
 
-	private handle_touch_end(event: TouchEvent): void {
+	/**
+	 * Handles touch end events
+	 * @param {TouchEvent} event - The touch event
+	 * @private
+	 */
+	private handle_touch_end(event: FederatedPointerEvent): void {
 		event.preventDefault();
 
-		if (event.touches.length < 2) {
+		// Cast to any to access TouchEvent properties
+		const touchEvent = event as any;
+
+		if (touchEvent.touches && touchEvent.touches.length < 2) {
 			this.is_pinching = false;
-			if (event.touches.length === 1) {
+			if (touchEvent.touches && touchEvent.touches.length === 1) {
 				const rect = this.image_editor_context.app.view.getBoundingClientRect();
 				this.last_touch_position = new Point(
-					event.touches[0].pageX - rect.left,
-					event.touches[0].pageY - rect.top
+					touchEvent.touches[0].pageX - rect.left,
+					touchEvent.touches[0].pageY - rect.top
 				);
 				this.is_dragging = true;
 			}
 		}
-		if (event.touches.length === 0) {
+		if (touchEvent.touches && touchEvent.touches.length === 0) {
 			this.is_dragging = false;
 			this.last_touch_position = null;
 			this.last_pinch_distance = 0;
-
-			// Apply bounds when touch ends
-			const bounded_position = this.get_bounded_position(this.local_position);
-
-			this.image_editor_context.set_image_properties({
-				scale: this.local_scale,
-				position: bounded_position
-			});
 		}
 	}
 
-	private handle_pointer_down(event: any): void {
+	/**
+	 * Gets the bounded position to keep the image within the viewport
+	 * @param {Object} position - The position to bound
+	 * @param {number} position.x - The x coordinate
+	 * @param {number} position.y - The y coordinate
+	 * @returns {Object} The bounded position
+	 * @private
+	 */
+	private get_bounded_position(position: { x: number; y: number }): {
+		x: number;
+		y: number;
+	} {
+		const canvas = this.image_editor_context.app.screen;
+		const scaled_width = this.local_dimensions.width * this.local_scale;
+		const scaled_height = this.local_dimensions.height * this.local_scale;
+
+		// Calculate center position
+		const center_position = {
+			x: (canvas.width - scaled_width) / 2,
+			y: (canvas.height - scaled_height) / 2
+		};
+
+		if (scaled_width <= canvas.width && scaled_height <= canvas.height) {
+			return center_position;
+		}
+
+		let x = position.x;
+		let y = position.y;
+
+		if (scaled_width <= canvas.width) {
+			x = center_position.x;
+		} else {
+			const min_x = canvas.width - scaled_width;
+			const max_x = 0;
+			x = Math.max(min_x, Math.min(max_x, position.x));
+		}
+
+		if (scaled_height <= canvas.height) {
+			y = center_position.y;
+		} else {
+			const min_y = canvas.height - scaled_height;
+			const max_y = 0;
+			y = Math.max(min_y, Math.min(max_y, position.y));
+		}
+
+		return { x, y };
+	}
+
+	/**
+	 * Zooms to a specific point with a new zoom level
+	 * @param {number} new_zoom - The new zoom level
+	 * @param {Object} point - The point to zoom to
+	 * @param {number} point.x - The x coordinate of the point
+	 * @param {number} point.y - The y coordinate of the point
+	 * @param {boolean} hard - Whether to apply a hard zoom (no animation)
+	 * @private
+	 */
+	private zoom_to_point(
+		new_zoom: number,
+		point: { x: number; y: number },
+		hard?: boolean
+	): void {
+		// Get the cursor position relative to the image's top-left corner
+		const cursor_relative_to_image = {
+			x: (point.x - this.local_position.x) / this.local_scale,
+			y: (point.y - this.local_position.y) / this.local_scale
+		};
+
+		// Calculate what percentage of the image width/height this represents
+		const image_percentages = {
+			x: cursor_relative_to_image.x / this.local_dimensions.width,
+			y: cursor_relative_to_image.y / this.local_dimensions.height
+		};
+
+		// Apply zoom limits
+		const min_zoom = this.calculate_min_zoom(
+			this.local_dimensions.width,
+			this.local_dimensions.height
+		);
+		new_zoom = Math.min(Math.max(new_zoom, min_zoom), this.max_zoom);
+
+		// Calculate new dimensions
+		const new_scaled_width = this.local_dimensions.width * new_zoom;
+		const new_scaled_height = this.local_dimensions.height * new_zoom;
+
+		// Calculate new position maintaining the same relative cursor position
+		let new_position = {
+			x: point.x - new_scaled_width * image_percentages.x,
+			y: point.y - new_scaled_height * image_percentages.y
+		};
+
+		// Only apply bounds and center if we're at minimum zoom
+		if (new_zoom === min_zoom) {
+			const canvas_width = this.image_editor_context.app.screen.width;
+			const canvas_height = this.image_editor_context.app.screen.height;
+
+			// Center the image
+			new_position = {
+				x: (canvas_width - new_scaled_width) / 2,
+				y: (canvas_height - new_scaled_height) / 2
+			};
+		}
+
+		this.image_editor_context.set_image_properties({
+			scale: new_zoom,
+			position: new_position,
+			animate: typeof hard === "boolean" ? !hard : new_zoom === min_zoom
+		});
+	}
+
+	/**
+	 * Handles pointer down events
+	 * @param {FederatedPointerEvent} event - The pointer event
+	 * @private
+	 */
+	private handle_pointer_down(event: FederatedPointerEvent): void {
 		// Only allow dragging if the current tool is 'pan'
 		if (event.button === 0 && this.current_tool === "pan") {
 			this.is_pointer_dragging = true;
@@ -403,7 +613,12 @@ export class ZoomTool implements Tool {
 		}
 	}
 
-	private handle_pointer_move(event: any): void {
+	/**
+	 * Handles pointer move events
+	 * @param {FederatedPointerEvent} event - The pointer event
+	 * @private
+	 */
+	private handle_pointer_move(event: FederatedPointerEvent): void {
 		// Only handle move if we're dragging and the tool is 'pan'
 		if (this.is_pointer_dragging && this.current_tool === "pan") {
 			const raw_position = {
@@ -441,7 +656,12 @@ export class ZoomTool implements Tool {
 		}
 	}
 
-	private handle_pointer_up(event: any): void {
+	/**
+	 * Handles pointer up events
+	 * @param {FederatedPointerEvent} event - The pointer event
+	 * @private
+	 */
+	private handle_pointer_up(event: FederatedPointerEvent): void {
 		// Only handle up if we're dragging and the tool is 'pan'
 		if (this.is_pointer_dragging && this.current_tool === "pan") {
 			this.is_pointer_dragging = false;
@@ -492,105 +712,5 @@ export class ZoomTool implements Tool {
 				animate: true
 			});
 		}
-	}
-
-	private get_bounded_position(position: { x: number; y: number }): {
-		x: number;
-		y: number;
-	} {
-		const canvas = this.image_editor_context.app.screen;
-		const scaled_width = this.local_dimensions.width * this.local_scale;
-		const scaled_height = this.local_dimensions.height * this.local_scale;
-
-		// Calculate center position
-		const center_position = {
-			x: (canvas.width - scaled_width) / 2,
-			y: (canvas.height - scaled_height) / 2
-		};
-
-		if (scaled_width <= canvas.width && scaled_height <= canvas.height) {
-			return center_position;
-		}
-
-		let x = position.x;
-		let y = position.y;
-
-		if (scaled_width <= canvas.width) {
-			x = center_position.x;
-		} else {
-			const min_x = canvas.width - scaled_width;
-			const max_x = 0;
-			x = Math.max(min_x, Math.min(max_x, position.x));
-		}
-
-		if (scaled_height <= canvas.height) {
-			y = center_position.y;
-		} else {
-			const min_y = canvas.height - scaled_height;
-			const max_y = 0;
-			y = Math.max(min_y, Math.min(max_y, position.y));
-		}
-
-		return { x, y };
-	}
-
-	private zoom_to_point(
-		new_zoom: number,
-		point: { x: number; y: number },
-		hard = false
-	): void {
-		console.group("Zoom Calculations");
-
-		// Get the cursor position relative to the image's top-left corner
-		const cursor_relative_to_image = {
-			x: (point.x - this.local_position.x) / this.local_scale,
-			y: (point.y - this.local_position.y) / this.local_scale
-		};
-
-		// Calculate what percentage of the image width/height this represents
-		const image_percentages = {
-			x: cursor_relative_to_image.x / this.local_dimensions.width,
-			y: cursor_relative_to_image.y / this.local_dimensions.height
-		};
-
-		console.log("Cursor percentages:", image_percentages);
-
-		// Apply zoom limits
-		const min_zoom = this.calculate_min_zoom(
-			this.local_dimensions.width,
-			this.local_dimensions.height
-		);
-		new_zoom = Math.min(Math.max(new_zoom, min_zoom), this.max_zoom);
-
-		// Calculate new dimensions
-		const new_scaled_width = this.local_dimensions.width * new_zoom;
-		const new_scaled_height = this.local_dimensions.height * new_zoom;
-
-		// Calculate new position maintaining the same relative cursor position
-		let new_position = {
-			x: point.x - new_scaled_width * image_percentages.x,
-			y: point.y - new_scaled_height * image_percentages.y
-		};
-
-		// Only apply bounds and center if we're at minimum zoom
-		if (new_zoom === min_zoom) {
-			const canvas_width = this.image_editor_context.app.screen.width;
-			const canvas_height = this.image_editor_context.app.screen.height;
-
-			// Center the image
-			new_position = {
-				x: (canvas_width - new_scaled_width) / 2,
-				y: (canvas_height - new_scaled_height) / 2
-			};
-		}
-
-		console.log("Final position:", new_position);
-
-		this.image_editor_context.set_image_properties({
-			scale: new_zoom,
-			position: new_position,
-			animate: new_zoom === min_zoom
-		});
-		console.groupEnd();
 	}
 }

@@ -12,8 +12,11 @@
 
 	const dispatch = createEventDispatcher();
 
+	/**
+	 * Handles image addition and dispatches an event
+	 * @param {{ detail: Blob | File }} event - The event containing the image data
+	 */
 	function add_image({ detail }: { detail: Blob | File }): void {
-		console.log(detail);
 		dispatch("add_image", detail);
 	}
 </script>

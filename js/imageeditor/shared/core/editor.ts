@@ -16,7 +16,7 @@ import type { Subtool, Tool as ToolbarTool } from "../Toolbar.svelte";
 import type { Readable, Writable } from "svelte/store";
 import { spring, type Spring } from "svelte/motion";
 import { writable, get } from "svelte/store";
-import { erase_shader } from "../../imageeditor-old/shared/layers/utils";
+import { Rectangle } from "pixi.js";
 
 export interface Command {
 	execute: () => void;
@@ -62,11 +62,17 @@ export class CommandManager {
 }
 
 export class LayerManager {
-	private layers: Container[] = [];
+	private layers: { name: string; id: string; container: Container }[] = [];
 	private active_layer: Container | null = null;
 	private draw_textures: Map<Container, RenderTexture> = new Map();
-	private erase_textures: Map<Container, RenderTexture> = new Map();
-	private filters: Map<Container, Filter> = new Map();
+	layer_store: Writable<{
+		active_layer: string;
+		layers: { name: string; id: string }[];
+	}> = writable({
+		active_layer: "",
+
+		layers: []
+	});
 	private background_layer: Container | null = null;
 	private image_container: Container;
 	private app: Application;
@@ -78,16 +84,12 @@ export class LayerManager {
 
 	create_background_layer(width: number, height: number): Container {
 		if (this.background_layer) {
-			// Remove existing background layer
-			const bg_index = this.layers.indexOf(this.background_layer);
-			if (bg_index > -1) {
-				this.layers.splice(bg_index, 1);
-			}
 			this.background_layer.destroy();
 		}
 
 		// Create new background layer
 		const layer = new Container();
+
 		this.background_layer = layer;
 
 		// Create a render texture for the background with transparency
@@ -106,9 +108,10 @@ export class LayerManager {
 		// Clear the texture with transparency
 		const clear_graphics = new Graphics();
 		clear_graphics.clear();
-		clear_graphics.beginFill(0, 0);
-		clear_graphics.drawRect(0, 0, width, height);
-		clear_graphics.endFill();
+
+		clear_graphics
+			.rect(0, 0, width, height)
+			.fill({ color: 0xffffff, alpha: 1 });
 
 		// Render with transparency
 		this.app.renderer.render({
@@ -117,8 +120,6 @@ export class LayerManager {
 			clear: true
 		});
 
-		// Add it as the first layer
-		this.layers.unshift(layer);
 		this.image_container.addChild(layer);
 
 		// Set lowest z-index
@@ -130,10 +131,13 @@ export class LayerManager {
 
 	create_layer(width: number, height: number): Container {
 		const layer = new Container();
+		const layer_id = Math.random().toString(36).substring(2, 15);
+		const layer_name = `Layer ${this.layers.length + 1}`;
+		console.log({ layers: this.layers });
 
-		// Add new layer after background layer if it exists
-		const insert_index = this.background_layer ? 1 : 0;
-		this.layers.splice(insert_index, 0, layer);
+		this.layers.push({ name: layer_name, id: layer_id, container: layer });
+		console.log({ layers: this.layers });
+
 		this.image_container.addChild(layer);
 
 		// Create a single render texture for drawing with transparency
@@ -145,70 +149,97 @@ export class LayerManager {
 			scaleMode: SCALE_MODES.NEAREST
 		});
 
-		// Create sprite to display the texture with transparency
+		// // Create sprite to display the texture with transparency
 		const canvas_sprite = new Sprite(draw_texture);
 		layer.addChild(canvas_sprite);
 
-		// Create an empty graphics object
+		// // Create an empty graphics object
 		const clear_graphics = new Graphics();
 		clear_graphics.clear();
 		clear_graphics.beginFill(0, 0);
 		clear_graphics.drawRect(0, 0, width, height);
 		clear_graphics.endFill();
 
-		// Render with transparency
+		// // Render with transparency
 		this.app.renderer.render({
 			container: clear_graphics,
 			target: draw_texture,
 			clear: true
 		});
 
-		// Store texture for drawing
+		// // Store texture for drawing
 		this.draw_textures.set(layer, draw_texture);
 
-		this.active_layer = layer;
 		this.update_layer_order();
+		this.active_layer = layer;
+		this.layer_store.set({
+			active_layer: layer_id,
+			layers: this.layers
+		});
+		console.log({ layers: this.layers });
 		return layer;
 	}
 
-	get_active_layer(): Container | null {
+	get_active_layer(): typeof this.active_layer {
 		return this.active_layer;
 	}
 
-	set_active_layer(layer: Container): void {
-		if (this.layers.includes(layer)) {
-			this.active_layer = layer;
+	set_active_layer(id: string): void {
+		if (this.layers.some((l) => l.id === id)) {
+			this.active_layer =
+				this.layers.find((l) => l.id === id)?.container ||
+				this.layers[0]?.container ||
+				null;
+			this.layer_store.set({
+				active_layer: id,
+				layers: this.layers
+			});
 		}
 	}
 
-	get_layers(): Container[] {
-		return [...this.layers];
+	get_layers(): typeof this.layers {
+		return this.layers;
 	}
 
-	get_layer_textures(layer: Container): { draw: RenderTexture } | null {
-		const draw = this.draw_textures.get(layer);
-		if (draw) {
-			return { draw };
+	get_layer_textures(id: string): { draw: RenderTexture } | null {
+		const layer = this.layers.find((l) => l.id === id);
+		if (layer) {
+			const draw = this.draw_textures.get(layer.container);
+			if (draw) {
+				return { draw };
+			}
 		}
 		return null;
 	}
 
-	delete_layer(layer: Container): void {
-		const index = this.layers.indexOf(layer);
+	delete_layer(id: string): void {
+		console.log({ id });
+		const index = this.layers.findIndex((l) => l.id === id);
+		console.log({ index, layers: this.layers });
 		if (index > -1) {
 			// Clean up texture
-			const draw_texture = this.draw_textures.get(layer);
+			const draw_texture = this.draw_textures.get(this.layers[index].container);
 			if (draw_texture) {
 				draw_texture.destroy();
-				this.draw_textures.delete(layer);
+				this.draw_textures.delete(this.layers[index].container);
 			}
 
+			console.log({ layers: this.layers[index] });
+
+			this.layers[index].container.destroy();
+			if (this.active_layer === this.layers[index].container) {
+				this.active_layer =
+					this.layers[Math.max(0, index - 1)]?.container || null;
+			}
 			this.layers.splice(index, 1);
-			layer.destroy();
 
-			if (this.active_layer === layer) {
-				this.active_layer = this.layers[Math.max(0, index - 1)] || null;
-			}
+			this.layer_store.update((_layers) => ({
+				active_layer:
+					_layers.active_layer === id
+						? this.layers[this.layers.length - 1]?.id
+						: _layers.active_layer,
+				layers: this.layers
+			}));
 
 			this.update_layer_order();
 		}
@@ -219,13 +250,274 @@ export class LayerManager {
 		if (this.background_layer) {
 			this.background_layer.zIndex = -1;
 		}
-
+		console.log({ layers: this.layers });
 		// Update other layers starting from 0
 		this.layers.forEach((layer, index) => {
-			if (layer !== this.background_layer) {
-				layer.zIndex = index;
-			}
+			layer.container.zIndex = index;
 		});
+
+		console.log({ layers: this.layers });
+	}
+
+	move_layer(id: string, direction: "up" | "down"): void {
+		const index = this.layers.findIndex((l) => l.id === id);
+		if (index > -1) {
+			const new_index = direction === "up" ? index - 1 : index + 1;
+			// this.layers.splice(index, 1);
+			// this.layers.splice(new_index, 0, this.layers[index]);
+			this.layers = this.layers.map((l, i) => {
+				if (i === index) {
+					return this.layers[new_index];
+				}
+				if (i === new_index) {
+					return this.layers[index];
+				}
+				return l;
+			});
+			this.update_layer_order();
+			this.layer_store.update((_layers) => ({
+				active_layer: id,
+				layers: this.layers
+			}));
+		}
+	}
+
+	/**
+	 * Resizes all layers to a new width and height
+	 * @param newWidth The new width of the layers
+	 * @param newHeight The new height of the layers
+	 * @param scale If true, scales the layer content to fit the new dimensions. If false, keeps the content size unchanged.
+	 * @param anchor The anchor point to position the content relative to the new size
+	 */
+	resize_all_layers(
+		newWidth: number,
+		newHeight: number,
+		scale: boolean,
+		anchor:
+			| "top-left"
+			| "top-center"
+			| "top-right"
+			| "middle-left"
+			| "center"
+			| "middle-right"
+			| "bottom-left"
+			| "bottom-center"
+			| "bottom-right"
+	): void {
+		console.log(
+			`Resizing all layers to ${newWidth}x${newHeight}, scale: ${scale}, anchor: ${anchor}`
+		);
+
+		// Create a map of the old layers by ID for reference
+		const oldLayersById = new Map(this.layers.map((l) => [l.id, l]));
+		const oldBackgroundLayer = this.background_layer;
+		console.log({ oldBackgroundLayer });
+
+		// Calculate position based on anchor
+		const calculatePosition = (
+			oldWidth: number,
+			oldHeight: number
+		): { posX: number; posY: number } => {
+			let posX = 0;
+			let posY = 0;
+
+			// Determine position based on anchor point
+			if (anchor.includes("left")) {
+				posX = 0;
+			} else if (anchor.includes("right")) {
+				posX = newWidth - oldWidth;
+			} else {
+				// center or middle
+				posX = Math.floor((newWidth - oldWidth) / 2);
+			}
+
+			if (anchor.includes("top")) {
+				posY = 0;
+			} else if (anchor.includes("bottom")) {
+				posY = newHeight - oldHeight;
+			} else {
+				// center or middle
+				posY = Math.floor((newHeight - oldHeight) / 2);
+			}
+
+			return { posX, posY };
+		};
+
+		// First, create a new background layer
+		if (oldBackgroundLayer) {
+			console.log(
+				`Creating new background layer with dimensions: ${newWidth}x${newHeight}`
+			);
+
+			// If there's a background image (sprite) in the old background layer, handle it
+			let backgroundImage: Sprite | null = null;
+
+			// Find any sprites in the background layer (might be the background image)
+			// for (let i = 0; i < oldBackgroundLayer.children.length; i++) {
+			// 	const child = oldBackgroundLayer.children[i];
+			// 	console.log({ child });
+			// 	if (
+			// 		child.label === "Sprite" &&
+			// 		child.texture &&
+			// 		// Skip the white background rectangle which usually has very specific properties
+			// 		child.width !== oldBackgroundLayer.width &&
+			// 		child.height !== oldBackgroundLayer.height
+			// 	) {
+			// 		console.log("MATCH", { child });
+			// 		backgroundImage = child;
+
+			// 		break;
+			// 	}
+			// }
+
+			backgroundImage = oldBackgroundLayer.children[1] as Sprite;
+
+			// If we found a background image sprite, add it to the new background layer
+			if (backgroundImage) {
+				console.log({ backgroundImage });
+
+				// Create a new sprite with the same texture
+				const newBgImage = new Sprite(backgroundImage.texture);
+
+				// Get the old dimensions for positioning
+				const oldWidth = backgroundImage.width;
+				const oldHeight = backgroundImage.height;
+
+				if (scale) {
+					// If scaling, stretch the content to fill the new canvas
+					newBgImage.width = newWidth;
+					newBgImage.height = newHeight;
+					newBgImage.position.set(0, 0);
+					console.log(`Scaling background image to fill new dimensions`);
+				} else {
+					// If not scaling, maintain original size and position according to anchor
+					const { posX, posY } = calculatePosition(oldWidth, oldHeight);
+					console.log({ posX, posY });
+					newBgImage.position.set(posX, posY);
+					console.log(`Positioning background image at (${posX}, ${posY})`);
+				}
+
+				// Add the image to the new background layer
+
+				console.log(`Added background image to new background layer`);
+
+				// Create a new background layer with the new dimensions
+				const newBackgroundLayer = this.create_background_layer(
+					newWidth,
+					newHeight
+				);
+				newBackgroundLayer.addChild(newBgImage);
+			}
+		}
+
+		// Now process regular layers
+		const newLayers: { name: string; id: string; container: Container }[] = [];
+
+		// Process in reverse to maintain the same layer order
+		for (let i = this.layers.length - 1; i >= 0; i--) {
+			const oldLayer = this.layers[i];
+			const oldContainer = oldLayer.container;
+			const oldTexture = this.draw_textures.get(oldContainer);
+
+			if (!oldTexture) {
+				console.warn(`No texture found for layer ${oldLayer.id}, skipping.`);
+				continue;
+			}
+
+			console.log(`Processing layer: ${oldLayer.id}`);
+			console.log(
+				`Old texture dimensions: width=${oldTexture.width}, height=${oldTexture.height}`
+			);
+
+			// Create a new layer with the new dimensions
+			const newContainer = this.create_layer(newWidth, newHeight);
+
+			// Find the newly created layer in our layers array
+			const newLayerIndex = this.layers.findIndex(
+				(l) => l.container === newContainer
+			);
+			if (newLayerIndex === -1) {
+				console.error(`Could not find newly created layer in layers array`);
+				continue;
+			}
+
+			// Extract the new layer and remove it from the current layers array
+			const newLayer = this.layers.splice(newLayerIndex, 1)[0];
+
+			// Keep the same ID and name as the old layer
+			newLayer.id = oldLayer.id;
+			newLayer.name = oldLayer.name;
+
+			// Add to our new layers array
+			newLayers.push(newLayer);
+
+			// Get the new texture
+			const newTexture = this.draw_textures.get(newContainer);
+			if (!newTexture) {
+				console.warn(
+					`No texture found for new layer ${newLayer.id}, skipping.`
+				);
+				continue;
+			}
+
+			// Clear the new texture to ensure transparency
+			this.app.renderer.clear({ target: newTexture, clearColor: [0, 0, 0, 0] });
+
+			// Create a sprite with the old texture content
+			const sprite = new Sprite(oldTexture);
+
+			if (scale) {
+				// If scaling, stretch the content to fill the new canvas
+				sprite.width = newWidth;
+				sprite.height = newHeight;
+				sprite.position.set(0, 0);
+				console.log(`Scaling layer content to fill new dimensions`);
+			} else {
+				// If not scaling, maintain original size and position according to anchor
+				const { posX, posY } = calculatePosition(
+					oldTexture.width,
+					oldTexture.height
+				);
+				sprite.position.set(posX, posY);
+				console.log(`Positioning layer content at (${posX}, ${posY})`);
+			}
+
+			// Render the sprite to the new texture
+			this.app.renderer.render(sprite, { renderTexture: newTexture });
+			console.log(`Rendered layer content to new texture`);
+
+			// Clean up
+			sprite.destroy();
+
+			// Remove the old container
+			if (this.image_container.children.includes(oldContainer)) {
+				this.image_container.removeChild(oldContainer);
+			}
+
+			// Clean up old texture
+			oldTexture.destroy();
+		}
+
+		// Replace the layers array with the new layers
+		this.layers = newLayers;
+
+		// Set the active layer to the top-most layer if available
+		if (newLayers.length > 0) {
+			this.set_active_layer(newLayers[0].id);
+		}
+
+		// Final cleanup - ensure any orphaned textures are destroyed
+		setTimeout(() => {
+			// Force a garbage collection trigger by clearing any unused resources
+			this.app.renderer.runners.postrender.emit();
+			console.log("Performed final cleanup");
+		}, 100);
+
+		// Update the layer store to reflect changes
+		this.update_layer_order();
+		console.log(
+			`Completed layer resize operation with ${newLayers.length} new layers`
+		);
 	}
 }
 
@@ -354,8 +646,8 @@ export class ImageEditor {
 	private target_element: HTMLElement;
 	private width: number;
 	private height: number;
-	private dimensions: Spring<{ width: number; height: number }>;
-	private scale: Spring<number>;
+	dimensions: Spring<{ width: number; height: number }>;
+	scale: Spring<number>;
 	private position: Spring<{ x: number; y: number }>;
 	private state: EditorState;
 	private scale_value = 1;
@@ -364,6 +656,13 @@ export class ImageEditor {
 		width: 0,
 		height: 0
 	};
+	layers: Writable<{
+		active_layer: string;
+		layers: { name: string; id: string }[];
+	}> = writable({
+		active_layer: "",
+		layers: []
+	});
 	private outline_container!: Container;
 	private outline_graphics!: Graphics;
 	private background_image?: Sprite;
@@ -372,12 +671,14 @@ export class ImageEditor {
 	public ready: Promise<void>;
 
 	constructor(options: ImageEditorOptions) {
-		this.ready = new Promise((resolve) => {
-			this.ready_resolve = resolve;
-		});
 		this.target_element = options.target_element;
 		this.width = options.width;
 		this.height = options.height;
+		this.command_manager = new CommandManager();
+		// this.layers = writable([]);
+		this.ready = new Promise((resolve) => {
+			this.ready_resolve = resolve;
+		});
 
 		this.tools = new Map(
 			options.tools.map((tool) => {
@@ -388,7 +689,6 @@ export class ImageEditor {
 			})
 		);
 
-		this.command_manager = new CommandManager();
 		this.dimensions = spring(
 			{ width: this.width, height: this.height },
 			spring_config
@@ -456,12 +756,11 @@ export class ImageEditor {
 
 		await this.setup_containers();
 
+		//create background layer
+		this.layer_manager.create_background_layer(this.width, this.height);
+
 		// Create initial layer
-		const initial_layer = this.layer_manager.create_layer(
-			this.width,
-			this.height
-		);
-		this.image_container.addChild(initial_layer);
+		this.layer_manager.create_layer(this.width, this.height);
 
 		for (const tool of this.tools.values()) {
 			await tool.setup(this.context, this.current_tool, this.current_subtool);
@@ -564,6 +863,7 @@ export class ImageEditor {
 
 		// Initialize LayerManager
 		this.layer_manager = new LayerManager(this.image_container, this.app);
+		this.layers = this.layer_manager.layer_store;
 	}
 
 	// private resize_image(width: number, height: number): void {
@@ -657,5 +957,82 @@ export class ImageEditor {
 
 	set_background_image(image: Sprite): void {
 		this.background_image = image;
+	}
+
+	reset_canvas(): void {
+		// Clear all layers
+		const layers = [...this.layer_manager.get_layers()];
+		for (const layer of layers) {
+			this.layer_manager.delete_layer(layer.id);
+		}
+
+		this.layer_manager.create_layer(this.width, this.height);
+
+		// Clear background image
+		this.background_image = undefined;
+		this.background_image_present.set(false);
+
+		// Reset position, scale and dimensions to default values
+		this.set_image_properties({
+			width: this.width,
+			height: this.height,
+			scale: 1,
+			position: { x: 0, y: 0 },
+			animate: false
+		});
+
+		// Reset command stacks
+		this.command_manager = new CommandManager();
+
+		//create background layer
+		this.layer_manager.create_background_layer(this.width, this.height);
+
+		// Reset tools
+		for (const tool of this.tools.values()) {
+			tool.cleanup();
+			tool.setup(this.context, this.current_tool, this.current_subtool);
+		}
+	}
+
+	add_layer(): void {
+		this.layer_manager.create_layer(this.width, this.height);
+	}
+
+	set_layer(id: string): void {
+		this.layer_manager.set_active_layer(id);
+	}
+
+	move_layer(id: string, direction: "up" | "down"): void {
+		this.layer_manager.move_layer(id, direction);
+	}
+
+	delete_layer(id: string): void {
+		this.layer_manager.delete_layer(id);
+	}
+
+	modify_canvas_size(
+		width: number,
+		height: number,
+		anchor:
+			| "top-left"
+			| "top-center"
+			| "top-right"
+			| "middle-left"
+			| "center"
+			| "middle-right"
+			| "bottom-left"
+			| "bottom-center"
+			| "bottom-right",
+		scale: boolean
+	): void {
+		this.width = width;
+		this.height = height;
+		this.layer_manager.resize_all_layers(width, height, scale, anchor);
+		this.set_image_properties({
+			width,
+			height,
+			scale: 1,
+			animate: false
+		});
 	}
 }

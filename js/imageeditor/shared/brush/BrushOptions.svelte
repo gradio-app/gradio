@@ -1,24 +1,24 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, tick } from "svelte";
 	import { click_outside } from "../utils/events";
 
-	import { type Brush } from "./Brush.svelte";
+	import { type Brush } from "./types";
 	import ColorPicker from "./ColorPicker.svelte";
 	import ColorSwatch from "./ColorSwatch.svelte";
 	import ColorField from "./ColorField.svelte";
 	import BrushSize from "./BrushSize.svelte";
 
-	export let colors: string[];
-	export let selected_color: string;
+	export let colors: any[];
+	export let selected_color: any;
 	export let color_mode: Brush["color_mode"] | undefined = undefined;
 	export let recent_colors: (string | null)[] = [];
 	export let selected_size: number;
-	export let dimensions: [number, number];
-	export let parent_width: number;
-	export let parent_height: number;
-	export let parent_left: number;
-	export let toolbar_box: DOMRect | Record<string, never>;
+	export let selected_opacity: number;
 	export let show_swatch: boolean;
+	export let show_size: boolean;
+	export let mode: "brush" | "eraser" = "brush";
+
+	$: console.log({ mode });
 
 	let color_picker = false;
 	let current_mode: "hex" | "rgb" | "hsl" = "hex";
@@ -59,34 +59,40 @@
 	$: handle_color_change(selected_color);
 	let width = 0;
 	let height = 0;
-	let c_width = 0;
-	let c_height = 0;
-	let wrap_el: HTMLDivElement;
-	let full_screen = false;
-	let anchor: "default" | "center" | "top" = "default";
-	let left_anchor = 0;
-	let top_anchor = null;
-	$: {
-		if (wrap_el && (width || height || c_height || c_width)) {
-			const box = wrap_el.getBoundingClientRect();
-			color_picker;
 
-			if (box.width > parent_width) {
-				full_screen = true;
-			} else if (parent_width > box.width + 230 * 2 + 25) {
-				anchor = "default";
+	function debounce(
+		func: (...args: any[]) => void,
+		delay: number,
+	): (...args: any[]) => void {
+		let timeout: NodeJS.Timeout;
+		return function (...args: any[]): void {
+			clearTimeout(timeout);
+			timeout = setTimeout(() => func(...args), delay);
+		};
+	}
 
-				left_anchor = toolbar_box.right - parent_left + 24;
-			} else {
-				anchor = "center";
-			}
-
-			if (box.height + 50 > parent_height) {
-				anchor = "top";
-				top_anchor = true;
-			}
+	export let preview = false;
+	function handle_preview(): void {
+		if (!preview) {
+			// Show preview immediately when requested
+			preview = true;
+			debounced_close_preview();
+		} else {
+			// Only use debounce when hiding the preview
+			debounced_close_preview();
 		}
 	}
+
+	function handle_close_preview(): void {
+		preview = false;
+	}
+
+	const debounced_close_preview = debounce(handle_close_preview, 1000);
+
+	$: selected_size, selected_color, handle_preview();
+
+	// ensure the brush options do not clip out of view
+	let top = 0;
 </script>
 
 <svelte:window bind:innerHeight={height} bind:innerWidth={width} />
@@ -95,17 +101,16 @@
 	class="wrap"
 	class:padded={!color_picker}
 	use:click_outside={() => dispatch("click_outside")}
-	class:anchor_default={anchor === "default"}
-	class:anchor_center={anchor === "center"}
-	class:anchor_top={anchor === "top"}
-	bind:this={wrap_el}
-	bind:clientWidth={c_width}
-	bind:clientHeight={c_height}
-	class:anchor={`${left_anchor}px`}
+	class:color_picker
+	class:size_picker={show_size && mode === "brush"}
+	class:eraser_picker={mode === "eraser"}
 >
 	{#if color_mode === "defaults"}
 		{#if color_picker}
-			<ColorPicker bind:color={selected_color} />
+			<ColorPicker
+				bind:color={selected_color}
+				bind:opacity={selected_opacity}
+			/>
 			<ColorField
 				bind:current_mode
 				color={selected_color}
@@ -126,17 +131,15 @@
 		/>
 	{/if}
 
-	{#if color_picker || show_swatch}
-		<div class="sep"></div>
+	{#if show_size}
+		<BrushSize max={100} min={1} bind:selected_size />
 	{/if}
-
-	<BrushSize max={dimensions[0] / 10} min={1} bind:selected_size />
 </div>
 
 <style>
 	.wrap {
 		max-width: 230px;
-		width: 90%;
+		/* width: 90%; */
 		position: absolute;
 		display: flex;
 		flex-direction: column;
@@ -150,31 +153,20 @@
 		cursor: default;
 		z-index: var(--layer-top);
 		overflow: hidden;
+		top: 0;
+
+		transform: translate(35px, -12px);
 	}
 
-	.anchor_default {
-		position: absolute;
-		left: var(--left-anchor);
-		bottom: 8px;
-	}
-	.anchor_center {
-		position: absolute;
-		bottom: 50px;
-		left: 50%;
-		transform: translateX(-50%);
+	.color_picker {
+		transform: translate(35px, -50%);
 	}
 
-	.anchor_top {
-		position: absolute;
-		top: 1px;
-		left: 50%;
-		transform: translateX(-50%);
+	.size_picker {
+		transform: translate(35px, 18px);
 	}
 
-	.sep {
-		height: 1px;
-		background-color: var(--block-border-color);
-		margin: 0 var(--size-3);
-		margin-top: var(--size-1);
+	.eraser_picker {
+		transform: translate(35px, -7px);
 	}
 </style>

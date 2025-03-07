@@ -6,8 +6,23 @@
 	// import { EDITOR_KEY, type EditorContext } from "../ImageEditor.svelte";
 	// import type { FileData } from "@gradio/client";
 	import { Layers } from "@gradio/icons";
+	import { createEventDispatcher } from "svelte";
+	import type { Writable } from "svelte/store";
 
+	const dispatch = createEventDispatcher<{
+		new_layer: void;
+		change_layer: string;
+		move_layer: { id: string; direction: "up" | "down" };
+		delete_layer: string;
+	}>();
+
+	export let layers: Writable<{
+		active_layer: string;
+		layers: { name: string; id: string }[];
+	}>;
 	// let show_layers = false;
+
+	$: console.log($layers);
 
 	// export let layer_files: (FileData | null)[] | null = [];
 	// export let enable_layers = true;
@@ -127,13 +142,24 @@
 
 	export let enable_layers = true;
 	export let show_layers = false;
-	export let layers = [];
-	export let current_layer = 0;
 
 	// $: current_layer.set($manager_current_layer);
 
-	function new_layer() {
-		layers.push({});
+	function new_layer(): void {
+		dispatch("new_layer");
+	}
+
+	function change_layer(id: string): void {
+		dispatch("change_layer", id);
+		show_layers = false;
+	}
+
+	function move_layer(id: string, direction: "up" | "down"): void {
+		dispatch("move_layer", { id, direction });
+	}
+
+	function delete_layer(id: string): void {
+		dispatch("delete_layer", id);
 	}
 </script>
 
@@ -145,22 +171,45 @@
 	>
 		<button
 			aria-label="Show Layers"
-			on:click={() => (show_layers = !show_layers)}
-			><span class="icon"><Layers /></span> Layer {current_layer + 1}
+			on:click|stopPropagation={() => (show_layers = !show_layers)}
+			><span class="icon"><Layers /></span>
+			{$layers.layers.find((l) => l.id === $layers.active_layer)?.name}
 		</button>
 		{#if show_layers}
 			<ul>
-				{#each layers as layer, i (i)}
+				{#each $layers.layers as { id, name }, i (i)}
 					<li>
 						<button
-							class:selected_layer={current_layer === i}
+							class:selected_layer={$layers.active_layer === id}
 							aria-label={`layer-${i + 1}`}
-							on:click={() => (current_layer = i)}>Layer {i + 1}</button
+							on:click|stopPropagation={() => change_layer(id)}>{name}</button
 						>
+						{#if $layers.layers.length > 1}
+							<div>
+								{#if i > 0}
+									<button on:click|stopPropagation={() => move_layer(id, "up")}
+										>↑</button
+									>
+								{/if}
+								{#if i < $layers.layers.length - 1}
+									<button
+										on:click|stopPropagation={() => move_layer(id, "down")}
+										>↓</button
+									>
+								{/if}
+								{#if $layers.layers.length > 1}
+									<button on:click|stopPropagation={() => delete_layer(id)}
+										>X</button
+									>
+								{/if}
+							</div>
+						{/if}
 					</li>
 				{/each}
 				<li>
-					<button aria-label="Add Layer" on:click={new_layer}> +</button>
+					<button aria-label="Add Layer" on:click|stopPropagation={new_layer}>
+						+
+					</button>
 				</li>
 			</ul>
 		{/if}
@@ -177,7 +226,7 @@
 	}
 
 	.layer-wrap {
-		position: relative;
+		position: absolute;
 		display: flex;
 		justify-content: center;
 		align-items: center;
@@ -185,10 +234,13 @@
 		display: flex;
 		z-index: 1000;
 		border-top-left-radius: var(--radius-sm);
-		border-bottom-left-radius: var(--radius-sm);
+
 		background-color: #fff;
-		padding: var(--spacing-sm) 0.3rem;
+		padding: var(--spacing-sm) 0.5rem;
 		width: auto;
+		bottom: 0;
+		right: 0;
+		border-bottom: 0;
 		border-right: 0;
 	}
 
@@ -196,12 +248,14 @@
 		justify-content: flex-start;
 		align-items: flex-start;
 		width: 100%;
-		border-bottom: 1px solid var(--block-border-color);
+
 		display: flex;
 		align-items: center;
-		justify-content: center;
 		font-size: var(--scale-000);
 		line-height: var(--line-sm);
+	}
+	.layer-wrap > button {
+		border-bottom: 1px solid var(--block-border-color);
 	}
 
 	.layer-wrap li:last-child button {
@@ -210,7 +264,7 @@
 		font-size: var(--scale-0);
 		line-height: 1;
 		font-weight: var(--weight-bold);
-		padding: 5px 0 1px 0;
+		padding: 3px 0 1px 0;
 	}
 
 	.closed > button {
@@ -234,28 +288,61 @@
 	ul {
 		position: absolute;
 		bottom: 0;
-		left: 0;
+		right: 0;
 		background: var(--block-background-fill);
-		width: calc(100% + 1px);
+		width: max-content;
+		min-width: 100%;
 		list-style: none;
 		z-index: var(--layer-top);
 		border: 1px solid var(--block-border-color);
-		padding: var(--spacing-sm) 0;
+		padding-bottom: var(--spacing-sm);
 		text-wrap: none;
 		transform: translate(-1px, 1px);
-		border-radius: var(--radius-sm);
-		border-bottom-right-radius: 0;
+		border-top-left-radius: var(--radius-sm);
+		border-right: 0;
 	}
 
 	.layer-wrap ul > li > button {
 		margin-left: 0;
 	}
 
-	.sep {
+	/* .sep {
 		height: 12px;
 		background-color: var(--block-border-color);
 		width: 1px;
 		display: block;
 		margin-left: var(--spacing-xl);
+	} */
+	li {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		border-bottom: 1px solid var(--block-border-color);
+	}
+
+	li div {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: var(--spacing-sm);
+		padding-left: var(--spacing-xxl);
+	}
+	li > button {
+		padding: var(--spacing-sm) var(--spacing-md);
+	}
+
+	li > div {
+		padding: 0 var(--spacing-sm) 0 var(--spacing-lg);
+	}
+	li > div > button {
+		padding: var(--spacing-sm) 0;
+	}
+
+	li:last-child {
+		border-bottom: none;
+	}
+
+	li:last-child button {
+		justify-content: center;
 	}
 </style>

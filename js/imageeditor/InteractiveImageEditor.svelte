@@ -212,12 +212,15 @@
 
 	$: [heading, paragraph] = placeholder ? inject(placeholder) : [false, false];
 
+	/**
+	 * Handles image addition from event
+	 * @param {CustomEvent<Blob | any>} e - The custom event containing the image
+	 */
 	function handle_image(e: CustomEvent<Blob | any>): void {
 		editor.add_image(e.detail);
 		background_image = true;
 	}
 
-	$: console.log({ background_image });
 	let current_tool: ToolbarTool;
 </script>
 
@@ -239,6 +242,8 @@
 	{full_history}
 	bind:background_image
 	bind:current_tool
+	brush_options={brush}
+	eraser_options={eraser}
 >
 	<!-- <div class="sources-container">
 		<Sources

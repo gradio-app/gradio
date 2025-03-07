@@ -64,3 +64,5 @@ export { default as Spinner } from "./Spinner.svelte";
 export { default as Resize } from "./Resize.svelte";
 export { default as Retry } from "./Retry.svelte";
 export { default as ScrollDownArrow } from "./ScrollDownArrow.svelte";
+export { default as ZoomIn } from "./ZoomIn.svelte";
+export { default as ZoomOut } from "./ZoomOut.svelte";
