@@ -162,16 +162,20 @@
 
 	let data: { id: string; value: string | number }[][] = [[]];
 	let old_val: undefined | (string | number)[][] = undefined;
+	let search_results: {
+		id: string;
+		value: string | number;
+		display_value?: string;
+		styling?: string;
+	}[][] = [[]];
 
 	$: if (!dequal(values, old_val)) {
 		data = process_data(
 			values as (string | number)[][],
-			row_count,
-			col_count,
-			headers,
 			els,
 			data_binding,
-			make_id
+			make_id,
+			display_value
 		);
 		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
 		df_actions.reset_sort_state();
@@ -179,6 +183,32 @@
 		if ($df_state.current_search_query) {
 			df_actions.handle_search(null);
 		}
+	}
+
+	$: if ($df_state.current_search_query !== undefined) {
+		const cell_map = new Map();
+
+		data.forEach((row, row_idx) => {
+			row.forEach((cell, col_idx) => {
+				cell_map.set(cell.id, {
+					value: cell.value,
+					styling: styling?.[row_idx]?.[col_idx] || ""
+				});
+			});
+		});
+
+		const filtered = df_actions.filter_data(data);
+
+		search_results = filtered.map((row) =>
+			row.map((cell) => {
+				const original = cell_map.get(cell.id);
+				return {
+					...cell,
+					display_value: original?.display_value || String(cell.value),
+					styling: original?.styling || ""
+				};
+			})
+		);
 	}
 
 	let previous_headers = _headers.map((h) => h.value);
@@ -206,11 +236,6 @@
 	$: {
 		df_actions.sort_data(data, display_value, styling);
 		df_actions.update_row_order(data);
-	}
-
-	$: filtered_data = df_actions.filter_data(data);
-	$: if ($df_state.current_search_query !== undefined) {
-		filtered_data = df_actions.filter_data(data);
 	}
 
 	async function edit_header(i: number, _select = false): Promise<void> {
@@ -538,14 +563,41 @@
 
 	function commit_filter(): void {
 		if ($df_state.current_search_query && show_search === "filter") {
-			dispatch("change", {
-				data: filtered_data.map((row) => row.map((cell) => cell.value)),
-				headers: _headers.map((h) => h.value),
-				metadata: null
+			const filtered_data: (string | number)[][] = [];
+			const filtered_display_values: string[][] = [];
+			const filtered_styling: string[][] = [];
+
+			search_results.forEach((row) => {
+				const data_row: (string | number)[] = [];
+				const display_row: string[] = [];
+				const styling_row: string[] = [];
+
+				row.forEach((cell) => {
+					data_row.push(cell.value);
+					display_row.push(cell.display_value || String(cell.value));
+					styling_row.push(cell.styling || "");
+				});
+
+				filtered_data.push(data_row);
+				filtered_display_values.push(display_row);
+				filtered_styling.push(styling_row);
 			});
+
+			const change_payload = {
+				data: filtered_data,
+				headers: _headers.map((h) => h.value),
+				metadata: {
+					display_value: filtered_display_values,
+					styling: filtered_styling
+				}
+			};
+
+			dispatch("change", change_payload);
+
 			if (!value_is_output) {
 				dispatch("input");
 			}
+
 			df_actions.handle_search(null);
 		}
 	}
@@ -713,7 +765,7 @@
 		>
 			<div class="table-wrap">
 				<VirtualTable
-					bind:items={filtered_data}
+					bind:items={search_results}
 					{max_height}
 					bind:actual_height={table_height}
 					bind:table_scrollbar_width={scrollbar_width}
@@ -763,7 +815,7 @@
 						{/if}
 						{#each item as { value, id }, j (id)}
 							<TableCell
-								bind:value={filtered_data[index][j].value}
+								bind:value={search_results[index][j].value}
 								{index}
 								{j}
 								{actual_pinned_columns}
@@ -775,8 +827,7 @@
 								{selected_cells}
 								{copy_flash}
 								{active_cell_menu}
-								display_value={display_value?.[index]?.[j]}
-								styling={styling?.[index]?.[j]}
+								styling={search_results[index][j].styling}
 								{latex_delimiters}
 								{line_breaks}
 								datatype={Array.isArray(datatype) ? datatype[j] : datatype}
