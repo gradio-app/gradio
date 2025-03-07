@@ -186,36 +186,30 @@
 	}
 
 	$: if ($df_state.current_search_query !== undefined) {
-		const filtered = df_actions.filter_data(data);
+		const cell_map = new Map();
 
-		const original_data_map = {};
 		data.forEach((row, row_idx) => {
 			row.forEach((cell, col_idx) => {
-				original_data_map[cell.id] = {
+				cell_map.set(cell.id, {
 					value: cell.value,
 					display_value: cell.display_value || String(cell.value),
-					row_idx,
-					col_idx
-				};
+					styling: styling?.[row_idx]?.[col_idx] || ""
+				});
 			});
 		});
 
-		search_results = filtered.map((row) => {
-			return row.map((cell) => {
-				const original_cell_data = original_data_map[cell.id];
+		const filtered = df_actions.filter_data(data);
 
+		search_results = filtered.map((row) =>
+			row.map((cell) => {
+				const original = cell_map.get(cell.id);
 				return {
 					...cell,
-					display_value:
-						original_cell_data?.display_value || String(cell.value),
-					styling: original_cell_data
-						? styling?.[original_cell_data.row_idx]?.[
-								original_cell_data.col_idx
-							] || ""
-						: ""
+					display_value: original?.display_value || String(cell.value),
+					styling: original?.styling || ""
 				};
-			});
-		});
+			})
+		);
 	}
 
 	let previous_headers = _headers.map((h) => h.value);
