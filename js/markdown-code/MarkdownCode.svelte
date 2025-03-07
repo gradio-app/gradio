@@ -18,7 +18,7 @@
 	export let line_breaks = true;
 	export let header_links = false;
 	export let root: string;
-	export let allow_tags: string[] | boolean | null = null;
+	export let allow_tags: string[] | boolean = false;
 
 	let el: HTMLSpanElement;
 	let html: string;
@@ -37,8 +37,34 @@
 		content: string,
 		tagsToEscape: string[] | boolean
 	): string {
+		console.log("tagsToEscape", tagsToEscape);
+		console.log("content", content);
 		if (tagsToEscape === true) {
-			return content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+			// https://www.w3schools.com/tags/
+			const standardHtmlTags = [
+				"!--", "!doctype", "a", "abbr", "acronym", "address", "applet", "area", "article", 
+				"aside", "audio", "b", "base", "basefont", "bdi", "bdo", "big", "blockquote", 
+				"body", "br", "button", "canvas", "caption", "center", "cite", "code", "col", 
+				"colgroup", "data", "datalist", "dd", "del", "details", "dfn", "dialog", "dir", 
+				"div", "dl", "dt", "em", "embed", "fieldset", "figcaption", "figure", "font", 
+				"footer", "form", "frame", "frameset", "h1", "h2", "h3", "h4", "h5", "h6", 
+				"head", "header", "hgroup", "hr", "html", "i", "iframe", "img", "input", "ins", 
+				"kbd", "label", "legend", "li", "link", "main", "map", "mark", "menu", "meta", 
+				"meter", "nav", "noframes", "noscript", "object", "ol", "optgroup", "option", 
+				"output", "p", "param", "picture", "pre", "progress", "q", "rp", "rt", "ruby", 
+				"s", "samp", "script", "search", "section", "select", "small", "source", "span", 
+				"strike", "strong", "style", "sub", "summary", "sup", "svg", "table", "tbody", 
+				"td", "template", "textarea", "tfoot", "th", "thead", "time", "title", "tr", 
+				"track", "tt", "u", "ul", "var", "video", "wbr"
+			];
+			
+			const tagRegex = /<\/?([a-zA-Z][a-zA-Z0-9-]*)([\s>])/g;
+			return content.replace(tagRegex, (match, tagName, endChar) => {
+				if (!standardHtmlTags.includes(tagName.toLowerCase())) {
+					return match.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+				}
+				return match;
+			});
 		}
 
 		if (Array.isArray(tagsToEscape)) {

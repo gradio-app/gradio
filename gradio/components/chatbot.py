@@ -238,7 +238,7 @@ class Chatbot(Component):
         show_copy_all_button=False,
         allow_file_downloads=True,
         group_consecutive_messages: bool = True,
-        allow_tags: list[str] | bool | None = None,
+        allow_tags: list[str] | bool = False,
     ):
         """
         Parameters:
@@ -279,7 +279,7 @@ class Chatbot(Component):
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
             allow_file_downloads: If True, will show a download button for chatbot messages that contain media. Defaults to True.
             group_consecutive_messages: If True, will display consecutive messages from the same role in the same bubble. If False, will display each message in a separate bubble. Defaults to True.
-            allow_tags: If a list of tags is provided, these tags will be preserved in the output chatbot messages, even if `sanitize_html` is `True`. For example, if this list is ["thinking"], the tags `<thinking>` and `</thinking>` will not be removed. If True, all tags will be preserved. If False, no tags will be preserved (default behavior).
+            allow_tags: If a list of tags is provided, these tags will be preserved in the output chatbot messages, even if `sanitize_html` is `True`. For example, if this list is ["thinking"], the tags `<thinking>` and `</thinking>` will not be removed. If True, all custom tags (non-standard HTML tags) will be preserved. If False, no tags will be preserved (default behavior).
         """
         if type is None:
             warnings.warn(
@@ -339,7 +339,7 @@ class Chatbot(Component):
         self.allow_file_downloads = allow_file_downloads
         self.feedback_options = feedback_options
         self.feedback_value = feedback_value
-        self.allow_tags = allow_tags
+        self.allow_tags = allow_tags if allow_tags else False
         super().__init__(
             label=label,
             every=every,
