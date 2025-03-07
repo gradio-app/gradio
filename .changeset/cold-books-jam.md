@@ -1,6 +1,6 @@
 ---
-"@gradio/dataframe": minor
-"gradio": minor
+"@gradio/dataframe": patch
+"gradio": patch
 ---
 
-feat:Fix dataframe search and filter functionality
+fix:Fix dataframe search and filter functionality
