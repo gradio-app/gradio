@@ -110,7 +110,7 @@ class ClearButton(Button):
         )
         if state_components:
             self.click(
-                lambda: resolve_singleton(initial_states),
+                lambda: copy.deepcopy(resolve_singleton(initial_states)),
                 None,
                 state_components,
                 api_name=self.api_name,

@@ -1,0 +1,81 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("undodata");
+
+    obj["attributes"] = [
+            {
+                name: "index",
+                annotation: "int | tuple[int, int]",
+                doc: "The index of the user message that should be undone.",
+                kwargs: null
+            },
+            {
+                name: "value",
+                annotation: "Any",
+                doc: "The value of the user message that should be undone.",
+                kwargs: null
+            }
+        ]    
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.UndoData(···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+<!-- Example Usage --> 
+
+{#if obj.example}
+### Example Usage
+```python
+import gradio as gr
+
+def undo(retry_data: gr.UndoData, history: list[gr.MessageDict]):
+    history_up_to_retry = history[:retry_data.index]
+    return history_up_to_retry
+
+with gr.Blocks() as demo:
+    chatbot = gr.Chatbot()
+    chatbot.undo(undo, chatbot, chatbot)
+demo.launch()
+```
+{/if}
+
+<!--- Initialization -->
+### Attributes
+<ParamTable parameters={obj.attributes} />
+
+
+{#if obj.demos && obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={obj.guides}/>
+{/if}
