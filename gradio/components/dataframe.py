@@ -136,10 +136,29 @@ class Dataframe(Component):
             max_chars: Maximum number of characters to display in each cell before truncating (single-clicking a cell value will still reveal the full content). If None, no truncation is applied.
             show_search: Show a search input in the toolbar. If "search", a search input is shown. If "filter", a search input and filter buttons are shown. If "none", no search input is shown.
             pinned_columns: If provided, will pin the specified number of columns from the left.
-            static_columns: List of column indices (int) that should not be editable. Only applies when interactive=True.
+            static_columns: List of column indices (int) that should not be editable. Only applies when interactive=True. When specified, col_count is automatically set to "fixed" and columns cannot be inserted or deleted.
         """
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
+        self.static_columns = static_columns or []
+
+        if self.static_columns:
+            if isinstance(col_count, tuple):
+                col_count = (col_count[0], "fixed")
+                col_count_value = col_count[0]
+            else:
+                col_count_value = col_count
+                if col_count_value is None:
+                    col_count_value = len(headers) if headers else 3
+                col_count = (col_count_value, "fixed")
+
+            for col_idx in self.static_columns:
+                if not isinstance(col_idx, int) or col_idx < 0 or col_idx >= col_count_value:
+                    raise ValueError(
+                        f"Invalid column index in static_columns: {col_idx}. "
+                        f"Column indices must be integers between 0 and {col_count_value-1}."
+                    )
+
         self.col_count = self.__process_counts(
             col_count, len(headers) if headers else 3
         )
@@ -150,7 +169,6 @@ class Dataframe(Component):
             if headers is not None
             else [str(i) for i in (range(1, self.col_count[0] + 1))]
         )
-        self.static_columns = static_columns or []
         self.datatype = datatype
         valid_types = ["pandas", "numpy", "array", "polars"]
         if type not in valid_types:
