@@ -37,7 +37,6 @@
 		x: number;
 		y: number;
 	} | null;
-	export let display_value: string | undefined;
 	export let styling: string | undefined;
 	export let latex_delimiters: {
 		left: string;
