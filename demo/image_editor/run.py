@@ -1,12 +1,15 @@
 import gradio as gr
 import time
 
+
 def sleep(im):
     time.sleep(5)
     return [im["background"], im["layers"][0], im["layers"][1], im["composite"]]
 
+
 def predict(im):
     return im["composite"]
+
 
 with gr.Blocks() as demo:
     with gr.Row():
@@ -23,6 +26,7 @@ with gr.Blocks() as demo:
     im.change(lambda x: x + 1, outputs=n_change, inputs=n_change)
     im.input(lambda x: x + 1, outputs=n_input, inputs=n_input)
     im.change(predict, outputs=im_preview, inputs=im, show_progress="hidden")
+    im.apply(predict, outputs=im_preview, inputs=im, show_progress="hidden")
 
 if __name__ == "__main__":
     demo.launch()

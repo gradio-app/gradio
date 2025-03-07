@@ -17,7 +17,9 @@ import type { Readable, Writable } from "svelte/store";
 import { spring, type Spring } from "svelte/motion";
 import { writable, get } from "svelte/store";
 import { Rectangle } from "pixi.js";
-
+import { type ImageBlobs } from "../types";
+import { get_canvas_blob } from "../utils/pixi";
+import type { BrushTool } from "../brush/brush";
 export interface Command {
 	execute: () => void;
 	undo: () => void;
@@ -32,6 +34,8 @@ export interface Tool {
 	): Promise<void>;
 	cleanup(): void;
 	set_tool(tool: ToolbarTool, subtool: Subtool): void;
+	on?: (event: string, callback: () => void) => void;
+	off?: (event: string, callback: () => void) => void;
 }
 
 export class CommandManager {
@@ -519,6 +523,30 @@ export class LayerManager {
 			`Completed layer resize operation with ${newLayers.length} new layers`
 		);
 	}
+
+	async get_blobs(width: number, height: number): Promise<ImageBlobs> {
+		const blobs = {
+			background: await get_canvas_blob(
+				this.app.renderer,
+				this.background_layer
+			),
+			layers: await Promise.all(
+				this.layers.map(async (layer) => {
+					const blob = await get_canvas_blob(
+						this.app.renderer,
+						layer.container
+					);
+					if (blob) {
+						return blob;
+					}
+					return null;
+				})
+			),
+			composite: await get_canvas_blob(this.app.renderer, this.image_container)
+		};
+
+		return blobs;
+	}
 }
 
 const core_tools = ["image", "zoom"] as const;
@@ -640,7 +668,7 @@ export class ImageEditor {
 	private image_container!: Container;
 	private command_manager: CommandManager;
 	private layer_manager!: LayerManager;
-	private tools: Map<string, Tool> = new Map();
+	private tools: Map<string, Tool> = new Map<string, Tool>();
 	private current_tool!: ToolbarTool;
 	private current_subtool!: Subtool;
 	private target_element: HTMLElement;
@@ -669,7 +697,7 @@ export class ImageEditor {
 	public background_image_present = writable(false);
 	private ready_resolve!: (value: void | PromiseLike<void>) => void;
 	public ready: Promise<void>;
-
+	private event_callbacks: Map<string, (() => void)[]> = new Map();
 	constructor(options: ImageEditorOptions) {
 		this.target_element = options.target_element;
 		this.width = options.width;
@@ -680,14 +708,23 @@ export class ImageEditor {
 			this.ready_resolve = resolve;
 		});
 
-		this.tools = new Map(
+		this.tools = new Map<string, Tool>(
 			options.tools.map((tool) => {
 				if (typeof tool === "string") {
 					return [tool, core_tool_map[tool]()];
 				}
+
 				return [tool.name, tool];
 			})
 		);
+
+		for (const tool of this.tools.values()) {
+			if (tool?.on) {
+				tool.on("change", () => {
+					this.notify("change");
+				});
+			}
+		}
 
 		this.dimensions = spring(
 			{ width: this.width, height: this.height },
@@ -929,15 +966,19 @@ export class ImageEditor {
 
 	undo(): void {
 		this.command_manager.undo();
+		this.notify("change");
 	}
 
 	redo(): void {
 		this.command_manager.redo();
+		this.notify("change");
 	}
 
 	add_image(image: Blob | File): void {
 		const image_tool = this.tools.get("image") as ImageTool;
 		image_tool.add_image(image, false);
+		this.notify("change");
+		this.notify("input");
 	}
 	set_tool(tool: ToolbarTool): void {
 		this.current_tool = tool;
@@ -992,22 +1033,28 @@ export class ImageEditor {
 			tool.cleanup();
 			tool.setup(this.context, this.current_tool, this.current_subtool);
 		}
+
+		this.notify("change");
 	}
 
 	add_layer(): void {
 		this.layer_manager.create_layer(this.width, this.height);
+		this.notify("change");
 	}
 
 	set_layer(id: string): void {
 		this.layer_manager.set_active_layer(id);
+		this.notify("change");
 	}
 
 	move_layer(id: string, direction: "up" | "down"): void {
 		this.layer_manager.move_layer(id, direction);
+		this.notify("change");
 	}
 
 	delete_layer(id: string): void {
 		this.layer_manager.delete_layer(id);
+		this.notify("change");
 	}
 
 	modify_canvas_size(
@@ -1034,5 +1081,31 @@ export class ImageEditor {
 			scale: 1,
 			animate: false
 		});
+		this.notify("change");
+	}
+
+	async get_blobs(): Promise<ImageBlobs> {
+		const blobs = await this.layer_manager.get_blobs(this.width, this.height);
+		return blobs;
+	}
+
+	on(event: "change" | "input", callback: () => void): void {
+		this.event_callbacks.set(event, [
+			...(this.event_callbacks.get(event) || []),
+			callback
+		]);
+	}
+
+	off(event: "change", callback: () => void): void {
+		this.event_callbacks.set(
+			event,
+			this.event_callbacks.get(event)?.filter((cb) => cb !== callback) || []
+		);
+	}
+
+	private notify(event: "change" | "input"): void {
+		for (const callback of this.event_callbacks.get(event) || []) {
+			callback();
+		}
 	}
 }

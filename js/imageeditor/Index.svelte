@@ -26,7 +26,7 @@
 	export let root: string;
 	export let value_is_output = false;
 
-	export let height: number | undefined;
+	export let height = 350;
 	export let width: number | undefined;
 
 	export let _selectable = false;
@@ -42,7 +42,6 @@
 	];
 	export let interactive: boolean;
 	export let placeholder: string | undefined;
-
 	export let brush: Brush;
 	export let eraser: Eraser;
 	export let transforms: "crop"[] = ["crop"];
@@ -124,12 +123,7 @@
 
 	let dynamic_height: number | undefined = undefined;
 
-	// In case no height given, pick a height large enough for the entire canvas
-	// in pixi.ts, the max-height of the canvas is canvas height / pixel ratio
-
-	let safe_height_initial = 350;
-
-	$: safe_height = Math.max((dynamic_height ?? safe_height_initial) + 100, 250);
+	$: console.log({ attached_events });
 
 	$: has_value = value?.background || value?.layers?.length || value?.composite;
 </script>
@@ -178,7 +172,7 @@
 		padding={false}
 		{elem_id}
 		{elem_classes}
-		height={height || safe_height}
+		{height}
 		{width}
 		allow_overflow={true}
 		overflow_behavior="visible"

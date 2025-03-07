@@ -27,10 +27,10 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image as ImageIcon } from "@gradio/icons";
 	import { inject } from "./shared/utils/parse_placeholder";
-	import Sources from "./shared/image/Sources.svelte";
+	// import Sources from "./shared/image/Sources.svelte";
 
-	export let brush: IBrush | null;
-	export let eraser: Eraser | null;
+	export let brush: IBrush;
+	export let eraser: Eraser;
 	export let sources: ("clipboard" | "webcam" | "upload")[];
 	export let crop_size: [number, number] | `${string}:${string}` | null = null;
 	export let i18n: I18nFormatter;
@@ -43,7 +43,7 @@
 		layers: [],
 		composite: null,
 	};
-	export let transforms: "crop"[] = ["crop"];
+	// export let transforms: "crop"[] = ["crop"];
 	export let layers: boolean;
 	export let accept_blobs: (a: any) => void;
 	export let status:
@@ -133,17 +133,17 @@
 	}
 
 	$: handle_value(value);
-	$: crop_constraint = crop_size;
+
 	let background_image = false;
 	let history = false;
 
 	export let image_id: null | string = null;
 
-	$: editor &&
-		editor.set_tool &&
-		(sources && sources.length
-			? editor.set_tool("bg")
-			: editor.set_tool("draw"));
+	// $: editor &&
+	// 	editor.set_tool &&
+	// 	(sources && sources.length
+	// 		? editor.set_tool("bg")
+	// 		: editor.set_tool("draw"));
 
 	type BinaryImages = [string, string, File, number | null][];
 
@@ -154,56 +154,56 @@
 	let uploading = false;
 	let pending = false;
 	async function handle_change(e: CustomEvent<Blob | any>): Promise<void> {
-		// if (!realtime) return;
-		// if (uploading) {
-		// 	pending = true;
-		// 	return;
-		// }
-		// uploading = true;
-		// await nextframe();
-		// const blobs = await editor.get_blobs();
-		// const images: BinaryImages = [];
-		// let id = Math.random().toString(36).substring(2);
-		// if (blobs.background)
-		// 	images.push([
-		// 		id,
-		// 		"background",
-		// 		new File([blobs.background], "background.png"),
-		// 		null,
-		// 	]);
-		// if (blobs.composite)
-		// 	images.push([
-		// 		id,
-		// 		"composite",
-		// 		new File([blobs.composite], "composite.png"),
-		// 		null,
-		// 	]);
-		// blobs.layers.forEach((layer, i) => {
-		// 	if (layer)
-		// 		images.push([
-		// 			id as string,
-		// 			`layer`,
-		// 			new File([layer], `layer_${i}.png`),
-		// 			i,
-		// 		]);
-		// });
-		// await Promise.all(
-		// 	images.map(async ([image_id, type, data, index]) => {
-		// 		return accept_blobs({
-		// 			binary: true,
-		// 			data: { file: data, id: image_id, type, index },
-		// 		});
-		// 	}),
-		// );
-		// image_id = id;
-		// dispatch("change");
-		// await nextframe();
-		// uploading = false;
-		// if (pending) {
-		// 	pending = false;
-		// 	uploading = false;
-		// 	handle_change(e);
-		// }
+		if (!realtime) return;
+		if (uploading) {
+			pending = true;
+			return;
+		}
+		uploading = true;
+		await nextframe();
+		const blobs = await editor.get_blobs();
+		const images: BinaryImages = [];
+		let id = Math.random().toString(36).substring(2);
+		if (blobs.background)
+			images.push([
+				id,
+				"background",
+				new File([blobs.background], "background.png"),
+				null,
+			]);
+		if (blobs.composite)
+			images.push([
+				id,
+				"composite",
+				new File([blobs.composite], "composite.png"),
+				null,
+			]);
+		blobs.layers.forEach((layer, i) => {
+			if (layer)
+				images.push([
+					id as string,
+					`layer`,
+					new File([layer], `layer_${i}.png`),
+					i,
+				]);
+		});
+		await Promise.all(
+			images.map(async ([image_id, type, data, index]) => {
+				return accept_blobs({
+					binary: true,
+					data: { file: data, id: image_id, type, index },
+				});
+			}),
+		);
+		image_id = id;
+		dispatch("change");
+		await nextframe();
+		uploading = false;
+		if (pending) {
+			pending = false;
+			uploading = false;
+			handle_change(e);
+		}
 	}
 
 	let active_mode: "webcam" | "color" | null = null;
@@ -222,6 +222,8 @@
 	}
 
 	let current_tool: ToolbarTool;
+
+	$: console.log({ changeable });
 </script>
 
 <BlockLabel

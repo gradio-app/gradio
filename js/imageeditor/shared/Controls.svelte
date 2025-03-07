@@ -161,7 +161,7 @@
 			color={"#fff"}
 		/>
 	{/if}
-	<IconButton
+	<!-- <IconButton
 		disabled={!can_undo}
 		Icon={Undo}
 		label="Undo"
@@ -178,7 +178,7 @@
 			dispatch("redo");
 			event.stopPropagation();
 		}}
-	/>
+	/> -->
 	<IconButton
 		Icon={Trash}
 		label="Clear canvas"

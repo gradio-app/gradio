@@ -24,7 +24,6 @@ export class ImageTool implements Tool {
 	context!: ImageEditorContext;
 	current_tool!: ToolbarTool;
 	current_subtool!: Subtool;
-
 	async setup(
 		context: ImageEditorContext,
 		tool: ToolbarTool,

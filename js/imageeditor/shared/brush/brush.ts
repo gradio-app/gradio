@@ -74,7 +74,7 @@ export class BrushTool implements Tool {
 	private _bound_pointer_move: ((event: FederatedPointerEvent) => void) | null =
 		null;
 	private _bound_pointer_up: (() => void) | null = null;
-
+	private event_callbacks: Map<string, (() => void)[]> = new Map();
 	/**
 	 * Utility modules
 	 * @private
@@ -288,6 +288,8 @@ export class BrushTool implements Tool {
 		if (this.brush_textures) {
 			this.brush_textures.commit_stroke();
 		}
+
+		this.notify("draw");
 	}
 
 	/**
@@ -464,6 +466,26 @@ export class BrushTool implements Tool {
 		if (this.brush_cursor) {
 			this.brush_cursor.cleanup();
 			this.brush_cursor = null;
+		}
+	}
+
+	on(event: "draw", callback: () => void): void {
+		this.event_callbacks.set(event, [
+			...(this.event_callbacks.get(event) || []),
+			callback
+		]);
+	}
+
+	off(event: "draw", callback: () => void): void {
+		this.event_callbacks.set(
+			event,
+			this.event_callbacks.get(event)?.filter((cb) => cb !== callback) || []
+		);
+	}
+
+	private notify(event: "draw"): void {
+		for (const callback of this.event_callbacks.get(event) || []) {
+			callback();
 		}
 	}
 }

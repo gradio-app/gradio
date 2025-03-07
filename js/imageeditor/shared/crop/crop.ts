@@ -72,7 +72,7 @@ export class CropTool implements Tool {
 	private drag_start_bounds: CropBounds | null = null;
 	private background_image_watcher: (() => void) | null = null;
 	private has_been_manually_changed = false;
-
+	private event_callbacks: Map<string, (() => void)[]> = new Map();
 	/**
 	 * @method setup
 	 * @async
@@ -120,6 +120,24 @@ export class CropTool implements Tool {
 			this.scale = scale;
 		});
 
+		// Setup a background image watcher to ensure we always apply the mask to the current background image
+		this.background_image_watcher = () => {
+			// Only apply when crop tool is active and we have a mask
+			if (
+				this.crop_mask &&
+				this.current_tool === "image" &&
+				this.current_subtool === "crop"
+			) {
+				// Get a fresh reference to the background image and apply the mask
+				if (this.image_editor_context.background_image) {
+					this.image_editor_context.background_image.setMask(this.crop_mask);
+				}
+			}
+		};
+
+		// Add the watcher to the ticker to regularly check for background image changes
+		this.image_editor_context.app.ticker.add(this.background_image_watcher);
+
 		// Initialize crop UI
 		await this.init_crop_ui();
 
@@ -163,6 +181,10 @@ export class CropTool implements Tool {
 				this.image_editor_context.image_container.mask = null;
 			}
 		}
+
+		// Ensure all references to the crop mask are cleared
+		this.crop_mask = null;
+		this.crop_ui_container = null;
 
 		// Remove the background image watcher from the ticker
 		if (this.background_image_watcher) {
@@ -239,9 +261,10 @@ export class CropTool implements Tool {
 		// It needs to be in the display list but won't be visible due to alpha=0
 		this.image_editor_context.image_container.addChild(this.crop_mask);
 
-		// Apply it as a mask to the background image only if it exists
+		// Get a fresh reference to the background image and apply the mask
+		// Only apply to the background image, not the image container
 		if (this.image_editor_context.background_image) {
-			this.image_editor_context.background_image.mask = this.crop_mask;
+			this.image_editor_context.background_image.setMask(this.crop_mask);
 		}
 	}
 
@@ -593,6 +616,15 @@ export class CropTool implements Tool {
 
 		// Apply constraints
 		this.constrain_crop_bounds();
+
+		// Update the UI and mask
+		this.update_crop_ui();
+		this.update_crop_mask();
+
+		// Make sure to apply mask to the current background image
+		if (this.crop_mask && this.image_editor_context.background_image) {
+			this.image_editor_context.background_image.setMask(this.crop_mask);
+		}
 	}
 
 	/**
@@ -699,9 +731,15 @@ export class CropTool implements Tool {
 			)
 			.fill({ color: 0xffffff, alpha: 1 });
 
-		// Ensure the mask is applied to the background image only if it exists
+		// Get a fresh reference to the background image and apply the mask
+		// The mask should only be applied to the background image, not the image container
 		if (this.image_editor_context.background_image) {
 			this.image_editor_context.background_image.mask = this.crop_mask;
+		}
+
+		// Make sure the mask is not applied to the image container
+		if (this.image_editor_context.image_container.mask === this.crop_mask) {
+			this.image_editor_context.image_container.mask = null;
 		}
 	}
 
@@ -841,6 +879,12 @@ export class CropTool implements Tool {
 
 			// Update the mask
 			this.update_crop_mask();
+
+			// Make sure to apply mask to the current background image
+			if (this.crop_mask && this.image_editor_context.background_image) {
+				this.image_editor_context.background_image.setMask(this.crop_mask);
+			}
+
 			return;
 		}
 
@@ -881,6 +925,8 @@ export class CropTool implements Tool {
 		this.drag_start_bounds = null;
 		this.active_corner_index = -1;
 		this.active_edge_index = -1;
+
+		this.notify("change");
 	}
 
 	/**
@@ -908,5 +954,25 @@ export class CropTool implements Tool {
 	 */
 	public get crop_manually_changed(): boolean {
 		return this.has_been_manually_changed;
+	}
+
+	on<T extends string>(event: T, callback: () => void): void {
+		this.event_callbacks.set(event, [
+			...(this.event_callbacks.get(event) || []),
+			callback
+		]);
+	}
+
+	off<T extends string>(event: T, callback: () => void): void {
+		this.event_callbacks.set(
+			event,
+			this.event_callbacks.get(event)?.filter((cb) => cb !== callback) || []
+		);
+	}
+
+	private notify<T extends string>(event: T): void {
+		for (const callback of this.event_callbacks.get(event) || []) {
+			callback();
+		}
 	}
 }

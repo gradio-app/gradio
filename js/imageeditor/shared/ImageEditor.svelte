@@ -43,6 +43,8 @@
 		save: void;
 		change: void;
 		history: CommandManager["current_history"];
+		upload: void;
+		input: void;
 	}>();
 	export let canvas_size: [number, number];
 	export const full_history: CommandNode | null = null;
@@ -53,21 +55,14 @@
 	export let eraser_options: Eraser;
 
 	/**
-	 * Gets the full editing history of the image editor
-	 * @returns {Promise<CommandNode>} The command history node
-	 */
-	export async function get_full_history(): Promise<CommandNode | null> {
-		// Implement function logic or adjust return type
-		return null; // Placeholder
-	}
-
-	/**
 	 * Gets the image blobs from the editor
 	 * @returns {Promise<ImageBlobs>} Object containing background, layers, and composite image blobs
 	 */
 	export async function get_blobs(): Promise<ImageBlobs> {
 		// Implement function logic or adjust return type
-		return { background: null, layers: [], composite: null }; // Placeholder
+
+		const blobs = await editor.get_blobs();
+		return blobs;
 	}
 
 	let editor: ImageEditor;
@@ -108,6 +103,10 @@
 		});
 
 		console.log("editor", editor);
+
+		editor.on("change", () => {
+			dispatch("change");
+		});
 	});
 
 	/**
@@ -118,7 +117,8 @@
 		editor.add_image(files[0]);
 		background_image = true;
 
-		dispatch("change");
+		dispatch("upload");
+		dispatch("input");
 	}
 
 	// $: console.log(editor.current_history);
@@ -214,6 +214,10 @@
 				: zoom_level - (zoom_level < 1 ? 0.1 : zoom_level * 0.1),
 		);
 	}
+
+	function handle_save(): void {
+		dispatch("save");
+	}
 </script>
 
 <div
@@ -248,6 +252,8 @@
 					e.detail.scale,
 				);
 			}}
+			can_save={true}
+			on:save={handle_save}
 		/>
 		<!-- on:save={handle_save} -->
 		<!-- can_save={saved_history !== $current_history} -->
