@@ -43,7 +43,7 @@ export class ResizeTool implements Tool {
 	private dom_mousedown_handler: ((e: MouseEvent) => void) | null = null;
 	private dom_mousemove_handler: ((e: MouseEvent) => void) | null = null;
 	private dom_mouseup_handler: ((e: MouseEvent) => void) | null = null;
-
+	private event_callbacks: Map<string, (() => void)[]> = new Map();
 	/**
 	 * @method setup
 	 * @async
@@ -1148,6 +1148,7 @@ export class ResizeTool implements Tool {
 
 		// Update the resize UI without applying constraints
 		this.update_resize_ui();
+		this.notify("change");
 	}
 
 	/**
@@ -1509,5 +1510,25 @@ export class ResizeTool implements Tool {
 
 		// Clean up DOM event listeners
 		this.cleanup_dom_event_listeners();
+	}
+
+	on<T extends string>(event: T, callback: () => void): void {
+		this.event_callbacks.set(event, [
+			...(this.event_callbacks.get(event) || []),
+			callback
+		]);
+	}
+
+	off<T extends string>(event: T, callback: () => void): void {
+		this.event_callbacks.set(
+			event,
+			this.event_callbacks.get(event)?.filter((cb) => cb !== callback) || []
+		);
+	}
+
+	private notify<T extends string>(event: T): void {
+		for (const callback of this.event_callbacks.get(event) || []) {
+			callback();
+		}
 	}
 }

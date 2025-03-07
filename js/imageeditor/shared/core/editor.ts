@@ -80,10 +80,15 @@ export class LayerManager {
 	private background_layer: Container | null = null;
 	private image_container: Container;
 	private app: Application;
-
-	constructor(image_container: Container, app: Application) {
+	private fixed_canvas: boolean;
+	constructor(
+		image_container: Container,
+		app: Application,
+		fixed_canvas: boolean
+	) {
 		this.image_container = image_container;
 		this.app = app;
+		this.fixed_canvas = fixed_canvas;
 	}
 
 	create_background_layer(width: number, height: number): Container {
@@ -556,6 +561,7 @@ interface ImageEditorOptions {
 	width: number;
 	height: number;
 	tools: ((typeof core_tools)[number] | Tool)[];
+	fixed_canvas?: boolean;
 }
 
 const core_tool_map = {
@@ -698,6 +704,7 @@ export class ImageEditor {
 	private ready_resolve!: (value: void | PromiseLike<void>) => void;
 	public ready: Promise<void>;
 	private event_callbacks: Map<string, (() => void)[]> = new Map();
+	private fixed_canvas: boolean;
 	constructor(options: ImageEditorOptions) {
 		this.target_element = options.target_element;
 		this.width = options.width;
@@ -707,7 +714,7 @@ export class ImageEditor {
 		this.ready = new Promise((resolve) => {
 			this.ready_resolve = resolve;
 		});
-
+		this.fixed_canvas = options.fixed_canvas || false;
 		this.tools = new Map<string, Tool>(
 			options.tools.map((tool) => {
 				if (typeof tool === "string") {
@@ -899,7 +906,11 @@ export class ImageEditor {
 		this.outline_container.position.set(app_center_x, app_center_y);
 
 		// Initialize LayerManager
-		this.layer_manager = new LayerManager(this.image_container, this.app);
+		this.layer_manager = new LayerManager(
+			this.image_container,
+			this.app,
+			this.fixed_canvas
+		);
 		this.layers = this.layer_manager.layer_store;
 	}
 
@@ -976,7 +987,7 @@ export class ImageEditor {
 
 	add_image(image: Blob | File): void {
 		const image_tool = this.tools.get("image") as ImageTool;
-		image_tool.add_image(image, false);
+		image_tool.add_image(image, this.fixed_canvas);
 		this.notify("change");
 		this.notify("input");
 	}

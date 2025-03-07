@@ -289,7 +289,7 @@ export class BrushTool implements Tool {
 			this.brush_textures.commit_stroke();
 		}
 
-		this.notify("draw");
+		this.notify("change");
 	}
 
 	/**
@@ -469,21 +469,21 @@ export class BrushTool implements Tool {
 		}
 	}
 
-	on(event: "draw", callback: () => void): void {
+	on<T extends string>(event: T, callback: () => void): void {
 		this.event_callbacks.set(event, [
 			...(this.event_callbacks.get(event) || []),
 			callback
 		]);
 	}
 
-	off(event: "draw", callback: () => void): void {
+	off<T extends string>(event: T, callback: () => void): void {
 		this.event_callbacks.set(
 			event,
 			this.event_callbacks.get(event)?.filter((cb) => cb !== callback) || []
 		);
 	}
 
-	private notify(event: "draw"): void {
+	private notify<T extends string>(event: T): void {
 		for (const callback of this.event_callbacks.get(event) || []) {
 			callback();
 		}

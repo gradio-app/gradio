@@ -88,7 +88,7 @@ export class AddImageCommand implements BgImageCommand {
 		const bitmap_texture = Texture.from(img);
 		this.sprite = new Sprite(bitmap_texture);
 
-		const { width, height } = this.fixed_canvas
+		const { width, height, x, y } = this.fixed_canvas
 			? fit_image_to_canvas(
 					this.sprite.width,
 					this.sprite.height,
@@ -97,11 +97,20 @@ export class AddImageCommand implements BgImageCommand {
 				)
 			: {
 					width: this.sprite.width,
-					height: this.sprite.height
+					height: this.sprite.height,
+					x: 0,
+					y: 0
 				};
+
+		console.log("width", width);
+		console.log("height", height);
+		console.log("x", x);
+		console.log("y", y);
 
 		this.sprite.width = width;
 		this.sprite.height = height;
+		this.sprite.x = x;
+		this.sprite.y = y;
 
 		return [width, height];
 	}
@@ -117,8 +126,12 @@ export class AddImageCommand implements BgImageCommand {
 				x: this.context.app.screen.width / 2,
 				y: this.context.app.screen.height / 2
 			},
-			width,
-			height
+			width: this.fixed_canvas
+				? this.current_canvas_size.width
+				: this.sprite.width,
+			height: this.fixed_canvas
+				? this.current_canvas_size.height
+				: this.sprite.height
 		});
 
 		// Get existing layers and their textures before modifying anything
@@ -135,8 +148,8 @@ export class AddImageCommand implements BgImageCommand {
 
 		// Create new background layer and add the sprite
 		const background_layer = this.context.layer_manager.create_background_layer(
-			width,
-			height
+			this.fixed_canvas ? this.current_canvas_size.width : width,
+			this.fixed_canvas ? this.current_canvas_size.height : height
 		);
 		this.sprite.zIndex = 0;
 		background_layer.addChild(this.sprite);
@@ -149,7 +162,10 @@ export class AddImageCommand implements BgImageCommand {
 		}
 
 		this.context.set_background_image(this.sprite);
-		this.context.layer_manager.create_layer(width, height);
+		this.context.layer_manager.create_layer(
+			this.fixed_canvas ? this.current_canvas_size.width : width,
+			this.fixed_canvas ? this.current_canvas_size.height : height
+		);
 		this.context.reset();
 	}
 

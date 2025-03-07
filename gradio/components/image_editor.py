@@ -146,9 +146,11 @@ class ImageEditor(Component):
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
         ] = "RGBA",
-        sources: Iterable[Literal["upload", "webcam", "clipboard"]]
-        | Literal["upload", "webcam", "clipboard"]
-        | None = (
+        sources: (
+            Iterable[Literal["upload", "webcam", "clipboard"]]
+            | Literal["upload", "webcam", "clipboard"]
+            | None
+        ) = (
             "upload",
             "webcam",
             "clipboard",
@@ -249,7 +251,7 @@ class ImageEditor(Component):
             else show_share_button
         )
 
-        if crop_size is not None:
+        if crop_size is not None and canvas_size is None:
             warnings.warn(
                 "`crop_size` parameter is deprecated. Please use `canvas_size` instead."
             )

@@ -42,7 +42,10 @@ export function get_canvas_blob(
 			resolve(null);
 			return;
 		}
-		const src_canvas = renderer.extract.canvas(obj);
+		const src_canvas = renderer.extract.canvas({
+			target: obj,
+			resolution: 1
+		});
 
 		src_canvas.toBlob?.((blob) => {
 			if (!blob) {

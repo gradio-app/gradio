@@ -53,7 +53,7 @@
 	export let background_image = false;
 	export let brush_options: Brush;
 	export let eraser_options: Eraser;
-
+	export let fixed_canvas = false;
 	/**
 	 * Gets the image blobs from the editor
 	 * @returns {Promise<ImageBlobs>} Object containing background, layers, and composite image blobs
@@ -84,6 +84,7 @@
 	let zoom_level = 1;
 	let ready = false;
 	onMount(() => {
+		console.log("canvas_size", canvas_size);
 		brush = new BrushTool();
 		zoom = new ZoomTool();
 		editor = new ImageEditor({
@@ -91,6 +92,7 @@
 			width: canvas_size[0],
 			height: canvas_size[1],
 			tools: ["image", zoom, new CropTool(), new ResizeTool(), brush],
+			fixed_canvas,
 		});
 
 		editor.scale.subscribe((_scale) => {

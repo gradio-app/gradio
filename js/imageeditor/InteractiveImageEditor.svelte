@@ -32,7 +32,6 @@
 	export let brush: IBrush;
 	export let eraser: Eraser;
 	export let sources: ("clipboard" | "webcam" | "upload")[];
-	export let crop_size: [number, number] | `${string}:${string}` | null = null;
 	export let i18n: I18nFormatter;
 	export let root: string;
 	export let label: string | undefined = undefined;
@@ -45,6 +44,7 @@
 	};
 	// export let transforms: "crop"[] = ["crop"];
 	export let layers: boolean;
+	export let transforms: "crop"[] = ["crop"];
 	export let accept_blobs: (a: any) => void;
 	export let status:
 		| "pending"
@@ -246,6 +246,7 @@
 	bind:current_tool
 	brush_options={brush}
 	eraser_options={eraser}
+	{fixed_canvas}
 >
 	<!-- <div class="sources-container">
 		<Sources
@@ -258,35 +259,14 @@
 		/>
 	</div> -->
 	<!-- <Tools {i18n}>
-		<Layers layer_files={value?.layers || null} enable_layers={layers} />
+		
 
-		<Sources
-			bind:dragging
-			{i18n}
-			{root}
-			{sources}
-			{upload}
-			{stream_handler}
-			{canvas_size}
-			bind:bg
-			bind:active_mode
-			background_file={value?.background || value?.composite || null}
-			{fixed_canvas}
-		></Sources>
+		
 
 		{#if transforms.includes("crop")}
 			<Crop {crop_constraint} />
 		{/if}
-		{#if brush}
-			<Brush
-				color_mode={brush.color_mode}
-				default_color={brush.default_color}
-				default_size={brush.default_size}
-				colors={brush.colors}
-				mode="draw"
-			/>
-		{/if}
-
+		
 		{#if brush && eraser}
 			<Brush default_size={eraser.default_size} mode="erase" />
 		{/if}

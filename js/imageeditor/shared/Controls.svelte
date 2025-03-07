@@ -16,11 +16,11 @@
 	/**
 	 * Can the current image be undone?
 	 */
-	export let can_undo = false;
+	// export let can_undo = false;
 	/**
 	 * Can the current image be redone?
 	 */
-	export let can_redo = false;
+	// export let can_redo = false;
 
 	export let can_save = false;
 	export let changeable = false;

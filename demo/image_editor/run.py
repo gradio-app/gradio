@@ -14,8 +14,9 @@ def predict(im):
 with gr.Blocks() as demo:
     with gr.Row():
         im = gr.ImageEditor(
+            fixed_canvas=True,
+            canvas_size=[400, 400],
             type="numpy",
-            crop_size="1:1",
         )
         im_preview = gr.Image()
     n_upload = gr.Number(0, label="Number of upload events", step=1)
