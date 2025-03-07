@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Allow all tags for chatbot
+feat:Allow custom tags for chatbot
