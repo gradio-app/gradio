@@ -853,6 +853,9 @@ def load_chat(
                 f"Invalid file type: {file_type}. Must be 'text_encoded' or 'image'."
             )
 
+    if "chatbot" not in kwargs:
+        kwargs["chatbot"] = gr.Chatbot(allow_tags=True)
+
     return ChatInterface(
         open_api_stream if streaming else open_api,
         type="messages",

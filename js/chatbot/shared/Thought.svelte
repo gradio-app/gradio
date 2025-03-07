@@ -30,6 +30,7 @@
 	export let display_consecutive_in_same_bubble: boolean;
 	export let i18n: I18nFormatter;
 	export let line_breaks: boolean;
+	export let allow_tags: string[] | boolean = false;
 
 	function is_thought_node(msg: NormalisedMessage): msg is ThoughtNode {
 		return "children" in msg;
@@ -70,6 +71,7 @@
 			{latex_delimiters}
 			{sanitize_html}
 			{root}
+			{allow_tags}
 		/>
 		{#if thought_node.metadata?.status === "pending"}
 			<span class="loading-spinner"></span>
@@ -97,6 +99,7 @@
 			<MessageContent
 				message={thought_node}
 				{sanitize_html}
+				{allow_tags}
 				{latex_delimiters}
 				{render_markdown}
 				{_components}
