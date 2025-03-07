@@ -90,7 +90,7 @@
 	export let _undoable = false;
 	export let like_user_message = false;
 	export let root: string;
-	export let allow_tags: string[] | null = null;
+	export let allow_tags: string[] | boolean = false;
 
 	let target: HTMLElement | null = null;
 	let edit_index: number | null = null;
