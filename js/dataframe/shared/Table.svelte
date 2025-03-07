@@ -192,7 +192,6 @@
 			row.forEach((cell, col_idx) => {
 				cell_map.set(cell.id, {
 					value: cell.value,
-					display_value: cell.display_value || String(cell.value),
 					styling: styling?.[row_idx]?.[col_idx] || ""
 				});
 			});
@@ -564,14 +563,14 @@
 
 	function commit_filter(): void {
 		if ($df_state.current_search_query && show_search === "filter") {
-			const filtered_data = [];
-			const filtered_display_values = [];
-			const filtered_styling = [];
+			const filtered_data: (string | number)[][] = [];
+			const filtered_display_values: string[][] = [];
+			const filtered_styling: string[][] = [];
 
 			search_results.forEach((row) => {
-				const data_row = [];
-				const display_row = [];
-				const styling_row = [];
+				const data_row: (string | number)[] = [];
+				const display_row: string[] = [];
+				const styling_row: string[] = [];
 
 				row.forEach((cell) => {
 					data_row.push(cell.value);
@@ -828,7 +827,6 @@
 								{selected_cells}
 								{copy_flash}
 								{active_cell_menu}
-								display_value={search_results[index][j].display_value}
 								styling={search_results[index][j].styling}
 								{latex_delimiters}
 								{line_breaks}
