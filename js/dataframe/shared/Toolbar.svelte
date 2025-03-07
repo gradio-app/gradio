@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { Maximize, Minimize, Copy } from "@gradio/icons";
+	import { Maximize, Minimize, Copy, Check } from "@gradio/icons";
 	import { onDestroy } from "svelte";
 	import { createEventDispatcher } from "svelte";
-	import FilterIcon from "./icons/FilterIcon.svelte";
 
 	export let show_fullscreen_button = false;
 	export let show_copy_button = false;
@@ -18,8 +17,17 @@
 	let copied = false;
 	let timer: ReturnType<typeof setTimeout>;
 	export let current_search_query: string | null = null;
+	let input_value = "";
 
-	$: dispatch("search", current_search_query);
+	function handle_search_input(e: Event): void {
+		const target = e.target as HTMLInputElement;
+		input_value = target.value;
+		const new_query = input_value || null;
+		if (current_search_query !== new_query) {
+			current_search_query = new_query;
+			dispatch("search", current_search_query);
+		}
+	}
 
 	function copy_feedback(): void {
 		copied = true;
@@ -45,9 +53,12 @@
 			<div class="search-container">
 				<input
 					type="text"
-					bind:value={current_search_query}
-					placeholder="Search..."
+					value={current_search_query || ""}
+					on:input={handle_search_input}
+					placeholder={show_search === "filter" ? "Filter..." : "Search..."}
 					class="search-input"
+					class:filter-mode={show_search === "filter"}
+					title={`Enter text to ${show_search} the table`}
 				/>
 				{#if current_search_query && show_search === "filter"}
 					<button
@@ -56,7 +67,7 @@
 						aria-label="Apply filter and update dataframe values"
 						title="Apply filter and update dataframe values"
 					>
-						<FilterIcon />
+						<Check />
 					</button>
 				{/if}
 			</div>
@@ -69,7 +80,7 @@
 				title={copied ? "Copied to clipboard" : "Copy table data"}
 			>
 				{#if copied}
-					<FilterIcon />
+					<Check />
 				{:else}
 					<Copy />
 				{/if}

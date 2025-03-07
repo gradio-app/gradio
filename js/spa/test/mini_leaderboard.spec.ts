@@ -11,31 +11,31 @@ test("Search bar filters dataframe correctly.", async ({ page }) => {
 });
 
 test("Column selection adds columns to the dataframe.", async ({ page }) => {
-	await expect(
-		page
-			.locator("#leaderboard-table svelte-virtual-table-viewport")
-			.getByRole("button", { name: "Type" })
-	).not.toBeInViewport();
+	await page.waitForSelector("#leaderboard-table");
+	const typeHeaderExists =
+		(await page.locator("#leaderboard-table th >> text=Type").count()) > 0;
+	expect(typeHeaderExists).toBe(false);
+
 	await page.getByLabel("Type").check();
-	await expect(
-		page
-			.locator("#leaderboard-table svelte-virtual-table-viewport")
-			.getByRole("button", { name: "Type" })
-	).toBeInViewport();
+	await page.waitForTimeout(500);
+
+	const typeHeaderVisibleAfter =
+		(await page.locator("#leaderboard-table th >> text=Type").count()) > 0;
+	expect(typeHeaderVisibleAfter).toBe(true);
 });
 
 test("Column selection removes columns to the dataframe.", async ({ page }) => {
-	await expect(
-		page
-			.locator("#leaderboard-table svelte-virtual-table-viewport")
-			.getByRole("button", { name: "ARC" })
-	).toBeInViewport();
+	await page.waitForSelector("#leaderboard-table");
+	const arcHeaderExists =
+		(await page.locator("#leaderboard-table th >> text=ARC").count()) > 0;
+	expect(arcHeaderExists).toBe(true);
+
 	await page.getByLabel("ARC", { exact: true }).uncheck();
-	await expect(
-		page
-			.locator("#leaderboard-table svelte-virtual-table-viewport")
-			.getByRole("button", { name: "ARC" })
-	).not.toBeInViewport();
+	await page.waitForTimeout(500);
+
+	const arcHeaderVisibleAfter =
+		(await page.locator("#leaderboard-table th >> text=ARC").count()) > 0;
+	expect(arcHeaderVisibleAfter).toBe(false);
 });
 
 test("Model Types Checkbox filters models from the table", async ({ page }) => {

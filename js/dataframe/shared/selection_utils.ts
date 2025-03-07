@@ -2,6 +2,14 @@ import type { CellCoordinate, EditingState } from "./types";
 
 export type CellData = { id: string; value: string | number };
 
+export function is_cell_in_selection(
+	coords: [number, number],
+	selected_cells: [number, number][]
+): boolean {
+	const [row, col] = coords;
+	return selected_cells.some(([r, c]) => r === row && c === col);
+}
+
 export function is_cell_selected(
 	cell: CellCoordinate,
 	selected_cells: CellCoordinate[]
@@ -206,25 +214,17 @@ export function calculate_selection_positions(
 		return { col_pos: "0px", row_pos: undefined };
 	}
 
-	let offset = 0;
-	for (let i = 0; i < col; i++) {
-		offset += parseFloat(
-			getComputedStyle(parent).getPropertyValue(`--cell-width-${i}`)
-		);
-	}
-
 	const cell_id = data[row][col].id;
 	const cell_el = els[cell_id]?.cell;
 
 	if (!cell_el) {
-		// if we cant get the row position, just return the column position which is static
 		return { col_pos: "0px", row_pos: undefined };
 	}
 
 	const cell_rect = cell_el.getBoundingClientRect();
 	const table_rect = table.getBoundingClientRect();
 	const col_pos = `${cell_rect.left - table_rect.left + cell_rect.width / 2}px`;
-	const relative_top = cell_rect.top - table_rect.top;
-	const row_pos = `${relative_top + cell_rect.height / 2}px`;
+	const row_pos = `${cell_rect.top - table_rect.top + cell_rect.height / 2}px`;
+
 	return { col_pos, row_pos };
 }

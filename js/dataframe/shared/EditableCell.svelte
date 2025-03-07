@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { MarkdownCode } from "@gradio/markdown-code";
-
+	import type { I18nFormatter } from "@gradio/utils";
+	import SelectionButtons from "./icons/SelectionButtons.svelte";
 	export let edit: boolean;
 	export let value: string | number = "";
 	export let display_value: string | null = null;
@@ -13,7 +14,8 @@
 		| "html"
 		| "number"
 		| "bool"
-		| "date" = "str";
+		| "date"
+		| "image" = "str";
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -24,8 +26,19 @@
 	export let editable = true;
 	export let root: string;
 	export let max_chars: number | null = null;
+	export let components: Record<string, any> = {};
+	export let i18n: I18nFormatter;
 
-	const dispatch = createEventDispatcher();
+	export let show_selection_buttons = false;
+	export let coords: [number, number] | null = null;
+	export let on_select_column: ((col: number) => void) | null = null;
+	export let on_select_row: ((row: number) => void) | null = null;
+
+	const dispatch = createEventDispatcher<{
+		blur: void;
+		keydown: KeyboardEvent;
+	}>();
+
 	let is_expanded = false;
 
 	export let el: HTMLInputElement | null;
@@ -33,16 +46,19 @@
 
 	function truncate_text(
 		text: string | number,
-		max_length: number | null = null
+		max_length: number | null = null,
+		is_image = false
 	): string {
+		if (is_image) return String(text);
 		const str = String(text);
 		if (!max_length || str.length <= max_length) return str;
 		return str.slice(0, max_length) + "...";
 	}
 
-	$: display_text = is_expanded
-		? value
-		: truncate_text(display_value || value, max_chars);
+	$: display_text =
+		edit || is_expanded
+			? value
+			: truncate_text(display_value || value, max_chars, datatype === "image");
 
 	function use_focus(node: HTMLInputElement): any {
 		if (clear_on_focus) {
@@ -87,6 +103,7 @@
 {#if edit}
 	<input
 		role="textbox"
+		aria-label="Edit cell"
 		bind:this={el}
 		bind:value={_value}
 		class:header
@@ -112,8 +129,19 @@
 	style={styling}
 	data-editable={editable}
 	placeholder=" "
+	class:text={datatype === "str"}
 >
-	{#if datatype === "html"}
+	{#if datatype === "image" && components.image}
+		<svelte:component
+			this={components.image}
+			value={{ url: display_text }}
+			show_label={false}
+			label="cell-image"
+			show_download_button={false}
+			{i18n}
+			gradio={{ dispatch: () => {} }}
+		/>
+	{:else if datatype === "html"}
 		{@html display_text}
 	{:else if datatype === "markdown"}
 		<MarkdownCode
@@ -127,6 +155,18 @@
 		{editable ? display_text : display_value || display_text}
 	{/if}
 </span>
+{#if show_selection_buttons && coords && on_select_column && on_select_row}
+	<SelectionButtons
+		position="column"
+		{coords}
+		on_click={() => on_select_column(coords[1])}
+	/>
+	<SelectionButtons
+		position="row"
+		{coords}
+		on_click={() => on_select_row(coords[0])}
+	/>
+{/if}
 
 <style>
 	input {
@@ -155,18 +195,22 @@
 		cursor: text;
 		width: 100%;
 		height: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
-	span.expanded {
+	span.text.expanded {
 		height: auto;
 		min-height: 100%;
 		white-space: pre-wrap;
 		word-break: break-word;
-		white-space: normal;
+		overflow: visible;
 	}
 
 	.multiline {
 		white-space: pre-line;
+		overflow: visible;
 	}
 
 	.header {
@@ -175,10 +219,17 @@
 		white-space: normal;
 		word-break: break-word;
 		margin-left: var(--size-1);
+		overflow: visible;
 	}
 
 	.edit {
 		opacity: 0;
 		pointer-events: none;
+	}
+
+	span :global(img) {
+		max-height: 100px;
+		width: auto;
+		object-fit: contain;
 	}
 </style>
