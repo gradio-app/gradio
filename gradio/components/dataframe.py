@@ -142,30 +142,13 @@ class Dataframe(Component):
         self.row_count = self.__process_counts(row_count)
         self.static_columns = static_columns or []
 
-        if self.static_columns:
-            if isinstance(col_count, tuple):
-                col_count = (col_count[0], "fixed")
-                col_count_value = col_count[0]
-            else:
-                col_count_value = col_count
-                if col_count_value is None:
-                    col_count_value = len(headers) if headers else 3
-                col_count = (col_count_value, "fixed")
-
-            for col_idx in self.static_columns:
-                if (
-                    not isinstance(col_idx, int)
-                    or col_idx < 0
-                    or col_idx >= col_count_value
-                ):
-                    raise ValueError(
-                        f"Invalid column index in static_columns: {col_idx}. "
-                        f"Column indices must be integers between 0 and {col_count_value - 1}."
-                    )
-
         self.col_count = self.__process_counts(
             col_count, len(headers) if headers else 3
         )
+
+        if self.static_columns and isinstance(col_count, tuple):
+            self.col_count = (self.col_count[0], "fixed")
+
         self.__validate_headers(headers, self.col_count[0])
 
         self.headers = (
