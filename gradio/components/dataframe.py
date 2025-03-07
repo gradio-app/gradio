@@ -153,10 +153,14 @@ class Dataframe(Component):
                 col_count = (col_count_value, "fixed")
 
             for col_idx in self.static_columns:
-                if not isinstance(col_idx, int) or col_idx < 0 or col_idx >= col_count_value:
+                if (
+                    not isinstance(col_idx, int)
+                    or col_idx < 0
+                    or col_idx >= col_count_value
+                ):
                     raise ValueError(
                         f"Invalid column index in static_columns: {col_idx}. "
-                        f"Column indices must be integers between 0 and {col_count_value-1}."
+                        f"Column indices must be integers between 0 and {col_count_value - 1}."
                     )
 
         self.col_count = self.__process_counts(
