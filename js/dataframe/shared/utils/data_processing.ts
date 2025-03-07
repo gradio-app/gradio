@@ -35,37 +35,38 @@ export function make_headers(
 }
 
 export function process_data(
-	_values: (string | number)[][],
-	row_count: [number, "fixed" | "dynamic"],
-	col_count: [number, "fixed" | "dynamic"],
-	headers: Headers,
+	values: (string | number)[][],
 	els: Record<
 		string,
 		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
 	>,
-	data_binding: Record<string, { value: string | number; id: string }>,
-	make_id: () => string
-): {
-	value: string | number;
-	id: string;
-}[][] {
-	const data_row_length = _values.length;
-	if (data_row_length === 0) return [];
-	return Array(row_count[1] === "fixed" ? row_count[0] : data_row_length)
-		.fill(0)
-		.map((_, i) => {
-			return Array(
-				col_count[1] === "fixed"
-					? col_count[0]
-					: _values[0].length || headers.length
-			)
-				.fill(0)
-				.map((_, j) => {
-					const id = make_id();
-					els[id] = els[id] || { input: null, cell: null };
-					const obj = { value: _values?.[i]?.[j] ?? "", id };
-					data_binding[id] = obj;
-					return obj;
-				});
+	data_binding: Record<string, any>,
+	make_id: () => string,
+	display_value: string[][] | null = null
+): { id: string; value: string | number; display_value?: string }[][] {
+	if (!values || values.length === 0) {
+		return [];
+	}
+
+	const result = values.map((row, i) => {
+		return row.map((value, j) => {
+			const _id = make_id();
+			els[_id] = { cell: null, input: null };
+			data_binding[_id] = value;
+
+			let display = display_value?.[i]?.[j];
+
+			if (display === undefined) {
+				display = String(value);
+			}
+
+			return {
+				id: _id,
+				value,
+				display_value: display
+			};
 		});
+	});
+
+	return result;
 }
