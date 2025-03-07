@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix windows path issue in FileExplorer
+fix:Fix windows path issue in FileExplorer
