@@ -13,10 +13,10 @@ def simulate_thinking_chat(message, history):
     yield response
 
     thoughts = [
-        "<thinking>First, I need to understand the core aspects of the query...</thinking>",
-        "<thinking>Now, considering the broader context and implications...</thinking>",
-        "<thinking>Analyzing potential approaches to formulate a comprehensive answer...</thinking>",
-        "<thinking>Finally, structuring the response for clarity and completeness...</thinking>"
+        "First, I need to understand the core aspects of the query...",
+        "Now, considering the broader context and implications...",
+        "Analyzing potential approaches to formulate a comprehensive answer...",
+        "Finally, structuring the response for clarity and completeness..."
     ]
 
     accumulated_thoughts = ""
@@ -38,12 +38,11 @@ def simulate_thinking_chat(message, history):
     ]
     yield response
 
-chatbot = gr.Chatbot(allow_tags=True)
+
 demo = gr.ChatInterface(
     simulate_thinking_chat,
     title="Thinking LLM Chat Interface 🤔",
     type="messages",
-    chatbot=chatbot,
 )
 
 if __name__ == "__main__":
