@@ -292,3 +292,35 @@ test("Static columns cannot be edited", async ({ page }) => {
 		.getAttribute("aria-disabled");
 	expect(is_not_disabled).toEqual("false");
 });
+
+test("Dataframe search functionality works correctly after data update", async ({
+	page
+}) => {
+	const df = page.locator("#non-interactive-dataframe");
+	await page.getByRole("button", { name: "Update dataframe" }).click();
+	await page.waitForTimeout(500);
+
+	const initial_row_count = await df.locator("tbody tr").count();
+
+	const search_input = df.locator("input.search-input");
+	await search_input.fill("14");
+	await search_input.press("Enter");
+
+	await page.waitForTimeout(100);
+	const filtered_row_count = await df.locator("tbody tr").count();
+	expect(filtered_row_count).toEqual(5);
+
+	await search_input.clear();
+	await search_input.press("Enter");
+	await page.waitForTimeout(100);
+
+	const restored_row_count = await df.locator("tbody tr").count();
+	expect(restored_row_count).toEqual(initial_row_count);
+
+	await search_input.fill("81");
+	await search_input.press("Enter");
+
+	await page.waitForTimeout(100);
+	const filtered_after_update = await df.locator("tbody tr").count();
+	expect(filtered_after_update).toEqual(2);
+});

@@ -4,7 +4,13 @@ import numpy as np
 
 def update_dataframe():
     regular_df = pd.DataFrame(np.random.randint(1, 10, size=(5, 5)), columns=pd.Index([str(i) for i in range(5)]))
-    wide_df = pd.DataFrame(np.random.randint(1, 10, size=(5, 15)), columns=pd.Index([f"col_{i}" for i in range(15)]))
+    wide_df = pd.DataFrame([
+        [5, 22, 91, 17, 73, 38, 84, 46, 65, 10, 155, 122, 11, 144, 133],
+        [81, 42, 13, 97, 33, 77, 59, 100, 29, 61, 213, 195, 142, 118, 127],
+        [37, 71, 63, 102, 28, 94, 19, 55, 88, 44, 116, 139, 122, 150, 147],
+        [104, 52, 49, 26, 83, 67, 31, 92, 79, 18, 241, 115, 159, 123, 137],
+        [16, 95, 74, 68, 43, 101, 27, 85, 39, 57, 129, 148, 132, 111, 156]
+    ], columns=pd.Index([f"col_{i}" for i in range(15)]))
     tall_df = pd.DataFrame(np.random.randint(1, 10, size=(50, 3)), columns=pd.Index(["A", "B", "C"]))
     return regular_df, wide_df, tall_df
 
@@ -32,7 +38,6 @@ with gr.Blocks() as demo:
                 show_search="filter",
                 show_copy_button=True,
                 show_row_numbers=True,
-                static_columns=[4],
             )
 
         with gr.Column(scale=1):

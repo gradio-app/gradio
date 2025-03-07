@@ -157,7 +157,6 @@
 			on_select_column={handle_select_column}
 			on_select_row={handle_select_row}
 		/>
-
 		{#if editable && should_show_cell_menu([index, j], selected_cells, editable)}
 			<CellMenuButton on_click={(event) => toggle_cell_menu(event, index, j)} />
 		{/if}
