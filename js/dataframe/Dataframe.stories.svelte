@@ -6,6 +6,7 @@
 	import { userEvent } from "@storybook/test";
 	import { get } from "svelte/store";
 	import { format } from "svelte-i18n";
+	import Image from "@gradio/image";
 </script>
 
 <Meta
@@ -220,6 +221,18 @@
 />
 
 <Story
+	name="Interactive dataframe with zero row count"
+	args={{
+		values: [],
+		headers: ["Narrow", "Wide", "Half"],
+		label: "Test scores",
+		col_count: [0, "dynamic"],
+		row_count: [0, "dynamic"],
+		editable: true
+	}}
+/>
+
+<Story
 	name="Dataframe with link"
 	args={{
 		values: [['<a href="https://www.google.com/">google</a>']],
@@ -418,6 +431,31 @@
 />
 
 <Story
+	name="Dataframe with custom components"
+	args={{
+		values: [
+			[
+				"Absol G",
+				70,
+				"https://images.pokemontcg.io/pl3/1_hires.png",
+				"pl3-1",
+				"Supreme Victors"
+			]
+		],
+		datatype: ["str", "number", "image", "str", "str"],
+		headers: ["Pokemon", "HP", "Image", "ID", "Set"],
+		label: "Pokemon Cards",
+		col_count: [5, "fixed"],
+		row_count: [1, "dynamic"],
+		interactive: true,
+		editable: true,
+		components: {
+			image: Image
+		}
+	}}
+/>
+
+<Story
 	name="Dataframe with row and column selection"
 	args={{
 		values: [
@@ -441,16 +479,16 @@
 		const cells = canvas.getAllByRole("cell");
 		await user.click(cells[5]); // Click cell with value 6
 
-		const row_button = await canvas.findByRole("button", {
+		const row_button = await canvas.findAllByRole("button", {
 			name: "Select row"
-		});
+		})[0];
 		await user.click(row_button);
 
 		await user.click(cells[6]);
 
-		const col_button = await canvas.findByRole("button", {
+		const col_button = await canvas.findAllByRole("button", {
 			name: "Select column"
-		});
+		})[0];
 		await user.click(col_button);
 
 		await user.keyboard("{Delete}");
@@ -513,7 +551,7 @@
 		const canvas = within(canvasElement);
 		const user = userEvent.setup();
 
-		const search_input = canvas.getByPlaceholderText("Search...");
+		const search_input = canvas.getByPlaceholderText("Filter...");
 		await user.type(search_input, "Pet");
 
 		await new Promise((resolve) => setTimeout(resolve, 100));
@@ -528,7 +566,7 @@
 />
 
 <Story
-	name="Dataframe with frozen columns"
+	name="Dataframe with pinned columns"
 	args={{
 		values: [
 			["ID", "Name", "Age", "City", "Country", "Score"],
