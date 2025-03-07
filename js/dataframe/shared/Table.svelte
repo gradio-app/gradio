@@ -162,6 +162,12 @@
 
 	let data: { id: string; value: string | number }[][] = [[]];
 	let old_val: undefined | (string | number)[][] = undefined;
+	let search_results: {
+		id: string;
+		value: string | number;
+		display_value?: string;
+		styling?: string;
+	}[][] = [[]];
 
 	$: if (!dequal(values, old_val)) {
 		data = process_data(
@@ -179,6 +185,33 @@
 		if ($df_state.current_search_query) {
 			df_actions.handle_search(null);
 		}
+	}
+
+	$: if ($df_state.current_search_query !== undefined) {
+		const filtered = df_actions.filter_data(data);
+		const indices = data.reduce((acc, row, idx) => {
+			if (
+				row &&
+				filtered.some(
+					(f_row) => f_row && f_row[0] && row[0] && f_row[0].id === row[0].id
+				)
+			) {
+				acc.push(idx);
+			}
+			return acc;
+		}, [] as number[]);
+
+		search_results = filtered.map((row, i) =>
+			row.map((cell, j) => ({
+				...cell,
+				display_value:
+					indices[i] !== undefined
+						? display_value?.[indices[i]]?.[j]
+						: undefined,
+				styling:
+					indices[i] !== undefined ? styling?.[indices[i]]?.[j] : undefined
+			}))
+		);
 	}
 
 	let previous_headers = _headers.map((h) => h.value);
@@ -206,11 +239,6 @@
 	$: {
 		df_actions.sort_data(data, display_value, styling);
 		df_actions.update_row_order(data);
-	}
-
-	$: filtered_data = df_actions.filter_data(data);
-	$: if ($df_state.current_search_query !== undefined) {
-		filtered_data = df_actions.filter_data(data);
 	}
 
 	async function edit_header(i: number, _select = false): Promise<void> {
@@ -539,7 +567,7 @@
 	function commit_filter(): void {
 		if ($df_state.current_search_query && show_search === "filter") {
 			dispatch("change", {
-				data: filtered_data.map((row) => row.map((cell) => cell.value)),
+				data: search_results.map((row) => row.map((cell) => cell.value)),
 				headers: _headers.map((h) => h.value),
 				metadata: null
 			});
@@ -713,7 +741,7 @@
 		>
 			<div class="table-wrap">
 				<VirtualTable
-					bind:items={filtered_data}
+					bind:items={search_results}
 					{max_height}
 					bind:actual_height={table_height}
 					bind:table_scrollbar_width={scrollbar_width}
@@ -763,7 +791,7 @@
 						{/if}
 						{#each item as { value, id }, j (id)}
 							<TableCell
-								bind:value={filtered_data[index][j].value}
+								bind:value={search_results[index][j].value}
 								{index}
 								{j}
 								{actual_pinned_columns}
@@ -775,8 +803,8 @@
 								{selected_cells}
 								{copy_flash}
 								{active_cell_menu}
-								display_value={display_value?.[index]?.[j]}
-								styling={styling?.[index]?.[j]}
+								display_value={search_results[index][j].display_value}
+								styling={search_results[index][j].styling}
 								{latex_delimiters}
 								{line_breaks}
 								datatype={Array.isArray(datatype) ? datatype[j] : datatype}
