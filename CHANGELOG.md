@@ -1,5 +1,18 @@
 # gradio
 
+## 5.21.0
+
+### Features
+
+- [#10743](https://github.com/gradio-app/gradio/pull/10743) [`3086343`](https://github.com/gradio-app/gradio/commit/3086343a6832a941864d77821b23c31c8b26be7f) - Allow custom tags for chatbot.  Thanks @dawoodkhan82!
+- [#10768](https://github.com/gradio-app/gradio/pull/10768) [`0ce7bfe`](https://github.com/gradio-app/gradio/commit/0ce7bfe1bd733b30645a4833ba29988b4641acc7) - Allow tags for chatbot models using `gr.load`.  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#10757](https://github.com/gradio-app/gradio/pull/10757) [`b4342d2`](https://github.com/gradio-app/gradio/commit/b4342d24a88acaa4ed4028c8fdd44eea0d1b8b57) - Fix dataframe search and filter functionality.  Thanks @hannahblair!
+- [#10631](https://github.com/gradio-app/gradio/pull/10631) [`b5ca1dc`](https://github.com/gradio-app/gradio/commit/b5ca1dcfdf496292eade31347ae1974d3a0976c4) - Refactor `gr.Dataframe`.  Thanks @hannahblair!
+- [#10735](https://github.com/gradio-app/gradio/pull/10735) [`dd2de17`](https://github.com/gradio-app/gradio/commit/dd2de17064dc6794f94b0bfad973ab5aba671b10) - Fix windows path issue in FileExplorer.  Thanks @aliabid94!
+
 ## 5.20.1
 
 ### Features
