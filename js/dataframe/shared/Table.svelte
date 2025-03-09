@@ -75,6 +75,7 @@
 	export let max_chars: number | undefined = undefined;
 	export let show_search: "none" | "search" | "filter" = "none";
 	export let pinned_columns = 0;
+	export let static_columns: (string | number)[] = [];
 
 	$: actual_pinned_columns =
 		pinned_columns && data?.[0]?.length
@@ -699,6 +700,7 @@
 							{max_chars}
 							{root}
 							{editable}
+							is_static={static_columns.includes(i)}
 							{i18n}
 							bind:el={els[id].input}
 						/>
@@ -804,6 +806,7 @@
 								{max_chars}
 								{root}
 								{editable}
+								is_static={static_columns.includes(i)}
 								{i18n}
 								bind:el={els[id].input}
 							/>
@@ -836,6 +839,7 @@
 								{max_chars}
 								{root}
 								{editable}
+								is_static={static_columns.includes(j)}
 								{i18n}
 								{components}
 								{handle_select_column}

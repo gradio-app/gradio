@@ -57,6 +57,7 @@
 	export let show_row_numbers = false;
 	export let show_search: "none" | "search" | "filter" = "none";
 	export let pinned_columns = 0;
+	export let static_columns: (string | number)[] = [];
 
 	$: _headers = [...(value.headers || headers)];
 	$: display_value = value?.metadata?.display_value
@@ -119,5 +120,6 @@
 		{show_search}
 		{pinned_columns}
 		components={{ image: Image }}
+		{static_columns}
 	/>
 </Block>
