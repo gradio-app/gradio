@@ -9,6 +9,7 @@
 	} from "@codemirror/view";
 	import { StateEffect, EditorState, type Extension } from "@codemirror/state";
 	import { indentWithTab } from "@codemirror/commands";
+	import { autocompletion } from "@codemirror/autocomplete";
 
 	import { basicDark } from "cm6-theme-basic-dark";
 	import { basicLight } from "cm6-theme-basic-light";
@@ -28,6 +29,7 @@
 	export let placeholder: string | HTMLElement | null | undefined = undefined;
 	export let wrap_lines = false;
 	export let show_line_numbers = true;
+	export let autocomplete = false;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
@@ -175,6 +177,19 @@
 		}
 	});
 
+	const AutocompleteTheme = EditorView.theme({
+		".cm-tooltip-autocomplete": {
+			"& > ul": {
+				backgroundColor: "var(--background-fill-primary)",
+				color: "var(--body-text-color)"
+			},
+			"& > ul > li[aria-selected]": {
+				backgroundColor: "var(--color-accent-soft)",
+				color: "var(--body-text-color)"
+			}
+		}
+	});
+
 	function create_editor_state(_value: string | null | undefined): EditorState {
 		return EditorState.create({
 			doc: _value ?? undefined,
@@ -208,9 +223,12 @@
 		if (lang) {
 			extensions.push(lang);
 		}
-
 		if (show_line_numbers) {
 			extensions.push(lineNumbers());
+		}
+		if (autocomplete) {
+			extensions.push(autocompletion());
+			extensions.push(AutocompleteTheme);
 		}
 
 		extensions.push(EditorView.updateListener.of(handle_change));
