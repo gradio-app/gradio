@@ -2,6 +2,25 @@
 
 ## 0.12.1
 
+### Dependency updates
+
+- @gradio/atoms@0.13.4
+- @gradio/statustracker@0.10.5
+- @gradio/column@0.2.0
+- @gradio/upload@0.15.5
+- @gradio/button@0.4.10
+- @gradio/textbox@0.10.5
+- @gradio/checkbox@0.4.15
+- @gradio/file@0.12.10
+- @gradio/image@0.21.5
+- @gradio/video@0.14.5
+- @gradio/code@0.11.3
+- @gradio/paramviewer@0.7.3
+- @gradio/gallery@0.15.10
+- @gradio/plot@0.9.10
+
+## 0.12.1
+
 ### Features
 
 - [#10694](https://github.com/gradio-app/gradio/pull/10694) [`16244f3`](https://github.com/gradio-app/gradio/commit/16244f3c1cb1a65ac1f719142f8fab67512fbb25) - Event Listeners in gradio sketch.  Thanks @aliabid94!

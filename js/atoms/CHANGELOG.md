@@ -1,5 +1,11 @@
 # @gradio/atoms
 
+## 0.13.4
+
+### Dependency updates
+
+- @gradio/markdown-code@0.5.0
+
 ## 0.13.3
 
 ### Features
