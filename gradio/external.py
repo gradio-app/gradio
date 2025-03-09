@@ -318,6 +318,7 @@ def from_model(
         # Example: meta-llama/Meta-Llama-3-8B-Instruct
         if tags and "conversational" in tags:
             from gradio import ChatInterface
+            from gradio.components import Chatbot
 
             fn = external_utils.conversational_wrapper(client)
             examples = [
@@ -330,7 +331,8 @@ def from_model(
                 "examples": examples,
             }
             kwargs = dict(chat_interface_kwargs, **kwargs)
-            return ChatInterface(fn, type="messages", **kwargs)  # type: ignore
+            chatbot = Chatbot(scale=1, type="messages", allow_tags=True)
+            return ChatInterface(fn, chatbot=chatbot, type="messages", **kwargs)  # type: ignore
         inputs = components.Textbox(label="Text")
         outputs = inputs
         examples = ["Once upon a time"]
@@ -854,7 +856,9 @@ def load_chat(
             )
 
     if "chatbot" not in kwargs:
-        kwargs["chatbot"] = gr.Chatbot(allow_tags=True)
+        from gradio.components import Chatbot
+
+        kwargs["chatbot"] = Chatbot(type="messages", scale=1, allow_tags=True)
 
     return ChatInterface(
         open_api_stream if streaming else open_api,
