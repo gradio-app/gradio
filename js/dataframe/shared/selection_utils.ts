@@ -37,8 +37,14 @@ export function get_range_selection(
 	const max_col = Math.max(start_col, end_col);
 
 	const cells: CellCoordinate[] = [];
+	// Add the start cell as the "anchor" cell so that when
+	// we press shift+arrow keys, the selection will always
+	// include the anchor cell.
+	cells.push(start);
+
 	for (let i = min_row; i <= max_row; i++) {
 		for (let j = min_col; j <= max_col; j++) {
+			if (i === start_row && j === start_col) continue;
 			cells.push([i, j]);
 		}
 	}
