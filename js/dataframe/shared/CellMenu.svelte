@@ -89,7 +89,7 @@
 <style>
 	.cell-menu {
 		position: fixed;
-		z-index: var(--layer-4);
+		z-index: 9;
 		background: var(--background-fill-primary);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm);
