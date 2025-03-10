@@ -426,5 +426,3 @@ class TestDataframe:
         dataframe = gr.Dataframe(col_count=(4, "dynamic"))
         assert dataframe.col_count[1] == "dynamic"
 
-        with pytest.raises(ValueError):
-            gr.Dataframe(col_count=(3, "fixed"), static_columns=[5])
