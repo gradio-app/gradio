@@ -9,7 +9,7 @@
 	} from "@codemirror/view";
 	import { StateEffect, EditorState, type Extension } from "@codemirror/state";
 	import { indentWithTab } from "@codemirror/commands";
-	import { autocompletion } from "@codemirror/autocomplete";
+	import { autocompletion, acceptCompletion } from "@codemirror/autocomplete";
 
 	import { basicDark } from "cm6-theme-basic-dark";
 	import { basicLight } from "cm6-theme-basic-light";
@@ -215,7 +215,9 @@
 			extensions.push(basicSetup);
 		}
 		if (use_tab) {
-			extensions.push(keymap.of([indentWithTab]));
+			extensions.push(
+				keymap.of([{ key: "Tab", run: acceptCompletion }, indentWithTab])
+			);
 		}
 		if (placeholder) {
 			extensions.push(placeholderExt(placeholder));
