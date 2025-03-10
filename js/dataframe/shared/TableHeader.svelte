@@ -4,6 +4,7 @@
 	import CellMenuButton from "./CellMenuButton.svelte";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { SortDirection } from "./context/table_context";
+	import Padlock from "./icons/Padlock.svelte";
 
 	export let value: string;
 	export let i: number;
@@ -33,6 +34,10 @@
 	export let editable: boolean;
 	export let i18n: I18nFormatter;
 	export let el: HTMLInputElement | null;
+	export let is_static: boolean;
+	export let col_count: [number, "fixed" | "dynamic"];
+
+	$: can_add_columns = col_count && col_count[1] === "dynamic";
 
 	function get_header_position(col_index: number): string {
 		if (col_index >= actual_pinned_columns) {
@@ -100,11 +105,15 @@
 					header
 					{root}
 					{editable}
+					{is_static}
 					{i18n}
 				/>
 			</button>
+			{#if is_static}
+				<Padlock />
+			{/if}
 		</div>
-		{#if editable}
+		{#if editable && can_add_columns}
 			<CellMenuButton on_click={(event) => toggle_header_menu(event, i)} />
 		{/if}
 	</div>
