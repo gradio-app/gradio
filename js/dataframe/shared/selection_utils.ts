@@ -37,8 +37,14 @@ export function get_range_selection(
 	const max_col = Math.max(start_col, end_col);
 
 	const cells: CellCoordinate[] = [];
+	// Add the start cell as the "anchor" cell so that when
+	// we press shift+arrow keys, the selection will always
+	// include the anchor cell.
+	cells.push(start);
+
 	for (let i = min_row; i <= max_row; i++) {
 		for (let j = min_col; j <= max_col; j++) {
+			if (i === start_row && j === start_col) continue;
 			cells.push([i, j]);
 		}
 	}
@@ -50,6 +56,7 @@ export function handle_selection(
 	selected_cells: CellCoordinate[],
 	event: { shiftKey: boolean; metaKey: boolean; ctrlKey: boolean }
 ): CellCoordinate[] {
+	console.log("current", current, "selected_cells", selected_cells, "event", event);
 	if (event.shiftKey && selected_cells.length > 0) {
 		return get_range_selection(
 			selected_cells[selected_cells.length - 1],
