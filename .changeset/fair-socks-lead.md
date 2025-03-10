@@ -4,4 +4,4 @@
 "website": minor
 ---
 
-feat:Code autocompletion
+feat:Autocompletion on code editor component
