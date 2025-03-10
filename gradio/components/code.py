@@ -132,7 +132,7 @@ class Code(Component):
             max_lines: Maximum number of visible lines to show in the code editor. Defaults to None and will fill the height of the container.
             wrap_lines: If True, will wrap lines to the width of the container when overflow occurs. Defaults to False.
             show_line_numbers:  If True, displays line numbers, and if False, hides line numbers.
-            autocomplete: If True, will show autocomplete suggestions. Defaults to False.
+            autocomplete: If True, will show autocomplete suggestions for supported languages. Defaults to False.
         """
         if language not in Code.languages:
             raise ValueError(f"Language {language} not supported.")
