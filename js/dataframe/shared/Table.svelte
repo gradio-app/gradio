@@ -703,6 +703,7 @@
 							is_static={static_columns.includes(i)}
 							{i18n}
 							bind:el={els[id].input}
+							{col_count}
 						/>
 					{/each}
 				</tr>
@@ -809,6 +810,7 @@
 								is_static={static_columns.includes(i)}
 								{i18n}
 								bind:el={els[id].input}
+								{col_count}
 							/>
 						{/each}
 					</tr>

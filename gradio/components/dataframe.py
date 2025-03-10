@@ -146,7 +146,7 @@ class Dataframe(Component):
             col_count, len(headers) if headers else 3
         )
 
-        if self.static_columns and isinstance(col_count, tuple):
+        if self.static_columns and isinstance(self.col_count, tuple):
             self.col_count = (self.col_count[0], "fixed")
 
         self.__validate_headers(headers, self.col_count[0])
