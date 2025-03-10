@@ -38,6 +38,7 @@ with gr.Blocks() as demo:
                 show_search="filter",
                 show_copy_button=True,
                 show_row_numbers=True,
+                static_columns=[4]
             )
 
         with gr.Column(scale=1):
