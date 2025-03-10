@@ -633,6 +633,75 @@
 		active_cell_menu = null;
 		active_header_menu = null;
 	}
+
+	let is_dragging = false;
+	let drag_start: [number, number] | null = null;
+	let mouse_down_pos: { x: number; y: number } | null = null;
+
+	function handle_mouse_down(
+		event: MouseEvent,
+		row: number,
+		col: number
+	): void {
+		if (event.target instanceof HTMLAnchorElement) return;
+
+		event.preventDefault();
+		event.stopPropagation();
+
+		if (show_row_numbers && col === -1) return;
+
+		mouse_down_pos = { x: event.clientX, y: event.clientY };
+		drag_start = [row, col];
+
+		clear_on_focus = false;
+		df_actions.set_active_cell_menu(null);
+		df_actions.set_active_header_menu(null);
+		df_actions.set_selected_header(false);
+		df_actions.set_header_edit(false);
+
+		df_actions.set_selected_cells([[row, col]]);
+		df_actions.set_selected([row, col]);
+	}
+
+	function handle_mouse_move(event: MouseEvent): void {
+		if (!drag_start || !mouse_down_pos) return;
+
+		const dx = Math.abs(event.clientX - mouse_down_pos.x);
+		const dy = Math.abs(event.clientY - mouse_down_pos.y);
+
+		if (!is_dragging && (dx > 3 || dy > 3)) {
+			is_dragging = true;
+		}
+
+		if (!is_dragging) return;
+
+		const cell = (event.target as HTMLElement).closest("td");
+		if (!cell) return;
+
+		const row = parseInt(cell.getAttribute("data-row") || "0");
+		const col = parseInt(cell.getAttribute("data-col") || "0");
+
+		if (isNaN(row) || isNaN(col)) return;
+
+		const selection_range = get_range_selection(drag_start, [row, col]);
+		df_actions.set_selected_cells(selection_range);
+		df_actions.set_selected([row, col]);
+	}
+
+	function handle_mouse_up(event: MouseEvent): void {
+		if (!is_dragging && drag_start) {
+			// Handle as a normal click if we didn't drag
+			selection_ctx.actions.handle_cell_click(
+				event,
+				drag_start[0],
+				drag_start[1]
+			);
+		}
+
+		is_dragging = false;
+		drag_start = null;
+		mouse_down_pos = null;
+	}
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
@@ -661,11 +730,14 @@
 	<div
 		bind:this={parent}
 		class="table-wrap"
-		class:dragging
+		class:dragging={is_dragging}
 		class:no-wrap={!wrap}
 		style="height:{table_height}px;"
 		class:menu-open={active_cell_menu || active_header_menu}
 		on:keydown={(e) => handle_keydown(e, keyboard_ctx)}
+		on:mousemove={handle_mouse_move}
+		on:mouseup={handle_mouse_up}
+		on:mouseleave={handle_mouse_up}
 		role="grid"
 		tabindex="0"
 	>
@@ -729,6 +801,7 @@
 									coords={[0, j]}
 									on_select_column={handle_select_column}
 									on_select_row={handle_select_row}
+									{is_dragging}
 								/>
 							</div>
 						</td>
@@ -820,7 +893,7 @@
 								{j}
 								{actual_pinned_columns}
 								{get_cell_width}
-								{handle_cell_click}
+								handle_cell_click={(e, r, c) => handle_mouse_down(e, r, c)}
 								{toggle_cell_menu}
 								{is_cell_selected}
 								{should_show_cell_menu}
@@ -841,6 +914,7 @@
 								{handle_select_column}
 								{handle_select_row}
 								bind:el={els[id]}
+								{is_dragging}
 							/>
 						{/each}
 					</tr>
@@ -905,6 +979,16 @@
 
 	.table-wrap:focus-within {
 		outline: none;
+	}
+
+	.table-wrap.dragging {
+		cursor: crosshair !important;
+		user-select: none;
+	}
+
+	.table-wrap.dragging * {
+		cursor: crosshair !important;
+		user-select: none;
 	}
 
 	.table-wrap > :global(button) {

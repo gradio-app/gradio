@@ -58,6 +58,7 @@
 	};
 	export let handle_select_column: (col: number) => void;
 	export let handle_select_row: (row: number) => void;
+	export let is_dragging: boolean;
 
 	function get_cell_position(col_index: number): string {
 		if (col_index >= actual_pinned_columns) {
@@ -94,22 +95,8 @@
 	data-row={index}
 	data-col={j}
 	data-testid={`cell-${index}-${j}`}
-	on:touchstart={(event) => {
-		const touch = event.touches[0];
-		const mouseEvent = new MouseEvent("click", {
-			clientX: touch.clientX,
-			clientY: touch.clientY,
-			bubbles: true,
-			cancelable: true,
-			view: window
-		});
-		handle_cell_click(mouseEvent, index, j);
-	}}
-	on:mousedown={(event) => {
-		event.preventDefault();
-		event.stopPropagation();
-	}}
-	on:click={(event) => handle_cell_click(event, index, j)}
+	on:mousedown={(e) => handle_cell_click(e, index, j)}
+	on:contextmenu|preventDefault={(e) => toggle_cell_menu(e, index, j)}
 	style="width: {get_cell_width(j)}; left: {get_cell_position(j)}; {styling ||
 		''}"
 	class:flash={copy_flash && is_in_selection}
@@ -132,16 +119,6 @@
 			{editable}
 			edit={editing && editing[0] === index && editing[1] === j}
 			{datatype}
-			on:blur={() => {
-				clear_on_focus = false;
-			}}
-			on:focus={() => {
-				const row = index;
-				const col = j;
-				if (!selected_cells.some(([r, c]) => r === row && c === col)) {
-					selected_cells = [[row, col]];
-				}
-			}}
 			{clear_on_focus}
 			{root}
 			{max_chars}
@@ -153,6 +130,7 @@
 			coords={[index, j]}
 			on_select_column={handle_select_column}
 			on_select_row={handle_select_row}
+			{is_dragging}
 		/>
 		{#if editable && should_show_cell_menu([index, j], selected_cells, editable)}
 			<CellMenuButton on_click={(event) => toggle_cell_menu(event, index, j)} />

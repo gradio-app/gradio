@@ -28,6 +28,7 @@
 	export let max_chars: number | null = null;
 	export let components: Record<string, any> = {};
 	export let i18n: I18nFormatter;
+	export let is_dragging = false;
 
 	export let show_selection_buttons = false;
 	export let coords: [number, number] | null = null;
@@ -118,6 +119,7 @@
 {/if}
 
 <span
+	class:dragging={is_dragging}
 	on:click={handle_click}
 	on:keydown={handle_keydown}
 	tabindex="0"
@@ -169,6 +171,10 @@
 {/if}
 
 <style>
+	.dragging {
+		cursor: crosshair;
+	}
+
 	input {
 		position: absolute;
 		top: var(--size-2);
