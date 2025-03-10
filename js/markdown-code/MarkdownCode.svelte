@@ -113,7 +113,7 @@
 
 	async function render_html(value: string): Promise<void> {
 		if (latex_delimiters.length > 0 && value) {
-			const containsDelimiter = latex_delimiters.every(
+			const containsDelimiter = latex_delimiters.some(
 				(delimiter) =>
 					value.includes(delimiter.left) && value.includes(delimiter.right)
 			);
