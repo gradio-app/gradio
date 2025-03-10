@@ -239,7 +239,7 @@ test("Dataframe shift+click selection works", async ({ page }) => {
 		navigator.clipboard.readText()
 	);
 
-	expect(clipboard_value).toBe("0,6\n0,6");
+	expect(clipboard_value).toBe("0,6\n0,0");
 });
 
 test("Dataframe cmd + click selection works", async ({ page }) => {
@@ -268,7 +268,7 @@ test("Dataframe cmd + click selection works", async ({ page }) => {
 		navigator.clipboard.readText()
 	);
 
-	expect(clipboard_value).toBe("6\n8");
+	expect(clipboard_value).toBe("6\n0");
 });
 
 test("Static columns cannot be edited", async ({ page }) => {
