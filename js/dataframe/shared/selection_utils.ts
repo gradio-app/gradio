@@ -56,14 +56,6 @@ export function handle_selection(
 	selected_cells: CellCoordinate[],
 	event: { shiftKey: boolean; metaKey: boolean; ctrlKey: boolean }
 ): CellCoordinate[] {
-	console.log(
-		"current",
-		current,
-		"selected_cells",
-		selected_cells,
-		"event",
-		event
-	);
 	if (event.shiftKey && selected_cells.length > 0) {
 		return get_range_selection(
 			selected_cells[selected_cells.length - 1],
