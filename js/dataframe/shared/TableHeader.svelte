@@ -21,8 +21,8 @@
 	export let handle_sort: (col: number, direction: SortDirection) => void;
 	export let toggle_header_menu: (event: MouseEvent, col: number) => void;
 	export let end_header_edit: (event: CustomEvent<KeyboardEvent>) => void;
-	export let sort_by: number | null;
-	export let sort_direction: SortDirection | null;
+	export let sort_columns: { col: number; direction: SortDirection }[] = [];
+
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -38,6 +38,11 @@
 	export let col_count: [number, "fixed" | "dynamic"];
 
 	$: can_add_columns = col_count && col_count[1] === "dynamic";
+	$: sort_index = sort_columns.findIndex((item) => item.col === i);
+	$: sort_priority =
+		sort_index !== -1 ? sort_columns.length - sort_index : null;
+	$: current_direction =
+		sort_index !== -1 ? sort_columns[sort_index].direction : null;
 
 	function get_header_position(col_index: number): string {
 		if (col_index >= actual_pinned_columns) {
@@ -80,9 +85,13 @@
 			{#if header_edit !== i}
 				<div class="sort-buttons">
 					<SortIcon
-						direction={sort_by === i ? sort_direction : null}
-						on:sort={({ detail }) => handle_sort(i, detail)}
+						direction={current_direction}
+						priority={sort_priority}
+						on:sort={({ detail }) => {
+							handle_sort(i, detail);
+						}}
 						{i18n}
+						sorted_columns_length={sort_columns.length}
 					/>
 				</div>
 			{/if}
@@ -162,7 +171,7 @@
 		min-height: var(--size-9);
 		position: relative;
 		height: 100%;
-		padding: var(--size-2);
+		padding: var(--size-1);
 		box-sizing: border-box;
 		margin: 0;
 		gap: var(--size-1);

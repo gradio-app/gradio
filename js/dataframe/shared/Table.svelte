@@ -232,11 +232,18 @@
 
 	function handle_sort(col: number, direction: SortDirection): void {
 		df_actions.handle_sort(col, direction);
+		sort_data(data, display_value, styling);
 	}
 
 	$: {
 		df_actions.sort_data(data, display_value, styling);
 		df_actions.update_row_order(data);
+	}
+
+	$: {
+		if ($df_state.sort_state.sort_columns) {
+			sort_data(data, display_value, styling);
+		}
 	}
 
 	async function edit_header(i: number, _select = false): Promise<void> {
@@ -360,19 +367,19 @@
 	function sort_data(
 		_data: typeof data,
 		_display_value: string[][] | null,
-		_styling: string[][] | null,
-		col?: number,
-		dir?: SortDirection
+		_styling: string[][] | null
 	): void {
 		let id = null;
 		if (selected && selected[0] in _data && selected[1] in _data[selected[0]]) {
 			id = _data[selected[0]][selected[1]].id;
 		}
-		if (typeof col !== "number" || !dir) {
-			return;
-		}
 
-		sort_table_data(_data, _display_value, _styling, col, dir);
+		sort_table_data(
+			_data,
+			_display_value,
+			_styling,
+			$df_state.sort_state.sort_columns
+		);
 		data = data;
 
 		if (id) {
@@ -381,17 +388,7 @@
 		}
 	}
 
-	$: sort_data(
-		data,
-		display_value,
-		styling,
-		$df_state.sort_state.sort_by === null
-			? undefined
-			: $df_state.sort_state.sort_by,
-		$df_state.sort_state.sort_direction === null
-			? undefined
-			: $df_state.sort_state.sort_direction
-	);
+	$: sort_data(data, display_value, styling);
 
 	$: selected_index = !!selected && selected[0];
 
@@ -693,8 +690,7 @@
 							{handle_sort}
 							{toggle_header_menu}
 							{end_header_edit}
-							sort_by={$df_state.sort_state.sort_by}
-							sort_direction={$df_state.sort_state.sort_direction}
+							sort_columns={$df_state.sort_state.sort_columns}
 							{latex_delimiters}
 							{line_breaks}
 							{max_chars}
@@ -800,8 +796,7 @@
 								{handle_sort}
 								{toggle_header_menu}
 								{end_header_edit}
-								sort_by={$df_state.sort_state.sort_by}
-								sort_direction={$df_state.sort_state.sort_direction}
+								sort_columns={$df_state.sort_state.sort_columns}
 								{latex_delimiters}
 								{line_breaks}
 								{max_chars}
