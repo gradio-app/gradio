@@ -425,4 +425,3 @@ class TestDataframe:
         # when static_columns is not specified at all, col_count should remain as specified
         dataframe = gr.Dataframe(col_count=(4, "dynamic"))
         assert dataframe.col_count[1] == "dynamic"
-
