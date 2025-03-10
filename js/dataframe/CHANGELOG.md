@@ -1,5 +1,24 @@
 # @gradio/dataframe
 
+## 0.17.0
+
+### Features
+
+- [#10734](https://github.com/gradio-app/gradio/pull/10734) [`c44b8f4`](https://github.com/gradio-app/gradio/commit/c44b8f47b927258552af61c3af06f2e30449f571) - Add `static_columns` param for interactive dataframes.  Thanks @hannahblair!
+
+### Fixes
+
+- [#10757](https://github.com/gradio-app/gradio/pull/10757) [`b4342d2`](https://github.com/gradio-app/gradio/commit/b4342d24a88acaa4ed4028c8fdd44eea0d1b8b57) - Fix dataframe search and filter functionality.  Thanks @hannahblair!
+- [#10631](https://github.com/gradio-app/gradio/pull/10631) [`b5ca1dc`](https://github.com/gradio-app/gradio/commit/b5ca1dcfdf496292eade31347ae1974d3a0976c4) - Refactor `gr.Dataframe`.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.4
+- @gradio/statustracker@0.10.5
+- @gradio/upload@0.15.5
+- @gradio/button@0.4.10
+- @gradio/markdown-code@0.5.0
+
 ## 0.16.5
 
 ### Dependency updates
