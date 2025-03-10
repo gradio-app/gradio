@@ -825,6 +825,7 @@
 										lines={10}
 										readonly={false}
 										dark_mode={false}
+										autocomplete
 										on:change={(e) => {
 											code_state.code_edited = true;
 											if (user_query == app_error) {
