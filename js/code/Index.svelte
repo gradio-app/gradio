@@ -40,6 +40,7 @@
 	export let min_width: number | undefined = undefined;
 	export let wrap_lines = false;
 	export let show_line_numbers = true;
+	export let autocomplete = false;
 
 	export let interactive: boolean;
 
@@ -93,6 +94,7 @@
 			{dark_mode}
 			{wrap_lines}
 			{show_line_numbers}
+			{autocomplete}
 			readonly={!interactive}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
