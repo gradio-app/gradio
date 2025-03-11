@@ -176,10 +176,6 @@
 <style>
 	input {
 		position: absolute;
-		top: var(--size-2);
-		right: var(--size-2);
-		bottom: var(--size-2);
-		left: var(--size-2);
 		flex: 1 1 0%;
 		transform: translateX(-0.1px);
 		outline: none;

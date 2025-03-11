@@ -8,18 +8,15 @@
 	export let direction: SortDirection | null = null;
 	export let priority: number | null = null;
 	export let i18n: I18nFormatter;
-	export let sorted_columns_length: number;
 
 	const dispatch = createEventDispatcher<{ sort: SortDirection }>();
 </script>
 
 <div class="sort-icons" role="group" aria-label={i18n("dataframe.sort_column")}>
-	{#if sorted_columns_length > 1}
-		{#if (direction === "asc" || direction === "desc") && priority !== null}
-			<span aria-label={`Sort priority: ${priority}`} class="priority"
-				>{priority}</span
-			>
-		{/if}
+	{#if (direction === "asc" || direction === "desc") && priority !== null}
+		<span aria-label={`Sort priority: ${priority}`} class="priority"
+			>{priority}</span
+		>
 	{/if}
 	<IconButton
 		size="x-small"

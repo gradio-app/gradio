@@ -248,6 +248,11 @@
 		sort_data(data, display_value, styling);
 	}
 
+	function clear_sort(): void {
+		df_actions.reset_sort_state();
+		sort_data(data, display_value, styling);
+	}
+
 	$: {
 		df_actions.sort_data(data, display_value, styling);
 		df_actions.update_row_order(data);
@@ -719,6 +724,7 @@
 							{i18n}
 							bind:el={els[id].input}
 							{col_count}
+							{clear_sort}
 						/>
 					{/each}
 				</tr>
@@ -812,7 +818,6 @@
 								{headers}
 								{get_cell_width}
 								{handle_header_click}
-								{handle_sort}
 								{toggle_header_menu}
 								{end_header_edit}
 								sort_columns={$df_state.sort_state.sort_columns}
@@ -903,6 +908,30 @@
 		can_delete_rows={!active_header_menu && data.length > 1}
 		can_delete_cols={data.length > 0 && data[0]?.length > 1}
 		{i18n}
+		on_sort={active_header_menu
+			? (direction) => {
+					if (active_header_menu) {
+						handle_sort(active_header_menu.col, direction);
+						df_actions.set_active_header_menu(null);
+					}
+				}
+			: undefined}
+		on_clear_sort={active_header_menu
+			? () => {
+					clear_sort();
+					df_actions.set_active_header_menu(null);
+				}
+			: undefined}
+		sort_direction={active_header_menu
+			? $df_state.sort_state.sort_columns.find(
+					(item) => item.col === (active_header_menu?.col ?? -1)
+				)?.direction ?? null
+			: null}
+		sort_priority={active_header_menu
+			? $df_state.sort_state.sort_columns.findIndex(
+					(item) => item.col === (active_header_menu?.col ?? -1)
+				) + 1 || null
+			: null}
 	/>
 {/if}
 
