@@ -31,13 +31,13 @@
 		Circle,
 		Maximise,
 		Resize,
-		Trash,
+		Trash
 	} from "@gradio/icons";
 	import BrushOptions from "./brush/BrushOptions.svelte";
 
 	import {
 		type Brush as BrushType,
-		type Eraser as EraserType,
+		type Eraser as EraserType
 	} from "./brush/types";
 
 	let tool: Tool = "image";

@@ -17,7 +17,7 @@
 
 	function get_formatted_color(
 		color: string,
-		mode: "hex" | "rgb" | "hsl",
+		mode: "hex" | "rgb" | "hsl"
 	): string {
 		if (mode === "hex") {
 			return tinycolor(color).toHexString();
@@ -30,7 +30,7 @@
 	let current_index = `select-${colors.findIndex(
 		(c) =>
 			get_formatted_color(c, current_mode) ===
-			get_formatted_color(selected_color, current_mode),
+			get_formatted_color(selected_color, current_mode)
 	)}`;
 
 	function handle_select(
@@ -38,7 +38,7 @@
 		detail: {
 			index: number;
 			color: string | null;
-		},
+		}
 	): void {
 		current_index = `${type}-${detail.index}`;
 		dispatch(type, detail);

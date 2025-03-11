@@ -8,7 +8,7 @@
 		Trash,
 		ZoomIn,
 		ZoomOut,
-		Resize as ResizeIcon,
+		Resize as ResizeIcon
 	} from "@gradio/icons";
 	import type { Spring } from "svelte/motion";
 	import Resize from "./Resize.svelte";

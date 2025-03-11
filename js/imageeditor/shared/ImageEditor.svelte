@@ -21,7 +21,7 @@
 	import {
 		command_manager,
 		type CommandManager,
-		type CommandNode,
+		type CommandNode
 	} from "./utils/commands";
 	import { ImageEditor } from "./core/editor";
 	import { type Brush, type Eraser } from "./brush/types";
@@ -92,7 +92,7 @@
 			width: canvas_size[0],
 			height: canvas_size[1],
 			tools: ["image", zoom, new CropTool(), new ResizeTool(), brush],
-			fixed_canvas,
+			fixed_canvas
 		});
 
 		editor.scale.subscribe((_scale) => {
@@ -140,7 +140,7 @@
 	 */
 	function handle_subtool_change({
 		tool,
-		subtool,
+		subtool
 	}: {
 		tool: ToolbarTool;
 		subtool: Subtool;
@@ -186,17 +186,17 @@
 	$: brush?.set_brush_color(
 		selected_color === "auto"
 			? brush_options.colors.find(
-					(color) => color === brush_options.default_color,
+					(color) => color === brush_options.default_color
 				) || brush_options.colors[0]
-			: selected_color,
+			: selected_color
 	);
 
 	// Type-safe brush size handling
 	$: brush?.set_brush_size(
-		typeof selected_size === "number" ? selected_size : 25,
+		typeof selected_size === "number" ? selected_size : 25
 	);
 	$: brush?.set_eraser_size(
-		typeof selected_eraser_size === "number" ? selected_eraser_size : 25,
+		typeof selected_eraser_size === "number" ? selected_eraser_size : 25
 	);
 	$: disable_click =
 		current_tool !== "image" || (current_tool === "image" && background_image);
@@ -213,7 +213,7 @@
 		zoom.set_zoom(
 			direction === "in"
 				? zoom_level + (zoom_level < 1 ? 0.1 : zoom_level * 0.1)
-				: zoom_level - (zoom_level < 1 ? 0.1 : zoom_level * 0.1),
+				: zoom_level - (zoom_level < 1 ? 0.1 : zoom_level * 0.1)
 		);
 	}
 
@@ -229,7 +229,7 @@
 		on_drag_change: (dragging) => (is_dragging = dragging),
 		on_files: handle_files,
 		accepted_types: "image/*",
-		disable_click: disable_click,
+		disable_click: disable_click
 	}}
 >
 	{#if ready}
@@ -251,7 +251,7 @@
 					e.detail.width,
 					e.detail.height,
 					e.detail.anchor,
-					e.detail.scale,
+					e.detail.scale
 				);
 			}}
 			can_save={true}

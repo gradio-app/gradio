@@ -78,7 +78,7 @@
 					items[i].getType(type).then(async (blob) => {
 						const file = new File(
 							[blob],
-							`clipboard.${type.replace("image/", "")}`,
+							`clipboard.${type.replace("image/", "")}`
 						);
 						await load_files([file]);
 					});
@@ -97,7 +97,7 @@
 	}
 
 	async function handle_upload(
-		file_data: FileData[],
+		file_data: FileData[]
 	): Promise<(FileData | null)[]> {
 		await tick();
 		upload_id = Math.random().toString(36).substring(2, 15);
@@ -107,7 +107,7 @@
 				file_data,
 				root,
 				upload_id,
-				max_file_size ?? Infinity,
+				max_file_size ?? Infinity
 			);
 			dispatch("load", file_count === "single" ? _file_data?.[0] : _file_data);
 			uploading = false;
@@ -120,14 +120,14 @@
 	}
 
 	export async function load_files(
-		files: File[] | Blob[],
+		files: File[] | Blob[]
 	): Promise<(FileData | null)[] | void> {
 		if (!files.length) {
 			return;
 		}
 		let _files: File[] = files.map(
 			(f) =>
-				new File([f], f instanceof File ? f.name : "file", { type: f.type }),
+				new File([f], f instanceof File ? f.name : "file", { type: f.type })
 		);
 
 		if (ios && use_post_upload_validation) {
@@ -137,7 +137,7 @@
 				}
 				dispatch(
 					"error",
-					`Invalid file type: ${file.name}. Only ${filetype} allowed.`,
+					`Invalid file type: ${file.name}. Only ${filetype} allowed.`
 				);
 				return false;
 			});
@@ -233,7 +233,7 @@
 			on_files: (files) => load_files_from_upload(files),
 			accepted_types: accept_file_types,
 			mode: file_count,
-			disable_click,
+			disable_click
 		}}
 	>
 		<slot />
