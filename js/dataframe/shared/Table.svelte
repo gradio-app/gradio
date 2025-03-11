@@ -723,7 +723,6 @@
 							{i18n}
 							bind:el={els[id].input}
 							{col_count}
-							{clear_sort}
 						/>
 					{/each}
 				</tr>
