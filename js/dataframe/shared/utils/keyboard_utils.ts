@@ -12,7 +12,7 @@ function handle_header_navigation(
 	switch (event.key) {
 		case "ArrowDown":
 			ctx.df_actions.set_selected_header(false);
-			ctx.df_actions.set_selected([0, ctx.selected_header])
+			ctx.df_actions.set_selected([0, ctx.selected_header]);
 			ctx.df_actions.set_selected_cells([[0, ctx.selected_header]]);
 			return true;
 		case "ArrowLeft":
