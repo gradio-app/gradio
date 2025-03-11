@@ -38,8 +38,9 @@ class Textbox(FormComponent):
         self,
         value: str | Callable | None = None,
         *,
+        type: Literal["text", "password", "email"] = "text",
         lines: int = 1,
-        max_lines: int = 20,
+        max_lines: int | None = None,
         placeholder: str | None = None,
         label: str | None = None,
         info: str | None = None,
@@ -57,7 +58,6 @@ class Textbox(FormComponent):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        type: Literal["text", "password", "email"] = "text",
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
         show_copy_button: bool = False,
@@ -68,8 +68,9 @@ class Textbox(FormComponent):
         """
         Parameters:
             value: text to show in textbox. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
+            type: The type of textbox. One of: 'text' (which allows users to enter any text), 'password' (which masks text entered by the user), 'email' (which allows users to enter an email address). For "password" and "email" types, `lines` must be 1 and `max_lines` must be None or 1, otherwise the textbox `type` will be "text".
             lines: minimum number of line rows to provide in textarea.
-            max_lines: maximum number of line rows to provide in textarea.
+            max_lines: maximum number of line rows to provide in textarea. Must be at least `lines`. If not provided, the maximum number of lines is max(lines, 20) for "text" type, and 1 for "password" and "email" types.
             placeholder: placeholder hint to provide behind textarea.
             label: the label for this component, displayed above the component if `show_label` is `True` and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component corresponds to.
             info: additional component description, appears below the label in smaller font. Supports markdown / HTML syntax.
@@ -86,7 +87,6 @@ class Textbox(FormComponent):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
-            type: The type of textbox. One of: 'text', 'password', 'email', Default is 'text'.
             text_align: How to align the text in the textbox, can be: "left", "right", or None (default). If None, the alignment is left if `rtl` is False, or right if `rtl` is True. Can only be changed if `type` is "text".
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
@@ -98,10 +98,7 @@ class Textbox(FormComponent):
             raise ValueError('`type` must be one of "text", "password", or "email".')
 
         self.lines = lines
-        if type == "text":
-            self.max_lines = max(lines, max_lines)
-        else:
-            self.max_lines = 1
+        self.max_lines = max_lines
         self.placeholder = placeholder
         self.show_copy_button = show_copy_button
         self.submit_btn = submit_btn

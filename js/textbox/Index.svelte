@@ -32,7 +32,7 @@
 	export let lines: number;
 	export let placeholder = "";
 	export let show_label: boolean;
-	export let max_lines: number;
+	export let max_lines: number | undefined = undefined;
 	export let type: "text" | "password" | "email" = "text";
 	export let container = true;
 	export let scale: number | null = null;
@@ -80,7 +80,7 @@
 		{type}
 		{rtl}
 		{text_align}
-		max_lines={!max_lines ? lines + 1 : max_lines}
+		{max_lines}
 		{placeholder}
 		{submit_btn}
 		{stop_btn}
