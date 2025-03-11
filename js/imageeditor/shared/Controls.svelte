@@ -8,7 +8,7 @@
 		Trash,
 		ZoomIn,
 		ZoomOut,
-		Resize as ResizeIcon,
+		Resize as ResizeIcon
 	} from "@gradio/icons";
 	import type { Spring } from "svelte/motion";
 	import Resize from "./Resize.svelte";
@@ -147,6 +147,7 @@
 			</div>
 		{/if}
 	</div>
+	<div class="separator"></div>
 
 	{#if changeable}
 		<IconButton
@@ -190,17 +191,34 @@
 </IconButtonWrapper>
 
 <style>
+	.separator {
+		width: 1px;
+		height: 10px;
+		background-color: var(--border-color-primary);
+	}
+
 	.zoom-number {
 		position: relative;
-		width: 40px;
+		width: 30px;
+		padding-left: 4px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 	}
 
+	.zoom-number span {
+		cursor: pointer;
+		font-size: var(--text-sm);
+		transition: color 0.15s ease;
+	}
+
+	.zoom-number span:hover {
+		color: var(--color-accent);
+	}
+
 	.zoom-controls {
 		position: absolute;
-		top: calc(100% + var(--spacing-xxs) + 2px);
+		top: calc(100% + var(--spacing-xxs) + 3px);
 		left: -2px;
 		background: var(--block-background-fill);
 		border: 1px solid var(--color-gray-200);
@@ -218,38 +236,37 @@
 
 	.zoom-controls ul {
 		list-style: none;
+		margin: 0;
 		padding: 0;
-		margin: 0;
 	}
 
-	.zoom-controls ul li {
-		padding: 0;
-		margin: 0;
+	.zoom-controls li {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		transition: background-color 0.15s ease;
+		border-bottom: 1px solid var(--border-color-primary);
 	}
 
-	.zoom-controls ul li button {
-		padding: var(--spacing-sm) var(--spacing-md);
-		margin: 0;
-		border: none;
-		width: 100%;
-		text-align: left;
-		border-bottom: 1px solid var(--block-border-color);
-	}
-
-	.zoom-controls ul li:last-child button {
+	.zoom-controls li:last-child {
 		border-bottom: none;
 	}
 
-	.zoom-controls ul li button:hover {
-		color: var(--button-secondary-text-color-hover);
+	.zoom-controls li:hover {
+		background-color: var(--background-fill-secondary);
 	}
 
-	span {
-		font-size: 12px;
-		font-family: var(--font-mono);
-		color: var(--color-gray-500);
+	.zoom-controls button {
+		width: 100%;
+		text-align: left;
+		padding: var(--spacing-sm) var(--spacing-md);
+		font-size: var(--text-sm);
+		line-height: var(--line-sm);
+		transition: all 0.15s ease;
+		border-radius: var(--radius-sm);
+	}
 
-		text-align: center;
-		cursor: pointer;
+	.zoom-controls button:hover {
+		color: var(--color-accent);
 	}
 </style>
