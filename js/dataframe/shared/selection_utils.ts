@@ -145,10 +145,11 @@ export function get_next_cell_coordinates(
 }
 
 export function move_cursor(
-	key: "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp",
+	event: KeyboardEvent,
 	current_coords: CellCoordinate,
 	data: CellData[][]
 ): CellCoordinate | false {
+	const key = event.key as "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp";
 	const dir = {
 		ArrowRight: [0, 1],
 		ArrowLeft: [0, -1],
