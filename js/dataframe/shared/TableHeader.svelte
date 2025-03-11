@@ -187,6 +187,7 @@
 	}
 
 	.header-button {
+		display: flex;
 		text-align: left;
 		width: 100%;
 		overflow: hidden;
