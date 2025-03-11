@@ -171,6 +171,14 @@
 	}[][] = [[]];
 
 	$: if (!dequal(values, old_val)) {
+		// only reset sort state when values are changed
+		const is_reset =
+			values.length === 0 || (values.length === 1 && values[0].length === 0);
+		const is_different_structure =
+			old_val !== undefined &&
+			(values.length !== old_val.length ||
+				(values[0] && old_val[0] && values[0].length !== old_val[0].length));
+
 		data = process_data(
 			values as (string | number)[][],
 			els,
@@ -179,7 +187,10 @@
 			display_value
 		);
 		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
-		if ($df_state.sort_state.sort_columns.length > 0) {
+
+		if (is_reset || is_different_structure) {
+			df_actions.reset_sort_state();
+		} else if ($df_state.sort_state.sort_columns.length > 0) {
 			sort_data(data, display_value, styling);
 		}
 
@@ -244,7 +255,9 @@
 
 	$: {
 		if ($df_state.sort_state.sort_columns) {
-			sort_data(data, display_value, styling);
+			if ($df_state.sort_state.sort_columns.length > 0) {
+				sort_data(data, display_value, styling);
+			}
 		}
 	}
 
@@ -632,6 +645,10 @@
 		add_col(col_index);
 		active_cell_menu = null;
 		active_header_menu = null;
+	}
+
+	export function reset_sort_state(): void {
+		df_actions.reset_sort_state();
 	}
 </script>
 
