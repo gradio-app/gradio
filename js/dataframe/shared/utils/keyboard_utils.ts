@@ -9,12 +9,11 @@ function handle_header_navigation(
 	ctx: KeyboardContext
 ): boolean {
 	if (ctx.selected_header === false || ctx.header_edit !== false) return false;
-
 	switch (event.key) {
 		case "ArrowDown":
+			ctx.df_actions.set_selected_header(false);
 			ctx.df_actions.set_selected([0, ctx.selected_header]);
 			ctx.df_actions.set_selected_cells([[0, ctx.selected_header]]);
-			ctx.df_actions.set_selected_header(false);
 			return true;
 		case "ArrowLeft":
 			ctx.df_actions.set_selected_header(
@@ -88,11 +87,7 @@ function handle_arrow_keys(
 	if (ctx.editing) return false;
 	event.preventDefault();
 
-	const next_coords = ctx.move_cursor(
-		event.key as "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp",
-		[i, j],
-		ctx.data
-	);
+	const next_coords = ctx.move_cursor(event, [i, j], ctx.data);
 	if (next_coords) {
 		if (event.shiftKey) {
 			ctx.df_actions.set_selected_cells(
@@ -195,7 +190,6 @@ async function handle_cell_navigation(
 	ctx: KeyboardContext
 ): Promise<boolean> {
 	if (!ctx.selected) return false;
-
 	if (event.key === "c" && (event.metaKey || event.ctrlKey)) {
 		event.preventDefault();
 		if (ctx.selected_cells.length > 0) {
