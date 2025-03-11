@@ -556,7 +556,6 @@ class TestProcessExamples:
         assert response.json()["data"] == [
             {
                 "lines": 1,
-                "max_lines": None,
                 "show_label": True,
                 "container": True,
                 "min_width": 160,
@@ -578,7 +577,6 @@ class TestProcessExamples:
         assert response.json()["data"] == [
             {
                 "lines": 1,
-                "max_lines": None,
                 "show_label": True,
                 "container": True,
                 "min_width": 160,

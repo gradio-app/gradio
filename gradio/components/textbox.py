@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -96,6 +97,9 @@ class Textbox(FormComponent):
         """
         if type not in ["text", "password", "email"]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
+        if type in ["password", "email"] and lines != 1:
+            warnings.warn("The `lines` parameter must be 1 for `type` of 'password' or 'email'. Setting `lines` to 1.")
+            lines = 1
 
         self.lines = lines
         self.max_lines = max_lines
