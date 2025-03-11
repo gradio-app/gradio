@@ -1,5 +1,6 @@
 ---
 "@gradio/atoms": minor
+"@gradio/core": minor
 "@gradio/dataframe": minor
 "gradio": minor
 ---
