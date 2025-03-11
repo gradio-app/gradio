@@ -1,3 +1,5 @@
+export { default as ArrowUp } from "./ArrowUp.svelte";
+export { default as ArrowDown } from "./ArrowDown.svelte";
 export { default as Back } from "./Back.svelte";
 export { default as Backward } from "./Backward.svelte";
 export { default as Brush } from "./Brush.svelte";
@@ -40,6 +42,7 @@ export { default as Paperclip } from "./Paperclip.svelte";
 export { default as Pause } from "./Pause.svelte";
 export { default as Play } from "./Play.svelte";
 export { default as Plot } from "./Plot.svelte";
+export { default as Plus } from "./Plus.svelte";
 export { default as Redo } from "./Redo.svelte";
 export { default as Remove } from "./Remove.svelte";
 export { default as Rotate } from "./Rotate.svelte";

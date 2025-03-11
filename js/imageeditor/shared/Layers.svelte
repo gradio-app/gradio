@@ -5,7 +5,8 @@
 	// import { layer_manager, type LayerScene } from "./utils";
 	// import { EDITOR_KEY, type EditorContext } from "../ImageEditor.svelte";
 	// import type { FileData } from "@gradio/client";
-	import { Layers } from "@gradio/icons";
+	import { Layers, Clear, ArrowUp, ArrowDown, Plus } from "@gradio/icons";
+	import { IconButton } from "@gradio/atoms";
 	import { createEventDispatcher } from "svelte";
 	import type { Writable } from "svelte/store";
 
@@ -187,29 +188,49 @@
 						{#if $layers.layers.length > 1}
 							<div>
 								{#if i > 0}
-									<button on:click|stopPropagation={() => move_layer(id, "up")}
-										>↑</button
-									>
+									<IconButton
+										on:click={(e) => {
+											e.stopPropagation();
+											move_layer(id, "up");
+										}}
+										Icon={ArrowUp}
+										size="x-small"
+									/>
 								{/if}
 								{#if i < $layers.layers.length - 1}
-									<button
-										on:click|stopPropagation={() => move_layer(id, "down")}
-										>↓</button
-									>
+									<IconButton
+										on:click={(e) => {
+											e.stopPropagation();
+											move_layer(id, "down");
+										}}
+										Icon={ArrowDown}
+										size="x-small"
+									/>
 								{/if}
 								{#if $layers.layers.length > 1}
-									<button on:click|stopPropagation={() => delete_layer(id)}
-										>X</button
-									>
+									<IconButton
+										on:click={(e) => {
+											e.stopPropagation();
+											delete_layer(id);
+										}}
+										Icon={Clear}
+										size="x-small"
+									/>
 								{/if}
 							</div>
 						{/if}
 					</li>
 				{/each}
-				<li>
-					<button aria-label="Add Layer" on:click|stopPropagation={new_layer}>
-						+
-					</button>
+				<li class="add-layer">
+					<IconButton
+						Icon={Plus}
+						aria-label="Add Layer"
+						on:click={(e) => {
+							e.stopPropagation();
+							new_layer();
+						}}
+						size="x-small"
+					/>
 				</li>
 			</ul>
 		{/if}
@@ -217,12 +238,21 @@
 {/if}
 
 <style>
+	.add-layer {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin: var(--spacing-sm) 0 0 0;
+	}
+
+	.add-layer :global(button) {
+		width: 100%;
+	}
 	.icon {
-		width: 14px;
-		margin-right: var(--spacing-md);
-		color: var(--block-label-text-color);
+		width: 16px;
+		color: var(--body-text-color);
 		margin-right: var(--spacing-lg);
-		margin-top: 1px;
+		transition: color 0.15s ease;
 	}
 
 	.layer-wrap {
@@ -230,49 +260,32 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		border: 1px solid var(--block-border-color);
-		display: flex;
-		z-index: 1000;
-		border-top-left-radius: var(--radius-sm);
+		border: 1px solid var(--border-color-primary);
+		z-index: var(--layer-1);
+		border-top-left-radius: var(--radius-lg);
 
-		background-color: #fff;
-		padding: var(--spacing-sm) 0.5rem;
 		width: auto;
 		bottom: 0;
 		right: 0;
 		border-bottom: 0;
 		border-right: 0;
+		box-shadow: var(--shadow-drop);
 	}
 
 	.layer-wrap button {
 		justify-content: flex-start;
-		align-items: flex-start;
-		width: 100%;
-
-		display: flex;
 		align-items: center;
-		font-size: var(--scale-000);
+		width: 100%;
+		display: flex;
+		font-size: var(--text-sm);
 		line-height: var(--line-sm);
-	}
-	.layer-wrap > button {
-		border-bottom: 1px solid var(--block-border-color);
-	}
-
-	.layer-wrap li:last-child button {
-		border-bottom: none;
-		text-align: center;
-		font-size: var(--scale-0);
-		line-height: 1;
-		font-weight: var(--weight-bold);
-		padding: 3px 0 1px 0;
-	}
-
-	.closed > button {
-		border-bottom: none;
+		transition: all 0.15s ease;
+		padding: var(--spacing-md);
+		border-radius: var(--radius-sm);
 	}
 
 	.layer-wrap button:hover {
-		background-color: none;
+		background-color: unset;
 	}
 
 	.layer-wrap button:hover .icon {
@@ -280,9 +293,8 @@
 	}
 
 	.selected_layer {
-		background-color: var(--block-background-fill);
 		color: var(--color-accent);
-		font-weight: bold;
+		font-weight: var(--weight-semibold);
 	}
 
 	ul {
@@ -294,16 +306,11 @@
 		min-width: 100%;
 		list-style: none;
 		z-index: var(--layer-top);
-		border: 1px solid var(--block-border-color);
-		padding-bottom: var(--spacing-sm);
-		text-wrap: none;
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-lg);
+		box-shadow: var(--shadow-drop-lg);
+		padding: var(--spacing-sm);
 		transform: translate(-1px, 1px);
-		border-top-left-radius: var(--radius-sm);
-		border-right: 0;
-	}
-
-	.layer-wrap ul > li > button {
-		margin-left: 0;
 	}
 
 	/* .sep {
@@ -313,36 +320,42 @@
 		display: block;
 		margin-left: var(--spacing-xl);
 	} */
+
 	li {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		border-bottom: 1px solid var(--block-border-color);
+		/* border-radius: var(--radius-sm); */
+		transition: background-color 0.15s ease;
+		border-bottom: 1px solid var(--border-color-primary);
 	}
 
-	li div {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: var(--spacing-sm);
-		padding-left: var(--spacing-xxl);
-	}
-	li > button {
-		padding: var(--spacing-sm) var(--spacing-md);
-	}
-
-	li > div {
-		padding: 0 var(--spacing-sm) 0 var(--spacing-lg);
-	}
-	li > div > button {
-		padding: var(--spacing-sm) 0;
+	li:hover {
+		background-color: var(--background-fill-secondary);
 	}
 
 	li:last-child {
 		border-bottom: none;
 	}
+	li:last-child:hover {
+		background-color: unset;
+	}
 
-	li:last-child button {
-		justify-content: center;
+	li div {
+		display: flex;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-sm);
+	}
+	li > button {
+		padding: var(--spacing-sm) var(--spacing-md);
+	}
+
+	li > div > button {
+		opacity: 0.7;
+		transition: opacity 0.15s ease;
+	}
+
+	li > div > button:hover {
+		opacity: 1;
 	}
 </style>

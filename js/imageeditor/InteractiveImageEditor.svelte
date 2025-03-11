@@ -318,10 +318,9 @@
 		left: 0;
 		right: 0;
 		margin: auto;
-		z-index: var(--layer-top);
+		z-index: var(--layer-1);
 		text-align: center;
-		color: var(--body-text-color);
-		top: var(--size-8);
+		color: var(--color-grey-500) !important;
 	}
 
 	.wrap {
@@ -329,7 +328,6 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		color: var(--block-label-text-color);
 		line-height: var(--line-md);
 		font-size: var(--text-md);
 		pointer-events: none;
