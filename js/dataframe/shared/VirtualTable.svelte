@@ -32,6 +32,7 @@
 	let viewport_height = 200;
 	let visible: { index: number; data: any[] }[] = [];
 	let viewport_box: DOMRectReadOnly;
+	let is_windows = false;
 
 	$: viewport_height = viewport_box?.height || 200;
 
@@ -270,6 +271,7 @@
 		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
 		mounted = true;
 		refresh_height_map(items);
+		is_windows = navigator.userAgent.indexOf("Windows") > -1;
 	});
 </script>
 
@@ -277,6 +279,7 @@
 	<div>
 		<table
 			class="table"
+			class:windows={is_windows}
 			class:disable-scroll={disable_scroll}
 			bind:this={viewport}
 			bind:contentRect={viewport_box}
@@ -397,5 +400,16 @@
 
 	.table.disable-scroll {
 		overflow: hidden !important;
+	}
+
+	.table.windows::-webkit-scrollbar {
+		display: none !important;
+		width: 0 !important;
+		height: 0 !important;
+	}
+
+	.table.windows {
+		-ms-overflow-style: none !important; /* IE and Edge */
+		scrollbar-width: none !important; /* Firefox */
 	}
 </style>
