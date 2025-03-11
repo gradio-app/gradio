@@ -352,7 +352,13 @@ class BodyCSS(TypedDict):
 
 class Layout(TypedDict):
     id: int
-    children: list[int | Layout]
+    children: NotRequired[list[int | Layout]]
+
+
+class Page(TypedDict):
+    components: list[int]
+    dependencies: list[int]
+    layout: Layout
 
 
 class BlocksConfigDict(TypedDict):
@@ -364,7 +370,7 @@ class BlocksConfigDict(TypedDict):
     components: list[dict[str, Any]]
     css: str | None
     connect_heartbeat: bool
-    js: str | None
+    js: str | Literal[True] | None
     head: str | None
     title: str
     space_id: str | None
@@ -386,6 +392,9 @@ class BlocksConfigDict(TypedDict):
     username: NotRequired[str | None]
     api_prefix: str
     pwa: NotRequired[bool]
+    page: dict[str, Page]
+    pages: list[tuple[str, str]]
+    current_page: NotRequired[str]
 
 
 class MediaStreamChunk(TypedDict):

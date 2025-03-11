@@ -4,14 +4,19 @@
 	import "@gradio/theme/pollen.css";
 	import "@gradio/theme/typography.css";
 
-	import { onDestroy, SvelteComponent, createEventDispatcher } from "svelte";
+	import {
+		onDestroy,
+		SvelteComponent,
+		createEventDispatcher,
+		setContext
+	} from "svelte";
 	import Index from "@self/spa";
 	import Playground from "./Playground.svelte";
 	import ErrorDisplay from "./ErrorDisplay.svelte";
 	import type { ThemeMode } from "@gradio/core";
 	import { WorkerProxy, type WorkerProxyOptions } from "@gradio/wasm";
 	import { FAKE_LITE_HOST } from "@gradio/wasm/network";
-	import { Client } from "@gradio/client";
+	import { Client, type Config } from "@gradio/client";
 	import { wasm_proxied_fetch } from "./fetch";
 	import { wasm_proxied_stream_factory } from "./sse";
 	import { wasm_proxied_mount_css, mount_prebuilt_css } from "./css";
@@ -128,6 +133,13 @@
 
 	mount_prebuilt_css(document.head);
 
+	let current_page = "";
+	const set_page = (page: string): void => {
+		current_page = page;
+		refresh_index_component();
+	};
+	setContext("set_lite_page", set_page);
+
 	class LiteClient extends Client {
 		fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 			return wasm_proxied_fetch(worker_proxy, input, init);
@@ -135,6 +147,10 @@
 
 		stream(url: URL): EventSource {
 			return wasm_proxied_stream_factory(worker_proxy, url);
+		}
+
+		get_url_config(url: string | null = null): Config {
+			return this.get_page_config(current_page);
 		}
 	}
 

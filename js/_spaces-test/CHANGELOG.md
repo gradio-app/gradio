@@ -4,6 +4,31 @@
 
 ### Dependency updates
 
+- @gradio/client@1.13.1
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.13.0
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/theme@0.4.0
+- @gradio/client@1.12.0
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.11.0
+
+## 0.0.1
+
+### Dependency updates
+
 - @gradio/client@1.10.0
 
 ## 0.0.1

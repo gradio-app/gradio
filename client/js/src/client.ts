@@ -55,6 +55,7 @@ export class Client {
 
 	// streaming
 	stream_status = { open: false };
+	closed = false;
 	pending_stream_messages: Record<string, any[][]> = {};
 	pending_diff_streams: Record<string, any[][]> = {};
 	event_callbacks: Record<string, (data?: unknown) => Promise<void>> = {};
@@ -64,6 +65,45 @@ export class Client {
 	stream_instance: EventSource | null = null;
 	current_payload: any;
 	ws_map: Record<string, WebSocket | "failed"> = {};
+
+	get_url_config(url: string | null = null): Config {
+		if (!this.config) {
+			throw new Error(CONFIG_ERROR_MSG);
+		}
+		if (url === null) {
+			url = window.location.href;
+		}
+		const stripSlashes = (str: string): string => str.replace(/^\/+|\/+$/g, "");
+		let root_path = stripSlashes(new URL(this.config.root).pathname);
+		let url_path = stripSlashes(new URL(url).pathname);
+		let page: string;
+		if (!url_path.startsWith(root_path)) {
+			page = "";
+		} else {
+			page = stripSlashes(url_path.substring(root_path.length));
+		}
+		return this.get_page_config(page);
+	}
+	get_page_config(page: string): Config {
+		if (!this.config) {
+			throw new Error(CONFIG_ERROR_MSG);
+		}
+		let config = this.config;
+		if (!(page in config.page)) {
+			page = "";
+		}
+		return {
+			...config,
+			current_page: page,
+			layout: config.page[page].layout,
+			components: config.components.filter((c) =>
+				config.page[page].components.includes(c.id)
+			),
+			dependencies: this.config.dependencies.filter((d) =>
+				config.page[page].dependencies.includes(d.id)
+			)
+		};
+	}
 
 	fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 		const headers = new Headers(init?.headers || {});
@@ -235,6 +275,7 @@ export class Client {
 	}
 
 	close(): void {
+		this.closed = true;
 		close_stream(this.stream_status, this.abort_controller);
 	}
 

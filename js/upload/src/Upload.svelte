@@ -24,6 +24,7 @@
 	export let stream_handler: Client["stream"];
 	export let icon_upload = false;
 	export let height: number | string | undefined = undefined;
+	export let aria_label: string | undefined = undefined;
 
 	let upload_id: string;
 	let file_data: FileData[];
@@ -205,6 +206,7 @@
 				: "100%"}
 		tabindex={hidden ? -1 : 0}
 		on:click={paste_clipboard}
+		aria-label={aria_label || "Paste from clipboard"}
 	>
 		<slot />
 	</button>
@@ -228,6 +230,19 @@
 					: height
 				: "100%"}
 		tabindex={hidden ? -1 : 0}
+		on:drag|preventDefault|stopPropagation
+		on:dragstart|preventDefault|stopPropagation
+		on:dragend|preventDefault|stopPropagation
+		on:dragover|preventDefault|stopPropagation
+		on:dragenter|preventDefault|stopPropagation
+		on:dragleave|preventDefault|stopPropagation
+		on:drop|preventDefault|stopPropagation
+		on:click={open_file_upload}
+		on:drop={loadFilesFromDrop}
+		on:dragenter={updateDragging}
+		on:dragleave={updateDragging}
+		aria-label={aria_label || "Click to upload or drop files"}
+		aria-dropeffect="copy"
 		use:drag={{
 			on_drag_change: (dragging) => (dragging = dragging),
 			on_files: (files) => load_files_from_upload(files),
@@ -237,6 +252,17 @@
 		}}
 	>
 		<slot />
+		<input
+			aria-label="File upload"
+			data-testid="file-upload"
+			type="file"
+			bind:this={hidden_upload}
+			on:change={load_files_from_upload}
+			accept={accept_file_types || undefined}
+			multiple={file_count === "multiple" || undefined}
+			webkitdirectory={file_count === "directory" || undefined}
+			mozdirectory={file_count === "directory" || undefined}
+		/>
 	</button>
 {/if}
 

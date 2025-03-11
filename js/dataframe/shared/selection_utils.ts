@@ -1,6 +1,14 @@
-export type CellCoordinate = [number, number];
+import type { CellCoordinate, EditingState } from "./types";
+
 export type CellData = { id: string; value: string | number };
-export type EditingState = false | CellCoordinate;
+
+export function is_cell_in_selection(
+	coords: [number, number],
+	selected_cells: [number, number][]
+): boolean {
+	const [row, col] = coords;
+	return selected_cells.some(([r, c]) => r === row && c === col);
+}
 
 export function is_cell_selected(
 	cell: CellCoordinate,
@@ -29,8 +37,14 @@ export function get_range_selection(
 	const max_col = Math.max(start_col, end_col);
 
 	const cells: CellCoordinate[] = [];
+	// Add the start cell as the "anchor" cell so that when
+	// we press shift+arrow keys, the selection will always
+	// include the anchor cell.
+	cells.push(start);
+
 	for (let i = min_row; i <= max_row; i++) {
 		for (let j = min_col; j <= max_col; j++) {
+			if (i === start_row && j === start_col) continue;
 			cells.push([i, j]);
 		}
 	}
@@ -50,13 +64,12 @@ export function handle_selection(
 	}
 
 	if (event.metaKey || event.ctrlKey) {
-		const index = selected_cells.findIndex(
-			([r, c]) => r === current[0] && c === current[1]
-		);
-		if (index === -1) {
-			return [...selected_cells, current];
-		}
-		return selected_cells.filter((_, i) => i !== index);
+		const is_cell_match = ([r, c]: CellCoordinate): boolean =>
+			r === current[0] && c === current[1];
+		const index = selected_cells.findIndex(is_cell_match);
+		return index === -1
+			? [...selected_cells, current]
+			: selected_cells.filter((_, i) => i !== index);
 	}
 
 	return [current];
@@ -185,4 +198,39 @@ export function handle_click_outside(
 ): boolean {
 	const [trigger] = event.composedPath() as HTMLElement[];
 	return !parent.contains(trigger);
+}
+
+export function select_column(data: any[][], col: number): CellCoordinate[] {
+	return Array.from({ length: data.length }, (_, i) => [i, col]);
+}
+
+export function select_row(data: any[][], row: number): CellCoordinate[] {
+	return Array.from({ length: data[0].length }, (_, i) => [row, i]);
+}
+
+export function calculate_selection_positions(
+	selected: CellCoordinate,
+	data: { id: string; value: string | number }[][],
+	els: Record<string, { cell: HTMLTableCellElement | null }>,
+	parent: HTMLElement,
+	table: HTMLElement
+): { col_pos: string; row_pos: string | undefined } {
+	const [row, col] = selected;
+	if (!data[row]?.[col]) {
+		return { col_pos: "0px", row_pos: undefined };
+	}
+
+	const cell_id = data[row][col].id;
+	const cell_el = els[cell_id]?.cell;
+
+	if (!cell_el) {
+		return { col_pos: "0px", row_pos: undefined };
+	}
+
+	const cell_rect = cell_el.getBoundingClientRect();
+	const table_rect = table.getBoundingClientRect();
+	const col_pos = `${cell_rect.left - table_rect.left + cell_rect.width / 2}px`;
+	const row_pos = `${cell_rect.top - table_rect.top + cell_rect.height / 2}px`;
+
+	return { col_pos, row_pos };
 }

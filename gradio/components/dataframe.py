@@ -42,7 +42,7 @@ def _import_polars():
 
 
 class DataframeData(GradioModel):
-    headers: list[str]
+    headers: list[Any]
     data: Union[list[list[Any]], list[tuple[Any, ...]]]
     metadata: Optional[dict[str, Optional[list[Any]]]] = None
 
@@ -74,7 +74,7 @@ class Dataframe(Component):
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
         col_count: int | tuple[int, str] | None = None,
-        datatype: Literal["str", "number", "bool", "date", "markdown", "html"]
+        datatype: Literal["str", "number", "bool", "date", "markdown", "html", "image"]
         | Sequence[
             Literal["str", "number", "bool", "date", "markdown", "html"]
         ] = "str",
@@ -100,6 +100,9 @@ class Dataframe(Component):
         show_copy_button: bool = False,
         show_row_numbers: bool = False,
         max_chars: int | None = None,
+        show_search: Literal["none", "search", "filter"] = "none",
+        pinned_columns: int | None = None,
+        static_columns: list[int] | None = None,
     ):
         """
         Parameters:
@@ -131,12 +134,21 @@ class Dataframe(Component):
             show_copy_button: If True, will show a button to copy the table data to the clipboard.
             show_row_numbers: If True, will display row numbers in a separate column.
             max_chars: Maximum number of characters to display in each cell before truncating (single-clicking a cell value will still reveal the full content). If None, no truncation is applied.
+            show_search: Show a search input in the toolbar. If "search", a search input is shown. If "filter", a search input and filter buttons are shown. If "none", no search input is shown.
+            pinned_columns: If provided, will pin the specified number of columns from the left.
+            static_columns: List of column indices (int) that should not be editable. Only applies when interactive=True. When specified, col_count is automatically set to "fixed" and columns cannot be inserted or deleted.
         """
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
+        self.static_columns = static_columns or []
+
         self.col_count = self.__process_counts(
             col_count, len(headers) if headers else 3
         )
+
+        if self.static_columns and isinstance(self.col_count, tuple):
+            self.col_count = (self.col_count[0], "fixed")
+
         self.__validate_headers(headers, self.col_count[0])
 
         self.headers = (
@@ -168,6 +180,17 @@ class Dataframe(Component):
         self.show_copy_button = show_copy_button
         self.show_row_numbers = show_row_numbers
         self.max_chars = max_chars
+        self.show_search = show_search
+        self.pinned_columns = pinned_columns
+        if (
+            pinned_columns is not None
+            and isinstance(col_count, tuple)
+            and col_count[1] == "fixed"
+            and pinned_columns > self.col_count[0]
+        ):
+            raise ValueError(
+                f"pinned_columns ({pinned_columns}) cannot exceed the total number of columns ({self.col_count[0]}) when using fixed columns"
+            )
         super().__init__(
             label=label,
             every=every,
@@ -337,6 +360,8 @@ class Dataframe(Component):
             if not isinstance(value, list):
                 raise ValueError("output cannot be converted to list")
             if not isinstance(value[0], list):
+                if isinstance(value[0], tuple):
+                    return [list(v) for v in value]
                 return [[v] for v in value]
             return value
         else:
@@ -365,6 +390,8 @@ class Dataframe(Component):
             return Dataframe.__extract_metadata(
                 value, getattr(value, "hidden_columns", [])
             )
+        elif isinstance(value, dict):
+            return value.get("metadata", None)
         return None
 
     def postprocess(
@@ -400,11 +427,9 @@ class Dataframe(Component):
             )
 
         headers = self.get_headers(value) or self.headers
-        data = (
-            [["" for _ in range(len(headers))]]
-            if self.is_empty(value)
-            else self.get_cell_data(value)
-        )
+        data = [] if self.is_empty(value) else self.get_cell_data(value)
+        if len(data) == 0:
+            return DataframeData(headers=headers, data=[], metadata=None)
         if len(headers) > len(data[0]):
             headers = headers[: len(data[0])]
         elif len(headers) < len(data[0]):

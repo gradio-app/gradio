@@ -26,6 +26,7 @@
 	export let allow_file_downloads: boolean;
 	export let display_consecutive_in_same_bubble: boolean;
 	export let thought_index: number;
+	export let allow_tags: string[] | boolean = false;
 
 	export let message: NormalisedMessage;
 </script>
@@ -40,6 +41,7 @@
 			{line_breaks}
 			on:load={scroll}
 			{root}
+			{allow_tags}
 		/>
 	</div>
 {:else if message.type === "component" && message.content.component in _components}

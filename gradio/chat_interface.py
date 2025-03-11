@@ -96,7 +96,7 @@ class ChatInterface(Blocks):
         flagging_dir: str = ".gradio/flagged",
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
-        js: str | None = None,
+        js: str | Literal[True] | None = None,
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         analytics_enabled: bool | None = None,
@@ -467,6 +467,7 @@ class ChatInterface(Blocks):
             if index is not None:
                 saved_conversations[index] = conversation
             else:
+                saved_conversations = saved_conversations or []
                 saved_conversations.append(conversation)
                 index = len(saved_conversations) - 1
         return index, saved_conversations

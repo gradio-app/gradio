@@ -6,6 +6,7 @@
 	import { userEvent } from "@storybook/test";
 	import { get } from "svelte/store";
 	import { format } from "svelte-i18n";
+	import Image from "@gradio/image";
 </script>
 
 <Meta
@@ -153,6 +154,21 @@
 />
 
 <Story
+	name="Dataframe without a label"
+	args={{
+		values: [
+			[800, 100, 800],
+			[200, 800, 700]
+		],
+		headers: ["Math", "Reading", "Writing"],
+		show_label: false,
+		col_count: [3, "dynamic"],
+		row_count: [2, "dynamic"],
+		editable: false
+	}}
+/>
+
+<Story
 	name="Dataframe with different colors"
 	args={{
 		values: [
@@ -205,6 +221,30 @@
 />
 
 <Story
+	name="Interactive dataframe with zero row count"
+	args={{
+		values: [],
+		headers: ["Narrow", "Wide", "Half"],
+		label: "Test scores",
+		col_count: [0, "dynamic"],
+		row_count: [0, "dynamic"],
+		editable: true
+	}}
+/>
+
+<Story
+	name="Dataframe with link"
+	args={{
+		values: [['<a href="https://www.google.com/">google</a>']],
+		headers: ["link"],
+		datatype: ["markdown"],
+		interactive: false,
+		col_count: [1, "dynamic"],
+		row_count: [1, "dynamic"]
+	}}
+/>
+
+<Story
 	name="Dataframe with dialog interactions"
 	args={{
 		values: [
@@ -236,7 +276,7 @@
 />
 
 <Story
-	name="Dataframe with fullscreen button"
+	name="Dataframe with fullscreen button and label and search"
 	args={{
 		col_count: [3, "dynamic"],
 		row_count: [2, "dynamic"],
@@ -245,7 +285,11 @@
 			[800, 100, 400],
 			[200, 800, 700]
 		],
-		show_fullscreen_button: true
+		show_fullscreen_button: true,
+		show_label: true,
+		show_copy_button: true,
+		show_search: "search",
+		label: "Test scores"
 	}}
 />
 
@@ -320,6 +364,25 @@
 />
 
 <Story
+	name="Dataframe with row numbers"
+	args={{
+		values: [
+			[95, 92, 88],
+			[89, 90, 85],
+			[92, 88, 91],
+			[87, 85, 89],
+			[91, 93, 90]
+		],
+		headers: ["Model A", "Model B", "Model C"],
+		label: "Model Performance",
+		col_count: [3, "dynamic"],
+		row_count: [5, "dynamic"],
+		show_row_numbers: true,
+		editable: false
+	}}
+/>
+
+<Story
 	name="Dataframe with truncated text"
 	args={{
 		values: [
@@ -363,6 +426,162 @@
 		label: "Model Metrics",
 		col_count: [3, "dynamic"],
 		row_count: [3, "dynamic"],
+		editable: false
+	}}
+/>
+
+<Story
+	name="Dataframe with custom components"
+	args={{
+		values: [
+			[
+				"Absol G",
+				70,
+				"https://images.pokemontcg.io/pl3/1_hires.png",
+				"pl3-1",
+				"Supreme Victors"
+			]
+		],
+		datatype: ["str", "number", "image", "str", "str"],
+		headers: ["Pokemon", "HP", "Image", "ID", "Set"],
+		label: "Pokemon Cards",
+		col_count: [5, "fixed"],
+		row_count: [1, "dynamic"],
+		interactive: true,
+		editable: true,
+		components: {
+			image: Image
+		}
+	}}
+/>
+
+<Story
+	name="Dataframe with row and column selection"
+	args={{
+		values: [
+			[1, 2, 3, 4],
+			[5, 6, 7, 8],
+			[9, 10, 11, 12],
+			[13, 14, 15, 16]
+		],
+		col_count: [4, "dynamic"],
+		row_count: [4, "dynamic"],
+		headers: ["A", "B", "C", "D"],
+		editable: true
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const user = userEvent.setup();
+
+		const grid = canvas.getByRole("grid");
+		await user.click(grid);
+
+		const cells = canvas.getAllByRole("cell");
+		await user.click(cells[5]); // Click cell with value 6
+
+		const row_button = await canvas.findAllByRole("button", {
+			name: "Select row"
+		})[0];
+		await user.click(row_button);
+
+		await user.click(cells[6]);
+
+		const col_button = await canvas.findAllByRole("button", {
+			name: "Select column"
+		})[0];
+		await user.click(col_button);
+
+		await user.keyboard("{Delete}");
+	}}
+/>
+
+<Story
+	name="Dataframe with lots of values"
+	args={{
+		values: [
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+		],
+		col_count: [10, "dynamic"],
+		row_count: [10, "dynamic"],
+		max_height: 700
+	}}
+/>
+
+<Story
+	name="Dataframe with search and filter"
+	args={{
+		values: [
+			["Cat", 5, "Pet"],
+			["Horse", 3, "Farm"],
+			["Snake", 1, "Pet"],
+			["Cow", 4, "Farm"],
+			["Dog", 6, "Pet"]
+		],
+		headers: ["Animal", "Count", "Type"],
+		col_count: [3, "dynamic"],
+		row_count: [5, "dynamic"],
+		show_search: "filter",
+		editable: false
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const user = userEvent.setup();
+
+		const search_input = canvas.getByPlaceholderText("Filter...");
+		await user.type(search_input, "Pet");
+
+		await new Promise((resolve) => setTimeout(resolve, 100));
+
+		const filter_button = canvas.getByLabelText(
+			"Apply filter and update dataframe values"
+		);
+		await user.click(filter_button);
+
+		await new Promise((resolve) => setTimeout(resolve, 100));
+	}}
+/>
+
+<Story
+	name="Dataframe with pinned columns"
+	args={{
+		values: [
+			["ID", "Name", "Age", "City", "Country", "Score"],
+			["1", "John", "25", "New York", "USA", "95"],
+			["2", "Emma", "30", "London", "UK", "88"],
+			["3", "Luis", "28", "Madrid", "Spain", "92"],
+			["4", "Anna", "35", "Paris", "France", "90"],
+			["5", "Chen", "27", "Beijing", "China", "94"]
+		],
+		headers: ["ID", "Name", "Age", "City", "Country", "Score"],
+		label: "User Data",
+		col_count: [6, "dynamic"],
+		row_count: [6, "dynamic"],
+		pinned_columns: 2,
+		show_row_numbers: true,
 		editable: false
 	}}
 />

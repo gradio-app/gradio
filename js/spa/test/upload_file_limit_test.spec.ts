@@ -21,11 +21,8 @@ async function get_file_selector(page, locator) {
 test("gr.Image triggers the gr.Error model when an uploaded file exceeds max_file_size ", async ({
 	page
 }) => {
-	const file_chooser = await get_file_selector(
-		page,
-		page.getByRole("button", { name: "Drop Image Here - or - Click to Upload" })
-	);
-	await file_chooser.setFiles("./test/files/cheetah1.jpg");
+	const uploader = await page.locator("input[type=file]").nth(0);
+	await uploader.setInputFiles("./test/files/cheetah1.jpg");
 	await error_modal_showed(page);
 });
 

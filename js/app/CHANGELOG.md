@@ -1,5 +1,63 @@
 # @self/app
 
+## 1.47.6
+
+### Dependency updates
+
+- @gradio/client@1.13.1
+- @gradio/wasm@0.17.4
+- @gradio/core@0.12.1
+
+## 1.47.5
+
+### Dependency updates
+
+- @gradio/client@1.13.0
+- @gradio/core@0.12.0
+
+## 1.47.4
+
+### Dependency updates
+
+- @gradio/core@0.11.1
+
+## 1.47.3
+
+### Dependency updates
+
+- @gradio/core@0.11.0
+
+## 1.47.2
+
+### Dependency updates
+
+- @gradio/core@0.10.1
+
+## 1.47.1
+
+### Fixes
+
+- [#10533](https://github.com/gradio-app/gradio/pull/10533) [`59c892d`](https://github.com/gradio-app/gradio/commit/59c892d5620951ca404bd72cae6765cf25f15bc5) - support URL params for themes in SSR mode.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/theme@0.4.0
+- @gradio/client@1.12.0
+- @gradio/core@0.10.0
+- @gradio/wasm@0.17.3
+- @self/build@0.2.1
+
+## 1.47.0
+
+### Features
+
+- [#10433](https://github.com/gradio-app/gradio/pull/10433) [`2e8dc74`](https://github.com/gradio-app/gradio/commit/2e8dc74f751be02f7217f78d241806b42fcdca04) - Allow building multipage Gradio apps.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/client@1.11.0
+- @gradio/core@0.9.0
+
 ## 1.46.3
 
 ### Dependency updates

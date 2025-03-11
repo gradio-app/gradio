@@ -51,6 +51,7 @@
 	export let max_file_size: number | undefined = undefined;
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
+
 	let {
 		layout: _layout,
 		targets,
@@ -69,6 +70,13 @@
 
 	$: {
 		ready = !!$_layout;
+	}
+
+	let old_dependencies = dependencies;
+	$: if (dependencies !== old_dependencies && render_complete) {
+		// re-run load triggers in SSR mode when page changes
+		handle_load_triggers();
+		old_dependencies = dependencies;
 	}
 
 	async function run(): Promise<void> {
@@ -117,7 +125,11 @@
 
 	export let render_complete = false;
 	async function handle_update(data: any, fn_index: number): Promise<void> {
-		const outputs = dependencies.find((dep) => dep.id == fn_index)!.outputs;
+		const dep = dependencies.find((dep) => dep.id === fn_index);
+		if (!dep) {
+			return;
+		}
+		const outputs = dep.outputs;
 
 		const meta_updates = data?.map((value: any, i: number) => {
 			return {
@@ -255,7 +267,11 @@
 		trigger_id: number | null = null,
 		event_data: unknown = null
 	): Promise<void> {
-		let dep = dependencies.find((dep) => dep.id === dep_index)!;
+		const _dep = dependencies.find((dep) => dep.id === dep_index);
+		if (_dep === undefined) {
+			return;
+		}
+		const dep = _dep;
 		if (inputs_waiting.length > 0) {
 			for (const input of inputs_waiting) {
 				if (dep.inputs.includes(input)) {
@@ -270,6 +286,18 @@
 			dep.pending_request = true;
 		}
 
+		let deps_to_remove: number[] = [];
+		if (dep.render_id != null) {
+			dependencies.forEach((other_dep, i) => {
+				if (other_dep.rendered_in === dep.render_id) {
+					deps_to_remove.push(i);
+				}
+			});
+		}
+		deps_to_remove.reverse().forEach((i) => {
+			dependencies.splice(i, 1);
+		});
+
 		let payload: Payload = {
 			fn_index: dep_index,
 			data: await Promise.all(
@@ -281,7 +309,7 @@
 			trigger_id: trigger_id
 		};
 
-		if (dep.frontend_fn) {
+		if (dep.frontend_fn && typeof dep.frontend_fn !== "boolean") {
 			dep
 				.frontend_fn(
 					payload.data.concat(
@@ -306,6 +334,21 @@
 			);
 		} else {
 			if (dep.backend_fn) {
+				if (dep.js_implementation) {
+					let js_fn = new AsyncFunction(
+						`let result = await (${dep.js_implementation})(...arguments);
+						return (!Array.isArray(result)) ? [result] : result;`
+					);
+					js_fn(...payload.data)
+						.then((js_result) => {
+							handle_update(js_result, dep_index);
+							payload.js_implementation = true;
+						})
+						.catch((error) => {
+							console.error(error);
+							payload.js_implementation = false;
+						});
+				}
 				trigger_prediction(dep, payload);
 			}
 		}
@@ -364,6 +407,7 @@
 				);
 			} catch (e) {
 				const fn_index = 0; // Mock value for fn_index
+				if (app.closed) return; // when a user navigates away in multipage app.
 				messages = [
 					new_message("Error", String(e), fn_index, "error"),
 					...messages
@@ -382,6 +426,9 @@
 			submit_map.set(dep_index, submission);
 
 			for await (const message of submission) {
+				if (payload.js_implementation) {
+					return;
+				}
 				if (message.type === "data") {
 					handle_data(message);
 				} else if (message.type === "render") {
@@ -411,15 +458,6 @@
 				let _dependencies: Dependency[] = data.dependencies;
 				let render_id = data.render_id;
 
-				let deps_to_remove: number[] = [];
-				dependencies.forEach((dep, i) => {
-					if (dep.rendered_in === render_id) {
-						deps_to_remove.push(i);
-					}
-				});
-				deps_to_remove.reverse().forEach((i) => {
-					dependencies.splice(i, 1);
-				});
 				_dependencies.forEach((dep) => {
 					dependencies.push(dep);
 				});
@@ -502,12 +540,16 @@
 				}
 
 				if (status.stage === "complete" || status.stage === "generating") {
+					const deps_triggered_by_state: Set<Dependency> = new Set();
 					status.changed_state_ids?.forEach((id) => {
 						dependencies
 							.filter((dep) => dep.targets.some(([_id, _]) => _id === id))
 							.forEach((dep) => {
-								wait_then_trigger_api_call(dep.id, payload.trigger_id);
+								deps_triggered_by_state.add(dep);
 							});
+					});
+					deps_triggered_by_state.forEach((dep) => {
+						wait_then_trigger_api_call(dep.id, payload.trigger_id);
 					});
 				}
 				if (status.stage === "complete") {
@@ -607,12 +649,7 @@
 				a[i].setAttribute("target", "_blank");
 		}
 
-		// handle load triggers
-		dependencies.forEach((dep) => {
-			if (dep.targets.some((dep) => dep[1] === "load")) {
-				wait_then_trigger_api_call(dep.id);
-			}
-		});
+		handle_load_triggers();
 
 		if (!target || render_complete) return;
 
@@ -665,6 +702,14 @@
 		render_complete = true;
 	}
 
+	const handle_load_triggers = (): void => {
+		dependencies.forEach((dep) => {
+			if (dep.targets.some((dep) => dep[1] === "load")) {
+				wait_then_trigger_api_call(dep.id);
+			}
+		});
+	};
+
 	$: set_status($loading_status);
 
 	function update_status(
@@ -689,6 +734,10 @@
 			value: LoadingStatus;
 		}[] = [];
 		Object.entries(statuses).forEach(([id, loading_status]) => {
+			if (app.closed && loading_status.status === "error") {
+				// when a user navigates away in multipage app.
+				return;
+			}
 			let dependency = dependencies.find(
 				(dep) => dep.id == loading_status.fn_index
 			);
@@ -773,8 +822,8 @@
 				>
 					{$_("errors.use_via_api")}
 					<img src={api_logo} alt={$_("common.logo")} />
-					<div>&nbsp;·</div>
 				</button>
+				<div class="divider show-api-divider">·</div>
 			{/if}
 			<a
 				href="https://gradio.app"
@@ -785,13 +834,13 @@
 				{$_("common.built_with_gradio")}
 				<img src={logo} alt={$_("common.logo")} />
 			</a>
+			<div class="divider">·</div>
 			<button
 				on:click={() => {
 					set_settings_visible(!settings_visible);
 				}}
 				class="settings"
 			>
-				<div>· &nbsp;</div>
 				{$_("common.settings")}
 				<img src={settings_logo} alt={$_("common.settings")} />
 			</button>
@@ -893,9 +942,9 @@
 		margin-top: var(--size-4);
 		color: var(--body-text-color-subdued);
 	}
-
-	footer > * + * {
-		margin-left: var(--size-2);
+	.divider {
+		margin-left: var(--size-1);
+		margin-right: var(--size-2);
 	}
 
 	.show-api,
@@ -987,7 +1036,8 @@
 	}
 
 	@media (max-width: 640px) {
-		.show-api {
+		.show-api,
+		.show-api-divider {
 			display: none;
 		}
 	}

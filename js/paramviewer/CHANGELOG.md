@@ -1,5 +1,26 @@
 # @gradio/paramviewer
 
+## 0.7.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.4
+- @gradio/atoms@0.13.3
+
+## 0.7.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.3
+- @gradio/atoms@0.13.2
+- @gradio/utils@0.10.1
+
+## 0.7.0
+
+### Features
+
+- [#10495](https://github.com/gradio-app/gradio/pull/10495) [`35fda36`](https://github.com/gradio-app/gradio/commit/35fda36de9745757298cafb3d8b91cbc1a4358c9) - Add an `anchor_links` parameter to `gr.ParamViewer` that allows linking to specific parameters.  Thanks @abidlabs!
+
 ## 0.6.4
 
 ### Dependency updates

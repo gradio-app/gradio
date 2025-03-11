@@ -47,6 +47,7 @@
 	export let _retryable = false;
 	export let _undoable = false;
 	export let group_consecutive_messages = true;
+	export let allow_tags: string[] | boolean = false;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -79,7 +80,7 @@
 	export let like_user_message = false;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height: number | string | undefined;
-	export let resizeable: boolean;
+	export let resizable: boolean;
 	export let min_height: number | string | undefined;
 	export let max_height: number | string | undefined;
 	export let editable: "user" | "all" | null = null;
@@ -97,7 +98,7 @@
 	{scale}
 	{min_width}
 	{height}
-	{resizeable}
+	{resizable}
 	{min_height}
 	{max_height}
 	allow_overflow={true}
@@ -184,6 +185,7 @@
 			msg_format={type}
 			root={gradio.root}
 			{allow_file_downloads}
+			{allow_tags}
 		/>
 	</div>
 </Block>

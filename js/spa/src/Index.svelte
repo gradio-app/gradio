@@ -35,6 +35,16 @@
 		username: string | null;
 		api_prefix?: string;
 		max_file_size?: number;
+		pages: [string, string][];
+		current_page: string;
+		page: Record<
+			string,
+			{
+				components: number[];
+				dependencies: number[];
+				layout: any;
+			}
+		>;
 	}
 
 	let id = -1;
@@ -95,6 +105,9 @@
 	export let info: boolean;
 	export let eager: boolean;
 	let stream: EventSource;
+	let pages: [string, string][] = [];
+	let current_page: string;
+	let root: string;
 
 	// These utilities are exported to be injectable for the Wasm version.
 	export let mount_css: typeof default_mount_css = default_mount_css;
@@ -107,6 +120,7 @@
 			loading_text = (event as CustomEvent).detail + "...";
 		});
 	}
+	let is_lite = worker_proxy !== undefined;
 
 	export let space: string | null;
 	export let src: string | null;
@@ -291,12 +305,15 @@
 			with_null_state: true,
 			events: ["data", "log", "status", "render"]
 		});
+		window.addEventListener("beforeunload", () => {
+			app.close();
+		});
 
 		if (!app.config) {
 			throw new Error("Could not resolve app config");
 		}
 
-		config = app.config;
+		config = app.get_url_config();
 		window.__gradio_space__ = config.space_id;
 
 		status = {
@@ -311,7 +328,23 @@
 		css_ready = true;
 		window.__is_colab__ = config.is_colab;
 
+		const supports_zerogpu_headers = "supports-zerogpu-headers";
+		window.addEventListener("message", (event) => {
+			if (event.data === supports_zerogpu_headers) {
+				window.supports_zerogpu_headers = true;
+			}
+		});
+		const hostname = window.location.hostname;
+		const origin = hostname.includes(".dev.")
+			? `https://moon-${hostname.split(".")[1]}.dev.spaces.huggingface.tech`
+			: `https://huggingface.co`;
+		window.parent.postMessage(supports_zerogpu_headers, origin);
+
 		dispatch("loaded");
+
+		pages = config.pages;
+		current_page = config.current_page;
+		root = config.root;
 
 		if (config.dev_mode) {
 			setTimeout(() => {
@@ -335,7 +368,7 @@
 						throw new Error("Could not resolve app config");
 					}
 
-					config = app.config;
+					config = app.get_url_config();
 					window.__gradio_space__ = config.space_id;
 					await mount_custom_css(config.css);
 					await add_custom_html_head(config.head);
@@ -447,6 +480,10 @@
 	{space}
 	loaded={loader_status === "complete"}
 	fill_width={config?.fill_width || false}
+	{pages}
+	{current_page}
+	{root}
+	{is_lite}
 	bind:wrapper
 >
 	{#if (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}

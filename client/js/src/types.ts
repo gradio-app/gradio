@@ -179,6 +179,16 @@ export interface Config {
 	show_api: boolean;
 	stylesheets: string[];
 	path: string;
+	current_page: string;
+	page: Record<
+		string,
+		{
+			components: number[];
+			dependencies: number[];
+			layout: any;
+		}
+	>;
+	pages: [string, string][];
 	protocol: "sse_v3" | "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws";
 	max_file_size?: number;
 	theme_hash?: number;
@@ -239,6 +249,7 @@ export interface Dependency {
 	trigger: "click" | "load" | string;
 	max_batch_size: number;
 	show_progress: "full" | "minimal" | "hidden";
+	show_progress_on: number[] | null;
 	frontend_fn: ((...args: unknown[]) => Promise<unknown[]>) | null;
 	status?: string;
 	queue: boolean | null;
@@ -255,11 +266,13 @@ export interface Dependency {
 	final_event: Payload | null;
 	show_api: boolean;
 	rendered_in: number | null;
+	render_id: number | null;
 	connection: "stream" | "sse";
 	time_limit: number;
 	stream_every: number;
 	like_user_message: boolean;
 	event_specific_args: string[];
+	js_implementation: string | null;
 }
 
 export interface DependencyTypes {

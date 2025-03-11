@@ -1,5 +1,17 @@
 # @gradio/wasm
 
+## 0.17.4
+
+### Fixes
+
+- [#10706](https://github.com/gradio-app/gradio/pull/10706) [`5faa2a3`](https://github.com/gradio-app/gradio/commit/5faa2a34cc3b6ab647cab84d7495bfe8624955e3) - chore: bump Pyodide version to 0.27.3.  Thanks @peter-gy!
+
+## 0.17.3
+
+### Fixes
+
+- [#10466](https://github.com/gradio-app/gradio/pull/10466) [`8e2cf2f`](https://github.com/gradio-app/gradio/commit/8e2cf2f32c4ffe4540aed0dd8448089f0a19eedd) - Fix the wrapper function of micropip.install to throw the original error for better debug experience.  Thanks @whitphx!
+
 ## 0.17.2
 
 ### Fixes

@@ -4,7 +4,7 @@ import typer
 from gradio_client.cli import deploy_discord  # type: ignore
 from rich.console import Console
 
-from .commands import custom_component, deploy, print_environment_info, reload
+from .commands import custom_component, deploy, print_environment_info, reload, sketch
 
 app = typer.Typer()
 app.command("environment", help="Print Gradio environment information.")(
@@ -17,13 +17,14 @@ app.command(
 app.command("deploy-discord", help="Deploy a Gradio app to Discord.")(
     deploy_discord.main
 )
+app.command("sketch", help="Open the Sketch app to design a Gradio app.")(sketch)
 
 
 def cli():
     args = sys.argv[1:]
     if len(args) == 0:
         raise ValueError("No file specified.")
-    if args[0] in {"deploy", "environment", "deploy-discord"}:
+    if args[0] in {"deploy", "environment", "deploy-discord", "sketch"}:
         app()
     elif args[0] in {"cc", "component"}:
         sys.argv = sys.argv[1:]

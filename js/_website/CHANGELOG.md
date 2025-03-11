@@ -1,5 +1,87 @@
 # website
 
+## 0.52.0
+
+### Features
+
+- [#10744](https://github.com/gradio-app/gradio/pull/10744) [`a89fa28`](https://github.com/gradio-app/gradio/commit/a89fa288f42022bb489bac655562a8d1eb5030a5) - Add missing docs and fix gaps in website.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.11.2
+
+## 0.51.0
+
+### Features
+
+- [#10677](https://github.com/gradio-app/gradio/pull/10677) [`92d5ac8`](https://github.com/gradio-app/gradio/commit/92d5ac8e67147e1dd7a701cc8c3e2a5193e832c6) - Static llms.txt route on the website.  Thanks @aliabd!
+
+## 0.50.4
+
+### Dependency updates
+
+- @gradio/code@0.11.1
+
+## 0.50.3
+
+### Features
+
+- [#10670](https://github.com/gradio-app/gradio/pull/10670) [`a15964d`](https://github.com/gradio-app/gradio/commit/a15964db8772d3cb34e730e75866c5d7460199ab) - Update banner to point to FastRTC.  Thanks @abidlabs!
+
+## 0.50.2
+
+### Fixes
+
+- [#10669](https://github.com/gradio-app/gradio/pull/10669) [`d1b063f`](https://github.com/gradio-app/gradio/commit/d1b063fb0c9d893062d9b47919ed1ba9241a6e07) - Add load_chat documentation.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.11.0
+
+## 0.50.1
+
+### Dependency updates
+
+- @gradio/code@0.10.18
+- @gradio/paramviewer@0.7.2
+- @gradio/statustracker@0.10.4
+
+## 0.50.0
+
+### Features
+
+- [#10511](https://github.com/gradio-app/gradio/pull/10511) [`c4aa886`](https://github.com/gradio-app/gradio/commit/c4aa8864dabec4caeb59af91f6f1aaaf50e33b67) - Semantic search in the playground.  Thanks @aliabd!
+
+## 0.49.0
+
+### Features
+
+- [#10552](https://github.com/gradio-app/gradio/pull/10552) [`ed25a10`](https://github.com/gradio-app/gradio/commit/ed25a1053a55ddd2cf7d3067c72bdf77185ada8d) - Add 1920px wide resolution for wide monitors.  Thanks @Oncorporation!
+
+### Fixes
+
+- [#10510](https://github.com/gradio-app/gradio/pull/10510) [`71e4cd4`](https://github.com/gradio-app/gradio/commit/71e4cd483e9b43b2aa770db9f834036bb70f9420) - Fixed wrong example usage of docs/gradio/selectdata.  Thanks @PatZer0!
+
+### Dependency updates
+
+- @gradio/code@0.10.17
+- @gradio/paramviewer@0.7.1
+- @gradio/statustracker@0.10.3
+- @gradio/tabitem@0.4.2
+- @gradio/tabs@0.4.2
+
+## 0.48.0
+
+### Features
+
+- [#10480](https://github.com/gradio-app/gradio/pull/10480) [`90f90b7`](https://github.com/gradio-app/gradio/commit/90f90b7989081b0e4422384ee699cb98781723d1) - Add sidebar to the docs.  Thanks @aliabd!
+- [#10495](https://github.com/gradio-app/gradio/pull/10495) [`35fda36`](https://github.com/gradio-app/gradio/commit/35fda36de9745757298cafb3d8b91cbc1a4358c9) - Add an `anchor_links` parameter to `gr.ParamViewer` that allows linking to specific parameters.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/paramviewer@0.7.0
+- @gradio/code@0.10.16
+
 ## 0.47.3
 
 ### Dependency updates

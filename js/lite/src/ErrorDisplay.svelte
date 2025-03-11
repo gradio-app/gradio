@@ -29,7 +29,9 @@
 	loaded={false}
 	space={null}
 	fill_width={false}
+	is_lite={true}
 	bind:wrapper
+	root=""
 >
 	<StatusTracker
 		i18n={$_}

@@ -8,6 +8,7 @@ import inspect
 import json
 import os
 import random
+import re
 import secrets
 import string
 import sys
@@ -28,6 +29,7 @@ import httpx
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
+from groovy import transpile
 
 from gradio import (
     analytics,
@@ -54,6 +56,7 @@ from gradio.data_classes import (
     FileData,
     GradioModel,
     GradioRootModel,
+    Layout,
 )
 from gradio.events import (
     EventData,
@@ -69,7 +72,7 @@ from gradio.exceptions import (
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream
-from gradio.routes import VERSION, App, Request
+from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
@@ -137,6 +140,7 @@ class Block:
         self.share_token = secrets.token_urlsafe(32)
         self.parent: BlockContext | None = None
         self.rendered_in: Renderable | None = None
+        self.page: str
         self.is_rendered: bool = False
         self._constructor_args: list[dict]
         self.state_session_capacity = 10000
@@ -187,6 +191,8 @@ class Block:
                 f"A block with id: {self._id} has already been rendered in the current Blocks."
             )
         if render_context is not None:
+            if root_context:
+                self.page = root_context.root_block.current_page
             render_context.add(self)
         if root_context is not None:
             root_context.blocks[self._id] = self
@@ -384,9 +390,7 @@ class Block:
         else:
             data = {"path": url_or_file_path, "meta": {"_type": "gradio.FileData"}}
             try:
-                return client_utils.synchronize_async(
-                    processing_utils.async_move_files_to_cache, data, self
-                )
+                return processing_utils.move_files_to_cache(data, self)
             except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
                 return data
 
@@ -467,6 +471,7 @@ class BlockContext(Block):
                     pseudo_parent.parent = self
                     children.append(pseudo_parent)
                     pseudo_parent.add_child(child)
+                    pseudo_parent.page = child.page
                     if root_context:
                         root_context.blocks[pseudo_parent._id] = pseudo_parent
                 child.parent = pseudo_parent
@@ -503,8 +508,9 @@ class BlockFunction:
         concurrency_id: str | None = None,
         tracks_progress: bool = False,
         api_name: str | Literal[False] = False,
-        js: str | None = None,
+        js: str | Literal[True] | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
+        show_progress_on: Sequence[Component] | None = None,
         cancels: list[int] | None = None,
         collects_event_data: bool = False,
         trigger_after: int | None = None,
@@ -521,6 +527,8 @@ class BlockFunction:
         stream_every: float = 0.5,
         like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
+        page: str = "",
+        js_implementation: str | None = None,
     ):
         self.fn = fn
         self._id = _id
@@ -541,6 +549,7 @@ class BlockFunction:
         self.api_name = api_name
         self.js = js
         self.show_progress = show_progress
+        self.show_progress_on = show_progress_on
         self.cancels = cancels or []
         self.collects_event_data = collects_event_data
         self.trigger_after = trigger_after
@@ -554,6 +563,9 @@ class BlockFunction:
         ) or inspect.isasyncgenfunction(self.fn)
         self.renderable = renderable
         self.rendered_in = rendered_in
+        self.page = page
+        if js_implementation:
+            self.fn.__js_implementation__ = js_implementation  # type: ignore
 
         # We need to keep track of which events are cancel events
         # so that the client can call the /cancel route directly
@@ -597,6 +609,9 @@ class BlockFunction:
             "api_name": self.api_name,
             "scroll_to_output": self.scroll_to_output,
             "show_progress": self.show_progress,
+            "show_progress_on": None
+            if self.show_progress_on is None
+            else [block._id for block in self.show_progress_on],
             "batch": self.batch,
             "max_batch_size": self.max_batch_size,
             "cancels": self.cancels,
@@ -610,11 +625,13 @@ class BlockFunction:
             "trigger_mode": self.trigger_mode,
             "show_api": self.show_api,
             "rendered_in": self.rendered_in._id if self.rendered_in else None,
+            "render_id": self.renderable._id if self.renderable else None,
             "connection": self.connection,
             "time_limit": self.time_limit,
             "stream_every": self.stream_every,
             "like_user_message": self.like_user_message,
             "event_specific_args": self.event_specific_args,
+            "js_implementation": getattr(self.fn, "__js_implementation__", None),
         }
 
 
@@ -700,8 +717,9 @@ class BlocksConfig:
         postprocess: bool = True,
         scroll_to_output: bool = False,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
+        show_progress_on: Component | Sequence[Component] | None = None,
         api_name: str | None | Literal[False] = None,
-        js: str | None = None,
+        js: str | Literal[True] | None = None,
         no_target: bool = False,
         queue: bool = True,
         batch: bool = False,
@@ -721,6 +739,7 @@ class BlocksConfig:
         stream_every: float = 0.5,
         like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
+        js_implementation: str | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -733,6 +752,7 @@ class BlocksConfig:
             postprocess: whether to run the postprocess methods of the output components after running the function
             scroll_to_output: whether to scroll to output of dependency on trigger
             show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
+            show_progress_on: Component or list of components to show the progress animation on. If None, will show the progress animation on all of the output components.
             api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for the Blocks.load() event and .then() events
@@ -777,6 +797,8 @@ class BlocksConfig:
             outputs = []
         elif not isinstance(outputs, Sequence):
             outputs = [outputs]
+        if show_progress_on and not isinstance(show_progress_on, Sequence):
+            show_progress_on = [show_progress_on]
 
         if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
@@ -838,6 +860,11 @@ class BlocksConfig:
 
         rendered_in = LocalContext.renderable.get()
 
+        if js is True and inputs:
+            raise ValueError(
+                "Cannot create event: events with js=True cannot have inputs."
+            )
+
         block_fn = BlockFunction(
             fn,
             inputs,
@@ -855,6 +882,7 @@ class BlocksConfig:
             api_name=api_name,
             js=js,
             show_progress=show_progress,
+            show_progress_on=show_progress_on,
             cancels=cancels,
             collects_event_data=collects_event_data,
             trigger_after=trigger_after,
@@ -871,6 +899,8 @@ class BlocksConfig:
             stream_every=stream_every,
             like_user_message=like_user_message,
             event_specific_args=event_specific_args,
+            page=self.root_block.current_page,
+            js_implementation=js_implementation,
         )
 
         self.fns[self.fn_id] = block_fn
@@ -878,33 +908,44 @@ class BlocksConfig:
         return block_fn, block_fn._id
 
     def get_config(self, renderable: Renderable | None = None):
-        config = {}
+        config = {
+            "page": {},
+            "components": [],
+            "dependencies": [],
+        }
+
+        for page, _ in self.root_block.pages:
+            if page not in config["page"]:
+                config["page"][page] = {
+                    "layout": {"id": self.root_block._id, "children": []},
+                    "components": [],
+                    "dependencies": [],
+                }
 
         rendered_ids = []
-        sidebar_count = [0]
 
-        def get_layout(block: Block):
+        def get_layout(block: Block) -> Layout:
             rendered_ids.append(block._id)
-            if block.get_block_name() == "sidebar":
-                sidebar_count[0] += 1
-                if sidebar_count[0] > 1:
-                    warnings.warn(
-                        "Multiple sidebars detected in the same Blocks layout. Only one sidebar should be used per Blocks."
-                    )
             if not isinstance(block, BlockContext):
                 return {"id": block._id}
             children_layout = []
             for child in block.children:
-                children_layout.append(get_layout(child))
+                layout = get_layout(child)
+                children_layout.append(layout)
             return {"id": block._id, "children": children_layout}
 
         if renderable:
             root_block = self.blocks[renderable.container_id]
         else:
             root_block = self.root_block
-        config["layout"] = get_layout(root_block)
+        layout = get_layout(root_block)
+        config["layout"] = layout
 
-        config["components"] = []
+        for root_child in layout.get("children", []):
+            if isinstance(root_child, dict) and root_child["id"] in self.blocks:
+                block = self.blocks[root_child["id"]]
+                config["page"][block.page]["layout"]["children"].append(root_child)
+
         blocks_items = list(
             self.blocks.items()
         )  # freeze as list to prevent concurrent re-renders from changing the dict during loop, see https://github.com/gradio-app/gradio/issues/9991
@@ -937,11 +978,15 @@ class BlocksConfig:
                     block_config["api_info_as_output"] = block.api_info()  # type: ignore
                 block_config["example_inputs"] = block.example_inputs()  # type: ignore
             config["components"].append(block_config)
+            config["page"][block.page]["components"].append(block._id)
 
         dependencies = []
         for fn in self.fns.values():
             if renderable is None or fn.rendered_in == renderable:
-                dependencies.append(fn.get_config())
+                dependency_config = fn.get_config()
+                dependencies.append(dependency_config)
+                config["page"][fn.page]["dependencies"].append(dependency_config["id"])
+
         config["dependencies"] = dependencies
         return config
 
@@ -1021,7 +1066,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         title: str = "Gradio",
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
-        js: str | None = None,
+        js: str | Literal[True] | None = None,
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         fill_height: bool = False,
@@ -1143,6 +1188,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         self.proxy_urls = set()
 
+        self.pages: list[tuple[str, str]] = [("", "Home")]
+        self.current_page = ""
+
         if self.analytics_enabled:
             is_custom_theme = not any(
                 self.theme.to_dict() == built_in_theme.to_dict()
@@ -1263,7 +1311,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             original_mapping[0] = root_block = Context.root_block or blocks
 
             if "layout" in config:
-                iterate_over_children(config["layout"]["children"])
+                iterate_over_children(config["layout"].get("children", []))
 
             first_dependency = None
 
@@ -1314,6 +1362,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 dependency.pop("zerogpu", None)
                 dependency.pop("id", None)
                 dependency.pop("rendered_in", None)
+                dependency.pop("render_id", None)
                 dependency.pop("every", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
@@ -1427,6 +1476,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         "At least one block in this Blocks has already been rendered."
                     )
 
+            for block in self.blocks.values():
+                block.page = Context.root_block.current_page
             root_context.blocks.update(self.blocks)
             dependency_offset = max(root_context.fns.keys(), default=-1) + 1
             existing_api_names = [
@@ -1435,6 +1486,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 if isinstance(dep.api_name, str)
             ]
             for dependency in self.fns.values():
+                dependency.page = Context.root_block.current_page
                 dependency._id += dependency_offset
                 # Any event -- e.g. Blocks.load() -- that is triggered by this Blocks
                 # should now be triggered by the root Blocks instead.
@@ -2151,7 +2203,7 @@ Received inputs:
             "components": [],
             "css": self.css,
             "connect_heartbeat": False,
-            "js": self.js,
+            "js": cast(str | Literal[True] | None, self.js),
             "head": self.head,
             "title": self.title or "Gradio",
             "space_id": self.space_id,
@@ -2179,12 +2231,38 @@ Received inputs:
             "fill_width": self.fill_width,
             "theme_hash": self.theme_hash,
             "pwa": self.pwa,
+            "pages": self.pages,
+            "page": {},
         }
         config.update(self.default_config.get_config())  # type: ignore
         config["connect_heartbeat"] = utils.connect_heartbeat(
             config, self.blocks.values()
         )
         return config
+
+    def transpile_to_js(self, quiet: bool = False):
+        fns_to_transpile = [
+            fn.fn for fn in self.fns.values() if fn.fn and fn.js is True
+        ]
+        num_to_transpile = len(fns_to_transpile)
+        if not quiet and num_to_transpile > 0:
+            print("********************************************")
+            print("* Trying to transpile functions from Python -> JS for performance\n")
+        for index, fn in enumerate(fns_to_transpile):
+            if not quiet:
+                print(f"* ({index + 1}/{num_to_transpile}) {fn.__name__}: ", end="")
+            if getattr(fn, "__js_implementation__", None) is None:  # type: ignore
+                try:
+                    fn.__js_implementation__ = transpile(fn, validate=True)  # type: ignore
+                    if not quiet:
+                        print("✅")
+                except Exception as e:
+                    if not quiet:
+                        print("❌", e, end="\n\n")
+            elif not quiet:
+                print("✅")
+        if not quiet and num_to_transpile > 0:
+            print("********************************************\n")
 
     def __enter__(self):
         render_context = get_render_context()
@@ -2213,6 +2291,7 @@ Received inputs:
         self.progress_tracking = any(
             block_fn.tracks_progress for block_fn in self.fns.values()
         )
+        self.page = ""
         self.exited = True
 
     def clear(self):
@@ -2261,7 +2340,6 @@ Received inputs:
             blocks=self,
             default_concurrency_limit=default_concurrency_limit,
         )
-        self.config = self.get_config_file()
         self.app = App.create_app(self)
         return self
 
@@ -2311,6 +2389,7 @@ Received inputs:
         state_session_capacity: int = 10000,
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
+        share_server_tls_certificate: str | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         max_file_size: str | int | None = None,
         enable_monitoring: bool | None = None,
@@ -2352,6 +2431,7 @@ Received inputs:
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
             share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
             share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
+            share_server_tls_certificate: The path to a TLS certificate file to use when connecting to a custom share server. This parameter is not used with the default FRP server at https://gradio.live. Otherwise, you must provide a valid TLS certificate file (e.g. a "cert.pem") relative to the current working directory, or the connection will not use TLS encryption, which is insecure.
             auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth. Cannot be used with `auth`.
             max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
             enable_monitoring: Enables traffic monitoring of the app through the /monitoring endpoint. By default is None, which enables this endpoint. If explicitly True, will also print the monitoring URL to the console. If False, will disable monitoring altogether.
@@ -2461,6 +2541,7 @@ Received inputs:
         self.pwa = utils.get_space() is not None if pwa is None else pwa
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
+        self.transpile_to_js(quiet=quiet)
         self.config = self.get_config_file()
 
         self.ssr_mode = (
@@ -2472,10 +2553,10 @@ Received inputs:
                 else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
             )
         )
-        self.node_path = os.environ.get(
-            "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
-        )
         if self.ssr_mode:
+            self.node_path = os.environ.get(
+                "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
+            )
             self.node_server_name, self.node_process, self.node_port = (
                 start_node_server(
                     server_name=node_server_name,
@@ -2540,6 +2621,7 @@ Received inputs:
             self.share_server_protocol = share_server_protocol or (
                 "http" if share_server_address is not None else "https"
             )
+            self.share_server_tls_certificate = share_server_tls_certificate
             self.has_launched = True
 
             self.protocol = (
@@ -2560,11 +2642,15 @@ Received inputs:
             if not wasm_utils.IS_WASM:
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
-                httpx.get(
+                resp = httpx.get(
                     f"{self.local_api_url}startup-events",
                     verify=ssl_verify,
                     timeout=None,
                 )
+                if not resp.is_success:
+                    raise Exception(
+                        f"Couldn’t start the app because '{resp.url}' failed (code {resp.status_code}). Check your network or proxy settings to ensure localhost is accessible."
+                    )
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
                 # that `self._queue.start()` is called in another thread which is managed by the HTTP server, `uvicorn`
@@ -2656,6 +2742,7 @@ Received inputs:
                         local_port=self.server_port,
                         share_token=self.share_token,
                         share_server_address=self.share_server_address,
+                        share_server_tls_certificate=self.share_server_tls_certificate,
                     )
                     parsed_url = urlparse(share_url)
                     self.share_url = urlunparse(
@@ -3039,3 +3126,43 @@ Received inputs:
             event = getattr(block, event_name)
             target_events.append(event)
         return target_events
+
+    @document()
+    def route(self, name: str, path: str | None = None) -> Blocks:
+        """
+        Adds a new page to the Blocks app.
+        Parameters:
+            name: The name of the page as it appears in the nav bar.
+            path: The URL suffix appended after your Gradio app's root URL to access this page (e.g. if path="/test", the page may be accessible e.g. at http://localhost:7860/test). If not provided, the path is generated from the name by converting to lowercase and replacing spaces with hyphens. Any leading or trailing forward slashes are stripped.
+        Example:
+            with gr.Blocks() as demo:
+                name = gr.Textbox(label="Name")
+                ...
+            with demo.route("Test", "/test"):
+                num = gr.Number()
+                ...
+        """
+        if get_blocks_context():
+            raise ValueError(
+                "You cannot create a route while inside a Blocks() context. Call route() outside the Blocks() context (unindent this line)."
+            )
+
+        if path:
+            path = path.strip("/")
+            valid_path_regex = re.compile(r"^[a-zA-Z0-9-._~!$&'()*+,;=:@\[\]]+$")
+            if not valid_path_regex.match(path):
+                raise ValueError(
+                    f"Path '{path}' contains invalid characters. Paths can only contain alphanumeric characters and the following special characters: -._~!$&'()*+,;=:@[]"
+                )
+        if path in INTERNAL_ROUTES:
+            raise ValueError(f"Route with path '{path}' already exists")
+        if path is None:
+            path = name.lower().replace(" ", "-")
+            path = "".join(
+                [letter for letter in path if letter.isalnum() or letter == "-"]
+            )
+        while path in INTERNAL_ROUTES or path in [page[0] for page in self.pages]:
+            path = "_" + path
+        self.pages.append((path, name))
+        self.current_page = path
+        return self

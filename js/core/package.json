@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/core",
-	"version": "0.8.0",
+	"version": "0.12.1",
 	"type": "module",
 	"devDependencies": {
 		"@gradio/accordion": "workspace:^",
@@ -48,6 +48,7 @@
 		"@gradio/simpledropdown": "workspace:^",
 		"@gradio/simpleimage": "workspace:^",
 		"@gradio/simpletextbox": "workspace:^",
+		"@gradio/sketchbox": "workspace:^",
 		"@gradio/slider": "workspace:^",
 		"@gradio/state": "workspace:^",
 		"@gradio/statustracker": "workspace:^",

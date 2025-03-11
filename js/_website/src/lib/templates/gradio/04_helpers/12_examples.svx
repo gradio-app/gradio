@@ -1,0 +1,107 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("examples");
+
+    obj["attributes"] = [
+            {
+                name: "dataset",
+                annotation: "gradio.Dataset",
+                doc: "The `gr.Dataset` component corresponding to this Examples object.",
+                kwargs: null
+            },
+            {
+                name: "load_input_event",
+                annotation: "gradio.events.Dependency",
+                doc: "The Gradio event that populates the input values when the examples are clicked. You can attach a `.then()` or a `.success()` to this event to trigger subsequent events to fire after this event.",
+                kwargs: null
+            },
+            {
+                name: "cache_event",
+                annotation: "gradio.events.Dependency | None",
+                doc: "The Gradio event that populates the cached output values when the examples are clicked. You can attach a `.then()` or a `.success()` to this event to trigger subsequent events to fire after this event. This event is `None` if `cache_examples` if False, and is the same as `load_input_event` if `cache_examples` is `'lazy'`.",
+                kwargs: null
+            }
+        ]    
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.Examples(···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+<!-- Example Usage --> 
+
+{#if obj.example}
+### Example Usage
+```python
+None
+```
+{/if}
+
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
+
+<!--- Attributes -->
+### Attributes
+<ParamTable parameters={obj.attributes} />
+
+
+### Examples
+
+**Updating Examples**
+
+In this demo, we show how to update the examples by updating the samples of the underlying dataset. Note that this only works if `cache_examples=False` as updating the underlying dataset does not update the cache.
+
+```py
+import gradio as gr
+
+def update_examples(country):
+    if country == "USA":
+        return gr.Dataset(samples=[["Chicago"], ["Little Rock"], ["San Francisco"]])
+    else:
+        return gr.Dataset(samples=[["Islamabad"], ["Karachi"], ["Lahore"]])
+
+with gr.Blocks() as demo:
+    dropdown = gr.Dropdown(label="Country", choices=["USA", "Pakistan"], value="USA")
+    textbox = gr.Textbox()
+    examples = gr.Examples([["Chicago"], ["Little Rock"], ["San Francisco"]], textbox)
+    dropdown.change(update_examples, dropdown, examples.dataset)
+    
+demo.launch()
+```
+
+
+{#if obj.demos && obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={obj.guides}/>
+{/if}

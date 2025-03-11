@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/plot",
-	"version": "0.9.7",
+	"version": "0.9.9",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -13,7 +13,7 @@
 		"@gradio/theme": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@rollup/plugin-json": "^6.0.0",
-		"plotly.js-dist-min": "^2.10.1",
+		"plotly.js-dist-min": "^3.0.0",
 		"vega": "^5.23.0",
 		"vega-embed": "^6.25.0",
 		"vega-lite": "^5.12.0"

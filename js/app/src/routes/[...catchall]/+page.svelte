@@ -34,6 +34,16 @@
 		fill_width?: boolean;
 		theme_hash?: number;
 		username: string | null;
+		pages: [string, string][];
+		current_page: string;
+		page: Record<
+			string,
+			{
+				components: number[];
+				dependencies: number[];
+				layout: any;
+			}
+		>;
 	}
 
 	let id = -1;
@@ -89,7 +99,7 @@
 	export let initial_height: string;
 	export let app_mode = true;
 	export let is_embed = false;
-	export let theme_mode: ThemeMode | null = "system";
+	export let theme_mode: ThemeMode | null = null;
 	export let control_page_title = true;
 	export let container: boolean;
 	let stream: EventSource;
@@ -297,53 +307,6 @@
 	onDestroy(() => {
 		spaceheader?.remove();
 	});
-
-	// function handle_theme_mode(target: HTMLDivElement): "light" | "dark" {
-	// 	let new_theme_mode: ThemeMode;
-
-	// 	const url = new URL(window.location.toString());
-	// 	const url_color_mode: ThemeMode | null = url.searchParams.get(
-	// 		"__theme"
-	// 	) as ThemeMode | null;
-	// 	new_theme_mode = theme_mode || url_color_mode || "system";
-
-	// 	if (new_theme_mode === "dark" || new_theme_mode === "light") {
-	// 		apply_theme(target, new_theme_mode);
-	// 	} else {
-	// 		new_theme_mode = sync_system_theme(target);
-	// 	}
-	// 	return new_theme_mode;
-	// }
-
-	// function sync_system_theme(target: HTMLDivElement): "light" | "dark" {
-	// 	const theme = update_scheme();
-	// 	window
-	// 		?.matchMedia("(prefers-color-scheme: dark)")
-	// 		?.addEventListener("change", update_scheme);
-
-	// 	function update_scheme(): "light" | "dark" {
-	// 		let _theme: "light" | "dark" = window?.matchMedia?.(
-	// 			"(prefers-color-scheme: dark)"
-	// 		).matches
-	// 			? "dark"
-	// 			: "light";
-
-	// 		apply_theme(target, _theme);
-	// 		return _theme;
-	// 	}
-	// 	return theme;
-	// }
-
-	// function apply_theme(target: HTMLDivElement, theme: "dark" | "light"): void {
-	// 	const dark_class_element = is_embed ? target.parentElement! : document.body;
-	// 	const bg_element = is_embed ? target : target.parentElement!;
-	// 	bg_element.style.background = "var(--body-background-fill)";
-	// 	if (theme === "dark") {
-	// 		dark_class_element.classList.add("dark");
-	// 	} else {
-	// 		dark_class_element.classList.remove("dark");
-	// 	}
-	// }
 </script>
 
 <svelte:head>
@@ -362,6 +325,9 @@
 	{version}
 	{initial_height}
 	{space}
+	pages={config.pages}
+	current_page={config.current_page}
+	root={config.root}
 	loaded={loader_status === "complete"}
 	fill_width={config?.fill_width || false}
 	bind:wrapper
@@ -395,33 +361,3 @@
 		/>
 	{/if}
 </Embed>
-
-<!-- <style>
-	.error {
-		position: relative;
-		padding: var(--size-4);
-		color: var(--body-text-color);
-		text-align: center;
-	}
-
-	.error > * {
-		margin-top: var(--size-4);
-	}
-
-	a {
-		color: var(--link-text-color);
-	}
-
-	a:hover {
-		color: var(--link-text-color-hover);
-		text-decoration: underline;
-	}
-
-	a:visited {
-		color: var(--link-text-color-visited);
-	}
-
-	a:active {
-		color: var(--link-text-color-active);
-	}
-</style> -->

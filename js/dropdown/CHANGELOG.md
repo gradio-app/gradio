@@ -1,5 +1,26 @@
 # @gradio/dropdown
 
+## 0.9.13
+
+### Fixes
+
+- [#10659](https://github.com/gradio-app/gradio/pull/10659) [`36309ea`](https://github.com/gradio-app/gradio/commit/36309ea55fba6017f8a7f2be1484989ecccdac1b) - Automatically restore last scroll position in multiple-choice dropdowns.  Thanks @XcantloadX!
+
+## 0.9.12
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.4
+- @gradio/atoms@0.13.3
+
+## 0.9.11
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.3
+- @gradio/atoms@0.13.2
+- @gradio/utils@0.10.1
+
 ## 0.9.10
 
 ### Dependency updates

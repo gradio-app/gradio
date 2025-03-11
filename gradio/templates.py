@@ -605,6 +605,9 @@ class Numpy(components.Dataframe):
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
         show_row_numbers: bool = False,
+        show_search: Literal["none", "search", "filter"] = "none",
+        static_columns: list[int] | None = None,
+        pinned_columns: int | None = None,
         show_fullscreen_button: bool = False,
         max_chars: int | None = None,
         show_copy_button: bool = False,
@@ -634,9 +637,12 @@ class Numpy(components.Dataframe):
             latex_delimiters=latex_delimiters,
             min_width=min_width,
             show_row_numbers=show_row_numbers,
+            show_search=show_search,
+            pinned_columns=pinned_columns,
             show_fullscreen_button=show_fullscreen_button,
             max_chars=max_chars,
             show_copy_button=show_copy_button,
+            static_columns=static_columns,
         )
 
 
@@ -680,9 +686,12 @@ class Matrix(components.Dataframe):
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
         show_row_numbers: bool = False,
-        show_fullscreen_button: bool = True,
+        show_search: Literal["none", "search", "filter"] = "none",
+        pinned_columns: int | None = None,
+        show_fullscreen_button: bool = False,
         max_chars: int | None = None,
         show_copy_button: bool = False,
+        static_columns: list[int] | None = None,
     ):
         super().__init__(
             value=value,
@@ -709,9 +718,12 @@ class Matrix(components.Dataframe):
             latex_delimiters=latex_delimiters,
             min_width=min_width,
             show_row_numbers=show_row_numbers,
+            show_search=show_search,
+            pinned_columns=pinned_columns,
             show_fullscreen_button=show_fullscreen_button,
             max_chars=max_chars,
             show_copy_button=show_copy_button,
+            static_columns=static_columns,
         )
 
 
@@ -755,9 +767,12 @@ class List(components.Dataframe):
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
         show_row_numbers: bool = False,
-        show_fullscreen_button: bool = True,
+        show_search: Literal["none", "search", "filter"] = "none",
+        pinned_columns: int | None = None,
+        show_fullscreen_button: bool = False,
         max_chars: int | None = None,
         show_copy_button: bool = False,
+        static_columns: list[int] | None = None,
     ):
         super().__init__(
             value=value,
@@ -784,6 +799,9 @@ class List(components.Dataframe):
             latex_delimiters=latex_delimiters,
             min_width=min_width,
             show_row_numbers=show_row_numbers,
+            show_search=show_search,
+            static_columns=static_columns,
+            pinned_columns=pinned_columns,
             show_fullscreen_button=show_fullscreen_button,
             max_chars=max_chars,
             show_copy_button=show_copy_button,

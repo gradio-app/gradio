@@ -1,5 +1,48 @@
 # @gradio/code
 
+## 0.11.2
+
+### Dependency updates
+
+- @gradio/wasm@0.17.4
+- @gradio/upload@0.15.4
+
+## 0.11.1
+
+### Dependency updates
+
+- @gradio/upload@0.15.3
+
+## 0.11.0
+
+### Features
+
+- [#10643](https://github.com/gradio-app/gradio/pull/10643) [`f0a920c`](https://github.com/gradio-app/gradio/commit/f0a920c4934880645fbad783077ae9c7519856ce) - added a show_line_numbers to toggle line numbers in gr.Code().  Thanks @lalitx17!
+
+## 0.10.18
+
+### Dependency updates
+
+- @gradio/upload@0.15.2
+- @gradio/statustracker@0.10.4
+- @gradio/atoms@0.13.3
+
+## 0.10.17
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.3
+- @gradio/atoms@0.13.2
+- @gradio/utils@0.10.1
+- @gradio/upload@0.15.1
+- @gradio/wasm@0.17.3
+
+## 0.10.16
+
+### Dependency updates
+
+- @gradio/upload@0.15.0
+
 ## 0.10.15
 
 ### Dependency updates

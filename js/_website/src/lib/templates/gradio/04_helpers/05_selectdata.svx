@@ -25,6 +25,18 @@
                 kwargs: null
             },
             {
+                name: "row_value",
+                annotation: "list[float | str]",
+                doc: "The value of the entire row that the selected item belongs to, as a 1-D list. Only implemented for the `Dataframe` component, returns None for other components.",
+                kwargs: null
+            },
+            {
+                name: "col_value",
+                annotation: "list[float | str]",
+                doc: "The value of the entire row that the selected item belongs to, as a 1-D list. Only implemented for the `Dataframe` component, returns None for other components.",
+                kwargs: null
+            },
+            {
                 name: "selected",
                 annotation: "bool",
                 doc: "True if the item was selected, False if deselected.",
@@ -61,9 +73,9 @@ with gr.Blocks() as demo:
     def on_select(evt: gr.SelectData):
         return f"You selected {evt.value} at {evt.index} from {evt.target}"
 
-    table.select(on_select, table, statement)
-    gallery.select(on_select, gallery, statement)
-    textbox.select(on_select, textbox, statement)
+    table.select(on_select, None, statement)
+    gallery.select(on_select, None, statement)
+    textbox.select(on_select, None, statement)
 
 demo.launch()
 ```

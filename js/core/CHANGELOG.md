@@ -1,5 +1,146 @@
 # @gradio/core
 
+## 0.12.1
+
+### Features
+
+- [#10694](https://github.com/gradio-app/gradio/pull/10694) [`16244f3`](https://github.com/gradio-app/gradio/commit/16244f3c1cb1a65ac1f719142f8fab67512fbb25) - Event Listeners in gradio sketch.  Thanks @aliabid94!
+
+### Fixes
+
+- [#10719](https://github.com/gradio-app/gradio/pull/10719) [`b710d7c`](https://github.com/gradio-app/gradio/commit/b710d7cf13c1277fd18c7809cad0f707b880ef70) - Fix error display.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.11.2
+- @gradio/video@0.14.4
+- @gradio/client@1.13.1
+- @gradio/wasm@0.17.4
+- @gradio/gallery@0.15.9
+- @gradio/upload@0.15.4
+- @gradio/button@0.4.9
+- @gradio/image@0.21.4
+- @gradio/file@0.12.9
+
+## 0.12.0
+
+### Features
+
+- [#10500](https://github.com/gradio-app/gradio/pull/10500) [`16d419b`](https://github.com/gradio-app/gradio/commit/16d419b9f1f18ae4507d18a4739eb83ac4f3fae9) - Allow functions that solely update component properties to run in the frontend by setting `js=True`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/upload@0.15.3
+- @gradio/video@0.14.3
+- @gradio/code@0.11.1
+- @gradio/client@1.13.0
+- @gradio/button@0.4.8
+- @gradio/image@0.21.3
+- @gradio/gallery@0.15.8
+- @gradio/file@0.12.8
+
+## 0.11.1
+
+### Features
+
+- [#10679](https://github.com/gradio-app/gradio/pull/10679) [`cb3c762`](https://github.com/gradio-app/gradio/commit/cb3c76205c3fc1fae55229b5efe223c6d5c5c907) - Add Thai Translate.  Thanks @haihandsome!
+
+## 0.11.0
+
+### Dependency updates
+
+- @gradio/code@0.11.0
+
+## 0.11.0
+
+### Features
+
+- [#10569](https://github.com/gradio-app/gradio/pull/10569) [`bd4895a`](https://github.com/gradio-app/gradio/commit/bd4895a95a29fa1f0d12fefde26a82a1d60954e9) - Update Lite to support multi-page apps.  Thanks @whitphx!
+- [#10630](https://github.com/gradio-app/gradio/pull/10630) [`77432c7`](https://github.com/gradio-app/gradio/commit/77432c7fa84c56ef76364bf23f4273e889a94a71) - gradio sketch - UI based gradio skeleton builder.  Thanks @aliabid94!
+
+### Fixes
+
+- [#10622](https://github.com/gradio-app/gradio/pull/10622) [`b505df0`](https://github.com/gradio-app/gradio/commit/b505df0b883d119d4660c25519497c4d86eea8d5) - Fix fill_width.  Thanks @aliabid94!
+
+## 0.10.1
+
+### Dependency updates
+
+- @gradio/image@0.21.2
+- @gradio/upload@0.15.2
+- @gradio/code@0.10.18
+- @gradio/paramviewer@0.7.2
+- @gradio/statustracker@0.10.4
+- @gradio/video@0.14.2
+- @gradio/atoms@0.13.3
+- @gradio/gallery@0.15.7
+- @gradio/plot@0.9.9
+- @gradio/button@0.4.7
+- @gradio/column@0.2.0
+- @gradio/textbox@0.10.4
+- @gradio/checkbox@0.4.14
+- @gradio/file@0.12.7
+
+## 0.10.1
+
+### Features
+
+- [#10511](https://github.com/gradio-app/gradio/pull/10511) [`c4aa886`](https://github.com/gradio-app/gradio/commit/c4aa8864dabec4caeb59af91f6f1aaaf50e33b67) - Semantic search in the playground.  Thanks @aliabd!
+
+## 0.10.0
+
+### Features
+
+- [#10492](https://github.com/gradio-app/gradio/pull/10492) [`29880d5`](https://github.com/gradio-app/gradio/commit/29880d51fbe7fbd222b0765a83c95134dc7d0e90) - Allow showing progress updates on arbitrary components.  Thanks @abidlabs!
+- [#10552](https://github.com/gradio-app/gradio/pull/10552) [`ed25a10`](https://github.com/gradio-app/gradio/commit/ed25a1053a55ddd2cf7d3067c72bdf77185ada8d) - Add 1920px wide resolution for wide monitors.  Thanks @Oncorporation!
+
+### Fixes
+
+- [#10490](https://github.com/gradio-app/gradio/pull/10490) [`178311b`](https://github.com/gradio-app/gradio/commit/178311b72d72a3c5f4a67bee5e0098be4232e68c) - Ensure row numbers functionality in dataframe works as expected.  Thanks @hannahblair!
+- [#10534](https://github.com/gradio-app/gradio/pull/10534) [`855d870`](https://github.com/gradio-app/gradio/commit/855d87001a492afce1aff9c2eb3de765d8855828) - Footer alignment fix.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.10.17
+- @gradio/paramviewer@0.7.1
+- @gradio/statustracker@0.10.3
+- @gradio/tabitem@0.4.2
+- @gradio/tabs@0.4.2
+- @gradio/video@0.14.1
+- @gradio/atoms@0.13.2
+- @gradio/utils@0.10.1
+- @gradio/column@0.2.0
+- @gradio/theme@0.4.0
+- @gradio/client@1.12.0
+- @gradio/upload@0.15.1
+- @gradio/button@0.4.6
+- @gradio/wasm@0.17.3
+- @gradio/plot@0.9.8
+- @gradio/gallery@0.15.6
+- @gradio/image@0.21.1
+- @gradio/textbox@0.10.3
+- @gradio/file@0.12.6
+- @gradio/checkbox@0.4.13
+
+## 0.9.0
+
+### Features
+
+- [#10433](https://github.com/gradio-app/gradio/pull/10433) [`2e8dc74`](https://github.com/gradio-app/gradio/commit/2e8dc74f751be02f7217f78d241806b42fcdca04) - Allow building multipage Gradio apps.  Thanks @aliabid94!
+- [#10478](https://github.com/gradio-app/gradio/pull/10478) [`afb96c6`](https://github.com/gradio-app/gradio/commit/afb96c64451e5a282bfee89445d831d1c87f9746) - Improve dataframe's upload accessibility.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/client@1.11.0
+- @gradio/upload@0.15.0
+- @gradio/button@0.4.5
+- @gradio/paramviewer@0.7.0
+- @gradio/code@0.10.16
+- @gradio/image@0.21.0
+- @gradio/gallery@0.15.5
+- @gradio/file@0.12.5
+- @gradio/video@0.14.0
+
 ## 0.8.0
 
 ### Features

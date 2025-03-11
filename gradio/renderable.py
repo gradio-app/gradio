@@ -25,6 +25,7 @@ class Renderable:
         concurrency_id: str | None,
         trigger_mode: Literal["once", "multiple", "always_last"] | None,
         queue: bool,
+        show_progress: Literal["full", "minimal", "hidden"],
     ):
         if Context.root_block is None:
             raise ValueError("Reactive render must be inside a Blocks context.")
@@ -38,6 +39,7 @@ class Renderable:
         self.fn = fn
         self.inputs = inputs
         self.triggers: list[EventListenerMethod] = []
+        self.page = Context.root_block.current_page
 
         self.triggers = [EventListenerMethod(*t) for t in triggers]
         Context.root_block.default_config.set_event_trigger(
@@ -52,6 +54,7 @@ class Renderable:
             trigger_mode=trigger_mode,
             postprocess=False,
             queue=queue,
+            show_progress=show_progress,
         )
 
     def apply(self, *args, **kwargs):
@@ -68,6 +71,7 @@ class Renderable:
 
         container_copy = self.ContainerClass(render=False, show_progress=True)
         container_copy._id = self.container_id
+        container_copy.page = self.page
         LocalContext.renderable.set(self)
 
         try:
@@ -88,6 +92,7 @@ def render(
     trigger_mode: Literal["once", "multiple", "always_last"] | None = "always_last",
     concurrency_limit: int | None | Literal["default"] = None,
     concurrency_id: str | None = None,
+    show_progress: Literal["full", "minimal", "hidden"] = "full",
 ):
     """
     The render decorator allows Gradio Blocks apps to have dynamic layouts, so that the components and event listeners in your app can change depending on custom logic.
@@ -158,6 +163,7 @@ def render(
             concurrency_id,
             trigger_mode,
             queue,
+            show_progress,
         )
         return fn
 

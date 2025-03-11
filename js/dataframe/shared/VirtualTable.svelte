@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, tick } from "svelte";
+	import { onMount, tick, createEventDispatcher } from "svelte";
 	import { _ } from "svelte-i18n";
 
 	export let items: any[][] = [];
@@ -10,6 +10,14 @@
 	export let start = 0;
 	export let end = 20;
 	export let selected: number | false;
+	export let disable_scroll = false;
+	export let show_scroll_button = false;
+	export let viewport: HTMLTableElement;
+
+	const dispatch = createEventDispatcher<{
+		scroll_top: number;
+	}>();
+
 	let height = "100%";
 
 	let average_height = 30;
@@ -21,7 +29,6 @@
 	let mounted: boolean;
 	let rows: HTMLCollectionOf<HTMLTableRowElement>;
 	let top = 0;
-	let viewport: HTMLTableElement;
 	let viewport_height = 200;
 	let visible: { index: number; data: any[] }[] = [];
 	let viewport_box: DOMRectReadOnly;
@@ -40,6 +47,11 @@
 		if (viewport_height === 0) {
 			return;
 		}
+
+		// force header height calculation first
+		head_height =
+			viewport.querySelector(".thead")?.getBoundingClientRect().height || 0;
+		await tick();
 
 		const { scrollTop } = viewport;
 		table_scrollbar_width = viewport.offsetWidth - viewport.clientWidth;
@@ -144,6 +156,12 @@
 
 	async function handle_scroll(e: Event): Promise<void> {
 		const scroll_top = viewport.scrollTop;
+
+		show_scroll_button = scroll_top > 100;
+
+		if (show_scroll_button) {
+			dispatch("scroll_top", scroll_top);
+		}
 
 		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
 		const is_start_overflow = sortedItems.length < start;
@@ -256,29 +274,32 @@
 </script>
 
 <svelte-virtual-table-viewport>
-	<table
-		class="table"
-		bind:this={viewport}
-		bind:contentRect={viewport_box}
-		on:scroll={handle_scroll}
-		style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px"
-	>
-		<thead class="thead" bind:offsetHeight={head_height}>
-			<slot name="thead" />
-		</thead>
-		<tbody bind:this={contents} class="tbody">
-			{#if visible.length && visible[0].data.length}
-				{#each visible as item (item.data[0].id)}
-					<slot name="tbody" item={item.data} index={item.index}>
-						Missing Table Row
-					</slot>
-				{/each}
-			{/if}
-		</tbody>
-		<tfoot class="tfoot" bind:offsetHeight={foot_height}>
-			<slot name="tfoot" />
-		</tfoot>
-	</table>
+	<div>
+		<table
+			class="table"
+			class:disable-scroll={disable_scroll}
+			bind:this={viewport}
+			bind:contentRect={viewport_box}
+			on:scroll={handle_scroll}
+			style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px; --max-height: {max_height}px"
+		>
+			<thead class="thead" bind:offsetHeight={head_height}>
+				<slot name="thead" />
+			</thead>
+			<tbody bind:this={contents} class="tbody">
+				{#if visible.length && visible[0].data.length}
+					{#each visible as item (item.data[0].id)}
+						<slot name="tbody" item={item.data} index={item.index}>
+							Missing Table Row
+						</slot>
+					{/each}
+				{/if}
+			</tbody>
+			<tfoot class="tfoot" bind:offsetHeight={foot_height}>
+				<slot name="tfoot" />
+			</tfoot>
+		</table>
+	</div>
 </svelte-virtual-table-viewport>
 
 <style type="text/css">
@@ -287,7 +308,7 @@
 		overflow-y: scroll;
 		overflow-x: scroll;
 		-webkit-overflow-scrolling: touch;
-		max-height: 100vh;
+		max-height: var(--max-height);
 		box-sizing: border-box;
 		display: block;
 		padding: 0;
@@ -335,11 +356,46 @@
 		background: var(--table-even-background-fill);
 	}
 
+	tbody :global(td.pinned-column) {
+		position: sticky;
+		z-index: 3;
+	}
+
+	tbody :global(tr:nth-child(odd)) :global(td.pinned-column) {
+		background: var(--table-odd-background-fill);
+	}
+
+	tbody :global(tr:nth-child(even)) :global(td.pinned-column) {
+		background: var(--table-even-background-fill);
+	}
+
+	tbody :global(td.last-pinned) {
+		border-right: 1px solid var(--border-color-primary);
+	}
+
 	thead {
 		position: sticky;
 		top: 0;
 		left: 0;
-		z-index: var(--layer-1);
-		overflow: hidden;
+		background: var(--background-fill-primary);
+		z-index: 7;
+	}
+
+	thead :global(th) {
+		background: var(--table-even-background-fill) !important;
+	}
+
+	thead :global(th.pinned-column) {
+		position: sticky;
+		z-index: 7;
+		background: var(--table-even-background-fill) !important;
+	}
+
+	thead :global(th.last-pinned) {
+		border-right: 1px solid var(--border-color-primary);
+	}
+
+	.table.disable-scroll {
+		overflow: hidden !important;
 	}
 </style>

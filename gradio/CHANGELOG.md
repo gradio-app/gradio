@@ -1,5 +1,158 @@
 # gradio
 
+## 5.20.1
+
+### Features
+
+- [#10694](https://github.com/gradio-app/gradio/pull/10694) [`16244f3`](https://github.com/gradio-app/gradio/commit/16244f3c1cb1a65ac1f719142f8fab67512fbb25) - Event Listeners in gradio sketch.  Thanks @aliabid94!
+- [#10732](https://github.com/gradio-app/gradio/pull/10732) [`2b38420`](https://github.com/gradio-app/gradio/commit/2b3842066bc625518afeb182d65d2ef37a3e835e) - Changed warning stacklevel to improve warnings in console.  Thanks @wolph!
+- [#10720](https://github.com/gradio-app/gradio/pull/10720) [`2248005`](https://github.com/gradio-app/gradio/commit/2248005b10056d858028e1bb65b5921117ab13f5) - Add `pwa` and `enable_monitoring` parameters to `mount_gradio_app`.  Thanks @abidlabs!
+- [#10737](https://github.com/gradio-app/gradio/pull/10737) [`1cf992b`](https://github.com/gradio-app/gradio/commit/1cf992b04225580b9c7c4d4dd0c84e5a7ebe6ad3) - Sidebar fixed positioning.  Thanks @dawoodkhan82!
+- [#10728](https://github.com/gradio-app/gradio/pull/10728) [`9fce28b`](https://github.com/gradio-app/gradio/commit/9fce28b76be0683ac5c9b07beac0479023671622) - Allow sending a custom TLS certificate or no TLS certificate when connecting to custom share servers.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10748](https://github.com/gradio-app/gradio/pull/10748) [`19411c6`](https://github.com/gradio-app/gradio/commit/19411c6b15cde53371425a9eb6037ce4a10f7442) - Fix ClearButton.  Thanks @phos-phophy!
+- [#10721](https://github.com/gradio-app/gradio/pull/10721) [`b3ac430`](https://github.com/gradio-app/gradio/commit/b3ac430d5e8f93ffea993f7af51f9171a50026a1) - Check for Node.js path only if SSR mode is true.  Thanks @anirbanbasu!
+- [#10724](https://github.com/gradio-app/gradio/pull/10724) [`667f8a1`](https://github.com/gradio-app/gradio/commit/667f8a1f820d46a4d87ad0f65b9e3b37c4de449f) - Fix Chatbot avatar image position.  Thanks @abidlabs!
+- [#10719](https://github.com/gradio-app/gradio/pull/10719) [`b710d7c`](https://github.com/gradio-app/gradio/commit/b710d7cf13c1277fd18c7809cad0f707b880ef70) - Fix error display.  Thanks @aliabid94!
+- [#10706](https://github.com/gradio-app/gradio/pull/10706) [`5faa2a3`](https://github.com/gradio-app/gradio/commit/5faa2a34cc3b6ab647cab84d7495bfe8624955e3) - chore: bump Pyodide version to 0.27.3.  Thanks @peter-gy!
+
+## 5.20.0
+
+### Features
+
+- [#10688](https://github.com/gradio-app/gradio/pull/10688) [`bd982df`](https://github.com/gradio-app/gradio/commit/bd982df85b07e4686e223241d68f08bf242c3ef9) - Change `gr.load` chatinterface behavior to streaming.  Thanks @abidlabs!
+- [#10500](https://github.com/gradio-app/gradio/pull/10500) [`16d419b`](https://github.com/gradio-app/gradio/commit/16d419b9f1f18ae4507d18a4739eb83ac4f3fae9) - Allow functions that solely update component properties to run in the frontend by setting `js=True`.  Thanks @abidlabs!
+
+## 5.19.0
+
+### Features
+
+- [#10647](https://github.com/gradio-app/gradio/pull/10647) [`b43200d`](https://github.com/gradio-app/gradio/commit/b43200d7df92e40285c1e5fb1a2f010278fce5d2) - Custom styling of the dataframe.  Thanks @abidlabs!
+- [#10577](https://github.com/gradio-app/gradio/pull/10577) [`374b762`](https://github.com/gradio-app/gradio/commit/374b762b7fc94073517a2fd8b28473a558f454fc) - Support `gr.LoginButton` for `gr.load()`.  Thanks @abidlabs!
+- [#10679](https://github.com/gradio-app/gradio/pull/10679) [`cb3c762`](https://github.com/gradio-app/gradio/commit/cb3c76205c3fc1fae55229b5efe223c6d5c5c907) - Add Thai Translate.  Thanks @haihandsome!
+- [#10678](https://github.com/gradio-app/gradio/pull/10678) [`249eccd`](https://github.com/gradio-app/gradio/commit/249eccd81ae289658d0ba8e1033c12f407a07ee7) - Fix Dataframe header type to allow integer values.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10659](https://github.com/gradio-app/gradio/pull/10659) [`36309ea`](https://github.com/gradio-app/gradio/commit/36309ea55fba6017f8a7f2be1484989ecccdac1b) - Automatically restore last scroll position in multiple-choice dropdowns.  Thanks @XcantloadX!
+- [#10683](https://github.com/gradio-app/gradio/pull/10683) [`367fe14`](https://github.com/gradio-app/gradio/commit/367fe14381a971c45528d50052121439a023bfc0) - Fix chatbot share button payload too large.  Thanks @dawoodkhan82!
+
+## 5.18.0
+
+### Features
+
+- [#10643](https://github.com/gradio-app/gradio/pull/10643) [`f0a920c`](https://github.com/gradio-app/gradio/commit/f0a920c4934880645fbad783077ae9c7519856ce) - added a show_line_numbers to toggle line numbers in gr.Code().  Thanks @lalitx17!
+- [#10664](https://github.com/gradio-app/gradio/pull/10664) [`0b1f729`](https://github.com/gradio-app/gradio/commit/0b1f72941fd50298562102e39f4feafaa16f5968) - Allow websocket version 15.  Thanks @freddyaboulton!
+- [#10636](https://github.com/gradio-app/gradio/pull/10636) [`d06f3e3`](https://github.com/gradio-app/gradio/commit/d06f3e3e08d0270b58cefa1be748e6cfd2362c21) - Chatbot thoughts generating animation.  Thanks @dawoodkhan82!
+
+## 5.17.1
+
+### Features
+
+- [#10641](https://github.com/gradio-app/gradio/pull/10641) [`d7607a2`](https://github.com/gradio-app/gradio/commit/d7607a21b5247a9e82638c07359f70a6776f5747) - Ergonomics improvements & analytics for `gradio sketch`.  Thanks @abidlabs!
+- [#10646](https://github.com/gradio-app/gradio/pull/10646) [`b01ce47`](https://github.com/gradio-app/gradio/commit/b01ce47056f5752fbf03e44600bf0f7dab69b64c) - Fixes cell-selection logic in `Table.svelte`.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10650](https://github.com/gradio-app/gradio/pull/10650) [`7c8b0da`](https://github.com/gradio-app/gradio/commit/7c8b0dab0be2e87ad027d0c786bf741e205ae137) - Fix deployed Spaces.  Thanks @abidlabs!
+
+## 5.17.0
+
+### Features
+
+- [#10569](https://github.com/gradio-app/gradio/pull/10569) [`bd4895a`](https://github.com/gradio-app/gradio/commit/bd4895a95a29fa1f0d12fefde26a82a1d60954e9) - Update Lite to support multi-page apps.  Thanks @whitphx!
+- [#10630](https://github.com/gradio-app/gradio/pull/10630) [`77432c7`](https://github.com/gradio-app/gradio/commit/77432c7fa84c56ef76364bf23f4273e889a94a71) - gradio sketch - UI based gradio skeleton builder.  Thanks @aliabid94!
+
+### Fixes
+
+- [#10622](https://github.com/gradio-app/gradio/pull/10622) [`b505df0`](https://github.com/gradio-app/gradio/commit/b505df0b883d119d4660c25519497c4d86eea8d5) - Fix fill_width.  Thanks @aliabid94!
+- [#10616](https://github.com/gradio-app/gradio/pull/10616) [`ae4ba46`](https://github.com/gradio-app/gradio/commit/ae4ba46cfb9235904f8bfc197c72ad22275edd67) - Change sidebar to absolute positioning and make accessible.  Thanks @dawoodkhan82!
+- [#10637](https://github.com/gradio-app/gradio/pull/10637) [`75c9748`](https://github.com/gradio-app/gradio/commit/75c9748f50f5825dae601e0a15b85ec666819b6a) - Fix: Chatbot sharing payload too large.  Thanks @dawoodkhan82!
+
+## 5.16.2
+
+### Features
+
+- [#10625](https://github.com/gradio-app/gradio/pull/10625) [`ce4fb99`](https://github.com/gradio-app/gradio/commit/ce4fb994e042489d8c6fbcab3e94d97b08369dce) - fix spelling of `resizable` parameter in `gr.Chatbot`.  Thanks @abidlabs!
+- [#10594](https://github.com/gradio-app/gradio/pull/10594) [`f0e4fd0`](https://github.com/gradio-app/gradio/commit/f0e4fd0522dd0f02701e0c4d3e694f6e6198db9d) - Fix `Blocks.serve_static_file` and `Button.svelte` to work on Lite.  Thanks @whitphx!
+
+### Fixes
+
+- [#10580](https://github.com/gradio-app/gradio/pull/10580) [`4e70d74`](https://github.com/gradio-app/gradio/commit/4e70d74068b77ebb3d285aa78e9202fff76337a2) - Fix `gr.load()` for `gr.ChatInterface(save_history=True)` and any Gradio app where the upstream app includes a `gr.State` as input.  Thanks @abidlabs!
+- [#10624](https://github.com/gradio-app/gradio/pull/10624) [`f8eb8e5`](https://github.com/gradio-app/gradio/commit/f8eb8e565b720977791824659d9eed270ea4b2d0) - Pass kwargs into `gr.ChatInterface` created by `gr.load()`.  Thanks @abidlabs!
+- [#10597](https://github.com/gradio-app/gradio/pull/10597) [`8c87eb8`](https://github.com/gradio-app/gradio/commit/8c87eb83066278b0e28267a6648d4729d6f39aa9) - Fix issue where styling changes were overridden when value was updated simultaneously.  Thanks @abidlabs!
+
+## 5.16.1
+
+### Features
+
+- [#10579](https://github.com/gradio-app/gradio/pull/10579) [`b640df2`](https://github.com/gradio-app/gradio/commit/b640df2517dee166634f279fcfaac8ba5f5aef2f) - Fix Sidebar for mobile.  Thanks @dawoodkhan82!
+- [#10582](https://github.com/gradio-app/gradio/pull/10582) [`1299267`](https://github.com/gradio-app/gradio/commit/1299267a8a78546d3f9e13d6b3c58231cf88f2b9) - Change sidebar position.  Thanks @dawoodkhan82!
+- [#10511](https://github.com/gradio-app/gradio/pull/10511) [`c4aa886`](https://github.com/gradio-app/gradio/commit/c4aa8864dabec4caeb59af91f6f1aaaf50e33b67) - Semantic search in the playground.  Thanks @aliabd!
+
+### Fixes
+
+- [#10607](https://github.com/gradio-app/gradio/pull/10607) [`c354f5f`](https://github.com/gradio-app/gradio/commit/c354f5ff16c787d722f4e53d5a97f729abba955e) - Add empty dataframe functionality.  Thanks @hannahblair!
+- [#10596](https://github.com/gradio-app/gradio/pull/10596) [`a8bde76`](https://github.com/gradio-app/gradio/commit/a8bde76e2b0f65b3565019beb03ac8b1fd152963) - Fix margin above `gr.Dataframe` when no header is provided.  Thanks @abidlabs!
+- [#10608](https://github.com/gradio-app/gradio/pull/10608) [`b8fada8`](https://github.com/gradio-app/gradio/commit/b8fada87724cdc76b5862f84a1025f7da151db42) - [ZeroGPU] Handshake-based postMessage part.2 (non-SSR mode).  Thanks @cbensimon!
+- [#10595](https://github.com/gradio-app/gradio/pull/10595) [`12669f4`](https://github.com/gradio-app/gradio/commit/12669f4bf1a4d6bd8df29583b6c185ded51dff48) - Row scale changes.  Thanks @aliabid94!
+
+## 5.16.0
+
+### Features
+
+- [#10561](https://github.com/gradio-app/gradio/pull/10561) [`26494ce`](https://github.com/gradio-app/gradio/commit/26494cea570ffe0ead1f8b7a7135ab5a89c6bcbd) - Allow freezing columns in `gr.Dataframe`.  Thanks @hannahblair!
+- [#10554](https://github.com/gradio-app/gradio/pull/10554) [`b8ff5d6`](https://github.com/gradio-app/gradio/commit/b8ff5d6bfe1a9f3379580754b1e23857e2f0c96b) - Add optional search bar to `gr.Dataframe`'s toolbar.  Thanks @hannahblair!
+- [#10529](https://github.com/gradio-app/gradio/pull/10529) [`196b600`](https://github.com/gradio-app/gradio/commit/196b600b3962b85781b53c512e17708644b86f6f) - Select entire row or column in dataframe.  Thanks @hannahblair!
+- [#10558](https://github.com/gradio-app/gradio/pull/10558) [`1113002`](https://github.com/gradio-app/gradio/commit/111300242fdf135724a304920a93fc34a8037f7d) - Fix spacing issue with `gr.Dataframe` in Safari.  Thanks @hannahblair!
+- [#10492](https://github.com/gradio-app/gradio/pull/10492) [`29880d5`](https://github.com/gradio-app/gradio/commit/29880d51fbe7fbd222b0765a83c95134dc7d0e90) - Allow showing progress updates on arbitrary components.  Thanks @abidlabs!
+- [#10553](https://github.com/gradio-app/gradio/pull/10553) [`4c08b9f`](https://github.com/gradio-app/gradio/commit/4c08b9f3c0bcafb0edc56330d8d81e78a6e3763b) - Prevent scrolling when the dataframe cell menu is open.  Thanks @hannahblair!
+- [#10541](https://github.com/gradio-app/gradio/pull/10541) [`e505fab`](https://github.com/gradio-app/gradio/commit/e505fabecb17c50e073483ed7d6aab2e04c9fcf2) - Add copy button feedback to `gr.Dataframe`.  Thanks @hannahblair!
+- [#10507](https://github.com/gradio-app/gradio/pull/10507) [`3748e4c`](https://github.com/gradio-app/gradio/commit/3748e4c902683ff406fdd246fa8c07dbbbed3ad5) - Chatbot `allow_tags`.  Thanks @dawoodkhan82!
+- [#10552](https://github.com/gradio-app/gradio/pull/10552) [`ed25a10`](https://github.com/gradio-app/gradio/commit/ed25a1053a55ddd2cf7d3067c72bdf77185ada8d) - Add 1920px wide resolution for wide monitors.  Thanks @Oncorporation!
+- [#10540](https://github.com/gradio-app/gradio/pull/10540) [`deeebfb`](https://github.com/gradio-app/gradio/commit/deeebfba46f15bb3641b86e25156215d2d727087) - Revert editable text changes.  Thanks @hannahblair!
+
+### Fixes
+
+- [#10544](https://github.com/gradio-app/gradio/pull/10544) [`9b87e12`](https://github.com/gradio-app/gradio/commit/9b87e12f1a44e1bcee1373a877a6d39f4e6395e9) - Fix gr.Plot change/load events and plotly css loaded.  Thanks @freddyaboulton!
+- [#10515](https://github.com/gradio-app/gradio/pull/10515) [`1269ad0`](https://github.com/gradio-app/gradio/commit/1269ad0f0096323d613e7c8d15728bb491bcc409) - Plotly 6.0 Fix: Install latest plotly js version.  Thanks @freddyaboulton!
+- [#10490](https://github.com/gradio-app/gradio/pull/10490) [`178311b`](https://github.com/gradio-app/gradio/commit/178311b72d72a3c5f4a67bee5e0098be4232e68c) - Ensure row numbers functionality in dataframe works as expected.  Thanks @hannahblair!
+- [#10560](https://github.com/gradio-app/gradio/pull/10560) [`4e72dfe`](https://github.com/gradio-app/gradio/commit/4e72dfef99b2614c00931a828ed78876f8f945d0) - Fix Auth.  Thanks @freddyaboulton!
+- [#10466](https://github.com/gradio-app/gradio/pull/10466) [`8e2cf2f`](https://github.com/gradio-app/gradio/commit/8e2cf2f32c4ffe4540aed0dd8448089f0a19eedd) - Fix the wrapper function of micropip.install to throw the original error for better debug experience.  Thanks @whitphx!
+- [#10548](https://github.com/gradio-app/gradio/pull/10548) [`bcbb7b6`](https://github.com/gradio-app/gradio/commit/bcbb7b69f5bda624f9d5537c6557258e70afb3a7) - Fix DF Postprocess for tuples.  Thanks @freddyaboulton!
+- [#10546](https://github.com/gradio-app/gradio/pull/10546) [`27155cf`](https://github.com/gradio-app/gradio/commit/27155cfc0ca49b8d2727f3271ff413105b4da59e) - Native Plot respects the height parameters.  Thanks @freddyaboulton!
+- [#10534](https://github.com/gradio-app/gradio/pull/10534) [`855d870`](https://github.com/gradio-app/gradio/commit/855d87001a492afce1aff9c2eb3de765d8855828) - Footer alignment fix.  Thanks @aliabid94!
+- [#10535](https://github.com/gradio-app/gradio/pull/10535) [`d909868`](https://github.com/gradio-app/gradio/commit/d9098681f8883686a617c8f98b22c77057febed1) - Ensure `max_height` is applied in `gr.Dataframe`.  Thanks @hannahblair!
+- [#10547](https://github.com/gradio-app/gradio/pull/10547) [`083d68b`](https://github.com/gradio-app/gradio/commit/083d68b223be82a65f18c553df9ae690a8118a49) - quick_fix_client.  Thanks @aliabid94!
+- [#10521](https://github.com/gradio-app/gradio/pull/10521) [`79937fd`](https://github.com/gradio-app/gradio/commit/79937fd76021b31abdbc3f8f2c32ef123fd676aa) - Change word-break prop in dataframe headers.  Thanks @hannahblair!
+- [#10520](https://github.com/gradio-app/gradio/pull/10520) [`2a1fc2a`](https://github.com/gradio-app/gradio/commit/2a1fc2a92888f622579e4b2daf86be487c73004d) - Ensure links work as expected in dataframe.  Thanks @hannahblair!
+- [#10524](https://github.com/gradio-app/gradio/pull/10524) [`ccf590c`](https://github.com/gradio-app/gradio/commit/ccf590c6df0329eca653d94c2508b3bb19db8a29) - Expand tabs in row by default.  Thanks @aliabid94!
+- [#10531](https://github.com/gradio-app/gradio/pull/10531) [`a18ac9c`](https://github.com/gradio-app/gradio/commit/a18ac9c56a67dbc0a1d0fb464fa12f531998b170) - Fix bug where plots wouldn't load when initial value provided.  Thanks @freddyaboulton!
+
+## 5.15.0
+
+### Features
+
+- [#10345](https://github.com/gradio-app/gradio/pull/10345) [`39f0c23`](https://github.com/gradio-app/gradio/commit/39f0c233034449d0d0cdb77d0b34e4fca7b9cc8b) - Allow image uploads to gr.load_chat.  Thanks @aliabid94!
+- [#10456](https://github.com/gradio-app/gradio/pull/10456) [`8e40c15`](https://github.com/gradio-app/gradio/commit/8e40c15669ed1244d6f2288e55c2223279bd37a4) - Implement multiple cell selection.  Thanks @hannahblair!
+- [#10480](https://github.com/gradio-app/gradio/pull/10480) [`90f90b7`](https://github.com/gradio-app/gradio/commit/90f90b7989081b0e4422384ee699cb98781723d1) - Add sidebar to the docs.  Thanks @aliabd!
+- [#10495](https://github.com/gradio-app/gradio/pull/10495) [`35fda36`](https://github.com/gradio-app/gradio/commit/35fda36de9745757298cafb3d8b91cbc1a4358c9) - Add an `anchor_links` parameter to `gr.ParamViewer` that allows linking to specific parameters.  Thanks @abidlabs!
+- [#10433](https://github.com/gradio-app/gradio/pull/10433) [`2e8dc74`](https://github.com/gradio-app/gradio/commit/2e8dc74f751be02f7217f78d241806b42fcdca04) - Allow building multipage Gradio apps.  Thanks @aliabid94!
+- [#10496](https://github.com/gradio-app/gradio/pull/10496) [`a9bfbc3`](https://github.com/gradio-app/gradio/commit/a9bfbc389d325592e83fd85c5f255864dc34c8be) - Add support for inference `providers` in `gr.load()`.  Thanks @abidlabs!
+- [#10463](https://github.com/gradio-app/gradio/pull/10463) [`ed7a091`](https://github.com/gradio-app/gradio/commit/ed7a0919ab6b31184dc4d686b722dbeb013e9ce9) - Expand and collapse dataframe cells.  Thanks @hannahblair!
+- [#10478](https://github.com/gradio-app/gradio/pull/10478) [`afb96c6`](https://github.com/gradio-app/gradio/commit/afb96c64451e5a282bfee89445d831d1c87f9746) - Improve dataframe's upload accessibility.  Thanks @hannahblair!
+- [#10491](https://github.com/gradio-app/gradio/pull/10491) [`ff5f976`](https://github.com/gradio-app/gradio/commit/ff5f976bbb685fdd4f7c1faeda79e094f55a9f56) - Allow multiline headers in gr.Dataframe.  Thanks @hannahblair!
+- [#10494](https://github.com/gradio-app/gradio/pull/10494) [`10932a2`](https://github.com/gradio-app/gradio/commit/10932a291ac7f591bb1d56e4e353b51f10ecc6e3) - Ensure dataframe is not editable when `interactive` is False.  Thanks @hannahblair!
+- [#10485](https://github.com/gradio-app/gradio/pull/10485) [`6401d32`](https://github.com/gradio-app/gradio/commit/6401d32e79074f2e4c4beda6308c194eba4af6eb) - chore: update dropdown.py.  Thanks @eltociear!
+- [#10446](https://github.com/gradio-app/gradio/pull/10446) [`2cf449a`](https://github.com/gradio-app/gradio/commit/2cf449abb38815bb3414ac9bee1535f5f0f834ae) - Add more ImageEditor js tests.  Thanks @freddyaboulton!
+- [#10483](https://github.com/gradio-app/gradio/pull/10483) [`3750082`](https://github.com/gradio-app/gradio/commit/3750082b266464487cd5b7684ae1590ae03d3bef) - Sidebar Fixes.  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#10476](https://github.com/gradio-app/gradio/pull/10476) [`017ed46`](https://github.com/gradio-app/gradio/commit/017ed462720766f1d28205765aade6338f58da07) - Clean up `gr.DataFrame.postprocess()` and fix issue with getting headers of empty dataframes.  Thanks @abidlabs!
+
 ## 5.14.0
 
 ### Features

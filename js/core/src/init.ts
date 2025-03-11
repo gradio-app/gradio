@@ -131,7 +131,11 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		components.push(_rootNode);
 
 		dependencies.forEach((dep) => {
-			loading_status.register(dep.id, dep.inputs, dep.outputs);
+			loading_status.register(
+				dep.id,
+				dep.inputs,
+				dep.show_progress_on || dep.outputs
+			);
 			dep.frontend_fn = process_frontend_fn(
 				dep.js,
 				!!dep.backend_fn,
@@ -474,12 +478,12 @@ export const AsyncFunction: new (
  * @returns The function, or null if the source code is invalid or missing
  */
 export function process_frontend_fn(
-	source: string | null | undefined | false,
+	source: string | null | undefined | boolean,
 	backend_fn: boolean,
 	input_length: number,
 	output_length: number
 ): ((...args: unknown[]) => Promise<unknown[]>) | null {
-	if (!source) return null;
+	if (!source || source === true) return null;
 
 	const wrap = backend_fn ? input_length === 1 : output_length === 1;
 	try {

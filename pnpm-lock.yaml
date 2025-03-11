@@ -326,6 +326,9 @@ importers:
       '@gradio/simpletextbox':
         specifier: workspace:^
         version: link:js/simpletextbox
+      '@gradio/sketchbox':
+        specifier: workspace:^
+        version: link:js/sketchbox
       '@gradio/slider':
         specifier: workspace:^
         version: link:js/slider
@@ -497,7 +500,7 @@ importers:
         version: 0.5.0
       wrangler:
         specifier: ^3.73.0
-        version: 3.73.0(bufferutil@4.0.7)
+        version: 3.73.0(@cloudflare/workers-types@4.20250224.0)(bufferutil@4.0.7)
     devDependencies:
       '@sveltejs/adapter-auto':
         specifier: ^3.2.2
@@ -753,6 +756,9 @@ importers:
       '@gradio/client':
         specifier: workspace:^
         version: link:../../client/js
+      '@gradio/image':
+        specifier: workspace:^
+        version: link:../image
       '@gradio/upload':
         specifier: workspace:^
         version: link:../upload
@@ -1158,6 +1164,9 @@ importers:
       '@gradio/simpletextbox':
         specifier: workspace:^
         version: link:../simpletextbox
+      '@gradio/sketchbox':
+        specifier: workspace:^
+        version: link:../sketchbox
       '@gradio/slider':
         specifier: workspace:^
         version: link:../slider
@@ -1880,10 +1889,10 @@ importers:
         version: 5.23.0
       vega-embed:
         specifier: ^6.25.0
-        version: 6.25.0(vega-lite@5.12.0(vega@5.23.0))(vega@5.23.0)
+        version: 6.25.0(vega-lite@5.17.0(vega@5.23.0))(vega@5.23.0)
       vega-lite:
-        specifier: ^5.12.0
-        version: 5.12.0(vega@5.23.0)
+        specifier: ^5.17.0
+        version: 5.17.0(vega@5.23.0)
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1954,8 +1963,8 @@ importers:
         specifier: ^6.0.0
         version: 6.0.0(rollup@3.28.0)
       plotly.js-dist-min:
-        specifier: ^2.10.1
-        version: 2.10.1
+        specifier: ^3.0.0
+        version: 3.0.0
       svelte:
         specifier: ^4.0.0
         version: 4.2.15
@@ -2189,6 +2198,28 @@ importers:
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
+
+  js/sketchbox:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/column':
+        specifier: workspace:^
+        version: link:../column
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
@@ -2484,8 +2515,8 @@ importers:
         specifier: ^1.0.1
         version: 1.0.1
       pyodide:
-        specifier: 0.27.2
-        version: 0.27.2(bufferutil@4.0.7)
+        specifier: 0.27.3
+        version: 0.27.3(bufferutil@4.0.7)
       svelte:
         specifier: ^4.0.0
         version: 4.2.15
@@ -2723,6 +2754,9 @@ packages:
   '@cloudflare/workers-shared@0.4.1':
     resolution: {integrity: sha512-nYh4r8JwOOjYIdH2zub++CmIKlkYFlpxI1nBHimoiHcytJXD/b7ldJ21TtfzUZMCgI78mxVlymMHA/ReaOxKlA==}
     engines: {node: '>=16.7.0'}
+
+  '@cloudflare/workers-types@4.20250224.0':
+    resolution: {integrity: sha512-j6ZwQ5G2moQRaEtGI2u5TBQhVXv/XwOS5jfBAheZHcpCM07zm8j0i8jZHHLq/6VA8e6VRjKohOyj5j6tZ1KHLQ==}
 
   '@codemirror/autocomplete@6.3.0':
     resolution: {integrity: sha512-4jEvh3AjJZTDKazd10J6ZsCIqaYxDMCeua5ouQxY8hlFIml+nr7le0SgBhT3SIytFBmdzPK3AUhXGuW3T79nVg==}
@@ -5745,6 +5779,7 @@ packages:
   eslint@8.4.1:
     resolution: {integrity: sha512-TxU/p7LB1KxQ6+7aztTnO7K0i+h0tDi81YRY9VzB6Id71kNz+fFYnf5HD5UOQmxkzcoa0TlVZf9dpMtUv0GpWg==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   eslint@9.1.1:
@@ -7351,11 +7386,11 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  plotly.js-dist-min@2.10.1:
-    resolution: {integrity: sha512-H0ls1C2uu2U+qWw76djo4/zOGtUKfMILwFhu7tCOaG/wH5ypujrYGCH03N9SQVf1SXcctTfW57USf8LmagSiPQ==}
-
   plotly.js-dist-min@2.32.0:
     resolution: {integrity: sha512-UVznwUQVc7NeFih0tnIbvCpxct+Jxt6yxOGTYJF4vkKIUyujvyiTrH+XazglvcXdybFLERMu/IKt6Lhz3+BqMQ==}
+
+  plotly.js-dist-min@3.0.0:
+    resolution: {integrity: sha512-AlU1XkNRzwUI55A+kJYj0xJETp3h7aeFe4O1cmhzOryscYdw9jOywXZo+7Zy+y2kEKq12CnTzII4jV7Vgpy4xQ==}
 
   polished@4.3.1:
     resolution: {integrity: sha512-OBatVyC/N7SCW/FaDHrSd+vn0o5cS855TOmYi4OkdWUMSJCET/xip//ch8xGUvtr3i44X9LVyWwQlRMTN3pwSA==}
@@ -7583,8 +7618,8 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
 
-  pyodide@0.27.2:
-    resolution: {integrity: sha512-sfA2kiUuQVRpWI4BYnU3sX5PaTTt/xrcVEmRzRcId8DzZXGGtPgCBC0gCqjUTUYSa8ofPaSjXmzESc86yvvCHg==}
+  pyodide@0.27.3:
+    resolution: {integrity: sha512-6NwKEbPk0M3Wic2T1TCZijgZH9VE4RkHp1VGljS1sou0NjGdsmY2R/fG5oLmdDkjTRMI1iW7WYaY9pofX8gg1g==}
     engines: {node: '>=18.0.0'}
 
   qs@6.11.0:
@@ -8571,6 +8606,13 @@ packages:
     peerDependencies:
       vega: ^5.24.0
 
+  vega-lite@5.17.0:
+    resolution: {integrity: sha512-PPm1HRdDFDdl2fga3cHm3lHjJV/xcB+Cn77xe7Av1yRLY1GMbPaJS42s+e7XHGmbeDee+H/KK9lUdQK28xs7nA==}
+    engines: {node: '>=18'}
+    hasBin: true
+    peerDependencies:
+      vega: ^5.24.0
+
   vega-loader@4.5.1:
     resolution: {integrity: sha512-qy5x32SaT0YkEujQM2yKqvLGV9XWQ2aEDSugBFTdYzu/1u4bxdUSRDREOlrJ9Km3RWIOgFiCkobPmFxo47SKuA==}
 
@@ -9357,6 +9399,9 @@ snapshots:
     optional: true
 
   '@cloudflare/workers-shared@0.4.1': {}
+
+  '@cloudflare/workers-types@4.20250224.0':
+    optional: true
 
   '@codemirror/autocomplete@6.3.0(@codemirror/language@6.6.0)(@codemirror/state@6.1.2)(@codemirror/view@6.4.1)(@lezer/common@1.0.2)':
     dependencies:
@@ -14239,9 +14284,9 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.2
 
-  plotly.js-dist-min@2.10.1: {}
-
   plotly.js-dist-min@2.32.0: {}
+
+  plotly.js-dist-min@3.0.0: {}
 
   polished@4.3.1:
     dependencies:
@@ -14483,7 +14528,7 @@ snapshots:
 
   punycode@2.3.1: {}
 
-  pyodide@0.27.2(bufferutil@4.0.7):
+  pyodide@0.27.3(bufferutil@4.0.7):
     dependencies:
       ws: 8.18.0(bufferutil@4.0.7)
     transitivePeerDependencies:
@@ -15186,7 +15231,7 @@ snapshots:
   svelte@4.2.15:
     dependencies:
       '@ampproject/remapping': 2.3.0
-      '@jridgewell/sourcemap-codec': 1.4.15
+      '@jridgewell/sourcemap-codec': 1.5.0
       '@jridgewell/trace-mapping': 0.3.25
       '@types/estree': 1.0.5
       acorn: 8.11.3
@@ -15590,6 +15635,19 @@ snapshots:
       vega-themes: 2.14.0(vega-lite@5.12.0(vega@5.23.0))(vega@5.23.0)
       vega-tooltip: 0.34.0
 
+  vega-embed@6.25.0(vega-lite@5.17.0(vega@5.23.0))(vega@5.23.0):
+    dependencies:
+      fast-json-patch: 3.1.1
+      json-stringify-pretty-compact: 3.0.0
+      semver: 7.6.0
+      tslib: 2.6.2
+      vega: 5.23.0
+      vega-interpreter: 1.0.5
+      vega-lite: 5.17.0(vega@5.23.0)
+      vega-schema-url-parser: 2.2.0
+      vega-themes: 2.14.0(vega-lite@5.17.0(vega@5.23.0))(vega@5.23.0)
+      vega-tooltip: 0.34.0
+
   vega-encode@4.9.2:
     dependencies:
       d3-array: 3.2.4
@@ -15706,6 +15764,16 @@ snapshots:
       vega-util: 1.17.2
       yargs: 17.7.2
 
+  vega-lite@5.17.0(vega@5.23.0):
+    dependencies:
+      json-stringify-pretty-compact: 3.0.0
+      tslib: 2.6.2
+      vega: 5.23.0
+      vega-event-selector: 3.0.1
+      vega-expression: 5.1.0
+      vega-util: 1.17.2
+      yargs: 17.7.2
+
   vega-loader@4.5.1:
     dependencies:
       d3-dsv: 3.0.1
@@ -15783,6 +15851,11 @@ snapshots:
     dependencies:
       vega: 5.23.0
       vega-lite: 5.12.0(vega@5.23.0)
+
+  vega-themes@2.14.0(vega-lite@5.17.0(vega@5.23.0))(vega@5.23.0):
+    dependencies:
+      vega: 5.23.0
+      vega-lite: 5.17.0(vega@5.23.0)
 
   vega-time@2.1.1:
     dependencies:
@@ -16087,7 +16160,7 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20240821.1
       '@cloudflare/workerd-windows-64': 1.20240821.1
 
-  wrangler@3.73.0(bufferutil@4.0.7):
+  wrangler@3.73.0(@cloudflare/workers-types@4.20250224.0)(bufferutil@4.0.7):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.4
       '@cloudflare/workers-shared': 0.4.1
@@ -16108,6 +16181,7 @@ snapshots:
       workerd: 1.20240821.1
       xxhash-wasm: 1.0.2
     optionalDependencies:
+      '@cloudflare/workers-types': 4.20250224.0
       fsevents: 2.3.3
     transitivePeerDependencies:
       - bufferutil

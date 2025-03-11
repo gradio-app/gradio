@@ -216,7 +216,8 @@ class Chatbot(Component):
         render: bool = True,
         key: int | str | None = None,
         height: int | str | None = 400,
-        resizeable: bool = False,
+        resizable: bool = False,
+        resizeable: bool = False,  # Deprecated, TODO: Remove
         max_height: int | str | None = None,
         min_height: int | str | None = None,
         editable: Literal["user", "all"] | None = None,
@@ -237,6 +238,7 @@ class Chatbot(Component):
         show_copy_all_button=False,
         allow_file_downloads=True,
         group_consecutive_messages: bool = True,
+        allow_tags: list[str] | bool = False,
     ):
         """
         Parameters:
@@ -256,7 +258,7 @@ class Chatbot(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will scroll.
-            resizeable: If True, the component will be resizeable by the user.
+            resizable: If True, the user of the Gradio app can resize the chatbot by dragging the bottom right corner.
             max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will scroll. If messages are shorter than the height, the component will shrink to fit the content. Will not have any effect if `height` is set and is smaller than `max_height`.
             min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will expand to fit the content. Will not have any effect if `height` is set and is larger than `min_height`.
             editable: Allows user to edit messages in the chatbot. If set to "user", allows editing of user messages. If set to "all", allows editing of assistant messages as well.
@@ -277,17 +279,20 @@ class Chatbot(Component):
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
             allow_file_downloads: If True, will show a download button for chatbot messages that contain media. Defaults to True.
             group_consecutive_messages: If True, will display consecutive messages from the same role in the same bubble. If False, will display each message in a separate bubble. Defaults to True.
+            allow_tags: If a list of tags is provided, these tags will be preserved in the output chatbot messages, even if `sanitize_html` is `True`. For example, if this list is ["thinking"], the tags `<thinking>` and `</thinking>` will not be removed. If True, all custom tags (non-standard HTML tags) will be preserved. If False, no tags will be preserved (default behavior).
         """
         if type is None:
             warnings.warn(
                 "You have not specified a value for the `type` parameter. Defaulting to the 'tuples' format for chatbot messages, but this is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style dictionaries with 'role' and 'content' keys.",
                 UserWarning,
+                stacklevel=3,
             )
             type = "tuples"
         elif type == "tuples":
             warnings.warn(
                 "The 'tuples' format for chatbot messages is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style 'role' and 'content' keys.",
                 UserWarning,
+                stacklevel=3,
             )
         if type not in ["messages", "tuples"]:
             raise ValueError(
@@ -297,7 +302,14 @@ class Chatbot(Component):
         self._setup_data_model()
         self.autoscroll = autoscroll
         self.height = height
-        self.resizeable = resizeable
+        if resizeable is not False:
+            warnings.warn(
+                "The 'resizeable' parameter is deprecated and will be removed in a future version. Please use the 'resizable' (note the corrected spelling) parameter instead.",
+                DeprecationWarning,
+                stacklevel=3,
+            )
+            self.resizable = resizeable
+        self.resizable = resizable
         self.max_height = max_height
         self.min_height = min_height
         self.editable = editable
@@ -318,6 +330,7 @@ class Chatbot(Component):
             warnings.warn(
                 "The 'bubble_full_width' parameter is deprecated and will be removed in a future version. This parameter no longer has any effect.",
                 DeprecationWarning,
+                stacklevel=3,
             )
         self.bubble_full_width = None
         self.line_breaks = line_breaks
@@ -326,6 +339,7 @@ class Chatbot(Component):
         self.allow_file_downloads = allow_file_downloads
         self.feedback_options = feedback_options
         self.feedback_value = feedback_value
+        self.allow_tags = allow_tags if allow_tags else False
         super().__init__(
             label=label,
             every=every,

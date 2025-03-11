@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/downloadbutton",
-	"version": "0.3.4",
+	"version": "0.3.9",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
