@@ -69,7 +69,7 @@ class Textbox(FormComponent):
         """
         Parameters:
             value: text to show in textbox. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
-            type: The type of textbox. One of: 'text' (which allows users to enter any text), 'password' (which masks text entered by the user), 'email' (which allows users to enter an email address). For "password" and "email" types, `lines` must be 1 and `max_lines` must be None or 1, otherwise the textbox `type` will be "text".
+            type: The type of textbox. One of: 'text' (which allows users to enter any text), 'password' (which masks text entered by the user), 'email' (which suggests email input to the browser). For "password" and "email" types, `lines` must be 1 and `max_lines` must be None or 1.
             lines: minimum number of line rows to provide in textarea.
             max_lines: maximum number of line rows to provide in textarea. Must be at least `lines`. If not provided, the maximum number of lines is max(lines, 20) for "text" type, and 1 for "password" and "email" types.
             placeholder: placeholder hint to provide behind textarea.
@@ -97,11 +97,17 @@ class Textbox(FormComponent):
         """
         if type not in ["text", "password", "email"]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
-        if type in ["password", "email"] and lines != 1:
-            warnings.warn(
-                "The `lines` parameter must be 1 for `type` of 'password' or 'email'. Setting `lines` to 1."
-            )
-            lines = 1
+        if type in ["password", "email"]:
+            if lines != 1:
+                warnings.warn(
+                    "The `lines` parameter must be 1 for `type` of 'password' or 'email'. Setting `lines` to 1."
+                )
+                lines = 1
+            if max_lines not in [None, 1]:
+                warnings.warn(
+                    "The `max_lines` parameter must be None or 1 for `type` of 'password' or 'email'. Setting `max_lines` to 1."
+                )
+                max_lines = 1
 
         self.lines = lines
         self.max_lines = max_lines
