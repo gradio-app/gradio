@@ -110,7 +110,15 @@
 					{latex_delimiters}
 					{line_breaks}
 					edit={header_edit === i}
-					on:keydown={end_header_edit}
+					on:keydown={(event) => {
+						if (
+							event.detail.key === "Enter" ||
+							event.detail.key === "Escape" ||
+							event.detail.key === "Tab"
+						) {
+							end_header_edit(event);
+						}
+					}}
 					header
 					{root}
 					{editable}

@@ -585,3 +585,29 @@
 		editable: false
 	}}
 />
+
+<Story
+	name="Dataframe with sorting by multiple columns"
+	args={{
+		values: [
+			[1, 2, 3],
+			[4, 5, 6],
+			[7, 8, 9]
+		],
+		headers: ["A", "B", "C"],
+		col_count: [3, "dynamic"],
+		row_count: [3, "dynamic"],
+		editable: true,
+		sort_columns: [
+			{ col: 0, direction: "asc" },
+			{ col: 1, direction: "desc" }
+		],
+		sort_state: {
+			sort_columns: [
+				{ col: 0, direction: "asc" },
+				{ col: 1, direction: "desc" }
+			],
+			row_order: [0, 1, 2]
+		}
+	}}
+/>
