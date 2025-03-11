@@ -610,4 +610,13 @@
 			row_order: [0, 1, 2]
 		}
 	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const user = userEvent.setup();
+
+		const sort_buttons = canvas.getAllByLabelText("Sort ascending");
+		await user.click(sort_buttons[0]);
+		await user.click(sort_buttons[1]);
+		await user.click(sort_buttons[2]);
+	}}
 />
