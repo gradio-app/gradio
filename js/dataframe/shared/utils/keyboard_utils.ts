@@ -88,7 +88,7 @@ function handle_arrow_keys(
 	event.preventDefault();
 
 	const next_coords = ctx.move_cursor(
-		event.key as "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp",
+		event,
 		[i, j],
 		ctx.data
 	);
