@@ -38,8 +38,11 @@ export function sort_data(
 				if (
 					!row_a ||
 					!row_b ||
+					sort_by < 0 ||
 					sort_by >= row_a.length ||
-					sort_by >= row_b.length
+					sort_by >= row_b.length ||
+					!row_a[sort_by] ||
+					!row_b[sort_by]
 				) {
 					continue;
 				}
