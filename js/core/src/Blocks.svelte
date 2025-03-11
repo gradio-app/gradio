@@ -19,12 +19,14 @@
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import settings_logo from "./api_docs/img/settings-logo.svg";
+	import python from "./api_docs/img/python.svg";
 	import { create_components, AsyncFunction } from "./init";
 	import type {
 		LogMessage,
 		RenderMessage,
 		StatusMessage
 	} from "@gradio/client";
+	import ScreenRecorder from "./screenRecorder";
 
 	setupi18n();
 
@@ -771,6 +773,9 @@
 		return "detail" in event;
 	}
 
+	let screenRecorder: ScreenRecorder;
+
+	// Initialize the screen recorder in onMount
 	onMount(() => {
 		document.addEventListener("visibilitychange", function () {
 			if (document.visibilityState === "hidden") {
@@ -782,7 +787,17 @@
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 				navigator.userAgent
 			);
+			
+		// Initialize the screen recorder with a callback for messages
+		screenRecorder = new ScreenRecorder((title, message, type) => {
+			add_new_message(title, message, type);
+		});
 	});
+	
+	// Function to start/stop screen recording
+	function startScreenRecording(): void {
+		screenRecorder.startRecording();
+	}
 </script>
 
 <svelte:head>
@@ -843,6 +858,16 @@
 			>
 				{$_("common.settings")}
 				<img src={settings_logo} alt={$_("common.settings")} />
+			</button>
+			<div class="divider">·</div>
+			<button
+				on:click={() => {
+					startScreenRecording();
+				}}
+				class="record"
+			>
+				{$_("common.record")}
+				<img src={python} alt={$_("common.record")} />
 			</button>
 		</footer>
 	{/if}
@@ -948,7 +973,8 @@
 	}
 
 	.show-api,
-	.settings {
+	.settings,
+	.record {
 		display: flex;
 		align-items: center;
 	}
@@ -968,13 +994,20 @@
 		width: var(--size-4);
 	}
 
+	.record img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-1);
+		width: var(--size-3);
+	}
+
 	.built-with {
 		display: flex;
 		align-items: center;
 	}
 
 	.built-with:hover,
-	.settings:hover {
+	.settings:hover,
+	.record:hover {
 		color: var(--body-text-color);
 	}
 
