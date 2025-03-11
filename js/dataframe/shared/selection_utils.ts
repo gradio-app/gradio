@@ -149,6 +149,7 @@ export function move_cursor(
 	current_coords: CellCoordinate,
 	data: CellData[][]
 ): CellCoordinate | false {
+	console.log("event", event);
 	const key = event.key as "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp";
 	const dir = {
 		ArrowRight: [0, 1],
@@ -157,8 +158,17 @@ export function move_cursor(
 		ArrowUp: [-1, 0]
 	}[key];
 
-	const i = current_coords[0] + dir[0];
-	const j = current_coords[1] + dir[1];
+	let i, j;
+	i = current_coords[0] + dir[0];
+	j = current_coords[1] + dir[1];	
+
+	// if (event.metaKey || event.ctrlKey) {
+	// 	i = data.length - 1;
+	// 	j = data[0].length - 1;
+	// } else {
+	// 	i = current_coords[0] + dir[0];
+	// 	j = current_coords[1] + dir[1];	
+	// }
 
 	if (i < 0 && j <= 0) {
 		return false;
