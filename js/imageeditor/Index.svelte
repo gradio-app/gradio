@@ -18,7 +18,7 @@
 	export let value: EditorData | null = {
 		background: null,
 		layers: [],
-		composite: null,
+		composite: null
 	};
 	export let label: string;
 	export let show_label: boolean;
@@ -38,7 +38,7 @@
 	export let sources: ("clipboard" | "webcam" | "upload")[] = [
 		"upload",
 		"clipboard",
-		"webcam",
+		"webcam"
 	];
 	export let interactive: boolean;
 	export let placeholder: string | undefined;
@@ -215,7 +215,7 @@
 				(value = {
 					background: null,
 					layers: [],
-					composite: null,
+					composite: null
 				})}
 			on:error
 			{brush}

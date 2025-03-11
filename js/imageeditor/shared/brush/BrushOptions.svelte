@@ -31,12 +31,12 @@
 	function handle_color_selection(
 		{
 			index,
-			color,
+			color
 		}: {
 			index: number | null;
 			color: string | null;
 		},
-		type: "core" | "user",
+		type: "core" | "user"
 	): void {
 		if (type === "user" && !color) {
 			editing_index = index;
@@ -62,7 +62,7 @@
 
 	function debounce(
 		func: (...args: any[]) => void,
-		delay: number,
+		delay: number
 	): (...args: any[]) => void {
 		let timeout: NodeJS.Timeout;
 		return function (...args: any[]): void {
