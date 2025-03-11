@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Move textbox lines logic to frontend
+fix:Move `gr.Textbox` lines logic to frontend
