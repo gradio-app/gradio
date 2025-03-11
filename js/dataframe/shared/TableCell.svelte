@@ -109,6 +109,7 @@
 	class:menu-active={active_cell_menu &&
 		active_cell_menu.row === index &&
 		active_cell_menu.col === j}
+	class:dragging={is_dragging}
 >
 	<div class="cell-wrap">
 		<EditableCell
@@ -220,6 +221,10 @@
 
 	:global(tr:last-child) td:last-child {
 		border-bottom-right-radius: var(--table-radius);
+	}
+
+	.dragging {
+		cursor: crosshair;
 	}
 
 	/* Add back the cell selection border styles */

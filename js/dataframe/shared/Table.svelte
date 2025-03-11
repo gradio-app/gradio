@@ -654,14 +654,15 @@
 		mouse_down_pos = { x: event.clientX, y: event.clientY };
 		drag_start = [row, col];
 
-		clear_on_focus = false;
-		df_actions.set_active_cell_menu(null);
-		df_actions.set_active_header_menu(null);
-		df_actions.set_selected_header(false);
-		df_actions.set_header_edit(false);
-
-		df_actions.set_selected_cells([[row, col]]);
-		df_actions.set_selected([row, col]);
+		if (!event.shiftKey && !event.metaKey && !event.ctrlKey) {
+			clear_on_focus = false;
+			df_actions.set_active_cell_menu(null);
+			df_actions.set_active_header_menu(null);
+			df_actions.set_selected_header(false);
+			df_actions.set_header_edit(false);
+			df_actions.set_selected_cells([[row, col]]);
+			df_actions.set_selected([row, col]);
+		}
 	}
 
 	function handle_mouse_move(event: MouseEvent): void {
@@ -672,6 +673,12 @@
 
 		if (!is_dragging && (dx > 3 || dy > 3)) {
 			is_dragging = true;
+
+			clear_on_focus = false;
+			df_actions.set_active_cell_menu(null);
+			df_actions.set_active_header_menu(null);
+			df_actions.set_selected_header(false);
+			df_actions.set_header_edit(false);
 		}
 
 		if (!is_dragging) return;
@@ -691,7 +698,6 @@
 
 	function handle_mouse_up(event: MouseEvent): void {
 		if (!is_dragging && drag_start) {
-			// Handle as a normal click if we didn't drag
 			selection_ctx.actions.handle_cell_click(
 				event,
 				drag_start[0],
