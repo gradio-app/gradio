@@ -43,6 +43,7 @@
 	} from "./utils/table_utils";
 	import { make_headers, process_data } from "./utils/data_processing";
 	import { handle_keydown } from "./utils/keyboard_utils";
+	import { create_drag_handlers, type DragState } from "./utils/drag_utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -639,76 +640,31 @@
 	let drag_start: [number, number] | null = null;
 	let mouse_down_pos: { x: number; y: number } | null = null;
 
-	function handle_mouse_down(
-		event: MouseEvent,
-		row: number,
-		col: number
-	): void {
-		if (event.target instanceof HTMLAnchorElement) return;
+	const drag_state: DragState = {
+		is_dragging,
+		drag_start,
+		mouse_down_pos
+	};
 
-		event.preventDefault();
-		event.stopPropagation();
-
-		if (show_row_numbers && col === -1) return;
-
-		mouse_down_pos = { x: event.clientX, y: event.clientY };
-		drag_start = [row, col];
-
-		if (!event.shiftKey && !event.metaKey && !event.ctrlKey) {
-			clear_on_focus = false;
-			df_actions.set_active_cell_menu(null);
-			df_actions.set_active_header_menu(null);
-			df_actions.set_selected_header(false);
-			df_actions.set_header_edit(false);
-			df_actions.set_selected_cells([[row, col]]);
-			df_actions.set_selected([row, col]);
-		}
+	$: {
+		is_dragging = drag_state.is_dragging;
+		drag_start = drag_state.drag_start;
+		mouse_down_pos = drag_state.mouse_down_pos;
 	}
 
-	function handle_mouse_move(event: MouseEvent): void {
-		if (!drag_start || !mouse_down_pos) return;
+	const drag_handlers = create_drag_handlers(
+		drag_state,
+		(value) => (is_dragging = value),
+		(cells) => df_actions.set_selected_cells(cells),
+		(cell) => df_actions.set_selected(cell),
+		(event, row, col) =>
+			selection_ctx.actions.handle_cell_click(event, row, col),
+		show_row_numbers
+	);
 
-		const dx = Math.abs(event.clientX - mouse_down_pos.x);
-		const dy = Math.abs(event.clientY - mouse_down_pos.y);
-
-		if (!is_dragging && (dx > 3 || dy > 3)) {
-			is_dragging = true;
-
-			clear_on_focus = false;
-			df_actions.set_active_cell_menu(null);
-			df_actions.set_active_header_menu(null);
-			df_actions.set_selected_header(false);
-			df_actions.set_header_edit(false);
-		}
-
-		if (!is_dragging) return;
-
-		const cell = (event.target as HTMLElement).closest("td");
-		if (!cell) return;
-
-		const row = parseInt(cell.getAttribute("data-row") || "0");
-		const col = parseInt(cell.getAttribute("data-col") || "0");
-
-		if (isNaN(row) || isNaN(col)) return;
-
-		const selection_range = get_range_selection(drag_start, [row, col]);
-		df_actions.set_selected_cells(selection_range);
-		df_actions.set_selected([row, col]);
-	}
-
-	function handle_mouse_up(event: MouseEvent): void {
-		if (!is_dragging && drag_start) {
-			selection_ctx.actions.handle_cell_click(
-				event,
-				drag_start[0],
-				drag_start[1]
-			);
-		}
-
-		is_dragging = false;
-		drag_start = null;
-		mouse_down_pos = null;
-	}
+	const handle_mouse_down = drag_handlers.handle_mouse_down;
+	const handle_mouse_move = drag_handlers.handle_mouse_move;
+	const handle_mouse_up = drag_handlers.handle_mouse_up;
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />

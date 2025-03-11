@@ -177,7 +177,7 @@
 
 <style>
 	.dragging {
-		cursor: crosshair;
+		cursor: crosshair !important;
 	}
 
 	input {

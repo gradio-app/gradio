@@ -122,6 +122,16 @@
 			{is_static}
 			edit={editing && editing[0] === index && editing[1] === j}
 			{datatype}
+			on:blur={() => {
+				clear_on_focus = false;
+			}}
+			on:focus={() => {
+				const row = index;
+				const col = j;
+				if (!selected_cells.some(([r, c]) => r === row && c === col)) {
+					selected_cells = [[row, col]];
+				}
+			}}
 			{clear_on_focus}
 			{root}
 			{max_chars}
