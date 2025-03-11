@@ -33,7 +33,6 @@ export function sort_data(
 			const row_a = data[row_a_idx];
 			const row_b = data[row_b_idx];
 
-			// Compare each sort column in order until a difference is found
 			for (const { col: sort_by, direction } of sort_columns) {
 				if (
 					!row_a ||
@@ -51,14 +50,11 @@ export function sort_data(
 				const val_b = row_b[sort_by].value;
 				const comparison = val_a < val_b ? -1 : val_a > val_b ? 1 : 0;
 
-				// If values are different, return the comparison result
 				if (comparison !== 0) {
 					return direction === "asc" ? comparison : -comparison;
 				}
-				// If values are equal, continue to the next sort column
 			}
 
-			// If all sort columns have equal values, maintain original order
 			return 0;
 		});
 		return row_indices;

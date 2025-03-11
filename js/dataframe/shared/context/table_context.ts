@@ -230,14 +230,11 @@ export function create_actions(
 					const existing_item = sort_columns[existing_index];
 
 					if (existing_item.direction === direction) {
-						// Remove this column from sort if clicking the same direction again
 						sort_columns.splice(existing_index, 1);
 					} else {
-						// Update direction if clicking the opposite direction
 						sort_columns[existing_index] = { col, direction };
 					}
 				} else {
-					// Add new sort column (limit to 3 columns)
 					if (sort_columns.length >= 3) {
 						sort_columns.shift();
 					}
@@ -289,7 +286,6 @@ export function create_actions(
 						const row_a = data[a];
 						const row_b = data[b];
 
-						// Compare each sort column in order until a difference is found
 						for (const {
 							col: sort_index,
 							direction
@@ -308,14 +304,11 @@ export function create_actions(
 							const val_b = row_b[sort_index].value;
 							const comp = val_a < val_b ? -1 : val_a > val_b ? 1 : 0;
 
-							// If values are different, return the comparison result
 							if (comp !== 0) {
 								return direction === "asc" ? comp : -comp;
 							}
-							// If values are equal, continue to the next sort column
 						}
 
-						// If all sort columns have equal values, maintain original order
 						return 0;
 					});
 					current_sort_state.row_order = indices;
@@ -545,8 +538,6 @@ export function create_actions(
 				!dequal(current_data, previous_data) ||
 				!dequal(current_headers, previous_headers)
 			) {
-				// Only reset sort state if headers changed or if there are no active sorts
-				// This prevents resetting sort state when sorting is what caused the data change
 				if (
 					!dequal(current_headers, previous_headers) ||
 					current_state.sort_state.sort_columns.length === 0

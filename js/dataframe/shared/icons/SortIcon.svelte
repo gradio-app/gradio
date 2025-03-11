@@ -115,18 +115,17 @@
 	}
 
 	.priority {
-		position: absolute;
-		font-size: 9px;
-		left: 15px;
-		top: 2px;
-		background-color: var(--block-background-fill);
-		color: white;
-		border-radius: var(--radius-sm);
-		width: 12px;
-		height: 12px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		line-height: 1;
+		position: absolute;
+		font-size: var(--size-2);
+		left: 17px;
+		top: var(--spacing-xs);
+		background-color: var(--button-secondary-background-fill);
+		color: var(--body-text-color);
+		border-radius: var(--radius-sm);
+		width: var(--size-2-5);
+		height: var(--size-2-5);
 	}
 </style>

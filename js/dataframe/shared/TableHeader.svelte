@@ -171,7 +171,7 @@
 		min-height: var(--size-9);
 		position: relative;
 		height: 100%;
-		padding: var(--size-1);
+		padding: var(--size-2);
 		box-sizing: border-box;
 		margin: 0;
 		gap: var(--size-1);
