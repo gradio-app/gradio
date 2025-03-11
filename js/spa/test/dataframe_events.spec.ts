@@ -239,7 +239,7 @@ test("Dataframe shift+click selection works", async ({ page }) => {
 		navigator.clipboard.readText()
 	);
 
-	expect(clipboard_value).toBe("0,6\n0,6");
+	expect(clipboard_value).toBe("0,6\n0,0");
 });
 
 test("Dataframe cmd + click selection works", async ({ page }) => {
@@ -268,10 +268,32 @@ test("Dataframe cmd + click selection works", async ({ page }) => {
 		navigator.clipboard.readText()
 	);
 
-	expect(clipboard_value).toBe("6\n8");
+	expect(clipboard_value).toBe("6\n0");
 });
 
-test.only("Dataframe search functionality works correctly after data update", async ({
+test("Static columns cannot be edited", async ({ page }) => {
+	const static_df = page.locator("#dataframe");
+
+	const static_column_cell = get_cell(static_df, 0, 4);
+	await static_column_cell.click();
+	await page.waitForTimeout(100);
+
+	const is_disabled =
+		(await static_column_cell.locator("input").getAttribute("disabled")) !==
+		null;
+	expect(is_disabled).toBe(true);
+
+	const editable_cell = get_cell(static_df, 2, 3);
+	await editable_cell.click();
+	await page.waitForTimeout(100);
+
+	const is_not_disabled = await editable_cell
+		.locator("input")
+		.getAttribute("aria-disabled");
+	expect(is_not_disabled).toEqual("false");
+});
+
+test("Dataframe search functionality works correctly after data update", async ({
 	page
 }) => {
 	const df = page.locator("#non-interactive-dataframe");

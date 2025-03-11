@@ -37,8 +37,14 @@ export function get_range_selection(
 	const max_col = Math.max(start_col, end_col);
 
 	const cells: CellCoordinate[] = [];
+	// Add the start cell as the "anchor" cell so that when
+	// we press shift+arrow keys, the selection will always
+	// include the anchor cell.
+	cells.push(start);
+
 	for (let i = min_row; i <= max_row; i++) {
 		for (let j = min_col; j <= max_col; j++) {
+			if (i === start_row && j === start_col) continue;
 			cells.push([i, j]);
 		}
 	}
@@ -145,10 +151,11 @@ export function get_next_cell_coordinates(
 }
 
 export function move_cursor(
-	key: "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp",
+	event: KeyboardEvent,
 	current_coords: CellCoordinate,
 	data: CellData[][]
 ): CellCoordinate | false {
+	const key = event.key as "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp";
 	const dir = {
 		ArrowRight: [0, 1],
 		ArrowLeft: [0, -1],
@@ -156,8 +163,27 @@ export function move_cursor(
 		ArrowUp: [-1, 0]
 	}[key];
 
-	const i = current_coords[0] + dir[0];
-	const j = current_coords[1] + dir[1];
+	let i, j;
+	if (event.metaKey || event.ctrlKey) {
+		if (key === "ArrowRight") {
+			i = current_coords[0];
+			j = data[0].length - 1;
+		} else if (key === "ArrowLeft") {
+			i = current_coords[0];
+			j = 0;
+		} else if (key === "ArrowDown") {
+			i = data.length - 1;
+			j = current_coords[1];
+		} else if (key === "ArrowUp") {
+			i = 0;
+			j = current_coords[1];
+		} else {
+			return false;
+		}
+	} else {
+		i = current_coords[0] + dir[0];
+		j = current_coords[1] + dir[1];
+	}
 
 	if (i < 0 && j <= 0) {
 		return false;

@@ -50,6 +50,7 @@
 	export let max_chars: number | undefined;
 	export let root: string;
 	export let editable: boolean;
+	export let is_static = false;
 	export let i18n: I18nFormatter;
 	export let components: Record<string, any> = {};
 	export let el: {
@@ -117,6 +118,7 @@
 			{latex_delimiters}
 			{line_breaks}
 			{editable}
+			{is_static}
 			edit={editing && editing[0] === index && editing[1] === j}
 			{datatype}
 			{clear_on_focus}
