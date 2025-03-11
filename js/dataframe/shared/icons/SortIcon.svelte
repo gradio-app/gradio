@@ -53,7 +53,7 @@
 
 	.sort-icons :global(button) {
 		margin-bottom: var(--spacing-xs);
-		border: 1px solid var(--bg-color);
+		border: 1px solid var(--border-color-primary);
 		background: unset;
 	}
 
@@ -63,7 +63,7 @@
 		justify-content: center;
 		position: absolute;
 		font-size: var(--size-2);
-		left: 18px;
+		left: 19px;
 		z-index: var(--layer-3);
 		top: var(--spacing-xs);
 		background-color: var(--button-secondary-background-fill);
