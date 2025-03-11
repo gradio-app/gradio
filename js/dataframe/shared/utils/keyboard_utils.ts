@@ -87,11 +87,7 @@ function handle_arrow_keys(
 	if (ctx.editing) return false;
 	event.preventDefault();
 
-	const next_coords = ctx.move_cursor(
-		event,
-		[i, j],
-		ctx.data
-	);
+	const next_coords = ctx.move_cursor(event, [i, j], ctx.data);
 	if (next_coords) {
 		if (event.shiftKey) {
 			ctx.df_actions.set_selected_cells(

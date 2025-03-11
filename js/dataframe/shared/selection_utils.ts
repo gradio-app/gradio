@@ -172,7 +172,7 @@ export function move_cursor(
 			i = current_coords[0];
 			j = 0;
 		} else if (key === "ArrowDown") {
-				i = data.length - 1;
+			i = data.length - 1;
 			j = current_coords[1];
 		} else if (key === "ArrowUp") {
 			i = 0;
@@ -182,7 +182,7 @@ export function move_cursor(
 		}
 	} else {
 		i = current_coords[0] + dir[0];
-		j = current_coords[1] + dir[1];	
+		j = current_coords[1] + dir[1];
 	}
 
 	if (i < 0 && j <= 0) {
