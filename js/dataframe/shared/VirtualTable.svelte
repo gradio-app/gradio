@@ -402,6 +402,7 @@
 		overflow: hidden !important;
 	}
 
+	/* Hide scrollbars for Windows as they are not pretty: https://github.com/gradio-app/gradio/issues/10752 */
 	.table.windows::-webkit-scrollbar {
 		display: none !important;
 		width: 0 !important;
