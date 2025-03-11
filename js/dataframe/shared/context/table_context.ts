@@ -538,10 +538,7 @@ export function create_actions(
 				!dequal(current_data, previous_data) ||
 				!dequal(current_headers, previous_headers)
 			) {
-				if (
-					!dequal(current_headers, previous_headers) ||
-					current_state.sort_state.sort_columns.length === 0
-				) {
+				if (!dequal(current_headers, previous_headers)) {
 					reset_sort_state();
 				}
 

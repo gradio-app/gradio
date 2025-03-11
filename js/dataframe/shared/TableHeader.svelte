@@ -39,8 +39,7 @@
 
 	$: can_add_columns = col_count && col_count[1] === "dynamic";
 	$: sort_index = sort_columns.findIndex((item) => item.col === i);
-	$: sort_priority =
-		sort_index !== -1 ? sort_columns.length - sort_index : null;
+	$: sort_priority = sort_index !== -1 ? sort_index + 1 : null;
 	$: current_direction =
 		sort_index !== -1 ? sort_columns[sort_index].direction : null;
 

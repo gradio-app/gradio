@@ -179,7 +179,9 @@
 			display_value
 		);
 		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
-		df_actions.reset_sort_state();
+		if ($df_state.sort_state.sort_columns.length > 0) {
+			sort_data(data, display_value, styling);
+		}
 
 		if ($df_state.current_search_query) {
 			df_actions.handle_search(null);

@@ -15,12 +15,7 @@
 
 <div class="sort-icons" role="group" aria-label={i18n("dataframe.sort_column")}>
 	{#if sorted_columns_length > 1}
-		{#if direction === "asc" && priority !== null}
-			<span aria-label={`Sort priority: ${priority}`} class="priority"
-				>{priority}</span
-			>
-		{/if}
-		{#if direction === "desc" && priority !== null}
+		{#if (direction === "asc" || direction === "desc") && priority !== null}
 			<span aria-label={`Sort priority: ${priority}`} class="priority"
 				>{priority}</span
 			>
