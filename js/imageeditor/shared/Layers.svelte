@@ -244,6 +244,10 @@
 		align-items: center;
 		margin: var(--spacing-sm) 0 0 0;
 	}
+
+	.add-layer :global(button) {
+		width: 100%;
+	}
 	.icon {
 		width: 16px;
 		color: var(--body-text-color);
@@ -257,9 +261,9 @@
 		justify-content: center;
 		align-items: center;
 		border: 1px solid var(--border-color-primary);
-		z-index: var(--layer-top);
+		z-index: var(--layer-1);
 		border-top-left-radius: var(--radius-lg);
-		padding: var(--spacing-sm) var(--spacing-md);
+
 		width: auto;
 		bottom: 0;
 		right: 0;
@@ -276,7 +280,7 @@
 		font-size: var(--text-sm);
 		line-height: var(--line-sm);
 		transition: all 0.15s ease;
-		padding: var(--spacing-xs) var(--spacing-md);
+		padding: var(--spacing-md);
 		border-radius: var(--radius-sm);
 	}
 

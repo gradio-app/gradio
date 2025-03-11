@@ -318,7 +318,7 @@
 		left: 0;
 		right: 0;
 		margin: auto;
-		z-index: var(--layer-top);
+		z-index: var(--layer-1);
 		text-align: center;
 		color: var(--color-grey-500) !important;
 	}

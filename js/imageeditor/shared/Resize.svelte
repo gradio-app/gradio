@@ -24,7 +24,7 @@
 		{ label: "Middle Right", code: "middle-right" },
 		{ label: "Bottom Left", code: "bottom-left" },
 		{ label: "Bottom Center", code: "bottom-center" },
-		{ label: "Bottom Right", code: "bottom-right" },
+		{ label: "Bottom Right", code: "bottom-right" }
 	] as const;
 
 	export let dimensions: Spring<{ width: number; height: number }>;
@@ -46,7 +46,7 @@
 			anchor: selected_anchor,
 			scale,
 			width: new_width,
-			height: new_height,
+			height: new_height
 		});
 	}
 </script>
@@ -80,7 +80,7 @@
 		{/each}
 	</div>
 
-	<button on:click={() => handle_click()}>Apply</button>
+	<button class="apply-button" on:click={() => handle_click()}>Apply</button>
 </div>
 
 <style>
@@ -90,17 +90,15 @@
 		width: 230px;
 		position: absolute;
 		top: calc(100% + var(--spacing-xxs) + 2px);
-		left: -45px;
+		right: 0;
 		background: var(--block-background-fill);
-		border: 1px solid var(--color-gray-200);
+		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm);
-		padding: var(--spacing-xxs);
+		padding: var(--spacing-sm);
 		box-shadow: var(--shadow-drop);
 		font-size: 12px;
 		z-index: var(--layer-2);
-		width: max-content;
 		color: var(--block-label-text-color);
-		border: 1px solid var(--block-border-color);
 		border-top-left-radius: 0;
 		border-top-right-radius: 0;
 		height: auto !important;
@@ -127,23 +125,38 @@
 	}
 
 	input[type="number"] {
-		border: 1px solid #ccc;
+		border: 1px solid var(--border-color-primary);
 		width: 100px;
-		border-radius: 3px;
-		padding: 3px 5px;
+		border-radius: var(--radius-sm);
+		background-color: var(--checkbox-background-color-focus);
+		color: var(--body-text-color);
+		font-size: var(--text-sm);
+		transition: border-color 0.15s ease;
+		padding: var(--spacing-sm);
+	}
+
+	input[type="number"]:hover {
+		border-color: var(--color-accent-soft);
+	}
+
+	input[type="number"]:focus {
+		border-color: var(--color-accent);
+		outline: none;
+		box-shadow: 0 0 0 1px var(--color-accent-soft);
 	}
 
 	.anchor-wrap {
 		margin: auto;
 		display: grid;
-		width: 185px;
-		height: 170px;
+		width: 120px;
+		height: 120px;
 		grid-template-rows: repeat(3, 1fr);
 		grid-template-columns: repeat(3, 1fr);
 		border-radius: 5px;
-		border: 1px solid #ccc;
+		border: 1px solid var(--border-color-primary);
 		overflow: hidden;
-		margin: 20px;
+		margin: var(--spacing-sm) auto;
+		margin-bottom: 10px;
 	}
 
 	.anchor-button {
@@ -151,7 +164,7 @@
 		background: none;
 		font-size: 1px;
 		color: transparent;
-		border-color: #ccc;
+		border-color: var(--border-color-primary);
 		border-style: solid;
 		border-width: 0;
 		cursor: pointer;
@@ -173,11 +186,11 @@
 	}
 
 	.anchor-button:hover {
-		background: #eee;
+		background: var(--background-fill-secondary);
 	}
 
 	.anchor-button.selected {
-		background: #333;
+		background: var(--color-accent);
 	}
 
 	/* label > * + * {
@@ -192,6 +205,7 @@
 		border-radius: var(--checkbox-border-radius);
 		background-color: var(--checkbox-background-color);
 		line-height: var(--line-sm);
+		align-self: center;
 	}
 
 	input:checked,
@@ -220,5 +234,22 @@
 
 	input:hover {
 		cursor: pointer;
+	}
+
+	.apply-button {
+		width: 100%;
+		margin-top: var(--spacing-md);
+		padding: var(--spacing-sm) var(--spacing-md);
+		background: var(--color-accent);
+		color: white;
+		border: none;
+		border-radius: var(--radius-sm);
+		font-size: var(--text-sm);
+		font-weight: var(--weight-semibold);
+		transition: all 0.15s ease;
+	}
+
+	.apply-button:hover {
+		background: var(--color-accent-soft);
 	}
 </style>
