@@ -214,7 +214,7 @@
 	}
 
 	.multiline {
-		white-space: nowrap;
+		white-space: pre-line;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
