@@ -37,7 +37,7 @@ export type KeyboardContext = {
 		end: CellCoordinate
 	) => CellCoordinate[];
 	move_cursor: (
-		key: "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp",
+		event: KeyboardEvent,
 		current_coords: CellCoordinate,
 		data: CellData[][]
 	) => false | CellCoordinate;
