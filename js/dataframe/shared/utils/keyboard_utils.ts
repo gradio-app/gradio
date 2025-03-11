@@ -134,7 +134,11 @@ async function handle_enter_key(
 			const cell_id = ctx.data[i][j].id;
 			const input_el = ctx.els[cell_id].input;
 			if (input_el) {
+				const old_value = ctx.data[i][j].value;
 				ctx.data[i][j].value = input_el.value;
+				if (old_value !== input_el.value) {
+					ctx.dispatch("input");
+				}
 			}
 			ctx.df_actions.set_editing(false);
 			await tick();
