@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:Hide dataframe scrollbars on windows when not needed
+feat:Hide `gr.Dataframe` scrollbars on Windows OS when not needed
