@@ -262,9 +262,8 @@
 		const cell_400 = canvas.getAllByRole("cell")[5];
 		await userEvent.click(cell_400);
 
-		const open_dialog_btn = await within(cell_400).findByRole("button", {
-			name: "⋮"
-		});
+		const open_dialog_btn =
+			await within(cell_400).findByLabelText("Open cell menu");
 		await userEvent.click(open_dialog_btn);
 
 		const add_row_btn = canvas.getByText("Add row above");
