@@ -171,6 +171,12 @@
 	}[][] = [[]];
 
 	$: if (!dequal(values, old_val)) {
+		if (parent) {
+			for (let i = 0; i < 50; i++) {
+				parent.style.removeProperty(`--cell-width-${i}`);
+			}
+		}
+
 		data = process_data(
 			values as (string | number)[][],
 			els,
@@ -184,6 +190,12 @@
 		if ($df_state.current_search_query) {
 			df_actions.handle_search(null);
 		}
+
+		setTimeout(() => {
+			if (parent && cells.length > 0) {
+				set_cell_widths();
+			}
+		}, 0);
 	}
 
 	$: if ($df_state.current_search_query !== undefined) {
@@ -337,12 +349,17 @@
 		if (show_row_numbers) {
 			parent.style.setProperty(`--cell-width-row-number`, `${widths[0]}px`);
 		}
+
+		for (let i = 0; i < 50; i++) {
+			if (!column_widths[i]) {
+				parent.style.removeProperty(`--cell-width-${i}`);
+			}
+		}
+
 		widths.forEach((width, i) => {
 			if (!column_widths[i]) {
-				parent.style.setProperty(
-					`--cell-width-${i}`,
-					`${width - scrollbar_width / widths.length}px`
-				);
+				const calculated_width = `${Math.max(width, 45)}px`;
+				parent.style.setProperty(`--cell-width-${i}`, calculated_width);
 			}
 		});
 	}
