@@ -1,5 +1,6 @@
 import { getContext, setContext } from "svelte";
-import { writable, type Writable, get } from "svelte/store";
+import { writable, get } from "svelte/store";
+import type { Writable } from "svelte/store";
 import { sort_table_data } from "../utils/table_utils";
 import { dequal } from "dequal/lite";
 import type { DataframeValue } from "../utils";
