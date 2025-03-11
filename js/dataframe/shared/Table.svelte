@@ -1022,4 +1022,34 @@
 		border-bottom: 1px solid var(--border-color-primary);
 		text-align: left;
 	}
+
+	/* Hide scrollbars when not needed */
+	.table-wrap :global(.virtual-table-container) {
+		scrollbar-gutter: stable;
+		overflow: auto;
+	}
+	
+	/* Hide scrollbars when content doesn't overflow */
+	.table-wrap :global(.virtual-table-container:not(:hover)::-webkit-scrollbar) {
+		width: 0;
+		height: 0;
+	}
+	
+	.table-wrap :global(.virtual-table-container:not(:hover)) {
+		scrollbar-width: none; /* Firefox */
+	}
+	
+	/* Only show scrollbars when actually needed */
+	.table-wrap :global(.virtual-table-container:hover::-webkit-scrollbar) {
+		width: auto;
+		height: auto;
+	}
+	
+	.table-wrap :global(.virtual-table-container:hover::-webkit-scrollbar:vertical) {
+		display: var(--show-vertical-scrollbar, none);
+	}
+	
+	.table-wrap :global(.virtual-table-container:hover::-webkit-scrollbar:horizontal) {
+		display: var(--show-horizontal-scrollbar, none);
+	}
 </style>
