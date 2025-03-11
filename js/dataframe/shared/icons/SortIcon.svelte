@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import type { I18nFormatter } from "@gradio/utils";
-
+	import SortButtonUp from "./SortButtonUp.svelte";
+	import SortButtonDown from "./SortButtonDown.svelte";
+	import { IconButton } from "@gradio/atoms";
 	type SortDirection = "asc" | "desc";
 	export let direction: SortDirection | null = null;
 	export let priority: number | null = null;
@@ -24,58 +26,26 @@
 			>
 		{/if}
 	{/if}
-	<button
-		class="sort-button up"
-		class:active={direction === "asc"}
+	<IconButton
+		size="x-small"
+		label={i18n("dataframe.sort_ascending")}
+		Icon={SortButtonUp}
+		highlight={direction === "asc"}
 		on:click={(event) => {
 			event.stopPropagation();
 			dispatch("sort", "asc");
 		}}
-		aria-label={i18n("dataframe.sort_ascending")}
-		aria-pressed={direction === "asc"}
-	>
-		<svg
-			viewBox="0 0 24 24"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-			aria-hidden="true"
-			focusable="false"
-		>
-			<path
-				d="M7 14l5-5 5 5"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-			/>
-		</svg>
-	</button>
-	<button
-		class="sort-button down"
-		class:active={direction === "desc"}
+	></IconButton>
+	<IconButton
+		size="x-small"
+		label={i18n("dataframe.sort_descending")}
+		Icon={SortButtonDown}
+		highlight={direction === "desc"}
 		on:click={(event) => {
 			event.stopPropagation();
 			dispatch("sort", "desc");
 		}}
-		aria-label={i18n("dataframe.sort_descending")}
-		aria-pressed={direction === "desc"}
-	>
-		<svg
-			viewBox="0 0 24 24"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-			aria-hidden="true"
-			focusable="false"
-		>
-			<path
-				d="M7 10l5 5 5-5"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-			/>
-		</svg>
-	</button>
+	></IconButton>
 </div>
 
 <style>
@@ -86,32 +56,10 @@
 		margin-right: var(--spacing-sm);
 	}
 
-	.sort-button {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 0;
-		background: none;
-		border: none;
-		cursor: pointer;
-		opacity: 0.5;
-		transition: opacity 150ms;
-		position: relative;
-	}
-
-	.sort-button:hover {
-		opacity: 0.8;
-	}
-
-	.sort-button.active {
-		opacity: 1;
-		color: var(--color-accent);
-	}
-
-	svg {
-		width: var(--size-3);
-		height: var(--size-3);
-		display: block;
+	.sort-icons :global(button) {
+		margin-bottom: var(--spacing-xs);
+		border: 1px solid var(--bg-color);
+		background: unset;
 	}
 
 	.priority {
@@ -120,7 +68,8 @@
 		justify-content: center;
 		position: absolute;
 		font-size: var(--size-2);
-		left: 17px;
+		left: 18px;
+		z-index: var(--layer-3);
 		top: var(--spacing-xs);
 		background-color: var(--button-secondary-background-fill);
 		color: var(--body-text-color);
