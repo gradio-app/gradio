@@ -1,8 +1,9 @@
 ---
+"@gradio/atoms": minor
 "@gradio/icons": minor
 "@gradio/imageeditor": minor
 "@gradio/upload": minor
 "gradio": minor
 ---
 
-feat:thanks o3
+feat:Refactor and redesign `ImageEditor` component
