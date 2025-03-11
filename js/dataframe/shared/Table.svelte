@@ -670,7 +670,7 @@
 		role="grid"
 		tabindex="0"
 	>
-		<table bind:this={table} class:fixed-layout={column_widths.length != 0}>
+		<table bind:this={table}>
 			{#if label && label.length !== 0}
 				<caption class="sr-only">{label}</caption>
 			{/if}
@@ -932,10 +932,6 @@
 		font-family: var(--font-mono);
 		border-spacing: 0;
 		border-collapse: separate;
-	}
-
-	table.fixed-layout {
-		table-layout: fixed;
 	}
 
 	thead {

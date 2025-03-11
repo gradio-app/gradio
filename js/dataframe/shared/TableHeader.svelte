@@ -74,6 +74,7 @@
 		event.preventDefault();
 		event.stopPropagation();
 	}}
+	title={value}
 >
 	<div class="cell-wrap">
 		<div class="header-content">
@@ -93,6 +94,7 @@
 					event.preventDefault();
 					event.stopPropagation();
 				}}
+				title={value}
 			>
 				<EditableCell
 					{max_chars}
@@ -187,6 +189,8 @@
 	.header-button {
 		text-align: left;
 		width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.sort-buttons {
