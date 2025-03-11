@@ -711,7 +711,6 @@
 							{headers}
 							{get_cell_width}
 							{handle_header_click}
-							{handle_sort}
 							{toggle_header_menu}
 							{end_header_edit}
 							sort_columns={$df_state.sort_state.sort_columns}

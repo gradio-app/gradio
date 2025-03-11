@@ -614,9 +614,41 @@
 		const canvas = within(canvasElement);
 		const user = userEvent.setup();
 
-		const sort_buttons = canvas.getAllByLabelText("Sort ascending");
-		await user.click(sort_buttons[0]);
-		await user.click(sort_buttons[1]);
-		await user.click(sort_buttons[2]);
+		const header_1 = canvas.getAllByText("A")[1];
+		await userEvent.click(header_1);
+
+		const cell_menu_button = canvas.getAllByLabelText("Open cell menu")[0];
+		await userEvent.click(cell_menu_button);
+
+		const sort_ascending_button = canvas.getByRole("button", {
+			name: "Sort ascending"
+		});
+		await userEvent.click(sort_ascending_button);
+
+		const header_2 = canvas.getAllByText("B")[1];
+		await userEvent.click(header_2);
+
+		const cell_menu_button_2 = canvas.getAllByLabelText("Open cell menu")[1];
+		await userEvent.click(cell_menu_button_2);
+
+		const sort_descending_button = canvas.getByRole("button", {
+			name: "Sort descending"
+		});
+		await userEvent.click(sort_descending_button);
+
+		const header_3 = canvas.getAllByText("C")[1];
+		await userEvent.click(header_3);
+
+		const cell_menu_button_3 = canvas.getAllByLabelText("Open cell menu")[2];
+		await userEvent.click(cell_menu_button_3);
+
+		const sort_ascending_button_3 = canvas.getByRole("button", {
+			name: "Sort ascending"
+		});
+		await userEvent.click(sort_ascending_button_3);
+
+		await userEvent.click(header_3);
+		await userEvent.click(cell_menu_button_3);
+		await userEvent.click(canvas.getByText("Clear sort"));
 	}}
 />

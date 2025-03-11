@@ -170,6 +170,10 @@
 		z-index: 4;
 	}
 
+	th.focus :global(.cell-menu-button) {
+		display: flex;
+	}
+
 	th:hover :global(.cell-menu-button) {
 		display: flex;
 	}
