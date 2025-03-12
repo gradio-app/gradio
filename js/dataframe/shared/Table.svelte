@@ -191,11 +191,9 @@
 			df_actions.handle_search(null);
 		}
 
-		setTimeout(() => {
-			if (parent && cells.length > 0) {
-				set_cell_widths();
-			}
-		}, 0);
+		if (parent && cells.length > 0) {
+			set_cell_widths();
+		}
 	}
 
 	$: if ($df_state.current_search_query !== undefined) {
