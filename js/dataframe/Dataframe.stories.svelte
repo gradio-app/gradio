@@ -586,6 +586,81 @@
 />
 
 <Story
+	name="Dataframe with drag selection"
+	args={{
+		values: [
+			[1, 2, 3, 4, 5],
+			[6, 7, 8, 9, 10],
+			[11, 12, 13, 14, 15],
+			[16, 17, 18, 19, 20],
+			[21, 22, 23, 24, 25]
+		],
+		headers: ["A", "B", "C", "D", "E"],
+		label: "Drag Selection Demo",
+		col_count: [5, "dynamic"],
+		row_count: [5, "dynamic"],
+		editable: true
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const user = userEvent.setup();
+
+		await new Promise((resolve) => setTimeout(resolve, 300));
+
+		const table = canvas.getByRole("grid");
+		const cells = canvas.getAllByRole("cell");
+		const startCell = cells[6];
+		const startRect = startCell.getBoundingClientRect();
+		const startX = startRect.left + startRect.width / 2;
+		const startY = startRect.top + startRect.height / 2;
+
+		const endCell = cells[18];
+		const endRect = endCell.getBoundingClientRect();
+		const endX = endRect.left + endRect.width / 2;
+		const endY = endRect.top + endRect.height / 2;
+
+		await user.pointer({
+			keys: "[MouseLeft>]",
+			target: startCell,
+			coords: { clientX: startX, clientY: startY }
+		});
+
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		const midX1 = startX + (endX - startX) / 3;
+		const midY1 = startY + (endY - startY) / 3;
+		await user.pointer({
+			target: table,
+			coords: { clientX: midX1, clientY: midY1 }
+		});
+
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		const midX2 = startX + ((endX - startX) * 2) / 3;
+		const midY2 = startY + ((endY - startY) * 2) / 3;
+		await user.pointer({
+			target: table,
+			coords: { clientX: midX2, clientY: midY2 }
+		});
+
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		await user.pointer({
+			target: endCell,
+			coords: { clientX: endX, clientY: endY }
+		});
+
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		await user.pointer({
+			keys: "[/MouseLeft]"
+		});
+
+		await new Promise((resolve) => setTimeout(resolve, 500));
+	}}
+/>
+
+<Story
 	name="Dataframe with sorting by multiple columns"
 	args={{
 		values: [
