@@ -321,7 +321,36 @@
 		width: 100%;
 		scroll-snap-type: x proximity;
 		border-collapse: separate;
+		
+		/* Add scrollbar styling */
+		scrollbar-width: thin; /* For Firefox */
+		scrollbar-color: transparent transparent; /* For Firefox */
 	}
+	
+	/* Add scrollbar styling for WebKit browsers (Chrome, Safari, Edge) */
+	table::-webkit-scrollbar {
+		width: 8px;
+		height: 8px;
+	}
+	
+	table::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	
+	table::-webkit-scrollbar-thumb {
+		background-color: transparent;
+		border-radius: 4px;
+	}
+	
+	/* Show scrollbars on hover */
+	table:hover {
+		scrollbar-color: rgba(0, 0, 0, 0.2) transparent; /* For Firefox */
+	}
+	
+	table:hover::-webkit-scrollbar-thumb {
+		background-color: rgba(0, 0, 0, 0.2);
+	}
+	
 	table :is(thead, tfoot, tbody) {
 		display: table;
 		table-layout: fixed;
