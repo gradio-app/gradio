@@ -133,7 +133,6 @@
 	let copy_flash = false;
 
 	let color_accent_copied: string;
-
 	onMount(() => {
 		const color = getComputedStyle(document.documentElement)
 			.getPropertyValue("--color-accent")
