@@ -10,7 +10,11 @@ import {
 	SCALE_MODES,
 	type ALPHA_MODES
 } from "pixi.js";
+
+import { DropShadowFilter as BlurFilter } from "pixi-filters/drop-shadow";
+
 import { ImageTool } from "../image/image";
+
 import { ZoomTool } from "../zoom/zoom";
 import type { Subtool, Tool as ToolbarTool } from "../Toolbar.svelte";
 import type { Readable, Writable } from "svelte/store";
@@ -850,20 +854,23 @@ export class ImageEditor {
 			this.outline_graphics.clear();
 			this.outline_graphics
 				.rect(local_x, local_y, effective_width, effective_height)
-				.stroke({
-					color: 0x000000,
-					width: 1,
-					alignment: 1,
-					alpha: 0.3,
-					join: "miter"
+				.fill({
+					color: 0xffffff,
+					alpha: 1
 				});
+			// .stroke({
+			// 	color: 0x000000,
+			// 	width: 1,
+			// 	alignment: 1,
+			// 	alpha: 0.3,
+			// 	join: "miter"
+			// });
 		});
 
 		this.ready_resolve();
 	}
 
 	private async setup_containers(): Promise<void> {
-		// Create main container with transparency support
 		this.image_container = new Container({
 			eventMode: "static",
 			sortableChildren: true
@@ -872,15 +879,12 @@ export class ImageEditor {
 		this.image_container.width = this.width;
 		this.image_container.height = this.height;
 
-		// Configure stage for transparency
 		this.app.stage.sortableChildren = true;
 		this.app.stage.alpha = 1;
 		this.app.stage.addChild(this.image_container);
 
-		// Set initial scale
 		this.image_container.scale.set(1);
 
-		// Create UI container with transparency
 		this.ui_container = new Container({
 			eventMode: "static"
 		});
@@ -888,24 +892,36 @@ export class ImageEditor {
 		this.ui_container.width = this.width;
 		this.ui_container.height = this.height;
 
-		// Create outline container with transparency
 		this.outline_container = new Container();
+		this.outline_container.zIndex = -10;
+
 		this.outline_graphics = new Graphics();
 
-		// Draw outline with transparency
-		this.outline_graphics.lineStyle(1, 0x000000, 0.3);
-		this.outline_graphics.drawRect(0, 0, this.width, this.height);
+		this.outline_graphics.rect(0, 0, this.width, this.height).fill({
+			color: 0xffffff,
+			alpha: 0
+		});
+
+		const blurFilter = new BlurFilter({
+			alpha: 0.1,
+			blur: 2,
+			color: 0x000000,
+			offset: { x: 0, y: 0 },
+			quality: 4,
+			shadowOnly: false
+		});
+
+		this.outline_graphics.filters = [blurFilter];
+
 		this.outline_container.addChild(this.outline_graphics);
 		this.app.stage.addChild(this.outline_container);
 
-		// Center all containers
 		const app_center_x = this.app.screen.width / 2;
 		const app_center_y = this.app.screen.height / 2;
 
 		this.image_container.position.set(app_center_x, app_center_y);
 		this.outline_container.position.set(app_center_x, app_center_y);
 
-		// Initialize LayerManager
 		this.layer_manager = new LayerManager(
 			this.image_container,
 			this.app,
@@ -924,8 +940,6 @@ export class ImageEditor {
 		if (this.app.renderer) {
 			this.app.renderer.resize(width, height);
 		}
-		// `	this.ui_container.width = width;
-		// 	this.ui_container.height = height;`
 
 		// Instead, update the container position to stay centered
 		const app_center_x = width / 2;

@@ -21,6 +21,7 @@ export class BrushCursor {
 	private is_preview_visible = false;
 	private is_cursor_over_image = false;
 	private cursor_position_check_timeout: number | null = null;
+	private is_brush_or_erase_active = false;
 
 	// Event handlers
 	private _bound_update_cursor:
@@ -217,11 +218,20 @@ export class BrushCursor {
 	}
 
 	/**
+	 * Updates whether brush or erase tool is active
+	 */
+	set_active(is_active: boolean): void {
+		this.is_brush_or_erase_active = is_active;
+		this.update_cursor_and_preview_visibility();
+	}
+
+	/**
 	 * updates the visibility of the cursor.
 	 */
 	update_cursor_visibility(): void {
 		if (this.cursor_container) {
-			this.cursor_container.visible = this.is_cursor_over_image;
+			this.cursor_container.visible =
+				this.is_cursor_over_image && this.is_brush_or_erase_active;
 		}
 	}
 
@@ -233,7 +243,8 @@ export class BrushCursor {
 		this.is_preview_visible = show;
 
 		if (this.brush_preview_container) {
-			this.brush_preview_container.visible = show && this.is_cursor_over_image;
+			this.brush_preview_container.visible =
+				show && this.is_brush_or_erase_active;
 		}
 
 		if (show) {
@@ -277,6 +288,12 @@ export class BrushCursor {
 	 */
 	update_brush_preview(): void {
 		if (!this.brush_preview_graphics) return;
+
+		console.log(
+			"update_brush_preview",
+			this.brush_preview_graphics,
+			this.brush_preview_graphics.clear
+		);
 
 		// clear previous graphics
 		this.brush_preview_graphics.clear();
@@ -345,7 +362,7 @@ export class BrushCursor {
 		this.update_cursor_visibility();
 		if (this.brush_preview_container) {
 			this.brush_preview_container.visible =
-				this.is_preview_visible && this.is_cursor_over_image;
+				this.is_preview_visible && this.is_brush_or_erase_active;
 		}
 	}
 
@@ -353,6 +370,9 @@ export class BrushCursor {
 	 * Cleans up all cursor resources.
 	 */
 	cleanup(): void {
+		// Reset active state
+		this.is_brush_or_erase_active = false;
+
 		// clean up cursor
 		if (this.cursor_container) {
 			if (this.cursor_container.parent) {

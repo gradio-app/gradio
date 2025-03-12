@@ -124,6 +124,9 @@ export class BrushTool implements Tool {
 			this.scale
 		);
 
+		// Set initial active state
+		this.brush_cursor.set_active(tool === "draw" || tool === "erase");
+
 		// Initialize brush textures
 		this.brush_textures = new BrushTextures(
 			this.image_editor_context,
@@ -161,8 +164,16 @@ export class BrushTool implements Tool {
 		this.current_tool = tool;
 		this.current_subtool = subtool;
 
+		if (this.current_tool !== "erase" && this.current_tool !== "draw") {
+			this.commit_pending_changes();
+		}
+
 		// Commit any pending changes
-		this.commit_pending_changes();
+
+		// Set brush cursor active state
+		if (this.brush_cursor) {
+			this.brush_cursor.set_active(tool === "draw" || tool === "erase");
+		}
 
 		// Update mode based on tool
 		const new_mode = tool === "erase" ? "erase" : "draw";
@@ -203,6 +214,10 @@ export class BrushTool implements Tool {
 	 */
 	private on_pointer_down(event: FederatedPointerEvent): void {
 		// Don't draw if not over image
+		if (this.current_tool !== "erase" && this.current_tool !== "draw") {
+			return;
+		}
+
 		if (this.brush_cursor && !this.brush_cursor.is_over_image()) return;
 
 		// Preserve the current canvas state
