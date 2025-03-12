@@ -353,6 +353,12 @@
 		for (let i = 0; i < 50; i++) {
 			if (!column_widths[i]) {
 				parent.style.removeProperty(`--cell-width-${i}`);
+			} else if (column_widths[i].endsWith("%")) {
+				const percentage = parseFloat(column_widths[i]);
+				const pixel_width = Math.floor((percentage / 100) * parent.clientWidth);
+				parent.style.setProperty(`--cell-width-${i}`, `${pixel_width}px`);
+			} else {
+				parent.style.setProperty(`--cell-width-${i}`, column_widths[i]);
 			}
 		}
 
@@ -365,9 +371,7 @@
 	}
 
 	function get_cell_width(index: number): string {
-		return column_widths[index]
-			? `${column_widths[index]}`
-			: `var(--cell-width-${index})`;
+		return `var(--cell-width-${index})`;
 	}
 
 	let table_height: number =
