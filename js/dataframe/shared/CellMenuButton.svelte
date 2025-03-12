@@ -3,6 +3,7 @@
 </script>
 
 <button
+	aria-label="Open cell menu"
 	class="cell-menu-button"
 	on:click={on_click}
 	on:touchstart={(event) => {

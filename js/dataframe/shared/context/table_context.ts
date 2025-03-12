@@ -26,8 +26,7 @@ export type DataFrameState = {
 	};
 	current_search_query: string | null;
 	sort_state: {
-		sort_by: number | null;
-		sort_direction: SortDirection | null;
+		sort_columns: { col: number; direction: SortDirection }[];
 		row_order: number[];
 	};
 	ui_state: {
@@ -210,8 +209,7 @@ export function create_actions(
 		state.update((s) => ({
 			...s,
 			sort_state: {
-				sort_by: null,
-				sort_direction: null,
+				sort_columns: [],
 				row_order: []
 			}
 		}));
@@ -223,17 +221,33 @@ export function create_actions(
 		},
 		handle_sort: (col: number, direction: SortDirection) => {
 			state.update((s) => {
-				const current_sort_state = { ...s.sort_state };
-				if (current_sort_state.sort_by !== col) {
-					current_sort_state.sort_by = col;
-					current_sort_state.sort_direction = direction;
-				} else if (current_sort_state.sort_direction === direction) {
-					current_sort_state.sort_by = null;
-					current_sort_state.sort_direction = null;
+				const sort_columns = [...s.sort_state.sort_columns];
+				const existing_index = sort_columns.findIndex(
+					(item) => item.col === col
+				);
+
+				if (existing_index !== -1) {
+					const existing_item = sort_columns[existing_index];
+
+					if (existing_item.direction === direction) {
+						sort_columns.splice(existing_index, 1);
+					} else {
+						sort_columns[existing_index] = { col, direction };
+					}
 				} else {
-					current_sort_state.sort_direction = direction;
+					if (sort_columns.length >= 3) {
+						sort_columns.shift();
+					}
+					sort_columns.push({ col, direction });
 				}
-				return { ...s, sort_state: current_sort_state };
+
+				return {
+					...s,
+					sort_state: {
+						...s.sort_state,
+						sort_columns
+					}
+				};
 			});
 		},
 		get_sort_status: (
@@ -241,12 +255,12 @@ export function create_actions(
 			headers: string[]
 		): "none" | "asc" | "desc" => {
 			const current_state = get(state);
-			if (current_state.sort_state.sort_by === null) return "none";
-			if (headers[current_state.sort_state.sort_by] === name) {
-				if (current_state.sort_state.sort_direction === "asc") return "asc";
-				if (current_state.sort_state.sort_direction === "desc") return "desc";
-			}
-			return "none";
+			const sort_item = current_state.sort_state.sort_columns.find(
+				(item) => headers[item.col] === name
+			);
+
+			if (!sort_item) return "none";
+			return sort_item.direction;
 		},
 		sort_data: (
 			data: any[][],
@@ -254,45 +268,48 @@ export function create_actions(
 			styling: string[][] | null
 		) => {
 			const current_state = get(state);
-			if (
-				typeof current_state.sort_state.sort_by === "number" &&
-				current_state.sort_state.sort_direction
-			) {
+			if (current_state.sort_state.sort_columns.length > 0) {
 				sort_table_data(
 					data,
 					display_value,
 					styling,
-					current_state.sort_state.sort_by,
-					current_state.sort_state.sort_direction
+					current_state.sort_state.sort_columns
 				);
 			}
 		},
 		update_row_order: (data: any[][]) => {
 			state.update((s) => {
 				const current_sort_state = { ...s.sort_state };
-				if (
-					typeof current_sort_state.sort_by === "number" &&
-					current_sort_state.sort_direction &&
-					current_sort_state.sort_by >= 0 &&
-					data[0] &&
-					current_sort_state.sort_by < data[0].length
-				) {
+				if (current_sort_state.sort_columns.length > 0 && data[0]) {
 					const indices = [...Array(data.length)].map((_, i) => i);
-					const sort_index = current_sort_state.sort_by;
 					indices.sort((a, b) => {
 						const row_a = data[a];
 						const row_b = data[b];
-						if (
-							!row_a ||
-							!row_b ||
-							sort_index >= row_a.length ||
-							sort_index >= row_b.length
-						)
-							return 0;
-						const val_a = row_a[sort_index].value;
-						const val_b = row_b[sort_index].value;
-						const comp = val_a < val_b ? -1 : val_a > val_b ? 1 : 0;
-						return current_sort_state.sort_direction === "asc" ? comp : -comp;
+
+						for (const {
+							col: sort_index,
+							direction
+						} of current_sort_state.sort_columns) {
+							if (
+								!row_a ||
+								!row_b ||
+								sort_index < 0 ||
+								sort_index >= row_a.length ||
+								sort_index >= row_b.length
+							) {
+								continue;
+							}
+
+							const val_a = row_a[sort_index].value;
+							const val_b = row_b[sort_index].value;
+							const comp = val_a < val_b ? -1 : val_a > val_b ? 1 : 0;
+
+							if (comp !== 0) {
+								return direction === "asc" ? comp : -comp;
+							}
+						}
+
+						return 0;
 					});
 					current_sort_state.row_order = indices;
 				} else {
@@ -521,7 +538,10 @@ export function create_actions(
 				!dequal(current_data, previous_data) ||
 				!dequal(current_headers, previous_headers)
 			) {
-				reset_sort_state();
+				if (!dequal(current_headers, previous_headers)) {
+					reset_sort_state();
+				}
+
 				dispatch("change", {
 					data: data.map((row) => row.map((cell) => cell.value)),
 					headers: headers.map((h) => h.value),
@@ -575,8 +595,7 @@ export function create_dataframe_context(config: {
 		config,
 		current_search_query: null,
 		sort_state: {
-			sort_by: null,
-			sort_direction: null,
+			sort_columns: [],
 			row_order: []
 		},
 		ui_state: {
