@@ -323,12 +323,13 @@
 		border-collapse: separate;
 
 		scrollbar-width: thin;
-		scrollbar-color: transparent transparent;
+		scrollbar-color: var(--scrollbar-color, rgba(128, 128, 128, 0.5))
+			transparent;
 	}
 
 	table::-webkit-scrollbar {
-		width: 8px;
-		height: 8px;
+		width: 4px;
+		height: 4px;
 	}
 
 	table::-webkit-scrollbar-track {
@@ -336,16 +337,19 @@
 	}
 
 	table::-webkit-scrollbar-thumb {
-		background-color: transparent;
+		background-color: var(--scrollbar-color, rgba(128, 128, 128, 0.5));
 		border-radius: 4px;
 	}
 
 	table:hover {
-		scrollbar-color: rgba(0, 0, 0, 0.2) transparent; /* For Firefox */
+		scrollbar-color: var(--scrollbar-hover-color, rgba(160, 160, 160, 0.7))
+			transparent; /* For Firefox */
 	}
 
 	table:hover::-webkit-scrollbar-thumb {
-		background-color: rgba(0, 0, 0, 0.2);
+		background-color: var(--scrollbar-hover-color, rgba(160, 160, 160, 0.7));
+		border-radius: 4px;
+		width: 4px;
 	}
 
 	table :is(thead, tfoot, tbody) {
