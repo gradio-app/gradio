@@ -262,9 +262,8 @@
 		const cell_400 = canvas.getAllByRole("cell")[5];
 		await userEvent.click(cell_400);
 
-		const open_dialog_btn = await within(cell_400).findByRole("button", {
-			name: "⋮"
-		});
+		const open_dialog_btn =
+			await within(cell_400).findByLabelText("Open cell menu");
 		await userEvent.click(open_dialog_btn);
 
 		const add_row_btn = canvas.getByText("Add row above");
@@ -583,5 +582,147 @@
 		pinned_columns: 2,
 		show_row_numbers: true,
 		editable: false
+	}}
+/>
+
+<Story
+	name="Dataframe with drag selection"
+	args={{
+		values: [
+			[1, 2, 3, 4, 5],
+			[6, 7, 8, 9, 10],
+			[11, 12, 13, 14, 15],
+			[16, 17, 18, 19, 20],
+			[21, 22, 23, 24, 25]
+		],
+		headers: ["A", "B", "C", "D", "E"],
+		label: "Drag Selection Demo",
+		col_count: [5, "dynamic"],
+		row_count: [5, "dynamic"],
+		editable: true
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const user = userEvent.setup();
+
+		await new Promise((resolve) => setTimeout(resolve, 300));
+
+		const table = canvas.getByRole("grid");
+		const cells = canvas.getAllByRole("cell");
+		const startCell = cells[6];
+		const startRect = startCell.getBoundingClientRect();
+		const startX = startRect.left + startRect.width / 2;
+		const startY = startRect.top + startRect.height / 2;
+
+		const endCell = cells[18];
+		const endRect = endCell.getBoundingClientRect();
+		const endX = endRect.left + endRect.width / 2;
+		const endY = endRect.top + endRect.height / 2;
+
+		await user.pointer({
+			keys: "[MouseLeft>]",
+			target: startCell,
+			coords: { clientX: startX, clientY: startY }
+		});
+
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		const midX1 = startX + (endX - startX) / 3;
+		const midY1 = startY + (endY - startY) / 3;
+		await user.pointer({
+			target: table,
+			coords: { clientX: midX1, clientY: midY1 }
+		});
+
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		const midX2 = startX + ((endX - startX) * 2) / 3;
+		const midY2 = startY + ((endY - startY) * 2) / 3;
+		await user.pointer({
+			target: table,
+			coords: { clientX: midX2, clientY: midY2 }
+		});
+
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		await user.pointer({
+			target: endCell,
+			coords: { clientX: endX, clientY: endY }
+		});
+
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		await user.pointer({
+			keys: "[/MouseLeft]"
+		});
+
+		await new Promise((resolve) => setTimeout(resolve, 500));
+	}}
+/>
+
+<Story
+	name="Dataframe with sorting by multiple columns"
+	args={{
+		values: [
+			[1, 2, 3],
+			[4, 5, 6],
+			[7, 8, 9]
+		],
+		headers: ["A", "B", "C"],
+		col_count: [3, "dynamic"],
+		row_count: [3, "dynamic"],
+		editable: true,
+		sort_columns: [
+			{ col: 0, direction: "asc" },
+			{ col: 1, direction: "desc" }
+		],
+		sort_state: {
+			sort_columns: [
+				{ col: 0, direction: "asc" },
+				{ col: 1, direction: "desc" }
+			],
+			row_order: [0, 1, 2]
+		}
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const user = userEvent.setup();
+
+		const header_1 = canvas.getAllByText("A")[1];
+		await userEvent.click(header_1);
+
+		const cell_menu_button = canvas.getAllByLabelText("Open cell menu")[0];
+		await userEvent.click(cell_menu_button);
+
+		const sort_ascending_button = canvas.getByRole("button", {
+			name: "Sort ascending"
+		});
+		await userEvent.click(sort_ascending_button);
+
+		const header_2 = canvas.getAllByText("B")[1];
+		await userEvent.click(header_2);
+
+		const cell_menu_button_2 = canvas.getAllByLabelText("Open cell menu")[1];
+		await userEvent.click(cell_menu_button_2);
+
+		const sort_descending_button = canvas.getByRole("button", {
+			name: "Sort descending"
+		});
+		await userEvent.click(sort_descending_button);
+
+		const header_3 = canvas.getAllByText("C")[1];
+		await userEvent.click(header_3);
+
+		const cell_menu_button_3 = canvas.getAllByLabelText("Open cell menu")[2];
+		await userEvent.click(cell_menu_button_3);
+
+		const sort_ascending_button_3 = canvas.getByRole("button", {
+			name: "Sort ascending"
+		});
+		await userEvent.click(sort_ascending_button_3);
+
+		await userEvent.click(header_3);
+		await userEvent.click(cell_menu_button_3);
+		await userEvent.click(canvas.getByText("Clear sort"));
 	}}
 />
