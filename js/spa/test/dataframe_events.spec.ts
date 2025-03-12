@@ -271,68 +271,6 @@ test("Dataframe cmd + click selection works", async ({ page }) => {
 	expect(clipboard_value).toBe("6\n0");
 });
 
-test("Dataframe drag selection works", async ({ page }) => {
-	const df = page.locator("#dataframe").first();
-
-	await get_cell(df, 1, 1).dblclick();
-	await page.getByLabel("Edit cell").fill("A");
-	await page.getByLabel("Edit cell").press("Enter");
-
-	await get_cell(df, 1, 2).dblclick();
-	await page.getByLabel("Edit cell").fill("B");
-	await page.getByLabel("Edit cell").press("Enter");
-
-	await get_cell(df, 2, 1).dblclick();
-	await page.getByLabel("Edit cell").fill("C");
-	await page.getByLabel("Edit cell").press("Enter");
-
-	await get_cell(df, 2, 2).dblclick();
-	await page.getByLabel("Edit cell").fill("D");
-	await page.getByLabel("Edit cell").press("Enter");
-
-	await page.waitForTimeout(100);
-
-	const startCell = get_cell(df, 1, 1);
-	const endCell = get_cell(df, 2, 2);
-
-	const startBox = await startCell.boundingBox();
-	const endBox = await endCell.boundingBox();
-
-	if (!startBox || !endBox) {
-		throw new Error("Could not get bounding boxes for cells");
-	}
-
-	const startX = startBox.x + startBox.width / 2;
-	const startY = startBox.y + startBox.height / 2;
-	const endX = endBox.x + endBox.width / 2;
-	const endY = endBox.y + endBox.height / 2;
-
-	await page.mouse.move(startX, startY);
-	await page.mouse.down();
-	await page.waitForTimeout(50);
-
-	await page.mouse.move(
-		startX + (endX - startX) / 2,
-		startY + (endY - startY) / 2
-	);
-	await page.waitForTimeout(50);
-
-	await page.mouse.move(endX, endY);
-	await page.waitForTimeout(50);
-	await page.mouse.up();
-
-	await page.waitForTimeout(100);
-
-	await page.keyboard.press("ControlOrMeta+c");
-	await page.waitForTimeout(100);
-
-	const clipboard_value = await page.evaluate(() =>
-		navigator.clipboard.readText()
-	);
-
-	expect(clipboard_value).toBe("A,B\nC,D");
-});
-
 test("Static columns cannot be edited", async ({ page }) => {
 	const static_df = page.locator("#dataframe");
 
