@@ -1,4 +1,4 @@
-# Understanding Share Links and Share Servers
+# Share Links and Share Servers
 
 You may already know that you can share any Gradio app that you build by setting `share=True` in the `.launch()` method. In other words, if you do:
 
@@ -68,6 +68,7 @@ If you prefer, you can also host your own FRP server. This gives you complete co
 * The complete Go code for the client can be found [in this directory](https://github.com/huggingface/frp/tree/dev/server).
 * The Dockerfile to launch [the FRP Server](https://github.com/huggingface/frp/blob/dev/dockerfiles/Dockerfile-for-frps) can be found here.
 
+**Trouble Shooting**: Gradio's Share Server may occasionally go down, despite our best effort to keep it running. If the [status page](https://status.gradio.app/) shows that the Gradio server is down, we'll work on fixing it, no need to create an issue!
 
 
 
