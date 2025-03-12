@@ -104,6 +104,7 @@ class Model3D(Component):
             key=key,
             value=value,
         )
+        self._value_description = f"a string path to a (.obj, .glb, .stl, .gltf, .splat, or .ply) file."
 
     def preprocess(self, payload: FileData | None) -> str | None:
         """

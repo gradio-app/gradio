@@ -103,6 +103,7 @@ class HighlightedText(Component):
             value=value,
             interactive=interactive,
         )
+        self._value_description = f"a list of 2-part tuples, where the first part is a substring of the text and the second part is the category or value of that substring."
 
     def example_payload(self) -> Any:
         return [
