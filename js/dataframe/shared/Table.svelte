@@ -43,6 +43,7 @@
 	} from "./utils/table_utils";
 	import { make_headers, process_data } from "./utils/data_processing";
 	import { handle_keydown } from "./utils/keyboard_utils";
+	import { create_drag_handlers, type DragState } from "./utils/drag_utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -653,6 +654,36 @@
 		active_cell_menu = null;
 		active_header_menu = null;
 	}
+
+	let is_dragging = false;
+	let drag_start: [number, number] | null = null;
+	let mouse_down_pos: { x: number; y: number } | null = null;
+
+	const drag_state: DragState = {
+		is_dragging,
+		drag_start,
+		mouse_down_pos
+	};
+
+	$: {
+		is_dragging = drag_state.is_dragging;
+		drag_start = drag_state.drag_start;
+		mouse_down_pos = drag_state.mouse_down_pos;
+	}
+
+	const drag_handlers = create_drag_handlers(
+		drag_state,
+		(value) => (is_dragging = value),
+		(cells) => df_actions.set_selected_cells(cells),
+		(cell) => df_actions.set_selected(cell),
+		(event, row, col) =>
+			selection_ctx.actions.handle_cell_click(event, row, col),
+		show_row_numbers
+	);
+
+	const handle_mouse_down = drag_handlers.handle_mouse_down;
+	const handle_mouse_move = drag_handlers.handle_mouse_move;
+	const handle_mouse_up = drag_handlers.handle_mouse_up;
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
@@ -681,11 +712,14 @@
 	<div
 		bind:this={parent}
 		class="table-wrap"
-		class:dragging
+		class:dragging={is_dragging}
 		class:no-wrap={!wrap}
 		style="height:{table_height}px;"
 		class:menu-open={active_cell_menu || active_header_menu}
 		on:keydown={(e) => handle_keydown(e, keyboard_ctx)}
+		on:mousemove={handle_mouse_move}
+		on:mouseup={handle_mouse_up}
+		on:mouseleave={handle_mouse_up}
 		role="grid"
 		tabindex="0"
 	>
@@ -751,6 +785,7 @@
 									coords={[0, j]}
 									on_select_column={handle_select_column}
 									on_select_row={handle_select_row}
+									{is_dragging}
 								/>
 							</div>
 						</td>
@@ -844,7 +879,7 @@
 								{j}
 								{actual_pinned_columns}
 								{get_cell_width}
-								{handle_cell_click}
+								handle_cell_click={(e, r, c) => handle_mouse_down(e, r, c)}
 								{toggle_cell_menu}
 								{is_cell_selected}
 								{should_show_cell_menu}
@@ -866,6 +901,7 @@
 								{handle_select_column}
 								{handle_select_row}
 								bind:el={els[id]}
+								{is_dragging}
 							/>
 						{/each}
 					</tr>
@@ -930,6 +966,16 @@
 
 	.table-wrap:focus-within {
 		outline: none;
+	}
+
+	.table-wrap.dragging {
+		cursor: crosshair !important;
+		user-select: none;
+	}
+
+	.table-wrap.dragging * {
+		cursor: crosshair !important;
+		user-select: none;
 	}
 
 	.table-wrap > :global(button) {
