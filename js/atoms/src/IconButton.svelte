@@ -4,7 +4,7 @@
 	export let label = "";
 	export let show_label = false;
 	export let pending = false;
-	export let size: "small" | "large" | "medium" = "small";
+	export let size: "x-small" | "small" | "large" | "medium" = "small";
 	export let padded = true;
 	export let highlight = false;
 	export let disabled = false;
@@ -30,6 +30,7 @@
 >
 	{#if show_label}<span>{label}</span>{/if}
 	<div
+		class:x-small={size === "x-small"}
 		class:small={size === "small"}
 		class:large={size === "large"}
 		class:medium={size === "medium"}
@@ -89,6 +90,11 @@
 		align-items: center;
 		justify-content: center;
 		transition: filter 0.2s ease-in-out;
+	}
+
+	.x-small {
+		width: 10px;
+		height: 10px;
 	}
 
 	.small {

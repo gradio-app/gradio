@@ -28,12 +28,12 @@ export function sort_table_data(
 	data: TableData,
 	display_value: string[][] | null,
 	styling: string[][] | null,
-	col: number | undefined,
-	dir: SortDirection | undefined
+	sort_columns: { col: number; direction: SortDirection }[]
 ): void {
-	if (col === undefined || dir === undefined) return;
+	if (!sort_columns.length) return;
+	if (!data || !data.length) return;
 
-	const indices = sort_data(data, col, dir);
+	const indices = sort_data(data, sort_columns);
 
 	const new_data = indices.map((i: number) => data[i]);
 	data.splice(0, data.length, ...new_data);
