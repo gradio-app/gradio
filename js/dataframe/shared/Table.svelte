@@ -177,6 +177,13 @@
 				parent.style.removeProperty(`--cell-width-${i}`);
 			}
 		}
+		// only reset sort state when values are changed
+		const is_reset =
+			values.length === 0 || (values.length === 1 && values[0].length === 0);
+		const is_different_structure =
+			old_val !== undefined &&
+			(values.length !== old_val.length ||
+				(values[0] && old_val[0] && values[0].length !== old_val[0].length));
 
 		data = process_data(
 			values as (string | number)[][],
@@ -186,7 +193,12 @@
 			display_value
 		);
 		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
-		df_actions.reset_sort_state();
+
+		if (is_reset || is_different_structure) {
+			df_actions.reset_sort_state();
+		} else if ($df_state.sort_state.sort_columns.length > 0) {
+			sort_data(data, display_value, styling);
+		}
 
 		if ($df_state.current_search_query) {
 			df_actions.handle_search(null);
@@ -243,11 +255,25 @@
 
 	function handle_sort(col: number, direction: SortDirection): void {
 		df_actions.handle_sort(col, direction);
+		sort_data(data, display_value, styling);
+	}
+
+	function clear_sort(): void {
+		df_actions.reset_sort_state();
+		sort_data(data, display_value, styling);
 	}
 
 	$: {
 		df_actions.sort_data(data, display_value, styling);
 		df_actions.update_row_order(data);
+	}
+
+	$: {
+		if ($df_state.sort_state.sort_columns) {
+			if ($df_state.sort_state.sort_columns.length > 0) {
+				sort_data(data, display_value, styling);
+			}
+		}
 	}
 
 	async function edit_header(i: number, _select = false): Promise<void> {
@@ -380,19 +406,19 @@
 	function sort_data(
 		_data: typeof data,
 		_display_value: string[][] | null,
-		_styling: string[][] | null,
-		col?: number,
-		dir?: SortDirection
+		_styling: string[][] | null
 	): void {
 		let id = null;
 		if (selected && selected[0] in _data && selected[1] in _data[selected[0]]) {
 			id = _data[selected[0]][selected[1]].id;
 		}
-		if (typeof col !== "number" || !dir) {
-			return;
-		}
 
-		sort_table_data(_data, _display_value, _styling, col, dir);
+		sort_table_data(
+			_data,
+			_display_value,
+			_styling,
+			$df_state.sort_state.sort_columns
+		);
 		data = data;
 
 		if (id) {
@@ -401,17 +427,7 @@
 		}
 	}
 
-	$: sort_data(
-		data,
-		display_value,
-		styling,
-		$df_state.sort_state.sort_by === null
-			? undefined
-			: $df_state.sort_state.sort_by,
-		$df_state.sort_state.sort_direction === null
-			? undefined
-			: $df_state.sort_state.sort_direction
-	);
+	$: sort_data(data, display_value, styling);
 
 	$: selected_index = !!selected && selected[0];
 
@@ -655,6 +671,10 @@
 		active_header_menu = null;
 	}
 
+	export function reset_sort_state(): void {
+		df_actions.reset_sort_state();
+	}
+
 	let is_dragging = false;
 	let drag_start: [number, number] | null = null;
 	let mouse_down_pos: { x: number; y: number } | null = null;
@@ -743,11 +763,9 @@
 							{headers}
 							{get_cell_width}
 							{handle_header_click}
-							{handle_sort}
 							{toggle_header_menu}
 							{end_header_edit}
-							sort_by={$df_state.sort_state.sort_by}
-							sort_direction={$df_state.sort_state.sort_direction}
+							sort_columns={$df_state.sort_state.sort_columns}
 							{latex_delimiters}
 							{line_breaks}
 							{max_chars}
@@ -851,11 +869,9 @@
 								{headers}
 								{get_cell_width}
 								{handle_header_click}
-								{handle_sort}
 								{toggle_header_menu}
 								{end_header_edit}
-								sort_by={$df_state.sort_state.sort_by}
-								sort_direction={$df_state.sort_state.sort_direction}
+								sort_columns={$df_state.sort_state.sort_columns}
 								{latex_delimiters}
 								{line_breaks}
 								{max_chars}
@@ -944,6 +960,30 @@
 		can_delete_rows={!active_header_menu && data.length > 1}
 		can_delete_cols={data.length > 0 && data[0]?.length > 1}
 		{i18n}
+		on_sort={active_header_menu
+			? (direction) => {
+					if (active_header_menu) {
+						handle_sort(active_header_menu.col, direction);
+						df_actions.set_active_header_menu(null);
+					}
+				}
+			: undefined}
+		on_clear_sort={active_header_menu
+			? () => {
+					clear_sort();
+					df_actions.set_active_header_menu(null);
+				}
+			: undefined}
+		sort_direction={active_header_menu
+			? $df_state.sort_state.sort_columns.find(
+					(item) => item.col === (active_header_menu?.col ?? -1)
+				)?.direction ?? null
+			: null}
+		sort_priority={active_header_menu
+			? $df_state.sort_state.sort_columns.findIndex(
+					(item) => item.col === (active_header_menu?.col ?? -1)
+				) + 1 || null
+			: null}
 	/>
 {/if}
 
