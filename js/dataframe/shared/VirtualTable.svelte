@@ -340,11 +340,11 @@
 	}
 
 	table::-webkit-scrollbar-button {
-		display: none; /* Hide scrollbar buttons */
+		display: none;
 	}
 
 	table:hover {
-		scrollbar-color: rgba(160, 160, 160, 0.7) transparent; /* For Firefox */
+		scrollbar-color: rgba(160, 160, 160, 0.7) transparent;
 	}
 
 	table:hover::-webkit-scrollbar-thumb {
