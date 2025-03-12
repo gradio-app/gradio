@@ -2778,6 +2778,15 @@ Received inputs:
                 print(strings.en["PUBLIC_SHARE_TRUE"])
             self.share_url = None
 
+        print(
+            strings.en["COULD_NOT_GET_SHARE_LINK_MISSING_FILE"].format(
+                BINARY_PATH,
+                BINARY_URL,
+                BINARY_FILENAME,
+                BINARY_FOLDER,
+            )
+        )
+
         if inbrowser and not wasm_utils.IS_WASM:
             link = self.share_url if self.share and self.share_url else self.local_url
             webbrowser.open(link)
