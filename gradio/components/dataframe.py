@@ -103,6 +103,7 @@ class Dataframe(Component):
         show_search: Literal["none", "search", "filter"] = "none",
         pinned_columns: int | None = None,
         static_columns: list[int] | None = None,
+        column_tooltips: list[str] | dict[int | str, str] | None = None,
     ):
         """
         Parameters:
@@ -137,6 +138,7 @@ class Dataframe(Component):
             show_search: Show a search input in the toolbar. If "search", a search input is shown. If "filter", a search input and filter buttons are shown. If "none", no search input is shown.
             pinned_columns: If provided, will pin the specified number of columns from the left.
             static_columns: List of column indices (int) that should not be editable. Only applies when interactive=True. When specified, col_count is automatically set to "fixed" and columns cannot be inserted or deleted.
+            column_tooltips: List of tooltips for each column header, or a dictionary mapping column indices to tooltips. If a list is provided, it must have the same length as the number of columns. Only applies when col_count is fixed.
         """
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
@@ -156,6 +158,31 @@ class Dataframe(Component):
             if headers is not None
             else [str(i) for i in (range(1, self.col_count[0] + 1))]
         )
+
+        self.column_tooltips = None
+        if column_tooltips is not None:
+            if isinstance(column_tooltips, list):
+                if len(column_tooltips) != self.col_count[0]:
+                    raise ValueError(
+                        f"The length of the column_tooltips list must be equal to the col_count int.\n"
+                        f"The column count is set to {self.col_count[0]} but `column_tooltips` has {len(column_tooltips)} items."
+                    )
+                self.column_tooltips = {i: tooltip for i, tooltip in enumerate(column_tooltips)}
+            elif isinstance(column_tooltips, dict):
+                for idx in column_tooltips:
+                    # Convert string indices to integers if possible
+                    col_idx = int(idx) if isinstance(idx, str) and idx.isdigit() else idx
+                    if not isinstance(col_idx, int) or col_idx < 0 or col_idx >= self.col_count[0]:
+                        raise ValueError(
+                            f"Invalid column index {idx} in column_tooltips. Must be an integer between 0 and {self.col_count[0]-1}."
+                        )
+                self.column_tooltips = column_tooltips
+
+            if self.col_count[1] != "fixed":
+                raise ValueError(
+                    "column_tooltips can only be used with fixed columns. Set col_count to a tuple with 'fixed' as the second element."
+                )
+
         self.datatype = datatype
         valid_types = ["pandas", "numpy", "array", "polars"]
         if type not in valid_types:

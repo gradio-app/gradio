@@ -36,8 +36,31 @@
 	export let el: HTMLInputElement | null;
 	export let is_static: boolean;
 	export let col_count: [number, "fixed" | "dynamic"];
+	export let column_tooltips: Record<number | string, string> | null = null;
 
 	$: can_add_columns = col_count && col_count[1] === "dynamic";
+	$: has_tooltip =
+		column_tooltips && (i in column_tooltips || String(i) in column_tooltips);
+	$: tooltip_text =
+		column_tooltips && (column_tooltips[i] || column_tooltips[String(i)]);
+
+	let tooltip_visible = false;
+	let tooltip_x = 0;
+	let tooltip_y = 0;
+	let header_element: HTMLElement;
+
+	function show_tooltip(event: MouseEvent): void {
+		if (!has_tooltip) return;
+
+		const rect = header_element.getBoundingClientRect();
+		tooltip_x = rect.right;
+		tooltip_y = rect.bottom;
+		tooltip_visible = true;
+	}
+
+	function hide_tooltip(): void {
+		tooltip_visible = false;
+	}
 
 	function get_header_position(col_index: number): string {
 		if (col_index >= actual_pinned_columns) {
@@ -60,9 +83,11 @@
 </script>
 
 <th
+	bind:this={header_element}
 	class:pinned-column={i < actual_pinned_columns}
 	class:last-pinned={i === actual_pinned_columns - 1}
 	class:focus={header_edit === i || selected_header === i}
+	class:has-tooltip={has_tooltip}
 	aria-sort={get_sort_status(value, headers) === "none"
 		? "none"
 		: get_sort_status(value, headers) === "asc"
@@ -74,6 +99,8 @@
 		event.preventDefault();
 		event.stopPropagation();
 	}}
+	on:mouseenter={show_tooltip}
+	on:mouseleave={hide_tooltip}
 >
 	<div class="cell-wrap">
 		<div class="header-content">
@@ -118,6 +145,12 @@
 		{/if}
 	</div>
 </th>
+
+{#if tooltip_visible && has_tooltip}
+	<div class="tooltip" style="top: {tooltip_y}px; left: {tooltip_x}px;">
+		{tooltip_text}
+	</div>
+{/if}
 
 <style>
 	th {
@@ -197,5 +230,22 @@
 		position: sticky;
 		z-index: 5;
 		border-right: none;
+	}
+
+	.has-tooltip {
+		cursor: help;
+	}
+
+	.tooltip {
+		position: absolute;
+		z-index: 10;
+		background-color: rgba(0, 0, 0, 0.8);
+		color: white;
+		padding: var(--size-1) var(--size-2);
+		border-radius: var(--radius-sm);
+		font-size: var(--text-sm);
+		max-width: 300px;
+		transform: translate(-50%, 8px);
+		pointer-events: none;
 	}
 </style>

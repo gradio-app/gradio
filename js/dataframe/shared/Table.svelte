@@ -76,6 +76,7 @@
 	export let show_search: "none" | "search" | "filter" = "none";
 	export let pinned_columns = 0;
 	export let static_columns: (string | number)[] = [];
+	export let column_tooltips: Record<number | string, string> | null = null;
 
 	$: actual_pinned_columns =
 		pinned_columns && data?.[0]?.length
@@ -704,6 +705,7 @@
 							{i18n}
 							bind:el={els[id].input}
 							{col_count}
+							{column_tooltips}
 						/>
 					{/each}
 				</tr>
@@ -811,6 +813,7 @@
 								{i18n}
 								bind:el={els[id].input}
 								{col_count}
+								{column_tooltips}
 							/>
 						{/each}
 					</tr>

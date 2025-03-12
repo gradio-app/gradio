@@ -58,6 +58,11 @@
 	export let show_search: "none" | "search" | "filter" = "none";
 	export let pinned_columns = 0;
 	export let static_columns: (string | number)[] = [];
+	export let column_tooltips: Record<number | string, string> | null = {
+		1: "First column",
+		2: "Second column",
+		3: "Third column"
+	};
 
 	$: _headers = [...(value.headers || headers)];
 	$: display_value = value?.metadata?.display_value
@@ -121,5 +126,6 @@
 		{pinned_columns}
 		components={{ image: Image }}
 		{static_columns}
+		{column_tooltips}
 	/>
 </Block>
