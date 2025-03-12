@@ -74,7 +74,7 @@ class Dataframe(Component):
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
         col_count: int | tuple[int, str] | None = None,
-        datatype: Literal["str", "number", "bool", "date", "markdown", "html"]
+        datatype: Literal["str", "number", "bool", "date", "markdown", "html", "image"]
         | Sequence[
             Literal["str", "number", "bool", "date", "markdown", "html"]
         ] = "str",
@@ -102,6 +102,7 @@ class Dataframe(Component):
         max_chars: int | None = None,
         show_search: Literal["none", "search", "filter"] = "none",
         pinned_columns: int | None = None,
+        static_columns: list[int] | None = None,
     ):
         """
         Parameters:
@@ -135,12 +136,19 @@ class Dataframe(Component):
             max_chars: Maximum number of characters to display in each cell before truncating (single-clicking a cell value will still reveal the full content). If None, no truncation is applied.
             show_search: Show a search input in the toolbar. If "search", a search input is shown. If "filter", a search input and filter buttons are shown. If "none", no search input is shown.
             pinned_columns: If provided, will pin the specified number of columns from the left.
+            static_columns: List of column indices (int) that should not be editable. Only applies when interactive=True. When specified, col_count is automatically set to "fixed" and columns cannot be inserted or deleted.
         """
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
+        self.static_columns = static_columns or []
+
         self.col_count = self.__process_counts(
             col_count, len(headers) if headers else 3
         )
+
+        if self.static_columns and isinstance(self.col_count, tuple):
+            self.col_count = (self.col_count[0], "fixed")
+
         self.__validate_headers(headers, self.col_count[0])
 
         self.headers = (

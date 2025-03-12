@@ -2,6 +2,14 @@ import type { CellCoordinate, EditingState } from "./types";
 
 export type CellData = { id: string; value: string | number };
 
+export function is_cell_in_selection(
+	coords: [number, number],
+	selected_cells: [number, number][]
+): boolean {
+	const [row, col] = coords;
+	return selected_cells.some(([r, c]) => r === row && c === col);
+}
+
 export function is_cell_selected(
 	cell: CellCoordinate,
 	selected_cells: CellCoordinate[]
@@ -29,8 +37,14 @@ export function get_range_selection(
 	const max_col = Math.max(start_col, end_col);
 
 	const cells: CellCoordinate[] = [];
+	// Add the start cell as the "anchor" cell so that when
+	// we press shift+arrow keys, the selection will always
+	// include the anchor cell.
+	cells.push(start);
+
 	for (let i = min_row; i <= max_row; i++) {
 		for (let j = min_col; j <= max_col; j++) {
+			if (i === start_row && j === start_col) continue;
 			cells.push([i, j]);
 		}
 	}
@@ -137,10 +151,11 @@ export function get_next_cell_coordinates(
 }
 
 export function move_cursor(
-	key: "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp",
+	event: KeyboardEvent,
 	current_coords: CellCoordinate,
 	data: CellData[][]
 ): CellCoordinate | false {
+	const key = event.key as "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp";
 	const dir = {
 		ArrowRight: [0, 1],
 		ArrowLeft: [0, -1],
@@ -148,8 +163,27 @@ export function move_cursor(
 		ArrowUp: [-1, 0]
 	}[key];
 
-	const i = current_coords[0] + dir[0];
-	const j = current_coords[1] + dir[1];
+	let i, j;
+	if (event.metaKey || event.ctrlKey) {
+		if (key === "ArrowRight") {
+			i = current_coords[0];
+			j = data[0].length - 1;
+		} else if (key === "ArrowLeft") {
+			i = current_coords[0];
+			j = 0;
+		} else if (key === "ArrowDown") {
+			i = data.length - 1;
+			j = current_coords[1];
+		} else if (key === "ArrowUp") {
+			i = 0;
+			j = current_coords[1];
+		} else {
+			return false;
+		}
+	} else {
+		i = current_coords[0] + dir[0];
+		j = current_coords[1] + dir[1];
+	}
 
 	if (i < 0 && j <= 0) {
 		return false;
@@ -206,25 +240,17 @@ export function calculate_selection_positions(
 		return { col_pos: "0px", row_pos: undefined };
 	}
 
-	let offset = 0;
-	for (let i = 0; i < col; i++) {
-		offset += parseFloat(
-			getComputedStyle(parent).getPropertyValue(`--cell-width-${i}`)
-		);
-	}
-
 	const cell_id = data[row][col].id;
 	const cell_el = els[cell_id]?.cell;
 
 	if (!cell_el) {
-		// if we cant get the row position, just return the column position which is static
 		return { col_pos: "0px", row_pos: undefined };
 	}
 
 	const cell_rect = cell_el.getBoundingClientRect();
 	const table_rect = table.getBoundingClientRect();
 	const col_pos = `${cell_rect.left - table_rect.left + cell_rect.width / 2}px`;
-	const relative_top = cell_rect.top - table_rect.top;
-	const row_pos = `${relative_top + cell_rect.height / 2}px`;
+	const row_pos = `${cell_rect.top - table_rect.top + cell_rect.height / 2}px`;
+
 	return { col_pos, row_pos };
 }

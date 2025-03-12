@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/model3d",
-	"version": "0.14.3",
+	"version": "0.14.4",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

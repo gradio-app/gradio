@@ -49,6 +49,7 @@ class TestDataframe:
             "elem_classes": [],
             "show_row_numbers": False,
             "show_search": "none",
+            "static_columns": [],
             "pinned_columns": None,
             "wrap": False,
             "proxy_url": None,
@@ -93,6 +94,7 @@ class TestDataframe:
             "show_label": True,
             "show_row_numbers": False,
             "show_search": "none",
+            "static_columns": [],
             "pinned_columns": None,
             "scale": None,
             "min_width": 160,
@@ -402,3 +404,24 @@ class TestDataframe:
         styled_df = test_df.style
         styled_df.hide(axis=1, subset=["col2"])
         assert df.get_cell_data(styled_df) == [[1], [3]]
+
+    def test_static_columns(self):
+        # when static_columns is specified, col_count should be fixed
+        dataframe = gr.Dataframe(static_columns=[0, 1])
+        assert dataframe.col_count[1] == "fixed"
+
+        # when static_columns is specified with dynamic col_count, it should be converted to fixed
+        dataframe = gr.Dataframe(col_count=(4, "dynamic"), static_columns=[0, 1])
+        assert dataframe.col_count[1] == "fixed"
+
+        # when static_columns is empty, col_count should remain as specified
+        dataframe = gr.Dataframe(col_count=(4, "dynamic"), static_columns=[])
+        assert dataframe.col_count[1] == "dynamic"
+
+        # when static_columns is None, col_count should remain as specified
+        dataframe = gr.Dataframe(col_count=(4, "dynamic"), static_columns=None)
+        assert dataframe.col_count[1] == "dynamic"
+
+        # when static_columns is not specified at all, col_count should remain as specified
+        dataframe = gr.Dataframe(col_count=(4, "dynamic"))
+        assert dataframe.col_count[1] == "dynamic"

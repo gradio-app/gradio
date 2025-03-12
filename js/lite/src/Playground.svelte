@@ -146,6 +146,7 @@
 						lines={10}
 						readonly={!loaded}
 						dark_mode={active_theme_mode === "dark"}
+						autocomplete
 					/>
 				</Block>
 			</div>
