@@ -174,7 +174,11 @@ class Dataframe(Component):
         self.max_height = max_height
         self.line_breaks = line_breaks
         self.column_widths = [
-            w if isinstance(w, str) and (w.endswith("px") or w.endswith("%") or w == "auto") else f"{w}px" for w in (column_widths or [])
+            w
+            if isinstance(w, str)
+            and (w.endswith("px") or w.endswith("%") or w == "auto")
+            else f"{w}px"
+            for w in (column_widths or [])
         ]
         self.show_fullscreen_button = show_fullscreen_button
         self.show_copy_button = show_copy_button
