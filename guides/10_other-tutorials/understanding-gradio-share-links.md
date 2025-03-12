@@ -53,7 +53,7 @@ Please check your internet connection. This can happen if your antivirus softwar
 3. Move the file to this location: /Users/...
 ```
 
-If this does not work, you may need to disable your antivirus in order to use the share links.
+If this does not work, you may need to [whitelist this file with your antivirus](https://www.makeuseof.com/how-to-whitelist-files-windows-defender/) in order to use the share links.
 
 ### FRP Server
 
