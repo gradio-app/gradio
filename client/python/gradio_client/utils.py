@@ -989,9 +989,13 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
         ]
 
         if "additionalProperties" in schema:
-            des += [
-                f"str, {_json_schema_to_python_type(schema['additionalProperties'], defs)}"
-            ]
+            additional_properties = schema["additionalProperties"]
+            if isinstance(additional_properties, bool) and additional_properties:
+                des += ["str, Any"]
+            else:
+                des += [
+                    f"str, {_json_schema_to_python_type(additional_properties, defs)}"
+                ]
         des = ", ".join(des)
         return f"dict({des})"
     elif type_ in ["oneOf", "anyOf"]:
