@@ -293,6 +293,7 @@ class ImageEditor(Component):
             key=key,
             value=value,
         )
+        self._value_description = f"a dictionary with structure {{'background': image, 'layers': list of images, 'composite': image}} where each image is {'a filepath' if self.type == 'filepath' else 'a numpy array' if self.type == 'numpy' else 'a PIL Image object'}."
 
     def convert_and_format_image(
         self,
