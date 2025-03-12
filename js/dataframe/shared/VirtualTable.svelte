@@ -321,10 +321,8 @@
 		width: 100%;
 		scroll-snap-type: x proximity;
 		border-collapse: separate;
-
 		scrollbar-width: thin;
-		scrollbar-color: var(--scrollbar-color, rgba(128, 128, 128, 0.5))
-			transparent;
+		scrollbar-color: rgba(128, 128, 128, 0.5) transparent;
 	}
 
 	table::-webkit-scrollbar {
@@ -337,17 +335,20 @@
 	}
 
 	table::-webkit-scrollbar-thumb {
-		background-color: var(--scrollbar-color, rgba(128, 128, 128, 0.5));
+		background-color: rgba(128, 128, 128, 0.5);
 		border-radius: 4px;
 	}
 
+	table::-webkit-scrollbar-button {
+		display: none; /* Hide scrollbar buttons */
+	}
+
 	table:hover {
-		scrollbar-color: var(--scrollbar-hover-color, rgba(160, 160, 160, 0.7))
-			transparent; /* For Firefox */
+		scrollbar-color: rgba(160, 160, 160, 0.7) transparent; /* For Firefox */
 	}
 
 	table:hover::-webkit-scrollbar-thumb {
-		background-color: var(--scrollbar-hover-color, rgba(160, 160, 160, 0.7));
+		background-color: rgba(160, 160, 160, 0.7);
 		border-radius: 4px;
 		width: 4px;
 	}
