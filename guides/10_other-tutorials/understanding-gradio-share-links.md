@@ -41,7 +41,7 @@ We use a [modified version of the FRP Client](https://github.com/huggingface/frp
 * The complete Go code for the client can be found [in this directory](https://github.com/huggingface/frp/tree/tls/client).
 * We use this [Make script](https://github.com/huggingface/frp/blob/tls/Makefile) to package the Go code into binaries for each operating system.
 
-**Trouble Shooting**: Some antivirus programs (notably Windows Defender) block the download of the FRP Client. In this case, you'll see a message with details on how to install the file manually, something like:
+**Troubleshooting**: Some antivirus programs (notably Windows Defender) block the download of the FRP Client. In this case, you'll see a message with details on how to install the file manually, something like:
 
 ```
 Could not create share link. Missing file: /Users/.../frpc_darwin_arm64_v0.3. 
