@@ -43,7 +43,11 @@
 	} from "./utils/table_utils";
 	import { make_headers, process_data } from "./utils/data_processing";
 	import { handle_keydown } from "./utils/keyboard_utils";
-	import { create_drag_handlers, type DragState } from "./utils/drag_utils";
+	import {
+		create_drag_handlers,
+		type DragState,
+		type DragHandlers
+	} from "./utils/drag_utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -691,19 +695,26 @@
 		mouse_down_pos = drag_state.mouse_down_pos;
 	}
 
-	const drag_handlers = create_drag_handlers(
-		drag_state,
-		(value) => (is_dragging = value),
-		(cells) => df_actions.set_selected_cells(cells),
-		(cell) => df_actions.set_selected(cell),
-		(event, row, col) =>
-			selection_ctx.actions.handle_cell_click(event, row, col),
-		show_row_numbers
-	);
+	let drag_handlers: DragHandlers;
 
-	const handle_mouse_down = drag_handlers.handle_mouse_down;
-	const handle_mouse_move = drag_handlers.handle_mouse_move;
-	const handle_mouse_up = drag_handlers.handle_mouse_up;
+	function init_drag_handlers(): void {
+		drag_handlers = create_drag_handlers(
+			drag_state,
+			(value) => (is_dragging = value),
+			(cells) => df_actions.set_selected_cells(cells),
+			(cell) => df_actions.set_selected(cell),
+			(event, row, col) =>
+				selection_ctx.actions.handle_cell_click(event, row, col),
+			show_row_numbers,
+			parent
+		);
+	}
+
+	$: if (parent) init_drag_handlers();
+
+	$: handle_mouse_down = drag_handlers?.handle_mouse_down || (() => {});
+	$: handle_mouse_move = drag_handlers?.handle_mouse_move || (() => {});
+	$: handle_mouse_up = drag_handlers?.handle_mouse_up || (() => {});
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />

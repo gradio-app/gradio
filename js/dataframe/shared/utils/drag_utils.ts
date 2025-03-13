@@ -19,7 +19,8 @@ export function create_drag_handlers(
 	set_selected_cells: (cells: CellCoordinate[]) => void,
 	set_selected: (cell: CellCoordinate | false) => void,
 	handle_cell_click: (event: MouseEvent, row: number, col: number) => void,
-	show_row_numbers: boolean
+	show_row_numbers: boolean,
+	parent_element?: HTMLElement
 ): DragHandlers {
 	const start_drag = (event: MouseEvent, row: number, col: number): void => {
 		if (
@@ -57,6 +58,8 @@ export function create_drag_handlers(
 	const end_drag = (event: MouseEvent): void => {
 		if (!state.is_dragging && state.drag_start) {
 			handle_cell_click(event, state.drag_start[0], state.drag_start[1]);
+		} else if (state.is_dragging && parent_element) {
+			parent_element.focus();
 		}
 
 		state.is_dragging = false;
