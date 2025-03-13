@@ -1,5 +1,16 @@
 # @gradio/textbox
 
+## 0.10.5
+
+### Fixes
+
+- [#10785](https://github.com/gradio-app/gradio/pull/10785) [`fb8c1cb`](https://github.com/gradio-app/gradio/commit/fb8c1cb6d159fbcec80749f691e9b783bc212936) - Move `gr.Textbox` lines logic to frontend.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.5
+- @gradio/atoms@0.14.0
+
 ## 0.10.4
 
 ### Dependency updates
