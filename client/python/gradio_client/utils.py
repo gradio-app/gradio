@@ -922,6 +922,7 @@ FILE_DATA_FORMATS = [
     "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool)",
     "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool, meta: Dict())",
     "dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool, meta: dict())",
+    "dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool, meta: dict(_type: Literal[gradio.FileData]))",
 ]
 
 CURRENT_FILE_DATA_FORMAT = FILE_DATA_FORMATS[-1]

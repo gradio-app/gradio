@@ -15,7 +15,6 @@ from typing import (
     Literal,
     NewType,
     Optional,
-    TypedDict,
     Union,
 )
 
@@ -35,7 +34,7 @@ from pydantic import (
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, TypedDict
 
 try:
     from pydantic import JsonValue
@@ -208,6 +207,10 @@ class FileDataDict(TypedDict):
     meta: NotRequired[dict]
 
 
+class FileDataMeta(TypedDict):
+    _type: Literal["gradio.FileData"]
+
+
 @document()
 class FileData(GradioModel):
     """
@@ -229,7 +232,7 @@ class FileData(GradioModel):
     orig_name: Optional[str] = None  # original filename
     mime_type: Optional[str] = None
     is_stream: bool = False
-    meta: dict = {"_type": "gradio.FileData"}
+    meta: FileDataMeta = Field(default_factory=lambda: {"_type": "gradio.FileData"})
 
     @model_validator(mode="before")
     @classmethod
