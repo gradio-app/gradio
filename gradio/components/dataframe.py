@@ -130,7 +130,7 @@ class Dataframe(Component):
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             wrap: If True, the text in table cells will wrap when appropriate. If False and the `column_width` parameter is not set, the column widths will expand based on the cell contents and the table may need to be horizontally scrolled. If `column_width` is set, then any overflow text will be hidden.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies for columns of type "markdown."
-            column_widths: An optional list representing the width of each column. The elements of the list should be in the format "100px" (ints are also accepted and converted to pixel values) or "10%". If not provided, the column widths will be automatically determined based on the content of the cells. Setting this parameter will cause the browser to try to fit the table within the page width.
+            column_widths: An optional list representing the width of each column. The elements of the list should be in the format "100px" (ints are also accepted and converted to pixel values) or "10%". The percentage width is calculated based on the viewport width of the table. If not provided, the column widths will be automatically determined based on the content of the cells.
             show_fullscreen_button: If True, will show a button to view the values in the table in fullscreen mode.
             show_copy_button: If True, will show a button to copy the table data to the clipboard.
             show_row_numbers: If True, will display row numbers in a separate column.
@@ -201,7 +201,11 @@ class Dataframe(Component):
         self.max_height = max_height
         self.line_breaks = line_breaks
         self.column_widths = [
-            w if isinstance(w, str) else f"{w}px" for w in (column_widths or [])
+            w
+            if isinstance(w, str)
+            and (w.endswith("px") or w.endswith("%") or w == "auto")
+            else f"{w}px"
+            for w in (column_widths or [])
         ]
         self.show_fullscreen_button = show_fullscreen_button
         self.show_copy_button = show_copy_button
