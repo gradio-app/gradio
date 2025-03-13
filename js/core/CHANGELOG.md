@@ -1,5 +1,28 @@
 # @gradio/core
 
+## 0.13.0
+
+### Features
+
+- [#10778](https://github.com/gradio-app/gradio/pull/10778) [`373007b`](https://github.com/gradio-app/gradio/commit/373007b3e9d019ee41589d1dbb09a7511a024a51) - Allow sorting by multiple columns in dataframe.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/image@0.21.5
+- @gradio/upload@0.15.5
+- @gradio/statustracker@0.10.5
+- @gradio/button@0.4.10
+- @gradio/video@0.14.5
+- @gradio/atoms@0.14.0
+- @gradio/code@0.12.0
+- @gradio/paramviewer@0.7.3
+- @gradio/gallery@0.15.10
+- @gradio/plot@0.9.10
+- @gradio/textbox@0.10.5
+- @gradio/column@0.2.0
+- @gradio/checkbox@0.4.15
+- @gradio/file@0.12.10
+
 ## 0.12.1
 
 ### Features

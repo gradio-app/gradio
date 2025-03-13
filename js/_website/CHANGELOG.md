@@ -1,5 +1,17 @@
 # website
 
+## 0.53.0
+
+### Features
+
+- [#10733](https://github.com/gradio-app/gradio/pull/10733) [`731ab92`](https://github.com/gradio-app/gradio/commit/731ab92001c88d4cf1062acf0a4f1108a4513014) - Autocompletion on code editor component.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.5
+- @gradio/code@0.12.0
+- @gradio/paramviewer@0.7.3
+
 ## 0.52.0
 
 ### Features

@@ -1,5 +1,31 @@
 # gradio
 
+## 5.21.0
+
+### Features
+
+- [#10784](https://github.com/gradio-app/gradio/pull/10784) [`6812544`](https://github.com/gradio-app/gradio/commit/681254453a15dadde068feaec176bb984710292b) - On Windows OS, hide `gr.Dataframe` scrollbars while keeping scrolling functionality.  Thanks @abidlabs!
+- [#10802](https://github.com/gradio-app/gradio/pull/10802) [`9ec8898`](https://github.com/gradio-app/gradio/commit/9ec8898c0f5753fb548a89f9804b71b69797d00c) - Fix excess scroll bug in dataframe.  Thanks @hannahblair!
+- [#10805](https://github.com/gradio-app/gradio/pull/10805) [`8d03368`](https://github.com/gradio-app/gradio/commit/8d03368243b6365d279563cf38a18b67a0efaf69) - Fix max characters in non-editable dataframes.  Thanks @hannahblair!
+- [#10787](https://github.com/gradio-app/gradio/pull/10787) [`b3e8c26`](https://github.com/gradio-app/gradio/commit/b3e8c263be51f9553e9f19939be0f880092b44c9) - Implement cell selection via drag in dataframe.  Thanks @hannahblair!
+- [#10734](https://github.com/gradio-app/gradio/pull/10734) [`c44b8f4`](https://github.com/gradio-app/gradio/commit/c44b8f47b927258552af61c3af06f2e30449f571) - Add `static_columns` param for interactive dataframes.  Thanks @hannahblair!
+- [#10778](https://github.com/gradio-app/gradio/pull/10778) [`373007b`](https://github.com/gradio-app/gradio/commit/373007b3e9d019ee41589d1dbb09a7511a024a51) - Allow sorting by multiple columns in dataframe.  Thanks @hannahblair!
+- [#10804](https://github.com/gradio-app/gradio/pull/10804) [`39c30be`](https://github.com/gradio-app/gradio/commit/39c30be1628028a86400c1e4b993db51e91b2580) - Add parent focus for drag selection.  Thanks @hannahblair!
+- [#10777](https://github.com/gradio-app/gradio/pull/10777) [`3b48367`](https://github.com/gradio-app/gradio/commit/3b483672f4778f5b19d2f529328c1f71b3742f45) - Allow navigating down from header cells, as well as support cmd/ctrl + arrow keys.  Thanks @abidlabs!
+- [#10776](https://github.com/gradio-app/gradio/pull/10776) [`85f6132`](https://github.com/gradio-app/gradio/commit/85f6132f1f9f653329edfa22f627e342e8b42731) - Fix cell selection when using shift + arrow keys.  Thanks @abidlabs!
+- [#10733](https://github.com/gradio-app/gradio/pull/10733) [`731ab92`](https://github.com/gradio-app/gradio/commit/731ab92001c88d4cf1062acf0a4f1108a4513014) - Autocompletion on code editor component.  Thanks @whitphx!
+- [#10743](https://github.com/gradio-app/gradio/pull/10743) [`3086343`](https://github.com/gradio-app/gradio/commit/3086343a6832a941864d77821b23c31c8b26be7f) - Fixed size for pending thoughts.  Thanks @dawoodkhan82!
+- [#10768](https://github.com/gradio-app/gradio/pull/10768) [`0ce7bfe`](https://github.com/gradio-app/gradio/commit/0ce7bfe1bd733b30645a4833ba29988b4641acc7) - Allow tags for chatbot models using `gr.load`.  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#10757](https://github.com/gradio-app/gradio/pull/10757) [`b4342d2`](https://github.com/gradio-app/gradio/commit/b4342d24a88acaa4ed4028c8fdd44eea0d1b8b57) - Fix dataframe search and filter functionality.  Thanks @hannahblair!
+- [#10786](https://github.com/gradio-app/gradio/pull/10786) [`88941b6`](https://github.com/gradio-app/gradio/commit/88941b655e708ab14611341ed3fe57452fbbfc58) - Remove fixed layouts from dataframe.  Thanks @hannahblair!
+- [#10631](https://github.com/gradio-app/gradio/pull/10631) [`b5ca1dc`](https://github.com/gradio-app/gradio/commit/b5ca1dcfdf496292eade31347ae1974d3a0976c4) - Refactor `gr.Dataframe`.  Thanks @hannahblair!
+- [#10785](https://github.com/gradio-app/gradio/pull/10785) [`fb8c1cb`](https://github.com/gradio-app/gradio/commit/fb8c1cb6d159fbcec80749f691e9b783bc212936) - Move `gr.Textbox` lines logic to frontend.  Thanks @abidlabs!
+- [#10765](https://github.com/gradio-app/gradio/pull/10765) [`3232cdd`](https://github.com/gradio-app/gradio/commit/3232cddc00be4a8ac441177e4fe408fb193fdb0f) - fix: latex rendering of markdown.  Thanks @Col0ring!
+- [#10735](https://github.com/gradio-app/gradio/pull/10735) [`dd2de17`](https://github.com/gradio-app/gradio/commit/dd2de17064dc6794f94b0bfad973ab5aba671b10) - Fix windows path issue in FileExplorer.  Thanks @aliabid94!
+
 ## 5.20.1
 
 ### Features

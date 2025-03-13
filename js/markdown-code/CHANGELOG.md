@@ -1,5 +1,11 @@
 # @gradio/markdown-code
 
+## 0.4.1
+
+### Fixes
+
+- [#10765](https://github.com/gradio-app/gradio/pull/10765) [`3232cdd`](https://github.com/gradio-app/gradio/commit/3232cddc00be4a8ac441177e4fe408fb193fdb0f) - fix: latex rendering of markdown.  Thanks @Col0ring!
+
 ## 0.4.0
 
 ### Features
