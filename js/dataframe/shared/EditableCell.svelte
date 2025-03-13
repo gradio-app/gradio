@@ -53,14 +53,23 @@
 	): string {
 		if (is_image) return String(text);
 		const str = String(text);
-		if (!max_length || str.length <= max_length) return str;
+		if (!max_length || max_length <= 0) return str;
+		if (str.length <= max_length) return str;
 		return str.slice(0, max_length) + "...";
 	}
 
-	$: display_text =
-		edit || is_expanded
-			? value
-			: truncate_text(display_value || value, max_chars, datatype === "image");
+	$: should_truncate =
+		!edit && !is_expanded && max_chars !== null && max_chars > 0;
+
+	$: display_content = editable
+		? value
+		: display_value !== null
+			? display_value
+			: value;
+
+	$: display_text = should_truncate
+		? truncate_text(display_content, max_chars, datatype === "image")
+		: display_content;
 
 	function use_focus(node: HTMLInputElement): any {
 		if (clear_on_focus) {
@@ -133,6 +142,8 @@
 	on:focus|preventDefault
 	style={styling}
 	data-editable={editable}
+	data-max-chars={max_chars}
+	data-expanded={is_expanded}
 	placeholder=" "
 	class:text={datatype === "str"}
 >
@@ -157,7 +168,7 @@
 			{root}
 		/>
 	{:else}
-		{editable ? display_text : display_value || display_text}
+		{display_text}
 	{/if}
 </span>
 {#if show_selection_buttons && coords && on_select_column && on_select_row}
@@ -201,6 +212,12 @@
 		cursor: text;
 		width: 100%;
 		height: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	span.text:not(.expanded) {
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
