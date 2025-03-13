@@ -428,7 +428,7 @@ class DownloadData(EventData):
 
     def __init__(self, target: Block | None, data: FileDataDict):
         super().__init__(target, data)
-        self.file: FileData = FileData(**data)
+        self.file: FileData = FileData(**data)  # type: ignore
         """
         The file that was downloaded, as a FileData object.
         """
