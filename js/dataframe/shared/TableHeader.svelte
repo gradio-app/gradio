@@ -45,16 +45,11 @@
 		column_tooltips && (column_tooltips[i] || column_tooltips[String(i)]);
 
 	let tooltip_visible = false;
-	let tooltip_x = 0;
-	let tooltip_y = 0;
 	let header_element: HTMLElement;
+	let tooltip_element: HTMLElement;
 
-	function show_tooltip(event: MouseEvent): void {
+	function show_tooltip(): void {
 		if (!has_tooltip) return;
-
-		const rect = header_element.getBoundingClientRect();
-		tooltip_x = rect.right;
-		tooltip_y = rect.bottom;
 		tooltip_visible = true;
 	}
 
@@ -144,13 +139,13 @@
 			<CellMenuButton on_click={(event) => toggle_header_menu(event, i)} />
 		{/if}
 	</div>
-</th>
 
-{#if tooltip_visible && has_tooltip}
-	<div class="tooltip" style="top: {tooltip_y}px; left: {tooltip_x}px;">
-		{tooltip_text}
-	</div>
-{/if}
+	{#if tooltip_visible && has_tooltip}
+		<div class="tooltip" bind:this={tooltip_element}>
+			{tooltip_text}
+		</div>
+	{/if}
+</th>
 
 <style>
 	th {
@@ -238,14 +233,19 @@
 
 	.tooltip {
 		position: absolute;
-		z-index: 10;
-		background-color: rgba(0, 0, 0, 0.8);
-		color: white;
-		padding: var(--size-1) var(--size-2);
+		top: 100%;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 20;
+		background: var(--background-fill-primary);
+		color: var(--body-text-color);
+		padding: var(--size-2);
 		border-radius: var(--radius-sm);
+		box-shadow: var(--shadow-drop);
 		font-size: var(--text-sm);
-		max-width: 300px;
-		transform: translate(-50%, 8px);
+		max-width: 200px;
+		white-space: normal;
+		margin-top: var(--size-1);
 		pointer-events: none;
 	}
 </style>
