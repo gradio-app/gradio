@@ -4,7 +4,9 @@
 	import { prepare_files, type Client } from "@gradio/client";
 	import { _ } from "svelte-i18n";
 	import UploadProgress from "./UploadProgress.svelte";
-	import { drag } from "./utils";
+	import { create_drag } from "./utils";
+
+	const { drag, open_file_upload: _open_file_upload } = create_drag();
 
 	export let filetype: string | string[] | null = null;
 	export let dragging = false;
@@ -90,11 +92,7 @@
 	}
 
 	export function open_file_upload(): void {
-		if (disable_click) return;
-		if (hidden_upload) {
-			hidden_upload.value = "";
-			hidden_upload.click();
-		}
+		_open_file_upload();
 	}
 
 	async function handle_upload(

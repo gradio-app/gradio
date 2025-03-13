@@ -14,6 +14,9 @@
 	import Toolbar, { type Tool as ToolbarTool } from "./Toolbar.svelte";
 	import { CropTool } from "./crop/crop";
 	import { ResizeTool } from "./resize/resize";
+	import { Webcam } from "@gradio/image";
+	import type { I18nFormatter } from "@gradio/utils";
+	import type { Client } from "@gradio/client";
 	import { writable } from "svelte/store";
 	import { spring } from "svelte/motion";
 	import { Rectangle } from "pixi.js";
@@ -21,13 +24,15 @@
 	import {
 		command_manager,
 		type CommandManager,
-		type CommandNode
+		type CommandNode,
 	} from "./utils/commands";
 	import { ImageEditor } from "./core/editor";
 	import { type Brush, type Eraser } from "./brush/types";
 	import { BrushTool } from "./brush/brush";
-	import { drag } from "@gradio/upload";
+	import { create_drag } from "@gradio/upload";
 	import Layers from "./Layers.svelte";
+
+	const { drag, open_file_upload } = create_drag();
 
 	// import { type LayerScene } from "./layers/utils";
 	import { type ImageBlobs } from "./types";
@@ -54,6 +59,11 @@
 	export let brush_options: Brush;
 	export let eraser_options: Eraser;
 	export let fixed_canvas = false;
+	export let root: string;
+	export let mirror_webcam = true;
+	export let i18n: I18nFormatter;
+	export let upload: Client["upload"];
+	export let stream_handler: Client["stream"];
 	/**
 	 * Gets the image blobs from the editor
 	 * @returns {Promise<ImageBlobs>} Object containing background, layers, and composite image blobs
@@ -92,7 +102,7 @@
 			width: canvas_size[0],
 			height: canvas_size[1],
 			tools: ["image", zoom, new CropTool(), new ResizeTool(), brush],
-			fixed_canvas
+			fixed_canvas,
 		});
 
 		editor.scale.subscribe((_scale) => {
@@ -115,8 +125,10 @@
 	 * Handles file uploads
 	 * @param {File[]} files - The uploaded files
 	 */
-	function handle_files(files: File[]): void {
-		editor.add_image(files[0]);
+	function handle_files(files: File[] | Blob[] | File | Blob | null): void {
+		if (files == null) return;
+		const _file = Array.isArray(files) ? files[0] : files;
+		editor.add_image(_file);
 		background_image = true;
 
 		dispatch("upload");
@@ -140,13 +152,14 @@
 	 */
 	function handle_subtool_change({
 		tool,
-		subtool
+		subtool,
 	}: {
 		tool: ToolbarTool;
-		subtool: Subtool;
+		subtool: Subtool | null;
 	}): void {
+		console.log("handle_subtool_change", tool, subtool);
 		editor.set_subtool(subtool);
-
+		current_subtool = subtool;
 		// When subtool is null, we're just closing the options panel
 		// but we want to keep the tool active
 		if (subtool === null) {
@@ -165,6 +178,18 @@
 
 		if (tool === "erase" && subtool === "size") {
 			eraser_size_visible = true;
+		}
+
+		if (tool === "image" && subtool === "paste") {
+			process_clipboard();
+		}
+
+		if (tool === "image" && subtool === "upload") {
+			tick().then(() => {
+				console.log("click", disable_click);
+				disable_click = false;
+				open_file_upload();
+			});
 		}
 	}
 
@@ -186,20 +211,24 @@
 	$: brush?.set_brush_color(
 		selected_color === "auto"
 			? brush_options.colors.find(
-					(color) => color === brush_options.default_color
+					(color) => color === brush_options.default_color,
 				) || brush_options.colors[0]
-			: selected_color
+			: selected_color,
 	);
 
 	// Type-safe brush size handling
 	$: brush?.set_brush_size(
-		typeof selected_size === "number" ? selected_size : 25
+		typeof selected_size === "number" ? selected_size : 25,
 	);
 	$: brush?.set_eraser_size(
-		typeof selected_eraser_size === "number" ? selected_eraser_size : 25
+		typeof selected_eraser_size === "number" ? selected_eraser_size : 25,
 	);
 	$: disable_click =
-		current_tool !== "image" || (current_tool === "image" && background_image);
+		current_tool !== "image" ||
+		(current_tool === "image" && background_image) ||
+		(current_tool === "image" && current_subtool === "webcam");
+
+	let current_subtool: Subtool | null = null;
 	let preview = false;
 	$: brush?.preview_brush(preview);
 	$: brush?.set_brush_opacity(selected_opacity);
@@ -213,8 +242,29 @@
 		zoom.set_zoom(
 			direction === "in"
 				? zoom_level + (zoom_level < 1 ? 0.1 : zoom_level * 0.1)
-				: zoom_level - (zoom_level < 1 ? 0.1 : zoom_level * 0.1)
+				: zoom_level - (zoom_level < 1 ? 0.1 : zoom_level * 0.1),
 		);
+	}
+
+	async function process_clipboard(): Promise<void> {
+		const items = await navigator.clipboard.read();
+
+		for (let i = 0; i < items.length; i++) {
+			const type = items[i].types.find((t) => t.startsWith("image/"));
+			if (type) {
+				const blob = await items[i].getType(type);
+
+				handle_files(blob);
+			}
+		}
+	}
+
+	function handle_capture(e: CustomEvent): void {
+		console.log("capture", e);
+		if (e.detail !== null) {
+			handle_files(e.detail as Blob);
+		}
+		handle_subtool_change({ tool: current_tool, subtool: null });
 	}
 
 	function handle_save(): void {
@@ -229,7 +279,7 @@
 		on_drag_change: (dragging) => (is_dragging = dragging),
 		on_files: handle_files,
 		accepted_types: "image/*",
-		disable_click: disable_click
+		disable_click: disable_click,
 	}}
 >
 	{#if ready}
@@ -251,7 +301,7 @@
 					e.detail.width,
 					e.detail.height,
 					e.detail.anchor,
-					e.detail.scale
+					e.detail.scale,
 				);
 			}}
 			can_save={true}
@@ -281,6 +331,25 @@
 			bind:selected_opacity
 			bind:preview
 		/>
+
+		{#if current_tool === "image" && current_subtool === "webcam"}
+			<div class="modal">
+				<div class="modal-inner">
+					<Webcam
+						{upload}
+						{root}
+						on:capture={handle_capture}
+						on:error
+						on:drag
+						{mirror_webcam}
+						streaming={false}
+						mode="image"
+						include_audio={false}
+						{i18n}
+					/>
+				</div>
+			</div>
+		{/if}
 		<Layers
 			layers={editor.layers}
 			on:new_layer={() => {
@@ -324,5 +393,23 @@
 		right: 0;
 		bottom: 0;
 		overflow: hidden;
+	}
+
+	.modal {
+		position: absolute;
+		height: 100%;
+		width: 100%;
+		left: 0;
+		right: 0;
+		margin: auto;
+		z-index: var(--layer-top);
+		display: flex;
+		align-items: center;
+	}
+
+	.modal-inner {
+		height: 100%;
+		width: 100%;
+		background: var(--block-background-fill);
 	}
 </style>

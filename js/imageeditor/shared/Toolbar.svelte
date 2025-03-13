@@ -31,7 +31,9 @@
 		Circle,
 		Maximise,
 		Resize,
+		Pan,
 		Trash,
+		ColorPickerSolid,
 	} from "@gradio/icons";
 	import BrushOptions from "./brush/BrushOptions.svelte";
 
@@ -76,7 +78,9 @@
 	 * Handles tool click events
 	 * @param {Tool} _tool - The selected tool
 	 */
-	function handle_tool_click(_tool: Tool): void {
+	function handle_tool_click(e: Event, _tool: Tool): void {
+		e.stopPropagation();
+
 		tool = _tool;
 		dispatch("tool_change", { tool });
 	}
@@ -87,6 +91,7 @@
 	 * @param {Subtool} _subtool - The selected subtool
 	 */
 	function handle_subtool_click(e: Event, _subtool: typeof subtool): void {
+		e.stopPropagation();
 		subtool = _subtool;
 		dispatch("subtool_change", { tool, subtool });
 	}
@@ -102,15 +107,15 @@
 			Icon={Image}
 			label="Image"
 			highlight={tool === "image"}
-			on:click={(e) => handle_tool_click("image")}
+			on:click={(e) => handle_tool_click(e, "image")}
 			size="medium"
 			padded={false}
 			transparent={true}
 		/>
 		<IconButton
-			Icon={Maximise}
-			label="Maximise"
-			on:click={(e) => handle_tool_click("pan")}
+			Icon={Pan}
+			label="Pan"
+			on:click={(e) => handle_tool_click(e, "pan")}
 			highlight={tool === "pan"}
 			size="medium"
 			padded={false}
@@ -119,7 +124,7 @@
 		<IconButton
 			Icon={Brush}
 			label="Brush"
-			on:click={(e) => handle_tool_click("draw")}
+			on:click={(e) => handle_tool_click(e, "draw")}
 			highlight={tool === "draw"}
 			size="medium"
 			padded={false}
@@ -128,7 +133,7 @@
 		<IconButton
 			Icon={Erase}
 			label="Erase"
-			on:click={(e) => handle_tool_click("erase")}
+			on:click={(e) => handle_tool_click(e, "erase")}
 			highlight={tool === "erase"}
 			size="medium"
 			padded={false}
@@ -183,7 +188,7 @@
 					label="Paste"
 					on:click={(e) => handle_subtool_click(e, "paste")}
 					highlight={subtool === "paste"}
-					size="medium"
+					size="large"
 					padded={false}
 					transparent={true}
 					offset={0}
@@ -203,10 +208,10 @@
 
 		{#if tool === "draw"}
 			<IconButton
-				Icon={Color}
+				Icon={ColorPickerSolid}
 				label="Color"
+				color={selected_color}
 				on:click={(e) => handle_subtool_click(e, "color")}
-				highlight={subtool === "color"}
 				size="medium"
 				padded={false}
 				transparent={true}
