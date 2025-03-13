@@ -18,14 +18,14 @@ with gr.Blocks() as demo:
 
 with demo.route("Up") as incrementer_demo:
     num = gr.Number()
-    incrementer_demo.load(lambda: time.sleep(1) or random.randint(10, 40), None, num)
+    incrementer_demo.load(lambda: time.sleep(0.1) or random.randint(10, 40), None, num)
 
     with gr.Row():
         inc_btn = gr.Button("Increase")
         dec_btn = gr.Button("Decrease")
     inc_btn.click(fn=lambda x: x + 1, inputs=num, outputs=num, api_name="increment")
     dec_btn.click(fn=lambda x: x - 1, inputs=num, outputs=num, api_name="decrement")
-    for i in range(100):
+    for _ in range(2):
         gr.Textbox()
 
 def wait(x):

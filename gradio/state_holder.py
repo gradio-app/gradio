@@ -109,6 +109,15 @@ class SessionState:
             return key in self.blocks_config.blocks
 
     @property
+    def components(self) -> Iterator[tuple[int, dict]]:
+        for id in self.blocks_config.blocks:
+            config = self.blocks_config.config_for_block(
+                id, [], self.blocks_config.blocks[id]
+            )
+            if config:
+                yield id, config
+
+    @property
     def state_components(self) -> Iterator[tuple[State, Any, bool]]:
         from gradio.components import State
 

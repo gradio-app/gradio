@@ -315,6 +315,7 @@
 
 		config = app.get_url_config();
 		window.__gradio_space__ = config.space_id;
+		window.__gradio_session_hash__ = app.session_hash;
 
 		status = {
 			message: "",

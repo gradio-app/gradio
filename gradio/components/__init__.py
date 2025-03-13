@@ -42,6 +42,7 @@ from gradio.components.number import Number
 from gradio.components.paramviewer import ParamViewer
 from gradio.components.plot import Plot
 from gradio.components.radio import Radio
+from gradio.components.share_link_button import ShareLinkButton
 from gradio.components.slider import Slider
 from gradio.components.state import State
 from gradio.components.textbox import Textbox
@@ -121,4 +122,5 @@ __all__ = [
     "ParamViewer",
     "MultimodalTextbox",
     "NativePlot",
+    "ShareLinkButton",
 ]

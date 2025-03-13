@@ -536,7 +536,9 @@ class App(FastAPI):
             request: fastapi.Request,
             user: str = Depends(get_current_user),
             page: str = "",
+            share: str = "",
         ):
+            print("share", share)
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
             root = route_utils.get_root_url(
@@ -547,12 +549,20 @@ class App(FastAPI):
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
                 config = route_utils.update_root_in_config(config, root)
+                if share:
+                    components = [
+                        utils.safe_deepcopy(c)
+                        for id, c in app.state_holder[share].components
+                        if id in config["page"][page]["components"]
+                    ]
+                else:
+                    components = [
+                        component
+                        for component in config["components"]
+                        if component["id"] in config["page"][page]["components"]
+                    ]
                 config["username"] = user
-                config["components"] = [
-                    component
-                    for component in config["components"]
-                    if component["id"] in config["page"][page]["components"]
-                ]
+                config["components"] = components
                 config["dependencies"] = [
                     dependency
                     for dependency in config.get("dependencies", [])
@@ -560,6 +570,7 @@ class App(FastAPI):
                 ]
                 config["layout"] = config["page"][page]["layout"]
                 config["current_page"] = page
+                print("here")
             elif app.auth_dependency:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"

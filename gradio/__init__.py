@@ -54,6 +54,7 @@ from gradio.components import (
     Plot,
     Radio,
     ScatterPlot,
+    ShareLinkButton,
     Slider,
     State,
     Text,
@@ -235,4 +236,5 @@ __all__ = [
     "set_static_paths",
     "skip",
     "update",
+    "ShareLinkButton",
 ]
