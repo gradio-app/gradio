@@ -104,9 +104,8 @@
 
 {#if edit}
 	<input
-		disabled={is_static}
-		aria-disabled={is_static}
-		class:static={is_static}
+		readonly={is_static}
+		aria-readonly={is_static}
 		role="textbox"
 		aria-label={is_static ? "Cell is read-only" : "Edit cell"}
 		bind:this={el}
@@ -131,7 +130,6 @@
 	class:edit
 	class:expanded={is_expanded}
 	class:multiline={header}
-	class:static={!editable}
 	on:focus|preventDefault
 	style={styling}
 	data-editable={editable}
@@ -188,6 +186,7 @@
 		border: none;
 		background: transparent;
 		cursor: text;
+		width: calc(100% - var(--size-2));
 	}
 
 	span {
@@ -241,7 +240,7 @@
 		object-fit: contain;
 	}
 
-	input:disabled {
+	input:read-only {
 		cursor: not-allowed;
 	}
 </style>
