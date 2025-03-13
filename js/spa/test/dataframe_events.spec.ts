@@ -279,7 +279,7 @@ test("Static columns cannot be edited", async ({ page }) => {
 	await page.waitForTimeout(100);
 
 	const is_disabled =
-		(await static_column_cell.locator("input").getAttribute("read-only")) !==
+		(await static_column_cell.locator("input").getAttribute("readonly")) !==
 		null;
 	expect(is_disabled).toBe(true);
 
