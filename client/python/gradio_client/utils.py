@@ -922,6 +922,7 @@ FILE_DATA_FORMATS = [
     "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool)",
     "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool, meta: Dict())",
     "dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool, meta: dict())",
+    "dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool, meta: dict(_type: Literal[gradio.FileData]))",
 ]
 
 CURRENT_FILE_DATA_FORMAT = FILE_DATA_FORMATS[-1]
@@ -989,9 +990,13 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
         ]
 
         if "additionalProperties" in schema:
-            des += [
-                f"str, {_json_schema_to_python_type(schema['additionalProperties'], defs)}"
-            ]
+            additional_properties = schema["additionalProperties"]
+            if isinstance(additional_properties, bool) and additional_properties:
+                des += ["str, Any"]
+            else:
+                des += [
+                    f"str, {_json_schema_to_python_type(additional_properties, defs)}"
+                ]
         des = ", ".join(des)
         return f"dict({des})"
     elif type_ in ["oneOf", "anyOf"]:
