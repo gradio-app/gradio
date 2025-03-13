@@ -586,6 +586,20 @@
 />
 
 <Story
+	name="Dataframe with pixel and percentage column widths set"
+	args={{
+		values: [
+			[1, 2, 3, 4, 5],
+			[6, 7, 8, 9, 10]
+		],
+		headers: ["10%", "50%", "40%", "100px", "100px"],
+		col_count: [5, "dynamic"],
+		row_count: [2, "dynamic"],
+		column_widths: ["10%", "50%", "40%", "100px", "100px"]
+	}}
+/>
+
+<Story
 	name="Dataframe with drag selection"
 	args={{
 		values: [

@@ -216,17 +216,18 @@
 	}
 
 	.multiline {
-		white-space: pre-line;
-		overflow: visible;
+		white-space: pre;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.header {
 		transform: translateX(0);
 		font-weight: var(--weight-bold);
-		white-space: normal;
-		word-break: break-word;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 		margin-left: var(--size-1);
-		overflow: visible;
 	}
 
 	.edit {

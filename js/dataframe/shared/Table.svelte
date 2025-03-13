@@ -172,6 +172,11 @@
 	}[][] = [[]];
 
 	$: if (!dequal(values, old_val)) {
+		if (parent) {
+			for (let i = 0; i < 50; i++) {
+				parent.style.removeProperty(`--cell-width-${i}`);
+			}
+		}
 		// only reset sort state when values are changed
 		const is_reset =
 			values.length === 0 || (values.length === 1 && values[0].length === 0);
@@ -197,6 +202,10 @@
 
 		if ($df_state.current_search_query) {
 			df_actions.handle_search(null);
+		}
+
+		if (parent && cells.length > 0) {
+			set_cell_widths();
 		}
 	}
 
@@ -365,20 +374,29 @@
 		if (show_row_numbers) {
 			parent.style.setProperty(`--cell-width-row-number`, `${widths[0]}px`);
 		}
+
+		for (let i = 0; i < 50; i++) {
+			if (!column_widths[i]) {
+				parent.style.removeProperty(`--cell-width-${i}`);
+			} else if (column_widths[i].endsWith("%")) {
+				const percentage = parseFloat(column_widths[i]);
+				const pixel_width = Math.floor((percentage / 100) * parent.clientWidth);
+				parent.style.setProperty(`--cell-width-${i}`, `${pixel_width}px`);
+			} else {
+				parent.style.setProperty(`--cell-width-${i}`, column_widths[i]);
+			}
+		}
+
 		widths.forEach((width, i) => {
 			if (!column_widths[i]) {
-				parent.style.setProperty(
-					`--cell-width-${i}`,
-					`${width - scrollbar_width / widths.length}px`
-				);
+				const calculated_width = `${Math.max(width, 45)}px`;
+				parent.style.setProperty(`--cell-width-${i}`, calculated_width);
 			}
 		});
 	}
 
 	function get_cell_width(index: number): string {
-		return column_widths[index]
-			? `${column_widths[index]}`
-			: `var(--cell-width-${index})`;
+		return `var(--cell-width-${index})`;
 	}
 
 	let table_height: number =
@@ -725,7 +743,7 @@
 		role="grid"
 		tabindex="0"
 	>
-		<table bind:this={table} class:fixed-layout={column_widths.length != 0}>
+		<table bind:this={table}>
 			{#if label && label.length !== 0}
 				<caption class="sr-only">{label}</caption>
 			{/if}
@@ -1019,10 +1037,6 @@
 		font-family: var(--font-mono);
 		border-spacing: 0;
 		border-collapse: separate;
-	}
-
-	table.fixed-layout {
-		table-layout: fixed;
 	}
 
 	thead {
