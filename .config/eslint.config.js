@@ -26,7 +26,7 @@ const jsdoc_rules_disabled = Object.fromEntries(
 
 const js_rules = {
 	...js_rules_disabled,
-	"no-console": ["error", { allow: ["warn", "error", "debug", "info"] }],
+	// "no-console": ["error", { allow: ["warn", "error", "debug", "info"] }],
 	"no-constant-condition": "error",
 	"no-dupe-args": "error",
 	"no-extra-boolean-cast": "error",

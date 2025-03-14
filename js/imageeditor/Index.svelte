@@ -1,15 +1,12 @@
 <svelte:options accessors={true} immutable={true} />
 
 <script lang="ts">
-	import type { Brush, Eraser } from "./shared/tools/Brush.svelte";
-	import type {
-		EditorData,
-		ImageBlobs
-	} from "./shared/InteractiveImageEditor.svelte";
+	import type { Brush, Eraser } from "./shared/brush/types";
+	import type { EditorData, ImageBlobs } from "./InteractiveImageEditor.svelte";
 
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { BaseStaticImage as StaticImage } from "@gradio/image";
-	import InteractiveImageEditor from "./shared/InteractiveImageEditor.svelte";
+	import InteractiveImageEditor from "./InteractiveImageEditor.svelte";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
@@ -21,7 +18,7 @@
 	export let value: EditorData | null = {
 		background: null,
 		layers: [],
-		composite: null
+		composite: null,
 	};
 	export let label: string;
 	export let show_label: boolean;
@@ -29,7 +26,7 @@
 	export let root: string;
 	export let value_is_output = false;
 
-	export let height: number | undefined;
+	export let height = 350;
 	export let width: number | undefined;
 
 	export let _selectable = false;
@@ -41,14 +38,12 @@
 	export let sources: ("clipboard" | "webcam" | "upload")[] = [
 		"upload",
 		"clipboard",
-		"webcam"
+		"webcam",
 	];
 	export let interactive: boolean;
 	export let placeholder: string | undefined;
-
 	export let brush: Brush;
 	export let eraser: Eraser;
-	export let crop_size: [number, number] | `${string}:${string}` | null = null;
 	export let transforms: "crop"[] = ["crop"];
 	export let layers = true;
 	export let attached_events: string[] = [];
@@ -73,6 +68,7 @@
 		share: ShareData;
 		clear_status: LoadingStatus;
 	}>;
+	export let border_region: number;
 
 	let editor_instance: InteractiveImageEditor;
 	let image_id: null | string = null;
@@ -128,15 +124,7 @@
 
 	let dynamic_height: number | undefined = undefined;
 
-	// In case no height given, pick a height large enough for the entire canvas
-	// in pixi.ts, the max-height of the canvas is canvas height / pixel ratio
-
-	let safe_height_initial = Math.max(
-		canvas_size[1] / (is_browser ? window.devicePixelRatio : 1),
-		250
-	);
-
-	$: safe_height = Math.max((dynamic_height ?? safe_height_initial) + 100, 250);
+	$: console.log({ attached_events });
 
 	$: has_value = value?.background || value?.layers?.length || value?.composite;
 </script>
@@ -151,7 +139,8 @@
 		{elem_classes}
 		{height}
 		{width}
-		allow_overflow={false}
+		allow_overflow={true}
+		overflow_behavior="visible"
 		{container}
 		{scale}
 		{min_width}
@@ -184,9 +173,10 @@
 		padding={false}
 		{elem_id}
 		{elem_classes}
-		height={height || safe_height}
+		{height}
 		{width}
-		allow_overflow={false}
+		allow_overflow={true}
+		overflow_behavior="visible"
 		{container}
 		{scale}
 		{min_width}
@@ -199,20 +189,18 @@
 		/>
 
 		<InteractiveImageEditor
+			{border_region}
 			on:history={(e) => (full_history = e.detail)}
 			bind:dragging
 			{canvas_size}
 			on:change={() => handle_history_change()}
 			bind:image_id
-			{crop_size}
 			{value}
 			bind:this={editor_instance}
-			bind:dynamic_height
 			{root}
 			{sources}
 			{label}
 			{show_label}
-			{height}
 			{fixed_canvas}
 			on:save={(e) => handle_save()}
 			on:edit={() => gradio.dispatch("edit")}
@@ -229,7 +217,7 @@
 				(value = {
 					background: null,
 					layers: [],
-					composite: null
+					composite: null,
 				})}
 			on:error
 			{brush}

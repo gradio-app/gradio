@@ -186,9 +186,7 @@
 	</div>
 	<div
 		class="upload-container"
-		class:click-disabled={!!bg ||
-			active_mode === "webcam" ||
-			$active_tool !== "bg"}
+		class:click-disabled={true}
 		style:height="{Math.max(
 			$editor_box.child_height +
 				($editor_box.child_top - $editor_box.parent_top),
@@ -203,7 +201,7 @@
 			on:error
 			bind:dragging
 			{root}
-			disable_click={!sources.includes("upload")}
+			disable_click={true}
 			format="blob"
 			{upload}
 			{stream_handler}
