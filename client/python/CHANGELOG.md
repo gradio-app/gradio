@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.8.0
+
+### Features
+
+- [#10809](https://github.com/gradio-app/gradio/pull/10809) [`99b69df`](https://github.com/gradio-app/gradio/commit/99b69df1c000da092373440800fc08abe6ae9e20) - Trigger python client release.  Thanks @freddyaboulton!
+
 ## 1.7.2
 
 ### Features
