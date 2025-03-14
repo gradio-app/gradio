@@ -36,12 +36,18 @@ export class ImageTool implements Tool {
 
 	cleanup(): void {}
 
-	async add_image(image: Blob | File, fixed_canvas: boolean): Promise<void> {
+	async add_image(
+		image: Blob | File | Texture,
+		fixed_canvas: boolean,
+		borderRegion = 0
+	): Promise<void> {
 		const image_command = new AddImageCommand(
 			this.context,
 			image,
-			fixed_canvas
+			fixed_canvas,
+			borderRegion
 		);
+
 		await image_command.start();
 		this.context.execute_command(image_command);
 	}
@@ -64,18 +70,21 @@ export class AddImageCommand implements BgImageCommand {
 	sprite: Sprite;
 	fixed_canvas: boolean;
 	context: ImageEditorContext;
-	background: Blob | File;
+	background: Blob | File | Texture;
 	current_canvas_size: { width: number; height: number };
 	current_scale: number;
 	current_position: { x: number; y: number };
+	borderRegion: number;
 	constructor(
 		context: ImageEditorContext,
-		background: Blob | File,
-		fixed_canvas: boolean
+		background: Blob | File | Texture,
+		fixed_canvas: boolean,
+		borderRegion = 0
 	) {
 		this.context = context;
 		this.background = background;
 		this.fixed_canvas = fixed_canvas;
+		this.borderRegion = borderRegion;
 		this.current_canvas_size = get(this.context.dimensions);
 		this.current_scale = get(this.context.scale);
 		this.current_position = get(this.context.position);
@@ -84,35 +93,56 @@ export class AddImageCommand implements BgImageCommand {
 
 	async start(): Promise<[number, number]> {
 		// Create the sprite from the blob
-		const img = await createImageBitmap(this.background);
-		const bitmap_texture = Texture.from(img);
-		this.sprite = new Sprite(bitmap_texture);
+		let image_texture: Texture;
+		if (this.background instanceof Texture) {
+			image_texture = this.background;
+		} else {
+			const img = await createImageBitmap(this.background);
+			image_texture = Texture.from(img);
+		}
+		this.sprite = new Sprite(image_texture);
 
-		const { width, height, x, y } = this.fixed_canvas
-			? fit_image_to_canvas(
-					this.sprite.width,
-					this.sprite.height,
-					this.current_canvas_size.width,
-					this.current_canvas_size.height
-				)
-			: {
-					width: this.sprite.width,
-					height: this.sprite.height,
-					x: 0,
-					y: 0
-				};
+		// Store the border region on the sprite for later reference
+		(this.sprite as any).borderRegion = this.borderRegion;
 
-		console.log("width", width);
-		console.log("height", height);
-		console.log("x", x);
-		console.log("y", y);
+		// Handle fixed canvas differently when border region is present
+		if (this.fixed_canvas) {
+			// If fixed canvas, use the canvas dimensions but account for border
+			const effectiveCanvasWidth = Math.max(
+				this.current_canvas_size.width - this.borderRegion * 2,
+				10
+			);
+			const effectiveCanvasHeight = Math.max(
+				this.current_canvas_size.height - this.borderRegion * 2,
+				10
+			);
 
-		this.sprite.width = width;
-		this.sprite.height = height;
-		this.sprite.x = x;
-		this.sprite.y = y;
+			const { width, height, x, y } = fit_image_to_canvas(
+				this.sprite.width,
+				this.sprite.height,
+				effectiveCanvasWidth,
+				effectiveCanvasHeight
+			);
 
-		return [width, height];
+			this.sprite.width = width;
+			this.sprite.height = height;
+			// Position needs to account for the border
+			this.sprite.x = x + this.borderRegion;
+			this.sprite.y = y + this.borderRegion;
+		} else {
+			// For non-fixed canvas, add the border to the natural image dimensions
+			const width = this.sprite.width;
+			const height = this.sprite.height;
+
+			// Position at the border's offset from origin
+			this.sprite.x = this.borderRegion;
+			this.sprite.y = this.borderRegion;
+
+			// Original dimensions plus border on all sides
+			return [width + this.borderRegion * 2, height + this.borderRegion * 2];
+		}
+
+		return [this.current_canvas_size.width, this.current_canvas_size.height];
 	}
 
 	async execute(): Promise<void> {
@@ -126,12 +156,8 @@ export class AddImageCommand implements BgImageCommand {
 				x: this.context.app.screen.width / 2,
 				y: this.context.app.screen.height / 2
 			},
-			width: this.fixed_canvas
-				? this.current_canvas_size.width
-				: this.sprite.width,
-			height: this.fixed_canvas
-				? this.current_canvas_size.height
-				: this.sprite.height
+			width: this.fixed_canvas ? this.current_canvas_size.width : width,
+			height: this.fixed_canvas ? this.current_canvas_size.height : height
 		});
 
 		// Get existing layers and their textures before modifying anything
@@ -162,6 +188,17 @@ export class AddImageCommand implements BgImageCommand {
 		}
 
 		this.context.set_background_image(this.sprite);
+
+		// Explicitly store the border region on the background image for later reference
+		(this.sprite as any).borderRegion = this.borderRegion;
+
+		// We cannot directly access the resize tool through the context
+		// Instead, we'll store the border region on the sprite and let the resize tool
+		// read it when it's set up
+		console.log(
+			`Stored border region ${this.borderRegion}px on background image for later use by resize tool`
+		);
+
 		this.context.layer_manager.create_layer(
 			this.fixed_canvas ? this.current_canvas_size.width : width,
 			this.fixed_canvas ? this.current_canvas_size.height : height

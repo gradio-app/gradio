@@ -18,7 +18,7 @@
 	export let value: EditorData | null = {
 		background: null,
 		layers: [],
-		composite: null
+		composite: null,
 	};
 	export let label: string;
 	export let show_label: boolean;
@@ -38,7 +38,7 @@
 	export let sources: ("clipboard" | "webcam" | "upload")[] = [
 		"upload",
 		"clipboard",
-		"webcam"
+		"webcam",
 	];
 	export let interactive: boolean;
 	export let placeholder: string | undefined;
@@ -68,6 +68,7 @@
 		share: ShareData;
 		clear_status: LoadingStatus;
 	}>;
+	export let border_region: number;
 
 	let editor_instance: InteractiveImageEditor;
 	let image_id: null | string = null;
@@ -188,6 +189,7 @@
 		/>
 
 		<InteractiveImageEditor
+			{border_region}
 			on:history={(e) => (full_history = e.detail)}
 			bind:dragging
 			{canvas_size}
@@ -215,7 +217,7 @@
 				(value = {
 					background: null,
 					layers: [],
-					composite: null
+					composite: null,
 				})}
 			on:error
 			{brush}

@@ -25,6 +25,8 @@ export class ResizeTool implements Tool {
 	private readonly LINE_THICKNESS = 5;
 	private readonly HANDLE_COLOR = 0x000000;
 	private readonly HIT_AREA_SIZE = 40;
+	// Border region for outpainting
+	private borderRegion = 0;
 
 	// State
 	private is_dragging = false;
@@ -61,6 +63,43 @@ export class ResizeTool implements Tool {
 		this.image_editor_context = context;
 		this.current_tool = tool;
 		this.current_subtool = subtool;
+
+		// Get the border region from context if it exists
+		if (context.background_image) {
+			// First try to read from a custom property on the background image
+			// This is important as the position might have been adjusted
+			if ((context.background_image as any).borderRegion !== undefined) {
+				this.borderRegion = (context.background_image as any).borderRegion;
+				console.log(`Using stored border region: ${this.borderRegion}px`);
+			} else {
+				// Fall back to the position-based detection as before
+				// But add additional checks to make sure it's not just centering
+				const bg = context.background_image;
+				const container = context.image_container;
+
+				// Check if the image position seems intentional (not just centered)
+				const isHorizontallyCentered =
+					Math.abs(bg.position.x - (container.width - bg.width) / 2) < 2;
+				const isVerticallyCentered =
+					Math.abs(bg.position.y - (container.height - bg.height) / 2) < 2;
+
+				if (!isHorizontallyCentered || !isVerticallyCentered) {
+					// If not centered, this is likely an intentional border
+					this.borderRegion = Math.max(bg.position.x, bg.position.y);
+
+					// Store it for future reference
+					(context.background_image as any).borderRegion = this.borderRegion;
+
+					console.log(
+						`Detected and stored border region: ${this.borderRegion}px`
+					);
+				} else {
+					console.log(
+						"Image appears to be centered, not using as border region"
+					);
+				}
+			}
+		}
 
 		context.dimensions.subscribe((dimensions) => {
 			this.dimensions = dimensions;
@@ -141,6 +180,20 @@ export class ResizeTool implements Tool {
 		this.current_subtool = subtool;
 
 		if (tool === "image" && subtool === "size") {
+			// Check if there's a stored border region on the background image
+			if (this.image_editor_context.background_image) {
+				const storedBorderRegion = (
+					this.image_editor_context.background_image as any
+				).borderRegion;
+				if (typeof storedBorderRegion === "number" && storedBorderRegion > 0) {
+					// Use the stored border region
+					this.borderRegion = storedBorderRegion;
+					console.log(
+						`Using stored border region from background image: ${this.borderRegion}px`
+					);
+				}
+			}
+
 			this.show_resize_ui();
 
 			// Apply boundary constraints when switching to the resize tool
@@ -155,18 +208,32 @@ export class ResizeTool implements Tool {
 				const container_width = container_bounds.width;
 				const container_height = container_bounds.height;
 
-				// Check if the image exceeds the container boundaries
-				const min_x = -(bg_width - container_width);
-				const min_y = -(bg_height - container_height);
-				const max_x = 0;
-				const max_y = 0;
+				// Apply effective width/height calculations with border region
+				const effectiveWidth = container_width - this.borderRegion * 2;
+				const effectiveHeight = container_height - this.borderRegion * 2;
 
-				const x_out_of_bounds =
-					bg_width > container_width &&
-					(bg.position.x < min_x || bg.position.x > max_x);
-				const y_out_of_bounds =
-					bg_height > container_height &&
-					(bg.position.y < min_y || bg.position.y > max_y);
+				// Check if the image exceeds the effective container area or intrudes on border
+				const min_x =
+					bg_width > effectiveWidth
+						? -(bg_width - effectiveWidth) + this.borderRegion
+						: this.borderRegion;
+				const max_x =
+					bg_width > effectiveWidth
+						? this.borderRegion
+						: container_width - bg_width - this.borderRegion;
+
+				const min_y =
+					bg_height > effectiveHeight
+						? -(bg_height - effectiveHeight) + this.borderRegion
+						: this.borderRegion;
+				const max_y =
+					bg_height > effectiveHeight
+						? this.borderRegion
+						: container_height - bg_height - this.borderRegion;
+
+				// Check if any constraints are violated
+				const x_out_of_bounds = bg.position.x < min_x || bg.position.x > max_x;
+				const y_out_of_bounds = bg.position.y < min_y || bg.position.y > max_y;
 
 				// Only apply constraints if the image is out of bounds
 				if (x_out_of_bounds || y_out_of_bounds) {
@@ -581,46 +648,38 @@ export class ResizeTool implements Tool {
 		const bg_width = bg.width;
 		const bg_height = bg.height;
 
-		// For images larger than the container, constrain them to show as much as possible
-		if (bg_width > container_width) {
+		// For images larger than the effective container area (container minus border),
+		// constrain them to maintain the border region
+		const effectiveWidth = container_width - this.borderRegion * 2;
+		const effectiveHeight = container_height - this.borderRegion * 2;
+
+		if (bg_width > effectiveWidth) {
 			// Calculate the minimum and maximum allowed positions
-			const min_x = -(bg_width - container_width);
-			const max_x = 0;
+			const min_x = -(bg_width - effectiveWidth) + this.borderRegion;
+			const max_x = this.borderRegion;
 			new_x = Math.max(min_x, Math.min(max_x, new_x));
 		} else {
-			// If image is smaller than container, center it horizontally
-			// But only if we're not in the middle of a resize operation
-			if (!this.is_dragging) {
-				new_x = (container_width - bg_width) / 2;
-			} else {
-				// During dragging, ensure the image stays within the container
-				const min_x = 0;
-				const max_x = container_width - bg_width;
-				// Only constrain if the image would be partially outside the container
-				if (new_x < min_x || new_x > max_x) {
-					new_x = Math.max(min_x, Math.min(max_x, new_x));
-				}
+			// If image is smaller than effective container, enforce at least the border region on each side
+			const min_x = this.borderRegion;
+			const max_x = container_width - bg_width - this.borderRegion;
+			// Only constrain if the image would intrude on the border region
+			if (new_x < min_x || new_x > max_x) {
+				new_x = Math.max(min_x, Math.min(max_x, new_x));
 			}
 		}
 
-		if (bg_height > container_height) {
+		if (bg_height > effectiveHeight) {
 			// Calculate the minimum and maximum allowed positions
-			const min_y = -(bg_height - container_height);
-			const max_y = 0;
+			const min_y = -(bg_height - effectiveHeight) + this.borderRegion;
+			const max_y = this.borderRegion;
 			new_y = Math.max(min_y, Math.min(max_y, new_y));
 		} else {
-			// If image is smaller than container, center it vertically
-			// But only if we're not in the middle of a resize operation
-			if (!this.is_dragging) {
-				new_y = (container_height - bg_height) / 2;
-			} else {
-				// During dragging, ensure the image stays within the container
-				const min_y = 0;
-				const max_y = container_height - bg_height;
-				// Only constrain if the image would be partially outside the container
-				if (new_y < min_y || new_y > max_y) {
-					new_y = Math.max(min_y, Math.min(max_y, new_y));
-				}
+			// If image is smaller than effective container, enforce at least the border region on each side
+			const min_y = this.borderRegion;
+			const max_y = container_height - bg_height - this.borderRegion;
+			// Only constrain if the image would intrude on the border region
+			if (new_y < min_y || new_y > max_y) {
+				new_y = Math.max(min_y, Math.min(max_y, new_y));
 			}
 		}
 
@@ -1183,30 +1242,32 @@ export class ResizeTool implements Tool {
 		const bg_width = bg.width;
 		const bg_height = bg.height;
 
-		// For images larger than the container, constrain them to show as much as possible
-		if (bg_width > container_width) {
+		// Calculate effective dimensions accounting for border region
+		const effectiveWidth = container_width - this.borderRegion * 2;
+		const effectiveHeight = container_height - this.borderRegion * 2;
+
+		// For images larger than the effective container area, constrain to maintain border
+		if (bg_width > effectiveWidth) {
 			// Calculate the minimum and maximum allowed positions
-			const min_x = -(bg_width - container_width);
-			const max_x = 0;
+			const min_x = -(bg_width - effectiveWidth) + this.borderRegion;
+			const max_x = this.borderRegion;
 			new_x = Math.max(min_x, Math.min(max_x, new_x));
 		} else {
-			// For smaller images, ensure they stay fully visible within the container
-			// Don't let them move outside the container boundaries
-			const min_x = 0;
-			const max_x = container_width - bg_width;
+			// For smaller images, ensure they maintain the border region
+			const min_x = this.borderRegion;
+			const max_x = container_width - bg_width - this.borderRegion;
 			new_x = Math.max(min_x, Math.min(max_x, new_x));
 		}
 
-		if (bg_height > container_height) {
+		if (bg_height > effectiveHeight) {
 			// Calculate the minimum and maximum allowed positions
-			const min_y = -(bg_height - container_height);
-			const max_y = 0;
+			const min_y = -(bg_height - effectiveHeight) + this.borderRegion;
+			const max_y = this.borderRegion;
 			new_y = Math.max(min_y, Math.min(max_y, new_y));
 		} else {
-			// For smaller images, ensure they stay fully visible within the container
-			// Don't let them move outside the container boundaries
-			const min_y = 0;
-			const max_y = container_height - bg_height;
+			// For smaller images, ensure they maintain the border region
+			const min_y = this.borderRegion;
+			const max_y = container_height - bg_height - this.borderRegion;
 			new_y = Math.max(min_y, Math.min(max_y, new_y));
 		}
 
@@ -1397,48 +1458,124 @@ export class ResizeTool implements Tool {
 			x: new_x,
 			y: new_y
 		} = dimensions;
-		const container_width = this.dimensions.width;
-		const container_height = this.dimensions.height;
+
+		// Account for border region when determining maximum dimensions
+		const effective_container_width =
+			this.dimensions.width - this.borderRegion * 2;
+		const effective_container_height =
+			this.dimensions.height - this.borderRegion * 2;
 
 		// Store the original dimensions before limiting
 		const pre_limit_width = new_width;
 		const pre_limit_height = new_height;
 
+		// Step 1: Apply container size limits
+		const size_limited = this.apply_size_limits(
+			new_width,
+			new_height,
+			effective_container_width,
+			effective_container_height,
+			maintain_aspect_ratio,
+			pre_limit_width / pre_limit_height
+		);
+
+		new_width = size_limited.width;
+		new_height = size_limited.height;
+
+		// Step 2: Recalculate position based on active handles
+		const position_adjusted = this.adjust_position_for_resizing(
+			new_width,
+			new_height,
+			original_x,
+			original_y,
+			original_width,
+			original_height
+		);
+
+		new_x = position_adjusted.x;
+		new_y = position_adjusted.y;
+
+		// Step 3: Apply border region constraints
+		const border_constrained = this.apply_border_constraints(
+			new_width,
+			new_height,
+			new_x,
+			new_y,
+			maintain_aspect_ratio,
+			pre_limit_width / pre_limit_height
+		);
+
+		return border_constrained;
+	}
+
+	/**
+	 * Apply size limits to ensure dimensions don't exceed container
+	 * @private
+	 */
+	private apply_size_limits(
+		width: number,
+		height: number,
+		max_width: number,
+		max_height: number,
+		maintain_aspect_ratio: boolean,
+		aspect_ratio: number
+	): { width: number; height: number } {
+		let new_width = width;
+		let new_height = height;
+
 		// Check if we need to limit dimensions
-		const needs_width_limit = new_width > container_width;
-		const needs_height_limit = new_height > container_height;
+		const needs_width_limit = new_width > max_width;
+		const needs_height_limit = new_height > max_height;
 
 		// If both dimensions need limiting, choose the more restrictive one
 		if (needs_width_limit && needs_height_limit) {
-			const width_scale = container_width / new_width;
-			const height_scale = container_height / new_height;
+			const width_scale = max_width / new_width;
+			const height_scale = max_height / new_height;
 
 			if (width_scale < height_scale) {
 				// Width is more restrictive
-				new_width = container_width;
+				new_width = max_width;
 				if (maintain_aspect_ratio) {
-					new_height = new_width / (pre_limit_width / pre_limit_height);
+					new_height = new_width / aspect_ratio;
 				}
 			} else {
 				// Height is more restrictive
-				new_height = container_height;
+				new_height = max_height;
 				if (maintain_aspect_ratio) {
-					new_width = new_height * (pre_limit_width / pre_limit_height);
+					new_width = new_height * aspect_ratio;
 				}
 			}
 		} else if (needs_width_limit) {
 			// Only width needs limiting
-			new_width = container_width;
+			new_width = max_width;
 			if (maintain_aspect_ratio) {
-				new_height = new_width / (pre_limit_width / pre_limit_height);
+				new_height = new_width / aspect_ratio;
 			}
 		} else if (needs_height_limit) {
 			// Only height needs limiting
-			new_height = container_height;
+			new_height = max_height;
 			if (maintain_aspect_ratio) {
-				new_width = new_height * (pre_limit_width / pre_limit_height);
+				new_width = new_height * aspect_ratio;
 			}
 		}
+
+		return { width: new_width, height: new_height };
+	}
+
+	/**
+	 * Adjust position based on which handles are being dragged
+	 * @private
+	 */
+	private adjust_position_for_resizing(
+		new_width: number,
+		new_height: number,
+		original_x: number,
+		original_y: number,
+		original_width: number,
+		original_height: number
+	): { x: number; y: number } {
+		let new_x = original_x;
+		let new_y = original_y;
 
 		// Recalculate position based on the active handle and the new dimensions
 		switch (this.active_corner_index) {
@@ -1466,6 +1603,162 @@ export class ResizeTool implements Tool {
 				case 2: // Left
 					new_x = original_x + original_width - new_width;
 					break;
+			}
+		}
+
+		return { x: new_x, y: new_y };
+	}
+
+	/**
+	 * Apply border region constraints to prevent image from intruding on border
+	 * @private
+	 */
+	private apply_border_constraints(
+		width: number,
+		height: number,
+		x: number,
+		y: number,
+		maintain_aspect_ratio: boolean,
+		aspect_ratio: number
+	): { width: number; height: number; x: number; y: number } {
+		// First apply left and top constraints
+		const top_left_constrained = this.apply_top_left_constraints(
+			width,
+			height,
+			x,
+			y,
+			maintain_aspect_ratio,
+			aspect_ratio
+		);
+
+		// Then apply right and bottom constraints
+		const all_constrained = this.apply_bottom_right_constraints(
+			top_left_constrained.width,
+			top_left_constrained.height,
+			top_left_constrained.x,
+			top_left_constrained.y,
+			maintain_aspect_ratio,
+			aspect_ratio
+		);
+
+		// Ensure minimum dimensions
+		all_constrained.width = Math.max(20, all_constrained.width);
+		all_constrained.height = Math.max(20, all_constrained.height);
+
+		return all_constrained;
+	}
+
+	/**
+	 * Apply top and left border constraints
+	 * @private
+	 */
+	private apply_top_left_constraints(
+		width: number,
+		height: number,
+		x: number,
+		y: number,
+		maintain_aspect_ratio: boolean,
+		aspect_ratio: number
+	): { width: number; height: number; x: number; y: number } {
+		let new_width = width;
+		let new_height = height;
+		let new_x = x;
+		let new_y = y;
+
+		// Apply left border constraint
+		if (new_x < this.borderRegion) {
+			// Adjust width if needed when left edge hits border
+			if (
+				this.active_corner_index === 0 ||
+				this.active_corner_index === 2 ||
+				this.active_edge_index === 2
+			) {
+				// If resizing from left side, adjust width to maintain the adjusted position
+				new_width -= this.borderRegion - new_x;
+				if (maintain_aspect_ratio) {
+					// Recalculate height based on new width
+					new_height = new_width / aspect_ratio;
+				}
+			}
+			new_x = this.borderRegion;
+		}
+
+		// Apply top border constraint
+		if (new_y < this.borderRegion) {
+			// Adjust height if needed when top edge hits border
+			if (
+				this.active_corner_index === 0 ||
+				this.active_corner_index === 1 ||
+				this.active_edge_index === 0
+			) {
+				// If resizing from top side, adjust height to maintain the adjusted position
+				new_height -= this.borderRegion - new_y;
+				if (maintain_aspect_ratio) {
+					// Recalculate width based on new height
+					new_width = new_height * aspect_ratio;
+				}
+			}
+			new_y = this.borderRegion;
+		}
+
+		return { width: new_width, height: new_height, x: new_x, y: new_y };
+	}
+
+	/**
+	 * Apply bottom and right border constraints
+	 * @private
+	 */
+	private apply_bottom_right_constraints(
+		width: number,
+		height: number,
+		x: number,
+		y: number,
+		maintain_aspect_ratio: boolean,
+		aspect_ratio: number
+	): { width: number; height: number; x: number; y: number } {
+		let new_width = width;
+		let new_height = height;
+		let new_x = x;
+		let new_y = y;
+
+		// Apply right border constraint
+		if (new_x + new_width > this.dimensions.width - this.borderRegion) {
+			// If resizing from right side, adjust width
+			if (
+				this.active_corner_index === 1 ||
+				this.active_corner_index === 3 ||
+				this.active_edge_index === 3
+			) {
+				new_width = this.dimensions.width - this.borderRegion - new_x;
+				if (maintain_aspect_ratio) {
+					new_height = new_width / aspect_ratio;
+				}
+			} else {
+				// If resizing from left side, adjust position and preserve width if possible
+				const right_edge = new_x + new_width;
+				const excess = right_edge - (this.dimensions.width - this.borderRegion);
+				new_x = Math.max(this.borderRegion, new_x - excess);
+			}
+		}
+
+		// Apply bottom border constraint
+		if (new_y + new_height > this.dimensions.height - this.borderRegion) {
+			// If resizing from bottom side, adjust height
+			if (
+				this.active_corner_index === 2 ||
+				this.active_corner_index === 3 ||
+				this.active_edge_index === 1
+			) {
+				new_height = this.dimensions.height - this.borderRegion - new_y;
+				if (maintain_aspect_ratio) {
+					new_width = new_height * aspect_ratio;
+				}
+			} else {
+				// If resizing from top side, adjust position and preserve height if possible
+				const bottom_edge = new_y + new_height;
+				const excess =
+					bottom_edge - (this.dimensions.height - this.borderRegion);
+				new_y = Math.max(this.borderRegion, new_y - excess);
 			}
 		}
 
@@ -1529,6 +1822,34 @@ export class ResizeTool implements Tool {
 	private notify<T extends string>(event: T): void {
 		for (const callback of this.event_callbacks.get(event) || []) {
 			callback();
+		}
+	}
+
+	/**
+	 * Sets the border region explicitly
+	 * @param borderRegion The border region size in pixels
+	 */
+	public set_border_region(borderRegion: number): void {
+		this.borderRegion = borderRegion;
+		console.log(`Border region explicitly set to: ${this.borderRegion}px`);
+
+		// Store it on the background image if it exists
+		if (this.image_editor_context?.background_image) {
+			(this.image_editor_context.background_image as any).borderRegion =
+				borderRegion;
+		}
+
+		// Update UI if needed
+		if (this.resize_ui_container) {
+			this.update_resize_ui();
+		}
+
+		// Apply constraints if needed (only if we're in resize mode)
+		if (
+			this.current_subtool === "size" &&
+			this.image_editor_context?.background_image
+		) {
+			this.apply_boundary_constraints();
 		}
 	}
 }

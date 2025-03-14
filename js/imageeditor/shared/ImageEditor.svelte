@@ -16,7 +16,7 @@
 	import { ResizeTool } from "./resize/resize";
 	import { Webcam } from "@gradio/image";
 	import type { I18nFormatter } from "@gradio/utils";
-	import type { Client } from "@gradio/client";
+	import type { Client, FileData } from "@gradio/client";
 	import { writable } from "svelte/store";
 	import { spring } from "svelte/motion";
 	import { Rectangle } from "pixi.js";
@@ -33,6 +33,13 @@
 	import Layers from "./Layers.svelte";
 
 	const { drag, open_file_upload } = create_drag();
+
+	interface WeirdTypeData {
+		url: string;
+		meta: {
+			_type: string;
+		};
+	}
 
 	// import { type LayerScene } from "./layers/utils";
 	import { type ImageBlobs } from "./types";
@@ -64,6 +71,10 @@
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let composite: WeirdTypeData[];
+	export let layers: WeirdTypeData[];
+	export let background: WeirdTypeData;
+	export let border_region: number;
 	/**
 	 * Gets the image blobs from the editor
 	 * @returns {Promise<ImageBlobs>} Object containing background, layers, and composite image blobs
@@ -84,17 +95,100 @@
 	 * @param {Blob | File} image - The image to add
 	 */
 	export function add_image(image: Blob | File): void {
-		editor.add_image(image);
+		editor.add_image(image, border_region);
 	}
-	// $: console.log({ current_tool });
+
+	let pending_bg: Promise<void>;
+	/**
+	 * Adds an image to the editor from a URL
+	 * @param {string | FileData} source - The URL of the image or a FileData object
+	 * @returns {Promise<void>}
+	 */
+	export async function add_image_from_url(
+		source:
+			| string
+			| {
+					url: string;
+					meta: {
+						_type: string;
+					};
+			  }
+			| any,
+	): Promise<void> {
+		if (!editor) return;
+
+		let url: string;
+
+		// Handle different source types
+		if (typeof source === "string") {
+			url = source;
+		} else if (source?.meta?._type === "gradio.FileData" && source?.url) {
+			url = source.url;
+		} else {
+			console.warn("Invalid source provided to add_image_from_url:", source);
+			return;
+		}
+
+		try {
+			pending_bg = editor.add_image_from_url(url);
+			await pending_bg;
+			background_image = true;
+			dispatch("upload");
+			dispatch("input");
+		} catch (error) {
+			console.error("Error adding image from URL:", error);
+		}
+	}
+
+	/**
+	 * Adds a new layer with an image loaded from a URL
+	 * @param {string | FileData} source - The URL of the image or a FileData object
+	 * @returns {Promise<string | null>} - The ID of the created layer, or null if failed
+	 */
+	export async function add_layers_from_url(
+		source: WeirdTypeData[] | any,
+	): Promise<void> {
+		if (!editor) return;
+
+		let url: string;
+
+		// Handle different source types
+		if (
+			Array.isArray(source) &&
+			source.every((item) => item?.meta?._type === "gradio.FileData")
+		) {
+			try {
+				await pending_bg;
+
+				await editor.add_layers_from_url(source.map((item) => item.url));
+				dispatch("change");
+				dispatch("input");
+			} catch (error) {
+				console.error("Error adding layer from URL:", error);
+			}
+		}
+	}
+
 	export let current_tool: ToolbarTool;
 
 	let brush: BrushTool;
 	let zoom: ZoomTool;
 	let zoom_level = 1;
 	let ready = false;
+	let mounted = false;
+
 	onMount(() => {
-		console.log("canvas_size", canvas_size);
+		mounted = true;
+		init_image_editor();
+
+		return () => {
+			if (editor) {
+				editor.destroy();
+			}
+		};
+	});
+
+	async function init_image_editor(): Promise<void> {
 		brush = new BrushTool();
 		zoom = new ZoomTool();
 		editor = new ImageEditor({
@@ -114,12 +208,20 @@
 			ready = true;
 		});
 
-		console.log("editor", editor);
-
 		editor.on("change", () => {
 			dispatch("change");
 		});
-	});
+	}
+
+	// $: mounted && (canvas_size, init_image_editor());
+	// $: ready && resize_canvas(canvas_size[0], canvas_size[1]);
+
+	function resize_canvas(width: number, height: number): void {
+		if (!editor) return;
+		if (mounted && ready) {
+			editor.resize(width, height);
+		}
+	}
 
 	/**
 	 * Handles file uploads
@@ -128,14 +230,12 @@
 	function handle_files(files: File[] | Blob[] | File | Blob | null): void {
 		if (files == null) return;
 		const _file = Array.isArray(files) ? files[0] : files;
-		editor.add_image(_file);
+		editor.add_image(_file, border_region);
 		background_image = true;
 
 		dispatch("upload");
 		dispatch("input");
 	}
-
-	// $: console.log(editor.current_history);
 
 	/**
 	 * Handles tool change events
@@ -157,14 +257,9 @@
 		tool: ToolbarTool;
 		subtool: Subtool | null;
 	}): void {
-		console.log("handle_subtool_change", tool, subtool);
 		editor.set_subtool(subtool);
 		current_subtool = subtool;
-		// When subtool is null, we're just closing the options panel
-		// but we want to keep the tool active
 		if (subtool === null) {
-			// Don't reset any visibility flags here
-			// Just pass the null subtool to the editor
 			return;
 		}
 
@@ -186,7 +281,6 @@
 
 		if (tool === "image" && subtool === "upload") {
 			tick().then(() => {
-				console.log("click", disable_click);
 				disable_click = false;
 				open_file_upload();
 			});
@@ -197,17 +291,20 @@
 
 	let brush_color_visible = false;
 
+	$: console.log(brush_options);
+
 	let eraser_size_visible = false;
-	let selected_color = brush_options.default_color;
+	let selected_color =
+		brush_options.default_color === "auto"
+			? brush_options.colors[0]
+			: brush_options.default_color;
 	let selected_size =
 		typeof brush_options.default_size === "number"
 			? brush_options.default_size
 			: 25;
 	let selected_opacity = 1;
 	let selected_eraser_size =
-		typeof eraser_options.default_size === "number"
-			? eraser_options.default_size
-			: 25;
+		eraser_options.default_size === "auto" ? 25 : eraser_options.default_size;
 	$: brush?.set_brush_color(
 		selected_color === "auto"
 			? brush_options.colors.find(
@@ -270,6 +367,9 @@
 	function handle_save(): void {
 		dispatch("save");
 	}
+
+	$: add_image_from_url(composite || background);
+	$: add_layers_from_url(layers);
 </script>
 
 <div

@@ -59,6 +59,7 @@
 	export let stream_handler: Client["stream"];
 	export let dragging: boolean;
 	export let placeholder: string | undefined = undefined;
+	export let border_region: number;
 
 	export let full_history: CommandNode | null = null;
 
@@ -148,6 +149,7 @@
 	let uploading = false;
 	let pending = false;
 	async function handle_change(e: CustomEvent<Blob | any>): Promise<void> {
+		console.log("HANDLING CHANGE");
 		if (!realtime) return;
 		if (uploading) {
 			pending = true;
@@ -217,7 +219,7 @@
 
 	let current_tool: ToolbarTool;
 
-	$: console.log({ changeable });
+	$: console.log({ value });
 </script>
 
 <BlockLabel
@@ -226,6 +228,9 @@
 	label={label || i18n("image.image")}
 />
 <ImageEditor
+	composite={value?.composite}
+	layers={value?.layers}
+	background={value?.background}
 	on:history
 	{canvas_size}
 	bind:this={editor}
@@ -241,6 +246,7 @@
 	brush_options={brush}
 	eraser_options={eraser}
 	{fixed_canvas}
+	{border_region}
 >
 	{#if !background_image && current_tool === "image"}
 		<div class="empty wrap">

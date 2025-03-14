@@ -183,6 +183,7 @@ class ImageEditor(Component):
         canvas_size: tuple[int, int] = (800, 800),
         fixed_canvas: bool = False,
         show_fullscreen_button: bool = True,
+        border_region: int = 0,
     ):
         """
         Parameters:
@@ -218,6 +219,7 @@ class ImageEditor(Component):
             canvas_size: The size of the canvas in pixels. The first value is the width and the second value is the height. If its set, uploaded images will be rescaled to fit the canvas size while preserving the aspect ratio. The canvas size will always change to match the size of an uploaded image unless fixed_canvas is set to True.
             fixed_canvas: If True, the canvas size will not change based on the size of the background image and the image will be rescaled to fit (while preserving the aspect ratio) and placed in the center of the canvas.
             show_fullscreen_button: If True, will display button to view image in fullscreen mode.
+            border_region: The size of the border region in pixels. This is the region that will not be scaled when fixed_canvas is set to True.
         """
         self._selectable = _selectable
         self.mirror_webcam = mirror_webcam
@@ -278,7 +280,7 @@ class ImageEditor(Component):
         self.fixed_canvas = fixed_canvas
         self.show_fullscreen_button = show_fullscreen_button
         self.placeholder = placeholder
-
+        self.border_region = border_region
         super().__init__(
             label=label,
             every=every,

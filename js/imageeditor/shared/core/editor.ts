@@ -8,7 +8,9 @@ import {
 	GlProgram,
 	defaultFilterVert,
 	SCALE_MODES,
-	type ALPHA_MODES
+	Texture,
+	type ALPHA_MODES,
+	Assets
 } from "pixi.js";
 
 import { DropShadowFilter as BlurFilter } from "pixi-filters/drop-shadow";
@@ -25,8 +27,8 @@ import { type ImageBlobs } from "../types";
 import { get_canvas_blob } from "../utils/pixi";
 import type { BrushTool } from "../brush/brush";
 export interface Command {
-	execute: () => void;
-	undo: () => void;
+	execute: () => Promise<void>;
+	undo: () => Promise<void>;
 }
 
 export interface Tool {
@@ -46,24 +48,24 @@ export class CommandManager {
 	private undo_stack: Command[] = [];
 	private redo_stack: Command[] = [];
 
-	execute(command: Command): void {
-		command.execute();
+	async execute(command: Command): Promise<void> {
+		await command.execute();
 		this.undo_stack.push(command);
 		this.redo_stack = []; // Clear redo stack when new command is executed
 	}
 
-	undo(): void {
+	async undo(): Promise<void> {
 		const command = this.undo_stack.pop();
 		if (command) {
-			command.undo();
+			await command.undo();
 			this.redo_stack.push(command);
 		}
 	}
 
-	redo(): void {
+	async redo(): Promise<void> {
 		const command = this.redo_stack.pop();
 		if (command) {
-			command.execute();
+			await command.execute();
 			this.undo_stack.push(command);
 		}
 	}
@@ -135,18 +137,129 @@ export class LayerManager {
 
 		this.image_container.addChild(layer);
 
-		// Set lowest z-index
 		layer.zIndex = -1;
 
 		this.update_layer_order();
 		return layer;
 	}
 
+	/**
+	 * Creates a background layer from an image URL
+	 * @param url The URL of the image to use as background
+	 * @param width The width of the layer (if fixed_canvas is true)
+	 * @param height The height of the layer (if fixed_canvas is true)
+	 * @param borderRegion Minimum border region to add around the image for outpainting (in pixels)
+	 * @returns A Promise that resolves to the background Container when the image is loaded
+	 */
+	async create_background_layer_from_url(
+		url: string,
+		width?: number,
+		height?: number,
+		borderRegion = 0
+	): Promise<Container> {
+		console.log("create_background_layer_from_url", {
+			width,
+			height,
+			url,
+			borderRegion
+		});
+		const layer = this.create_background_layer(
+			width || this.image_container.width,
+			height || this.image_container.height
+		);
+
+		try {
+			const texture = await Texture.from(url);
+			const sprite = new Sprite(texture);
+
+			const imageWidth = sprite.texture.width;
+			const imageHeight = sprite.texture.height;
+
+			// Calculate dimensions based on whether canvas size is fixed
+			const containerWidth = width || this.image_container.width;
+			const containerHeight = height || this.image_container.height;
+
+			if (this.fixed_canvas) {
+				// If fixed canvas, fit the image within the specified dimensions minus border region
+				// Calculate aspect-preserving dimensions
+				const effectiveContainerWidth = Math.max(
+					containerWidth - borderRegion * 2,
+					10
+				);
+				const effectiveContainerHeight = Math.max(
+					containerHeight - borderRegion * 2,
+					10
+				);
+
+				const imageAspectRatio = imageWidth / imageHeight;
+				const containerAspectRatio =
+					effectiveContainerWidth / effectiveContainerHeight;
+
+				let finalWidth, finalHeight;
+				let posX = borderRegion, // Start with border offset
+					posY = borderRegion;
+
+				if (
+					imageWidth <= effectiveContainerWidth &&
+					imageHeight <= effectiveContainerHeight
+				) {
+					// Image fits within container without scaling
+					finalWidth = imageWidth;
+					finalHeight = imageHeight;
+				} else {
+					if (imageAspectRatio > containerAspectRatio) {
+						// Width is the limiting factor
+						finalWidth = effectiveContainerWidth;
+						finalHeight = effectiveContainerWidth / imageAspectRatio;
+					} else {
+						// Height is the limiting factor
+						finalHeight = effectiveContainerHeight;
+						finalWidth = effectiveContainerHeight * imageAspectRatio;
+					}
+				}
+
+				// Center image within the effective container area (which already accounts for border)
+				posX += Math.round((effectiveContainerWidth - finalWidth) / 2);
+				posY += Math.round((effectiveContainerHeight - finalHeight) / 2);
+				sprite.width = finalWidth;
+				sprite.height = finalHeight;
+				sprite.position.set(posX, posY);
+			} else {
+				// If not fixed canvas, use the natural dimensions of the image plus border
+				// Position starts at the border offset
+				sprite.position.set(borderRegion, borderRegion);
+
+				// We need to re-create the background layer with the actual image dimensions plus border
+				if (this.background_layer) {
+					this.background_layer.destroy();
+				}
+
+				// Create new layer with image dimensions plus border on all sides
+				const totalWidth = imageWidth + borderRegion * 2;
+				const totalHeight = imageHeight + borderRegion * 2;
+				const newLayer = this.create_background_layer(totalWidth, totalHeight);
+
+				sprite.width = imageWidth;
+				sprite.height = imageHeight;
+				newLayer.addChild(sprite);
+
+				return newLayer;
+			}
+
+			layer.addChild(sprite);
+
+			return layer;
+		} catch (error) {
+			console.error("Error loading image from URL:", error);
+			return layer;
+		}
+	}
+
 	create_layer(width: number, height: number): Container {
+		console.trace("create_layer");
 		const layer = new Container();
 		const layer_id = Math.random().toString(36).substring(2, 15);
 		const layer_name = `Layer ${this.layers.length + 1}`;
-		console.log({ layers: this.layers });
 
 		this.layers.push({ name: layer_name, id: layer_id, container: layer });
 		console.log({ layers: this.layers });
@@ -162,25 +275,22 @@ export class LayerManager {
 			scaleMode: SCALE_MODES.NEAREST
 		});
 
-		// // Create sprite to display the texture with transparency
 		const canvas_sprite = new Sprite(draw_texture);
 		layer.addChild(canvas_sprite);
 
-		// // Create an empty graphics object
 		const clear_graphics = new Graphics();
 		clear_graphics.clear();
 		clear_graphics.beginFill(0, 0);
 		clear_graphics.drawRect(0, 0, width, height);
 		clear_graphics.endFill();
 
-		// // Render with transparency
 		this.app.renderer.render({
 			container: clear_graphics,
 			target: draw_texture,
 			clear: true
 		});
 
-		// // Store texture for drawing
+		// Store texture for drawing
 		this.draw_textures.set(layer, draw_texture);
 
 		this.update_layer_order();
@@ -189,8 +299,95 @@ export class LayerManager {
 			active_layer: layer_id,
 			layers: this.layers
 		});
-		console.log({ layers: this.layers });
 		return layer;
+	}
+
+	/**
+	 * Creates a new layer with an image loaded from a URL
+	 * @param url The URL of the image to load
+	 * @param borderRegion Minimum border region to add around the image for outpainting (in pixels)
+	 * @returns A Promise that resolves to the layer ID
+	 */
+	async add_layer_from_url(url: string, borderRegion = 0): Promise<string> {
+		const width = this.image_container.width;
+		const height = this.image_container.height;
+		const layer = this.create_layer(width, height);
+
+		const layerIndex = this.layers.findIndex((l) => l.container === layer);
+		if (layerIndex === -1) {
+			console.error("Could not find newly created layer");
+			return "";
+		}
+		const layerId = this.layers[layerIndex].id;
+
+		try {
+			const texture = await Assets.load(url);
+
+			const imageWidth = texture.width;
+			const imageHeight = texture.height;
+
+			const drawTexture = this.draw_textures.get(layer);
+			if (!drawTexture) {
+				console.error("No draw texture found for layer");
+				return layerId;
+			}
+
+			const sprite = new Sprite(texture);
+
+			let posX = borderRegion;
+			let posY = borderRegion;
+
+			// Calculate effective dimensions (accounting for border)
+			const effectiveWidth = this.fixed_canvas
+				? width - borderRegion * 2
+				: width;
+			const effectiveHeight = this.fixed_canvas
+				? height - borderRegion * 2
+				: height;
+
+			// If the image is smaller than the effective layer area, center it within that area
+			if (imageWidth < effectiveWidth || imageHeight < effectiveHeight) {
+				posX += Math.floor((effectiveWidth - imageWidth) / 2);
+				posY += Math.floor((effectiveHeight - imageHeight) / 2);
+			}
+
+			sprite.position.set(posX, posY);
+
+			// If the image is larger than the effective layer area, scale it down to fit
+			if (imageWidth > effectiveWidth || imageHeight > effectiveHeight) {
+				const imageAspectRatio = imageWidth / imageHeight;
+				const areaAspectRatio = effectiveWidth / effectiveHeight;
+
+				let finalWidth, finalHeight;
+
+				if (imageAspectRatio > areaAspectRatio) {
+					// Width is the limiting factor
+					finalWidth = effectiveWidth;
+					finalHeight = effectiveWidth / imageAspectRatio;
+				} else {
+					// Height is the limiting factor
+					finalHeight = effectiveHeight;
+					finalWidth = effectiveHeight * imageAspectRatio;
+				}
+
+				sprite.width = finalWidth;
+				sprite.height = finalHeight;
+
+				// Recalculate position to center within effective area
+				posX = borderRegion + Math.floor((effectiveWidth - finalWidth) / 2);
+				posY = borderRegion + Math.floor((effectiveHeight - finalHeight) / 2);
+				sprite.position.set(posX, posY);
+			}
+
+			this.app.renderer.render(sprite, { renderTexture: drawTexture });
+
+			this.set_active_layer(layerId);
+
+			return layerId;
+		} catch (error) {
+			console.error("Error loading image from URL:", error);
+			return layerId;
+		}
 	}
 
 	get_active_layer(): typeof this.active_layer {
@@ -811,6 +1008,7 @@ export class ImageEditor {
 		this.layer_manager.create_layer(this.width, this.height);
 
 		for (const tool of this.tools.values()) {
+			console.log(this.context);
 			await tool.setup(this.context, this.current_tool, this.current_subtool);
 		}
 
@@ -999,12 +1197,44 @@ export class ImageEditor {
 		this.notify("change");
 	}
 
-	add_image(image: Blob | File): void {
+	async add_image(image: Blob | File, border_region = 0): Promise<void> {
+		console.log("add_image", { image, border_region });
 		const image_tool = this.tools.get("image") as ImageTool;
-		image_tool.add_image(image, this.fixed_canvas);
+		await image_tool.add_image(image, this.fixed_canvas, border_region);
+
+		// Update resize tool if present
+		const resize_tool = this.tools.get("resize") as any;
+		if (resize_tool && typeof resize_tool.set_border_region === "function") {
+			resize_tool.set_border_region(border_region);
+			console.log(`Updated resize tool with border region: ${border_region}px`);
+		}
+
 		this.notify("change");
 		this.notify("input");
 	}
+
+	/**
+	 * Adds an image from a URL as the background layer
+	 * @param url The URL of the image to add
+	 * @param borderRegion Minimum border region to add around the image for outpainting (in pixels)
+	 */
+	async add_image_from_url(url: string, borderRegion = 0): Promise<void> {
+		console.log("add_image_from_url", { url, borderRegion });
+		const image_tool = this.tools.get("image") as ImageTool;
+		const texture = await Assets.load(url);
+		await image_tool.add_image(texture, this.fixed_canvas, borderRegion);
+
+		// Update resize tool if present
+		const resize_tool = this.tools.get("resize") as any;
+		if (resize_tool && typeof resize_tool.set_border_region === "function") {
+			resize_tool.set_border_region(borderRegion);
+			console.log(`Updated resize tool with border region: ${borderRegion}px`);
+		}
+
+		this.notify("change");
+		this.notify("input");
+	}
+
 	set_tool(tool: ToolbarTool): void {
 		this.current_tool = tool;
 
@@ -1065,6 +1295,40 @@ export class ImageEditor {
 	add_layer(): void {
 		this.layer_manager.create_layer(this.width, this.height);
 		this.notify("change");
+	}
+
+	/**
+	 * Adds a new layer with an image loaded from a URL
+	 * @param layer_urls The URLs of the images to load
+	 * @param borderRegion Minimum border region to add around the images for outpainting (in pixels)
+	 * @returns A Promise that resolves when all layers are added
+	 */
+	async add_layers_from_url(
+		layer_urls: string[] | undefined,
+		borderRegion = 0
+	): Promise<void> {
+		const _layers = this.layer_manager.get_layers();
+		console.log("cleanup ---", _layers);
+		_layers.forEach((l) => this.layer_manager.delete_layer(l.id));
+		if (layer_urls === undefined || layer_urls.length === 0) {
+			this.layer_manager.create_layer(this.width, this.height);
+			return;
+		}
+
+		for await (const url of layer_urls) {
+			console.log("creating layer");
+			await this.layer_manager.add_layer_from_url(url, borderRegion);
+		}
+
+		// Update resize tool if present with border region
+		const resize_tool = this.tools.get("resize") as any;
+		if (resize_tool && typeof resize_tool.set_border_region === "function") {
+			resize_tool.set_border_region(borderRegion);
+			console.log(`Updated resize tool with border region: ${borderRegion}px`);
+		}
+
+		this.notify("change");
+		this.notify("input");
 	}
 
 	set_layer(id: string): void {
@@ -1132,5 +1396,23 @@ export class ImageEditor {
 		for (const callback of this.event_callbacks.get(event) || []) {
 			callback();
 		}
+	}
+
+	destroy(): void {
+		if (!this.app) return;
+		// for (const tool of this.tools) {
+		// 	tool[1]?.cleanup();
+		// }
+
+		this.app?.destroy();
+	}
+
+	resize(width: number, height: number): void {
+		this.set_image_properties({
+			width,
+			height
+		});
+
+		this.reset();
 	}
 }

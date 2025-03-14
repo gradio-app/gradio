@@ -284,7 +284,8 @@ export class ZoomTool implements Tool {
 	 * Cleans up resources and event listeners
 	 */
 	cleanup(): void {
-		const stage = this.image_editor_context.app.stage;
+		const stage = this?.image_editor_context?.app?.stage;
+		if (!stage) return;
 		stage.removeEventListener("wheel", this.handle_wheel.bind(this));
 
 		if ("ontouchstart" in window) {
