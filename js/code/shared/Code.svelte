@@ -10,11 +10,13 @@
 	import { StateEffect, EditorState, type Extension } from "@codemirror/state";
 	import { indentWithTab } from "@codemirror/commands";
 	import { autocompletion, acceptCompletion } from "@codemirror/autocomplete";
+	import { LanguageSupport } from "@codemirror/language";
 
 	import { basicDark } from "cm6-theme-basic-dark";
 	import { basicLight } from "cm6-theme-basic-light";
 	import { basicSetup } from "./extensions";
 	import { getLanguageExtension } from "./language";
+	import { create_pyodide_autocomplete } from "./autocomplete";
 
 	export let class_names = "";
 	export let value = "";
@@ -42,8 +44,13 @@
 
 	$: get_lang(language);
 
+	const pyodide_autocomplete = create_pyodide_autocomplete();
+
 	async function get_lang(val: string): Promise<void> {
 		const ext = await getLanguageExtension(val);
+		if (pyodide_autocomplete && val === "python" && ext instanceof LanguageSupport) {
+			(ext.support as Extension[]).push(ext.language.data.of({ autocomplete: pyodide_autocomplete }));
+		}
 		lang_extension = ext;
 	}
 

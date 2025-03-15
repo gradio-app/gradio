@@ -16,6 +16,7 @@ import {
 	logHttpReqRes
 } from "./http";
 import type { ASGIScope, ReceiveEvent, SendEvent } from "./asgi-types";
+import type { CodeCompletionRequest, CodeCompletionResponse } from "./webworker/code-completion";
 
 export interface WorkerProxyOptions {
 	gradioWheelUrl: string;
@@ -133,7 +134,7 @@ export class WorkerProxy extends EventTarget {
 	// returns void immediately, this function returns a promise, which resolves
 	// when a ReplyMessage is received from the worker.
 	// The original implementation is in https://github.com/rstudio/shinylive/blob/v0.1.2/src/pyodide-proxy.ts#L404-L418
-	postMessageAsync(msg: InMessage): Promise<unknown> {
+	postMessageAsync<T = unknown>(msg: InMessage): Promise<T> {
 		return new Promise((resolve, reject) => {
 			const channel = new MessageChannel();
 
@@ -145,7 +146,7 @@ export class WorkerProxy extends EventTarget {
 					return;
 				}
 
-				resolve(msg.data);
+				resolve(msg.data as T);
 			};
 
 			this.postMessageTarget.postMessage(msg, [channel.port2]);
@@ -354,6 +355,13 @@ export class WorkerProxy extends EventTarget {
 				requirements
 			}
 		}) as Promise<void>;
+	}
+
+	public getCodeCompletions(request: CodeCompletionRequest): Promise<CodeCompletionResponse> {
+		return this.postMessageAsync<CodeCompletionResponse>({
+			type: "code-completion",
+			data: request
+		});
 	}
 
 	public terminate(): void {
