@@ -6,6 +6,7 @@
 
 	let hovered = false;
 	let loaded = Array.isArray(value);
+	let is_empty = loaded && (value.length === 0 || value[0].length === 0);
 </script>
 
 {#if loaded}
@@ -20,6 +21,12 @@
 	>
 		{#if typeof value === "string"}
 			{value}
+		{:else if is_empty}
+			<table class="">
+				<tr>
+					<td>Empty</td>
+				</tr>
+			</table>
 		{:else}
 			<table class="">
 				{#each value.slice(0, 3) as row, i}

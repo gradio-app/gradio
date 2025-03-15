@@ -42,7 +42,7 @@ def _import_polars():
 
 
 class DataframeData(GradioModel):
-    headers: list[str]
+    headers: list[Any]
     data: Union[list[list[Any]], list[tuple[Any, ...]]]
     metadata: Optional[dict[str, Optional[list[Any]]]] = None
 
@@ -74,7 +74,7 @@ class Dataframe(Component):
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
         col_count: int | tuple[int, str] | None = None,
-        datatype: Literal["str", "number", "bool", "date", "markdown", "html"]
+        datatype: Literal["str", "number", "bool", "date", "markdown", "html", "image"]
         | Sequence[
             Literal["str", "number", "bool", "date", "markdown", "html"]
         ] = "str",
@@ -102,6 +102,7 @@ class Dataframe(Component):
         max_chars: int | None = None,
         show_search: Literal["none", "search", "filter"] = "none",
         pinned_columns: int | None = None,
+        static_columns: list[int] | None = None,
     ):
         """
         Parameters:
@@ -128,19 +129,26 @@ class Dataframe(Component):
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             wrap: If True, the text in table cells will wrap when appropriate. If False and the `column_width` parameter is not set, the column widths will expand based on the cell contents and the table may need to be horizontally scrolled. If `column_width` is set, then any overflow text will be hidden.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies for columns of type "markdown."
-            column_widths: An optional list representing the width of each column. The elements of the list should be in the format "100px" (ints are also accepted and converted to pixel values) or "10%". If not provided, the column widths will be automatically determined based on the content of the cells. Setting this parameter will cause the browser to try to fit the table within the page width.
+            column_widths: An optional list representing the width of each column. The elements of the list should be in the format "100px" (ints are also accepted and converted to pixel values) or "10%". The percentage width is calculated based on the viewport width of the table. If not provided, the column widths will be automatically determined based on the content of the cells.
             show_fullscreen_button: If True, will show a button to view the values in the table in fullscreen mode.
             show_copy_button: If True, will show a button to copy the table data to the clipboard.
             show_row_numbers: If True, will display row numbers in a separate column.
             max_chars: Maximum number of characters to display in each cell before truncating (single-clicking a cell value will still reveal the full content). If None, no truncation is applied.
             show_search: Show a search input in the toolbar. If "search", a search input is shown. If "filter", a search input and filter buttons are shown. If "none", no search input is shown.
             pinned_columns: If provided, will pin the specified number of columns from the left.
+            static_columns: List of column indices (int) that should not be editable. Only applies when interactive=True. When specified, col_count is automatically set to "fixed" and columns cannot be inserted or deleted.
         """
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
+        self.static_columns = static_columns or []
+
         self.col_count = self.__process_counts(
             col_count, len(headers) if headers else 3
         )
+
+        if self.static_columns and isinstance(self.col_count, tuple):
+            self.col_count = (self.col_count[0], "fixed")
+
         self.__validate_headers(headers, self.col_count[0])
 
         self.headers = (
@@ -166,7 +174,11 @@ class Dataframe(Component):
         self.max_height = max_height
         self.line_breaks = line_breaks
         self.column_widths = [
-            w if isinstance(w, str) else f"{w}px" for w in (column_widths or [])
+            w
+            if isinstance(w, str)
+            and (w.endswith("px") or w.endswith("%") or w == "auto")
+            else f"{w}px"
+            for w in (column_widths or [])
         ]
         self.show_fullscreen_button = show_fullscreen_button
         self.show_copy_button = show_copy_button
@@ -382,6 +394,8 @@ class Dataframe(Component):
             return Dataframe.__extract_metadata(
                 value, getattr(value, "hidden_columns", [])
             )
+        elif isinstance(value, dict):
+            return value.get("metadata", None)
         return None
 
     def postprocess(
@@ -417,11 +431,9 @@ class Dataframe(Component):
             )
 
         headers = self.get_headers(value) or self.headers
-        data = (
-            [["" for _ in range(len(headers))]]
-            if self.is_empty(value)
-            else self.get_cell_data(value)
-        )
+        data = [] if self.is_empty(value) else self.get_cell_data(value)
+        if len(data) == 0:
+            return DataframeData(headers=headers, data=[], metadata=None)
         if len(headers) > len(data[0]):
             headers = headers[: len(data[0])]
         elif len(headers) < len(data[0]):

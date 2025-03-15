@@ -1,5 +1,21 @@
 # @gradio/atoms
 
+## 0.14.0
+
+### Features
+
+- [#10778](https://github.com/gradio-app/gradio/pull/10778) [`373007b`](https://github.com/gradio-app/gradio/commit/373007b3e9d019ee41589d1dbb09a7511a024a51) - Allow sorting by multiple columns in dataframe.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/markdown-code@0.4.1
+
+## 0.13.3
+
+### Features
+
+- [#10625](https://github.com/gradio-app/gradio/pull/10625) [`ce4fb99`](https://github.com/gradio-app/gradio/commit/ce4fb994e042489d8c6fbcab3e94d97b08369dce) - fix spelling of `resizable` parameter in `gr.Chatbot`.  Thanks @abidlabs!
+
 ## 0.13.2
 
 ### Dependency updates

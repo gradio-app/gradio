@@ -31,7 +31,7 @@ class Row(BlockContext, metaclass=ComponentMeta):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        scale: int = 0,
+        scale: int | None = None,
         render: bool = True,
         height: int | str | None = None,
         max_height: int | str | None = None,
@@ -61,7 +61,7 @@ class Row(BlockContext, metaclass=ComponentMeta):
         self.height = height
         self.max_height = max_height
         self.min_height = min_height
-        if scale != round(scale):
+        if scale and scale != round(scale):
             warnings.warn(
                 f"'scale' value should be an integer. Using {scale} will cause issues."
             )

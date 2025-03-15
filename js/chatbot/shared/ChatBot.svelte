@@ -90,7 +90,7 @@
 	export let _undoable = false;
 	export let like_user_message = false;
 	export let root: string;
-	export let allow_tags: string[] | null = null;
+	export let allow_tags: string[] | boolean = false;
 
 	let target: HTMLElement | null = null;
 	let edit_index: number | null = null;
@@ -337,6 +337,9 @@
 					{allow_file_downloads}
 					on:copy={(e) => dispatch("copy", e.detail)}
 				/>
+				{#if generating && messages[messages.length - 1].role === "assistant" && messages[messages.length - 1].metadata?.status === "done"}
+					<Pending {layout} {avatar_images} />
+				{/if}
 			{/each}
 			{#if pending_message}
 				<Pending {layout} {avatar_images} />

@@ -1,5 +1,81 @@
 # @gradio/chatbot
 
+## 0.24.4
+
+### Features
+
+- [#10743](https://github.com/gradio-app/gradio/pull/10743) [`3086343`](https://github.com/gradio-app/gradio/commit/3086343a6832a941864d77821b23c31c8b26be7f) - Fixed size for pending thoughts.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/image@0.21.5
+- @gradio/upload@0.15.5
+- @gradio/statustracker@0.10.5
+- @gradio/video@0.14.5
+- @gradio/atoms@0.14.0
+- @gradio/markdown-code@0.4.1
+- @gradio/gallery@0.15.10
+- @gradio/plot@0.9.10
+
+## 0.24.3
+
+### Fixes
+
+- [#10724](https://github.com/gradio-app/gradio/pull/10724) [`667f8a1`](https://github.com/gradio-app/gradio/commit/667f8a1f820d46a4d87ad0f65b9e3b37c4de449f) - Fix Chatbot avatar image position.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/video@0.14.4
+- @gradio/client@1.13.1
+- @gradio/wasm@0.17.4
+- @gradio/gallery@0.15.9
+- @gradio/upload@0.15.4
+- @gradio/image@0.21.4
+
+## 0.24.2
+
+### Dependency updates
+
+- @gradio/upload@0.15.3
+- @gradio/video@0.14.3
+- @gradio/client@1.13.0
+- @gradio/image@0.21.3
+- @gradio/gallery@0.15.8
+
+## 0.24.1
+
+### Fixes
+
+- [#10683](https://github.com/gradio-app/gradio/pull/10683) [`367fe14`](https://github.com/gradio-app/gradio/commit/367fe14381a971c45528d50052121439a023bfc0) - Fix chatbot share button payload too large.  Thanks @dawoodkhan82!
+
+## 0.24.0
+
+### Features
+
+- [#10636](https://github.com/gradio-app/gradio/pull/10636) [`d06f3e3`](https://github.com/gradio-app/gradio/commit/d06f3e3e08d0270b58cefa1be748e6cfd2362c21) - Chatbot thoughts generating animation.  Thanks @dawoodkhan82!
+
+## 0.23.2
+
+### Fixes
+
+- [#10637](https://github.com/gradio-app/gradio/pull/10637) [`75c9748`](https://github.com/gradio-app/gradio/commit/75c9748f50f5825dae601e0a15b85ec666819b6a) - Fix: Chatbot sharing payload too large.  Thanks @dawoodkhan82!
+
+## 0.23.1
+
+### Features
+
+- [#10625](https://github.com/gradio-app/gradio/pull/10625) [`ce4fb99`](https://github.com/gradio-app/gradio/commit/ce4fb994e042489d8c6fbcab3e94d97b08369dce) - fix spelling of `resizable` parameter in `gr.Chatbot`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/image@0.21.2
+- @gradio/upload@0.15.2
+- @gradio/statustracker@0.10.4
+- @gradio/video@0.14.2
+- @gradio/atoms@0.13.3
+- @gradio/gallery@0.15.7
+- @gradio/plot@0.9.9
+
 ## 0.23.0
 
 ### Features

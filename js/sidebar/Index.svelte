@@ -5,12 +5,14 @@
 	import type { Gradio } from "@gradio/utils";
 	import Column from "@gradio/column";
 	export let open = true;
+	export let position: "left" | "right" = "left";
 	export let loading_status: LoadingStatus;
 	export let gradio: Gradio<{
 		expand: never;
 		collapse: never;
 	}>;
 	export let width: number | string;
+	export let visible = true;
 </script>
 
 <StatusTracker
@@ -19,13 +21,16 @@
 	{...loading_status}
 />
 
-<Sidebar
-	bind:open
-	{width}
-	on:expand={() => gradio.dispatch("expand")}
-	on:collapse={() => gradio.dispatch("collapse")}
->
-	<Column>
-		<slot />
-	</Column>
-</Sidebar>
+{#if visible}
+	<Sidebar
+		bind:open
+		bind:position
+		{width}
+		on:expand={() => gradio.dispatch("expand")}
+		on:collapse={() => gradio.dispatch("collapse")}
+	>
+		<Column>
+			<slot />
+		</Column>
+	</Sidebar>
+{/if}

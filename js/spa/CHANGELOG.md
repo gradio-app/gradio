@@ -1,5 +1,52 @@
 # @self/spa
 
+## 0.7.0
+
+### Dependency updates
+
+- @gradio/core@0.13.0
+
+## 0.7.0
+
+### Dependency updates
+
+- @gradio/client@1.13.1
+- @gradio/wasm@0.17.4
+- @gradio/core@0.12.1
+
+## 0.7.0
+
+### Dependency updates
+
+- @gradio/client@1.13.0
+- @gradio/core@0.12.0
+
+## 0.7.0
+
+### Dependency updates
+
+- @gradio/core@0.11.1
+
+## 0.7.0
+
+### Features
+
+- [#10569](https://github.com/gradio-app/gradio/pull/10569) [`bd4895a`](https://github.com/gradio-app/gradio/commit/bd4895a95a29fa1f0d12fefde26a82a1d60954e9) - Update Lite to support multi-page apps.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/core@0.11.0
+
+## 0.6.1
+
+### Fixes
+
+- [#10608](https://github.com/gradio-app/gradio/pull/10608) [`b8fada8`](https://github.com/gradio-app/gradio/commit/b8fada87724cdc76b5862f84a1025f7da151db42) - [ZeroGPU] Handshake-based postMessage part.2 (non-SSR mode).  Thanks @cbensimon!
+
+### Dependency updates
+
+- @gradio/core@0.10.1
+
 ## 0.6.0
 
 ### Dependency updates

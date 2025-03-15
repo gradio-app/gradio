@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/colorpicker",
-	"version": "0.4.13",
+	"version": "0.4.15",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

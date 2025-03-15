@@ -46,7 +46,7 @@ It just takes a few lines of Python to create your own demo, so let's get starte
 
 ### Installation
 
-**Prerequisite**: Gradio 5 requires [Python 3.10 or higher](https://www.python.org/downloads/)
+**Prerequisite**: Gradio requires [Python 3.10 or higher](https://www.python.org/downloads/).
 
 
 We recommend installing Gradio using `pip`, which is included by default in Python. Run this in your terminal or command prompt:
@@ -171,7 +171,9 @@ Keep learning about Gradio sequentially using the Gradio Guides, which include e
 Or, if you already know the basics and are looking for something specific, you can search the more [technical API documentation](https://www.gradio.app/docs/).
 
 
+### Gradio Sketch
 
+You can also build Gradio applications without writing any code. Simply type `gradio sketch` into your terminal to open up an editor that lets you define and modify Gradio components, adjust their layouts, add events, all through a web editor. Or [use this hosted version of Gradio Sketch, running on Hugging Face Spaces](https://huggingface.co/spaces/aliabid94/Sketch).
 
 ## Questions?
 

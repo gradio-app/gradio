@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getContext } from "svelte";
 	import space_logo from "./images/spaces.svg";
 	import { _ } from "svelte-i18n";
 	export let wrapper: HTMLDivElement;
@@ -6,6 +7,7 @@
 	export let initial_height: string;
 	export let fill_width: boolean;
 	export let is_embed: boolean;
+	export let is_lite: boolean;
 
 	export let space: string | null;
 	export let display: boolean;
@@ -14,6 +16,9 @@
 	export let pages: [string, string][] = [];
 	export let current_page = "";
 	export let root: string;
+
+	const set_page: ((page: string) => void) | undefined =
+		getContext("set_lite_page");
 </script>
 
 <div
@@ -30,17 +35,28 @@
 		<div class="nav-holder">
 			<nav class="fillable" class:fill_width>
 				{#each pages as [route, label], i}
-					<a
-						href="{root}/{route}"
-						class:active={route === current_page}
-						data-sveltekit-reload
-						>{label}
-					</a>
+					{#if is_lite}
+						<button
+							class:active={route === current_page}
+							on:click={(e) => {
+								e.preventDefault();
+								set_page?.(route);
+							}}
+							>{label}
+						</button>
+					{:else}
+						<a
+							href={`${root}/${route}`}
+							class:active={route === current_page}
+							data-sveltekit-reload
+							>{label}
+						</a>
+					{/if}
 				{/each}
 			</nav>
 		</div>
 	{/if}
-	<main class="fillable" class:app={!display && !is_embed}>
+	<main class="fillable" class:fill_width class:app={!display && !is_embed}>
 		<slot />
 		<div>
 			{#if display && space && info}
@@ -81,14 +97,16 @@
 		margin: 0 auto;
 		padding: 0 var(--size-8);
 	}
-	nav a {
+	nav a,
+	button {
 		padding: var(--size-1) var(--size-2);
 		border-radius: var(--block-radius);
 		border-width: var(--block-border-width);
 		border-color: transparent;
 		color: var(--body-text-color-subdued);
 	}
-	nav a.active {
+	nav a.active,
+	button.active {
 		color: var(--body-text-color);
 		border-color: var(--block-border-color);
 		background-color: var(--block-background-fill);
@@ -118,7 +136,6 @@
 	}
 
 	main {
-		margin: 0 auto;
 		display: flex;
 		flex-grow: 1;
 		flex-direction: column;

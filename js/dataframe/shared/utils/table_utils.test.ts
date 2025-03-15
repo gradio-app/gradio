@@ -1,10 +1,10 @@
 import { describe, test, expect } from "vitest";
-import {
-	make_cell_id,
-	make_header_id,
-	process_data,
-	make_headers
-} from "./table_utils";
+import { make_cell_id, make_header_id } from "./table_utils";
+import { process_data, make_headers } from "./data_processing";
+
+function make_id(): string {
+	return Math.random().toString(36).substring(2, 15);
+}
 
 describe("table_utils", () => {
 	describe("id generation", () => {
@@ -20,8 +20,8 @@ describe("table_utils", () => {
 
 		test("generates unique header ids", () => {
 			const id_set = new Set();
-			for (let col = 0; col < 10; col++) {
-				id_set.add(make_header_id(col));
+			for (let i = 0; i < 10; i++) {
+				id_set.add(make_header_id(i));
 			}
 			expect(id_set.size).toBe(10);
 		});
@@ -38,12 +38,9 @@ describe("table_utils", () => {
 					["1", "2"],
 					["3", "4"]
 				],
-				[2, "fixed"],
-				[2, "fixed"],
-				["A", "B"],
-				true,
 				element_refs,
-				data_binding
+				data_binding,
+				make_id
 			);
 
 			expect(test_result[0].map((item) => item.value)).toEqual(["1", "2"]);
@@ -56,12 +53,9 @@ describe("table_utils", () => {
 					["1", "2"],
 					["3", "4"]
 				],
-				[2, "fixed"],
-				[2, "fixed"],
-				["A", "B"],
-				false,
 				element_refs,
-				data_binding
+				data_binding,
+				make_id
 			);
 
 			expect(test_result.length).toBe(2);
@@ -71,44 +65,71 @@ describe("table_utils", () => {
 		});
 
 		test("handles empty data", () => {
-			const test_result = process_data(
-				[],
-				[0, "dynamic"],
-				[0, "dynamic"],
-				[],
-				false,
-				element_refs,
-				data_binding
-			);
+			const test_result = process_data([], element_refs, data_binding, make_id);
 
 			expect(test_result.length).toBe(0);
 		});
 	});
 
 	describe("make_headers", () => {
-		const element_refs: Record<string, { cell: null; input: null }> = {};
+		test("creates headers with ids when headers are provided", () => {
+			const els = {};
+			const headers = ["Name", "Age", "City"];
+			const col_count: [number, "fixed" | "dynamic"] = [3, "fixed"];
 
-		test("adds empty column for row numbers", () => {
-			const test_result = make_headers(
-				["A", "B"],
-				true,
-				[2, "fixed"],
-				element_refs
-			);
+			const result = make_headers(headers, col_count, els, make_id);
 
-			expect(test_result.length).toBe(3);
-			expect(test_result[0].value).toBe("");
-			expect(test_result[1].value).toBe("A");
-			expect(test_result[2].value).toBe("B");
+			expect(result.length).toBe(3);
+			expect(result[0].value).toBe("Name");
+			expect(result[1].value).toBe("Age");
+			expect(result[2].value).toBe("City");
+			expect(result[0].id).toBeDefined();
+			expect(result[1].id).toBeDefined();
+			expect(result[2].id).toBeDefined();
+			expect(Object.keys(els).length).toBe(3);
 		});
 
-		test("handles empty headers with fixed columns", () => {
-			const test_result = make_headers([], false, [3, "fixed"], element_refs);
+		test("fills missing headers when col_count is fixed", () => {
+			const els = {};
+			const headers = ["Name", "Age"];
+			const col_count: [number, "fixed" | "dynamic"] = [4, "fixed"];
 
-			expect(test_result.length).toBe(3);
-			expect(
-				test_result.every((header) => typeof header.value === "string")
-			).toBe(true);
+			const result = make_headers(headers, col_count, els, make_id);
+
+			expect(result.length).toBe(4);
+			expect(result[0].value).toBe("Name");
+			expect(result[1].value).toBe("Age");
+			expect(result[2].value).toBe("2");
+			expect(result[3].value).toBe("3");
+			expect(Object.keys(els).length).toBe(4);
+		});
+
+		test("creates default headers when no headers are provided", () => {
+			const els = {};
+			const headers = [];
+			const col_count: [number, "fixed" | "dynamic"] = [3, "fixed"];
+
+			const result = make_headers(headers, col_count, els, make_id);
+
+			expect(result.length).toBe(3);
+			expect(result[0].value).toBe("0");
+			expect(result[1].value).toBe("1");
+			expect(result[2].value).toBe("2");
+			expect(Object.keys(els).length).toBe(3);
+		});
+
+		test("handles null values in headers", () => {
+			const els = {};
+			const headers = ["Name", null, "City"] as any;
+			const col_count: [number, "fixed" | "dynamic"] = [3, "fixed"];
+
+			const result = make_headers(headers, col_count, els, make_id);
+
+			expect(result.length).toBe(3);
+			expect(result[0].value).toBe("Name");
+			expect(result[1].value).toBe("");
+			expect(result[2].value).toBe("City");
+			expect(Object.keys(els).length).toBe(3);
 		});
 	});
 });

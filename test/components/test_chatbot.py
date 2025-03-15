@@ -48,7 +48,7 @@ class TestChatbot:
             "height": 400,
             "feedback_options": ("Like", "Dislike"),
             "feedback_value": None,
-            "resizeable": False,
+            "resizable": False,
             "max_height": None,
             "min_height": None,
             "autoscroll": True,
@@ -69,7 +69,7 @@ class TestChatbot:
             "bubble_full_width": None,
             "line_breaks": True,
             "layout": None,
-            "allow_tags": None,
+            "allow_tags": False,
             "show_copy_all_button": False,
             "examples": None,
         }
