@@ -5,7 +5,7 @@ import type { PyProxy } from "pyodide/ffi";
 export interface CodeCompletionRequest {
 	code: string;
 	// line is 1-based and column is 0-based due to Jedi's spec: https://jedi.readthedocs.io/en/latest/docs/api.html#jedi.Script
-	line: number;  // 1-based
+	line: number; // 1-based
 	column: number; // 0-based
 }
 export interface CodeCompletion {
@@ -16,7 +16,11 @@ export interface CodeCompletion {
 }
 export type CodeCompletionResponse = CodeCompletion[];
 
-type GetCodeCompletionsPyFn = (code: string, line: number, column: number) => PyProxy;
+type GetCodeCompletionsPyFn = (
+	code: string,
+	line: number,
+	column: number
+) => PyProxy;
 
 export class CodeCompleter {
 	private setupPromise: Promise<GetCodeCompletionsPyFn | null>;
@@ -32,15 +36,19 @@ export class CodeCompleter {
 	private async setup(): Promise<GetCodeCompletionsPyFn> {
 		const micropip = this.pyodide.pyimport("micropip");
 		await micropip.install.callKwargs(["jedi"], {
-			keep_going: true,
+			keep_going: true
 		});
 
 		this.pyodide.runPython(code_completion_py);
 
-		return this.pyodide.globals.get("get_code_completions") as GetCodeCompletionsPyFn;
+		return this.pyodide.globals.get(
+			"get_code_completions"
+		) as GetCodeCompletionsPyFn;
 	}
 
-	public async getCodeCompletions(request: CodeCompletionRequest): Promise<CodeCompletionResponse> {
+	public async getCodeCompletions(
+		request: CodeCompletionRequest
+	): Promise<CodeCompletionResponse> {
 		const getCodeCompletionsPyFn = await this.setupPromise;
 		if (!getCodeCompletionsPyFn) {
 			// Setting up failed, return empty response
@@ -51,7 +59,7 @@ export class CodeCompleter {
 		const { code, line, column } = request;
 		const completionsPy = getCodeCompletionsPyFn(code, line, column);
 		const completions: CodeCompletionResponse = completionsPy.toJs({
-			dict_converter: Object.fromEntries,  // dict -> object
+			dict_converter: Object.fromEntries // dict -> object
 		});
 		// > ... If the return value is a PyProxy, you must explicitly destroy it or else it will be leaked.
 		// https://pyodide.org/en/stable/usage/type-conversions.html#calling-python-objects-from-javascript

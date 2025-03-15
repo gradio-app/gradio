@@ -48,8 +48,14 @@
 
 	async function get_lang(val: string): Promise<void> {
 		const ext = await getLanguageExtension(val);
-		if (pyodide_autocomplete && val === "python" && ext instanceof LanguageSupport) {
-			(ext.support as Extension[]).push(ext.language.data.of({ autocomplete: pyodide_autocomplete }));
+		if (
+			pyodide_autocomplete &&
+			val === "python" &&
+			ext instanceof LanguageSupport
+		) {
+			(ext.support as Extension[]).push(
+				ext.language.data.of({ autocomplete: pyodide_autocomplete })
+			);
 		}
 		lang_extension = ext;
 	}

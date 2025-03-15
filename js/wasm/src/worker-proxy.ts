@@ -16,7 +16,10 @@ import {
 	logHttpReqRes
 } from "./http";
 import type { ASGIScope, ReceiveEvent, SendEvent } from "./asgi-types";
-import type { CodeCompletionRequest, CodeCompletionResponse } from "./webworker/code-completion";
+import type {
+	CodeCompletionRequest,
+	CodeCompletionResponse
+} from "./webworker/code-completion";
 
 export interface WorkerProxyOptions {
 	gradioWheelUrl: string;
@@ -357,7 +360,9 @@ export class WorkerProxy extends EventTarget {
 		}) as Promise<void>;
 	}
 
-	public getCodeCompletions(request: CodeCompletionRequest): Promise<CodeCompletionResponse> {
+	public getCodeCompletions(
+		request: CodeCompletionRequest
+	): Promise<CodeCompletionResponse> {
 		return this.postMessageAsync<CodeCompletionResponse>({
 			type: "code-completion",
 			data: request

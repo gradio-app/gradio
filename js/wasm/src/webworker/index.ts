@@ -207,7 +207,7 @@ anyio.to_thread.run_sync = mocked_anyio_to_thread_run_sync
 	return {
 		pyodide,
 		micropip,
-		codeCompleter,
+		codeCompleter
 	};
 }
 
@@ -313,7 +313,8 @@ if ("postMessage" in ctx) {
 }
 
 // Environment initialization is global and should be done only once, so its promise is managed in a global scope.
-let envReadyPromise: Promise<GradioLitePyodideEnvironment> | undefined = undefined;
+let envReadyPromise: Promise<GradioLitePyodideEnvironment> | undefined =
+	undefined;
 
 function setupMessageHandler(receiver: MessageTransceiver): void {
 	// A concept of "app" is introduced to support multiple apps in a single worker.
@@ -588,7 +589,7 @@ except ImportError:
 					const completions = await codeCompleter.getCodeCompletions(request);
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
-						data: completions,
+						data: completions
 					};
 					messagePort.postMessage(replyMessage);
 					break;
