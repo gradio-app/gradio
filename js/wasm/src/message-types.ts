@@ -1,4 +1,5 @@
 import type { ASGIScope } from "./asgi-types";
+import type { CodeCompletionRequest } from "./webworker/code-completion/index";
 import type { PackageData } from "pyodide";
 
 export interface EmscriptenFile {
@@ -74,6 +75,10 @@ export interface InMessageInstall extends InMessageBase {
 		requirements: string[];
 	};
 }
+export interface InMessageCodeCompletion extends InMessageBase {
+	type: "code-completion";
+	data: CodeCompletionRequest;
+}
 
 export interface InMessageEcho extends InMessageBase {
 	// For debug
@@ -91,6 +96,7 @@ export type InMessage =
 	| InMessageFileRename
 	| InMessageFileUnlink
 	| InMessageInstall
+	| InMessageCodeCompletion
 	| InMessageEcho;
 
 export interface ReplyMessageSuccess<T = unknown> {
