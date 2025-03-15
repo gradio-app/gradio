@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Jedi based python autocomplete
+feat:Jedi-based Python code completion on `gr.Code`
