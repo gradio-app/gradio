@@ -6,6 +6,7 @@
 
 	let copied = false;
 	export let value: NormalisedMessage[] | null;
+	export let watermark: string | null = null;
 
 	let timer: NodeJS.Timeout;
 
@@ -28,7 +29,11 @@
 				})
 				.join("\n\n");
 
-			navigator.clipboard.writeText(conversation_value).catch((err) => {
+			const text_to_copy = watermark 
+				? `${conversation_value}\n\n${watermark}` 
+				: conversation_value;
+
+			navigator.clipboard.writeText(text_to_copy).catch((err) => {
 				console.error("Failed to copy conversation: ", err);
 			});
 		}

@@ -51,6 +51,7 @@
 	export let display_consecutive_in_same_bubble: boolean;
 	export let current_feedback: string | null = null;
 	export let allow_tags: string[] | boolean = false;
+	export let watermark: string | null = null;
 	let messageElements: HTMLDivElement[] = [];
 	let previous_edit_mode = false;
 	let last_message_width = 0;
@@ -236,6 +237,7 @@
 					<ButtonPanel
 						{...button_panel_props}
 						{current_feedback}
+						{watermark}
 						on:copy={(e) => dispatch("copy", e.detail)}
 					/>
 				{/if}
