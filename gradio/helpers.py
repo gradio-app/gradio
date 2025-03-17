@@ -529,7 +529,7 @@ class Examples:
                         request=None,
                     )
                 output = prediction["data"]
-                if len(generated_values):
+                if generated_values:
                     output = await merge_generated_values_into_output(
                         self.outputs, generated_values, output
                     )
