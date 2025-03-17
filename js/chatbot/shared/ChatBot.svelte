@@ -91,6 +91,7 @@
 	export let like_user_message = false;
 	export let root: string;
 	export let allow_tags: string[] | boolean = false;
+	export let watermark: string | null = null;
 
 	let target: HTMLElement | null = null;
 	let edit_index: number | null = null;
@@ -268,7 +269,7 @@
 		<IconButton Icon={Trash} on:click={() => dispatch("clear")} label={"Clear"}
 		></IconButton>
 		{#if show_copy_all_button}
-			<CopyAll {value} />
+			<CopyAll {value} {watermark} />
 		{/if}
 	</IconButtonWrapper>
 {/if}
@@ -321,6 +322,7 @@
 					{feedback_options}
 					{current_feedback}
 					{allow_tags}
+					{watermark}
 					show_like={role === "user" ? likeable && like_user_message : likeable}
 					show_retry={_retryable && is_last_bot_message(messages, value)}
 					show_undo={_undoable && is_last_bot_message(messages, value)}

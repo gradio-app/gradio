@@ -88,6 +88,7 @@
 	export let examples: ExampleMessage[] | null = null;
 	export let theme_mode: "system" | "light" | "dark";
 	export let allow_file_downloads = true;
+	export let watermark: string | null = null;
 </script>
 
 <Block
@@ -186,6 +187,7 @@
 			root={gradio.root}
 			{allow_file_downloads}
 			{allow_tags}
+			{watermark}
 		/>
 	</div>
 </Block>
