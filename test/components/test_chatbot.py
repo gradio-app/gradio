@@ -72,6 +72,7 @@ class TestChatbot:
             "allow_tags": False,
             "show_copy_all_button": False,
             "examples": None,
+            "watermark": None,
         }
 
     def test_avatar_images_are_moved_to_cache(self):
