@@ -25,16 +25,12 @@
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
 			dispatch("copy", { value: value });
-			const text_to_copy = watermark 
-				? `${value}\n\n${watermark}` 
-				: value;
+			const text_to_copy = watermark ? `${value}\n\n${watermark}` : value;
 			await navigator.clipboard.writeText(text_to_copy);
 			copy_feedback();
 		} else {
 			const textArea = document.createElement("textarea");
-			const text_to_copy = watermark 
-				? `${value}\n\n${watermark}` 
-				: value;
+			const text_to_copy = watermark ? `${value}\n\n${watermark}` : value;
 			textArea.value = text_to_copy;
 
 			textArea.style.position = "absolute";

@@ -269,7 +269,7 @@
 		<IconButton Icon={Trash} on:click={() => dispatch("clear")} label={"Clear"}
 		></IconButton>
 		{#if show_copy_all_button}
-			<CopyAll {value} {watermark}/>
+			<CopyAll {value} {watermark} />
 		{/if}
 	</IconButtonWrapper>
 {/if}

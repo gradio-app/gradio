@@ -29,8 +29,8 @@
 				})
 				.join("\n\n");
 
-			const text_to_copy = watermark 
-				? `${conversation_value}\n\n${watermark}` 
+			const text_to_copy = watermark
+				? `${conversation_value}\n\n${watermark}`
 				: conversation_value;
 
 			navigator.clipboard.writeText(text_to_copy).catch((err) => {
