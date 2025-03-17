@@ -19,14 +19,14 @@
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import settings_logo from "./api_docs/img/settings-logo.svg";
-	import python from "./api_docs/img/python.svg";
+	import record from "./api_docs/img/record.svg";
 	import { create_components, AsyncFunction } from "./init";
 	import type {
 		LogMessage,
 		RenderMessage,
 		StatusMessage
 	} from "@gradio/client";
-	import ScreenRecorder from "./screenRecorder";
+	import ScreenRecorder from "./screen_recorder";
 
 	setupi18n();
 
@@ -132,8 +132,13 @@
 			return;
 		}
 		const outputs = dep.outputs;
-
 		const meta_updates = data?.map((value: any, i: number) => {
+			screen_recorder.addZoomEffect({
+				targetSelector: `#component-${outputs[0]}`,
+				endTime: 0.5,
+				endZoom: 1.3,
+				sustainDuration: 5,
+			});
 			return {
 				id: outputs[i],
 				prop: "value_is_output",
@@ -374,6 +379,7 @@
 			payload: Payload,
 			streaming = false
 		): Promise<void> {
+			screen_recorder.markRemoveSegmentStart();
 			if (api_recorder_visible) {
 				api_calls = [...api_calls, JSON.parse(JSON.stringify(payload))];
 			}
@@ -603,6 +609,7 @@
 					});
 				}
 			}
+			screen_recorder.markRemoveSegmentEnd();
 		}
 	}
 	/* eslint-enable complexity */
@@ -773,9 +780,8 @@
 		return "detail" in event;
 	}
 
-	let screenRecorder: ScreenRecorder;
+	let screen_recorder: ScreenRecorder;
 
-	// Initialize the screen recorder in onMount
 	onMount(() => {
 		document.addEventListener("visibilitychange", function () {
 			if (document.visibilityState === "hidden") {
@@ -788,15 +794,17 @@
 				navigator.userAgent
 			);
 			
-		// Initialize the screen recorder with a callback for messages
-		screenRecorder = new ScreenRecorder((title, message, type) => {
+		screen_recorder = new ScreenRecorder((title, message, type) => {
 			add_new_message(title, message, type);
 		});
 	});
-	
-	// Function to start/stop screen recording
-	function startScreenRecording(): void {
-		screenRecorder.startRecording();
+
+	function screenRecording(): void {
+		if (screen_recorder.isCurrentlyRecording()) {
+			screen_recorder.stopRecording();
+		} else {
+			screen_recorder.startRecording();
+		}
 	}
 </script>
 
@@ -862,12 +870,13 @@
 			<div class="divider">·</div>
 			<button
 				on:click={() => {
-					startScreenRecording();
+					screenRecording();
 				}}
 				class="record"
 			>
 				{$_("common.record")}
-				<img src={python} alt={$_("common.record")} />
+				<!-- {$_(isRecording ? "common.stop_recording" : "common.record")} -->
+				<img src={record} alt={$_("common.record")} />
 			</button>
 		</footer>
 	{/if}
