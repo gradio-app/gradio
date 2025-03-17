@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/simpleimage",
-	"version": "0.8.19",
+	"version": "0.8.21",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
