@@ -32,7 +32,7 @@ def ask(query):
     context_to_highlight = "Ut velit mauris"
 
     pdf, page_number = highlight_text_in_pdf(pdf_path, context_to_highlight)
-    return result, sources + f" - Page {page_number}", PDF(pdf, label=pdf_name, starting_page=page_number, interactive=True)
+    return result, sources + f" - Page {page_number}", PDF(pdf, label=pdf_name, starting_page=page_number, interactive=True)  # type: ignore
 
 
 if __name__ == "__main__":
