@@ -9,6 +9,7 @@ from gradio.sketch.sketchbox import SketchBox
 from gradio.sketch.utils import set_kwarg, ai
 import time
 
+
 def create(app_file: str, config_file: str):
     file_name = os.path.basename(app_file)
     folder_name = os.path.basename(os.path.dirname(app_file))
@@ -20,7 +21,6 @@ def create(app_file: str, config_file: str):
         gr.Audio: {"type": "filepath"},
         gr.Chatbot: {"type": "messages"},
     }
-
 
     quick_component_list = [
         gr.Textbox,
@@ -107,7 +107,7 @@ def create(app_file: str, config_file: str):
             new_component_id + 1,
             gr.Button(interactive=True),
         )
-    
+
     def set_hf_token(token):
         try:
             hub.login(token)
@@ -295,14 +295,35 @@ def create(app_file: str, config_file: str):
                     )
 
                     if not _hf_token:
-                        input_hf_token = gr.Textbox(label="HF Token", info="Needed for code generation. Copy from [HF Token Page](https://huggingface.co/settings/token).", type="password")
+                        input_hf_token = gr.Textbox(
+                            label="HF Token",
+                            info="Needed for code generation. Copy from [HF Token Page](https://huggingface.co/settings/token).",
+                            type="password",
+                        )
                         submit_token_btn = gr.Button("Submit Token", size="md")
                         submit_token_btn.click(set_hf_token, input_hf_token, hf_token)
                     else:
-                        prompt = gr.Textbox(_prompt, label="Prompt", lines=3, placeholder="Describe what the function should do.", interactive=True)
-                        if len(_dependencies[_modify_id][1]) == 0 + len(_dependencies[_modify_id][2]) == 0:
-                            gr.Markdown("Set **all inputs and outputs** before generating code.")
-                        generate_code_btn = gr.Button("Generate Code", size="md")
+                        prompt = gr.Textbox(
+                            _prompt,
+                            label="Prompt",
+                            lines=3,
+                            placeholder="Describe what the function should do.",
+                            interactive=True,
+                        )
+                        no_components_are_set = (
+                            len(_dependencies[_modify_id][1])
+                            == 0 + len(_dependencies[_modify_id][2])
+                            == 0
+                        )
+                        if no_components_are_set:
+                            gr.Markdown(
+                                "Set **all inputs and outputs** before generating code."
+                            )
+                        generate_code_btn = gr.Button(
+                            "Generate Code",
+                            size="md",
+                            interactive=not no_components_are_set,
+                        )
 
                         if _code is None:
                             __inputs = [_components[c][2] for c in _inputs]
@@ -315,16 +336,27 @@ def create(app_file: str, config_file: str):
 
                         def generate(_prompt):
                             yield from ai(
-                                _prompt, 
+                                _prompt,
                                 _hf_token,
-                                var_name, 
-                                [(_components[c][2], get_component_by_name(_components[c][0]), _components[c][1]) for c in _inputs], 
-                                [(get_component_by_name(_components[c][0]), _components[c][1]) for c in _outputs]
+                                var_name,
+                                [
+                                    (
+                                        _components[c][2],
+                                        get_component_by_name(_components[c][0]),
+                                        _components[c][1],
+                                    )
+                                    for c in _inputs
+                                ],
+                                [
+                                    (
+                                        get_component_by_name(_components[c][0]),
+                                        _components[c][1],
+                                    )
+                                    for c in _outputs
+                                ],
                             )
 
-                        generate_code_btn.click(
-                            generate, prompt, fn_code
-                        )
+                        generate_code_btn.click(generate, prompt, fn_code)
 
                         def save_code(prompt, code):
                             try:
@@ -332,7 +364,9 @@ def create(app_file: str, config_file: str):
                             except BaseException as e:
                                 raise gr.Error(f"Error saving function: {e}")
                             if var_name not in created_fns_namespace:
-                                raise gr.Error(f"Function '{var_name}' not found in code.")
+                                raise gr.Error(
+                                    f"Function '{var_name}' not found in code."
+                                )
                             dep[4] = prompt
                             dep[5] = code
                             gr.Success("Function saved.")
@@ -344,7 +378,9 @@ def create(app_file: str, config_file: str):
                     done_function_btn.click(
                         lambda: ["default", None], None, [mode, modify_id]
                     )
-                    del_function_btn = gr.Button("Delete Function", variant="stop", size="md")
+                    del_function_btn = gr.Button(
+                        "Delete Function", variant="stop", size="md"
+                    )
 
                     def del_function():
                         del _dependencies[_modify_id]
@@ -546,26 +582,38 @@ def create(app_file: str, config_file: str):
             if saved:
                 for triggers, inputs, outputs, fn_name, *_, code in _dependencies:
                     rendered_triggers = [
-                        getattr(rendered_components[c], t)
-                        for c, t in triggers
+                        getattr(rendered_components[c], t) for c, t in triggers
                     ]
                     rendered_inputs = [rendered_components[c] for c in inputs]
                     rendered_outputs = [rendered_components[c] for c in outputs]
                     if code:
                         try:
-                            gr.on(rendered_triggers, created_fns_namespace[fn_name], rendered_inputs, rendered_outputs)
+                            gr.on(
+                                rendered_triggers,
+                                created_fns_namespace[fn_name],
+                                rendered_inputs,
+                                rendered_outputs,
+                            )
                         except Exception:
                             pass
                     else:
                         output_count = len(rendered_outputs)
-                        fn_output = [gr.skip()] * output_count if output_count > 1 else gr.skip() if output_count == 1 else None
+                        fn_output = (
+                            [gr.skip()] * output_count
+                            if output_count > 1
+                            else gr.skip()
+                            if output_count == 1
+                            else None
+                        )
+
                         def sleep(*_):
                             print("sleeping")
                             time.sleep(1)
                             return fn_output
-                        gr.on(rendered_triggers, sleep, rendered_inputs, rendered_outputs)
 
-
+                        gr.on(
+                            rendered_triggers, sleep, rendered_inputs, rendered_outputs
+                        )
 
         with gr.Sidebar(position="right", open=False) as right_sidebar:
             gr.Markdown("## Functions")
@@ -581,7 +629,9 @@ def create(app_file: str, config_file: str):
                     fn_btn.click(load_fn, outputs=[mode, modify_id])
 
             def add_fn(_dependencies):
-                _dependencies.append([[], [], [], f"fn_{len(_dependencies) + 1}", None, None])
+                _dependencies.append(
+                    [[], [], [], f"fn_{len(_dependencies) + 1}", None, None]
+                )
                 return (
                     _dependencies,
                     "modify_function",

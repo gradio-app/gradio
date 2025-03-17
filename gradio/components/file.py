@@ -132,8 +132,11 @@ class File(Component):
         self.type = type
         self.height = height
         self.allow_reordering = allow_reordering
-        self._value_description = f"a string filepath" if self.file_count == "single" else f"a list of string filepaths"
-
+        self._value_description = (
+            f"a string filepath"
+            if self.file_count == "single"
+            else f"a list of string filepaths"
+        )
 
     def _process_single_file(self, f: FileData) -> NamedString | bytes:
         file_name = f.path
