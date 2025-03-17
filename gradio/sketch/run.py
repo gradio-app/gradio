@@ -1,13 +1,14 @@
 import json
 import os
+import time
 from inspect import signature
+
 import huggingface_hub as hub
 
 import gradio as gr
 import gradio.utils
 from gradio.sketch.sketchbox import SketchBox
-from gradio.sketch.utils import set_kwarg, ai
-import time
+from gradio.sketch.utils import ai, set_kwarg
 
 
 def create(app_file: str, config_file: str):
@@ -15,8 +16,8 @@ def create(app_file: str, config_file: str):
     folder_name = os.path.basename(os.path.dirname(app_file))
     created_fns_namespace = {}
 
-    NONCOFIGURABLE_PARAMS = ["every", "inputs", "render", "key"]
-    DEFAULT_KWARGS_MAP = {
+    nonconfigurable_params = ["every", "inputs", "render", "key"]
+    default_kwargs_map = {
         gr.Image: {"type": "filepath"},
         gr.Audio: {"type": "filepath"},
         gr.Chatbot: {"type": "messages"},
@@ -86,7 +87,7 @@ def create(app_file: str, config_file: str):
             if gp:
                 gp[add_index[-2]] = parent
         parent.insert(add_index[-1], new_component_id)
-        default_kwargs = DEFAULT_KWARGS_MAP.get(component, {}).copy()
+        default_kwargs = default_kwargs_map.get(component, {}).copy()
         components[new_component_id] = [component.__name__, default_kwargs, ""]
 
         component_name = component.__name__.lower()
@@ -113,8 +114,8 @@ def create(app_file: str, config_file: str):
             hub.login(token)
             gr.Success("Token set successfully.")
             return token
-        except:
-            raise gr.Error("Invalid Hugging Face token.")
+        except BaseException as err:
+            raise gr.Error("Invalid Hugging Face token.") from err
 
     with gr.Blocks() as demo:
         _id = gr.State(0)
@@ -257,7 +258,7 @@ def create(app_file: str, config_file: str):
                         1:
                     ]
                     for arg in arguments:
-                        if arg in NONCOFIGURABLE_PARAMS:
+                        if arg in nonconfigurable_params:
                             continue
                         arg_value = kwargs.get(arg, "")
                         arg_box = gr.Textbox(
@@ -362,7 +363,7 @@ def create(app_file: str, config_file: str):
                             try:
                                 exec(code, created_fns_namespace)
                             except BaseException as e:
-                                raise gr.Error(f"Error saving function: {e}")
+                                raise gr.Error(f"Error saving function: {e}") from e
                             if var_name not in created_fns_namespace:
                                 raise gr.Error(
                                     f"Function '{var_name}' not found in code."
