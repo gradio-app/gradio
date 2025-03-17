@@ -77,7 +77,7 @@ If an LLM is not helpful for the task, there is no need to use huggingface_hub.
     for token in client.chat_completion(
         [{"role": "user", "content": full_prompt}], stream=True, model=model
     ):
-        content += token.choices[0].delta.content
+        content += token.choices[0].delta.content or ""
         if "```python\n" in content:
             start = content.index("```python\n") + len("```python\n")
             end = content.find("\n```", start)
