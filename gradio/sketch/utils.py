@@ -1,6 +1,8 @@
 import ast
 import inspect
-from typing import Callable, Union
+from collections.abc import Callable
+from typing import Union
+
 import huggingface_hub
 
 model = "Qwen/Qwen2.5-Coder-32B-Instruct"
@@ -84,13 +86,13 @@ If an LLM is not helpful for the task, there is no need to use huggingface_hub.
             yield content
 
 
-def get_value_description(Component, config):
-    component = Component(render=False, **config)
+def get_value_description(component_class, config):
+    component = component_class(render=False, **config)
     value_description = getattr(component, "_value_description", None)
     if value_description is not None:
         return value_description
 
-    value_type_hint = extract_value_type_hint(Component.__init__)
+    value_type_hint = extract_value_type_hint(component_class.__init__)
     all_hints = value_type_hint.split(" | ")
     if "None" in all_hints:
         all_hints.remove("None")
