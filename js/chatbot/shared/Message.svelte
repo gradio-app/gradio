@@ -56,7 +56,7 @@
 	let previous_edit_mode = false;
 	let last_message_width = 0;
 	let last_message_height = 0;
-	
+
 	$: if (in_edit_mode && !previous_edit_mode) {
 		last_message_width =
 			messageElements[messageElements.length - 1]?.clientWidth;
