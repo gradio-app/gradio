@@ -808,6 +808,9 @@ class Queue:
             # Failure, but don't raise an error
             return
         async with app.lock:
+            iterator_obj = app.iterators[event_id]
+            if iterator_obj and hasattr(iterator_obj, "iterator"):
+                iterator_obj.iterator.close()
             del app.iterators[event_id]
             app.iterators_to_reset.add(event_id)
         return

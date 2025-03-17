@@ -1095,6 +1095,8 @@ class App(FastAPI):
 
         @router.post("/cancel")
         async def cancel_event(body: CancelBody):
+            if body.event_id not in app.iterators:
+                raise HTTPException(status_code=404, detail="Event not found")
             await cancel_tasks({f"{body.session_hash}_{body.fn_index}"})
             blocks = app.get_blocks()
             # Need to complete the job so that the client disconnects
@@ -1114,6 +1116,9 @@ class App(FastAPI):
                 ].put_nowait(message)
             if body.event_id in app.iterators:
                 async with app.lock:
+                    iterator_obj = app.iterators[body.event_id]
+                    if iterator_obj and hasattr(iterator_obj, "iterator"):
+                        iterator_obj.iterator.close()
                     del app.iterators[body.event_id]
                     app.iterators_to_reset.add(body.event_id)
             return {"success": True}

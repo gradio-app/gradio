@@ -1,3 +1,4 @@
+import asyncio
 import time
 from concurrent.futures import wait
 
@@ -213,3 +214,92 @@ class TestQueueing:
                     mul_job_2,
                 ]
             )
+
+    @staticmethod
+    async def async_generator():
+        for i in range(10):
+            yield i
+            await asyncio.sleep(0.1)
+
+    def test_reset_iterators(self, connect):
+        with gr.Blocks() as demo:
+            name = gr.Textbox()
+            output = gr.Textbox()
+
+            def greet(x):
+                return f"Hello, {x}!"
+
+            name.submit(greet, name, output)
+
+        app, local_url, _ = demo.launch(prevent_thread_lock=True)
+        test_client = TestClient(app)
+
+        event_id = "test_event"
+        demo.server_app.iterators[event_id] = self.async_generator()
+        assert event_id in demo.server_app.iterators
+
+        response = test_client.post(
+            f"{API_PREFIX}/cancel",
+            json={"event_id": event_id, "session_hash": "session_1", "fn_index": 0},
+        )
+
+        assert response.status_code == 200
+        assert event_id not in demo.server_app.iterators
+
+    def test_reset_iterators_no_event(self, connect):
+        with gr.Blocks() as demo:
+            name = gr.Textbox()
+            output = gr.Textbox()
+
+            def greet(x):
+                return f"Hello, {x}!"
+
+            name.submit(greet, name, output)
+
+        app, local_url, _ = demo.launch(prevent_thread_lock=True)
+        test_client = TestClient(app)
+
+        event_id = "nonexistent_event"
+        response = test_client.post(
+            f"{API_PREFIX}/cancel",
+            json={"event_id": event_id, "session_hash": "session_1", "fn_index": 0},
+        )
+
+        assert response.status_code == 404
+
+    def test_cancel_event(self, connect):
+        with gr.Blocks() as demo:
+            a = gr.Number()
+            b = gr.Number()
+            output = gr.Number()
+
+            add_btn = gr.Button("Add")
+
+            @add_btn.click(inputs=[a, b], outputs=output)
+            def add(x, y):
+                time.sleep(2)
+                return x + y
+
+        app, local_url, _ = demo.launch(prevent_thread_lock=True)
+        test_client = TestClient(app)
+
+        event_id = "test_event"
+        session_hash = "session_123"
+        fn_index = 0
+
+        demo.server_app.iterators[event_id] = self.async_generator()
+        assert event_id in demo.server_app.iterators
+
+        response = test_client.post(
+            f"{API_PREFIX}/cancel",
+            json={
+                "session_hash": session_hash,
+                "fn_index": fn_index,
+                "event_id": event_id,
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {"success": True}
+        assert event_id not in demo.server_app.iterators
+        assert event_id in demo.server_app.iterators_to_reset
