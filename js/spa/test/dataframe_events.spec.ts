@@ -1,5 +1,10 @@
 import { test, expect } from "@self/tootils";
 import { Locator } from "@playwright/test";
+import { toBeVisible } from "@testing-library/jest-dom/matchers";
+
+function get_header_cell(element: Locator, col: number) {
+	return element.locator(`th[title='col_${col}']`).nth(1);
+}
 
 // returns a cell in a dataframe by row and column indices
 function get_cell(element: Locator, row: number, col: number) {
@@ -172,6 +177,26 @@ test("Non-interactive dataframe cannot be edited", async ({ page }) => {
 		.locator("input[aria-label='Edit cell']")
 		.count();
 	expect(editable_cell).toBe(0);
+});
+
+test("Non-interactive dataframe shows cell menu buttons for sorting", async ({
+	page
+}) => {
+	await page.getByRole("button", { name: "Update dataframe" }).click();
+	await page.waitForTimeout(500);
+
+	const view_df = page.locator("#non-interactive-dataframe");
+	await expect(view_df).toBeVisible();
+
+	await get_header_cell(view_df, 2).click();
+
+	await page.getByRole("button", { name: "Open cell menu" }).click();
+
+	const cell_menu_options = await view_df.getByRole("menuitem").count();
+	expect(cell_menu_options).toBe(3);
+
+	const sort_option = page.getByRole("menuitem", { name: "Sort ascending" });
+	await expect(sort_option).toBeVisible();
 });
 
 test("Dataframe keyboard operations work as expected", async ({ page }) => {

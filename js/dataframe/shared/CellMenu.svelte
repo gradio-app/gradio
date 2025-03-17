@@ -57,9 +57,10 @@
 	}
 </script>
 
-<div bind:this={menu_element} class="cell-menu">
+<div bind:this={menu_element} class="cell-menu" role="menu">
 	{#if is_header}
 		<button
+			role="menuitem"
 			on:click={() => on_sort("asc")}
 			class:active={sort_direction === "asc"}
 		>
@@ -70,6 +71,7 @@
 			{/if}
 		</button>
 		<button
+			role="menuitem"
 			on:click={() => on_sort("desc")}
 			class:active={sort_direction === "desc"}
 		>
@@ -79,39 +81,65 @@
 				<span class="priority">{sort_priority}</span>
 			{/if}
 		</button>
-		<button on:click={on_clear_sort}>
+		<button role="menuitem" on:click={on_clear_sort}>
 			<CellMenuIcons icon="clear-sort" />
 			{i18n("dataframe.clear_sort")}
 		</button>
 	{/if}
 
 	{#if !is_header && can_add_rows}
-		<button on:click={() => on_add_row_above()}>
+		<button
+			role="menuitem"
+			on:click={() => on_add_row_above()}
+			aria-label="Add row above"
+		>
 			<CellMenuIcons icon="add-row-above" />
 			{i18n("dataframe.add_row_above")}
 		</button>
-		<button on:click={() => on_add_row_below()}>
+		<button
+			role="menuitem"
+			on:click={() => on_add_row_below()}
+			aria-label="Add row below"
+		>
 			<CellMenuIcons icon="add-row-below" />
 			{i18n("dataframe.add_row_below")}
 		</button>
 		{#if can_delete_rows}
-			<button on:click={on_delete_row} class="delete">
+			<button
+				role="menuitem"
+				on:click={on_delete_row}
+				class="delete"
+				aria-label="Delete row"
+			>
 				<CellMenuIcons icon="delete-row" />
 				{i18n("dataframe.delete_row")}
 			</button>
 		{/if}
 	{/if}
 	{#if can_add_columns}
-		<button on:click={() => on_add_column_left()}>
+		<button
+			role="menuitem"
+			on:click={() => on_add_column_left()}
+			aria-label="Add column to the left"
+		>
 			<CellMenuIcons icon="add-column-left" />
 			{i18n("dataframe.add_column_left")}
 		</button>
-		<button on:click={() => on_add_column_right()}>
+		<button
+			role="menuitem"
+			on:click={() => on_add_column_right()}
+			aria-label="Add column to the right"
+		>
 			<CellMenuIcons icon="add-column-right" />
 			{i18n("dataframe.add_column_right")}
 		</button>
 		{#if can_delete_cols}
-			<button on:click={on_delete_col} class="delete">
+			<button
+				role="menuitem"
+				on:click={on_delete_col}
+				class="delete"
+				aria-label="Delete column"
+			>
 				<CellMenuIcons icon="delete-column" />
 				{i18n("dataframe.delete_column")}
 			</button>
