@@ -62,12 +62,19 @@ def ai(
                 full_prompt += f"""- index {index} should be: {get_value_description(o[0], o[1])}.\n"""
     full_prompt += f"""The function should perform the following task: {prompt}\n"""
     full_prompt += "Return only the python code of the function in your response. Do not wrap the code in backticks or include any description before the response. Return ONLY the function code. Start your response with the header provided. Include any imports inside the function.\n"
-    full_prompt += """If using an LLM would help with the task, use the huggingface_hub library, which can be used with an OpenAI style API. For example:
+    full_prompt += """If using an LLM would help with the task, use the huggingface_hub library. For example:
 ```python
 import huggingface_hub
 client = huggingface_hub.InferenceClient()
+
+# For OpenAI style API
 response = client.chat_completion([{"role": "user", "content": "What is 12*2320?"}], stream=False)
 output = response.choices[0].message.content
+
+# For text completion
+output = client.text_generation("What is 12*2320?")
+
+# Each of the above will return the output as a string.
 ```
 If an LLM is not helpful for the task, there is no need to use huggingface_hub.
 """
