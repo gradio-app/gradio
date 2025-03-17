@@ -56,7 +56,7 @@
 	let previous_edit_mode = false;
 	let last_message_width = 0;
 	let last_message_height = 0;
-
+	
 	$: if (in_edit_mode && !previous_edit_mode) {
 		last_message_width =
 			messageElements[messageElements.length - 1]?.clientWidth;
@@ -105,6 +105,7 @@
 		avatar: FileData | null;
 		dispatch: any;
 		current_feedback: string | null;
+		watermark: string | null;
 	};
 
 	let button_panel_props: ButtonPanelProps;
@@ -123,7 +124,8 @@
 		avatar: avatar_img,
 		layout,
 		dispatch,
-		current_feedback
+		current_feedback,
+		watermark
 	};
 </script>
 
