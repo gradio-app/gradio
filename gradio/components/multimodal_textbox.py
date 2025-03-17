@@ -174,7 +174,6 @@ class MultimodalTextbox(FormComponent):
         self.text_align = text_align
         self._value_description = "a dictionary with structure {'text': string, 'files': list of string file paths}"
 
-
     def preprocess(self, payload: MultimodalData | None) -> MultimodalValue | None:
         """
         Parameters:

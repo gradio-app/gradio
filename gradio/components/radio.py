@@ -97,7 +97,9 @@ class Radio(FormComponent):
             key=key,
             value=value,
         )
-        self._value_description = f"one of {[c[1] if isinstance(c, tuple) else c for c in self.choices]}"
+        self._value_description = (
+            f"one of {[c[1] if isinstance(c, tuple) else c for c in self.choices]}"
+        )
 
     def example_payload(self) -> Any:
         return self.choices[0][1] if self.choices else None

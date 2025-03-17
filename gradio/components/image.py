@@ -168,8 +168,14 @@ class Image(StreamingInput, Component):
             key=key,
             value=value,
         )
-        self._value_description = f"a filepath to an image" if self.type == "filepath" else (
-            f"a numpy array representing an image" if self.type == "numpy" else "a PIL Image"
+        self._value_description = (
+            f"a filepath to an image"
+            if self.type == "filepath"
+            else (
+                f"a numpy array representing an image"
+                if self.type == "numpy"
+                else "a PIL Image"
+            )
         )
 
     def preprocess(

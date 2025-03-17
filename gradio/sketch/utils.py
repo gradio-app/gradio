@@ -3,6 +3,9 @@ import inspect
 from typing import Callable, Union
 import huggingface_hub
 
+model = "Qwen/Qwen2.5-Coder-32B-Instruct"
+
+
 def is_number(s: str) -> bool:
     try:
         float(s)
@@ -29,11 +32,18 @@ def set_kwarg(obj: dict, key: str, value: str) -> None:
     else:
         obj[key] = value
 
-def ai(prompt: str, hf_token: str, fn_name: str, inputs: list[tuple[str, type, dict]], output_types: list[tuple[type, dict]]):
+
+def ai(
+    prompt: str,
+    hf_token: str,
+    fn_name: str,
+    inputs: list[tuple[str, type, dict]],
+    output_types: list[tuple[type, dict]],
+):
     full_prompt = f"""Create a python function with the following header:
-`def {fn_name}({', '.join(i[0] for i in inputs)}):`\n"""
+`def {fn_name}({", ".join(i[0] for i in inputs)}):`\n"""
     if len(inputs) > 0:
-        if len(inputs) == 1: 
+        if len(inputs) == 1:
             full_prompt += f"""The value of '{inputs[0][0]}' is passed as: {get_value_description(inputs[0][1], inputs[0][2])}.\n"""
         else:
             full_prompt += "The inputs are passed as follows:\n"
@@ -43,24 +53,43 @@ def ai(prompt: str, hf_token: str, fn_name: str, inputs: list[tuple[str, type, d
         if len(output_types) == 1:
             full_prompt += f"""The function should return a value as: {get_value_description(output_types[0][0], output_types[0][1])}.\n"""
         else:
-            full_prompt += "The function should return a tuple of the following values:\n"
+            full_prompt += (
+                "The function should return a tuple of the following values:\n"
+            )
             for index, o in enumerate(output_types):
                 full_prompt += f"""- index {index} should be: {get_value_description(o[0], o[1])}.\n"""
     full_prompt += f"""The function should perform the following task: {prompt}\n"""
-    full_prompt += "Return only the python code of the function in your response. Do not wrap the code in backticks or include any description before the response. Return ONLY the function code. Start your response with the header provided. Include any imports inside the function."
+    full_prompt += "Return only the python code of the function in your response. Do not wrap the code in backticks or include any description before the response. Return ONLY the function code. Start your response with the header provided. Include any imports inside the function.\n"
+    full_prompt += """If using an LLM would help with the task, use the huggingface_hub library, which can be used with an OpenAI style API. For example:
+```python
+import huggingface_hub
+client = huggingface_hub.InferenceClient()
+response = client.chat_completion([{"role": "user", "content": "What is 12*2320?"}], stream=False)
+output = response.choices[0].message.content
+```
+If an LLM is not helpful for the task, there is no need to use huggingface_hub.
+"""
 
     client = huggingface_hub.InferenceClient(token=hf_token)
     content = ""
-    for token in client.chat_completion([{"role": "user", "content": full_prompt}], stream=True):
+    for token in client.chat_completion(
+        [{"role": "user", "content": full_prompt}], stream=True, model=model
+    ):
         content += token.choices[0].delta.content
-        yield content
+        if "```python\n" in content:
+            start = content.index("```python\n") + len("```python\n")
+            end = content.find("\n```", start)
+            yield content[start:end] if end != -1 else content[start:]
+        else:
+            yield content
+
 
 def get_value_description(Component, config):
     component = Component(render=False, **config)
     value_description = getattr(component, "_value_description", None)
     if value_description is not None:
         return value_description
-    
+
     value_type_hint = extract_value_type_hint(Component.__init__)
     all_hints = value_type_hint.split(" | ")
     if "None" in all_hints:
@@ -69,17 +98,21 @@ def get_value_description(Component, config):
         all_hints.remove("Callable")
     return " | ".join(all_hints)
 
+
 def extract_value_type_hint(func: Callable) -> str:
     sig = inspect.signature(func)
-    
-    if 'value' in sig.parameters:
-        param = sig.parameters['value']
+
+    if "value" in sig.parameters:
+        param = sig.parameters["value"]
         if param.annotation is not inspect.Parameter.empty:
-            if hasattr(param.annotation, "__origin__") and param.annotation.__origin__ is Union:
+            if (
+                hasattr(param.annotation, "__origin__")
+                and param.annotation.__origin__ is Union
+            ):
                 return " | ".join(arg.__name__ for arg in param.annotation.__args__)
             elif hasattr(param.annotation, "__name__"):
                 return param.annotation.__name__
             else:
                 return str(param.annotation).replace("typing.", "")
-    
+
     return "Any"

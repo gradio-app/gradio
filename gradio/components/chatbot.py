@@ -367,7 +367,11 @@ class Chatbot(Component):
 
         self.examples = examples
         self._setup_examples()
-        self._value_description = "a list of chat message dictionaries in openai format, e.g. {'role': 'user', 'content': 'Hello'}" if self.type == "messages" else "a list of 2-part tuples, where each tuple contains the user message and the bot response message"
+        self._value_description = (
+            "a list of chat message dictionaries in openai format, e.g. {'role': 'user', 'content': 'Hello'}"
+            if self.type == "messages"
+            else "a list of 2-part tuples, where each tuple contains the user message and the bot response message"
+        )
 
     def _setup_data_model(self):
         if self.type == "messages":
