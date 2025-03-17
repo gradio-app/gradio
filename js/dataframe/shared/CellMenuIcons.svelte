@@ -110,4 +110,83 @@
 			stroke-linecap="round"
 		/>
 	</svg>
+{:else if icon == "sort-asc"}
+	<svg viewBox="0 0 24 24" width="16" height="16">
+		<path
+			d="M8 16L12 12L16 16"
+			stroke="currentColor"
+			stroke-width="2"
+			fill="none"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+		/>
+		<path
+			d="M12 12V19"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+		/>
+		<path
+			d="M5 7H19"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+		/>
+	</svg>
+{:else if icon == "sort-desc"}
+	<svg viewBox="0 0 24 24" width="16" height="16">
+		<path
+			d="M8 12L12 16L16 12"
+			stroke="currentColor"
+			stroke-width="2"
+			fill="none"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+		/>
+		<path
+			d="M12 16V9"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+		/>
+		<path
+			d="M5 5H19"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+		/>
+	</svg>
+{:else if icon == "clear-sort"}
+	<svg viewBox="0 0 24 24" width="16" height="16">
+		<path
+			d="M5 5H19"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+		/>
+		<path
+			d="M5 9H15"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+		/>
+		<path
+			d="M5 13H11"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+		/>
+		<path
+			d="M5 17H7"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+		/>
+		<path
+			d="M17 17L21 21M21 17L17 21"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+		/>
+	</svg>
 {/if}

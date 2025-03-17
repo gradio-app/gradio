@@ -12,23 +12,21 @@ test("clicking through tabs shows correct content", async ({ page }) => {
 	await expect(page.locator("body")).not.toContainText("Incomplete Tasks (0)");
 	await expect(page.locator("body")).toContainText("Incomplete Tasks (1)");
 	await expect(page.locator("body")).toContainText("Complete Tasks (0)");
-	await expect(page.locator("textarea").nth(1)).toHaveValue("eat");
+	await expect(page.locator("input").nth(0)).toHaveValue("eat");
 
 	await input_text.fill("pray");
 	await input_text.press("Enter");
 
 	await expect(page.locator("body")).toContainText("Incomplete Tasks (2)");
 	await expect(page.locator("body")).toContainText("Complete Tasks (0)");
-	await expect(page.locator("textarea").nth(2)).toHaveValue("pray");
+	await expect(page.locator("input").nth(1)).toHaveValue("pray");
 
 	await input_text.fill("love");
 	await input_text.press("Enter");
 
 	await expect(page.locator("body")).toContainText("Incomplete Tasks (3)");
 	await expect(page.locator("body")).toContainText("Complete Tasks (0)");
-	await expect(page.locator("textarea").nth(1)).toHaveValue("eat");
-	await expect(page.locator("textarea").nth(2)).toHaveValue("pray");
-	await expect(page.locator("textarea").nth(3)).toHaveValue("love");
+	await expect(page.locator("input").nth(2)).toHaveValue("love");
 
 	const done_btn_for_eat = page
 		.locator("button")

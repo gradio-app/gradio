@@ -2,6 +2,7 @@
 	import { onMount } from "svelte";
 	import CellMenuIcons from "./CellMenuIcons.svelte";
 	import type { I18nFormatter } from "js/utils/src";
+	import type { SortDirection } from "./context/table_context";
 
 	export let x: number;
 	export let y: number;
@@ -16,6 +17,10 @@
 	export let on_delete_col: () => void;
 	export let can_delete_rows: boolean;
 	export let can_delete_cols: boolean;
+	export let on_sort: (direction: SortDirection) => void = () => {};
+	export let on_clear_sort: () => void = () => {};
+	export let sort_direction: SortDirection | null = null;
+	export let sort_priority: number | null = null;
 
 	export let i18n: I18nFormatter;
 	let menu_element: HTMLDivElement;
@@ -52,6 +57,33 @@
 </script>
 
 <div bind:this={menu_element} class="cell-menu">
+	{#if is_header}
+		<button
+			on:click={() => on_sort("asc")}
+			class:active={sort_direction === "asc"}
+		>
+			<CellMenuIcons icon="sort-asc" />
+			{i18n("dataframe.sort_ascending")}
+			{#if sort_direction === "asc" && sort_priority !== null}
+				<span class="priority">{sort_priority}</span>
+			{/if}
+		</button>
+		<button
+			on:click={() => on_sort("desc")}
+			class:active={sort_direction === "desc"}
+		>
+			<CellMenuIcons icon="sort-desc" />
+			{i18n("dataframe.sort_descending")}
+			{#if sort_direction === "desc" && sort_priority !== null}
+				<span class="priority">{sort_priority}</span>
+			{/if}
+		</button>
+		<button on:click={on_clear_sort}>
+			<CellMenuIcons icon="clear-sort" />
+			{i18n("dataframe.clear_sort")}
+		</button>
+	{/if}
+
 	{#if !is_header && can_add_rows}
 		<button on:click={() => on_add_row_above()}>
 			<CellMenuIcons icon="add-row-above" />
@@ -89,7 +121,7 @@
 <style>
 	.cell-menu {
 		position: fixed;
-		z-index: var(--layer-4);
+		z-index: 9;
 		background: var(--background-fill-primary);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm);
@@ -99,6 +131,7 @@
 		gap: var(--size-1);
 		box-shadow: var(--shadow-drop-lg);
 		min-width: 150px;
+		z-index: var(--layer-1);
 	}
 
 	.cell-menu button {
@@ -116,6 +149,11 @@
 		display: flex;
 		align-items: center;
 		gap: var(--size-2);
+		position: relative;
+	}
+
+	.cell-menu button.active {
+		background-color: var(--background-fill-secondary);
 	}
 
 	.cell-menu button:hover {
@@ -125,5 +163,18 @@
 	.cell-menu button :global(svg) {
 		fill: currentColor;
 		transition: fill 0.2s;
+	}
+
+	.priority {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-left: auto;
+		font-size: var(--size-2);
+		background-color: var(--button-secondary-background-fill);
+		color: var(--body-text-color);
+		border-radius: var(--radius-sm);
+		width: var(--size-2-5);
+		height: var(--size-2-5);
 	}
 </style>
