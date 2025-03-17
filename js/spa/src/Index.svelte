@@ -37,6 +37,7 @@
 		max_file_size?: number;
 		pages: [string, string][];
 		current_page: string;
+		deep_link_state?: "valid" | "invalid" | "none";
 		page: Record<
 			string,
 			{
@@ -287,6 +288,17 @@
 	//@ts-ignore
 	const gradio_dev_mode = window.__GRADIO_DEV__;
 
+	// Add this variable to track if we need to show a deep link error
+	let pending_deep_link_error = false;
+
+	let new_message_fn: (title: string, message: string, type: string) => void;
+
+	// Add this watcher to show the error once new_message_fn is available
+	$: if (new_message_fn && pending_deep_link_error) {
+		new_message_fn("Error", "Deep link was not valid", "error");
+		pending_deep_link_error = false; // Reset to prevent showing multiple times
+	}
+
 	onMount(async () => {
 		active_theme_mode = handle_theme_mode(wrapper);
 
@@ -315,7 +327,7 @@
 
 		config = app.get_url_config();
 		window.__gradio_space__ = config.space_id;
-		window.__gradio_session_hash__ = app.session_hash;
+		window.__gradio_session_hash__ = app.session_hash; // type: ignore
 
 		status = {
 			message: "",
@@ -346,7 +358,11 @@
 		pages = config.pages;
 		current_page = config.current_page;
 		root = config.root;
-
+		// Replace the switch statement with this
+		if (config.deep_link_state === "invalid") {
+			pending_deep_link_error = true;
+		}
+		
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(api_url);
@@ -433,8 +449,6 @@
 			);
 		}
 	};
-
-	let new_message_fn: (title: string, message: string, type: string) => void;
 
 	onMount(async () => {
 		intersecting.register(_id, wrapper);

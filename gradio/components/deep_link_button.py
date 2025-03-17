@@ -14,7 +14,7 @@ from gradio.context import get_blocks_context
 
 
 @document()
-class ShareLinkButton(Button):
+class DeepLinkButton(Button):
     """
     Creates a button that copies a shareable link to the current Gradio Space.
     The link includes the current session hash as a query parameter.
@@ -73,10 +73,13 @@ class ShareLinkButton(Button):
         """Attach the click event to copy the share link."""
         _js = self.get_share_link(self.value, self.copied_value)
         import time
+
         self.click(fn=None, inputs=[], outputs=[self], js=_js)
         self.click(
-            fn=lambda: time.sleep(1) or self.value, inputs=[], outputs=[self],
-            queue=False
+            fn=lambda: time.sleep(1) or self.value,
+            inputs=[],
+            outputs=[self],
+            queue=False,
         )
 
     def get_share_link(
@@ -87,15 +90,28 @@ class ShareLinkButton(Button):
         return textwrap.dedent(
             """
         () => {
-            console.log("HERE");
             const sessionHash = window.__gradio_session_hash__;
-            const currentUrl = new URL(window.location.href);
-
-            // Set the share parameter
-            currentUrl.searchParams.set('share', sessionHash);
-
-            // Copy to clipboard
-            navigator.clipboard.writeText(currentUrl.toString());
+            // Send GET request to /deep_link with sessionHash as query parameter
+            fetch(`/deep_link?session_hash=${sessionHash}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    const currentUrl = new URL(window.location.href);
+                    console.log("data", data);
+                    // Remove quotes from data if they exist
+                    const cleanData = data.replace(/^"|"$/g, '');
+                    currentUrl.searchParams.set('deep_link', cleanData);
+                    // Copy the returned URL to clipboard
+                    navigator.clipboard.writeText(currentUrl.toString());
+                })
+                .catch(error => {
+                    console.error('Error fetching deep link:', error);
+                    return "Error";
+                });
 
             // Return the copied value immediately for UI feedback
             return "BUTTON_COPIED_VALUE";

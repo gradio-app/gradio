@@ -522,8 +522,9 @@ class App(FastAPI):
             def page_route(
                 request: fastapi.Request,
                 user: str = Depends(get_current_user),
+                deep_link: str = "",
             ):
-                return main(request, user, page)
+                return main(request, user, page, deep_link)
 
         for pageset in blocks.pages:
             page = pageset[0]
@@ -536,9 +537,8 @@ class App(FastAPI):
             request: fastapi.Request,
             user: str = Depends(get_current_user),
             page: str = "",
-            share: str = "",
+            deep_link: str = "",
         ):
-            print("share", share)
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
             root = route_utils.get_root_url(
@@ -549,20 +549,36 @@ class App(FastAPI):
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
                 config = route_utils.update_root_in_config(config, root)
-                if share:
-                    components = [
-                        utils.safe_deepcopy(c)
-                        for id, c in app.state_holder[share].components
-                        if id in config["page"][page]["components"]
-                    ]
-                else:
-                    components = [
-                        component
-                        for component in config["components"]
-                        if component["id"] in config["page"][page]["components"]
-                    ]
+                deep_link_state = "none"
+                components = [
+                    component
+                    for component in config["components"]
+                    if component["id"] in config["page"][page]["components"]
+                ]
+                if deep_link:
+                    print("deep link here", deep_link)
+                    try:
+                        components = orjson.loads(
+                            (
+                                Path(app.uploaded_file_dir)
+                                / "deep_links"
+                                / deep_link
+                                / "state.json"
+                            ).read_bytes()
+                        )
+                        components = [
+                            component
+                            for component in components
+                            if component["id"] in config["page"][page]["components"]
+                        ]
+                        print("components", components)
+                        deep_link_state = "valid"
+                    except FileNotFoundError:
+                        deep_link_state = "invalid"
+                print("deep link state", deep_link_state)
                 config["username"] = user
-                config["components"] = components
+                config["deep_link_state"] = deep_link_state
+                config["components"] = components  # type: ignore
                 config["dependencies"] = [
                     dependency
                     for dependency in config.get("dependencies", [])
@@ -570,7 +586,6 @@ class App(FastAPI):
                 ]
                 config["layout"] = config["page"][page]["layout"]
                 config["current_page"] = page
-                print("here")
             elif app.auth_dependency:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
@@ -613,6 +628,27 @@ class App(FastAPI):
                         "Did you install Gradio from source files? You need to build "
                         "the frontend by running /scripts/build_frontend.sh"
                     ) from err
+
+        @app.get("/deep_link")
+        def deep_link(session_hash: str):
+            if session_hash in app.state_holder:
+                components = [
+                    utils.safe_deepcopy(c)
+                    for c in app.state_holder[session_hash].components
+                ]
+                components_json = orjson.dumps(
+                    components,
+                    option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_PASSTHROUGH_DATETIME,
+                    default=str,
+                )
+                deep_link = route_utils.create_url_safe_hash(components_json)
+                directory = Path(app.uploaded_file_dir) / "deep_links" / deep_link
+                directory.mkdir(parents=True, exist_ok=True)
+                with open(directory / "state.json", "wb") as f:
+                    f.write(components_json)
+                return deep_link
+            else:
+                return "Error"
 
         @router.get("/info/", dependencies=[Depends(login_check)])
         @router.get("/info", dependencies=[Depends(login_check)])

@@ -1808,6 +1808,9 @@ Received inputs:
                         inputs_seriealized = inputs_cached.model_dump()
                     else:
                         inputs_seriealized = inputs_cached
+                    print("block", block, block._id)
+                    if block._id not in state:
+                        state[block._id] = block
                     state[block._id].value = inputs_seriealized
                     processed_input.append(block.preprocess(inputs_cached))
         else:
