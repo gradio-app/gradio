@@ -90,10 +90,14 @@
 			// Otherwise we keep the selected_index the same if the
 			// gallery has at least as many elements as it did before
 		} else {
-			selected_index =
-				selected_index != null && value != null && selected_index < value.length
-					? selected_index
-					: null;
+			if (selected_index !== null && value !== null) {
+				selected_index = Math.max(
+					0,
+					Math.min(selected_index, value.length - 1)
+				);
+			} else {
+				selected_index = null;
+			}
 		}
 		dispatch("change");
 		prev_value = value;
