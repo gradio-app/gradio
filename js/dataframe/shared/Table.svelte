@@ -968,8 +968,9 @@
 		on_delete_row={() => delete_row_at(active_cell_menu?.row ?? -1)}
 		on_delete_col={() =>
 			delete_col_at(active_cell_menu?.col ?? active_header_menu?.col ?? -1)}
-		can_delete_rows={!active_header_menu && data.length > 1}
-		can_delete_cols={data.length > 0 && data[0]?.length > 1}
+		{editable}
+		can_delete_rows={!active_header_menu && data.length > 1 && editable}
+		can_delete_cols={data.length > 0 && data[0]?.length > 1 && editable}
 		{i18n}
 		on_sort={active_header_menu
 			? (direction) => {

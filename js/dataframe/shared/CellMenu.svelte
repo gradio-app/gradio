@@ -21,13 +21,14 @@
 	export let on_clear_sort: () => void = () => {};
 	export let sort_direction: SortDirection | null = null;
 	export let sort_priority: number | null = null;
+	export let editable = true;
 
 	export let i18n: I18nFormatter;
 	let menu_element: HTMLDivElement;
 
 	$: is_header = row === -1;
-	$: can_add_rows = row_count[1] === "dynamic";
-	$: can_add_columns = col_count[1] === "dynamic";
+	$: can_add_rows = editable && row_count[1] === "dynamic";
+	$: can_add_columns = editable && col_count[1] === "dynamic";
 
 	onMount(() => {
 		position_menu();
