@@ -225,7 +225,7 @@ class Chatbot(Component):
         rtl: bool = False,
         show_share_button: bool | None = None,
         show_copy_button: bool = False,
-        watermark: str | None = None,  # New parameter for watermark text
+        watermark: str | None = None,
         avatar_images: tuple[str | Path | None, str | Path | None] | None = None,
         sanitize_html: bool = True,
         render_markdown: bool = True,
