@@ -179,28 +179,6 @@ test("Non-interactive dataframe cannot be edited", async ({ page }) => {
 	expect(editable_cell).toBe(0);
 });
 
-test("Non-interactive dataframe shows cell menu buttons for sorting", async ({
-	page
-}) => {
-	await page.getByRole("button", { name: "Update dataframe" }).click();
-	await page.waitForTimeout(500);
-
-	const view_df = page.locator("#non-interactive-dataframe");
-	await expect(view_df).toBeVisible();
-
-	const header_cell = get_header_cell(view_df, 2);
-	await header_cell.click();
-
-	const cell_menu_button = header_cell.getByLabel("Open cell menu");
-	await cell_menu_button.click();
-
-	const cell_menu_options = await view_df.getByRole("menuitem").count();
-	expect(cell_menu_options).toBe(3);
-
-	const sort_option = page.getByRole("menuitem", { name: "Sort ascending" });
-	await expect(sort_option).toBeVisible();
-});
-
 test("Dataframe keyboard operations work as expected", async ({ page }) => {
 	const df = page.locator("#dataframe").first();
 

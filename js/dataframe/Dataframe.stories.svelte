@@ -675,7 +675,7 @@
 />
 
 <Story
-	name="Dataframe with sorting by multiple columns"
+	name="Non-interactive dataframe with sorting by multiple columns"
 	args={{
 		values: [
 			[1, 2, 3],
@@ -685,7 +685,7 @@
 		headers: ["A", "B", "C"],
 		col_count: [3, "dynamic"],
 		row_count: [3, "dynamic"],
-		editable: true,
+		editable: false,
 		sort_columns: [
 			{ col: 0, direction: "asc" },
 			{ col: 1, direction: "desc" }
