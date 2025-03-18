@@ -77,7 +77,7 @@ output = client.text_generation("What is 12*2320?")  # a string
 # For image generation
 response = client.text_to_image("A picture of a cat")  # a PIL image
 ```
-If an LLM is not helpful for the task, there is no need to use huggingface_hub. Avoid using other 3rd party libraries (other than numpy, pandas, pydub if useful) unless necessary.
+If an LLM is not helpful for the task, there is no need to use huggingface_hub. Avoid using other 3rd party libraries (other than numpy, pandas, pydub, pillow if useful) unless necessary.
 """
 
     client = huggingface_hub.InferenceClient(token=hf_token)
