@@ -1948,6 +1948,8 @@ Received inputs:
                             postprocess=True,
                         )
                     )
+                    if block._id not in state:
+                        state[block._id] = block
                     state[block._id].value = prediction_value_serialized
 
                 outputs_cached = await processing_utils.async_move_files_to_cache(
