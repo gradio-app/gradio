@@ -199,6 +199,7 @@
 		status = _status;
 	}
 	//@ts-ignore
+	let pending_deep_link_error = false;
 
 	let gradio_dev_mode = "";
 
@@ -208,6 +209,10 @@
 		window.gradio_config = config;
 		window.gradio_config = data.config;
 		config = data.config;
+
+		if (config.deep_link_state === "invalid") {
+			pending_deep_link_error = true;
+		}
 
 		if (!app.config) {
 			throw new Error("Could not resolve app config");
@@ -270,6 +275,11 @@
 	});
 
 	let new_message_fn: (title: string, message: string, type: string) => void;
+
+	$: if (new_message_fn && pending_deep_link_error) {
+		new_message_fn("Error", "Deep link was not valid", "error");
+		pending_deep_link_error = false;
+	}
 
 	onMount(async () => {
 		intersecting = create_intersection_store();
