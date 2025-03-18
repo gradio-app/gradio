@@ -940,12 +940,10 @@ class MediaStream:
 
 
 def create_url_safe_hash(data: bytes, digest_size=8):
+    """Create a URL-safe short hash of the data. Used to generate unique short deep links."""
     import base64
 
-    # Create a hash
     hash_obj = hashlib.blake2b(data, digest_size=digest_size)
-
-    # Convert to URL-safe base64 and remove padding
     url_safe_hash = base64.urlsafe_b64encode(hash_obj.digest()).decode().rstrip("=")
 
     return url_safe_hash

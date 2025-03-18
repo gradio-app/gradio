@@ -531,15 +531,17 @@ class App(FastAPI):
             if page != "":
                 attach_page(page)
 
-        def load_deep_link(deep_link: str, config: dict[str, Any], page: str | None = None):
+        def load_deep_link(
+            deep_link: str, config: dict[str, Any], page: str | None = None
+        ):
             components = config["components"]
             try:
                 path = (
-                        Path(app.uploaded_file_dir)
-                        / "deep_links"
-                        / deep_link
-                        / "state.json"
-                    )
+                    Path(app.uploaded_file_dir)
+                    / "deep_links"
+                    / deep_link
+                    / "state.json"
+                )
 
                 if path.exists():
                     components = orjson.loads(path.read_bytes())
@@ -582,7 +584,9 @@ class App(FastAPI):
                     if component["id"] in config["page"][page]["components"]
                 ]
                 if deep_link:
-                    components, deep_link_state = load_deep_link(deep_link, config, page)  # type: ignore
+                    components, deep_link_state = load_deep_link(
+                        deep_link, config, page
+                    )  # type: ignore
                 config["username"] = user
                 config["deep_link_state"] = deep_link_state
                 config["components"] = components  # type: ignore

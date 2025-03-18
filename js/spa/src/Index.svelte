@@ -327,7 +327,8 @@
 
 		config = app.get_url_config();
 		window.__gradio_space__ = config.space_id;
-		window.__gradio_session_hash__ = app.session_hash; // type: ignore
+		//@ts-ignore
+		window.__gradio_session_hash__ = app.session_hash;
 
 		status = {
 			message: "",
@@ -362,7 +363,7 @@
 		if (config.deep_link_state === "invalid") {
 			pending_deep_link_error = true;
 		}
-		
+
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(api_url);

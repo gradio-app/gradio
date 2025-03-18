@@ -29,7 +29,7 @@ export async function load({
 	const app = await Client.connect(api_url, {
 		with_null_state: true,
 		events: ["data", "log", "status", "render"],
-		deep_link: deepLink ?? undefined
+		query_params: deepLink ? { deep_link: deepLink } : undefined
 	});
 
 	if (!app.config) {

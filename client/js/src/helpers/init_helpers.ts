@@ -64,7 +64,6 @@ export function map_names_to_ids(
 	return apis;
 }
 
-// eslint-disable-next-line complexity
 export async function resolve_config(
 	this: Client,
 	endpoint: string
@@ -87,7 +86,10 @@ export async function resolve_config(
 		config.root = config_root;
 		return { ...config, path } as Config;
 	} else if (endpoint) {
-		let config_url = join_urls(endpoint,this.deep_link ? CONFIG_URL + "?deep_link=" + this.deep_link : CONFIG_URL);
+		let config_url = join_urls(
+			endpoint,
+			this.deep_link ? CONFIG_URL + "?deep_link=" + this.deep_link : CONFIG_URL
+		);
 
 		const response = await this.fetch(config_url, {
 			headers,
@@ -103,7 +105,6 @@ export async function resolve_config(
 			let config = await response.json();
 			config.path = config.path ?? "";
 			config.root = endpoint;
-			console.log("config.root in resolve_config", config.root);
 			config.dependencies?.forEach((dep: any, i: number) => {
 				if (dep.id === undefined) {
 					dep.id = i;

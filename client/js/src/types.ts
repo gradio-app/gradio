@@ -314,7 +314,7 @@ export interface ClientOptions {
 	with_null_state?: boolean;
 	events?: EventType[];
 	headers?: Record<string, string>;
-	deep_link?: string;
+	query_params?: Record<string, string>;
 }
 
 export interface FileData {

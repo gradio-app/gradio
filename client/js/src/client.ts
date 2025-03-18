@@ -184,9 +184,7 @@ export class Client {
 		options: ClientOptions = { events: ["data"] }
 	) {
 		this.app_reference = app_reference;
-		this.deep_link = options.deep_link || null;
-		console.log("deep_link client", this.deep_link);
-		console.log("app_reference client", app_reference);
+		this.deep_link = options.query_params?.deep_link || null;
 		if (!options.events) {
 			options.events = ["data"];
 		}
@@ -302,8 +300,6 @@ export class Client {
 			this.options.hf_token
 		);
 
-		console.log("http_protocol, host, space_id in _resolve_config", http_protocol, host, space_id);
-
 		const { status_callback } = this.options;
 
 		if (space_id && status_callback) {
@@ -315,10 +311,7 @@ export class Client {
 		try {
 			// Create base URL
 			let configUrl = `${http_protocol}//${host}`;
-			console.log("configUrl in client before deep_link", configUrl);
-			console.log("configUrl in client after deep_link", configUrl);
 			config = await this.resolve_config(configUrl);
-			console.log("config in client", config.root);
 
 			if (!config) {
 				throw new Error(CONFIG_ERROR_MSG);
@@ -366,7 +359,6 @@ export class Client {
 		} catch (e) {
 			console.error(API_INFO_ERROR_MSG + (e as Error).message);
 		}
-		console.log("this.config.root in client", this.config.root);
 
 		return this.prepare_return_obj();
 	}
