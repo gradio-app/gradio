@@ -188,9 +188,11 @@ test("Non-interactive dataframe shows cell menu buttons for sorting", async ({
 	const view_df = page.locator("#non-interactive-dataframe");
 	await expect(view_df).toBeVisible();
 
-	await get_header_cell(view_df, 2).click();
+	const header_cell = get_header_cell(view_df, 2);
+	await header_cell.click();
 
-	await page.getByLabel("Open cell menu").click();
+	const cell_menu_button = header_cell.getByLabel("Open cell menu");
+	await cell_menu_button.click();
 
 	const cell_menu_options = await view_df.getByRole("menuitem").count();
 	expect(cell_menu_options).toBe(3);
