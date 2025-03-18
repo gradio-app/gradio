@@ -25,7 +25,7 @@ class DeepLinkButton(Button):
 
     def __init__(
         self,
-        value: str = "Get Shareable Link",
+        value: str = "Share via Link",
         copied_value: str = "Link Copied!",
         *,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
