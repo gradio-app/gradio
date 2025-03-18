@@ -5,7 +5,7 @@ from typing import Union
 
 import huggingface_hub
 
-model = "Qwen/Qwen2.5-Coder-32B-Instruct"
+code_model = "Qwen/Qwen2.5-Coder-32B-Instruct"
 
 
 def is_number(s: str) -> bool:
@@ -76,13 +76,13 @@ output = client.text_generation("What is 12*2320?")
 
 # Each of the above will return the output as a string.
 ```
-If an LLM is not helpful for the task, there is no need to use huggingface_hub.
+If an LLM is not helpful for the task, there is no need to use huggingface_hub. Avoid using other 3rd party libraries (other than numpy, pandas, pydub if useful) unless necessary.
 """
 
     client = huggingface_hub.InferenceClient(token=hf_token)
     content = ""
     for token in client.chat_completion(
-        [{"role": "user", "content": full_prompt}], stream=True, model=model
+        [{"role": "user", "content": full_prompt}], stream=True, model=code_model
     ):
         content += token.choices[0].delta.content or ""
         if "```python\n" in content:

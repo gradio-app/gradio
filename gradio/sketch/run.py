@@ -4,11 +4,12 @@ import time
 from inspect import signature
 
 import huggingface_hub as hub
+import requests
 
 import gradio as gr
 import gradio.utils
 from gradio.sketch.sketchbox import SketchBox
-from gradio.sketch.utils import ai, set_kwarg
+from gradio.sketch.utils import ai, code_model, set_kwarg
 
 
 def create(app_file: str, config_file: str):
@@ -112,10 +113,16 @@ def create(app_file: str, config_file: str):
     def set_hf_token(token):
         try:
             hub.login(token)
-            gr.Success("Token set successfully.")
-            return token
+            client = hub.InferenceClient()
+            client.get_model_status(code_model)
+        except requests.exceptions.HTTPError as err:
+            raise gr.Error(
+                "Invalid Hugging Face token. Token must have access to inference endpoints."
+            ) from err
         except BaseException as err:
             raise gr.Error("Invalid Hugging Face token.") from err
+        gr.Success("Token set successfully.", duration=2)
+        return token
 
     with gr.Blocks() as demo:
         _id = gr.State(0)
@@ -298,7 +305,7 @@ def create(app_file: str, config_file: str):
                     if not _hf_token:
                         input_hf_token = gr.Textbox(
                             label="HF Token",
-                            info="Needed for code generation. Copy from [HF Token Page](https://huggingface.co/settings/token).",
+                            info="Needed for code generation. Copy from [HF Token Page](https://huggingface.co/settings/token). Token requires access to inference providers.",
                             type="password",
                         )
                         submit_token_btn = gr.Button("Submit Token", size="md")
@@ -370,7 +377,7 @@ def create(app_file: str, config_file: str):
                                 )
                             dep[4] = prompt
                             dep[5] = code
-                            gr.Success("Function saved.")
+                            gr.Success("Function saved.", duration=2)
                             return _dependencies
 
                         save_code_btn.click(save_code, [prompt, fn_code], dependencies)
