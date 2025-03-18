@@ -675,7 +675,7 @@
 />
 
 <Story
-	name="Dataframe with sorting by multiple columns"
+	name="Non-interactive dataframe with sorting by multiple columns"
 	args={{
 		values: [
 			[1, 2, 3],
@@ -685,7 +685,7 @@
 		headers: ["A", "B", "C"],
 		col_count: [3, "dynamic"],
 		row_count: [3, "dynamic"],
-		editable: true,
+		editable: false,
 		sort_columns: [
 			{ col: 0, direction: "asc" },
 			{ col: 1, direction: "desc" }
@@ -708,7 +708,7 @@
 		const cell_menu_button = canvas.getAllByLabelText("Open cell menu")[0];
 		await userEvent.click(cell_menu_button);
 
-		const sort_ascending_button = canvas.getByRole("button", {
+		const sort_ascending_button = canvas.getByRole("menuitem", {
 			name: "Sort ascending"
 		});
 		await userEvent.click(sort_ascending_button);
@@ -719,7 +719,7 @@
 		const cell_menu_button_2 = canvas.getAllByLabelText("Open cell menu")[1];
 		await userEvent.click(cell_menu_button_2);
 
-		const sort_descending_button = canvas.getByRole("button", {
+		const sort_descending_button = canvas.getByRole("menuitem", {
 			name: "Sort descending"
 		});
 		await userEvent.click(sort_descending_button);
@@ -730,7 +730,7 @@
 		const cell_menu_button_3 = canvas.getAllByLabelText("Open cell menu")[2];
 		await userEvent.click(cell_menu_button_3);
 
-		const sort_ascending_button_3 = canvas.getByRole("button", {
+		const sort_ascending_button_3 = canvas.getByRole("menuitem", {
 			name: "Sort ascending"
 		});
 		await userEvent.click(sort_ascending_button_3);

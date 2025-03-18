@@ -1,5 +1,10 @@
 import { test, expect } from "@self/tootils";
 import { Locator } from "@playwright/test";
+import { toBeVisible } from "@testing-library/jest-dom/matchers";
+
+function get_header_cell(element: Locator, col: number) {
+	return element.locator(`th[title='col_${col}']`).nth(1);
+}
 
 // returns a cell in a dataframe by row and column indices
 function get_cell(element: Locator, row: number, col: number) {
@@ -133,7 +138,7 @@ test("Tall dataframe has vertical scrolling", async ({ page }) => {
 	expect(column_count).toBe(4);
 });
 
-test("Tall dataframe updates with buttons", async ({ page }) => {
+test("Dataframe can be cleared and updated indirectly", async ({ page }) => {
 	await page.getByRole("button", { name: "Clear dataframe" }).click();
 	await page.waitForTimeout(500);
 
@@ -152,7 +157,7 @@ test("Tall dataframe updates with buttons", async ({ page }) => {
 		.allTextContents();
 
 	const trimmed_headers = headers.slice(1).map((header) => header.trim());
-	expect(trimmed_headers).toEqual(["A", "B", "C"]);
+	expect(trimmed_headers).toEqual(["A    ⋮", "B    ⋮", "C    ⋮"]);
 });
 
 test("Non-interactive dataframe cannot be edited", async ({ page }) => {

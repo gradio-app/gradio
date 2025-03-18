@@ -135,7 +135,7 @@
 				<Padlock />
 			{/if}
 		</div>
-		{#if editable && can_add_columns}
+		{#if can_add_columns}
 			<CellMenuButton on_click={(event) => toggle_header_menu(event, i)} />
 		{/if}
 	</div>

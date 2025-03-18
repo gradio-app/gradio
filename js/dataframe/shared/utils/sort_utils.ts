@@ -1,4 +1,5 @@
 import type { Headers } from "../types";
+import { sort_table_data } from "./table_utils";
 
 export type SortDirection = "asc" | "desc";
 
@@ -60,4 +61,31 @@ export function sort_data(
 		return row_indices;
 	}
 	return [...Array(data.length)].map((_, i) => i);
+}
+
+export function sort_data_and_preserve_selection(
+	data: { id: string; value: string | number }[][],
+	display_value: string[][] | null,
+	styling: string[][] | null,
+	sort_columns: { col: number; direction: SortDirection }[],
+	selected: [number, number] | false,
+	get_current_indices: (
+		id: string,
+		data: { id: string; value: string | number }[][]
+	) => [number, number]
+): { data: typeof data; selected: [number, number] | false } {
+	let id = null;
+	if (selected && selected[0] in data && selected[1] in data[selected[0]]) {
+		id = data[selected[0]][selected[1]].id;
+	}
+
+	sort_table_data(data, display_value, styling, sort_columns);
+
+	let new_selected = selected;
+	if (id) {
+		const [i, j] = get_current_indices(id, data);
+		new_selected = [i, j];
+	}
+
+	return { data, selected: new_selected };
 }
