@@ -67,14 +67,15 @@ def ai(
 import huggingface_hub
 client = huggingface_hub.InferenceClient()
 
-# For OpenAI style API
+# For OpenAI style chat API
 response = client.chat_completion([{"role": "user", "content": "What is 12*2320?"}], stream=False)
-output = response.choices[0].message.content
+output = response.choices[0].message.content  # a string
 
 # For text completion
-output = client.text_generation("What is 12*2320?")
+output = client.text_generation("What is 12*2320?")  # a string
 
-# Each of the above will return the output as a string.
+# For image generation
+response = client.text_to_image("A picture of a cat")  # a PIL image
 ```
 If an LLM is not helpful for the task, there is no need to use huggingface_hub. Avoid using other 3rd party libraries (other than numpy, pandas, pydub if useful) unless necessary.
 """
