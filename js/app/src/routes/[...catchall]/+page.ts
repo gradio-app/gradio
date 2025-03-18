@@ -40,9 +40,6 @@ export async function load({
 
 	const { create_layout, layout } = create_components(undefined);
 
-	console.log("app.config.root", app.config.root);
-	console.log("app.config.api_prefix", app.config.api_prefix);
-
 	await create_layout({
 		app,
 		components: page_config.components,

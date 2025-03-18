@@ -288,15 +288,13 @@
 	//@ts-ignore
 	const gradio_dev_mode = window.__GRADIO_DEV__;
 
-	// Add this variable to track if we need to show a deep link error
 	let pending_deep_link_error = false;
 
 	let new_message_fn: (title: string, message: string, type: string) => void;
 
-	// Add this watcher to show the error once new_message_fn is available
 	$: if (new_message_fn && pending_deep_link_error) {
 		new_message_fn("Error", "Deep link was not valid", "error");
-		pending_deep_link_error = false; // Reset to prevent showing multiple times
+		pending_deep_link_error = false;
 	}
 
 	onMount(async () => {
@@ -359,7 +357,6 @@
 		pages = config.pages;
 		current_page = config.current_page;
 		root = config.root;
-		// Replace the switch statement with this
 		if (config.deep_link_state === "invalid") {
 			pending_deep_link_error = true;
 		}
