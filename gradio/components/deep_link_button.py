@@ -4,13 +4,16 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document
 
 from gradio import utils
 from gradio.components import Button, Component
 from gradio.context import get_blocks_context
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 @document()
@@ -41,6 +44,7 @@ class DeepLinkButton(Button):
         key: int | str | None = None,
         scale: int | None = None,
         min_width: int | None = None,
+        every: Timer | float | None = None,
     ):
         """
         Parameters:
@@ -63,6 +67,7 @@ class DeepLinkButton(Button):
             key=key,
             scale=scale,
             min_width=min_width,
+            every=every,
         )
         self.elem_id: str
         self.n_created += 1
