@@ -1941,6 +1941,13 @@ Received inputs:
                         prediction_value_serialized = prediction_value.model_dump()
                     else:
                         prediction_value_serialized = prediction_value
+                    prediction_value_serialized = (
+                        await processing_utils.async_move_files_to_cache(
+                            prediction_value_serialized,
+                            block,
+                            postprocess=True,
+                        )
+                    )
                     state[block._id].value = prediction_value_serialized
 
                 outputs_cached = await processing_utils.async_move_files_to_cache(
