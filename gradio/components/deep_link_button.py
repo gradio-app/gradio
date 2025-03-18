@@ -74,6 +74,8 @@ class DeepLinkButton(Button):
         _js = self.get_share_link(self.value, self.copied_value)
         import time
 
+        # Need to separate events because can't run .then in a pure js
+        # function.
         self.click(fn=None, inputs=[], outputs=[self], js=_js)
         self.click(
             fn=lambda: time.sleep(1) or self.value,
