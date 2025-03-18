@@ -5,6 +5,7 @@
 <button
 	aria-label="Open cell menu"
 	class="cell-menu-button"
+	aria-haspopup="menu"
 	on:click={on_click}
 	on:touchstart={(event) => {
 		event.preventDefault();

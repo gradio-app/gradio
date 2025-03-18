@@ -38,8 +38,7 @@
 	import {
 		copy_table_data,
 		get_max,
-		handle_file_upload,
-		sort_table_data
+		handle_file_upload
 	} from "./utils/table_utils";
 	import { make_headers, process_data } from "./utils/data_processing";
 	import { handle_keydown } from "./utils/keyboard_utils";
@@ -48,6 +47,7 @@
 		type DragState,
 		type DragHandlers
 	} from "./utils/drag_utils";
+	import { sort_data_and_preserve_selection } from "./utils/sort_utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -177,10 +177,23 @@
 
 	$: if (!dequal(values, old_val)) {
 		if (parent) {
-			for (let i = 0; i < 50; i++) {
-				parent.style.removeProperty(`--cell-width-${i}`);
+			// only clear column widths when the data structure changes
+			const is_reset =
+				values.length === 0 || (values.length === 1 && values[0].length === 0);
+			const is_different_structure =
+				old_val !== undefined &&
+				(values.length !== old_val.length ||
+					(values[0] && old_val[0] && values[0].length !== old_val[0].length));
+
+			if (is_reset || is_different_structure) {
+				for (let i = 0; i < 50; i++) {
+					parent.style.removeProperty(`--cell-width-${i}`);
+				}
+				last_width_data_length = 0;
+				last_width_column_count = 0;
 			}
 		}
+
 		// only reset sort state when values are changed
 		const is_reset =
 			values.length === 0 || (values.length === 1 && values[0].length === 0);
@@ -366,12 +379,28 @@
 
 	$: max = get_max(data);
 
-	$: cells[0] && set_cell_widths();
+	// Modify how we trigger cell width calculations
+	// Only recalculate when cells actually change, not during sort
+	$: cells[0] && cells[0]?.clientWidth && set_cell_widths();
 	let cells: HTMLTableCellElement[] = [];
 	let parent: HTMLDivElement;
 	let table: HTMLTableElement;
+	let last_width_data_length = 0;
+	let last_width_column_count = 0;
 
 	function set_cell_widths(): void {
+		const column_count = data[0]?.length || 0;
+		if (
+			last_width_data_length === data.length &&
+			last_width_column_count === column_count &&
+			$df_state.sort_state.sort_columns.length > 0
+		) {
+			return;
+		}
+
+		last_width_data_length = data.length;
+		last_width_column_count = column_count;
+
 		const widths = cells.map((el) => el?.clientWidth || 0);
 		if (widths.length === 0) return;
 
@@ -412,23 +441,17 @@
 		_display_value: string[][] | null,
 		_styling: string[][] | null
 	): void {
-		let id = null;
-		if (selected && selected[0] in _data && selected[1] in _data[selected[0]]) {
-			id = _data[selected[0]][selected[1]].id;
-		}
-
-		sort_table_data(
+		const result = sort_data_and_preserve_selection(
 			_data,
 			_display_value,
 			_styling,
-			$df_state.sort_state.sort_columns
+			$df_state.sort_state.sort_columns,
+			selected,
+			get_current_indices
 		);
-		data = data;
 
-		if (id) {
-			const [i, j] = get_current_indices(id, data);
-			selected = [i, j];
-		}
+		data = result.data;
+		selected = result.selected;
 	}
 
 	$: sort_data(data, display_value, styling);
@@ -968,8 +991,9 @@
 		on_delete_row={() => delete_row_at(active_cell_menu?.row ?? -1)}
 		on_delete_col={() =>
 			delete_col_at(active_cell_menu?.col ?? active_header_menu?.col ?? -1)}
-		can_delete_rows={!active_header_menu && data.length > 1}
-		can_delete_cols={data.length > 0 && data[0]?.length > 1}
+		{editable}
+		can_delete_rows={!active_header_menu && data.length > 1 && editable}
+		can_delete_cols={data.length > 0 && data[0]?.length > 1 && editable}
 		{i18n}
 		on_sort={active_header_menu
 			? (direction) => {
