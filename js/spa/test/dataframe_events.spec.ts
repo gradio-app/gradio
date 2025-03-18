@@ -138,7 +138,7 @@ test("Tall dataframe has vertical scrolling", async ({ page }) => {
 	expect(column_count).toBe(4);
 });
 
-test("Tall dataframe updates with buttons", async ({ page }) => {
+test("Dataframe can be cleared and updated indirectly", async ({ page }) => {
 	await page.getByRole("button", { name: "Clear dataframe" }).click();
 	await page.waitForTimeout(500);
 
@@ -157,7 +157,7 @@ test("Tall dataframe updates with buttons", async ({ page }) => {
 		.allTextContents();
 
 	const trimmed_headers = headers.slice(1).map((header) => header.trim());
-	expect(trimmed_headers).toEqual(["A", "B", "C"]);
+	expect(trimmed_headers).toEqual(["A    ⋮", "B    ⋮", "C    ⋮"]);
 });
 
 test("Non-interactive dataframe cannot be edited", async ({ page }) => {
@@ -190,7 +190,7 @@ test("Non-interactive dataframe shows cell menu buttons for sorting", async ({
 
 	await get_header_cell(view_df, 2).click();
 
-	await page.getByRole("button", { name: "Open cell menu" }).click();
+	await page.getByLabel("Open cell menu").click();
 
 	const cell_menu_options = await view_df.getByRole("menuitem").count();
 	expect(cell_menu_options).toBe(3);
