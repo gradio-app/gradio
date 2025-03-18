@@ -92,7 +92,7 @@ class DeepLinkButton(Button):
         () => {
             const sessionHash = window.__gradio_session_hash__;
             // Send GET request to /deep_link with sessionHash as query parameter
-            fetch(`/deep_link?session_hash=${sessionHash}`)
+            fetch(`/gradio_api/deep_link?session_hash=${sessionHash}`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');

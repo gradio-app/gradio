@@ -9,6 +9,7 @@
 
 	declare let BUILD_MODE: string;
 	interface Config {
+		deep_link_state?: "none" | "valid" | "invalid";
 		auth_required?: true;
 		auth_message: string;
 		components: ComponentMeta[];
@@ -213,6 +214,7 @@
 		}
 
 		window.__gradio_space__ = config.space_id;
+		window.__gradio_session_hash__ = app.session_hash; // type: ignore
 		gradio_dev_mode = window?.__GRADIO_DEV__;
 
 		status = {
@@ -238,7 +240,6 @@
 		window.parent.postMessage(supports_zerogpu_headers, origin);
 
 		dispatch("loaded");
-
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(data.api_url);

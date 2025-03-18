@@ -111,7 +111,7 @@ def start_node_process(
 
             node_process = subprocess.Popen(
                 [node_path, "--import", register_file, SSR_APP_PATH],
-                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
                 env=env,
             )
 

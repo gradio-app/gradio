@@ -25,9 +25,11 @@ export async function load({
 }> {
 	const api_url =
 		browser && !local_dev_mode ? new URL(".", location.href).href : server;
+	const deepLink = url.searchParams.get("deep_link");
 	const app = await Client.connect(api_url, {
 		with_null_state: true,
-		events: ["data", "log", "status", "render"]
+		events: ["data", "log", "status", "render"],
+		deep_link: deepLink ?? undefined
 	});
 
 	if (!app.config) {

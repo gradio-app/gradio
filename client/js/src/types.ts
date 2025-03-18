@@ -154,6 +154,7 @@ export type SpaceStatusCallback = (a: SpaceStatus) => void;
 // Configuration and Response Types
 // --------------------------------
 export interface Config {
+	deep_link_state?: "none" | "valid" | "invalid";
 	auth_required?: true;
 	analytics_enabled: boolean;
 	connect_heartbeat: boolean;
@@ -313,6 +314,7 @@ export interface ClientOptions {
 	with_null_state?: boolean;
 	events?: EventType[];
 	headers?: Record<string, string>;
+	deep_link?: string;
 }
 
 export interface FileData {

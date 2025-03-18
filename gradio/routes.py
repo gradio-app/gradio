@@ -531,6 +531,32 @@ class App(FastAPI):
             if page != "":
                 attach_page(page)
 
+        def load_deep_link(deep_link: str, config: dict[str, Any], page: str | None = None):
+            components = config["components"]
+            try:
+                path = (
+                        Path(app.uploaded_file_dir)
+                        / "deep_links"
+                        / deep_link
+                        / "state.json"
+                    )
+
+                if path.exists():
+                    components = orjson.loads(path.read_bytes())
+                    deep_link_state = "valid"
+                else:
+                    deep_link_state = "invalid"
+            except (FileNotFoundError, OSError, orjson.JSONDecodeError):
+                deep_link_state = "invalid"
+                components = []
+            if page:
+                components = [
+                    component
+                    for component in components
+                    if component["id"] in config["page"][page]["components"]
+                ]
+            return components, deep_link_state
+
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
         def main(
@@ -556,25 +582,7 @@ class App(FastAPI):
                     if component["id"] in config["page"][page]["components"]
                 ]
                 if deep_link:
-                    print("deep link here", deep_link)
-                    try:
-                        components = orjson.loads(
-                            (
-                                Path(app.uploaded_file_dir)
-                                / "deep_links"
-                                / deep_link
-                                / "state.json"
-                            ).read_bytes()
-                        )
-                        components = [
-                            component
-                            for component in components
-                            if component["id"] in config["page"][page]["components"]
-                        ]
-                        print("components", components)
-                        deep_link_state = "valid"
-                    except FileNotFoundError:
-                        deep_link_state = "invalid"
+                    components, deep_link_state = load_deep_link(deep_link, config, page)  # type: ignore
                 print("deep link state", deep_link_state)
                 config["username"] = user
                 config["deep_link_state"] = deep_link_state
@@ -629,7 +637,7 @@ class App(FastAPI):
                         "the frontend by running /scripts/build_frontend.sh"
                     ) from err
 
-        @app.get("/deep_link")
+        @app.get("/gradio_api/deep_link")
         def deep_link(session_hash: str):
             if session_hash in app.state_holder:
                 components = [
@@ -667,13 +675,20 @@ class App(FastAPI):
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
-        def get_config(request: fastapi.Request):
+        def get_config(request: fastapi.Request, deep_link: str = ""):
+            print("deep_link", deep_link)
             config = utils.safe_deepcopy(app.get_blocks().config)
             root = route_utils.get_root_url(
                 request=request, route_path="/config", root_path=app.root_path
             )
             config = route_utils.update_root_in_config(config, root)
             config["username"] = get_current_user(request)
+            if deep_link:
+                components, deep_link_state = load_deep_link(deep_link, config, page="")  # type: ignore
+                config["components"] = components  # type: ignore
+                print("components", components)
+                print("deep_link_state", deep_link_state)
+                config["deep_link_state"] = deep_link_state
             return ORJSONResponse(content=config)
 
         @app.get("/static/{path:path}")
