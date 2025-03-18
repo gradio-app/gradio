@@ -585,7 +585,9 @@ class App(FastAPI):
                 ]
                 if deep_link:
                     components, deep_link_state = load_deep_link(
-                        deep_link, config, page # type: ignore
+                        deep_link,
+                        config,  # type: ignore
+                        page,
                     )
                 config["username"] = user
                 config["deep_link_state"] = deep_link_state
