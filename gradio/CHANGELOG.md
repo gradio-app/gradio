@@ -1,5 +1,18 @@
 # gradio
 
+## 5.22.0
+
+### Features
+
+- [#10824](https://github.com/gradio-app/gradio/pull/10824) [`4d78710`](https://github.com/gradio-app/gradio/commit/4d78710bbf266a13568d7920c19a6ef6dd167ecf) - Sketch code generator.  Thanks @aliabid94!
+- [#10814](https://github.com/gradio-app/gradio/pull/10814) [`b42e461`](https://github.com/gradio-app/gradio/commit/b42e4612abad205e0269bd69917c09565daf0cf7) - Adds a watermark parameter to `gr.Chatbot` that is added to copied text.  Thanks @abidlabs!
+- [#10820](https://github.com/gradio-app/gradio/pull/10820) [`4fa8e00`](https://github.com/gradio-app/gradio/commit/4fa8e00c31812797d1a73d18f1e0ce7cdf17ab27) - Update `markupsafe` dependency version.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10829](https://github.com/gradio-app/gradio/pull/10829) [`e0ab4f0`](https://github.com/gradio-app/gradio/commit/e0ab4f07ab3af83cbc62ede6d9c78674e684c688) - Fix gr.load_chat.  Thanks @aliabid94!
+- [#10819](https://github.com/gradio-app/gradio/pull/10819) [`ac075ad`](https://github.com/gradio-app/gradio/commit/ac075ad6aaea855bfd4839cef7140719a584498e) - Fix cell menu not showing in non-editable dataframes.  Thanks @hannahblair!
+
 ## 5.21.0
 
 ### Features
