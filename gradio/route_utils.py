@@ -127,7 +127,7 @@ class Request:
     of this class include: `headers`, `client`, `query_params`, `session_hash`, and `path_params`. If
     auth is enabled, the `username` attribute can be used to get the logged in user. In some environments,
     the dict-like attributes (e.g. `requests.headers`, `requests.query_params`) of this class are automatically
-    converted to to dictionaries, so we recommend converting them to dictionaries before accessing
+    converted to dictionaries, so we recommend converting them to dictionaries before accessing
     attributes for consistent behavior in different environments.
     Example:
         import gradio as gr
