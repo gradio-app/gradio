@@ -718,7 +718,7 @@ demo.launch()"""
                 return code_str
 
         @save_btn.click(
-            inputs=[saved, code],
+            inputs=[saved, code, dependencies],
             outputs=[
                 saved,
                 save_btn,
@@ -730,7 +730,7 @@ demo.launch()"""
             ],
             show_progress="hidden",
         )
-        def save(saved, code):
+        def save(saved, code, deps):
             with open(app_file, "w") as f:
                 f.write(code)
             with open(config_file, "w") as f:
@@ -748,7 +748,7 @@ demo.launch()"""
                 gr.Button(visible=not saved),
                 "default",
                 gr.Sidebar(open=saved),
-                gr.Sidebar(open=False),
+                gr.Sidebar(open=saved and len(deps) > 0),
             ]
 
         deploy_to_spaces_btn.click(
