@@ -583,7 +583,6 @@ class App(FastAPI):
                 ]
                 if deep_link:
                     components, deep_link_state = load_deep_link(deep_link, config, page)  # type: ignore
-                print("deep link state", deep_link_state)
                 config["username"] = user
                 config["deep_link_state"] = deep_link_state
                 config["components"] = components  # type: ignore
@@ -676,7 +675,6 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request, deep_link: str = ""):
-            print("deep_link", deep_link)
             config = utils.safe_deepcopy(app.get_blocks().config)
             root = route_utils.get_root_url(
                 request=request, route_path="/config", root_path=app.root_path
@@ -686,8 +684,6 @@ class App(FastAPI):
             if deep_link:
                 components, deep_link_state = load_deep_link(deep_link, config, page="")  # type: ignore
                 config["components"] = components  # type: ignore
-                print("components", components)
-                print("deep_link_state", deep_link_state)
                 config["deep_link_state"] = deep_link_state
             return ORJSONResponse(content=config)
 

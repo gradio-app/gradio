@@ -302,6 +302,8 @@ export class Client {
 			this.options.hf_token
 		);
 
+		console.log("http_protocol, host, space_id in _resolve_config", http_protocol, host, space_id);
+
 		const { status_callback } = this.options;
 
 		if (space_id && status_callback) {
@@ -313,13 +315,10 @@ export class Client {
 		try {
 			// Create base URL
 			let configUrl = `${http_protocol}//${host}`;
-			
-			// Append deep_link parameter if it exists
-			if (this.deep_link) {
-				configUrl += `?deep_link=${encodeURIComponent(this.deep_link)}`;
-			}
-			
+			console.log("configUrl in client before deep_link", configUrl);
+			console.log("configUrl in client after deep_link", configUrl);
 			config = await this.resolve_config(configUrl);
+			console.log("config in client", config.root);
 
 			if (!config) {
 				throw new Error(CONFIG_ERROR_MSG);
@@ -367,6 +366,7 @@ export class Client {
 		} catch (e) {
 			console.error(API_INFO_ERROR_MSG + (e as Error).message);
 		}
+		console.log("this.config.root in client", this.config.root);
 
 		return this.prepare_return_obj();
 	}

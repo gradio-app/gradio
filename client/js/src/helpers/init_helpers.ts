@@ -103,6 +103,7 @@ export async function resolve_config(
 			let config = await response.json();
 			config.path = config.path ?? "";
 			config.root = endpoint;
+			console.log("config.root in resolve_config", config.root);
 			config.dependencies?.forEach((dep: any, i: number) => {
 				if (dep.id === undefined) {
 					dep.id = i;
