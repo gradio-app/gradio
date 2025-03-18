@@ -41,6 +41,8 @@ class BrowserState(Component):
         self.storage_key = storage_key or "".join(
             secrets.choice(string.ascii_letters + string.digits) for _ in range(16)
         )
+        self._value_description = "any json-serializable value"
+
         super().__init__(render=render)
 
     def preprocess(self, payload: Any) -> Any:

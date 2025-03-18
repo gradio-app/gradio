@@ -184,6 +184,7 @@ class Video(StreamingOutput, Component):
             key=key,
             value=value,
         )
+        self._value_description = "a string filepath to a video"
 
     def preprocess(self, payload: VideoData | None) -> str | None:
         """

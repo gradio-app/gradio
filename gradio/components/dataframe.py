@@ -210,6 +210,15 @@ class Dataframe(Component):
             key=key,
             value=value,
         )
+        self._value_description = (
+            "a pandas dataframe"
+            if type == "pandas"
+            else "a list of lists"
+            if type == "array"
+            else "a numpy array"
+            if type == "numpy"
+            else "a polars dataframe"
+        )
 
     def preprocess(
         self, payload: DataframeData
