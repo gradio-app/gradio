@@ -80,6 +80,15 @@ class DateTime(FormComponent):
         self.interactive = interactive
         self.time_format = "%Y-%m-%d %H:%M:%S" if include_time else "%Y-%m-%d"
         self.timezone = timezone
+        self._value_description = (
+            "a datetime object"
+            if self.type == "datetime"
+            else "a unix timestamp"
+            if self.type == "timestamp"
+            else "a %Y-%m-%d %H:%M:%S formatted string"
+            if include_time
+            else "a %Y-%m-%d formatted string"
+        )
 
     def preprocess(self, payload: str | None) -> str | float | datetime | None:
         """
