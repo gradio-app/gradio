@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Sketch code generator
+feat:Allow for iterative coding in gradio sketch
