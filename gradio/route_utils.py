@@ -389,6 +389,8 @@ def get_root_url(
 
     route_path = route_path.rstrip("/")
     if len(route_path) > 0 and not x_forwarded_host:
+        if not root_url.endswith(route_path):
+            raise ValueError("root_url does not end with provided route_path.")
         root_url = root_url[: -len(route_path)]
     root_url = root_url.rstrip("/")
 
