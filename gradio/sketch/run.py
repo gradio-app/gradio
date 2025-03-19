@@ -9,7 +9,7 @@ import requests
 import gradio as gr
 import gradio.utils
 from gradio.sketch.sketchbox import SketchBox
-from gradio.sketch.utils import ai, code_model, set_kwarg
+from gradio.sketch.utils import ai, code_model, get_header, set_kwarg
 
 
 def create(app_file: str, config_file: str):
@@ -283,7 +283,7 @@ def create(app_file: str, config_file: str):
                         )
                 if _mode == "modify_function":
                     dep = _dependencies[_modify_id]
-                    _triggers, _inputs, _outputs, var_name, _prompt, _code = dep
+                    _triggers, _inputs, _outputs, var_name, _history, _code = dep
                     gr.Markdown("## Event Listeners")
                     function_name_box = gr.Textbox(var_name, label="Function Name")
 
@@ -311,11 +311,15 @@ def create(app_file: str, config_file: str):
                         submit_token_btn = gr.Button("Submit Token", size="md")
                         submit_token_btn.click(set_hf_token, input_hf_token, hf_token)
                     else:
+                        new_prompt_placeholder = "Describe what the function should do."
+                        edit_prompt_placeholder = "Describe how to change the code generation. Click 'Reset Code' to start over."
+                        history_exists = len(_history) > 0
                         prompt = gr.Textbox(
-                            _prompt,
                             label="Prompt",
                             lines=3,
-                            placeholder="Describe what the function should do.",
+                            placeholder=edit_prompt_placeholder
+                            if history_exists
+                            else new_prompt_placeholder,
                             interactive=True,
                         )
                         no_components_are_set = (
@@ -332,19 +336,25 @@ def create(app_file: str, config_file: str):
                             size="md",
                             interactive=not no_components_are_set,
                         )
+                        reset_code_btn = gr.Button(
+                            "Reset Code", size="md", visible=history_exists
+                        )
 
-                        if _code is None:
-                            __inputs = [_components[c][2] for c in _inputs]
-                            __outputs = [_components[c][2] for c in _outputs]
-                            _code = f"""def {var_name}({", ".join(__inputs)}):
+                        __inputs = [_components[c][2] for c in _inputs]
+                        __outputs = [_components[c][2] for c in _outputs]
+                        _code = (
+                            _code
+                            or f"""{get_header(var_name, __inputs)}
     ...
     return {", ".join(["..." for _ in __outputs])}"""
+                        )
                         fn_code = gr.Code(_code, lines=4, language="python")
                         save_code_btn = gr.Button("Save Code", size="md")
+                        history = gr.JSON(_history, visible=False)
 
-                        def generate(_prompt):
+                        def generate(_prompt, _history):
                             yield from ai(
-                                _prompt,
+                                _history + [[_prompt, None]],
                                 _hf_token,
                                 var_name,
                                 [
@@ -364,23 +374,63 @@ def create(app_file: str, config_file: str):
                                 ],
                             )
 
-                        generate_code_btn.click(generate, prompt, fn_code)
+                        def append_to_history(
+                            history: list[tuple[str, str]], prompt: str, code: str
+                        ):
+                            history.append((prompt, code))
+                            return (
+                                history,
+                                gr.Button(visible=True),
+                                gr.Textbox(
+                                    value="", placeholder=edit_prompt_placeholder
+                                ),
+                            )
 
-                        def save_code(prompt, code):
+                        generate_code_btn.click(
+                            generate, [prompt, history], fn_code
+                        ).then(
+                            append_to_history,
+                            [history, prompt, fn_code],
+                            [history, reset_code_btn, prompt],
+                            show_progress="hidden",
+                        )
+
+                        def reset_code(_dependencies, _modify_id):
+                            _dependencies[_modify_id][4] = []
+                            _dependencies[_modify_id][5] = None
+                            return (
+                                get_header(var_name, __inputs),
+                                gr.Button(visible=False),
+                                gr.Textbox(placeholder=new_prompt_placeholder),
+                                [],
+                                _dependencies,
+                            )
+
+                        reset_code_btn.click(
+                            reset_code,
+                            [dependencies, modify_id],
+                            [fn_code, reset_code_btn, prompt, history, dependencies],
+                        )
+
+                        def save_code(_history, _code):
                             try:
-                                exec(code, created_fns_namespace)
+                                exec(_code, created_fns_namespace)
                             except BaseException as e:
                                 raise gr.Error(f"Error saving function: {e}") from e
                             if var_name not in created_fns_namespace:
                                 raise gr.Error(
                                     f"Function '{var_name}' not found in code."
                                 )
-                            dep[4] = prompt
-                            dep[5] = code
+                            dep[4] = (
+                                []
+                                if len(_history) == 0
+                                else _history[:-1] + [[_history[-1][0], _code]]
+                            )
+                            dep[5] = _code
                             gr.Success("Function saved.", duration=2)
                             return _dependencies
 
-                        save_code_btn.click(save_code, [prompt, fn_code], dependencies)
+                        save_code_btn.click(save_code, [history, fn_code], dependencies)
 
                     done_function_btn = gr.Button("Done", variant="primary", size="md")
                     done_function_btn.click(
@@ -638,7 +688,7 @@ def create(app_file: str, config_file: str):
 
             def add_fn(_dependencies):
                 _dependencies.append(
-                    [[], [], [], f"fn_{len(_dependencies) + 1}", None, None]
+                    [[], [], [], f"fn_{len(_dependencies) + 1}", [], None]
                 )
                 return (
                     _dependencies,
