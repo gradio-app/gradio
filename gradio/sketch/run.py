@@ -344,7 +344,8 @@ def create(app_file: str, config_file: str):
                         __outputs = [_components[c][2] for c in _outputs]
                         _code = (
                             _code
-                            or f"""{get_header(var_name, __inputs)}
+                            if _code is not None
+                            else f"""{get_header(var_name, __inputs)}
     ...
     return {", ".join(["..." for _ in __outputs])}"""
                         )
