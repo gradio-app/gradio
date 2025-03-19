@@ -353,6 +353,50 @@ async def call_process_api(
     return output
 
 
+def get_first_header_value(request: fastapi.Request, header_name: str):
+    header_value = request.headers.get(header_name)
+    if header_value:
+        return header_value.split(",")[0].strip()
+    return None
+
+
+def get_request_url(request: fastapi.Request) -> str:
+    x_forwarded_host = get_first_header_value(request, "x-forwarded-host")
+    root_url = f"http://{x_forwarded_host}" if x_forwarded_host else str(request.url)
+    root_url = httpx.URL(root_url)
+    root_url = root_url.copy_with(query=None)
+    root_url = str(root_url).rstrip("/")
+    if get_first_header_value(request, "x-forwarded-proto") == "https":
+        root_url = root_url.replace("http://", "https://")
+    return root_url
+
+
+def get_api_call_path(request: fastapi.Request) -> str:
+    """
+    Extracts the API call path from the request URL.
+
+    If the URL (without query parameters) ends with "{API_PREFIX}/queue/join", that exact path is returned.
+    Otherwise, if the URL contains "{API_PREFIX}/call", the substring starting from "{API_PREFIX}/call" is returned.
+    This allows for dynamic API calls to methods other than "predict".
+
+    Raises:
+        ValueError: If the request URL does not match any recognized API call pattern.
+    """
+    queue_api_url = f"{API_PREFIX}/queue/join"
+    generic_api_url = f"{API_PREFIX}/call"
+
+    root_url = get_request_url(request)
+
+    if root_url.endswith(queue_api_url):
+        return queue_api_url
+
+    start_index = root_url.rfind(generic_api_url)
+    if start_index >= 0:
+        return root_url[start_index : len(root_url)]
+
+    raise ValueError(f"Request url '{root_url}' has an unkown api call pattern.")
+
+
 def get_root_url(
     request: fastapi.Request, route_path: str, root_path: str | None
 ) -> str:
@@ -370,22 +414,11 @@ def get_root_url(
     And if there are multiple hosts in the x-forwarded-host or multiple protocols in the x-forwarded-proto, the first one is used.
     """
 
-    def get_first_header_value(header_name: str):
-        header_value = request.headers.get(header_name)
-        if header_value:
-            return header_value.split(",")[0].strip()
-        return None
-
     if root_path and client_utils.is_http_url_like(root_path):
         return root_path.rstrip("/")
 
-    x_forwarded_host = get_first_header_value("x-forwarded-host")
-    root_url = f"http://{x_forwarded_host}" if x_forwarded_host else str(request.url)
-    root_url = httpx.URL(root_url)
-    root_url = root_url.copy_with(query=None)
-    root_url = str(root_url).rstrip("/")
-    if get_first_header_value("x-forwarded-proto") == "https":
-        root_url = root_url.replace("http://", "https://")
+    x_forwarded_host = get_first_header_value(request, "x-forwarded-host")
+    root_url = get_request_url(request)
 
     route_path = route_path.rstrip("/")
     if len(route_path) > 0 and not x_forwarded_host:
