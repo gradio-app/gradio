@@ -35,15 +35,19 @@ def set_kwarg(obj: dict, key: str, value: str) -> None:
         obj[key] = value
 
 
+def get_header(fn_name: str, inputs: list[str]):
+    return f"def {fn_name}({', '.join(inputs)}):"
+
+
 def ai(
-    prompt: str,
+    history: list[tuple[str, str]],
     hf_token: str,
     fn_name: str,
     inputs: list[tuple[str, type, dict]],
     output_types: list[tuple[type, dict]],
 ):
     full_prompt = f"""Create a python function with the following header:
-`def {fn_name}({", ".join(i[0] for i in inputs)}):`\n"""
+`{get_header(fn_name, [i[0] for i in inputs])}`\n"""
     if len(inputs) > 0:
         if len(inputs) == 1:
             full_prompt += f"""The value of '{inputs[0][0]}' is passed as: {get_value_description(inputs[0][1], inputs[0][2])}.\n"""
@@ -60,7 +64,9 @@ def ai(
             )
             for index, o in enumerate(output_types):
                 full_prompt += f"""- index {index} should be: {get_value_description(o[0], o[1])}.\n"""
-    full_prompt += f"""The function should perform the following task: {prompt}\n"""
+    full_prompt += (
+        f"""The function should perform the following task: {history[0][0]}\n"""
+    )
     full_prompt += "Return only the python code of the function in your response. Do not wrap the code in backticks or include any description before the response. Return ONLY the function code. Start your response with the header provided. Include any imports inside the function.\n"
     full_prompt += """If using an LLM would help with the task, use the huggingface_hub library. For example:
 ```python
@@ -80,11 +86,17 @@ response = client.text_to_image("A picture of a cat")  # a PIL image
 If an LLM is not helpful for the task, there is no need to use huggingface_hub. Avoid using other 3rd party libraries (other than numpy, pandas, pydub, pillow if useful) unless necessary.
 """
 
+    prompt_history = [[full_prompt, history[0][1]]] + history[1:]
+    chat_history = []
+
+    for user_msg, bot_msg in prompt_history:
+        chat_history.append({"role": "user", "content": user_msg})
+        if bot_msg is not None:
+            chat_history.append({"role": "assistant", "content": bot_msg})
+
     client = huggingface_hub.InferenceClient(token=hf_token)
     content = ""
-    for token in client.chat_completion(
-        [{"role": "user", "content": full_prompt}], stream=True, model=code_model
-    ):
+    for token in client.chat_completion(chat_history, stream=True, model=code_model):
         content += token.choices[0].delta.content or ""
         if "```python\n" in content:
             start = content.index("```python\n") + len("```python\n")
