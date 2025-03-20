@@ -1,5 +1,35 @@
 # @gradio/lite
 
+## 5.21.0
+
+### Features
+
+- [#10733](https://github.com/gradio-app/gradio/pull/10733) [`731ab92`](https://github.com/gradio-app/gradio/commit/731ab92001c88d4cf1062acf0a4f1108a4513014) - Autocompletion on code editor component.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/atoms@0.14.0
+- @gradio/core@0.13.0
+
+## 5.20.1
+
+### Dependency updates
+
+- @gradio/wasm@0.17.4
+- @gradio/core@0.12.1
+
+## 5.20.0
+
+### Dependency updates
+
+- @gradio/core@0.12.0
+
+## 5.19.0
+
+### Dependency updates
+
+- @gradio/core@0.11.1
+
 ## 5.17.0
 
 ### Features

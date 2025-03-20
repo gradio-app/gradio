@@ -30,12 +30,17 @@
 	export let display_consecutive_in_same_bubble: boolean;
 	export let i18n: I18nFormatter;
 	export let line_breaks: boolean;
+	export let allow_tags: string[] | boolean = false;
 
 	function is_thought_node(msg: NormalisedMessage): msg is ThoughtNode {
 		return "children" in msg;
 	}
 
 	let thought_node: ThoughtNode;
+	let expanded = false;
+	let contentPreviewElement: HTMLElement;
+	let userIsScrolling = false;
+
 	$: thought_node = {
 		...thought,
 		children: is_thought_node(thought) ? thought.children : []
@@ -45,7 +50,30 @@
 		expanded = !expanded;
 	}
 
-	$: expanded = thought_node.metadata?.status !== "done";
+	function scrollToBottom(): void {
+		if (contentPreviewElement && !userIsScrolling) {
+			contentPreviewElement.scrollTop = contentPreviewElement.scrollHeight;
+		}
+	}
+
+	function handleScroll(): void {
+		if (contentPreviewElement) {
+			const isAtBottom =
+				contentPreviewElement.scrollHeight - contentPreviewElement.scrollTop <=
+				contentPreviewElement.clientHeight + 10;
+			if (!isAtBottom) {
+				userIsScrolling = true;
+			}
+		}
+	}
+
+	$: if (
+		thought_node.content &&
+		contentPreviewElement &&
+		thought_node.metadata?.status !== "done"
+	) {
+		setTimeout(scrollToBottom, 0);
+	}
 </script>
 
 <div class="thought-group">
@@ -70,6 +98,7 @@
 			{latex_delimiters}
 			{sanitize_html}
 			{root}
+			{allow_tags}
 		/>
 		{#if thought_node.metadata?.status === "pending"}
 			<span class="loading-spinner"></span>
@@ -92,11 +121,19 @@
 		{/if}
 	</div>
 
-	{#if expanded}
-		<div class="content" transition:slide>
+	{#if expanded || thought_node.metadata?.status !== "done"}
+		<div
+			class:content={expanded}
+			class:content-preview={!expanded &&
+				thought_node.metadata?.status !== "done"}
+			bind:this={contentPreviewElement}
+			on:scroll={handleScroll}
+			transition:slide
+		>
 			<MessageContent
 				message={thought_node}
 				{sanitize_html}
+				{allow_tags}
 				{latex_delimiters}
 				{render_markdown}
 				{_components}
@@ -174,13 +211,24 @@
 		font-size: var(--text-sm) !important;
 	}
 
-	.content {
+	.content,
+	.content-preview {
 		overflow-wrap: break-word;
 		word-break: break-word;
 		margin-left: var(--spacing-lg);
 		margin-bottom: var(--spacing-sm);
 	}
-	.content :global(*) {
+
+	.content-preview {
+		position: relative;
+		max-height: calc(5 * 1.5em);
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		cursor: default;
+	}
+
+	.content :global(*),
+	.content-preview :global(*) {
 		font-size: var(--text-sm);
 		color: var(--body-text-color);
 	}

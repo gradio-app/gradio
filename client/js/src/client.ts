@@ -55,6 +55,7 @@ export class Client {
 
 	// streaming
 	stream_status = { open: false };
+	closed = false;
 	pending_stream_messages: Record<string, any[][]> = {};
 	pending_diff_streams: Record<string, any[][]> = {};
 	event_callbacks: Record<string, (data?: unknown) => Promise<void>> = {};
@@ -274,6 +275,7 @@ export class Client {
 	}
 
 	close(): void {
+		this.closed = true;
 		close_stream(this.stream_status, this.abort_controller);
 	}
 

@@ -50,7 +50,8 @@
 	export let edit_message: string;
 	export let display_consecutive_in_same_bubble: boolean;
 	export let current_feedback: string | null = null;
-	export let allow_tags: string[] | null = null;
+	export let allow_tags: string[] | boolean = false;
+	export let watermark: string | null = null;
 	let messageElements: HTMLDivElement[] = [];
 	let previous_edit_mode = false;
 	let last_message_width = 0;
@@ -104,6 +105,7 @@
 		avatar: FileData | null;
 		dispatch: any;
 		current_feedback: string | null;
+		watermark: string | null;
 	};
 
 	let button_panel_props: ButtonPanelProps;
@@ -122,7 +124,8 @@
 		avatar: avatar_img,
 		layout,
 		dispatch,
-		current_feedback
+		current_feedback,
+		watermark
 	};
 </script>
 
@@ -191,6 +194,7 @@
 									thought={message}
 									{rtl}
 									{sanitize_html}
+									{allow_tags}
 									{latex_delimiters}
 									{render_markdown}
 									{_components}
@@ -235,6 +239,7 @@
 					<ButtonPanel
 						{...button_panel_props}
 						{current_feedback}
+						{watermark}
 						on:copy={(e) => dispatch("copy", e.detail)}
 					/>
 				{/if}
@@ -496,7 +501,7 @@
 		height: 100%;
 		object-fit: cover;
 		border-radius: 50%;
-		padding: 6px;
+		padding: var(--size-1-5);
 	}
 
 	.selectable {

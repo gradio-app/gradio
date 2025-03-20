@@ -19,7 +19,7 @@
 	export let disabled = false;
 	export let show_label = true;
 	export let container = true;
-	export let max_lines: number;
+	export let max_lines: number | undefined = undefined;
 	export let type: "text" | "password" | "email" = "text";
 	export let show_copy_button = false;
 	export let submit_btn: string | boolean | null = null;
@@ -37,10 +37,21 @@
 	let can_scroll: boolean;
 	let previous_scroll_top = 0;
 	let user_has_scrolled_up = false;
+	let _max_lines: number;
 
 	const show_textbox_border = !submit_btn;
 
-	$: value, el && lines !== max_lines && resize({ target: el });
+	$: if (max_lines === undefined) {
+		if (type === "text") {
+			_max_lines = Math.max(lines, 20);
+		} else {
+			_max_lines = 1;
+		}
+	} else {
+		_max_lines = Math.max(max_lines, lines);
+	}
+
+	$: value, el && lines !== _max_lines && resize({ target: el });
 
 	$: if (value === null) value = "";
 
@@ -119,7 +130,7 @@
 			e.key === "Enter" &&
 			!e.shiftKey &&
 			lines === 1 &&
-			max_lines >= 1
+			_max_lines >= 1
 		) {
 			e.preventDefault();
 			dispatch("submit");
@@ -153,7 +164,7 @@
 		event: Event | { target: HTMLTextAreaElement | HTMLInputElement }
 	): Promise<void> {
 		await tick();
-		if (lines === max_lines) return;
+		if (lines === _max_lines) return;
 
 		const target = event.target as HTMLTextAreaElement;
 		const computed_styles = window.getComputedStyle(target);
@@ -162,9 +173,9 @@
 		const line_height = parseFloat(computed_styles.lineHeight);
 
 		let max =
-			max_lines === undefined
+			_max_lines === undefined
 				? false
-				: padding_top + padding_bottom + line_height * max_lines;
+				: padding_top + padding_bottom + line_height * _max_lines;
 		let min = padding_top + padding_bottom + lines * line_height;
 
 		target.style.height = "1px";
@@ -185,7 +196,7 @@
 		_el: HTMLTextAreaElement,
 		_value: string
 	): any | undefined {
-		if (lines === max_lines) return;
+		if (lines === _max_lines) return;
 		_el.style.overflowY = "scroll";
 		_el.addEventListener("input", resize);
 
@@ -220,7 +231,7 @@
 	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 
 	<div class="input-container">
-		{#if lines === 1 && max_lines === 1}
+		{#if lines === 1 && _max_lines === 1}
 			{#if type === "text"}
 				<input
 					data-testid="textbox"

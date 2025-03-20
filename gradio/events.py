@@ -263,7 +263,7 @@ class DeletedFileData(EventData):
 
     def __init__(self, target: Block | None, data: FileDataDict):
         super().__init__(target, data)
-        self.file: FileData = FileData(**data)
+        self.file: FileData = FileData(**data)  # type: ignore
         """
         The file that was deleted, as a FileData object.
         """
@@ -428,7 +428,7 @@ class DownloadData(EventData):
 
     def __init__(self, target: Block | None, data: FileDataDict):
         super().__init__(target, data)
-        self.file: FileData = FileData(**data)
+        self.file: FileData = FileData(**data)  # type: ignore
         """
         The file that was downloaded, as a FileData object.
         """
@@ -587,7 +587,7 @@ class EventListener(str):
             postprocess: bool = True,
             cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
             trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
-            js: str | None = None,
+            js: str | Literal[True] | None = None,
             concurrency_limit: int | None | Literal["default"] = "default",
             concurrency_id: str | None = None,
             show_api: bool = True,
@@ -751,7 +751,7 @@ def on(
     postprocess: bool = True,
     cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
     trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
-    js: str | None = None,
+    js: str | Literal[True] | None = None,
     concurrency_limit: int | None | Literal["default"] = "default",
     concurrency_id: str | None = None,
     show_api: bool = True,

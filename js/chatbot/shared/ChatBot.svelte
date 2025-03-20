@@ -90,7 +90,8 @@
 	export let _undoable = false;
 	export let like_user_message = false;
 	export let root: string;
-	export let allow_tags: string[] | null = null;
+	export let allow_tags: string[] | boolean = false;
+	export let watermark: string | null = null;
 
 	let target: HTMLElement | null = null;
 	let edit_index: number | null = null;
@@ -252,25 +253,8 @@
 				Icon={Community}
 				on:click={async () => {
 					try {
-						const CLOUDFRONT_LIMIT = 20 * 1024; // 20KB limit
-						let messages_to_share = value;
 						// @ts-ignore
-						let formatted = await format_chat_for_sharing(messages_to_share);
-
-						while (
-							new Blob([formatted]).size > CLOUDFRONT_LIMIT &&
-							messages_to_share.length > 1
-						) {
-							messages_to_share = value.slice(1);
-							formatted = await format_chat_for_sharing(messages_to_share);
-						}
-
-						if (new Blob([formatted]).size > CLOUDFRONT_LIMIT) {
-							throw new ShareError(
-								"Chat content too large to share, even with a single message."
-							);
-						}
-
+						const formatted = await format_chat_for_sharing(value);
 						dispatch("share", {
 							description: formatted
 						});
@@ -285,7 +269,7 @@
 		<IconButton Icon={Trash} on:click={() => dispatch("clear")} label={"Clear"}
 		></IconButton>
 		{#if show_copy_all_button}
-			<CopyAll {value} />
+			<CopyAll {value} {watermark} />
 		{/if}
 	</IconButtonWrapper>
 {/if}
@@ -338,6 +322,7 @@
 					{feedback_options}
 					{current_feedback}
 					{allow_tags}
+					{watermark}
 					show_like={role === "user" ? likeable && like_user_message : likeable}
 					show_retry={_retryable && is_last_bot_message(messages, value)}
 					show_undo={_undoable && is_last_bot_message(messages, value)}
@@ -354,6 +339,9 @@
 					{allow_file_downloads}
 					on:copy={(e) => dispatch("copy", e.detail)}
 				/>
+				{#if generating && messages[messages.length - 1].role === "assistant" && messages[messages.length - 1].metadata?.status === "done"}
+					<Pending {layout} {avatar_images} />
+				{/if}
 			{/each}
 			{#if pending_message}
 				<Pending {layout} {avatar_images} />

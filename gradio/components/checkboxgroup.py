@@ -96,6 +96,7 @@ class CheckboxGroup(FormComponent):
             key=key,
             value=value,
         )
+        self._value_description = f"one or more of {self.choices}"
 
     def example_payload(self) -> Any:
         return [self.choices[0][1]] if self.choices else None

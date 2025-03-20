@@ -1,5 +1,36 @@
 # @gradio/code
 
+## 0.12.0
+
+### Features
+
+- [#10733](https://github.com/gradio-app/gradio/pull/10733) [`731ab92`](https://github.com/gradio-app/gradio/commit/731ab92001c88d4cf1062acf0a4f1108a4513014) - Autocompletion on code editor component.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/upload@0.15.5
+- @gradio/statustracker@0.10.5
+- @gradio/atoms@0.14.0
+
+## 0.11.2
+
+### Dependency updates
+
+- @gradio/wasm@0.17.4
+- @gradio/upload@0.15.4
+
+## 0.11.1
+
+### Dependency updates
+
+- @gradio/upload@0.15.3
+
+## 0.11.0
+
+### Features
+
+- [#10643](https://github.com/gradio-app/gradio/pull/10643) [`f0a920c`](https://github.com/gradio-app/gradio/commit/f0a920c4934880645fbad783077ae9c7519856ce) - added a show_line_numbers to toggle line numbers in gr.Code().  Thanks @lalitx17!
+
 ## 0.10.18
 
 ### Dependency updates

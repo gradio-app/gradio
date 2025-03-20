@@ -29,6 +29,7 @@ import httpx
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
+from groovy import transpile
 
 from gradio import (
     analytics,
@@ -507,7 +508,7 @@ class BlockFunction:
         concurrency_id: str | None = None,
         tracks_progress: bool = False,
         api_name: str | Literal[False] = False,
-        js: str | None = None,
+        js: str | Literal[True] | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
         show_progress_on: Sequence[Component] | None = None,
         cancels: list[int] | None = None,
@@ -527,6 +528,7 @@ class BlockFunction:
         like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
         page: str = "",
+        js_implementation: str | None = None,
     ):
         self.fn = fn
         self._id = _id
@@ -562,6 +564,8 @@ class BlockFunction:
         self.renderable = renderable
         self.rendered_in = rendered_in
         self.page = page
+        if js_implementation:
+            self.fn.__js_implementation__ = js_implementation  # type: ignore
 
         # We need to keep track of which events are cancel events
         # so that the client can call the /cancel route directly
@@ -621,11 +625,13 @@ class BlockFunction:
             "trigger_mode": self.trigger_mode,
             "show_api": self.show_api,
             "rendered_in": self.rendered_in._id if self.rendered_in else None,
+            "render_id": self.renderable._id if self.renderable else None,
             "connection": self.connection,
             "time_limit": self.time_limit,
             "stream_every": self.stream_every,
             "like_user_message": self.like_user_message,
             "event_specific_args": self.event_specific_args,
+            "js_implementation": getattr(self.fn, "__js_implementation__", None),
         }
 
 
@@ -713,7 +719,7 @@ class BlocksConfig:
         show_progress: Literal["full", "minimal", "hidden"] = "full",
         show_progress_on: Component | Sequence[Component] | None = None,
         api_name: str | None | Literal[False] = None,
-        js: str | None = None,
+        js: str | Literal[True] | None = None,
         no_target: bool = False,
         queue: bool = True,
         batch: bool = False,
@@ -733,6 +739,7 @@ class BlocksConfig:
         stream_every: float = 0.5,
         like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
+        js_implementation: str | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -796,7 +803,7 @@ class BlocksConfig:
         if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
 
-        if len(_targets) and trigger_mode is None:
+        if _targets and trigger_mode is None:
             if _targets[0][1] in ["change", "key_up"]:
                 trigger_mode = "always_last"
             elif _targets[0][1] in ["stream"]:
@@ -853,6 +860,11 @@ class BlocksConfig:
 
         rendered_in = LocalContext.renderable.get()
 
+        if js is True and inputs:
+            raise ValueError(
+                "Cannot create event: events with js=True cannot have inputs."
+            )
+
         block_fn = BlockFunction(
             fn,
             inputs,
@@ -888,6 +900,7 @@ class BlocksConfig:
             like_user_message=like_user_message,
             event_specific_args=event_specific_args,
             page=self.root_block.current_page,
+            js_implementation=js_implementation,
         )
 
         self.fns[self.fn_id] = block_fn
@@ -910,16 +923,9 @@ class BlocksConfig:
                 }
 
         rendered_ids = []
-        sidebar_count = [0]
 
         def get_layout(block: Block) -> Layout:
             rendered_ids.append(block._id)
-            if block.get_block_name() == "sidebar":
-                sidebar_count[0] += 1
-                if sidebar_count[0] > 1:
-                    warnings.warn(
-                        "Multiple sidebars detected in the same Blocks layout. Only one sidebar should be used per Blocks."
-                    )
             if not isinstance(block, BlockContext):
                 return {"id": block._id}
             children_layout = []
@@ -1060,7 +1066,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         title: str = "Gradio",
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
-        js: str | None = None,
+        js: str | Literal[True] | None = None,
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         fill_height: bool = False,
@@ -1356,6 +1362,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 dependency.pop("zerogpu", None)
                 dependency.pop("id", None)
                 dependency.pop("rendered_in", None)
+                dependency.pop("render_id", None)
                 dependency.pop("every", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
@@ -2196,7 +2203,7 @@ Received inputs:
             "components": [],
             "css": self.css,
             "connect_heartbeat": False,
-            "js": self.js,
+            "js": cast(str | Literal[True] | None, self.js),
             "head": self.head,
             "title": self.title or "Gradio",
             "space_id": self.space_id,
@@ -2232,6 +2239,30 @@ Received inputs:
             config, self.blocks.values()
         )
         return config
+
+    def transpile_to_js(self, quiet: bool = False):
+        fns_to_transpile = [
+            fn.fn for fn in self.fns.values() if fn.fn and fn.js is True
+        ]
+        num_to_transpile = len(fns_to_transpile)
+        if not quiet and num_to_transpile > 0:
+            print("********************************************")
+            print("* Trying to transpile functions from Python -> JS for performance\n")
+        for index, fn in enumerate(fns_to_transpile):
+            if not quiet:
+                print(f"* ({index + 1}/{num_to_transpile}) {fn.__name__}: ", end="")
+            if getattr(fn, "__js_implementation__", None) is None:  # type: ignore
+                try:
+                    fn.__js_implementation__ = transpile(fn, validate=True)  # type: ignore
+                    if not quiet:
+                        print("✅")
+                except Exception as e:
+                    if not quiet:
+                        print("❌", e, end="\n\n")
+            elif not quiet:
+                print("✅")
+        if not quiet and num_to_transpile > 0:
+            print("********************************************\n")
 
     def __enter__(self):
         render_context = get_render_context()
@@ -2358,6 +2389,7 @@ Received inputs:
         state_session_capacity: int = 10000,
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
+        share_server_tls_certificate: str | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         max_file_size: str | int | None = None,
         enable_monitoring: bool | None = None,
@@ -2399,6 +2431,7 @@ Received inputs:
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
             share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
             share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
+            share_server_tls_certificate: The path to a TLS certificate file to use when connecting to a custom share server. This parameter is not used with the default FRP server at https://gradio.live. Otherwise, you must provide a valid TLS certificate file (e.g. a "cert.pem") relative to the current working directory, or the connection will not use TLS encryption, which is insecure.
             auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth. Cannot be used with `auth`.
             max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
             enable_monitoring: Enables traffic monitoring of the app through the /monitoring endpoint. By default is None, which enables this endpoint. If explicitly True, will also print the monitoring URL to the console. If False, will disable monitoring altogether.
@@ -2508,6 +2541,7 @@ Received inputs:
         self.pwa = utils.get_space() is not None if pwa is None else pwa
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
+        self.transpile_to_js(quiet=quiet)
         self.config = self.get_config_file()
 
         self.ssr_mode = (
@@ -2519,10 +2553,10 @@ Received inputs:
                 else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
             )
         )
-        self.node_path = os.environ.get(
-            "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
-        )
         if self.ssr_mode:
+            self.node_path = os.environ.get(
+                "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
+            )
             self.node_server_name, self.node_process, self.node_port = (
                 start_node_server(
                     server_name=node_server_name,
@@ -2587,6 +2621,7 @@ Received inputs:
             self.share_server_protocol = share_server_protocol or (
                 "http" if share_server_address is not None else "https"
             )
+            self.share_server_tls_certificate = share_server_tls_certificate
             self.has_launched = True
 
             self.protocol = (
@@ -2607,11 +2642,15 @@ Received inputs:
             if not wasm_utils.IS_WASM:
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
-                httpx.get(
+                resp = httpx.get(
                     f"{self.local_api_url}startup-events",
                     verify=ssl_verify,
                     timeout=None,
                 )
+                if not resp.is_success:
+                    raise Exception(
+                        f"Couldn’t start the app because '{resp.url}' failed (code {resp.status_code}). Check your network or proxy settings to ensure localhost is accessible."
+                    )
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
                 # that `self._queue.start()` is called in another thread which is managed by the HTTP server, `uvicorn`
@@ -2703,6 +2742,7 @@ Received inputs:
                         local_port=self.server_port,
                         share_token=self.share_token,
                         share_server_address=self.share_server_address,
+                        share_server_tls_certificate=self.share_server_tls_certificate,
                     )
                     parsed_url = urlparse(share_url)
                     self.share_url = urlunparse(

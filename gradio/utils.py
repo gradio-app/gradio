@@ -1577,14 +1577,17 @@ def get_node_path():
                 .strip()
                 .split("\r\n")[0]
             )
-            # Verify the path exists
             if os.path.exists(windows_path):
                 return windows_path
-        # Try using the 'which' command on Unix-like systems
-        else:
-            return subprocess.check_output(["which", "node"]).decode().strip()
-
     except subprocess.CalledProcessError:
+        # Command failed, fall back to checking common install locations
+        pass
+
+    try:
+        # On Unix-like systems, try using 'which' command
+        if sys.platform != "win32":
+            return subprocess.check_output(["which", "node"]).decode().strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
         # Command failed, fall back to checking common install locations
         pass
 

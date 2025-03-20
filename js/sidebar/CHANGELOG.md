@@ -1,5 +1,20 @@
 # @gradio/sidebar
 
+## 0.1.7
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.5
+- @gradio/atoms@0.14.0
+- @gradio/column@0.2.0
+
+## 0.1.6
+
+### Features
+
+- [#10694](https://github.com/gradio-app/gradio/pull/10694) [`16244f3`](https://github.com/gradio-app/gradio/commit/16244f3c1cb1a65ac1f719142f8fab67512fbb25) - Event Listeners in gradio sketch.  Thanks @aliabid94!
+- [#10737](https://github.com/gradio-app/gradio/pull/10737) [`1cf992b`](https://github.com/gradio-app/gradio/commit/1cf992b04225580b9c7c4d4dd0c84e5a7ebe6ad3) - Sidebar fixed positioning.  Thanks @dawoodkhan82!
+
 ## 0.1.5
 
 ### Fixes

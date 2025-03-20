@@ -1,5 +1,79 @@
 # @gradio/core
 
+## 0.13.0
+
+### Features
+
+- [#10778](https://github.com/gradio-app/gradio/pull/10778) [`373007b`](https://github.com/gradio-app/gradio/commit/373007b3e9d019ee41589d1dbb09a7511a024a51) - Allow sorting by multiple columns in dataframe.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/image@0.21.5
+- @gradio/upload@0.15.5
+- @gradio/statustracker@0.10.5
+- @gradio/button@0.4.10
+- @gradio/video@0.14.5
+- @gradio/atoms@0.14.0
+- @gradio/code@0.12.0
+- @gradio/paramviewer@0.7.3
+- @gradio/gallery@0.15.10
+- @gradio/plot@0.9.10
+- @gradio/textbox@0.10.5
+- @gradio/column@0.2.0
+- @gradio/checkbox@0.4.15
+- @gradio/file@0.12.10
+
+## 0.12.1
+
+### Features
+
+- [#10694](https://github.com/gradio-app/gradio/pull/10694) [`16244f3`](https://github.com/gradio-app/gradio/commit/16244f3c1cb1a65ac1f719142f8fab67512fbb25) - Event Listeners in gradio sketch.  Thanks @aliabid94!
+
+### Fixes
+
+- [#10719](https://github.com/gradio-app/gradio/pull/10719) [`b710d7c`](https://github.com/gradio-app/gradio/commit/b710d7cf13c1277fd18c7809cad0f707b880ef70) - Fix error display.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.11.2
+- @gradio/video@0.14.4
+- @gradio/client@1.13.1
+- @gradio/wasm@0.17.4
+- @gradio/gallery@0.15.9
+- @gradio/upload@0.15.4
+- @gradio/button@0.4.9
+- @gradio/image@0.21.4
+- @gradio/file@0.12.9
+
+## 0.12.0
+
+### Features
+
+- [#10500](https://github.com/gradio-app/gradio/pull/10500) [`16d419b`](https://github.com/gradio-app/gradio/commit/16d419b9f1f18ae4507d18a4739eb83ac4f3fae9) - Allow functions that solely update component properties to run in the frontend by setting `js=True`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/upload@0.15.3
+- @gradio/video@0.14.3
+- @gradio/code@0.11.1
+- @gradio/client@1.13.0
+- @gradio/button@0.4.8
+- @gradio/image@0.21.3
+- @gradio/gallery@0.15.8
+- @gradio/file@0.12.8
+
+## 0.11.1
+
+### Features
+
+- [#10679](https://github.com/gradio-app/gradio/pull/10679) [`cb3c762`](https://github.com/gradio-app/gradio/commit/cb3c76205c3fc1fae55229b5efe223c6d5c5c907) - Add Thai Translate.  Thanks @haihandsome!
+
+## 0.11.0
+
+### Dependency updates
+
+- @gradio/code@0.11.0
+
 ## 0.11.0
 
 ### Features
