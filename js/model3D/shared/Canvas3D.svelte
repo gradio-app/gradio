@@ -48,19 +48,18 @@
 
 	onMount(() => {
 		// Initialize BabylonJS viewer
-		BABYLON_VIEWER.createViewerForCanvas(canvas, 
-			{
-				clearColor: clear_color, 
-				useRightHandedSystem: true,
-				cameraAutoOrbit: {enabled: false},
-				onInitialized:(details: Readonly<BABYLON_VIEWER.ViewerDetails>)=>{
-					viewerDetails = details;
-				}
-		}).then((promiseViewer: BABYLON_VIEWER.Viewer) =>{
+		BABYLON_VIEWER.createViewerForCanvas(canvas, {
+			clearColor: clear_color,
+			useRightHandedSystem: true,
+			cameraAutoOrbit: { enabled: false },
+			onInitialized: (details: Readonly<BABYLON_VIEWER.ViewerDetails>) => {
+				viewerDetails = details;
+			}
+		}).then((promiseViewer: BABYLON_VIEWER.Viewer) => {
 			viewer = promiseViewer;
 			mounted = true;
 		});
-		
+
 		return () => {
 			viewer.dispose();
 		};
@@ -75,23 +74,23 @@
 
 	function load_model(url: string | undefined): void {
 		if (viewer) {
-			viewer.loadModel(url!, 
-			{
-				pluginOptions: {
-					obj: {
-					importVertexColors: true,
-					},
-				}
-			}
-			).then(()=>{
-				if (display_mode === "point_cloud") {
-					setRenderingMode(true, false);
-				} else if (display_mode === "wireframe") {
-					setRenderingMode(false, true);
-				} else {
-					update_camera(camera_position, zoom_speed, pan_speed);
-				}
-			});
+			viewer
+				.loadModel(url!, {
+					pluginOptions: {
+						obj: {
+							importVertexColors: true
+						}
+					}
+				})
+				.then(() => {
+					if (display_mode === "point_cloud") {
+						setRenderingMode(true, false);
+					} else if (display_mode === "wireframe") {
+						setRenderingMode(false, true);
+					} else {
+						update_camera(camera_position, zoom_speed, pan_speed);
+					}
+				});
 		}
 	}
 
@@ -113,8 +112,7 @@
 		camera.lowerRadiusLimit = 0.1;
 		const updateCameraSensibility = (): void => {
 			camera.wheelPrecision = 250 / (camera.radius * zoom_speed);
-			camera.panningSensibility =
-				(10000 * pan_speed) / camera.radius;
+			camera.panningSensibility = (10000 * pan_speed) / camera.radius;
 		};
 		updateCameraSensibility();
 		camera.onAfterCheckInputsObservable.add(updateCameraSensibility);
