@@ -1807,10 +1807,10 @@ Received inputs:
                     if isinstance(inputs_cached, (GradioModel, GradioRootModel)):
                         inputs_seriealized = inputs_cached.model_dump()
                     else:
-                        inputs_seriealized = inputs_cached
+                        inputs_serialized = inputs_cached
                     if block._id not in state:
                         state[block._id] = block
-                    state[block._id].value = inputs_seriealized
+                    state[block._id].value = inputs_serialized
                     processed_input.append(block.preprocess(inputs_cached))
         else:
             processed_input = inputs

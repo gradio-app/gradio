@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
+import textwrap
 
 from gradio_client.documentation import document
 
@@ -32,7 +33,7 @@ class DeepLinkButton(Button):
         copied_value: str = "Link Copied!",
         *,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
-        variant: Literal["primary", "secondary", "stop"] = "primary",
+        variant: Literal["primary", "secondary"] = "primary",
         size: Literal["sm", "md", "lg"] = "lg",
         icon: str | Path | None = utils.get_icon_path("link.svg"),
         link: str | None = None,
@@ -92,13 +93,10 @@ class DeepLinkButton(Button):
     def get_share_link(
         self, value: str = "Share via Link", copied_value: str = "Link Copied!"
     ):
-        import textwrap
-
         return textwrap.dedent(
             """
         () => {
             const sessionHash = window.__gradio_session_hash__;
-            // Send GET request to /deep_link with sessionHash as query parameter
             fetch(`/gradio_api/deep_link?session_hash=${sessionHash}`)
                 .then(response => {
                     if (!response.ok) {
@@ -107,12 +105,10 @@ class DeepLinkButton(Button):
                     return response.text();
                 })
                 .then(data => {
-                    const currentUrl = new URL(window.location.href);
+                    const currentUrl = new URL(window.__gradio_space__ ? `https://huggingface.co/spaces/${window.__gradio_space__}` : window.location.href);
                     console.log("data", data);
-                    // Remove quotes from data if they exist
                     const cleanData = data.replace(/^"|"$/g, '');
                     currentUrl.searchParams.set('deep_link', cleanData);
-                    // Copy the returned URL to clipboard
                     navigator.clipboard.writeText(currentUrl.toString());
                 })
                 .catch(error => {
@@ -120,7 +116,6 @@ class DeepLinkButton(Button):
                     return "Error";
                 });
 
-            // Return the copied value immediately for UI feedback
             return "BUTTON_COPIED_VALUE";
         }
     """.replace("BUTTON_DEFAULT_VALUE", value).replace(
