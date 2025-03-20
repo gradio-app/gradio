@@ -105,7 +105,7 @@ class DeepLinkButton(Button):
                     return response.text();
                 })
                 .then(data => {
-                    const currentUrl = new URL(window.__gradio_space__ ? `https://huggingface.co/spaces/${window.__gradio_space__}` : window.location.href);
+                    const currentUrl = new URL(window.location.href);
                     console.log("data", data);
                     const cleanData = data.replace(/^"|"$/g, '');
                     currentUrl.searchParams.set('deep_link', cleanData);
