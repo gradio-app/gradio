@@ -137,7 +137,7 @@
 				targetSelector: `#component-${outputs[0]}`,
 				endTime: 0.5,
 				endZoom: 1.3,
-				sustainDuration: 5,
+				sustainDuration: 5
 			});
 			return {
 				id: outputs[i],
@@ -793,10 +793,10 @@
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 				navigator.userAgent
 			);
-			
+
 		screen_recorder = new ScreenRecorder((title, message, type) => {
 			add_new_message(title, message, type);
-		});
+		}, root);
 	});
 
 	function screenRecording(): void {
