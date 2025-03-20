@@ -223,7 +223,6 @@ class ScreenRecorder {
 			}
 
 			// Send to server for processing - use the correct API path
-			console.log("!!!!", this.root);
 			const response = await fetch(this.root + "/process_recording", {
 				method: "POST",
 				body: formData
