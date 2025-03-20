@@ -199,7 +199,7 @@ client.predict(
 
 ## Running jobs asynchronously
 
-Oe should note that `.predict()` is a _blocking_ operation as it waits for the operation to complete before returning the prediction.
+One should note that `.predict()` is a _blocking_ operation as it waits for the operation to complete before returning the prediction.
 
 In many cases, you may be better off letting the job run in the background until you need the results of the prediction. You can do this by creating a `Job` instance using the `.submit()` method, and then later calling `.result()` on the job to get the result. For example:
 
