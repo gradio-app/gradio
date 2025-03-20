@@ -331,8 +331,12 @@ def create(app_file: str, config_file: str):
                             gr.Markdown(
                                 "Set **all inputs and outputs** before generating code."
                             )
+                        new_generate_text = "Generate Code"
+                        update_generate_text = "Update Code"
                         generate_code_btn = gr.Button(
-                            "Generate Code",
+                            update_generate_text
+                            if history_exists
+                            else new_generate_text,
                             size="md",
                             interactive=not no_components_are_set,
                         )
@@ -385,6 +389,7 @@ def create(app_file: str, config_file: str):
                                 gr.Textbox(
                                     value="", placeholder=edit_prompt_placeholder
                                 ),
+                                gr.Button(update_generate_text),
                             )
 
                         generate_code_btn.click(
@@ -392,7 +397,7 @@ def create(app_file: str, config_file: str):
                         ).then(
                             append_to_history,
                             [history, prompt, fn_code],
-                            [history, reset_code_btn, prompt],
+                            [history, reset_code_btn, prompt, generate_code_btn],
                             show_progress="hidden",
                         )
 
@@ -403,6 +408,7 @@ def create(app_file: str, config_file: str):
                                 get_header(var_name, __inputs),
                                 gr.Button(visible=False),
                                 gr.Textbox(placeholder=new_prompt_placeholder),
+                                gr.Button(new_generate_text),
                                 [],
                                 _dependencies,
                             )
@@ -410,7 +416,14 @@ def create(app_file: str, config_file: str):
                         reset_code_btn.click(
                             reset_code,
                             [dependencies, modify_id],
-                            [fn_code, reset_code_btn, prompt, history, dependencies],
+                            [
+                                fn_code,
+                                reset_code_btn,
+                                prompt,
+                                generate_code_btn,
+                                history,
+                                dependencies,
+                            ],
                         )
 
                         def save_code(_history, _code):
