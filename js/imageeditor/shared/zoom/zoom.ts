@@ -5,6 +5,7 @@ import {
 } from "pixi.js";
 import { type ImageEditorContext, type Tool } from "../core/editor";
 import { type Tool as ToolbarTool, type Subtool } from "../Toolbar.svelte";
+import { get } from "svelte/store";
 
 /**
  * ZoomTool class for handling zoom and pan functionality in the image editor
@@ -116,6 +117,7 @@ export class ZoomTool implements Tool {
 		tool: ToolbarTool,
 		subtool: Subtool
 	): Promise<void> {
+		console.log("setup zoom");
 		this.image_editor_context = context;
 		this.current_tool = tool;
 		this.current_subtool = subtool;
@@ -123,6 +125,8 @@ export class ZoomTool implements Tool {
 		// Initialize zoom and position
 		const { width, height } = await this.get_container_dimensions();
 		const min_zoom = this.calculate_min_zoom(width, height);
+
+		console.log("min_zoom", min_zoom);
 
 		// Set initial zoom
 		this.local_scale = min_zoom;
@@ -348,7 +352,12 @@ export class ZoomTool implements Tool {
 		const canvas = this.image_editor_context.app.screen;
 		const viewport_width = canvas.width;
 		const viewport_height = canvas.height;
-
+		console.log(
+			"viewport_width",
+			viewport_width,
+			"viewport_height",
+			viewport_height
+		);
 		if (
 			!container_width ||
 			!viewport_width ||

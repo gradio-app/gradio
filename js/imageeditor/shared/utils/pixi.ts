@@ -35,16 +35,24 @@ export function clamp(n: number, min: number, max: number): number {
  */
 export function get_canvas_blob(
 	renderer: Renderer,
-	obj: Container | null
+	obj: Container | null,
+	bounds?: { x: number; y: number; width: number; height: number }
 ): Promise<Blob | null> {
 	return new Promise((resolve) => {
 		if (!obj) {
 			resolve(null);
 			return;
 		}
+
+		const image_bounds = obj.getLocalBounds();
+		const frame = bounds
+			? new Rectangle(bounds.x, bounds.y, bounds.width, bounds.height)
+			: new Rectangle(0, 0, image_bounds.width, image_bounds.height);
+
 		const src_canvas = renderer.extract.canvas({
 			target: obj,
-			resolution: 1
+			resolution: 1,
+			frame
 		});
 
 		src_canvas.toBlob?.((blob) => {

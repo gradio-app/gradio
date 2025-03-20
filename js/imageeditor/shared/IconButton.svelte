@@ -13,6 +13,7 @@
 	export let transparent = false;
 	export let background = "var(--background-fill-primary)";
 	export let offset = 0;
+	export let label_position: "left" | "right" = "left";
 	$: _color = highlight ? "var(--color-accent)" : color;
 </script>
 
@@ -30,7 +31,9 @@
 	style:--bg-color={!disabled ? background : "auto"}
 	style:margin-left={offset + "px"}
 >
-	{#if show_label}<span>{label}</span>{/if}
+	{#if show_label && label_position === "left"}
+		<span style="margin-left: 4px;">{label}</span>
+	{/if}
 	<div
 		class:small={size === "small"}
 		class:large={size === "large"}
@@ -38,6 +41,9 @@
 	>
 		<Icon />
 	</div>
+	{#if show_label && label_position === "right"}
+		<span style="margin-right: 4px;">{label}</span>
+	{/if}
 </button>
 
 <style>

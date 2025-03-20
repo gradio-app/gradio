@@ -31,6 +31,7 @@
 	import { BrushTool } from "./brush/brush";
 	import { create_drag } from "@gradio/upload";
 	import Layers from "./Layers.svelte";
+	import { Check } from "@gradio/icons";
 
 	const { drag, open_file_upload } = create_drag();
 
@@ -44,6 +45,7 @@
 	// import { type LayerScene } from "./layers/utils";
 	import { type ImageBlobs } from "./types";
 	import Controls from "./Controls.svelte";
+	import IconButton from "./IconButton.svelte";
 	export const antialias = true;
 	// export let crop_size: [number, number] | undefined; no use any more
 	export let changeable = false;
@@ -62,6 +64,7 @@
 	export const full_history: CommandNode | null = null;
 	export let is_dragging = false;
 	let pixi_target: HTMLDivElement;
+	let pixi_target_crop: HTMLDivElement;
 	export let background_image = false;
 	export let brush_options: Brush;
 	export let eraser_options: Eraser;
@@ -95,7 +98,7 @@
 	 * @param {Blob | File} image - The image to add
 	 */
 	export function add_image(image: Blob | File): void {
-		editor.add_image(image, border_region);
+		editor.add_image({ image, border_region });
 	}
 
 	let pending_bg: Promise<void>;
@@ -188,6 +191,8 @@
 		};
 	});
 
+	let crop: ImageEditor;
+	let crop_zoom: ZoomTool;
 	async function init_image_editor(): Promise<void> {
 		brush = new BrushTool();
 		zoom = new ZoomTool();
@@ -195,17 +200,29 @@
 			target_element: pixi_target,
 			width: canvas_size[0],
 			height: canvas_size[1],
-			tools: ["image", zoom, new CropTool(), new ResizeTool(), brush],
+			tools: ["image", zoom, new ResizeTool(), brush],
 			fixed_canvas,
+		});
+
+		crop_zoom = new ZoomTool();
+
+		crop = new ImageEditor({
+			target_element: pixi_target_crop,
+			width: canvas_size[0],
+			height: canvas_size[1],
+			tools: ["image", crop_zoom, new CropTool()],
+			dark: true,
 		});
 
 		editor.scale.subscribe((_scale) => {
 			zoom_level = _scale;
 		});
 
-		editor.ready.then(() => {
+		Promise.all([editor.ready, crop.ready]).then(() => {
 			handle_tool_change({ tool: "image" });
 			ready = true;
+			crop.set_tool("image");
+			crop.set_subtool("crop");
 		});
 
 		editor.on("change", () => {
@@ -227,10 +244,14 @@
 	 * Handles file uploads
 	 * @param {File[]} files - The uploaded files
 	 */
-	function handle_files(files: File[] | Blob[] | File | Blob | null): void {
+	async function handle_files(
+		files: File[] | Blob[] | File | Blob | null,
+	): Promise<void> {
 		if (files == null) return;
 		const _file = Array.isArray(files) ? files[0] : files;
-		editor.add_image(_file, border_region);
+		await editor.add_image({ image: _file, border_region });
+		await crop.add_image({ image: _file, border_region: 0 });
+		crop.reset();
 		background_image = true;
 
 		dispatch("upload");
@@ -242,6 +263,7 @@
 	 * @param {{ tool: ToolbarTool }} param0 - Object containing the selected tool
 	 */
 	function handle_tool_change({ tool }: { tool: ToolbarTool }): void {
+		console.log("handle_tool_change", tool);
 		editor.set_tool(tool);
 		current_tool = tool;
 	}
@@ -259,6 +281,7 @@
 	}): void {
 		editor.set_subtool(subtool);
 		current_subtool = subtool;
+
 		if (subtool === null) {
 			return;
 		}
@@ -287,24 +310,45 @@
 		}
 	}
 
+	let eraser_size_visible = false;
+	let selected_color: ColorInput;
+	let selected_size: number;
+	let selected_opacity = 1;
+	let selected_eraser_size: number;
+
+	$: {
+		if (brush_options) {
+			update_brush_options();
+		}
+
+		if (eraser_options) {
+			update_eraser_options();
+		}
+	}
+
+	function update_brush_options(): void {
+		selected_color =
+			brush_options.default_color === "auto"
+				? brush_options.colors[0]
+				: brush_options.default_color;
+		selected_size =
+			typeof brush_options.default_size === "number"
+				? brush_options.default_size
+				: 25;
+		selected_opacity = 1;
+	}
+
+	function update_eraser_options(): void {
+		selected_eraser_size =
+			eraser_options.default_size === "auto" ? 25 : eraser_options.default_size;
+	}
+
 	let brush_size_visible = false;
 
 	let brush_color_visible = false;
 
 	$: console.log(brush_options);
 
-	let eraser_size_visible = false;
-	let selected_color =
-		brush_options.default_color === "auto"
-			? brush_options.colors[0]
-			: brush_options.default_color;
-	let selected_size =
-		typeof brush_options.default_size === "number"
-			? brush_options.default_size
-			: 25;
-	let selected_opacity = 1;
-	let selected_eraser_size =
-		eraser_options.default_size === "auto" ? 25 : eraser_options.default_size;
 	$: brush?.set_brush_color(
 		selected_color === "auto"
 			? brush_options.colors.find(
@@ -317,9 +361,11 @@
 	$: brush?.set_brush_size(
 		typeof selected_size === "number" ? selected_size : 25,
 	);
+
 	$: brush?.set_eraser_size(
 		typeof selected_eraser_size === "number" ? selected_eraser_size : 25,
 	);
+
 	$: disable_click =
 		current_tool !== "image" ||
 		(current_tool === "image" && background_image) ||
@@ -370,11 +416,28 @@
 
 	$: add_image_from_url(composite || background);
 	$: add_layers_from_url(layers);
+
+	async function handle_crop_confirm(): Promise<void> {
+		const { image, width, height, x, y, original_dimensions } =
+			await crop.get_crop_bounds();
+		console.log("image", image);
+		if (!image) return;
+		editor.add_image({
+			image,
+			border_region,
+			resize: false,
+			crop_offset: { x, y },
+			original_dimensions,
+			is_cropped: true,
+		});
+		handle_subtool_change({ tool: "image", subtool: null });
+	}
 </script>
 
 <div
 	data-testid="image"
 	class="image-container"
+	class:dark-bg={current_subtool === "crop"}
 	use:drag={{
 		on_drag_change: (dragging) => (is_dragging = dragging),
 		on_files: handle_files,
@@ -383,30 +446,37 @@
 	}}
 >
 	{#if ready}
-		<Controls
-			{changeable}
-			on:set_zoom={(e) => handle_zoom_change(e.detail)}
-			on:zoom_in={() => zoom_in_out("in")}
-			on:zoom_out={() => zoom_in_out("out")}
-			current_zoom={zoom_level}
-			on:remove_image={() => {
-				editor.reset_canvas();
-				background_image = false;
-			}}
-			dimensions={editor.dimensions}
-			on:resize={(e) => {
-				console.log("resize", e.detail);
+		{#if current_subtool !== "crop"}
+			<Controls
+				{changeable}
+				on:set_zoom={(e) => handle_zoom_change(e.detail)}
+				on:zoom_in={() => zoom_in_out("in")}
+				on:zoom_out={() => zoom_in_out("out")}
+				current_zoom={zoom_level}
+				on:remove_image={() => {
+					editor.reset_canvas();
+					background_image = false;
+				}}
+				tool={current_tool}
+				dimensions={editor.dimensions}
+				on:resize={(e) => {
+					console.log("resize", e.detail);
 
-				editor.modify_canvas_size(
-					e.detail.width,
-					e.detail.height,
-					e.detail.anchor,
-					e.detail.scale,
-				);
-			}}
-			can_save={true}
-			on:save={handle_save}
-		/>
+					editor.modify_canvas_size(
+						e.detail.width,
+						e.detail.height,
+						e.detail.anchor,
+						e.detail.scale,
+					);
+				}}
+				can_save={true}
+				on:save={handle_save}
+				on:pan={(e) => {
+					console.log("pan", e.detail);
+					handle_tool_change({ tool: "pan" });
+				}}
+			/>
+		{/if}
 		<!-- on:save={handle_save} -->
 		<!-- can_save={saved_history !== $current_history} -->
 		<!-- on:remove_image={handle_remove} -->
@@ -416,21 +486,26 @@
 		{changeable}
 		on:undo={CommandManager.undo}
 		on:redo={CommandManager.redo}
-   --><Toolbar
-			background={background_image}
-			on:tool_change={(e) => handle_tool_change(e.detail)}
-			on:subtool_change={(e) => handle_subtool_change(e.detail)}
-			show_brush_size={brush_size_visible}
-			show_brush_color={brush_color_visible}
-			show_eraser_size={eraser_size_visible}
-			{brush_options}
-			{eraser_options}
-			bind:selected_color
-			bind:selected_size
-			bind:selected_eraser_size
-			bind:selected_opacity
-			bind:preview
-		/>
+   -->
+		{#if current_subtool !== "crop"}
+			<Toolbar
+				background={background_image}
+				on:tool_change={(e) => handle_tool_change(e.detail)}
+				on:subtool_change={(e) => handle_subtool_change(e.detail)}
+				show_brush_size={brush_size_visible}
+				show_brush_color={brush_color_visible}
+				show_eraser_size={eraser_size_visible}
+				{brush_options}
+				{eraser_options}
+				bind:selected_color
+				bind:selected_size
+				bind:selected_eraser_size
+				bind:selected_opacity
+				bind:preview
+				tool={current_tool}
+				subtool={current_subtool}
+			/>
+		{/if}
 
 		{#if current_tool === "image" && current_subtool === "webcam"}
 			<div class="modal">
@@ -450,27 +525,55 @@
 				</div>
 			</div>
 		{/if}
-		<Layers
-			layers={editor.layers}
-			on:new_layer={() => {
-				console.log("new layer");
-				editor.add_layer();
-			}}
-			on:change_layer={(e) => {
-				console.log("change layer -- parent", e.detail);
-				editor.set_layer(e.detail);
-			}}
-			on:move_layer={(e) => {
-				console.log("move layer -- parent	", e.detail);
-				editor.move_layer(e.detail.id, e.detail.direction);
-			}}
-			on:delete_layer={(e) => {
-				console.log("delete layer -- parent", e.detail);
-				editor.delete_layer(e.detail);
-			}}
-		/>
+
+		{#if current_subtool !== "crop"}
+			<Layers
+				layers={editor.layers}
+				on:new_layer={() => {
+					console.log("new layer");
+					editor.add_layer();
+				}}
+				on:change_layer={(e) => {
+					console.log("change layer -- parent", e.detail);
+					editor.set_layer(e.detail);
+				}}
+				on:move_layer={(e) => {
+					console.log("move layer -- parent	", e.detail);
+					editor.move_layer(e.detail.id, e.detail.direction);
+				}}
+				on:delete_layer={(e) => {
+					console.log("delete layer -- parent", e.detail);
+					editor.delete_layer(e.detail);
+				}}
+			/>
+		{/if}
 	{/if}
-	<div class="pixi-target" bind:this={pixi_target}></div>
+	<div
+		class="pixi-target"
+		class:visible={current_subtool !== "crop"}
+		bind:this={pixi_target}
+	></div>
+	<div
+		class="pixi-target-crop"
+		class:visible={current_subtool === "crop"}
+		bind:this={pixi_target_crop}
+	></div>
+
+	{#if current_subtool === "crop"}
+		<div class="crop-confirm-button">
+			<IconButton
+				Icon={Check}
+				label="Confirm crop"
+				show_label={true}
+				size="large"
+				padded={true}
+				color="white"
+				background="var(--color-green-500)"
+				label_position="right"
+				on:click={handle_crop_confirm}
+			/>
+		</div>
+	{/if}
 	<slot></slot>
 </div>
 
@@ -482,6 +585,36 @@
 		justify-content: center;
 		align-items: center;
 		max-height: 100%;
+		border-radius: var(--radius-sm);
+	}
+
+	.pixi-target {
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		top: 0;
+		left: 0;
+		z-index: 1;
+		display: block;
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.pixi-target-crop {
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		top: 0;
+		left: 0;
+		z-index: 2;
+		display: block;
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.visible {
+		opacity: 1;
+		pointer-events: auto;
 	}
 
 	.pixi-target {
@@ -511,5 +644,21 @@
 		height: 100%;
 		width: 100%;
 		background: var(--block-background-fill);
+	}
+
+	.dark-bg {
+		background: #333;
+	}
+
+	.crop-confirm-button {
+		position: absolute;
+		bottom: 8px;
+		left: 0;
+		right: 0;
+		margin: auto;
+		z-index: var(--layer-top);
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 </style>

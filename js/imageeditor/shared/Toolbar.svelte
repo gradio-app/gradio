@@ -42,8 +42,8 @@
 		type Eraser as EraserType,
 	} from "./brush/types";
 
-	let tool: Tool = "image";
-	let subtool: Subtool = null;
+	export let tool: Tool = "image";
+	export let subtool: Subtool = null;
 
 	export let background = false;
 	export let brush_options: BrushType;
@@ -80,9 +80,8 @@
 	 */
 	function handle_tool_click(e: Event, _tool: Tool): void {
 		e.stopPropagation();
-
-		tool = _tool;
-		dispatch("tool_change", { tool });
+		console.log("tool_click", _tool);
+		dispatch("tool_change", { tool: _tool });
 	}
 
 	/**
@@ -92,13 +91,15 @@
 	 */
 	function handle_subtool_click(e: Event, _subtool: typeof subtool): void {
 		e.stopPropagation();
-		subtool = _subtool;
-		dispatch("subtool_change", { tool, subtool });
+
+		dispatch("subtool_change", { tool, subtool: _subtool });
 	}
 
 	$: show_brush_size = tool === "draw" && subtool === "size";
 	$: show_brush_color = tool === "draw" && subtool === "color";
 	$: show_eraser_size = tool === "erase" && subtool === "size";
+
+	$: console.log(tool, subtool);
 </script>
 
 <div class="toolbar-wrap">
@@ -112,15 +113,7 @@
 			padded={false}
 			transparent={true}
 		/>
-		<IconButton
-			Icon={Pan}
-			label="Pan"
-			on:click={(e) => handle_tool_click(e, "pan")}
-			highlight={tool === "pan"}
-			size="medium"
-			padded={false}
-			transparent={true}
-		/>
+
 		<IconButton
 			Icon={Brush}
 			label="Brush"

@@ -36,16 +36,37 @@ export class ImageTool implements Tool {
 
 	cleanup(): void {}
 
-	async add_image(
-		image: Blob | File | Texture,
-		fixed_canvas: boolean,
-		borderRegion = 0
-	): Promise<void> {
+	async add_image({
+		image,
+		fixed_canvas,
+		border_region = 0,
+		is_cropped = false,
+		original_dimensions,
+		crop_offset
+	}: {
+		image: Blob | File | Texture;
+		fixed_canvas: boolean;
+		border_region?: number;
+		is_cropped?: boolean;
+		original_dimensions?: { width: number; height: number };
+		crop_offset?: { x: number; y: number };
+	}): Promise<void> {
+		console.log("add_image", {
+			image,
+			fixed_canvas,
+			border_region,
+			is_cropped,
+			original_dimensions,
+			crop_offset
+		});
 		const image_command = new AddImageCommand(
 			this.context,
 			image,
 			fixed_canvas,
-			borderRegion
+			border_region,
+			is_cropped,
+			original_dimensions,
+			crop_offset
 		);
 
 		await image_command.start();
@@ -74,21 +95,31 @@ export class AddImageCommand implements BgImageCommand {
 	current_canvas_size: { width: number; height: number };
 	current_scale: number;
 	current_position: { x: number; y: number };
-	borderRegion: number;
+	border_region: number;
+	is_cropped: boolean;
+	original_dimensions?: { width: number; height: number };
+	crop_offset?: { x: number; y: number };
+
 	constructor(
 		context: ImageEditorContext,
 		background: Blob | File | Texture,
 		fixed_canvas: boolean,
-		borderRegion = 0
+		border_region = 0,
+		is_cropped = false,
+		original_dimensions?: { width: number; height: number },
+		crop_offset?: { x: number; y: number }
 	) {
 		this.context = context;
 		this.background = background;
 		this.fixed_canvas = fixed_canvas;
-		this.borderRegion = borderRegion;
+		this.border_region = border_region;
 		this.current_canvas_size = get(this.context.dimensions);
 		this.current_scale = get(this.context.scale);
 		this.current_position = get(this.context.position);
 		this.sprite = new Sprite();
+		this.is_cropped = is_cropped;
+		this.original_dimensions = original_dimensions;
+		this.crop_offset = crop_offset;
 	}
 
 	async start(): Promise<[number, number]> {
@@ -97,50 +128,206 @@ export class AddImageCommand implements BgImageCommand {
 		if (this.background instanceof Texture) {
 			image_texture = this.background;
 		} else {
+			console.log("creating image bitmap");
+			console.log(this.background);
 			const img = await createImageBitmap(this.background);
 			image_texture = Texture.from(img);
 		}
 		this.sprite = new Sprite(image_texture);
 
 		// Store the border region on the sprite for later reference
-		(this.sprite as any).borderRegion = this.borderRegion;
+		(this.sprite as any).border_region = this.border_region;
 
-		// Handle fixed canvas differently when border region is present
-		if (this.fixed_canvas) {
-			// If fixed canvas, use the canvas dimensions but account for border
-			const effectiveCanvasWidth = Math.max(
-				this.current_canvas_size.width - this.borderRegion * 2,
-				10
-			);
-			const effectiveCanvasHeight = Math.max(
-				this.current_canvas_size.height - this.borderRegion * 2,
-				10
-			);
+		// Handle cropped images
+		if (this.is_cropped && this.original_dimensions && this.crop_offset) {
+			// Store crop information on the sprite for later reference
+			(this.sprite as any).is_cropped = true;
+			(this.sprite as any).original_dimensions = this.original_dimensions;
+			(this.sprite as any).crop_offset = this.crop_offset;
 
-			const { width, height, x, y } = fit_image_to_canvas(
-				this.sprite.width,
-				this.sprite.height,
-				effectiveCanvasWidth,
-				effectiveCanvasHeight
-			);
+			console.log("Handling cropped image:", {
+				original: this.original_dimensions,
+				cropped: {
+					width: this.sprite.width,
+					height: this.sprite.height
+				},
+				crop_offset: this.crop_offset
+			});
 
-			this.sprite.width = width;
-			this.sprite.height = height;
-			// Position needs to account for the border
-			this.sprite.x = x + this.borderRegion;
-			this.sprite.y = y + this.borderRegion;
+			if (this.fixed_canvas) {
+				// For fixed canvas with cropped image:
+				// 1. Calculate how the original image would have been scaled to fit
+				// 2. Apply the same scale to the crop offset
+
+				// Calculate the effective canvas dimensions (accounting for border)
+				const effectiveCanvasWidth = Math.max(
+					this.current_canvas_size.width - this.border_region * 2,
+					10
+				);
+				const effectiveCanvasHeight = Math.max(
+					this.current_canvas_size.height - this.border_region * 2,
+					10
+				);
+
+				console.log("Effective canvas:", {
+					width: effectiveCanvasWidth,
+					height: effectiveCanvasHeight
+				});
+
+				// First, calculate how the ORIGINAL (uncropped) image would have been fitted
+				const originalFitResult = fit_image_to_canvas(
+					this.original_dimensions.width,
+					this.original_dimensions.height,
+					effectiveCanvasWidth,
+					effectiveCanvasHeight
+				);
+
+				console.log("Original fit result:", originalFitResult);
+
+				// Calculate the scale factor from original to fitted dimensions
+				const scaleX = originalFitResult.width / this.original_dimensions.width;
+				const scaleY =
+					originalFitResult.height / this.original_dimensions.height;
+
+				console.log("Scale factors:", { scaleX, scaleY });
+
+				// Now fit the cropped image using the same logic
+				const { width, height, x, y } = fit_image_to_canvas(
+					this.sprite.width,
+					this.sprite.height,
+					effectiveCanvasWidth,
+					effectiveCanvasHeight
+				);
+
+				// Set the sprite size to the fitted dimensions
+				this.sprite.width = width;
+				this.sprite.height = height;
+
+				// Scale the crop offset by the same scale factor that was applied to the original image
+				const scaledOffsetX = this.crop_offset.x * scaleX;
+				const scaledOffsetY = this.crop_offset.y * scaleY;
+
+				console.log("Scaled offset:", {
+					x: scaledOffsetX,
+					y: scaledOffsetY
+				});
+
+				// Position the sprite accounting for the border and the scaled crop offset
+				// The key is to position it as if the original image was positioned at x + border_region,
+				// and then subtract the scaled crop offset
+				this.sprite.x = this.border_region + scaledOffsetX;
+				// originalFitResult.x + this.border_region -
+				this.sprite.y = this.border_region + scaledOffsetY;
+				// originalFitResult.y + this.border_region - scaledOffsetY;
+
+				console.log("Final position:", {
+					x: this.sprite.x,
+					y: this.sprite.y
+				});
+
+				// Store diagnostic values
+				(this.sprite as any).diagnostics = {
+					originalDimensions: this.original_dimensions,
+					croppedDimensions: {
+						width: this.sprite.width,
+						height: this.sprite.height
+					},
+					effectiveCanvas: {
+						width: effectiveCanvasWidth,
+						height: effectiveCanvasHeight
+					},
+					originalFitResult,
+					croppedFitResult: { width, height, x, y },
+					scaleFactors: { x: scaleX, y: scaleY },
+					scaledOffset: { x: scaledOffsetX, y: scaledOffsetY },
+					finalPosition: { x: this.sprite.x, y: this.sprite.y }
+				};
+			} else {
+				// For non-fixed canvas, we need to:
+				// 1. Keep the same canvas size as if the original image was used
+				// 2. Position the cropped image to match its original position
+
+				// Scale factor is simpler for non-fixed canvas
+				const scaleX = this.sprite.width / this.original_dimensions.width;
+				const scaleY = this.sprite.height / this.original_dimensions.height;
+
+				console.log("Non-fixed canvas scale factors:", { scaleX, scaleY });
+
+				// Position at border minus the scaled crop offset
+				this.sprite.x = this.border_region - this.crop_offset.x * scaleX;
+				this.sprite.y = this.border_region - this.crop_offset.y * scaleY;
+
+				console.log("Non-fixed canvas position:", {
+					x: this.sprite.x,
+					y: this.sprite.y
+				});
+
+				// Store diagnostic values
+				(this.sprite as any).diagnostics = {
+					originalDimensions: this.original_dimensions,
+					croppedDimensions: {
+						width: this.sprite.width,
+						height: this.sprite.height
+					},
+					scaleFactors: { x: scaleX, y: scaleY },
+					finalPosition: { x: this.sprite.x, y: this.sprite.y }
+				};
+
+				// For non-fixed canvas with a cropped image, we need to return the original dimensions
+				// plus border to ensure the canvas stays the same size
+				return [
+					this.original_dimensions.width + this.border_region * 2,
+					this.original_dimensions.height + this.border_region * 2
+				];
+			}
 		} else {
-			// For non-fixed canvas, add the border to the natural image dimensions
-			const width = this.sprite.width;
-			const height = this.sprite.height;
+			// Handle fixed canvas differently when border region is present
+			if (this.fixed_canvas) {
+				// If fixed canvas, use the canvas dimensions but account for border
+				const effectiveCanvasWidth = Math.max(
+					this.current_canvas_size.width - this.border_region * 2,
+					10
+				);
+				const effectiveCanvasHeight = Math.max(
+					this.current_canvas_size.height - this.border_region * 2,
+					10
+				);
 
-			// Position at the border's offset from origin
-			this.sprite.x = this.borderRegion;
-			this.sprite.y = this.borderRegion;
+				const { width, height, x, y } = fit_image_to_canvas(
+					this.sprite.width,
+					this.sprite.height,
+					effectiveCanvasWidth,
+					effectiveCanvasHeight
+				);
 
-			// Original dimensions plus border on all sides
-			return [width + this.borderRegion * 2, height + this.borderRegion * 2];
+				this.sprite.width = width;
+				this.sprite.height = height;
+				// Position needs to account for the border
+				this.sprite.x = x + this.border_region;
+				this.sprite.y = y + this.border_region;
+			} else {
+				// For non-fixed canvas, add the border to the natural image dimensions
+				const width = this.sprite.width;
+				const height = this.sprite.height;
+
+				// Position at the border's offset from origin
+				this.sprite.x = this.border_region;
+				this.sprite.y = this.border_region;
+
+				// Original dimensions plus border on all sides
+				return [
+					width + this.border_region * 2,
+					height + this.border_region * 2
+				];
+			}
 		}
+
+		console.log("start", {
+			width: this.sprite.width,
+			height: this.sprite.height,
+			x: this.sprite.x,
+			y: this.sprite.y
+		});
 
 		return [this.current_canvas_size.width, this.current_canvas_size.height];
 	}
@@ -181,22 +368,24 @@ export class AddImageCommand implements BgImageCommand {
 		background_layer.addChild(this.sprite);
 
 		// Resize and preserve content of existing layers
-		if (existing_layers && existing_layers.length > 0) {
-			for (const layer of existing_layers) {
-				this.context.layer_manager.delete_layer(layer.id);
+		if (!this.is_cropped) {
+			if (existing_layers && existing_layers.length > 0) {
+				for (const layer of existing_layers) {
+					this.context.layer_manager.delete_layer(layer.id);
+				}
 			}
 		}
 
 		this.context.set_background_image(this.sprite);
 
 		// Explicitly store the border region on the background image for later reference
-		(this.sprite as any).borderRegion = this.borderRegion;
+		(this.sprite as any).border_region = this.border_region;
 
 		// We cannot directly access the resize tool through the context
 		// Instead, we'll store the border region on the sprite and let the resize tool
 		// read it when it's set up
 		console.log(
-			`Stored border region ${this.borderRegion}px on background image for later use by resize tool`
+			`Stored border region ${this.border_region}px on background image for later use by resize tool`
 		);
 
 		this.context.layer_manager.create_layer(

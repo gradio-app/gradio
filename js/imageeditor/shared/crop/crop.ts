@@ -3,11 +3,13 @@ import {
 	Graphics,
 	Point,
 	Rectangle,
-	FederatedPointerEvent
+	FederatedPointerEvent,
+	Sprite
 } from "pixi.js";
 import { type ImageEditorContext, type Tool } from "../core/editor";
 
 import { type Tool as ToolbarTool, type Subtool } from "../Toolbar.svelte";
+import { get_canvas_blob } from "../utils/pixi";
 
 /**
  * @interface CropBounds
@@ -58,7 +60,7 @@ export class CropTool implements Tool {
 	private active_corner_index = -1;
 	private active_edge_index = -1;
 	private last_pointer_position: Point | null = null;
-	private crop_bounds: CropBounds = { x: 0, y: 0, width: 0, height: 0 };
+	crop_bounds: CropBounds = { x: 0, y: 0, width: 0, height: 0 };
 	private crop_ui_container: Container | null = null;
 	private crop_mask: Graphics | null = null;
 	private dimensions: { width: number; height: number } = {
@@ -250,22 +252,12 @@ export class CropTool implements Tool {
 			}
 		}
 
-		// Create a new mask
+		// Create a new mask that will actually be used as an overlay
 		this.crop_mask = new Graphics();
 
-		// Make the mask completely invisible (alpha 0) but still functional as a mask
-		// This is crucial to prevent the white background from appearing
-		this.crop_mask.alpha = 0;
-
-		// Add the mask to the display list for it to work properly
-		// It needs to be in the display list but won't be visible due to alpha=0
+		// Add the mask/overlay to the display list
+		// This time it should be visible since we want to see the semi-transparent overlay
 		this.image_editor_context.image_container.addChild(this.crop_mask);
-
-		// Get a fresh reference to the background image and apply the mask
-		// Only apply to the background image, not the image container
-		if (this.image_editor_context.background_image) {
-			this.image_editor_context.background_image.setMask(this.crop_mask);
-		}
 	}
 
 	/**
@@ -719,22 +711,32 @@ export class CropTool implements Tool {
 		// Clear the previous mask shape
 		this.crop_mask.clear();
 
-		// Draw the new mask shape based on crop bounds
-		// Using a white fill with alpha=1 for the mask area
-		// The mask itself has alpha=0 so it's invisible, but the shape works for masking
+		const { width, height } =
+			this.image_editor_context.background_image?.getLocalBounds() ?? {
+				width: 0,
+				height: 0
+			};
 		this.crop_mask
+			.rect(0, 0, width, height)
+			.fill({ color: 0x000000, alpha: 0.4 })
 			.rect(
 				this.crop_bounds.x,
 				this.crop_bounds.y,
 				this.crop_bounds.width,
 				this.crop_bounds.height
 			)
-			.fill({ color: 0xffffff, alpha: 1 });
+			.cut();
 
-		// Get a fresh reference to the background image and apply the mask
-		// The mask should only be applied to the background image, not the image container
+		// Reset blend mode
+		this.crop_mask.blendMode = "normal";
+
+		// Make the mask visible (previously we had alpha=0)
+		// this.crop_mask.alpha = 1;
+
+		// Since we're not using this as a mask anymore, but as an overlay,
+		// we should remove any existing mask assignment
 		if (this.image_editor_context.background_image) {
-			this.image_editor_context.background_image.mask = this.crop_mask;
+			this.image_editor_context.background_image.mask = null;
 		}
 
 		// Make sure the mask is not applied to the image container
@@ -974,5 +976,40 @@ export class CropTool implements Tool {
 		for (const callback of this.event_callbacks.get(event) || []) {
 			callback();
 		}
+	}
+
+	public get_crop_bounds(): {
+		x: number;
+		y: number;
+		width: number;
+		height: number;
+		original_dimensions: { width: number; height: number };
+	} {
+		const original_dimensions =
+			this.image_editor_context.background_image?.getLocalBounds();
+		return {
+			x: this.crop_bounds.x,
+			y: this.crop_bounds.y,
+			width: this.crop_bounds.width,
+			height: this.crop_bounds.height,
+			original_dimensions: {
+				width: original_dimensions?.width ?? 0,
+				height: original_dimensions?.height ?? 0
+			}
+		};
+	}
+	public get_image(): Promise<Blob | null> {
+		if (!this.image_editor_context.background_image)
+			return Promise.resolve(null);
+		const container = new Container();
+		const sprite = new Sprite(
+			this.image_editor_context.background_image.texture
+		);
+		container.addChild(sprite);
+		return get_canvas_blob(
+			this.image_editor_context.app.renderer,
+			container,
+			this.crop_bounds
+		);
 	}
 }

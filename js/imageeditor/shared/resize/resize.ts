@@ -823,7 +823,8 @@ export class ResizeTool implements Tool {
 	private update_resize_ui(): void {
 		if (
 			!this.resize_ui_container ||
-			!this.image_editor_context.background_image
+			!this.image_editor_context.background_image ||
+			!this.image_editor_context.background_image.position
 		)
 			return;
 

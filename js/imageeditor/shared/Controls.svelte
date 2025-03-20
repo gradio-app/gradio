@@ -8,11 +8,12 @@
 		Trash,
 		ZoomIn,
 		ZoomOut,
-		Resize as ResizeIcon
+		Resize as ResizeIcon,
 	} from "@gradio/icons";
 	import type { Spring } from "svelte/motion";
 	import Resize from "./Resize.svelte";
 	import type { Anchor } from "./Resize.svelte";
+	import { Pan } from "@gradio/icons";
 	/**
 	 * Can the current image be undone?
 	 */
@@ -26,7 +27,7 @@
 	export let changeable = false;
 	export let current_zoom = 1;
 	export let dimensions: Spring<{ width: number; height: number }>;
-
+	export let tool: string;
 	const dispatch = createEventDispatcher<{
 		/**
 		 * Remove the current image.
@@ -60,6 +61,10 @@
 		 * Resize the image.
 		 */
 		resize: { anchor: Anchor; scale: boolean; width: number; height: number };
+		/**
+		 * Pan the image.
+		 */
+		pan: void;
 	}>();
 
 	let show_zoom_popup = false;
@@ -87,6 +92,19 @@
 </script>
 
 <IconButtonWrapper>
+	<IconButton
+		Icon={Pan}
+		label="Pan"
+		on:click={(e) => {
+			e.stopPropagation();
+			dispatch("pan");
+		}}
+		highlight={tool === "pan"}
+		size="small"
+		padded={false}
+		transparent={true}
+	/>
+
 	<IconButton
 		Icon={ResizeIcon}
 		label="Resize"

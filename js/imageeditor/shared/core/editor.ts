@@ -26,6 +26,7 @@ import { Rectangle } from "pixi.js";
 import { type ImageBlobs } from "../types";
 import { get_canvas_blob } from "../utils/pixi";
 import type { BrushTool } from "../brush/brush";
+import type { CropTool } from "../crop/crop";
 export interface Command {
 	execute: () => Promise<void>;
 	undo: () => Promise<void>;
@@ -87,14 +88,17 @@ export class LayerManager {
 	private image_container: Container;
 	private app: Application;
 	private fixed_canvas: boolean;
+	private dark: boolean;
 	constructor(
 		image_container: Container,
 		app: Application,
-		fixed_canvas: boolean
+		fixed_canvas: boolean,
+		dark: boolean
 	) {
 		this.image_container = image_container;
 		this.app = app;
 		this.fixed_canvas = fixed_canvas;
+		this.dark = dark;
 	}
 
 	create_background_layer(width: number, height: number): Container {
@@ -126,7 +130,7 @@ export class LayerManager {
 
 		clear_graphics
 			.rect(0, 0, width, height)
-			.fill({ color: 0xffffff, alpha: 1 });
+			.fill({ color: this.dark ? 0x333333 : 0xffffff, alpha: 1 });
 
 		// Render with transparency
 		this.app.renderer.render({
@@ -763,6 +767,7 @@ interface ImageEditorOptions {
 	height: number;
 	tools: ((typeof core_tools)[number] | Tool)[];
 	fixed_canvas?: boolean;
+	dark?: boolean;
 }
 
 const core_tool_map = {
@@ -906,7 +911,11 @@ export class ImageEditor {
 	public ready: Promise<void>;
 	private event_callbacks: Map<string, (() => void)[]> = new Map();
 	private fixed_canvas: boolean;
+	private dark: boolean;
+
 	constructor(options: ImageEditorOptions) {
+		console.log("ImageEditor constructor", options);
+		this.dark = options.dark || false;
 		this.target_element = options.target_element;
 		this.width = options.width;
 		this.height = options.height;
@@ -988,7 +997,8 @@ export class ImageEditor {
 		await this.app.init({
 			width: container_box.width,
 			height: container_box.height,
-			backgroundAlpha: 0,
+			backgroundAlpha: this.dark ? 0 : 1,
+			backgroundColor: this.dark ? 0x333333 : 0xffffff,
 			resolution: window.devicePixelRatio,
 			autoDensity: true,
 			antialias: true,
@@ -1053,7 +1063,7 @@ export class ImageEditor {
 			this.outline_graphics
 				.rect(local_x, local_y, effective_width, effective_height)
 				.fill({
-					color: 0xffffff,
+					color: this.dark ? 0x333333 : 0xffffff,
 					alpha: 1
 				});
 			// .stroke({
@@ -1096,20 +1106,22 @@ export class ImageEditor {
 		this.outline_graphics = new Graphics();
 
 		this.outline_graphics.rect(0, 0, this.width, this.height).fill({
-			color: 0xffffff,
+			color: this.dark ? 0x333333 : 0xffffff,
 			alpha: 0
 		});
 
-		const blurFilter = new BlurFilter({
-			alpha: 0.1,
-			blur: 2,
-			color: 0x000000,
-			offset: { x: 0, y: 0 },
-			quality: 4,
-			shadowOnly: false
-		});
+		if (!this.dark) {
+			const blurFilter = new BlurFilter({
+				alpha: 0.1,
+				blur: 2,
+				color: 0x000000,
+				offset: { x: 0, y: 0 },
+				quality: 4,
+				shadowOnly: false
+			});
 
-		this.outline_graphics.filters = [blurFilter];
+			this.outline_graphics.filters = [blurFilter];
+		}
 
 		this.outline_container.addChild(this.outline_graphics);
 		this.app.stage.addChild(this.outline_container);
@@ -1123,7 +1135,8 @@ export class ImageEditor {
 		this.layer_manager = new LayerManager(
 			this.image_container,
 			this.app,
-			this.fixed_canvas
+			this.fixed_canvas,
+			this.dark
 		);
 		this.layers = this.layer_manager.layer_store;
 	}
@@ -1153,6 +1166,8 @@ export class ImageEditor {
 
 	reset(): void {
 		const zoom = this.tools.get("zoom");
+
+		console.log("reset", this.tools);
 
 		if (zoom) {
 			zoom.cleanup();
@@ -1197,10 +1212,35 @@ export class ImageEditor {
 		this.notify("change");
 	}
 
-	async add_image(image: Blob | File, border_region = 0): Promise<void> {
+	async add_image({
+		image,
+		border_region = 0,
+		resize = true,
+		original_dimensions,
+		crop_offset,
+		is_cropped = false
+	}: {
+		image: Blob | File;
+		border_region?: number;
+		dimensions?: { width: number; height: number };
+		resize?: boolean;
+		original_dimensions?: { width: number; height: number };
+		crop_offset?: { x: number; y: number };
+		is_cropped?: boolean;
+	}): Promise<void> {
 		console.log("add_image", { image, border_region });
 		const image_tool = this.tools.get("image") as ImageTool;
-		await image_tool.add_image(image, this.fixed_canvas, border_region);
+		const fixed_size = this.fixed_canvas ? true : !resize;
+		console.log("fixed_size", fixed_size);
+		await image_tool.add_image({
+			image,
+			fixed_canvas: fixed_size,
+			border_region,
+
+			original_dimensions,
+			crop_offset,
+			is_cropped
+		});
 
 		// Update resize tool if present
 		const resize_tool = this.tools.get("resize") as any;
@@ -1218,17 +1258,21 @@ export class ImageEditor {
 	 * @param url The URL of the image to add
 	 * @param borderRegion Minimum border region to add around the image for outpainting (in pixels)
 	 */
-	async add_image_from_url(url: string, borderRegion = 0): Promise<void> {
-		console.log("add_image_from_url", { url, borderRegion });
+	async add_image_from_url(url: string, border_region = 0): Promise<void> {
+		console.log("add_image_from_url", { url, border_region });
 		const image_tool = this.tools.get("image") as ImageTool;
 		const texture = await Assets.load(url);
-		await image_tool.add_image(texture, this.fixed_canvas, borderRegion);
+		await image_tool.add_image({
+			image: texture,
+			fixed_canvas: this.fixed_canvas,
+			border_region: border_region
+		});
 
 		// Update resize tool if present
 		const resize_tool = this.tools.get("resize") as any;
 		if (resize_tool && typeof resize_tool.set_border_region === "function") {
-			resize_tool.set_border_region(borderRegion);
-			console.log(`Updated resize tool with border region: ${borderRegion}px`);
+			resize_tool.set_border_region(border_region);
+			console.log(`Updated resize tool with border region: ${border_region}px`);
 		}
 
 		this.notify("change");
@@ -1305,7 +1349,7 @@ export class ImageEditor {
 	 */
 	async add_layers_from_url(
 		layer_urls: string[] | undefined,
-		borderRegion = 0
+		border_region = 0
 	): Promise<void> {
 		const _layers = this.layer_manager.get_layers();
 		console.log("cleanup ---", _layers);
@@ -1317,14 +1361,14 @@ export class ImageEditor {
 
 		for await (const url of layer_urls) {
 			console.log("creating layer");
-			await this.layer_manager.add_layer_from_url(url, borderRegion);
+			await this.layer_manager.add_layer_from_url(url, border_region);
 		}
 
 		// Update resize tool if present with border region
 		const resize_tool = this.tools.get("resize") as any;
 		if (resize_tool && typeof resize_tool.set_border_region === "function") {
-			resize_tool.set_border_region(borderRegion);
-			console.log(`Updated resize tool with border region: ${borderRegion}px`);
+			resize_tool.set_border_region(border_region);
+			console.log(`Updated resize tool with border region: ${border_region}px`);
 		}
 
 		this.notify("change");
@@ -1414,5 +1458,28 @@ export class ImageEditor {
 		});
 
 		this.reset();
+	}
+
+	async get_crop_bounds(): Promise<{
+		image: Blob | null;
+		width: number;
+		height: number;
+		x: number;
+		y: number;
+		original_dimensions: { width: number; height: number };
+	}> {
+		const crop_tool = this.tools.get("crop") as CropTool;
+		const { width, height, x, y, original_dimensions } =
+			crop_tool.get_crop_bounds();
+		const image = await crop_tool.get_image();
+
+		return {
+			image,
+			width,
+			height,
+			x,
+			y,
+			original_dimensions
+		};
 	}
 }
