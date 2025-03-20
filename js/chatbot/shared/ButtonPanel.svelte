@@ -14,6 +14,7 @@
 	export let show_edit: boolean;
 	export let in_edit_mode: boolean;
 	export let show_copy_button: boolean;
+	export let watermark: string | null = null;
 	export let message: NormalisedMessage | NormalisedMessage[];
 	export let position: "right" | "left";
 	export let avatar: FileData | null;
@@ -52,6 +53,7 @@
 					<Copy
 						value={message_text}
 						on:copy={(e) => dispatch("copy", e.detail)}
+						{watermark}
 					/>
 				{/if}
 				{#if show_retry}

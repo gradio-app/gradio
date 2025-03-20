@@ -1,5 +1,15 @@
 # @gradio/atoms
 
+## 0.14.0
+
+### Features
+
+- [#10778](https://github.com/gradio-app/gradio/pull/10778) [`373007b`](https://github.com/gradio-app/gradio/commit/373007b3e9d019ee41589d1dbb09a7511a024a51) - Allow sorting by multiple columns in dataframe.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/markdown-code@0.4.1
+
 ## 0.13.3
 
 ### Features

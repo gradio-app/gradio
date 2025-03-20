@@ -13,7 +13,7 @@ with gr.Blocks(theme=gr.themes.Glass()):
 
 Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](/guides/theming-guide) for more details.
 
-For additional styling ability, you can pass any CSS to your app using the `css=` kwarg. You can either the filepath to a CSS file, or a string of CSS code.
+For additional styling ability, you can pass any CSS to your app as a string using the `css=` kwarg. You can also pass a pathlib.Path to a css file or a list of such paths to the `css_paths=` kwarg.
 
 **Warning**: The use of query selectors in custom JS and CSS is _not_ guaranteed to work across Gradio versions that bind to Gradio's own HTML elements as the Gradio HTML DOM may change. We recommend using query selectors sparingly.
 
@@ -55,14 +55,13 @@ The CSS `#warning` ruleset will only target the second Textbox, while the `.feed
 
 There are 3 ways to add javascript code to your Gradio demo:
 
-1. You can add JavaScript code as a string or as a filepath to the `js` parameter of the `Blocks` or `Interface` initializer. This will run the JavaScript code when the demo is first loaded.
+1. You can add JavaScript code as a string to the `js` parameter of the `Blocks` or `Interface` initializer. This will run the JavaScript code when the demo is first loaded.
 
 Below is an example of adding custom js to show an animated welcome message when the demo first loads.
 
 $code_blocks_js_load
 $demo_blocks_js_load
 
-Note: You can also supply your custom js code as a file path. For example, if you have a file called `custom.js` in the same directory as your Python script, you can add it to your demo like so: `with gr.Blocks(js="custom.js") as demo:`. Same goes for `Interface` (ex: `gr.Interface(..., js="custom.js")`).
 
 2. When using `Blocks` and event listeners, events have a `js` argument that can take a JavaScript function as a string and treat it just like a Python event listener function. You can pass both a JavaScript function and a Python function (in which case the JavaScript function is run first) or only Javascript (and set the Python `fn` to `None`). Take a look at the code below:
    

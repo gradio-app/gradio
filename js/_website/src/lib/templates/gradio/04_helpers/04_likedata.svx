@@ -25,9 +25,9 @@
                 kwargs: null
             },
             {
-                name: "selected",
+                name: "liked",
                 annotation: "bool",
-                doc: "True if the item was liked, False if disliked.",
+                doc: "True if the item was liked, False if disliked, or string value if any other feedback.",
                 kwargs: null
             }
         ]    

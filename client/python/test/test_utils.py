@@ -18,8 +18,7 @@ types["MultipleFile"] = {
     "items": {"type": "string", "description": "filepath or URL to file"},
 }
 types["SingleFile"] = {"type": "string", "description": "filepath or URL to file"}
-
-
+types["FileWithAdditionalProperties"] = {"type": "object", "additionalProperties": True}
 HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
 
 
@@ -181,6 +180,8 @@ def test_json_schema_to_python_type(schema):
         answer = "str"
     elif schema == "MultipleFile":
         answer = "list[str]"
+    elif schema == "FileWithAdditionalProperties":
+        answer = "dict(str, Any)"
     else:
         raise ValueError(f"This test has not been modified to check {schema}")
     assert utils.json_schema_to_python_type(types[schema]) == answer

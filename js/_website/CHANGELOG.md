@@ -1,5 +1,55 @@
 # website
 
+## 0.53.0
+
+### Features
+
+- [#10733](https://github.com/gradio-app/gradio/pull/10733) [`731ab92`](https://github.com/gradio-app/gradio/commit/731ab92001c88d4cf1062acf0a4f1108a4513014) - Autocompletion on code editor component.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.5
+- @gradio/code@0.12.0
+- @gradio/paramviewer@0.7.3
+
+## 0.52.0
+
+### Features
+
+- [#10744](https://github.com/gradio-app/gradio/pull/10744) [`a89fa28`](https://github.com/gradio-app/gradio/commit/a89fa288f42022bb489bac655562a8d1eb5030a5) - Add missing docs and fix gaps in website.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.11.2
+
+## 0.51.0
+
+### Features
+
+- [#10677](https://github.com/gradio-app/gradio/pull/10677) [`92d5ac8`](https://github.com/gradio-app/gradio/commit/92d5ac8e67147e1dd7a701cc8c3e2a5193e832c6) - Static llms.txt route on the website.  Thanks @aliabd!
+
+## 0.50.4
+
+### Dependency updates
+
+- @gradio/code@0.11.1
+
+## 0.50.3
+
+### Features
+
+- [#10670](https://github.com/gradio-app/gradio/pull/10670) [`a15964d`](https://github.com/gradio-app/gradio/commit/a15964db8772d3cb34e730e75866c5d7460199ab) - Update banner to point to FastRTC.  Thanks @abidlabs!
+
+## 0.50.2
+
+### Fixes
+
+- [#10669](https://github.com/gradio-app/gradio/pull/10669) [`d1b063f`](https://github.com/gradio-app/gradio/commit/d1b063fb0c9d893062d9b47919ed1ba9241a6e07) - Add load_chat documentation.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.11.0
+
 ## 0.50.1
 
 ### Dependency updates

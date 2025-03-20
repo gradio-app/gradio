@@ -1,0 +1,88 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("editdata");
+
+    obj["attributes"] = [
+            {
+                name: "index",
+                annotation: "int | tuple[int, int]",
+                doc: "The index of the message that was edited.",
+                kwargs: null
+            },
+            {
+                name: "previous_value",
+                annotation: "Any",
+                doc: "The previous content of the message that was edited.",
+                kwargs: null
+            },
+            {
+                name: "value",
+                annotation: "Any",
+                doc: "The new content of the message that was edited.",
+                kwargs: null
+            }
+        ]    
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.EditData(···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+<!-- Example Usage --> 
+
+{#if obj.example}
+### Example Usage
+```python
+import gradio as gr
+
+def edit(edit_data: gr.EditData, history: list[gr.MessageDict]):
+    history_up_to_edit = history[:edit_data.index]
+    history_up_to_edit[-1] = edit_data.value
+    return history_up_to_edit
+
+with gr.Blocks() as demo:
+    chatbot = gr.Chatbot()
+    chatbot.undo(edit, chatbot, chatbot)
+demo.launch()
+```
+{/if}
+
+<!--- Initialization -->
+### Attributes
+<ParamTable parameters={obj.attributes} />
+
+
+{#if obj.demos && obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={obj.guides}/>
+{/if}

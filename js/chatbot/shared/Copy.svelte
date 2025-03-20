@@ -11,6 +11,7 @@
 
 	let copied = false;
 	export let value: string;
+	export let watermark: string | null = null;
 	let timer: NodeJS.Timeout;
 
 	function copy_feedback(): void {
@@ -24,11 +25,13 @@
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
 			dispatch("copy", { value: value });
-			await navigator.clipboard.writeText(value);
+			const text_to_copy = watermark ? `${value}\n\n${watermark}` : value;
+			await navigator.clipboard.writeText(text_to_copy);
 			copy_feedback();
 		} else {
 			const textArea = document.createElement("textarea");
-			textArea.value = value;
+			const text_to_copy = watermark ? `${value}\n\n${watermark}` : value;
+			textArea.value = text_to_copy;
 
 			textArea.style.position = "absolute";
 			textArea.style.left = "-999999px";

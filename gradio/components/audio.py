@@ -214,6 +214,11 @@ class Audio(
             key=key,
             value=value,
         )
+        self._value_description = (
+            "a filepath to an audio file"
+            if self.type == "filepath"
+            else "a tuple of [sample_rate: int, data: np.ndarray] of audio data"
+        )
 
     def example_payload(self) -> Any:
         return handle_file(

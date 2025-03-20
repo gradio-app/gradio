@@ -98,6 +98,7 @@ class Label(Component):
             key=key,
             value=value,
         )
+        self._value_description = "a dictionary mapping string categories to float values that represent confidence from 0 - 1."
 
     def preprocess(
         self, payload: LabelData | None

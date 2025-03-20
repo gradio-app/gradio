@@ -12,6 +12,7 @@ import yaml
 from huggingface_hub import HfApi, ImageClassificationOutputElement, InferenceClient
 
 from gradio import components
+from gradio.exceptions import Error, TooManyRequestsError
 
 
 def get_model_info(model_name, hf_token=None):
@@ -133,8 +134,13 @@ def conversational_wrapper(client: InferenceClient):
         if not history:
             history = []
         history.append({"role": "user", "content": message})
-        result = client.chat_completion(history)
-        return result.choices[0].message.content
+        try:
+            out = ""
+            for chunk in client.chat_completion(messages=history, stream=True):
+                out += chunk.choices[0].delta.content or ""
+                yield out
+        except Exception as e:
+            handle_hf_error(e)
 
     return chat_fn
 
@@ -273,3 +279,12 @@ def streamline_spaces_interface(config: dict) -> dict:
     }
     config = {k: config[k] for k in parameters}
     return config
+
+
+def handle_hf_error(e: Exception):
+    if "429" in str(e):
+        raise TooManyRequestsError() from e
+    elif "401" in str(e) or "You must provide an api_key" in str(e):
+        raise Error("Unauthorized, please make sure you are signed in.") from e
+    else:
+        raise Error(str(e)) from e

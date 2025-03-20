@@ -266,11 +266,13 @@ export interface Dependency {
 	final_event: Payload | null;
 	show_api: boolean;
 	rendered_in: number | null;
+	render_id: number | null;
 	connection: "stream" | "sse";
 	time_limit: number;
 	stream_every: number;
 	like_user_message: boolean;
 	event_specific_args: string[];
+	js_implementation: string | null;
 }
 
 export interface DependencyTypes {

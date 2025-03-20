@@ -47,7 +47,7 @@
 	export let _retryable = false;
 	export let _undoable = false;
 	export let group_consecutive_messages = true;
-	export let allow_tags: string[] | null = null;
+	export let allow_tags: string[] | boolean = false;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -88,6 +88,7 @@
 	export let examples: ExampleMessage[] | null = null;
 	export let theme_mode: "system" | "light" | "dark";
 	export let allow_file_downloads = true;
+	export let watermark: string | null = null;
 </script>
 
 <Block
@@ -186,6 +187,7 @@
 			root={gradio.root}
 			{allow_file_downloads}
 			{allow_tags}
+			{watermark}
 		/>
 	</div>
 </Block>

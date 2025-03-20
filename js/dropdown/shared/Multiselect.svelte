@@ -301,6 +301,7 @@
 			{disabled}
 			{selected_indices}
 			{active_index}
+			remember_scroll={true}
 			on:change={handle_option_selected}
 		/>
 	</div>
