@@ -152,6 +152,7 @@ class Dropdown(FormComponent):
             key=key,
             value=value,
         )
+        self._value_description = f"one{' or more' if multiselect else ''} of {[c[1] if isinstance(c, tuple) else c for c in self.choices]}"
 
     def api_info(self) -> dict[str, Any]:
         if self.multiselect:

@@ -178,6 +178,7 @@ class Gallery(Component):
             value=value,
             interactive=interactive,
         )
+        self._value_description = f"a list of {'string filepaths' if type == 'filepath' else 'numpy arrays' if type == 'numpy' else 'PIL images'}"
 
     def preprocess(
         self, payload: GalleryData | None
