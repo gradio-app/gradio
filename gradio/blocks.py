@@ -1805,7 +1805,7 @@ Received inputs:
                             inputs_cached, context={"validate_meta": True}
                         )
                     if isinstance(inputs_cached, (GradioModel, GradioRootModel)):
-                        inputs_seriealized = inputs_cached.model_dump()
+                        inputs_serialized = inputs_cached.model_dump()
                     else:
                         inputs_serialized = inputs_cached
                     if block._id not in state:
