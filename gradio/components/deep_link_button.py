@@ -2,15 +2,17 @@
 
 from __future__ import annotations
 
+import textwrap
+import time
 from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
-import textwrap
 
 from gradio_client.documentation import document
 
 from gradio import utils
-from gradio.components import Button, Component
+from gradio.components.base import Component
+from gradio.components.button import Button
 from gradio.context import get_blocks_context
 
 if TYPE_CHECKING:
@@ -78,8 +80,6 @@ class DeepLinkButton(Button):
     def activate(self):
         """Attach the click event to copy the share link."""
         _js = self.get_share_link(self.value, self.copied_value)
-        import time
-
         # Need to separate events because can't run .then in a pure js
         # function.
         self.click(fn=None, inputs=[], outputs=[self], js=_js)
@@ -106,7 +106,6 @@ class DeepLinkButton(Button):
                 })
                 .then(data => {
                     const currentUrl = new URL(window.location.href);
-                    console.log("data", data);
                     const cleanData = data.replace(/^"|"$/g, '');
                     currentUrl.searchParams.set('deep_link', cleanData);
                     navigator.clipboard.writeText(currentUrl.toString());

@@ -310,10 +310,19 @@
 					}`
 				: space || src || location.origin;
 
+		const deep_link = new URLSearchParams(window.location.search).get(
+			"deep_link"
+		);
+		const query_params: Record<string, string> = {};
+		if (deep_link) {
+			query_params.deep_link = deep_link;
+		}
+
 		app = await Client.connect(api_url, {
 			status_callback: handle_status,
 			with_null_state: true,
-			events: ["data", "log", "status", "render"]
+			events: ["data", "log", "status", "render"],
+			query_params
 		});
 		window.addEventListener("beforeunload", () => {
 			app.close();
