@@ -117,11 +117,11 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 	) {
 		const lang = (infostring ?? "").match(/\S*/)?.[0] ?? "";
 		code = code.replace(/\n$/, "") + "\n";
-		
-		if (lang === 'mermaid') {
+
+		if (lang === "mermaid") {
 			return `<div class="mermaid">${code}</div>`;
 		}
-		
+
 		if (!lang) {
 			return (
 				'<div class="code_wrap">' +

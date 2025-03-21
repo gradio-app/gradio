@@ -28,8 +28,8 @@
 	onMount(() => {
 		mermaid.initialize({
 			startOnLoad: false,
-			theme: 'default',
-			securityLevel: 'loose'
+			theme: "default",
+			securityLevel: "loose"
 		});
 	});
 
@@ -135,7 +135,7 @@
 		}
 
 		if (el) {
-			const mermaidDivs = el.querySelectorAll('.mermaid');
+			const mermaidDivs = el.querySelectorAll(".mermaid");
 			if (mermaidDivs.length > 0) {
 				await tick();
 				await mermaid.run({
