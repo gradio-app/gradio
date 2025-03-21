@@ -70,7 +70,6 @@ export class ResizeTool implements Tool {
 			// This is important as the position might have been adjusted
 			if ((context.background_image as any).borderRegion !== undefined) {
 				this.borderRegion = (context.background_image as any).borderRegion;
-				console.log(`Using stored border region: ${this.borderRegion}px`);
 			} else {
 				// Fall back to the position-based detection as before
 				// But add additional checks to make sure it's not just centering
@@ -89,14 +88,6 @@ export class ResizeTool implements Tool {
 
 					// Store it for future reference
 					(context.background_image as any).borderRegion = this.borderRegion;
-
-					console.log(
-						`Detected and stored border region: ${this.borderRegion}px`
-					);
-				} else {
-					console.log(
-						"Image appears to be centered, not using as border region"
-					);
 				}
 			}
 		}
@@ -188,9 +179,6 @@ export class ResizeTool implements Tool {
 				if (typeof storedBorderRegion === "number" && storedBorderRegion > 0) {
 					// Use the stored border region
 					this.borderRegion = storedBorderRegion;
-					console.log(
-						`Using stored border region from background image: ${this.borderRegion}px`
-					);
 				}
 			}
 
@@ -1832,7 +1820,6 @@ export class ResizeTool implements Tool {
 	 */
 	public set_border_region(borderRegion: number): void {
 		this.borderRegion = borderRegion;
-		console.log(`Border region explicitly set to: ${this.borderRegion}px`);
 
 		// Store it on the background image if it exists
 		if (this.image_editor_context?.background_image) {

@@ -24,7 +24,7 @@
 		{ label: "Middle Right", code: "middle-right" },
 		{ label: "Bottom Left", code: "bottom-left" },
 		{ label: "Bottom Center", code: "bottom-center" },
-		{ label: "Bottom Right", code: "bottom-right" }
+		{ label: "Bottom Right", code: "bottom-right" },
 	] as const;
 
 	export let dimensions: Spring<{ width: number; height: number }>;
@@ -40,13 +40,11 @@
 	let new_height = $dimensions?.height;
 
 	function handle_click(): void {
-		console.log("scale", scale);
-		console.log("selected_anchor", selected_anchor);
 		dispatch("change", {
 			anchor: selected_anchor,
 			scale,
 			width: new_width,
-			height: new_height
+			height: new_height,
 		});
 	}
 </script>

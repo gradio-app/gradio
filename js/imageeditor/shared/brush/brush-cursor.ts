@@ -289,12 +289,6 @@ export class BrushCursor {
 	update_brush_preview(): void {
 		if (!this.brush_preview_graphics) return;
 
-		console.log(
-			"update_brush_preview",
-			this.brush_preview_graphics,
-			this.brush_preview_graphics.clear
-		);
-
 		// clear previous graphics
 		this.brush_preview_graphics.clear();
 

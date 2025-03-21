@@ -80,7 +80,6 @@
 	 */
 	function handle_tool_click(e: Event, _tool: Tool): void {
 		e.stopPropagation();
-		console.log("tool_click", _tool);
 		dispatch("tool_change", { tool: _tool });
 	}
 
@@ -98,8 +97,6 @@
 	$: show_brush_size = tool === "draw" && subtool === "size";
 	$: show_brush_color = tool === "draw" && subtool === "color";
 	$: show_eraser_size = tool === "erase" && subtool === "size";
-
-	$: console.log(tool, subtool);
 </script>
 
 <div class="toolbar-wrap">

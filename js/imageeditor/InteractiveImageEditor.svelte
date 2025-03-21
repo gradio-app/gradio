@@ -149,7 +149,6 @@
 	let uploading = false;
 	let pending = false;
 	async function handle_change(e: CustomEvent<Blob | any>): Promise<void> {
-		console.log("HANDLING CHANGE");
 		if (!realtime) return;
 		if (uploading) {
 			pending = true;
@@ -218,8 +217,6 @@
 	}
 
 	let current_tool: ToolbarTool;
-
-	$: console.log({ value });
 </script>
 
 <BlockLabel

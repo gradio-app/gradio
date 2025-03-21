@@ -89,16 +89,19 @@ export class LayerManager {
 	private app: Application;
 	private fixed_canvas: boolean;
 	private dark: boolean;
+	private border_region: number;
 	constructor(
 		image_container: Container,
 		app: Application,
 		fixed_canvas: boolean,
-		dark: boolean
+		dark: boolean,
+		border_region: number
 	) {
 		this.image_container = image_container;
 		this.app = app;
 		this.fixed_canvas = fixed_canvas;
 		this.dark = dark;
+		this.border_region = border_region;
 	}
 
 	create_background_layer(width: number, height: number): Container {
@@ -158,14 +161,13 @@ export class LayerManager {
 	async create_background_layer_from_url(
 		url: string,
 		width?: number,
-		height?: number,
-		borderRegion = 0
+		height?: number
 	): Promise<Container> {
 		console.log("create_background_layer_from_url", {
 			width,
 			height,
 			url,
-			borderRegion
+			borderRegion: this.border_region
 		});
 		const layer = this.create_background_layer(
 			width || this.image_container.width,
@@ -187,11 +189,11 @@ export class LayerManager {
 				// If fixed canvas, fit the image within the specified dimensions minus border region
 				// Calculate aspect-preserving dimensions
 				const effectiveContainerWidth = Math.max(
-					containerWidth - borderRegion * 2,
+					containerWidth - this.border_region * 2,
 					10
 				);
 				const effectiveContainerHeight = Math.max(
-					containerHeight - borderRegion * 2,
+					containerHeight - this.border_region * 2,
 					10
 				);
 
@@ -200,8 +202,8 @@ export class LayerManager {
 					effectiveContainerWidth / effectiveContainerHeight;
 
 				let finalWidth, finalHeight;
-				let posX = borderRegion, // Start with border offset
-					posY = borderRegion;
+				let posX = this.border_region, // Start with border offset
+					posY = this.border_region;
 
 				if (
 					imageWidth <= effectiveContainerWidth &&
@@ -231,7 +233,7 @@ export class LayerManager {
 			} else {
 				// If not fixed canvas, use the natural dimensions of the image plus border
 				// Position starts at the border offset
-				sprite.position.set(borderRegion, borderRegion);
+				sprite.position.set(this.border_region, this.border_region);
 
 				// We need to re-create the background layer with the actual image dimensions plus border
 				if (this.background_layer) {
@@ -239,8 +241,8 @@ export class LayerManager {
 				}
 
 				// Create new layer with image dimensions plus border on all sides
-				const totalWidth = imageWidth + borderRegion * 2;
-				const totalHeight = imageHeight + borderRegion * 2;
+				const totalWidth = imageWidth + this.border_region * 2;
+				const totalHeight = imageHeight + this.border_region * 2;
 				const newLayer = this.create_background_layer(totalWidth, totalHeight);
 
 				sprite.width = imageWidth;
@@ -260,13 +262,11 @@ export class LayerManager {
 	}
 
 	create_layer(width: number, height: number): Container {
-		console.trace("create_layer");
 		const layer = new Container();
 		const layer_id = Math.random().toString(36).substring(2, 15);
 		const layer_name = `Layer ${this.layers.length + 1}`;
 
 		this.layers.push({ name: layer_name, id: layer_id, container: layer });
-		console.log({ layers: this.layers });
 
 		this.image_container.addChild(layer);
 
@@ -312,9 +312,8 @@ export class LayerManager {
 	 * @param borderRegion Minimum border region to add around the image for outpainting (in pixels)
 	 * @returns A Promise that resolves to the layer ID
 	 */
-	async add_layer_from_url(url: string, borderRegion = 0): Promise<string> {
-		const width = this.image_container.width;
-		const height = this.image_container.height;
+	async add_layer_from_url(url: string): Promise<string> {
+		const { width, height } = this.image_container.getLocalBounds();
 		const layer = this.create_layer(width, height);
 
 		const layerIndex = this.layers.findIndex((l) => l.container === layer);
@@ -327,9 +326,6 @@ export class LayerManager {
 		try {
 			const texture = await Assets.load(url);
 
-			const imageWidth = texture.width;
-			const imageHeight = texture.height;
-
 			const drawTexture = this.draw_textures.get(layer);
 			if (!drawTexture) {
 				console.error("No draw texture found for layer");
@@ -337,25 +333,39 @@ export class LayerManager {
 			}
 
 			const sprite = new Sprite(texture);
+			const imageWidth = sprite.width;
+			const imageHeight = sprite.height;
+			console.log({ sprite });
 
-			let posX = borderRegion;
-			let posY = borderRegion;
+			let posX = this.border_region;
+			let posY = this.border_region;
 
 			// Calculate effective dimensions (accounting for border)
 			const effectiveWidth = this.fixed_canvas
-				? width - borderRegion * 2
+				? width - this.border_region * 2
 				: width;
 			const effectiveHeight = this.fixed_canvas
-				? height - borderRegion * 2
+				? height - this.border_region * 2
 				: height;
 
 			// If the image is smaller than the effective layer area, center it within that area
 			if (imageWidth < effectiveWidth || imageHeight < effectiveHeight) {
-				posX += Math.floor((effectiveWidth - imageWidth) / 2);
-				posY += Math.floor((effectiveHeight - imageHeight) / 2);
+				console.log("image is smaller than effective area");
+				posX = Math.floor((effectiveWidth - imageWidth) / 2);
+				posY = Math.floor((effectiveHeight - imageHeight) / 2);
 			}
 
 			sprite.position.set(posX, posY);
+			console.log({
+				posX,
+				posY,
+				width,
+				height,
+				effectiveWidth,
+				effectiveHeight,
+				imageWidth,
+				imageHeight
+			});
 
 			// If the image is larger than the effective layer area, scale it down to fit
 			if (imageWidth > effectiveWidth || imageHeight > effectiveHeight) {
@@ -374,12 +384,17 @@ export class LayerManager {
 					finalWidth = effectiveHeight * imageAspectRatio;
 				}
 
+				console.log({ finalWidth, finalHeight });
+				console.log({ width, height, effectiveWidth, effectiveHeight });
+
 				sprite.width = finalWidth;
 				sprite.height = finalHeight;
 
 				// Recalculate position to center within effective area
-				posX = borderRegion + Math.floor((effectiveWidth - finalWidth) / 2);
-				posY = borderRegion + Math.floor((effectiveHeight - finalHeight) / 2);
+				posX =
+					this.border_region + Math.floor((effectiveWidth - finalWidth) / 2);
+				posY =
+					this.border_region + Math.floor((effectiveHeight - finalHeight) / 2);
 				sprite.position.set(posX, posY);
 			}
 
@@ -427,9 +442,8 @@ export class LayerManager {
 	}
 
 	delete_layer(id: string): void {
-		console.log({ id });
 		const index = this.layers.findIndex((l) => l.id === id);
-		console.log({ index, layers: this.layers });
+
 		if (index > -1) {
 			// Clean up texture
 			const draw_texture = this.draw_textures.get(this.layers[index].container);
@@ -437,8 +451,6 @@ export class LayerManager {
 				draw_texture.destroy();
 				this.draw_textures.delete(this.layers[index].container);
 			}
-
-			console.log({ layers: this.layers[index] });
 
 			this.layers[index].container.destroy();
 			if (this.active_layer === this.layers[index].container) {
@@ -464,13 +476,10 @@ export class LayerManager {
 		if (this.background_layer) {
 			this.background_layer.zIndex = -1;
 		}
-		console.log({ layers: this.layers });
 		// Update other layers starting from 0
 		this.layers.forEach((layer, index) => {
 			layer.container.zIndex = index;
 		});
-
-		console.log({ layers: this.layers });
 	}
 
 	move_layer(id: string, direction: "up" | "down"): void {
@@ -518,14 +527,9 @@ export class LayerManager {
 			| "bottom-center"
 			| "bottom-right"
 	): void {
-		console.log(
-			`Resizing all layers to ${newWidth}x${newHeight}, scale: ${scale}, anchor: ${anchor}`
-		);
-
 		// Create a map of the old layers by ID for reference
 		const oldLayersById = new Map(this.layers.map((l) => [l.id, l]));
 		const oldBackgroundLayer = this.background_layer;
-		console.log({ oldBackgroundLayer });
 
 		// Calculate position based on anchor
 		const calculatePosition = (
@@ -559,37 +563,13 @@ export class LayerManager {
 
 		// First, create a new background layer
 		if (oldBackgroundLayer) {
-			console.log(
-				`Creating new background layer with dimensions: ${newWidth}x${newHeight}`
-			);
-
 			// If there's a background image (sprite) in the old background layer, handle it
 			let backgroundImage: Sprite | null = null;
-
-			// Find any sprites in the background layer (might be the background image)
-			// for (let i = 0; i < oldBackgroundLayer.children.length; i++) {
-			// 	const child = oldBackgroundLayer.children[i];
-			// 	console.log({ child });
-			// 	if (
-			// 		child.label === "Sprite" &&
-			// 		child.texture &&
-			// 		// Skip the white background rectangle which usually has very specific properties
-			// 		child.width !== oldBackgroundLayer.width &&
-			// 		child.height !== oldBackgroundLayer.height
-			// 	) {
-			// 		console.log("MATCH", { child });
-			// 		backgroundImage = child;
-
-			// 		break;
-			// 	}
-			// }
 
 			backgroundImage = oldBackgroundLayer.children[1] as Sprite;
 
 			// If we found a background image sprite, add it to the new background layer
 			if (backgroundImage) {
-				console.log({ backgroundImage });
-
 				// Create a new sprite with the same texture
 				const newBgImage = new Sprite(backgroundImage.texture);
 
@@ -602,18 +582,13 @@ export class LayerManager {
 					newBgImage.width = newWidth;
 					newBgImage.height = newHeight;
 					newBgImage.position.set(0, 0);
-					console.log(`Scaling background image to fill new dimensions`);
 				} else {
 					// If not scaling, maintain original size and position according to anchor
 					const { posX, posY } = calculatePosition(oldWidth, oldHeight);
-					console.log({ posX, posY });
 					newBgImage.position.set(posX, posY);
-					console.log(`Positioning background image at (${posX}, ${posY})`);
 				}
 
 				// Add the image to the new background layer
-
-				console.log(`Added background image to new background layer`);
 
 				// Create a new background layer with the new dimensions
 				const newBackgroundLayer = this.create_background_layer(
@@ -637,11 +612,6 @@ export class LayerManager {
 				console.warn(`No texture found for layer ${oldLayer.id}, skipping.`);
 				continue;
 			}
-
-			console.log(`Processing layer: ${oldLayer.id}`);
-			console.log(
-				`Old texture dimensions: width=${oldTexture.width}, height=${oldTexture.height}`
-			);
 
 			// Create a new layer with the new dimensions
 			const newContainer = this.create_layer(newWidth, newHeight);
@@ -685,7 +655,6 @@ export class LayerManager {
 				sprite.width = newWidth;
 				sprite.height = newHeight;
 				sprite.position.set(0, 0);
-				console.log(`Scaling layer content to fill new dimensions`);
 			} else {
 				// If not scaling, maintain original size and position according to anchor
 				const { posX, posY } = calculatePosition(
@@ -693,12 +662,10 @@ export class LayerManager {
 					oldTexture.height
 				);
 				sprite.position.set(posX, posY);
-				console.log(`Positioning layer content at (${posX}, ${posY})`);
 			}
 
 			// Render the sprite to the new texture
 			this.app.renderer.render(sprite, { renderTexture: newTexture });
-			console.log(`Rendered layer content to new texture`);
 
 			// Clean up
 			sprite.destroy();
@@ -724,27 +691,35 @@ export class LayerManager {
 		setTimeout(() => {
 			// Force a garbage collection trigger by clearing any unused resources
 			this.app.renderer.runners.postrender.emit();
-			console.log("Performed final cleanup");
 		}, 100);
 
 		// Update the layer store to reflect changes
 		this.update_layer_order();
-		console.log(
-			`Completed layer resize operation with ${newLayers.length} new layers`
-		);
 	}
 
 	async get_blobs(width: number, height: number): Promise<ImageBlobs> {
 		const blobs = {
 			background: await get_canvas_blob(
 				this.app.renderer,
-				this.background_layer
+				this.background_layer,
+				{
+					width,
+					height,
+					x: 0,
+					y: 0
+				}
 			),
 			layers: await Promise.all(
 				this.layers.map(async (layer) => {
 					const blob = await get_canvas_blob(
 						this.app.renderer,
-						layer.container
+						layer.container,
+						{
+							width,
+							height,
+							x: 0,
+							y: 0
+						}
 					);
 					if (blob) {
 						return blob;
@@ -768,6 +743,7 @@ interface ImageEditorOptions {
 	tools: ((typeof core_tools)[number] | Tool)[];
 	fixed_canvas?: boolean;
 	dark?: boolean;
+	border_region?: number;
 }
 
 const core_tool_map = {
@@ -912,7 +888,7 @@ export class ImageEditor {
 	private event_callbacks: Map<string, (() => void)[]> = new Map();
 	private fixed_canvas: boolean;
 	private dark: boolean;
-
+	private border_region: number;
 	constructor(options: ImageEditorOptions) {
 		console.log("ImageEditor constructor", options);
 		this.dark = options.dark || false;
@@ -950,7 +926,7 @@ export class ImageEditor {
 		this.scale = spring(1, spring_config);
 		this.position = spring({ x: 0, y: 0 }, spring_config);
 		this.state = new EditorState(this);
-
+		this.border_region = options.border_region || 0;
 		this.scale.subscribe((scale) => {
 			this.state._set_scale(scale);
 		});
@@ -1018,7 +994,6 @@ export class ImageEditor {
 		this.layer_manager.create_layer(this.width, this.height);
 
 		for (const tool of this.tools.values()) {
-			console.log(this.context);
 			await tool.setup(this.context, this.current_tool, this.current_subtool);
 		}
 
@@ -1136,7 +1111,8 @@ export class ImageEditor {
 			this.image_container,
 			this.app,
 			this.fixed_canvas,
-			this.dark
+			this.dark,
+			this.border_region
 		);
 		this.layers = this.layer_manager.layer_store;
 	}
@@ -1167,8 +1143,6 @@ export class ImageEditor {
 	reset(): void {
 		const zoom = this.tools.get("zoom");
 
-		console.log("reset", this.tools);
-
 		if (zoom) {
 			zoom.cleanup();
 			zoom.setup(this.context, this.current_tool, this.current_subtool);
@@ -1191,6 +1165,8 @@ export class ImageEditor {
 			this.scale.set(properties.scale, { hard });
 		}
 		if (properties.width && properties.height) {
+			this.width = properties.width;
+			this.height = properties.height;
 			this.dimensions.set(
 				{ width: properties.width, height: properties.height },
 				{ hard }
@@ -1214,28 +1190,26 @@ export class ImageEditor {
 
 	async add_image({
 		image,
-		border_region = 0,
+
 		resize = true,
 		original_dimensions,
 		crop_offset,
 		is_cropped = false
 	}: {
 		image: Blob | File;
-		border_region?: number;
 		dimensions?: { width: number; height: number };
 		resize?: boolean;
 		original_dimensions?: { width: number; height: number };
 		crop_offset?: { x: number; y: number };
 		is_cropped?: boolean;
 	}): Promise<void> {
-		console.log("add_image", { image, border_region });
 		const image_tool = this.tools.get("image") as ImageTool;
 		const fixed_size = this.fixed_canvas ? true : !resize;
-		console.log("fixed_size", fixed_size);
+
 		await image_tool.add_image({
 			image,
 			fixed_canvas: fixed_size,
-			border_region,
+			border_region: this.border_region,
 
 			original_dimensions,
 			crop_offset,
@@ -1245,8 +1219,7 @@ export class ImageEditor {
 		// Update resize tool if present
 		const resize_tool = this.tools.get("resize") as any;
 		if (resize_tool && typeof resize_tool.set_border_region === "function") {
-			resize_tool.set_border_region(border_region);
-			console.log(`Updated resize tool with border region: ${border_region}px`);
+			resize_tool.set_border_region(this.border_region);
 		}
 
 		this.notify("change");
@@ -1256,23 +1229,20 @@ export class ImageEditor {
 	/**
 	 * Adds an image from a URL as the background layer
 	 * @param url The URL of the image to add
-	 * @param borderRegion Minimum border region to add around the image for outpainting (in pixels)
 	 */
-	async add_image_from_url(url: string, border_region = 0): Promise<void> {
-		console.log("add_image_from_url", { url, border_region });
+	async add_image_from_url(url: string): Promise<void> {
 		const image_tool = this.tools.get("image") as ImageTool;
 		const texture = await Assets.load(url);
 		await image_tool.add_image({
 			image: texture,
 			fixed_canvas: this.fixed_canvas,
-			border_region: border_region
+			border_region: this.border_region
 		});
 
 		// Update resize tool if present
 		const resize_tool = this.tools.get("resize") as any;
 		if (resize_tool && typeof resize_tool.set_border_region === "function") {
-			resize_tool.set_border_region(border_region);
-			console.log(`Updated resize tool with border region: ${border_region}px`);
+			resize_tool.set_border_region(this.border_region);
 		}
 
 		this.notify("change");
@@ -1344,15 +1314,10 @@ export class ImageEditor {
 	/**
 	 * Adds a new layer with an image loaded from a URL
 	 * @param layer_urls The URLs of the images to load
-	 * @param borderRegion Minimum border region to add around the images for outpainting (in pixels)
 	 * @returns A Promise that resolves when all layers are added
 	 */
-	async add_layers_from_url(
-		layer_urls: string[] | undefined,
-		border_region = 0
-	): Promise<void> {
+	async add_layers_from_url(layer_urls: string[] | undefined): Promise<void> {
 		const _layers = this.layer_manager.get_layers();
-		console.log("cleanup ---", _layers);
 		_layers.forEach((l) => this.layer_manager.delete_layer(l.id));
 		if (layer_urls === undefined || layer_urls.length === 0) {
 			this.layer_manager.create_layer(this.width, this.height);
@@ -1360,15 +1325,13 @@ export class ImageEditor {
 		}
 
 		for await (const url of layer_urls) {
-			console.log("creating layer");
-			await this.layer_manager.add_layer_from_url(url, border_region);
+			await this.layer_manager.add_layer_from_url(url);
 		}
 
 		// Update resize tool if present with border region
 		const resize_tool = this.tools.get("resize") as any;
 		if (resize_tool && typeof resize_tool.set_border_region === "function") {
-			resize_tool.set_border_region(border_region);
-			console.log(`Updated resize tool with border region: ${border_region}px`);
+			resize_tool.set_border_region(this.border_region);
 		}
 
 		this.notify("change");

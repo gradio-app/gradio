@@ -91,8 +91,6 @@
 
 	let editor: ImageEditor;
 
-	// $: console.log(canvas_size);
-
 	/**
 	 * Adds an image to the editor
 	 * @param {Blob | File} image - The image to add
@@ -202,6 +200,7 @@
 			height: canvas_size[1],
 			tools: ["image", zoom, new ResizeTool(), brush],
 			fixed_canvas,
+			border_region,
 		});
 
 		crop_zoom = new ZoomTool();
@@ -212,6 +211,7 @@
 			height: canvas_size[1],
 			tools: ["image", crop_zoom, new CropTool()],
 			dark: true,
+			border_region,
 		});
 
 		editor.scale.subscribe((_scale) => {
@@ -249,8 +249,8 @@
 	): Promise<void> {
 		if (files == null) return;
 		const _file = Array.isArray(files) ? files[0] : files;
-		await editor.add_image({ image: _file, border_region });
-		await crop.add_image({ image: _file, border_region: 0 });
+		await editor.add_image({ image: _file });
+		await crop.add_image({ image: _file });
 		crop.reset();
 		background_image = true;
 
@@ -263,7 +263,6 @@
 	 * @param {{ tool: ToolbarTool }} param0 - Object containing the selected tool
 	 */
 	function handle_tool_change({ tool }: { tool: ToolbarTool }): void {
-		console.log("handle_tool_change", tool);
 		editor.set_tool(tool);
 		current_tool = tool;
 	}
@@ -347,8 +346,6 @@
 
 	let brush_color_visible = false;
 
-	$: console.log(brush_options);
-
 	$: brush?.set_brush_color(
 		selected_color === "auto"
 			? brush_options.colors.find(
@@ -377,7 +374,6 @@
 	$: brush?.set_brush_opacity(selected_opacity);
 
 	function handle_zoom_change(zoom_level: number | "fit"): void {
-		console.log("Zoom level:", zoom_level);
 		zoom.set_zoom(zoom_level);
 	}
 
@@ -403,7 +399,6 @@
 	}
 
 	function handle_capture(e: CustomEvent): void {
-		console.log("capture", e);
 		if (e.detail !== null) {
 			handle_files(e.detail as Blob);
 		}
@@ -420,7 +415,6 @@
 	async function handle_crop_confirm(): Promise<void> {
 		const { image, width, height, x, y, original_dimensions } =
 			await crop.get_crop_bounds();
-		console.log("image", image);
 		if (!image) return;
 		editor.add_image({
 			image,
@@ -460,8 +454,6 @@
 				tool={current_tool}
 				dimensions={editor.dimensions}
 				on:resize={(e) => {
-					console.log("resize", e.detail);
-
 					editor.modify_canvas_size(
 						e.detail.width,
 						e.detail.height,
@@ -472,7 +464,6 @@
 				can_save={true}
 				on:save={handle_save}
 				on:pan={(e) => {
-					console.log("pan", e.detail);
 					handle_tool_change({ tool: "pan" });
 				}}
 			/>
@@ -530,19 +521,15 @@
 			<Layers
 				layers={editor.layers}
 				on:new_layer={() => {
-					console.log("new layer");
 					editor.add_layer();
 				}}
 				on:change_layer={(e) => {
-					console.log("change layer -- parent", e.detail);
 					editor.set_layer(e.detail);
 				}}
 				on:move_layer={(e) => {
-					console.log("move layer -- parent	", e.detail);
 					editor.move_layer(e.detail.id, e.detail.direction);
 				}}
 				on:delete_layer={(e) => {
-					console.log("delete layer -- parent", e.detail);
 					editor.delete_layer(e.detail);
 				}}
 			/>

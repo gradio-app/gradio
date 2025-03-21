@@ -87,8 +87,6 @@
 
 	$: formatted_zoom = Math.round(current_zoom * 100);
 	let show_resize_popup = false;
-
-	$: console.log(dimensions);
 </script>
 
 <IconButtonWrapper>
@@ -117,7 +115,6 @@
 		<Resize
 			{dimensions}
 			on:change={(e) => {
-				console.log(e.detail);
 				dispatch("resize", e.detail);
 			}}
 		/>

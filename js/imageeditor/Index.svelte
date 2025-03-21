@@ -124,8 +124,6 @@
 
 	let dynamic_height: number | undefined = undefined;
 
-	$: console.log({ attached_events });
-
 	$: has_value = value?.background || value?.layers?.length || value?.composite;
 </script>
 

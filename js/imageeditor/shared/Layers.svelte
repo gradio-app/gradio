@@ -23,8 +23,6 @@
 	}>;
 	// let show_layers = false;
 
-	$: console.log($layers);
-
 	// export let layer_files: (FileData | null)[] | null = [];
 	// export let enable_layers = true;
 

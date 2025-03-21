@@ -75,7 +75,6 @@ export class ZoomTool implements Tool {
 		} else {
 			// Ensure zoom_level is between 0 and 1, then scale it to the range [min_zoom, max_zoom]
 			target_zoom = Math.max(0, Math.min(this.max_zoom, zoom_level));
-			console.log("Target zoom:", target_zoom);
 		}
 
 		// Get the canvas dimensions
@@ -101,7 +100,6 @@ export class ZoomTool implements Tool {
 		}
 
 		// Apply the zoom using the existing zoom_to_point method
-		console.log("Zooming to:", target_zoom, center_point);
 		this.zoom_to_point(target_zoom, center_point, true);
 	}
 
@@ -117,7 +115,6 @@ export class ZoomTool implements Tool {
 		tool: ToolbarTool,
 		subtool: Subtool
 	): Promise<void> {
-		console.log("setup zoom");
 		this.image_editor_context = context;
 		this.current_tool = tool;
 		this.current_subtool = subtool;
@@ -125,8 +122,6 @@ export class ZoomTool implements Tool {
 		// Initialize zoom and position
 		const { width, height } = await this.get_container_dimensions();
 		const min_zoom = this.calculate_min_zoom(width, height);
-
-		console.log("min_zoom", min_zoom);
 
 		// Set initial zoom
 		this.local_scale = min_zoom;
@@ -352,12 +347,7 @@ export class ZoomTool implements Tool {
 		const canvas = this.image_editor_context.app.screen;
 		const viewport_width = canvas.width;
 		const viewport_height = canvas.height;
-		console.log(
-			"viewport_width",
-			viewport_width,
-			"viewport_height",
-			viewport_height
-		);
+
 		if (
 			!container_width ||
 			!viewport_width ||

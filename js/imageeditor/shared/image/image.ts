@@ -51,14 +51,6 @@ export class ImageTool implements Tool {
 		original_dimensions?: { width: number; height: number };
 		crop_offset?: { x: number; y: number };
 	}): Promise<void> {
-		console.log("add_image", {
-			image,
-			fixed_canvas,
-			border_region,
-			is_cropped,
-			original_dimensions,
-			crop_offset
-		});
 		const image_command = new AddImageCommand(
 			this.context,
 			image,
@@ -128,8 +120,6 @@ export class AddImageCommand implements BgImageCommand {
 		if (this.background instanceof Texture) {
 			image_texture = this.background;
 		} else {
-			console.log("creating image bitmap");
-			console.log(this.background);
 			const img = await createImageBitmap(this.background);
 			image_texture = Texture.from(img);
 		}
@@ -144,15 +134,6 @@ export class AddImageCommand implements BgImageCommand {
 			(this.sprite as any).is_cropped = true;
 			(this.sprite as any).original_dimensions = this.original_dimensions;
 			(this.sprite as any).crop_offset = this.crop_offset;
-
-			console.log("Handling cropped image:", {
-				original: this.original_dimensions,
-				cropped: {
-					width: this.sprite.width,
-					height: this.sprite.height
-				},
-				crop_offset: this.crop_offset
-			});
 
 			if (this.fixed_canvas) {
 				// For fixed canvas with cropped image:
@@ -169,11 +150,6 @@ export class AddImageCommand implements BgImageCommand {
 					10
 				);
 
-				console.log("Effective canvas:", {
-					width: effectiveCanvasWidth,
-					height: effectiveCanvasHeight
-				});
-
 				// First, calculate how the ORIGINAL (uncropped) image would have been fitted
 				const originalFitResult = fit_image_to_canvas(
 					this.original_dimensions.width,
@@ -182,14 +158,10 @@ export class AddImageCommand implements BgImageCommand {
 					effectiveCanvasHeight
 				);
 
-				console.log("Original fit result:", originalFitResult);
-
 				// Calculate the scale factor from original to fitted dimensions
 				const scaleX = originalFitResult.width / this.original_dimensions.width;
 				const scaleY =
 					originalFitResult.height / this.original_dimensions.height;
-
-				console.log("Scale factors:", { scaleX, scaleY });
 
 				// Now fit the cropped image using the same logic
 				const { width, height, x, y } = fit_image_to_canvas(
@@ -207,11 +179,6 @@ export class AddImageCommand implements BgImageCommand {
 				const scaledOffsetX = this.crop_offset.x * scaleX;
 				const scaledOffsetY = this.crop_offset.y * scaleY;
 
-				console.log("Scaled offset:", {
-					x: scaledOffsetX,
-					y: scaledOffsetY
-				});
-
 				// Position the sprite accounting for the border and the scaled crop offset
 				// The key is to position it as if the original image was positioned at x + border_region,
 				// and then subtract the scaled crop offset
@@ -219,11 +186,6 @@ export class AddImageCommand implements BgImageCommand {
 				// originalFitResult.x + this.border_region -
 				this.sprite.y = this.border_region + scaledOffsetY;
 				// originalFitResult.y + this.border_region - scaledOffsetY;
-
-				console.log("Final position:", {
-					x: this.sprite.x,
-					y: this.sprite.y
-				});
 
 				// Store diagnostic values
 				(this.sprite as any).diagnostics = {
@@ -251,16 +213,9 @@ export class AddImageCommand implements BgImageCommand {
 				const scaleX = this.sprite.width / this.original_dimensions.width;
 				const scaleY = this.sprite.height / this.original_dimensions.height;
 
-				console.log("Non-fixed canvas scale factors:", { scaleX, scaleY });
-
 				// Position at border minus the scaled crop offset
 				this.sprite.x = this.border_region - this.crop_offset.x * scaleX;
 				this.sprite.y = this.border_region - this.crop_offset.y * scaleY;
-
-				console.log("Non-fixed canvas position:", {
-					x: this.sprite.x,
-					y: this.sprite.y
-				});
 
 				// Store diagnostic values
 				(this.sprite as any).diagnostics = {
@@ -322,13 +277,6 @@ export class AddImageCommand implements BgImageCommand {
 			}
 		}
 
-		console.log("start", {
-			width: this.sprite.width,
-			height: this.sprite.height,
-			x: this.sprite.x,
-			y: this.sprite.y
-		});
-
 		return [this.current_canvas_size.width, this.current_canvas_size.height];
 	}
 
@@ -384,9 +332,6 @@ export class AddImageCommand implements BgImageCommand {
 		// We cannot directly access the resize tool through the context
 		// Instead, we'll store the border region on the sprite and let the resize tool
 		// read it when it's set up
-		console.log(
-			`Stored border region ${this.border_region}px on background image for later use by resize tool`
-		);
 
 		this.context.layer_manager.create_layer(
 			this.fixed_canvas ? this.current_canvas_size.width : width,

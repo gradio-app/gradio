@@ -68,7 +68,6 @@ export class BrushTextures {
 		const local_bounds =
 			this.image_editor_context.image_container.getLocalBounds();
 
-		console.log(local_bounds);
 		this.dimensions = {
 			width: local_bounds.width,
 			height: local_bounds.height
@@ -222,7 +221,6 @@ export class BrushTextures {
 		const active_layer =
 			this.image_editor_context.layer_manager.get_active_layer();
 
-		console.log("active_layer", active_layer);
 		if (!active_layer) return;
 
 		// Get all layers to find the ID of the active layer
