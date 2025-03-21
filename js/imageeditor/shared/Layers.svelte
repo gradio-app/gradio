@@ -19,125 +19,10 @@
 
 	export let layers: Writable<{
 		active_layer: string;
-		layers: { name: string; id: string }[];
+		layers: { name: string; id: string; user_created: boolean }[];
 	}>;
-	// let show_layers = false;
 
-	// export let layer_files: (FileData | null)[] | null = [];
-	// export let enable_layers = true;
-
-	// const {
-	// 	pixi,
-	// 	current_layer,
-	// 	dimensions,
-	// 	register_context,
-	// 	command_manager,
-	// 	current_history
-	// } = getContext<EditorContext>(EDITOR_KEY);
-
-	// const { can_undo } = command_manager;
-
-	// const LayerManager = layer_manager();
-	// const manager_current_layer = LayerManager.active_layer;
-	// const layers = LayerManager.layers;
-
-	// $: current_layer.set($manager_current_layer);
-
-	// register_context("layers", {
-	// 	init_fn: () => {
-	// 		new_layer();
-	// 	},
-	// 	reset_fn: () => {
-	// 		LayerManager.reset();
-	// 	}
-	// });
-
-	// async function validate_layers(): Promise<void> {
-	// 	let invalid = $layers.some(
-	// 		(layer) =>
-	// 			layer.composite.texture?.width != $dimensions[0] ||
-	// 			layer.composite.texture?.height != $dimensions[1]
-	// 	);
-	// 	if (invalid) {
-	// 		LayerManager.reset();
-	// 		if (!layer_files || layer_files.length == 0) new_layer();
-	// 		else render_layer_files(layer_files);
-	// 	}
-	// }
-	// $: $dimensions, validate_layers();
-
-	// async function new_layer(): Promise<void> {
-	// 	if (!$pixi) return;
-
-	// 	const new_layer = LayerManager.add_layer(
-	// 		$pixi.layer_container,
-	// 		$pixi.renderer,
-	// 		...$dimensions
-	// 	);
-
-	// 	if ($can_undo || $layers.length > 0) {
-	// 		command_manager.execute(new_layer);
-	// 	} else {
-	// 		new_layer.execute();
-	// 	}
-	// }
-
-	// $: render_layer_files(layer_files);
-
-	// function is_not_null<T>(x: T | null): x is T {
-	// 	return x !== null;
-	// }
-
-	// async function render_layer_files(
-	// 	_layer_files: typeof layer_files
-	// ): Promise<void> {
-	// 	await tick();
-	// 	if (!_layer_files || _layer_files.length == 0) {
-	// 		LayerManager.reset();
-	// 		new_layer();
-	// 		return;
-	// 	}
-	// 	if (!$pixi) return;
-
-	// 	const fetch_promises = await Promise.all(
-	// 		_layer_files.map((f) => {
-	// 			if (!f || !f.url) return null;
-
-	// 			return fetch(f.url);
-	// 		})
-	// 	);
-
-	// 	const blobs = await Promise.all(
-	// 		fetch_promises.map((p) => {
-	// 			if (!p) return null;
-	// 			return p.blob();
-	// 		})
-	// 	);
-
-	// 	LayerManager.reset();
-
-	// 	for (const blob of blobs.filter(is_not_null)) {
-	// 		const new_layer = await LayerManager.add_layer_from_blob(
-	// 			$pixi.layer_container,
-	// 			$pixi.renderer,
-	// 			blob,
-	// 			$pixi.view
-	// 		);
-
-	// 		if ($can_undo && $layers.length === 0) {
-	// 			command_manager.execute(new_layer);
-	// 		} else {
-	// 			new_layer.execute();
-	// 		}
-	// 	}
-	// }
-
-	// onMount(async () => {
-	// 	await tick();
-	// 	if (!$pixi) return;
-
-	// 	$pixi = { ...$pixi!, get_layers: LayerManager.get_layers };
-	// });
+	export let enable_additional_layers = true;
 
 	export let enable_layers = true;
 	export let show_layers = false;
@@ -176,7 +61,7 @@
 		</button>
 		{#if show_layers}
 			<ul>
-				{#each $layers.layers as { id, name }, i (i)}
+				{#each $layers.layers as { id, name, user_created }, i (i)}
 					<li>
 						<button
 							class:selected_layer={$layers.active_layer === id}
@@ -205,7 +90,7 @@
 										size="x-small"
 									/>
 								{/if}
-								{#if $layers.layers.length > 1}
+								{#if $layers.layers.length > 1 && user_created}
 									<IconButton
 										on:click={(e) => {
 											e.stopPropagation();
@@ -219,17 +104,19 @@
 						{/if}
 					</li>
 				{/each}
-				<li class="add-layer">
-					<IconButton
-						Icon={Plus}
-						aria-label="Add Layer"
-						on:click={(e) => {
-							e.stopPropagation();
-							new_layer();
-						}}
-						size="x-small"
-					/>
-				</li>
+				{#if enable_additional_layers}
+					<li class="add-layer">
+						<IconButton
+							Icon={Plus}
+							aria-label="Add Layer"
+							on:click={(e) => {
+								e.stopPropagation();
+								new_layer();
+							}}
+							size="x-small"
+						/>
+					</li>
+				{/if}
 			</ul>
 		{/if}
 	</div>

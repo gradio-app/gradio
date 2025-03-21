@@ -32,7 +32,7 @@
 	import { create_drag } from "@gradio/upload";
 	import Layers from "./Layers.svelte";
 	import { Check } from "@gradio/icons";
-
+	import { type LayerOptions } from "./types";
 	const { drag, open_file_upload } = create_drag();
 
 	interface WeirdTypeData {
@@ -78,6 +78,8 @@
 	export let layers: WeirdTypeData[];
 	export let background: WeirdTypeData;
 	export let border_region: number;
+	export let layer_options: LayerOptions;
+
 	/**
 	 * Gets the image blobs from the editor
 	 * @returns {Promise<ImageBlobs>} Object containing background, layers, and composite image blobs
@@ -96,7 +98,7 @@
 	 * @param {Blob | File} image - The image to add
 	 */
 	export function add_image(image: Blob | File): void {
-		editor.add_image({ image, border_region });
+		editor.add_image({ image });
 	}
 
 	let pending_bg: Promise<void>;
@@ -201,6 +203,7 @@
 			tools: ["image", zoom, new ResizeTool(), brush],
 			fixed_canvas,
 			border_region,
+			layer_options,
 		});
 
 		crop_zoom = new ZoomTool();
@@ -413,12 +416,10 @@
 	$: add_layers_from_url(layers);
 
 	async function handle_crop_confirm(): Promise<void> {
-		const { image, width, height, x, y, original_dimensions } =
-			await crop.get_crop_bounds();
+		const { image, x, y, original_dimensions } = await crop.get_crop_bounds();
 		if (!image) return;
 		editor.add_image({
 			image,
-			border_region,
 			resize: false,
 			crop_offset: { x, y },
 			original_dimensions,
@@ -517,8 +518,9 @@
 			</div>
 		{/if}
 
-		{#if current_subtool !== "crop"}
+		{#if current_subtool !== "crop" && !layer_options.disabled}
 			<Layers
+				enable_additional_layers={layer_options.allow_additional_layers}
 				layers={editor.layers}
 				on:new_layer={() => {
 					editor.add_layer();

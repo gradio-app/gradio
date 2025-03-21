@@ -28,7 +28,7 @@
 	import { Image as ImageIcon } from "@gradio/icons";
 	import { inject } from "./shared/utils/parse_placeholder";
 	// import Sources from "./shared/image/Sources.svelte";
-
+	import { type LayerOptions } from "./shared/types";
 	export let brush: IBrush;
 	export let eraser: Eraser;
 	export let sources: ("clipboard" | "webcam" | "upload")[];
@@ -43,7 +43,7 @@
 		composite: null,
 	};
 	// export let transforms: "crop"[] = ["crop"];
-	export let layers: boolean;
+	export let layers: LayerOptions;
 	export let transforms: "crop"[] = ["crop"];
 	export let accept_blobs: (a: any) => void;
 	export let status:
@@ -60,7 +60,6 @@
 	export let dragging: boolean;
 	export let placeholder: string | undefined = undefined;
 	export let border_region: number;
-
 	export let full_history: CommandNode | null = null;
 
 	const dispatch = createEventDispatcher<{
@@ -244,6 +243,7 @@
 	eraser_options={eraser}
 	{fixed_canvas}
 	{border_region}
+	layer_options={layers}
 >
 	{#if !background_image && current_tool === "image"}
 		<div class="empty wrap">

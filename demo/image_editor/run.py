@@ -236,6 +236,9 @@ with gr.Blocks() as demo:
             border_region=100,
             canvas_size=[600, 600],
             type="numpy",
+            layers=gr.LayerOptions(
+                allow_additional_layers=False, layers=["Mask", "Mask 2"]
+            ),
         )
         im_preview = gr.Image(label="Preview")
 

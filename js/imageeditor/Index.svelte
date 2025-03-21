@@ -11,7 +11,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { tick } from "svelte";
-
+	import type { LayerOptions } from "./shared/types";
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -45,7 +45,7 @@
 	export let brush: Brush;
 	export let eraser: Eraser;
 	export let transforms: "crop"[] = ["crop"];
-	export let layers = true;
+	export let layers: LayerOptions;
 	export let attached_events: string[] = [];
 	export let server: {
 		accept_blobs: (a: any) => void;
@@ -54,7 +54,6 @@
 	export let fixed_canvas = false;
 	export let show_fullscreen_button = true;
 	export let full_history: any = null;
-
 	export let gradio: Gradio<{
 		change: never;
 		error: string;
@@ -86,7 +85,6 @@
 	}
 
 	let dragging: boolean;
-
 	$: value && handle_change();
 	const is_browser = typeof window !== "undefined";
 	const raf = is_browser

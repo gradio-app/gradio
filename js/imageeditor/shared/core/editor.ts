@@ -23,7 +23,7 @@ import type { Readable, Writable } from "svelte/store";
 import { spring, type Spring } from "svelte/motion";
 import { writable, get } from "svelte/store";
 import { Rectangle } from "pixi.js";
-import { type ImageBlobs } from "../types";
+import { type ImageBlobs, type LayerOptions } from "../types";
 import { get_canvas_blob } from "../utils/pixi";
 import type { BrushTool } from "../brush/brush";
 import type { CropTool } from "../crop/crop";
@@ -73,12 +73,17 @@ export class CommandManager {
 }
 
 export class LayerManager {
-	private layers: { name: string; id: string; container: Container }[] = [];
+	private layers: {
+		name: string;
+		id: string;
+		container: Container;
+		user_created: boolean;
+	}[] = [];
 	private active_layer: Container | null = null;
 	private draw_textures: Map<Container, RenderTexture> = new Map();
 	layer_store: Writable<{
 		active_layer: string;
-		layers: { name: string; id: string }[];
+		layers: { name: string; id: string; user_created: boolean }[];
 	}> = writable({
 		active_layer: "",
 
@@ -90,18 +95,21 @@ export class LayerManager {
 	private fixed_canvas: boolean;
 	private dark: boolean;
 	private border_region: number;
+	private layer_options: LayerOptions;
 	constructor(
 		image_container: Container,
 		app: Application,
 		fixed_canvas: boolean,
 		dark: boolean,
-		border_region: number
+		border_region: number,
+		layer_options: LayerOptions
 	) {
 		this.image_container = image_container;
 		this.app = app;
 		this.fixed_canvas = fixed_canvas;
 		this.dark = dark;
 		this.border_region = border_region;
+		this.layer_options = layer_options;
 	}
 
 	create_background_layer(width: number, height: number): Container {
@@ -163,12 +171,6 @@ export class LayerManager {
 		width?: number,
 		height?: number
 	): Promise<Container> {
-		console.log("create_background_layer_from_url", {
-			width,
-			height,
-			url,
-			borderRegion: this.border_region
-		});
 		const layer = this.create_background_layer(
 			width || this.image_container.width,
 			height || this.image_container.height
@@ -261,12 +263,27 @@ export class LayerManager {
 		}
 	}
 
-	create_layer(width: number, height: number): Container {
+	create_layer({
+		width,
+		height,
+		layer_name,
+		user_created
+	}: {
+		width: number;
+		height: number;
+		layer_name?: string;
+		user_created: boolean;
+	}): Container {
 		const layer = new Container();
 		const layer_id = Math.random().toString(36).substring(2, 15);
-		const layer_name = `Layer ${this.layers.length + 1}`;
+		const _layer_name = layer_name || `Layer ${this.layers.length + 1}`;
 
-		this.layers.push({ name: layer_name, id: layer_id, container: layer });
+		this.layers.push({
+			name: _layer_name,
+			id: layer_id,
+			container: layer,
+			user_created
+		});
 
 		this.image_container.addChild(layer);
 
@@ -314,7 +331,12 @@ export class LayerManager {
 	 */
 	async add_layer_from_url(url: string): Promise<string> {
 		const { width, height } = this.image_container.getLocalBounds();
-		const layer = this.create_layer(width, height);
+		const layer = this.create_layer({
+			width,
+			height,
+			layer_name: "Layer 1",
+			user_created: true
+		});
 
 		const layerIndex = this.layers.findIndex((l) => l.container === layer);
 		if (layerIndex === -1) {
@@ -335,7 +357,6 @@ export class LayerManager {
 			const sprite = new Sprite(texture);
 			const imageWidth = sprite.width;
 			const imageHeight = sprite.height;
-			console.log({ sprite });
 
 			let posX = this.border_region;
 			let posY = this.border_region;
@@ -350,22 +371,11 @@ export class LayerManager {
 
 			// If the image is smaller than the effective layer area, center it within that area
 			if (imageWidth < effectiveWidth || imageHeight < effectiveHeight) {
-				console.log("image is smaller than effective area");
 				posX = Math.floor((effectiveWidth - imageWidth) / 2);
 				posY = Math.floor((effectiveHeight - imageHeight) / 2);
 			}
 
 			sprite.position.set(posX, posY);
-			console.log({
-				posX,
-				posY,
-				width,
-				height,
-				effectiveWidth,
-				effectiveHeight,
-				imageWidth,
-				imageHeight
-			});
 
 			// If the image is larger than the effective layer area, scale it down to fit
 			if (imageWidth > effectiveWidth || imageHeight > effectiveHeight) {
@@ -383,9 +393,6 @@ export class LayerManager {
 					finalHeight = effectiveHeight;
 					finalWidth = effectiveHeight * imageAspectRatio;
 				}
-
-				console.log({ finalWidth, finalHeight });
-				console.log({ width, height, effectiveWidth, effectiveHeight });
 
 				sprite.width = finalWidth;
 				sprite.height = finalHeight;
@@ -600,7 +607,12 @@ export class LayerManager {
 		}
 
 		// Now process regular layers
-		const newLayers: { name: string; id: string; container: Container }[] = [];
+		const newLayers: {
+			name: string;
+			id: string;
+			container: Container;
+			user_created: boolean;
+		}[] = [];
 
 		// Process in reverse to maintain the same layer order
 		for (let i = this.layers.length - 1; i >= 0; i--) {
@@ -614,7 +626,12 @@ export class LayerManager {
 			}
 
 			// Create a new layer with the new dimensions
-			const newContainer = this.create_layer(newWidth, newHeight);
+			const newContainer = this.create_layer({
+				width: newWidth,
+				height: newHeight,
+				layer_name: oldLayer.name,
+				user_created: oldLayer.user_created
+			});
 
 			// Find the newly created layer in our layers array
 			const newLayerIndex = this.layers.findIndex(
@@ -631,7 +648,7 @@ export class LayerManager {
 			// Keep the same ID and name as the old layer
 			newLayer.id = oldLayer.id;
 			newLayer.name = oldLayer.name;
-
+			newLayer.user_created = oldLayer.user_created;
 			// Add to our new layers array
 			newLayers.push(newLayer);
 
@@ -732,6 +749,37 @@ export class LayerManager {
 
 		return blobs;
 	}
+
+	reset_layers(width: number, height: number): void {
+		this.layers.forEach((layer) => {
+			this.delete_layer(layer.id);
+		});
+		for (const layer of this.layer_options.layers) {
+			this.create_layer({
+				width,
+				height,
+				layer_name: layer,
+				user_created: false
+			});
+		}
+	}
+
+	init_layers(width: number, height: number): void {
+		for (const layer of this.layer_options.layers) {
+			this.create_layer({
+				width,
+				height,
+				layer_name: layer,
+				user_created: false
+			});
+		}
+
+		this.active_layer = this.layers[0].container;
+		this.layer_store.update((_layers) => ({
+			active_layer: _layers.layers[0].id,
+			layers: this.layers
+		}));
+	}
 }
 
 const core_tools = ["image", "zoom"] as const;
@@ -744,6 +792,7 @@ interface ImageEditorOptions {
 	fixed_canvas?: boolean;
 	dark?: boolean;
 	border_region?: number;
+	layer_options?: LayerOptions;
 }
 
 const core_tool_map = {
@@ -874,7 +923,7 @@ export class ImageEditor {
 	};
 	layers: Writable<{
 		active_layer: string;
-		layers: { name: string; id: string }[];
+		layers: { name: string; id: string; user_created: boolean }[];
 	}> = writable({
 		active_layer: "",
 		layers: []
@@ -889,8 +938,8 @@ export class ImageEditor {
 	private fixed_canvas: boolean;
 	private dark: boolean;
 	private border_region: number;
+	private layer_options: LayerOptions;
 	constructor(options: ImageEditorOptions) {
-		console.log("ImageEditor constructor", options);
 		this.dark = options.dark || false;
 		this.target_element = options.target_element;
 		this.width = options.width;
@@ -927,6 +976,10 @@ export class ImageEditor {
 		this.position = spring({ x: 0, y: 0 }, spring_config);
 		this.state = new EditorState(this);
 		this.border_region = options.border_region || 0;
+		this.layer_options = options.layer_options || {
+			allow_additional_layers: true,
+			layers: ["Layer 1"]
+		};
 		this.scale.subscribe((scale) => {
 			this.state._set_scale(scale);
 		});
@@ -991,7 +1044,7 @@ export class ImageEditor {
 		this.layer_manager.create_background_layer(this.width, this.height);
 
 		// Create initial layer
-		this.layer_manager.create_layer(this.width, this.height);
+		this.layer_manager.init_layers(this.width, this.height);
 
 		for (const tool of this.tools.values()) {
 			await tool.setup(this.context, this.current_tool, this.current_subtool);
@@ -1112,7 +1165,8 @@ export class ImageEditor {
 			this.app,
 			this.fixed_canvas,
 			this.dark,
-			this.border_region
+			this.border_region,
+			this.layer_options
 		);
 		this.layers = this.layer_manager.layer_store;
 	}
@@ -1270,14 +1324,7 @@ export class ImageEditor {
 	}
 
 	reset_canvas(): void {
-		// Clear all layers
-		const layers = [...this.layer_manager.get_layers()];
-		for (const layer of layers) {
-			this.layer_manager.delete_layer(layer.id);
-		}
-
-		this.layer_manager.create_layer(this.width, this.height);
-
+		this.layer_manager.reset_layers(this.width, this.height);
 		// Clear background image
 		this.background_image = undefined;
 		this.background_image_present.set(false);
@@ -1307,7 +1354,12 @@ export class ImageEditor {
 	}
 
 	add_layer(): void {
-		this.layer_manager.create_layer(this.width, this.height);
+		this.layer_manager.create_layer({
+			width: this.width,
+			height: this.height,
+			layer_name: undefined,
+			user_created: true
+		});
 		this.notify("change");
 	}
 
@@ -1320,7 +1372,12 @@ export class ImageEditor {
 		const _layers = this.layer_manager.get_layers();
 		_layers.forEach((l) => this.layer_manager.delete_layer(l.id));
 		if (layer_urls === undefined || layer_urls.length === 0) {
-			this.layer_manager.create_layer(this.width, this.height);
+			this.layer_manager.create_layer({
+				width: this.width,
+				height: this.height,
+				layer_name: undefined,
+				user_created: false
+			});
 			return;
 		}
 
