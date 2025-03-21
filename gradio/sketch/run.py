@@ -4,12 +4,11 @@ import time
 from inspect import signature
 
 import huggingface_hub as hub
-import requests
 
 import gradio as gr
 import gradio.utils
 from gradio.sketch.sketchbox import SketchBox
-from gradio.sketch.utils import ai, code_model, get_header, set_kwarg
+from gradio.sketch.utils import ai, get_header, set_kwarg
 
 
 def create(app_file: str, config_file: str):
@@ -113,12 +112,6 @@ def create(app_file: str, config_file: str):
     def set_hf_token(token):
         try:
             hub.login(token)
-            client = hub.InferenceClient()
-            client.get_model_status(code_model)
-        except requests.exceptions.HTTPError as err:
-            raise gr.Error(
-                "Invalid Hugging Face token. Token must have access to inference endpoints."
-            ) from err
         except BaseException as err:
             raise gr.Error("Invalid Hugging Face token.") from err
         gr.Success("Token set successfully.", duration=2)
