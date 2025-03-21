@@ -133,12 +133,6 @@
 		}
 		const outputs = dep.outputs;
 		const meta_updates = data?.map((value: any, i: number) => {
-			screen_recorder.addZoomEffect({
-				targetSelector: `#component-${outputs[0]}`,
-				endTime: 0.5,
-				endZoom: 1.3,
-				sustainDuration: 5
-			});
 			return {
 				id: outputs[i],
 				prop: "value_is_output",
@@ -794,9 +788,9 @@
 				navigator.userAgent
 			);
 
-		screen_recorder = new ScreenRecorder((title, message, type) => {
+		screen_recorder = new ScreenRecorder(root, (title, message, type) => {
 			add_new_message(title, message, type);
-		}, root);
+		});
 	});
 
 	function screenRecording(): void {

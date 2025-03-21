@@ -1,38 +1,24 @@
-export interface ZoomEffect {
-	startTime: number;
-	endTime: number;
-	startZoom: number;
-	endZoom: number;
-	centerX: number;
-	centerY: number;
-	targetSelector?: string;
-	sustainDuration?: number;
-	sustainZoom?: number;
-}
+import type { ToastMessage } from "@gradio/statustracker";
 
 class ScreenRecorder {
-	private messageCallback: (
+	private add_new_message: (
 		title: string,
 		message: string,
-		type: string
+		type: ToastMessage["type"]
 	) => void;
-	private isRecording: boolean = false;
+	private isRecording = false;
 	private mediaRecorder: MediaRecorder | null = null;
 	private recordedChunks: Blob[] = [];
-	private recordingStartTime: number = 0;
+	private recordingStartTime = 0;
 	private animationFrameId: number | null = null;
-	private zoomEffects: ZoomEffect[] = [];
 	private removeSegment: { start?: number; end?: number } = {};
-	private showRemoveIndicator: boolean = false;
-	private videoWidth: number = 1280;
-	private videoHeight: number = 720;
 	private root: string;
 
 	constructor(
-		messageCallback: (title: string, message: string, type: string) => void,
-		root: string
+        root: string,
+		add_new_message: (title: string, message: string, type: ToastMessage["type"]) => void
 	) {
-		this.messageCallback = messageCallback;
+		this.add_new_message = add_new_message;
 		this.root = root;
 	}
 
@@ -54,22 +40,18 @@ class ScreenRecorder {
 				selfBrowserSurface: "include"
 			});
 
-			// Get video dimensions from the stream
-			const videoTrack = stream.getVideoTracks()[0];
-			const settings = videoTrack.getSettings();
-			this.videoWidth = settings.width || 1280;
-			this.videoHeight = settings.height || 720;
+			// const videoTrack = stream.getVideoTracks()[0];
+			// const settings = videoTrack.getSettings();
+			// this.videoWidth = settings.width || 1280;
+			// this.videoHeight = settings.height || 720;
 
-			// Create MediaRecorder
 			this.mediaRecorder = new MediaRecorder(stream, {
 				mimeType: "video/webm;codecs=vp9",
 				videoBitsPerSecond: 3000000 // 3 Mbps
 			});
 
 			this.recordedChunks = [];
-			this.zoomEffects = [];
 			this.removeSegment = {};
-			this.showRemoveIndicator = false;
 
 			// Set up event handlers
 			this.mediaRecorder.ondataavailable = this.handleDataAvailable.bind(this);
@@ -80,14 +62,14 @@ class ScreenRecorder {
 			this.isRecording = true;
 			this.recordingStartTime = Date.now();
 
-			this.messageCallback(
+			this.add_new_message(
 				"Recording Started",
 				"Screen recording has begun. Click the record button again to stop.",
 				"info"
 			);
 		} catch (error) {
 			console.error("Error starting recording:", error);
-			this.messageCallback(
+			this.add_new_message(
 				"Recording Error",
 				"Failed to start recording: " + error.message,
 				"error"
@@ -108,28 +90,6 @@ class ScreenRecorder {
 		return this.isRecording;
 	}
 
-	addZoomEffect(effect: ZoomEffect): void {
-		if (!this.isRecording) {
-			return;
-		}
-
-		const currentTime = (Date.now() - this.recordingStartTime) / 1000;
-
-		// Set default values if not provided
-		const newEffect: ZoomEffect = {
-			targetSelector: effect.targetSelector,
-			startTime: currentTime,
-			endTime: currentTime + (effect.endTime || 1.0),
-			startZoom: effect.startZoom || 1.0,
-			endZoom: effect.endZoom || 1.3,
-			centerX: effect.centerX || 0.5,
-			centerY: effect.centerY || 0.5,
-			sustainDuration: effect.sustainDuration || 0
-		};
-
-		this.zoomEffects.push(newEffect);
-	}
-
 	markRemoveSegmentStart(): void {
 		if (!this.isRecording) {
 			return;
@@ -137,7 +97,6 @@ class ScreenRecorder {
 
 		const currentTime = (Date.now() - this.recordingStartTime) / 1000;
 		this.removeSegment.start = currentTime;
-		this.showRemoveIndicator = true;
 	}
 
 	markRemoveSegmentEnd(): void {
@@ -151,7 +110,6 @@ class ScreenRecorder {
 
 	clearRemoveSegment(): void {
 		this.removeSegment = {};
-		this.showRemoveIndicator = false;
 	}
 
 	private handleDataAvailable(event: BlobEvent): void {
@@ -180,7 +138,7 @@ class ScreenRecorder {
 
 	private async handleRecordingComplete(recordedBlob: Blob): Promise<void> {
 		try {
-			this.messageCallback(
+			this.add_new_message(
 				"Processing",
 				"Sending recording to server for processing...",
 				"info"
@@ -189,8 +147,7 @@ class ScreenRecorder {
 			// Check if we have any processing to do
 			const hasProcessing =
 				(this.removeSegment.start !== undefined &&
-					this.removeSegment.end !== undefined) ||
-				this.zoomEffects.length > 0;
+					this.removeSegment.end !== undefined)
 
 			if (!hasProcessing) {
 				// If no processing needed, save directly
@@ -218,10 +175,6 @@ class ScreenRecorder {
 				);
 			}
 
-			if (this.zoomEffects.length > 0) {
-				formData.append("zoom_effects", JSON.stringify(this.zoomEffects));
-			}
-
 			// Send to server for processing - use the correct API path
 			const response = await fetch(this.root + "/process_recording", {
 				method: "POST",
@@ -234,15 +187,12 @@ class ScreenRecorder {
 				);
 			}
 
-			// Get the processed video as a blob
 			const processedBlob = await response.blob();
-
-			// Save the processed video
 			const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.webm`;
 			this.saveRecordingWithNativeDialog(processedBlob, defaultFilename);
 		} catch (error) {
 			console.error("Error processing recording:", error);
-			this.messageCallback(
+			this.add_new_message(
 				"Processing Error",
 				"Failed to process recording. Saving original version.",
 				"warning"
@@ -285,7 +235,7 @@ class ScreenRecorder {
 			const writable = await fileHandle.createWritable();
 			await writable.write(blob);
 			await writable.close();
-			this.messageCallback(
+			this.add_new_message(
 				"Recording Downloaded",
 				"Your recording has been downloaded.",
 				"success"
@@ -297,7 +247,7 @@ class ScreenRecorder {
 				console.error("Error saving file:", error);
 				this.saveWithDownloadAttribute(blob, suggestedName);
 			} else {
-				this.messageCallback(
+				this.add_new_message(
 					"Save Cancelled",
 					"Recording save was cancelled.",
 					"info"
@@ -320,7 +270,7 @@ class ScreenRecorder {
 			URL.revokeObjectURL(url);
 		}, 100);
 
-		this.messageCallback(
+		this.add_new_message(
 			"Recording Ready",
 			"Your recording is being saved.",
 			"success"

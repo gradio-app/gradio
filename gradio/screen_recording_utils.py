@@ -195,23 +195,24 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                                 if process.returncode != 0:
                                     print(f"FFmpeg before segment error: {stderr.decode()}")
 
+                            # Try a different approach for extracting the segment
+                            # Use a longer minimum duration to ensure valid output
+                            actual_start = max(0, start_time - 0.5)  # Start 0.5s earlier if possible
+                            actual_end = min(end_time + 0.5, float('inf'))  # End 0.5s later
+
                             cmd_extract = [
                                 "ffmpeg",
                                 "-y",
                                 "-i",
                                 current_input,
                                 "-ss",
-                                str(start_time),
-                                "-to",
-                                str(end_time),
+                                str(actual_start),
+                                "-to", 
+                                str(actual_end),
                                 "-c:v",
-                                "libx264",
-                                "-preset",
-                                "fast",
-                                "-crf",
-                                "22",
+                                "copy",  # Use copy instead of re-encoding for more reliable extraction
                                 "-c:a",
-                                "aac",
+                                "copy",
                                 zoom_segment,
                             ]
 
@@ -222,43 +223,54 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                             )
                             stdout, stderr = await process.communicate()
 
-                            if process.returncode != 0:
-                                print(f"FFmpeg extract zoom segment error: {stderr.decode()}")
+                            # If extraction fails or file is empty, skip this effect
+                            if process.returncode != 0 or not os.path.exists(zoom_segment) or os.path.getsize(zoom_segment) == 0:
+                                print(f"Failed to extract valid segment for effect {i + 1}, skipping")
                                 continue
 
+                            # Skip the ffprobe check and try to apply the zoom directly
                             zoomed_segment = tempfile.mktemp(suffix=f"_zoomed_{i}.mp4")
                             temp_files.append(zoomed_segment)
 
                             zoom_factor = (start_zoom + end_zoom) / 2
 
-                            cmd_zoom = [
-                                "ffmpeg",
-                                "-y",
-                                "-i",
-                                zoom_segment,
-                                "-vf",
-                                f"scale=iw*{zoom_factor}:-1,crop=iw/{zoom_factor}:ih/{zoom_factor}:(iw*{zoom_factor}-iw)*{center_x}:(ih*{zoom_factor}-ih)*{center_y}",
-                                "-c:v",
-                                "libx264",
-                                "-preset",
-                                "fast",
-                                "-crf",
-                                "22",
-                                "-c:a",
-                                "copy",
-                                zoomed_segment,
-                            ]
+                            # Apply zoom with more error handling
+                            try:
+                                cmd_zoom = [
+                                    "ffmpeg",
+                                    "-y",
+                                    "-i",
+                                    zoom_segment,
+                                    "-vf",
+                                    f"scale=iw*{zoom_factor}:-1,crop=iw/{zoom_factor}:ih/{zoom_factor}:(iw*{zoom_factor}-iw)*{center_x}:(ih*{zoom_factor}-ih)*{center_y}",
+                                    "-c:v",
+                                    "libx264",
+                                    "-preset",
+                                    "fast",
+                                    "-crf",
+                                    "22",
+                                    "-c:a",
+                                    "copy",
+                                    zoomed_segment,
+                                ]
 
-                            process = await asyncio.create_subprocess_exec(
-                                *cmd_zoom,
-                                stdout=asyncio.subprocess.PIPE,
-                                stderr=asyncio.subprocess.PIPE,
-                            )
-                            stdout, stderr = await process.communicate()
+                                process = await asyncio.create_subprocess_exec(
+                                    *cmd_zoom,
+                                    stdout=asyncio.subprocess.PIPE,
+                                    stderr=asyncio.subprocess.PIPE,
+                                )
+                                stdout, stderr = await process.communicate()
 
-                            if process.returncode != 0:
-                                print(f"FFmpeg zoom effect error: {stderr.decode()}")
-                                shutil.copy(zoom_segment, zoomed_segment)
+                                if process.returncode != 0 or not os.path.exists(zoomed_segment) or os.path.getsize(zoomed_segment) == 0:
+                                    print(f"FFmpeg zoom effect failed, using original segment: {stderr.decode() if stderr else 'Unknown error'}")
+                                    shutil.copy(zoom_segment, zoomed_segment)
+                            except Exception as e:
+                                print(f"Exception during zoom effect: {str(e)}")
+                                if os.path.exists(zoom_segment):
+                                    shutil.copy(zoom_segment, zoomed_segment)
+                                else:
+                                    # If all else fails, skip this effect
+                                    continue
 
                             cmd_after = [
                                 "ffmpeg",

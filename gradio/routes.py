@@ -1573,7 +1573,6 @@ class App(FastAPI):
         @app.post("/process_recording", dependencies=[Depends(login_check)])
         async def process_recording(
             request: fastapi.Request,
-            bg_tasks: BackgroundTasks,
         ):
             try:
                 content_type_header = request.headers.get("Content-Type")
@@ -1607,12 +1606,9 @@ class App(FastAPI):
                 raise HTTPException(status_code=400, detail="No video file provided")
 
             video_file = video_files[0]
-
-            # Extract parameters from form
             params = {
                 "remove_segment_start": form.get("remove_segment_start"),
                 "remove_segment_end": form.get("remove_segment_end"),
-                "zoom_effects": form.get("zoom_effects"),
             }
 
             with tempfile.NamedTemporaryFile(
@@ -1630,7 +1626,7 @@ class App(FastAPI):
                 return FileResponse(
                     processed_path,
                     media_type="video/webm",
-                    filename="gradio-screen-recording-processed.webm",
+                    filename="gradio-screen-recording.webm",
                     background=BackgroundTask(lambda: cleanup_files(temp_files)),
                 )
             except Exception as e:
@@ -1638,7 +1634,7 @@ class App(FastAPI):
                 return FileResponse(
                     input_path,
                     media_type="video/webm",
-                    filename="gradio-screen-recording-original.webm",
+                    filename="gradio-screen-recording.webm",
                     background=BackgroundTask(lambda: cleanup_files([input_path])),
                 )
 
@@ -1651,7 +1647,6 @@ class App(FastAPI):
                     print(f"Error cleaning up file {file}: {str(e)}")
 
         app.include_router(router)
-
         return app
 
 
