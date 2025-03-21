@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { afterUpdate, tick } from "svelte";
+	import { afterUpdate, tick, onMount } from "svelte";
 	import render_math_in_element from "katex/contrib/auto-render";
 	import "katex/dist/katex.min.css";
 	import { create_marked } from "./utils";
 	import { sanitize } from "@gradio/sanitize";
 	import "./prism.css";
 	import { standardHtmlTags } from "./html-tags";
+	import mermaid from "mermaid";
 
 	export let chatbot = true;
 	export let message: string;
@@ -23,6 +24,14 @@
 
 	let el: HTMLSpanElement;
 	let html: string;
+
+	onMount(() => {
+		mermaid.initialize({
+			startOnLoad: false,
+			theme: 'default',
+			securityLevel: 'loose'
+		});
+	});
 
 	const marked = create_marked({
 		header_links,
@@ -122,6 +131,20 @@
 					delimiters: latex_delimiters,
 					throwOnError: false
 				});
+			}
+		}
+
+		if (el) {
+			try {
+				const mermaidDivs = el.querySelectorAll('.mermaid');
+				if (mermaidDivs.length > 0) {
+					await tick();
+					await mermaid.run({
+						nodes: mermaidDivs
+					});
+				}
+			} catch (error) {
+				console.error("Error rendering mermaid diagrams:", error);
 			}
 		}
 	}
