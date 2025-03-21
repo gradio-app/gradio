@@ -5,7 +5,7 @@ import {
 } from "pixi.js";
 import { type ImageEditorContext, type Tool } from "../core/editor";
 import { type Tool as ToolbarTool, type Subtool } from "../Toolbar.svelte";
-import { get } from "svelte/store";
+import { get, writable } from "svelte/store";
 
 /**
  * ZoomTool class for handling zoom and pan functionality in the image editor
@@ -13,6 +13,8 @@ import { get } from "svelte/store";
  */
 export class ZoomTool implements Tool {
 	name = "zoom";
+	min_zoom = writable(true);
+
 	private image_editor_context!: ImageEditorContext;
 
 	// Constants
@@ -596,6 +598,7 @@ export class ZoomTool implements Tool {
 			position: new_position,
 			animate: typeof hard === "boolean" ? !hard : new_zoom === min_zoom
 		});
+		this.min_zoom.set(new_zoom === min_zoom);
 	}
 
 	/**

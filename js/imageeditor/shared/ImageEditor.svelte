@@ -179,6 +179,7 @@
 	let zoom_level = 1;
 	let ready = false;
 	let mounted = false;
+	let min_zoom = true;
 
 	onMount(() => {
 		mounted = true;
@@ -221,6 +222,10 @@
 			zoom_level = _scale;
 		});
 
+		editor.min_zoom.subscribe((is_min_zoom) => {
+			min_zoom = is_min_zoom;
+		});
+
 		Promise.all([editor.ready, crop.ready]).then(() => {
 			handle_tool_change({ tool: "image" });
 			ready = true;
@@ -232,9 +237,6 @@
 			dispatch("change");
 		});
 	}
-
-	// $: mounted && (canvas_size, init_image_editor());
-	// $: ready && resize_canvas(canvas_size[0], canvas_size[1]);
 
 	function resize_canvas(width: number, height: number): void {
 		if (!editor) return;
@@ -447,6 +449,7 @@
 				on:set_zoom={(e) => handle_zoom_change(e.detail)}
 				on:zoom_in={() => zoom_in_out("in")}
 				on:zoom_out={() => zoom_in_out("out")}
+				{min_zoom}
 				current_zoom={zoom_level}
 				on:remove_image={() => {
 					editor.reset_canvas();

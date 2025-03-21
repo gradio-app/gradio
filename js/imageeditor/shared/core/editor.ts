@@ -900,6 +900,10 @@ class EditorState {
 }
 
 export class ImageEditor {
+	public ready: Promise<void>;
+	public background_image_present = writable(false);
+	public min_zoom = writable(true);
+
 	private app!: Application;
 	private ui_container!: Container;
 	private image_container!: Container;
@@ -931,14 +935,13 @@ export class ImageEditor {
 	private outline_container!: Container;
 	private outline_graphics!: Graphics;
 	private background_image?: Sprite;
-	public background_image_present = writable(false);
 	private ready_resolve!: (value: void | PromiseLike<void>) => void;
-	public ready: Promise<void>;
 	private event_callbacks: Map<string, (() => void)[]> = new Map();
 	private fixed_canvas: boolean;
 	private dark: boolean;
 	private border_region: number;
 	private layer_options: LayerOptions;
+
 	constructor(options: ImageEditorOptions) {
 		this.dark = options.dark || false;
 		this.target_element = options.target_element;
@@ -978,7 +981,8 @@ export class ImageEditor {
 		this.border_region = options.border_region || 0;
 		this.layer_options = options.layer_options || {
 			allow_additional_layers: true,
-			layers: ["Layer 1"]
+			layers: ["Layer 1"],
+			disabled: false
 		};
 		this.scale.subscribe((scale) => {
 			this.state._set_scale(scale);
@@ -1048,6 +1052,13 @@ export class ImageEditor {
 
 		for (const tool of this.tools.values()) {
 			await tool.setup(this.context, this.current_tool, this.current_subtool);
+		}
+
+		const zoom = this.tools.get("zoom") as ZoomTool;
+		if (zoom) {
+			zoom.min_zoom.subscribe((is_min_zoom) => {
+				this.min_zoom.set(is_min_zoom);
+			});
 		}
 
 		this.target_element.appendChild(canvas);
@@ -1348,6 +1359,15 @@ export class ImageEditor {
 		for (const tool of this.tools.values()) {
 			tool.cleanup();
 			tool.setup(this.context, this.current_tool, this.current_subtool);
+		}
+
+		const zoom_tool = this.tools.get("zoom") as ZoomTool;
+		if (zoom_tool) {
+			console.log("zoom_tool", zoom_tool);
+			zoom_tool.min_zoom.subscribe((is_min_zoom) => {
+				console.log("is_min_zoom", is_min_zoom);
+				this.min_zoom.set(is_min_zoom);
+			});
 		}
 
 		this.notify("change");

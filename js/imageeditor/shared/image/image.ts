@@ -333,10 +333,11 @@ export class AddImageCommand implements BgImageCommand {
 		// Instead, we'll store the border region on the sprite and let the resize tool
 		// read it when it's set up
 
-		this.context.layer_manager.create_layer(
-			this.fixed_canvas ? this.current_canvas_size.width : width,
-			this.fixed_canvas ? this.current_canvas_size.height : height
-		);
+		this.context.layer_manager.create_layer({
+			width: this.fixed_canvas ? this.current_canvas_size.width : width,
+			height: this.fixed_canvas ? this.current_canvas_size.height : height,
+			user_created: true
+		});
 		this.context.reset();
 	}
 
