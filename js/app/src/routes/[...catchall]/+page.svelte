@@ -9,6 +9,7 @@
 
 	declare let BUILD_MODE: string;
 	interface Config {
+		deep_link_state?: "none" | "valid" | "invalid";
 		auth_required?: true;
 		auth_message: string;
 		components: ComponentMeta[];
@@ -198,6 +199,7 @@
 		status = _status;
 	}
 	//@ts-ignore
+	let pending_deep_link_error = false;
 
 	let gradio_dev_mode = "";
 
@@ -208,11 +210,16 @@
 		window.gradio_config = data.config;
 		config = data.config;
 
+		if (config.deep_link_state === "invalid") {
+			pending_deep_link_error = true;
+		}
+
 		if (!app.config) {
 			throw new Error("Could not resolve app config");
 		}
 
 		window.__gradio_space__ = config.space_id;
+		window.__gradio_session_hash__ = app.session_hash; // type: ignore
 		gradio_dev_mode = window?.__GRADIO_DEV__;
 
 		status = {
@@ -238,7 +245,6 @@
 		window.parent.postMessage(supports_zerogpu_headers, origin);
 
 		dispatch("loaded");
-
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(data.api_url);
@@ -269,6 +275,11 @@
 	});
 
 	let new_message_fn: (title: string, message: string, type: string) => void;
+
+	$: if (new_message_fn && pending_deep_link_error) {
+		new_message_fn("Error", "Deep link was not valid", "error");
+		pending_deep_link_error = false;
+	}
 
 	onMount(async () => {
 		intersecting = create_intersection_store();

@@ -42,6 +42,7 @@ import {
 export class Client {
 	app_reference: string;
 	options: ClientOptions;
+	deep_link: string | null = null;
 
 	config: Config | undefined;
 	api_prefix = "";
@@ -183,6 +184,7 @@ export class Client {
 		options: ClientOptions = { events: ["data"] }
 	) {
 		this.app_reference = app_reference;
+		this.deep_link = options.query_params?.deep_link || null;
 		if (!options.events) {
 			options.events = ["data"];
 		}
@@ -307,7 +309,9 @@ export class Client {
 		let config: Config | undefined;
 
 		try {
-			config = await this.resolve_config(`${http_protocol}//${host}`);
+			// Create base URL
+			let configUrl = `${http_protocol}//${host}`;
+			config = await this.resolve_config(configUrl);
 
 			if (!config) {
 				throw new Error(CONFIG_ERROR_MSG);
