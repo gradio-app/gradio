@@ -107,7 +107,9 @@ class DeepLinkButton(Button):
                 .then(data => {
                     const currentUrl = new URL(window.location.href);
                     const cleanData = data.replace(/^"|"$/g, '');
-                    currentUrl.searchParams.set('deep_link', cleanData);
+                    if (cleanData) {
+                        currentUrl.searchParams.set('deep_link', cleanData);
+                    }
                     navigator.clipboard.writeText(currentUrl.toString());
                 })
                 .catch(error => {

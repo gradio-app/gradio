@@ -145,7 +145,7 @@ class Interface(Blocks):
         | None = None,
         time_limit: int | None = 30,
         stream_every: float = 0.5,
-        deep_link: str | DeepLinkButton | None = None,
+        deep_link: str | DeepLinkButton | bool | None = None,
         **kwargs,
     ):
         """
@@ -188,6 +188,7 @@ class Interface(Blocks):
             fill_width: whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
             time_limit: The time limit for the stream to run. Default is 30 seconds. Parameter only used for streaming images or audio if the interface is live and the input components are set to "streaming=True".
             stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for streaming images or audio if the interface is live and the input components are set to "streaming=True".
+            deep_link: a string or `gr.DeepLinkButton` object that creates a unique URL you can use to share your app and all components **as they currently are** with others. Automatically enabled on Hugging Face Spaces unless explicitly set to False.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -205,9 +206,11 @@ class Interface(Blocks):
         )
         if isinstance(deep_link, str):
             deep_link = DeepLinkButton(value=deep_link)
-        if utils.get_space() and not deep_link:
+        elif deep_link is True:
             deep_link = DeepLinkButton()
-        if wasm_utils.IS_WASM:
+        if utils.get_space() and deep_link is None:
+            deep_link = DeepLinkButton()
+        if wasm_utils.IS_WASM or deep_link is False:
             deep_link = None
         self.deep_link = deep_link
         self.time_limit = time_limit

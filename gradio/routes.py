@@ -661,7 +661,7 @@ class App(FastAPI):
                     f.write(components_json)
                 return deep_link
             else:
-                return "Error"
+                return ""
 
         @router.get("/info/", dependencies=[Depends(login_check)])
         @router.get("/info", dependencies=[Depends(login_check)])

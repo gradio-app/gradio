@@ -56,7 +56,7 @@ After you have [created a free Hugging Face account](https://huggingface.co/join
 
 ## Sharing Deep Links
 
-You can add a button to your Gradio app that creates a unique URL you can use to share your app **as it currently is** with others. This is useful for sharing unique and interesting generations from your application , or for saving a snapshot of your app at a particular point in time.
+You can add a button to your Gradio app that creates a unique URL you can use to share your app and all components **as they currently are** with others. This is useful for sharing unique and interesting generations from your application , or for saving a snapshot of your app at a particular point in time.
 
 To add a deep link button to your app, place the `gr.DeepLinkButton` component anywhere in your app.
 For the URL to be accessible to others, your app must be available at a public URL. So be sure to host your app like Hugging Face Spaces or use the `share=True` parameter when launching your app.
