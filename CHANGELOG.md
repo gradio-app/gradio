@@ -1,5 +1,16 @@
 # gradio
 
+## 5.23.0
+
+### Features
+
+- [#10834](https://github.com/gradio-app/gradio/pull/10834) [`c05610c`](https://github.com/gradio-app/gradio/commit/c05610c87dd7f9e9fe5d0aed2fe93e40fdd32648) - Add Deep Links.  Thanks @freddyaboulton!
+- [#10838](https://github.com/gradio-app/gradio/pull/10838) [`a06c7e4`](https://github.com/gradio-app/gradio/commit/a06c7e40e2ddb5c526c195d31832f6e97b669291) - Allow for iterative coding in gradio sketch.  Thanks @aliabid94!
+
+### Fixes
+
+- [#10841](https://github.com/gradio-app/gradio/pull/10841) [`8ff0a5e`](https://github.com/gradio-app/gradio/commit/8ff0a5e3e916ba6dfe6255ffcf4d09868ab29bde) - Fix path generation for returned files for bash API.  Thanks @cansik!
+
 ## 5.22.0
 
 ### Features

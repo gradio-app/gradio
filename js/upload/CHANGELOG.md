@@ -1,5 +1,11 @@
 # @gradio/upload
 
+## 0.15.6
+
+### Dependency updates
+
+- @gradio/client@1.14.0
+
 ## 0.15.5
 
 ### Dependency updates
