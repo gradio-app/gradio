@@ -1,5 +1,22 @@
 # @gradio/core
 
+## 0.13.1
+
+### Fixes
+
+- [#10841](https://github.com/gradio-app/gradio/pull/10841) [`8ff0a5e`](https://github.com/gradio-app/gradio/commit/8ff0a5e3e916ba6dfe6255ffcf4d09868ab29bde) - Fix path generation for returned files for bash API.  Thanks @cansik!
+
+### Dependency updates
+
+- @gradio/upload@0.15.6
+- @gradio/video@0.14.6
+- @gradio/code@0.12.1
+- @gradio/client@1.14.0
+- @gradio/button@0.4.11
+- @gradio/image@0.21.6
+- @gradio/gallery@0.15.11
+- @gradio/file@0.12.11
+
 ## 0.13.0
 
 ### Features
