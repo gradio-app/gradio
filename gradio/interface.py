@@ -21,6 +21,7 @@ from gradio.components import (
     Button,
     ClearButton,
     Component,
+    DeepLinkButton,
     DuplicateButton,
     Markdown,
     State,
@@ -144,6 +145,7 @@ class Interface(Blocks):
         | None = None,
         time_limit: int | None = 30,
         stream_every: float = 0.5,
+        deep_link: str | DeepLinkButton | bool | None = None,
         **kwargs,
     ):
         """
@@ -186,6 +188,7 @@ class Interface(Blocks):
             fill_width: whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
             time_limit: The time limit for the stream to run. Default is 30 seconds. Parameter only used for streaming images or audio if the interface is live and the input components are set to "streaming=True".
             stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for streaming images or audio if the interface is live and the input components are set to "streaming=True".
+            deep_link: a string or `gr.DeepLinkButton` object that creates a unique URL you can use to share your app and all components **as they currently are** with others. Automatically enabled on Hugging Face Spaces unless explicitly set to False.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -201,6 +204,15 @@ class Interface(Blocks):
             fill_width=fill_width,
             **kwargs,
         )
+        if isinstance(deep_link, str):
+            deep_link = DeepLinkButton(value=deep_link)
+        elif deep_link is True:
+            deep_link = DeepLinkButton()
+        if utils.get_space() and deep_link is None:
+            deep_link = DeepLinkButton()
+        if wasm_utils.IS_WASM or deep_link is False:
+            deep_link = None
+        self.deep_link = deep_link
         self.time_limit = time_limit
         self.stream_every = stream_every
         self.api_name: str | Literal[False] | None = api_name
@@ -494,6 +506,8 @@ class Interface(Blocks):
 
         # Render the Gradio UI
         with self:
+            if self.deep_link:
+                self.deep_link.activate()
             self.render_title_description()
 
             _submit_btn, _clear_btn, _stop_btn, flag_btns, duplicate_btn = (
@@ -586,6 +600,11 @@ class Interface(Blocks):
                 ]:
                     _clear_btn = ClearButton(**self.clear_btn_params)  # type: ignore
                     if not self.live:
+                        if (
+                            self.deep_link
+                            and self.interface_type == InterfaceTypes.INPUT_ONLY
+                        ):
+                            self.deep_link.render()
                         _submit_btn = Button(**self.submit_btn_parms)  # type: ignore
                         # Stopping jobs only works if the queue is enabled
                         # We don't know if the queue is enabled when the interface
@@ -599,6 +618,8 @@ class Interface(Blocks):
                 elif self.interface_type == InterfaceTypes.UNIFIED:
                     _clear_btn = ClearButton(**self.clear_btn_params)  # type: ignore
                     _submit_btn = Button(**self.submit_btn_parms)  # type: ignore
+                    if self.deep_link:
+                        self.deep_link.render()
                     if (
                         inspect.isgeneratorfunction(self.fn)
                         or inspect.isasyncgenfunction(self.fn)
@@ -639,6 +660,8 @@ class Interface(Blocks):
                 if not (isinstance(component, State)):
                     component.render()
             with Row():
+                if self.deep_link:
+                    self.deep_link.render()
                 if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
                     _clear_btn = ClearButton(**self.clear_btn_params)  # type: ignore
                     _submit_btn = Button("Generate", variant="primary")

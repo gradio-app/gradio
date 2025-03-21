@@ -37,6 +37,7 @@
 		max_file_size?: number;
 		pages: [string, string][];
 		current_page: string;
+		deep_link_state?: "valid" | "invalid" | "none";
 		page: Record<
 			string,
 			{
@@ -287,6 +288,15 @@
 	//@ts-ignore
 	const gradio_dev_mode = window.__GRADIO_DEV__;
 
+	let pending_deep_link_error = false;
+
+	let new_message_fn: (title: string, message: string, type: string) => void;
+
+	$: if (new_message_fn && pending_deep_link_error) {
+		new_message_fn("Error", "Deep link was not valid", "error");
+		pending_deep_link_error = false;
+	}
+
 	onMount(async () => {
 		active_theme_mode = handle_theme_mode(wrapper);
 
@@ -300,10 +310,19 @@
 					}`
 				: space || src || location.origin;
 
+		const deep_link = new URLSearchParams(window.location.search).get(
+			"deep_link"
+		);
+		const query_params: Record<string, string> = {};
+		if (deep_link) {
+			query_params.deep_link = deep_link;
+		}
+
 		app = await Client.connect(api_url, {
 			status_callback: handle_status,
 			with_null_state: true,
-			events: ["data", "log", "status", "render"]
+			events: ["data", "log", "status", "render"],
+			query_params
 		});
 		window.addEventListener("beforeunload", () => {
 			app.close();
@@ -315,6 +334,8 @@
 
 		config = app.get_url_config();
 		window.__gradio_space__ = config.space_id;
+		//@ts-ignore
+		window.__gradio_session_hash__ = app.session_hash;
 
 		status = {
 			message: "",
@@ -345,6 +366,9 @@
 		pages = config.pages;
 		current_page = config.current_page;
 		root = config.root;
+		if (config.deep_link_state === "invalid") {
+			pending_deep_link_error = true;
+		}
 
 		if (config.dev_mode) {
 			setTimeout(() => {
@@ -432,8 +456,6 @@
 			);
 		}
 	};
-
-	let new_message_fn: (title: string, message: string, type: string) => void;
 
 	onMount(async () => {
 		intersecting.register(_id, wrapper);
