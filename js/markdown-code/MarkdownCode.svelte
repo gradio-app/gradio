@@ -139,7 +139,7 @@
 			if (mermaidDivs.length > 0) {
 				await tick();
 				await mermaid.run({
-					nodes: mermaidDivs
+					nodes: Array.from(mermaidDivs).map((node) => node as HTMLElement)
 				});
 			}
 		}
