@@ -16,6 +16,7 @@ This guide explains which files are exposed as well as some best practices for m
 
 - **3. Files in Gradio's cache**. After you launch your Gradio app, Gradio copies certain files into a temporary cache and makes these files accessible to users. Let's unpack this in more detail below.
 
+
 ## The Gradio cache
 
 First, it's important to understand why Gradio has a cache at all. Gradio copies files to a cache directory before returning them to the frontend. This prevents files from being overwritten by one user while they are still needed by another user of your application. For example, if your prediction function returns a video file, then Gradio will move that video to the cache after your prediction function runs and returns a URL the frontend can use to show the video. Any file in the cache is available via URL to all users of your running application.
@@ -70,3 +71,27 @@ demo.launch(max_file_size=5 * gr.FileSize.MB)
 * Do not return arbitrary user input from a function that is connected to a file-based output component (`gr.Image`, `gr.File`, etc.). For example, the following interface would allow anyone to move an arbitrary file in your local directory to the cache: `gr.Interface(lambda s: s, "text", "file")`. This is because the user input is treated as an arbitrary file path. 
 * Make `allowed_paths` as small as possible. If a path in `allowed_paths` is a directory, any file within that directory can be accessed. Make sure the entires of `allowed_paths` only contains files related to your application.
 * Run your gradio application from the same directory the application file is located in. This will narrow the scope of files Gradio will be allowed to move into the cache. For example, prefer `python app.py` to `python Users/sources/project/app.py`.
+
+
+## Example: Accessing local files
+Both `gr.set_static_paths` and the `allowed_paths` parameter in launch expect absolute paths. Below is a minimal example to display a local `.png` image file in an HTML block.
+
+```txt
+├── assets
+│   └── logo.png
+└── app.py
+```
+For the example directory structure, `logo.png` and any other files in the `assets` folder can be accessed from your Gradio app in `app.py` as follows:
+
+```python
+from pathlib import Path
+
+import gradio as gr
+
+gr.set_static_paths(paths=[Path.cwd().absolute()/"assets"]])
+
+with gr.Blocks() as demo:
+    gr.HTML("<img src='/gradio_api/file=assets/logo.png'>")
+
+demo.launch()
+```
