@@ -135,16 +135,12 @@
 		}
 
 		if (el) {
-			try {
-				const mermaidDivs = el.querySelectorAll('.mermaid');
-				if (mermaidDivs.length > 0) {
-					await tick();
-					await mermaid.run({
-						nodes: mermaidDivs
-					});
-				}
-			} catch (error) {
-				console.error("Error rendering mermaid diagrams:", error);
+			const mermaidDivs = el.querySelectorAll('.mermaid');
+			if (mermaidDivs.length > 0) {
+				await tick();
+				await mermaid.run({
+					nodes: mermaidDivs
+				});
 			}
 		}
 	}
