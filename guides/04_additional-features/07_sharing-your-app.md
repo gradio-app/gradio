@@ -4,13 +4,14 @@ In this Guide, we dive more deeply into the various aspects of sharing a Gradio 
 
 1. [Sharing demos with the share parameter](#sharing-demos)
 2. [Hosting on HF Spaces](#hosting-on-hf-spaces)
-3. [Embedding hosted spaces](#embedding-hosted-spaces)
-4. [Using the API page](#api-page)
-5. [Accessing network requests](#accessing-the-network-request-directly)
-6. [Mounting within FastAPI](#mounting-within-another-fast-api-app)
-7. [Authentication](#authentication)
-8. [Analytics](#analytics)
-9. [Progressive Web Apps (PWAs)](#progressive-web-app-pwa)
+3. [Sharing Deep Links](#sharing-deep-links)
+4. [Embedding hosted spaces](#embedding-hosted-spaces)
+5. [Using the API page](#api-page)
+6. [Accessing network requests](#accessing-the-network-request-directly)
+7. [Mounting within FastAPI](#mounting-within-another-fast-api-app)
+8. [Authentication](#authentication)
+9. [Analytics](#analytics)
+10. [Progressive Web Apps (PWAs)](#progressive-web-app-pwa)
 
 ## Sharing Demos
 
@@ -52,6 +53,18 @@ After you have [created a free Hugging Face account](https://huggingface.co/join
 <video autoplay muted loop>
   <source src="https://github.com/gradio-app/gradio/blob/main/guides/assets/hf_demo.mp4?raw=true" type="video/mp4" />
 </video>
+
+## Sharing Deep Links
+
+You can add a button to your Gradio app that creates a unique URL you can use to share your app and all components **as they currently are** with others. This is useful for sharing unique and interesting generations from your application , or for saving a snapshot of your app at a particular point in time.
+
+To add a deep link button to your app, place the `gr.DeepLinkButton` component anywhere in your app.
+For the URL to be accessible to others, your app must be available at a public URL. So be sure to host your app like Hugging Face Spaces or use the `share=True` parameter when launching your app.
+
+Let's see an example of how this works. Here's a simple Gradio chat ap that uses the `gr.DeepLinkButton` component. After a couple of messages, click the deep link button and paste it into a new browser tab to see the app as it is at that point in time.
+
+$code_deep_link
+$demo_deep_link
 
 
 ## Embedding Hosted Spaces

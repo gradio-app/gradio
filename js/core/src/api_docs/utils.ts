@@ -80,7 +80,7 @@ function simplify_file_data(obj: any): any {
 			"meta" in obj &&
 			obj.meta?._type === "gradio.FileData"
 		) {
-			return { path: obj.url };
+			return { path: obj.url, meta: { _type: "gradio.FileData" } };
 		}
 	}
 	if (Array.isArray(obj)) {

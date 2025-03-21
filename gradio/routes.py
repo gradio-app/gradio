@@ -522,13 +522,42 @@ class App(FastAPI):
             def page_route(
                 request: fastapi.Request,
                 user: str = Depends(get_current_user),
+                deep_link: str = "",
             ):
-                return main(request, user, page)
+                return main(request, user, page, deep_link)
 
         for pageset in blocks.pages:
             page = pageset[0]
             if page != "":
                 attach_page(page)
+
+        def load_deep_link(
+            deep_link: str, config: dict[str, Any], page: str | None = None
+        ):
+            components = config["components"]
+            try:
+                path = (
+                    Path(app.uploaded_file_dir)
+                    / "deep_links"
+                    / deep_link
+                    / "state.json"
+                )
+
+                if path.exists():
+                    components = orjson.loads(path.read_bytes())
+                    deep_link_state = "valid"
+                else:
+                    deep_link_state = "invalid"
+            except (FileNotFoundError, OSError, orjson.JSONDecodeError):
+                deep_link_state = "invalid"
+                components = []
+            if page:
+                components = [
+                    component
+                    for component in components
+                    if component["id"] in config["page"][page]["components"]
+                ]
+            return components, deep_link_state
 
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
@@ -536,6 +565,7 @@ class App(FastAPI):
             request: fastapi.Request,
             user: str = Depends(get_current_user),
             page: str = "",
+            deep_link: str = "",
         ):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
@@ -547,12 +577,21 @@ class App(FastAPI):
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
                 config = route_utils.update_root_in_config(config, root)
-                config["username"] = user
-                config["components"] = [
+                deep_link_state = "none"
+                components = [
                     component
                     for component in config["components"]
                     if component["id"] in config["page"][page]["components"]
                 ]
+                if deep_link:
+                    components, deep_link_state = load_deep_link(
+                        deep_link,
+                        config,  # type: ignore
+                        page,
+                    )
+                config["username"] = user
+                config["deep_link_state"] = deep_link_state
+                config["components"] = components  # type: ignore
                 config["dependencies"] = [
                     dependency
                     for dependency in config.get("dependencies", [])
@@ -603,6 +642,27 @@ class App(FastAPI):
                         "the frontend by running /scripts/build_frontend.sh"
                     ) from err
 
+        @app.get("/gradio_api/deep_link")
+        def deep_link(session_hash: str):
+            if session_hash in app.state_holder:
+                components = [
+                    utils.safe_deepcopy(c)
+                    for c in app.state_holder[session_hash].components
+                ]
+                components_json = orjson.dumps(
+                    components,
+                    option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_PASSTHROUGH_DATETIME,
+                    default=str,
+                )
+                deep_link = route_utils.create_url_safe_hash(components_json)
+                directory = Path(app.uploaded_file_dir) / "deep_links" / deep_link
+                directory.mkdir(parents=True, exist_ok=True)
+                with open(directory / "state.json", "wb") as f:
+                    f.write(components_json)
+                return deep_link
+            else:
+                return ""
+
         @router.get("/info/", dependencies=[Depends(login_check)])
         @router.get("/info", dependencies=[Depends(login_check)])
         def api_info(request: fastapi.Request):
@@ -620,13 +680,17 @@ class App(FastAPI):
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
-        def get_config(request: fastapi.Request):
+        def get_config(request: fastapi.Request, deep_link: str = ""):
             config = utils.safe_deepcopy(app.get_blocks().config)
             root = route_utils.get_root_url(
                 request=request, route_path="/config", root_path=app.root_path
             )
             config = route_utils.update_root_in_config(config, root)
             config["username"] = get_current_user(request)
+            if deep_link:
+                components, deep_link_state = load_deep_link(deep_link, config, page="")  # type: ignore
+                config["components"] = components  # type: ignore
+                config["deep_link_state"] = deep_link_state
             return ORJSONResponse(content=config)
 
         @app.get("/static/{path:path}")
