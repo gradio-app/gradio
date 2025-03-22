@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:[Draft] Screen recording
+feat:Screen recording
