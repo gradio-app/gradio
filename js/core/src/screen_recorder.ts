@@ -28,7 +28,13 @@ class ScreenRecorder {
 		}
 
 		try {
-			// Request screen capture
+			this.add_new_message(
+				"To start recording:",
+				"Please select the 'SHARE THIS: Gradio Tab",
+				"info"
+			);
+			const originalTitle = document.title;
+			document.title = "SHARE THIS: Gradio";
 			const stream = await navigator.mediaDevices.getDisplayMedia({
 				video: {
 					cursor: "always",
@@ -39,11 +45,7 @@ class ScreenRecorder {
 				audio: true,
 				selfBrowserSurface: "include"
 			});
-
-			// const videoTrack = stream.getVideoTracks()[0];
-			// const settings = videoTrack.getSettings();
-			// this.videoWidth = settings.width || 1280;
-			// this.videoHeight = settings.height || 720;
+            document.title = originalTitle;
 
 			this.mediaRecorder = new MediaRecorder(stream, {
 				mimeType: "video/webm;codecs=vp9",
@@ -53,20 +55,12 @@ class ScreenRecorder {
 			this.recordedChunks = [];
 			this.removeSegment = {};
 
-			// Set up event handlers
 			this.mediaRecorder.ondataavailable = this.handleDataAvailable.bind(this);
 			this.mediaRecorder.onstop = this.handleStop.bind(this);
 
-			// Start recording
-			this.mediaRecorder.start(1000); // Collect data every second
+			this.mediaRecorder.start(1000);
 			this.isRecording = true;
 			this.recordingStartTime = Date.now();
-
-			this.add_new_message(
-				"Recording Started",
-				"Screen recording has begun. Click the record button again to stop.",
-				"info"
-			);
 		} catch (error) {
 			console.error("Error starting recording:", error);
 			this.add_new_message(
@@ -139,28 +133,23 @@ class ScreenRecorder {
 	private async handleRecordingComplete(recordedBlob: Blob): Promise<void> {
 		try {
 			this.add_new_message(
-				"Processing",
-				"Sending recording to server for processing...",
+				"Processing video",
+				"This may take a few seconds...",
 				"info"
 			);
-
-			// Check if we have any processing to do
 			const hasProcessing =
 				(this.removeSegment.start !== undefined &&
 					this.removeSegment.end !== undefined)
 
 			if (!hasProcessing) {
-				// If no processing needed, save directly
 				const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.webm`;
-				this.saveRecordingWithNativeDialog(recordedBlob, defaultFilename);
+                this.saveWithDownloadAttribute(recordedBlob, defaultFilename);
 				return;
 			}
 
-			// Create form data to send to server
 			const formData = new FormData();
 			formData.append("video", recordedBlob, "recording.webm");
 
-			// Add processing parameters
 			if (
 				this.removeSegment.start !== undefined &&
 				this.removeSegment.end !== undefined
@@ -175,7 +164,6 @@ class ScreenRecorder {
 				);
 			}
 
-			// Send to server for processing - use the correct API path
 			const response = await fetch(this.root + "/process_recording", {
 				method: "POST",
 				body: formData
@@ -189,7 +177,7 @@ class ScreenRecorder {
 
 			const processedBlob = await response.blob();
 			const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.webm`;
-			this.saveRecordingWithNativeDialog(processedBlob, defaultFilename);
+            this.saveWithDownloadAttribute(processedBlob, defaultFilename);
 		} catch (error) {
 			console.error("Error processing recording:", error);
 			this.add_new_message(
@@ -198,61 +186,8 @@ class ScreenRecorder {
 				"warning"
 			);
 
-			// Save the original recording if processing fails
 			const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.webm`;
-			this.saveRecordingWithNativeDialog(recordedBlob, defaultFilename);
-		}
-	}
-
-	// Keep the existing save methods
-	private saveRecordingWithNativeDialog(
-		blob: Blob,
-		suggestedName: string
-	): void {
-		if ("showSaveFilePicker" in window) {
-			this.saveWithFileSystemAccessAPI(blob, suggestedName);
-		} else {
-			this.saveWithDownloadAttribute(blob, suggestedName);
-		}
-	}
-
-	private async saveWithFileSystemAccessAPI(
-		blob: Blob,
-		suggestedName: string
-	): Promise<void> {
-		try {
-			// @ts-ignore
-			const fileHandle = await window.showSaveFilePicker({
-				suggestedName: suggestedName,
-				types: [
-					{
-						description: "WebM Video",
-						accept: { "video/webm": [".webm"] }
-					}
-				]
-			});
-
-			const writable = await fileHandle.createWritable();
-			await writable.write(blob);
-			await writable.close();
-			this.add_new_message(
-				"Recording Downloaded",
-				"Your recording has been downloaded.",
-				"success"
-			);
-		} catch (error) {
-			console.error("Error saving with File System Access API:", error);
-
-			if (error.name !== "AbortError") {
-				console.error("Error saving file:", error);
-				this.saveWithDownloadAttribute(blob, suggestedName);
-			} else {
-				this.add_new_message(
-					"Save Cancelled",
-					"Recording save was cancelled.",
-					"info"
-				);
-			}
+            this.saveWithDownloadAttribute(recordedBlob, defaultFilename);
 		}
 	}
 
@@ -269,12 +204,6 @@ class ScreenRecorder {
 			document.body.removeChild(a);
 			URL.revokeObjectURL(url);
 		}, 100);
-
-		this.add_new_message(
-			"Recording Ready",
-			"Your recording is being saved.",
-			"success"
-		);
 	}
 }
 

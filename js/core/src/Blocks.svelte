@@ -2,6 +2,7 @@
 	import { tick, onMount } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
+	import { writable } from 'svelte/store';
 
 	import type { LoadingStatus, LoadingStatusCollection } from "./stores";
 
@@ -775,6 +776,7 @@
 	}
 
 	let screen_recorder: ScreenRecorder;
+	let is_screen_recording = writable(false);
 
 	onMount(() => {
 		document.addEventListener("visibilitychange", function () {
@@ -796,8 +798,10 @@
 	function screenRecording(): void {
 		if (screen_recorder.isCurrentlyRecording()) {
 			screen_recorder.stopRecording();
+			$is_screen_recording = false;
 		} else {
 			screen_recorder.startRecording();
+			$is_screen_recording = true;
 		}
 	}
 </script>
@@ -868,8 +872,7 @@
 				}}
 				class="record"
 			>
-				{$_("common.record")}
-				<!-- {$_(isRecording ? "common.stop_recording" : "common.record")} -->
+				{$_($is_screen_recording ? "common.stop_recording" : "common.record")}
 				<img src={record} alt={$_("common.record")} />
 			</button>
 		</footer>
