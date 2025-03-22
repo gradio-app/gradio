@@ -468,7 +468,7 @@ class EventListenerMethod:
 if TYPE_CHECKING:
     EventListenerCallable = Callable[
         [
-            Union[Callable, None],
+            Union[Callable[..., Any], None],
             Union[Component, Sequence[Component], None],
             Union[Block, Sequence[Block], Sequence[Component], Component, None],
             Union[str, None, Literal[False]],
@@ -728,7 +728,7 @@ class EventListener(str):
 @document()
 def on(
     triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
-    fn: Callable | None | Literal["decorator"] = "decorator",
+    fn: Callable[..., Any] | None | Literal["decorator"] = "decorator",
     inputs: Component
     | BlockContext
     | Sequence[Component | BlockContext]
