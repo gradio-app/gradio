@@ -1,5 +1,28 @@
 # @gradio/chatbot
 
+## 0.25.0
+
+### Features
+
+- [#10814](https://github.com/gradio-app/gradio/pull/10814) [`b42e461`](https://github.com/gradio-app/gradio/commit/b42e4612abad205e0269bd69917c09565daf0cf7) - Adds a watermark parameter to `gr.Chatbot` that is added to copied text.  Thanks @abidlabs!
+
+## 0.24.4
+
+### Features
+
+- [#10743](https://github.com/gradio-app/gradio/pull/10743) [`3086343`](https://github.com/gradio-app/gradio/commit/3086343a6832a941864d77821b23c31c8b26be7f) - Fixed size for pending thoughts.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/image@0.21.5
+- @gradio/upload@0.15.5
+- @gradio/statustracker@0.10.5
+- @gradio/video@0.14.5
+- @gradio/atoms@0.14.0
+- @gradio/markdown-code@0.4.1
+- @gradio/gallery@0.15.10
+- @gradio/plot@0.9.10
+
 ## 0.24.3
 
 ### Fixes

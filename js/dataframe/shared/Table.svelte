@@ -38,12 +38,16 @@
 	import {
 		copy_table_data,
 		get_max,
-		handle_file_upload,
-		sort_table_data
+		handle_file_upload
 	} from "./utils/table_utils";
 	import { make_headers, process_data } from "./utils/data_processing";
 	import { handle_keydown } from "./utils/keyboard_utils";
-	import { create_drag_handlers, type DragState } from "./utils/drag_utils";
+	import {
+		create_drag_handlers,
+		type DragState,
+		type DragHandlers
+	} from "./utils/drag_utils";
+	import { sort_data_and_preserve_selection } from "./utils/sort_utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -172,6 +176,32 @@
 	}[][] = [[]];
 
 	$: if (!dequal(values, old_val)) {
+		if (parent) {
+			// only clear column widths when the data structure changes
+			const is_reset =
+				values.length === 0 || (values.length === 1 && values[0].length === 0);
+			const is_different_structure =
+				old_val !== undefined &&
+				(values.length !== old_val.length ||
+					(values[0] && old_val[0] && values[0].length !== old_val[0].length));
+
+			if (is_reset || is_different_structure) {
+				for (let i = 0; i < 50; i++) {
+					parent.style.removeProperty(`--cell-width-${i}`);
+				}
+				last_width_data_length = 0;
+				last_width_column_count = 0;
+			}
+		}
+
+		// only reset sort state when values are changed
+		const is_reset =
+			values.length === 0 || (values.length === 1 && values[0].length === 0);
+		const is_different_structure =
+			old_val !== undefined &&
+			(values.length !== old_val.length ||
+				(values[0] && old_val[0] && values[0].length !== old_val[0].length));
+
 		data = process_data(
 			values as (string | number)[][],
 			els,
@@ -180,10 +210,19 @@
 			display_value
 		);
 		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
-		df_actions.reset_sort_state();
+
+		if (is_reset || is_different_structure) {
+			df_actions.reset_sort_state();
+		} else if ($df_state.sort_state.sort_columns.length > 0) {
+			sort_data(data, display_value, styling);
+		}
 
 		if ($df_state.current_search_query) {
 			df_actions.handle_search(null);
+		}
+
+		if (parent && cells.length > 0) {
+			set_cell_widths();
 		}
 	}
 
@@ -233,11 +272,25 @@
 
 	function handle_sort(col: number, direction: SortDirection): void {
 		df_actions.handle_sort(col, direction);
+		sort_data(data, display_value, styling);
+	}
+
+	function clear_sort(): void {
+		df_actions.reset_sort_state();
+		sort_data(data, display_value, styling);
 	}
 
 	$: {
 		df_actions.sort_data(data, display_value, styling);
 		df_actions.update_row_order(data);
+	}
+
+	$: {
+		if ($df_state.sort_state.sort_columns) {
+			if ($df_state.sort_state.sort_columns.length > 0) {
+				sort_data(data, display_value, styling);
+			}
+		}
 	}
 
 	async function edit_header(i: number, _select = false): Promise<void> {
@@ -326,32 +379,57 @@
 
 	$: max = get_max(data);
 
-	$: cells[0] && set_cell_widths();
+	// Modify how we trigger cell width calculations
+	// Only recalculate when cells actually change, not during sort
+	$: cells[0] && cells[0]?.clientWidth && set_cell_widths();
 	let cells: HTMLTableCellElement[] = [];
 	let parent: HTMLDivElement;
 	let table: HTMLTableElement;
+	let last_width_data_length = 0;
+	let last_width_column_count = 0;
 
 	function set_cell_widths(): void {
+		const column_count = data[0]?.length || 0;
+		if (
+			last_width_data_length === data.length &&
+			last_width_column_count === column_count &&
+			$df_state.sort_state.sort_columns.length > 0
+		) {
+			return;
+		}
+
+		last_width_data_length = data.length;
+		last_width_column_count = column_count;
+
 		const widths = cells.map((el) => el?.clientWidth || 0);
 		if (widths.length === 0) return;
 
 		if (show_row_numbers) {
 			parent.style.setProperty(`--cell-width-row-number`, `${widths[0]}px`);
 		}
+
+		for (let i = 0; i < 50; i++) {
+			if (!column_widths[i]) {
+				parent.style.removeProperty(`--cell-width-${i}`);
+			} else if (column_widths[i].endsWith("%")) {
+				const percentage = parseFloat(column_widths[i]);
+				const pixel_width = Math.floor((percentage / 100) * parent.clientWidth);
+				parent.style.setProperty(`--cell-width-${i}`, `${pixel_width}px`);
+			} else {
+				parent.style.setProperty(`--cell-width-${i}`, column_widths[i]);
+			}
+		}
+
 		widths.forEach((width, i) => {
 			if (!column_widths[i]) {
-				parent.style.setProperty(
-					`--cell-width-${i}`,
-					`${width - scrollbar_width / widths.length}px`
-				);
+				const calculated_width = `${Math.max(width, 45)}px`;
+				parent.style.setProperty(`--cell-width-${i}`, calculated_width);
 			}
 		});
 	}
 
 	function get_cell_width(index: number): string {
-		return column_widths[index]
-			? `${column_widths[index]}`
-			: `var(--cell-width-${index})`;
+		return `var(--cell-width-${index})`;
 	}
 
 	let table_height: number =
@@ -361,38 +439,22 @@
 	function sort_data(
 		_data: typeof data,
 		_display_value: string[][] | null,
-		_styling: string[][] | null,
-		col?: number,
-		dir?: SortDirection
+		_styling: string[][] | null
 	): void {
-		let id = null;
-		if (selected && selected[0] in _data && selected[1] in _data[selected[0]]) {
-			id = _data[selected[0]][selected[1]].id;
-		}
-		if (typeof col !== "number" || !dir) {
-			return;
-		}
+		const result = sort_data_and_preserve_selection(
+			_data,
+			_display_value,
+			_styling,
+			$df_state.sort_state.sort_columns,
+			selected,
+			get_current_indices
+		);
 
-		sort_table_data(_data, _display_value, _styling, col, dir);
-		data = data;
-
-		if (id) {
-			const [i, j] = get_current_indices(id, data);
-			selected = [i, j];
-		}
+		data = result.data;
+		selected = result.selected;
 	}
 
-	$: sort_data(
-		data,
-		display_value,
-		styling,
-		$df_state.sort_state.sort_by === null
-			? undefined
-			: $df_state.sort_state.sort_by,
-		$df_state.sort_state.sort_direction === null
-			? undefined
-			: $df_state.sort_state.sort_direction
-	);
+	$: sort_data(data, display_value, styling);
 
 	$: selected_index = !!selected && selected[0];
 
@@ -636,6 +698,10 @@
 		active_header_menu = null;
 	}
 
+	export function reset_sort_state(): void {
+		df_actions.reset_sort_state();
+	}
+
 	let is_dragging = false;
 	let drag_start: [number, number] | null = null;
 	let mouse_down_pos: { x: number; y: number } | null = null;
@@ -652,19 +718,26 @@
 		mouse_down_pos = drag_state.mouse_down_pos;
 	}
 
-	const drag_handlers = create_drag_handlers(
-		drag_state,
-		(value) => (is_dragging = value),
-		(cells) => df_actions.set_selected_cells(cells),
-		(cell) => df_actions.set_selected(cell),
-		(event, row, col) =>
-			selection_ctx.actions.handle_cell_click(event, row, col),
-		show_row_numbers
-	);
+	let drag_handlers: DragHandlers;
 
-	const handle_mouse_down = drag_handlers.handle_mouse_down;
-	const handle_mouse_move = drag_handlers.handle_mouse_move;
-	const handle_mouse_up = drag_handlers.handle_mouse_up;
+	function init_drag_handlers(): void {
+		drag_handlers = create_drag_handlers(
+			drag_state,
+			(value) => (is_dragging = value),
+			(cells) => df_actions.set_selected_cells(cells),
+			(cell) => df_actions.set_selected(cell),
+			(event, row, col) =>
+				selection_ctx.actions.handle_cell_click(event, row, col),
+			show_row_numbers,
+			parent
+		);
+	}
+
+	$: if (parent) init_drag_handlers();
+
+	$: handle_mouse_down = drag_handlers?.handle_mouse_down || (() => {});
+	$: handle_mouse_move = drag_handlers?.handle_mouse_move || (() => {});
+	$: handle_mouse_up = drag_handlers?.handle_mouse_up || (() => {});
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
@@ -704,7 +777,7 @@
 		role="grid"
 		tabindex="0"
 	>
-		<table bind:this={table} class:fixed-layout={column_widths.length != 0}>
+		<table bind:this={table}>
 			{#if label && label.length !== 0}
 				<caption class="sr-only">{label}</caption>
 			{/if}
@@ -724,11 +797,9 @@
 							{headers}
 							{get_cell_width}
 							{handle_header_click}
-							{handle_sort}
 							{toggle_header_menu}
 							{end_header_edit}
-							sort_by={$df_state.sort_state.sort_by}
-							sort_direction={$df_state.sort_state.sort_direction}
+							sort_columns={$df_state.sort_state.sort_columns}
 							{latex_delimiters}
 							{line_breaks}
 							{max_chars}
@@ -832,11 +903,9 @@
 								{headers}
 								{get_cell_width}
 								{handle_header_click}
-								{handle_sort}
 								{toggle_header_menu}
 								{end_header_edit}
-								sort_by={$df_state.sort_state.sort_by}
-								sort_direction={$df_state.sort_state.sort_direction}
+								sort_columns={$df_state.sort_state.sort_columns}
 								{latex_delimiters}
 								{line_breaks}
 								{max_chars}
@@ -922,9 +991,34 @@
 		on_delete_row={() => delete_row_at(active_cell_menu?.row ?? -1)}
 		on_delete_col={() =>
 			delete_col_at(active_cell_menu?.col ?? active_header_menu?.col ?? -1)}
-		can_delete_rows={!active_header_menu && data.length > 1}
-		can_delete_cols={data.length > 0 && data[0]?.length > 1}
+		{editable}
+		can_delete_rows={!active_header_menu && data.length > 1 && editable}
+		can_delete_cols={data.length > 0 && data[0]?.length > 1 && editable}
 		{i18n}
+		on_sort={active_header_menu
+			? (direction) => {
+					if (active_header_menu) {
+						handle_sort(active_header_menu.col, direction);
+						df_actions.set_active_header_menu(null);
+					}
+				}
+			: undefined}
+		on_clear_sort={active_header_menu
+			? () => {
+					clear_sort();
+					df_actions.set_active_header_menu(null);
+				}
+			: undefined}
+		sort_direction={active_header_menu
+			? $df_state.sort_state.sort_columns.find(
+					(item) => item.col === (active_header_menu?.col ?? -1)
+				)?.direction ?? null
+			: null}
+		sort_priority={active_header_menu
+			? $df_state.sort_state.sort_columns.findIndex(
+					(item) => item.col === (active_header_menu?.col ?? -1)
+				) + 1 || null
+			: null}
 	/>
 {/if}
 
@@ -978,10 +1072,6 @@
 		font-family: var(--font-mono);
 		border-spacing: 0;
 		border-collapse: separate;
-	}
-
-	table.fixed-layout {
-		table-layout: fixed;
 	}
 
 	thead {

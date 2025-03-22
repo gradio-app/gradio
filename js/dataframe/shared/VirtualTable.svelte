@@ -305,8 +305,7 @@
 <style type="text/css">
 	table {
 		position: relative;
-		overflow-y: scroll;
-		overflow-x: scroll;
+		overflow: auto;
 		-webkit-overflow-scrolling: touch;
 		max-height: var(--max-height);
 		box-sizing: border-box;
@@ -321,7 +320,52 @@
 		width: 100%;
 		scroll-snap-type: x proximity;
 		border-collapse: separate;
+		scrollbar-width: thin;
+		scrollbar-color: rgba(128, 128, 128, 0.5) transparent;
 	}
+
+	table::-webkit-scrollbar {
+		width: 4px;
+		height: 4px;
+	}
+
+	table::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	table::-webkit-scrollbar-thumb {
+		background-color: rgba(128, 128, 128, 0.5);
+		border-radius: 4px;
+	}
+
+	table:hover {
+		scrollbar-color: rgba(160, 160, 160, 0.7) transparent;
+	}
+
+	table:hover::-webkit-scrollbar-thumb {
+		background-color: rgba(160, 160, 160, 0.7);
+		border-radius: 4px;
+		width: 4px;
+	}
+
+	@media (hover: none) {
+		table {
+			scrollbar-color: rgba(160, 160, 160, 0.7) transparent;
+		}
+
+		table::-webkit-scrollbar-thumb {
+			background-color: rgba(160, 160, 160, 0.7);
+			border-radius: 4px;
+		}
+	}
+
+	@media (pointer: coarse) {
+		table::-webkit-scrollbar {
+			width: 8px;
+			height: 8px;
+		}
+	}
+
 	table :is(thead, tfoot, tbody) {
 		display: table;
 		table-layout: fixed;

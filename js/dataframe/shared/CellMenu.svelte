@@ -2,6 +2,7 @@
 	import { onMount } from "svelte";
 	import CellMenuIcons from "./CellMenuIcons.svelte";
 	import type { I18nFormatter } from "js/utils/src";
+	import type { SortDirection } from "./context/table_context";
 
 	export let x: number;
 	export let y: number;
@@ -16,13 +17,18 @@
 	export let on_delete_col: () => void;
 	export let can_delete_rows: boolean;
 	export let can_delete_cols: boolean;
+	export let on_sort: (direction: SortDirection) => void = () => {};
+	export let on_clear_sort: () => void = () => {};
+	export let sort_direction: SortDirection | null = null;
+	export let sort_priority: number | null = null;
+	export let editable = true;
 
 	export let i18n: I18nFormatter;
 	let menu_element: HTMLDivElement;
 
 	$: is_header = row === -1;
-	$: can_add_rows = row_count[1] === "dynamic";
-	$: can_add_columns = col_count[1] === "dynamic";
+	$: can_add_rows = editable && row_count[1] === "dynamic";
+	$: can_add_columns = editable && col_count[1] === "dynamic";
 
 	onMount(() => {
 		position_menu();
@@ -51,34 +57,89 @@
 	}
 </script>
 
-<div bind:this={menu_element} class="cell-menu">
+<div bind:this={menu_element} class="cell-menu" role="menu">
+	{#if is_header}
+		<button
+			role="menuitem"
+			on:click={() => on_sort("asc")}
+			class:active={sort_direction === "asc"}
+		>
+			<CellMenuIcons icon="sort-asc" />
+			{i18n("dataframe.sort_ascending")}
+			{#if sort_direction === "asc" && sort_priority !== null}
+				<span class="priority">{sort_priority}</span>
+			{/if}
+		</button>
+		<button
+			role="menuitem"
+			on:click={() => on_sort("desc")}
+			class:active={sort_direction === "desc"}
+		>
+			<CellMenuIcons icon="sort-desc" />
+			{i18n("dataframe.sort_descending")}
+			{#if sort_direction === "desc" && sort_priority !== null}
+				<span class="priority">{sort_priority}</span>
+			{/if}
+		</button>
+		<button role="menuitem" on:click={on_clear_sort}>
+			<CellMenuIcons icon="clear-sort" />
+			{i18n("dataframe.clear_sort")}
+		</button>
+	{/if}
+
 	{#if !is_header && can_add_rows}
-		<button on:click={() => on_add_row_above()}>
+		<button
+			role="menuitem"
+			on:click={() => on_add_row_above()}
+			aria-label="Add row above"
+		>
 			<CellMenuIcons icon="add-row-above" />
 			{i18n("dataframe.add_row_above")}
 		</button>
-		<button on:click={() => on_add_row_below()}>
+		<button
+			role="menuitem"
+			on:click={() => on_add_row_below()}
+			aria-label="Add row below"
+		>
 			<CellMenuIcons icon="add-row-below" />
 			{i18n("dataframe.add_row_below")}
 		</button>
 		{#if can_delete_rows}
-			<button on:click={on_delete_row} class="delete">
+			<button
+				role="menuitem"
+				on:click={on_delete_row}
+				class="delete"
+				aria-label="Delete row"
+			>
 				<CellMenuIcons icon="delete-row" />
 				{i18n("dataframe.delete_row")}
 			</button>
 		{/if}
 	{/if}
 	{#if can_add_columns}
-		<button on:click={() => on_add_column_left()}>
+		<button
+			role="menuitem"
+			on:click={() => on_add_column_left()}
+			aria-label="Add column to the left"
+		>
 			<CellMenuIcons icon="add-column-left" />
 			{i18n("dataframe.add_column_left")}
 		</button>
-		<button on:click={() => on_add_column_right()}>
+		<button
+			role="menuitem"
+			on:click={() => on_add_column_right()}
+			aria-label="Add column to the right"
+		>
 			<CellMenuIcons icon="add-column-right" />
 			{i18n("dataframe.add_column_right")}
 		</button>
 		{#if can_delete_cols}
-			<button on:click={on_delete_col} class="delete">
+			<button
+				role="menuitem"
+				on:click={on_delete_col}
+				class="delete"
+				aria-label="Delete column"
+			>
 				<CellMenuIcons icon="delete-column" />
 				{i18n("dataframe.delete_column")}
 			</button>
@@ -99,6 +160,7 @@
 		gap: var(--size-1);
 		box-shadow: var(--shadow-drop-lg);
 		min-width: 150px;
+		z-index: var(--layer-1);
 	}
 
 	.cell-menu button {
@@ -116,6 +178,11 @@
 		display: flex;
 		align-items: center;
 		gap: var(--size-2);
+		position: relative;
+	}
+
+	.cell-menu button.active {
+		background-color: var(--background-fill-secondary);
 	}
 
 	.cell-menu button:hover {
@@ -125,5 +192,18 @@
 	.cell-menu button :global(svg) {
 		fill: currentColor;
 		transition: fill 0.2s;
+	}
+
+	.priority {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-left: auto;
+		font-size: var(--size-2);
+		background-color: var(--button-secondary-background-fill);
+		color: var(--body-text-color);
+		border-radius: var(--radius-sm);
+		width: var(--size-2-5);
+		height: var(--size-2-5);
 	}
 </style>

@@ -1,10 +1,11 @@
 <script lang="ts">
-	import SortIcon from "./icons/SortIcon.svelte";
 	import EditableCell from "./EditableCell.svelte";
 	import CellMenuButton from "./CellMenuButton.svelte";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { SortDirection } from "./context/table_context";
 	import Padlock from "./icons/Padlock.svelte";
+	import SortArrowUp from "./icons/SortArrowUp.svelte";
+	import SortArrowDown from "./icons/SortArrowDown.svelte";
 
 	export let value: string;
 	export let i: number;
@@ -18,11 +19,10 @@
 	export let headers: string[];
 	export let get_cell_width: (index: number) => string;
 	export let handle_header_click: (event: MouseEvent, col: number) => void;
-	export let handle_sort: (col: number, direction: SortDirection) => void;
 	export let toggle_header_menu: (event: MouseEvent, col: number) => void;
 	export let end_header_edit: (event: CustomEvent<KeyboardEvent>) => void;
-	export let sort_by: number | null;
-	export let sort_direction: SortDirection | null;
+	export let sort_columns: { col: number; direction: SortDirection }[] = [];
+
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -38,6 +38,10 @@
 	export let col_count: [number, "fixed" | "dynamic"];
 
 	$: can_add_columns = col_count && col_count[1] === "dynamic";
+	$: sort_index = sort_columns.findIndex((item) => item.col === i);
+	$: sort_priority = sort_index !== -1 ? sort_index + 1 : null;
+	$: current_direction =
+		sort_index !== -1 ? sort_columns[sort_index].direction : null;
 
 	function get_header_position(col_index: number): string {
 		if (col_index >= actual_pinned_columns) {
@@ -63,6 +67,7 @@
 	class:pinned-column={i < actual_pinned_columns}
 	class:last-pinned={i === actual_pinned_columns - 1}
 	class:focus={header_edit === i || selected_header === i}
+	class:sorted={sort_index !== -1}
 	aria-sort={get_sort_status(value, headers) === "none"
 		? "none"
 		: get_sort_status(value, headers) === "asc"
@@ -74,18 +79,10 @@
 		event.preventDefault();
 		event.stopPropagation();
 	}}
+	title={value}
 >
 	<div class="cell-wrap">
 		<div class="header-content">
-			{#if header_edit !== i}
-				<div class="sort-buttons">
-					<SortIcon
-						direction={sort_by === i ? sort_direction : null}
-						on:sort={({ detail }) => handle_sort(i, detail)}
-						{i18n}
-					/>
-				</div>
-			{/if}
 			<button
 				class="header-button"
 				on:click={(event) => handle_header_click(event, i)}
@@ -93,6 +90,7 @@
 					event.preventDefault();
 					event.stopPropagation();
 				}}
+				title={value}
 			>
 				<EditableCell
 					{max_chars}
@@ -101,19 +99,43 @@
 					{latex_delimiters}
 					{line_breaks}
 					edit={header_edit === i}
-					on:keydown={end_header_edit}
+					on:keydown={(event) => {
+						if (
+							event.detail.key === "Enter" ||
+							event.detail.key === "Escape" ||
+							event.detail.key === "Tab"
+						) {
+							end_header_edit(event);
+						}
+					}}
 					header
 					{root}
 					{editable}
 					{is_static}
 					{i18n}
 				/>
+				{#if sort_index !== -1}
+					<div class="sort-indicators">
+						<span class="sort-arrow">
+							{#if current_direction === "asc"}
+								<SortArrowUp size={12} />
+							{:else}
+								<SortArrowDown size={12} />
+							{/if}
+						</span>
+						{#if sort_columns.length > 1}
+							<span class="sort-priority">
+								{sort_priority}
+							</span>
+						{/if}
+					</div>
+				{/if}
 			</button>
 			{#if is_static}
 				<Padlock />
 			{/if}
 		</div>
-		{#if editable && can_add_columns}
+		{#if can_add_columns}
 			<CellMenuButton on_click={(event) => toggle_header_menu(event, i)} />
 		{/if}
 	</div>
@@ -148,6 +170,10 @@
 		--ring-color: var(--color-accent);
 		box-shadow: inset 0 0 0 2px var(--ring-color);
 		z-index: 4;
+	}
+
+	th.focus :global(.cell-menu-button) {
+		display: flex;
 	}
 
 	th:hover :global(.cell-menu-button) {
@@ -185,12 +211,41 @@
 	}
 
 	.header-button {
+		display: flex;
 		text-align: left;
 		width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		display: flex;
+		align-items: center;
+		position: relative;
 	}
 
-	.sort-buttons {
-		order: -1;
+	.sort-indicators {
+		display: flex;
+		align-items: center;
+		margin-left: var(--size-1);
+		gap: var(--size-1);
+	}
+
+	.sort-arrow {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--body-text-color);
+	}
+
+	.sort-priority {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: var(--size-2);
+		background-color: var(--button-secondary-background-fill);
+		color: var(--body-text-color);
+		border-radius: var(--radius-sm);
+		width: var(--size-2-5);
+		height: var(--size-2-5);
+		padding: var(--size-1-5);
 	}
 
 	.pinned-column {
