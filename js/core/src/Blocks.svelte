@@ -2,7 +2,7 @@
 	import { tick, onMount } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
-	import { writable } from 'svelte/store';
+	import { writable } from "svelte/store";
 
 	import type { LoadingStatus, LoadingStatusCollection } from "./stores";
 

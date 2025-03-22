@@ -49,7 +49,6 @@ from fastapi.responses import (
     Response,
     StreamingResponse,
 )
-from gradio.screen_recording_utils import process_video_with_ffmpeg
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from fastapi.websockets import WebSocket, WebSocketDisconnect
@@ -96,6 +95,7 @@ from gradio.route_utils import (  # noqa: F401
     create_lifespan_handler,
     move_uploaded_files_to_cache,
 )
+from gradio.screen_recording_utils import process_video_with_ffmpeg
 from gradio.server_messages import (
     CloseStreamMessage,
     EstimationMessage,
@@ -1685,7 +1685,9 @@ class App(FastAPI):
             output_path = tempfile.mktemp(suffix="_processed.webm")
 
             try:
-                processed_path, temp_files = await process_video_with_ffmpeg(input_path, output_path, params)
+                processed_path, temp_files = await process_video_with_ffmpeg(
+                    input_path, output_path, params
+                )
 
                 return FileResponse(
                     processed_path,

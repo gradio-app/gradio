@@ -4,6 +4,7 @@ import shutil
 import tempfile
 import traceback
 
+
 async def process_video_with_ffmpeg(input_path, output_path, params):
     """Process a video with ffmpeg based on the provided parameters."""
     current_input = input_path

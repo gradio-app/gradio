@@ -15,8 +15,12 @@ class ScreenRecorder {
 	private root: string;
 
 	constructor(
-        root: string,
-		add_new_message: (title: string, message: string, type: ToastMessage["type"]) => void
+		root: string,
+		add_new_message: (
+			title: string,
+			message: string,
+			type: ToastMessage["type"]
+		) => void
 	) {
 		this.add_new_message = add_new_message;
 		this.root = root;
@@ -45,7 +49,7 @@ class ScreenRecorder {
 				audio: true,
 				selfBrowserSurface: "include"
 			});
-            document.title = originalTitle;
+			document.title = originalTitle;
 
 			this.mediaRecorder = new MediaRecorder(stream, {
 				mimeType: "video/webm;codecs=vp9",
@@ -138,12 +142,12 @@ class ScreenRecorder {
 				"info"
 			);
 			const hasProcessing =
-				(this.removeSegment.start !== undefined &&
-					this.removeSegment.end !== undefined)
+				this.removeSegment.start !== undefined &&
+				this.removeSegment.end !== undefined;
 
 			if (!hasProcessing) {
 				const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.webm`;
-                this.saveWithDownloadAttribute(recordedBlob, defaultFilename);
+				this.saveWithDownloadAttribute(recordedBlob, defaultFilename);
 				return;
 			}
 
@@ -177,7 +181,7 @@ class ScreenRecorder {
 
 			const processedBlob = await response.blob();
 			const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.webm`;
-            this.saveWithDownloadAttribute(processedBlob, defaultFilename);
+			this.saveWithDownloadAttribute(processedBlob, defaultFilename);
 		} catch (error) {
 			console.error("Error processing recording:", error);
 			this.add_new_message(
@@ -187,7 +191,7 @@ class ScreenRecorder {
 			);
 
 			const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.webm`;
-            this.saveWithDownloadAttribute(recordedBlob, defaultFilename);
+			this.saveWithDownloadAttribute(recordedBlob, defaultFilename);
 		}
 	}
 
