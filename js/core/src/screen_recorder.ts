@@ -52,7 +52,7 @@ class ScreenRecorder {
 			document.title = originalTitle;
 
 			this.mediaRecorder = new MediaRecorder(stream, {
-				mimeType: "video/webm;codecs=vp9",
+				mimeType: "video/mp4",
 				videoBitsPerSecond: 3000000 // 3 Mbps
 			});
 
