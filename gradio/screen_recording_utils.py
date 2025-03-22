@@ -158,36 +158,6 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                 shutil.copy(current_input, final_webm)
 
             current_input = final_webm
-
-        watermark_output = output_path.replace(".webm", "_watermarked.webm")
-        cmd = [
-            "ffmpeg",
-            "-y",
-            "-i",
-            current_input,
-            "-vf",
-            "drawtext=text='Made with Gradio':fontcolor=white:fontsize=24:box=1:boxcolor=black@0.5:boxborderw=5:x=w-tw-10:y=h-th-10",
-            "-c:v",
-            "libvpx-vp9",
-            "-crf",
-            "30",
-            "-b:v",
-            "0",
-            "-c:a",
-            "copy",
-            watermark_output,
-        ]
-
-        process = await asyncio.create_subprocess_exec(
-            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-        )
-        stdout, stderr = await process.communicate()
-
-        if process.returncode != 0:
-            print(f"FFmpeg watermark error: {stderr.decode()}")
-            shutil.copy(current_input, watermark_output)
-
-        return watermark_output, temp_files
     except Exception as e:
         print(f"Error in process_video_with_ffmpeg: {str(e)}")
         traceback.print_exc()
