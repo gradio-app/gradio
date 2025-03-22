@@ -1,10 +1,5 @@
 <script lang="ts">
-	// import { getContext, onMount, tick } from "svelte";
-
 	import { click_outside } from "./utils/events";
-	// import { layer_manager, type LayerScene } from "./utils";
-	// import { EDITOR_KEY, type EditorContext } from "../ImageEditor.svelte";
-	// import type { FileData } from "@gradio/client";
 	import { Layers, Clear, ArrowUp, ArrowDown, Plus } from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
 	import { createEventDispatcher } from "svelte";

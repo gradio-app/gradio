@@ -194,7 +194,7 @@ class ImageEditor(Component):
         show_share_button: bool | None = None,
         _selectable: bool = False,
         crop_size: tuple[int | float, int | float] | str | None = None,
-        transforms: Iterable[Literal["crop"]] = ("crop",),
+        transforms: Iterable[Literal["crop", "resize"]] | None = ("crop", "resize"),
         eraser: Eraser | None | Literal[False] = None,
         brush: Brush | None | Literal[False] = None,
         format: str = "webp",

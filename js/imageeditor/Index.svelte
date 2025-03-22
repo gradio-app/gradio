@@ -11,7 +11,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { tick } from "svelte";
-	import type { LayerOptions } from "./shared/types";
+	import type { LayerOptions, Transform, Source } from "./shared/types";
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -35,16 +35,12 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let show_share_button = false;
-	export let sources: ("clipboard" | "webcam" | "upload")[] = [
-		"upload",
-		"clipboard",
-		"webcam",
-	];
+	export let sources: Source[] = [];
 	export let interactive: boolean;
 	export let placeholder: string | undefined;
 	export let brush: Brush;
 	export let eraser: Eraser;
-	export let transforms: "crop"[] = ["crop"];
+	export let transforms: Transform[] = [];
 	export let layers: LayerOptions;
 	export let attached_events: string[] = [];
 	export let server: {

@@ -941,6 +941,8 @@ export class ImageEditor {
 	private dark: boolean;
 	private border_region: number;
 	private layer_options: LayerOptions;
+	private overlay_container!: Container;
+	private overlay_graphics!: Graphics;
 
 	constructor(options: ImageEditorOptions) {
 		this.dark = options.dark || false;
@@ -1098,6 +1100,12 @@ export class ImageEditor {
 				this.image_container.position.y - this.outline_container.position.y
 			);
 
+			// Make sure overlay container follows the same position as outline container
+			this.overlay_container.position.set(
+				this.outline_container.position.x,
+				this.outline_container.position.y
+			);
+
 			this.outline_graphics.clear();
 			this.outline_graphics
 				.rect(local_x, local_y, effective_width, effective_height)
@@ -1105,13 +1113,83 @@ export class ImageEditor {
 					color: this.dark ? 0x333333 : 0xffffff,
 					alpha: 1
 				});
-			// .stroke({
-			// 	color: 0x000000,
-			// 	width: 1,
-			// 	alignment: 1,
-			// 	alpha: 0.3,
-			// 	join: "miter"
-			// });
+
+			// Draw border region indicator if border_region > 0
+			if (this.border_region > 0) {
+				const scaled_border = this.border_region * this.scale_value;
+				const border_x = local_x + scaled_border - 1;
+				const border_y = local_y + scaled_border - 1;
+				const border_width = effective_width - scaled_border * 2 + 1;
+				const border_height = effective_height - scaled_border * 2 + 1;
+
+				// Clear previous overlay graphics
+				this.overlay_graphics.clear();
+
+				// Draw border rectangle using pixelLine for crisp 1px outline
+				this.overlay_graphics
+					.rect(border_x, border_y, border_width, border_height)
+					.stroke({
+						color: 0x999999,
+						width: 1,
+						alpha: 0,
+						pixelLine: true
+					});
+
+				// Create dashed line effect by drawing small rects along the border
+				const dashLength = 5;
+				const gapLength = 5;
+				const totalLength = dashLength + gapLength;
+				const lineColor = 0x999999;
+
+				// Draw dashed horizontal lines (top and bottom)
+				for (let x = border_x; x < border_x + border_width; x += totalLength) {
+					// Top dash
+					this.overlay_graphics
+						.rect(
+							x,
+							border_y,
+							Math.min(dashLength, border_x + border_width - x),
+							1
+						)
+						.fill({ color: lineColor, alpha: 0.7 });
+
+					// Bottom dash
+					this.overlay_graphics
+						.rect(
+							x,
+							border_y + border_height,
+							Math.min(dashLength, border_x + border_width - x),
+							1
+						)
+						.fill({ color: lineColor, alpha: 0.7 });
+				}
+
+				// Draw dashed vertical lines (left and right)
+				for (let y = border_y; y < border_y + border_height; y += totalLength) {
+					// Left dash
+					this.overlay_graphics
+						.rect(
+							border_x,
+							y,
+							1,
+							Math.min(dashLength, border_y + border_height - y)
+						)
+						.fill({ color: lineColor, alpha: 0.7 });
+
+					// Right dash
+					this.overlay_graphics
+						.rect(
+							border_x + border_width,
+							y,
+							1,
+							Math.min(dashLength, border_y + border_height - y)
+						)
+						.fill({ color: lineColor, alpha: 0.7 });
+				}
+			} else {
+				// Clear overlay graphics if no border region
+				this.overlay_graphics.clear();
+			}
 		});
 
 		this.ready_resolve();
@@ -1164,6 +1242,22 @@ export class ImageEditor {
 
 		this.outline_container.addChild(this.outline_graphics);
 		this.app.stage.addChild(this.outline_container);
+
+		this.overlay_container = new Container();
+		this.app.stage.addChild(this.overlay_container);
+		this.overlay_container.width = this.width;
+		this.overlay_container.height = this.height;
+
+		this.overlay_container.zIndex = 999;
+		this.overlay_container.eventMode = "static";
+		this.overlay_container.interactiveChildren = true;
+		this.overlay_graphics = new Graphics();
+		this.overlay_container.addChild(this.overlay_graphics);
+
+		this.overlay_graphics.rect(0, 0, this.width, this.height).fill({
+			color: 0x000000,
+			alpha: 0
+		});
 
 		const app_center_x = this.app.screen.width / 2;
 		const app_center_y = this.app.screen.height / 2;

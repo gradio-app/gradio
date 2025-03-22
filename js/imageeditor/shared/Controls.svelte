@@ -2,8 +2,6 @@
 	import { createEventDispatcher } from "svelte";
 	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import {
-		Undo,
-		Redo,
 		Check,
 		Trash,
 		ZoomIn,
@@ -29,6 +27,7 @@
 	export let dimensions: Spring<{ width: number; height: number }>;
 	export let tool: string;
 	export let min_zoom = true;
+
 	const dispatch = createEventDispatcher<{
 		/**
 		 * Remove the current image.
@@ -88,8 +87,6 @@
 
 	$: formatted_zoom = Math.round(current_zoom * 100);
 	let show_resize_popup = false;
-
-	$: console.log(min_zoom);
 </script>
 
 <IconButtonWrapper>

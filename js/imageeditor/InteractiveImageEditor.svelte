@@ -28,10 +28,14 @@
 	import { Image as ImageIcon } from "@gradio/icons";
 	import { inject } from "./shared/utils/parse_placeholder";
 	// import Sources from "./shared/image/Sources.svelte";
-	import { type LayerOptions } from "./shared/types";
+	import {
+		type LayerOptions,
+		type Transform,
+		type Source,
+	} from "./shared/types";
 	export let brush: IBrush;
 	export let eraser: Eraser;
-	export let sources: ("clipboard" | "webcam" | "upload")[];
+	export let sources: Source[];
 	export let i18n: I18nFormatter;
 	export let root: string;
 	export let label: string | undefined = undefined;
@@ -42,9 +46,8 @@
 		layers: [],
 		composite: null,
 	};
-	// export let transforms: "crop"[] = ["crop"];
 	export let layers: LayerOptions;
-	export let transforms: "crop"[] = ["crop"];
+	export let transforms: Transform[];
 	export let accept_blobs: (a: any) => void;
 	export let status:
 		| "pending"
@@ -224,6 +227,7 @@
 	label={label || i18n("image.image")}
 />
 <ImageEditor
+	{transforms}
 	composite={value?.composite}
 	layers={value?.layers}
 	background={value?.background}

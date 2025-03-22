@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { type ComponentType } from "svelte";
+	import type { ColorInput } from "tinycolor2";
 	export let Icon: ComponentType;
 	export let label = "";
 	export let show_label = false;
@@ -9,12 +10,12 @@
 	export let highlight = false;
 	export let disabled = false;
 	export let hasPopup = false;
-	export let color = "var(--block-label-text-color)";
+	export let color: string | ColorInput = "var(--block-label-text-color)";
 	export let transparent = false;
 	export let background = "var(--background-fill-primary)";
 	export let offset = 0;
 	export let label_position: "left" | "right" = "left";
-	$: _color = highlight ? "var(--color-accent)" : color;
+	$: _color = highlight ? "var(--color-accent)" : color.toString();
 </script>
 
 <button

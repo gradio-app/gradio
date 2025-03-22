@@ -17,22 +17,16 @@
 	import { Webcam } from "@gradio/image";
 	import type { I18nFormatter } from "@gradio/utils";
 	import type { Client, FileData } from "@gradio/client";
-	import { writable } from "svelte/store";
-	import { spring } from "svelte/motion";
-	import { Rectangle } from "pixi.js";
+	import type { ColorInput } from "tinycolor2";
 	import { ZoomTool } from "./zoom/zoom";
-	import {
-		command_manager,
-		type CommandManager,
-		type CommandNode,
-	} from "./utils/commands";
+	import { type CommandManager, type CommandNode } from "./utils/commands";
 	import { ImageEditor } from "./core/editor";
 	import { type Brush, type Eraser } from "./brush/types";
 	import { BrushTool } from "./brush/brush";
 	import { create_drag } from "@gradio/upload";
 	import Layers from "./Layers.svelte";
 	import { Check } from "@gradio/icons";
-	import { type LayerOptions } from "./types";
+	import type { LayerOptions, Source, Transform } from "./types";
 	const { drag, open_file_upload } = create_drag();
 
 	interface WeirdTypeData {
@@ -50,8 +44,9 @@
 	// export let crop_size: [number, number] | undefined; no use any more
 	export let changeable = false;
 	// export const history = false; // Uncomment if needed
-	// export const sources = [];
-	// export const full_history = null;
+	export let sources: Source[] = ["upload", "webcam", "clipboard"];
+	export let transforms: Transform[] = ["crop", "resize"];
+
 	const dispatch = createEventDispatcher<{
 		clear?: never;
 		save: void;
@@ -60,6 +55,7 @@
 		upload: void;
 		input: void;
 	}>();
+
 	export let canvas_size: [number, number];
 	export const full_history: CommandNode | null = null;
 	export let is_dragging = false;
@@ -79,7 +75,6 @@
 	export let background: WeirdTypeData;
 	export let border_region: number;
 	export let layer_options: LayerOptions;
-
 	/**
 	 * Gets the image blobs from the editor
 	 * @returns {Promise<ImageBlobs>} Object containing background, layers, and composite image blobs
@@ -253,6 +248,7 @@
 		files: File[] | Blob[] | File | Blob | null,
 	): Promise<void> {
 		if (files == null) return;
+		if (!sources.includes("upload")) return;
 		const _file = Array.isArray(files) ? files[0] : files;
 		await editor.add_image({ image: _file });
 		await crop.add_image({ image: _file });
@@ -315,7 +311,7 @@
 	}
 
 	let eraser_size_visible = false;
-	let selected_color: ColorInput;
+	let selected_color: ColorInput | string;
 	let selected_size: number;
 	let selected_opacity = 1;
 	let selected_eraser_size: number;
@@ -371,7 +367,8 @@
 	$: disable_click =
 		current_tool !== "image" ||
 		(current_tool === "image" && background_image) ||
-		(current_tool === "image" && current_subtool === "webcam");
+		(current_tool === "image" && current_subtool === "webcam") ||
+		!sources.includes("upload");
 
 	let current_subtool: Subtool | null = null;
 	let preview = false;
@@ -484,6 +481,8 @@
    -->
 		{#if current_subtool !== "crop"}
 			<Toolbar
+				{sources}
+				{transforms}
 				background={background_image}
 				on:tool_change={(e) => handle_tool_change(e.detail)}
 				on:subtool_change={(e) => handle_subtool_change(e.detail)}

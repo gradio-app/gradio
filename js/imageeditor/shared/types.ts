@@ -9,3 +9,6 @@ export interface LayerOptions {
 	layers: string[];
 	disabled: boolean;
 }
+
+export type Source = "upload" | "webcam" | "clipboard";
+export type Transform = "crop" | "resize";

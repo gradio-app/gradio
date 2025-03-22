@@ -14,29 +14,20 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import IconButton from "./IconButton.svelte";
-	import Layers from "./Layers.svelte";
 	import {
 		Image,
-		// ZoomIn,
-		// ZoomOut,
 		Brush,
 		Erase,
 		Crop,
-		Undo,
-		Redo,
 		Upload,
 		ImagePaste,
 		Webcam,
-		Color,
 		Circle,
-		Maximise,
 		Resize,
-		Pan,
-		Trash,
 		ColorPickerSolid,
 	} from "@gradio/icons";
 	import BrushOptions from "./brush/BrushOptions.svelte";
-
+	import type { Source, Transform } from "./types";
 	import {
 		type Brush as BrushType,
 		type Eraser as EraserType,
@@ -46,24 +37,27 @@
 	export let subtool: Subtool = null;
 
 	export let background = false;
-	export let brush_options: BrushType;
+	export let brush_options: BrushType | false;
 	export let selected_size =
-		typeof brush_options.default_size === "number"
+		brush_options && typeof brush_options.default_size === "number"
 			? brush_options.default_size
 			: 25;
 	export let eraser_options: EraserType;
 	export let selected_eraser_size =
-		typeof eraser_options.default_size === "number"
+		eraser_options && typeof eraser_options.default_size === "number"
 			? eraser_options.default_size
 			: 25;
-	export let selected_color = brush_options.default_color;
+	export let selected_color = brush_options && brush_options.default_color;
 	export let selected_opacity = 1;
 	export let preview = false;
 	// export let opacity = 1;
 	export let show_brush_color = false;
 	export let show_brush_size = false;
 	export let show_eraser_size = false;
+	export let sources: Source[];
+	export let transforms: Transform[];
 	// Required by the component interface
+	$: console.log({ brush_options, eraser_options });
 
 	let enable_layers = true;
 	const dispatch = createEventDispatcher<{
@@ -97,106 +91,123 @@
 	$: show_brush_size = tool === "draw" && subtool === "size";
 	$: show_brush_color = tool === "draw" && subtool === "color";
 	$: show_eraser_size = tool === "erase" && subtool === "size";
+
+	$: can_crop = transforms.includes("crop");
+	$: can_resize = transforms.includes("resize");
+	$: can_upload = sources.includes("upload");
+	$: can_webcam = sources.includes("webcam");
+	$: can_paste = sources.includes("clipboard");
 </script>
 
 <div class="toolbar-wrap">
 	<div class="half-container">
-		<IconButton
-			Icon={Image}
-			label="Image"
-			highlight={tool === "image"}
-			on:click={(e) => handle_tool_click(e, "image")}
-			size="medium"
-			padded={false}
-			transparent={true}
-		/>
-
-		<IconButton
-			Icon={Brush}
-			label="Brush"
-			on:click={(e) => handle_tool_click(e, "draw")}
-			highlight={tool === "draw"}
-			size="medium"
-			padded={false}
-			transparent={true}
-		/>
-		<IconButton
-			Icon={Erase}
-			label="Erase"
-			on:click={(e) => handle_tool_click(e, "erase")}
-			highlight={tool === "erase"}
-			size="medium"
-			padded={false}
-			transparent={true}
-		/>
+		{#if sources.length > 0}
+			<IconButton
+				Icon={Image}
+				label="Image"
+				highlight={tool === "image"}
+				on:click={(e) => handle_tool_click(e, "image")}
+				size="medium"
+				padded={false}
+				transparent={true}
+			/>
+		{/if}
+		{#if brush_options}
+			<IconButton
+				Icon={Brush}
+				label="Brush"
+				on:click={(e) => handle_tool_click(e, "draw")}
+				highlight={tool === "draw"}
+				size="medium"
+				padded={false}
+				transparent={true}
+			/>
+		{/if}
+		{#if eraser_options}
+			<IconButton
+				Icon={Erase}
+				label="Erase"
+				on:click={(e) => handle_tool_click(e, "erase")}
+				highlight={tool === "erase"}
+				size="medium"
+				padded={false}
+				transparent={true}
+			/>
+		{/if}
 	</div>
-	<div class="half-container right" class:hide={tool === "pan"}>
+	<div
+		class="half-container right"
+		class:hide={tool === "pan" ||
+			(tool === "image" && !background && sources.length === 0) ||
+			(tool === "image" && background && transforms.length === 0)}
+	>
 		{#if tool === "image"}
 			{#if background}
-				<!-- <IconButton
-					Icon={Trash}
-					label="Remove Background"
-					on:click={(e) => handle_subtool_click(e, "remove_background")}
-					size="medium"
-					padded={false}
-					transparent={true}
-					offset={0}
-				/> -->
-				<IconButton
-					Icon={Crop}
-					label="Crop"
-					on:click={(e) => handle_subtool_click(e, "crop")}
-					highlight={subtool === "crop"}
-					size="medium"
-					padded={false}
-					transparent={true}
-					offset={0}
-				/>
-				<IconButton
-					Icon={Resize}
-					label="Resize"
-					on:click={(e) => handle_subtool_click(e, "size")}
-					highlight={subtool === "size"}
-					size="medium"
-					padded={false}
-					transparent={true}
-					offset={0}
-				/>
+				{#if can_crop}
+					<IconButton
+						Icon={Crop}
+						label="Crop"
+						on:click={(e) => handle_subtool_click(e, "crop")}
+						highlight={subtool === "crop"}
+						size="medium"
+						padded={false}
+						transparent={true}
+						offset={0}
+					/>
+				{/if}
+				{#if can_resize}
+					<IconButton
+						Icon={Resize}
+						label="Resize"
+						on:click={(e) => handle_subtool_click(e, "size")}
+						highlight={subtool === "size"}
+						size="medium"
+						padded={false}
+						transparent={true}
+						offset={0}
+					/>
+				{/if}
 			{:else}
-				<IconButton
-					Icon={Upload}
-					label="Upload"
-					on:click={(e) => handle_subtool_click(e, "upload")}
-					highlight={subtool === "upload"}
-					size="medium"
-					padded={false}
-					transparent={true}
-					offset={0}
-				/>
-				<IconButton
-					Icon={ImagePaste}
-					label="Paste"
-					on:click={(e) => handle_subtool_click(e, "paste")}
-					highlight={subtool === "paste"}
-					size="large"
-					padded={false}
-					transparent={true}
-					offset={0}
-				/>
-				<IconButton
-					Icon={Webcam}
-					label="Webcam"
-					on:click={(e) => handle_subtool_click(e, "webcam")}
-					highlight={subtool === "webcam"}
-					size="medium"
-					padded={false}
-					transparent={true}
-					offset={0}
-				/>
+				{#if can_upload}
+					<IconButton
+						Icon={Upload}
+						label="Upload"
+						on:click={(e) => handle_subtool_click(e, "upload")}
+						highlight={subtool === "upload"}
+						size="medium"
+						padded={false}
+						transparent={true}
+						offset={0}
+					/>
+				{/if}
+				{#if can_paste}
+					<IconButton
+						Icon={ImagePaste}
+						label="Paste"
+						on:click={(e) => handle_subtool_click(e, "paste")}
+						highlight={subtool === "paste"}
+						size="large"
+						padded={false}
+						transparent={true}
+						offset={0}
+					/>
+				{/if}
+				{#if can_webcam}
+					<IconButton
+						Icon={Webcam}
+						label="Webcam"
+						on:click={(e) => handle_subtool_click(e, "webcam")}
+						highlight={subtool === "webcam"}
+						size="medium"
+						padded={false}
+						transparent={true}
+						offset={0}
+					/>
+				{/if}
 			{/if}
 		{/if}
 
-		{#if tool === "draw"}
+		{#if tool === "draw" && brush_options}
 			<IconButton
 				Icon={ColorPickerSolid}
 				label="Color"
@@ -241,7 +252,7 @@
 			{/if}
 		{/if}
 
-		{#if tool === "erase"}
+		{#if tool === "erase" && eraser_options}
 			<IconButton
 				Icon={Circle}
 				label="Eraser Size"

@@ -46,6 +46,8 @@ export class ResizeTool implements Tool {
 	private dom_mousemove_handler: ((e: MouseEvent) => void) | null = null;
 	private dom_mouseup_handler: ((e: MouseEvent) => void) | null = null;
 	private event_callbacks: Map<string, (() => void)[]> = new Map();
+	private last_scale = 1;
+
 	/**
 	 * @method setup
 	 * @async
@@ -102,10 +104,26 @@ export class ResizeTool implements Tool {
 
 		context.position.subscribe((position) => {
 			this.position = position;
+			// Update resize UI immediately when position changes to avoid lag
+			if (
+				this.resize_ui_container &&
+				this.current_tool === "image" &&
+				this.current_subtool === "size"
+			) {
+				this.update_resize_ui();
+			}
 		});
 
 		context.scale.subscribe((scale) => {
 			this.scale = scale;
+			// Update resize UI immediately when scale changes to avoid lag
+			if (
+				this.resize_ui_container &&
+				this.current_tool === "image" &&
+				this.current_subtool === "size"
+			) {
+				this.update_resize_ui();
+			}
 		});
 
 		// Initialize resize UI
@@ -255,8 +273,9 @@ export class ResizeTool implements Tool {
 
 		this.image_editor_context.app.stage.addChild(this.resize_ui_container);
 
-		// Start the update loop
-		this.image_editor_context.app.ticker.add(this.update_resize_ui.bind(this));
+		// Instead of using the ticker for continuous updates, we'll use immediate updates
+		// on scale and position changes, which we've added in the setup method
+		// This will eliminate lag during zoom operations
 	}
 
 	/**
@@ -282,44 +301,48 @@ export class ResizeTool implements Tool {
 
 		// Add a second graphics object for the dotted effect
 		const dotted_outline = new Graphics();
+
+		// Use pixelLine for crisp rendering
+		dotted_outline.rect(0, 0, width, height).stroke({
+			width: 1,
+			color: 0x000000,
+			alpha: 0.7,
+			pixelLine: true
+		});
+
+		// Create dashed line effect by drawing small rectangles along the border
 		const dash_length = 5;
 		const gap_length = 5;
 		const total_length = dash_length + gap_length;
 
-		// Draw top line
-		for (let x = 0; x < width; x += total_length) {
+		// Draw dashed horizontal lines (top and bottom) - draw fewer dashes for performance
+		for (let x = 0; x < width; x += total_length * 2) {
+			// Skip every other dash
+			// Top dash
 			dotted_outline
 				.rect(x, 0, Math.min(dash_length, width - x), 1)
 				.fill(0x000000);
+
+			// Bottom dash
+			dotted_outline
+				.rect(x, height - 1, Math.min(dash_length, width - x), 1)
+				.fill(0x000000);
 		}
 
-		// Draw right line
-		for (let y = 0; y < height; y += total_length) {
+		// Draw dashed vertical lines (left and right) - draw fewer dashes for performance
+		for (let y = 0; y < height; y += total_length * 2) {
+			// Skip every other dash
+			// Left dash
+			dotted_outline
+				.rect(0, y, 1, Math.min(dash_length, height - y))
+				.fill(0x000000);
+
+			// Right dash
 			dotted_outline
 				.rect(width - 1, y, 1, Math.min(dash_length, height - y))
 				.fill(0x000000);
 		}
 
-		// Draw bottom line
-		for (let x = width; x > 0; x -= total_length) {
-			dotted_outline
-				.rect(
-					Math.max(0, x - dash_length),
-					height - 1,
-					Math.min(dash_length, x),
-					1
-				)
-				.fill(0x000000);
-		}
-
-		// Draw left line
-		for (let y = height; y > 0; y -= total_length) {
-			dotted_outline
-				.rect(0, Math.max(0, y - dash_length), 1, Math.min(dash_length, y))
-				.fill(0x000000);
-		}
-
-		dotted_outline.alpha = 0.7;
 		resize_container.addChild(outline);
 		resize_container.addChild(dotted_outline);
 
@@ -819,14 +842,18 @@ export class ResizeTool implements Tool {
 		const background_image = this.image_editor_context.background_image;
 		const image_container = this.image_editor_context.image_container;
 
-		// Combine container position (screen coords) with scaled sprite position (local coords)
-		const total_x =
-			image_container.position.x + background_image.position.x * this.scale;
-		const total_y =
-			image_container.position.y + background_image.position.y * this.scale;
+		// Get current image container global position
+		const container_global_pos = image_container.getGlobalPosition();
 
-		// Move resize_ui_container to match the combined position
-		this.resize_ui_container.position.set(total_x, total_y);
+		// Calculate background image position in global coordinates
+		const bg_pos_x = background_image.position.x * this.scale;
+		const bg_pos_y = background_image.position.y * this.scale;
+
+		// Position resize UI precisely to match the image position in global space
+		this.resize_ui_container.position.set(
+			container_global_pos.x + bg_pos_x,
+			container_global_pos.y + bg_pos_y
+		);
 
 		// Get the scaled dimensions
 		const scaled_width = background_image.width * this.scale;
@@ -843,44 +870,68 @@ export class ResizeTool implements Tool {
 		const dotted_outline = this.resize_ui_container.getChildAt(1) as Graphics;
 		dotted_outline.clear();
 
-		const dash_length = 5;
-		const gap_length = 5;
-		const total_length = dash_length + gap_length;
+		// Use simpler more performant approach for the dotted outline
+		// Just draw the solid outline with pixelLine for crisp rendering
+		dotted_outline.rect(0, 0, scaled_width, scaled_height).stroke({
+			width: 1,
+			color: 0x000000,
+			alpha: 0.7,
+			pixelLine: true
+		});
 
-		// Draw top line
-		for (let x = 0; x < scaled_width; x += total_length) {
-			dotted_outline
-				.rect(x, 0, Math.min(dash_length, scaled_width - x), 1)
-				.fill(0x000000);
+		// Only draw dashes when not actively resizing or moving to improve performance
+		// And disable dashes during zoom operations to prevent lag
+		if (
+			!this.is_dragging &&
+			!this.is_moving &&
+			Math.abs(this.scale - this.last_scale) < 0.001
+		) {
+			// Create dashed line effect by drawing small rectangles along the border
+			const dash_length = 5;
+			const gap_length = 5;
+			const total_length = dash_length + gap_length;
+
+			// Draw dashed horizontal lines (top and bottom) - draw fewer dashes for performance
+			for (let x = 0; x < scaled_width; x += total_length * 2) {
+				// Skip every other dash
+				// Top dash
+				dotted_outline
+					.rect(x, 0, Math.min(dash_length, scaled_width - x), 1)
+					.fill(0x000000);
+
+				// Bottom dash
+				dotted_outline
+					.rect(
+						x,
+						scaled_height - 1,
+						Math.min(dash_length, scaled_width - x),
+						1
+					)
+					.fill(0x000000);
+			}
+
+			// Draw dashed vertical lines (left and right) - draw fewer dashes for performance
+			for (let y = 0; y < scaled_height; y += total_length * 2) {
+				// Skip every other dash
+				// Left dash
+				dotted_outline
+					.rect(0, y, 1, Math.min(dash_length, scaled_height - y))
+					.fill(0x000000);
+
+				// Right dash
+				dotted_outline
+					.rect(
+						scaled_width - 1,
+						y,
+						1,
+						Math.min(dash_length, scaled_height - y)
+					)
+					.fill(0x000000);
+			}
 		}
 
-		// Draw right line
-		for (let y = 0; y < scaled_height; y += total_length) {
-			dotted_outline
-				.rect(scaled_width - 1, y, 1, Math.min(dash_length, scaled_height - y))
-				.fill(0x000000);
-		}
-
-		// Draw bottom line
-		for (let x = scaled_width; x > 0; x -= total_length) {
-			dotted_outline
-				.rect(
-					Math.max(0, x - dash_length),
-					scaled_height - 1,
-					Math.min(dash_length, x),
-					1
-				)
-				.fill(0x000000);
-		}
-
-		// Draw left line
-		for (let y = scaled_height; y > 0; y -= total_length) {
-			dotted_outline
-				.rect(0, Math.max(0, y - dash_length), 1, Math.min(dash_length, y))
-				.fill(0x000000);
-		}
-
-		dotted_outline.alpha = 0.7;
+		// Store the current scale for comparison on next update
+		this.last_scale = this.scale;
 
 		// Update the move area
 		const move_area = this.resize_ui_container.getChildAt(2) as Graphics;

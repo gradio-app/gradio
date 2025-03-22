@@ -19,7 +19,7 @@ export class ZoomTool implements Tool {
 
 	// Constants
 	private readonly max_zoom = 10;
-	private readonly border_padding = 45;
+	private readonly border_padding = 30;
 
 	// State
 	private is_pinching = false;
