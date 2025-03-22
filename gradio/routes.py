@@ -492,7 +492,7 @@ class App(FastAPI):
 
             @app.get("/logout")
             def logout(user: str = Depends(get_current_user)):
-                response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+                response = RedirectResponse(url=app.root_path or "/", status_code=status.HTTP_302_FOUND)
                 response.delete_cookie(key=f"access-token-{app.cookie_id}", path="/")
                 response.delete_cookie(
                     key=f"access-token-unsecure-{app.cookie_id}", path="/"
