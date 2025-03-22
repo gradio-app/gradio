@@ -16,7 +16,8 @@
 		"@gradio/utils": "workspace:^",
 		"@gradio/wasm": "workspace:^",
 		"@types/tinycolor2": "^1.4.6",
-		"pixi.js": "^7.3.2",
+		"pixi-filters": "^6.1.0",
+		"pixi.js": "^8.7.3",
 		"tinycolor2": "^1.6.0"
 	},
 	"devDependencies": {

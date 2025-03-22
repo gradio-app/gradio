@@ -70,4 +70,8 @@
 		width: 1px;
 		background-color: var(--border-color-primary);
 	}
+
+	.icon-button-wrapper :global(> *) {
+		height: 100%;
+	}
 </style>

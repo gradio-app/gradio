@@ -1,441 +1,574 @@
 <script lang="ts" context="module">
 	import type { Writable, Readable } from "svelte/store";
 	import type { Spring } from "svelte/motion";
-	import { type PixiApp } from "./utils/pixi";
-	import { type CommandManager, type CommandNode } from "./utils/commands";
+	// import { type PixiApp } from "./utils/pixi";
+	// import { type CommandManager, type CommandNode } from "./utils/commands";
+	import type { Tool, Subtool } from "./Toolbar.svelte";
 
 	export const EDITOR_KEY = Symbol("editor");
 	export type context_type = "bg" | "layers" | "crop" | "draw" | "erase";
-	type PartialRecord<K extends keyof any, T> = Partial<Record<K, T>>;
-	import { type tool } from "./tools";
-
-	export interface EditorContext {
-		pixi: Writable<PixiApp | null>;
-		current_layer: Writable<LayerScene | null>;
-		dimensions: Writable<[number, number]>;
-		editor_box: Writable<{
-			parent_width: number;
-			parent_height: number;
-			parent_left: number;
-			parent_top: number;
-			parent_right: number;
-			parent_bottom: number;
-			child_width: number;
-			child_height: number;
-			child_left: number;
-			child_top: number;
-			child_right: number;
-			child_bottom: number;
-		}>;
-		active_tool: Writable<tool>;
-		toolbar_box: Writable<DOMRect | Record<string, never>>;
-		crop: Writable<[number, number, number, number]>;
-		position_spring: Spring<{
-			x: number;
-			y: number;
-		}>;
-		command_manager: CommandManager;
-		current_history: CommandManager["current_history"];
-		register_context: (
-			type: context_type,
-			{
-				reset_fn,
-				init_fn
-			}: {
-				reset_fn?: () => void;
-				init_fn?: (dimensions?: [number, number]) => void;
-			}
-		) => void;
-		reset: (clear_image: boolean, dimensions: [number, number]) => void;
-	}
 </script>
 
 <script lang="ts">
 	import { onMount, setContext, createEventDispatcher, tick } from "svelte";
-	import { writable } from "svelte/store";
-	import { spring } from "svelte/motion";
-	import { Rectangle } from "pixi.js";
+	import Toolbar, { type Tool as ToolbarTool } from "./Toolbar.svelte";
+	import { CropTool } from "./crop/crop";
+	import { ResizeTool } from "./resize/resize";
+	import { Webcam } from "@gradio/image";
+	import type { I18nFormatter } from "@gradio/utils";
+	import type { Client, FileData } from "@gradio/client";
+	import type { ColorInput } from "tinycolor2";
+	import { ZoomTool } from "./zoom/zoom";
+	import { type CommandManager, type CommandNode } from "./utils/commands";
+	import { ImageEditor } from "./core/editor";
+	import { type Brush, type Eraser } from "./brush/types";
+	import { BrushTool } from "./brush/brush";
+	import { create_drag } from "@gradio/upload";
+	import Layers from "./Layers.svelte";
+	import { Check } from "@gradio/icons";
+	import type { LayerOptions, Source, Transform } from "./types";
+	const { drag, open_file_upload } = create_drag();
 
-	import { command_manager } from "./utils/commands";
+	interface WeirdTypeData {
+		url: string;
+		meta: {
+			_type: string;
+		};
+	}
 
-	import { type LayerScene } from "./layers/utils";
-	import { create_pixi_app, type ImageBlobs } from "./utils/pixi";
+	// import { type LayerScene } from "./layers/utils";
+	import { type ImageBlobs } from "./types";
 	import Controls from "./Controls.svelte";
-	export let antialias = true;
-	export let crop_size: [number, number] | undefined;
+	import IconButton from "./IconButton.svelte";
+	export const antialias = true;
+	// export let crop_size: [number, number] | undefined; no use any more
 	export let changeable = false;
-	export let history: boolean;
-	export let bg = false;
-	export let sources: ("clipboard" | "webcam" | "upload")[];
+	// export const history = false; // Uncomment if needed
+	export let sources: Source[] = ["upload", "webcam", "clipboard"];
+	export let transforms: Transform[] = ["crop", "resize"];
+
 	const dispatch = createEventDispatcher<{
 		clear?: never;
 		save: void;
 		change: void;
 		history: CommandManager["current_history"];
+		upload: void;
+		input: void;
 	}>();
-	export let crop_constraint = false;
-	export let canvas_size: [number, number] | undefined;
-	export let parent_height: number;
-	export let full_history: CommandNode | null = null;
 
-	$: orig_canvas_size = canvas_size;
-
-	const BASE_DIMENSIONS: [number, number] = canvas_size || [800, 600];
-
-	let dimensions = writable(BASE_DIMENSIONS);
-	export let height = 0;
-
-	let editor_box: EditorContext["editor_box"] = writable({
-		parent_width: 0,
-		parent_height: parent_height,
-		parent_top: 0,
-		parent_left: 0,
-		parent_right: 0,
-		parent_bottom: 0,
-		child_width: 0,
-		child_height: parent_height,
-		child_top: 0,
-		child_left: 0,
-		child_right: 0,
-		child_bottom: 0
-	});
-
-	export let canvas_height = undefined;
-
-	$: height = $editor_box.child_height;
-	$: canvas_height = $editor_box.child_height + 1;
-
-	const crop = writable<[number, number, number, number]>([0, 0, 1, 1]);
-	const position_spring = spring(
-		{ x: 0, y: 0 },
-		{
-			stiffness: 0.1,
-			damping: 0.5
-		}
-	);
-	const pixi = writable<PixiApp | null>(null);
-
-	const CommandManager = command_manager();
-
-	const { can_redo, can_undo, current_history } = CommandManager;
-
-	function get_start_history(history: any): any {
-		if (history.previous) {
-			return get_start_history(history.previous);
-		}
-		return history;
-	}
-
-	$: $current_history.previous, dispatch("change");
-	$: dispatch("history", get_start_history($current_history));
-
-	$: {
-		history = !!$current_history.previous || $active_tool !== "bg";
-	}
-	const is_browser = typeof window !== "undefined";
-
-	const active_tool: Writable<tool> = writable("bg");
-	const reset_context: Writable<PartialRecord<context_type, () => void>> =
-		writable({});
-	const init_context: Writable<
-		PartialRecord<context_type, (dimensions?: typeof $dimensions) => void>
-	> = writable({});
-	const contexts: Writable<context_type[]> = writable([]);
-	const toolbar_box: Writable<DOMRect | Record<string, never>> = writable(
-		is_browser ? new DOMRect() : {}
-	);
-
-	const sort_order = ["bg", "layers", "crop", "draw", "erase"] as const;
-	const editor_context = setContext<EditorContext>(EDITOR_KEY, {
-		pixi,
-		current_layer: writable(null),
-		dimensions,
-		editor_box,
-		toolbar_box,
-		active_tool,
-		crop,
-		position_spring,
-		command_manager: CommandManager,
-		current_history,
-		register_context: (
-			type: context_type,
-			{
-				reset_fn,
-				init_fn
-			}: {
-				reset_fn?: () => void;
-				init_fn?: (dimensions?: [number, number]) => void;
-			}
-		) => {
-			contexts.update((c) => [...c, type]);
-			init_context.update((c) => ({ ...c, [type]: init_fn }));
-			reset_context.update((c) => ({ ...c, [type]: reset_fn }));
-		},
-		reset: (clear_image: boolean, dimensions: [number, number]) => {
-			bg = false;
-
-			const _sorted_contexts = $contexts.sort((a, b) => {
-				return sort_order.indexOf(a) - sort_order.indexOf(b);
-			});
-			for (const k of _sorted_contexts) {
-				if (k in $reset_context && typeof $reset_context[k] === "function") {
-					$reset_context[k]?.();
-				}
-			}
-
-			for (const k of _sorted_contexts) {
-				if (k in $init_context && typeof $init_context[k] === "function") {
-					if (k === "bg" && !clear_image) {
-						continue;
-					} else {
-						$init_context[k]?.(dimensions);
-					}
-				}
-				CommandManager.reset();
-				$pixi?.resize?.(...dimensions);
-			}
-		}
-	});
-
+	export let canvas_size: [number, number];
+	export const full_history: CommandNode | null = null;
+	export let is_dragging = false;
 	let pixi_target: HTMLDivElement;
-
-	let canvas_wrap: HTMLDivElement;
-
-	function get_dimensions(parent: HTMLDivElement, child: HTMLDivElement): void {
-		if (!parent || !child) return;
-		const {
-			width: parent_width,
-			height: parent_height,
-			top: parent_top,
-			left: parent_left,
-			right: parent_right,
-			bottom: parent_bottom
-		} = canvas_wrap.getBoundingClientRect();
-		const {
-			width: child_width,
-			height: child_height,
-			top: child_top,
-			left: child_left,
-			right: child_right,
-			bottom: child_bottom
-		} = child.getBoundingClientRect();
-		editor_box.set({
-			child_width,
-			child_height,
-			child_left,
-			child_right,
-			child_top,
-			child_bottom,
-
-			parent_width,
-			parent_height,
-			parent_left,
-			parent_right,
-			parent_top,
-			parent_bottom
-		});
-	}
-
-	$: if (crop_constraint && bg && !history) {
-		set_crop();
-	}
-
-	function set_crop(): void {
-		requestAnimationFrame(() => {
-			tick().then((v) => ($active_tool = "crop"));
-		});
-	}
-
-	function reposition_canvas(): void {
-		if (!$editor_box) return;
-		const [l, t, w, h] = $crop;
-
-		const cx = 0;
-		const cy = 0;
-		const cw = $editor_box.child_width;
-		const ch = $editor_box.child_height;
-
-		const x = 0.5 * $editor_box.child_width - cx - cw / 2;
-		const y = 0.5 * $editor_box.child_height - cy - ch / 2;
-
-		position_spring.set({ x, y });
-	}
-
+	let pixi_target_crop: HTMLDivElement;
+	export let background_image = false;
+	export let brush_options: Brush;
+	export let eraser_options: Eraser;
+	export let fixed_canvas = false;
+	export let root: string;
+	export let mirror_webcam = true;
+	export let i18n: I18nFormatter;
+	export let upload: Client["upload"];
+	export let stream_handler: Client["stream"];
+	export let composite: WeirdTypeData[];
+	export let layers: WeirdTypeData[];
+	export let background: WeirdTypeData;
+	export let border_region: number;
+	export let layer_options: LayerOptions;
+	/**
+	 * Gets the image blobs from the editor
+	 * @returns {Promise<ImageBlobs>} Object containing background, layers, and composite image blobs
+	 */
 	export async function get_blobs(): Promise<ImageBlobs> {
-		if (!$pixi || !$pixi.get_layers)
-			return { background: null, layers: [], composite: null };
-		const [l, t, w, h] = $crop;
+		// Implement function logic or adjust return type
 
-		return $pixi?.get_blobs(
-			$pixi.get_layers(),
-			new Rectangle(
-				Math.round(0),
-				Math.round(0),
-				Math.round(1 * $dimensions[0]),
-				Math.round(1 * $dimensions[1])
-			),
-			$dimensions
-		);
+		const blobs = await editor.get_blobs();
+		return blobs;
 	}
 
-	$: $crop && reposition_canvas();
-	$: $position_spring && get_dimensions(canvas_wrap, pixi_target);
+	let editor: ImageEditor;
 
-	export function handle_remove(): void {
-		editor_context.reset(
-			true,
-			orig_canvas_size ? orig_canvas_size : $dimensions
-		);
-		if (!sources.length) {
-			set_tool("draw");
+	/**
+	 * Adds an image to the editor
+	 * @param {Blob | File} image - The image to add
+	 */
+	export function add_image(image: Blob | File): void {
+		editor.add_image({ image });
+	}
+
+	let pending_bg: Promise<void>;
+	/**
+	 * Adds an image to the editor from a URL
+	 * @param {string | FileData} source - The URL of the image or a FileData object
+	 * @returns {Promise<void>}
+	 */
+	export async function add_image_from_url(
+		source:
+			| string
+			| {
+					url: string;
+					meta: {
+						_type: string;
+					};
+			  }
+			| any,
+	): Promise<void> {
+		if (!editor) return;
+
+		let url: string;
+
+		// Handle different source types
+		if (typeof source === "string") {
+			url = source;
+		} else if (source?.meta?._type === "gradio.FileData" && source?.url) {
+			url = source.url;
 		} else {
-			set_tool("bg");
+			console.warn("Invalid source provided to add_image_from_url:", source);
+			return;
 		}
-		dispatch("clear");
 
-		let _size = (canvas_size ? canvas_size : crop_size) || [800, 600];
-		editor_context.reset(true, _size);
+		try {
+			pending_bg = editor.add_image_from_url(url);
+			await pending_bg;
+			background_image = true;
+			dispatch("upload");
+			dispatch("input");
+		} catch (error) {
+			console.error("Error adding image from URL:", error);
+		}
 	}
+
+	/**
+	 * Adds a new layer with an image loaded from a URL
+	 * @param {string | FileData} source - The URL of the image or a FileData object
+	 * @returns {Promise<string | null>} - The ID of the created layer, or null if failed
+	 */
+	export async function add_layers_from_url(
+		source: WeirdTypeData[] | any,
+	): Promise<void> {
+		if (!editor) return;
+
+		let url: string;
+
+		// Handle different source types
+		if (
+			Array.isArray(source) &&
+			source.every((item) => item?.meta?._type === "gradio.FileData")
+		) {
+			try {
+				await pending_bg;
+
+				await editor.add_layers_from_url(source.map((item) => item.url));
+				dispatch("change");
+				dispatch("input");
+			} catch (error) {
+				console.error("Error adding layer from URL:", error);
+			}
+		}
+	}
+
+	export let current_tool: ToolbarTool;
+
+	let brush: BrushTool;
+	let zoom: ZoomTool;
+	let zoom_level = 1;
+	let ready = false;
+	let mounted = false;
+	let min_zoom = true;
 
 	onMount(() => {
-		const _size = (canvas_size ? canvas_size : crop_size) || [800, 600];
-		const app = create_pixi_app({
-			target: pixi_target,
-			dimensions: _size,
-			antialias
-		});
-
-		function resize(width: number, height: number): void {
-			app.resize(width, height);
-			dimensions.set([width, height]);
-		}
-
-		pixi.set({ ...app, resize });
-
-		const resizer = new ResizeObserver((entries) => {
-			for (const entry of entries) {
-				get_dimensions(canvas_wrap, pixi_target);
-			}
-		});
-
-		resizer.observe(canvas_wrap);
-		resizer.observe(pixi_target);
-
-		for (const k of $contexts) {
-			if (k in $init_context && typeof $init_context[k] === "function") {
-				$init_context[k]?.($dimensions);
-			}
-		}
-
-		resize(...$dimensions);
-
-		tick().then(() => {
-			if (full_history) {
-				CommandManager.hydrate(full_history);
-			}
-		});
+		mounted = true;
+		init_image_editor();
 
 		return () => {
-			$pixi?.destroy();
-			resizer.disconnect();
-			for (const k of $contexts) {
-				if (k in $reset_context) {
-					$reset_context[k]?.();
-				}
+			if (editor) {
+				editor.destroy();
 			}
 		};
 	});
 
-	let saved_history: null | typeof $current_history = $current_history;
+	let crop: ImageEditor;
+	let crop_zoom: ZoomTool;
+	async function init_image_editor(): Promise<void> {
+		brush = new BrushTool();
+		zoom = new ZoomTool();
+		editor = new ImageEditor({
+			target_element: pixi_target,
+			width: canvas_size[0],
+			height: canvas_size[1],
+			tools: ["image", zoom, new ResizeTool(), brush],
+			fixed_canvas,
+			border_region,
+			layer_options,
+		});
+
+		crop_zoom = new ZoomTool();
+
+		crop = new ImageEditor({
+			target_element: pixi_target_crop,
+			width: canvas_size[0],
+			height: canvas_size[1],
+			tools: ["image", crop_zoom, new CropTool()],
+			dark: true,
+			border_region,
+		});
+
+		editor.scale.subscribe((_scale) => {
+			zoom_level = _scale;
+		});
+
+		editor.min_zoom.subscribe((is_min_zoom) => {
+			min_zoom = is_min_zoom;
+		});
+
+		Promise.all([editor.ready, crop.ready]).then(() => {
+			handle_tool_change({ tool: "image" });
+			ready = true;
+			crop.set_tool("image");
+			crop.set_subtool("crop");
+		});
+
+		editor.on("change", () => {
+			dispatch("change");
+		});
+	}
+
+	function resize_canvas(width: number, height: number): void {
+		if (!editor) return;
+		if (mounted && ready) {
+			editor.resize(width, height);
+		}
+	}
+
+	/**
+	 * Handles file uploads
+	 * @param {File[]} files - The uploaded files
+	 */
+	async function handle_files(
+		files: File[] | Blob[] | File | Blob | null,
+	): Promise<void> {
+		if (files == null) return;
+		if (!sources.includes("upload")) return;
+		const _file = Array.isArray(files) ? files[0] : files;
+		await editor.add_image({ image: _file });
+		await crop.add_image({ image: _file });
+		crop.reset();
+		background_image = true;
+
+		dispatch("upload");
+		dispatch("input");
+	}
+
+	/**
+	 * Handles tool change events
+	 * @param {{ tool: ToolbarTool }} param0 - Object containing the selected tool
+	 */
+	function handle_tool_change({ tool }: { tool: ToolbarTool }): void {
+		editor.set_tool(tool);
+		current_tool = tool;
+	}
+
+	/**
+	 * Handles subtool change events
+	 * @param {{ tool: ToolbarTool, subtool: Subtool }} param0 - Object containing the selected tool and subtool
+	 */
+	function handle_subtool_change({
+		tool,
+		subtool,
+	}: {
+		tool: ToolbarTool;
+		subtool: Subtool | null;
+	}): void {
+		editor.set_subtool(subtool);
+		current_subtool = subtool;
+
+		if (subtool === null) {
+			return;
+		}
+
+		if (tool === "draw") {
+			if (subtool === "size") {
+				brush_size_visible = true;
+			} else if (subtool === "color") {
+				brush_color_visible = true;
+			}
+		}
+
+		if (tool === "erase" && subtool === "size") {
+			eraser_size_visible = true;
+		}
+
+		if (tool === "image" && subtool === "paste") {
+			process_clipboard();
+		}
+
+		if (tool === "image" && subtool === "upload") {
+			tick().then(() => {
+				disable_click = false;
+				open_file_upload();
+			});
+		}
+	}
+
+	let eraser_size_visible = false;
+	let selected_color: ColorInput | string;
+	let selected_size: number;
+	let selected_opacity = 1;
+	let selected_eraser_size: number;
+
+	$: {
+		if (brush_options) {
+			update_brush_options();
+		}
+
+		if (eraser_options) {
+			update_eraser_options();
+		}
+	}
+
+	function update_brush_options(): void {
+		selected_color =
+			brush_options.default_color === "auto"
+				? brush_options.colors[0]
+				: brush_options.default_color;
+		selected_size =
+			typeof brush_options.default_size === "number"
+				? brush_options.default_size
+				: 25;
+		selected_opacity = 1;
+	}
+
+	function update_eraser_options(): void {
+		selected_eraser_size =
+			eraser_options.default_size === "auto" ? 25 : eraser_options.default_size;
+	}
+
+	let brush_size_visible = false;
+
+	let brush_color_visible = false;
+
+	$: brush?.set_brush_color(
+		selected_color === "auto"
+			? brush_options.colors.find(
+					(color) => color === brush_options.default_color,
+				) || brush_options.colors[0]
+			: selected_color,
+	);
+
+	// Type-safe brush size handling
+	$: brush?.set_brush_size(
+		typeof selected_size === "number" ? selected_size : 25,
+	);
+
+	$: brush?.set_eraser_size(
+		typeof selected_eraser_size === "number" ? selected_eraser_size : 25,
+	);
+
+	$: disable_click =
+		current_tool !== "image" ||
+		(current_tool === "image" && background_image) ||
+		(current_tool === "image" && current_subtool === "webcam") ||
+		!sources.includes("upload");
+
+	let current_subtool: Subtool | null = null;
+	let preview = false;
+	$: brush?.preview_brush(preview);
+	$: brush?.set_brush_opacity(selected_opacity);
+
+	function handle_zoom_change(zoom_level: number | "fit"): void {
+		zoom.set_zoom(zoom_level);
+	}
+
+	function zoom_in_out(direction: "in" | "out"): void {
+		zoom.set_zoom(
+			direction === "in"
+				? zoom_level + (zoom_level < 1 ? 0.1 : zoom_level * 0.1)
+				: zoom_level - (zoom_level < 1 ? 0.1 : zoom_level * 0.1),
+		);
+	}
+
+	async function process_clipboard(): Promise<void> {
+		const items = await navigator.clipboard.read();
+
+		for (let i = 0; i < items.length; i++) {
+			const type = items[i].types.find((t) => t.startsWith("image/"));
+			if (type) {
+				const blob = await items[i].getType(type);
+
+				handle_files(blob);
+			}
+		}
+	}
+
+	function handle_capture(e: CustomEvent): void {
+		if (e.detail !== null) {
+			handle_files(e.detail as Blob);
+		}
+		handle_subtool_change({ tool: current_tool, subtool: null });
+	}
 
 	function handle_save(): void {
-		saved_history = $current_history;
 		dispatch("save");
 	}
 
-	export function set_tool(tool: tool): void {
-		$active_tool = tool;
+	$: add_image_from_url(composite || background);
+	$: add_layers_from_url(layers);
+
+	async function handle_crop_confirm(): Promise<void> {
+		const { image, x, y, original_dimensions } = await crop.get_crop_bounds();
+		if (!image) return;
+		editor.add_image({
+			image,
+			resize: false,
+			crop_offset: { x, y },
+			original_dimensions,
+			is_cropped: true,
+		});
+		handle_subtool_change({ tool: "image", subtool: null });
 	}
 </script>
 
-<svelte:window on:scroll={() => get_dimensions(canvas_wrap, pixi_target)} />
-
-<div data-testid="image" class="image-container">
-	<Controls
-		can_undo={$can_undo}
+<div
+	data-testid="image"
+	class="image-container"
+	class:dark-bg={current_subtool === "crop"}
+	use:drag={{
+		on_drag_change: (dragging) => (is_dragging = dragging),
+		on_files: handle_files,
+		accepted_types: "image/*",
+		disable_click: disable_click,
+	}}
+>
+	{#if ready}
+		{#if current_subtool !== "crop"}
+			<Controls
+				{changeable}
+				on:set_zoom={(e) => handle_zoom_change(e.detail)}
+				on:zoom_in={() => zoom_in_out("in")}
+				on:zoom_out={() => zoom_in_out("out")}
+				{min_zoom}
+				current_zoom={zoom_level}
+				on:remove_image={() => {
+					editor.reset_canvas();
+					background_image = false;
+				}}
+				tool={current_tool}
+				dimensions={editor.dimensions}
+				on:resize={(e) => {
+					editor.modify_canvas_size(
+						e.detail.width,
+						e.detail.height,
+						e.detail.anchor,
+						e.detail.scale,
+					);
+				}}
+				can_save={true}
+				on:save={handle_save}
+				on:pan={(e) => {
+					handle_tool_change({ tool: "pan" });
+				}}
+			/>
+		{/if}
+		<!-- on:save={handle_save} -->
+		<!-- can_save={saved_history !== $current_history} -->
+		<!-- on:remove_image={handle_remove} -->
+		<!-- 
+    can_undo={$can_undo}
 		can_redo={$can_redo}
-		can_save={saved_history !== $current_history}
 		{changeable}
 		on:undo={CommandManager.undo}
 		on:redo={CommandManager.redo}
-		on:remove_image={handle_remove}
-		on:save={handle_save}
-	/>
-	<div class="container">
-		<div class="wrap" bind:this={canvas_wrap}>
-			<div bind:this={pixi_target} class="stage-wrap" class:bg={!bg}></div>
+   -->
+		{#if current_subtool !== "crop"}
+			<Toolbar
+				{sources}
+				{transforms}
+				background={background_image}
+				on:tool_change={(e) => handle_tool_change(e.detail)}
+				on:subtool_change={(e) => handle_subtool_change(e.detail)}
+				show_brush_size={brush_size_visible}
+				show_brush_color={brush_color_visible}
+				show_eraser_size={eraser_size_visible}
+				{brush_options}
+				{eraser_options}
+				bind:selected_color
+				bind:selected_size
+				bind:selected_eraser_size
+				bind:selected_opacity
+				bind:preview
+				tool={current_tool}
+				subtool={current_subtool}
+			/>
+		{/if}
+
+		{#if current_tool === "image" && current_subtool === "webcam"}
+			<div class="modal">
+				<div class="modal-inner">
+					<Webcam
+						{upload}
+						{root}
+						on:capture={handle_capture}
+						on:error
+						on:drag
+						{mirror_webcam}
+						streaming={false}
+						mode="image"
+						include_audio={false}
+						{i18n}
+					/>
+				</div>
+			</div>
+		{/if}
+
+		{#if current_subtool !== "crop" && !layer_options.disabled}
+			<Layers
+				enable_additional_layers={layer_options.allow_additional_layers}
+				layers={editor.layers}
+				on:new_layer={() => {
+					editor.add_layer();
+				}}
+				on:change_layer={(e) => {
+					editor.set_layer(e.detail);
+				}}
+				on:move_layer={(e) => {
+					editor.move_layer(e.detail.id, e.detail.direction);
+				}}
+				on:delete_layer={(e) => {
+					editor.delete_layer(e.detail);
+				}}
+			/>
+		{/if}
+	{/if}
+	<div
+		class="pixi-target"
+		class:visible={current_subtool !== "crop"}
+		bind:this={pixi_target}
+	></div>
+	<div
+		class="pixi-target-crop"
+		class:visible={current_subtool === "crop"}
+		bind:this={pixi_target_crop}
+	></div>
+
+	{#if current_subtool === "crop"}
+		<div class="crop-confirm-button">
+			<IconButton
+				Icon={Check}
+				label="Confirm crop"
+				show_label={true}
+				size="large"
+				padded={true}
+				color="white"
+				background="var(--color-green-500)"
+				label_position="right"
+				on:click={handle_crop_confirm}
+			/>
 		</div>
-		<div class="tools-wrap">
-			<slot />
-		</div>
-		<div
-			class="canvas"
-			class:no-border={!bg && $active_tool === "bg" && !history}
-			style:width="{$editor_box.child_width + 1}px"
-			style:height="{$editor_box.child_height + 1}px"
-			style:top="{$editor_box.child_top - $editor_box.parent_top - 0.5}px"
-			style:left="{$editor_box.child_left - $editor_box.parent_left - 0.5}px"
-		></div>
-	</div>
+	{/if}
+	<slot></slot>
 </div>
 
 <style>
-	.wrap {
-		display: flex;
-		width: 100%;
-		height: 100%;
-		position: relative;
-		justify-content: center;
-	}
-	.canvas {
-		position: absolute;
-		border: var(--block-border-color) 1px solid;
-		pointer-events: none;
-		border-radius: var(--radius-md);
-	}
-
-	.container {
-		position: relative;
-		margin: var(--spacing-md);
-		/* in case the canvas_size is really small */
-		/* set min-height so that upload text does not cover the toolbar */
-		min-height: 100px;
-	}
-
-	.no-border {
-		border: none;
-	}
-
-	.stage-wrap {
-		margin-bottom: var(--size-1);
-		border-radius: var(--radius-md);
-		overflow: hidden;
-		height: fit-content;
-		width: auto;
-	}
-
-	.tools-wrap {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		padding: 0 var(--spacing-xl) 0 0;
-		border: 1px solid var(--block-border-color);
-		border-radius: var(--radius-sm);
-		margin: var(--spacing-xxl) 0 var(--spacing-xxl) 0;
-		width: fit-content;
-		margin: 0 auto;
-	}
-
 	.image-container {
 		display: flex;
 		height: 100%;
@@ -443,5 +576,80 @@
 		justify-content: center;
 		align-items: center;
 		max-height: 100%;
+		border-radius: var(--radius-sm);
+	}
+
+	.pixi-target {
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		top: 0;
+		left: 0;
+		z-index: 1;
+		display: block;
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.pixi-target-crop {
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		top: 0;
+		left: 0;
+		z-index: 2;
+		display: block;
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.visible {
+		opacity: 1;
+		pointer-events: auto;
+	}
+
+	.pixi-target {
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		overflow: hidden;
+	}
+
+	.modal {
+		position: absolute;
+		height: 100%;
+		width: 100%;
+		left: 0;
+		right: 0;
+		margin: auto;
+		z-index: var(--layer-top);
+		display: flex;
+		align-items: center;
+	}
+
+	.modal-inner {
+		height: 100%;
+		width: 100%;
+		background: var(--block-background-fill);
+	}
+
+	.dark-bg {
+		background: #333;
+	}
+
+	.crop-confirm-button {
+		position: absolute;
+		bottom: 8px;
+		left: 0;
+		right: 0;
+		margin: auto;
+		z-index: var(--layer-top);
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 </style>
