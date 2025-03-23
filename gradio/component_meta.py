@@ -18,6 +18,7 @@ INTERFACE_TEMPLATE = '''
     from gradio.blocks import Block
     if TYPE_CHECKING:
         from gradio.components import Timer
+        from gradio.components.base import Component
 
     {% for event in events %}
     def {{ event.event_name }}(self,
