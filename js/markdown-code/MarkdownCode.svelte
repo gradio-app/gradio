@@ -129,7 +129,7 @@
 			const mermaidDivs = el.querySelectorAll(".mermaid");
 			if (mermaidDivs.length > 0) {
 				await tick();
-				const { default: mermaid } = await import('mermaid');
+				const { default: mermaid } = await import("mermaid");
 				mermaid.initialize({
 					startOnLoad: false,
 					theme: "default",
