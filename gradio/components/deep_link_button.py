@@ -35,7 +35,7 @@ class DeepLinkButton(Button):
         copied_value: str = "Link Copied!",
         *,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
-        variant: Literal["primary", "secondary"] = "primary",
+        variant: Literal["primary", "secondary"] = "secondary",
         size: Literal["sm", "md", "lg"] = "lg",
         icon: str | Path | None = utils.get_icon_path("link.svg"),
         link: str | None = None,
