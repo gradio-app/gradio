@@ -6,6 +6,7 @@
 <script lang="ts">
 	import type { Gradio, CopyData } from "@gradio/utils";
 	import Markdown from "./shared/Markdown.svelte";
+	import type { ThemeMode } from "@gradio/core";
 
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
@@ -36,6 +37,8 @@
 	export let max_height: number | string | undefined;
 	export let show_copy_button = false;
 	export let container = false;
+	export let theme_mode: ThemeMode;
+
 
 	$: label, gradio.dispatch("change");
 </script>
@@ -73,6 +76,7 @@
 			{show_copy_button}
 			root={gradio.root}
 			{loading_status}
+			{theme_mode}
 		/>
 	</div>
 </Block>
