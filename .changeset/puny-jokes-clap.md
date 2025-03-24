@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Improve UI for lazy caching
+fix:Improve UI for lazy caching
