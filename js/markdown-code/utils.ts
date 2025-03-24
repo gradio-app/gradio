@@ -60,7 +60,7 @@ function escape(html: string, encode?: boolean): string {
 
 	return html;
 }
-interface LatexTokenizer {
+interface Tokenizer {
 	name: string;
 	level: string;
 	start: (src: string) => number | undefined;
@@ -70,7 +70,7 @@ interface LatexTokenizer {
 
 function createLatexTokenizer(
 	delimiters: { left: string; right: string; display: boolean }[]
-): LatexTokenizer {
+): Tokenizer {
 	const delimiterPatterns = delimiters.map((delimiter) => ({
 		start: new RegExp(delimiter.left.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")),
 		end: new RegExp(delimiter.right.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"))
@@ -108,11 +108,10 @@ function createLatexTokenizer(
 	};
 }
 
-// Add this function to create a custom mermaid tokenizer
-function createMermaidTokenizer(): LatexTokenizer {
+function createMermaidTokenizer(): Tokenizer {
 	return {
-		name: 'mermaid',
-		level: 'block',
+		name: "mermaid",
+		level: "block",
 		start(src) {
 			return src.match(/^```mermaid\s*\n/)?.index;
 		},
@@ -120,7 +119,7 @@ function createMermaidTokenizer(): LatexTokenizer {
 			const match = /^```mermaid\s*\n([\s\S]*?)```\s*(?:\n|$)/.exec(src);
 			if (match) {
 				return {
-					type: 'mermaid',
+					type: "mermaid",
 					raw: match[0],
 					text: match[1].trim()
 				};
@@ -220,11 +219,11 @@ export function create_marked({
 			]
 		});
 	}
-	
+
 	// Add our custom mermaid tokenizer
 	const mermaidTokenizer = createMermaidTokenizer();
 	const latexTokenizer = createLatexTokenizer(latex_delimiters);
-	
+
 	marked.use({
 		extensions: [mermaidTokenizer, latexTokenizer]
 	});
