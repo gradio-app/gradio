@@ -19,6 +19,9 @@ importers:
 
   .:
     dependencies:
+      '@babylonjs/viewer':
+        specifier: ^7.54.0
+        version: 7.54.0(@babylonjs/core@7.54.0)(@babylonjs/loaders@7.52.2(@babylonjs/core@7.54.0)(babylonjs-gltf2interface@7.50.0))
       '@changesets/changelog-github':
         specifier: ^0.5.0
         version: 0.5.0
@@ -82,15 +85,6 @@ importers:
       autoprefixer:
         specifier: ^10.4.19
         version: 10.4.19(postcss@8.4.38)
-      babylonjs:
-        specifier: ^7.42.0
-        version: 7.50.0
-      babylonjs-loaders:
-        specifier: ^7.42.0
-        version: 7.50.0
-      babylonjs-viewer:
-        specifier: ^7.42.0
-        version: 7.42.0
       esbuild:
         specifier: ^0.21.0
         version: 0.21.0
@@ -4979,15 +4973,6 @@ packages:
 
   babylonjs-gltf2interface@7.50.0:
     resolution: {integrity: sha512-ogaOBkUT6DrVYh/VWl6nlnmKjVK3Ml9rJgj3C53bauC96vPGR89egW8D7YshbPOF16Y4NaCggAL2G8mHr1aaMw==}
-
-  babylonjs-loaders@7.50.0:
-    resolution: {integrity: sha512-yg95UDy4dCqit+NYF6ity0tAH/e0zSfbtCndKbIW8HBXFZ4uQensVxvlE6MfGbZoAr3et2E6TUIekY9vuJyrzg==}
-
-  babylonjs-viewer@7.42.0:
-    resolution: {integrity: sha512-0CW1EtW877pb2HrW/iQBnS8YeYe12aTj8qMvLqMTWnFAqppmRy3aufnUmx9Li1udUB2sNPOnu5hYTbpHRxIfcQ==}
-
-  babylonjs@7.50.0:
-    resolution: {integrity: sha512-0tmo5IJ/GQuukjXcYLaqtzUmW3s8p9A5QsH253wQCyHq2vjlcCQEgzquAc32ApFIldKAVg/2eFmnoP7C6eRDJw==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -11894,17 +11879,6 @@ snapshots:
       '@babel/types': 7.23.3
 
   babylonjs-gltf2interface@7.50.0: {}
-
-  babylonjs-loaders@7.50.0:
-    dependencies:
-      babylonjs: 7.50.0
-      babylonjs-gltf2interface: 7.50.0
-
-  babylonjs-viewer@7.42.0:
-    dependencies:
-      babylonjs-gltf2interface: 7.50.0
-
-  babylonjs@7.50.0: {}
 
   balanced-match@1.0.2: {}
 
