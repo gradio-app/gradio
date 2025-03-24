@@ -108,6 +108,31 @@ function createLatexTokenizer(
 	};
 }
 
+// Add this function to create a custom mermaid tokenizer
+function createMermaidTokenizer(): LatexTokenizer {
+	return {
+		name: 'mermaid',
+		level: 'block',
+		start(src) {
+			return src.match(/^```mermaid\s*\n/)?.index;
+		},
+		tokenizer(src) {
+			const match = /^```mermaid\s*\n([\s\S]*?)```\s*(?:\n|$)/.exec(src);
+			if (match) {
+				return {
+					type: 'mermaid',
+					raw: match[0],
+					text: match[1].trim()
+				};
+			}
+			return undefined;
+		},
+		renderer(token) {
+			return `<div class="mermaid">${token.text}</div>\n`;
+		}
+	};
+}
+
 const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 	code(
 		this: Renderer,
@@ -118,11 +143,10 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 		const lang = (infostring ?? "").match(/\S*/)?.[0] ?? "";
 		code = code.replace(/\n$/, "") + "\n";
 
-		if (lang === "mermaid") {
-			return `<div class="mermaid">${code}</div>`;
-		}
-
-		if (!lang) {
+		if (!lang || lang === "mermaid") {
+			// We include lang === "mermaid" to handle mermaid blocks that don't match our custom tokenizer
+			// (i.e., those without closing ```). This handles mermaid blocks that have started streaming
+			// but haven't finished yet.
 			return (
 				'<div class="code_wrap">' +
 				COPY_BUTTON_CODE +
@@ -196,9 +220,13 @@ export function create_marked({
 			]
 		});
 	}
+	
+	// Add our custom mermaid tokenizer
+	const mermaidTokenizer = createMermaidTokenizer();
 	const latexTokenizer = createLatexTokenizer(latex_delimiters);
+	
 	marked.use({
-		extensions: [latexTokenizer]
+		extensions: [mermaidTokenizer, latexTokenizer]
 	});
 
 	return marked;
