@@ -15,6 +15,7 @@ import mimetypes
 import os
 import secrets
 import sys
+import threading
 import time
 import traceback
 import warnings
@@ -1094,8 +1095,17 @@ class App(FastAPI):
             return {"event_id": event_id}
 
         @router.post("/cancel")
-        async def cancel_event(body: CancelBody):
-            await cancel_tasks({f"{body.session_hash}_{body.fn_index}"})
+        async def cancel_event(self, body: CancelBody):
+            app = self.server_app
+            loop = asyncio.get_running_loop()
+            if body.event_id not in app.iterators:
+                raise HTTPException(status_code=404, detail="Event not found")
+            await loop.run_in_executor(
+                None,
+                lambda: asyncio.run(
+                    cancel_tasks({f"{body.session_hash}_{body.fn_index}"})
+                ),
+            )
             blocks = app.get_blocks()
             # Need to complete the job so that the client disconnects
             session_open = (
@@ -1114,6 +1124,16 @@ class App(FastAPI):
                 ].put_nowait(message)
             if body.event_id in app.iterators:
                 async with app.lock:
+                    iterator_obj = app.iterators[body.event_id]
+                    if iterator_obj and hasattr(iterator_obj, "iterator"):
+                        iterator = iterator_obj.iterator
+                        if hasattr(iterator_obj, "stop_event") and isinstance(
+                            iterator_obj.stop_event, threading.Event
+                        ):
+                            iterator_obj.stop_event.set()
+                        await loop.run_in_executor(None, time.sleep, 0.1)
+                        if hasattr(iterator, "close"):
+                            iterator.close()
                     del app.iterators[body.event_id]
                     app.iterators_to_reset.add(body.event_id)
             return {"success": True}

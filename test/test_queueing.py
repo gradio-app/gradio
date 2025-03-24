@@ -1,5 +1,6 @@
 import time
 from concurrent.futures import wait
+from tempfile import TemporaryDirectory
 
 import gradio_client as grc
 import pytest
@@ -213,3 +214,22 @@ class TestQueueing:
                     mul_job_2,
                 ]
             )
+
+    def test_create_tmpdir(self, connect):
+        def create_tmpdir():
+            with TemporaryDirectory() as tmpdir:
+                while True:
+                    time.sleep(1)
+                    yield tmpdir
+
+        with gr.Blocks() as demo:
+            run_btn = gr.Button()
+            stop_btn = gr.Button("Stop")
+            textbox = gr.Textbox()
+
+            event = run_btn.click(create_tmpdir, outputs=textbox)
+            stop_btn.click(None, cancels=event)
+
+            demo.queue().launch()
+
+        assert True

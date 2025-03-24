@@ -4,6 +4,7 @@ import asyncio
 import copy
 import os
 import random
+import threading
 import time
 import traceback
 import uuid
@@ -801,6 +802,7 @@ class Queue:
 
     async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route
+        loop = asyncio.get_running_loop()
         app = self.server_app
         if app is None:
             raise Exception("Server app has not been set.")
@@ -808,6 +810,16 @@ class Queue:
             # Failure, but don't raise an error
             return
         async with app.lock:
+            iterator_obj = app.iterators[event_id]
+            if iterator_obj and hasattr(iterator_obj, "iterator"):
+                iterator = iterator_obj.iterator
+                if hasattr(iterator_obj, "stop_event") and isinstance(
+                    iterator_obj.stop_event, threading.Event
+                ):
+                    iterator_obj.stop_event.set()
+                await loop.run_in_executor(None, time.sleep, 0.1)
+                if hasattr(iterator, "close"):
+                    iterator.close()
             del app.iterators[event_id]
             app.iterators_to_reset.add(event_id)
         return
