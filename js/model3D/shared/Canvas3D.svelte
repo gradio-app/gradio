@@ -76,22 +76,22 @@
 		if (viewer) {
 			if (url) {
 				viewer
-				.loadModel(url, {
-					pluginOptions: {
-						obj: {
-							importVertexColors: true
+					.loadModel(url, {
+						pluginOptions: {
+							obj: {
+								importVertexColors: true
+							}
 						}
-					}
-				})
-				.then(() => {
-					if (display_mode === "point_cloud") {
-						setRenderingMode(true, false);
-					} else if (display_mode === "wireframe") {
-						setRenderingMode(false, true);
-					} else {
-						update_camera(camera_position);
-					}
-				});
+					})
+					.then(() => {
+						if (display_mode === "point_cloud") {
+							setRenderingMode(true, false);
+						} else if (display_mode === "wireframe") {
+							setRenderingMode(false, true);
+						} else {
+							update_camera(camera_position);
+						}
+					});
 			} else {
 				viewer.resetModel();
 			}
@@ -104,11 +104,10 @@
 		viewer.resetCamera();
 		const camera = viewerDetails.camera;
 		if (camera_position[0] !== null) {
-			camera.alpha = camera_position[0] * Math.PI / 180;
+			camera.alpha = (camera_position[0] * Math.PI) / 180;
 		}
 		if (camera_position[1] !== null) {
-			camera.beta = camera_position[1] * Math.PI / 180;
-
+			camera.beta = (camera_position[1] * Math.PI) / 180;
 		}
 		if (camera_position[2] !== null) {
 			camera.radius = camera_position[2];
