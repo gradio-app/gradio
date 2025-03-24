@@ -571,7 +571,7 @@ class Interface(Blocks):
             Markdown(self.description)
 
     def render_flag_btns(self) -> list[Button]:
-        return [Button(label, size="md") for label, _ in self.flagging_options]
+        return [Button(label) for label, _ in self.flagging_options]
 
     def render_input_column(
         self,
