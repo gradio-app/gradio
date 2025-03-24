@@ -451,7 +451,9 @@ class App(FastAPI):
 
         @app.post("/login")
         @app.post("/login/")
-        def login(request: fastapi.Request, form_data: OAuth2PasswordRequestForm = Depends()):
+        def login(
+            request: fastapi.Request, form_data: OAuth2PasswordRequestForm = Depends()
+        ):
             username, password = form_data.username.strip(), form_data.password
             if app.auth is None:
                 root = route_utils.get_root_url(
