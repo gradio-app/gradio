@@ -5,6 +5,7 @@
 	import { Copy, Check } from "@gradio/icons";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
+	import type { ThemeMode } from "@gradio/core";
 
 	import { MarkdownCode } from "@gradio/markdown-code";
 
@@ -25,7 +26,7 @@
 	export let show_copy_button = false;
 	export let root: string;
 	export let loading_status: LoadingStatus | undefined = undefined;
-
+	export let theme_mode: ThemeMode;
 	let copied = false;
 	let timer: NodeJS.Timeout;
 
@@ -81,6 +82,7 @@
 		chatbot={false}
 		{header_links}
 		{root}
+		{theme_mode}
 	/>
 </div>
 

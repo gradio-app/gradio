@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { afterUpdate, tick } from "svelte";
+	import { afterUpdate, tick, onMount } from "svelte";
 	import render_math_in_element from "katex/contrib/auto-render";
 	import "katex/dist/katex.min.css";
 	import { create_marked } from "./utils";
 	import { sanitize } from "@gradio/sanitize";
 	import "./prism.css";
 	import { standardHtmlTags } from "./html-tags";
+	import type { ThemeMode } from "@gradio/core";
 
 	export let chatbot = true;
 	export let message: string;
@@ -20,7 +21,7 @@
 	export let header_links = false;
 	export let root: string;
 	export let allow_tags: string[] | boolean = false;
-
+	export let theme_mode: ThemeMode = "system";
 	let el: HTMLSpanElement;
 	let html: string;
 
@@ -121,6 +122,23 @@
 				render_math_in_element(el, {
 					delimiters: latex_delimiters,
 					throwOnError: false
+				});
+			}
+		}
+
+		if (el) {
+			const mermaidDivs = el.querySelectorAll(".mermaid");
+			if (mermaidDivs.length > 0) {
+				await tick();
+				const { default: mermaid } = await import("mermaid");
+
+				mermaid.initialize({
+					startOnLoad: false,
+					theme: theme_mode === "dark" ? "dark" : "default",
+					securityLevel: "antiscript"
+				});
+				await mermaid.run({
+					nodes: Array.from(mermaidDivs).map((node) => node as HTMLElement)
 				});
 			}
 		}

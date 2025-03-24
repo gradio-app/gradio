@@ -48,6 +48,18 @@ in two separate lines.`
 />
 
 <Story
+	name="Markdown with Mermaid"
+	args={{
+		value: `
+\`\`\`mermaid
+graph TD
+A --> B
+\`\`\`
+`
+	}}
+/>
+
+<Story
 	name="Markdown with Wide Content (Horizontal Scrolling)"
 	args={{
 		value: `| ids                 | ids                 | ids                 |
