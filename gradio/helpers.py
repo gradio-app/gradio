@@ -348,20 +348,31 @@ class Examples:
 
             if self.cache_examples:
 
-                def load_example_with_output(example_tuple):
-                    example_id, example_value = example_tuple
+                def load_example_input(example_tuple):
+                    _, example_value = example_tuple
                     processed_example = self._get_processed_example(
                         example_value
-                    ) + self.load_from_cache(example_id)
+                    )
                     return utils.resolve_singleton(processed_example)
 
+                def load_example_output(example_tuple):
+                    example_id, _ = example_tuple
+                    cached_outputs = self.load_from_cache(example_id)
+                    return utils.resolve_singleton(cached_outputs)
+
                 self.cache_event = self.load_input_event = self.dataset.click(
-                    load_example_with_output,
+                    load_example_input,
                     inputs=[self.dataset],
-                    outputs=self.inputs + self.outputs,  # type: ignore
-                    show_progress="hidden",
+                    outputs=self.inputs,
                     postprocess=False,
                     queue=False,
+                    api_name=self.api_name,
+                    show_api=False,
+                ).then(
+                    load_example_output,
+                    inputs=[self.dataset],
+                    outputs=self.outputs,
+                    postprocess=False,
                     api_name=self.api_name,
                     show_api=False,
                 )
