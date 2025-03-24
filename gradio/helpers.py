@@ -362,6 +362,7 @@ class Examples:
                     load_example_input,
                     inputs=[self.dataset],
                     outputs=self.inputs,
+                    show_progress="hidden",
                     postprocess=False,
                     queue=False,
                     api_name=self.api_name,
