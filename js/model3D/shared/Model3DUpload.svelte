@@ -127,8 +127,6 @@
 				{display_mode}
 				{clear_color}
 				{camera_position}
-				{zoom_speed}
-				{pan_speed}
 			/>
 		{/if}
 	</div>
