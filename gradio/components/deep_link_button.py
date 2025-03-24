@@ -36,7 +36,7 @@ class DeepLinkButton(Button):
         *,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary"] = "secondary",
-        size: Literal["sm", "md", "lg"] = "md",
+        size: Literal["sm", "md", "lg"] = "lg",
         icon: str | Path | None = utils.get_icon_path("link.svg"),
         link: str | None = None,
         visible: bool = True,
