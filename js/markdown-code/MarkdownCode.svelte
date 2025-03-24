@@ -6,7 +6,6 @@
 	import { sanitize } from "@gradio/sanitize";
 	import "./prism.css";
 	import { standardHtmlTags } from "./html-tags";
-	import mermaid from "mermaid";
 
 	export let chatbot = true;
 	export let message: string;
@@ -24,14 +23,6 @@
 
 	let el: HTMLSpanElement;
 	let html: string;
-
-	onMount(() => {
-		mermaid.initialize({
-			startOnLoad: false,
-			theme: "default",
-			securityLevel: "loose"
-		});
-	});
 
 	const marked = create_marked({
 		header_links,
@@ -138,6 +129,12 @@
 			const mermaidDivs = el.querySelectorAll(".mermaid");
 			if (mermaidDivs.length > 0) {
 				await tick();
+				const { default: mermaid } = await import('mermaid');
+				mermaid.initialize({
+					startOnLoad: false,
+					theme: "default",
+					securityLevel: "loose"
+				});
 				await mermaid.run({
 					nodes: Array.from(mermaidDivs).map((node) => node as HTMLElement)
 				});

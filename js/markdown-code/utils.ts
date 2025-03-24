@@ -220,7 +220,6 @@ export function create_marked({
 		});
 	}
 
-	// Add our custom mermaid tokenizer
 	const mermaidTokenizer = createMermaidTokenizer();
 	const latexTokenizer = createLatexTokenizer(latex_delimiters);
 
