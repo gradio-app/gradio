@@ -40,7 +40,7 @@
 		}
 	}
 
-	/* BabylonJS engine and scene management */
+	/* BabylonJS viewer and viewer details management */
 	let canvas: HTMLCanvasElement;
 	let viewer: BABYLON_VIEWER.Viewer;
 	let viewerDetails: Readonly<BABYLON_VIEWER.ViewerDetails>;
@@ -74,8 +74,9 @@
 
 	function load_model(url: string | undefined): void {
 		if (viewer) {
-			viewer
-				.loadModel(url!, {
+			if (url) {
+				viewer
+				.loadModel(url, {
 					pluginOptions: {
 						obj: {
 							importVertexColors: true
@@ -88,43 +89,38 @@
 					} else if (display_mode === "wireframe") {
 						setRenderingMode(false, true);
 					} else {
-						update_camera(camera_position, zoom_speed, pan_speed);
+						update_camera(camera_position);
 					}
 				});
+			} else {
+				viewer.resetModel();
+			}
 		}
 	}
 
 	function update_camera(
-		camera_position: [number | null, number | null, number | null],
-		zoom_speed: number,
-		pan_speed: number
+		camera_position: [number | null, number | null, number | null]
 	): void {
+		viewer.resetCamera();
 		const camera = viewerDetails.camera;
 		if (camera_position[0] !== null) {
-			camera.alpha = BABYLON.Tools.ToRadians(camera_position[0]);
+			camera.alpha = camera_position[0] * Math.PI / 180;
 		}
 		if (camera_position[1] !== null) {
-			camera.beta = BABYLON.Tools.ToRadians(camera_position[1]);
+			camera.beta = camera_position[1] * Math.PI / 180;
+
 		}
 		if (camera_position[2] !== null) {
 			camera.radius = camera_position[2];
 		}
 		camera.lowerRadiusLimit = 0.1;
-		const updateCameraSensibility = (): void => {
-			camera.wheelPrecision = 250 / (camera.radius * zoom_speed);
-			camera.panningSensibility = (10000 * pan_speed) / camera.radius;
-		};
-		updateCameraSensibility();
-		camera.onAfterCheckInputsObservable.add(updateCameraSensibility);
 	}
 
 	export function reset_camera_position(
-		camera_position: [number | null, number | null, number | null],
-		zoom_speed: number,
-		pan_speed: number
+		camera_position: [number | null, number | null, number | null]
 	): void {
 		if (viewerDetails) {
-			update_camera(camera_position, zoom_speed, pan_speed);
+			update_camera(camera_position);
 		}
 	}
 </script>
