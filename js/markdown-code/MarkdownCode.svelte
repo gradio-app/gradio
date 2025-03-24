@@ -131,7 +131,7 @@
 			if (mermaidDivs.length > 0) {
 				await tick();
 				const { default: mermaid } = await import("mermaid");
-									
+
 				mermaid.initialize({
 					startOnLoad: false,
 					theme: theme_mode === "dark" ? "dark" : "default",

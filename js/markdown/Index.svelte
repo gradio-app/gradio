@@ -39,7 +39,6 @@
 	export let container = false;
 	export let theme_mode: ThemeMode;
 
-
 	$: label, gradio.dispatch("change");
 </script>
 
