@@ -350,9 +350,7 @@ class Examples:
 
                 def load_example_input(example_tuple):
                     _, example_value = example_tuple
-                    processed_example = self._get_processed_example(
-                        example_value
-                    )
+                    processed_example = self._get_processed_example(example_value)
                     return utils.resolve_singleton(processed_example)
 
                 def load_example_output(example_tuple):
