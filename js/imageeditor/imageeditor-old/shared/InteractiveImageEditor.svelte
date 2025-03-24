@@ -224,6 +224,7 @@
 
 <BlockLabel
 	{show_label}
+	op
 	Icon={ImageIcon}
 	label={label || i18n("image.image")}
 />
