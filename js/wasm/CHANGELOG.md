@@ -1,5 +1,11 @@
 # @gradio/wasm
 
+## 0.18.0
+
+### Features
+
+- [#10812](https://github.com/gradio-app/gradio/pull/10812) [`6384bcc`](https://github.com/gradio-app/gradio/commit/6384bcc11f13d22f4480e7ad7213486fecec8936) - Jedi-based Python code completion on `gr.Code`.  Thanks @whitphx!
+
 ## 0.17.4
 
 ### Fixes
