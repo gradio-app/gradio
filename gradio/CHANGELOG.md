@@ -1,5 +1,23 @@
 # gradio
 
+## 5.23.0
+
+### Features
+
+- [#10858](https://github.com/gradio-app/gradio/pull/10858) [`e30348b`](https://github.com/gradio-app/gradio/commit/e30348b085b045e5aac5bd8a41e1cf5485c8c56d) - Gradio sketch: Remove HF Inference health check.  Thanks @aliabid94!
+- [#10834](https://github.com/gradio-app/gradio/pull/10834) [`c05610c`](https://github.com/gradio-app/gradio/commit/c05610c87dd7f9e9fe5d0aed2fe93e40fdd32648) - Add Deep Links.  Thanks @freddyaboulton!
+- [#10838](https://github.com/gradio-app/gradio/pull/10838) [`a06c7e4`](https://github.com/gradio-app/gradio/commit/a06c7e40e2ddb5c526c195d31832f6e97b669291) - Allow for iterative coding in gradio sketch.  Thanks @aliabid94!
+- [#10862](https://github.com/gradio-app/gradio/pull/10862) [`243942e`](https://github.com/gradio-app/gradio/commit/243942e5e47d22a4f512f31313bc3098a0a5b77d) - fix typing of gr.on event listener.  Thanks @JackismyShephard!
+- [#10859](https://github.com/gradio-app/gradio/pull/10859) [`a1862f5`](https://github.com/gradio-app/gradio/commit/a1862f54a741002bc78bc36fc3c3cb78856fad66) - fix typing on load event listener.  Thanks @JackismyShephard!
+- [#10854](https://github.com/gradio-app/gradio/pull/10854) [`1649b00`](https://github.com/gradio-app/gradio/commit/1649b0038482402d7f0ccdbf86ba65d82b4a12c9) - Add support for `mermaid.js` in `Markdown` component (as well as components like `gr.Chatbot` that use Markdown).  Thanks @abidlabs!
+- [#10812](https://github.com/gradio-app/gradio/pull/10812) [`6384bcc`](https://github.com/gradio-app/gradio/commit/6384bcc11f13d22f4480e7ad7213486fecec8936) - Jedi-based Python code completion on `gr.Code`.  Thanks @whitphx!
+- [#10870](https://github.com/gradio-app/gradio/pull/10870) [`f40e008`](https://github.com/gradio-app/gradio/commit/f40e00855593182faba3595fe9d913defbb8130f) - Change `gr.DeepLinkButton` default variant to be secondary.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10841](https://github.com/gradio-app/gradio/pull/10841) [`8ff0a5e`](https://github.com/gradio-app/gradio/commit/8ff0a5e3e916ba6dfe6255ffcf4d09868ab29bde) - Fix path generation for returned files for bash API.  Thanks @cansik!
+- [#10860](https://github.com/gradio-app/gradio/pull/10860) [`fb4c3da`](https://github.com/gradio-app/gradio/commit/fb4c3dacd06803fdf0634481e9db080425f67023) - bug fix logout if there is root_path in launch.  Thanks @azharizz!
+
 ## 5.22.0
 
 ### Features
