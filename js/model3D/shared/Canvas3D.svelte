@@ -8,6 +8,8 @@
 	export let display_mode: "solid" | "point_cloud" | "wireframe";
 	export let clear_color: [number, number, number, number];
 	export let camera_position: [number | null, number | null, number | null];
+	export let zoom_speed: number;
+	export let pan_speed: number;
 
 	$: url = value.url;
 
