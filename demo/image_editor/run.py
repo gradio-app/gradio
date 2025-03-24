@@ -232,6 +232,7 @@ with gr.Blocks() as demo:
 
     with gr.Row():
         im = gr.ImageEditor(
+            value="./cheetah.jpg",
             fixed_canvas=False,
             border_region=100,
             canvas_size=[600, 600],

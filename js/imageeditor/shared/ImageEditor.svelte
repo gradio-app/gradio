@@ -88,6 +88,8 @@
 
 	let editor: ImageEditor;
 
+	$: console.log({ background, layers, composite });
+
 	/**
 	 * Adds an image to the editor
 	 * @param {Blob | File} image - The image to add
@@ -231,6 +233,17 @@
 		editor.on("change", () => {
 			dispatch("change");
 		});
+
+		if (background || layers.length > 0) {
+			if (background) {
+				add_image_from_url(background);
+			}
+			if (layers.length > 0) {
+				add_layers_from_url(layers);
+			}
+		} else if (composite) {
+			add_image_from_url(composite);
+		}
 	}
 
 	function resize_canvas(width: number, height: number): void {
