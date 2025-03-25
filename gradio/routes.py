@@ -297,7 +297,7 @@ class App(FastAPI):
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
-        self.root_path = blocks.root_path
+        self.root_path = blocks.root_path or blocks.custom_mount_path or ""
         self.state_holder.set_blocks(blocks)
 
     def get_blocks(self) -> gradio.Blocks:
@@ -586,6 +586,7 @@ class App(FastAPI):
                 route_path=f"/{page}",
                 root_path=app.root_path,
             )
+            print("root:", root, "root path", app.root_path, "custom path", blocks.custom_mount_path)
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
                 config = route_utils.update_root_in_config(config, root)
