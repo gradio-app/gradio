@@ -1866,4 +1866,5 @@ INTERNAL_ROUTES = [
     "assets",
     "favicon.ico",
     "gradio_api",
+    "monitoring",
 ]
