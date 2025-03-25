@@ -213,21 +213,13 @@ def test_example_caching_relaunch(connect):
         )
 
     with connect(demo) as client:
-        assert client.predict(1, api_name="/examples") == (
-            "hello",
-            "Eve",
-            "hello Eve",
-        )
+        assert client.predict(1, api_name="/examples") == "hello Eve"
 
     # Let the server shut down
     time.sleep(1)
 
     with connect(demo) as client:
-        assert client.predict(1, api_name="/examples") == (
-            "hello",
-            "Eve",
-            "hello Eve",
-        )
+        assert client.predict(1, api_name="/examples") == "hello Eve"
 
 
 @patch("gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp()))
@@ -264,18 +256,10 @@ class TestProcessExamples:
             )
 
         with connect(demo) as client:
-            assert client.predict(1, api_name="/examples") == (
-                "hello",
-                "Eve",
-                "hello Eve",
-            )
+            assert client.predict(1, api_name="/examples") == "hello Eve"
 
         with connect(demo) as client:
-            assert client.predict(1, api_name="/examples") == (
-                "hello",
-                "Eve",
-                "hello Eve",
-            )
+            assert client.predict(1, api_name="/examples") == "hello Eve"
 
     def test_caching_image(self, patched_cache_folder, connect):
         io = gr.Interface(
@@ -616,10 +600,10 @@ class TestProcessExamples:
         client = TestClient(app)
 
         response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [0]})
-        assert response.json()["data"] == ["Hello,", "World", "Hello, World"]
+        assert response.json()["data"] == ["Hello, World"]
 
         response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [1]})
-        assert response.json()["data"] == ["Michael", "Jordan", "Michael Jordan"]
+        assert response.json()["data"] == ["Michael Jordan"]
 
     def test_end_to_end_lazy_cache_examples(self, patched_cache_folder):
         def image_identity(image, string):
@@ -648,13 +632,11 @@ class TestProcessExamples:
 
         response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [0]})
         data = response.json()["data"]
-        assert data[0]["path"].endswith("cheetah1.jpg")
-        assert data[1] == "cheetah"
+        assert data[0]["path"].endswith("image.webp")
 
         response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [1]})
         data = response.json()["data"]
-        assert data[0]["path"].endswith("bus.png")
-        assert data[1] == "bus"
+        assert data[0]["path"].endswith("image.webp")
 
 
 def test_multiple_file_flagging(tmp_path, connect):
