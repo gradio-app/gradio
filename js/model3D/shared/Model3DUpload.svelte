@@ -71,7 +71,7 @@
 
 	let canvas3d: Canvas3D | undefined;
 	async function handle_undo(): Promise<void> {
-		canvas3d?.reset_camera_position(camera_position);
+		canvas3d?.reset_camera_position(camera_position, zoom_speed, pan_speed);
 	}
 
 	const dispatch = createEventDispatcher<{
