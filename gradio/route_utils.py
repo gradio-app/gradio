@@ -361,14 +361,13 @@ def get_first_header_value(request: fastapi.Request, header_name: str):
 
 
 def get_request_url(request: fastapi.Request) -> str:
-    x_forwarded_host = get_first_header_value(request, "x-forwarded-host")
-    root_url = f"http://{x_forwarded_host}" if x_forwarded_host else str(request.url)
-    root_url = httpx.URL(root_url)
-    root_url = root_url.copy_with(query=None)
-    root_url = str(root_url).rstrip("/")
+    request_url = str(request.url)
+    request_url = httpx.URL(request_url)
+    request_url = request_url.copy_with(query=None)
     if get_first_header_value(request, "x-forwarded-proto") == "https":
-        root_url = root_url.replace("http://", "https://")
-    return root_url
+        request_url = request_url.copy_with(scheme="https")
+    request_url = str(request_url).rstrip("/")
+    return request_url
 
 
 def get_api_call_path(request: fastapi.Request) -> str:
