@@ -680,7 +680,7 @@ class TestRoutes:
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.get(f"{API_PREFIX}/monitoring")
+        response = client.get("/monitoring")
         assert response.status_code == 200
 
     def test_monitoring_link_disabled(self):
@@ -691,7 +691,7 @@ class TestRoutes:
 
         app, _, _ = demo.launch(prevent_thread_lock=True, enable_monitoring=False)
         client = TestClient(app)
-        response = client.get(f"{API_PREFIX}/monitoring")
+        response = client.get("/monitoring")
         assert response.status_code == 403
 
 
@@ -784,14 +784,14 @@ class TestAuthenticatedRoutes:
         )
 
         response = client.get(
-            f"{API_PREFIX}/monitoring",
+            "/monitoring",
         )
         assert response.status_code == 200
 
         response = client.get("/logout")
 
         response = client.get(
-            f"{API_PREFIX}/monitoring",
+            "/monitoring",
         )
         assert response.status_code == 401
 

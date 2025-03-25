@@ -1620,7 +1620,7 @@ class App(FastAPI):
                 media_type="application/manifest+json",
             )
 
-        @router.get("/monitoring", dependencies=[Depends(login_check)])
+        @app.get("/monitoring", dependencies=[Depends(login_check)])
         async def analytics_login(request: fastapi.Request):
             if not blocks.enable_monitoring:
                 raise HTTPException(
@@ -1635,7 +1635,7 @@ class App(FastAPI):
             print(f"* Monitoring URL: {monitoring_url} *")
             return HTMLResponse("See console for monitoring URL.")
 
-        @router.get("/monitoring/{key}")
+        @app.get("/monitoring/{key}")
         async def analytics_dashboard(key: str):
             if not blocks.enable_monitoring:
                 raise HTTPException(
@@ -1866,4 +1866,5 @@ INTERNAL_ROUTES = [
     "assets",
     "favicon.ico",
     "gradio_api",
+    "monitoring",
 ]
