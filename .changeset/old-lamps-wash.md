@@ -1,7 +1,7 @@
 ---
-"@gradio/image": minor
-"@gradio/model3d": minor
-"gradio": minor
+"@gradio/image": patch
+"@gradio/model3d": patch
+"gradio": patch
 ---
 
 feat:Babylon update for model3D
