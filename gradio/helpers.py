@@ -365,7 +365,6 @@ class Examples:
                     show_progress="hidden",
                     postprocess=False,
                     queue=False,
-                    api_name=self.api_name,
                     show_api=False,
                 ).then(
                     load_example_output,
