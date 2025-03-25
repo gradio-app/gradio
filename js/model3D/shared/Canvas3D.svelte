@@ -89,7 +89,7 @@
 						} else if (display_mode === "wireframe") {
 							setRenderingMode(false, true);
 						} else {
-							update_camera(camera_position);
+							update_camera(camera_position, zoom_speed, pan_speed);
 						}
 					});
 			} else {
@@ -99,7 +99,9 @@
 	}
 
 	function update_camera(
-		camera_position: [number | null, number | null, number | null]
+		camera_position: [number | null, number | null, number | null],
+		zoom_speed: number,
+		pan_speed: number
 	): void {
 		viewer.resetCamera();
 		const camera = viewerDetails.camera;
@@ -113,13 +115,22 @@
 			camera.radius = camera_position[2];
 		}
 		camera.lowerRadiusLimit = 0.1;
+		const updateCameraSensibility = (): void => {
+			camera.wheelPrecision = 250 / (camera.radius * zoom_speed);
+			camera.panningSensibility =
+				(10000 * pan_speed) / camera.radius;
+		};
+		updateCameraSensibility();
+		camera.onAfterCheckInputsObservable.add(updateCameraSensibility);
 	}
 
 	export function reset_camera_position(
-		camera_position: [number | null, number | null, number | null]
+		camera_position: [number | null, number | null, number | null],
+		zoom_speed: number,
+		pan_speed: number
 	): void {
 		if (viewerDetails) {
-			update_camera(camera_position);
+			update_camera(camera_position, zoom_speed, pan_speed);
 		}
 	}
 </script>
