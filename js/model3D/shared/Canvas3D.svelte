@@ -117,8 +117,7 @@
 		camera.lowerRadiusLimit = 0.1;
 		const updateCameraSensibility = (): void => {
 			camera.wheelPrecision = 250 / (camera.radius * zoom_speed);
-			camera.panningSensibility =
-				(10000 * pan_speed) / camera.radius;
+			camera.panningSensibility = (10000 * pan_speed) / camera.radius;
 		};
 		updateCameraSensibility();
 		camera.onAfterCheckInputsObservable.add(updateCameraSensibility);
