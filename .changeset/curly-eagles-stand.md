@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Fix analytics
+fix:Fix `/monitoring` endpoint
