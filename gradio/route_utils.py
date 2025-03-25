@@ -384,7 +384,7 @@ def get_api_call_path(request: fastapi.Request) -> str:
     """
     queue_api_url = f"{API_PREFIX}/queue/join"
     generic_api_url = f"{API_PREFIX}/call"
-    request_url = str(request.url)
+    request_url = str(httpx.URL(str(request.url)).copy_with(query=None)).strip("/")
 
     if request_url.endswith(queue_api_url):
         return queue_api_url

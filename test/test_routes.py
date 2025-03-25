@@ -38,6 +38,7 @@ from gradio.route_utils import (
     API_PREFIX,
     FnIndexInferError,
     compare_passwords_securely,
+    get_api_call_path,
     get_root_url,
     starts_with_protocol,
 )
@@ -1712,3 +1713,28 @@ def test_mount_gradio_app_args_match_launch_args():
     assert not missing_params, (
         f"Parameters in launch() but missing in mount_gradio_app(): {missing_params}"
     )
+
+
+def test_get_api_call_path_queue_join():
+    queue_url = f"http://localhost:7860{API_PREFIX}/queue/join?__theme=dark"
+    scope = {"type": "http", "headers": [], "path": queue_url}
+    request = Request(scope)
+
+    path = get_api_call_path(request)
+    assert path == f"{API_PREFIX}/queue/join"
+
+
+def test_get_api_call_path_generic_call():
+    call_url = f"http://localhost:7860{API_PREFIX}/call/predict?__theme=light"
+    scope = {"type": "http", "headers": [], "path": call_url}
+    request = Request(scope)
+    path = get_api_call_path(request)
+    assert path == f"{API_PREFIX}/call/predict"
+
+    complex_call_url = (
+        f"http://localhost:7860{API_PREFIX}/call/custom_function/with/extra/parts"
+    )
+    scope = {"type": "http", "headers": [], "path": complex_call_url}
+    request = Request(scope)
+    path = get_api_call_path(request)
+    assert path == f"{API_PREFIX}/call/custom_function/with/extra/parts"
