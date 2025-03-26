@@ -269,6 +269,14 @@ export class CropTool implements Tool {
 	 */
 	private async init_crop_ui(): Promise<void> {
 		// Create crop UI with scaled dimensions
+		console.log({ dimensions: this.dimensions, scale: this.scale });
+		const { width, height } =
+			this.image_editor_context.background_image?.getLocalBounds() || {
+				width: false,
+				height: false
+			};
+		console.log({ width, height });
+
 		this.crop_ui_container = this.make_crop_ui(
 			this.dimensions.width * this.scale,
 			this.dimensions.height * this.scale
@@ -981,23 +989,28 @@ export class CropTool implements Tool {
 	public get_crop_bounds(): {
 		x: number;
 		y: number;
-		width: number;
-		height: number;
-		original_dimensions: { width: number; height: number };
+		crop_dimensions: { width: number; height: number };
+		image_dimensions: { width: number; height: number };
 	} {
-		const original_dimensions =
-			this.image_editor_context.background_image?.getLocalBounds();
+		const { width, height } =
+			this.image_editor_context.background_image?.getLocalBounds() ?? {
+				width: 0,
+				height: 0
+			};
 		return {
 			x: this.crop_bounds.x,
 			y: this.crop_bounds.y,
-			width: this.crop_bounds.width,
-			height: this.crop_bounds.height,
-			original_dimensions: {
-				width: original_dimensions?.width ?? 0,
-				height: original_dimensions?.height ?? 0
+			crop_dimensions: {
+				width: this.crop_bounds.width,
+				height: this.crop_bounds.height
+			},
+			image_dimensions: {
+				width,
+				height
 			}
 		};
 	}
+
 	public get_image(): Promise<Blob | null> {
 		if (!this.image_editor_context.background_image)
 			return Promise.resolve(null);
@@ -1006,6 +1019,7 @@ export class CropTool implements Tool {
 			this.image_editor_context.background_image.texture
 		);
 		container.addChild(sprite);
+
 		return get_canvas_blob(
 			this.image_editor_context.app.renderer,
 			container,

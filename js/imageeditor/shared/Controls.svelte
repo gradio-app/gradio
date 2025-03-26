@@ -27,6 +27,7 @@
 	export let dimensions: Spring<{ width: number; height: number }>;
 	export let tool: string;
 	export let min_zoom = true;
+	export let fixed_canvas = false;
 
 	const dispatch = createEventDispatcher<{
 		/**
@@ -104,14 +105,16 @@
 		disabled={min_zoom}
 	/>
 
-	<IconButton
-		Icon={ResizeIcon}
-		label="Resize"
-		on:click={(event) => {
-			show_resize_popup = !show_resize_popup;
-			event.stopPropagation();
-		}}
-	/>
+	{#if !fixed_canvas}
+		<IconButton
+			Icon={ResizeIcon}
+			label="Resize"
+			on:click={(event) => {
+				show_resize_popup = !show_resize_popup;
+				event.stopPropagation();
+			}}
+		/>
+	{/if}
 	{#if show_resize_popup}
 		<Resize
 			{dimensions}

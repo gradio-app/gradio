@@ -16,6 +16,7 @@ import {
 import { DropShadowFilter as BlurFilter } from "pixi-filters/drop-shadow";
 
 import { ImageTool } from "../image/image";
+import { AddImageCommand } from "../image/image";
 
 import { ZoomTool } from "../zoom/zoom";
 import type { Subtool, Tool as ToolbarTool } from "../Toolbar.svelte";
@@ -765,6 +766,9 @@ export class LayerManager {
 	}
 
 	init_layers(width: number, height: number): void {
+		for (const layer of this.layers) {
+			this.delete_layer(layer.id);
+		}
 		for (const layer of this.layer_options.layers) {
 			this.create_layer({
 				width,
@@ -1347,42 +1351,56 @@ export class ImageEditor {
 		this.notify("change");
 	}
 
+	/**
+	 * Creates dimensions object for image addition
+	 * @param bg_is_cropped Whether the background image is already cropped
+	 * @returns Dimensions object with appropriate x/y values
+	 */
+	private create_dimensions_object(bg_is_cropped: boolean): {
+		width: number;
+		height: number;
+		x: number;
+		y: number;
+	} {
+		// For initial (non-cropped) images, preserve their position
+		// For crops of crops, don't include previous position info to avoid accumulation
+		return {
+			width: this.background_image?.width || this.dimensions_value.width,
+			height: this.background_image?.height || this.dimensions_value.height,
+			// When using a non-cropped image, preserve its position
+			// When working with an already cropped image, zero out positions to prevent accumulation
+			x: bg_is_cropped ? 0 : this.background_image?.x || 0,
+			y: bg_is_cropped ? 0 : this.background_image?.y || 0
+		};
+	}
+
 	async add_image({
 		image,
-
 		resize = true,
-		original_dimensions,
 		crop_offset,
 		is_cropped = false
 	}: {
 		image: Blob | File;
-		dimensions?: { width: number; height: number };
 		resize?: boolean;
-		original_dimensions?: { width: number; height: number };
-		crop_offset?: { x: number; y: number };
+		crop_offset?: {
+			x: number;
+			y: number;
+			crop_dimensions: { width: number; height: number };
+			image_dimensions: { width: number; height: number };
+		};
 		is_cropped?: boolean;
 	}): Promise<void> {
-		const image_tool = this.tools.get("image") as ImageTool;
-		const fixed_size = this.fixed_canvas ? true : !resize;
-
-		await image_tool.add_image({
+		const image_command = new AddImageCommand(
+			this.context,
 			image,
-			fixed_canvas: fixed_size,
-			border_region: this.border_region,
+			this.fixed_canvas,
+			this.border_region,
+			is_cropped,
+			crop_offset
+		);
 
-			original_dimensions,
-			crop_offset,
-			is_cropped
-		});
-
-		// Update resize tool if present
-		const resize_tool = this.tools.get("resize") as any;
-		if (resize_tool && typeof resize_tool.set_border_region === "function") {
-			resize_tool.set_border_region(this.border_region);
-		}
-
-		this.notify("change");
-		this.notify("input");
+		await image_command.start();
+		this.context.execute_command(image_command);
 	}
 
 	/**
@@ -1397,6 +1415,8 @@ export class ImageEditor {
 			fixed_canvas: this.fixed_canvas,
 			border_region: this.border_region
 		});
+
+		// this.layer_manager.init_layers(this.width, this.height);
 
 		// Update resize tool if present
 		const resize_tool = this.tools.get("resize") as any;
@@ -1596,24 +1616,22 @@ export class ImageEditor {
 
 	async get_crop_bounds(): Promise<{
 		image: Blob | null;
-		width: number;
-		height: number;
+		crop_dimensions: { width: number; height: number };
+		image_dimensions: { width: number; height: number };
 		x: number;
 		y: number;
-		original_dimensions: { width: number; height: number };
 	}> {
 		const crop_tool = this.tools.get("crop") as CropTool;
-		const { width, height, x, y, original_dimensions } =
-			crop_tool.get_crop_bounds();
+		const crop_bounds = crop_tool.get_crop_bounds();
 		const image = await crop_tool.get_image();
 
 		return {
 			image,
-			width,
-			height,
-			x,
-			y,
-			original_dimensions
+			...crop_bounds
 		};
+	}
+
+	get background_image_sprite(): Sprite | undefined {
+		return this.background_image;
 	}
 }

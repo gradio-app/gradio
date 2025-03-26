@@ -233,17 +233,13 @@ with gr.Blocks() as demo:
     with gr.Row():
         im = gr.ImageEditor(
             value="./cheetah.jpg",
-            fixed_canvas=False,
+            fixed_canvas=True,
             border_region=100,
-            canvas_size=[600, 600],
+            canvas_size=[500, 500],
             type="numpy",
-            sources=["upload", "webcam", "clipboard"],
-            transforms=None,
             layers=gr.LayerOptions(
                 allow_additional_layers=False, layers=["Mask", "Mask 2"]
             ),
-            brush=False,
-            eraser=False,
         )
         im_preview = gr.Image(label="Preview")
 

@@ -97,6 +97,15 @@
 	$: can_upload = sources.includes("upload");
 	$: can_webcam = sources.includes("webcam");
 	$: can_paste = sources.includes("clipboard");
+
+	$: console.log({
+		can_crop,
+		can_resize,
+		can_upload,
+		can_webcam,
+		can_paste,
+		transforms,
+	});
 </script>
 
 <div class="toolbar-wrap">

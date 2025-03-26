@@ -69,7 +69,7 @@
 	export let mirror_webcam = true;
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
-	export let stream_handler: Client["stream"];
+	export const stream_handler: Client["stream"] | undefined = undefined;
 	export let composite: WeirdTypeData[];
 	export let layers: WeirdTypeData[];
 	export let background: WeirdTypeData;
@@ -131,7 +131,8 @@
 
 		try {
 			pending_bg = editor.add_image_from_url(url);
-			await pending_bg;
+			let pending_crop = crop.add_image_from_url(url);
+			await Promise.all([pending_bg, pending_crop]);
 			background_image = true;
 			dispatch("upload");
 			dispatch("input");
@@ -428,13 +429,13 @@
 	$: add_layers_from_url(layers);
 
 	async function handle_crop_confirm(): Promise<void> {
-		const { image, x, y, original_dimensions } = await crop.get_crop_bounds();
+		const { image, ...crop_bounds } = await crop.get_crop_bounds();
 		if (!image) return;
-		editor.add_image({
+
+		await editor.add_image({
 			image,
 			resize: false,
-			crop_offset: { x, y },
-			original_dimensions,
+			crop_offset: crop_bounds,
 			is_cropped: true,
 		});
 		handle_subtool_change({ tool: "image", subtool: null });
@@ -480,6 +481,7 @@
 				on:pan={(e) => {
 					handle_tool_change({ tool: "pan" });
 				}}
+				{fixed_canvas}
 			/>
 		{/if}
 		<!-- on:save={handle_save} -->
