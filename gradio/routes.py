@@ -997,28 +997,19 @@ class App(FastAPI):
             """
             heartbeat_rate = 0.25 if os.getenv("GRADIO_IS_E2E_TEST", None) else 15
 
-            async def wait():
-                await asyncio.sleep(heartbeat_rate)
-                return "wait"
-
-            async def stop_stream():
-                await app.stop_event.wait()
-                return "stop"
-
             async def iterator():
-                stop_stream_task = asyncio.create_task(stop_stream())
+                stop_stream_task = asyncio.create_task(app.stop_event.wait())
                 while True:
                     try:
                         yield "data: ALIVE\n\n"
                         # We need to close the heartbeat connections as soon as the server stops
                         # otherwise the server can take forever to close
-                        wait_task = asyncio.create_task(wait())
+                        wait_task = asyncio.create_task(asyncio.sleep(heartbeat_rate))
                         done, _ = await asyncio.wait(
                             [wait_task, stop_stream_task],
                             return_when=asyncio.FIRST_COMPLETED,
                         )
-                        done = [d.result() for d in done]
-                        if "stop" in done:
+                        if stop_stream_task in done:
                             raise asyncio.CancelledError()
                     except asyncio.CancelledError:
                         if not stop_stream_task.done():
