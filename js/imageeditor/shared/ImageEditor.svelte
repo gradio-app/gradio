@@ -213,7 +213,8 @@
 			height: canvas_size[1],
 			tools: ["image", crop_zoom, new CropTool()],
 			dark: true,
-			border_region,
+			fixed_canvas: false,
+			border_region: 0,
 		});
 
 		editor.scale.subscribe((_scale) => {
@@ -429,13 +430,13 @@
 	$: add_layers_from_url(layers);
 
 	async function handle_crop_confirm(): Promise<void> {
-		const { image, ...crop_bounds } = await crop.get_crop_bounds();
+		const { image, ...crop_info } = await crop.get_crop_bounds();
 		if (!image) return;
 
 		await editor.add_image({
 			image,
 			resize: false,
-			crop_offset: crop_bounds,
+			crop_offset: crop_info,
 			is_cropped: true,
 		});
 		handle_subtool_change({ tool: "image", subtool: null });

@@ -736,7 +736,7 @@ export class CropTool implements Tool {
 			.cut();
 
 		// Reset blend mode
-		this.crop_mask.blendMode = "normal";
+		// this.crop_mask.blendMode = "normal";
 
 		// Make the mask visible (previously we had alpha=0)
 		// this.crop_mask.alpha = 1;
@@ -758,7 +758,10 @@ export class CropTool implements Tool {
 	 */
 	private update_crop_ui(): void {
 		if (!this.crop_mask || !this.crop_ui_container) return;
-
+		console.log("this.dimensions", this.dimensions);
+		console.log("this.crop_bounds", this.crop_bounds);
+		console.log("this.position", this.position);
+		console.log("this.scale", this.scale);
 		// Move crop_ui_container so that (0,0) of its local space aligns with the crop_bounds on the stage
 		this.crop_ui_container.position.set(
 			this.position.x + this.crop_bounds.x * this.scale,
