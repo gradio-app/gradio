@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix minor heartbeat memory leak
+fix:Fix minor heartbeat memory leak
