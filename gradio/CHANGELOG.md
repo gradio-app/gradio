@@ -1,5 +1,17 @@
 # gradio
 
+## 5.23.1
+
+### Features
+
+- [#10877](https://github.com/gradio-app/gradio/pull/10877) [`b19e8ad`](https://github.com/gradio-app/gradio/commit/b19e8ad26789146a8b4dcab65715b2bc05937d7c) - Switch from `root_url` to `request.url` in `get_api_call_path()`.  Thanks @abidlabs!
+- [#10879](https://github.com/gradio-app/gradio/pull/10879) [`3ba9e4f`](https://github.com/gradio-app/gradio/commit/3ba9e4febb9d32a7d523af46e0484face4cc8e64) - Fix request url.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10872](https://github.com/gradio-app/gradio/pull/10872) [`84fafc4`](https://github.com/gradio-app/gradio/commit/84fafc45bf9f8fbc5fe39ff20dbb7108d0a66e94) - Fix `/monitoring` endpoint.  Thanks @aliabid94!
+- [#10873](https://github.com/gradio-app/gradio/pull/10873) [`3a3d0d9`](https://github.com/gradio-app/gradio/commit/3a3d0d93884ccf498713bad748bacdd5294b535e) - Improve UI for lazy caching.  Thanks @abidlabs!
+
 ## 5.23.0
 
 ### Features
