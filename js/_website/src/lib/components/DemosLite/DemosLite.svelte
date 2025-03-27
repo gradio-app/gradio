@@ -137,7 +137,8 @@
 	system_prompt = prompt_rules[0] + system_prompt + prompt_rules[1];
 	fallback_prompt = prompt_rules[0] + fallback_prompt + prompt_rules[1];
 
-	const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	const workerUrl = "https://inference-providers.playground-worker.pages.dev/api/generate";
+	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
 	// const workerUrl = "http://localhost:5173/api/generate";
 
 	let abortController: AbortController | null = null;
