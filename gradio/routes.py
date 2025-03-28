@@ -451,10 +451,17 @@ class App(FastAPI):
 
         @app.post("/login")
         @app.post("/login/")
-        def login(form_data: OAuth2PasswordRequestForm = Depends()):
+        def login(
+            request: fastapi.Request, form_data: OAuth2PasswordRequestForm = Depends()
+        ):
             username, password = form_data.username.strip(), form_data.password
             if app.auth is None:
-                return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+                root = route_utils.get_root_url(
+                    request=request,
+                    route_path="/login",
+                    root_path=app.root_path,
+                )
+                return RedirectResponse(url=root, status_code=status.HTTP_302_FOUND)
             if (
                 not callable(app.auth)
                 and username in app.auth
@@ -491,8 +498,13 @@ class App(FastAPI):
         else:
 
             @app.get("/logout")
-            def logout(user: str = Depends(get_current_user)):
-                response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+            def logout(request: fastapi.Request, user: str = Depends(get_current_user)):
+                root = route_utils.get_root_url(
+                    request=request,
+                    route_path="/logout",
+                    root_path=app.root_path,
+                )
+                response = RedirectResponse(url=root, status_code=status.HTTP_302_FOUND)
                 response.delete_cookie(key=f"access-token-{app.cookie_id}", path="/")
                 response.delete_cookie(
                     key=f"access-token-unsecure-{app.cookie_id}", path="/"
@@ -1608,7 +1620,7 @@ class App(FastAPI):
                 media_type="application/manifest+json",
             )
 
-        @router.get("/monitoring", dependencies=[Depends(login_check)])
+        @app.get("/monitoring", dependencies=[Depends(login_check)])
         async def analytics_login(request: fastapi.Request):
             if not blocks.enable_monitoring:
                 raise HTTPException(
@@ -1623,7 +1635,7 @@ class App(FastAPI):
             print(f"* Monitoring URL: {monitoring_url} *")
             return HTMLResponse("See console for monitoring URL.")
 
-        @router.get("/monitoring/{key}")
+        @app.get("/monitoring/{key}")
         async def analytics_dashboard(key: str):
             if not blocks.enable_monitoring:
                 raise HTTPException(
@@ -1854,4 +1866,5 @@ INTERNAL_ROUTES = [
     "assets",
     "favicon.ico",
     "gradio_api",
+    "monitoring",
 ]
