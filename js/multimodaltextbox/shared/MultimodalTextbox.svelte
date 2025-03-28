@@ -355,7 +355,7 @@
 			{/if}
 		</div>
 	{/if}
-	{#if sources && sources.includes("microphone") && active_source === "microphone"}
+	{#if sources && sources.includes("microphone") && active_source === "microphone" && !disabled}
 		<InteractiveAudio
 			on:change={({ detail }) => {
 				if (detail !== null) {
@@ -412,7 +412,7 @@
 				on:click={handle_upload_click}><Paperclip /></button
 			>
 		{/if}
-		{#if sources && sources.includes("microphone")}
+		{#if sources && sources.includes("microphone") && !disabled}
 			<button
 				data-testid="microphone-button"
 				class="microphone-button"
@@ -449,7 +449,7 @@
 			on:paste={handle_paste}
 			style={text_align ? "text-align: " + text_align : ""}
 		/>
-		{#if submit_btn}
+		{#if submit_btn && !disabled}
 			<button
 				class="submit-button"
 				class:padded-button={submit_btn !== true}
