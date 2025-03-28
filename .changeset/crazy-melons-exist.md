@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Fix get_api_call_path
+feat:Fix route_utils.get_api_call_path()
