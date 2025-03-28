@@ -225,12 +225,6 @@
 		object-fit: scale-down;
 	}
 
-	.image-frame {
-		object-fit: cover;
-		width: 100%;
-		height: 100%;
-	}
-
 	.upload-container {
 		display: flex;
 		align-items: center;
