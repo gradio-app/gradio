@@ -10,6 +10,7 @@ import time
 from pathlib import Path
 
 import httpx
+import huggingface_hub
 
 from gradio.exceptions import ChecksumMismatchError
 
@@ -47,7 +48,7 @@ CHECKSUMS = {
 CHUNK_SIZE = 128
 
 BINARY_FILENAME = f"{BINARY_REMOTE_NAME}_v{VERSION}"
-BINARY_FOLDER = Path(__file__).parent
+BINARY_FOLDER = Path(huggingface_hub.constants.HF_HUB_CACHE)
 BINARY_PATH = f"{BINARY_FOLDER / BINARY_FILENAME}"
 
 TUNNEL_TIMEOUT_SECONDS = 30
