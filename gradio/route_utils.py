@@ -384,16 +384,18 @@ def get_api_call_path(request: fastapi.Request) -> str:
     """
     queue_api_url = f"{API_PREFIX}/queue/join"
     generic_api_url = f"{API_PREFIX}/call"
-    request_url = str(httpx.URL(str(request.url)).copy_with(query=None)).strip("/")
+    request_path = request.url.path.rstrip("/")
 
-    if request_url.endswith(queue_api_url):
+    if request_path.endswith(queue_api_url):
         return queue_api_url
 
-    start_index = request_url.rfind(generic_api_url)
+    start_index = request_path.rfind(generic_api_url)
     if start_index >= 0:
-        return request_url[start_index : len(request_url)]
+        return request_path[start_index : len(request_path)]
 
-    raise ValueError(f"Request url '{request_url}' has an unkown api call pattern.")
+    raise ValueError(
+        f"Request url '{str(request.url)}' has an unknown api call pattern."
+    )
 
 
 def get_root_url(
