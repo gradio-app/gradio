@@ -1718,7 +1718,7 @@ def test_mount_gradio_app_args_match_launch_args():
 @pytest.mark.parametrize(
     "server, path",
     [
-        # ASGI HTTP Connection Scope. Spec: https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
+        # ASGI HTTP Connection Scope. Ref: https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scopeg
         (
             None,  # 'server' is optional. Requests from Gradio-Lite will be this case.
             f"{API_PREFIX}/queue/join",
