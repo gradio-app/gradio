@@ -2,6 +2,7 @@
 	import { tick, onMount } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
+	import { writable } from "svelte/store";
 
 	import type { LoadingStatus, LoadingStatusCollection } from "./stores";
 
@@ -19,12 +20,14 @@
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import settings_logo from "./api_docs/img/settings-logo.svg";
+	import record from "./api_docs/img/record.svg";
 	import { create_components, AsyncFunction } from "./init";
 	import type {
 		LogMessage,
 		RenderMessage,
 		StatusMessage
 	} from "@gradio/client";
+	import ScreenRecorder from "./screen_recorder";
 
 	setupi18n();
 
@@ -130,7 +133,6 @@
 			return;
 		}
 		const outputs = dep.outputs;
-
 		const meta_updates = data?.map((value: any, i: number) => {
 			return {
 				id: outputs[i],
@@ -372,6 +374,7 @@
 			payload: Payload,
 			streaming = false
 		): Promise<void> {
+			screen_recorder.markRemoveSegmentStart();
 			if (api_recorder_visible) {
 				api_calls = [...api_calls, JSON.parse(JSON.stringify(payload))];
 			}
@@ -601,6 +604,7 @@
 					});
 				}
 			}
+			screen_recorder.markRemoveSegmentEnd();
 		}
 	}
 	/* eslint-enable complexity */
@@ -771,6 +775,9 @@
 		return "detail" in event;
 	}
 
+	let screen_recorder: ScreenRecorder;
+	let is_screen_recording = writable(false);
+
 	onMount(() => {
 		document.addEventListener("visibilitychange", function () {
 			if (document.visibilityState === "hidden") {
@@ -782,7 +789,21 @@
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 				navigator.userAgent
 			);
+
+		screen_recorder = new ScreenRecorder(root, (title, message, type) => {
+			add_new_message(title, message, type);
+		});
 	});
+
+	function screenRecording(): void {
+		if (screen_recorder.isCurrentlyRecording()) {
+			screen_recorder.stopRecording();
+			$is_screen_recording = false;
+		} else {
+			screen_recorder.startRecording();
+			$is_screen_recording = true;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -843,6 +864,16 @@
 			>
 				{$_("common.settings")}
 				<img src={settings_logo} alt={$_("common.settings")} />
+			</button>
+			<div class="divider">·</div>
+			<button
+				on:click={() => {
+					screenRecording();
+				}}
+				class="record"
+			>
+				{$_($is_screen_recording ? "common.stop_recording" : "common.record")}
+				<img src={record} alt={$_("common.record")} />
 			</button>
 		</footer>
 	{/if}
@@ -948,7 +979,8 @@
 	}
 
 	.show-api,
-	.settings {
+	.settings,
+	.record {
 		display: flex;
 		align-items: center;
 	}
@@ -968,13 +1000,20 @@
 		width: var(--size-4);
 	}
 
+	.record img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-1);
+		width: var(--size-3);
+	}
+
 	.built-with {
 		display: flex;
 		align-items: center;
 	}
 
 	.built-with:hover,
-	.settings:hover {
+	.settings:hover,
+	.record:hover {
 		color: var(--body-text-color);
 	}
 

@@ -8,7 +8,6 @@ import contextlib
 import hashlib
 import importlib.resources
 import inspect
-import io
 import json
 import math
 import mimetypes
@@ -96,6 +95,7 @@ from gradio.route_utils import (  # noqa: F401
     create_lifespan_handler,
     move_uploaded_files_to_cache,
 )
+from gradio.screen_recording_utils import process_video_with_ffmpeg
 from gradio.server_messages import (
     CloseStreamMessage,
     EstimationMessage,
@@ -116,6 +116,8 @@ from gradio.utils import (
 if TYPE_CHECKING:
     from gradio.blocks import Block
 
+import shutil
+import tempfile
 
 mimetypes.init()
 
@@ -1545,23 +1547,9 @@ class App(FastAPI):
             blocks = app.get_blocks()
             favicon_path = blocks.favicon_path
             if favicon_path is None:
-                raise HTTPException(status_code=404)
-
-            if size is None:
-                return FileResponse(favicon_path)
-
-            import PIL.Image
-
-            img = PIL.Image.open(favicon_path)
-            img = img.resize((size, size))
-
-            img_byte_array = io.BytesIO()
-            img.save(img_byte_array, format="PNG")
-            img_byte_array.seek(0)
-
-            return StreamingResponse(
-                io.BytesIO(img_byte_array.read()), media_type="image/png"
-            )
+                return static_resource("img/logo.svg")
+            else:
+                return FileResponse(blocks.favicon_path)
 
         @app.get("/manifest.json")
         def manifest_json():
@@ -1652,8 +1640,85 @@ class App(FastAPI):
             else:
                 raise HTTPException(status_code=403, detail="Invalid key.")
 
-        app.include_router(router)
+        @app.post("/process_recording", dependencies=[Depends(login_check)])
+        async def process_recording(
+            request: fastapi.Request,
+        ):
+            try:
+                content_type_header = request.headers.get("Content-Type")
+                content_type: bytes
+                content_type, _ = parse_options_header(content_type_header or "")
+                if content_type != b"multipart/form-data":
+                    raise HTTPException(status_code=400, detail="Invalid content type.")
 
+                app = request.app
+                max_file_size = (
+                    app.get_blocks().max_file_size
+                    if hasattr(app, "get_blocks")
+                    else None
+                )
+                max_file_size = max_file_size if max_file_size is not None else math.inf
+
+                multipart_parser = GradioMultiPartParser(
+                    request.headers,
+                    request.stream(),
+                    max_files=1,
+                    max_fields=10,
+                    max_file_size=max_file_size,
+                )
+                form = await multipart_parser.parse()
+            except MultiPartException as exc:
+                code = 413 if "maximum allowed size" in exc.message else 400
+                return PlainTextResponse(exc.message, status_code=code)
+
+            video_files = form.getlist("video")
+            if not video_files or not isinstance(video_files[0], GradioUploadFile):
+                raise HTTPException(status_code=400, detail="No video file provided")
+
+            video_file = video_files[0]
+            params = {
+                "remove_segment_start": form.get("remove_segment_start"),
+                "remove_segment_end": form.get("remove_segment_end"),
+            }
+
+            with tempfile.NamedTemporaryFile(
+                delete=False, suffix=".webm"
+            ) as input_file:
+                video_file.file.seek(0)
+                shutil.copyfileobj(video_file.file, input_file)
+                input_path = input_file.name
+
+            output_path = tempfile.mktemp(suffix="_processed.webm")
+
+            try:
+                processed_path, temp_files = await process_video_with_ffmpeg(
+                    input_path, output_path, params
+                )
+
+                return FileResponse(
+                    processed_path,
+                    media_type="video/webm",
+                    filename="gradio-screen-recording.webm",
+                    background=BackgroundTask(lambda: cleanup_files(temp_files)),
+                )
+            except Exception as e:
+                print(f"Error processing video: {str(e)}")
+                return FileResponse(
+                    input_path,
+                    media_type="video/webm",
+                    filename="gradio-screen-recording.webm",
+                    background=BackgroundTask(lambda: cleanup_files([input_path])),
+                )
+
+        async def cleanup_files(files):
+            for file in files:
+                try:
+                    if file and os.path.exists(file):
+                        os.unlink(file)
+                except Exception as e:
+                    print(f"Error cleaning up file {file}: {str(e)}")
+
+        app.include_router(router)
         return app
 
 
