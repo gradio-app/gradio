@@ -1715,9 +1715,15 @@ def test_mount_gradio_app_args_match_launch_args():
     )
 
 
-def test_get_api_call_path_queue_join():
-    queue_url = f"http://localhost:7860{API_PREFIX}/queue/join?__theme=dark"
-    scope = {"type": "http", "headers": [], "path": queue_url}
+@pytest.mark.parametrize(
+    "path",
+    [
+        f"http://localhost:7860{API_PREFIX}/queue/join?__theme=dark",
+        f"{API_PREFIX}/queue/join",
+    ],
+)
+def test_get_api_call_path_queue_join(path):
+    scope = {"type": "http", "headers": [], "path": path}
     request = Request(scope)
 
     path = get_api_call_path(request)
