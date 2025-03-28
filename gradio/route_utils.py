@@ -393,7 +393,7 @@ def get_api_call_path(request: fastapi.Request) -> str:
     if start_index >= 0:
         return request_url[start_index : len(request_url)]
 
-    raise ValueError(f"Request url '{request_url}' has an unkown api call pattern.")
+    raise ValueError(f"Request url '{request_url}' has an unknown api call pattern.")
 
 
 def get_root_url(
