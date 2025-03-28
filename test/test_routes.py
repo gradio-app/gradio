@@ -1716,14 +1716,30 @@ def test_mount_gradio_app_args_match_launch_args():
 
 
 @pytest.mark.parametrize(
-    "path",
+    "server, path",
     [
-        f"http://localhost:7860{API_PREFIX}/queue/join?__theme=dark",
-        f"{API_PREFIX}/queue/join",
+        # ASGI HTTP Connection Scope. Spec: https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
+        (
+            None,  # 'server' is optional. Requests from Gradio-Lite will be this case.
+            f"{API_PREFIX}/queue/join",
+        ),
+        (("localhost", 7860), f"{API_PREFIX}/queue/join"),
+        (
+            ("localhost", 7860),
+            f"{API_PREFIX}/queue/join?__theme=dark",  # With query params.
+        ),
+        (
+            ("localhost", 7860),
+            f"{API_PREFIX}/queue/join?foo=bar&__theme=dark",  # With multiple query params.
+        ),
+        (
+            None,
+            f"http://localhost:7860{API_PREFIX}/queue/join?__theme=dark",  # Putting the server in the path may be invalid but we test it anyway.
+        ),
     ],
 )
-def test_get_api_call_path_queue_join(path):
-    scope = {"type": "http", "headers": [], "path": path}
+def test_get_api_call_path_queue_join(server, path):
+    scope = {"type": "http", "headers": [], "server": server, "path": path}
     request = Request(scope)
 
     path = get_api_call_path(request)
