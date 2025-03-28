@@ -66,6 +66,6 @@ export async function view_api(this: Client): Promise<any> {
 
 		return transform_api_info(api_info, config, this.api_map);
 	} catch (e) {
-		"Could not get API info. " + (e as Error).message;
+		throw new Error("Could not get API info. " + (e as Error).message);
 	}
 }
