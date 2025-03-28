@@ -1,5 +1,15 @@
 # gradio
 
+## 5.24.0
+
+### Features
+
+- [#10897](https://github.com/gradio-app/gradio/pull/10897) [`1e8cdee`](https://github.com/gradio-app/gradio/commit/1e8cdee48a2c897e2cd3751bf51dda85b48529d9) - Fix route_utils.get_api_call_path().  Thanks @whitphx!
+
+### Fixes
+
+- [#10892](https://github.com/gradio-app/gradio/pull/10892) [`bfb7aae`](https://github.com/gradio-app/gradio/commit/bfb7aae299093c9295fca601bded9198fca30744) - Fix minor heartbeat memory leak.  Thanks @brentyi!
+
 ## 5.23.1
 
 ### Features
