@@ -1,5 +1,22 @@
 # @gradio/dataframe
 
+## 0.17.2
+
+### Dependency updates
+
+- @gradio/atoms@0.14.1
+- @gradio/statustracker@0.10.6
+- @gradio/client@1.14.0
+- @gradio/markdown-code@0.4.2
+- @gradio/upload@0.15.6
+- @gradio/button@0.4.11
+
+## 0.17.1
+
+### Fixes
+
+- [#10819](https://github.com/gradio-app/gradio/pull/10819) [`ac075ad`](https://github.com/gradio-app/gradio/commit/ac075ad6aaea855bfd4839cef7140719a584498e) - Fix cell menu not showing in non-editable dataframes.  Thanks @hannahblair!
+
 ## 0.17.0
 
 ### Features

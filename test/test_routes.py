@@ -38,6 +38,7 @@ from gradio.route_utils import (
     API_PREFIX,
     FnIndexInferError,
     compare_passwords_securely,
+    get_api_call_path,
     get_root_url,
     starts_with_protocol,
 )
@@ -680,7 +681,7 @@ class TestRoutes:
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.get(f"{API_PREFIX}/monitoring")
+        response = client.get("/monitoring")
         assert response.status_code == 200
 
     def test_monitoring_link_disabled(self):
@@ -691,7 +692,7 @@ class TestRoutes:
 
         app, _, _ = demo.launch(prevent_thread_lock=True, enable_monitoring=False)
         client = TestClient(app)
-        response = client.get(f"{API_PREFIX}/monitoring")
+        response = client.get("/monitoring")
         assert response.status_code == 403
 
 
@@ -784,14 +785,14 @@ class TestAuthenticatedRoutes:
         )
 
         response = client.get(
-            f"{API_PREFIX}/monitoring",
+            "/monitoring",
         )
         assert response.status_code == 200
 
         response = client.get("/logout")
 
         response = client.get(
-            f"{API_PREFIX}/monitoring",
+            "/monitoring",
         )
         assert response.status_code == 401
 
@@ -1712,3 +1713,76 @@ def test_mount_gradio_app_args_match_launch_args():
     assert not missing_params, (
         f"Parameters in launch() but missing in mount_gradio_app(): {missing_params}"
     )
+
+
+@pytest.mark.parametrize(
+    "server, path",
+    [
+        # ASGI HTTP Connection Scope. Ref: https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scopeg
+        (
+            None,  # 'server' is optional. Requests from Gradio-Lite will be this case.
+            f"{API_PREFIX}/queue/join",
+        ),
+        (("localhost", 7860), f"{API_PREFIX}/queue/join"),
+        (
+            ("localhost", 7860),
+            f"{API_PREFIX}/queue/join?__theme=dark",  # With query params.
+        ),
+        (
+            ("localhost", 7860),
+            f"{API_PREFIX}/queue/join?foo=bar&__theme=dark",  # With multiple query params.
+        ),
+        (
+            None,
+            f"http://localhost:7860{API_PREFIX}/queue/join?__theme=dark",  # Putting the server in the path may be invalid but we test it anyway.
+        ),
+    ],
+)
+def test_get_api_call_path_queue_join(server, path):
+    scope = {"type": "http", "headers": [], "server": server, "path": path}
+    request = Request(scope)
+
+    path = get_api_call_path(request)
+    assert path == f"{API_PREFIX}/queue/join"
+
+
+@pytest.mark.parametrize(
+    "server, path, expected",
+    [
+        (
+            ("localhost", 7860),
+            f"{API_PREFIX}/call/predict",
+            f"{API_PREFIX}/call/predict",
+        ),
+        (
+            None,
+            f"http://localhost:7860{API_PREFIX}/call/predict",
+            f"{API_PREFIX}/call/predict",
+        ),
+        (
+            ("localhost", 7860),
+            f"{API_PREFIX}/call/custom_function/with/extra/parts",
+            f"{API_PREFIX}/call/custom_function/with/extra/parts",
+        ),
+        (
+            None,
+            f"http://localhost:7860{API_PREFIX}/call/custom_function/with/extra/parts",
+            f"{API_PREFIX}/call/custom_function/with/extra/parts",
+        ),
+        (  # Query params are ignored.
+            ("localhost", 7860),
+            f"{API_PREFIX}/call/custom_function/with/extra/parts?__theme=light",
+            f"{API_PREFIX}/call/custom_function/with/extra/parts",
+        ),
+        (  # Query params are ignored.
+            None,
+            f"http://localhost:7860{API_PREFIX}/call/custom_function/with/extra/parts?__theme=light",
+            f"{API_PREFIX}/call/custom_function/with/extra/parts",
+        ),
+    ],
+)
+def test_get_api_call_path_generic_call(server, path, expected):
+    scope = {"type": "http", "headers": [], "server": server, "path": path}
+    request = Request(scope)
+    path = get_api_call_path(request)
+    assert path == expected

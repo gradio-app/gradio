@@ -1,5 +1,48 @@
 # gradio
 
+## 5.23.1
+
+### Features
+
+- [#10877](https://github.com/gradio-app/gradio/pull/10877) [`b19e8ad`](https://github.com/gradio-app/gradio/commit/b19e8ad26789146a8b4dcab65715b2bc05937d7c) - Switch from `root_url` to `request.url` in `get_api_call_path()`.  Thanks @abidlabs!
+- [#10879](https://github.com/gradio-app/gradio/pull/10879) [`3ba9e4f`](https://github.com/gradio-app/gradio/commit/3ba9e4febb9d32a7d523af46e0484face4cc8e64) - Fix request url.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10872](https://github.com/gradio-app/gradio/pull/10872) [`84fafc4`](https://github.com/gradio-app/gradio/commit/84fafc45bf9f8fbc5fe39ff20dbb7108d0a66e94) - Fix `/monitoring` endpoint.  Thanks @aliabid94!
+- [#10873](https://github.com/gradio-app/gradio/pull/10873) [`3a3d0d9`](https://github.com/gradio-app/gradio/commit/3a3d0d93884ccf498713bad748bacdd5294b535e) - Improve UI for lazy caching.  Thanks @abidlabs!
+
+## 5.23.0
+
+### Features
+
+- [#10858](https://github.com/gradio-app/gradio/pull/10858) [`e30348b`](https://github.com/gradio-app/gradio/commit/e30348b085b045e5aac5bd8a41e1cf5485c8c56d) - Gradio sketch: Remove HF Inference health check.  Thanks @aliabid94!
+- [#10834](https://github.com/gradio-app/gradio/pull/10834) [`c05610c`](https://github.com/gradio-app/gradio/commit/c05610c87dd7f9e9fe5d0aed2fe93e40fdd32648) - Add Deep Links.  Thanks @freddyaboulton!
+- [#10838](https://github.com/gradio-app/gradio/pull/10838) [`a06c7e4`](https://github.com/gradio-app/gradio/commit/a06c7e40e2ddb5c526c195d31832f6e97b669291) - Allow for iterative coding in gradio sketch.  Thanks @aliabid94!
+- [#10862](https://github.com/gradio-app/gradio/pull/10862) [`243942e`](https://github.com/gradio-app/gradio/commit/243942e5e47d22a4f512f31313bc3098a0a5b77d) - fix typing of gr.on event listener.  Thanks @JackismyShephard!
+- [#10859](https://github.com/gradio-app/gradio/pull/10859) [`a1862f5`](https://github.com/gradio-app/gradio/commit/a1862f54a741002bc78bc36fc3c3cb78856fad66) - fix typing on load event listener.  Thanks @JackismyShephard!
+- [#10854](https://github.com/gradio-app/gradio/pull/10854) [`1649b00`](https://github.com/gradio-app/gradio/commit/1649b0038482402d7f0ccdbf86ba65d82b4a12c9) - Add support for `mermaid.js` in `Markdown` component (as well as components like `gr.Chatbot` that use Markdown).  Thanks @abidlabs!
+- [#10812](https://github.com/gradio-app/gradio/pull/10812) [`6384bcc`](https://github.com/gradio-app/gradio/commit/6384bcc11f13d22f4480e7ad7213486fecec8936) - Jedi-based Python code completion on `gr.Code`.  Thanks @whitphx!
+- [#10870](https://github.com/gradio-app/gradio/pull/10870) [`f40e008`](https://github.com/gradio-app/gradio/commit/f40e00855593182faba3595fe9d913defbb8130f) - Change `gr.DeepLinkButton` default variant to be secondary.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10841](https://github.com/gradio-app/gradio/pull/10841) [`8ff0a5e`](https://github.com/gradio-app/gradio/commit/8ff0a5e3e916ba6dfe6255ffcf4d09868ab29bde) - Fix path generation for returned files for bash API.  Thanks @cansik!
+- [#10860](https://github.com/gradio-app/gradio/pull/10860) [`fb4c3da`](https://github.com/gradio-app/gradio/commit/fb4c3dacd06803fdf0634481e9db080425f67023) - bug fix logout if there is root_path in launch.  Thanks @azharizz!
+
+## 5.22.0
+
+### Features
+
+- [#10824](https://github.com/gradio-app/gradio/pull/10824) [`4d78710`](https://github.com/gradio-app/gradio/commit/4d78710bbf266a13568d7920c19a6ef6dd167ecf) - Sketch code generator.  Thanks @aliabid94!
+- [#10814](https://github.com/gradio-app/gradio/pull/10814) [`b42e461`](https://github.com/gradio-app/gradio/commit/b42e4612abad205e0269bd69917c09565daf0cf7) - Adds a watermark parameter to `gr.Chatbot` that is added to copied text.  Thanks @abidlabs!
+- [#10820](https://github.com/gradio-app/gradio/pull/10820) [`4fa8e00`](https://github.com/gradio-app/gradio/commit/4fa8e00c31812797d1a73d18f1e0ce7cdf17ab27) - Update `markupsafe` dependency version.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10829](https://github.com/gradio-app/gradio/pull/10829) [`e0ab4f0`](https://github.com/gradio-app/gradio/commit/e0ab4f07ab3af83cbc62ede6d9c78674e684c688) - Fix gr.load_chat.  Thanks @aliabid94!
+- [#10819](https://github.com/gradio-app/gradio/pull/10819) [`ac075ad`](https://github.com/gradio-app/gradio/commit/ac075ad6aaea855bfd4839cef7140719a584498e) - Fix cell menu not showing in non-editable dataframes.  Thanks @hannahblair!
+
 ## 5.21.0
 
 ### Features
