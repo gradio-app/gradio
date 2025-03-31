@@ -21,7 +21,6 @@
 		right: string;
 		display: boolean;
 	}[];
-	export let clear_on_focus = false;
 	export let line_breaks = true;
 	export let editable = true;
 	export let is_static = false;
@@ -44,7 +43,6 @@
 	let is_expanded = false;
 
 	export let el: HTMLInputElement | null;
-	$: _value = value;
 
 	function truncate_text(
 		text: string | number,
@@ -72,10 +70,6 @@
 		: display_content;
 
 	function use_focus(node: HTMLInputElement): any {
-		if (clear_on_focus) {
-			_value = "";
-		}
-
 		requestAnimationFrame(() => {
 			node.focus();
 		});
@@ -95,7 +89,6 @@
 	function handle_keydown(event: KeyboardEvent): void {
 		if (event.key === "Enter") {
 			if (edit) {
-				value = _value;
 				dispatch("blur");
 			} else if (!header) {
 				is_expanded = !is_expanded;
@@ -118,7 +111,7 @@
 		role="textbox"
 		aria-label={is_static ? "Cell is read-only" : "Edit cell"}
 		bind:this={el}
-		bind:value={_value}
+		bind:value
 		class:header
 		tabindex="-1"
 		on:blur={handle_blur}
