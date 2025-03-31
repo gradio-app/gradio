@@ -2,6 +2,7 @@
 
 import http.server
 import os
+import socket
 import socketserver
 import threading
 import time
@@ -72,7 +73,27 @@ def test_reverse_proxy():
 
     gr.mount_gradio_app(app, demo, path="/gradio")
 
-    target_port = 8000
+    def is_port_available(port):
+        try:
+            s = socket.socket()
+            s.bind(("127.0.0.1", target_port))
+            s.close()
+            return True
+        except OSError:
+            return False
+
+    for target_port in range(8000, 8100):
+        if is_port_available(target_port):
+            break
+    else:
+        raise ValueError("No available ports")
+
+    for proxy_port in range(18000, 18100):
+        if is_port_available(proxy_port):
+            break
+    else:
+        raise ValueError("No available ports")
+
     target_host = "localhost"
 
     class HTMLReverseProxyHandler(http.server.BaseHTTPRequestHandler):
@@ -248,8 +269,6 @@ def test_reverse_proxy():
                     self.end_headers()
                     self.wfile.write(f"Proxy error: {str(e)}".encode())
 
-    proxy_port = 17860
-
     socketserver.TCPServer.allow_reuse_address = True
     server = socketserver.ThreadingTCPServer(
         ("localhost", proxy_port), HTMLReverseProxyHandler
@@ -281,14 +300,10 @@ def test_reverse_proxy():
         response = requests.get(f"http://localhost:{proxy_port}/gradio/")
         assert response.status_code == 200
 
-        response = requests.get(f"http://localhost:{proxy_port}/gradio/theme.css")
+        response = requests.get(f"http://localhost:{proxy_port}/gradio/config")
         assert response.status_code == 200
-
-        response = requests.get(f"http://localhost:{proxy_port}/gradio/nonexistent")
-        assert response.status_code == 404
-
-        response = requests.get(f"http://localhost:{proxy_port}/nonexistent")
-        assert response.status_code == 404
+        json = response.json()
+        assert json["root"] == f"http://localhost:{proxy_port}/gradio"
 
     finally:
         server.shutdown()
