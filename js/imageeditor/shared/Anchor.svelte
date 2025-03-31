@@ -52,7 +52,6 @@
 	let last_pos = 0;
 	async function handle_box_click(i: number, stagger = false): Promise<void> {
 		if (expanded && stagger) return;
-		console.log("handle_box_click", i);
 		// await Promise.all([a1.set(a1_init, { hard: true}), a2.set(a2_init, { hard: true}), a3.set(a3_init, { hard: true})])
 
 		const y = Math.floor(i / 3);
@@ -69,7 +68,6 @@
 				arrow_spring.set(initial_arrows, { hard: true }),
 				dimensions.set(init),
 			]);
-			console.log("done init");
 		} else {
 			await arrow_spring.set(initial_arrows, { hard: true });
 		}
@@ -79,8 +77,6 @@
 		pos.set([0, 0]);
 		dimensions.set([150 + 28, 150 + 28]);
 		arrow_spring.set(eventual_arrows);
-		console.log("eventual_arrows:", eventual_arrows);
-		console.log("arrow_spring after set:", $arrow_spring);
 
 		dispatch("position", positions[i]);
 	}
@@ -89,7 +85,6 @@
 		x: number;
 		y: number;
 	}): [Arrow[], Arrow[]] {
-		// console.log({ anchorPoint });
 		const destination_points: { x: number; y: number }[] = [
 			{ x: 0, y: 0 },
 			{ x: 1, y: 0 },
@@ -110,7 +105,6 @@
 			}))
 			.filter((offset) => !(offset.x === 0 && offset.y === 0));
 
-		// console.log({ offsets });
 		const normalized_offsets = offsets
 			.map((offset) => {
 				// cardinal
@@ -164,15 +158,11 @@
 			}
 		});
 
-		// console.log({ directions });
-
 		const unique_directions = Array.from(directions.values()).map(
 			(direction) => {
 				return direction.sort((a, b) => b.magnitude - a.magnitude)[0];
 			},
 		);
-
-		// console.log({ unique_directions });
 
 		const eventual_arrows = unique_directions.map((arrow) => ({
 			x:
@@ -215,8 +205,6 @@
 
 		return [initial_arrows, eventual_arrows];
 	}
-
-	$: console.log($arrow_spring);
 
 	onMount(() => {
 		handle_box_click(0);
