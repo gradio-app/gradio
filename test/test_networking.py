@@ -301,6 +301,7 @@ def test_reverse_proxy():
     if attempts == 0:
         server.shutdown()
         server.server_close()
+        uvicorn_server.should_exit = True
         uvicorn_thread.join()
         raise TimeoutError("Server did not start in time")
 
