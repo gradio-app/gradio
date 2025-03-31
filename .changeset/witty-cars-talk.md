@@ -1,6 +1,6 @@
 ---
-"@gradio/dropdown": minor
-"gradio": minor
+"@gradio/dropdown": patch
+"gradio": patch
 ---
 
 feat:Fix empty array check in arrow key handling
