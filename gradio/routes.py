@@ -297,7 +297,7 @@ class App(FastAPI):
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
-        self.root_path = blocks.root_path
+        self.root_path = blocks.root_path or blocks.custom_mount_path or ""
         self.state_holder.set_blocks(blocks)
 
     def get_blocks(self) -> gradio.Blocks:
