@@ -2,7 +2,6 @@
 
 import http.server
 import os
-import re
 import socketserver
 import threading
 import time
@@ -108,14 +107,6 @@ def test_reverse_proxy():
             # Check if the path is for a JS module
             is_js_request = request_path.endswith(".js")
 
-            # Extract the base path component for HTML rewriting
-            # e.g., for "/app/page" this would be "/app"
-            if request_path == "/":
-                base_path = ""
-            else:
-                # Get the first path component to use for rewriting
-                base_path = "/" + request_path.strip("/").split("/", 1)[0]
-
             # Forward the full original path to the target server
             target_url = f"http://{target_host}:{target_port}{original_path}"
 
@@ -196,23 +187,6 @@ def test_reverse_proxy():
                     if "text/html" in content_type.lower():
                         try:
                             html_content = response_data.decode("utf-8")
-
-                            # Rewrite relative paths in HTML to include the base path
-                            if base_path:
-                                # Find and rewrite src="./assets/...
-                                html_content = re.sub(
-                                    r'(src|href)="\./(.*?)"',
-                                    f'\\1="{base_path}/\\2"',
-                                    html_content,
-                                )
-
-                                # Find and rewrite src="assets/...
-                                html_content = re.sub(
-                                    r'(src|href)="(?!http|https|/)(.*?)"',
-                                    f'\\1="{base_path}/\\2"',
-                                    html_content,
-                                )
-
                             response_data = html_content.encode("utf-8")
                         except Exception as e:
                             print(f"Error processing HTML: {str(e)}")
@@ -288,28 +262,36 @@ def test_reverse_proxy():
     uvicorn_thread = threading.Thread(target=uvicorn_server.run)
     uvicorn_thread.start()
 
-    attempts = 5
-    status_code = None
-    while attempts > 0 and status_code != 200:
-        attempts -= 1
-        try:
-            response = requests.get(f"http://localhost:{target_port}/gradio/")
-            status_code = response.status_code
-        except Exception:
-            time.sleep(1)
+    try:
+        attempts = 5
+        status_code = None
+        while attempts > 0 and status_code != 200:
+            attempts -= 1
+            try:
+                response = requests.get(
+                    f"http://localhost:{target_port}/gradio/", timeout=1
+                )
+                status_code = response.status_code
+            except Exception:
+                time.sleep(1)
 
-    if attempts == 0:
+        if attempts == 0:
+            raise TimeoutError("Server did not start in time")
+
+        response = requests.get(f"http://localhost:{proxy_port}/gradio/")
+        assert response.status_code == 200
+
+        response = requests.get(f"http://localhost:{proxy_port}/gradio/theme.css")
+        assert response.status_code == 200
+
+        response = requests.get(f"http://localhost:{proxy_port}/gradio/nonexistent")
+        assert response.status_code == 404
+
+        response = requests.get(f"http://localhost:{proxy_port}/nonexistent")
+        assert response.status_code == 404
+
+    finally:
         server.shutdown()
         server.server_close()
         uvicorn_server.should_exit = True
         uvicorn_thread.join()
-        raise TimeoutError("Server did not start in time")
-
-    response = requests.get(f"http://localhost:{proxy_port}/gradio/theme.css")
-
-    server.shutdown()
-    server.server_close()
-    uvicorn_server.should_exit = True
-    uvicorn_thread.join()
-
-    assert response.status_code == 200
