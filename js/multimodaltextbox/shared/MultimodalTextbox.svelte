@@ -388,7 +388,7 @@
 		/>
 	{/if}
 	<div class="input-container">
-		{#if sources && sources.includes("upload") && !disabled && !(file_count === "single" && value.files.length > 0)}
+		{#if sources && sources.includes("upload") && !(file_count === "single" && value.files.length > 0)}
 			<Upload
 				bind:this={upload_component}
 				on:load={handle_upload}
@@ -409,7 +409,9 @@
 			<button
 				data-testid="upload-button"
 				class="upload-button"
-				on:click={handle_upload_click}><Paperclip /></button
+				{disabled}
+				on:click={disabled ? undefined : handle_upload_click}
+				><Paperclip /></button
 			>
 		{/if}
 		{#if sources && sources.includes("microphone")}
@@ -417,9 +419,13 @@
 				data-testid="microphone-button"
 				class="microphone-button"
 				class:recording
-				on:click={() => {
-					active_source = active_source !== "microphone" ? "microphone" : null;
-				}}
+				{disabled}
+				on:click={disabled
+					? undefined
+					: () => {
+							active_source =
+								active_source !== "microphone" ? "microphone" : null;
+						}}
 			>
 				<Microphone />
 			</button>
@@ -453,7 +459,8 @@
 			<button
 				class="submit-button"
 				class:padded-button={submit_btn !== true}
-				on:click={handle_submit}
+				{disabled}
+				on:click={disabled ? undefined : handle_submit}
 			>
 				{#if submit_btn === true}
 					<Send />
@@ -567,10 +574,10 @@
 		background: var(--button-secondary-background-fill);
 	}
 
-	.microphone-button:hover,
-	.stop-button:hover,
-	.upload-button:hover,
-	.submit-button:hover {
+	.microphone-button:hover:not(:disabled),
+	.stop-button:hover:not(:disabled),
+	.upload-button:hover:not(:disabled),
+	.submit-button:hover:not(:disabled) {
 		background: var(--button-secondary-background-fill-hover);
 	}
 
@@ -579,7 +586,7 @@
 	.upload-button:disabled,
 	.submit-button:disabled {
 		background: var(--button-secondary-background-fill);
-		cursor: initial;
+		cursor: not-allowed;
 	}
 	.microphone-button:active,
 	.stop-button:active,
