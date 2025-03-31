@@ -460,7 +460,6 @@ export class LayerManager {
 
 	delete_layer(id: string): void {
 		const index = this.layers.findIndex((l) => l.id === id);
-		console.log("deleting layer", id, index);
 		if (index > -1) {
 			// Clean up texture
 			const draw_texture = this.draw_textures.get(this.layers[index].container);
@@ -468,7 +467,6 @@ export class LayerManager {
 				draw_texture.destroy();
 				this.draw_textures.delete(this.layers[index].container);
 			}
-			console.log("deleted draw texture", this.layers[index]);
 			this.layers[index].container.destroy();
 			if (this.active_layer === this.layers[index].container) {
 				this.active_layer =
@@ -485,7 +483,6 @@ export class LayerManager {
 			}));
 
 			this.update_layer_order();
-			console.log("deleted layer", id, this.layers);
 		}
 	}
 
@@ -761,20 +758,11 @@ export class LayerManager {
 	}
 
 	reset_layers(width: number, height: number): void {
-		console.log(
-			"resetting layers",
-			width,
-			height,
-			JSON.parse(JSON.stringify(this.layers.map((l) => [l.id, l.name])))
-		);
-		console.log(this.layers.length);
 		this.layers.forEach((layer) => {
-			console.log("deleting layer", layer.id);
 			this.delete_layer(layer.id);
 		});
-		console.log("layer_options", this.layer_options);
+
 		for (const layer of this.layer_options.layers) {
-			console.log("creating layer", layer);
 			this.create_layer({
 				width,
 				height,
@@ -968,7 +956,6 @@ export class ImageEditor {
 	private overlay_graphics!: Graphics;
 
 	constructor(options: ImageEditorOptions) {
-		console.log("ImageEditor constructor", options.layer_options);
 		this.dark = options.dark || false;
 		this.target_element = options.target_element;
 		this.width = options.width;

@@ -27,6 +27,7 @@
 	import Layers from "./Layers.svelte";
 	import { Check } from "@gradio/icons";
 	import type { LayerOptions, Source, Transform } from "./types";
+	import { get } from "svelte/store";
 	const { drag, open_file_upload } = create_drag();
 
 	interface WeirdTypeData {
@@ -79,6 +80,7 @@
 	$: if (layer_options) {
 		if (check_if_should_init()) {
 			editor.set_layer_options(layer_options);
+			console.log("set_layer_options", layer_options);
 			refresh_tools();
 		}
 	}
@@ -130,7 +132,7 @@
 			  }
 			| any,
 	): Promise<void> {
-		if (!editor || !source || check_if_should_init()) return;
+		if (!editor || !source || !check_if_should_init()) return;
 		let url: string;
 
 		// Handle different source types
@@ -193,14 +195,68 @@
 	let mounted = false;
 	let min_zoom = true;
 
+	let last_dimensions = { width: 0, height: 0 };
+
+	/**
+	 * Handles visibility changes and resets zoom if dimensions have changed
+	 */
+	async function handle_visibility_change(): Promise<void> {
+		if (!editor || !ready || !zoom) return;
+		await tick();
+		console.log("handle_visibility_change", "running");
+
+		const is_visible = pixi_target.offsetParent !== null;
+
+		if (is_visible) {
+			const current_dimensions = pixi_target.getBoundingClientRect();
+
+			if (
+				current_dimensions.width !== last_dimensions.width ||
+				current_dimensions.height !== last_dimensions.height
+			) {
+				// Use set_zoom with "fit" to reset to appropriate zoom level
+				zoom.set_zoom("fit");
+
+				// Update the last known dimensions
+				last_dimensions = {
+					width: current_dimensions.width,
+					height: current_dimensions.height,
+				};
+			}
+		}
+	}
+
 	onMount(() => {
 		console.log("onMount");
+		let intersection_observer: IntersectionObserver;
+		let resize_observer: ResizeObserver;
 		init_image_editor().then(() => {
-			// mounted = true;
-			console.log("init_image_editor");
+			mounted = true;
+			intersection_observer = new IntersectionObserver(() => {
+				handle_visibility_change();
+			});
+
+			resize_observer = new ResizeObserver(() => {
+				handle_visibility_change();
+			});
+
+			intersection_observer.observe(pixi_target);
+			resize_observer.observe(pixi_target);
+		});
+
+		// Set up mutation observer to detect visibility changes
+
+		tick().then(() => {
+			// handle_visibility_change();
 		});
 
 		return () => {
+			if (intersection_observer) {
+				intersection_observer.disconnect();
+			}
+			if (resize_observer) {
+				resize_observer.disconnect();
+			}
 			if (editor) {
 				editor.destroy();
 			}
@@ -242,6 +298,11 @@
 			min_zoom = is_min_zoom;
 		});
 
+		editor.dimensions.subscribe((dimensions) => {
+			// Store dimensions for later comparison
+			last_dimensions = { ...dimensions };
+		});
+
 		await Promise.all([editor.ready, crop.ready]).then(() => {
 			handle_tool_change({ tool: "image" });
 			ready = true;
@@ -253,6 +314,7 @@
 			dispatch("change");
 		});
 
+		console.log("init_image_editor", "background", background);
 		if (background || layers.length > 0) {
 			if (background) {
 				await add_image_from_url(background);
@@ -263,8 +325,6 @@
 		} else if (composite) {
 			await add_image_from_url(composite);
 		}
-
-		mounted = true;
 	}
 
 	function resize_canvas(width: number, height: number): void {
