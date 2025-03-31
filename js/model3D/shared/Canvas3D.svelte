@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import * as BABYLON_VIEWER from "@babylonjs/viewer";
 	import type { FileData } from "@gradio/client";
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
+
+	let BABYLON_VIEWER: any;
 
 	export let value: FileData;
 	export let display_mode: "solid" | "point_cloud" | "wireframe";
@@ -40,28 +41,31 @@
 		}
 	}
 
-	/* BabylonJS viewer and viewer details management */
 	let canvas: HTMLCanvasElement;
-	let viewer: BABYLON_VIEWER.Viewer;
-	let viewerDetails: Readonly<BABYLON_VIEWER.ViewerDetails>;
+	let viewer: any;
+	let viewerDetails: any;
 	let mounted = false;
 
 	onMount(() => {
-		// Initialize BabylonJS viewer
-		BABYLON_VIEWER.createViewerForCanvas(canvas, {
-			clearColor: clear_color,
-			useRightHandedSystem: true,
-			cameraAutoOrbit: { enabled: false },
-			onInitialized: (details: Readonly<BABYLON_VIEWER.ViewerDetails>) => {
-				viewerDetails = details;
-			}
-		}).then((promiseViewer: BABYLON_VIEWER.Viewer) => {
-			viewer = promiseViewer;
-			mounted = true;
-		});
+		const initViewer = async (): Promise<void> => {
+			BABYLON_VIEWER = await import("@babylonjs/viewer");
+			BABYLON_VIEWER.createViewerForCanvas(canvas, {
+				clearColor: clear_color,
+				useRightHandedSystem: true,
+				cameraAutoOrbit: { enabled: false },
+				onInitialized: (details: any) => {
+					viewerDetails = details;
+				}
+			}).then((promiseViewer: any) => {
+				viewer = promiseViewer;
+				mounted = true;
+			});
+		};
+
+		initViewer();
 
 		return () => {
-			viewer.dispose();
+			viewer?.dispose();
 		};
 	});
 
