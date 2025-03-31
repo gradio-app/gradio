@@ -1,6 +1,6 @@
 aiofiles>=22.0,<24.0
 anyio>=3.0,<5.0
-audioop-lts<1.0; python_version >= "3.13" # this is a replacement for the built-in 'audioop' module removed in Python 3.13 (and used by pydub)
+audioop-lts<1.0; python_version >= "3.13" # this is a replacement for the built-in 'audioop' module removed in Python 3.13 (and needed for pydub)
 fastapi>=0.115.2,<1.0
 ffmpy
 groovy~=0.1
