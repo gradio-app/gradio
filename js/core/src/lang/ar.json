@@ -1,130 +1,144 @@
 {
-	"_name": "العربية",
-	"3D_model": {
-		"3d_model": "نموذج ثلاثي الأبعاد"
-	},
-	"annotated_image": {
-		"annotated_image": "صورة مشروحة"
-	},
-	"audio": {
-		"allow_recording_access": "يرجى السماح بالوصول إلى الميكروفون للتسجيل",
-		"audio": "الصوت",
-		"record_from_microphone": "تسجيل من الميكروفون",
-		"stop_recording": "إيقاف التسجيل",
-		"no_device_support": "لا يمكن الوصول إلى أجهزة الوسائط. تأكد من أنك تعمل على مصدر آمن (https) أو localhost (أو قمت بتمرير شهادة SSL صالحة إلى ssl_verify)، وأنك سمحت للمتصفح بالوصول إلى جهازك.",
-		"stop": "إيقاف",
-		"resume": "استئناف",
-		"record": "تسجيل",
-		"no_microphone": "لم يتم العثور على ميكروفون",
-		"pause": "إيقاف مؤقت",
-		"play": "تشغيل",
-		"waiting": "جاري الانتظار"
-	},
-	"blocks": {
-		"connection_can_break": "على الهاتف المحمول، يمكن أن ينقطع الاتصال إذا تم تغيير التبويب أو دخل الجهاز في وضع السكون، مما يؤدي إلى فقدان موقعك في قائمة الانتظار.",
-		"long_requests_queue": "هناك قائمة انتظار طويلة من الطلبات المعلقة. قم بتكرار هذا الفضاء للتخطي.",
-		"lost_connection": "فقد الاتصال بسبب مغادرة الصفحة. إعادة الانضمام إلى قائمة الانتظار..."
-	},
-	"checkbox": {
-		"checkbox": "خانة اختيار",
-		"checkbox_group": "مجموعة خانات الاختيار"
-	},
-	"code": {
-		"code": "الكود"
-	},
-	"color_picker": {
-		"color_picker": "منتقي الألوان"
-	},
-	"common": {
-		"built_with": "بُني باستخدام",
-		"built_with_gradio": "تم الإنشاء بإستخدام Gradio",
-		"clear": "أمسح",
-		"download": "تحميل",
-		"edit": "تعديل",
-		"empty": "فارغ",
-		"error": "خطأ",
-		"hosted_on": "مستضاف على",
-		"loading": "جاري التحميل",
-		"logo": "شعار",
-		"or": "أو",
-		"remove": "إزالة",
-		"settings": "الإعدادات",
-		"share": "مشاركة",
-		"submit": "أرسل",
-		"undo": "تراجع",
-		"no_devices": "لم يتم العثور على أجهزة",
-		"language": "اللغة",
-		"display_theme": "مظهر العرض",
-		"pwa": "تطبيق ويب تقدمي"
-	},
-	"dataframe": {
-		"incorrect_format": "تنسيق غير صحيح، يتم دعم ملفات CSV و TSV فقط",
-		"new_column": "إضافة عمود",
-		"new_row": "صف جديد",
-		"add_row_above": "إضافة صف فوق",
-		"add_row_below": "إضافة صف تحت",
-		"add_column_left": "إضافة عمود لليسار",
-		"add_column_right": "إضافة عمود لليمين"
-	},
-	"dropdown": {
-		"dropdown": "قائمة منسدلة"
-	},
-	"errors": {
-		"build_error": "هناك خطأ في البناء",
-		"config_error": "هناك خطأ في التكوين",
-		"contact_page_author": "يرجى الاتصال بمؤلف الصفحة لإعلامه.",
-		"no_app_file": "لا يوجد ملف تطبيق",
-		"runtime_error": "هناك خطأ في وقت التشغيل",
-		"space_not_working": "\"المساحة لا تعمل لأن\" {0}",
-		"space_paused": "المساحة متوقفة مؤقتًا",
-		"use_via_api": "استخدم عبر API"
-	},
-	"file": {
-		"uploading": "جاري الرفع..."
-	},
-	"highlighted_text": {
-		"highlighted_text": "نص مميز"
-	},
-	"image": {
-		"allow_webcam_access": "يرجى السماح بالوصول إلى كاميرا الويب للتسجيل.",
-		"brush_color": "لون الفرشاة",
-		"brush_radius": "حجم الفرشاة",
-		"image": "صورة",
-		"remove_image": "إزالة الصورة",
-		"select_brush_color": "اختر لون الفرشاة",
-		"start_drawing": "ابدأ الرسم",
-		"use_brush": "استخدم الفرشاة"
-	},
-	"label": {
-		"label": "تسمية"
-	},
-	"login": {
-		"enable_cookies": "إذا كنت تزور مساحة HuggingFace في وضع التصفح المتخفي، يجب عليك تمكين ملفات تعريف الارتباط من الجهات الخارجية.",
-		"incorrect_credentials": "بيانات الاعتماد غير صحيحة",
-		"username": "اسم المستخدم",
-		"password": "كلمة المرور",
-		"login": "تسجيل الدخول"
-	},
-	"number": {
-		"number": "رقم"
-	},
-	"plot": {
-		"plot": "رسم بياني"
-	},
-	"radio": {
-		"radio": "زر راديو"
-	},
-	"slider": {
-		"slider": "شريط التمرير"
-	},
-	"upload_text": {
-		"click_to_upload": "انقر للتحميل",
-		"drop_audio": "أسقط الملف الصوتي هنا",
-		"drop_csv": "أسقط ملف البيانات هنا",
-		"drop_file": "أسقط الملف هنا",
-		"drop_image": "أسقط الصورة هنا",
-		"drop_video": "أسقط الفيديو هنا",
-		"drop_gallery": "أسقط الوسائط هنا",
-		"paste_clipboard": "لصق من الحافظة"
-	}
+    "_name": "العربية",
+    "3D_model": {
+        "3d_model": "نموذج ثلاثي الأبعاد",
+        "drop_to_upload": "اسقط ملف نموذج 3D (.obj، .glb، .stl، .gltf، .splat، أو .ply) هنا للتحميل"
+    },
+    "annotated_image": {
+        "annotated_image": "صورة مشروحة"
+    },
+    "audio": {
+        "allow_recording_access": "يرجى السماح بالوصول إلى الميكروفون للتسجيل",
+        "audio": "الصوت",
+        "record_from_microphone": "تسجيل من الميكروفون",
+        "stop_recording": "إيقاف التسجيل",
+        "no_device_support": "لا يمكن الوصول إلى أجهزة الوسائط. تأكد من أنك تعمل على مصدر آمن (https) أو localhost (أو قمت بتمرير شهادة SSL صالحة إلى ssl_verify)، وأنك سمحت للمتصفح بالوصول إلى جهازك.",
+        "stop": "إيقاف",
+        "resume": "استئناف",
+        "record": "تسجيل",
+        "no_microphone": "لم يتم العثور على ميكروفون",
+        "pause": "إيقاف مؤقت",
+        "play": "تشغيل",
+        "waiting": "جاري الانتظار",
+        "drop_to_upload": "اسقط ملف صوت هنا للتحميل"
+    },
+    "blocks": {
+        "connection_can_break": "على الهاتف المحمول، يمكن أن ينقطع الاتصال إذا تم تغيير التبويب أو دخل الجهاز في وضع السكون، مما يؤدي إلى فقدان موقعك في قائمة الانتظار.",
+        "long_requests_queue": "هناك قائمة انتظار طويلة من الطلبات المعلقة. قم بتكرار هذا الفضاء للتخطي.",
+        "lost_connection": "فقد الاتصال بسبب مغادرة الصفحة. إعادة الانضمام إلى قائمة الانتظار...",
+        "waiting_for_inputs": "انتظار انتهاء تحميل الملف(ات)، يرجى إعادة المحاولة."
+    },
+    "checkbox": {
+        "checkbox": "خانة اختيار",
+        "checkbox_group": "مجموعة خانات الاختيار"
+    },
+    "code": {
+        "code": "الكود"
+    },
+    "color_picker": {
+        "color_picker": "منتقي الألوان"
+    },
+    "common": {
+        "built_with": "بُني باستخدام",
+        "built_with_gradio": "تم الإنشاء بإستخدام Gradio",
+        "clear": "أمسح",
+        "download": "تحميل",
+        "edit": "تعديل",
+        "empty": "فارغ",
+        "error": "خطأ",
+        "hosted_on": "مستضاف على",
+        "loading": "جاري التحميل",
+        "logo": "شعار",
+        "or": "أو",
+        "remove": "إزالة",
+        "settings": "الإعدادات",
+        "share": "مشاركة",
+        "submit": "أرسل",
+        "undo": "تراجع",
+        "no_devices": "لم يتم العثور على أجهزة",
+        "language": "اللغة",
+        "display_theme": "مظهر العرض",
+        "pwa": "تطبيق ويب تقدمي"
+    },
+    "dataframe": {
+        "incorrect_format": "تنسيق غير صحيح، يتم دعم ملفات CSV و TSV فقط",
+        "new_column": "إضافة عمود",
+        "new_row": "صف جديد",
+        "add_row_above": "إضافة صف فوق",
+        "add_row_below": "إضافة صف تحت",
+        "add_column_left": "إضافة عمود لليسار",
+        "add_column_right": "إضافة عمود لليمين",
+        "delete_row": "حذف الصف",
+        "delete_column": "حذف العمود",
+        "sort_column": "فرز العمود",
+        "sort_ascending": "فرز تصاعدي",
+        "sort_descending": "فرز تنازلي",
+        "drop_to_upload": "اسقط ملفات CSV أو TSV هنا لاستيراد البيانات إلى الإطار الجدولية",
+        "clear_sort": "مسح الترتيب"
+    },
+    "dropdown": {
+        "dropdown": "قائمة منسدلة"
+    },
+    "errors": {
+        "build_error": "هناك خطأ في البناء",
+        "config_error": "هناك خطأ في التكوين",
+        "contact_page_author": "يرجى الاتصال بمؤلف الصفحة لإعلامه.",
+        "no_app_file": "لا يوجد ملف تطبيق",
+        "runtime_error": "هناك خطأ في وقت التشغيل",
+        "space_not_working": "\"المساحة لا تعمل لأن\" {0}",
+        "space_paused": "المساحة متوقفة مؤقتًا",
+        "use_via_api": "استخدم عبر API"
+    },
+    "file": {
+        "uploading": "جاري الرفع..."
+    },
+    "highlighted_text": {
+        "highlighted_text": "نص مميز"
+    },
+    "image": {
+        "allow_webcam_access": "يرجى السماح بالوصول إلى كاميرا الويب للتسجيل.",
+        "brush_color": "لون الفرشاة",
+        "brush_radius": "حجم الفرشاة",
+        "image": "صورة",
+        "remove_image": "إزالة الصورة",
+        "select_brush_color": "اختر لون الفرشاة",
+        "start_drawing": "ابدأ الرسم",
+        "use_brush": "استخدم الفرشاة",
+        "drop_to_upload": "اسقط ملف الصورة هنا لتحميله"
+    },
+    "label": {
+        "label": "تسمية"
+    },
+    "login": {
+        "enable_cookies": "إذا كنت تزور مساحة HuggingFace في وضع التصفح المتخفي، يجب عليك تمكين ملفات تعريف الارتباط من الجهات الخارجية.",
+        "incorrect_credentials": "بيانات الاعتماد غير صحيحة",
+        "username": "اسم المستخدم",
+        "password": "كلمة المرور",
+        "login": "تسجيل الدخول"
+    },
+    "number": {
+        "number": "رقم"
+    },
+    "plot": {
+        "plot": "رسم بياني"
+    },
+    "radio": {
+        "radio": "زر راديو"
+    },
+    "slider": {
+        "slider": "شريط التمرير"
+    },
+    "upload_text": {
+        "click_to_upload": "انقر للتحميل",
+        "drop_audio": "أسقط الملف الصوتي هنا",
+        "drop_csv": "أسقط ملف البيانات هنا",
+        "drop_file": "أسقط الملف هنا",
+        "drop_image": "أسقط الصورة هنا",
+        "drop_video": "أسقط الفيديو هنا",
+        "drop_gallery": "أسقط الوسائط هنا",
+        "paste_clipboard": "لصق من الحافظة"
+    },
+    "video": {
+        "drop_to_upload": "اسقط ملف الفيديو هنا للتحميل"
+    }
 }

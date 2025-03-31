@@ -1,18 +1,144 @@
 {
-	"_name": "Nederlands",
-	"common": {
-		"built_with_gradio": "gemaakt met gradio",
-		"clear": "Wis",
-		"or": "of",
-		"submit": "Zend in",
-		"settings": "Instellingen"
-	},
-	"upload_text": {
-		"click_to_upload": "Klik om the Uploaden",
-		"drop_audio": "Sleep een Geluidsbestand hier",
-		"drop_csv": "Sleep een CSV hier",
-		"drop_file": "Sleep een Document hier",
-		"drop_image": "Sleep een Afbeelding hier",
-		"drop_video": "Sleep een Video hier"
-	}
+    "_name": "Nederlands",
+    "common": {
+        "built_with_gradio": "gemaakt met gradio",
+        "clear": "Wis",
+        "or": "of",
+        "submit": "Zend in",
+        "settings": "Instellingen",
+        "built_with": "gebouwd met",
+        "download": "Download",
+        "edit": "Bewerken",
+        "empty": "Leeg",
+        "error": "Fout",
+        "hosted_on": "Gehost op",
+        "loading": "Laden",
+        "logo": "logo",
+        "remove": "Verwijder",
+        "share": "Delen",
+        "undo": "Ongedaan maken",
+        "no_devices": "Geen apparaten gevonden",
+        "language": "Taal",
+        "display_theme": "Thema weergeven",
+        "pwa": "Progressieve Web App"
+    },
+    "upload_text": {
+        "click_to_upload": "Klik om the Uploaden",
+        "drop_audio": "Sleep een Geluidsbestand hier",
+        "drop_csv": "Sleep een CSV hier",
+        "drop_file": "Sleep een Document hier",
+        "drop_image": "Sleep een Afbeelding hier",
+        "drop_video": "Sleep een Video hier",
+        "drop_gallery": "Media hier neerzetten",
+        "paste_clipboard": "Plakken vanuit klembord"
+    },
+    "3D_model": {
+        "3d_model": "3D Model",
+        "drop_to_upload": "Sleep een 3D-model (.obj, .glb, .stl, .gltf, .splat of .ply) bestand hier neer om te uploaden."
+    },
+    "annotated_image": {
+        "annotated_image": "Aangemerkte afbeelding"
+    },
+    "audio": {
+        "allow_recording_access": "Sta alstublieft toegang tot de microfoon toe voor opname.",
+        "audio": "Audio",
+        "drop_to_upload": "Sleep een audio bestand hier neer om te uploaden",
+        "record_from_microphone": "Opnemen van microfoon",
+        "stop_recording": "Stoppen met opnemen",
+        "no_device_support": "Media-apparaten konden niet worden geopend. Controleer of u werkt vanaf een beveiligde oorsprong (https) of localhost (of u een geldig SSL-certificaat heeft doorgegeven aan ssl_verify), en u heeft toestemming gegeven voor browser-toegang tot uw apparaat.",
+        "stop": "Stop",
+        "resume": "Hervatten",
+        "record": "Opnemen",
+        "no_microphone": "Geen microfoon gevonden",
+        "pause": "Pauze",
+        "play": "Afspelen",
+        "waiting": "Wachten"
+    },
+    "blocks": {
+        "connection_can_break": "Op mobiel kan de verbinding verbroken raken als dit tabblad ongefocusseerd raakt of het apparaat in slaapmodus gaat, waardoor je plaats in de wachtrij verloren gaat.",
+        "long_requests_queue": "Er is een lange wachtrij van aanvragen. Dupliceer deze ruimte om te overslaan.",
+        "lost_connection": "Verbinding verloren door het verlaten van de pagina. Opnieuw in de wachtrij aansluiten...",
+        "waiting_for_inputs": "Wachten op het voltooien van het uploaden van bestand(en), probeer het opnieuw."
+    },
+    "checkbox": {
+        "checkbox": "Vinkje",
+        "checkbox_group": "Checkboxgroep"
+    },
+    "code": {
+        "code": "Code"
+    },
+    "color_picker": {
+        "color_picker": "Kleurkiezer"
+    },
+    "dataframe": {
+        "incorrect_format": "Onjuiste formaat, alleen CSV en TSV-bestanden worden ondersteund.",
+        "new_column": "Kolom toevoegen",
+        "new_row": "Nieuwe rij",
+        "add_row_above": "Rij boven toevoegen",
+        "add_row_below": "Rij onder toevoegen",
+        "delete_row": "Rij verwijderen",
+        "delete_column": "Kolom verwijderen",
+        "add_column_left": "Kolom toevoegen aan de linkerkant",
+        "add_column_right": "Kolom toevoegen aan de rechterkant",
+        "sort_column": "Sorteer kolom",
+        "sort_ascending": "Oplopend sorteren",
+        "sort_descending": "Sorteren aflopend",
+        "drop_to_upload": "Sleep CSV- of TSV-bestanden hier neer om gegevens in de dataframe te importeren.",
+        "clear_sort": "Sortering wissen"
+    },
+    "dropdown": {
+        "dropdown": "Keuzelijst"
+    },
+    "errors": {
+        "build_error": "er is een buildfout",
+        "config_error": "er is een configuratiefout",
+        "contact_page_author": "Neem contact op met de auteur van de pagina om hen dit te laten weten.",
+        "no_app_file": "er is geen app-bestand",
+        "runtime_error": "er is een runtime-fout",
+        "space_not_working": "Ruimte werkt niet omdat {0}",
+        "space_paused": "de ruimte is gepauzeerd",
+        "use_via_api": "Gebruik via API"
+    },
+    "file": {
+        "uploading": "Uploaden..."
+    },
+    "highlighted_text": {
+        "highlighted_text": "Gehighlighteerde Tekst"
+    },
+    "image": {
+        "allow_webcam_access": "Sta alstublieft toegang toe tot de webcam voor opname.",
+        "brush_color": "Penseelkleur",
+        "brush_radius": "Penseelstralen",
+        "image": "Afbeelding",
+        "remove_image": "Afbeelding verwijderen",
+        "select_brush_color": "Kies de penseelkleur",
+        "start_drawing": "Beginnen met tekenen",
+        "use_brush": "Gebruik penseel",
+        "drop_to_upload": "Sleep een afbeeldingsbestand hier neer om te uploaden."
+    },
+    "label": {
+        "label": "Label"
+    },
+    "login": {
+        "enable_cookies": "Als u een HuggingFace Space bezoekt in Incognito-modus, moet u derde-partij cookies inschakelen.",
+        "incorrect_credentials": "Onjuiste inloggegevens",
+        "username": "gebruikersnaam",
+        "password": "wachtwoord",
+        "login": "Inloggen"
+    },
+    "number": {
+        "number": "Nummer"
+    },
+    "plot": {
+        "plot": "Grafiek"
+    },
+    "radio": {
+        "radio": "Radio"
+    },
+    "slider": {
+        "slider": "Schuifbalk"
+    },
+    "video": {
+        "drop_to_upload": "Sleep een video bestand hier neer om te uploaden"
+    }
 }

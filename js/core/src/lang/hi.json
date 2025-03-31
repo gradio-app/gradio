@@ -1,130 +1,144 @@
 {
-	"_name": "हिंदी",
-	"3D_model": {
-		"3d_model": "3D मॉडल"
-	},
-	"annotated_image": {
-		"annotated_image": "एनोटेट की गई छवि"
-	},
-	"audio": {
-		"allow_recording_access": "कृपया रिकॉर्डिंग के लिए माइक्रोफ़ोन एक्सेस की अनुमति दें।",
-		"audio": "ऑडियो",
-		"record_from_microphone": "माइक्रोफ़ोन से रिकॉर्ड करें",
-		"stop_recording": "रिकॉर्डिंग रोकें",
-		"no_device_support": "मीडिया डिवाइस तक पहुंच नहीं हो सकी। सुनिश्चित करें कि आप एक सुरक्षित स्रोत (https) या localhost पर चल रहे हैं (या ssl_verify को एक वैध SSL प्रमाणपत्र दिया है), और आपने अपने ब्राउज़र को अपने डिवाइस तक पहुंच की अनुमति दी है।",
-		"stop": "रोकें",
-		"resume": "जारी रखें",
-		"record": "रिकॉर्ड",
-		"no_microphone": "कोई माइक्रोफ़ोन नहीं मिला",
-		"pause": "रोकें",
-		"play": "चलाएं",
-		"waiting": "प्रतीक्षा कर रहा है"
-	},
-	"blocks": {
-		"connection_can_break": "मोबाइल पर, यदि यह टैब फोकस खो देता है या डिवाइस स्लीप मोड में चला जाता है, तो कनेक्शन टूट सकता है, जिससे कतार में आपका स्थान खो जाएगा।",
-		"long_requests_queue": "लंबित अनुरोधों की एक लंबी कतार है। इसे छोड़ने के लिए इस Space को डुप्लिकेट करें।",
-		"lost_connection": "पेज छोड़ने के कारण कनेक्शन टूट गया। कतार में वापस जा रहा है..."
-	},
-	"checkbox": {
-		"checkbox": "चेकबॉक्स",
-		"checkbox_group": "चेकबॉक्स समूह"
-	},
-	"code": {
-		"code": "कोड"
-	},
-	"color_picker": {
-		"color_picker": "रंग चयनकर्ता"
-	},
-	"common": {
-		"built_with": "के साथ बनाया गया",
-		"built_with_gradio": "Gradio के साथ बनाया गया",
-		"clear": "साफ़ करें",
-		"download": "डाउनलोड",
-		"edit": "संपादित करें",
-		"empty": "खाली",
-		"error": "त्रुटि",
-		"hosted_on": "पर होस्ट किया गया",
-		"loading": "लोड हो रहा है",
-		"logo": "लोगो",
-		"or": "या",
-		"remove": "हटाएं",
-		"settings": "सेटिंग्स",
-		"share": "साझा करें",
-		"submit": "सबमिट करें",
-		"undo": "पूर्ववत करें",
-		"no_devices": "कोई डिवाइस नहीं मिला",
-		"language": "भाषा",
-		"display_theme": "प्रदर्शन थीम",
-		"pwa": "प्रोग्रेसिव वेब ऐप"
-	},
-	"dataframe": {
-		"incorrect_format": "गलत प्रारूप, केवल CSV और TSV फ़ाइलें समर्थित हैं",
-		"new_column": "कॉलम जोड़ें",
-		"new_row": "नई पंक्ति",
-		"add_row_above": "ऊपर पंक्ति जोड़ें",
-		"add_row_below": "नीचे पंक्ति जोड़ें",
-		"add_column_left": "बाएं कॉलम जोड़ें",
-		"add_column_right": "दाएं कॉलम जोड़ें"
-	},
-	"dropdown": {
-		"dropdown": "ड्रॉपडाउन"
-	},
-	"errors": {
-		"build_error": "एक बिल्ड त्रुटि है",
-		"config_error": "एक कॉन्फ़िगरेशन त्रुटि है",
-		"contact_page_author": "कृपया पेज के लेखक को सूचित करने के लिए संपर्क करें।",
-		"no_app_file": "कोई ऐप फ़ाइल नहीं है",
-		"runtime_error": "एक रनटाइम त्रुटि है",
-		"space_not_working": "\"Space काम नहीं कर रहा है क्योंकि\" {0}",
-		"space_paused": "space रोका गया है",
-		"use_via_api": "API के माध्यम से उपयोग करें"
-	},
-	"file": {
-		"uploading": "अपलोड हो रहा है..."
-	},
-	"highlighted_text": {
-		"highlighted_text": "हाइलाइट किया गया टेक्स्ट"
-	},
-	"image": {
-		"allow_webcam_access": "कृपया रिकॉर्डिंग के लिए वेबकैम एक्सेस की अनुमति दें।",
-		"brush_color": "ब्रश का रंग",
-		"brush_radius": "ब्रश का आकार",
-		"image": "छवि",
-		"remove_image": "छवि हटाएं",
-		"select_brush_color": "ब्रश का रंग चुनें",
-		"start_drawing": "चित्रकारी शुरू करें",
-		"use_brush": "ब्रश का उपयोग करें"
-	},
-	"label": {
-		"label": "लेबल"
-	},
-	"login": {
-		"enable_cookies": "यदि आप इनकॉग्निटो मोड में HuggingFace Space का दौरा कर रहे हैं, तो आपको थर्ड-पार्टी कुकीज़ को सक्षम करना होगा।",
-		"incorrect_credentials": "गलत क्रेडेंशियल्स",
-		"username": "उपयोगकर्ता नाम",
-		"password": "पासवर्ड",
-		"login": "लॉग इन करें"
-	},
-	"number": {
-		"number": "संख्या"
-	},
-	"plot": {
-		"plot": "प्लॉट"
-	},
-	"radio": {
-		"radio": "रेडियो"
-	},
-	"slider": {
-		"slider": "स्लाइडर"
-	},
-	"upload_text": {
-		"click_to_upload": "अपलोड करने के लिए क्लिक करें",
-		"drop_audio": "ऑडियो यहाँ छोड़ें",
-		"drop_csv": "CSV यहाँ छोड़ें",
-		"drop_file": "फ़ाइल यहाँ छोड़ें",
-		"drop_image": "छवि यहाँ छोड़ें",
-		"drop_video": "वीडियो यहाँ छोड़ें",
-		"drop_gallery": "मीडिया यहाँ छोड़ें",
-		"paste_clipboard": "क्लिपबोर्ड से पेस्ट करें"
-	}
+    "_name": "हिंदी",
+    "3D_model": {
+        "3d_model": "3D मॉडल",
+        "drop_to_upload": "यहाँ 3D मॉडल (.obj, .glb, .stl, .gltf, .splat, या .ply) फ़ाइल ड्रॉप करें या अपलोड करें"
+    },
+    "annotated_image": {
+        "annotated_image": "एनोटेट की गई छवि"
+    },
+    "audio": {
+        "allow_recording_access": "कृपया रिकॉर्डिंग के लिए माइक्रोफ़ोन एक्सेस की अनुमति दें।",
+        "audio": "ऑडियो",
+        "record_from_microphone": "माइक्रोफ़ोन से रिकॉर्ड करें",
+        "stop_recording": "रिकॉर्डिंग रोकें",
+        "no_device_support": "मीडिया डिवाइस तक पहुंच नहीं हो सकी। सुनिश्चित करें कि आप एक सुरक्षित स्रोत (https) या localhost पर चल रहे हैं (या ssl_verify को एक वैध SSL प्रमाणपत्र दिया है), और आपने अपने ब्राउज़र को अपने डिवाइस तक पहुंच की अनुमति दी है।",
+        "stop": "रोकें",
+        "resume": "जारी रखें",
+        "record": "रिकॉर्ड",
+        "no_microphone": "कोई माइक्रोफ़ोन नहीं मिला",
+        "pause": "रोकें",
+        "play": "चलाएं",
+        "waiting": "प्रतीक्षा कर रहा है",
+        "drop_to_upload": "यहाँ एक ऑडियो फाइल डालें या अपलोड करें"
+    },
+    "blocks": {
+        "connection_can_break": "मोबाइल पर, यदि यह टैब फोकस खो देता है या डिवाइस स्लीप मोड में चला जाता है, तो कनेक्शन टूट सकता है, जिससे कतार में आपका स्थान खो जाएगा।",
+        "long_requests_queue": "लंबित अनुरोधों की एक लंबी कतार है। इसे छोड़ने के लिए इस Space को डुप्लिकेट करें।",
+        "lost_connection": "पेज छोड़ने के कारण कनेक्शन टूट गया। कतार में वापस जा रहा है...",
+        "waiting_for_inputs": "फाइलें अपलोड होने का इंतजार कर रहे हैं, कृपया पुन: प्रयास करें।"
+    },
+    "checkbox": {
+        "checkbox": "चेकबॉक्स",
+        "checkbox_group": "चेकबॉक्स समूह"
+    },
+    "code": {
+        "code": "कोड"
+    },
+    "color_picker": {
+        "color_picker": "रंग चयनकर्ता"
+    },
+    "common": {
+        "built_with": "के साथ बनाया गया",
+        "built_with_gradio": "Gradio के साथ बनाया गया",
+        "clear": "साफ़ करें",
+        "download": "डाउनलोड",
+        "edit": "संपादित करें",
+        "empty": "खाली",
+        "error": "त्रुटि",
+        "hosted_on": "पर होस्ट किया गया",
+        "loading": "लोड हो रहा है",
+        "logo": "लोगो",
+        "or": "या",
+        "remove": "हटाएं",
+        "settings": "सेटिंग्स",
+        "share": "साझा करें",
+        "submit": "सबमिट करें",
+        "undo": "पूर्ववत करें",
+        "no_devices": "कोई डिवाइस नहीं मिला",
+        "language": "भाषा",
+        "display_theme": "प्रदर्शन थीम",
+        "pwa": "प्रोग्रेसिव वेब ऐप"
+    },
+    "dataframe": {
+        "incorrect_format": "गलत प्रारूप, केवल CSV और TSV फ़ाइलें समर्थित हैं",
+        "new_column": "कॉलम जोड़ें",
+        "new_row": "नई पंक्ति",
+        "add_row_above": "ऊपर पंक्ति जोड़ें",
+        "add_row_below": "नीचे पंक्ति जोड़ें",
+        "add_column_left": "बाएं कॉलम जोड़ें",
+        "add_column_right": "दाएं कॉलम जोड़ें",
+        "delete_row": "पंक्ति हटाएं",
+        "delete_column": "स्तंभ हटाएं",
+        "sort_column": "स्तंभ को सॉर्ट करें",
+        "sort_ascending": "आरोही क्रम में सॉर्ट करें",
+        "sort_descending": "अवरोही क्रम में सॉर्ट करें",
+        "drop_to_upload": "यहाँ CSV या TSV फाइलें ड्रॉप करें ताकि डेटा डेटाफ़्रेम में आयात किया जा सके",
+        "clear_sort": "स्पष्ट करें और क्रमबद्ध करें"
+    },
+    "dropdown": {
+        "dropdown": "ड्रॉपडाउन"
+    },
+    "errors": {
+        "build_error": "एक बिल्ड त्रुटि है",
+        "config_error": "एक कॉन्फ़िगरेशन त्रुटि है",
+        "contact_page_author": "कृपया पेज के लेखक को सूचित करने के लिए संपर्क करें।",
+        "no_app_file": "कोई ऐप फ़ाइल नहीं है",
+        "runtime_error": "एक रनटाइम त्रुटि है",
+        "space_not_working": "\"Space काम नहीं कर रहा है क्योंकि\" {0}",
+        "space_paused": "space रोका गया है",
+        "use_via_api": "API के माध्यम से उपयोग करें"
+    },
+    "file": {
+        "uploading": "अपलोड हो रहा है..."
+    },
+    "highlighted_text": {
+        "highlighted_text": "हाइलाइट किया गया टेक्स्ट"
+    },
+    "image": {
+        "allow_webcam_access": "कृपया रिकॉर्डिंग के लिए वेबकैम एक्सेस की अनुमति दें।",
+        "brush_color": "ब्रश का रंग",
+        "brush_radius": "ब्रश का आकार",
+        "image": "छवि",
+        "remove_image": "छवि हटाएं",
+        "select_brush_color": "ब्रश का रंग चुनें",
+        "start_drawing": "चित्रकारी शुरू करें",
+        "use_brush": "ब्रश का उपयोग करें",
+        "drop_to_upload": "इस यहाँ एक इमेज फाइल डालें अपलोड करने के लिए"
+    },
+    "label": {
+        "label": "लेबल"
+    },
+    "login": {
+        "enable_cookies": "यदि आप इनकॉग्निटो मोड में HuggingFace Space का दौरा कर रहे हैं, तो आपको थर्ड-पार्टी कुकीज़ को सक्षम करना होगा।",
+        "incorrect_credentials": "गलत क्रेडेंशियल्स",
+        "username": "उपयोगकर्ता नाम",
+        "password": "पासवर्ड",
+        "login": "लॉग इन करें"
+    },
+    "number": {
+        "number": "संख्या"
+    },
+    "plot": {
+        "plot": "प्लॉट"
+    },
+    "radio": {
+        "radio": "रेडियो"
+    },
+    "slider": {
+        "slider": "स्लाइडर"
+    },
+    "upload_text": {
+        "click_to_upload": "अपलोड करने के लिए क्लिक करें",
+        "drop_audio": "ऑडियो यहाँ छोड़ें",
+        "drop_csv": "CSV यहाँ छोड़ें",
+        "drop_file": "फ़ाइल यहाँ छोड़ें",
+        "drop_image": "छवि यहाँ छोड़ें",
+        "drop_video": "वीडियो यहाँ छोड़ें",
+        "drop_gallery": "मीडिया यहाँ छोड़ें",
+        "paste_clipboard": "क्लिपबोर्ड से पेस्ट करें"
+    },
+    "video": {
+        "drop_to_upload": "इधर एक वीडियो फाइल डालें अपलोड करने के लिए"
+    }
 }

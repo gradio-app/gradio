@@ -1,130 +1,144 @@
 {
-	"_name": "Română",
-	"3D_model": {
-		"3d_model": "Model 3D"
-	},
-	"annotated_image": {
-		"annotated_image": "Imagine adnotată"
-	},
-	"audio": {
-		"allow_recording_access": "Vă rugăm să permiteți accesul la microfon pentru înregistrare.",
-		"audio": "Audio",
-		"record_from_microphone": "Înregistrare de la microfon",
-		"stop_recording": "Oprire înregistrare",
-		"no_device_support": "Nu se poate accesa dispozitivele media. Asigurați-vă că rulați pe o sursă sigură (https) sau localhost (sau ați transmis un certificat SSL valid la ssl_verify), și că ați permis browserului accesul la dispozitivul dvs.",
-		"stop": "Stop",
-		"resume": "Reluare",
-		"record": "Înregistrare",
-		"no_microphone": "Nu s-a găsit niciun microfon",
-		"pause": "Pauză",
-		"play": "Redare",
-		"waiting": "Așteptare"
-	},
-	"blocks": {
-		"connection_can_break": "Pe mobil, conexiunea poate fi întreruptă dacă această filă își pierde focusul sau dispozitivul intră în modul de repaus, pierzându-vă poziția în coadă.",
-		"long_requests_queue": "Există o coadă lungă de cereri în așteptare. Duplicați acest Space pentru a o evita.",
-		"lost_connection": "Conexiune pierdută din cauza părăsirii paginii. Revenire la coadă..."
-	},
-	"checkbox": {
-		"checkbox": "Casetă de bifat",
-		"checkbox_group": "Grup de casete de bifat"
-	},
-	"code": {
-		"code": "Cod"
-	},
-	"color_picker": {
-		"color_picker": "Selector de culoare"
-	},
-	"common": {
-		"built_with": "construit cu",
-		"built_with_gradio": "Construit cu Gradio",
-		"clear": "Șterge",
-		"download": "Descarcă",
-		"edit": "Editează",
-		"empty": "Gol",
-		"error": "Eroare",
-		"hosted_on": "găzduit pe",
-		"loading": "Se încarcă",
-		"logo": "logo",
-		"or": "sau",
-		"remove": "Elimină",
-		"settings": "Setări",
-		"share": "Distribuie",
-		"submit": "Trimite",
-		"undo": "Anulează",
-		"no_devices": "Nu s-au găsit dispozitive",
-		"language": "Limbă",
-		"display_theme": "Temă de afișare",
-		"pwa": "Aplicație web progresivă"
-	},
-	"dataframe": {
-		"incorrect_format": "Format incorect, sunt acceptate doar fișiere CSV și TSV",
-		"new_column": "Adaugă coloană",
-		"new_row": "Rând nou",
-		"add_row_above": "Adaugă rând deasupra",
-		"add_row_below": "Adaugă rând dedesubt",
-		"add_column_left": "Adaugă coloană la stânga",
-		"add_column_right": "Adaugă coloană la dreapta"
-	},
-	"dropdown": {
-		"dropdown": "Listă derulantă"
-	},
-	"errors": {
-		"build_error": "există o eroare de compilare",
-		"config_error": "există o eroare de configurare",
-		"contact_page_author": "Vă rugăm să contactați autorul paginii pentru a-l informa.",
-		"no_app_file": "nu există fișier de aplicație",
-		"runtime_error": "există o eroare de execuție",
-		"space_not_working": "\"Space-ul nu funcționează deoarece\" {0}",
-		"space_paused": "space-ul este în pauză",
-		"use_via_api": "Utilizați prin API"
-	},
-	"file": {
-		"uploading": "Se încarcă..."
-	},
-	"highlighted_text": {
-		"highlighted_text": "Text evidențiat"
-	},
-	"image": {
-		"allow_webcam_access": "Vă rugăm să permiteți accesul la camera web pentru înregistrare.",
-		"brush_color": "Culoare pensulă",
-		"brush_radius": "Dimensiune pensulă",
-		"image": "Imagine",
-		"remove_image": "Elimină imaginea",
-		"select_brush_color": "Selectează culoarea pensulei",
-		"start_drawing": "Începe să desenezi",
-		"use_brush": "Folosește pensula"
-	},
-	"label": {
-		"label": "Etichetă"
-	},
-	"login": {
-		"enable_cookies": "Dacă vizitați un Space HuggingFace în modul incognito, trebuie să activați cookie-urile terțe.",
-		"incorrect_credentials": "Credențiale incorecte",
-		"username": "nume de utilizator",
-		"password": "parolă",
-		"login": "Autentificare"
-	},
-	"number": {
-		"number": "Număr"
-	},
-	"plot": {
-		"plot": "Grafic"
-	},
-	"radio": {
-		"radio": "Buton radio"
-	},
-	"slider": {
-		"slider": "Glisor"
-	},
-	"upload_text": {
-		"click_to_upload": "Click pentru încărcare",
-		"drop_audio": "Plasează audio aici",
-		"drop_csv": "Plasează CSV aici",
-		"drop_file": "Plasează fișierul aici",
-		"drop_image": "Plasează imaginea aici",
-		"drop_video": "Plasează video aici",
-		"drop_gallery": "Plasează media aici",
-		"paste_clipboard": "Lipește din clipboard"
-	}
+    "_name": "Română",
+    "3D_model": {
+        "3d_model": "Model 3D",
+        "drop_to_upload": "Depuneți un fișier cu model 3D (.obj, .glb, .stl, .gltf, .splat sau .ply) aici pentru a îl încărca."
+    },
+    "annotated_image": {
+        "annotated_image": "Imagine adnotată"
+    },
+    "audio": {
+        "allow_recording_access": "Vă rugăm să permiteți accesul la microfon pentru înregistrare.",
+        "audio": "Audio",
+        "record_from_microphone": "Înregistrare de la microfon",
+        "stop_recording": "Oprire înregistrare",
+        "no_device_support": "Nu se poate accesa dispozitivele media. Asigurați-vă că rulați pe o sursă sigură (https) sau localhost (sau ați transmis un certificat SSL valid la ssl_verify), și că ați permis browserului accesul la dispozitivul dvs.",
+        "stop": "Stop",
+        "resume": "Reluare",
+        "record": "Înregistrare",
+        "no_microphone": "Nu s-a găsit niciun microfon",
+        "pause": "Pauză",
+        "play": "Redare",
+        "waiting": "Așteptare",
+        "drop_to_upload": "Aruncă un fișier audio aici pentru a îl încărca"
+    },
+    "blocks": {
+        "connection_can_break": "Pe mobil, conexiunea poate fi întreruptă dacă această filă își pierde focusul sau dispozitivul intră în modul de repaus, pierzându-vă poziția în coadă.",
+        "long_requests_queue": "Există o coadă lungă de cereri în așteptare. Duplicați acest Space pentru a o evita.",
+        "lost_connection": "Conexiune pierdută din cauza părăsirii paginii. Revenire la coadă...",
+        "waiting_for_inputs": "Așteptarea finalizării încărcării fișierului (fișierelor), vă rugăm să reîncercați."
+    },
+    "checkbox": {
+        "checkbox": "Casetă de bifat",
+        "checkbox_group": "Grup de casete de bifat"
+    },
+    "code": {
+        "code": "Cod"
+    },
+    "color_picker": {
+        "color_picker": "Selector de culoare"
+    },
+    "common": {
+        "built_with": "construit cu",
+        "built_with_gradio": "Construit cu Gradio",
+        "clear": "Șterge",
+        "download": "Descarcă",
+        "edit": "Editează",
+        "empty": "Gol",
+        "error": "Eroare",
+        "hosted_on": "găzduit pe",
+        "loading": "Se încarcă",
+        "logo": "logo",
+        "or": "sau",
+        "remove": "Elimină",
+        "settings": "Setări",
+        "share": "Distribuie",
+        "submit": "Trimite",
+        "undo": "Anulează",
+        "no_devices": "Nu s-au găsit dispozitive",
+        "language": "Limbă",
+        "display_theme": "Temă de afișare",
+        "pwa": "Aplicație web progresivă"
+    },
+    "dataframe": {
+        "incorrect_format": "Format incorect, sunt acceptate doar fișiere CSV și TSV",
+        "new_column": "Adaugă coloană",
+        "new_row": "Rând nou",
+        "add_row_above": "Adaugă rând deasupra",
+        "add_row_below": "Adaugă rând dedesubt",
+        "add_column_left": "Adaugă coloană la stânga",
+        "add_column_right": "Adaugă coloană la dreapta",
+        "delete_row": "Șterge rând",
+        "delete_column": "Șterge coloana",
+        "sort_column": "Sortează coloana",
+        "sort_ascending": "Sortează crescător",
+        "sort_descending": "Sortează descrescător",
+        "drop_to_upload": "Depuneți fișiere CSV sau TSV aici pentru a importa datele în dataframe",
+        "clear_sort": "Șterge sortarea"
+    },
+    "dropdown": {
+        "dropdown": "Listă derulantă"
+    },
+    "errors": {
+        "build_error": "există o eroare de compilare",
+        "config_error": "există o eroare de configurare",
+        "contact_page_author": "Vă rugăm să contactați autorul paginii pentru a-l informa.",
+        "no_app_file": "nu există fișier de aplicație",
+        "runtime_error": "există o eroare de execuție",
+        "space_not_working": "\"Space-ul nu funcționează deoarece\" {0}",
+        "space_paused": "space-ul este în pauză",
+        "use_via_api": "Utilizați prin API"
+    },
+    "file": {
+        "uploading": "Se încarcă..."
+    },
+    "highlighted_text": {
+        "highlighted_text": "Text evidențiat"
+    },
+    "image": {
+        "allow_webcam_access": "Vă rugăm să permiteți accesul la camera web pentru înregistrare.",
+        "brush_color": "Culoare pensulă",
+        "brush_radius": "Dimensiune pensulă",
+        "image": "Imagine",
+        "remove_image": "Elimină imaginea",
+        "select_brush_color": "Selectează culoarea pensulei",
+        "start_drawing": "Începe să desenezi",
+        "use_brush": "Folosește pensula",
+        "drop_to_upload": "Plasați un fișier imagine aici pentru a îl încărca"
+    },
+    "label": {
+        "label": "Etichetă"
+    },
+    "login": {
+        "enable_cookies": "Dacă vizitați un Space HuggingFace în modul incognito, trebuie să activați cookie-urile terțe.",
+        "incorrect_credentials": "Credențiale incorecte",
+        "username": "nume de utilizator",
+        "password": "parolă",
+        "login": "Autentificare"
+    },
+    "number": {
+        "number": "Număr"
+    },
+    "plot": {
+        "plot": "Grafic"
+    },
+    "radio": {
+        "radio": "Buton radio"
+    },
+    "slider": {
+        "slider": "Glisor"
+    },
+    "upload_text": {
+        "click_to_upload": "Click pentru încărcare",
+        "drop_audio": "Plasează audio aici",
+        "drop_csv": "Plasează CSV aici",
+        "drop_file": "Plasează fișierul aici",
+        "drop_image": "Plasează imaginea aici",
+        "drop_video": "Plasează video aici",
+        "drop_gallery": "Plasează media aici",
+        "paste_clipboard": "Lipește din clipboard"
+    },
+    "video": {
+        "drop_to_upload": "Depuneți un fișier video aici pentru a îl încărca"
+    }
 }

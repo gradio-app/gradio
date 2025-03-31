@@ -1,18 +1,144 @@
 {
-	"_name": "Lietuvių",
-	"common": {
-		"built_with_gradio": "sukurta su gradio",
-		"clear": "Trinti",
-		"or": "arba",
-		"submit": "Pateikti",
-		"settings": "Nustatymai"
-	},
-	"upload_text": {
-		"click_to_upload": "Spustelėkite norėdami įkelti",
-		"drop_audio": "Įkelkite garso įrašą čia",
-		"drop_csv": "Įkelkite CSV čia",
-		"drop_file": "Įkelkite bylą čia",
-		"drop_image": "Įkelkite paveikslėlį čia",
-		"drop_video": "Įkelkite vaizdo įrašą čia"
-	}
+    "_name": "Lietuvių",
+    "common": {
+        "built_with_gradio": "sukurta su gradio",
+        "clear": "Trinti",
+        "or": "arba",
+        "submit": "Pateikti",
+        "settings": "Nustatymai",
+        "built_with": "sukurtas su",
+        "download": "Atsisiųsti",
+        "edit": "Redaguoti",
+        "empty": "Tuščias",
+        "error": "Klaida",
+        "hosted_on": "Hosted on",
+        "loading": "Kraunama",
+        "logo": "logotipas",
+        "remove": "Pašalinti",
+        "share": "Dalintis",
+        "undo": "Atšaukti",
+        "no_devices": "Nėra rasta jokių įrenginių",
+        "language": "Kalba",
+        "display_theme": "Rodinio temos rodymas",
+        "pwa": "Progresinės svetainės programos"
+    },
+    "upload_text": {
+        "click_to_upload": "Spustelėkite norėdami įkelti",
+        "drop_audio": "Įkelkite garso įrašą čia",
+        "drop_csv": "Įkelkite CSV čia",
+        "drop_file": "Įkelkite bylą čia",
+        "drop_image": "Įkelkite paveikslėlį čia",
+        "drop_video": "Įkelkite vaizdo įrašą čia",
+        "drop_gallery": "Nuleiskite Mediją Čia",
+        "paste_clipboard": "Įdėti iš iškirtinės srities"
+    },
+    "3D_model": {
+        "3d_model": "3D Modelis",
+        "drop_to_upload": "Nemokite 3D modelės (.obj, .glb, .stl, .gltf, .splat arba .ply) failo čia, norėdami įkelti."
+    },
+    "annotated_image": {
+        "annotated_image": "Pažymėta nuotrauka"
+    },
+    "audio": {
+        "allow_recording_access": "Prašome suteikti mikrofono prieigą įrašymui.",
+        "audio": "Audio",
+        "drop_to_upload": "Nuleiskite ščia audio failą, kad įkelti",
+        "record_from_microphone": "Įrašyti iš mikrofono",
+        "stop_recording": "Stabdyti įrašymą",
+        "no_device_support": "Negalima prieiti prie multimedių įrenginių. Patikrinkite, ar veikiate saugioje kilmėje (https) arba localhost (arba perduodote galiojančią SSL sertifikatą į ssl_verify), ir leidžiate naršyklės prieigą prie įrenginio.",
+        "stop": "Stabdyti",
+        "resume": "Tęsti",
+        "record": "Įrašyti",
+        "no_microphone": "Nėra rasta mikrofono",
+        "pause": "Pauza",
+        "play": "Žaisti",
+        "waiting": "Laukiama"
+    },
+    "blocks": {
+        "connection_can_break": "Mobilioje įrenginyje ryšys gali nutrūkti, jei šis skirtukas bus neaktyvus arba įrenginys įsimigs, o tai gali sukelti eilės vietos praradimą.",
+        "long_requests_queue": "Yra ilga laukiančių užklausų eilė. Duplikuokite šį erdvį, kad praleistumėte.",
+        "lost_connection": "Praradėte puslapį, todėl sujungimas prarastas. Vėl įeina į eilę...",
+        "waiting_for_inputs": "Laukiama, kol bus įkelti failai, prašome bandyti dar kartą."
+    },
+    "checkbox": {
+        "checkbox": "Pažymėti langelį",
+        "checkbox_group": "Pažymėjimo grupė"
+    },
+    "code": {
+        "code": "Kodas"
+    },
+    "color_picker": {
+        "color_picker": "Spalvos pasirinkimas"
+    },
+    "dataframe": {
+        "incorrect_format": "Neteisingas formatas, palaikomi tik CSV ir TSV failai",
+        "new_column": "Pridėti stulpelį",
+        "new_row": "Nauja eilutė",
+        "add_row_above": "Pridėti eilutę viršuje",
+        "add_row_below": "Pridėti eilutę žemiau",
+        "delete_row": "Ištrinti eilutę",
+        "delete_column": "Ištrinti stulpelį",
+        "add_column_left": "Pridėti stulpelį į kairę",
+        "add_column_right": "Pridėti stulpelį į dešinę",
+        "sort_column": "Rikiuoti stulpelį",
+        "sort_ascending": "Rūšiuoti didėjančia tvarka",
+        "sort_descending": "Rūšiuoti mažėjančia tvarka",
+        "drop_to_upload": "Nuleiskite CSV arba TSV failus čia, kad importuotumėte duomenis į duomenų rinkinį",
+        "clear_sort": "Išvalyti rikiavimą"
+    },
+    "dropdown": {
+        "dropdown": "Išklotinė sąrašo langas"
+    },
+    "errors": {
+        "build_error": "yra sukurtos klaidos",
+        "config_error": "yra konfigūracijos klaida",
+        "contact_page_author": "Prašome, susisiekite su puslapio autoriu, kad jis sužinotų.",
+        "no_app_file": "nėra programos failo",
+        "runtime_error": "yra vykdymo klaida",
+        "space_not_working": "Tarpas ned veikia, nes\" {0}",
+        "space_paused": "tarpas yra pristabdytas",
+        "use_via_api": "Naudoti per API"
+    },
+    "file": {
+        "uploading": "Įkeliama..."
+    },
+    "highlighted_text": {
+        "highlighted_text": "Pažymėtas Tekstas"
+    },
+    "image": {
+        "allow_webcam_access": "Prašome suteikti prieigą prie vaizdo kameros įrašymui.",
+        "brush_color": "Plytės spalva",
+        "brush_radius": "Plytimo spindulys",
+        "image": "Vaizdas",
+        "remove_image": "Pašalinti vaizdą",
+        "select_brush_color": "Pasirinkite spalvą pėdakliui",
+        "start_drawing": "Pradėkite piešti",
+        "use_brush": "Naudokite spalvintoją pėdą",
+        "drop_to_upload": "Nuleiskite vaizdo failą čia, norėdami įkelti"
+    },
+    "label": {
+        "label": "Etiketė"
+    },
+    "login": {
+        "enable_cookies": "Jeigu lankotės HuggingFace erdvėje inkognito režime, turite leisti trečiųjų šalių slapukus.",
+        "incorrect_credentials": "Neteisingi prisijungimo duomenys",
+        "username": "vartotojo vardas",
+        "password": "slaptažodis",
+        "login": "Prisijungti"
+    },
+    "number": {
+        "number": "Skaičius"
+    },
+    "plot": {
+        "plot": "Plotas"
+    },
+    "radio": {
+        "radio": "Radijas"
+    },
+    "slider": {
+        "slider": "Slankinis"
+    },
+    "video": {
+        "drop_to_upload": "Nupjukite vaizdo failą čia, norėdami įkelti"
+    }
 }

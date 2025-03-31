@@ -1,15 +1,144 @@
 {
-	"common": {
-		"built_with_gradio": "gradio bilan qilingan",
-		"clear": "Tozalash",
-		"submit": "Yubor"
-	},
-	"upload_text": {
-		"click_to_upload": "Yuklash uchun Bosing",
-		"drop_audio": "Audioni Shu Yerga Tashlang",
-		"drop_csv": "CSVni Shu Yerga Tashlang",
-		"drop_file": "Faylni Shu Yerga Tashlang",
-		"drop_image": "Rasmni Shu Yerga Tashlang",
-		"drop_video": "Videoni Shu Yerga Tashlang"
-	}
+    "common": {
+        "built_with_gradio": "gradio bilan qilingan",
+        "clear": "Tozalash",
+        "submit": "Yubor",
+        "built_with": "yaratilgan",
+        "download": "Yuklab olish",
+        "edit": "Tahrirlash",
+        "empty": "Bo'sh",
+        "error": "Xato",
+        "hosted_on": "Xost qilinadi",
+        "loading": "Yuklanmoqda",
+        "logo": "logo",
+        "or": "yoki",
+        "remove": "O‘chirish",
+        "settings": "Sozlamalar",
+        "share": "Share",
+        "undo": "Qaytarish",
+        "no_devices": "Hech qanday qurilma topilmadi",
+        "language": "Til",
+        "display_theme": "Tema Ko’rsatish",
+        "pwa": "Progressiv Web App"
+    },
+    "upload_text": {
+        "click_to_upload": "Yuklash uchun Bosing",
+        "drop_audio": "Audioni Shu Yerga Tashlang",
+        "drop_csv": "CSVni Shu Yerga Tashlang",
+        "drop_file": "Faylni Shu Yerga Tashlang",
+        "drop_image": "Rasmni Shu Yerga Tashlang",
+        "drop_video": "Videoni Shu Yerga Tashlang",
+        "drop_gallery": "Media ni Bu Yerga Tashlang",
+        "paste_clipboard": "Klipbarddan qo'yish"
+    },
+    "_name": "Ingliz tili",
+    "3D_model": {
+        "3d_model": "3D Model",
+        "drop_to_upload": "3D model (.obj, .glb, .stl, .gltf, .splat yoki .ply) faylni bu yerga surib tashlang va yuklab oling."
+    },
+    "annotated_image": {
+        "annotated_image": "Qo‘shimcha bilan tavsiflangan rasmlar"
+    },
+    "audio": {
+        "allow_recording_access": "Iltimos, mikrofondan foydalanish uchun ruxsat bering.",
+        "audio": "Audio",
+        "drop_to_upload": "Audio faylni bu yerga surib tashlang",
+        "record_from_microphone": "Mikrofondan yozish",
+        "stop_recording": "Yozishni to'xtatish",
+        "no_device_support": "Multimedia qurilmalariga kirib bo‘lmadi. Xavfsiz manbada (https) yoki localhost-da ishlayotganingizni tekshiring (yoki to‘g‘ri SSL sertifikatini ssl_verify ga berib o‘tdiring) va brauzer orqali qurilma ga kirish huquqini berilganligini tekshiring.",
+        "stop": "To'xtatish",
+        "resume": "Davom etish",
+        "record": "Yozish",
+        "no_microphone": "Mikrofon topilmadi",
+        "pause": "Tugatish",
+        "play": "O‘ynash",
+        "waiting": "Kuting"
+    },
+    "blocks": {
+        "connection_can_break": "Mobilda, agar bu ilova o‘chirilgan yoki qurilma uykuda bo‘lsa, aloqa uzilib, sizning navbatdagi joyingizda yo‘qolishingiz mumkin.",
+        "long_requests_queue": "Kutingan so'rovlarning uzoq sari bor. Nusxalash orqali o'tish.",
+        "lost_connection": "Sahifa tark etilganligi sababli ulanishni yo'qotdingiz. Kattak yana qo'shilmoqda...",
+        "waiting_for_inputs": "Fayllar yuklanishini kuting, iltimos, qayta urinib ko'ring."
+    },
+    "checkbox": {
+        "checkbox": "Chekbox",
+        "checkbox_group": "Chekbox Guruh"
+    },
+    "code": {
+        "code": "Kod"
+    },
+    "color_picker": {
+        "color_picker": "Rang tanlovchi"
+    },
+    "dataframe": {
+        "incorrect_format": "Noto‘g‘ri format, faqat CSV va TSV fayllari qo‘llanadi",
+        "new_column": "Stolb qo'shish",
+        "new_row": "Yangi qator",
+        "add_row_above": "Yuqorida qator qo'shish",
+        "add_row_below": "Quyi qator qo'shish",
+        "delete_row": "Qatorni o'chirish",
+        "delete_column": "Tartibni o'chirish",
+        "add_column_left": "Chapga ustun qo'shish",
+        "add_column_right": "O'ngga ustun qo'shish",
+        "sort_column": "Tartiblash ustuni",
+        "sort_ascending": "Ko'rsatilgan tartibda saralash",
+        "sort_descending": "Kamayish tartibida saralash",
+        "drop_to_upload": "CSV yoki TSV fayllarini bu yerga surib tashlang va ma'lumotlarni dataframe-ga import qiling.",
+        "clear_sort": "Tozalash tartibini o‘chirish"
+    },
+    "dropdown": {
+        "dropdown": "Dropdown"
+    },
+    "errors": {
+        "build_error": "qurilish xatosi bor",
+        "config_error": "konfiguratsiya xatosi bor",
+        "contact_page_author": "Iltimos, sahifaning muallifiga bog'ling va ularni xabardor qiling.",
+        "no_app_file": "iltimos, ilova fayli yo'q",
+        "runtime_error": "runtime xatoligi bor",
+        "space_not_working": "Kosmос ishlamayapti, sababi\" {0}",
+        "space_paused": "bo'sh joy to'xtadi",
+        "use_via_api": "API orqali foydalanish"
+    },
+    "file": {
+        "uploading": "Yuklanmoqda..."
+    },
+    "highlighted_text": {
+        "highlighted_text": "Belgilangan Matn"
+    },
+    "image": {
+        "allow_webcam_access": "Iltimos, videokameralarga kirishni ruxsat eting.",
+        "brush_color": "Tush rangi",
+        "brush_radius": "Tush radiusi",
+        "image": "Rasm",
+        "remove_image": "Rasmni o‘chirish",
+        "select_brush_color": "Tartib yoʻlak rangini tanlang",
+        "start_drawing": "Chizishni boshlang",
+        "use_brush": "Qurolliqni ishlating",
+        "drop_to_upload": "Rasm faylini bu yerga surib tashlang va yuklab oling."
+    },
+    "label": {
+        "label": "Yorliq"
+    },
+    "login": {
+        "enable_cookies": "Agar siz HuggingFace Space ni Inkognito rejimida ko'rsatayotgan bo'lsangiz, uchinchi tomon cookie-larini yoqishishingiz kerak.",
+        "incorrect_credentials": "Noto‘g‘ri kiritma ma‘lumotlari",
+        "username": "foydalanuvchi nomi",
+        "password": "parol",
+        "login": "Kirish"
+    },
+    "number": {
+        "number": "Raqam"
+    },
+    "plot": {
+        "plot": "Grafik"
+    },
+    "radio": {
+        "radio": "Radiyo"
+    },
+    "slider": {
+        "slider": "Slayder"
+    },
+    "video": {
+        "drop_to_upload": "Video faylni bu yerga surib tashlang yuklash uchun"
+    }
 }
