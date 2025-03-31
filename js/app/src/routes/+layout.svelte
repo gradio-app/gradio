@@ -4,7 +4,31 @@
 	import "@gradio/theme/pollen.css";
 	import "@gradio/theme/typography.css";
 	import "./svelte_init";
+
+	import { page } from '$app/stores';
+  
+  export let data;
+  $: config = data.config;
+
+  // Get app title and description from the config
+  $: appTitle = data?.config?.title || 'Gradio App';
+  $: appDescription = data?.config?.description || 'Interactive machine learning demo';
 </script>
+
+<svelte:head>
+  <meta property="og:url" content="{$page.url.href}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="{$page.url.origin}/api/og-image" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:title" content="{appTitle}" />
+  <meta property="og:description" content="{appDescription}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:creator" content="@teamGradio" />
+  <meta name="twitter:title" content="{appTitle}" />
+  <meta name="twitter:description" content="{appDescription}" />
+  <meta name="twitter:image" content="{$page.url.origin}/api/og-image" />
+</svelte:head>
 
 <slot></slot>
 
