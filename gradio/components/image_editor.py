@@ -200,7 +200,7 @@ class ImageEditor(Component):
         eraser: Eraser | None | Literal[False] = None,
         brush: Brush | None | Literal[False] = None,
         format: str = "webp",
-        layers: bool = True,
+        layers: bool | LayerOptions = True,
         canvas_size: tuple[int, int] = (800, 800),
         fixed_canvas: bool = False,
         show_fullscreen_button: bool = True,

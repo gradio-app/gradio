@@ -602,6 +602,10 @@ with gr.Blocks() as demo:
                         )
                     return ""
 
+    with gr.Tab("ImageEditor Templates"):
+        gr.ImageMask(value="./cheetah.jpg", interactive=True)
+        gr.Paint(interactive=True)
+        gr.Sketchpad(interactive=True)
 
 if __name__ == "__main__":
     demo.launch()
