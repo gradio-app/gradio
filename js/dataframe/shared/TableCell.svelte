@@ -60,6 +60,7 @@
 	export let handle_select_column: (col: number) => void;
 	export let handle_select_row: (row: number) => void;
 	export let is_dragging: boolean;
+	export let wrap = false;
 
 	function get_cell_position(col_index: number): string {
 		if (col_index >= actual_pinned_columns) {
@@ -144,6 +145,7 @@
 			on_select_column={handle_select_column}
 			on_select_row={handle_select_row}
 			{is_dragging}
+			wrap_text={wrap}
 		/>
 		{#if editable && should_show_cell_menu([index, j], selected_cells, editable)}
 			<CellMenuButton on_click={(event) => toggle_cell_menu(event, index, j)} />
