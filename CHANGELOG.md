@@ -1,5 +1,20 @@
 # gradio
 
+## 5.23.2
+
+### Features
+
+- [#10908](https://github.com/gradio-app/gradio/pull/10908) [`09a8d0c`](https://github.com/gradio-app/gradio/commit/09a8d0c87b5b37d6c5ea1d40d103fd17fc4f24f1) - Pin `pydantic` version.  Thanks @abidlabs!
+- [#10897](https://github.com/gradio-app/gradio/pull/10897) [`1e8cdee`](https://github.com/gradio-app/gradio/commit/1e8cdee48a2c897e2cd3751bf51dda85b48529d9) - Fix route_utils.get_api_call_path().  Thanks @whitphx!
+- [#10891](https://github.com/gradio-app/gradio/pull/10891) [`17fed95`](https://github.com/gradio-app/gradio/commit/17fed951a9bd6ef02fc4430b2dc61e7cd358cd9e) - Fix empty array check in arrow key handling in `gr.Dropdown`.  Thanks @l2dy!
+
+### Fixes
+
+- [#10900](https://github.com/gradio-app/gradio/pull/10900) [`a018a46`](https://github.com/gradio-app/gradio/commit/a018a46a7fae0f7db25baca7e1c08e6fd5912ed2) - Fix wrap behaviour in dataframe.  Thanks @hannahblair!
+- [#10892](https://github.com/gradio-app/gradio/pull/10892) [`bfb7aae`](https://github.com/gradio-app/gradio/commit/bfb7aae299093c9295fca601bded9198fca30744) - Fix minor heartbeat memory leak.  Thanks @brentyi!
+- [#10902](https://github.com/gradio-app/gradio/pull/10902) [`b9b8d08`](https://github.com/gradio-app/gradio/commit/b9b8d08bd2cfb4c89444f5ca3066b1d733c8a807) - Fix disabling buttons in `MultimodalTextbox` when `interactive=False`.  Thanks @lara-gfaria!
+- [#10882](https://github.com/gradio-app/gradio/pull/10882) [`cd7f486`](https://github.com/gradio-app/gradio/commit/cd7f486c61b86a8fcf0157ee884f8f96534ffcc5) - Fix root on gradio mounted apps.  Thanks @aliabid94!
+
 ## 5.23.1
 
 ### Features
