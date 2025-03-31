@@ -30,6 +30,7 @@ from gradio.components import (
     Dataframe,
     Dataset,
     DateTime,
+    DeepLinkButton,
     DownloadButton,
     Dropdown,
     DuplicateButton,
@@ -236,4 +237,5 @@ __all__ = [
     "set_static_paths",
     "skip",
     "update",
+    "DeepLinkButton",
 ]

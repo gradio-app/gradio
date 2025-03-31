@@ -1,25 +1,6 @@
 import type { Extension } from "@codemirror/state";
 import { StreamLanguage } from "@codemirror/language";
-import { sql } from "@codemirror/legacy-modes/mode/sql";
 import { _ } from "svelte-i18n";
-
-const possible_langs = [
-	"python",
-	"c",
-	"cpp",
-	"markdown",
-	"json",
-	"html",
-	"css",
-	"javascript",
-	"jinja2",
-	"typescript",
-	"yaml",
-	"dockerfile",
-	"shell",
-	"r",
-	"sql"
-];
 
 const sql_dialects = [
 	"standardSQL",

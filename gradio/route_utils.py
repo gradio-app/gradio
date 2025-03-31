@@ -384,17 +384,18 @@ def get_api_call_path(request: fastapi.Request) -> str:
     """
     queue_api_url = f"{API_PREFIX}/queue/join"
     generic_api_url = f"{API_PREFIX}/call"
+    request_path = request.url.path.rstrip("/")
 
-    root_url = get_request_url(request)
-
-    if root_url.endswith(queue_api_url):
+    if request_path.endswith(queue_api_url):
         return queue_api_url
 
-    start_index = root_url.rfind(generic_api_url)
+    start_index = request_path.rfind(generic_api_url)
     if start_index >= 0:
-        return root_url[start_index : len(root_url)]
+        return request_path[start_index : len(request_path)]
 
-    raise ValueError(f"Request url '{root_url}' has an unkown api call pattern.")
+    raise ValueError(
+        f"Request url '{str(request.url)}' has an unknown api call pattern."
+    )
 
 
 def get_root_url(
@@ -970,3 +971,13 @@ class MediaStream:
 
     def end_stream(self):
         self.ended = True
+
+
+def create_url_safe_hash(data: bytes, digest_size=8):
+    """Create a URL-safe short hash of the data. Used to generate unique short deep links."""
+    import base64
+
+    hash_obj = hashlib.blake2b(data, digest_size=digest_size, usedforsecurity=False)
+    url_safe_hash = base64.urlsafe_b64encode(hash_obj.digest()).decode().rstrip("=")
+
+    return url_safe_hash

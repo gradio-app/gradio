@@ -86,7 +86,10 @@ export async function resolve_config(
 		config.root = config_root;
 		return { ...config, path } as Config;
 	} else if (endpoint) {
-		const config_url = join_urls(endpoint, CONFIG_URL);
+		let config_url = join_urls(
+			endpoint,
+			this.deep_link ? CONFIG_URL + "?deep_link=" + this.deep_link : CONFIG_URL
+		);
 
 		const response = await this.fetch(config_url, {
 			headers,

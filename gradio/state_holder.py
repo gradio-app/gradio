@@ -91,7 +91,7 @@ class SessionState:
     def __setitem__(self, key: int, value: Any):
         from gradio.components import State
 
-        block = self.blocks_config.blocks[key]
+        block = self.blocks_config.blocks.get(key)
         if isinstance(block, State):
             self._state_ttl[key] = (
                 block.time_to_live,
@@ -102,11 +102,22 @@ class SessionState:
             self.blocks_config.blocks[key] = value
 
     def __contains__(self, key: int):
-        block = self.blocks_config.blocks[key]
+        block = self.blocks_config.blocks.get(key)
+        if block is None:
+            return False
         if block.stateful:
             return key in self.state_data
         else:
             return key in self.blocks_config.blocks
+
+    @property
+    def components(self) -> Iterator[dict]:
+        for id in self.blocks_config.blocks:
+            config = self.blocks_config.config_for_block(
+                id, [], self.blocks_config.blocks[id]
+            )
+            if config:
+                yield config
 
     @property
     def state_components(self) -> Iterator[tuple[State, Any, bool]]:
