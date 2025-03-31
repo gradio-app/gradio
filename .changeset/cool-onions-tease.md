@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-feat:Pin pydantic version
+feat:Pin `pydantic` version
