@@ -552,16 +552,26 @@ with gr.Blocks() as demo:
                 def update_layer_options(
                     disable_layers, allow_additional_layers, layer
                 ):
+                    print(
+                        "update_layer_options",
+                        disable_layers,
+                        allow_additional_layers,
+                        layer,
+                    )
                     return (
                         gr.ImageEditor(
                             value="./cheetah.jpg",
                             interactive=True,
-                            layers=gr.LayerOptions(
-                                allow_additional_layers=allow_additional_layers,
-                                layers=layer,
+                            layers=(
+                                False
+                                if disable_layers
+                                else gr.LayerOptions(
+                                    allow_additional_layers=allow_additional_layers,
+                                    layers=layer,
+                                )
                             ),
                         ),
-                        f"### Settings applied:\n\n- `LayerOptions.allow_additional_layers={allow_additional_layers}`\n- `LayerOptions.layers={layer}`",
+                        f"### Settings applied:\n\n- `LayerOptions=False`\n- `LayerOptions.allow_additional_layers={allow_additional_layers}`\n- `LayerOptions.layers={layer}`",
                     )
 
                 update_layer_btn.click(

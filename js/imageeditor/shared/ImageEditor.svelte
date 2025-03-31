@@ -75,6 +75,23 @@
 	export let background: WeirdTypeData;
 	export let border_region: number;
 	export let layer_options: LayerOptions;
+
+	$: if (layer_options) {
+		if (check_if_should_init()) {
+			editor.set_layer_options(layer_options);
+			refresh_tools();
+		}
+	}
+
+	function refresh_tools(): void {
+		editor.set_tool(current_tool);
+		editor.set_subtool(current_subtool);
+	}
+
+	function check_if_should_init(): boolean {
+		return layer_options && editor && ready;
+	}
+
 	/**
 	 * Gets the image blobs from the editor
 	 * @returns {Promise<ImageBlobs>} Object containing background, layers, and composite image blobs
@@ -113,8 +130,7 @@
 			  }
 			| any,
 	): Promise<void> {
-		if (!editor) return;
-
+		if (!editor || !source || check_if_should_init()) return;
 		let url: string;
 
 		// Handle different source types
@@ -147,7 +163,7 @@
 	export async function add_layers_from_url(
 		source: WeirdTypeData[] | any,
 	): Promise<void> {
-		if (!editor) return;
+		if (!editor || !source.length || check_if_should_init()) return;
 
 		let url: string;
 
@@ -178,8 +194,11 @@
 	let min_zoom = true;
 
 	onMount(() => {
-		mounted = true;
-		init_image_editor();
+		console.log("onMount");
+		init_image_editor().then(() => {
+			// mounted = true;
+			console.log("init_image_editor");
+		});
 
 		return () => {
 			if (editor) {
@@ -223,7 +242,7 @@
 			min_zoom = is_min_zoom;
 		});
 
-		Promise.all([editor.ready, crop.ready]).then(() => {
+		await Promise.all([editor.ready, crop.ready]).then(() => {
 			handle_tool_change({ tool: "image" });
 			ready = true;
 			crop.set_tool("image");
@@ -236,14 +255,16 @@
 
 		if (background || layers.length > 0) {
 			if (background) {
-				add_image_from_url(background);
+				await add_image_from_url(background);
 			}
 			if (layers.length > 0) {
-				add_layers_from_url(layers);
+				await add_layers_from_url(layers);
 			}
 		} else if (composite) {
-			add_image_from_url(composite);
+			await add_image_from_url(composite);
 		}
+
+		mounted = true;
 	}
 
 	function resize_canvas(width: number, height: number): void {
@@ -345,15 +366,14 @@
 				? brush_options.colors[0]
 				: brush_options.default_color;
 
-		// Check if default_color is a color tuple [color, opacity]
+		// color is already a tuple [color, opacity]
 		if (Array.isArray(default_color)) {
 			selected_color = default_color[0];
 			selected_opacity = default_color[1];
 		} else {
-			// Handle string color case
 			selected_color = default_color;
 
-			// Check if the color string has opacity info
+			// color is a string, check if it has opacity info
 			const color = tinycolor(default_color);
 			if (color.getAlpha() < 1) {
 				selected_opacity = color.getAlpha();

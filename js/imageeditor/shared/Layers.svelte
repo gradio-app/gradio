@@ -17,6 +17,8 @@
 		layers: { name: string; id: string; user_created: boolean }[];
 	}>;
 
+	$: console.log("layers", $layers);
+
 	export let enable_additional_layers = true;
 
 	export let enable_layers = true;
