@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:Fix empty array check in arrow key handling
+feat:Fix empty array check in arrow key handling in `gr.Dropdown`
