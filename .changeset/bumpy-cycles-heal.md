@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix wrap behaviour in datafame
+fix:Fix wrap behaviour in dataframe
