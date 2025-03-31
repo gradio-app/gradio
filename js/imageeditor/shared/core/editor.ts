@@ -1477,9 +1477,7 @@ export class ImageEditor {
 
 		const zoom_tool = this.tools.get("zoom") as ZoomTool;
 		if (zoom_tool) {
-			console.log("zoom_tool", zoom_tool);
 			zoom_tool.min_zoom.subscribe((is_min_zoom) => {
-				console.log("is_min_zoom", is_min_zoom);
 				this.min_zoom.set(is_min_zoom);
 			});
 		}

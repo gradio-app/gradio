@@ -269,13 +269,11 @@ export class CropTool implements Tool {
 	 */
 	private async init_crop_ui(): Promise<void> {
 		// Create crop UI with scaled dimensions
-		console.log({ dimensions: this.dimensions, scale: this.scale });
 		const { width, height } =
 			this.image_editor_context.background_image?.getLocalBounds() || {
 				width: false,
 				height: false
 			};
-		console.log({ width, height });
 
 		this.crop_ui_container = this.make_crop_ui(
 			this.dimensions.width * this.scale,
@@ -758,10 +756,7 @@ export class CropTool implements Tool {
 	 */
 	private update_crop_ui(): void {
 		if (!this.crop_mask || !this.crop_ui_container) return;
-		console.log("this.dimensions", this.dimensions);
-		console.log("this.crop_bounds", this.crop_bounds);
-		console.log("this.position", this.position);
-		console.log("this.scale", this.scale);
+
 		// Move crop_ui_container so that (0,0) of its local space aligns with the crop_bounds on the stage
 		this.crop_ui_container.position.set(
 			this.position.x + this.crop_bounds.x * this.scale,

@@ -96,7 +96,9 @@ class Brush(Eraser):
 
     colors: Union[
         list[str],
+        list[tuple[str, float]],
         str,
+        tuple[str, float],
         None,
     ] = None
     default_color: Union[str, Literal["auto"]] = "auto"

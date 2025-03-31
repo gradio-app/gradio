@@ -119,7 +119,6 @@
 	let dynamic_height: number | undefined = undefined;
 
 	$: has_value = value?.background || value?.layers?.length || value?.composite;
-	$: console.log({ transforms });
 </script>
 
 {#if !interactive}

@@ -17,11 +17,11 @@
 	import { Webcam } from "@gradio/image";
 	import type { I18nFormatter } from "@gradio/utils";
 	import type { Client, FileData } from "@gradio/client";
-	import type { ColorInput } from "tinycolor2";
+	import tinycolor, { type ColorInput } from "tinycolor2";
 	import { ZoomTool } from "./zoom/zoom";
 	import { type CommandManager, type CommandNode } from "./utils/commands";
 	import { ImageEditor } from "./core/editor";
-	import { type Brush, type Eraser } from "./brush/types";
+	import { type Brush, type Eraser, type ColorTuple } from "./brush/types";
 	import { BrushTool } from "./brush/brush";
 	import { create_drag } from "@gradio/upload";
 	import Layers from "./Layers.svelte";
@@ -87,8 +87,6 @@
 	}
 
 	let editor: ImageEditor;
-
-	$: console.log({ background, layers, composite });
 
 	/**
 	 * Adds an image to the editor
@@ -342,15 +340,32 @@
 	}
 
 	function update_brush_options(): void {
-		selected_color =
+		const default_color =
 			brush_options.default_color === "auto"
 				? brush_options.colors[0]
 				: brush_options.default_color;
+
+		// Check if default_color is a color tuple [color, opacity]
+		if (Array.isArray(default_color)) {
+			selected_color = default_color[0];
+			selected_opacity = default_color[1];
+		} else {
+			// Handle string color case
+			selected_color = default_color;
+
+			// Check if the color string has opacity info
+			const color = tinycolor(default_color);
+			if (color.getAlpha() < 1) {
+				selected_opacity = color.getAlpha();
+			} else {
+				selected_opacity = 1;
+			}
+		}
+
 		selected_size =
 			typeof brush_options.default_size === "number"
 				? brush_options.default_size
 				: 25;
-		selected_opacity = 1;
 	}
 
 	function update_eraser_options(): void {
@@ -363,11 +378,24 @@
 	let brush_color_visible = false;
 
 	$: brush?.set_brush_color(
-		selected_color === "auto"
-			? brush_options.colors.find(
-					(color) => color === brush_options.default_color,
-				) || brush_options.colors[0]
-			: selected_color,
+		(() => {
+			let color_value;
+			if (selected_color === "auto") {
+				const default_color =
+					brush_options.colors.find((color) =>
+						Array.isArray(color)
+							? color[0] === brush_options.default_color
+							: color === brush_options.default_color,
+					) || brush_options.colors[0];
+
+				color_value = Array.isArray(default_color)
+					? default_color[0]
+					: default_color;
+			} else {
+				color_value = selected_color;
+			}
+			return color_value;
+		})(),
 	);
 
 	// Type-safe brush size handling
@@ -440,6 +468,8 @@
 			is_cropped: true,
 		});
 		handle_subtool_change({ tool: "image", subtool: null });
+		dispatch("change");
+		dispatch("input");
 	}
 </script>
 

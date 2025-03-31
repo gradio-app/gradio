@@ -1,36 +1,61 @@
 <script lang="ts">
 	import tinycolor from "tinycolor2";
 	import { createEventDispatcher } from "svelte";
+	import type { ColorTuple } from "./types";
+	import type { ColorInput } from "tinycolor2";
+
 	export let selected_color: string;
-	export let colors: string[];
+	export let colors: (ColorInput | ColorTuple)[];
 	export let user_colors: (string | null)[] | null = [];
 
 	export let show_empty = false;
 	export let current_mode: "hex" | "rgb" | "hsl" = "hex";
 	export let color_picker = false;
 	const dispatch = createEventDispatcher<{
-		select: { index: number | null; color: string | null };
+		select: { index: number | null; color: string | null; opacity?: number };
 		edit: { index: number; color: string | null };
 	}>();
 
 	$: _colors = show_empty ? colors : colors.filter((c) => c);
 
-	function get_formatted_color(
-		color: string,
-		mode: "hex" | "rgb" | "hsl"
-	): string {
-		if (mode === "hex") {
-			return tinycolor(color).toHexString();
-		} else if (mode === "rgb") {
-			return tinycolor(color).toRgbString();
+	// Helper function to extract color from either a color input or a tuple
+	function get_color(color_input: ColorInput | ColorTuple): string {
+		if (Array.isArray(color_input)) {
+			return color_input[0] as string;
 		}
-		return tinycolor(color).toHslString();
+		return color_input as string;
+	}
+
+	// Helper function to extract opacity from a tuple or return undefined
+	function get_opacity(
+		color_input: ColorInput | ColorTuple,
+	): number | undefined {
+		if (Array.isArray(color_input)) {
+			return color_input[1];
+		}
+
+		// For string colors, check if there's opacity in the color itself
+		const color = tinycolor(color_input);
+		return color.getAlpha();
+	}
+
+	function get_formatted_color(
+		color: ColorInput | ColorTuple,
+		mode: "hex" | "rgb" | "hsl",
+	): string {
+		const color_value = get_color(color);
+		if (mode === "hex") {
+			return tinycolor(color_value).toHexString();
+		} else if (mode === "rgb") {
+			return tinycolor(color_value).toRgbString();
+		}
+		return tinycolor(color_value).toHslString();
 	}
 
 	let current_index = `select-${colors.findIndex(
 		(c) =>
 			get_formatted_color(c, current_mode) ===
-			get_formatted_color(selected_color, current_mode)
+			get_formatted_color(selected_color, current_mode),
 	)}`;
 
 	function handle_select(
@@ -38,7 +63,8 @@
 		detail: {
 			index: number;
 			color: string | null;
-		}
+			opacity?: number;
+		},
 	): void {
 		current_index = `${type}-${detail.index}`;
 		dispatch(type, detail);
@@ -76,12 +102,17 @@
 			</div>
 		{/if}
 		<menu class="swatch">
-			{#each _colors as color, i}
+			{#each _colors as color_item, i}
 				<button
-					on:click={() => handle_select("select", { index: i, color })}
+					on:click={() =>
+						handle_select("select", {
+							index: i,
+							color: get_color(color_item),
+							opacity: get_opacity(color_item),
+						})}
 					class="color"
-					class:empty={color === null}
-					style="background-color: {color}"
+					class:empty={color_item === null}
+					style="background-color: {get_color(color_item)}"
 					class:selected={`select-${i}` === current_index}
 				></button>
 			{/each}

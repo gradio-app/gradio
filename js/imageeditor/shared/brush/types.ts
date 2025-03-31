@@ -22,15 +22,18 @@ export interface Eraser {
 	default_size: number | "auto";
 }
 
+export type ColorTuple = [ColorInput, number]; // [color, opacity]
+
 export interface Brush extends Eraser {
 	/**
 	 * The default color of the brush.
 	 */
 	default_color: ColorInput;
 	/**
-	 * The colors to show in the color swatch
+	 * The colors to show in the color swatch.
+	 * Can be either simple color strings or [color, opacity] tuples.
 	 */
-	colors: ColorInput[];
+	colors: (ColorInput | ColorTuple)[];
 	/**
 	 * Whether to show _only_ the color swatches specified in `colors`, or to show the color swatches specified in `colors` along with the colorpicker.
 	 */

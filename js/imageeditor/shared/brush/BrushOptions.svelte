@@ -2,13 +2,14 @@
 	import { createEventDispatcher, tick } from "svelte";
 	import { click_outside } from "../utils/events";
 
-	import { type Brush } from "./types";
+	import { type Brush, type ColorTuple } from "./types";
 	import ColorPicker from "./ColorPicker.svelte";
 	import ColorSwatch from "./ColorSwatch.svelte";
 	import ColorField from "./ColorField.svelte";
 	import BrushSize from "./BrushSize.svelte";
+	import type { ColorInput } from "tinycolor2";
 
-	export let colors: any[];
+	export let colors: (ColorInput | ColorTuple)[];
 	export let selected_color: any;
 	export let color_mode: Brush["color_mode"] | undefined = undefined;
 	export let recent_colors: (string | null)[] = [];
@@ -30,9 +31,11 @@
 		{
 			index,
 			color,
+			opacity,
 		}: {
 			index: number | null;
 			color: string | null;
+			opacity?: number;
 		},
 		type: "core" | "user",
 	): void {
@@ -43,6 +46,11 @@
 
 		if (!color) return;
 		selected_color = color;
+
+		// Update opacity if provided
+		if (opacity !== undefined) {
+			selected_opacity = opacity;
+		}
 
 		if (type === "core") {
 			color_picker = false;

@@ -31,7 +31,9 @@
 	import {
 		type Brush as BrushType,
 		type Eraser as EraserType,
+		type ColorTuple,
 	} from "./brush/types";
+	import tinycolor from "tinycolor2";
 
 	export let tool: Tool = "image";
 	export let subtool: Subtool = null;
@@ -47,8 +49,34 @@
 		eraser_options && typeof eraser_options.default_size === "number"
 			? eraser_options.default_size
 			: 25;
-	export let selected_color = brush_options && brush_options.default_color;
-	export let selected_opacity = 1;
+
+	// Handle default_color including potential color-opacity tuple
+	export let selected_color =
+		brush_options &&
+		(() => {
+			const default_color = brush_options.default_color;
+			if (Array.isArray(default_color)) {
+				return default_color[0];
+			}
+			return default_color;
+		})();
+
+	// Set default opacity based on default_color if it's a tuple
+	export let selected_opacity =
+		brush_options &&
+		(() => {
+			const default_color = brush_options.default_color;
+			if (Array.isArray(default_color)) {
+				return default_color[1];
+			}
+			// Check if color string has opacity
+			const color = tinycolor(default_color);
+			if (color.getAlpha() < 1) {
+				return color.getAlpha();
+			}
+			return 1;
+		})();
+
 	export let preview = false;
 	// export let opacity = 1;
 	export let show_brush_color = false;
@@ -57,7 +85,6 @@
 	export let sources: Source[];
 	export let transforms: Transform[];
 	// Required by the component interface
-	$: console.log({ brush_options, eraser_options });
 
 	let enable_layers = true;
 	const dispatch = createEventDispatcher<{
@@ -97,15 +124,6 @@
 	$: can_upload = sources.includes("upload");
 	$: can_webcam = sources.includes("webcam");
 	$: can_paste = sources.includes("clipboard");
-
-	$: console.log({
-		can_crop,
-		can_resize,
-		can_upload,
-		can_webcam,
-		can_paste,
-		transforms,
-	});
 </script>
 
 <div class="toolbar-wrap">

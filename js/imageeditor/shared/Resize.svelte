@@ -1,39 +1,29 @@
 <script lang="ts" context="module">
-	export type Anchor =
+	export type Position =
 		| "top-left"
-		| "top-center"
+		| "top"
 		| "top-right"
-		| "middle-left"
+		| "left"
 		| "center"
-		| "middle-right"
+		| "right"
 		| "bottom-left"
-		| "bottom-center"
+		| "bottom"
 		| "bottom-right";
 </script>
 
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import type { Spring } from "svelte/motion";
-
-	const anchors = [
-		{ label: "Top Left", code: "top-left" },
-		{ label: "Top Center", code: "top-center" },
-		{ label: "Top Right", code: "top-right" },
-		{ label: "Middle Left", code: "middle-left" },
-		{ label: "Center", code: "center" },
-		{ label: "Middle Right", code: "middle-right" },
-		{ label: "Bottom Left", code: "bottom-left" },
-		{ label: "Bottom Center", code: "bottom-center" },
-		{ label: "Bottom Right", code: "bottom-right" },
-	] as const;
+	import { Play, Image } from "@gradio/icons";
+	import Anchor from "./Anchor.svelte";
 
 	export let dimensions: Spring<{ width: number; height: number }>;
 
 	const dispatch = createEventDispatcher<{
-		change: { anchor: Anchor; scale: boolean; width: number; height: number };
+		change: { anchor: Position; scale: boolean; width: number; height: number };
 	}>();
 
-	let selected_anchor: Anchor = "center";
+	let selected_anchor: Position = "center";
 	let scale = false;
 
 	let new_width = $dimensions?.width;
@@ -46,6 +36,26 @@
 			width: new_width,
 			height: new_height,
 		});
+	}
+
+	type Direction =
+		| "up"
+		| "down"
+		| "left"
+		| "right"
+		| "up-right"
+		| "down-right"
+		| "down-left"
+		| "up-left";
+
+	type Cell = Direction | "img" | null;
+
+	let cells: Cell[] = [];
+
+	$: console.log(cells);
+
+	function set_anchor(position: Position): void {
+		selected_anchor = position;
 	}
 </script>
 
@@ -63,29 +73,42 @@
 			id="height"
 			bind:value={new_height}
 		/>
-		<label for="scale">Scale</label><input
-			type="checkbox"
-			bind:checked={scale}
-		/>
+
+		<h2 class="image-will-label">Image will:</h2>
+		<div class="toggle-container">
+			<label class="radio-label">
+				<input
+					type="radio"
+					name="resize_mode"
+					value={true}
+					bind:group={scale}
+				/>
+				<span class="radio-button">rescale</span>
+			</label>
+			<label class="radio-label">
+				<input
+					type="radio"
+					name="resize_mode"
+					value={false}
+					bind:group={scale}
+				/>
+				<span class="radio-button">anchor</span>
+			</label>
+		</div>
 	</div>
 	<div class="anchor-wrap">
-		{#each anchors as { label, code }}
-			<button
-				class="anchor-button"
-				on:click={() => (selected_anchor = code)}
-				class:selected={selected_anchor === code}>{label}</button
-			>
-		{/each}
+		<Anchor on:position={(e) => set_anchor(e.detail)} />
 	</div>
-
-	<button class="apply-button" on:click={() => handle_click()}>Apply</button>
+	<button class="apply-button" on:click={() => handle_click()}
+		>Resize Canvas</button
+	>
 </div>
 
 <style>
 	.wrap {
 		border-radius: 4px;
 		border: 1px solid #ccc;
-		width: 230px;
+		width: 240px;
 		position: absolute;
 		top: calc(100% + var(--spacing-xxs) + 2px);
 		right: 0;
@@ -110,7 +133,8 @@
 		row-gap: 10px;
 		column-gap: 15px;
 	}
-	label {
+	label,
+	h2 {
 		display: flex;
 		align-items: center;
 		gap: 15px;
@@ -143,95 +167,61 @@
 		box-shadow: 0 0 0 1px var(--color-accent-soft);
 	}
 
-	.anchor-wrap {
-		margin: auto;
-		display: grid;
-		width: 120px;
-		height: 120px;
-		grid-template-rows: repeat(3, 1fr);
-		grid-template-columns: repeat(3, 1fr);
-		border-radius: 5px;
+	.image-will-label {
+		grid-column: 1;
+	}
+
+	.toggle-container {
+		display: flex;
+		grid-column: 2;
+		border-radius: var(--radius-sm);
 		border: 1px solid var(--border-color-primary);
 		overflow: hidden;
-		margin: var(--spacing-sm) auto;
-		margin-bottom: 10px;
 	}
 
-	.anchor-button {
-		border: none;
-		background: none;
-		font-size: 1px;
-		color: transparent;
-		border-color: var(--border-color-primary);
-		border-style: solid;
-		border-width: 0;
-		cursor: pointer;
-		margin-right: 0 !important;
-		margin: 0 !important;
-		border-radius: 0 !important;
-		position: static !important;
+	.toggle-container {
+		display: flex;
+		grid-column: 2;
+		border-radius: var(--radius-sm);
+		border: 1px solid var(--border-color-primary);
+		overflow: hidden;
 	}
 
-	.anchor-button:nth-of-type(3n),
-	button:nth-of-type(3n-1) {
-		border-left-width: 1px;
-		/* background: pink; */
-	}
-
-	.anchor-button:nth-of-type(-n + 6) {
-		border-bottom-width: 1px;
-		/* background: pink; */
-	}
-
-	.anchor-button:hover {
-		background: var(--background-fill-secondary);
-	}
-
-	.anchor-button.selected {
-		background: var(--color-accent);
-	}
-
-	/* label > * + * {
-		margin-left: var(--size-2);
-	} */
-
-	input[type="checkbox"] {
-		--ring-color: transparent;
+	.radio-label {
+		flex: 1;
+		margin: 0;
+		padding: 0;
 		position: relative;
-		box-shadow: var(--checkbox-shadow);
-		border: 1px solid var(--checkbox-border-color);
-		border-radius: var(--checkbox-border-radius);
-		background-color: var(--checkbox-background-color);
-		line-height: var(--line-sm);
-		align-self: center;
-	}
-
-	input:checked,
-	input:checked:hover,
-	input:checked:focus {
-		background-image: var(--checkbox-check);
-		background-color: var(--checkbox-background-color-selected);
-		border-color: var(--checkbox-border-color-focus);
-	}
-
-	input:checked:focus {
-		background-image: var(--checkbox-check);
-		background-color: var(--checkbox-background-color-selected);
-		border-color: var(--checkbox-border-color-focus);
-	}
-
-	input:hover {
-		border-color: var(--checkbox-border-color-hover);
-		background-color: var(--checkbox-background-color-hover);
-	}
-
-	input:focus {
-		border-color: var(--checkbox-border-color-focus);
-		background-color: var(--checkbox-background-color-focus);
-	}
-
-	input:hover {
 		cursor: pointer;
+	}
+
+	.radio-button {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: var(--spacing-sm);
+		background: var(--checkbox-background-color);
+		color: var(--body-text-color);
+		font-size: var(--text-sm);
+		transition: background-color 0.15s ease;
+		width: 100%;
+		height: 100%;
+	}
+
+	input[type="radio"] {
+		position: absolute;
+		opacity: 0;
+		width: 0;
+		height: 0;
+	}
+
+	input[type="radio"]:not(:checked) + .radio-button:hover {
+		background: var(--checkbox-background-color-hover);
+	}
+
+	input[type="radio"]:checked + .radio-button {
+		background: var(--color-accent);
+		color: white;
 	}
 
 	.apply-button {
@@ -248,6 +238,14 @@
 	}
 
 	.apply-button:hover {
-		background: var(--color-accent-soft);
+		background: var(--button-primary-background-fill-hover);
+	}
+
+	.anchor-wrap {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-direction: column;
+		gap: 10px;
 	}
 </style>
