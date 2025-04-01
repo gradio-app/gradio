@@ -53,7 +53,7 @@
 
 	function toggleExpanded(): void {
 		expanded = !expanded;
-		user_expanded_toggled = true;  // Mark that user has made a choice
+		user_expanded_toggled = true;
 	}
 
 	function scrollToBottom(): void {
@@ -65,7 +65,8 @@
 	function handleScroll(): void {
 		if (content_preview_element) {
 			const is_at_bottom =
-				content_preview_element.scrollHeight - content_preview_element.scrollTop <=
+				content_preview_element.scrollHeight -
+					content_preview_element.scrollTop <=
 				content_preview_element.clientHeight + 10;
 			if (!is_at_bottom) {
 				user_is_scrolling = true;
