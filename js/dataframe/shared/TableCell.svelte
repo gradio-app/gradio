@@ -46,7 +46,6 @@
 	export let line_breaks: boolean;
 	export let datatype: Datatype;
 	export let editing: [number, number] | false;
-	export let clear_on_focus: boolean;
 	export let max_chars: number | undefined;
 	export let root: string;
 	export let editable: boolean;
@@ -122,9 +121,6 @@
 			{is_static}
 			edit={editing && editing[0] === index && editing[1] === j}
 			{datatype}
-			on:blur={() => {
-				clear_on_focus = false;
-			}}
 			on:focus={() => {
 				const row = index;
 				const col = j;
@@ -132,7 +128,6 @@
 					selected_cells = [[row, col]];
 				}
 			}}
-			{clear_on_focus}
 			{root}
 			{max_chars}
 			{i18n}

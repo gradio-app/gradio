@@ -128,7 +128,6 @@
 	}>();
 
 	$: editing = $df_state.ui_state.editing;
-	let clear_on_focus = false;
 	$: header_edit = $df_state.ui_state.header_edit;
 	$: selected_header = $df_state.ui_state.selected_header;
 	$: active_cell_menu = $df_state.ui_state.active_cell_menu;
@@ -306,7 +305,6 @@
 		event.preventDefault();
 		event.stopPropagation();
 		if (!editable) return;
-		clear_on_focus = false;
 		df_actions.set_editing(false);
 		df_actions.handle_header_click(col, editable);
 		parent.focus();
@@ -523,7 +521,6 @@
 		editable,
 		show_row_numbers,
 		get_data_at,
-		clear_on_focus,
 		selected_cells,
 		parent_element: parent
 	});
@@ -941,7 +938,6 @@
 								{line_breaks}
 								datatype={Array.isArray(datatype) ? datatype[j] : datatype}
 								{editing}
-								{clear_on_focus}
 								{max_chars}
 								{root}
 								{editable}

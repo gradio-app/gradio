@@ -23,7 +23,6 @@ export type SelectionContext = {
 	editable: boolean;
 	show_row_numbers: boolean;
 	get_data_at: (row: number, col: number) => string | number;
-	clear_on_focus: boolean;
 	selected_cells: [number, number][];
 	parent_element: HTMLElement;
 	actions: {
@@ -50,7 +49,6 @@ export function create_selection_context(
 
 			if (context.show_row_numbers && col === -1) return;
 
-			context.clear_on_focus = false;
 			context.df_actions.set_active_cell_menu(null);
 			context.df_actions.set_active_header_menu(null);
 			context.df_actions.set_selected_header(false);
