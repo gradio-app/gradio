@@ -59,6 +59,7 @@ class HighlightedText(Component):
         render: bool = True,
         key: int | str | None = None,
         interactive: bool | None = None,
+        rtl: bool = False,
     ):
         """
         Parameters:
@@ -81,12 +82,14 @@ class HighlightedText(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             interactive: If True, the component will be editable, and allow user to select spans of text and label them.
+            rtl: If True, will display the text in right-to-left direction.
         """
         self.color_map = color_map
         self.show_legend = show_legend
         self.show_inline_category = show_inline_category
         self.combine_adjacent = combine_adjacent
         self.adjacent_separator = adjacent_separator
+        self.rtl = rtl
         super().__init__(
             label=label,
             every=every,
