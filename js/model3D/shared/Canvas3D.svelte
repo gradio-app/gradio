@@ -2,8 +2,9 @@
 	import { onMount } from "svelte";
 	import type { FileData } from "@gradio/client";
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
+	import type { Viewer, ViewerDetails } from "@babylonjs/viewer";
 
-	let BABYLON_VIEWER: any;
+	let BABYLON_VIEWER: typeof import("@babylonjs/viewer");
 
 	export let value: FileData;
 	export let display_mode: "solid" | "point_cloud" | "wireframe";
@@ -42,8 +43,8 @@
 	}
 
 	let canvas: HTMLCanvasElement;
-	let viewer: any;
-	let viewerDetails: any;
+	let viewer: Viewer;
+	let viewerDetails: Readonly<ViewerDetails>;
 	let mounted = false;
 
 	onMount(() => {
