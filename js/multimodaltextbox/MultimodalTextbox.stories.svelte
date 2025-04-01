@@ -94,6 +94,6 @@
 	}}
 />
 <Story
-	name="MultimodalTextbox with microphone input"
-	args={{ sources: ["microphone"] }}
+	name="MultimodalTextbox with microphone input and right to left text"
+	args={{ sources: ["microphone"], rtl: true, submit_btn: true }}
 />
