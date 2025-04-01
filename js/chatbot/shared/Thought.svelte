@@ -38,6 +38,7 @@
 
 	let thought_node: ThoughtNode;
 	let expanded = false;
+	let userCollapsedPendingMessage = false;
 	let contentPreviewElement: HTMLElement;
 	let userIsScrolling = false;
 
@@ -46,8 +47,16 @@
 		children: is_thought_node(thought) ? thought.children : []
 	} as ThoughtNode;
 
+	$: is_pending_status = thought_node.metadata?.status === "pending";
+	$: should_expand_content = is_pending_status ? !userCollapsedPendingMessage : expanded;
+	$: arrow_expanded = expanded || (is_pending_status && !userCollapsedPendingMessage);
+
 	function toggleExpanded(): void {
-		expanded = !expanded;
+		if (is_pending_status) {
+			userCollapsedPendingMessage = !userCollapsedPendingMessage;
+		} else {
+			expanded = !expanded;
+		}
 	}
 
 	function scrollToBottom(): void {
@@ -70,7 +79,8 @@
 	$: if (
 		thought_node.content &&
 		contentPreviewElement &&
-		thought_node.metadata?.status !== "done"
+		is_pending_status &&
+		!userCollapsedPendingMessage
 	) {
 		setTimeout(scrollToBottom, 0);
 	}
@@ -79,7 +89,7 @@
 <div class="thought-group">
 	<div
 		class="title"
-		class:expanded
+		class:expanded={arrow_expanded}
 		on:click|stopPropagation={toggleExpanded}
 		aria-busy={thought_node.content === "" || thought_node.content === null}
 		role="button"
@@ -88,7 +98,7 @@
 	>
 		<span
 			class="arrow"
-			style:transform={expanded ? "rotate(180deg)" : "rotate(0deg)"}
+			style:transform={arrow_expanded ? "rotate(180deg)" : "rotate(0deg)"}
 		>
 			<IconButton Icon={DropdownCircularArrow} />
 		</span>
@@ -121,11 +131,10 @@
 		{/if}
 	</div>
 
-	{#if expanded || thought_node.metadata?.status !== "done"}
+	{#if should_expand_content}
 		<div
-			class:content={expanded}
-			class:content-preview={!expanded &&
-				thought_node.metadata?.status !== "done"}
+			class:content={(is_pending_status && userCollapsedPendingMessage) || (!is_pending_status && expanded)}
+			class:content-preview={is_pending_status && !userCollapsedPendingMessage}
 			bind:this={contentPreviewElement}
 			on:scroll={handleScroll}
 			transition:slide
