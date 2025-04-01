@@ -38,25 +38,24 @@
 
 	let thought_node: ThoughtNode;
 	let expanded = false;
-	let userCollapsedPendingMessage = false;
+	let userExpandedToggled = false;
 	let contentPreviewElement: HTMLElement;
 	let userIsScrolling = false;
 
+	// First set up the thought_node
 	$: thought_node = {
 		...thought,
 		children: is_thought_node(thought) ? thought.children : []
 	} as ThoughtNode;
 
-	$: is_pending_status = thought_node.metadata?.status === "pending";
-	$: should_expand_content = is_pending_status ? !userCollapsedPendingMessage : expanded;
-	$: arrow_expanded = expanded || (is_pending_status && !userCollapsedPendingMessage);
+	// Then handle the expanded state based on status
+	$: if (!userExpandedToggled) {
+		expanded = thought_node?.metadata?.status !== "done";
+	}
 
 	function toggleExpanded(): void {
-		if (is_pending_status) {
-			userCollapsedPendingMessage = !userCollapsedPendingMessage;
-		} else {
-			expanded = !expanded;
-		}
+		expanded = !expanded;
+		userExpandedToggled = true;  // Mark that user has made a choice
 	}
 
 	function scrollToBottom(): void {
@@ -79,8 +78,7 @@
 	$: if (
 		thought_node.content &&
 		contentPreviewElement &&
-		is_pending_status &&
-		!userCollapsedPendingMessage
+		thought_node.metadata?.status !== "done"
 	) {
 		setTimeout(scrollToBottom, 0);
 	}
@@ -89,7 +87,7 @@
 <div class="thought-group">
 	<div
 		class="title"
-		class:expanded={arrow_expanded}
+		class:expanded
 		on:click|stopPropagation={toggleExpanded}
 		aria-busy={thought_node.content === "" || thought_node.content === null}
 		role="button"
@@ -98,7 +96,7 @@
 	>
 		<span
 			class="arrow"
-			style:transform={arrow_expanded ? "rotate(180deg)" : "rotate(0deg)"}
+			style:transform={expanded ? "rotate(180deg)" : "rotate(0deg)"}
 		>
 			<IconButton Icon={DropdownCircularArrow} />
 		</span>
@@ -131,10 +129,11 @@
 		{/if}
 	</div>
 
-	{#if should_expand_content}
+	{#if expanded}
 		<div
-			class:content={(is_pending_status && userCollapsedPendingMessage) || (!is_pending_status && expanded)}
-			class:content-preview={is_pending_status && !userCollapsedPendingMessage}
+			class:content={expanded}
+			class:content-preview={!expanded &&
+				thought_node.metadata?.status !== "done"}
 			bind:this={contentPreviewElement}
 			on:scroll={handleScroll}
 			transition:slide
