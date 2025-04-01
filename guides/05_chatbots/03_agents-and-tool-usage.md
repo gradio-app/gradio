@@ -62,7 +62,7 @@ In addition to `title`, the dictionary provided to `metadata` can take several o
 
 * `log`: an optional string value to be displayed in a subdued font next to the thought title.
 * `duration`: an optional numeric value representing the duration of the thought/tool usage, in seconds. Displayed in a subdued font next inside parentheses next to the thought title.
-* `status`: if set to `"pending"`, a spinner appears next to the thought title and the accordion is is initialized in an open state.  If `status` is `"done"`, the thought accordion is set to a closed state. If `status` is not provided, the thought accordion is open and no spinner is displayed.
+* `status`: if set to `"pending"`, a spinner appears next to the thought title and the accordion is initialized open.  If `status` is `"done"`, the thought accordion is initialized closed. If `status` is not provided, the thought accordion is initialized open and no spinner is displayed.
 * `id` and `parent_id`: if these are provided, they can be used to nest thoughts inside other thoughts.
 
 Below, we show several complete examples of using `gr.Chatbot` and `gr.ChatInterface` to display tool use or thinking UIs.
