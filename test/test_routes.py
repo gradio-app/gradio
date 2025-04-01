@@ -1715,26 +1715,74 @@ def test_mount_gradio_app_args_match_launch_args():
     )
 
 
-def test_get_api_call_path_queue_join():
-    queue_url = f"http://localhost:7860{API_PREFIX}/queue/join?__theme=dark"
-    scope = {"type": "http", "headers": [], "path": queue_url}
+@pytest.mark.parametrize(
+    "server, path",
+    [
+        # ASGI HTTP Connection Scope. Ref: https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scopeg
+        (
+            None,  # 'server' is optional. Requests from Gradio-Lite will be this case.
+            f"{API_PREFIX}/queue/join",
+        ),
+        (("localhost", 7860), f"{API_PREFIX}/queue/join"),
+        (
+            ("localhost", 7860),
+            f"{API_PREFIX}/queue/join?__theme=dark",  # With query params.
+        ),
+        (
+            ("localhost", 7860),
+            f"{API_PREFIX}/queue/join?foo=bar&__theme=dark",  # With multiple query params.
+        ),
+        (
+            None,
+            f"http://localhost:7860{API_PREFIX}/queue/join?__theme=dark",  # Putting the server in the path may be invalid but we test it anyway.
+        ),
+    ],
+)
+def test_get_api_call_path_queue_join(server, path):
+    scope = {"type": "http", "headers": [], "server": server, "path": path}
     request = Request(scope)
 
     path = get_api_call_path(request)
     assert path == f"{API_PREFIX}/queue/join"
 
 
-def test_get_api_call_path_generic_call():
-    call_url = f"http://localhost:7860{API_PREFIX}/call/predict?__theme=light"
-    scope = {"type": "http", "headers": [], "path": call_url}
+@pytest.mark.parametrize(
+    "server, path, expected",
+    [
+        (
+            ("localhost", 7860),
+            f"{API_PREFIX}/call/predict",
+            f"{API_PREFIX}/call/predict",
+        ),
+        (
+            None,
+            f"http://localhost:7860{API_PREFIX}/call/predict",
+            f"{API_PREFIX}/call/predict",
+        ),
+        (
+            ("localhost", 7860),
+            f"{API_PREFIX}/call/custom_function/with/extra/parts",
+            f"{API_PREFIX}/call/custom_function/with/extra/parts",
+        ),
+        (
+            None,
+            f"http://localhost:7860{API_PREFIX}/call/custom_function/with/extra/parts",
+            f"{API_PREFIX}/call/custom_function/with/extra/parts",
+        ),
+        (  # Query params are ignored.
+            ("localhost", 7860),
+            f"{API_PREFIX}/call/custom_function/with/extra/parts?__theme=light",
+            f"{API_PREFIX}/call/custom_function/with/extra/parts",
+        ),
+        (  # Query params are ignored.
+            None,
+            f"http://localhost:7860{API_PREFIX}/call/custom_function/with/extra/parts?__theme=light",
+            f"{API_PREFIX}/call/custom_function/with/extra/parts",
+        ),
+    ],
+)
+def test_get_api_call_path_generic_call(server, path, expected):
+    scope = {"type": "http", "headers": [], "server": server, "path": path}
     request = Request(scope)
     path = get_api_call_path(request)
-    assert path == f"{API_PREFIX}/call/predict"
-
-    complex_call_url = (
-        f"http://localhost:7860{API_PREFIX}/call/custom_function/with/extra/parts"
-    )
-    scope = {"type": "http", "headers": [], "path": complex_call_url}
-    request = Request(scope)
-    path = get_api_call_path(request)
-    assert path == f"{API_PREFIX}/call/custom_function/with/extra/parts"
+    assert path == expected

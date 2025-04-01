@@ -1,5 +1,11 @@
 # @gradio/dropdown
 
+## 0.9.16
+
+### Features
+
+- [#10891](https://github.com/gradio-app/gradio/pull/10891) [`17fed95`](https://github.com/gradio-app/gradio/commit/17fed951a9bd6ef02fc4430b2dc61e7cd358cd9e) - Fix empty array check in arrow key handling in `gr.Dropdown`.  Thanks @l2dy!
+
 ## 0.9.15
 
 ### Dependency updates

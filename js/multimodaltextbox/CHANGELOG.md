@@ -1,5 +1,11 @@
 # @gradio/multimodaltextbox
 
+## 0.9.13
+
+### Fixes
+
+- [#10902](https://github.com/gradio-app/gradio/pull/10902) [`b9b8d08`](https://github.com/gradio-app/gradio/commit/b9b8d08bd2cfb4c89444f5ca3066b1d733c8a807) - Fix disabling buttons in `MultimodalTextbox` when `interactive=False`.  Thanks @lara-gfaria!
+
 ## 0.9.12
 
 ### Dependency updates
