@@ -1,5 +1,21 @@
 # gradio
 
+## 5.23.3
+
+### Features
+
+- [#10845](https://github.com/gradio-app/gradio/pull/10845) [`2521e8a`](https://github.com/gradio-app/gradio/commit/2521e8a1c76fe77253156bf8465500b9cb1db5c4) - Check if SharedWorker is available in the current runtime and fallback to DedicatedWorker if not available.  Thanks @whitphx!
+- [#10926](https://github.com/gradio-app/gradio/pull/10926) [`d81385b`](https://github.com/gradio-app/gradio/commit/d81385bdb939a81718339b806f0c3f71d64f6dc5) - Add status docs to MetadataDict.  Thanks @aliabd!
+- [#10847](https://github.com/gradio-app/gradio/pull/10847) [`d5fde7c`](https://github.com/gradio-app/gradio/commit/d5fde7c390004ce5394072100b059f545d2d4eae) - Babylon update for model3D.  Thanks @CedricGuillemet!
+- [#10890](https://github.com/gradio-app/gradio/pull/10890) [`01b88c7`](https://github.com/gradio-app/gradio/commit/01b88c7fdedb413ba92ef6191967a8aed25e185f) - Improve API error handling in JS Client.  Thanks @l2dy!
+
+### Fixes
+
+- [#10913](https://github.com/gradio-app/gradio/pull/10913) [`2322700`](https://github.com/gradio-app/gradio/commit/2322700812341a71a200958cdca793ca865c08c4) - Update i18n files.  Thanks @freddyaboulton!
+- [#10922](https://github.com/gradio-app/gradio/pull/10922) [`afe0b13`](https://github.com/gradio-app/gradio/commit/afe0b139fa8715eabc28362aaffe6e0b50b239a5) - Fix regression around chatbot thoughts not being collapsible.  Thanks @abidlabs!
+- [#10901](https://github.com/gradio-app/gradio/pull/10901) [`64a6ead`](https://github.com/gradio-app/gradio/commit/64a6ead05c99cfd5787e7f112838f2be83082a69) - Fix EventData scaling when `gr.Image` is in fullscreen mode.  Thanks @tiago-gsantos!
+- [#10921](https://github.com/gradio-app/gradio/pull/10921) [`c8d6ddd`](https://github.com/gradio-app/gradio/commit/c8d6ddd344495dfa4d97afba708b342ee5e84a63) - Refactor `get_request_url`.  Thanks @abidlabs!
+
 ## 5.23.2
 
 ### Features
