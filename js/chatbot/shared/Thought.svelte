@@ -42,13 +42,11 @@
 	let content_preview_element: HTMLElement;
 	let user_is_scrolling = false;
 
-	// First set up the thought_node
 	$: thought_node = {
 		...thought,
 		children: is_thought_node(thought) ? thought.children : []
 	} as ThoughtNode;
 
-	// Then handle the expanded state based on status
 	$: if (!user_expanded_toggled) {
 		expanded = thought_node?.metadata?.status !== "done";
 	}
