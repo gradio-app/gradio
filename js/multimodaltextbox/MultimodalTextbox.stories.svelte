@@ -83,6 +83,7 @@
 	name="Single file upload"
 	args={{
 		file_count: "single",
+		submit_btn: true,
 		value: {
 			text: "sample text",
 			files: [
