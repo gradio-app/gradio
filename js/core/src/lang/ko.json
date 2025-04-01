@@ -1,7 +1,8 @@
 {
 	"_name": "한국어",
 	"3D_model": {
-		"3d_model": "3D 모델"
+		"3d_model": "3D 모델",
+		"drop_to_upload": "3D 모델 (.obj, .glb, .stl, .gltf, .splat, 또는 .ply) 파일을 여기에 놓아 업로드하세요."
 	},
 	"annotated_image": {
 		"annotated_image": "주석이 달린 이미지"
@@ -18,12 +19,14 @@
 		"no_microphone": "마이크를 찾을 수 없습니다",
 		"pause": "일시정지",
 		"play": "재생",
-		"waiting": "대기 중"
+		"waiting": "대기 중",
+		"drop_to_upload": "오디오 파일을 여기에 놓아 업로드하세요."
 	},
 	"blocks": {
 		"connection_can_break": "모바일에서는 이 탭이 포커스를 잃거나 기기가 절전 모드로 전환되면 연결이 끊어져 대기열의 위치를 잃을 수 있습니다.",
 		"long_requests_queue": "대기 중인 요청의 긴 대기열이 있습니다. 이 Space를 복제하여 건너뛰세요.",
-		"lost_connection": "페이지를 떠나 연결이 끊어졌습니다. 대기열로 돌아가는 중..."
+		"lost_connection": "페이지를 떠나 연결이 끊어졌습니다. 대기열로 돌아가는 중...",
+		"waiting_for_inputs": "파일 업로드가 완료될 때까지 기다렸다가 다시 시도해주세요."
 	},
 	"checkbox": {
 		"checkbox": "체크박스",
@@ -64,7 +67,14 @@
 		"add_row_above": "위에 행 추가",
 		"add_row_below": "아래에 행 추가",
 		"add_column_left": "왼쪽에 열 추가",
-		"add_column_right": "오른쪽에 열 추가"
+		"add_column_right": "오른쪽에 열 추가",
+		"delete_row": "행 삭제",
+		"delete_column": "열 삭제",
+		"sort_column": "정렬 열",
+		"sort_ascending": "오름차순 정렬",
+		"sort_descending": "내림차순 정렬",
+		"drop_to_upload": "CSV 또는 TSV 파일을 여기에 끌어다 놓아 데이터프레임에 데이터를 가져올 수 있습니다.",
+		"clear_sort": "정렬 해제"
 	},
 	"dropdown": {
 		"dropdown": "드롭다운"
@@ -93,7 +103,8 @@
 		"remove_image": "이미지 제거",
 		"select_brush_color": "브러시 색상 선택",
 		"start_drawing": "그리기 시작",
-		"use_brush": "브러시 사용"
+		"use_brush": "브러시 사용",
+		"drop_to_upload": "이곳에 이미지 파일을 끌어다 놓으세요."
 	},
 	"label": {
 		"label": "레이블"
@@ -126,5 +137,8 @@
 		"drop_video": "비디오를 여기에 드롭",
 		"drop_gallery": "미디어를 여기에 드롭",
 		"paste_clipboard": "클립보드에서 붙여넣기"
+	},
+	"video": {
+		"drop_to_upload": "여기에 비디오 파일을 끌어다 놓으세요."
 	}
 }
