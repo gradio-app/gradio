@@ -21,6 +21,7 @@ from gradio.components import (
     Button,
     ClearButton,
     Component,
+    DeepLinkButton,
     DuplicateButton,
     Markdown,
     State,
@@ -144,6 +145,7 @@ class Interface(Blocks):
         | None = None,
         time_limit: int | None = 30,
         stream_every: float = 0.5,
+        deep_link: str | DeepLinkButton | bool | None = None,
         **kwargs,
     ):
         """
@@ -152,8 +154,8 @@ class Interface(Blocks):
             inputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If set to None, then only the output components will be displayed.
             outputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If set to None, then only the input components will be displayed.
             examples: sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided, but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
-            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter is True (as long as `fn` and `outputs` are also provided). The default option otherwise is False.
-            cache_mode: if "lazy", examples are cached after their first use. If "eager", all examples are cached at app launch. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager".
+            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter defaults to True (as long as `fn` and `outputs` are also provided).
+            cache_mode: if "lazy", examples are cached after their first use. If "eager", all examples are cached at app launch. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager". In HuggingFace Spaces, this parameter defaults to "eager" except for ZeroGPU Spaces, in which case it defaults to "lazy".
             examples_per_page: if examples are provided, how many to display per page.
             live: whether the interface should automatically rerun if any of the inputs change.
             title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
@@ -186,6 +188,7 @@ class Interface(Blocks):
             fill_width: whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
             time_limit: The time limit for the stream to run. Default is 30 seconds. Parameter only used for streaming images or audio if the interface is live and the input components are set to "streaming=True".
             stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for streaming images or audio if the interface is live and the input components are set to "streaming=True".
+            deep_link: a string or `gr.DeepLinkButton` object that creates a unique URL you can use to share your app and all components **as they currently are** with others. Automatically enabled on Hugging Face Spaces unless explicitly set to False.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -201,6 +204,15 @@ class Interface(Blocks):
             fill_width=fill_width,
             **kwargs,
         )
+        if isinstance(deep_link, str):
+            deep_link = DeepLinkButton(value=deep_link)
+        elif deep_link is True:
+            deep_link = DeepLinkButton()
+        if utils.get_space() and deep_link is None:
+            deep_link = DeepLinkButton()
+        if wasm_utils.IS_WASM or deep_link is False:
+            deep_link = None
+        self.deep_link = deep_link
         self.time_limit = time_limit
         self.stream_every = stream_every
         self.api_name: str | Literal[False] | None = api_name
@@ -494,6 +506,8 @@ class Interface(Blocks):
 
         # Render the Gradio UI
         with self:
+            if self.deep_link:
+                self.deep_link.activate()
             self.render_title_description()
 
             _submit_btn, _clear_btn, _stop_btn, flag_btns, duplicate_btn = (
@@ -586,6 +600,11 @@ class Interface(Blocks):
                 ]:
                     _clear_btn = ClearButton(**self.clear_btn_params)  # type: ignore
                     if not self.live:
+                        if (
+                            self.deep_link
+                            and self.interface_type == InterfaceTypes.INPUT_ONLY
+                        ):
+                            self.deep_link.render()
                         _submit_btn = Button(**self.submit_btn_parms)  # type: ignore
                         # Stopping jobs only works if the queue is enabled
                         # We don't know if the queue is enabled when the interface
@@ -599,6 +618,8 @@ class Interface(Blocks):
                 elif self.interface_type == InterfaceTypes.UNIFIED:
                     _clear_btn = ClearButton(**self.clear_btn_params)  # type: ignore
                     _submit_btn = Button(**self.submit_btn_parms)  # type: ignore
+                    if self.deep_link:
+                        self.deep_link.render()
                     if (
                         inspect.isgeneratorfunction(self.fn)
                         or inspect.isasyncgenfunction(self.fn)
@@ -639,6 +660,8 @@ class Interface(Blocks):
                 if not (isinstance(component, State)):
                     component.render()
             with Row():
+                if self.deep_link:
+                    self.deep_link.render()
                 if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
                     _clear_btn = ClearButton(**self.clear_btn_params)  # type: ignore
                     _submit_btn = Button("Generate", variant="primary")

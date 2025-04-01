@@ -907,6 +907,43 @@ class BlocksConfig:
         self.fn_id += 1
         return block_fn, block_fn._id
 
+    @staticmethod
+    def config_for_block(
+        _id: int,
+        rendered_ids: list[int],
+        block: Block | Component,
+        renderable: Renderable | None = None,
+    ) -> dict:
+        if renderable:
+            if _id not in rendered_ids:
+                return {}
+            if block.key:
+                block.key = f"{renderable._id}-{block.key}"
+        props = block.get_config() if hasattr(block, "get_config") else {}
+        block_config = {
+            "id": _id,
+            "type": block.get_block_name(),
+            "props": utils.delete_none(props),
+            "skip_api": block.skip_api,
+            "component_class_id": getattr(block, "component_class_id", None),
+            "key": block.key,
+        }
+        if renderable:
+            block_config["renderable"] = renderable._id
+        if not block.skip_api:
+            block_config["api_info"] = block.api_info()  # type: ignore
+            if hasattr(block, "api_info_as_input"):
+                block_config["api_info_as_input"] = block.api_info_as_input()  # type: ignore
+            else:
+                block_config["api_info_as_input"] = block.api_info()  # type: ignore
+            if hasattr(block, "api_info_as_output"):
+                block_config["api_info_as_output"] = block.api_info_as_output()  # type: ignore
+            else:
+                block_config["api_info_as_output"] = block.api_info()  # type: ignore
+            block_config["example_inputs"] = block.example_inputs()  # type: ignore
+
+        return block_config
+
     def get_config(self, renderable: Renderable | None = None):
         config = {
             "page": {},
@@ -950,33 +987,9 @@ class BlocksConfig:
             self.blocks.items()
         )  # freeze as list to prevent concurrent re-renders from changing the dict during loop, see https://github.com/gradio-app/gradio/issues/9991
         for _id, block in blocks_items:
-            if renderable:
-                if _id not in rendered_ids:
-                    continue
-                if block.key:
-                    block.key = f"{renderable._id}-{block.key}"
-            props = block.get_config() if hasattr(block, "get_config") else {}
-            block_config = {
-                "id": _id,
-                "type": block.get_block_name(),
-                "props": utils.delete_none(props),
-                "skip_api": block.skip_api,
-                "component_class_id": getattr(block, "component_class_id", None),
-                "key": block.key,
-            }
-            if renderable:
-                block_config["renderable"] = renderable._id
-            if not block.skip_api:
-                block_config["api_info"] = block.api_info()  # type: ignore
-                if hasattr(block, "api_info_as_input"):
-                    block_config["api_info_as_input"] = block.api_info_as_input()  # type: ignore
-                else:
-                    block_config["api_info_as_input"] = block.api_info()  # type: ignore
-                if hasattr(block, "api_info_as_output"):
-                    block_config["api_info_as_output"] = block.api_info_as_output()  # type: ignore
-                else:
-                    block_config["api_info_as_output"] = block.api_info()  # type: ignore
-                block_config["example_inputs"] = block.example_inputs()  # type: ignore
+            block_config = self.config_for_block(_id, rendered_ids, block, renderable)
+            if not block_config:
+                continue
             config["components"].append(block_config)
             config["page"][block.page]["components"].append(block._id)
 
@@ -1791,6 +1804,13 @@ Received inputs:
                         inputs_cached = data_model.model_validate(
                             inputs_cached, context={"validate_meta": True}
                         )
+                    if isinstance(inputs_cached, (GradioModel, GradioRootModel)):
+                        inputs_serialized = inputs_cached.model_dump()
+                    else:
+                        inputs_serialized = inputs_cached
+                    if block._id not in state:
+                        state[block._id] = block
+                    state[block._id].value = inputs_serialized
                     processed_input.append(block.preprocess(inputs_cached))
         else:
             processed_input = inputs
@@ -1917,6 +1937,20 @@ Received inputs:
                     if block._id in state:
                         block = state[block._id]
                     prediction_value = block.postprocess(prediction_value)
+                    if isinstance(prediction_value, (GradioModel, GradioRootModel)):
+                        prediction_value_serialized = prediction_value.model_dump()
+                    else:
+                        prediction_value_serialized = prediction_value
+                    prediction_value_serialized = (
+                        await processing_utils.async_move_files_to_cache(
+                            prediction_value_serialized,
+                            block,
+                            postprocess=True,
+                        )
+                    )
+                    if block._id not in state:
+                        state[block._id] = block
+                    state[block._id].value = prediction_value_serialized
 
                 outputs_cached = await processing_utils.async_move_files_to_cache(
                     prediction_value,

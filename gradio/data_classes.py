@@ -366,6 +366,7 @@ class Page(TypedDict):
 
 class BlocksConfigDict(TypedDict):
     version: str
+    deep_link_state: NotRequired[Literal["valid", "invalid", "none"]]
     mode: str
     app_id: int
     dev_mode: bool

@@ -297,7 +297,7 @@ class App(FastAPI):
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
-        self.root_path = blocks.root_path
+        self.root_path = blocks.root_path or blocks.custom_mount_path or ""
         self.state_holder.set_blocks(blocks)
 
     def get_blocks(self) -> gradio.Blocks:
@@ -451,10 +451,17 @@ class App(FastAPI):
 
         @app.post("/login")
         @app.post("/login/")
-        def login(form_data: OAuth2PasswordRequestForm = Depends()):
+        def login(
+            request: fastapi.Request, form_data: OAuth2PasswordRequestForm = Depends()
+        ):
             username, password = form_data.username.strip(), form_data.password
             if app.auth is None:
-                return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+                root = route_utils.get_root_url(
+                    request=request,
+                    route_path="/login",
+                    root_path=app.root_path,
+                )
+                return RedirectResponse(url=root, status_code=status.HTTP_302_FOUND)
             if (
                 not callable(app.auth)
                 and username in app.auth
@@ -491,8 +498,13 @@ class App(FastAPI):
         else:
 
             @app.get("/logout")
-            def logout(user: str = Depends(get_current_user)):
-                response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+            def logout(request: fastapi.Request, user: str = Depends(get_current_user)):
+                root = route_utils.get_root_url(
+                    request=request,
+                    route_path="/logout",
+                    root_path=app.root_path,
+                )
+                response = RedirectResponse(url=root, status_code=status.HTTP_302_FOUND)
                 response.delete_cookie(key=f"access-token-{app.cookie_id}", path="/")
                 response.delete_cookie(
                     key=f"access-token-unsecure-{app.cookie_id}", path="/"
@@ -522,13 +534,42 @@ class App(FastAPI):
             def page_route(
                 request: fastapi.Request,
                 user: str = Depends(get_current_user),
+                deep_link: str = "",
             ):
-                return main(request, user, page)
+                return main(request, user, page, deep_link)
 
         for pageset in blocks.pages:
             page = pageset[0]
             if page != "":
                 attach_page(page)
+
+        def load_deep_link(
+            deep_link: str, config: dict[str, Any], page: str | None = None
+        ):
+            components = config["components"]
+            try:
+                path = (
+                    Path(app.uploaded_file_dir)
+                    / "deep_links"
+                    / deep_link
+                    / "state.json"
+                )
+
+                if path.exists():
+                    components = orjson.loads(path.read_bytes())
+                    deep_link_state = "valid"
+                else:
+                    deep_link_state = "invalid"
+            except (FileNotFoundError, OSError, orjson.JSONDecodeError):
+                deep_link_state = "invalid"
+                components = []
+            if page:
+                components = [
+                    component
+                    for component in components
+                    if component["id"] in config["page"][page]["components"]
+                ]
+            return components, deep_link_state
 
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
@@ -536,6 +577,7 @@ class App(FastAPI):
             request: fastapi.Request,
             user: str = Depends(get_current_user),
             page: str = "",
+            deep_link: str = "",
         ):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
@@ -547,12 +589,21 @@ class App(FastAPI):
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
                 config = route_utils.update_root_in_config(config, root)
-                config["username"] = user
-                config["components"] = [
+                deep_link_state = "none"
+                components = [
                     component
                     for component in config["components"]
                     if component["id"] in config["page"][page]["components"]
                 ]
+                if deep_link:
+                    components, deep_link_state = load_deep_link(
+                        deep_link,
+                        config,  # type: ignore
+                        page,
+                    )
+                config["username"] = user
+                config["deep_link_state"] = deep_link_state
+                config["components"] = components  # type: ignore
                 config["dependencies"] = [
                     dependency
                     for dependency in config.get("dependencies", [])
@@ -603,6 +654,27 @@ class App(FastAPI):
                         "the frontend by running /scripts/build_frontend.sh"
                     ) from err
 
+        @app.get("/gradio_api/deep_link")
+        def deep_link(session_hash: str):
+            if session_hash in app.state_holder:
+                components = [
+                    utils.safe_deepcopy(c)
+                    for c in app.state_holder[session_hash].components
+                ]
+                components_json = orjson.dumps(
+                    components,
+                    option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_PASSTHROUGH_DATETIME,
+                    default=str,
+                )
+                deep_link = route_utils.create_url_safe_hash(components_json)
+                directory = Path(app.uploaded_file_dir) / "deep_links" / deep_link
+                directory.mkdir(parents=True, exist_ok=True)
+                with open(directory / "state.json", "wb") as f:
+                    f.write(components_json)
+                return deep_link
+            else:
+                return ""
+
         @router.get("/info/", dependencies=[Depends(login_check)])
         @router.get("/info", dependencies=[Depends(login_check)])
         def api_info(request: fastapi.Request):
@@ -620,13 +692,17 @@ class App(FastAPI):
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
-        def get_config(request: fastapi.Request):
+        def get_config(request: fastapi.Request, deep_link: str = ""):
             config = utils.safe_deepcopy(app.get_blocks().config)
             root = route_utils.get_root_url(
                 request=request, route_path="/config", root_path=app.root_path
             )
             config = route_utils.update_root_in_config(config, root)
             config["username"] = get_current_user(request)
+            if deep_link:
+                components, deep_link_state = load_deep_link(deep_link, config, page="")  # type: ignore
+                config["components"] = components  # type: ignore
+                config["deep_link_state"] = deep_link_state
             return ORJSONResponse(content=config)
 
         @app.get("/static/{path:path}")
@@ -921,34 +997,28 @@ class App(FastAPI):
             """
             heartbeat_rate = 0.25 if os.getenv("GRADIO_IS_E2E_TEST", None) else 15
 
-            async def wait():
-                await asyncio.sleep(heartbeat_rate)
-                return "wait"
-
-            async def stop_stream():
-                await app.stop_event.wait()
-                return "stop"
-
             async def iterator():
+                stop_stream_task = asyncio.create_task(app.stop_event.wait())
                 while True:
                     try:
                         yield "data: ALIVE\n\n"
                         # We need to close the heartbeat connections as soon as the server stops
                         # otherwise the server can take forever to close
-                        wait_task = asyncio.create_task(wait())
-                        stop_stream_task = asyncio.create_task(stop_stream())
+                        wait_task = asyncio.create_task(asyncio.sleep(heartbeat_rate))
                         done, _ = await asyncio.wait(
                             [wait_task, stop_stream_task],
                             return_when=asyncio.FIRST_COMPLETED,
                         )
-                        done = [d.result() for d in done]
-                        if "stop" in done:
+                        if stop_stream_task in done:
                             raise asyncio.CancelledError()
                     except asyncio.CancelledError:
+                        if not stop_stream_task.done():
+                            stop_stream_task.cancel()
+
                         req = Request(request, username, session_hash=session_hash)
                         root_path = route_utils.get_root_url(
                             request=request,
-                            route_path=f"{API_PREFIX}/hearbeat/{session_hash}",
+                            route_path=f"{API_PREFIX}/heartbeat/{session_hash}",
                             root_path=app.root_path,
                         )
                         body = PredictBodyInternal(
@@ -960,7 +1030,7 @@ class App(FastAPI):
                             if any(t for t in dep.targets if t[1] == "unload")
                         ]
                         for fn_index in unload_fn_indices:
-                            # The task runnning this loop has been cancelled
+                            # The task running this loop has been cancelled
                             # so we add tasks in the background
                             background_tasks.add_task(
                                 route_utils.call_process_api,
@@ -1544,7 +1614,7 @@ class App(FastAPI):
                 media_type="application/manifest+json",
             )
 
-        @router.get("/monitoring", dependencies=[Depends(login_check)])
+        @app.get("/monitoring", dependencies=[Depends(login_check)])
         async def analytics_login(request: fastapi.Request):
             if not blocks.enable_monitoring:
                 raise HTTPException(
@@ -1559,7 +1629,7 @@ class App(FastAPI):
             print(f"* Monitoring URL: {monitoring_url} *")
             return HTMLResponse("See console for monitoring URL.")
 
-        @router.get("/monitoring/{key}")
+        @app.get("/monitoring/{key}")
         async def analytics_dashboard(key: str):
             if not blocks.enable_monitoring:
                 raise HTTPException(
@@ -1790,4 +1860,5 @@ INTERNAL_ROUTES = [
     "assets",
     "favicon.ico",
     "gradio_api",
+    "monitoring",
 ]

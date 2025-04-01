@@ -1,13 +1,14 @@
 {
 	"_name": "עברית",
 	"3D_model": {
-		"3d_model": "מודל תלת מימד"
+		"3d_model": "מודל תלת מימד",
+		"drop_to_upload": "הטילו קובץ מודל 3D (.obj, .glb, .stl, .gltf, .splat או .ply) כאן כדי להעלות"
 	},
 	"annotated_image": {
 		"annotated_image": "תמונה מוערת"
 	},
 	"audio": {
-		"allow_recording_access": "אנא אפשר גישה למיקרופון להקלטה.",
+		"allow_recording_access": "אנא אפשר/י גישה למיקרופון להקלטה.",
 		"audio": "שמע",
 		"record_from_microphone": "הקלט ממיקרופון",
 		"stop_recording": "עצור הקלטה",
@@ -18,12 +19,14 @@
 		"no_microphone": "לא נמצא מיקרופון",
 		"pause": "השהה",
 		"play": "נגן",
-		"waiting": "ממתין"
+		"waiting": "ממתין",
+		"drop_to_upload": "הטילו קובץ אודיו כאן כדי להעלות"
 	},
 	"blocks": {
 		"connection_can_break": "בנייד, החיבור עלול להתנתק אם כרטיסייה זו מאבדת מיקוד או המכשיר נכנס למצב שינה, מה שיגרום לאיבוד מקומך בתור.",
 		"long_requests_queue": "יש תור ארוך של בקשות ממתינות. שכפל Space זה כדי לדלג על התור.",
-		"lost_connection": "החיבור אבד בגלל עזיבת העמוד. חוזר לתור..."
+		"lost_connection": "החיבור אבד בגלל עזיבת העמוד. חוזר לתור...",
+		"waiting_for_inputs": "מחכים לסיום העלאה של הקבצים, אנא נסה שוב."
 	},
 	"checkbox": {
 		"checkbox": "תיבת סימון",
@@ -64,7 +67,14 @@
 		"add_row_above": "הוסף שורה מעל",
 		"add_row_below": "הוסף שורה מתחת",
 		"add_column_left": "הוסף עמודה משמאל",
-		"add_column_right": "הוסף עמודה מימין"
+		"add_column_right": "הוסף עמודה מימין",
+		"delete_row": "מחק שורה",
+		"delete_column": "מחק עמודה",
+		"sort_column": "מיין עמודה",
+		"sort_ascending": "מיין בסדר עולה",
+		"sort_descending": "מיין בסדר יורד",
+		"drop_to_upload": "הטילו קבצי CSV או TSV כאן כדי לייבא נתונים לתוך dataframe",
+		"clear_sort": "נקה סדר"
 	},
 	"dropdown": {
 		"dropdown": "תפריט נפתח"
@@ -76,7 +86,7 @@
 		"no_app_file": "אין קובץ יישום",
 		"runtime_error": "יש שגיאת זמן ריצה",
 		"space_not_working": "\"ה-Space לא עובד כי\" {0}",
-		"space_paused": "ה-space מושהה",
+		"space_paused": "ה-Space מושהה",
 		"use_via_api": "השתמש דרך API"
 	},
 	"file": {
@@ -93,7 +103,8 @@
 		"remove_image": "הסר תמונה",
 		"select_brush_color": "בחר צבע מברשת",
 		"start_drawing": "התחל לצייר",
-		"use_brush": "השתמש במברשת"
+		"use_brush": "השתמש במברשת",
+		"drop_to_upload": "הטילו קובץ תמונה כאן כדי להעלות"
 	},
 	"label": {
 		"label": "תווית"
@@ -120,11 +131,14 @@
 	"upload_text": {
 		"click_to_upload": "לחץ להעלאה",
 		"drop_audio": "שחרר קובץ שמע כאן",
-		"drop_csv": "שחרר CSV כאן",
+		"drop_csv": "שחרר קובץ CSV כאן",
 		"drop_file": "שחרר קובץ כאן",
 		"drop_image": "שחרר תמונה כאן",
 		"drop_video": "שחרר וידאו כאן",
 		"drop_gallery": "שחרר מדיה כאן",
 		"paste_clipboard": "הדבק מהלוח"
+	},
+	"video": {
+		"drop_to_upload": "הטילו קובץ וידאו כאן כדי להעלות"
 	}
 }
