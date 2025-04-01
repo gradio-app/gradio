@@ -1,6 +1,8 @@
 {
+	"_name": "简体中文",
 	"3D_model": {
-		"3d_model": "3D模型"
+		"3d_model": "3D模型",
+		"drop_to_upload": "将 3D 模型（.obj、.glb、.stl、.gltf、.splat 或 .ply）文件拖放到此处以上传"
 	},
 	"annotated_image": {
 		"annotated_image": "标注图像"
@@ -17,12 +19,14 @@
 		"no_microphone": "找不到麦克风",
 		"pause": "暂停",
 		"play": "播放",
-		"waiting": "等待"
+		"waiting": "等待中",
+		"drop_to_upload": "将音频文件拖放到此处以上传"
 	},
 	"blocks": {
 		"connection_can_break": "在移动设备上，如果此标签页失去焦点或设备休眠，连接可能会中断，导致您在队列中失去位置。",
-		"long_requests_queue": "有一个长时间的待处理请求队列。复制此空间以跳过。",
-		"lost_connection": "由于离开页面，连接已丢失。重新加入队列..."
+		"long_requests_queue": "有一个长时间的待处理请求队列。复制此 Space 以跳过队列。",
+		"lost_connection": "由于离开页面，连接已丢失。正在重新加入队列...",
+		"waiting_for_inputs": "等待文件上传完成，请稍后重试。"
 	},
 	"checkbox": {
 		"checkbox": "复选框",
@@ -49,12 +53,28 @@
 		"remove": "移除",
 		"share": "分享",
 		"submit": "提交",
-		"undo": "撤销"
+		"undo": "撤销",
+		"settings": "设置",
+		"no_devices": "未找到设备",
+		"language": "语言",
+		"display_theme": "显示主题",
+		"pwa": "渐进式 Web 应用"
 	},
 	"dataframe": {
 		"incorrect_format": "格式不正确，仅支持 CSV 和 TSV 文件",
-		"new_column": "新列",
-		"new_row": "新行"
+		"new_column": "添加列",
+		"new_row": "新行",
+		"add_row_above": "在上方添加行",
+		"add_row_below": "在下方添加行",
+		"delete_row": "删除行",
+		"delete_column": "删除列",
+		"add_column_left": "在左侧添加列",
+		"add_column_right": "在右侧添加列",
+		"sort_column": "排序列",
+		"sort_ascending": "升序排序",
+		"sort_descending": "降序排序",
+		"drop_to_upload": "将 CSV 或 TSV 文件拖放到此处以将数据导入数据框",
+		"clear_sort": "清除排序"
 	},
 	"dropdown": {
 		"dropdown": "下拉菜单"
@@ -65,8 +85,8 @@
 		"contact_page_author": "请联系页面的作者并告知他们。",
 		"no_app_file": "不存在应用文件",
 		"runtime_error": "存在运行时错误",
-		"space_not_working": "\"空间无法工作，原因：\" {0}",
-		"space_paused": "空间已暂停",
+		"space_not_working": "\"Space 无法工作，原因：\" {0}",
+		"space_paused": "Space 已暂停",
 		"use_via_api": "通过 API 使用"
 	},
 	"file": {
@@ -78,20 +98,23 @@
 	"image": {
 		"allow_webcam_access": "请允许访问网络摄像头以进行录制。",
 		"brush_color": "画笔颜色",
-		"brush_radius": "画笔半径",
+		"brush_radius": "画笔大小",
 		"image": "图像",
 		"remove_image": "移除图像",
 		"select_brush_color": "选择画笔颜色",
 		"start_drawing": "开始绘画",
-		"use_brush": "使用画笔"
+		"use_brush": "使用画笔",
+		"drop_to_upload": "将图像文件拖放到此处以上传"
 	},
 	"label": {
 		"label": "标签"
 	},
 	"login": {
-		"enable_cookies": "如果您正在使用隐身模式访问 HuggingFace 空间，您必须启用第三方 cookie。",
+		"enable_cookies": "如果您正在使用隐身模式访问 HuggingFace Space，您必须启用第三方 cookie。",
 		"incorrect_credentials": "凭据不正确",
-		"login": "登录"
+		"login": "登录",
+		"username": "用户名",
+		"password": "密码"
 	},
 	"number": {
 		"number": "数字"
@@ -111,6 +134,11 @@
 		"drop_csv": "将 CSV 文件拖放到此处",
 		"drop_file": "将文件拖放到此处",
 		"drop_image": "将图像拖放到此处",
-		"drop_video": "将视频拖放到此处"
+		"drop_video": "将视频拖放到此处",
+		"drop_gallery": "在此处放置媒体文件",
+		"paste_clipboard": "从剪贴板粘贴"
+	},
+	"video": {
+		"drop_to_upload": "将视频文件拖放到此处以上传"
 	}
 }

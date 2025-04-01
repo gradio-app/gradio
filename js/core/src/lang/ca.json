@@ -1,7 +1,8 @@
 {
 	"_name": "Català",
 	"3D_model": {
-		"3d_model": "Model 3D"
+		"3d_model": "Model 3D",
+		"drop_to_upload": "Arrossega un model 3D (.obj, .glb, .stl, .gltf, .splat o .ply) aquí per pujar-lo."
 	},
 	"annotated_image": {
 		"annotated_image": "Imatge Anotada"
@@ -18,12 +19,14 @@
 		"no_microphone": "No s'ha trobat cap micròfon",
 		"pause": "Pausa",
 		"play": "Reproduir",
-		"waiting": "Esperant"
+		"waiting": "Esperant",
+		"drop_to_upload": "Arrossega un fitxer d'àudio aquí per pujar-lo"
 	},
 	"blocks": {
 		"connection_can_break": "En dispositius mòbils, la connexió es pot trencar si aquesta pestanya perd el focus o el dispositiu s'adorm, perdent la vostra posició a la cua.",
 		"long_requests_queue": "Hi ha una llarga cua de sol·licituds pendents. Dupliqueu aquest Space per saltar-la.",
-		"lost_connection": "S'ha perdut la connexió en deixar la pàgina. Tornant a la cua..."
+		"lost_connection": "S'ha perdut la connexió en deixar la pàgina. Tornant a la cua...",
+		"waiting_for_inputs": "Esperant la finalització de la pujada dels fitxers, si us plau, torna a provar."
 	},
 	"checkbox": {
 		"checkbox": "Casella de selecció",
@@ -37,7 +40,7 @@
 	},
 	"common": {
 		"built_with": "construït amb",
-		"built_with_gradio": "Construït amb gradio",
+		"built_with_gradio": "Construït amb Gradio",
 		"clear": "Neteja",
 		"download": "Descarregar",
 		"edit": "Editar",
@@ -64,7 +67,14 @@
 		"add_row_above": "Afegir fila a dalt",
 		"add_row_below": "Afegir fila a baix",
 		"add_column_left": "Afegir columna a l'esquerra",
-		"add_column_right": "Afegir columna a la dreta"
+		"add_column_right": "Afegir columna a la dreta",
+		"delete_row": "Esborrar fila",
+		"delete_column": "Suprimeix la columna",
+		"sort_column": "Ordena la columna",
+		"sort_ascending": "Ordena ascendent",
+		"sort_descending": "Ordena descendent",
+		"drop_to_upload": "Arrossega fitxers CSV o TSV aquí per importar dades al dataframe",
+		"clear_sort": "Neteja la classificació"
 	},
 	"dropdown": {
 		"dropdown": "Desplegable"
@@ -93,7 +103,8 @@
 		"remove_image": "Eliminar imatge",
 		"select_brush_color": "Seleccionar color del pinzell",
 		"start_drawing": "Començar a dibuixar",
-		"use_brush": "Utilitzar pinzell"
+		"use_brush": "Utilitzar pinzell",
+		"drop_to_upload": "Arrossega un fitxer d'imatge aquí per pujar-lo"
 	},
 	"label": {
 		"label": "Etiqueta"
@@ -126,5 +137,8 @@
 		"drop_video": "Deixeu anar el vídeo aquí",
 		"drop_gallery": "Deixeu anar els mitjans aquí",
 		"paste_clipboard": "Enganxar del porta-retalls"
+	},
+	"video": {
+		"drop_to_upload": "Arrossega un fitxer de vídeo aquí per pujar-lo"
 	}
 }

@@ -1,29 +1,32 @@
 {
 	"_name": "日本語",
 	"3D_model": {
-		"3d_model": "3Dモデル"
+		"3d_model": "3Dモデル",
+		"drop_to_upload": "3D モデル (.obj, .glb, .stl, .gltf, .splat, .ply) ファイルをここにドロップしてアップロードしてください"
 	},
 	"annotated_image": {
 		"annotated_image": "注釈付き画像"
 	},
 	"audio": {
-		"allow_recording_access": "録音のためにマイクへのアクセスを許可してください。",
+		"allow_recording_access": "録音のためにマイクへのアクセスを許可してください",
 		"audio": "音声",
 		"record_from_microphone": "マイクから録音",
 		"stop_recording": "録音を停止",
-		"no_device_support": "メディアデバイスにアクセスできません。安全なソース（https）またはlocalhostで実行していること（またはssl_verifyに有効なSSL証明書を渡していること）、ブラウザにデバイスへのアクセスを許可していることを確認してください。",
+		"no_device_support": "メディアデバイスにアクセスできません。安全なソース（https）またはlocalhostで実行していること（またはssl_verifyに有効なSSL証明書を渡していること）、ブラウザにデバイスへのアクセスを許可していることを確認してください",
 		"stop": "停止",
 		"resume": "再開",
 		"record": "録音",
 		"no_microphone": "マイクが見つかりません",
 		"pause": "一時停止",
 		"play": "再生",
-		"waiting": "待機中"
+		"waiting": "待機中",
+		"drop_to_upload": "ここにオーディオファイルをドロップしてアップロードしてください"
 	},
 	"blocks": {
-		"connection_can_break": "モバイルでは、このタブがフォーカスを失うかデバイスがスリープモードになると接続が切断され、キュー内の位置が失われる可能性があります。",
-		"long_requests_queue": "保留中のリクエストの長いキューがあります。このSpaceを複製してスキップしてください。",
-		"lost_connection": "ページを離れたため接続が切断されました。キューに戻ります..."
+		"connection_can_break": "モバイルでは、このタブがフォーカスを失うかデバイスがスリープモードになると接続が切断され、キュー内の位置が失われる可能性があります",
+		"long_requests_queue": "保留中のリクエストの長いキューがあります。このSpaceを複製してスキップしてください",
+		"lost_connection": "ページを離れたため接続が切断されました。キューに戻ります...",
+		"waiting_for_inputs": "ファイルのアップロードが完了するのを待っています。再度お試しください"
 	},
 	"checkbox": {
 		"checkbox": "チェックボックス",
@@ -64,7 +67,14 @@
 		"add_row_above": "上に行を追加",
 		"add_row_below": "下に行を追加",
 		"add_column_left": "左に列を追加",
-		"add_column_right": "右に列を追加"
+		"add_column_right": "右に列を追加",
+		"delete_row": "行を削除",
+		"delete_column": "列を削除",
+		"sort_column": "列をソート",
+		"sort_ascending": "昇順に並べ替え",
+		"sort_descending": "降順に並べ替え",
+		"drop_to_upload": "CSVまたはTSVファイルをここにドロップして、データをデータフレームにインポートします",
+		"clear_sort": "ソートをクリア"
 	},
 	"dropdown": {
 		"dropdown": "ドロップダウン"
@@ -72,11 +82,11 @@
 	"errors": {
 		"build_error": "ビルドエラーがあります",
 		"config_error": "設定エラーがあります",
-		"contact_page_author": "ページの作者に連絡して知らせてください。",
+		"contact_page_author": "ページの作者に連絡して知らせてください",
 		"no_app_file": "アプリファイルがありません",
 		"runtime_error": "ランタイムエラーがあります",
 		"space_not_working": "\"Spaceが動作していません。理由：\" {0}",
-		"space_paused": "spaceが一時停止されています",
+		"space_paused": "Spaceが一時停止されています",
 		"use_via_api": "APIを介して使用"
 	},
 	"file": {
@@ -86,20 +96,21 @@
 		"highlighted_text": "ハイライトされたテキスト"
 	},
 	"image": {
-		"allow_webcam_access": "録画のためにウェブカメラへのアクセスを許可してください。",
+		"allow_webcam_access": "録画のためにウェブカメラへのアクセスを許可してください",
 		"brush_color": "ブラシの色",
 		"brush_radius": "ブラシのサイズ",
 		"image": "画像",
 		"remove_image": "画像を削除",
 		"select_brush_color": "ブラシの色を選択",
 		"start_drawing": "描画を開始",
-		"use_brush": "ブラシを使用"
+		"use_brush": "ブラシを使用",
+		"drop_to_upload": "ここに画像ファイルをドロップしてアップロードしてください"
 	},
 	"label": {
 		"label": "ラベル"
 	},
 	"login": {
-		"enable_cookies": "シークレットモードでHuggingFace Spaceを訪問している場合、サードパーティのCookieを有効にする必要があります。",
+		"enable_cookies": "シークレットモードでHuggingFace Spaceを訪問している場合、サードパーティのCookieを有効にする必要があります",
 		"incorrect_credentials": "認証情報が正しくありません",
 		"username": "ユーザー名",
 		"password": "パスワード",
@@ -120,11 +131,14 @@
 	"upload_text": {
 		"click_to_upload": "クリックしてアップロード",
 		"drop_audio": "音声をここにドロップ",
-		"drop_csv": "CSVをここにドロップ",
+		"drop_csv": "CSVファイルをここにドロップ",
 		"drop_file": "ファイルをここにドロップ",
 		"drop_image": "画像をここにドロップ",
 		"drop_video": "動画をここにドロップ",
 		"drop_gallery": "メディアをここにドロップ",
 		"paste_clipboard": "クリップボードから貼り付け"
+	},
+	"video": {
+		"drop_to_upload": "ビデオファイルをここにドロップしてアップロードしてください"
 	}
 }
