@@ -68,7 +68,7 @@ class Radio(FormComponent):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             rtl: If True, the radio buttons will be displayed in right-to-left order. Default is False.
-            """
+        """
         self.choices = (
             # Although we expect choices to be a list of tuples, it can be a list of tuples if the Gradio app
             # is loaded with gr.load() since Python tuples are converted to lists in JSON.
