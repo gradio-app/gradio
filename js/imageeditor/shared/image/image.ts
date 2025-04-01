@@ -124,6 +124,8 @@ export class AddImageCommand implements BgImageCommand {
 		this.sprite = new Sprite();
 		this.is_cropped = is_cropped;
 		this.crop_offset = crop_offset;
+
+		console.log("crop", this);
 	}
 
 	async start(): Promise<[number, number]> {
@@ -148,11 +150,6 @@ export class AddImageCommand implements BgImageCommand {
 
 	private handle_cropped_image(): [number, number] {
 		// Get the dimensions of the cropped image
-		// const cropped_width = this.sprite.width;
-		// const cropped_height = this.sprite.height;
-
-		// Calculate the dimensions as if we're handling an uncropped image
-		// This positions the sprite centered in the canvas
 		const [width, height] = this.handle_uncropped_image();
 
 		// If we have crop offset information
@@ -181,8 +178,8 @@ export class AddImageCommand implements BgImageCommand {
 				this.sprite.y += this.crop_offset.y * scale_factor;
 			} else {
 				// For non-fixed canvas, apply offsets directly (no scaling needed)
-				this.sprite.x -= this.crop_offset.x;
-				this.sprite.y -= this.crop_offset.y;
+				this.sprite.x += this.crop_offset.x;
+				this.sprite.y += this.crop_offset.y;
 			}
 		}
 
@@ -231,6 +228,13 @@ export class AddImageCommand implements BgImageCommand {
 			this.sprite.y = this.border_region;
 
 			// Return dimensions with border region added
+
+			if (this.is_cropped) {
+				return [
+					this.current_canvas_size.width,
+					this.current_canvas_size.height
+				];
+			}
 			return [width + this.border_region * 2, height + this.border_region * 2];
 		}
 

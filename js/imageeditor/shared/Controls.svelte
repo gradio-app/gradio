@@ -10,7 +10,7 @@
 	} from "@gradio/icons";
 	import type { Spring } from "svelte/motion";
 	import Resize from "./Resize.svelte";
-	import type { Anchor } from "./Resize.svelte";
+	import type { Position } from "./Resize.svelte";
 	import { Pan } from "@gradio/icons";
 	/**
 	 * Can the current image be undone?
@@ -61,7 +61,7 @@
 		/**
 		 * Resize the image.
 		 */
-		resize: { anchor: Anchor; scale: boolean; width: number; height: number };
+		resize: { anchor: Position; scale: boolean; width: number; height: number };
 		/**
 		 * Pan the image.
 		 */

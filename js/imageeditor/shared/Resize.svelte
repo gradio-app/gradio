@@ -14,7 +14,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import type { Spring } from "svelte/motion";
-	import { Play, Image } from "@gradio/icons";
 	import Anchor from "./Anchor.svelte";
 
 	export let dimensions: Spring<{ width: number; height: number }>;
@@ -37,20 +36,6 @@
 			height: new_height,
 		});
 	}
-
-	type Direction =
-		| "up"
-		| "down"
-		| "left"
-		| "right"
-		| "up-right"
-		| "down-right"
-		| "down-left"
-		| "up-left";
-
-	type Cell = Direction | "img" | null;
-
-	let cells: Cell[] = [];
 
 	function set_anchor(position: Position): void {
 		selected_anchor = position;

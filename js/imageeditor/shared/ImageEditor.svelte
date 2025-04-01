@@ -1,8 +1,4 @@
 <script lang="ts" context="module">
-	import type { Writable, Readable } from "svelte/store";
-	import type { Spring } from "svelte/motion";
-	// import { type PixiApp } from "./utils/pixi";
-	// import { type CommandManager, type CommandNode } from "./utils/commands";
 	import type { Tool, Subtool } from "./Toolbar.svelte";
 
 	export const EDITOR_KEY = Symbol("editor");
