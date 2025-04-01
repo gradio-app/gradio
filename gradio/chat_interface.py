@@ -468,8 +468,8 @@ class ChatInterface(Blocks):
                 saved_conversations[index] = conversation
             else:
                 saved_conversations = saved_conversations or []
-                saved_conversations.append(conversation)
-                index = len(saved_conversations) - 1
+                saved_conversations.insert(0, conversation)
+                index = 0
         return index, saved_conversations
 
     def _delete_conversation(
