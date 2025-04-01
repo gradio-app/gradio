@@ -1,6 +1,6 @@
 ---
-"@gradio/chatbot": minor
-"gradio": minor
+"@gradio/chatbot": patch
+"gradio": patch
 ---
 
-feat:Fix regression around chatbot messages not being collapsible
+fix:Fix regression around chatbot thoughts not being collapsible
