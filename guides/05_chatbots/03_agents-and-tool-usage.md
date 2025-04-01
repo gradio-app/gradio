@@ -2,7 +2,7 @@
 
 Tags: LLM, AGENTS, CHAT
 
-The Gradio Chatbot can natively display intermediate thoughts and tool usage. This makes it perfect for creating UIs for LLM agents and chain-of-thought (CoT) or reasoning demos. This guide will show you how to display thoughts and tool usage with `gr.Chatbot` and `gr.ChatInterface`.
+The Gradio Chatbot can natively display intermediate thoughts and tool usage in a collapsible accordion next to a chat message. This makes it perfect for creating UIs for LLM agents and chain-of-thought (CoT) or reasoning demos. This guide will show you how to display thoughts and tool usage with `gr.Chatbot` and `gr.ChatInterface`.
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/nested-thoughts.png)
 
@@ -32,7 +32,7 @@ class OptionDict(TypedDict):
  ```
 
 
-For our purposes, the most important key is the `metadata` key, which accepts a dictionary. If this dictionary includes a `title` for the message, it will be displayed in a collapsible box representing a thought. It's that simple! Take a look at this example:
+For our purposes, the most important key is the `metadata` key, which accepts a dictionary. If this dictionary includes a `title` for the message, it will be displayed in a collapsible accordion representing a thought. It's that simple! Take a look at this example:
 
 
 ```python
@@ -62,7 +62,7 @@ In addition to `title`, the dictionary provided to `metadata` can take several o
 
 * `log`: an optional string value to be displayed in a subdued font next to the thought title.
 * `duration`: an optional numeric value representing the duration of the thought/tool usage, in seconds. Displayed in a subdued font next inside parentheses next to the thought title.
-* `status`: if set to `"pending"`, a spinner appears next to the thought title.  If `"done"`, the thought accordion becomes closed. If not provided, the thought accordion is open and no spinner is displayed.
+* `status`: if set to `"pending"`, a spinner appears next to the thought title and the accordion is is initialized in an open state.  If `status` is `"done"`, the thought accordion is set to a closed state. If `status` is not provided, the thought accordion is open and no spinner is displayed.
 * `id` and `parent_id`: if these are provided, they can be used to nest thoughts inside other thoughts.
 
 Below, we show several complete examples of using `gr.Chatbot` and `gr.ChatInterface` to display tool use or thinking UIs.
