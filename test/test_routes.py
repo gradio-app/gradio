@@ -229,7 +229,7 @@ class TestRoutes:
         output = dict(response.json())
         assert output["data"] == ["testtest", None]
 
-    def test_get_allowed_paths(self, test_client):
+    def test_get_allowed_paths(self):
         allowed_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
         allowed_file.write(media_data.BASE64_IMAGE)
         allowed_file.flush()
@@ -760,7 +760,7 @@ class TestAuthenticatedRoutes:
         )
 
         response = client.post(
-            "{API_PREFIX}/run/predict",
+            f"{API_PREFIX}/run/predict",
             json={"data": ["test"]},
         )
         assert response.status_code == 200
