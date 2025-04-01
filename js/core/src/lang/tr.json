@@ -1,144 +1,144 @@
 {
-    "_name": "Türkçe",
-    "common": {
-        "built_with_gradio": "Gradio ile oluşturulmuştur",
-        "clear": "Temizle",
-        "or": "veya",
-        "submit": "Gönder",
-        "built_with": "İle oluşturuldu",
-        "download": "İndir",
-        "edit": "Düzenle",
-        "empty": "Boş",
-        "error": "Hata",
-        "hosted_on": "Şurada barındırılıyor:",
-        "loading": "Yükleniyor",
-        "logo": "Logo",
-        "remove": "Kaldır",
-        "settings": "Ayarlar",
-        "share": "Paylaş",
-        "undo": "Geri Al",
-        "no_devices": "Hiçbir cihaz bulunamadı",
-        "language": "Dil",
-        "display_theme": "Görünüm Teması",
-        "pwa": "Progressive Web Uygulaması"
-    },
-    "upload_text": {
-        "click_to_upload": "Yüklemek için tıkla",
-        "drop_audio": "Ses dosyasını buraya sürükle",
-        "drop_csv": "CSV dosyasını buraya sürükle",
-        "drop_file": "Dosyayı buraya sürükle",
-        "drop_image": "Resmi buraya sürükle",
-        "drop_video": "Videoyu buraya sürükle",
-        "drop_gallery": "Medyayı buraya bırak",
-        "paste_clipboard": "Panodan yapıştır"
-    },
-    "3D_model": {
-        "3d_model": "3D Model",
-        "drop_to_upload": "Yüklemek için bir 3D model dosyasını (.obj, .glb, .stl, .gltf, .splat veya .ply) buraya bırakın"
-    },
-    "annotated_image": {
-        "annotated_image": "Açıklamalı Görüntü"
-    },
-    "audio": {
-        "allow_recording_access": "Lütfen kayıt yapmak için mikrofona erişim izni verin.",
-        "audio": "Ses",
-        "drop_to_upload": "Yüklemek için bir ses dosyasını buraya bırakın",
-        "record_from_microphone": "Mikrofondan kaydet",
-        "stop_recording": "Kaydı durdur",
-        "no_device_support": "Medya cihazlarına erişilemedi. Güvenli bir kökende (https) veya yerel makinede (localhost) çalıştığınızdan emin olun (veya geçerli bir SSL sertifikası ile ssl_verify'yi geçtiniz) ve tarayıcınızın cihazınıza erişim izni verdiğini kontrol edin.",
-        "stop": "Durdur",
-        "resume": "Devam Et",
-        "record": "Kaydet",
-        "no_microphone": "Hiçbir mikrofon bulunamadı",
-        "pause": "Duraklat",
-        "play": "Oynat",
-        "waiting": "Bekliyor"
-    },
-    "blocks": {
-        "connection_can_break": "Mobil cihazda, bu sekme odaklanmadığında veya cihaz uyku moduna geçtiğinde bağlantı kopabilir ve kuyrukta olduğunuz yer kaybedilebilir.",
-        "long_requests_queue": "Bekleyen isteklerin uzun bir kuyruğu var. Kuyruktan atlamak için bu Space'i kopyalayın.",
-        "lost_connection": "Sayfa terk edildiği için bağlantı kaybedildi. Kuyruğa yeniden katılıyor...",
-        "waiting_for_inputs": "Dosya(lar)ın yükleme işlemini tamamlaması bekleniyor, lütfen yeniden deneyin."
-    },
-    "checkbox": {
-        "checkbox": "Onay Kutusu",
-        "checkbox_group": "Onay Kutusu Grubu"
-    },
-    "code": {
-        "code": "Kod"
-    },
-    "color_picker": {
-        "color_picker": "Renk Seçici"
-    },
-    "dataframe": {
-        "incorrect_format": "Yanlış format, sadece CSV ve TSV dosyaları destekleniyor",
-        "new_column": "Sütun ekle",
-        "new_row": "Yeni satır",
-        "add_row_above": "Yukarıya satır ekle",
-        "add_row_below": "Aşağıya satır ekle",
-        "delete_row": "Satırı sil",
-        "delete_column": "Sütunu sil",
-        "add_column_left": "Sola sütun ekle",
-        "add_column_right": "Sağa sütun ekle",
-        "sort_column": "Sütunu sırala",
-        "sort_ascending": "Artan sırala",
-        "sort_descending": "Azalan sırala",
-        "drop_to_upload": "Veriyi veri çerçevesine aktarmak için CSV veya TSV dosyalarını buraya bırakın",
-        "clear_sort": "Sıralamayı temizle"
-    },
-    "dropdown": {
-        "dropdown": "Açılır Liste"
-    },
-    "errors": {
-        "build_error": "Bir derleme hatası var",
-        "config_error": "Bir yapılandırma hatası var",
-        "contact_page_author": "Lütfen sayfanın yazarıyla iletişime geçin ve bildirin.",
-        "no_app_file": "Uygulama dosyası yok",
-        "runtime_error": "Bir çalışma zamanı hatası var",
-        "space_not_working": "\"Space çalışmıyor çünkü\" {0}",
-        "space_paused": "Space duraklatıldı",
-        "use_via_api": "API üzerinden kullan"
-    },
-    "file": {
-        "uploading": "Yükleniyor..."
-    },
-    "highlighted_text": {
-        "highlighted_text": "Vurgulanan Metin"
-    },
-    "image": {
-        "allow_webcam_access": "Lütfen kayıt için web kamerasına erişim izni verin.",
-        "brush_color": "Fırça rengi",
-        "brush_radius": "Fırça boyutu",
-        "image": "Görüntü",
-        "remove_image": "Resmi kaldır",
-        "select_brush_color": "Fırça rengini seç",
-        "start_drawing": "Çizim yapmaya başla",
-        "use_brush": "Fırça kullan",
-        "drop_to_upload": "Yüklemek için bir görüntü dosyasını buraya bırakın"
-    },
-    "label": {
-        "label": "Etiket"
-    },
-    "login": {
-        "enable_cookies": "Eğer HuggingFace Space'i Gizli Mod'da ziyaret ediyorsanız, üçüncü taraf çerezleri etkinleştirmelisiniz.",
-        "incorrect_credentials": "Yanlış kimlik bilgileri",
-        "username": "Kullanıcı adı",
-        "password": "Parola",
-        "login": "Giriş yap"
-    },
-    "number": {
-        "number": "Sayı"
-    },
-    "plot": {
-        "plot": "Grafik"
-    },
-    "radio": {
-        "radio": "Radyo Düğmesi"
-    },
-    "slider": {
-        "slider": "Kaydırıcı"
-    },
-    "video": {
-        "drop_to_upload": "Yüklemek için bir video dosyasını buraya bırakın"
-    }
+	"_name": "Türkçe",
+	"common": {
+		"built_with_gradio": "Gradio ile oluşturulmuştur",
+		"clear": "Temizle",
+		"or": "veya",
+		"submit": "Gönder",
+		"built_with": "İle oluşturuldu",
+		"download": "İndir",
+		"edit": "Düzenle",
+		"empty": "Boş",
+		"error": "Hata",
+		"hosted_on": "Şurada barındırılıyor:",
+		"loading": "Yükleniyor",
+		"logo": "Logo",
+		"remove": "Kaldır",
+		"settings": "Ayarlar",
+		"share": "Paylaş",
+		"undo": "Geri Al",
+		"no_devices": "Hiçbir cihaz bulunamadı",
+		"language": "Dil",
+		"display_theme": "Görünüm Teması",
+		"pwa": "Progressive Web Uygulaması"
+	},
+	"upload_text": {
+		"click_to_upload": "Yüklemek için tıkla",
+		"drop_audio": "Ses dosyasını buraya sürükle",
+		"drop_csv": "CSV dosyasını buraya sürükle",
+		"drop_file": "Dosyayı buraya sürükle",
+		"drop_image": "Resmi buraya sürükle",
+		"drop_video": "Videoyu buraya sürükle",
+		"drop_gallery": "Medyayı buraya bırak",
+		"paste_clipboard": "Panodan yapıştır"
+	},
+	"3D_model": {
+		"3d_model": "3D Model",
+		"drop_to_upload": "Yüklemek için bir 3D model dosyasını (.obj, .glb, .stl, .gltf, .splat veya .ply) buraya bırakın"
+	},
+	"annotated_image": {
+		"annotated_image": "Açıklamalı Görüntü"
+	},
+	"audio": {
+		"allow_recording_access": "Lütfen kayıt yapmak için mikrofona erişim izni verin.",
+		"audio": "Ses",
+		"drop_to_upload": "Yüklemek için bir ses dosyasını buraya bırakın",
+		"record_from_microphone": "Mikrofondan kaydet",
+		"stop_recording": "Kaydı durdur",
+		"no_device_support": "Medya cihazlarına erişilemedi. Güvenli bir kökende (https) veya yerel makinede (localhost) çalıştığınızdan emin olun (veya geçerli bir SSL sertifikası ile ssl_verify'yi geçtiniz) ve tarayıcınızın cihazınıza erişim izni verdiğini kontrol edin.",
+		"stop": "Durdur",
+		"resume": "Devam Et",
+		"record": "Kaydet",
+		"no_microphone": "Hiçbir mikrofon bulunamadı",
+		"pause": "Duraklat",
+		"play": "Oynat",
+		"waiting": "Bekliyor"
+	},
+	"blocks": {
+		"connection_can_break": "Mobil cihazda, bu sekme odaklanmadığında veya cihaz uyku moduna geçtiğinde bağlantı kopabilir ve kuyrukta olduğunuz yer kaybedilebilir.",
+		"long_requests_queue": "Bekleyen isteklerin uzun bir kuyruğu var. Kuyruktan atlamak için bu Space'i kopyalayın.",
+		"lost_connection": "Sayfa terk edildiği için bağlantı kaybedildi. Kuyruğa yeniden katılıyor...",
+		"waiting_for_inputs": "Dosya(lar)ın yükleme işlemini tamamlaması bekleniyor, lütfen yeniden deneyin."
+	},
+	"checkbox": {
+		"checkbox": "Onay Kutusu",
+		"checkbox_group": "Onay Kutusu Grubu"
+	},
+	"code": {
+		"code": "Kod"
+	},
+	"color_picker": {
+		"color_picker": "Renk Seçici"
+	},
+	"dataframe": {
+		"incorrect_format": "Yanlış format, sadece CSV ve TSV dosyaları destekleniyor",
+		"new_column": "Sütun ekle",
+		"new_row": "Yeni satır",
+		"add_row_above": "Yukarıya satır ekle",
+		"add_row_below": "Aşağıya satır ekle",
+		"delete_row": "Satırı sil",
+		"delete_column": "Sütunu sil",
+		"add_column_left": "Sola sütun ekle",
+		"add_column_right": "Sağa sütun ekle",
+		"sort_column": "Sütunu sırala",
+		"sort_ascending": "Artan sırala",
+		"sort_descending": "Azalan sırala",
+		"drop_to_upload": "Veriyi veri çerçevesine aktarmak için CSV veya TSV dosyalarını buraya bırakın",
+		"clear_sort": "Sıralamayı temizle"
+	},
+	"dropdown": {
+		"dropdown": "Açılır Liste"
+	},
+	"errors": {
+		"build_error": "Bir derleme hatası var",
+		"config_error": "Bir yapılandırma hatası var",
+		"contact_page_author": "Lütfen sayfanın yazarıyla iletişime geçin ve bildirin.",
+		"no_app_file": "Uygulama dosyası yok",
+		"runtime_error": "Bir çalışma zamanı hatası var",
+		"space_not_working": "\"Space çalışmıyor çünkü\" {0}",
+		"space_paused": "Space duraklatıldı",
+		"use_via_api": "API üzerinden kullan"
+	},
+	"file": {
+		"uploading": "Yükleniyor..."
+	},
+	"highlighted_text": {
+		"highlighted_text": "Vurgulanan Metin"
+	},
+	"image": {
+		"allow_webcam_access": "Lütfen kayıt için web kamerasına erişim izni verin.",
+		"brush_color": "Fırça rengi",
+		"brush_radius": "Fırça boyutu",
+		"image": "Görüntü",
+		"remove_image": "Resmi kaldır",
+		"select_brush_color": "Fırça rengini seç",
+		"start_drawing": "Çizim yapmaya başla",
+		"use_brush": "Fırça kullan",
+		"drop_to_upload": "Yüklemek için bir görüntü dosyasını buraya bırakın"
+	},
+	"label": {
+		"label": "Etiket"
+	},
+	"login": {
+		"enable_cookies": "Eğer HuggingFace Space'i Gizli Mod'da ziyaret ediyorsanız, üçüncü taraf çerezleri etkinleştirmelisiniz.",
+		"incorrect_credentials": "Yanlış kimlik bilgileri",
+		"username": "Kullanıcı adı",
+		"password": "Parola",
+		"login": "Giriş yap"
+	},
+	"number": {
+		"number": "Sayı"
+	},
+	"plot": {
+		"plot": "Grafik"
+	},
+	"radio": {
+		"radio": "Radyo Düğmesi"
+	},
+	"slider": {
+		"slider": "Kaydırıcı"
+	},
+	"video": {
+		"drop_to_upload": "Yüklemek için bir video dosyasını buraya bırakın"
+	}
 }

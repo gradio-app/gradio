@@ -1,144 +1,144 @@
 {
-    "_name": "한국어",
-    "3D_model": {
-        "3d_model": "3D 모델",
-        "drop_to_upload": "3D 모델 (.obj, .glb, .stl, .gltf, .splat, 또는 .ply) 파일을 여기에 놓아 업로드하세요."
-    },
-    "annotated_image": {
-        "annotated_image": "주석이 달린 이미지"
-    },
-    "audio": {
-        "allow_recording_access": "녹음을 위해 마이크 접근을 허용해 주세요.",
-        "audio": "오디오",
-        "record_from_microphone": "마이크로 녹음",
-        "stop_recording": "녹음 중지",
-        "no_device_support": "미디어 장치에 접근할 수 없습니다. 보안 소스(https) 또는 localhost에서 실행 중인지(또는 ssl_verify에 유효한 SSL 인증서를 전달했는지), 브라우저에 장치 접근 권한을 부여했는지 확인하세요.",
-        "stop": "중지",
-        "resume": "재개",
-        "record": "녹음",
-        "no_microphone": "마이크를 찾을 수 없습니다",
-        "pause": "일시정지",
-        "play": "재생",
-        "waiting": "대기 중",
-        "drop_to_upload": "오디오 파일을 여기에 놓아 업로드하세요."
-    },
-    "blocks": {
-        "connection_can_break": "모바일에서는 이 탭이 포커스를 잃거나 기기가 절전 모드로 전환되면 연결이 끊어져 대기열의 위치를 잃을 수 있습니다.",
-        "long_requests_queue": "대기 중인 요청의 긴 대기열이 있습니다. 이 Space를 복제하여 건너뛰세요.",
-        "lost_connection": "페이지를 떠나 연결이 끊어졌습니다. 대기열로 돌아가는 중...",
-        "waiting_for_inputs": "파일 업로드가 완료될 때까지 기다렸다가 다시 시도해주세요."
-    },
-    "checkbox": {
-        "checkbox": "체크박스",
-        "checkbox_group": "체크박스 그룹"
-    },
-    "code": {
-        "code": "코드"
-    },
-    "color_picker": {
-        "color_picker": "색상 선택기"
-    },
-    "common": {
-        "built_with": "로 제작됨",
-        "built_with_gradio": "Gradio로 제작됨",
-        "clear": "지우기",
-        "download": "다운로드",
-        "edit": "편집",
-        "empty": "비어 있음",
-        "error": "오류",
-        "hosted_on": "에서 호스팅됨",
-        "loading": "로딩 중",
-        "logo": "로고",
-        "or": "또는",
-        "remove": "제거",
-        "settings": "설정",
-        "share": "공유",
-        "submit": "제출",
-        "undo": "실행 취소",
-        "no_devices": "장치를 찾을 수 없습니다",
-        "language": "언어",
-        "display_theme": "디스플레이 테마",
-        "pwa": "프로그레시브 웹 앱"
-    },
-    "dataframe": {
-        "incorrect_format": "잘못된 형식입니다. CSV 및 TSV 파일만 지원됩니다",
-        "new_column": "열 추가",
-        "new_row": "새 행",
-        "add_row_above": "위에 행 추가",
-        "add_row_below": "아래에 행 추가",
-        "add_column_left": "왼쪽에 열 추가",
-        "add_column_right": "오른쪽에 열 추가",
-        "delete_row": "행 삭제",
-        "delete_column": "열 삭제",
-        "sort_column": "정렬 열",
-        "sort_ascending": "오름차순 정렬",
-        "sort_descending": "내림차순 정렬",
-        "drop_to_upload": "CSV 또는 TSV 파일을 여기에 끌어다 놓아 데이터프레임에 데이터를 가져올 수 있습니다.",
-        "clear_sort": "정렬 해제"
-    },
-    "dropdown": {
-        "dropdown": "드롭다운"
-    },
-    "errors": {
-        "build_error": "빌드 오류가 있습니다",
-        "config_error": "구성 오류가 있습니다",
-        "contact_page_author": "페이지 작성자에게 연락하여 알려주세요.",
-        "no_app_file": "앱 파일이 없습니다",
-        "runtime_error": "런타임 오류가 있습니다",
-        "space_not_working": "\"Space가 작동하지 않는 이유:\" {0}",
-        "space_paused": "space가 일시 중지되었습니다",
-        "use_via_api": "API를 통해 사용"
-    },
-    "file": {
-        "uploading": "업로드 중..."
-    },
-    "highlighted_text": {
-        "highlighted_text": "강조 표시된 텍스트"
-    },
-    "image": {
-        "allow_webcam_access": "녹화를 위해 웹캠 접근을 허용해 주세요.",
-        "brush_color": "브러시 색상",
-        "brush_radius": "브러시 크기",
-        "image": "이미지",
-        "remove_image": "이미지 제거",
-        "select_brush_color": "브러시 색상 선택",
-        "start_drawing": "그리기 시작",
-        "use_brush": "브러시 사용",
-        "drop_to_upload": "이곳에 이미지 파일을 끌어다 놓으세요."
-    },
-    "label": {
-        "label": "레이블"
-    },
-    "login": {
-        "enable_cookies": "시크릿 모드에서 HuggingFace Space를 방문하는 경우 타사 쿠키를 활성화해야 합니다.",
-        "incorrect_credentials": "잘못된 자격 증명",
-        "username": "사용자 이름",
-        "password": "비밀번호",
-        "login": "로그인"
-    },
-    "number": {
-        "number": "숫자"
-    },
-    "plot": {
-        "plot": "플롯"
-    },
-    "radio": {
-        "radio": "라디오"
-    },
-    "slider": {
-        "slider": "슬라이더"
-    },
-    "upload_text": {
-        "click_to_upload": "클릭하여 업로드",
-        "drop_audio": "오디오를 여기에 드롭",
-        "drop_csv": "CSV를 여기에 드롭",
-        "drop_file": "파일을 여기에 드롭",
-        "drop_image": "이미지를 여기에 드롭",
-        "drop_video": "비디오를 여기에 드롭",
-        "drop_gallery": "미디어를 여기에 드롭",
-        "paste_clipboard": "클립보드에서 붙여넣기"
-    },
-    "video": {
-        "drop_to_upload": "여기에 비디오 파일을 끌어다 놓으세요."
-    }
+	"_name": "한국어",
+	"3D_model": {
+		"3d_model": "3D 모델",
+		"drop_to_upload": "3D 모델 (.obj, .glb, .stl, .gltf, .splat, 또는 .ply) 파일을 여기에 놓아 업로드하세요."
+	},
+	"annotated_image": {
+		"annotated_image": "주석이 달린 이미지"
+	},
+	"audio": {
+		"allow_recording_access": "녹음을 위해 마이크 접근을 허용해 주세요.",
+		"audio": "오디오",
+		"record_from_microphone": "마이크로 녹음",
+		"stop_recording": "녹음 중지",
+		"no_device_support": "미디어 장치에 접근할 수 없습니다. 보안 소스(https) 또는 localhost에서 실행 중인지(또는 ssl_verify에 유효한 SSL 인증서를 전달했는지), 브라우저에 장치 접근 권한을 부여했는지 확인하세요.",
+		"stop": "중지",
+		"resume": "재개",
+		"record": "녹음",
+		"no_microphone": "마이크를 찾을 수 없습니다",
+		"pause": "일시정지",
+		"play": "재생",
+		"waiting": "대기 중",
+		"drop_to_upload": "오디오 파일을 여기에 놓아 업로드하세요."
+	},
+	"blocks": {
+		"connection_can_break": "모바일에서는 이 탭이 포커스를 잃거나 기기가 절전 모드로 전환되면 연결이 끊어져 대기열의 위치를 잃을 수 있습니다.",
+		"long_requests_queue": "대기 중인 요청의 긴 대기열이 있습니다. 이 Space를 복제하여 건너뛰세요.",
+		"lost_connection": "페이지를 떠나 연결이 끊어졌습니다. 대기열로 돌아가는 중...",
+		"waiting_for_inputs": "파일 업로드가 완료될 때까지 기다렸다가 다시 시도해주세요."
+	},
+	"checkbox": {
+		"checkbox": "체크박스",
+		"checkbox_group": "체크박스 그룹"
+	},
+	"code": {
+		"code": "코드"
+	},
+	"color_picker": {
+		"color_picker": "색상 선택기"
+	},
+	"common": {
+		"built_with": "로 제작됨",
+		"built_with_gradio": "Gradio로 제작됨",
+		"clear": "지우기",
+		"download": "다운로드",
+		"edit": "편집",
+		"empty": "비어 있음",
+		"error": "오류",
+		"hosted_on": "에서 호스팅됨",
+		"loading": "로딩 중",
+		"logo": "로고",
+		"or": "또는",
+		"remove": "제거",
+		"settings": "설정",
+		"share": "공유",
+		"submit": "제출",
+		"undo": "실행 취소",
+		"no_devices": "장치를 찾을 수 없습니다",
+		"language": "언어",
+		"display_theme": "디스플레이 테마",
+		"pwa": "프로그레시브 웹 앱"
+	},
+	"dataframe": {
+		"incorrect_format": "잘못된 형식입니다. CSV 및 TSV 파일만 지원됩니다",
+		"new_column": "열 추가",
+		"new_row": "새 행",
+		"add_row_above": "위에 행 추가",
+		"add_row_below": "아래에 행 추가",
+		"add_column_left": "왼쪽에 열 추가",
+		"add_column_right": "오른쪽에 열 추가",
+		"delete_row": "행 삭제",
+		"delete_column": "열 삭제",
+		"sort_column": "정렬 열",
+		"sort_ascending": "오름차순 정렬",
+		"sort_descending": "내림차순 정렬",
+		"drop_to_upload": "CSV 또는 TSV 파일을 여기에 끌어다 놓아 데이터프레임에 데이터를 가져올 수 있습니다.",
+		"clear_sort": "정렬 해제"
+	},
+	"dropdown": {
+		"dropdown": "드롭다운"
+	},
+	"errors": {
+		"build_error": "빌드 오류가 있습니다",
+		"config_error": "구성 오류가 있습니다",
+		"contact_page_author": "페이지 작성자에게 연락하여 알려주세요.",
+		"no_app_file": "앱 파일이 없습니다",
+		"runtime_error": "런타임 오류가 있습니다",
+		"space_not_working": "\"Space가 작동하지 않는 이유:\" {0}",
+		"space_paused": "space가 일시 중지되었습니다",
+		"use_via_api": "API를 통해 사용"
+	},
+	"file": {
+		"uploading": "업로드 중..."
+	},
+	"highlighted_text": {
+		"highlighted_text": "강조 표시된 텍스트"
+	},
+	"image": {
+		"allow_webcam_access": "녹화를 위해 웹캠 접근을 허용해 주세요.",
+		"brush_color": "브러시 색상",
+		"brush_radius": "브러시 크기",
+		"image": "이미지",
+		"remove_image": "이미지 제거",
+		"select_brush_color": "브러시 색상 선택",
+		"start_drawing": "그리기 시작",
+		"use_brush": "브러시 사용",
+		"drop_to_upload": "이곳에 이미지 파일을 끌어다 놓으세요."
+	},
+	"label": {
+		"label": "레이블"
+	},
+	"login": {
+		"enable_cookies": "시크릿 모드에서 HuggingFace Space를 방문하는 경우 타사 쿠키를 활성화해야 합니다.",
+		"incorrect_credentials": "잘못된 자격 증명",
+		"username": "사용자 이름",
+		"password": "비밀번호",
+		"login": "로그인"
+	},
+	"number": {
+		"number": "숫자"
+	},
+	"plot": {
+		"plot": "플롯"
+	},
+	"radio": {
+		"radio": "라디오"
+	},
+	"slider": {
+		"slider": "슬라이더"
+	},
+	"upload_text": {
+		"click_to_upload": "클릭하여 업로드",
+		"drop_audio": "오디오를 여기에 드롭",
+		"drop_csv": "CSV를 여기에 드롭",
+		"drop_file": "파일을 여기에 드롭",
+		"drop_image": "이미지를 여기에 드롭",
+		"drop_video": "비디오를 여기에 드롭",
+		"drop_gallery": "미디어를 여기에 드롭",
+		"paste_clipboard": "클립보드에서 붙여넣기"
+	},
+	"video": {
+		"drop_to_upload": "여기에 비디오 파일을 끌어다 놓으세요."
+	}
 }

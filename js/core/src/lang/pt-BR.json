@@ -1,145 +1,145 @@
 {
-    "_name": "Português do Brasil",
-    "common": {
-        "built_with_gradio": "Construído com Gradio",
-        "clear": "Limpar",
-        "error": "Erro",
-        "flag": "Marcar",
-        "loading": "Carregando",
-        "or": "ou",
-        "submit": "Enviar",
-        "built_with": "Construído com",
-        "download": "Baixar",
-        "edit": "Editar",
-        "empty": "Vazio",
-        "hosted_on": "Hospedado em",
-        "logo": "Logotipo",
-        "settings": "Configurações",
-        "undo": "Desfazer",
-        "no_devices": "Nenhum dispositivo encontrado",
-        "language": "Idioma",
-        "display_theme": "Tema de exibição",
-        "pwa": "Aplicativo web progressivo",
-        "share": "Compartilhar",
-        "remove": "Remover"
-    },
-    "upload_text": {
-        "click_to_upload": "Clique para fazer upload",
-        "drop_audio": "Solte o áudio aqui",
-        "drop_csv": "Solte o CSV aqui",
-        "drop_file": "Solte o arquivo aqui",
-        "drop_image": "Solte a imagem aqui",
-        "drop_video": "Solte o vídeo aqui",
-        "drop_gallery": "Solte a mídia aqui",
-        "paste_clipboard": "Colar da área de transferência"
-    },
-    "3D_model": {
-        "3d_model": "Modelo 3D",
-        "drop_to_upload": "Solte um arquivo de modelo 3D (.obj, .glb, .stl, .gltf, .splat ou .ply) aqui para fazer upload"
-    },
-    "annotated_image": {
-        "annotated_image": "Imagem anotada"
-    },
-    "audio": {
-        "allow_recording_access": "Por favor, permita o acesso ao microfone para gravação.",
-        "audio": "Áudio",
-        "drop_to_upload": "Solte um arquivo de áudio aqui para fazer upload",
-        "record_from_microphone": "Gravar do microfone",
-        "stop_recording": "Parar gravação",
-        "no_device_support": "Os dispositivos de mídia não puderam ser acessados. Verifique se você está executando em uma origem segura (https) ou localhost (ou se forneceu um certificado SSL válido para ssl_verify), e se permitiu o acesso do navegador ao seu dispositivo.",
-        "stop": "Parar",
-        "resume": "Retomar",
-        "record": "Gravar",
-        "no_microphone": "Nenhum microfone encontrado",
-        "pause": "Pausar",
-        "play": "Reproduzir",
-        "waiting": "Aguardando"
-    },
-    "blocks": {
-        "connection_can_break": "No celular, a conexão pode ser interrompida se esta aba ficar em segundo plano ou se o dispositivo entrar em modo de repouso, fazendo você perder sua posição na fila.",
-        "long_requests_queue": "Há uma longa fila de solicitações pendentes. Duplique este Space para pular a fila.",
-        "lost_connection": "Conexão perdida ao sair da página. Retornando para a fila...",
-        "waiting_for_inputs": "Aguardando o(s) arquivo(s) terminar(em) de ser carregado(s), por favor, tente novamente."
-    },
-    "checkbox": {
-        "checkbox": "Caixa de seleção",
-        "checkbox_group": "Grupo de caixas de seleção"
-    },
-    "code": {
-        "code": "Código"
-    },
-    "color_picker": {
-        "color_picker": "Seletor de cor"
-    },
-    "dataframe": {
-        "incorrect_format": "Formato incorreto, apenas arquivos CSV e TSV são suportados",
-        "new_column": "Adicionar coluna",
-        "new_row": "Nova linha",
-        "add_row_above": "Adicionar linha acima",
-        "add_row_below": "Adicionar linha abaixo",
-        "delete_row": "Excluir linha",
-        "delete_column": "Excluir coluna",
-        "add_column_left": "Adicionar coluna à esquerda",
-        "add_column_right": "Adicionar coluna à direita",
-        "sort_column": "Classificar coluna",
-        "sort_ascending": "Ordenar em ordem crescente",
-        "sort_descending": "Ordenar em ordem decrescente",
-        "drop_to_upload": "Solte arquivos CSV ou TSV aqui para importar dados para o dataframe",
-        "clear_sort": "Limpar classificação"
-    },
-    "dropdown": {
-        "dropdown": "Menu suspenso"
-    },
-    "errors": {
-        "build_error": "Houve um erro de compilação",
-        "config_error": "Há um erro de configuração",
-        "contact_page_author": "Por favor, entre em contato com o autor da página para informá-lo.",
-        "no_app_file": "Não há arquivo de aplicativo",
-        "space_not_working": "\"O Space não está funcionando porque\" {0}",
-        "space_paused": "O Space está pausado",
-        "use_via_api": "Usar via API",
-        "runtime_error": "Houve um erro de execução"
-    },
-    "file": {
-        "uploading": "Carregando..."
-    },
-    "highlighted_text": {
-        "highlighted_text": "Texto destacado"
-    },
-    "image": {
-        "allow_webcam_access": "Por favor, permita o acesso à webcam para gravação.",
-        "brush_color": "Cor do pincel",
-        "brush_radius": "Tamanho do pincel",
-        "image": "Imagem",
-        "remove_image": "Remover imagem",
-        "select_brush_color": "Selecione a cor do pincel",
-        "start_drawing": "Começar a desenhar",
-        "use_brush": "Usar pincel",
-        "drop_to_upload": "Solte um arquivo de imagem aqui para fazer upload"
-    },
-    "label": {
-        "label": "Rótulo"
-    },
-    "login": {
-        "enable_cookies": "Se você estiver visitando um HuggingFace Space no modo incógnito, você deve habilitar cookies de terceiros.",
-        "incorrect_credentials": "Credenciais incorretas",
-        "username": "Nome de usuário",
-        "password": "Senha",
-        "login": "Entrar"
-    },
-    "number": {
-        "number": "Número"
-    },
-    "plot": {
-        "plot": "Gráfico"
-    },
-    "radio": {
-        "radio": "Botão de opção"
-    },
-    "slider": {
-        "slider": "Controle deslizante"
-    },
-    "video": {
-        "drop_to_upload": "Solte um arquivo de vídeo aqui para fazer upload"
-    }
+	"_name": "Português do Brasil",
+	"common": {
+		"built_with_gradio": "Construído com Gradio",
+		"clear": "Limpar",
+		"error": "Erro",
+		"flag": "Marcar",
+		"loading": "Carregando",
+		"or": "ou",
+		"submit": "Enviar",
+		"built_with": "Construído com",
+		"download": "Baixar",
+		"edit": "Editar",
+		"empty": "Vazio",
+		"hosted_on": "Hospedado em",
+		"logo": "Logotipo",
+		"settings": "Configurações",
+		"undo": "Desfazer",
+		"no_devices": "Nenhum dispositivo encontrado",
+		"language": "Idioma",
+		"display_theme": "Tema de exibição",
+		"pwa": "Aplicativo web progressivo",
+		"share": "Compartilhar",
+		"remove": "Remover"
+	},
+	"upload_text": {
+		"click_to_upload": "Clique para fazer upload",
+		"drop_audio": "Solte o áudio aqui",
+		"drop_csv": "Solte o CSV aqui",
+		"drop_file": "Solte o arquivo aqui",
+		"drop_image": "Solte a imagem aqui",
+		"drop_video": "Solte o vídeo aqui",
+		"drop_gallery": "Solte a mídia aqui",
+		"paste_clipboard": "Colar da área de transferência"
+	},
+	"3D_model": {
+		"3d_model": "Modelo 3D",
+		"drop_to_upload": "Solte um arquivo de modelo 3D (.obj, .glb, .stl, .gltf, .splat ou .ply) aqui para fazer upload"
+	},
+	"annotated_image": {
+		"annotated_image": "Imagem anotada"
+	},
+	"audio": {
+		"allow_recording_access": "Por favor, permita o acesso ao microfone para gravação.",
+		"audio": "Áudio",
+		"drop_to_upload": "Solte um arquivo de áudio aqui para fazer upload",
+		"record_from_microphone": "Gravar do microfone",
+		"stop_recording": "Parar gravação",
+		"no_device_support": "Os dispositivos de mídia não puderam ser acessados. Verifique se você está executando em uma origem segura (https) ou localhost (ou se forneceu um certificado SSL válido para ssl_verify), e se permitiu o acesso do navegador ao seu dispositivo.",
+		"stop": "Parar",
+		"resume": "Retomar",
+		"record": "Gravar",
+		"no_microphone": "Nenhum microfone encontrado",
+		"pause": "Pausar",
+		"play": "Reproduzir",
+		"waiting": "Aguardando"
+	},
+	"blocks": {
+		"connection_can_break": "No celular, a conexão pode ser interrompida se esta aba ficar em segundo plano ou se o dispositivo entrar em modo de repouso, fazendo você perder sua posição na fila.",
+		"long_requests_queue": "Há uma longa fila de solicitações pendentes. Duplique este Space para pular a fila.",
+		"lost_connection": "Conexão perdida ao sair da página. Retornando para a fila...",
+		"waiting_for_inputs": "Aguardando o(s) arquivo(s) terminar(em) de ser carregado(s), por favor, tente novamente."
+	},
+	"checkbox": {
+		"checkbox": "Caixa de seleção",
+		"checkbox_group": "Grupo de caixas de seleção"
+	},
+	"code": {
+		"code": "Código"
+	},
+	"color_picker": {
+		"color_picker": "Seletor de cor"
+	},
+	"dataframe": {
+		"incorrect_format": "Formato incorreto, apenas arquivos CSV e TSV são suportados",
+		"new_column": "Adicionar coluna",
+		"new_row": "Nova linha",
+		"add_row_above": "Adicionar linha acima",
+		"add_row_below": "Adicionar linha abaixo",
+		"delete_row": "Excluir linha",
+		"delete_column": "Excluir coluna",
+		"add_column_left": "Adicionar coluna à esquerda",
+		"add_column_right": "Adicionar coluna à direita",
+		"sort_column": "Classificar coluna",
+		"sort_ascending": "Ordenar em ordem crescente",
+		"sort_descending": "Ordenar em ordem decrescente",
+		"drop_to_upload": "Solte arquivos CSV ou TSV aqui para importar dados para o dataframe",
+		"clear_sort": "Limpar classificação"
+	},
+	"dropdown": {
+		"dropdown": "Menu suspenso"
+	},
+	"errors": {
+		"build_error": "Houve um erro de compilação",
+		"config_error": "Há um erro de configuração",
+		"contact_page_author": "Por favor, entre em contato com o autor da página para informá-lo.",
+		"no_app_file": "Não há arquivo de aplicativo",
+		"space_not_working": "\"O Space não está funcionando porque\" {0}",
+		"space_paused": "O Space está pausado",
+		"use_via_api": "Usar via API",
+		"runtime_error": "Houve um erro de execução"
+	},
+	"file": {
+		"uploading": "Carregando..."
+	},
+	"highlighted_text": {
+		"highlighted_text": "Texto destacado"
+	},
+	"image": {
+		"allow_webcam_access": "Por favor, permita o acesso à webcam para gravação.",
+		"brush_color": "Cor do pincel",
+		"brush_radius": "Tamanho do pincel",
+		"image": "Imagem",
+		"remove_image": "Remover imagem",
+		"select_brush_color": "Selecione a cor do pincel",
+		"start_drawing": "Começar a desenhar",
+		"use_brush": "Usar pincel",
+		"drop_to_upload": "Solte um arquivo de imagem aqui para fazer upload"
+	},
+	"label": {
+		"label": "Rótulo"
+	},
+	"login": {
+		"enable_cookies": "Se você estiver visitando um HuggingFace Space no modo incógnito, você deve habilitar cookies de terceiros.",
+		"incorrect_credentials": "Credenciais incorretas",
+		"username": "Nome de usuário",
+		"password": "Senha",
+		"login": "Entrar"
+	},
+	"number": {
+		"number": "Número"
+	},
+	"plot": {
+		"plot": "Gráfico"
+	},
+	"radio": {
+		"radio": "Botão de opção"
+	},
+	"slider": {
+		"slider": "Controle deslizante"
+	},
+	"video": {
+		"drop_to_upload": "Solte um arquivo de vídeo aqui para fazer upload"
+	}
 }

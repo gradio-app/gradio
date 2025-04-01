@@ -1,144 +1,144 @@
 {
-    "_name": "فارسی",
-    "3D_model": {
-        "3d_model": "مدل سه‌بعدی",
-        "drop_to_upload": "فایل مدل سه‌بعدی (.obj، .glb، .stl، .gltf، .splat یا .ply) را اینجا رها کنید تا بارگذاری شود."
-    },
-    "annotated_image": {
-        "annotated_image": "تصویر حاشیه‌نویسی شده"
-    },
-    "audio": {
-        "allow_recording_access": "لطفاً برای ضبط صدا، دسترسی به میکروفون را مجاز کنید.",
-        "audio": "صدا",
-        "record_from_microphone": "ضبط از میکروفون",
-        "stop_recording": "توقف ضبط",
-        "no_device_support": "دسترسی به دستگاه‌های رسانه‌ای امکان‌پذیر نیست. اطمینان حاصل کنید که در یک منبع امن (https) یا localhost اجرا می‌شود (یا یک گواهی SSL معتبر به ssl_verify داده‌اید)، و به مرورگر اجازه دسترسی به دستگاه خود را داده‌اید.",
-        "stop": "توقف",
-        "resume": "ادامه",
-        "record": "ضبط",
-        "no_microphone": "میکروفونی یافت نشد",
-        "pause": "مکث",
-        "play": "پخش",
-        "waiting": "در حال انتظار",
-        "drop_to_upload": "فایل صوتی خود را اینجا رها کنید تا بارگذاری شود"
-    },
-    "blocks": {
-        "connection_can_break": "در موبایل، اگر این تب از حالت فعال خارج شود یا دستگاه به خواب برود، اتصال می‌تواند قطع شود و موقعیت شما در صف از دست می‌رود.",
-        "long_requests_queue": "صف طولانی از درخواست‌های در انتظار وجود دارد. برای رد کردن صف، این Space را تکثیر کنید.",
-        "lost_connection": "اتصال به دلیل ترک صفحه قطع شد. در حال بازگشت به صف...",
-        "waiting_for_inputs": "در انتظار به پایان رسیدن بارگذاری فایل‌ها، لطفاً مجدداً امتحان کنید."
-    },
-    "checkbox": {
-        "checkbox": "چک‌باکس",
-        "checkbox_group": "گروه چک‌باکس"
-    },
-    "code": {
-        "code": "کد"
-    },
-    "color_picker": {
-        "color_picker": "انتخابگر رنگ"
-    },
-    "common": {
-        "built_with": "ساخته شده با",
-        "built_with_gradio": "ساخته شده با Gradio",
-        "clear": "پاک کردن",
-        "download": "دانلود",
-        "edit": "ویرایش",
-        "empty": "خالی",
-        "error": "خطا",
-        "hosted_on": "میزبانی شده در",
-        "loading": "در حال بارگذاری",
-        "logo": "لوگو",
-        "or": "یا",
-        "remove": "حذف",
-        "settings": "تنظیمات",
-        "share": "اشتراک‌گذاری",
-        "submit": "ارسال",
-        "undo": "واگرد",
-        "no_devices": "هیچ دستگاهی یافت نشد",
-        "language": "زبان",
-        "display_theme": "تم نمایش",
-        "pwa": "وب‌اپلیکیشن پیشرونده"
-    },
-    "dataframe": {
-        "incorrect_format": "فرمت نادرست، فقط فایل‌های CSV و TSV پشتیبانی می‌شوند",
-        "new_column": "افزودن ستون",
-        "new_row": "سطر جدید",
-        "add_row_above": "افزودن سطر در بالا",
-        "add_row_below": "افزودن سطر در پایین",
-        "add_column_left": "افزودن ستون در چپ",
-        "add_column_right": "افزودن ستون در راست",
-        "delete_row": "حذف سطر",
-        "delete_column": "حذف ستون",
-        "sort_column": "ستون را مرتب کنید",
-        "sort_ascending": "مرتب‌سازی صعودی",
-        "sort_descending": "مرتب‌سازی نزولی",
-        "drop_to_upload": "فایل‌های CSV یا TSV را اینجا رها کنید تا داده‌ها را به دیتافریم وارد کنید",
-        "clear_sort": "مرتب‌سازی را پاک کنید"
-    },
-    "dropdown": {
-        "dropdown": "منوی کشویی"
-    },
-    "errors": {
-        "build_error": "خطای ساخت وجود دارد",
-        "config_error": "خطای پیکربندی وجود دارد",
-        "contact_page_author": "لطفاً با نویسنده صفحه تماس بگیرید تا به او اطلاع دهید.",
-        "no_app_file": "فایل برنامه وجود ندارد",
-        "runtime_error": "خطای زمان اجرا وجود دارد",
-        "space_not_working": "\"Space کار نمی‌کند زیرا\" {0}",
-        "space_paused": "Space متوقف شده است",
-        "use_via_api": "استفاده از طریق API"
-    },
-    "file": {
-        "uploading": "در حال آپلود..."
-    },
-    "highlighted_text": {
-        "highlighted_text": "متن برجسته شده"
-    },
-    "image": {
-        "allow_webcam_access": "لطفاً برای ضبط، دسترسی به وب‌کم را مجاز کنید.",
-        "brush_color": "رنگ قلم",
-        "brush_radius": "اندازه قلم",
-        "image": "تصویر",
-        "remove_image": "حذف تصویر",
-        "select_brush_color": "انتخاب رنگ قلم",
-        "start_drawing": "شروع طراحی",
-        "use_brush": "استفاده از قلم",
-        "drop_to_upload": "فایل تصویر را اینجا رها کنید تا آپلود شود"
-    },
-    "label": {
-        "label": "برچسب"
-    },
-    "login": {
-        "enable_cookies": "اگر در حالت ناشناس از HuggingFace Space بازدید می‌کنید، باید کوکی‌های شخص ثالث را فعال کنید.",
-        "incorrect_credentials": "اطلاعات ورود نادرست",
-        "username": "نام کاربری",
-        "password": "رمز عبور",
-        "login": "ورود"
-    },
-    "number": {
-        "number": "عدد"
-    },
-    "plot": {
-        "plot": "نمودار"
-    },
-    "radio": {
-        "radio": "دکمه رادیویی"
-    },
-    "slider": {
-        "slider": "اسلایدر"
-    },
-    "upload_text": {
-        "click_to_upload": "برای آپلود کلیک کنید",
-        "drop_audio": "فایل صوتی را اینجا رها کنید",
-        "drop_csv": "CSV را اینجا رها کنید",
-        "drop_file": "فایل را اینجا رها کنید",
-        "drop_image": "تصویر را اینجا رها کنید",
-        "drop_video": "ویدیو را اینجا رها کنید",
-        "drop_gallery": "رسانه را اینجا رها کنید",
-        "paste_clipboard": "چسباندن از کلیپ‌بورد"
-    },
-    "video": {
-        "drop_to_upload": "فایل ویدیو را اینجا رها کنید تا آپلود شود"
-    }
+	"_name": "فارسی",
+	"3D_model": {
+		"3d_model": "مدل سه‌بعدی",
+		"drop_to_upload": "فایل مدل سه‌بعدی (.obj، .glb، .stl، .gltf، .splat یا .ply) را اینجا رها کنید تا بارگذاری شود."
+	},
+	"annotated_image": {
+		"annotated_image": "تصویر حاشیه‌نویسی شده"
+	},
+	"audio": {
+		"allow_recording_access": "لطفاً برای ضبط صدا، دسترسی به میکروفون را مجاز کنید.",
+		"audio": "صدا",
+		"record_from_microphone": "ضبط از میکروفون",
+		"stop_recording": "توقف ضبط",
+		"no_device_support": "دسترسی به دستگاه‌های رسانه‌ای امکان‌پذیر نیست. اطمینان حاصل کنید که در یک منبع امن (https) یا localhost اجرا می‌شود (یا یک گواهی SSL معتبر به ssl_verify داده‌اید)، و به مرورگر اجازه دسترسی به دستگاه خود را داده‌اید.",
+		"stop": "توقف",
+		"resume": "ادامه",
+		"record": "ضبط",
+		"no_microphone": "میکروفونی یافت نشد",
+		"pause": "مکث",
+		"play": "پخش",
+		"waiting": "در حال انتظار",
+		"drop_to_upload": "فایل صوتی خود را اینجا رها کنید تا بارگذاری شود"
+	},
+	"blocks": {
+		"connection_can_break": "در موبایل، اگر این تب از حالت فعال خارج شود یا دستگاه به خواب برود، اتصال می‌تواند قطع شود و موقعیت شما در صف از دست می‌رود.",
+		"long_requests_queue": "صف طولانی از درخواست‌های در انتظار وجود دارد. برای رد کردن صف، این Space را تکثیر کنید.",
+		"lost_connection": "اتصال به دلیل ترک صفحه قطع شد. در حال بازگشت به صف...",
+		"waiting_for_inputs": "در انتظار به پایان رسیدن بارگذاری فایل‌ها، لطفاً مجدداً امتحان کنید."
+	},
+	"checkbox": {
+		"checkbox": "چک‌باکس",
+		"checkbox_group": "گروه چک‌باکس"
+	},
+	"code": {
+		"code": "کد"
+	},
+	"color_picker": {
+		"color_picker": "انتخابگر رنگ"
+	},
+	"common": {
+		"built_with": "ساخته شده با",
+		"built_with_gradio": "ساخته شده با Gradio",
+		"clear": "پاک کردن",
+		"download": "دانلود",
+		"edit": "ویرایش",
+		"empty": "خالی",
+		"error": "خطا",
+		"hosted_on": "میزبانی شده در",
+		"loading": "در حال بارگذاری",
+		"logo": "لوگو",
+		"or": "یا",
+		"remove": "حذف",
+		"settings": "تنظیمات",
+		"share": "اشتراک‌گذاری",
+		"submit": "ارسال",
+		"undo": "واگرد",
+		"no_devices": "هیچ دستگاهی یافت نشد",
+		"language": "زبان",
+		"display_theme": "تم نمایش",
+		"pwa": "وب‌اپلیکیشن پیشرونده"
+	},
+	"dataframe": {
+		"incorrect_format": "فرمت نادرست، فقط فایل‌های CSV و TSV پشتیبانی می‌شوند",
+		"new_column": "افزودن ستون",
+		"new_row": "سطر جدید",
+		"add_row_above": "افزودن سطر در بالا",
+		"add_row_below": "افزودن سطر در پایین",
+		"add_column_left": "افزودن ستون در چپ",
+		"add_column_right": "افزودن ستون در راست",
+		"delete_row": "حذف سطر",
+		"delete_column": "حذف ستون",
+		"sort_column": "ستون را مرتب کنید",
+		"sort_ascending": "مرتب‌سازی صعودی",
+		"sort_descending": "مرتب‌سازی نزولی",
+		"drop_to_upload": "فایل‌های CSV یا TSV را اینجا رها کنید تا داده‌ها را به دیتافریم وارد کنید",
+		"clear_sort": "مرتب‌سازی را پاک کنید"
+	},
+	"dropdown": {
+		"dropdown": "منوی کشویی"
+	},
+	"errors": {
+		"build_error": "خطای ساخت وجود دارد",
+		"config_error": "خطای پیکربندی وجود دارد",
+		"contact_page_author": "لطفاً با نویسنده صفحه تماس بگیرید تا به او اطلاع دهید.",
+		"no_app_file": "فایل برنامه وجود ندارد",
+		"runtime_error": "خطای زمان اجرا وجود دارد",
+		"space_not_working": "\"Space کار نمی‌کند زیرا\" {0}",
+		"space_paused": "Space متوقف شده است",
+		"use_via_api": "استفاده از طریق API"
+	},
+	"file": {
+		"uploading": "در حال آپلود..."
+	},
+	"highlighted_text": {
+		"highlighted_text": "متن برجسته شده"
+	},
+	"image": {
+		"allow_webcam_access": "لطفاً برای ضبط، دسترسی به وب‌کم را مجاز کنید.",
+		"brush_color": "رنگ قلم",
+		"brush_radius": "اندازه قلم",
+		"image": "تصویر",
+		"remove_image": "حذف تصویر",
+		"select_brush_color": "انتخاب رنگ قلم",
+		"start_drawing": "شروع طراحی",
+		"use_brush": "استفاده از قلم",
+		"drop_to_upload": "فایل تصویر را اینجا رها کنید تا آپلود شود"
+	},
+	"label": {
+		"label": "برچسب"
+	},
+	"login": {
+		"enable_cookies": "اگر در حالت ناشناس از HuggingFace Space بازدید می‌کنید، باید کوکی‌های شخص ثالث را فعال کنید.",
+		"incorrect_credentials": "اطلاعات ورود نادرست",
+		"username": "نام کاربری",
+		"password": "رمز عبور",
+		"login": "ورود"
+	},
+	"number": {
+		"number": "عدد"
+	},
+	"plot": {
+		"plot": "نمودار"
+	},
+	"radio": {
+		"radio": "دکمه رادیویی"
+	},
+	"slider": {
+		"slider": "اسلایدر"
+	},
+	"upload_text": {
+		"click_to_upload": "برای آپلود کلیک کنید",
+		"drop_audio": "فایل صوتی را اینجا رها کنید",
+		"drop_csv": "CSV را اینجا رها کنید",
+		"drop_file": "فایل را اینجا رها کنید",
+		"drop_image": "تصویر را اینجا رها کنید",
+		"drop_video": "ویدیو را اینجا رها کنید",
+		"drop_gallery": "رسانه را اینجا رها کنید",
+		"paste_clipboard": "چسباندن از کلیپ‌بورد"
+	},
+	"video": {
+		"drop_to_upload": "فایل ویدیو را اینجا رها کنید تا آپلود شود"
+	}
 }
