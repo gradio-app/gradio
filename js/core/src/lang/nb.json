@@ -2,7 +2,7 @@
     "_name": "Norsk bokmål",
     "3D_model": {
         "3d_model": "3D-modell",
-        "drop_to_upload": "Last opp en 3D-modell (.obj, .glb, .stl, .gltf, .splat eller .ply) fil her"
+        "drop_to_upload": "Slipp en 3D-modell (.obj, .glb, .stl, .gltf, .splat eller .ply) fil her for å laste opp"
     },
     "annotated_image": {
         "annotated_image": "Annotert bilde"
@@ -46,9 +46,9 @@
         "edit": "Rediger",
         "empty": "Tom",
         "error": "Feil",
-        "hosted_on": "hostet på",
+        "hosted_on": "Hostet på",
         "loading": "Laster",
-        "logo": "logo",
+        "logo": "Logo",
         "or": "eller",
         "remove": "Fjern",
         "settings": "Innstillinger",
@@ -73,20 +73,20 @@
         "sort_column": "Sorter kolonne",
         "sort_ascending": "Sorter stigende",
         "sort_descending": "Sorter synkende",
-        "drop_to_upload": "Slipp inn CSV- eller TSV-filer her for å importere data til dataframe",
+        "drop_to_upload": "Slipp CSV- eller TSV-filer her for å importere data til dataramme",
         "clear_sort": "Fjern sortering"
     },
     "dropdown": {
         "dropdown": "Nedtrekksmeny"
     },
     "errors": {
-        "build_error": "det er en byggefeil",
-        "config_error": "det er en konfigurasjonsfeil",
+        "build_error": "Det er en byggefeil",
+        "config_error": "Det er en konfigurasjonsfeil",
         "contact_page_author": "Vennligst kontakt sidens forfatter for å informere dem.",
-        "no_app_file": "det er ingen app-fil",
-        "runtime_error": "det er en kjøretidsfeil",
+        "no_app_file": "Det er ingen app-fil",
+        "runtime_error": "Det er en kjøretidsfeil",
         "space_not_working": "\"Space fungerer ikke fordi\" {0}",
-        "space_paused": "space er pauset",
+        "space_paused": "Space er pauset",
         "use_via_api": "Bruk via API"
     },
     "file": {
@@ -112,8 +112,8 @@
     "login": {
         "enable_cookies": "Hvis du besøker en HuggingFace Space i inkognitomodus, må du aktivere tredjeparts informasjonskapsler.",
         "incorrect_credentials": "Feil påloggingsinformasjon",
-        "username": "brukernavn",
-        "password": "passord",
+        "username": "Brukernavn",
+        "password": "Passord",
         "login": "Logg inn"
     },
     "number": {
@@ -123,7 +123,7 @@
         "plot": "Plott"
     },
     "radio": {
-        "radio": "Radio"
+        "radio": "Radioknapp"
     },
     "slider": {
         "slider": "Glidebryter"
@@ -139,6 +139,6 @@
         "paste_clipboard": "Lim inn fra utklippstavle"
     },
     "video": {
-        "drop_to_upload": "Slipp en videofile her for å laste opp"
+        "drop_to_upload": "Slipp en videofil her for å laste opp"
     }
 }

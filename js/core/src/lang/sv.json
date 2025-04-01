@@ -2,7 +2,7 @@
     "_name": "Svenska",
     "3D_model": {
         "3d_model": "3D-modell",
-        "drop_to_upload": "Lägg ned en 3D-modell (.obj, .glb, .stl, .gltf, .splat eller .ply) fil här för att ladda upp"
+        "drop_to_upload": "Släpp en 3D-modellfil (.obj, .glb, .stl, .gltf, .splat eller .ply) här för att ladda upp"
     },
     "annotated_image": {
         "annotated_image": "Annoterad bild"
@@ -39,14 +39,14 @@
         "color_picker": "Färgväljare"
     },
     "common": {
-        "built_with": "byggt med",
+        "built_with": "Byggt med",
         "built_with_gradio": "Byggt med Gradio",
         "clear": "Rensa",
         "download": "Ladda ner",
         "edit": "Redigera",
         "empty": "Tom",
         "error": "Fel",
-        "hosted_on": "värd på",
+        "hosted_on": "Värd på",
         "loading": "Laddar",
         "logo": "Logotyp",
         "or": "eller",
@@ -73,20 +73,20 @@
         "sort_column": "Sortera kolumn",
         "sort_ascending": "Sortera stigande",
         "sort_descending": "Sortera fallande",
-        "drop_to_upload": "Släpp CSV- eller TSV-filer här för att importera data till dataframe",
+        "drop_to_upload": "Släpp CSV- eller TSV-filer här för att importera data till dataramverk",
         "clear_sort": "Rensa sortering"
     },
     "dropdown": {
         "dropdown": "Rullgardinsmeny"
     },
     "errors": {
-        "build_error": "det finns ett byggfel",
-        "config_error": "det finns ett konfigurationsfel",
+        "build_error": "Det finns ett byggfel",
+        "config_error": "Det finns ett konfigurationsfel",
         "contact_page_author": "Kontakta sidans författare för att informera dem.",
-        "no_app_file": "det finns ingen app-fil",
-        "runtime_error": "det finns ett körtidsfel",
+        "no_app_file": "Det finns ingen app-fil",
+        "runtime_error": "Det finns ett körtidsfel",
         "space_not_working": "\"Space fungerar inte eftersom\" {0}",
-        "space_paused": "space är pausat",
+        "space_paused": "Space är pausat",
         "use_via_api": "Använd via API"
     },
     "file": {
@@ -112,8 +112,8 @@
     "login": {
         "enable_cookies": "Om du besöker ett HuggingFace Space i inkognitoläge måste du aktivera tredjepartscookies.",
         "incorrect_credentials": "Felaktiga inloggningsuppgifter",
-        "username": "användarnamn",
-        "password": "lösenord",
+        "username": "Användarnamn",
+        "password": "Lösenord",
         "login": "Logga in"
     },
     "number": {
@@ -123,7 +123,7 @@
         "plot": "Diagram"
     },
     "radio": {
-        "radio": "Radio"
+        "radio": "Radioknapp"
     },
     "slider": {
         "slider": "Skjutreglage"

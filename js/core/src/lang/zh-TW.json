@@ -1,6 +1,7 @@
 {
+    "_name": "繁體中文",
     "common": {
-        "built_with_gradio": "使用Gradio構建",
+        "built_with_gradio": "使用 Gradio 建構",
         "clear": "清除",
         "or": "或",
         "submit": "提交",
@@ -15,23 +16,22 @@
         "remove": "移除",
         "settings": "設定",
         "share": "分享",
-        "undo": "撤銷",
+        "undo": "復原",
         "no_devices": "未找到裝置",
         "language": "語言",
         "display_theme": "顯示主題",
-        "pwa": "進階網頁應用程式"
+        "pwa": "漸進式網頁應用程式"
     },
     "upload_text": {
         "click_to_upload": "點擊上傳",
         "drop_audio": "拖放音訊至此處",
-        "drop_csv": "拖放CSV至此處",
+        "drop_csv": "拖放 CSV 至此處",
         "drop_file": "拖放檔案至此處",
         "drop_image": "拖放圖片至此處",
         "drop_video": "拖放影片至此處",
         "drop_gallery": "在此處拖放媒體",
         "paste_clipboard": "從剪貼簿貼上"
     },
-    "_name": "英文",
     "3D_model": {
         "3d_model": "3D 模型",
         "drop_to_upload": "將 3D 模型 (.obj、.glb、.stl、.gltf、.splat 或 .ply) 檔案拖放到這裡上傳"
@@ -48,7 +48,7 @@
         "no_device_support": "無法存取媒體裝置。請確認您正在使用安全來源（https）或本機主機（或您已提供有效的 SSL 憑證以進行 ssl_verify），並且已允許瀏覽器存取您的裝置。",
         "stop": "停止",
         "resume": "繼續",
-        "record": "記錄",
+        "record": "錄製",
         "no_microphone": "未找到麥克風",
         "pause": "暫停",
         "play": "播放",
@@ -56,13 +56,13 @@
     },
     "blocks": {
         "connection_can_break": "在行動裝置上，如果此分頁失去焦點或裝置進入睡眠模式，連線可能會中斷，導致您在隊列中的位置遺失。",
-        "long_requests_queue": "目前有許多待處理的請求。複製此空間以跳過。",
+        "long_requests_queue": "目前有許多待處理的請求。複製此 Space 以跳過隊列。",
         "lost_connection": "因離開頁面而失去連接。正在重新加入隊列...",
         "waiting_for_inputs": "等待檔案上傳完成，請稍後重試。"
     },
     "checkbox": {
         "checkbox": "核取方塊",
-        "checkbox_group": "複選框組"
+        "checkbox_group": "核取方塊群組"
     },
     "code": {
         "code": "程式碼"
@@ -71,8 +71,9 @@
         "color_picker": "顏色選擇器"
     },
     "dataframe": {
-        "incorrect_format": "格式不正確，僅支援 CSV 和 TSV 檔案。",
+        "incorrect_format": "格式不正確，僅支援 CSV 和 TSV 檔案",
         "new_column": "新增欄位",
+        "new_row": "新增列",
         "add_row_above": "在上方新增列",
         "add_row_below": "在下方新增列",
         "delete_row": "刪除列",
@@ -83,8 +84,7 @@
         "sort_ascending": "升冪排序",
         "sort_descending": "降冪排序",
         "drop_to_upload": "將 CSV 或 TSV 檔案拖放到這裡以匯入資料到資料框中",
-        "clear_sort": "清除排序",
-        "new_row": "新列"
+        "clear_sort": "清除排序"
     },
     "dropdown": {
         "dropdown": "下拉選單"
@@ -94,26 +94,26 @@
         "config_error": "有設定錯誤",
         "contact_page_author": "請聯繫頁面的作者以通知他們。",
         "no_app_file": "沒有應用程式檔案",
-        "runtime_error": "發生了執行時錯誤",
-        "space_not_working": "空間無法運作，因為 {0}",
-        "space_paused": "空間已暫停",
+        "runtime_error": "有執行時錯誤",
+        "space_not_working": "\"Space 無法運作，因為\" {0}",
+        "space_paused": "Space 已暫停",
         "use_via_api": "透過 API 使用"
     },
     "file": {
         "uploading": "上傳中..."
     },
     "highlighted_text": {
-        "highlighted_text": "突出顯示的文字"
+        "highlighted_text": "醒目提示的文字"
     },
     "image": {
-        "allow_webcam_access": "請允許存取攝像頭以進行錄製。",
+        "allow_webcam_access": "請允許存取網路攝影機以進行錄製。",
         "brush_color": "筆刷顏色",
-        "brush_radius": "筆刷半徑",
+        "brush_radius": "筆刷大小",
         "image": "圖像",
         "remove_image": "移除圖片",
-        "select_brush_color": "選擇畫筆顏色",
+        "select_brush_color": "選擇筆刷顏色",
         "start_drawing": "開始繪圖",
-        "use_brush": "使用畫筆",
+        "use_brush": "使用筆刷",
         "drop_to_upload": "將圖像檔案拖放到這裡上傳"
     },
     "label": {
@@ -130,7 +130,7 @@
         "number": "數字"
     },
     "plot": {
-        "plot": "繪圖"
+        "plot": "圖表"
     },
     "radio": {
         "radio": "單選按鈕"

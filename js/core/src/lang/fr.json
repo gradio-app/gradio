@@ -2,7 +2,7 @@
     "_name": "Français",
     "3D_model": {
         "3d_model": "Modèle 3D",
-        "drop_to_upload": "Déposez un fichier de modèle 3D (.obj, .glb, .stl, .gltf, .splat ou .ply) ici pour le télécharger."
+        "drop_to_upload": "Déposez un fichier image ici pour le télécharger"
     },
     "annotated_image": {
         "annotated_image": "Image annotée"
@@ -26,7 +26,7 @@
         "connection_can_break": "Sur mobile, la connexion peut être interrompue si cet onglet perd le focus ou si l'appareil se met en veille, perdant votre position dans la file d'attente.",
         "long_requests_queue": "Il y a une longue file d'attente de requêtes en attente. Dupliquez ce Space pour la contourner.",
         "lost_connection": "Connexion perdue en quittant la page. Retour à la file d'attente...",
-        "waiting_for_inputs": "En attente de la fin du téléchargement du fichier(s), veuillez réessayer."
+        "waiting_for_inputs": "En attente de la fin du téléchargement des fichier(s), veuillez réessayer."
     },
     "checkbox": {
         "checkbox": "Case à cocher",
@@ -86,7 +86,7 @@
         "no_app_file": "il n'y a pas de fichier d'application",
         "runtime_error": "il y a une erreur d'exécution",
         "space_not_working": "\"Le Space ne fonctionne pas car\" {0}",
-        "space_paused": "le space est en pause",
+        "space_paused": "le Space est en pause",
         "use_via_api": "Utiliser via l'API"
     },
     "file": {
@@ -129,9 +129,9 @@
         "slider": "Curseur"
     },
     "upload_text": {
-        "click_to_upload": "Cliquez pour télécharger",
+        "click_to_upload": "Cliquez pour télécharger un fichier",
         "drop_audio": "Déposez l'audio ici",
-        "drop_csv": "Déposez le CSV ici",
+        "drop_csv": "Déposez le fichier CSV ici",
         "drop_file": "Déposez le fichier ici",
         "drop_image": "Déposez l'image ici",
         "drop_video": "Déposez la vidéo ici",
@@ -139,6 +139,6 @@
         "paste_clipboard": "Coller depuis le presse-papiers"
     },
     "video": {
-        "drop_to_upload": "Déposez un fichier vidéo ici pour télécharger"
+"drop_to_upload": "Déposez un fichier vidéo ici pour le télécharger"
     }
 }

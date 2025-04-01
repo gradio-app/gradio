@@ -40,7 +40,7 @@
     },
     "common": {
         "built_with": "construït amb",
-        "built_with_gradio": "Construït amb gradio",
+        "built_with_gradio": "Construït amb Gradio",
         "clear": "Neteja",
         "download": "Descarregar",
         "edit": "Editar",

@@ -1,78 +1,78 @@
 {
     "_name": "Português do Brasil",
     "common": {
-        "built_with_gradio": "Construído com gradio",
+        "built_with_gradio": "Construído com Gradio",
         "clear": "Limpar",
         "error": "Erro",
         "flag": "Marcar",
         "loading": "Carregando",
         "or": "ou",
         "submit": "Enviar",
-        "built_with": "construído com",
+        "built_with": "Construído com",
         "download": "Baixar",
         "edit": "Editar",
         "empty": "Vazio",
         "hosted_on": "Hospedado em",
-        "logo": "logotipo",
+        "logo": "Logotipo",
         "settings": "Configurações",
         "undo": "Desfazer",
         "no_devices": "Nenhum dispositivo encontrado",
         "language": "Idioma",
-        "display_theme": "Exibir Tema",
-        "pwa": "Aplicativo Web Progressivo",
+        "display_theme": "Tema de exibição",
+        "pwa": "Aplicativo web progressivo",
         "share": "Compartilhar",
         "remove": "Remover"
     },
     "upload_text": {
-        "click_to_upload": "Clique para o Upload",
-        "drop_audio": "Solte o Áudio Aqui",
-        "drop_csv": "Solte o CSV Aqui",
-        "drop_file": "Solte o Arquivo Aqui",
-        "drop_image": "Solte a Imagem Aqui",
-        "drop_video": "Solte o Vídeo Aqui",
-        "drop_gallery": "Solte a Mídia Aqui",
-        "paste_clipboard": "Colar da Área de Transferência"
+        "click_to_upload": "Clique para fazer upload",
+        "drop_audio": "Solte o áudio aqui",
+        "drop_csv": "Solte o CSV aqui",
+        "drop_file": "Solte o arquivo aqui",
+        "drop_image": "Solte a imagem aqui",
+        "drop_video": "Solte o vídeo aqui",
+        "drop_gallery": "Solte a mídia aqui",
+        "paste_clipboard": "Colar da área de transferência"
     },
     "3D_model": {
         "3d_model": "Modelo 3D",
-        "drop_to_upload": "Solte um arquivo de modelo 3D (.obj, .glb, .stl, .gltf, .splat ou .ply) aqui para fazer o upload."
+        "drop_to_upload": "Solte um arquivo de modelo 3D (.obj, .glb, .stl, .gltf, .splat ou .ply) aqui para fazer upload"
     },
     "annotated_image": {
-        "annotated_image": "Imagem Anotada"
+        "annotated_image": "Imagem anotada"
     },
     "audio": {
         "allow_recording_access": "Por favor, permita o acesso ao microfone para gravação.",
         "audio": "Áudio",
-        "drop_to_upload": "Solte um arquivo de áudio aqui para fazer o upload",
+        "drop_to_upload": "Solte um arquivo de áudio aqui para fazer upload",
         "record_from_microphone": "Gravar do microfone",
         "stop_recording": "Parar gravação",
-        "no_device_support": "Os dispositivos de mídia não puderam ser acessados. Verifique se você está executando em uma origem segura (https) ou localhost (ou você forneceu um certificado SSL válido para ssl_verify), e se permitiu o acesso do navegador ao seu dispositivo.",
+        "no_device_support": "Os dispositivos de mídia não puderam ser acessados. Verifique se você está executando em uma origem segura (https) ou localhost (ou se forneceu um certificado SSL válido para ssl_verify), e se permitiu o acesso do navegador ao seu dispositivo.",
         "stop": "Parar",
-        "resume": "Resumir",
+        "resume": "Retomar",
         "record": "Gravar",
         "no_microphone": "Nenhum microfone encontrado",
-        "pause": "Pausa",
+        "pause": "Pausar",
         "play": "Reproduzir",
         "waiting": "Aguardando"
     },
     "blocks": {
         "connection_can_break": "No celular, a conexão pode ser interrompida se esta aba ficar em segundo plano ou se o dispositivo entrar em modo de repouso, fazendo você perder sua posição na fila.",
-        "long_requests_queue": "Há uma longa fila de solicitações pendentes. Duplicar este Espaço para pular.",
-        "lost_connection": "Conexão perdida ao sair da página. Reingressando na fila...",
-        "waiting_for_inputs": "Aguardando o(s) arquivo(s) terminar(em) de serem carregados, por favor, tente novamente."
+        "long_requests_queue": "Há uma longa fila de solicitações pendentes. Duplique este Space para pular a fila.",
+        "lost_connection": "Conexão perdida ao sair da página. Retornando para a fila...",
+        "waiting_for_inputs": "Aguardando o(s) arquivo(s) terminar(em) de ser carregado(s), por favor, tente novamente."
     },
     "checkbox": {
         "checkbox": "Caixa de seleção",
-        "checkbox_group": "Grupo de Caixas de Seleção"
+        "checkbox_group": "Grupo de caixas de seleção"
     },
     "code": {
         "code": "Código"
     },
     "color_picker": {
-        "color_picker": "Seletor de Cor"
+        "color_picker": "Seletor de cor"
     },
     "dataframe": {
-        "incorrect_format": "Formato incorreto, apenas arquivos CSV e TSV são suportados.",
+        "incorrect_format": "Formato incorreto, apenas arquivos CSV e TSV são suportados",
         "new_column": "Adicionar coluna",
         "new_row": "Nova linha",
         "add_row_above": "Adicionar linha acima",
@@ -88,44 +88,44 @@
         "clear_sort": "Limpar classificação"
     },
     "dropdown": {
-        "dropdown": "Dropdown"
+        "dropdown": "Menu suspenso"
     },
     "errors": {
-        "build_error": "houve um erro de build",
-        "config_error": "há um erro de configuração",
-        "contact_page_author": "Por favor, entre em contato com o autor da página para informá-los.",
-        "no_app_file": "não há arquivo de aplicativo",
-        "space_not_working": "O espaço não está funcionando porque\" {0}",
-        "space_paused": "o espaço está pausado",
-        "use_via_api": "Uso via API",
-        "runtime_error": "houve um erro de execução"
+        "build_error": "Houve um erro de compilação",
+        "config_error": "Há um erro de configuração",
+        "contact_page_author": "Por favor, entre em contato com o autor da página para informá-lo.",
+        "no_app_file": "Não há arquivo de aplicativo",
+        "space_not_working": "\"O Space não está funcionando porque\" {0}",
+        "space_paused": "O Space está pausado",
+        "use_via_api": "Usar via API",
+        "runtime_error": "Houve um erro de execução"
     },
     "file": {
         "uploading": "Carregando..."
     },
     "highlighted_text": {
-        "highlighted_text": "Texto em destaque"
+        "highlighted_text": "Texto destacado"
     },
     "image": {
         "allow_webcam_access": "Por favor, permita o acesso à webcam para gravação.",
-        "brush_color": "Cor da escova",
-        "brush_radius": "Raio do pincel",
+        "brush_color": "Cor do pincel",
+        "brush_radius": "Tamanho do pincel",
         "image": "Imagem",
-        "remove_image": "Remover Imagem",
+        "remove_image": "Remover imagem",
         "select_brush_color": "Selecione a cor do pincel",
-        "start_drawing": "Comece a desenhar",
-        "use_brush": "Use o pincel",
-        "drop_to_upload": "Solte um arquivo de imagem aqui para fazer o upload"
+        "start_drawing": "Começar a desenhar",
+        "use_brush": "Usar pincel",
+        "drop_to_upload": "Solte um arquivo de imagem aqui para fazer upload"
     },
     "label": {
         "label": "Rótulo"
     },
     "login": {
-        "enable_cookies": "Se você estiver visitando um HuggingFace Space no modo Incognito, você deve habilitar cookies de terceiros.",
-        "incorrect_credentials": "Credenciais Incorretas",
-        "username": "nome de usuário",
-        "password": "senha",
-        "login": "Login"
+        "enable_cookies": "Se você estiver visitando um HuggingFace Space no modo incógnito, você deve habilitar cookies de terceiros.",
+        "incorrect_credentials": "Credenciais incorretas",
+        "username": "Nome de usuário",
+        "password": "Senha",
+        "login": "Entrar"
     },
     "number": {
         "number": "Número"
@@ -134,12 +134,12 @@
         "plot": "Gráfico"
     },
     "radio": {
-        "radio": "Rádio"
+        "radio": "Botão de opção"
     },
     "slider": {
-        "slider": "Slider"
+        "slider": "Controle deslizante"
     },
     "video": {
-        "drop_to_upload": "Solte um arquivo de vídeo aqui para fazer o upload"
+        "drop_to_upload": "Solte um arquivo de vídeo aqui para fazer upload"
     }
 }

@@ -54,11 +54,11 @@
         "settings": "تنظیمات",
         "share": "اشتراک‌گذاری",
         "submit": "ارسال",
-        "undo": "بازگشت",
+        "undo": "واگرد",
         "no_devices": "هیچ دستگاهی یافت نشد",
         "language": "زبان",
         "display_theme": "تم نمایش",
-        "pwa": "برنامه وب پیشرو"
+        "pwa": "وب‌اپلیکیشن پیشرونده"
     },
     "dataframe": {
         "incorrect_format": "فرمت نادرست، فقط فایل‌های CSV و TSV پشتیبانی می‌شوند",
@@ -86,7 +86,7 @@
         "no_app_file": "فایل برنامه وجود ندارد",
         "runtime_error": "خطای زمان اجرا وجود دارد",
         "space_not_working": "\"Space کار نمی‌کند زیرا\" {0}",
-        "space_paused": "space متوقف شده است",
+        "space_paused": "Space متوقف شده است",
         "use_via_api": "استفاده از طریق API"
     },
     "file": {
@@ -123,7 +123,7 @@
         "plot": "نمودار"
     },
     "radio": {
-        "radio": "رادیو"
+        "radio": "دکمه رادیویی"
     },
     "slider": {
         "slider": "اسلایدر"

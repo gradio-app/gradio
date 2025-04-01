@@ -77,7 +77,7 @@
         "clear_sort": "Sortierung aufheben"
     },
     "dropdown": {
-        "dropdown": "Dropdown"
+        "dropdown": "Dropdown-Menü"
     },
     "errors": {
         "build_error": "Es gibt einen Build-Fehler",
@@ -123,7 +123,7 @@
         "plot": "Diagramm"
     },
     "radio": {
-        "radio": "Radio"
+        "radio": "Optionsfeld"
     },
     "slider": {
         "slider": "Schieberegler"

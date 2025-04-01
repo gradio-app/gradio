@@ -8,7 +8,7 @@
         "annotated_image": "תמונה מוערת"
     },
     "audio": {
-        "allow_recording_access": "אנא אפשר גישה למיקרופון להקלטה.",
+        "allow_recording_access": "אנא אפשר/י גישה למיקרופון להקלטה.",
         "audio": "שמע",
         "record_from_microphone": "הקלט ממיקרופון",
         "stop_recording": "עצור הקלטה",
@@ -71,8 +71,8 @@
         "delete_row": "מחק שורה",
         "delete_column": "מחק עמודה",
         "sort_column": "מיין עמודה",
-        "sort_ascending": "מיין עליה",
-        "sort_descending": "מיין יורד",
+        "sort_ascending": "מיין בסדר עולה",
+        "sort_descending": "מיין בסדר יורד",
         "drop_to_upload": "הטילו קבצי CSV או TSV כאן כדי לייבא נתונים לתוך dataframe",
         "clear_sort": "נקה סדר"
     },
@@ -86,7 +86,7 @@
         "no_app_file": "אין קובץ יישום",
         "runtime_error": "יש שגיאת זמן ריצה",
         "space_not_working": "\"ה-Space לא עובד כי\" {0}",
-        "space_paused": "ה-space מושהה",
+        "space_paused": "ה-Space מושהה",
         "use_via_api": "השתמש דרך API"
     },
     "file": {
@@ -131,7 +131,7 @@
     "upload_text": {
         "click_to_upload": "לחץ להעלאה",
         "drop_audio": "שחרר קובץ שמע כאן",
-        "drop_csv": "שחרר CSV כאן",
+        "drop_csv": "שחרר קובץ CSV כאן",
         "drop_file": "שחרר קובץ כאן",
         "drop_image": "שחרר תמונה כאן",
         "drop_video": "שחרר וידאו כאן",

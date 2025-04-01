@@ -1,130 +1,130 @@
 {
     "_name": "اردو",
     "common": {
-        "built_with_gradio": "کے ساتھ بنایا گیا Gradio",
-        "clear": "ہٹا دیں",
+        "built_with_gradio": "Gradio کے ساتھ بنایا گیا",
+        "clear": "صاف کریں",
         "or": "یا",
         "submit": "جمع کریں",
         "settings": "ترتیبات",
-        "built_with": "بنا کیا گیا ہے",
+        "built_with": "کے ساتھ بنایا گیا",
         "download": "ڈاؤن لوڈ کریں",
         "edit": "ترمیم کریں",
         "empty": "خالی",
         "error": "خطا",
-        "hosted_on": "پر کرایہ میزبانی کیا جا رہا ہے",
-        "loading": "لڈنگ",
+        "hosted_on": "پر میزبانی کی جا رہی ہے",
+        "loading": "لوڈ ہو رہا ہے",
         "logo": "لوگو",
         "remove": "حذف کریں",
-        "share": "شےر کریں",
-        "undo": "برائے معافی کرنے کے لئے کلک کریں",
-        "no_devices": "کوئی ڈویس نہیں ملا",
+        "share": "شیئر کریں",
+        "undo": "واپس لیں",
+        "no_devices": "کوئی ڈیوائس نہیں ملی",
         "language": "زبان",
-        "display_theme": "_theme_ دکھائی دینے کا موضوع",
+        "display_theme": "تھیم کی نمائش",
         "pwa": "پروگریسیو ویب ایپ"
     },
     "upload_text": {
         "click_to_upload": "اپ لوڈ کے لیے کلک کریں",
         "drop_audio": "یہاں آڈیو ڈراپ کریں",
-        "drop_csv": "یہاں فائل ڈراپ کریں",
+        "drop_csv": "یہاں CSV ڈراپ کریں",
         "drop_file": "یہاں فائل ڈراپ کریں",
         "drop_image": "یہاں تصویر ڈراپ کریں",
         "drop_video": "یہاں ویڈیو ڈراپ کریں",
         "drop_gallery": "میڈیا یہاں ڈالیں",
-        "paste_clipboard": "کلپ بورڈ سے پیست کریں"
+        "paste_clipboard": "کلپ بورڈ سے پیسٹ کریں"
     },
     "3D_model": {
         "3d_model": "3D ماڈل",
-        "drop_to_upload": "یہاں اپلوڈ کرنے کے لئے 3D ماڈل (.obj, .glb, .stl, .gltf, .splat، یا .ply) فائل ڈrop کریں۔"
+        "drop_to_upload": "اپلوڈ کرنے کے لیے 3D ماڈل (.obj, .glb, .stl, .gltf, .splat، یا .ply) فائل یہاں ڈراپ کریں"
     },
     "annotated_image": {
-        "annotated_image": "تصویر کے ساتھ توضیحات"
+        "annotated_image": "تشریحی تصویر"
     },
     "audio": {
-        "allow_recording_access": "براہ مہربانی ریکارڈنگ کے لئے ماکرو فون کا دستیاب کرنا مجاز کر دیں۔",
+        "allow_recording_access": "براہ مہربانی ریکارڈنگ کے لیے مائیکروفون تک رسائی کی اجازت دیں۔",
         "audio": "آڈیو",
-        "drop_to_upload": "یہاں اپلوڈ کرنے کے لئے اڈیو فائل ڈالیں",
-        "record_from_microphone": "مکرو فون سے ریکارڈ کریں",
+        "drop_to_upload": "اپلوڈ کرنے کے لیے آڈیو فائل یہاں ڈراپ کریں",
+        "record_from_microphone": "مائیکروفون سے ریکارڈ کریں",
         "stop_recording": "ریکارڈنگ بند کریں",
-        "no_device_support": "미디어 디바이스에 접근할 수 없습니다. 안전한 출처(https) 또는 localhost에서 실행 중인지 확인하세요(또는 유효한 SSL 인증서를 ssl_verify에 전달했는지 확인하세요), 그리고 브라우저에서 디바이스 접근을 허용했는지 확인하세요.\n\n(Note: The provided text is translated into Korean, not Urdu. Here is the correct translation in Urdu:)\n\n미디ا ڈیوائسز کسی بھی طرح سے اکسیس نہیں ہوسکے ہیں۔ کریپٹو یا لوکلہوسٹ پر آپ کا رن ہونا چاہئیے (یا آپ نے ssl_verify میں ایک معتبر SSL سرٹی فائیکٹ پاس کیا ہو)، اور آپ نے براؤزر کو آپ کے ڈیوائس تک رسائی کی اجازت دی ہو۔",
-        "stop": "رکو",
-        "resume": "ریزومے",
+        "no_device_support": "میڈیا ڈیوائسز تک رسائی حاصل نہیں کی جا سکی۔ یقینی بنائیں کہ آپ محفوظ ذریعہ (https) یا localhost پر چلا رہے ہیں (یا آپ نے ssl_verify میں درست SSL سرٹیفکیٹ منتقل کیا ہے)، اور آپ نے براؤزر کو اپنے ڈیوائس تک رسائی کی اجازت دی ہے۔",
+        "stop": "روکیں",
+        "resume": "دوبارہ شروع کریں",
         "record": "ریکارڈ کریں",
-        "no_microphone": "کوئی ماکروفن نہیں ملا",
-        "pause": "روکنا",
+        "no_microphone": "کوئی مائیکروفون نہیں ملا",
+        "pause": "روکیں",
         "play": "چلائیں",
-        "waiting": "انتظار کر رہا ہوں"
+        "waiting": "انتظار کر رہا ہے"
     },
     "blocks": {
-        "connection_can_break": "موبائل پر، اگر یہ تاب کا فوکس گم ہو جائے یا دستیاب ڈویس کسے سلیپ میں جائے تو کنکشن ٹوٹ سکتا ہے، جس سے آپ کا قطار میں سٹیج گم ہو سکتا ہے۔",
-        "long_requests_queue": "درخواستوں کا طویل سرکش پیندینگ ہے۔ کاپی کرکے چھوڑ دیں۔",
-        "lost_connection": "صفحے چھوڑنے کی وجہ سے کنکشن ختم ہو گیا۔ پھر قطار میں شامل ہو رہے ہیں...",
-        "waiting_for_inputs": "فائل(وں) کا اپ لوڈ ہو رہا ہے، کریہ کریں۔"
+        "connection_can_break": "موبائل پر، اگر اس ٹیب کا فوکس کھو جائے یا ڈیوائس سلیپ موڈ میں چلا جائے تو کنکشن ٹوٹ سکتا ہے، جس سے آپ قطار میں اپنی جگہ کھو سکتے ہیں۔",
+        "long_requests_queue": "درخواستوں کی ایک لمبی قطار زیر التواء ہے۔ قطار چھوڑنے کے لیے اس Space کو ڈپلیکیٹ کریں۔",
+        "lost_connection": "صفحہ چھوڑنے کی وجہ سے کنکشن کھو گیا۔ قطار میں دوبارہ شامل ہو رہا ہے...",
+        "waiting_for_inputs": "فائل(وں) کے اپ لوڈ ہونے کا انتظار ہے، براہ کرم دوبارہ کوشش کریں۔"
     },
     "checkbox": {
-        "checkbox": "چیک بکس",
-        "checkbox_group": "چیک بکس گروپ"
+        "checkbox": "چیک باکس",
+        "checkbox_group": "چیک باکس گروپ"
     },
     "code": {
         "code": "کوڈ"
     },
     "color_picker": {
-        "color_picker": "رنگ چنیکر"
+        "color_picker": "رنگ منتخب کرنے والا"
     },
     "dataframe": {
-        "incorrect_format": "غلط فارمیٹ، صرف CSV اور TSV فائلوں کا سپورٹ ہوتا ہے",
+        "incorrect_format": "غلط فارمیٹ، صرف CSV اور TSV فائلوں کی حمایت کی جاتی ہے",
         "new_column": "کالم شامل کریں",
-        "new_row": "نیا پنجرہ",
-        "add_row_above": "پر کریں جس کے اوپر سطر شامل کریں",
-        "add_row_below": "نیچے سطر شامل کریں",
-        "delete_row": "سیل کریں",
+        "new_row": "نئی قطار",
+        "add_row_above": "اوپر قطار شامل کریں",
+        "add_row_below": "نیچے قطار شامل کریں",
+        "delete_row": "قطار حذف کریں",
         "delete_column": "کالم حذف کریں",
-        "add_column_left": "کالم کو بائیں side لگا دیں",
+        "add_column_left": "بائیں طرف کالم شامل کریں",
         "add_column_right": "دائیں طرف کالم شامل کریں",
         "sort_column": "کالم کو ترتیب دیں",
         "sort_ascending": "صعودی ترتیب دیں",
         "sort_descending": "نزولی ترتیب دیں",
-        "drop_to_upload": "یہاں CSV یا TSV فائلوں کو ڈrop کریں تاکہ ڈیٹا کو dataframe میں import کیا جا سکے",
-        "clear_sort": "سافٹ ویئر کو خالی کریں"
+        "drop_to_upload": "ڈیٹا کو ڈیٹا فریم میں درآمد کرنے کے لیے CSV یا TSV فائلیں یہاں ڈراپ کریں",
+        "clear_sort": "ترتیب صاف کریں"
     },
     "dropdown": {
-        "dropdown": "ڈراپ ڈاون"
+        "dropdown": "ڈراپ ڈاؤن"
     },
     "errors": {
-        "build_error": "تعمیر کا خطا ہے",
-        "config_error": "کانفگ کا خطا ہے",
-        "contact_page_author": "کریوں کے صفحے کے مصنف سے رابطہ کریں تاکہ انہیں معلوم ہو۔",
+        "build_error": "تعمیر میں خطا ہے",
+        "config_error": "ترتیب میں خطا ہے",
+        "contact_page_author": "براہ کرم صفحہ کے مصنف سے رابطہ کریں تاکہ انہیں مطلع کیا جا سکے۔",
         "no_app_file": "کوئی ایپ فائل نہیں ہے",
-        "runtime_error": "رन ٹائم تعاوند کی غلطی ہے",
-        "space_not_working": "سپیس کام کر رہا نہیں ہے کیونکہ\" {0}",
-        "space_paused": "فضا موقوف ہے",
+        "runtime_error": "رن ٹائم میں خطا ہے",
+        "space_not_working": "\"Space کام نہیں کر رہا ہے کیونکہ\" {0}",
+        "space_paused": "Space موقوف ہے",
         "use_via_api": "API کے ذریعے استعمال کریں"
     },
     "file": {
-        "uploading": "بار کر رہا ہے..."
+        "uploading": "اپلوڈ ہو رہا ہے..."
     },
     "highlighted_text": {
-        "highlighted_text": "منہنے کردہ متن"
+        "highlighted_text": "نمایاں کردہ متن"
     },
     "image": {
-        "allow_webcam_access": "براہ مہربانی ویب کیم کے دستیاب کرنے کی اجازت دیں تاکہ ریکارڈنگ کیا جا سکے۔",
-        "brush_color": "برش کلر",
-        "brush_radius": "برش ریڈیوس",
+        "allow_webcam_access": "براہ مہربانی ریکارڈنگ کے لیے ویب کیم تک رسائی کی اجازت دیں۔",
+        "brush_color": "برش کا رنگ",
+        "brush_radius": "برش کا سائز",
         "image": "تصویر",
-        "remove_image": "تصویر کو حذف کریں",
-        "select_brush_color": "برش کلر کا انتخاب کریں",
-        "start_drawing": "شروع کریں دھبنا",
+        "remove_image": "تصویر حذف کریں",
+        "select_brush_color": "برش کا رنگ منتخب کریں",
+        "start_drawing": "ڈرائنگ شروع کریں",
         "use_brush": "برش استعمال کریں",
-        "drop_to_upload": "ایک صورة فائل یہاں ڈالیں تاکہ بھیج دیا جا سکے"
+        "drop_to_upload": "اپلوڈ کرنے کے لیے تصویر فائل یہاں ڈراپ کریں"
     },
     "label": {
         "label": "لیبل"
     },
     "login": {
-        "enable_cookies": "اگر آپ انکوگنٹو میڈ میں کسی ہگنگ فیس سپیس کا دورہ کر رہے ہیں، تو آپ کو تیسری طرف کے کوکیز کو سکیلے کرنا ہوگا۔",
-        "incorrect_credentials": "غلط اوراق ثبوت",
-        "username": "نام کاربری",
-        "password": "پاسورڈ",
-        "login": "لاگ ان"
+        "enable_cookies": "اگر آپ انکوگنیٹو موڈ میں HuggingFace Space ملاحظہ کر رہے ہیں تو، آپ کو تیسرے فریق کے کوکیز کو فعال کرنا ہوگا۔",
+        "incorrect_credentials": "غلط اسناد",
+        "username": "صارف نام",
+        "password": "پاس ورڈ",
+        "login": "لاگ ان کریں"
     },
     "number": {
         "number": "نمبر"
@@ -133,12 +133,12 @@
         "plot": "گراف"
     },
     "radio": {
-        "radio": "ریڈیو"
+        "radio": "ریڈیو بٹن"
     },
     "slider": {
         "slider": "سلائیڈر"
     },
     "video": {
-        "drop_to_upload": "یہاں ویڈیو فائل ڈالیں تاکہ اپلوڈ کریں"
+        "drop_to_upload": "اپلوڈ کرنے کے لیے ویڈیو فائل یہاں ڈراپ کریں"
     }
 }
