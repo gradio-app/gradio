@@ -38,9 +38,9 @@
 
 	let thought_node: ThoughtNode;
 	let expanded = false;
-	let userExpandedToggled = false;
-	let contentPreviewElement: HTMLElement;
-	let userIsScrolling = false;
+	let user_expanded_toggled = false;
+	let content_preview_element: HTMLElement;
+	let user_is_scrolling = false;
 
 	// First set up the thought_node
 	$: thought_node = {
@@ -49,35 +49,35 @@
 	} as ThoughtNode;
 
 	// Then handle the expanded state based on status
-	$: if (!userExpandedToggled) {
+	$: if (!user_expanded_toggled) {
 		expanded = thought_node?.metadata?.status !== "done";
 	}
 
 	function toggleExpanded(): void {
 		expanded = !expanded;
-		userExpandedToggled = true;  // Mark that user has made a choice
+		user_expanded_toggled = true;  // Mark that user has made a choice
 	}
 
 	function scrollToBottom(): void {
-		if (contentPreviewElement && !userIsScrolling) {
-			contentPreviewElement.scrollTop = contentPreviewElement.scrollHeight;
+		if (content_preview_element && !user_is_scrolling) {
+			content_preview_element.scrollTop = content_preview_element.scrollHeight;
 		}
 	}
 
 	function handleScroll(): void {
-		if (contentPreviewElement) {
-			const isAtBottom =
-				contentPreviewElement.scrollHeight - contentPreviewElement.scrollTop <=
-				contentPreviewElement.clientHeight + 10;
-			if (!isAtBottom) {
-				userIsScrolling = true;
+		if (content_preview_element) {
+			const is_at_bottom =
+				content_preview_element.scrollHeight - content_preview_element.scrollTop <=
+				content_preview_element.clientHeight + 10;
+			if (!is_at_bottom) {
+				user_is_scrolling = true;
 			}
 		}
 	}
 
 	$: if (
 		thought_node.content &&
-		contentPreviewElement &&
+		content_preview_element &&
 		thought_node.metadata?.status !== "done"
 	) {
 		setTimeout(scrollToBottom, 0);
@@ -134,7 +134,7 @@
 			class:content={expanded}
 			class:content-preview={!expanded &&
 				thought_node.metadata?.status !== "done"}
-			bind:this={contentPreviewElement}
+			bind:this={content_preview_element}
 			on:scroll={handleScroll}
 			transition:slide
 		>
