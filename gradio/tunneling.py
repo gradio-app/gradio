@@ -82,6 +82,7 @@ class Tunnel:
     @staticmethod
     def download_binary():
         if not Path(BINARY_PATH).exists():
+            Path(BINARY_FOLDER).mkdir(parents=True, exist_ok=True)
             resp = httpx.get(BINARY_URL, timeout=30)
 
             if resp.status_code == 403:
