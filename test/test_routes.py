@@ -39,6 +39,7 @@ from gradio.route_utils import (
     FnIndexInferError,
     compare_passwords_securely,
     get_api_call_path,
+    get_request_origin,
     get_root_url,
     starts_with_protocol,
 )
@@ -228,7 +229,7 @@ class TestRoutes:
         output = dict(response.json())
         assert output["data"] == ["testtest", None]
 
-    def test_get_allowed_paths(self):
+    def test_get_allowed_paths(self, test_client):
         allowed_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
         allowed_file.write(media_data.BASE64_IMAGE)
         allowed_file.flush()
@@ -759,7 +760,7 @@ class TestAuthenticatedRoutes:
         )
 
         response = client.post(
-            f"{API_PREFIX}/run/predict",
+            "{API_PREFIX}/run/predict",
             json={"data": ["test"]},
         )
         assert response.status_code == 200
@@ -1786,3 +1787,47 @@ def test_get_api_call_path_generic_call(server, path, expected):
     request = Request(scope)
     path = get_api_call_path(request)
     assert path == expected
+
+
+@pytest.mark.parametrize(
+    "headers, server, route_path, expected_origin",
+    [
+        (
+            {},
+            ("localhost", 7860),
+            "/gradio_api/predict",
+            httpx.URL("http://localhost:7860"),
+        ),
+        (
+            {"x-forwarded-host": "example.com"},
+            ("localhost", 7860),
+            "/gradio_api/predict",
+            httpx.URL("http://example.com"),
+        ),
+        (
+            {"x-forwarded-host": "example.com", "x-forwarded-proto": "https"},
+            ("localhost", 7860),
+            "/gradio_api/predict",
+            httpx.URL("https://example.com"),
+        ),
+        (
+            {
+                "x-forwarded-host": "example.com,internal.example.com",
+                "x-forwarded-proto": "https,http",
+            },
+            ("localhost", 7860),
+            "/gradio_api/predict",
+            httpx.URL("https://example.com"),
+        ),
+    ],
+)
+def test_get_request_origin_with_headers(headers, server, route_path, expected_origin):
+    scope = {
+        "type": "http",
+        "headers": [(k.encode(), v.encode()) for k, v in headers.items()],
+        "server": server,
+        "path": route_path,
+    }
+    request = Request(scope)
+    origin = get_request_origin(request, route_path)
+    assert origin == expected_origin
