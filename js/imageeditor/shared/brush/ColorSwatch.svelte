@@ -3,10 +3,12 @@
 	import { createEventDispatcher } from "svelte";
 	import type { ColorTuple } from "./types";
 	import type { ColorInput } from "tinycolor2";
+	import IconButton from "../IconButton.svelte";
+	import { Plus } from "@gradio/icons";
 
 	export let selected_color: string;
 	export let colors: (ColorInput | ColorTuple)[];
-	export let user_colors: (string | null)[] | null = [];
+	export let user_colors: (ColorInput | ColorTuple)[] | null = [];
 
 	export let show_empty = false;
 	export let current_mode: "hex" | "rgb" | "hsl" = "hex";
@@ -14,6 +16,7 @@
 	const dispatch = createEventDispatcher<{
 		select: { index: number | null; color: string | null; opacity?: number };
 		edit: { index: number; color: string | null };
+		add_color: void;
 	}>();
 
 	$: _colors = show_empty ? colors : colors.filter((c) => c);
@@ -58,6 +61,8 @@
 			get_formatted_color(selected_color, current_mode),
 	)}`;
 
+	$: selected_opacity = get_opacity(selected_color);
+
 	function handle_select(
 		type: "edit" | "select",
 		detail: {
@@ -84,13 +89,31 @@
 	<div class="swatch-container">
 		{#if user_colors}
 			<div class="swatch">
+				{#if color_picker}
+					<IconButton
+						Icon={Plus}
+						on:click={() => dispatch("add_color")}
+						roundedness="very"
+						background={get_color(selected_color)}
+						color="white"
+					/>
+				{/if}
 				{#each user_colors as color, i}
+					{@const color_string = get_color(color)}
+					{@const opacity = get_opacity(color)}
 					<button
-						on:click={() => handle_select("edit", { index: i, color })}
+						on:click={() =>
+							handle_select("edit", {
+								index: i,
+								color: color_string,
+								opacity: opacity,
+							})}
 						class="color"
 						class:empty={color === null}
-						style="background-color: {color}"
-						class:selected={`edit-${i}` === current_index}
+						style="background-color: {color_string}"
+						style:opacity
+						class:selected={`${color_string}-${opacity}` ===
+							`${selected_color}-${selected_opacity}`}
 					></button>
 				{/each}
 
@@ -103,17 +126,21 @@
 		{/if}
 		<menu class="swatch">
 			{#each _colors as color_item, i}
+				{@const color_string = get_color(color_item)}
+				{@const opacity = get_opacity(color_item)}
 				<button
 					on:click={() =>
 						handle_select("select", {
 							index: i,
-							color: get_color(color_item),
-							opacity: get_opacity(color_item),
+							color: color_string,
+							opacity: opacity,
 						})}
 					class="color"
 					class:empty={color_item === null}
-					style="background-color: {get_color(color_item)}"
-					class:selected={`select-${i}` === current_index}
+					style="background-color: {color_string}"
+					style:opacity
+					class:selected={`${color_string}-${opacity}` ===
+						`${selected_color}-${selected_opacity}`}
 				></button>
 			{/each}
 		</menu>

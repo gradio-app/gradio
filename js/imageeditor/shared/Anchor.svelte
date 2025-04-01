@@ -358,10 +358,6 @@
 		border-color: #fff;
 	}
 
-	.wrap.expanded .box.active-box {
-		/* border-color: #ccc; */
-	}
-
 	.icon-wrap.active {
 		opacity: 1 !important;
 	}

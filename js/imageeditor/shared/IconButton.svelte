@@ -15,6 +15,7 @@
 	export let background = "var(--background-fill-primary)";
 	export let offset = 0;
 	export let label_position: "left" | "right" = "left";
+	export let roundedness: "quite" | "very" = "quite";
 	$: _color = highlight ? "var(--color-accent)" : color.toString();
 </script>
 
@@ -31,6 +32,7 @@
 	style:color={!disabled && _color ? _color : "var(--block-label-text-color)"}
 	style:--bg-color={!disabled ? background : "auto"}
 	style:margin-left={offset + "px"}
+	class="{roundedness}-round"
 >
 	{#if show_label && label_position === "left"}
 		<span style="margin-left: 4px;">{label}</span>
@@ -55,9 +57,17 @@
 		gap: 1px;
 		z-index: var(--layer-2);
 		/* background: var(--background-fill-primary); */
-		border-radius: var(--radius-sm);
+		/* border-radius: var(--radius-sm); */
 		color: var(--block-label-text-color);
 		border: 1px solid transparent;
+	}
+
+	.quite-round {
+		border-radius: var(--radius-sm);
+	}
+
+	.very-round {
+		border-radius: var(--radius-md);
 	}
 
 	button[disabled] {

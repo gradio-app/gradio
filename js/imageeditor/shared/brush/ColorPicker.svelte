@@ -5,7 +5,6 @@
 
 	export let color = "rgb(255, 255, 255)";
 
-	let name = "world";
 	let sl_marker_pos = [0, 0];
 	let sl_rect: DOMRect | null = null;
 	let sl_moving = false;

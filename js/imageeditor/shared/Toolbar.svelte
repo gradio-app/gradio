@@ -85,6 +85,7 @@
 	export let sources: Source[];
 	export let transforms: Transform[];
 	// Required by the component interface
+	let recent_colors: string[] = [];
 
 	let enable_layers = true;
 	const dispatch = createEventDispatcher<{
@@ -260,7 +261,7 @@
 				<BrushOptions
 					colors={brush_options.colors}
 					color_mode={brush_options.color_mode}
-					recent_colors={[]}
+					{recent_colors}
 					show_swatch={show_brush_color}
 					show_size={show_brush_size}
 					bind:selected_size

@@ -52,8 +52,6 @@
 
 	let cells: Cell[] = [];
 
-	$: console.log(cells);
-
 	function set_anchor(position: Position): void {
 		selected_anchor = position;
 	}

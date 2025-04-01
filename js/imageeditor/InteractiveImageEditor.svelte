@@ -41,12 +41,16 @@
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 	export let changeable = false;
-	export let value: EditorData | null = {
-		background: null,
-		layers: [],
-		composite: null,
-	};
-	export let layers: LayerOptions;
+	// export let value: EditorData | null = {
+	// 	background: null,
+	// 	layers: [],
+	// 	composite: null,
+	// };
+	export let layers: FileData[];
+	export let composite: FileData | null;
+	export let background: FileData | null;
+
+	export let layer_options: LayerOptions;
 	export let transforms: Transform[];
 	export let accept_blobs: (a: any) => void;
 	export let status:
@@ -60,7 +64,7 @@
 	export let realtime: boolean;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
-	export let dragging: boolean;
+	export let is_dragging: boolean;
 	export let placeholder: string | undefined = undefined;
 	export let border_region: number;
 	export let full_history: CommandNode | null = null;
@@ -135,7 +139,7 @@
 		}
 	}
 
-	$: handle_value(value);
+	$: handle_value({ layers, composite, background });
 
 	let background_image = false;
 	let history = false;
@@ -228,9 +232,9 @@
 />
 <ImageEditor
 	{transforms}
-	composite={value?.composite}
-	layers={value?.layers}
-	background={value?.background}
+	{composite}
+	{layers}
+	{background}
 	on:history
 	{canvas_size}
 	bind:this={editor}
@@ -247,7 +251,8 @@
 	eraser_options={eraser}
 	{fixed_canvas}
 	{border_region}
-	layer_options={layers}
+	{layer_options}
+	bind:is_dragging
 >
 	{#if !background_image && current_tool === "image"}
 		<div class="empty wrap">

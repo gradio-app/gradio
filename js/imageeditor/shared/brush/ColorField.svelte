@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { Eyedropper } from "@gradio/icons";
+	import { Eyedropper, Plus } from "@gradio/icons";
 	import { createEventDispatcher } from "svelte";
 
 	import tinycolor from "tinycolor2";
+	import IconButton from "../IconButton.svelte";
 	export let color: string;
 
 	export let current_mode: "hex" | "rgb" | "hsl" = "hex";
@@ -10,11 +11,12 @@
 	const dispatch = createEventDispatcher<{
 		selected: string;
 		close: void;
+		add_color: void;
 	}>();
 	const modes = [
 		["Hex", "hex"],
 		["RGB", "rgb"],
-		["HSL", "hsl"]
+		["HSL", "hsl"],
 	] as const;
 
 	function format_color(color: string, mode: "hex" | "rgb" | "hsl"): string {

@@ -30,13 +30,6 @@
 	import { get } from "svelte/store";
 	const { drag, open_file_upload } = create_drag();
 
-	interface WeirdTypeData {
-		url: string;
-		meta: {
-			_type: string;
-		};
-	}
-
 	// import { type LayerScene } from "./layers/utils";
 	import { type ImageBlobs } from "./types";
 	import Controls from "./Controls.svelte";
@@ -71,16 +64,15 @@
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
 	export const stream_handler: Client["stream"] | undefined = undefined;
-	export let composite: WeirdTypeData[];
-	export let layers: WeirdTypeData[];
-	export let background: WeirdTypeData;
+	export let composite: FileData | null;
+	export let layers: FileData[];
+	export let background: FileData | null;
 	export let border_region: number;
 	export let layer_options: LayerOptions;
 
 	$: if (layer_options) {
 		if (check_if_should_init()) {
 			editor.set_layer_options(layer_options);
-			console.log("set_layer_options", layer_options);
 			refresh_tools();
 		}
 	}
@@ -163,7 +155,7 @@
 	 * @returns {Promise<string | null>} - The ID of the created layer, or null if failed
 	 */
 	export async function add_layers_from_url(
-		source: WeirdTypeData[] | any,
+		source: FileData[] | any,
 	): Promise<void> {
 		if (!editor || !source.length || check_if_should_init()) return;
 
@@ -203,7 +195,6 @@
 	async function handle_visibility_change(): Promise<void> {
 		if (!editor || !ready || !zoom) return;
 		await tick();
-		console.log("handle_visibility_change", "running");
 
 		const is_visible = pixi_target.offsetParent !== null;
 
@@ -227,7 +218,6 @@
 	}
 
 	onMount(() => {
-		console.log("onMount");
 		let intersection_observer: IntersectionObserver;
 		let resize_observer: ResizeObserver;
 		init_image_editor().then(() => {
@@ -314,7 +304,6 @@
 			dispatch("change");
 		});
 
-		console.log("init_image_editor", "background", background);
 		if (background || layers.length > 0) {
 			if (background) {
 				await add_image_from_url(background);
@@ -715,6 +704,7 @@
 		display: block;
 		opacity: 0;
 		pointer-events: none;
+		border-radius: var(--radius-sm);
 	}
 
 	.pixi-target-crop {
@@ -727,6 +717,7 @@
 		display: block;
 		opacity: 0;
 		pointer-events: none;
+		border-radius: var(--radius-sm);
 	}
 
 	.visible {

@@ -4,6 +4,8 @@
 	import type { Brush, Eraser } from "./shared/brush/types";
 	import type { EditorData, ImageBlobs } from "./InteractiveImageEditor.svelte";
 
+	import { FileData } from "@gradio/client";
+
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { BaseStaticImage as StaticImage } from "@gradio/image";
 	import InteractiveImageEditor from "./InteractiveImageEditor.svelte";
@@ -80,7 +82,7 @@
 		return blobs;
 	}
 
-	let dragging: boolean;
+	let is_dragging: boolean;
 	$: value && handle_change();
 	const is_browser = typeof window !== "undefined";
 	const raf = is_browser
@@ -119,13 +121,22 @@
 	let dynamic_height: number | undefined = undefined;
 
 	$: has_value = value?.background || value?.layers?.length || value?.composite;
+
+	$: normalised_background = value?.background
+		? new FileData(value.background)
+		: null;
+	$: normalised_composite = value?.composite
+		? new FileData(value.composite)
+		: null;
+	$: normalised_layers =
+		value?.layers?.map((layer) => new FileData(layer)) || [];
 </script>
 
 {#if !interactive}
 	<Block
 		{visible}
 		variant={"solid"}
-		border_mode={dragging ? "focus" : "base"}
+		border_mode={is_dragging ? "focus" : "base"}
 		padding={false}
 		{elem_id}
 		{elem_classes}
@@ -161,7 +172,7 @@
 	<Block
 		{visible}
 		variant={has_value ? "solid" : "dashed"}
-		border_mode={dragging ? "focus" : "base"}
+		border_mode={is_dragging ? "focus" : "base"}
 		padding={false}
 		{elem_id}
 		{elem_classes}
@@ -183,11 +194,13 @@
 		<InteractiveImageEditor
 			{border_region}
 			on:history={(e) => (full_history = e.detail)}
-			bind:dragging
+			bind:is_dragging
 			{canvas_size}
 			on:change={() => handle_history_change()}
 			bind:image_id
-			{value}
+			layers={normalised_layers}
+			composite={normalised_composite}
+			background={normalised_background}
 			bind:this={editor_instance}
 			{root}
 			{sources}
@@ -197,7 +210,7 @@
 			on:save={(e) => handle_save()}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => gradio.dispatch("clear")}
-			on:drag={({ detail }) => (dragging = detail)}
+			on:drag={({ detail }) => (is_dragging = detail)}
 			on:upload={() => gradio.dispatch("upload")}
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => {
@@ -220,7 +233,7 @@
 			i18n={gradio.i18n}
 			{transforms}
 			accept_blobs={server.accept_blobs}
-			{layers}
+			layer_options={layers}
 			status={loading_status?.status}
 			upload={(...args) => gradio.client.upload(...args)}
 			stream_handler={(...args) => gradio.client.stream(...args)}

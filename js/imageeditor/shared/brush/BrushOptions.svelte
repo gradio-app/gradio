@@ -12,7 +12,7 @@
 	export let colors: (ColorInput | ColorTuple)[];
 	export let selected_color: any;
 	export let color_mode: Brush["color_mode"] | undefined = undefined;
-	export let recent_colors: (string | null)[] = [];
+	export let recent_colors: (ColorInput | ColorTuple)[] = [];
 	export let selected_size: number;
 	export let selected_opacity: number;
 	export let show_swatch: boolean;
@@ -39,6 +39,7 @@
 		},
 		type: "core" | "user",
 	): void {
+		console.log("handle_color_selection", index, color, opacity, type);
 		if (type === "user" && !color) {
 			editing_index = index;
 			color_picker = true;
@@ -97,8 +98,31 @@
 
 	$: selected_size, selected_color, handle_preview();
 
-	// ensure the brush options do not clip out of view
-	let top = 0;
+	function handle_select(color: string): void {
+		console.log("handle_select", color, $$props);
+		selected_color = color;
+	}
+
+	function handle_add_color(): void {
+		console.log("handle_add_color", $$props);
+		// limit to 5
+		if (recent_colors.length >= 5) {
+			recent_colors.pop();
+		}
+		// check if the color is already in the array
+		if (
+			recent_colors.some((color) => {
+				if (Array.isArray(color)) {
+					return color[0] === selected_color && color[1] === selected_opacity;
+				}
+				return color === selected_color;
+			})
+		) {
+			return;
+		}
+		recent_colors.push([selected_color, selected_opacity]);
+		recent_colors = recent_colors;
+	}
 </script>
 
 <svelte:window bind:innerHeight={height} bind:innerWidth={width} />
@@ -121,7 +145,7 @@
 				bind:current_mode
 				color={selected_color}
 				on:close={() => (color_picker = false)}
-				on:selected={({ detail }) => (selected_color = detail)}
+				on:selected={({ detail }) => handle_select(detail)}
 			/>
 		{/if}
 	{/if}
@@ -134,6 +158,7 @@
 			user_colors={color_mode === "defaults" ? recent_colors : null}
 			{selected_color}
 			{current_mode}
+			on:add_color={handle_add_color}
 		/>
 	{/if}
 
