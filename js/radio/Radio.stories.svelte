@@ -21,7 +21,7 @@
 </Template>
 
 <Story
-	name="Radio with Different Names and Values"
+	name="Radio with choices"
 	args={{
 		value: "jump again",
 		choices: [
@@ -35,7 +35,7 @@
 />
 
 <Story
-	name="Radio with RTL"
+	name="Radio with right to left text"
 	args={{
 		value: "option1",
 		choices: [
@@ -44,7 +44,6 @@
 			["Option 3", "option3"],
 			["Option 4", "option4"]
 		],
-		label: "RTL Radio",
 		rtl: true
 	}}
 />
