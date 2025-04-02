@@ -1,7 +1,7 @@
 ---
-"@gradio/atoms": minor
-"@gradio/highlightedtext": minor
-"gradio": minor
+"@gradio/atoms": patch
+"@gradio/highlightedtext": patch
+"gradio": patch
 ---
 
 feat:Add `rtl` to Block Label 
