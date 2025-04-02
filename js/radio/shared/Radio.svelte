@@ -8,6 +8,7 @@
 	export let internal_value: string | number;
 	export let disabled = false;
 	export let selected: string | null = null;
+	export let rtl = false;
 
 	const dispatch = createEventDispatcher<{ input: string | number }>();
 	let is_selected = false;
@@ -29,6 +30,7 @@
 	class:disabled
 	class:selected={is_selected}
 	data-testid="{display_value}-radio-label"
+	class:rtl
 >
 	<input
 		{disabled}
@@ -38,7 +40,7 @@
 		aria-checked={is_selected}
 		bind:group={selected}
 	/>
-	<span class="ml-2">{display_value}</span>
+	<span>{display_value}</span>
 </label>
 
 <style>
@@ -74,6 +76,11 @@
 
 	label > * + * {
 		margin-left: var(--size-2);
+	}
+
+	label.rtl > * + * {
+		margin-left: 0;
+		margin-right: var(--size-2);
 	}
 
 	input {
