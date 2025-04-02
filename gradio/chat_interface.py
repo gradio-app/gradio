@@ -248,6 +248,8 @@ class ChatInterface(Blocks):
             )
         self.flagging_options = flagging_options
         self.flagging_dir = flagging_dir
+        if isinstance(chatbot, Chatbot):
+            chatbot.unrender()
 
         with self:
             self.saved_conversations = BrowserState(
