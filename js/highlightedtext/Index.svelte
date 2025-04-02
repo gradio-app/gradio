@@ -126,6 +126,7 @@
 				float={false}
 				disable={container === false}
 				{show_label}
+				{rtl}
 			/>
 		{/if}
 
