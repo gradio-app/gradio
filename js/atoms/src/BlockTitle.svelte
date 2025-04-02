@@ -43,7 +43,6 @@
 
 	span[dir="rtl"] {
 		display: block;
-		text-align: right;
 	}
 
 	.hide {
