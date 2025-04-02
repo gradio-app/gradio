@@ -111,3 +111,16 @@
 		interactive: false
 	}}
 />
+
+<Story
+	name="Highlighted Text with RTL"
+	args={{
+		value: [
+			{ token: "مرحبا", class_or_confidence: "greeting" },
+			{ token: " ", class_or_confidence: null },
+			{ token: "بالعالم", class_or_confidence: "subject" }
+		],
+		rtl: true,
+		color_map: { greeting: "green", subject: "blue" }
+	}}
+/>
