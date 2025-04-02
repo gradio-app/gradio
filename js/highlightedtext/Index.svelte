@@ -37,6 +37,7 @@
 	export let combine_adjacent = false;
 	export let interactive: boolean;
 	export let show_label = true;
+	export let rtl = false;
 
 	$: if (!color_map && Object.keys(color_map).length) {
 		color_map = color_map;
@@ -67,6 +68,7 @@
 		{container}
 		{scale}
 		{min_width}
+		{rtl}
 	>
 		<StatusTracker
 			autoscroll={gradio.autoscroll}

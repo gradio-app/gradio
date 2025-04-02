@@ -116,6 +116,7 @@ class TestHighlightedText:
             "visible": True,
             "value": None,
             "proxy_url": None,
+            "rtl": False,
             "_selectable": False,
             "key": None,
             "combine_adjacent": False,
