@@ -44,7 +44,7 @@ class MetadataDict(TypedDict):
         parent_id: The ID of the parent message. Only used for nested thoughts.
         log: A string message to display next to the thought title in a subdued font.
         duration: The duration of the message in seconds. Appears next to the thought title in a subdued font inside a parentheses.
-        status: The status of the message. If "pending", a spinner icon appears next to the thought title. If "done", the thought accordion becomes closed. If no value is provided, the thought accordion is open and no spinner is displayed.
+        status: if set to `"pending"`, a spinner appears next to the thought title and the accordion is initialized open.  If `status` is `"done"`, the thought accordion is initialized closed. If `status` is not provided, the thought accordion is initialized open and no spinner is displayed.
     """
 
     title: NotRequired[str]

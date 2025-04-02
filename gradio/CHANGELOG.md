@@ -1,5 +1,36 @@
 # gradio
 
+## 5.23.3
+
+### Features
+
+- [#10845](https://github.com/gradio-app/gradio/pull/10845) [`2521e8a`](https://github.com/gradio-app/gradio/commit/2521e8a1c76fe77253156bf8465500b9cb1db5c4) - Check if SharedWorker is available in the current runtime and fallback to DedicatedWorker if not available.  Thanks @whitphx!
+- [#10926](https://github.com/gradio-app/gradio/pull/10926) [`d81385b`](https://github.com/gradio-app/gradio/commit/d81385bdb939a81718339b806f0c3f71d64f6dc5) - Add status docs to MetadataDict.  Thanks @aliabd!
+- [#10847](https://github.com/gradio-app/gradio/pull/10847) [`d5fde7c`](https://github.com/gradio-app/gradio/commit/d5fde7c390004ce5394072100b059f545d2d4eae) - Babylon update for model3D.  Thanks @CedricGuillemet!
+- [#10890](https://github.com/gradio-app/gradio/pull/10890) [`01b88c7`](https://github.com/gradio-app/gradio/commit/01b88c7fdedb413ba92ef6191967a8aed25e185f) - Improve API error handling in JS Client.  Thanks @l2dy!
+
+### Fixes
+
+- [#10913](https://github.com/gradio-app/gradio/pull/10913) [`2322700`](https://github.com/gradio-app/gradio/commit/2322700812341a71a200958cdca793ca865c08c4) - Update i18n files.  Thanks @freddyaboulton!
+- [#10922](https://github.com/gradio-app/gradio/pull/10922) [`afe0b13`](https://github.com/gradio-app/gradio/commit/afe0b139fa8715eabc28362aaffe6e0b50b239a5) - Fix regression around chatbot thoughts not being collapsible.  Thanks @abidlabs!
+- [#10901](https://github.com/gradio-app/gradio/pull/10901) [`64a6ead`](https://github.com/gradio-app/gradio/commit/64a6ead05c99cfd5787e7f112838f2be83082a69) - Fix EventData scaling when `gr.Image` is in fullscreen mode.  Thanks @tiago-gsantos!
+- [#10921](https://github.com/gradio-app/gradio/pull/10921) [`c8d6ddd`](https://github.com/gradio-app/gradio/commit/c8d6ddd344495dfa4d97afba708b342ee5e84a63) - Refactor `get_request_url`.  Thanks @abidlabs!
+
+## 5.23.2
+
+### Features
+
+- [#10908](https://github.com/gradio-app/gradio/pull/10908) [`09a8d0c`](https://github.com/gradio-app/gradio/commit/09a8d0c87b5b37d6c5ea1d40d103fd17fc4f24f1) - Pin `pydantic` version.  Thanks @abidlabs!
+- [#10897](https://github.com/gradio-app/gradio/pull/10897) [`1e8cdee`](https://github.com/gradio-app/gradio/commit/1e8cdee48a2c897e2cd3751bf51dda85b48529d9) - Fix route_utils.get_api_call_path().  Thanks @whitphx!
+- [#10891](https://github.com/gradio-app/gradio/pull/10891) [`17fed95`](https://github.com/gradio-app/gradio/commit/17fed951a9bd6ef02fc4430b2dc61e7cd358cd9e) - Fix empty array check in arrow key handling in `gr.Dropdown`.  Thanks @l2dy!
+
+### Fixes
+
+- [#10900](https://github.com/gradio-app/gradio/pull/10900) [`a018a46`](https://github.com/gradio-app/gradio/commit/a018a46a7fae0f7db25baca7e1c08e6fd5912ed2) - Fix wrap behaviour in dataframe.  Thanks @hannahblair!
+- [#10892](https://github.com/gradio-app/gradio/pull/10892) [`bfb7aae`](https://github.com/gradio-app/gradio/commit/bfb7aae299093c9295fca601bded9198fca30744) - Fix minor heartbeat memory leak.  Thanks @brentyi!
+- [#10902](https://github.com/gradio-app/gradio/pull/10902) [`b9b8d08`](https://github.com/gradio-app/gradio/commit/b9b8d08bd2cfb4c89444f5ca3066b1d733c8a807) - Fix disabling buttons in `MultimodalTextbox` when `interactive=False`.  Thanks @lara-gfaria!
+- [#10882](https://github.com/gradio-app/gradio/pull/10882) [`cd7f486`](https://github.com/gradio-app/gradio/commit/cd7f486c61b86a8fcf0157ee884f8f96534ffcc5) - Fix root on gradio mounted apps.  Thanks @aliabid94!
+
 ## 5.23.1
 
 ### Features

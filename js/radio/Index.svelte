@@ -5,7 +5,6 @@
 
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
-	import { afterUpdate } from "svelte";
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
@@ -32,6 +31,7 @@
 	export let loading_status: LoadingStatus;
 	export let interactive = true;
 	export let root: string;
+	export let rtl = false;
 
 	function handle_change(): void {
 		gradio.dispatch("change");
@@ -55,6 +55,7 @@
 	{container}
 	{scale}
 	{min_width}
+	{rtl}
 >
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
@@ -72,6 +73,7 @@
 				{internal_value}
 				bind:selected={value}
 				{disabled}
+				{rtl}
 				on:input={() => {
 					gradio.dispatch("select", { value: internal_value, index: i });
 					gradio.dispatch("input");

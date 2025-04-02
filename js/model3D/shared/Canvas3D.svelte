@@ -1,18 +1,10 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import * as BABYLON from "babylonjs";
-	import * as BABYLON_LOADERS from "babylonjs-loaders";
 	import type { FileData } from "@gradio/client";
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
+	import type { Viewer, ViewerDetails } from "@babylonjs/viewer";
 
-	$: {
-		if (
-			BABYLON_LOADERS.OBJFileLoader != undefined &&
-			!BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS
-		) {
-			BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
-		}
-	}
+	let BABYLON_VIEWER: typeof import("@babylonjs/viewer");
 
 	export let value: FileData;
 	export let display_mode: "solid" | "point_cloud" | "wireframe";
@@ -50,104 +42,90 @@
 		}
 	}
 
-	/* BabylonJS engine and scene management */
 	let canvas: HTMLCanvasElement;
-	let scene: BABYLON.Scene;
-	let engine: BABYLON.Engine;
-	let point_cloud_system: BABYLON.PointsCloudSystem | null = null;
+	let viewer: Viewer;
+	let viewerDetails: Readonly<ViewerDetails>;
 	let mounted = false;
 
 	onMount(() => {
-		// Initialize BabylonJS engine and scene
-		engine = new BABYLON.Engine(canvas, true);
-		scene = new BABYLON.Scene(engine);
+		const initViewer = async (): Promise<void> => {
+			BABYLON_VIEWER = await import("@babylonjs/viewer");
+			BABYLON_VIEWER.createViewerForCanvas(canvas, {
+				clearColor: clear_color,
+				useRightHandedSystem: true,
+				cameraAutoOrbit: { enabled: false },
+				onInitialized: (details: any) => {
+					viewerDetails = details;
+				}
+			}).then((promiseViewer: any) => {
+				viewer = promiseViewer;
+				mounted = true;
+			});
+		};
 
-		scene.createDefaultCameraOrLight();
-		scene.useRightHandedSystem = true;
-		scene.clearColor = scene.clearColor = new BABYLON.Color4(...clear_color);
-
-		engine.runRenderLoop(() => {
-			scene.render();
-		});
-
-		function onWindowResize(): void {
-			engine.resize();
-		}
-		window.addEventListener("resize", onWindowResize);
-
-		mounted = true;
+		initViewer();
 
 		return () => {
-			scene.dispose();
-			engine.dispose();
-			window.removeEventListener("resize", onWindowResize);
+			viewer?.dispose();
 		};
 	});
 
 	$: mounted && load_model(resolved_url);
 
+	function setRenderingMode(pointsCloud: boolean, wireframe: boolean): void {
+		viewerDetails.scene.forcePointsCloud = pointsCloud;
+		viewerDetails.scene.forceWireframe = wireframe;
+	}
+
 	function load_model(url: string | undefined): void {
-		if (scene) {
-			// Dispose of the previous model before loading a new one
-			scene.meshes.forEach((mesh) => {
-				mesh.dispose();
-			});
-
-			if (point_cloud_system) {
-				point_cloud_system.dispose();
-				point_cloud_system = null;
-			}
-
-			// Load the new model
+		if (viewer) {
 			if (url) {
-				BABYLON.SceneLoader.ShowLoadingScreen = false;
-				BABYLON.SceneLoader.Append(
-					url,
-					"",
-					scene,
-					() => {
-						if (display_mode === "point_cloud") {
-							create_point_cloud(scene);
-						} else if (display_mode === "wireframe") {
-							create_wireframe(scene);
-						} else {
-							create_camera(scene, camera_position, zoom_speed, pan_speed);
+				viewer
+					.loadModel(url, {
+						pluginOptions: {
+							obj: {
+								importVertexColors: true
+							}
 						}
-					},
-					undefined,
-					undefined,
-					"." + value.path.split(".").pop()
-				);
+					})
+					.then(() => {
+						if (display_mode === "point_cloud") {
+							setRenderingMode(true, false);
+						} else if (display_mode === "wireframe") {
+							setRenderingMode(false, true);
+						} else {
+							update_camera(camera_position, zoom_speed, pan_speed);
+						}
+					});
+			} else {
+				viewer.resetModel();
 			}
 		}
 	}
 
-	function create_camera(
-		scene: BABYLON.Scene,
+	function update_camera(
 		camera_position: [number | null, number | null, number | null],
 		zoom_speed: number,
 		pan_speed: number
 	): void {
-		scene.createDefaultCamera(true, true, true);
-		var helperCamera = scene.activeCamera! as BABYLON.ArcRotateCamera;
+		viewer.resetCamera();
+		const camera = viewerDetails.camera;
 		if (camera_position[0] !== null) {
-			helperCamera.alpha = BABYLON.Tools.ToRadians(camera_position[0]);
+			camera.alpha = (camera_position[0] * Math.PI) / 180;
 		}
 		if (camera_position[1] !== null) {
-			helperCamera.beta = BABYLON.Tools.ToRadians(camera_position[1]);
+			camera.beta = (camera_position[1] * Math.PI) / 180;
 		}
 		if (camera_position[2] !== null) {
-			helperCamera.radius = camera_position[2];
+			camera.radius = camera_position[2];
 		}
-		helperCamera.lowerRadiusLimit = 0.1;
+		camera.lowerRadiusLimit = 0.1;
 		const updateCameraSensibility = (): void => {
-			helperCamera.wheelPrecision = 250 / (helperCamera.radius * zoom_speed);
-			helperCamera.panningSensibility =
-				(10000 * pan_speed) / helperCamera.radius;
+			camera.wheelPrecision = 250 / (camera.radius * zoom_speed);
+			camera.panningSensibility = (10000 * pan_speed) / camera.radius;
 		};
 		updateCameraSensibility();
-		helperCamera.attachControl(true);
-		helperCamera.onAfterCheckInputsObservable.add(updateCameraSensibility);
+		camera.onAfterCheckInputsObservable.add(updateCameraSensibility);
 	}
 
 	export function reset_camera_position(
@@ -155,72 +133,9 @@
 		zoom_speed: number,
 		pan_speed: number
 	): void {
-		if (scene) {
-			scene.removeCamera(scene.activeCamera!);
-			create_camera(scene, camera_position, zoom_speed, pan_speed);
+		if (viewerDetails) {
+			update_camera(camera_position, zoom_speed, pan_speed);
 		}
-	}
-
-	function create_point_cloud(scene: BABYLON.Scene): void {
-		const meshes = scene.meshes;
-		const pointPositions: BABYLON.Vector3[] = [];
-
-		meshes.forEach((mesh) => {
-			if (mesh instanceof BABYLON.Mesh) {
-				const positions = mesh.getVerticesData(
-					BABYLON.VertexBuffer.PositionKind
-				);
-				if (positions) {
-					for (let i = 0; i < positions.length; i += 3) {
-						pointPositions.push(
-							new BABYLON.Vector3(
-								positions[i],
-								positions[i + 1],
-								positions[i + 2]
-							)
-						);
-					}
-				}
-				mesh.setEnabled(false);
-			}
-		});
-
-		point_cloud_system = new BABYLON.PointsCloudSystem(
-			"point_cloud_system",
-			1,
-			scene
-		);
-
-		point_cloud_system.addPoints(
-			pointPositions.length,
-			(particle: BABYLON.CloudPoint, i: number) => {
-				particle.position = pointPositions[i];
-				particle.color = new BABYLON.Color4(
-					Math.random(),
-					Math.random(),
-					Math.random(),
-					1.0
-				);
-			}
-		);
-
-		point_cloud_system.buildMeshAsync().then((mesh) => {
-			mesh.alwaysSelectAsActiveMesh = true;
-			create_camera(scene, camera_position, zoom_speed, pan_speed);
-		});
-	}
-
-	function create_wireframe(scene: BABYLON.Scene): void {
-		scene.meshes.forEach((mesh) => {
-			if (mesh instanceof BABYLON.Mesh) {
-				mesh.material = new BABYLON.StandardMaterial(
-					"wireframeMaterial",
-					scene
-				);
-				mesh.material.wireframe = true;
-			}
-			create_camera(scene, camera_position, zoom_speed, pan_speed);
-		});
 	}
 </script>
 

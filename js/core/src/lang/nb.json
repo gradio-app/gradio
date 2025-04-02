@@ -1,7 +1,8 @@
 {
 	"_name": "Norsk bokmål",
 	"3D_model": {
-		"3d_model": "3D-modell"
+		"3d_model": "3D-modell",
+		"drop_to_upload": "Slipp en 3D-modell (.obj, .glb, .stl, .gltf, .splat eller .ply) fil her for å laste opp"
 	},
 	"annotated_image": {
 		"annotated_image": "Annotert bilde"
@@ -18,12 +19,14 @@
 		"no_microphone": "Ingen mikrofon funnet",
 		"pause": "Pause",
 		"play": "Spill av",
-		"waiting": "Venter"
+		"waiting": "Venter",
+		"drop_to_upload": "Slipp en lydfil her for å laste opp"
 	},
 	"blocks": {
 		"connection_can_break": "På mobil kan tilkoblingen brytes hvis denne fanen mister fokus eller enheten går i dvale, og du mister plassen din i køen.",
 		"long_requests_queue": "Det er en lang kø med ventende forespørsler. Dupliser denne Space for å hoppe over køen.",
-		"lost_connection": "Mistet tilkobling på grunn av at siden ble forlatt. Går tilbake til køen..."
+		"lost_connection": "Mistet tilkobling på grunn av at siden ble forlatt. Går tilbake til køen...",
+		"waiting_for_inputs": "Venter på at fil(er) skal bli lastet opp, vennligst prøv igjen."
 	},
 	"checkbox": {
 		"checkbox": "Avkrysningsboks",
@@ -43,9 +46,9 @@
 		"edit": "Rediger",
 		"empty": "Tom",
 		"error": "Feil",
-		"hosted_on": "hostet på",
+		"hosted_on": "Hostet på",
 		"loading": "Laster",
-		"logo": "logo",
+		"logo": "Logo",
 		"or": "eller",
 		"remove": "Fjern",
 		"settings": "Innstillinger",
@@ -64,19 +67,26 @@
 		"add_row_above": "Legg til rad over",
 		"add_row_below": "Legg til rad under",
 		"add_column_left": "Legg til kolonne til venstre",
-		"add_column_right": "Legg til kolonne til høyre"
+		"add_column_right": "Legg til kolonne til høyre",
+		"delete_row": "Slett rad",
+		"delete_column": "Slett kolonne",
+		"sort_column": "Sorter kolonne",
+		"sort_ascending": "Sorter stigende",
+		"sort_descending": "Sorter synkende",
+		"drop_to_upload": "Slipp CSV- eller TSV-filer her for å importere data til dataramme",
+		"clear_sort": "Fjern sortering"
 	},
 	"dropdown": {
 		"dropdown": "Nedtrekksmeny"
 	},
 	"errors": {
-		"build_error": "det er en byggefeil",
-		"config_error": "det er en konfigurasjonsfeil",
+		"build_error": "Det er en byggefeil",
+		"config_error": "Det er en konfigurasjonsfeil",
 		"contact_page_author": "Vennligst kontakt sidens forfatter for å informere dem.",
-		"no_app_file": "det er ingen app-fil",
-		"runtime_error": "det er en kjøretidsfeil",
+		"no_app_file": "Det er ingen app-fil",
+		"runtime_error": "Det er en kjøretidsfeil",
 		"space_not_working": "\"Space fungerer ikke fordi\" {0}",
-		"space_paused": "space er pauset",
+		"space_paused": "Space er pauset",
 		"use_via_api": "Bruk via API"
 	},
 	"file": {
@@ -93,7 +103,8 @@
 		"remove_image": "Fjern bilde",
 		"select_brush_color": "Velg penselfarge",
 		"start_drawing": "Start tegning",
-		"use_brush": "Bruk pensel"
+		"use_brush": "Bruk pensel",
+		"drop_to_upload": "Slipp en bildefil her for å laste opp"
 	},
 	"label": {
 		"label": "Etikett"
@@ -101,8 +112,8 @@
 	"login": {
 		"enable_cookies": "Hvis du besøker en HuggingFace Space i inkognitomodus, må du aktivere tredjeparts informasjonskapsler.",
 		"incorrect_credentials": "Feil påloggingsinformasjon",
-		"username": "brukernavn",
-		"password": "passord",
+		"username": "Brukernavn",
+		"password": "Passord",
 		"login": "Logg inn"
 	},
 	"number": {
@@ -112,7 +123,7 @@
 		"plot": "Plott"
 	},
 	"radio": {
-		"radio": "Radio"
+		"radio": "Radioknapp"
 	},
 	"slider": {
 		"slider": "Glidebryter"
@@ -126,5 +137,8 @@
 		"drop_video": "Slipp video her",
 		"drop_gallery": "Slipp media her",
 		"paste_clipboard": "Lim inn fra utklippstavle"
+	},
+	"video": {
+		"drop_to_upload": "Slipp en videofil her for å laste opp"
 	}
 }

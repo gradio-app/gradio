@@ -1,7 +1,8 @@
 {
 	"_name": "Română",
 	"3D_model": {
-		"3d_model": "Model 3D"
+		"3d_model": "Model 3D",
+		"drop_to_upload": "Plasați un fișier cu model 3D (.obj, .glb, .stl, .gltf, .splat sau .ply) aici pentru a-l încărca"
 	},
 	"annotated_image": {
 		"annotated_image": "Imagine adnotată"
@@ -18,12 +19,14 @@
 		"no_microphone": "Nu s-a găsit niciun microfon",
 		"pause": "Pauză",
 		"play": "Redare",
-		"waiting": "Așteptare"
+		"waiting": "Așteptare",
+		"drop_to_upload": "Plasați un fișier audio aici pentru a-l încărca"
 	},
 	"blocks": {
 		"connection_can_break": "Pe mobil, conexiunea poate fi întreruptă dacă această filă își pierde focusul sau dispozitivul intră în modul de repaus, pierzându-vă poziția în coadă.",
 		"long_requests_queue": "Există o coadă lungă de cereri în așteptare. Duplicați acest Space pentru a o evita.",
-		"lost_connection": "Conexiune pierdută din cauza părăsirii paginii. Revenire la coadă..."
+		"lost_connection": "Conexiune pierdută din cauza părăsirii paginii. Revenire la coadă...",
+		"waiting_for_inputs": "Așteptarea finalizării încărcării fișierului (fișierelor), vă rugăm să reîncercați."
 	},
 	"checkbox": {
 		"checkbox": "Casetă de bifat",
@@ -36,16 +39,16 @@
 		"color_picker": "Selector de culoare"
 	},
 	"common": {
-		"built_with": "construit cu",
+		"built_with": "Construit cu",
 		"built_with_gradio": "Construit cu Gradio",
 		"clear": "Șterge",
 		"download": "Descarcă",
 		"edit": "Editează",
 		"empty": "Gol",
 		"error": "Eroare",
-		"hosted_on": "găzduit pe",
+		"hosted_on": "Găzduit pe",
 		"loading": "Se încarcă",
-		"logo": "logo",
+		"logo": "Logo",
 		"or": "sau",
 		"remove": "Elimină",
 		"settings": "Setări",
@@ -64,19 +67,26 @@
 		"add_row_above": "Adaugă rând deasupra",
 		"add_row_below": "Adaugă rând dedesubt",
 		"add_column_left": "Adaugă coloană la stânga",
-		"add_column_right": "Adaugă coloană la dreapta"
+		"add_column_right": "Adaugă coloană la dreapta",
+		"delete_row": "Șterge rând",
+		"delete_column": "Șterge coloana",
+		"sort_column": "Sortează coloana",
+		"sort_ascending": "Sortează crescător",
+		"sort_descending": "Sortează descrescător",
+		"drop_to_upload": "Plasați fișiere CSV sau TSV aici pentru a importa datele în tabelul de date",
+		"clear_sort": "Șterge sortarea"
 	},
 	"dropdown": {
 		"dropdown": "Listă derulantă"
 	},
 	"errors": {
-		"build_error": "există o eroare de compilare",
-		"config_error": "există o eroare de configurare",
+		"build_error": "Există o eroare de compilare",
+		"config_error": "Există o eroare de configurare",
 		"contact_page_author": "Vă rugăm să contactați autorul paginii pentru a-l informa.",
-		"no_app_file": "nu există fișier de aplicație",
-		"runtime_error": "există o eroare de execuție",
+		"no_app_file": "Nu există fișier de aplicație",
+		"runtime_error": "Există o eroare de execuție",
 		"space_not_working": "\"Space-ul nu funcționează deoarece\" {0}",
-		"space_paused": "space-ul este în pauză",
+		"space_paused": "Space-ul este în pauză",
 		"use_via_api": "Utilizați prin API"
 	},
 	"file": {
@@ -93,7 +103,8 @@
 		"remove_image": "Elimină imaginea",
 		"select_brush_color": "Selectează culoarea pensulei",
 		"start_drawing": "Începe să desenezi",
-		"use_brush": "Folosește pensula"
+		"use_brush": "Folosește pensula",
+		"drop_to_upload": "Plasați un fișier imagine aici pentru a-l încărca"
 	},
 	"label": {
 		"label": "Etichetă"
@@ -101,8 +112,8 @@
 	"login": {
 		"enable_cookies": "Dacă vizitați un Space HuggingFace în modul incognito, trebuie să activați cookie-urile terțe.",
 		"incorrect_credentials": "Credențiale incorecte",
-		"username": "nume de utilizator",
-		"password": "parolă",
+		"username": "Nume de utilizator",
+		"password": "Parolă",
 		"login": "Autentificare"
 	},
 	"number": {
@@ -119,12 +130,15 @@
 	},
 	"upload_text": {
 		"click_to_upload": "Click pentru încărcare",
-		"drop_audio": "Plasează audio aici",
-		"drop_csv": "Plasează CSV aici",
-		"drop_file": "Plasează fișierul aici",
-		"drop_image": "Plasează imaginea aici",
-		"drop_video": "Plasează video aici",
-		"drop_gallery": "Plasează media aici",
+		"drop_audio": "Plasați audio aici",
+		"drop_csv": "Plasați CSV aici",
+		"drop_file": "Plasați fișierul aici",
+		"drop_image": "Plasați imaginea aici",
+		"drop_video": "Plasați video aici",
+		"drop_gallery": "Plasați media aici",
 		"paste_clipboard": "Lipește din clipboard"
+	},
+	"video": {
+		"drop_to_upload": "Plasați un fișier video aici pentru a-l încărca"
 	}
 }

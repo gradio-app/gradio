@@ -1,7 +1,8 @@
 {
 	"_name": "Svenska",
 	"3D_model": {
-		"3d_model": "3D-modell"
+		"3d_model": "3D-modell",
+		"drop_to_upload": "Släpp en 3D-modellfil (.obj, .glb, .stl, .gltf, .splat eller .ply) här för att ladda upp"
 	},
 	"annotated_image": {
 		"annotated_image": "Annoterad bild"
@@ -18,12 +19,14 @@
 		"no_microphone": "Ingen mikrofon hittades",
 		"pause": "Paus",
 		"play": "Spela upp",
-		"waiting": "Väntar"
+		"waiting": "Väntar",
+		"drop_to_upload": "Släpp en ljudfil här för att ladda upp"
 	},
 	"blocks": {
 		"connection_can_break": "På mobila enheter kan anslutningen brytas om fliken lämnas eller om enheten går i viloläge, och du förlorar din plats i kön.",
 		"long_requests_queue": "Det är en lång kö med väntande förfrågningar. Duplicera detta Space för att hoppa över kön.",
-		"lost_connection": "Anslutningen bröts eftersom sidan lämnades. Återgår till kön..."
+		"lost_connection": "Anslutningen bröts eftersom sidan lämnades. Återgår till kön...",
+		"waiting_for_inputs": "Väntar på att fil(er) ska vara klara att ladda upp, vänligen försök igen."
 	},
 	"checkbox": {
 		"checkbox": "Kryssruta",
@@ -36,14 +39,14 @@
 		"color_picker": "Färgväljare"
 	},
 	"common": {
-		"built_with": "byggt med",
+		"built_with": "Byggt med",
 		"built_with_gradio": "Byggt med Gradio",
 		"clear": "Rensa",
 		"download": "Ladda ner",
 		"edit": "Redigera",
 		"empty": "Tom",
 		"error": "Fel",
-		"hosted_on": "värd på",
+		"hosted_on": "Värd på",
 		"loading": "Laddar",
 		"logo": "Logotyp",
 		"or": "eller",
@@ -64,19 +67,26 @@
 		"add_row_above": "Lägg till rad ovanför",
 		"add_row_below": "Lägg till rad nedanför",
 		"add_column_left": "Lägg till kolumn till vänster",
-		"add_column_right": "Lägg till kolumn till höger"
+		"add_column_right": "Lägg till kolumn till höger",
+		"delete_row": "Ta bort rad",
+		"delete_column": "Ta bort kolumn",
+		"sort_column": "Sortera kolumn",
+		"sort_ascending": "Sortera stigande",
+		"sort_descending": "Sortera fallande",
+		"drop_to_upload": "Släpp CSV- eller TSV-filer här för att importera data till dataramverk",
+		"clear_sort": "Rensa sortering"
 	},
 	"dropdown": {
 		"dropdown": "Rullgardinsmeny"
 	},
 	"errors": {
-		"build_error": "det finns ett byggfel",
-		"config_error": "det finns ett konfigurationsfel",
+		"build_error": "Det finns ett byggfel",
+		"config_error": "Det finns ett konfigurationsfel",
 		"contact_page_author": "Kontakta sidans författare för att informera dem.",
-		"no_app_file": "det finns ingen app-fil",
-		"runtime_error": "det finns ett körtidsfel",
+		"no_app_file": "Det finns ingen app-fil",
+		"runtime_error": "Det finns ett körtidsfel",
 		"space_not_working": "\"Space fungerar inte eftersom\" {0}",
-		"space_paused": "space är pausat",
+		"space_paused": "Space är pausat",
 		"use_via_api": "Använd via API"
 	},
 	"file": {
@@ -93,7 +103,8 @@
 		"remove_image": "Ta bort bild",
 		"select_brush_color": "Välj penselfärg",
 		"start_drawing": "Börja rita",
-		"use_brush": "Använd pensel"
+		"use_brush": "Använd pensel",
+		"drop_to_upload": "Släpp en bildfil här för att ladda upp"
 	},
 	"label": {
 		"label": "Etikett"
@@ -101,8 +112,8 @@
 	"login": {
 		"enable_cookies": "Om du besöker ett HuggingFace Space i inkognitoläge måste du aktivera tredjepartscookies.",
 		"incorrect_credentials": "Felaktiga inloggningsuppgifter",
-		"username": "användarnamn",
-		"password": "lösenord",
+		"username": "Användarnamn",
+		"password": "Lösenord",
 		"login": "Logga in"
 	},
 	"number": {
@@ -112,7 +123,7 @@
 		"plot": "Diagram"
 	},
 	"radio": {
-		"radio": "Radio"
+		"radio": "Radioknapp"
 	},
 	"slider": {
 		"slider": "Skjutreglage"
@@ -126,5 +137,8 @@
 		"drop_video": "Släpp video här",
 		"drop_gallery": "Släpp media här",
 		"paste_clipboard": "Klistra in från urklipp"
+	},
+	"video": {
+		"drop_to_upload": "Släpp en videofil här för att ladda upp"
 	}
 }

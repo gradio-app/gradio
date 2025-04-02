@@ -1,7 +1,8 @@
 {
 	"_name": "Español",
 	"3D_model": {
-		"3d_model": "Modelo 3D"
+		"3d_model": "Modelo 3D",
+		"drop_to_upload": "Arrastra y suelta un archivo de modelo 3D (.obj, .glb, .stl, .gltf, .splat o .ply) aquí para cargarlo."
 	},
 	"annotated_image": {
 		"annotated_image": "Imagen Anotada"
@@ -18,12 +19,14 @@
 		"no_microphone": "No se encontró micrófono",
 		"pause": "Pausar",
 		"play": "Reproducir",
-		"waiting": "Esperando"
+		"waiting": "Esperando",
+		"drop_to_upload": "Arrastra un archivo de audio aquí para subirlo"
 	},
 	"blocks": {
 		"connection_can_break": "En dispositivos móviles, la conexión puede interrumpirse si esta pestaña pierde el foco o el dispositivo entra en reposo, perdiendo su posición en la cola.",
 		"long_requests_queue": "Hay una larga cola de solicitudes pendientes. Duplique este Space para saltarse la cola.",
-		"lost_connection": "Se perdió la conexión al abandonar la página. Volviendo a la cola..."
+		"lost_connection": "Se perdió la conexión al abandonar la página. Volviendo a la cola...",
+		"waiting_for_inputs": "Esperando a que se complete(n) la(s) carga(s) de archivo(s), por favor inténtelo de nuevo."
 	},
 	"checkbox": {
 		"checkbox": "Casilla de verificación",
@@ -64,7 +67,14 @@
 		"add_row_above": "Agregar fila arriba",
 		"add_row_below": "Agregar fila abajo",
 		"add_column_left": "Agregar columna a la izquierda",
-		"add_column_right": "Agregar columna a la derecha"
+		"add_column_right": "Agregar columna a la derecha",
+		"delete_row": "Eliminar fila",
+		"delete_column": "Eliminar columna",
+		"sort_column": "Ordenar columna",
+		"sort_ascending": "Ordenar ascendente",
+		"sort_descending": "Ordenar descendente",
+		"drop_to_upload": "Arrastra y suelta los archivos CSV o TSV aquí para importar datos al dataframe",
+		"clear_sort": "Limpiar ordenamiento"
 	},
 	"dropdown": {
 		"dropdown": "Menú desplegable"
@@ -93,7 +103,8 @@
 		"remove_image": "Eliminar imagen",
 		"select_brush_color": "Seleccionar color del pincel",
 		"start_drawing": "Empezar a dibujar",
-		"use_brush": "Usar pincel"
+		"use_brush": "Usar pincel",
+		"drop_to_upload": "Arrastra un archivo de imagen aquí para subirlo"
 	},
 	"label": {
 		"label": "Etiqueta"
@@ -126,5 +137,8 @@
 		"drop_video": "Coloque el video aquí",
 		"drop_gallery": "Coloque las imágenes aquí",
 		"paste_clipboard": "Pegar desde el portapapeles"
+	},
+	"video": {
+		"drop_to_upload": "Arrastra un archivo de video aquí para subirlo"
 	}
 }

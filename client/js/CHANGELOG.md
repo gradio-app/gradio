@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 1.14.1
+
+### Features
+
+- [#10890](https://github.com/gradio-app/gradio/pull/10890) [`01b88c7`](https://github.com/gradio-app/gradio/commit/01b88c7fdedb413ba92ef6191967a8aed25e185f) - Improve API error handling in JS Client.  Thanks @l2dy!
+
 ## 1.14.0
 
 ### Features

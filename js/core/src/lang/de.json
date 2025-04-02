@@ -1,7 +1,8 @@
 {
 	"_name": "Deutsch",
 	"3D_model": {
-		"3d_model": "3D-Modell"
+		"3d_model": "3D-Modell",
+		"drop_to_upload": "Laden Sie eine 3D-Modell-Datei (.obj, .glb, .stl, .gltf, .splat oder .ply) hier ab, um sie hochzuladen."
 	},
 	"annotated_image": {
 		"annotated_image": "Annotiertes Bild"
@@ -18,12 +19,14 @@
 		"no_microphone": "Kein Mikrofon gefunden",
 		"pause": "Pause",
 		"play": "Abspielen",
-		"waiting": "Warten"
+		"waiting": "Warten",
+		"drop_to_upload": "Laden Sie eine Audiodatei hier ab, um sie hochzuladen."
 	},
 	"blocks": {
 		"connection_can_break": "Auf Mobilgeräten kann die Verbindung unterbrochen werden, wenn dieser Tab den Fokus verliert oder das Gerät in den Ruhezustand geht, wodurch Ihre Position in der Warteschlange verloren geht.",
 		"long_requests_queue": "Es gibt eine lange Warteschlange ausstehender Anfragen. Duplizieren Sie diesen Space zum Überspringen.",
-		"lost_connection": "Verbindung durch Verlassen der Seite verloren. Kehre zur Warteschlange zurück..."
+		"lost_connection": "Verbindung durch Verlassen der Seite verloren. Kehre zur Warteschlange zurück...",
+		"waiting_for_inputs": "Warten auf das Hochladen der Datei(en), bitte versuchen Sie es erneut."
 	},
 	"checkbox": {
 		"checkbox": "Kontrollkästchen",
@@ -64,10 +67,17 @@
 		"add_row_above": "Zeile oben hinzufügen",
 		"add_row_below": "Zeile unten hinzufügen",
 		"add_column_left": "Spalte links hinzufügen",
-		"add_column_right": "Spalte rechts hinzufügen"
+		"add_column_right": "Spalte rechts hinzufügen",
+		"delete_row": "Zeile löschen",
+		"delete_column": "Spalte löschen",
+		"sort_column": "Spalte sortieren",
+		"sort_ascending": "Aufsteigend sortieren",
+		"sort_descending": "Absteigend sortieren",
+		"drop_to_upload": "CSV- oder TSV-Dateien hier ablegen, um Daten in den DataFrame zu importieren.",
+		"clear_sort": "Sortierung aufheben"
 	},
 	"dropdown": {
-		"dropdown": "Dropdown"
+		"dropdown": "Dropdown-Menü"
 	},
 	"errors": {
 		"build_error": "Es gibt einen Build-Fehler",
@@ -93,7 +103,8 @@
 		"remove_image": "Bild entfernen",
 		"select_brush_color": "Pinselfarbe auswählen",
 		"start_drawing": "Zeichnen beginnen",
-		"use_brush": "Pinsel verwenden"
+		"use_brush": "Pinsel verwenden",
+		"drop_to_upload": "Laden Sie ein Bild hier ab, um es hochzuladen."
 	},
 	"label": {
 		"label": "Beschriftung"
@@ -112,7 +123,7 @@
 		"plot": "Diagramm"
 	},
 	"radio": {
-		"radio": "Radio"
+		"radio": "Optionsfeld"
 	},
 	"slider": {
 		"slider": "Schieberegler"
@@ -126,5 +137,8 @@
 		"drop_video": "Video hier ablegen",
 		"drop_gallery": "Medien hier ablegen",
 		"paste_clipboard": "Aus Zwischenablage einfügen"
+	},
+	"video": {
+		"drop_to_upload": "Laden Sie eine Video-Datei hier ab, um sie hochzuladen."
 	}
 }
