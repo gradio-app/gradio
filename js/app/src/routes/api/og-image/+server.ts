@@ -35,6 +35,8 @@ export async function GET({ request, fetch }) {
 
 							if (sampleData && (sampleData.url || sampleData.path)) {
 								sampleImage = sampleData.url || sampleData.path;
+							} else if (sampleData && sampleData.background && (sampleData.background.url || sampleData.background.path)) {
+								sampleImage = sampleData.background.url || sampleData.background.path;
 							}
 						}
 					}
@@ -288,10 +290,17 @@ export async function GET({ request, fetch }) {
             height: 35px;
             object-fit: contain;
           `;
+						
+						logoImg.onload = () => {
+							document.body.setAttribute("data-logo-loaded", "true");
+						};
+						
+						logoImg.onerror = (err) => {
+							document.body.setAttribute("data-logo-error", "true");
+						};
 
 						const footerText = document.createElement("span");
 						footerText.textContent = "Made with Gradio";
-
 						footer.appendChild(logoImg);
 						footer.appendChild(footerText);
 
@@ -301,7 +310,6 @@ export async function GET({ request, fetch }) {
 
 						return { success: true };
 					} catch (err) {
-						console.error("Error creating layout:", err);
 						return { error: err.toString() };
 					}
 				},
@@ -311,17 +319,21 @@ export async function GET({ request, fetch }) {
 				}
 			);
 
-			console.log("Waiting for layout to render");
-			await page.waitForTimeout(1000);
+			await page.waitForTimeout(100);
+			
+			try {
+				await page.waitForFunction(() => {
+					return document.body.getAttribute('data-logo-loaded') === 'true' || 
+					       document.body.getAttribute('data-logo-error') === 'true';
+				}, { timeout: 5000 });
+			} catch (err) {}
+			
+			await page.waitForTimeout(500);
 
-			console.log("Taking final screenshot");
 			const finalScreenshot = await page.screenshot({
 				type: "png",
 				fullPage: false
 			});
-			console.log(
-				`Final screenshot taken, size: ${finalScreenshot.length} bytes`
-			);
 
 			return new Response(finalScreenshot, {
 				headers: {
@@ -333,8 +345,6 @@ export async function GET({ request, fetch }) {
 			await browser.close();
 		}
 	} catch (error) {
-		console.error("Error generating OG image:", error);
-
 		return new Response(`Failed to generate OG image: ${error.message}`, {
 			status: 500,
 			headers: {
