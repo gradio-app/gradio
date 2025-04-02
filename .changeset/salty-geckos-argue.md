@@ -1,4 +1,5 @@
 ---
+"@gradio/atoms": patch
 "@gradio/multimodaltextbox": patch
 "gradio": patch
 ---
