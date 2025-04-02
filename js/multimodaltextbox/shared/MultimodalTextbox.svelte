@@ -315,7 +315,7 @@
 	role="group"
 	aria-label="Multimedia input field"
 >
-	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle {root} {show_label} {info} {rtl}>{label}</BlockTitle>
 	{#if value.files.length > 0 || uploading}
 		<div
 			class="thumbnails scroll-hide"
@@ -529,7 +529,22 @@
 		resize: none;
 		position: relative;
 		z-index: 1;
+		text-align: left;
 	}
+	textarea[dir="rtl"] {
+		text-align: right;
+	}
+
+	textarea[dir="rtl"] ~ .submit-button {
+		order: -1;
+		margin-left: 0;
+		margin-right: var(--spacing-sm);
+	}
+
+	textarea[dir="rtl"] ~ .submit-button :global(svg) {
+		transform: scaleX(-1);
+	}
+
 	textarea.no-label {
 		padding-top: 5px;
 		padding-bottom: 5px;
