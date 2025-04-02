@@ -4,6 +4,7 @@
 	export let show_label = true;
 	export let disable = false;
 	export let float = true;
+	export let rtl = false;
 </script>
 
 <label
@@ -13,6 +14,7 @@
 	class:float
 	class:hide-label={disable}
 	data-testid="block-label"
+	dir={rtl ? "rtl" : "ltr"}
 >
 	<span>
 		<Icon />
@@ -69,5 +71,15 @@
 		border-width: 0;
 		background: transparent;
 		overflow: visible;
+	}
+
+	label[dir="rtl"] {
+		border: var(--block-label-border-width) solid
+			var(--block-label-border-color);
+		border-top: none;
+		border-right: none;
+		border-bottom-left-radius: var(--block-radius);
+		border-bottom-right-radius: var(--block-label-radius);
+		border-top-left-radius: var(--block-label-radius);
 	}
 </style>
