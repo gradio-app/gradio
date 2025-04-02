@@ -103,13 +103,6 @@
 		justify-content: center;
 	}
 
-	.image-frame {
-		width: auto;
-		height: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
 	.image-frame :global(img) {
 		width: var(--size-full);
 		height: var(--size-full);

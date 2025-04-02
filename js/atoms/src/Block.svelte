@@ -19,6 +19,8 @@
 	export let min_width = 0;
 	export let flex = false;
 	export let resizable = false;
+	export let rtl = false;
+
 	let element: HTMLElement;
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
@@ -80,6 +82,7 @@
 	style:min-width={`calc(min(${min_width}px, 100%))`}
 	style:border-width="var(--block-border-width)"
 	class:auto-margin={scale === null}
+	dir={rtl ? "rtl" : "ltr"}
 >
 	<slot />
 	{#if resizable}
