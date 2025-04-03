@@ -82,4 +82,9 @@
 		border-bottom-right-radius: var(--block-label-radius);
 		border-top-left-radius: var(--block-label-radius);
 	}
+
+	label[dir="rtl"] span {
+		margin-left: var(--size-2);
+		margin-right: 0;
+	}
 </style>
