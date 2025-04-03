@@ -115,6 +115,7 @@
 <Story
 	name="Highlighted Text with RTL"
 	args={{
+		label: "مرحبا بالعالم",
 		value: [
 			{ token: "مرحبا", class_or_confidence: "greeting" },
 			{ token: " ", class_or_confidence: null },
