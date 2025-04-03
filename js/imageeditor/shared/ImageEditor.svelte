@@ -523,14 +523,12 @@
 	$: add_layers_from_url(layers);
 
 	async function handle_crop_confirm(): Promise<void> {
-		const { image, ...crop_info } = await crop.get_crop_bounds();
+		const { image } = await crop.get_crop_bounds();
 		if (!image) return;
 
 		await editor.add_image({
 			image,
 			resize: false,
-			crop_offset: crop_info,
-			is_cropped: true,
 		});
 		handle_subtool_change({ tool: "image", subtool: null });
 		dispatch("change");

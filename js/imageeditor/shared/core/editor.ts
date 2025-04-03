@@ -626,8 +626,6 @@ export class LayerManager {
 			}
 		}
 
-		// newLayers array is no longer needed as we modified this.layers directly
-
 		// Ensure the active layer still exists, otherwise select the top one
 		const currentActiveId = get(this.layer_store).active_layer;
 		const activeLayerExists = processedLayers.some(
@@ -650,8 +648,8 @@ export class LayerManager {
 		// Using setTimeout allows the current execution stack to clear
 		setTimeout(() => {
 			// Attempt to force GC or resource cleanup if needed, though Pixi often handles this
-			// Assets.cache.reset(); // Be careful with this, might clear too much
-			// this.app.renderer.textureGC.run(); // Force texture garbage collection
+			Assets.cache.reset(); // Be careful with this, might clear too much
+			this.app.renderer.textureGC.run(); // Force texture garbage collection
 		}, 100);
 	}
 
@@ -849,17 +847,21 @@ export class LayerManager {
 		return blobs;
 	}
 
-	reset_layers(width: number, height: number): void {
+	reset_layers(width: number, height: number, persist = false): void {
+		const _layers_to_recreate = persist
+			? this.layers.map((layer) => layer.name)
+			: this.layer_options.layers;
+
 		this.layers.forEach((layer) => {
 			this.delete_layer(layer.id);
 		});
 
-		for (const layer of this.layer_options.layers) {
+		for (const layer of _layers_to_recreate) {
 			this.create_layer({
 				width,
 				height,
 				layer_name: layer,
-				user_created: false
+				user_created: this.layer_options.layers.includes(layer) ? false : true
 			});
 		}
 	}
@@ -1450,52 +1452,18 @@ export class ImageEditor {
 		this.notify("change");
 	}
 
-	/**
-	 * Creates dimensions object for image addition
-	 * @param bg_is_cropped Whether the background image is already cropped
-	 * @returns Dimensions object with appropriate x/y values
-	 */
-	private create_dimensions_object(bg_is_cropped: boolean): {
-		width: number;
-		height: number;
-		x: number;
-		y: number;
-	} {
-		// For initial (non-cropped) images, preserve their position
-		// For crops of crops, don't include previous position info to avoid accumulation
-		return {
-			width: this.background_image?.width || this.dimensions_value.width,
-			height: this.background_image?.height || this.dimensions_value.height,
-			// When using a non-cropped image, preserve its position
-			// When working with an already cropped image, zero out positions to prevent accumulation
-			x: bg_is_cropped ? 0 : this.background_image?.x || 0,
-			y: bg_is_cropped ? 0 : this.background_image?.y || 0
-		};
-	}
-
 	async add_image({
 		image,
-		resize = true,
-		crop_offset,
-		is_cropped = false
+		resize = true
 	}: {
 		image: Blob | File;
 		resize?: boolean;
-		crop_offset?: {
-			x: number;
-			y: number;
-			crop_dimensions: { width: number; height: number };
-			image_dimensions: { width: number; height: number };
-		};
-		is_cropped?: boolean;
 	}): Promise<void> {
 		const image_command = new AddImageCommand(
 			this.context,
 			image,
 			this.fixed_canvas,
-			this.border_region,
-			is_cropped,
-			crop_offset
+			this.border_region
 		);
 
 		await image_command.start();
@@ -1514,8 +1482,6 @@ export class ImageEditor {
 			fixed_canvas: this.fixed_canvas,
 			border_region: this.border_region
 		});
-
-		// this.layer_manager.init_layers(this.width, this.height);
 
 		// Update resize tool if present
 		const resize_tool = this.tools.get("resize") as any;

@@ -39,28 +39,17 @@ export class ImageTool implements Tool {
 	async add_image({
 		image,
 		fixed_canvas,
-		border_region = 0,
-		is_cropped = false,
-		crop_offset
+		border_region = 0
 	}: {
 		image: Blob | File | Texture;
 		fixed_canvas: boolean;
 		border_region?: number;
-		is_cropped?: boolean;
-		crop_offset?: {
-			x: number;
-			y: number;
-			crop_dimensions: { width: number; height: number };
-			image_dimensions: { width: number; height: number };
-		};
 	}): Promise<void> {
 		const image_command = new AddImageCommand(
 			this.context,
 			image,
 			fixed_canvas,
-			border_region,
-			is_cropped,
-			crop_offset
+			border_region
 		);
 
 		await image_command.start();
@@ -90,13 +79,6 @@ export class AddImageCommand implements BgImageCommand {
 	current_scale: number;
 	current_position: { x: number; y: number };
 	border_region: number;
-	is_cropped: boolean;
-	crop_offset?: {
-		x: number;
-		y: number;
-		crop_dimensions: { width: number; height: number };
-		image_dimensions: { width: number; height: number };
-	};
 
 	scaled_width!: number;
 	scaled_height!: number;
@@ -105,14 +87,7 @@ export class AddImageCommand implements BgImageCommand {
 		context: ImageEditorContext,
 		background: Blob | File | Texture,
 		fixed_canvas: boolean,
-		border_region = 0,
-		is_cropped = false,
-		crop_offset?: {
-			x: number;
-			y: number;
-			crop_dimensions: { width: number; height: number };
-			image_dimensions: { width: number; height: number };
-		}
+		border_region = 0
 	) {
 		this.context = context;
 		this.background = background;
@@ -122,10 +97,6 @@ export class AddImageCommand implements BgImageCommand {
 		this.current_scale = get(this.context.scale);
 		this.current_position = get(this.context.position);
 		this.sprite = new Sprite();
-		this.is_cropped = is_cropped;
-		this.crop_offset = crop_offset;
-
-		console.log("crop", this);
 	}
 
 	async start(): Promise<[number, number]> {
@@ -140,53 +111,10 @@ export class AddImageCommand implements BgImageCommand {
 
 		this.sprite = new Sprite(image_texture);
 
-		// Handle cropped images
-		if (this.is_cropped && this.crop_offset) {
-			return this.handle_cropped_image();
-		}
-
-		return this.handle_uncropped_image();
+		return this.handle_image();
 	}
 
-	private handle_cropped_image(): [number, number] {
-		// Get the dimensions of the cropped image
-		const [width, height] = this.handle_uncropped_image();
-
-		// If we have crop offset information
-		if (this.crop_offset) {
-			let scale_factor_x = 1;
-			let scale_factor_y = 1;
-
-			if (this.fixed_canvas) {
-				// Calculate how the original image would be scaled to fit this canvas
-				// This gives us the scale factor to apply to crop offsets
-				scale_factor_x =
-					this.sprite.width / this.crop_offset.image_dimensions.width;
-				scale_factor_y =
-					this.sprite.height / this.crop_offset.image_dimensions.height;
-
-				// Use consistent scaling to maintain aspect ratio
-				const scale_factor = Math.min(scale_factor_x, scale_factor_y);
-
-				this.sprite.width =
-					this.crop_offset?.crop_dimensions.width * scale_factor;
-				this.sprite.height =
-					this.crop_offset?.crop_dimensions.height * scale_factor;
-
-				// Apply the scaled offset to position the image correctly
-				this.sprite.x += this.crop_offset.x * scale_factor;
-				this.sprite.y += this.crop_offset.y * scale_factor;
-			} else {
-				// For non-fixed canvas, apply offsets directly (no scaling needed)
-				this.sprite.x += this.crop_offset.x;
-				this.sprite.y += this.crop_offset.y;
-			}
-		}
-
-		return [width, height];
-	}
-
-	private handle_uncropped_image(): [number, number] {
+	private handle_image(): [number, number] {
 		// Handle fixed canvas differently when border region is present
 		if (this.fixed_canvas) {
 			// Calculate the effective canvas size accounting for border region
@@ -202,12 +130,8 @@ export class AddImageCommand implements BgImageCommand {
 			// Fit the image to the canvas while maintaining aspect ratio
 
 			const { width, height, x, y } = fit_image_to_canvas(
-				this.crop_offset
-					? this.crop_offset.image_dimensions.width
-					: this.sprite.width,
-				this.crop_offset
-					? this.crop_offset.image_dimensions.height
-					: this.sprite.height,
+				this.sprite.width,
+				this.sprite.height,
 				effectiveCanvasWidth,
 				effectiveCanvasHeight
 			);
@@ -227,14 +151,6 @@ export class AddImageCommand implements BgImageCommand {
 			this.sprite.x = this.border_region;
 			this.sprite.y = this.border_region;
 
-			// Return dimensions with border region added
-
-			if (this.is_cropped) {
-				return [
-					this.current_canvas_size.width,
-					this.current_canvas_size.height
-				];
-			}
 			return [width + this.border_region * 2, height + this.border_region * 2];
 		}
 
@@ -267,20 +183,24 @@ export class AddImageCommand implements BgImageCommand {
 		background_layer.addChild(this.sprite);
 
 		// Resize and preserve content of existing layers
-		if (!this.is_cropped) {
-			if (existing_layers && existing_layers.length > 0) {
-				for (const layer of existing_layers) {
-					this.context.layer_manager.delete_layer(layer.id);
-				}
-			}
-		}
+		this.context.layer_manager.resize_all_layers(
+			this.fixed_canvas ? this.current_canvas_size.width : width,
+			this.fixed_canvas ? this.current_canvas_size.height : height,
+			true
+		);
+
+		// if (existing_layers && existing_layers.length > 0) {
+		// 	for (const layer of existing_layers) {
+		// 		this.context.layer_manager.delete_layer(layer.id);
+		// 	}
+		// }
 
 		this.context.set_background_image(this.sprite);
 
-		this.context.layer_manager.init_layers(
-			this.fixed_canvas ? this.current_canvas_size.width : width,
-			this.fixed_canvas ? this.current_canvas_size.height : height
-		);
+		// this.context.layer_manager.init_layers(
+		// 	this.fixed_canvas ? this.current_canvas_size.width : width,
+		// 	this.fixed_canvas ? this.current_canvas_size.height : height
+		// );
 
 		this.context.reset();
 	}
