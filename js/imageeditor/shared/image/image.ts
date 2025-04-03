@@ -117,6 +117,7 @@ export class AddImageCommand implements BgImageCommand {
 	private handle_image(): [number, number] {
 		// Handle fixed canvas differently when border region is present
 		if (this.fixed_canvas) {
+			console.log("fixed canvas");
 			// Calculate the effective canvas size accounting for border region
 			const effectiveCanvasWidth = Math.max(
 				this.current_canvas_size.width - this.border_region * 2,
@@ -172,8 +173,6 @@ export class AddImageCommand implements BgImageCommand {
 			height: this.fixed_canvas ? this.current_canvas_size.height : height
 		});
 
-		const existing_layers = this.context.layer_manager.get_layers();
-
 		// Create new background layer and add the sprite
 		const background_layer = this.context.layer_manager.create_background_layer(
 			this.fixed_canvas ? this.current_canvas_size.width : width,
@@ -183,24 +182,13 @@ export class AddImageCommand implements BgImageCommand {
 		background_layer.addChild(this.sprite);
 
 		// Resize and preserve content of existing layers
-		this.context.layer_manager.resize_all_layers(
+		this.context.layer_manager.reset_layers(
 			this.fixed_canvas ? this.current_canvas_size.width : width,
 			this.fixed_canvas ? this.current_canvas_size.height : height,
 			true
 		);
 
-		// if (existing_layers && existing_layers.length > 0) {
-		// 	for (const layer of existing_layers) {
-		// 		this.context.layer_manager.delete_layer(layer.id);
-		// 	}
-		// }
-
 		this.context.set_background_image(this.sprite);
-
-		// this.context.layer_manager.init_layers(
-		// 	this.fixed_canvas ? this.current_canvas_size.width : width,
-		// 	this.fixed_canvas ? this.current_canvas_size.height : height
-		// );
 
 		this.context.reset();
 	}
@@ -251,9 +239,7 @@ export function add_bg_color(
 				width,
 				height
 			});
-			// graphics.beginFill(new Color(color));
-			// graphics.drawRect(0, 0, width, height);
-			// graphics.endFill();
+
 			renderer.render(graphics, { renderTexture: texture });
 			sprite = new Sprite(texture);
 			return [sprite.width, sprite.height];
@@ -294,22 +280,15 @@ export function fit_image_to_canvas(
 	let new_width: number;
 	let new_height: number;
 
-	if (image_width <= canvas_width && image_height <= canvas_height) {
-		new_width = image_width;
-		new_height = image_height;
+	if (image_aspect_ratio > canvas_aspect_ratio) {
+		new_width = canvas_width;
+		new_height = canvas_width / image_aspect_ratio;
 	} else {
-		if (image_aspect_ratio > canvas_aspect_ratio) {
-			// Width is the limiting factor
-			new_width = canvas_width;
-			new_height = canvas_width / image_aspect_ratio;
-		} else {
-			// Height is the limiting factor
-			new_height = canvas_height;
-			new_width = canvas_height * image_aspect_ratio;
-		}
+		new_height = canvas_height;
+		new_width = canvas_height * image_aspect_ratio;
 	}
 
-	// Calculate position to center the image
+	// center image
 	const x = Math.round((canvas_width - new_width) / 2);
 	const y = Math.round((canvas_height - new_height) / 2);
 

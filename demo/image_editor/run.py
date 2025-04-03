@@ -396,13 +396,14 @@ import gradio as gr
 
 with gr.Blocks() as demo:
     with gr.Tab("Default ImageEditor"):
-        im = gr.ImageEditor(value="./cheetah.jpg", interactive=True)
+        im = gr.ImageEditor(value="./cheetah.jpg", interactive=True, fixed_canvas=True)
     with gr.Tab("Brush Options"):
         with gr.Row():
             with gr.Column():
                 image_editor = gr.ImageEditor(
                     value="./cheetah.jpg",
                     interactive=True,
+                    fixed_canvas=True,
                     brush=gr.Brush(
                         default_size=10,
                         default_color="#000000",
