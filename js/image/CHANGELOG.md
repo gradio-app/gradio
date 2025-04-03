@@ -1,5 +1,21 @@
 # @gradio/image
 
+## 0.21.7
+
+### Features
+
+- [#10847](https://github.com/gradio-app/gradio/pull/10847) [`d5fde7c`](https://github.com/gradio-app/gradio/commit/d5fde7c390004ce5394072100b059f545d2d4eae) - Babylon update for model3D.  Thanks @CedricGuillemet!
+
+### Fixes
+
+- [#10901](https://github.com/gradio-app/gradio/pull/10901) [`64a6ead`](https://github.com/gradio-app/gradio/commit/64a6ead05c99cfd5787e7f112838f2be83082a69) - Fix EventData scaling when `gr.Image` is in fullscreen mode.  Thanks @tiago-gsantos!
+
+### Dependency updates
+
+- @gradio/wasm@0.18.1
+- @gradio/client@1.14.1
+- @gradio/upload@0.15.7
+
 ## 0.21.6
 
 ### Dependency updates
