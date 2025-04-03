@@ -1,5 +1,14 @@
 # @gradio/video
 
+## 0.14.7
+
+### Dependency updates
+
+- @gradio/wasm@0.18.1
+- @gradio/client@1.14.1
+- @gradio/upload@0.15.7
+- @gradio/image@0.21.7
+
 ## 0.14.6
 
 ### Dependency updates

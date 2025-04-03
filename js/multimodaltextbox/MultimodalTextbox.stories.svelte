@@ -78,11 +78,11 @@
 	args={{ lines: 5, max_lines: 5 }}
 />
 <Story name="Right aligned textbox" args={{ text_align: "right" }} />
-<Story name="RTL textbox" args={{ rtl: true }} />
 <Story
 	name="Single file upload"
 	args={{
 		file_count: "single",
+		submit_btn: true,
 		value: {
 			text: "sample text",
 			files: [
@@ -94,6 +94,12 @@
 	}}
 />
 <Story
-	name="MultimodalTextbox with microphone input"
-	args={{ sources: ["microphone"] }}
+	name="MultimodalTextbox with microphone input and right to left text"
+	args={{
+		label: "مرحبًا",
+		sources: ["microphone"],
+		rtl: true,
+		submit_btn: true,
+		value: { text: "مرحبًا", files: [] }
+	}}
 />
