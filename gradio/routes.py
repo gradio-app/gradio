@@ -297,12 +297,7 @@ class App(FastAPI):
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
-        _root_path = []
-        if blocks.root_path:
-            _root_path.append(blocks.root_path.strip("/"))
-        if blocks.custom_mount_path:
-            _root_path.append(blocks.custom_mount_path.strip("/"))
-        self._root_path = ("/" if _root_path else "") + "/".join(_root_path)
+        self.root_path = blocks.root_path or blocks.custom_mount_path or ""
         self.state_holder.set_blocks(blocks)
 
     def get_blocks(self) -> gradio.Blocks:
@@ -464,7 +459,7 @@ class App(FastAPI):
                 root = route_utils.get_root_url(
                     request=request,
                     route_path="/login",
-                    root_path=app._root_path,
+                    root_path=app.root_path,
                 )
                 return RedirectResponse(url=root, status_code=status.HTTP_302_FOUND)
             if (
@@ -507,7 +502,7 @@ class App(FastAPI):
                 root = route_utils.get_root_url(
                     request=request,
                     route_path="/logout",
-                    root_path=app._root_path,
+                    root_path=app.root_path,
                 )
                 response = RedirectResponse(url=root, status_code=status.HTTP_302_FOUND)
                 response.delete_cookie(key=f"access-token-{app.cookie_id}", path="/")
@@ -589,7 +584,7 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request,
                 route_path=f"/{page}",
-                root_path=app._root_path,
+                root_path=app.root_path,
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
@@ -700,7 +695,7 @@ class App(FastAPI):
         def get_config(request: fastapi.Request, deep_link: str = ""):
             config = utils.safe_deepcopy(app.get_blocks().config)
             root = route_utils.get_root_url(
-                request=request, route_path="/config", root_path=app._root_path
+                request=request, route_path="/config", root_path=app.root_path
             )
             config = route_utils.update_root_in_config(config, root)
             config["username"] = get_current_user(request)
@@ -1024,7 +1019,7 @@ class App(FastAPI):
                         root_path = route_utils.get_root_url(
                             request=request,
                             route_path=f"{API_PREFIX}/heartbeat/{session_hash}",
-                            root_path=app._root_path,
+                            root_path=app.root_path,
                         )
                         body = PredictBodyInternal(
                             session_hash=session_hash, data=[], request=request
@@ -1092,7 +1087,7 @@ class App(FastAPI):
             root_path = route_utils.get_root_url(
                 request=request,
                 route_path=f"{API_PREFIX}/api/{api_name}",
-                root_path=app._root_path,
+                root_path=app.root_path,
             )
             try:
                 output = await route_utils.call_process_api(
@@ -1628,7 +1623,7 @@ class App(FastAPI):
             root_url = route_utils.get_root_url(
                 request=request,
                 route_path=f"{API_PREFIX}/monitoring",
-                root_path=app._root_path,
+                root_path=app.root_path,
             )
             monitoring_url = f"{root_url}/monitoring/{app.analytics_key}"
             print(f"* Monitoring URL: {monitoring_url} *")
@@ -1847,13 +1842,6 @@ def mount_gradio_app(
                 yield
 
     app.router.lifespan_context = new_lifespan
-
-    # fake_app = FastAPI()
-    # @fake_app.get("/")
-    # def read_main():
-    #     return {"message": "This is your main app"}
-    print(1, gradio_app.root_path)
-    print(2, gradio_app._root_path)
 
     app.mount(path, gradio_app)
     return app
