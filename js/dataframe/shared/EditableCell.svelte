@@ -31,12 +31,12 @@
 	export let is_dragging = false;
 
 	export let show_selection_buttons = false;
-	export let coords: [number, number] | null = null;
+	export let coords: [number, number];
 	export let on_select_column: ((col: number) => void) | null = null;
 	export let on_select_row: ((row: number) => void) | null = null;
 
 	const dispatch = createEventDispatcher<{
-		blur: void;
+		blur: { blur_event: FocusEvent; coords: [number, number] };
 		keydown: KeyboardEvent;
 	}>();
 
@@ -77,20 +77,16 @@
 		return {};
 	}
 
-	function handle_blur({
-		currentTarget
-	}: Event & {
-		currentTarget: HTMLInputElement;
-	}): void {
-		value = currentTarget.value;
-		dispatch("blur");
+	function handle_blur(event: FocusEvent): void {
+		dispatch("blur", {
+			blur_event: event,
+			coords: coords
+		});
 	}
 
 	function handle_keydown(event: KeyboardEvent): void {
 		if (event.key === "Enter") {
-			if (edit) {
-				dispatch("blur");
-			} else if (!header) {
+			if (!header) {
 				is_expanded = !is_expanded;
 			}
 		}

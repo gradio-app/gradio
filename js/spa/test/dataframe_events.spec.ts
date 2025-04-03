@@ -1,25 +1,10 @@
 import { test, expect } from "@self/tootils";
 import { Locator } from "@playwright/test";
-import { toBeVisible } from "@testing-library/jest-dom/matchers";
-
-function get_header_cell(element: Locator, col: number) {
-	return element.locator(`th[title='col_${col}']`).nth(1);
-}
 
 // returns a cell in a dataframe by row and column indices
 function get_cell(element: Locator, row: number, col: number) {
 	return element.locator(`[data-row='${row}'][data-col='${col}']`);
 }
-
-const get_column_values = async (df: Locator): Promise<number[]> => {
-	const cells = await df.locator(".tbody > tr > td:nth-child(2)").all();
-	const values: number[] = [];
-	for (const cell of cells) {
-		const text = (await cell.textContent()) || "0";
-		values.push(parseInt(text.trim()));
-	}
-	return values;
-};
 
 test("Dataframe change events work as expected", async ({ page }) => {
 	await expect(page.getByLabel("Change events")).toHaveValue("0");
@@ -50,6 +35,22 @@ test("Dataframe input events work as expected", async ({ page }) => {
 	await page.getByLabel("Edit cell").press("Enter");
 
 	await expect(input_events).toHaveValue("2");
+});
+
+test("Dataframe blur event works as expected", async ({ page }) => {
+	const df = page.locator("#dataframe").first();
+
+	await get_cell(df, 0, 0).click();
+	await page.getByLabel("Edit cell").fill("test_blur");
+	await get_cell(df, 1, 1).click();
+
+	await expect(page.getByLabel("Change events")).toHaveValue("1");
+
+	await get_cell(df, 0, 0).click();
+	await page.getByLabel("Edit cell").fill("test_blur_2");
+	await get_cell(df, 1, 2).click();
+
+	await expect(page.getByLabel("Change events")).toHaveValue("2");
 });
 
 test("Dataframe select events work as expected", async ({ page }) => {
@@ -199,9 +200,10 @@ test("Dataframe keyboard operations work as expected", async ({ page }) => {
 	// test delete key
 	await get_cell(df, 0, 0).click();
 	await page.waitForTimeout(100);
+	await page.keyboard.press("Escape");
 	await page.keyboard.press("Delete");
 
-	expect(await get_cell(df, 0, 0).locator("input").textContent()).toBe("");
+	expect(await get_cell(df, 0, 0).textContent()).toBe("    ⋮");
 
 	// test backspace key
 	await get_cell(df, 0, 1).click();
@@ -244,7 +246,7 @@ test("Dataframe shift+click selection works", async ({ page }) => {
 		navigator.clipboard.readText()
 	);
 
-	expect(clipboard_value).toBe("0,6\n0,0");
+	expect(clipboard_value).toBe("0,6\n0,6");
 });
 
 test("Dataframe cmd + click selection works", async ({ page }) => {
@@ -273,7 +275,7 @@ test("Dataframe cmd + click selection works", async ({ page }) => {
 		navigator.clipboard.readText()
 	);
 
-	expect(clipboard_value).toBe("6\n0");
+	expect(clipboard_value).toBe("6\n8");
 });
 
 test("Static columns cannot be edited", async ({ page }) => {

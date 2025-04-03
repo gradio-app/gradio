@@ -15,6 +15,12 @@
 		row: number,
 		col: number
 	) => void;
+	export let handle_blur: (
+		event: CustomEvent<{
+			blur_event: FocusEvent;
+			coords: [number, number];
+		}>
+	) => void;
 	export let toggle_cell_menu: (
 		event: MouseEvent,
 		row: number,
@@ -128,6 +134,7 @@
 					selected_cells = [[row, col]];
 				}
 			}}
+			on:blur={handle_blur}
 			{root}
 			{max_chars}
 			{i18n}
