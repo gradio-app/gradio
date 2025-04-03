@@ -10,6 +10,7 @@ import time
 from pathlib import Path
 
 import httpx
+from huggingface_hub.constants import HF_HOME
 
 from gradio.exceptions import ChecksumMismatchError
 
@@ -47,8 +48,8 @@ CHECKSUMS = {
 CHUNK_SIZE = 128
 
 BINARY_FILENAME = f"{BINARY_REMOTE_NAME}_v{VERSION}"
-BINARY_FOLDER = Path(__file__).parent
-BINARY_PATH = f"{BINARY_FOLDER / BINARY_FILENAME}"
+BINARY_FOLDER = Path(HF_HOME) / "gradio" / "frpc"
+BINARY_PATH = str(BINARY_FOLDER / BINARY_FILENAME)
 
 TUNNEL_TIMEOUT_SECONDS = 30
 TUNNEL_ERROR_MESSAGE = (
@@ -81,6 +82,7 @@ class Tunnel:
     @staticmethod
     def download_binary():
         if not Path(BINARY_PATH).exists():
+            Path(BINARY_FOLDER).mkdir(parents=True, exist_ok=True)
             resp = httpx.get(BINARY_URL, timeout=30)
 
             if resp.status_code == 403:
