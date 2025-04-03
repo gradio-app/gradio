@@ -20,7 +20,8 @@
 	import { type Brush, type Eraser, type ColorTuple } from "./brush/types";
 	import { BrushTool } from "./brush/brush";
 	import { create_drag } from "@gradio/upload";
-	import Layers from "./Layers.svelte";
+	// import Layers from "./Layers.svelte";
+	import SecondaryToolbar from "./SecondaryToolbar.svelte";
 	import { Check } from "@gradio/icons";
 	import type { LayerOptions, Source, Transform } from "./types";
 	import { get } from "svelte/store";
@@ -630,7 +631,22 @@
 		{/if}
 
 		{#if current_subtool !== "crop" && !layer_options.disabled}
-			<Layers
+			<SecondaryToolbar
+				dimensions={editor.dimensions}
+				on:resize={(e) => {
+					editor.modify_canvas_size(
+						e.detail.width,
+						e.detail.height,
+						e.detail.anchor,
+						e.detail.scale,
+					);
+				}}
+				on:set_zoom={(e) => {
+					zoom.set_zoom(e.detail);
+				}}
+				on:zoom_in={() => zoom_in_out("in")}
+				on:zoom_out={() => zoom_in_out("out")}
+				current_zoom={zoom_level}
 				enable_additional_layers={layer_options.allow_additional_layers}
 				layers={editor.layers}
 				on:new_layer={() => {

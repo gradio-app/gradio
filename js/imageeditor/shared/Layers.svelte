@@ -48,11 +48,17 @@
 		class:closed={!show_layers}
 		use:click_outside={() => (show_layers = false)}
 	>
+		<!-- <div class="space"></div> -->
+
 		<button
+			class="layer-title-button"
 			aria-label="Show Layers"
 			on:click|stopPropagation={() => (show_layers = !show_layers)}
-			><span class="icon"><Layers /></span>
-			{$layers.layers.find((l) => l.id === $layers.active_layer)?.name}
+		>
+			{show_layers
+				? "Layers"
+				: $layers.layers.find((l) => l.id === $layers.active_layer)?.name}
+			<span class="icon"><Layers /></span>
 		</button>
 		{#if show_layers}
 			<ul>
@@ -103,7 +109,7 @@
 					<li class="add-layer">
 						<IconButton
 							Icon={Plus}
-							aria-label="Add Layer"
+							label="Add Layer"
 							on:click={(e) => {
 								e.stopPropagation();
 								new_layer();
@@ -129,43 +135,46 @@
 		width: 100%;
 	}
 	.icon {
-		width: 16px;
+		width: 14px;
 		color: var(--body-text-color);
-		margin-right: var(--spacing-lg);
 		transition: color 0.15s ease;
 	}
 
 	.layer-wrap {
-		position: absolute;
+		/* position: absolute; */
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		border: 1px solid var(--border-color-primary);
-		z-index: var(--layer-1);
-		border-top-left-radius: var(--radius-lg);
-
-		width: auto;
-		bottom: 0;
-		right: 0;
-		border-bottom: 0;
-		border-right: 0;
-		box-shadow: var(--shadow-drop);
+		/* border: 1px solid var(--border-color-primary); */
+		/* z-index: var(--layer-1); */
+		/* border-radius: var(--radius-sm); */
+		/* background-color: var(--block-background-fill); */
+		width: 100%;
+		flex-direction: column;
+		/* bottom: 5px; */
+		/* right: 5px; */
+		/* border-bottom: 0;
+		border-right: 0; */
+		/* box-shadow: var(--shadow-drop); */
 	}
 
 	.layer-wrap button {
-		justify-content: flex-start;
+		justify-content: space-between;
 		align-items: center;
 		width: 100%;
 		display: flex;
 		font-size: var(--text-sm);
 		line-height: var(--line-sm);
 		transition: all 0.15s ease;
-		padding: var(--spacing-md);
+		padding: var(--spacing-md) var(--spacing-lg);
+		/* padding-right: var(--spacing-lg); */
 		border-radius: var(--radius-sm);
+		/* padding-left: 30px; */
 	}
 
-	.layer-wrap button:hover {
-		background-color: unset;
+	button.layer-title-button {
+		width: 100%;
+		/* padding-left: 30px; */
 	}
 
 	.layer-wrap button:hover .icon {
@@ -178,19 +187,20 @@
 	}
 
 	ul {
-		position: absolute;
+		/* position: absolute; */
 		bottom: 0;
 		right: 0;
-		background: var(--block-background-fill);
-		width: max-content;
-		min-width: 100%;
+		/* background: var(--block-background-fill); */
+		width: 100%;
+		/* min-width: 100%; */
 		list-style: none;
 		z-index: var(--layer-top);
-		border: 1px solid var(--border-color-primary);
-		border-radius: var(--radius-lg);
-		box-shadow: var(--shadow-drop-lg);
+		/* border: 1px solid var(--border-color-primary); */
+		/* border-radius: var(--radius-sm); */
+		/* box-shadow: var(--shadow-drop-lg); */
 		padding: var(--spacing-sm);
-		transform: translate(-1px, 1px);
+		/* transform: translate(-1px, 1px); */
+		border-top: 1px solid var(--border-color-primary);
 	}
 
 	/* .sep {
@@ -208,6 +218,10 @@
 		/* border-radius: var(--radius-sm); */
 		transition: background-color 0.15s ease;
 		border-bottom: 1px solid var(--border-color-primary);
+	}
+
+	.layer-wrap ul > li > button {
+		padding-left: calc(var(--spacing-md));
 	}
 
 	li:hover {
@@ -230,12 +244,12 @@
 		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
-	li > div > button {
+	/* li > div > button {
 		opacity: 0.7;
 		transition: opacity 0.15s ease;
 	}
 
 	li > div > button:hover {
 		opacity: 1;
-	}
+	} */
 </style>

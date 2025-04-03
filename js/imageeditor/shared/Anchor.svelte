@@ -22,8 +22,8 @@
 		stiffness: 0.1,
 		precision: 0.5,
 	};
-	const pos = spring([14, 14], spring_opt);
-	const init = [(150 - 28) / 3, (150 - 28) / 3];
+	const pos = spring([5, 5], spring_opt);
+	const init = [(120 - 10) / 3, (120 - 10) / 3];
 	const dimensions = spring(init, spring_opt);
 	type Arrow = {
 		x: number;
@@ -37,14 +37,14 @@
 
 	let last_i = 0;
 	let expanded = true;
-	const box_size = (150 - 14 * 2) / 3;
+	const box_size = (120 - 5 * 2) / 3;
 
 	async function handle_box_hover(i: number): Promise<void> {
 		expanded = false;
 		last_i = i;
 		const y = Math.floor(i / 3);
 		const x = i % 3;
-		pos.set([x * box_size + 14 * x + 14, y * box_size + 14 * y + 14]);
+		pos.set([x * box_size + 5 * x + 5, y * box_size + 5 * y + 5]);
 
 		dimensions.set(init);
 	}
@@ -64,7 +64,7 @@
 
 		if (stagger && last_i !== i) {
 			await Promise.all([
-				pos.set([x * box_size + 14 * x + 14, y * box_size + 14 * y + 14]),
+				pos.set([x * box_size + 5 * x + 5, y * box_size + 5 * y + 5]),
 				arrow_spring.set(initial_arrows, { hard: true }),
 				dimensions.set(init),
 			]);
@@ -75,7 +75,7 @@
 		expanded = true;
 
 		pos.set([0, 0]);
-		dimensions.set([150 + 28, 150 + 28]);
+		dimensions.set([120 + 10, 120 + 10]);
 		arrow_spring.set(eventual_arrows);
 
 		dispatch("position", positions[i]);
@@ -169,13 +169,13 @@
 				arrow.dest.x * box_size +
 				14 * arrow.dest.x +
 				14 +
-				7 +
+				10 +
 				(arrow.type === "ordinal" ? 0 : 12 * arrow.x),
 			y:
 				arrow.dest.y * box_size +
 				14 * arrow.dest.y +
 				14 +
-				7 +
+				10 +
 				(arrow.type === "ordinal" ? 0 : 12 * arrow.y),
 			x_dir: arrow.x,
 			y_dir: arrow.y,
@@ -190,7 +190,7 @@
 				anchorPoint.x * box_size +
 				14 * anchorPoint.x + // gaps
 				14 + // padding
-				7 + // arrow head
+				10 + // arrow head
 				(arrow.x_dir * box_size) / 2 +
 				arrow.x_dir * (arrow.type === 1 ? 0 : 10), // offset based on direction
 
@@ -198,7 +198,7 @@
 				anchorPoint.y * box_size +
 				14 * anchorPoint.y +
 				14 +
-				7 +
+				10 +
 				(arrow.y_dir * box_size) / 2 +
 				arrow.y_dir * (arrow.type === 1 ? 0 : 10),
 		}));
@@ -246,14 +246,14 @@
 				x1={(last_pos % 3) * box_size +
 					14 * (last_pos % 3) +
 					14 +
-					7 +
+					10 +
 					(arrow.x_dir * box_size) / 2 +
 					arrow.x_dir * (arrow.type === 1 ? 0 : 10)}
 				x2={arrow.x}
 				y1={Math.floor(last_pos / 3) * box_size +
 					14 * Math.floor(last_pos / 3) +
 					14 +
-					7 +
+					10 +
 					(arrow.y_dir * box_size) / 2 +
 					arrow.y_dir * (arrow.type === 1 ? 0 : 10)}
 				y2={arrow.y}
@@ -277,10 +277,10 @@
 	.wrap {
 		position: relative;
 		margin: 10px 0;
-		height: 178px;
-		width: 178px;
+		height: 130px;
+		width: 130px;
 		/* padding: 5px; */
-		padding: 14px;
+		padding: 5px;
 	}
 
 	.box-wrap {
@@ -289,7 +289,7 @@
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
 		grid-template-rows: repeat(3, 1fr);
-		gap: 14px;
+		gap: 5px;
 
 		background-color: var(--block-background-fill);
 	}
@@ -364,7 +364,7 @@
 
 	svg {
 		opacity: 0;
-		padding: 14px;
+		padding: 5px;
 		transition: 0.1s;
 	}
 	.expanded svg {

@@ -16,6 +16,10 @@ export function click_outside(
 			!node.contains(event.target as Node) &&
 			!event.defaultPrevented
 		) {
+			console.log("click outside");
+			if (event.target instanceof HTMLButtonElement) {
+				console.log(event.target);
+			}
 			callback(event);
 		}
 	};

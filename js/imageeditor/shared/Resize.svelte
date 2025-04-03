@@ -46,17 +46,23 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="wrap" on:click|stopPropagation>
 	<div class="size-wrap">
-		<label for="width">Width</label><input
-			type="number"
-			id="width"
-			bind:value={new_width}
-		/>
-		<label for="height">Height </label><input
-			type="number"
-			id="height"
-			bind:value={new_height}
-		/>
+		<div class="size-input">
+			<label for="width">Width</label><input
+				type="number"
+				id="width"
+				bind:value={new_width}
+			/>
+		</div>
+		<div class="size-input">
+			<label for="height">Height </label><input
+				type="number"
+				id="height"
+				bind:value={new_height}
+			/>
+		</div>
+	</div>
 
+	<div class="scale-wrap">
 		<h2 class="image-will-label">Image will:</h2>
 		<div class="toggle-container">
 			<label class="radio-label">
@@ -87,35 +93,41 @@
 	>
 </div>
 
+<!-- </div> -->
+
 <style>
 	.wrap {
-		border-radius: 4px;
-		border: 1px solid #ccc;
-		width: 240px;
-		position: absolute;
-		top: calc(100% + var(--spacing-xxs) + 2px);
-		right: 0;
-		background: var(--block-background-fill);
-		border: 1px solid var(--border-color-primary);
-		border-radius: var(--radius-sm);
-		padding: var(--spacing-sm);
-		box-shadow: var(--shadow-drop);
-		font-size: 12px;
-		z-index: var(--layer-2);
+		/* border-radius: 4px; */
+		/* border: 1px solid #ccc; */
+		/* width: 240px; */
+		/* position: absolute; */
+		/* top: calc(100% + var(--spacing-xxs) + 2px); */
+		/* right: 0; */
+		/* background: var(--block-background-fill); */
+		/* border: 1px solid var(--border-color-primary); */
+		/* border-radius: var(--radius-sm); */
+		padding: var(--spacing-xl) var(--spacing-lg);
+		/* box-shadow: var(--shadow-drop); */
+		/* z-index: var(--layer-2); */
 		color: var(--block-label-text-color);
-		border-top-left-radius: 0;
-		border-top-right-radius: 0;
-		height: auto !important;
+		/* border-top-left-radius: 0; */
+		/* border-top-right-radius: 0; */
+		/* height: auto !important; */
+		/* font-size: var(--text-xs); */
 	}
 
 	.size-wrap {
-		display: grid;
-		grid-template-rows: 1fr 1fr;
-		grid-template-columns: auto 1fr;
-		padding: 10px;
-		row-gap: 10px;
-		column-gap: 15px;
+		display: flex;
+		flex-direction: row;
+		gap: 10px;
 	}
+
+	.size-input {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xxs);
+	}
+
 	label,
 	h2 {
 		display: flex;
@@ -125,19 +137,27 @@
 		cursor: pointer;
 		color: var(--checkbox-label-text-color);
 		font-weight: var(--checkbox-label-text-weight);
-		font-size: var(--checkbox-label-text-size);
+		font-size: var(--text-sm);
 		line-height: var(--line-md);
+	}
+
+	.scale-wrap {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+		margin-top: var(--spacing-md);
 	}
 
 	input[type="number"] {
 		border: 1px solid var(--border-color-primary);
-		width: 100px;
+		width: 60px;
 		border-radius: var(--radius-sm);
 		background-color: var(--checkbox-background-color-focus);
 		color: var(--body-text-color);
 		font-size: var(--text-sm);
 		transition: border-color 0.15s ease;
-		padding: var(--spacing-sm);
+		padding: var(--spacing-xs);
+		line-height: 1rem;
 	}
 
 	input[type="number"]:hover {
