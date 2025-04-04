@@ -4,6 +4,7 @@
 	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
 	import { onNavigate } from "$app/navigation";
+	import '$lib/assets/theme.css';
 
 	export let data: any = {};
 
@@ -117,6 +118,7 @@
 	canonical={$page.url.pathname}
 	description={"Gradio docs for using " + all_headers.page_title.title}
 />
+
 <svelte:window bind:scrollY={y} />
 
 <main class="container mx-auto px-4 flex flex-col gap-4">
