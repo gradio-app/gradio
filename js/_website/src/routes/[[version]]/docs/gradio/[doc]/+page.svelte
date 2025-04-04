@@ -4,6 +4,7 @@
 	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
 	import { onNavigate } from "$app/navigation";
+	import '$lib/assets/theme.css';
 
 	export let data: any = {};
 
@@ -117,10 +118,6 @@
 	canonical={$page.url.pathname}
 	description={"Gradio docs for using " + all_headers.page_title.title}
 />
-
-<svelte:head>
-	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css">
-</svelte:head>
 
 <svelte:window bind:scrollY={y} />
 
