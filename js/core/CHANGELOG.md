@@ -1,5 +1,23 @@
 # @gradio/core
 
+## 0.13.2
+
+### Fixes
+
+- [#10913](https://github.com/gradio-app/gradio/pull/10913) [`2322700`](https://github.com/gradio-app/gradio/commit/2322700812341a71a200958cdca793ca865c08c4) - Update i18n files.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/code@0.13.1
+- @gradio/video@0.14.7
+- @gradio/wasm@0.18.1
+- @gradio/client@1.14.1
+- @gradio/upload@0.15.7
+- @gradio/gallery@0.15.12
+- @gradio/button@0.4.12
+- @gradio/image@0.21.7
+- @gradio/file@0.12.12
+
 ## 0.13.1
 
 ### Fixes

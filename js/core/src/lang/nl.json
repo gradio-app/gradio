@@ -1,18 +1,144 @@
 {
 	"_name": "Nederlands",
 	"common": {
-		"built_with_gradio": "gemaakt met gradio",
-		"clear": "Wis",
+		"built_with_gradio": "Gemaakt met Gradio",
+		"clear": "Wissen",
 		"or": "of",
-		"submit": "Zend in",
-		"settings": "Instellingen"
+		"submit": "Verzenden",
+		"settings": "Instellingen",
+		"built_with": "Gebouwd met",
+		"download": "Downloaden",
+		"edit": "Bewerken",
+		"empty": "Leeg",
+		"error": "Fout",
+		"hosted_on": "Gehost op",
+		"loading": "Laden",
+		"logo": "Logo",
+		"remove": "Verwijderen",
+		"share": "Delen",
+		"undo": "Ongedaan maken",
+		"no_devices": "Geen apparaten gevonden",
+		"language": "Taal",
+		"display_theme": "Weergavethema",
+		"pwa": "Progressieve Web App"
 	},
 	"upload_text": {
-		"click_to_upload": "Klik om the Uploaden",
-		"drop_audio": "Sleep een Geluidsbestand hier",
-		"drop_csv": "Sleep een CSV hier",
-		"drop_file": "Sleep een Document hier",
-		"drop_image": "Sleep een Afbeelding hier",
-		"drop_video": "Sleep een Video hier"
+		"click_to_upload": "Klik om te uploaden",
+		"drop_audio": "Sleep een geluidsbestand hier",
+		"drop_csv": "Sleep een CSV-bestand hier",
+		"drop_file": "Sleep een bestand hier",
+		"drop_image": "Sleep een afbeelding hier",
+		"drop_video": "Sleep een video hier",
+		"drop_gallery": "Sleep media hier",
+		"paste_clipboard": "Plakken vanuit klembord"
+	},
+	"3D_model": {
+		"3d_model": "3D-model",
+		"drop_to_upload": "Sleep een 3D-model (.obj, .glb, .stl, .gltf, .splat of .ply) bestand hier om te uploaden"
+	},
+	"annotated_image": {
+		"annotated_image": "Geannoteerde afbeelding"
+	},
+	"audio": {
+		"allow_recording_access": "Geef alstublieft toegang tot de microfoon voor opname.",
+		"audio": "Audio",
+		"drop_to_upload": "Sleep een audiobestand hier om te uploaden",
+		"record_from_microphone": "Opnemen via microfoon",
+		"stop_recording": "Opname stoppen",
+		"no_device_support": "Media-apparaten konden niet worden benaderd. Controleer of u werkt vanaf een beveiligde oorsprong (https) of localhost (of u een geldig SSL-certificaat heeft doorgegeven aan ssl_verify), en of u browsertoestemming heeft gegeven voor toegang tot uw apparaat.",
+		"stop": "Stoppen",
+		"resume": "Hervatten",
+		"record": "Opnemen",
+		"no_microphone": "Geen microfoon gevonden",
+		"pause": "Pauzeren",
+		"play": "Afspelen",
+		"waiting": "Wachten"
+	},
+	"blocks": {
+		"connection_can_break": "Op mobiel kan de verbinding verbroken worden als dit tabblad niet actief is of het apparaat in slaapstand gaat, waardoor je plaats in de wachtrij verloren gaat.",
+		"long_requests_queue": "Er is een lange wachtrij van aanvragen. Dupliceer deze Space om de wachtrij over te slaan.",
+		"lost_connection": "Verbinding verloren door het verlaten van de pagina. Opnieuw aansluiten in de wachtrij...",
+		"waiting_for_inputs": "Wachten tot het uploaden van bestand(en) is voltooid, probeer het opnieuw."
+	},
+	"checkbox": {
+		"checkbox": "Selectievakje",
+		"checkbox_group": "Selectievakjesgroep"
+	},
+	"code": {
+		"code": "Code"
+	},
+	"color_picker": {
+		"color_picker": "Kleurkiezer"
+	},
+	"dataframe": {
+		"incorrect_format": "Onjuist formaat, alleen CSV- en TSV-bestanden worden ondersteund",
+		"new_column": "Kolom toevoegen",
+		"new_row": "Nieuwe rij",
+		"add_row_above": "Rij boven toevoegen",
+		"add_row_below": "Rij onder toevoegen",
+		"delete_row": "Rij verwijderen",
+		"delete_column": "Kolom verwijderen",
+		"add_column_left": "Kolom links toevoegen",
+		"add_column_right": "Kolom rechts toevoegen",
+		"sort_column": "Kolom sorteren",
+		"sort_ascending": "Oplopend sorteren",
+		"sort_descending": "Aflopend sorteren",
+		"drop_to_upload": "Sleep CSV- of TSV-bestanden hier om gegevens in het dataframe te importeren",
+		"clear_sort": "Sortering wissen"
+	},
+	"dropdown": {
+		"dropdown": "Vervolgkeuzelijst"
+	},
+	"errors": {
+		"build_error": "Er is een bouwfout",
+		"config_error": "Er is een configuratiefout",
+		"contact_page_author": "Neem contact op met de auteur van de pagina om dit te melden.",
+		"no_app_file": "Er is geen app-bestand",
+		"runtime_error": "Er is een runtime-fout",
+		"space_not_working": "\"Space werkt niet omdat\" {0}",
+		"space_paused": "De Space is gepauzeerd",
+		"use_via_api": "Gebruik via API"
+	},
+	"file": {
+		"uploading": "Uploaden..."
+	},
+	"highlighted_text": {
+		"highlighted_text": "Gemarkeerde tekst"
+	},
+	"image": {
+		"allow_webcam_access": "Geef alstublieft toegang tot de webcam voor opname.",
+		"brush_color": "Penseelkleur",
+		"brush_radius": "Penseelgrootte",
+		"image": "Afbeelding",
+		"remove_image": "Afbeelding verwijderen",
+		"select_brush_color": "Penseelkleur kiezen",
+		"start_drawing": "Beginnen met tekenen",
+		"use_brush": "Penseel gebruiken",
+		"drop_to_upload": "Sleep een afbeelding hier om te uploaden"
+	},
+	"label": {
+		"label": "Label"
+	},
+	"login": {
+		"enable_cookies": "Als u een HuggingFace Space bezoekt in incognitomodus, moet u cookies van derden inschakelen.",
+		"incorrect_credentials": "Onjuiste inloggegevens",
+		"username": "Gebruikersnaam",
+		"password": "Wachtwoord",
+		"login": "Inloggen"
+	},
+	"number": {
+		"number": "Getal"
+	},
+	"plot": {
+		"plot": "Grafiek"
+	},
+	"radio": {
+		"radio": "Keuzerondje"
+	},
+	"slider": {
+		"slider": "Schuifbalk"
+	},
+	"video": {
+		"drop_to_upload": "Sleep een videobestand hier om te uploaden"
 	}
 }

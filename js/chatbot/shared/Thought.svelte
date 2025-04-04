@@ -38,38 +38,45 @@
 
 	let thought_node: ThoughtNode;
 	let expanded = false;
-	let contentPreviewElement: HTMLElement;
-	let userIsScrolling = false;
+	let user_expanded_toggled = false;
+	let content_preview_element: HTMLElement;
+	let user_is_scrolling = false;
 
 	$: thought_node = {
 		...thought,
 		children: is_thought_node(thought) ? thought.children : []
 	} as ThoughtNode;
 
+	$: if (!user_expanded_toggled) {
+		expanded = thought_node?.metadata?.status !== "done";
+	}
+
 	function toggleExpanded(): void {
 		expanded = !expanded;
+		user_expanded_toggled = true;
 	}
 
 	function scrollToBottom(): void {
-		if (contentPreviewElement && !userIsScrolling) {
-			contentPreviewElement.scrollTop = contentPreviewElement.scrollHeight;
+		if (content_preview_element && !user_is_scrolling) {
+			content_preview_element.scrollTop = content_preview_element.scrollHeight;
 		}
 	}
 
 	function handleScroll(): void {
-		if (contentPreviewElement) {
-			const isAtBottom =
-				contentPreviewElement.scrollHeight - contentPreviewElement.scrollTop <=
-				contentPreviewElement.clientHeight + 10;
-			if (!isAtBottom) {
-				userIsScrolling = true;
+		if (content_preview_element) {
+			const is_at_bottom =
+				content_preview_element.scrollHeight -
+					content_preview_element.scrollTop <=
+				content_preview_element.clientHeight + 10;
+			if (!is_at_bottom) {
+				user_is_scrolling = true;
 			}
 		}
 	}
 
 	$: if (
 		thought_node.content &&
-		contentPreviewElement &&
+		content_preview_element &&
 		thought_node.metadata?.status !== "done"
 	) {
 		setTimeout(scrollToBottom, 0);
@@ -121,12 +128,12 @@
 		{/if}
 	</div>
 
-	{#if expanded || thought_node.metadata?.status !== "done"}
+	{#if expanded}
 		<div
 			class:content={expanded}
 			class:content-preview={!expanded &&
 				thought_node.metadata?.status !== "done"}
-			bind:this={contentPreviewElement}
+			bind:this={content_preview_element}
 			on:scroll={handleScroll}
 			transition:slide
 		>
