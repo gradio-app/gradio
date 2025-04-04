@@ -1,4 +1,4 @@
-# Don't forget to run bash scripts/create_test_requirements.sh and scripts/create_test_requirements-37.sh from unix or wsl when you update this file.
+# Don't forget to run bash scripts/create_test_requirements.sh from unix or wsl when you update this file.
 # Make sure the gradio version is less than the one in gradio/package.json so that it can be overridden by the local version.
 IPython
 altair
@@ -17,6 +17,7 @@ pydantic[email]
 pytest
 pytest-asyncio
 pytest-cov
+pytest-docker
 pytest-rerunfailures
 ruff>=0.1.13
 respx

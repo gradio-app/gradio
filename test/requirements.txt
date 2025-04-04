@@ -19,6 +19,7 @@ attrs==25.1.0
     # via
     #   hypothesis
     #   jsonschema
+    #   pytest-docker
     #   referencing
 boto3==1.36.8
     # via -r test/requirements.in
@@ -53,6 +54,12 @@ dnspython==2.7.0
     # via email-validator
 email-validator==2.2.0
     # via pydantic
+exceptiongroup==1.2.2
+    # via
+    #   anyio
+    #   hypothesis
+    #   ipython
+    #   pytest
 executing==2.2.0
     # via stack-data
 fastapi==0.115.7
@@ -229,10 +236,13 @@ pytest==8.3.4
     #   -r test/requirements.in
     #   pytest-asyncio
     #   pytest-cov
+    #   pytest-docker
     #   pytest-rerunfailures
 pytest-asyncio==0.25.3
     # via -r test/requirements.in
 pytest-cov==6.0.0
+    # via -r test/requirements.in
+pytest-docker==3.2.0
     # via -r test/requirements.in
 pytest-rerunfailures==15.0
     # via -r test/requirements.in
@@ -309,6 +319,10 @@ tifffile==2025.1.10
     # via scikit-image
 tokenizers==0.21.0
     # via transformers
+tomli==2.2.1
+    # via
+    #   coverage
+    #   pytest
 tomlkit==0.13.2
     # via gradio
 torch==2.6.0
@@ -338,8 +352,10 @@ typing-extensions==4.12.2
     #   pydantic
     #   pydantic-core
     #   referencing
+    #   rich
     #   torch
     #   typer
+    #   uvicorn
 tzdata==2025.1
     # via pandas
 urllib3==2.3.0
