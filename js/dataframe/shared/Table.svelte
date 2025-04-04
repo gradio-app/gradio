@@ -750,10 +750,31 @@
 			<thead>
 				<tr>
 					{#if show_row_numbers}
-						<td></td> <!-- placeholder for row number width -->
+						<RowNumber is_header={true} />
 					{/if}
-					{#each _headers as { id }, j (id)}
-						<td bind:this={cells[j]}></td> <!-- minimal for width -->
+					{#each _headers as { value, id }, i (id)}
+						<TableHeader
+							bind:value={_headers[i].value}
+							{i}
+							{actual_pinned_columns}
+							{header_edit}
+							{selected_header}
+							{headers}
+							{get_cell_width}
+							{handle_header_click}
+							{toggle_header_menu}
+							{end_header_edit}
+							sort_columns={$df_state.sort_state.sort_columns}
+							{latex_delimiters}
+							{line_breaks}
+							{max_chars}
+							{root}
+							{editable}
+							is_static={static_columns.includes(i)}
+							{i18n}
+							bind:el={els[id].input}
+							{col_count}
+						/>
 					{/each}
 				</tr>
 			</thead>
