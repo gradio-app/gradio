@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:Fix value synchronisation issue in gr.Dataframe
+fix:Fix value synchronisation issue in gr.Dataframe
