@@ -158,7 +158,8 @@
 	let data_binding: Record<string, (typeof data)[0][0]> = {};
 	let _headers = make_headers(headers, col_count, els, make_id);
 	let old_headers: string[] = headers;
-	let data: { id: string; value: string | number }[][] = [[]];
+	let data: { id: string; value: string | number; display_value?: string }[][] =
+		[[]];
 	let old_val: undefined | (string | number)[][] = undefined;
 	let search_results: {
 		id: string;
@@ -256,6 +257,7 @@
 			row.forEach((cell, col_idx) => {
 				cell_map.set(cell.id, {
 					value: cell.value,
+					display_value: cell.display_value || String(cell.value),
 					styling: styling?.[row_idx]?.[col_idx] || ""
 				});
 			});
@@ -685,6 +687,23 @@
 	$: handle_mouse_down = drag_handlers?.handle_mouse_down || (() => {});
 	$: handle_mouse_move = drag_handlers?.handle_mouse_move || (() => {});
 	$: handle_mouse_up = drag_handlers?.handle_mouse_up || (() => {});
+
+	function get_cell_display_value(row: number, col: number): string {
+		const is_search_active = $df_state.current_search_query !== undefined;
+
+		if (is_search_active && search_results?.[row]?.[col]) {
+			return (
+				search_results[row][col].display_value ||
+				String(search_results[row][col].value)
+			);
+		}
+
+		if (data?.[row]?.[col]) {
+			return data[row][col].display_value || String(data[row][col].value);
+		}
+
+		return "";
+	}
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
@@ -850,6 +869,7 @@
 						{#each item as { value, id }, j (id)}
 							<TableCell
 								bind:value={search_results[index][j].value}
+								display_value={get_cell_display_value(index, j)}
 								{index}
 								{j}
 								{actual_pinned_columns}
