@@ -1,5 +1,20 @@
 # @gradio/chatbot
 
+## 0.25.2
+
+### Fixes
+
+- [#10922](https://github.com/gradio-app/gradio/pull/10922) [`afe0b13`](https://github.com/gradio-app/gradio/commit/afe0b139fa8715eabc28362aaffe6e0b50b239a5) - Fix regression around chatbot thoughts not being collapsible.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/video@0.14.7
+- @gradio/wasm@0.18.1
+- @gradio/client@1.14.1
+- @gradio/upload@0.15.7
+- @gradio/gallery@0.15.12
+- @gradio/image@0.21.7
+
 ## 0.25.1
 
 ### Features

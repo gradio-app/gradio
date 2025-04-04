@@ -19,6 +19,9 @@ importers:
 
   .:
     dependencies:
+      '@babylonjs/viewer':
+        specifier: ^7.54.0
+        version: 7.54.1(@babylonjs/core@7.54.1)(@babylonjs/loaders@7.54.1(@babylonjs/core@7.54.1)(babylonjs-gltf2interface@7.25.2))
       '@changesets/changelog-github':
         specifier: ^0.5.0
         version: 0.5.0
@@ -82,12 +85,6 @@ importers:
       autoprefixer:
         specifier: ^10.4.19
         version: 10.4.19(postcss@8.4.38)
-      babylonjs:
-        specifier: ^7.25.1
-        version: 7.25.2
-      babylonjs-loaders:
-        specifier: ^7.25.1
-        version: 7.25.2
       esbuild:
         specifier: ^0.21.0
         version: 0.21.0
@@ -1792,6 +1789,9 @@ importers:
 
   js/model3D:
     dependencies:
+      '@babylonjs/viewer':
+        specifier: ^7.54.0
+        version: 7.54.1(@babylonjs/core@7.54.1)(@babylonjs/loaders@7.54.1(@babylonjs/core@7.54.1)(babylonjs-gltf2interface@7.25.2))
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
@@ -1816,12 +1816,6 @@ importers:
       '@types/babylon':
         specifier: ^6.16.6
         version: 6.16.6
-      babylonjs:
-        specifier: ^7.25.1
-        version: 7.25.2
-      babylonjs-loaders:
-        specifier: ^7.25.1
-        version: 7.25.2
       dequal:
         specifier: ^2.0.2
         version: 2.0.3
@@ -2660,6 +2654,21 @@ packages:
   '@babel/types@7.24.5':
     resolution: {integrity: sha512-6mQNsaLeXTw0nxYUYu+NSa4Hx4BlF1x1x8/PMFbiR+GBSr+2DkECc69b8hgy2frEodNcvPffeH8YfWd3LI6jhQ==}
     engines: {node: '>=6.9.0'}
+
+  '@babylonjs/core@7.54.1':
+    resolution: {integrity: sha512-0yFLe0UL7/gN++joc8p5NtIp/a/DLAD5qyBJOQ/d2fZhRoggBExAyzscw0rcWr9XpMZUZQ7AKNDHFX+8Gu4jQA==}
+
+  '@babylonjs/loaders@7.54.1':
+    resolution: {integrity: sha512-T+aW5wZIzmVE6FEImCElFvwPTNZRTY5rRT0f2lyCc5xlF29goDiHZTfIU5po8cc3vzEJsOP1Uz8ieneWLLoWMg==}
+    peerDependencies:
+      '@babylonjs/core': ^7.0.0
+      babylonjs-gltf2interface: ^7.0.0
+
+  '@babylonjs/viewer@7.54.1':
+    resolution: {integrity: sha512-LiFF9K5BFylVCXyVTkgBzRGkKUE7hfLXxe9cz64uf92HRhXExcGnSiULY/CmKuSoj/5l+JLINoIWK0CBCDSJ8w==}
+    peerDependencies:
+      '@babylonjs/core': ^7.23.1
+      '@babylonjs/loaders': ^7.23.1
 
   '@braintree/sanitize-url@7.1.1':
     resolution: {integrity: sha512-i1L7noDNxtFyL5DmZafWy1wRVhGehQmzZaz1HiN5e7iylJMSZR7ekOV7NsIqa5qBldlLrsKv4HbgFUVlQrz8Mw==}
@@ -3638,6 +3647,12 @@ packages:
 
   '@lezer/python@1.1.9':
     resolution: {integrity: sha512-8Ua3p8NdICXR6qWvRCnCx5CI1B0DklZGNtRLwOrIS/OHecHIugRHZyr0NsaaQO2H2Nn34EPlRtltXIirLsry5Q==}
+
+  '@lit-labs/ssr-dom-shim@1.3.0':
+    resolution: {integrity: sha512-nQIWonJ6eFAvUUrSlwyHDm/aE8PBDu5kRpL0vHMg6K8fK3Diq1xdPjTnsJSwxABhaZ+5eBi1btQB5ShUTKo4nQ==}
+
+  '@lit/reactive-element@2.0.4':
+    resolution: {integrity: sha512-GFn91inaUa2oHLak8awSIigYz0cU0Payr1rcFsrkf5OJ5eSPxElyZfKh0f2p9FsTiZWXQdWGJeXZICEfXXYSXQ==}
 
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
@@ -4904,12 +4919,6 @@ packages:
 
   babylonjs-gltf2interface@7.25.2:
     resolution: {integrity: sha512-Vzwp0FmgTdxXH1RsPW8jRReSTkhTcrpulE6uJk4Kd4UTsRi1lpER31LpeysEYrjFf5SS+vc5gx4li8/TAUAWNw==}
-
-  babylonjs-loaders@7.25.2:
-    resolution: {integrity: sha512-FMZ5G2x8QgGowLRMxVifVuMNFnY4aaQuUIwqxrgcrKigaHKx1uNuk1+A4+vCG7i43TJJnTr4++QJF7nn6JdU0g==}
-
-  babylonjs@7.25.2:
-    resolution: {integrity: sha512-hucoQfYHrBtgq7niZEHwSDcvcESDiJ74AYY42KSDA43bGI+lq8UkW2wgs6euOFrigR4RxSORHWm0nkNrXCn41Q==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -7072,6 +7081,15 @@ packages:
 
   lines-and-columns@1.2.4:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
+
+  lit-element@4.1.1:
+    resolution: {integrity: sha512-HO9Tkkh34QkTeUmEdNYhMT8hzLid7YlMlATSi1q4q17HE5d9mrrEHJ/o8O2D0cMi182zK1F3v7x0PWFjrhXFew==}
+
+  lit-html@3.2.1:
+    resolution: {integrity: sha512-qI/3lziaPMSKsrwlxH/xMgikhQ0EGOX2ICU73Bi/YHFvz2j/yMCIrw4+puF2IpQ4+upd3EWbvnHM9+PnJn48YA==}
+
+  lit@3.2.1:
+    resolution: {integrity: sha512-1BBa1E/z0O9ye5fZprPtdqnc0BFzxIxTTOO/tQFmyC/hj1O3jL4TfmLBw0WEwjAokdLwpclkvGgDJwTIh0/22w==}
 
   load-yaml-file@0.2.0:
     resolution: {integrity: sha512-OfCBkGEw4nN6JLtgRidPX6QxjBQGQf72q3si2uvqyFEMbycSFFHwAZeXx6cJgFM9wmLrf9zBwCP3Ivqa+LLZPw==}
@@ -9575,6 +9593,19 @@ snapshots:
       to-fast-properties: 2.0.0
     optional: true
 
+  '@babylonjs/core@7.54.1': {}
+
+  '@babylonjs/loaders@7.54.1(@babylonjs/core@7.54.1)(babylonjs-gltf2interface@7.25.2)':
+    dependencies:
+      '@babylonjs/core': 7.54.1
+      babylonjs-gltf2interface: 7.25.2
+
+  '@babylonjs/viewer@7.54.1(@babylonjs/core@7.54.1)(@babylonjs/loaders@7.54.1(@babylonjs/core@7.54.1)(babylonjs-gltf2interface@7.25.2))':
+    dependencies:
+      '@babylonjs/core': 7.54.1
+      '@babylonjs/loaders': 7.54.1(@babylonjs/core@7.54.1)(babylonjs-gltf2interface@7.25.2)
+      lit: 3.2.1
+
   '@braintree/sanitize-url@7.1.1': {}
 
   '@bundled-es-modules/cookie@2.0.0':
@@ -10508,6 +10539,12 @@ snapshots:
     dependencies:
       '@lezer/highlight': 1.2.1
       '@lezer/lr': 1.3.14
+
+  '@lit-labs/ssr-dom-shim@1.3.0': {}
+
+  '@lit/reactive-element@2.0.4':
+    dependencies:
+      '@lit-labs/ssr-dom-shim': 1.3.0
 
   '@manypkg/find-root@1.1.0':
     dependencies:
@@ -11601,8 +11638,7 @@ snapshots:
 
   '@types/trusted-types@2.0.6': {}
 
-  '@types/trusted-types@2.0.7':
-    optional: true
+  '@types/trusted-types@2.0.7': {}
 
   '@types/unist@2.0.10': {}
 
@@ -11988,13 +12024,6 @@ snapshots:
       '@babel/types': 7.23.3
 
   babylonjs-gltf2interface@7.25.2: {}
-
-  babylonjs-loaders@7.25.2:
-    dependencies:
-      babylonjs: 7.25.2
-      babylonjs-gltf2interface: 7.25.2
-
-  babylonjs@7.25.2: {}
 
   balanced-match@1.0.2: {}
 
@@ -14413,6 +14442,22 @@ snapshots:
   lilconfig@3.1.1: {}
 
   lines-and-columns@1.2.4: {}
+
+  lit-element@4.1.1:
+    dependencies:
+      '@lit-labs/ssr-dom-shim': 1.3.0
+      '@lit/reactive-element': 2.0.4
+      lit-html: 3.2.1
+
+  lit-html@3.2.1:
+    dependencies:
+      '@types/trusted-types': 2.0.7
+
+  lit@3.2.1:
+    dependencies:
+      '@lit/reactive-element': 2.0.4
+      lit-element: 4.1.1
+      lit-html: 3.2.1
 
   load-yaml-file@0.2.0:
     dependencies:
