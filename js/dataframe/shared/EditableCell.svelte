@@ -29,6 +29,7 @@
 	export let components: Record<string, any> = {};
 	export let i18n: I18nFormatter;
 	export let is_dragging = false;
+	export let wrap_text = false;
 
 	export let show_selection_buttons = false;
 	export let coords: [number, number];
@@ -135,6 +136,7 @@
 	data-expanded={is_expanded}
 	placeholder=" "
 	class:text={datatype === "str"}
+	class:wrap={wrap_text}
 >
 	{#if datatype === "image" && components.image}
 		<svelte:component
@@ -202,14 +204,6 @@
 		width: 100%;
 		height: 100%;
 		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	span.text:not(.expanded) {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 	}
 
 	span.text.expanded {
@@ -248,5 +242,13 @@
 
 	input:read-only {
 		cursor: not-allowed;
+	}
+
+	.wrap,
+	.wrap.expanded {
+		white-space: normal;
+		word-wrap: break-word;
+		overflow-wrap: break-word;
+		word-wrap: break-word;
 	}
 </style>

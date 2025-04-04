@@ -897,6 +897,7 @@
 								handle_select_row={df_actions.handle_select_row}
 								bind:el={els[id]}
 								{is_dragging}
+								{wrap}
 							/>
 						{/each}
 					</tr>
