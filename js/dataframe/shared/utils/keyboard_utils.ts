@@ -91,6 +91,7 @@ function handle_delete_operation(
 
 	const state = get(ctx.state);
 	if (!state.config.editable) return false;
+	if (event.key !== "Delete" && event.key !== "Backspace") return false;
 
 	const editing = state.ui_state.editing;
 	const selected_cells = state.ui_state.selected_cells;
