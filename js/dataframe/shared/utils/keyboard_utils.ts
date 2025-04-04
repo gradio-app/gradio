@@ -185,6 +185,7 @@ async function handle_enter_key(
 		if (input_el) {
 			await save_cell_value(input_el.value, ctx, i, j);
 		}
+		ctx.actions.set_editing(false);
 	} else {
 		ctx.actions.set_editing([i, j]);
 	}
