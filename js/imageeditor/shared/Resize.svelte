@@ -97,23 +97,8 @@
 
 <style>
 	.wrap {
-		/* border-radius: 4px; */
-		/* border: 1px solid #ccc; */
-		/* width: 240px; */
-		/* position: absolute; */
-		/* top: calc(100% + var(--spacing-xxs) + 2px); */
-		/* right: 0; */
-		/* background: var(--block-background-fill); */
-		/* border: 1px solid var(--border-color-primary); */
-		/* border-radius: var(--radius-sm); */
 		padding: var(--spacing-xl) var(--spacing-lg);
-		/* box-shadow: var(--shadow-drop); */
-		/* z-index: var(--layer-2); */
 		color: var(--block-label-text-color);
-		/* border-top-left-radius: 0; */
-		/* border-top-right-radius: 0; */
-		/* height: auto !important; */
-		/* font-size: var(--text-xs); */
 	}
 
 	.size-wrap {

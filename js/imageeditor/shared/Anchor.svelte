@@ -52,7 +52,6 @@
 	let last_pos = 0;
 	async function handle_box_click(i: number, stagger = false): Promise<void> {
 		if (expanded && stagger) return;
-		// await Promise.all([a1.set(a1_init, { hard: true}), a2.set(a2_init, { hard: true}), a3.set(a3_init, { hard: true})])
 
 		const y = Math.floor(i / 3);
 		const x = i % 3;
@@ -238,9 +237,6 @@
 		style:transform="translate({$pos[0]}px, {$pos[1]}px)"
 	></div>
 	<svg viewBox="0 0 150 150">
-		<!-- <line x1="40" x2={$a1[2]} y1="40" y2={$a1[3]} />
-		<line x1="18" x2={$a2[2]} y1="45" y2={$a2[3]} />
-		<line x1="45" x2={$a3[2]} y1="18" y2={$a3[3]} /> -->
 		{#each $arrow_spring as arrow}
 			<line
 				x1={(last_pos % 3) * box_size +
@@ -279,7 +275,6 @@
 		margin: 10px 0;
 		height: 130px;
 		width: 130px;
-		/* padding: 5px; */
 		padding: 5px;
 	}
 
