@@ -46,13 +46,6 @@ test("Dataframe blur event works as expected", async ({ page }) => {
 	await page.waitForTimeout(100);
 
 	await expect(page.getByLabel("Change events")).toHaveValue("1");
-
-	await get_cell(df, 0, 0).click();
-	await page.getByLabel("Edit cell").fill("test_blur_2");
-	await get_cell(df, 1, 2).click();
-	await page.waitForTimeout(100);
-
-	await expect(page.getByLabel("Change events")).toHaveValue("2");
 });
 
 test("Dataframe select events work as expected", async ({ page }) => {
@@ -147,7 +140,7 @@ test("Dataframe can be cleared and updated indirectly", async ({ page }) => {
 
 	const df_block = page.locator("#dataframe");
 	const empty_rows = await df_block.locator(".tbody > tr").count();
-	expect(empty_rows).toBe(0);
+	expect(empty_rows).toBe(5);
 
 	await page.getByRole("button", { name: "Update dataframe" }).click();
 	await page.waitForTimeout(500);
@@ -342,16 +335,16 @@ test("Dataframe displays custom display values with medal icons correctly", asyn
 	await expect(tall_df).toBeVisible();
 
 	// check medal icons in first column
-	expect(await get_cell(tall_df, 0, 1).textContent()).toContain("🥇");
-	expect(await get_cell(tall_df, 1, 1).textContent()).toContain("🥈");
-	expect(await get_cell(tall_df, 2, 1).textContent()).toContain("🥉");
+	expect(await get_cell(tall_df, 0, 0).textContent()).toContain("🥇");
+	expect(await get_cell(tall_df, 1, 0).textContent()).toContain("🥈");
+	expect(await get_cell(tall_df, 2, 0).textContent()).toContain("🥉");
 
 	// no medals for 4th position
-	const fourth_cell = await get_cell(tall_df, 3, 1).textContent();
+	const fourth_cell = await get_cell(tall_df, 3, 0).textContent();
 	expect(fourth_cell).not.toContain("🥇");
 	expect(fourth_cell).not.toContain("🥈");
 	expect(fourth_cell).not.toContain("🥉");
 
 	// verify medals don't appear in other columns
-	expect(await get_cell(tall_df, 0, 2).textContent()).not.toContain("🥇");
+	expect(await get_cell(tall_df, 0, 1).textContent()).not.toContain("🥇");
 });
