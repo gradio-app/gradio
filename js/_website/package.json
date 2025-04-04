@@ -4,7 +4,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "pip install boto3 && python generate_jsons/generate.py && python ../../scripts/generate_theme.py --outfile ./src/lib/assets/theme.css && vite dev",
-		"build": "vite build",
+		"build": "python ../../scripts/generate_theme.py --outfile ./src/lib/assets/theme.css && vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
