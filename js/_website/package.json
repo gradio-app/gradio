@@ -3,7 +3,7 @@
 	"version": "0.53.2",
 	"private": true,
 	"scripts": {
-		"dev": "pip install boto3 && python generate_jsons/generate.py && vite dev",
+		"dev": "pip install boto3 && python generate_jsons/generate.py && python ../../scripts/generate_theme.py --outfile ./src/lib/assets/theme.css && vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
