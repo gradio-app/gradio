@@ -92,7 +92,6 @@ def test_endpoint_status(endpoint):
 
 
 def test_api_response(endpoint):
-    """Test that gradio API endpoint returns a valid value."""
     client = gradio_client.Client(endpoint)
     result = client.predict("John")
     assert result == "Hi John"
