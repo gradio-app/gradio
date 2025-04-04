@@ -57,7 +57,7 @@
 	export let composite: FileData | null;
 	export let layers: FileData[];
 	export let background: FileData | null;
-	export let border_region: number;
+	export let border_region = 0;
 	export let layer_options: LayerOptions;
 	export let current_tool: ToolbarTool;
 

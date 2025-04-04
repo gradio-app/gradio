@@ -65,7 +65,7 @@
 		share: ShareData;
 		clear_status: LoadingStatus;
 	}>;
-	export let border_region: number;
+	export let border_region = 0;
 
 	let editor_instance: InteractiveImageEditor;
 	let image_id: null | string = null;
@@ -117,8 +117,6 @@
 			tick().then((_) => (value_is_output = false));
 		}
 	}
-
-	let dynamic_height: number | undefined = undefined;
 
 	$: has_value = value?.background || value?.layers?.length || value?.composite;
 
