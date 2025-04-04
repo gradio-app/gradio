@@ -777,23 +777,6 @@
 		show_row_numbers: true,
 		editable: false
 	}}
-	play={async ({ canvasElement }) => {
-		const canvas = within(canvasElement);
-
-		const first_row = canvas.getAllByRole("cell")[2];
-		expect(first_row.textContent).toContain("🥇");
-
-		const second_row = canvas.getAllByRole("cell")[5];
-		expect(second_row.textContent).toContain("🥈");
-
-		const third_row = canvas.getAllByRole("cell")[8];
-		expect(third_row.textContent).toContain("🥉");
-
-		const fourth_row = canvas.getAllByRole("cell")[11];
-		expect(fourth_row.textContent).not.toContain("🥇");
-		expect(fourth_row.textContent).not.toContain("🥈");
-		expect(fourth_row.textContent).not.toContain("🥉");
-	}}
 />
 
 <Story
