@@ -149,8 +149,7 @@
 				dispatch("save");
 				event.stopPropagation();
 			}}
-			background={"var(--color-green-500)"}
-			color={"#fff"}
+			color="var(--color-accent)"
 		/>
 	{/if}
 

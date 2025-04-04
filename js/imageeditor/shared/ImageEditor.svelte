@@ -61,6 +61,8 @@
 	export let layer_options: LayerOptions;
 	export let current_tool: ToolbarTool;
 
+	$: console.log({ changeable });
+
 	let pixi_target: HTMLDivElement;
 	let pixi_target_crop: HTMLDivElement;
 
@@ -226,10 +228,6 @@
 
 		// Set up mutation observer to detect visibility changes
 
-		tick().then(() => {
-			// handle_visibility_change();
-		});
-
 		return () => {
 			if (intersection_observer) {
 				intersection_observer.disconnect();
@@ -287,7 +285,11 @@
 		await Promise.all([editor.ready, crop.ready]).then(() => {
 			handle_tool_change({ tool: "image" });
 			ready = true;
-			crop.set_tool("image");
+			if (sources.length > 0) {
+				handle_tool_change({ tool: "image" });
+			} else {
+				handle_tool_change({ tool: "draw" });
+			}
 			crop.set_subtool("crop");
 		});
 
