@@ -43,12 +43,14 @@ test("Dataframe blur event works as expected", async ({ page }) => {
 	await get_cell(df, 0, 0).click();
 	await page.getByLabel("Edit cell").fill("test_blur");
 	await get_cell(df, 1, 1).click();
+	await page.waitForTimeout(100);
 
 	await expect(page.getByLabel("Change events")).toHaveValue("1");
 
 	await get_cell(df, 0, 0).click();
 	await page.getByLabel("Edit cell").fill("test_blur_2");
 	await get_cell(df, 1, 2).click();
+	await page.waitForTimeout(100);
 
 	await expect(page.getByLabel("Change events")).toHaveValue("2");
 });

@@ -65,6 +65,7 @@
 	export let handle_select_column: (col: number) => void;
 	export let handle_select_row: (row: number) => void;
 	export let is_dragging: boolean;
+	export let display_value: string | undefined;
 
 	function get_cell_position(col_index: number): string {
 		if (col_index >= actual_pinned_columns) {
@@ -120,7 +121,7 @@
 		<EditableCell
 			bind:value
 			bind:el={el.input}
-			display_value={String(value)}
+			display_value={display_value || String(value)}
 			{latex_delimiters}
 			{line_breaks}
 			{editable}
