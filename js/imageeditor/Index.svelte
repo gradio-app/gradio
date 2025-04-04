@@ -234,9 +234,7 @@
 			{transforms}
 			accept_blobs={server.accept_blobs}
 			layer_options={layers}
-			status={loading_status?.status}
 			upload={(...args) => gradio.client.upload(...args)}
-			stream_handler={(...args) => gradio.client.stream(...args)}
 			{placeholder}
 			{full_history}
 		></InteractiveImageEditor>

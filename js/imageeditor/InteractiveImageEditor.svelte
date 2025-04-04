@@ -41,11 +41,7 @@
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 	export let changeable = false;
-	// export let value: EditorData | null = {
-	// 	background: null,
-	// 	layers: [],
-	// 	composite: null,
-	// };
+
 	export let layers: FileData[];
 	export let composite: FileData | null;
 	export let background: FileData | null;
@@ -53,17 +49,11 @@
 	export let layer_options: LayerOptions;
 	export let transforms: Transform[];
 	export let accept_blobs: (a: any) => void;
-	export let status:
-		| "pending"
-		| "complete"
-		| "error"
-		| "generating"
-		| "streaming" = "complete";
+
 	export let canvas_size: [number, number];
 	export let fixed_canvas = false;
 	export let realtime: boolean;
 	export let upload: Client["upload"];
-	export let stream_handler: Client["stream"];
 	export let is_dragging: boolean;
 	export let placeholder: string | undefined = undefined;
 	export let border_region: number;
@@ -242,7 +232,6 @@
 	on:save
 	on:change={handle_change}
 	on:clear={() => dispatch("clear")}
-	bind:history
 	{sources}
 	{full_history}
 	bind:background_image
@@ -252,6 +241,9 @@
 	{fixed_canvas}
 	{border_region}
 	{layer_options}
+	{i18n}
+	{root}
+	{upload}
 	bind:is_dragging
 >
 	{#if !background_image && current_tool === "image"}
@@ -303,6 +295,7 @@
 		z-index: var(--layer-1);
 		text-align: center;
 		color: var(--color-grey-500) !important;
+		cursor: pointer;
 	}
 
 	.wrap {
@@ -312,18 +305,9 @@
 		align-items: center;
 		line-height: var(--line-md);
 		font-size: var(--text-md);
-		pointer-events: none;
 	}
 
 	.or {
 		color: var(--body-text-color-subdued);
-	}
-
-	.sources-container {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
 	}
 </style>

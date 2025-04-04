@@ -898,6 +898,7 @@ interface ImageEditorOptions {
 	dark?: boolean;
 	border_region?: number;
 	layer_options?: LayerOptions;
+	pad_bottom?: number;
 }
 
 const core_tool_map = {
@@ -926,6 +927,7 @@ export interface ImageEditorContext {
 	resize_canvas: (width: number, height: number) => void;
 	reset: () => void;
 	set_background_image: (image: Sprite) => void;
+	pad_bottom: number;
 }
 
 const spring_config = {
@@ -1048,8 +1050,9 @@ export class ImageEditor {
 	private layer_options: LayerOptions;
 	private overlay_container!: Container;
 	private overlay_graphics!: Graphics;
-
+	private pad_bottom: number;
 	constructor(options: ImageEditorOptions) {
+		this.pad_bottom = options.pad_bottom || 0;
 		this.dark = options.dark || false;
 		this.target_element = options.target_element;
 		this.width = options.width;
@@ -1109,6 +1112,7 @@ export class ImageEditor {
 			get background_image() {
 				return editor.background_image;
 			},
+			pad_bottom: this.pad_bottom,
 			command_manager: this.command_manager,
 			layer_manager: this.layer_manager,
 			dimensions: { subscribe: this.dimensions.subscribe },

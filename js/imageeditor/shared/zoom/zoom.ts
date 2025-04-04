@@ -22,6 +22,7 @@ export class ZoomTool implements Tool {
 	private readonly border_padding = 30;
 
 	// State
+	private pad_bottom = 0;
 	private is_pinching = false;
 	private is_dragging = false;
 	private is_pointer_dragging = false;
@@ -65,15 +66,16 @@ export class ZoomTool implements Tool {
 	 */
 	set_zoom(zoom_level: number | "fit"): void {
 		// Calculate the min zoom level
-		const min_zoom = this.calculate_min_zoom(
+		const fit_zoom = this.calculate_min_zoom(
 			this.local_dimensions.width,
 			this.local_dimensions.height
 		);
 
 		// Determine the target zoom level
 		let target_zoom: number;
-		if (zoom_level === "fit") {
-			target_zoom = min_zoom;
+		const is_fit_zoom = zoom_level === "fit";
+		if (is_fit_zoom) {
+			target_zoom = fit_zoom;
 		} else {
 			// Ensure zoom_level is between 0 and 1, then scale it to the range [min_zoom, max_zoom]
 			target_zoom = Math.max(0, Math.min(this.max_zoom, zoom_level));
@@ -87,22 +89,14 @@ export class ZoomTool implements Tool {
 		// Determine the center point for zooming
 		let center_point: { x: number; y: number };
 
-		// If the whole image is visible (at min_zoom), use the center of the screen
-		if (Math.abs(this.local_scale - min_zoom) < 0.001) {
-			center_point = {
-				x: canvas_width / 2,
-				y: canvas_height / 2
-			};
-		} else {
-			// Use the center of the currently visible portion of the image
-			center_point = {
-				x: canvas_width / 2,
-				y: canvas_height / 2
-			};
-		}
+		// Always use the center of the screen
+		center_point = {
+			x: canvas_width / 2,
+			y: canvas_height / 2
+		};
 
 		// Apply the zoom using the existing zoom_to_point method
-		this.zoom_to_point(target_zoom, center_point, true);
+		this.zoom_to_point(target_zoom, center_point, true, is_fit_zoom);
 	}
 
 	/**
@@ -120,10 +114,12 @@ export class ZoomTool implements Tool {
 		this.image_editor_context = context;
 		this.current_tool = tool;
 		this.current_subtool = subtool;
-
+		this.pad_bottom = context.pad_bottom;
 		// Initialize zoom and position
 		const { width, height } = await this.get_container_dimensions();
-		const min_zoom = this.calculate_min_zoom(width, height);
+		const fit_zoom = this.calculate_min_zoom(width, height);
+		// Use fit zoom or 1, whichever is smaller
+		const min_zoom = Math.min(fit_zoom, 1);
 
 		// Set initial zoom
 		this.local_scale = min_zoom;
@@ -243,7 +239,8 @@ export class ZoomTool implements Tool {
 			const scaled_width = this.local_dimensions.width * this.local_scale;
 			const scaled_height = this.local_dimensions.height * this.local_scale;
 			const available_width = canvas.width - this.border_padding * 2;
-			const available_height = canvas.height - this.border_padding * 2;
+			const available_height =
+				canvas.height - this.border_padding * 2 - this.pad_bottom;
 
 			let final_position = { ...raw_position };
 
@@ -262,12 +259,14 @@ export class ZoomTool implements Tool {
 			}
 
 			if (scaled_height <= available_height) {
-				final_position.y = (canvas.height - scaled_height) / 2;
+				final_position.y =
+					(canvas.height - this.pad_bottom - scaled_height) / 2;
 			} else {
-				// Apply 50% rule for vertical bounds
-				const max_offset = canvas.height / 2;
+				// Apply 50% rule for vertical bounds, accounting for pad_bottom
+				const max_offset = (canvas.height - this.pad_bottom) / 2;
 				const top_bound = max_offset;
-				const bottom_bound = canvas.height - max_offset - scaled_height;
+				const bottom_bound =
+					canvas.height - this.pad_bottom - max_offset - scaled_height;
 				final_position.y = Math.min(
 					Math.max(raw_position.y, bottom_bound),
 					top_bound
@@ -361,13 +360,15 @@ export class ZoomTool implements Tool {
 
 		// Calculate available space accounting for padding
 		const available_width = viewport_width - this.border_padding * 2;
-		const available_height = viewport_height - this.border_padding * 2;
+		const available_height =
+			viewport_height - this.border_padding * 2 - this.pad_bottom;
 
 		// Calculate zoom ratios for both dimensions
 		const width_ratio = available_width / container_width;
 		const height_ratio = available_height / container_height;
 
 		// Use the smaller ratio to ensure the image fits in both dimensions
+		// Note: we no longer cap at 1, as 'fit' can be above 1
 		return Math.min(width_ratio, height_ratio);
 	}
 
@@ -506,10 +507,10 @@ export class ZoomTool implements Tool {
 		const scaled_width = this.local_dimensions.width * this.local_scale;
 		const scaled_height = this.local_dimensions.height * this.local_scale;
 
-		// Calculate center position
+		// Calculate center position, accounting for pad_bottom
 		const center_position = {
 			x: (canvas.width - scaled_width) / 2,
-			y: (canvas.height - scaled_height) / 2
+			y: (canvas.height - scaled_height - this.pad_bottom) / 2
 		};
 
 		if (scaled_width <= canvas.width && scaled_height <= canvas.height) {
@@ -527,10 +528,10 @@ export class ZoomTool implements Tool {
 			x = Math.max(min_x, Math.min(max_x, position.x));
 		}
 
-		if (scaled_height <= canvas.height) {
+		if (scaled_height <= canvas.height - this.pad_bottom) {
 			y = center_position.y;
 		} else {
-			const min_y = canvas.height - scaled_height;
+			const min_y = canvas.height - scaled_height - this.pad_bottom;
 			const max_y = 0;
 			y = Math.max(min_y, Math.min(max_y, position.y));
 		}
@@ -545,12 +546,14 @@ export class ZoomTool implements Tool {
 	 * @param {number} point.x - The x coordinate of the point
 	 * @param {number} point.y - The y coordinate of the point
 	 * @param {boolean} hard - Whether to apply a hard zoom (no animation)
+	 * @param {boolean} is_fit_zoom - Whether this is a fit zoom operation
 	 * @private
 	 */
 	private zoom_to_point(
 		new_zoom: number,
 		point: { x: number; y: number },
-		hard?: boolean
+		hard?: boolean,
+		is_fit_zoom?: boolean
 	): void {
 		// Get the cursor position relative to the image's top-left corner
 		const cursor_relative_to_image = {
@@ -565,10 +568,12 @@ export class ZoomTool implements Tool {
 		};
 
 		// Apply zoom limits
-		const min_zoom = this.calculate_min_zoom(
+		const fit_zoom = this.calculate_min_zoom(
 			this.local_dimensions.width,
 			this.local_dimensions.height
 		);
+		// Use the fit zoom or 1, whichever is smaller as the minimum zoom
+		const min_zoom = Math.min(fit_zoom, 1);
 		new_zoom = Math.min(Math.max(new_zoom, min_zoom), this.max_zoom);
 
 		// Calculate new dimensions
@@ -581,15 +586,15 @@ export class ZoomTool implements Tool {
 			y: point.y - new_scaled_height * image_percentages.y
 		};
 
-		// Only apply bounds and center if we're at minimum zoom
-		if (new_zoom === min_zoom) {
+		// Center the image if we're at minimum zoom or if this is a fit zoom operation
+		if (new_zoom === min_zoom || is_fit_zoom) {
 			const canvas_width = this.image_editor_context.app.screen.width;
 			const canvas_height = this.image_editor_context.app.screen.height;
 
-			// Center the image
+			// Center the image, accounting for pad_bottom
 			new_position = {
 				x: (canvas_width - new_scaled_width) / 2,
-				y: (canvas_height - new_scaled_height) / 2
+				y: (canvas_height - this.pad_bottom - new_scaled_height) / 2
 			};
 		}
 
@@ -633,7 +638,8 @@ export class ZoomTool implements Tool {
 			const scaled_width = this.local_dimensions.width * this.local_scale;
 			const scaled_height = this.local_dimensions.height * this.local_scale;
 			const available_width = canvas.width - this.border_padding * 2;
-			const available_height = canvas.height - this.border_padding * 2;
+			const available_height =
+				canvas.height - this.border_padding * 2 - this.pad_bottom;
 
 			let final_position = { ...raw_position };
 
@@ -646,7 +652,8 @@ export class ZoomTool implements Tool {
 			}
 
 			if (scaled_height <= available_height) {
-				final_position.y = (canvas.height - scaled_height) / 2;
+				final_position.y =
+					(canvas.height - this.pad_bottom - scaled_height) / 2;
 			} else {
 				// Allow free movement during drag, bounds will be applied on pointer up
 				final_position.y = raw_position.y;
@@ -678,7 +685,8 @@ export class ZoomTool implements Tool {
 			const scaled_width = this.local_dimensions.width * this.local_scale;
 			const scaled_height = this.local_dimensions.height * this.local_scale;
 			const available_width = canvas.width - this.border_padding * 2;
-			const available_height = canvas.height - this.border_padding * 2;
+			const available_height =
+				canvas.height - this.border_padding * 2 - this.pad_bottom;
 
 			let final_position = { ...raw_position };
 
@@ -697,12 +705,14 @@ export class ZoomTool implements Tool {
 			}
 
 			if (scaled_height <= available_height) {
-				final_position.y = (canvas.height - scaled_height) / 2;
+				final_position.y =
+					(canvas.height - this.pad_bottom - scaled_height) / 2;
 			} else {
-				// Apply 50% rule for vertical snapping
-				const max_offset = canvas.height / 2;
+				// Apply 50% rule for vertical snapping, accounting for pad_bottom
+				const max_offset = (canvas.height - this.pad_bottom) / 2;
 				const top_bound = max_offset;
-				const bottom_bound = canvas.height - max_offset - scaled_height;
+				const bottom_bound =
+					canvas.height - this.pad_bottom - max_offset - scaled_height;
 				final_position.y = Math.min(
 					Math.max(raw_position.y, bottom_bound),
 					top_bound

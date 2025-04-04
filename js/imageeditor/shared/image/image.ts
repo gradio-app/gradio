@@ -117,7 +117,6 @@ export class AddImageCommand implements BgImageCommand {
 	private handle_image(): [number, number] {
 		// Handle fixed canvas differently when border region is present
 		if (this.fixed_canvas) {
-			console.log("fixed canvas");
 			// Calculate the effective canvas size accounting for border region
 			const effectiveCanvasWidth = Math.max(
 				this.current_canvas_size.width - this.border_region * 2,

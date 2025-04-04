@@ -6,7 +6,7 @@
 </script>
 
 <script lang="ts">
-	import { onMount, setContext, createEventDispatcher, tick } from "svelte";
+	import { onMount, createEventDispatcher, tick } from "svelte";
 	import Toolbar, { type Tool as ToolbarTool } from "./Toolbar.svelte";
 	import { CropTool } from "./crop/crop";
 	import { ResizeTool } from "./resize/resize";
@@ -17,27 +17,18 @@
 	import { ZoomTool } from "./zoom/zoom";
 	import { type CommandManager, type CommandNode } from "./utils/commands";
 	import { ImageEditor } from "./core/editor";
-	import { type Brush, type Eraser, type ColorTuple } from "./brush/types";
+	import { type Brush, type Eraser } from "./brush/types";
 	import { BrushTool } from "./brush/brush";
 	import { create_drag } from "@gradio/upload";
-	// import Layers from "./Layers.svelte";
 	import SecondaryToolbar from "./SecondaryToolbar.svelte";
 	import { Check } from "@gradio/icons";
 	import type { LayerOptions, Source, Transform } from "./types";
-	import { get } from "svelte/store";
-	const { drag, open_file_upload } = create_drag();
 
-	// import { type LayerScene } from "./layers/utils";
 	import { type ImageBlobs } from "./types";
 	import Controls from "./Controls.svelte";
 	import IconButton from "./IconButton.svelte";
-	export const antialias = true;
-	// export let crop_size: [number, number] | undefined; no use any more
-	export let changeable = false;
-	// export const history = false; // Uncomment if needed
-	export let sources: Source[] = ["upload", "webcam", "clipboard"];
-	export let transforms: Transform[] = ["crop", "resize"];
 
+	const { drag, open_file_upload } = create_drag();
 	const dispatch = createEventDispatcher<{
 		clear?: never;
 		save: void;
@@ -47,11 +38,14 @@
 		input: void;
 	}>();
 
-	export let canvas_size: [number, number];
+	export const antialias = true;
 	export const full_history: CommandNode | null = null;
+
+	export let changeable = false;
+	export let sources: Source[] = ["upload", "webcam", "clipboard"];
+	export let transforms: Transform[] = ["crop", "resize"];
+	export let canvas_size: [number, number];
 	export let is_dragging = false;
-	let pixi_target: HTMLDivElement;
-	let pixi_target_crop: HTMLDivElement;
 	export let background_image = false;
 	export let brush_options: Brush;
 	export let eraser_options: Eraser;
@@ -60,12 +54,15 @@
 	export let mirror_webcam = true;
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
-	export const stream_handler: Client["stream"] | undefined = undefined;
 	export let composite: FileData | null;
 	export let layers: FileData[];
 	export let background: FileData | null;
 	export let border_region: number;
 	export let layer_options: LayerOptions;
+	export let current_tool: ToolbarTool;
+
+	let pixi_target: HTMLDivElement;
+	let pixi_target_crop: HTMLDivElement;
 
 	$: if (layer_options) {
 		if (check_if_should_init()) {
@@ -88,8 +85,6 @@
 	 * @returns {Promise<ImageBlobs>} Object containing background, layers, and composite image blobs
 	 */
 	export async function get_blobs(): Promise<ImageBlobs> {
-		// Implement function logic or adjust return type
-
 		const blobs = await editor.get_blobs();
 		return blobs;
 	}
@@ -174,8 +169,6 @@
 			}
 		}
 	}
-
-	export let current_tool: ToolbarTool;
 
 	let brush: BrushTool;
 	let zoom: ZoomTool;
@@ -275,6 +268,7 @@
 			dark: true,
 			fixed_canvas: false,
 			border_region: 0,
+			pad_bottom: 40,
 		});
 
 		editor.scale.subscribe((_scale) => {
@@ -308,17 +302,23 @@
 			if (layers.length > 0) {
 				await add_layers_from_url(layers);
 			}
+			handle_tool_change({ tool: "draw" });
 		} else if (composite) {
 			await add_image_from_url(composite);
+			handle_tool_change({ tool: "draw" });
 		}
 	}
 
-	function resize_canvas(width: number, height: number): void {
-		if (!editor) return;
-		if (mounted && ready) {
-			editor.resize(width, height);
-		}
-	}
+	$: current_tool === "image" &&
+		current_subtool === "crop" &&
+		crop_zoom.set_zoom("fit");
+
+	// function resize_canvas(width: number, height: number): void {
+	// 	if (!editor) return;
+	// 	if (mounted && ready) {
+	// 		editor.resize(width, height);
+	// 	}
+	// }
 
 	/**
 	 * Handles file uploads
@@ -334,9 +334,10 @@
 		await crop.add_image({ image: _file });
 		crop.reset();
 		background_image = true;
-
+		handle_tool_change({ tool: "draw" });
 		dispatch("upload");
 		dispatch("input");
+		dispatch("change");
 	}
 
 	/**
@@ -559,36 +560,18 @@
 				current_zoom={zoom_level}
 				on:remove_image={() => {
 					editor.reset_canvas();
+					handle_tool_change({ tool: "image" });
 					background_image = false;
 				}}
 				tool={current_tool}
-				dimensions={editor.dimensions}
-				on:resize={(e) => {
-					editor.modify_canvas_size(
-						e.detail.width,
-						e.detail.height,
-						e.detail.anchor,
-						e.detail.scale,
-					);
-				}}
 				can_save={true}
 				on:save={handle_save}
 				on:pan={(e) => {
 					handle_tool_change({ tool: "pan" });
 				}}
-				{fixed_canvas}
 			/>
 		{/if}
-		<!-- on:save={handle_save} -->
-		<!-- can_save={saved_history !== $current_history} -->
-		<!-- on:remove_image={handle_remove} -->
-		<!-- 
-    can_undo={$can_undo}
-		can_redo={$can_redo}
-		{changeable}
-		on:undo={CommandManager.undo}
-		on:redo={CommandManager.redo}
-   -->
+
 		{#if current_subtool !== "crop"}
 			<Toolbar
 				{sources}
@@ -632,21 +615,6 @@
 
 		{#if current_subtool !== "crop" && !layer_options.disabled}
 			<SecondaryToolbar
-				dimensions={editor.dimensions}
-				on:resize={(e) => {
-					editor.modify_canvas_size(
-						e.detail.width,
-						e.detail.height,
-						e.detail.anchor,
-						e.detail.scale,
-					);
-				}}
-				on:set_zoom={(e) => {
-					zoom.set_zoom(e.detail);
-				}}
-				on:zoom_in={() => zoom_in_out("in")}
-				on:zoom_out={() => zoom_in_out("out")}
-				current_zoom={zoom_level}
 				enable_additional_layers={layer_options.allow_additional_layers}
 				layers={editor.layers}
 				on:new_layer={() => {

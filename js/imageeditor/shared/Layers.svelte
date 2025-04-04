@@ -16,13 +16,9 @@
 		active_layer: string;
 		layers: { name: string; id: string; user_created: boolean }[];
 	}>;
-
 	export let enable_additional_layers = true;
-
 	export let enable_layers = true;
 	export let show_layers = false;
-
-	// $: current_layer.set($manager_current_layer);
 
 	function new_layer(): void {
 		dispatch("new_layer");
@@ -48,8 +44,6 @@
 		class:closed={!show_layers}
 		use:click_outside={() => (show_layers = false)}
 	>
-		<!-- <div class="space"></div> -->
-
 		<button
 			class="layer-title-button"
 			aria-label="Show Layers"
