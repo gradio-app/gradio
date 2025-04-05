@@ -2,20 +2,16 @@
 	import EditableCell from "./EditableCell.svelte";
 	import CellMenuButton from "./CellMenuButton.svelte";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
-	import type { SortDirection } from "./context/table_context";
+	import { get_sort_status } from "./utils/sort_utils";
 	import Padlock from "./icons/Padlock.svelte";
 	import SortArrowUp from "./icons/SortArrowUp.svelte";
 	import SortArrowDown from "./icons/SortArrowDown.svelte";
-
+	import type { SortDirection } from "./context/dataframe_context";
 	export let value: string;
 	export let i: number;
 	export let actual_pinned_columns: number;
 	export let header_edit: number | false;
 	export let selected_header: number | false;
-	export let get_sort_status: (
-		value: string,
-		headers: string[]
-	) => "none" | "asc" | "desc";
 	export let headers: string[];
 	export let get_cell_width: (index: number) => string;
 	export let handle_header_click: (event: MouseEvent, col: number) => void;
@@ -68,9 +64,9 @@
 	class:last-pinned={i === actual_pinned_columns - 1}
 	class:focus={header_edit === i || selected_header === i}
 	class:sorted={sort_index !== -1}
-	aria-sort={get_sort_status(value, headers) === "none"
+	aria-sort={get_sort_status(value, sort_columns, headers) === "none"
 		? "none"
-		: get_sort_status(value, headers) === "asc"
+		: get_sort_status(value, sort_columns, headers) === "asc"
 			? "ascending"
 			: "descending"}
 	style="width: {get_cell_width(i)}; left: {get_header_position(i)};"
@@ -113,6 +109,7 @@
 					{editable}
 					{is_static}
 					{i18n}
+					coords={[i, 0]}
 				/>
 				{#if sort_index !== -1}
 					<div class="sort-indicators">

@@ -1,5 +1,9 @@
 import { describe, test, expect } from "vitest";
-import { get_sort_status, sort_data, SortDirection } from "./sort_utils";
+import {
+	get_sort_status,
+	sort_data,
+	SortDirection
+} from "../shared/utils/sort_utils";
 
 describe("sort_utils", () => {
 	describe("get_sort_status", () => {

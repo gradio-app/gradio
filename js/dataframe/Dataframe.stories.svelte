@@ -752,6 +752,34 @@
 />
 
 <Story
+	name="Dataframe with display values"
+	args={{
+		values: [
+			[95, 92, 88],
+			[89, 90, 85],
+			[92, 88, 91],
+			[87, 85, 89],
+			[91, 93, 90],
+			[82, 81, 83]
+		],
+		headers: ["Model A", "Model B", "Model C"],
+		display_value: [
+			["🥇 95", "92", "88"],
+			["🥈 89", "90", "85"],
+			["🥉 92", "88", "91"],
+			["87", "85", "89"],
+			["91", "93", "90"],
+			["82", "81", "83"]
+		],
+		label: "Model Performance with Medal Indicators",
+		col_count: [3, "dynamic"],
+		row_count: [6, "dynamic"],
+		show_row_numbers: true,
+		editable: false
+	}}
+/>
+
+<Story
 	name="Dataframe with text wrapping, no max chars"
 	args={{
 		values: [

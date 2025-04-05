@@ -11,14 +11,12 @@ def update_dataframe():
         [104, 52, 49, 26, 83, 67, 31, 92, 79, 18, 241, 115, 159, 123, 137],
         [16, 95, 74, 68, 43, 101, 27, 85, 39, 57, 129, 148, 132, 111, 156]
     ], columns=pd.Index([f"col_{i}" for i in range(15)]))
-    tall_df = pd.DataFrame(np.random.randint(1, 10, size=(50, 3)), columns=pd.Index(["A", "B", "C"]))
-    return regular_df, wide_df, tall_df
+    return regular_df, wide_df
 
 def clear_dataframes():
     regular_empty_df = pd.DataFrame([], columns=pd.Index([str(i) for i in range(5)]))
     wide_empty_df = pd.DataFrame([], columns=pd.Index([f"col_{i}" for i in range(15)]))
-    tall_empty_df = pd.DataFrame([], columns=pd.Index(["A", "B", "C"]))
-    return regular_empty_df, wide_empty_df, tall_empty_df
+    return regular_empty_df, wide_empty_df
 
 def increment_select_counter(evt: gr.SelectData, count):
     count_val = 1 if count is None else count + 1
@@ -56,11 +54,37 @@ with gr.Blocks() as demo:
                 show_fullscreen_button=True,
             )
 
-    with gr.Row():
-        initial_tall_df = pd.DataFrame(np.zeros((50, 3), dtype=int), columns=pd.Index(["A", "B", "C"]))
+    tall_df_value = [
+        ["DeepSeek Coder", 79.3],
+        ["Llama 3.3", 68.9],
+        ["Qwen 2.5", 61.9],
+        ["Gemma 2", 59.5],
+        ["GPT 2", 18.3],
+    ]
 
+    def get_display_value(values):
+        display_values = []
+        medals = ["🥇", "🥈", "🥉"]
+        for i, row in enumerate(values):
+            if i < 3:
+                display_values.append([f"{medals[i]} {row[0]}", row[1]])
+            else:
+                display_values.append([row[0], row[1]])
+        return display_values
+
+    display_value = get_display_value(tall_df_value)
+
+    tall_df_value = {
+        "data": tall_df_value,
+        "headers": ["Model", "% Correct (LeetCode Hard)"],
+        "metadata": {
+            "display_value": display_value
+        }
+    }
+
+    with gr.Row():
         df_tall = gr.Dataframe(
-            value=initial_tall_df,
+            value=tall_df_value,
             interactive=False,
             label="Tall Dataframe (Scroll Vertically)",
             show_label=True,
@@ -92,7 +116,7 @@ with gr.Blocks() as demo:
             label="Selected cell value", elem_id="selected_cell_value"
         )
 
-    update_btn.click(fn=update_dataframe, outputs=[df, df_view, df_tall])
+    update_btn.click(fn=update_dataframe, outputs=[df, df_view])
     clear_btn.click(fn=clear_dataframes, outputs=[df, df_view, df_tall])
     df.change(fn=lambda x: x + 1, inputs=[change_events], outputs=[change_events])
     df.input(fn=lambda x: x + 1, inputs=[input_events], outputs=[input_events])

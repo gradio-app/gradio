@@ -1,40 +1,82 @@
 import { dequal } from "dequal/lite";
 import { handle_delete_key } from "../selection_utils";
-import type { KeyboardContext } from "../context/keyboard_context";
+import type { DataFrameContext } from "../context/dataframe_context";
 import { tick } from "svelte";
+import { get } from "svelte/store";
 import { copy_table_data } from "./table_utils";
+
+async function save_cell_value(
+	input_value: string,
+	ctx: DataFrameContext,
+	row: number,
+	col: number
+): Promise<void> {
+	if (!ctx.data || !ctx.data[row] || !ctx.data[row][col]) return;
+
+	const old_value = ctx.data[row][col].value;
+	ctx.data[row][col].value = input_value;
+
+	if (old_value !== input_value && ctx.dispatch) {
+		ctx.dispatch("change", {
+			data: ctx.data.map((row) => row.map((cell) => cell.value)),
+			headers: ctx.headers?.map((h) => h.value) || [],
+			metadata: null
+		});
+	}
+
+	ctx.actions.set_selected([row, col]);
+}
+
+export async function handle_cell_blur(
+	event: FocusEvent,
+	ctx: DataFrameContext,
+	coords: [number, number]
+): Promise<void> {
+	if (!ctx.data || !ctx.headers || !ctx.els) return;
+
+	const input_el = event.target as HTMLInputElement;
+	if (!input_el || input_el.value === undefined) return;
+
+	await save_cell_value(input_el.value, ctx, coords[0], coords[1]);
+}
 
 function handle_header_navigation(
 	event: KeyboardEvent,
-	ctx: KeyboardContext
+	ctx: DataFrameContext
 ): boolean {
-	if (ctx.selected_header === false || ctx.header_edit !== false) return false;
+	const state = get(ctx.state);
+	const selected_header = state.ui_state.selected_header;
+	const header_edit = state.ui_state.header_edit;
+	const headers = ctx.headers || [];
+
+	if (selected_header === false || header_edit !== false) return false;
+
 	switch (event.key) {
 		case "ArrowDown":
-			ctx.df_actions.set_selected_header(false);
-			ctx.df_actions.set_selected([0, ctx.selected_header]);
-			ctx.df_actions.set_selected_cells([[0, ctx.selected_header]]);
+			ctx.actions.set_selected_header(false);
+			ctx.actions.set_selected([0, selected_header as number]);
+			ctx.actions.set_selected_cells([[0, selected_header as number]]);
 			return true;
 		case "ArrowLeft":
-			ctx.df_actions.set_selected_header(
-				ctx.selected_header > 0 ? ctx.selected_header - 1 : ctx.selected_header
+			ctx.actions.set_selected_header(
+				selected_header > 0 ? selected_header - 1 : selected_header
 			);
 			return true;
 		case "ArrowRight":
-			ctx.df_actions.set_selected_header(
-				ctx.selected_header < ctx.headers.length - 1
-					? ctx.selected_header + 1
-					: ctx.selected_header
+			ctx.actions.set_selected_header(
+				selected_header < headers.length - 1
+					? selected_header + 1
+					: selected_header
 			);
 			return true;
 		case "Escape":
 			event.preventDefault();
-			ctx.df_actions.set_selected_header(false);
+			ctx.actions.set_selected_header(false);
 			return true;
 		case "Enter":
 			event.preventDefault();
-			if (ctx.editable) {
-				ctx.df_actions.set_header_edit(ctx.selected_header);
+			if (state.config.editable) {
+				ctx.actions.set_header_edit(selected_header);
 			}
 			return true;
 	}
@@ -43,14 +85,20 @@ function handle_header_navigation(
 
 function handle_delete_operation(
 	event: KeyboardEvent,
-	ctx: KeyboardContext
+	ctx: DataFrameContext
 ): boolean {
-	if (!ctx.editable) return false;
+	if (!ctx.data || !ctx.headers || !ctx.els || !ctx.dispatch) return false;
+
+	const state = get(ctx.state);
+	if (!state.config.editable) return false;
 	if (event.key !== "Delete" && event.key !== "Backspace") return false;
 
-	if (ctx.editing) {
-		const [row, col] = ctx.editing;
-		const input_el = ctx.els[ctx.data[row][col].id].input;
+	const editing = state.ui_state.editing;
+	const selected_cells = state.ui_state.selected_cells;
+
+	if (editing) {
+		const [row, col] = editing;
+		const input_el = ctx.els[ctx.data[row][col].id]?.input;
 		if (input_el && input_el.selectionStart !== input_el.selectionEnd) {
 			return false;
 		}
@@ -66,103 +114,105 @@ function handle_delete_operation(
 	}
 
 	event.preventDefault();
-	if (ctx.selected_cells.length > 0) {
-		const new_data = handle_delete_key(ctx.data, ctx.selected_cells);
+	if (selected_cells.length > 0) {
+		const new_data = handle_delete_key(ctx.data, selected_cells);
 		ctx.dispatch("change", {
 			data: new_data.map((row) => row.map((cell) => cell.value)),
 			headers: ctx.headers.map((h) => h.value),
 			metadata: null
 		});
-		ctx.dispatch("input");
 	}
 	return true;
 }
 
 function handle_arrow_keys(
 	event: KeyboardEvent,
-	ctx: KeyboardContext,
+	ctx: DataFrameContext,
 	i: number,
 	j: number
 ): boolean {
-	if (ctx.editing) return false;
+	const state = get(ctx.state);
+	const editing = state.ui_state.editing;
+	const selected_cells = state.ui_state.selected_cells;
+
+	if (editing) return false;
+	if (!ctx.data) return false;
+
 	event.preventDefault();
 
-	const next_coords = ctx.move_cursor(event, [i, j], ctx.data);
+	const next_coords = ctx.actions.move_cursor(event, [i, j], ctx.data);
 	if (next_coords) {
 		if (event.shiftKey) {
-			ctx.df_actions.set_selected_cells(
-				ctx.get_range_selection(
-					ctx.selected_cells.length > 0 ? ctx.selected_cells[0] : [i, j],
+			ctx.actions.set_selected_cells(
+				ctx.actions.get_range_selection(
+					selected_cells.length > 0 ? selected_cells[0] : [i, j],
 					next_coords
 				)
 			);
-			ctx.df_actions.set_editing(false);
+			ctx.actions.set_editing(false);
 		} else {
-			ctx.df_actions.set_selected_cells([next_coords]);
-			ctx.df_actions.set_editing(false);
+			ctx.actions.set_selected_cells([next_coords]);
+			ctx.actions.set_editing(false);
 		}
-		ctx.df_actions.set_selected(next_coords);
+		ctx.actions.set_selected(next_coords);
 	} else if (next_coords === false && event.key === "ArrowUp" && i === 0) {
-		ctx.df_actions.set_selected_header(j);
-		ctx.df_actions.set_selected(false);
-		ctx.df_actions.set_selected_cells([]);
-		ctx.df_actions.set_editing(false);
+		ctx.actions.set_selected_header(j);
+		ctx.actions.set_selected(false);
+		ctx.actions.set_selected_cells([]);
+		ctx.actions.set_editing(false);
 	}
 	return true;
 }
 
 async function handle_enter_key(
 	event: KeyboardEvent,
-	ctx: KeyboardContext,
+	ctx: DataFrameContext,
 	i: number,
 	j: number
 ): Promise<boolean> {
-	event.preventDefault();
-	if (!ctx.editable) return false;
+	if (!ctx.data || !ctx.els) return false;
 
-	if (event.shiftKey) {
-		await ctx.add_row(i);
-		await tick();
-		ctx.df_actions.set_selected([i + 1, j]);
-	} else {
-		if (dequal(ctx.editing, [i, j])) {
-			const cell_id = ctx.data[i][j].id;
-			const input_el = ctx.els[cell_id].input;
-			if (input_el) {
-				const old_value = ctx.data[i][j].value;
-				ctx.data[i][j].value = input_el.value;
-				if (old_value !== input_el.value) {
-					ctx.dispatch("input");
-				}
-			}
-			ctx.df_actions.set_editing(false);
-			await tick();
-			ctx.df_actions.set_selected([i, j]);
-		} else {
-			ctx.df_actions.set_editing([i, j]);
+	const state = get(ctx.state);
+	if (!state.config.editable) return false;
+
+	event.preventDefault();
+
+	const editing = state.ui_state.editing;
+
+	if (editing && dequal(editing, [i, j])) {
+		const cell_id = ctx.data[i][j].id;
+		const input_el = ctx.els[cell_id]?.input;
+		if (input_el) {
+			await save_cell_value(input_el.value, ctx, i, j);
 		}
+		ctx.actions.set_editing(false);
+	} else {
+		ctx.actions.set_editing([i, j]);
 	}
+
 	return true;
 }
 
 function handle_tab_key(
 	event: KeyboardEvent,
-	ctx: KeyboardContext,
+	ctx: DataFrameContext,
 	i: number,
 	j: number
 ): boolean {
+	if (!ctx.data) return false;
+
 	event.preventDefault();
-	ctx.df_actions.set_editing(false);
-	const next_cell = ctx.get_next_cell_coordinates(
+	ctx.actions.set_editing(false);
+	const next_cell = ctx.actions.get_next_cell_coordinates(
 		[i, j],
 		ctx.data,
 		event.shiftKey
 	);
 	if (next_cell) {
-		ctx.df_actions.set_selected_cells([next_cell]);
-		ctx.df_actions.set_selected(next_cell);
-		if (ctx.editable) {
-			ctx.df_actions.set_editing(next_cell);
+		ctx.actions.set_selected_cells([next_cell]);
+		ctx.actions.set_selected(next_cell);
+		if (get(ctx.state).config.editable) {
+			ctx.actions.set_editing(next_cell);
 		}
 	}
 	return true;
@@ -170,16 +220,20 @@ function handle_tab_key(
 
 function handle_default_key(
 	event: KeyboardEvent,
-	ctx: KeyboardContext,
+	ctx: DataFrameContext,
 	i: number,
 	j: number
 ): boolean {
-	if (!ctx.editable) return false;
+	const state = get(ctx.state);
+	if (!state.config.editable) return false;
+
+	const editing = state.ui_state.editing;
+
 	if (
-		(!ctx.editing || (ctx.editing && dequal(ctx.editing, [i, j]))) &&
+		(!editing || (editing && dequal(editing, [i, j]))) &&
 		event.key.length === 1
 	) {
-		ctx.df_actions.set_editing([i, j]);
+		ctx.actions.set_editing([i, j]);
 		return true;
 	}
 	return false;
@@ -187,20 +241,25 @@ function handle_default_key(
 
 async function handle_cell_navigation(
 	event: KeyboardEvent,
-	ctx: KeyboardContext
+	ctx: DataFrameContext
 ): Promise<boolean> {
-	if (!ctx.selected) return false;
+	if (!ctx.data) return false;
+
+	const state = get(ctx.state);
+	const selected = state.ui_state.selected;
+	const selected_cells = state.ui_state.selected_cells;
+
+	if (!selected) return false;
 	if (event.key === "c" && (event.metaKey || event.ctrlKey)) {
 		event.preventDefault();
-		if (ctx.selected_cells.length > 0) {
-			await copy_table_data(ctx.data, ctx.selected_cells);
+		if (selected_cells.length > 0) {
+			await copy_table_data(ctx.data, selected_cells);
 		}
-		ctx.set_copy_flash(true);
-
+		ctx.actions.set_copy_flash(true);
 		return true;
 	}
 
-	const [i, j] = ctx.selected;
+	const [i, j] = selected;
 
 	switch (event.key) {
 		case "ArrowRight":
@@ -209,9 +268,9 @@ async function handle_cell_navigation(
 		case "ArrowUp":
 			return handle_arrow_keys(event, ctx, i, j);
 		case "Escape":
-			if (!ctx.editable) return false;
+			if (!state.config.editable) return false;
 			event.preventDefault();
-			ctx.df_actions.set_editing(false);
+			ctx.actions.set_editing(false);
 			tick().then(() => {
 				if (ctx.parent_element) {
 					ctx.parent_element.focus();
@@ -223,6 +282,9 @@ async function handle_cell_navigation(
 			return await handle_enter_key(event, ctx, i, j);
 		case "Tab":
 			return handle_tab_key(event, ctx, i, j);
+		case "Delete":
+		case "Backspace":
+			return handle_delete_operation(event, ctx);
 		default:
 			return handle_default_key(event, ctx, i, j);
 	}
@@ -230,7 +292,7 @@ async function handle_cell_navigation(
 
 export async function handle_keydown(
 	event: KeyboardEvent,
-	context: KeyboardContext
+	context: DataFrameContext
 ): Promise<void> {
 	if (handle_header_navigation(event, context)) return;
 	if (handle_delete_operation(event, context)) return;
