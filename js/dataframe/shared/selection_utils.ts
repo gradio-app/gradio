@@ -1,4 +1,4 @@
-import type { CellCoordinate, EditingState } from "./types";
+import type { CellCoordinate } from "./types";
 
 export type CellData = { id: string; value: string | number };
 
@@ -86,28 +86,6 @@ export function handle_delete_key(
 		}
 	});
 	return new_data;
-}
-
-export function handle_editing_state(
-	current: CellCoordinate,
-	editing: EditingState,
-	selected_cells: CellCoordinate[],
-	editable: boolean
-): EditingState {
-	const [row, col] = current;
-	if (!editable) return false;
-
-	if (editing && editing[0] === row && editing[1] === col) return editing;
-
-	if (
-		selected_cells.length === 1 &&
-		selected_cells[0][0] === row &&
-		selected_cells[0][1] === col
-	) {
-		return [row, col];
-	}
-
-	return false;
 }
 
 export function should_show_cell_menu(
