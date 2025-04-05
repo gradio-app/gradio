@@ -1,5 +1,18 @@
 # @gradio/dataframe
 
+## 0.17.5
+
+### Fixes
+
+- [#10918](https://github.com/gradio-app/gradio/pull/10918) [`36da6d0`](https://github.com/gradio-app/gradio/commit/36da6d0d5466dd251f46359019959702523f1afc) - Fix value synchronisation issue in gr.Dataframe.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.7
+- @gradio/upload@0.15.8
+- @gradio/button@0.4.13
+- @gradio/atoms@0.15.0
+
 ## 0.17.4
 
 ### Dependency updates

@@ -1,5 +1,17 @@
 # website
 
+## 0.54.0
+
+### Features
+
+- [#10936](https://github.com/gradio-app/gradio/pull/10936) [`e8b8eef`](https://github.com/gradio-app/gradio/commit/e8b8eef7e5cb4474fcc109aee871e006d7dd17f3) - Fix broken css on some param tables.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.13.2
+- @gradio/paramviewer@0.7.5
+- @gradio/statustracker@0.10.7
+
 ## 0.53.2
 
 ### Features
