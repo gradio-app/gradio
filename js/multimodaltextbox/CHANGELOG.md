@@ -1,5 +1,19 @@
 # @gradio/multimodaltextbox
 
+## 0.9.15
+
+### Fixes
+
+- [#10925](https://github.com/gradio-app/gradio/pull/10925) [`c37de0f`](https://github.com/gradio-app/gradio/commit/c37de0f9081f30ac963b0c837e8f1985461afbb1) - Tweak `rtl` UI in `gr.MultimodalTextbox`.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.7
+- @gradio/image@0.21.8
+- @gradio/upload@0.15.8
+- @gradio/video@0.14.8
+- @gradio/atoms@0.15.0
+
 ## 0.9.14
 
 ### Dependency updates
