@@ -297,7 +297,9 @@ class ImageEditor(Component):
         self.layers = (
             LayerOptions()
             if layers is True
-            else LayerOptions(disabled=True) if layers is False else layers
+            else LayerOptions(disabled=True)
+            if layers is False
+            else layers
         )
         self.canvas_size = canvas_size
         self.fixed_canvas = fixed_canvas
