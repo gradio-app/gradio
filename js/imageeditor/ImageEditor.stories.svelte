@@ -115,8 +115,8 @@
 	args={{
 		value: {
 			composite: {
-				path: "",
-				url: "/output-image.png",
+				path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+				url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
 				size: null,
 				orig_name: null,
 				mime_type: null,
