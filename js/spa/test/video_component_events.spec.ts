@@ -37,7 +37,7 @@ test("Video play, pause events work correctly.", async ({ page }) => {
 		page.waitForEvent("filechooser"),
 		page.getByLabel("Drop a video file here to upload").first().click()
 	]);
-	await fileChooser.setFiles(["./test/files/world.mp4"]);
+	await fileChooser.setFiles(["./test/files/av1-video.mp4"]);
 
 	// Wait change event to trigger
 
