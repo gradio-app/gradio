@@ -25,11 +25,11 @@
 			<div class="flex flex-wrap items-center gap-x-4 gap-y-2 mx-auto">
 				<p class="text-md leading-6 text-gray-700 text-center mx-auto">
 					<strong class="font-semibold"
-						>Introducing FastRTC, a new way to build real-time AI apps</strong
+						>Gradio's Journey to 1 Million Monthly Users!</strong
 					>
 				</p>
 				<a
-					href="https://fastrtc.org/"
+					href="https://huggingface.co/blog/gradio-1m"
 					target="_blank"
 					class="mx-auto flex-none rounded-full px-3.5 py-1 text-sm font-semibold text-white bg-gradient-to-br from-orange-300 via-orange-500 to-orange-300 hover:drop-shadow-md"
 					>Read More <span aria-hidden="true">&rarr;</span></a
