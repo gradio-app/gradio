@@ -31,7 +31,7 @@
 
 	// Helper function to extract opacity from a tuple or return undefined
 	function get_opacity(
-		color_input: ColorInput | ColorTuple,
+		color_input: ColorInput | ColorTuple
 	): number | undefined {
 		if (Array.isArray(color_input)) {
 			return color_input[1];
@@ -44,7 +44,7 @@
 
 	function get_formatted_color(
 		color: ColorInput | ColorTuple,
-		mode: "hex" | "rgb" | "hsl",
+		mode: "hex" | "rgb" | "hsl"
 	): string {
 		const color_value = get_color(color);
 		if (mode === "hex") {
@@ -58,7 +58,7 @@
 	let current_index = `select-${colors.findIndex(
 		(c) =>
 			get_formatted_color(c, current_mode) ===
-			get_formatted_color(selected_color, current_mode),
+			get_formatted_color(selected_color, current_mode)
 	)}`;
 
 	$: selected_opacity = get_opacity(selected_color);
@@ -69,7 +69,7 @@
 			index: number;
 			color: string | null;
 			opacity?: number;
-		},
+		}
 	): void {
 		current_index = `${type}-${detail.index}`;
 		dispatch(type, detail);
@@ -106,7 +106,7 @@
 							handle_select("edit", {
 								index: i,
 								color: color_string,
-								opacity: opacity,
+								opacity: opacity
 							})}
 						class="color"
 						class:empty={color === null}
@@ -133,7 +133,7 @@
 						handle_select("select", {
 							index: i,
 							color: color_string,
-							opacity: opacity,
+							opacity: opacity
 						})}
 					class="color"
 					class:empty={color_item === null}

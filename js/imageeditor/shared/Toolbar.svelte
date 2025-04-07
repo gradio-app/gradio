@@ -24,14 +24,14 @@
 		Webcam,
 		Circle,
 		Resize,
-		ColorPickerSolid,
+		ColorPickerSolid
 	} from "@gradio/icons";
 	import BrushOptions from "./brush/BrushOptions.svelte";
 	import type { Source, Transform } from "./types";
 	import {
 		type Brush as BrushType,
 		type Eraser as EraserType,
-		type ColorTuple,
+		type ColorTuple
 	} from "./brush/types";
 	import tinycolor from "tinycolor2";
 

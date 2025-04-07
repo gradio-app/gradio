@@ -31,13 +31,13 @@
 		{
 			index,
 			color,
-			opacity,
+			opacity
 		}: {
 			index: number | null;
 			color: string | null;
 			opacity?: number;
 		},
-		type: "core" | "user",
+		type: "core" | "user"
 	): void {
 		console.log("handle_color_selection", index, color, opacity, type);
 		if (type === "user" && !color) {
@@ -69,7 +69,7 @@
 
 	function debounce(
 		func: (...args: any[]) => void,
-		delay: number,
+		delay: number
 	): (...args: any[]) => void {
 		let timeout: NodeJS.Timeout;
 		return function (...args: any[]): void {

@@ -18,7 +18,7 @@
 	let opacity_moving = false;
 
 	function handle_hue_down(
-		event: MouseEvent & { currentTarget: HTMLDivElement },
+		event: MouseEvent & { currentTarget: HTMLDivElement }
 	): void {
 		hue_rect = event.currentTarget.getBoundingClientRect();
 
@@ -70,7 +70,7 @@
 			h: hue * 1,
 			s: _x / sl_rect.width,
 			v: 1 - _y / sl_rect.height,
-			a: 1,
+			a: 1
 		};
 
 		sl = [_hsva.s, _hsva.v];
@@ -79,7 +79,7 @@
 	}
 
 	function handle_sl_down(
-		event: MouseEvent & { currentTarget: HTMLDivElement },
+		event: MouseEvent & { currentTarget: HTMLDivElement }
 	): void {
 		sl_moving = true;
 		sl_rect = event.currentTarget.getBoundingClientRect();
@@ -87,7 +87,7 @@
 	}
 
 	function handle_move(
-		event: MouseEvent & { currentTarget: EventTarget & Window },
+		event: MouseEvent & { currentTarget: EventTarget & Window }
 	): void {
 		if (sl_moving) update_color_from_mouse(event.clientX, event.clientY);
 		if (hue_moving) update_hue_from_mouse(event.clientX);
@@ -131,7 +131,7 @@
 	let opacity_wrap: HTMLDivElement;
 
 	function handle_opacity_down(
-		event: MouseEvent & { currentTarget: HTMLDivElement },
+		event: MouseEvent & { currentTarget: HTMLDivElement }
 	): void {
 		opacity_rect = event.currentTarget.getBoundingClientRect();
 		opacity_moving = true;

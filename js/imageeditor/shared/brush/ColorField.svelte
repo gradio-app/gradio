@@ -16,7 +16,7 @@
 	const modes = [
 		["Hex", "hex"],
 		["RGB", "rgb"],
-		["HSL", "hsl"],
+		["HSL", "hsl"]
 	] as const;
 
 	function format_color(color: string, mode: "hex" | "rgb" | "hsl"): string {

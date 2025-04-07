@@ -33,7 +33,7 @@
 			anchor: selected_anchor,
 			scale,
 			width: new_width,
-			height: new_height,
+			height: new_height
 		});
 	}
 

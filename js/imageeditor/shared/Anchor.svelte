@@ -12,7 +12,7 @@
 		"right",
 		"bottom-left",
 		"bottom",
-		"bottom-right",
+		"bottom-right"
 	] as const;
 	const dispatch = createEventDispatcher<{
 		position: (typeof positions)[number];
@@ -20,7 +20,7 @@
 
 	const spring_opt = {
 		stiffness: 0.1,
-		precision: 0.5,
+		precision: 0.5
 	};
 	const pos = spring([5, 5], spring_opt);
 	const init = [(120 - 10) / 3, (120 - 10) / 3];
@@ -58,14 +58,14 @@
 
 		const [initial_arrows, eventual_arrows] = get_valid_offsets({
 			x: x,
-			y: y,
+			y: y
 		});
 
 		if (stagger && last_i !== i) {
 			await Promise.all([
 				pos.set([x * box_size + 5 * x + 5, y * box_size + 5 * y + 5]),
 				arrow_spring.set(initial_arrows, { hard: true }),
-				dimensions.set(init),
+				dimensions.set(init)
 			]);
 		} else {
 			await arrow_spring.set(initial_arrows, { hard: true });
@@ -93,14 +93,14 @@
 			{ x: 2, y: 1 },
 			{ x: 0, y: 2 },
 			{ x: 1, y: 2 },
-			{ x: 2, y: 2 },
+			{ x: 2, y: 2 }
 		];
 
 		const offsets = destination_points
 			.map((dest) => ({
 				x: dest.x - anchorPoint.x,
 				y: dest.y - anchorPoint.y,
-				dest,
+				dest
 			}))
 			.filter((offset) => !(offset.x === 0 && offset.y === 0));
 
@@ -115,7 +115,7 @@
 						y: offset.y / magnitude,
 						dest: offset.dest,
 						original: offset,
-						type: "cardinal" as const,
+						type: "cardinal" as const
 					};
 				}
 
@@ -128,7 +128,7 @@
 						y: offset.y / magnitude,
 						dest: offset.dest,
 						original: offset,
-						type: "ordinal" as const,
+						type: "ordinal" as const
 					};
 				}
 
@@ -160,7 +160,7 @@
 		const unique_directions = Array.from(directions.values()).map(
 			(direction) => {
 				return direction.sort((a, b) => b.magnitude - a.magnitude)[0];
-			},
+			}
 		);
 
 		const eventual_arrows = unique_directions.map((arrow) => ({
@@ -180,7 +180,7 @@
 			y_dir: arrow.y,
 			rotation:
 				Math.atan2(arrow.original.y, arrow.original.x) * (180 / Math.PI) + 180,
-			type: arrow.type === "ordinal" ? 1 : 2,
+			type: arrow.type === "ordinal" ? 1 : 2
 		}));
 
 		const initial_arrows = eventual_arrows.map((arrow) => ({
@@ -199,7 +199,7 @@
 				14 +
 				10 +
 				(arrow.y_dir * box_size) / 2 +
-				arrow.y_dir * (arrow.type === 1 ? 0 : 10),
+				arrow.y_dir * (arrow.type === 1 ? 0 : 10)
 		}));
 
 		return [initial_arrows, eventual_arrows];
