@@ -82,11 +82,16 @@
 		return layer_options && editor && ready;
 	}
 
+	let has_drawn = false;
+
 	/**
 	 * Gets the image blobs from the editor
 	 * @returns {Promise<ImageBlobs>} Object containing background, layers, and composite image blobs
 	 */
 	export async function get_blobs(): Promise<ImageBlobs> {
+		if (!editor) return { background: null, layers: [], composite: null };
+		if (!background_image && !has_drawn)
+			return { background: null, layers: [], composite: null };
 		const blobs = await editor.get_blobs();
 		return blobs;
 	}
@@ -151,8 +156,12 @@
 	export async function add_layers_from_url(
 		source: FileData[] | any,
 	): Promise<void> {
-		if (!editor || !source.length || check_if_should_init()) return;
+		console.log("add_layers_from_url", source);
+		console.log("check_if_should_init", check_if_should_init());
+		console.log("editor", editor);
 
+		if (!editor || !source.length || !check_if_should_init()) return;
+		console.log("add_layers_from_url--passed");
 		let url: string;
 
 		// Handle different source types
@@ -256,6 +265,10 @@
 			layer_options,
 		});
 
+		brush.on("change", () => {
+			has_drawn = true;
+		});
+
 		crop_zoom = new ZoomTool();
 
 		crop = new ImageEditor({
@@ -309,6 +322,19 @@
 			await add_image_from_url(composite);
 			handle_tool_change({ tool: "draw" });
 		}
+	}
+
+	$: if (
+		background == null &&
+		layers.length == 0 &&
+		composite == null &&
+		editor &&
+		ready
+	) {
+		editor.reset_canvas();
+		handle_tool_change({ tool: "image" });
+		background_image = false;
+		has_drawn = false;
 	}
 
 	$: current_tool === "image" &&
@@ -550,6 +576,8 @@
 		accepted_types: "image/*",
 		disable_click: disable_click,
 	}}
+	aria-label={"Click to upload or drop files"}
+	aria-dropeffect="copy"
 >
 	{#if ready}
 		{#if current_subtool !== "crop"}

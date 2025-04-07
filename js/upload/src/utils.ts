@@ -32,6 +32,8 @@ export function create_drag(): {
 				hidden_input = document.createElement("input");
 				hidden_input.type = "file";
 				hidden_input.style.display = "none";
+				hidden_input.setAttribute("aria-label", "File upload");
+				hidden_input.setAttribute("data-testid", "file-upload");
 				const accept_options = Array.isArray(_options.accepted_types)
 					? _options.accepted_types.join(",")
 					: _options.accepted_types || undefined;
@@ -130,8 +132,9 @@ export function create_drag(): {
 			};
 		},
 		open_file_upload(): void {
-			if (_options.disable_click) return;
-			console.log("open", _options.disable_click, hidden_input);
+			// console.log("open_file_upload", { _options });
+			// if (_options.disable_click) return;
+			// console.log("open", _options.disable_click, hidden_input);
 			if (hidden_input) {
 				console.log("open_file_upload", { hidden_input });
 				hidden_input.value = "";
