@@ -9,10 +9,10 @@ overrides:
 
 patchedDependencies:
   '@ffmpeg/util@0.12.1':
-    hash: c55c6d677f9c70f4aef3700f5d842ad4b648953eb3782cbf7f497c8e5d1dd917
+    hash: x7vlbpaf44zdrkz5rus4uvldii
     path: patches/@ffmpeg__util@0.12.1.patch
   '@sveltejs/package@2.3.4':
-    hash: 34844b796c9c128810c636fa4e7ed08aec8aa336b2f4b49c5116bcced7be78e2
+    hash: flygqco6z3nrhhrndh6d2cl72q
     path: patches/@sveltejs__package@2.3.4.patch
 
 importers:
@@ -54,7 +54,7 @@ importers:
         version: link:js/tootils
       '@sveltejs/package':
         specifier: ^2.3.4
-        version: 2.3.4(patch_hash=34844b796c9c128810c636fa4e7ed08aec8aa336b2f4b49c5116bcced7be78e2)(svelte@4.2.15)(typescript@5.5.4)
+        version: 2.3.4(patch_hash=flygqco6z3nrhhrndh6d2cl72q)(svelte@4.2.15)(typescript@5.5.4)
       '@sveltejs/vite-plugin-svelte':
         specifier: ^3.1.0
         version: 3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
@@ -2035,6 +2035,10 @@ importers:
       yootils:
         specifier: ^0.3.1
         version: 0.3.1
+    optionalDependencies:
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@rollup/plugin-commonjs':
         specifier: ^25.0.4
@@ -2051,10 +2055,6 @@ importers:
       rollup:
         specifier: ^3.28.0
         version: 3.28.0
-    optionalDependencies:
-      svelte:
-        specifier: ^4.0.0
-        version: 4.2.15
 
   js/preview/test/test/frontend: {}
 
@@ -2467,7 +2467,7 @@ importers:
         version: 0.12.7
       '@ffmpeg/util':
         specifier: ^0.12.1
-        version: 0.12.1(patch_hash=c55c6d677f9c70f4aef3700f5d842ad4b648953eb3782cbf7f497c8e5d1dd917)
+        version: 0.12.1(patch_hash=x7vlbpaf44zdrkz5rus4uvldii)
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
@@ -10661,7 +10661,7 @@ snapshots:
 
   '@ffmpeg/types@0.12.2': {}
 
-  '@ffmpeg/util@0.12.1(patch_hash=c55c6d677f9c70f4aef3700f5d842ad4b648953eb3782cbf7f497c8e5d1dd917)': {}
+  '@ffmpeg/util@0.12.1(patch_hash=x7vlbpaf44zdrkz5rus4uvldii)': {}
 
   '@formatjs/ecma402-abstract@1.11.4':
     dependencies:
@@ -11708,7 +11708,7 @@ snapshots:
       tiny-glob: 0.2.9
       vite: 5.4.17(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))
 
-  '@sveltejs/package@2.3.4(patch_hash=34844b796c9c128810c636fa4e7ed08aec8aa336b2f4b49c5116bcced7be78e2)(svelte@4.2.15)(typescript@5.5.4)':
+  '@sveltejs/package@2.3.4(patch_hash=flygqco6z3nrhhrndh6d2cl72q)(svelte@4.2.15)(typescript@5.5.4)':
     dependencies:
       chokidar: 3.6.0
       kleur: 4.1.5
