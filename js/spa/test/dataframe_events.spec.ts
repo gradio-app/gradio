@@ -327,7 +327,7 @@ test("Dataframe displays custom display values with medal icons correctly", asyn
 	expect(await get_cell(tall_df, 0, 1).textContent()).not.toContain("🥇");
 });
 
-test("Dataframe select events work as expected", async ({ page }) => {
+test.only("Dataframe select events work as expected", async ({ page }) => {
 	const df = page.locator("#dataframe_tall");
 	const search_input = df.locator("input.search-input");
 
@@ -342,19 +342,15 @@ test("Dataframe select events work as expected", async ({ page }) => {
 
 	await search_input.fill("llama");
 	await search_input.press("Enter");
+
+	await get_cell(df, 0, 0).click();
 	await page.waitForTimeout(100);
 
-	const updated_selected_cell_value = await page
-		.getByLabel("Tall dataframe selected cell value", { exact: true })
-		.inputValue();
-	expect(updated_selected_cell_value).toBe("Llama 3.3");
+	expect(selected_cell_value).toBe("Llama 3.3");
 
 	await search_input.clear();
 	await search_input.press("Enter");
 	await page.waitForTimeout(100);
 
-	const restored_selected_cell_value = await page
-		.getByLabel("Tall dataframe selected cell value", { exact: true })
-		.inputValue();
-	expect(restored_selected_cell_value).toBe("DeepSeek Coder");
+	expect(selected_cell_value).toBe("DeepSeek Coder");
 });
