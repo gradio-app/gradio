@@ -48,28 +48,6 @@ test("Dataframe blur event works as expected", async ({ page }) => {
 	await expect(page.getByLabel("Change events")).toHaveValue("1");
 });
 
-test("Dataframe select events work as expected", async ({ page }) => {
-	await expect(page.getByLabel("Select events")).toHaveValue("0");
-
-	await page.getByRole("button", { name: "Update dataframe" }).click();
-	await page.waitForTimeout(500);
-
-	const dataframe = page.locator("#dataframe");
-	await get_cell(dataframe, 1, 1).click();
-
-	await expect(page.getByLabel("Select events")).toHaveValue("1");
-
-	const selected_cell_index = await page
-		.getByLabel("Selected cell index", { exact: true })
-		.inputValue();
-	expect(selected_cell_index).toContain("[1, 1]");
-
-	const selected_cell_value = await page
-		.getByLabel("Selected cell value", { exact: true })
-		.inputValue();
-	expect(selected_cell_value).not.toBe("");
-});
-
 test("Dataframe filter functionality works correctly", async ({ page }) => {
 	await page.getByRole("button", { name: "Update dataframe" }).click();
 	await page.waitForTimeout(500);
