@@ -44,10 +44,8 @@ def connect(
     try:
         yield Client(local_url, download_files=download_files, **client_kwargs)
     finally:
-        # A more verbose version of .close()
-        # because we should set a timeout
-        # the tests that call .cancel() can get stuck
-        # waiting for the thread to join
+        # A more verbose version of .close() because we should set a timeout
+        # the tests that call .cancel() can get stuck waiting for the thread to join
         demo.close()
 
 
