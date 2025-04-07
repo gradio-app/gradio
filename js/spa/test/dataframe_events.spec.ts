@@ -301,6 +301,7 @@ test("Dataframe search functionality works correctly after data update", async (
 	await page.waitForTimeout(500);
 
 	const initial_row_count = await df.locator("tbody tr").count();
+	const original_first_row = await get_cell(df, 0, 0).textContent();
 
 	const search_input = df.locator("input.search-input");
 	await search_input.fill("14");
@@ -310,6 +311,14 @@ test("Dataframe search functionality works correctly after data update", async (
 	const filtered_row_count = await df.locator("tbody tr").count();
 	expect(filtered_row_count).toEqual(5);
 
+	await get_cell(df, 0, 0).click();
+	await page.waitForTimeout(100);
+
+	const selected_cell_value = await page
+		.getByLabel("Selected cell value")
+		.inputValue();
+	expect(selected_cell_value).toContain("14");
+
 	await search_input.clear();
 	await search_input.press("Enter");
 	await page.waitForTimeout(100);
@@ -317,12 +326,23 @@ test("Dataframe search functionality works correctly after data update", async (
 	const restored_row_count = await df.locator("tbody tr").count();
 	expect(restored_row_count).toEqual(initial_row_count);
 
+	const restored_first_row = await get_cell(df, 0, 0).textContent();
+	expect(restored_first_row).toBe(original_first_row);
+
 	await search_input.fill("81");
 	await search_input.press("Enter");
 
 	await page.waitForTimeout(100);
 	const filtered_after_update = await df.locator("tbody tr").count();
 	expect(filtered_after_update).toEqual(2);
+
+	await get_cell(df, 0, 0).click();
+	await page.waitForTimeout(100);
+
+	const new_selected_cell_value = await page
+		.getByLabel("Selected cell value")
+		.inputValue();
+	expect(new_selected_cell_value).toContain("81");
 });
 
 test("Dataframe displays custom display values with medal icons correctly", async ({
