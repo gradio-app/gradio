@@ -12,4 +12,4 @@ with gr.Blocks() as demo:
     greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(ssr_mode=True)
