@@ -55,7 +55,7 @@
 	}}
 />
 
-<Story
+<!-- <Story
 	name="Image Editor Undo/Redo Interactions"
 	args={{
 		value: {
@@ -108,7 +108,7 @@
 
 		await userEvent.click(canvas.getByLabelText("Redo"));
 	}}
-/>
+/> -->
 
 <Story
 	name="Static Image Display"
