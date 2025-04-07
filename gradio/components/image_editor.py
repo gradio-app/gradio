@@ -94,14 +94,8 @@ class Brush(Eraser):
         color_mode: If set to "fixed", user can only select from among the colors in `colors`. If "defaults", the colors in `colors` are provided as a default palette, but the user can also select any color using a color picker.
     """
 
-    colors: Union[
-        list[str],
-        list[tuple[str, float]],
-        str,
-        tuple[str, float],
-        None,
-    ] = None
-    default_color: Union[str, Literal["auto"]] = "auto"
+    colors: list[str | tuple[str, float]] | str | tuple[str, float] | None = None
+    default_color: str | tuple[str, float] | None = None
     color_mode: Literal["fixed", "defaults"] = "defaults"
 
     def __post_init__(self):

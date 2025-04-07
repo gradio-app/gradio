@@ -97,7 +97,10 @@ with gr.Blocks() as demo:
             if opacity is not None:
                 changes.append(f"`Brush.default_color=('{color}', {opacity / 100})`")
             if color is not None:
-                changes.append(f"`Brush.default_color=('{color}', {opacity / 100})`")
+                if opacity is not None:
+                    changes.append(f"`Brush.default_color=('{color}', {opacity / 100})`")
+                else:
+                    changes.append(f"`Brush.default_color='{color}'`")
             if e_size is not None:
                 changes.append(f"`Eraser.default_size={e_size}`")
 
@@ -188,27 +191,6 @@ with gr.Blocks() as demo:
                     outputs=[im, status_msg],
                 )
 
-                def update_status(disable_layers, allow_additional_layers, layer):
-                    changes = []
-                    if disable_layers is not None:
-                        changes.append(
-                            f"`LayerOptions.disable_layers={disable_layers}`"
-                        )
-                    if allow_additional_layers is not None:
-                        changes.append(
-                            f"`LayerOptions.allow_additional_layers={allow_additional_layers}`"
-                        )
-                    if layer is not None:
-                        changes.append(f"`LayerOptions.layers={layer}`")
-
-                    if changes:
-                        return (
-                            "Settings changed:\n\n"
-                            + "- "
-                            + "\n- ".join(changes)
-                            + "\n\n**Click Apply to update.**"
-                        )
-                    return ""
 
     with gr.Tab("ImageEditor Templates"):
         gr.ImageMask(value="./cheetah.jpg", interactive=True)
