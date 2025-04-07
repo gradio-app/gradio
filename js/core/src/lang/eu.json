@@ -1,10 +1,11 @@
 {
 	"_name": "Euskara",
 	"3D_model": {
-		"3d_model": "3D Modeloa"
+		"3d_model": "3D Modeloa",
+		"drop_to_upload": "Arrastatu 3D modelo bat (.obj, .glb, .stl, .gltf, .splat edo .ply) igotzeko."
 	},
 	"annotated_image": {
-		"annotated_image": "Irudi Erantsiak"
+		"annotated_image": "Irudi Erantsia"
 	},
 	"audio": {
 		"allow_recording_access": "Mesedez, baimendu mikrofonoaren sarbidea grabatzeko.",
@@ -18,12 +19,14 @@
 		"no_microphone": "Ez da mikrofonorik aurkitu",
 		"pause": "Pausatu",
 		"play": "Erreproduzitu",
-		"waiting": "Itxaroten"
+		"waiting": "Itxaroten",
+		"drop_to_upload": "Arrastatu audio fitxategia hemen igotzeko"
 	},
 	"blocks": {
 		"connection_can_break": "Mugikorretan, konexioa eten daiteke fitxa honek fokua galtzen badu edo gailua lokartu egiten bada, ilaran duzun posizioa galduz.",
 		"long_requests_queue": "Eskaera ilara luzea dago zain. Space hau bikoiztu saltatzeko.",
-		"lost_connection": "Konexioa galdu da orria uzteagatik. Ilarara itzultzen..."
+		"lost_connection": "Konexioa galdu da orria uzteagatik. Ilarara itzultzen...",
+		"waiting_for_inputs": "Itxaron fitxategiak igo arte, saiatu berriro mesedez"
 	},
 	"checkbox": {
 		"checkbox": "Kontrol-laukia",
@@ -64,7 +67,14 @@
 		"add_row_above": "Errenkada gehitu gainean",
 		"add_row_below": "Errenkada gehitu azpian",
 		"add_column_left": "Zutabea gehitu ezkerrean",
-		"add_column_right": "Zutabea gehitu eskuinean"
+		"add_column_right": "Zutabea gehitu eskuinean",
+		"delete_row": "Ezabatu errenkila",
+		"delete_column": "Ezabatu zutabea",
+		"sort_column": "Ordenatu zutabea",
+		"sort_ascending": "Behetik gorako ordena",
+		"sort_descending": "Goitik beherako ordena",
+		"drop_to_upload": "Arrastatu CSV edo TSV fitxategiak hemen datuak dataframe-an inportatzeko",
+		"clear_sort": "Garbitu ordena"
 	},
 	"dropdown": {
 		"dropdown": "Goitibeherako menua"
@@ -93,7 +103,8 @@
 		"remove_image": "Irudia kendu",
 		"select_brush_color": "Aukeratu pintzelaren kolorea",
 		"start_drawing": "Hasi marrazten",
-		"use_brush": "Pintzela erabili"
+		"use_brush": "Pintzela erabili",
+		"drop_to_upload": "Arrastatu irudi fitxategia hemen igotzeko"
 	},
 	"label": {
 		"label": "Etiketa"
@@ -112,7 +123,7 @@
 		"plot": "Grafikoa"
 	},
 	"radio": {
-		"radio": "Irratia"
+		"radio": "Aukera botoia"
 	},
 	"slider": {
 		"slider": "Graduatzailea"
@@ -126,5 +137,8 @@
 		"drop_video": "Utzi bideoa hemen",
 		"drop_gallery": "Utzi multimedia hemen",
 		"paste_clipboard": "Itsatsi arbeleko edukia"
+	},
+	"video": {
+		"drop_to_upload": "Arrastatu bideo fitxategia hemen igotzeko"
 	}
 }

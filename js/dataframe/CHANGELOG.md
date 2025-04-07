@@ -1,5 +1,19 @@
 # @gradio/dataframe
 
+## 0.17.4
+
+### Dependency updates
+
+- @gradio/client@1.14.1
+- @gradio/upload@0.15.7
+- @gradio/button@0.4.12
+
+## 0.17.3
+
+### Fixes
+
+- [#10900](https://github.com/gradio-app/gradio/pull/10900) [`a018a46`](https://github.com/gradio-app/gradio/commit/a018a46a7fae0f7db25baca7e1c08e6fd5912ed2) - Fix wrap behaviour in dataframe.  Thanks @hannahblair!
+
 ## 0.17.2
 
 ### Dependency updates

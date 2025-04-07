@@ -1,7 +1,8 @@
 {
 	"_name": "Suomi",
 	"3D_model": {
-		"3d_model": "3D-malli"
+		"3d_model": "3D-malli",
+		"drop_to_upload": "Lataa 3D-malli (.obj, .glb, .stl, .gltf, .splat tai .ply) tähän pudottamalla tiedosto."
 	},
 	"annotated_image": {
 		"annotated_image": "Merkitty kuva"
@@ -18,12 +19,14 @@
 		"no_microphone": "Mikrofonia ei löydy",
 		"pause": "Tauko",
 		"play": "Toista",
-		"waiting": "Odotetaan"
+		"waiting": "Odotetaan",
+		"drop_to_upload": "Lataa kuvatiedosto tähän pudottamalla se"
 	},
 	"blocks": {
 		"connection_can_break": "Mobiililaitteilla yhteys voi katketa, jos tämä välilehti menettää fokuksen tai laite menee lepotilaan, jolloin paikkasi jonossa menetetään.",
 		"long_requests_queue": "Jonossa on paljon odottavia pyyntöjä. Monista tämä Space ohittaaksesi jonon.",
-		"lost_connection": "Yhteys katkesi sivulta poistumisen vuoksi. Palataan jonoon..."
+		"lost_connection": "Yhteys katkesi sivulta poistumisen vuoksi. Palataan jonoon...",
+		"waiting_for_inputs": "Odotetaan tiedostojen lataamisen päättymistä, yritä uudelleen."
 	},
 	"checkbox": {
 		"checkbox": "Valintaruutu",
@@ -36,14 +39,14 @@
 		"color_picker": "Värivalitsin"
 	},
 	"common": {
-		"built_with": "tehty",
+		"built_with": "Tehty käyttäen",
 		"built_with_gradio": "Tehty Gradiolla",
 		"clear": "Tyhjennä",
 		"download": "Lataa",
 		"edit": "Muokkaa",
 		"empty": "Tyhjä",
 		"error": "Virhe",
-		"hosted_on": "Isännöity",
+		"hosted_on": "Isännöity palvelimella",
 		"loading": "Ladataan",
 		"logo": "logo",
 		"or": "tai",
@@ -64,7 +67,14 @@
 		"add_row_above": "Lisää rivi yläpuolelle",
 		"add_row_below": "Lisää rivi alapuolelle",
 		"add_column_left": "Lisää sarake vasemmalle",
-		"add_column_right": "Lisää sarake oikealle"
+		"add_column_right": "Lisää sarake oikealle",
+		"delete_row": "Poista rivi",
+		"delete_column": "Poista sarake",
+		"sort_column": "Lajittele sarake",
+		"sort_ascending": "Lajittele nousevaan järjestykseen",
+		"sort_descending": "Lajittele laskevaan järjestykseen",
+		"drop_to_upload": "Lataa CSV- tai TSV-tiedostoja tähän tuodaaksesi datan dataframeen.",
+		"clear_sort": "Tyhjennä järjestys"
 	},
 	"dropdown": {
 		"dropdown": "Pudotusvalikko"
@@ -76,7 +86,7 @@
 		"no_app_file": "sovellustiedostoa ei ole",
 		"runtime_error": "ajonaikainen virhe",
 		"space_not_working": "\"Space ei toimi koska\" {0}",
-		"space_paused": "space on keskeytetty",
+		"space_paused": "Space on keskeytetty",
 		"use_via_api": "Käytä API:n kautta"
 	},
 	"file": {
@@ -93,10 +103,11 @@
 		"remove_image": "Poista kuva",
 		"select_brush_color": "Valitse siveltimen väri",
 		"start_drawing": "Aloita piirtäminen",
-		"use_brush": "Käytä sivellintä"
+		"use_brush": "Käytä sivellintä",
+		"drop_to_upload": "Lataa kuva tiedosto tähän pudottamalla se"
 	},
 	"label": {
-		"label": "Nimike"
+		"label": "Tunniste"
 	},
 	"login": {
 		"enable_cookies": "Jos vierailet HuggingFace Spacessa Incognito-tilassa, sinun täytyy sallia kolmannen osapuolen evästeet.",
@@ -120,11 +131,14 @@
 	"upload_text": {
 		"click_to_upload": "Napsauta ladataksesi",
 		"drop_audio": "Pudota äänitiedosto tähän",
-		"drop_csv": "Pudota CSV tähän",
+		"drop_csv": "Pudota CSV-tiedosto tähän",
 		"drop_file": "Pudota tiedosto tähän",
 		"drop_image": "Pudota kuva tähän",
 		"drop_video": "Pudota video tähän",
 		"drop_gallery": "Pudota media tähän",
 		"paste_clipboard": "Liitä leikepöydältä"
+	},
+	"video": {
+		"drop_to_upload": "Lataa videotiedosto pudottamalla se tähän."
 	}
 }

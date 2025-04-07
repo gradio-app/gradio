@@ -23,6 +23,16 @@
 			description: "Whether the DataFrame is editable",
 			name: "interactive",
 			value: true
+		},
+		wrap: {
+			control: "boolean",
+			description: "Whether text should wrap or truncate with ellipsis",
+			defaultValue: false
+		},
+		column_widths: {
+			control: "object",
+			description: "Width of each column (px, %, or auto)",
+			defaultValue: ["200px", "200px", "200px"]
 		}
 	}}
 />
@@ -238,7 +248,7 @@
 		values: [['<a href="https://www.google.com/">google</a>']],
 		headers: ["link"],
 		datatype: ["markdown"],
-		interactive: false,
+		editable: false,
 		col_count: [1, "dynamic"],
 		row_count: [1, "dynamic"]
 	}}
@@ -446,7 +456,7 @@
 		label: "Pokemon Cards",
 		col_count: [5, "fixed"],
 		row_count: [1, "dynamic"],
-		interactive: true,
+		editable: true,
 		editable: true,
 		components: {
 			image: Image
@@ -738,5 +748,93 @@
 		await userEvent.click(header_3);
 		await userEvent.click(cell_menu_button_3);
 		await userEvent.click(canvas.getByText("Clear sort"));
+	}}
+/>
+
+<Story
+	name="Dataframe with display values"
+	args={{
+		values: [
+			[95, 92, 88],
+			[89, 90, 85],
+			[92, 88, 91],
+			[87, 85, 89],
+			[91, 93, 90],
+			[82, 81, 83]
+		],
+		headers: ["Model A", "Model B", "Model C"],
+		display_value: [
+			["🥇 95", "92", "88"],
+			["🥈 89", "90", "85"],
+			["🥉 92", "88", "91"],
+			["87", "85", "89"],
+			["91", "93", "90"],
+			["82", "81", "83"]
+		],
+		label: "Model Performance with Medal Indicators",
+		col_count: [3, "dynamic"],
+		row_count: [6, "dynamic"],
+		show_row_numbers: true,
+		editable: false
+	}}
+/>
+
+<Story
+	name="Dataframe with text wrapping, no max chars"
+	args={{
+		values: [
+			[
+				"This is a very long text that should wrap to multiple lines when wrap is enabled",
+				"Short text",
+				"Another very long text that demonstrates wrapping behavior in the table cells"
+			],
+			[
+				"Short",
+				"This text is also quite long and should demonstrate the wrapping behavior when enabled",
+				"Medium length text here"
+			],
+			[
+				"Medium text",
+				"Brief",
+				"When wrap is disabled, this text should be truncated with an ellipsis instead of wrapping to multiple lines"
+			]
+		],
+		headers: ["Column A", "Column B", "Column C"],
+		label: "Text Wrapping Example",
+		col_count: [3, "dynamic"],
+		row_count: [3, "dynamic"],
+		wrap: true,
+		column_widths: ["33%", "33%", "33%"]
+	}}
+/>
+
+<Story
+	name="Dataframe text truncation and wrapping"
+	args={{
+		values: [
+			[
+				"This is a very long text that should be truncated with an ellipsis when wrap is false",
+				"Short text",
+				"Another very long text that should also be truncated with an ellipsis"
+			],
+			[
+				"Short",
+				"This text is also quite long and should be truncated with an ellipsis",
+				"Medium length text here"
+			],
+			[
+				"Medium text",
+				"Brief",
+				"When wrap is false this text should definitely be truncated with an ellipsis"
+			]
+		],
+		headers: ["Column A", "Column B", "Column C"],
+		label: "Text Truncation Example",
+		col_count: [3, "dynamic"],
+		row_count: [3, "dynamic"],
+		wrap: true,
+		max_chars: 50,
+		editable: false,
+		column_widths: ["200px", "200px", "200px"]
 	}}
 />
