@@ -170,6 +170,7 @@
 	let is_fullscreen = false;
 	let dragging = false;
 	let color_accent_copied: string;
+	let filtered_to_original_map: number[] = [];
 
 	onMount(() => {
 		const color = getComputedStyle(document.documentElement)
@@ -252,8 +253,18 @@
 
 	$: if ($df_state.current_search_query !== undefined) {
 		const cell_map = new Map();
+		filtered_to_original_map = [];
 
 		data.forEach((row, row_idx) => {
+			if (
+				row.some((cell) =>
+					String(cell?.value)
+						.toLowerCase()
+						.includes($df_state.current_search_query?.toLowerCase() || "")
+				)
+			) {
+				filtered_to_original_map.push(row_idx);
+			}
 			row.forEach((cell, col_idx) => {
 				cell_map.set(cell.id, {
 					value: cell.value,
@@ -275,6 +286,8 @@
 				};
 			})
 		);
+	} else {
+		filtered_to_original_map = [];
 	}
 
 	let previous_headers = _headers.map((h) => h.value);

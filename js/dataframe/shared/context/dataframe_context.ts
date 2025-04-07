@@ -415,8 +415,25 @@ function create_actions(
 			const s = get(state);
 			if (s.config.show_row_numbers && col === -1) return;
 
+			let actual_row = row;
+			if (s.current_search_query && context.data) {
+				const filtered_indices: number[] = [];
+				context.data.forEach((dataRow, idx) => {
+					if (
+						dataRow.some((cell) =>
+							String(cell?.value)
+								.toLowerCase()
+								.includes(s.current_search_query?.toLowerCase() || "")
+						)
+					) {
+						filtered_indices.push(idx);
+					}
+				});
+				actual_row = filtered_indices[row] ?? row;
+			}
+
 			const cells = handle_selection(
-				[row, col],
+				[actual_row, col],
 				s.ui_state.selected_cells,
 				event
 			);
@@ -434,15 +451,16 @@ function create_actions(
 
 			if (s.config.editable && cells.length === 1) {
 				update_state((s) => ({
-					ui_state: { ...s.ui_state, editing: [row, col] }
+					ui_state: { ...s.ui_state, editing: [actual_row, col] }
 				}));
 				tick().then(() =>
-					context.els![context.data![row][col].id]?.input?.focus()
+					context.els![context.data![actual_row][col].id]?.input?.focus()
 				);
 			}
+
 			context.dispatch?.("select", {
-				index: [row, col],
-				value: context.get_data_at!(row, col)
+				index: [actual_row, col],
+				value: context.get_data_at!(actual_row, col)
 			});
 		},
 		toggle_cell_menu: (event, row, col) => {
