@@ -90,7 +90,7 @@
 	 */
 	export async function get_blobs(): Promise<ImageBlobs> {
 		if (!editor) return { background: null, layers: [], composite: null };
-		if (!background_image && !has_drawn)
+		if (!background_image && !has_drawn && !layers.length)
 			return { background: null, layers: [], composite: null };
 		const blobs = await editor.get_blobs();
 		return blobs;

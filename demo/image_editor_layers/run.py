@@ -3,8 +3,11 @@ from pathlib import Path
 
 dir_ = Path(__file__).parent
 
+
 def predict(im):
-    return im, len(im['layers'])
+    print(im)
+    return im, len(im["layers"])
+
 
 with gr.Blocks() as demo:
     with gr.Row():
@@ -15,7 +18,7 @@ with gr.Blocks() as demo:
         im_preview = gr.ImageEditor(
             interactive=True,
         )
-    
+
     num_layers = gr.Number(value=0, label="Num Layers")
     example_ran = gr.Number(value=0, label="Example Ran")
 
@@ -34,7 +37,9 @@ with gr.Blocks() as demo:
     set_layers.click(
         lambda: {
             "background": None,
-            "layers": ["https://nationalzoo.si.edu/sites/default/files/animals/cheetah-003.jpg"],
+            "layers": [
+                "https://nationalzoo.si.edu/sites/default/files/animals/cheetah-003.jpg"
+            ],
             "composite": None,
         },
         None,
