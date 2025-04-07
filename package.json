@@ -21,6 +21,7 @@
 		"test:browser:verbose": "pnpm test:browser",
 		"test:browser:dev": "pnpm --filter @self/spa test:browser:dev",
 		"storybook": "storybook dev -p 6006 --config-dir js/storybook",
+		"build-storybook": "storybook build --config-dir js/storybook --webpack-stats-json",
 		"ci:version": "changeset version && pnpm i --lockfile-only && node ./.changeset/fix_changelogs.cjs",
 		"ci:publish": "pnpm changeset tag && git push origin --tags && pnpm publish --no-git-checks --access public -r --filter=@gradio/*",
 		"chromatic": "chromatic",
