@@ -904,7 +904,10 @@
 							<TableCell
 								bind:value={search_results[index][j].value}
 								display_value={get_cell_display_value(index, j)}
-								{index}
+								index={$df_state.current_search_query !== undefined &&
+								filtered_to_original_map[index] !== undefined
+									? filtered_to_original_map[index]
+									: index}
 								{j}
 								{actual_pinned_columns}
 								{get_cell_width}
