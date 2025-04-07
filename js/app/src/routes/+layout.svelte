@@ -7,7 +7,7 @@
 
 	import { page } from "$app/stores";
 
-	$: appTitle = $page.data.config.title || "Gradio App";
+	$: appTitle = "Gradio App";
 	$: appDescription = "Click to try out the app!";
 </script>
 
