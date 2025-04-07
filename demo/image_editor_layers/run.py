@@ -19,6 +19,7 @@ with gr.Blocks() as demo:
             interactive=True,
         )
 
+    layer_updates = gr.Textbox(value="", label="Layer Updates")
     num_layers = gr.Number(value=0, label="Num Layers")
     example_ran = gr.Number(value=0, label="Example Ran")
 
@@ -45,6 +46,11 @@ with gr.Blocks() as demo:
         None,
         im,
         show_progress="hidden",
+    )
+    im.change(
+        lambda x: len(x["layers"]),
+        inputs=im,
+        outputs=layer_updates,
     )
     set_composite = gr.Button("Set Composite")
     set_composite.click(
