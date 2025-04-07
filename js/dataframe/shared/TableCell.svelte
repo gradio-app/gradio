@@ -15,6 +15,12 @@
 		row: number,
 		col: number
 	) => void;
+	export let handle_blur: (
+		event: CustomEvent<{
+			blur_event: FocusEvent;
+			coords: [number, number];
+		}>
+	) => void;
 	export let toggle_cell_menu: (
 		event: MouseEvent,
 		row: number,
@@ -46,7 +52,6 @@
 	export let line_breaks: boolean;
 	export let datatype: Datatype;
 	export let editing: [number, number] | false;
-	export let clear_on_focus: boolean;
 	export let max_chars: number | undefined;
 	export let root: string;
 	export let editable: boolean;
@@ -60,6 +65,7 @@
 	export let handle_select_column: (col: number) => void;
 	export let handle_select_row: (row: number) => void;
 	export let is_dragging: boolean;
+	export let display_value: string | undefined;
 	export let wrap = false;
 
 	function get_cell_position(col_index: number): string {
@@ -116,16 +122,13 @@
 		<EditableCell
 			bind:value
 			bind:el={el.input}
-			display_value={String(value)}
+			display_value={display_value || String(value)}
 			{latex_delimiters}
 			{line_breaks}
 			{editable}
 			{is_static}
 			edit={editing && editing[0] === index && editing[1] === j}
 			{datatype}
-			on:blur={() => {
-				clear_on_focus = false;
-			}}
 			on:focus={() => {
 				const row = index;
 				const col = j;
@@ -133,7 +136,7 @@
 					selected_cells = [[row, col]];
 				}
 			}}
-			{clear_on_focus}
+			on:blur={handle_blur}
 			{root}
 			{max_chars}
 			{i18n}
