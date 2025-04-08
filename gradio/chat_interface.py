@@ -248,6 +248,8 @@ class ChatInterface(Blocks):
             )
         self.flagging_options = flagging_options
         self.flagging_dir = flagging_dir
+        if isinstance(textbox, (Textbox, MultimodalTextbox)):
+            textbox.unrender()
         if isinstance(chatbot, Chatbot):
             chatbot.unrender()
 
