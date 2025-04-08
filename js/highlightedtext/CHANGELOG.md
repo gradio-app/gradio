@@ -1,5 +1,18 @@
 # @gradio/highlightedtext
 
+## 0.9.0
+
+### Features
+
+- [#10933](https://github.com/gradio-app/gradio/pull/10933) [`b768651`](https://github.com/gradio-app/gradio/commit/b7686515d99276123731698bfde09bb328b7d286) - Add `rtl` to Block Label.  Thanks @hannahblair!
+- [#10924](https://github.com/gradio-app/gradio/pull/10924) [`be46b94`](https://github.com/gradio-app/gradio/commit/be46b94f51c29d66fef9320d59a7f7e5a0df81b4) - Add `rtl` to gr.HighlightedText.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.7
+- @gradio/atoms@0.15.0
+- @gradio/icons@0.11.0
+
 ## 0.8.16
 
 ### Dependency updates
