@@ -2,6 +2,26 @@
 
 ## 0.13.2
 
+### Dependency updates
+
+- @gradio/code@0.13.2
+- @gradio/paramviewer@0.7.5
+- @gradio/statustracker@0.10.7
+- @gradio/video@0.14.8
+- @gradio/button@0.4.13
+- @gradio/atoms@0.15.0
+- @gradio/icons@0.11.0
+- @gradio/upload@0.16.0
+- @gradio/image@0.22.0
+- @gradio/column@0.2.0
+- @gradio/gallery@0.15.13
+- @gradio/plot@0.9.12
+- @gradio/textbox@0.10.7
+- @gradio/checkbox@0.4.17
+- @gradio/file@0.12.13
+
+## 0.13.2
+
 ### Fixes
 
 - [#10913](https://github.com/gradio-app/gradio/pull/10913) [`2322700`](https://github.com/gradio-app/gradio/commit/2322700812341a71a200958cdca793ca865c08c4) - Update i18n files.  Thanks @freddyaboulton!
