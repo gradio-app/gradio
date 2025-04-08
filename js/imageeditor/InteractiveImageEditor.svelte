@@ -31,7 +31,7 @@
 	import {
 		type LayerOptions,
 		type Transform,
-		type Source
+		type Source,
 	} from "./shared/types";
 	export let brush: IBrush;
 	export let eraser: Eraser;
@@ -67,6 +67,7 @@
 	}>();
 
 	let editor: ImageEditor;
+	let has_drawn = false;
 
 	function is_not_null(o: Blob | null): o is Blob {
 		return !!o;
@@ -89,27 +90,27 @@
 		const bg = blobs.background
 			? upload(
 					await prepare_files([new File([blobs.background], "background.png")]),
-					root
+					root,
 				)
 			: Promise.resolve(null);
 
 		const layers = blobs.layers
 			.filter(is_not_null)
 			.map(async (blob, i) =>
-				upload(await prepare_files([new File([blob], `layer_${i}.png`)]), root)
+				upload(await prepare_files([new File([blob], `layer_${i}.png`)]), root),
 			);
 
 		const composite = blobs.composite
 			? upload(
 					await prepare_files([new File([blobs.composite], "composite.png")]),
-					root
+					root,
 				)
 			: Promise.resolve(null);
 
 		const [background, composite_, ...layers_] = await Promise.all([
 			bg,
 			composite,
-			...layers
+			...layers,
 		]);
 
 		return {
@@ -117,7 +118,7 @@
 			layers: layers_
 				.flatMap((layer) => (Array.isArray(layer) ? layer : [layer]))
 				.filter(is_file_data),
-			composite: Array.isArray(composite_) ? composite_[0] : composite_
+			composite: Array.isArray(composite_) ? composite_[0] : composite_,
 		};
 	}
 
@@ -160,14 +161,14 @@
 				id,
 				"background",
 				new File([blobs.background], "background.png"),
-				null
+				null,
 			]);
 		if (blobs.composite)
 			images.push([
 				id,
 				"composite",
 				new File([blobs.composite], "composite.png"),
-				null
+				null,
 			]);
 		blobs.layers.forEach((layer, i) => {
 			if (layer)
@@ -175,16 +176,16 @@
 					id as string,
 					`layer`,
 					new File([layer], `layer_${i}.png`),
-					i
+					i,
 				]);
 		});
 		await Promise.all(
 			images.map(async ([image_id, type, data, index]) => {
 				return accept_blobs({
 					binary: true,
-					data: { file: data, id: image_id, type, index }
+					data: { file: data, id: image_id, type, index },
 				});
-			})
+			}),
 		);
 		image_id = id;
 		dispatch("change");
@@ -197,20 +198,7 @@
 		}
 	}
 
-	let active_mode: "webcam" | "color" | null = null;
-
-	let _dynamic_height: number;
-
 	$: [heading, paragraph] = placeholder ? inject(placeholder) : [false, false];
-
-	/**
-	 * Handles image addition from event
-	 * @param {CustomEvent<Blob | any>} e - The custom event containing the image
-	 */
-	function handle_image(e: CustomEvent<Blob | any>): void {
-		editor.add_image(e.detail);
-		background_image = true;
-	}
 
 	let current_tool: ToolbarTool;
 </script>
@@ -245,8 +233,9 @@
 	{root}
 	{upload}
 	bind:is_dragging
+	bind:has_drawn
 >
-	{#if !background_image && current_tool === "image"}
+	{#if !background_image && current_tool === "image" && !has_drawn}
 		<div class="empty wrap">
 			{#if sources && sources.length}
 				{#if heading || paragraph}

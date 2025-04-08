@@ -82,7 +82,7 @@
 		return layer_options && editor && ready;
 	}
 
-	let has_drawn = false;
+	export let has_drawn = false;
 
 	/**
 	 * Gets the image blobs from the editor
@@ -121,7 +121,7 @@
 						_type: string;
 					};
 			  }
-			| any
+			| any,
 	): Promise<void> {
 		if (!editor || !source || !check_if_should_init()) return;
 		let url: string;
@@ -154,7 +154,7 @@
 	 * @returns {Promise<string | null>} - The ID of the created layer, or null if failed
 	 */
 	export async function add_layers_from_url(
-		source: FileData[] | any
+		source: FileData[] | any,
 	): Promise<void> {
 		console.log("add_layers_from_url", source);
 		console.log("check_if_should_init", check_if_should_init());
@@ -212,7 +212,7 @@
 				// Update the last known dimensions
 				last_dimensions = {
 					width: current_dimensions.width,
-					height: current_dimensions.height
+					height: current_dimensions.height,
 				};
 			}
 		}
@@ -262,7 +262,7 @@
 			tools: ["image", zoom, new ResizeTool(), brush],
 			fixed_canvas,
 			border_region,
-			layer_options
+			layer_options,
 		});
 
 		brush.on("change", () => {
@@ -279,7 +279,7 @@
 			dark: true,
 			fixed_canvas: false,
 			border_region: 0,
-			pad_bottom: 40
+			pad_bottom: 40,
 		});
 
 		editor.scale.subscribe((_scale) => {
@@ -353,7 +353,7 @@
 	 * @param {File[]} files - The uploaded files
 	 */
 	async function handle_files(
-		files: File[] | Blob[] | File | Blob | null
+		files: File[] | Blob[] | File | Blob | null,
 	): Promise<void> {
 		if (files == null) return;
 		if (!sources.includes("upload")) return;
@@ -383,7 +383,7 @@
 	 */
 	function handle_subtool_change({
 		tool,
-		subtool
+		subtool,
 	}: {
 		tool: ToolbarTool;
 		subtool: Subtool | null;
@@ -480,7 +480,7 @@
 					brush_options.colors.find((color) =>
 						Array.isArray(color)
 							? color[0] === brush_options.default_color
-							: color === brush_options.default_color
+							: color === brush_options.default_color,
 					) || brush_options.colors[0];
 
 				color_value = Array.isArray(default_color)
@@ -490,16 +490,16 @@
 				color_value = selected_color;
 			}
 			return color_value;
-		})()
+		})(),
 	);
 
 	// Type-safe brush size handling
 	$: brush?.set_brush_size(
-		typeof selected_size === "number" ? selected_size : 25
+		typeof selected_size === "number" ? selected_size : 25,
 	);
 
 	$: brush?.set_eraser_size(
-		typeof selected_eraser_size === "number" ? selected_eraser_size : 25
+		typeof selected_eraser_size === "number" ? selected_eraser_size : 25,
 	);
 
 	$: disable_click =
@@ -521,7 +521,7 @@
 		zoom.set_zoom(
 			direction === "in"
 				? zoom_level + (zoom_level < 1 ? 0.1 : zoom_level * 0.1)
-				: zoom_level - (zoom_level < 1 ? 0.1 : zoom_level * 0.1)
+				: zoom_level - (zoom_level < 1 ? 0.1 : zoom_level * 0.1),
 		);
 	}
 
@@ -558,7 +558,7 @@
 
 		await editor.add_image({
 			image,
-			resize: false
+			resize: false,
 		});
 		handle_subtool_change({ tool: "image", subtool: null });
 		dispatch("change");
@@ -574,7 +574,7 @@
 		on_drag_change: (dragging) => (is_dragging = dragging),
 		on_files: handle_files,
 		accepted_types: "image/*",
-		disable_click: disable_click
+		disable_click: disable_click,
 	}}
 	aria-label={"Click to upload or drop files"}
 	aria-dropeffect="copy"
@@ -592,6 +592,7 @@
 					editor.reset_canvas();
 					handle_tool_change({ tool: "image" });
 					background_image = false;
+					has_drawn = false;
 				}}
 				tool={current_tool}
 				can_save={true}
