@@ -62,7 +62,7 @@
 		}
 		return "." + type;
 	};
-	console.log({ filetype });
+
 	$: if (filetype == null) {
 		accept_file_types = null;
 	} else if (typeof filetype === "string") {

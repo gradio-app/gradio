@@ -132,11 +132,7 @@ export function create_drag(): {
 			};
 		},
 		open_file_upload(): void {
-			// console.log("open_file_upload", { _options });
-			// if (_options.disable_click) return;
-			// console.log("open", _options.disable_click, hidden_input);
 			if (hidden_input) {
-				console.log("open_file_upload", { hidden_input });
 				hidden_input.value = "";
 				hidden_input.click();
 			}

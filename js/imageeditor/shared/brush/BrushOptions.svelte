@@ -39,7 +39,6 @@
 		},
 		type: "core" | "user"
 	): void {
-		console.log("handle_color_selection", index, color, opacity, type);
 		if (type === "user" && !color) {
 			editing_index = index;
 			color_picker = true;
@@ -99,12 +98,10 @@
 	$: selected_size, selected_color, handle_preview();
 
 	function handle_select(color: string): void {
-		console.log("handle_select", color, $$props);
 		selected_color = color;
 	}
 
 	function handle_add_color(): void {
-		console.log("handle_add_color", $$props);
 		// limit to 5
 		if (recent_colors.length >= 5) {
 			recent_colors.pop();

@@ -204,7 +204,6 @@
 	}
 
 	function handle_upload_click(): void {
-		console.log("handle_upload_click");
 		upload_component.open_upload();
 	}
 
