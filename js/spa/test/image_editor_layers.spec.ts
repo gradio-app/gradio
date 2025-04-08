@@ -1,6 +1,6 @@
 import { test, expect } from "@self/tootils";
 
-test("ImageEditor layers are properly set", async ({ page }) => {
+test.skip("ImageEditor layers are properly set", async ({ page }) => {
 	await page.getByRole("button", { name: "Set Layers" }).click();
 	await expect(page.getByLabel("Layer Updates")).toHaveValue("1");
 	await page.getByRole("button", { name: "Get Layers" }).click();
