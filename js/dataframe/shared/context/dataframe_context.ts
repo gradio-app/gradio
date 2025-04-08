@@ -456,6 +456,13 @@ function create_actions(
 				tick().then(() =>
 					context.els![context.data![actual_row][col].id]?.input?.focus()
 				);
+			} else {
+				// ensure parent has focus for keyboard navigation
+				tick().then(() => {
+					if (context.parent_element) {
+						context.parent_element.focus();
+					}
+				});
 			}
 
 			context.dispatch?.("select", {
