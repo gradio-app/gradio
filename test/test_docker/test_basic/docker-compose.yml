@@ -7,6 +7,8 @@ services:
     networks:
       - app_network
     hostname: app
+    ports:
+      - "0:8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/config"]
       interval: 10s
