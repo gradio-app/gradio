@@ -56,6 +56,7 @@
 		| "descending"
 		| { field: string; order: "ascending" | "descending" }
 		| string[]
+		| null
 		| undefined {
 		if (_sort === "x") {
 			return "ascending";
@@ -66,7 +67,7 @@
 		} else if (_sort === "-y") {
 			return { field: y, order: "descending" };
 		} else if (_sort === null) {
-			return undefined;
+			return null;
 		} else if (Array.isArray(_sort)) {
 			return _sort;
 		}
