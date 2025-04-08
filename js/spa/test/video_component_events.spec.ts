@@ -7,7 +7,7 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 		page.waitForEvent("filechooser"),
 		page.getByLabel("Drop a video file here to upload").first().click()
 	]);
-	await fileChooser.setFiles(["./test/files/world.mp4"]);
+	await fileChooser.setFiles(["./test/files/av1-video.mp4"]);
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
@@ -21,7 +21,7 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 		page.getByLabel("Drop a video file here to upload").first().click()
 	]);
 
-	await fileChooser_two.setFiles(["./test/files/world.mp4"]);
+	await fileChooser_two.setFiles(["./test/files/av1-video.mp4"]);
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("3");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("2");
@@ -29,7 +29,7 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 	const downloadPromise = page.waitForEvent("download");
 	await page.getByLabel("Download").click();
 	const download = await downloadPromise;
-	await expect(download.suggestedFilename()).toBe("world.mp4");
+	await expect(download.suggestedFilename()).toBe("av1-video.mp4");
 });
 
 test("Video play, pause events work correctly.", async ({ page }) => {
