@@ -48,28 +48,6 @@ test("Dataframe blur event works as expected", async ({ page }) => {
 	await expect(page.getByLabel("Change events")).toHaveValue("1");
 });
 
-test("Dataframe select events work as expected", async ({ page }) => {
-	await expect(page.getByLabel("Select events")).toHaveValue("0");
-
-	await page.getByRole("button", { name: "Update dataframe" }).click();
-	await page.waitForTimeout(500);
-
-	const dataframe = page.locator("#dataframe");
-	await get_cell(dataframe, 1, 1).click();
-
-	await expect(page.getByLabel("Select events")).toHaveValue("1");
-
-	const selected_cell_index = await page
-		.getByLabel("Selected cell index")
-		.inputValue();
-	expect(selected_cell_index).toContain("[1, 1]");
-
-	const selected_cell_value = await page
-		.getByLabel("Selected cell value")
-		.inputValue();
-	expect(selected_cell_value).not.toBe("");
-});
-
 test("Dataframe filter functionality works correctly", async ({ page }) => {
 	await page.getByRole("button", { name: "Update dataframe" }).click();
 	await page.waitForTimeout(500);
@@ -96,7 +74,7 @@ test("Dataframe search functionality works correctly", async ({ page }) => {
 	expect(all_cells_text.length).toBeGreaterThan(0);
 
 	const search_term = all_cells_text[0].trim();
-	const search_input = page.getByPlaceholder("Search...");
+	const search_input = page.getByPlaceholder("Search...").first();
 
 	await page.waitForSelector("input[placeholder='Search...']");
 	await search_input.click();
@@ -347,4 +325,44 @@ test("Dataframe displays custom display values with medal icons correctly", asyn
 
 	// verify medals don't appear in other columns
 	expect(await get_cell(tall_df, 0, 1).textContent()).not.toContain("🥇");
+});
+
+test("Dataframe select events work as expected", async ({ page }) => {
+	const df = page.locator("#dataframe_tall");
+	const search_input = df.locator("input.search-input");
+
+	await get_cell(df, 0, 0).click();
+	await page.waitForTimeout(100);
+
+	const selected_cell_value = await page
+		.locator("#tall_selected_cell_value textarea")
+		.inputValue();
+
+	expect(selected_cell_value).toBe("DeepSeek Coder");
+
+	await search_input.fill("llama");
+	await search_input.press("Enter");
+
+	await page.waitForTimeout(200);
+	await get_cell(df, 1, 0).click();
+	await page.waitForTimeout(200);
+
+	const updated_selected_cell_value = await page
+		.locator("#tall_selected_cell_value textarea")
+		.inputValue();
+
+	expect(updated_selected_cell_value).toBe("Llama 3.3");
+
+	await search_input.clear();
+	await search_input.press("Enter");
+	await page.waitForTimeout(200);
+
+	await get_cell(df, 0, 0).click();
+	await page.waitForTimeout(200);
+
+	const restored_selected_cell_value = await page
+		.locator("#tall_selected_cell_value textarea")
+		.inputValue();
+
+	expect(restored_selected_cell_value).toBe("DeepSeek Coder");
 });

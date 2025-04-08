@@ -562,6 +562,7 @@
 
 		const search_input = canvas.getByPlaceholderText("Filter...");
 		await user.type(search_input, "Pet");
+		await user.click(canvas.getByText("Cat"));
 
 		await new Promise((resolve) => setTimeout(resolve, 100));
 
