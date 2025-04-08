@@ -7,6 +7,7 @@
 "@gradio/upload": minor
 "@self/app": minor
 "gradio": minor
+"website": minor
 ---
 
 feat:Refactor and redesign `ImageEditor` component
