@@ -1,11 +1,15 @@
 import gradio as gr
 import numpy as np
 
+
 def predict(im):
     return im["composite"]
 
+
 def verify_clear(im):
-    return int(not np.any(im['composite'])), im["composite"]
+    print(im)
+    return int(not np.any(im["composite"])), im["composite"]
+
 
 with gr.Blocks() as demo:
     with gr.Group():
@@ -59,9 +63,7 @@ with gr.Blocks() as demo:
         lambda: None,
         None,
         im,
-    ).then(verify_clear,
-           inputs=im,
-           outputs=[cleared_properly, im])
+    ).then(verify_clear, inputs=im, outputs=[cleared_properly, im])
 
 if __name__ == "__main__":
     demo.launch()

@@ -32,7 +32,6 @@ const CDN_BASE = "https://gradio.s3-us-west-2.amazonaws.com";
 export default defineConfig(({ mode }) => {
 	const production = mode === "production";
 	const development = mode === "development";
-	console.log(mode);
 	return {
 		// plugins: [],
 		server: {

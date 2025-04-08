@@ -131,6 +131,10 @@ function make_app(demos, port) {
 import uvicorn
 from fastapi import FastAPI
 import gradio as gr
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 ${demos.map((obj) => `from demo.${obj.module_name} import demo as ${obj.dir_name}`).join("\n")}
 

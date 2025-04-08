@@ -12,6 +12,7 @@
     let obj = get_object("imageeditor");
     let brush_obj = get_object("brush");
     let eraser_obj = get_object("eraser");
+    let layeroptions_obj = get_object("layeroptions");
 </script>
 
 <!--- Title -->
@@ -121,6 +122,23 @@ gradio.Eraser(···)
 <!--- Initialization -->
 #### Initialization
 <ParamTable parameters={eraser_obj.parameters} anchor_links={eraser_obj.name}/>
+
+<!-- LAYER OPTIONS -->
+<!--- Title -->
+### Layer Options
+
+<!--- Usage -->
+```python
+gradio.LayerOptions(···)
+```
+
+<!--- Description -->
+#### Description
+## {@html style_formatted_text(layeroptions_obj.description)}
+
+<!--- Initialization -->
+#### Initialization
+<ParamTable parameters={layeroptions_obj.parameters} anchor_links={layeroptions_obj.name}/>
 
 </div>
 

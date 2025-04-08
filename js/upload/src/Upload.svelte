@@ -4,6 +4,9 @@
 	import { prepare_files, type Client } from "@gradio/client";
 	import { _ } from "svelte-i18n";
 	import UploadProgress from "./UploadProgress.svelte";
+	import { create_drag } from "./utils";
+
+	const { drag, open_file_upload: _open_file_upload } = create_drag();
 
 	export let filetype: string | string[] | null = null;
 	export let dragging = false;
@@ -16,7 +19,6 @@
 	export let hidden = false;
 	export let format: "blob" | "file" = "file";
 	export let uploading = false;
-	export let hidden_upload: HTMLInputElement | null = null;
 	export let show_progress = true;
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
@@ -24,7 +26,9 @@
 	export let icon_upload = false;
 	export let height: number | string | undefined = undefined;
 	export let aria_label: string | undefined = undefined;
-
+	export function open_upload(): void {
+		_open_file_upload();
+	}
 	let upload_id: string;
 	let file_data: FileData[];
 	let accept_file_types: string | null;
@@ -70,10 +74,6 @@
 		accept_file_types = filetype.join(", ");
 	}
 
-	function updateDragging(): void {
-		dragging = !dragging;
-	}
-
 	export function paste_clipboard(): void {
 		navigator.clipboard.read().then(async (items) => {
 			for (let i = 0; i < items.length; i++) {
@@ -93,11 +93,7 @@
 	}
 
 	export function open_file_upload(): void {
-		if (disable_click) return;
-		if (hidden_upload) {
-			hidden_upload.value = "";
-			hidden_upload.click();
-		}
+		_open_file_upload();
 	}
 
 	async function handle_upload(
@@ -121,6 +117,40 @@
 			uploading = false;
 			return [];
 		}
+	}
+
+	function is_valid_mimetype(
+		file_accept: string | string[] | null,
+		uploaded_file_extension: string,
+		uploaded_file_type: string
+	): boolean {
+		if (
+			!file_accept ||
+			file_accept === "*" ||
+			file_accept === "file/*" ||
+			(Array.isArray(file_accept) &&
+				file_accept.some((accept) => accept === "*" || accept === "file/*"))
+		) {
+			return true;
+		}
+		let acceptArray: string[];
+		if (typeof file_accept === "string") {
+			acceptArray = file_accept.split(",").map((s) => s.trim());
+		} else if (Array.isArray(file_accept)) {
+			acceptArray = file_accept;
+		} else {
+			return false;
+		}
+
+		return (
+			acceptArray.includes(uploaded_file_extension) ||
+			acceptArray.some((type) => {
+				const [category] = type.split("/").map((s) => s.trim());
+				return (
+					type.endsWith("/*") && uploaded_file_type.startsWith(category + "/")
+				);
+			})
+		);
 	}
 
 	export async function load_files(
@@ -180,58 +210,8 @@
 		});
 	}
 
-	async function load_files_from_upload(e: Event): Promise<void> {
-		const target = e.target as HTMLInputElement;
-		if (!target.files) return;
-		if (format != "blob") {
-			await load_files(Array.from(target.files));
-		} else {
-			if (file_count === "single") {
-				dispatch("load", target.files[0]);
-				return;
-			}
-			dispatch("load", target.files);
-		}
-	}
-
-	function is_valid_mimetype(
-		file_accept: string | string[] | null,
-		uploaded_file_extension: string,
-		uploaded_file_type: string
-	): boolean {
-		if (
-			!file_accept ||
-			file_accept === "*" ||
-			file_accept === "file/*" ||
-			(Array.isArray(file_accept) &&
-				file_accept.some((accept) => accept === "*" || accept === "file/*"))
-		) {
-			return true;
-		}
-		let acceptArray: string[];
-		if (typeof file_accept === "string") {
-			acceptArray = file_accept.split(",").map((s) => s.trim());
-		} else if (Array.isArray(file_accept)) {
-			acceptArray = file_accept;
-		} else {
-			return false;
-		}
-
-		return (
-			acceptArray.includes(uploaded_file_extension) ||
-			acceptArray.some((type) => {
-				const [category] = type.split("/").map((s) => s.trim());
-				return (
-					type.endsWith("/*") && uploaded_file_type.startsWith(category + "/")
-				);
-			})
-		);
-	}
-
-	async function loadFilesFromDrop(e: DragEvent): Promise<void> {
-		dragging = false;
-		if (!e.dataTransfer?.files) return;
-		const files_to_load = Array.from(e.dataTransfer.files).filter((file) => {
+	async function load_files_from_upload(files: File[]): Promise<void> {
+		const files_to_load = files.filter((file) => {
 			const file_extension = "." + file.name.split(".").pop();
 			if (
 				file_extension &&
@@ -302,32 +282,17 @@
 					: height
 				: "100%"}
 		tabindex={hidden ? -1 : 0}
-		on:drag|preventDefault|stopPropagation
-		on:dragstart|preventDefault|stopPropagation
-		on:dragend|preventDefault|stopPropagation
-		on:dragover|preventDefault|stopPropagation
-		on:dragenter|preventDefault|stopPropagation
-		on:dragleave|preventDefault|stopPropagation
-		on:drop|preventDefault|stopPropagation
-		on:click={open_file_upload}
-		on:drop={loadFilesFromDrop}
-		on:dragenter={updateDragging}
-		on:dragleave={updateDragging}
+		use:drag={{
+			on_drag_change: (dragging) => (dragging = dragging),
+			on_files: (files) => load_files_from_upload(files),
+			accepted_types: accept_file_types,
+			mode: file_count,
+			disable_click
+		}}
 		aria-label={aria_label || "Click to upload or drop files"}
 		aria-dropeffect="copy"
 	>
 		<slot />
-		<input
-			aria-label="File upload"
-			data-testid="file-upload"
-			type="file"
-			bind:this={hidden_upload}
-			on:change={load_files_from_upload}
-			accept={accept_file_types || undefined}
-			multiple={file_count === "multiple" || undefined}
-			webkitdirectory={file_count === "directory" || undefined}
-			mozdirectory={file_count === "directory" || undefined}
-		/>
 	</button>
 {/if}
 
@@ -359,10 +324,6 @@
 
 	.disable_click {
 		cursor: default;
-	}
-
-	input {
-		display: none;
 	}
 
 	.icon-mode {

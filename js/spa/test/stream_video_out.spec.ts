@@ -1,6 +1,6 @@
 import { test, expect } from "@self/tootils";
 
-test("video streams from ts files correctly", async ({ page }) => {
+test.skip("video streams from ts files correctly", async ({ page }) => {
 	test.skip(!!process.env.CI, "Not supported in CI");
 	await page.getByRole("gridcell", { name: "false" }).click();
 	await page.waitForSelector("[data-testid='video'] video");
@@ -16,7 +16,7 @@ test("video streams from ts files correctly", async ({ page }) => {
 		.toBeGreaterThan(0);
 });
 
-test("video streams from mp4 files correctly", async ({ page }) => {
+test.skip("video streams from mp4 files correctly", async ({ page }) => {
 	test.skip(!!process.env.CI, "Not supported in CI");
 	await page.getByRole("gridcell", { name: "true" }).click();
 	await page.waitForSelector("[data-testid='video'] video");

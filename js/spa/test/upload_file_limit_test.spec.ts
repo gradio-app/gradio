@@ -112,7 +112,7 @@ test("gr.Audio() triggers the gr.Error modal when an uploaded file exceeds max_f
 		"Audio Drop Audio Here - or - Click to Upload"
 	);
 	const file_chooser = await get_file_selector(page, locator);
-	await file_chooser.setFiles(["./test/files/world.mp4"]);
+	await file_chooser.setFiles(["./test/files/file_test.ogg"]);
 	await error_modal_showed(page);
 });
 
