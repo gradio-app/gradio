@@ -1,13 +1,13 @@
 import gradio as gr
 
-def calculator(num1, operation, num2):
+def calculator(num1: float, operation: str, num2: float) -> float:
     if operation == "add":
         return num1 + num2
     elif operation == "subtract":
         return num1 - num2
     elif operation == "multiply":
         return num1 * num2
-    elif operation == "divide":
+    else:
         return num1 / num2
 
 with gr.Blocks() as demo:
@@ -21,7 +21,7 @@ with gr.Blocks() as demo:
             result = gr.Number()
 
     submit_btn.click(
-        calculator, inputs=[num_1, operation, num_2], outputs=[result], api_name=False
+        calculator, inputs=[num_1, operation, num_2], outputs=[result]
     )
     examples = gr.Examples(
         examples=[

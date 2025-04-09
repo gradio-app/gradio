@@ -16,6 +16,8 @@ from typing import (
     NewType,
     Optional,
     Union,
+    Dict,
+    List,
 )
 
 from fastapi import Request
@@ -428,3 +430,32 @@ class ImageData(GradioModel):
 
 class Base64ImageData(GradioModel):
     url: str = Field(description="base64 encoded image")
+
+
+class APIParameterInfo(TypedDict):
+    label: str
+    parameter_name: str
+    parameter_has_default: bool
+    parameter_default: Optional[Any]
+    type: Dict[str, Any]
+    python_type: Dict[str, str]
+    component: str
+    example_input: Any
+
+
+class APIReturnInfo(TypedDict):
+    label: str
+    type: Dict[str, Any]
+    python_type: Dict[str, str]
+    component: str
+
+
+class APIEndpointInfo(TypedDict):
+    parameters: List[APIParameterInfo]
+    returns: List[APIReturnInfo]
+    show_api: bool
+
+
+class APIInfo(TypedDict):
+    named_endpoints: Dict[str, APIEndpointInfo]
+    unnamed_endpoints: Dict[str, APIEndpointInfo]

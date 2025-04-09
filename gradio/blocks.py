@@ -52,6 +52,10 @@ from gradio.context import (
     set_render_context,
 )
 from gradio.data_classes import (
+    APIInfo,
+    APIEndpointInfo,
+    APIParameterInfo,
+    APIReturnInfo,
     BlocksConfigDict,
     DeveloperPath,
     FileData,
@@ -2067,6 +2071,7 @@ Received inputs:
         """
         Processes API calls from the frontend. First preprocesses the data,
         then runs the relevant function, then postprocesses the output.
+
         Parameters:
             fn_index: Index of function to run.
             inputs: input data received from the frontend
@@ -2078,7 +2083,14 @@ Received inputs:
             in_event_listener: whether this API call is being made in response to an event listener
             explicit_call: whether this call is being made directly by calling the Blocks function, instead of through an event listener or API route
             root_path: if provided, the root path of the server. All file URLs will be prefixed with this path.
-        Returns: None
+
+        Returns a dictionary with the following keys:
+            - "data": the output data from the function
+            - "is_generating": whether the function is generating output
+            - "iterator": the iterator for the function
+            - "duration": the duration of the function call
+            - "average_duration": the average duration of the function call
+            - "render_config": the render config for the function
         """
         if isinstance(block_fn, int):
             block_fn = self.fns[block_fn]
@@ -2433,7 +2445,7 @@ Received inputs:
         node_port: int | None = None,
         ssr_mode: bool | None = None,
         pwa: bool | None = None,
-        mcp_server: bool | None = None,
+        mcp_server: bool | None = True,
         _frontend: bool = True,
     ) -> tuple[App, str, str]:
         """
@@ -2500,7 +2512,7 @@ Received inputs:
             mcp_server = os.environ.get("GRADIO_MCP_SERVER", "False").lower() == "true"
         if mcp_server:
             mcp_server_obj = mcp.add_tools(self)
-            mcp_server_obj.run(transport='sse')
+            mcp.launch_mcp_on_sse(mcp_server_obj)
 
         if self._is_running_in_reload_thread:
             # We have already launched the demo
@@ -2692,7 +2704,7 @@ Received inputs:
                 )
                 if not resp.is_success:
                     raise Exception(
-                        f"Couldn’t start the app because '{resp.url}' failed (code {resp.status_code}). Check your network or proxy settings to ensure localhost is accessible."
+                        f"Couldn't start the app because '{resp.url}' failed (code {resp.status_code}). Check your network or proxy settings to ensure localhost is accessible."
                     )
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
@@ -3023,14 +3035,14 @@ Received inputs:
         for startup_event in self.extra_startup_events:
             await startup_event()
 
-    def get_api_info(self, all_endpoints: bool = False) -> dict[str, Any] | None:
+    def get_api_info(self, all_endpoints: bool = False) -> APIInfo | None:
         """
         Gets the information needed to generate the API docs from a Blocks.
         Parameters:
             all_endpoints: If True, returns information about all endpoints, including those with show_api=False.
         """
         config = self.config
-        api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
+        api_info: APIInfo = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
         for fn in self.fns.values():
             if not fn.fn or fn.api_name is False:
@@ -3038,7 +3050,7 @@ Received inputs:
             if not all_endpoints and not fn.show_api:
                 continue
 
-            dependency_info = {"parameters": [], "returns": [], "show_api": fn.show_api}
+            dependency_info: APIEndpointInfo = {"parameters": [], "returns": [], "show_api": fn.show_api}
             fn_info = utils.get_function_params(fn.fn)  # type: ignore
             skip_endpoint = False
 
