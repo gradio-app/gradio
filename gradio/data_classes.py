@@ -12,8 +12,6 @@ from enum import Enum, auto
 from typing import (
     Annotated,
     Any,
-    Dict,
-    List,
     Literal,
     NewType,
     Optional,
@@ -437,25 +435,25 @@ class APIParameterInfo(TypedDict):
     parameter_name: str
     parameter_has_default: bool
     parameter_default: Optional[Any]
-    type: Dict[str, Any]
-    python_type: Dict[str, str]
+    type: dict[str, Any]
+    python_type: dict[str, str]
     component: str
     example_input: Any
 
 
 class APIReturnInfo(TypedDict):
     label: str
-    type: Dict[str, Any]
-    python_type: Dict[str, str]
+    type: dict[str, Any]
+    python_type: dict[str, str]
     component: str
 
 
 class APIEndpointInfo(TypedDict):
-    parameters: List[APIParameterInfo]
-    returns: List[APIReturnInfo]
+    parameters: list[APIParameterInfo]
+    returns: list[APIReturnInfo]
     show_api: bool
 
 
 class APIInfo(TypedDict):
-    named_endpoints: Dict[str, APIEndpointInfo]
-    unnamed_endpoints: Dict[str, APIEndpointInfo]
+    named_endpoints: dict[str, APIEndpointInfo]
+    unnamed_endpoints: dict[str, APIEndpointInfo]

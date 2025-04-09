@@ -2622,14 +2622,16 @@ Received inputs:
             ssr_mode=self.ssr_mode,
         )
 
+        mcp_subpath = API_PREFIX + "/mcp"
         if mcp_server is None:
             mcp_server = os.environ.get("GRADIO_MCP_SERVER", "False").lower() == "true"
         if mcp_server:
             try:
                 import gradio.mcp
             except ImportError as e:
-                raise ImportError("In order to use `mcp_server=True`, you must install gradio with the `mcp` extra. Please install it with `pip install gradio[mcp]`") from e
-            mcp_subpath = API_PREFIX + "/mcp"
+                raise ImportError(
+                    "In order to use `mcp_server=True`, you must install gradio with the `mcp` extra. Please install it with `pip install gradio[mcp]`"
+                ) from e
             mcp_server_obj = gradio.mcp.add_tools(self)
             gradio.mcp.launch_mcp_on_sse(mcp_server_obj, self.server_app, mcp_subpath)
 
