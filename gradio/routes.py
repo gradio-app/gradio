@@ -8,6 +8,7 @@ import contextlib
 import hashlib
 import importlib.resources
 import inspect
+import io
 import json
 import math
 import mimetypes
@@ -1541,9 +1542,23 @@ class App(FastAPI):
             blocks = app.get_blocks()
             favicon_path = blocks.favicon_path
             if favicon_path is None:
-                return static_resource("img/logo.svg")
-            else:
-                return FileResponse(blocks.favicon_path)
+                raise HTTPException(status_code=404)
+
+            if size is None:
+                return FileResponse(favicon_path)
+
+            import PIL.Image
+
+            img = PIL.Image.open(favicon_path)
+            img = img.resize((size, size))
+
+            img_byte_array = io.BytesIO()
+            img.save(img_byte_array, format="PNG")
+            img_byte_array.seek(0)
+
+            return StreamingResponse(
+                io.BytesIO(img_byte_array.read()), media_type="image/png"
+            )
 
         @app.get("/manifest.json")
         def manifest_json():
