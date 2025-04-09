@@ -659,6 +659,9 @@
 				on:delete_layer={(e) => {
 					editor.delete_layer(e.detail);
 				}}
+				on:toggle_layer_visibility={(e) => {
+					editor.toggle_layer_visibility(e.detail);
+				}}
 			/>
 		{/if}
 	{/if}
