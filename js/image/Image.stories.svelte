@@ -13,10 +13,10 @@
 			chromatic: {
 				modes: {
 					desktop: allModes["desktop"],
-					mobile: allModes["mobile"],
-				},
-			},
-		},
+					mobile: allModes["mobile"]
+				}
+			}
+		}
 	};
 
 	let md = `# a heading! /n a new line! `;
@@ -37,21 +37,21 @@
 		value: {
 			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
 			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			orig_name: "cheetah.jpg",
+			orig_name: "cheetah.jpg"
 		},
 		show_label: true,
 		placeholder: "This is a cheetah",
 		show_download_button: true,
 		webcam_options: {
 			mirror: true,
-			constraints: null,
-		},
+			constraints: null
+		}
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
 
 		const expand_btn = canvas.getByRole("button", {
-			name: "View in full screen",
+			name: "View in full screen"
 		});
 		await userEvent.click(expand_btn);
 	}}
@@ -63,14 +63,14 @@
 		value: {
 			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
 			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			orig_name: "cheetah.jpg",
+			orig_name: "cheetah.jpg"
 		},
 		show_label: false,
 		show_download_button: false,
 		webcam_options: {
 			mirror: true,
-			constraints: null,
-		},
+			constraints: null
+		}
 	}}
 />
 
@@ -80,12 +80,12 @@
 		value: {
 			path: image_file_100x1000,
 			url: image_file_100x1000,
-			orig_name: "image.webp",
+			orig_name: "image.webp"
 		},
 		webcam_options: {
 			mirror: true,
-			constraints: null,
-		},
+			constraints: null
+		}
 	}}
 />
 
@@ -95,13 +95,13 @@
 		value: {
 			path: image_file_100x1000,
 			url: image_file_100x1000,
-			orig_name: "image.webp",
+			orig_name: "image.webp"
 		},
 		height: "500px",
 		webcam_options: {
 			mirror: true,
-			constraints: null,
-		},
+			constraints: null
+		}
 	}}
 />
 
@@ -111,13 +111,13 @@
 		value: {
 			path: image_file_100x100,
 			url: image_file_100x100,
-			orig_name: "image.webp",
+			orig_name: "image.webp"
 		},
 		height: "500px",
 		webcam_options: {
 			mirror: true,
-			constraints: null,
-		},
+			constraints: null
+		}
 	}}
 />
 
@@ -128,7 +128,7 @@
 		value: {
 			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
 			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			orig_name: "cheetah.jpg",
+			orig_name: "cheetah.jpg"
 		},
 		show_label: false,
 		show_download_button: false,
@@ -136,8 +136,8 @@
 		placeholder: md,
 		webcam_options: {
 			mirror: true,
-			constraints: null,
-		},
+			constraints: null
+		}
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
@@ -159,8 +159,8 @@
 		interactive: true,
 		webcam_options: {
 			mirror: true,
-			constraints: null,
-		},
+			constraints: null
+		}
 	}}
 />
 
@@ -169,7 +169,7 @@
 	args={{
 		sources: ["clipboard"],
 		show_download_button: true,
-		interactive: true,
+		interactive: true
 	}}
 />
 
@@ -182,12 +182,12 @@
 		value: {
 			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
 			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			orig_name: "cheetah.jpg",
+			orig_name: "cheetah.jpg"
 		},
 		streaming: true,
 		webcam_options: {
 			mirror: true,
-			constraints: null,
-		},
+			constraints: null
+		}
 	}}
 />

@@ -13,10 +13,10 @@
 			chromatic: {
 				modes: {
 					desktop: allModes["desktop"],
-					mobile: allModes["mobile"],
-				},
-			},
-		},
+					mobile: allModes["mobile"]
+				}
+			}
+		}
 	};
 </script>
 
@@ -37,8 +37,8 @@
 		width: 400,
 		webcam_options: {
 			mirror: true,
-			constraints: null,
-		},
+			constraints: null
+		}
 	}}
 />
 
@@ -49,8 +49,8 @@
 			video: {
 				path: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
 				url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
-				orig_name: "world.mp4",
-			},
+				orig_name: "world.mp4"
+			}
 		},
 		label: "world video",
 		show_label: true,
@@ -60,8 +60,8 @@
 		width: 400,
 		webcam_options: {
 			mirror: true,
-			constraints: null,
-		},
+			constraints: null
+		}
 	}}
 />
 <Story
@@ -71,8 +71,8 @@
 			video: {
 				path: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world_vertical.mp4",
 				url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world_vertical.mp4",
-				orig_name: "world_vertical.mp4",
-			},
+				orig_name: "world_vertical.mp4"
+			}
 		},
 		label: "world video",
 		show_label: true,
@@ -82,8 +82,8 @@
 		width: 400,
 		webcam_options: {
 			mirror: true,
-			constraints: null,
-		},
+			constraints: null
+		}
 	}}
 />
 
@@ -99,8 +99,8 @@
 		value: null,
 		webcam_options: {
 			mirror: true,
-			constraints: null,
-		},
+			constraints: null
+		}
 	}}
 />
 
@@ -118,13 +118,13 @@
 			video: {
 				path: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
 				url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
-				orig_name: "world.mp4",
-			},
+				orig_name: "world.mp4"
+			}
 		},
 		webcam_options: {
 			mirror: true,
-			constraints: null,
-		},
+			constraints: null
+		}
 	}}
 />
 
@@ -135,8 +135,8 @@
 			video: {
 				path: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
 				url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
-				orig_name: "world.mp4",
-			},
+				orig_name: "world.mp4"
+			}
 		},
 		label: "world video",
 		show_label: true,
@@ -145,8 +145,8 @@
 		width: 400,
 		webcam_options: {
 			mirror: true,
-			constraints: null,
-		},
+			constraints: null
+		}
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);

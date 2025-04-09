@@ -14,10 +14,10 @@
 				diffThreshold: 0.4,
 				modes: {
 					desktop: allModes["desktop"],
-					mobile: allModes["mobile"],
-				},
-			},
-		},
+					mobile: allModes["mobile"]
+				}
+			}
+		}
 	};
 </script>
 
@@ -47,15 +47,15 @@
 			default_size: "auto",
 			colors: ["#ff0000", "#00ff00", "#0000ff"],
 			default_color: "#ff0000",
-			color_mode: "defaults",
+			color_mode: "defaults"
 		},
 		eraser: {
-			default_size: "auto",
+			default_size: "auto"
 		},
 		webcam_options: {
 			mirror: true,
-			constraints: null,
-		},
+			constraints: null
+		}
 	}}
 />
 
@@ -126,12 +126,12 @@
 				mime_type: null,
 				is_stream: false,
 				meta: {
-					_type: "gradio.FileData",
-				},
+					_type: "gradio.FileData"
+				}
 			},
 			layers: [],
 			background: null,
-			id: null,
+			id: null
 		},
 		type: "pil",
 		interactive: false,
@@ -140,7 +140,7 @@
 		canvas_size: [800, 600],
 		webcam_options: {
 			mirror: true,
-			constraints: null,
-		},
+			constraints: null
+		}
 	}}
 />
