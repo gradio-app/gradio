@@ -6,7 +6,7 @@
 	import {
 		type SelectData,
 		type I18nFormatter,
-		type ValueData
+		type ValueData,
 	} from "@gradio/utils";
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import Webcam from "./Webcam.svelte";
@@ -15,7 +15,7 @@
 	import { FileData, type Client } from "@gradio/client";
 	import { SelectSource } from "@gradio/atoms";
 	import Image from "./Image.svelte";
-	import type { Base64File } from "./types";
+	import type { Base64File, WebcamOptions } from "./types";
 
 	export let value: null | FileData | Base64File = null;
 	export let label: string | undefined = undefined;
@@ -26,7 +26,7 @@
 	export let sources: source_type[] = ["upload", "clipboard", "webcam"];
 	export let streaming = false;
 	export let pending = false;
-	export let mirror_webcam: boolean;
+	export let webcam_options: WebcamOptions;
 	export let selectable = false;
 	export let root: string;
 	export let i18n: I18nFormatter;
@@ -43,10 +43,8 @@
 	export let uploading = false;
 	export let active_source: source_type = null;
 
-	export let webcam_constraints: { [key: string]: any } | undefined = undefined;
-
 	async function handle_upload({
-		detail
+		detail,
 	}: CustomEvent<FileData>): Promise<void> {
 		if (!streaming) {
 			if (detail.path?.toLowerCase().endsWith(".svg") && detail.url) {
@@ -54,7 +52,7 @@
 				const svgContent = await response.text();
 				value = {
 					...detail,
-					url: `data:image/svg+xml,${encodeURIComponent(svgContent)}`
+					url: `data:image/svg+xml,${encodeURIComponent(svgContent)}`,
 				};
 			} else {
 				value = detail;
@@ -71,18 +69,18 @@
 
 	async function handle_save(
 		img_blob: Blob | any,
-		event: "change" | "stream" | "upload"
+		event: "change" | "stream" | "upload",
 	): Promise<void> {
 		if (event === "stream") {
 			dispatch("stream", {
 				value: { url: img_blob } as Base64File,
-				is_value_data: true
+				is_value_data: true,
 			});
 			return;
 		}
 		pending = true;
 		const f = await upload_input.load_files([
-			new File([img_blob], `image/${streaming ? "jpeg" : "png"}`)
+			new File([img_blob], `image/${streaming ? "jpeg" : "png"}`),
 		]);
 
 		if (event === "change" || event === "upload") {
@@ -122,7 +120,7 @@
 	}
 
 	async function handle_select_source(
-		source: (typeof sources)[number]
+		source: (typeof sources)[number],
 	): Promise<void> {
 		switch (source) {
 			case "clipboard":
@@ -189,7 +187,7 @@
 				on:drag
 				on:upload={(e) => handle_save(e.detail, "upload")}
 				on:close_stream
-				{mirror_webcam}
+				mirror_webcam={webcam_options.mirror}
 				{stream_every}
 				{streaming}
 				mode="image"
@@ -198,7 +196,7 @@
 				{upload}
 				bind:modify_stream
 				bind:set_time_limit
-				{webcam_constraints}
+				webcam_constraints={webcam_options.constraints}
 			/>
 		{:else if value !== null && !streaming}
 			<!-- svelte-ignore a11y-click-events-have-key-events-->
