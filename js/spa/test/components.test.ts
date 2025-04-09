@@ -139,7 +139,11 @@ const components = [
 	// ["StaticTimeSeries", StaticTimeSeries, {}],
 	["InteractiveUploadButton", InteractiveUploadButton, { interactive: true }],
 	["StaticUploadButton", StaticUploadButton, { interactive: false }],
-	["InteractiveVideo", InteractiveVideo, { interactive: true }],
+	[
+		"InteractiveVideo",
+		InteractiveVideo,
+		{ interactive: true, webcam_options: { mirror: true, constraints: null } }
+	],
 	["StaticVideo", StaticVideo, { interactive: false }]
 ] as const;
 
