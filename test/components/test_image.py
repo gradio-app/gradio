@@ -51,7 +51,7 @@ class TestImage:
             "interactive": None,
             "format": "webp",
             "proxy_url": None,
-            "webcam_options": None,
+            "webcam_options": {"constraints": None, "mirror": True},
             "_selectable": False,
             "key": None,
             "streamable": False,

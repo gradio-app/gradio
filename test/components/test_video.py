@@ -60,7 +60,7 @@ class TestVideo:
             "value": None,
             "interactive": None,
             "proxy_url": None,
-            "webcam_options": None,
+            "webcam_options": {"constraints": None, "mirror": True},
             "include_audio": True,
             "format": None,
             "min_length": None,
