@@ -1,7 +1,7 @@
 ---
-"@self/app": minor
-"@self/spa": minor
-"gradio": minor
+"@self/app": patch
+"@self/spa": patch
+"gradio": patch
 ---
 
-feat:Meta tags for socials
+fix:Update default meta tags for socials + Add ability to override meta tags
