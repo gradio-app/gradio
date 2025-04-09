@@ -183,6 +183,13 @@ class TestAudio:
         ).model_dump()  # type: ignore
         assert output["path"].endswith("mp3")
 
+    def test_postprocess_http_url_like(self):
+        audio = gr.Audio()
+        output = audio.postprocess("https://test.com/test.mp3?token=123")
+        assert isinstance(output, FileData) and output.path.endswith(
+            "test.mp3?token=123"
+        )
+
     @pytest.mark.asyncio
     async def test_combine_stream_audio(self, gradio_temp_dir):
         x_wav = FileData(
