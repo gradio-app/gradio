@@ -44,14 +44,44 @@ def create_mcp_server(blocks: "Blocks") -> Server:
         if not api_info:
             return tools
         for endpoint_name, endpoint_info in api_info["named_endpoints"].items():
+            endpoint_name = endpoint_name.lstrip("/")
             if endpoint_info["show_api"]:
+                block_fn = next((fn for fn in blocks.fns.values() if fn.api_name == endpoint_name), None)
+                if block_fn is None or block_fn.fn is None:
+                    continue
+                fn_docstring = block_fn.fn.__doc__
+                description = ""
+                parameters = {}
+                if fn_docstring:
+                    lines = fn_docstring.strip().split("\n")
+                    lines_iter = iter(lines)
+                    description = next(lines_iter, "").strip() if lines else ""
+                    for line in lines_iter:
+                        if line.strip().startswith("Args:"):
+                            break
+                    else:
+                        line = ""
+                    while line:
+                        line = line.strip()
+                        if line.startswith("Args:") or not line:
+                            line = next(lines_iter, "").strip()
+                            continue
+                        param_name, param_desc = line.split(":", 1)
+                        parameters[param_name.strip()] = param_desc.strip()
+                        line = next(lines_iter, "").strip()
+                print("description", description)
+                print("parameters", parameters)
                 tools.append(
                     types.Tool(
-                        name=endpoint_name.lstrip("/"),
+                        name=endpoint_name,
+                        description=description,
                         inputSchema={
                             "type": "object",
                             "properties": {
-                                p["parameter_name"]: p["type"]
+                                p["parameter_name"]: {
+                                    "type": p["type"],
+                                    **({"description": parameters[p["parameter_name"]]} if p["parameter_name"] in parameters else {})
+                                }
                                 for p in endpoint_info["parameters"]
                             },
                         },

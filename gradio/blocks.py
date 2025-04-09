@@ -2839,7 +2839,7 @@ Received inputs:
 
         if mcp_server:
             print(
-                f"\n🤖 MCP server (using SSE protocol) running at: {self.share_url or self.local_url}{mcp_subpath.lstrip('/')}/sse"
+                f"\n🔨 MCP server (using SSE) running at: {self.share_url or self.local_url}{mcp_subpath.lstrip('/')}/sse"
             )
 
         if inbrowser and not wasm_utils.IS_WASM:
