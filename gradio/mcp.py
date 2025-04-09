@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 server = Server("gradio")
 
+
 def add_tools(block: "Blocks") -> Server:
     @server.call_tool()
     async def fetch_tool(
@@ -24,7 +25,10 @@ def add_tools(block: "Blocks") -> Server:
             block_fn=block_fn,
             inputs=list(arguments.values()),
         )
-        return [types.TextContent(type="text", text=str(return_value)) for return_value in output["data"]]
+        return [
+            types.TextContent(type="text", text=str(return_value))
+            for return_value in output["data"]
+        ]
 
     @server.list_tools()
     async def list_tools() -> list[types.Tool]:
@@ -40,14 +44,16 @@ def add_tools(block: "Blocks") -> Server:
                         inputSchema={
                             "type": "object",
                             "properties": {
-                                p["parameter_name"]: p["type"] for p in endpoint_info["parameters"]
-                            }
+                                p["parameter_name"]: p["type"]
+                                for p in endpoint_info["parameters"]
+                            },
                         },
                     )
                 )
         return tools
 
     return server
+
 
 def launch_mcp_on_sse(server: Server):
     sse = SseServerTransport("/messages/")

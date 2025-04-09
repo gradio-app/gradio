@@ -52,10 +52,8 @@ from gradio.context import (
     set_render_context,
 )
 from gradio.data_classes import (
-    APIInfo,
     APIEndpointInfo,
-    APIParameterInfo,
-    APIReturnInfo,
+    APIInfo,
     BlocksConfigDict,
     DeveloperPath,
     FileData,
@@ -3050,7 +3048,11 @@ Received inputs:
             if not all_endpoints and not fn.show_api:
                 continue
 
-            dependency_info: APIEndpointInfo = {"parameters": [], "returns": [], "show_api": fn.show_api}
+            dependency_info: APIEndpointInfo = {
+                "parameters": [],
+                "returns": [],
+                "show_api": fn.show_api,
+            }
             fn_info = utils.get_function_params(fn.fn)  # type: ignore
             skip_endpoint = False
 

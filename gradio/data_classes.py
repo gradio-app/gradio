@@ -12,12 +12,12 @@ from enum import Enum, auto
 from typing import (
     Annotated,
     Any,
+    Dict,
+    List,
     Literal,
     NewType,
     Optional,
     Union,
-    Dict,
-    List,
 )
 
 from fastapi import Request
