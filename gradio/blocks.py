@@ -2506,12 +2506,6 @@ Received inputs:
         """
         from gradio.routes import App
 
-        if mcp_server is None:
-            mcp_server = os.environ.get("GRADIO_MCP_SERVER", "False").lower() == "true"
-        if mcp_server:
-            mcp_server_obj = mcp.add_tools(self)
-            mcp.launch_mcp_on_sse(mcp_server_obj)
-
         if self._is_running_in_reload_thread:
             # We have already launched the demo
             return None, None, None  # type: ignore
@@ -2628,6 +2622,14 @@ Received inputs:
             strict_cors=strict_cors,
             ssr_mode=self.ssr_mode,
         )
+
+        if mcp_server is None:
+            mcp_server = os.environ.get("GRADIO_MCP_SERVER", "False").lower() == "true"
+        if mcp_server:
+            mcp_subpath = API_PREFIX + "/mcp"
+            mcp_server_obj = mcp.add_tools(self)
+            mcp.launch_mcp_on_sse(mcp_server_obj, self.server_app, mcp_subpath)
+
 
         if self.is_running:
             if not isinstance(self.local_url, str):
@@ -2830,6 +2832,9 @@ Received inputs:
             if not quiet and not wasm_utils.IS_WASM:
                 print(strings.en["PUBLIC_SHARE_TRUE"])
             self.share_url = None
+
+        if mcp_server:
+            print(f"\nMCP server (using SSE protocol) running at {self.share_url or self.local_url}{mcp_subpath.lstrip('/')}/sse")
 
         if inbrowser and not wasm_utils.IS_WASM:
             link = self.share_url if self.share and self.share_url else self.local_url

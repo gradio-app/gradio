@@ -1,11 +1,12 @@
 from typing import TYPE_CHECKING
 
-import uvicorn
 from mcp import types
 from mcp.server import Server
 from mcp.server.sse import SseServerTransport
 from starlette.applications import Starlette
 from starlette.routing import Mount, Route
+
+from gradio.routes import API_PREFIX
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -55,7 +56,7 @@ def add_tools(block: "Blocks") -> Server:
     return server
 
 
-def launch_mcp_on_sse(server: Server):
+def launch_mcp_on_sse(server: Server, app: Starlette, subpath: str):
     sse = SseServerTransport("/messages/")
 
     async def handle_sse(request):
@@ -66,12 +67,11 @@ def launch_mcp_on_sse(server: Server):
                 streams[0], streams[1], server.create_initialization_options()
             )
 
-    starlette_app = Starlette(
+    app.mount(subpath, Starlette(
         debug=True,
         routes=[
             Route("/sse", endpoint=handle_sse),
             Mount("/messages/", app=sse.handle_post_message),
         ],
-    )
+    ))
 
-    uvicorn.run(starlette_app, host="0.0.0.0", port=8000)
