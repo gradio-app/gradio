@@ -172,7 +172,6 @@ class Image(StreamingInput, Component):
         )
         self.show_fullscreen_button = show_fullscreen_button
         self.placeholder = placeholder
-        self.webcam_constraints = webcam_constraints
 
         super().__init__(
             label=label,

@@ -178,7 +178,6 @@ class Video(StreamingOutput, Component):
         self.max_length = max_length
         self.streaming = streaming
         self.watermark = watermark
-        self.webcam_constraints = webcam_constraints
         super().__init__(
             label=label,
             every=every,
