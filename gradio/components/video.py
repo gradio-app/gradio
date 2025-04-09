@@ -18,6 +18,7 @@ from gradio_client.documentation import document
 import gradio as gr
 from gradio import processing_utils, utils, wasm_utils
 from gradio.components.base import Component, StreamingOutput
+from gradio.components.image_editor import WebcamOptions
 from gradio.data_classes import FileData, GradioModel, MediaStreamChunk
 from gradio.events import Events
 
@@ -63,16 +64,14 @@ class Video(StreamingOutput, Component):
 
     def __init__(
         self,
-        value: str
-        | Path
-        | tuple[str | Path, str | Path | None]
-        | Callable
-        | None = None,
+        value: (
+            str | Path | tuple[str | Path, str | Path | None] | Callable | None
+        ) = None,
         *,
         format: str | None = None,
-        sources: list[Literal["upload", "webcam"]]
-        | Literal["upload", "webcam"]
-        | None = None,
+        sources: (
+            list[Literal["upload", "webcam"]] | Literal["upload", "webcam"] | None
+        ) = None,
         height: int | str | None = None,
         width: int | str | None = None,
         label: str | None = None,
@@ -88,7 +87,8 @@ class Video(StreamingOutput, Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        mirror_webcam: bool = True,
+        mirror_webcam: bool = None,
+        webcam_options: WebcamOptions | None = None,
         include_audio: bool | None = None,
         autoplay: bool = False,
         show_share_button: bool | None = None,
@@ -120,7 +120,6 @@ class Video(StreamingOutput, Component):
             elem_classes: an optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: if False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
-            mirror_webcam: if True webcam will be mirrored. Default is True.
             include_audio: whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
             autoplay: whether to automatically play the video when the component is used as an output. Note: browsers will not autoplay video files if the user has not interacted with the page yet.
             show_share_button: if True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
@@ -130,7 +129,7 @@ class Video(StreamingOutput, Component):
             loop: if True, the video will loop when it reaches the end and continue playing from the beginning.
             streaming: when used set as an output, takes video chunks yielded from the backend and combines them into one streaming video output. Each chunk should be a video file with a .ts extension using an h.264 encoding. Mp4 files are also accepted but they will be converted to h.264 encoding.
             watermark: an image file to be included as a watermark on the video. The image is not scaled and is displayed on the bottom right of the video. Valid formats for the image are: jpeg, png.
-            webcam_constraints: A dictionary that allows developers to specify custom media constraints for the webcam stream. This parameter provides flexibility to control the video stream's properties, such as resolution and front or rear camera on mobile devices. See $demo/webcam_constraints
+            webcam_options: A `gr.WebcamOptions` instance that allows developers to specify custom media constraints for the webcam stream. This parameter provides flexibility to control the video stream's properties, such as resolution and front or rear camera on mobile devices. See $demo/webcam_constraints
         """
         valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
         if sources is None:
@@ -153,7 +152,19 @@ class Video(StreamingOutput, Component):
         self.height = height
         self.width = width
         self.loop = loop
-        self.mirror_webcam = mirror_webcam
+        self.webcam_options = (
+            webcam_options if webcam_options is not None else WebcamOptions()
+        )
+
+        if mirror_webcam is not None:
+            warnings.warn(
+                "The `mirror_webcam` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
+            )
+            self.webcam_options.mirror = mirror_webcam
+
+        if webcam_constraints is not None:
+            self.webcam_options.constraints = webcam_constraints
+
         self.include_audio = (
             include_audio if include_audio is not None else "upload" in self.sources
         )

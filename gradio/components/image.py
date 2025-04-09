@@ -16,6 +16,7 @@ from PIL import ImageOps
 
 from gradio import image_utils, utils
 from gradio.components.base import Component, StreamingInput
+from gradio.components.image_editor import WebcamOptions
 from gradio.data_classes import Base64ImageData, ImageData
 from gradio.events import Events
 from gradio.exceptions import Error
@@ -53,13 +54,17 @@ class Image(StreamingInput, Component):
         format: str = "webp",
         height: int | str | None = None,
         width: int | str | None = None,
-        image_mode: Literal[
-            "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
-        ]
-        | None = "RGB",
-        sources: list[Literal["upload", "webcam", "clipboard"]]
-        | Literal["upload", "webcam", "clipboard"]
-        | None = None,
+        image_mode: (
+            Literal[
+                "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
+            ]
+            | None
+        ) = "RGB",
+        sources: (
+            list[Literal["upload", "webcam", "clipboard"]]
+            | Literal["upload", "webcam", "clipboard"]
+            | None
+        ) = None,
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
         every: Timer | float | None = None,
@@ -76,7 +81,8 @@ class Image(StreamingInput, Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        mirror_webcam: bool = True,
+        mirror_webcam: bool = None,
+        webcam_options: WebcamOptions | None = None,
         show_share_button: bool | None = None,
         placeholder: str | None = None,
         show_fullscreen_button: bool = True,
@@ -113,7 +119,23 @@ class Image(StreamingInput, Component):
             webcam_constraints: A dictionary that allows developers to specify custom media constraints for the webcam stream. This parameter provides flexibility to control the video stream's properties, such as resolution and front or rear camera on mobile devices. See $demo/webcam_constraints
         """
         self.format = format
-        self.mirror_webcam = mirror_webcam
+
+        self.webcam_options = (
+            webcam_options if webcam_options is not None else WebcamOptions()
+        )
+
+        if mirror_webcam is not None:
+            warnings.warn(
+                "The `mirror_webcam` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
+            )
+            self.webcam_options.mirror = mirror_webcam
+
+        if webcam_constraints is not None:
+            warnings.warn(
+                "The `webcam_constraints` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
+            )
+            self.webcam_options.constraints = webcam_constraints
+
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
             raise ValueError(
