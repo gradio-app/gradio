@@ -2433,6 +2433,7 @@ Received inputs:
         node_port: int | None = None,
         ssr_mode: bool | None = None,
         pwa: bool | None = None,
+        mcp_server: bool | None = None,
         _frontend: bool = True,
     ) -> tuple[App, str, str]:
         """
@@ -2473,6 +2474,7 @@ Received inputs:
             strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
             ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
+            mcp_server: If True, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools. If None (default behavior), then the GRADIO_MCP_SERVER environment variable will be used to determine if the MCP server should be enabled (which is "True" on Hugging Face Spaces).
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2494,8 +2496,11 @@ Received inputs:
         """
         from gradio.routes import App
 
-        mcp_server = mcp.add_tools(self)
-        mcp_server.run(transport='sse')
+        if mcp_server is None:
+            mcp_server = os.environ.get("GRADIO_MCP_SERVER", "False").lower() == "true"
+        if mcp_server:
+            mcp_server_obj = mcp.add_tools(self)
+            mcp_server_obj.run(transport='sse')
 
         if self._is_running_in_reload_thread:
             # We have already launched the demo
