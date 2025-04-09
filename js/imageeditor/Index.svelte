@@ -17,7 +17,7 @@
 		LayerOptions,
 		Transform,
 		Source,
-		WebcamOptions,
+		WebcamOptions
 	} from "./shared/types";
 
 	export let elem_id = "";
@@ -26,7 +26,7 @@
 	export let value: EditorData | null = {
 		background: null,
 		layers: [],
-		composite: null,
+		composite: null
 	};
 	export let label: string;
 	export let show_label: boolean;
@@ -227,7 +227,7 @@
 				(value = {
 					background: null,
 					layers: [],
-					composite: null,
+					composite: null
 				})}
 			on:error
 			{brush}
