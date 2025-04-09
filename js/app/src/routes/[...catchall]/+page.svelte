@@ -158,6 +158,54 @@
 		active_theme_mode = handle_theme_mode(document.body);
 	}
 
+	async function add_custom_html_head(
+		head_string: string | null
+	): Promise<void> {
+		if (head_string) {
+			const parser = new DOMParser();
+			const parsed_head_html = Array.from(
+				parser.parseFromString(head_string, "text/html").head.children
+			);
+
+			if (parsed_head_html) {
+				for (let head_element of parsed_head_html) {
+					let newElement = document.createElement(head_element.tagName);
+					Array.from(head_element.attributes).forEach((attr) => {
+						newElement.setAttribute(attr.name, attr.value);
+					});
+					newElement.textContent = head_element.textContent;
+
+					if (newElement.tagName == "META") {
+						const propertyAttr = newElement.getAttribute("property");
+						const nameAttr = newElement.getAttribute("name");
+						
+						if (propertyAttr || nameAttr) {
+							const domMetaList = Array.from(
+								document.head.getElementsByTagName("meta") ?? []
+							);
+							
+							const matched = domMetaList.find((el) => {
+								if (propertyAttr && el.getAttribute("property") === propertyAttr) {
+									return !el.isEqualNode(newElement);
+								}
+								if (nameAttr && el.getAttribute("name") === nameAttr) {
+									return !el.isEqualNode(newElement);
+								}
+								return false;
+							});
+							
+							if (matched) {
+								document.head.replaceChild(newElement, matched);
+								continue;
+							}
+						}
+					}
+					document.head.appendChild(newElement);
+				}
+			}
+		}
+	}
+
 	// These utilities are exported to be injectable for the Wasm version.
 
 	// export let Client: typeof ClientType;
@@ -231,6 +279,8 @@
 
 		css_ready = true;
 		window.__is_colab__ = config.is_colab;
+
+		await add_custom_html_head(config.head);
 
 		const supports_zerogpu_headers = "supports-zerogpu-headers";
 		window.addEventListener("message", (event) => {
@@ -323,10 +373,6 @@
 <svelte:head>
 	<link rel="stylesheet" href={"./theme.css?v=" + config?.theme_hash} />
 	<link rel="manifest" href="/manifest.json" />
-
-	{#if config.head}
-		{@html config.head}
-	{/if}
 </svelte:head>
 
 <Embed
