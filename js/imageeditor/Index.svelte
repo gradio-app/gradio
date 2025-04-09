@@ -13,7 +13,13 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { tick } from "svelte";
-	import type { LayerOptions, Transform, Source } from "./shared/types";
+	import type {
+		LayerOptions,
+		Transform,
+		Source,
+		WebcamOptions
+	} from "./shared/types";
+
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -66,6 +72,7 @@
 		clear_status: LoadingStatus;
 	}>;
 	export let border_region = 0;
+	export let webcam_options: WebcamOptions;
 
 	let editor_instance: InteractiveImageEditor;
 	let image_id: null | string = null;
@@ -235,6 +242,7 @@
 			upload={(...args) => gradio.client.upload(...args)}
 			{placeholder}
 			{full_history}
+			{webcam_options}
 		></InteractiveImageEditor>
 	</Block>
 {/if}

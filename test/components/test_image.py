@@ -51,13 +51,12 @@ class TestImage:
             "interactive": None,
             "format": "webp",
             "proxy_url": None,
-            "mirror_webcam": True,
+            "webcam_options": {"constraints": None, "mirror": True},
             "_selectable": False,
             "key": None,
             "streamable": False,
             "type": "pil",
             "placeholder": None,
-            "webcam_constraints": None,
         }
         assert image_input.preprocess(None) is None
         image_input = gr.Image()

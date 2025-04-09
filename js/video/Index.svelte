@@ -9,7 +9,7 @@
 	import Video from "./shared/InteractiveVideo.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-
+	import type { WebcamOptions } from "./shared/utils";
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -28,7 +28,6 @@
 	export let loading_status: LoadingStatus;
 	export let height: number | undefined;
 	export let width: number | undefined;
-	export let webcam_constraints: { [key: string]: any } | null = null;
 
 	export let container = false;
 	export let scale: number | null = null;
@@ -52,7 +51,7 @@
 		clear_status: LoadingStatus;
 	}>;
 	export let interactive: boolean;
-	export let mirror_webcam: boolean;
+	export let webcam_options: WebcamOptions;
 	export let include_audio: boolean;
 	export let loop = false;
 	export let input_ready: boolean;
@@ -199,12 +198,11 @@
 			{show_download_button}
 			{sources}
 			{active_source}
-			{mirror_webcam}
+			{webcam_options}
 			{include_audio}
 			{autoplay}
 			{root}
 			{loop}
-			{webcam_constraints}
 			{handle_reset_value}
 			on:clear={() => gradio.dispatch("clear")}
 			on:play={() => gradio.dispatch("play")}

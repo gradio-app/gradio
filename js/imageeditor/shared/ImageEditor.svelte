@@ -22,7 +22,7 @@
 	import { create_drag } from "@gradio/upload";
 	import SecondaryToolbar from "./SecondaryToolbar.svelte";
 	import { Check } from "@gradio/icons";
-	import type { LayerOptions, Source, Transform } from "./types";
+	import type { LayerOptions, Source, Transform, WebcamOptions } from "./types";
 
 	import { type ImageBlobs } from "./types";
 	import Controls from "./Controls.svelte";
@@ -51,7 +51,6 @@
 	export let eraser_options: Eraser;
 	export let fixed_canvas = false;
 	export let root: string;
-	export let mirror_webcam = true;
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
 	export let composite: FileData | null;
@@ -60,6 +59,7 @@
 	export let border_region = 0;
 	export let layer_options: LayerOptions;
 	export let current_tool: ToolbarTool;
+	export let webcam_options: WebcamOptions;
 
 	let pixi_target: HTMLDivElement;
 	let pixi_target_crop: HTMLDivElement;
@@ -633,11 +633,12 @@
 						on:capture={handle_capture}
 						on:error
 						on:drag
-						{mirror_webcam}
 						streaming={false}
 						mode="image"
 						include_audio={false}
 						{i18n}
+						mirror_webcam={webcam_options.mirror}
+						webcam_constraints={webcam_options.constraints}
 					/>
 				</div>
 			</div>

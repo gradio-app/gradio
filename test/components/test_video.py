@@ -60,7 +60,7 @@ class TestVideo:
             "value": None,
             "interactive": None,
             "proxy_url": None,
-            "mirror_webcam": True,
+            "webcam_options": {"constraints": None, "mirror": True},
             "include_audio": True,
             "format": None,
             "min_length": None,
@@ -70,7 +70,6 @@ class TestVideo:
             "loop": False,
             "streaming": False,
             "watermark": None,
-            "webcam_constraints": None,
         }
         assert video_input.preprocess(None) is None
         video_input = gr.Video(format="avi")
@@ -216,7 +215,9 @@ class TestVideo:
 
         mock_ffmpeg.reset_mock()
         _ = gr.Video(
-            sources=["webcam"], mirror_webcam=False, include_audio=True
+            sources=["webcam"],
+            webcam_options=gr.WebcamOptions(mirror=False),
+            include_audio=True,
         ).preprocess(x_video)
         mock_ffmpeg.assert_not_called()
 
@@ -228,7 +229,9 @@ class TestVideo:
 
         mock_ffmpeg.reset_mock()
         output_file = gr.Video(
-            sources=["webcam"], mirror_webcam=True, format="avi"
+            sources=["webcam"],
+            webcam_options=gr.WebcamOptions(mirror=True),
+            format="avi",
         ).preprocess(x_video)
         assert output_file
         output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
@@ -239,7 +242,10 @@ class TestVideo:
 
         mock_ffmpeg.reset_mock()
         output_file = gr.Video(
-            sources=["webcam"], mirror_webcam=False, format="avi", include_audio=False
+            sources=["webcam"],
+            webcam_options=gr.WebcamOptions(mirror=False),
+            format="avi",
+            include_audio=False,
         ).preprocess(x_video)
         assert output_file
         output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
