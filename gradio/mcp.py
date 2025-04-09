@@ -6,38 +6,31 @@ from mcp.server.sse import SseServerTransport
 from starlette.applications import Starlette
 from starlette.routing import Mount, Route
 
-from gradio import utils
-
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
 
-server = Server("gradio")
+def create_mcp_server(blocks: "Blocks") -> Server:
+    """
+    Create an MCP server for the given Gradio Blocks app.
 
+    Parameters:
+        blocks: The Blocks app to create the MCP server for.
 
-def add_tools(block: "Blocks") -> Server:
+    Returns:
+        The MCP server.
+    """
+    server = Server(blocks.title or "Gradio App")
+
     @server.call_tool()
     async def fetch_tool(
         name: str, arguments: dict
     ) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
-        block_fn = next((fn for fn in block.fns.values() if fn.api_name == name), None)
-
+        block_fn = next((fn for fn in blocks.fns.values() if fn.api_name == name), None)
         if block_fn is None or block_fn.show_api is False or block_fn.api_name is False:
             raise ValueError(f"Unknown tool: {name}")
-
-        fn_params = block_fn.fn and utils.get_function_params(block_fn.fn) or []
-        ordered_args = []
-
-        for param_name, has_default, default_value, _ in fn_params:
-            if param_name in arguments:
-                ordered_args.append(arguments[param_name])
-            elif has_default:
-                ordered_args.append(default_value)
-            else:
-                raise ValueError(f"Missing required argument: {param_name}")
-
-        output = await block.process_api(
+        output = await blocks.process_api(
             block_fn=block_fn,
-            inputs=ordered_args,
+            inputs=list(arguments.values()),
         )
         return [
             types.TextContent(type="text", text=str(return_value))
@@ -46,7 +39,7 @@ def add_tools(block: "Blocks") -> Server:
 
     @server.list_tools()
     async def list_tools() -> list[types.Tool]:
-        api_info = block.get_api_info()
+        api_info = blocks.get_api_info()
         tools = []
         if not api_info:
             return tools
@@ -94,9 +87,41 @@ def launch_mcp_on_sse(server: Server, app: Starlette, subpath: str):
         Starlette(
             routes=[
                 Route("/sse", endpoint=handle_sse),
-                Mount(
-                    "/messages", app=sse.handle_post_message
-                ),  # Removed trailing slash
+                Mount("/messages", app=sse.handle_post_message),  # Removed trailing slash
             ],
         ),
     )
+
+
+                #     continue
+                # fn_docstring = block_fn.fn.__doc__
+                # description = ""
+                # parameters = {}
+                # if fn_docstring:
+                #     lines = fn_docstring.strip().split("\n")
+                #     lines_iter = iter(lines)
+                #     description = next(lines_iter, "").strip() if lines else ""
+                #     for line in lines_iter:
+                #         if line.strip().startswith("Args:"):
+                #             break
+                #     else:
+                #         line = ""
+                #     while line:
+                #         line = line.strip()
+                #         if line.startswith("Args:") or not line:
+                #             line = next(lines_iter, "").strip()
+                #             continue
+                #         param_name, param_desc = line.split(":", 1)
+                #         parameters[param_name.strip()] = param_desc.strip()
+                #         line = next(lines_iter, "").strip()
+                # tools.append(
+                #     types.Tool(
+                #         name=endpoint_name,
+                #         description=description,
+                #         inputSchema={
+                #             "type": "object",
+                #             "properties": {
+                #                 p["parameter_name"]: {
+                #                     "type": p["type"],
+                #                     **({"description": parameters[p["parameter_name"]]} if p["parameter_name"] in parameters else {})
+                #                 }

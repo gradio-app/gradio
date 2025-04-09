@@ -2,7 +2,7 @@ import gradio as gr
 
 def calculator(num1, operation, num2):
     """
-    This is a simple calculator that adds, subtracts, multiplies, and divides two numbers.
+    This is a simple calculator that adds, subtracts, multiplies, and divides two numbers that must both be greater than 0.
 
     Args:
         num1: The first number to operate on.

@@ -2632,7 +2632,7 @@ Received inputs:
                 raise ImportError(
                     "In order to use `mcp_server=True`, you must install gradio with the `mcp` extra. Please install it with `pip install gradio[mcp]`"
                 ) from e
-            mcp_server_obj = gradio.mcp.add_tools(self)
+            mcp_server_obj = gradio.mcp.create_mcp_server(self)
             gradio.mcp.launch_mcp_on_sse(mcp_server_obj, self.server_app, mcp_subpath)
 
         if self.is_running:
@@ -2839,7 +2839,7 @@ Received inputs:
 
         if mcp_server:
             print(
-                f"\n* MCP server (using SSE protocol) running at: {self.share_url or self.local_url}{mcp_subpath.lstrip('/')}/sse"
+                f"\n🤖 MCP server (using SSE protocol) running at: {self.share_url or self.local_url}{mcp_subpath.lstrip('/')}/sse"
             )
 
         if inbrowser and not wasm_utils.IS_WASM:
