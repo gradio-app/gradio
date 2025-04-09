@@ -87,7 +87,7 @@ class Video(StreamingOutput, Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        mirror_webcam: bool = None,
+        mirror_webcam: bool | None = None,
         webcam_options: WebcamOptions | None = None,
         include_audio: bool | None = None,
         autoplay: bool = False,

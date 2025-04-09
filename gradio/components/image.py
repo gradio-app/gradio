@@ -81,7 +81,7 @@ class Image(StreamingInput, Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        mirror_webcam: bool = None,
+        mirror_webcam: bool | None = None,
         webcam_options: WebcamOptions | None = None,
         show_share_button: bool | None = None,
         placeholder: str | None = None,

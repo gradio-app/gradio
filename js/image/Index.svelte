@@ -65,7 +65,7 @@
 	export let placeholder: string | undefined = undefined;
 	export let show_fullscreen_button: boolean;
 	export let input_ready: boolean;
-	export let webcam_options: WebcamOptions | undefined = undefined;
+	export let webcam_options: WebcamOptions;
 
 	let uploading = false;
 	$: input_ready = !uploading;
