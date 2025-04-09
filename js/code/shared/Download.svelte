@@ -30,7 +30,7 @@
 			r: "r",
 			c: "c",
 			cpp: "cpp",
-            latex: "latex",
+			latex: "latex"
 		};
 
 		return exts[type] || "txt";
