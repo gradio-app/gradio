@@ -6,8 +6,6 @@ from mcp.server.sse import SseServerTransport
 from starlette.applications import Starlette
 from starlette.routing import Mount, Route
 
-from gradio.routes import API_PREFIX
-
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
 
@@ -67,11 +65,13 @@ def launch_mcp_on_sse(server: Server, app: Starlette, subpath: str):
                 streams[0], streams[1], server.create_initialization_options()
             )
 
-    app.mount(subpath, Starlette(
-        debug=True,
-        routes=[
-            Route("/sse", endpoint=handle_sse),
-            Mount("/messages/", app=sse.handle_post_message),
-        ],
-    ))
-
+    app.mount(
+        subpath,
+        Starlette(
+            debug=True,
+            routes=[
+                Route("/sse", endpoint=handle_sse),
+                Mount("/messages/", app=sse.handle_post_message),
+            ],
+        ),
+    )

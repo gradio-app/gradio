@@ -34,7 +34,6 @@ from groovy import transpile
 from gradio import (
     analytics,
     components,
-    mcp,
     networking,
     processing_utils,
     queueing,
@@ -2626,10 +2625,13 @@ Received inputs:
         if mcp_server is None:
             mcp_server = os.environ.get("GRADIO_MCP_SERVER", "False").lower() == "true"
         if mcp_server:
+            try:
+                import gradio.mcp
+            except ImportError as e:
+                raise ImportError("In order to use `mcp_server=True`, you must install gradio with the `mcp` extra. Please install it with `pip install gradio[mcp]`") from e
             mcp_subpath = API_PREFIX + "/mcp"
-            mcp_server_obj = mcp.add_tools(self)
-            mcp.launch_mcp_on_sse(mcp_server_obj, self.server_app, mcp_subpath)
-
+            mcp_server_obj = gradio.mcp.add_tools(self)
+            gradio.mcp.launch_mcp_on_sse(mcp_server_obj, self.server_app, mcp_subpath)
 
         if self.is_running:
             if not isinstance(self.local_url, str):
@@ -2834,7 +2836,9 @@ Received inputs:
             self.share_url = None
 
         if mcp_server:
-            print(f"\nMCP server (using SSE protocol) running at {self.share_url or self.local_url}{mcp_subpath.lstrip('/')}/sse")
+            print(
+                f"\nMCP server (using SSE protocol) running at {self.share_url or self.local_url}{mcp_subpath.lstrip('/')}/sse"
+            )
 
         if inbrowser and not wasm_utils.IS_WASM:
             link = self.share_url if self.share and self.share_url else self.local_url
