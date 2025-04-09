@@ -43,10 +43,22 @@
 	let show_preview = false;
 
 	let on_desktop = false;
-	afterNavigate(() => {
+
+	function loadScript(src: string) {
+		return new Promise((resolve, reject) => {
+			const script = document.createElement("script");
+			script.src = src;
+			script.onload = () => resolve(script);
+			script.onerror = () => reject(new Error(`Script load error for ${src}`));
+			document.head.appendChild(script);
+		});
+	}
+
+	afterNavigate(async () => {
 		if (window.innerWidth > 768) {
 			on_desktop = true;
 		}
+		await loadScript(WHEEL.gradio_lite_url + "/dist/lite.js");
 	});
 
 	const mobile_click = (demo_name: string) => {

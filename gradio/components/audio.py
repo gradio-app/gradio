@@ -309,7 +309,10 @@ class Audio(
             )
             orig_name = Path(file_path).name
         elif isinstance(value, (str, Path)):
-            original_suffix = Path(value).suffix.lower()
+            if client_utils.is_http_url_like(value):
+                original_suffix = Path(httpx.URL(str(value)).path).suffix.lower()
+            else:
+                original_suffix = Path(value).suffix.lower()
             if self.format is not None and original_suffix != f".{self.format}":
                 sample_rate, data = processing_utils.audio_from_file(str(value))
                 file_path = processing_utils.save_audio_to_cache(
