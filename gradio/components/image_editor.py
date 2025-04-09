@@ -133,6 +133,20 @@ class LayerOptions:
 
 
 @document()
+@dataclasses.dataclass
+class WebcamOptions:
+    """
+    A dataclass for specifying options for the webcam tool in the ImageEditor component. An instance of this class can be passed to the `webcam_options` parameter of `gr.ImageEditor`.
+    Parameters:
+        mirror: If True, the webcam will be mirrored.
+        constraints: A dictionary of constraints for the webcam.
+    """
+
+    mirror: bool = True
+    constraints: dict[str, Any] | None = None
+
+
+@document()
 class ImageEditor(Component):
     """
     Creates an image component that, as an input, can be used to upload and edit images using simple editing tools such
@@ -186,7 +200,7 @@ class ImageEditor(Component):
         render: bool = True,
         key: int | str | None = None,
         placeholder: str | None = None,
-        mirror_webcam: bool = True,
+        mirror_webcam: bool | None = None,
         show_share_button: bool | None = None,
         _selectable: bool = False,
         crop_size: tuple[int | float, int | float] | str | None = None,
@@ -198,6 +212,7 @@ class ImageEditor(Component):
         canvas_size: tuple[int, int] = (800, 800),
         fixed_canvas: bool = False,
         show_fullscreen_button: bool = True,
+        webcam_options: WebcamOptions | None = None,
     ):
         """
         Parameters:
@@ -233,9 +248,17 @@ class ImageEditor(Component):
             canvas_size: The initial size of the canvas in pixels. The first value is the width and the second value is the height. If `fixed_canvas` is `True`, uploaded images will be rescaled to fit the canvas size while preserving the aspect ratio. Otherwise, the canvas size will change to match the size of an uploaded image.
             fixed_canvas: If True, the canvas size will not change based on the size of the background image and the image will be rescaled to fit (while preserving the aspect ratio) and placed in the center of the canvas.
             show_fullscreen_button: If True, will display button to view image in fullscreen mode.
+            webcam_options: The options for the webcam tool in the image editor. Can be an instance of the `gr.WebcamOptions` class, or None to use the default settings. [See `gr.WebcamOptions` docs](#webcam-options).
         """
         self._selectable = _selectable
-        self.mirror_webcam = mirror_webcam
+
+        self.webcam_options = (
+            webcam_options if webcam_options is not None else WebcamOptions()
+        )
+
+        if mirror_webcam is not None:
+            self.webcam_options.mirror = mirror_webcam
+
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
             raise ValueError(
@@ -291,9 +314,7 @@ class ImageEditor(Component):
         self.layers = (
             LayerOptions()
             if layers is True
-            else LayerOptions(disabled=True)
-            if layers is False
-            else layers
+            else LayerOptions(disabled=True) if layers is False else layers
         )
         self.canvas_size = canvas_size
         self.fixed_canvas = fixed_canvas
