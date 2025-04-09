@@ -12,3 +12,8 @@ export interface LayerOptions {
 
 export type Source = "upload" | "webcam" | "clipboard";
 export type Transform = "crop" | "resize";
+
+export interface WebcamOptions {
+	mirror: boolean;
+	constraints: Record<string, any>;
+}
