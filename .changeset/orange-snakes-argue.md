@@ -4,4 +4,4 @@
 "website": patch
 ---
 
-fix:10977 imed webcam
+fix:improve webcam options for the ImageEditor
