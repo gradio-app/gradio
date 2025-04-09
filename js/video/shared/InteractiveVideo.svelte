@@ -67,7 +67,7 @@
 	}
 
 	function handle_capture({
-		detail,
+		detail
 	}: CustomEvent<FileData | any | null>): void {
 		dispatch("change", detail);
 	}
