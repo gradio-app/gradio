@@ -60,7 +60,6 @@
 	export let sources: ["microphone" | "upload"] = ["upload"];
 	export let active_source: "microphone" | null = null;
 	let upload_component: Upload;
-	let hidden_upload: HTMLInputElement;
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let can_scroll: boolean;
 	let previous_scroll_top = 0;
@@ -205,10 +204,7 @@
 	}
 
 	function handle_upload_click(): void {
-		if (hidden_upload) {
-			hidden_upload.value = "";
-			hidden_upload.click();
-		}
+		upload_component.open_upload();
 	}
 
 	function handle_stop(): void {
@@ -400,7 +396,6 @@
 				bind:uploading
 				show_progress={false}
 				disable_click={true}
-				bind:hidden_upload
 				on:error
 				hidden={true}
 				{upload}

@@ -83,16 +83,25 @@ with gr.Blocks() as demo:
     }
 
     with gr.Row():
-        df_tall = gr.Dataframe(
-            value=tall_df_value,
-            interactive=False,
-            label="Tall Dataframe (Scroll Vertically)",
-            show_label=True,
-            elem_id="dataframe_tall",
-            show_copy_button=True,
-            show_row_numbers=True,
-            max_height=300,
-        )
+        with gr.Column():
+            df_tall = gr.Dataframe(
+                value=tall_df_value,
+                interactive=False,
+                label="Tall Dataframe (Scroll Vertically)",
+                max_height=200,
+                show_label=True,
+                elem_id="dataframe_tall",
+                show_copy_button=True,
+                show_row_numbers=True,
+                show_search="search",
+            )
+
+            df_tall_selected_cell_index = gr.Textbox(
+                label="Tall dataframe selected cell index", elem_id="tall_selected_cell_index"
+            )
+            df_tall_selected_cell_value = gr.Textbox(
+                label="Tall dataframe selected cell value", elem_id="tall_selected_cell_value"
+            )
 
     with gr.Row():
         with gr.Column():
@@ -124,6 +133,12 @@ with gr.Blocks() as demo:
         fn=increment_select_counter,
         inputs=[select_events],
         outputs=[select_events, selected_cell_index, selected_cell_value],
+    )
+
+    df_tall.select(
+        fn=increment_select_counter,
+        inputs=[select_events],
+        outputs=[select_events, df_tall_selected_cell_index, df_tall_selected_cell_value],
     )
 
 if __name__ == "__main__":

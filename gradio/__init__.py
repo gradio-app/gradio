@@ -65,7 +65,7 @@ from gradio.components import (
     component,
 )
 from gradio.components.audio import WaveformOptions
-from gradio.components.image_editor import Brush, Eraser
+from gradio.components.image_editor import Brush, Eraser, LayerOptions
 from gradio.data_classes import FileData
 from gradio.events import (
     CopyData,
@@ -176,6 +176,7 @@ __all__ = [
     "Json",
     "KeyUpData",
     "Label",
+    "LayerOptions",
     "LikeData",
     "LinePlot",
     "List",
