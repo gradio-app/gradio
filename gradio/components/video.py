@@ -211,7 +211,7 @@ class Video(StreamingOutput, Component):
         file_name = Path(payload.video.path)
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
-        flip = self.sources == ["webcam"] and self.mirror_webcam
+        flip = self.sources == ["webcam"] and self.webcam_options.mirror_webcam
 
         if self.min_length is not None or self.max_length is not None:
             # With this if-clause, avoid unnecessary execution of `processing_utils.get_video_length`.
