@@ -178,14 +178,17 @@
 					if (newElement.tagName == "META") {
 						const propertyAttr = newElement.getAttribute("property");
 						const nameAttr = newElement.getAttribute("name");
-						
+
 						if (propertyAttr || nameAttr) {
 							const domMetaList = Array.from(
 								document.head.getElementsByTagName("meta") ?? []
 							);
-							
+
 							const matched = domMetaList.find((el) => {
-								if (propertyAttr && el.getAttribute("property") === propertyAttr) {
+								if (
+									propertyAttr &&
+									el.getAttribute("property") === propertyAttr
+								) {
 									return !el.isEqualNode(newElement);
 								}
 								if (nameAttr && el.getAttribute("name") === nameAttr) {
@@ -193,7 +196,7 @@
 								}
 								return false;
 							});
-							
+
 							if (matched) {
 								document.head.replaceChild(newElement, matched);
 								continue;
