@@ -5,6 +5,7 @@ from mcp.server import Server
 from mcp.server.sse import SseServerTransport
 from starlette.applications import Starlette
 from starlette.routing import Mount, Route
+
 from gradio import utils
 
 if TYPE_CHECKING:
@@ -93,7 +94,9 @@ def launch_mcp_on_sse(server: Server, app: Starlette, subpath: str):
         Starlette(
             routes=[
                 Route("/sse", endpoint=handle_sse),
-                Mount("/messages", app=sse.handle_post_message),  # Removed trailing slash
+                Mount(
+                    "/messages", app=sse.handle_post_message
+                ),  # Removed trailing slash
             ],
         ),
     )
