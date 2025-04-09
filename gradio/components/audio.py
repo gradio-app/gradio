@@ -309,9 +309,8 @@ class Audio(
             )
             orig_name = Path(file_path).name
         elif isinstance(value, (str, Path)):
-            if isinstance(value, str) and value.startswith("http"):
-                # remove any trailing parts of a URL like signed token
-                original_suffix = Path(value.split("?")[0]).suffix.lower()
+            if client_utils.is_http_url_like(value):
+                original_suffix = Path(httpx.URL(str(value)).path).suffix.lower()
             else:
                 original_suffix = Path(value).suffix.lower()
             if self.format is not None and original_suffix != f".{self.format}":
