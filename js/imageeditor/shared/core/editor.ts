@@ -1053,7 +1053,12 @@ export class ImageEditor {
 	};
 	layers: Writable<{
 		active_layer: string;
-		layers: { name: string; id: string; user_created: boolean }[];
+		layers: {
+			name: string;
+			id: string;
+			user_created: boolean;
+			visible: boolean;
+		}[];
 	}> = writable({
 		active_layer: "",
 		layers: []
