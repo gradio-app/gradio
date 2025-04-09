@@ -140,5 +140,15 @@
 	},
 	"video": {
 		"drop_to_upload": "Arrossega un fitxer de vídeo aquí per pujar-lo"
+	},
+	"chatbot": {
+		"edit": "Editar",
+		"retry": "Tornar a provar",
+		"undo": "Desfer",
+		"submit": "Enviar",
+		"cancel": "Cancel·lar",
+		"like": "M'agrada",
+		"dislike": "No m'agrada",
+		"clear": "Netejar xat"
 	}
 }

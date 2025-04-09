@@ -140,5 +140,15 @@
 	},
 	"video": {
 		"drop_to_upload": "Video faylni yuklash uchun shu yerga tashlang"
+	},
+	"chatbot": {
+		"edit": "Tahrirlash",
+		"retry": "Qayta urinish",
+		"undo": "Bekor qilish",
+		"submit": "Yuborish",
+		"cancel": "Bekor qilish",
+		"like": "Yoqdi",
+		"dislike": "Yoqmadi",
+		"clear": "Suhbatni tozalash"
 	}
 }
