@@ -34,6 +34,7 @@ from groovy import transpile
 from gradio import (
     analytics,
     components,
+    mcp,
     networking,
     processing_utils,
     queueing,
@@ -2492,6 +2493,9 @@ Received inputs:
             demo.launch(share=True, auth=("username", "password"))
         """
         from gradio.routes import App
+
+        mcp_server = mcp.add_tools(self)
+        mcp_server.run(transport='sse')
 
         if self._is_running_in_reload_thread:
             # We have already launched the demo

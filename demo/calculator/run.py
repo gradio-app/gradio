@@ -1,6 +1,17 @@
 import gradio as gr
 
 def calculator(num1, operation, num2):
+    """
+    This is a simple calculator that adds, subtracts, multiplies, and divides two numbers.
+
+    Args:
+        num1: The first number to operate on.
+        operation: The operation to perform.
+        num2: The second number to operate on.
+
+    Returns:
+        The result of the operation.
+    """
     if operation == "add":
         return num1 + num2
     elif operation == "subtract":
