@@ -58,7 +58,7 @@ jobs:
           . venv/bin/activate
           pnpm --filter @gradio/lite test:browser
         env:
-          DEBUG: pw:browser,pw:browser,pw:protocol
+          DEBUG: pw:api,pw:browser
       - name: Get the performance result
         run: |
           export LITE_APP_LOAD_TIME=$(jq -r '.app_load_time' .lite-perf.json)
