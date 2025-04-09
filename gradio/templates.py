@@ -9,7 +9,7 @@ import PIL.Image
 
 from gradio import components
 from gradio.components.audio import WaveformOptions
-from gradio.components.image_editor import Brush, Eraser
+from gradio.components.image_editor import Brush, Eraser, LayerOptions
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -32,10 +32,12 @@ class TextArea(components.Textbox):
         label: str | None = None,
         info: str | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -107,10 +109,12 @@ class Sketchpad(components.ImageEditor):
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         show_label: bool | None = None,
         show_download_button: bool = True,
         container: bool = True,
@@ -131,10 +135,10 @@ class Sketchpad(components.ImageEditor):
         eraser: Eraser | None = None,
         brush: Brush | None = None,
         format: str = "webp",
-        layers: bool = True,
         canvas_size: tuple[int, int] = (800, 800),
         fixed_canvas: bool = False,
         show_fullscreen_button: bool = True,
+        layers: LayerOptions | bool = True,
     ):
         if not brush:
             brush = Brush(colors=["#000000"], color_mode="fixed")
@@ -195,10 +199,12 @@ class Paint(components.ImageEditor):
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         show_label: bool | None = None,
         show_download_button: bool = True,
         container: bool = True,
@@ -218,7 +224,7 @@ class Paint(components.ImageEditor):
         eraser: Eraser | None = None,
         brush: Brush | None = None,
         format: str = "webp",
-        layers: bool = True,
+        layers: LayerOptions | bool = True,
         canvas_size: tuple[int, int] = (800, 800),
         fixed_canvas: bool = False,
         show_fullscreen_button: bool = True,
@@ -285,10 +291,12 @@ class ImageMask(components.ImageEditor):
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         show_label: bool | None = None,
         show_download_button: bool = True,
         container: bool = True,
@@ -309,7 +317,7 @@ class ImageMask(components.ImageEditor):
         eraser: Eraser | None = None,
         brush: Brush | None = None,
         format: str = "webp",
-        layers: bool = False,
+        layers: LayerOptions | bool = False,
         canvas_size: tuple[int, int] = (800, 800),
         fixed_canvas: bool = False,
         show_fullscreen_button: bool = True,
@@ -367,17 +375,19 @@ class PlayableVideo(components.Video):
         ) = None,
         *,
         format: Literal["mp4"] = "mp4",
-        sources: list[Literal["upload", "webcam"]]
-        | Literal["upload", "webcam"]
-        | None = None,
+        sources: (
+            list[Literal["upload", "webcam"]] | Literal["upload", "webcam"] | None
+        ) = None,
         height: int | str | None = None,
         width: int | str | None = None,
         label: str | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -445,16 +455,20 @@ class Microphone(components.Audio):
         self,
         value: str | Path | tuple[int, np.ndarray] | Callable | None = None,
         *,
-        sources: list[Literal["upload", "microphone"]]
-        | Literal["upload", "microphone"]
-        | None = None,
+        sources: (
+            list[Literal["upload", "microphone"]]
+            | Literal["upload", "microphone"]
+            | None
+        ) = None,
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -525,10 +539,12 @@ class Files(components.File):
         type: Literal["filepath", "binary"] = "filepath",
         label: str | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -579,19 +595,21 @@ class Numpy(components.Dataframe):
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
         col_count: int | tuple[int, str] | None = None,
-        datatype: Literal["str", "number", "bool", "date", "markdown", "html"]
-        | Sequence[
+        datatype: (
             Literal["str", "number", "bool", "date", "markdown", "html"]
-        ] = "str",
+            | Sequence[Literal["str", "number", "bool", "date", "markdown", "html"]]
+        ) = "str",
         type: Literal["numpy"] = "numpy",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         max_height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
@@ -660,19 +678,21 @@ class Matrix(components.Dataframe):
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
         col_count: int | tuple[int, str] | None = None,
-        datatype: Literal["str", "number", "bool", "date", "markdown", "html"]
-        | Sequence[
+        datatype: (
             Literal["str", "number", "bool", "date", "markdown", "html"]
-        ] = "str",
+            | Sequence[Literal["str", "number", "bool", "date", "markdown", "html"]]
+        ) = "str",
         type: Literal["array"] = "array",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         max_height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
@@ -741,19 +761,21 @@ class List(components.Dataframe):
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
         col_count: Literal[1] = 1,
-        datatype: Literal["str", "number", "bool", "date", "markdown", "html"]
-        | Sequence[
+        datatype: (
             Literal["str", "number", "bool", "date", "markdown", "html"]
-        ] = "str",
+            | Sequence[Literal["str", "number", "bool", "date", "markdown", "html"]]
+        ) = "str",
         type: Literal["array"] = "array",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         max_height: int = 500,
         scale: int | None = None,
         min_width: int = 160,

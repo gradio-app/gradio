@@ -3,18 +3,25 @@ import { test, expect, drag_and_drop_file } from "@self/tootils";
 test("Video click-to-upload uploads video successfuly. Clear, play, and pause buttons dispatch events correctly. Downloading the file works and has the correct name.", async ({
 	page
 }) => {
-	await page.getByRole("button", { name: "Upload file" }).click();
-	const uploader = await page.locator("input[type=file]");
-	await uploader.setInputFiles(["./test/files/file_test.ogg"]);
+	let [fileChooser] = await Promise.all([
+		page.waitForEvent("filechooser"),
+		page.getByLabel("Drop a video file here to upload").first().click()
+	]);
+	await fileChooser.setFiles(["./test/files/av1-video.mp4"]);
+	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 
 	await page.getByLabel("Clear").click();
 	await expect(page.getByLabel("# Change Events")).toHaveValue("2");
-	await page.getByRole("button", { name: "Upload file" }).click();
 
-	await uploader.setInputFiles(["./test/files/file_test.ogg"]);
+	const [fileChooser_two] = await Promise.all([
+		page.waitForEvent("filechooser"),
+		page.getByLabel("Drop a video file here to upload").first().click()
+	]);
+
+	await fileChooser_two.setFiles(["./test/files/av1-video.mp4"]);
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("3");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("2");
@@ -22,15 +29,19 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 	const downloadPromise = page.waitForEvent("download");
 	await page.getByLabel("Download").click();
 	const download = await downloadPromise;
-	await expect(download.suggestedFilename()).toBe("file_test.ogg");
+	await expect(download.suggestedFilename()).toBe("av1-video.mp4");
 });
 
 test("Video play, pause events work correctly.", async ({ page }) => {
-	await page.getByLabel("Upload file").click();
-	const uploader = await page.locator("input[type=file]");
-	await uploader.setInputFiles(["./test/files/file_test.ogg"]);
+	const [fileChooser] = await Promise.all([
+		page.waitForEvent("filechooser"),
+		page.getByLabel("Drop a video file here to upload").first().click()
+	]);
+	await fileChooser.setFiles(["./test/files/av1-video.mp4"]);
 
 	// Wait change event to trigger
+
+	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
 
 	await page.getByLabel("play-pause-replay-button").first().click();
@@ -42,7 +53,6 @@ test("Video play, pause events work correctly.", async ({ page }) => {
 test("Video drag-and-drop uploads a file to the server correctly.", async ({
 	page
 }) => {
-	await page.getByLabel("Upload file").click();
 	await drag_and_drop_file(
 		page,
 		"input[type=file]",
@@ -57,7 +67,6 @@ test("Video drag-and-drop uploads a file to the server correctly.", async ({
 test("Video drag-and-drop displays a warning when the file is of the wrong mime type.", async ({
 	page
 }) => {
-	await page.getByLabel("Upload file").click();
 	await drag_and_drop_file(
 		page,
 		"input[type=file]",

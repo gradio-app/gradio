@@ -1,5 +1,25 @@
 # gradio
 
+## 5.24.0
+
+### Features
+
+- [#10933](https://github.com/gradio-app/gradio/pull/10933) [`b768651`](https://github.com/gradio-app/gradio/commit/b7686515d99276123731698bfde09bb328b7d286) - Add `rtl` to Block Label.  Thanks @hannahblair!
+- [#10924](https://github.com/gradio-app/gradio/pull/10924) [`be46b94`](https://github.com/gradio-app/gradio/commit/be46b94f51c29d66fef9320d59a7f7e5a0df81b4) - Add `rtl` to gr.HighlightedText.  Thanks @hannahblair!
+- [#10635](https://github.com/gradio-app/gradio/pull/10635) [`2f68c9d`](https://github.com/gradio-app/gradio/commit/2f68c9d988dcbc53a0b8e53bdb1de49c9c8c65d8) - Refactor and redesign `ImageEditor` component.  Thanks @pngwn!
+- [#10923](https://github.com/gradio-app/gradio/pull/10923) [`8a62c7e`](https://github.com/gradio-app/gradio/commit/8a62c7e90b5e0945709d97e34f405a7f92675ab0) - Add `rtl` to `gr.Radio`.  Thanks @hannahblair!
+- [#10927](https://github.com/gradio-app/gradio/pull/10927) [`5b3414a`](https://github.com/gradio-app/gradio/commit/5b3414a3e4214ae0a6f97d1236127607bb070cd6) - Change the location where the FRPC binary is downloaded.  Thanks @abidlabs!
+- [#10935](https://github.com/gradio-app/gradio/pull/10935) [`6754d82`](https://github.com/gradio-app/gradio/commit/6754d82a257c98f06ed38c5d1f952aec38d738ca) - Relax aiofiles verison.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#10955](https://github.com/gradio-app/gradio/pull/10955) [`d654e60`](https://github.com/gradio-app/gradio/commit/d654e60ff61f76ebcf37f294f1d85305d344a70b) - Map search-filtered row indices to original data indices in gr.Dataframe.  Thanks @hannahblair!
+- [#10918](https://github.com/gradio-app/gradio/pull/10918) [`36da6d0`](https://github.com/gradio-app/gradio/commit/36da6d0d5466dd251f46359019959702523f1afc) - Fix value synchronisation issue in gr.Dataframe.  Thanks @hannahblair!
+- [#10953](https://github.com/gradio-app/gradio/pull/10953) [`ede7428`](https://github.com/gradio-app/gradio/commit/ede74283d738f55e032a98fb1875605cb0b65d8a) - Fix gr.NativePlot sorting of labels as default behaviour.  Thanks @Rafalex04!
+- [#10925](https://github.com/gradio-app/gradio/pull/10925) [`c37de0f`](https://github.com/gradio-app/gradio/commit/c37de0f9081f30ac963b0c837e8f1985461afbb1) - Tweak `rtl` UI in `gr.MultimodalTextbox`.  Thanks @hannahblair!
+- [#10962](https://github.com/gradio-app/gradio/pull/10962) [`c851862`](https://github.com/gradio-app/gradio/commit/c85186254cdf065acb9e75f7e65f967533fddd03) - Unrender user-provided textbox in `gr.ChatInterface` so that it is rendered in the right place as part of a `gr.Blocks` app.  Thanks @abidlabs!
+- [#10928](https://github.com/gradio-app/gradio/pull/10928) [`f09f543`](https://github.com/gradio-app/gradio/commit/f09f543af46bf286218904179c3a9bc3e2a1e257) - Reverse order of conversations in chat history and render correctly with custom chatbot.  Thanks @abidlabs!
+
 ## 5.23.3
 
 ### Features
