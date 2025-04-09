@@ -29,7 +29,6 @@
 
 	$: message_text = is_all_text(message) ? all_text(message) : "";
 	$: show_copy = show_copy_button && message && is_all_text(message);
-	$: console.log("retry", i18n("chatbot.retry"));
 </script>
 
 {#if show_copy || show_retry || show_undo || show_edit || likeable}
