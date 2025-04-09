@@ -129,36 +129,3 @@ def launch_mcp_on_sse(server: Server, app: Starlette, subpath: str):
             ],
         ),
     )
-
-    #     continue
-    # fn_docstring = block_fn.fn.__doc__
-    # description = ""
-    # parameters = {}
-    # if fn_docstring:
-    #     lines = fn_docstring.strip().split("\n")
-    #     lines_iter = iter(lines)
-    #     description = next(lines_iter, "").strip() if lines else ""
-    #     for line in lines_iter:
-    #         if line.strip().startswith("Args:"):
-    #             break
-    #     else:
-    #         line = ""
-    #     while line:
-    #         line = line.strip()
-    #         if line.startswith("Args:") or not line:
-    #             line = next(lines_iter, "").strip()
-    #             continue
-    #         param_name, param_desc = line.split(":", 1)
-    #         parameters[param_name.strip()] = param_desc.strip()
-    #         line = next(lines_iter, "").strip()
-    # tools.append(
-    #     types.Tool(
-    #         name=endpoint_name,
-    #         description=description,
-    #         inputSchema={
-    #             "type": "object",
-    #             "properties": {
-    #                 p["parameter_name"]: {
-    #                     "type": p["type"],
-    #                     **({"description": parameters[p["parameter_name"]]} if p["parameter_name"] in parameters else {})
-    #                 }
