@@ -75,8 +75,6 @@
 	export let webcam_options: WebcamOptions;
 	export let theme_mode: "dark" | "light";
 
-	$: console.log({ theme_mode });
-
 	let editor_instance: InteractiveImageEditor;
 	let image_id: null | string = null;
 

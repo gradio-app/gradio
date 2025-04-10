@@ -1169,11 +1169,7 @@ export class ImageEditor {
 			width: container_box.width,
 			height: container_box.height,
 			backgroundAlpha: this.dark ? 0 : 1,
-			backgroundColor: this.dark
-				? 0x333333
-				: this.theme_mode === "dark"
-					? "#27272a"
-					: "#ffffff",
+			backgroundColor: this.theme_mode === "dark" ? "#27272a" : "#ffffff",
 			resolution: window.devicePixelRatio,
 			autoDensity: true,
 			antialias: true,
