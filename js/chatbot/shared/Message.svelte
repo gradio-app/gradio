@@ -241,6 +241,7 @@
 						{current_feedback}
 						{watermark}
 						on:copy={(e) => dispatch("copy", e.detail)}
+						{i18n}
 					/>
 				{/if}
 			{/each}
@@ -249,7 +250,7 @@
 </div>
 
 {#if layout === "bubble"}
-	<ButtonPanel {...button_panel_props} />
+	<ButtonPanel {...button_panel_props} {i18n} />
 {/if}
 
 <style>
