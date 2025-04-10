@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Babylonjs 8.2.0 + animationAutoPlay
+fix:Update babylon.js and ensure the Model3D component autoplays on load
