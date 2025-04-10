@@ -51,16 +51,8 @@ diffusers==0.32.2
     # via -r test/requirements.in
 dnspython==2.7.0
     # via email-validator
-docker==7.1.0
-    # via -r test/requirements.in
 email-validator==2.2.0
     # via pydantic
-exceptiongroup==1.2.2
-    # via
-    #   anyio
-    #   hypothesis
-    #   ipython
-    #   pytest
 executing==2.2.0
     # via stack-data
 fastapi==0.115.7
@@ -269,7 +261,6 @@ regex==2024.11.6
 requests==2.32.3
     # via
     #   diffusers
-    #   docker
     #   huggingface-hub
     #   transformers
 respx==0.22.0
@@ -318,10 +309,6 @@ tifffile==2025.1.10
     # via scikit-image
 tokenizers==0.21.0
     # via transformers
-tomli==2.2.1
-    # via
-    #   coverage
-    #   pytest
 tomlkit==0.13.2
     # via gradio
 torch==2.6.0
@@ -351,16 +338,13 @@ typing-extensions==4.12.2
     #   pydantic
     #   pydantic-core
     #   referencing
-    #   rich
     #   torch
     #   typer
-    #   uvicorn
 tzdata==2025.1
     # via pandas
 urllib3==2.3.0
     # via
     #   botocore
-    #   docker
     #   requests
 uvicorn==0.34.0
     # via gradio
