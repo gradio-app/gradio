@@ -918,6 +918,7 @@ interface ImageEditorOptions {
 	border_region?: number;
 	layer_options?: LayerOptions;
 	pad_bottom?: number;
+	theme_mode?: "dark" | "light";
 }
 
 const core_tool_map = {
@@ -941,8 +942,8 @@ export interface ImageEditorContext {
 		scale?: number;
 		position?: { x: number; y: number };
 		animate?: boolean;
-	}) => void;
-	execute_command: (command: Command) => void;
+	}) => Promise<void>;
+	execute_command: (command: Command) => Promise<void> | void;
 	resize_canvas: (width: number, height: number) => void;
 	reset: () => void;
 	set_background_image: (image: Sprite) => void;
@@ -1075,14 +1076,15 @@ export class ImageEditor {
 	private overlay_container!: Container;
 	private overlay_graphics!: Graphics;
 	private pad_bottom: number;
+	private theme_mode: "dark" | "light";
 	constructor(options: ImageEditorOptions) {
 		this.pad_bottom = options.pad_bottom || 0;
 		this.dark = options.dark || false;
+		this.theme_mode = options.theme_mode || "dark";
 		this.target_element = options.target_element;
 		this.width = options.width;
 		this.height = options.height;
 		this.command_manager = new CommandManager();
-		// this.layers = writable([]);
 		this.ready = new Promise((resolve) => {
 			this.ready_resolve = resolve;
 		});
@@ -1166,7 +1168,7 @@ export class ImageEditor {
 			width: container_box.width,
 			height: container_box.height,
 			backgroundAlpha: this.dark ? 0 : 1,
-			backgroundColor: this.dark ? 0x333333 : 0xffffff,
+			backgroundColor: this.theme_mode === "dark" ? "#27272a" : "#ffffff",
 			resolution: window.devicePixelRatio,
 			autoDensity: true,
 			antialias: true,
@@ -1409,12 +1411,6 @@ export class ImageEditor {
 		this.layers = this.layer_manager.layer_store;
 	}
 
-	// private resize_image(width: number, height: number): void {
-	// 	// Implement image resizing logic here
-	// 	this.image_container.width = width;
-	// 	this.image_container.height = height;
-	// }
-
 	resize_canvas(width: number, height: number): void {
 		if (this.app.renderer) {
 			this.app.renderer.resize(width, height);
@@ -1441,33 +1437,42 @@ export class ImageEditor {
 		}
 	}
 
-	set_image_properties(properties: {
+	async set_image_properties(properties: {
 		width?: number;
 		height?: number;
 		scale?: number;
 		position?: { x: number; y: number };
 		animate?: boolean;
-	}): void {
+	}): Promise<void> {
 		let hard =
 			typeof properties.animate !== "undefined" ? !properties.animate : true;
 		if (properties.position) {
-			this.position.set(properties.position, { hard });
+			const pos = this.position.set(properties.position, { hard });
+			if (hard) {
+				await pos;
+			}
 		}
 		if (properties.scale) {
-			this.scale.set(properties.scale, { hard });
+			const scale = this.scale.set(properties.scale, { hard });
+			if (hard) {
+				await scale;
+			}
 		}
 		if (properties.width && properties.height) {
 			this.width = properties.width;
 			this.height = properties.height;
-			this.dimensions.set(
+			const dimensions = this.dimensions.set(
 				{ width: properties.width, height: properties.height },
 				{ hard }
 			);
+			if (hard) {
+				await dimensions;
+			}
 		}
 	}
 
-	execute_command(command: Command): void {
-		this.command_manager.execute(command);
+	async execute_command(command: Command): Promise<void> {
+		await this.command_manager.execute(command);
 	}
 
 	undo(): void {
@@ -1487,15 +1492,12 @@ export class ImageEditor {
 		image: Blob | File;
 		resize?: boolean;
 	}): Promise<void> {
-		const image_command = new AddImageCommand(
-			this.context,
+		const image_tool = this.tools.get("image") as ImageTool;
+		await image_tool.add_image({
 			image,
-			this.fixed_canvas,
-			this.border_region
-		);
-
-		await image_command.start();
-		this.context.execute_command(image_command);
+			fixed_canvas: this.fixed_canvas,
+			border_region: this.border_region
+		});
 	}
 
 	/**
@@ -1541,14 +1543,14 @@ export class ImageEditor {
 		this.background_image = image;
 	}
 
-	reset_canvas(): void {
+	async reset_canvas(): Promise<void> {
 		this.layer_manager.reset_layers(this.width, this.height);
 		// Clear background image
 		this.background_image = undefined;
 		this.background_image_present.set(false);
 
 		// Reset position, scale and dimensions to default values
-		this.set_image_properties({
+		await this.set_image_properties({
 			width: this.width,
 			height: this.height,
 			scale: 1,
