@@ -87,6 +87,17 @@
 </script>
 
 <IconButtonWrapper>
+	{#if enable_download}
+		<IconButton
+			Icon={Download}
+			label="Download"
+			on:click={(event) => {
+				dispatch("download");
+				event.stopPropagation();
+			}}
+		/>
+	{/if}
+
 	<IconButton
 		Icon={Pan}
 		label="Pan"
@@ -167,17 +178,6 @@
 			event.stopPropagation();
 		}}
 	/>
-
-	{#if enable_download}
-		<IconButton
-			Icon={Download}
-			label="Download"
-			on:click={(event) => {
-				dispatch("download");
-				event.stopPropagation();
-			}}
-		/>
-	{/if}
 </IconButtonWrapper>
 
 <style>
