@@ -61,6 +61,7 @@
 	export let border_region: number;
 	export let full_history: CommandNode | null = null;
 	export let webcam_options: WebcamOptions;
+	export let show_download_button = false;
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;
@@ -238,6 +239,7 @@
 	bind:is_dragging
 	bind:has_drawn
 	{webcam_options}
+	{show_download_button}
 >
 	{#if !background_image && current_tool === "image" && !has_drawn}
 		<div class="empty wrap">

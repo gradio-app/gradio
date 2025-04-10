@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
-	import { Check, Trash, ZoomIn, ZoomOut, Pan } from "@gradio/icons";
+	import { Check, Trash, ZoomIn, ZoomOut, Pan, Download } from "@gradio/icons";
 
 	/**
 	 * Can the current image be saved?
@@ -23,6 +23,8 @@
 	 * Is the current zoom level minimum?
 	 */
 	export let min_zoom = true;
+
+	export let enable_download = false;
 
 	const dispatch = createEventDispatcher<{
 		/**
@@ -57,6 +59,10 @@
 		 * Pan the image.
 		 */
 		pan: void;
+		/**
+		 * Download the image.
+		 */
+		download: void;
 	}>();
 
 	let show_zoom_popup = false;
@@ -161,6 +167,17 @@
 			event.stopPropagation();
 		}}
 	/>
+
+	{#if enable_download}
+		<IconButton
+			Icon={Download}
+			label="Download"
+			on:click={(event) => {
+				dispatch("download");
+				event.stopPropagation();
+			}}
+		/>
+	{/if}
 </IconButtonWrapper>
 
 <style>

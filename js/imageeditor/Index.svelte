@@ -243,6 +243,7 @@
 			{placeholder}
 			{full_history}
 			{webcam_options}
+			{show_download_button}
 		></InteractiveImageEditor>
 	</Block>
 {/if}
