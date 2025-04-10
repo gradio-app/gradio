@@ -1,7 +1,12 @@
 import os
-import subprocess
 import shutil
+import subprocess
+import time
+
+import docker
 import pytest
+import requests
+from requests.exceptions import ConnectionError, RequestException
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -25,23 +30,117 @@ def build_packages():
         check=True,
     )
     wheel_files = [f for f in os.listdir(file_dir) if f.endswith(".whl")]
-    test_folders = [f for f in os.listdir(file_dir) if f.startswith("test_")]
-
-    for test_folder in test_folders:
-        test_folder_path = os.path.join(file_dir, test_folder)
-        for wheel_file in wheel_files:
-            wheel_path = os.path.join(file_dir, wheel_file)
-            shutil.copy(wheel_path, test_folder_path)
+    test_folders = [
+        folder for folder in os.listdir(file_dir) if folder.startswith("test_")
+    ]
+    for wheel_file in wheel_files:
+        for test_folder in test_folders:
+            shutil.copy(
+                os.path.join(file_dir, wheel_file), os.path.join(file_dir, test_folder)
+            )
 
     yield
 
     for wheel_file in wheel_files:
         wheel_path = os.path.join(file_dir, wheel_file)
         os.remove(wheel_path)
-    for test_folder in test_folders:
-        test_folder_path = os.path.join(file_dir, test_folder)
-        for wheel_file in wheel_files:
-            wheel_path = os.path.join(test_folder_path, wheel_file)
-            os.remove(wheel_path)
-        
+        for test_folder in test_folders:
+            test_wheel_path = os.path.join(file_dir, test_folder, wheel_file)
+            if os.path.exists(test_wheel_path):
+                os.remove(test_wheel_path)
 
+
+@pytest.fixture(scope="module")
+def launch_services_fn():
+    client = docker.from_env()
+
+    def launch_services(
+        test_name: str, folder: str, app_suffix: str = "", nginx_suffix: str = ""
+    ):
+        os.environ["COMPOSE_PROJECT_NAME"] = test_name
+        subprocess.run(
+            [
+                "docker",
+                "compose",
+                "-f",
+                f"{folder}/docker-compose.yml",
+                "up",
+                "-d",
+                "--build",
+            ],
+            check=True,
+        )
+
+        container_attempts = 10
+        while container_attempts > 0:
+            try:
+                app_container = client.containers.get(f"{test_name}_app")
+                nginx_container = client.containers.get(f"{test_name}_nginx")
+                print("Successfully connected to both containers")
+                break
+            except docker.errors.NotFound as e:
+                print(f"Waiting for containers to be ready: {e}")
+                container_attempts -= 1
+                time.sleep(1)
+                continue
+            except Exception as e:
+                print(f"Unexpected error checking containers: {e}")
+                raise
+
+        if container_attempts == 0:
+            raise TimeoutError("Timed out waiting for containers to be ready")
+
+        app_container.reload()
+        nginx_container.reload()
+
+        try:
+            app_port = app_container.ports.get("8000/tcp")[0]["HostPort"]
+            nginx_port = nginx_container.ports.get("80/tcp")[0]["HostPort"]
+
+            app_url = f"http://localhost:{app_port}{app_suffix}"
+            nginx_url = f"http://localhost:{nginx_port}{nginx_suffix}"
+
+            print(f"Will check app at: {app_url}")
+            print(f"Will check nginx at: {nginx_url}")
+
+            service_attempts = 3000
+            while service_attempts > 0:
+                try:
+                    app_response = requests.get(app_url, timeout=2)
+                    print(f"App response: {app_response.status_code}")
+
+                    nginx_response = requests.get(nginx_url, timeout=2)
+                    print(f"Nginx response: {nginx_response.status_code}")
+
+                    if (
+                        app_response.status_code == 200
+                        and nginx_response.status_code == 200
+                    ):
+                        print("Both services are responding with 200 OK")
+                        break
+
+                except (ConnectionError, RequestException) as e:
+                    print(f"Waiting for services to be ready: {e}")
+
+                service_attempts -= 1
+                time.sleep(1)
+
+            if service_attempts == 0:
+                raise TimeoutError(
+                    "Timed out waiting for services to respond with 200 OK"
+                )
+        except Exception as e:
+            print(f"Error during service check: {e}")
+            raise
+
+        yield app_url, nginx_url
+
+        try:
+            subprocess.run(
+                ["docker", "compose", "-f", f"{folder}/docker-compose.yml", "down"],
+                check=True,
+            )
+        except Exception as e:
+            print(f"Error during cleanup: {e}")
+
+    return launch_services
