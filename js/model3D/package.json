@@ -16,6 +16,8 @@
 		"@gradio/wasm": "workspace:^",
 		"@types/babylon": "^6.16.6",
 		"@babylonjs/viewer": "^8.2.0",
+		"@babylonjs/core": "^8.2.0",
+		"@babylonjs/loaders": "^8.2.0",
 		"dequal": "^2.0.2",
 		"gsplat": "^1.0.5"
 	},

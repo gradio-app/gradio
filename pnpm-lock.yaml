@@ -19,12 +19,6 @@ importers:
 
   .:
     dependencies:
-      '@babylonjs/core':
-        specifier: ^8.2.0
-        version: 8.2.0
-      '@babylonjs/loaders':
-        specifier: ^8.2.0
-        version: 8.2.0(@babylonjs/core@8.2.0)(babylonjs-gltf2interface@7.25.2)
       '@babylonjs/viewer':
         specifier: ^8.2.0
         version: 8.2.0(@babylonjs/core@8.2.0)(@babylonjs/loaders@8.2.0(@babylonjs/core@8.2.0)(babylonjs-gltf2interface@7.25.2))
@@ -1795,6 +1789,12 @@ importers:
 
   js/model3D:
     dependencies:
+      '@babylonjs/core':
+        specifier: ^8.2.0
+        version: 8.2.0
+      '@babylonjs/loaders':
+        specifier: ^8.2.0
+        version: 8.2.0(@babylonjs/core@8.2.0)(babylonjs-gltf2interface@7.25.2)
       '@babylonjs/viewer':
         specifier: ^8.2.0
         version: 8.2.0(@babylonjs/core@8.2.0)(@babylonjs/loaders@8.2.0(@babylonjs/core@8.2.0)(babylonjs-gltf2interface@7.25.2))
