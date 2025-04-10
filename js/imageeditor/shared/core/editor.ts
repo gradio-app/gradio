@@ -82,6 +82,7 @@ export class LayerManager {
 		visible: boolean;
 	}[] = [];
 	private active_layer: Container | null = null;
+	private active_layer_id: string | null = null;
 	private draw_textures: Map<Container, RenderTexture> = new Map();
 	layer_store: Writable<{
 		active_layer: string;
@@ -295,20 +296,24 @@ export class LayerManager {
 		width,
 		height,
 		layer_name,
-		user_created
+		user_created,
+		layer_id = undefined,
+		make_active = false
 	}: {
 		width: number;
 		height: number;
 		layer_name?: string;
 		user_created: boolean;
+		layer_id?: string;
+		make_active?: boolean;
 	}): Container {
 		const layer = new Container();
-		const layer_id = Math.random().toString(36).substring(2, 15);
+		const _layer_id = layer_id || Math.random().toString(36).substring(2, 15);
 		const _layer_name = layer_name || `Layer ${this.layers.length + 1}`;
 
 		this.layers.push({
 			name: _layer_name,
-			id: layer_id,
+			id: _layer_id,
 			container: layer,
 			user_created,
 			visible: true
@@ -344,9 +349,12 @@ export class LayerManager {
 		this.draw_textures.set(layer, draw_texture);
 
 		this.update_layer_order();
-		this.active_layer = layer;
+		if (make_active) {
+			this.set_active_layer(_layer_id);
+		}
+
 		this.layer_store.set({
-			active_layer: layer_id,
+			active_layer: this.active_layer_id || "",
 			layers: this.layers
 		});
 		return layer;
@@ -455,6 +463,7 @@ export class LayerManager {
 				this.layers.find((l) => l.id === id)?.container ||
 				this.layers[0]?.container ||
 				null;
+			this.active_layer_id = id;
 			this.layer_store.set({
 				active_layer: id,
 				layers: this.layers
@@ -488,8 +497,9 @@ export class LayerManager {
 			}
 			this.layers[index].container.destroy();
 			if (this.active_layer === this.layers[index].container) {
-				this.active_layer =
-					this.layers[Math.max(0, index - 1)]?.container || null;
+				const new_active_layer = this.layers[Math.max(0, index - 1)] || null;
+				this.active_layer = new_active_layer?.container || null;
+				this.active_layer_id = new_active_layer?.id || null;
 			}
 			this.layers = this.layers.filter((l) => l.id !== id);
 
@@ -868,21 +878,36 @@ export class LayerManager {
 
 	reset_layers(width: number, height: number, persist = false): void {
 		const _layers_to_recreate = persist
-			? this.layers.map((layer) => layer.name)
-			: this.layer_options.layers;
+			? this.layers.map((layer) => [layer.name, layer.id])
+			: this.layer_options.layers.map((layer) => [layer, undefined]);
 
 		this.layers.forEach((layer) => {
 			this.delete_layer(layer.id);
 		});
 
-		for (const layer of _layers_to_recreate) {
+		let i = 0;
+		for (const [layer_name, layer_id] of _layers_to_recreate) {
 			this.create_layer({
 				width,
 				height,
-				layer_name: layer,
-				user_created: this.layer_options.layers.includes(layer) ? false : true
+				layer_name: layer_name,
+				user_created: this.layer_options.layers.find((l) => l === layer_name)
+					? false
+					: true,
+				layer_id: layer_id
 			});
+			i++;
 		}
+
+		if (!persist) {
+			this.active_layer = this.layers[0].container;
+			this.active_layer_id = this.layers[0].id;
+		}
+
+		this.layer_store.update((state) => ({
+			active_layer: state.active_layer,
+			layers: this.layers
+		}));
 	}
 
 	init_layers(width: number, height: number): void {
@@ -899,8 +924,9 @@ export class LayerManager {
 		}
 
 		this.active_layer = this.layers[0].container;
+		this.active_layer_id = this.layers[0].id;
 		this.layer_store.update((_layers) => ({
-			active_layer: _layers.layers[0].id,
+			active_layer: this.layers[0].id,
 			layers: this.layers
 		}));
 	}
@@ -1511,6 +1537,8 @@ export class ImageEditor {
 			border_region: this.border_region
 		});
 
+		// this.layer_manager.set_active_layer(this.layer_manager.get_layers()[0].id);
+
 		// Update resize tool if present
 		const resize_tool = this.tools.get("resize") as any;
 		if (resize_tool && typeof resize_tool.set_border_region === "function") {
@@ -1583,7 +1611,9 @@ export class ImageEditor {
 			width: this.width,
 			height: this.height,
 			layer_name: undefined,
-			user_created: true
+			user_created: true,
+			layer_id: undefined,
+			make_active: true
 		});
 		this.notify("change");
 	}
@@ -1609,6 +1639,8 @@ export class ImageEditor {
 		for await (const url of layer_urls) {
 			await this.layer_manager.add_layer_from_url(url);
 		}
+
+		this.layer_manager.set_active_layer(_layers[0].id);
 
 		// Update resize tool if present with border region
 		const resize_tool = this.tools.get("resize") as any;
