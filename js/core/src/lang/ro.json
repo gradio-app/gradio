@@ -140,5 +140,15 @@
 	},
 	"video": {
 		"drop_to_upload": "Plasați un fișier video aici pentru a-l încărca"
+	},
+	"chatbot": {
+		"edit": "Editează",
+		"retry": "Încearcă din nou",
+		"undo": "Anulează",
+		"submit": "Trimite",
+		"cancel": "Anulează",
+		"like": "Îmi place",
+		"dislike": "Nu-mi place",
+		"clear": "Șterge conversația"
 	}
 }
