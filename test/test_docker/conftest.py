@@ -95,6 +95,9 @@ def launch_services_fn():
         if container_attempts == 0:
             raise TimeoutError("Timed out waiting for containers to be ready")
 
+        if app_container is None or nginx_container is None:
+            raise ValueError("Failed to get app or nginx container")
+
         app_container.reload()
         nginx_container.reload()
 
