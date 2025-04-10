@@ -899,6 +899,7 @@ interface ImageEditorOptions {
 	border_region?: number;
 	layer_options?: LayerOptions;
 	pad_bottom?: number;
+	theme_mode?: "dark" | "light";
 }
 
 const core_tool_map = {
@@ -1051,9 +1052,11 @@ export class ImageEditor {
 	private overlay_container!: Container;
 	private overlay_graphics!: Graphics;
 	private pad_bottom: number;
+	private theme_mode: "dark" | "light";
 	constructor(options: ImageEditorOptions) {
 		this.pad_bottom = options.pad_bottom || 0;
 		this.dark = options.dark || false;
+		this.theme_mode = options.theme_mode || "dark";
 		this.target_element = options.target_element;
 		this.width = options.width;
 		this.height = options.height;
@@ -1142,7 +1145,11 @@ export class ImageEditor {
 			width: container_box.width,
 			height: container_box.height,
 			backgroundAlpha: this.dark ? 0 : 1,
-			backgroundColor: this.dark ? 0x333333 : 0xffffff,
+			backgroundColor: this.dark
+				? 0x333333
+				: this.theme_mode === "dark"
+					? "#27272a"
+					: "#ffffff",
 			resolution: window.devicePixelRatio,
 			autoDensity: true,
 			antialias: true,
