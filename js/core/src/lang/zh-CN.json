@@ -140,5 +140,15 @@
 	},
 	"video": {
 		"drop_to_upload": "将视频文件拖放到此处以上传"
+	},
+	"chatbot": {
+		"edit": "编辑",
+		"retry": "重试",
+		"undo": "撤销",
+		"submit": "发送",
+		"cancel": "取消",
+		"like": "赞",
+		"dislike": "踩",
+		"clear": "清空对话"
 	}
 }

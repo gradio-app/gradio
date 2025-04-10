@@ -266,7 +266,10 @@
 				}}
 			/>
 		{/if}
-		<IconButton Icon={Trash} on:click={() => dispatch("clear")} label={"Clear"}
+		<IconButton
+			Icon={Trash}
+			on:click={() => dispatch("clear")}
+			label={i18n("chatbot.clear")}
 		></IconButton>
 		{#if show_copy_all_button}
 			<CopyAll {value} {watermark} />
