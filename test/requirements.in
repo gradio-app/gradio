@@ -4,7 +4,9 @@ IPython
 altair
 asyncio
 boto3
+build==1.2.2.post1
 coverage
+docker==7.1.0
 fastapi>=0.115.7
 gradio_pdf==0.0.21
 gradio==5.10.0
@@ -17,7 +19,6 @@ pydantic[email]
 pytest
 pytest-asyncio
 pytest-cov
-pytest-docker
 pytest-rerunfailures
 ruff>=0.1.13
 respx
