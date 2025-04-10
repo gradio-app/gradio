@@ -1058,7 +1058,6 @@ export class ImageEditor {
 		this.width = options.width;
 		this.height = options.height;
 		this.command_manager = new CommandManager();
-		// this.layers = writable([]);
 		this.ready = new Promise((resolve) => {
 			this.ready_resolve = resolve;
 		});
@@ -1385,12 +1384,6 @@ export class ImageEditor {
 		this.layers = this.layer_manager.layer_store;
 	}
 
-	// private resize_image(width: number, height: number): void {
-	// 	// Implement image resizing logic here
-	// 	this.image_container.width = width;
-	// 	this.image_container.height = height;
-	// }
-
 	resize_canvas(width: number, height: number): void {
 		if (this.app.renderer) {
 			this.app.renderer.resize(width, height);
@@ -1478,9 +1471,6 @@ export class ImageEditor {
 			fixed_canvas: this.fixed_canvas,
 			border_region: this.border_region
 		});
-
-		// await image_command.start();
-		// await this.context.execute_command(image_command);
 	}
 
 	/**
