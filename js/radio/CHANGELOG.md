@@ -1,5 +1,16 @@
 # @gradio/radio
 
+## 0.7.0
+
+### Features
+
+- [#10923](https://github.com/gradio-app/gradio/pull/10923) [`8a62c7e`](https://github.com/gradio-app/gradio/commit/8a62c7e90b5e0945709d97e34f405a7f92675ab0) - Add `rtl` to `gr.Radio`.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.7
+- @gradio/atoms@0.15.0
+
 ## 0.6.16
 
 ### Dependency updates

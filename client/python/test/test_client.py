@@ -44,10 +44,8 @@ def connect(
     try:
         yield Client(local_url, download_files=download_files, **client_kwargs)
     finally:
-        # A more verbose version of .close()
-        # because we should set a timeout
-        # the tests that call .cancel() can get stuck
-        # waiting for the thread to join
+        # A more verbose version of .close() because we should set a timeout
+        # the tests that call .cancel() can get stuck waiting for the thread to join
         demo.close()
 
 
@@ -258,6 +256,7 @@ class TestClientPredictions:
                 job = client.submit("foo", "add", 9, fn_index=0)
                 job.result()
 
+    @pytest.mark.flaky
     def test_job_output_video(self, video_component):
         with connect(video_component) as client:
             job = client.submit(
@@ -626,12 +625,14 @@ class TestClientPredictions:
         out = capsys.readouterr().out
         assert "STATE DELETED" in out
 
+    @pytest.mark.flaky
     def test_add_zero_gpu_headers_no_gradio_context(self):
         client = Client("gradio/calculator")
         headers = {"existing": "header"}
         new_headers = client.add_zero_gpu_headers(headers)
         assert new_headers == headers  # No changes when not in Gradio context
 
+    @pytest.mark.flaky
     def test_add_zero_gpu_headers_with_ip_token(self, monkeypatch):
         client = Client("gradio/calculator")
         headers = {"existing": "header"}

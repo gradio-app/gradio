@@ -1,10 +1,8 @@
 <script lang="ts" context="module">
 	import {
-		type SortDirection,
-		create_dataframe_context
-	} from "./context/table_context";
-	import { create_keyboard_context } from "./context/keyboard_context";
-	import { create_selection_context } from "./context/selection_context";
+		create_dataframe_context,
+		type SortDirection
+	} from "./context/dataframe_context";
 </script>
 
 <script lang="ts">
@@ -28,9 +26,6 @@
 	import {
 		is_cell_selected,
 		should_show_cell_menu,
-		get_next_cell_coordinates,
-		get_range_selection,
-		move_cursor,
 		get_current_indices,
 		handle_click_outside as handle_click_outside_util,
 		calculate_selection_positions
@@ -41,7 +36,7 @@
 		handle_file_upload
 	} from "./utils/table_utils";
 	import { make_headers, process_data } from "./utils/data_processing";
-	import { handle_keydown } from "./utils/keyboard_utils";
+	import { handle_keydown, handle_cell_blur } from "./utils/keyboard_utils";
 	import {
 		create_drag_handlers,
 		type DragState,
@@ -82,12 +77,7 @@
 	export let pinned_columns = 0;
 	export let static_columns: (string | number)[] = [];
 
-	$: actual_pinned_columns =
-		pinned_columns && data?.[0]?.length
-			? Math.min(pinned_columns, data[0].length)
-			: 0;
-
-	const { state: df_state, actions: df_actions } = create_dataframe_context({
+	const df_ctx = create_dataframe_context({
 		show_fullscreen_button,
 		show_copy_button,
 		show_search,
@@ -102,23 +92,57 @@
 		max_chars
 	});
 
-	$: selected_cells = $df_state.ui_state.selected_cells; // $: {
-	let previous_selected_cells: [number, number][] = [];
-	$: {
-		if (copy_flash && !dequal(selected_cells, previous_selected_cells)) {
-			keyboard_ctx?.set_copy_flash(false);
-		}
-		previous_selected_cells = selected_cells;
-	}
-	$: selected = $df_state.ui_state.selected;
+	const { state: df_state, actions: df_actions } = df_ctx;
 
-	export let display_value: string[][] | null = null;
-	export let styling: string[][] | null = null;
-	let els: Record<
-		string,
-		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
-	> = {};
-	let data_binding: Record<string, (typeof data)[0][0]> = {};
+	$: selected_cells = $df_state.ui_state.selected_cells;
+	$: selected = $df_state.ui_state.selected;
+	$: editing = $df_state.ui_state.editing;
+	$: header_edit = $df_state.ui_state.header_edit;
+	$: selected_header = $df_state.ui_state.selected_header;
+	$: active_cell_menu = $df_state.ui_state.active_cell_menu;
+	$: active_header_menu = $df_state.ui_state.active_header_menu;
+	$: copy_flash = $df_state.ui_state.copy_flash;
+
+	$: actual_pinned_columns =
+		pinned_columns && data?.[0]?.length
+			? Math.min(pinned_columns, data[0].length)
+			: 0;
+
+	onMount(() => {
+		df_ctx.parent_element = parent;
+		df_ctx.get_data_at = get_data_at;
+		df_ctx.dispatch = dispatch;
+		init_drag_handlers();
+
+		const observer = new IntersectionObserver((entries) => {
+			entries.forEach((entry) => {
+				if (entry.isIntersecting && !is_visible) {
+					set_cell_widths();
+				}
+				is_visible = entry.isIntersecting;
+			});
+		});
+		observer.observe(parent);
+		document.addEventListener("click", handle_click_outside);
+		window.addEventListener("resize", handle_resize);
+		document.addEventListener("fullscreenchange", handle_fullscreen_change);
+
+		return () => {
+			observer.disconnect();
+			document.removeEventListener("click", handle_click_outside);
+			window.removeEventListener("resize", handle_resize);
+			document.removeEventListener(
+				"fullscreenchange",
+				handle_fullscreen_change
+			);
+		};
+	});
+
+	$: if (data || _headers || els) {
+		df_ctx.data = data;
+		df_ctx.headers = _headers;
+		df_ctx.els = els;
+	}
 
 	const dispatch = createEventDispatcher<{
 		change: DataframeValue;
@@ -127,17 +151,27 @@
 		search: string | null;
 	}>();
 
-	$: editing = $df_state.ui_state.editing;
-	let clear_on_focus = false;
-	$: header_edit = $df_state.ui_state.header_edit;
-	$: selected_header = $df_state.ui_state.selected_header;
-	$: active_cell_menu = $df_state.ui_state.active_cell_menu;
-	$: active_header_menu = $df_state.ui_state.active_header_menu;
+	let els: Record<
+		string,
+		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
+	> = {};
+	let data_binding: Record<string, (typeof data)[0][0]> = {};
+	let _headers = make_headers(headers, col_count, els, make_id);
+	let old_headers: string[] = headers;
+	let data: { id: string; value: string | number; display_value?: string }[][] =
+		[[]];
+	let old_val: undefined | (string | number)[][] = undefined;
+	let search_results: {
+		id: string;
+		value: string | number;
+		display_value?: string;
+		styling?: string;
+	}[][] = [[]];
 	let is_fullscreen = false;
 	let dragging = false;
-	let copy_flash = false;
-
 	let color_accent_copied: string;
+	let filtered_to_original_map: number[] = [];
+
 	onMount(() => {
 		const color = getComputedStyle(document.documentElement)
 			.getPropertyValue("--color-accent")
@@ -152,13 +186,6 @@
 	const get_data_at = (row: number, col: number): string | number =>
 		data?.[row]?.[col]?.value;
 
-	function make_id(): string {
-		return Math.random().toString(36).substring(2, 15);
-	}
-
-	let _headers = make_headers(headers, col_count, els, make_id);
-	let old_headers: string[] = headers;
-
 	$: {
 		if (!dequal(headers, old_headers)) {
 			_headers = make_headers(headers, col_count, els, make_id);
@@ -166,14 +193,12 @@
 		}
 	}
 
-	let data: { id: string; value: string | number }[][] = [[]];
-	let old_val: undefined | (string | number)[][] = undefined;
-	let search_results: {
-		id: string;
-		value: string | number;
-		display_value?: string;
-		styling?: string;
-	}[][] = [[]];
+	function make_id(): string {
+		return Math.random().toString(36).substring(2, 15);
+	}
+
+	export let display_value: string[][] | null = null;
+	export let styling: string[][] | null = null;
 
 	$: if (!dequal(values, old_val)) {
 		if (parent) {
@@ -228,11 +253,22 @@
 
 	$: if ($df_state.current_search_query !== undefined) {
 		const cell_map = new Map();
+		filtered_to_original_map = [];
 
 		data.forEach((row, row_idx) => {
+			if (
+				row.some((cell) =>
+					String(cell?.value)
+						.toLowerCase()
+						.includes($df_state.current_search_query?.toLowerCase() || "")
+				)
+			) {
+				filtered_to_original_map.push(row_idx);
+			}
 			row.forEach((cell, col_idx) => {
 				cell_map.set(cell.id, {
 					value: cell.value,
+					display_value: cell.display_value || String(cell.value),
 					styling: styling?.[row_idx]?.[col_idx] || ""
 				});
 			});
@@ -250,6 +286,8 @@
 				};
 			})
 		);
+	} else {
+		filtered_to_original_map = [];
 	}
 
 	let previous_headers = _headers.map((h) => h.value);
@@ -280,22 +318,13 @@
 		sort_data(data, display_value, styling);
 	}
 
-	$: {
-		df_actions.sort_data(data, display_value, styling);
+	$: if ($df_state.sort_state.sort_columns.length > 0) {
+		sort_data(data, display_value, styling);
 		df_actions.update_row_order(data);
 	}
 
-	$: {
-		if ($df_state.sort_state.sort_columns) {
-			if ($df_state.sort_state.sort_columns.length > 0) {
-				sort_data(data, display_value, styling);
-			}
-		}
-	}
-
 	async function edit_header(i: number, _select = false): Promise<void> {
-		if (!editable || header_edit === i) return;
-		if (!editable || col_count[1] !== "dynamic" || header_edit === i) return;
+		if (!editable || header_edit === i || col_count[1] !== "dynamic") return;
 		df_actions.set_header_edit(i);
 	}
 
@@ -306,7 +335,6 @@
 		event.preventDefault();
 		event.stopPropagation();
 		if (!editable) return;
-		clear_on_focus = false;
 		df_actions.set_editing(false);
 		df_actions.handle_header_click(col, editable);
 		parent.focus();
@@ -339,7 +367,6 @@
 			data.push(new_row);
 		}
 
-		data = data;
 		selected = [index !== undefined ? index : data.length - 1, 0];
 	}
 
@@ -454,98 +481,34 @@
 		selected = result.selected;
 	}
 
-	$: sort_data(data, display_value, styling);
-
 	$: selected_index = !!selected && selected[0];
 
 	let is_visible = false;
 
-	onMount(() => {
-		const observer = new IntersectionObserver((entries) => {
-			entries.forEach((entry) => {
-				if (entry.isIntersecting && !is_visible) {
-					set_cell_widths();
-					data = data;
-				}
-				is_visible = entry.isIntersecting;
-			});
-		});
-
-		observer.observe(parent);
-		document.addEventListener("click", handle_click_outside);
-		window.addEventListener("resize", handle_resize);
-		document.addEventListener("fullscreenchange", handle_fullscreen_change);
-
-		return () => {
-			observer.disconnect();
-			document.removeEventListener("click", handle_click_outside);
-			window.removeEventListener("resize", handle_resize);
-			document.removeEventListener(
-				"fullscreenchange",
-				handle_fullscreen_change
-			);
-		};
-	});
-
-	$: keyboard_ctx = create_keyboard_context({
-		selected_header,
-		header_edit,
-		editing,
-		selected,
-		selected_cells,
-		editable,
-		data,
-		headers: _headers,
-		els,
-		df_actions,
-		dispatch,
-		add_row,
-		get_next_cell_coordinates,
-		get_range_selection,
-		move_cursor,
-		copy_flash,
-		parent_element: parent,
-		set_copy_flash: (value: boolean) => {
-			copy_flash = value;
-			if (value) {
-				setTimeout(() => {
-					copy_flash = false;
-				}, 800);
-			}
+	const set_copy_flash = (value: boolean): void => {
+		df_actions.set_copy_flash(value);
+		if (value) {
+			setTimeout(() => df_actions.set_copy_flash(false), 800);
 		}
-	});
+	};
 
-	$: selection_ctx = create_selection_context({
-		df_actions,
-		dispatch,
-		data,
-		els,
-		editable,
-		show_row_numbers,
-		get_data_at,
-		clear_on_focus,
-		selected_cells,
-		parent_element: parent
-	});
+	let previous_selected_cells: [number, number][] = [];
 
-	function handle_cell_click(
-		event: MouseEvent,
-		row: number,
-		col: number
+	$: {
+		if (copy_flash && !dequal(selected_cells, previous_selected_cells)) {
+			set_copy_flash(false);
+		}
+		previous_selected_cells = selected_cells;
+	}
+
+	function handle_blur(
+		event: CustomEvent<{
+			blur_event: FocusEvent;
+			coords: [number, number];
+		}>
 	): void {
-		selection_ctx.actions.handle_cell_click(event, row, col);
-	}
-
-	function toggle_cell_menu(event: MouseEvent, row: number, col: number): void {
-		selection_ctx.actions.toggle_cell_menu(event, row, col);
-	}
-
-	function handle_select_column(col: number): void {
-		selection_ctx.actions.handle_select_column(col);
-	}
-
-	function handle_select_row(row: number): void {
-		selection_ctx.actions.handle_select_row(row);
+		const { blur_event, coords } = event.detail;
+		handle_cell_blur(blur_event, df_ctx, coords);
 	}
 
 	function toggle_fullscreen(): void {
@@ -604,8 +567,8 @@
 		df_actions.set_active_header_menu(null);
 	}
 
-	let coords: CellCoordinate;
-	$: if (selected !== false) coords = selected;
+	let selected_cell_coords: CellCoordinate;
+	$: if (selected !== false) selected_cell_coords = selected;
 
 	$: if (selected !== false) {
 		const positions = calculate_selection_positions(
@@ -726,8 +689,7 @@
 			(value) => (is_dragging = value),
 			(cells) => df_actions.set_selected_cells(cells),
 			(cell) => df_actions.set_selected(cell),
-			(event, row, col) =>
-				selection_ctx.actions.handle_cell_click(event, row, col),
+			(event, row, col) => df_actions.handle_cell_click(event, row, col),
 			show_row_numbers,
 			parent
 		);
@@ -738,6 +700,23 @@
 	$: handle_mouse_down = drag_handlers?.handle_mouse_down || (() => {});
 	$: handle_mouse_move = drag_handlers?.handle_mouse_move || (() => {});
 	$: handle_mouse_up = drag_handlers?.handle_mouse_up || (() => {});
+
+	function get_cell_display_value(row: number, col: number): string {
+		const is_search_active = $df_state.current_search_query !== undefined;
+
+		if (is_search_active && search_results?.[row]?.[col]) {
+			return (
+				search_results[row][col].display_value ||
+				String(search_results[row][col].value)
+			);
+		}
+
+		if (data?.[row]?.[col]) {
+			return data[row][col].display_value || String(data[row][col].value);
+		}
+
+		return "";
+	}
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
@@ -770,7 +749,7 @@
 		class:no-wrap={!wrap}
 		style="height:{table_height}px;"
 		class:menu-open={active_cell_menu || active_header_menu}
-		on:keydown={(e) => handle_keydown(e, keyboard_ctx)}
+		on:keydown={(e) => handle_keydown(e, df_ctx)}
 		on:mousemove={handle_mouse_move}
 		on:mouseup={handle_mouse_up}
 		on:mouseleave={handle_mouse_up}
@@ -793,7 +772,6 @@
 							{actual_pinned_columns}
 							{header_edit}
 							{selected_header}
-							get_sort_status={df_actions.get_sort_status}
 							{headers}
 							{get_cell_width}
 							{handle_header_click}
@@ -834,10 +812,11 @@
 									show_selection_buttons={selected_cells.length === 1 &&
 										selected_cells[0][0] === 0 &&
 										selected_cells[0][1] === j}
-									coords={[0, j]}
-									on_select_column={handle_select_column}
-									on_select_row={handle_select_row}
+									coords={selected_cell_coords}
+									on_select_column={df_actions.handle_select_column}
+									on_select_row={df_actions.handle_select_row}
 									{is_dragging}
+									on:blur={handle_blur}
 								/>
 							</div>
 						</td>
@@ -899,7 +878,6 @@
 								{actual_pinned_columns}
 								{header_edit}
 								{selected_header}
-								get_sort_status={df_actions.get_sort_status}
 								{headers}
 								{get_cell_width}
 								{handle_header_click}
@@ -925,12 +903,17 @@
 						{#each item as { value, id }, j (id)}
 							<TableCell
 								bind:value={search_results[index][j].value}
-								{index}
+								display_value={get_cell_display_value(index, j)}
+								index={$df_state.current_search_query !== undefined &&
+								filtered_to_original_map[index] !== undefined
+									? filtered_to_original_map[index]
+									: index}
 								{j}
 								{actual_pinned_columns}
 								{get_cell_width}
 								handle_cell_click={(e, r, c) => handle_mouse_down(e, r, c)}
-								{toggle_cell_menu}
+								{handle_blur}
+								toggle_cell_menu={df_actions.toggle_cell_menu}
 								{is_cell_selected}
 								{should_show_cell_menu}
 								{selected_cells}
@@ -941,15 +924,14 @@
 								{line_breaks}
 								datatype={Array.isArray(datatype) ? datatype[j] : datatype}
 								{editing}
-								{clear_on_focus}
 								{max_chars}
 								{root}
 								{editable}
 								is_static={static_columns.includes(j)}
 								{i18n}
 								{components}
-								{handle_select_column}
-								{handle_select_row}
+								handle_select_column={df_actions.handle_select_column}
+								handle_select_row={df_actions.handle_select_row}
 								bind:el={els[id]}
 								{is_dragging}
 								{wrap}

@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    container_name: ${COMPOSE_PROJECT_NAME:-gradio_nginx_test}_gradio_app
+    networks:
+      - app_network
+    hostname: app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/config"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  nginx:
+    image: nginx:latest
+    container_name: ${COMPOSE_PROJECT_NAME:-gradio_nginx_test}_nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /dev/null:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "0:80"
+    depends_on:
+      - app
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge

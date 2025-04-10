@@ -562,6 +562,7 @@
 
 		const search_input = canvas.getByPlaceholderText("Filter...");
 		await user.type(search_input, "Pet");
+		await user.click(canvas.getByText("Cat"));
 
 		await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -748,6 +749,34 @@
 		await userEvent.click(header_3);
 		await userEvent.click(cell_menu_button_3);
 		await userEvent.click(canvas.getByText("Clear sort"));
+	}}
+/>
+
+<Story
+	name="Dataframe with display values"
+	args={{
+		values: [
+			[95, 92, 88],
+			[89, 90, 85],
+			[92, 88, 91],
+			[87, 85, 89],
+			[91, 93, 90],
+			[82, 81, 83]
+		],
+		headers: ["Model A", "Model B", "Model C"],
+		display_value: [
+			["🥇 95", "92", "88"],
+			["🥈 89", "90", "85"],
+			["🥉 92", "88", "91"],
+			["87", "85", "89"],
+			["91", "93", "90"],
+			["82", "81", "83"]
+		],
+		label: "Model Performance with Medal Indicators",
+		col_count: [3, "dynamic"],
+		row_count: [6, "dynamic"],
+		show_row_numbers: true,
+		editable: false
 	}}
 />
 

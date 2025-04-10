@@ -13,6 +13,7 @@
 	import StaticImage from "./shared/ImagePreview.svelte";
 	import ImageUploader from "./shared/ImageUploader.svelte";
 	import { afterUpdate } from "svelte";
+	import type { WebcamOptions } from "./shared/types";
 
 	import { Block, Empty, UploadText } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
@@ -61,11 +62,11 @@
 	export let interactive: boolean;
 	export let streaming: boolean;
 	export let pending: boolean;
-	export let mirror_webcam: boolean;
 	export let placeholder: string | undefined = undefined;
 	export let show_fullscreen_button: boolean;
 	export let input_ready: boolean;
-	export let webcam_constraints: { [key: string]: any } | undefined = undefined;
+	export let webcam_options: WebcamOptions;
+
 	let uploading = false;
 	$: input_ready = !uploading;
 	export let gradio: Gradio<{
@@ -215,11 +216,10 @@
 			{show_label}
 			{pending}
 			{streaming}
-			{mirror_webcam}
+			{webcam_options}
 			{stream_every}
 			bind:modify_stream={_modify_stream}
 			bind:set_time_limit
-			{webcam_constraints}
 			max_file_size={gradio.max_file_size}
 			i18n={gradio.i18n}
 			upload={(...args) => gradio.client.upload(...args)}

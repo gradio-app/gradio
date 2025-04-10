@@ -38,6 +38,7 @@ export function create_drag_handlers(
 		if (!event.shiftKey && !event.metaKey && !event.ctrlKey) {
 			set_selected_cells([[row, col]]);
 			set_selected([row, col]);
+			handle_cell_click(event, row, col);
 		}
 	};
 

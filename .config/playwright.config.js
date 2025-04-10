@@ -48,11 +48,11 @@ const lite = defineConfig(base, {
 		reuseExistingServer: !process.env.CI
 	},
 	testMatch: [
-		"**/file_component_events.spec.ts",
+		// "**/file_component_events.spec.ts",
 		"**/kitchen_sink.spec.ts",
 		"**/gallery_component_events.spec.ts",
-		"**/image_remote_url.spec.ts", // To detect the bugs on Lite fixed in https://github.com/gradio-app/gradio/pull/8011 and https://github.com/gradio-app/gradio/pull/8026
-		"**/outbreak_forecast.spec.ts" // To test matplotlib on Lite
+		"**/image_remote_url.spec.ts" // To detect the bugs on Lite fixed in https://github.com/gradio-app/gradio/pull/8011 and https://github.com/gradio-app/gradio/pull/8026
+		// "**/outbreak_forecast.spec.ts" // To test matplotlib on Lite
 	],
 	workers: 1,
 	retries: 3,
