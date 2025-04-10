@@ -79,12 +79,18 @@ export class LayerManager {
 		id: string;
 		container: Container;
 		user_created: boolean;
+		visible: boolean;
 	}[] = [];
 	private active_layer: Container | null = null;
 	private draw_textures: Map<Container, RenderTexture> = new Map();
 	layer_store: Writable<{
 		active_layer: string;
-		layers: { name: string; id: string; user_created: boolean }[];
+		layers: {
+			name: string;
+			id: string;
+			user_created: boolean;
+			visible: boolean;
+		}[];
 	}> = writable({
 		active_layer: "",
 
@@ -111,6 +117,18 @@ export class LayerManager {
 		this.dark = dark;
 		this.border_region = border_region;
 		this.layer_options = layer_options;
+	}
+
+	toggle_layer_visibility(id: string): void {
+		const layer = this.layers.find((l) => l.id === id);
+		if (layer) {
+			layer.container.visible = !layer.container.visible;
+			layer.visible = layer.container.visible;
+			this.layer_store.update((state) => ({
+				active_layer: state.active_layer,
+				layers: this.layers
+			}));
+		}
 	}
 
 	create_background_layer(width: number, height: number): Container {
@@ -292,7 +310,8 @@ export class LayerManager {
 			name: _layer_name,
 			id: layer_id,
 			container: layer,
-			user_created
+			user_created,
+			visible: true
 		});
 
 		this.image_container.addChild(layer);
@@ -1035,7 +1054,12 @@ export class ImageEditor {
 	};
 	layers: Writable<{
 		active_layer: string;
-		layers: { name: string; id: string; user_created: boolean }[];
+		layers: {
+			name: string;
+			id: string;
+			user_created: boolean;
+			visible: boolean;
+		}[];
 	}> = writable({
 		active_layer: "",
 		layers: []
@@ -1733,5 +1757,9 @@ export class ImageEditor {
 			this.width,
 			this.height
 		);
+	}
+
+	toggle_layer_visibility(id: string): void {
+		this.layer_manager.toggle_layer_visibility(id);
 	}
 }

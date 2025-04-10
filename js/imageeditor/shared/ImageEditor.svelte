@@ -655,12 +655,18 @@
 				}}
 				on:change_layer={(e) => {
 					editor.set_layer(e.detail);
+					if (current_tool === "draw") {
+						handle_tool_change({ tool: "draw" });
+					}
 				}}
 				on:move_layer={(e) => {
 					editor.move_layer(e.detail.id, e.detail.direction);
 				}}
 				on:delete_layer={(e) => {
 					editor.delete_layer(e.detail);
+				}}
+				on:toggle_layer_visibility={(e) => {
+					editor.toggle_layer_visibility(e.detail);
 				}}
 			/>
 		{/if}

@@ -4,7 +4,12 @@
 
 	export let layers: Writable<{
 		active_layer: string;
-		layers: { name: string; id: string; user_created: boolean }[];
+		layers: {
+			name: string;
+			id: string;
+			user_created: boolean;
+			visible: boolean;
+		}[];
 	}>;
 
 	export let enable_additional_layers = true;
@@ -24,6 +29,7 @@
 				on:change_layer
 				on:move_layer
 				on:delete_layer
+				on:toggle_layer_visibility
 			/>
 		{/if}
 	</div>
