@@ -79,12 +79,18 @@ export class LayerManager {
 		id: string;
 		container: Container;
 		user_created: boolean;
+		visible: boolean;
 	}[] = [];
 	private active_layer: Container | null = null;
 	private draw_textures: Map<Container, RenderTexture> = new Map();
 	layer_store: Writable<{
 		active_layer: string;
-		layers: { name: string; id: string; user_created: boolean }[];
+		layers: {
+			name: string;
+			id: string;
+			user_created: boolean;
+			visible: boolean;
+		}[];
 	}> = writable({
 		active_layer: "",
 
@@ -111,6 +117,18 @@ export class LayerManager {
 		this.dark = dark;
 		this.border_region = border_region;
 		this.layer_options = layer_options;
+	}
+
+	toggle_layer_visibility(id: string): void {
+		const layer = this.layers.find((l) => l.id === id);
+		if (layer) {
+			layer.container.visible = !layer.container.visible;
+			layer.visible = layer.container.visible;
+			this.layer_store.update((state) => ({
+				active_layer: state.active_layer,
+				layers: this.layers
+			}));
+		}
 	}
 
 	create_background_layer(width: number, height: number): Container {
@@ -292,7 +310,8 @@ export class LayerManager {
 			name: _layer_name,
 			id: layer_id,
 			container: layer,
-			user_created
+			user_created,
+			visible: true
 		});
 
 		this.image_container.addChild(layer);
@@ -899,6 +918,7 @@ interface ImageEditorOptions {
 	border_region?: number;
 	layer_options?: LayerOptions;
 	pad_bottom?: number;
+	theme_mode?: "dark" | "light";
 }
 
 const core_tool_map = {
@@ -1034,7 +1054,12 @@ export class ImageEditor {
 	};
 	layers: Writable<{
 		active_layer: string;
-		layers: { name: string; id: string; user_created: boolean }[];
+		layers: {
+			name: string;
+			id: string;
+			user_created: boolean;
+			visible: boolean;
+		}[];
 	}> = writable({
 		active_layer: "",
 		layers: []
@@ -1051,9 +1076,11 @@ export class ImageEditor {
 	private overlay_container!: Container;
 	private overlay_graphics!: Graphics;
 	private pad_bottom: number;
+	private theme_mode: "dark" | "light";
 	constructor(options: ImageEditorOptions) {
 		this.pad_bottom = options.pad_bottom || 0;
 		this.dark = options.dark || false;
+		this.theme_mode = options.theme_mode || "dark";
 		this.target_element = options.target_element;
 		this.width = options.width;
 		this.height = options.height;
@@ -1142,7 +1169,7 @@ export class ImageEditor {
 			width: container_box.width,
 			height: container_box.height,
 			backgroundAlpha: this.dark ? 0 : 1,
-			backgroundColor: this.dark ? 0x333333 : 0xffffff,
+			backgroundColor: this.theme_mode === "dark" ? "#27272a" : "#ffffff",
 			resolution: window.devicePixelRatio,
 			autoDensity: true,
 			antialias: true,
@@ -1726,5 +1753,9 @@ export class ImageEditor {
 			this.width,
 			this.height
 		);
+	}
+
+	toggle_layer_visibility(id: string): void {
+		this.layer_manager.toggle_layer_visibility(id);
 	}
 }

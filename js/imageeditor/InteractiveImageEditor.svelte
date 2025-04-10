@@ -31,8 +31,10 @@
 	import {
 		type LayerOptions,
 		type Transform,
-		type Source
+		type Source,
+		type WebcamOptions
 	} from "./shared/types";
+
 	export let brush: IBrush;
 	export let eraser: Eraser;
 	export let sources: Source[];
@@ -41,6 +43,7 @@
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 	export let changeable = false;
+	export let theme_mode: "dark" | "light";
 
 	export let layers: FileData[];
 	export let composite: FileData | null;
@@ -58,6 +61,7 @@
 	export let placeholder: string | undefined = undefined;
 	export let border_region: number;
 	export let full_history: CommandNode | null = null;
+	export let webcam_options: WebcamOptions;
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;
@@ -234,6 +238,8 @@
 	{upload}
 	bind:is_dragging
 	bind:has_drawn
+	{webcam_options}
+	{theme_mode}
 >
 	{#if !background_image && current_tool === "image" && !has_drawn}
 		<div class="empty wrap">
