@@ -60,6 +60,7 @@
 	export let layer_options: LayerOptions;
 	export let current_tool: ToolbarTool;
 	export let webcam_options: WebcamOptions;
+	export let theme_mode: "dark" | "light";
 
 	let pixi_target: HTMLDivElement;
 	let pixi_target_crop: HTMLDivElement;
@@ -256,7 +257,8 @@
 			tools: ["image", zoom, new ResizeTool(), brush],
 			fixed_canvas,
 			border_region,
-			layer_options
+			layer_options,
+			theme_mode
 		});
 
 		brush.on("change", () => {
@@ -653,12 +655,18 @@
 				}}
 				on:change_layer={(e) => {
 					editor.set_layer(e.detail);
+					if (current_tool === "draw") {
+						handle_tool_change({ tool: "draw" });
+					}
 				}}
 				on:move_layer={(e) => {
 					editor.move_layer(e.detail.id, e.detail.direction);
 				}}
 				on:delete_layer={(e) => {
 					editor.delete_layer(e.detail);
+				}}
+				on:toggle_layer_visibility={(e) => {
+					editor.toggle_layer_visibility(e.detail);
 				}}
 			/>
 		{/if}
