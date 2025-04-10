@@ -5,6 +5,7 @@ altair
 asyncio
 boto3
 coverage
+docker
 fastapi>=0.115.7
 gradio_pdf==0.0.21
 gradio==5.10.0

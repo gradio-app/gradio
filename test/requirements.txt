@@ -51,6 +51,8 @@ diffusers==0.32.2
     # via -r test/requirements.in
 dnspython==2.7.0
     # via email-validator
+docker==7.1.0
+    # via -r test/requirements.in
 email-validator==2.2.0
     # via pydantic
 exceptiongroup==1.2.2
@@ -267,6 +269,7 @@ regex==2024.11.6
 requests==2.32.3
     # via
     #   diffusers
+    #   docker
     #   huggingface-hub
     #   transformers
 respx==0.22.0
@@ -357,6 +360,7 @@ tzdata==2025.1
 urllib3==2.3.0
     # via
     #   botocore
+    #   docker
     #   requests
 uvicorn==0.34.0
     # via gradio
