@@ -225,6 +225,7 @@
 	on:save
 	on:change={handle_change}
 	on:clear={() => dispatch("clear")}
+	on:download_error
 	{sources}
 	{full_history}
 	bind:background_image

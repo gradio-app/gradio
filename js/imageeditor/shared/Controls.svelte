@@ -3,65 +3,22 @@
 	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import { Check, Trash, ZoomIn, ZoomOut, Pan, Download } from "@gradio/icons";
 
-	/**
-	 * Can the current image be saved?
-	 */
 	export let can_save = false;
-	/**
-	 * Is the current image changeable?
-	 */
 	export let changeable = false;
-	/**
-	 * The current zoom level.
-	 */
 	export let current_zoom = 1;
-	/**
-	 * The current tool.
-	 */
 	export let tool: string;
-	/**
-	 * Is the current zoom level minimum?
-	 */
 	export let min_zoom = true;
-
 	export let enable_download = false;
 
 	const dispatch = createEventDispatcher<{
-		/**
-		 * Remove the current image.
-		 */
 		remove_image: void;
-		/**
-		 * Undo the last action.
-		 */
 		undo: void;
-		/**
-		 * Redo the last action.
-		 */
 		redo: void;
-		/**
-		 * Save the current image.
-		 */
 		save: void;
-		/**
-		 * Zoom in.
-		 */
 		zoom_in: void;
-		/**
-		 * Zoom out.
-		 */
 		zoom_out: void;
-		/**
-		 * Set the zoom level.
-		 */
 		set_zoom: number | "fit";
-		/**
-		 * Pan the image.
-		 */
 		pan: void;
-		/**
-		 * Download the image.
-		 */
 		download: void;
 	}>();
 

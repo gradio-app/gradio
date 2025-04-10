@@ -36,6 +36,7 @@
 		history: CommandManager["current_history"];
 		upload: void;
 		input: void;
+		download_error: string;
 	}>();
 
 	export const antialias = true;
@@ -571,7 +572,10 @@
 		const blobs = await editor.get_blobs();
 
 		const blob = blobs.composite;
-		if (!blob) return;
+		if (!blob) {
+			dispatch("download_error", "Unable to generate image to download.");
+			return;
+		}
 		const url = URL.createObjectURL(blob);
 		const link = document.createElement("a");
 		link.href = url;
