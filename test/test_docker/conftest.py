@@ -18,18 +18,26 @@ def build_packages():
         ["python", "-m", "build", "--wheel", gradio_dir, "--outdir", file_dir],
         check=True,
     )
-    subprocess.run(
-        [
-            "python",
-            "-m",
-            "build",
-            "--wheel",
-            os.path.join(gradio_dir, "client/python/"),
-            "--outdir",
-            file_dir,
-        ],
-        check=True,
-    )
+    try:
+        subprocess.run(
+            [
+                "python",
+                "-m",
+                "build",
+                "--wheel",
+                os.path.join(gradio_dir, "client/python/"),
+                "--outdir",
+                file_dir,
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(
+            f"Error during docker-compose up: {e.stderr} | {e.stdout}"
+        ) from e
+
     wheel_files = [f for f in os.listdir(file_dir) if f.endswith(".whl")]
     test_folders = [
         folder for folder in os.listdir(file_dir) if folder.startswith("test_")
