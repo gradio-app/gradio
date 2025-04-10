@@ -26,6 +26,8 @@ botocore==1.36.8
     # via
     #   boto3
     #   s3transfer
+build==1.2.2.post1
+    # via -r test/requirements.in
 certifi==2024.12.14
     # via
     #   httpcore
@@ -183,6 +185,7 @@ orjson==3.10.15
 packaging==24.2
     # via
     #   altair
+    #   build
     #   gradio
     #   gradio-client
     #   huggingface-hub
@@ -232,6 +235,8 @@ pygments==2.19.1
     #   rich
 pyparsing==3.2.1
     # via matplotlib
+pyproject-hooks==1.2.0
+    # via build
 pytest==8.3.4
     # via
     #   -r test/requirements.in
@@ -320,6 +325,7 @@ tokenizers==0.21.0
     # via transformers
 tomli==2.2.1
     # via
+    #   build
     #   coverage
     #   pytest
 tomlkit==0.13.2

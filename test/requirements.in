@@ -4,6 +4,7 @@ IPython
 altair
 asyncio
 boto3
+build==1.2.2.post1
 coverage
 docker==7.1.0
 fastapi>=0.115.7
