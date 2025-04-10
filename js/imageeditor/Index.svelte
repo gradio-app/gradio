@@ -17,7 +17,7 @@
 		LayerOptions,
 		Transform,
 		Source,
-		WebcamOptions
+		WebcamOptions,
 	} from "./shared/types";
 
 	export let elem_id = "";
@@ -26,7 +26,7 @@
 	export let value: EditorData | null = {
 		background: null,
 		layers: [],
-		composite: null
+		composite: null,
 	};
 	export let label: string;
 	export let show_label: boolean;
@@ -73,6 +73,7 @@
 	}>;
 	export let border_region = 0;
 	export let webcam_options: WebcamOptions;
+	export let theme_mode: "dark" | "light";
 
 	let editor_instance: InteractiveImageEditor;
 	let image_id: null | string = null;
@@ -227,7 +228,7 @@
 				(value = {
 					background: null,
 					layers: [],
-					composite: null
+					composite: null,
 				})}
 			on:error
 			{brush}
@@ -244,6 +245,7 @@
 			{full_history}
 			{webcam_options}
 			{show_download_button}
+			{theme_mode}
 		></InteractiveImageEditor>
 	</Block>
 {/if}
