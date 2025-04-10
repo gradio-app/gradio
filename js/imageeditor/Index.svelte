@@ -73,6 +73,7 @@
 	}>;
 	export let border_region = 0;
 	export let webcam_options: WebcamOptions;
+	export let theme_mode: "dark" | "light";
 
 	let editor_instance: InteractiveImageEditor;
 	let image_id: null | string = null;
@@ -243,6 +244,7 @@
 			{placeholder}
 			{full_history}
 			{webcam_options}
+			{theme_mode}
 		></InteractiveImageEditor>
 	</Block>
 {/if}
