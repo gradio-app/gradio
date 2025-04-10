@@ -59,18 +59,25 @@ def launch_services_fn():
         test_name: str, folder: str, app_suffix: str = "", nginx_suffix: str = ""
     ):
         os.environ["COMPOSE_PROJECT_NAME"] = test_name
-        subprocess.run(
-            [
-                "docker",
-                "compose",
-                "-f",
-                f"{folder}/docker-compose.yml",
-                "up",
-                "-d",
-                "--build",
-            ],
-            check=True,
-        )
+        try:
+            subprocess.run(
+                [
+                    "docker",
+                    "compose",
+                    "-f",
+                    f"{folder}/docker-compose.yml",
+                    "up",
+                    "-d",
+                    "--build",
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(
+                f"Error during docker-compose up: {e.stderr} | {e.stdout}"
+            ) from e
 
         container_attempts = 10
 
