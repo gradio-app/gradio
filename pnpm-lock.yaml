@@ -19,9 +19,6 @@ importers:
 
   .:
     dependencies:
-      '@babylonjs/viewer':
-        specifier: ^8.2.0
-        version: 8.2.0(@babylonjs/core@8.2.0)(@babylonjs/loaders@8.2.0(@babylonjs/core@8.2.0)(babylonjs-gltf2interface@7.25.2))
       '@changesets/changelog-github':
         specifier: ^0.5.0
         version: 0.5.0
