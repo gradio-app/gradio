@@ -36,6 +36,7 @@
 		history: CommandManager["current_history"];
 		upload: void;
 		input: void;
+		download_error: string;
 	}>();
 
 	export const antialias = true;
@@ -60,6 +61,8 @@
 	export let layer_options: LayerOptions;
 	export let current_tool: ToolbarTool;
 	export let webcam_options: WebcamOptions;
+	export let show_download_button = false;
+	export let theme_mode: "dark" | "light";
 
 	let pixi_target: HTMLDivElement;
 	let pixi_target_crop: HTMLDivElement;
@@ -256,7 +259,8 @@
 			tools: ["image", zoom, new ResizeTool(), brush],
 			fixed_canvas,
 			border_region,
-			layer_options
+			layer_options,
+			theme_mode
 		});
 
 		brush.on("change", () => {
@@ -563,6 +567,22 @@
 		dispatch("change");
 		dispatch("input");
 	}
+
+	async function handle_download(): Promise<void> {
+		const blobs = await editor.get_blobs();
+
+		const blob = blobs.composite;
+		if (!blob) {
+			dispatch("download_error", "Unable to generate image to download.");
+			return;
+		}
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement("a");
+		link.href = url;
+		link.download = "image.png";
+		link.click();
+		URL.revokeObjectURL(url);
+	}
 </script>
 
 <div
@@ -599,6 +619,8 @@
 				on:pan={(e) => {
 					handle_tool_change({ tool: "pan" });
 				}}
+				enable_download={show_download_button}
+				on:download={() => handle_download()}
 			/>
 		{/if}
 
@@ -653,12 +675,18 @@
 				}}
 				on:change_layer={(e) => {
 					editor.set_layer(e.detail);
+					if (current_tool === "draw") {
+						handle_tool_change({ tool: "draw" });
+					}
 				}}
 				on:move_layer={(e) => {
 					editor.move_layer(e.detail.id, e.detail.direction);
 				}}
 				on:delete_layer={(e) => {
 					editor.delete_layer(e.detail);
+				}}
+				on:toggle_layer_visibility={(e) => {
+					editor.toggle_layer_visibility(e.detail);
 				}}
 			/>
 		{/if}

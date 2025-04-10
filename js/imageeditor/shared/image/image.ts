@@ -52,8 +52,7 @@ export class ImageTool implements Tool {
 			border_region
 		);
 
-		await image_command.start();
-		this.context.execute_command(image_command);
+		await this.context.execute_command(image_command);
 	}
 
 	set_tool(tool: ToolbarTool, subtool: Subtool): void {
@@ -162,7 +161,7 @@ export class AddImageCommand implements BgImageCommand {
 		const [width, height] = await this.start();
 
 		// Update image properties with the original dimensions and center in viewport
-		this.context.set_image_properties({
+		await this.context.set_image_properties({
 			scale: 1, // Start at 1:1 scale
 			position: {
 				x: this.context.app.screen.width / 2,
@@ -196,7 +195,6 @@ export class AddImageCommand implements BgImageCommand {
 		if (this.sprite) {
 			this.sprite.destroy();
 		}
-		// The background layer will be automatically cleaned up when a new image is added
 	}
 }
 
