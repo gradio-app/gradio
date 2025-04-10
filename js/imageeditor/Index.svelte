@@ -244,7 +244,9 @@
 			{placeholder}
 			{full_history}
 			{webcam_options}
+			{show_download_button}
 			{theme_mode}
+			on:download_error={(e) => gradio.dispatch("error", e.detail)}
 		></InteractiveImageEditor>
 	</Block>
 {/if}
