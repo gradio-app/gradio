@@ -652,6 +652,9 @@
 				}}
 				on:change_layer={(e) => {
 					editor.set_layer(e.detail);
+					if (current_tool === "draw") {
+						handle_tool_change({ tool: "draw" });
+					}
 				}}
 				on:move_layer={(e) => {
 					editor.move_layer(e.detail.id, e.detail.direction);
