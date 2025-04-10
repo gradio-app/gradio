@@ -36,9 +36,7 @@ def build_packages():
             text=True,
         )
     except subprocess.CalledProcessError as e:
-        raise RuntimeError(
-            f"Error during docker-compose up: {e.stderr} | {e.stdout}"
-        ) from e
+        raise RuntimeError(f"Error during python build: {e.stderr} | {e.stdout}") from e
 
     wheel_files = [f for f in os.listdir(file_dir) if f.endswith(".whl")]
     test_folders = [
