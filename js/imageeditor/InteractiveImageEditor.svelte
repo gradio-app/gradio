@@ -43,6 +43,7 @@
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 	export let changeable = false;
+	export let theme_mode: "dark" | "light";
 
 	export let layers: FileData[];
 	export let composite: FileData | null;
@@ -238,6 +239,7 @@
 	bind:is_dragging
 	bind:has_drawn
 	{webcam_options}
+	{theme_mode}
 >
 	{#if !background_image && current_tool === "image" && !has_drawn}
 		<div class="empty wrap">
