@@ -19,7 +19,6 @@ attrs==25.1.0
     # via
     #   hypothesis
     #   jsonschema
-    #   pytest-docker
     #   referencing
 boto3==1.36.8
     # via -r test/requirements.in
@@ -236,13 +235,10 @@ pytest==8.3.4
     #   -r test/requirements.in
     #   pytest-asyncio
     #   pytest-cov
-    #   pytest-docker
     #   pytest-rerunfailures
 pytest-asyncio==0.25.3
     # via -r test/requirements.in
 pytest-cov==6.0.0
-    # via -r test/requirements.in
-pytest-docker==3.2.0
     # via -r test/requirements.in
 pytest-rerunfailures==15.0
     # via -r test/requirements.in
