@@ -1,5 +1,52 @@
 # @gradio/chatbot
 
+## 0.25.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.7
+- @gradio/video@0.14.8
+- @gradio/atoms@0.15.0
+- @gradio/icons@0.11.0
+- @gradio/upload@0.16.0
+- @gradio/image@0.22.0
+- @gradio/gallery@0.15.13
+- @gradio/plot@0.9.12
+
+## 0.25.2
+
+### Fixes
+
+- [#10922](https://github.com/gradio-app/gradio/pull/10922) [`afe0b13`](https://github.com/gradio-app/gradio/commit/afe0b139fa8715eabc28362aaffe6e0b50b239a5) - Fix regression around chatbot thoughts not being collapsible.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/video@0.14.7
+- @gradio/wasm@0.18.1
+- @gradio/client@1.14.1
+- @gradio/upload@0.15.7
+- @gradio/gallery@0.15.12
+- @gradio/image@0.21.7
+
+## 0.25.1
+
+### Features
+
+- [#10854](https://github.com/gradio-app/gradio/pull/10854) [`1649b00`](https://github.com/gradio-app/gradio/commit/1649b0038482402d7f0ccdbf86ba65d82b4a12c9) - Add support for `mermaid.js` in `Markdown` component (as well as components like `gr.Chatbot` that use Markdown).  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/video@0.14.6
+- @gradio/atoms@0.14.1
+- @gradio/statustracker@0.10.6
+- @gradio/client@1.14.0
+- @gradio/wasm@0.18.0
+- @gradio/markdown-code@0.4.2
+- @gradio/gallery@0.15.11
+- @gradio/upload@0.15.6
+- @gradio/plot@0.9.11
+- @gradio/image@0.21.6
+
 ## 0.25.0
 
 ### Features

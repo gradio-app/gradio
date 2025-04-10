@@ -1,5 +1,25 @@
 # @gradio/markdown
 
+## 0.13.7
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.7
+- @gradio/atoms@0.15.0
+- @gradio/icons@0.11.0
+
+## 0.13.6
+
+### Features
+
+- [#10854](https://github.com/gradio-app/gradio/pull/10854) [`1649b00`](https://github.com/gradio-app/gradio/commit/1649b0038482402d7f0ccdbf86ba65d82b4a12c9) - Add support for `mermaid.js` in `Markdown` component (as well as components like `gr.Chatbot` that use Markdown).  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.14.1
+- @gradio/statustracker@0.10.6
+- @gradio/markdown-code@0.4.2
+
 ## 0.13.5
 
 ### Dependency updates

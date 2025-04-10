@@ -1,5 +1,50 @@
 # @gradio/multimodaltextbox
 
+## 0.10.0
+
+### Features
+
+- [#10635](https://github.com/gradio-app/gradio/pull/10635) [`2f68c9d`](https://github.com/gradio-app/gradio/commit/2f68c9d988dcbc53a0b8e53bdb1de49c9c8c65d8) - Refactor and redesign `ImageEditor` component.  Thanks @pngwn!
+
+### Fixes
+
+- [#10925](https://github.com/gradio-app/gradio/pull/10925) [`c37de0f`](https://github.com/gradio-app/gradio/commit/c37de0f9081f30ac963b0c837e8f1985461afbb1) - Tweak `rtl` UI in `gr.MultimodalTextbox`.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.7
+- @gradio/video@0.14.8
+- @gradio/atoms@0.15.0
+- @gradio/icons@0.11.0
+- @gradio/upload@0.16.0
+- @gradio/image@0.22.0
+
+## 0.9.14
+
+### Dependency updates
+
+- @gradio/video@0.14.7
+- @gradio/client@1.14.1
+- @gradio/upload@0.15.7
+- @gradio/image@0.21.7
+
+## 0.9.13
+
+### Fixes
+
+- [#10902](https://github.com/gradio-app/gradio/pull/10902) [`b9b8d08`](https://github.com/gradio-app/gradio/commit/b9b8d08bd2cfb4c89444f5ca3066b1d733c8a807) - Fix disabling buttons in `MultimodalTextbox` when `interactive=False`.  Thanks @lara-gfaria!
+
+## 0.9.12
+
+### Dependency updates
+
+- @gradio/video@0.14.6
+- @gradio/atoms@0.14.1
+- @gradio/statustracker@0.10.6
+- @gradio/client@1.14.0
+- @gradio/upload@0.15.6
+- @gradio/image@0.21.6
+
 ## 0.9.11
 
 ### Dependency updates

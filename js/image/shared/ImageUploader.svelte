@@ -15,7 +15,7 @@
 	import { FileData, type Client } from "@gradio/client";
 	import { SelectSource } from "@gradio/atoms";
 	import Image from "./Image.svelte";
-	import type { Base64File } from "./types";
+	import type { Base64File, WebcamOptions } from "./types";
 
 	export let value: null | FileData | Base64File = null;
 	export let label: string | undefined = undefined;
@@ -26,7 +26,7 @@
 	export let sources: source_type[] = ["upload", "clipboard", "webcam"];
 	export let streaming = false;
 	export let pending = false;
-	export let mirror_webcam: boolean;
+	export let webcam_options: WebcamOptions;
 	export let selectable = false;
 	export let root: string;
 	export let i18n: I18nFormatter;
@@ -42,8 +42,6 @@
 	let upload_input: Upload;
 	export let uploading = false;
 	export let active_source: source_type = null;
-
-	export let webcam_constraints: { [key: string]: any } | undefined = undefined;
 
 	async function handle_upload({
 		detail
@@ -189,7 +187,7 @@
 				on:drag
 				on:upload={(e) => handle_save(e.detail, "upload")}
 				on:close_stream
-				{mirror_webcam}
+				mirror_webcam={webcam_options.mirror}
 				{stream_every}
 				{streaming}
 				mode="image"
@@ -198,7 +196,7 @@
 				{upload}
 				bind:modify_stream
 				bind:set_time_limit
-				{webcam_constraints}
+				webcam_constraints={webcam_options.constraints}
 			/>
 		{:else if value !== null && !streaming}
 			<!-- svelte-ignore a11y-click-events-have-key-events-->
@@ -223,12 +221,6 @@
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: scale-down;
-	}
-
-	.image-frame {
-		object-fit: cover;
-		width: 100%;
-		height: 100%;
 	}
 
 	.upload-container {

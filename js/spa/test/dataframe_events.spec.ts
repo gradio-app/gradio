@@ -1,25 +1,10 @@
 import { test, expect } from "@self/tootils";
 import { Locator } from "@playwright/test";
-import { toBeVisible } from "@testing-library/jest-dom/matchers";
-
-function get_header_cell(element: Locator, col: number) {
-	return element.locator(`th[title='col_${col}']`).nth(1);
-}
 
 // returns a cell in a dataframe by row and column indices
 function get_cell(element: Locator, row: number, col: number) {
 	return element.locator(`[data-row='${row}'][data-col='${col}']`);
 }
-
-const get_column_values = async (df: Locator): Promise<number[]> => {
-	const cells = await df.locator(".tbody > tr > td:nth-child(2)").all();
-	const values: number[] = [];
-	for (const cell of cells) {
-		const text = (await cell.textContent()) || "0";
-		values.push(parseInt(text.trim()));
-	}
-	return values;
-};
 
 test("Dataframe change events work as expected", async ({ page }) => {
 	await expect(page.getByLabel("Change events")).toHaveValue("0");
@@ -52,26 +37,15 @@ test("Dataframe input events work as expected", async ({ page }) => {
 	await expect(input_events).toHaveValue("2");
 });
 
-test("Dataframe select events work as expected", async ({ page }) => {
-	await expect(page.getByLabel("Select events")).toHaveValue("0");
+test("Dataframe blur event works as expected", async ({ page }) => {
+	const df = page.locator("#dataframe").first();
 
-	await page.getByRole("button", { name: "Update dataframe" }).click();
-	await page.waitForTimeout(500);
+	await get_cell(df, 0, 0).click();
+	await page.getByLabel("Edit cell").fill("test_blur");
+	await get_cell(df, 1, 1).click();
+	await page.waitForTimeout(100);
 
-	const dataframe = page.locator("#dataframe");
-	await get_cell(dataframe, 1, 1).click();
-
-	await expect(page.getByLabel("Select events")).toHaveValue("1");
-
-	const selected_cell_index = await page
-		.getByLabel("Selected cell index")
-		.inputValue();
-	expect(selected_cell_index).toContain("[1, 1]");
-
-	const selected_cell_value = await page
-		.getByLabel("Selected cell value")
-		.inputValue();
-	expect(selected_cell_value).not.toBe("");
+	await expect(page.getByLabel("Change events")).toHaveValue("1");
 });
 
 test("Dataframe filter functionality works correctly", async ({ page }) => {
@@ -100,7 +74,7 @@ test("Dataframe search functionality works correctly", async ({ page }) => {
 	expect(all_cells_text.length).toBeGreaterThan(0);
 
 	const search_term = all_cells_text[0].trim();
-	const search_input = page.getByPlaceholder("Search...");
+	const search_input = page.getByPlaceholder("Search...").first();
 
 	await page.waitForSelector("input[placeholder='Search...']");
 	await search_input.click();
@@ -135,29 +109,27 @@ test("Tall dataframe has vertical scrolling", async ({ page }) => {
 	expect(visible_rows).toBeLessThan(50);
 
 	const column_count = await tall_df_block.locator(".thead > tr > th").count();
-	expect(column_count).toBe(4);
+	expect(column_count).toBe(3);
 });
 
 test("Dataframe can be cleared and updated indirectly", async ({ page }) => {
 	await page.getByRole("button", { name: "Clear dataframe" }).click();
 	await page.waitForTimeout(500);
 
-	const tall_df_block = page.locator("#dataframe_tall");
-	const empty_rows = await tall_df_block.locator(".tbody > tr").count();
-	expect(empty_rows).toBe(0);
+	const df_block = page.locator("#dataframe");
+	const empty_rows = await df_block.locator(".tbody > tr").count();
+	expect(empty_rows).toBe(5);
 
 	await page.getByRole("button", { name: "Update dataframe" }).click();
 	await page.waitForTimeout(500);
 
-	const updated_rows = await tall_df_block.locator(".tbody > tr").count();
+	const updated_rows = await df_block.locator(".tbody > tr").count();
 	expect(updated_rows).toBeGreaterThan(0);
 
-	const headers = await tall_df_block
-		.locator(".thead > tr > th")
-		.allTextContents();
+	const headers = await df_block.locator(".thead > tr > th").allTextContents();
 
 	const trimmed_headers = headers.slice(1).map((header) => header.trim());
-	expect(trimmed_headers).toEqual(["A    ⋮", "B    ⋮", "C    ⋮"]);
+	expect(trimmed_headers).toEqual(["0", "1", "2", "3", "4"]);
 });
 
 test("Non-interactive dataframe cannot be edited", async ({ page }) => {
@@ -199,9 +171,10 @@ test("Dataframe keyboard operations work as expected", async ({ page }) => {
 	// test delete key
 	await get_cell(df, 0, 0).click();
 	await page.waitForTimeout(100);
+	await page.keyboard.press("Escape");
 	await page.keyboard.press("Delete");
 
-	expect(await get_cell(df, 0, 0).locator("input").textContent()).toBe("");
+	expect(await get_cell(df, 0, 0).textContent()).toBe("    ⋮");
 
 	// test backspace key
 	await get_cell(df, 0, 1).click();
@@ -244,7 +217,7 @@ test("Dataframe shift+click selection works", async ({ page }) => {
 		navigator.clipboard.readText()
 	);
 
-	expect(clipboard_value).toBe("0,6\n0,0");
+	expect(clipboard_value).toBe("0,6\n0,6");
 });
 
 test("Dataframe cmd + click selection works", async ({ page }) => {
@@ -273,7 +246,7 @@ test("Dataframe cmd + click selection works", async ({ page }) => {
 		navigator.clipboard.readText()
 	);
 
-	expect(clipboard_value).toBe("6\n0");
+	expect(clipboard_value).toBe("6\n8");
 });
 
 test("Static columns cannot be edited", async ({ page }) => {
@@ -328,4 +301,68 @@ test("Dataframe search functionality works correctly after data update", async (
 	await page.waitForTimeout(100);
 	const filtered_after_update = await df.locator("tbody tr").count();
 	expect(filtered_after_update).toEqual(2);
+});
+
+test("Dataframe displays custom display values with medal icons correctly", async ({
+	page
+}) => {
+	await page.getByRole("button", { name: "Update dataframe" }).click();
+	await page.waitForTimeout(500);
+
+	const tall_df = page.locator("#dataframe_tall");
+	await expect(tall_df).toBeVisible();
+
+	// check medal icons in first column
+	expect(await get_cell(tall_df, 0, 0).textContent()).toContain("🥇");
+	expect(await get_cell(tall_df, 1, 0).textContent()).toContain("🥈");
+	expect(await get_cell(tall_df, 2, 0).textContent()).toContain("🥉");
+
+	// no medals for 4th position
+	const fourth_cell = await get_cell(tall_df, 3, 0).textContent();
+	expect(fourth_cell).not.toContain("🥇");
+	expect(fourth_cell).not.toContain("🥈");
+	expect(fourth_cell).not.toContain("🥉");
+
+	// verify medals don't appear in other columns
+	expect(await get_cell(tall_df, 0, 1).textContent()).not.toContain("🥇");
+});
+
+test("Dataframe select events work as expected", async ({ page }) => {
+	const df = page.locator("#dataframe_tall");
+	const search_input = df.locator("input.search-input");
+
+	await get_cell(df, 0, 0).click();
+	await page.waitForTimeout(100);
+
+	const selected_cell_value = await page
+		.locator("#tall_selected_cell_value textarea")
+		.inputValue();
+
+	expect(selected_cell_value).toBe("DeepSeek Coder");
+
+	await search_input.fill("llama");
+	await search_input.press("Enter");
+
+	await page.waitForTimeout(200);
+	await get_cell(df, 1, 0).click();
+	await page.waitForTimeout(200);
+
+	const updated_selected_cell_value = await page
+		.locator("#tall_selected_cell_value textarea")
+		.inputValue();
+
+	expect(updated_selected_cell_value).toBe("Llama 3.3");
+
+	await search_input.clear();
+	await search_input.press("Enter");
+	await page.waitForTimeout(200);
+
+	await get_cell(df, 0, 0).click();
+	await page.waitForTimeout(200);
+
+	const restored_selected_cell_value = await page
+		.locator("#tall_selected_cell_value textarea")
+		.inputValue();
+
+	expect(restored_selected_cell_value).toBe("DeepSeek Coder");
 });

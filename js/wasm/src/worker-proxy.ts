@@ -16,6 +16,10 @@ import {
 	logHttpReqRes
 } from "./http";
 import type { ASGIScope, ReceiveEvent, SendEvent } from "./asgi-types";
+import type {
+	CodeCompletionRequest,
+	CodeCompletionResponse
+} from "./webworker/code-completion";
 
 export interface WorkerProxyOptions {
 	gradioWheelUrl: string;
@@ -48,11 +52,11 @@ export class WorkerProxy extends EventTarget {
 		);
 
 		this.worker = workerMaker.worker;
-		if (sharedWorkerMode) {
-			this.postMessageTarget = (this.worker as SharedWorker).port;
+		if (isSharedWorker(this.worker)) {
+			this.postMessageTarget = this.worker.port;
 			this.postMessageTarget.start();
 		} else {
-			this.postMessageTarget = this.worker as globalThis.Worker;
+			this.postMessageTarget = this.worker;
 		}
 		this.postMessageTarget.onmessage = (e) => {
 			this._processWorkerMessage(e.data);
@@ -133,7 +137,7 @@ export class WorkerProxy extends EventTarget {
 	// returns void immediately, this function returns a promise, which resolves
 	// when a ReplyMessage is received from the worker.
 	// The original implementation is in https://github.com/rstudio/shinylive/blob/v0.1.2/src/pyodide-proxy.ts#L404-L418
-	postMessageAsync(msg: InMessage): Promise<unknown> {
+	postMessageAsync<T = unknown>(msg: InMessage): Promise<T> {
 		return new Promise((resolve, reject) => {
 			const channel = new MessageChannel();
 
@@ -145,7 +149,7 @@ export class WorkerProxy extends EventTarget {
 					return;
 				}
 
-				resolve(msg.data);
+				resolve(msg.data as T);
 			};
 
 			this.postMessageTarget.postMessage(msg, [channel.port2]);
@@ -356,6 +360,15 @@ export class WorkerProxy extends EventTarget {
 		}) as Promise<void>;
 	}
 
+	public getCodeCompletions(
+		request: CodeCompletionRequest
+	): Promise<CodeCompletionResponse> {
+		return this.postMessageAsync<CodeCompletionResponse>({
+			type: "code-completion",
+			data: request
+		});
+	}
+
 	public terminate(): void {
 		if (isMessagePort(this.postMessageTarget)) {
 			console.debug("Closing the message port...");
@@ -366,6 +379,14 @@ export class WorkerProxy extends EventTarget {
 			this.worker.terminate();
 		}
 	}
+}
+
+function isSharedWorker(worker: unknown): worker is SharedWorker {
+	// `SharedWorker` is not available in some environments like Chrome for Android,
+	// so we need to check if it is available before using it.
+	return (
+		typeof window.SharedWorker !== "undefined" && worker instanceof SharedWorker
+	);
 }
 
 function isDedicatedWorker(

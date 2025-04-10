@@ -1,7 +1,8 @@
 {
 	"_name": "Français",
 	"3D_model": {
-		"3d_model": "Modèle 3D"
+		"3d_model": "Modèle 3D",
+		"drop_to_upload": "Déposez un fichier image ici pour le télécharger"
 	},
 	"annotated_image": {
 		"annotated_image": "Image annotée"
@@ -18,12 +19,14 @@
 		"no_microphone": "Aucun microphone trouvé",
 		"pause": "Pause",
 		"play": "Lecture",
-		"waiting": "En attente"
+		"waiting": "En attente",
+		"drop_to_upload": "Déposez un fichier audio ici pour le télécharger"
 	},
 	"blocks": {
 		"connection_can_break": "Sur mobile, la connexion peut être interrompue si cet onglet perd le focus ou si l'appareil se met en veille, perdant votre position dans la file d'attente.",
 		"long_requests_queue": "Il y a une longue file d'attente de requêtes en attente. Dupliquez ce Space pour la contourner.",
-		"lost_connection": "Connexion perdue en quittant la page. Retour à la file d'attente..."
+		"lost_connection": "Connexion perdue en quittant la page. Retour à la file d'attente...",
+		"waiting_for_inputs": "En attente de la fin du téléchargement des fichier(s), veuillez réessayer."
 	},
 	"checkbox": {
 		"checkbox": "Case à cocher",
@@ -64,7 +67,14 @@
 		"add_row_above": "Ajouter une ligne au-dessus",
 		"add_row_below": "Ajouter une ligne en dessous",
 		"add_column_left": "Ajouter une colonne à gauche",
-		"add_column_right": "Ajouter une colonne à droite"
+		"add_column_right": "Ajouter une colonne à droite",
+		"delete_row": "Supprimer la ligne",
+		"delete_column": "Supprimer la colonne",
+		"sort_column": "Trier la colonne",
+		"sort_ascending": "Trier par ordre croissant",
+		"sort_descending": "Trier par ordre décroissant",
+		"drop_to_upload": "Déposez ici les fichiers CSV ou TSV pour importer les données dans le dataframe.",
+		"clear_sort": "Effacer le tri"
 	},
 	"dropdown": {
 		"dropdown": "Menu déroulant"
@@ -76,7 +86,7 @@
 		"no_app_file": "il n'y a pas de fichier d'application",
 		"runtime_error": "il y a une erreur d'exécution",
 		"space_not_working": "\"Le Space ne fonctionne pas car\" {0}",
-		"space_paused": "le space est en pause",
+		"space_paused": "le Space est en pause",
 		"use_via_api": "Utiliser via l'API"
 	},
 	"file": {
@@ -93,7 +103,8 @@
 		"remove_image": "Supprimer l'image",
 		"select_brush_color": "Sélectionner la couleur du pinceau",
 		"start_drawing": "Commencer à dessiner",
-		"use_brush": "Utiliser le pinceau"
+		"use_brush": "Utiliser le pinceau",
+		"drop_to_upload": "Déposez un fichier image ici pour télécharger"
 	},
 	"label": {
 		"label": "Étiquette"
@@ -118,13 +129,16 @@
 		"slider": "Curseur"
 	},
 	"upload_text": {
-		"click_to_upload": "Cliquez pour télécharger",
+		"click_to_upload": "Cliquez pour télécharger un fichier",
 		"drop_audio": "Déposez l'audio ici",
-		"drop_csv": "Déposez le CSV ici",
+		"drop_csv": "Déposez le fichier CSV ici",
 		"drop_file": "Déposez le fichier ici",
 		"drop_image": "Déposez l'image ici",
 		"drop_video": "Déposez la vidéo ici",
 		"drop_gallery": "Déposez les médias ici",
 		"paste_clipboard": "Coller depuis le presse-papiers"
+	},
+	"video": {
+		"drop_to_upload": "Déposez un fichier vidéo ici pour le télécharger"
 	}
 }

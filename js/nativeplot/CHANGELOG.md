@@ -1,5 +1,24 @@
 # @gradio/nativeplot
 
+## 0.5.11
+
+### Fixes
+
+- [#10953](https://github.com/gradio-app/gradio/pull/10953) [`ede7428`](https://github.com/gradio-app/gradio/commit/ede74283d738f55e032a98fb1875605cb0b65d8a) - Fix gr.NativePlot sorting of labels as default behaviour.  Thanks @Rafalex04!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.7
+- @gradio/atoms@0.15.0
+- @gradio/icons@0.11.0
+
+## 0.5.10
+
+### Dependency updates
+
+- @gradio/atoms@0.14.1
+- @gradio/statustracker@0.10.6
+
 ## 0.5.9
 
 ### Dependency updates

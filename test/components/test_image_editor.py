@@ -26,6 +26,7 @@ class TestImageEditor:
             background=image_data, layers=[], composite=image_data
         )
         assert image_editor_component.postprocess(test_image_path) == simpler_data
+        print(image_editor_component.get_config())
 
         assert image_editor_component.get_config() == {
             "value": None,
@@ -44,11 +45,11 @@ class TestImageEditor:
             "visible": True,
             "elem_id": None,
             "elem_classes": [],
-            "mirror_webcam": True,
+            "webcam_options": {"constraints": None, "mirror": True},
             "show_share_button": False,
             "_selectable": False,
             "key": None,
-            "transforms": ("crop",),
+            "transforms": ("crop", "resize"),
             "eraser": {"default_size": "auto"},
             "brush": {
                 "default_size": "auto",
@@ -59,29 +60,23 @@ class TestImageEditor:
                     "rgb(50, 112, 204)",
                     "rgb(173, 50, 204)",
                 ],
-                "default_color": "auto",
+                "default_color": "rgb(204, 50, 50)",
                 "color_mode": "defaults",
             },
             "proxy_url": None,
             "name": "imageeditor",
             "server_fns": ["accept_blobs"],
             "format": "webp",
-            "layers": True,
+            "layers": {
+                "allow_additional_layers": True,
+                "layers": ["Layer 1"],
+                "disabled": False,
+            },
             "canvas_size": (800, 800),
             "placeholder": None,
             "show_fullscreen_button": True,
             "fixed_canvas": False,
         }
-
-    def test_image_editor_sets_canvas_size_as_crop_size(self):
-        image_editor = gr.ImageEditor(crop_size=(300, 300))
-        assert image_editor.get_config()["canvas_size"] == (300, 300)
-
-        image_editor = gr.ImageEditor(crop_size="4:3")
-        assert image_editor.get_config()["canvas_size"] == (1066, 800)
-
-        image_editor = gr.ImageEditor(crop_size="3:4")
-        assert image_editor.get_config()["canvas_size"] == (800, 1066)
 
     def test_process_example(self):
         test_image_path = "test/test_files/bus.png"

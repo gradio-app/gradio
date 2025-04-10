@@ -1,5 +1,35 @@
 # @self/app
 
+## 1.49.0
+
+### Features
+
+- [#10635](https://github.com/gradio-app/gradio/pull/10635) [`2f68c9d`](https://github.com/gradio-app/gradio/commit/2f68c9d988dcbc53a0b8e53bdb1de49c9c8c65d8) - Refactor and redesign `ImageEditor` component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/core@0.13.2
+
+## 1.48.1
+
+### Dependency updates
+
+- @gradio/wasm@0.18.1
+- @gradio/client@1.14.1
+- @gradio/core@0.13.2
+
+## 1.48.0
+
+### Features
+
+- [#10834](https://github.com/gradio-app/gradio/pull/10834) [`c05610c`](https://github.com/gradio-app/gradio/commit/c05610c87dd7f9e9fe5d0aed2fe93e40fdd32648) - Add Deep Links.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@1.14.0
+- @gradio/core@0.13.1
+- @gradio/wasm@0.18.0
+
 ## 1.47.7
 
 ### Dependency updates

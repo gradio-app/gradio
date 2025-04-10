@@ -18,7 +18,6 @@
 		set_available_devices
 	} from "./stream_utils";
 	import type { Base64File } from "./types";
-	import type { int } from "babylonjs";
 
 	let video_source: HTMLVideoElement;
 	let available_video_devices: MediaDeviceInfo[] = [];
@@ -398,7 +397,7 @@
 	video {
 		width: var(--size-full);
 		height: var(--size-full);
-		object-fit: cover;
+		object-fit: contain;
 	}
 
 	.button-wrap {

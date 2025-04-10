@@ -360,7 +360,14 @@ def get_first_header_value(request: fastapi.Request, header_name: str):
     return None
 
 
-def get_request_url(request: fastapi.Request) -> str:
+def get_request_origin(request: fastapi.Request, route_path: str) -> httpx.URL:
+    """
+    Examines the request headers to determine the origin of the request.
+    If the request includes the x-forwarded-host header, it is used directly to determine the origin.
+    Otherwise, the request url is used and the route path is stripped off.
+
+    The returned URL is a httpx.URL object without a trailing slash, e.g. "https://example.com"
+    """
     x_forwarded_host = get_first_header_value(request, "x-forwarded-host")
     root_url = f"http://{x_forwarded_host}" if x_forwarded_host else str(request.url)
     root_url = httpx.URL(root_url)
@@ -368,6 +375,12 @@ def get_request_url(request: fastapi.Request) -> str:
     root_url = str(root_url).rstrip("/")
     if get_first_header_value(request, "x-forwarded-proto") == "https":
         root_url = root_url.replace("http://", "https://")
+
+    route_path = route_path.rstrip("/")
+    if len(route_path) > 0 and not x_forwarded_host:
+        root_url = root_url[: -len(route_path)]
+    root_url = root_url.rstrip("/")
+    root_url = httpx.URL(root_url)
     return root_url
 
 
@@ -384,17 +397,18 @@ def get_api_call_path(request: fastapi.Request) -> str:
     """
     queue_api_url = f"{API_PREFIX}/queue/join"
     generic_api_url = f"{API_PREFIX}/call"
+    request_path = request.url.path.rstrip("/")
 
-    root_url = get_request_url(request)
-
-    if root_url.endswith(queue_api_url):
+    if request_path.endswith(queue_api_url):
         return queue_api_url
 
-    start_index = root_url.rfind(generic_api_url)
+    start_index = request_path.rfind(generic_api_url)
     if start_index >= 0:
-        return root_url[start_index : len(root_url)]
+        return request_path[start_index : len(request_path)]
 
-    raise ValueError(f"Request url '{root_url}' has an unkown api call pattern.")
+    raise ValueError(
+        f"Request url '{str(request.url)}' has an unknown api call pattern."
+    )
 
 
 def get_root_url(
@@ -417,15 +431,8 @@ def get_root_url(
     if root_path and client_utils.is_http_url_like(root_path):
         return root_path.rstrip("/")
 
-    x_forwarded_host = get_first_header_value(request, "x-forwarded-host")
-    root_url = get_request_url(request)
+    root_url = get_request_origin(request, route_path)
 
-    route_path = route_path.rstrip("/")
-    if len(route_path) > 0 and not x_forwarded_host:
-        root_url = root_url[: -len(route_path)]
-    root_url = root_url.rstrip("/")
-
-    root_url = httpx.URL(root_url)
     if root_path and root_url.path != root_path:
         root_url = root_url.copy_with(path=root_path)
 

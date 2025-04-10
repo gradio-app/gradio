@@ -1,5 +1,68 @@
 # @gradio/core
 
+## 0.13.2
+
+### Dependency updates
+
+- @gradio/code@0.13.2
+- @gradio/paramviewer@0.7.5
+- @gradio/statustracker@0.10.7
+- @gradio/video@0.14.8
+- @gradio/button@0.4.13
+- @gradio/atoms@0.15.0
+- @gradio/icons@0.11.0
+- @gradio/upload@0.16.0
+- @gradio/image@0.22.0
+- @gradio/column@0.2.0
+- @gradio/gallery@0.15.13
+- @gradio/plot@0.9.12
+- @gradio/textbox@0.10.7
+- @gradio/checkbox@0.4.17
+- @gradio/file@0.12.13
+
+## 0.13.2
+
+### Fixes
+
+- [#10913](https://github.com/gradio-app/gradio/pull/10913) [`2322700`](https://github.com/gradio-app/gradio/commit/2322700812341a71a200958cdca793ca865c08c4) - Update i18n files.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/code@0.13.1
+- @gradio/video@0.14.7
+- @gradio/wasm@0.18.1
+- @gradio/client@1.14.1
+- @gradio/upload@0.15.7
+- @gradio/gallery@0.15.12
+- @gradio/button@0.4.12
+- @gradio/image@0.21.7
+- @gradio/file@0.12.12
+
+## 0.13.1
+
+### Fixes
+
+- [#10841](https://github.com/gradio-app/gradio/pull/10841) [`8ff0a5e`](https://github.com/gradio-app/gradio/commit/8ff0a5e3e916ba6dfe6255ffcf4d09868ab29bde) - Fix path generation for returned files for bash API.  Thanks @cansik!
+
+### Dependency updates
+
+- @gradio/video@0.14.6
+- @gradio/atoms@0.14.1
+- @gradio/statustracker@0.10.6
+- @gradio/column@0.2.0
+- @gradio/client@1.14.0
+- @gradio/wasm@0.18.0
+- @gradio/gallery@0.15.11
+- @gradio/upload@0.15.6
+- @gradio/plot@0.9.11
+- @gradio/button@0.4.11
+- @gradio/image@0.21.6
+- @gradio/textbox@0.10.6
+- @gradio/file@0.12.11
+- @gradio/checkbox@0.4.16
+- @gradio/code@0.13.0
+- @gradio/paramviewer@0.7.4
+
 ## 0.13.0
 
 ### Features

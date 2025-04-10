@@ -1,5 +1,17 @@
 # @gradio/client
 
+## 1.14.1
+
+### Features
+
+- [#10890](https://github.com/gradio-app/gradio/pull/10890) [`01b88c7`](https://github.com/gradio-app/gradio/commit/01b88c7fdedb413ba92ef6191967a8aed25e185f) - Improve API error handling in JS Client.  Thanks @l2dy!
+
+## 1.14.0
+
+### Features
+
+- [#10834](https://github.com/gradio-app/gradio/pull/10834) [`c05610c`](https://github.com/gradio-app/gradio/commit/c05610c87dd7f9e9fe5d0aed2fe93e40fdd32648) - Add Deep Links.  Thanks @freddyaboulton!
+
 ## 1.13.1
 
 ### Features

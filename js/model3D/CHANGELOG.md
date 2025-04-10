@@ -1,5 +1,36 @@
 # @gradio/model3d
 
+## 0.14.8
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.7
+- @gradio/atoms@0.15.0
+- @gradio/icons@0.11.0
+- @gradio/upload@0.16.0
+
+## 0.14.7
+
+### Features
+
+- [#10847](https://github.com/gradio-app/gradio/pull/10847) [`d5fde7c`](https://github.com/gradio-app/gradio/commit/d5fde7c390004ce5394072100b059f545d2d4eae) - Babylon update for model3D.  Thanks @CedricGuillemet!
+
+### Dependency updates
+
+- @gradio/wasm@0.18.1
+- @gradio/client@1.14.1
+- @gradio/upload@0.15.7
+
+## 0.14.6
+
+### Dependency updates
+
+- @gradio/atoms@0.14.1
+- @gradio/statustracker@0.10.6
+- @gradio/client@1.14.0
+- @gradio/wasm@0.18.0
+- @gradio/upload@0.15.6
+
 ## 0.14.5
 
 ### Dependency updates

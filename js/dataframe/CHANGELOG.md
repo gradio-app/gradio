@@ -1,5 +1,45 @@
 # @gradio/dataframe
 
+## 0.17.5
+
+### Fixes
+
+- [#10955](https://github.com/gradio-app/gradio/pull/10955) [`d654e60`](https://github.com/gradio-app/gradio/commit/d654e60ff61f76ebcf37f294f1d85305d344a70b) - Map search-filtered row indices to original data indices in gr.Dataframe.  Thanks @hannahblair!
+- [#10918](https://github.com/gradio-app/gradio/pull/10918) [`36da6d0`](https://github.com/gradio-app/gradio/commit/36da6d0d5466dd251f46359019959702523f1afc) - Fix value synchronisation issue in gr.Dataframe.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.7
+- @gradio/button@0.4.13
+- @gradio/atoms@0.15.0
+- @gradio/icons@0.11.0
+- @gradio/upload@0.16.0
+
+## 0.17.4
+
+### Dependency updates
+
+- @gradio/client@1.14.1
+- @gradio/upload@0.15.7
+- @gradio/button@0.4.12
+
+## 0.17.3
+
+### Fixes
+
+- [#10900](https://github.com/gradio-app/gradio/pull/10900) [`a018a46`](https://github.com/gradio-app/gradio/commit/a018a46a7fae0f7db25baca7e1c08e6fd5912ed2) - Fix wrap behaviour in dataframe.  Thanks @hannahblair!
+
+## 0.17.2
+
+### Dependency updates
+
+- @gradio/atoms@0.14.1
+- @gradio/statustracker@0.10.6
+- @gradio/client@1.14.0
+- @gradio/markdown-code@0.4.2
+- @gradio/upload@0.15.6
+- @gradio/button@0.4.11
+
 ## 0.17.1
 
 ### Fixes

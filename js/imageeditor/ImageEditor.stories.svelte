@@ -51,11 +51,15 @@
 		},
 		eraser: {
 			default_size: "auto"
+		},
+		webcam_options: {
+			mirror: true,
+			constraints: null
 		}
 	}}
 />
 
-<Story
+<!-- <Story
 	name="Image Editor Undo/Redo Interactions"
 	args={{
 		value: {
@@ -108,15 +112,15 @@
 
 		await userEvent.click(canvas.getByLabelText("Redo"));
 	}}
-/>
+/> -->
 
 <Story
 	name="Static Image Display"
 	args={{
 		value: {
 			composite: {
-				path: "",
-				url: "/output-image.png",
+				path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+				url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
 				size: null,
 				orig_name: null,
 				mime_type: null,
@@ -133,6 +137,10 @@
 		interactive: false,
 		label: "Image Editor",
 		show_label: true,
-		canvas_size: [800, 600]
+		canvas_size: [800, 600],
+		webcam_options: {
+			mirror: true,
+			constraints: null
+		}
 	}}
 />

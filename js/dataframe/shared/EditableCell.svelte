@@ -21,7 +21,6 @@
 		right: string;
 		display: boolean;
 	}[];
-	export let clear_on_focus = false;
 	export let line_breaks = true;
 	export let editable = true;
 	export let is_static = false;
@@ -30,21 +29,21 @@
 	export let components: Record<string, any> = {};
 	export let i18n: I18nFormatter;
 	export let is_dragging = false;
+	export let wrap_text = false;
 
 	export let show_selection_buttons = false;
-	export let coords: [number, number] | null = null;
+	export let coords: [number, number];
 	export let on_select_column: ((col: number) => void) | null = null;
 	export let on_select_row: ((row: number) => void) | null = null;
 
 	const dispatch = createEventDispatcher<{
-		blur: void;
+		blur: { blur_event: FocusEvent; coords: [number, number] };
 		keydown: KeyboardEvent;
 	}>();
 
 	let is_expanded = false;
 
 	export let el: HTMLInputElement | null;
-	$: _value = value;
 
 	function truncate_text(
 		text: string | number,
@@ -72,10 +71,6 @@
 		: display_content;
 
 	function use_focus(node: HTMLInputElement): any {
-		if (clear_on_focus) {
-			_value = "";
-		}
-
 		requestAnimationFrame(() => {
 			node.focus();
 		});
@@ -83,21 +78,16 @@
 		return {};
 	}
 
-	function handle_blur({
-		currentTarget
-	}: Event & {
-		currentTarget: HTMLInputElement;
-	}): void {
-		value = currentTarget.value;
-		dispatch("blur");
+	function handle_blur(event: FocusEvent): void {
+		dispatch("blur", {
+			blur_event: event,
+			coords: coords
+		});
 	}
 
 	function handle_keydown(event: KeyboardEvent): void {
 		if (event.key === "Enter") {
-			if (edit) {
-				value = _value;
-				dispatch("blur");
-			} else if (!header) {
+			if (!header) {
 				is_expanded = !is_expanded;
 			}
 		}
@@ -118,7 +108,7 @@
 		role="textbox"
 		aria-label={is_static ? "Cell is read-only" : "Edit cell"}
 		bind:this={el}
-		bind:value={_value}
+		bind:value
 		class:header
 		tabindex="-1"
 		on:blur={handle_blur}
@@ -146,6 +136,7 @@
 	data-expanded={is_expanded}
 	placeholder=" "
 	class:text={datatype === "str"}
+	class:wrap={wrap_text}
 >
 	{#if datatype === "image" && components.image}
 		<svelte:component
@@ -213,14 +204,6 @@
 		width: 100%;
 		height: 100%;
 		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	span.text:not(.expanded) {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 	}
 
 	span.text.expanded {
@@ -259,5 +242,13 @@
 
 	input:read-only {
 		cursor: not-allowed;
+	}
+
+	.wrap,
+	.wrap.expanded {
+		white-space: normal;
+		word-wrap: break-word;
+		overflow-wrap: break-word;
+		word-wrap: break-word;
 	}
 </style>

@@ -300,7 +300,7 @@ class App(FastAPI):
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
-        self.root_path = blocks.root_path
+        self.root_path = blocks.root_path or blocks.custom_mount_path or ""
         self.state_holder.set_blocks(blocks)
 
     def get_blocks(self) -> gradio.Blocks:
@@ -454,10 +454,17 @@ class App(FastAPI):
 
         @app.post("/login")
         @app.post("/login/")
-        def login(form_data: OAuth2PasswordRequestForm = Depends()):
+        def login(
+            request: fastapi.Request, form_data: OAuth2PasswordRequestForm = Depends()
+        ):
             username, password = form_data.username.strip(), form_data.password
             if app.auth is None:
-                return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+                root = route_utils.get_root_url(
+                    request=request,
+                    route_path="/login",
+                    root_path=app.root_path,
+                )
+                return RedirectResponse(url=root, status_code=status.HTTP_302_FOUND)
             if (
                 not callable(app.auth)
                 and username in app.auth
@@ -494,8 +501,13 @@ class App(FastAPI):
         else:
 
             @app.get("/logout")
-            def logout(user: str = Depends(get_current_user)):
-                response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+            def logout(request: fastapi.Request, user: str = Depends(get_current_user)):
+                root = route_utils.get_root_url(
+                    request=request,
+                    route_path="/logout",
+                    root_path=app.root_path,
+                )
+                response = RedirectResponse(url=root, status_code=status.HTTP_302_FOUND)
                 response.delete_cookie(key=f"access-token-{app.cookie_id}", path="/")
                 response.delete_cookie(
                     key=f"access-token-unsecure-{app.cookie_id}", path="/"
@@ -988,34 +1000,28 @@ class App(FastAPI):
             """
             heartbeat_rate = 0.25 if os.getenv("GRADIO_IS_E2E_TEST", None) else 15
 
-            async def wait():
-                await asyncio.sleep(heartbeat_rate)
-                return "wait"
-
-            async def stop_stream():
-                await app.stop_event.wait()
-                return "stop"
-
             async def iterator():
+                stop_stream_task = asyncio.create_task(app.stop_event.wait())
                 while True:
                     try:
                         yield "data: ALIVE\n\n"
                         # We need to close the heartbeat connections as soon as the server stops
                         # otherwise the server can take forever to close
-                        wait_task = asyncio.create_task(wait())
-                        stop_stream_task = asyncio.create_task(stop_stream())
+                        wait_task = asyncio.create_task(asyncio.sleep(heartbeat_rate))
                         done, _ = await asyncio.wait(
                             [wait_task, stop_stream_task],
                             return_when=asyncio.FIRST_COMPLETED,
                         )
-                        done = [d.result() for d in done]
-                        if "stop" in done:
+                        if stop_stream_task in done:
                             raise asyncio.CancelledError()
                     except asyncio.CancelledError:
+                        if not stop_stream_task.done():
+                            stop_stream_task.cancel()
+
                         req = Request(request, username, session_hash=session_hash)
                         root_path = route_utils.get_root_url(
                             request=request,
-                            route_path=f"{API_PREFIX}/hearbeat/{session_hash}",
+                            route_path=f"{API_PREFIX}/heartbeat/{session_hash}",
                             root_path=app.root_path,
                         )
                         body = PredictBodyInternal(
@@ -1027,7 +1033,7 @@ class App(FastAPI):
                             if any(t for t in dep.targets if t[1] == "unload")
                         ]
                         for fn_index in unload_fn_indices:
-                            # The task runnning this loop has been cancelled
+                            # The task running this loop has been cancelled
                             # so we add tasks in the background
                             background_tasks.add_task(
                                 route_utils.call_process_api,
@@ -1611,7 +1617,7 @@ class App(FastAPI):
                 media_type="application/manifest+json",
             )
 
-        @router.get("/monitoring", dependencies=[Depends(login_check)])
+        @app.get("/monitoring", dependencies=[Depends(login_check)])
         async def analytics_login(request: fastapi.Request):
             if not blocks.enable_monitoring:
                 raise HTTPException(
@@ -1626,7 +1632,7 @@ class App(FastAPI):
             print(f"* Monitoring URL: {monitoring_url} *")
             return HTMLResponse("See console for monitoring URL.")
 
-        @router.get("/monitoring/{key}")
+        @app.get("/monitoring/{key}")
         async def analytics_dashboard(key: str):
             if not blocks.enable_monitoring:
                 raise HTTPException(
@@ -1934,4 +1940,5 @@ INTERNAL_ROUTES = [
     "assets",
     "favicon.ico",
     "gradio_api",
+    "monitoring",
 ]

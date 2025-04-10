@@ -2,7 +2,7 @@
 	import { onMount } from "svelte";
 	import CellMenuIcons from "./CellMenuIcons.svelte";
 	import type { I18nFormatter } from "js/utils/src";
-	import type { SortDirection } from "./context/table_context";
+	import type { SortDirection } from "./context/dataframe_context";
 
 	export let x: number;
 	export let y: number;

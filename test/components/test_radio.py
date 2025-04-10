@@ -43,6 +43,7 @@ class TestRadio:
             "key": None,
             "type": "value",
             "info": None,
+            "rtl": False,
         }
 
         radio = gr.Radio(choices=["a", "b"], type="index")

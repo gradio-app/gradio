@@ -94,12 +94,8 @@ class Brush(Eraser):
         color_mode: If set to "fixed", user can only select from among the colors in `colors`. If "defaults", the colors in `colors` are provided as a default palette, but the user can also select any color using a color picker.
     """
 
-    colors: Union[
-        list[str],
-        str,
-        None,
-    ] = None
-    default_color: Union[str, Literal["auto"]] = "auto"
+    colors: list[str | tuple[str, float]] | str | tuple[str, float] | None = None
+    default_color: str | tuple[str, float] | None = None
     color_mode: Literal["fixed", "defaults"] = "defaults"
 
     def __post_init__(self):
@@ -115,6 +111,39 @@ class Brush(Eraser):
             self.default_color = (
                 self.colors[0] if isinstance(self.colors, list) else self.colors
             )
+
+
+@document()
+@dataclasses.dataclass
+class LayerOptions:
+    """
+    A dataclass for specifying options for the layer tool in the ImageEditor component. An instance of this class can be passed to the `layers` parameter of `gr.ImageEditor`.
+    Parameters:
+        allow_additional_layers: If True, users can add additional layers to the image. If False, the add layer button will not be shown.
+        layers: A list of layers to make available to the user when using the layer tool. One layer must be provided, if the length of the list is 0 then a layer will be generated automatically.
+    """
+
+    allow_additional_layers: bool = True
+    layers: list[str] | None = None
+    disabled: bool = False
+
+    def __post_init__(self):
+        if self.layers is None or len(self.layers) == 0:
+            self.layers = ["Layer 1"]
+
+
+@document()
+@dataclasses.dataclass
+class WebcamOptions:
+    """
+    A dataclass for specifying options for the webcam tool in the ImageEditor component. An instance of this class can be passed to the `webcam_options` parameter of `gr.ImageEditor`.
+    Parameters:
+        mirror: If True, the webcam will be mirrored.
+        constraints: A dictionary of constraints for the webcam.
+    """
+
+    mirror: bool = True
+    constraints: dict[str, Any] | None = None
 
 
 @document()
@@ -146,9 +175,11 @@ class ImageEditor(Component):
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
         ] = "RGBA",
-        sources: Iterable[Literal["upload", "webcam", "clipboard"]]
-        | Literal["upload", "webcam", "clipboard"]
-        | None = (
+        sources: (
+            Iterable[Literal["upload", "webcam", "clipboard"]]
+            | Literal["upload", "webcam", "clipboard"]
+            | None
+        ) = (
             "upload",
             "webcam",
             "clipboard",
@@ -169,18 +200,19 @@ class ImageEditor(Component):
         render: bool = True,
         key: int | str | None = None,
         placeholder: str | None = None,
-        mirror_webcam: bool = True,
+        mirror_webcam: bool | None = None,
         show_share_button: bool | None = None,
         _selectable: bool = False,
         crop_size: tuple[int | float, int | float] | str | None = None,
-        transforms: Iterable[Literal["crop"]] = ("crop",),
+        transforms: Iterable[Literal["crop", "resize"]] | None = ("crop", "resize"),
         eraser: Eraser | None | Literal[False] = None,
         brush: Brush | None | Literal[False] = None,
         format: str = "webp",
-        layers: bool = True,
+        layers: bool | LayerOptions = True,
         canvas_size: tuple[int, int] = (800, 800),
         fixed_canvas: bool = False,
         show_fullscreen_button: bool = True,
+        webcam_options: WebcamOptions | None = None,
     ):
         """
         Parameters:
@@ -205,20 +237,30 @@ class ImageEditor(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             placeholder: Custom text for the upload area. Overrides default upload messages when provided. Accepts new lines and `#` to designate a heading.
-            mirror_webcam: If True webcam will be mirrored. Default is True.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             crop_size: Deprecated. Used to set the `canvas_size` parameter.
             transforms: The transforms tools to make available to users. "crop" allows the user to crop the image.
             eraser: The options for the eraser tool in the image editor. Should be an instance of the `gr.Eraser` class, or None to use the default settings. Can also be False to hide the eraser tool. [See `gr.Eraser` docs](#eraser).
             brush: The options for the brush tool in the image editor. Should be an instance of the `gr.Brush` class, or None to use the default settings. Can also be False to hide the brush tool, which will also hide the eraser tool. [See `gr.Brush` docs](#brush).
             format: Format to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image).  The format should be supported by the PIL library. This parameter has no effect on SVG files.
-            layers: If True, will allow users to add layers to the image. If False, the layers option will be hidden.
-            canvas_size: The size of the canvas in pixels. The first value is the width and the second value is the height. If its set, uploaded images will be rescaled to fit the canvas size while preserving the aspect ratio. The canvas size will always change to match the size of an uploaded image unless fixed_canvas is set to True.
+            layers: The options for the layer tool in the image editor. Can be a boolean     or an instance of the `gr.LayerOptions` class. If True, will allow users to add layers to the image. If False, the layers option will be hidden. If an instance of `gr.LayerOptions`, it will be used to configure the layer tool. [See `gr.LayerOptions` docs](#layer-options).
+            canvas_size: The initial size of the canvas in pixels. The first value is the width and the second value is the height. If `fixed_canvas` is `True`, uploaded images will be rescaled to fit the canvas size while preserving the aspect ratio. Otherwise, the canvas size will change to match the size of an uploaded image.
             fixed_canvas: If True, the canvas size will not change based on the size of the background image and the image will be rescaled to fit (while preserving the aspect ratio) and placed in the center of the canvas.
             show_fullscreen_button: If True, will display button to view image in fullscreen mode.
+            webcam_options: The options for the webcam tool in the image editor. Can be an instance of the `gr.WebcamOptions` class, or None to use the default settings. [See `gr.WebcamOptions` docs](#webcam-options).
         """
         self._selectable = _selectable
-        self.mirror_webcam = mirror_webcam
+
+        self.webcam_options = (
+            webcam_options if webcam_options is not None else WebcamOptions()
+        )
+
+        if mirror_webcam is not None:
+            warnings.warn(
+                "The `mirror_webcam` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
+            )
+            self.webcam_options.mirror = mirror_webcam
+
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
             raise ValueError(
@@ -249,7 +291,7 @@ class ImageEditor(Component):
             else show_share_button
         )
 
-        if crop_size is not None:
+        if crop_size is not None and canvas_size is None:
             warnings.warn(
                 "`crop_size` parameter is deprecated. Please use `canvas_size` instead."
             )
@@ -271,12 +313,17 @@ class ImageEditor(Component):
         self.brush = Brush() if brush is None else brush
         self.blob_storage: dict[str, EditorDataBlobs] = {}
         self.format = format
-        self.layers = layers
+        self.layers = (
+            LayerOptions()
+            if layers is True
+            else LayerOptions(disabled=True)
+            if layers is False
+            else layers
+        )
         self.canvas_size = canvas_size
         self.fixed_canvas = fixed_canvas
         self.show_fullscreen_button = show_fullscreen_button
         self.placeholder = placeholder
-
         super().__init__(
             label=label,
             every=every,

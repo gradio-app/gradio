@@ -42,6 +42,7 @@
 			on:load={scroll}
 			{root}
 			{allow_tags}
+			{theme_mode}
 		/>
 	</div>
 {:else if message.type === "component" && message.content.component in _components}

@@ -1,5 +1,38 @@
 # website
 
+## 0.54.0
+
+### Features
+
+- [#10635](https://github.com/gradio-app/gradio/pull/10635) [`2f68c9d`](https://github.com/gradio-app/gradio/commit/2f68c9d988dcbc53a0b8e53bdb1de49c9c8c65d8) - Refactor and redesign `ImageEditor` component.  Thanks @pngwn!
+- [#10952](https://github.com/gradio-app/gradio/pull/10952) [`a8dc9f4`](https://github.com/gradio-app/gradio/commit/a8dc9f469ba49eb1f39f81e8c5c3b4acc7cd482c) - update website banner with 1m MAU announcement.  Thanks @yvrjsharma!
+- [#10936](https://github.com/gradio-app/gradio/pull/10936) [`e8b8eef`](https://github.com/gradio-app/gradio/commit/e8b8eef7e5cb4474fcc109aee871e006d7dd17f3) - Fix broken css on some param tables.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.13.2
+- @gradio/paramviewer@0.7.5
+- @gradio/statustracker@0.10.7
+
+## 0.53.2
+
+### Features
+
+- [#10845](https://github.com/gradio-app/gradio/pull/10845) [`2521e8a`](https://github.com/gradio-app/gradio/commit/2521e8a1c76fe77253156bf8465500b9cb1db5c4) - Check if SharedWorker is available in the current runtime and fallback to DedicatedWorker if not available.  Thanks @whitphx!
+- [#10926](https://github.com/gradio-app/gradio/pull/10926) [`d81385b`](https://github.com/gradio-app/gradio/commit/d81385bdb939a81718339b806f0c3f71d64f6dc5) - Add status docs to MetadataDict.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.13.1
+
+## 0.53.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.6
+- @gradio/code@0.13.0
+- @gradio/paramviewer@0.7.4
+
 ## 0.53.0
 
 ### Features
