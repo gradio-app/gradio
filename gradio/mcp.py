@@ -123,9 +123,7 @@ def launch_mcp_on_sse(server: Server, app: Starlette, subpath: str):
         Starlette(
             routes=[
                 Route("/sse", endpoint=handle_sse),
-                Mount(
-                    "/messages", app=sse.handle_post_message
-                ),
+                Mount("/messages", app=sse.handle_post_message),
             ],
         ),
     )
