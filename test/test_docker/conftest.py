@@ -6,6 +6,7 @@ import time
 import docker
 import pytest
 import requests
+from docker.errors import NotFound
 from requests.exceptions import ConnectionError, RequestException
 
 
@@ -72,13 +73,17 @@ def launch_services_fn():
         )
 
         container_attempts = 10
+
+        app_container = None
+        nginx_container = None
+
         while container_attempts > 0:
             try:
                 app_container = client.containers.get(f"{test_name}_app")
                 nginx_container = client.containers.get(f"{test_name}_nginx")
                 print("Successfully connected to both containers")
                 break
-            except docker.errors.NotFound as e:
+            except NotFound as e:
                 print(f"Waiting for containers to be ready: {e}")
                 container_attempts -= 1
                 time.sleep(1)
@@ -93,9 +98,12 @@ def launch_services_fn():
         app_container.reload()
         nginx_container.reload()
 
+        app_port = None
+        nginx_port = None
+
         try:
-            app_port = app_container.ports.get("8000/tcp")[0]["HostPort"]
-            nginx_port = nginx_container.ports.get("80/tcp")[0]["HostPort"]
+            app_port = app_container.ports.get("8000/tcp")[0]["HostPort"]  # type: ignore
+            nginx_port = nginx_container.ports.get("80/tcp")[0]["HostPort"]  # type: ignore
 
             app_url = f"http://localhost:{app_port}{app_suffix}"
             nginx_url = f"http://localhost:{nginx_port}{nginx_suffix}"
@@ -103,7 +111,7 @@ def launch_services_fn():
             print(f"Will check app at: {app_url}")
             print(f"Will check nginx at: {nginx_url}")
 
-            service_attempts = 3000
+            service_attempts = 20
             while service_attempts > 0:
                 try:
                     app_response = requests.get(app_url, timeout=2)
