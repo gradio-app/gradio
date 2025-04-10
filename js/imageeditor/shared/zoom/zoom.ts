@@ -142,7 +142,7 @@ export class ZoomTool implements Tool {
 		this.setup_event_listeners();
 
 		// Update context with initial values
-		this.image_editor_context.set_image_properties({
+		await this.image_editor_context.set_image_properties({
 			scale: min_zoom,
 			position: { x: initial_x, y: initial_y }
 		});
