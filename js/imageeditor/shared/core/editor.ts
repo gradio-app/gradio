@@ -922,8 +922,8 @@ export interface ImageEditorContext {
 		scale?: number;
 		position?: { x: number; y: number };
 		animate?: boolean;
-	}) => void;
-	execute_command: (command: Command) => void;
+	}) => Promise<void>;
+	execute_command: (command: Command) => Promise<void> | void;
 	resize_canvas: (width: number, height: number) => void;
 	reset: () => void;
 	set_background_image: (image: Sprite) => void;
@@ -1417,33 +1417,42 @@ export class ImageEditor {
 		}
 	}
 
-	set_image_properties(properties: {
+	async set_image_properties(properties: {
 		width?: number;
 		height?: number;
 		scale?: number;
 		position?: { x: number; y: number };
 		animate?: boolean;
-	}): void {
+	}): Promise<void> {
 		let hard =
 			typeof properties.animate !== "undefined" ? !properties.animate : true;
 		if (properties.position) {
-			this.position.set(properties.position, { hard });
+			const pos = this.position.set(properties.position, { hard });
+			if (hard) {
+				await pos;
+			}
 		}
 		if (properties.scale) {
-			this.scale.set(properties.scale, { hard });
+			const scale = this.scale.set(properties.scale, { hard });
+			if (hard) {
+				await scale;
+			}
 		}
 		if (properties.width && properties.height) {
 			this.width = properties.width;
 			this.height = properties.height;
-			this.dimensions.set(
+			const dimensions = this.dimensions.set(
 				{ width: properties.width, height: properties.height },
 				{ hard }
 			);
+			if (hard) {
+				await dimensions;
+			}
 		}
 	}
 
-	execute_command(command: Command): void {
-		this.command_manager.execute(command);
+	async execute_command(command: Command): Promise<void> {
+		await this.command_manager.execute(command);
 	}
 
 	undo(): void {
@@ -1463,15 +1472,15 @@ export class ImageEditor {
 		image: Blob | File;
 		resize?: boolean;
 	}): Promise<void> {
-		const image_command = new AddImageCommand(
-			this.context,
+		const image_tool = this.tools.get("image") as ImageTool;
+		await image_tool.add_image({
 			image,
-			this.fixed_canvas,
-			this.border_region
-		);
+			fixed_canvas: this.fixed_canvas,
+			border_region: this.border_region
+		});
 
-		await image_command.start();
-		this.context.execute_command(image_command);
+		// await image_command.start();
+		// await this.context.execute_command(image_command);
 	}
 
 	/**
@@ -1517,14 +1526,14 @@ export class ImageEditor {
 		this.background_image = image;
 	}
 
-	reset_canvas(): void {
+	async reset_canvas(): Promise<void> {
 		this.layer_manager.reset_layers(this.width, this.height);
 		// Clear background image
 		this.background_image = undefined;
 		this.background_image_present.set(false);
 
 		// Reset position, scale and dimensions to default values
-		this.set_image_properties({
+		await this.set_image_properties({
 			width: this.width,
 			height: this.height,
 			scale: 1,
