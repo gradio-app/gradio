@@ -213,8 +213,12 @@ export class BrushTool implements Tool {
 	 * @private
 	 */
 	private on_pointer_down(event: FederatedPointerEvent): void {
-		// Don't draw if not over image
-		if (this.current_tool !== "erase" && this.current_tool !== "draw") {
+		const current_layer =
+			this.image_editor_context.layer_manager.get_active_layer();
+		if (
+			!current_layer?.visible ||
+			(this.current_tool !== "erase" && this.current_tool !== "draw")
+		) {
 			return;
 		}
 
