@@ -14,11 +14,13 @@ from requests.exceptions import ConnectionError, RequestException
 def build_packages():
     file_dir = os.path.dirname(os.path.abspath(__file__))
     gradio_dir = os.path.dirname(os.path.dirname(file_dir))
-    subprocess.run(
-        ["python", "-m", "build", "--wheel", gradio_dir, "--outdir", file_dir],
-        check=True,
-    )
     try:
+        subprocess.run(
+            ["python", "-m", "build", "--wheel", gradio_dir, "--outdir", file_dir],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
         subprocess.run(
             [
                 "python",
