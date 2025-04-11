@@ -885,7 +885,6 @@ export class LayerManager {
 			this.delete_layer(layer.id);
 		});
 
-		let i = 0;
 		for (const [layer_name, layer_id] of _layers_to_recreate) {
 			this.create_layer({
 				width,
@@ -896,7 +895,6 @@ export class LayerManager {
 					: true,
 				layer_id: layer_id
 			});
-			i++;
 		}
 
 		if (!persist) {
@@ -1538,8 +1536,6 @@ export class ImageEditor {
 			fixed_canvas: this.fixed_canvas,
 			border_region: this.border_region
 		});
-
-		// this.layer_manager.set_active_layer(this.layer_manager.get_layers()[0].id);
 
 		// Update resize tool if present
 		const resize_tool = this.tools.get("resize") as any;
