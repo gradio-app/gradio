@@ -1,5 +1,12 @@
 # @gradio/upload
 
+## 0.16.1
+
+### Dependency updates
+
+- @gradio/atoms@0.15.1
+- @gradio/icons@0.12.0
+
 ## 0.16.0
 
 ### Features
