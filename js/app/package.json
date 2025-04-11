@@ -31,6 +31,7 @@
 		"@huggingface/space-header": "^1.0.3",
 		"@self/build": "workspace:^",
 		"@sveltejs/adapter-node": "^5.2.2",
-		"svelte-preprocess": "^6.0.3"
+		"svelte-preprocess": "^6.0.3",
+		"@gradio/imageslider": "workspace:^"
 	}
 }

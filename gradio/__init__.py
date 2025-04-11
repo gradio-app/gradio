@@ -42,6 +42,7 @@ from gradio.components import (
     Highlightedtext,
     Image,
     ImageEditor,
+    ImageSlider,
     Json,
     Label,
     LinePlot,

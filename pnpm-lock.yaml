@@ -588,6 +588,9 @@ importers:
       '@gradio/core':
         specifier: workspace:^
         version: link:../core
+      '@gradio/imageslider':
+        specifier: workspace:^
+        version: link:../imageslider
       '@gradio/theme':
         specifier: workspace:^
         version: link:../theme
@@ -1116,6 +1119,9 @@ importers:
       '@gradio/imageeditor':
         specifier: workspace:^
         version: link:../imageeditor
+      '@gradio/imageslider':
+        specifier: workspace:^
+        version: link:../imageslider
       '@gradio/json':
         specifier: workspace:^
         version: link:../json
@@ -1643,6 +1649,43 @@ importers:
       tinycolor2:
         specifier: ^1.6.0
         version: 1.6.0
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
+
+  js/imageslider:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
+      d3-drag:
+        specifier: ^3.0.0
+        version: 3.0.0
+      d3-selection:
+        specifier: ^3.0.0
+        version: 3.0.0
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^

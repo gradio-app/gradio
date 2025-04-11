@@ -235,6 +235,8 @@ function load_virtual_component_loader(mode) {
 			${generate_component_imports()}
 		};
 		`;
+
+    console.log(component_map)
   }
   return `${component_map}
 

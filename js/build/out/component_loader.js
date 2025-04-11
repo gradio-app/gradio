@@ -13,14 +13,15 @@ export function load_component({ api_url, name, id, variant }) {
 		...(!comps ? {} : comps)
 	};
 
+	
+
 	let _id = id || name;
 
 	if (request_map[`${_id}-${variant}`]) {
 		return { component: request_map[`${_id}-${variant}`], name };
 	}
 	try {
-		if (!_component_map?.[_id]?.[variant] && !_component_map?.[name]?.[variant])
-			throw new Error();
+		if (!_component_map?.[_id]?.[variant] && !_component_map?.[name]?.[variant]) throw new Error();
 
 		request_map[`${_id}-${variant}`] = (
 			_component_map?.[_id]?.[variant] || // for dev mode custom components
