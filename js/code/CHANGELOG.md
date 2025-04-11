@@ -1,5 +1,18 @@
 # @gradio/code
 
+## 0.14.0
+
+### Features
+
+- [#10982](https://github.com/gradio-app/gradio/pull/10982) [`a80b312`](https://github.com/gradio-app/gradio/commit/a80b312c081a03b5bd73477305e2f094da512b37) - Add latex to code component languages.  Thanks @ginazhouhuiwu!
+
+### Dependency updates
+
+- @gradio/upload@0.16.1
+- @gradio/atoms@0.15.1
+- @gradio/statustracker@0.10.8
+- @gradio/icons@0.12.0
+
 ## 0.13.2
 
 ### Dependency updates
