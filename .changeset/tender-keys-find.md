@@ -1,8 +1,8 @@
 ---
-"@gradio/dataframe": minor
-"@gradio/utils": minor
-"gradio": minor
-"website": minor
+"@gradio/dataframe": patch
+"@gradio/utils": patch
+"gradio": patch
+"website": patch
 ---
 
-feat:Df select
+fix:Ensure that the `.select()` event in `gr.DataFrame` carries the `.row_value` and `.col_value`
