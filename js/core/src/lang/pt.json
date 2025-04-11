@@ -140,5 +140,15 @@
 	},
 	"video": {
 		"drop_to_upload": "Solte um ficheiro de vídeo aqui para fazer upload"
+	},
+	"chatbot": {
+		"edit": "Editar",
+		"retry": "Tentar novamente",
+		"undo": "Desfazer",
+		"submit": "Enviar",
+		"cancel": "Cancelar",
+		"like": "Gosto",
+		"dislike": "Não gosto",
+		"clear": "Limpar conversa"
 	}
 }
