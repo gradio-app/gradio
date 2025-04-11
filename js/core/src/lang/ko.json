@@ -140,5 +140,15 @@
 	},
 	"video": {
 		"drop_to_upload": "여기에 비디오 파일을 끌어다 놓으세요."
+	},
+	"chatbot": {
+		"edit": "편집",
+		"retry": "다시 시도",
+		"undo": "실행 취소",
+		"submit": "제출",
+		"cancel": "취소",
+		"like": "좋아요",
+		"dislike": "싫어요",
+		"clear": "대화 지우기"
 	}
 }
