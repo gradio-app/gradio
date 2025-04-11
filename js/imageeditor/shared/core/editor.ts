@@ -905,7 +905,7 @@ export class LayerManager {
 		}
 
 		this.layer_store.update((state) => ({
-			active_layer: state.active_layer,
+			active_layer: this.active_layer_id || this.layers[0].id,
 			layers: this.layers
 		}));
 	}
