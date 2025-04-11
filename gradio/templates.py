@@ -9,7 +9,7 @@ import PIL.Image
 
 from gradio import components
 from gradio.components.audio import WaveformOptions
-from gradio.components.image_editor import Brush, Eraser, LayerOptions
+from gradio.components.image_editor import Brush, Eraser, LayerOptions, WebcamOptions
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -127,7 +127,8 @@ class Sketchpad(components.ImageEditor):
         render: bool = True,
         key: int | str | None = None,
         placeholder: str | None = None,
-        mirror_webcam: bool = True,
+        mirror_webcam: bool | None = None,
+        webcam_options: WebcamOptions | None = None,
         show_share_button: bool | None = None,
         _selectable: bool = False,
         crop_size: tuple[int | float, int | float] | str | None = None,
@@ -165,6 +166,7 @@ class Sketchpad(components.ImageEditor):
             key=key,
             placeholder=placeholder,
             mirror_webcam=mirror_webcam,
+            webcam_options=webcam_options,
             show_share_button=show_share_button,
             _selectable=_selectable,
             crop_size=crop_size,
@@ -216,7 +218,8 @@ class Paint(components.ImageEditor):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        mirror_webcam: bool = True,
+        mirror_webcam: bool | None = None,
+        webcam_options: WebcamOptions | None = None,
         show_share_button: bool | None = None,
         _selectable: bool = False,
         crop_size: tuple[int | float, int | float] | str | None = None,
@@ -252,6 +255,7 @@ class Paint(components.ImageEditor):
             render=render,
             key=key,
             mirror_webcam=mirror_webcam,
+            webcam_options=webcam_options,
             show_share_button=show_share_button,
             _selectable=_selectable,
             crop_size=crop_size,
@@ -309,7 +313,7 @@ class ImageMask(components.ImageEditor):
         render: bool = True,
         key: int | str | None = None,
         placeholder: str | None = None,
-        mirror_webcam: bool = True,
+        mirror_webcam: bool | None = None,
         show_share_button: bool | None = None,
         _selectable: bool = False,
         crop_size: tuple[int | float, int | float] | str | None = None,
@@ -321,6 +325,7 @@ class ImageMask(components.ImageEditor):
         canvas_size: tuple[int, int] = (800, 800),
         fixed_canvas: bool = False,
         show_fullscreen_button: bool = True,
+        webcam_options: WebcamOptions | None = None,
     ):
         if not brush:
             brush = Brush(colors=["#000000"], color_mode="fixed")
@@ -347,6 +352,7 @@ class ImageMask(components.ImageEditor):
             key=key,
             placeholder=placeholder,
             mirror_webcam=mirror_webcam,
+            webcam_options=webcam_options,
             show_share_button=show_share_button,
             _selectable=_selectable,
             crop_size=crop_size,
@@ -398,7 +404,8 @@ class PlayableVideo(components.Video):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        mirror_webcam: bool = True,
+        mirror_webcam: bool | None = None,
+        webcam_options: WebcamOptions | None = None,
         include_audio: bool | None = None,
         autoplay: bool = False,
         show_share_button: bool | None = None,
@@ -441,6 +448,7 @@ class PlayableVideo(components.Video):
             streaming=streaming,
             watermark=watermark,
             webcam_constraints=webcam_constraints,
+            webcam_options=webcam_options,
         )
 
 

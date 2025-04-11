@@ -53,6 +53,7 @@
 			BABYLON_VIEWER.createViewerForCanvas(canvas, {
 				clearColor: clear_color,
 				useRightHandedSystem: true,
+				animationAutoPlay: true,
 				cameraAutoOrbit: { enabled: false },
 				onInitialized: (details: any) => {
 					viewerDetails = details;

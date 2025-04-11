@@ -22,7 +22,7 @@
 	import { create_drag } from "@gradio/upload";
 	import SecondaryToolbar from "./SecondaryToolbar.svelte";
 	import { Check } from "@gradio/icons";
-	import type { LayerOptions, Source, Transform } from "./types";
+	import type { LayerOptions, Source, Transform, WebcamOptions } from "./types";
 
 	import { type ImageBlobs } from "./types";
 	import Controls from "./Controls.svelte";
@@ -36,6 +36,7 @@
 		history: CommandManager["current_history"];
 		upload: void;
 		input: void;
+		download_error: string;
 	}>();
 
 	export const antialias = true;
@@ -51,7 +52,6 @@
 	export let eraser_options: Eraser;
 	export let fixed_canvas = false;
 	export let root: string;
-	export let mirror_webcam = true;
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
 	export let composite: FileData | null;
@@ -60,6 +60,9 @@
 	export let border_region = 0;
 	export let layer_options: LayerOptions;
 	export let current_tool: ToolbarTool;
+	export let webcam_options: WebcamOptions;
+	export let show_download_button = false;
+	export let theme_mode: "dark" | "light";
 
 	let pixi_target: HTMLDivElement;
 	let pixi_target_crop: HTMLDivElement;
@@ -256,7 +259,8 @@
 			tools: ["image", zoom, new ResizeTool(), brush],
 			fixed_canvas,
 			border_region,
-			layer_options
+			layer_options,
+			theme_mode
 		});
 
 		brush.on("change", () => {
@@ -563,6 +567,22 @@
 		dispatch("change");
 		dispatch("input");
 	}
+
+	async function handle_download(): Promise<void> {
+		const blobs = await editor.get_blobs();
+
+		const blob = blobs.composite;
+		if (!blob) {
+			dispatch("download_error", "Unable to generate image to download.");
+			return;
+		}
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement("a");
+		link.href = url;
+		link.download = "image.png";
+		link.click();
+		URL.revokeObjectURL(url);
+	}
 </script>
 
 <div
@@ -599,6 +619,8 @@
 				on:pan={(e) => {
 					handle_tool_change({ tool: "pan" });
 				}}
+				enable_download={show_download_button}
+				on:download={() => handle_download()}
 			/>
 		{/if}
 
@@ -633,11 +655,12 @@
 						on:capture={handle_capture}
 						on:error
 						on:drag
-						{mirror_webcam}
 						streaming={false}
 						mode="image"
 						include_audio={false}
 						{i18n}
+						mirror_webcam={webcam_options.mirror}
+						webcam_constraints={webcam_options.constraints}
 					/>
 				</div>
 			</div>
@@ -652,12 +675,18 @@
 				}}
 				on:change_layer={(e) => {
 					editor.set_layer(e.detail);
+					if (current_tool === "draw") {
+						handle_tool_change({ tool: "draw" });
+					}
 				}}
 				on:move_layer={(e) => {
 					editor.move_layer(e.detail.id, e.detail.direction);
 				}}
 				on:delete_layer={(e) => {
 					editor.delete_layer(e.detail);
+				}}
+				on:toggle_layer_visibility={(e) => {
+					editor.toggle_layer_visibility(e.detail);
 				}}
 			/>
 		{/if}
