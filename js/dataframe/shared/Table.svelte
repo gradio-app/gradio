@@ -189,10 +189,10 @@
 		data?.[row]?.[col]?.value;
 
 	const get_column = (col: number): (string | number)[] =>
-		data?.map(row => row[col]?.value) ?? [];
+		data?.map((row) => row[col]?.value) ?? [];
 
 	const get_row = (row: number): (string | number)[] =>
-		data?.[row]?.map(cell => cell.value) ?? [];
+		data?.[row]?.map((cell) => cell.value) ?? [];
 
 	$: {
 		if (!dequal(headers, old_headers)) {
