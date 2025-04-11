@@ -50,7 +50,7 @@ jobs:
           skip_build: true
           python_version: "3.10"
           test: true
-      - run: pnpm exec playwright install chromium firefox
+      - run: pnpm exec playwright install chromium firefox --with-deps
       - name: build essential packages
         run: pnpm --filter @gradio/utils --filter @gradio/theme package
       - name: Run Lite E2E tests
