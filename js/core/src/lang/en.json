@@ -28,6 +28,16 @@
 		"lost_connection": "Lost connection due to leaving page. Rejoining queue...",
 		"waiting_for_inputs": "Waiting for file(s) to finish uploading, please retry."
 	},
+	"chatbot": {
+		"edit": "Edit",
+		"retry": "Retry",
+		"undo": "Undo",
+		"submit": "Submit",
+		"cancel": "Cancel",
+		"like": "Like",
+		"dislike": "Dislike",
+		"clear": "Clear"
+	},
 	"checkbox": {
 		"checkbox": "Checkbox",
 		"checkbox_group": "Checkbox Group"

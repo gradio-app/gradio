@@ -140,5 +140,15 @@
 	},
 	"video": {
 		"drop_to_upload": "Yüklemek için bir video dosyasını buraya bırakın"
+	},
+	"chatbot": {
+		"edit": "Düzenle",
+		"retry": "Tekrar Dene",
+		"undo": "Geri Al",
+		"submit": "Gönder",
+		"cancel": "İptal",
+		"like": "Beğen",
+		"dislike": "Beğenme",
+		"clear": "Sohbeti Temizle"
 	}
 }

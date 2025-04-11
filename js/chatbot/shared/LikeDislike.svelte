@@ -6,7 +6,9 @@
 	import ThumbUpDefault from "./ThumbUpDefault.svelte";
 	import Flag from "./Flag.svelte";
 	import FlagActive from "./FlagActive.svelte";
+	import type { I18nFormatter } from "js/core/src/gradio_helper";
 
+	export let i18n: I18nFormatter;
 	export let handle_action: (selected: string | null) => void;
 	export let feedback_options: string[];
 	export let selected: string | null = null;
@@ -24,7 +26,9 @@
 	{#if feedback_options.includes("Dislike")}
 		<IconButton
 			Icon={selected === "Dislike" ? ThumbDownActive : ThumbDownDefault}
-			label={selected === "Dislike" ? "clicked dislike" : "dislike"}
+			label={selected === "Dislike"
+				? "clicked dislike"
+				: i18n("chatbot.dislike")}
 			color={selected === "Dislike"
 				? "var(--color-accent)"
 				: "var(--block-label-text-color)"}
@@ -34,7 +38,7 @@
 	{#if feedback_options.includes("Like")}
 		<IconButton
 			Icon={selected === "Like" ? ThumbUpActive : ThumbUpDefault}
-			label={selected === "Like" ? "clicked like" : "like"}
+			label={selected === "Like" ? "clicked like" : i18n("chatbot.like")}
 			color={selected === "Like"
 				? "var(--color-accent)"
 				: "var(--block-label-text-color)"}

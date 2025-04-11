@@ -41,7 +41,11 @@
 		},
 		show_label: true,
 		placeholder: "This is a cheetah",
-		show_download_button: true
+		show_download_button: true,
+		webcam_options: {
+			mirror: true,
+			constraints: null
+		}
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
@@ -62,7 +66,11 @@
 			orig_name: "cheetah.jpg"
 		},
 		show_label: false,
-		show_download_button: false
+		show_download_button: false,
+		webcam_options: {
+			mirror: true,
+			constraints: null
+		}
 	}}
 />
 
@@ -73,6 +81,10 @@
 			path: image_file_100x1000,
 			url: image_file_100x1000,
 			orig_name: "image.webp"
+		},
+		webcam_options: {
+			mirror: true,
+			constraints: null
 		}
 	}}
 />
@@ -85,7 +97,11 @@
 			url: image_file_100x1000,
 			orig_name: "image.webp"
 		},
-		height: "500px"
+		height: "500px",
+		webcam_options: {
+			mirror: true,
+			constraints: null
+		}
 	}}
 />
 
@@ -97,7 +113,11 @@
 			url: image_file_100x100,
 			orig_name: "image.webp"
 		},
-		height: "500px"
+		height: "500px",
+		webcam_options: {
+			mirror: true,
+			constraints: null
+		}
 	}}
 />
 
@@ -113,7 +133,11 @@
 		show_label: false,
 		show_download_button: false,
 		interactive: true,
-		placeholder: md
+		placeholder: md,
+		webcam_options: {
+			mirror: true,
+			constraints: null
+		}
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
@@ -132,7 +156,11 @@
 	args={{
 		sources: ["webcam"],
 		show_download_button: true,
-		interactive: true
+		interactive: true,
+		webcam_options: {
+			mirror: true,
+			constraints: null
+		}
 	}}
 />
 
@@ -156,6 +184,10 @@
 			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
 			orig_name: "cheetah.jpg"
 		},
-		streaming: true
+		streaming: true,
+		webcam_options: {
+			mirror: true,
+			constraints: null
+		}
 	}}
 />

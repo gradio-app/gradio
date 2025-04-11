@@ -45,7 +45,7 @@ class TestImageEditor:
             "visible": True,
             "elem_id": None,
             "elem_classes": [],
-            "mirror_webcam": True,
+            "webcam_options": {"constraints": None, "mirror": True},
             "show_share_button": False,
             "_selectable": False,
             "key": None,

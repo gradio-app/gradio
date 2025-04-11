@@ -140,5 +140,15 @@
 	},
 	"video": {
 		"drop_to_upload": "Släpp en videofil här för att ladda upp"
+	},
+	"chatbot": {
+		"edit": "Redigera",
+		"retry": "Försök igen",
+		"undo": "Ångra",
+		"submit": "Skicka",
+		"cancel": "Avbryt",
+		"like": "Gilla",
+		"dislike": "Ogilla",
+		"clear": "Rensa chatten"
 	}
 }

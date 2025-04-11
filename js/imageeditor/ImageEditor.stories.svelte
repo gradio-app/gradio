@@ -51,6 +51,10 @@
 		},
 		eraser: {
 			default_size: "auto"
+		},
+		webcam_options: {
+			mirror: true,
+			constraints: null
 		}
 	}}
 />
@@ -133,6 +137,10 @@
 		interactive: false,
 		label: "Image Editor",
 		show_label: true,
-		canvas_size: [800, 600]
+		canvas_size: [800, 600],
+		webcam_options: {
+			mirror: true,
+			constraints: null
+		}
 	}}
 />

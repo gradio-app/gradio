@@ -140,5 +140,15 @@
 	},
 	"video": {
 		"drop_to_upload": "Sleep een videobestand hier om te uploaden"
+	},
+	"chatbot": {
+		"edit": "Bewerken",
+		"retry": "Opnieuw proberen",
+		"undo": "Ongedaan maken",
+		"submit": "Verzenden",
+		"cancel": "Annuleren",
+		"like": "Vind ik leuk",
+		"dislike": "Vind ik niet leuk",
+		"clear": "Gesprek wissen"
 	}
 }

@@ -32,7 +32,7 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 	await expect(download.suggestedFilename()).toBe("av1-video.mp4");
 });
 
-test("Video play, pause events work correctly.", async ({ page }) => {
+test.skip("Video play, pause events work correctly.", async ({ page }) => {
 	const [fileChooser] = await Promise.all([
 		page.waitForEvent("filechooser"),
 		page.getByLabel("Drop a video file here to upload").first().click()

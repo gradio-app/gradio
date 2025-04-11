@@ -1,6 +1,14 @@
 <script lang="ts">
 	import { click_outside } from "./utils/events";
-	import { Layers, Clear, ArrowUp, ArrowDown, Plus } from "@gradio/icons";
+	import {
+		Layers,
+		Clear,
+		ArrowUp,
+		ArrowDown,
+		Plus,
+		Visibility,
+		VisibilityOff
+	} from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
 	import { createEventDispatcher } from "svelte";
 	import type { Writable } from "svelte/store";
@@ -10,11 +18,17 @@
 		change_layer: string;
 		move_layer: { id: string; direction: "up" | "down" };
 		delete_layer: string;
+		toggle_layer_visibility: string;
 	}>();
 
 	export let layers: Writable<{
 		active_layer: string;
-		layers: { name: string; id: string; user_created: boolean }[];
+		layers: {
+			name: string;
+			id: string;
+			user_created: boolean;
+			visible: boolean;
+		}[];
 	}>;
 	export let enable_additional_layers = true;
 	export let enable_layers = true;
@@ -56,8 +70,27 @@
 		</button>
 		{#if show_layers}
 			<ul>
-				{#each $layers.layers as { id, name, user_created }, i (i)}
+				{#each $layers.layers as { id, name, user_created, visible }, i (i)}
 					<li>
+						{#if !visible}
+							<IconButton
+								Icon={VisibilityOff}
+								size="small"
+								on:click={(e) => {
+									e.stopPropagation();
+									dispatch("toggle_layer_visibility", id);
+								}}
+							/>
+						{:else}
+							<IconButton
+								Icon={Visibility}
+								size="small"
+								on:click={(e) => {
+									e.stopPropagation();
+									dispatch("toggle_layer_visibility", id);
+								}}
+							/>
+						{/if}
 						<button
 							class:selected_layer={$layers.active_layer === id}
 							aria-label={`layer-${i + 1}`}

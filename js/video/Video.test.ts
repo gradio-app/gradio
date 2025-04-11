@@ -53,7 +53,11 @@ describe("Video", () => {
 			pending: false,
 			name: "bar",
 			sources: ["upload"],
-			interactive: true
+			interactive: true,
+			webcam_options: {
+				mirror: true,
+				constraints: null
+			}
 		});
 		let vid = getByTestId("Test Label-player") as HTMLVideoElement;
 		assert.equal(
@@ -81,7 +85,11 @@ describe("Video", () => {
 			pending: false,
 			name: "bar",
 			sources: ["upload"],
-			interactive: true
+			interactive: true,
+			webcam_options: {
+				mirror: true,
+				constraints: null
+			}
 		});
 		assert.equal(queryAllByText("Video Component").length, 1);
 	});
@@ -103,7 +111,11 @@ describe("Video", () => {
 			pending: false,
 			name: "bar",
 			sources: ["upload"],
-			mode: "static"
+			mode: "static",
+			webcam_options: {
+				mirror: true,
+				constraints: null
+			}
 		});
 		let vid = getByTestId("test-player") as HTMLVideoElement;
 		assert.equal(
@@ -129,7 +141,11 @@ describe("Video", () => {
 			streaming: false,
 			pending: false,
 			sources: ["upload"],
-			autoplay: true
+			autoplay: true,
+			webcam_options: {
+				mirror: true,
+				constraints: null
+			}
 		});
 		const startButton = getByTestId("test-player") as HTMLVideoElement;
 		const fn = spyOn(startButton, "play");
@@ -153,7 +169,11 @@ describe("Video", () => {
 			streaming: false,
 			pending: false,
 			sources: ["upload"],
-			autoplay: true
+			autoplay: true,
+			webcam_options: {
+				mirror: true,
+				constraints: null
+			}
 		});
 		const startButton = getByTestId("test-player") as HTMLVideoElement;
 		const fn = spyOn(startButton, "play");
@@ -178,7 +198,11 @@ describe("Video", () => {
 			streaming: false,
 			pending: false,
 			sources: ["upload"],
-			autoplay: true
+			autoplay: true,
+			webcam_options: {
+				mirror: true,
+				constraints: null
+			}
 		});
 		const startButton = getByTestId("test-player") as HTMLVideoElement;
 		const fn = spyOn(startButton, "play");
@@ -211,7 +235,11 @@ describe("Video", () => {
 			streaming: false,
 			pending: false,
 			sources: ["upload"],
-			autoplay: true
+			autoplay: true,
+			webcam_options: {
+				mirror: true,
+				constraints: null
+			}
 		});
 		const startButton = getByTestId("test-player") as HTMLVideoElement;
 		const fn = spyOn(startButton, "play");
@@ -240,7 +268,11 @@ describe("Video", () => {
 			label: "video",
 			show_label: true,
 			value: data,
-			root: "https://localhost:8000"
+			root: "https://localhost:8000",
+			webcam_options: {
+				mirror: true,
+				constraints: null
+			}
 		});
 
 		const downloadButton = results.getAllByTestId("download-div")[0];
@@ -267,7 +299,11 @@ describe("Video", () => {
 			streaming: false,
 			pending: false,
 			sources: ["upload"],
-			autoplay: true
+			autoplay: true,
+			webcam_options: {
+				mirror: true,
+				constraints: null
+			}
 		});
 
 		const mock = listen("change");
