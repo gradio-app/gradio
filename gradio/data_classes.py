@@ -428,3 +428,32 @@ class ImageData(GradioModel):
 
 class Base64ImageData(GradioModel):
     url: str = Field(description="base64 encoded image")
+
+
+class APIParameterInfo(TypedDict):
+    label: str
+    parameter_name: str
+    parameter_has_default: bool
+    parameter_default: Optional[Any]
+    type: dict[str, Any]
+    python_type: dict[str, str]
+    component: str
+    example_input: Any
+
+
+class APIReturnInfo(TypedDict):
+    label: str
+    type: dict[str, Any]
+    python_type: dict[str, str]
+    component: str
+
+
+class APIEndpointInfo(TypedDict):
+    parameters: list[APIParameterInfo]
+    returns: list[APIReturnInfo]
+    show_api: bool
+
+
+class APIInfo(TypedDict):
+    named_endpoints: dict[str, APIEndpointInfo]
+    unnamed_endpoints: dict[str, APIEndpointInfo]

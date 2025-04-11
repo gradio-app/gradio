@@ -9,7 +9,7 @@
 	export let short_root: string;
 	export let root: string;
 	export let api_prefix = "";
-	export let current_language: "python" | "javascript" | "bash";
+	export let current_language: "python" | "javascript" | "bash" | "mcp";
 	export let username: string | null;
 
 	let python_code: HTMLElement;

@@ -12,11 +12,14 @@
 	import InstallSnippet from "./InstallSnippet.svelte";
 	import CodeSnippet from "./CodeSnippet.svelte";
 	import RecordingSnippet from "./RecordingSnippet.svelte";
+	import CopyButton from "./CopyButton.svelte";
+	import { Block } from "@gradio/atoms";
 
 	import python from "./img/python.svg";
 	import javascript from "./img/javascript.svg";
 	import bash from "./img/bash.svg";
 	import ResponseSnippet from "./ResponseSnippet.svelte";
+	import mcp from "./img/mcp.svg";
 
 	export let dependencies: Dependency[];
 	export let root: string;
@@ -45,12 +48,13 @@
 	}
 
 	export let api_calls: Payload[] = [];
-	let current_language: "python" | "javascript" | "bash" = "python";
+	let current_language: "python" | "javascript" | "bash" | "mcp" = "python";
 
 	const langs = [
-		["python", python],
-		["javascript", javascript],
-		["bash", bash]
+		["python", "Python", python],
+		["javascript", "JavaScript", javascript],
+		["bash", "cURL", bash],
+		["mcp", "MCP", mcp]
 	] as const;
 
 	let is_running = false;
@@ -107,20 +111,19 @@
 		<div class="docs-wrap">
 			<div class="client-doc">
 				<p style="font-size: var(--text-lg);">
-					Choose a language to see the code snippets for interacting with the
-					API.
+					Choose one of the following ways to interact with the API.
 				</p>
 			</div>
 			<div class="endpoint">
 				<div class="snippets">
-					{#each langs as [language, img]}
+					{#each langs as [language, display_name, img]}
 						<li
 							class="snippet
 						{current_language === language ? 'current-lang' : 'inactive-lang'}"
 							on:click={() => (current_language = language)}
 						>
 							<img src={img} alt="" />
-							{language}
+							{display_name}
 						</li>
 					{/each}
 				</div>
@@ -169,100 +172,146 @@
 								href={current_language == "python" ? py_docs : js_docs}
 								target="_blank">docs</a
 							>) if you don't already have it installed.
+						{:else if current_language == "mcp"}
+							This Gradio app also serves an MCP server with tools corresponding
+							to each of the API endpoints. You can use this MCP server with any
+							LLM that supports connecting to MCP servers <strong
+								>using the SSE protocol</strong
+							>.
+							<p>&nbsp;</p>
+							Add the following configuration to your MCP config:
+							<p>&nbsp;</p>
+							<Block>
+								<code>
+									<div class="copy">
+										<CopyButton
+											code={JSON.stringify(
+												{
+													mcpServers: {
+														gradio: {
+															url: `${root}gradio_api/mcp/sse`
+														}
+													}
+												},
+												null,
+												2
+											)}
+										/>
+									</div>
+									<div>
+										<pre>{JSON.stringify(
+												{
+													mcpServers: {
+														gradio: {
+															url: `${root}gradio_api/mcp/sse`
+														}
+													}
+												},
+												null,
+												2
+											)}</pre>
+									</div>
+								</code>
+							</Block>
 						{:else}
 							1. Confirm that you have cURL installed on your system.
 						{/if}
 					</p>
 
-					<InstallSnippet {current_language} />
+					{#if current_language !== "mcp"}
+						<InstallSnippet {current_language} />
 
-					<p class="padded">
-						2. Find the API endpoint below corresponding to your desired
-						function in the app. Copy the code snippet, replacing the
-						placeholder values with your own input data.
-						{#if space_id}If this is a private Space, you may need to pass your
-							Hugging Face token as well (<a
-								href={current_language == "python"
-									? py_docs + spaces_docs_suffix
-									: current_language == "javascript"
-										? js_docs + spaces_docs_suffix
-										: bash_docs}
-								class="underline"
-								target="_blank">read more</a
-							>).{/if}
+						<p class="padded">
+							2. Find the API endpoint below corresponding to your desired
+							function in the app. Copy the code snippet, replacing the
+							placeholder values with your own input data.
+							{#if space_id}If this is a private Space, you may need to pass
+								your Hugging Face token as well (<a
+									href={current_language == "python"
+										? py_docs + spaces_docs_suffix
+										: current_language == "javascript"
+											? js_docs + spaces_docs_suffix
+											: bash_docs}
+									class="underline"
+									target="_blank">read more</a
+								>).{/if}
 
-						Or use the
-						<Button
-							size="sm"
-							variant="secondary"
-							on:click={() => dispatch("close", { api_recorder_visible: true })}
-						>
-							<div class="loading-dot"></div>
-							<p class="self-baseline">API Recorder</p>
-						</Button>
-						to automatically generate your API requests.
-						{#if current_language == "bash"}<br />&nbsp;<br />Making a
-							prediction and getting a result requires
-							<strong>2 requests</strong>: a
-							<code>POST</code>
-							and a <code>GET</code> request. The <code>POST</code> request
-							returns an <code>EVENT_ID</code>, which is used in the second
-							<code>GET</code> request to fetch the results. In these snippets,
-							we've used <code>awk</code> and <code>read</code> to parse the
-							results, combining these two requests into one command for ease of
-							use. {#if username !== null}
-								Note: connecting to an authenticated app requires an additional
-								request.{/if} See
-							<a href={bash_docs} target="_blank">curl docs</a>.
-						{/if}
+							Or use the
+							<Button
+								size="sm"
+								variant="secondary"
+								on:click={() =>
+									dispatch("close", { api_recorder_visible: true })}
+							>
+								<div class="loading-dot"></div>
+								<p class="self-baseline">API Recorder</p>
+							</Button>
+							to automatically generate your API requests.
+							{#if current_language == "bash"}<br />&nbsp;<br />Making a
+								prediction and getting a result requires
+								<strong>2 requests</strong>: a
+								<code>POST</code>
+								and a <code>GET</code> request. The <code>POST</code> request
+								returns an <code>EVENT_ID</code>, which is used in the second
+								<code>GET</code> request to fetch the results. In these
+								snippets, we've used <code>awk</code> and <code>read</code> to
+								parse the results, combining these two requests into one command
+								for ease of use. {#if username !== null}
+									Note: connecting to an authenticated app requires an
+									additional request.{/if} See
+								<a href={bash_docs} target="_blank">curl docs</a>.
+							{/if}
 
-						<!-- <span
+							<!-- <span
 							id="api-recorder"
 							on:click={() => dispatch("close", { api_recorder_visible: true })}
 							>🪄 API Recorder</span
 						> to automatically generate your API requests! -->
-					</p>
+						</p>
+					{/if}
 				{/if}
 
-				{#each dependencies as dependency, dependency_index}
-					{#if dependency.show_api && info.named_endpoints["/" + dependency.api_name]}
-						<div class="endpoint-container">
-							<CodeSnippet
-								named={true}
-								endpoint_parameters={info.named_endpoints[
-									"/" + dependency.api_name
-								].parameters}
-								{dependency}
-								{dependency_index}
-								{current_language}
-								{root}
-								{space_id}
-								{username}
-								api_prefix={app.api_prefix}
-							/>
+				{#if current_language !== "mcp"}
+					{#each dependencies as dependency, dependency_index}
+						{#if dependency.show_api && info.named_endpoints["/" + dependency.api_name]}
+							<div class="endpoint-container">
+								<CodeSnippet
+									named={true}
+									endpoint_parameters={info.named_endpoints[
+										"/" + dependency.api_name
+									].parameters}
+									{dependency}
+									{dependency_index}
+									{current_language}
+									{root}
+									{space_id}
+									{username}
+									api_prefix={app.api_prefix}
+								/>
 
-							<ParametersSnippet
-								endpoint_returns={info.named_endpoints[
-									"/" + dependency.api_name
-								].parameters}
-								js_returns={js_info.named_endpoints["/" + dependency.api_name]
-									.parameters}
-								{is_running}
-								{current_language}
-							/>
+								<ParametersSnippet
+									endpoint_returns={info.named_endpoints[
+										"/" + dependency.api_name
+									].parameters}
+									js_returns={js_info.named_endpoints["/" + dependency.api_name]
+										.parameters}
+									{is_running}
+									{current_language}
+								/>
 
-							<ResponseSnippet
-								endpoint_returns={info.named_endpoints[
-									"/" + dependency.api_name
-								].returns}
-								js_returns={js_info.named_endpoints["/" + dependency.api_name]
-									.returns}
-								{is_running}
-								{current_language}
-							/>
-						</div>
-					{/if}
-				{/each}
+								<ResponseSnippet
+									endpoint_returns={info.named_endpoints[
+										"/" + dependency.api_name
+									].returns}
+									js_returns={js_info.named_endpoints["/" + dependency.api_name]
+										.returns}
+									{is_running}
+									{current_language}
+								/>
+							</div>
+						{/if}
+					{/each}
+				{/if}
 			</div>
 		</div>
 	{:else}
@@ -336,7 +385,6 @@
 		color: var(--body-text-color);
 		line-height: 1;
 		user-select: none;
-		text-transform: capitalize;
 	}
 
 	.current-lang {
@@ -418,5 +466,46 @@
 		align-self: baseline;
 		font-family: var(--font-mono);
 		font-size: var(--text-md);
+	}
+
+	code pre {
+		overflow-x: auto;
+		color: var(--body-text-color);
+		font-family: var(--font-mono);
+		tab-size: 2;
+	}
+
+	.token.string {
+		display: contents;
+		color: var(--color-accent-base);
+	}
+
+	.copy {
+		position: absolute;
+		top: 0;
+		right: 0;
+		margin-top: -5px;
+		margin-right: -5px;
+	}
+
+	.container {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xxl);
+		margin-top: var(--size-3);
+		margin-bottom: var(--size-3);
+	}
+
+	.desc {
+		color: var(--body-text-color-subdued);
+	}
+
+	.api-name {
+		color: var(--color-accent);
+	}
+
+	/* Right-align the copy button */
+	.copy {
+		text-align: right;
 	}
 </style>
