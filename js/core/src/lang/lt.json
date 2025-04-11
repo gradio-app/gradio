@@ -140,5 +140,15 @@
 	},
 	"video": {
 		"drop_to_upload": "Įkelkite vaizdo įrašo failą čia"
+	},
+	"chatbot": {
+		"edit": "Redaguoti",
+		"retry": "Bandyti dar kartą",
+		"undo": "Atšaukti",
+		"submit": "Pateikti",
+		"cancel": "Atšaukti",
+		"like": "Patinka",
+		"dislike": "Nepatinka",
+		"clear": "Išvalyti pokalbį"
 	}
 }

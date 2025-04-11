@@ -19,7 +19,6 @@ attrs==25.1.0
     # via
     #   hypothesis
     #   jsonschema
-    #   pytest-docker
     #   referencing
 boto3==1.36.8
     # via -r test/requirements.in
@@ -27,6 +26,8 @@ botocore==1.36.8
     # via
     #   boto3
     #   s3transfer
+build==1.2.2.post1
+    # via -r test/requirements.in
 certifi==2024.12.14
     # via
     #   httpcore
@@ -52,6 +53,8 @@ diffusers==0.32.2
     # via -r test/requirements.in
 dnspython==2.7.0
     # via email-validator
+docker==7.1.0
+    # via -r test/requirements.in
 email-validator==2.2.0
     # via pydantic
 exceptiongroup==1.2.2
@@ -182,6 +185,7 @@ orjson==3.10.15
 packaging==24.2
     # via
     #   altair
+    #   build
     #   gradio
     #   gradio-client
     #   huggingface-hub
@@ -231,18 +235,17 @@ pygments==2.19.1
     #   rich
 pyparsing==3.2.1
     # via matplotlib
+pyproject-hooks==1.2.0
+    # via build
 pytest==8.3.4
     # via
     #   -r test/requirements.in
     #   pytest-asyncio
     #   pytest-cov
-    #   pytest-docker
     #   pytest-rerunfailures
 pytest-asyncio==0.25.3
     # via -r test/requirements.in
 pytest-cov==6.0.0
-    # via -r test/requirements.in
-pytest-docker==3.2.0
     # via -r test/requirements.in
 pytest-rerunfailures==15.0
     # via -r test/requirements.in
@@ -271,6 +274,7 @@ regex==2024.11.6
 requests==2.32.3
     # via
     #   diffusers
+    #   docker
     #   huggingface-hub
     #   transformers
 respx==0.22.0
@@ -321,6 +325,7 @@ tokenizers==0.21.0
     # via transformers
 tomli==2.2.1
     # via
+    #   build
     #   coverage
     #   pytest
 tomlkit==0.13.2
@@ -361,6 +366,7 @@ tzdata==2025.1
 urllib3==2.3.0
     # via
     #   botocore
+    #   docker
     #   requests
 uvicorn==0.34.0
     # via gradio
