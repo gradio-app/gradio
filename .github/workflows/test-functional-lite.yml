@@ -56,7 +56,7 @@ jobs:
       - name: Run Lite E2E tests
         run: |
           . venv/bin/activate
-          pnpm --filter @gradio/lite test:browser
+          xvfb-run pnpm --filter @gradio/lite test:browser
         env:
           DEBUG: pw:api,pw:browser
       - name: Get the performance result
