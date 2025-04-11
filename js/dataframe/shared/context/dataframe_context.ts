@@ -155,6 +155,8 @@ export interface DataFrameContext {
 	>;
 	parent_element?: HTMLElement;
 	get_data_at?: (row: number, col: number) => string | number;
+	get_column?: (col: number) => (string | number)[];
+	get_row?: (row: number) => (string | number)[];
 	dispatch?: (e: "change" | "select" | "search", detail?: any) => void;
 }
 
