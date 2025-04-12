@@ -195,26 +195,34 @@
 					});
 					newElement.textContent = head_element.textContent;
 
-					if (
-						newElement.tagName == "META" &&
-						newElement.getAttribute("property")
-					) {
-						const domMetaList = Array.from(
-							document.head.getElementsByTagName("meta") ?? []
-						);
-						const matched = domMetaList.find((el) => {
-							return (
-								el.getAttribute("property") ==
-									newElement.getAttribute("property") &&
-								!el.isEqualNode(newElement)
+					if (newElement.tagName == "META") {
+						const propertyAttr = newElement.getAttribute("property");
+						const nameAttr = newElement.getAttribute("name");
+
+						if (propertyAttr || nameAttr) {
+							const domMetaList = Array.from(
+								document.head.getElementsByTagName("meta") ?? []
 							);
-						});
-						if (matched) {
-							document.head.replaceChild(newElement, matched);
-							continue;
+
+							const matched = domMetaList.find((el) => {
+								if (
+									propertyAttr &&
+									el.getAttribute("property") === propertyAttr
+								) {
+									return !el.isEqualNode(newElement);
+								}
+								if (nameAttr && el.getAttribute("name") === nameAttr) {
+									return !el.isEqualNode(newElement);
+								}
+								return false;
+							});
+
+							if (matched) {
+								document.head.replaceChild(newElement, matched);
+								continue;
+							}
 						}
 					}
-
 					document.head.appendChild(newElement);
 				}
 			}

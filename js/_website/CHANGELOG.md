@@ -1,5 +1,21 @@
 # website
 
+## 0.54.1
+
+### Features
+
+- [#10966](https://github.com/gradio-app/gradio/pull/10966) [`191b936`](https://github.com/gradio-app/gradio/commit/191b936c9233d20fa5d83de0d7101688209df8eb) - Load lite js correctly in playground.  Thanks @aliabd!
+
+### Fixes
+
+- [#10979](https://github.com/gradio-app/gradio/pull/10979) [`975feee`](https://github.com/gradio-app/gradio/commit/975feee3925e5b65e52ae00da5c5066d8889ae6a) - improve webcam options for the ImageEditor.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.8
+- @gradio/code@0.14.0
+- @gradio/paramviewer@0.7.6
+
 ## 0.54.0
 
 ### Features

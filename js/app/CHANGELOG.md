@@ -1,5 +1,15 @@
 # @self/app
 
+## 1.49.1
+
+### Fixes
+
+- [#10968](https://github.com/gradio-app/gradio/pull/10968) [`238702a`](https://github.com/gradio-app/gradio/commit/238702a709c23f9c1b6302eb143c7cb71a3a066b) - Fix Default meta social tags + Add ability to override existing meta tags.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/core@0.14.0
+
 ## 1.49.0
 
 ### Features
