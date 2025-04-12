@@ -1,5 +1,24 @@
 # gradio
 
+## 5.25.0
+
+### Features
+
+- [#10980](https://github.com/gradio-app/gradio/pull/10980) [`370b3e2`](https://github.com/gradio-app/gradio/commit/370b3e254411bce354354f6e14753cda464cc463) - Add i18n for chatbot interactions.  Thanks @freddyaboulton!
+- [#10970](https://github.com/gradio-app/gradio/pull/10970) [`bb45441`](https://github.com/gradio-app/gradio/commit/bb454415a608acd862486da46f5bf60a7d3db2a9) - fix: accept signed URLs in gr.Audio.  Thanks @jerpint!
+- [#10982](https://github.com/gradio-app/gradio/pull/10982) [`a80b312`](https://github.com/gradio-app/gradio/commit/a80b312c081a03b5bd73477305e2f094da512b37) - Add latex to code component languages.  Thanks @ginazhouhuiwu!
+- [#10981](https://github.com/gradio-app/gradio/pull/10981) [`0db230f`](https://github.com/gradio-app/gradio/commit/0db230f5c2f19d9b3b455adb1b30ed9374ae1791) - allow users to change the visibility of layers in the image editor.  Thanks @pngwn!
+
+### Fixes
+
+- [#10993](https://github.com/gradio-app/gradio/pull/10993) [`1918baa`](https://github.com/gradio-app/gradio/commit/1918baa178066dc94a8e1a559d4d62a52a3d8db4) - Update babylon.js and ensure the Model3D component autoplays on load.  Thanks @CedricGuillemet!
+- [#10968](https://github.com/gradio-app/gradio/pull/10968) [`238702a`](https://github.com/gradio-app/gradio/commit/238702a709c23f9c1b6302eb143c7cb71a3a066b) - Fix Default meta social tags + Add ability to override existing meta tags.  Thanks @dawoodkhan82!
+- [#10999](https://github.com/gradio-app/gradio/pull/10999) [`8c70819`](https://github.com/gradio-app/gradio/commit/8c70819f87027b75e44f49a13050ae2c3e8b3580) - implement download button for the ImageEditor.  Thanks @pngwn!
+- [#10997](https://github.com/gradio-app/gradio/pull/10997) [`45d5840`](https://github.com/gradio-app/gradio/commit/45d5840fb265328f3aa0c050ce9c6b87ae7dbbc5) - When custom layers are provided to the ImageEditor, always default to the first layer.  Thanks @pngwn!
+- [#10979](https://github.com/gradio-app/gradio/pull/10979) [`975feee`](https://github.com/gradio-app/gradio/commit/975feee3925e5b65e52ae00da5c5066d8889ae6a) - improve webcam options for the ImageEditor.  Thanks @pngwn!
+- [#10995](https://github.com/gradio-app/gradio/pull/10995) [`fc59815`](https://github.com/gradio-app/gradio/commit/fc598151aa9c77a84f6e7eaf9bcc0cae6ba49369) - ensure the image editor background respects the theme mode.  Thanks @pngwn!
+- [#10994](https://github.com/gradio-app/gradio/pull/10994) [`714015a`](https://github.com/gradio-app/gradio/commit/714015a1868168721ae79d6b5bc10fbc5bbb4290) - ensure images uploaded to the ImageEditor correctly initialise the canvas dimensions.  Thanks @pngwn!
+
 ## 5.24.0
 
 ### Features

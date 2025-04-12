@@ -83,13 +83,47 @@ head = f"""
 """
 
 with gr.Blocks(head=head) as demo:
-    ...demo code...
+    gr.HTML("<h1>My App</h1>")
+
+demo.launch()
 ```
 
-The `head` parameter accepts any HTML tags you would normally insert into the `<head>` of a page. For example, you can also include `<meta>` tags to `head`.
+The `head` parameter accepts any HTML tags you would normally insert into the `<head>` of a page. For example, you can also include `<meta>` tags to `head` in order to update the social sharing preview for your Gradio app like this:
 
-Note that injecting custom HTML can affect browser behavior and compatibility (e.g. keyboard shortcuts). You should test your interface across different browsers and be mindful of how scripts may interact with browser defaults.
-Here's an example where pressing `Shift + s` triggers the `click` event of a specific `Button` component if the browser focus is _not_ on an input component (e.g. `Textbox` component):
+```py
+import gradio as gr
+
+custom_head = """
+<!-- HTML Meta Tags -->
+<title>Sample App</title>
+<meta name="description" content="An open-source web application showcasing various features and capabilities.">
+
+<!-- Facebook Meta Tags -->
+<meta property="og:url" content="https://example.com">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sample App">
+<meta property="og:description" content="An open-source web application showcasing various features and capabilities.">
+<meta property="og:image" content="https://cdn.britannica.com/98/152298-050-8E45510A/Cheetah.jpg">
+
+<!-- Twitter Meta Tags -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:creator" content="@example_user">
+<meta name="twitter:title" content="Sample App">
+<meta name="twitter:description" content="An open-source web application showcasing various features and capabilities.">
+<meta name="twitter:image" content="https://cdn.britannica.com/98/152298-050-8E45510A/Cheetah.jpg">
+<meta property="twitter:domain" content="example.com">
+<meta property="twitter:url" content="https://example.com">  
+"""
+
+with gr.Blocks(title="My App", head=custom_head) as demo:
+    gr.HTML("<h1>My App</h1>")
+
+demo.launch()
+```
+
+
+
+Note that injecting custom JS can affect browser behavior and accessibility (e.g. keyboard shortcuts may be lead to unexpected behavior if your Gradio app is embedded in another webpage). You should test your interface across different browsers and be mindful of how scripts may interact with browser defaults. Here's an example where pressing `Shift + s` triggers the `click` event of a specific `Button` component if the browser focus is _not_ on an input component (e.g. `Textbox` component):
 
 ```python
 import gradio as gr
@@ -119,3 +153,4 @@ with gr.Blocks(head=shortcut_js) as demo:
     
 demo.launch()
 ```
+

@@ -1,5 +1,29 @@
 # @gradio/core
 
+## 0.14.0
+
+### Features
+
+- [#10980](https://github.com/gradio-app/gradio/pull/10980) [`370b3e2`](https://github.com/gradio-app/gradio/commit/370b3e254411bce354354f6e14753cda464cc463) - Add i18n for chatbot interactions.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/button@0.4.14
+- @gradio/upload@0.16.1
+- @gradio/atoms@0.15.1
+- @gradio/statustracker@0.10.8
+- @gradio/column@0.2.0
+- @gradio/textbox@0.10.8
+- @gradio/icons@0.12.0
+- @gradio/gallery@0.15.14
+- @gradio/plot@0.9.13
+- @gradio/image@0.22.1
+- @gradio/code@0.14.0
+- @gradio/paramviewer@0.7.6
+- @gradio/video@0.14.9
+- @gradio/file@0.12.14
+- @gradio/checkbox@0.4.18
+
 ## 0.13.2
 
 ### Dependency updates
