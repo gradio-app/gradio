@@ -129,6 +129,48 @@
 	export let render_complete = false;
 	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const dep = dependencies.find((dep) => dep.id === fn_index);
+		
+		if (dep && dep.outputs && dep.outputs.length > 0 && screen_recorder && screen_recorder.isCurrentlyRecording()) {
+			try {
+				setTimeout(() => {
+					const outputSelector = `#component-${dep.outputs[0]}`;
+					const outputElement = document.querySelector(outputSelector);
+					
+					if (outputElement) {
+						const rect = outputElement.getBoundingClientRect();
+						const viewportWidth = window.innerWidth;
+						const viewportHeight = window.innerHeight;
+						
+						const topLeft: [number, number] = [
+							Math.max(0, rect.left) / viewportWidth,
+							Math.max(0, rect.top) / viewportHeight
+						];
+						
+						const bottomRight: [number, number] = [
+							Math.min(rect.right, viewportWidth) / viewportWidth,
+							Math.min(rect.bottom, viewportHeight) / viewportHeight
+						];
+						
+						const padding = 0.05;
+						topLeft[0] = Math.max(0, topLeft[0] - padding);
+						topLeft[1] = Math.max(0, topLeft[1] - padding);
+						bottomRight[0] = Math.min(1, bottomRight[0] + padding);
+						bottomRight[1] = Math.min(1, bottomRight[1] + padding);
+						console.log(topLeft, bottomRight);
+						screen_recorder.addZoomEffect({
+							boundingBox: {
+								topLeft,
+								bottomRight
+							},
+							duration: 2.0
+						});
+					}
+				}, 300);
+			} catch (error) {
+				console.error("Error adding zoom effect:", error);
+			}
+		}
+		
 		if (!dep) {
 			return;
 		}

@@ -1,7 +1,9 @@
 import gradio as gr
 import os
+import time
 
 def image_mod(image):
+    time.sleep(1.5)
     return image.rotate(45)
 
 new_samples = [

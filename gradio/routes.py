@@ -1694,7 +1694,15 @@ class App(FastAPI):
             params = {
                 "remove_segment_start": form.get("remove_segment_start"),
                 "remove_segment_end": form.get("remove_segment_end"),
+                "zoom_top_left_x": form.get("zoom_top_left_x"),
+                "zoom_top_left_y": form.get("zoom_top_left_y"),
+                "zoom_bottom_right_x": form.get("zoom_bottom_right_x"),
+                "zoom_bottom_right_y": form.get("zoom_bottom_right_y"),
+                "zoom_duration": form.get("zoom_duration"),
+                "zoom_timestamp": form.get("zoom_timestamp"),
             }
+            
+            print("Zoom parameters in request:", {k: v for k, v in params.items() if k.startswith("zoom_")})
 
             with tempfile.NamedTemporaryFile(
                 delete=False, suffix=".webm"
@@ -1704,7 +1712,7 @@ class App(FastAPI):
                 input_path = input_file.name
 
             output_path = tempfile.mktemp(suffix="_processed.webm")
-
+            
             try:
                 processed_path, temp_files = await process_video_with_ffmpeg(
                     input_path, output_path, params
@@ -1718,6 +1726,7 @@ class App(FastAPI):
                 )
             except Exception as e:
                 print(f"Error processing video: {str(e)}")
+                traceback.print_exc()
                 return FileResponse(
                     input_path,
                     media_type="video/webm",

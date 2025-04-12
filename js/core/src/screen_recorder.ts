@@ -13,6 +13,11 @@ class ScreenRecorder {
 	private animationFrameId: number | null = null;
 	private removeSegment: { start?: number; end?: number } = {};
 	private root: string;
+	private zoomEffects: {
+		boundingBox: { topLeft: [number, number]; bottomRight: [number, number] };
+		timestamp: number;
+		duration?: number;
+	}[] = [];
 
 	constructor(
 		root: string,
@@ -110,6 +115,43 @@ class ScreenRecorder {
 		this.removeSegment = {};
 	}
 
+	addZoomEffect(params: { 
+		boundingBox: { 
+			topLeft: [number, number]; 
+			bottomRight: [number, number] 
+		};
+		duration?: number;
+	}): void {
+		if (!this.isRecording) {
+			return;
+		}
+		
+		// Calculate the current timestamp in the recording
+		const currentTime = (Date.now() - this.recordingStartTime) / 1000;
+		
+		// Ensure we have valid coordinates before adding the zoom effect
+		if (params.boundingBox && 
+			params.boundingBox.topLeft && 
+			params.boundingBox.bottomRight &&
+			params.boundingBox.topLeft.length === 2 &&
+			params.boundingBox.bottomRight.length === 2) {
+			
+			this.zoomEffects.push({
+				boundingBox: params.boundingBox,
+				timestamp: currentTime,
+				duration: params.duration || 2.0
+			});
+			
+			console.log("Added zoom effect:", {
+				boundingBox: params.boundingBox,
+				timestamp: currentTime,
+				duration: params.duration || 2.0
+			});
+		} else {
+			console.error("Invalid boundingBox format:", params.boundingBox);
+		}
+	}
+
 	private handleDataAvailable(event: BlobEvent): void {
 		if (event.data.size > 0) {
 			this.recordedChunks.push(event.data);
@@ -142,8 +184,9 @@ class ScreenRecorder {
 				"info"
 			);
 			const hasProcessing =
-				this.removeSegment.start !== undefined &&
-				this.removeSegment.end !== undefined;
+				(this.removeSegment.start !== undefined &&
+				this.removeSegment.end !== undefined) ||
+				this.zoomEffects.length > 0;
 
 			if (!hasProcessing) {
 				const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.webm`;
@@ -168,6 +211,36 @@ class ScreenRecorder {
 				);
 			}
 
+			// Add zoom effects if any
+			if (this.zoomEffects.length > 0) {
+				// We'll just use the first zoom effect for now
+				const zoomEffect = this.zoomEffects[0];
+				
+				if (zoomEffect && zoomEffect.boundingBox && 
+					zoomEffect.boundingBox.topLeft && zoomEffect.boundingBox.bottomRight) {
+					
+					console.log("Sending zoom effect:", zoomEffect);
+					
+					// Use simple string format instead of JSON
+					formData.append("zoom_top_left_x", zoomEffect.boundingBox.topLeft[0].toString());
+					formData.append("zoom_top_left_y", zoomEffect.boundingBox.topLeft[1].toString());
+					formData.append("zoom_bottom_right_x", zoomEffect.boundingBox.bottomRight[0].toString());
+					formData.append("zoom_bottom_right_y", zoomEffect.boundingBox.bottomRight[1].toString());
+					
+					// Ensure timestamp is properly formatted
+					if (zoomEffect.timestamp !== undefined) {
+						formData.append("zoom_timestamp", zoomEffect.timestamp.toString());
+						console.log("Sending zoom timestamp:", zoomEffect.timestamp);
+					}
+					
+					if (zoomEffect.duration) {
+						formData.append("zoom_duration", zoomEffect.duration.toString());
+					}
+				} else {
+					console.warn("Zoom effect is incomplete:", zoomEffect);
+				}
+			}
+
 			const response = await fetch(this.root + "/process_recording", {
 				method: "POST",
 				body: formData
@@ -182,6 +255,9 @@ class ScreenRecorder {
 			const processedBlob = await response.blob();
 			const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.webm`;
 			this.saveWithDownloadAttribute(processedBlob, defaultFilename);
+			
+			// Clear zoom effects after processing
+			this.zoomEffects = [];
 		} catch (error) {
 			console.error("Error processing recording:", error);
 			this.add_new_message(
