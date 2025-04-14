@@ -365,29 +365,46 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
             print(f"FFmpeg box drawing error: {stderr.decode()}")
             return input_path, temp_files
         
-        # Now apply the zoom effect
+        # Now apply the zoom pan effect
         zoom_output = tempfile.mktemp(suffix="_zoomed.mp4")
         temp_files.append(zoom_output)
-        
-        # Create a complex filter for the zoom effect that ensures consistent SAR
+
+        # Calculate zoom parameters
+        zoom_factor = 2.0  # Example zoom factor
+        zoom_in_duration = zoom_duration / 2
+        zoom_out_duration = zoom_duration / 2
+
+        # Calculate the center of the red box
+        center_x = (x1 + x2) / 2
+        center_y = (y1 + y2) / 2
+
+        # Create a complex filter for the zoom pan effect
+        fps = 25
+        zoom_in_frames = int(0.3 * fps)  # 1 second to zoom in
+        hold_frames = int(2 * fps)     # 2 seconds to hold
+        zoom_out_frames = int(0.3 * fps) # 1 second to zoom out
+        total_frames = zoom_in_frames + hold_frames + zoom_out_frames
+
+        # Max zoom factor (reduced from 2.0 to 1.5)
+        max_zoom = 1.5
+
         complex_filter = (
-            # Split the video into three parts
             f"[0:v]split=3[v1][v2][v3];"
-            
-            # First part: original video up to the zoom timestamp
             f"[v1]trim=0:{zoom_timestamp},setpts=PTS-STARTPTS,setsar=1[intro];"
-            
-            # Middle part: apply zoom effect with consistent SAR
             f"[v2]trim={zoom_timestamp}:{zoom_timestamp+zoom_duration},setpts=PTS-STARTPTS,"
-            f"crop=iw*{x2-x1}:ih*{y2-y1}:iw*{x1}:ih*{y1},scale={width}:{height},setsar=1[zoom];"
-            
-            # Last part: original video after zoom
+            f"zoompan=z='if(lt(on,{zoom_in_frames})," 
+            f"     1+({max_zoom}-1)*on/{zoom_in_frames}," # zoom in phase
+            f"     if(lt(on,{zoom_in_frames+hold_frames}),"
+            f"        {max_zoom}," # hold phase
+            f"        {max_zoom}-({max_zoom}-1)*(on-{zoom_in_frames+hold_frames})/{zoom_out_frames}" # zoom out phase
+            f"     )"
+            f"  )':"
+            f"x='iw*{center_x}-(iw/zoom/2)':y='ih*{center_y}-(ih/zoom/2)':"
+            f"d={total_frames}:s={width}x{height}:fps={fps},setsar=1[zoom];"
             f"[v3]trim={zoom_timestamp+zoom_duration}:999999,setpts=PTS-STARTPTS,setsar=1[outro];"
-            
-            # Concatenate all parts
             f"[intro][zoom][outro]concat=n=3:v=1:a=0[outv]"
         )
-        
+
         cmd_zoom = [
             "ffmpeg",
             "-y",
@@ -404,22 +421,22 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
             "-c:a", "copy",
             zoom_output,
         ]
-        
-        print(f"Running zoom effect command: {' '.join(cmd_zoom)}")
-        
+
+        print(f"Running zoom pan effect command: {' '.join(cmd_zoom)}")
+
         process = await asyncio.create_subprocess_exec(
             *cmd_zoom,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
         stdout, stderr = await process.communicate()
-        
+
         if process.returncode != 0:
-            print(f"FFmpeg zoom effect error: {stderr.decode()}")
+            print(f"FFmpeg zoom pan effect error: {stderr.decode()}")
             print(stderr.decode())
             # Return the box output if zoom fails
             return box_output, temp_files
-        
+
         return zoom_output, temp_files
 
     except Exception as e:
