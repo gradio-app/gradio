@@ -37,7 +37,6 @@ from gradio import (
     networking,
     processing_utils,
     queueing,
-    strings,
     themes,
     utils,
     wasm_utils,
@@ -2750,11 +2749,11 @@ Received inputs:
 
         if self.is_colab and not quiet:
             if debug:
-                print(strings.en["COLAB_DEBUG_TRUE"])
+                print("Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. To turn off, set debug=False in launch().")
             else:
-                print(strings.en["COLAB_DEBUG_FALSE"])
+                print("Colab notebook detected. To show errors in colab notebook, set debug=True in launch()")
             if not self.share:
-                print(strings.en["COLAB_WARNING"].format(self.server_port))
+                print("Note: opening Chrome Inspector may crash demo inside Colab notebooks.")
 
         if self.share:
             if self.space_id:
@@ -2782,9 +2781,9 @@ Received inputs:
                     self.share_url = urlunparse(
                         (self.share_server_protocol,) + parsed_url[1:]
                     )
-                print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
+                print("* Running on public URL: {}".format(self.share_url))
                 if not (quiet):
-                    print(strings.en["SHARE_LINK_MESSAGE"])
+                    print("\nThis share link expires in 1 week. For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)")
             except Exception as e:
                 if self.analytics_enabled:
                     analytics.error_analytics("Not able to set up tunnel")
@@ -2792,15 +2791,15 @@ Received inputs:
                 self.share = False
                 if isinstance(e, ChecksumMismatchError):
                     print(
-                        strings.en["COULD_NOT_GET_SHARE_LINK_CHECKSUM"].format(
+                        "\nCould not create share link. Checksum mismatch for file: {}.".format(
                             BINARY_PATH
                         )
                     )
                 elif Path(BINARY_PATH).exists():
-                    print(strings.en["COULD_NOT_GET_SHARE_LINK"])
+                    print("\nCould not create share link. Please check your internet connection or our status page: https://status.gradio.app.")
                 else:
                     print(
-                        strings.en["COULD_NOT_GET_SHARE_LINK_MISSING_FILE"].format(
+                        "\nCould not create share link. Missing file: {}. \n\nPlease check your internet connection. This can happen if your antivirus software blocks the download of this file. You can install manually by following these steps: \n\n1. Download this file: {}\n2. Rename the downloaded file to: {}\n3. Move the file to this location: {}".format(
                             BINARY_PATH,
                             BINARY_URL,
                             BINARY_FILENAME,
@@ -2809,7 +2808,7 @@ Received inputs:
                     )
         else:
             if not quiet and not wasm_utils.IS_WASM:
-                print(strings.en["PUBLIC_SHARE_TRUE"])
+                print("\nTo create a public link, set `share=True` in `launch()`.")
             self.share_url = None
 
         if inbrowser and not wasm_utils.IS_WASM:
