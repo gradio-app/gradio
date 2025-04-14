@@ -128,3 +128,82 @@ export const standardHtmlTags = [
 	"video",
 	"wbr"
 ];
+
+// SVG tags
+export const svgTags = [
+	// Base structural elements
+	"g",
+	"defs",
+	"use",
+	"symbol",
+
+	// Shape elements
+	"rect",
+	"circle",
+	"ellipse",
+	"line",
+	"polyline",
+	"polygon",
+	"path",
+	"image",
+
+	// Text elements
+	"text",
+	"tspan",
+	"textPath",
+
+	// Gradient and effects
+	"linearGradient",
+	"radialGradient",
+	"stop",
+	"pattern",
+	"clipPath",
+	"mask",
+	"filter",
+
+	// Filter effects
+	"feBlend",
+	"feColorMatrix",
+	"feComponentTransfer",
+	"feComposite",
+	"feConvolveMatrix",
+	"feDiffuseLighting",
+	"feDisplacementMap",
+	"feGaussianBlur",
+	"feMerge",
+	"feMorphology",
+	"feOffset",
+	"feSpecularLighting",
+	"feTurbulence",
+	"feMergeNode",
+	"feFuncR",
+	"feFuncG",
+	"feFuncB",
+	"feFuncA",
+	"feDistantLight",
+	"fePointLight",
+	"feSpotLight",
+	"feFlood",
+	"feTile",
+
+	// Animation elements
+	"animate",
+	"animateTransform",
+	"animateMotion",
+	"mpath",
+	"set",
+
+	// Interactive and other elements
+	"view",
+	"cursor",
+	"foreignObject",
+	"desc",
+	"title",
+	"metadata",
+	"switch"
+];
+
+export const standardHtmlAndSvgTags = [
+	...standardHtmlTags,
+	...svgTags.filter((tag) => !standardHtmlTags.includes(tag))
+];
