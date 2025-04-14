@@ -111,6 +111,8 @@
 	onMount(() => {
 		df_ctx.parent_element = parent;
 		df_ctx.get_data_at = get_data_at;
+		df_ctx.get_column = get_column;
+		df_ctx.get_row = get_row;
 		df_ctx.dispatch = dispatch;
 		init_drag_handlers();
 
@@ -185,6 +187,12 @@
 
 	const get_data_at = (row: number, col: number): string | number =>
 		data?.[row]?.[col]?.value;
+
+	const get_column = (col: number): (string | number)[] =>
+		data?.map((row) => row[col]?.value) ?? [];
+
+	const get_row = (row: number): (string | number)[] =>
+		data?.[row]?.map((cell) => cell.value) ?? [];
 
 	$: {
 		if (!dequal(headers, old_headers)) {

@@ -155,6 +155,8 @@ export interface DataFrameContext {
 	>;
 	parent_element?: HTMLElement;
 	get_data_at?: (row: number, col: number) => string | number;
+	get_column?: (col: number) => (string | number)[];
+	get_row?: (row: number) => (string | number)[];
 	dispatch?: (e: "change" | "select" | "search", detail?: any) => void;
 }
 
@@ -467,6 +469,8 @@ function create_actions(
 
 			context.dispatch?.("select", {
 				index: [actual_row, col],
+				col_value: context.get_column!(col),
+				row_value: context.get_row!(actual_row),
 				value: context.get_data_at!(actual_row, col)
 			});
 		},
