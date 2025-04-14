@@ -469,6 +469,8 @@ function create_actions(
 
 			context.dispatch?.("select", {
 				index: [actual_row, col],
+				col_value: context.get_column!(col),
+				row_value: context.get_row!(actual_row),
 				value: context.get_data_at!(actual_row, col)
 			});
 		},
