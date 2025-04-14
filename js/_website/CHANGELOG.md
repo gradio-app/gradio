@@ -1,5 +1,19 @@
 # website
 
+## 0.54.2
+
+### Fixes
+
+- [#11005](https://github.com/gradio-app/gradio/pull/11005) [`3def0ed`](https://github.com/gradio-app/gradio/commit/3def0ed9edc5a9194d69456948324ec4e2740b7d) - Ensure that the `.select()` event in `gr.DataFrame` carries the `.row_value` and `.col_value`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/code@0.14.1
+- @gradio/paramviewer@0.7.7
+- @gradio/statustracker@0.10.9
+- @gradio/tabitem@0.4.3
+- @gradio/tabs@0.4.3
+
 ## 0.54.1
 
 ### Features

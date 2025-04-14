@@ -1,5 +1,18 @@
 # gradio
 
+## 5.25.1
+
+### Features
+
+- [#11014](https://github.com/gradio-app/gradio/pull/11014) [`7f92d5f`](https://github.com/gradio-app/gradio/commit/7f92d5ff7b39ea973bc17027ec8c158d3e376b87) - Update docs to reflect 1 week timeout.  Thanks @abidlabs!
+
+### Fixes
+
+- [#11017](https://github.com/gradio-app/gradio/pull/11017) [`734b309`](https://github.com/gradio-app/gradio/commit/734b3099d79647695e635d87726666d4b28d1bcf) - Include HF token in stream requests.  Thanks @nostalgebraist!
+- [#11018](https://github.com/gradio-app/gradio/pull/11018) [`3615a45`](https://github.com/gradio-app/gradio/commit/3615a454eb8cf5f758743494a15ce8af2fe16278) - Create share link automatically in Sagemaker notebooks.  Thanks @abidlabs!
+- [#11010](https://github.com/gradio-app/gradio/pull/11010) [`9219e62`](https://github.com/gradio-app/gradio/commit/9219e62cd21243fd9f5abecbe991e3b29039c76e) - fix: add svg tags for markdown when `allow_tags=True`.  Thanks @Col0ring!
+- [#11005](https://github.com/gradio-app/gradio/pull/11005) [`3def0ed`](https://github.com/gradio-app/gradio/commit/3def0ed9edc5a9194d69456948324ec4e2740b7d) - Ensure that the `.select()` event in `gr.DataFrame` carries the `.row_value` and `.col_value`.  Thanks @abidlabs!
+
 ## 5.25.0
 
 ### Features
