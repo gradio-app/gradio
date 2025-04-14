@@ -579,6 +579,7 @@ class ChatInterface(Blocks):
             postprocess=False,
         )
 
+        example_select_event = None
         if (
             isinstance(self.chatbot, Chatbot)
             and self.examples
@@ -630,13 +631,17 @@ class ChatInterface(Blocks):
             show_api=False,
         ).then(**save_fn_kwargs)
 
+        events_to_cancel = [submit_event, retry_event]
+        if example_select_event is not None:
+            events_to_cancel.append(example_select_event)
+
         self._setup_stop_events(
             event_triggers=[
                 self.textbox.submit,
                 self.chatbot.retry,
                 self.chatbot.example_select,
             ],
-            events_to_cancel=[submit_event, retry_event, example_select_event],  # type: ignore
+            events_to_cancel=events_to_cancel,
         )
 
         self.chatbot.undo(
