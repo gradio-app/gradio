@@ -630,13 +630,14 @@ class ChatInterface(Blocks):
             show_api=False,
         ).then(**save_fn_kwargs)
 
-        event_triggers = [
-            self.textbox.submit,
-            self.chatbot.retry,
-            self.chatbot.example_select,
-        ]
-        events_to_cancel = [submit_event, retry_event, example_select_event]
-        self._setup_stop_events(event_triggers, events_to_cancel)
+        self._setup_stop_events(
+            event_triggers=[
+                self.textbox.submit,
+                self.chatbot.retry,
+                self.chatbot.example_select,
+            ],
+            events_to_cancel=[submit_event, retry_event, example_select_event],
+        )
 
         self.chatbot.undo(
             self._pop_last_user_message,
