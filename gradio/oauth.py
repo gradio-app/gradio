@@ -11,7 +11,6 @@ from dataclasses import dataclass, field
 import fastapi
 from fastapi.responses import RedirectResponse
 from huggingface_hub import get_token, whoami
-from starlette.datastructures import URL
 
 from gradio.utils import get_space
 
@@ -189,6 +188,7 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
         request.session.pop("oauth_info", None)
         return _redirect_to_target(request)
 
+
 def _generate_redirect_uri(request: fastapi.Request) -> str:
     if "_target_url" in request.query_params:
         # if `_target_url` already in query params => respect it
@@ -211,7 +211,6 @@ def _redirect_to_target(
     request: fastapi.Request, default_target: str = "/"
 ) -> RedirectResponse:
     target = request.query_params.get("_target_url", default_target)
-    print(f"Redirecting to {target}")
     return RedirectResponse(target)
 
 
