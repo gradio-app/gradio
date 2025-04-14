@@ -418,7 +418,6 @@ def is_hosted_notebook() -> bool:
     """
     return bool(
         os.environ.get("KAGGLE_KERNEL_RUN_TYPE")
-        or os.environ.get("GFOOTBALL_DATA_DIR")
         or os.path.exists("/home/ec2-user/SageMaker")
     )
 
