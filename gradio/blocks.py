@@ -2649,7 +2649,7 @@ Received inputs:
             self.server = server
             self.is_running = True
             self.is_colab = utils.colab_check()
-            self.is_kaggle = utils.kaggle_check()
+            self.is_hosted_notebook = utils.is_hosted_notebook()
             self.share_server_address = share_server_address
             self.share_server_protocol = share_server_protocol or (
                 "http" if share_server_address is not None else "https"
@@ -2697,32 +2697,16 @@ Received inputs:
                 # So we use create_task() instead. This is a best-effort fallback in the Wasm env but it doesn't guarantee that all the tasks are completed before they are needed.
                 asyncio.create_task(self.run_extra_startup_events())
 
-        self.is_sagemaker = (
-            False  # TODO: fix Gradio's behavior in sagemaker and other hosted notebooks
-        )
         if share is None:
-            if self.is_colab:
-                if not quiet:
-                    print(
-                        "Running Gradio in a Colab notebook requires sharing enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
-                    )
-                self.share = True
-            elif self.is_kaggle:
-                if not quiet:
-                    print(
-                        "Kaggle notebooks require sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
-                    )
-                self.share = True
-            elif self.is_sagemaker:
-                if not quiet:
-                    print(
-                        "Sagemaker notebooks may require sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
-                    )
-                self.share = True
+            if self.is_colab or self.is_hosted_notebook:
+                if self.share is None:
+                    if not quiet:
+                        print(
+                            "It looks like you are running Gradio on a hosted a Jupyter notebook. For the Gradio app to work, sharing must be enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                        )
+                    self.share = True
             else:
                 self.share = False
-                # GRADIO_SHARE environment variable for forcing 'share=True'
-                # GRADIO_SHARE=True => share=True
                 share_env = os.getenv("GRADIO_SHARE")
                 if share_env is not None and share_env.lower() == "true":
                     self.share = True
