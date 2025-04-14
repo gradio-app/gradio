@@ -1,5 +1,11 @@
 # @gradio/markdown-code
 
+## 0.4.3
+
+### Fixes
+
+- [#11010](https://github.com/gradio-app/gradio/pull/11010) [`9219e62`](https://github.com/gradio-app/gradio/commit/9219e62cd21243fd9f5abecbe991e3b29039c76e) - fix: add svg tags for markdown when `allow_tags=True`.  Thanks @Col0ring!
+
 ## 0.4.2
 
 ### Features

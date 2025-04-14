@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 1.14.2
+
+### Fixes
+
+- [#11017](https://github.com/gradio-app/gradio/pull/11017) [`734b309`](https://github.com/gradio-app/gradio/commit/734b3099d79647695e635d87726666d4b28d1bcf) - Include HF token in stream requests.  Thanks @nostalgebraist!
+
 ## 1.14.1
 
 ### Features

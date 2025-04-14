@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/textbox",
-	"version": "0.10.8",
+	"version": "0.10.9",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
