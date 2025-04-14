@@ -636,7 +636,7 @@ class ChatInterface(Blocks):
                 self.chatbot.retry,
                 self.chatbot.example_select,
             ],
-            events_to_cancel=[submit_event, retry_event, example_select_event],
+            events_to_cancel=[submit_event, retry_event, example_select_event],  # type: ignore
         )
 
         self.chatbot.undo(
