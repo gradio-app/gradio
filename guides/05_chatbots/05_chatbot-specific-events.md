@@ -76,7 +76,7 @@ Our undo event will populate the textbox with the previous user message and also
 
 In order to know the index of the last user message, we can pass `gr.UndoData` to our event handler function like so:
 
-``python
+```python
 def handle_undo(history, undo_data: gr.UndoData):
     return history[:undo_data.index], history[undo_data.index]['content']
 ```
