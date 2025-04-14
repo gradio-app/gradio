@@ -81,7 +81,7 @@ class LoginButton(Button):
         # ('self' value will be either "Sign in with Hugging Face" or "Signed in as ...")
         _js = _js_handle_redirect.replace(
             "BUTTON_DEFAULT_VALUE", json.dumps(self.value)
-        ).replace("REDIRECT_URL", )
+        ).replace("REDIRECT_URL", self.page)
         self.click(fn=None, inputs=[self], outputs=None, js=_js)
 
         self.attach_load_event(self._check_login_status, None)
@@ -113,7 +113,7 @@ class LoginButton(Button):
 # on the same tab.
 _js_handle_redirect = """
 (buttonValue) => {
-    uri = buttonValue === BUTTON_DEFAULT_VALUE ? '/login/huggingfac?redirect=REDIRECT_URL' : '/logout?redirect=REDIRECT_URL';
+    uri = buttonValue === BUTTON_DEFAULT_VALUE ? '/login/huggingfac?redirect=/REDIRECT_URL' : '/logout?redirect=/REDIRECT_URL';
     window.parent?.postMessage({ type: "SET_SCROLLING", enabled: true }, "*");
     setTimeout(() => {
         window.location.assign(uri + window.location.search);
