@@ -5,7 +5,7 @@
 	import { create_marked } from "./utils";
 	import { sanitize } from "@gradio/sanitize";
 	import "./prism.css";
-	import { standardHtmlTags } from "./html-tags";
+	import { standardHtmlAndSvgTags } from "./html-tags";
 	import type { ThemeMode } from "@gradio/core";
 
 	export let chatbot = true;
@@ -43,7 +43,7 @@
 			// https://www.w3schools.com/tags/
 			const tagRegex = /<\/?([a-zA-Z][a-zA-Z0-9-]*)([\s>])/g;
 			return content.replace(tagRegex, (match, tagName, endChar) => {
-				if (!standardHtmlTags.includes(tagName.toLowerCase())) {
+				if (!standardHtmlAndSvgTags.includes(tagName.toLowerCase())) {
 					return match.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 				}
 				return match;
