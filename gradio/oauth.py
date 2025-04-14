@@ -187,9 +187,7 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
         request.session.pop("oauth_info", None)
-        logout_url = URL("/").include_query_params(**request.query_params)
-        return RedirectResponse(url=logout_url, status_code=302)
-
+        return _redirect_to_target(request)
 
 def _generate_redirect_uri(request: fastapi.Request) -> str:
     if "_target_url" in request.query_params:
@@ -213,6 +211,7 @@ def _redirect_to_target(
     request: fastapi.Request, default_target: str = "/"
 ) -> RedirectResponse:
     target = request.query_params.get("_target_url", default_target)
+    print(f"Redirecting to {target}")
     return RedirectResponse(target)
 
 
