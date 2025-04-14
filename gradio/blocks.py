@@ -2749,11 +2749,17 @@ Received inputs:
 
         if self.is_colab and not quiet:
             if debug:
-                print("Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. To turn off, set debug=False in launch().")
+                print(
+                    "Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. To turn off, set debug=False in launch()."
+                )
             else:
-                print("Colab notebook detected. To show errors in colab notebook, set debug=True in launch()")
+                print(
+                    "Colab notebook detected. To show errors in colab notebook, set debug=True in launch()"
+                )
             if not self.share:
-                print("Note: opening Chrome Inspector may crash demo inside Colab notebooks.")
+                print(
+                    "Note: opening Chrome Inspector may crash demo inside Colab notebooks."
+                )
 
         if self.share:
             if self.space_id:
@@ -2781,9 +2787,11 @@ Received inputs:
                     self.share_url = urlunparse(
                         (self.share_server_protocol,) + parsed_url[1:]
                     )
-                print("* Running on public URL: {}".format(self.share_url))
+                print(f"* Running on public URL: {self.share_url}")
                 if not (quiet):
-                    print("\nThis share link expires in 1 week. For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)")
+                    print(
+                        "\nThis share link expires in 1 week. For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)"
+                    )
             except Exception as e:
                 if self.analytics_enabled:
                     analytics.error_analytics("Not able to set up tunnel")
@@ -2791,20 +2799,15 @@ Received inputs:
                 self.share = False
                 if isinstance(e, ChecksumMismatchError):
                     print(
-                        "\nCould not create share link. Checksum mismatch for file: {}.".format(
-                            BINARY_PATH
-                        )
+                        f"\nCould not create share link. Checksum mismatch for file: {BINARY_PATH}."
                     )
                 elif Path(BINARY_PATH).exists():
-                    print("\nCould not create share link. Please check your internet connection or our status page: https://status.gradio.app.")
+                    print(
+                        "\nCould not create share link. Please check your internet connection or our status page: https://status.gradio.app."
+                    )
                 else:
                     print(
-                        "\nCould not create share link. Missing file: {}. \n\nPlease check your internet connection. This can happen if your antivirus software blocks the download of this file. You can install manually by following these steps: \n\n1. Download this file: {}\n2. Rename the downloaded file to: {}\n3. Move the file to this location: {}".format(
-                            BINARY_PATH,
-                            BINARY_URL,
-                            BINARY_FILENAME,
-                            BINARY_FOLDER,
-                        )
+                        f"\nCould not create share link. Missing file: {BINARY_PATH}. \n\nPlease check your internet connection. This can happen if your antivirus software blocks the download of this file. You can install manually by following these steps: \n\n1. Download this file: {BINARY_URL}\n2. Rename the downloaded file to: {BINARY_FILENAME}\n3. Move the file to this location: {BINARY_FOLDER}"
                     )
         else:
             if not quiet and not wasm_utils.IS_WASM:
