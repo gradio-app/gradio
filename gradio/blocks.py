@@ -2665,9 +2665,9 @@ Received inputs:
             )
             if not wasm_utils.IS_WASM and not self.is_colab and not quiet:
                 s = (
-                    strings.en["RUNNING_LOCALLY_SSR"]
+                    "* Running on local URL:  {}://{}:{}, with SSR ⚡ (experimental, to disable set `ssr=False` in `launch()`)"
                     if self.ssr_mode
-                    else strings.en["RUNNING_LOCALLY"]
+                    else "* Running on local URL:  {}://{}:{}"
                 )
                 print(s.format(self.protocol, self.server_name, self.server_port))
 
@@ -2683,7 +2683,7 @@ Received inputs:
                 )
                 if not resp.is_success:
                     raise Exception(
-                        f"Couldn’t start the app because '{resp.url}' failed (code {resp.status_code}). Check your network or proxy settings to ensure localhost is accessible."
+                        f"Couldn't start the app because '{resp.url}' failed (code {resp.status_code}). Check your network or proxy settings to ensure localhost is accessible."
                     )
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
