@@ -55,9 +55,9 @@ class TestBlocksMethods:
             assert not demo.share
 
     @patch("gradio.networking.setup_tunnel")
-    @patch("gradio.utils.colab_check")
-    def test_set_share_in_colab(self, mock_colab_check, mock_setup_tunnel):
-        mock_colab_check.return_value = True
+    @patch("gradio.utils.is_hosted_notebook")
+    def test_set_share_in_colab(self, mock_is_hosted_notebook, mock_setup_tunnel):
+        mock_is_hosted_notebook.return_value = True
         mock_setup_tunnel.return_value = "http://localhost:7860/"
         with gr.Blocks() as demo:
             # self.share is False when instantiating the class

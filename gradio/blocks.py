@@ -2244,7 +2244,7 @@ Received inputs:
             "enable_queue": True,  # launch attributes
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
-            "is_colab": utils.colab_check(),
+            "is_colab": utils.is_hosted_notebook(),
             "max_file_size": getattr(self, "max_file_size", None),
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
@@ -2649,8 +2649,8 @@ Received inputs:
             self.server_port = server_port
             self.server = server
             self.is_running = True
-            self.is_colab = utils.colab_check()
-            self.is_kaggle = utils.kaggle_check()
+            self.is_colab = utils.is_hosted_notebook()
+            self.is_kaggle = utils.is_hosted_notebook()
             self.share_server_address = share_server_address
             self.share_server_protocol = share_server_protocol or (
                 "http" if share_server_address is not None else "https"
@@ -2683,7 +2683,7 @@ Received inputs:
                 )
                 if not resp.is_success:
                     raise Exception(
-                        f"Couldn’t start the app because '{resp.url}' failed (code {resp.status_code}). Check your network or proxy settings to ensure localhost is accessible."
+                        f"Couldn't start the app because '{resp.url}' failed (code {resp.status_code}). Check your network or proxy settings to ensure localhost is accessible."
                     )
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
@@ -2705,13 +2705,13 @@ Received inputs:
             if self.is_colab:
                 if not quiet:
                     print(
-                        "Running Gradio in a Colab notebook requires sharing enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                        "Running Gradio in a hosted notebook requires sharing enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
                     )
                 self.share = True
             elif self.is_kaggle:
                 if not quiet:
                     print(
-                        "Kaggle notebooks require sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                        "Running Gradio in a hosted notebook requires sharing enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
                     )
                 self.share = True
             elif self.is_sagemaker:
