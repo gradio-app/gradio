@@ -395,27 +395,24 @@ def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
     reassign_context_keys(old_blocks, new_blocks)
 
 
-def colab_check() -> bool:
+def is_hosted_notebook() -> bool:
     """
-    Check if interface is launching from Google Colab
-    :return is_colab (bool): True or False
+    Check if interface is launching from a hosted notebook environment (Colab or Kaggle)
+    :return is_hosted (bool): True if running in Colab or Kaggle, False otherwise
     """
-    is_colab = False
+    is_hosted = False
     try:  # Check if running interactively using ipython.
         from IPython.core.getipython import get_ipython
 
         from_ipynb = get_ipython()
-        if "google.colab" in str(from_ipynb):
-            is_colab = True
+        if from_ipynb is not None:
+            if "google.colab" in str(from_ipynb):
+                is_hosted = True
+            elif os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or os.environ.get("GFOOTBALL_DATA_DIR"):
+                is_hosted = True
     except (ImportError, NameError):
         pass
-    return is_colab
-
-
-def kaggle_check() -> bool:
-    return bool(
-        os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or os.environ.get("GFOOTBALL_DATA_DIR")
-    )
+    return is_hosted
 
 
 def sagemaker_check() -> bool:
