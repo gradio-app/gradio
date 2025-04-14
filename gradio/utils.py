@@ -412,21 +412,15 @@ def colab_check() -> bool:
     return is_colab
 
 
-def kaggle_check() -> bool:
+def is_hosted_notebook() -> bool:
+    """
+    Check if Gradio app is launching from a hosted notebook such as Kaggle or Sagemaker.
+    """
     return bool(
-        os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or os.environ.get("GFOOTBALL_DATA_DIR")
+        os.environ.get("KAGGLE_KERNEL_RUN_TYPE")
+        or os.environ.get("GFOOTBALL_DATA_DIR")
+        or os.path.exists("/home/ec2-user/SageMaker")
     )
-
-
-def sagemaker_check() -> bool:
-    try:
-        import boto3  # type: ignore
-
-        client = boto3.client("sts")
-        response = client.get_caller_identity()
-        return "sagemaker" in response["Arn"].lower()
-    except Exception:
-        return False
 
 
 def ipython_check() -> bool:
