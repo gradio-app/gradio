@@ -1,343 +1,26 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import { onMount, tick } from "svelte";
-	import { spring, type Spring } from "svelte/motion";
+	import { tweened, type Tweened } from "svelte/motion";
 
-	export class ZoomableImage {
-		container: HTMLDivElement;
-		image: HTMLImageElement;
-		scale: number;
-		offsetX: number;
-		offsetY: number;
-		isDragging: boolean;
-		lastX: number;
-		lastY: number;
-		initial_left_padding: number;
-		initial_top_padding: number;
-		initial_width: number;
-		initial_height: number;
-		subscribers: ((offsetX: number, offsetY: number, scale: number) => void)[];
-		constructor(container: HTMLDivElement, image: HTMLImageElement) {
-			this.container = container;
-			this.image = image;
-
-			// Initial state
-			this.scale = 1;
-			this.offsetX = 0;
-			this.offsetY = 0;
-			this.isDragging = false;
-			this.lastX = 0;
-			this.lastY = 0;
-			this.initial_left_padding = 0;
-			this.initial_top_padding = 0;
-			this.initial_width = 0;
-			this.initial_height = 0;
-			this.subscribers = [];
-
-			// Bind methods
-			this.handleWheel = this.handleWheel.bind(this);
-			this.handleMouseDown = this.handleMouseDown.bind(this);
-			this.handleMouseMove = this.handleMouseMove.bind(this);
-			this.handleMouseUp = this.handleMouseUp.bind(this);
-			this.handleImageLoad = this.handleImageLoad.bind(this);
-
-			// Add image load handler
-			this.image.addEventListener("load", this.handleImageLoad);
-
-			// Add image to container
-			this.container.appendChild(this.image);
-
-			// Add event listeners
-			this.container.addEventListener("wheel", this.handleWheel);
-			this.container.addEventListener("mousedown", this.handleMouseDown);
-			document.addEventListener("mousemove", this.handleMouseMove);
-			document.addEventListener("mouseup", this.handleMouseUp);
-		}
-
-		handleImageLoad(): void {
-			// Calculate initial dimensions
-			const containerRect = this.container.getBoundingClientRect();
-			const imageAspect = this.image.naturalWidth / this.image.naturalHeight;
-			const containerAspect = containerRect.width / containerRect.height;
-
-			if (imageAspect > containerAspect) {
-				this.image.style.width = "100%";
-				this.image.style.height = "auto";
-			} else {
-				this.image.style.width = "auto";
-				this.image.style.height = "100%";
-			}
-
-			// Store initial image position and size
-			const imageRect = this.image.getBoundingClientRect();
-			this.initial_left_padding = imageRect.left - containerRect.left;
-			this.initial_top_padding = imageRect.top - containerRect.top;
-			this.initial_width = imageRect.width;
-			this.initial_height = imageRect.height;
-
-			// Center the image
-			this.updateTransform();
-		}
-
-		async handleWheel(e: WheelEvent): Promise<void> {
-			e.preventDefault();
-			await tick();
-
-			const containerRect = this.container.getBoundingClientRect();
-			const imageRect = this.image.getBoundingClientRect(); // Get initial bounds
-
-			console.log("handleWheel START", {
-				cursor: { x: e.clientX, y: e.clientY },
-				containerRect,
-				initialImageRect: imageRect,
-				initialState: { x: this.offsetX, y: this.offsetY, scale: this.scale },
-			});
-
-			// Don't zoom if cursor is not over the image
-			if (
-				e.clientX < imageRect.left ||
-				e.clientX > imageRect.right ||
-				e.clientY < imageRect.top ||
-				e.clientY > imageRect.bottom
-			) {
-				return;
-			}
-
-			// Calculate zoom factor
-			const zoomFactor = 1.05;
-			const oldScale = this.scale;
-			const newScale =
-				-Math.sign(e.deltaY) > 0
-					? Math.min(15, oldScale * zoomFactor) // Zoom in
-					: Math.max(1, oldScale / zoomFactor); // Zoom out
-
-			if (newScale === oldScale) return;
-
-			// Calculate the scaling factor between old and new scales
-			const scalingFactor = newScale / oldScale;
-
-			// Get cursor position in container coordinates
-			const cursorX = e.clientX - containerRect.left;
-			const cursorY = e.clientY - containerRect.top;
-
-			// Get image current visual top-left in container coordinates
-			const imgX = imageRect.left - containerRect.left;
-			const imgY = imageRect.top - containerRect.top;
-
-			// Calculate the new offset based on keeping the cursor point fixed
-			const calculatedNewOffsetX =
-				this.offsetX + (cursorX - imgX) * (1 - scalingFactor);
-			const calculatedNewOffsetY =
-				this.offsetY + (cursorY - imgY) * (1 - scalingFactor);
-
-			console.log("handleWheel CALC", {
-				oldScale,
-				newScale,
-				scalingFactor,
-				cursorX,
-				cursorY,
-				imgX,
-				imgY,
-				calculatedNewOffsetX,
-				calculatedNewOffsetY,
-			});
-
-			// Update scale and offsets
-			this.scale = newScale;
-			this.offsetX = calculatedNewOffsetX;
-			this.offsetY = calculatedNewOffsetY;
-
-			console.log("handleWheel PRE-CONSTRAIN", {
-				state: { x: this.offsetX, y: this.offsetY, scale: this.scale },
-			});
-
-			// Apply transform *before* constraining to get correct bounds
-			this.updateTransform(); // Apply before constrain
-
-			this.constrainToBounds();
-			this.updateTransform(); // Apply again after constraining
-		}
-
-		handleMouseDown(e: MouseEvent): void {
-			e.preventDefault();
-			if (this.scale === 1) return;
-			this.isDragging = true;
-			this.lastX = e.clientX;
-			this.lastY = e.clientY;
-			this.container.style.cursor = "grabbing";
-		}
-
-		handleMouseMove(e: MouseEvent): void {
-			e.preventDefault();
-			if (!this.isDragging) return;
-
-			const deltaX = e.clientX - this.lastX;
-			const deltaY = e.clientY - this.lastY;
-
-			this.offsetX += deltaX;
-			this.offsetY += deltaY;
-
-			this.lastX = e.clientX;
-			this.lastY = e.clientY;
-
-			this.constrainToBounds();
-			this.updateTransform();
-		}
-
-		handleMouseUp(): void {
-			this.isDragging = false;
-			this.container.style.cursor = "grab";
-		}
-
-		constrainToBounds(): void {
-			const containerRect = this.container.getBoundingClientRect();
-			const imageRect = this.image.getBoundingClientRect(); // Get potentially updated bounds
-
-			console.log("constrainToBounds START", {
-				containerRect,
-				imageRect,
-				inputState: { x: this.offsetX, y: this.offsetY, scale: this.scale },
-			});
-
-			const imgActualWidth = imageRect.width;
-			const imgActualHeight = imageRect.height;
-
-			// Current edges relative to container origin
-			const leftEdgeX = imageRect.left - containerRect.left;
-			const rightEdgeX = leftEdgeX + imgActualWidth; // Use width from rect
-			const topEdgeY = imageRect.top - containerRect.top;
-			const bottomEdgeY = topEdgeY + imgActualHeight; // Use height from rect
-
-			let constraintCalcOffsetX = this.offsetX; // Start with current offset
-			let constraintCalcOffsetY = this.offsetY; // Start with current offset
-
-			// Horizontal Constraints
-			if (imgActualWidth > containerRect.width) {
-				// Image wider than container: prevent edges from coming inside container
-				if (leftEdgeX > 0) {
-					// Left edge is inside container's left boundary, shift image left
-					constraintCalcOffsetX = this.offsetX - leftEdgeX;
-				} else if (rightEdgeX < containerRect.width) {
-					// Right edge is inside container's right boundary, shift image right
-					constraintCalcOffsetX =
-						this.offsetX + (containerRect.width - rightEdgeX);
-				}
-			} /* else {
-				// Image narrower than container: prevent edges from going outside container
-				if (leftEdgeX < 0) {
-					// Left edge is outside container's left boundary, shift image right
-					constraintCalcOffsetX = this.offsetX - leftEdgeX;
-				} else if (rightEdgeX > containerRect.width) {
-					// Right edge is outside container's right boundary, shift image left
-					constraintCalcOffsetX = this.offsetX - (rightEdgeX - containerRect.width);
-				}
-			} */
-
-			// Vertical Constraints
-			if (imgActualHeight > containerRect.height) {
-				// Image taller than container: prevent edges from coming inside container
-				if (topEdgeY > 0) {
-					// Top edge is inside container's top boundary, shift image up
-					constraintCalcOffsetY = this.offsetY - topEdgeY;
-				} else if (bottomEdgeY < containerRect.height) {
-					// Bottom edge is inside container's bottom boundary, shift image down
-					constraintCalcOffsetY =
-						this.offsetY + (containerRect.height - bottomEdgeY);
-				}
-			} else {
-				// Image shorter than container: prevent edges from going outside container
-				if (topEdgeY < 0) {
-					// Top edge is outside container's top boundary, shift image down
-					constraintCalcOffsetY = this.offsetY - topEdgeY;
-				} else if (bottomEdgeY > containerRect.height) {
-					// Bottom edge is outside container's bottom boundary, shift image up
-					constraintCalcOffsetY =
-						this.offsetY - (bottomEdgeY - containerRect.height);
-				}
-			}
-
-			console.log("constrainToBounds CALC", {
-				edges: {
-					left: leftEdgeX,
-					right: rightEdgeX,
-					top: topEdgeY,
-					bottom: bottomEdgeY,
-				},
-				calculatedOffsets: {
-					x: constraintCalcOffsetX,
-					y: constraintCalcOffsetY,
-				},
-			});
-
-			// Only update offsets if they changed significantly
-			const threshold = 0.1;
-			let appliedOffsetX = this.offsetX;
-			let appliedOffsetY = this.offsetY;
-			if (Math.abs(this.offsetX - constraintCalcOffsetX) > threshold)
-				appliedOffsetX = constraintCalcOffsetX;
-			if (Math.abs(this.offsetY - constraintCalcOffsetY) > threshold)
-				appliedOffsetY = constraintCalcOffsetY;
-
-			this.offsetX = appliedOffsetX;
-			this.offsetY = appliedOffsetY;
-
-			console.log("constrainToBounds END", {
-				finalState: { x: this.offsetX, y: this.offsetY },
-			});
-		}
-
-		updateTransform(): void {
-			console.log("updateTransform APPLY", {
-				state: { x: this.offsetX, y: this.offsetY, scale: this.scale },
-			});
-			this.notify(this.offsetX, this.offsetY, this.scale);
-			this.image.style.transform = `translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
-		}
-
-		destroy(): void {
-			this.container.removeEventListener("wheel", this.handleWheel);
-			this.container.removeEventListener("mousedown", this.handleMouseDown);
-			document.removeEventListener("mousemove", this.handleMouseMove);
-			document.removeEventListener("mouseup", this.handleMouseUp);
-			this.image.removeEventListener("load", this.handleImageLoad);
-		}
-
-		subscribe(
-			cb: (offsetX: number, offsetY: number, scale: number) => void,
-		): void {
-			this.subscribers.push(cb);
-		}
-
-		unsubscribe(
-			cb: (offsetX: number, offsetY: number, scale: number) => void,
-		): void {
-			this.subscribers = this.subscribers.filter(
-				(subscriber) => subscriber !== cb,
-			);
-		}
-
-		notify(offsetX: number, offsetY: number, scale: number): void {
-			this.subscribers.forEach((subscriber) =>
-				subscriber(offsetX, offsetY, scale),
-			);
-		}
-	}
-
+	
 	let container_el: HTMLDivElement;
 	let image_el: HTMLImageElement;
-	let transform: Spring<{ x: number; y: number; z: number }> = spring(
+	let transform: Tweened<{ x: number; y: number; z: number }> = tweened(
 		{ x: 0, y: 0, z: 1 },
 		{
-			stiffness: 0.2,
-			damping: 0.6,
+			duration: 75,
 		},
 	);
 
 	onMount(() => {
 		const zoomable_image = new ZoomableImage(container_el, image_el);
 		zoomable_image.subscribe((offsetX, offsetY, scale) => {
-			// transform.set({ x: offsetX, y: offsetY, z: scale }, { hard: true });
-			image_el.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+			transform.set({ x: offsetX, y: offsetY, z: scale });
 		});
+
+		return () => {
+			zoomable_image.destroy();
+		};
 	});
 </script>
 
@@ -368,7 +51,223 @@
 		max-width: 100%;
 		max-height: 100%;
 		object-fit: contain;
-		/* transform-origin: center; */
+		transform-origin: top left;
 		cursor: zoom-in;
 	}
-</style>
+</style> -->
+<svelte:options accessors={true} />
+
+<script lang="ts">
+	import type { Gradio, SelectData, ValueData } from "@gradio/utils";
+	import StaticImage from "./shared/SliderPreview.svelte";
+	import ImageUploader from "./shared/SliderUpload.svelte";
+	import { afterUpdate } from "svelte";
+	import type { WebcamOptions } from "./shared/types";
+
+	import { Block, Empty, UploadText } from "@gradio/atoms";
+	import { Image } from "@gradio/icons";
+	import { StatusTracker } from "@gradio/statustracker";
+	import { upload, type FileData } from "@gradio/client";
+	import type { LoadingStatus } from "@gradio/statustracker";
+
+	type sources = "upload" | "webcam" | "clipboard" | null;
+
+	let stream_state = "closed";
+	let _modify_stream: (state: "open" | "closed" | "waiting") => void = () => {};
+	export function modify_stream_state(
+		state: "open" | "closed" | "waiting",
+	): void {
+		stream_state = state;
+		_modify_stream(state);
+	}
+	export const get_stream_state: () => void = () => stream_state;
+	export let set_time_limit: (arg0: number) => void;
+	export let value_is_output = false;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
+	export let value: [FileData | null, FileData | null] = [null, null];
+	let old_value: [FileData | null, FileData | null] = [null, null];
+	export let label: string;
+	export let show_label: boolean;
+	export let show_download_button: boolean;
+	export let root: string;
+
+	export let height: number | undefined;
+	export let width: number | undefined;
+
+	export let _selectable = false;
+	export let container = true;
+	export let scale: number | null = null;
+	export let min_width: number | undefined = undefined;
+	export let loading_status: LoadingStatus;
+	// export let show_share_button = false;
+
+	export let interactive: boolean;
+	export let streaming: boolean;
+	export let pending: boolean;
+	export let placeholder: string | undefined = undefined;
+	export let show_fullscreen_button: boolean;
+	export let input_ready: boolean;
+	export let position: number;
+	export let upload_count = 2;
+	export let slider_color = "var(--border-color-primary)";
+
+	let uploading = false;
+	$: input_ready = !uploading;
+
+	export let gradio: Gradio<{
+		input: never;
+		change: never;
+		error: string;
+		edit: never;
+		stream: ValueData;
+		drag: never;
+		upload: never;
+		clear: never;
+		select: SelectData;
+		share: ShareData;
+		clear_status: LoadingStatus;
+		close_stream: string;
+	}>;
+
+	$: {
+		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
+			old_value = value;
+			gradio.dispatch("change");
+			if (!value_is_output) {
+				gradio.dispatch("input");
+			}
+		}
+	}
+
+	afterUpdate(() => {
+		value_is_output = false;
+	});
+
+	let dragging: boolean;
+	let active_source: sources = null;
+	let upload_component: ImageUploader;
+	const handle_drag_event = (event: Event): void => {
+		const drag_event = event as DragEvent;
+		drag_event.preventDefault();
+		drag_event.stopPropagation();
+		if (drag_event.type === "dragenter" || drag_event.type === "dragover") {
+			dragging = true;
+		} else if (drag_event.type === "dragleave") {
+			dragging = false;
+		}
+	};
+
+	const handle_drop = (event: Event): void => {
+		if (interactive) {
+			const drop_event = event as DragEvent;
+			drop_event.preventDefault();
+			drop_event.stopPropagation();
+			dragging = false;
+
+			if (upload_component) {
+				upload_component.loadFilesFromDrop(drop_event);
+			}
+		}
+	};
+</script>
+
+{#if !interactive || (value?.[1] && value?.[0])}
+	<Block
+		{visible}
+		variant={"solid"}
+		border_mode={dragging ? "focus" : "base"}
+		padding={false}
+		{elem_id}
+		{elem_classes}
+		height={height || undefined}
+		{width}
+		allow_overflow={false}
+		{container}
+		{scale}
+		{min_width}
+	>
+		<StatusTracker
+			autoscroll={gradio.autoscroll}
+			i18n={gradio.i18n}
+			{...loading_status}
+		/>
+		<StaticImage
+			on:select={({ detail }) => gradio.dispatch("select", detail)}
+			on:share={({ detail }) => gradio.dispatch("share", detail)}
+			on:error={({ detail }) => gradio.dispatch("error", detail)}
+			{value}
+			{label}
+			{show_label}
+			{show_download_button}
+			i18n={gradio.i18n}
+			{show_fullscreen_button}
+		/>
+	</Block>
+{:else}
+	<Block
+		{visible}
+		variant={value === null ? "dashed" : "solid"}
+		border_mode={dragging ? "focus" : "base"}
+		padding={false}
+		{elem_id}
+		{elem_classes}
+		height={height || undefined}
+		{width}
+		allow_overflow={false}
+		{container}
+		{scale}
+		{min_width}
+		on:dragenter={handle_drag_event}
+		on:dragleave={handle_drag_event}
+		on:dragover={handle_drag_event}
+		on:drop={handle_drop}
+	>
+		<StatusTracker
+			autoscroll={gradio.autoscroll}
+			i18n={gradio.i18n}
+			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		/>
+
+		<ImageUploader
+			bind:this={upload_component}
+			bind:uploading
+			bind:value
+			bind:dragging
+			{root}
+			on:edit={() => gradio.dispatch("edit")}
+			on:clear={() => {
+				gradio.dispatch("clear");
+			}}
+			on:stream={({ detail }) => gradio.dispatch("stream", detail)}
+			on:drag={({ detail }) => (dragging = detail)}
+			on:upload={() => gradio.dispatch("upload")}
+			on:select={({ detail }) => gradio.dispatch("select", detail)}
+			on:share={({ detail }) => gradio.dispatch("share", detail)}
+			on:error={({ detail }) => {
+				loading_status = loading_status || {};
+				loading_status.status = "error";
+				gradio.dispatch("error", detail);
+			}}
+			on:close_stream={() => {
+				gradio.dispatch("close_stream", "stream");
+			}}
+			{label}
+			{show_label}
+			max_file_size={gradio.max_file_size}
+			i18n={gradio.i18n}
+			upload={(...args) => gradio.client.upload(...args)}
+			stream_handler={gradio.client?.stream}
+		>
+			{#if active_source === "upload" || !active_source}
+				<UploadText i18n={gradio.i18n} type="image" {placeholder} />
+			{:else if active_source === "clipboard"}
+				<UploadText i18n={gradio.i18n} type="clipboard" mode="short" />
+			{:else}
+				<Empty unpadded_box={true} size="large"><Image /></Empty>
+			{/if}
+		</ImageUploader>
+	</Block>
+{/if}

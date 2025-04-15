@@ -19,7 +19,7 @@
 	export let upload_count = 2;
 	export let slider_color: string;
 	export let dragging: boolean;
-
+	export let uploading: boolean;
 	export let gradio: Gradio<{
 		change: never;
 		error: string;
@@ -32,8 +32,9 @@
 		share: ShareData;
 		clear_status: LoadingStatus;
 	}>;
+	export let max_file_size: number | null = null;
 
-	$: value, gradio.dispatch("change");
+	// $: value, gradio.dispatch("change");
 
 	$: console.log("value", value);
 
@@ -50,19 +51,21 @@
 	{position}
 	bind:value
 	bind:dragging
+	bind:uploading
 	{root}
-	on:edit={() => gradio.dispatch("edit")}
-	on:clear={() => gradio.dispatch("clear")}
-	on:stream={() => gradio.dispatch("stream")}
+	on:edit
+	on:clear
+	on:stream
 	on:drag={({ detail }) => (dragging = detail)}
-	on:upload={handle_upload}
-	on:select={({ detail }) => gradio.dispatch("select", detail)}
-	on:share={({ detail }) => gradio.dispatch("share", detail)}
+	on:upload
+	on:select
+	on:share
 	{label}
 	{show_label}
 	{upload_count}
 	{stream_handler}
 	{upload}
+	{max_file_size}
 >
 	<slot />
 </Image>

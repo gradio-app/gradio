@@ -13,11 +13,11 @@
 	let progress = false;
 	let current_file_upload: FileDataWithProgress;
 	let file_to_display: FileDataWithProgress;
-
+	console.log("files", files);
 	let files_with_progress: FileDataWithProgress[] = files.map((file) => {
 		return {
 			...file,
-			progress: 0
+			progress: 0,
 		};
 	});
 
@@ -39,7 +39,7 @@
 
 	onMount(async () => {
 		stream = await stream_handler(
-			new URL(`${root}/gradio_api/upload_progress?upload_id=${upload_id}`)
+			new URL(`${root}/gradio_api/upload_progress?upload_id=${upload_id}`),
 		);
 
 		if (stream == null) {
@@ -72,7 +72,7 @@
 
 		document.documentElement.style.setProperty(
 			"--upload-progress-width",
-			(totalProgress / files.length).toFixed(2) + "%"
+			(totalProgress / files.length).toFixed(2) + "%",
 		);
 
 		return totalProgress / files.length;

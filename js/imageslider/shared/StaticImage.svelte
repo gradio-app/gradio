@@ -2,7 +2,7 @@
 
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
-	import StaticImage from "./ImagePreview.svelte";
+	import StaticImage from "./SliderPreview.svelte";
 
 	import { IconButton } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";

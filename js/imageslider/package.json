@@ -34,7 +34,6 @@
 		"@gradio/preview": "workspace:^"
 	},
 	"main_changeset": true,
-	"main": "./Index.svelte",
 	"peerDependencies": {
 		"svelte": "^4.0.0"
 	},

@@ -1,0 +1,378 @@
+export class ZoomableImage {
+	container: HTMLDivElement;
+	image: HTMLImageElement;
+	scale: number;
+	offsetX: number;
+	offsetY: number;
+	isDragging: boolean;
+	lastX: number;
+	lastY: number;
+	initial_left_padding: number;
+	initial_top_padding: number;
+	initial_width: number;
+	initial_height: number;
+	subscribers: (({
+		x,
+		y,
+		scale
+	}: {
+		x: number;
+		y: number;
+		scale: number;
+	}) => void)[];
+	last_touch_distance: number;
+	constructor(container: HTMLDivElement, image: HTMLImageElement) {
+		this.container = container;
+		this.image = image;
+
+		this.scale = 1;
+		this.offsetX = 0;
+		this.offsetY = 0;
+		this.isDragging = false;
+		this.lastX = 0;
+		this.lastY = 0;
+		this.initial_left_padding = 0;
+		this.initial_top_padding = 0;
+		this.initial_width = 0;
+		this.initial_height = 0;
+		this.subscribers = [];
+		this.last_touch_distance = 0;
+
+		this.handleWheel = this.handleWheel.bind(this);
+		this.handleMouseDown = this.handleMouseDown.bind(this);
+		this.handleMouseMove = this.handleMouseMove.bind(this);
+		this.handleMouseUp = this.handleMouseUp.bind(this);
+		this.handleImageLoad = this.handleImageLoad.bind(this);
+		this.handleTouchStart = this.handleTouchStart.bind(this);
+		this.handleTouchMove = this.handleTouchMove.bind(this);
+		this.handleTouchEnd = this.handleTouchEnd.bind(this);
+
+		this.image.addEventListener("load", this.handleImageLoad);
+
+		this.container.addEventListener("wheel", this.handleWheel);
+		this.container.addEventListener("mousedown", this.handleMouseDown);
+		document.addEventListener("mousemove", this.handleMouseMove);
+		document.addEventListener("mouseup", this.handleMouseUp);
+
+		// Add touch event listeners
+		this.container.addEventListener("touchstart", this.handleTouchStart);
+		document.addEventListener("touchmove", this.handleTouchMove);
+		document.addEventListener("touchend", this.handleTouchEnd);
+
+		console.log(this.image, this.container);
+	}
+
+	handleImageLoad(): void {
+		const containerRect = this.container.getBoundingClientRect();
+		const imageAspect = this.image.naturalWidth / this.image.naturalHeight;
+		const containerAspect = containerRect.width / containerRect.height;
+
+		if (imageAspect > containerAspect) {
+			this.image.style.width = "100%";
+			this.image.style.height = "auto";
+		} else {
+			this.image.style.width = "auto";
+			this.image.style.height = "100%";
+		}
+
+		const imageRect = this.image.getBoundingClientRect();
+		this.initial_left_padding = imageRect.left - containerRect.left;
+		this.initial_top_padding = imageRect.top - containerRect.top;
+		this.initial_width = imageRect.width;
+		this.initial_height = imageRect.height;
+
+		this.offsetX = 0;
+		this.offsetY = 0;
+
+		this.updateTransform();
+	}
+
+	handleMouseDown(e: MouseEvent): void {
+		const imageRect = this.image.getBoundingClientRect();
+
+		if (
+			e.clientX >= imageRect.left &&
+			e.clientX <= imageRect.right &&
+			e.clientY >= imageRect.top &&
+			e.clientY <= imageRect.bottom
+		) {
+			e.preventDefault();
+			if (this.scale === 1) return;
+			this.isDragging = true;
+			this.lastX = e.clientX;
+			this.lastY = e.clientY;
+			this.image.style.cursor = "grabbing";
+		}
+	}
+
+	handleMouseMove(e: MouseEvent): void {
+		if (!this.isDragging) return;
+
+		const deltaX = e.clientX - this.lastX;
+		const deltaY = e.clientY - this.lastY;
+
+		this.offsetX += deltaX;
+		this.offsetY += deltaY;
+
+		this.lastX = e.clientX;
+		this.lastY = e.clientY;
+
+		this.updateTransform();
+
+		this.updateTransform();
+	}
+
+	handleMouseUp(): void {
+		if (this.isDragging) {
+			this.constrain_to_bounds(true);
+			this.updateTransform();
+			this.isDragging = false;
+			this.image.style.cursor = this.scale > 1 ? "grab" : "zoom-in";
+		}
+	}
+
+	async handleWheel(e: WheelEvent): Promise<void> {
+		e.preventDefault();
+
+		const containerRect = this.container.getBoundingClientRect();
+		const imageRect = this.image.getBoundingClientRect();
+
+		if (
+			e.clientX < imageRect.left ||
+			e.clientX > imageRect.right ||
+			e.clientY < imageRect.top ||
+			e.clientY > imageRect.bottom
+		) {
+			return;
+		}
+
+		const zoomFactor = 1.05;
+		const oldScale = this.scale;
+		const newScale =
+			-Math.sign(e.deltaY) > 0
+				? Math.min(15, oldScale * zoomFactor) // in
+				: Math.max(1, oldScale / zoomFactor); // out
+
+		if (newScale === oldScale) return;
+
+		const cursorX = e.clientX - containerRect.left - this.initial_left_padding;
+		const cursorY = e.clientY - containerRect.top - this.initial_top_padding;
+
+		this.scale = newScale;
+		this.offsetX = this.compute_new_offset({
+			cursor_position: cursorX,
+			current_offset: this.offsetX,
+			new_scale: newScale,
+			old_scale: oldScale
+		});
+		this.offsetY = this.compute_new_offset({
+			cursor_position: cursorY,
+			current_offset: this.offsetY,
+			new_scale: newScale,
+			old_scale: oldScale
+		});
+
+		this.updateTransform(); // apply before constraints
+
+		this.constrain_to_bounds();
+		this.updateTransform(); // apply again after constraints
+
+		this.image.style.cursor = this.scale > 1 ? "grab" : "zoom-in";
+	}
+
+	compute_new_offset({
+		cursor_position,
+		current_offset,
+		new_scale,
+		old_scale
+	}: {
+		cursor_position: number;
+		current_offset: number;
+		new_scale: number;
+		old_scale: number;
+	}): number {
+		return (
+			cursor_position -
+			(new_scale / old_scale) * (cursor_position - current_offset)
+		);
+	}
+
+	constrain_to_bounds(pan = false): void {
+		if (this.scale === 1) {
+			// reset to initial position
+			this.offsetX = 0;
+			this.offsetY = 0;
+		}
+
+		if (pan) {
+			// this is wrong, fix
+			const containerRect = this.container.getBoundingClientRect();
+			const imageRect = this.image.getBoundingClientRect();
+
+			const minX = containerRect.width - imageRect.width;
+			const minY = containerRect.height - imageRect.height;
+
+			this.offsetX = Math.min(0, Math.max(this.offsetX, minX));
+			this.offsetY = Math.min(0, Math.max(this.offsetY, minY));
+		}
+	}
+
+	updateTransform(): void {
+		this.notify({ x: this.offsetX, y: this.offsetY, scale: this.scale });
+	}
+
+	destroy(): void {
+		this.container.removeEventListener("wheel", this.handleWheel);
+		this.container.removeEventListener("mousedown", this.handleMouseDown);
+		document.removeEventListener("mousemove", this.handleMouseMove);
+		document.removeEventListener("mouseup", this.handleMouseUp);
+		this.container.removeEventListener("touchstart", this.handleTouchStart);
+		document.removeEventListener("touchmove", this.handleTouchMove);
+		document.removeEventListener("touchend", this.handleTouchEnd);
+		this.image.removeEventListener("load", this.handleImageLoad);
+	}
+
+	subscribe(
+		cb: ({ x, y, scale }: { x: number; y: number; scale: number }) => void
+	): void {
+		this.subscribers.push(cb);
+	}
+
+	unsubscribe(
+		cb: ({ x, y, scale }: { x: number; y: number; scale: number }) => void
+	): void {
+		this.subscribers = this.subscribers.filter(
+			(subscriber) => subscriber !== cb
+		);
+	}
+
+	notify({ x, y, scale }: { x: number; y: number; scale: number }): void {
+		this.subscribers.forEach((subscriber) => subscriber({ x, y, scale }));
+	}
+
+	handleTouchStart(e: TouchEvent): void {
+		e.preventDefault();
+		const imageRect = this.image.getBoundingClientRect();
+		const touch = e.touches[0];
+
+		if (
+			touch.clientX >= imageRect.left &&
+			touch.clientX <= imageRect.right &&
+			touch.clientY >= imageRect.top &&
+			touch.clientY <= imageRect.bottom
+		) {
+			if (e.touches.length === 1 && this.scale > 1) {
+				// Single touch - prepare for panning
+				this.isDragging = true;
+				this.lastX = touch.clientX;
+				this.lastY = touch.clientY;
+			} else if (e.touches.length === 2) {
+				// Two touches - prepare for pinch zoom
+				const touch1 = e.touches[0];
+				const touch2 = e.touches[1];
+				this.last_touch_distance = Math.hypot(
+					touch2.clientX - touch1.clientX,
+					touch2.clientY - touch1.clientY
+				);
+			}
+		}
+	}
+
+	handleTouchMove(e: TouchEvent): void {
+		if (e.touches.length === 1 && this.isDragging) {
+			// Handle panning with single touch
+			e.preventDefault();
+			const touch = e.touches[0];
+
+			const deltaX = touch.clientX - this.lastX;
+			const deltaY = touch.clientY - this.lastY;
+
+			this.offsetX += deltaX;
+			this.offsetY += deltaY;
+
+			this.lastX = touch.clientX;
+			this.lastY = touch.clientY;
+
+			this.updateTransform();
+		} else if (e.touches.length === 2) {
+			// Handle pinch zoom with two touches
+			e.preventDefault();
+
+			const touch1 = e.touches[0];
+			const touch2 = e.touches[1];
+
+			// Calculate current distance between touch points
+			const current_distance = Math.hypot(
+				touch2.clientX - touch1.clientX,
+				touch2.clientY - touch1.clientY
+			);
+
+			// Skip if we don't have a previous distance yet
+			if (this.last_touch_distance === 0) {
+				this.last_touch_distance = current_distance;
+				return;
+			}
+
+			// Calculate zoom factor
+			const zoomFactor = current_distance / this.last_touch_distance;
+
+			// Update scale
+			const oldScale = this.scale;
+			const newScale = Math.min(15, Math.max(1, oldScale * zoomFactor));
+
+			if (newScale === oldScale) {
+				this.last_touch_distance = current_distance;
+				return;
+			}
+
+			// Calculate midpoint of touches relative to image
+			const containerRect = this.container.getBoundingClientRect();
+			const midX =
+				(touch1.clientX + touch2.clientX) / 2 -
+				containerRect.left -
+				this.initial_left_padding;
+			const midY =
+				(touch1.clientY + touch2.clientY) / 2 -
+				containerRect.top -
+				this.initial_top_padding;
+
+			// Calculate new offsets
+			this.scale = newScale;
+			this.offsetX = this.compute_new_offset({
+				cursor_position: midX,
+				current_offset: this.offsetX,
+				new_scale: newScale,
+				old_scale: oldScale
+			});
+			this.offsetY = this.compute_new_offset({
+				cursor_position: midY,
+				current_offset: this.offsetY,
+				new_scale: newScale,
+				old_scale: oldScale
+			});
+
+			this.updateTransform();
+			this.constrain_to_bounds();
+			this.updateTransform();
+
+			// Store current distance for next event
+			this.last_touch_distance = current_distance;
+
+			// Update cursor style
+			this.image.style.cursor = this.scale > 1 ? "grab" : "zoom-in";
+		}
+	}
+
+	handleTouchEnd(e: TouchEvent): void {
+		if (this.isDragging) {
+			this.constrain_to_bounds(true);
+			this.updateTransform();
+			this.isDragging = false;
+		}
+
+		// Reset touch distance when all touches end
+		if (e.touches.length === 0) {
+			this.last_touch_distance = 0;
+		}
+	}
+}

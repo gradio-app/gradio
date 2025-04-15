@@ -25,6 +25,8 @@
 	export let slider_color: string;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let uploading: boolean;
+	export let max_file_size: number | null = null;
 
 	let value_: [FileData | null, FileData | null] = value || [null, null];
 
@@ -154,6 +156,7 @@
 						file_count="multiple"
 						{upload}
 						{stream_handler}
+						{max_file_size}
 					>
 						<slot />
 					</Upload>
@@ -181,6 +184,7 @@
 					file_count="multiple"
 					{upload}
 					{stream_handler}
+					{max_file_size}
 				>
 					<slot />
 				</Upload>
