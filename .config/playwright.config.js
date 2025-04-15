@@ -61,6 +61,10 @@ const lite = defineConfig(base, {
 		{
 			name: "chromium",
 			use: { ...devices["Desktop Chrome"] }
+		},
+		{
+			use: { ...devices["Desktop Firefox"] },
+			testMatch: ["**/kitchen_sink.spec.ts"] // Only run one test on Firefox to check the issue fixed in https://github.com/gradio-app/gradio/pull/9528
 		}
 	]
 });
