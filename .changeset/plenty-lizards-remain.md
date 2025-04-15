@@ -9,4 +9,4 @@
 "website": minor
 ---
 
-feat:10657 image slider
+feat:Add new `ImageSlider` component
