@@ -510,7 +510,6 @@ class ChatInterface(Blocks):
     def _setup_events(self) -> None:
         from gradio import on
 
-        submit_triggers = [self.textbox.submit, self.chatbot.retry]
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
 
         synchronize_chat_state_kwargs = {
@@ -580,6 +579,7 @@ class ChatInterface(Blocks):
             postprocess=False,
         )
 
+        example_select_event = None
         if (
             isinstance(self.chatbot, Chatbot)
             and self.examples
@@ -596,7 +596,7 @@ class ChatInterface(Blocks):
                     example_select_event = example_select_event.then(**submit_fn_kwargs)
                 example_select_event.then(**synchronize_chat_state_kwargs)
             else:
-                self.chatbot.example_select(
+                example_select_event = self.chatbot.example_select(
                     self.example_populated,
                     None,
                     [self.textbox],
@@ -631,7 +631,18 @@ class ChatInterface(Blocks):
             show_api=False,
         ).then(**save_fn_kwargs)
 
-        self._setup_stop_events(submit_triggers, [submit_event, retry_event])
+        events_to_cancel = [submit_event, retry_event]
+        if example_select_event is not None:
+            events_to_cancel.append(example_select_event)
+
+        self._setup_stop_events(
+            event_triggers=[
+                self.textbox.submit,
+                self.chatbot.retry,
+                self.chatbot.example_select,
+            ],
+            events_to_cancel=events_to_cancel,
+        )
 
         self.chatbot.undo(
             self._pop_last_user_message,
