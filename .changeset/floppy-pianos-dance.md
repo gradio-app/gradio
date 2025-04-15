@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix `ssr_mode` parameter name in notice message
+fix:Fix `ssr_mode` parameter name in notice message
