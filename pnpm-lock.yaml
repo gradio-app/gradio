@@ -2308,6 +2308,9 @@ importers:
       '@gradio/core':
         specifier: workspace:^
         version: link:../core
+      '@gradio/imageslider':
+        specifier: workspace:^
+        version: link:../imageslider
       '@gradio/theme':
         specifier: workspace:^
         version: link:../theme

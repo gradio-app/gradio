@@ -62,7 +62,6 @@
 	import StaticImage from "./shared/SliderPreview.svelte";
 	import ImageUploader from "./shared/SliderUpload.svelte";
 	import { afterUpdate } from "svelte";
-	import type { WebcamOptions } from "./shared/types";
 
 	import { Block, Empty, UploadText } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
@@ -81,7 +80,6 @@
 		_modify_stream(state);
 	}
 	export const get_stream_state: () => void = () => stream_state;
-	export let set_time_limit: (arg0: number) => void;
 	export let value_is_output = false;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -96,7 +94,6 @@
 	export let height: number | undefined;
 	export let width: number | undefined;
 
-	export let _selectable = false;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -104,8 +101,7 @@
 	// export let show_share_button = false;
 
 	export let interactive: boolean;
-	export let streaming: boolean;
-	export let pending: boolean;
+
 	export let placeholder: string | undefined = undefined;
 	export let show_fullscreen_button: boolean;
 	export let input_ready: boolean;
