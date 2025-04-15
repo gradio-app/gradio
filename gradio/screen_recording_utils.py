@@ -331,9 +331,9 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
 
         # Create a complex filter for the zoom pan effect
         fps = 25
-        zoom_in_frames = int(0.3 * fps)  # 1 second to zoom in
+        zoom_in_frames = int(0.3 * fps)
         hold_frames = int(2 * fps)     # 2 seconds to hold
-        zoom_out_frames = int(0.3 * fps) # 1 second to zoom out
+        zoom_out_frames = int(0.3 * fps)
         total_frames = zoom_in_frames + hold_frames + zoom_out_frames
 
         # Max zoom factor (reduced from 2.0 to 1.5)
