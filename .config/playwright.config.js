@@ -61,7 +61,7 @@ const lite = defineConfig(base, {
 		{
 			name: "chromium",
 			use: { ...devices["Desktop Chrome"] }
-		},
+		}
 	]
 });
 
