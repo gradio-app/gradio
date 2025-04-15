@@ -62,10 +62,13 @@ const lite = defineConfig(base, {
 			name: "chromium",
 			use: { ...devices["Desktop Chrome"] }
 		},
-		{
-			use: { ...devices["Desktop Firefox"] },
-			testMatch: ["**/kitchen_sink.spec.ts"] // Only run one test on Firefox to check the issue fixed in https://github.com/gradio-app/gradio/pull/9528
-		}
+		process.env.CI
+			? undefined // There are Firefox-specific issues such as https://github.com/gradio-app/gradio/pull/9528 so we want to run the tests on Firefox, but Firefox sometimes fails to start in the GitHub Actions environment so we disable it on CI.
+			: {
+					name: "firefox",
+					use: { ...devices["Desktop Firefox"] },
+					testIgnore: "**/kitchen_sink.*" // This test requires the camera permission but it's not supported on FireFox: https://github.com/microsoft/playwright/issues/11714
+				}
 	]
 });
 
