@@ -485,13 +485,14 @@ class Dataframe(Component):
             row_styling = []
             col_idx = 0
             cells = [
-                cell for cell in row 
+                cell
+                for cell in row
                 if cell["type"] == "td" and col_idx not in hidden_cols_set
             ]
             for cell in cells:
                 row_display.append(cell["display_value"])
                 row_styling.append(style_dict.get(cell["id"], ""))
-                col_idx += 1            
+                col_idx += 1
             metadata["display_value"].append(row_display)
             metadata["styling"].append(row_styling)
         return metadata
