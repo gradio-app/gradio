@@ -11,7 +11,6 @@ from dataclasses import dataclass, field
 import fastapi
 from fastapi.responses import RedirectResponse
 from huggingface_hub import get_token, whoami
-from starlette.datastructures import URL
 
 from gradio.utils import get_space
 
@@ -187,8 +186,7 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
         request.session.pop("oauth_info", None)
-        logout_url = URL("/").include_query_params(**request.query_params)
-        return RedirectResponse(url=logout_url, status_code=302)
+        return _redirect_to_target(request)
 
 
 def _generate_redirect_uri(request: fastapi.Request) -> str:
