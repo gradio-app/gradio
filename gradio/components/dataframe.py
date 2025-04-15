@@ -458,15 +458,6 @@ class Dataframe(Component):
         )
 
     @staticmethod
-    def __get_cell_style(cell_id: str, cell_styles: list[dict]) -> str:
-        styles_for_cell = []
-        for style in cell_styles:
-            if cell_id in style.get("selectors", []):
-                styles_for_cell.extend(style.get("props", []))
-        styles_str = "; ".join([f"{prop}: {value}" for prop, value in styles_for_cell])
-        return styles_str
-
-    @staticmethod
     def __extract_metadata(
         df: Styler, hidden_cols: list[int] | None = None
     ) -> dict[str, list[list]]:
