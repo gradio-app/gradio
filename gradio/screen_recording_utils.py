@@ -271,30 +271,30 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
             y1, y2 = 0.25, 0.75
             
         # Get video dimensions
-        cmd_dimensions = [
-            "ffprobe",
-            "-v", "error",
-            "-select_streams", "v:0",
-            "-show_entries", "stream=width,height",
-            "-of", "csv=s=x:p=0",
-            input_path
-        ]
+        # cmd_dimensions = [
+        #     "ffprobe",
+        #     "-v", "error",
+        #     "-select_streams", "v:0",
+        #     "-show_entries", "stream=width,height",
+        #     "-of", "csv=s=x:p=0",
+        #     input_path
+        # ]
         
-        process = await asyncio.create_subprocess_exec(
-            *cmd_dimensions,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, stderr = await process.communicate()
+        # process = await asyncio.create_subprocess_exec(
+        #     *cmd_dimensions,
+        #     stdout=asyncio.subprocess.PIPE,
+        #     stderr=asyncio.subprocess.PIPE,
+        # )
+        # stdout, stderr = await process.communicate()
         
-        try:
-            dimensions = stdout.decode().strip().split('x')
-            width = int(dimensions[0])
-            height = int(dimensions[1])
-            print(f"Video dimensions: {width}x{height}")
-        except (ValueError, IndexError):
-            print("Could not determine video dimensions, using defaults")
-            width, height = 1280, 720
+        # try:
+        #     dimensions = stdout.decode().strip().split('x')
+        #     width = int(dimensions[0])
+        #     height = int(dimensions[1])
+        #     print(f"Video dimensions: {width}x{height}")
+        # except (ValueError, IndexError):
+        #     print("Could not determine video dimensions, using defaults")
+        # width, height = 1920, 1080
             
         # Get video duration
         cmd_duration = [
@@ -339,10 +339,15 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
         # Max zoom factor (reduced from 2.0 to 1.5)
         max_zoom = 1.5
 
+        # Set fixed dimensions
+        width, height = 1920, 1080
+
+        # Update the complex filter to remove padding/black bars
         complex_filter = (
             f"[0:v]split=3[v1][v2][v3];"
-            f"[v1]trim=0:{zoom_timestamp},setpts=PTS-STARTPTS,setsar=1[intro];"
+            f"[v1]trim=0:{zoom_timestamp},setpts=PTS-STARTPTS,scale={width}:{height}[intro];"  # Direct scaling
             f"[v2]trim={zoom_timestamp}:{zoom_timestamp+zoom_duration},setpts=PTS-STARTPTS,"
+            f"scale={width}:{height},"  # Direct scaling without preserving aspect ratio
             f"zoompan=z='if(lt(on,{zoom_in_frames})," 
             f"     1+({max_zoom}-1)*on/{zoom_in_frames}," # zoom in phase
             f"     if(lt(on,{zoom_in_frames+hold_frames}),"
@@ -350,9 +355,9 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
             f"        {max_zoom}-({max_zoom}-1)*(on-{zoom_in_frames+hold_frames})/{zoom_out_frames}" # zoom out phase
             f"     )"
             f"  )':"
-            f"x='iw*{center_x}-(iw/zoom/2)':y='ih*{center_y}-(ih/zoom/2)':"
-            f"d={total_frames}:s={width}x{height}:fps={fps},setsar=1[zoom];"
-            f"[v3]trim={zoom_timestamp+zoom_duration}:{video_duration},setpts=PTS-STARTPTS,setsar=1[outro];"
+            f"x='iw*{center_x}-iw/zoom*{center_x}':y='ih*{center_y}-ih/zoom*{center_y}':"
+            f"d={total_frames}:s={width}x{height}:fps={fps}[zoom];"
+            f"[v3]trim={zoom_timestamp+zoom_duration}:{video_duration},setpts=PTS-STARTPTS,scale={width}:{height}[outro];"  # Direct scaling
             f"[intro][zoom][outro]concat=n=3:v=1:a=0[outv]"
         )
 
