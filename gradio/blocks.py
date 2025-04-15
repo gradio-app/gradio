@@ -2664,7 +2664,7 @@ Received inputs:
             )
             if not wasm_utils.IS_WASM and not self.is_colab and not quiet:
                 s = (
-                    "* Running on local URL:  {}://{}:{}, with SSR ⚡ (experimental, to disable set `ssr=False` in `launch()`)"
+                    "* Running on local URL:  {}://{}:{}, with SSR ⚡ (experimental, to disable set `ssr_mode=False` in `launch()`)"
                     if self.ssr_mode
                     else "* Running on local URL:  {}://{}:{}"
                 )
