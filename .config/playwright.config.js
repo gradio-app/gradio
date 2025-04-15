@@ -62,11 +62,6 @@ const lite = defineConfig(base, {
 			name: "chromium",
 			use: { ...devices["Desktop Chrome"] }
 		},
-		{
-			name: "firefox",
-			use: { ...devices["Desktop Firefox"] },
-			testIgnore: "**/kitchen_sink.*" // This test requires the camera permission but it's not supported on FireFox: https://github.com/microsoft/playwright/issues/11714
-		}
 	]
 });
 
