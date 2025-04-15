@@ -1705,13 +1705,13 @@ class App(FastAPI):
             print("Zoom parameters in request:", {k: v for k, v in params.items() if k.startswith("zoom_")})
 
             with tempfile.NamedTemporaryFile(
-                delete=False, suffix=".webm"
+                delete=False, suffix=".mp4"
             ) as input_file:
                 video_file.file.seek(0)
                 shutil.copyfileobj(video_file.file, input_file)
                 input_path = input_file.name
 
-            output_path = tempfile.mktemp(suffix="_processed.webm")
+            output_path = tempfile.mktemp(suffix="_processed.mp4")
             
             try:
                 processed_path, temp_files = await process_video_with_ffmpeg(
@@ -1720,8 +1720,8 @@ class App(FastAPI):
 
                 return FileResponse(
                     processed_path,
-                    media_type="video/webm",
-                    filename="gradio-screen-recording.webm",
+                    media_type="video/mp4",
+                    filename="gradio-screen-recording.mp4",
                     background=BackgroundTask(lambda: cleanup_files(temp_files)),
                 )
             except Exception as e:
@@ -1729,12 +1729,12 @@ class App(FastAPI):
                 traceback.print_exc()
                 return FileResponse(
                     input_path,
-                    media_type="video/webm",
-                    filename="gradio-screen-recording.webm",
+                    media_type="video/mp4",
+                    filename="gradio-screen-recording.mp4",
                     background=BackgroundTask(lambda: cleanup_files([input_path])),
                 )
 
-        async def cleanup_files(files):
+        def cleanup_files(files):
             for file in files:
                 try:
                     if file and os.path.exists(file):

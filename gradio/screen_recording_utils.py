@@ -178,38 +178,36 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                 traceback.print_exc()
                 # Continue with processing without zoom effect
         
-        # Convert to webm if needed
-        if not current_input.endswith(".webm"):
-            final_webm = output_path
-            cmd = [
-                "ffmpeg",
-                "-y",
-                "-i",
-                current_input,
-                "-c:v",
-                "libvpx-vp9",
-                "-crf",
-                "30",
-                "-b:v",
-                "0",
-                "-c:a",
-                "libopus",
-                final_webm,
-            ]
+        # For MP4 output, just ensure it's in compatible format
+        final_mp4 = output_path
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-i",
+            current_input,
+            "-c:v",
+            "libx264",
+            "-preset",
+            "fast",
+            "-crf",
+            "22",
+            "-c:a",
+            "aac",
+            final_mp4,
+        ]
 
-            process = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
-            stdout, stderr = await process.communicate()
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await process.communicate()
 
-            if process.returncode != 0:
-                print(f"FFmpeg final conversion error: {stderr.decode()}")
-                shutil.copy(current_input, final_webm)
+        if process.returncode != 0:
+            print(f"FFmpeg final MP4 conversion error: {stderr.decode()}")
+            shutil.copy(current_input, final_mp4)
 
-            current_input = final_webm
-            
+        current_input = final_mp4
         return current_input, temp_files
 
     except Exception as e:
@@ -316,6 +314,7 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
 
         try:
             video_duration = float(stdout.decode().strip())
+            print(f"Video duration: {video_duration} seconds")
         except (ValueError, TypeError):
             print(f"Could not determine video duration, using default")
             video_duration = 10.0
@@ -324,57 +323,14 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
         
         # Create a temporary file for the output
         final_output = output_path
-        if output_path.endswith(".webm"):
-            final_output = output_path.replace(".webm", ".mp4")
+        # if output_path.endswith(".webm"):
+        #     final_output = output_path.replace(".webm", ".mp4")
         
-        # First, just draw a red box without zoom
-        box_output = tempfile.mktemp(suffix="_with_box.mp4")
-        temp_files.append(box_output)
-        
-        # Draw a red box at the timestamp when the zoom was requested
-        box_filter = (
-            f"drawbox=x=iw*{x1}:y=ih*{y1}:w=iw*({x2}-{x1}):h=ih*({y2}-{y1}):"
-            f"color=red:thickness=5:enable='between(t,{zoom_timestamp},{zoom_timestamp+2})'"
-        )
-        
-        cmd_box = [
-            "ffmpeg",
-            "-y",
-            "-i", input_path,
-            "-vf", box_filter,
-            "-c:v", "libx264",
-            "-tag:v", "avc3",
-            "-profile:v", "baseline",
-            "-level", "3.0",
-            "-pix_fmt", "yuv420p",
-            "-preset", "fast",
-            "-c:a", "copy",
-            box_output,
-        ]
-        
-        print(f"Running box drawing command: {' '.join(cmd_box)}")
-        
-        process = await asyncio.create_subprocess_exec(
-            *cmd_box,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, stderr = await process.communicate()
-        
-        if process.returncode != 0:
-            print(f"FFmpeg box drawing error: {stderr.decode()}")
-            return input_path, temp_files
-        
-        # Now apply the zoom pan effect
+        # Apply the zoom pan effect directly without box
         zoom_output = tempfile.mktemp(suffix="_zoomed.mp4")
         temp_files.append(zoom_output)
 
-        # Calculate zoom parameters
-        zoom_factor = 2.0  # Example zoom factor
-        zoom_in_duration = zoom_duration / 2
-        zoom_out_duration = zoom_duration / 2
-
-        # Calculate the center of the red box
+        # Calculate the center of the specified area
         center_x = (x1 + x2) / 2
         center_y = (y1 + y2) / 2
 
@@ -401,14 +357,14 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
             f"  )':"
             f"x='iw*{center_x}-(iw/zoom/2)':y='ih*{center_y}-(ih/zoom/2)':"
             f"d={total_frames}:s={width}x{height}:fps={fps},setsar=1[zoom];"
-            f"[v3]trim={zoom_timestamp+zoom_duration}:999999,setpts=PTS-STARTPTS,setsar=1[outro];"
+            f"[v3]trim={zoom_timestamp+zoom_duration}:{video_duration},setpts=PTS-STARTPTS,setsar=1[outro];"
             f"[intro][zoom][outro]concat=n=3:v=1:a=0[outv]"
         )
 
         cmd_zoom = [
             "ffmpeg",
             "-y",
-            "-i", box_output,
+            "-i", input_path,
             "-filter_complex", complex_filter,
             "-map", "[outv]",
             "-map", "0:a?",  # Make audio mapping optional with ?
@@ -434,8 +390,8 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
         if process.returncode != 0:
             print(f"FFmpeg zoom pan effect error: {stderr.decode()}")
             print(stderr.decode())
-            # Return the box output if zoom fails
-            return box_output, temp_files
+            # Return the input if zoom fails
+            return input_path, temp_files
 
         return zoom_output, temp_files
 
