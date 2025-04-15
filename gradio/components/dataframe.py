@@ -401,7 +401,7 @@ class Dataframe(Component):
 
         if isinstance(value, Styler):
             return Dataframe.__extract_metadata(
-                value, getattr(value, "hidden_columns", [])
+                value, [int(c) for c in getattr(value, "hidden_columns", [])]
             )
         elif isinstance(value, dict):
             return value.get("metadata", None)
@@ -471,19 +471,21 @@ class Dataframe(Component):
                 )
         hidden_cols_set = set(hidden_cols) if hidden_cols is not None else set()
         metadata = {"display_value": [], "styling": []}
+
         for row in style_data["body"]:
             row_display = []
             row_styling = []
-            col_idx = 0
+            # First, filter out the column with row numbers (if present)
+            cells = [cell for cell in row if cell["type"] == "td"]
+            # Then, filter out the hidden columns so that column indices map correctly
             cells = [
                 cell
-                for cell in row
-                if cell["type"] == "td" and col_idx not in hidden_cols_set
+                for col_idx, cell in enumerate(cells)
+                if col_idx not in hidden_cols_set
             ]
             for cell in cells:
                 row_display.append(cell["display_value"])
                 row_styling.append(style_dict.get(cell["id"], ""))
-                col_idx += 1
             metadata["display_value"].append(row_display)
             metadata["styling"].append(row_styling)
         return metadata
