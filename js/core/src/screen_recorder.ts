@@ -162,7 +162,7 @@ class ScreenRecorder {
 		this.isRecording = false;
 
 		const blob = new Blob(this.recordedChunks, {
-			type: "video/webm"
+			type: "video/mp4"
 		});
 
 		this.handleRecordingComplete(blob);
@@ -189,13 +189,13 @@ class ScreenRecorder {
 				this.zoomEffects.length > 0;
 
 			if (!hasProcessing) {
-				const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.webm`;
+				const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.mp4`;
 				this.saveWithDownloadAttribute(recordedBlob, defaultFilename);
 				return;
 			}
 
 			const formData = new FormData();
-			formData.append("video", recordedBlob, "recording.webm");
+			formData.append("video", recordedBlob, "recording.mp4");
 
 			if (
 				this.removeSegment.start !== undefined &&
@@ -253,7 +253,7 @@ class ScreenRecorder {
 			}
 
 			const processedBlob = await response.blob();
-			const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.webm`;
+			const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.mp4`;
 			this.saveWithDownloadAttribute(processedBlob, defaultFilename);
 			
 			// Clear zoom effects after processing
@@ -266,7 +266,7 @@ class ScreenRecorder {
 				"warning"
 			);
 
-			const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.webm`;
+			const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.mp4`;
 			this.saveWithDownloadAttribute(recordedBlob, defaultFilename);
 		}
 	}

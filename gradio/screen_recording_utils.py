@@ -321,11 +321,6 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
 
         zoom_duration = min(float(zoom_duration), video_duration)
         
-        # Create a temporary file for the output
-        final_output = output_path
-        # if output_path.endswith(".webm"):
-        #     final_output = output_path.replace(".webm", ".mp4")
-        
         # Apply the zoom pan effect directly without box
         zoom_output = tempfile.mktemp(suffix="_zoomed.mp4")
         temp_files.append(zoom_output)
