@@ -39,7 +39,7 @@ from gradio_client import utils
 from gradio_client.compatibility import EndpointV3Compatibility
 from gradio_client.data_classes import ParameterInfo
 from gradio_client.documentation import document
-from gradio_client.exceptions import AppError, AuthenticationError
+from gradio_client.exceptions import AppError, AuthenticationError, Error
 from gradio_client.utils import (
     Communicator,
     JobStatus,
@@ -1272,6 +1272,9 @@ class Endpoint:
                         "The upstream Gradio app has raised an exception but has not enabled "
                         "verbose error reporting. To enable, set show_error=True in launch()."
                     )
+                if "title" in result:
+                    message = result.pop("error")
+                    raise Error(message=message, **result)
                 else:
                     raise AppError(
                         "The upstream Gradio app has raised an exception: "
