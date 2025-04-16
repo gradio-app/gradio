@@ -275,6 +275,9 @@ importers:
       '@gradio/imageeditor':
         specifier: workspace:^
         version: link:js/imageeditor
+      '@gradio/imageslider':
+        specifier: workspace:^
+        version: link:js/imageslider
       '@gradio/json':
         specifier: workspace:^
         version: link:js/json
@@ -585,9 +588,6 @@ importers:
       '@gradio/core':
         specifier: workspace:^
         version: link:../core
-      '@gradio/imageslider':
-        specifier: workspace:^
-        version: link:../imageslider
       '@gradio/theme':
         specifier: workspace:^
         version: link:../theme
@@ -2311,9 +2311,6 @@ importers:
       '@gradio/core':
         specifier: workspace:^
         version: link:../core
-      '@gradio/imageslider':
-        specifier: workspace:^
-        version: link:../imageslider
       '@gradio/theme':
         specifier: workspace:^
         version: link:../theme

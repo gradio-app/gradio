@@ -19,7 +19,6 @@
 		"@gradio/core": "workspace:^",
 		"@gradio/theme": "workspace:^",
 		"@gradio/wasm": "workspace:^",
-		"@gradio/imageslider": "workspace:^",
 		"@huggingface/space-header": "^1.0.3",
 		"@types/eventsource": "^1.1.15",
 		"cross-env": "^7.0.3"

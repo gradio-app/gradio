@@ -18,7 +18,6 @@
 		"d3-selection": "^3.0.0"
 	},
 	"exports": {
-		"./package.json": "./package.json",
 		".": {
 			"gradio": "./Index.svelte",
 			"svelte": "./dist/Index.svelte",
@@ -28,7 +27,8 @@
 			"gradio": "./Example.svelte",
 			"svelte": "./dist/Example.svelte",
 			"types": "./dist/Example.svelte.d.ts"
-		}
+		},
+		"./package.json": "./package.json"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
