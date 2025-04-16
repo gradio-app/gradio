@@ -59,6 +59,7 @@ import gradio_client.utils as client_utils
 import httpx
 import orjson
 from gradio_client.documentation import document
+from gradio_client.exceptions import AppError
 from typing_extensions import ParamSpec
 
 import gradio
@@ -1460,9 +1461,9 @@ def error_payload(
     error: BaseException | None, show_error: bool
 ) -> dict[str, bool | str | float | None]:
     content: dict[str, bool | str | float | None] = {"error": None}
-    show_error = show_error or isinstance(error, Error)
+    show_error = show_error or isinstance(error, (Error, AppError))
     if show_error:
-        if isinstance(error, Error):
+        if isinstance(error, (Error, AppError)):
             content["error"] = error.message
             content["duration"] = error.duration
             content["visible"] = error.visible
