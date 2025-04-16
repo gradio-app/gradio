@@ -1265,6 +1265,7 @@ class Endpoint:
             else:
                 raise ValueError(f"Unsupported protocol: {self.protocol}")
 
+            print("result", result)
             if "error" in result:
                 if result["error"] is None:
                     raise AppError(
