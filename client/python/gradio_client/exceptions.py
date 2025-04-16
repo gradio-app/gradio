@@ -1,5 +1,6 @@
 from gradio_client.documentation import document
 
+
 @document(documentation_group="modals")
 class Error(Exception):
     """
@@ -38,6 +39,7 @@ class Error(Exception):
 
     def __str__(self):
         return repr(self.message)
+
 
 class SerializationSetupError(ValueError):
     """Raised when a serializers cannot be set up correctly."""
