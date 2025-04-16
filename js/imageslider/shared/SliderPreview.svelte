@@ -7,7 +7,7 @@
 		IconButton,
 		IconButtonWrapper,
 		ShareButton,
-		FullscreenButton
+		FullscreenButton,
 	} from "@gradio/atoms";
 	import { Image, Download } from "@gradio/icons";
 	import { type FileData } from "@gradio/client";
@@ -37,15 +37,15 @@
 	let transform: Tweened<{ x: number; y: number; z: number }> = tweened(
 		{ x: 0, y: 0, z: 1 },
 		{
-			duration: 75
-		}
+			duration: 75,
+		},
 	);
 
 	$: coords_at_viewport = get_coords_at_viewport(
 		position,
 		viewport_width,
 		$transform.x,
-		$transform.z
+		$transform.z,
 	);
 	$: style = layer_images
 		? `clip-path: inset(0 0 0 ${coords_at_viewport * 100}%)`
@@ -56,7 +56,7 @@
 		viewportWidth: number,
 		tx: number, // image translation x (in pixels)
 
-		scale: number // image scale (uniform)
+		scale: number, // image scale (uniform)
 	): number {
 		const vx = viewport_percent_x * viewportWidth;
 
@@ -135,17 +135,20 @@
 	img {
 		width: var(--size-full);
 		height: var(--size-full);
-		object-fit: cover;
+		object-fit: contain;
 		transform-origin: top left;
+		max-height: calc(100vh - 40px);
+		margin: auto;
 	}
 
 	.fixed {
 		position: absolute;
 		top: 0;
 		left: 0;
-
-		height: 100%;
+		object-fit: contain;
 		width: 100%;
+		height: 100%;
+		max-height: calc(100vh - 40px);
 	}
 
 	.hidden {

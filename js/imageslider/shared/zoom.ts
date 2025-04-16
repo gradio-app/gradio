@@ -20,7 +20,9 @@ export class ZoomableImage {
 		y: number;
 		scale: number;
 	}) => void)[];
+
 	last_touch_distance: number;
+
 	constructor(container: HTMLDivElement, image: HTMLImageElement) {
 		this.container = container;
 		this.image = image;
@@ -64,16 +66,6 @@ export class ZoomableImage {
 
 	handleImageLoad(): void {
 		const containerRect = this.container.getBoundingClientRect();
-		const imageAspect = this.image.naturalWidth / this.image.naturalHeight;
-		const containerAspect = containerRect.width / containerRect.height;
-
-		if (imageAspect > containerAspect) {
-			this.image.style.width = "100%";
-			this.image.style.height = "auto";
-		} else {
-			this.image.style.width = "auto";
-			this.image.style.height = "100%";
-		}
 
 		const imageRect = this.image.getBoundingClientRect();
 		this.initial_left_padding = imageRect.left - containerRect.left;
@@ -280,7 +272,7 @@ export class ZoomableImage {
 
 	handleTouchMove(e: TouchEvent): void {
 		if (e.touches.length === 1 && this.isDragging) {
-			// Handle panning with single touch
+			// one finger == pan
 			e.preventDefault();
 			const touch = e.touches[0];
 
@@ -295,7 +287,7 @@ export class ZoomableImage {
 
 			this.updateTransform();
 		} else if (e.touches.length === 2) {
-			// Handle pinch zoom with two touches
+			// two fingers == pinch zoom
 			e.preventDefault();
 
 			const touch1 = e.touches[0];
@@ -307,16 +299,14 @@ export class ZoomableImage {
 				touch2.clientY - touch1.clientY
 			);
 
-			// Skip if we don't have a previous distance yet
+			// skip if we don't have a previous distance yet
 			if (this.last_touch_distance === 0) {
 				this.last_touch_distance = current_distance;
 				return;
 			}
 
-			// Calculate zoom factor
 			const zoomFactor = current_distance / this.last_touch_distance;
 
-			// Update scale
 			const oldScale = this.scale;
 			const newScale = Math.min(15, Math.max(1, oldScale * zoomFactor));
 
@@ -325,7 +315,7 @@ export class ZoomableImage {
 				return;
 			}
 
-			// Calculate midpoint of touches relative to image
+			// midpoint of touches relative to image
 			const containerRect = this.container.getBoundingClientRect();
 			const midX =
 				(touch1.clientX + touch2.clientX) / 2 -
@@ -336,7 +326,6 @@ export class ZoomableImage {
 				containerRect.top -
 				this.initial_top_padding;
 
-			// Calculate new offsets
 			this.scale = newScale;
 			this.offsetX = this.compute_new_offset({
 				cursor_position: midX,
@@ -355,10 +344,8 @@ export class ZoomableImage {
 			this.constrain_to_bounds();
 			this.updateTransform();
 
-			// Store current distance for next event
 			this.last_touch_distance = current_distance;
 
-			// Update cursor style
 			this.image.style.cursor = this.scale > 1 ? "grab" : "zoom-in";
 		}
 	}
@@ -370,7 +357,6 @@ export class ZoomableImage {
 			this.isDragging = false;
 		}
 
-		// Reset touch distance when all touches end
 		if (e.touches.length === 0) {
 			this.last_touch_distance = 0;
 		}
