@@ -435,14 +435,14 @@ class TestExampleMessages:
         )
         assert len(demo.examples_messages) == 3
         assert (
-            demo.examples_messages[0].get("icon", {}).get("url") # type: ignore
+            demo.examples_messages[0].get("icon", {}).get("url")  # type: ignore
             == "https://cdn3.iconfinder.com/data/icons/landmark-outline/432/japan_tower_tokyo_landmark_travel_architecture_tourism_view-256.png"
         )
         assert (
-            demo.examples_messages[1].get("icon", {}).get("url") # type: ignore
+            demo.examples_messages[1].get("icon", {}).get("url")  # type: ignore
             == "https://cdn2.iconfinder.com/data/icons/city-building-1/200/ArcdeTriomphe-256.png"
         )
         assert (
-            demo.examples_messages[2].get("icon", {}).get("url") # type: ignore
+            demo.examples_messages[2].get("icon", {}).get("url")  # type: ignore
             == "https://cdn2.iconfinder.com/data/icons/city-icons-for- doffscreen-magazine/80/new-york-256.png"
         )
