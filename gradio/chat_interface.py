@@ -439,8 +439,8 @@ class ChatInterface(Blocks):
                                 "mime_type": "text",  # for internal use, not a valid mime type
                                 "meta": {"_type": "gradio.FileData"},
                             }
-                    elif example_icons:
-                        example_message["icon"] = example_icons[index]
+                elif example_icons:
+                    example_message["icon"] = example_icons[index]
                 examples_messages.append(example_message)
         return examples_messages
 
