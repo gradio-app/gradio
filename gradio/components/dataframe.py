@@ -401,7 +401,7 @@ class Dataframe(Component):
 
         if isinstance(value, Styler):
             return Dataframe.__extract_metadata(
-                value, getattr(value, "hidden_columns", [])
+                value, [int(c) for c in getattr(value, "hidden_columns", [])]
             )
         elif isinstance(value, dict):
             return value.get("metadata", None)
@@ -458,37 +458,34 @@ class Dataframe(Component):
         )
 
     @staticmethod
-    def __get_cell_style(cell_id: str, cell_styles: list[dict]) -> str:
-        styles_for_cell = []
-        for style in cell_styles:
-            if cell_id in style.get("selectors", []):
-                styles_for_cell.extend(style.get("props", []))
-        styles_str = "; ".join([f"{prop}: {value}" for prop, value in styles_for_cell])
-        return styles_str
-
-    @staticmethod
     def __extract_metadata(
         df: Styler, hidden_cols: list[int] | None = None
     ) -> dict[str, list[list]]:
-        metadata = {"display_value": [], "styling": []}
         style_data = df._compute()._translate(None, None)  # type: ignore
         cell_styles = style_data.get("cellstyle", [])
-        hidden_cols = hidden_cols if hidden_cols is not None else []
-        for i in range(len(style_data["body"])):
+        style_dict = {}
+        for style in cell_styles:
+            for selector in style.get("selectors", []):
+                style_dict[selector] = "; ".join(
+                    f"{prop}: {value}" for prop, value in style.get("props", [])
+                )
+        hidden_cols_set = set(hidden_cols) if hidden_cols is not None else set()
+        metadata = {"display_value": [], "styling": []}
+
+        for row in style_data["body"]:
             row_display = []
             row_styling = []
-            col_idx = 0
-            for j in range(len(style_data["body"][i])):
-                cell_type = style_data["body"][i][j]["type"]
-                if cell_type != "td":
-                    continue
-                if col_idx not in hidden_cols:
-                    display_value = style_data["body"][i][j]["display_value"]
-                    cell_id = style_data["body"][i][j]["id"]
-                    styles_str = Dataframe.__get_cell_style(cell_id, cell_styles)
-                    row_display.append(display_value)
-                    row_styling.append(styles_str)
-                col_idx += 1
+            # First, filter out the column with row numbers (if present).
+            # Then, filter out the hidden columns so that column indices map correctly
+            cells = [cell for cell in row if cell["type"] == "td"]
+            cells = [
+                cell
+                for col_idx, cell in enumerate(cells)
+                if col_idx not in hidden_cols_set
+            ]
+            for cell in cells:
+                row_display.append(cell["display_value"])
+                row_styling.append(style_dict.get(cell["id"], ""))
             metadata["display_value"].append(row_display)
             metadata["styling"].append(row_styling)
         return metadata
