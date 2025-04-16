@@ -444,5 +444,5 @@ class TestExampleMessages:
         )
         assert (
             demo.examples_messages[2].get("icon", {}).get("url")  # type: ignore
-            == "https://cdn2.iconfinder.com/data/icons/city-icons-for- doffscreen-magazine/80/new-york-256.png"
+            == "https://cdn2.iconfinder.com/data/icons/city-icons-for-offscreen-magazine/80/new-york-256.png"
         )
