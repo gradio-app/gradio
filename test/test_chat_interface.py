@@ -423,17 +423,26 @@ class TestExampleMessages:
             title="🌤️ Weather Assistant",
             description="Ask about the weather anywhere! Watch as I gather the information step by step.",
             examples=[
-        "What's the weather like in Tokyo?",
-        "Is it sunny in Paris right now?",
-        "Should I bring an umbrella in New York today?"
-    ],
-    example_icons=[
-        "https://cdn3.iconfinder.com/data/icons/landmark-outline/432/japan_tower_tokyo_landmark_travel_architecture_tourism_view-256.png", 
-        "https://cdn2.iconfinder.com/data/icons/city-building-1/200/ArcdeTriomphe-256.png",
-                "https://cdn2.iconfinder.com/data/icons/city-icons-for-offscreen-magazine/80/new-york-256.png"
+                "What's the weather like in Tokyo?",
+                "Is it sunny in Paris right now?",
+                "Should I bring an umbrella in New York today?",
+            ],
+            example_icons=[
+                "https://cdn3.iconfinder.com/data/icons/landmark-outline/432/japan_tower_tokyo_landmark_travel_architecture_tourism_view-256.png",
+                "https://cdn2.iconfinder.com/data/icons/city-building-1/200/ArcdeTriomphe-256.png",
+                "https://cdn2.iconfinder.com/data/icons/city-icons-for-offscreen-magazine/80/new-york-256.png",
             ],
         )
         assert len(demo.examples_messages) == 3
-        assert demo.examples_messages[0].get("icon", {}).get("url") == "https://cdn3.iconfinder.com/data/icons/landmark-outline/432/japan_tower_tokyo_landmark_travel_architecture_tourism_view-256.png"
-        assert demo.examples_messages[1].get("icon", {}).get("url") == "https://cdn2.iconfinder.com/data/icons/city-building-1/200/ArcdeTriomphe-256.png"
-        assert demo.examples_messages[2].get("icon", {}).get("url") == "https://cdn2.iconfinder.com/data/icons/city-icons-for-offscreen-magazine/80/new-york-256.png"
+        assert (
+            demo.examples_messages[0].get("icon", {}).get("url")
+            == "https://cdn3.iconfinder.com/data/icons/landmark-outline/432/japan_tower_tokyo_landmark_travel_architecture_tourism_view-256.png"
+        )
+        assert (
+            demo.examples_messages[1].get("icon", {}).get("url")
+            == "https://cdn2.iconfinder.com/data/icons/city-building-1/200/ArcdeTriomphe-256.png"
+        )
+        assert (
+            demo.examples_messages[2].get("icon", {}).get("url")
+            == "https://cdn2.iconfinder.com/data/icons/city-icons-for-offscreen-magazine/80/new-york-256.png"
+        )
