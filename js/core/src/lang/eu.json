@@ -140,5 +140,15 @@
 	},
 	"video": {
 		"drop_to_upload": "Arrastatu bideo fitxategia hemen igotzeko"
+	},
+	"chatbot": {
+		"edit": "Editatu",
+		"retry": "Saiatu berriro",
+		"undo": "Desegin",
+		"submit": "Bidali",
+		"cancel": "Utzi",
+		"like": "Gustuko dut",
+		"dislike": "Ez dut gustuko",
+		"clear": "Garbitu txata"
 	}
 }

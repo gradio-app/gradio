@@ -1,5 +1,52 @@
 # @gradio/core
 
+## 0.14.0
+
+### Dependency updates
+
+- @gradio/code@0.14.1
+- @gradio/paramviewer@0.7.7
+- @gradio/statustracker@0.10.9
+- @gradio/tabitem@0.4.3
+- @gradio/tabs@0.4.3
+- @gradio/video@0.14.10
+- @gradio/atoms@0.15.2
+- @gradio/client@1.14.2
+- @gradio/utils@0.10.2
+- @gradio/button@0.4.15
+- @gradio/upload@0.16.2
+- @gradio/image@0.22.2
+- @gradio/gallery@0.15.15
+- @gradio/plot@0.9.14
+- @gradio/textbox@0.10.9
+- @gradio/file@0.12.15
+- @gradio/checkbox@0.4.19
+- @gradio/column@0.2.0
+
+## 0.14.0
+
+### Features
+
+- [#10980](https://github.com/gradio-app/gradio/pull/10980) [`370b3e2`](https://github.com/gradio-app/gradio/commit/370b3e254411bce354354f6e14753cda464cc463) - Add i18n for chatbot interactions.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/button@0.4.14
+- @gradio/upload@0.16.1
+- @gradio/atoms@0.15.1
+- @gradio/statustracker@0.10.8
+- @gradio/column@0.2.0
+- @gradio/textbox@0.10.8
+- @gradio/icons@0.12.0
+- @gradio/gallery@0.15.14
+- @gradio/plot@0.9.13
+- @gradio/image@0.22.1
+- @gradio/code@0.14.0
+- @gradio/paramviewer@0.7.6
+- @gradio/video@0.14.9
+- @gradio/file@0.12.14
+- @gradio/checkbox@0.4.18
+
 ## 0.13.2
 
 ### Dependency updates

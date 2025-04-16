@@ -5,7 +5,6 @@ import {
 	Graphics,
 	Application
 } from "pixi.js";
-import { safe_destroy, safe_remove_child } from "./brush-utils";
 import { type ImageEditorContext } from "../core/editor";
 
 /**
@@ -26,21 +25,11 @@ export class BrushTextures {
 	// Track if a new stroke is starting
 	private is_new_stroke = true;
 
-	// Current scale factor
-	private scale = 1;
-
 	// Track the current drawing opacity
 	private current_opacity = 1.0;
 
 	// Track current drawing mode
 	private current_mode: "draw" | "erase" = "draw";
-
-	// Store last drawing parameters for eraser recreation
-	private last_from_x: number | null = null;
-	private last_from_y: number | null = null;
-	private last_to_x: number | null = null;
-	private last_to_y: number | null = null;
-	private last_size: number | null = null;
 
 	constructor(
 		private image_editor_context: ImageEditorContext,
@@ -50,11 +39,6 @@ export class BrushTextures {
 			width: this.image_editor_context.image_container.width,
 			height: this.image_editor_context.image_container.height
 		};
-
-		// Subscribe to scale changes
-		this.image_editor_context.scale.subscribe((scale) => {
-			this.scale = scale;
-		});
 	}
 
 	/**
@@ -335,13 +319,6 @@ export class BrushTextures {
 		this.current_mode = mode;
 		this.current_opacity =
 			mode === "draw" ? Math.min(Math.max(opacity, 0), 1) : 0.5;
-
-		// Store parameters for potential eraser recreation
-		this.last_from_x = from_x;
-		this.last_from_y = from_y;
-		this.last_to_x = to_x;
-		this.last_to_y = to_y;
-		this.last_size = size;
 
 		// Apply scale to brush size for consistent rendering
 		const scaled_size = size;

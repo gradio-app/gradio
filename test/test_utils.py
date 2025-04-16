@@ -7,7 +7,7 @@ import warnings
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -34,11 +34,10 @@ from gradio.utils import (
     get_type_hints,
     ipython_check,
     is_allowed_file,
+    is_hosted_notebook,
     is_in_or_equal,
     is_special_typed_parameter,
-    kaggle_check,
     safe_deepcopy,
-    sagemaker_check,
     sanitize_list_for_csv,
     sanitize_value_for_csv,
     tex2svg,
@@ -93,46 +92,14 @@ class TestUtils:
         out_article = download_if_url(in_article)
         assert out_article != in_article
 
-    def test_sagemaker_check_false(self):
-        assert not sagemaker_check()
-
-    def test_sagemaker_check_false_if_boto3_not_installed(self):
-        with patch.dict(sys.modules, {"boto3": None}, clear=True):
-            assert not sagemaker_check()
-
-    @patch("boto3.session.Session.client")
-    def test_sagemaker_check_true(self, mock_client):
-        mock_client().get_caller_identity = MagicMock(
-            return_value={
-                "Arn": "arn:aws:sts::67364438:assumed-role/SageMaker-Datascients/SageMaker"
-            }
-        )
-        assert sagemaker_check()
-
-    def test_kaggle_check_false(self):
-        assert not kaggle_check()
+    def test_is_hosted_notebook_false(self):
+        assert not is_hosted_notebook()
 
     def test_kaggle_check_true_when_run_type_set(self):
         with patch.dict(
             os.environ, {"KAGGLE_KERNEL_RUN_TYPE": "Interactive"}, clear=True
         ):
-            assert kaggle_check()
-
-    def test_kaggle_check_true_when_both_set(self):
-        with patch.dict(
-            os.environ,
-            {"KAGGLE_KERNEL_RUN_TYPE": "Interactive", "GFOOTBALL_DATA_DIR": "./"},
-            clear=True,
-        ):
-            assert kaggle_check()
-
-    def test_kaggle_check_false_when_neither_set(self):
-        with patch.dict(
-            os.environ,
-            {"KAGGLE_KERNEL_RUN_TYPE": "", "GFOOTBALL_DATA_DIR": ""},
-            clear=True,
-        ):
-            assert not kaggle_check()
+            assert is_hosted_notebook()
 
 
 def test_assert_configs_are_equivalent():

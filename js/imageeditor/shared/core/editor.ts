@@ -79,12 +79,19 @@ export class LayerManager {
 		id: string;
 		container: Container;
 		user_created: boolean;
+		visible: boolean;
 	}[] = [];
 	private active_layer: Container | null = null;
+	private active_layer_id: string | null = null;
 	private draw_textures: Map<Container, RenderTexture> = new Map();
 	layer_store: Writable<{
 		active_layer: string;
-		layers: { name: string; id: string; user_created: boolean }[];
+		layers: {
+			name: string;
+			id: string;
+			user_created: boolean;
+			visible: boolean;
+		}[];
 	}> = writable({
 		active_layer: "",
 
@@ -111,6 +118,18 @@ export class LayerManager {
 		this.dark = dark;
 		this.border_region = border_region;
 		this.layer_options = layer_options;
+	}
+
+	toggle_layer_visibility(id: string): void {
+		const layer = this.layers.find((l) => l.id === id);
+		if (layer) {
+			layer.container.visible = !layer.container.visible;
+			layer.visible = layer.container.visible;
+			this.layer_store.update((state) => ({
+				active_layer: state.active_layer,
+				layers: this.layers
+			}));
+		}
 	}
 
 	create_background_layer(width: number, height: number): Container {
@@ -277,22 +296,27 @@ export class LayerManager {
 		width,
 		height,
 		layer_name,
-		user_created
+		user_created,
+		layer_id = undefined,
+		make_active = false
 	}: {
 		width: number;
 		height: number;
 		layer_name?: string;
 		user_created: boolean;
+		layer_id?: string;
+		make_active?: boolean;
 	}): Container {
 		const layer = new Container();
-		const layer_id = Math.random().toString(36).substring(2, 15);
+		const _layer_id = layer_id || Math.random().toString(36).substring(2, 15);
 		const _layer_name = layer_name || `Layer ${this.layers.length + 1}`;
 
 		this.layers.push({
 			name: _layer_name,
-			id: layer_id,
+			id: _layer_id,
 			container: layer,
-			user_created
+			user_created,
+			visible: true
 		});
 
 		this.image_container.addChild(layer);
@@ -325,9 +349,12 @@ export class LayerManager {
 		this.draw_textures.set(layer, draw_texture);
 
 		this.update_layer_order();
-		this.active_layer = layer;
+		if (make_active) {
+			this.set_active_layer(_layer_id);
+		}
+
 		this.layer_store.set({
-			active_layer: layer_id,
+			active_layer: this.active_layer_id || "",
 			layers: this.layers
 		});
 		return layer;
@@ -436,6 +463,7 @@ export class LayerManager {
 				this.layers.find((l) => l.id === id)?.container ||
 				this.layers[0]?.container ||
 				null;
+			this.active_layer_id = id;
 			this.layer_store.set({
 				active_layer: id,
 				layers: this.layers
@@ -469,8 +497,9 @@ export class LayerManager {
 			}
 			this.layers[index].container.destroy();
 			if (this.active_layer === this.layers[index].container) {
-				this.active_layer =
-					this.layers[Math.max(0, index - 1)]?.container || null;
+				const new_active_layer = this.layers[Math.max(0, index - 1)] || null;
+				this.active_layer = new_active_layer?.container || null;
+				this.active_layer_id = new_active_layer?.id || null;
 			}
 			this.layers = this.layers.filter((l) => l.id !== id);
 
@@ -849,21 +878,34 @@ export class LayerManager {
 
 	reset_layers(width: number, height: number, persist = false): void {
 		const _layers_to_recreate = persist
-			? this.layers.map((layer) => layer.name)
-			: this.layer_options.layers;
+			? this.layers.map((layer) => [layer.name, layer.id])
+			: this.layer_options.layers.map((layer) => [layer, undefined]);
 
 		this.layers.forEach((layer) => {
 			this.delete_layer(layer.id);
 		});
 
-		for (const layer of _layers_to_recreate) {
+		for (const [layer_name, layer_id] of _layers_to_recreate) {
 			this.create_layer({
 				width,
 				height,
-				layer_name: layer,
-				user_created: this.layer_options.layers.includes(layer) ? false : true
+				layer_name: layer_name,
+				user_created: this.layer_options.layers.find((l) => l === layer_name)
+					? false
+					: true,
+				layer_id: layer_id
 			});
 		}
+
+		if (!persist) {
+			this.active_layer = this.layers[0].container;
+			this.active_layer_id = this.layers[0].id;
+		}
+
+		this.layer_store.update((state) => ({
+			active_layer: this.active_layer_id || this.layers[0].id,
+			layers: this.layers
+		}));
 	}
 
 	init_layers(width: number, height: number): void {
@@ -880,8 +922,9 @@ export class LayerManager {
 		}
 
 		this.active_layer = this.layers[0].container;
+		this.active_layer_id = this.layers[0].id;
 		this.layer_store.update((_layers) => ({
-			active_layer: _layers.layers[0].id,
+			active_layer: this.layers[0].id,
 			layers: this.layers
 		}));
 	}
@@ -899,6 +942,7 @@ interface ImageEditorOptions {
 	border_region?: number;
 	layer_options?: LayerOptions;
 	pad_bottom?: number;
+	theme_mode?: "dark" | "light";
 }
 
 const core_tool_map = {
@@ -922,8 +966,8 @@ export interface ImageEditorContext {
 		scale?: number;
 		position?: { x: number; y: number };
 		animate?: boolean;
-	}) => void;
-	execute_command: (command: Command) => void;
+	}) => Promise<void>;
+	execute_command: (command: Command) => Promise<void> | void;
 	resize_canvas: (width: number, height: number) => void;
 	reset: () => void;
 	set_background_image: (image: Sprite) => void;
@@ -1034,7 +1078,12 @@ export class ImageEditor {
 	};
 	layers: Writable<{
 		active_layer: string;
-		layers: { name: string; id: string; user_created: boolean }[];
+		layers: {
+			name: string;
+			id: string;
+			user_created: boolean;
+			visible: boolean;
+		}[];
 	}> = writable({
 		active_layer: "",
 		layers: []
@@ -1051,14 +1100,15 @@ export class ImageEditor {
 	private overlay_container!: Container;
 	private overlay_graphics!: Graphics;
 	private pad_bottom: number;
+	private theme_mode: "dark" | "light";
 	constructor(options: ImageEditorOptions) {
 		this.pad_bottom = options.pad_bottom || 0;
 		this.dark = options.dark || false;
+		this.theme_mode = options.theme_mode || "dark";
 		this.target_element = options.target_element;
 		this.width = options.width;
 		this.height = options.height;
 		this.command_manager = new CommandManager();
-		// this.layers = writable([]);
 		this.ready = new Promise((resolve) => {
 			this.ready_resolve = resolve;
 		});
@@ -1142,7 +1192,7 @@ export class ImageEditor {
 			width: container_box.width,
 			height: container_box.height,
 			backgroundAlpha: this.dark ? 0 : 1,
-			backgroundColor: this.dark ? 0x333333 : 0xffffff,
+			backgroundColor: this.theme_mode === "dark" ? "#27272a" : "#ffffff",
 			resolution: window.devicePixelRatio,
 			autoDensity: true,
 			antialias: true,
@@ -1385,12 +1435,6 @@ export class ImageEditor {
 		this.layers = this.layer_manager.layer_store;
 	}
 
-	// private resize_image(width: number, height: number): void {
-	// 	// Implement image resizing logic here
-	// 	this.image_container.width = width;
-	// 	this.image_container.height = height;
-	// }
-
 	resize_canvas(width: number, height: number): void {
 		if (this.app.renderer) {
 			this.app.renderer.resize(width, height);
@@ -1417,33 +1461,42 @@ export class ImageEditor {
 		}
 	}
 
-	set_image_properties(properties: {
+	async set_image_properties(properties: {
 		width?: number;
 		height?: number;
 		scale?: number;
 		position?: { x: number; y: number };
 		animate?: boolean;
-	}): void {
+	}): Promise<void> {
 		let hard =
 			typeof properties.animate !== "undefined" ? !properties.animate : true;
 		if (properties.position) {
-			this.position.set(properties.position, { hard });
+			const pos = this.position.set(properties.position, { hard });
+			if (hard) {
+				await pos;
+			}
 		}
 		if (properties.scale) {
-			this.scale.set(properties.scale, { hard });
+			const scale = this.scale.set(properties.scale, { hard });
+			if (hard) {
+				await scale;
+			}
 		}
 		if (properties.width && properties.height) {
 			this.width = properties.width;
 			this.height = properties.height;
-			this.dimensions.set(
+			const dimensions = this.dimensions.set(
 				{ width: properties.width, height: properties.height },
 				{ hard }
 			);
+			if (hard) {
+				await dimensions;
+			}
 		}
 	}
 
-	execute_command(command: Command): void {
-		this.command_manager.execute(command);
+	async execute_command(command: Command): Promise<void> {
+		await this.command_manager.execute(command);
 	}
 
 	undo(): void {
@@ -1463,15 +1516,12 @@ export class ImageEditor {
 		image: Blob | File;
 		resize?: boolean;
 	}): Promise<void> {
-		const image_command = new AddImageCommand(
-			this.context,
+		const image_tool = this.tools.get("image") as ImageTool;
+		await image_tool.add_image({
 			image,
-			this.fixed_canvas,
-			this.border_region
-		);
-
-		await image_command.start();
-		this.context.execute_command(image_command);
+			fixed_canvas: this.fixed_canvas,
+			border_region: this.border_region
+		});
 	}
 
 	/**
@@ -1517,14 +1567,14 @@ export class ImageEditor {
 		this.background_image = image;
 	}
 
-	reset_canvas(): void {
+	async reset_canvas(): Promise<void> {
 		this.layer_manager.reset_layers(this.width, this.height);
 		// Clear background image
 		this.background_image = undefined;
 		this.background_image_present.set(false);
 
 		// Reset position, scale and dimensions to default values
-		this.set_image_properties({
+		await this.set_image_properties({
 			width: this.width,
 			height: this.height,
 			scale: 1,
@@ -1559,7 +1609,9 @@ export class ImageEditor {
 			width: this.width,
 			height: this.height,
 			layer_name: undefined,
-			user_created: true
+			user_created: true,
+			layer_id: undefined,
+			make_active: true
 		});
 		this.notify("change");
 	}
@@ -1585,6 +1637,8 @@ export class ImageEditor {
 		for await (const url of layer_urls) {
 			await this.layer_manager.add_layer_from_url(url);
 		}
+
+		this.layer_manager.set_active_layer(_layers[0].id);
 
 		// Update resize tool if present with border region
 		const resize_tool = this.tools.get("resize") as any;
@@ -1726,5 +1780,9 @@ export class ImageEditor {
 			this.width,
 			this.height
 		);
+	}
+
+	toggle_layer_visibility(id: string): void {
+		this.layer_manager.toggle_layer_visibility(id);
 	}
 }

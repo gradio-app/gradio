@@ -140,5 +140,15 @@
 	},
 	"video": {
 		"drop_to_upload": "Lataa videotiedosto pudottamalla se tähän."
+	},
+	"chatbot": {
+		"edit": "Muokkaa",
+		"retry": "Yritä uudelleen",
+		"undo": "Kumoa",
+		"submit": "Lähetä",
+		"cancel": "Peruuta",
+		"like": "Tykkää",
+		"dislike": "En tykkää",
+		"clear": "Tyhjennä keskustelu"
 	}
 }

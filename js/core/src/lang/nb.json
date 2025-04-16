@@ -140,5 +140,15 @@
 	},
 	"video": {
 		"drop_to_upload": "Slipp en videofil her for å laste opp"
+	},
+	"chatbot": {
+		"edit": "Rediger",
+		"retry": "Prøv igjen",
+		"undo": "Angre",
+		"submit": "Send",
+		"cancel": "Avbryt",
+		"like": "Liker",
+		"dislike": "Liker ikke",
+		"clear": "Tøm samtalen"
 	}
 }
