@@ -40,12 +40,12 @@
 		touchDistance: undefined,
 		translation: { x: 0, y: 0 },
 		translationPercent: { x: 0, y: 0 },
-		overflow: { left: 0, right: 0 },
+		overflow: { left: 0, right: 0 }
 	};
 
 	async function handle_upload(
 		{ detail }: CustomEvent<FileData[]>,
-		n: number,
+		n: number
 	): Promise<void> {
 		if (detail.length > 1) {
 			value[n] = detail[0];
@@ -80,7 +80,7 @@
 	async function update_transform(
 		_state: ZoomState & {
 			translationPercent: { x: number; y: number };
-		},
+		}
 	): Promise<void> {
 		state = _state;
 	}

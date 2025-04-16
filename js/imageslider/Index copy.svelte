@@ -2,7 +2,7 @@
 
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
-	import InteractiveImage from "./shared/InteractiveImage.svelte";
+	import InteractiveImage from "./shared/SliderUpload.svelte";
 	import StaticImage from "./shared/StaticImage.svelte";
 	import type { FileData } from "@gradio/client";
 	import type { LoadingStatus } from "@gradio/statustracker";

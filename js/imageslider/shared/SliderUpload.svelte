@@ -39,7 +39,7 @@
 	$: console.log("value", value);
 
 	async function handle_upload({
-		detail,
+		detail
 	}: CustomEvent<[FileData, FileData]>): Promise<void> {
 		value = detail;
 		gradio.dispatch("upload");
