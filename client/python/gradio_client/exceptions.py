@@ -35,4 +35,3 @@ class AppError(ValueError):
         self.visible = visible
         self.print_exception = print_exception
         super().__init__(self.message)
-
