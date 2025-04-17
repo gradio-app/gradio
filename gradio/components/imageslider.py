@@ -25,7 +25,9 @@ class SliderData(GradioRootModel):
     root: tuple[ImageData | None, ImageData | None] | None
 
 
-image_tuple = tuple[str | PIL.Image.Image | np.ndarray | None]
+image_tuple = tuple[
+    str | PIL.Image.Image | np.ndarray | None, str | PIL.Image.Image | np.ndarray | None
+]
 
 
 if TYPE_CHECKING:
@@ -212,9 +214,7 @@ class ImageSlider(Component):
             format=suffix,
         )
 
-    def preprocess(
-        self, payload: SliderData | None
-    ) -> np.ndarray | PIL.Image.Image | str | None:
+    def preprocess(self, payload: SliderData | None) -> image_tuple | None:
         """
         Parameters:
             payload: image data in the form of a FileData object
@@ -258,7 +258,7 @@ class ImageSlider(Component):
             np.ndarray | PIL.Image.Image | str | Path | None,
         ]
         | None,
-    ) -> tuple[ImageData, ImageData] | None:
+    ) -> SliderData | None:
         """
         Parameters:
             value: Expects a `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is displayed.
