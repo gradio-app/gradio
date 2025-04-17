@@ -36,11 +36,11 @@
 
 	async function handle_upload(
 		{ detail }: CustomEvent<FileData[]>,
-		n: number,
+		n: number
 	): Promise<void> {
 		const new_value = [value[0], value[1]] as [
 			FileData | null,
-			FileData | null,
+			FileData | null
 		];
 		if (detail.length > 1) {
 			new_value[n] = detail[0];
