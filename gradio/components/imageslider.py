@@ -39,8 +39,7 @@ class ImageSlider(Component):
     """
     Creates an image component that can be used to upload images (as an input) or display images (as an output).
 
-    Demos: sepia_filter, fake_diffusion
-    Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, create-your-own-friends-with-a-gan
+    Demos: imageslider
     """
 
     EVENTS = [
