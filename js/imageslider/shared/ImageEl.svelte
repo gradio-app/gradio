@@ -8,6 +8,7 @@
 		img_el?: HTMLImageElement;
 		hidden?: boolean;
 		variant?: "preview" | "upload";
+		max_height?: number;
 	}
 	type $$Props = Props;
 
@@ -22,6 +23,7 @@
 	export let img_el: HTMLImageElement | null = null;
 	export let hidden = false;
 	export let variant = "upload";
+	export let max_height = 500;
 	// The `src` prop can be updated before the Promise from `resolve_wasm_src` is resolved.
 	// In such a case, the resolved value for the old `src` has to be discarded,
 	// This variable `latest_src` is used to pick up only the value resolved for the latest `src` prop.
@@ -55,6 +57,7 @@
 	class:hidden
 	class:preview={variant === "preview"}
 	class:slider={variant === "upload"}
+	style:max-height={max_height ? `${max_height}px` : null}
 />
 
 <style>

@@ -27,6 +27,7 @@
 	export let stream_handler: Client["stream"];
 	export let max_file_size: number | null = null;
 	export let i18n: I18nFormatter;
+	export let max_height: number;
 
 	let value_: [FileData | null, FileData | null] = value || [null, null];
 
@@ -136,6 +137,7 @@
 					src={value_[0]?.url}
 					alt=""
 					bind:img_el={img}
+					{max_height}
 				/>
 			{/if}
 
@@ -169,6 +171,7 @@
 					alt=""
 					fixed={upload_count === 1}
 					transform="translate(0px, 0px) scale(1)"
+					{max_height}
 				/>
 			{/if}
 		</div>

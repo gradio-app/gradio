@@ -46,6 +46,7 @@
 	export let position: number;
 	export let upload_count = 1;
 	export let slider_color = "var(--border-color-primary)";
+	export let max_height: number;
 	let uploading = false;
 
 	$: input_ready = !uploading;
@@ -140,6 +141,7 @@
 			{show_fullscreen_button}
 			{position}
 			{slider_color}
+			{max_height}
 		/>
 	</Block>
 {:else}
@@ -194,6 +196,7 @@
 			i18n={gradio.i18n}
 			upload={(...args) => gradio.client.upload(...args)}
 			stream_handler={gradio.client?.stream}
+			{max_height}
 		>
 			{#if active_source === "upload" || !active_source}
 				<UploadText i18n={gradio.i18n} type="image" {placeholder} />

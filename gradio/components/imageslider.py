@@ -86,6 +86,7 @@ class ImageSlider(Component):
         show_fullscreen_button: bool = True,
         position: float = 0.5,
         slider_color: str = "#000000",
+        max_height: int = 500,
     ):
         """
         Parameters:
@@ -112,11 +113,12 @@ class ImageSlider(Component):
             show_fullscreen_button: If True, will show a fullscreen icon in the corner of the component that allows user to view the image in fullscreen mode. If False, icon does not appear.
             position: The position of the slider, between 0 and 1.
             slider_color: The color of the slider.
+            max_height: The maximum height of the image.
         """
         self.format = format
         self.position = position
         self.slider_color = slider_color
-
+        self.max_height = max_height
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
             raise ValueError(

@@ -1,15 +1,9 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import type {
-		Gradio,
-		SelectData,
-		ShareData,
-		I18nFormatter
-	} from "@gradio/utils";
+	import type { I18nFormatter } from "@gradio/utils";
 	import Image from "./Image.svelte";
 	import { type Client } from "@gradio/client";
-	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import type { FileData } from "@gradio/client";
 
@@ -22,7 +16,7 @@
 	export let root: string;
 	export let upload_count = 1;
 	export let dragging: boolean;
-
+	export let max_height: number;
 	export let max_file_size: number | null = null;
 </script>
 
@@ -45,6 +39,7 @@
 	{stream_handler}
 	{upload}
 	{max_file_size}
+	{max_height}
 	{i18n}
 >
 	<slot />

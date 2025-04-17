@@ -26,6 +26,7 @@
 	export let slider_color: string;
 	export let show_fullscreen_button = true;
 	export let el_width = 0;
+	export let max_height: number;
 
 	let img: HTMLImageElement;
 	let slider_wrap: HTMLDivElement;
@@ -150,6 +151,7 @@
 					bind:img_el={img}
 					variant="preview"
 					transform="translate({$transform.x}px, {$transform.y}px) scale({$transform.z})"
+					{max_height}
 				/>
 				<ImageEl
 					variant="preview"
@@ -160,6 +162,7 @@
 					loading="lazy"
 					{style}
 					transform="translate({$transform.x}px, {$transform.y}px) scale({$transform.z})"
+					{max_height}
 				/>
 			</Slider>
 		</div>
