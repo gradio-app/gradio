@@ -1,62 +1,76 @@
-"""gr.Image() component."""
+"""gr.ImageSlider() component."""
 
 from __future__ import annotations
 
+import warnings
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Any, Literal, Union
+from typing import TYPE_CHECKING, Any, Literal, cast
+from urllib.parse import quote
 
 import numpy as np
-from gradio_client import utils as client_utils
-from PIL import Image as _Image  # using _ to minimize namespace pollution
+import PIL.Image
+from gradio_client import handle_file
+from gradio_client.documentation import document
+from PIL import ImageOps
 
-from gradio import processing_utils, utils
+from gradio import image_utils
 from gradio.components.base import Component
-from gradio.data_classes import FileData, GradioRootModel
+from gradio.data_classes import GradioRootModel, ImageData
 from gradio.events import Events
-
-_Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
+from gradio.exceptions import Error
 
 
 class SliderData(GradioRootModel):
-    root: Union[tuple[FileData | None, FileData | None], None]
+    root: tuple[ImageData | None, ImageData | None] | None
 
 
-image_variants = _Image.Image | np.ndarray | str | Path | FileData | None
-image_tuple = (
-    tuple[str, str]
-    | tuple[_Image.Image, _Image.Image]
-    | tuple[np.ndarray, np.ndarray]
-    | None
-)
+image_tuple = tuple[str | PIL.Image.Image | np.ndarray]
 
 
+if TYPE_CHECKING:
+    from gradio.components import Timer
+
+PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
+
+
+@document()
 class ImageSlider(Component):
     """
-    Creates an image slider component that can be used to compare two images
-    Preprocessing: passes the uploaded image as a tuple of {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
-    Postprocessing: expects a tuple of {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
-    Examples-format: a {str} local filepath or URL to an image.
+    Creates an image component that can be used to upload images (as an input) or display images (as an output).
+
+    Demos: sepia_filter, fake_diffusion
+    Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, create-your-own-friends-with-a-gan
     """
 
-    template_path = "./slider/templates"
-
     EVENTS = [
+        Events.clear,
         Events.change,
+        Events.stream,
+        Events.select,
         Events.upload,
+        Events.input,
     ]
 
     data_model = SliderData
 
     def __init__(
         self,
-        value: image_tuple = None,
-        position: float = 0.5,
+        value: image_tuple | Callable | None = None,
         *,
-        height: int | None = None,
-        width: int | None = None,
+        format: str = "webp",
+        height: int | str | None = None,
+        width: int | str | None = None,
+        image_mode: (
+            Literal[
+                "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
+            ]
+            | None
+        ) = "RGB",
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         show_download_button: bool = True,
         container: bool = True,
@@ -66,31 +80,41 @@ class ImageSlider(Component):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        show_share_button: bool | None = None,
-        slider_color: str | None = None,
-        **kwargs,
+        render: bool = True,
+        key: int | str | None = None,
+        show_fullscreen_button: bool = True,
+        position: float = 0.5,
+        slider_color: str = "#000000",
     ):
         """
         Parameters:
-            value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            position: The position of the slider, between 0 and 1.
-            height: Height of the displayed image in pixels.
-            width: Width of the displayed image in pixels.
-            type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image.
-            label: component name in interface.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
+            format: File format (e.g. "png" or "gif"). Used to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image). The format should be supported by the PIL library. Applies both when this component is used as an input or output. This parameter has no effect on SVG files.
+            height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image file or numpy array, but will affect the displayed image.
+            width: The width of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image file or numpy array, but will affect the displayed image.
+            image_mode: The pixel format and color depth that the image should be loaded and preprocessed as. "RGB" will load the image as a color image, or "L" as black-and-white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning. This parameter has no effect on SVG or GIF files. If set to None, the image_mode will be inferred from the image file type (e.g. "RGBA" for a .png image, "RGB" in most other cases).
+            type: The format the image is converted before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. To support animated GIFs in input, the `type` should be set to "filepath" or "pil". To support SVGs, the `type` should be set to "filepath".
+            label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
-            show_download_button: If True, will display button to download image.
+            show_download_button: If True, will display button to download image. Only applies if interactive is False (e.g. if the component is used as an output).
             container: If True, will place the component in a container - providing some extra padding around the border.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
+            scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to upload and edit an image; if False, can only be used to display images. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
-            slider_color: The color of the slider separator.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
+            show_fullscreen_button: If True, will show a fullscreen icon in the corner of the component that allows user to view the image in fullscreen mode. If False, icon does not appear.
+            position: The position of the slider, between 0 and 1.
+            slider_color: The color of the slider.
         """
+        self.format = format
+        self.position = position
+        self.slider_color = slider_color
 
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
@@ -100,19 +124,14 @@ class ImageSlider(Component):
         self.type = type
         self.height = height
         self.width = width
+        self.image_mode = image_mode
         self.show_download_button = show_download_button
-        self.show_share_button = (
-            (utils.get_space() is not None)
-            if show_share_button is None
-            else show_share_button
-        )
-        self.position = position
-        self.slider_color = slider_color
-        self.position = position
+        self.show_fullscreen_button = show_fullscreen_button
 
         super().__init__(
             label=label,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             container=container,
             scale=scale,
@@ -121,98 +140,144 @@ class ImageSlider(Component):
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
+            key=key,
             value=value,
-            **kwargs,
+        )
+        self._value_description = (
+            "a tuple of filepaths to images"
+            if self.type == "filepath"
+            else (
+                "a tuple of numpy arrays representing images"
+                if self.type == "numpy"
+                else "a tuple of PIL Images"
+            )
         )
 
-    def _format_image(self, im: _Image.Image | None) -> image_variants:
-        """Helper method to format an image based on self.type"""
-        if im is None:
-            return im
-        fmt = im.format
-        if self.type == "pil":
-            return im
-        elif self.type == "numpy":
-            return np.array(im)
-        elif self.type == "filepath":
-            path = self.pil_to_temp_file(
-                im, dir=self.DEFAULT_TEMP_DIR, format=fmt or "png"
-            )
-            self.temp_files.add(path)
-            return path
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'numpy', 'pil', 'filepath'."
-            )
-
-    def _preprocess_image(self, x: str | FileData | None):
-        if x is None:
-            return x
-        elif isinstance(x, str):
-            im = processing_utils.decode_base64_to_image(x)
-        else:
-            im = _Image.open(x.path)
-
-        return self._format_image(im)
-
-    def preprocess(self, payload: SliderData) -> image_tuple:
-        """
-        Parameters:
-            payload: SliderData object containing images as numpy arrays, PIL Images, string/Path filepaths, or string urls.
-        Returns:
-            tuple of images in the requested format.
-        """
+    def preprocess_image(
+        self, payload: ImageData | None
+    ) -> np.ndarray | PIL.Image.Image | str | None:
         if payload is None:
             return payload
+        if payload.url and payload.url.startswith("data:"):
+            if self.type == "pil":
+                return image_utils.decode_base64_to_image(payload.url)
+            elif self.type == "numpy":
+                return image_utils.decode_base64_to_image_array(payload.url)
+            elif self.type == "filepath":
+                return image_utils.decode_base64_to_file(
+                    payload.url, self.GRADIO_CACHE, self.format
+                )
+        if payload.path is None:
+            raise ValueError("Image path is None.")
+        file_path = Path(payload.path)
+        if payload.orig_name:
+            p = Path(payload.orig_name)
+            name = p.stem
+            suffix = p.suffix.replace(".", "")
+            if suffix in ["jpg", "jpeg"]:
+                suffix = "jpeg"
+        else:
+            name = "image"
+            suffix = "webp"
 
-        return self._preprocess_image(payload.root[0]), self._preprocess_image(
+        if suffix.lower() == "svg":
+            if self.type == "filepath":
+                return str(file_path)
+            raise Error("SVG files are not supported as input images for this app.")
+
+        im = PIL.Image.open(file_path)
+        if self.type == "filepath" and (self.image_mode in [None, im.mode]):
+            return str(file_path)
+
+        exif = im.getexif()
+        # 274 is the code for image rotation and 1 means "correct orientation"
+        if exif.get(274, 1) != 1 and hasattr(ImageOps, "exif_transpose"):
+            try:
+                im = ImageOps.exif_transpose(im)
+            except Exception:
+                warnings.warn(
+                    f"Failed to transpose image {file_path} based on EXIF data."
+                )
+        if suffix.lower() != "gif" and im is not None:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                if self.image_mode is not None:
+                    im = im.convert(self.image_mode)
+        return image_utils.format_image(
+            im,
+            cast(Literal["numpy", "pil", "filepath"], self.type),
+            self.GRADIO_CACHE,
+            name=name,
+            format=suffix,
+        )
+
+    def preprocess(
+        self, payload: SliderData | None
+    ) -> np.ndarray | PIL.Image.Image | str | None:
+        """
+        Parameters:
+            payload: image data in the form of a FileData object
+        Returns:
+            Passes the uploaded image as a `numpy.array`, `PIL.Image` or `str` filepath depending on `type`.
+        """
+        if payload is None:
+            return None
+        if payload.root is None:
+            raise ValueError("Payload is None.")
+        return self.preprocess_image(payload.root[0]), self.preprocess_image(
             payload.root[1]
         )
 
-    def _postprocess_image(self, y: image_variants):
-        if isinstance(y, np.ndarray):
-            path = processing_utils.save_img_array_to_cache(
-                y, cache_dir=self.GRADIO_CACHE
+    def postprocess_image(
+        self, value: np.ndarray | PIL.Image.Image | str | Path | None
+    ) -> ImageData | None:
+        """
+        Parameters:
+            value: Expects a `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is displayed.
+        Returns:
+            Returns the image as a `FileData` object.
+        """
+        if value is None:
+            return None
+        if isinstance(value, str) and value.lower().endswith(".svg"):
+            svg_content = image_utils.extract_svg_content(value)
+            return ImageData(
+                orig_name=Path(value).name,
+                url=f"data:image/svg+xml,{quote(svg_content)}",
             )
-        elif isinstance(y, _Image.Image):
-            path = processing_utils.save_pil_to_cache(y, cache_dir=self.GRADIO_CACHE)
-        elif isinstance(y, (str, Path)):
-            path = y if isinstance(y, str) else str(utils.abspath(y))
-        else:
-            raise ValueError("Cannot process this value as an Image")
 
-        return path
+        saved = image_utils.save_image(value, self.GRADIO_CACHE, self.format)
+        orig_name = Path(saved).name if Path(saved).exists() else None
+        return ImageData(path=saved, orig_name=orig_name)
 
     def postprocess(
         self,
-        y: image_tuple,
-    ) -> tuple[FileData | str | None, FileData | str | None] | None:
+        value: tuple[
+            np.ndarray | PIL.Image.Image | str | Path | None,
+            np.ndarray | PIL.Image.Image | str | Path | None,
+        ]
+        | None,
+    ) -> tuple[ImageData, ImageData] | None:
         """
         Parameters:
-            y: image as a numpy array, PIL Image, string/Path filepath, or string URL
+            value: Expects a `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is displayed.
         Returns:
-            base64 url data
+            Returns the image as a `FileData` object.
         """
-        if y is None:
+        if value is None:
             return None
-
         return SliderData(
-            root=(
-                FileData(path=self._postprocess_image(y[0])),
-                FileData(path=self._postprocess_image(y[1])),
-            )
+            root=(self.postprocess_image(value[0]), self.postprocess_image(value[1]))
         )
 
-    def as_example(self, input_data: tuple[str | Path | None] | None) -> str:
-        if input_data is None:
-            return None
-        input_data = (str(input_data[0]), str(input_data[1]))
-        # If an externally hosted image or a URL, don't convert to absolute path
-        if self.proxy_url or client_utils.is_http_url_like(input_data[0]):
-            return input_data
-        return (str(utils.abspath(input_data[0])), str(utils.abspath(input_data[1])))
+    def api_info_as_output(self) -> dict[str, Any]:
+        return self.api_info()
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return handle_file(
+            "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+        )
+
+    def example_value(self) -> Any:
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
