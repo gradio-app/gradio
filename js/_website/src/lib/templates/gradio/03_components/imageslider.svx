@@ -41,7 +41,9 @@ demo.launch()
 
 ```python
 def predict(
-	value: np.ndarray | PIL.Image.Image | str | None
+	value: tuple[
+    str | PIL.Image.Image | np.ndarray | None, str | PIL.Image.Image | np.ndarray | None
+]
 )
 	...
 ```
