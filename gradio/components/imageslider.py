@@ -25,7 +25,7 @@ class SliderData(GradioRootModel):
     root: tuple[ImageData | None, ImageData | None] | None
 
 
-image_tuple = tuple[str | PIL.Image.Image | np.ndarray]
+image_tuple = tuple[str | PIL.Image.Image | np.ndarray | None]
 
 
 if TYPE_CHECKING:
