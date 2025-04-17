@@ -212,6 +212,8 @@ class Interface(Blocks):
             deep_link = DeepLinkButton()
         if wasm_utils.IS_WASM or deep_link is False:
             deep_link = None
+        if deep_link is not None:
+            deep_link.unrender()
         self.deep_link = deep_link
         self.time_limit = time_limit
         self.stream_every = stream_every
