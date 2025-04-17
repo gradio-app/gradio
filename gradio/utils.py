@@ -1461,9 +1461,9 @@ def error_payload(
     error: BaseException | None, show_error: bool
 ) -> dict[str, bool | str | float | None]:
     content: dict[str, bool | str | float | None] = {"error": None}
-    show_error = show_error or isinstance(error, (Error, AppError))
+    show_error = show_error or isinstance(error, AppError)
     if show_error:
-        if isinstance(error, (Error, AppError)):
+        if isinstance(error, AppError):
             content["error"] = error.message
             content["duration"] = error.duration
             content["visible"] = error.visible
