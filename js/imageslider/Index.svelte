@@ -1,60 +1,3 @@
-<!-- <script lang="ts">
-	import { onMount, tick } from "svelte";
-	import { tweened, type Tweened } from "svelte/motion";
-
-	
-	let container_el: HTMLDivElement;
-	let image_el: HTMLImageElement;
-	let transform: Tweened<{ x: number; y: number; z: number }> = tweened(
-		{ x: 0, y: 0, z: 1 },
-		{
-			duration: 75,
-		},
-	);
-
-	onMount(() => {
-		const zoomable_image = new ZoomableImage(container_el, image_el);
-		zoomable_image.subscribe((offsetX, offsetY, scale) => {
-			transform.set({ x: offsetX, y: offsetY, z: scale });
-		});
-
-		return () => {
-			zoomable_image.destroy();
-		};
-	});
-</script>
-
-<div class="container" bind:this={container_el}>
-	<img
-		src="https://picsum.photos/2400/1800"
-		alt="Random"
-		bind:this={image_el}
-		style:transform="translate({$transform.x}px, {$transform.y}px) scale({$transform.z})"
-	/>
-</div>
-
-<style>
-	.container {
-		border: 2px solid #646cff;
-		overflow: hidden;
-		position: relative;
-		width: 100%;
-		height: 400px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background-color: #f0f0f0;
-	}
-
-	img {
-		position: absolute;
-		max-width: 100%;
-		max-height: 100%;
-		object-fit: contain;
-		transform-origin: top left;
-		cursor: zoom-in;
-	}
-</style> -->
 <svelte:options accessors={true} />
 
 <script lang="ts">
@@ -90,26 +33,21 @@
 	export let show_label: boolean;
 	export let show_download_button: boolean;
 	export let root: string;
-
 	export let height: number | undefined;
 	export let width: number | undefined;
-
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-	// export let show_share_button = false;
-
 	export let interactive: boolean;
-
 	export let placeholder: string | undefined = undefined;
 	export let show_fullscreen_button: boolean;
 	export let input_ready: boolean;
 	export let position: number;
-	export let upload_count = 2;
+	export let upload_count = 1;
 	export let slider_color = "var(--border-color-primary)";
-
 	let uploading = false;
+
 	$: input_ready = !uploading;
 
 	export let gradio: Gradio<{
@@ -144,6 +82,7 @@
 	let dragging: boolean;
 	let active_source: sources = null;
 	let upload_component: ImageUploader;
+
 	const handle_drag_event = (event: Event): void => {
 		const drag_event = event as DragEvent;
 		drag_event.preventDefault();
@@ -199,6 +138,8 @@
 			{show_download_button}
 			i18n={gradio.i18n}
 			{show_fullscreen_button}
+			{position}
+			{slider_color}
 		/>
 	</Block>
 {:else}
@@ -229,7 +170,6 @@
 
 		<ImageUploader
 			bind:this={upload_component}
-			bind:uploading
 			bind:value
 			bind:dragging
 			{root}
@@ -237,11 +177,8 @@
 			on:clear={() => {
 				gradio.dispatch("clear");
 			}}
-			on:stream={({ detail }) => gradio.dispatch("stream", detail)}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload={() => gradio.dispatch("upload")}
-			on:select={({ detail }) => gradio.dispatch("select", detail)}
-			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => {
 				loading_status = loading_status || {};
 				loading_status.status = "error";
@@ -252,6 +189,7 @@
 			}}
 			{label}
 			{show_label}
+			{upload_count}
 			max_file_size={gradio.max_file_size}
 			i18n={gradio.i18n}
 			upload={(...args) => gradio.client.upload(...args)}

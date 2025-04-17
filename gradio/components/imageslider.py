@@ -50,8 +50,7 @@ class ImageSlider(Component):
     def __init__(
         self,
         value: image_tuple = None,
-        position: int = 0.5,
-        upload_count: int = 1,
+        position: float = 0.5,
         *,
         height: int | None = None,
         width: int | None = None,
@@ -75,7 +74,6 @@ class ImageSlider(Component):
         Parameters:
             value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
             position: The position of the slider, between 0 and 1.
-            upload_count: The number of images that can be uploaded to the component. 1 or 2.
             height: Height of the displayed image in pixels.
             width: Width of the displayed image in pixels.
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image.
@@ -109,8 +107,8 @@ class ImageSlider(Component):
             else show_share_button
         )
         self.position = position
-        self.upload_count = upload_count
         self.slider_color = slider_color
+        self.position = position
 
         super().__init__(
             label=label,
@@ -159,17 +157,19 @@ class ImageSlider(Component):
 
         return self._format_image(im)
 
-    def preprocess(self, x: SliderData) -> image_tuple:
+    def preprocess(self, payload: SliderData) -> image_tuple:
         """
         Parameters:
-            x: SliderData object containing images as numpy arrays, PIL Images, string/Path filepaths, or string urls.
+            payload: SliderData object containing images as numpy arrays, PIL Images, string/Path filepaths, or string urls.
         Returns:
             tuple of images in the requested format.
         """
-        if x is None:
-            return x
+        if payload is None:
+            return payload
 
-        return self._preprocess_image(x.root[0]), self._preprocess_image(x.root[1])
+        return self._preprocess_image(payload.root[0]), self._preprocess_image(
+            payload.root[1]
+        )
 
     def _postprocess_image(self, y: image_variants):
         if isinstance(y, np.ndarray):

@@ -6,8 +6,7 @@
 		Empty,
 		IconButton,
 		IconButtonWrapper,
-		ShareButton,
-		FullscreenButton,
+		FullscreenButton
 	} from "@gradio/atoms";
 	import { Image, Download } from "@gradio/icons";
 	import { type FileData } from "@gradio/client";
@@ -20,15 +19,13 @@
 	export let label: string | undefined = undefined;
 	export let show_download_button = true;
 	export let show_label: boolean;
-	export let root: string;
 	export let i18n: I18nFormatter;
 	export let position: number;
 	export let layer_images = true;
 	export let show_single = false;
 	export let slider_color: string;
 	export let show_fullscreen_button = true;
-
-	export let el_width: number;
+	export let el_width = 0;
 
 	let img: HTMLImageElement;
 	let slider_wrap: HTMLDivElement;
@@ -37,8 +34,8 @@
 	let transform: Tweened<{ x: number; y: number; z: number }> = tweened(
 		{ x: 0, y: 0, z: 1 },
 		{
-			duration: 75,
-		},
+			duration: 75
+		}
 	);
 	let parent_el: HTMLDivElement;
 
@@ -46,7 +43,7 @@
 		position,
 		viewport_width,
 		$transform.x,
-		$transform.z,
+		$transform.z
 	);
 	$: style = layer_images
 		? `clip-path: inset(0 0 0 ${coords_at_viewport * 100}%)`
@@ -57,7 +54,7 @@
 		viewportWidth: number,
 		tx: number, // image translation x (in pixels)
 
-		scale: number, // image scale (uniform)
+		scale: number // image scale (uniform)
 	): number {
 		const vx = viewport_percent_x * viewportWidth;
 
@@ -69,16 +66,24 @@
 	let img_width = 0;
 	let viewport_width = 0;
 
-	onMount(() => {
-		img_width = img.getBoundingClientRect().width;
-		viewport_width = slider_wrap.getBoundingClientRect().width;
-		const zoomable_image = new ZoomableImage(slider_wrap, img);
+	let zoomable_image: ZoomableImage | null = null;
+	let observer: ResizeObserver | null = null;
+
+	function init_image(
+		img: HTMLImageElement,
+		slider_wrap: HTMLDivElement
+	): void {
+		if (!img || !slider_wrap) return;
+		zoomable_image?.destroy();
+		observer?.disconnect();
+		img_width = img?.getBoundingClientRect().width || 0;
+		viewport_width = slider_wrap?.getBoundingClientRect().width || 0;
+		zoomable_image = new ZoomableImage(slider_wrap, img);
 		zoomable_image.subscribe(({ x, y, scale }) => {
 			transform.set({ x, y, z: scale });
 		});
 
-		const observer = new ResizeObserver((entries) => {
-			console.log("resize", entries);
+		observer = new ResizeObserver((entries) => {
 			for (const entry of entries) {
 				if (entry.target === slider_wrap) {
 					viewport_width = entry.contentRect.width;
@@ -91,14 +96,19 @@
 		});
 		observer.observe(slider_wrap);
 		observer.observe(img);
+	}
 
+	$: init_image(img, slider_wrap);
+
+	onMount(() => {
 		return () => {
-			zoomable_image.destroy();
-			observer.disconnect();
+			zoomable_image?.destroy();
+			observer?.disconnect();
 		};
 	});
 
 	let is_full_screen = false;
+	let slider_wrap_parent: HTMLDivElement;
 </script>
 
 <BlockLabel {show_label} Icon={Image} label={label || i18n("image.image")} />
@@ -108,7 +118,7 @@
 	<div class="image-container" bind:this={image_container}>
 		<IconButtonWrapper>
 			{#if show_fullscreen_button}
-				<FullscreenButton container={parent_el} bind:is_full_screen />
+				<FullscreenButton container={slider_wrap_parent} bind:is_full_screen />
 			{/if}
 
 			{#if show_download_button}
@@ -122,10 +132,17 @@
 		</IconButtonWrapper>
 		<div
 			class="slider-wrap"
+			bind:this={slider_wrap_parent}
 			bind:clientWidth={el_width}
 			class:limit_height={!is_full_screen}
 		>
-			<Slider bind:position {slider_color} bind:el={slider_wrap} bind:parent_el>
+			<Slider
+				bind:position
+				{slider_color}
+				bind:el={slider_wrap}
+				bind:parent_el
+				image_width={img_width}
+			>
 				<img
 					src={value?.[0]?.url}
 					alt=""
@@ -153,11 +170,12 @@
 		height: 100%;
 		width: 100%;
 		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 	img {
-		width: var(--size-full);
-		height: var(--size-full);
-		object-fit: contain;
+		/* object-fit: contain; */
 		transform-origin: top left;
 		max-height: 100%;
 		margin: auto;
@@ -168,9 +186,8 @@
 		position: absolute;
 		top: 0;
 		left: 0;
-		object-fit: contain;
-		width: 100%;
-		height: 100%;
+		right: 0;
+		bottom: 0;
 		/* max-height: calc(100vh - 40px); */
 	}
 

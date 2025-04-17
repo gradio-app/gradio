@@ -13,7 +13,7 @@
 	let progress = false;
 	let current_file_upload: FileDataWithProgress;
 	let file_to_display: FileDataWithProgress;
-	console.log("files", files);
+
 	let files_with_progress: FileDataWithProgress[] = files.map((file) => {
 		return {
 			...file,

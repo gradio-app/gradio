@@ -62,7 +62,6 @@ export class ZoomableImage {
 		document.addEventListener("touchend", this.handleTouchEnd);
 
 		const observer = new ResizeObserver((entries) => {
-			console.log("resize", entries);
 			for (const entry of entries) {
 				if (entry.target === this.container) {
 					this.handleResize();

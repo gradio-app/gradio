@@ -2,16 +2,45 @@ import gradio as gr
 from PIL import ImageFilter
 
 
-def fn(im):
+def img_to_slider(im):
+    if not im:
+        return im
+    return (im, im.filter(filter=ImageFilter.GaussianBlur(radius=10)))
+
+
+def slider_to_self(im):
     if not im or not im[0]:
         return im
     return (im[0], im[0].filter(filter=ImageFilter.GaussianBlur(radius=10)))
 
 
+def slider_to_self_two(im):
+    return im
+
+
+def color_to_slider(color):
+    return gr.ImageSlider(slider_color=color)
+
+
+def position_to_slider(pos):
+    return gr.ImageSlider(position=pos)
+
+
 with gr.Blocks() as demo:
-    with gr.Group():
-        img1 = gr.ImageSlider(label="Blur image", type="pil", slider_color="pink")
-        img1.upload(fn, inputs=img1, outputs=img1)
+    gr.Markdown("## img to image slider")
+    with gr.Row():
+        img1 = gr.Image(label="Blur image", type="pil")
+        img2 = gr.ImageSlider(label="Blur image", type="pil")
+    btn = gr.Button("Blur image")
+    btn.click(img_to_slider, inputs=img1, outputs=img2)
+    gr.Markdown("## unified image slider")
+    with gr.Row():
+        img3 = gr.ImageSlider(label="Blur image", type="pil")
+        img3.upload(slider_to_self, inputs=img3, outputs=img3)
+    clrpk = gr.ColorPicker(label="Color", value="#000000")
+    clrpk.change(color_to_slider, inputs=clrpk, outputs=img3)
+    pos = gr.Slider(label="Position", value=0.5, minimum=0, maximum=1)
+    pos.change(position_to_slider, inputs=pos, outputs=img3)
 
 if __name__ == "__main__":
     demo.launch()

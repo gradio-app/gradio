@@ -14,6 +14,8 @@
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@gradio/wasm": "workspace:^",
+		"@types/d3-drag": "^3.0.7",
+		"@types/d3-selection": "^3.0.11",
 		"d3-drag": "^3.0.0",
 		"d3-selection": "^3.0.0"
 	},

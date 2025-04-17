@@ -3,10 +3,7 @@
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import StaticImage from "./SliderPreview.svelte";
-
 	import { IconButton } from "@gradio/atoms";
-	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
 	import type { FileData } from "@gradio/client";
 	import { DownloadLink } from "@gradio/wasm/svelte";
 	import { Download } from "@gradio/icons";
@@ -15,11 +12,8 @@
 	export let value: [null | FileData, null | FileData] = [null, null];
 	export let label: string;
 	export let show_label: boolean;
-	export let root: string;
-	export let upload_count = 2;
-
+	export let upload_count = 1;
 	export let show_download_button = true;
-
 	export let layer_images = true;
 	export let i18n: I18nFormatter;
 	export let slider_color: string;
@@ -65,7 +59,6 @@
 	on:select={({ detail }) => gradio.dispatch("select", detail)}
 	on:share={({ detail }) => gradio.dispatch("share", detail)}
 	on:error={({ detail }) => gradio.dispatch("error", detail)}
-	{root}
 	{value}
 	{label}
 	{show_label}

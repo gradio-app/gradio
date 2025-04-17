@@ -18,11 +18,9 @@
 	});
 
 	const toggle_full_screen = async (): Promise<void> => {
-		console.log("toggle_full_screen", container);
 		if (!container) return;
 
 		if (!is_full_screen) {
-			console.log("requesting fullscreen");
 			try {
 				await container.requestFullscreen();
 			} catch (e) {

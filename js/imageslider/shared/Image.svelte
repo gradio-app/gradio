@@ -1,13 +1,11 @@
 <script lang="ts">
 	import Slider from "./Slider.svelte";
-	import { type ZoomState } from "./Slider.svelte";
-	import { createEventDispatcher, tick, onMount } from "svelte";
+	import { createEventDispatcher, tick } from "svelte";
 	import { BlockLabel, Empty, IconButton } from "@gradio/atoms";
 	import { Download } from "@gradio/icons";
 	import { Image } from "@gradio/icons";
-	import { type SelectData } from "@gradio/utils";
+	import { type SelectData, type I18nFormatter } from "@gradio/utils";
 	import ClearImage from "./ClearImage.svelte";
-	import { clamp } from "./utils";
 
 	import { Upload } from "@gradio/upload";
 	import { DownloadLink } from "@gradio/wasm/svelte";
@@ -21,12 +19,13 @@
 	export let root: string;
 	export let position: number;
 	export let upload_count = 2;
+
 	export let show_download_button = true;
 	export let slider_color: string;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
-	export let uploading: boolean;
 	export let max_file_size: number | null = null;
+	export let i18n: I18nFormatter;
 
 	let value_: [FileData | null, FileData | null] = value || [null, null];
 
@@ -34,28 +33,23 @@
 	let el_width: number;
 	let el_height: number;
 
-	let state: ZoomState = {
-		scale: 1,
-		zoom_position: { x: 50, y: 50 },
-		touchDistance: undefined,
-		translation: { x: 0, y: 0 },
-		translationPercent: { x: 0, y: 0 },
-		overflow: { left: 0, right: 0 }
-	};
-
 	async function handle_upload(
 		{ detail }: CustomEvent<FileData[]>,
 		n: number
 	): Promise<void> {
+		const new_value = [value[0], value[1]] as [
+			FileData | null,
+			FileData | null
+		];
 		if (detail.length > 1) {
-			value[n] = detail[0];
+			new_value[n] = detail[0];
 		} else {
-			value[n] = detail[n];
+			new_value[n] = detail[n];
 		}
-
+		value = new_value;
 		await tick();
 
-		dispatch("upload", value);
+		dispatch("upload", new_value);
 	}
 
 	let old_value = "";
@@ -77,33 +71,10 @@
 
 	export let dragging = false;
 
-	async function update_transform(
-		_state: ZoomState & {
-			translationPercent: { x: number; y: number };
-		}
-	): Promise<void> {
-		state = _state;
-	}
-
-	async function update_scale(opts: {
-		x: number;
-		y: number;
-		scale: number;
-	}): Promise<void> {
-		state.scale = opts.scale;
-		state.zoom_position = { x: opts.x, y: opts.y };
-	}
-
 	$: dispatch("drag", dragging);
-	$: style =
-		upload_count === 1
-			? `clip-path: inset(0 0 0 ${(position * (1 - state.overflow.left - state.overflow.right) + state.overflow.left) * 100}%)`
-			: "";
-
-	$: clamp_active = value_?.[0] || value_?.[1];
 </script>
 
-<BlockLabel {show_label} Icon={Image} label={label || "Image"} />
+<BlockLabel {show_label} Icon={Image} label={label || i18n("image.image")} />
 
 <div
 	data-testid="image"
@@ -136,9 +107,6 @@
 		bind:position
 		disabled={upload_count == 2 || !value?.[0]}
 		{slider_color}
-		{update_transform}
-		{update_scale}
-		{img}
 	>
 		<div
 			class="upload-wrap"
@@ -162,16 +130,7 @@
 					</Upload>
 				</div>
 			{:else}
-				<img
-					src={value_[0]?.url}
-					alt=""
-					bind:this={img}
-					class:half-wrap={upload_count === 2 && !value?.[1]?.url}
-					style:transform="translate({state.translation.x}px, {state.translation
-						.y}px) scale({state.scale})"
-					style:transform-origin="{state.zoom_position.x}% {state.zoom_position
-						.y}%"
-				/>
+				<img src={value_[0]?.url} alt="" bind:this={img} />
 			{/if}
 
 			{#if !value_?.[1] && upload_count === 2}
@@ -202,11 +161,8 @@
 					src={value_[1].url}
 					alt=""
 					class:fixed={upload_count === 1}
-					{style}
-					style:transform="translate({state.translation.x}px, {state.translation
-						.y}px) scale({state.scale})"
-					style:transform-origin="{state.zoom_position.x}% {state.zoom_position
-						.y}%"
+					style:transform="translate(0px, 0px) scale(1)"
+					style:transform-origin="50% 50%"
 				/>
 			{/if}
 		</div>
@@ -236,7 +192,8 @@
 		height: var(--size-full);
 	}
 	img {
-		object-fit: cover;
+		object-fit: contain;
+		max-height: 500px;
 	}
 
 	.fixed {
