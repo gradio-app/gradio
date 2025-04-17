@@ -1272,10 +1272,8 @@ class Endpoint:
                         "verbose error reporting. To enable, set show_error=True in launch()."
                     )
                 else:
-                    raise AppError(
-                        "The upstream Gradio app has raised an exception: "
-                        + result["error"]
-                    )
+                    message = result.pop("error")
+                    raise AppError(message=message, **result)
 
             try:
                 output = result["data"]
