@@ -9,6 +9,7 @@
 	import { Copy, Check, Send, Square } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData, CopyData } from "@gradio/utils";
+	import { _ } from "svelte-i18n";
 
 	export let value = "";
 	export let value_is_output = false;
@@ -228,7 +229,7 @@
 			>
 		{/if}
 	{/if}
-	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle {root} {show_label} {info}>{$_(label)}</BlockTitle>
 
 	<div class="input-container">
 		{#if lines === 1 && _max_lines === 1}

@@ -399,6 +399,7 @@ class BlocksConfigDict(TypedDict):
     page: dict[str, Page]
     pages: list[tuple[str, str]]
     current_page: NotRequired[str]
+    i18n_translations: NotRequired[dict[str, dict[str, str]] | None]
 
 
 class MediaStreamChunk(TypedDict):

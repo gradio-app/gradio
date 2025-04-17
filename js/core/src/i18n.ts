@@ -35,7 +35,9 @@ for (const lang in processed_langs) {
 
 let i18n_initialized = false;
 
-export async function setupi18n(): Promise<void> {
+export async function setupi18n(
+	custom_translations?: Record<string, Record<string, string>>
+): Promise<void> {
 	if (i18n_initialized) {
 		return;
 	}
@@ -51,9 +53,27 @@ export async function setupi18n(): Promise<void> {
 		initialLocale: initial_locale
 	});
 
+	if (custom_translations) {
+		load_custom_translations(custom_translations);
+	}
+
 	i18n_initialized = true;
 }
 
 export function changeLocale(new_locale: string): void {
 	locale.set(new_locale);
+}
+
+export function load_custom_translations(
+	translations: Record<string, Record<string, string>>
+): void {
+	if (!translations) {
+		return;
+	}
+	for (const lang_code in translations) {
+		if (Object.prototype.hasOwnProperty.call(translations, lang_code)) {
+			const translation_map = translations[lang_code];
+			addMessages(lang_code, translation_map);
+		}
+	}
 }

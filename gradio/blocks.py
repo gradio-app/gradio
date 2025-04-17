@@ -69,6 +69,7 @@ from gradio.exceptions import (
     InvalidComponentError,
 )
 from gradio.helpers import create_tracker, skip, special_args
+from gradio.i18n import _I18n
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
@@ -1084,6 +1085,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         fill_height: bool = False,
         fill_width: bool = False,
         delete_cache: tuple[int, int] | None = None,
+        i18n: _I18n | None = None,
         **kwargs,
     ):
         """
@@ -1100,6 +1102,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width. Only applies if this is the outermost `Blocks` in your Gradio app.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
+            i18n: An I18n instance containing custom translations for the UI.
         """
         self.limiter = None
         if theme is None:
@@ -1218,6 +1221,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             analytics.initiated_analytics(data)
 
         self.queue()
+        self.i18n_instance: _I18n | None = i18n
 
     @property
     def blocks(self) -> dict[int, Component | Block]:

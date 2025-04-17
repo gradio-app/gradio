@@ -4,6 +4,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { afterUpdate, tick } from "svelte";
+	import { _ } from "svelte-i18n";
 
 	export let gradio: Gradio<{
 		change: never;
@@ -71,7 +72,7 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	<label class="block" class:container>
-		<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+		<BlockTitle {root} {show_label} {info}>{$_(label)}</BlockTitle>
 		<input
 			aria-label={label}
 			type="number"

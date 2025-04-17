@@ -80,6 +80,8 @@
 	}
 
 	async function run(): Promise<void> {
+		await setupi18n(app.config?.i18n_translations ?? undefined);
+
 		await create_layout({
 			components,
 			layout,
