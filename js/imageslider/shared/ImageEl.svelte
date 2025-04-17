@@ -7,7 +7,7 @@
 		transform?: string;
 		img_el?: HTMLImageElement;
 		hidden?: boolean;
-		variant?: "preview" | "slider";
+		variant?: "preview" | "upload";
 	}
 	type $$Props = Props;
 
@@ -21,7 +21,7 @@
 	export let transform = "translate(0px, 0px) scale(1)";
 	export let img_el: HTMLImageElement | null = null;
 	export let hidden = false;
-	export let variant = "slider";
+	export let variant = "upload";
 	// The `src` prop can be updated before the Promise from `resolve_wasm_src` is resolved.
 	// In such a case, the resolved value for the old `src` has to be discarded,
 	// This variable `latest_src` is used to pick up only the value resolved for the latest `src` prop.
@@ -53,16 +53,18 @@
 	style:transform
 	bind:this={img_el}
 	class:hidden
+	class:preview={variant === "preview"}
+	class:slider={variant === "upload"}
 />
 
 <style>
-	.slider {
+	.preview {
 		object-fit: contain;
 		max-height: 500px;
 		transform-origin: top left;
 		margin: auto;
 	}
-	.preview {
+	.upload {
 		object-fit: contain;
 		max-height: 500px;
 	}

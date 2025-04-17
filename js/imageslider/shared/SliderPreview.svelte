@@ -148,9 +148,11 @@
 					alt=""
 					loading="lazy"
 					bind:img_el={img}
+					variant="preview"
 					transform="translate({$transform.x}px, {$transform.y}px) scale({$transform.z})"
 				/>
 				<ImageEl
+					variant="preview"
 					fixed={layer_images}
 					hidden={!value?.[1]?.url}
 					src={value?.[1]?.url}

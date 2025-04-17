@@ -131,7 +131,12 @@
 					</Upload>
 				</div>
 			{:else}
-				<ImageEl src={value_[0]?.url} alt="" bind:img_el={img} />
+				<ImageEl
+					variant="upload"
+					src={value_[0]?.url}
+					alt=""
+					bind:img_el={img}
+				/>
 			{/if}
 
 			{#if !value_?.[1] && upload_count === 2}
@@ -159,6 +164,7 @@
 				</div>
 			{:else if value_?.[1]}
 				<ImageEl
+					variant="upload"
 					src={value_[1].url}
 					alt=""
 					fixed={upload_count === 1}
