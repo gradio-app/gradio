@@ -161,6 +161,7 @@
 		transform-origin: top left;
 		max-height: 100%;
 		margin: auto;
+		cursor: zoom-in;
 	}
 
 	.fixed {

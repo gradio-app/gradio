@@ -6,6 +6,7 @@
 	import { drag } from "d3-drag";
 	import { select } from "d3-selection";
 	import { clamp } from "./utils";
+	import { ArrowDown } from "@gradio/icons";
 	import Arrow from "./ArrowIcon.svelte";
 
 	export let position = 0.5;
@@ -71,10 +72,16 @@
 		bind:this={inner}
 		role="none"
 		style="transform: translateX({px}px)"
+		class:grab={active}
 	>
-		<span class="icon-wrap" class:active class:disabled><Arrow /></span>
+		<span class="icon-wrap" class:active class:disabled
+			><span class="icon left">◢</span><span
+				class="icon center"
+				style:--color={slider_color}
+			></span><span class="icon right">◢</span></span
+		>
 		<div class="inner" style:--color={slider_color}></div>
-		<span class="icon-wrap right" class:active class:disabled><Arrow /></span>
+		<!-- <span class="icon-wrap right" class:active class:disabled><Arrow /></span> -->
 	</div>
 </div>
 
@@ -88,13 +95,42 @@
 	}
 
 	.icon-wrap {
+		display: block;
 		position: absolute;
 		top: 50%;
-		transform: translateY(-50%);
-		left: -40px;
-		width: 32px;
+		transform: translate(-25.5px, -50%);
+		left: 10px;
+		width: 50px;
 		transition: 0.2s;
 		color: var(--body-text-color);
+		height: 50px;
+		border-radius: 5px;
+		background-color: var(--color-accent);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: var(--layer-3);
+		box-shadow: 0px 0px 5px 2px rgba(0, 0, 0, 0.3);
+		/* border: 1px solid var(--color-grey-500); */
+		/* opacity: 0.9; */
+	}
+
+	.icon.left {
+		transform: rotate(135deg);
+		text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.1);
+	}
+
+	.icon.right {
+		transform: rotate(-45deg);
+		text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.1);
+	}
+
+	.icon.center {
+		display: block;
+		width: 1px;
+		height: 100%;
+		background-color: var(--color);
+		opacity: 0.1;
 	}
 
 	.icon-wrap.right {
@@ -119,6 +155,10 @@
 		top: 0;
 		left: 0;
 		pointer-events: auto;
+		z-index: var(--layer-2);
+	}
+	.grab {
+		cursor: grabbing;
 	}
 
 	.inner {

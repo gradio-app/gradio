@@ -8,7 +8,7 @@
 		IconButton,
 		ShareButton,
 		IconButtonWrapper,
-		FullscreenButton
+		FullscreenButton,
 	} from "@gradio/atoms";
 	import { Download, Image as ImageIcon } from "@gradio/icons";
 	import { get_coordinates_of_clicked_image } from "./utils";
