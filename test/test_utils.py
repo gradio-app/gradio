@@ -11,10 +11,12 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
+from gradio_client.exceptions import AppError
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from gradio import EventData, Request
+from gradio.exceptions import Error
 from gradio.external_utils import format_ner_list
 from gradio.utils import (
     FileSize,
@@ -28,6 +30,7 @@ from gradio.utils import (
     delete_none,
     diff,
     download_if_url,
+    error_payload,
     get_extension_from_file_path_or_url,
     get_function_params,
     get_icon_path,
@@ -695,3 +698,29 @@ class TestSafeDeepCopy:
 def test_get_icon_path():
     assert get_icon_path("plus.svg").endswith("plus.svg")
     assert get_icon_path("huggingface-logo.svg").endswith("huggingface-logo.svg")
+
+
+def test_error_payload():
+    result = error_payload(None, False)
+    assert result == {"error": None}
+
+    result = error_payload(Exception("test error"), True)
+    assert result == {"error": "test error"}
+
+    gr_error = Error("custom error", duration=1.5, visible=True, title="Error Title")
+    result = error_payload(gr_error, False)
+    assert result == {
+        "error": "custom error",
+        "duration": 1.5,
+        "visible": True,
+        "title": "Error Title",
+    }
+
+    app_error = AppError("custom error")
+    result = error_payload(app_error, False)
+    assert result == {
+        "error": "custom error",
+        "duration": 10,
+        "visible": True,
+        "title": "Error",
+    }
