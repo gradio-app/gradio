@@ -276,9 +276,17 @@ class ImageSlider(Component):
         return self.api_info()
 
     def example_payload(self) -> Any:
-        return handle_file(
-            "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+        return (
+            handle_file(
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+            ),
+            handle_file(
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+            ),
         )
 
     def example_value(self) -> Any:
-        return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+        return (
+            "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+            "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+        )
