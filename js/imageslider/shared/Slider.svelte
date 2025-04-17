@@ -13,6 +13,7 @@
 	export let slider_color = "var(--border-color-primary)";
 
 	export let el: HTMLDivElement;
+	export let parent_el: HTMLDivElement;
 
 	let inner: HTMLDivElement;
 	let box: DOMRect;
@@ -60,7 +61,7 @@
 
 <svelte:window on:resize={set_position} />
 
-<div class="wrap" role="none">
+<div class="wrap" role="none" bind:this={parent_el}>
 	<div class="content" bind:this={el}>
 		<slot />
 	</div>
@@ -140,10 +141,7 @@
 	.content {
 		width: 100%;
 		height: 100%;
-		/* display: flex; */
 		justify-content: center;
 		align-items: center;
-		/* pointer-events: none; */
-		/* remove the transition property */
 	}
 </style>

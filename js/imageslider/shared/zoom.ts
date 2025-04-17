@@ -20,6 +20,7 @@ export class ZoomableImage {
 		y: number;
 		scale: number;
 	}) => void)[];
+	handleImageLoad: () => void;
 
 	last_touch_distance: number;
 
@@ -44,7 +45,7 @@ export class ZoomableImage {
 		this.handleMouseDown = this.handleMouseDown.bind(this);
 		this.handleMouseMove = this.handleMouseMove.bind(this);
 		this.handleMouseUp = this.handleMouseUp.bind(this);
-		this.handleImageLoad = this.handleImageLoad.bind(this);
+		this.handleImageLoad = this.init.bind(this);
 		this.handleTouchStart = this.handleTouchStart.bind(this);
 		this.handleTouchMove = this.handleTouchMove.bind(this);
 		this.handleTouchEnd = this.handleTouchEnd.bind(this);
@@ -56,15 +57,26 @@ export class ZoomableImage {
 		document.addEventListener("mousemove", this.handleMouseMove);
 		document.addEventListener("mouseup", this.handleMouseUp);
 
-		// Add touch event listeners
 		this.container.addEventListener("touchstart", this.handleTouchStart);
 		document.addEventListener("touchmove", this.handleTouchMove);
 		document.addEventListener("touchend", this.handleTouchEnd);
 
-		console.log(this.image, this.container);
+		const observer = new ResizeObserver((entries) => {
+			console.log("resize", entries);
+			for (const entry of entries) {
+				if (entry.target === this.container) {
+					this.handleResize();
+				}
+			}
+		});
+		observer.observe(this.container);
 	}
 
-	handleImageLoad(): void {
+	handleResize(): void {
+		this.init();
+	}
+
+	init(): void {
 		const containerRect = this.container.getBoundingClientRect();
 
 		const imageRect = this.image.getBoundingClientRect();
@@ -73,9 +85,15 @@ export class ZoomableImage {
 		this.initial_width = imageRect.width;
 		this.initial_height = imageRect.height;
 
+		this.reset_zoom();
+
+		this.updateTransform();
+	}
+
+	reset_zoom(): void {
+		this.scale = 1;
 		this.offsetX = 0;
 		this.offsetY = 0;
-
 		this.updateTransform();
 	}
 
@@ -254,12 +272,12 @@ export class ZoomableImage {
 			touch.clientY <= imageRect.bottom
 		) {
 			if (e.touches.length === 1 && this.scale > 1) {
-				// Single touch - prepare for panning
+				// one finger == prepare pan
 				this.isDragging = true;
 				this.lastX = touch.clientX;
 				this.lastY = touch.clientY;
 			} else if (e.touches.length === 2) {
-				// Two touches - prepare for pinch zoom
+				// two fingers == prepare pinch zoom
 				const touch1 = e.touches[0];
 				const touch2 = e.touches[1];
 				this.last_touch_distance = Math.hypot(
@@ -293,13 +311,11 @@ export class ZoomableImage {
 			const touch1 = e.touches[0];
 			const touch2 = e.touches[1];
 
-			// Calculate current distance between touch points
 			const current_distance = Math.hypot(
 				touch2.clientX - touch1.clientX,
 				touch2.clientY - touch1.clientY
 			);
 
-			// skip if we don't have a previous distance yet
 			if (this.last_touch_distance === 0) {
 				this.last_touch_distance = current_distance;
 				return;

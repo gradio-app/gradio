@@ -40,6 +40,7 @@
 			duration: 75,
 		},
 	);
+	let parent_el: HTMLDivElement;
 
 	$: coords_at_viewport = get_coords_at_viewport(
 		position,
@@ -76,10 +77,28 @@
 			transform.set({ x, y, z: scale });
 		});
 
+		const observer = new ResizeObserver((entries) => {
+			console.log("resize", entries);
+			for (const entry of entries) {
+				if (entry.target === slider_wrap) {
+					viewport_width = entry.contentRect.width;
+				}
+
+				if (entry.target === img) {
+					img_width = entry.contentRect.width;
+				}
+			}
+		});
+		observer.observe(slider_wrap);
+		observer.observe(img);
+
 		return () => {
 			zoomable_image.destroy();
+			observer.disconnect();
 		};
 	});
+
+	let is_full_screen = false;
 </script>
 
 <BlockLabel {show_label} Icon={Image} label={label || i18n("image.image")} />
@@ -89,7 +108,7 @@
 	<div class="image-container" bind:this={image_container}>
 		<IconButtonWrapper>
 			{#if show_fullscreen_button}
-				<FullscreenButton container={image_container} />
+				<FullscreenButton container={parent_el} bind:is_full_screen />
 			{/if}
 
 			{#if show_download_button}
@@ -101,8 +120,12 @@
 				</DownloadLink>
 			{/if}
 		</IconButtonWrapper>
-		<div class="slider-wrap" bind:clientWidth={el_width}>
-			<Slider bind:position {slider_color} bind:el={slider_wrap}>
+		<div
+			class="slider-wrap"
+			bind:clientWidth={el_width}
+			class:limit_height={!is_full_screen}
+		>
+			<Slider bind:position {slider_color} bind:el={slider_wrap} bind:parent_el>
 				<img
 					src={value?.[0]?.url}
 					alt=""
@@ -127,7 +150,6 @@
 <style>
 	.slider-wrap {
 		user-select: none;
-		max-height: calc(100vh - 40px);
 		height: 100%;
 		width: 100%;
 		position: relative;
@@ -137,7 +159,7 @@
 		height: var(--size-full);
 		object-fit: contain;
 		transform-origin: top left;
-		max-height: calc(100vh - 40px);
+		max-height: 100%;
 		margin: auto;
 	}
 
@@ -148,7 +170,11 @@
 		object-fit: contain;
 		width: 100%;
 		height: 100%;
-		max-height: calc(100vh - 40px);
+		/* max-height: calc(100vh - 40px); */
+	}
+
+	.limit_height img {
+		max-height: 500px;
 	}
 
 	.hidden {
