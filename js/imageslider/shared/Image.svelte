@@ -6,6 +6,7 @@
 	import { Image } from "@gradio/icons";
 	import { type SelectData, type I18nFormatter } from "@gradio/utils";
 	import ClearImage from "./ClearImage.svelte";
+	import ImageEl from "./ImageEl.svelte";
 
 	import { Upload } from "@gradio/upload";
 	import { DownloadLink } from "@gradio/wasm/svelte";
@@ -35,11 +36,11 @@
 
 	async function handle_upload(
 		{ detail }: CustomEvent<FileData[]>,
-		n: number
+		n: number,
 	): Promise<void> {
 		const new_value = [value[0], value[1]] as [
 			FileData | null,
-			FileData | null
+			FileData | null,
 		];
 		if (detail.length > 1) {
 			new_value[n] = detail[0];
@@ -130,7 +131,7 @@
 					</Upload>
 				</div>
 			{:else}
-				<img src={value_[0]?.url} alt="" bind:this={img} />
+				<ImageEl src={value_[0]?.url} alt="" bind:img_el={img} />
 			{/if}
 
 			{#if !value_?.[1] && upload_count === 2}
@@ -157,12 +158,11 @@
 					<Empty unpadded_box={true} size="large"><Image /></Empty>
 				</div>
 			{:else if value_?.[1]}
-				<img
+				<ImageEl
 					src={value_[1].url}
 					alt=""
-					class:fixed={upload_count === 1}
-					style:transform="translate(0px, 0px) scale(1)"
-					style:transform-origin="50% 50%"
+					fixed={upload_count === 1}
+					transform="translate(0px, 0px) scale(1)"
 				/>
 			{/if}
 		</div>
@@ -186,14 +186,9 @@
 		width: 50%;
 	}
 	.image-container,
-	img,
 	.empty-wrap {
 		width: var(--size-full);
 		height: var(--size-full);
-	}
-	img {
-		object-fit: contain;
-		max-height: 500px;
 	}
 
 	.fixed {
@@ -211,7 +206,7 @@
 		}
 	}
 
-	.side-by-side img {
+	.side-by-side :global(img) {
 		/* width: 100%; */
 		width: 50%;
 		object-fit: contain;

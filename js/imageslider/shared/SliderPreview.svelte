@@ -1,12 +1,12 @@
 <script lang="ts">
 	import Slider from "./Slider.svelte";
-
+	import ImageEl from "./ImageEl.svelte";
 	import {
 		BlockLabel,
 		Empty,
 		IconButton,
 		IconButtonWrapper,
-		FullscreenButton
+		FullscreenButton,
 	} from "@gradio/atoms";
 	import { Image, Download } from "@gradio/icons";
 	import { type FileData } from "@gradio/client";
@@ -34,8 +34,8 @@
 	let transform: Tweened<{ x: number; y: number; z: number }> = tweened(
 		{ x: 0, y: 0, z: 1 },
 		{
-			duration: 75
-		}
+			duration: 75,
+		},
 	);
 	let parent_el: HTMLDivElement;
 
@@ -43,7 +43,7 @@
 		position,
 		viewport_width,
 		$transform.x,
-		$transform.z
+		$transform.z,
 	);
 	$: style = layer_images
 		? `clip-path: inset(0 0 0 ${coords_at_viewport * 100}%)`
@@ -54,7 +54,7 @@
 		viewportWidth: number,
 		tx: number, // image translation x (in pixels)
 
-		scale: number // image scale (uniform)
+		scale: number, // image scale (uniform)
 	): number {
 		const vx = viewport_percent_x * viewportWidth;
 
@@ -71,7 +71,7 @@
 
 	function init_image(
 		img: HTMLImageElement,
-		slider_wrap: HTMLDivElement
+		slider_wrap: HTMLDivElement,
 	): void {
 		if (!img || !slider_wrap) return;
 		zoomable_image?.destroy();
@@ -143,21 +143,21 @@
 				bind:parent_el
 				image_width={img_width}
 			>
-				<img
+				<ImageEl
 					src={value?.[0]?.url}
 					alt=""
 					loading="lazy"
-					bind:this={img}
-					style:transform="translate({$transform.x}px, {$transform.y}px) scale({$transform.z})"
+					bind:img_el={img}
+					transform="translate({$transform.x}px, {$transform.y}px) scale({$transform.z})"
 				/>
-				<img
-					class:fixed={layer_images}
-					class:hidden={!value?.[1]?.url}
+				<ImageEl
+					fixed={layer_images}
+					hidden={!value?.[1]?.url}
 					src={value?.[1]?.url}
 					alt=""
 					loading="lazy"
 					{style}
-					style:transform="translate({$transform.x}px, {$transform.y}px) scale({$transform.z})"
+					transform="translate({$transform.x}px, {$transform.y}px) scale({$transform.z})"
 				/>
 			</Slider>
 		</div>
@@ -174,29 +174,9 @@
 		align-items: center;
 		justify-content: center;
 	}
-	img {
-		/* object-fit: contain; */
-		transform-origin: top left;
-		max-height: 100%;
-		margin: auto;
-		cursor: zoom-in;
-	}
 
-	.fixed {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		/* max-height: calc(100vh - 40px); */
-	}
-
-	.limit_height img {
+	.limit_height :global(img) {
 		max-height: 500px;
-	}
-
-	.hidden {
-		opacity: 0;
 	}
 
 	.image-container {
