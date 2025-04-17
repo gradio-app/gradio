@@ -221,7 +221,7 @@ type component_loader = (args: Args) => {
 
 const is_browser = typeof window !== "undefined";
 
-export type I18nFormatter = any;
+export type I18nFormatter = (x: string) => string;
 export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	#id: number;
 	theme: string;
