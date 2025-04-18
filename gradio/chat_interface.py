@@ -439,8 +439,8 @@ class ChatInterface(Blocks):
                                 "mime_type": "text",  # for internal use, not a valid mime type
                                 "meta": {"_type": "gradio.FileData"},
                             }
-                    elif example_icons:
-                        example_message["icon"] = example_icons[index]
+                elif example_icons:
+                    example_message["icon"] = example_icons[index]
                 examples_messages.append(example_message)
         return examples_messages
 
@@ -736,40 +736,39 @@ class ChatInterface(Blocks):
         self, event_triggers: list[Callable], events_to_cancel: list[Dependency]
     ) -> None:
         textbox_component = MultimodalTextbox if self.multimodal else Textbox
-        if self.is_generator:
-            original_submit_btn = self.textbox.submit_btn
-            for event_trigger in event_triggers:
-                event_trigger(
-                    utils.async_lambda(
-                        lambda: textbox_component(
-                            submit_btn=False,
-                            stop_btn=self.original_stop_btn,
-                        )
-                    ),
-                    None,
-                    [self.textbox],
-                    show_api=False,
-                    queue=False,
-                )
-            for event_to_cancel in events_to_cancel:
-                event_to_cancel.then(
-                    utils.async_lambda(
-                        lambda: textbox_component(
-                            submit_btn=original_submit_btn, stop_btn=False
-                        )
-                    ),
-                    None,
-                    [self.textbox],
-                    show_api=False,
-                    queue=False,
-                )
-            self.textbox.stop(
+        original_submit_btn = self.textbox.submit_btn
+        for event_trigger in event_triggers:
+            event_trigger(
+                utils.async_lambda(
+                    lambda: textbox_component(
+                        submit_btn=False,
+                        stop_btn=self.original_stop_btn,
+                    )
+                ),
                 None,
-                None,
-                None,
-                cancels=events_to_cancel,  # type: ignore
+                [self.textbox],
                 show_api=False,
+                queue=False,
             )
+        for event_to_cancel in events_to_cancel:
+            event_to_cancel.then(
+                utils.async_lambda(
+                    lambda: textbox_component(
+                        submit_btn=original_submit_btn, stop_btn=False
+                    )
+                ),
+                None,
+                [self.textbox],
+                show_api=False,
+                queue=False,
+            )
+        self.textbox.stop(
+            None,
+            None,
+            None,
+            cancels=events_to_cancel,  # type: ignore
+            show_api=False,
+        )
 
     def _clear_and_save_textbox(
         self,
