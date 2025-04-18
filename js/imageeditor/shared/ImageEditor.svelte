@@ -605,6 +605,7 @@
 				on:set_zoom={(e) => handle_zoom_change(e.detail)}
 				on:zoom_in={() => zoom_in_out("in")}
 				on:zoom_out={() => zoom_in_out("out")}
+				on:clear={() => dispatch("clear")}
 				{min_zoom}
 				current_zoom={zoom_level}
 				on:remove_image={() => {

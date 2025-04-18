@@ -1,31 +1,37 @@
 import gradio as gr
-import time
+import numpy as np
+from gradio.components.image_editor import EditorValue
 
 
-def sleep(im):
-    time.sleep(5)
-    return [im["background"], im["layers"][0], im["layers"][1], im["composite"]]
+def process_image(image: EditorValue):
+    return image["layers"][0].sum() if image["layers"] else 0
 
 
-def predict(im):
-    return im["composite"]
+def default_image() -> EditorValue:
+    size = 512
+    img = np.zeros((size, size, 3), np.uint8)
+    mask = np.zeros((size, size, 4), np.uint8)
+    return EditorValue(
+        background=img,
+        layers=[mask],
+        composite=None,
+    )
 
 
 with gr.Blocks() as demo:
-    with gr.Row():
-        im = gr.ImageEditor(
-            type="numpy",
-            crop_size="1:1",
-        )
-        im_preview = gr.Image()
-    n_upload = gr.Number(0, label="Number of upload events", step=1)
-    n_change = gr.Number(0, label="Number of change events", step=1)
-    n_input = gr.Number(0, label="Number of input events", step=1)
+    image_editor = gr.ImageEditor(
+        value=default_image(),
+    )
 
-    im.upload(lambda x: x + 1, outputs=n_upload, inputs=n_upload)
-    im.change(lambda x: x + 1, outputs=n_change, inputs=n_change)
-    im.input(lambda x: x + 1, outputs=n_input, inputs=n_input)
-    im.change(predict, outputs=im_preview, inputs=im, show_progress="hidden")
+    text = gr.Textbox(
+        value=process_image,
+        inputs=[image_editor],
+    )
 
-if __name__ == "__main__":
-    demo.launch()
+    @image_editor.clear(outputs=[image_editor])
+    def on_clear() -> EditorValue:
+        print("on_clear")
+        return default_image()
+
+
+demo.launch()

@@ -20,6 +20,7 @@
 		set_zoom: number | "fit";
 		pan: void;
 		download: void;
+		clear: void;
 	}>();
 
 	let show_zoom_popup = false;
@@ -132,6 +133,7 @@
 		label="Clear canvas"
 		on:click={(event) => {
 			dispatch("remove_image");
+			dispatch("clear");
 			event.stopPropagation();
 		}}
 	/>
