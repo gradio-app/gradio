@@ -475,9 +475,9 @@ class Dataframe(Component):
         for row in style_data["body"]:
             row_display = []
             row_styling = []
-            # First, filter out the column with row numbers (if present)
-            cells = [cell for cell in row if cell["type"] == "td"]
+            # First, filter out the column with row numbers (if present).
             # Then, filter out the hidden columns so that column indices map correctly
+            cells = [cell for cell in row if cell["type"] == "td"]
             cells = [
                 cell
                 for col_idx, cell in enumerate(cells)
