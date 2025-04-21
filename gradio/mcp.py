@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 
+import gradio_client.utils as client_utils
 from mcp import types
 from mcp.server import Server
 from mcp.server.sse import SseServerTransport
@@ -7,7 +8,6 @@ from starlette.applications import Starlette
 from starlette.routing import Mount, Route
 
 from gradio.data_classes import FileData
-from gradio.utils import simplify_file_data_in_str
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -32,10 +32,16 @@ def simplify_filedata_schema(schema):
                 filedata_positions.append(path.copy())
                 return {"type": "string", "format": "uri"}
             result = {}
+            # Skip schema structure keys when building the path
+            is_schema_root = "type" in node and "properties" in node
             for key, value in node.items():
-                path.append(key)
-                result[key] = traverse(value, path)
-                path.pop()
+                if is_schema_root and key == "properties":
+                    # Process properties without adding to path
+                    result[key] = traverse(value, path)
+                else:
+                    path.append(key)
+                    result[key] = traverse(value, path)
+                    path.pop()
             return result
         elif isinstance(node, list):
             result = []
@@ -110,19 +116,15 @@ def create_mcp_server(blocks: "Blocks") -> Server:
             },
         }
         _, filedata_positions = simplify_filedata_schema(schema)
-
         processed_arguments = convert_strings_to_filedata(arguments, filedata_positions)
-
         output = await blocks.process_api(
             block_fn=block_fn,
-            inputs=[processed_arguments],
+            inputs=list(processed_arguments.values()),
         )
-        print(">>>>", output)
-        processed_outputs = [simplify_file_data_in_str(output["data"])]
-
+        return_values = client_utils.traverse(output["data"], lambda x: x["path"], client_utils.is_file_obj_with_meta)
         return [
             types.TextContent(type="text", text=str(return_value))
-            for return_value in processed_outputs
+            for return_value in return_values
         ]
 
     @server.list_tools()

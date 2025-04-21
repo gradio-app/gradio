@@ -208,6 +208,7 @@ class Image(StreamingInput, Component):
         Returns:
             Passes the uploaded image as a `numpy.array`, `PIL.Image` or `str` filepath depending on `type`.
         """
+        print(">>>> payload", payload)
         if payload is None:
             return payload
         if payload.url and payload.url.startswith("data:"):
