@@ -41,12 +41,13 @@ jobs:
   test:
     permissions:
       contents: read
-    name: "test-${{ matrix.os }}-${{ matrix.test-type == 'flaky' && 'flaky' || 'not-flaky'}}"
+    name: "test-python${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.test-type == 'flaky' && 'flaky' || 'not-flaky'}}"
     needs: changes
     if: needs.changes.outputs.should_run == 'true'
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
         test-type: ["not flaky", "flaky"]
         exclude:
           - os: ${{ github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'windows-tests') && 'dummy' || 'windows-latest' }}
@@ -59,7 +60,7 @@ jobs:
         id: install_deps
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
-          python_version: "3.10"
+          python_version: ${{ matrix.python-version }}
           os: ${{ matrix.os }}
           test: true
       - name: Lint
