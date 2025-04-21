@@ -173,13 +173,23 @@
 								target="_blank">docs</a
 							>) if you don't already have it installed.
 						{:else if current_language == "mcp"}
-							This Gradio app also serves an MCP server with tools corresponding
-							to each of the API endpoints. You can use this MCP server with any
+							This Gradio app also serves an MCP server with a tool corresponding
+							to each API endpoints. You can use this MCP server with any
 							LLM that supports connecting to MCP servers <strong
 								>using the SSE protocol</strong
 							>.
 							<p>&nbsp;</p>
-							Add the following configuration to your MCP config:
+							<Block>
+								<div class="mcp-url">
+									<label>MCP Server URL</label>
+									<div class="textbox">
+										<input type="text" readonly value={`${root}gradio_api/mcp/sse`} />
+										<CopyButton code={`${root}gradio_api/mcp/sse`} />
+									</div>
+								</div>
+							</Block>
+							<p>&nbsp;</p>
+							<strong>Integration</strong>: To add this MCP to clients that support SSE (e.g. Cursor, Windsurf, Client), simply add the following configuration to your MCP config:
 							<p>&nbsp;</p>
 							<Block>
 								<code>
@@ -211,8 +221,31 @@
 												2
 											)}</pre>
 									</div>
+								</code>								
+							</Block>
+							<p>&nbsp;</p>
+							For clients that only support stdio, first <a href="https://nodejs.org/en/download/" target="_blank">install Node.js</a>. Then, you can use the following command:
+							<p>&nbsp;</p>
+							<Block>
+								<code>
+										<pre>{JSON.stringify(
+												{
+													mcpServers: {
+														gradio: {
+															command: "npx",
+															arguments: [
+																"mcp-remote",
+																`${root}gradio_api/mcp/sse`
+															]
+														}
+													}
+												},
+												null,
+												2
+											)}</pre>
 								</code>
 							</Block>
+							<p>&nbsp;</p>
 						{:else}
 							1. Confirm that you have cURL installed on your system.
 						{/if}
@@ -507,5 +540,40 @@
 	/* Right-align the copy button */
 	.copy {
 		text-align: right;
+	}
+
+	.mcp-url {
+		padding: var(--size-2);
+	}
+
+	.mcp-url label {
+		display: block;
+		margin-bottom: var(--size-2);
+		font-weight: 600;
+		color: var(--body-text-color);
+	}
+
+	.mcp-url .textbox {
+		display: flex;
+		align-items: center;
+		gap: var(--size-2);
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-sm);
+		padding: var(--size-2);
+		background: var(--background-fill-primary);
+	}
+
+	.mcp-url input {
+		flex: 1;
+		border: none;
+		background: none;
+		color: var(--body-text-color);
+		font-family: var(--font-mono);
+		font-size: var(--text-md);
+		width: 100%;
+	}
+
+	.mcp-url input:focus {
+		outline: none;
 	}
 </style>
