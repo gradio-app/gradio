@@ -13,7 +13,7 @@ def letter_counter(word, letter):
     """
     word = word.lower()
     letter = letter.lower()
-    count = word.count(letter)    
+    count = word.count(letter)
     return count
 
 # Create and launch the Gradio interface
