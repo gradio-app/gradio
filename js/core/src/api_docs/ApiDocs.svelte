@@ -58,6 +58,7 @@
 	] as const;
 
 	let is_running = false;
+	let mcp_server_active = false;
 
 	async function get_info(): Promise<{
 		named_endpoints: any;
@@ -91,11 +92,23 @@
 
 	const dispatch = createEventDispatcher();
 
+	const mcp_server_url = `${root}gradio_api/mcp/sse`;
+
 	onMount(() => {
 		document.body.style.overflow = "hidden";
 		if ("parentIFrame" in window) {
 			window.parentIFrame?.scrollTo(0, 0);
 		}
+
+		// Check MCP server status
+		fetch(mcp_server_url)
+			.then(response => {
+				mcp_server_active = response.ok;
+			})
+			.catch(() => {
+				mcp_server_active = false;
+			});
+
 		return () => {
 			document.body.style.overflow = "auto";
 		};
@@ -105,7 +118,7 @@
 {#if info}
 	{#if api_count}
 		<div class="banner-wrap">
-			<ApiBanner on:close root={space_id || root} {api_count} />
+			<ApiBanner on:close root={space_id || root} {api_count} {current_language} />
 		</div>
 
 		<div class="docs-wrap">
@@ -173,79 +186,104 @@
 								target="_blank">docs</a
 							>) if you don't already have it installed.
 						{:else if current_language == "mcp"}
-							This Gradio app also serves an MCP server with a tool corresponding
-							to each API endpoints. You can use this MCP server with any
-							LLM that supports connecting to MCP servers <strong
-								>using the SSE protocol</strong
-							>.
-							<p>&nbsp;</p>
-							<Block>
-								<div class="mcp-url">
-									<label>MCP Server URL</label>
-									<div class="textbox">
-										<input type="text" readonly value={`${root}gradio_api/mcp/sse`} />
-										<CopyButton code={`${root}gradio_api/mcp/sse`} />
+							{#if mcp_server_active}
+								This Gradio app also serves an MCP server with a tool corresponding
+								to each API endpoint. You can use this MCP server with any
+								LLM that supports connecting to MCP servers <strong
+									>using the SSE protocol</strong
+								>.
+								<p>&nbsp;</p>
+								<Block>
+									<div class="mcp-url">
+										<label><span class="status-indicator active">●</span>MCP Server URL</label>
+										<div class="textbox">
+											<input type="text" readonly value={mcp_server_url} />
+											<CopyButton code={mcp_server_url} />
+										</div>
 									</div>
-								</div>
-							</Block>
-							<p>&nbsp;</p>
-							<strong>Integration</strong>: To add this MCP to clients that support SSE (e.g. Cursor, Windsurf, Client), simply add the following configuration to your MCP config:
-							<p>&nbsp;</p>
-							<Block>
-								<code>
-									<div class="copy">
-										<CopyButton
-											code={JSON.stringify(
-												{
-													mcpServers: {
-														gradio: {
-															url: `${root}gradio_api/mcp/sse`
+								</Block>
+								<p>&nbsp;</p>
+								<strong>Integration</strong>: To add this MCP to clients that support SSE (e.g. Cursor, Windsurf, Cline), simply add the following configuration to your MCP config:
+								<p>&nbsp;</p>
+								<Block>
+									<code>
+										<div class="copy">
+											<CopyButton
+												code={JSON.stringify(
+													{
+														mcpServers: {
+															gradio: {
+																url: mcp_server_url
+															}
 														}
-													}
-												},
-												null,
-												2
-											)}
-										/>
-									</div>
-									<div>
-										<pre>{JSON.stringify(
-												{
-													mcpServers: {
-														gradio: {
-															url: `${root}gradio_api/mcp/sse`
+													},
+													null,
+													2
+												)}
+											/>
+										</div>
+										<div>
+											<pre>{JSON.stringify(
+													{
+														mcpServers: {
+															gradio: {
+																url: mcp_server_url
+															}
 														}
-													}
-												},
-												null,
-												2
-											)}</pre>
-									</div>
-								</code>								
-							</Block>
-							<p>&nbsp;</p>
-							For clients that only support stdio, first <a href="https://nodejs.org/en/download/" target="_blank">install Node.js</a>. Then, you can use the following command:
-							<p>&nbsp;</p>
-							<Block>
-								<code>
-										<pre>{JSON.stringify(
-												{
-													mcpServers: {
-														gradio: {
-															command: "npx",
-															arguments: [
-																"mcp-remote",
-																`${root}gradio_api/mcp/sse`
-															]
+													},
+													null,
+													2
+												)}</pre>
+										</div>
+									</code>
+								</Block>
+								<p>&nbsp;</p>
+								For clients that only support stdio, first <a href="https://nodejs.org/en/download/" target="_blank">install Node.js</a>. Then, you can use the following command:
+								<p>&nbsp;</p>
+								<Block>
+									<code>
+										<div class="copy">
+											<CopyButton
+												code={JSON.stringify(
+													{
+														mcpServers: {
+															gradio: {
+																command: "npx",
+																arguments: [
+																	"mcp-remote",
+																	mcp_server_url
+																]
+															}
 														}
-													}
-												},
-												null,
-												2
-											)}</pre>
-								</code>
-							</Block>
-							<p>&nbsp;</p>
+													},
+													null,
+													2
+												)}
+											/>
+										</div>
+										<div>
+											<pre>{JSON.stringify(
+													{
+														mcpServers: {
+															gradio: {
+																command: "npx",
+																arguments: [
+																	"mcp-remote",
+																	mcp_server_url
+																]
+															}
+														}
+													},
+													null,
+													2
+												)}</pre>
+										</div>
+									</code>
+								</Block>
+								<p>&nbsp;</p>
+							{:else}
+								This Gradio app can also serve as an MCP server, with an MCP tool corresponding to each API endpoint. To enable this, launch this Gradio app with <code>.launch(mcp_server=True)</code> or set the <code>GRADIO_MCP_SERVER</code> env variable to <code>"True"</code>.
+							{/if}
 						{:else}
 							1. Confirm that you have cURL installed on your system.
 						{/if}
@@ -517,8 +555,9 @@
 		position: absolute;
 		top: 0;
 		right: 0;
-		margin-top: -5px;
-		margin-right: -5px;
+		margin-top: 5px;
+		margin-right: 5px;
+		z-index: 10;
 	}
 
 	.container {
@@ -537,13 +576,9 @@
 		color: var(--color-accent);
 	}
 
-	/* Right-align the copy button */
-	.copy {
-		text-align: right;
-	}
-
 	.mcp-url {
 		padding: var(--size-2);
+		position: relative;
 	}
 
 	.mcp-url label {
@@ -575,5 +610,30 @@
 
 	.mcp-url input:focus {
 		outline: none;
+	}
+
+	.status-indicator {
+		display: inline-block;
+		margin-right: var(--size-1-5);
+		position: relative;
+		top: -1px;
+		font-size: 0.8em;
+	}
+
+	.status-indicator.active {
+		color: #4CAF50;
+		animation: pulse 1s infinite;
+	}
+
+	@keyframes pulse {
+		0% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.6;
+		}
+		100% {
+			opacity: 1;
+		}
 	}
 </style>

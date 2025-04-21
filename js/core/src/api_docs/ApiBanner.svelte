@@ -6,6 +6,7 @@
 
 	export let root: string;
 	export let api_count: number;
+	export let current_language: "python" | "javascript" | "bash" | "mcp" = "python";
 
 	const dispatch = createEventDispatcher();
 </script>
@@ -19,6 +20,7 @@
 		</div>
 	</div>
 	<span class="counts">
+		{#if current_language !== "mcp"}	
 		<BaseButton
 			size="sm"
 			variant="secondary"
@@ -28,8 +30,9 @@
 			<div class="loading-dot self-baseline"></div>
 			<p class="self-baseline btn-text">API Recorder</p>
 		</BaseButton>
+		{/if}
 		<p>
-			<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}<br
+			<span class="url">{api_count}</span> {#if current_language !== "mcp"}API endpoint{:else}MCP Tool{/if}{#if api_count > 1}s{/if}<br
 			/>
 		</p>
 	</span>
