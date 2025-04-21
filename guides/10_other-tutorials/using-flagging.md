@@ -54,7 +54,7 @@ iface = gr.Interface(
     calculator,
     ["number", gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
-    allow_flagging="manual"
+    flagging_mode="manual"
 )
 
 iface.launch()
