@@ -102,7 +102,7 @@
 
 		// Check MCP server status
 		fetch(mcp_server_url)
-			.then(response => {
+			.then((response) => {
 				mcp_server_active = response.ok;
 			})
 			.catch(() => {
@@ -118,7 +118,12 @@
 {#if info}
 	{#if api_count}
 		<div class="banner-wrap">
-			<ApiBanner on:close root={space_id || root} {api_count} {current_language} />
+			<ApiBanner
+				on:close
+				root={space_id || root}
+				{api_count}
+				{current_language}
+			/>
 		</div>
 
 		<div class="docs-wrap">
@@ -187,15 +192,18 @@
 							>) if you don't already have it installed.
 						{:else if current_language == "mcp"}
 							{#if mcp_server_active}
-								This Gradio app also serves an MCP server with a tool corresponding
-								to each API endpoint. You can use this MCP server with any
-								LLM that supports connecting to MCP servers <strong
+								This Gradio app also serves an MCP server with a tool
+								corresponding to each API endpoint. You can use this MCP server
+								with any LLM that supports connecting to MCP servers <strong
 									>using the SSE protocol</strong
 								>.
 								<p>&nbsp;</p>
 								<Block>
 									<div class="mcp-url">
-										<label><span class="status-indicator active">●</span>MCP Server URL</label>
+										<label
+											><span class="status-indicator active">●</span>MCP Server
+											URL</label
+										>
 										<div class="textbox">
 											<input type="text" readonly value={mcp_server_url} />
 											<CopyButton code={mcp_server_url} />
@@ -203,7 +211,9 @@
 									</div>
 								</Block>
 								<p>&nbsp;</p>
-								<strong>Integration</strong>: To add this MCP to clients that support SSE (e.g. Cursor, Windsurf, Cline), simply add the following configuration to your MCP config:
+								<strong>Integration</strong>: To add this MCP to clients that
+								support SSE (e.g. Cursor, Windsurf, Cline), simply add the
+								following configuration to your MCP config:
 								<p>&nbsp;</p>
 								<Block>
 									<code>
@@ -238,7 +248,10 @@
 									</code>
 								</Block>
 								<p>&nbsp;</p>
-								For clients that only support stdio, first <a href="https://nodejs.org/en/download/" target="_blank">install Node.js</a>. Then, you can use the following command:
+								For clients that only support stdio, first<a
+									href="https://nodejs.org/en/download/"
+									target="_blank">install Node.js</a
+								>. Then, you can use the following command:
 								<p>&nbsp;</p>
 								<Block>
 									<code>
@@ -249,10 +262,7 @@
 														mcpServers: {
 															gradio: {
 																command: "npx",
-																arguments: [
-																	"mcp-remote",
-																	mcp_server_url
-																]
+																arguments: ["mcp-remote", mcp_server_url]
 															}
 														}
 													},
@@ -267,10 +277,7 @@
 														mcpServers: {
 															gradio: {
 																command: "npx",
-																arguments: [
-																	"mcp-remote",
-																	mcp_server_url
-																]
+																arguments: ["mcp-remote", mcp_server_url]
 															}
 														}
 													},
@@ -282,7 +289,11 @@
 								</Block>
 								<p>&nbsp;</p>
 							{:else}
-								This Gradio app can also serve as an MCP server, with an MCP tool corresponding to each API endpoint. To enable this, launch this Gradio app with <code>.launch(mcp_server=True)</code> or set the <code>GRADIO_MCP_SERVER</code> env variable to <code>"True"</code>.
+								This Gradio app can also serve as an MCP server, with an MCP
+								tool corresponding to each API endpoint. To enable this, launch
+								this Gradio app with <code>.launch(mcp_server=True)</code> or
+								set the <code>GRADIO_MCP_SERVER</code> env variable to
+								<code>"True"</code>.
 							{/if}
 						{:else}
 							1. Confirm that you have cURL installed on your system.
@@ -621,7 +632,7 @@
 	}
 
 	.status-indicator.active {
-		color: #4CAF50;
+		color: #4caf50;
 		animation: pulse 1s infinite;
 	}
 
