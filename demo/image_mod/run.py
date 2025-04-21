@@ -25,4 +25,4 @@ with gr.Blocks() as demo:
     btn.click(lambda : gr.Dataset(samples=new_samples), None, interface.examples_handler.dataset)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(mcp_server=True)

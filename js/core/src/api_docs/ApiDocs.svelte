@@ -248,7 +248,7 @@
 									</code>
 								</Block>
 								<p>&nbsp;</p>
-								For clients that only support stdio, first<a
+								<em>Experimental stdio support</em>: For clients that only support stdio, first <a
 									href="https://nodejs.org/en/download/"
 									target="_blank">install Node.js</a
 								>. Then, you can use the following command:
