@@ -1699,7 +1699,7 @@ class App(FastAPI):
                 "zoom_bottom_right_x": form.get("zoom_bottom_right_x"),
                 "zoom_bottom_right_y": form.get("zoom_bottom_right_y"),
                 "zoom_duration": form.get("zoom_duration"),
-                "zoom_timestamp": form.get("zoom_timestamp"),
+                "zoom_start_frame": form.get("zoom_start_frame"),
             }
             
             print("Zoom parameters in request:", {k: v for k, v in params.items() if k.startswith("zoom_")})

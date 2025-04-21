@@ -27,7 +27,7 @@
 		RenderMessage,
 		StatusMessage
 	} from "@gradio/client";
-	import ScreenRecorder from "./screen_recorder";
+	import * as screen_recorder from "./screen_recorder";
 
 	setupi18n();
 
@@ -130,45 +130,8 @@
 	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const dep = dependencies.find((dep) => dep.id === fn_index);
 		
-		if (dep && dep.outputs && dep.outputs.length > 0 && screen_recorder && screen_recorder.isCurrentlyRecording()) {
-			try {
-				setTimeout(() => {
-					const outputSelector = `#component-${dep.outputs[0]}`;
-					const outputElement = document.querySelector(outputSelector);
-					
-					if (outputElement) {
-						const rect = outputElement.getBoundingClientRect();
-						const viewportWidth = window.innerWidth;
-						const viewportHeight = window.innerHeight;
-						
-						const topLeft: [number, number] = [
-							Math.max(0, rect.left) / viewportWidth,
-							Math.max(0, rect.top) / viewportHeight
-						];
-						
-						const bottomRight: [number, number] = [
-							Math.min(rect.right, viewportWidth) / viewportWidth,
-							Math.min(rect.bottom, viewportHeight) / viewportHeight
-						];
-						
-						const padding = 0.05;
-						topLeft[0] = Math.max(0, topLeft[0] - padding);
-						topLeft[1] = Math.max(0, topLeft[1] - padding);
-						bottomRight[0] = Math.min(1, bottomRight[0] + padding);
-						bottomRight[1] = Math.min(1, bottomRight[1] + padding);
-						console.log(topLeft, bottomRight);
-						screen_recorder.addZoomEffect({
-							boundingBox: {
-								topLeft,
-								bottomRight
-							},
-							duration: 2.0
-						});
-					}
-				}, 300);
-			} catch (error) {
-				console.error("Error adding zoom effect:", error);
-			}
+		if (dep && dep.outputs && dep.outputs.length > 0 && screen_recorder.isCurrentlyRecording()) {
+			screen_recorder.zoom(dep.outputs, 2.0);
 		}
 		
 		if (!dep) {
@@ -817,7 +780,6 @@
 		return "detail" in event;
 	}
 
-	let screen_recorder: ScreenRecorder;
 	let is_screen_recording = writable(false);
 
 	onMount(() => {
@@ -832,12 +794,12 @@
 				navigator.userAgent
 			);
 
-		screen_recorder = new ScreenRecorder(root, (title, message, type) => {
+			screen_recorder.initialize(root, (title, message, type) => {
 			add_new_message(title, message, type);
 		});
 	});
 
-	function screenRecording(): void {
+	function screen_recording(): void {
 		if (screen_recorder.isCurrentlyRecording()) {
 			screen_recorder.stopRecording();
 			$is_screen_recording = false;
@@ -910,7 +872,7 @@
 			<div class="divider">·</div>
 			<button
 				on:click={() => {
-					screenRecording();
+					screen_recording();
 				}}
 				class="record"
 			>
