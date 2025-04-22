@@ -59,6 +59,7 @@ import gradio_client.utils as client_utils
 import httpx
 import orjson
 from gradio_client.documentation import document
+from gradio_client.exceptions import AppError
 from typing_extensions import ParamSpec
 
 import gradio
@@ -412,21 +413,14 @@ def colab_check() -> bool:
     return is_colab
 
 
-def kaggle_check() -> bool:
+def is_hosted_notebook() -> bool:
+    """
+    Check if Gradio app is launching from a hosted notebook such as Kaggle or Sagemaker.
+    """
     return bool(
-        os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or os.environ.get("GFOOTBALL_DATA_DIR")
+        os.environ.get("KAGGLE_KERNEL_RUN_TYPE")
+        or os.path.exists("/home/ec2-user/SageMaker")
     )
-
-
-def sagemaker_check() -> bool:
-    try:
-        import boto3  # type: ignore
-
-        client = boto3.client("sts")
-        response = client.get_caller_identity()
-        return "sagemaker" in response["Arn"].lower()
-    except Exception:
-        return False
 
 
 def ipython_check() -> bool:
@@ -1467,9 +1461,9 @@ def error_payload(
     error: BaseException | None, show_error: bool
 ) -> dict[str, bool | str | float | None]:
     content: dict[str, bool | str | float | None] = {"error": None}
-    show_error = show_error or isinstance(error, Error)
+    show_error = show_error or isinstance(error, AppError)
     if show_error:
-        if isinstance(error, Error):
+        if isinstance(error, AppError):
             content["error"] = error.message
             content["duration"] = error.duration
             content["visible"] = error.visible

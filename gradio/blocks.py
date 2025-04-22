@@ -37,7 +37,6 @@ from gradio import (
     networking,
     processing_utils,
     queueing,
-    strings,
     themes,
     utils,
     wasm_utils,
@@ -2445,7 +2444,7 @@ Received inputs:
             auth: If provided, username and password (or list of username-password tuples) required to access app. Can also provide function that takes username and password and returns True if valid login.
             auth_message: If provided, HTML message provided on login page.
             prevent_thread_lock: By default, the gradio app blocks the main thread while the server is running. If set to True, the gradio app will not block and the gradio server will terminate as soon as the script finishes.
-            show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log
+            show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. They will also be displayed in the alert modal of downstream apps that gr.load() this app.
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
             max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40).
@@ -2650,7 +2649,7 @@ Received inputs:
             self.server = server
             self.is_running = True
             self.is_colab = utils.colab_check()
-            self.is_kaggle = utils.kaggle_check()
+            self.is_hosted_notebook = utils.is_hosted_notebook()
             self.share_server_address = share_server_address
             self.share_server_protocol = share_server_protocol or (
                 "http" if share_server_address is not None else "https"
@@ -2665,9 +2664,9 @@ Received inputs:
             )
             if not wasm_utils.IS_WASM and not self.is_colab and not quiet:
                 s = (
-                    strings.en["RUNNING_LOCALLY_SSR"]
+                    "* Running on local URL:  {}://{}:{}, with SSR ⚡ (experimental, to disable set `ssr_mode=False` in `launch()`)"
                     if self.ssr_mode
-                    else strings.en["RUNNING_LOCALLY"]
+                    else "* Running on local URL:  {}://{}:{}"
                 )
                 print(s.format(self.protocol, self.server_name, self.server_port))
 
@@ -2683,7 +2682,7 @@ Received inputs:
                 )
                 if not resp.is_success:
                     raise Exception(
-                        f"Couldn’t start the app because '{resp.url}' failed (code {resp.status_code}). Check your network or proxy settings to ensure localhost is accessible."
+                        f"Couldn't start the app because '{resp.url}' failed (code {resp.status_code}). Check your network or proxy settings to ensure localhost is accessible."
                     )
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
@@ -2698,32 +2697,15 @@ Received inputs:
                 # So we use create_task() instead. This is a best-effort fallback in the Wasm env but it doesn't guarantee that all the tasks are completed before they are needed.
                 asyncio.create_task(self.run_extra_startup_events())
 
-        self.is_sagemaker = (
-            False  # TODO: fix Gradio's behavior in sagemaker and other hosted notebooks
-        )
         if share is None:
-            if self.is_colab:
+            if self.is_colab or self.is_hosted_notebook:
                 if not quiet:
                     print(
-                        "Running Gradio in a Colab notebook requires sharing enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
-                    )
-                self.share = True
-            elif self.is_kaggle:
-                if not quiet:
-                    print(
-                        "Kaggle notebooks require sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
-                    )
-                self.share = True
-            elif self.is_sagemaker:
-                if not quiet:
-                    print(
-                        "Sagemaker notebooks may require sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                        "It looks like you are running Gradio on a hosted a Jupyter notebook. For the Gradio app to work, sharing must be enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
                     )
                 self.share = True
             else:
                 self.share = False
-                # GRADIO_SHARE environment variable for forcing 'share=True'
-                # GRADIO_SHARE=True => share=True
                 share_env = os.getenv("GRADIO_SHARE")
                 if share_env is not None and share_env.lower() == "true":
                     self.share = True
@@ -2750,11 +2732,17 @@ Received inputs:
 
         if self.is_colab and not quiet:
             if debug:
-                print(strings.en["COLAB_DEBUG_TRUE"])
+                print(
+                    "Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. To turn off, set debug=False in launch()."
+                )
             else:
-                print(strings.en["COLAB_DEBUG_FALSE"])
+                print(
+                    "Colab notebook detected. To show errors in colab notebook, set debug=True in launch()"
+                )
             if not self.share:
-                print(strings.en["COLAB_WARNING"].format(self.server_port))
+                print(
+                    "Note: opening Chrome Inspector may crash demo inside Colab notebooks."
+                )
 
         if self.share:
             if self.space_id:
@@ -2782,9 +2770,11 @@ Received inputs:
                     self.share_url = urlunparse(
                         (self.share_server_protocol,) + parsed_url[1:]
                     )
-                print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
+                print(f"* Running on public URL: {self.share_url}")
                 if not (quiet):
-                    print(strings.en["SHARE_LINK_MESSAGE"])
+                    print(
+                        "\nThis share link expires in 1 week. For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)"
+                    )
             except Exception as e:
                 if self.analytics_enabled:
                     analytics.error_analytics("Not able to set up tunnel")
@@ -2792,24 +2782,19 @@ Received inputs:
                 self.share = False
                 if isinstance(e, ChecksumMismatchError):
                     print(
-                        strings.en["COULD_NOT_GET_SHARE_LINK_CHECKSUM"].format(
-                            BINARY_PATH
-                        )
+                        f"\nCould not create share link. Checksum mismatch for file: {BINARY_PATH}."
                     )
                 elif Path(BINARY_PATH).exists():
-                    print(strings.en["COULD_NOT_GET_SHARE_LINK"])
+                    print(
+                        "\nCould not create share link. Please check your internet connection or our status page: https://status.gradio.app."
+                    )
                 else:
                     print(
-                        strings.en["COULD_NOT_GET_SHARE_LINK_MISSING_FILE"].format(
-                            BINARY_PATH,
-                            BINARY_URL,
-                            BINARY_FILENAME,
-                            BINARY_FOLDER,
-                        )
+                        f"\nCould not create share link. Missing file: {BINARY_PATH}. \n\nPlease check your internet connection. This can happen if your antivirus software blocks the download of this file. You can install manually by following these steps: \n\n1. Download this file: {BINARY_URL}\n2. Rename the downloaded file to: {BINARY_FILENAME}\n3. Move the file to this location: {BINARY_FOLDER}"
                     )
         else:
             if not quiet and not wasm_utils.IS_WASM:
-                print(strings.en["PUBLIC_SHARE_TRUE"])
+                print("\nTo create a public link, set `share=True` in `launch()`.")
             self.share_url = None
 
         if inbrowser and not wasm_utils.IS_WASM:

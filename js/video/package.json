@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/video",
-	"version": "0.14.8",
+	"version": "0.14.10",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
