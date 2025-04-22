@@ -59,7 +59,8 @@
 		"no_devices": "Aucun périphérique trouvé",
 		"language": "Langue",
 		"display_theme": "Thème d'affichage",
-		"pwa": "Application web progressive"
+		"pwa": "Application web progressive",
+		"run": "Exécuter"
 	},
 	"dataframe": {
 		"incorrect_format": "Format incorrect, seuls les fichiers CSV et TSV sont pris en charge",
