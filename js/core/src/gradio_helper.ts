@@ -3,7 +3,7 @@ import { get } from "svelte/store";
 export { Gradio } from "@gradio/utils";
 import { all_common_keys } from "./i18n";
 
-export type I18nFormatter = (value: string | null | undefined) => string;
+export type I18nFormatter = typeof formatter;
 
 /**
  * i18n formatter with fallback to svelte-i18n's format function.
