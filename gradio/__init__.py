@@ -248,10 +248,11 @@ def i18n(**kwargs) -> _I18n:
     translation dictionaries for different locales.
 
     Example:
-        i18n_instance = gr.i18n(
+        i18n = gr.i18n(
             en={"greeting": "Hello"},
             es={"greeting": "Hola"}
         )
-        gr.Textbox(label=i18n_instance("greeting"))
+        demo = gr.Blocks(i18n=i18n)
+            gr.Textbox(label=i18n("greeting"))
     """
     return _I18n(translations=kwargs)
