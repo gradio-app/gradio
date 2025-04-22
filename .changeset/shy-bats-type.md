@@ -1,5 +1,6 @@
 ---
 "@gradio/core": minor
+"@self/storybook": minor
 "gradio": minor
 ---
 
