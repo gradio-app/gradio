@@ -245,10 +245,23 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
         center_x = (x1 + x2) / 2
         center_y = (y1 + y2) / 2
 
-        # zoom_start_frame = 60  # *** TODO: causing issues when replaced with param
-        zoom_in_frames = 15    # Zoom in over 30 frames
-        zoom_out_frames = 15   # Zoom out over 30 frames
-        max_zoom = 2.0        # Maximum zoom level
+        box_width = x2 - x1
+        box_height = y2 - y1
+
+        max_zoom_width = 1.0 / box_width
+        max_zoom_height = 1.0 / box_height
+        
+        dynamic_max_zoom = min(max_zoom_width, max_zoom_height)
+        
+        safety_margin = 0.9
+        dynamic_max_zoom = dynamic_max_zoom * safety_margin
+        
+        dynamic_max_zoom = min(dynamic_max_zoom, 4.0)
+        
+        dynamic_max_zoom = max(dynamic_max_zoom, 1.2)
+
+        zoom_in_frames = 15
+        zoom_out_frames = 15
         hold_frames = 60
 
         width, height = 1920, 1080
@@ -257,10 +270,10 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
             f"[0:v]zoompan="
             f"z='if(between(on,{zoom_start_frame},{zoom_start_frame + zoom_in_frames + hold_frames + zoom_out_frames}),"
             f"if(lt(on-{zoom_start_frame},{zoom_in_frames}),"
-            f"1+(({max_zoom}-1)*(on-{zoom_start_frame})/{zoom_in_frames}),"
+            f"1+(({dynamic_max_zoom}-1)*(on-{zoom_start_frame})/{zoom_in_frames}),"
             f"if(lt(on-{zoom_start_frame},{zoom_in_frames + hold_frames}),"
-            f"{max_zoom},"
-            f"{max_zoom}-(({max_zoom}-1)*((on-{zoom_start_frame}-{zoom_in_frames}-{hold_frames}))/{zoom_out_frames})"
+            f"{dynamic_max_zoom},"
+            f"{dynamic_max_zoom}-(({dynamic_max_zoom}-1)*((on-{zoom_start_frame}-{zoom_in_frames}-{hold_frames}))/{zoom_out_frames})"
             f")),1)':"
             f"x='iw*{center_x}-iw/zoom*{center_x}':"
             f"y='ih*{center_y}-ih/zoom*{center_y}':"
@@ -275,7 +288,7 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
                     f"-filter_complex \"{complex_filter}\" "
                     f"-map \"[outv]\" "
                     f"-map 0:a? "
-                    f"-c:v libx264 " 
+                    f"-c:v libx264 "
                     f"-pix_fmt yuv420p "
                     f"-movflags +faststart "
                     f"-preset fast "
@@ -294,7 +307,6 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
         stdout, stderr = await process.communicate()
 
         if process.returncode != 0:
-            print("FFmpeg error:", stderr.decode())
             return input_path, temp_files
 
         return zoom_output, temp_files
