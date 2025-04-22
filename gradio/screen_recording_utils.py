@@ -3,8 +3,6 @@ import os
 import shutil
 import tempfile
 import traceback
-import subprocess
-import json
 
 
 async def process_video_with_ffmpeg(input_path, output_path, params):
@@ -120,69 +118,65 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                             os.unlink(file)
                     except:
                         pass
-        
-        # Process zoom effects if available
+
         if "zoom_effects" in params and params["zoom_effects"]:
             zoom_effects = params["zoom_effects"]
             for i, effect in enumerate(zoom_effects):
-                if (effect.get("boundingBox") and 
-                    effect["boundingBox"].get("topLeft") and 
-                    effect["boundingBox"].get("bottomRight")):
-                    
+                if (
+                    effect.get("boundingBox")
+                    and effect["boundingBox"].get("topLeft")
+                    and effect["boundingBox"].get("bottomRight")
+                ):
                     top_left = effect["boundingBox"]["topLeft"]
                     bottom_right = effect["boundingBox"]["bottomRight"]
                     start_frame = effect.get("start_frame")
                     duration = effect.get("duration", 2.0)
-                    
-                    # For the last effect, use the final output path
+
                     temp_output = tempfile.mktemp(suffix=f"_zoom_{i}.mp4")
-                    
+
                     zoom_output, zoom_temp_files = await zoom_in(
-                        current_input,
-                        temp_output,
-                        top_left,
-                        bottom_right,
-                        duration,
-                        start_frame
+                        current_input, top_left, bottom_right, duration, start_frame
                     )
-                    
+
                     temp_files.extend(zoom_temp_files)
                     if zoom_output and zoom_output != current_input:
                         if current_input not in [input_path]:
                             temp_files.append(current_input)
                         current_input = zoom_output
-        # Fallback to old single zoom effect handling
-        elif (params.get("zoom_top_left_x") and params.get("zoom_top_left_y") and 
-            params.get("zoom_bottom_right_x") and params.get("zoom_bottom_right_y")):
+        elif (
+            params.get("zoom_top_left_x")
+            and params.get("zoom_top_left_y")
+            and params.get("zoom_bottom_right_x")
+            and params.get("zoom_bottom_right_y")
+        ):
             try:
                 zoom_top_left = [
                     float(params.get("zoom_top_left_x")),
-                    float(params.get("zoom_top_left_y"))
+                    float(params.get("zoom_top_left_y")),
                 ]
                 zoom_bottom_right = [
                     float(params.get("zoom_bottom_right_x")),
-                    float(params.get("zoom_bottom_right_y"))
+                    float(params.get("zoom_bottom_right_y")),
                 ]
                 zoom_duration = float(params.get("zoom_duration", 2.0))
                 zoom_start_frame = params.get("zoom_start_frame")
-                
+
                 zoom_output, zoom_temp_files = await zoom_in(
-                    current_input, 
-                    tempfile.mktemp(suffix="_zoomed.mp4"),
-                    zoom_top_left, 
-                    zoom_bottom_right, 
+                    current_input,
+                    zoom_top_left,
+                    zoom_bottom_right,
                     zoom_duration,
-                    zoom_start_frame
+                    zoom_start_frame,
                 )
-                
+
                 if zoom_output and zoom_output != current_input:
                     if current_input not in [input_path]:
                         temp_files.append(current_input)
                     current_input = zoom_output
                     temp_files.extend(zoom_temp_files)
-            except Exception as e:
+            except Exception:
                 traceback.print_exc()
-        
+
         final_mp4 = output_path
         cmd = [
             "ffmpeg",
@@ -213,18 +207,26 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
         current_input = final_mp4
         return current_input, temp_files
 
-    except Exception as e:
+    except Exception:
         traceback.print_exc()
         return input_path, temp_files
 
-async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoom_duration=2.0, zoom_start_frame=None):
+
+async def zoom_in(
+    input_path,
+    top_left=None,
+    bottom_right=None,
+    zoom_duration=2.0,
+    zoom_start_frame=None,
+):
     from ffmpy import FFmpeg
+
     temp_files = []
 
     try:
         if not input_path or not os.path.exists(input_path):
             return input_path, temp_files
-        
+
         if zoom_start_frame is None:
             zoom_start_frame = 60
         else:
@@ -232,17 +234,17 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
                 zoom_start_frame = float(zoom_start_frame)
             except (ValueError, TypeError):
                 zoom_start_frame = 60
-        
+
         if top_left is None:
             top_left = [0.25, 0.25]
-            
+
         if bottom_right is None:
             bottom_right = [0.75, 0.75]
-        
+
         try:
             x1, y1 = float(top_left[0]), float(top_left[1])
             x2, y2 = float(bottom_right[0]), float(bottom_right[1])
-        except (TypeError, ValueError, IndexError) as e:
+        except (TypeError, ValueError, IndexError):
             x1, y1 = 0.25, 0.25
             x2, y2 = 0.75, 0.75
 
@@ -250,14 +252,22 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
         y1 = max(0.0, min(0.9, y1))
         x2 = max(0.1, min(1.0, x2))
         y2 = max(0.1, min(1.0, y2))
-        
+
         if x2 <= x1:
             x1, x2 = 0.25, 0.75
         if y2 <= y1:
             y1, y2 = 0.25, 0.75
-            
-        duration_cmd = f"ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"{input_path}\""
-        
+
+        box_center_x = (x1 + x2) / 2
+        box_center_y = (y1 + y2) / 2
+
+        dynamic_max_zoom = 2.0
+
+        x_expr = f"iw/2-(iw/2-iw*{box_center_x})/zoom"
+        y_expr = f"ih/2-(ih/2-ih*{box_center_y})/zoom"
+
+        duration_cmd = f'ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "{input_path}"'
+
         process = await asyncio.create_subprocess_shell(
             duration_cmd,
             stdout=asyncio.subprocess.PIPE,
@@ -268,31 +278,12 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
         try:
             output = stdout.decode().strip()
             video_duration = float(output)
-        except (ValueError, TypeError) as e:
+        except (ValueError, TypeError):
             video_duration = 10.0
 
         zoom_duration = min(float(zoom_duration), video_duration)
-
         zoom_output = tempfile.mktemp(suffix="_zoomed.mp4")
         temp_files.append(zoom_output)
-
-        center_x = (x1 + x2) / 2
-        center_y = (y1 + y2) / 2
-
-        box_width = x2 - x1
-        box_height = y2 - y1
-
-        max_zoom_width = 1.0 / box_width
-        max_zoom_height = 1.0 / box_height
-        
-        dynamic_max_zoom = min(max_zoom_width, max_zoom_height)
-        
-        safety_margin = 0.9
-        dynamic_max_zoom = dynamic_max_zoom * safety_margin
-        
-        dynamic_max_zoom = min(dynamic_max_zoom, 4.0)
-        
-        dynamic_max_zoom = max(dynamic_max_zoom, 1.2)
 
         zoom_in_frames = 15
         zoom_out_frames = 15
@@ -309,8 +300,8 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
             f"{dynamic_max_zoom},"
             f"{dynamic_max_zoom}-(({dynamic_max_zoom}-1)*((on-{zoom_start_frame}-{zoom_in_frames}-{hold_frames}))/{zoom_out_frames})"
             f")),1)':"
-            f"x='iw*{center_x}-iw/zoom*{center_x}':"
-            f"y='ih*{center_y}-ih/zoom*{center_y}':"
+            f"x='{x_expr}':"
+            f"y='{y_expr}':"
             f"d=0:"
             f"s={width}x{height}[outv]"
         )
@@ -319,8 +310,8 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
             inputs={input_path: None},
             outputs={
                 zoom_output: (
-                    f"-filter_complex \"{complex_filter}\" "
-                    f"-map \"[outv]\" "
+                    f'-filter_complex "{complex_filter}" '
+                    f'-map "[outv]" '
                     f"-map 0:a? "
                     f"-c:v libx264 "
                     f"-pix_fmt yuv420p "
@@ -329,7 +320,7 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
                     f"-c:a aac "
                     f"-y"
                 )
-            }
+            },
         )
 
         cmd_parts = ff.cmd.split()
@@ -345,6 +336,6 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
 
         return zoom_output, temp_files
 
-    except Exception as e:
+    except Exception:
         traceback.print_exc()
         return input_path, temp_files

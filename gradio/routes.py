@@ -1691,12 +1691,12 @@ class App(FastAPI):
                 raise HTTPException(status_code=400, detail="No video file provided")
 
             video_file = video_files[0]
-            
+
             params = {
                 "remove_segment_start": form.get("remove_segment_start"),
                 "remove_segment_end": form.get("remove_segment_end"),
             }
-            
+
             # Get the full list of zoom effects
             zoom_effects_json = form.get("zoom_effects")
             if zoom_effects_json:
@@ -1705,15 +1705,13 @@ class App(FastAPI):
                 except json.JSONDecodeError:
                     params["zoom_effects"] = []
 
-            with tempfile.NamedTemporaryFile(
-                delete=False, suffix=".mp4"
-            ) as input_file:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as input_file:
                 video_file.file.seek(0)
                 shutil.copyfileobj(video_file.file, input_file)
                 input_path = input_file.name
 
             output_path = tempfile.mktemp(suffix="_processed.mp4")
-            
+
             try:
                 processed_path, temp_files = await process_video_with_ffmpeg(
                     input_path, output_path, params
@@ -1725,7 +1723,7 @@ class App(FastAPI):
                     filename="gradio-screen-recording.mp4",
                     background=BackgroundTask(lambda: cleanup_files(temp_files)),
                 )
-            except Exception as e:
+            except Exception:
                 return FileResponse(
                     input_path,
                     media_type="video/mp4",

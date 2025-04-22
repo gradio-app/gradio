@@ -55,7 +55,7 @@ export async function startRecording(): Promise<void> {
 		document.title = originalTitle;
 
 		mediaRecorder = new MediaRecorder(stream, {
-            mimeType: "video/webm;codecs=vp8",
+			mimeType: "video/webm;codecs=vp8",
 			videoBitsPerSecond: 5000000 // 3 Mbps
 		});
 
@@ -79,7 +79,6 @@ export async function startRecording(): Promise<void> {
 }
 
 export function stopRecording(): void {
-    console.log("stopRecording!!!!!");
 	if (!isRecording || !mediaRecorder) {
 		return;
 	}
@@ -114,26 +113,32 @@ export function clearRemoveSegment(): void {
 	removeSegment = {};
 }
 
-export function addZoomEffect(is_input: boolean, params: { 
-	boundingBox: { 
-		topLeft: [number, number]; 
-		bottomRight: [number, number] 
-	};
-	duration?: number;
-}): void {
+export function addZoomEffect(
+	is_input: boolean,
+	params: {
+		boundingBox: {
+			topLeft: [number, number];
+			bottomRight: [number, number];
+		};
+		duration?: number;
+	}
+): void {
 	if (!isRecording) {
 		return;
 	}
-	
+
 	const currentTime = (Date.now() - recordingStartTime) / 1000;
-    const currentFrame = is_input ? Math.floor((currentTime - 2) * 30) : Math.floor(currentTime * 30);
-	
-	if (params.boundingBox && 
-		params.boundingBox.topLeft && 
+	const currentFrame = is_input
+		? Math.floor((currentTime - 2) * 30)
+		: Math.floor(currentTime * 30);
+
+	if (
+		params.boundingBox &&
+		params.boundingBox.topLeft &&
 		params.boundingBox.bottomRight &&
 		params.boundingBox.topLeft.length === 2 &&
-		params.boundingBox.bottomRight.length === 2) {
-		
+		params.boundingBox.bottomRight.length === 2
+	) {
 		zoomEffects.push({
 			boundingBox: params.boundingBox,
 			start_frame: currentFrame,
@@ -144,71 +149,86 @@ export function addZoomEffect(is_input: boolean, params: {
 	}
 }
 
-export function zoom(is_input: boolean, elements: number[], duration = 2.0): void {
-    if (!isRecording) {
-        return;
-    }
+export function zoom(
+	is_input: boolean,
+	elements: number[],
+	duration = 2.0
+): void {
+	if (!isRecording) {
+		return;
+	}
 
-    try {
-        setTimeout(() => {
-            if (!elements || elements.length === 0) {
-                return;
-            }
-            
-            let minLeft = Infinity;
-            let minTop = Infinity;
-            let maxRight = 0;
-            let maxBottom = 0;
-            let foundElements = false;
-            
-            for (const elementId of elements) {
-                const selector = `#component-${elementId}`;
-                const element = document.querySelector(selector);
-                
-                if (element) {
-                    foundElements = true;
-                    const rect = element.getBoundingClientRect();
-                    
-                    minLeft = Math.min(minLeft, rect.left);
-                    minTop = Math.min(minTop, rect.top);
-                    maxRight = Math.max(maxRight, rect.right);
-                    maxBottom = Math.max(maxBottom, rect.bottom);
-                }
-            }
-            
-            if (!foundElements) {
-                return;
-            }
-            
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
-            
-            const topLeft: [number, number] = [
-                Math.max(0, minLeft) / viewportWidth,
-                Math.max(0, minTop) / viewportHeight
-            ];
-            
-            const bottomRight: [number, number] = [
-                Math.min(maxRight, viewportWidth) / viewportWidth,
-                Math.min(maxBottom, viewportHeight) / viewportHeight
-            ];
-            
-            topLeft[0] = Math.max(0, topLeft[0]);
-            topLeft[1] = Math.max(0, topLeft[1]);
-            bottomRight[0] = Math.min(1, bottomRight[0]);
-            bottomRight[1] = Math.min(1, bottomRight[1]);
-            
-            addZoomEffect(is_input, {
-                boundingBox: {
-                    topLeft,
-                    bottomRight
-                },
-                duration: duration
-            });
-        }, 300);
-    } catch (error) {
-        console.error(error);
-    }
+	try {
+		setTimeout(() => {
+			if (!elements || elements.length === 0) {
+				return;
+			}
+
+			let minLeft = Infinity;
+			let minTop = Infinity;
+			let maxRight = 0;
+			let maxBottom = 0;
+			let foundElements = false;
+
+			for (const elementId of elements) {
+				const selector = `#component-${elementId}`;
+				const element = document.querySelector(selector);
+
+				if (element) {
+					foundElements = true;
+					const rect = element.getBoundingClientRect();
+
+					minLeft = Math.min(minLeft, rect.left);
+					minTop = Math.min(minTop, rect.top);
+					maxRight = Math.max(maxRight, rect.right);
+					maxBottom = Math.max(maxBottom, rect.bottom);
+				}
+			}
+
+			if (!foundElements) {
+				return;
+			}
+
+			const viewportWidth = window.innerWidth;
+			const viewportHeight = window.innerHeight;
+
+			const boxWidth = Math.min(maxRight, viewportWidth) - Math.max(0, minLeft);
+			const boxHeight =
+				Math.min(maxBottom, viewportHeight) - Math.max(0, minTop);
+
+			const widthPercentage = boxWidth / viewportWidth;
+			const heightPercentage = boxHeight / viewportHeight;
+
+			if (widthPercentage >= 0.8 || heightPercentage >= 0.8) {
+				return;
+			}
+
+			const topLeft: [number, number] = [
+				Math.max(0, minLeft) / viewportWidth,
+				Math.max(0, minTop) / viewportHeight
+			];
+
+			const bottomRight: [number, number] = [
+				Math.min(maxRight, viewportWidth) / viewportWidth,
+				Math.min(maxBottom, viewportHeight) / viewportHeight
+			];
+
+			topLeft[0] = Math.max(0, topLeft[0]);
+			topLeft[1] = Math.max(0, topLeft[1]);
+			bottomRight[0] = Math.min(1, bottomRight[0]);
+			bottomRight[1] = Math.min(1, bottomRight[1]);
+
+			addZoomEffect(is_input, {
+				boundingBox: {
+					topLeft,
+					bottomRight
+				},
+				duration: duration
+			});
+		}, 300);
+	} catch (error) {
+		console.error(error);
+	}
 }
 
 function handleDataAvailable(event: BlobEvent): void {
@@ -243,8 +263,7 @@ async function handleRecordingComplete(recordedBlob: Blob): Promise<void> {
 			"info"
 		);
 		const hasProcessing =
-			(removeSegment.start !== undefined &&
-			removeSegment.end !== undefined) ||
+			(removeSegment.start !== undefined && removeSegment.end !== undefined) ||
 			zoomEffects.length > 0;
 
 		if (!hasProcessing) {
@@ -256,22 +275,13 @@ async function handleRecordingComplete(recordedBlob: Blob): Promise<void> {
 		const formData = new FormData();
 		formData.append("video", recordedBlob, "recording.mp4");
 
-		if (
-			removeSegment.start !== undefined &&
-			removeSegment.end !== undefined
-		) {
-			formData.append(
-				"remove_segment_start",
-				removeSegment.start.toString()
-			);
-			formData.append(
-				"remove_segment_end",
-				removeSegment.end.toString()
-			);
+		if (removeSegment.start !== undefined && removeSegment.end !== undefined) {
+			formData.append("remove_segment_start", removeSegment.start.toString());
+			formData.append("remove_segment_end", removeSegment.end.toString());
 		}
 
 		if (zoomEffects.length > 0) {
-            formData.append("zoom_effects", JSON.stringify(zoomEffects));
+			formData.append("zoom_effects", JSON.stringify(zoomEffects));
 		}
 
 		const response = await fetch(root + "/process_recording", {
