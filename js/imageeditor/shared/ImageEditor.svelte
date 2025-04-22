@@ -608,6 +608,7 @@
 				{min_zoom}
 				current_zoom={zoom_level}
 				on:remove_image={() => {
+					dispatch("clear");
 					editor.reset_canvas();
 					handle_tool_change({ tool: "image" });
 					background_image = false;
