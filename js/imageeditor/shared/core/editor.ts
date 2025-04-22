@@ -352,6 +352,8 @@ export class LayerManager {
 		if (make_active) {
 			this.set_active_layer(_layer_id);
 		}
+		console.log("this.active_layer_id", this.active_layer_id);
+		console.log("this.layers", this.layers);
 
 		this.layer_store.set({
 			active_layer: this.active_layer_id || "",

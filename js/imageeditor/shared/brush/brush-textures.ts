@@ -312,8 +312,10 @@ export class BrushTextures {
 			!this.stroke_texture ||
 			!this.stroke_container ||
 			!this.preview_sprite
-		)
+		) {
+			console.log("early return");
 			return;
+		}
 
 		// Store the current mode and opacity
 		this.current_mode = mode;
@@ -346,6 +348,7 @@ export class BrushTextures {
 			try {
 				if (color.startsWith("#")) {
 					colorValue = parseInt(color.replace("#", "0x"), 16);
+					console.log("colorValue", colorValue);
 				}
 			} catch (e) {
 				// Default to white if there's an error
@@ -391,6 +394,7 @@ export class BrushTextures {
 		this.stroke_graphics.endFill();
 
 		// Render the stroke to the texture
+		console.log("this.dimensions", this.dimensions);
 		this.app.renderer.render(this.stroke_container, {
 			renderTexture: this.stroke_texture
 		});

@@ -215,12 +215,16 @@ export class BrushTool implements Tool {
 	private on_pointer_down(event: FederatedPointerEvent): void {
 		const current_layer =
 			this.image_editor_context.layer_manager.get_active_layer();
+		console.log("Drawing");
 		if (
 			!current_layer?.visible ||
 			(this.current_tool !== "erase" && this.current_tool !== "draw")
 		) {
+			console.log("not visible");
 			return;
 		}
+
+		console.log("this.brush_cursor && !this.brush_cursor.is_over_image()", this.brush_cursor && !this.brush_cursor.is_over_image());
 
 		if (this.brush_cursor && !this.brush_cursor.is_over_image()) return;
 

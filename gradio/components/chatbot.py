@@ -229,6 +229,7 @@ class Chatbot(Component):
         avatar_images: tuple[str | Path | None, str | Path | None] | None = None,
         sanitize_html: bool = True,
         render_markdown: bool = True,
+        escape_brackets_in_markdown: bool = True,
         feedback_options: list[str] | tuple[str, ...] | None = ("Like", "Dislike"),
         feedback_value: Sequence[str | None] | None = None,
         bubble_full_width=None,
@@ -271,6 +272,7 @@ class Chatbot(Component):
             avatar_images: Tuple of two avatar image paths or URLs for user and bot (in that order). Pass None for either the user or bot image to skip. Must be within the working directory of the Gradio app or an external URL.
             sanitize_html: If False, will disable HTML sanitization for chatbot messages. This is not recommended, as it can lead to security vulnerabilities.
             render_markdown: If False, will disable Markdown rendering for chatbot messages.
+            escape_brackets_in_markdown: If True (default), will escape square brackets in Markdown to prevent them from being interpreted as links.
             feedback_options: A list of strings representing the feedback options that will be displayed to the user. The exact case-sensitive strings "Like" and "Dislike" will render as thumb icons, but any other choices will appear under a separate flag icon.
             feedback_value: A list of strings representing the feedback state for entire chat. Only works when type="messages". Each entry in the list corresponds to that assistant message, in order, and the value is the feedback given (e.g. "Like", "Dislike", or any custom feedback option) or None if no feedback was given for that message.
             bubble_full_width: Deprecated.
@@ -326,6 +328,7 @@ class Chatbot(Component):
             else show_share_button
         )
         self.render_markdown = render_markdown
+        self.escape_brackets_in_markdown = escape_brackets_in_markdown
         self.show_copy_button = show_copy_button
         self.watermark = watermark
         self.sanitize_html = sanitize_html
@@ -606,6 +609,43 @@ class Chatbot(Component):
             if isinstance(msg.content, str)
             else msg.content
         )
+        
+        # Process any square bracket patterns in CJK text to ensure proper rendering
+        # by adding zero-width spaces around the brackets to prevent markdown link interpretation
+        if isinstance(msg.content, str) and self.render_markdown:
+            import re
+            # Check if the content contains CJK characters
+            if re.search(r'[\u3000-\u9FFF\uAC00-\uD7AF\u3040-\u30FF]', msg.content):
+                # Add zero-width spaces around square brackets in timestamp patterns
+                # Zero-width space character (U+200B) breaks the markdown link syntax without being visible
+                msg.content = re.sub(
+                    r'(\[\d{2}:\d{2}-\d{2}:\d{2}\])',
+                    lambda m: m.group(0).replace('[', '\u200B[\u200B').replace(']', '\u200B]\u200B'),
+                    msg.content
+                )
+                
+                # Also handle other square brackets in CJK text that might be misinterpreted
+                def replace_bracket_in_cjk(match):
+                    before_char = match.group(1) if match.group(1) else ""
+                    bracket = match.group(2)
+                    after_char = match.group(3) if match.group(3) else ""
+                    
+                    # If surrounded by CJK characters, add zero-width spaces
+                    if (not before_char or re.search(r'[\u3000-\u9FFF\uAC00-\uD7AF\u3040-\u30FF]', before_char)) or \
+                       (not after_char or re.search(r'[\u3000-\u9FFF\uAC00-\uD7AF\u3040-\u30FF]', after_char)):
+                        if bracket == '[':
+                            return before_char + '\u200B[\u200B' + after_char
+                        else:
+                            return before_char + '\u200B]\u200B' + after_char
+                    return match.group(0)
+                
+                # Find brackets that are adjacent to CJK characters
+                msg.content = re.sub(
+                    r'(.)?([\[\]])(.)?' ,
+                    replace_bracket_in_cjk,
+                    msg.content
+                )
+                
         return msg
 
     def postprocess(
