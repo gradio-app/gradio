@@ -98,13 +98,20 @@ class GradioMCPServer:
 
         return traverse(value)
 
-    # def lazily_attach_gradio_client(self, server: Server, blocks: "Blocks") -> None:
-    #     if server._gradio_client is None:  # type: ignore
-    #         if blocks.local_url is None:
-    #             raise ValueError(
-    #                 "Cannot query MCP server as the Gradio app is not running (no URL available)."
-    #             )
-    #         server._gradio_client = Client(blocks.local_url, verbose=False)  # type: ignore
+    def lazy_attach_gradio_client(self) -> Client:
+        """
+        Attach a Gradio client to the MCP server if it is not already attached.
+
+        Parameters:
+            server: The MCP server to attach the Gradio client to.
+        """
+        if self.gradio_client is None:
+            if self.blocks.local_url is None:
+                raise ValueError(
+                    "Cannot query MCP server as the Gradio app is not running (no URL available)."
+                )
+            self.gradio_client = Client(self.blocks.local_url, verbose=False)
+        return self.gradio_client
 
     def create_mcp_server(self) -> Server:
         """
@@ -119,27 +126,24 @@ class GradioMCPServer:
         server = Server(self.blocks.title or "Gradio App")
 
         @server.call_tool()
-        async def fetch_tool(
+        async def call_tool(
             name: str, arguments: dict[str, Any]
         ) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
-            block_fn = next(
-                (fn for fn in self.blocks.fns.values() if fn.api_name == name), None
-            )
-            if (
-                block_fn is None
-                or block_fn.show_api is False
-                or block_fn.api_name is False
-            ):
-                raise ValueError(f"Unknown tool: {name}")
+            """
+            Call a tool on the Gradio app.
 
-            # Get the API info for this endpoint
-            api_info = self.blocks.get_api_info()
-            if not api_info:
-                raise ValueError(f"No API info found for tool: {name}")
+            Args:
+                name: The name of the tool to call.
+                arguments: The arguments to pass to the tool.
+            """
+            client = self.lazy_attach_gradio_client()
 
-            endpoint_info = api_info["named_endpoints"].get(f"/{name}")
-            if not endpoint_info:
-                raise ValueError(f"No endpoint info found for tool: {name}")
+            tool_endpoint = f"/{name}"
+            named_endpoints = client.view_api(print_info=False, return_format="dict")
+            assert isinstance(named_endpoints, dict)  # noqa: S101
+            endpoint_info = named_endpoints.get(tool_endpoint)
+            if endpoint_info is None:
+                raise ValueError(f"Unknown tool for this Gradio app: {name}")
 
             schema = {
                 "type": "object",
@@ -151,10 +155,12 @@ class GradioMCPServer:
             processed_arguments = self.convert_strings_to_filedata(
                 arguments, filedata_positions
             )
-            output = await self.blocks.process_api(
-                block_fn=block_fn,
-                inputs=list(processed_arguments.values()),
+
+            output = client.predict(
+                api_name=tool_endpoint,
+                **processed_arguments,
             )
+
             return_values = client_utils.traverse(
                 output["data"], lambda x: x["path"], client_utils.is_file_obj_with_meta
             )
@@ -165,6 +171,9 @@ class GradioMCPServer:
 
         @server.list_tools()
         async def list_tools() -> list[types.Tool]:
+            """
+            List all tools on the Gradio app.
+            """
             api_info = self.blocks.get_api_info()
             tools = []
             if not api_info:

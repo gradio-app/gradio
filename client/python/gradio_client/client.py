@@ -458,12 +458,13 @@ class Client:
         **kwargs,
     ) -> Any:
         """
-        Calls the Gradio API and returns the result (this is a blocking call).
+        Calls the Gradio API and returns the result (this is a blocking call). Arguments can be provided as positional arguments or as keyword arguments (latter is recommended).
 
         Parameters:
-            args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
+            args: The positional arguments to pass to the remote API endpoint. The order of the arguments must match the order of the inputs in the Gradio app.
             api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint.
             fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
+            kwargs: The keyword arguments to pass to the remote API endpoint.
         Returns:
             The result of the API call. Will be a Tuple if the API has multiple outputs.
         Example:
@@ -495,12 +496,14 @@ class Client:
     ) -> Job:
         """
         Creates and returns a Job object which calls the Gradio API in a background thread. The job can be used to retrieve the status and result of the remote API call.
+         Arguments can be provided as positional arguments or as keyword arguments (latter is recommended).
 
         Parameters:
             args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
             api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint.
             fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
             result_callbacks: A callback function, or list of callback functions, to be called when the result is ready. If a list of functions is provided, they will be called in order. The return values from the remote API are provided as separate parameters into the callback. If None, no callback will be called.
+            kwargs: The keyword arguments to pass to the remote API endpoint.
         Returns:
             A Job object that can be used to retrieve the status and result of the remote API call.
         Example:
