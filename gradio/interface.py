@@ -205,11 +205,11 @@ class Interface(Blocks):
             **kwargs,
         )
         if isinstance(deep_link, str):
-            deep_link = DeepLinkButton(value=deep_link)
+            deep_link = DeepLinkButton(value=deep_link, render=False)
         elif deep_link is True:
-            deep_link = DeepLinkButton()
+            deep_link = DeepLinkButton(render=False)
         if utils.get_space() and deep_link is None:
-            deep_link = DeepLinkButton()
+            deep_link = DeepLinkButton(render=False)
         if wasm_utils.IS_WASM or deep_link is False:
             deep_link = None
         self.deep_link = deep_link
