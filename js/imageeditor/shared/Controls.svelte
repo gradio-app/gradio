@@ -20,7 +20,6 @@
 		set_zoom: number | "fit";
 		pan: void;
 		download: void;
-		clear: void;
 	}>();
 
 	let show_zoom_popup = false;
