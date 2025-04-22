@@ -1793,13 +1793,11 @@ Received inputs:
                 else:
                     if block._id in state:
                         block = state[block._id]
-                    print(">>>> inputs_i", inputs[i])
                     inputs_cached = await processing_utils.async_move_files_to_cache(
                         inputs[i],
                         block,
                         check_in_upload_folder=not explicit_call,
                     )
-                    print(">>>> inputs_cached", inputs_cached)
                     if getattr(block, "data_model", None) and inputs_cached is not None:
                         data_model = cast(
                             Union[GradioModel, GradioRootModel], block.data_model
@@ -1814,7 +1812,6 @@ Received inputs:
                     if block._id not in state:
                         state[block._id] = block
                     state[block._id].value = inputs_serialized
-                    print(">>>> inputs_cached", inputs_cached)
                     processed_input.append(block.preprocess(inputs_cached))
         else:
             processed_input = inputs
