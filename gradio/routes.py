@@ -1697,7 +1697,6 @@ class App(FastAPI):
                 "remove_segment_end": form.get("remove_segment_end"),
             }
 
-            # Get the full list of zoom effects
             zoom_effects_json = form.get("zoom_effects")
             if zoom_effects_json:
                 try:
