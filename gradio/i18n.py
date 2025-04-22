@@ -42,4 +42,3 @@ class _I18n:
         Returns the dictionary of translations provided during initialization.
         """
         return self.translations
-

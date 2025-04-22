@@ -242,6 +242,7 @@ __all__ = [
     "DeepLinkButton",
 ]
 
+
 def i18n(**kwargs) -> _I18n:
     """Create an i18n instance with translations. Use this function to define
     translation dictionaries for different locales.
