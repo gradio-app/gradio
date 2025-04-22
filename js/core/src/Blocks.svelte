@@ -678,6 +678,8 @@
 				messages = [new_message("Error", data, -1, event), ...messages];
 			} else if (event === "warning") {
 				messages = [new_message("Warning", data, -1, event), ...messages];
+			} else if (event === "info") {
+				messages = [new_message("Info", data, -1, event), ...messages];
 			} else if (event == "clear_status") {
 				update_status(id, "complete", data);
 			} else if (event == "close_stream") {
