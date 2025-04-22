@@ -1691,18 +1691,19 @@ class App(FastAPI):
                 raise HTTPException(status_code=400, detail="No video file provided")
 
             video_file = video_files[0]
+            
             params = {
                 "remove_segment_start": form.get("remove_segment_start"),
                 "remove_segment_end": form.get("remove_segment_end"),
-                "zoom_top_left_x": form.get("zoom_top_left_x"),
-                "zoom_top_left_y": form.get("zoom_top_left_y"),
-                "zoom_bottom_right_x": form.get("zoom_bottom_right_x"),
-                "zoom_bottom_right_y": form.get("zoom_bottom_right_y"),
-                "zoom_duration": form.get("zoom_duration"),
-                "zoom_start_frame": form.get("zoom_start_frame"),
             }
             
-            print("Zoom parameters in request:", {k: v for k, v in params.items() if k.startswith("zoom_")})
+            # Get the full list of zoom effects
+            zoom_effects_json = form.get("zoom_effects")
+            if zoom_effects_json:
+                try:
+                    params["zoom_effects"] = json.loads(zoom_effects_json)
+                except json.JSONDecodeError:
+                    params["zoom_effects"] = []
 
             with tempfile.NamedTemporaryFile(
                 delete=False, suffix=".mp4"
@@ -1725,8 +1726,6 @@ class App(FastAPI):
                     background=BackgroundTask(lambda: cleanup_files(temp_files)),
                 )
             except Exception as e:
-                print(f"Error processing video: {str(e)}")
-                traceback.print_exc()
                 return FileResponse(
                     input_path,
                     media_type="video/mp4",

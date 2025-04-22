@@ -4,6 +4,7 @@ import shutil
 import tempfile
 import traceback
 import subprocess
+import json
 
 
 async def process_video_with_ffmpeg(input_path, output_path, params):
@@ -119,8 +120,39 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                             os.unlink(file)
                     except:
                         pass
-              
-        if (params.get("zoom_top_left_x") and params.get("zoom_top_left_y") and 
+        
+        # Process zoom effects if available
+        if "zoom_effects" in params and params["zoom_effects"]:
+            zoom_effects = params["zoom_effects"]
+            for i, effect in enumerate(zoom_effects):
+                if (effect.get("boundingBox") and 
+                    effect["boundingBox"].get("topLeft") and 
+                    effect["boundingBox"].get("bottomRight")):
+                    
+                    top_left = effect["boundingBox"]["topLeft"]
+                    bottom_right = effect["boundingBox"]["bottomRight"]
+                    start_frame = effect.get("start_frame")
+                    duration = effect.get("duration", 2.0)
+                    
+                    # For the last effect, use the final output path
+                    temp_output = tempfile.mktemp(suffix=f"_zoom_{i}.mp4")
+                    
+                    zoom_output, zoom_temp_files = await zoom_in(
+                        current_input,
+                        temp_output,
+                        top_left,
+                        bottom_right,
+                        duration,
+                        start_frame
+                    )
+                    
+                    temp_files.extend(zoom_temp_files)
+                    if zoom_output and zoom_output != current_input:
+                        if current_input not in [input_path]:
+                            temp_files.append(current_input)
+                        current_input = zoom_output
+        # Fallback to old single zoom effect handling
+        elif (params.get("zoom_top_left_x") and params.get("zoom_top_left_y") and 
             params.get("zoom_bottom_right_x") and params.get("zoom_bottom_right_y")):
             try:
                 zoom_top_left = [
@@ -136,7 +168,7 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                 
                 zoom_output, zoom_temp_files = await zoom_in(
                     current_input, 
-                    output_path,
+                    tempfile.mktemp(suffix="_zoomed.mp4"),
                     zoom_top_left, 
                     zoom_bottom_right, 
                     zoom_duration,
@@ -144,6 +176,8 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                 )
                 
                 if zoom_output and zoom_output != current_input:
+                    if current_input not in [input_path]:
+                        temp_files.append(current_input)
                     current_input = zoom_output
                     temp_files.extend(zoom_temp_files)
             except Exception as e:
@@ -262,7 +296,7 @@ async def zoom_in(input_path, output_path, top_left=None, bottom_right=None, zoo
 
         zoom_in_frames = 15
         zoom_out_frames = 15
-        hold_frames = 60
+        hold_frames = int(zoom_duration * 30)
 
         width, height = 1920, 1080
 

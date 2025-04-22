@@ -131,7 +131,11 @@
 		const dep = dependencies.find((dep) => dep.id === fn_index);
 		
 		if (dep && dep.outputs && dep.outputs.length > 0 && screen_recorder.isCurrentlyRecording()) {
-			screen_recorder.zoom(dep.outputs, 2.0);
+			screen_recorder.zoom(false, dep.outputs, 2.0);
+		}
+
+		if (dep && dep.inputs && dep.inputs.length > 0 && screen_recorder.isCurrentlyRecording()) {
+			screen_recorder.zoom(true, dep.inputs, 1.0);
 		}
 		
 		if (!dep) {

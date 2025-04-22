@@ -45,7 +45,6 @@ export async function startRecording(): Promise<void> {
 		document.title = "SHARE THIS: Gradio";
 		const stream = await navigator.mediaDevices.getDisplayMedia({
 			video: {
-				cursor: "always",
 				width: { ideal: 1920 },
 				height: { ideal: 1080 },
 				frameRate: { ideal: 30 }
@@ -115,7 +114,7 @@ export function clearRemoveSegment(): void {
 	removeSegment = {};
 }
 
-export function addZoomEffect(params: { 
+export function addZoomEffect(is_input: boolean, params: { 
 	boundingBox: { 
 		topLeft: [number, number]; 
 		bottomRight: [number, number] 
@@ -126,11 +125,9 @@ export function addZoomEffect(params: {
 		return;
 	}
 	
-	// Calculate the current timestamp in the recording
 	const currentTime = (Date.now() - recordingStartTime) / 1000;
-    const currentFrame = Math.floor(currentTime * 30);
+    const currentFrame = is_input ? Math.floor((currentTime - 2) * 30) : Math.floor(currentTime * 30);
 	
-	// Ensure we have valid coordinates before adding the zoom effect
 	if (params.boundingBox && 
 		params.boundingBox.topLeft && 
 		params.boundingBox.bottomRight &&
@@ -142,18 +139,12 @@ export function addZoomEffect(params: {
 			start_frame: currentFrame,
 			duration: params.duration || 2.0
 		});
-		
-		console.log("Added zoom effect:", {
-			boundingBox: params.boundingBox,
-			start_frame: currentFrame,
-			duration: params.duration || 2.0
-		});
 	} else {
 		console.error("Invalid boundingBox format:", params.boundingBox);
 	}
 }
 
-export function zoom(elements: number[], duration = 2.0): void {
+export function zoom(is_input: boolean, elements: number[], duration = 2.0): void {
     if (!isRecording) {
         return;
     }
@@ -206,20 +197,8 @@ export function zoom(elements: number[], duration = 2.0): void {
             topLeft[1] = Math.max(0, topLeft[1]);
             bottomRight[0] = Math.min(1, bottomRight[0]);
             bottomRight[1] = Math.min(1, bottomRight[1]);
-
             
-            // Remove any existing zoom box
-            const existingBox = document.getElementById('gradio-zoom-box');
-            if (existingBox) {
-                existingBox.remove();
-            }
-            
-            
-            // Remove the box after a short delay
-            setTimeout(() => {
-            }, 1500); // Show for 1.5 seconds
-            
-            addZoomEffect({
+            addZoomEffect(is_input, {
                 boundingBox: {
                     topLeft,
                     bottomRight
@@ -234,13 +213,11 @@ export function zoom(elements: number[], duration = 2.0): void {
 
 function handleDataAvailable(event: BlobEvent): void {
 	if (event.data.size > 0) {
-        console.log("handleDataAvailable!!!!!");
 		recordedChunks.push(event.data);
 	}
 }
 
 function handleStop(): void {
-    console.log("handleStop!!!!!");
 	isRecording = false;
 
 	const blob = new Blob(recordedChunks, {
@@ -256,7 +233,6 @@ function handleStop(): void {
 		cancelAnimationFrame(animationFrameId);
 		animationFrameId = null;
 	}
-    console.log("handleStop finished!!!!");
 }
 
 async function handleRecordingComplete(recordedBlob: Blob): Promise<void> {
@@ -294,34 +270,8 @@ async function handleRecordingComplete(recordedBlob: Blob): Promise<void> {
 			);
 		}
 
-		// Add zoom effects if any
 		if (zoomEffects.length > 0) {
-			// We'll just use the first zoom effect for now
-			const zoomEffect = zoomEffects[0];
-			
-			if (zoomEffect && zoomEffect.boundingBox && 
-				zoomEffect.boundingBox.topLeft && zoomEffect.boundingBox.bottomRight) {
-				
-				console.log("Sending zoom effect:", zoomEffect);
-				
-				// Use simple string format instead of JSON
-				formData.append("zoom_top_left_x", zoomEffect.boundingBox.topLeft[0].toString());
-				formData.append("zoom_top_left_y", zoomEffect.boundingBox.topLeft[1].toString());
-				formData.append("zoom_bottom_right_x", zoomEffect.boundingBox.bottomRight[0].toString());
-				formData.append("zoom_bottom_right_y", zoomEffect.boundingBox.bottomRight[1].toString());
-				
-				// Ensure timestamp is properly formatted
-				if (zoomEffect.start_frame !== undefined) {
-					formData.append("zoom_start_frame", zoomEffect.start_frame.toString());
-					console.log("Sending zoom start_frame:", zoomEffect.start_frame);
-				}
-				
-				if (zoomEffect.duration) {
-					formData.append("zoom_duration", zoomEffect.duration.toString());
-				}
-			} else {
-				console.warn("Zoom effect is incomplete:", zoomEffect);
-			}
+            formData.append("zoom_effects", JSON.stringify(zoomEffects));
 		}
 
 		const response = await fetch(root + "/process_recording", {
@@ -338,8 +288,6 @@ async function handleRecordingComplete(recordedBlob: Blob): Promise<void> {
 		const processedBlob = await response.blob();
 		const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.mp4`;
 		saveWithDownloadAttribute(processedBlob, defaultFilename);
-		
-		// Clear zoom effects after processing
 		zoomEffects = [];
 	} catch (error) {
 		console.error("Error processing recording:", error);
