@@ -133,7 +133,6 @@
 		label="Clear canvas"
 		on:click={(event) => {
 			dispatch("remove_image");
-			dispatch("clear");
 			event.stopPropagation();
 		}}
 	/>
