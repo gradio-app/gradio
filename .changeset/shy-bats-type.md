@@ -1,6 +1,7 @@
 ---
-"@gradio/core": minor
-"gradio": minor
+"@gradio/core": patch
+"@self/storybook": patch
+"gradio": patch
 ---
 
-feat:Ensure translations work as expected
+fix:Ensure translations work as expected
