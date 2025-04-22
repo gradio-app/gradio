@@ -136,10 +136,10 @@ class GradioMCPServer:
                 name: The name of the tool to call.
                 arguments: The arguments to pass to the tool.
             """
-            client = self.lazy_attach_gradio_client()
+            # client = self.lazy_attach_gradio_client()
 
             tool_endpoint = f"/{name}"
-            named_endpoints = client.view_api(print_info=False, return_format="dict")
+            named_endpoints = self.blocks.get_api_info()["named_endpoints"]  # type: ignore
             assert isinstance(named_endpoints, dict)  # noqa: S101
             endpoint_info = named_endpoints.get(tool_endpoint)
             if endpoint_info is None:
@@ -155,12 +155,20 @@ class GradioMCPServer:
             processed_arguments = self.convert_strings_to_filedata(
                 arguments, filedata_positions
             )
-
-            output = client.predict(
-                api_name=tool_endpoint,
-                **processed_arguments,
+            block_fn = next(
+                (
+                    fn
+                    for fn in self.blocks.fns.values()
+                    if fn.api_name == name
+                ),
+                None,
             )
-
+            if block_fn is None:
+                raise ValueError(f"Unknown tool for this Gradio app: {name}")
+            output = await self.blocks.process_api(
+                block_fn=block_fn,
+                inputs=list(processed_arguments.values()),
+            )
             return_values = client_utils.traverse(
                 output["data"], lambda x: x["path"], client_utils.is_file_obj_with_meta
             )
