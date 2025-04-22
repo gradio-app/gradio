@@ -194,9 +194,10 @@ class Client:
 
         # Create a pool of threads to handle the requests
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
-        
 
-        self.analytics_enabled = analytics_enabled or os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
+        self.analytics_enabled = (
+            analytics_enabled or os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
+        )
         if self.analytics_enabled:
             threading.Thread(target=self._telemetry_thread, daemon=True).start()
         self._refresh_heartbeat = threading.Event()

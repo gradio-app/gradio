@@ -156,11 +156,7 @@ class GradioMCPServer:
                 arguments, filedata_positions
             )
             block_fn = next(
-                (
-                    fn
-                    for fn in self.blocks.fns.values()
-                    if fn.api_name == name
-                ),
+                (fn for fn in self.blocks.fns.values() if fn.api_name == name),
                 None,
             )
             if block_fn is None:
