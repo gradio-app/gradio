@@ -1085,7 +1085,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         fill_height: bool = False,
         fill_width: bool = False,
         delete_cache: tuple[int, int] | None = None,
-        i18n: _I18n | None = None,
         **kwargs,
     ):
         """
@@ -1102,7 +1101,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width. Only applies if this is the outermost `Blocks` in your Gradio app.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
-            i18n: An I18n instance containing custom translations for the UI.
         """
         self.limiter = None
         if theme is None:
@@ -1221,7 +1219,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             analytics.initiated_analytics(data)
 
         self.queue()
-        self.i18n_instance: _I18n | None = i18n
 
     @property
     def blocks(self) -> dict[int, Component | Block]:
@@ -2436,6 +2433,7 @@ Received inputs:
         ssr_mode: bool | None = None,
         pwa: bool | None = None,
         _frontend: bool = True,
+        i18n: _I18n | None = None,
     ) -> tuple[App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -2475,6 +2473,7 @@ Received inputs:
             strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
             ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
+            i18n: An I18n instance containing custom translations, which are used to translate values in our components. This feature can only be used to translate static text in the frontend, not values in the backend.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2494,6 +2493,7 @@ Received inputs:
             demo = gr.Interface(reverse, "text", "text")
             demo.launch(share=True, auth=("username", "password"))
         """
+
         from gradio.routes import App
 
         if self._is_running_in_reload_thread:
@@ -2722,6 +2722,7 @@ Received inputs:
                 f"Monitoring URL: {self.local_url}monitoring/{self.app.analytics_key}"
             )
         self.enable_monitoring = enable_monitoring in [True, None]
+        self.i18n_instance = i18n
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.

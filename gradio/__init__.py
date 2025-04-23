@@ -247,12 +247,21 @@ def i18n(**kwargs) -> _I18n:
     """Create an i18n instance with translations. Use this function to define
     translation dictionaries for different locales.
 
+    Args:
+        **kwargs: Each keyword argument should be a locale code (e.g., "en", "fr") with a 
+        dictionary value, which maps translation keys to translated strings.
+
+    Returns:
+        An I18n instance with the specified translations.
+
     Example:
         i18n = gr.i18n(
             en={"greeting": "Hello"},
             es={"greeting": "Hola"}
         )
-        demo = gr.Blocks(i18n=i18n)
+        with gr.Blocks() as demo:
             gr.Textbox(label=i18n("greeting"))
+
+        demo.launch(i18n=i18n)
     """
     return _I18n(translations=kwargs)
