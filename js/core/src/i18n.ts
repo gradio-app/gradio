@@ -29,7 +29,13 @@ export const language_choices: [string, string][] = Object.entries(
 	processed_langs
 ).map(([code, data]) => [data._name || code, code]);
 
-export function load_translations(translations: LangsRecord): void {
+export function load_translations(
+	translations: LangsRecord | null | undefined
+): void {
+	if (!translations) {
+		return;
+	}
+
 	for (const lang in translations) {
 		addMessages(lang, translations[lang]);
 	}
@@ -81,7 +87,7 @@ export async function setupi18n(
 		await init_i18n(initial_locale);
 
 		if (custom_translations) {
-			load_custom_translations(custom_translations);
+			load_translations(custom_translations);
 		}
 
 		set_init_state(true);
@@ -92,14 +98,4 @@ export async function setupi18n(
 
 export function changeLocale(new_locale: string): void {
 	locale.set(new_locale);
-}
-
-export function load_custom_translations(
-	translations: Record<string, Record<string, string>>
-): void {
-	if (!translations) {
-		return;
-	}
-
-	load_translations(translations);
 }

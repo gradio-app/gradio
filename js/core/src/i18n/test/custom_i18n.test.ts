@@ -127,7 +127,7 @@ describe("Custom i18n functionality", () => {
 		});
 	});
 
-	test("load_custom_translations adds messages for each language", () => {
+	test("load_translations adds messages for each language", () => {
 		const addMessages = vi.mocked(svelte_i18n.addMessages);
 
 		const custom_translations = {
