@@ -98,5 +98,6 @@
 		on:stop={() => gradio.dispatch("stop")}
 		on:copy={(e) => gradio.dispatch("copy", e.detail)}
 		disabled={!interactive}
+		i18n={gradio.i18n}
 	/>
 </Block>
