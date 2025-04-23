@@ -51,7 +51,7 @@ export async function startRecording(): Promise<void> {
 			},
 			audio: true,
 			selfBrowserSurface: "include"
-		});
+		} as MediaStreamConstraints);
 		document.title = originalTitle;
 
 		mediaRecorder = new MediaRecorder(stream, {
@@ -68,8 +68,7 @@ export async function startRecording(): Promise<void> {
 		mediaRecorder.start(1000);
 		isRecording = true;
 		recordingStartTime = Date.now();
-	} catch (error) {
-		console.error("Error starting recording:", error);
+	} catch (error: any) {
 		add_message_callback(
 			"Recording Error",
 			"Failed to start recording: " + error.message,
@@ -144,8 +143,6 @@ export function addZoomEffect(
 			start_frame: currentFrame,
 			duration: params.duration || 2.0
 		});
-	} else {
-		console.error("Invalid boundingBox format:", params.boundingBox);
 	}
 }
 
@@ -227,7 +224,7 @@ export function zoom(
 			});
 		}, 300);
 	} catch (error) {
-		console.error(error);
+		// pass
 	}
 }
 
@@ -300,7 +297,6 @@ async function handleRecordingComplete(recordedBlob: Blob): Promise<void> {
 		saveWithDownloadAttribute(processedBlob, defaultFilename);
 		zoomEffects = [];
 	} catch (error) {
-		console.error("Error processing recording:", error);
 		add_message_callback(
 			"Processing Error",
 			"Failed to process recording. Saving original version.",

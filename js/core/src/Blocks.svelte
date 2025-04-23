@@ -878,22 +878,22 @@
 			<div class="divider">·</div>
 			<button
 				on:click={() => {
-					set_settings_visible(!settings_visible);
-				}}
-				class="settings"
-			>
-				{$_("common.settings")}
-				<img src={settings_logo} alt={$_("common.settings")} />
-			</button>
-			<div class="divider">·</div>
-			<button
-				on:click={() => {
 					screen_recording();
 				}}
 				class="record"
 			>
 				{$_($is_screen_recording ? "common.stop_recording" : "common.record")}
 				<img src={record} alt={$_("common.record")} />
+			</button>
+			<div class="divider">·</div>
+			<button
+				on:click={() => {
+					set_settings_visible(!settings_visible);
+				}}
+				class="settings"
+			>
+				{$_("common.settings")}
+				<img src={settings_logo} alt={$_("common.settings")} />
 			</button>
 		</footer>
 	{/if}

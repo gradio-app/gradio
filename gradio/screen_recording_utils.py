@@ -143,39 +143,6 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                         if current_input not in [input_path]:
                             temp_files.append(current_input)
                         current_input = zoom_output
-        elif (
-            params.get("zoom_top_left_x")
-            and params.get("zoom_top_left_y")
-            and params.get("zoom_bottom_right_x")
-            and params.get("zoom_bottom_right_y")
-        ):
-            try:
-                zoom_top_left = [
-                    float(params.get("zoom_top_left_x")),
-                    float(params.get("zoom_top_left_y")),
-                ]
-                zoom_bottom_right = [
-                    float(params.get("zoom_bottom_right_x")),
-                    float(params.get("zoom_bottom_right_y")),
-                ]
-                zoom_duration = float(params.get("zoom_duration", 2.0))
-                zoom_start_frame = params.get("zoom_start_frame")
-
-                zoom_output, zoom_temp_files = await zoom_in(
-                    current_input,
-                    zoom_top_left,
-                    zoom_bottom_right,
-                    zoom_duration,
-                    zoom_start_frame,
-                )
-
-                if zoom_output and zoom_output != current_input:
-                    if current_input not in [input_path]:
-                        temp_files.append(current_input)
-                    current_input = zoom_output
-                    temp_files.extend(zoom_temp_files)
-            except Exception:
-                traceback.print_exc()
 
         final_mp4 = output_path
         cmd = [
@@ -265,14 +232,13 @@ async def zoom_in(
         box_center_y = (y1 + y2) / 2
 
         target_zoom = 3.0
-
         max_zoom_by_size = min(1.0 / box_width, 1.0 / box_height)
 
         safety_margin = 0.9
         max_zoom_by_size = max_zoom_by_size * safety_margin
 
         dynamic_max_zoom = min(max_zoom_by_size, target_zoom)
-        dynamic_max_zoom = max(dynamic_max_zoom, 1.5)
+        dynamic_max_zoom = max(dynamic_max_zoom, 1.3)
 
         frame_width_after_zoom = 1.0 / dynamic_max_zoom
         frame_height_after_zoom = 1.0 / dynamic_max_zoom
@@ -316,13 +282,33 @@ async def zoom_in(
         except (ValueError, TypeError):
             video_duration = 10.0
 
+        fps_cmd = f'ffprobe -v error -select_streams v:0 -show_entries stream=avg_frame_rate -of default=noprint_wrappers=1:nokey=1 "{input_path}"'
+        process = await asyncio.create_subprocess_shell(
+            fps_cmd,
+            stdout=asyncio.subprocess.PIPE, 
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await process.communicate()
+
+        try:
+            fps_str = stdout.decode().strip()
+            if '/' in fps_str:
+                num, den = map(int, fps_str.split('/'))
+                fps = num / den if den != 0 else 30.0
+            else:
+                fps = float(fps_str)
+            if not (10 <= fps <= 120):
+                fps = 30.0
+        except (ValueError, TypeError, ZeroDivisionError):
+            fps = 30.0
+
         zoom_duration = min(float(zoom_duration), video_duration)
         zoom_output = tempfile.mktemp(suffix="_zoomed.mp4")
         temp_files.append(zoom_output)
 
-        zoom_in_frames = 15
-        zoom_out_frames = 15
-        hold_frames = int(zoom_duration * 30)
+        zoom_in_frames = int(fps/2)
+        zoom_out_frames = int(fps/2)
+        hold_frames = int(zoom_duration * fps)
 
         width, height = 1920, 1080
 
@@ -337,7 +323,8 @@ async def zoom_in(
             f")),1)':"
             f"x='iw*{zoom_center_x}-iw/zoom*{zoom_center_x}':"
             f"y='ih*{zoom_center_y}-ih/zoom*{zoom_center_y}':"
-            f"d=0:"
+            f"d=1:"
+            f"fps={fps}:"
             f"s={width}x{height}[outv]"
         )
 
@@ -352,6 +339,7 @@ async def zoom_in(
                     f"-pix_fmt yuv420p "
                     f"-movflags +faststart "
                     f"-preset fast "
+                    f"-r {fps} "
                     f"-c:a aac "
                     f"-y"
                 )
