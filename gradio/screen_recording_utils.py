@@ -258,13 +258,48 @@ async def zoom_in(
         if y2 <= y1:
             y1, y2 = 0.25, 0.75
 
+        box_width = x2 - x1
+        box_height = y2 - y1
+
         box_center_x = (x1 + x2) / 2
         box_center_y = (y1 + y2) / 2
 
-        dynamic_max_zoom = 2.0
+        target_zoom = 3.0
 
-        x_expr = f"iw/2-(iw/2-iw*{box_center_x})/zoom"
-        y_expr = f"ih/2-(ih/2-ih*{box_center_y})/zoom"
+        max_zoom_by_size = min(1.0 / box_width, 1.0 / box_height)
+
+        safety_margin = 0.9
+        max_zoom_by_size = max_zoom_by_size * safety_margin
+
+        dynamic_max_zoom = min(max_zoom_by_size, target_zoom)
+        dynamic_max_zoom = max(dynamic_max_zoom, 1.5)
+
+        frame_width_after_zoom = 1.0 / dynamic_max_zoom
+        frame_height_after_zoom = 1.0 / dynamic_max_zoom
+
+        min_center_x = x1 + (frame_width_after_zoom / 2)
+        max_center_x = x2 - (frame_width_after_zoom / 2)
+        min_center_y = y1 + (frame_height_after_zoom / 2)
+        max_center_y = y2 - (frame_height_after_zoom / 2)
+
+        zoom_center_x = box_center_x
+        zoom_center_y = box_center_y
+
+        if min_center_x <= max_center_x:
+            zoom_center_x = max(min_center_x, min(max_center_x, zoom_center_x))
+        else:
+            adjusted_zoom = 1.0 / box_width
+            dynamic_max_zoom = min(dynamic_max_zoom, adjusted_zoom * safety_margin)
+            zoom_center_x = box_center_x
+
+        if min_center_y <= max_center_y:
+            zoom_center_y = max(min_center_y, min(max_center_y, zoom_center_y))
+        else:
+            adjusted_zoom = 1.0 / box_height
+            dynamic_max_zoom = min(dynamic_max_zoom, adjusted_zoom * safety_margin)
+            zoom_center_y = box_center_y
+
+        dynamic_max_zoom = max(dynamic_max_zoom, 1.5)
 
         duration_cmd = f'ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "{input_path}"'
 
@@ -300,8 +335,8 @@ async def zoom_in(
             f"{dynamic_max_zoom},"
             f"{dynamic_max_zoom}-(({dynamic_max_zoom}-1)*((on-{zoom_start_frame}-{zoom_in_frames}-{hold_frames}))/{zoom_out_frames})"
             f")),1)':"
-            f"x='{x_expr}':"
-            f"y='{y_expr}':"
+            f"x='iw*{zoom_center_x}-iw/zoom*{zoom_center_x}':"
+            f"y='ih*{zoom_center_y}-ih/zoom*{zoom_center_y}':"
             f"d=0:"
             f"s={width}x{height}[outv]"
         )
