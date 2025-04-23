@@ -89,7 +89,7 @@ class GradioMCPServer:
                         (
                             fn
                             for fn in self.blocks.fns.values()
-                            if fn.api_name == endpoint_name
+                            if fn.api_name == tool_name
                         ),
                         None,
                     )
@@ -133,7 +133,7 @@ class GradioMCPServer:
             subpath,
             Starlette(
                 routes=[
-                    Route("/schema", endpoint=self.get_complete_schema),
+                    Route("/schema", endpoint=self.get_complete_schema),  # not required for MCP but useful for debugging
                     Route("/sse", endpoint=handle_sse),
                     Mount("/messages/", app=sse.handle_post_message),
                 ],
@@ -188,8 +188,7 @@ class GradioMCPServer:
         Returns:
             The input schema of the Gradio app API.
         """
-        endpoint_name = f"/{tool_name}" if tool_name else None
-
+        endpoint_name = f"/{tool_name}"
         named_endpoints = self.blocks.get_api_info()["named_endpoints"]  # type: ignore
         assert isinstance(named_endpoints, dict)  # noqa: S101
         endpoint_info = named_endpoints.get(endpoint_name)
@@ -201,7 +200,7 @@ class GradioMCPServer:
             "type": "object",
             "properties": {
                 p["parameter_name"]: {
-                    "type": p["type"],
+                    **p["type"],
                     **(
                         {"description": parameters[p["parameter_name"]]}
                         if parameters and p["parameter_name"] in parameters
@@ -211,7 +210,6 @@ class GradioMCPServer:
                 for p in endpoint_info["parameters"]
             },
         }
-
         return self.simplify_filedata_schema(schema)
 
     async def get_complete_schema(self, request) -> JSONResponse:  # noqa: ARG002
@@ -236,7 +234,7 @@ class GradioMCPServer:
                     (
                         fn
                         for fn in self.blocks.fns.values()
-                        if fn.api_name == endpoint_name
+                        if fn.api_name == tool_name
                     ),
                     None,
                 )
