@@ -256,7 +256,7 @@ class GradioMCPServer:
         import logging
 
         logging.basicConfig(level=logging.DEBUG)
-        messages_path = f"{subpath}/messages"
+        messages_path = f"{subpath}/messages/"
         sse = SseServerTransport(messages_path)
 
         async def handle_sse(request):
@@ -274,7 +274,7 @@ class GradioMCPServer:
             Starlette(
                 routes=[
                     Route("/sse", endpoint=handle_sse),
-                    Mount("/messages", app=sse.handle_post_message),
+                    Mount("/messages/", app=sse.handle_post_message),
                 ],
             ),
         )
