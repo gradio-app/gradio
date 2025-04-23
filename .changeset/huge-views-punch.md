@@ -4,4 +4,4 @@
 "gradio_client": minor
 ---
 
-feat:Let Gradio apps also be MCP Servers [PoC]
+feat:Let Gradio apps also be MCP Servers
