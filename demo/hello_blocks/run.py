@@ -1,8 +1,6 @@
 import gradio as gr
-import time
 
 def greet(name):
-    time.sleep(1)
     return "Hello " + name + "!"
 
 with gr.Blocks() as demo:
