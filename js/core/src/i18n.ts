@@ -29,36 +29,62 @@ export const language_choices: [string, string][] = Object.entries(
 	processed_langs
 ).map(([code, data]) => [data._name || code, code]);
 
-for (const lang in processed_langs) {
-	addMessages(lang, processed_langs[lang]);
+export function load_translations(translations: LangsRecord): void {
+	for (const lang in translations) {
+		addMessages(lang, translations[lang]);
+	}
 }
 
-let i18n_initialized = false;
+export function get_init_state(): boolean {
+	return _i18n_initialized;
+}
+export function set_init_state(state: boolean): void {
+	_i18n_initialized = state;
+}
+
+export function get_initial_locale(
+	browser_locale: string | null,
+	available_locales: string[],
+	fallback_locale = "en"
+): string {
+	return browser_locale && available_locales.includes(browser_locale)
+		? browser_locale
+		: fallback_locale;
+}
+
+let _i18n_initialized = false;
+
+export async function init_i18n(
+	initial_locale: string,
+	fallback_locale = "en"
+): Promise<void> {
+	await init({
+		fallbackLocale: fallback_locale,
+		initialLocale: initial_locale
+	});
+}
 
 export async function setupi18n(
 	custom_translations?: Record<string, Record<string, string>>
 ): Promise<void> {
-	if (i18n_initialized) {
+	if (get_init_state()) {
 		return;
 	}
 
 	try {
 		const browser_locale = getLocaleFromNavigator();
-		const initial_locale =
-			browser_locale && available_locales.includes(browser_locale)
-				? browser_locale
-				: "en";
+		const initial_locale = get_initial_locale(
+			browser_locale,
+			available_locales
+		);
 
-		await init({
-			fallbackLocale: "en",
-			initialLocale: initial_locale
-		});
+		await init_i18n(initial_locale);
 
 		if (custom_translations) {
 			load_custom_translations(custom_translations);
 		}
 
-		i18n_initialized = true;
+		set_init_state(true);
 	} catch (error) {
 		console.error("Error initializing i18n:", error);
 	}
@@ -74,10 +100,6 @@ export function load_custom_translations(
 	if (!translations) {
 		return;
 	}
-	for (const lang_code in translations) {
-		if (Object.prototype.hasOwnProperty.call(translations, lang_code)) {
-			const translation_map = translations[lang_code];
-			addMessages(lang_code, translation_map);
-		}
-	}
+
+	load_translations(translations);
 }
