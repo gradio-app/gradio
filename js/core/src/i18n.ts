@@ -42,22 +42,26 @@ export async function setupi18n(
 		return;
 	}
 
-	const browser_locale = getLocaleFromNavigator();
-	const initial_locale =
-		browser_locale && available_locales.includes(browser_locale)
-			? browser_locale
-			: "en";
+	try {
+		const browser_locale = getLocaleFromNavigator();
+		const initial_locale =
+			browser_locale && available_locales.includes(browser_locale)
+				? browser_locale
+				: "en";
 
-	await init({
-		fallbackLocale: "en",
-		initialLocale: initial_locale
-	});
+		await init({
+			fallbackLocale: "en",
+			initialLocale: initial_locale
+		});
 
-	if (custom_translations) {
-		load_custom_translations(custom_translations);
+		if (custom_translations) {
+			load_custom_translations(custom_translations);
+		}
+
+		i18n_initialized = true;
+	} catch (error) {
+		console.error("Error initializing i18n:", error);
 	}
-
-	i18n_initialized = true;
 }
 
 export function changeLocale(new_locale: string): void {
