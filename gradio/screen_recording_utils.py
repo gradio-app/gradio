@@ -116,7 +116,7 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                     try:
                         if os.path.exists(file):
                             os.unlink(file)
-                    except:
+                    except OSError:
                         pass
 
         if "zoom_effects" in params and params["zoom_effects"]:
@@ -132,7 +132,7 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                     start_frame = effect.get("start_frame")
                     duration = effect.get("duration", 2.0)
 
-                    temp_output = tempfile.mktemp(suffix=f"_zoom_{i}.mp4")
+                    tempfile.mktemp(suffix=f"_zoom_{i}.mp4")
 
                     zoom_output, zoom_temp_files = await zoom_in(
                         current_input, top_left, bottom_right, duration, start_frame
