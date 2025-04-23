@@ -231,6 +231,14 @@ async def zoom_in(
         box_center_x = (x1 + x2) / 2
         box_center_y = (y1 + y2) / 2
 
+        frame_center_x = 0.5
+        if box_center_x < frame_center_x:
+            zoom_center_x = box_center_x - (box_width * 0.3)
+        else:
+            zoom_center_x = box_center_x + (box_width * 0.3)
+
+        zoom_center_y = box_center_y
+
         target_zoom = 3.0
         max_zoom_by_size = min(1.0 / box_width, 1.0 / box_height)
 
@@ -239,33 +247,6 @@ async def zoom_in(
 
         dynamic_max_zoom = min(max_zoom_by_size, target_zoom)
         dynamic_max_zoom = max(dynamic_max_zoom, 1.3)
-
-        frame_width_after_zoom = 1.0 / dynamic_max_zoom
-        frame_height_after_zoom = 1.0 / dynamic_max_zoom
-
-        min_center_x = x1 + (frame_width_after_zoom / 2)
-        max_center_x = x2 - (frame_width_after_zoom / 2)
-        min_center_y = y1 + (frame_height_after_zoom / 2)
-        max_center_y = y2 - (frame_height_after_zoom / 2)
-
-        zoom_center_x = box_center_x
-        zoom_center_y = box_center_y
-
-        if min_center_x <= max_center_x:
-            zoom_center_x = max(min_center_x, min(max_center_x, zoom_center_x))
-        else:
-            adjusted_zoom = 1.0 / box_width
-            dynamic_max_zoom = min(dynamic_max_zoom, adjusted_zoom * safety_margin)
-            zoom_center_x = box_center_x
-
-        if min_center_y <= max_center_y:
-            zoom_center_y = max(min_center_y, min(max_center_y, zoom_center_y))
-        else:
-            adjusted_zoom = 1.0 / box_height
-            dynamic_max_zoom = min(dynamic_max_zoom, adjusted_zoom * safety_margin)
-            zoom_center_y = box_center_y
-
-        dynamic_max_zoom = max(dynamic_max_zoom, 1.5)
 
         duration_cmd = f'ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "{input_path}"'
 
@@ -305,7 +286,6 @@ async def zoom_in(
         zoom_duration = min(float(zoom_duration), video_duration)
         zoom_output = tempfile.mktemp(suffix="_zoomed.mp4")
         temp_files.append(zoom_output)
-
         zoom_in_frames = int(fps/2)
         zoom_out_frames = int(fps/2)
         hold_frames = int(zoom_duration * fps)
