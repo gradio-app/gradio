@@ -78,6 +78,8 @@ export async function setupi18n(
 	}
 
 	try {
+		load_translations(processed_langs);
+
 		const browser_locale = getLocaleFromNavigator();
 		const initial_locale = get_initial_locale(
 			browser_locale,
