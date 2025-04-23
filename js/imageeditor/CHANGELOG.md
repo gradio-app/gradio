@@ -1,5 +1,12 @@
 # @gradio/imageeditor
 
+## 0.14.2
+
+### Fixes
+
+- [#11070](https://github.com/gradio-app/gradio/pull/11070) [`0355ef6`](https://github.com/gradio-app/gradio/commit/0355ef644577791749499c64840bad5947764dc8) - Ensure it is possible to draw after uploading an image to the ImageEditor.  Thanks @pngwn!
+- [#11057](https://github.com/gradio-app/gradio/pull/11057) [`bb1b74c`](https://github.com/gradio-app/gradio/commit/bb1b74cb62208f1cc05b91902cd541f36a1f9b01) - Image Editor Clear Event.  Thanks @freddyaboulton!
+
 ## 0.14.1
 
 ### Dependency updates
