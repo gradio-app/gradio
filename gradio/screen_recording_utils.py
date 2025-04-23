@@ -266,15 +266,15 @@ async def zoom_in(
         fps_cmd = f'ffprobe -v error -select_streams v:0 -show_entries stream=avg_frame_rate -of default=noprint_wrappers=1:nokey=1 "{input_path}"'
         process = await asyncio.create_subprocess_shell(
             fps_cmd,
-            stdout=asyncio.subprocess.PIPE, 
+            stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
         stdout, stderr = await process.communicate()
 
         try:
             fps_str = stdout.decode().strip()
-            if '/' in fps_str:
-                num, den = map(int, fps_str.split('/'))
+            if "/" in fps_str:
+                num, den = map(int, fps_str.split("/"))
                 fps = num / den if den != 0 else 30.0
             else:
                 fps = float(fps_str)
@@ -286,8 +286,8 @@ async def zoom_in(
         zoom_duration = min(float(zoom_duration), video_duration)
         zoom_output = tempfile.mktemp(suffix="_zoomed.mp4")
         temp_files.append(zoom_output)
-        zoom_in_frames = int(fps/2)
-        zoom_out_frames = int(fps/2)
+        zoom_in_frames = int(fps / 2)
+        zoom_out_frames = int(fps / 2)
         hold_frames = int(zoom_duration * fps)
 
         width, height = 1920, 1080
