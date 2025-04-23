@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.9.0
+
+### Features
+
+- [#11043](https://github.com/gradio-app/gradio/pull/11043) [`62a0080`](https://github.com/gradio-app/gradio/commit/62a00806e198c4c76bc132255d4b78c7aa329157) - Pass any visible error modals from a Gradio app downstream to the app that has `gr.load`-ed it.  Thanks @abidlabs!
+
 ## 1.8.0
 
 ### Features
