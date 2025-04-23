@@ -253,9 +253,6 @@ class GradioMCPServer:
             app: The Gradio app to mount the MCP server on.
             subpath: The subpath to mount the MCP server on. E.g. "/gradio_api/mcp"
         """
-        import logging
-
-        logging.basicConfig(level=logging.DEBUG)
         messages_path = f"{subpath}/messages/"
         sse = SseServerTransport(messages_path)
 
