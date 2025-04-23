@@ -99,7 +99,7 @@ class GradioMCPServer:
                     schema, _ = self.get_input_schema(tool_name, parameters)
                     tools.append(
                         types.Tool(
-                            name=endpoint_name,
+                            name=tool_name,
                             description=description,
                             inputSchema=schema,
                         )
@@ -133,7 +133,9 @@ class GradioMCPServer:
             subpath,
             Starlette(
                 routes=[
-                    Route("/schema", endpoint=self.get_complete_schema),  # not required for MCP but useful for debugging
+                    Route(
+                        "/schema", endpoint=self.get_complete_schema
+                    ),  # Required for proper initialization
                     Route("/sse", endpoint=handle_sse),
                     Mount("/messages/", app=sse.handle_post_message),
                 ],
@@ -169,7 +171,8 @@ class GradioMCPServer:
                     line = next(lines_iter, "").strip()
                     continue
                 param_name, param_desc = line.split(":", 1)
-                parameters[param_name.strip()] = param_desc.strip()
+                param_name = param_name.split(" ")[0].strip()
+                parameters[param_name] = param_desc.strip()
                 line = next(lines_iter, "").strip()
 
         return description, parameters
@@ -183,7 +186,7 @@ class GradioMCPServer:
         Get the input schema of the Gradio app API, appropriately formatted for MCP.
 
         Parameters:
-            tool_name: The name of the tool to get the schema for.
+            tool_name: The name of the tool to get the schema for, e.g. "predict"
             parameters: The description and parameters of the tool to get the schema for.
         Returns:
             The input schema of the Gradio app API.
@@ -231,11 +234,7 @@ class GradioMCPServer:
             tool_name = endpoint_name.lstrip("/")
             if endpoint_info["show_api"]:
                 block_fn = next(
-                    (
-                        fn
-                        for fn in self.blocks.fns.values()
-                        if fn.api_name == tool_name
-                    ),
+                    (fn for fn in self.blocks.fns.values() if fn.api_name == tool_name),
                     None,
                 )
                 if block_fn is None or block_fn.fn is None:
