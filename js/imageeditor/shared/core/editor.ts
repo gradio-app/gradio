@@ -900,6 +900,11 @@ export class LayerManager {
 		if (!persist) {
 			this.active_layer = this.layers[0].container;
 			this.active_layer_id = this.layers[0].id;
+		} else {
+			// the id is the same but the layer is new, we need to find the new layer
+			this.active_layer =
+				this.layers.find((l) => l.id === this.active_layer_id)?.container ||
+				this.layers[0].container;
 		}
 
 		this.layer_store.update((state) => ({
