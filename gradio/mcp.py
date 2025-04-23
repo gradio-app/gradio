@@ -1,12 +1,13 @@
-from typing import TYPE_CHECKING, Any, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 import gradio_client.utils as client_utils
 from mcp import types
 from mcp.server import Server
 from mcp.server.sse import SseServerTransport
 from starlette.applications import Starlette
-from starlette.routing import Mount, Route
 from starlette.responses import JSONResponse
+from starlette.routing import Mount, Route
 
 from gradio.data_classes import FileData
 
@@ -205,15 +206,15 @@ class GradioMCPServer:
                         {"description": parameters[p["parameter_name"]]}
                         if parameters and p["parameter_name"] in parameters
                         else {}
-                    )
+                    ),
                 }
                 for p in endpoint_info["parameters"]
-            }
+            },
         }
 
         return self.simplify_filedata_schema(schema)
 
-    async def get_complete_schema(self, request) -> JSONResponse:
+    async def get_complete_schema(self, request) -> JSONResponse:  # noqa: ARG002
         """
         Get the complete schema of the Gradio app API. (For debugging purposes)
 
