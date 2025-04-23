@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from gradio_client.documentation import document
+from gradio_client.exceptions import AppError
 
 
 class DuplicateBlockError(ValueError):
@@ -57,7 +58,7 @@ InvalidApiName = InvalidApiNameError  # backwards compatibility
 
 
 @document(documentation_group="modals")
-class Error(Exception):
+class Error(AppError):
     """
     This class allows you to pass custom error messages to the user. You can do so by raising a gr.Error("custom message") anywhere in the code, and when that line is executed the custom message will appear in a modal on the demo.
     Example:
@@ -85,12 +86,13 @@ class Error(Exception):
             title: The title to be displayed to the user at the top of the error modal.
             print_exception: Whether to print traceback of the error to the console when the error is raised.
         """
-        self.title = title
-        self.message = message
-        self.duration = duration
-        self.visible = visible
-        self.print_exception = print_exception
-        super().__init__(self.message)
+        super().__init__(
+            message=message,
+            duration=duration,
+            visible=visible,
+            title=title,
+            print_exception=print_exception,
+        )
 
     def __str__(self):
         return repr(self.message)
