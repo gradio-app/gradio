@@ -88,6 +88,7 @@ class DeepLinkButton(Button):
             inputs=[],
             outputs=[self],
             queue=False,
+            show_api=False,
         )
 
     def get_share_link(
