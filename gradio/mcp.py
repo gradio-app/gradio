@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 import gradio_client.utils as client_utils
 from mcp import types
@@ -6,6 +6,7 @@ from mcp.server import Server
 from mcp.server.sse import SseServerTransport
 from starlette.applications import Starlette
 from starlette.routing import Mount, Route
+from starlette.responses import JSONResponse
 
 from gradio.data_classes import FileData
 
@@ -48,20 +49,7 @@ class GradioMCPServer:
                 name: The name of the tool to call.
                 arguments: The arguments to pass to the tool.
             """
-            tool_endpoint = f"/{name}"
-            named_endpoints = self.blocks.get_api_info()["named_endpoints"]  # type: ignore
-            assert isinstance(named_endpoints, dict)  # noqa: S101
-            endpoint_info = named_endpoints.get(tool_endpoint)
-            if endpoint_info is None:
-                raise ValueError(f"Unknown tool for this Gradio app: {name}")
-
-            schema = {
-                "type": "object",
-                "properties": {
-                    p["parameter_name"]: p["type"] for p in endpoint_info["parameters"]
-                },
-            }
-            _, filedata_positions = self.simplify_filedata_schema(schema)
+            _, filedata_positions = self.get_input_schema(name)
             processed_arguments = self.convert_strings_to_filedata(
                 arguments, filedata_positions
             )
@@ -89,11 +77,12 @@ class GradioMCPServer:
             List all tools on the Gradio app.
             """
             api_info = self.blocks.get_api_info()
-            tools = []
             if not api_info:
-                return tools
+                return []
+
+            tools = []
             for endpoint_name, endpoint_info in api_info["named_endpoints"].items():
-                endpoint_name = endpoint_name.lstrip("/")
+                tool_name = endpoint_name.lstrip("/")
                 if endpoint_info["show_api"]:
                     block_fn = next(
                         (
@@ -105,50 +94,13 @@ class GradioMCPServer:
                     )
                     if block_fn is None or block_fn.fn is None:
                         continue
-                    fn_docstring = block_fn.fn.__doc__
-                    description = ""
-                    parameters = {}
-                    if fn_docstring:
-                        lines = fn_docstring.strip().split("\n")
-                        lines_iter = iter(lines)
-                        description = next(lines_iter, "").strip() if lines else ""
-                        for line in lines_iter:
-                            if line.strip().startswith("Args:"):
-                                break
-                        else:
-                            line = ""
-                        while line:
-                            line = line.strip()
-                            if line.startswith("Args:") or not line:
-                                line = next(lines_iter, "").strip()
-                                continue
-                            param_name, param_desc = line.split(":", 1)
-                            parameters[param_name.strip()] = param_desc.strip()
-                            line = next(lines_iter, "").strip()
+                    description, parameters = self.get_function_docstring(block_fn.fn)
+                    schema, _ = self.get_input_schema(tool_name, parameters)
                     tools.append(
                         types.Tool(
                             name=endpoint_name,
                             description=description,
-                            inputSchema={
-                                "type": "object",
-                                "properties": {
-                                    p["parameter_name"]: {
-                                        "type": self.simplify_filedata_schema(
-                                            p["type"]
-                                        ),
-                                        **(
-                                            {
-                                                "description": parameters[
-                                                    p["parameter_name"]
-                                                ]
-                                            }
-                                            if p["parameter_name"] in parameters
-                                            else {}
-                                        ),
-                                    }
-                                    for p in endpoint_info["parameters"]
-                                },
-                            },
+                            inputSchema=schema,
                         )
                     )
             return tools
@@ -180,15 +132,135 @@ class GradioMCPServer:
             subpath,
             Starlette(
                 routes=[
+                    Route("/schema", endpoint=self.get_complete_schema),
                     Route("/sse", endpoint=handle_sse),
                     Mount("/messages/", app=sse.handle_post_message),
                 ],
             ),
         )
 
+    def get_function_docstring(self, fn: Callable) -> tuple[str, dict[str, str]]:
+        """
+        Get the docstring of a function, and the description and parameters.
+
+        Parameters:
+            fn: The function to get the docstring for.
+
+        Returns:
+            - The docstring of the function
+            - A dictionary of parameter names and their descriptions
+        """
+        fn_docstring = fn.__doc__
+        description = ""
+        parameters = {}
+        if fn_docstring:
+            lines = fn_docstring.strip().split("\n")
+            lines_iter = iter(lines)
+            description = next(lines_iter, "").strip() if lines else ""
+            for line in lines_iter:
+                if line.strip().startswith("Args:"):
+                    break
+            else:
+                line = ""
+            while line:
+                line = line.strip()
+                if line.startswith("Args:") or not line:
+                    line = next(lines_iter, "").strip()
+                    continue
+                param_name, param_desc = line.split(":", 1)
+                parameters[param_name.strip()] = param_desc.strip()
+                line = next(lines_iter, "").strip()
+
+        return description, parameters
+
+    def get_input_schema(
+        self,
+        tool_name: str,
+        parameters: dict[str, str] | None = None,
+    ) -> tuple[dict[str, Any], list[list[str | int]]]:
+        """
+        Get the input schema of the Gradio app API, appropriately formatted for MCP.
+
+        Parameters:
+            tool_name: The name of the tool to get the schema for.
+            parameters: The description and parameters of the tool to get the schema for.
+        Returns:
+            The input schema of the Gradio app API.
+        """
+        endpoint_name = f"/{tool_name}" if tool_name else None
+
+        named_endpoints = self.blocks.get_api_info()["named_endpoints"]  # type: ignore
+        assert isinstance(named_endpoints, dict)  # noqa: S101
+        endpoint_info = named_endpoints.get(endpoint_name)
+
+        if endpoint_info is None:
+            raise ValueError(f"Unknown tool for this Gradio app: {tool_name}")
+
+        schema = {
+            "type": "object",
+            "properties": {
+                p["parameter_name"]: {
+                    "type": p["type"],
+                    **(
+                        {"description": parameters[p["parameter_name"]]}
+                        if parameters and p["parameter_name"] in parameters
+                        else {}
+                    )
+                }
+                for p in endpoint_info["parameters"]
+            }
+        }
+
+        return self.simplify_filedata_schema(schema)
+
+    async def get_complete_schema(self, request) -> JSONResponse:
+        """
+        Get the complete schema of the Gradio app API. (For debugging purposes)
+
+        Parameters:
+            request: The Starlette request object.
+
+        Returns:
+            A JSONResponse containing a dictionary mapping tool names to their input schemas.
+        """
+        api_info = self.blocks.get_api_info()
+        if not api_info:
+            return JSONResponse({})
+
+        schemas = {}
+        for endpoint_name, endpoint_info in api_info["named_endpoints"].items():
+            tool_name = endpoint_name.lstrip("/")
+            if endpoint_info["show_api"]:
+                block_fn = next(
+                    (
+                        fn
+                        for fn in self.blocks.fns.values()
+                        if fn.api_name == endpoint_name
+                    ),
+                    None,
+                )
+                if block_fn is None or block_fn.fn is None:
+                    continue
+                _, parameters = self.get_function_docstring(block_fn.fn)
+                schema, _ = self.get_input_schema(tool_name, parameters)
+                schemas[tool_name] = schema
+
+        return JSONResponse(schemas)
+
     def simplify_filedata_schema(
         self, schema: dict[str, Any]
     ) -> tuple[dict[str, Any], list[list[str | int]]]:
+        """
+        Parses a schema of a Gradio app API to identify positions of FileData objects. Replaces them with
+        just strings while keeping track of their positions so that they can be converted back to FileData objects
+        later.
+
+        Parameters:
+            schema: The original schema of the Gradio app API.
+
+        Returns:
+            A tuple containing the simplified schema and the positions of the FileData objects.
+        """
         filedata_positions: list[list[str | int]] = []
 
         def is_gradio_filedata(obj: Any) -> bool:
