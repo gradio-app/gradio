@@ -1,5 +1,11 @@
 # @gradio/core
 
+## 0.14.1
+
+### Fixes
+
+- [#11038](https://github.com/gradio-app/gradio/pull/11038) [`fd46e48`](https://github.com/gradio-app/gradio/commit/fd46e48f516a2907c469c7a6d3e67ae9f7068b29) - Be able to dispatch Info messages from a component.  Thanks @freddyaboulton!
+
 ## 0.14.0
 
 ### Dependency updates
