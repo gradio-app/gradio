@@ -248,7 +248,7 @@ def i18n(**kwargs) -> _I18n:
     translation dictionaries for different locales.
 
     Args:
-        **kwargs: Each keyword argument should be a locale code (e.g., "en", "fr") with a 
+        **kwargs: Each keyword argument should be a locale code (e.g., "en", "fr") with a
         dictionary value, which maps translation keys to translated strings.
 
     Returns:
