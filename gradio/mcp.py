@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, Any
 
 import gradio_client.utils as client_utils
-from gradio_client import Client
 from mcp import types
 from mcp.server import Server
 from mcp.server.sse import SseServerTransport
@@ -24,94 +23,7 @@ class GradioMCPServer:
 
     def __init__(self, blocks: "Blocks"):
         self.blocks = blocks
-        self.gradio_client = None
         self.mcp_server = self.create_mcp_server()
-
-    def simplify_filedata_schema(
-        self, schema: dict[str, Any]
-    ) -> tuple[dict[str, Any], list[list[str | int]]]:
-        filedata_positions: list[list[str | int]] = []
-
-        def is_gradio_filedata(obj: Any) -> bool:
-            if not isinstance(obj, dict):
-                return False
-            props = obj.get("properties", {})
-            meta = props.get("meta", {})
-            return meta.get("default", {}).get("_type") == "gradio.FileData"
-
-        def traverse(node: Any, path: list[str | int] | None = None) -> Any:
-            if path is None:
-                path = []
-
-            if isinstance(node, dict):
-                if is_gradio_filedata(node):
-                    filedata_positions.append(path.copy())
-                    return {"type": "string", "format": "uri"}
-                result = {}
-                # Skip schema structure keys when building the path
-                is_schema_root = "type" in node and "properties" in node
-                for key, value in node.items():
-                    if is_schema_root and key == "properties":
-                        # Process properties without adding to path
-                        result[key] = traverse(value, path)
-                    else:
-                        path.append(key)
-                        result[key] = traverse(value, path)
-                        path.pop()
-                return result
-            elif isinstance(node, list):
-                result = []
-                for i, item in enumerate(node):
-                    path.append(i)
-                    result.append(traverse(item, path))
-                    path.pop()
-                return result
-            return node
-
-        simplified_schema = traverse(schema)
-        return simplified_schema, filedata_positions
-
-    def convert_strings_to_filedata(
-        self, value: Any, filedata_positions: list[list[str | int]]
-    ) -> Any:
-        """
-        Convert specific string values back to FileData objects based on their positions.
-
-        Parameters:
-            value: The input value to process
-            filedata_positions: List of paths to positions where FileData objects were found
-        """
-
-        def traverse(node: Any, path: list[str | int] | None = None) -> Any:
-            if path is None:
-                path = []
-
-            if isinstance(node, dict):
-                return {
-                    key: traverse(value, path + [key]) for key, value in node.items()
-                }
-            elif isinstance(node, list):
-                return [traverse(item, path + [i]) for i, item in enumerate(node)]
-            elif isinstance(node, str) and path in filedata_positions:
-                return FileData(path=node)
-            return node
-
-        return traverse(value)
-
-    def lazy_attach_gradio_client(self) -> Client:
-        """
-        Attach a Gradio client to the MCP server if it is not already attached.
-
-        Parameters:
-            server: The MCP server to attach the Gradio client to.
-        """
-        if self.gradio_client is None:
-            if self.blocks.local_url is None:
-                raise ValueError(
-                    "Cannot query MCP server as the Gradio app is not running (no URL available)."
-                )
-            self.gradio_client = Client(self.blocks.local_url, verbose=False)
-        return self.gradio_client
 
     def create_mcp_server(self) -> Server:
         """
@@ -136,8 +48,6 @@ class GradioMCPServer:
                 name: The name of the tool to call.
                 arguments: The arguments to pass to the tool.
             """
-            # client = self.lazy_attach_gradio_client()
-
             tool_endpoint = f"/{name}"
             named_endpoints = self.blocks.get_api_info()["named_endpoints"]  # type: ignore
             assert isinstance(named_endpoints, dict)  # noqa: S101
@@ -275,3 +185,92 @@ class GradioMCPServer:
                 ],
             ),
         )
+
+    def simplify_filedata_schema(
+        self, schema: dict[str, Any]
+    ) -> tuple[dict[str, Any], list[list[str | int]]]:
+        filedata_positions: list[list[str | int]] = []
+
+        def is_gradio_filedata(obj: Any) -> bool:
+            if not isinstance(obj, dict):
+                return False
+            props = obj.get("properties", {})
+            meta = props.get("meta", {})
+            return meta.get("default", {}).get("_type") == "gradio.FileData"
+
+        def traverse(node: Any, path: list[str | int] | None = None) -> Any:
+            if path is None:
+                path = []
+
+            if isinstance(node, dict):
+                if is_gradio_filedata(node):
+                    filedata_positions.append(path.copy())
+                    return {"type": "string", "format": "uri"}
+                result = {}
+                is_schema_root = "type" in node and "properties" in node
+                for key, value in node.items():
+                    if is_schema_root and key == "properties":
+                        result[key] = traverse(value, path)
+                    else:
+                        path.append(key)
+                        result[key] = traverse(value, path)
+                        path.pop()
+                return result
+            elif isinstance(node, list):
+                result = []
+                for i, item in enumerate(node):
+                    path.append(i)
+                    result.append(traverse(item, path))
+                    path.pop()
+                return result
+            return node
+
+        simplified_schema = traverse(schema)
+        return simplified_schema, filedata_positions
+
+    def convert_strings_to_filedata(
+        self, value: Any, filedata_positions: list[list[str | int]]
+    ) -> Any:
+        """
+        Convert specific string values back to FileData objects based on their positions.
+        This is used to convert string values (which can be URLs or base64 encoded strings)
+        to FileData dictionaries so that they can be passed into .preprocess() logic of a
+        Gradio app.
+
+        Parameters:
+            value: The input data to process, which can be an arbitrary nested data structure
+                that may or may not contain strings that should be converted to FileData objects.
+            filedata_positions: List of paths to positions in the input data that should be converted to FileData objects.
+
+        Returns:
+            The processed data with strings converted to FileData objects where appropriate. Base64
+            encoded strings are first saved to a temporary file and then converted to a FileData object.
+
+        Example:
+            >>> convert_strings_to_filedata(
+                {"image": "https://example.com/image.jpg", "text": "Hello, world!"},
+                [["image"]]
+            )
+            >>> {'image': FileData(path='https://example.com/image.jpg'), 'text': 'Hello, world!'},
+            >>> convert_strings_to_filedata(
+                {"image": "data:image/jpeg;base64,..."},
+                [["image"]]
+            )
+            >>> {'image': FileData(path='<temporary file path>')},
+        """
+
+        def traverse(node: Any, path: list[str | int] | None = None) -> Any:
+            if path is None:
+                path = []
+
+            if isinstance(node, dict):
+                return {
+                    key: traverse(value, path + [key]) for key, value in node.items()
+                }
+            elif isinstance(node, list):
+                return [traverse(item, path + [i]) for i, item in enumerate(node)]
+            elif isinstance(node, str) and path in filedata_positions:
+                return FileData(path=node)
+            return node
+
+        return traverse(value)

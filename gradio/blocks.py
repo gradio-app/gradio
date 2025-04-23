@@ -2819,12 +2819,12 @@ Received inputs:
                     )
         else:
             if not quiet and not wasm_utils.IS_WASM:
-                print("\nTo create a public link, set `share=True` in `launch()`.")
+                print("* To create a public link, set `share=True` in `launch()`.")
             self.share_url = None
 
         if mcp_server:
             print(
-                f"\n🔨 MCP server (using SSE) running at: {self.share_url or self.local_url}{mcp_subpath.lstrip('/')}/sse"
+                f"\n🔨 MCP server (using SSE) running at: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
             )
 
         if inbrowser and not wasm_utils.IS_WASM:
