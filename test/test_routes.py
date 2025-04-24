@@ -1275,18 +1275,8 @@ def test_get_root_url(
     "headers, root_path, route_path, expected_root_url",
     [
         ({}, "/gradio/", "/", "http://gradio.app/gradio"),
-        (
-            {"x-forwarded-proto": "http"},
-            "/gradio/",
-            "/",
-            "http://gradio.app/gradio",
-        ),
-        (
-            {"x-forwarded-proto": "https"},
-            "/gradio/",
-            "/",
-            "https://gradio.app/gradio",
-        ),
+        ({"x-forwarded-proto": "http"}, "/gradio/", "/", "http://gradio.app/gradio"),
+        ({"x-forwarded-proto": "https"}, "/gradio/", "/", "https://gradio.app/gradio"),
         (
             {"x-forwarded-host": "gradio.dev"},
             "/gradio/",
@@ -1704,6 +1694,7 @@ def test_mount_gradio_app_args_match_launch_args():
         "self",
         "strict_cors",
         "max_threads",
+        "i18n",
     }
 
     missing_params = []
