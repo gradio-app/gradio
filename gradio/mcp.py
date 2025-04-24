@@ -189,7 +189,8 @@ class GradioMCPServer:
             tool_name: The name of the tool to get the schema for, e.g. "predict"
             parameters: The description and parameters of the tool to get the schema for.
         Returns:
-            The input schema of the Gradio app API.
+            - The input schema of the Gradio app API.
+            - A list of positions of FileData objects in the input schema.
         """
         endpoint_name = f"/{tool_name}"
         named_endpoints = self.blocks.get_api_info()["named_endpoints"]  # type: ignore
@@ -249,8 +250,8 @@ class GradioMCPServer:
         self, schema: dict[str, Any]
     ) -> tuple[dict[str, Any], list[list[str | int]]]:
         """
-        Parses a schema of a Gradio app API to identify positions of FileData objects. Replaces them with
-        just strings while keeping track of their positions so that they can be converted back to FileData objects
+        Parses a schema of a Gradio app API to identify positions of FileData objects. Replaces them with base64
+        strings while keeping track of their positions so that they can be converted back to FileData objects
         later.
 
         Parameters:
@@ -275,7 +276,10 @@ class GradioMCPServer:
             if isinstance(node, dict):
                 if is_gradio_filedata(node):
                     filedata_positions.append(path.copy())
-                    return {"type": "string", "format": "uri"}
+                    for key in ["properties", "additional_description"]:
+                        node.pop(key, None)
+                    node["type"] = "string"
+                    node["contentEncoding"] = "base64"
                 result = {}
                 is_schema_root = "type" in node and "properties" in node
                 for key, value in node.items():
@@ -303,9 +307,8 @@ class GradioMCPServer:
     ) -> Any:
         """
         Convert specific string values back to FileData objects based on their positions.
-        This is used to convert string values (which can be URLs or base64 encoded strings)
-        to FileData dictionaries so that they can be passed into .preprocess() logic of a
-        Gradio app.
+        This is used to convert string values (as base64 encoded strings) to FileData
+        dictionaries so that they can be passed into .preprocess() logic of a Gradio app.
 
         Parameters:
             value: The input data to process, which can be an arbitrary nested data structure
@@ -317,11 +320,6 @@ class GradioMCPServer:
             encoded strings are first saved to a temporary file and then converted to a FileData object.
 
         Example:
-            >>> convert_strings_to_filedata(
-                {"image": "https://example.com/image.jpg", "text": "Hello, world!"},
-                [["image"]]
-            )
-            >>> {'image': FileData(path='https://example.com/image.jpg'), 'text': 'Hello, world!'},
             >>> convert_strings_to_filedata(
                 {"image": "data:image/jpeg;base64,..."},
                 [["image"]]
