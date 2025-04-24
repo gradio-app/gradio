@@ -8,13 +8,14 @@
 		IconButtonWrapper,
 		FullscreenButton
 	} from "@gradio/atoms";
-	import { Image, Download, Undo } from "@gradio/icons";
+	import { Image, Download, Undo, Clear } from "@gradio/icons";
 	import { type FileData } from "@gradio/client";
 	import type { I18nFormatter } from "@gradio/utils";
 	import { DownloadLink } from "@gradio/wasm/svelte";
 	import { ZoomableImage } from "./zoom";
 	import { onMount } from "svelte";
 	import { tweened, type Tweened } from "svelte/motion";
+	import { createEventDispatcher } from "svelte";
 
 	export let value: [null | FileData, null | FileData] = [null, null];
 	export let label: string | undefined = undefined;
@@ -28,6 +29,8 @@
 	export let show_fullscreen_button = true;
 	export let el_width = 0;
 	export let max_height: number;
+	export let interactive = true;
+	const dispatch = createEventDispatcher<{ clear: void }>();
 
 	let img: HTMLImageElement;
 	let slider_wrap: HTMLDivElement;
@@ -148,6 +151,17 @@
 				>
 					<IconButton Icon={Download} label={i18n("common.download")} />
 				</DownloadLink>
+			{/if}
+			{#if interactive}
+				<IconButton
+					Icon={Clear}
+					label="Remove Image"
+					on:click={(event) => {
+						value = [null, null];
+						dispatch("clear");
+						event.stopPropagation();
+					}}
+				/>
 			{/if}
 		</IconButtonWrapper>
 		<div

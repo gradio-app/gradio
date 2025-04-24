@@ -124,7 +124,9 @@
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => gradio.dispatch("error", detail)}
-			{value}
+			on:clear={() => gradio.dispatch("clear")}
+			{interactive}
+			bind:value
 			{label}
 			{show_label}
 			{show_download_button}
