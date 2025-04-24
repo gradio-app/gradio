@@ -884,7 +884,10 @@
 				class="record"
 			>
 				{$_($is_screen_recording ? "common.stop_recording" : "common.record")}
-				<img src={$is_screen_recording ? record_stop : record} alt={$_("common.record")} />
+				<img
+					src={$is_screen_recording ? record_stop : record}
+					alt={$_("common.record")}
+				/>
 			</button>
 			<div class="divider">·</div>
 			<button

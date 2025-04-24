@@ -259,7 +259,7 @@ async function handleRecordingComplete(recordedBlob: Blob): Promise<void> {
 			"This may take a few seconds...",
 			"info"
 		);
-	
+
 		const formData = new FormData();
 		formData.append("video", recordedBlob, "recording.mp4");
 
