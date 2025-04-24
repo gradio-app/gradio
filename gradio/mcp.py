@@ -14,9 +14,10 @@ from starlette.routing import Mount, Route
 
 from gradio.data_classes import FileData
 from gradio.processing_utils import save_base64_to_cache
+from gradio.blocks import BlockFunction
 
 if TYPE_CHECKING:
-    from gradio.blocks import BlockFunction, Blocks
+    from gradio.blocks import Blocks
 
 
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
@@ -66,6 +67,7 @@ class GradioMCPServer:
             block_fn = self.get_block_fn_from_tool_name(name)
             if block_fn is None:
                 raise ValueError(f"Unknown tool for this Gradio app: {name}")
+            print("processed_arguments", processed_arguments)
             output = await self.blocks.process_api(
                 block_fn=block_fn,
                 inputs=list(processed_arguments.values()),
@@ -176,7 +178,7 @@ class GradioMCPServer:
 
         return description, parameters
 
-    def get_block_fn_from_tool_name(self, tool_name: str) -> BlockFunction | None:
+    def get_block_fn_from_tool_name(self, tool_name: str) -> "BlockFunction | None":
         """
         Get the BlockFunction for a given tool name.
 
