@@ -1,4 +1,7 @@
+import os
+import tempfile
 from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import gradio_client.utils as client_utils
@@ -10,9 +13,15 @@ from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
 
 from gradio.data_classes import FileData
+from gradio.processing_utils import save_base64_to_cache
 
 if TYPE_CHECKING:
-    from gradio.blocks import Blocks
+    from gradio.blocks import BlockFunction, Blocks
+
+
+DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
+    Path(tempfile.gettempdir()) / "gradio"
+)
 
 
 class GradioMCPServer:
@@ -54,10 +63,7 @@ class GradioMCPServer:
             processed_arguments = self.convert_strings_to_filedata(
                 arguments, filedata_positions
             )
-            block_fn = next(
-                (fn for fn in self.blocks.fns.values() if fn.api_name == name),
-                None,
-            )
+            block_fn = self.get_block_fn_from_tool_name(name)
             if block_fn is None:
                 raise ValueError(f"Unknown tool for this Gradio app: {name}")
             output = await self.blocks.process_api(
@@ -85,14 +91,7 @@ class GradioMCPServer:
             for endpoint_name, endpoint_info in api_info["named_endpoints"].items():
                 tool_name = endpoint_name.lstrip("/")
                 if endpoint_info["show_api"]:
-                    block_fn = next(
-                        (
-                            fn
-                            for fn in self.blocks.fns.values()
-                            if fn.api_name == tool_name
-                        ),
-                        None,
-                    )
+                    block_fn = self.get_block_fn_from_tool_name(tool_name)
                     if block_fn is None or block_fn.fn is None:
                         continue
                     description, parameters = self.get_function_docstring(block_fn.fn)
@@ -177,6 +176,22 @@ class GradioMCPServer:
 
         return description, parameters
 
+    def get_block_fn_from_tool_name(self, tool_name: str) -> BlockFunction | None:
+        """
+        Get the BlockFunction for a given tool name.
+
+        Parameters:
+            tool_name: The name of the tool to get the BlockFunction for.
+
+        Returns:
+            The BlockFunction for the given tool name, or None if it is not found.
+        """
+        block_fn = next(
+            (fn for fn in self.blocks.fns.values() if fn.api_name == tool_name),
+            None,
+        )
+        return block_fn
+
     def get_input_schema(
         self,
         tool_name: str,
@@ -234,10 +249,7 @@ class GradioMCPServer:
         for endpoint_name, endpoint_info in api_info["named_endpoints"].items():
             tool_name = endpoint_name.lstrip("/")
             if endpoint_info["show_api"]:
-                block_fn = next(
-                    (fn for fn in self.blocks.fns.values() if fn.api_name == tool_name),
-                    None,
-                )
+                block_fn = self.get_block_fn_from_tool_name(tool_name)
                 if block_fn is None or block_fn.fn is None:
                     continue
                 _, parameters = self.get_function_docstring(block_fn.fn)
@@ -338,7 +350,7 @@ class GradioMCPServer:
             elif isinstance(node, list):
                 return [traverse(item, path + [i]) for i, item in enumerate(node)]
             elif isinstance(node, str) and path in filedata_positions:
-                return FileData(path=node)
+                return FileData(path=save_base64_to_cache(node, DEFAULT_TEMP_DIR))
             return node
 
         return traverse(value)
