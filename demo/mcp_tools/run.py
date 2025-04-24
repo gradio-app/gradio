@@ -1,5 +1,8 @@
 import numpy as np
 import gradio as gr
+from pathlib import Path
+import os
+
 
 def sepia(input_img):
     """
@@ -33,6 +36,7 @@ def prime_factors(n):
     Raises:
         ValueError: If n is not greater than 1.
     """
+    n = int(n)
     if n <= 1:
         raise ValueError("Input must be an integer greater than 1.")
 
@@ -53,10 +57,21 @@ def prime_factors(n):
 
     return factors
 
+
+def generate_cheetah_image():
+    """
+    Generate a cheetah image.
+
+    Returns:
+        The generated cheetah image.
+    """
+    return Path(os.path.dirname(__file__)) / "cheetah.jpg"
+
+
 demo = gr.TabbedInterface(
     [
         gr.Interface(sepia, gr.Image(), gr.Image()),
-        gr.Interface(prime_factors, gr.Number(), gr.Textbox())
+        gr.Interface(prime_factors, gr.Textbox(), gr.Textbox())
     ],
     [
         "Sepia Filter",

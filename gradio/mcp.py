@@ -121,14 +121,18 @@ class GradioMCPServer:
         sse = SseServerTransport(messages_path)
 
         async def handle_sse(request):
-            async with sse.connect_sse(
-                request.scope, request.receive, request._send
-            ) as streams:
-                await self.mcp_server.run(
-                    streams[0],
-                    streams[1],
-                    self.mcp_server.create_initialization_options(),
-                )
+            try:
+                async with sse.connect_sse(
+                    request.scope, request.receive, request._send
+                ) as streams:
+                    await self.mcp_server.run(
+                        streams[0],
+                        streams[1],
+                        self.mcp_server.create_initialization_options(),
+                    )
+            except Exception as e:
+                print(f"MCP SSE connection error: {str(e)}")
+                raise
 
         app.mount(
             subpath,
