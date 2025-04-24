@@ -155,17 +155,6 @@ class ImageSlider(Component):
             )
         )
 
-    def preprocess_image(
-        self, payload: ImageData | None
-    ) -> np.ndarray | PIL.Image.Image | str | None:
-        return image_utils.preprocess_image(
-            payload,
-            cache_dir=self.GRADIO_CACHE,
-            format=self.format,
-            image_mode=self.image_mode,
-            type=self.type,
-        )
-
     def preprocess(self, payload: SliderData | None) -> image_tuple | None:
         """
         Parameters:
@@ -178,8 +167,20 @@ class ImageSlider(Component):
         if payload.root is None:
             raise ValueError("Payload is None.")
         return (
-            self.preprocess_image(payload.root[0]),
-            self.preprocess_image(payload.root[1]),
+            image_utils.preprocess_image(
+                payload.root[0],
+                cache_dir=self.GRADIO_CACHE,
+                format=self.format,
+                image_mode=self.image_mode,
+                type=self.type,
+            ),
+            image_utils.preprocess_image(
+                payload.root[1],
+                cache_dir=self.GRADIO_CACHE,
+                format=self.format,
+                image_mode=self.image_mode,
+                type=self.type,
+            ),
         )
 
     def postprocess(

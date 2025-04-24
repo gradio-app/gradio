@@ -214,15 +214,24 @@ export class ZoomableImage {
 		}
 
 		if (pan) {
-			// this is wrong, fix
 			const containerRect = this.container.getBoundingClientRect();
-			const imageRect = this.image.getBoundingClientRect();
+			const imageWidth = this.image.naturalWidth;
+			const imageHeight = this.image.naturalHeight;
 
-			const minX = containerRect.width - imageRect.width;
-			const minY = containerRect.height - imageRect.height;
+			const scaledWidth = imageWidth * this.scale;
+			const scaledHeight = imageHeight * this.scale;
 
-			this.offsetX = Math.min(0, Math.max(this.offsetX, minX));
-			this.offsetY = Math.min(0, Math.max(this.offsetY, minY));
+			// Compute the min offset (how far you can pan to the left/top)
+			const minX = Math.min(0, containerRect.width - scaledWidth);
+			const minY = Math.min(0, containerRect.height - scaledHeight);
+
+			// Compute the max offset (how far you can pan to the right/bottom)
+			const maxX = 0;
+			const maxY = 0;
+
+			// Clamp offsets
+			this.offsetX = Math.min(maxX, Math.max(this.offsetX, minX));
+			this.offsetY = Math.min(maxY, Math.max(this.offsetY, minY));
 		}
 	}
 
