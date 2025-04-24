@@ -34,4 +34,4 @@ with gr.Blocks() as demo:
     btn.click(lambda : gr.Dataset(samples=new_samples), None, interface.examples_handler.dataset, show_api=False)
 
 if __name__ == "__main__":
-    demo.launch(mcp_server=True)
+    demo.launch()
