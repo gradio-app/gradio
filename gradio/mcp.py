@@ -15,9 +15,9 @@ from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
 
+from gradio import processing_utils
 from gradio.blocks import BlockFunction
 from gradio.data_classes import FileData
-from gradio.processing_utils import save_base64_to_cache
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -64,6 +64,7 @@ class GradioMCPServer:
                 arguments: The arguments to pass to the tool.
             """
             _, filedata_positions = self.get_input_schema(name)
+            print("original arguments", arguments)
             processed_arguments = self.convert_strings_to_filedata(
                 arguments, filedata_positions
             )
@@ -296,7 +297,7 @@ class GradioMCPServer:
                     for key in ["properties", "additional_description"]:
                         node.pop(key, None)
                     node["type"] = "string"
-                    node["contentEncoding"] = "base64"
+                    node["format"] = "url or base64 encoded string"
                 result = {}
                 is_schema_root = "type" in node and "properties" in node
                 for key, value in node.items():
@@ -355,7 +356,12 @@ class GradioMCPServer:
             elif isinstance(node, list):
                 return [traverse(item, path + [i]) for i, item in enumerate(node)]
             elif isinstance(node, str) and path in filedata_positions:
-                return FileData(path=save_base64_to_cache(node, DEFAULT_TEMP_DIR))
+                if node.startswith("data:"):
+                    return FileData(path=processing_utils.save_base64_to_cache(node, DEFAULT_TEMP_DIR))
+                elif node.startswith(("http://", "https://")):
+                    return FileData(path=processing_utils.ssrf_protected_download(node, DEFAULT_TEMP_DIR))
+                else:
+                    raise ValueError(f"Invalid file data format, provide either a url ('http://...' or 'https://...') or base64 encoded string ('data:...'). Received: {node}")
             return node
 
         return traverse(value)
