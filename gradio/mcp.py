@@ -1,8 +1,8 @@
 import base64
-import mimetypes
 import os
 import tempfile
 from collections.abc import Callable
+from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -136,7 +136,8 @@ class GradioMCPServer:
             Starlette(
                 routes=[
                     Route(
-                        "/schema", endpoint=self.get_complete_schema  # Not required for MCP but useful for debugging
+                        "/schema",
+                        endpoint=self.get_complete_schema,  # Not required for MCP but useful for debugging
                     ),
                     Route("/sse", endpoint=handle_sse),
                     Mount("/messages/", app=sse.handle_post_message),
@@ -255,9 +256,10 @@ class GradioMCPServer:
                 block_fn = self.get_block_fn_from_tool_name(tool_name)
                 if block_fn is None or block_fn.fn is None:
                     continue
-                _, parameters = self.get_function_docstring(block_fn.fn)
+                description, parameters = self.get_function_docstring(block_fn.fn)
                 schema, _ = self.get_input_schema(tool_name, parameters)
                 schemas[tool_name] = schema
+                schemas[tool_name]["description"] = description
 
         return JSONResponse(schemas)
 
@@ -364,13 +366,22 @@ class GradioMCPServer:
         If a filepath is a valid image, returns a PIL Image object. Otherwise returns None.
         """
         try:
-            with Image.open(file_path) as img:
-                img.verify()
-                return img
+            return Image.open(file_path)
         except Exception:
             return None
 
-    def postprocess_output_data(self, data: Any) -> list[types.TextContent | types.ImageContent]:
+    @staticmethod
+    def get_base64_data(image: Image.Image, format: str) -> str:
+        """
+        Returns a base64 encoded string of the image.
+        """
+        buffer = BytesIO()
+        image.save(buffer, format=format)
+        return base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+    def postprocess_output_data(
+        self, data: Any
+    ) -> list[types.TextContent | types.ImageContent]:
         """
         Postprocess the output data from the Gradio app to convert FileData objects back to base64 encoded strings.
 
@@ -381,14 +392,17 @@ class GradioMCPServer:
         for output in data:
             if client_utils.is_file_obj_with_meta(output):
                 if image := self.get_image(output["path"]):
-                    base64_data = base64.b64encode(image.tobytes()).decode("utf-8")
                     image_format = image.format or "png"
+                    base64_data = self.get_base64_data(image, image_format)
                     mimetype = f"image/{image_format.lower()}"
-                    return_value = types.ImageContent(type="image", data=base64_data, mimeType=mimetype)
+                    return_value = types.ImageContent(
+                        type="image", data=base64_data, mimeType=mimetype
+                    )
                 else:
-                    return_value = types.TextContent(type="text", text=str(output["path"]))
+                    return_value = types.TextContent(
+                        type="text", text=str(output["path"])
+                    )
             else:
                 return_value = types.TextContent(type="text", text=str(output))
             return_values.append(return_value)
         return return_values
-
