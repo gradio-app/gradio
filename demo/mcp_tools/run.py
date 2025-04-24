@@ -71,11 +71,13 @@ def generate_cheetah_image():
 demo = gr.TabbedInterface(
     [
         gr.Interface(sepia, gr.Image(), gr.Image()),
-        gr.Interface(prime_factors, gr.Textbox(), gr.Textbox())
+        gr.Interface(prime_factors, gr.Textbox(), gr.Textbox()),
+        gr.Interface(generate_cheetah_image, None, gr.Image())
     ],
     [
         "Sepia Filter",
-        "Prime Factors"
+        "Prime Factors",
+        "Cheetah Image"
     ]
 )
 

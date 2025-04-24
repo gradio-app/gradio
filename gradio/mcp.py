@@ -12,9 +12,9 @@ from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
 
+from gradio.blocks import BlockFunction
 from gradio.data_classes import FileData
 from gradio.processing_utils import save_base64_to_cache
-from gradio.blocks import BlockFunction
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -139,8 +139,8 @@ class GradioMCPServer:
             Starlette(
                 routes=[
                     Route(
-                        "/schema", endpoint=self.get_complete_schema
-                    ),  # Required for proper initialization
+                        "/schema", endpoint=self.get_complete_schema  # Not required for MCP but useful for debugging
+                    ),
                     Route("/sse", endpoint=handle_sse),
                     Mount("/messages/", app=sse.handle_post_message),
                 ],
