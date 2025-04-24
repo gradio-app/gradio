@@ -357,11 +357,21 @@ class GradioMCPServer:
                 return [traverse(item, path + [i]) for i, item in enumerate(node)]
             elif isinstance(node, str) and path in filedata_positions:
                 if node.startswith("data:"):
-                    return FileData(path=processing_utils.save_base64_to_cache(node, DEFAULT_TEMP_DIR))
+                    return FileData(
+                        path=processing_utils.save_base64_to_cache(
+                            node, DEFAULT_TEMP_DIR
+                        )
+                    )
                 elif node.startswith(("http://", "https://")):
-                    return FileData(path=processing_utils.ssrf_protected_download(node, DEFAULT_TEMP_DIR))
+                    return FileData(
+                        path=processing_utils.ssrf_protected_download(
+                            node, DEFAULT_TEMP_DIR
+                        )
+                    )
                 else:
-                    raise ValueError(f"Invalid file data format, provide either a url ('http://...' or 'https://...') or base64 encoded string ('data:...'). Received: {node}")
+                    raise ValueError(
+                        f"Invalid file data format, provide either a url ('http://...' or 'https://...') or base64 encoded string ('data:...'). Received: {node}"
+                    )
             return node
 
         return traverse(value)
