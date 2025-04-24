@@ -22,16 +22,18 @@
 	let inner: Element;
 	let px = 0;
 	let active = false;
+	let container_width = 0;
 
 	function set_position(width: number): void {
+		container_width = parent_el?.getBoundingClientRect().width || 0;
 		if (width === 0) {
 			image_size.width = el?.getBoundingClientRect().width || 0;
 		}
 
 		px = clamp(
 			image_size.width * position + image_size.left,
-			image_size.left,
-			image_size.width + image_size.left
+			0,
+			container_width
 		);
 	}
 
@@ -42,8 +44,8 @@
 
 	function update_position(x: number): void {
 		console.log({ x, image_size });
-		px = clamp(x, image_size.left, image_size.width + image_size.left);
-		position = clamp(round((x - image_size.left) / image_size.width, 5), 0, 1);
+		px = clamp(x, 0, container_width);
+		position = round((x - image_size.left) / image_size.width, 5);
 	}
 
 	function drag_start(event: any): void {
@@ -63,11 +65,7 @@
 	}
 
 	function update_position_from_pc(pc: number): void {
-		px = clamp(
-			image_size.width * pc + image_size.left,
-			image_size.left,
-			image_size.width + image_size.left
-		);
+		px = clamp(image_size.width * pc + image_size.left, 0, container_width);
 	}
 
 	$: set_position(image_size.width);

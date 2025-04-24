@@ -154,6 +154,13 @@
 		height: 100%;
 	}
 
+	:global(.image-container:fullscreen) img {
+		width: 100%;
+		height: 100%;
+		max-height: none;
+		max-width: none;
+	}
+
 	.hidden {
 		opacity: 0;
 	}

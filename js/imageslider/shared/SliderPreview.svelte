@@ -43,7 +43,8 @@
 	$: coords_at_viewport = get_coords_at_viewport(
 		position,
 		viewport_width,
-		image_size,
+		image_size.width,
+		image_size.left,
 		$transform.x,
 		$transform.z
 	);
@@ -54,16 +55,18 @@
 	function get_coords_at_viewport(
 		viewport_percent_x: number, // 0-1
 		viewportWidth: number,
-		img_size: { width: number; height: number; left: number; top: number },
+		image_width: number,
+		img_offset_x: number,
 		tx: number, // image translation x (in pixels)
-
 		scale: number // image scale (uniform)
 	): number {
-		const vx = viewport_percent_x * viewportWidth;
-		const offset = img_size.left / viewportWidth;
-		const ix = ((vx - tx) / scale - img_size.left) / viewportWidth;
+		const px_relative_to_image = viewport_percent_x * image_width;
+		const pixel_position = px_relative_to_image + img_offset_x;
 
-		return ix;
+		const normalised_position = (pixel_position - tx) / scale;
+		const percent_position = normalised_position / viewportWidth;
+
+		return percent_position;
 	}
 
 	let img_width = 0;
@@ -129,7 +132,7 @@
 	<div class="image-container" bind:this={image_container}>
 		<IconButtonWrapper>
 			{#if show_fullscreen_button}
-				<FullscreenButton container={slider_wrap_parent} bind:is_full_screen />
+				<FullscreenButton container={image_container} bind:is_full_screen />
 			{/if}
 
 			{#if show_download_button}
