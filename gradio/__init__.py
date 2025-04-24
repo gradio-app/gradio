@@ -170,6 +170,7 @@ __all__ = [
     "IS_WASM",
     "Image",
     "ImageEditor",
+    "ImageSlider",
     "ImageMask",
     "Info",
     "Interface",
