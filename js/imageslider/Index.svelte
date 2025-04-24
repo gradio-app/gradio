@@ -14,15 +14,6 @@
 
 	type sources = "upload" | "webcam" | "clipboard" | null;
 
-	let stream_state = "closed";
-	let _modify_stream: (state: "open" | "closed" | "waiting") => void = () => {};
-	export function modify_stream_state(
-		state: "open" | "closed" | "waiting"
-	): void {
-		stream_state = state;
-		_modify_stream(state);
-	}
-	export const get_stream_state: () => void = () => stream_state;
 	export let value_is_output = false;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];

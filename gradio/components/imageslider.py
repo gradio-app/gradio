@@ -193,7 +193,7 @@ class ImageSlider(Component):
     ) -> SliderData | None:
         """
         Parameters:
-                value: Expects a tuple of `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is displayed.
+            value: Expects a tuple of `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is displayed.
         Returns:
             Returns the image as a `SliderData` object.
         """
