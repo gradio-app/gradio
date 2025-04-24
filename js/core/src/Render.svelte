@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Gradio, formatter } from "./gradio_helper";
+	import { Gradio, formatter, reactive_formatter } from "./gradio_helper";
 	import { onMount, createEventDispatcher, setContext } from "svelte";
 	import type { ComponentMeta, ThemeMode } from "./types";
 	import type { Client } from "@gradio/client";
@@ -62,7 +62,7 @@
 		}
 	}
 
-	$: node.props.gradio = new Gradio<Record<string, any>>(
+	let gradio_instance = new Gradio<Record<string, any>>(
 		node.id,
 		target,
 		theme_mode,
@@ -74,6 +74,12 @@
 		client,
 		load_component
 	);
+
+	$: {
+		// reactive update that picks up locale changes
+		gradio_instance.i18n = $reactive_formatter;
+		node.props.gradio = gradio_instance;
+	}
 </script>
 
 <RenderComponent

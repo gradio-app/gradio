@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { tick, onMount } from "svelte";
-	import { _ } from "svelte-i18n";
+	import { _, locale } from "svelte-i18n";
 	import { Client } from "@gradio/client";
 
 	import type { LoadingStatus, LoadingStatusCollection } from "./stores";
 
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import type { UpdateTransaction } from "./init";
-	import { setupi18n } from "./i18n";
+	import { setupi18n, changeLocale } from "./i18n";
 	import { ApiDocs, ApiRecorder, Settings } from "./api_docs/";
 	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
@@ -786,6 +786,10 @@
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 				navigator.userAgent
 			);
+	});
+
+	$: locale.subscribe((this_locale) => {
+		this_locale && changeLocale(this_locale);
 	});
 </script>
 
