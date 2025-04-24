@@ -43,6 +43,7 @@
 	$: coords_at_viewport = get_coords_at_viewport(
 		position,
 		viewport_width,
+		image_size,
 		$transform.x,
 		$transform.z
 	);
@@ -53,13 +54,14 @@
 	function get_coords_at_viewport(
 		viewport_percent_x: number, // 0-1
 		viewportWidth: number,
+		img_size: { width: number; height: number; left: number; top: number },
 		tx: number, // image translation x (in pixels)
 
 		scale: number // image scale (uniform)
 	): number {
 		const vx = viewport_percent_x * viewportWidth;
-
-		const ix = (vx - tx) / scale / img_width;
+		const offset = img_size.left / viewportWidth;
+		const ix = ((vx - tx) / scale - img_size.left) / viewportWidth;
 
 		return ix;
 	}
@@ -110,6 +112,14 @@
 
 	let is_full_screen = false;
 	let slider_wrap_parent: HTMLDivElement;
+
+	let image_size: { top: number; left: number; width: number; height: number } =
+		{ top: 0, left: 0, width: 0, height: 0 };
+
+	function handle_image_load(event: CustomEvent): void {
+		console.log("Image loaded:", event.detail);
+		image_size = event.detail;
+	}
 </script>
 
 <BlockLabel {show_label} Icon={Image} label={label || i18n("image.image")} />
@@ -142,7 +152,7 @@
 				{slider_color}
 				bind:el={slider_wrap}
 				bind:parent_el
-				image_width={img_width}
+				{image_size}
 			>
 				<ImageEl
 					src={value?.[0]?.url}
@@ -151,7 +161,9 @@
 					bind:img_el={img}
 					variant="preview"
 					transform="translate({$transform.x}px, {$transform.y}px) scale({$transform.z})"
+					fullscreen={is_full_screen}
 					{max_height}
+					on:load={handle_image_load}
 				/>
 				<ImageEl
 					variant="preview"
@@ -162,7 +174,9 @@
 					loading="lazy"
 					{style}
 					transform="translate({$transform.x}px, {$transform.y}px) scale({$transform.z})"
+					fullscreen={is_full_screen}
 					{max_height}
+					on:load={handle_image_load}
 				/>
 			</Slider>
 		</div>

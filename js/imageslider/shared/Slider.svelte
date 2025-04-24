@@ -9,8 +9,14 @@
 
 	export let position = 0.5;
 	export let disabled = false;
+
 	export let slider_color = "var(--border-color-primary)";
-	export let image_width = 0;
+	export let image_size: {
+		top: number;
+		left: number;
+		width: number;
+		height: number;
+	} = { top: 0, left: 0, width: 0, height: 0 };
 	export let el: HTMLDivElement | undefined = undefined;
 	export let parent_el: HTMLDivElement | undefined = undefined;
 	let inner: Element;
@@ -19,10 +25,14 @@
 
 	function set_position(width: number): void {
 		if (width === 0) {
-			image_width = el?.getBoundingClientRect().width || 0;
+			image_size.width = el?.getBoundingClientRect().width || 0;
 		}
 
-		px = clamp(image_width * position - 10, 0, image_width - 20);
+		px = clamp(
+			image_size.width * position + image_size.left,
+			image_size.left,
+			image_size.width + image_size.left
+		);
 	}
 
 	function round(n: number, points: number): number {
@@ -31,8 +41,9 @@
 	}
 
 	function update_position(x: number): void {
-		px = clamp(x - 10, 0, image_width - 20);
-		position = clamp(round(x / image_width, 5), 0, 1);
+		console.log({ x, image_size });
+		px = clamp(x, image_size.left, image_size.width + image_size.left);
+		position = clamp(round((x - image_size.left) / image_size.width, 5), 0, 1);
 	}
 
 	function drag_start(event: any): void {
@@ -52,14 +63,18 @@
 	}
 
 	function update_position_from_pc(pc: number): void {
-		px = clamp(image_width * pc - 10, 0, image_width - 20);
+		px = clamp(
+			image_size.width * pc + image_size.left,
+			image_size.left,
+			image_size.width + image_size.left
+		);
 	}
 
-	$: set_position(image_width);
+	$: set_position(image_size.width);
 	$: update_position_from_pc(position);
 
 	onMount(() => {
-		set_position(image_width);
+		set_position(image_size.width);
 		const drag_handler = drag()
 			.on("start", drag_start)
 			.on("drag", drag_move)
@@ -68,7 +83,7 @@
 	});
 </script>
 
-<svelte:window on:resize={() => set_position(image_width)} />
+<svelte:window on:resize={() => set_position(image_size.width)} />
 
 <div class="wrap" role="none" bind:this={parent_el}>
 	<div class="content" bind:this={el}>
@@ -95,7 +110,7 @@
 <style>
 	.wrap {
 		position: relative;
-		/* width: 100%; */
+		width: 100%;
 		height: 100%;
 		z-index: var(--layer-2);
 		overflow: hidden;
@@ -154,7 +169,7 @@
 		cursor: grab;
 		position: absolute;
 		top: 0;
-		left: 0;
+		left: -10px;
 		pointer-events: auto;
 		z-index: var(--layer-2);
 	}
@@ -181,6 +196,7 @@
 	.content {
 		width: 100%;
 		height: 100%;
+		display: flex;
 		justify-content: center;
 		align-items: center;
 	}
