@@ -1,3 +1,5 @@
+import base64
+import mimetypes
 import os
 import tempfile
 from collections.abc import Callable
@@ -8,6 +10,7 @@ import gradio_client.utils as client_utils
 from mcp import types
 from mcp.server import Server
 from mcp.server.sse import SseServerTransport
+from PIL import Image
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
@@ -52,7 +55,7 @@ class GradioMCPServer:
         @server.call_tool()
         async def call_tool(
             name: str, arguments: dict[str, Any]
-        ) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
+        ) -> list[types.TextContent | types.ImageContent]:
             """
             Call a tool on the Gradio app.
 
@@ -72,13 +75,7 @@ class GradioMCPServer:
                 block_fn=block_fn,
                 inputs=list(processed_arguments.values()),
             )
-            return_values = client_utils.traverse(
-                output["data"], lambda x: x["path"], client_utils.is_file_obj_with_meta
-            )
-            return [
-                types.TextContent(type="text", text=str(return_value))
-                for return_value in return_values
-            ]
+            return self.postprocess_output_data(output["data"])
 
         @server.list_tools()
         async def list_tools() -> list[types.Tool]:
@@ -360,3 +357,38 @@ class GradioMCPServer:
             return node
 
         return traverse(value)
+
+    @staticmethod
+    def get_image(file_path: str) -> Image.Image | None:
+        """
+        If a filepath is a valid image, returns a PIL Image object. Otherwise returns None.
+        """
+        try:
+            with Image.open(file_path) as img:
+                img.verify()
+                return img
+        except Exception:
+            return None
+
+    def postprocess_output_data(self, data: Any) -> list[types.TextContent | types.ImageContent]:
+        """
+        Postprocess the output data from the Gradio app to convert FileData objects back to base64 encoded strings.
+
+        Parameters:
+            data: The output data to postprocess.
+        """
+        return_values = []
+        for output in data:
+            if client_utils.is_file_obj_with_meta(output):
+                if image := self.get_image(output["path"]):
+                    base64_data = base64.b64encode(image.tobytes()).decode("utf-8")
+                    image_format = image.format or "png"
+                    mimetype = f"image/{image_format.lower()}"
+                    return_value = types.ImageContent(type="image", data=base64_data, mimeType=mimetype)
+                else:
+                    return_value = types.TextContent(type="text", text=str(output["path"]))
+            else:
+                return_value = types.TextContent(type="text", text=str(output))
+            return_values.append(return_value)
+        return return_values
+
