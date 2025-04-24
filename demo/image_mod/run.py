@@ -2,15 +2,6 @@ import gradio as gr
 import os
 
 def image_mod(image):
-    """
-    This is a test function that rotates an image by 45 degrees.
-
-    Args:
-        image: The image to rotate.
-
-    Returns:
-        The rotated image.
-    """
     return image.rotate(45)
 
 new_samples = [
@@ -31,7 +22,7 @@ with gr.Blocks() as demo:
     )
 
     btn = gr.Button("Update Examples")
-    btn.click(lambda : gr.Dataset(samples=new_samples), None, interface.examples_handler.dataset, show_api=False)
+    btn.click(lambda : gr.Dataset(samples=new_samples), None, interface.examples_handler.dataset)
 
 if __name__ == "__main__":
     demo.launch()
