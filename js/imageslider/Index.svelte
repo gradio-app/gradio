@@ -9,7 +9,7 @@
 	import { Block, Empty, UploadText } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
-	import { upload, type FileData } from "@gradio/client";
+	import { type FileData } from "@gradio/client";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
 	type sources = "upload" | "webcam" | "clipboard" | null;
@@ -43,7 +43,7 @@
 	export let placeholder: string | undefined = undefined;
 	export let show_fullscreen_button: boolean;
 	export let input_ready: boolean;
-	export let position: number;
+	export let slider_position: number;
 	export let upload_count = 1;
 	export let slider_color = "var(--border-color-primary)";
 	export let max_height: number;
@@ -139,7 +139,7 @@
 			{show_download_button}
 			i18n={gradio.i18n}
 			{show_fullscreen_button}
-			{position}
+			position={slider_position}
 			{slider_color}
 			{max_height}
 		/>

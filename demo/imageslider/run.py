@@ -18,12 +18,8 @@ def slider_to_self_two(im):
     return im
 
 
-def color_to_slider(color):
-    return gr.ImageSlider(slider_color=color)
-
-
 def position_to_slider(pos):
-    return gr.ImageSlider(position=pos)
+    return gr.ImageSlider(slider_position=pos)
 
 
 with gr.Blocks() as demo:
@@ -37,8 +33,6 @@ with gr.Blocks() as demo:
     with gr.Row():
         img3 = gr.ImageSlider(label="Blur image", type="pil")
         img3.upload(slider_to_self, inputs=img3, outputs=img3)
-    clrpk = gr.ColorPicker(label="Color", value="#000000")
-    clrpk.change(color_to_slider, inputs=clrpk, outputs=img3)
     pos = gr.Slider(label="Position", value=0.5, minimum=0, maximum=1)
     pos.change(position_to_slider, inputs=pos, outputs=img3)
 
