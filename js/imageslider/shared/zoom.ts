@@ -21,6 +21,12 @@ export class ZoomableImage {
 		scale: number;
 	}) => void)[];
 	handleImageLoad: () => void;
+	real_image_size: {
+		top: number;
+		left: number;
+		width: number;
+		height: number;
+	} = { top: 0, left: 0, width: 0, height: 0 };
 
 	last_touch_distance: number;
 
@@ -65,6 +71,7 @@ export class ZoomableImage {
 			for (const entry of entries) {
 				if (entry.target === this.container) {
 					this.handleResize();
+					this.get_image_size(this.image);
 				}
 			}
 		});
@@ -189,6 +196,22 @@ export class ZoomableImage {
 		this.image.style.cursor = this.scale > 1 ? "grab" : "zoom-in";
 	}
 
+	// compute_offset_for_positions({ position: number, scale: number }) {
+	// 	return position - (scale / this.scale) * (position - this.offset);
+	// }
+
+	compute_new_position({
+		position,
+		scale,
+		anchor_position
+	}: {
+		position: number;
+		scale: number;
+		anchor_position: number;
+	}): number {
+		return position - (position - anchor_position) * (scale / this.scale);
+	}
+
 	compute_new_offset({
 		cursor_position,
 		current_offset,
@@ -208,30 +231,51 @@ export class ZoomableImage {
 
 	constrain_to_bounds(pan = false): void {
 		if (this.scale === 1) {
-			// reset to initial position
 			this.offsetX = 0;
 			this.offsetY = 0;
+			return;
 		}
+		const onscreen = {
+			top: this.real_image_size.top * this.scale + this.offsetY,
+			left: this.real_image_size.left * this.scale + this.offsetX,
+			width: this.real_image_size.width * this.scale,
+			height: this.real_image_size.height * this.scale,
+
+			bottom:
+				this.real_image_size.top * this.scale +
+				this.offsetY +
+				this.real_image_size.height * this.scale,
+			right:
+				this.real_image_size.left * this.scale +
+				this.offsetX +
+				this.real_image_size.width * this.scale
+		};
+
+		const real_image_size_right =
+			this.real_image_size.left + this.real_image_size.width;
+		const real_image_size_bottom =
+			this.real_image_size.top + this.real_image_size.height;
 
 		if (pan) {
-			const containerRect = this.container.getBoundingClientRect();
-			const imageWidth = this.image.naturalWidth;
-			const imageHeight = this.image.naturalHeight;
+			if (onscreen.top > this.real_image_size.top) {
+				this.offsetY = this.calculate_position(
+					this.real_image_size.top,
+					0,
+					"y"
+				);
+			} else if (onscreen.bottom < real_image_size_bottom) {
+				this.offsetY = this.calculate_position(real_image_size_bottom, 1, "y");
+			}
 
-			const scaledWidth = imageWidth * this.scale;
-			const scaledHeight = imageHeight * this.scale;
-
-			// Compute the min offset (how far you can pan to the left/top)
-			const minX = Math.min(0, containerRect.width - scaledWidth);
-			const minY = Math.min(0, containerRect.height - scaledHeight);
-
-			// Compute the max offset (how far you can pan to the right/bottom)
-			const maxX = 0;
-			const maxY = 0;
-
-			// Clamp offsets
-			this.offsetX = Math.min(maxX, Math.max(this.offsetX, minX));
-			this.offsetY = Math.min(maxY, Math.max(this.offsetY, minY));
+			if (onscreen.left > this.real_image_size.left) {
+				this.offsetX = this.calculate_position(
+					this.real_image_size.left,
+					0,
+					"x"
+				);
+			} else if (onscreen.right < real_image_size_right) {
+				this.offsetX = this.calculate_position(real_image_size_right, 1, "x");
+			}
 		}
 	}
 
@@ -294,6 +338,35 @@ export class ZoomableImage {
 				);
 			}
 		}
+	}
+
+	get_image_size(img: HTMLImageElement | null): void {
+		if (!img) return;
+		const container = img.parentElement?.getBoundingClientRect();
+
+		if (!container) return;
+
+		const naturalAspect = img.naturalWidth / img.naturalHeight;
+		const containerAspect = container.width / container.height;
+		let displayedWidth, displayedHeight;
+
+		if (naturalAspect > containerAspect) {
+			displayedWidth = container.width;
+			displayedHeight = container.width / naturalAspect;
+		} else {
+			displayedHeight = container.height;
+			displayedWidth = container.height * naturalAspect;
+		}
+
+		const offsetX = (container.width - displayedWidth) / 2;
+		const offsetY = (container.height - displayedHeight) / 2;
+
+		this.real_image_size = {
+			top: offsetY,
+			left: offsetX,
+			width: displayedWidth,
+			height: displayedHeight
+		};
 	}
 
 	handleTouchMove(e: TouchEvent): void {
@@ -384,5 +457,31 @@ export class ZoomableImage {
 		if (e.touches.length === 0) {
 			this.last_touch_distance = 0;
 		}
+	}
+
+	calculate_position(
+		screen_coord: number,
+		image_anchor: number,
+		axis: "x" | "y"
+	): number {
+		const containerRect = this.container.getBoundingClientRect();
+
+		// Calculate X offset if requested
+		if (axis === "x") {
+			const relative_screen_x = screen_coord;
+			const anchor_x =
+				this.real_image_size.left + image_anchor * this.real_image_size.width;
+			return relative_screen_x - anchor_x * this.scale;
+		}
+
+		// Calculate Y offset if requested
+		if (axis === "y") {
+			const relative_screen_y = screen_coord;
+			const anchor_y =
+				this.real_image_size.top + image_anchor * this.real_image_size.height;
+			return relative_screen_y - anchor_y * this.scale;
+		}
+
+		return 0;
 	}
 }

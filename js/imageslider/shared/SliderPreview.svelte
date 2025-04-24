@@ -15,6 +15,7 @@
 	import { ZoomableImage } from "./zoom";
 	import { onMount } from "svelte";
 	import { tweened, type Tweened } from "svelte/motion";
+
 	export let value: [null | FileData, null | FileData] = [null, null];
 	export let label: string | undefined = undefined;
 	export let show_download_button = true;
