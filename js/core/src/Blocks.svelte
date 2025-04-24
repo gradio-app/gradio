@@ -21,6 +21,7 @@
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import settings_logo from "./api_docs/img/settings-logo.svg";
 	import record from "./api_docs/img/record.svg";
+	import record_stop from "./api_docs/img/record-stop.svg";
 	import { create_components, AsyncFunction } from "./init";
 	import type {
 		LogMessage,
@@ -883,7 +884,7 @@
 				class="record"
 			>
 				{$_($is_screen_recording ? "common.stop_recording" : "common.record")}
-				<img src={record} alt={$_("common.record")} />
+				<img src={$is_screen_recording ? record_stop : record} alt={$_("common.record")} />
 			</button>
 			<div class="divider">·</div>
 			<button

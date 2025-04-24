@@ -259,16 +259,7 @@ async function handleRecordingComplete(recordedBlob: Blob): Promise<void> {
 			"This may take a few seconds...",
 			"info"
 		);
-		const hasProcessing =
-			(removeSegment.start !== undefined && removeSegment.end !== undefined) ||
-			zoomEffects.length > 0;
-
-		if (!hasProcessing) {
-			const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.mp4`;
-			saveWithDownloadAttribute(recordedBlob, defaultFilename);
-			return;
-		}
-
+	
 		const formData = new FormData();
 		formData.append("video", recordedBlob, "recording.mp4");
 

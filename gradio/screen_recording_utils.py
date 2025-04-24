@@ -1,9 +1,9 @@
 import asyncio
+import math
 import os
 import shutil
 import tempfile
 import traceback
-
 
 async def process_video_with_ffmpeg(input_path, output_path, params):
     current_input = input_path
@@ -231,14 +231,12 @@ async def zoom_in(
         box_center_x = (x1 + x2) / 2
         box_center_y = (y1 + y2) / 2
 
-        frame_center_x = 0.5
-        if box_center_x < frame_center_x:
+        if box_center_x < 0.4:
             zoom_center_x = box_center_x - (box_width * 0.3)
-        else:
+        elif box_center_x > 0.6:
             zoom_center_x = box_center_x + (box_width * 0.3)
 
-        zoom_center_y = box_center_y
-
+        zoom_center_y = math.floor(box_center_y * 10) / 10
         target_zoom = 3.0
         max_zoom_by_size = min(1.0 / box_width, 1.0 / box_height)
 

@@ -1692,15 +1692,15 @@ class App(FastAPI):
 
             video_file = video_files[0]
 
-            params = {
-                "remove_segment_start": form.get("remove_segment_start"),
-                "remove_segment_end": form.get("remove_segment_end"),
-            }
+            params = {}
+            if form.get("remove_segment_start") is not None and form.get("remove_segment_end") is not None:
+                params["remove_segment_start"] = form.get("remove_segment_start")
+                params["remove_segment_end"] = form.get("remove_segment_end")
 
             zoom_effects_json = form.get("zoom_effects")
             if zoom_effects_json:
                 try:
-                    params["zoom_effects"] = json.loads(zoom_effects_json)
+                    params["zoom_effects"] = json.loads(str(zoom_effects_json))
                 except json.JSONDecodeError:
                     params["zoom_effects"] = []
 
