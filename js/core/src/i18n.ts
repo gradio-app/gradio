@@ -1,4 +1,10 @@
-import { addMessages, init, getLocaleFromNavigator, locale } from "svelte-i18n";
+import {
+	addMessages,
+	init,
+	getLocaleFromNavigator,
+	locale,
+	_
+} from "svelte-i18n";
 
 const langs = import.meta.glob("./lang/*.json", {
 	eager: true
@@ -29,6 +35,8 @@ export const language_choices: [string, string][] = Object.entries(
 	processed_langs
 ).map(([code, data]) => [data._name || code, code]);
 
+export let all_common_keys: Set<string> = new Set();
+
 export function load_translations(
 	translations: LangsRecord | null | undefined
 ): void {
@@ -53,8 +61,10 @@ export function get_initial_locale(
 	available_locales: string[],
 	fallback_locale = "en"
 ): string {
-	return browser_locale && available_locales.includes(browser_locale)
-		? browser_locale
+	const normalized_locale = browser_locale?.split("-")[0];
+
+	return normalized_locale && available_locales.includes(normalized_locale)
+		? normalized_locale
 		: fallback_locale;
 }
 
@@ -68,6 +78,20 @@ export async function init_i18n(
 		fallbackLocale: fallback_locale,
 		initialLocale: initial_locale
 	});
+
+	for (const lang_code in processed_langs) {
+		if (
+			processed_langs[lang_code] &&
+			typeof processed_langs[lang_code] === "object" &&
+			processed_langs[lang_code].common &&
+			typeof processed_langs[lang_code].common === "object"
+		) {
+			const common_ns = processed_langs[lang_code].common;
+			for (const key in common_ns) {
+				all_common_keys.add(`common.${key}`);
+			}
+		}
+	}
 }
 
 export async function setupi18n(
