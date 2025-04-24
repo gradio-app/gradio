@@ -68,7 +68,8 @@
 		"no_devices": "No devices found",
 		"language": "Language",
 		"display_theme": "Display Theme",
-		"pwa": "Progressive Web App"
+		"pwa": "Progressive Web App",
+		"run": "Run"
 	},
 	"dataframe": {
 		"incorrect_format": "Incorrect format, only CSV and TSV files are supported",
