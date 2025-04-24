@@ -43,7 +43,6 @@
 	}
 
 	function update_position(x: number): void {
-		console.log({ x, image_size });
 		px = clamp(x, 0, container_width);
 		position = round((x - image_size.left) / image_size.width, 5);
 	}
@@ -110,7 +109,7 @@
 		position: relative;
 		width: 100%;
 		height: 100%;
-		z-index: var(--layer-2);
+		z-index: var(--layer-1);
 		overflow: hidden;
 	}
 

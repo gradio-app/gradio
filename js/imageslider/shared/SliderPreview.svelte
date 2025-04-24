@@ -8,7 +8,7 @@
 		IconButtonWrapper,
 		FullscreenButton
 	} from "@gradio/atoms";
-	import { Image, Download } from "@gradio/icons";
+	import { Image, Download, Undo } from "@gradio/icons";
 	import { type FileData } from "@gradio/client";
 	import type { I18nFormatter } from "@gradio/utils";
 	import { DownloadLink } from "@gradio/wasm/svelte";
@@ -120,7 +120,6 @@
 		{ top: 0, left: 0, width: 0, height: 0 };
 
 	function handle_image_load(event: CustomEvent): void {
-		console.log("Image loaded:", event.detail);
 		image_size = event.detail;
 	}
 </script>
@@ -131,6 +130,12 @@
 {:else}
 	<div class="image-container" bind:this={image_container}>
 		<IconButtonWrapper>
+			<IconButton
+				Icon={Undo}
+				label={i18n("common.undo")}
+				disabled={$transform.z === 1}
+				on:click={() => zoomable_image?.reset_zoom()}
+			/>
 			{#if show_fullscreen_button}
 				<FullscreenButton container={image_container} bind:is_full_screen />
 			{/if}

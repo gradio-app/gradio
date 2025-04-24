@@ -63,24 +63,22 @@
 		height: number;
 	} {
 		if (!img) return { top: 0, left: 0, width: 0, height: 0 };
-		console.log("get_image_size", img, img.parentElement);
 		const container = img.parentElement?.getBoundingClientRect();
+
 		if (!container) return { top: 0, left: 0, width: 0, height: 0 };
+
 		const naturalAspect = img.naturalWidth / img.naturalHeight;
 		const containerAspect = container.width / container.height;
-		console.log({ naturalAspect, containerAspect });
 		let displayedWidth, displayedHeight;
 
 		if (naturalAspect > containerAspect) {
-			console.log("naturalAspect > containerAspect");
 			displayedWidth = container.width;
 			displayedHeight = container.width / naturalAspect;
 		} else {
-			console.log("naturalAspect < containerAspect");
 			displayedHeight = container.height;
 			displayedWidth = container.height * naturalAspect;
 		}
-		console.log({ displayedWidth, container_width: container.width });
+
 		const offsetX = (container.width - displayedWidth) / 2;
 		const offsetY = (container.height - displayedHeight) / 2;
 
