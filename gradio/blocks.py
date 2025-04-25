@@ -2393,7 +2393,6 @@ Received inputs:
 
     def launch(
         self,
-        *,
         inline: bool | None = None,
         inbrowser: bool = False,
         share: bool | None = None,
@@ -2407,6 +2406,7 @@ Received inputs:
         show_error: bool = False,
         server_name: str | None = None,
         server_port: int | None = None,
+        *,
         height: int = 500,
         width: int | str = "100%",
         favicon_path: str | None = None,
@@ -2493,7 +2493,6 @@ Received inputs:
             demo = gr.Interface(reverse, "text", "text")
             demo.launch(share=True, auth=("username", "password"))
         """
-
         from gradio.routes import App
 
         if self._is_running_in_reload_thread:

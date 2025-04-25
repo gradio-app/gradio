@@ -1275,8 +1275,18 @@ def test_get_root_url(
     "headers, root_path, route_path, expected_root_url",
     [
         ({}, "/gradio/", "/", "http://gradio.app/gradio"),
-        ({"x-forwarded-proto": "http"}, "/gradio/", "/", "http://gradio.app/gradio"),
-        ({"x-forwarded-proto": "https"}, "/gradio/", "/", "https://gradio.app/gradio"),
+        (
+            {"x-forwarded-proto": "http"},
+            "/gradio/",
+            "/",
+            "http://gradio.app/gradio",
+        ),
+        (
+            {"x-forwarded-proto": "https"},
+            "/gradio/",
+            "/",
+            "https://gradio.app/gradio",
+        ),
         (
             {"x-forwarded-host": "gradio.dev"},
             "/gradio/",
