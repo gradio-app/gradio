@@ -17,9 +17,24 @@ class I18n:
         Args:
             **translations: Each keyword argument should be a locale code (e.g., "en", "fr") with a
                           dictionary value, which maps translation keys to translated strings.
-                          Example: I18n(en={"greeting": "Hello"}, es={"greeting": "Hola"})
+                          Example: gr.I18n(en={"greeting": "Hello"}, es={"greeting": "Hola"})
         """
         self.translations = translations or {}
+
+    def __call__(self, key: str) -> str:
+        """
+        Returns the translation key.
+
+        This key is used by the frontend to look up the appropriate translation based on the
+        current locale and the translations provided during initialization.
+
+        Args:
+            key: The key to identify the translation string (e.g., "submit_button").
+
+        Returns:
+            The translation key as a string.
+        """
+        return key
 
     @property
     def translations_dict(self) -> dict[str, dict[str, str]]:
