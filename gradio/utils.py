@@ -1655,9 +1655,12 @@ def dict_factory(items):
     return d
 
 
-def get_function_docstring(fn: Callable) -> tuple[str, dict[str, str]]:
+def get_function_description(fn: Callable) -> tuple[str, dict[str, str]]:
     """
-    Get the docstring of a function, and the description and parameters.
+    Get the description of a function and its parameters by parsing the docstring.
+    The docstring should be formatted as follows: first lines are the description
+    of the function, then a line starts with "Args:", "Parameters:", or "Arguments:",
+    followed by lines of the form "param_name: description".
 
     Parameters:
         fn: The function to get the docstring for.
@@ -1671,21 +1674,14 @@ def get_function_docstring(fn: Callable) -> tuple[str, dict[str, str]]:
     parameters = {}
     if fn_docstring:
         lines = fn_docstring.strip().split("\n")
-        lines_iter = iter(lines)
-        description = next(lines_iter, "").strip() if lines else ""
-        for line in lines_iter:
-            if line.strip().startswith("Args:"):
+        for i, line in enumerate(lines):  # noqa: B007
+            if line.strip().startswith(("Args:", "Parameters:", "Arguments:")):
                 break
-        else:
-            line = ""
-        while line:
+            description += (" " if description else "") + line.strip()
+        for line in lines[i + 1 :]:
             line = line.strip()
-            if line.startswith("Args:") or not line:
-                line = next(lines_iter, "").strip()
-                continue
             param_name, param_desc = line.split(":", 1)
             param_name = param_name.split(" ")[0].strip()
             parameters[param_name] = param_desc.strip()
-            line = next(lines_iter, "").strip()
 
     return description, parameters

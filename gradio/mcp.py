@@ -93,7 +93,9 @@ class GradioMCPServer:
                     block_fn = self.get_block_fn_from_tool_name(tool_name)
                     if block_fn is None or block_fn.fn is None:
                         continue
-                    description, parameters = utils.get_function_docstring(block_fn.fn)
+                    description, parameters = utils.get_function_description(
+                        block_fn.fn
+                    )
                     schema, _ = self.get_input_schema(tool_name, parameters)
                     tools.append(
                         types.Tool(
@@ -221,7 +223,7 @@ class GradioMCPServer:
                 block_fn = self.get_block_fn_from_tool_name(tool_name)
                 if block_fn is None or block_fn.fn is None:
                     continue
-                description, parameters = utils.get_function_docstring(block_fn.fn)
+                description, parameters = utils.get_function_description(block_fn.fn)
                 schema, _ = self.get_input_schema(tool_name, parameters)
                 schemas[tool_name] = schema
                 schemas[tool_name]["description"] = description
