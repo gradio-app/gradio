@@ -69,7 +69,7 @@ from gradio.exceptions import (
     InvalidComponentError,
 )
 from gradio.helpers import create_tracker, skip, special_args
-from gradio.i18n import _I18n
+from gradio.i18n import I18n
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
@@ -2393,6 +2393,7 @@ Received inputs:
 
     def launch(
         self,
+        *,
         inline: bool | None = None,
         inbrowser: bool = False,
         share: bool | None = None,
@@ -2406,7 +2407,6 @@ Received inputs:
         show_error: bool = False,
         server_name: str | None = None,
         server_port: int | None = None,
-        *,
         height: int = 500,
         width: int | str = "100%",
         favicon_path: str | None = None,
@@ -2433,7 +2433,7 @@ Received inputs:
         ssr_mode: bool | None = None,
         pwa: bool | None = None,
         _frontend: bool = True,
-        i18n: _I18n | None = None,
+        i18n: I18n | None = None,
     ) -> tuple[App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -2473,7 +2473,7 @@ Received inputs:
             strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
             ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
-            i18n: An I18n instance containing custom translations, which are used to translate values in our components. This feature can only be used to translate static text in the frontend, not values in the backend.
+            I18n: An I18n instance containing custom translations, which are used to translate strings in our components. This feature can only be used to translate static text in the frontend, not values in the backend.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo

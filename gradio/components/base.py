@@ -13,7 +13,11 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    TypedDict,
+)
 
 import gradio_client.utils as client_utils
 
@@ -29,6 +33,7 @@ from gradio.data_classes import (
     MediaStreamChunk,
 )
 from gradio.events import EventListener
+from gradio.i18n import I18n
 from gradio.layouts import Form
 from gradio.processing_utils import move_files_to_cache
 
@@ -144,7 +149,7 @@ class Component(ComponentBase, Block):
         self,
         value: Any = None,
         *,
-        label: str | None = None,
+        label: str | I18n | None = None,
         info: str | None = None,
         show_label: bool | None = None,
         container: bool = True,

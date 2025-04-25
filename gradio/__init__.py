@@ -90,7 +90,7 @@ from gradio.flagging import (
 )
 from gradio.helpers import Info, Progress, Success, Warning, skip, update
 from gradio.helpers import create_examples as Examples  # noqa: N812
-from gradio.i18n import _I18n
+from gradio.i18n import I18n
 from gradio.interface import Interface, TabbedInterface, close_all
 from gradio.layouts import Accordion, Column, Group, Row, Sidebar, Tab, TabItem, Tabs
 from gradio.oauth import OAuthProfile, OAuthToken
@@ -230,6 +230,7 @@ __all__ = [
     "close_all",
     "deploy",
     "get_package_version",
+    "I18n",
     "load",
     "load_chat",
     "load_ipython_extension",
@@ -241,27 +242,3 @@ __all__ = [
     "update",
     "DeepLinkButton",
 ]
-
-
-def i18n(**kwargs) -> _I18n:
-    """Create an i18n instance with translations. Use this function to define
-    translation dictionaries for different locales.
-
-    Args:
-        **kwargs: Each keyword argument should be a locale code (e.g., "en", "fr") with a
-        dictionary value, which maps translation keys to translated strings.
-
-    Returns:
-        An I18n instance with the specified translations.
-
-    Example:
-        i18n = gr.i18n(
-            en={"greeting": "Hello"},
-            es={"greeting": "Hola"}
-        )
-        with gr.Blocks() as demo:
-            gr.Textbox(label=i18n("greeting"))
-
-        demo.launch(i18n=i18n)
-    """
-    return _I18n(translations=kwargs)
