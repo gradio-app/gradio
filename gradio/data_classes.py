@@ -449,6 +449,7 @@ class APIReturnInfo(TypedDict):
 
 
 class APIEndpointInfo(TypedDict):
+    description: NotRequired[str]
     parameters: list[APIParameterInfo]
     returns: list[APIReturnInfo]
     show_api: bool
