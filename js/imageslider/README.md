@@ -29,7 +29,7 @@ This is a great CSS property and ensures that the entire image is always visible
 
 This is problematic because slider-progress should be relative to the unscaled image, not the container box. When someone sets `slider_position=10` that should be 10% across the image, not the container.
 
-![](./img_01.png)
+![](https://raw.githubusercontent.com/gradio-app/gradio/refs/heads/main/js/imageslider/img_01.png)
 
 This is fine. We manually calculate the “real” image width and offsets (there’s no built-in API for this), and map slider position values accordingly. It works, but introduces a few quirks:
 
@@ -49,13 +49,13 @@ So now, say the slider is at 25: it still refers to 25% across the unscaled imag
 
 I did a picture to help conceptualise. Here we zoom (scale and translate) but the slider stays in the same position on the screen, corresponding to its 25% of image width + left offset origin.
 
-![](./img_02.png)
+![](https://raw.githubusercontent.com/gradio-app/gradio/refs/heads/main/js/imageslider/img_02.png)
 
 Because of this, the 0 point might actually lie partway into the image’s visible region when zoomed. This means we can't actually compare the whole image at higher zoom levels unless we allow negative slider positions.
 
 So that's exactly what we do.
 
-![](./img_03.png)
+![](https://raw.githubusercontent.com/gradio-app/gradio/refs/heads/main/js/imageslider/img_03.png)
 
 The image slider performs a fair amount of translation and projections, nothing absurd but there is enough. We need to make sure that any time we are interacting with the slider position, our calculations can handle negative values.
 
