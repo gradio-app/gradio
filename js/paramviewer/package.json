@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/paramviewer",
-	"version": "0.7.7",
+	"version": "0.7.8",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
