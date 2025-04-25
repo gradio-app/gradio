@@ -7,6 +7,7 @@ from gradio_client.documentation import document
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
 from gradio.events import Events
+from gradio.i18n import I18n
 
 
 @document()
@@ -25,7 +26,7 @@ class Sidebar(BlockContext, metaclass=ComponentMeta):
 
     def __init__(
         self,
-        label: str | None = None,
+        label: str | I18n | None = None,
         *,
         open: bool = True,
         visible: bool = True,

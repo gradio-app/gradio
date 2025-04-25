@@ -150,7 +150,7 @@ class Component(ComponentBase, Block):
         value: Any = None,
         *,
         label: str | I18n | None = None,
-        info: str | None = None,
+        info: str | I18n | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,

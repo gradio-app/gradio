@@ -10,6 +10,7 @@ from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.components.plot import AltairPlot, AltairPlotData, Plot
+from gradio.i18n import I18n
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -88,7 +89,7 @@ class ScatterPlot(Plot):
         y_lim: list[int | float] | None = None,
         caption: str | None = None,
         interactive: bool | None = True,
-        label: str | None = None,
+        label: str | I18n | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,

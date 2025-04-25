@@ -20,6 +20,7 @@ from gradio.components.image_editor import WebcamOptions
 from gradio.data_classes import Base64ImageData, ImageData
 from gradio.events import Events
 from gradio.exceptions import Error
+from gradio.i18n import I18n
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -66,7 +67,7 @@ class Image(StreamingInput, Component):
             | None
         ) = None,
         type: Literal["numpy", "pil", "filepath"] = "numpy",
-        label: str | None = None,
+        label: str | I18n | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,

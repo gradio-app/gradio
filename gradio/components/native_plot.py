@@ -15,6 +15,7 @@ from gradio_client.documentation import document
 from gradio.components.base import Component
 from gradio.data_classes import GradioModel
 from gradio.events import Events
+from gradio.i18n import I18n
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -60,7 +61,7 @@ class NativePlot(Component):
         sort: Literal["x", "y", "-x", "-y"] | list[str] | None = None,
         tooltip: Literal["axis", "none", "all"] | list[str] = "axis",
         height: int | None = None,
-        label: str | None = None,
+        label: str | I18n | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
