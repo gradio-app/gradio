@@ -800,3 +800,33 @@ class TestGetFunctionDescription:
             == "This is a test function. It has multiple lines of description."
         )
         assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
+
+    def test_function_with_malformed_params(self):
+        def test_func():
+            """This is a test function.
+            Args:
+            param1: description1
+            param2
+            param3: description3
+            """
+            pass
+
+        description, parameters = get_function_description(test_func)
+        assert description == "This is a test function."
+        assert parameters == {"param1": "description1", "param3": "description3"}
+
+    def test_function_with_nested_colons(self):
+        def test_func():
+            """This is a test function.
+            Args:
+            param1: description1: with nested colon
+            param2: description2
+            """
+            pass
+
+        description, parameters = get_function_description(test_func)
+        assert description == "This is a test function."
+        assert parameters == {
+            "param1": "description1: with nested colon",
+            "param2": "description2",
+        }
