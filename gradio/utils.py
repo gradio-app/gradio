@@ -1653,3 +1653,39 @@ def dict_factory(items):
         else:
             d[key] = value
     return d
+
+
+def get_function_docstring(fn: Callable) -> tuple[str, dict[str, str]]:
+    """
+    Get the docstring of a function, and the description and parameters.
+
+    Parameters:
+        fn: The function to get the docstring for.
+
+    Returns:
+        - The docstring of the function
+        - A dictionary of parameter names and their descriptions
+    """
+    fn_docstring = fn.__doc__
+    description = ""
+    parameters = {}
+    if fn_docstring:
+        lines = fn_docstring.strip().split("\n")
+        lines_iter = iter(lines)
+        description = next(lines_iter, "").strip() if lines else ""
+        for line in lines_iter:
+            if line.strip().startswith("Args:"):
+                break
+        else:
+            line = ""
+        while line:
+            line = line.strip()
+            if line.startswith("Args:") or not line:
+                line = next(lines_iter, "").strip()
+                continue
+            param_name, param_desc = line.split(":", 1)
+            param_name = param_name.split(" ")[0].strip()
+            parameters[param_name] = param_desc.strip()
+            line = next(lines_iter, "").strip()
+
+    return description, parameters

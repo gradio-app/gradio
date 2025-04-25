@@ -1,7 +1,6 @@
 import base64
 import os
 import tempfile
-from collections.abc import Callable
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -15,7 +14,7 @@ from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
 
-from gradio import processing_utils
+from gradio import processing_utils, utils
 from gradio.blocks import BlockFunction
 from gradio.data_classes import FileData
 
@@ -94,7 +93,7 @@ class GradioMCPServer:
                     block_fn = self.get_block_fn_from_tool_name(tool_name)
                     if block_fn is None or block_fn.fn is None:
                         continue
-                    description, parameters = self.get_function_docstring(block_fn.fn)
+                    description, parameters = utils.get_function_docstring(block_fn.fn)
                     schema, _ = self.get_input_schema(tool_name, parameters)
                     tools.append(
                         types.Tool(
@@ -145,41 +144,6 @@ class GradioMCPServer:
                 ],
             ),
         )
-
-    def get_function_docstring(self, fn: Callable) -> tuple[str, dict[str, str]]:
-        """
-        Get the docstring of a function, and the description and parameters.
-
-        Parameters:
-            fn: The function to get the docstring for.
-
-        Returns:
-            - The docstring of the function
-            - A dictionary of parameter names and their descriptions
-        """
-        fn_docstring = fn.__doc__
-        description = ""
-        parameters = {}
-        if fn_docstring:
-            lines = fn_docstring.strip().split("\n")
-            lines_iter = iter(lines)
-            description = next(lines_iter, "").strip() if lines else ""
-            for line in lines_iter:
-                if line.strip().startswith("Args:"):
-                    break
-            else:
-                line = ""
-            while line:
-                line = line.strip()
-                if line.startswith("Args:") or not line:
-                    line = next(lines_iter, "").strip()
-                    continue
-                param_name, param_desc = line.split(":", 1)
-                param_name = param_name.split(" ")[0].strip()
-                parameters[param_name] = param_desc.strip()
-                line = next(lines_iter, "").strip()
-
-        return description, parameters
 
     def get_block_fn_from_tool_name(self, tool_name: str) -> "BlockFunction | None":
         """
@@ -257,7 +221,7 @@ class GradioMCPServer:
                 block_fn = self.get_block_fn_from_tool_name(tool_name)
                 if block_fn is None or block_fn.fn is None:
                     continue
-                description, parameters = self.get_function_docstring(block_fn.fn)
+                description, parameters = utils.get_function_docstring(block_fn.fn)
                 schema, _ = self.get_input_schema(tool_name, parameters)
                 schemas[tool_name] = schema
                 schemas[tool_name]["description"] = description
