@@ -26,8 +26,6 @@
 		StatusMessage
 	} from "@gradio/client";
 
-	setupi18n();
-
 	export let root: string;
 	export let components: ComponentMeta[];
 	export let layout: LayoutNode;
@@ -51,6 +49,8 @@
 	export let max_file_size: number | undefined = undefined;
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
+
+	setupi18n(app.config?.i18n_translations ?? undefined);
 
 	let {
 		layout: _layout,
@@ -80,8 +80,6 @@
 	}
 
 	async function run(): Promise<void> {
-		await setupi18n(app.config?.i18n_translations ?? undefined);
-
 		await create_layout({
 			components,
 			layout,

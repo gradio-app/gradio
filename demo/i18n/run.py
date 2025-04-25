@@ -1,11 +1,11 @@
 import gradio as gr
 
 # Create an i18n instance with translations for different languages
-i18n = gr.i18n(
-    en={"name_label": "Your Name", "submit_button": "Greet"},
-    es={"name_label": "Tu Nombre", "submit_button": "Saludar"},
-    fr={"name_label": "Votre Nom", "submit_button": "Saluer"},
-    de={"name_label": "Dein Name", "submit_button": "Grüßen"}
+i18n = gr.I18n(
+    en={"name_label": "Your Name", "submit_button": "Greet", "john_doe": "John English", "use_via_api": "Use via API"},
+    es={"name_label": "Tu Nombre", "submit_button": "Saludar", "john_doe": "John Spanish", "use_via_api": "nope"},
+    fr={"name_label": "Votre Nom", "submit_button": "Saluer", "john_doe": "John French"},
+    de={"name_label": "Dein Name", "submit_button": "Grüßen", "john_doe": "John German"},
 )
 
 with gr.Blocks() as demo:
