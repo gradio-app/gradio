@@ -1,4 +1,5 @@
 ---
+"@gradio/accordion": minor
 "@gradio/client": minor
 "@gradio/core": minor
 "@gradio/number": minor
