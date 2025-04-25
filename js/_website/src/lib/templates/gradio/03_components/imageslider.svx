@@ -9,8 +9,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
-    let obj = get_object("image");
-    let webcam_options_obj = get_object("webcamoptions")
+    let obj = get_object("imageslider");
 </script>
 
 <!--- Title -->
@@ -18,15 +17,15 @@
 
 <!--- Usage -->
 ```python
-gradio.Image(···)
+gradio.ImageSlider(···)
 ```
 
 <!-- Embedded Component -->
 <div class="embedded-component">
 <gradio-lite shared-worker>
-import gradio as gr 
+import gradio as gr
 with gr.Blocks() as demo:
-    gr.Image()
+    gr.ImageSlider(("https://raw.githubusercontent.com/gradio-app/gradio/refs/heads/main/js/_website/src/lib/assets/img/header-image.jpg", "https://raw.githubusercontent.com/gradio-app/gradio/refs/heads/main/js/_website/src/lib/assets/img/header-faded.jpg"))
 demo.launch()
 </gradio-lite>
 </div>
@@ -42,7 +41,9 @@ demo.launch()
 
 ```python
 def predict(
-	value: np.ndarray | PIL.Image.Image | str | None
+	value: tuple[
+    str | PIL.Image.Image | np.ndarray | None, str | PIL.Image.Image | np.ndarray | None
+]
 )
 	...
 ```
@@ -70,29 +71,6 @@ def predict(···) -> np.ndarray | PIL.Image.Image | str | Path | None
 <ShortcutTable shortcuts={obj.string_shortcuts} />
 {/if}
 
-
-### `GIF` and `SVG` Image Formats
-
-The `gr.Image` component can process or display any image format that is [supported by the PIL library](https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html), including animated GIFs. In addition, it also supports the SVG image format. 
-
-When the `gr.Image` component is used as an input component, the image is converted into a `str` filepath, a `PIL.Image` object, or a `numpy.array`, depending on the `type` parameter. However, animated GIF and SVG images are treated differently:
-
-* Animated `GIF` images can only be converted to `str` filepaths or `PIL.Image` objects. If they are converted to a `numpy.array` (which is the default behavior), only the first frame will be used. So if your demo expects an input `GIF` image, make sure to set the `type` parameter accordingly, e.g.
-
-```py
-import gradio as gr
-
-demo = gr.Interface(
-    fn=lambda x:x, 
-    inputs=gr.Image(type="filepath"), 
-    outputs=gr.Image()
-)
-    
-demo.launch()
-```
-
-* For `SVG` images, the `type` parameter is ignored altogether and the image is always returned as an image filepath. This is because `SVG` images cannot be processed as `PIL.Image` or `numpy.array` objects.
-
 {#if obj.demos && obj.demos.length > 0}
 <!--- Demos -->
 ### Demos 
@@ -104,29 +82,6 @@ demo.launch()
 ### Event Listeners 
 <FunctionsSection fns={obj.fns} event_listeners={true} />
 {/if}
-
-<!-- Helper Classes -->
-### Helper Classes 
-<div style="margin-left: 3rem">
-
-<!-- WEBCAM OPTIONS -->
-<!--- Title -->
-### Webcam Options
-
-<!--- Usage -->
-```python
-gradio.WebcamOptions(···)
-```
-
-<!--- Description -->
-#### Description
-## {@html style_formatted_text(webcam_options_obj.description)}
-
-<!--- Initialization -->
-#### Initialization
-<ParamTable parameters={webcam_options_obj.parameters} anchor_links={webcam_options_obj.name}/>
-
-</div>
 
 {#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->

@@ -32,6 +32,7 @@ from gradio.components.highlighted_text import HighlightedText
 from gradio.components.html import HTML
 from gradio.components.image import Image
 from gradio.components.image_editor import ImageEditor
+from gradio.components.imageslider import ImageSlider
 from gradio.components.json_component import JSON
 from gradio.components.label import Label
 from gradio.components.login_button import LoginButton
@@ -119,6 +120,7 @@ __all__ = [
     "StreamingInput",
     "StreamingOutput",
     "ImageEditor",
+    "ImageSlider",
     "ParamViewer",
     "MultimodalTextbox",
     "NativePlot",
