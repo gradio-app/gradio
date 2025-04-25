@@ -140,11 +140,30 @@ export function addZoomEffect(
 		params.boundingBox.topLeft.length === 2 &&
 		params.boundingBox.bottomRight.length === 2
 	) {
-		zoomEffects.push({
-			boundingBox: params.boundingBox,
-			start_frame: currentFrame,
-			duration: params.duration || 2.0
+		const newEffectDuration = params.duration || 2.0;
+		const newEffectEndFrame = currentFrame + Math.floor(newEffectDuration * 30);
+
+		const hasOverlap = zoomEffects.some((existingEffect) => {
+			const existingEffectEndFrame =
+				existingEffect.start_frame +
+				Math.floor((existingEffect.duration || 2.0) * 30);
+			return (
+				(currentFrame >= existingEffect.start_frame &&
+					currentFrame <= existingEffectEndFrame) ||
+				(newEffectEndFrame >= existingEffect.start_frame &&
+					newEffectEndFrame <= existingEffectEndFrame) ||
+				(currentFrame <= existingEffect.start_frame &&
+					newEffectEndFrame >= existingEffectEndFrame)
+			);
 		});
+
+		if (!hasOverlap) {
+			zoomEffects.push({
+				boundingBox: params.boundingBox,
+				start_frame: currentFrame,
+				duration: newEffectDuration
+			});
+		}
 	}
 }
 
