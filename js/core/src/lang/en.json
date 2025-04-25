@@ -70,7 +70,8 @@
 		"display_theme": "Display Theme",
 		"pwa": "Progressive Web App",
 		"record": "Record",
-		"stop_recording": "Stop Recording"
+		"stop_recording": "Stop Recording",
+		"run": "Run"
 	},
 	"dataframe": {
 		"incorrect_format": "Incorrect format, only CSV and TSV files are supported",

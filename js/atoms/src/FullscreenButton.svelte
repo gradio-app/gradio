@@ -8,7 +8,7 @@
 		fullscreenchange: boolean;
 	}>();
 
-	let is_full_screen = false;
+	export let is_full_screen = false;
 
 	onMount(() => {
 		document.addEventListener("fullscreenchange", () => {
@@ -21,7 +21,11 @@
 		if (!container) return;
 
 		if (!is_full_screen) {
-			await container.requestFullscreen();
+			try {
+				await container.requestFullscreen();
+			} catch (e) {
+				console.error(e);
+			}
 		} else {
 			await document.exitFullscreen();
 			is_full_screen = !is_full_screen;
