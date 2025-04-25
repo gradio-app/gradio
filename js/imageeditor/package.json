@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/imageeditor",
-	"version": "0.14.2",
+	"version": "0.14.3",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

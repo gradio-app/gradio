@@ -1,5 +1,11 @@
 # @self/storybook
 
+## 0.8.2
+
+### Fixes
+
+- [#11049](https://github.com/gradio-app/gradio/pull/11049) [`8d2aa3e`](https://github.com/gradio-app/gradio/commit/8d2aa3e99e165413bae1d8f5f3b4630e870308f5) - Ensure translations work as expected.  Thanks @hannahblair!
+
 ## 0.8.1
 
 ### Features

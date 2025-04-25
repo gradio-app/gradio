@@ -1,5 +1,15 @@
 # gradio
 
+## 5.27.0
+
+### Features
+
+- [#11027](https://github.com/gradio-app/gradio/pull/11027) [`eff532b`](https://github.com/gradio-app/gradio/commit/eff532b913a3c8f06f10a4f9471d3177e3744053) - Add new `ImageSlider` component.  Thanks @pngwn!
+
+### Fixes
+
+- [#11049](https://github.com/gradio-app/gradio/pull/11049) [`8d2aa3e`](https://github.com/gradio-app/gradio/commit/8d2aa3e99e165413bae1d8f5f3b4630e870308f5) - Ensure translations work as expected.  Thanks @hannahblair!
+
 ## 5.26.0
 
 ### Features

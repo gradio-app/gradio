@@ -1,5 +1,12 @@
 # @gradio/fallback
 
+## 0.4.20
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.10
+- @gradio/atoms@0.16.0
+
 ## 0.4.19
 
 ### Dependency updates
