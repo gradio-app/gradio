@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
+	import type { I18nFormatter } from "@gradio/utils";
+
 	const dispatch = createEventDispatcher<{
 		expand: void;
 		collapse: void;
@@ -7,6 +9,7 @@
 
 	export let open = true;
 	export let label = "";
+	export let i18n: I18nFormatter;
 </script>
 
 <button
@@ -21,7 +24,7 @@
 	class="label-wrap"
 	class:open
 >
-	<span>{label}</span>
+	<span>{i18n(label)}</span>
 	<span style:transform={open ? "rotate(0)" : "rotate(90deg)"} class="icon">
 		▼
 	</span>

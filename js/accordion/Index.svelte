@@ -31,6 +31,7 @@
 		bind:open
 		on:expand={() => gradio.dispatch("expand")}
 		on:collapse={() => gradio.dispatch("collapse")}
+		i18n={gradio.i18n}
 	>
 		<Column>
 			<slot />
