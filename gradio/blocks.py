@@ -2631,8 +2631,13 @@ Received inputs:
                 raise ImportError(
                     "In order to use `mcp_server=True`, you must install gradio with the `mcp` extra. Please install it with `pip install gradio[mcp]`"
                 ) from e
-            mcp_server_obj = gradio.mcp.GradioMCPServer(self)
-            mcp_server_obj.launch_mcp_on_sse(self.server_app, mcp_subpath)
+            try:
+                mcp_server_obj = gradio.mcp.GradioMCPServer(self)
+                mcp_server_obj.launch_mcp_on_sse(self.server_app, mcp_subpath)
+            except Exception as e:
+                if not quiet:
+                    print(f"Error launching MCP server: {e}")
+                mcp_server = False
 
         if self.is_running:
             if not isinstance(self.local_url, str):
