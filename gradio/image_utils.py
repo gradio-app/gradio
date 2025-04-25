@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import base64
+import warnings
 from io import BytesIO
 from pathlib import Path
 from typing import Literal, cast
+from urllib.parse import quote
 
 import httpx
 import numpy as np
@@ -12,6 +14,8 @@ from gradio_client.utils import get_mimetype, is_http_url_like
 from PIL import ImageOps
 
 from gradio import processing_utils
+from gradio.data_classes import ImageData
+from gradio.exceptions import Error
 
 PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843 (remove when requiring Pillow 9.4+)
 
@@ -172,3 +176,90 @@ def extract_svg_content(image_file: str | Path) -> str:
         with open(image_file) as file:
             svg_content = file.read()
         return svg_content
+
+
+def preprocess_image(
+    payload: ImageData | None,
+    cache_dir: str,
+    format: str,
+    image_mode: Literal[
+        "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
+    ]
+    | None,
+    type: Literal["numpy", "pil", "filepath"],
+) -> np.ndarray | PIL.Image.Image | str | None:
+    if payload is None:
+        return payload
+    if payload.url and payload.url.startswith("data:"):
+        if type == "pil":
+            return decode_base64_to_image(payload.url)
+        elif type == "numpy":
+            return decode_base64_to_image_array(payload.url)
+        elif type == "filepath":
+            return decode_base64_to_file(payload.url, cache_dir, format)
+    if payload.path is None:
+        raise ValueError("Image path is None.")
+    file_path = Path(payload.path)
+    if payload.orig_name:
+        p = Path(payload.orig_name)
+        name = p.stem
+        suffix = p.suffix.replace(".", "")
+        if suffix in ["jpg", "jpeg"]:
+            suffix = "jpeg"
+    else:
+        name = "image"
+        suffix = "webp"
+
+    if suffix.lower() == "svg":
+        if type == "filepath":
+            return str(file_path)
+        raise Error("SVG files are not supported as input images for this app.")
+
+    im = PIL.Image.open(file_path)
+    if type == "filepath" and (image_mode in [None, im.mode]):
+        return str(file_path)
+
+    exif = im.getexif()
+    # 274 is the code for image rotation and 1 means "correct orientation"
+    if exif.get(274, 1) != 1 and hasattr(ImageOps, "exif_transpose"):
+        try:
+            im = ImageOps.exif_transpose(im)
+        except Exception:
+            warnings.warn(f"Failed to transpose image {file_path} based on EXIF data.")
+    if suffix.lower() != "gif" and im is not None:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            if image_mode is not None:
+                im = im.convert(image_mode)
+    return format_image(
+        im,
+        type=cast(Literal["numpy", "pil", "filepath"], type),
+        cache_dir=cache_dir,
+        name=name,
+        format=suffix,
+    )
+
+
+def postprocess_image(
+    value: np.ndarray | PIL.Image.Image | str | Path | None,
+    cache_dir: str,
+    format: str,
+) -> ImageData | None:
+    """
+    Parameters:
+        value: Expects a `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is displayed.
+    Returns:
+        Returns the image as a `FileData` object.
+    """
+    if value is None:
+        return None
+    if isinstance(value, str) and value.lower().endswith(".svg"):
+        svg_content = extract_svg_content(value)
+        return ImageData(
+            orig_name=Path(value).name,
+            url=f"data:image/svg+xml,{quote(svg_content)}",
+        )
+
+    saved = save_image(value, cache_dir=cache_dir, format=format)
+    orig_name = Path(saved).name if Path(saved).exists() else None
+    return ImageData(path=saved, orig_name=orig_name)
