@@ -56,7 +56,9 @@ export async function startRecording(): Promise<void> {
 
 		mediaRecorder = new MediaRecorder(stream, {
 			mimeType: "video/webm;codecs=vp8",
-			videoBitsPerSecond: 5000000 // 3 Mbps
+			videoBitsPerSecond: 5000000,
+			audioBitsPerSecond: 128000,
+			bitsPerSecond: 5128000
 		});
 
 		recordedChunks = [];

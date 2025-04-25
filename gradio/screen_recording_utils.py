@@ -158,6 +158,10 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
             "22",
             "-c:a",
             "aac",
+            "-r",
+            "30",
+            "-vsync",
+            "cfr",
             final_mp4,
         ]
 
