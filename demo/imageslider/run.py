@@ -33,8 +33,8 @@ with gr.Blocks() as demo:
     with gr.Row():
         img3 = gr.ImageSlider(label="Blur image", type="pil")
         img3.upload(slider_to_self, inputs=img3, outputs=img3)
-    pos = gr.Slider(label="Position", value=0.5, minimum=0, maximum=1)
-    pos.change(position_to_slider, inputs=pos, outputs=img3)
+    pos = gr.Slider(label="Position", value=50, minimum=0, maximum=100, step=0.01)
+    pos.change(position_to_slider, inputs=pos, outputs=img3, show_progress="hidden")
 
 if __name__ == "__main__":
     demo.launch()

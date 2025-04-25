@@ -85,7 +85,7 @@ class ImageSlider(Component):
         render: bool = True,
         key: int | str | None = None,
         show_fullscreen_button: bool = True,
-        slider_position: float = 0.5,
+        slider_position: float = 50,
         max_height: int = 500,
     ):
         """
@@ -111,7 +111,7 @@ class ImageSlider(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             show_fullscreen_button: If True, will show a fullscreen icon in the corner of the component that allows user to view the image in fullscreen mode. If False, icon does not appear.
-            slider_position: The position of the slider as a percentage of the width of the image, between 0 and 1.
+            slider_position: The position of the slider as a percentage of the width of the image, between 0 and 100.
             max_height: The maximum height of the image.
         """
         self.format = format

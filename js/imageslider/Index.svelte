@@ -40,6 +40,9 @@
 	export let max_height: number;
 	let uploading = false;
 
+	$: normalised_slider_position =
+		Math.max(0, Math.min(100, slider_position)) / 100;
+
 	$: input_ready = !uploading;
 
 	export let gradio: Gradio<{
@@ -132,7 +135,7 @@
 			{show_download_button}
 			i18n={gradio.i18n}
 			{show_fullscreen_button}
-			position={slider_position}
+			position={normalised_slider_position}
 			{slider_color}
 			{max_height}
 		/>
