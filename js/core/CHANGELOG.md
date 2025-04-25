@@ -1,5 +1,32 @@
 # @gradio/core
 
+## 0.15.0
+
+### Features
+
+- [#11027](https://github.com/gradio-app/gradio/pull/11027) [`eff532b`](https://github.com/gradio-app/gradio/commit/eff532b913a3c8f06f10a4f9471d3177e3744053) - Add new `ImageSlider` component.  Thanks @pngwn!
+
+### Fixes
+
+- [#11049](https://github.com/gradio-app/gradio/pull/11049) [`8d2aa3e`](https://github.com/gradio-app/gradio/commit/8d2aa3e99e165413bae1d8f5f3b4630e870308f5) - Ensure translations work as expected.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/code@0.14.2
+- @gradio/paramviewer@0.7.8
+- @gradio/statustracker@0.10.10
+- @gradio/image@0.22.3
+- @gradio/upload@0.16.3
+- @gradio/button@0.4.16
+- @gradio/video@0.14.11
+- @gradio/atoms@0.16.0
+- @gradio/column@0.2.0
+- @gradio/gallery@0.15.16
+- @gradio/plot@0.9.15
+- @gradio/textbox@0.10.10
+- @gradio/checkbox@0.4.20
+- @gradio/file@0.12.16
+
 ## 0.14.1
 
 ### Fixes
