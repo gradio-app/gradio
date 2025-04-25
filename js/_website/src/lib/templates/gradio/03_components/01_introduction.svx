@@ -10,7 +10,7 @@
     delete components_no_dataclasses["optiondict"];
     delete components_no_dataclasses["metadatadict"];
     delete components_no_dataclasses["layeroptions"];
-    delete components_no_dataclasses["webcam_options"]
+    delete components_no_dataclasses["webcamoptions"]
 
     let events = get_object("events");
     let events_matrix = get_object("events_matrix");

@@ -32,6 +32,7 @@
 		"@gradio/icons": "workspace:^",
 		"@gradio/image": "workspace:^",
 		"@gradio/imageeditor": "workspace:^",
+		"@gradio/imageslider": "workspace:^",
 		"@gradio/json": "workspace:^",
 		"@gradio/label": "workspace:^",
 		"@gradio/browserstate": "workspace:^",

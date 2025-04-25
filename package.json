@@ -121,6 +121,7 @@
 		"@gradio/html": "workspace:^",
 		"@gradio/image": "workspace:^",
 		"@gradio/imageeditor": "workspace:^",
+		"@gradio/imageslider": "workspace:^",
 		"@gradio/json": "workspace:^",
 		"@gradio/label": "workspace:^",
 		"@gradio/markdown": "workspace:^",

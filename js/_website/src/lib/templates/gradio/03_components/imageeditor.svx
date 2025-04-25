@@ -13,7 +13,7 @@
     let brush_obj = get_object("brush");
     let eraser_obj = get_object("eraser");
     let layeroptions_obj = get_object("layeroptions");
-    let webcam_options_obj = get_object("webcam_options")
+    let webcam_options_obj = get_object("webcamoptions")
 </script>
 
 <!--- Title -->
