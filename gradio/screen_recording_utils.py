@@ -1,5 +1,4 @@
 import asyncio
-import math
 import os
 import shutil
 import tempfile
@@ -232,12 +231,18 @@ async def zoom_in(
         box_center_x = (x1 + x2) / 2
         box_center_y = (y1 + y2) / 2
 
-        if box_center_x < 0.4:
-            zoom_center_x = box_center_x - (box_width * 0.3)
-        elif box_center_x > 0.6:
-            zoom_center_x = box_center_x + (box_width * 0.3)
+        def calculate_proportional_offset(center, size):
+            if center < 0.5:
+                distance_from_center = 0.5 - center
+                return center - (size * (distance_from_center / 0.5))
+            elif center > 0.5:
+                distance_from_center = center - 0.5
+                return center + (size * (distance_from_center / 0.5))
+            return center
 
-        zoom_center_y = math.floor(box_center_y * 10) / 10
+        zoom_center_x = calculate_proportional_offset(box_center_x, box_width)
+        zoom_center_y = calculate_proportional_offset(box_center_y, box_height)
+
         target_zoom = 3.0
         max_zoom_by_size = min(1.0 / box_width, 1.0 / box_height)
 
