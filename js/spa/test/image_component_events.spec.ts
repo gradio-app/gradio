@@ -57,8 +57,10 @@ test("Image drag-to-upload uploads image successfuly.", async ({ page }) => {
 });
 
 test("Image drag-to-upload replaces an image successfully.", async ({
-	page
+	page,
+	context
 }) => {
+	const initialPages = context.pages();
 	await drag_and_drop_file(
 		page,
 		"input[type=file]",
@@ -79,6 +81,8 @@ test("Image drag-to-upload replaces an image successfully.", async ({
 
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("2");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("2");
+	const newPages = context.pages();
+	expect(newPages.length).toBe(initialPages.length);
 });
 
 test("Image copy from clipboard dispatches upload event.", async ({ page }) => {
