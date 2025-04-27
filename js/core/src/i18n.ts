@@ -49,12 +49,19 @@ export async function setupi18n(): Promise<void> {
 	}
 
 	const browser_locale = getLocaleFromNavigator();
-	const normalized_locale = browser_locale?.split("-")[0];
 
-	const initial_locale =
-		normalized_locale && available_locales.includes(normalized_locale)
-			? normalized_locale
-			: "en";
+	let initial_locale =
+		browser_locale && available_locales.includes(browser_locale)
+			? browser_locale
+			: null;
+
+	if (!initial_locale) {
+		const normalized_locale = browser_locale?.split("-")[0];
+		initial_locale =
+			normalized_locale && available_locales.includes(normalized_locale)
+				? normalized_locale
+				: "en";
+	}
 
 	await init({
 		fallbackLocale: "en",
