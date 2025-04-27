@@ -95,7 +95,7 @@
 
 	let target: HTMLElement | null = null;
 	let edit_index: number | null = null;
-	let edit_message = "";
+	let edit_messages: string[] = [];
 
 	onMount(() => {
 		target = document.querySelector("div.gradio-container");
@@ -196,14 +196,14 @@
 			});
 		} else if (selected == "edit") {
 			edit_index = i;
-			edit_message = message.content as string;
+			edit_messages.push(message.content as string);
 		} else if (selected == "edit_cancel") {
 			edit_index = null;
 		} else if (selected == "edit_submit") {
 			edit_index = null;
 			dispatch("edit", {
 				index: message.index,
-				value: edit_message,
+				value: edit_messages[i].slice(),
 				previous_value: message.content as string
 			});
 		} else {
@@ -335,9 +335,24 @@
 							messages.length > 0 &&
 							messages[messages.length - 1].type == "text")}
 					in_edit_mode={edit_index === i}
-					bind:edit_message
+					bind:edit_messages
 					{show_copy_button}
-					handle_action={(selected) => handle_action(i, messages[0], selected)}
+					handle_action={(selected) => {
+						if (selected == "edit") {
+							edit_messages.splice(0, edit_messages.length);	
+						}
+						if (selected === "edit" || selected === "edit_submit") {
+							messages.forEach((msg, index) => {
+								handle_action(
+									selected === "edit" ? i : index,
+									msg,
+									selected
+								);
+							});
+						} else {
+							handle_action(i, messages[0], selected);
+						}
+					}}
 					scroll={is_browser ? scroll : () => {}}
 					{allow_file_downloads}
 					on:copy={(e) => dispatch("copy", e.detail)}
