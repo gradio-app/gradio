@@ -64,15 +64,27 @@ class GradioMCPServer:
                 arguments: The arguments to pass to the tool.
             """
             _, filedata_positions = self.get_input_schema(name)
-            processed_arguments = self.convert_strings_to_filedata(
+            processed_kwargs = self.convert_strings_to_filedata(
                 arguments, filedata_positions
             )
             block_fn = self.get_block_fn_from_tool_name(name)
+            endpoint_name = f"/{name}"
+            if self.api_info and endpoint_name in self.api_info["named_endpoints"]:
+                parameters_info = self.api_info["named_endpoints"][endpoint_name][
+                    "parameters"
+                ]
+                processed_args = client_utils.construct_args(
+                    parameters_info,
+                    (),
+                    processed_kwargs,
+                )
+            else:
+                processed_args = []
             if block_fn is None:
                 raise ValueError(f"Unknown tool for this Gradio app: {name}")
             output = await self.blocks.process_api(
                 block_fn=block_fn,
-                inputs=list(processed_arguments.values()),
+                inputs=processed_args,
             )
             return self.postprocess_output_data(output["data"])
 
@@ -85,7 +97,9 @@ class GradioMCPServer:
                 return []
 
             tools = []
-            for endpoint_name, endpoint_info in self.api_info["named_endpoints"].items():
+            for endpoint_name, endpoint_info in self.api_info[
+                "named_endpoints"
+            ].items():
                 tool_name = endpoint_name.lstrip("/")
                 if endpoint_info["show_api"]:
                     block_fn = self.get_block_fn_from_tool_name(tool_name)

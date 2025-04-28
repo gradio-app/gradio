@@ -19,6 +19,7 @@ from typing import (
 )
 
 from fastapi import Request
+from gradio_client.data_classes import ParameterInfo
 from gradio_client.documentation import document
 from gradio_client.utils import is_file_obj_with_meta, traverse
 from pydantic import (
@@ -430,17 +431,6 @@ class Base64ImageData(GradioModel):
     url: str = Field(description="base64 encoded image")
 
 
-class APIParameterInfo(TypedDict):
-    label: str
-    parameter_name: str
-    parameter_has_default: bool
-    parameter_default: Optional[Any]
-    type: dict[str, Any]
-    python_type: dict[str, str]
-    component: str
-    example_input: Any
-
-
 class APIReturnInfo(TypedDict):
     label: str
     type: dict[str, Any]
@@ -450,7 +440,7 @@ class APIReturnInfo(TypedDict):
 
 class APIEndpointInfo(TypedDict):
     description: NotRequired[str]
-    parameters: list[APIParameterInfo]
+    parameters: list[ParameterInfo]
     returns: list[APIReturnInfo]
     show_api: bool
 
