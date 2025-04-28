@@ -239,6 +239,9 @@ importers:
       '@gradio/datetime':
         specifier: workspace:^
         version: link:js/datetime
+      '@gradio/dialogue':
+        specifier: workspace:^
+        version: link:js/dialogue
       '@gradio/downloadbutton':
         specifier: workspace:^
         version: link:js/downloadbutton
@@ -1295,6 +1298,31 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
+
+  js/dialogue:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/dropdown':
+        specifier: workspace:^
+        version: link:../dropdown
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
