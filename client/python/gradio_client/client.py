@@ -1395,7 +1395,7 @@ class Endpoint:
         return {
             "path": file_path,
             "orig_name": utils.strip_invalid_filename_characters(orig_name.name),
-            "meta": {"_type": "gradio.FileData"} if orig_name.suffix else None,
+            "meta": {"_type": "gradio.FileData"},
         }
 
     def _download_file(self, x: dict) -> str:
