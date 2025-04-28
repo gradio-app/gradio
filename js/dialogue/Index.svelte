@@ -24,8 +24,8 @@
 	}>;
 
 	export let server: {
-    	format: (body: DialogueLine[]) => Promise<string>;
-  	};
+		format: (body: DialogueLine[]) => Promise<string>;
+	};
 
 	export let label = "Dialogue";
 	export let speakers: string[] = [];
@@ -48,7 +48,6 @@
 	export let root: string;
 	export let show_submit_button: boolean = true;
 </script>
-
 
 <!-- svelte-ignore missing-declaration -->
 <Block

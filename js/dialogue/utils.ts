@@ -1,4 +1,4 @@
 export interface DialogueLine {
-    speaker: string;
-    text: string;
+	speaker: string;
+	text: string;
 }

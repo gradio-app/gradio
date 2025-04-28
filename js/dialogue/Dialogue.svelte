@@ -1,8 +1,5 @@
 <script lang="ts">
-	import {
-		createEventDispatcher,
-		tick
-	} from "svelte";
+	import { createEventDispatcher, tick } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Copy, Check, Send, Plus, Trash } from "@gradio/icons";
 	import { fade } from "svelte/transition";
@@ -26,13 +23,12 @@
 	export let show_submit_button = true;
 
 	export let server: {
-    	format: (body: DialogueLine[]) => Promise<string>;
-  	};
-
+		format: (body: DialogueLine[]) => Promise<string>;
+	};
 
 	let dialogue_lines: DialogueLine[] = [];
 	let dialogue_container_element: HTMLDivElement;
-	
+
 	let showEmotionMenu = false;
 	let currentLineIndex = -1;
 	let filtered_emotions: string[] = [];
@@ -61,7 +57,7 @@
 			{ speaker: newSpeaker, text: "" },
 			...dialogue_lines.slice(index + 1)
 		];
-		
+
 		tick().then(() => {
 			if (input_elements[index + 1]) {
 				input_elements[index + 1].focus();
@@ -76,7 +72,11 @@
 		];
 	}
 
-	function update_line(index: number, key: keyof DialogueLine, value: string): void {
+	function update_line(
+		index: number,
+		key: keyof DialogueLine,
+		value: string
+	): void {
 		dialogue_lines[index][key] = value;
 		dialogue_lines = [...dialogue_lines];
 	}
@@ -86,34 +86,45 @@
 		if (input && !input_elements[index]) {
 			input_elements[index] = input;
 		}
-		
+
 		const cursor_position = input.selectionStart || 0;
 		const text = input.value;
 		let show_menu = false;
-    	let position_reference_index = -1;
+		let position_reference_index = -1;
 
-		if (text[cursor_position - 1] === ':') {
+		if (text[cursor_position - 1] === ":") {
 			currentLineIndex = index;
-			position_reference_index = cursor_position; 
+			position_reference_index = cursor_position;
 			const search_text = get_emotion_search_text(text, cursor_position);
-			filtered_emotions = emotions.filter(emotion => 
-				search_text === '' || emotion.toLowerCase().includes(search_text.toLowerCase())
+			filtered_emotions = emotions.filter(
+				(emotion) =>
+					search_text === "" ||
+					emotion.toLowerCase().includes(search_text.toLowerCase())
 			);
 			show_menu = filtered_emotions.length > 0;
 		} else {
-			const lastColonIndex = text.lastIndexOf(':', cursor_position - 1);
-			if (lastColonIndex >= 0 && !text.substring(lastColonIndex + 1, cursor_position).includes(' ')) {
+			const lastColonIndex = text.lastIndexOf(":", cursor_position - 1);
+			if (
+				lastColonIndex >= 0 &&
+				!text.substring(lastColonIndex + 1, cursor_position).includes(" ")
+			) {
 				currentLineIndex = index;
 				position_reference_index = lastColonIndex + 1; // Position menu relative to the start of the potential emotion
 				const searchText = text.substring(lastColonIndex + 1, cursor_position);
-				filtered_emotions = emotions.filter(emotion => 
-					searchText === '' || emotion.toLowerCase().includes(searchText.toLowerCase())
+				filtered_emotions = emotions.filter(
+					(emotion) =>
+						searchText === "" ||
+						emotion.toLowerCase().includes(searchText.toLowerCase())
 				);
 				show_menu = filtered_emotions.length > 0;
 			}
 		}
 
-		if (show_menu && position_reference_index !== -1 && dialogue_container_element) {
+		if (
+			show_menu &&
+			position_reference_index !== -1 &&
+			dialogue_container_element
+		) {
 			showEmotionMenu = true;
 			const input_rect = input.getBoundingClientRect();
 			// Position menu below the current input by calculating the distance from the top of the container
@@ -126,12 +137,15 @@
 	}
 
 	// Get the typed text after the last colon for filtering emotions
-	function get_emotion_search_text(text: string, cursorPosition: number): string {
-		const lastColonIndex = text.lastIndexOf(':', cursorPosition - 1);
+	function get_emotion_search_text(
+		text: string,
+		cursorPosition: number
+	): string {
+		const lastColonIndex = text.lastIndexOf(":", cursorPosition - 1);
 		if (lastColonIndex >= 0) {
 			return text.substring(lastColonIndex + 1, cursorPosition);
 		}
-		return '';
+		return "";
 	}
 
 	function insert_emotion(e: CustomEvent): void {
@@ -140,26 +154,30 @@
 			const text = dialogue_lines[currentLineIndex].text;
 			const currentInput = input_elements[currentLineIndex];
 			const cursorPosition = currentInput?.selectionStart || 0;
-			
-			const lastColonIndex = text.lastIndexOf(':', cursorPosition - 1);
-			
+
+			const lastColonIndex = text.lastIndexOf(":", cursorPosition - 1);
+
 			if (lastColonIndex >= 0) {
-				const newText = text.substring(0, lastColonIndex) + 
-					`${emotion} ` + 
+				const newText =
+					text.substring(0, lastColonIndex) +
+					`${emotion} ` +
 					text.substring(cursorPosition);
-				
+
 				update_line(currentLineIndex, "text", newText);
-				
+
 				tick().then(() => {
 					const updatedInput = input_elements[currentLineIndex];
 					if (updatedInput) {
 						const newCursorPosition = lastColonIndex + emotion.length + 1;
-						updatedInput.setSelectionRange(newCursorPosition, newCursorPosition);
+						updatedInput.setSelectionRange(
+							newCursorPosition,
+							newCursorPosition
+						);
 						updatedInput.focus();
 					}
 				});
 			}
-			
+
 			showEmotionMenu = false;
 		}
 	}
@@ -167,7 +185,7 @@
 	function handle_click_outside(event: MouseEvent): void {
 		if (showEmotionMenu) {
 			const target = event.target as Node;
-			const emotionMenu = document.getElementById('emotion-menu');
+			const emotionMenu = document.getElementById("emotion-menu");
 			if (emotionMenu && !emotionMenu.contains(target)) {
 				showEmotionMenu = false;
 			}
@@ -213,7 +231,7 @@
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
-			const text = await server.format(value)
+			const text = await server.format(value);
 			await navigator.clipboard.writeText(text);
 			dispatch("copy", { value: text });
 			copy_feedback();
@@ -253,7 +271,7 @@
 			>
 		{/if}
 	{/if}
-	
+
 	<!-- svelte-ignore missing-declaration -->
 	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 
@@ -264,8 +282,8 @@
 					<BaseDropdown
 						bind:value={line.speaker}
 						on:change={() => update_line(i, "speaker", line.speaker)}
-						disabled={disabled}
-						choices={speakers.map(s => [s, s])}
+						{disabled}
+						choices={speakers.map((s) => [s, s])}
 						show_label={false}
 						container={true}
 						root={""}
@@ -274,62 +292,62 @@
 				</div>
 				<div class="text-column">
 					<div class="input-container">
-						<input 
-							type="text" 
-							bind:value={line.text} 
-							placeholder={placeholder}
-							disabled={disabled}
+						<input
+							type="text"
+							bind:value={line.text}
+							{placeholder}
+							{disabled}
 							on:input={(event) => handle_input(event, i)}
-						on:focus={(event) => handle_input(event, i)}
-						on:keydown={(event) => {
-							if (event.key === 'Escape' && showEmotionMenu) {
-								showEmotionMenu = false;
-								event.preventDefault();
-							}
-						}}
+							on:focus={(event) => handle_input(event, i)}
+							on:keydown={(event) => {
+								if (event.key === "Escape" && showEmotionMenu) {
+									showEmotionMenu = false;
+									event.preventDefault();
+								}
+							}}
 							bind:this={input_elements[i]}
 						/>
 					</div>
 				</div>
 				{#if !!!max_lines || (max_lines && i < max_lines - 1)}
-				<div class:action-column={i == 0}>
-					<button 
-						class="add-button" 
-						on:click={() => add_line(i)}
-						aria-label="Add new line"
-						disabled={disabled}
-					>
-						<Plus />
-					</button>
-				</div>
+					<div class:action-column={i == 0}>
+						<button
+							class="add-button"
+							on:click={() => add_line(i)}
+							aria-label="Add new line"
+							{disabled}
+						>
+							<Plus />
+						</button>
+					</div>
 				{/if}
 				{#if i > 0}
-				<div class="action-column">
-					<button 
-						class="delete-button" 
-						on:click={() => delete_line(i)}
-						aria-label="Remove current line"
-						disabled={disabled}
-					>
-						<Trash />
-					</button>
-				</div>
+					<div class="action-column">
+						<button
+							class="delete-button"
+							on:click={() => delete_line(i)}
+							aria-label="Remove current line"
+							{disabled}
+						>
+							<Trash />
+						</button>
+					</div>
 				{/if}
 			</div>
 		{/each}
-		
+
 		{#if showEmotionMenu}
-			<div 
+			<div
 				id="emotion-menu"
-				class="emotion-menu" 
+				class="emotion-menu"
 				transition:fade={{ duration: 100 }}
 			>
 				<BaseDropdownOptions
 					choices={emotions.map((s, i) => [s, i])}
-					filtered_indices={filtered_emotions.map(s => emotions.indexOf(s))}
+					filtered_indices={filtered_emotions.map((s) => emotions.indexOf(s))}
 					show_options={true}
 					on:change={(e) => insert_emotion(e)}
-					offset_from_top={offset_from_top}
+					{offset_from_top}
 					from_top={true}
 				/>
 			</div>
@@ -338,11 +356,7 @@
 
 	{#if show_submit_button}
 		<div class="submit-container">
-			<button
-				class="submit-button"
-				on:click={handle_submit}
-				disabled={disabled}
-			>
+			<button class="submit-button" on:click={handle_submit} {disabled}>
 				<Send />
 			</button>
 		</div>

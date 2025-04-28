@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from collections.abc import Callable
-from typing import List
 
 from gradio.components.base import server
 from gradio.components.textbox import Textbox
@@ -11,8 +12,10 @@ class DialogueLine(GradioModel):
     speaker: str
     text: str
 
+
 class DialogueModel(GradioRootModel):
-    root: List[DialogueLine]
+    root: list[DialogueLine]
+
 
 class Dialogue(Textbox):
     """
@@ -28,7 +31,9 @@ class Dialogue(Textbox):
     ]
 
     data_model = DialogueModel
-    def __init__(self,
+
+    def __init__(
+        self,
         value: list[dict[str, str]] | Callable | None = None,
         *,
         speakers: list[str] | None = None,
@@ -36,7 +41,8 @@ class Dialogue(Textbox):
         emotions: list[str] | None = None,
         separator: str = " ",
         label: str | None = "Dialogue",
-        info: str | None = "Type colon (:) in the dialogue line to see the available emotion and intonation tags",
+        info: str
+        | None = "Type colon (:) in the dialogue line to see the available emotion and intonation tags",
         placeholder: str | None = "Enter dialogue here...",
         show_label: bool | None = None,
         container: bool = True,
@@ -53,7 +59,7 @@ class Dialogue(Textbox):
         max_lines: int | None = None,
         show_submit_button: bool = True,
         show_copy_button: bool = True,
-        ):
+    ):
         """
         Parameters:
             value: Value of the dialogue. It is a list of dictionaries, each containing a 'speaker' key and a 'text' key. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
@@ -79,8 +85,25 @@ class Dialogue(Textbox):
             show_submit_button: If True, includes a submit button to submit the dialogue.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
         """
-        super().__init__(value="",
-                         label=label, info=info, placeholder=placeholder, show_label=show_label, container=container, scale=scale, min_width=min_width, interactive=interactive, visible=visible, elem_id=elem_id, autofocus=autofocus, autoscroll=autoscroll, elem_classes=elem_classes, render=render, key=key, max_lines=max_lines)
+        super().__init__(
+            value="",
+            label=label,
+            info=info,
+            placeholder=placeholder,
+            show_label=show_label,
+            container=container,
+            scale=scale,
+            min_width=min_width,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            autofocus=autofocus,
+            autoscroll=autoscroll,
+            elem_classes=elem_classes,
+            render=render,
+            key=key,
+            max_lines=max_lines,
+        )
         self.speakers = speakers
         self.emotions = emotions or []
         self.formatter = formatter
@@ -89,7 +112,9 @@ class Dialogue(Textbox):
         self.show_copy_button = show_copy_button
         if isinstance(value, Callable):
             value = value()
-        self.value = self.preprocess(DialogueModel(root=value)) if value is not None else value # type: ignore
+        self.value = (
+            self.preprocess(DialogueModel(root=value)) if value is not None else value
+        )  # type: ignore
 
     def preprocess(self, payload: DialogueModel) -> str:
         """
@@ -102,7 +127,9 @@ class Dialogue(Textbox):
         formatter = self.formatter
         if not formatter:
             formatter = self.default_formatter
-        return self.separator.join([formatter(line.speaker, line.text) for line in payload.root])
+        return self.separator.join(
+            [formatter(line.speaker, line.text) for line in payload.root]
+        )
 
     @staticmethod
     def default_formatter(speaker: str, text: str) -> str:
@@ -111,7 +138,7 @@ class Dialogue(Textbox):
     @server
     async def format(self, value: list[dict]):
         """Format the dialogue in the frontend into a string that's copied to the clipboard."""
-        data = DialogueModel(root=value) # type: ignore
+        data = DialogueModel(root=value)  # type: ignore
         return self.preprocess(data)
 
     def postprocess(self, value):
@@ -128,8 +155,13 @@ class Dialogue(Textbox):
         return self.preprocess(DialogueModel(root=value))
 
     def example_payload(self):
-        return [{"speaker": "Speaker 1", "text": "Hello, how are you?"}, {"speaker": "Speaker 2", "text": "I'm fine, thank you!"}]
+        return [
+            {"speaker": "Speaker 1", "text": "Hello, how are you?"},
+            {"speaker": "Speaker 2", "text": "I'm fine, thank you!"},
+        ]
 
     def example_value(self):
-        return [{"speaker": "Speaker 1", "text": "Hello, how are you?"}, {"speaker": "Speaker 2", "text": "I'm fine, thank you!"}]
-
+        return [
+            {"speaker": "Speaker 1", "text": "Hello, how are you?"},
+            {"speaker": "Speaker 2", "text": "I'm fine, thank you!"},
+        ]
