@@ -1,5 +1,13 @@
 # gradio
 
+## 5.27.1
+
+### Fixes
+
+- [#11093](https://github.com/gradio-app/gradio/pull/11093) [`cb322df`](https://github.com/gradio-app/gradio/commit/cb322df1f4df858590e760a82f6410f3b6db899b) - Update client.py to always send file data, even for files without extensions.  Thanks @edmcman!
+- [#11091](https://github.com/gradio-app/gradio/pull/11091) [`e3d80e3`](https://github.com/gradio-app/gradio/commit/e3d80e3c5c305ce84771ec78e5e25c705d4eff44) - Fix scaling issue when setting height in Image component.  Thanks @freddyaboulton!
+- [#11088](https://github.com/gradio-app/gradio/pull/11088) [`a5105cc`](https://github.com/gradio-app/gradio/commit/a5105cccd6ca0682bd206608a080e24d69dad136) - fix: ensure all translation files work as expected.  Thanks @Col0ring!
+
 ## 5.27.0
 
 ### Features
