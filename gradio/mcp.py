@@ -347,7 +347,7 @@ class GradioMCPServer:
                     )
                 else:
                     raise ValueError(
-                        f"Invalid file data format, provide either a url ('http://...' or 'https://...') or base64 encoded string ('data:...'). Received: {node}"
+                        f"Invalid file data format, provide a url ('http://...' or 'https://...'). Received: {node}"
                     )
             return node
 
