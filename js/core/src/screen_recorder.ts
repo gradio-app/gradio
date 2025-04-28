@@ -38,7 +38,7 @@ export async function startRecording(): Promise<void> {
 	try {
 		add_message_callback(
 			"To start recording:",
-			"Please select the 'SHARE THIS: Gradio Tab",
+			"Please select the current tab",
 			"info"
 		);
 		const originalTitle = document.title;

@@ -1712,6 +1712,14 @@ class App(FastAPI):
                 shutil.copyfileobj(video_file.file, input_file)
                 input_path = input_file.name
 
+            if wasm_utils.IS_WASM or shutil.which("ffmpeg") is None:
+                return FileResponse(
+                    input_path,
+                    media_type="video/mp4",
+                    filename="gradio-screen-recording.mp4",
+                    background=BackgroundTask(lambda: cleanup_files([input_path])),
+                )
+
             output_path = tempfile.mktemp(suffix="_processed.mp4")
 
             try:

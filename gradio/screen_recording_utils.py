@@ -4,6 +4,8 @@ import shutil
 import tempfile
 import traceback
 
+from ffmpy import FFmpeg
+
 
 async def process_video_with_ffmpeg(input_path, output_path, params):
     current_input = input_path
@@ -22,51 +24,27 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                 temp_files.extend([segment_output, before_segment, after_segment])
 
                 if start > 0:
-                    cmd_before = [
-                        "ffmpeg",
-                        "-y",
-                        "-i",
-                        current_input,
-                        "-t",
-                        str(start),
-                        "-c:v",
-                        "libx264",
-                        "-preset",
-                        "fast",
-                        "-crf",
-                        "22",
-                        "-c:a",
-                        "aac",
-                        before_segment,
-                    ]
-
+                    ff = FFmpeg(
+                        inputs={current_input: None},
+                        outputs={
+                            before_segment: f"-t {start} -c:v libx264 -preset fast -crf 22 -c:a aac -y"
+                        },
+                    )
                     process = await asyncio.create_subprocess_exec(
-                        *cmd_before,
+                        *ff.cmd.split(),
                         stdout=asyncio.subprocess.PIPE,
                         stderr=asyncio.subprocess.PIPE,
                     )
                     stdout, stderr = await process.communicate()
 
-                cmd_after = [
-                    "ffmpeg",
-                    "-y",
-                    "-i",
-                    current_input,
-                    "-ss",
-                    str(end),
-                    "-c:v",
-                    "libx264",
-                    "-preset",
-                    "fast",
-                    "-crf",
-                    "22",
-                    "-c:a",
-                    "aac",
-                    after_segment,
-                ]
-
+                ff = FFmpeg(
+                    inputs={current_input: None},
+                    outputs={
+                        after_segment: f"-ss {end} -c:v libx264 -preset fast -crf 22 -c:a aac -y"
+                    },
+                )
                 process = await asyncio.create_subprocess_exec(
-                    *cmd_after,
+                    *ff.cmd.split(),
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE,
                 )
@@ -89,22 +67,12 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                         f.write(f"file '{after_segment}'\n")
 
                 if os.path.exists(concat_file) and os.path.getsize(concat_file) > 0:
-                    cmd_concat = [
-                        "ffmpeg",
-                        "-y",
-                        "-f",
-                        "concat",
-                        "-safe",
-                        "0",
-                        "-i",
-                        concat_file,
-                        "-c",
-                        "copy",
-                        segment_output,
-                    ]
-
+                    ff = FFmpeg(
+                        inputs={concat_file: "-f concat -safe 0"},
+                        outputs={segment_output: "-c copy -y"},
+                    )
                     process = await asyncio.create_subprocess_exec(
-                        *cmd_concat,
+                        *ff.cmd.split(),
                         stdout=asyncio.subprocess.PIPE,
                         stderr=asyncio.subprocess.PIPE,
                     )
@@ -132,7 +100,8 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                     start_frame = effect.get("start_frame")
                     duration = effect.get("duration", 2.0)
 
-                    tempfile.mktemp(suffix=f"_zoom_{i}.mp4")
+                    zoom_output = tempfile.mktemp(suffix=f"_zoom_{i}.mp4")
+                    temp_files.append(zoom_output)
 
                     zoom_output, zoom_temp_files = await zoom_in(
                         current_input, top_left, bottom_right, duration, start_frame
@@ -144,38 +113,23 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                             temp_files.append(current_input)
                         current_input = zoom_output
 
-        final_mp4 = output_path
-        cmd = [
-            "ffmpeg",
-            "-y",
-            "-i",
-            current_input,
-            "-c:v",
-            "libx264",
-            "-preset",
-            "fast",
-            "-crf",
-            "22",
-            "-c:a",
-            "aac",
-            "-r",
-            "30",
-            "-vsync",
-            "cfr",
-            final_mp4,
-        ]
-
+        ff = FFmpeg(
+            inputs={current_input: None},
+            outputs={
+                output_path: "-c:v libx264 -preset fast -crf 22 -c:a aac -r 30 -vsync cfr -y"
+            },
+        )
         process = await asyncio.create_subprocess_exec(
-            *cmd,
+            *ff.cmd.split(),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
         stdout, stderr = await process.communicate()
 
         if process.returncode != 0:
-            shutil.copy(current_input, final_mp4)
+            shutil.copy(current_input, output_path)
 
-        current_input = final_mp4
+        current_input = output_path
         return current_input, temp_files
 
     except Exception:
@@ -190,8 +144,6 @@ async def zoom_in(
     zoom_duration=2.0,
     zoom_start_frame=None,
 ):
-    from ffmpy import FFmpeg
-
     temp_files = []
 
     try:
