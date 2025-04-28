@@ -116,7 +116,7 @@ class Dialogue(Textbox):
             self.preprocess(DialogueModel(root=value)) if value is not None else value  # type: ignore
         )
 
-    def preprocess(self, payload: DialogueModel) -> str:
+    def preprocess(self, payload: DialogueModel) -> str:  # type: ignore
         """
         This docstring is used to generate the docs for this custom component.
         Parameters:
