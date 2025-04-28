@@ -358,6 +358,11 @@ class GradioMCPServer:
         """
         If a filepath is a valid image, returns a PIL Image object. Otherwise returns None.
         """
+        if not os.path.exists(file_path):
+            return None
+        ext = os.path.splitext(file_path.lower())[1]
+        if ext not in Image.registered_extensions():
+            return None
         try:
             return Image.open(file_path)
         except Exception:
