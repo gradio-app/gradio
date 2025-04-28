@@ -64,14 +64,12 @@ class GradioMCPServer:
                 arguments: The arguments to pass to the tool.
             """
             _, filedata_positions = self.get_input_schema(name)
-            print("original arguments", arguments)
             processed_arguments = self.convert_strings_to_filedata(
                 arguments, filedata_positions
             )
             block_fn = self.get_block_fn_from_tool_name(name)
             if block_fn is None:
                 raise ValueError(f"Unknown tool for this Gradio app: {name}")
-            print("processed_arguments", processed_arguments)
             output = await self.blocks.process_api(
                 block_fn=block_fn,
                 inputs=list(processed_arguments.values()),
