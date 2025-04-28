@@ -249,4 +249,10 @@
 	.selectable {
 		cursor: crosshair;
 	}
+
+	.image-frame {
+		object-fit: cover;
+		width: 100%;
+		height: 100%;
+	}
 </style>
