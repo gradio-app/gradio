@@ -1,6 +1,15 @@
 import gradio as gr
 
-def calculator(num1, operation, num2):
+def calculator(num1: float, operation: str, num2: float) -> float:
+    """
+    Calculator function.
+    Args:
+        num1: The first number to calculate.
+        operation: The operation to perform.
+        num2: The second number to calculate.
+    Returns:
+        The result of the calculation.
+    """
     if operation == "add":
         return num1 + num2
     elif operation == "subtract":
@@ -31,4 +40,4 @@ demo = gr.Interface(
 )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(mcp_server=True)
