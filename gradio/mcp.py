@@ -37,6 +37,7 @@ class GradioMCPServer:
 
     def __init__(self, blocks: "Blocks"):
         self.blocks = blocks
+        self.api_info = self.blocks.get_api_info()
         self.mcp_server = self.create_mcp_server()
 
     def create_mcp_server(self) -> Server:
@@ -82,12 +83,11 @@ class GradioMCPServer:
             """
             List all tools on the Gradio app.
             """
-            api_info = self.blocks.get_api_info()
-            if not api_info:
+            if not self.api_info:
                 return []
 
             tools = []
-            for endpoint_name, endpoint_info in api_info["named_endpoints"].items():
+            for endpoint_name, endpoint_info in self.api_info["named_endpoints"].items():
                 tool_name = endpoint_name.lstrip("/")
                 if endpoint_info["show_api"]:
                     block_fn = self.get_block_fn_from_tool_name(tool_name)
@@ -179,7 +179,7 @@ class GradioMCPServer:
             - A list of positions of FileData objects in the input schema.
         """
         endpoint_name = f"/{tool_name}"
-        named_endpoints = self.blocks.get_api_info()["named_endpoints"]  # type: ignore
+        named_endpoints = self.api_info["named_endpoints"]  # type: ignore
         assert isinstance(named_endpoints, dict)  # noqa: S101
         endpoint_info = named_endpoints.get(endpoint_name)
 
@@ -212,12 +212,11 @@ class GradioMCPServer:
         Returns:
             A JSONResponse containing a dictionary mapping tool names to their input schemas.
         """
-        api_info = self.blocks.get_api_info()
-        if not api_info:
+        if not self.api_info:
             return JSONResponse({})
 
         schemas = {}
-        for endpoint_name, endpoint_info in api_info["named_endpoints"].items():
+        for endpoint_name, endpoint_info in self.api_info["named_endpoints"].items():
             tool_name = endpoint_name.lstrip("/")
             if endpoint_info["show_api"]:
                 block_fn = self.get_block_fn_from_tool_name(tool_name)
