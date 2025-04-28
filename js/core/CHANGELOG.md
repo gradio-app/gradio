@@ -1,5 +1,18 @@
 # @gradio/core
 
+## 0.15.1
+
+### Fixes
+
+- [#11088](https://github.com/gradio-app/gradio/pull/11088) [`a5105cc`](https://github.com/gradio-app/gradio/commit/a5105cccd6ca0682bd206608a080e24d69dad136) - fix: ensure all translation files work as expected.  Thanks @Col0ring!
+
+### Dependency updates
+
+- @gradio/gallery@0.15.17
+- @gradio/button@0.4.17
+- @gradio/video@0.14.12
+- @gradio/image@0.22.4
+
 ## 0.15.0
 
 ### Features

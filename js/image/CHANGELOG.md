@@ -1,5 +1,11 @@
 # @gradio/image
 
+## 0.22.4
+
+### Fixes
+
+- [#11091](https://github.com/gradio-app/gradio/pull/11091) [`e3d80e3`](https://github.com/gradio-app/gradio/commit/e3d80e3c5c305ce84771ec78e5e25c705d4eff44) - Fix scaling issue when setting height in Image component.  Thanks @freddyaboulton!
+
 ## 0.22.3
 
 ### Dependency updates
