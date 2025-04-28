@@ -54,12 +54,11 @@ export async function startRecording(): Promise<void> {
 		} as MediaStreamConstraints);
 		document.title = originalTitle;
 
-		mediaRecorder = new MediaRecorder(stream, {
-			mimeType: "video/webm;codecs=vp8",
-			videoBitsPerSecond: 5000000,
-			audioBitsPerSecond: 128000,
-			bitsPerSecond: 5128000
-		});
+		const options = {
+			videoBitsPerSecond: 5000000
+		};
+
+		mediaRecorder = new MediaRecorder(stream, options);
 
 		recordedChunks = [];
 		removeSegment = {};
@@ -128,10 +127,11 @@ export function addZoomEffect(
 		return;
 	}
 
+	const FPS = 30;
 	const currentTime = (Date.now() - recordingStartTime) / 1000;
 	const currentFrame = is_input
-		? Math.floor((currentTime - 2) * 30)
-		: Math.floor(currentTime * 30);
+		? Math.floor((currentTime - 2) * FPS)
+		: Math.floor(currentTime * FPS);
 
 	if (
 		params.boundingBox &&
@@ -141,12 +141,13 @@ export function addZoomEffect(
 		params.boundingBox.bottomRight.length === 2
 	) {
 		const newEffectDuration = params.duration || 2.0;
-		const newEffectEndFrame = currentFrame + Math.floor(newEffectDuration * 30);
+		const newEffectEndFrame =
+			currentFrame + Math.floor(newEffectDuration * FPS);
 
 		const hasOverlap = zoomEffects.some((existingEffect) => {
 			const existingEffectEndFrame =
 				existingEffect.start_frame +
-				Math.floor((existingEffect.duration || 2.0) * 30);
+				Math.floor((existingEffect.duration || 2.0) * FPS);
 			return (
 				(currentFrame >= existingEffect.start_frame &&
 					currentFrame <= existingEffectEndFrame) ||

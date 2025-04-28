@@ -27,7 +27,7 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                     ff = FFmpeg(
                         inputs={current_input: None},
                         outputs={
-                            before_segment: f"-t {start} -c:v libx264 -preset fast -crf 22 -c:a aac -y"
+                            before_segment: f"-t {start} -c:v libx264 -preset fast -crf 22 -c:a aac -r 30 -y"
                         },
                     )
                     process = await asyncio.create_subprocess_exec(
@@ -40,7 +40,7 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                 ff = FFmpeg(
                     inputs={current_input: None},
                     outputs={
-                        after_segment: f"-ss {end} -c:v libx264 -preset fast -crf 22 -c:a aac -y"
+                        after_segment: f"-ss {end} -c:v libx264 -preset fast -crf 22 -c:a aac -r 30 -y"
                     },
                 )
                 process = await asyncio.create_subprocess_exec(
@@ -223,25 +223,8 @@ async def zoom_in(
         except (ValueError, TypeError):
             video_duration = 10.0
 
-        fps_cmd = f'ffprobe -v error -select_streams v:0 -show_entries stream=avg_frame_rate -of default=noprint_wrappers=1:nokey=1 "{input_path}"'
-        process = await asyncio.create_subprocess_shell(
-            fps_cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, stderr = await process.communicate()
-
-        try:
-            fps_str = stdout.decode().strip()
-            if "/" in fps_str:
-                num, den = map(int, fps_str.split("/"))
-                fps = num / den if den != 0 else 30.0
-            else:
-                fps = float(fps_str)
-            if not (10 <= fps <= 120):
-                fps = 30.0
-        except (ValueError, TypeError, ZeroDivisionError):
-            fps = 30.0
+        # Always use 30fps for consistency across different devices
+        fps = 30.0
 
         zoom_duration = min(float(zoom_duration), video_duration)
         zoom_output = tempfile.mktemp(suffix="_zoomed.mp4")
@@ -279,7 +262,7 @@ async def zoom_in(
                     f"-pix_fmt yuv420p "
                     f"-movflags +faststart "
                     f"-preset fast "
-                    f"-r {fps} "
+                    f"-r 30 "
                     f"-c:a aac "
                     f"-y"
                 )
