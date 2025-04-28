@@ -94,16 +94,52 @@
 
 	const mcp_server_url = `${root}gradio_api/mcp/sse`;
 
+	interface ToolParameter {
+		title?: string;
+		type: string;
+		description: string;
+		format?: string;
+	}
+
+	interface Tool {
+		name: string;
+		description: string;
+		parameters: Record<string, ToolParameter>;
+		expanded?: boolean;
+	}
+
+	let tools: Tool[] = [];
+
+	async function fetchMcpTools() {
+		try {
+			const response = await fetch(`${root}gradio_api/mcp/schema`);
+			const schema = await response.json();
+
+			tools = Object.entries(schema).map(([name, tool]: [string, any]) => ({
+				name: `${name}`,
+				description: tool.description || "",
+				parameters: tool.properties || {},
+				expanded: false
+			}));
+		} catch (error) {
+			console.error("Failed to fetch MCP tools:", error);
+			tools = [];
+		}
+	}
+
 	onMount(() => {
 		document.body.style.overflow = "hidden";
 		if ("parentIFrame" in window) {
 			window.parentIFrame?.scrollTo(0, 0);
 		}
 
-		// Check MCP server status
+		// Check MCP server status and fetch tools if active
 		fetch(mcp_server_url)
 			.then((response) => {
 				mcp_server_active = response.ok;
+				if (mcp_server_active) {
+					fetchMcpTools();
+				}
 			})
 			.catch(() => {
 				mcp_server_active = false;
@@ -192,12 +228,6 @@
 							>) if you don't already have it installed.
 						{:else if current_language == "mcp"}
 							{#if mcp_server_active}
-								This Gradio app also serves an MCP server with a tool
-								corresponding to each API endpoint. You can use this MCP server
-								with any LLM that supports connecting to MCP servers <strong
-									>using the SSE protocol</strong
-								>.
-								<p>&nbsp;</p>
 								<Block>
 									<div class="mcp-url">
 										<label
@@ -211,6 +241,54 @@
 									</div>
 								</Block>
 								<p>&nbsp;</p>
+								<strong>Available MCP Tools</strong>
+								<div class="mcp-tools">
+									{#each tools as tool}
+										<div class="tool-item">
+											<button
+												class="tool-header"
+												on:click={() => (tool.expanded = !tool.expanded)}
+											>
+												<span
+													><span class="tool-name">{tool.name}</span> &nbsp;
+													<span class="tool-description"
+														>{tool.description
+															? tool.description
+															: "⚠︎ No description provided in function docstring"}</span
+													></span
+												>
+												<span class="tool-arrow"
+													>{tool.expanded ? "▼" : "▶"}</span
+												>
+											</button>
+											{#if tool.expanded}
+												<div class="tool-content">
+													{#if Object.keys(tool.parameters).length > 0}
+														<div class="tool-parameters">
+															{#if Object.keys(tool.parameters).length > 0}
+																{#each Object.entries(tool.parameters) as [name, param]}
+																	<div class="parameter">
+																		<code>{name}</code>
+																		<span class="parameter-type"
+																			>({param.type})</span
+																		>
+																		<p class="parameter-description">
+																			{param.description}
+																		</p>
+																	</div>
+																{/each}
+															{:else}
+																<p>No parameters</p>
+															{/if}
+														</div>
+													{/if}
+												</div>
+											{/if}
+										</div>
+									{/each}
+								</div>
+								<p>&nbsp;</p>
+
 								<strong>Integration</strong>: To add this MCP to clients that
 								support SSE (e.g. Cursor, Windsurf, Cline), simply add the
 								following configuration to your MCP config:
@@ -288,6 +366,7 @@
 										</div>
 									</code>
 								</Block>
+								<p>&nbsp;</p>
 								<p>&nbsp;</p>
 							{:else}
 								This Gradio app can also serve as an MCP server, with an MCP
@@ -647,5 +726,76 @@
 		100% {
 			opacity: 1;
 		}
+	}
+
+	.mcp-tools {
+		margin-top: var(--size-4);
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-md);
+		overflow: hidden;
+	}
+
+	.tool-item {
+		border-bottom: 1px solid var(--border-color-primary);
+	}
+
+	.tool-item:last-child {
+		border-bottom: none;
+	}
+
+	.tool-header {
+		width: 100%;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: var(--size-3);
+		background: var(--background-fill-primary);
+		border: none;
+		cursor: pointer;
+		text-align: left;
+	}
+
+	.tool-header:hover {
+		background: var(--background-fill-secondary);
+	}
+
+	.tool-name {
+		font-family: var(--font-mono);
+		font-weight: 600;
+	}
+
+	.tool-arrow {
+		color: var(--body-text-color-subdued);
+	}
+
+	.tool-content {
+		padding: var(--size-3);
+		background: var(--background-fill-secondary);
+	}
+
+	.tool-description {
+		margin-bottom: var(--size-3);
+		color: var(--body-text-color);
+	}
+	.parameter {
+		margin-bottom: var(--size-2);
+		padding: var(--size-2);
+		background: var(--background-fill-primary);
+		border-radius: var(--radius-sm);
+	}
+
+	.parameter code {
+		font-weight: 600;
+		color: var(--color-accent);
+	}
+
+	.parameter-type {
+		color: var(--body-text-color-subdued);
+		margin-left: var(--size-1);
+	}
+
+	.parameter-description {
+		margin-top: var(--size-1);
+		color: var(--body-text-color);
 	}
 </style>
