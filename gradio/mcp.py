@@ -274,7 +274,7 @@ class GradioMCPServer:
                     for key in ["properties", "additional_description"]:
                         node.pop(key, None)
                     node["type"] = "string"
-                    node["format"] = "url or base64 encoded string"
+                    node["format"] = "a http or https url to a file"
                 result = {}
                 is_schema_root = "type" in node and "properties" in node
                 for key, value in node.items():
