@@ -113,8 +113,8 @@ class Dialogue(Textbox):
         if isinstance(value, Callable):
             value = value()
         self.value = (
-            self.preprocess(DialogueModel(root=value)) if value is not None else value
-        )  # type: ignore
+            self.preprocess(DialogueModel(root=value)) if value is not None else value  # type: ignore
+        )
 
     def preprocess(self, payload: DialogueModel) -> str:
         """

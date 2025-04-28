@@ -11,7 +11,7 @@
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { DialogueLine } from "./utils";
+	import type { DialogueLine } from "./utils";
 	export let gradio: Gradio<{
 		change: DialogueLine[];
 		submit: never;
@@ -46,7 +46,7 @@
 	export let value_is_output = false;
 	export let interactive: boolean;
 	export let root: string;
-	export let show_submit_button: boolean = true;
+	export let show_submit_button = true;
 </script>
 
 <!-- svelte-ignore missing-declaration -->

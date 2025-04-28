@@ -309,7 +309,7 @@
 						/>
 					</div>
 				</div>
-				{#if !!!max_lines || (max_lines && i < max_lines - 1)}
+				{#if max_lines == undefined || (max_lines && i < max_lines - 1)}
 					<div class:action-column={i == 0}>
 						<button
 							class="add-button"
