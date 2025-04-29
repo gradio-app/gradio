@@ -378,6 +378,8 @@ class GradioMCPServer:
                 return [traverse(item, path + [i]) for i, item in enumerate(node)]
             elif isinstance(node, str) and path in filedata_positions:
                 if node.startswith("data:"):
+                    # Even though base64 is not officially part of our schema, some MCP clients
+                    # might return base64 encoded strings, so try to save it to a temporary file.
                     return FileData(
                         path=processing_utils.save_base64_to_cache(
                             node, DEFAULT_TEMP_DIR
@@ -385,9 +387,7 @@ class GradioMCPServer:
                     )
                 elif node.startswith(("http://", "https://")):
                     return FileData(
-                        path=processing_utils.ssrf_protected_download(
-                            node, DEFAULT_TEMP_DIR
-                        )
+                        path=node
                     )
                 else:
                     raise ValueError(
