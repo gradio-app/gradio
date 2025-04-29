@@ -1,6 +1,6 @@
 # Using the Gradio Chatbot as an MCP Client
 
-This guide will walk you through a Model Context Protocol (MCP) Client and Server implementation with Gradio. You'll build a Gradio chatbot that can respond as an LLM (using Anthropic's Claude API) as well as generate images (thanks to a separate Gradio MCP Server).
+This guide will walk you through a Model Context Protocol (MCP) Client and Server implementation with Gradio. You'll build a Gradio Chatbot that uses Anthropic's Claude API to respond to user messages, but also, as an MCP Client, generates images (by connecting to an MCP Server, which is a separate Gradio app). 
 
 <video src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/mcp-guides.mp4" style="width:100%" controls preload> </video>
 
@@ -36,17 +36,15 @@ Create a file named `gradio_mcp_server.py`:
 
 ```python
 from mcp.server.fastmcp import FastMCP
-import requests
 import json
 import sys
 import io
 import time
+from gradio_client import Client
 
-# Set UTF-8 encoding for stdout/stderr
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
-# Initialize FastMCP server
 mcp = FastMCP("huggingface_spaces_image_display")
 
 @mcp.tool()
@@ -58,84 +56,42 @@ async def generate_image(prompt: str, width: int = 512, height: int = 512) -> st
         width: Image width (default: 512)
         height: Image height (default: 512)
     """
-    # API endpoint
-    base_url = "https://ysharma-sanasprint.hf.space/gradio_api/call/infer"
+    client = Client("https://ysharma-sanasprint.hf.space/")
     
-    # Parameters
-    payload = {
-        "data": [
-            prompt,               # User prompt
-            "0.6B",               # Smallest model
-            0,                    # Seed
-            True,                 # Randomize seed
-            width,                # Width
-            height,               # Height
-            4.0,                  # Guidance scale
-            2                     # Minimum steps
-        ]
-    }
-    
-    headers = {"Content-Type": "application/json"}
-    session = requests.Session()
-    
-    # Step 1: Make the POST request to get event ID
-    response = session.post(
-        base_url, 
-        headers=headers, 
-        json=payload, 
-        timeout=60
-    )
-    response_data = response.json()
-    
-    if "event_id" not in response_data:
+    try:
+        result = client.predict(
+            prompt,
+            "0.6B",
+            0,
+            True,
+            width,
+            height,
+            4.0,
+            2,
+            api_name="/infer"
+        )
+        
+        if isinstance(result, list) and len(result) >= 1:
+            image_data = result[0]
+            if isinstance(image_data, dict) and "url" in image_data:
+                return json.dumps({
+                    "type": "image",
+                    "url": image_data["url"],
+                    "message": f"Generated image for prompt: {prompt}"
+                })
+        
         return json.dumps({
             "type": "error",
-            "message": "Failed to get event ID from service"
+            "message": "Failed to generate image"
         })
-    
-    event_id = response_data["event_id"]
-    
-    # Step 2: Poll for results
-    result_url = f"{base_url}/{event_id}"
-    
-    # Poll with timeout
-    start_time = time.time()
-    timeout = 60
-    
-    while (time.time() - start_time) < timeout:
-        response = session.get(result_url, timeout=15, stream=True)
         
-        # Process the streaming response
-        for line in response.iter_lines(decode_unicode=True):
-            if line and line.startswith("data:"):
-                try:
-                    data_json = line[5:].strip()
-                    data = json.loads(data_json)
-                    
-                    if isinstance(data, list) and len(data) >= 1:
-                        image_data = data[0]
-                        if isinstance(image_data, dict) and "url" in image_data:
-                            image_url = image_data["url"]
-                            
-                            # Return image info
-                            return json.dumps({
-                                "type": "image",
-                                "url": image_url,
-                                "message": f"Generated image for prompt: {prompt}"
-                            })
-                except:
-                    continue
-        
-        # Wait before polling again
-        time.sleep(2)
-    
-    return json.dumps({
-        "type": "error",
-        "message": "Timeout reached waiting for image generation."
-    })
+    except Exception as e:
+        return json.dumps({
+            "type": "error",
+            "message": f"Error generating image: {str(e)}"
+        })
 
 if __name__ == "__main__":
-    # Initialize and run the server
     mcp.run(transport='stdio')
 ```
 
@@ -166,15 +122,12 @@ from mcp.client.stdio import stdio_client
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
-load_dotenv()  # Load environment variables from .env
+load_dotenv()
 
-# Create event loop for async operations
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
 class MCPClientWrapper:
-    """Minimal MCP client wrapper for Gradio"""
-    
     def __init__(self):
         self.session = None
         self.exit_stack = None
@@ -182,11 +135,9 @@ class MCPClientWrapper:
         self.tools = []
     
     def connect(self, server_path: str) -> str:
-        """Connect to the MCP server"""
         return loop.run_until_complete(self._connect(server_path))
     
     async def _connect(self, server_path: str) -> str:
-        """Internal async method to connect to server"""
         if self.exit_stack:
             await self.exit_stack.aclose()
         
@@ -218,7 +169,6 @@ class MCPClientWrapper:
         return f"Connected to MCP server. Available tools: {', '.join(tool_names)}"
     
     def process_message(self, message: str, history: List[Union[Dict[str, Any], ChatMessage]]) -> tuple:
-        """Process a message using Claude and MCP tools"""
         if not self.session:
             return history + [
                 {"role": "user", "content": message}, 
@@ -229,22 +179,18 @@ class MCPClientWrapper:
         return history + [{"role": "user", "content": message}] + new_messages, gr.Textbox(value="")
     
     async def _process_query(self, message: str, history: List[Union[Dict[str, Any], ChatMessage]]):
-        """Internal async method to process queries"""
-        # Format conversation history for Claude
         claude_messages = []
         for msg in history:
             if isinstance(msg, ChatMessage):
                 role, content = msg.role, msg.content
-            else:  # Dictionary
+            else:
                 role, content = msg.get("role"), msg.get("content")
             
             if role in ["user", "assistant", "system"]:
                 claude_messages.append({"role": role, "content": content})
         
-        # Add current query
         claude_messages.append({"role": "user", "content": message})
         
-        # Initial Claude API call
         response = self.anthropic.messages.create(
             model="claude-3-5-sonnet-20241022",
             max_tokens=1000,
@@ -252,12 +198,10 @@ class MCPClientWrapper:
             tools=self.tools
         )
 
-        # Process response and handle tool calls
         result_messages = []
         
         for content in response.content:
             if content.type == 'text':
-                # Add text response
                 result_messages.append({
                     "role": "assistant", 
                     "content": content.text
@@ -267,7 +211,6 @@ class MCPClientWrapper:
                 tool_name = content.name
                 tool_args = content.input
                 
-                # Create a message for the tool call
                 result_messages.append({
                     "role": "assistant",
                     "content": f"I'll use the {tool_name} tool to help answer your question.",
@@ -279,7 +222,6 @@ class MCPClientWrapper:
                     }
                 })
                 
-                # Add formatted tool parameters
                 result_messages.append({
                     "role": "assistant",
                     "content": "```json\n" + json.dumps(tool_args, indent=2, ensure_ascii=True) + "\n```",
@@ -290,14 +232,11 @@ class MCPClientWrapper:
                     }
                 })
                 
-                # Execute tool call
                 result = await self.session.call_tool(tool_name, tool_args)
                 
-                # Update the tool call status
                 if result_messages and "metadata" in result_messages[-2]:
                     result_messages[-2]["metadata"]["status"] = "done"
                 
-                # Add tool results message
                 result_messages.append({
                     "role": "assistant",
                     "content": "Here are the results from the tool:",
@@ -308,17 +247,14 @@ class MCPClientWrapper:
                     }
                 })
                 
-                # Handle the result content
                 result_content = result.content
                 if isinstance(result_content, list):
                     result_content = "\n".join(str(item) for item in result_content)
                 
-                # Process result
                 try:
                     result_json = json.loads(result_content)
                     if isinstance(result_json, dict) and "type" in result_json:
                         if result_json["type"] == "image" and "url" in result_json:
-                            # Add image
                             result_messages.append({
                                 "role": "assistant",
                                 "content": {"path": result_json["url"], "alt_text": result_json.get("message", "Generated image")},
@@ -329,7 +265,6 @@ class MCPClientWrapper:
                                 }
                             })
                         else:
-                            # Regular formatted content
                             result_messages.append({
                                 "role": "assistant",
                                 "content": "```\n" + result_content + "\n```",
@@ -340,7 +275,6 @@ class MCPClientWrapper:
                                 }
                             })
                 except:
-                    # Not JSON, use as plain text
                     result_messages.append({
                         "role": "assistant",
                         "content": "```\n" + result_content + "\n```",
@@ -351,7 +285,6 @@ class MCPClientWrapper:
                         }
                     })
                 
-                # Get Claude's interpretation of the results
                 claude_messages.append({"role": "user", "content": f"Tool result for {tool_name}: {result_content}"})
                 next_response = self.anthropic.messages.create(
                     model="claude-3-5-sonnet-20241022",
@@ -367,10 +300,8 @@ class MCPClientWrapper:
 
         return result_messages
 
-# Create global client instance
 client = MCPClientWrapper()
 
-# Define Gradio interface
 def gradio_interface():
     with gr.Blocks(title="MCP Weather Client") as demo:
         gr.Markdown("# MCP Weather Assistant")
@@ -388,7 +319,6 @@ def gradio_interface():
         
         status = gr.Textbox(label="Connection Status", interactive=False)
         
-        # Use type="messages" for the enhanced chatbot
         chatbot = gr.Chatbot(
             value=[], 
             height=500,
@@ -405,7 +335,6 @@ def gradio_interface():
             )
             clear_btn = gr.Button("Clear Chat", scale=1)
         
-        # Set up event handlers
         connect_btn.click(client.connect, inputs=server_path, outputs=status)
         msg.submit(client.process_message, [msg, chatbot], [chatbot, msg])
         clear_btn.click(lambda: [], None, chatbot)
@@ -413,11 +342,9 @@ def gradio_interface():
     return demo
 
 if __name__ == "__main__":
-    # Check for API key
     if not os.getenv("ANTHROPIC_API_KEY"):
         print("Warning: ANTHROPIC_API_KEY not found in environment. Please set it in your .env file.")
     
-    # Launch the Gradio interface
     interface = gradio_interface()
     interface.launch(debug=True)
 ```
