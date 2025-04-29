@@ -2441,7 +2441,7 @@ Received inputs:
         node_port: int | None = None,
         ssr_mode: bool | None = None,
         pwa: bool | None = None,
-        mcp_server: bool | None = True,
+        mcp_server: bool | None = None,
         _frontend: bool = True,
     ) -> tuple[App, str, str]:
         """
