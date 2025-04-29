@@ -47,21 +47,24 @@
 	export let scroll: () => void;
 	export let allow_file_downloads: boolean;
 	export let in_edit_mode: boolean;
-	export let edit_message: string;
+	export let edit_messages: string[];
 	export let display_consecutive_in_same_bubble: boolean;
 	export let current_feedback: string | null = null;
 	export let allow_tags: string[] | boolean = false;
 	export let watermark: string | null = null;
 	let messageElements: HTMLDivElement[] = [];
 	let previous_edit_mode = false;
-	let last_message_width = 0;
-	let last_message_height = 0;
+	let message_widths: number[] = Array(messages.length).fill(160);
+	let message_heights: number[] = Array(messages.length).fill(0);
 
 	$: if (in_edit_mode && !previous_edit_mode) {
-		last_message_width =
-			messageElements[messageElements.length - 1]?.clientWidth;
-		last_message_height =
-			messageElements[messageElements.length - 1]?.clientHeight;
+		const offset = messageElements.length - messages.length;
+		for (let idx = offset; idx < messageElements.length; idx++) {
+			if (idx >= 0) {
+				message_widths[idx - offset] = messageElements[idx]?.clientWidth;
+				message_heights[idx - offset] = messageElements[idx]?.clientHeight;
+			}
+		}
 	}
 
 	function handle_select(i: number, message: NormalisedMessage): void {
@@ -158,14 +161,14 @@
 						message.content.component === "html"}
 					class:thought={thought_index > 0}
 				>
-					{#if in_edit_mode && thought_index === messages.length - 1 && message.type === "text"}
+					{#if in_edit_mode && message.type === "text"}
 						<!-- svelte-ignore a11y-autofocus -->
 						<textarea
 							class="edit-textarea"
-							style:width={`max(${last_message_width}px, 160px)`}
-							style:min-height={`${last_message_height}px`}
+							style:width={`max(${message_widths[thought_index]}px, 160px)`}
+							style:min-height={`${message_heights[thought_index]}px`}
 							autofocus
-							bind:value={edit_message}
+							bind:value={edit_messages[thought_index]}
 						/>
 					{:else}
 						<!-- svelte-ignore a11y-no-static-element-interactions -->
