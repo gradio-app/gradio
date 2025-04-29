@@ -90,6 +90,9 @@ All you need to do is add this URL endpoint to your MCP Client (e.g. Claude Desk
 }
 ```
 
+<video src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/mcp_guide1.mp4" style="width:100%" controls preload> </video>
+
+
 ## Custom MCP Servers
 
 For a more fine-grained control, you might want to manually create an MCP Server that interfaces with hosted Gradio apps. This approach is useful when you want to:
