@@ -2637,9 +2637,9 @@ Received inputs:
                     self.server_app, mcp_subpath, self.root_path
                 )
             except Exception as e:
+                mcp_server = False
                 if not quiet:
                     print(f"Error launching MCP server: {e}")
-                mcp_server = False
 
         if self.is_running:
             if not isinstance(self.local_url, str):
