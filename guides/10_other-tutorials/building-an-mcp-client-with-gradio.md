@@ -1,6 +1,6 @@
-# Using Gradio apps both as  MCP Client and MCP Server
+# Using the Gradio Chatbot as an MCP Client
 
-This guide will walk you through a Model Context Protocol (MCP) Client and Server implementation with Gradio. You'll build a simple yet powerful image generation system that connects Claude to external tools through Gradio and MCP.
+This guide will walk you through a Model Context Protocol (MCP) Client and Server implementation with Gradio. You'll build a Gradio chatbot that can respond as an LLM (using Anthropic's Claude API) as well as generate images (thanks to a Gradio MCP Server).
 
 ## What is MCP?
 
