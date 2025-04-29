@@ -41,7 +41,11 @@ class GradioMCPServer:
         self.mcp_server = self.create_mcp_server()
         self.request = None
         self.root_url = None
-        self.tool_prefix = f"{utils.get_space()}_".replace("-", "_").replace("/", "_") if utils.get_space() else ""
+        self.tool_prefix = (
+            f"{utils.get_space()}_".replace("-", "_").replace("/", "_")
+            if utils.get_space()
+            else ""
+        )
 
     def create_mcp_server(self) -> Server:
         """
@@ -441,14 +445,22 @@ class GradioMCPServer:
                     image_format = image.format or "png"
                     base64_data = self.get_base64_data(image, image_format)
                     mimetype = f"image/{image_format.lower()}"
-                    return_value = types.ImageContent(
-                        type="image", data=base64_data, mimeType=mimetype
-                    )
+                    return_value = [
+                        types.ImageContent(
+                            type="image", data=base64_data, mimeType=mimetype
+                        ),
+                        types.TextContent(
+                            type="text",
+                            text=f"Image URL: {output['url'] or output['path']}",
+                        ),
+                    ]
                 else:
-                    return_value = types.TextContent(
-                        type="text", text=str(output["url"] or output["path"])
-                    )
+                    return_value = [
+                        types.TextContent(
+                            type="text", text=str(output["url"] or output["path"])
+                        )
+                    ]
             else:
-                return_value = types.TextContent(type="text", text=str(output))
-            return_values.append(return_value)
+                return_value = [types.TextContent(type="text", text=str(output))]
+            return_values.extend(return_value)
         return return_values
