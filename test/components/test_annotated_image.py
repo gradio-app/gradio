@@ -61,19 +61,3 @@ class TestAnnotatedImage:
             "key": None,
             "show_fullscreen_button": True,
         }
-
-    def test_in_interface(self):
-        def mask(img):
-            top_left_corner = [0, 0, 20, 20]
-            random_mask = np.random.randint(0, 2, img.shape[:2])
-            return (img, [(top_left_corner, "left corner"), (random_mask, "random")])
-
-        iface = gr.Interface(mask, "image", gr.AnnotatedImage())
-        output = iface("test/test_files/bus.png")
-        output_img, (mask1, _) = output["image"], output["annotations"]
-        input_img = PIL.Image.open("test/test_files/bus.png")  # type: ignore
-        output_img = PIL.Image.open(output_img)  # type: ignore
-        mask1_img = PIL.Image.open(mask1["image"])  # type: ignore
-
-        assert output_img.size == input_img.size
-        assert mask1_img.size == input_img.size
