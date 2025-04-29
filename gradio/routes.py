@@ -1412,11 +1412,9 @@ class App(FastAPI):
                 is_done = False
                 while True:
                     if await request.is_disconnected():
-                        print("disconnected")
                         file_upload_statuses.stop_tracking(upload_id)
                         return
                     if is_done:
-                        print("done")
                         file_upload_statuses.stop_tracking(upload_id)
                         return
 
@@ -1424,7 +1422,6 @@ class App(FastAPI):
                     check_rate = 0.05
                     try:
                         if file_upload_statuses.is_done(upload_id):
-                            print("is_done")
                             message = {"msg": "done"}
                             is_done = True
                         else:
@@ -1435,13 +1432,10 @@ class App(FastAPI):
                                 "orig_name": update.filename,
                                 "chunk_size": update.chunk_size,
                             }
-                            print("message", message)
                         yield f"data: {json.dumps(message)}\n\n"
                     except FileUploadProgressNotTrackedError:
-                        print("FileUploadProgressNotTrackedError")
                         return
                     except FileUploadProgressNotQueuedError:
-                        print("FileUploadProgressNotQueuedError")
                         await asyncio.sleep(check_rate)
                         if time.perf_counter() - last_heartbeat > heartbeat_rate:
                             message = {"msg": "heartbeat"}
@@ -1450,7 +1444,7 @@ class App(FastAPI):
 
             try:
                 await asyncio.wait_for(
-                    file_upload_statuses.is_tracked(upload_id), timeout=10
+                    file_upload_statuses.is_tracked(upload_id), timeout=3
                 )
             except (asyncio.TimeoutError, FileUploadProgressNotTrackedError):
                 return PlainTextResponse("Upload not found", status_code=404)
@@ -1473,7 +1467,6 @@ class App(FastAPI):
                 raise HTTPException(status_code=400, detail="Invalid content type.")
 
             try:
-                print("upload_id", upload_id)
                 if upload_id:
                     file_upload_statuses.track(upload_id)
                 max_file_size = app.get_blocks().max_file_size
