@@ -1,1 +1,2 @@
 mcp>=1.6.0,<2.0.0
+pydantic>=2.11; sys.platform != 'emscripten'
