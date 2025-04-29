@@ -16,7 +16,6 @@ def letter_counter(word, letter):
     count = word.count(letter)
     return count
 
-# Create and launch the Gradio interface
 demo = gr.Interface(
     fn=letter_counter,
     inputs=["textbox", "textbox"],
