@@ -51,11 +51,16 @@ def test_postprocess_output_data():
     with tempfile.NamedTemporaryFile(suffix=".png") as temp_file:
         img = Image.new("RGB", (10, 10), color="red")
         img.save(temp_file.name)
-        test_data = [{"path": temp_file.name, "meta": {"_type": "gradio.FileData"}}]
+        url = f"http://localhost:7860/gradio_api/file={temp_file.name}"
+        test_data = [
+            {"path": temp_file.name, "url": url, "meta": {"_type": "gradio.FileData"}}
+        ]
         result = server.postprocess_output_data(test_data)
-        assert len(result) == 1
+        assert len(result) == 2
         assert result[0].type == "image"
         assert result[0].mimeType == "image/png"
+        assert result[1].type == "text"
+        assert url in result[1].text
 
     test_data = ["test text"]
     result = server.postprocess_output_data(test_data)
