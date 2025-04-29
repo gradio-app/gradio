@@ -14,7 +14,7 @@ from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
 
-from gradio import processing_utils, utils
+from gradio import processing_utils, route_utils, utils
 from gradio.blocks import BlockFunction
 from gradio.data_classes import FileData
 
@@ -39,6 +39,8 @@ class GradioMCPServer:
         self.blocks = blocks
         self.api_info = self.blocks.get_api_info()
         self.mcp_server = self.create_mcp_server()
+        self.request = None
+        self.root_url = None
 
     def create_mcp_server(self) -> Server:
         """
@@ -85,7 +87,9 @@ class GradioMCPServer:
             output = await self.blocks.process_api(
                 block_fn=block_fn,
                 inputs=processed_args,
+                request=self.request,
             )
+            print("output", output)
             return self.postprocess_output_data(output["data"])
 
         @server.list_tools()
@@ -120,7 +124,7 @@ class GradioMCPServer:
 
         return server
 
-    def launch_mcp_on_sse(self, app: Starlette, subpath: str) -> None:
+    def launch_mcp_on_sse(self, app: Starlette, subpath: str, root_path: str) -> None:
         """
         Launch the MCP server on the SSE transport.
 
@@ -132,6 +136,12 @@ class GradioMCPServer:
         sse = SseServerTransport(messages_path)
 
         async def handle_sse(request):
+            self.request = request
+            self.root_url = route_utils.get_root_url(
+                request=request,
+                route_path="/gradio_api/mcp/sse",
+                root_path=root_path,
+            )
             try:
                 async with sse.connect_sse(
                     request.scope, request.receive, request._send
@@ -255,6 +265,7 @@ class GradioMCPServer:
         Returns:
             A tuple containing the simplified schema and the positions of the FileData objects.
         """
+
         def is_gradio_filedata(obj: Any, defs: dict[str, Any]) -> bool:
             if not isinstance(obj, dict):
                 return False
@@ -265,7 +276,7 @@ class GradioMCPServer:
                     key = ref.split("/")[-1]
                     obj = defs.get(key, {})
                 else:
-                    return False  # External $refs not supported
+                    return False
 
             props = obj.get("properties", {})
             meta = props.get("meta", {})
@@ -280,9 +291,16 @@ class GradioMCPServer:
 
             type_field = meta.get("properties", {}).get("_type", {})
             default_type = meta.get("default", {}).get("_type")
-            return type_field.get("const") == "gradio.FileData" or default_type == "gradio.FileData"
+            return (
+                type_field.get("const") == "gradio.FileData"
+                or default_type == "gradio.FileData"
+            )
 
-        def traverse(node: Any, path: list[str | int] | None = None, defs: dict[str, Any] | None = None) -> Any:
+        def traverse(
+            node: Any,
+            path: list[str | int] | None = None,
+            defs: dict[str, Any] | None = None,
+        ) -> Any:
             if path is None:
                 path = []
             if defs is None:
@@ -414,6 +432,8 @@ class GradioMCPServer:
             data: The output data to postprocess.
         """
         return_values = []
+        if self.root_url:
+            data = processing_utils.add_root_url(data, self.root_url, None)
         for output in data:
             if client_utils.is_file_obj_with_meta(output):
                 if image := self.get_image(output["path"]):
@@ -425,7 +445,7 @@ class GradioMCPServer:
                     )
                 else:
                     return_value = types.TextContent(
-                        type="text", text=str(output["path"])
+                        type="text", text=str(output["url"] or output["path"])
                     )
             else:
                 return_value = types.TextContent(type="text", text=str(output))
