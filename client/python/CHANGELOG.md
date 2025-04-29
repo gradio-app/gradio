@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.10.0
+
+### Features
+
+- [#10984](https://github.com/gradio-app/gradio/pull/10984) [`8dab577`](https://github.com/gradio-app/gradio/commit/8dab5771c7d952c76f325681dbf364119c91b0b1) - Let Gradio apps also be MCP Servers.  Thanks @abidlabs!
+
 ## 1.9.1
 
 ### Fixes
