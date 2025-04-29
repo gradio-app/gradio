@@ -273,7 +273,9 @@
 																			>({param.type})</span
 																		>
 																		<p class="parameter-description">
-																			{param.description ? param.description : "⚠︎ No description for this parameter in function docstring"}
+																			{param.description
+																				? param.description
+																				: "⚠︎ No description for this parameter in function docstring"}
 																		</p>
 																	</div>
 																{/each}
