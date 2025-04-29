@@ -339,15 +339,11 @@
 					{show_copy_button}
 					handle_action={(selected) => {
 						if (selected == "edit") {
-							edit_messages.splice(0, edit_messages.length);	
+							edit_messages.splice(0, edit_messages.length);
 						}
 						if (selected === "edit" || selected === "edit_submit") {
 							messages.forEach((msg, index) => {
-								handle_action(
-									selected === "edit" ? i : index,
-									msg,
-									selected
-								);
+								handle_action(selected === "edit" ? i : index, msg, selected);
 							});
 						} else {
 							handle_action(i, messages[0], selected);
