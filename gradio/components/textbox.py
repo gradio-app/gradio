@@ -43,7 +43,7 @@ class Textbox(FormComponent):
         type: Literal["text", "password", "email"] = "text",
         lines: int = 1,
         max_lines: int | None = None,
-        placeholder: str | None = None,
+        placeholder: str | I18n | None = None,
         label: str | I18n | None = None,
         info: str | I18n | None = None,
         every: Timer | float | None = None,

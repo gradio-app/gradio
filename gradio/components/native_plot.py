@@ -57,7 +57,7 @@ class NativePlot(Component):
         x_label_angle: float = 0,
         y_label_angle: float = 0,
         x_axis_labels_visible: bool = True,
-        caption: str | None = None,
+        caption: str | I18n | None = None,
         sort: Literal["x", "y", "-x", "-y"] | list[str] | None = None,
         tooltip: Literal["axis", "none", "all"] | list[str] = "axis",
         height: int | None = None,
