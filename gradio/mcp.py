@@ -41,6 +41,7 @@ class GradioMCPServer:
         self.mcp_server = self.create_mcp_server()
         self.request = None
         self.root_url = None
+        self.tool_prefix = f"{utils.get_space()}_" if utils.get_space() else ""
 
     def create_mcp_server(self) -> Server:
         """
@@ -70,7 +71,7 @@ class GradioMCPServer:
                 arguments, filedata_positions
             )
             block_fn = self.get_block_fn_from_tool_name(name)
-            endpoint_name = f"/{name}"
+            endpoint_name = f"/{name.lstrip(self.tool_prefix)}"
             if self.api_info and endpoint_name in self.api_info["named_endpoints"]:
                 parameters_info = self.api_info["named_endpoints"][endpoint_name][
                     "parameters"
@@ -103,7 +104,7 @@ class GradioMCPServer:
             for endpoint_name, endpoint_info in self.api_info[
                 "named_endpoints"
             ].items():
-                tool_name = endpoint_name.lstrip("/")
+                tool_name = self.tool_prefix + endpoint_name.lstrip("/")
                 if endpoint_info["show_api"]:
                     block_fn = self.get_block_fn_from_tool_name(tool_name)
                     if block_fn is None or block_fn.fn is None:
@@ -179,7 +180,7 @@ class GradioMCPServer:
             The BlockFunction for the given tool name, or None if it is not found.
         """
         block_fn = next(
-            (fn for fn in self.blocks.fns.values() if fn.api_name == tool_name),
+            (fn for fn in self.blocks.fns.values() if fn.api_name == tool_name.lstrip(self.tool_prefix)),
             None,
         )
         return block_fn
@@ -199,9 +200,8 @@ class GradioMCPServer:
             - The input schema of the Gradio app API.
             - A list of positions of FileData objects in the input schema.
         """
-        endpoint_name = f"/{tool_name}"
+        endpoint_name = f"/{tool_name.lstrip(self.tool_prefix)}"
         named_endpoints = self.api_info["named_endpoints"]  # type: ignore
-        assert isinstance(named_endpoints, dict)  # noqa: S101
         endpoint_info = named_endpoints.get(endpoint_name)
 
         if endpoint_info is None:
@@ -238,7 +238,7 @@ class GradioMCPServer:
 
         schemas = {}
         for endpoint_name, endpoint_info in self.api_info["named_endpoints"].items():
-            tool_name = endpoint_name.lstrip("/")
+            tool_name = self.tool_prefix + endpoint_name.lstrip("/")
             if endpoint_info["show_api"]:
                 block_fn = self.get_block_fn_from_tool_name(tool_name)
                 if block_fn is None or block_fn.fn is None:
