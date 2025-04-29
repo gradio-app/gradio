@@ -36,6 +36,8 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
 from typing_extensions import NotRequired, TypedDict
 
+from gradio.i18n import I18n
+
 try:
     from pydantic import JsonValue
 except ImportError:
@@ -376,7 +378,7 @@ class BlocksConfigDict(TypedDict):
     connect_heartbeat: bool
     js: str | Literal[True] | None
     head: str | None
-    title: str
+    title: str | I18n | None
     space_id: str | None
     enable_queue: bool
     show_error: bool

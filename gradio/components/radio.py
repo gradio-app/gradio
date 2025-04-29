@@ -34,7 +34,7 @@ class Radio(FormComponent):
         value: str | int | float | Callable | None = None,
         type: Literal["value", "index"] = "value",
         label: str | I18n | None = None,
-        info: str | None = None,
+        info: str | I18n | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,

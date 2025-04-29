@@ -34,7 +34,7 @@ class DateTime(FormComponent):
         timezone: str | None = None,
         label: str | I18n | None = None,
         show_label: bool | None = None,
-        info: str | None = None,
+        info: str | I18n | None = None,
         every: float | None = None,
         scale: int | None = None,
         min_width: int = 160,

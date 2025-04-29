@@ -31,7 +31,7 @@ class TextArea(components.Textbox):
         max_lines: int = 20,
         placeholder: str | None = None,
         label: str | I18n | None = None,
-        info: str | None = None,
+        info: str | I18n | None = None,
         every: Timer | float | None = None,
         inputs: (
             components.Component
