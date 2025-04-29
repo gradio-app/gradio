@@ -279,7 +279,8 @@ class GradioMCPServer:
                     return False
 
             type_field = meta.get("properties", {}).get("_type", {})
-            return type_field.get("const") == "gradio.FileData"
+            default_type = meta.get("default", {}).get("_type")
+            return type_field.get("const") == "gradio.FileData" or default_type == "gradio.FileData"
 
         def traverse(node: Any, path: list[str | int] | None = None, defs: dict[str, Any] | None = None) -> Any:
             if path is None:
