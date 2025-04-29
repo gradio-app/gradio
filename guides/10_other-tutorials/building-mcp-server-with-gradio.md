@@ -6,94 +6,100 @@ In this guide, we will describe how to launch your Gradio app so that it functio
 
 Punchline: it's as simple as setting `mcp_server=True` in `.launch()`. 
 
-## What is an MCP Server?
-
-An MCP (Model Control Protocol) server is a standardized way to expose tools so that they can be used by Large Language Models (LLMs). A tool can provide an LLM functionality that it does not have natively, such as the ability to generate images or calculate the prime factors of a number. When you launch a Gradio app as an MCP server, each API endpoint in your app becomes an MCP tool that can be called by LLMs.
-
-## Example: Counting Letters in a Word
-
-LLMs are famously not great at counting the number of letters in a word (e.g. the number of "r"-s in "strawberry"). But what if we equip them with a tool to help? Let's write a simple Gradio app that counts the number of letters in a word or phrase:
-
-$code_letter_counter
-
-Notice that we have set `mcp_server=True` in `.launch()`. This is all that's needed for your Gradio app to serve as an MCP server! When you 
-
- There are two ways to enable the MCP server functionality:
-
-1. **Using the `mcp_server` Parameter**:
-   ```python
-   demo.launch(mcp_server=True)
-   ```
-
-2. **Using Environment Variables**:
-   ```bash
-   export GRADIO_MCP_SERVER=True
-   ```
-
-
-## Key features of an MCP server:
-
-1. **Tool Conversion**: Each API endpoint in your Gradio app is automatically converted into an MCP tool with a corresponding name, description, and input schema.
-
-2. **SSE Protocol**: The MCP server uses Server-Sent Events (SSE) for communication, making it compatible with LLMs that support connecting to MCP servers.
-
-3. **File Handling**: The server automatically handles file data conversions, including:
-   - Converting base64-encoded strings to file data
-   - Processing image files and returning them in the correct format
-   - Managing temporary file storage
-
-4. **Schema Generation**: The server automatically generates input schemas for each tool, making it easy for LLMs to understand how to use the tools.
-
-5. **Integration**: MCP servers can be easily integrated with various LLM clients that support the SSE protocol, such as Cursor, Windsurf, and Cline.
-
-The MCP server essentially acts as a bridge between your Gradio app and LLMs, allowing them to interact with your app's functionality in a standardized way. This makes it possible to use your Gradio app's capabilities as part of larger AI workflows and applications.
-
-
 ### Prerequisites
 
-Before you can use the MCP server functionality, you need to install Gradio with the MCP extra:
+If not already installed, please install Gradio with the MCP extra:
 
 ```bash
 pip install gradio[mcp]
 ```
 
-This will install the necessary dependencies, including the `mcp` package.
+This will install the necessary dependencies, including the `mcp` package. Also, you will need a LLM application that supports tool calling using the MCP protocol, such as Claude Desktop, Cursor, or Cline (these are known as "MCP Clients").
 
-### How It Works
+## What is an MCP Server?
 
-When you enable the MCP server, Gradio automatically:
+An MCP (Model Control Protocol) server is a standardized way to expose tools so that they can be used by  LLMs. A tool can provide an LLM functionality that it does not have natively, such as the ability to generate images or calculate the prime factors of a number. 
 
-1. Creates an MCP server instance for your app
-2. Converts each API endpoint into an MCP tool
-3. Sets up the SSE (Server-Sent Events) transport for communication
-4. Mounts the MCP server at the `/gradio_api/mcp` subpath
+## Example: Counting Letters in a Word
+
+LLMs are famously not great at counting the number of letters in a word (e.g. the number of "r"-s in "strawberry"). But what if we equip them with a tool to help? Let's start by writing a simple Gradio app that counts the number of letters in a word or phrase:
+
+$code_letter_counter
+
+Notice that we have set `mcp_server=True` in `.launch()`. This is all that's needed for your Gradio app to serve as an MCP server! Now, when you run this app, it will:
+
+1. Start the regular Gradio web interface
+2. Start the MCP server
+3. Print the MCP server URL in the console
 
 The MCP server will be accessible at:
 ```
 http://your-server:port/gradio_api/mcp/sse
 ```
 
-### Example
+Gradio automatically converts the `letter_counter` function into an MCP tool that can be used by LLMs. The docstring of the function of the function will be used to generate the description of the tool and its parameters. 
 
-Here's a complete example of a Gradio app with MCP server enabled:
+All you need to do is add this URL endpoint to your MCP Client (e.g. Claude Desktop, Cursor, or Cline), which typically means pasting this config in the settings:
+
+```
+{
+  "mcpServers": {
+    "gradio": {
+      "url": "http://your-server:port/gradio_api/mcp/sse"
+    }
+  }
+}
+```
+
+(By the way, you can find the exact config to copy-paste by going to the "View API" link in the footer of your Gradio app, and then clicking on "MCP").
+
+## Key features of the Gradio <> MCP Integration
+
+1. **Tool Conversion**: Each API endpoint in your Gradio app is automatically converted into an MCP tool with a corresponding name, description, and input schema. To view the tools and schemas, visit http://your-server:port/gradio_api/mcp/schema or go to the "View API" link in the footer of your Gradio app, and then click on "MCP".
 
 
-When you run this app, it will:
-1. Start the regular Gradio web interface
-2. Start the MCP server
-3. Print the MCP server URL in the console
+2. **Environment variable support**. There are two ways to enable the MCP server functionality:
 
-The MCP server will automatically convert the `greet` function into an MCP tool that can be used by LLMs.
+*  Using the `mcp_server` Parameter, as shown above:
+   ```python
+   demo.launch(mcp_server=True)
+   ```
 
-## Launching a Custom MCP Server for your Gradio App
+* Using Environment Variables:
+   ```bash
+   export GRADIO_MCP_SERVER=True
+   ```
+
+3. **File Handling**: The server automatically handles file data conversions, including:
+   - Converting base64-encoded strings to file data
+   - Processing image files and returning them in the correct format
+   - Managing temporary file storage
+
+    It is **strongly** recommended that input images and files be passed as full URLs ("http://..." or "https:/...") as MCP Clients do not always handle local files correctly.
+
+
+4. **Hosted MCP Servers on 󠀠🤗 Spaces**: You can publish your Gradio application for free on Hugging Face Spaces, which will allow you to have a free hosted MCP server. Here's an example of such a Space: https://huggingface.co/spaces/abidlabs/mcp-tools. Notice that you can add this config to your MCP Client to start using the tools from this Space immediately:
+
+```
+{
+  "mcpServers": {
+    "gradio": {
+      "url": "https://abidlabs-mcp-tools.hf.space/gradio_api/mcp/sse"
+    }
+  }
+}
+```
+
+## Custom MCP Servers
 
 For a more fine-grained control, you might want to manually create an MCP Server that interfaces with hosted Gradio apps. This approach is useful when you want to:
 
-- Combine multiple Gradio apps into a single MCP server
-- Customize how your tools are presented to LLMs
-- Add specialized logic around tool execution
+- Choose specific endpoints within a larger Gradio app to serve as tools
+- Customize how your tools are presented to LLMs (e.g. change the schema or description)
+- Start the Gradio app MCP server when a tool is called (if you are running multiple Gradio apps locally and want to save memory / GPU)
+- Use a different MCP protocol than SSE
 
-Here's an example of creating a custom MCP server that connects to various Gradio apps hosted on [HuggingFace Spaces](https://huggingface.co/spaces):
+This is very doable thanks to the [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) and the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk). Here's an example of creating a custom MCP server that connects to various Gradio apps hosted on [HuggingFace Spaces](https://huggingface.co/spaces):
 
 ```python
 from mcp.server.fastmcp import FastMCP
