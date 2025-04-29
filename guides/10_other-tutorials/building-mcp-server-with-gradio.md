@@ -60,12 +60,12 @@ All you need to do is add this URL endpoint to your MCP Client (e.g. Claude Desk
 
 2. **Environment variable support**. There are two ways to enable the MCP server functionality:
 
-*  Using the `mcp_server` Parameter, as shown above:
+*  Using the `mcp_server` parameter, as shown above:
    ```python
    demo.launch(mcp_server=True)
    ```
 
-* Using Environment Variables:
+* Using environment variables:
    ```bash
    export GRADIO_MCP_SERVER=True
    ```
@@ -99,7 +99,7 @@ For a more fine-grained control, you might want to manually create an MCP Server
 - Start the Gradio app MCP server when a tool is called (if you are running multiple Gradio apps locally and want to save memory / GPU)
 - Use a different MCP protocol than SSE
 
-This is very doable thanks to the [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) and the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk). Here's an example of creating a custom MCP server that connects to various Gradio apps hosted on [HuggingFace Spaces](https://huggingface.co/spaces):
+This is very doable thanks to the [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) and the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk). Here's an example of creating a custom MCP server that connects to various Gradio apps hosted on [HuggingFace Spaces](https://huggingface.co/spaces) using the `stdio` protocol:
 
 ```python
 from mcp.server.fastmcp import FastMCP
