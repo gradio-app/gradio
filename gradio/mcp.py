@@ -255,45 +255,71 @@ class GradioMCPServer:
         Returns:
             A tuple containing the simplified schema and the positions of the FileData objects.
         """
-        filedata_positions: list[list[str | int]] = []
-
-        def is_gradio_filedata(obj: Any) -> bool:
+        def is_gradio_filedata(obj: Any, defs: dict[str, Any]) -> bool:
             if not isinstance(obj, dict):
                 return False
+
+            if "$ref" in obj:
+                ref = obj["$ref"]
+                if ref.startswith("#/$defs/"):
+                    key = ref.split("/")[-1]
+                    obj = defs.get(key, {})
+                else:
+                    return False  # External $refs not supported
+
             props = obj.get("properties", {})
             meta = props.get("meta", {})
-            return meta.get("default", {}).get("_type") == "gradio.FileData"
 
-        def traverse(node: Any, path: list[str | int] | None = None) -> Any:
+            if "$ref" in meta:
+                ref = meta["$ref"]
+                if ref.startswith("#/$defs/"):
+                    key = ref.split("/")[-1]
+                    meta = defs.get(key, {})
+                else:
+                    return False
+
+            type_field = meta.get("properties", {}).get("_type", {})
+            return type_field.get("const") == "gradio.FileData"
+
+        def traverse(node: Any, path: list[str | int] | None = None, defs: dict[str, Any] | None = None) -> Any:
             if path is None:
                 path = []
+            if defs is None:
+                defs = {}
 
             if isinstance(node, dict):
-                if is_gradio_filedata(node):
+                if "$defs" in node:
+                    defs.update(node["$defs"])
+
+                if is_gradio_filedata(node, defs):
                     filedata_positions.append(path.copy())
-                    for key in ["properties", "additional_description"]:
+                    for key in ["properties", "additional_description", "$defs"]:
                         node.pop(key, None)
                     node["type"] = "string"
                     node["format"] = "a http or https url to a file"
+
                 result = {}
                 is_schema_root = "type" in node and "properties" in node
                 for key, value in node.items():
                     if is_schema_root and key == "properties":
-                        result[key] = traverse(value, path)
+                        result[key] = traverse(value, path, defs)
                     else:
                         path.append(key)
-                        result[key] = traverse(value, path)
+                        result[key] = traverse(value, path, defs)
                         path.pop()
                 return result
+
             elif isinstance(node, list):
                 result = []
                 for i, item in enumerate(node):
                     path.append(i)
-                    result.append(traverse(item, path))
+                    result.append(traverse(item, path, defs))
                     path.pop()
                 return result
+
             return node
 
+        filedata_positions: list[list[str | int]] = []
         simplified_schema = traverse(schema)
         return simplified_schema, filedata_positions
 
