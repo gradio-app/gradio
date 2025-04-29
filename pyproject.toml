@@ -55,6 +55,7 @@ filename = "requirements.txt"
 
 [tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
 oauth = ["requirements-oauth.txt"]
+mcp = ["requirements-mcp.txt"]
 
 [tool.hatch.metadata.hooks.fancy-pypi-readme]
 content-type = "text/markdown"
