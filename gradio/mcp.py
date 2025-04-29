@@ -41,7 +41,7 @@ class GradioMCPServer:
         self.mcp_server = self.create_mcp_server()
         self.request = None
         self.root_url = None
-        self.tool_prefix = f"{utils.get_space()}_" if utils.get_space() else ""
+        self.tool_prefix = f"{utils.get_space()}_".replace("-", "_").replace("/", "_") if utils.get_space() else ""
 
     def create_mcp_server(self) -> Server:
         """
@@ -71,7 +71,7 @@ class GradioMCPServer:
                 arguments, filedata_positions
             )
             block_fn = self.get_block_fn_from_tool_name(name)
-            endpoint_name = f"/{name.lstrip(self.tool_prefix)}"
+            endpoint_name = f"/{name.removeprefix(self.tool_prefix)}"
             if self.api_info and endpoint_name in self.api_info["named_endpoints"]:
                 parameters_info = self.api_info["named_endpoints"][endpoint_name][
                     "parameters"
@@ -183,7 +183,7 @@ class GradioMCPServer:
             (
                 fn
                 for fn in self.blocks.fns.values()
-                if fn.api_name == tool_name.lstrip(self.tool_prefix)
+                if fn.api_name == tool_name.removeprefix(self.tool_prefix)
             ),
             None,
         )
@@ -204,7 +204,7 @@ class GradioMCPServer:
             - The input schema of the Gradio app API.
             - A list of positions of FileData objects in the input schema.
         """
-        endpoint_name = f"/{tool_name.lstrip(self.tool_prefix)}"
+        endpoint_name = f"/{tool_name.removeprefix(self.tool_prefix)}"
         named_endpoints = self.api_info["named_endpoints"]  # type: ignore
         endpoint_info = named_endpoints.get(endpoint_name)
 
