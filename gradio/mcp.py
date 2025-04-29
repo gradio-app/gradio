@@ -89,7 +89,6 @@ class GradioMCPServer:
                 inputs=processed_args,
                 request=self.request,
             )
-            print("output", output)
             return self.postprocess_output_data(output["data"])
 
         @server.list_tools()
