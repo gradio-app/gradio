@@ -20,7 +20,7 @@ with gr.Blocks() as demo:
         history2.append([usr_msg, bot_msg])
         return history, history2
     
-    def add_user_message(history: list, history2: list[list[str]]):
+    def add_user_message(history: list, history2: list[list[str | None]]):
         usr_msg = "I'm a user"
         history.append({"role": "user", "content": usr_msg})
         history2.append([usr_msg, None])
