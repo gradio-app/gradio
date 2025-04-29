@@ -1446,7 +1446,7 @@ class App(FastAPI):
                 await asyncio.wait_for(
                     file_upload_statuses.is_tracked(upload_id), timeout=3
                 )
-            except (asyncio.TimeoutError, FileUploadProgressNotTrackedError):
+            except (asyncio.TimeoutError, TimeoutError):
                 return PlainTextResponse("Upload not found", status_code=404)
 
             return StreamingResponse(
