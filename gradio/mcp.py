@@ -180,7 +180,11 @@ class GradioMCPServer:
             The BlockFunction for the given tool name, or None if it is not found.
         """
         block_fn = next(
-            (fn for fn in self.blocks.fns.values() if fn.api_name == tool_name.lstrip(self.tool_prefix)),
+            (
+                fn
+                for fn in self.blocks.fns.values()
+                if fn.api_name == tool_name.lstrip(self.tool_prefix)
+            ),
             None,
         )
         return block_fn
@@ -386,9 +390,7 @@ class GradioMCPServer:
                         )
                     )
                 elif node.startswith(("http://", "https://")):
-                    return FileData(
-                        path=node
-                    )
+                    return FileData(path=node)
                 else:
                     raise ValueError(
                         f"Invalid file data format, provide a url ('http://...' or 'https://...'). Received: {node}"
