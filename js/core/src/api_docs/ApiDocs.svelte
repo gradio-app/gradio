@@ -37,7 +37,7 @@
 	const spaces_docs_suffix = "#connecting-to-a-hugging-face-space";
 
 	let api_count = dependencies.filter(
-		(dependency) => dependency.show_api,
+		(dependency) => dependency.show_api
 	).length;
 
 	if (root === "") {
@@ -54,7 +54,7 @@
 		["python", "Python", python],
 		["javascript", "JavaScript", javascript],
 		["bash", "cURL", bash],
-		["mcp", "MCP", mcp],
+		["mcp", "MCP", mcp]
 	] as const;
 
 	let is_running = false;
@@ -65,7 +65,7 @@
 		unnamed_endpoints: any;
 	}> {
 		let response = await fetch(
-			root.replace(/\/$/, "") + app.api_prefix + "/info",
+			root.replace(/\/$/, "") + app.api_prefix + "/info"
 		);
 		let data = await response.json();
 		return data;
@@ -119,7 +119,7 @@
 				name: `${name}`,
 				description: tool.description || "",
 				parameters: tool.properties || {},
-				expanded: false,
+				expanded: false
 			}));
 		} catch (error) {
 			console.error("Failed to fetch MCP tools:", error);
@@ -303,12 +303,12 @@
 													{
 														mcpServers: {
 															gradio: {
-																url: mcp_server_url,
-															},
-														},
+																url: mcp_server_url
+															}
+														}
 													},
 													null,
-													2,
+													2
 												)}
 											/>
 										</div>
@@ -317,12 +317,12 @@
 													{
 														mcpServers: {
 															gradio: {
-																url: mcp_server_url,
-															},
-														},
+																url: mcp_server_url
+															}
+														}
 													},
 													null,
-													2,
+													2
 												)}</pre>
 										</div>
 									</code>
@@ -347,13 +347,13 @@
 																	"mcp-remote",
 																	mcp_server_url,
 																	"--transport",
-																	"sse-only",
-																],
-															},
-														},
+																	"sse-only"
+																]
+															}
+														}
 													},
 													null,
-													2,
+													2
 												)}
 											/>
 										</div>
@@ -367,13 +367,13 @@
 																	"mcp-remote",
 																	mcp_server_url,
 																	"--transport",
-																	"sse-only",
-																],
-															},
-														},
+																	"sse-only"
+																]
+															}
+														}
 													},
 													null,
-													2,
+													2
 												)}</pre>
 										</div>
 									</code>
