@@ -4,10 +4,9 @@ import shutil
 import tempfile
 import traceback
 
-from ffmpy import FFmpeg
-
 
 async def process_video_with_ffmpeg(input_path, output_path, params):
+    from ffmpy import FFmpeg
     current_input = input_path
     temp_files = [input_path]
 
@@ -144,6 +143,7 @@ async def zoom_in(
     zoom_duration=2.0,
     zoom_start_frame=None,
 ):
+    from ffmpy import FFmpeg
     temp_files = []
 
     try:
