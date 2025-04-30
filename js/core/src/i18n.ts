@@ -49,13 +49,7 @@ export function translate_metadata(metadata: TranslationMetadata): string {
 	}
 }
 
-/**
- * Process string values that might contain serialized TranslationMetadata
- * This handles the special format "__i18n__{"key":"example"}"
- * @param value Any value that might be a string containing serialized TranslationMetadata
- * @returns The translated string or the original value
- */
-export function process_string_metadata(value: any): any {
+export function translate_if_needed(value: string): string {
 	if (typeof value !== "string") {
 		return value;
 	}
@@ -69,13 +63,13 @@ export function process_string_metadata(value: any): any {
 		const metadataJson = match[1];
 		const metadata = JSON.parse(metadataJson);
 
-		const result = translate_metadata({
-			...metadata,
-			__type__: "translation_metadata"
-		});
-		return result;
+		if (metadata && metadata.key) {
+			return formatter(metadata.key);
+		}
+
+		return value;
 	} catch (e) {
-		console.error("Error processing i18n string metadata:", e);
+		console.error("Error processing translation:", e);
 		return value;
 	}
 }
@@ -87,75 +81,36 @@ export function process_string_metadata(value: any): any {
  * @param processed A WeakMap to track already processed objects and prevent circular references
  * @returns The processed object with all TranslationMetadata objects translated
  */
-export function process_i18n_obj(
-	obj: any,
-	processed: WeakMap<object, any> = new WeakMap()
-): any {
-	// Handle null or undefined
+export function process_i18n_obj(obj: any): any {
 	if (obj == null) {
 		return obj;
 	}
 
-	// Handle TranslationMetadata objects
-	if (is_translation_metadata(obj)) {
-		return translate_metadata(obj);
-	}
-
-	// Handle strings that might contain serialized metadata
+	// Process strings directly
 	if (typeof obj === "string") {
-		const result = process_string_metadata(obj);
-		if (result !== obj) {
-		}
-		return result;
+		return translate_if_needed(obj);
 	}
 
-	// Handle primitive types
+	// Handle primitive types (non-objects)
 	if (typeof obj !== "object") {
 		return obj;
 	}
 
-	// Check if this object has already been processed (circular reference)
-	if (processed.has(obj)) {
-		return processed.get(obj);
-	}
-
 	// Handle arrays
 	if (Array.isArray(obj)) {
-		const result: any[] = [];
-		// Mark this object as being processed to handle circular references
-		processed.set(obj, result);
-
-		for (let i = 0; i < obj.length; i++) {
-			result[i] = process_i18n_obj(obj[i], processed);
-		}
-		return result;
+		return obj.map((item) => process_i18n_obj(item));
 	}
 
-	// Skip certain props that might cause circular references
+	const result: Record<string, any> = {};
 	const skipProps = ["gradio", "parent", "__proto__", "constructor"];
 
-	// Handle regular objects
-	const result: Record<string, any> = {};
-	// Mark this object as being processed to handle circular references
-	processed.set(obj, result);
-
 	for (const key in obj) {
-		// Skip special props that might cause circular references
 		if (skipProps.includes(key)) {
 			result[key] = obj[key];
 			continue;
 		}
 
-		try {
-			const processed_value = process_i18n_obj(obj[key], processed);
-			if (typeof obj[key] === "string" && processed_value !== obj[key]) {
-			}
-			result[key] = processed_value;
-		} catch (e) {
-			// If processing fails, keep the original value
-			console.error(`Error processing translation for property ${key}:`, e);
-			result[key] = obj[key];
-		}
+		result[key] = process_i18n_obj(obj[key]);
 	}
 
 	return result;
