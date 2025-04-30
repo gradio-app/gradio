@@ -11,7 +11,7 @@ import re
 import shutil
 import threading
 import uuid
-from collections import deque
+from collections import defaultdict, deque
 from collections.abc import AsyncGenerator, Callable
 from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
@@ -485,10 +485,15 @@ class FileUploadProgressNotQueuedError(Exception):
 class FileUploadProgress:
     def __init__(self) -> None:
         self._statuses: dict[str, FileUploadProgressTracker] = {}
+        self._signals = defaultdict(asyncio.Event)
 
     def track(self, upload_id: str):
         if upload_id not in self._statuses:
             self._statuses[upload_id] = FileUploadProgressTracker(deque(), False)
+            self._signals[upload_id].set()
+
+    async def is_tracked(self, upload_id: str) -> bool:
+        return await self._signals[upload_id].wait()
 
     def append(self, upload_id: str, filename: str, message_bytes: bytes):
         if upload_id not in self._statuses:
