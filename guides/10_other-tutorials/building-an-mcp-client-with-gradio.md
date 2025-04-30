@@ -413,4 +413,4 @@ Now that you have a working MCP system, here are some ideas to extend it:
 
 Congratulations! You've successfully built an MCP Client and Server that allows Claude to generate images based on text prompts. This is just the beginning of what you can do with Gradio and MCP. This guide enables you to build complex AI applications that can use Claude or any other powerful LLM to interact with virtually any external tool or service.
 
-Read our other Guide on using [Gradio apps as MCP Servers](insert-link-to-the-other-mcp-guide-here).
+Read our other Guide on using [Gradio apps as MCP Servers](./building-mcp-server-with-gradio).
