@@ -241,27 +241,12 @@
 		}
 	}
 
-	export async function loadFilesFromDrop(e: DragEvent): Promise<void> {
+	export async function load_files_from_drop(e: DragEvent): Promise<void> {
 		dragging = false;
 		if (!e.dataTransfer?.files) return;
-		const files_to_load = Array.from(e.dataTransfer.files).filter((file) => {
-			const file_extension = "." + file.name.split(".").pop();
-			if (
-				file_extension &&
-				is_valid_mimetype(accept_file_types, file_extension, file.type)
-			) {
-				return true;
-			}
-			if (
-				file_extension && Array.isArray(filetype)
-					? filetype.includes(file_extension)
-					: file_extension === filetype
-			) {
-				return true;
-			}
-			dispatch("error", `Invalid file type only ${filetype} allowed.`);
-			return false;
-		});
+		const files_to_load = Array.from(e.dataTransfer.files).filter(
+			is_valid_file
+		);
 
 		if (format != "blob") {
 			await load_files(files_to_load);

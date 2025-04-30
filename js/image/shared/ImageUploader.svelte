@@ -157,7 +157,7 @@
 
 		active_source = "upload";
 		await tick();
-		upload_input.loadFilesFromDrop(evt);
+		upload_input.load_files_from_drop(evt);
 	}
 </script>
 
