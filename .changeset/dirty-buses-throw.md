@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix file upload progress
+fix:Fix file upload progress
