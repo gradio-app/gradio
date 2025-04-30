@@ -240,6 +240,24 @@
 			dispatch("load", files_to_load);
 		}
 	}
+
+	export async function load_files_from_drop(e: DragEvent): Promise<void> {
+		dragging = false;
+		if (!e.dataTransfer?.files) return;
+		const files_to_load = Array.from(e.dataTransfer.files).filter(
+			is_valid_file
+		);
+
+		if (format != "blob") {
+			await load_files(files_to_load);
+		} else {
+			if (file_count === "single") {
+				dispatch("load", files_to_load[0]);
+				return;
+			}
+			dispatch("load", files_to_load);
+		}
+	}
 </script>
 
 {#if filetype === "clipboard"}
