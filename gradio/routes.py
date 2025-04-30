@@ -690,6 +690,88 @@ class App(FastAPI):
                 app.api_info = api_info
             return app.api_info
 
+        @router.get("/openapi.json", dependencies=[Depends(login_check)])
+        def openapi_schema(request: fastapi.Request):
+            """Generate an OpenAPI schema from the Gradio app's API info."""
+            info = api_info(request)
+            schema = {
+                "openapi": "3.0.2",
+                "info": {
+                    "title": getattr(app.get_blocks(), "title", "Gradio App"),
+                    "description": getattr(app.get_blocks(), "description", ""),
+                    "version": VERSION,
+                },
+                "paths": {},
+                "components": {"schemas": {}},
+            }
+
+            for endpoint_path, endpoint_info in info.get("named_endpoints", {}).items():
+                if not endpoint_info.get("show_api", True):
+                    continue
+                path_item = {
+                    "post": {
+                        "summary": endpoint_info.get(
+                            "description", f"Endpoint {endpoint_path}"
+                        ),
+                        "description": endpoint_info.get("description", ""),
+                        "operationId": endpoint_path.strip("/").replace("/", "_"),
+                        "requestBody": {
+                            "required": True,
+                            "content": {
+                                "application/json": {
+                                    "schema": {"type": "object", "properties": {}}
+                                }
+                            },
+                        },
+                        "responses": {
+                            "200": {
+                                "description": "Successful response",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {"type": "object", "properties": {}}
+                                    }
+                                },
+                            }
+                        },
+                    }
+                }
+
+                request_properties = path_item["post"]["requestBody"]["content"][
+                    "application/json"
+                ]["schema"]["properties"]
+                for param in endpoint_info.get("parameters", []):
+                    param_name = param["parameter_name"]
+                    param_type = param.get("type", {})
+
+                    request_properties[param_name] = param_type
+
+                    if "example_input" in param:
+                        if (
+                            "examples"
+                            not in path_item["post"]["requestBody"]["content"][
+                                "application/json"
+                            ]
+                        ):
+                            path_item["post"]["requestBody"]["content"][
+                                "application/json"
+                            ]["examples"] = {"example1": {"value": {}}}
+                        path_item["post"]["requestBody"]["content"]["application/json"][
+                            "examples"
+                        ]["example1"]["value"][param_name] = param["example_input"]
+
+                response_properties = path_item["post"]["responses"]["200"]["content"][
+                    "application/json"
+                ]["schema"]["properties"]
+                for i, ret in enumerate(endpoint_info.get("returns", [])):
+                    ret_name = f"output_{i}" if i > 0 else "output"
+                    ret_type = ret.get("type", {})
+                    response_properties[ret_name] = ret_type
+
+                schema["paths"][f"/api{endpoint_path}"] = path_item
+                schema["paths"][f"/run{endpoint_path}"] = path_item
+
+            return schema
+
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request, deep_link: str = ""):
