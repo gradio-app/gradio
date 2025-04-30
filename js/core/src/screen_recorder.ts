@@ -36,11 +36,6 @@ export async function startRecording(): Promise<void> {
 	}
 
 	try {
-		add_message_callback(
-			"To start recording:",
-			"Please select the current tab",
-			"info"
-		);
 		const originalTitle = document.title;
 		document.title = "SHARE THIS: Gradio";
 		const stream = await navigator.mediaDevices.getDisplayMedia({
@@ -222,15 +217,29 @@ export function zoom(
 				return;
 			}
 
-			const topLeft: [number, number] = [
+			const isSafari = /^((?!chrome|android).)*safari/i.test(
+				navigator.userAgent
+			);
+
+			let topLeft: [number, number] = [
 				Math.max(0, minLeft) / viewportWidth,
 				Math.max(0, minTop) / viewportHeight
 			];
 
-			const bottomRight: [number, number] = [
+			let bottomRight: [number, number] = [
 				Math.min(maxRight, viewportWidth) / viewportWidth,
 				Math.min(maxBottom, viewportHeight) / viewportHeight
 			];
+
+			if (isSafari) {
+				topLeft[0] = Math.max(0, topLeft[0] * 0.9);
+				bottomRight[0] = Math.min(1, bottomRight[0] * 0.9);
+				const width = bottomRight[0] - topLeft[0];
+				const center = (topLeft[0] + bottomRight[0]) / 2;
+				const newCenter = center * 0.9;
+				topLeft[0] = Math.max(0, newCenter - width / 2);
+				bottomRight[0] = Math.min(1, newCenter + width / 2);
+			}
 
 			topLeft[0] = Math.max(0, topLeft[0]);
 			topLeft[1] = Math.max(0, topLeft[1]);

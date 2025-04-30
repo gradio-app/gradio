@@ -223,9 +223,7 @@ async def zoom_in(
         except (ValueError, TypeError):
             video_duration = 10.0
 
-        # Always use 30fps for consistency across different devices
         fps = 30.0
-
         zoom_duration = min(float(zoom_duration), video_duration)
         zoom_output = tempfile.mktemp(suffix="_zoomed.mp4")
         temp_files.append(zoom_output)
