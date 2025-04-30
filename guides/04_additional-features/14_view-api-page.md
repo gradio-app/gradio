@@ -35,20 +35,25 @@ Note: setting an `api_name=False` also means that downstream apps will not be ab
 
 ## The Clients
 
-As displayed in the API pageThis is a page that lists the endpoints that can be used to query the Gradio app, via our supported clients: either [the Python client](https://gradio.app/guides/getting-started-with-the-python-client/), or [the JavaScript client](https://gradio.app/guides/getting-started-with-the-js-client/). For each endpoint, Gradio automatically generates the parameters and their types, as well as example inputs, like this.
+This API page not only lists all of the endpoints that can be used to query the Gradio app, but also shows the usage of both [the Gradio Python client](https://gradio.app/guides/getting-started-with-the-python-client/), and [the Gradio JavaScript client](https://gradio.app/guides/getting-started-with-the-js-client/). 
+
+For each endpoint, Gradio automatically generates a complete code snippet with the parameters and their types, as well as example inputs, allowing you to immediately test an endpoint. Here's an example showing an image file input and `str` output:
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api-snippet.png)
 
 
-## The API Recorder
+## The API Recorder 🪄
 
-Instead o
+Instead of reading through the view API page, you can also use Gradio's built-in API recorder to generate the relevant code snippet. Simply click on the "API Recorder" button, use your Gradio app via the UI as you would normally, and then the API Recorder will generate the code using the Clients to recreate your all of your interactions programmatically.
 
-[Insert video]
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/api-recorder.gif)
 
 ## MCP Server
 
+The API page also includes instructions on how to use the Gradio app as an Model Context Protocol (MCP) server, which is a standardized way to expose functions as tools so that they can be used by LLMs. 
 
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api-mcp.png)
 
-(By the way, you can find the exact config to copy-paste by going to the "View API" link in the footer of your Gradio app, and then clicking on "MCP").
+For the MCP sever, each tool, its description, and its parameters are listed, along with instructions on how to integrate with popular MCP Clients. Read more about Gradio's [MCP integration here]().
 
-[Insert image]
 
