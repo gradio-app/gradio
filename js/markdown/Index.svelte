@@ -12,7 +12,6 @@
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { Block } from "@gradio/atoms";
 
-	export let label: string;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
