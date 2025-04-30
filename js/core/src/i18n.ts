@@ -5,6 +5,7 @@ import {
 	locale,
 	_
 } from "svelte-i18n";
+import { formatter } from "./gradio_helper";
 
 const langs = import.meta.glob("./lang/*.json", {
 	eager: true
@@ -16,6 +17,149 @@ type LangsRecord = Record<
 		[key: string]: any;
 	}
 >;
+
+// interface for the TranslationMetadata objects sent from the backend
+interface TranslationMetadata {
+	__type__: "translation_metadata";
+	key: string;
+}
+
+export function is_translation_metadata(obj: any): obj is TranslationMetadata {
+	const result =
+		obj &&
+		typeof obj === "object" &&
+		obj.__type__ === "translation_metadata" &&
+		typeof obj.key === "string";
+
+	return result;
+}
+
+export function translate_metadata(metadata: TranslationMetadata): string {
+	if (!is_translation_metadata(metadata)) {
+		return String(metadata);
+	}
+
+	try {
+		const { key } = metadata;
+		let translated = formatter(key);
+		return translated;
+	} catch (e) {
+		console.error("Error translating metadata:", e);
+		return metadata.key;
+	}
+}
+
+/**
+ * Process string values that might contain serialized TranslationMetadata
+ * This handles the special format "__i18n__{"key":"example"}"
+ * @param value Any value that might be a string containing serialized TranslationMetadata
+ * @returns The translated string or the original value
+ */
+export function process_string_metadata(value: any): any {
+	if (typeof value !== "string") {
+		return value;
+	}
+
+	const match = value.match(/^__i18n__(.+)$/);
+	if (!match) {
+		return value;
+	}
+
+	try {
+		const metadataJson = match[1];
+		const metadata = JSON.parse(metadataJson);
+
+		const result = translate_metadata({
+			...metadata,
+			__type__: "translation_metadata"
+		});
+		return result;
+	} catch (e) {
+		console.error("Error processing i18n string metadata:", e);
+		return value;
+	}
+}
+
+/**
+ * Process any object that might contain TranslationMetadata objects
+ * This recursively handles objects, arrays, and strings
+ * @param obj Any object that might contain TranslationMetadata objects
+ * @param processed A WeakMap to track already processed objects and prevent circular references
+ * @returns The processed object with all TranslationMetadata objects translated
+ */
+export function process_i18n_obj(
+	obj: any,
+	processed: WeakMap<object, any> = new WeakMap()
+): any {
+	// Handle null or undefined
+	if (obj == null) {
+		return obj;
+	}
+
+	// Handle TranslationMetadata objects
+	if (is_translation_metadata(obj)) {
+		return translate_metadata(obj);
+	}
+
+	// Handle strings that might contain serialized metadata
+	if (typeof obj === "string") {
+		const result = process_string_metadata(obj);
+		if (result !== obj) {
+		}
+		return result;
+	}
+
+	// Handle primitive types
+	if (typeof obj !== "object") {
+		return obj;
+	}
+
+	// Check if this object has already been processed (circular reference)
+	if (processed.has(obj)) {
+		return processed.get(obj);
+	}
+
+	// Handle arrays
+	if (Array.isArray(obj)) {
+		const result: any[] = [];
+		// Mark this object as being processed to handle circular references
+		processed.set(obj, result);
+
+		for (let i = 0; i < obj.length; i++) {
+			result[i] = process_i18n_obj(obj[i], processed);
+		}
+		return result;
+	}
+
+	// Skip certain props that might cause circular references
+	const skipProps = ["gradio", "parent", "__proto__", "constructor"];
+
+	// Handle regular objects
+	const result: Record<string, any> = {};
+	// Mark this object as being processed to handle circular references
+	processed.set(obj, result);
+
+	for (const key in obj) {
+		// Skip special props that might cause circular references
+		if (skipProps.includes(key)) {
+			result[key] = obj[key];
+			continue;
+		}
+
+		try {
+			const processed_value = process_i18n_obj(obj[key], processed);
+			if (typeof obj[key] === "string" && processed_value !== obj[key]) {
+			}
+			result[key] = processed_value;
+		} catch (e) {
+			// If processing fails, keep the original value
+			console.error(`Error processing translation for property ${key}:`, e);
+			result[key] = obj[key];
+		}
+	}
+
+	return result;
+}
 
 export function process_langs(): LangsRecord {
 	let _langs: LangsRecord = {};

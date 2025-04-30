@@ -71,7 +71,7 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	<label class="block" class:container>
-		<BlockTitle {root} {show_label} {info}>{gradio.i18n(label)}</BlockTitle>
+		<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 		<input
 			aria-label={label}
 			type="number"

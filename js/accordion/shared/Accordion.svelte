@@ -9,7 +9,6 @@
 
 	export let open = true;
 	export let label = "";
-	export let i18n: I18nFormatter;
 </script>
 
 <button
@@ -24,7 +23,7 @@
 	class="label-wrap"
 	class:open
 >
-	<span>{i18n(label)}</span>
+	<span>{label}</span>
 	<span style:transform={open ? "rotate(0)" : "rotate(90deg)"} class="icon">
 		▼
 	</span>
