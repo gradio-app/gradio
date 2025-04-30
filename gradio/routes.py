@@ -1409,7 +1409,7 @@ class App(FastAPI):
             return app.get_blocks()._queue.get_status()
 
         @router.get("/upload_progress")
-        def get_upload_progress(upload_id: str, request: fastapi.Request):
+        async def get_upload_progress(upload_id: str, request: fastapi.Request):
             async def sse_stream(request: fastapi.Request):
                 last_heartbeat = time.perf_counter()
                 is_done = False
@@ -1443,6 +1443,13 @@ class App(FastAPI):
                             message = {"msg": "heartbeat"}
                             yield f"data: {json.dumps(message)}\n\n"
                             last_heartbeat = time.perf_counter()
+
+            try:
+                await asyncio.wait_for(
+                    file_upload_statuses.is_tracked(upload_id), timeout=3
+                )
+            except (asyncio.TimeoutError, TimeoutError):
+                return PlainTextResponse("Upload not found", status_code=404)
 
             return StreamingResponse(
                 sse_stream(request),

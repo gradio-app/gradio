@@ -1653,3 +1653,66 @@ def dict_factory(items):
         else:
             d[key] = value
     return d
+
+
+def get_function_description(fn: Callable) -> tuple[str, dict[str, str]]:
+    """
+    Get the description of a function and its parameters by parsing the docstring.
+    The docstring should be formatted as follows: first lines are the description
+    of the function, then a line starts with "Args:", "Parameters:", or "Arguments:",
+    followed by lines of the form "param_name: description".
+
+    Parameters:
+        fn: The function to get the docstring for.
+
+    Returns:
+        - The docstring of the function
+        - A dictionary of parameter names and their descriptions
+    """
+    fn_docstring = fn.__doc__
+    description = ""
+    parameters = {}
+
+    if not fn_docstring:
+        return description, parameters
+
+    lines = fn_docstring.strip().split("\n")
+
+    description_lines = []
+    for line in lines:
+        line = line.strip()
+        if line.startswith(("Args:", "Parameters:", "Arguments:")):
+            break
+        if line:
+            description_lines.append(line)
+
+    description = " ".join(description_lines)
+
+    try:
+        param_start_idx = next(
+            (
+                i
+                for i, line in enumerate(lines)
+                if line.strip().startswith(("Args:", "Parameters:", "Arguments:"))
+            ),
+            len(lines),
+        )
+
+        for line in lines[param_start_idx + 1 :]:
+            line = line.strip()
+            if not line:
+                continue
+
+            try:
+                if ":" in line:
+                    param_name, param_desc = line.split(":", 1)
+                    param_name = param_name.split(" ")[0].strip()
+                    if param_name:
+                        parameters[param_name] = param_desc.strip()
+            except Exception:
+                continue
+
+    except Exception:
+        pass
+
+    return description, parameters

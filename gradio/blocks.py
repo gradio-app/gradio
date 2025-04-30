@@ -50,6 +50,8 @@ from gradio.context import (
     set_render_context,
 )
 from gradio.data_classes import (
+    APIEndpointInfo,
+    APIInfo,
     BlocksConfigDict,
     DeveloperPath,
     FileData,
@@ -2065,6 +2067,7 @@ Received inputs:
         """
         Processes API calls from the frontend. First preprocesses the data,
         then runs the relevant function, then postprocesses the output.
+
         Parameters:
             fn_index: Index of function to run.
             inputs: input data received from the frontend
@@ -2076,7 +2079,14 @@ Received inputs:
             in_event_listener: whether this API call is being made in response to an event listener
             explicit_call: whether this call is being made directly by calling the Blocks function, instead of through an event listener or API route
             root_path: if provided, the root path of the server. All file URLs will be prefixed with this path.
-        Returns: None
+
+        Returns a dictionary with the following keys:
+            - "data": the output data from the function
+            - "is_generating": whether the function is generating output
+            - "iterator": the iterator for the function
+            - "duration": the duration of the function call
+            - "average_duration": the average duration of the function call
+            - "render_config": the render config for the function
         """
         if isinstance(block_fn, int):
             block_fn = self.fns[block_fn]
@@ -2431,6 +2441,7 @@ Received inputs:
         node_port: int | None = None,
         ssr_mode: bool | None = None,
         pwa: bool | None = None,
+        mcp_server: bool | None = None,
         _frontend: bool = True,
     ) -> tuple[App, str, str]:
         """
@@ -2471,6 +2482,7 @@ Received inputs:
             strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
             ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
+            mcp_server: If True, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools. If None (default behavior), then the GRADIO_MCP_SERVER environment variable will be used to determine if the MCP server should be enabled (which is "True" on Hugging Face Spaces).
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2608,6 +2620,26 @@ Received inputs:
             strict_cors=strict_cors,
             ssr_mode=self.ssr_mode,
         )
+
+        mcp_subpath = API_PREFIX + "/mcp"
+        if mcp_server is None:
+            mcp_server = os.environ.get("GRADIO_MCP_SERVER", "False").lower() == "true"
+        if mcp_server:
+            try:
+                import gradio.mcp
+            except ImportError as e:
+                raise ImportError(
+                    "In order to use `mcp_server=True`, you must install gradio with the `mcp` extra. Please install it with `pip install gradio[mcp]`"
+                ) from e
+            try:
+                self.mcp_server_obj = gradio.mcp.GradioMCPServer(self)
+                self.mcp_server_obj.launch_mcp_on_sse(
+                    self.server_app, mcp_subpath, self.root_path
+                )
+            except Exception as e:
+                mcp_server = False
+                if not quiet:
+                    print(f"Error launching MCP server: {e}")
 
         if self.is_running:
             if not isinstance(self.local_url, str):
@@ -2794,8 +2826,13 @@ Received inputs:
                     )
         else:
             if not quiet and not wasm_utils.IS_WASM:
-                print("\nTo create a public link, set `share=True` in `launch()`.")
+                print("* To create a public link, set `share=True` in `launch()`.")
             self.share_url = None
+
+        if mcp_server:
+            print(
+                f"\n🔨 MCP server (using SSE) running at: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
+            )
 
         if inbrowser and not wasm_utils.IS_WASM:
             link = self.share_url if self.share and self.share_url else self.local_url
@@ -2999,14 +3036,14 @@ Received inputs:
         for startup_event in self.extra_startup_events:
             await startup_event()
 
-    def get_api_info(self, all_endpoints: bool = False) -> dict[str, Any] | None:
+    def get_api_info(self, all_endpoints: bool = False) -> APIInfo | None:
         """
         Gets the information needed to generate the API docs from a Blocks.
         Parameters:
             all_endpoints: If True, returns information about all endpoints, including those with show_api=False.
         """
         config = self.config
-        api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
+        api_info: APIInfo = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
         for fn in self.fns.values():
             if not fn.fn or fn.api_name is False:
@@ -3014,8 +3051,15 @@ Received inputs:
             if not all_endpoints and not fn.show_api:
                 continue
 
-            dependency_info = {"parameters": [], "returns": [], "show_api": fn.show_api}
+            dependency_info: APIEndpointInfo = {
+                "parameters": [],
+                "returns": [],
+                "show_api": fn.show_api,
+            }
             fn_info = utils.get_function_params(fn.fn)  # type: ignore
+            description, _ = utils.get_function_description(fn.fn)
+            if description:
+                dependency_info["description"] = description
             skip_endpoint = False
 
             inputs = fn.inputs
