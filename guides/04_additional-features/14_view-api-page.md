@@ -54,6 +54,6 @@ The API page also includes instructions on how to use the Gradio app as an Model
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api-mcp.png)
 
-For the MCP sever, each tool, its description, and its parameters are listed, along with instructions on how to integrate with popular MCP Clients. Read more about Gradio's [MCP integration here]().
+For the MCP sever, each tool, its description, and its parameters are listed, along with instructions on how to integrate with popular MCP Clients. Read more about Gradio's [MCP integration here](https://www.gradio.app/guides/building-mcp-server-with-gradio).
 
 
