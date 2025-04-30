@@ -705,7 +705,7 @@ class App(FastAPI):
                 "components": {"schemas": {}},
             }
 
-            for endpoint_path, endpoint_info in info.get("named_endpoints", {}).items():
+            for endpoint_path, endpoint_info in info.get("named_endpoints", {}).items():  # type: ignore
                 if not endpoint_info.get("show_api", True):
                     continue
                 path_item = {
