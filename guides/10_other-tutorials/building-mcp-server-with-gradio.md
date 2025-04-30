@@ -14,7 +14,7 @@ If not already installed, please install Gradio with the MCP extra:
 pip install "gradio[mcp]"
 ```
 
-This will install the necessary dependencies, including the `mcp` package. Also, you will need a LLM application that supports tool calling using the MCP protocol, such as Claude Desktop, Cursor, or Cline (these are known as "MCP Clients").
+This will install the necessary dependencies, including the `mcp` package. Also, you will need an LLM application that supports tool calling using the MCP protocol, such as Claude Desktop, Cursor, or Cline (these are known as "MCP Clients").
 
 ## What is an MCP Server?
 
