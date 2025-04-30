@@ -743,6 +743,14 @@ class App(FastAPI):
                     param_name = param["parameter_name"]
                     param_type = param.get("type", {})
 
+                    if "additional_description" in param_type:
+                        param_type = dict(param_type)
+                        param_type.pop("additional_description", None)
+
+                    if "properties" in param_type and "type" not in param_type:
+                        param_type = dict(param_type)
+                        param_type["type"] = "object"
+
                     request_properties[param_name] = param_type
 
                     if "example_input" in param:
@@ -765,9 +773,17 @@ class App(FastAPI):
                 for i, ret in enumerate(endpoint_info.get("returns", [])):
                     ret_name = f"output_{i}" if i > 0 else "output"
                     ret_type = ret.get("type", {})
+
+                    if "additional_description" in ret_type:
+                        ret_type = dict(ret_type)
+                        ret_type.pop("additional_description", None)
+
+                    if "properties" in ret_type and "type" not in ret_type:
+                        ret_type = dict(ret_type)
+                        ret_type["type"] = "object"
+
                     response_properties[ret_name] = ret_type
 
-                schema["paths"][f"/api{endpoint_path}"] = path_item
                 schema["paths"][f"/run{endpoint_path}"] = path_item
 
             return schema
