@@ -214,7 +214,7 @@ Here are some things that may help:
 
 **1. Ensure that you've provided type hints and valid docstrings for your functions**
 
-As mentioned earlier, Gradio reads the docstrings for your functions and the type hints of input arguments to generate the description of the tool and parameters. A valid function and docstring looks like this:
+As mentioned earlier, Gradio reads the docstrings for your functions and the type hints of input arguments to generate the description of the tool and parameters. A valid function and docstring looks like this (note the "Args:" block with indented parameter names underneath):
 
 ```py
 def image_orientation(image: Image.Image) -> str:
@@ -227,7 +227,7 @@ def image_orientation(image: Image.Image) -> str:
     return "Portrait" if image.height > image.width else "Landscape"
 ```
 
-Note the "Args:" block with indented parameter names underneath.
+Note: You can preview the schema that is created for your MCP server by visiting the `http://your-server:port/gradio_api/mcp/schema` URL.
 
 **2. Try accepting input arguments as `str`**
 
