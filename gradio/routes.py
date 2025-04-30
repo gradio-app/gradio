@@ -1425,7 +1425,6 @@ class App(FastAPI):
                             message = {"msg": "done"}
                             is_done = True
                         else:
-                            print("not done")
                             update = file_upload_statuses.pop(upload_id)
                             message = {
                                 "msg": "update",
