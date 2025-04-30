@@ -363,7 +363,7 @@
 														mcpServers: {
 															gradio: {
 																command: "npx",
-																arguments: [
+																args: [
 																	"mcp-remote",
 																	mcp_server_url,
 																	"--transport",
