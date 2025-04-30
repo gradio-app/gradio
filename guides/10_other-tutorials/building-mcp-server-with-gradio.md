@@ -11,7 +11,7 @@ Punchline: it's as simple as setting `mcp_server=True` in `.launch()`.
 If not already installed, please install Gradio with the MCP extra:
 
 ```bash
-pip install gradio[mcp]
+pip install "gradio[mcp]"
 ```
 
 This will install the necessary dependencies, including the `mcp` package. Also, you will need a LLM application that supports tool calling using the MCP protocol, such as Claude Desktop, Cursor, or Cline (these are known as "MCP Clients").
@@ -26,7 +26,7 @@ LLMs are famously not great at counting the number of letters in a word (e.g. th
 
 $code_letter_counter
 
-Notice that we have set `mcp_server=True` in `.launch()`. This is all that's needed for your Gradio app to serve as an MCP server! Now, when you run this app, it will:
+Notice that we have: (1) included a detailed docstring for our function, and (2) set `mcp_server=True` in `.launch()`. This is all that's needed for your Gradio app to serve as an MCP server! Now, when you run this app, it will:
 
 1. Start the regular Gradio web interface
 2. Start the MCP server
@@ -37,7 +37,7 @@ The MCP server will be accessible at:
 http://your-server:port/gradio_api/mcp/sse
 ```
 
-Gradio automatically converts the `letter_counter` function into an MCP tool that can be used by LLMs. The docstring of the function of the function will be used to generate the description of the tool and its parameters. 
+Gradio automatically converts the `letter_counter` function into an MCP tool that can be used by LLMs. The docstring of the function and the type hints of arguments will be used to generate the description of the tool and its parameters. 
 
 All you need to do is add this URL endpoint to your MCP Client (e.g. Claude Desktop, Cursor, or Cline), which typically means pasting this config in the settings:
 
@@ -52,6 +52,8 @@ All you need to do is add this URL endpoint to your MCP Client (e.g. Claude Desk
 ```
 
 (By the way, you can find the exact config to copy-paste by going to the "View API" link in the footer of your Gradio app, and then clicking on "MCP").
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api-mcp.png)
 
 ## Key features of the Gradio <> MCP Integration
 
@@ -111,10 +113,8 @@ import sys
 import io
 import json 
 
-# Initialize FastMCP server
 mcp = FastMCP("gradio-spaces")
 
-# Dictionary to store Gradio clients
 clients = {}
 
 def get_client(space_id: str) -> Client:
@@ -171,14 +171,11 @@ async def run_dia_tts(prompt: str, space_id: str = "ysharma/Dia-1.6B") -> str:
 
 
 if __name__ == "__main__":
-    # Ensure stdout uses UTF-8 encoding
     import sys
     import io
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
     
-    # Initialize and run the server
     mcp.run(transport='stdio')
-
 ```
 
 This server exposes two tools:
@@ -208,4 +205,83 @@ To use this MCP Server with Claude Desktop (as MCP Client):
 
 Now, when you ask Claude about generating an image or transcribing audio, it can use your Gradio-powered tools to accomplish these tasks.
 
+
+## Troubleshooting your MCP Servers
+
+The MCP protocol is still in its infancy and you might see issues connecting to an MCP Server that you've built. We generally recommend using the [MCP Inspector Tool](https://github.com/modelcontextprotocol/inspector) to try connecting and debugging your MCP Server.
+
+Here are some things that may help:
+
+**1. Ensure that you've provided type hints and valid docstrings for your functions**
+
+As mentioned earlier, Gradio reads the docstrings for your functions and the type hints of input arguments to generate the description of the tool and parameters. A valid function and docstring looks like this:
+
+```py
+def image_orientation(image: Image.Image) -> str:
+    """
+    Returns whether image is portrait or landscape.
+
+    Args:
+        image (Image.Image): The image to check.
+    """
+    return "Portrait" if image.height > image.width else "Landscape"
+```
+
+Note the "Args:" block with indented parameter names underneath.
+
+**2. Try accepting input arguments as `str`**
+
+Some MCP Clients do not recognize parameters that are numeric or other complex types, but all of the MCP Clients that we've tested accept `str` input parameters. When in doubt, change your input parameter to be a `str` and then cast to a specific type in the function, as in this example:
+
+```py
+def prime_factors(n: str):
+    """
+    Compute the prime factorization of a positive integer.
+
+    Args:
+        n (str): The integer to factorize. Must be greater than 1.
+    """
+    n_int = int(n)
+    if n_int <= 1:
+        raise ValueError("Input must be an integer greater than 1.")
+
+    factors = []
+    while n_int % 2 == 0:
+        factors.append(2)
+        n_int //= 2
+
+    divisor = 3
+    while divisor * divisor <= n_int:
+        while n_int % divisor == 0:
+            factors.append(divisor)
+            n_int //= divisor
+        divisor += 2
+
+    if n_int > 1:
+        factors.append(n_int)
+
+    return factors
+```
+
+**3. Ensure that your MCP Client Supports SSE**
+
+Some MCP Clients, notably [Claude Desktop](https://claude.ai/download), do not yet support SSE-based MCP Servers. In those cases, you can use a tool such as [mcp-remote](https://github.com/geelen/mcp-remote). First install [Node.js](https://nodejs.org/en/download/). Then, add the following to your own MCP Client config:
+
+```
+{
+  "mcpServers": {
+    "gradio": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "http://your-server:port/gradio_api/mcp/sse"
+      ]
+    }
+  }
+}
+```
+
+**4. Restart your MCP Client and MCP Server**
+
+Some MCP Clients require you to restart them every time you update the MCP configuration. Other times, if the connection between the MCP Client and servers breaks, you might need to restart the MCP server. If all else fails, try restarting both your MCP Client and MCP Servers!
 
