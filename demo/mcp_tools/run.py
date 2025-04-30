@@ -4,37 +4,31 @@ from pathlib import Path
 import os
 from PIL import Image
 
-def prime_factors(n):
+def prime_factors(n: str):
     """
     Compute the prime factorization of a positive integer.
 
     Args:
-        n (int): The integer to factorize. Must be greater than 1.
-
-    Returns:
-        List[int]: A list of prime factors in ascending order.
-
-    Raises:
-        ValueError: If n is not greater than 1.
+        n (str): The integer to factorize. Must be greater than 1.
     """
-    n = int(n)
-    if n <= 1:
+    n_int = int(n)
+    if n_int <= 1:
         raise ValueError("Input must be an integer greater than 1.")
 
     factors = []
-    while n % 2 == 0:
+    while n_int % 2 == 0:
         factors.append(2)
-        n //= 2
+        n_int //= 2
 
     divisor = 3
-    while divisor * divisor <= n:
-        while n % divisor == 0:
+    while divisor * divisor <= n_int:
+        while n_int % divisor == 0:
             factors.append(divisor)
-            n //= divisor
+            n_int //= divisor
         divisor += 2
 
-    if n > 1:
-        factors.append(n)
+    if n_int > 1:
+        factors.append(n_int)
 
     return factors
 
@@ -67,7 +61,7 @@ def sepia(input_img):
     Apply a sepia filter to the input image.
 
     Args:
-        input_img (str): The input image to apply the sepia filter to.
+        input_img (np.array): The input image to apply the sepia filter to.
 
     Returns:
         The sepia filtered image.
