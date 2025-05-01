@@ -182,7 +182,7 @@ The endpoints are automatically created when you launch a Gradio application. If
 btn.click(add, [num1, num2], output, api_name="addition")
 ```
 
-This will add and document the endpoint `/addition/` to the automatically generated API page. Read more about the [API page here](/guides/additional-features/view-api-page).
+This will add and document the endpoint `/addition/` to the automatically generated API page. Read more about the [API page here](./view-api-page).
 
 ## Accessing the Network Request Directly
 
