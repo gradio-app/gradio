@@ -1,5 +1,6 @@
 import base64
 import os
+import re
 import tempfile
 from io import BytesIO
 from pathlib import Path
@@ -41,11 +42,9 @@ class GradioMCPServer:
         self.mcp_server = self.create_mcp_server()
         self.request = None
         self.root_url = None
-        self.tool_prefix = (
-            f"{utils.get_space()}_".replace("-", "_").replace("/", "_")
-            if utils.get_space()
-            else ""
-        )
+        self.tool_prefix = utils.get_space()
+        if self.tool_prefix:
+            self.tool_prefix = re.sub(r"[^a-zA-Z0-9]", "_", self.tool_prefix)
 
     def create_mcp_server(self) -> Server:
         """
