@@ -343,7 +343,12 @@
 														mcpServers: {
 															gradio: {
 																command: "npx",
-																args: ["mcp-remote", mcp_server_url]
+																args: [
+																	"mcp-remote",
+																	mcp_server_url,
+																	"--transport",
+																	"sse-only"
+																]
 															}
 														}
 													},
@@ -358,7 +363,12 @@
 														mcpServers: {
 															gradio: {
 																command: "npx",
-																arguments: ["mcp-remote", mcp_server_url]
+																args: [
+																	"mcp-remote",
+																	mcp_server_url,
+																	"--transport",
+																	"sse-only"
+																]
 															}
 														}
 													},
