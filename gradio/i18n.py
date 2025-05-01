@@ -9,6 +9,10 @@ class TranslationMetadata:
 
     This object will be serialized and sent to the frontend, where the actual
     translation will happen using the frontend's i18n system.
+
+    The frontend stores the original metadata to enable proper re-translation
+    when the locale changes, ensuring components are always displayed in the
+    correct language even after updates or locale switching.
     """
 
     def __init__(self, key: str):

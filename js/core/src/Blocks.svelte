@@ -50,8 +50,6 @@
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
 
-	setupi18n(app.config?.i18n_translations ?? undefined);
-
 	let {
 		layout: _layout,
 		targets,

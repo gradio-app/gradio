@@ -1,4 +1,13 @@
 import { writable, type Writable, get } from "svelte/store";
+import {
+	translate_value,
+	TRANSLATABLE_PROPS,
+	translate_component_tree,
+	create_translation_updates,
+	type I18nComponentProps
+} from "./i18n";
+import { locale, _ } from "svelte-i18n";
+import { setupi18n } from "./i18n";
 
 import type {
 	ComponentMeta,
@@ -10,7 +19,6 @@ import type {
 import { load_component } from "virtual:component-loader";
 import type { client_return } from "@gradio/client";
 import { create_loading_status_store } from "./stores";
-import { _ } from "svelte-i18n";
 
 export interface UpdateTransaction {
 	id: number;
@@ -28,7 +36,6 @@ const raf = is_browser
  * Create a store with the layout and a map of targets
  * @returns A store with the layout and a map of targets
  */
-let has_run = new Set<number>();
 export function create_components(initial_layout: ComponentMeta | undefined): {
 	layout: Writable<ComponentMeta>;
 	targets: Writable<TargetMap>;
@@ -106,6 +113,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		// make sure the state is settled before proceeding
 		flush();
 		app = _app;
+		setupi18n(app.config?.i18n_translations ?? undefined);
 		store_keyed_values(_components);
 
 		_components = components;
@@ -359,6 +367,10 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 					if (!update) continue;
 					const instance = instance_map[update.id];
 					if (!instance) continue;
+
+					// Cast instance props to I18nComponentProps for type safety
+					const props = instance.props as I18nComponentProps;
+
 					let new_value;
 					if (update.value instanceof Map) new_value = new Map(update.value);
 					else if (update.value instanceof Set)
@@ -368,15 +380,51 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 					else if (typeof update.value === "object")
 						new_value = { ...update.value };
 					else new_value = update.value;
-					instance.props[update.prop] = new_value;
+
+					// Translate strings in key properties with context
+					if (TRANSLATABLE_PROPS.includes(update.prop)) {
+						new_value = translate_value(new_value, props, update.prop);
+					}
+
+					props[update.prop] = new_value;
 				}
 			}
+
+			// Apply translations to the component tree
+			translate_component_tree(layout);
 			return layout;
 		});
 		pending_updates = [];
 		update_scheduled = false;
 		update_scheduled_store.set(false);
 	}
+
+	// Improved locale subscription with simplified logic
+	locale.subscribe((value) => {
+		console.log("locale changed to", value);
+		if (value) {
+			layout_store.update((layout) => {
+				// Re-translate the entire component tree
+				translate_component_tree(layout);
+
+				// Create updates for components with translatable properties
+				if (app && _components.length > 0) {
+					const keyUpdates = create_translation_updates(_components);
+
+					if (keyUpdates.length > 0) {
+						pending_updates.push(keyUpdates);
+						if (!update_scheduled) {
+							update_scheduled = true;
+							update_scheduled_store.set(true);
+							raf(flush);
+						}
+					}
+				}
+
+				return layout;
+			});
+		}
+	});
 
 	function update_value(updates: UpdateTransaction[] | undefined): void {
 		if (!updates) return;

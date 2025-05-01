@@ -6,6 +6,24 @@ import {
 	_
 } from "svelte-i18n";
 import { formatter } from "./gradio_helper";
+export { formatter };
+
+import type { ComponentMeta } from "./types";
+
+export const TRANSLATABLE_PROPS = [
+	"label",
+	"value",
+	"placeholder",
+	"title",
+	"description"
+];
+
+export interface I18nComponentProps {
+	[key: string]: any;
+	__i18n_original_values?: {
+		[prop: string]: string;
+	};
+}
 
 const langs = import.meta.glob("./lang/*.json", {
 	eager: true
@@ -17,104 +35,6 @@ type LangsRecord = Record<
 		[key: string]: any;
 	}
 >;
-
-// interface for the TranslationMetadata objects sent from the backend
-interface TranslationMetadata {
-	__type__: "translation_metadata";
-	key: string;
-}
-
-export function is_translation_metadata(obj: any): obj is TranslationMetadata {
-	const result =
-		obj &&
-		typeof obj === "object" &&
-		obj.__type__ === "translation_metadata" &&
-		typeof obj.key === "string";
-
-	return result;
-}
-
-export function translate_metadata(metadata: TranslationMetadata): string {
-	if (!is_translation_metadata(metadata)) {
-		return String(metadata);
-	}
-
-	try {
-		const { key } = metadata;
-		let translated = formatter(key);
-		return translated;
-	} catch (e) {
-		console.error("Error translating metadata:", e);
-		return metadata.key;
-	}
-}
-
-export function translate_if_needed(value: string): string {
-	if (typeof value !== "string") {
-		return value;
-	}
-
-	const match = value.match(/^__i18n__(.+)$/);
-	if (!match) {
-		return value;
-	}
-
-	try {
-		const metadataJson = match[1];
-		const metadata = JSON.parse(metadataJson);
-
-		if (metadata && metadata.key) {
-			return formatter(metadata.key);
-		}
-
-		return value;
-	} catch (e) {
-		console.error("Error processing translation:", e);
-		return value;
-	}
-}
-
-/**
- * Process any object that might contain TranslationMetadata objects
- * This recursively handles objects, arrays, and strings
- * @param obj Any object that might contain TranslationMetadata objects
- * @param processed A WeakMap to track already processed objects and prevent circular references
- * @returns The processed object with all TranslationMetadata objects translated
- */
-export function process_i18n_obj(obj: any): any {
-	if (obj == null) {
-		return obj;
-	}
-
-	// Process strings directly
-	if (typeof obj === "string") {
-		return translate_if_needed(obj);
-	}
-
-	// Handle primitive types (non-objects)
-	if (typeof obj !== "object") {
-		return obj;
-	}
-
-	// Handle arrays
-	if (Array.isArray(obj)) {
-		return obj.map((item) => process_i18n_obj(item));
-	}
-
-	const result: Record<string, any> = {};
-	const skipProps = ["gradio", "parent", "__proto__", "constructor"];
-
-	for (const key in obj) {
-		if (skipProps.includes(key)) {
-			result[key] = obj[key];
-			continue;
-		}
-
-		result[key] = process_i18n_obj(obj[key]);
-	}
-
-	return result;
-}
 
 export function process_langs(): LangsRecord {
 	let _langs: LangsRecord = {};
@@ -221,6 +141,323 @@ export async function setupi18n(
 	}
 }
 
+/**
+ * Create a special translatable string object that preserves the original metadata key
+ */
+export interface TranslatableString {
+	__i18n_key?: string;
+	toString(): string;
+	valueOf(): string;
+}
+
+// Store the original translation keys for component props
+export const translationKeys = new WeakMap<object, Map<string, string>>();
+
+/**
+ * Get current locale with a synchronous approach
+ */
+export function get_locale(): string {
+	let _locale = "en";
+	locale.subscribe((value) => {
+		_locale = value || "en";
+	});
+	return _locale;
+}
+
+/**
+ * Extracts translation key from i18n metadata string
+ */
+function extractI18nKey(value: string): string | null {
+	if (!value.startsWith("__i18n__")) return null;
+
+	try {
+		const jsonStr = value.substring("__i18n__".length);
+		const data = JSON.parse(jsonStr);
+		return data && data.key ? data.key : null;
+	} catch (e) {
+		return null;
+	}
+}
+
+/**
+ * Registers a translation key for a component property
+ */
+export function registerTranslation(obj: any, prop: string, key: string): void {
+	if (!obj || typeof obj !== "object") return;
+
+	// Get or create the property map for this object
+	let propMap = translationKeys.get(obj);
+	if (!propMap) {
+		propMap = new Map<string, string>();
+		translationKeys.set(obj, propMap);
+	}
+
+	// Store the translation key
+	propMap.set(prop, key);
+}
+
+/**
+ * Translates a string value, handling i18n metadata format
+ * @param value Any value that might need translation
+ * @param obj Optional parent object
+ * @param prop Optional property name in the parent object
+ * @returns The translated string
+ */
+export function translate_value(value: any, obj?: any, prop?: string): any {
+	// Handle non-strings
+	if (typeof value !== "string") {
+		return value;
+	}
+
+	// Handle i18n metadata format strings from Python
+	if (value.startsWith("__i18n__")) {
+		const key = extractI18nKey(value);
+		if (key) {
+			// Store the key for future translations if obj and prop are provided
+			if (obj && prop) {
+				registerTranslation(obj, prop, key);
+
+				// Store the original i18n string format to enable re-translation on locale changes
+				if (!obj.__i18n_original_values) {
+					obj.__i18n_original_values = {};
+				}
+				obj.__i18n_original_values[prop] = value;
+			}
+			return formatter(key);
+		}
+	}
+
+	// Check if we have a stored original i18n string for this property
+	if (
+		obj &&
+		prop &&
+		obj.__i18n_original_values &&
+		obj.__i18n_original_values[prop]
+	) {
+		const originalValue = obj.__i18n_original_values[prop];
+		const key = extractI18nKey(originalValue);
+		if (key) {
+			return formatter(key);
+		}
+	}
+
+	// Check if we have a registered translation key for this property
+	if (obj && prop && translationKeys.has(obj)) {
+		const propMap = translationKeys.get(obj);
+		const key = propMap?.get(prop);
+		if (key) {
+			// Store the key in the original values map for future translations
+			if (!obj.__i18n_original_values) {
+				obj.__i18n_original_values = {};
+			}
+			obj.__i18n_original_values[prop] =
+				`__i18n__${JSON.stringify({ __type__: "translation_metadata", key: key })}`;
+			return formatter(key);
+		}
+	}
+
+	// Return as is if no translation found
+	return value;
+}
+
+/**
+ * Recursively walks an object and translates any string values
+ * @param obj Any object that might contain translatable strings
+ * @param visited WeakMap to track already visited objects and prevent circular reference issues
+ * @returns The same object with translated strings
+ */
+export function translate_object(obj: any, visited = new WeakMap()): any {
+	if (obj === null || obj === undefined) {
+		return obj;
+	}
+
+	// Handle primitive types
+	if (typeof obj !== "object") {
+		return typeof obj === "string" ? translate_value(obj) : obj;
+	}
+
+	// Handle circular references by tracking visited objects
+	if (visited.has(obj)) {
+		return visited.get(obj);
+	}
+
+	// Skip special objects that shouldn't be traversed
+	if (
+		obj instanceof Map ||
+		obj instanceof Set ||
+		obj instanceof Date ||
+		obj instanceof RegExp ||
+		obj instanceof Promise ||
+		obj instanceof Function ||
+		obj instanceof HTMLElement
+	) {
+		return obj;
+	}
+
+	// Handle arrays
+	if (Array.isArray(obj)) {
+		const result = [...obj];
+		visited.set(obj, result);
+		for (let i = 0; i < result.length; i++) {
+			result[i] = translate_object(result[i], visited);
+		}
+		return result;
+	}
+
+	// Handle objects
+	const result = { ...obj };
+	visited.set(obj, result);
+
+	// Skip certain properties that can cause circular references
+	const skipProps = [
+		"parent",
+		"gradio",
+		"__proto__",
+		"constructor",
+		"instance"
+	];
+
+	for (const key in result) {
+		if (!skipProps.includes(key)) {
+			result[key] = translate_object(result[key], visited);
+		}
+	}
+
+	return result;
+}
+
 export function changeLocale(new_locale: string): void {
 	locale.set(new_locale);
+}
+
+/**
+ * Checks if a property has translation metadata or registered keys
+ * @param props The component props object
+ * @param prop The property name to check
+ * @returns True if the property has translation data
+ */
+function has_translation_for_prop(
+	props: I18nComponentProps,
+	prop: string
+): boolean {
+	if (!props || props[prop] === undefined) return false;
+
+	return !!(
+		props.__i18n_original_values?.[prop] ||
+		(translationKeys.has(props) && translationKeys.get(props)?.has(prop))
+	);
+}
+
+/**
+ * Translates tab labels in a tab component
+ * @param tabs The array of tab items to translate
+ * @returns Translated tab items
+ */
+function translate_tabs(tabs: any[]): any[] {
+	return tabs.map((tab) => {
+		if (tab && tab.label) {
+			tab.label = translate_value(tab.label, tab, "label");
+		}
+		return tab;
+	});
+}
+
+/**
+ * Checks if a component's props contain any translatable properties
+ * @param props The component props to check
+ * @returns True if the component has any translatable properties
+ */
+export function has_translatable_props(props: I18nComponentProps): boolean {
+	if (!props) return false;
+
+	// Check if any translatable property has stored metadata
+	return TRANSLATABLE_PROPS.some((prop) =>
+		has_translation_for_prop(props, prop)
+	);
+}
+
+/**
+ * Translates a component's properties, handling special cases
+ * @param component The component metadata object to translate
+ */
+export function translate_component_props(component: ComponentMeta): void {
+	if (!component || !component.props) return;
+
+	const props: I18nComponentProps = component.props;
+
+	// Translate standard properties
+	for (const prop of TRANSLATABLE_PROPS) {
+		if (props[prop] !== undefined) {
+			props[prop] = translate_value(props[prop], props, prop);
+		}
+	}
+
+	// Handle special case for tabs
+	if (component.type === "tabs" && props.initial_tabs) {
+		props.initial_tabs = translate_tabs(props.initial_tabs);
+	}
+}
+
+/**
+ * Recursively translates a component tree
+ * @param component The root component to start translation from
+ * @returns The same component with translated strings
+ */
+export function translate_component_tree(
+	component: ComponentMeta
+): ComponentMeta {
+	if (!component) return component;
+
+	translate_component_props(component);
+
+	if (component.children && Array.isArray(component.children)) {
+		component.children.forEach(translate_component_tree);
+	}
+
+	return component;
+}
+
+/**
+ * Creates an update transaction for a component property
+ * @param component_id The component ID
+ * @param prop The property name
+ * @param value The property value
+ * @returns Update transaction object
+ */
+function create_property_update(
+	component_id: number,
+	prop: string,
+	value: any
+): { id: number; prop: string; value: any } {
+	return { id: component_id, prop, value };
+}
+
+/**
+ * Generate update transactions for components that need re-translation
+ * @param components Array of components to check for updates
+ * @returns Array of update transactions
+ */
+export function create_translation_updates(
+	components: ComponentMeta[]
+): { id: number; prop: string; value: any }[] {
+	return components
+		.filter((c) => c.props)
+		.flatMap((c) => {
+			const updates = [];
+			const props: I18nComponentProps = c.props;
+
+			for (const prop of TRANSLATABLE_PROPS) {
+				if (has_translation_for_prop(props, prop)) {
+					updates.push(create_property_update(c.id, prop, props[prop]));
+				}
+			}
+
+			if (c.type === "tabs" && props.initial_tabs) {
+				updates.push(
+					create_property_update(c.id, "initial_tabs", props.initial_tabs)
+				);
+			}
+
+			return updates;
+		});
 }
