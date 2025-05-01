@@ -17,7 +17,7 @@ from gradio_client.documentation import document
 
 import gradio as gr
 from gradio import processing_utils, utils, wasm_utils
-from gradio.components.base import Component, StreamingOutput
+from gradio.components.base import Component, StreamingOutput, server
 from gradio.components.image_editor import WebcamOptions
 from gradio.data_classes import FileData, GradioModel, MediaStreamChunk
 from gradio.events import Events
@@ -597,3 +597,12 @@ class Video(StreamingOutput, Component):
             "extension": ".ts",
         }
         return chunk, output_file
+
+    @server
+    def is_playable(self, video_payload: dict[str, Any]) -> dict[str, int]:
+        payload = FileData(**video_payload)
+        return {
+            "is_playable": int(
+                processing_utils.video_is_playable(payload.path, prefer_playable=False)
+            )
+        }
