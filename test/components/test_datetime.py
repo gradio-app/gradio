@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 import gradio as gr
 
@@ -33,6 +33,12 @@ class TestDateTime:
 
         assert dt.postprocess(1500000000) == "2017-07-13 19:40:00"
         assert dt2.postprocess(1500000000) == "2017-07-14 04:40:00"
+
+    def test_can_pass_datetime_value(self):
+        gr.DateTime(
+            type="datetime",
+            value=datetime.now(tz=timezone.utc),
+        )
 
     def test_in_interface(self):
         """
