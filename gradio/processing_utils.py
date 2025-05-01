@@ -1106,6 +1106,7 @@ def video_is_playable(video_filepath: str, prefer_playable: bool = True) -> bool
         video_codec = output["streams"][0]["codec_name"]
         return (container, video_codec) in [
             (".mp4", "h264"),
+            (".mp4", "av1"),
             (".ogg", "theora"),
             (".webm", "vp9"),
             (".webm", "vp8"),
