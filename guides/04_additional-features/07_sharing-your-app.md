@@ -176,13 +176,13 @@ This is a page that lists the endpoints that can be used to query the Gradio app
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api.png)
 
-The endpoints are automatically created when you launch a Gradio `Interface`. If you are using Gradio `Blocks`, you can also set up a Gradio API page, though we recommend that you explicitly name each event listener, such as
+The endpoints are automatically created when you launch a Gradio application. If you are using Gradio `Blocks`, you can also name each event listener, such as
 
 ```python
 btn.click(add, [num1, num2], output, api_name="addition")
 ```
 
-This will add and document the endpoint `/api/addition/` to the automatically generated API page. Otherwise, your API endpoints will appear as "unnamed" endpoints.
+This will add and document the endpoint `/addition/` to the automatically generated API page. Read more about the [API page here](./view-api-page).
 
 ## Accessing the Network Request Directly
 
