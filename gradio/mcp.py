@@ -42,9 +42,11 @@ class GradioMCPServer:
         self.mcp_server = self.create_mcp_server()
         self.request = None
         self.root_url = None
-        self.tool_prefix = utils.get_space()
-        if self.tool_prefix:
-            self.tool_prefix = re.sub(r"[^a-zA-Z0-9]", "_", self.tool_prefix)
+        tool_prefix = utils.get_space()
+        if tool_prefix:
+            self.tool_prefix = re.sub(r"[^a-zA-Z0-9]", "_", tool_prefix)
+        else:
+            self.tool_prefix = ""
 
     def create_mcp_server(self) -> Server:
         """
