@@ -39,6 +39,12 @@
 		>
 	</button>
 
+	<p
+		class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit text-xs ml-4"
+	>
+		Use our <a class="link" href="/main/guides/using-docs-mcp">Docs MCP</a>
+	</p>
+
 	{#if show_dropdown}
 		<div
 			class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10 hidden lg:block my-4 ml-4"
