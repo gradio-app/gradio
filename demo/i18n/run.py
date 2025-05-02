@@ -1,6 +1,6 @@
 import gradio as gr
 
-# Create an i18n instance with translations for different languages
+# create an i18n instance with translations for different languages
 i18n = gr.I18n(
     en={"name_label": "Your Name", "submit_button": "Greet", "john_doe": "John English", "result_label": "Result"},
     es={"name_label": "Tu Nombre", "submit_button": "Saludar", "john_doe": "John Spanish", "result_label": "Resultado"},
@@ -13,6 +13,7 @@ def add_hello_world(name):
 
 with gr.Blocks() as demo:
     with gr.Row():
+        # use i18n() for any string that should be translated
         name_input = gr.Textbox(label=i18n("name_label"), value=i18n("john_doe"))
 
     with gr.Row():
@@ -34,4 +35,5 @@ with gr.Blocks() as demo:
     """)
 
 if __name__ == "__main__":
+    # pass i18n to the launch function
     demo.launch(i18n=i18n)
