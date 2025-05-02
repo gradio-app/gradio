@@ -402,7 +402,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		if (comp.instance?.get_value) {
 			return comp.instance.get_value() as Promise<any>;
 		}
-		return comp.props.value;
+		return process_i18n_obj(comp.props.value);
 	}
 
 	function findComponentById(
