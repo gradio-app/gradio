@@ -1,5 +1,21 @@
 # gradio
 
+## 5.29.0
+
+### Features
+
+- [#11103](https://github.com/gradio-app/gradio/pull/11103) [`098fb29`](https://github.com/gradio-app/gradio/commit/098fb29d384ddf2c8a09efd9746bc788d74e2a17) - Add `openapi.json` route for Gradio apps as well as docs on the "view API" page.  Thanks @abidlabs!
+
+### Fixes
+
+- [#11102](https://github.com/gradio-app/gradio/pull/11102) [`8cd4e53`](https://github.com/gradio-app/gradio/commit/8cd4e53a839d86ac69ea2d2eabfcb73e9ff4926c) - Fix file upload progress.  Thanks @freddyaboulton!
+- [#11098](https://github.com/gradio-app/gradio/pull/11098) [`49ad594`](https://github.com/gradio-app/gradio/commit/49ad5943eeab96b153f0b56fe8d42d755fe1e0f8) - Fix #10281: Dragging image replaces existing instead of opening new tab.  Thanks @Martim-Rito!
+- [#11113](https://github.com/gradio-app/gradio/pull/11113) [`c32f8de`](https://github.com/gradio-app/gradio/commit/c32f8de99a6ab3a82da2f8d5f9f3176a04129f77) - Fix markdown change event.  Thanks @freddyaboulton!
+- [#11115](https://github.com/gradio-app/gradio/pull/11115) [`49e7a0d`](https://github.com/gradio-app/gradio/commit/49e7a0dd18174196b262d32e6c59d93ca40b1c73) - update STDIO instructions to specify sse-only transport.  Thanks @evalstate!
+- [#11111](https://github.com/gradio-app/gradio/pull/11111) [`15d6297`](https://github.com/gradio-app/gradio/commit/15d6297261bfca97a2df30b9df358c7751386958) - Fix gradio cc environment.  Thanks @freddyaboulton!
+- [#11112](https://github.com/gradio-app/gradio/pull/11112) [`0e5a75e`](https://github.com/gradio-app/gradio/commit/0e5a75e263dfd0557431e33771dd8cd49196b28e) - Fix passing datetime.datetime instance to gr.Datetime.  Thanks @freddyaboulton!
+- [#11119](https://github.com/gradio-app/gradio/pull/11119) [`bb2c744`](https://github.com/gradio-app/gradio/commit/bb2c7443c25b12241ab218195251520e953f7e32) - Replace invalid characters in MCP tool name.  Thanks @abidlabs!
+
 ## 5.28.0
 
 ### Features

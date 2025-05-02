@@ -1,5 +1,15 @@
 # website
 
+## 0.56.0
+
+### Features
+
+- [#11120](https://github.com/gradio-app/gradio/pull/11120) [`b2118d4`](https://github.com/gradio-app/gradio/commit/b2118d4b613f93b34e02c809e7d0faaa7545b875) - Docs mcp server.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.14.3
+
 ## 0.55.0
 
 ### Features
