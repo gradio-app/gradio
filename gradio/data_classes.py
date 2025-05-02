@@ -378,7 +378,7 @@ class BlocksConfigDict(TypedDict):
     connect_heartbeat: bool
     js: str | Literal[True] | None
     head: str | None
-    title: str | I18n | None
+    title: str | I18n
     space_id: str | None
     enable_queue: bool
     show_error: bool
