@@ -71,6 +71,7 @@ from gradio.data_classes import (
     ComponentServerJSONBody,
     DataWithFiles,
     DeveloperPath,
+    EventAnalytics,
     PredictBody,
     PredictBodyInternal,
     ResetBody,
@@ -82,6 +83,7 @@ from gradio.node_server import (
     start_node_server,
 )
 from gradio.oauth import attach_oauth
+from gradio.queueing import Event
 from gradio.route_utils import (  # noqa: F401
     API_PREFIX,
     CustomCORSMiddleware,
@@ -1404,6 +1406,81 @@ class App(FastAPI):
         )
         async def get_queue_status():
             return app.get_blocks()._queue.get_status()
+
+        @router.get("/queue/attach_worker")
+        async def attach_worker(app_key: str, worker_id: int):
+            blocks = app.get_blocks()
+            if app_key != blocks.app_key:
+                raise HTTPException(status_code=403, detail="Invalid app key.")
+
+            blocks._queue.events_by_id_per_worker[worker_id] = {}
+
+            async def worker_heartbeat():
+                try:
+                    while not blocks._queue.stopped:
+                        yield "data: heartbeat\n\n"
+                        await asyncio.sleep(5)
+                except BaseException:
+                    pass
+                    # blocks._queue.remove_worker(worker_id)
+
+            return StreamingResponse(
+                worker_heartbeat(),
+                media_type="text/event-stream",
+            )
+
+        @router.post(
+            "/queue/message",
+        )
+        async def queue_message(
+            app_key: str,
+            worker_id: int,
+            event: dict[str, Any],
+            event_message: EventMessage,
+        ):
+            blocks = app.get_blocks()
+            if app_key != blocks.app_key:
+                raise HTTPException(status_code=403, detail="Invalid app key.")
+
+            event_object = Event.from_json(blocks, event)
+            blocks._queue.send_message(event_object, event_message)
+            if event_message.msg == ServerMessage.process_completed:
+                del blocks._queue.events_by_id_per_worker[worker_id][event_object._id]
+
+        @router.get("/queue/events")
+        async def get_events(app_key: str, worker_id: int, concurrency_ids: list[str]):
+            blocks = app.get_blocks()
+            if app_key != blocks.app_key:
+                raise HTTPException(status_code=403, detail="Invalid app key.")
+
+            events_response = await blocks._queue.get_events(concurrency_ids)
+            if events_response:
+                events, batch, concurrency_id = events_response
+                blocks._queue.events_by_id_per_worker[worker_id].update(
+                    {event._id: event for event in events}
+                )
+                events = [event.json() for event in events]
+                return {
+                    "events": events,
+                    "batch": batch,
+                    "concurrency_id": concurrency_id,
+                }
+            else:
+                return
+
+        @router.post(
+            "/queue/event_analytics",
+        )
+        async def queue_analytics(
+            app_key: str, event_analytics: EventAnalytics
+        ):
+            blocks = app.get_blocks()
+            if app_key != blocks.app_key:
+                raise HTTPException(status_code=403, detail="Invalid app key.")
+
+            blocks._queue.update_event_analytics(
+                event_analytics.event_id, event_analytics.key, event_analytics.value
+            )
 
         @router.get("/upload_progress")
         def get_upload_progress(upload_id: str, request: fastapi.Request):
