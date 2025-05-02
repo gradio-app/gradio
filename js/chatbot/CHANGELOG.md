@@ -1,5 +1,40 @@
 # @gradio/chatbot
 
+## 0.26.5
+
+### Dependency updates
+
+- @gradio/video@0.14.13
+- @gradio/upload@0.16.4
+- @gradio/image@0.22.5
+- @gradio/gallery@0.15.18
+
+## 0.26.4
+
+### Fixes
+
+- [#11097](https://github.com/gradio-app/gradio/pull/11097) [`bb5a3c5`](https://github.com/gradio-app/gradio/commit/bb5a3c5b6b4459fb4d491bcc5a625e7fee7e502c) - Fix #10320: Chatbot - Ensure all messages in a group are editable.  Thanks @eduardopalricas33!
+
+## 0.26.3
+
+### Dependency updates
+
+- @gradio/gallery@0.15.17
+- @gradio/video@0.14.12
+- @gradio/image@0.22.4
+
+## 0.26.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.10
+- @gradio/image@0.22.3
+- @gradio/upload@0.16.3
+- @gradio/video@0.14.11
+- @gradio/atoms@0.16.0
+- @gradio/gallery@0.15.16
+- @gradio/plot@0.9.15
+
 ## 0.26.1
 
 ### Dependency updates

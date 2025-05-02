@@ -1,5 +1,27 @@
 # website
 
+## 0.56.0
+
+### Features
+
+- [#11120](https://github.com/gradio-app/gradio/pull/11120) [`b2118d4`](https://github.com/gradio-app/gradio/commit/b2118d4b613f93b34e02c809e7d0faaa7545b875) - Docs mcp server.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.14.3
+
+## 0.55.0
+
+### Features
+
+- [#11027](https://github.com/gradio-app/gradio/pull/11027) [`eff532b`](https://github.com/gradio-app/gradio/commit/eff532b913a3c8f06f10a4f9471d3177e3744053) - Add new `ImageSlider` component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/code@0.14.2
+- @gradio/paramviewer@0.7.8
+- @gradio/statustracker@0.10.10
+
 ## 0.54.2
 
 ### Fixes

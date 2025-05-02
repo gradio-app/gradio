@@ -140,9 +140,18 @@ export function get_initial_locale(
 	available_locales: string[],
 	fallback_locale = "en"
 ): string {
-	return available_locales.includes(browser_locale?.split("-")[0] ?? "")
-		? browser_locale!.split("-")[0]
-		: fallback_locale;
+	if (!browser_locale) return fallback_locale;
+
+	if (available_locales.includes(browser_locale)) {
+		return browser_locale;
+	}
+
+	const normalized_locale = browser_locale.split("-")[0];
+	if (normalized_locale && available_locales.includes(normalized_locale)) {
+		return normalized_locale;
+	}
+
+	return fallback_locale;
 }
 
 let _i18n_initialized = false;
