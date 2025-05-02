@@ -428,3 +428,9 @@ class ImageData(GradioModel):
 
 class Base64ImageData(GradioModel):
     url: str = Field(description="base64 encoded image")
+
+
+class EventAnalytics(BaseModel):
+    event_id: str
+    key: str
+    value: str | float | int | None

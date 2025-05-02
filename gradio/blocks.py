@@ -502,10 +502,10 @@ class BlockFunction:
         inputs_as_dict: bool,
         targets: list[tuple[int | None, str]],
         _id: int,
+        concurrency_id: str,
+        concurrency_limit: int | None | Literal["default"] = "default",
         batch: bool = False,
         max_batch_size: int = 4,
-        concurrency_limit: int | None | Literal["default"] = "default",
-        concurrency_id: str | None = None,
         tracks_progress: bool = False,
         api_name: str | Literal[False] = False,
         js: str | Literal[True] | None = None,
@@ -538,7 +538,7 @@ class BlockFunction:
         self.postprocess = postprocess
         self.tracks_progress = tracks_progress
         self.concurrency_limit: int | None | Literal["default"] = concurrency_limit
-        self.concurrency_id = concurrency_id or str(id(fn))
+        self.concurrency_id = concurrency_id
         self.batch = batch
         self.max_batch_size = max_batch_size
         self.total_runtime = 0
@@ -864,6 +864,19 @@ class BlocksConfig:
             raise ValueError(
                 "Cannot create event: events with js=True cannot have inputs."
             )
+
+        if concurrency_id is None:
+            concurrency_hash = str(id(fn)) if fn is not None else None
+            if concurrency_hash in self.root_block.concurrency_hash_to_id:
+                concurrency_id = self.root_block.concurrency_hash_to_id[
+                    concurrency_hash
+                ]
+            else:
+                concurrency_id = str(self.root_block.running_concurrency_id)
+                self.root_block.concurrency_hash_to_id[concurrency_hash] = (
+                    concurrency_id
+                )
+                self.root_block.running_concurrency_id += 1
 
         block_fn = BlockFunction(
             fn,
@@ -1200,6 +1213,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.blocked_paths = []
         self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         self.proxy_urls = set()
+        self.concurrency_hash_to_id = {}
+        self.running_concurrency_id = 0
 
         self.pages: list[tuple[str, str]] = [("", "Home")]
         self.current_page = ""
@@ -2432,6 +2447,9 @@ Received inputs:
         node_port: int | None = None,
         ssr_mode: bool | None = None,
         pwa: bool | None = None,
+        app_key: str | None = None,
+        role: Literal["hybrid", "master", "worker"] | None = None,
+        master_url: str | None = None,
         _frontend: bool = True,
     ) -> tuple[App, str, str]:
         """
@@ -2472,6 +2490,9 @@ Received inputs:
             strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
             ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
+            app_key: Used for communication in master/worker setups - must be the same across master and all workers. If not provided, will use the GRADIO_APP_KEY environment variable.
+            role: Role in master/worker setup. "hybrid" (default) means this app will both receive and process tasks, and other workers can attach to this app to process tasks. "master" means this app will only receive tasks. "worker" means this app will only process tasks and not receive them, and this requires master_url to be set. Will load from GRADIO_ROLE environment variable if not provided.
+            master_url: The URL of the master app in a master/worker setup. This is required if role is set to "worker", otherwise this is ignored. Will load from GRADIO_MASTER_URL environment variable if not provided.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2531,6 +2552,22 @@ Received inputs:
         self.favicon_path = favicon_path
         self.ssl_verify = ssl_verify
         self.state_session_capacity = state_session_capacity
+        self.app_key = app_key or os.environ.get("GRADIO_APP_KEY", None)
+        role = role or os.environ.get("GRADIO_ROLE", "hybrid")
+        if role in ("master", "worker") and self.app_key is None:
+            raise ValueError(
+                "You must provide a secret app_key if you are launching a master/worker setup. This can be set via `.launch(app_key='...')` or through the GRADIO_APP_KEY environment variable. Masters and workers must all share the same app key."
+            )
+        if role == "worker" and master_url is None:
+            raise ValueError(
+                "You must provide a master_url if you are launching a worker."
+            )
+        if role == "master" and any(fn.renderable for fn in self.fns.values()):
+            raise ValueError(
+                "You cannot use `role='master'` with renderable components, use role='hybrid' instead. This machine will handle all renders."
+            )
+        self._queue.role = role
+        self._queue.master_url = master_url.strip("/")
         if root_path is None:
             self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         else:
