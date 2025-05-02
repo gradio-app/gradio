@@ -1,5 +1,21 @@
 # @gradio/core
 
+## 0.16.1
+
+### Fixes
+
+- [#11115](https://github.com/gradio-app/gradio/pull/11115) [`49e7a0d`](https://github.com/gradio-app/gradio/commit/49e7a0dd18174196b262d32e6c59d93ca40b1c73) - update STDIO instructions to specify sse-only transport.  Thanks @evalstate!
+
+### Dependency updates
+
+- @gradio/code@0.14.3
+- @gradio/button@0.4.18
+- @gradio/video@0.14.13
+- @gradio/upload@0.16.4
+- @gradio/image@0.22.5
+- @gradio/gallery@0.15.18
+- @gradio/file@0.12.17
+
 ## 0.16.0
 
 ### Features
