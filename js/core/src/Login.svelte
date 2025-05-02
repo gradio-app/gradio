@@ -57,7 +57,6 @@
 					max_lines={1}
 					on:submit={submit}
 					bind:value={username}
-					i18n={$_}
 				/>
 			</Block>
 
@@ -71,7 +70,6 @@
 					type="password"
 					on:submit={submit}
 					bind:value={password}
-					i18n={$_}
 				/>
 			</Block>
 		</Form>

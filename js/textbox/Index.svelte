@@ -49,10 +49,6 @@
 	export let interactive: boolean;
 	export let root: string;
 	export let max_length: number | undefined = undefined;
-
-	$: console.log("Textbox props:", {
-		value
-	});
 </script>
 
 <Block

@@ -1,5 +1,5 @@
 import { all_common_keys } from "./i18n";
-import { format, locale, _ } from "svelte-i18n";
+import { locale, _ } from "svelte-i18n";
 import { get, derived } from "svelte/store";
 export { Gradio } from "@gradio/utils";
 

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import type { I18nFormatter } from "@gradio/utils";
 
 	const dispatch = createEventDispatcher<{
 		expand: void;

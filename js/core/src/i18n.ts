@@ -23,6 +23,7 @@ interface TranslationMetadata {
 	key: string;
 }
 
+// checks if an object is a TranslationMetadata object
 export function is_translation_metadata(obj: any): obj is TranslationMetadata {
 	const result =
 		obj &&
@@ -33,6 +34,7 @@ export function is_translation_metadata(obj: any): obj is TranslationMetadata {
 	return result;
 }
 
+// handles explicit translation metadata objects of shape { __type__: "translation_metadata", key: string }
 export function translate_metadata(metadata: TranslationMetadata): string {
 	if (!is_translation_metadata(metadata)) {
 		return String(metadata);
@@ -48,6 +50,7 @@ export function translate_metadata(metadata: TranslationMetadata): string {
 	}
 }
 
+// handles strings with embedded JSON metadata of shape "__i18n__{"key": "some.key"}"
 export function translate_if_needed(value: string): string {
 	if (typeof value !== "string") {
 		return value;
@@ -73,57 +76,35 @@ export function translate_if_needed(value: string): string {
 	}
 }
 
-/**
- * Process any object that might contain TranslationMetadata objects
- * This recursively handles objects, arrays, and strings
- * @param obj Any object that might contain TranslationMetadata objects
- * @param processed A WeakMap to track already processed objects and prevent circular references
- * @returns The processed object with all TranslationMetadata objects translated
- */
+// recursively processes objects and arrays to translate any i18n-marked strings while preserving object structure
 export function process_i18n_obj(obj: any): any {
-	if (obj == null) {
-		return obj;
+	if (obj == null || typeof obj !== "object") {
+		return typeof obj === "string" ? translate_if_needed(obj) : obj;
 	}
 
-	// Process strings directly
-	if (typeof obj === "string") {
-		return translate_if_needed(obj);
-	}
-
-	// Handle primitive types (non-objects)
-	if (typeof obj !== "object") {
-		return obj;
-	}
-
-	// Handle arrays
 	if (Array.isArray(obj)) {
-		return obj.map((item) => process_i18n_obj(item));
+		return obj.map(process_i18n_obj);
 	}
 
 	const result: Record<string, any> = {};
 	const skipProps = ["gradio", "parent", "__proto__", "constructor"];
 
 	for (const key in obj) {
-		if (skipProps.includes(key)) {
-			result[key] = obj[key];
-			continue;
-		}
-
-		result[key] = process_i18n_obj(obj[key]);
+		result[key] = skipProps.includes(key)
+			? obj[key]
+			: process_i18n_obj(obj[key]);
 	}
 
 	return result;
 }
 
 export function process_langs(): LangsRecord {
-	let _langs: LangsRecord = {};
-
-	for (const lang in langs) {
-		const code = (lang.split("/").pop() as string).split(".").shift() as string;
-		_langs[code] = (langs[lang] as Record<string, any>).default;
-	}
-
-	return _langs;
+	return Object.fromEntries(
+		Object.entries(langs).map(([path, module]) => [
+			path.split("/").pop()!.split(".")[0],
+			(module as Record<string, any>).default
+		])
+	);
 }
 
 const processed_langs = process_langs();
@@ -159,10 +140,8 @@ export function get_initial_locale(
 	available_locales: string[],
 	fallback_locale = "en"
 ): string {
-	const normalized_locale = browser_locale?.split("-")[0];
-
-	return normalized_locale && available_locales.includes(normalized_locale)
-		? normalized_locale
+	return available_locales.includes(browser_locale?.split("-")[0] ?? "")
+		? browser_locale!.split("-")[0]
 		: fallback_locale;
 }
 
@@ -177,47 +156,30 @@ export async function init_i18n(
 		initialLocale: initial_locale
 	});
 
-	for (const lang_code in processed_langs) {
-		if (
-			processed_langs[lang_code] &&
-			typeof processed_langs[lang_code] === "object" &&
-			processed_langs[lang_code].common &&
-			typeof processed_langs[lang_code].common === "object"
-		) {
-			const common_ns = processed_langs[lang_code].common;
-			for (const key in common_ns) {
-				all_common_keys.add(`common.${key}`);
-			}
-		}
-	}
+	all_common_keys = new Set(
+		Object.values(processed_langs)
+			.filter((lang) => lang?.common)
+			.flatMap((lang) => Object.keys(lang.common).map((key) => `common.${key}`))
+	);
 }
 
 export async function setupi18n(
 	custom_translations?: Record<string, Record<string, string>>
 ): Promise<void> {
-	if (get_init_state()) {
-		return;
+	if (get_init_state()) return;
+
+	load_translations(processed_langs);
+	const initial_locale = get_initial_locale(
+		getLocaleFromNavigator(),
+		available_locales
+	);
+	await init_i18n(initial_locale);
+
+	if (custom_translations) {
+		load_translations(custom_translations);
 	}
 
-	try {
-		load_translations(processed_langs);
-
-		const browser_locale = getLocaleFromNavigator();
-		const initial_locale = get_initial_locale(
-			browser_locale,
-			available_locales
-		);
-
-		await init_i18n(initial_locale);
-
-		if (custom_translations) {
-			load_translations(custom_translations);
-		}
-
-		set_init_state(true);
-	} catch (error) {
-		console.error("Error initializing i18n:", error);
-	}
+	set_init_state(true);
 }
 
 export function changeLocale(new_locale: string): void {
