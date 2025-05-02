@@ -69,7 +69,7 @@ class TranslationMetadata:
             raise AttributeError(f"{self.__class__.__name__} has no attribute {name}")
 
         # Return a function that returns self for any method call
-        def method(*args, **kwargs):
+        def method(*_args, **_kwargs):
             return self
         return method
 
