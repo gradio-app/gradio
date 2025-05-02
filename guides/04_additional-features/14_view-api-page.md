@@ -56,4 +56,6 @@ The API page also includes instructions on how to use the Gradio app as an Model
 
 For the MCP sever, each tool, its description, and its parameters are listed, along with instructions on how to integrate with popular MCP Clients. Read more about Gradio's [MCP integration here](https://www.gradio.app/guides/building-mcp-server-with-gradio).
 
+## OpenAPI Specification
 
+You can access the complete OpenAPI (formerly Swagger) specification of your Gradio app's API at the endpoint `<your-gradio-app-url>/gradio_api/openapi.json`. The OpenAPI specification is a standardized, language-agnostic interface description for REST APIs that enables both humans and computers to discover and understand the capabilities of your service.
