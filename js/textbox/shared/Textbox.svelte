@@ -8,11 +8,7 @@
 	import { BlockTitle } from "@gradio/atoms";
 	import { Copy, Check, Send, Square } from "@gradio/icons";
 	import { fade } from "svelte/transition";
-	import {
-		type SelectData,
-		type CopyData,
-		type I18nFormatter
-	} from "@gradio/utils";
+	import { type SelectData, type CopyData } from "@gradio/utils";
 
 	export let value = "";
 	export let value_is_output = false;
@@ -34,7 +30,6 @@
 	export let autoscroll = true;
 	export let max_length: number | undefined = undefined;
 	export let root: string;
-	export let i18n: I18nFormatter;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -233,7 +228,7 @@
 			>
 		{/if}
 	{/if}
-	<BlockTitle {root} {show_label} {info}>{i18n(label)}</BlockTitle>
+	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 
 	<div class="input-container">
 		{#if lines === 1 && _max_lines === 1}

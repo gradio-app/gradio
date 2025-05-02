@@ -1,4 +1,5 @@
 import { writable, type Writable, get } from "svelte/store";
+import { process_i18n_obj } from "./i18n";
 
 import type {
 	ComponentMeta,
@@ -368,6 +369,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 					else if (typeof update.value === "object")
 						new_value = { ...update.value };
 					else new_value = update.value;
+					new_value = process_i18n_obj(new_value);
 					instance.props[update.prop] = new_value;
 				}
 			}

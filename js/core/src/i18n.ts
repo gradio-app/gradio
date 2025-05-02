@@ -5,6 +5,7 @@ import {
 	locale,
 	_
 } from "svelte-i18n";
+import { formatter } from "./gradio_helper";
 
 const langs = import.meta.glob("./lang/*.json", {
 	eager: true
@@ -16,6 +17,103 @@ type LangsRecord = Record<
 		[key: string]: any;
 	}
 >;
+
+interface TranslationMetadata {
+	__type__: "translation_metadata";
+	key: string;
+}
+
+export function is_translation_metadata(obj: any): obj is TranslationMetadata {
+	const result =
+		obj &&
+		typeof obj === "object" &&
+		obj.__type__ === "translation_metadata" &&
+		typeof obj.key === "string";
+
+	return result;
+}
+
+export function translate_metadata(metadata: TranslationMetadata): string {
+	if (!is_translation_metadata(metadata)) {
+		return String(metadata);
+	}
+
+	try {
+		const { key } = metadata;
+		let translated = formatter(key);
+		return translated;
+	} catch (e) {
+		console.error("Error translating metadata:", e);
+		return metadata.key;
+	}
+}
+
+export function translate_if_needed(value: string): string {
+	if (typeof value !== "string") {
+		return value;
+	}
+
+	const match = value.match(/^__i18n__(.+)$/);
+	if (!match) {
+		return value;
+	}
+
+	try {
+		const metadataJson = match[1];
+		const metadata = JSON.parse(metadataJson);
+
+		if (metadata && metadata.key) {
+			return formatter(metadata.key);
+		}
+
+		return value;
+	} catch (e) {
+		console.error("Error processing translation:", e);
+		return value;
+	}
+}
+
+/**
+ * Process any object that might contain TranslationMetadata objects
+ * This recursively handles objects, arrays, and strings
+ * @param obj Any object that might contain TranslationMetadata objects
+ * @param processed A WeakMap to track already processed objects and prevent circular references
+ * @returns The processed object with all TranslationMetadata objects translated
+ */
+export function process_i18n_obj(obj: any): any {
+	if (obj == null) {
+		return obj;
+	}
+
+	// Process strings directly
+	if (typeof obj === "string") {
+		return translate_if_needed(obj);
+	}
+
+	// Handle primitive types (non-objects)
+	if (typeof obj !== "object") {
+		return obj;
+	}
+
+	// Handle arrays
+	if (Array.isArray(obj)) {
+		return obj.map((item) => process_i18n_obj(item));
+	}
+
+	const result: Record<string, any> = {};
+	const skipProps = ["gradio", "parent", "__proto__", "constructor"];
+
+	for (const key in obj) {
+		if (skipProps.includes(key)) {
+			result[key] = obj[key];
+			continue;
+		}
+
+		result[key] = process_i18n_obj(obj[key]);
+	}
+
+	return result;
+}
 
 export function process_langs(): LangsRecord {
 	let _langs: LangsRecord = {};
