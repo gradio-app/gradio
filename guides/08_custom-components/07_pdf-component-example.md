@@ -561,6 +561,7 @@ class PDF(Component):
 
     def __init__(self, value: Any = None, *,
                  height: int | None = None,
+                 label: str | I18n | None = None,
                  info: str | I18n | None = None,
                  show_label: bool | None = None,
                  container: bool = True,
