@@ -401,6 +401,8 @@ class App(FastAPI):
         def login_check(user: str = Depends(get_current_user)):
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 return
+            if landing_page_path:
+                return RedirectResponse(url=landing_page_path, status_code=status.HTTP_302_FOUND)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
             )
@@ -612,6 +614,8 @@ class App(FastAPI):
                 config["layout"] = config["page"][page]["layout"]
                 config["current_page"] = page
             elif app.auth_dependency:
+                if landing_page_path:
+                    return RedirectResponse(url=landing_page_path, status_code=status.HTTP_302_FOUND)
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
                 )
@@ -1823,6 +1827,7 @@ def mount_gradio_app(
     node_port: int | None = None,
     enable_monitoring: bool | None = None,
     pwa: bool | None = None,
+    landing_page_path: str | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
