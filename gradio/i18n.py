@@ -36,6 +36,7 @@ class TranslationMetadata:
         as needing translation.
         """
         import json
+
         # Create a JSON representation that can be detected and processed by the frontend
         return f"__i18n__{json.dumps(self.to_dict())}"
 
@@ -65,12 +66,13 @@ class TranslationMetadata:
         This makes it possible to use TranslationMetadata objects in contexts
         that expect strings with methods.
         """
-        if name.startswith('__') and name.endswith('__'):
+        if name.startswith("__") and name.endswith("__"):
             raise AttributeError(f"{self.__class__.__name__} has no attribute {name}")
 
         # Return a function that returns self for any method call
         def method(*_args, **_kwargs):
             return self
+
         return method
 
     # Make the object JSON-serializable
