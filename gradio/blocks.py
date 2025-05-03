@@ -2567,7 +2567,8 @@ Received inputs:
                 "You cannot use `role='master'` with renderable components, use role='hybrid' instead. This machine will handle all renders."
             )
         self._queue.role = role
-        self._queue.master_url = master_url.strip("/")
+        if master_url:
+            self._queue.master_url = master_url.strip("/")
         if root_path is None:
             self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         else:
