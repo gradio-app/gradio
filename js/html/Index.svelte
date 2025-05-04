@@ -23,8 +23,6 @@
 	export let max_height: number | undefined = undefined;
 	export let container = false;
 	export let padding = true;
-
-	$: label, gradio.dispatch("change");
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} padding={false}>

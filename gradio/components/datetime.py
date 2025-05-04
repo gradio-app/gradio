@@ -61,20 +61,6 @@ class DateTime(FormComponent):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
         """
-        super().__init__(
-            every=every,
-            scale=scale,
-            min_width=min_width,
-            visible=visible,
-            label=label,
-            show_label=show_label,
-            info=info,
-            elem_id=elem_id,
-            elem_classes=elem_classes,
-            render=render,
-            key=key,
-            value=value,
-        )
         self.type = type
         self.include_time = include_time
         self.interactive = interactive
@@ -88,6 +74,20 @@ class DateTime(FormComponent):
             else "a %Y-%m-%d %H:%M:%S formatted string"
             if include_time
             else "a %Y-%m-%d formatted string"
+        )
+        super().__init__(
+            every=every,
+            scale=scale,
+            min_width=min_width,
+            visible=visible,
+            label=label,
+            show_label=show_label,
+            info=info,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            render=render,
+            key=key,
+            value=value,
         )
 
     def preprocess(self, payload: str | None) -> str | float | datetime | None:

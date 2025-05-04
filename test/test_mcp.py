@@ -86,3 +86,31 @@ def test_simplify_filedata_schema():
     simplified_schema, filedata_positions = server.simplify_filedata_schema(test_schema)
     assert simplified_schema["properties"]["image"]["type"] == "string"
     assert filedata_positions == [["image"]]
+
+
+def test_tool_prefix_character_replacement():
+    test_cases = [
+        ("test-space", "test_space"),
+        ("flux.1_schnell", "flux_1_schnell"),
+        ("test\\backslash", "test_backslash"),
+        ("test:colon spaces ", "test_colon_spaces_"),
+    ]
+
+    original_system = os.environ.get("SYSTEM")
+    original_space_id = os.environ.get("SPACE_ID")
+
+    try:
+        os.environ["SYSTEM"] = "spaces"
+        for input_prefix, expected_prefix in test_cases:
+            os.environ["SPACE_ID"] = input_prefix
+            server = GradioMCPServer(app)
+            assert server.tool_prefix == expected_prefix
+    finally:
+        if original_system is not None:
+            os.environ["SYSTEM"] = original_system
+        else:
+            os.environ.pop("SYSTEM", None)
+        if original_space_id is not None:
+            os.environ["SPACE_ID"] = original_space_id
+        else:
+            os.environ.pop("SPACE_ID", None)

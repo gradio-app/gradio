@@ -7,6 +7,7 @@ from __future__ import annotations
 import platform
 from importlib import metadata
 
+from packaging.requirements import Requirement
 from rich import print
 
 
@@ -28,17 +29,11 @@ def print_environment_info():
             print(f"{package_name} dependencies in your environment:\n")
             if dist.requires is not None:
                 for req in dist.requires:
-                    req_base_name = (
-                        req.split(">")[0]
-                        .split("<")[0]
-                        .split("~")[0]
-                        .split("[")[0]
-                        .split("!")[0]
-                    )
+                    req_obj = Requirement(req)
                     try:
-                        print(f"{req_base_name}: {metadata.version(req_base_name)}")
+                        print(f"{req_obj.name}: {metadata.version(req_obj.name)}")
                     except metadata.PackageNotFoundError:
-                        print(f"{req_base_name} is not installed.")
+                        print(f"{req_obj.name} is not installed.")
                 print("\n")
         except metadata.PackageNotFoundError:
             print(f"{package_name} package is not installed.")
