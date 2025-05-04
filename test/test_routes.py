@@ -75,6 +75,11 @@ class TestRoutes:
         response = test_client.get("/favicon.ico")
         assert response.status_code == 200
 
+    def test_openapi_route(self, test_client):
+        response = test_client.get(f"{API_PREFIX}/openapi.json")
+        assert response.status_code == 200
+        assert response.json()["openapi"] == "3.0.2"
+
     def test_upload_path(self, test_client):
         with open("test/test_files/alphabet.txt", "rb") as f:
             response = test_client.post(f"{API_PREFIX}/upload", files={"files": f})
@@ -1704,6 +1709,7 @@ def test_mount_gradio_app_args_match_launch_args():
         "self",
         "strict_cors",
         "max_threads",
+        "mcp_server",
     }
 
     missing_params = []

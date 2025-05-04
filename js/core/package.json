@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/core",
-	"version": "0.14.0",
+	"version": "0.16.1",
 	"type": "module",
 	"devDependencies": {
 		"@gradio/accordion": "workspace:^",
@@ -32,6 +32,7 @@
 		"@gradio/icons": "workspace:^",
 		"@gradio/image": "workspace:^",
 		"@gradio/imageeditor": "workspace:^",
+		"@gradio/imageslider": "workspace:^",
 		"@gradio/json": "workspace:^",
 		"@gradio/label": "workspace:^",
 		"@gradio/browserstate": "workspace:^",

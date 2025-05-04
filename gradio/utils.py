@@ -59,6 +59,7 @@ import gradio_client.utils as client_utils
 import httpx
 import orjson
 from gradio_client.documentation import document
+from gradio_client.exceptions import AppError
 from typing_extensions import ParamSpec
 
 import gradio
@@ -412,21 +413,14 @@ def colab_check() -> bool:
     return is_colab
 
 
-def kaggle_check() -> bool:
+def is_hosted_notebook() -> bool:
+    """
+    Check if Gradio app is launching from a hosted notebook such as Kaggle or Sagemaker.
+    """
     return bool(
-        os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or os.environ.get("GFOOTBALL_DATA_DIR")
+        os.environ.get("KAGGLE_KERNEL_RUN_TYPE")
+        or os.path.exists("/home/ec2-user/SageMaker")
     )
-
-
-def sagemaker_check() -> bool:
-    try:
-        import boto3  # type: ignore
-
-        client = boto3.client("sts")
-        response = client.get_caller_identity()
-        return "sagemaker" in response["Arn"].lower()
-    except Exception:
-        return False
 
 
 def ipython_check() -> bool:
@@ -1467,9 +1461,9 @@ def error_payload(
     error: BaseException | None, show_error: bool
 ) -> dict[str, bool | str | float | None]:
     content: dict[str, bool | str | float | None] = {"error": None}
-    show_error = show_error or isinstance(error, Error)
+    show_error = show_error or isinstance(error, AppError)
     if show_error:
-        if isinstance(error, Error):
+        if isinstance(error, AppError):
             content["error"] = error.message
             content["duration"] = error.duration
             content["visible"] = error.visible
@@ -1659,3 +1653,66 @@ def dict_factory(items):
         else:
             d[key] = value
     return d
+
+
+def get_function_description(fn: Callable) -> tuple[str, dict[str, str]]:
+    """
+    Get the description of a function and its parameters by parsing the docstring.
+    The docstring should be formatted as follows: first lines are the description
+    of the function, then a line starts with "Args:", "Parameters:", or "Arguments:",
+    followed by lines of the form "param_name: description".
+
+    Parameters:
+        fn: The function to get the docstring for.
+
+    Returns:
+        - The docstring of the function
+        - A dictionary of parameter names and their descriptions
+    """
+    fn_docstring = fn.__doc__
+    description = ""
+    parameters = {}
+
+    if not fn_docstring:
+        return description, parameters
+
+    lines = fn_docstring.strip().split("\n")
+
+    description_lines = []
+    for line in lines:
+        line = line.strip()
+        if line.startswith(("Args:", "Parameters:", "Arguments:")):
+            break
+        if line:
+            description_lines.append(line)
+
+    description = " ".join(description_lines)
+
+    try:
+        param_start_idx = next(
+            (
+                i
+                for i, line in enumerate(lines)
+                if line.strip().startswith(("Args:", "Parameters:", "Arguments:"))
+            ),
+            len(lines),
+        )
+
+        for line in lines[param_start_idx + 1 :]:
+            line = line.strip()
+            if not line:
+                continue
+
+            try:
+                if ":" in line:
+                    param_name, param_desc = line.split(":", 1)
+                    param_name = param_name.split(" ")[0].strip()
+                    if param_name:
+                        parameters[param_name] = param_desc.strip()
+            except Exception:
+                continue
+
+    except Exception:
+        pass
+
+    return description, parameters

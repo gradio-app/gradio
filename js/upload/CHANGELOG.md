@@ -1,5 +1,25 @@
 # @gradio/upload
 
+## 0.16.4
+
+### Fixes
+
+- [#11098](https://github.com/gradio-app/gradio/pull/11098) [`49ad594`](https://github.com/gradio-app/gradio/commit/49ad5943eeab96b153f0b56fe8d42d755fe1e0f8) - Fix #10281: Dragging image replaces existing instead of opening new tab.  Thanks @Martim-Rito!
+
+## 0.16.3
+
+### Dependency updates
+
+- @gradio/atoms@0.16.0
+
+## 0.16.2
+
+### Dependency updates
+
+- @gradio/atoms@0.15.2
+- @gradio/client@1.14.2
+- @gradio/utils@0.10.2
+
 ## 0.16.1
 
 ### Dependency updates

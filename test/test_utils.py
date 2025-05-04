@@ -7,14 +7,16 @@ import warnings
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pytest
+from gradio_client.exceptions import AppError
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from gradio import EventData, Request
+from gradio.exceptions import Error
 from gradio.external_utils import format_ner_list
 from gradio.utils import (
     FileSize,
@@ -28,17 +30,18 @@ from gradio.utils import (
     delete_none,
     diff,
     download_if_url,
+    error_payload,
     get_extension_from_file_path_or_url,
+    get_function_description,
     get_function_params,
     get_icon_path,
     get_type_hints,
     ipython_check,
     is_allowed_file,
+    is_hosted_notebook,
     is_in_or_equal,
     is_special_typed_parameter,
-    kaggle_check,
     safe_deepcopy,
-    sagemaker_check,
     sanitize_list_for_csv,
     sanitize_value_for_csv,
     tex2svg,
@@ -93,46 +96,14 @@ class TestUtils:
         out_article = download_if_url(in_article)
         assert out_article != in_article
 
-    def test_sagemaker_check_false(self):
-        assert not sagemaker_check()
-
-    def test_sagemaker_check_false_if_boto3_not_installed(self):
-        with patch.dict(sys.modules, {"boto3": None}, clear=True):
-            assert not sagemaker_check()
-
-    @patch("boto3.session.Session.client")
-    def test_sagemaker_check_true(self, mock_client):
-        mock_client().get_caller_identity = MagicMock(
-            return_value={
-                "Arn": "arn:aws:sts::67364438:assumed-role/SageMaker-Datascients/SageMaker"
-            }
-        )
-        assert sagemaker_check()
-
-    def test_kaggle_check_false(self):
-        assert not kaggle_check()
+    def test_is_hosted_notebook_false(self):
+        assert not is_hosted_notebook()
 
     def test_kaggle_check_true_when_run_type_set(self):
         with patch.dict(
             os.environ, {"KAGGLE_KERNEL_RUN_TYPE": "Interactive"}, clear=True
         ):
-            assert kaggle_check()
-
-    def test_kaggle_check_true_when_both_set(self):
-        with patch.dict(
-            os.environ,
-            {"KAGGLE_KERNEL_RUN_TYPE": "Interactive", "GFOOTBALL_DATA_DIR": "./"},
-            clear=True,
-        ):
-            assert kaggle_check()
-
-    def test_kaggle_check_false_when_neither_set(self):
-        with patch.dict(
-            os.environ,
-            {"KAGGLE_KERNEL_RUN_TYPE": "", "GFOOTBALL_DATA_DIR": ""},
-            clear=True,
-        ):
-            assert not kaggle_check()
+            assert is_hosted_notebook()
 
 
 def test_assert_configs_are_equivalent():
@@ -728,3 +699,134 @@ class TestSafeDeepCopy:
 def test_get_icon_path():
     assert get_icon_path("plus.svg").endswith("plus.svg")
     assert get_icon_path("huggingface-logo.svg").endswith("huggingface-logo.svg")
+
+
+def test_error_payload():
+    result = error_payload(None, False)
+    assert result == {"error": None}
+
+    result = error_payload(Exception("test error"), True)
+    assert result == {"error": "test error"}
+
+    gr_error = Error("custom error", duration=1.5, visible=True, title="Error Title")
+    result = error_payload(gr_error, False)
+    assert result == {
+        "error": "custom error",
+        "duration": 1.5,
+        "visible": True,
+        "title": "Error Title",
+    }
+
+    app_error = AppError("custom error")
+    result = error_payload(app_error, False)
+    assert result == {
+        "error": "custom error",
+        "duration": 10,
+        "visible": True,
+        "title": "Error",
+    }
+
+
+class TestGetFunctionDescription:
+    def test_basic_function_description(self):
+        def test_func():
+            """This is a test function.
+            Args:
+                param1: First parameter
+                param2: Second parameter
+            """
+            pass
+
+        description, parameters = get_function_description(test_func)
+        assert description == "This is a test function."
+        assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
+
+    def test_function_with_no_docstring(self):
+        def test_func():
+            pass
+
+        description, parameters = get_function_description(test_func)
+        assert description == ""
+        assert parameters == {}
+
+    def test_function_with_no_parameters(self):
+        def test_func():
+            """This is a test function with no parameters."""
+            pass
+
+        description, parameters = get_function_description(test_func)
+        assert description == "This is a test function with no parameters."
+        assert parameters == {}
+
+    def test_function_with_alternate_parameter_section(self):
+        def test_func():
+            """This is a test function.
+            Parameters:
+                param1: First parameter
+                param2: Second parameter
+            """
+            pass
+
+        description, parameters = get_function_description(test_func)
+        assert description == "This is a test function."
+        assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
+
+    def test_function_with_arguments_section(self):
+        def test_func():
+            """This is a test function.
+            Arguments:
+                param1: First parameter
+                param2: Second parameter
+            """
+            pass
+
+        description, parameters = get_function_description(test_func)
+        assert description == "This is a test function."
+        assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
+
+    def test_function_with_multiline_description(self):
+        def test_func():
+            """This is a test function.
+            It has multiple lines of description.
+            Args:
+                param1: First parameter
+                param2: Second parameter
+            """
+            pass
+
+        description, parameters = get_function_description(test_func)
+        assert (
+            description
+            == "This is a test function. It has multiple lines of description."
+        )
+        assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
+
+    def test_function_with_malformed_params(self):
+        def test_func():
+            """This is a test function.
+            Args:
+            param1: description1
+            param2
+            param3: description3
+            """
+            pass
+
+        description, parameters = get_function_description(test_func)
+        assert description == "This is a test function."
+        assert parameters == {"param1": "description1", "param3": "description3"}
+
+    def test_function_with_nested_colons(self):
+        def test_func():
+            """This is a test function.
+            Args:
+            param1: description1: with nested colon
+            param2: description2
+            """
+            pass
+
+        description, parameters = get_function_description(test_func)
+        assert description == "This is a test function."
+        assert parameters == {
+            "param1": "description1: with nested colon",
+            "param2": "description2",
+        }
