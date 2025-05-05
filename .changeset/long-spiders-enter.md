@@ -1,5 +1,4 @@
 ---
-"@gradio/client": patch
 "gradio": patch
 ---
 
