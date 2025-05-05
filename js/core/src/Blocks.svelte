@@ -2,6 +2,7 @@
 	import { tick, onMount } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
+	import { writable } from "svelte/store";
 
 	import type { LoadingStatus, LoadingStatusCollection } from "./stores";
 
@@ -19,12 +20,15 @@
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import settings_logo from "./api_docs/img/settings-logo.svg";
+	import record from "./api_docs/img/record.svg";
+	import record_stop from "./api_docs/img/record-stop.svg";
 	import { create_components, AsyncFunction } from "./init";
 	import type {
 		LogMessage,
 		RenderMessage,
 		StatusMessage
 	} from "@gradio/client";
+	import * as screen_recorder from "./screen_recorder";
 
 	setupi18n();
 
@@ -126,11 +130,31 @@
 	export let render_complete = false;
 	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const dep = dependencies.find((dep) => dep.id === fn_index);
+
+		if (data[0].__type__ !== "update") {
+			if (
+				dep &&
+				dep.inputs &&
+				dep.inputs.length > 0 &&
+				screen_recorder.isCurrentlyRecording()
+			) {
+				screen_recorder.zoom(true, dep.inputs, 1.0);
+			}
+
+			if (
+				dep &&
+				dep.outputs &&
+				dep.outputs.length > 0 &&
+				screen_recorder.isCurrentlyRecording()
+			) {
+				screen_recorder.zoom(false, dep.outputs, 2.0);
+			}
+		}
+
 		if (!dep) {
 			return;
 		}
 		const outputs = dep.outputs;
-
 		const meta_updates = data?.map((value: any, i: number) => {
 			return {
 				id: outputs[i],
@@ -372,6 +396,7 @@
 			payload: Payload,
 			streaming = false
 		): Promise<void> {
+			screen_recorder.markRemoveSegmentStart();
 			if (api_recorder_visible) {
 				api_calls = [...api_calls, JSON.parse(JSON.stringify(payload))];
 			}
@@ -601,6 +626,7 @@
 					});
 				}
 			}
+			screen_recorder.markRemoveSegmentEnd();
 		}
 	}
 	/* eslint-enable complexity */
@@ -773,6 +799,8 @@
 		return "detail" in event;
 	}
 
+	let is_screen_recording = writable(false);
+
 	onMount(() => {
 		document.addEventListener("visibilitychange", function () {
 			if (document.visibilityState === "hidden") {
@@ -784,7 +812,21 @@
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 				navigator.userAgent
 			);
+
+		screen_recorder.initialize(root, (title, message, type) => {
+			add_new_message(title, message, type);
+		});
 	});
+
+	function screen_recording(): void {
+		if (screen_recorder.isCurrentlyRecording()) {
+			screen_recorder.stopRecording();
+			$is_screen_recording = false;
+		} else {
+			screen_recorder.startRecording();
+			$is_screen_recording = true;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -836,6 +878,19 @@
 				{$_("common.built_with_gradio")}
 				<img src={logo} alt={$_("common.logo")} />
 			</a>
+			<div class="divider">·</div>
+			<button
+				on:click={() => {
+					screen_recording();
+				}}
+				class="record"
+			>
+				{$_($is_screen_recording ? "common.stop_recording" : "common.record")}
+				<img
+					src={$is_screen_recording ? record_stop : record}
+					alt={$_("common.record")}
+				/>
+			</button>
 			<div class="divider">·</div>
 			<button
 				on:click={() => {
@@ -950,7 +1005,8 @@
 	}
 
 	.show-api,
-	.settings {
+	.settings,
+	.record {
 		display: flex;
 		align-items: center;
 	}
@@ -970,13 +1026,20 @@
 		width: var(--size-4);
 	}
 
+	.record img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-1);
+		width: var(--size-3);
+	}
+
 	.built-with {
 		display: flex;
 		align-items: center;
 	}
 
 	.built-with:hover,
-	.settings:hover {
+	.settings:hover,
+	.record:hover {
 		color: var(--body-text-color);
 	}
 
