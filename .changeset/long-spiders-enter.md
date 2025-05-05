@@ -1,6 +1,6 @@
 ---
-"@gradio/client": minor
-"gradio": minor
+"@gradio/client": patch
+"gradio": patch
 ---
 
-feat:Fix "delete" diff instruction in JS client
+fix:Fix "delete" diff instruction in JS client
