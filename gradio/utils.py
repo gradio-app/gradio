@@ -1277,6 +1277,8 @@ def diff(old, new):
                 edits.append(["delete", path + [i], None])
             for i in range(common_length, len(obj2)):
                 edits.append(["add", path + [i], obj2[i]])
+            # Deletes are always placed at the end
+            # So subtract 1 since deleting one element will shift all the indices
             deletes_seen = 0
             for edit in edits:
                 if edit[0] == "delete":
