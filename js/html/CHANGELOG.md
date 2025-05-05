@@ -1,5 +1,11 @@
 # @gradio/html
 
+## 0.6.12
+
+### Fixes
+
+- [#11113](https://github.com/gradio-app/gradio/pull/11113) [`c32f8de`](https://github.com/gradio-app/gradio/commit/c32f8de99a6ab3a82da2f8d5f9f3176a04129f77) - Fix markdown change event.  Thanks @freddyaboulton!
+
 ## 0.6.11
 
 ### Dependency updates
