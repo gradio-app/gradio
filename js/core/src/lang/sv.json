@@ -87,7 +87,8 @@
 		"runtime_error": "Det finns ett körtidsfel",
 		"space_not_working": "\"Space fungerar inte eftersom\" {0}",
 		"space_paused": "Space är pausat",
-		"use_via_api": "Använd via API"
+		"use_via_api": "Använd via API",
+		"use_via_api_or_mcp": "Använd via API eller MCP"
 	},
 	"file": {
 		"uploading": "Laddar upp..."

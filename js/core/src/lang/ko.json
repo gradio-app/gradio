@@ -87,7 +87,8 @@
 		"runtime_error": "런타임 오류가 있습니다",
 		"space_not_working": "\"Space가 작동하지 않는 이유:\" {0}",
 		"space_paused": "space가 일시 중지되었습니다",
-		"use_via_api": "API를 통해 사용"
+		"use_via_api": "API를 통해 사용",
+		"use_via_api_or_mcp": "API 또는 MCP를 통해 사용"
 	},
 	"file": {
 		"uploading": "업로드 중..."

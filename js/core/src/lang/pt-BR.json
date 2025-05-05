@@ -98,6 +98,7 @@
 		"space_not_working": "\"O Space não está funcionando porque\" {0}",
 		"space_paused": "O Space está pausado",
 		"use_via_api": "Usar via API",
+		"use_via_api_or_mcp": "Usar via API ou MCP",
 		"runtime_error": "Houve um erro de execução"
 	},
 	"file": {

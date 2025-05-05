@@ -198,6 +198,7 @@ export interface Config {
 	fill_height?: boolean;
 	fill_width?: boolean;
 	pwa?: boolean;
+	mcp_server?: boolean;
 }
 
 // todo: DRY up types
