@@ -1,5 +1,11 @@
 # gradio
 
+## 5.30.0
+
+### Features
+
+- [#11129](https://github.com/gradio-app/gradio/pull/11129) [`d5ddd85`](https://github.com/gradio-app/gradio/commit/d5ddd85d4d5088cce154b1cd50a4a2db179ac227) - Ocean theme quickfix.  Thanks @aliabid94!
+
 ## 5.29.0
 
 ### Features
