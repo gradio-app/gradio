@@ -1085,7 +1085,7 @@ def ffmpeg_installed() -> bool:
     return shutil.which("ffmpeg") is not None
 
 
-def video_is_playable(video_filepath: str) -> bool:
+def video_is_playable(video_filepath: str, prefer_playable: bool = True) -> bool:
     """Determines if a video is playable in the browser.
 
     A video is playable if it has a playable container and codec.
@@ -1106,12 +1106,15 @@ def video_is_playable(video_filepath: str) -> bool:
         video_codec = output["streams"][0]["codec_name"]
         return (container, video_codec) in [
             (".mp4", "h264"),
+            (".mp4", "av1"),
             (".ogg", "theora"),
             (".webm", "vp9"),
+            (".webm", "vp8"),
+            (".webm", "av1"),
         ]
     # If anything goes wrong, assume the video can be played to not convert downstream
     except (FFRuntimeError, IndexError, KeyError):
-        return True
+        return prefer_playable
 
 
 def convert_video_to_playable_mp4(video_path: str) -> str:

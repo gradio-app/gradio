@@ -55,6 +55,11 @@
 	export let include_audio: boolean;
 	export let loop = false;
 	export let input_ready: boolean;
+	export let server: {
+		is_playable: (video_payload: {
+			path: string;
+		}) => Promise<{ is_playable: boolean }>;
+	};
 	let uploading = false;
 	$: input_ready = !uploading;
 
@@ -203,6 +208,7 @@
 			{autoplay}
 			{root}
 			{loop}
+			{server}
 			{handle_reset_value}
 			on:clear={() => gradio.dispatch("clear")}
 			on:play={() => gradio.dispatch("play")}
