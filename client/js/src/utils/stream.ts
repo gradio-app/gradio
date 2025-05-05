@@ -124,6 +124,7 @@ export function apply_diff(
 	diff.forEach(([action, path, value]) => {
 		obj = apply_edit(obj, path, action, value);
 	});
+	obj = obj.filter((item: any) => item !== undefined);
 
 	return obj;
 }
@@ -165,7 +166,7 @@ function apply_edit(
 			break;
 		case "delete":
 			if (Array.isArray(current)) {
-				current.splice(Number(last_path), 1);
+				current[Number(last_path)] = undefined;
 			} else {
 				delete current[last_path];
 			}
