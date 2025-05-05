@@ -9,9 +9,20 @@ describe("apply_diff", () => {
 		];
 		const diff: any = [
 			["delete", [0], null],
-			["delete", [1], null]
+			["delete", [0], null]
 		];
 		const result = apply_diff(data, diff);
 		expect(result).toEqual([]);
+	});
+
+	it("delete_operation_works with multiple deletes", () => {
+		const data = ["a", "b", "c"];
+		const diff: any = [
+			["replace", [0], "d"],
+			["delete", [1], null],
+			["delete", [1], null]
+		];
+		const result = apply_diff(data, diff);
+		expect(result).toEqual(["d"]);
 	});
 });

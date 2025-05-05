@@ -1262,11 +1262,11 @@ def diff(old, new):
             return edits
 
         if type(obj1) is not type(obj2):
-            edits.append(("replace", path, obj2))
+            edits.append(["replace", path, obj2])
             return edits
 
         if isinstance(obj1, str) and obj2.startswith(obj1):
-            edits.append(("append", path, obj2[len(obj1) :]))
+            edits.append(["append", path, obj2[len(obj1) :]])
             return edits
 
         if isinstance(obj1, list):
@@ -1274,9 +1274,14 @@ def diff(old, new):
             for i in range(common_length):
                 edits.extend(compare_objects(obj1[i], obj2[i], path + [i]))
             for i in range(common_length, len(obj1)):
-                edits.append(("delete", path + [i], None))
+                edits.append(["delete", path + [i], None])
             for i in range(common_length, len(obj2)):
-                edits.append(("add", path + [i], obj2[i]))
+                edits.append(["add", path + [i], obj2[i]])
+            deletes_seen = 0
+            for edit in edits:
+                if edit[0] == "delete":
+                    edit[1] = [edit[1][-1] - deletes_seen]
+                    deletes_seen += 1
             return edits
 
         if isinstance(obj1, dict):
@@ -1284,13 +1289,13 @@ def diff(old, new):
                 if key in obj2:
                     edits.extend(compare_objects(obj1[key], obj2[key], path + [key]))
                 else:
-                    edits.append(("delete", path + [key], None))
+                    edits.append(["delete", path + [key], None])
             for key in obj2:
                 if key not in obj1:
-                    edits.append(("add", path + [key], obj2[key]))
+                    edits.append(["add", path + [key], obj2[key]])
             return edits
 
-        edits.append(("replace", path, obj2))
+        edits.append(["replace", path, obj2])
         return edits
 
     return compare_objects(old, new)
