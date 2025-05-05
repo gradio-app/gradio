@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { Gradio, formatter } from "./gradio_helper";
+	import { Gradio, reactive_formatter } from "./gradio_helper";
 	import { onMount, createEventDispatcher, setContext } from "svelte";
 	import type { ComponentMeta, ThemeMode } from "./types";
 	import type { Client } from "@gradio/client";
 	import RenderComponent from "./RenderComponent.svelte";
 	import { load_component } from "virtual:component-loader";
+	import { process_i18n_obj } from "./i18n";
 
 	export let root: string;
 
@@ -50,6 +51,9 @@
 		}
 	}
 
+	$: processed_props = process_i18n_obj(node.props);
+	$: processed_value = processed_props.value;
+
 	setContext("BLOCK_KEY", parent);
 
 	$: {
@@ -70,7 +74,7 @@
 		root,
 		autoscroll,
 		max_file_size,
-		formatter,
+		$reactive_formatter,
 		client,
 		load_component
 	);
@@ -80,12 +84,12 @@
 	_id={node?.id}
 	component={node.component}
 	bind:instance={node.instance}
-	bind:value={node.props.value}
+	bind:value={processed_value}
 	elem_id={("elem_id" in node.props && node.props.elem_id) ||
 		`component-${node.id}`}
 	elem_classes={("elem_classes" in node.props && node.props.elem_classes) || []}
 	{target}
-	{...node.props}
+	{...processed_props}
 	{theme_mode}
 	{root}
 	visible={typeof node.props.visible === "boolean" ? node.props.visible : true}

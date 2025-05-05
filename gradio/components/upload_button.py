@@ -17,6 +17,7 @@ from gradio.components.base import Component
 from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
 from gradio.exceptions import Error
+from gradio.i18n import I18n
 from gradio.utils import NamedString
 
 if TYPE_CHECKING:
@@ -36,7 +37,7 @@ class UploadButton(Component):
     def __init__(
         self,
         label: str = "Upload a File",
-        value: str | list[str] | Callable | None = None,
+        value: str | I18n | list[str] | Callable | None = None,
         *,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,

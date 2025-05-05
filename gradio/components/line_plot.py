@@ -11,6 +11,7 @@ from gradio_client.documentation import document
 from gradio.components.base import Component
 from gradio.components.plot import AltairPlot, AltairPlotData, Plot
 from gradio.events import Events
+from gradio.i18n import I18n
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -77,7 +78,7 @@ class LinePlot(Plot):
         x_lim: list[int] | None = None,
         y_lim: list[int] | None = None,
         caption: str | None = None,
-        label: str | None = None,
+        label: str | I18n | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,

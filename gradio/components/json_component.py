@@ -15,6 +15,7 @@ from gradio_client.documentation import document
 from gradio.components.base import Component
 from gradio.data_classes import JsonData
 from gradio.events import Events
+from gradio.i18n import I18n
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -34,7 +35,7 @@ class JSON(Component):
         self,
         value: str | dict | list | Callable | None = None,
         *,
-        label: str | None = None,
+        label: str | I18n | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,

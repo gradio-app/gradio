@@ -5,6 +5,7 @@ import {
 	locale,
 	_
 } from "svelte-i18n";
+import { formatter } from "./gradio_helper";
 
 const langs = import.meta.glob("./lang/*.json", {
 	eager: true
@@ -17,15 +18,93 @@ type LangsRecord = Record<
 	}
 >;
 
-export function process_langs(): LangsRecord {
-	let _langs: LangsRecord = {};
+interface TranslationMetadata {
+	__type__: "translation_metadata";
+	key: string;
+}
 
-	for (const lang in langs) {
-		const code = (lang.split("/").pop() as string).split(".").shift() as string;
-		_langs[code] = (langs[lang] as Record<string, any>).default;
+// checks if an object is a TranslationMetadata object
+export function is_translation_metadata(obj: any): obj is TranslationMetadata {
+	const result =
+		obj &&
+		typeof obj === "object" &&
+		obj.__type__ === "translation_metadata" &&
+		typeof obj.key === "string";
+
+	return result;
+}
+
+// handles explicit translation metadata objects of shape { __type__: "translation_metadata", key: string }
+export function translate_metadata(metadata: TranslationMetadata): string {
+	if (!is_translation_metadata(metadata)) {
+		return String(metadata);
 	}
 
-	return _langs;
+	try {
+		const { key } = metadata;
+		let translated = formatter(key);
+		return translated;
+	} catch (e) {
+		console.error("Error translating metadata:", e);
+		return metadata.key;
+	}
+}
+
+// handles strings with embedded JSON metadata of shape "__i18n__{"key": "some.key"}"
+export function translate_if_needed(value: string): string {
+	if (typeof value !== "string") {
+		return value;
+	}
+
+	const match = value.match(/^__i18n__(.+)$/);
+	if (!match) {
+		return value;
+	}
+
+	try {
+		const metadataJson = match[1];
+		const metadata = JSON.parse(metadataJson);
+
+		if (metadata && metadata.key) {
+			return formatter(metadata.key);
+		}
+
+		return value;
+	} catch (e) {
+		console.error("Error processing translation:", e);
+		return value;
+	}
+}
+
+// recursively processes objects and arrays to translate any i18n-marked strings while preserving object structure
+export function process_i18n_obj(obj: any): any {
+	if (obj == null || typeof obj !== "object") {
+		return typeof obj === "string" ? translate_if_needed(obj) : obj;
+	}
+
+	if (Array.isArray(obj)) {
+		return obj.map(process_i18n_obj);
+	}
+
+	const result: Record<string, any> = {};
+	const skipProps = ["gradio", "parent", "__proto__", "constructor"];
+
+	for (const key in obj) {
+		result[key] = skipProps.includes(key)
+			? obj[key]
+			: process_i18n_obj(obj[key]);
+	}
+
+	return result;
+}
+
+export function process_langs(): LangsRecord {
+	return Object.fromEntries(
+		Object.entries(langs).map(([path, module]) => [
+			path.split("/").pop()!.split(".")[0],
+			(module as Record<string, any>).default
+		])
+	);
 }
 
 const processed_langs = process_langs();
@@ -37,52 +116,79 @@ export const language_choices: [string, string][] = Object.entries(
 
 export let all_common_keys: Set<string> = new Set();
 
-for (const lang in processed_langs) {
-	addMessages(lang, processed_langs[lang]);
-}
-
-let i18n_initialized = false;
-
-export async function setupi18n(): Promise<void> {
-	if (i18n_initialized) {
+export function load_translations(
+	translations: LangsRecord | null | undefined
+): void {
+	if (!translations) {
 		return;
 	}
 
-	const browser_locale = getLocaleFromNavigator();
+	for (const lang in translations) {
+		addMessages(lang, translations[lang]);
+	}
+}
 
-	let initial_locale =
-		browser_locale && available_locales.includes(browser_locale)
-			? browser_locale
-			: null;
+export function get_init_state(): boolean {
+	return _i18n_initialized;
+}
+export function set_init_state(state: boolean): void {
+	_i18n_initialized = state;
+}
 
-	if (!initial_locale) {
-		const normalized_locale = browser_locale?.split("-")[0];
-		initial_locale =
-			normalized_locale && available_locales.includes(normalized_locale)
-				? normalized_locale
-				: "en";
+export function get_initial_locale(
+	browser_locale: string | null,
+	available_locales: string[],
+	fallback_locale = "en"
+): string {
+	if (!browser_locale) return fallback_locale;
+
+	if (available_locales.includes(browser_locale)) {
+		return browser_locale;
 	}
 
+	const normalized_locale = browser_locale.split("-")[0];
+	if (normalized_locale && available_locales.includes(normalized_locale)) {
+		return normalized_locale;
+	}
+
+	return fallback_locale;
+}
+
+let _i18n_initialized = false;
+
+export async function init_i18n(
+	initial_locale: string,
+	fallback_locale = "en"
+): Promise<void> {
 	await init({
-		fallbackLocale: "en",
+		fallbackLocale: fallback_locale,
 		initialLocale: initial_locale
 	});
 
-	for (const lang_code in processed_langs) {
-		if (
-			processed_langs[lang_code] &&
-			typeof processed_langs[lang_code] === "object" &&
-			processed_langs[lang_code].common &&
-			typeof processed_langs[lang_code].common === "object"
-		) {
-			const common_ns = processed_langs[lang_code].common;
-			for (const key in common_ns) {
-				all_common_keys.add(`common.${key}`);
-			}
-		}
+	all_common_keys = new Set(
+		Object.values(processed_langs)
+			.filter((lang) => lang?.common)
+			.flatMap((lang) => Object.keys(lang.common).map((key) => `common.${key}`))
+	);
+}
+
+export async function setupi18n(
+	custom_translations?: Record<string, Record<string, string>>
+): Promise<void> {
+	if (get_init_state()) return;
+
+	load_translations(processed_langs);
+	const initial_locale = get_initial_locale(
+		getLocaleFromNavigator(),
+		available_locales
+	);
+	await init_i18n(initial_locale);
+
+	if (custom_translations) {
+		load_translations(custom_translations);
 	}
 
-	i18n_initialized = true;
+	set_init_state(true);
 }
 
 export function changeLocale(new_locale: string): void {

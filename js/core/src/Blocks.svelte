@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { tick, onMount } from "svelte";
-	import { _ } from "svelte-i18n";
+	import { _, locale } from "svelte-i18n";
 	import { Client } from "@gradio/client";
 
 	import type { LoadingStatus, LoadingStatusCollection } from "./stores";
 
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import type { UpdateTransaction } from "./init";
-	import { setupi18n } from "./i18n";
+	import { setupi18n, changeLocale } from "./i18n";
 	import { ApiDocs, ApiRecorder, Settings } from "./api_docs/";
 	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
@@ -25,8 +25,6 @@
 		RenderMessage,
 		StatusMessage
 	} from "@gradio/client";
-
-	setupi18n();
 
 	export let root: string;
 	export let components: ComponentMeta[];
@@ -51,6 +49,8 @@
 	export let max_file_size: number | undefined = undefined;
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
+
+	setupi18n(app.config?.i18n_translations ?? undefined);
 
 	let {
 		layout: _layout,
@@ -784,6 +784,10 @@
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 				navigator.userAgent
 			);
+	});
+
+	$: locale.subscribe((this_locale) => {
+		this_locale && changeLocale(this_locale);
 	});
 </script>
 

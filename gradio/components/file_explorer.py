@@ -12,6 +12,7 @@ from gradio_client.documentation import document
 
 from gradio.components.base import Component, server
 from gradio.data_classes import DeveloperPath, GradioRootModel, UserProvidedPath
+from gradio.i18n import I18n
 from gradio.utils import safe_join
 
 if TYPE_CHECKING:
@@ -42,7 +43,7 @@ class FileExplorer(Component):
         file_count: Literal["single", "multiple"] = "multiple",
         root_dir: str | Path = ".",
         ignore_glob: str | None = None,
-        label: str | None = None,
+        label: str | I18n | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
