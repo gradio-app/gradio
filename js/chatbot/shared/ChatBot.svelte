@@ -406,9 +406,13 @@
 
 	.bubble-wrap {
 		width: 100%;
-		overflow-y: auto;
+		overflow-y: visible;
 		height: 100%;
 		padding-top: var(--spacing-xxl);
+	}
+
+	.role {
+		max-width: 95%;
 	}
 
 	@media (prefers-color-scheme: dark) {
