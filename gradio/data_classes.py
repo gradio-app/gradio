@@ -19,7 +19,6 @@ from typing import (
 )
 
 from fastapi import Request
-from gradio_client.data_classes import ParameterInfo
 from gradio_client.documentation import document
 from gradio_client.utils import is_file_obj_with_meta, traverse
 from pydantic import (
@@ -291,13 +290,38 @@ class FileData(GradioModel):
             FileData: A new FileData object representing the copied file.
 
         Raises:
-            ValueError: If the source file path is not set.
+            ValueError: If the source file path is not set or outside allowed directories.
         """
         pathlib.Path(dir).mkdir(exist_ok=True)
         new_obj = dict(self)
 
         if not self.path:
             raise ValueError("Source file path is not set")
+
+        from gradio.utils import get_upload_folder, is_in_or_equal
+        import os
+
+        path_absolute = os.path.abspath(self.path)
+        allowed_dirs = []
+        
+        upload_folder = get_upload_folder()
+        allowed_dirs.append(upload_folder)
+        
+        from gradio.context import Context
+
+        if Context.root_block and hasattr(Context.root_block, "allowed_paths"):
+            allowed_dirs.extend(Context.root_block.allowed_paths)
+        
+        is_allowed = False
+        for allowed_dir in allowed_dirs:
+            if is_in_or_equal(path_absolute, allowed_dir):
+                is_allowed = True
+                break
+        
+        if not is_allowed:
+            raise ValueError(f"Security error: File path is outside allowed directories: {self.path}. Files must be within the Gradio upload directory or other explicitly allowed directories.")
+            
+        # Now it's safe to copy the file
         new_name = shutil.copy(self.path, dir)
         new_obj["path"] = new_name
         return self.__class__(**new_obj)
@@ -429,22 +453,3 @@ class ImageData(GradioModel):
 
 class Base64ImageData(GradioModel):
     url: str = Field(description="base64 encoded image")
-
-
-class APIReturnInfo(TypedDict):
-    label: str
-    type: dict[str, Any]
-    python_type: dict[str, str]
-    component: str
-
-
-class APIEndpointInfo(TypedDict):
-    description: NotRequired[str]
-    parameters: list[ParameterInfo]
-    returns: list[APIReturnInfo]
-    show_api: bool
-
-
-class APIInfo(TypedDict):
-    named_endpoints: dict[str, APIEndpointInfo]
-    unnamed_endpoints: dict[str, APIEndpointInfo]
