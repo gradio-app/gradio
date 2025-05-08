@@ -157,7 +157,7 @@
 			);
 		}
 		await mount_css(
-			config.root + "/theme.css?v=" + config.theme_hash,
+			"./theme.css?v=" + config.theme_hash,
 			document.head
 		);
 		if (!config.stylesheets) return;
