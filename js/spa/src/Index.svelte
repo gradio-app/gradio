@@ -156,10 +156,7 @@
 				css_text_stylesheet
 			);
 		}
-		await mount_css(
-			"./theme.css?v=" + config.theme_hash,
-			document.head
-		);
+		await mount_css("./theme.css?v=" + config.theme_hash, document.head);
 		if (!config.stylesheets) return;
 
 		await Promise.all(
