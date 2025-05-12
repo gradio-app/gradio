@@ -461,7 +461,7 @@ class ChatInterface(Blocks):
             title = title[:40] + "..."
         return title or "Conversation"
 
-    def make_serializable(self, obj: Any) -> dict | list | Component:
+    def make_serializable(self, obj: Any) -> Any:
         if isinstance(obj, list):
             return [self.make_serializable(item) for item in obj]
         elif isinstance(obj, dict):
@@ -479,14 +479,10 @@ class ChatInterface(Blocks):
         if self.save_history:
             serializable_conversation = self.make_serializable(conversation)
             if index is not None:
-                saved_conversations[index] = cast(
-                    list[MessageDict], serializable_conversation
-                )
+                saved_conversations[index] = serializable_conversation
             else:
                 saved_conversations = saved_conversations or []
-                saved_conversations.insert(
-                    0, cast(list[MessageDict], serializable_conversation)
-                )
+                saved_conversations.insert(0, serializable_conversation)
                 index = 0
         return index, saved_conversations
 
