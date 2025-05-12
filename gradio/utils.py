@@ -59,6 +59,7 @@ import gradio_client.utils as client_utils
 import httpx
 import orjson
 from gradio_client.documentation import document
+from gradio_client.exceptions import AppError
 from typing_extensions import ParamSpec
 
 import gradio
@@ -412,21 +413,14 @@ def colab_check() -> bool:
     return is_colab
 
 
-def kaggle_check() -> bool:
+def is_hosted_notebook() -> bool:
+    """
+    Check if Gradio app is launching from a hosted notebook such as Kaggle or Sagemaker.
+    """
     return bool(
-        os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or os.environ.get("GFOOTBALL_DATA_DIR")
+        os.environ.get("KAGGLE_KERNEL_RUN_TYPE")
+        or os.path.exists("/home/ec2-user/SageMaker")
     )
-
-
-def sagemaker_check() -> bool:
-    try:
-        import boto3  # type: ignore
-
-        client = boto3.client("sts")
-        response = client.get_caller_identity()
-        return "sagemaker" in response["Arn"].lower()
-    except Exception:
-        return False
 
 
 def ipython_check() -> bool:
@@ -1268,11 +1262,11 @@ def diff(old, new):
             return edits
 
         if type(obj1) is not type(obj2):
-            edits.append(("replace", path, obj2))
+            edits.append(["replace", path, obj2])
             return edits
 
         if isinstance(obj1, str) and obj2.startswith(obj1):
-            edits.append(("append", path, obj2[len(obj1) :]))
+            edits.append(["append", path, obj2[len(obj1) :]])
             return edits
 
         if isinstance(obj1, list):
@@ -1280,9 +1274,16 @@ def diff(old, new):
             for i in range(common_length):
                 edits.extend(compare_objects(obj1[i], obj2[i], path + [i]))
             for i in range(common_length, len(obj1)):
-                edits.append(("delete", path + [i], None))
+                edits.append(["delete", path + [i], None])
             for i in range(common_length, len(obj2)):
-                edits.append(("add", path + [i], obj2[i]))
+                edits.append(["add", path + [i], obj2[i]])
+            # Deletes are always placed at the end
+            # So subtract 1 since deleting one element will shift all the indices
+            deletes_seen = 0
+            for edit in edits:
+                if edit[0] == "delete":
+                    edit[1] = [edit[1][-1] - deletes_seen]
+                    deletes_seen += 1
             return edits
 
         if isinstance(obj1, dict):
@@ -1290,13 +1291,13 @@ def diff(old, new):
                 if key in obj2:
                     edits.extend(compare_objects(obj1[key], obj2[key], path + [key]))
                 else:
-                    edits.append(("delete", path + [key], None))
+                    edits.append(["delete", path + [key], None])
             for key in obj2:
                 if key not in obj1:
-                    edits.append(("add", path + [key], obj2[key]))
+                    edits.append(["add", path + [key], obj2[key]])
             return edits
 
-        edits.append(("replace", path, obj2))
+        edits.append(["replace", path, obj2])
         return edits
 
     return compare_objects(old, new)
@@ -1314,7 +1315,10 @@ def get_function_params(func: Callable) -> list[tuple[str, bool, Any, Any]]:
     Excludes *args and **kwargs, as well as args that are Gradio-specific, such as gr.Request, gr.EventData, gr.OAuthProfile, and gr.OAuthToken.
     """
     params_info = []
-    signature = inspect.signature(func)
+    try:
+        signature = inspect.signature(func)
+    except ValueError:
+        signature = inspect.Signature()
     type_hints = get_type_hints(func)
     for name, parameter in signature.parameters.items():
         if parameter.kind in (
@@ -1467,9 +1471,9 @@ def error_payload(
     error: BaseException | None, show_error: bool
 ) -> dict[str, bool | str | float | None]:
     content: dict[str, bool | str | float | None] = {"error": None}
-    show_error = show_error or isinstance(error, Error)
+    show_error = show_error or isinstance(error, AppError)
     if show_error:
-        if isinstance(error, Error):
+        if isinstance(error, AppError):
             content["error"] = error.message
             content["duration"] = error.duration
             content["visible"] = error.visible
@@ -1659,3 +1663,66 @@ def dict_factory(items):
         else:
             d[key] = value
     return d
+
+
+def get_function_description(fn: Callable) -> tuple[str, dict[str, str]]:
+    """
+    Get the description of a function and its parameters by parsing the docstring.
+    The docstring should be formatted as follows: first lines are the description
+    of the function, then a line starts with "Args:", "Parameters:", or "Arguments:",
+    followed by lines of the form "param_name: description".
+
+    Parameters:
+        fn: The function to get the docstring for.
+
+    Returns:
+        - The docstring of the function
+        - A dictionary of parameter names and their descriptions
+    """
+    fn_docstring = fn.__doc__
+    description = ""
+    parameters = {}
+
+    if not fn_docstring:
+        return description, parameters
+
+    lines = fn_docstring.strip().split("\n")
+
+    description_lines = []
+    for line in lines:
+        line = line.strip()
+        if line.startswith(("Args:", "Parameters:", "Arguments:")):
+            break
+        if line:
+            description_lines.append(line)
+
+    description = " ".join(description_lines)
+
+    try:
+        param_start_idx = next(
+            (
+                i
+                for i, line in enumerate(lines)
+                if line.strip().startswith(("Args:", "Parameters:", "Arguments:"))
+            ),
+            len(lines),
+        )
+
+        for line in lines[param_start_idx + 1 :]:
+            line = line.strip()
+            if not line:
+                continue
+
+            try:
+                if ":" in line:
+                    param_name, param_desc = line.split(":", 1)
+                    param_name = param_name.split(" ")[0].strip()
+                    if param_name:
+                        parameters[param_name] = param_desc.strip()
+            except Exception:
+                continue
+
+    except Exception:
+        pass
+
+    return description, parameters

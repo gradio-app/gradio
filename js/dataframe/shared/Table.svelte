@@ -112,6 +112,8 @@
 	onMount(() => {
 		df_ctx.parent_element = parent;
 		df_ctx.get_data_at = get_data_at;
+		df_ctx.get_column = get_column;
+		df_ctx.get_row = get_row;
 		df_ctx.dispatch = dispatch;
 		init_drag_handlers();
 
@@ -180,6 +182,12 @@
 
 	const get_data_at = (row: number, col: number): string | number =>
 		data?.[row]?.[col]?.value;
+
+	const get_column = (col: number): (string | number)[] =>
+		data?.map((row) => row[col]?.value) ?? [];
+
+	const get_row = (row: number): (string | number)[] =>
+		data?.[row]?.map((cell) => cell.value) ?? [];
 
 	$: {
 		if (!dequal(headers, old_headers)) {
@@ -263,7 +271,10 @@
 			row.forEach((cell, col_idx) => {
 				cell_map.set(cell.id, {
 					value: cell.value,
-					display_value: cell.display_value || String(cell.value),
+					display_value:
+						cell.display_value !== undefined
+							? cell.display_value
+							: String(cell.value),
 					styling: styling?.[row_idx]?.[col_idx] || ""
 				});
 			});
@@ -276,7 +287,10 @@
 				const original = cell_map.get(cell.id);
 				return {
 					...cell,
-					display_value: original?.display_value || String(cell.value),
+					display_value:
+						original?.display_value !== undefined
+							? original.display_value
+							: String(cell.value),
 					styling: original?.styling || ""
 				};
 			})
@@ -582,7 +596,11 @@
 
 				row.forEach((cell) => {
 					data_row.push(cell.value);
-					display_row.push(cell.display_value || String(cell.value));
+					display_row.push(
+						cell.display_value !== undefined
+							? cell.display_value
+							: String(cell.value)
+					);
 					styling_row.push(cell.styling || "");
 				});
 
@@ -686,14 +704,15 @@
 		const is_search_active = $df_state.current_search_query !== undefined;
 
 		if (is_search_active && search_results?.[row]?.[col]) {
-			return (
-				search_results[row][col].display_value ||
-				String(search_results[row][col].value)
-			);
+			return search_results[row][col].display_value !== undefined
+				? search_results[row][col].display_value
+				: String(search_results[row][col].value);
 		}
 
 		if (data?.[row]?.[col]) {
-			return data[row][col].display_value || String(data[row][col].value);
+			return data[row][col].display_value !== undefined
+				? data[row][col].display_value
+				: String(data[row][col].value);
 		}
 
 		return "";

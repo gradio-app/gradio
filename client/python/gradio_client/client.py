@@ -86,6 +86,7 @@ class Client:
         download_files: str | Path | Literal[False] = DEFAULT_TEMP_DIR,
         ssl_verify: bool = True,
         _skip_components: bool = True,  # internal parameter to skip values certain components (e.g. State) that do not need to be displayed to users.
+        analytics_enabled: bool = True,
     ):
         """
         Parameters:
@@ -97,6 +98,7 @@ class Client:
             download_files: directory where the client should download output files  on the local machine from the remote API. By default, uses the value of the GRADIO_TEMP_DIR environment variable which, if not set by the user, is a temporary directory on your machine. If False, the client does not download files and returns a FileData dataclass object with the filepath on the remote machine instead.
             ssl_verify: if False, skips certificate validation which allows the client to connect to Gradio apps that are using self-signed certificates.
             httpx_kwargs: additional keyword arguments to pass to `httpx.Client`, `httpx.stream`, `httpx.get` and `httpx.post`. This can be used to set timeouts, proxies, http auth, etc.
+            analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
         """
         self.verbose = verbose
         self.hf_token = hf_token
@@ -193,8 +195,11 @@ class Client:
         # Create a pool of threads to handle the requests
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
 
-        # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
-        threading.Thread(target=self._telemetry_thread, daemon=True).start()
+        self.analytics_enabled = (
+            analytics_enabled or os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
+        )
+        if self.analytics_enabled:
+            threading.Thread(target=self._telemetry_thread, daemon=True).start()
         self._refresh_heartbeat = threading.Event()
         self._kill_heartbeat = threading.Event()
 
@@ -250,39 +255,44 @@ class Client:
                     headers=self.headers,
                     cookies=self.cookies,
                 ) as response:
-                    for line in response.iter_lines():
-                        line = line.rstrip("\n")
-                        if not len(line):
-                            continue
-                        if line.startswith("data:"):
-                            resp = json.loads(line[5:])
-                            if resp["msg"] == ServerMessage.heartbeat:
+                    buffer = b""
+                    for chunk in response.iter_bytes():
+                        buffer += chunk
+                        while b"\n\n" in buffer:
+                            line, buffer = buffer.split(b"\n\n", 1)
+                            line = line.decode("utf-8").rstrip("\n")
+                            if not len(line):
                                 continue
-                            elif (
-                                resp.get("message", "") == ServerMessage.server_stopped
-                            ):
-                                for (
-                                    pending_messages
-                                ) in self.pending_messages_per_event.values():
-                                    pending_messages.append(resp)
-                                return
-                            elif resp["msg"] == ServerMessage.close_stream:
-                                self.stream_open = False
-                                return
-                            event_id = resp["event_id"]
-                            if event_id not in self.pending_messages_per_event:
-                                self.pending_messages_per_event[event_id] = []
-                            self.pending_messages_per_event[event_id].append(resp)
-                            if resp["msg"] == ServerMessage.process_completed:
-                                self.pending_event_ids.remove(event_id)
-                            if (
-                                len(self.pending_event_ids) == 0
-                                and protocol != "sse_v3"
-                            ):
-                                self.stream_open = False
-                                return
-                        else:
-                            raise ValueError(f"Unexpected SSE line: '{line}'")
+                            if line.startswith("data:"):
+                                resp = json.loads(line[5:])
+                                if resp["msg"] == ServerMessage.heartbeat:
+                                    continue
+                                elif (
+                                    resp.get("message", "")
+                                    == ServerMessage.server_stopped
+                                ):
+                                    for (
+                                        pending_messages
+                                    ) in self.pending_messages_per_event.values():
+                                        pending_messages.append(resp)
+                                    return
+                                elif resp["msg"] == ServerMessage.close_stream:
+                                    self.stream_open = False
+                                    return
+                                event_id = resp["event_id"]
+                                if event_id not in self.pending_messages_per_event:
+                                    self.pending_messages_per_event[event_id] = []
+                                self.pending_messages_per_event[event_id].append(resp)
+                                if resp["msg"] == ServerMessage.process_completed:
+                                    self.pending_event_ids.remove(event_id)
+                                if (
+                                    len(self.pending_event_ids) == 0
+                                    and protocol != "sse_v3"
+                                ):
+                                    self.stream_open = False
+                                    return
+                            else:
+                                raise ValueError(f"Unexpected SSE line: '{line}'")
         except BaseException as e:
             # If the job is cancelled the stream will close so we
             # should not raise this httpx exception that comes from the
@@ -458,12 +468,13 @@ class Client:
         **kwargs,
     ) -> Any:
         """
-        Calls the Gradio API and returns the result (this is a blocking call).
+        Calls the Gradio API and returns the result (this is a blocking call). Arguments can be provided as positional arguments or as keyword arguments (latter is recommended).
 
         Parameters:
-            args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
+            args: The positional arguments to pass to the remote API endpoint. The order of the arguments must match the order of the inputs in the Gradio app.
             api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint.
             fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
+            kwargs: The keyword arguments to pass to the remote API endpoint.
         Returns:
             The result of the API call. Will be a Tuple if the API has multiple outputs.
         Example:
@@ -495,12 +506,14 @@ class Client:
     ) -> Job:
         """
         Creates and returns a Job object which calls the Gradio API in a background thread. The job can be used to retrieve the status and result of the remote API call.
+         Arguments can be provided as positional arguments or as keyword arguments (latter is recommended).
 
         Parameters:
             args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
             api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint.
             fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
             result_callbacks: A callback function, or list of callback functions, to be called when the result is ready. If a list of functions is provided, they will be called in order. The return values from the remote API are provided as separate parameters into the callback. If None, no callback will be called.
+            kwargs: The keyword arguments to pass to the remote API endpoint.
         Returns:
             A Job object that can be used to retrieve the status and result of the remote API call.
         Example:
@@ -1272,10 +1285,8 @@ class Endpoint:
                         "verbose error reporting. To enable, set show_error=True in launch()."
                     )
                 else:
-                    raise AppError(
-                        "The upstream Gradio app has raised an exception: "
-                        + result["error"]
-                    )
+                    message = result.pop("error")
+                    raise AppError(message=message, **result)
 
             try:
                 output = result["data"]
@@ -1397,7 +1408,7 @@ class Endpoint:
         return {
             "path": file_path,
             "orig_name": utils.strip_invalid_filename_characters(orig_name.name),
-            "meta": {"_type": "gradio.FileData"} if orig_name.suffix else None,
+            "meta": {"_type": "gradio.FileData"},
         }
 
     def _download_file(self, x: dict) -> str:
@@ -1474,8 +1485,8 @@ class Job(Future):
     submitted by the Gradio client. This class is not meant to be instantiated directly, but rather
     is created by the Client.submit() method.
 
-    A Job object includes methods to get the status of the prediction call, as well to get the outputs of
-    the prediction call. Job objects are also iterable, and can be used in a loop to get the outputs
+    A Job object includes methods to get the status of the prediction call, as well to get the outputs
+    of the prediction call. Job objects are also iterable, and can be used in a loop to get the outputs
     of prediction calls as they become available for generator endpoints.
     """
 

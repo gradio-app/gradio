@@ -2,6 +2,43 @@
 
 ## 0.8.1
 
+### Dependency updates
+
+- @gradio/core@0.16.1
+
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/core@0.16.0
+
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/core@0.15.1
+
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/core@0.15.0
+
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/core@0.14.1
+
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/client@1.14.2
+- @gradio/core@0.14.0
+
+## 0.8.1
+
 ### Fixes
 
 - [#10968](https://github.com/gradio-app/gradio/pull/10968) [`238702a`](https://github.com/gradio-app/gradio/commit/238702a709c23f9c1b6302eb143c7cb71a3a066b) - Fix Default meta social tags + Add ability to override existing meta tags.  Thanks @dawoodkhan82!

@@ -1,5 +1,96 @@
 # @gradio/core
 
+## 0.16.1
+
+### Fixes
+
+- [#11115](https://github.com/gradio-app/gradio/pull/11115) [`49e7a0d`](https://github.com/gradio-app/gradio/commit/49e7a0dd18174196b262d32e6c59d93ca40b1c73) - update STDIO instructions to specify sse-only transport.  Thanks @evalstate!
+
+### Dependency updates
+
+- @gradio/code@0.14.3
+- @gradio/button@0.4.18
+- @gradio/video@0.14.13
+- @gradio/upload@0.16.4
+- @gradio/image@0.22.5
+- @gradio/gallery@0.15.18
+- @gradio/file@0.12.17
+
+## 0.16.0
+
+### Features
+
+- [#10984](https://github.com/gradio-app/gradio/pull/10984) [`8dab577`](https://github.com/gradio-app/gradio/commit/8dab5771c7d952c76f325681dbf364119c91b0b1) - Let Gradio apps also be MCP Servers.  Thanks @abidlabs!
+
+## 0.15.1
+
+### Fixes
+
+- [#11088](https://github.com/gradio-app/gradio/pull/11088) [`a5105cc`](https://github.com/gradio-app/gradio/commit/a5105cccd6ca0682bd206608a080e24d69dad136) - fix: ensure all translation files work as expected.  Thanks @Col0ring!
+
+### Dependency updates
+
+- @gradio/gallery@0.15.17
+- @gradio/button@0.4.17
+- @gradio/video@0.14.12
+- @gradio/image@0.22.4
+
+## 0.15.0
+
+### Features
+
+- [#11027](https://github.com/gradio-app/gradio/pull/11027) [`eff532b`](https://github.com/gradio-app/gradio/commit/eff532b913a3c8f06f10a4f9471d3177e3744053) - Add new `ImageSlider` component.  Thanks @pngwn!
+
+### Fixes
+
+- [#11049](https://github.com/gradio-app/gradio/pull/11049) [`8d2aa3e`](https://github.com/gradio-app/gradio/commit/8d2aa3e99e165413bae1d8f5f3b4630e870308f5) - Ensure translations work as expected.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/code@0.14.2
+- @gradio/paramviewer@0.7.8
+- @gradio/statustracker@0.10.10
+- @gradio/image@0.22.3
+- @gradio/upload@0.16.3
+- @gradio/button@0.4.16
+- @gradio/video@0.14.11
+- @gradio/atoms@0.16.0
+- @gradio/column@0.2.0
+- @gradio/gallery@0.15.16
+- @gradio/plot@0.9.15
+- @gradio/textbox@0.10.10
+- @gradio/checkbox@0.4.20
+- @gradio/file@0.12.16
+
+## 0.14.1
+
+### Fixes
+
+- [#11038](https://github.com/gradio-app/gradio/pull/11038) [`fd46e48`](https://github.com/gradio-app/gradio/commit/fd46e48f516a2907c469c7a6d3e67ae9f7068b29) - Be able to dispatch Info messages from a component.  Thanks @freddyaboulton!
+
+## 0.14.0
+
+### Dependency updates
+
+- @gradio/code@0.14.1
+- @gradio/paramviewer@0.7.7
+- @gradio/statustracker@0.10.9
+- @gradio/tabitem@0.4.3
+- @gradio/tabs@0.4.3
+- @gradio/video@0.14.10
+- @gradio/atoms@0.15.2
+- @gradio/client@1.14.2
+- @gradio/utils@0.10.2
+- @gradio/button@0.4.15
+- @gradio/upload@0.16.2
+- @gradio/image@0.22.2
+- @gradio/gallery@0.15.15
+- @gradio/plot@0.9.14
+- @gradio/textbox@0.10.9
+- @gradio/file@0.12.15
+- @gradio/checkbox@0.4.19
+- @gradio/column@0.2.0
+
 ## 0.14.0
 
 ### Features

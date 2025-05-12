@@ -37,7 +37,6 @@ from gradio import (
     networking,
     processing_utils,
     queueing,
-    strings,
     themes,
     utils,
     wasm_utils,
@@ -51,6 +50,8 @@ from gradio.context import (
     set_render_context,
 )
 from gradio.data_classes import (
+    APIEndpointInfo,
+    APIInfo,
     BlocksConfigDict,
     DeveloperPath,
     FileData,
@@ -2066,6 +2067,7 @@ Received inputs:
         """
         Processes API calls from the frontend. First preprocesses the data,
         then runs the relevant function, then postprocesses the output.
+
         Parameters:
             fn_index: Index of function to run.
             inputs: input data received from the frontend
@@ -2077,7 +2079,14 @@ Received inputs:
             in_event_listener: whether this API call is being made in response to an event listener
             explicit_call: whether this call is being made directly by calling the Blocks function, instead of through an event listener or API route
             root_path: if provided, the root path of the server. All file URLs will be prefixed with this path.
-        Returns: None
+
+        Returns a dictionary with the following keys:
+            - "data": the output data from the function
+            - "is_generating": whether the function is generating output
+            - "iterator": the iterator for the function
+            - "duration": the duration of the function call
+            - "average_duration": the average duration of the function call
+            - "render_config": the render config for the function
         """
         if isinstance(block_fn, int):
             block_fn = self.fns[block_fn]
@@ -2409,7 +2418,7 @@ Received inputs:
         *,
         height: int = 500,
         width: int | str = "100%",
-        favicon_path: str | None = None,
+        favicon_path: str | Path | None = None,
         ssl_keyfile: str | None = None,
         ssl_certfile: str | None = None,
         ssl_keyfile_password: str | None = None,
@@ -2432,6 +2441,7 @@ Received inputs:
         node_port: int | None = None,
         ssr_mode: bool | None = None,
         pwa: bool | None = None,
+        mcp_server: bool | None = None,
         _frontend: bool = True,
     ) -> tuple[App, str, str]:
         """
@@ -2445,7 +2455,7 @@ Received inputs:
             auth: If provided, username and password (or list of username-password tuples) required to access app. Can also provide function that takes username and password and returns True if valid login.
             auth_message: If provided, HTML message provided on login page.
             prevent_thread_lock: By default, the gradio app blocks the main thread while the server is running. If set to True, the gradio app will not block and the gradio server will terminate as soon as the script finishes.
-            show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log
+            show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. They will also be displayed in the alert modal of downstream apps that gr.load() this app.
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
             max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40).
@@ -2472,6 +2482,7 @@ Received inputs:
             strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
             ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
+            mcp_server: If True, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools. If None (default behavior), then the GRADIO_MCP_SERVER environment variable will be used to determine if the MCP server should be enabled (which is "True" on Hugging Face Spaces).
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2610,6 +2621,26 @@ Received inputs:
             ssr_mode=self.ssr_mode,
         )
 
+        mcp_subpath = API_PREFIX + "/mcp"
+        if mcp_server is None:
+            mcp_server = os.environ.get("GRADIO_MCP_SERVER", "False").lower() == "true"
+        if mcp_server:
+            try:
+                import gradio.mcp
+            except ImportError as e:
+                raise ImportError(
+                    "In order to use `mcp_server=True`, you must install gradio with the `mcp` extra. Please install it with `pip install gradio[mcp]`"
+                ) from e
+            try:
+                self.mcp_server_obj = gradio.mcp.GradioMCPServer(self)
+                self.mcp_server_obj.launch_mcp_on_sse(
+                    self.server_app, mcp_subpath, self.root_path
+                )
+            except Exception as e:
+                mcp_server = False
+                if not quiet:
+                    print(f"Error launching MCP server: {e}")
+
         if self.is_running:
             if not isinstance(self.local_url, str):
                 raise ValueError(f"Invalid local_url: {self.local_url}")
@@ -2650,7 +2681,7 @@ Received inputs:
             self.server = server
             self.is_running = True
             self.is_colab = utils.colab_check()
-            self.is_kaggle = utils.kaggle_check()
+            self.is_hosted_notebook = utils.is_hosted_notebook()
             self.share_server_address = share_server_address
             self.share_server_protocol = share_server_protocol or (
                 "http" if share_server_address is not None else "https"
@@ -2665,9 +2696,9 @@ Received inputs:
             )
             if not wasm_utils.IS_WASM and not self.is_colab and not quiet:
                 s = (
-                    strings.en["RUNNING_LOCALLY_SSR"]
+                    "* Running on local URL:  {}://{}:{}, with SSR ⚡ (experimental, to disable set `ssr_mode=False` in `launch()`)"
                     if self.ssr_mode
-                    else strings.en["RUNNING_LOCALLY"]
+                    else "* Running on local URL:  {}://{}:{}"
                 )
                 print(s.format(self.protocol, self.server_name, self.server_port))
 
@@ -2683,7 +2714,7 @@ Received inputs:
                 )
                 if not resp.is_success:
                     raise Exception(
-                        f"Couldn’t start the app because '{resp.url}' failed (code {resp.status_code}). Check your network or proxy settings to ensure localhost is accessible."
+                        f"Couldn't start the app because '{resp.url}' failed (code {resp.status_code}). Check your network or proxy settings to ensure localhost is accessible."
                     )
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
@@ -2698,32 +2729,15 @@ Received inputs:
                 # So we use create_task() instead. This is a best-effort fallback in the Wasm env but it doesn't guarantee that all the tasks are completed before they are needed.
                 asyncio.create_task(self.run_extra_startup_events())
 
-        self.is_sagemaker = (
-            False  # TODO: fix Gradio's behavior in sagemaker and other hosted notebooks
-        )
         if share is None:
-            if self.is_colab:
+            if self.is_colab or self.is_hosted_notebook:
                 if not quiet:
                     print(
-                        "Running Gradio in a Colab notebook requires sharing enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
-                    )
-                self.share = True
-            elif self.is_kaggle:
-                if not quiet:
-                    print(
-                        "Kaggle notebooks require sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
-                    )
-                self.share = True
-            elif self.is_sagemaker:
-                if not quiet:
-                    print(
-                        "Sagemaker notebooks may require sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                        "It looks like you are running Gradio on a hosted a Jupyter notebook. For the Gradio app to work, sharing must be enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
                     )
                 self.share = True
             else:
                 self.share = False
-                # GRADIO_SHARE environment variable for forcing 'share=True'
-                # GRADIO_SHARE=True => share=True
                 share_env = os.getenv("GRADIO_SHARE")
                 if share_env is not None and share_env.lower() == "true":
                     self.share = True
@@ -2750,11 +2764,17 @@ Received inputs:
 
         if self.is_colab and not quiet:
             if debug:
-                print(strings.en["COLAB_DEBUG_TRUE"])
+                print(
+                    "Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. To turn off, set debug=False in launch()."
+                )
             else:
-                print(strings.en["COLAB_DEBUG_FALSE"])
+                print(
+                    "Colab notebook detected. To show errors in colab notebook, set debug=True in launch()"
+                )
             if not self.share:
-                print(strings.en["COLAB_WARNING"].format(self.server_port))
+                print(
+                    "Note: opening Chrome Inspector may crash demo inside Colab notebooks."
+                )
 
         if self.share:
             if self.space_id:
@@ -2782,9 +2802,11 @@ Received inputs:
                     self.share_url = urlunparse(
                         (self.share_server_protocol,) + parsed_url[1:]
                     )
-                print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
+                print(f"* Running on public URL: {self.share_url}")
                 if not (quiet):
-                    print(strings.en["SHARE_LINK_MESSAGE"])
+                    print(
+                        "\nThis share link expires in 1 week. For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)"
+                    )
             except Exception as e:
                 if self.analytics_enabled:
                     analytics.error_analytics("Not able to set up tunnel")
@@ -2792,25 +2814,25 @@ Received inputs:
                 self.share = False
                 if isinstance(e, ChecksumMismatchError):
                     print(
-                        strings.en["COULD_NOT_GET_SHARE_LINK_CHECKSUM"].format(
-                            BINARY_PATH
-                        )
+                        f"\nCould not create share link. Checksum mismatch for file: {BINARY_PATH}."
                     )
                 elif Path(BINARY_PATH).exists():
-                    print(strings.en["COULD_NOT_GET_SHARE_LINK"])
+                    print(
+                        "\nCould not create share link. Please check your internet connection or our status page: https://status.gradio.app."
+                    )
                 else:
                     print(
-                        strings.en["COULD_NOT_GET_SHARE_LINK_MISSING_FILE"].format(
-                            BINARY_PATH,
-                            BINARY_URL,
-                            BINARY_FILENAME,
-                            BINARY_FOLDER,
-                        )
+                        f"\nCould not create share link. Missing file: {BINARY_PATH}. \n\nPlease check your internet connection. This can happen if your antivirus software blocks the download of this file. You can install manually by following these steps: \n\n1. Download this file: {BINARY_URL}\n2. Rename the downloaded file to: {BINARY_FILENAME}\n3. Move the file to this location: {BINARY_FOLDER}"
                     )
         else:
             if not quiet and not wasm_utils.IS_WASM:
-                print(strings.en["PUBLIC_SHARE_TRUE"])
+                print("* To create a public link, set `share=True` in `launch()`.")
             self.share_url = None
+
+        if mcp_server:
+            print(
+                f"\n🔨 MCP server (using SSE) running at: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
+            )
 
         if inbrowser and not wasm_utils.IS_WASM:
             link = self.share_url if self.share and self.share_url else self.local_url
@@ -3014,14 +3036,14 @@ Received inputs:
         for startup_event in self.extra_startup_events:
             await startup_event()
 
-    def get_api_info(self, all_endpoints: bool = False) -> dict[str, Any] | None:
+    def get_api_info(self, all_endpoints: bool = False) -> APIInfo | None:
         """
         Gets the information needed to generate the API docs from a Blocks.
         Parameters:
             all_endpoints: If True, returns information about all endpoints, including those with show_api=False.
         """
         config = self.config
-        api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
+        api_info: APIInfo = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
         for fn in self.fns.values():
             if not fn.fn or fn.api_name is False:
@@ -3029,8 +3051,15 @@ Received inputs:
             if not all_endpoints and not fn.show_api:
                 continue
 
-            dependency_info = {"parameters": [], "returns": [], "show_api": fn.show_api}
+            dependency_info: APIEndpointInfo = {
+                "parameters": [],
+                "returns": [],
+                "show_api": fn.show_api,
+            }
             fn_info = utils.get_function_params(fn.fn)  # type: ignore
+            description, _ = utils.get_function_description(fn.fn)
+            if description:
+                dependency_info["description"] = description
             skip_endpoint = False
 
             inputs = fn.inputs
