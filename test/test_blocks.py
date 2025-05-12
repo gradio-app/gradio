@@ -535,6 +535,11 @@ class TestComponentsInBlocks:
             comp.load_event in demo.config["dependencies"] for comp in components
         )
 
+    def test_load_events_work_with_builtins(self):
+        with gr.Blocks() as demo:
+            gr.State(dict)
+        demo.get_api_info()
+
 
 class TestBlocksPostprocessing:
     @pytest.mark.asyncio

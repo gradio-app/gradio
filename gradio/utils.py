@@ -1308,7 +1308,10 @@ def get_function_params(func: Callable) -> list[tuple[str, bool, Any, Any]]:
     Excludes *args and **kwargs, as well as args that are Gradio-specific, such as gr.Request, gr.EventData, gr.OAuthProfile, and gr.OAuthToken.
     """
     params_info = []
-    signature = inspect.signature(func)
+    try:
+        signature = inspect.signature(func)
+    except ValueError:
+        signature = inspect.Signature()
     type_hints = get_type_hints(func)
     for name, parameter in signature.parameters.items():
         if parameter.kind in (
