@@ -11,7 +11,7 @@ from gradio_client.documentation import document
 
 from gradio.components.base import FormComponent
 from gradio.events import Events
-from gradio.i18n import I18n
+from gradio.i18n import TranslationMetadata
 
 
 @document()
@@ -32,9 +32,9 @@ class DateTime(FormComponent):
         include_time: bool = True,
         type: Literal["timestamp", "datetime", "string"] = "timestamp",
         timezone: str | None = None,
-        label: str | I18n | None = None,
+        label: str | TranslationMetadata | None = None,
         show_label: bool | None = None,
-        info: str | I18n | None = None,
+        info: str | TranslationMetadata | None = None,
         every: float | None = None,
         scale: int | None = None,
         min_width: int = 160,

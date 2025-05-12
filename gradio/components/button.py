@@ -10,7 +10,7 @@ from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.events import Events
-from gradio.i18n import I18n
+from gradio.i18n import TranslationMetadata
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -26,7 +26,7 @@ class Button(Component):
 
     def __init__(
         self,
-        value: str | I18n | Callable = "Run",
+        value: str | TranslationMetadata | Callable = "Run",
         *,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,

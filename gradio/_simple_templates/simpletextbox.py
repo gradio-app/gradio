@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any
 
 from gradio.components.base import Component, FormComponent
 from gradio.events import Events
-from gradio.i18n import I18n
+from gradio.i18n import TranslationMetadata
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -27,7 +27,7 @@ class SimpleTextbox(FormComponent):
         value: str | Callable | None = None,
         *,
         placeholder: str | None = None,
-        label: str | I18n | None = None,
+        label: str | TranslationMetadata | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,

@@ -33,7 +33,7 @@ from gradio.data_classes import (
     MediaStreamChunk,
 )
 from gradio.events import EventListener
-from gradio.i18n import I18n
+from gradio.i18n import TranslationMetadata
 from gradio.layouts import Form
 from gradio.processing_utils import move_files_to_cache
 
@@ -149,8 +149,8 @@ class Component(ComponentBase, Block):
         self,
         value: Any = None,
         *,
-        label: str | I18n | None = None,
-        info: str | I18n | None = None,
+        label: str | TranslationMetadata | None = None,
+        info: str | TranslationMetadata | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,

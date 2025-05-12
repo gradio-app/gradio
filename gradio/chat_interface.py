@@ -45,7 +45,7 @@ from gradio.events import Dependency, EditData, SelectData
 from gradio.flagging import ChatCSVLogger
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
-from gradio.i18n import I18n
+from gradio.i18n import TranslationMetadata
 from gradio.layouts import Accordion, Column, Group, Row
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
@@ -89,7 +89,7 @@ class ChatInterface(Blocks):
         run_examples_on_click: bool = True,
         cache_examples: bool | None = None,
         cache_mode: Literal["eager", "lazy"] | None = None,
-        title: str | I18n | None = None,
+        title: str | TranslationMetadata | None = None,
         description: str | None = None,
         theme: Theme | str | None = None,
         flagging_mode: Literal["never", "manual"] | None = None,

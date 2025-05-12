@@ -10,7 +10,7 @@ from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.components.plot import AltairPlot, AltairPlotData, Plot
-from gradio.i18n import I18n
+from gradio.i18n import TranslationMetadata
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -63,7 +63,7 @@ class BarPlot(Plot):
         y_lim: list[int] | None = None,
         caption: str | None = None,
         interactive: bool | None = True,
-        label: str | I18n | None = None,
+        label: str | TranslationMetadata | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,

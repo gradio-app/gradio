@@ -22,7 +22,7 @@ from gradio.components.base import Component, StreamingInput, StreamingOutput
 from gradio.data_classes import FileData, FileDataDict, MediaStreamChunk
 from gradio.events import Events
 from gradio.exceptions import Error
-from gradio.i18n import I18n
+from gradio.i18n import TranslationMetadata
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -89,7 +89,7 @@ class Audio(
         | Literal["upload", "microphone"]
         | None = None,
         type: Literal["numpy", "filepath"] = "numpy",
-        label: str | I18n | None = None,
+        label: str | TranslationMetadata | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,

@@ -14,7 +14,7 @@ from gradio.components.base import (
     get_component_instance,
 )
 from gradio.events import Events
-from gradio.i18n import I18n
+from gradio.i18n import TranslationMetadata
 
 
 @document()
@@ -29,7 +29,7 @@ class Dataset(Component):
     def __init__(
         self,
         *,
-        label: str | I18n | None = None,
+        label: str | TranslationMetadata | None = None,
         show_label: bool = True,
         components: Sequence[Component] | list[str] | None = None,
         component_props: list[dict[str, Any]] | None = None,

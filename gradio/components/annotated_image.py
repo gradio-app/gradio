@@ -15,7 +15,7 @@ from gradio import processing_utils, utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
-from gradio.i18n import I18n
+from gradio.i18n import TranslationMetadata
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -61,7 +61,7 @@ class AnnotatedImage(Component):
         height: int | str | None = None,
         width: int | str | None = None,
         color_map: dict[str, str] | None = None,
-        label: str | I18n | None = None,
+        label: str | TranslationMetadata | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
