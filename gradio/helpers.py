@@ -101,7 +101,7 @@ class Examples:
         cache_mode: Literal["eager", "lazy"] | None = None,
         examples_per_page: int = 10,
         _api_mode: bool = False,
-        label: str | None = "Examples",
+        label: str | I18n | None = "Examples",
         elem_id: str | None = None,
         run_on_click: bool = False,
         preprocess: bool = True,
