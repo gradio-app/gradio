@@ -23,7 +23,7 @@ class Ocean(Base):
             "sans-serif",
         ),
         font_mono: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("Inter"),
+            fonts.GoogleFont("IBM Plex Mono"),
             "ui-monospace",
             "Consolas",
             "monospace",
