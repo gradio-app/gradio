@@ -1,0 +1,76 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("api");
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.api(···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+<!-- Example Usage --> 
+
+{#if obj.example}
+### Example Usage
+```python
+import gradio as gr
+with gr.Blocks() as demo:
+    with gr.Row():
+        input = gr.Textbox()
+        button = gr.Button("Submit")
+    output = gr.Textbox()
+    def fn(a: int, b: int, c: list[str]) -> tuple[int, str]:
+        return a + b, c[a:b]
+    gr.api(fn, api_name="add_and_slice")
+_, url, _ = demo.launch()
+
+from gradio_client import Client
+client = Client(url)
+result = client.predict(
+        a=3,
+        b=5,
+        c=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        api_name="/add_and_slice"
+)
+print(result)
+```
+{/if}
+
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
+
+
+{#if obj.demos && obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={obj.guides}/>
+{/if}
