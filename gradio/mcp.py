@@ -58,7 +58,7 @@ class GradioMCPServer:
         Returns:
             The MCP server.
         """
-        server = Server(self.blocks.title or "Gradio App")
+        server = Server(str(self.blocks.title or "Gradio App"))
 
         @server.call_tool()
         async def call_tool(
