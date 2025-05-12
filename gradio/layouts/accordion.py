@@ -26,7 +26,7 @@ class Accordion(BlockContext, metaclass=ComponentMeta):
 
     def __init__(
         self,
-        label: str  | TranslationMetadata | None = None,
+        label: str | TranslationMetadata | None = None,
         *,
         open: bool = True,
         visible: bool = True,
