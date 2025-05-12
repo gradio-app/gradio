@@ -483,10 +483,14 @@ class ChatInterface(Blocks):
         if self.save_history:
             serializable_conversation = self.make_serializable(conversation)
             if index is not None:
-                saved_conversations[index] = cast(list[MessageDict], serializable_conversation)
+                saved_conversations[index] = cast(
+                    list[MessageDict], serializable_conversation
+                )
             else:
                 saved_conversations = saved_conversations or []
-                saved_conversations.insert(0, cast(list[MessageDict], serializable_conversation))
+                saved_conversations.insert(
+                    0, cast(list[MessageDict], serializable_conversation)
+                )
                 index = 0
         return index, saved_conversations
 
