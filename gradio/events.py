@@ -932,13 +932,20 @@ def api(
                 input = gr.Textbox()
                 button = gr.Button("Submit")
             output = gr.Textbox()
-            gr.on(
-                triggers=[button.click, input.submit],
-                fn=lambda x: x,
-                inputs=[input],
-                outputs=[output]
-            )
-        demo.launch()
+            def fn(a: int, b: int, c: list[str]) -> tuple[int, str]:
+                return a + b, c[a:b]
+            gr.api(fn, api_name="add_and_slice")
+        _, url, _ = demo.launch()
+
+        from gradio_client import Client
+        client = Client(url)
+        result = client.predict(
+                a=3,
+                b=5,
+                c=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                api_name="/add_and_slice"
+        )
+        print(result)
     """
     if fn == "decorator":
 
