@@ -268,7 +268,8 @@ class Client:
                                 if resp["msg"] == ServerMessage.heartbeat:
                                     continue
                                 elif (
-                                    resp.get("message", "") == ServerMessage.server_stopped
+                                    resp.get("message", "")
+                                    == ServerMessage.server_stopped
                                 ):
                                     for (
                                         pending_messages
