@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import secrets
 import string
-from typing import Any
+from typing import Any, Union
 
 from gradio_client.documentation import document
 
@@ -61,9 +61,24 @@ class BrowserState(Component):
         Parameters:
             value: Value to store in local storage
         Returns:
-            Passes value through unchanged
+            Value converted to JSON-serializable format
         """
-        return value
+        return self.make_serializable(value)
+
+    def make_serializable(self, obj: Any) -> Union[dict, list, str, Any]:
+        if isinstance(obj, list):
+            return [self.make_serializable(item) for item in obj]
+        elif isinstance(obj, dict):
+            return {k: self.make_serializable(v) for k, v in obj.items()}
+        elif hasattr(obj, "get_config"):
+            try:
+                if hasattr(obj, "value"):
+                    return obj.value
+                else:
+                    return str(obj)
+            except Exception:
+                return str(obj)
+        return obj
 
     def api_info(self) -> dict[str, Any]:
         return {"type": {}, "description": "any json-serializable value"}
