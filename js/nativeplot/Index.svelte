@@ -2,6 +2,7 @@
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Block } from "@gradio/atoms";
+	import { FullscreenButton, IconButtonWrapper } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { onMount } from "svelte";
@@ -48,6 +49,9 @@
 	export let caption: string | null = null;
 	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
 	export let tooltip: "axis" | "none" | "all" | string[] = "axis";
+	export let show_fullscreen_button = false;
+	let fullscreen = false;
+
 	function reformat_sort(
 		_sort: typeof sort
 	):
@@ -539,6 +543,7 @@
 	allow_overflow={false}
 	padding={true}
 	{height}
+	bind:fullscreen
 >
 	{#if loading_status}
 		<StatusTracker
@@ -549,6 +554,17 @@
 		/>
 	{/if}
 	<BlockTitle {root} {show_label} info={undefined}>{label}</BlockTitle>
+	{#if show_fullscreen_button}
+		<IconButtonWrapper display_top_corner={true}>
+			<FullscreenButton
+				{fullscreen}
+				on:fullscreen={({ detail }) => {
+					fullscreen = detail;
+				}}
+			/>
+		</IconButtonWrapper>
+	{/if}
+
 	{#if value && is_browser}
 		<div bind:this={chart_element}></div>
 

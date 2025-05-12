@@ -27,10 +27,12 @@
 	export let i18n: I18nFormatter;
 	export let show_fullscreen_button = true;
 	export let display_icon_button_wrapper_top_corner = false;
+	export let fullscreen = false;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
 		select: SelectData;
+		fullscreen: boolean;
 	}>();
 
 	const handle_click = (evt: MouseEvent): void => {
@@ -56,7 +58,7 @@
 			display_top_corner={display_icon_button_wrapper_top_corner}
 		>
 			{#if show_fullscreen_button}
-				<FullscreenButton container={image_container} />
+				<FullscreenButton {fullscreen} on:fullscreen />
 			{/if}
 
 			{#if show_download_button}

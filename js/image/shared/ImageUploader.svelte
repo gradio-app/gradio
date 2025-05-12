@@ -42,6 +42,7 @@
 	let upload_input: Upload;
 	export let uploading = false;
 	export let active_source: source_type = null;
+	export let fullscreen = false;
 
 	async function handle_upload({
 		detail
@@ -140,7 +141,7 @@
 	<IconButtonWrapper>
 		{#if value?.url && !active_streaming}
 			{#if show_fullscreen_button}
-				<FullscreenButton container={image_container} />
+				<FullscreenButton {fullscreen} on:fullscreen />
 			{/if}
 			<IconButton
 				Icon={Clear}
