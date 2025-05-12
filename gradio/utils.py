@@ -1310,7 +1310,7 @@ def get_function_params(func: Callable) -> list[tuple[str, bool, Any, Any]]:
     params_info = []
     try:
         signature = inspect.signature(func)
-    except Exception:
+    except ValueError:
         signature = inspect.Signature()
     type_hints = get_type_hints(func)
     for name, parameter in signature.parameters.items():
