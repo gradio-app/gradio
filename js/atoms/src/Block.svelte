@@ -36,11 +36,6 @@
 			fullscreen = false;
 		}
 	}
-	async function handleClick(event: MouseEvent) {
-		if (fullscreen && event.target && !element.contains(event.target as Node)) {
-			fullscreen = false;
-		}
-	}
 
 	$: if (fullscreen !== old_fullscreen) {
 		old_fullscreen = fullscreen;
@@ -49,11 +44,9 @@
 			placeholder_height = element.offsetHeight;
 			placeholder_width = element.offsetWidth;
 			window.addEventListener("keydown", handleKeydown);
-			window.setTimeout(() => window.addEventListener("click", handleClick), 0);
 		} else {
 			preexpansionBoundingRect = null;
 			window.removeEventListener("keydown", handleKeydown);
-			window.removeEventListener("click", handleClick);
 		}
 	}
 
