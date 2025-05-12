@@ -123,8 +123,12 @@ export function load_translations(
 		return;
 	}
 
-	for (const lang in translations) {
-		addMessages(lang, translations[lang]);
+	try {
+		for (const lang in translations) {
+			addMessages(lang, translations[lang]);
+		}
+	} catch (e) {
+		console.error("Error loading translations:", e);
 	}
 }
 

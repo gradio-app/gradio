@@ -8,7 +8,7 @@
 	import { BlockTitle } from "@gradio/atoms";
 	import { Copy, Check, Send, Square } from "@gradio/icons";
 	import { fade } from "svelte/transition";
-	import { type SelectData, type CopyData } from "@gradio/utils";
+	import type { SelectData, CopyData } from "@gradio/utils";
 
 	export let value = "";
 	export let value_is_output = false;
