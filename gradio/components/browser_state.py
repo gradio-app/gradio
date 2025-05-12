@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import secrets
 import string
-from typing import Any, Union
+from typing import Any
 
 from gradio_client.documentation import document
 
@@ -65,7 +65,7 @@ class BrowserState(Component):
         """
         return self.make_serializable(value)
 
-    def make_serializable(self, obj: Any) -> Union[dict, list, str, Any]:
+    def make_serializable(self, obj: Any) -> dict | list | str:
         if isinstance(obj, list):
             return [self.make_serializable(item) for item in obj]
         elif isinstance(obj, dict):
@@ -74,8 +74,6 @@ class BrowserState(Component):
             try:
                 if hasattr(obj, "value"):
                     return obj.value
-                else:
-                    return str(obj)
             except Exception:
                 return str(obj)
         return obj
