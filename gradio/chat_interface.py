@@ -461,17 +461,13 @@ class ChatInterface(Blocks):
             title = title[:40] + "..."
         return title or "Conversation"
 
-    def make_serializable(self, obj: Any) -> dict | list | str:
+    def make_serializable(self, obj: Any) -> dict | list | Component:
         if isinstance(obj, list):
             return [self.make_serializable(item) for item in obj]
         elif isinstance(obj, dict):
             return {k: self.make_serializable(v) for k, v in obj.items()}
-        elif hasattr(obj, "get_config"):
-            try:
-                if hasattr(obj, "value"):
-                    return obj.value
-            except Exception:
-                return str(obj)
+        elif isinstance(obj, Component):
+            return obj.value
         return obj
 
     def _save_conversation(
