@@ -459,6 +459,7 @@ class Interface(Blocks):
         self.local_url = None
 
         self.favicon_path = None
+        self.i18n_instance = None
         Interface.instances.add(self)
 
         param_types = utils.get_type_hints(self.fn)
