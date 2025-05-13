@@ -190,17 +190,16 @@ export async function init_i18n(
 export async function setupi18n(
 	custom_translations?: Record<string, Record<string, string>>
 ): Promise<void> {
-	load_translations(processed_langs);
+	load_translations({
+		...processed_langs,
+		...(custom_translations ?? {})
+	});
 	const initial_locale = get_initial_locale(
 		getLocaleFromNavigator(),
 		available_locales
 	);
 
 	await init_i18n(initial_locale);
-
-	if (custom_translations) {
-		load_translations(custom_translations);
-	}
 }
 
 export function changeLocale(new_locale: string): void {
