@@ -208,10 +208,9 @@ class Block:
         Removes self from the layout and collection of blocks, but does not delete any event triggers.
         """
         root_context = get_blocks_context()
-        render_context = get_render_context()
-        if render_context is not None:
+        if self.parent is not None:
             try:
-                render_context.children.remove(self)
+                self.parent.children.remove(self)
             except ValueError:
                 pass
         if root_context is not None:

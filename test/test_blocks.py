@@ -1360,6 +1360,35 @@ class TestRender:
             ["Ask question", "Show question"],
         )
 
+    def test_unrender_in_different_blocks_context(self):
+        def count_key_value(obj, key, value):
+            """
+            Recursively count how many times `obj[key] == value` appears in a nested structure.
+            """
+            count = 0
+            if isinstance(obj, dict):
+                if obj.get(key) == value:
+                    count += 1
+                for v in obj.values():
+                    count += count_key_value(v, key, value)
+            elif isinstance(obj, list):
+                for item in obj:
+                    count += count_key_value(item, key, value)
+            return count
+
+        with gr.Blocks() as demo:
+            with gr.Row():
+                textbox = gr.Textbox()
+            with gr.Row():
+                textbox.unrender()
+            with gr.Row():
+                textbox.render()
+
+        # The textbox should be rendered only once
+        config = demo.get_config_file()
+        assert config and "layout" in config
+        assert count_key_value(config["layout"], "id", textbox._id) == 1
+
 
 class TestCancel:
     @pytest.mark.asyncio
