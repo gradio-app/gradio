@@ -255,39 +255,44 @@ class Client:
                     headers=self.headers,
                     cookies=self.cookies,
                 ) as response:
-                    for line in response.iter_lines():
-                        line = line.rstrip("\n")
-                        if not len(line):
-                            continue
-                        if line.startswith("data:"):
-                            resp = json.loads(line[5:])
-                            if resp["msg"] == ServerMessage.heartbeat:
+                    buffer = b""
+                    for chunk in response.iter_bytes():
+                        buffer += chunk
+                        while b"\n\n" in buffer:
+                            line, buffer = buffer.split(b"\n\n", 1)
+                            line = line.decode("utf-8").rstrip("\n")
+                            if not len(line):
                                 continue
-                            elif (
-                                resp.get("message", "") == ServerMessage.server_stopped
-                            ):
-                                for (
-                                    pending_messages
-                                ) in self.pending_messages_per_event.values():
-                                    pending_messages.append(resp)
-                                return
-                            elif resp["msg"] == ServerMessage.close_stream:
-                                self.stream_open = False
-                                return
-                            event_id = resp["event_id"]
-                            if event_id not in self.pending_messages_per_event:
-                                self.pending_messages_per_event[event_id] = []
-                            self.pending_messages_per_event[event_id].append(resp)
-                            if resp["msg"] == ServerMessage.process_completed:
-                                self.pending_event_ids.remove(event_id)
-                            if (
-                                len(self.pending_event_ids) == 0
-                                and protocol != "sse_v3"
-                            ):
-                                self.stream_open = False
-                                return
-                        else:
-                            raise ValueError(f"Unexpected SSE line: '{line}'")
+                            if line.startswith("data:"):
+                                resp = json.loads(line[5:])
+                                if resp["msg"] == ServerMessage.heartbeat:
+                                    continue
+                                elif (
+                                    resp.get("message", "")
+                                    == ServerMessage.server_stopped
+                                ):
+                                    for (
+                                        pending_messages
+                                    ) in self.pending_messages_per_event.values():
+                                        pending_messages.append(resp)
+                                    return
+                                elif resp["msg"] == ServerMessage.close_stream:
+                                    self.stream_open = False
+                                    return
+                                event_id = resp["event_id"]
+                                if event_id not in self.pending_messages_per_event:
+                                    self.pending_messages_per_event[event_id] = []
+                                self.pending_messages_per_event[event_id].append(resp)
+                                if resp["msg"] == ServerMessage.process_completed:
+                                    self.pending_event_ids.remove(event_id)
+                                if (
+                                    len(self.pending_event_ids) == 0
+                                    and protocol != "sse_v3"
+                                ):
+                                    self.stream_open = False
+                                    return
+                            else:
+                                raise ValueError(f"Unexpected SSE line: '{line}'")
         except BaseException as e:
             # If the job is cancelled the stream will close so we
             # should not raise this httpx exception that comes from the
@@ -1480,8 +1485,8 @@ class Job(Future):
     submitted by the Gradio client. This class is not meant to be instantiated directly, but rather
     is created by the Client.submit() method.
 
-    A Job object includes methods to get the status of the prediction call, as well to get the outputs of
-    the prediction call. Job objects are also iterable, and can be used in a loop to get the outputs
+    A Job object includes methods to get the status of the prediction call, as well to get the outputs
+    of the prediction call. Job objects are also iterable, and can be used in a loop to get the outputs
     of prediction calls as they become available for generator endpoints.
     """
 

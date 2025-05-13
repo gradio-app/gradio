@@ -1678,6 +1678,8 @@ class App(FastAPI):
                 raise HTTPException(status_code=404)
 
             favicon_path = blocks.favicon_path
+            if isinstance(favicon_path, Path):
+                favicon_path = str(favicon_path)
             if favicon_path is None:
                 icons = [
                     {
