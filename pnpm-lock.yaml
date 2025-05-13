@@ -1329,6 +1329,9 @@ importers:
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
+      '@gradio/textbox':
+        specifier: workspace:^
+        version: link:../textbox
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils

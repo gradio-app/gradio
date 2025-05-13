@@ -14,7 +14,7 @@ class DialogueLine(GradioModel):
 
 
 class DialogueModel(GradioRootModel):
-    root: list[DialogueLine]
+    root: list[DialogueLine] | str
 
 
 class Dialogue(Textbox):
@@ -117,16 +117,11 @@ class Dialogue(Textbox):
         )
 
     def preprocess(self, payload: DialogueModel) -> str:  # type: ignore
-        """
-        This docstring is used to generate the docs for this custom component.
-        Parameters:
-            payload: the data to be preprocessed, sent from the frontend
-        Returns:
-            the data after preprocessing, sent to the user's function in the backend
-        """
         formatter = self.formatter
         if not formatter:
             formatter = self.default_formatter
+        if isinstance(payload.root, str):
+            return payload.root
         return self.separator.join(
             [formatter(line.speaker, line.text) for line in payload.root]
         )
@@ -142,13 +137,6 @@ class Dialogue(Textbox):
         return self.preprocess(data)
 
     def postprocess(self, value):
-        """
-        This docstring is used to generate the docs for this custom component.
-        Parameters:
-            payload: the data to be postprocessed, sent from the user's function in the backend
-        Returns:
-            the data after postprocessing, sent to the frontend
-        """
         return value
 
     def as_example(self, value):

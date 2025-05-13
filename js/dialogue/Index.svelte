@@ -13,7 +13,7 @@
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import type { DialogueLine } from "./utils";
 	export let gradio: Gradio<{
-		change: DialogueLine[];
+		change: DialogueLine[] | string;
 		submit: never;
 		blur: never;
 		select: SelectData;
@@ -35,7 +35,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: DialogueLine[] = [];
+	export let value: DialogueLine[] | string = [];
 	export let show_label: boolean;
 	export let max_lines: number | undefined = undefined;
 	export let container = true;

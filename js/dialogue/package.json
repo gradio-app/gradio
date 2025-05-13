@@ -25,7 +25,8 @@
 		"@gradio/icons": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/dropdown": "workspace:^"
+		"@gradio/dropdown": "workspace:^",
+		"@gradio/textbox": "workspace:^"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"

@@ -6,10 +6,12 @@
 	import { BaseDropdown, BaseDropdownOptions } from "@gradio/dropdown";
 	import type { SelectData, CopyData } from "@gradio/utils";
 	import type { DialogueLine } from "./utils";
+	import { BaseTextbox } from "@gradio/textbox";
+	import Switch from "./Switch.svelte";
 
 	export let speakers: string[] = [];
 	export let emotions: string[] = [];
-	export let value: DialogueLine[] = [];
+	export let value: DialogueLine[] | string = [];
 	export let value_is_output = false;
 	export let placeholder = "Type here...";
 	export let label: string;
@@ -21,6 +23,7 @@
 	export let show_copy_button = false;
 	export let root: string;
 	export let show_submit_button = true;
+	let checked = false;
 
 	export let server: {
 		format: (body: DialogueLine[]) => Promise<string>;
@@ -194,9 +197,10 @@
 
 	let copied = false;
 	let timer: any;
+	let textbox_value = "";
 
 	const dispatch = createEventDispatcher<{
-		change: DialogueLine[];
+		change: DialogueLine[] | string;
 		submit: undefined;
 		blur: undefined;
 		select: SelectData;
@@ -217,6 +221,9 @@
 		if (JSON.stringify(value) !== old_value) {
 			handle_change();
 			old_value = JSON.stringify(value);
+			value_to_string(value).then((result) => {
+				textbox_value = result;
+			});
 		}
 	}
 
@@ -226,12 +233,26 @@
 	$: if (JSON.stringify(value) !== old_value) {
 		handle_change();
 		old_value = JSON.stringify(value);
-		dialogue_lines = [...value];
+		if (typeof value !== "string") {
+			dialogue_lines = [...value];
+			value_to_string(value).then((result) => {
+				textbox_value = result;
+			});
+		}
+	}
+
+	async function value_to_string(
+		value: DialogueLine[] | string
+	): Promise<string> {
+		if (typeof value === "string") {
+			return value;
+		}
+		return await server.format(value);
 	}
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
-			const text = await server.format(value);
+			const text = await value_to_string(value);
 			await navigator.clipboard.writeText(text);
 			dispatch("copy", { value: text });
 			copy_feedback();
@@ -247,6 +268,9 @@
 	}
 
 	function handle_submit(): void {
+		if (checked) {
+			value = textbox_value;
+		}
 		dispatch("submit");
 	}
 </script>
@@ -274,93 +298,110 @@
 
 	<!-- svelte-ignore missing-declaration -->
 	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
-
-	<div class="dialogue-container" bind:this={dialogue_container_element}>
-		{#each dialogue_lines as line, i}
-			<div class="dialogue-line">
-				<div class="speaker-column">
-					<BaseDropdown
-						bind:value={line.speaker}
-						on:change={() => update_line(i, "speaker", line.speaker)}
-						{disabled}
-						choices={speakers.map((s) => [s, s])}
-						show_label={false}
-						container={true}
-						root={""}
-						label={""}
-					/>
-				</div>
-				<div class="text-column">
-					<div class="input-container">
-						<input
-							type="text"
-							bind:value={line.text}
-							{placeholder}
+	{#if !checked}
+		<div class="dialogue-container" bind:this={dialogue_container_element}>
+			{#each dialogue_lines as line, i}
+				<div class="dialogue-line">
+					<div class="speaker-column">
+						<BaseDropdown
+							bind:value={line.speaker}
+							on:change={() => update_line(i, "speaker", line.speaker)}
 							{disabled}
-							on:input={(event) => handle_input(event, i)}
-							on:focus={(event) => handle_input(event, i)}
-							on:keydown={(event) => {
-								if (event.key === "Escape" && showEmotionMenu) {
-									showEmotionMenu = false;
-									event.preventDefault();
-								}
-							}}
-							bind:this={input_elements[i]}
+							choices={speakers.map((s) => [s, s])}
+							show_label={false}
+							container={true}
+							root={""}
+							label={""}
 						/>
 					</div>
+					<div class="text-column">
+						<div class="input-container">
+							<input
+								type="text"
+								bind:value={line.text}
+								{placeholder}
+								{disabled}
+								on:input={(event) => handle_input(event, i)}
+								on:focus={(event) => handle_input(event, i)}
+								on:keydown={(event) => {
+									if (event.key === "Escape" && showEmotionMenu) {
+										showEmotionMenu = false;
+										event.preventDefault();
+									}
+								}}
+								bind:this={input_elements[i]}
+							/>
+						</div>
+					</div>
+					{#if max_lines == undefined || (max_lines && i < max_lines - 1)}
+						<div class:action-column={i == 0}>
+							<button
+								class="add-button"
+								on:click={() => add_line(i)}
+								aria-label="Add new line"
+								{disabled}
+							>
+								<Plus />
+							</button>
+						</div>
+					{/if}
+					{#if i > 0}
+						<div class="action-column">
+							<button
+								class="delete-button"
+								on:click={() => delete_line(i)}
+								aria-label="Remove current line"
+								{disabled}
+							>
+								<Trash />
+							</button>
+						</div>
+					{/if}
 				</div>
-				{#if max_lines == undefined || (max_lines && i < max_lines - 1)}
-					<div class:action-column={i == 0}>
-						<button
-							class="add-button"
-							on:click={() => add_line(i)}
-							aria-label="Add new line"
-							{disabled}
-						>
-							<Plus />
-						</button>
-					</div>
-				{/if}
-				{#if i > 0}
-					<div class="action-column">
-						<button
-							class="delete-button"
-							on:click={() => delete_line(i)}
-							aria-label="Remove current line"
-							{disabled}
-						>
-							<Trash />
-						</button>
-					</div>
-				{/if}
-			</div>
-		{/each}
+			{/each}
 
-		{#if showEmotionMenu}
-			<div
-				id="emotion-menu"
-				class="emotion-menu"
-				transition:fade={{ duration: 100 }}
-			>
-				<BaseDropdownOptions
-					choices={emotions.map((s, i) => [s, i])}
-					filtered_indices={filtered_emotions.map((s) => emotions.indexOf(s))}
-					show_options={true}
-					on:change={(e) => insert_emotion(e)}
-					{offset_from_top}
-					from_top={true}
-				/>
+			{#if showEmotionMenu}
+				<div
+					id="emotion-menu"
+					class="emotion-menu"
+					transition:fade={{ duration: 100 }}
+				>
+					<BaseDropdownOptions
+						choices={emotions.map((s, i) => [s, i])}
+						filtered_indices={filtered_emotions.map((s) => emotions.indexOf(s))}
+						show_options={true}
+						on:change={(e) => insert_emotion(e)}
+						{offset_from_top}
+						from_top={true}
+					/>
+				</div>
+			{/if}
+		</div>
+	{:else}
+		<BaseTextbox
+			bind:value={textbox_value}
+			lines={5}
+			show_label={false}
+			{value_is_output}
+			{disabled}
+			{root}
+			{label}
+		/>
+	{/if}
+
+	<div class="controls-row">
+		<div class="switch-container">
+			<Switch label="Plain Text" bind:checked {disabled} />
+		</div>
+
+		{#if show_submit_button}
+			<div class="submit-container">
+				<button class="submit-button" on:click={handle_submit} {disabled}>
+					<Send />
+				</button>
 			</div>
 		{/if}
 	</div>
-
-	{#if show_submit_button}
-		<div class="submit-container">
-			<button class="submit-button" on:click={handle_submit} {disabled}>
-				<Send />
-			</button>
-		</div>
-	{/if}
 </label>
 
 <style>
@@ -455,9 +496,26 @@
 		color: var(--color-accent);
 	}
 
+	.controls-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: var(--spacing-sm);
+		margin-top: var(--spacing-sm);
+	}
+
+	.switch-container {
+		display: flex;
+		justify-content: flex-start;
+	}
+
 	.submit-container {
 		display: flex;
 		justify-content: flex-end;
+	}
+
+	.submit-container button[disabled] {
+		cursor: not-allowed;
 	}
 
 	.submit-button {
