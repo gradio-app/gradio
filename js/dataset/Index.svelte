@@ -204,7 +204,10 @@
 							on:click={() => {
 								value = i + page * samples_per_page;
 								gradio.dispatch("click", value);
-								gradio.dispatch("select", { index: value, value: selected_samples[i] });
+								gradio.dispatch("select", {
+									index: value,
+									value: selected_samples[i]
+								});
 							}}
 							on:mouseenter={() => handle_mouseenter(i)}
 							on:mouseleave={() => handle_mouseleave()}
