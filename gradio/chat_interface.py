@@ -518,6 +518,7 @@ class ChatInterface(Blocks):
             Chatbot(
                 value=conversations[index],  # type: ignore
                 feedback_value=[],
+                type="messages",
             ),
         )
 
