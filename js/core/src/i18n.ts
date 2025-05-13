@@ -132,13 +132,6 @@ export function load_translations(
 	}
 }
 
-export function get_init_state(): boolean {
-	return _i18n_initialized;
-}
-export function set_init_state(state: boolean): void {
-	_i18n_initialized = state;
-}
-
 export function get_initial_locale(
 	browser_locale: string | null,
 	available_locales: string[],
@@ -157,8 +150,6 @@ export function get_initial_locale(
 
 	return fallback_locale;
 }
-
-let _i18n_initialized = false;
 
 export async function init_i18n(
 	initial_locale: string,
@@ -179,20 +170,17 @@ export async function init_i18n(
 export async function setupi18n(
 	custom_translations?: Record<string, Record<string, string>>
 ): Promise<void> {
-	if (get_init_state()) return;
-
 	load_translations(processed_langs);
 	const initial_locale = get_initial_locale(
 		getLocaleFromNavigator(),
 		available_locales
 	);
+
 	await init_i18n(initial_locale);
 
 	if (custom_translations) {
 		load_translations(custom_translations);
 	}
-
-	set_init_state(true);
 }
 
 export function changeLocale(new_locale: string): void {
