@@ -66,15 +66,16 @@ interface BgImageCommand extends Command {
 	 * Initial setup for the bg command
 	 * @returns
 	 */
-	start: () => Promise<[number, number]>;
+	start: () => Promise<void>;
 }
 
 export class AddImageCommand implements BgImageCommand {
-	sprite: Sprite;
+	sprite: Sprite | null = null;
 	fixed_canvas: boolean;
 	context: ImageEditorContext;
 	background: Blob | File | Texture;
 	current_canvas_size: { width: number; height: number };
+	computed_dimensions: { width: number; height: number };
 	current_scale: number;
 	current_position: { x: number; y: number };
 	border_region: number;
@@ -95,10 +96,11 @@ export class AddImageCommand implements BgImageCommand {
 		this.current_canvas_size = get(this.context.dimensions);
 		this.current_scale = get(this.context.scale);
 		this.current_position = get(this.context.position);
-		this.sprite = new Sprite();
+
+		this.computed_dimensions = { width: 0, height: 0 };
 	}
 
-	async start(): Promise<[number, number]> {
+	async start(): Promise<void> {
 		// Create the sprite from the blob
 		let image_texture: Texture;
 		if (this.background instanceof Texture) {
@@ -110,10 +112,14 @@ export class AddImageCommand implements BgImageCommand {
 
 		this.sprite = new Sprite(image_texture);
 
-		return this.handle_image();
+		const [width, height] = this.handle_image();
+		this.computed_dimensions = { width, height };
 	}
 
 	private handle_image(): [number, number] {
+		if (this.sprite === null) {
+			return [0, 0];
+		}
 		// Handle fixed canvas differently when border region is present
 		if (this.fixed_canvas) {
 			// Calculate the effective canvas size accounting for border region
@@ -158,7 +164,17 @@ export class AddImageCommand implements BgImageCommand {
 
 	async execute(): Promise<void> {
 		// First ensure we have run start() to create the sprite and get dimensions
-		const [width, height] = await this.start();
+		// if (this.sprite === null) {
+		await this.start();
+		// }
+
+		if (this.sprite === null) {
+			return;
+		}
+
+		console.log(this.computed_dimensions, this.sprite);
+
+		const { width, height } = this.computed_dimensions;
 
 		// Update image properties with the original dimensions and center in viewport
 		await this.context.set_image_properties({
@@ -194,6 +210,28 @@ export class AddImageCommand implements BgImageCommand {
 	async undo(): Promise<void> {
 		if (this.sprite) {
 			this.sprite.destroy();
+
+			await this.context.set_image_properties({
+				scale: 1, // Start at 1:1 scale
+				position: {
+					x: this.context.app.screen.width / 2,
+					y: this.context.app.screen.height / 2
+				},
+				width: this.current_canvas_size.width,
+				height: this.current_canvas_size.height
+			});
+
+			this.context.layer_manager.create_background_layer(
+				this.current_canvas_size.width,
+				this.current_canvas_size.height
+			);
+
+			this.context.layer_manager.reset_layers(
+				this.current_canvas_size.width,
+				this.current_canvas_size.height
+			);
+
+			this.context.reset();
 		}
 	}
 }

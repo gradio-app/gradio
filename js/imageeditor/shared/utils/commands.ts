@@ -34,141 +34,120 @@ export interface Command {
 /**
  * Command manager interface that handles the undo/redo history
  */
-export interface CommandManager {
-	/**
-	 * Undo the last command
-	 */
-	undo(): void;
-	/**
-	 * Redo the last undone command
-	 */
-	redo(): void;
-	/**
-	 * Execute a command and add it to the history
-	 * @param command command to execute
-	 */
-	execute(command: Command): void;
-	/**
-	 * Whether or not there are commands that can be undone
-	 * Observable store that you can subscribe to for updates
-	 */
-	readonly can_undo: Writable<boolean>;
-	/**
-	 * Whether or not there are commands that can be redone
-	 * Observable store that you can subscribe to for updates
-	 */
-	readonly can_redo: Writable<boolean>;
-	/**
-	 * Resets the history
-	 */
-	reset(): void;
-	/**
-	 * The current history node
-	 * Observable store that you can subscribe to for updates
-	 */
-	readonly current_history: Writable<CommandNode>;
-	/**
-	 * Hydrates the command manager with a full history
-	 * @param full_history the full history to hydrate with
-	 */
-	hydrate(full_history: CommandNode): void;
-}
-
-/**
- * Command node interface that is used to create the undo/redo history
- */
-export interface CommandNode {
-	/**
-	 * Command that the node holds
-	 */
-	command: Command | null;
-	/**
-	 * Next command in the history
-	 */
-	next: CommandNode | null;
-	/**
-	 * Previous command in the history
-	 */
-	previous: CommandNode | null;
-	/**
-	 * Push a command onto the history
-	 * @param command command to push onto the history
-	 */
-	push(command: Command): void;
-}
+// export interface CommandManager {
+// 	/**
+// 	 * Undo the last command
+// 	 */
+// 	undo(): void;
+// 	/**
+// 	 * Redo the last undone command
+// 	 */
+// 	redo(): void;
+// 	/**
+// 	 * Execute a command and add it to the history
+// 	 * @param command command to execute
+// 	 */
+// 	execute(command: Command): void;
+// 	/**
+// 	 * Whether or not there are commands that can be undone
+// 	 * Observable store that you can subscribe to for updates
+// 	 */
+// 	readonly can_undo: Writable<boolean>;
+// 	/**
+// 	 * Whether or not there are commands that can be redone
+// 	 * Observable store that you can subscribe to for updates
+// 	 */
+// 	readonly can_redo: Writable<boolean>;
+// 	/**
+// 	 * Resets the history
+// 	 */
+// 	reset(): void;
+// 	/**
+// 	 * The current history node
+// 	 * Observable store that you can subscribe to for updates
+// 	 */
+// 	readonly current_history: Writable<CommandNode>;
+// 	/**
+// 	 * Hydrates the command manager with a full history
+// 	 * @param full_history the full history to hydrate with
+// 	 */
+// 	hydrate(full_history: CommandNode): void;
+// }
 
 /**
  * Creates a command node
  * @param command command to add to the node
  * @returns a command node
  */
-function command_node(command?: Command): CommandNode {
-	return {
-		command: command || null,
-		next: null,
-		previous: null,
-		push: function (command: Command) {
-			const node = command_node(command);
-			node.previous = this;
-			this.next = node;
-		}
-	};
+export class CommandNode {
+	command: Command | null;
+	next: CommandNode | null;
+	previous: CommandNode | null;
+
+	constructor(command?: Command) {
+		this.command = command || null;
+		this.next = null;
+		this.previous = null;
+	}
+
+	push(command: Command): void {
+		const node = new CommandNode(command);
+		node.previous = this;
+		this.next = node;
+	}
 }
 
 /**
  * Creates a command manager
  * @returns a command manager
  */
-export function command_manager(): CommandManager {
-	let history: CommandNode = command_node();
-	const can_undo = writable(false);
-	const can_redo = writable(false);
-	const current_history = writable(history);
-	return {
-		undo: function () {
-			if (history.previous) {
-				history.command?.undo();
-				history = history.previous;
-			}
-			can_undo.set(!!history.previous);
-			can_redo.set(!!history.next);
-			current_history.set(history);
-		},
-		redo: function () {
-			if (history.next) {
-				history.next.command?.execute();
-				history = history.next;
-			}
+export class CommandManager {
+	history: CommandNode = new CommandNode();
 
-			can_undo.set(!!history.previous);
-			can_redo.set(!!history.next);
-			current_history.set(history);
-		},
-		execute: function (command: Command) {
-			command.execute();
-			history.push(command);
-			history = history.next!;
-			can_undo.set(!!history.previous);
-			can_redo.set(!!history.next);
-			current_history.set(history);
-		},
-		hydrate: function (full_history: CommandNode) {
-			setTimeout(() => {
-				while (full_history.next) {
-					this.execute(full_history.next.command!);
-					full_history = full_history.next;
-				}
-			}, 1000);
-		},
-		can_undo,
-		can_redo,
-		current_history,
+	current_history = writable(this.history);
 
-		reset: function () {
-			history = command_node();
-			can_undo.set(false);
-			can_redo.set(false);
-			current_history.set(history);
+	undo(): void {
+		if (this.history.previous) {
+			this.history.command?.undo();
+			this.history = this.history.previous;
+
+			this.current_history.set(this.history);
 		}
-	};
+	}
+	redo(): void {
+		if (this.history.next) {
+			console.log(
+				"redo",
+				!!this.history.next,
+				this.history.next,
+				this.history.command
+			);
+			this.history.next.command?.execute();
+			this.history = this.history.next;
+		}
+
+		this.current_history.set(this.history);
+	}
+
+	execute(command: Command): void {
+		command.execute();
+		this.history.push(command);
+		this.history = this.history.next!;
+
+		this.current_history.set(this.history);
+	}
+	hydrate(full_history: CommandNode): void {
+		setTimeout(() => {
+			while (full_history.next) {
+				this.execute(full_history.next.command!);
+				full_history = full_history.next;
+			}
+		}, 1000);
+	}
+
+	reset(): void {
+		this.history = new CommandNode();
+
+		this.current_history.set(this.history);
+	}
 }

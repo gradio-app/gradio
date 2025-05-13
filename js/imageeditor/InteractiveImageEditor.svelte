@@ -138,7 +138,7 @@
 	$: handle_value({ layers, composite, background });
 
 	let background_image = false;
-	let history = false;
+	let can_undo: boolean;
 
 	export let image_id: null | string = null;
 
@@ -206,6 +206,8 @@
 	$: [heading, paragraph] = placeholder ? inject(placeholder) : [false, false];
 
 	let current_tool: ToolbarTool;
+
+	$: console.log({can_undo, background_image, current_tool})
 </script>
 
 <BlockLabel
@@ -243,8 +245,9 @@
 	{webcam_options}
 	{show_download_button}
 	{theme_mode}
+	bind:can_undo
 >
-	{#if !background_image && current_tool === "image" && !has_drawn}
+	{#if  current_tool === "image" && !can_undo}
 		<div class="empty wrap">
 			{#if sources && sources.length}
 				{#if heading || paragraph}

@@ -172,6 +172,7 @@
 				await editor.add_layers_from_url(source.map((item) => item.url));
 				dispatch("change");
 				dispatch("input");
+				
 			} catch (error) {
 				console.error("Error adding layer from URL:", error);
 			}
@@ -249,6 +250,8 @@
 
 	let crop: ImageEditor;
 	let crop_zoom: ZoomTool;
+	export let can_undo = false;
+	let can_redo = false;
 	async function init_image_editor(): Promise<void> {
 		brush = new BrushTool();
 		zoom = new ZoomTool();
@@ -262,6 +265,10 @@
 			layer_options,
 			theme_mode
 		});
+
+		console.log("editor", editor);
+
+		
 
 		brush.on("change", () => {
 			has_drawn = true;
@@ -279,6 +286,8 @@
 			border_region: 0,
 			pad_bottom: 40
 		});
+
+		
 
 		editor.scale.subscribe((_scale) => {
 			zoom_level = _scale;
@@ -306,6 +315,9 @@
 
 		editor.on("change", () => {
 			dispatch("change");
+			console.log("editor.command_manager.history", editor.command_manager.history);
+			can_undo = editor.command_manager.history.previous !== null;
+			can_redo = editor.command_manager.history.next !== null;
 		});
 
 		if (background || layers.length > 0) {
@@ -320,6 +332,8 @@
 			await add_image_from_url(composite);
 			handle_tool_change({ tool: "draw" });
 		}
+
+		
 	}
 
 	$: if (
@@ -364,6 +378,8 @@
 		dispatch("upload");
 		dispatch("input");
 		dispatch("change");
+		can_undo = editor.command_manager.history.previous !== null;
+		can_redo = editor.command_manager.history.next !== null;
 	}
 
 	/**
@@ -583,6 +599,18 @@
 		link.click();
 		URL.revokeObjectURL(url);
 	}
+
+	function handle_undo(): void {
+		editor.undo();
+		can_undo = editor.command_manager.history.previous !== null;
+		can_redo = editor.command_manager.history.next !== null;
+	}
+
+	function handle_redo(): void {
+		editor.redo();
+		can_undo = editor.command_manager.history.previous !== null;
+		can_redo = editor.command_manager.history.next !== null;
+	}
 </script>
 
 <div
@@ -622,6 +650,10 @@
 				}}
 				enable_download={show_download_button}
 				on:download={() => handle_download()}
+				can_undo={can_undo}
+				can_redo={can_redo}
+				on:undo={handle_undo}
+				on:redo={handle_redo}
 			/>
 		{/if}
 

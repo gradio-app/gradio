@@ -28,6 +28,7 @@ import { type ImageBlobs, type LayerOptions } from "../types";
 import { get_canvas_blob } from "../utils/pixi";
 import type { BrushTool } from "../brush/brush";
 import type { CropTool } from "../crop/crop";
+import { CommandManager } from "../utils/commands";
 export interface Command {
 	execute: () => Promise<void>;
 	undo: () => Promise<void>;
@@ -44,33 +45,6 @@ export interface Tool {
 	set_tool(tool: ToolbarTool, subtool: Subtool): void;
 	on?: (event: string, callback: () => void) => void;
 	off?: (event: string, callback: () => void) => void;
-}
-
-export class CommandManager {
-	private undo_stack: Command[] = [];
-	private redo_stack: Command[] = [];
-
-	async execute(command: Command): Promise<void> {
-		await command.execute();
-		this.undo_stack.push(command);
-		this.redo_stack = []; // Clear redo stack when new command is executed
-	}
-
-	async undo(): Promise<void> {
-		const command = this.undo_stack.pop();
-		if (command) {
-			await command.undo();
-			this.redo_stack.push(command);
-		}
-	}
-
-	async redo(): Promise<void> {
-		const command = this.redo_stack.pop();
-		if (command) {
-			await command.execute();
-			this.undo_stack.push(command);
-		}
-	}
 }
 
 export class LayerManager {
@@ -1063,7 +1037,8 @@ export class ImageEditor {
 	private app!: Application;
 	private ui_container!: Container;
 	private image_container!: Container;
-	private command_manager: CommandManager;
+	command_manager: CommandManager;
+
 	private layer_manager!: LayerManager;
 	private tools: Map<string, Tool> = new Map<string, Tool>();
 	private current_tool!: ToolbarTool;
@@ -1114,6 +1089,7 @@ export class ImageEditor {
 		this.width = options.width;
 		this.height = options.height;
 		this.command_manager = new CommandManager();
+
 		this.ready = new Promise((resolve) => {
 			this.ready_resolve = resolve;
 		});
@@ -1464,6 +1440,12 @@ export class ImageEditor {
 			zoom.cleanup();
 			zoom.setup(this.context, this.current_tool, this.current_subtool);
 		}
+
+		const brush = this.tools.get("brush") as BrushTool;
+
+		if (brush) {
+			this.set_tool("draw");
+		}
 	}
 
 	async set_image_properties(properties: {
@@ -1510,6 +1492,7 @@ export class ImageEditor {
 	}
 
 	redo(): void {
+		console.log("redo", this.command_manager.history);
 		this.command_manager.redo();
 		this.notify("change");
 	}
