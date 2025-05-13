@@ -9,12 +9,12 @@ from typing import Any
 
 from gradio_client.documentation import document
 
-from gradio.components.base import Component
+from gradio.components.base import FormComponent
 from gradio.events import Events
 
 
 @document()
-class State(Component):
+class State(FormComponent):  # We subclass FormComponent to prevent it from breaking the grouping of form components, see: https://github.com/gradio-app/gradio/issues/10330
     EVENTS = [Events.change]
     """
     Special hidden component that stores session state across runs of the demo by the
