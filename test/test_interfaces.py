@@ -28,6 +28,7 @@ def captured_output():
 
 
 class TestInterface:
+    @pytest.mark.serial
     def test_close(self):
         io = Interface(lambda input: None, "textbox", "label")
         _, local_url, _ = io.launch(prevent_thread_lock=True)

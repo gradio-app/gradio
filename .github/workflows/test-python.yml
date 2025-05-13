@@ -80,4 +80,3 @@ jobs:
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}
           python -m pytest -m "${{ matrix.test-type }} and serial"
-  
