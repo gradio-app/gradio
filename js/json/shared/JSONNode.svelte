@@ -9,10 +9,11 @@
 	export let open = false;
 	export let theme_mode: "system" | "light" | "dark" = "system";
 	export let show_indices = false;
+	export let interactive = true;
 
 	const dispatch = createEventDispatcher();
 	let root_element: HTMLElement;
-	let collapsed = open ? depth >= 3 : true;
+	let collapsed = open ? false : depth >= 3;
 	let child_nodes: any[] = [];
 
 	function is_collapsible(val: any): boolean {
@@ -85,6 +86,7 @@
 					data-pseudo-content={collapsed ? "▶" : "▼"}
 					aria-label={collapsed ? "Expand" : "Collapse"}
 					class="toggle"
+					disabled={!interactive}
 					on:click={toggle_collapse}
 				/>
 			{/if}

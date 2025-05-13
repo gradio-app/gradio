@@ -46,7 +46,7 @@ class JSON(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        open: bool = True,
+        open: bool = False,
         show_indices: bool = False,
         height: int | str | None = None,
         max_height: int | str | None = 500,

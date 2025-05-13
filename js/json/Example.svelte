@@ -2,7 +2,6 @@
 	import JSON from "./shared/JSON.svelte";
 
 	export let value: any;
-	let open = false;
 	export let theme_mode: "system" | "light" | "dark" = "system";
 	let show_indices = false;
 	let label_height = 0;
@@ -18,7 +17,15 @@
 	class:border={value}
 >
 	{#if value}
-		<JSON {value} {open} {theme_mode} {show_indices} {label_height} />
+		<JSON
+			{value}
+			open={true}
+			{theme_mode}
+			{show_indices}
+			{label_height}
+			interactive={false}
+			show_copy_button={false}
+		/>
 	{/if}
 </div>
 
@@ -41,6 +48,8 @@
 		overflow: hidden;
 		width: 100%;
 		height: 100%;
+		max-width: var(--size-40);
+		max-height: var(--size-20);
 		object-fit: cover;
 	}
 
@@ -48,5 +57,8 @@
 		width: 100%;
 		max-width: 100%;
 		object-fit: cover;
+		max-width: var(--size-40);
+		max-height: var(--size-20);
+		overflow: hidden;
 	}
 </style>
