@@ -27,7 +27,7 @@ class TestJSON:
             "name": "json",
             "proxy_url": None,
             "_selectable": False,
-            "open": False,
+            "open": True,
             "key": None,
             "show_indices": False,
             "max_height": 500,
