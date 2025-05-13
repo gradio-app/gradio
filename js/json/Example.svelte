@@ -39,7 +39,7 @@
 		border-color: var(--border-color-accent);
 	}
 	.border.table {
-		border: 2px solid var(--border-color-primary);
+		border: 1px solid var(--border-color-primary);
 	}
 
 	.container.table {

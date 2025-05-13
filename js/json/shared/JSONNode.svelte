@@ -83,7 +83,7 @@
 		<span class="content">
 			{#if is_collapsible(value)}
 				<button
-					data-pseudo-content={collapsed ? "▶" : "▼"}
+					data-pseudo-content={interactive ? (collapsed ? "▶" : "▼") : ""}
 					aria-label={collapsed ? "Expand" : "Collapse"}
 					class="toggle"
 					disabled={!interactive}
