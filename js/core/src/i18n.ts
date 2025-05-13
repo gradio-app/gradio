@@ -56,17 +56,19 @@ export function translate_if_needed(value: string): string {
 		return value;
 	}
 
-	const match = value.match(/^__i18n__(.+)$/);
-	if (!match) {
+	// skip if the string doesn't start with __i18n__
+	if (!value.startsWith("__i18n__")) {
 		return value;
 	}
 
 	try {
-		const metadataJson = match[1];
+		// remove the __i18n__ prefix
+		const metadataJson = value.substring(8);
 		const metadata = JSON.parse(metadataJson);
 
 		if (metadata && metadata.key) {
-			return formatter(metadata.key);
+			const translated = formatter(metadata.key);
+			return translated;
 		}
 
 		return value;
@@ -76,46 +78,137 @@ export function translate_if_needed(value: string): string {
 	}
 }
 
-// recursively processes objects and arrays to translate any i18n-marked strings while preserving object structure
-export function process_i18n_obj(obj: any): any {
-	if (obj == null || typeof obj !== "object") {
-		return typeof obj === "string" ? translate_if_needed(obj) : obj;
-	}
-
-	if (
+// helper function to check if an object is a special non-traversable type
+function is_special_object(obj: any): boolean {
+	return (
 		obj instanceof Map ||
 		obj instanceof Set ||
 		obj instanceof Date ||
 		obj instanceof RegExp ||
 		obj instanceof Promise ||
+		// DOM and browser-specific objects
+		(typeof window !== "undefined" &&
+			(obj instanceof Node ||
+				obj instanceof Window ||
+				obj instanceof CSSStyleSheet ||
+				obj instanceof StyleSheet ||
+				obj instanceof HTMLElement ||
+				obj instanceof EventTarget)) ||
+		// objects with methods that suggest they're special types
 		(typeof obj.get === "function" && typeof obj.set === "function") || // Map-like
 		(typeof obj.add === "function" && typeof obj.has === "function") || // Set-like
 		(typeof obj.then === "function" && typeof obj.catch === "function") // Promise-like
-	) {
+	);
+}
+
+function is_plain_object(obj: any): boolean {
+	if (obj === null || typeof obj !== "object") return false;
+
+	if (typeof window !== "undefined") {
+		if (obj instanceof Node || obj instanceof Window) return false;
+	}
+
+	if (Object.getPrototypeOf(obj) !== Object.prototype) return false;
+
+	return true;
+}
+
+function process_array(
+	arr: any[],
+	processedObjects: WeakMap<object, any>
+): any[] {
+	const result: any[] = [];
+
+	processedObjects.set(arr, result);
+	for (let i = 0; i < arr.length; i++) {
+		result[i] = process_i18n_obj(arr[i], processedObjects);
+	}
+	return result;
+}
+
+function process_object(
+	obj: any,
+	processedObjects: WeakMap<object, any>
+): Record<string, any> {
+	const result: Record<string, any> = {};
+
+	try {
+		processedObjects.set(obj, result);
+
+		const skipProps = ["gradio", "parent", "__proto__", "constructor"];
+
+		const keys = Object.keys(obj);
+
+		for (const key of keys) {
+			try {
+				if (skipProps.includes(key)) {
+					result[key] = obj[key];
+					continue;
+				}
+
+				const value = obj[key];
+
+				if (typeof value === "function") {
+					result[key] = value;
+				} else {
+					result[key] = process_i18n_obj(value, processedObjects);
+				}
+			} catch (propertyError) {
+				try {
+					result[key] = obj[key];
+				} catch (e) {}
+			}
+		}
+	} catch (e) {
 		return obj;
 	}
 
-	if (Array.isArray(obj)) {
-		return obj.map(process_i18n_obj);
-	}
-
-	const result: Record<string, any> = {};
-	const skipProps = ["gradio", "parent", "__proto__", "constructor"];
-
-	for (const key in obj) {
-		if (skipProps.includes(key)) {
-			result[key] = obj[key];
-			continue;
-		}
-
-		if (typeof obj[key] === "function") {
-			result[key] = obj[key];
-		} else {
-			result[key] = process_i18n_obj(obj[key]);
-		}
-	}
-
 	return result;
+}
+
+// recursively processes objects and arrays to translate any i18n-marked strings while preserving object structure
+export function process_i18n_obj(
+	obj: any,
+	processedObjects = new WeakMap()
+): any {
+	// Base case - prevent deep recursion
+	if (obj == null) {
+		return obj;
+	}
+
+	// Handle primitive types - only strings need translation
+	if (typeof obj !== "object") {
+		return typeof obj === "string" ? translate_if_needed(obj) : obj;
+	}
+
+	// Try-catch to handle potential DOM/browser errors
+	try {
+		// Check if we've already processed this object (handles circular references)
+		if (processedObjects.has(obj)) {
+			return processedObjects.get(obj);
+		}
+	} catch (e) {
+		// If we can't check the WeakMap (e.g., for certain DOM objects), return the object as is
+		return obj;
+	}
+
+	// Early return for non-traversable objects
+	if (is_special_object(obj)) {
+		return obj;
+	}
+
+	// Handle arrays
+	if (Array.isArray(obj)) {
+		return process_array(obj, processedObjects);
+	}
+
+	// Safely check if it's a plain object before processing
+	if (!is_plain_object(obj)) {
+		return obj;
+	}
+
+	// Handle objects
+	return process_object(obj, processedObjects);
 }
 
 export function process_langs(): LangsRecord {
