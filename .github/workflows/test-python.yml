@@ -75,4 +75,4 @@ jobs:
       - name: Run tests
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}
-          python -m pytest -m "${{ matrix.test-type }}"
+          python -m pytest -n auto -m "${{ matrix.test-type }}"
