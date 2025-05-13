@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:#11181 Avoid unchecked pop from `blob_storage` cache in `ImageEditor::preprocess`
+fix:#11056 Avoid unchecked pop from `blob_storage` cache in `ImageEditor::preprocess`
