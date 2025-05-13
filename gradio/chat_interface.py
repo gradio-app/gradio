@@ -12,7 +12,7 @@ import os
 import warnings
 from collections.abc import AsyncGenerator, Callable, Generator, Sequence
 from pathlib import Path
-from typing import Literal, Union, cast
+from typing import Any, Literal, Union, cast
 
 import anyio
 from gradio_client.documentation import document
@@ -461,6 +461,19 @@ class ChatInterface(Blocks):
             title = title[:40] + "..."
         return title or "Conversation"
 
+    @staticmethod
+    def serialize_components(conversation: list[MessageDict]) -> list[MessageDict]:
+        def inner(obj: Any) -> Any:
+            if isinstance(obj, list):
+                return [inner(item) for item in obj]
+            elif isinstance(obj, dict):
+                return {k: inner(v) for k, v in obj.items()}
+            elif isinstance(obj, Component):
+                return obj.value
+            return obj
+
+        return inner(conversation)
+
     def _save_conversation(
         self,
         index: int | None,
@@ -468,11 +481,12 @@ class ChatInterface(Blocks):
         saved_conversations: list[list[MessageDict]],
     ):
         if self.save_history:
+            serialized_conversation = self.serialize_components(conversation)
             if index is not None:
-                saved_conversations[index] = conversation
+                saved_conversations[index] = serialized_conversation
             else:
                 saved_conversations = saved_conversations or []
-                saved_conversations.insert(0, conversation)
+                saved_conversations.insert(0, serialized_conversation)
                 index = 0
         return index, saved_conversations
 
@@ -504,6 +518,7 @@ class ChatInterface(Blocks):
             Chatbot(
                 value=conversations[index],  # type: ignore
                 feedback_value=[],
+                type="messages",
             ),
         )
 
