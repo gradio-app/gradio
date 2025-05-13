@@ -152,11 +152,8 @@
 	let resizeObserver: ResizeObserver;
 
 	let vegaEmbed: typeof import("vega-embed").default;
-
-	console.log(12345);
 	async function load_chart(): Promise<void> {
 		if (mouse_down_on_chart) {
-			console.log("mouse down on chart, not loading");
 			refresh_pending = true;
 			return;
 		}
@@ -219,6 +216,10 @@
 							selected: true
 						});
 					}, 250);
+					if (refresh_pending) {
+						refresh_pending = false;
+						load_chart();
+					}
 				});
 			}
 		});
