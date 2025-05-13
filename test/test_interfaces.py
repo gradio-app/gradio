@@ -28,6 +28,7 @@ def captured_output():
 
 
 class TestInterface:
+    @pytest.mark.serial
     def test_close(self):
         io = Interface(lambda input: None, "textbox", "label")
         _, local_url, _ = io.launch(prevent_thread_lock=True)
@@ -91,6 +92,7 @@ class TestInterface:
         assert dataset_check
 
     @patch("time.sleep")
+    @pytest.mark.serial
     def test_block_thread(self, mock_sleep):
         with pytest.raises(KeyboardInterrupt):
             with captured_output() as (out, _):

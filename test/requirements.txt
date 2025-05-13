@@ -249,6 +249,8 @@ pytest-cov==6.0.0
     # via -r test/requirements.in
 pytest-rerunfailures==15.0
     # via -r test/requirements.in
+pytest-xdist==3.6.1
+    # via -r test/requirements.in
 python-dateutil==2.9.0.post0
     # via
     #   botocore
