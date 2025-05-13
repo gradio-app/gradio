@@ -51,8 +51,7 @@
 		}
 	}
 
-	$: processed_props = process_i18n_obj(node.props);
-	$: processed_value = processed_props.value;
+	$: node.props = process_i18n_obj(node.props);
 
 	setContext("BLOCK_KEY", parent);
 
@@ -84,12 +83,12 @@
 	_id={node?.id}
 	component={node.component}
 	bind:instance={node.instance}
-	bind:value={processed_value}
+	bind:value={node.props.value}
 	elem_id={("elem_id" in node.props && node.props.elem_id) ||
 		`component-${node.id}`}
 	elem_classes={("elem_classes" in node.props && node.props.elem_classes) || []}
 	{target}
-	{...processed_props}
+	{...node.props}
 	{theme_mode}
 	{root}
 	visible={typeof node.props.visible === "boolean" ? node.props.visible : true}

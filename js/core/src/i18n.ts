@@ -82,6 +82,19 @@ export function process_i18n_obj(obj: any): any {
 		return typeof obj === "string" ? translate_if_needed(obj) : obj;
 	}
 
+	if (
+		obj instanceof Map ||
+		obj instanceof Set ||
+		obj instanceof Date ||
+		obj instanceof RegExp ||
+		obj instanceof Promise ||
+		(typeof obj.get === "function" && typeof obj.set === "function") || // Map-like
+		(typeof obj.add === "function" && typeof obj.has === "function") || // Set-like
+		(typeof obj.then === "function" && typeof obj.catch === "function") // Promise-like
+	) {
+		return obj;
+	}
+
 	if (Array.isArray(obj)) {
 		return obj.map(process_i18n_obj);
 	}
@@ -90,9 +103,16 @@ export function process_i18n_obj(obj: any): any {
 	const skipProps = ["gradio", "parent", "__proto__", "constructor"];
 
 	for (const key in obj) {
-		result[key] = skipProps.includes(key)
-			? obj[key]
-			: process_i18n_obj(obj[key]);
+		if (skipProps.includes(key)) {
+			result[key] = obj[key];
+			continue;
+		}
+
+		if (typeof obj[key] === "function") {
+			result[key] = obj[key];
+		} else {
+			result[key] = process_i18n_obj(obj[key]);
+		}
 	}
 
 	return result;
