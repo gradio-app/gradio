@@ -209,7 +209,7 @@ class Block:
         Removes self from the layout and collection of blocks, but does not delete any event triggers.
         """
         root_context = get_blocks_context()
-        if self.parent is not None:
+        if hasattr(self, "parent") and self.parent is not None:
             try:
                 self.parent.children.remove(self)
                 self.parent = None
