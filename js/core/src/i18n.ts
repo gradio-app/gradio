@@ -91,7 +91,6 @@ function is_special_object(obj: any): boolean {
 			(obj instanceof Node ||
 				obj instanceof Window ||
 				obj instanceof CSSStyleSheet ||
-				obj instanceof StyleSheet ||
 				obj instanceof HTMLElement ||
 				obj instanceof EventTarget)) ||
 		// objects with methods that suggest they're special types
