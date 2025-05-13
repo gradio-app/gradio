@@ -1,12 +1,12 @@
 ---
-"@gradio/annotatedimage": minor
-"@gradio/atoms": minor
-"@gradio/dataframe": minor
-"@gradio/gallery": minor
-"@gradio/image": minor
-"@gradio/nativeplot": minor
-"@gradio/plot": minor
-"gradio": minor
+"@gradio/annotatedimage": patch
+"@gradio/atoms": patch
+"@gradio/dataframe": patch
+"@gradio/gallery": patch
+"@gradio/image": patch
+"@gradio/nativeplot": patch
+"@gradio/plot": patch
+"gradio": patch
 ---
 
-feat:Updated fullscreen mode
+feat:Improved, smoother fullscreen mode for components
