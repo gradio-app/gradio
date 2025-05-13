@@ -1492,7 +1492,6 @@ export class ImageEditor {
 	}
 
 	redo(): void {
-		console.log("redo", this.command_manager.history);
 		this.command_manager.redo();
 		this.notify("change");
 	}

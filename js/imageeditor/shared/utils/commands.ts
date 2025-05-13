@@ -116,14 +116,8 @@ export class CommandManager {
 	}
 	redo(): void {
 		if (this.history.next) {
-			console.log(
-				"redo",
-				!!this.history.next,
-				this.history.next,
-				this.history.command
-			);
-			this.history.next.command?.execute();
 			this.history = this.history.next;
+			this.history.command?.execute();
 		}
 
 		this.current_history.set(this.history);
@@ -135,7 +129,9 @@ export class CommandManager {
 		this.history = this.history.next!;
 
 		this.current_history.set(this.history);
+		console.log("CommandManager::execute", this.history);
 	}
+
 	hydrate(full_history: CommandNode): void {
 		setTimeout(() => {
 			while (full_history.next) {

@@ -207,7 +207,6 @@
 
 	let current_tool: ToolbarTool;
 
-	$: console.log({can_undo, background_image, current_tool})
 </script>
 
 <BlockLabel

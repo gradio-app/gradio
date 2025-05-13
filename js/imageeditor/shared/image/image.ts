@@ -172,8 +172,6 @@ export class AddImageCommand implements BgImageCommand {
 			return;
 		}
 
-		console.log(this.computed_dimensions, this.sprite);
-
 		const { width, height } = this.computed_dimensions;
 
 		// Update image properties with the original dimensions and center in viewport

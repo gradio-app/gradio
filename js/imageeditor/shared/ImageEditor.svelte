@@ -266,7 +266,6 @@
 			theme_mode
 		});
 
-		console.log("editor", editor);
 
 		
 
@@ -315,7 +314,6 @@
 
 		editor.on("change", () => {
 			dispatch("change");
-			console.log("editor.command_manager.history", editor.command_manager.history);
 			can_undo = editor.command_manager.history.previous !== null;
 			can_redo = editor.command_manager.history.next !== null;
 		});

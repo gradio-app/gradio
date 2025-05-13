@@ -14,7 +14,6 @@
 	export let can_redo: boolean;
 
 
-	$: console.log("can_undo", can_undo, can_redo);
 
 	const dispatch = createEventDispatcher<{
 		remove_image: void;

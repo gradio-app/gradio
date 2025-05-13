@@ -8,6 +8,80 @@ import {
 } from "pixi.js";
 import { type ImageEditorContext, type Tool } from "../core/editor";
 import { type Tool as ToolbarTool, type Subtool } from "../Toolbar.svelte";
+import { type Command } from "../utils/commands";
+
+/**
+ * Command that handles resizing the image and supports undo/redo
+ */
+export class ResizeCommand implements Command {
+	private original_width: number;
+	private original_height: number;
+	private original_x: number;
+	private original_y: number;
+
+	private new_width: number;
+	private new_height: number;
+	private new_x: number;
+	private new_y: number;
+	private reset_ui: () => void;
+
+	constructor(
+		private context: ImageEditorContext,
+		original_state: { width: number; height: number; x: number; y: number },
+		new_state: { width: number; height: number; x: number; y: number },
+		reset_ui: () => void
+	) {
+		// Store the original state
+		this.original_width = original_state.width;
+		this.original_height = original_state.height;
+		this.original_x = original_state.x;
+		this.original_y = original_state.y;
+
+		// Store the new state
+		this.new_width = new_state.width;
+		this.new_height = new_state.height;
+		this.new_x = new_state.x;
+		this.new_y = new_state.y;
+		this.reset_ui = reset_ui;
+	}
+
+	async execute(): Promise<void> {
+		if (!this.context.background_image) return;
+
+		// Apply the new dimensions and position
+		this.context.background_image.width = this.new_width;
+		this.context.background_image.height = this.new_height;
+		this.context.background_image.position.set(this.new_x, this.new_y);
+
+		this.reset_ui();
+
+		// Update the resize UI if the resize tool is active
+		// const resize_tool = this.context.get_tool("resize") as ResizeTool;
+		// if (resize_tool && resize_tool.resize_ui_container) {
+		// 	resize_tool.update_resize_ui();
+		// }
+	}
+
+	async undo(): Promise<void> {
+		if (!this.context.background_image) return;
+
+		// Restore the original dimensions and position
+		this.context.background_image.width = this.original_width;
+		this.context.background_image.height = this.original_height;
+		this.context.background_image.position.set(
+			this.original_x,
+			this.original_y
+		);
+
+		this.reset_ui();
+
+		// Update the resize UI if the resize tool is active
+		// const resize_tool = this.context.get_tool("resize") as ResizeTool;
+		// if (resize_tool && resize_tool.resize_ui_container) {
+		// 	resize_tool.update_resize_ui();
+		// }
+	}
+}
 
 /**
  * @class ResizeTool
@@ -47,6 +121,14 @@ export class ResizeTool implements Tool {
 	private dom_mouseup_handler: ((e: MouseEvent) => void) | null = null;
 	private event_callbacks: Map<string, (() => void)[]> = new Map();
 	private last_scale = 1;
+
+	// State for tracking resize operations for the command pattern
+	private original_state: {
+		width: number;
+		height: number;
+		x: number;
+		y: number;
+	} | null = null;
 
 	/**
 	 * @method setup
@@ -514,6 +596,17 @@ export class ResizeTool implements Tool {
 			event.global
 		);
 		this.last_pointer_position = new Point(local_pos.x, local_pos.y);
+
+		// Store original state for the command
+		if (this.image_editor_context.background_image) {
+			const bg = this.image_editor_context.background_image;
+			this.original_state = {
+				width: bg.width,
+				height: bg.height,
+				x: bg.position.x,
+				y: bg.position.y
+			};
+		}
 	}
 
 	/**
@@ -1044,6 +1137,14 @@ export class ResizeTool implements Tool {
 				// Store the initial pointer position in local coordinates
 				this.last_pointer_position = new Point(localX, localY);
 
+				// Store original state for the command
+				this.original_state = {
+					width: bg.width,
+					height: bg.height,
+					x: bg.position.x,
+					y: bg.position.y
+				};
+
 				// Prevent default behavior and stop propagation
 				e.preventDefault();
 				e.stopPropagation();
@@ -1053,6 +1154,7 @@ export class ResizeTool implements Tool {
 		// Define the mousemove handler
 		this.dom_mousemove_handler = (e: MouseEvent) => {
 			// Only process if we're in the size subtool and we're moving the image
+
 			if (this.current_subtool !== "size" || !this.is_moving) return;
 
 			// Check if we have the necessary state
@@ -1092,7 +1194,39 @@ export class ResizeTool implements Tool {
 		// Define the mouseup handler
 		this.dom_mouseup_handler = (e: MouseEvent) => {
 			// Only process if we're in the size subtool and we're moving the image
-			if (this.current_subtool !== "size" || !this.is_moving) return;
+			if (this.current_subtool !== "size") return;
+
+			// Create and execute resize command if we have the necessary state
+			if (this.original_state && this.image_editor_context.background_image) {
+				const bg = this.image_editor_context.background_image;
+				const new_state = {
+					width: bg.width,
+					height: bg.height,
+					x: bg.position.x,
+					y: bg.position.y
+				};
+
+				// Only create a command if the state has actually changed
+
+				if (
+					this.original_state.width !== new_state.width ||
+					this.original_state.height !== new_state.height ||
+					this.original_state.x !== new_state.x ||
+					this.original_state.y !== new_state.y
+				) {
+					const resize_command = new ResizeCommand(
+						this.image_editor_context,
+						this.original_state,
+						new_state,
+						this.update_resize_ui.bind(this)
+					);
+
+					this.image_editor_context.execute_command(resize_command);
+				}
+
+				// Reset original state
+				this.original_state = null;
+			}
 
 			// Reset all state variables
 			this.is_moving = false;
@@ -1230,7 +1364,6 @@ export class ResizeTool implements Tool {
 			this.last_pointer_position = current_position;
 		}
 	}
-
 	/**
 	 * handles pointer up events
 	 */
