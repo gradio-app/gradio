@@ -51,7 +51,7 @@
 		}
 	}
 
-	$: node.props = process_i18n_obj(node.props);
+	$: processed_props = process_i18n_obj(node.props);
 
 	setContext("BLOCK_KEY", parent);
 
@@ -88,7 +88,7 @@
 		`component-${node.id}`}
 	elem_classes={("elem_classes" in node.props && node.props.elem_classes) || []}
 	{target}
-	{...node.props}
+	{...processed_props}
 	{theme_mode}
 	{root}
 	visible={typeof node.props.visible === "boolean" ? node.props.visible : true}
