@@ -195,6 +195,7 @@ class Block:
             if root_context:
                 self.page = root_context.root_block.current_page
             render_context.add(self)
+            self.parent = render_context
         if root_context is not None:
             root_context.blocks[self._id] = self
             self.is_rendered = True
@@ -211,6 +212,7 @@ class Block:
         if self.parent is not None:
             try:
                 self.parent.children.remove(self)
+                self.parent = None
             except ValueError:
                 pass
         if root_context is not None:

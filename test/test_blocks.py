@@ -1377,12 +1377,15 @@ class TestRender:
             return count
 
         with gr.Blocks() as demo:
-            with gr.Row():
+            with gr.Row() as row1:
                 textbox = gr.Textbox()
-            with gr.Row():
+                assert textbox.parent == row1
+            with gr.Row() as row2:  # noqa: F841
                 textbox.unrender()
-            with gr.Row():
+                assert textbox.parent is None
+            with gr.Row() as row3:
                 textbox.render()
+                assert textbox.parent == row3
 
         # The textbox should be rendered only once
         config = demo.get_config_file()
