@@ -91,6 +91,7 @@ class TestInterface:
         assert dataset_check
 
     @patch("time.sleep")
+    @pytest.mark.serial
     def test_block_thread(self, mock_sleep):
         with pytest.raises(KeyboardInterrupt):
             with captured_output() as (out, _):

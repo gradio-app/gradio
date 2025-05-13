@@ -72,7 +72,12 @@ jobs:
         run: |
           . venv/bin/activate
           ./scripts/type_check_backend.sh
-      - name: Run tests
+      - name: Run parallel tests
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}
-          python -m pytest -n auto -m "${{ matrix.test-type }}"
+          python -m pytest -n auto -m "${{ matrix.test-type }} and not serial"
+      - name: Run serial tests
+        run: |
+          . ${{steps.install_deps.outputs.venv_activate}}
+          python -m pytest -m "${{ matrix.test-type }} and serial"
+  
