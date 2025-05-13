@@ -26,7 +26,7 @@
 		change: never;
 		clear_status: LoadingStatus;
 	}>;
-	export let open = false;
+	export let open = true;
 	export let theme_mode: "system" | "light" | "dark";
 	export let show_indices: boolean;
 	export let height: number | string | undefined;

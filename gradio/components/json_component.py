@@ -46,7 +46,7 @@ class JSON(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        open: bool = False,
+        open: bool = True,
         show_indices: bool = False,
         height: int | str | None = None,
         max_height: int | str | None = 500,
@@ -139,3 +139,9 @@ class JSON(Component):
 
     def api_info(self) -> dict[str, Any]:
         return {"type": {}, "description": "any valid json"}
+
+    def as_example(self, value) -> Any:
+        val = self.postprocess(value)
+        if val:
+            val = val.model_dump()
+        return val
