@@ -462,7 +462,7 @@ class ChatInterface(Blocks):
         return title or "Conversation"
 
     @staticmethod
-    def serialize_conversation(conversation: Any) -> list[MessageDict]:
+    def serialize_components(conversation: list[MessageDict]) -> list[MessageDict]:
         def inner(obj: Any) -> Any:
             if isinstance(obj, list):
                 return [inner(item) for item in obj]
@@ -481,7 +481,7 @@ class ChatInterface(Blocks):
         saved_conversations: list[list[MessageDict]],
     ):
         if self.save_history:
-            serialized_conversation = self.serialize_conversation(conversation)
+            serialized_conversation = self.serialize_components(conversation)
             if index is not None:
                 saved_conversations[index] = serialized_conversation
             else:
