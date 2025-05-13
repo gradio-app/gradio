@@ -11,6 +11,19 @@ from gradio.sketch.sketchbox import SketchBox
 from gradio.sketch.utils import ai, get_header, set_kwarg
 
 
+def validate_code(code: str) -> bool:
+    """
+    Validates the user-provided code to ensure it is safe for execution.
+    This is a placeholder implementation and should be replaced with
+    a robust validation mechanism.
+    """
+    # Example: Allow only specific safe keywords or patterns
+    allowed_keywords = {"def", "return", "if", "else", "for", "while"}
+    for keyword in code.split():
+        if keyword not in allowed_keywords:
+            return False
+    return True
+
 def create(app_file: str, config_file: str):
     file_name = os.path.basename(app_file)
     folder_name = os.path.basename(os.path.dirname(app_file))
@@ -421,6 +434,9 @@ def create(app_file: str, config_file: str):
 
                         def save_code(_history, _code):
                             try:
+                                # Validate the user-provided code
+                                if not validate_code(_code):
+                                    raise gr.Error("Invalid or unsafe code provided.")
                                 exec(_code, created_fns_namespace)
                             except BaseException as e:
                                 raise gr.Error(f"Error saving function: {e}") from e
