@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import tempfile
-import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -109,10 +108,6 @@ class File(Component):
         if type not in valid_types:
             raise ValueError(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
-            )
-        if file_count == "directory" and file_types is not None:
-            warnings.warn(
-                "The `file_types` parameter is ignored when `file_count` is 'directory'."
             )
         super().__init__(
             label=label,

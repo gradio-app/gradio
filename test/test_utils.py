@@ -493,9 +493,9 @@ def test_get_extension_from_file_path_or_url(path_or_url, extension):
     "old, new, expected_diff",
     [
         ({"a": 1, "b": 2}, {"a": 1, "b": 2}, []),
-        ({}, {"a": 1, "b": 2}, [("add", ["a"], 1), ("add", ["b"], 2)]),
-        (["a", "b"], {"a": 1, "b": 2}, [("replace", [], {"a": 1, "b": 2})]),
-        ("abc", "abcdef", [("append", [], "def")]),
+        ({}, {"a": 1, "b": 2}, [["add", ["a"], 1], ["add", ["b"], 2]]),
+        (["a", "b"], {"a": 1, "b": 2}, [["replace", [], {"a": 1, "b": 2}]]),
+        ("abc", "abcdef", [["append", [], "def"]]),
     ],
 )
 def test_diff(old, new, expected_diff):

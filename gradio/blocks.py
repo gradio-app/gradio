@@ -2419,7 +2419,7 @@ Received inputs:
         *,
         height: int = 500,
         width: int | str = "100%",
-        favicon_path: str | None = None,
+        favicon_path: str | Path | None = None,
         ssl_keyfile: str | None = None,
         ssl_certfile: str | None = None,
         ssl_keyfile_password: str | None = None,
