@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Treat `gr.State` as a `FormComponent`
+fix:Refactor `gr.State`, `gr.BrowserState`, and `gr.Timer` to inherit from `FormComponent`
