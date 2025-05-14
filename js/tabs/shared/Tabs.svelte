@@ -208,7 +208,7 @@
 			</div>
 			<span
 				class="overflow-menu"
-				class:hide={!is_overflowing}
+				class:hide={!is_overflowing || !overflow_tabs.some((t) => t?.visible)}
 				bind:this={overflow_menu}
 			>
 				<button
@@ -220,12 +220,14 @@
 				</button>
 				<div class="overflow-dropdown" class:hide={!overflow_menu_open}>
 					{#each overflow_tabs as t}
-						<button
-							on:click={() => change_tab(t?.id)}
-							class:selected={t?.id === $selected_tab}
-						>
-							{t?.label}
-						</button>
+						{#if t?.visible}
+							<button
+								on:click={() => change_tab(t?.id)}
+								class:selected={t?.id === $selected_tab}
+							>
+								{t?.label}
+							</button>
+						{/if}
 					{/each}
 				</div>
 			</span>
