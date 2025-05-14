@@ -5,6 +5,10 @@ import { writable, type Writable } from "svelte/store";
  */
 export interface Command {
 	/**
+	 * The name of the command
+	 */
+	name: string;
+	/**
 	 * Optionally called when the command is first executed for multi-step commands
 	 * @param args arguments to pass to the command
 	 */
@@ -139,6 +143,15 @@ export class CommandManager {
 				full_history = full_history.next;
 			}
 		}, 1000);
+	}
+
+	contains(command_name: string): boolean {
+		let current: CommandNode | null = this.history;
+		while (current) {
+			if (current.command?.name === command_name) return true;
+			current = current.next;
+		}
+		return false;
 	}
 
 	reset(): void {

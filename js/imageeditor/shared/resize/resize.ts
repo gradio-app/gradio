@@ -24,6 +24,7 @@ export class ResizeCommand implements Command {
 	private new_x: number;
 	private new_y: number;
 	private reset_ui: () => void;
+	name: string;
 
 	constructor(
 		private context: ImageEditorContext,
@@ -31,6 +32,7 @@ export class ResizeCommand implements Command {
 		new_state: { width: number; height: number; x: number; y: number },
 		reset_ui: () => void
 	) {
+		this.name = "Resize";
 		// Store the original state
 		this.original_width = original_state.width;
 		this.original_height = original_state.height;

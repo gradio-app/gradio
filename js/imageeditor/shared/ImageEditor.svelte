@@ -343,13 +343,6 @@
 		current_subtool === "crop" &&
 		crop_zoom.set_zoom("fit");
 
-	// function resize_canvas(width: number, height: number): void {
-	// 	if (!editor) return;
-	// 	if (mounted && ready) {
-	// 		editor.resize(width, height);
-	// 	}
-	// }
-
 	/**
 	 * Handles file uploads
 	 * @param {File[]} files - The uploaded files
@@ -371,6 +364,8 @@
 		can_undo = editor.command_manager.history.previous !== null;
 		can_redo = editor.command_manager.history.next !== null;
 	}
+
+	$: background_image = can_undo && editor.command_manager.contains("AddImage");
 
 	/**
 	 * Handles tool change events

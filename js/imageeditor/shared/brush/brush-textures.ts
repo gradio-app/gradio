@@ -6,12 +6,13 @@ import {
 	Application,
 	Texture
 } from "pixi.js";
-import { type ImageEditorContext, type Command } from "../core/editor";
-
+import { type ImageEditorContext } from "../core/editor";
+import { type Command } from "../core/commands";
 export class BrushCommand implements Command {
 	private layer_id: string;
 	private original_texture: Texture;
 	private final_texture: Texture;
+	name: string;
 
 	constructor(
 		private context: ImageEditorContext,
@@ -19,6 +20,7 @@ export class BrushCommand implements Command {
 		original_texture: Texture,
 		final_texture: Texture
 	) {
+		this.name = "Draw";
 		this.layer_id = layer_id;
 
 		// Create new render textures and copy the content instead of cloning

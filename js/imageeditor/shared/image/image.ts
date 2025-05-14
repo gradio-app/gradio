@@ -92,6 +92,7 @@ export class AddImageCommand implements BgImageCommand {
 		y: number;
 		border_region: number;
 	} | null = null;
+	name: string;
 
 	constructor(
 		context: ImageEditorContext,
@@ -99,6 +100,7 @@ export class AddImageCommand implements BgImageCommand {
 		fixed_canvas: boolean,
 		border_region = 0
 	) {
+		this.name = "AddImage";
 		this.context = context;
 		this.background = background;
 		this.fixed_canvas = fixed_canvas;
@@ -369,6 +371,7 @@ export function add_bg_color(
 ): BgColorCommand {
 	let sprite: Sprite;
 	return {
+		name: "AddBgColor",
 		start() {
 			container.removeChildren();
 			const graphics = make_graphics(1);
