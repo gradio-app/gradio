@@ -411,10 +411,6 @@
 		padding-top: var(--spacing-xxl);
 	}
 
-	.role {
-		max-width: 95%;
-	}
-
 	@media (prefers-color-scheme: dark) {
 		.bubble-wrap {
 			background: var(--background-fill-secondary);
