@@ -406,7 +406,7 @@
 
 	.bubble-wrap {
 		width: 100%;
-		overflow-y: auto;
+		overflow-y: visible;
 		height: 100%;
 		padding-top: var(--spacing-xxl);
 	}
