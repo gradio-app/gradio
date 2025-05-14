@@ -1,5 +1,16 @@
 # website
 
+## 0.56.1
+
+### Features
+
+- [#11173](https://github.com/gradio-app/gradio/pull/11173) [`d023b2e`](https://github.com/gradio-app/gradio/commit/d023b2e2ffdf872f531e22b0310bc7855a756c7d) - Adds docs for `gr.api()` which were previously missing from the website.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/tabs@0.4.4
+- @gradio/tabitem@0.4.4
+
 ## 0.56.0
 
 ### Features
