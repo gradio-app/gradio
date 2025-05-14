@@ -30,7 +30,7 @@
 	import type { Source, Transform } from "./types";
 	import {
 		type Brush as BrushType,
-		type Eraser as EraserType,
+		type Eraser as EraserType
 	} from "./brush/types";
 	import tinycolor from "tinycolor2";
 

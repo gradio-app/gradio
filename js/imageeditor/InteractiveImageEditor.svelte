@@ -202,7 +202,6 @@
 	$: [heading, paragraph] = placeholder ? inject(placeholder) : [false, false];
 
 	let current_tool: ToolbarTool;
-
 </script>
 
 <BlockLabel
@@ -242,7 +241,7 @@
 	{theme_mode}
 	bind:can_undo
 >
-	{#if  current_tool === "image" && !can_undo}
+	{#if current_tool === "image" && !can_undo}
 		<div class="empty wrap">
 			{#if sources && sources.length}
 				{#if heading || paragraph}

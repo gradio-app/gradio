@@ -172,7 +172,6 @@
 				await editor.add_layers_from_url(source.map((item) => item.url));
 				dispatch("change");
 				dispatch("input");
-				
 			} catch (error) {
 				console.error("Error adding layer from URL:", error);
 			}
@@ -266,9 +265,6 @@
 			theme_mode
 		});
 
-
-		
-
 		brush.on("change", () => {
 			has_drawn = true;
 		});
@@ -285,8 +281,6 @@
 			border_region: 0,
 			pad_bottom: 40
 		});
-
-		
 
 		editor.scale.subscribe((_scale) => {
 			zoom_level = _scale;
@@ -330,8 +324,6 @@
 			await add_image_from_url(composite);
 			handle_tool_change({ tool: "draw" });
 		}
-
-		
 	}
 
 	$: if (
@@ -648,8 +640,8 @@
 				}}
 				enable_download={show_download_button}
 				on:download={() => handle_download()}
-				can_undo={can_undo}
-				can_redo={can_redo}
+				{can_undo}
+				{can_redo}
 				on:undo={handle_undo}
 				on:redo={handle_redo}
 			/>
