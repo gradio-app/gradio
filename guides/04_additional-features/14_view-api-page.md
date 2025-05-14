@@ -32,6 +32,40 @@ btn.click(add, [num1, num2], output, api_name=False)
 
 Note: setting an `api_name=False` also means that downstream apps will not be able to load your Gradio app using `gr.load()` as this function uses the Gradio API under the hood.
 
+**Adding API endpoints**
+
+You can also add new API routes to your Gradio application that do not correspond to events in your UI.
+
+For example, in this Gradio applicaiton, we add a new route that adds numbers and slices a list:
+
+```py
+import gradio as gr
+with gr.Blocks() as demo:
+    with gr.Row():
+        input = gr.Textbox()
+        button = gr.Button("Submit")
+    output = gr.Textbox()
+    def fn(a: int, b: int, c: list[str]) -> tuple[int, str]:
+        return a + b, c[a:b]
+    gr.api(fn, api_name="add_and_slice")
+
+_, url, _ = demo.launch()
+```
+
+This will create a new route `/add_and_slice` which will show up in the "view API" page. It can be programmatically called by the Python or JS Clients (discussed below) like this:
+
+```py
+from gradio_client import Client
+
+client = Client(url)
+result = client.predict(
+        a=3,
+        b=5,
+        c=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        api_name="/add_and_slice"
+)
+print(result)
+```
 
 ## The Clients
 
