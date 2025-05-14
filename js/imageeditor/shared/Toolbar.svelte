@@ -77,13 +77,11 @@
 		})();
 
 	export let preview = false;
-	// export let opacity = 1;
 	export let show_brush_color = false;
 	export let show_brush_size = false;
 	export let show_eraser_size = false;
 	export let sources: Source[];
 	export let transforms: Transform[];
-	// Required by the component interface
 	let recent_colors: string[] = [];
 
 	let enable_layers = true;

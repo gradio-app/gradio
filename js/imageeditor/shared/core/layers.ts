@@ -80,12 +80,10 @@ export class LayerManager {
 			this.background_layer.destroy();
 		}
 
-		// Create new background layer
 		const layer = new Container();
 
 		this.background_layer = layer;
 
-		// Create a render texture for the background with transparency
 		const bg_texture = RenderTexture.create({
 			width,
 			height,
@@ -94,11 +92,9 @@ export class LayerManager {
 			scaleMode: SCALE_MODES.NEAREST
 		});
 
-		// Create sprite to display the texture with transparency
 		const bg_sprite = new Sprite(bg_texture);
 		layer.addChild(bg_sprite);
 
-		// Clear the texture with transparency
 		const clear_graphics = new Graphics();
 		clear_graphics.clear();
 
@@ -106,7 +102,6 @@ export class LayerManager {
 			.rect(0, 0, width, height)
 			.fill({ color: this.dark ? 0x333333 : 0xffffff, alpha: 1 });
 
-		// Render with transparency
 		this.app.renderer.render({
 			container: clear_graphics,
 			target: bg_texture,
@@ -155,13 +150,10 @@ export class LayerManager {
 			const imageWidth = sprite.texture.width;
 			const imageHeight = sprite.texture.height;
 
-			// Calculate dimensions based on whether canvas size is fixed
 			const containerWidth = width || this.image_container.width;
 			const containerHeight = height || this.image_container.height;
 
 			if (this.fixed_canvas) {
-				// If fixed canvas, fit the image within the specified dimensions minus border region
-				// Calculate aspect-preserving dimensions
 				const effectiveContainerWidth = Math.max(
 					containerWidth - this.border_region * 2,
 					10
@@ -176,45 +168,37 @@ export class LayerManager {
 					effectiveContainerWidth / effectiveContainerHeight;
 
 				let finalWidth, finalHeight;
-				let posX = this.border_region, // Start with border offset
+				let posX = this.border_region,
 					posY = this.border_region;
 
 				if (
 					imageWidth <= effectiveContainerWidth &&
 					imageHeight <= effectiveContainerHeight
 				) {
-					// Image fits within container without scaling
 					finalWidth = imageWidth;
 					finalHeight = imageHeight;
 				} else {
 					if (imageAspectRatio > containerAspectRatio) {
-						// Width is the limiting factor
 						finalWidth = effectiveContainerWidth;
 						finalHeight = effectiveContainerWidth / imageAspectRatio;
 					} else {
-						// Height is the limiting factor
 						finalHeight = effectiveContainerHeight;
 						finalWidth = effectiveContainerHeight * imageAspectRatio;
 					}
 				}
 
-				// Center image within the effective container area (which already accounts for border)
 				posX += Math.round((effectiveContainerWidth - finalWidth) / 2);
 				posY += Math.round((effectiveContainerHeight - finalHeight) / 2);
 				sprite.width = finalWidth;
 				sprite.height = finalHeight;
 				sprite.position.set(posX, posY);
 			} else {
-				// If not fixed canvas, use the natural dimensions of the image plus border
-				// Position starts at the border offset
 				sprite.position.set(this.border_region, this.border_region);
 
-				// We need to re-create the background layer with the actual image dimensions plus border
 				if (this.background_layer) {
 					this.background_layer.destroy();
 				}
 
-				// Create new layer with image dimensions plus border on all sides
 				const totalWidth = imageWidth + this.border_region * 2;
 				const totalHeight = imageHeight + this.border_region * 2;
 				const newLayer = this.create_background_layer(totalWidth, totalHeight);
@@ -264,7 +248,6 @@ export class LayerManager {
 
 		this.image_container.addChild(layer);
 
-		// Create a single render texture for drawing with transparency
 		const draw_texture = RenderTexture.create({
 			width,
 			height,
@@ -288,7 +271,6 @@ export class LayerManager {
 			clear: true
 		});
 
-		// Store texture for drawing
 		this.draw_textures.set(layer, draw_texture);
 
 		this.update_layer_order();
@@ -341,7 +323,6 @@ export class LayerManager {
 			let posX = this.border_region;
 			let posY = this.border_region;
 
-			// Calculate effective dimensions (accounting for border)
 			const effectiveWidth = this.fixed_canvas
 				? width - this.border_region * 2
 				: width;
@@ -349,7 +330,6 @@ export class LayerManager {
 				? height - this.border_region * 2
 				: height;
 
-			// If the image is smaller than the effective layer area, center it within that area
 			if (imageWidth < effectiveWidth || imageHeight < effectiveHeight) {
 				posX = Math.floor((effectiveWidth - imageWidth) / 2);
 				posY = Math.floor((effectiveHeight - imageHeight) / 2);
@@ -357,7 +337,6 @@ export class LayerManager {
 
 			sprite.position.set(posX, posY);
 
-			// If the image is larger than the effective layer area, scale it down to fit
 			if (imageWidth > effectiveWidth || imageHeight > effectiveHeight) {
 				const imageAspectRatio = imageWidth / imageHeight;
 				const areaAspectRatio = effectiveWidth / effectiveHeight;
@@ -365,11 +344,9 @@ export class LayerManager {
 				let finalWidth, finalHeight;
 
 				if (imageAspectRatio > areaAspectRatio) {
-					// Width is the limiting factor
 					finalWidth = effectiveWidth;
 					finalHeight = effectiveWidth / imageAspectRatio;
 				} else {
-					// Height is the limiting factor
 					finalHeight = effectiveHeight;
 					finalWidth = effectiveHeight * imageAspectRatio;
 				}
@@ -377,7 +354,6 @@ export class LayerManager {
 				sprite.width = finalWidth;
 				sprite.height = finalHeight;
 
-				// Recalculate position to center within effective area
 				posX =
 					this.border_region + Math.floor((effectiveWidth - finalWidth) / 2);
 				posY =
@@ -432,7 +408,6 @@ export class LayerManager {
 	delete_layer(id: string): void {
 		const index = this.layers.findIndex((l) => l.id === id);
 		if (index > -1) {
-			// Clean up texture
 			const draw_texture = this.draw_textures.get(this.layers[index].container);
 			if (draw_texture) {
 				draw_texture.destroy();
@@ -459,11 +434,9 @@ export class LayerManager {
 	}
 
 	private update_layer_order(): void {
-		// Ensure background layer always has lowest z-index
 		if (this.background_layer) {
 			this.background_layer.zIndex = -1;
 		}
-		// Update other layers starting from 0
 		this.layers.forEach((layer, index) => {
 			layer.container.zIndex = index;
 		});
@@ -512,55 +485,45 @@ export class LayerManager {
 			| "bottom-left"
 			| "bottom"
 			| "bottom-right",
-		// Add old canvas dimensions for anchor calculations when not scaling
 		oldCanvasWidth: number,
 		oldCanvasHeight: number
 	): void {
-		// Create a map of the old layers by ID for reference
 		const oldLayersById = new Map(this.layers.map((l) => [l.id, l]));
 		const oldBackgroundLayer = this.background_layer;
 
-		// Calculate offset for non-scaling resize based on anchor and dimension change
 		const calculateOffset = (): { offsetX: number; offsetY: number } => {
 			let offsetX = 0;
 			let offsetY = 0;
 			const deltaWidth = newWidth - oldCanvasWidth;
 			const deltaHeight = newHeight - oldCanvasHeight;
 
-			// Determine X offset based on anchor point
 			if (anchor.includes("left")) {
 				offsetX = 0;
 			} else if (anchor.includes("right")) {
 				offsetX = deltaWidth;
 			} else {
-				// center
 				offsetX = Math.floor(deltaWidth / 2);
 			}
 
-			// Determine Y offset based on anchor point
 			if (anchor.includes("top")) {
 				offsetY = 0;
 			} else if (anchor.includes("bottom")) {
 				offsetY = deltaHeight;
 			} else {
-				// center
 				offsetY = Math.floor(deltaHeight / 2);
 			}
 
 			return { offsetX, offsetY };
 		};
 
-		// First, handle the background layer using the helper method
-		// Note: create_background_layer called inside the helper might destroy the old one
 		this.background_layer = this._resize_background_layer(
-			oldBackgroundLayer, // Pass the potentially null old layer
+			oldBackgroundLayer,
 			newWidth,
 			newHeight,
 			scale,
 			calculateOffset
 		);
 
-		// Now process regular layers
 		const processedLayers: {
 			name: string;
 			id: string;
@@ -568,7 +531,6 @@ export class LayerManager {
 			user_created: boolean;
 		}[] = [];
 
-		// Store old layer data before clearing the main arrays
 		const oldLayerData = this.layers.map((oldLayer) => ({
 			id: oldLayer.id,
 			name: oldLayer.name,
@@ -577,15 +539,9 @@ export class LayerManager {
 			container: oldLayer.container
 		}));
 
-		// Clear the current layers array and textures map. New layers will be added by the helper.
 		this.layers = [];
-		this.draw_textures.clear(); // Ensure map is cleared before helpers add to it
-
-		// Rebuild layers in the original order using the helper method
+		this.draw_textures.clear();
 		for (const oldData of oldLayerData) {
-			// The helper _resize_single_layer handles creating the new layer,
-			// drawing content, cleanup, and adding the new layer to this.layers.
-			// It returns null if resizing failed for that layer.
 			const newLayer = this._resize_single_layer(
 				oldData,
 				newWidth,
@@ -598,30 +554,24 @@ export class LayerManager {
 			}
 		}
 
-		// Ensure the active layer still exists, otherwise select the top one
 		const currentActiveId = get(this.layer_store).active_layer;
 		const activeLayerExists = processedLayers.some(
 			(l) => l.id === currentActiveId
 		);
 
 		if (!activeLayerExists && processedLayers.length > 0) {
-			this.set_active_layer(processedLayers[0].id); // Set to top layer (index 0 is bottom visually)
+			this.set_active_layer(processedLayers[0].id);
 		} else if (processedLayers.length === 0) {
-			this.layer_store.update((s) => ({ ...s, active_layer: "" })); // No layers left
+			this.layer_store.update((s) => ({ ...s, active_layer: "" }));
 		} else {
-			// If the active layer still exists, just trigger an update to ensure consistency
 			this.layer_store.update((s) => ({ ...s }));
 		}
 
-		// Update Z-indices
 		this.update_layer_order();
 
-		// Final cleanup attempt - textures might need explicit destroy calls
-		// Using setTimeout allows the current execution stack to clear
 		setTimeout(() => {
-			// Attempt to force GC or resource cleanup if needed, though Pixi often handles this
-			Assets.cache.reset(); // Be careful with this, might clear too much
-			this.app.renderer.textureGC.run(); // Force texture garbage collection
+			Assets.cache.reset();
+			this.app.renderer.textureGC.run();
 		}, 100);
 	}
 
@@ -636,18 +586,15 @@ export class LayerManager {
 		calculateOffset: () => { offsetX: number; offsetY: number }
 	): Container | null {
 		if (!oldBackgroundLayer) {
-			// If no old background layer existed, create a new one
 			return this.create_background_layer(newWidth, newHeight);
 		}
 
-		// Identify the actual image sprite within the background container
 		let backgroundImage: Sprite | null = oldBackgroundLayer.children.find(
 			(child) =>
 				child instanceof Sprite &&
 				child.texture !== (oldBackgroundLayer.children[0] as Sprite)?.texture
 		) as Sprite | null;
 
-		// Create the new background layer first (this also destroys the old one implicitly if it exists)
 		const newBackgroundLayer = this.create_background_layer(
 			newWidth,
 			newHeight
@@ -655,7 +602,7 @@ export class LayerManager {
 
 		if (backgroundImage) {
 			const newBgImage = new Sprite(backgroundImage.texture);
-			newBgImage.width = backgroundImage.width; // Preserve original size unless scaling
+			newBgImage.width = backgroundImage.width;
 			newBgImage.height = backgroundImage.height;
 
 			if (scale) {
@@ -671,7 +618,6 @@ export class LayerManager {
 			}
 			newBackgroundLayer.addChild(newBgImage);
 		}
-		// If no background image, the new layer created above is already blank and correctly sized.
 
 		return newBackgroundLayer;
 	}
@@ -701,7 +647,6 @@ export class LayerManager {
 			console.warn(
 				`No texture found for layer ${oldData.id}, skipping cleanup.`
 			);
-			// Destroy the old container if it exists and is not destroyed
 			if (oldData.container && !oldData.container.destroyed) {
 				if (this.image_container.children.includes(oldData.container)) {
 					this.image_container.removeChild(oldData.container);
@@ -711,27 +656,21 @@ export class LayerManager {
 			return null;
 		}
 
-		// Create a new layer container and associated render texture
 		const newContainer = this.create_layer({
-			// This adds the layer to this.layers and draw_textures
 			width: newWidth,
 			height: newHeight,
 			layer_name: oldData.name,
 			user_created: oldData.user_created
 		});
 
-		// Retrieve the newly created layer data (it's the last one added by create_layer)
 		const newLayer = this.layers[this.layers.length - 1];
-		newLayer.id = oldData.id; // Restore the original ID
-
-		// Get the render texture for the new layer
+		newLayer.id = oldData.id;
 		const newTexture = this.draw_textures.get(newContainer);
 
 		if (!newTexture) {
 			console.error(
 				`Failed to get texture for newly created layer ${newLayer.id}. Cleaning up.`
 			);
-			// Clean up the partially created new layer resources
 			if (newContainer && !newContainer.destroyed) {
 				if (this.image_container.children.includes(newContainer)) {
 					this.image_container.removeChild(newContainer);
@@ -741,7 +680,6 @@ export class LayerManager {
 				if (idx > -1) this.layers.splice(idx, 1);
 				this.draw_textures.delete(newContainer);
 			}
-			// Clean up old resources
 			if (oldData.texture && !oldData.texture.destroyed)
 				oldData.texture.destroy(true);
 			if (oldData.container && !oldData.container.destroyed)
@@ -749,10 +687,8 @@ export class LayerManager {
 			return null;
 		}
 
-		// Explicitly clear the new render texture (create_layer might already do this, but explicit is safer)
 		this.app.renderer.clear({ target: newTexture, clearColor: [0, 0, 0, 0] });
 
-		// Create a sprite with the old texture content
 		const sprite = new Sprite(oldData.texture);
 
 		if (scale) {
@@ -764,10 +700,8 @@ export class LayerManager {
 			sprite.position.set(offsetX, offsetY);
 		}
 
-		// Render the sprite onto the new texture
 		this.app.renderer.render(sprite, { renderTexture: newTexture });
 
-		// Clean up temporary sprite and old resources
 		sprite.destroy();
 		if (oldData.texture && !oldData.texture.destroyed) {
 			oldData.texture.destroy(true);
@@ -779,7 +713,6 @@ export class LayerManager {
 			oldData.container.destroy({ children: true });
 		}
 
-		// Return the data for the successfully resized layer
 		return newLayer;
 	}
 
@@ -844,7 +777,6 @@ export class LayerManager {
 			this.active_layer = this.layers[0].container;
 			this.active_layer_id = this.layers[0].id;
 		} else {
-			// the id is the same but the layer is new, we need to find the new layer
 			this.active_layer =
 				this.layers.find((l) => l.id === this.active_layer_id)?.container ||
 				this.layers[0].container;
@@ -911,7 +843,6 @@ export class AddLayerCommand implements Command {
 			options.layer_id || Math.random().toString(36).substring(2, 15);
 		this.make_active = options.make_active || false;
 		this.name = "AddLayer";
-		// Store the current active layer ID for undo
 		const current_layers = this.context.layer_manager.get_layers();
 		const current_active = current_layers.find(
 			(l) => l.container === this.context.layer_manager.get_active_layer()
@@ -931,10 +862,8 @@ export class AddLayerCommand implements Command {
 	}
 
 	async undo(): Promise<void> {
-		// Remove the layer
 		this.context.layer_manager.delete_layer(this.layer_id);
 
-		// Restore previous active layer if needed
 		if (this.previous_active_layer) {
 			this.context.layer_manager.set_active_layer(this.previous_active_layer);
 		}
@@ -953,7 +882,6 @@ export class RemoveLayerCommand implements Command {
 		was_active: boolean;
 	};
 	private previous_active_layer: string | null = null;
-	// Store the texture directly instead of as base64
 	private texture_copy: RenderTexture | null = null;
 	name: string;
 
@@ -962,7 +890,6 @@ export class RemoveLayerCommand implements Command {
 		layer_id: string
 	) {
 		this.name = "RemoveLayer";
-		// Find the layer to be removed
 		const layers = this.context.layer_manager.get_layers();
 		const layer_to_remove = layers.find((l) => l.id === layer_id);
 
@@ -970,18 +897,15 @@ export class RemoveLayerCommand implements Command {
 			throw new Error(`Layer with ID ${layer_id} not found`);
 		}
 
-		// Get the active layer info
 		const active_layer = this.context.layer_manager.get_active_layer();
 		const was_active = layer_to_remove.container === active_layer;
 
-		// Find what would become the active layer after removal (for undo)
 		if (was_active) {
 			const layer_index = layers.findIndex((l) => l.id === layer_id);
 			const next_active = layers[Math.max(0, layer_index - 1)];
 			this.previous_active_layer = next_active?.id || null;
 		}
 
-		// Store basic information about the layer
 		this.layer_data = {
 			id: layer_to_remove.id,
 			name: layer_to_remove.name,
@@ -990,7 +914,6 @@ export class RemoveLayerCommand implements Command {
 			was_active
 		};
 
-		// Capture texture data - create a direct copy of the texture
 		this.captureTextureData(layer_id);
 	}
 
@@ -1003,26 +926,20 @@ export class RemoveLayerCommand implements Command {
 		if (!layer_textures) return;
 
 		try {
-			// Get the original texture
 			const original_texture = layer_textures.draw;
 
-			// Create a new render texture with the same dimensions
 			const texture_copy = RenderTexture.create({
 				width: original_texture.width,
 				height: original_texture.height,
 				resolution: window.devicePixelRatio || 1
 			});
 
-			// Create a sprite from the original texture
 			const sprite = new Sprite(original_texture);
 
-			// Render the sprite to our copied texture
 			this.context.app.renderer.render(sprite, { renderTexture: texture_copy });
 
-			// Store the copy
 			this.texture_copy = texture_copy;
 
-			// Clean up the sprite
 			sprite.destroy();
 		} catch (e) {
 			console.error("Failed to copy layer texture:", e);
@@ -1035,10 +952,8 @@ export class RemoveLayerCommand implements Command {
 	}
 
 	async undo(): Promise<void> {
-		// Get current dimensions from the context
 		const dimensions = get(this.context.dimensions);
 
-		// Recreate the layer
 		const container = this.context.layer_manager.create_layer({
 			width: dimensions.width,
 			height: dimensions.height,
@@ -1048,22 +963,18 @@ export class RemoveLayerCommand implements Command {
 			make_active: this.layer_data.was_active
 		});
 
-		// Restore the layer content if we have saved texture
 		if (this.texture_copy) {
 			try {
 				const layer_textures = this.context.layer_manager.get_layer_textures(
 					this.layer_data.id
 				);
 				if (layer_textures) {
-					// Simply create a sprite from our copied texture and render it to the layer texture
 					const sprite = new Sprite(this.texture_copy);
 
-					// Render directly to the layer's texture
 					this.context.app.renderer.render(sprite, {
 						renderTexture: layer_textures.draw
 					});
 
-					// Clean up
 					sprite.destroy();
 				}
 			} catch (e) {
@@ -1071,12 +982,10 @@ export class RemoveLayerCommand implements Command {
 			}
 		}
 
-		// Restore visibility
 		if (!this.layer_data.visible) {
 			this.context.layer_manager.toggle_layer_visibility(this.layer_data.id);
 		}
 
-		// Set the active layer if this wasn't the active layer
 		if (!this.layer_data.was_active && this.previous_active_layer) {
 			this.context.layer_manager.set_active_layer(this.previous_active_layer);
 		}
@@ -1087,7 +996,6 @@ export class RemoveLayerCommand implements Command {
 	 * This would need to be called by a garbage collection mechanism
 	 */
 	destroy(): void {
-		// Clean up the texture copy to prevent memory leaks
 		if (this.texture_copy) {
 			this.texture_copy.destroy();
 			this.texture_copy = null;
@@ -1113,11 +1021,9 @@ export class ReorderLayerCommand implements Command {
 		this.layer_id = layer_id;
 		this.direction = direction;
 		this.name = "ReorderLayer";
-		// Store the original order
 		const layers = this.context.layer_manager.get_layers();
 		this.original_order = layers.map((l) => l.id);
 
-		// Calculate the new order
 		const index = layers.findIndex((l) => l.id === layer_id);
 		if (index === -1) {
 			throw new Error(`Layer with ID ${layer_id} not found`);
@@ -1125,10 +1031,8 @@ export class ReorderLayerCommand implements Command {
 
 		const new_index = direction === "up" ? index - 1 : index + 1;
 		if (new_index < 0 || new_index >= layers.length) {
-			// Can't move in this direction, keep the same order
 			this.new_order = [...this.original_order];
 		} else {
-			// Create a new array with the swapped elements
 			this.new_order = [...this.original_order];
 			[this.new_order[index], this.new_order[new_index]] = [
 				this.new_order[new_index],
@@ -1142,10 +1046,8 @@ export class ReorderLayerCommand implements Command {
 	}
 
 	async undo(): Promise<void> {
-		// Get the current layers
 		const current_layers = this.context.layer_manager.get_layers();
 
-		// If orders match, no need to do anything
 		if (
 			this.original_order.join(",") ===
 			current_layers.map((l) => l.id).join(",")
@@ -1153,15 +1055,12 @@ export class ReorderLayerCommand implements Command {
 			return;
 		}
 
-		// Find the layer position in the current order
 		const layer_index = current_layers.findIndex((l) => l.id === this.layer_id);
 		if (layer_index === -1) return;
 
-		// Determine if we need to move up or down to restore original order
 		const original_index = this.original_order.indexOf(this.layer_id);
 		const move_direction = layer_index > original_index ? "up" : "down";
 
-		// Move the layer to restore the original position
 		this.context.layer_manager.move_layer(this.layer_id, move_direction);
 	}
 }

@@ -36,49 +36,6 @@ export interface Command {
 }
 
 /**
- * Command manager interface that handles the undo/redo history
- */
-// export interface CommandManager {
-// 	/**
-// 	 * Undo the last command
-// 	 */
-// 	undo(): void;
-// 	/**
-// 	 * Redo the last undone command
-// 	 */
-// 	redo(): void;
-// 	/**
-// 	 * Execute a command and add it to the history
-// 	 * @param command command to execute
-// 	 */
-// 	execute(command: Command): void;
-// 	/**
-// 	 * Whether or not there are commands that can be undone
-// 	 * Observable store that you can subscribe to for updates
-// 	 */
-// 	readonly can_undo: Writable<boolean>;
-// 	/**
-// 	 * Whether or not there are commands that can be redone
-// 	 * Observable store that you can subscribe to for updates
-// 	 */
-// 	readonly can_redo: Writable<boolean>;
-// 	/**
-// 	 * Resets the history
-// 	 */
-// 	reset(): void;
-// 	/**
-// 	 * The current history node
-// 	 * Observable store that you can subscribe to for updates
-// 	 */
-// 	readonly current_history: Writable<CommandNode>;
-// 	/**
-// 	 * Hydrates the command manager with a full history
-// 	 * @param full_history the full history to hydrate with
-// 	 */
-// 	hydrate(full_history: CommandNode): void;
-// }
-
-/**
  * Creates a command node
  * @param command command to add to the node
  * @returns a command node

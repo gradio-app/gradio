@@ -497,7 +497,6 @@
 		})()
 	);
 
-	// Type-safe brush size handling
 	$: brush?.set_brush_size(
 		typeof selected_size === "number" ? selected_size : 25
 	);

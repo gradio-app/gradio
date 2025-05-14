@@ -1,11 +1,4 @@
-import {
-	Application,
-	Container,
-	Graphics,
-	Sprite,
-	RenderTexture,
-	Assets
-} from "pixi.js";
+import { Application, Container, Graphics, Sprite, Assets } from "pixi.js";
 
 import { DropShadowFilter as BlurFilter } from "pixi-filters/drop-shadow";
 
@@ -15,7 +8,7 @@ import { ZoomTool } from "../zoom/zoom";
 import type { Subtool, Tool as ToolbarTool } from "../Toolbar.svelte";
 import type { Readable, Writable } from "svelte/store";
 import { spring, type Spring } from "svelte/motion";
-import { writable, get } from "svelte/store";
+import { writable } from "svelte/store";
 import { type ImageBlobs, type LayerOptions } from "../types";
 import type { BrushTool } from "../brush/brush";
 import type { CropTool } from "../crop/crop";
@@ -107,7 +100,6 @@ class EditorState {
 			throw new Error("EditorState must be created by ImageEditor");
 		}
 
-		// Store private data
 		this.scale = 1.0;
 		this.position = { x: 0, y: 0 };
 		this.subscribers = new Set();
@@ -129,7 +121,6 @@ class EditorState {
 		});
 	}
 
-	// Internal methods - only accessible to EditorState class
 	_set_position(x: number, y: number): void {
 		const oldPosition = { ...this.position };
 		this.position = { x, y };
@@ -153,7 +144,6 @@ class EditorState {
 		});
 	}
 
-	// Public method but only affects notifications
 	subscribe(callback: (value: any) => void): () => void {
 		this.subscribers.add(callback);
 		return () => this.subscribers.delete(callback);
@@ -311,16 +301,13 @@ export class ImageEditor {
 			powerPreference: "high-performance"
 		});
 
-		// Set canvas properties
 		const canvas = this.app.canvas as HTMLCanvasElement;
 		canvas.style.background = "transparent";
 
 		await this.setup_containers();
 
-		//create background layer
 		this.layer_manager.create_background_layer(this.width, this.height);
 
-		// Create initial layer
 		this.layer_manager.init_layers(this.width, this.height);
 
 		for (const tool of this.tools.values()) {
@@ -336,7 +323,6 @@ export class ImageEditor {
 
 		this.target_element.appendChild(canvas);
 
-		// Ensure parent element is transparent
 		this.target_element.style.background = "transparent";
 
 		this.dimensions.subscribe((dimensions) => {
@@ -363,7 +349,6 @@ export class ImageEditor {
 			const effective_width = this.dimensions_value.width * this.scale_value;
 			const effective_height = this.dimensions_value.height * this.scale_value;
 
-			// Convert image_container's position (in stage space) to outline_container local coordinates.
 			const local_x = Math.round(
 				this.image_container.position.x - this.outline_container.position.x
 			);
@@ -371,7 +356,6 @@ export class ImageEditor {
 				this.image_container.position.y - this.outline_container.position.y
 			);
 
-			// Make sure overlay container follows the same position as outline container
 			this.overlay_container.position.set(
 				this.outline_container.position.x,
 				this.outline_container.position.y
@@ -385,7 +369,6 @@ export class ImageEditor {
 					alpha: 1
 				});
 
-			// Draw border region indicator if border_region > 0
 			if (this.border_region > 0) {
 				const scaled_border = this.border_region * this.scale_value;
 				const border_x = local_x + scaled_border - 1;
@@ -393,10 +376,8 @@ export class ImageEditor {
 				const border_width = effective_width - scaled_border * 2 + 1;
 				const border_height = effective_height - scaled_border * 2 + 1;
 
-				// Clear previous overlay graphics
 				this.overlay_graphics.clear();
 
-				// Draw border rectangle using pixelLine for crisp 1px outline
 				this.overlay_graphics
 					.rect(border_x, border_y, border_width, border_height)
 					.stroke({
@@ -406,15 +387,12 @@ export class ImageEditor {
 						pixelLine: true
 					});
 
-				// Create dashed line effect by drawing small rects along the border
 				const dashLength = 5;
 				const gapLength = 5;
 				const totalLength = dashLength + gapLength;
 				const lineColor = 0x999999;
 
-				// Draw dashed horizontal lines (top and bottom)
 				for (let x = border_x; x < border_x + border_width; x += totalLength) {
-					// Top dash
 					this.overlay_graphics
 						.rect(
 							x,
@@ -424,7 +402,6 @@ export class ImageEditor {
 						)
 						.fill({ color: lineColor, alpha: 0.7 });
 
-					// Bottom dash
 					this.overlay_graphics
 						.rect(
 							x,
@@ -435,9 +412,7 @@ export class ImageEditor {
 						.fill({ color: lineColor, alpha: 0.7 });
 				}
 
-				// Draw dashed vertical lines (left and right)
 				for (let y = border_y; y < border_y + border_height; y += totalLength) {
-					// Left dash
 					this.overlay_graphics
 						.rect(
 							border_x,
@@ -447,7 +422,6 @@ export class ImageEditor {
 						)
 						.fill({ color: lineColor, alpha: 0.7 });
 
-					// Right dash
 					this.overlay_graphics
 						.rect(
 							border_x + border_width,
@@ -458,7 +432,6 @@ export class ImageEditor {
 						.fill({ color: lineColor, alpha: 0.7 });
 				}
 			} else {
-				// Clear overlay graphics if no border region
 				this.overlay_graphics.clear();
 			}
 		});
@@ -552,7 +525,6 @@ export class ImageEditor {
 			this.app.renderer.resize(width, height);
 		}
 
-		// Instead, update the container position to stay centered
 		const app_center_x = width / 2;
 		const app_center_y = height / 2;
 
@@ -655,7 +627,6 @@ export class ImageEditor {
 			border_region: this.border_region
 		});
 
-		// Update resize tool if present
 		const resize_tool = this.tools.get("resize") as any;
 		if (resize_tool && typeof resize_tool.set_border_region === "function") {
 			resize_tool.set_border_region(this.border_region);
@@ -687,11 +658,9 @@ export class ImageEditor {
 
 	async reset_canvas(): Promise<void> {
 		this.layer_manager.reset_layers(this.width, this.height);
-		// Clear background image
 		this.background_image = undefined;
 		this.background_image_present.set(false);
 
-		// Reset position, scale and dimensions to default values
 		await this.set_image_properties({
 			width: this.width,
 			height: this.height,
@@ -700,13 +669,10 @@ export class ImageEditor {
 			animate: false
 		});
 
-		// Reset command stacks
 		this.command_manager = new CommandManager();
 
-		//create background layer
 		this.layer_manager.create_background_layer(this.width, this.height);
 
-		// Reset tools
 		for (const tool of this.tools.values()) {
 			tool.cleanup();
 			tool.setup(this.context, this.current_tool, this.current_subtool);
@@ -758,7 +724,6 @@ export class ImageEditor {
 
 		this.layer_manager.set_active_layer(_layers[0].id);
 
-		// Update resize tool if present with border region
 		const resize_tool = this.tools.get("resize") as any;
 		if (resize_tool && typeof resize_tool.set_border_region === "function") {
 			resize_tool.set_border_region(this.border_region);
@@ -804,11 +769,9 @@ export class ImageEditor {
 			| "bottom-right",
 		scale: boolean
 	): void {
-		// Store old dimensions before updating
 		const oldWidth = this.width;
 		const oldHeight = this.height;
 
-		// Resize layers first, passing old dimensions for anchor calculation
 		this.layer_manager.resize_all_layers(
 			width,
 			height,
@@ -818,16 +781,14 @@ export class ImageEditor {
 			oldHeight
 		);
 
-		// Update the editor's main dimension tracking *after* resizing layers
 		this.width = width;
 		this.height = height;
 
-		// Update the dimensions store and reset view scale/position
 		this.set_image_properties({
 			width,
 			height,
-			scale: 1, // Reset scale
-			position: { x: 0, y: 0 }, // Reset pan/position of the image_container
+			scale: 1,
+			position: { x: 0, y: 0 },
 			animate: false
 		});
 		this.notify("change");
@@ -860,9 +821,6 @@ export class ImageEditor {
 
 	destroy(): void {
 		if (!this.app) return;
-		// for (const tool of this.tools) {
-		// 	tool[1]?.cleanup();
-		// }
 
 		this.app?.destroy();
 	}
