@@ -3,9 +3,95 @@ import {
 	RenderTexture,
 	Sprite,
 	Graphics,
-	Application
+	Application,
+	Texture
 } from "pixi.js";
-import { type ImageEditorContext } from "../core/editor";
+import { type ImageEditorContext, type Command } from "../core/editor";
+
+export class BrushCommand implements Command {
+	private layer_id: string;
+	private original_texture: Texture;
+	private final_texture: Texture;
+
+	constructor(
+		private context: ImageEditorContext,
+		layer_id: string,
+		original_texture: Texture,
+		final_texture: Texture
+	) {
+		this.layer_id = layer_id;
+
+		// Create new render textures and copy the content instead of cloning
+		this.original_texture = this.createTextureFrom(original_texture);
+		this.final_texture = this.createTextureFrom(final_texture);
+	}
+
+	/**
+	 * Creates a new texture with the same content as the source texture
+	 */
+	private createTextureFrom(source: Texture): Texture {
+		// Create a new render texture with the same dimensions
+		const texture = RenderTexture.create({
+			width: source.width,
+			height: source.height,
+			resolution: window.devicePixelRatio || 1
+		});
+
+		// Copy the content from the source texture
+		const sprite = new Sprite(source);
+		const container = new Container();
+		container.addChild(sprite);
+
+		this.context.app.renderer.render(container, {
+			renderTexture: texture
+		});
+
+		container.destroy({ children: true });
+		return texture;
+	}
+
+	async execute(): Promise<void> {
+		// Get the layer textures for the affected layer
+		const layer_textures = this.context.layer_manager.get_layer_textures(
+			this.layer_id
+		);
+		if (!layer_textures) return;
+
+		// Apply the final texture state
+		const temp_sprite = new Sprite(this.final_texture);
+		const temp_container = new Container();
+		temp_container.addChild(temp_sprite);
+
+		// Render the final state to the layer
+		this.context.app.renderer.render(temp_container, {
+			renderTexture: layer_textures.draw
+		});
+
+		// Clean up
+		temp_container.destroy({ children: true });
+	}
+
+	async undo(): Promise<void> {
+		// Get the layer textures for the affected layer
+		const layer_textures = this.context.layer_manager.get_layer_textures(
+			this.layer_id
+		);
+		if (!layer_textures) return;
+
+		// Apply the original texture state
+		const temp_sprite = new Sprite(this.original_texture);
+		const temp_container = new Container();
+		temp_container.addChild(temp_sprite);
+
+		// Render the original state to the layer
+		this.context.app.renderer.render(temp_container, {
+			renderTexture: layer_textures.draw
+		});
+
+		// Clean up
+		temp_container.destroy({ children: true });
+	}
+}
 
 /**
  * Class to handle texture operations for the brush tool.
@@ -30,6 +116,10 @@ export class BrushTextures {
 
 	// Track current drawing mode
 	private current_mode: "draw" | "erase" = "draw";
+
+	// Store the original layer texture for undo
+	private original_layer_texture: Texture | null = null;
+	private active_layer_id: string | null = null;
 
 	constructor(
 		private image_editor_context: ImageEditorContext,
@@ -153,17 +243,65 @@ export class BrushTextures {
 			this.display_container = null;
 		}
 
+		// Clean up original layer texture
+		if (this.original_layer_texture) {
+			this.original_layer_texture.destroy();
+			this.original_layer_texture = null;
+		}
+
 		// Nullify other references
 		this.stroke_container = null;
 		this.stroke_graphics = null;
 		this.preview_sprite = null;
 		this.erase_graphics = null;
+		this.active_layer_id = null;
 	}
 
 	/**
 	 * Preserve the canvas state when starting a new stroke.
 	 */
 	preserve_canvas_state(): void {
+		// Store the original layer state for undo
+		const active_layer =
+			this.image_editor_context.layer_manager.get_active_layer();
+		if (!active_layer) return;
+
+		// Get all layers to find the ID of the active layer
+		const layers = this.image_editor_context.layer_manager.get_layers();
+		const layer = layers.find((l) => l.container === active_layer);
+		if (!layer) return;
+
+		// Store the layer ID
+		this.active_layer_id = layer.id;
+
+		// Get the active layer's draw texture
+		const layer_textures =
+			this.image_editor_context.layer_manager.get_layer_textures(layer.id);
+		if (!layer_textures) return;
+
+		// Create a copy of the current layer state
+		if (this.original_layer_texture) {
+			this.original_layer_texture.destroy();
+		}
+
+		// Create a new texture to store the original state
+		this.original_layer_texture = RenderTexture.create({
+			width: this.dimensions.width,
+			height: this.dimensions.height,
+			resolution: window.devicePixelRatio || 1
+		});
+
+		// Copy the current layer content
+		const temp_sprite = new Sprite(layer_textures.draw);
+		const temp_container = new Container();
+		temp_container.addChild(temp_sprite);
+
+		this.app.renderer.render(temp_container, {
+			renderTexture: this.original_layer_texture
+		});
+
+		temp_container.destroy({ children: true });
+
 		// Reset for a new stroke
 		this.is_new_stroke = true;
 	}
@@ -192,10 +330,16 @@ export class BrushTextures {
 	}
 
 	/**
-	 * Commits the current stroke to the active layer.
+	 * Commits the current stroke to the active layer and returns a command for undo/redo.
 	 */
 	commit_stroke(): void {
-		if (!this.stroke_texture || !this.preview_sprite || !this.stroke_graphics)
+		if (
+			!this.stroke_texture ||
+			!this.preview_sprite ||
+			!this.stroke_graphics ||
+			!this.original_layer_texture ||
+			!this.active_layer_id
+		)
 			return;
 
 		// Hide the preview sprite
@@ -211,6 +355,9 @@ export class BrushTextures {
 		const layers = this.image_editor_context.layer_manager.get_layers();
 		const layer = layers.find((l) => l.container === active_layer);
 		if (!layer) return;
+
+		// Verify we're still working with the same layer
+		if (layer.id !== this.active_layer_id) return;
 
 		// Get the active layer's draw texture
 		const layer_textures =
@@ -268,6 +415,32 @@ export class BrushTextures {
 			erase_container.destroy({ children: true });
 		}
 
+		// Create a texture that represents the final state after the stroke
+		const final_texture = RenderTexture.create({
+			width: this.dimensions.width,
+			height: this.dimensions.height,
+			resolution: window.devicePixelRatio || 1
+		});
+
+		// Copy the updated layer content to the final texture
+		const final_container = new Container();
+		const final_sprite = new Sprite(layer_textures.draw);
+		final_container.addChild(final_sprite);
+
+		this.app.renderer.render(final_container, {
+			renderTexture: final_texture
+		});
+
+		final_container.destroy({ children: true });
+
+		// Create a brush command for undo/redo
+		const brush_command = new BrushCommand(
+			this.image_editor_context,
+			this.active_layer_id,
+			this.original_layer_texture,
+			final_texture
+		);
+
 		// Clear the stroke graphics and texture for the next stroke
 		if (this.stroke_graphics) {
 			this.stroke_graphics.clear();
@@ -280,6 +453,15 @@ export class BrushTextures {
 
 		// Reset state for the next stroke
 		this.is_new_stroke = true;
+
+		// Destroy the final texture as it's now stored in the command
+		final_texture.destroy();
+
+		// Reset the original texture as we're done with the stroke
+		this.original_layer_texture = null;
+		this.active_layer_id = null;
+
+		this.image_editor_context.command_manager.execute(brush_command);
 	}
 
 	/**
@@ -314,6 +496,11 @@ export class BrushTextures {
 			!this.preview_sprite
 		)
 			return;
+
+		// If this is the first segment of a stroke, preserve the canvas state
+		if (this.is_new_stroke && !this.original_layer_texture) {
+			this.preserve_canvas_state();
+		}
 
 		// Store the current mode and opacity
 		this.current_mode = mode;
