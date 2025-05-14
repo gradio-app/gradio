@@ -70,6 +70,7 @@ class TestClientInitialization:
         )
         assert {"authorization": "Bearer abcde"}.items() <= client.headers.items()
 
+    @pytest.mark.serial
     def test_many_endpoint_demo_loads_quickly(self, many_endpoint_demo):
         import datetime
 
@@ -647,6 +648,15 @@ class TestClientPredictions:
         monkeypatch.setattr("gradio.context.LocalContext", MockContext)
         new_headers = client.add_zero_gpu_headers(headers)
         assert new_headers == {"existing": "header", "x-ip-token": "test-token"}
+
+    def test_multiple_newlines_in_output(self):
+        def test():
+            return """before\x85after"""
+
+        demo = gr.Interface(fn=test, inputs=[], outputs=["text"])
+        with connect(demo) as client:
+            result = client.predict(api_name="/predict")
+            assert result == "before\x85after"
 
 
 class TestClientPredictionsWithKwargs:

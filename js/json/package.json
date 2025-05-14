@@ -23,6 +23,11 @@
 			"svelte": "./dist/Index.svelte",
 			"types": "./dist/Index.svelte.d.ts"
 		},
+		"./example": {
+			"gradio": "./Example.svelte",
+			"svelte": "./dist/Example.svelte",
+			"types": "./dist/Example.svelte.d.ts"
+		},
 		"./package.json": "./package.json"
 	},
 	"peerDependencies": {
