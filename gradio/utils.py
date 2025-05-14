@@ -283,6 +283,10 @@ def watchfn(reloader: SourceFileReloader):
     # module is available in the namespace of this thread
     module = reloader.watch_module
     no_reload_source_code = _remove_if_name_main_codeblock(str(reloader.demo_file))
+    # Reset the context to id 0 so that the loaded module is the same as the original
+    # See https://github.com/gradio-app/gradio/issues/10253
+    from gradio.context import Context
+    Context.id = 0
     exec(no_reload_source_code, module.__dict__)
     sys.modules[reloader.watch_module_name] = module
 
