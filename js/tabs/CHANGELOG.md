@@ -1,5 +1,11 @@
 # @gradio/tabs
 
+## 0.4.4
+
+### Fixes
+
+- [#11189](https://github.com/gradio-app/gradio/pull/11189) [`88f06c7`](https://github.com/gradio-app/gradio/commit/88f06c7b8126a67edefd3116c764148d0f39c6c7) - Ensure that tabs with `visible=False` don't show up in the overflow menu.  Thanks @abidlabs!
+
 ## 0.4.3
 
 ### Dependency updates
