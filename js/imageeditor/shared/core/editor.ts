@@ -1592,14 +1592,14 @@ export class ImageEditor {
 	}
 
 	add_layer(): void {
-		this.layer_manager.create_layer({
+		const add_layer_command = new AddLayerCommand(this.context, {
 			width: this.width,
 			height: this.height,
-			layer_name: undefined,
 			user_created: true,
-			layer_id: undefined,
 			make_active: true
 		});
+
+		this.command_manager.execute(add_layer_command);
 		this.notify("change");
 	}
 
@@ -1643,12 +1643,18 @@ export class ImageEditor {
 	}
 
 	move_layer(id: string, direction: "up" | "down"): void {
-		this.layer_manager.move_layer(id, direction);
+		const reorder_layer_command = new ReorderLayerCommand(
+			this.context,
+			id,
+			direction
+		);
+		this.command_manager.execute(reorder_layer_command);
 		this.notify("change");
 	}
 
 	delete_layer(id: string): void {
-		this.layer_manager.delete_layer(id);
+		const remove_layer_command = new RemoveLayerCommand(this.context, id);
+		this.command_manager.execute(remove_layer_command);
 		this.notify("change");
 	}
 
@@ -1771,5 +1777,290 @@ export class ImageEditor {
 
 	toggle_layer_visibility(id: string): void {
 		this.layer_manager.toggle_layer_visibility(id);
+	}
+}
+
+/**
+ * Command to add a new layer
+ */
+export class AddLayerCommand implements Command {
+	private layer_id: string;
+	private layer_name: string;
+	private width: number;
+	private height: number;
+	private user_created: boolean;
+	private make_active: boolean;
+	private previous_active_layer: string | null = null;
+
+	constructor(
+		private context: ImageEditorContext,
+		options: {
+			width: number;
+			height: number;
+			layer_name?: string;
+			user_created: boolean;
+			layer_id?: string;
+			make_active?: boolean;
+		}
+	) {
+		this.width = options.width;
+		this.height = options.height;
+		this.layer_name =
+			options.layer_name ||
+			`Layer ${this.context.layer_manager.get_layers().length + 1}`;
+		this.user_created = options.user_created;
+		this.layer_id =
+			options.layer_id || Math.random().toString(36).substring(2, 15);
+		this.make_active = options.make_active || false;
+
+		// Store the current active layer ID for undo
+		const current_layers = this.context.layer_manager.get_layers();
+		const current_active = current_layers.find(
+			(l) => l.container === this.context.layer_manager.get_active_layer()
+		);
+		this.previous_active_layer = current_active?.id || null;
+	}
+
+	async execute(): Promise<void> {
+		this.context.layer_manager.create_layer({
+			width: this.width,
+			height: this.height,
+			layer_name: this.layer_name,
+			user_created: this.user_created,
+			layer_id: this.layer_id,
+			make_active: this.make_active
+		});
+	}
+
+	async undo(): Promise<void> {
+		// Remove the layer
+		this.context.layer_manager.delete_layer(this.layer_id);
+
+		// Restore previous active layer if needed
+		if (this.previous_active_layer) {
+			this.context.layer_manager.set_active_layer(this.previous_active_layer);
+		}
+	}
+}
+
+/**
+ * Command to remove a layer
+ */
+export class RemoveLayerCommand implements Command {
+	private layer_data: {
+		id: string;
+		name: string;
+		user_created: boolean;
+		visible: boolean;
+		was_active: boolean;
+	};
+	private previous_active_layer: string | null = null;
+	// Store the texture directly instead of as base64
+	private texture_copy: RenderTexture | null = null;
+
+	constructor(
+		private context: ImageEditorContext,
+		layer_id: string
+	) {
+		// Find the layer to be removed
+		const layers = this.context.layer_manager.get_layers();
+		const layer_to_remove = layers.find((l) => l.id === layer_id);
+
+		if (!layer_to_remove) {
+			throw new Error(`Layer with ID ${layer_id} not found`);
+		}
+
+		// Get the active layer info
+		const active_layer = this.context.layer_manager.get_active_layer();
+		const was_active = layer_to_remove.container === active_layer;
+
+		// Find what would become the active layer after removal (for undo)
+		if (was_active) {
+			const layer_index = layers.findIndex((l) => l.id === layer_id);
+			const next_active = layers[Math.max(0, layer_index - 1)];
+			this.previous_active_layer = next_active?.id || null;
+		}
+
+		// Store basic information about the layer
+		this.layer_data = {
+			id: layer_to_remove.id,
+			name: layer_to_remove.name,
+			user_created: layer_to_remove.user_created,
+			visible: layer_to_remove.visible,
+			was_active
+		};
+
+		// Capture texture data - create a direct copy of the texture
+		this.captureTextureData(layer_id);
+	}
+
+	/**
+	 * Create a direct copy of the layer's texture
+	 */
+	private captureTextureData(layer_id: string): void {
+		const layer_textures =
+			this.context.layer_manager.get_layer_textures(layer_id);
+		if (!layer_textures) return;
+
+		try {
+			// Get the original texture
+			const original_texture = layer_textures.draw;
+
+			// Create a new render texture with the same dimensions
+			const texture_copy = RenderTexture.create({
+				width: original_texture.width,
+				height: original_texture.height,
+				resolution: window.devicePixelRatio || 1
+			});
+
+			// Create a sprite from the original texture
+			const sprite = new Sprite(original_texture);
+
+			// Render the sprite to our copied texture
+			this.context.app.renderer.render(sprite, { renderTexture: texture_copy });
+
+			// Store the copy
+			this.texture_copy = texture_copy;
+
+			// Clean up the sprite
+			sprite.destroy();
+		} catch (e) {
+			console.error("Failed to copy layer texture:", e);
+			this.texture_copy = null;
+		}
+	}
+
+	async execute(): Promise<void> {
+		this.context.layer_manager.delete_layer(this.layer_data.id);
+	}
+
+	async undo(): Promise<void> {
+		// Get current dimensions from the context
+		const dimensions = get(this.context.dimensions);
+
+		// Recreate the layer
+		const container = this.context.layer_manager.create_layer({
+			width: dimensions.width,
+			height: dimensions.height,
+			layer_name: this.layer_data.name,
+			user_created: this.layer_data.user_created,
+			layer_id: this.layer_data.id,
+			make_active: this.layer_data.was_active
+		});
+
+		// Restore the layer content if we have saved texture
+		if (this.texture_copy) {
+			try {
+				const layer_textures = this.context.layer_manager.get_layer_textures(
+					this.layer_data.id
+				);
+				if (layer_textures) {
+					// Simply create a sprite from our copied texture and render it to the layer texture
+					const sprite = new Sprite(this.texture_copy);
+
+					// Render directly to the layer's texture
+					this.context.app.renderer.render(sprite, {
+						renderTexture: layer_textures.draw
+					});
+
+					// Clean up
+					sprite.destroy();
+				}
+			} catch (e) {
+				console.error("Failed to restore layer content:", e);
+			}
+		}
+
+		// Restore visibility
+		if (!this.layer_data.visible) {
+			this.context.layer_manager.toggle_layer_visibility(this.layer_data.id);
+		}
+
+		// Set the active layer if this wasn't the active layer
+		if (!this.layer_data.was_active && this.previous_active_layer) {
+			this.context.layer_manager.set_active_layer(this.previous_active_layer);
+		}
+	}
+
+	/**
+	 * Clean up resources when the command is no longer needed
+	 * This would need to be called by a garbage collection mechanism
+	 */
+	destroy(): void {
+		// Clean up the texture copy to prevent memory leaks
+		if (this.texture_copy) {
+			this.texture_copy.destroy();
+			this.texture_copy = null;
+		}
+	}
+}
+
+/**
+ * Command to reorder layers
+ */
+export class ReorderLayerCommand implements Command {
+	private original_order: string[];
+	private new_order: string[];
+	private layer_id: string;
+	private direction: "up" | "down";
+
+	constructor(
+		private context: ImageEditorContext,
+		layer_id: string,
+		direction: "up" | "down"
+	) {
+		this.layer_id = layer_id;
+		this.direction = direction;
+
+		// Store the original order
+		const layers = this.context.layer_manager.get_layers();
+		this.original_order = layers.map((l) => l.id);
+
+		// Calculate the new order
+		const index = layers.findIndex((l) => l.id === layer_id);
+		if (index === -1) {
+			throw new Error(`Layer with ID ${layer_id} not found`);
+		}
+
+		const new_index = direction === "up" ? index - 1 : index + 1;
+		if (new_index < 0 || new_index >= layers.length) {
+			// Can't move in this direction, keep the same order
+			this.new_order = [...this.original_order];
+		} else {
+			// Create a new array with the swapped elements
+			this.new_order = [...this.original_order];
+			[this.new_order[index], this.new_order[new_index]] = [
+				this.new_order[new_index],
+				this.new_order[index]
+			];
+		}
+	}
+
+	async execute(): Promise<void> {
+		this.context.layer_manager.move_layer(this.layer_id, this.direction);
+	}
+
+	async undo(): Promise<void> {
+		// Get the current layers
+		const current_layers = this.context.layer_manager.get_layers();
+
+		// If orders match, no need to do anything
+		if (
+			this.original_order.join(",") ===
+			current_layers.map((l) => l.id).join(",")
+		) {
+			return;
+		}
+
+		// Find the layer position in the current order
+		const layer_index = current_layers.findIndex((l) => l.id === this.layer_id);
+		if (layer_index === -1) return;
+
+		// Determine if we need to move up or down to restore original order
+		const original_index = this.original_order.indexOf(this.layer_id);
+		const move_direction = layer_index > original_index ? "up" : "down";
+
+		// Move the layer to restore the original position
+		this.context.layer_manager.move_layer(this.layer_id, move_direction);
 	}
 }

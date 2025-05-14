@@ -31,7 +31,6 @@
 	import {
 		type Brush as BrushType,
 		type Eraser as EraserType,
-		type ColorTuple
 	} from "./brush/types";
 	import tinycolor from "tinycolor2";
 

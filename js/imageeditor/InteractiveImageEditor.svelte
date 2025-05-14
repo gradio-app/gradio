@@ -18,16 +18,12 @@
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
 	import { type CommandNode } from "./shared/core/commands";
 	import ImageEditor from "./shared/ImageEditor.svelte";
-	// import Layers from "./layers/Layers.svelte";
 	import { type Brush as IBrush, type Eraser } from "./shared/brush/types";
-	// import { type Eraser } from "./tools/Brush.svelte";
 	import { type Tool as ToolbarTool } from "./shared/Toolbar.svelte";
 
-	// import { Tools, Crop, Brush, Sources } from "./tools";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image as ImageIcon } from "@gradio/icons";
 	import { inject } from "./shared/utils/parse_placeholder";
-	// import Sources from "./shared/image/Sources.svelte";
 	import {
 		type LayerOptions,
 		type Transform,
