@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from gradio_client.documentation import document
 
-from gradio.components.base import Component
+from gradio.components.base import FormComponent
 from gradio.events import Events
 
 if TYPE_CHECKING:
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 @document()
-class Timer(Component):
+class Timer(FormComponent):
     """
     Special component that ticks at regular intervals when active. It is not visible, and only used to trigger events at a regular interval through the `tick` event listener.
     """
