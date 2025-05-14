@@ -15,6 +15,7 @@ def launch_services(launch_services_fn):
     yield from launch_services_fn(TEST_NAME, folder, "/mount", "/mount")
 
 
+@pytest.mark.serial
 def test_endpoint_status(launch_services):
     for endpoint in launch_services:
         response = requests.get(endpoint)
@@ -28,6 +29,7 @@ def test_endpoint_status(launch_services):
         assert response.status_code == 404
 
 
+@pytest.mark.serial
 def test_api_response(launch_services):
     for endpoint in launch_services:
         client = gradio_client.Client(endpoint)
@@ -35,6 +37,7 @@ def test_api_response(launch_services):
         assert result == "Hi John"
 
 
+@pytest.mark.serial
 def test_load_assets(launch_services):
     for endpoint in launch_services:
         asset_regex = '"\\.\\/([A-Za-z0-9-_\\/.]+\\.(?:js|css))"'
