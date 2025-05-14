@@ -208,7 +208,7 @@
 			</div>
 			<span
 				class="overflow-menu"
-				class:hide={!is_overflowing || !overflow_tabs.some(t => t?.visible)}
+				class:hide={!is_overflowing || !overflow_tabs.some((t) => t?.visible)}
 				bind:this={overflow_menu}
 			>
 				<button
