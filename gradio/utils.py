@@ -286,6 +286,7 @@ def watchfn(reloader: SourceFileReloader):
     # Reset the context to id 0 so that the loaded module is the same as the original
     # See https://github.com/gradio-app/gradio/issues/10253
     from gradio.context import Context
+
     Context.id = 0
     exec(no_reload_source_code, module.__dict__)
     sys.modules[reloader.watch_module_name] = module
