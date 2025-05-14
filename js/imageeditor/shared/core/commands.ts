@@ -132,7 +132,7 @@ export class CommandManager {
 		console.log("CommandManager::execute", this.history);
 	}
 
-	hydrate(full_history: CommandNode): void {
+	replay(full_history: CommandNode): void {
 		setTimeout(() => {
 			while (full_history.next) {
 				this.execute(full_history.next.command!);

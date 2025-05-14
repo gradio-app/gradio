@@ -28,7 +28,7 @@ import { type ImageBlobs, type LayerOptions } from "../types";
 import { get_canvas_blob } from "../utils/pixi";
 import type { BrushTool } from "../brush/brush";
 import type { CropTool } from "../crop/crop";
-import { CommandManager } from "../utils/commands";
+import { CommandManager } from "./commands";
 export interface Command {
 	execute: () => Promise<void>;
 	undo: () => Promise<void>;

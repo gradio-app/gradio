@@ -10,7 +10,7 @@ import {
 } from "pixi.js";
 import { type ImageEditorContext, type Tool } from "../core/editor";
 import { type Tool as ToolbarTool, type Subtool } from "../Toolbar.svelte";
-import { type Command } from "../utils/commands";
+import { type Command } from "../core/commands";
 import { make_graphics } from "../utils/pixi";
 import { get } from "svelte/store";
 
@@ -83,6 +83,16 @@ export class AddImageCommand implements BgImageCommand {
 	scaled_width!: number;
 	scaled_height!: number;
 
+	// Store the previous image state for undo operations
+	private previous_image: {
+		texture: Texture;
+		width: number;
+		height: number;
+		x: number;
+		y: number;
+		border_region: number;
+	} | null = null;
+
 	constructor(
 		context: ImageEditorContext,
 		background: Blob | File | Texture,
@@ -98,6 +108,47 @@ export class AddImageCommand implements BgImageCommand {
 		this.current_position = get(this.context.position);
 
 		this.computed_dimensions = { width: 0, height: 0 };
+
+		// If there's an existing background image, store its state
+		if (this.context.background_image) {
+			const bg = this.context.background_image;
+			// Store the border region if it exists
+			const stored_border_region = (bg as any).borderRegion || 0;
+
+			// Create a copy of the texture
+			this.previous_image = {
+				texture: this.clone_texture(bg.texture),
+				width: bg.width,
+				height: bg.height,
+				x: bg.position.x,
+				y: bg.position.y,
+				border_region: stored_border_region
+			};
+		}
+	}
+
+	/**
+	 * Creates a copy of a texture to avoid reference issues
+	 */
+	private clone_texture(texture: Texture): Texture {
+		// Create a new render texture with the same dimensions
+		const render_texture = RenderTexture.create({
+			width: texture.width,
+			height: texture.height,
+			resolution: window.devicePixelRatio || 1
+		});
+
+		// Copy the content
+		const sprite = new Sprite(texture);
+		const container = new Container();
+		container.addChild(sprite);
+
+		this.context.app.renderer.render(container, {
+			renderTexture: render_texture
+		});
+
+		container.destroy({ children: true });
+		return render_texture;
 	}
 
 	async start(): Promise<void> {
@@ -164,9 +215,7 @@ export class AddImageCommand implements BgImageCommand {
 
 	async execute(): Promise<void> {
 		// First ensure we have run start() to create the sprite and get dimensions
-		// if (this.sprite === null) {
 		await this.start();
-		// }
 
 		if (this.sprite === null) {
 			return;
@@ -200,6 +249,11 @@ export class AddImageCommand implements BgImageCommand {
 			true
 		);
 
+		// Store the border region on the sprite for future reference
+		if (this.border_region > 0) {
+			(this.sprite as any).borderRegion = this.border_region;
+		}
+
 		this.context.set_background_image(this.sprite);
 
 		this.context.reset();
@@ -209,25 +263,75 @@ export class AddImageCommand implements BgImageCommand {
 		if (this.sprite) {
 			this.sprite.destroy();
 
-			await this.context.set_image_properties({
-				scale: 1, // Start at 1:1 scale
-				position: {
-					x: this.context.app.screen.width / 2,
-					y: this.context.app.screen.height / 2
-				},
-				width: this.current_canvas_size.width,
-				height: this.current_canvas_size.height
-			});
+			if (this.previous_image) {
+				// Restore the previous image
+				const previous_sprite = new Sprite(this.previous_image.texture);
+				previous_sprite.width = this.previous_image.width;
+				previous_sprite.height = this.previous_image.height;
+				previous_sprite.position.set(
+					this.previous_image.x,
+					this.previous_image.y
+				);
 
-			this.context.layer_manager.create_background_layer(
-				this.current_canvas_size.width,
-				this.current_canvas_size.height
-			);
+				// Store the border region if it existed
+				if (this.previous_image.border_region > 0) {
+					(previous_sprite as any).borderRegion =
+						this.previous_image.border_region;
+				}
 
-			this.context.layer_manager.reset_layers(
-				this.current_canvas_size.width,
-				this.current_canvas_size.height
-			);
+				// Set image properties based on the previous image
+				await this.context.set_image_properties({
+					scale: 1,
+					position: {
+						x: this.context.app.screen.width / 2,
+						y: this.context.app.screen.height / 2
+					},
+					width: this.previous_image.width,
+					height: this.previous_image.height
+				});
+
+				// Create the background layer with previous dimensions
+				const background_layer =
+					this.context.layer_manager.create_background_layer(
+						this.previous_image.width,
+						this.previous_image.height
+					);
+
+				// Add the restored sprite
+				previous_sprite.zIndex = 0;
+				background_layer.addChild(previous_sprite);
+
+				// Reset layers with previous dimensions
+				this.context.layer_manager.reset_layers(
+					this.previous_image.width,
+					this.previous_image.height,
+					true
+				);
+
+				// Set the background image
+				this.context.set_background_image(previous_sprite);
+			} else {
+				// No previous image existed, create an empty canvas
+				await this.context.set_image_properties({
+					scale: 1, // Start at 1:1 scale
+					position: {
+						x: this.context.app.screen.width / 2,
+						y: this.context.app.screen.height / 2
+					},
+					width: this.current_canvas_size.width,
+					height: this.current_canvas_size.height
+				});
+
+				this.context.layer_manager.create_background_layer(
+					this.current_canvas_size.width,
+					this.current_canvas_size.height
+				);
+
+				this.context.layer_manager.reset_layers(
+					this.current_canvas_size.width,
+					this.current_canvas_size.height
+				);
+			}
 
 			this.context.reset();
 		}

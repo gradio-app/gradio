@@ -15,7 +15,7 @@
 	import type { Client, FileData } from "@gradio/client";
 	import tinycolor, { type ColorInput } from "tinycolor2";
 	import { ZoomTool } from "./zoom/zoom";
-	import { type CommandManager, type CommandNode } from "./utils/commands";
+	import { type CommandManager, type CommandNode } from "./core/commands";
 	import { ImageEditor } from "./core/editor";
 	import { type Brush, type Eraser } from "./brush/types";
 	import { BrushTool } from "./brush/brush";

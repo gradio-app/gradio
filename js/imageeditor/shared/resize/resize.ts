@@ -8,7 +8,7 @@ import {
 } from "pixi.js";
 import { type ImageEditorContext, type Tool } from "../core/editor";
 import { type Tool as ToolbarTool, type Subtool } from "../Toolbar.svelte";
-import { type Command } from "../utils/commands";
+import { type Command } from "../core/commands";
 
 /**
  * Command that handles resizing the image and supports undo/redo

@@ -16,7 +16,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { type I18nFormatter } from "@gradio/utils";
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
-	import { type CommandNode } from "./shared/utils/commands";
+	import { type CommandNode } from "./shared/core/commands";
 	import ImageEditor from "./shared/ImageEditor.svelte";
 	// import Layers from "./layers/Layers.svelte";
 	import { type Brush as IBrush, type Eraser } from "./shared/brush/types";
