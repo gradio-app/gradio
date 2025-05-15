@@ -126,12 +126,20 @@ class Block:
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         visible: bool = True,
         proxy_url: str | None = None,
     ):
-        self._id = Context.id
-        Context.id += 1
+        key_to_id_map = LocalContext.key_to_id_map.get()
+        self.is_render_replacement = key and key in key_to_id_map
+        if self.is_render_replacement:
+            self._id = key_to_id_map[key]
+        else:
+            self._id = Context.id
+            Context.id += 1
+            if key:
+                key_to_id_map[key] = self._id
         self.visible = visible
         self.elem_id = elem_id
         self.elem_classes = (
@@ -148,6 +156,7 @@ class Block:
         self.temp_files: set[str] = set()
         self.GRADIO_CACHE = get_upload_folder()
         self.key = key
+        self.preserved_by_key = [preserved_by_key] if isinstance(preserved_by_key, str) else (preserved_by_key or [])
         # Keep tracks of files that should not be deleted when the delete_cache parmameter is set
         # These files are the default value of the component and files that are used in examples
         self.keep_in_cache = set()
@@ -155,6 +164,11 @@ class Block:
 
         if render:
             self.render()
+
+    def unique_key(self) -> str:
+        if self.key is None:
+            return None
+        return hash((self.rendered_in if self.rendered_in else None, self.key))
 
     @property
     def stateful(self) -> bool:
@@ -187,7 +201,7 @@ class Block:
         root_context = get_blocks_context()
         render_context = get_render_context()
         self.rendered_in = LocalContext.renderable.get()
-        if root_context is not None and self._id in root_context.blocks:
+        if root_context is not None and self._id in root_context.blocks and not self.is_render_replacement:
             raise DuplicateBlockError(
                 f"A block with id: {self._id} has already been rendered in the current Blocks."
             )
@@ -918,8 +932,6 @@ class BlocksConfig:
         if renderable:
             if _id not in rendered_ids:
                 return {}
-            if block.key:
-                block.key = f"{renderable._id}-{block.key}"
         props = block.get_config() if hasattr(block, "get_config") else {}
         block_config = {
             "id": _id,
@@ -927,7 +939,7 @@ class BlocksConfig:
             "props": utils.delete_none(props),
             "skip_api": block.skip_api,
             "component_class_id": getattr(block, "component_class_id", None),
-            "key": block.key,
+            "key": block.unique_key(),
         }
         if renderable:
             block_config["renderable"] = renderable._id
