@@ -112,7 +112,13 @@ class SessionState:
                 key, [], block
             )
 
-    def _update_config(self, key: int, value: Any):
+    def _update_config(self, key: int):
+        if self[key] is not None:
+            self.config_values[key] = self.blocks_config.config_for_block(
+                key, [], self[key]
+            )
+
+    def _update_value_in_config(self, key: int, value: Any):
         if key not in self.config_values:
             self.config_values[key] = self.blocks_config.config_for_block(
                 key, [], self.blocks_config.blocks[key]
