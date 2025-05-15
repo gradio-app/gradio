@@ -113,6 +113,10 @@ class SessionState:
             )
 
     def _update_config(self, key: int, value: Any):
+        if key not in self.config_values:
+            self.config_values[key] = self.blocks_config.config_for_block(
+                key, [], self.blocks_config.blocks[key]
+            )
         if "props" in self.config_values[key]:
             self.config_values[key]["props"]["value"] = value
 
