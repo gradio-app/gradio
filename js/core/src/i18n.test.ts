@@ -11,7 +11,6 @@ import { process_langs } from "./i18n";
 import languagesByAnyCode from "wikidata-lang/indexes/by_any_code";
 import BCP47 from "./lang/BCP47_codes";
 import {
-	process_i18n_obj,
 	translate_if_needed,
 	get_initial_locale,
 	load_translations,
@@ -61,11 +60,6 @@ describe("i18n", () => {
 		test("translate_if_needed handles regular strings", () => {
 			const regularString = "hello world";
 			expect(translate_if_needed(regularString)).toBe(regularString);
-		});
-
-		test("process_i18n_obj handles regular objects", () => {
-			const inputObj = { text: "test", num: 123, arr: [1, 2, 3] };
-			expect(process_i18n_obj(inputObj)).toEqual(inputObj);
 		});
 	});
 
