@@ -95,6 +95,22 @@ All you need to do is add this URL endpoint to your MCP Client (e.g. Claude Desk
 <video src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/mcp_guide1.mp4" style="width:100%" controls preload> </video>
 
 
+## Private Spaces
+
+If you'd like to use a private Space as an MCP server (or a ZeroGPU Space with your own quota), then you can provide your [Hugging Face token](https://huggingface.co/settings/token) when you make your request. To do this, simply add it as a header in your config like this:
+
+```
+{
+  "mcpServers": {
+    "gradio": {
+      "url": "https://abidlabs-mcp-tools.hf.space/gradio_api/mcp/sse",
+      "headers": {
+        "Authorization": "Bearer <YOUR-HUGGING-FACE-TOKEN>"
+      }
+    }
+  }
+}
+```
 
 
 ## Custom MCP Servers
