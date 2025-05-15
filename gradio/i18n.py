@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 
-class TranslationMetadata:
+class I18nData:
     """
     A class that wraps a translation key with metadata.
 
@@ -13,7 +13,7 @@ class TranslationMetadata:
 
     def __init__(self, key: str):
         """
-        Initialize a TranslationMetadata object.
+        Initialize a I18nData object.
 
         Args:
             key: The translation key to be translated in the frontend.
@@ -23,14 +23,14 @@ class TranslationMetadata:
 
     def to_dict(self) -> dict[str, Any]:
         """
-        Convert the TranslationMetadata object to a dictionary for serialization.
+        Convert the I18nData object to a dictionary for serialization.
         This allows the frontend to recognize it as a translatable object.
         """
         return {"__type__": self._type, "key": self.key}
 
     def __str__(self) -> str:
         """
-        String representation of the TranslationMetadata object.
+        String representation of the I18nData object.
         Used when the object is converted to a string.
         This returns a special format that can be recognized by the frontend
         as needing translation.
@@ -42,7 +42,7 @@ class TranslationMetadata:
 
     def __repr__(self) -> str:
         """
-        Representation of the TranslationMetadata object for debugging.
+        Representation of the I18nData object for debugging.
         """
         return self.__str__()
 
@@ -62,8 +62,8 @@ class TranslationMetadata:
     # For attribute/method access attempts to be gracefully handled
     def __getattr__(self, name):
         """
-        Handle attribute access for TranslationMetadata.
-        This makes it possible to use TranslationMetadata objects in contexts
+        Handle attribute access for I18nData.
+        This makes it possible to use I18nData objects in contexts
         that expect strings with methods.
         """
         if name.startswith("__") and name.endswith("__"):
@@ -78,7 +78,7 @@ class TranslationMetadata:
     # Make the object JSON-serializable
     def tojson(self) -> dict[str, Any]:
         """
-        Convert the TranslationMetadata object to a JSON-serializable dictionary.
+        Convert the I18nData object to a JSON-serializable dictionary.
         This is used by the default Python JSON serializer.
         """
         return self.to_dict()
@@ -106,9 +106,9 @@ class I18n:
         """
         self.translations = translations or {}
 
-    def __call__(self, key: str) -> TranslationMetadata:
+    def __call__(self, key: str) -> I18nData:
         """
-        Returns a TranslationMetadata object containing the translation key.
+        Returns a I18nData object containing the translation key.
 
         This metadata object will be serialized and sent to the frontend,
         where it will be translated by the frontend's i18n system.
@@ -117,9 +117,9 @@ class I18n:
             key: The key to identify the translation string (e.g., "submit_button").
 
         Returns:
-            A TranslationMetadata object containing the translation key.
+            A I18nData object containing the translation key.
         """
-        return TranslationMetadata(key)
+        return I18nData(key)
 
     @property
     def translations_dict(self) -> dict[str, dict[str, str]]:

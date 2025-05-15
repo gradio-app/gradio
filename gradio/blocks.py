@@ -71,7 +71,7 @@ from gradio.exceptions import (
     InvalidComponentError,
 )
 from gradio.helpers import create_tracker, skip, special_args
-from gradio.i18n import I18n, TranslationMetadata
+from gradio.i18n import I18n, I18nData
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
@@ -1078,7 +1078,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         theme: Theme | str | None = None,
         analytics_enabled: bool | None = None,
         mode: str = "blocks",
-        title: str | TranslationMetadata = "Gradio",
+        title: str | I18nData = "Gradio",
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
         js: str | Literal[True] | None = None,

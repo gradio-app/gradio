@@ -26,7 +26,7 @@ from gradio import image_utils, utils
 from gradio.components.base import Component, server
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
-from gradio.i18n import TranslationMetadata
+from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -186,7 +186,7 @@ class ImageEditor(Component):
             "clipboard",
         ),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
-        label: str | TranslationMetadata | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,

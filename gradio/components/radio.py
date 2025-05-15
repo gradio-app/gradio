@@ -10,7 +10,7 @@ from gradio_client.documentation import document
 from gradio.components.base import Component, FormComponent
 from gradio.events import Events
 from gradio.exceptions import Error
-from gradio.i18n import TranslationMetadata
+from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -33,8 +33,8 @@ class Radio(FormComponent):
         *,
         value: str | int | float | Callable | None = None,
         type: Literal["value", "index"] = "value",
-        label: str | TranslationMetadata | None = None,
-        info: str | TranslationMetadata | None = None,
+        label: str | I18nData | None = None,
+        info: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,

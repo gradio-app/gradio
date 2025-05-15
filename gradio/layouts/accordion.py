@@ -7,7 +7,7 @@ from gradio_client.documentation import document
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
 from gradio.events import Events
-from gradio.i18n import TranslationMetadata
+from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
     pass
@@ -26,7 +26,7 @@ class Accordion(BlockContext, metaclass=ComponentMeta):
 
     def __init__(
         self,
-        label: str | TranslationMetadata | None = None,
+        label: str | I18nData | None = None,
         *,
         open: bool = True,
         visible: bool = True,

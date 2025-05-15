@@ -5,7 +5,7 @@ const langs = import.meta.glob("./lang/*.json", {
 	eager: true
 });
 
-export interface TranslationMetadata {
+export interface I18nData {
 	__type__: "translation_metadata";
 	key: string;
 }
@@ -14,8 +14,8 @@ export interface LangsRecord {
 	[lang: string]: any;
 }
 
-// Checks if an object is a TranslationMetadata object
-export function is_translation_metadata(obj: any): obj is TranslationMetadata {
+// Checks if an object is a I18nData object
+export function is_translation_metadata(obj: any): obj is I18nData {
 	console.log(obj);
 	const result =
 		obj &&
@@ -27,7 +27,7 @@ export function is_translation_metadata(obj: any): obj is TranslationMetadata {
 }
 
 // handles explicit translation metadata objects of shape { __type__: "translation_metadata", key: string }
-export function translate_metadata(metadata: TranslationMetadata): string {
+export function translate_metadata(metadata: I18nData): string {
 	if (!is_translation_metadata(metadata)) {
 		return String(metadata);
 	}

@@ -9,7 +9,7 @@ from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.events import Events
-from gradio.i18n import TranslationMetadata
+from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -99,7 +99,7 @@ class Code(Component):
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         lines: int = 5,
         max_lines: int | None = None,
-        label: str | TranslationMetadata | None = None,
+        label: str | I18nData | None = None,
         interactive: bool | None = None,
         show_label: bool | None = None,
         container: bool = True,

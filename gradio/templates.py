@@ -10,7 +10,7 @@ import PIL.Image
 from gradio import components
 from gradio.components.audio import WaveformOptions
 from gradio.components.image_editor import Brush, Eraser, LayerOptions, WebcamOptions
-from gradio.i18n import TranslationMetadata
+from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -30,8 +30,8 @@ class TextArea(components.Textbox):
         lines: int = 7,
         max_lines: int = 20,
         placeholder: str | None = None,
-        label: str | TranslationMetadata | None = None,
-        info: str | TranslationMetadata | None = None,
+        label: str | I18nData | None = None,
+        info: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: (
             components.Component
@@ -108,7 +108,7 @@ class Sketchpad(components.ImageEditor):
         ] = "RGBA",
         sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
-        label: str | TranslationMetadata | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: (
             components.Component
@@ -200,7 +200,7 @@ class Paint(components.ImageEditor):
         ] = "RGBA",
         sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
-        label: str | TranslationMetadata | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: (
             components.Component
@@ -294,7 +294,7 @@ class ImageMask(components.ImageEditor):
             "clipboard",
         ),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
-        label: str | TranslationMetadata | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: (
             components.Component
@@ -387,7 +387,7 @@ class PlayableVideo(components.Video):
         ) = None,
         height: int | str | None = None,
         width: int | str | None = None,
-        label: str | TranslationMetadata | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: (
             components.Component
@@ -470,7 +470,7 @@ class Microphone(components.Audio):
             | None
         ) = None,
         type: Literal["numpy", "filepath"] = "numpy",
-        label: str | TranslationMetadata | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: (
             components.Component
@@ -546,7 +546,7 @@ class Files(components.File):
         file_count: Literal["multiple"] = "multiple",
         file_types: list[str] | None = None,
         type: Literal["filepath", "binary"] = "filepath",
-        label: str | TranslationMetadata | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: (
             components.Component
@@ -610,7 +610,7 @@ class Numpy(components.Dataframe):
         ) = "str",
         type: Literal["numpy"] = "numpy",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
-        label: str | TranslationMetadata | None = None,
+        label: str | I18nData | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
         inputs: (
@@ -693,7 +693,7 @@ class Matrix(components.Dataframe):
         ) = "str",
         type: Literal["array"] = "array",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
-        label: str | TranslationMetadata | None = None,
+        label: str | I18nData | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
         inputs: (
@@ -776,7 +776,7 @@ class List(components.Dataframe):
         ) = "str",
         type: Literal["array"] = "array",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
-        label: str | TranslationMetadata | None = None,
+        label: str | I18nData | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
         inputs: (

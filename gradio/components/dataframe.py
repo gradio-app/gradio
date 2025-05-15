@@ -19,7 +19,7 @@ from gradio_client.documentation import document
 from gradio.components.base import Component
 from gradio.data_classes import GradioModel
 from gradio.events import Events
-from gradio.i18n import TranslationMetadata
+from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -81,7 +81,7 @@ class Dataframe(Component):
         ] = "str",
         type: Literal["pandas", "numpy", "array", "polars"] = "pandas",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
-        label: str | TranslationMetadata | None = None,
+        label: str | I18nData | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,

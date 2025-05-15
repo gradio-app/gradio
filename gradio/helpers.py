@@ -25,7 +25,7 @@ from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Dependency, EventData
 from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
-from gradio.i18n import TranslationMetadata
+from gradio.i18n import I18nData
 from gradio.utils import UnhashableKeyDict
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
@@ -43,7 +43,7 @@ def create_examples(
     cache_mode: Literal["eager", "lazy"] | None = None,
     examples_per_page: int = 10,
     _api_mode: bool = False,
-    label: str | TranslationMetadata | None = None,
+    label: str | I18nData | None = None,
     elem_id: str | None = None,
     run_on_click: bool = False,
     preprocess: bool = True,
@@ -101,7 +101,7 @@ class Examples:
         cache_mode: Literal["eager", "lazy"] | None = None,
         examples_per_page: int = 10,
         _api_mode: bool = False,
-        label: str | TranslationMetadata | None = "Examples",
+        label: str | I18nData | None = "Examples",
         elem_id: str | None = None,
         run_on_click: bool = False,
         preprocess: bool = True,
