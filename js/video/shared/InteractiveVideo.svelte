@@ -33,9 +33,6 @@
 	export let stream_handler: Client["stream"];
 	export let loop: boolean;
 	export let uploading = false;
-	export let server: {
-		is_playable: (video_payload: FileData) => Promise<{ is_playable: boolean }>;
-	};
 
 	let has_change_history = false;
 
@@ -54,14 +51,6 @@
 
 	function handle_load({ detail }: CustomEvent<FileData | null>): void {
 		value = detail;
-		if (value !== null) {
-			server.is_playable(value).then((res) => {
-				is_playable = res.is_playable;
-				if (!is_playable) {
-					dispatch("error", "This video is not playable in the browser.");
-				}
-			});
-		}
 		dispatch("change", detail);
 		dispatch("upload", detail!);
 	}
@@ -138,6 +127,7 @@
 				on:pause
 				on:stop
 				on:end
+				on:error
 				mirror={webcam_options.mirror && active_source === "webcam"}
 				{label}
 				{handle_change}
