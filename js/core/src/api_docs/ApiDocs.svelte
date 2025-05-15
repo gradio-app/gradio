@@ -35,6 +35,7 @@
 	const bash_docs =
 		"https://www.gradio.app/guides/querying-gradio-apps-with-curl";
 	const spaces_docs_suffix = "#connecting-to-a-hugging-face-space";
+	const mcp_docs = "https://www.gradio.app/guides/building-mcp-server-with-gradio";
 
 	let api_count = dependencies.filter(
 		(dependency) => dependency.show_api
@@ -379,7 +380,11 @@
 									</code>
 								</Block>
 								<p>&nbsp;</p>
-								<p>&nbsp;</p>
+								<p>
+									<a href={mcp_docs} target="_blank">
+										Read more about MCP in the Gradio docs
+									</a>
+								</p>
 							{:else}
 								This Gradio app can also serve as an MCP server, with an MCP
 								tool corresponding to each API endpoint. To enable this, launch
