@@ -14,7 +14,6 @@ import {
 	translate_if_needed,
 	get_initial_locale,
 	load_translations,
-	init_i18n,
 	changeLocale,
 	translate_metadata,
 	is_translation_metadata
@@ -92,17 +91,6 @@ describe("i18n", () => {
 
 		afterEach(() => {
 			vi.resetAllMocks();
-		});
-
-		test("init_i18n calls init with correct parameters", async () => {
-			const mockInit = init as unknown as ReturnType<typeof vi.fn>;
-
-			await init_i18n("fr", "en");
-
-			expect(mockInit).toHaveBeenCalledWith({
-				fallbackLocale: "en",
-				initialLocale: "fr"
-			});
 		});
 
 		test("load_translations adds messages for each language", () => {
