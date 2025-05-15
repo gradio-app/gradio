@@ -97,7 +97,8 @@
 		"runtime_error": "رن ٹائم میں خطا ہے",
 		"space_not_working": "\"Space کام نہیں کر رہا ہے کیونکہ\" {0}",
 		"space_paused": "Space موقوف ہے",
-		"use_via_api": "API کے ذریعے استعمال کریں"
+		"use_via_api": "API کے ذریعے استعمال کریں",
+		"use_via_api_or_mcp": "API یا MCP کے ذریعے استعمال کریں"
 	},
 	"file": {
 		"uploading": "اپلوڈ ہو رہا ہے..."

@@ -97,7 +97,8 @@
 		"runtime_error": "yra vykdymo klaida",
 		"space_not_working": "\"Erdvė neveikia, nes\" {0}",
 		"space_paused": "erdvė yra pristabdyta",
-		"use_via_api": "Naudoti per API"
+		"use_via_api": "Naudoti per API",
+		"use_via_api_or_mcp": "Naudoti per API arba MCP"
 	},
 	"file": {
 		"uploading": "Įkeliama..."

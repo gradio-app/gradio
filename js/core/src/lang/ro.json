@@ -87,7 +87,8 @@
 		"runtime_error": "Există o eroare de execuție",
 		"space_not_working": "\"Space-ul nu funcționează deoarece\" {0}",
 		"space_paused": "Space-ul este în pauză",
-		"use_via_api": "Utilizați prin API"
+		"use_via_api": "Utilizați prin API",
+		"use_via_api_or_mcp": "Utilizați prin API sau MCP"
 	},
 	"file": {
 		"uploading": "Se încarcă..."

@@ -97,7 +97,8 @@
 		"runtime_error": "有執行時錯誤",
 		"space_not_working": "\"Space 無法運作，因為\" {0}",
 		"space_paused": "Space 已暫停",
-		"use_via_api": "透過 API 使用"
+		"use_via_api": "透過 API 使用",
+		"use_via_api_or_mcp": "透過 API 或 MCP 使用"
 	},
 	"file": {
 		"uploading": "上傳中..."

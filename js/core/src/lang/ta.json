@@ -97,7 +97,8 @@
 		"runtime_error": "இயக்க நேர பிழை உள்ளது",
 		"space_not_working": "\"Space செயல்படவில்லை ஏனெனில்\" {0}",
 		"space_paused": "Space இடைநிறுத்தப்பட்டுள்ளது",
-		"use_via_api": "API மூலம் பயன்படுத்தவும்"
+		"use_via_api": "API மூலம் பயன்படுத்தவும்",
+		"use_via_api_or_mcp": "API அல்லது MCP மூலம் பயன்படுத்தவும்"
 	},
 	"file": {
 		"uploading": "பதிவேற்றுகிறது..."

@@ -98,7 +98,8 @@
 		"runtime_error": "there is a runtime error",
 		"space_not_working": "\"Space isn't working because\" {0}",
 		"space_paused": "the space is paused",
-		"use_via_api": "Use via API"
+		"use_via_api": "Use via API",
+		"use_via_api_or_mcp": "Use via API or MCP"
 	},
 	"file": {
 		"uploading": "Uploading..."

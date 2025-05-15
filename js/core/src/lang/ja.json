@@ -87,7 +87,8 @@
 		"runtime_error": "ランタイムエラーがあります",
 		"space_not_working": "\"Spaceが動作していません。理由：\" {0}",
 		"space_paused": "Spaceが一時停止されています",
-		"use_via_api": "APIを介して使用"
+		"use_via_api": "APIを介して使用",
+		"use_via_api_or_mcp": "APIまたはMCP経由で使用"
 	},
 	"file": {
 		"uploading": "アップロード中..."
