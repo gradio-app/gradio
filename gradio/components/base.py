@@ -13,11 +13,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
 from enum import Enum
 from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    TypedDict,
-)
+from typing import TYPE_CHECKING, Any
 
 import gradio_client.utils as client_utils
 

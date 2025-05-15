@@ -33,7 +33,7 @@ class Markdown(Component):
 
     def __init__(
         self,
-        value: str | Callable | None = None,
+        value: str | I18nData | Callable | None = None,
         *,
         label: str | I18nData | None = None,
         every: Timer | float | None = None,
@@ -54,8 +54,6 @@ class Markdown(Component):
         min_height: int | str | None = None,
         show_copy_button: bool = False,
         container: bool = False,
-        scale: int | None = None,
-        min_width: int | None = None,
     ):
         """
         Parameters:
@@ -79,8 +77,6 @@ class Markdown(Component):
             min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If markdown content exceeds the height, the component will expand to fit the content. Will not have any effect if `height` is set and is larger than `min_height`.
             show_copy_button: If True, includes a copy button to copy the text in the Markdown component. Default is False.
             container: If True, the Markdown component will be displayed in a container. Default is False.
-            scale: The scale of the component.
-            min_width: The minimum width of the component.
         """
         self.rtl = rtl
         if latex_delimiters is None:
@@ -106,8 +102,6 @@ class Markdown(Component):
             key=key,
             value=value,
             container=container,
-            scale=scale,
-            min_width=min_width,
         )
 
     def preprocess(self, payload: str | None) -> str | None:
