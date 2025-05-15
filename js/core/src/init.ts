@@ -291,7 +291,9 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			instance.key != null &&
 			keyed_component_values[instance.key] !== undefined
 		) {
-			instance.props.value = keyed_component_values[instance.key];
+			for (const prop in keyed_component_values[instance.key]) {
+				instance.props[prop] = keyed_component_values[instance.key][prop];
+			}
 		}
 
 		_component_map.set(instance.id, instance);
@@ -345,8 +347,14 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 
 	function store_keyed_values(components: ComponentMeta[]): void {
 		components.forEach((c) => {
-			if (c.key != null) {
-				keyed_component_values[c.key] = c.props.value;
+			const key = c.key;
+			if (key != null && c.props.preserved_by_key) {
+				keyed_component_values[key] = {};
+				(c.props.preserved_by_key as string[]).forEach((prop) => {
+					if (c.props[prop] !== undefined) {
+						keyed_component_values[key][prop] = c.props[prop];
+					}
+				});
 			}
 		});
 	}

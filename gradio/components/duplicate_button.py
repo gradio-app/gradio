@@ -39,7 +39,8 @@ class DuplicateButton(Button):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         scale: int | None = 0,
         min_width: int | None = None,
         _activate: bool = True,
@@ -59,7 +60,8 @@ class DuplicateButton(Button):
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: an optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: if False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
+            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
+            preserved_by_key: in a gr.render, Components with the same key across re-renders will have these properties preserved across the re-render.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
         """
@@ -77,6 +79,7 @@ class DuplicateButton(Button):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             scale=scale,
             min_width=min_width,
         )
