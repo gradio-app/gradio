@@ -1,5 +1,11 @@
 # @gradio/dataset
 
+## 0.4.18
+
+### Fixes
+
+- [#11181](https://github.com/gradio-app/gradio/pull/11181) [`ee7f17e`](https://github.com/gradio-app/gradio/commit/ee7f17e25642bc4b86f2272b3b5cfcf77c08adf1) - Fix the `.select()` event in `gr.Dataset` in table layout.  Thanks @abidlabs!
+
 ## 0.4.17
 
 ### Dependency updates

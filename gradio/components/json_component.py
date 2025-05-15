@@ -140,3 +140,9 @@ class JSON(Component):
 
     def api_info(self) -> dict[str, Any]:
         return {"type": {}, "description": "any valid json"}
+
+    def as_example(self, value) -> Any:
+        val = self.postprocess(value)
+        if val:
+            val = val.model_dump()
+        return val
