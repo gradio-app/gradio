@@ -97,7 +97,8 @@
 		"runtime_error": "Bir çalışma zamanı hatası var",
 		"space_not_working": "\"Space çalışmıyor çünkü\" {0}",
 		"space_paused": "Space duraklatıldı",
-		"use_via_api": "API üzerinden kullan"
+		"use_via_api": "API üzerinden kullan",
+		"use_via_api_or_mcp": "API veya MCP üzerinden kullan"
 	},
 	"file": {
 		"uploading": "Yükleniyor..."

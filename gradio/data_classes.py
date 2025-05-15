@@ -400,6 +400,7 @@ class BlocksConfigDict(TypedDict):
     page: dict[str, Page]
     pages: list[tuple[str, str]]
     current_page: NotRequired[str]
+    mcp_server: NotRequired[bool]
 
 
 class MediaStreamChunk(TypedDict):

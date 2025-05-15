@@ -87,7 +87,8 @@
 		"runtime_error": "Det er en kjøretidsfeil",
 		"space_not_working": "\"Space fungerer ikke fordi\" {0}",
 		"space_paused": "Space er pauset",
-		"use_via_api": "Bruk via API"
+		"use_via_api": "Bruk via API",
+		"use_via_api_or_mcp": "Bruk via API eller MCP"
 	},
 	"file": {
 		"uploading": "Laster opp..."
