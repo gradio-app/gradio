@@ -1007,7 +1007,9 @@ class BlocksConfig:
 
     def __copy__(self):
         new = BlocksConfig(self.root_block)
-        new.blocks = copy.copy(self.blocks)
+        new.blocks = {
+            k: v.__class__(**v.constructor_args) for k, v in self.blocks.items()
+        }
         new.fns = copy.copy(self.fns)
         new.fn_id = self.fn_id
         return new
