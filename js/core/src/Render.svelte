@@ -5,7 +5,6 @@
 	import type { Client } from "@gradio/client";
 	import RenderComponent from "./RenderComponent.svelte";
 	import { load_component } from "virtual:component-loader";
-	import { process_i18n_obj } from "./i18n";
 
 	export let root: string;
 
@@ -51,8 +50,6 @@
 		}
 	}
 
-	$: processed_props = process_i18n_obj(node.props);
-
 	setContext("BLOCK_KEY", parent);
 
 	$: {
@@ -88,7 +85,7 @@
 		`component-${node.id}`}
 	elem_classes={("elem_classes" in node.props && node.props.elem_classes) || []}
 	{target}
-	{...processed_props}
+	{...node.props}
 	{theme_mode}
 	{root}
 	visible={typeof node.props.visible === "boolean" ? node.props.visible : true}
