@@ -386,9 +386,10 @@ class ImageEditor(Component):
         Returns:
             Passes the uploaded images as an instance of EditorValue, which is just a `dict` with keys: 'background', 'layers', and 'composite'. The values corresponding to 'background' and 'composite' are images, while 'layers' is a `list` of images. The images are of type `PIL.Image`, `np.array`, or `str` filepath, depending on the `type` parameter.
         """
-        _payload = payload
+        if payload is None:
+            return payload
 
-        if payload is not None and payload.id is not None:
+        if payload.id is not None:
             cached = self.blob_storage.get(payload.id)
             _payload = (
                 EditorDataBlobs(
@@ -399,9 +400,6 @@ class ImageEditor(Component):
                 if cached
                 else None
             )
-
-        elif _payload is None:
-            return _payload
         else:
             _payload = payload
 
@@ -418,7 +416,7 @@ class ImageEditor(Component):
             )
             composite = self.convert_and_format_image(_payload.composite)
 
-        if payload is not None and payload.id is not None:
+        if payload.id is not None and payload.id in self.blob_storage:
             self.blob_storage.pop(payload.id)
 
         return {

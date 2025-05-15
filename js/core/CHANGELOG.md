@@ -2,6 +2,13 @@
 
 ## 0.16.1
 
+### Dependency updates
+
+- @gradio/tabs@0.4.4
+- @gradio/tabitem@0.4.4
+
+## 0.16.1
+
 ### Fixes
 
 - [#11115](https://github.com/gradio-app/gradio/pull/11115) [`49e7a0d`](https://github.com/gradio-app/gradio/commit/49e7a0dd18174196b262d32e6c59d93ca40b1c73) - update STDIO instructions to specify sse-only transport.  Thanks @evalstate!

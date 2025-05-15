@@ -1,5 +1,11 @@
 # @gradio/nativeplot
 
+## 0.5.15
+
+### Features
+
+- [#11183](https://github.com/gradio-app/gradio/pull/11183) [`ab0fbb3`](https://github.com/gradio-app/gradio/commit/ab0fbb32cdee752673313b5536c04eecadc1071e) - Plot brushing prevents chart refresh.  Thanks @aliabid94!
+
 ## 0.5.14
 
 ### Dependency updates

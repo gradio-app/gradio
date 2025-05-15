@@ -372,6 +372,13 @@ class Component(ComponentBase, Block):
 
 
 class FormComponent(Component):
+    """
+    A base class for components that are typically used in forms (e.g. Textbox, Dropdown). These
+    components will be grouped together in the UI to provide a more condensed layout. Components
+    that are not rendered in the UI (e.g. State) should also inherit from this class, as it will
+    prevent them from breaking the grouping, see: https://github.com/gradio-app/gradio/issues/10330
+    """
+
     def get_expected_parent(self) -> type[Form] | None:
         if getattr(self, "container", None) is False:
             return None
