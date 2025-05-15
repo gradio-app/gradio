@@ -32,8 +32,8 @@ class LocalContext:
     event_id: ContextVar[str | None] = ContextVar("event_id", default=None)
     request: ContextVar[Request | None] = ContextVar("request", default=None)
     progress: ContextVar[Progress | None] = ContextVar("progress", default=None)
-    key_to_id_map: ContextVar[dict[int | str | tuple, int]] = ContextVar(
-        "key_to_id_map", default=None
+    key_to_id_map: ContextVar[dict[int | str | tuple[str | int], int] | None] = (
+        ContextVar("key_to_id_map", default=None)
     )
 
 
