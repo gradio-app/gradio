@@ -20,7 +20,6 @@
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import settings_logo from "./api_docs/img/settings-logo.svg";
-	import record from "./api_docs/img/record.svg";
 	import record_stop from "./api_docs/img/record-stop.svg";
 	import { create_components, AsyncFunction } from "./init";
 	import type {
@@ -101,6 +100,8 @@
 	let settings_visible = search_params.get("view") === "settings";
 	let api_recorder_visible =
 		search_params.get("view") === "api-recorder" && show_api;
+	let allow_zoom = true;
+	let allow_video_trim = true;
 
 	function set_api_docs_visible(visible: boolean): void {
 		api_recorder_visible = false;
@@ -133,7 +134,12 @@
 		const input_type = components.find(
 			(comp) => comp.id === dep?.inputs[0]
 		)?.type;
-		if (dep && data[0].__type__ !== "update" && input_type !== "dataset") {
+		if (
+			allow_zoom &&
+			dep &&
+			data[0].__type__ !== "update" &&
+			input_type !== "dataset"
+		) {
 			if (dep && dep.inputs && dep.inputs.length > 0 && $is_screen_recording) {
 				screen_recorder.zoom(true, dep.inputs, 1.0);
 			}
@@ -393,7 +399,9 @@
 			payload: Payload,
 			streaming = false
 		): Promise<void> {
-			screen_recorder.markRemoveSegmentStart();
+			if (allow_video_trim) {
+				screen_recorder.markRemoveSegmentStart();
+			}
 			if (api_recorder_visible) {
 				api_calls = [...api_calls, JSON.parse(JSON.stringify(payload))];
 			}
@@ -623,7 +631,9 @@
 					});
 				}
 			}
-			screen_recorder.markRemoveSegmentEnd();
+			if (allow_video_trim) {
+				screen_recorder.markRemoveSegmentEnd();
+			}
 		}
 	}
 	/* eslint-enable complexity */
@@ -966,6 +976,8 @@
 		/>
 		<div class="api-docs-wrap">
 			<Settings
+				bind:allow_zoom
+				bind:allow_video_trim
 				on:close={(event) => {
 					set_settings_visible(false);
 				}}

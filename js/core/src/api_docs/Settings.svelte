@@ -6,6 +6,7 @@
 	export let space_id: string | null;
 	export let pwa_enabled: boolean | undefined;
 	import { BaseDropdown as Dropdown } from "@gradio/dropdown";
+	import { BaseCheckbox as Checkbox } from "@gradio/checkbox";
 	import { language_choices, changeLocale } from "../i18n";
 	import { locale, _ } from "svelte-i18n";
 	import { setupi18n } from "../i18n";
@@ -47,6 +48,8 @@
 
 	let current_locale: string;
 	let current_theme: "light" | "dark" | "system" = "system";
+	export let allow_zoom = true;
+	export let allow_video_trim = true;
 
 	locale.subscribe((value) => {
 		if (value) {
@@ -58,6 +61,15 @@
 		const new_locale = e.detail;
 		changeLocale(new_locale);
 	}
+
+	function handleZoomChange(e: CustomEvent): void {
+		allow_zoom = e.detail;
+	}
+
+	function handleVideoTrimChange(e: CustomEvent): void {
+		allow_video_trim = e.detail;
+	}
+
 	setupi18n();
 </script>
 
@@ -135,6 +147,19 @@
 		<br />
 		Stop recording by clicking the <i>Stop Recording</i> button in the footer of
 		the demo.
+		<br /><br />
+		<Checkbox
+			label="Include automatic zoom in/out"
+			interactive={true}
+			value={allow_zoom}
+			on:change={handleZoomChange}
+		/>
+		<Checkbox
+			label="Include automatic video trimming"
+			interactive={true}
+			value={allow_video_trim}
+			on:change={handleVideoTrimChange}
+		/>
 	</p>
 	<button
 		class="record-button"
