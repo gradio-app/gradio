@@ -108,7 +108,7 @@ class SessionState:
         else:
             self.blocks_config.blocks[key] = value
         if block:
-            self.config_values[key] = block.get_config()
+            self.config_values[key] = self.blocks_config.config_for_block(key, [], block)
 
     def _update_config(self, key: int, block: Component, value: Any):
         block.value = value
