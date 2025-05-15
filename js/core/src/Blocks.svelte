@@ -865,7 +865,11 @@
 					}}
 					class="show-api"
 				>
-					{$_("errors.use_via_api")}
+					{#if app.config?.mcp_server}
+						{$_("errors.use_via_api_or_mcp")}
+					{:else}
+						{$_("errors.use_via_api")}
+					{/if}
 					<img src={api_logo} alt={$_("common.logo")} />
 				</button>
 				<div class="divider show-api-divider">·</div>

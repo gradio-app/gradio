@@ -95,6 +95,34 @@ All you need to do is add this URL endpoint to your MCP Client (e.g. Claude Desk
 <video src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/mcp_guide1.mp4" style="width:100%" controls preload> </video>
 
 
+## Converting an Existing Space
+
+If there's an existing Space that you'd like to use an MCP server, you'll need to do three things:
+
+1. First, [duplicate the Space](https://huggingface.co/docs/hub/en/spaces-more-ways-to-create#duplicating-a-space) if it is not your own Space. This will allow you to make changes to the app. If the Space requires a GPU, set the hardware of the duplicated Space to be same as the original Space. You can make it either a public Space or a private Space, since it is possible to use either as an MCP server, as described below.
+2. Then, add docstrings to the functions that you'd like the LLM to be able to call as a tool. The docstring should be in the same format as the example code above.
+3. Finally, add `mcp_server=True` in `.launch()`.
+
+That's it!
+
+## Private Spaces
+
+You can use either a public Space or a private Space as an MCP server. If you'd like to use a private Space as an MCP server (or a ZeroGPU Space with your own quota), then you will need to provide your [Hugging Face token](https://huggingface.co/settings/token) when you make your request. To do this, simply add it as a header in your config like this:
+
+```
+{
+  "mcpServers": {
+    "gradio": {
+      "url": "https://abidlabs-mcp-tools.hf.space/gradio_api/mcp/sse",
+      "headers": {
+        "Authorization": "Bearer <YOUR-HUGGING-FACE-TOKEN>"
+      }
+    }
+  }
+}
+```
+
+
 ## Custom MCP Servers
 
 For a more fine-grained control, you might want to manually create an MCP Server that interfaces with hosted Gradio apps. This approach is useful when you want to:
