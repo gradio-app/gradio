@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
-    from gradio.components import State
+    from gradio.components import Component, State
 
 
 class StateHolder:
@@ -70,6 +70,13 @@ class StateHolder:
 class SessionState:
     def __init__(self, blocks: Blocks):
         self.blocks_config = copy(blocks.default_config)
+        # Keep a separate deep copy of the config so we can recreate
+        # the state for deep links
+        self.config_values = {
+            k: self.blocks_config.config_for_block(k, [], v)
+            for k, v in self.blocks_config.blocks.items()
+            if k in blocks.blocks
+        }
         self.state_data: dict[int, Any] = {}
         self._state_ttl = {}
         self.is_closed = False
@@ -100,6 +107,12 @@ class SessionState:
             self.state_data[key] = value
         else:
             self.blocks_config.blocks[key] = value
+        if block:
+            self.config_values[key] = block.get_config()
+
+    def _update_config(self, key: int, block: Component, value: Any):
+        block.value = value
+        self.config_values[key] = self.blocks_config.config_for_block(key, [], block)
 
     def __contains__(self, key: int):
         block = self.blocks_config.blocks.get(key)
@@ -112,10 +125,7 @@ class SessionState:
 
     @property
     def components(self) -> Iterator[dict]:
-        for id in self.blocks_config.blocks:
-            config = self.blocks_config.config_for_block(
-                id, [], self.blocks_config.blocks[id]
-            )
+        for _, config in self.config_values.items():
             if config:
                 yield config
 

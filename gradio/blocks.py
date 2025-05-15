@@ -1007,9 +1007,7 @@ class BlocksConfig:
 
     def __copy__(self):
         new = BlocksConfig(self.root_block)
-        new.blocks = {
-            k: v.__class__(**v.constructor_args) for k, v in self.blocks.items()
-        }
+        new.blocks = copy.copy(self.blocks)
         new.fns = copy.copy(self.fns)
         new.fn_id = self.fn_id
         return new
@@ -1814,7 +1812,7 @@ Received inputs:
                         inputs_serialized = inputs_cached
                     if block._id not in state:
                         state[block._id] = block
-                    state[block._id].value = inputs_serialized
+                    state._update_config(block._id, block, inputs_serialized)
                     processed_input.append(block.preprocess(inputs_cached))
         else:
             processed_input = inputs
@@ -1954,7 +1952,7 @@ Received inputs:
                     )
                     if block._id not in state:
                         state[block._id] = block
-                    state[block._id].value = prediction_value_serialized
+                    state._update_config(block._id, block, prediction_value_serialized)
 
                 outputs_cached = await processing_utils.async_move_files_to_cache(
                     prediction_value,
