@@ -36,4 +36,4 @@ export function formatter(value: string | null | undefined): string {
 	return string_value;
 }
 
-// export const reactive_formatter = derived(_, () => formatter);
+export const reactive_formatter = derived(_, () => formatter);
