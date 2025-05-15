@@ -7,11 +7,13 @@ let recordingStartTime = 0;
 let animationFrameId: number | null = null;
 let removeSegment: { start?: number; end?: number } = {};
 let root: string;
+
 let add_message_callback: (
 	title: string,
 	message: string,
 	type: ToastMessage["type"]
 ) => void;
+let onRecordingStateChange: ((isRecording: boolean) => void) | null = null;
 let zoomEffects: {
 	boundingBox: { topLeft: [number, number]; bottomRight: [number, number] };
 	start_frame: number;
@@ -24,10 +26,14 @@ export function initialize(
 		title: string,
 		message: string,
 		type: ToastMessage["type"]
-	) => void
+	) => void,
+	recordingStateCallback?: (isRecording: boolean) => void
 ): void {
 	root = rootPath;
 	add_message_callback = add_new_message;
+	if (recordingStateCallback) {
+		onRecordingStateChange = recordingStateCallback;
+	}
 }
 
 export async function startRecording(): Promise<void> {
@@ -37,7 +43,7 @@ export async function startRecording(): Promise<void> {
 
 	try {
 		const originalTitle = document.title;
-		document.title = "SHARE THIS: Gradio";
+		document.title = "[Sharing] Gradio Tab";
 		const stream = await navigator.mediaDevices.getDisplayMedia({
 			video: {
 				width: { ideal: 1920 },
@@ -63,6 +69,9 @@ export async function startRecording(): Promise<void> {
 
 		mediaRecorder.start(1000);
 		isRecording = true;
+		if (onRecordingStateChange) {
+			onRecordingStateChange(true);
+		}
 		recordingStartTime = Date.now();
 	} catch (error: any) {
 		add_message_callback(
@@ -80,6 +89,9 @@ export function stopRecording(): void {
 
 	mediaRecorder.stop();
 	isRecording = false;
+	if (onRecordingStateChange) {
+		onRecordingStateChange(false);
+	}
 }
 
 export function isCurrentlyRecording(): boolean {
@@ -267,6 +279,9 @@ function handleDataAvailable(event: BlobEvent): void {
 
 function handleStop(): void {
 	isRecording = false;
+	if (onRecordingStateChange) {
+		onRecordingStateChange(false);
+	}
 
 	const blob = new Blob(recordedChunks, {
 		type: "video/mp4"

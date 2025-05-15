@@ -71,6 +71,8 @@
 		"pwa": "Progressive Web App",
 		"record": "Record",
 		"stop_recording": "Stop Recording",
+		"screen_studio": "Screen Studio",
+		"share_gradio_tab": "[Sharing] Gradio Tab",
 		"run": "Run"
 	},
 	"dataframe": {

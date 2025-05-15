@@ -9,7 +9,10 @@
 	import { language_choices, changeLocale } from "../i18n";
 	import { locale, _ } from "svelte-i18n";
 	import { setupi18n } from "../i18n";
+	import record from "./img/record.svg";
+	import { createEventDispatcher } from "svelte";
 
+	const dispatch = createEventDispatcher();
 	if (root === "") {
 		root = location.protocol + "//" + location.host + location.pathname;
 	}
@@ -120,6 +123,30 @@
 		{/if}
 	</p>
 </div>
+<div class="banner-wrap">
+	<h2>{$_("common.screen_studio")} <span class="beta-tag">beta</span></h2>
+	<p class="padded">
+		Screen Studio allows you to record your screen and generates a video of your
+		app with automatically adding zoom in and zoom out effects as well as
+		trimming the video to remove the prediction time.
+		<br /><br />
+		Start recording by clicking the <i>Start Recording</i> button below and then
+		sharing the current browser tab of your Gradio demo.
+		<br />
+		Stop recording by clicking the <i>Stop Recording</i> button in the footer of
+		the demo.
+	</p>
+	<button
+		class="record-button"
+		on:click={() => {
+			dispatch("close");
+			dispatch("start_recording");
+		}}
+	>
+		<img src={record} alt="Start Recording" />
+		Start Recording
+	</button>
+</div>
 
 <style>
 	.banner-wrap {
@@ -150,7 +177,8 @@
 		margin-left: var(--size-2);
 	}
 
-	.theme-button {
+	.theme-button,
+	.record-button {
 		display: flex;
 		align-items: center;
 		border: 1px solid var(--border-color-primary);
@@ -160,6 +188,15 @@
 		user-select: none;
 		text-transform: capitalize;
 		cursor: pointer;
+	}
+
+	.record-button img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-1);
+		width: var(--size-3);
+	}
+	.record-button:hover {
+		border-color: red;
 	}
 
 	.current-theme {
@@ -180,5 +217,18 @@
 	.theme-button button {
 		all: unset;
 		cursor: pointer;
+	}
+
+	.beta-tag {
+		position: relative;
+		top: -5px;
+		font-size: var(--text-xs);
+		background-color: var(--color-accent);
+		color: white;
+		padding: 2px 6px;
+		border-radius: 10px;
+		margin-left: 5px;
+		font-weight: normal;
+		text-transform: uppercase;
 	}
 </style>

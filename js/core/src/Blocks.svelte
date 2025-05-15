@@ -130,14 +130,11 @@
 	export let render_complete = false;
 	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const dep = dependencies.find((dep) => dep.id === fn_index);
-		const input_type = components.find((comp) => comp.id === dep?.inputs[0])?.type;
+		const input_type = components.find(
+			(comp) => comp.id === dep?.inputs[0]
+		)?.type;
 		if (dep && data[0].__type__ !== "update" && input_type !== "dataset") {
-			if (
-				dep &&
-				dep.inputs &&
-				dep.inputs.length > 0 &&
-				screen_recorder.isCurrentlyRecording()
-			) {
+			if (dep && dep.inputs && dep.inputs.length > 0 && $is_screen_recording) {
 				screen_recorder.zoom(true, dep.inputs, 1.0);
 			}
 
@@ -145,7 +142,7 @@
 				dep &&
 				dep.outputs &&
 				dep.outputs.length > 0 &&
-				screen_recorder.isCurrentlyRecording()
+				$is_screen_recording
 			) {
 				screen_recorder.zoom(false, dep.outputs, 2.0);
 			}
@@ -813,18 +810,22 @@
 				navigator.userAgent
 			);
 
-		screen_recorder.initialize(root, (title, message, type) => {
-			add_new_message(title, message, type);
-		});
+		screen_recorder.initialize(
+			root,
+			(title, message, type) => {
+				add_new_message(title, message, type);
+			},
+			(isRecording) => {
+				$is_screen_recording = isRecording;
+			}
+		);
 	});
 
 	function screen_recording(): void {
-		if (screen_recorder.isCurrentlyRecording()) {
+		if ($is_screen_recording) {
 			screen_recorder.stopRecording();
-			$is_screen_recording = false;
 		} else {
 			screen_recorder.startRecording();
-			$is_screen_recording = true;
 		}
 	}
 </script>
@@ -878,18 +879,16 @@
 				{$_("common.built_with_gradio")}
 				<img src={logo} alt={$_("common.logo")} />
 			</a>
-			<div class="divider">·</div>
+			<div class="divider" class:hidden={!$is_screen_recording}>·</div>
 			<button
+				class:hidden={!$is_screen_recording}
 				on:click={() => {
 					screen_recording();
 				}}
 				class="record"
 			>
-				{$_($is_screen_recording ? "common.stop_recording" : "common.record")}
-				<img
-					src={$is_screen_recording ? record_stop : record}
-					alt={$_("common.record")}
-				/>
+				{$_("common.stop_recording")}
+				<img src={record_stop} alt={$_("common.stop_recording")} />
 			</button>
 			<div class="divider">·</div>
 			<button
@@ -965,6 +964,9 @@
 			<Settings
 				on:close={(event) => {
 					set_settings_visible(false);
+				}}
+				on:start_recording={(event) => {
+					screen_recording();
 				}}
 				pwa_enabled={app.config.pwa}
 				{root}
@@ -1109,5 +1111,9 @@
 
 	.show-api:hover {
 		color: var(--body-text-color);
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>
