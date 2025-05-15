@@ -130,8 +130,8 @@
 	export let render_complete = false;
 	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const dep = dependencies.find((dep) => dep.id === fn_index);
-
-		if (data[0].__type__ !== "update") {
+		const input_type = components.find((comp) => comp.id === dep?.inputs[0])?.type;
+		if (dep && data[0].__type__ !== "update" && input_type !== "dataset") {
 			if (
 				dep &&
 				dep.inputs &&

@@ -130,7 +130,31 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
             shutil.copy(current_input, output_path)
 
         current_input = output_path
-        return current_input, temp_files
+        final_trimmed_output = tempfile.mktemp(suffix="_final_trimmed.mp4")
+        temp_files.append(final_trimmed_output)
+
+        ff = FFmpeg(
+            inputs={current_input: None},
+            outputs={
+                final_trimmed_output: "-ss 0.5 -c:v libx264 -preset fast -crf 22 -c:a aac -r 30 -y"
+            },
+        )
+        process = await asyncio.create_subprocess_exec(
+            *ff.cmd.split(),
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await process.communicate()
+
+        if (
+            process.returncode == 0
+            and os.path.exists(final_trimmed_output)
+            and os.path.getsize(final_trimmed_output) > 0
+        ):
+            shutil.copy(final_trimmed_output, output_path)
+            temp_files.append(final_trimmed_output)
+
+        return output_path, temp_files
 
     except Exception:
         traceback.print_exc()
