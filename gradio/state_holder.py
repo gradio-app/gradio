@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
-    from gradio.components import Component, State
+    from gradio.components import State
 
 
 class StateHolder:
@@ -108,11 +108,13 @@ class SessionState:
         else:
             self.blocks_config.blocks[key] = value
         if block:
-            self.config_values[key] = self.blocks_config.config_for_block(key, [], block)
+            self.config_values[key] = self.blocks_config.config_for_block(
+                key, [], block
+            )
 
-    def _update_config(self, key: int, block: Component, value: Any):
-        block.value = value
-        self.config_values[key] = self.blocks_config.config_for_block(key, [], block)
+    def _update_config(self, key: int, value: Any):
+        if "props" in self.config_values[key]:
+            self.config_values[key]["props"]["value"] = value
 
     def __contains__(self, key: int):
         block = self.blocks_config.blocks.get(key)
