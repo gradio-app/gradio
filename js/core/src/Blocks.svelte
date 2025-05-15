@@ -26,6 +26,8 @@
 		StatusMessage
 	} from "@gradio/client";
 
+	setupi18n();
+
 	export let root: string;
 	export let components: ComponentMeta[];
 	export let layout: LayoutNode;
