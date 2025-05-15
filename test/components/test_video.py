@@ -70,7 +70,6 @@ class TestVideo:
             "loop": False,
             "streaming": False,
             "watermark": None,
-            "server_fns": ["is_playable"],
         }
         assert video_input.preprocess(None) is None
         video_input = gr.Video(format="avi")

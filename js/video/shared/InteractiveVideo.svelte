@@ -73,7 +73,6 @@
 	}
 
 	let dragging = false;
-	let is_playable = false;
 	$: dispatch("drag", dragging);
 </script>
 
