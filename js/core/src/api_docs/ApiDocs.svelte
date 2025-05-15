@@ -35,7 +35,8 @@
 	const bash_docs =
 		"https://www.gradio.app/guides/querying-gradio-apps-with-curl";
 	const spaces_docs_suffix = "#connecting-to-a-hugging-face-space";
-	const mcp_docs = "https://www.gradio.app/guides/building-mcp-server-with-gradio";
+	const mcp_docs =
+		"https://www.gradio.app/guides/building-mcp-server-with-gradio";
 
 	let api_count = dependencies.filter(
 		(dependency) => dependency.show_api
