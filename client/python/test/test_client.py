@@ -70,6 +70,7 @@ class TestClientInitialization:
         )
         assert {"authorization": "Bearer abcde"}.items() <= client.headers.items()
 
+    @pytest.mark.serial
     def test_many_endpoint_demo_loads_quickly(self, many_endpoint_demo):
         import datetime
 

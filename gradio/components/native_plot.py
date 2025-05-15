@@ -9,7 +9,6 @@ from typing import (
     Literal,
 )
 
-import pandas as pd
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
@@ -18,6 +17,8 @@ from gradio.events import Events
 from gradio.i18n import TranslationMetadata
 
 if TYPE_CHECKING:
+    import pandas as pd
+
     from gradio.components import Timer
 
 
@@ -192,6 +193,8 @@ class NativePlot(Component):
             return value
 
         def get_simplified_type(dtype):
+            import pandas as pd
+
             if pd.api.types.is_numeric_dtype(dtype):
                 return "quantitative"
             elif pd.api.types.is_string_dtype(

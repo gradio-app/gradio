@@ -10,6 +10,8 @@
 	export let theme_mode: "system" | "light" | "dark" = "system";
 	export let show_indices = false;
 	export let label_height: number;
+	export let interactive = true;
+	export let show_copy_button = true;
 
 	$: json_max_height = `calc(100% - ${label_height}px)`;
 
@@ -46,14 +48,16 @@
 </script>
 
 {#if value && value !== '""' && !is_empty(value)}
-	<IconButtonWrapper>
-		<IconButton
-			show_label={false}
-			label={copied ? "Copied" : "Copy"}
-			Icon={copied ? Check : Copy}
-			on:click={() => handle_copy()}
-		/>
-	</IconButtonWrapper>
+	{#if show_copy_button}
+		<IconButtonWrapper>
+			<IconButton
+				show_label={false}
+				label={copied ? "Copied" : "Copy"}
+				Icon={copied ? Check : Copy}
+				on:click={() => handle_copy()}
+			/>
+		</IconButtonWrapper>
+	{/if}
 	<div class="json-holder" style:max-height={json_max_height}>
 		<JSONNode
 			{value}
@@ -62,6 +66,7 @@
 			{open}
 			{theme_mode}
 			{show_indices}
+			{interactive}
 		/>
 	</div>
 {:else}
