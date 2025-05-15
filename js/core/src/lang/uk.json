@@ -97,7 +97,8 @@
 		"runtime_error": "Є помилка виконання",
 		"space_not_working": "\"Space не працює, оскільки\" {0}",
 		"space_paused": "Space призупинено",
-		"use_via_api": "Використовувати через API"
+		"use_via_api": "Використовувати через API",
+		"use_via_api_or_mcp": "Використовувати через API або MCP"
 	},
 	"file": {
 		"uploading": "Завантаження..."
