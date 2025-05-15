@@ -110,7 +110,10 @@ export class AddImageCommand implements BgImageCommand {
 
 		this.computed_dimensions = { width: 0, height: 0 };
 
-		if (this.context.background_image) {
+		if (
+			this.context.background_image &&
+			this.context.background_image.texture
+		) {
 			const bg = this.context.background_image;
 			const stored_border_region = (bg as any).borderRegion || 0;
 
