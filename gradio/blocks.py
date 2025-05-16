@@ -132,13 +132,15 @@ class Block:
         proxy_url: str | None = None,
     ):
         key_to_id_map = LocalContext.key_to_id_map.get()
-        self.is_render_replacement = key is not None and key in key_to_id_map
+        self.is_render_replacement = (
+            key is not None and key_to_id_map and key in key_to_id_map
+        )
         if self.is_render_replacement:
             self._id = key_to_id_map[key]
         else:
             self._id = Context.id
             Context.id += 1
-            if key is not None:
+            if key is not None and key_to_id_map is not None:
                 key_to_id_map[key] = self._id
         self.visible = visible
         self.elem_id = elem_id
@@ -172,7 +174,7 @@ class Block:
     def unique_key(self) -> str:
         if self.key is None:
             return None
-        return hash((self.rendered_in if self.rendered_in else None, self.key))
+        return hash((self.rendered_in._id if self.rendered_in else None, self.key))
 
     @property
     def stateful(self) -> bool:
@@ -288,8 +290,6 @@ class Block:
                 config = {**to_add, **config}
         config.pop("render", None)
         config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_class()}
-        if self.rendered_in is not None:
-            config["rendered_in"] = self.rendered_in._id
         for event_attribute in ["_selectable", "_undoable", "_retryable", "likeable"]:
             if (attributable := getattr(self, event_attribute, None)) is not None:
                 config[event_attribute] = attributable
@@ -951,6 +951,8 @@ class BlocksConfig:
         }
         if renderable:
             block_config["renderable"] = renderable._id
+        if block.rendered_in is not None:
+            block_config["rendered_in"] = block.rendered_in._id
         if not block.skip_api:
             block_config["api_info"] = block.api_info()  # type: ignore
             if hasattr(block, "api_info_as_input"):
