@@ -1,7 +1,17 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
-	import { Check, Trash, ZoomIn, ZoomOut, Pan, Download } from "@gradio/icons";
+	import {
+		Check,
+		Trash,
+		ZoomIn,
+		ZoomOut,
+		Pan,
+		Download,
+		Undo,
+		Redo
+	} from "@gradio/icons";
+	import type { Writable } from "svelte/store";
 
 	export let can_save = false;
 	export let changeable = false;
@@ -9,6 +19,8 @@
 	export let tool: string;
 	export let min_zoom = true;
 	export let enable_download = false;
+	export let can_undo: boolean;
+	export let can_redo: boolean;
 
 	const dispatch = createEventDispatcher<{
 		remove_image: void;
@@ -113,6 +125,26 @@
 		{/if}
 	</div>
 	<div class="separator"></div>
+
+	<IconButton
+		Icon={Undo}
+		label="Undo"
+		on:click={(event) => {
+			dispatch("undo");
+			event.stopPropagation();
+		}}
+		disabled={!can_undo}
+	/>
+
+	<IconButton
+		Icon={Redo}
+		label="Redo"
+		on:click={(event) => {
+			dispatch("redo");
+			event.stopPropagation();
+		}}
+		disabled={!can_redo}
+	/>
 
 	{#if changeable}
 		<IconButton

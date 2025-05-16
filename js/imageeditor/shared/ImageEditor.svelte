@@ -15,7 +15,7 @@
 	import type { Client, FileData } from "@gradio/client";
 	import tinycolor, { type ColorInput } from "tinycolor2";
 	import { ZoomTool } from "./zoom/zoom";
-	import { type CommandManager, type CommandNode } from "./utils/commands";
+	import { type CommandManager, type CommandNode } from "./core/commands";
 	import { ImageEditor } from "./core/editor";
 	import { type Brush, type Eraser } from "./brush/types";
 	import { BrushTool } from "./brush/brush";
@@ -249,6 +249,8 @@
 
 	let crop: ImageEditor;
 	let crop_zoom: ZoomTool;
+	export let can_undo = false;
+	let can_redo = false;
 	async function init_image_editor(): Promise<void> {
 		brush = new BrushTool();
 		zoom = new ZoomTool();
@@ -306,6 +308,8 @@
 
 		editor.on("change", () => {
 			dispatch("change");
+			can_undo = editor.command_manager.history.previous !== null;
+			can_redo = editor.command_manager.history.next !== null;
 		});
 
 		if (background || layers.length > 0) {
@@ -339,13 +343,6 @@
 		current_subtool === "crop" &&
 		crop_zoom.set_zoom("fit");
 
-	// function resize_canvas(width: number, height: number): void {
-	// 	if (!editor) return;
-	// 	if (mounted && ready) {
-	// 		editor.resize(width, height);
-	// 	}
-	// }
-
 	/**
 	 * Handles file uploads
 	 * @param {File[]} files - The uploaded files
@@ -364,7 +361,11 @@
 		dispatch("upload");
 		dispatch("input");
 		dispatch("change");
+		can_undo = editor.command_manager.history.previous !== null;
+		can_redo = editor.command_manager.history.next !== null;
 	}
+
+	$: background_image = can_undo && editor.command_manager.contains("AddImage");
 
 	/**
 	 * Handles tool change events
@@ -496,7 +497,6 @@
 		})()
 	);
 
-	// Type-safe brush size handling
 	$: brush?.set_brush_size(
 		typeof selected_size === "number" ? selected_size : 25
 	);
@@ -583,6 +583,18 @@
 		link.click();
 		URL.revokeObjectURL(url);
 	}
+
+	function handle_undo(): void {
+		editor.undo();
+		can_undo = editor.command_manager.history.previous !== null;
+		can_redo = editor.command_manager.history.next !== null;
+	}
+
+	function handle_redo(): void {
+		editor.redo();
+		can_undo = editor.command_manager.history.previous !== null;
+		can_redo = editor.command_manager.history.next !== null;
+	}
 </script>
 
 <div
@@ -622,6 +634,10 @@
 				}}
 				enable_download={show_download_button}
 				on:download={() => handle_download()}
+				{can_undo}
+				{can_redo}
+				on:undo={handle_undo}
+				on:redo={handle_redo}
 			/>
 		{/if}
 

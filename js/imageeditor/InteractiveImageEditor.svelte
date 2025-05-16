@@ -16,18 +16,14 @@
 	import { createEventDispatcher } from "svelte";
 	import { type I18nFormatter } from "@gradio/utils";
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
-	import { type CommandNode } from "./shared/utils/commands";
+	import { type CommandNode } from "./shared/core/commands";
 	import ImageEditor from "./shared/ImageEditor.svelte";
-	// import Layers from "./layers/Layers.svelte";
 	import { type Brush as IBrush, type Eraser } from "./shared/brush/types";
-	// import { type Eraser } from "./tools/Brush.svelte";
 	import { type Tool as ToolbarTool } from "./shared/Toolbar.svelte";
 
-	// import { Tools, Crop, Brush, Sources } from "./tools";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image as ImageIcon } from "@gradio/icons";
 	import { inject } from "./shared/utils/parse_placeholder";
-	// import Sources from "./shared/image/Sources.svelte";
 	import {
 		type LayerOptions,
 		type Transform,
@@ -138,7 +134,7 @@
 	$: handle_value({ layers, composite, background });
 
 	let background_image = false;
-	let history = false;
+	let can_undo: boolean;
 
 	export let image_id: null | string = null;
 
@@ -243,8 +239,9 @@
 	{webcam_options}
 	{show_download_button}
 	{theme_mode}
+	bind:can_undo
 >
-	{#if !background_image && current_tool === "image" && !has_drawn}
+	{#if current_tool === "image" && !can_undo}
 		<div class="empty wrap">
 			{#if sources && sources.length}
 				{#if heading || paragraph}
