@@ -39,7 +39,6 @@ class I18nData:
         """
         import json
 
-        # Create a JSON representation that can be detected and processed by the frontend
         return f"__i18n__{json.dumps(self.to_dict())}"
 
     def __repr__(self) -> str:
@@ -48,7 +47,7 @@ class I18nData:
         """
         return self.__str__()
 
-    # Add more string compatibility methods
+
     def __add__(self, other):
         """
         Handle string concatenation (self + other).
@@ -61,7 +60,6 @@ class I18nData:
         """
         return str(other) + str(self)
 
-    # For attribute/method access attempts to be gracefully handled
     def __getattr__(self, name):
         """
         Handle attribute access for I18nData.
@@ -71,13 +69,11 @@ class I18nData:
         if name.startswith("__") and name.endswith("__"):
             raise AttributeError(f"{self.__class__.__name__} has no attribute {name}")
 
-        # Return a function that returns self for any method call
         def method(*_args, **_kwargs):
             return self
 
         return method
 
-    # Make the object JSON-serializable
     def tojson(self) -> dict[str, Any]:
         """
         Convert the I18nData object to a JSON-serializable dictionary.

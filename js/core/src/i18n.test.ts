@@ -15,7 +15,6 @@ import {
 	get_initial_locale,
 	load_translations,
 	changeLocale,
-	translate_metadata,
 	is_translation_metadata
 } from "./i18n";
 
@@ -142,13 +141,6 @@ describe("i18n", () => {
 			expect(Boolean(is_translation_metadata(null))).toBe(false);
 			expect(Boolean(is_translation_metadata(undefined))).toBe(false);
 			expect(Boolean(is_translation_metadata("not an object"))).toBe(false);
-		});
-
-		test("translate_metadata handles non-metadata objects", () => {
-			expect(translate_metadata("just a string" as any)).toBe("just a string");
-			expect(typeof translate_metadata({ not: "metadata" } as any)).toBe(
-				"string"
-			);
 		});
 	});
 });

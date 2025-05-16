@@ -43,3 +43,16 @@ If a translation isn't available for the user's locale, the system will fall bac
 ## Valid Locale Codes
 
 Locale codes should follow the BCP 47 format (e.g., 'en', 'en-US', 'zh-CN'). The `I18n` class will warn you if you use an invalid locale code.
+
+## Supported Component Properties
+
+The following component properties typically support internationalization:
+
+- `description`
+- `info`
+- `title`
+- `placeholder`
+- `value`
+- `label`
+
+Note that support may vary depending on the component, and some properties might have exceptions where internationalization is not applicable.

@@ -113,15 +113,21 @@ class Markdown(Component):
         """
         return payload
 
-    def postprocess(self, value: str | None) -> str | None:
+    def postprocess(self, value: str | I18nData | None) -> str | dict | None:
         """
         Parameters:
             value: Expects a valid `str` that can be rendered as Markdown.
         Returns:
             The same `str` as the input, but with leading and trailing whitespace removed.
+            If an I18nData object is provided, returns it serialized for the frontend to translate.
         """
         if value is None:
             return None
+
+        if isinstance(value, I18nData):
+            # preserve the I18nData object for frontend translation
+            return str(value)
+
         unindented_y = inspect.cleandoc(value)
         return unindented_y
 

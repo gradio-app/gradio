@@ -26,21 +26,6 @@ export function is_translation_metadata(obj: any): obj is I18nData {
 	return result;
 }
 
-// handles explicit translation metadata objects of shape { __type__: "translation_metadata", key: string }
-export function translate_metadata(metadata: I18nData): string {
-	if (!is_translation_metadata(metadata)) {
-		return String(metadata);
-	}
-
-	try {
-		const { key } = metadata;
-		return formatter(key);
-	} catch (e) {
-		console.error("Error translating metadata:", e);
-		return metadata.key;
-	}
-}
-
 // handles strings with embedded JSON metadata of shape "__i18n__{"key": "some.key"}"
 export function translate_if_needed(value: any): string {
 	if (typeof value !== "string") {
@@ -119,13 +104,19 @@ export const language_choices: [string, string][] = Object.entries(
 export let all_common_keys: Set<string> = new Set();
 
 let i18n_initialized = false;
+let previous_translations: Record<string, Record<string, string>> | undefined;
 
 export async function setupi18n(
 	custom_translations?: Record<string, Record<string, string>>
 ): Promise<void> {
-	if (i18n_initialized) {
+	const should_reinitialize =
+		i18n_initialized && custom_translations !== previous_translations;
+
+	if (i18n_initialized && !should_reinitialize) {
 		return;
 	}
+
+	previous_translations = custom_translations;
 
 	load_translations({
 		...processed_langs,
