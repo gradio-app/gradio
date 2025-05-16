@@ -801,7 +801,7 @@ class App(FastAPI):
                 components, deep_link_state = load_deep_link(deep_link, config, page="")  # type: ignore
                 config["components"] = components  # type: ignore
                 config["deep_link_state"] = deep_link_state
-            if hasattr(blocks, 'i18n_instance') and blocks.i18n_instance:
+            if hasattr(blocks, "i18n_instance") and blocks.i18n_instance:
                 config["i18n_translations"] = blocks.i18n_instance.translations_dict
             else:
                 config["i18n_translations"] = None
