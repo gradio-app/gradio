@@ -1,5 +1,5 @@
 import { test, describe, assert, afterEach, vi } from "vitest";
-import { cleanup, render, fireEvent } from "@self/tootils";
+import { cleanup, render, fireEvent } from "@self/tootils/render";
 import Chatbot from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 import type { FileData } from "@gradio/client";

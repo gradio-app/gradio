@@ -11,9 +11,9 @@ import { INVALID_CREDENTIALS_MSG, MISSING_CREDENTIALS_MSG } from "../constants";
 
 const server = initialise_server();
 
-beforeAll(() => server.listen());
+beforeAll(() => server.start());
 afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+afterAll(() => server.stop());
 
 describe("resolve_root", () => {
 	it('should return the base URL if the root path starts with "http://"', () => {

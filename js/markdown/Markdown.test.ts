@@ -1,5 +1,5 @@
 import { test, describe, assert, afterEach } from "vitest";
-import { cleanup, render } from "@self/tootils";
+import { cleanup, render } from "@self/tootils/render";
 
 import Markdown from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";

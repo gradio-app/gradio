@@ -17,9 +17,9 @@ import { transformed_api_info } from "./test_data";
 
 const server = initialise_server();
 
-beforeAll(() => server.listen());
+beforeAll(() => server.start());
 afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+afterAll(() => server.stop());
 
 describe("handle_message", () => {
 	it("should return type 'data' when msg is 'send_data'", () => {

@@ -24,9 +24,9 @@ const secret_direct_app_reference = "https://hmb-secret-world.hf.space";
 
 const server = initialise_server();
 
-beforeAll(() => server.listen());
+beforeAll(() => server.start());
 afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+afterAll(() => server.stop());
 
 describe("Client class", () => {
 	describe("initialisation", () => {

@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, describe, expect, test } from "vitest";
-import { render, cleanup } from "@self/tootils";
+import { render, cleanup } from "@self/tootils/render";
 import { setupi18n } from "../../core/src/i18n";
 import { Gradio } from "../../core/src/gradio_helper";
 

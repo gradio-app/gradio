@@ -1,5 +1,5 @@
 import { test, describe, assert, afterEach } from "vitest";
-import { cleanup, fireEvent, render } from "@self/tootils";
+import { cleanup, fireEvent, render } from "@self/tootils/render";
 import { setupi18n } from "../core/src/i18n";
 
 import HighlightedText from "./Index.svelte";

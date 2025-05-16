@@ -1,5 +1,5 @@
 import { test, describe, assert, afterEach } from "vitest";
-import { cleanup, render } from "@self/tootils";
+import { cleanup, render } from "@self/tootils/render";
 import Audio from "./";
 import type { LoadingStatus } from "@gradio/statustracker";
 import { setupi18n } from "../core/src/i18n";
