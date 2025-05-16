@@ -1838,7 +1838,7 @@ Received inputs:
                         inputs_serialized = inputs_cached
                     if block._id not in state:
                         state[block._id] = block
-                    state[block._id].value = inputs_serialized
+                    state._update_value_in_config(block._id, inputs_serialized)
                     processed_input.append(block.preprocess(inputs_cached))
         else:
             processed_input = inputs
@@ -1952,11 +1952,16 @@ Received inputs:
                     kwargs["render"] = False
 
                     state[block._id] = block.__class__(**kwargs)
+                    state._update_config(block._id)
                     prediction_value = postprocess_update_dict(
                         block=state[block._id],
                         update_dict=prediction_value,
                         postprocess=block_fn.postprocess,
                     )
+                    if "value" in prediction_value:
+                        state._update_value_in_config(
+                            block._id, prediction_value.get("value")
+                        )
                 elif block_fn.postprocess:
                     if not isinstance(block, components.Component):
                         raise InvalidComponentError(
@@ -1978,7 +1983,9 @@ Received inputs:
                     )
                     if block._id not in state:
                         state[block._id] = block
-                    state[block._id].value = prediction_value_serialized
+                    state._update_value_in_config(
+                        block._id, prediction_value_serialized
+                    )
 
                 outputs_cached = await processing_utils.async_move_files_to_cache(
                     prediction_value,
