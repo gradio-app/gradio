@@ -1106,8 +1106,11 @@ def video_is_playable(video_filepath: str) -> bool:
         video_codec = output["streams"][0]["codec_name"]
         return (container, video_codec) in [
             (".mp4", "h264"),
+            (".mp4", "av1"),
             (".ogg", "theora"),
             (".webm", "vp9"),
+            (".webm", "vp8"),
+            (".webm", "av1"),
         ]
     # If anything goes wrong, assume the video can be played to not convert downstream
     except (FFRuntimeError, IndexError, KeyError):
