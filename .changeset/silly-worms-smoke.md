@@ -7,4 +7,4 @@
 "gradio": minor
 ---
 
-feat:switch test runner
+feat:use a real browser environment for unit tests
