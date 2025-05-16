@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+import warnings
 from typing import Any
 
 
@@ -93,6 +95,9 @@ class I18n:
     and the provided translation dictionaries.
     """
 
+    # BCP 47 language tag regex pattern
+    _LOCALE_PATTERN = re.compile(r'^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$')
+
     def __init__(self, **translations: dict[str, str]):
         """
         Initializes the I18n class.
@@ -104,7 +109,19 @@ class I18n:
 
                           These translations can be passed to the frontend for use there.
         """
-        self.translations = translations or {}
+        self.translations = {}
+
+        for locale, translation_dict in translations.items():
+            if not self._is_valid_locale(locale):
+                warnings.warn(
+                    f"Invalid locale code: '{locale}'. Locale codes should follow BCP 47 format (e.g., 'en', 'en-US'). "
+                    f"This locale will still be included, but may not work correctly.",
+                    UserWarning
+                )
+            self.translations[locale] = translation_dict
+
+    def _is_valid_locale(self, locale: str) -> bool:
+        return bool(self._LOCALE_PATTERN.match(locale))
 
     def __call__(self, key: str) -> I18nData:
         """
