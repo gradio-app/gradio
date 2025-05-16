@@ -132,12 +132,11 @@ class Block:
         proxy_url: str | None = None,
     ):
         key_to_id_map = LocalContext.key_to_id_map.get()
-        self.is_render_replacement = (
-            key is not None and key_to_id_map and key in key_to_id_map
-        )
-        if self.is_render_replacement:
+        if key is not None and key_to_id_map and key in key_to_id_map:
+            self.is_render_replacement = True
             self._id = key_to_id_map[key]
         else:
+            self.is_render_replacement = False
             self._id = Context.id
             Context.id += 1
             if key is not None and key_to_id_map is not None:
@@ -171,7 +170,7 @@ class Block:
         if render:
             self.render()
 
-    def unique_key(self) -> str:
+    def unique_key(self) -> int | None:
         if self.key is None:
             return None
         return hash((self.rendered_in._id if self.rendered_in else None, self.key))
