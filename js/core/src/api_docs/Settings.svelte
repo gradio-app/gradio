@@ -143,7 +143,7 @@
 		trimming the video to remove the prediction time.
 		<br /><br />
 		Start recording by clicking the <i>Start Recording</i> button below and then
-		sharing the current browser tab of your Gradio demo.
+		sharing the current browser tab of your Gradio demo. Use your app as you would normally to generate a prediction.
 		<br />
 		Stop recording by clicking the <i>Stop Recording</i> button in the footer of
 		the demo.

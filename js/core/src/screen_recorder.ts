@@ -318,7 +318,7 @@ async function handleRecordingComplete(recordedBlob: Blob): Promise<void> {
 			formData.append("zoom_effects", JSON.stringify(zoomEffects));
 		}
 
-		const response = await fetch(root + "/process_recording", {
+		const response = await fetch(root + "/gradio_api/process_recording", {
 			method: "POST",
 			body: formData
 		});

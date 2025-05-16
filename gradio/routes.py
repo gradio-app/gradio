@@ -154,6 +154,10 @@ XSS_SAFE_MIMETYPES = {
     "application/json",
 }
 
+DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
+    Path(tempfile.gettempdir()) / "gradio"
+)
+
 
 class ORJSONResponse(JSONResponse):
     media_type = "application/json"
@@ -1767,7 +1771,7 @@ class App(FastAPI):
             else:
                 raise HTTPException(status_code=403, detail="Invalid key.")
 
-        @app.post("/process_recording", dependencies=[Depends(login_check)])
+        @router.post("/process_recording", dependencies=[Depends(login_check)])
         async def process_recording(
             request: fastapi.Request,
         ):
@@ -1819,7 +1823,7 @@ class App(FastAPI):
                 except json.JSONDecodeError:
                     params["zoom_effects"] = []
 
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as input_file:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4", dir=DEFAULT_TEMP_DIR) as input_file:
                 video_file.file.seek(0)
                 shutil.copyfileobj(video_file.file, input_file)
                 input_path = input_file.name
@@ -1832,7 +1836,9 @@ class App(FastAPI):
                     background=BackgroundTask(lambda: cleanup_files([input_path])),
                 )
 
-            output_path = tempfile.mktemp(suffix="_processed.mp4")
+            output_file = tempfile.NamedTemporaryFile(suffix="_processed.mp4", dir=DEFAULT_TEMP_DIR, delete=False)
+            output_path = output_file.name
+            output_file.close()
 
             try:
                 processed_path, temp_files = await process_video_with_ffmpeg(
