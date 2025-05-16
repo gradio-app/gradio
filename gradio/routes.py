@@ -801,7 +801,7 @@ class App(FastAPI):
                 components, deep_link_state = load_deep_link(deep_link, config, page="")  # type: ignore
                 config["components"] = components  # type: ignore
                 config["deep_link_state"] = deep_link_state
-            if blocks.i18n_instance:
+            if hasattr(blocks, 'i18n_instance') and blocks.i18n_instance:
                 config["i18n_translations"] = blocks.i18n_instance.translations_dict
             else:
                 config["i18n_translations"] = None
@@ -920,13 +920,8 @@ class App(FastAPI):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             abs_path = utils.abspath(path_or_url)
-            # Catch potential permission errors to not display the full traceback
-            # see https://github.com/gradio-app/gradio/issues/11194
-            try:
-                if abs_path.is_dir() or not abs_path.exists():
-                    raise HTTPException(403, f"File not allowed: {path_or_url}.")
-            except Exception as e:
-                raise HTTPException(403, f"File not allowed: {path_or_url}.") from e
+            if abs_path.is_dir() or not abs_path.exists():
+                raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             from gradio.data_classes import _StaticFiles
 
