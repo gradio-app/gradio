@@ -47,7 +47,6 @@ class I18nData:
         """
         return self.__str__()
 
-
     def __add__(self, other):
         """
         Handle string concatenation (self + other).
