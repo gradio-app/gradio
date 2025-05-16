@@ -426,6 +426,8 @@ class BlockContext(Block):
         elem_classes: list[str] | str | None = None,
         visible: bool = True,
         render: bool = True,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
     ):
         """
         Parameters:
@@ -441,6 +443,8 @@ class BlockContext(Block):
             elem_classes=elem_classes,
             visible=visible,
             render=render,
+            key=key,
+            preserved_by_key=preserved_by_key,
         )
 
     TEMPLATE_DIR = DeveloperPath("./templates/")

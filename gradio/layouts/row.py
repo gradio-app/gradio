@@ -38,6 +38,8 @@ class Row(BlockContext, metaclass=ComponentMeta):
         min_height: int | str | None = None,
         equal_height: bool = False,
         show_progress: bool = False,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
     ):
         """
         Parameters:
@@ -52,6 +54,8 @@ class Row(BlockContext, metaclass=ComponentMeta):
             min_height: The minimum height of the row, specified in pixels if a number is passed, or in CSS units if a string is passed. If content exceeds the height, the row will expand to fit the content. Will not have any effect if `height` is set and is larger than `min_height`.
             equal_height: If True, makes every child element have equal height
             show_progress: If True, shows progress animation when being updated.
+            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
+            preserved_by_key: in a gr.render, Components with the same key across re-renders will have these properties preserved across the re-render.
         """
         self.variant = variant
         self.equal_height = equal_height
@@ -74,6 +78,8 @@ class Row(BlockContext, metaclass=ComponentMeta):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
+            key=key,
+            preserved_by_key=preserved_by_key,
         )
 
     @staticmethod
