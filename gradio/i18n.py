@@ -96,7 +96,7 @@ class I18n:
     """
 
     # BCP 47 language tag regex pattern
-    _LOCALE_PATTERN = re.compile(r'^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$')
+    _LOCALE_PATTERN = re.compile(r"^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$")
 
     def __init__(self, **translations: dict[str, str]):
         """
@@ -116,7 +116,7 @@ class I18n:
                 warnings.warn(
                     f"Invalid locale code: '{locale}'. Locale codes should follow BCP 47 format (e.g., 'en', 'en-US'). "
                     f"This locale will still be included, but may not work correctly.",
-                    UserWarning
+                    UserWarning,
                 )
             self.translations[locale] = translation_dict
 
