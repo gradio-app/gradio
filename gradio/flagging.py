@@ -96,7 +96,9 @@ class SimpleCSVLogger(FlaggingCallback):
         for component, sample in zip(self.components, flag_data, strict=False):
             save_dir = Path(
                 flagging_dir
-            ) / client_utils.strip_invalid_filename_characters(component.label or "")
+            ) / client_utils.strip_invalid_filename_characters(
+                str(component.label) if component.label is not None else ""
+            )
             save_dir.mkdir(exist_ok=True)
             csv_data.append(
                 component.flag(
@@ -165,7 +167,7 @@ class ClassicCSVLogger(FlaggingCallback):
             save_dir = Path(
                 flagging_dir
             ) / client_utils.strip_invalid_filename_characters(
-                getattr(component, "label", None) or f"component {idx}"
+                str(getattr(component, "label", None) or f"component {idx}")
             )
             if utils.is_prop_update(sample):
                 csv_data.append(str(sample))
@@ -313,7 +315,7 @@ class CSVLogger(FlaggingCallback):
             save_dir = (
                 self.flagging_dir
                 / client_utils.strip_invalid_filename_characters(
-                    getattr(component, "label", None) or f"component {idx}"
+                    str(getattr(component, "label", None) or f"component {idx}")
                 )
             )
             if utils.is_prop_update(sample):
