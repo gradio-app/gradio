@@ -779,7 +779,9 @@ export class LayerManager {
 		} else {
 			this.active_layer =
 				this.layers.find((l) => l.id === this.active_layer_id)?.container ||
-				this.layers[0].container;
+				this.layers[0]?.container;
+
+			if (!this.active_layer) return;
 		}
 
 		this.layer_store.update((state) => ({

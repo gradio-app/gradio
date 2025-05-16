@@ -619,6 +619,7 @@ export class ImageEditor {
 	 * @param url The URL of the image to add
 	 */
 	async add_image_from_url(url: string): Promise<void> {
+		this.command_manager.reset();
 		const image_tool = this.tools.get("image") as ImageTool;
 		const texture = await Assets.load(url);
 		await image_tool.add_image({
@@ -631,9 +632,6 @@ export class ImageEditor {
 		if (resize_tool && typeof resize_tool.set_border_region === "function") {
 			resize_tool.set_border_region(this.border_region);
 		}
-
-		this.notify("change");
-		this.notify("input");
 	}
 
 	set_tool(tool: ToolbarTool): void {
@@ -706,6 +704,7 @@ export class ImageEditor {
 	 * @returns A Promise that resolves when all layers are added
 	 */
 	async add_layers_from_url(layer_urls: string[] | undefined): Promise<void> {
+		this.command_manager.reset();
 		const _layers = this.layer_manager.get_layers();
 		_layers.forEach((l) => this.layer_manager.delete_layer(l.id));
 		if (layer_urls === undefined || layer_urls.length === 0) {

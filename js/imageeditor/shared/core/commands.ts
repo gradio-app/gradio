@@ -90,7 +90,6 @@ export class CommandManager {
 		this.history = this.history.next!;
 
 		this.current_history.set(this.history);
-		console.log("CommandManager::execute", this.history);
 	}
 
 	replay(full_history: CommandNode): void {
