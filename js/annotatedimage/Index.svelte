@@ -48,7 +48,7 @@
 	export let show_fullscreen_button = true;
 
 	let image_container: HTMLElement;
-	let is_full_screen = false;
+	let fullscreen = false;
 
 	// `value` can be updated before the Promises from `resolve_wasm_src` are resolved.
 	// In such a case, the resolved values for the old `value` have to be discarded,
@@ -134,6 +134,7 @@
 	{container}
 	{scale}
 	{min_width}
+	bind:fullscreen
 >
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
@@ -154,15 +155,17 @@
 				<IconButtonWrapper>
 					{#if show_fullscreen_button}
 						<FullscreenButton
-							container={image_container}
-							on:fullscreenchange={(e) => (is_full_screen = e.detail)}
+							{fullscreen}
+							on:fullscreen={({ detail }) => {
+								fullscreen = detail;
+							}}
 						/>
 					{/if}
 				</IconButtonWrapper>
 
 				<img
 					class="base-image"
-					class:fit-height={height && !is_full_screen}
+					class:fit-height={height && !fullscreen}
 					src={_value ? _value.image.url : null}
 					alt="the base file that is annotated"
 				/>
@@ -170,7 +173,7 @@
 					<img
 						alt="segmentation mask identifying {label} within the uploaded file"
 						class="mask fit-height"
-						class:fit-height={!is_full_screen}
+						class:fit-height={!fullscreen}
 						class:active={active == ann.label}
 						class:inactive={active != ann.label && active != null}
 						src={ann.image.url}

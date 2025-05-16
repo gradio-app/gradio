@@ -73,6 +73,7 @@ class NativePlot(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
+        show_fullscreen_button: bool = False,
         **kwargs,
     ):
         """
@@ -110,6 +111,7 @@ class NativePlot(Component):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
+            show_fullscreen_button: If True, will show a button to make plot visible in fullscreen mode.
         """
         self.x = x
         self.y = y
@@ -130,6 +132,7 @@ class NativePlot(Component):
         self.sort = sort
         self.tooltip = tooltip
         self.height = height
+        self.show_fullscreen_button = show_fullscreen_button
 
         if label is None and show_label is None:
             show_label = False
