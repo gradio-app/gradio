@@ -113,7 +113,7 @@ class Client:
             self.headers.update(headers)
         self.ssl_verify = ssl_verify
         self.space_id = None
-        self.cookies: dict[str, str] = {}
+        self.cookies: dict[str, str] = dict(httpx_kwargs.get('cookies', {}))
         if isinstance(self.download_files, (str, Path)):
             if not os.path.exists(self.download_files):
                 os.makedirs(self.download_files, exist_ok=True)
