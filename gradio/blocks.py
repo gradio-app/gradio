@@ -1153,6 +1153,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.state_holder: StateHolder
         self.custom_mount_path: str | None = None
         self.pwa = False
+        self.mcp_server = False
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -2278,6 +2279,7 @@ Received inputs:
             "pwa": self.pwa,
             "pages": self.pages,
             "page": {},
+            "mcp_server": self.mcp_server,
         }
         config.update(self.default_config.get_config())  # type: ignore
         config["connect_heartbeat"] = utils.connect_heartbeat(
@@ -2591,7 +2593,6 @@ Received inputs:
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
         self.transpile_to_js(quiet=quiet)
-        self.config = self.get_config_file()
 
         self.ssr_mode = (
             False
@@ -2640,10 +2641,13 @@ Received inputs:
                 self.mcp_server_obj.launch_mcp_on_sse(
                     self.server_app, mcp_subpath, self.root_path
                 )
+                self.mcp_server = True
             except Exception as e:
-                mcp_server = False
+                self.mcp_server = False
                 if not quiet:
                     print(f"Error launching MCP server: {e}")
+
+        self.config = self.get_config_file()
 
         if self.is_running:
             if not isinstance(self.local_url, str):
@@ -2834,7 +2838,7 @@ Received inputs:
                 print("* To create a public link, set `share=True` in `launch()`.")
             self.share_url = None
 
-        if mcp_server:
+        if self.mcp_server:
             print(
                 f"\n🔨 MCP server (using SSE) running at: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
             )

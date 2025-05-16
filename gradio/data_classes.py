@@ -403,6 +403,7 @@ class BlocksConfigDict(TypedDict):
     pages: list[tuple[str, str]]
     current_page: NotRequired[str]
     i18n_translations: NotRequired[dict[str, dict[str, str]] | None]
+    mcp_server: NotRequired[bool]
 
 
 class MediaStreamChunk(TypedDict):
