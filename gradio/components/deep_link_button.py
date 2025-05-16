@@ -14,6 +14,7 @@ from gradio import utils
 from gradio.components.base import Component
 from gradio.components.button import Button
 from gradio.context import get_blocks_context
+from gradio.events import Events
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -25,6 +26,8 @@ class DeepLinkButton(Button):
     Creates a button that copies a shareable link to the current Gradio Space.
     The link includes the current session hash as a query parameter.
     """
+
+    EVENTS = [Events.click, "deep_link_button_enable"]
 
     is_template = True
     n_created = 0
@@ -39,7 +42,7 @@ class DeepLinkButton(Button):
         size: Literal["sm", "md", "lg"] = "lg",
         icon: str | Path | None = utils.get_icon_path("link.svg"),
         link: str | None = None,
-        visible: bool = True,
+        visible: bool = False,
         interactive: bool = True,
         elem_id: str | None = None,  # noqa: ARG002
         elem_classes: list[str] | str | None = None,
@@ -89,6 +92,12 @@ class DeepLinkButton(Button):
             outputs=[self],
             queue=False,
             show_api=False,
+        )
+        self.deep_link_button_enable(
+            fn=lambda: DeepLinkButton(visible=True),
+            inputs=None,
+            outputs=[self],
+            js=True,
         )
 
     def get_share_link(
