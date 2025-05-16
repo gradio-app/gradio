@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 1.15.0
+
+### Features
+
+- [#11155](https://github.com/gradio-app/gradio/pull/11155) [`30a1d9e`](https://github.com/gradio-app/gradio/commit/30a1d9e2ac3013d9c844b236410010bce97ffaf5) - Improvements to MCP page.  Thanks @abidlabs!
+
 ## 1.14.2
 
 ### Fixes
