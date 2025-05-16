@@ -921,8 +921,13 @@ class App(FastAPI):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             abs_path = utils.abspath(path_or_url)
-            if abs_path.is_dir() or not abs_path.exists():
-                raise HTTPException(403, f"File not allowed: {path_or_url}.")
+            # Catch potential permission errors to not display the full traceback
+            # see https://github.com/gradio-app/gradio/issues/11194
+            try:
+                if abs_path.is_dir() or not abs_path.exists():
+                    raise HTTPException(403, f"File not allowed: {path_or_url}.")
+            except Exception as e:
+                raise HTTPException(403, f"File not allowed: {path_or_url}.") from e
 
             from gradio.data_classes import _StaticFiles
 
