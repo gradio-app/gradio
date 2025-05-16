@@ -1,5 +1,5 @@
 import { test, describe, assert, afterEach, vi } from "vitest";
-import { cleanup, render } from "@self/tootils";
+import { cleanup, render } from "@self/tootils/render";
 import { setupi18n } from "../core/src/i18n";
 import Dataframe from "./Index.svelte";
 

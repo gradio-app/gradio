@@ -10,9 +10,9 @@ const secret_direct_app_reference = "https://hmb-secret-world.hf.space";
 
 const server = initialise_server();
 
-beforeAll(() => server.listen());
+beforeAll(() => server.start());
 afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+afterAll(() => server.stop());
 
 describe("view_api", () => {
 	test("viewing the api of a running, public app", async () => {
