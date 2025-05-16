@@ -103,20 +103,20 @@ export const language_choices: [string, string][] = Object.entries(
 
 export let all_common_keys: Set<string> = new Set();
 
-let i18n_initialized = false;
-let previous_translations: Record<string, Record<string, string>> | undefined;
+// let i18n_initialized = false;
+// let previous_translations: Record<string, Record<string, string>> | undefined;
 
 export async function setupi18n(
 	custom_translations?: Record<string, Record<string, string>>
 ): Promise<void> {
-	const should_reinitialize =
-		i18n_initialized && custom_translations !== previous_translations;
+	// const should_reinitialize =
+	// 	i18n_initialized && custom_translations !== previous_translations;
 
-	if (i18n_initialized && !should_reinitialize) {
-		return;
-	}
+	// if (i18n_initialized && !should_reinitialize) {
+	// 	return;
+	// }
 
-	previous_translations = custom_translations;
+	// previous_translations = custom_translations;
 
 	load_translations({
 		...processed_langs,
@@ -157,7 +157,7 @@ export async function setupi18n(
 		}
 	}
 
-	i18n_initialized = true;
+	// i18n_initialized = true;
 }
 
 export function changeLocale(new_locale: string): void {
