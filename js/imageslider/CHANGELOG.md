@@ -1,5 +1,12 @@
 # @gradio/imageslider
 
+## 0.2.2
+
+### Dependency updates
+
+- @gradio/upload@0.16.5
+- @gradio/client@1.15.0
+
 ## 0.2.1
 
 ### Dependency updates

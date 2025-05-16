@@ -1,5 +1,17 @@
 # gradio
 
+## 5.30.0
+
+### Features
+
+- [#11155](https://github.com/gradio-app/gradio/pull/11155) [`30a1d9e`](https://github.com/gradio-app/gradio/commit/30a1d9e2ac3013d9c844b236410010bce97ffaf5) - Improvements to MCP page.  Thanks @abidlabs!
+- [#11192](https://github.com/gradio-app/gradio/pull/11192) [`a03736f`](https://github.com/gradio-app/gradio/commit/a03736f97c642b338aa701166d3a0b299a46d27a) - Add undo and redo to the `ImageEditor` component.  Thanks @pngwn!
+
+### Fixes
+
+- [#11117](https://github.com/gradio-app/gradio/pull/11117) [`9b976b7`](https://github.com/gradio-app/gradio/commit/9b976b750a61368f369bcefaacda6d4fb0975c5f) - Raise UI error if video not playable in the browser.  Thanks @freddyaboulton!
+- [#11202](https://github.com/gradio-app/gradio/pull/11202) [`53688a2`](https://github.com/gradio-app/gradio/commit/53688a257cad85cf9df2c7a371bf80df20d51b17) - Fix Deep Link Issue.  Thanks @freddyaboulton!
+
 ## 5.29.1
 
 ### Features

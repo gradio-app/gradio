@@ -1,5 +1,22 @@
 # @gradio/core
 
+## 0.17.0
+
+### Features
+
+- [#11155](https://github.com/gradio-app/gradio/pull/11155) [`30a1d9e`](https://github.com/gradio-app/gradio/commit/30a1d9e2ac3013d9c844b236410010bce97ffaf5) - Improvements to MCP page.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/upload@0.16.5
+- @gradio/code@0.14.4
+- @gradio/client@1.15.0
+- @gradio/image@0.22.6
+- @gradio/gallery@0.15.19
+- @gradio/video@0.14.14
+- @gradio/file@0.12.18
+- @gradio/button@0.4.19
+
 ## 0.16.1
 
 ### Dependency updates
