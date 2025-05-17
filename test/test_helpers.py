@@ -569,6 +569,7 @@ class TestProcessExamples:
                 "autoscroll": True,
                 "elem_classes": [],
                 "rtl": False,
+                "preserved_by_key": ["value"],
                 "show_copy_button": False,
                 "__type__": "update",
                 "visible": True,
