@@ -550,6 +550,7 @@ class TestProcessExamples:
                 "show_copy_button": False,
                 "__type__": "update",
                 "visible": True,
+                "preserved_by_key": ["value"],
                 "value": "Hello,",
                 "type": "text",
                 "stop_btn": False,
