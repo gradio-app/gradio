@@ -18,6 +18,7 @@ class TestHTML:
             "name": "html",
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "min_height": None,
             "max_height": None,
             "container": False,
