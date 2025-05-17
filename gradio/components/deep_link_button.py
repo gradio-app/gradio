@@ -44,7 +44,8 @@ class DeepLinkButton(Button):
         elem_id: str | None = None,  # noqa: ARG002
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         scale: int | None = None,
         min_width: int | None = None,
         every: Timer | float | None = None,
@@ -68,6 +69,7 @@ class DeepLinkButton(Button):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             scale=scale,
             min_width=min_width,
             every=every,

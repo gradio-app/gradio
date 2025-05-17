@@ -42,6 +42,20 @@ Just as with Components, whenever a function re-renders, the event listeners cre
 
 This allows us to create highly customizable and complex interactions! 
 
+## Closer Look at `keys=` parameter
+
+The `key=` argument is used to let Gradio know that the same component is being generated when your render function re-runs. This does two things:
+
+1. The same element in the browser is re-used from the previous render for this Component. This gives browser performance gains - as there's no need to destroy and rebuild a component on a render - and preserves any browser attributes that the Component may have had. If your Component is nested within layout items like `gr.Row`, make sure they are keyed as well because the keys of the parents must also match.
+2. Properties that may be changed by the user or by other event listeners are preserved. By default, only the "value" of Component is preserved, but you can specify any list of properties to preserve using the `preserved_by_key=` kwarg.
+
+See the example below:
+
+$code_render_preserve_key
+$demo_render_preserve_key
+
+You'll see in this example, when you change the `number_of_boxes` slider, there's a new re-render to update the number of box rows. If you click the "Change Label" buttons, they change the `label` and `info` properties of the corresponding textbox. You can also enter text in any textbox to change its value. If you change number of boxes after this, the re-renders "reset" the `info`, but the `label` and any entered `value` is still preserved.
+
 ## Putting it Together
 
 Let's look at two examples that use all the features above. First, try out the to-do list app below: 

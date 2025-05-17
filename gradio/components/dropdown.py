@@ -73,7 +73,8 @@ class Dropdown(FormComponent):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
     ):
         """
         Parameters:
@@ -150,6 +151,7 @@ class Dropdown(FormComponent):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             value=value,
         )
         self._value_description = f"one{' or more' if multiselect else ''} of {[c[1] if isinstance(c, tuple) else c for c in self.choices]}"

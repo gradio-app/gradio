@@ -40,7 +40,8 @@ class ParamViewer(Component):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         header: str | None = "Parameters",
         anchor_links: bool | str = False,
     ):
@@ -52,7 +53,8 @@ class ParamViewer(Component):
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
+            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
+            preserved_by_key: in a gr.render, Components with the same key across re-renders will have these properties preserved across the re-render.
             header: The header to display above the table of parameters, also includes a toggle button that closes/opens all details at once. If None, no header will be displayed.
             anchor_links: If True, creates anchor links for each parameter that can be used to link directly to that parameter. If a string, creates anchor links with the given string as the prefix to prevent conflicts with other ParamViewer components.
         """
@@ -67,6 +69,7 @@ class ParamViewer(Component):
             value=value,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
         )
 
     def preprocess(self, payload: dict[str, Parameter]) -> dict[str, Parameter]:
