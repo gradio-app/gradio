@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:for Interface, have DeepLink invisible by default and then have it appear after first submission
+fix:for Interface, have DeepLink disabled by default and then enable it after first submission
