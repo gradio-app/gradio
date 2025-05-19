@@ -198,6 +198,7 @@ export interface Config {
 	fill_height?: boolean;
 	fill_width?: boolean;
 	pwa?: boolean;
+	i18n_translations?: Record<string, Record<string, string>> | null;
 	mcp_server?: boolean;
 }
 

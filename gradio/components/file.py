@@ -16,6 +16,7 @@ from gradio.components.base import Component
 from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
 from gradio.exceptions import Error
+from gradio.i18n import I18nData
 from gradio.utils import NamedString
 
 if TYPE_CHECKING:
@@ -46,7 +47,7 @@ class File(Component):
         file_count: Literal["single", "multiple", "directory"] = "single",
         file_types: list[str] | None = None,
         type: Literal["filepath", "binary"] = "filepath",
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,

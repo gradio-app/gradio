@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Gradio, formatter } from "./gradio_helper";
+	import { Gradio, reactive_formatter } from "./gradio_helper";
 	import { onMount, createEventDispatcher, setContext } from "svelte";
 	import type { ComponentMeta, ThemeMode } from "./types";
 	import type { Client } from "@gradio/client";
@@ -70,7 +70,7 @@
 		root,
 		autoscroll,
 		max_file_size,
-		formatter,
+		$reactive_formatter,
 		client,
 		load_component
 	);

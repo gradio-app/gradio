@@ -31,6 +31,7 @@ from gradio.data_classes import InterfaceTypes
 from gradio.events import Dependency, Events, on
 from gradio.exceptions import RenderError
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
+from gradio.i18n import I18nData
 from gradio.layouts import Accordion, Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_js_pipeline, load_from_pipeline
 from gradio.themes import ThemeClass as Theme
@@ -108,7 +109,7 @@ class Interface(Blocks):
         examples_per_page: int = 10,
         example_labels: list[str] | None = None,
         live: bool = False,
-        title: str | None = None,
+        title: str | I18nData | None = None,
         description: str | None = None,
         article: str | None = None,
         theme: Theme | str | None = None,
@@ -459,6 +460,7 @@ class Interface(Blocks):
         self.local_url = None
 
         self.favicon_path = None
+        self.i18n_instance = None
         Interface.instances.add(self)
 
         param_types = utils.get_type_hints(self.fn)

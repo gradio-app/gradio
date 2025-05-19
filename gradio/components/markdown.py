@@ -10,6 +10,7 @@ from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.events import Events
+from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -32,9 +33,9 @@ class Markdown(Component):
 
     def __init__(
         self,
-        value: str | Callable | None = None,
+        value: str | I18nData | Callable | None = None,
         *,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
@@ -115,15 +116,21 @@ class Markdown(Component):
         """
         return payload
 
-    def postprocess(self, value: str | None) -> str | None:
+    def postprocess(self, value: str | I18nData | None) -> str | dict | None:
         """
         Parameters:
             value: Expects a valid `str` that can be rendered as Markdown.
         Returns:
             The same `str` as the input, but with leading and trailing whitespace removed.
+            If an I18nData object is provided, returns it serialized for the frontend to translate.
         """
         if value is None:
             return None
+
+        if isinstance(value, I18nData):
+            # preserve the I18nData object for frontend translation
+            return str(value)
+
         unindented_y = inspect.cleandoc(value)
         return unindented_y
 

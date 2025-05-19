@@ -1,28 +1,16 @@
-import { format, _ } from "svelte-i18n";
-import { get } from "svelte/store";
 import { all_common_keys } from "./i18n";
-
+import { _ } from "svelte-i18n";
+import { get, derived } from "svelte/store";
 export { Gradio } from "@gradio/utils";
+
 export type I18nFormatter = typeof formatter;
 
-/**
- * i18n formatter with fallback to svelte-i18n's format function.
- *
- * @param value - The string to translate or format
- * @returns The translated string
- *
- * This formatter attempts translation in the following order:
- * 1. Direct translation of the input string
- * 2. Checks if input matches any common key names
- * 3. Falls back to svelte-i18n's format function
- */
 export function formatter(value: string | null | undefined): string {
 	if (value == null) {
 		return "";
 	}
 	const string_value = String(value);
 	const translate = get(_);
-	const initial_formatter = get(format);
 
 	let direct_translation = translate(string_value);
 
@@ -45,11 +33,7 @@ export function formatter(value: string | null | undefined): string {
 		}
 	}
 
-	// fall back to the svelte-i18n formatter to maintain compatibility
-	const formatted = initial_formatter(string_value);
-	if (formatted !== string_value) {
-		return formatted;
-	}
-
 	return string_value;
 }
+
+export const reactive_formatter = derived(_, () => formatter);

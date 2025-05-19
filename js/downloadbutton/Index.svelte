@@ -37,5 +37,5 @@
 	disabled={!interactive}
 	on:click={() => gradio.dispatch("click")}
 >
-	{label ? gradio.i18n(label) : ""}
+	{label ?? ""}
 </DownloadButton>

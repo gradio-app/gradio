@@ -30,6 +30,7 @@ from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
 from gradio.exceptions import Error
+from gradio.i18n import I18nData
 
 
 @document()
@@ -202,7 +203,7 @@ class Chatbot(Component):
         value: (list[MessageDict | Message] | TupleFormat | Callable | None) = None,
         *,
         type: Literal["messages", "tuples"] | None = None,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
