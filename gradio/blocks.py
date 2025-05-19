@@ -2288,7 +2288,7 @@ Received inputs:
             "page": {},
             "mcp_server": self.mcp_server,
             "i18n_translations": self.i18n_instance.translations_dict
-            if hasattr(self, "i18n_instance") and self.i18n_instance is not None
+            if getattr(self, "i18n_instance", None)
             else None,
         }
         config.update(self.default_config.get_config())  # type: ignore
