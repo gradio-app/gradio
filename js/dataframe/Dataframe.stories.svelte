@@ -364,7 +364,7 @@
 		await userEvent.click(copy_button);
 
 		const fullscreen_button = canvas.getByRole("button", {
-			name: "Enter fullscreen"
+			name: "Fullscreen"
 		});
 		await userEvent.click(fullscreen_button);
 

@@ -150,7 +150,7 @@
 		const image = canvas.getByLabelText("Thumbnail 1 of 8");
 		await userEvent.click(image);
 		const expand_btn = canvas.getByRole("button", {
-			name: "View in full screen"
+			name: "Fullscreen"
 		});
 		await userEvent.click(expand_btn);
 	}}

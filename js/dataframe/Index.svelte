@@ -58,6 +58,7 @@
 	export let show_search: "none" | "search" | "filter" = "none";
 	export let pinned_columns = 0;
 	export let static_columns: (string | number)[] = [];
+	export let fullscreen = false;
 
 	$: _headers = [...(value.headers || headers)];
 	$: display_value = value?.metadata?.display_value
@@ -78,6 +79,7 @@
 	{scale}
 	{min_width}
 	overflow_behavior="visible"
+	bind:fullscreen
 >
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
@@ -95,6 +97,7 @@
 		{display_value}
 		{styling}
 		headers={_headers}
+		{fullscreen}
 		on:change={(e) => {
 			value.data = e.detail.data;
 			value.headers = e.detail.headers;
@@ -102,6 +105,9 @@
 		}}
 		on:input={(e) => gradio.dispatch("input")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
+		on:fullscreen={({ detail }) => {
+			fullscreen = detail;
+		}}
 		{wrap}
 		{datatype}
 		{latex_delimiters}
