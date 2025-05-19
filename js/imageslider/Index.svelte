@@ -33,6 +33,7 @@
 	export let interactive: boolean;
 	export let placeholder: string | undefined = undefined;
 	export let show_fullscreen_button: boolean;
+	let fullscreen = false;
 	export let input_ready: boolean;
 	export let slider_position: number;
 	export let upload_count = 1;
@@ -117,6 +118,7 @@
 		{container}
 		{scale}
 		{min_width}
+		bind:fullscreen
 	>
 		<StatusTracker
 			autoscroll={gradio.autoscroll}
@@ -128,6 +130,10 @@
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => gradio.dispatch("error", detail)}
 			on:clear={() => gradio.dispatch("clear")}
+			on:fullscreen={({ detail }) => {
+				fullscreen = detail;
+			}}
+			{fullscreen}
 			{interactive}
 			bind:value
 			{label}

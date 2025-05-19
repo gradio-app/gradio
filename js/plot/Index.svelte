@@ -86,7 +86,6 @@
 		{show_label}
 		{_selectable}
 		{x_lim}
-		{fullscreen}
 		on:change={() => gradio.dispatch("change")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 	/>

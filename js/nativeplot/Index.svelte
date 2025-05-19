@@ -553,9 +553,8 @@
 			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 	{/if}
-	<BlockTitle {root} {show_label} info={undefined}>{label}</BlockTitle>
 	{#if show_fullscreen_button}
-		<IconButtonWrapper display_top_corner={true}>
+		<IconButtonWrapper>
 			<FullscreenButton
 				{fullscreen}
 				on:fullscreen={({ detail }) => {
@@ -564,6 +563,7 @@
 			/>
 		</IconButtonWrapper>
 	{/if}
+	<BlockTitle {root} {show_label} info={undefined}>{label}</BlockTitle>
 
 	{#if value && is_browser}
 		<div bind:this={chart_element}></div>
