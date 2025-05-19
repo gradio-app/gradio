@@ -3,7 +3,10 @@ Related spaces:
 
 # Internationalization (i18n)
 
-Gradio provides custom internationalization (i18n) support through the `I18n` class. This feature enables the translation of your application's text based on the user's browser locale and extends Gradio's built-in translation system with your custom translations.
+Gradio comes with ready-to-use internationalization (i18n) support:
+
+- Built-in translations: Gradio automatically translates standard UI elements (like "Submit", "Clear", "Cancel") in more than 40 languages based on the user's browser locale.
+- Custom translations: For app-specific text, Gradio provides the I18n class that lets you extend the built-in system with your own translations.
 
 ## Setting Up Translations
 
@@ -19,8 +22,8 @@ i18n = gr.I18n(
     fr={"greeting": "Bonjour, bienvenue dans mon application!", "submit": "Soumettre"}
 )
 
-# Create interface with translatable texts
 with gr.Blocks() as demo:
+    # Use the i18n method to translate the greeting
     gr.Markdown(i18n("greeting"))
     with gr.Row():
         input_text = gr.Textbox(label="Input")
@@ -34,9 +37,7 @@ demo.launch(i18n=i18n)
 
 ## How It Works
 
-When you call the `i18n` instance with a translation key, it returns an `I18nData` object containing the key. This object is serialized and sent to the frontend, where the actual translation happens based on the user's browser locale or the Gradio app setting.
-
-Gradio already includes built-in translations for components in multiple languages. The `I18n` class allows you to extend this system with your own custom translations.
+When you use the `i18n` instance with a translation key, Gradio will show the corresponding translation to users based on their browser's language settings or the language they've selected in your app.
 
 If a translation isn't available for the user's locale, the system will fall back to English (if available) or display the key itself.
 
@@ -55,4 +56,4 @@ The following component properties typically support internationalization:
 - `value`
 - `label`
 
-Note that support may vary depending on the component, and some properties might have exceptions where internationalization is not applicable.
+Note that support may vary depending on the component, and some properties might have exceptions where internationalization is not applicable. You can check this by referring to the typehint for the parameter and if it contains `I18nData`, then it supports internationalization.
