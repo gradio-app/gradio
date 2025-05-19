@@ -3,6 +3,11 @@ import os
 import shutil
 import tempfile
 import traceback
+from pathlib import Path
+
+DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
+    Path(tempfile.gettempdir()) / "gradio"
+)
 
 
 async def process_video_with_ffmpeg(input_path, output_path, params):
@@ -17,9 +22,15 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
             end = float(params["remove_segment_end"])
 
             if start < end:
-                segment_output = tempfile.mktemp(suffix="_trimmed.mp4")
-                before_segment = tempfile.mktemp(suffix="_before.mp4")
-                after_segment = tempfile.mktemp(suffix="_after.mp4")
+                segment_output = tempfile.mkstemp(
+                    suffix="_trimmed.mp4", dir=DEFAULT_TEMP_DIR
+                )[1]
+                before_segment = tempfile.mkstemp(
+                    suffix="_before.mp4", dir=DEFAULT_TEMP_DIR
+                )[1]
+                after_segment = tempfile.mkstemp(
+                    suffix="_after.mp4", dir=DEFAULT_TEMP_DIR
+                )[1]
 
                 temp_files.extend([segment_output, before_segment, after_segment])
 
@@ -50,7 +61,9 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                 )
                 stdout, stderr = await process.communicate()
 
-                concat_file = tempfile.mktemp(suffix="_concat.txt")
+                concat_file = tempfile.mkstemp(
+                    suffix="_concat.txt", dir=DEFAULT_TEMP_DIR
+                )[1]
                 temp_files.append(concat_file)
 
                 with open(concat_file, "w") as f:
@@ -100,7 +113,9 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                     start_frame = effect.get("start_frame")
                     duration = effect.get("duration", 2.0)
 
-                    zoom_output = tempfile.mktemp(suffix=f"_zoom_{i}.mp4")
+                    zoom_output = tempfile.mkstemp(
+                        suffix=f"_zoom_{i}.mp4", dir=DEFAULT_TEMP_DIR
+                    )[1]
                     temp_files.append(zoom_output)
 
                     zoom_output, zoom_temp_files = await zoom_in(
@@ -130,7 +145,9 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
             shutil.copy(current_input, output_path)
 
         current_input = output_path
-        final_trimmed_output = tempfile.mktemp(suffix="_final_trimmed.mp4")
+        final_trimmed_output = tempfile.mkstemp(
+            suffix="_final_trimmed.mp4", dir=DEFAULT_TEMP_DIR
+        )[1]
         temp_files.append(final_trimmed_output)
 
         ff = FFmpeg(
@@ -251,7 +268,7 @@ async def zoom_in(
 
         fps = 30.0
         zoom_duration = min(float(zoom_duration), video_duration)
-        zoom_output = tempfile.mktemp(suffix="_zoomed.mp4")
+        zoom_output = tempfile.mkstemp(suffix="_zoomed.mp4", dir=DEFAULT_TEMP_DIR)[1]
         temp_files.append(zoom_output)
         zoom_in_frames = int(fps / 2)
         zoom_out_frames = int(fps / 2)

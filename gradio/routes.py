@@ -1823,7 +1823,9 @@ class App(FastAPI):
                 except json.JSONDecodeError:
                     params["zoom_effects"] = []
 
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4", dir=DEFAULT_TEMP_DIR) as input_file:
+            with tempfile.NamedTemporaryFile(
+                delete=False, suffix=".mp4", dir=DEFAULT_TEMP_DIR
+            ) as input_file:
                 video_file.file.seek(0)
                 shutil.copyfileobj(video_file.file, input_file)
                 input_path = input_file.name
@@ -1836,9 +1838,9 @@ class App(FastAPI):
                     background=BackgroundTask(lambda: cleanup_files([input_path])),
                 )
 
-            output_file = tempfile.NamedTemporaryFile(suffix="_processed.mp4", dir=DEFAULT_TEMP_DIR, delete=False)
-            output_path = output_file.name
-            output_file.close()
+            output_path = tempfile.mkstemp(
+                suffix="_processed.mp4", dir=DEFAULT_TEMP_DIR
+            )[1]
 
             try:
                 processed_path, temp_files = await process_video_with_ffmpeg(
