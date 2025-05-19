@@ -27,6 +27,7 @@
 	export let show_single = false;
 	export let slider_color: string;
 	export let show_fullscreen_button = true;
+	export let fullscreen = false;
 	export let el_width = 0;
 	export let max_height: number;
 	export let interactive = true;
@@ -117,7 +118,6 @@
 		};
 	});
 
-	let is_full_screen = false;
 	let slider_wrap_parent: HTMLDivElement;
 
 	let image_size: { top: number; left: number; width: number; height: number } =
@@ -141,7 +141,7 @@
 				on:click={() => zoomable_image?.reset_zoom()}
 			/>
 			{#if show_fullscreen_button}
-				<FullscreenButton container={image_container} bind:is_full_screen />
+				<FullscreenButton {fullscreen} on:fullscreen />
 			{/if}
 
 			{#if show_download_button}
@@ -168,7 +168,7 @@
 			class="slider-wrap"
 			bind:this={slider_wrap_parent}
 			bind:clientWidth={el_width}
-			class:limit_height={!is_full_screen}
+			class:limit_height={!fullscreen}
 		>
 			<Slider
 				bind:position
@@ -184,7 +184,7 @@
 					bind:img_el={img}
 					variant="preview"
 					transform="translate({$transform.x}px, {$transform.y}px) scale({$transform.z})"
-					fullscreen={is_full_screen}
+					{fullscreen}
 					{max_height}
 					on:load={handle_image_load}
 				/>
@@ -197,7 +197,7 @@
 					loading="lazy"
 					{style}
 					transform="translate({$transform.x}px, {$transform.y}px) scale({$transform.z})"
-					fullscreen={is_full_screen}
+					{fullscreen}
 					{max_height}
 					on:load={handle_image_load}
 				/>
