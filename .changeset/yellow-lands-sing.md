@@ -1,6 +1,5 @@
 ---
-"@gradio/core": minor
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Have DeepLink invisible by default and then have it appear after first submission
+fix:for Interface, have DeepLink invisible by default and then have it appear after first submission
