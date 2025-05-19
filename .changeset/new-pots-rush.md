@@ -1,6 +1,6 @@
 ---
-"gradio": minor
-"gradio_client": minor
+"gradio": patch
+"gradio_client": patch
 ---
 
-feat:Allow httpx_kwargs to contain cookies
+fix:Allow httpx_kwargs to contain cookies
