@@ -54,7 +54,7 @@ class ParamViewer(Component):
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
-            preserved_by_key: in a gr.render, Components with the same key across re-renders will have these properties preserved across the re-render.
+            preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             header: The header to display above the table of parameters, also includes a toggle button that closes/opens all details at once. If None, no header will be displayed.
             anchor_links: If True, creates anchor links for each parameter that can be used to link directly to that parameter. If a string, creates anchor links with the given string as the prefix to prevent conflicts with other ParamViewer components.
         """

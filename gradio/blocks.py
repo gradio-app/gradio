@@ -162,6 +162,12 @@ class Block:
             if isinstance(preserved_by_key, str)
             else (preserved_by_key or [])
         )
+        for key_to_preserve in self.preserved_by_key:
+            if key_to_preserve not in self.__class__.__init__.__code__.co_varnames:
+                raise ValueError(
+                    f"Key {key_to_preserve} in 'preserved_by_key' list is not a valid argument for {self.__class__.__name__}"
+                )
+
         # Keep tracks of files that should not be deleted when the delete_cache parmameter is set
         # These files are the default value of the component and files that are used in examples
         self.keep_in_cache = set()
