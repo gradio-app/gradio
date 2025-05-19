@@ -35,6 +35,7 @@ class TestSlider:
             "info": None,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
         }
 
     def test_in_interface(self):

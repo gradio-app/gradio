@@ -67,6 +67,7 @@ class TestVideo:
             "max_length": None,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "loop": False,
             "streaming": False,
             "watermark": None,
