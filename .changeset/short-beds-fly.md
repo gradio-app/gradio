@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Add xethub bridge to host whitelist
+fix:Add xethub bridge to host whitelist
