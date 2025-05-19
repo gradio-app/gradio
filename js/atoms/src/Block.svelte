@@ -31,7 +31,7 @@
 	let placeholder_width = 0;
 	let preexpansionBoundingRect: DOMRect | null = null;
 
-	function handleKeydown(event: KeyboardEvent) {
+	function handleKeydown(event: KeyboardEvent): void {
 		if (fullscreen && event.key === "Escape") {
 			fullscreen = false;
 		}
