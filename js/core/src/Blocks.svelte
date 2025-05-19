@@ -208,7 +208,6 @@
 	let _error_id = -1;
 
 	let user_left_page = false;
-	let first_prediction_complete = false;
 
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
@@ -563,24 +562,6 @@
 						modify_stream(id, "closed");
 					});
 					submit_map.delete(dep_index);
-					if (!first_prediction_complete) {
-						// Find the id that has the enable event
-						const enableId = Object.entries($targets).find(
-							([_, events]) => "deep_link_button_enable" in events
-						)?.[0];
-						if (enableId) {
-							target.dispatchEvent(
-								new CustomEvent("gradio", {
-									detail: {
-										id: parseInt(enableId),
-										event: "deep_link_button_enable",
-										data: null
-									}
-								})
-							);
-						}
-						first_prediction_complete = true;
-					}
 				}
 				if (status.broken && is_mobile_device && user_left_page) {
 					window.setTimeout(() => {
