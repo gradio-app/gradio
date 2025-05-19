@@ -40,6 +40,7 @@ class Renderable:
         self.inputs = inputs
         self.triggers: list[EventListenerMethod] = []
         self.page = Context.root_block.current_page
+        self.key_to_id_map: dict[int | str | tuple[int | str], int] = {}
 
         self.triggers = [EventListenerMethod(*t) for t in triggers]
         Context.root_block.default_config.set_event_trigger(
@@ -73,6 +74,7 @@ class Renderable:
         container_copy._id = self.container_id
         container_copy.page = self.page
         LocalContext.renderable.set(self)
+        LocalContext.key_to_id_map.set(self.key_to_id_map)
 
         try:
             with container_copy:
@@ -81,6 +83,7 @@ class Renderable:
                 blocks_config.attach_load_events(self)
         finally:
             LocalContext.renderable.set(None)
+            LocalContext.key_to_id_map.set(None)
 
 
 @document()

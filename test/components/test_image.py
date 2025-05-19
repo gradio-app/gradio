@@ -54,6 +54,7 @@ class TestImage:
             "webcam_options": {"constraints": None, "mirror": True},
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "streamable": False,
             "type": "pil",
             "placeholder": None,

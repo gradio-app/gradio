@@ -55,6 +55,7 @@ class TestCheckboxGroup:
             "proxy_url": None,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "type": "value",
             "info": None,
         }
