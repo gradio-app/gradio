@@ -127,12 +127,21 @@ class Block:
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         visible: bool = True,
         proxy_url: str | None = None,
     ):
-        self._id = Context.id
-        Context.id += 1
+        key_to_id_map = LocalContext.key_to_id_map.get()
+        if key is not None and key_to_id_map and key in key_to_id_map:
+            self.is_render_replacement = True
+            self._id = key_to_id_map[key]
+        else:
+            self.is_render_replacement = False
+            self._id = Context.id
+            Context.id += 1
+            if key is not None and key_to_id_map is not None:
+                key_to_id_map[key] = self._id
         self.visible = visible
         self.elem_id = elem_id
         self.elem_classes = (
@@ -149,6 +158,12 @@ class Block:
         self.temp_files: set[str] = set()
         self.GRADIO_CACHE = get_upload_folder()
         self.key = key
+        self.preserved_by_key = (
+            [preserved_by_key]
+            if isinstance(preserved_by_key, str)
+            else (preserved_by_key or [])
+        )
+
         # Keep tracks of files that should not be deleted when the delete_cache parmameter is set
         # These files are the default value of the component and files that are used in examples
         self.keep_in_cache = set()
@@ -156,6 +171,11 @@ class Block:
 
         if render:
             self.render()
+
+    def unique_key(self) -> int | None:
+        if self.key is None:
+            return None
+        return hash((self.rendered_in._id if self.rendered_in else None, self.key))
 
     @property
     def stateful(self) -> bool:
@@ -188,7 +208,11 @@ class Block:
         root_context = get_blocks_context()
         render_context = get_render_context()
         self.rendered_in = LocalContext.renderable.get()
-        if root_context is not None and self._id in root_context.blocks:
+        if (
+            root_context is not None
+            and self._id in root_context.blocks
+            and not self.is_render_replacement
+        ):
             raise DuplicateBlockError(
                 f"A block with id: {self._id} has already been rendered in the current Blocks."
             )
@@ -267,8 +291,6 @@ class Block:
                 config = {**to_add, **config}
         config.pop("render", None)
         config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_class()}
-        if self.rendered_in is not None:
-            config["rendered_in"] = self.rendered_in._id
         for event_attribute in ["_selectable", "_undoable", "_retryable", "likeable"]:
             if (attributable := getattr(self, event_attribute, None)) is not None:
                 config[event_attribute] = attributable
@@ -405,6 +427,8 @@ class BlockContext(Block):
         elem_classes: list[str] | str | None = None,
         visible: bool = True,
         render: bool = True,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = None,
     ):
         """
         Parameters:
@@ -420,6 +444,8 @@ class BlockContext(Block):
             elem_classes=elem_classes,
             visible=visible,
             render=render,
+            key=key,
+            preserved_by_key=preserved_by_key,
         )
 
     TEMPLATE_DIR = DeveloperPath("./templates/")
@@ -917,11 +943,8 @@ class BlocksConfig:
         block: Block | Component,
         renderable: Renderable | None = None,
     ) -> dict:
-        if renderable:
-            if _id not in rendered_ids:
-                return {}
-            if block.key:
-                block.key = f"{renderable._id}-{block.key}"
+        if renderable and _id not in rendered_ids:
+            return {}
         props = block.get_config() if hasattr(block, "get_config") else {}
         block_config = {
             "id": _id,
@@ -929,10 +952,12 @@ class BlocksConfig:
             "props": utils.delete_none(props),
             "skip_api": block.skip_api,
             "component_class_id": getattr(block, "component_class_id", None),
-            "key": block.key,
+            "key": block.unique_key(),
         }
         if renderable:
             block_config["renderable"] = renderable._id
+        if block.rendered_in is not None:
+            block_config["rendered_in"] = block.rendered_in._id
         if not block.skip_api:
             block_config["api_info"] = block.api_info()  # type: ignore
             if hasattr(block, "api_info_as_input"):

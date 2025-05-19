@@ -50,6 +50,7 @@
 		preview_close: never;
 	}>;
 	export let show_fullscreen_button = true;
+	export let fullscreen = false;
 
 	const dispatch = createEventDispatcher();
 
@@ -92,6 +93,7 @@
 	{min_width}
 	allow_overflow={false}
 	height={typeof height === "number" ? height : undefined}
+	bind:fullscreen
 >
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
@@ -132,6 +134,9 @@
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			on:preview_open={() => gradio.dispatch("preview_open")}
 			on:preview_close={() => gradio.dispatch("preview_close")}
+			on:fullscreen={({ detail }) => {
+				fullscreen = detail;
+			}}
 			{label}
 			{show_label}
 			{columns}
@@ -148,6 +153,7 @@
 			i18n={gradio.i18n}
 			_fetch={(...args) => gradio.client.fetch(...args)}
 			{show_fullscreen_button}
+			{fullscreen}
 		/>
 	{/if}
 </Block>

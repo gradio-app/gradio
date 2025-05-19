@@ -156,7 +156,8 @@ class Component(ComponentBase, Block):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         load_fn: Callable | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
@@ -186,6 +187,7 @@ class Component(ComponentBase, Block):
             visible=visible,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
         )
         if isinstance(self, StreamingInput):
             self.check_streamable()

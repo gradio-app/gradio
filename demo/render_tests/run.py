@@ -56,6 +56,15 @@ with gr.Blocks() as demo:
         a = gr.Textbox(label="little textbox")
         gr.Examples([["abc"], ["def"]], [a])
 
+    choices_count = gr.Slider(1, 10, 3, step=1, label="Choices")
+    @gr.render(choices_count)
+    def show_choices(count):
+        with gr.Row():
+            letter_choices = gr.Radio(list('abcdefghij')[:int(count)], label="Choices", key="choices", preserved_by_key=["value", "label"], interactive=True)
+            textbox = gr.Textbox(label="Set Label", value="Choices")
+
+            textbox.change(lambda l: gr.Radio(label=l), textbox, letter_choices)
+
 
 if __name__ == '__main__':
     demo.launch()
