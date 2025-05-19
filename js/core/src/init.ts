@@ -70,7 +70,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 	const layout_store: Writable<ComponentMeta> = writable(initial_layout);
 	let _components: ComponentMeta[] = [];
 	let app: client_return;
-	let keyed_component_values: Record<string | number, any> = {};
+	let keys_per_render_id: Record<number, (string | number)[]> = {};
 	let _rootNode: ComponentMeta;
 
 	function set_event_specific_args(dependencies: Dependency[]): void {
@@ -106,7 +106,6 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		// make sure the state is settled before proceeding
 		flush();
 		app = _app;
-		store_keyed_values(_components);
 
 		_components = components;
 		inputs = new Set();
@@ -180,7 +179,22 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		root: string;
 		dependencies: Dependency[];
 	}): void {
-		let _constructor_map = preload_all_components(components, root);
+		let replacement_components: ComponentMeta[] = [];
+		let new_components: ComponentMeta[] = [];
+		console.log("old_keys", keys_per_render_id[render_id]);
+		console.log(
+			"new_keys",
+			components.map((c) => c.key)
+		);
+		components.forEach((c) => {
+			if (c.key == null || !keys_per_render_id[render_id]?.includes(c.key)) {
+				new_components.push(c);
+			} else {
+				replacement_components.push(c);
+			}
+		});
+		console.log(new_components.length, replacement_components.length);
+		let _constructor_map = preload_all_components(new_components, root);
 		_constructor_map.forEach((v, k) => {
 			constructor_map.set(k, v);
 		});
@@ -212,19 +226,36 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			}
 		};
 		add_to_current_children(current_element);
-		store_keyed_values(all_current_children);
 
 		Object.entries(instance_map).forEach(([id, component]) => {
 			let _id = Number(id);
 			if (component.rendered_in === render_id) {
-				delete instance_map[_id];
-				if (_component_map.has(_id)) {
-					_component_map.delete(_id);
+				let replacement_component = replacement_components.find(
+					(c) => c.key === component.key
+				);
+				if (component.key != null && replacement_component !== undefined) {
+					const instance = instance_map[component.id];
+					for (const prop in replacement_component.props) {
+						if (
+							!(
+								replacement_component.props.preserved_by_key as
+									| string[]
+									| undefined
+							)?.includes(prop)
+						) {
+							instance.props[prop] = replacement_component.props[prop];
+						}
+					}
+				} else {
+					delete instance_map[_id];
+					if (_component_map.has(_id)) {
+						_component_map.delete(_id);
+					}
 				}
 			}
 		});
 
-		components.forEach((c) => {
+		new_components.forEach((c) => {
 			instance_map[c.id] = c;
 			_component_map.set(c.id, c);
 		});
@@ -241,6 +272,9 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			current_element.parent
 		).then(() => {
 			layout_store.set(_rootNode);
+			keys_per_render_id[render_id] = components
+				.map((c) => c.key)
+				.filter((c) => c != null) as (string | number)[];
 		});
 
 		set_event_specific_args(dependencies);
@@ -254,9 +288,11 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 	): Promise<ComponentMeta> {
 		const instance = instance_map[node.id];
 
-		instance.component = (await constructor_map.get(
-			instance.component_class_id || instance.type
-		))!?.default;
+		if (!instance.component) {
+			instance.component = (await constructor_map.get(
+				instance.component_class_id || instance.type
+			))!?.default;
+		}
 		instance.parent = parent;
 
 		if (instance.type === "dataset") {
@@ -286,13 +322,6 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			instance.props.server_fns,
 			app
 		);
-
-		if (
-			instance.key != null &&
-			keyed_component_values[instance.key] !== undefined
-		) {
-			instance.props.value = keyed_component_values[instance.key];
-		}
 
 		_component_map.set(instance.id, instance);
 
@@ -342,14 +371,6 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 
 	let update_scheduled = false;
 	let update_scheduled_store = writable(false);
-
-	function store_keyed_values(components: ComponentMeta[]): void {
-		components.forEach((c) => {
-			if (c.key != null) {
-				keyed_component_values[c.key] = c.props.value;
-			}
-		});
-	}
 
 	function flush(): void {
 		layout_store.update((layout) => {

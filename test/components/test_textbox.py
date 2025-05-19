@@ -38,6 +38,7 @@ class TestTextbox:
             "autofocus": False,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "info": None,
             "autoscroll": True,
             "max_length": None,
