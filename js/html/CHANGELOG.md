@@ -1,5 +1,12 @@
 # @gradio/html
 
+## 0.6.13
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.11
+- @gradio/atoms@0.16.1
+
 ## 0.6.12
 
 ### Fixes

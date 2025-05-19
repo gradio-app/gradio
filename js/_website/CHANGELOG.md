@@ -1,5 +1,13 @@
 # website
 
+## 0.56.2
+
+### Dependency updates
+
+- @gradio/code@0.14.4
+- @gradio/paramviewer@0.7.9
+- @gradio/statustracker@0.10.11
+
 ## 0.56.1
 
 ### Features
