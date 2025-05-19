@@ -1,5 +1,34 @@
 # @gradio/core
 
+## 0.17.0
+
+### Features
+
+- [#11155](https://github.com/gradio-app/gradio/pull/11155) [`30a1d9e`](https://github.com/gradio-app/gradio/commit/30a1d9e2ac3013d9c844b236410010bce97ffaf5) - Improvements to MCP page.  Thanks @abidlabs!
+- [#11047](https://github.com/gradio-app/gradio/pull/11047) [`6d4b8a7`](https://github.com/gradio-app/gradio/commit/6d4b8a7f10daefc9c79aa224635da23fbaeebb76) - Implement custom i18n.  Thanks @hannahblair!
+
+### Fixes
+
+- [#11206](https://github.com/gradio-app/gradio/pull/11206) [`c196ac2`](https://github.com/gradio-app/gradio/commit/c196ac25b7744e9dcfa788b1ac8edf6551eec1ff) - Render key fixes.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.14.4
+- @gradio/paramviewer@0.7.9
+- @gradio/statustracker@0.10.11
+- @gradio/atoms@0.16.1
+- @gradio/client@1.15.0
+- @gradio/upload@0.16.5
+- @gradio/button@0.5.0
+- @gradio/image@0.22.6
+- @gradio/video@0.14.14
+- @gradio/file@0.12.18
+- @gradio/column@0.2.0
+- @gradio/gallery@0.15.19
+- @gradio/plot@0.9.16
+- @gradio/textbox@0.10.11
+- @gradio/checkbox@0.4.21
+
 ## 0.16.1
 
 ### Dependency updates

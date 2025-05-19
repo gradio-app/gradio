@@ -1,5 +1,11 @@
 # @gradio/atoms
 
+## 0.16.1
+
+### Features
+
+- [#11177](https://github.com/gradio-app/gradio/pull/11177) [`3068196`](https://github.com/gradio-app/gradio/commit/3068196d47234fd1c1634f33b9ddfc089f5cbbe0) - Improved, smoother fullscreen mode for components.  Thanks @aliabid94!
+
 ## 0.16.0
 
 ### Features

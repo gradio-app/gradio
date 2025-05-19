@@ -4,6 +4,12 @@
 
 ### Dependency updates
 
+- @gradio/column@0.2.0
+
+## 0.4.4
+
+### Dependency updates
+
 - @gradio/tabs@0.4.4
 
 ## 0.4.3
