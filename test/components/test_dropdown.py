@@ -82,6 +82,7 @@ class TestDropdown:
             "max_choices": 2,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "type": "value",
             "info": None,
         }

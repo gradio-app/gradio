@@ -291,7 +291,11 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
 # to an internal IP address. This is because Hugging Face uses DNS splitting,
 # which means that requests from HF Spaces to HF Datasets or HF Models
 # may resolve to internal IP addresses even if they are publicly accessible.
-PUBLIC_HOSTNAME_WHITELIST = ["hf.co", "huggingface.co"]
+PUBLIC_HOSTNAME_WHITELIST = [
+    "hf.co",
+    "huggingface.co",
+    "cas-bridge-direct.xethub.hf.co",
+]
 
 
 def is_public_ip(ip: str) -> bool:
