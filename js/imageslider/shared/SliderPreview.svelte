@@ -141,11 +141,7 @@
 				on:click={() => zoomable_image?.reset_zoom()}
 			/>
 			{#if show_fullscreen_button}
-				<FullscreenButton
-					container={image_container}
-					bind:fullscreen
-					on:fullscreen
-				/>
+				<FullscreenButton {fullscreen} on:fullscreen />
 			{/if}
 
 			{#if show_download_button}
