@@ -943,6 +943,13 @@ class Interface(Blocks):
                 batch=self.batch,
                 example_labels=self.example_labels,
             )
+            if self.deep_link and self.examples_handler.cache_event:
+                self.examples_handler.cache_event.then(
+                    lambda: DeepLinkButton(interactive=True),
+                    inputs=None,
+                    outputs=[self.deep_link],
+                    js=True,
+                )
 
     def __str__(self):
         return self.__repr__()
