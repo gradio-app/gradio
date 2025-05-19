@@ -2657,8 +2657,6 @@ Received inputs:
                 if not quiet:
                     print(f"Error launching MCP server: {e}")
 
-        if not hasattr(self, "i18n_instance") or self.i18n_instance is None:
-            self.i18n_instance = i18n
 
         self.config = self.get_config_file()
 

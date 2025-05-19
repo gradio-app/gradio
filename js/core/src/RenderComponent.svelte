@@ -3,7 +3,7 @@
 <script lang="ts">
 	import type { ComponentMeta, ThemeMode } from "./types";
 	import type { SvelteComponent, ComponentType } from "svelte";
-	import { translate_if_needed } from "././i18n";
+	import { translate_if_needed } from "./i18n";
 	// @ts-ignore
 	import { bind, binding_callbacks } from "svelte/internal";
 
