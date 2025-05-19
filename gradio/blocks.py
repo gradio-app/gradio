@@ -2287,9 +2287,11 @@ Received inputs:
             "pages": self.pages,
             "page": {},
             "mcp_server": self.mcp_server,
-            "i18n_translations": self.i18n_instance.translations_dict
-            if getattr(self, "i18n_instance", None)
-            else None,
+            "i18n_translations": (
+                getattr(self.i18n_instance, "translations_dict", None)
+                if getattr(self, "i18n_instance", None) is not None
+                else None
+            ),
         }
         config.update(self.default_config.get_config())  # type: ignore
         config["connect_heartbeat"] = utils.connect_heartbeat(
@@ -2656,7 +2658,6 @@ Received inputs:
                 self.mcp_server = False
                 if not quiet:
                     print(f"Error launching MCP server: {e}")
-
 
         self.config = self.get_config_file()
 
