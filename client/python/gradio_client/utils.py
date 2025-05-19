@@ -1254,7 +1254,7 @@ def construct_args(
             kwarg_arg_mapping[param_info["parameter_name"]] = index
             kwarg_names.append(param_info["parameter_name"])
         else:
-            kwarg_names.append("argument {index}")
+            kwarg_names.append(f"argument {index}")
         if (
             param_info.get("parameter_has_default", False)
             and _args[index] == _Keywords.NO_VALUE

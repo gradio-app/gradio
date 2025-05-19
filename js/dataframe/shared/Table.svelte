@@ -136,10 +136,14 @@
 		};
 	});
 
-	$: if (data || _headers || els) {
-		df_ctx.data = data;
-		df_ctx.headers = _headers;
-		df_ctx.els = els;
+	$: {
+		if (data || _headers || els) {
+			df_ctx.data = data;
+			df_ctx.headers = _headers;
+			df_ctx.els = els;
+			df_ctx.display_value = display_value;
+			df_ctx.styling = styling;
+		}
 	}
 
 	const dispatch = createEventDispatcher<{
@@ -243,6 +247,9 @@
 			df_actions.reset_sort_state();
 		} else if ($df_state.sort_state.sort_columns.length > 0) {
 			sort_data(data, display_value, styling);
+		} else {
+			df_actions.handle_sort(-1, "asc");
+			df_actions.reset_sort_state();
 		}
 
 		if ($df_state.current_search_query) {
@@ -324,7 +331,6 @@
 
 	function clear_sort(): void {
 		df_actions.reset_sort_state();
-		sort_data(data, display_value, styling);
 	}
 
 	$: if ($df_state.sort_state.sort_columns.length > 0) {
