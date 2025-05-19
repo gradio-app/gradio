@@ -219,8 +219,47 @@
 		animation: pop-out 0.1s ease-out forwards;
 	}
 
+	.animating.minimizing {
+		animation: pop-in 0.1s ease-out forwards;
+	}
+
 	@keyframes pop-out {
 		0% {
+			position: fixed;
+			top: var(--start-top);
+			left: var(--start-left);
+			width: var(--start-width);
+			height: var(--start-height);
+			z-index: 100;
+		}
+		100% {
+			position: fixed;
+			top: 0vh;
+			left: 0vw;
+			width: 100vw;
+			height: 100vh;
+			z-index: 1000;
+		}
+	}
+
+	@keyframes pop-in {
+		0% {
+			position: fixed;
+			top: 0vh;
+			left: 0vw;
+			width: 100vw;
+			height: 100vh;
+			z-index: 1000;
+		}
+		100% {
+			position: fixed;
+			top: var(--start-top);
+			left: var(--start-left);
+			width: var(--start-width);
+			height: var(--start-height);
+			z-index: 100;
+		}
+	}
 			position: fixed;
 			top: var(--start-top);
 			left: var(--start-left);
