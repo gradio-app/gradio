@@ -4,6 +4,7 @@
 "@gradio/dataframe": patch
 "@gradio/gallery": patch
 "@gradio/image": patch
+"@gradio/imageslider": patch
 "@gradio/nativeplot": patch
 "@gradio/plot": patch
 "gradio": patch
