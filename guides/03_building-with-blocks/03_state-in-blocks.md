@@ -102,7 +102,7 @@ with gr.Blocks() as demo:
     # Initialize instance when page loads
     demo.load(initialize_instance, inputs=None, outputs=output)    
     # Clean up instance when page is closed/refreshed
-    demo.close(cleanup_instance)    
+    demo.unload(cleanup_instance)    
 
 demo.launch()
 ```

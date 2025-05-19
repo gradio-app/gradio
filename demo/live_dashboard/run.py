@@ -23,32 +23,30 @@ def get_plot(period=1):
         width=600,
         height=350,
     )
-    plot_end += 2 * math.pi
-    if plot_end > 1000:
-        plot_end = 2 * math.pi
+    plot_end += 0.1
     return update
 
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
             c_time2 = gr.Textbox(label="Current Time refreshed every second")
-            gr.Textbox(
-                "Change the value of the slider to automatically update the plot",
-                label="",
-            )
             period = gr.Slider(
-                label="Period of plot", value=1, minimum=0, maximum=10, step=1
+                label="Period of plot", value=1, minimum=0, maximum=10
             )
             plot = gr.LinePlot(show_label=False)
         with gr.Column():
-            name = gr.Textbox(label="Enter your name")
-            greeting = gr.Textbox(label="Greeting")
-            button = gr.Button(value="Greet")
-            button.click(lambda s: f"Hello {s}", name, greeting)
+            start_time = gr.Textbox(label="Start Time")
+            end_time = gr.Textbox(label="End Time")
 
-    demo.load(lambda: datetime.datetime.now(), None, c_time2, every=1)
-    dep = demo.load(get_plot, None, plot, every=1)
-    period.change(get_plot, period, plot, every=1, cancels=[dep])
+    timer = gr.Timer(1)
+
+    timer.tick(lambda: datetime.datetime.now(), None, c_time2)
+    timer.tick(get_plot, period, plot)
+
+    def select(selection_range: gr.SelectData):
+        return gr.LinePlot(x_lim=selection_range.index), selection_range.index[0], selection_range.index[1]
+    plot.select(select, None, [plot, start_time, end_time])
+    plot.double_click(lambda: gr.LinePlot(x_lim=None), None, plot)
 
 if __name__ == "__main__":
     demo.launch()

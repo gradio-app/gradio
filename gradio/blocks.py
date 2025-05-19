@@ -195,6 +195,7 @@ class Block:
             if root_context:
                 self.page = root_context.root_block.current_page
             render_context.add(self)
+            self.parent = render_context
         if root_context is not None:
             root_context.blocks[self._id] = self
             self.is_rendered = True
@@ -208,10 +209,10 @@ class Block:
         Removes self from the layout and collection of blocks, but does not delete any event triggers.
         """
         root_context = get_blocks_context()
-        render_context = get_render_context()
-        if render_context is not None:
+        if hasattr(self, "parent") and self.parent is not None:
             try:
-                render_context.children.remove(self)
+                self.parent.children.remove(self)
+                self.parent = None
             except ValueError:
                 pass
         if root_context is not None:
@@ -1151,6 +1152,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.state_holder: StateHolder
         self.custom_mount_path: str | None = None
         self.pwa = False
+        self.mcp_server = False
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -1811,7 +1813,7 @@ Received inputs:
                         inputs_serialized = inputs_cached
                     if block._id not in state:
                         state[block._id] = block
-                    state[block._id].value = inputs_serialized
+                    state._update_value_in_config(block._id, inputs_serialized)
                     processed_input.append(block.preprocess(inputs_cached))
         else:
             processed_input = inputs
@@ -1925,11 +1927,16 @@ Received inputs:
                     kwargs["render"] = False
 
                     state[block._id] = block.__class__(**kwargs)
+                    state._update_config(block._id)
                     prediction_value = postprocess_update_dict(
                         block=state[block._id],
                         update_dict=prediction_value,
                         postprocess=block_fn.postprocess,
                     )
+                    if "value" in prediction_value:
+                        state._update_value_in_config(
+                            block._id, prediction_value.get("value")
+                        )
                 elif block_fn.postprocess:
                     if not isinstance(block, components.Component):
                         raise InvalidComponentError(
@@ -1951,7 +1958,9 @@ Received inputs:
                     )
                     if block._id not in state:
                         state[block._id] = block
-                    state[block._id].value = prediction_value_serialized
+                    state._update_value_in_config(
+                        block._id, prediction_value_serialized
+                    )
 
                 outputs_cached = await processing_utils.async_move_files_to_cache(
                     prediction_value,
@@ -2276,6 +2285,7 @@ Received inputs:
             "pwa": self.pwa,
             "pages": self.pages,
             "page": {},
+            "mcp_server": self.mcp_server,
         }
         config.update(self.default_config.get_config())  # type: ignore
         config["connect_heartbeat"] = utils.connect_heartbeat(
@@ -2587,7 +2597,6 @@ Received inputs:
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
         self.transpile_to_js(quiet=quiet)
-        self.config = self.get_config_file()
 
         self.ssr_mode = (
             False
@@ -2636,10 +2645,13 @@ Received inputs:
                 self.mcp_server_obj.launch_mcp_on_sse(
                     self.server_app, mcp_subpath, self.root_path
                 )
+                self.mcp_server = True
             except Exception as e:
-                mcp_server = False
+                self.mcp_server = False
                 if not quiet:
                     print(f"Error launching MCP server: {e}")
+
+        self.config = self.get_config_file()
 
         if self.is_running:
             if not isinstance(self.local_url, str):
@@ -2829,7 +2841,7 @@ Received inputs:
                 print("* To create a public link, set `share=True` in `launch()`.")
             self.share_url = None
 
-        if mcp_server:
+        if self.mcp_server:
             print(
                 f"\n🔨 MCP server (using SSE) running at: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
             )

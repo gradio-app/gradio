@@ -119,7 +119,7 @@ if gr.NO_RELOAD:
 	from transformers import pipeline
 	pipe = pipeline("text-classification", model="cardiffnlp/twitter-roberta-base-sentiment-latest")
 
-demo = gr.Interface(lambda s: pipe(s), gr.Textbox(), gr.Label())
+demo = gr.Interface(lambda s: {d["label"]: d["score"] for d in pipe(s)}, gr.Textbox(), gr.Label())
 
 if __name__ == "__main__":
     demo.launch()
