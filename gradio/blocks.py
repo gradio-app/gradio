@@ -71,6 +71,7 @@ from gradio.exceptions import (
     InvalidComponentError,
 )
 from gradio.helpers import create_tracker, skip, special_args
+from gradio.i18n import I18n, I18nData
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
@@ -1103,7 +1104,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         theme: Theme | str | None = None,
         analytics_enabled: bool | None = None,
         mode: str = "blocks",
-        title: str = "Gradio",
+        title: str | I18nData = "Gradio",
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
         js: str | Literal[True] | None = None,
@@ -2311,6 +2312,11 @@ Received inputs:
             "pages": self.pages,
             "page": {},
             "mcp_server": self.mcp_server,
+            "i18n_translations": (
+                getattr(self.i18n_instance, "translations_dict", None)
+                if getattr(self, "i18n_instance", None) is not None
+                else None
+            ),
         }
         config.update(self.default_config.get_config())  # type: ignore
         config["connect_heartbeat"] = utils.connect_heartbeat(
@@ -2478,6 +2484,7 @@ Received inputs:
         pwa: bool | None = None,
         mcp_server: bool | None = None,
         _frontend: bool = True,
+        i18n: I18n | None = None,
     ) -> tuple[App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -2517,6 +2524,7 @@ Received inputs:
             strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
             ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
+            i18n: An I18n instance containing custom translations, which are used to translate strings in our components (e.g. the labels of components or Markdown strings). This feature can only be used to translate static text in the frontend, not values in the backend.
             mcp_server: If True, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools. If None (default behavior), then the GRADIO_MCP_SERVER environment variable will be used to determine if the MCP server should be enabled (which is "True" on Hugging Face Spaces).
         Returns:
             app: FastAPI app object that is running the demo
@@ -2786,6 +2794,7 @@ Received inputs:
                 f"Monitoring URL: {self.local_url}monitoring/{self.app.analytics_key}"
             )
         self.enable_monitoring = enable_monitoring in [True, None]
+        self.i18n_instance = i18n
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.

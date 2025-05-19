@@ -10,6 +10,7 @@ from gradio_client.documentation import document
 from gradio.components.base import Component, FormComponent
 from gradio.events import Events
 from gradio.exceptions import Error
+from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -29,8 +30,8 @@ class Number(FormComponent):
         self,
         value: float | Callable | None = None,
         *,
-        label: str | None = None,
-        info: str | None = None,
+        label: str | I18nData | None = None,
+        info: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,

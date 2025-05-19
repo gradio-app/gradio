@@ -14,6 +14,7 @@ from gradio_client.documentation import document
 from gradio.components.base import Component
 from gradio.data_classes import GradioModel
 from gradio.events import Events
+from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -57,11 +58,11 @@ class NativePlot(Component):
         x_label_angle: float = 0,
         y_label_angle: float = 0,
         x_axis_labels_visible: bool = True,
-        caption: str | None = None,
+        caption: str | I18nData | None = None,
         sort: Literal["x", "y", "-x", "-y"] | list[str] | None = None,
         tooltip: Literal["axis", "none", "all"] | list[str] = "axis",
         height: int | None = None,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,

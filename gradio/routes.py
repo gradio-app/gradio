@@ -78,6 +78,7 @@ from gradio.data_classes import (
     UserProvidedPath,
 )
 from gradio.exceptions import Error, InvalidPathError
+from gradio.i18n import I18n
 from gradio.node_server import (
     start_node_server,
 )
@@ -801,6 +802,10 @@ class App(FastAPI):
                 components, deep_link_state = load_deep_link(deep_link, config, page="")  # type: ignore
                 config["components"] = components  # type: ignore
                 config["deep_link_state"] = deep_link_state
+            if hasattr(blocks, "i18n_instance") and blocks.i18n_instance:
+                config["i18n_translations"] = blocks.i18n_instance.translations_dict
+            else:
+                config["i18n_translations"] = None
             return ORJSONResponse(content=config)
 
         @app.get("/static/{path:path}")
@@ -1830,6 +1835,7 @@ def mount_gradio_app(
     node_port: int | None = None,
     enable_monitoring: bool | None = None,
     pwa: bool | None = None,
+    i18n: I18n | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -1852,6 +1858,7 @@ def mount_gradio_app(
         show_api: If False, hides the "Use via API" button on the Gradio interface.
         ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         node_server_name: The name of the Node server to use for SSR. If None, will use GRADIO_NODE_SERVER_NAME environment variable or search for a node binary in the system.
+        i18n: If provided, the i18n instance to use for this gradio app.
         node_port: The port on which the Node server should run. If None, will use GRADIO_NODE_SERVER_PORT environment variable or find a free port.
     Example:
         from fastapi import FastAPI
@@ -1882,7 +1889,8 @@ def mount_gradio_app(
     blocks.enable_monitoring = enable_monitoring
     if pwa is not None:
         blocks.pwa = pwa
-
+    if i18n is not None:
+        blocks.i18n_instance = i18n
     if auth is not None and auth_dependency is not None:
         raise ValueError(
             "You cannot provide both `auth` and `auth_dependency` in mount_gradio_app(). Please choose one."
