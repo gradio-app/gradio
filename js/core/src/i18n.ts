@@ -14,7 +14,6 @@ export interface LangsRecord {
 	[lang: string]: any;
 }
 
-// Checks if an object is a I18nData object
 export function is_translation_metadata(obj: any): obj is I18nData {
 	console.log(obj);
 	const result =
@@ -32,11 +31,9 @@ export function translate_if_needed(value: any): string {
 		return value;
 	}
 
-	// find i18n markers anywhere in the string
 	const i18n_marker = "__i18n__";
 	const marker_index = value.indexOf(i18n_marker);
 
-	// skip if the string doesn't have the i18n marker
 	if (marker_index === -1) {
 		return value;
 	}
