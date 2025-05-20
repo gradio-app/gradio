@@ -268,10 +268,8 @@
 		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
 		text-align: center;
-		min-width: var(--size-14);
+		min-width: var(--size-16);
 		transition: border-color 0.15s ease-in-out;
-		border: none;
-		height: 100%;
 	}
 
 	input[type="number"]:focus {
@@ -341,15 +339,18 @@
 		height: var(--size-6);
 	}
 
+	input[type="number"] {
+		border: none;
+		border-radius: 0;
+		padding: var(--size-1) var(--size-2);
+		height: 100%;
+		min-width: var(--size-14);
+		font-size: var(--text-sm);
+	}
+
 	input[type="number"]:focus {
 		box-shadow: inset 0 0 0 1px var(--color-accent);
 		border-radius: 3px 0 0px 3px;
-	}
-
-	input[type="number"] {
-		-moz-appearance: textfield;
-		-webkit-appearance: textfield;
-		appearance: textfield;
 	}
 
 	.reset-button {
