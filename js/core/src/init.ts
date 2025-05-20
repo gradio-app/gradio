@@ -179,6 +179,13 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		root: string;
 		dependencies: Dependency[];
 	}): void {
+		components.forEach((c) => {
+			for (const prop in c.props) {
+				if (c.props[prop] === null) {
+					c.props[prop] = undefined;
+				}
+			}
+		});
 		let replacement_components: ComponentMeta[] = [];
 		let new_components: ComponentMeta[] = [];
 		components.forEach((c) => {
@@ -188,7 +195,6 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 				replacement_components.push(c);
 			}
 		});
-		console.log(new_components.length, replacement_components.length);
 		let _constructor_map = preload_all_components(new_components, root);
 		_constructor_map.forEach((v, k) => {
 			constructor_map.set(k, v);
