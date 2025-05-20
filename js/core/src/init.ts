@@ -181,11 +181,6 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 	}): void {
 		let replacement_components: ComponentMeta[] = [];
 		let new_components: ComponentMeta[] = [];
-		console.log("old_keys", keys_per_render_id[render_id]);
-		console.log(
-			"new_keys",
-			components.map((c) => c.key)
-		);
 		components.forEach((c) => {
 			if (c.key == null || !keys_per_render_id[render_id]?.includes(c.key)) {
 				new_components.push(c);
