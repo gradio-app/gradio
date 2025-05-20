@@ -1709,6 +1709,7 @@ def test_mount_gradio_app_args_match_launch_args():
         "self",
         "strict_cors",
         "max_threads",
+        "i18n",
         "mcp_server",
     }
 
