@@ -134,11 +134,7 @@
 		const input_type = components.find(
 			(comp) => comp.id === dep?.inputs[0]
 		)?.type;
-		if (
-			allow_zoom &&
-			dep &&
-			input_type !== "dataset"
-		) {
+		if (allow_zoom && dep && input_type !== "dataset") {
 			if (dep && dep.inputs && dep.inputs.length > 0 && $is_screen_recording) {
 				screen_recorder.zoom(true, dep.inputs, 1.0);
 			}
