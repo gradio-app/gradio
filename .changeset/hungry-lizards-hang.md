@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Check file validity even if preprocess=False
+fix:Check file validity even if preprocess=False
