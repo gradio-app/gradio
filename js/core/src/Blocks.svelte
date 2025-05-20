@@ -2,6 +2,7 @@
 	import { tick, onMount } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
+	import { writable } from "svelte/store";
 
 	import type { LoadingStatus, LoadingStatusCollection } from "./stores";
 
@@ -19,12 +20,14 @@
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import settings_logo from "./api_docs/img/settings-logo.svg";
+	import record_stop from "./api_docs/img/record-stop.svg";
 	import { create_components, AsyncFunction } from "./init";
 	import type {
 		LogMessage,
 		RenderMessage,
 		StatusMessage
 	} from "@gradio/client";
+	import * as screen_recorder from "./screen_recorder";
 
 	export let root: string;
 	export let components: ComponentMeta[];
@@ -97,6 +100,8 @@
 	let settings_visible = search_params.get("view") === "settings";
 	let api_recorder_visible =
 		search_params.get("view") === "api-recorder" && show_api;
+	let allow_zoom = true;
+	let allow_video_trim = true;
 
 	function set_api_docs_visible(visible: boolean): void {
 		api_recorder_visible = false;
@@ -126,11 +131,28 @@
 	export let render_complete = false;
 	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const dep = dependencies.find((dep) => dep.id === fn_index);
+		const input_type = components.find(
+			(comp) => comp.id === dep?.inputs[0]
+		)?.type;
+		if (allow_zoom && dep && input_type !== "dataset") {
+			if (dep && dep.inputs && dep.inputs.length > 0 && $is_screen_recording) {
+				screen_recorder.zoom(true, dep.inputs, 1.0);
+			}
+
+			if (
+				dep &&
+				dep.outputs &&
+				dep.outputs.length > 0 &&
+				$is_screen_recording
+			) {
+				screen_recorder.zoom(false, dep.outputs, 2.0);
+			}
+		}
+
 		if (!dep) {
 			return;
 		}
 		const outputs = dep.outputs;
-
 		const meta_updates = data?.map((value: any, i: number) => {
 			return {
 				id: outputs[i],
@@ -372,6 +394,9 @@
 			payload: Payload,
 			streaming = false
 		): Promise<void> {
+			if (allow_video_trim) {
+				screen_recorder.markRemoveSegmentStart();
+			}
 			if (api_recorder_visible) {
 				api_calls = [...api_calls, JSON.parse(JSON.stringify(payload))];
 			}
@@ -601,6 +626,9 @@
 					});
 				}
 			}
+			if (allow_video_trim) {
+				screen_recorder.markRemoveSegmentEnd();
+			}
 		}
 	}
 	/* eslint-enable complexity */
@@ -773,6 +801,8 @@
 		return "detail" in event;
 	}
 
+	let is_screen_recording = writable(false);
+
 	onMount(() => {
 		document.addEventListener("visibilitychange", function () {
 			if (document.visibilityState === "hidden") {
@@ -784,7 +814,25 @@
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 				navigator.userAgent
 			);
+
+		screen_recorder.initialize(
+			root,
+			(title, message, type) => {
+				add_new_message(title, message, type);
+			},
+			(isRecording) => {
+				$is_screen_recording = isRecording;
+			}
+		);
 	});
+
+	function screen_recording(): void {
+		if ($is_screen_recording) {
+			screen_recorder.stopRecording();
+		} else {
+			screen_recorder.startRecording();
+		}
+	}
 </script>
 
 <svelte:head>
@@ -840,6 +888,17 @@
 				{$_("common.built_with_gradio")}
 				<img src={logo} alt={$_("common.logo")} />
 			</a>
+			<div class="divider" class:hidden={!$is_screen_recording}>·</div>
+			<button
+				class:hidden={!$is_screen_recording}
+				on:click={() => {
+					screen_recording();
+				}}
+				class="record"
+			>
+				{$_("common.stop_recording")}
+				<img src={record_stop} alt={$_("common.stop_recording")} />
+			</button>
 			<div class="divider">·</div>
 			<button
 				on:click={() => {
@@ -912,8 +971,13 @@
 		/>
 		<div class="api-docs-wrap">
 			<Settings
+				bind:allow_zoom
+				bind:allow_video_trim
 				on:close={(event) => {
 					set_settings_visible(false);
+				}}
+				on:start_recording={(event) => {
+					screen_recording();
 				}}
 				pwa_enabled={app.config.pwa}
 				{root}
@@ -954,7 +1018,8 @@
 	}
 
 	.show-api,
-	.settings {
+	.settings,
+	.record {
 		display: flex;
 		align-items: center;
 	}
@@ -974,13 +1039,20 @@
 		width: var(--size-4);
 	}
 
+	.record img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-1);
+		width: var(--size-3);
+	}
+
 	.built-with {
 		display: flex;
 		align-items: center;
 	}
 
 	.built-with:hover,
-	.settings:hover {
+	.settings:hover,
+	.record:hover {
 		color: var(--body-text-color);
 	}
 
@@ -1050,5 +1122,9 @@
 
 	.show-api:hover {
 		color: var(--body-text-color);
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>
