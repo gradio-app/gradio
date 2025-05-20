@@ -946,10 +946,20 @@ class BlocksConfig:
         if renderable and _id not in rendered_ids:
             return {}
         props = block.get_config() if hasattr(block, "get_config") else {}
+
+        skip_none_deletion = []
+        if (
+            renderable and block.key
+        ):  # Nones are important for replacing a value in a keyed component
+            skip_none_deletion = [
+                prop for prop, val in block.constructor_args.items() if val is None
+            ]
+        utils.delete_none(props, skip_props=skip_none_deletion)
+
         block_config = {
             "id": _id,
             "type": block.get_block_name(),
-            "props": utils.delete_none(props),
+            "props": props,
             "skip_api": block.skip_api,
             "component_class_id": getattr(block, "component_class_id", None),
             "key": block.unique_key(),
