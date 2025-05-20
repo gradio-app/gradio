@@ -137,7 +137,6 @@
 		if (
 			allow_zoom &&
 			dep &&
-			data[0].__type__ !== "update" &&
 			input_type !== "dataset"
 		) {
 			if (dep && dep.inputs && dep.inputs.length > 0 && $is_screen_recording) {
