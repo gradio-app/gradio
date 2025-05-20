@@ -1839,10 +1839,10 @@ Received inputs:
                 if block._id not in state:
                     state[block._id] = block
                 state._update_value_in_config(block._id, inputs_serialized)
-                if block.preprocess:
+                if block_fn.preprocess:
                     processed_input.append(block.preprocess(inputs_cached))
                 else:
-                    processed_input.append(inputs_cached)
+                    processed_input.append(inputs_serialized)
         return processed_input
 
     def validate_outputs(self, block_fn: BlockFunction, predictions: Any | list[Any]):
