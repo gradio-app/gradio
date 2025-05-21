@@ -593,11 +593,16 @@ def assert_configs_are_equivalent_besides_ids(
     return True
 
 
-def delete_none(_dict: dict, skip_value: bool = False) -> dict:
+def delete_none(
+    _dict: dict, skip_value: bool = False, skip_props: list[str] | None = None
+) -> dict:
     """
     Delete keys whose values are None from a dictionary
     """
+    skip_props = [] if skip_props is None else skip_props
     for key, value in list(_dict.items()):
+        if key in skip_props:
+            continue
         if skip_value and key == "value":
             continue
         elif value is None:
