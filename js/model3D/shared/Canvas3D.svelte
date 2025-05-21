@@ -104,12 +104,11 @@
 		}
 	}
 
-	function update_camera(
+	export function update_camera(
 		camera_position: [number | null, number | null, number | null],
 		zoom_speed: number,
 		pan_speed: number
 	): void {
-		viewer.resetCamera();
 		const camera = viewerDetails.camera;
 		if (camera_position[0] !== null) {
 			camera.alpha = (camera_position[0] * Math.PI) / 180;
@@ -129,13 +128,9 @@
 		camera.onAfterCheckInputsObservable.add(updateCameraSensibility);
 	}
 
-	export function reset_camera_position(
-		camera_position: [number | null, number | null, number | null],
-		zoom_speed: number,
-		pan_speed: number
-	): void {
+	export function reset_camera_position(): void {
 		if (viewerDetails) {
-			update_camera(camera_position, zoom_speed, pan_speed);
+			viewer.resetCamera();
 		}
 	}
 </script>
