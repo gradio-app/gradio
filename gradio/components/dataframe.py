@@ -79,6 +79,7 @@ class Dataframe(Component):
         | Sequence[
             Literal["str", "number", "bool", "date", "markdown", "html"]
         ] = "str",
+        bool_input: Literal["checkbox", "text"] = "checkbox",
         type: Literal["pandas", "numpy", "array", "polars"] = "pandas",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | I18nData | None = None,
@@ -113,6 +114,7 @@ class Dataframe(Component):
             row_count: Limit number of rows for input and decide whether user can create new rows or delete existing rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
             col_count: Limit number of columns for input and decide whether user can create new columns or delete existing columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
             datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown".
+            bool_input: Type of UI control to use for boolean fields. Can be "checkbox" or "text". Default is "checkbox" which displays and allows editing of "true"/"false" strings for backwards compatibility.
             type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, "polars" for polars dataframe, or "array" for a Python list of lists.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html). Only applies to columns whose datatype is "markdown".
@@ -160,6 +162,7 @@ class Dataframe(Component):
             else [str(i) for i in (range(1, self.col_count[0] + 1))]
         )
         self.datatype = datatype
+        self.bool_input = bool_input
         valid_types = ["pandas", "numpy", "array", "polars"]
         if type not in valid_types:
             raise ValueError(

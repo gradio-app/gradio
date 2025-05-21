@@ -30,6 +30,7 @@
 	export let show_label = true;
 	export let wrap: boolean;
 	export let datatype: Datatype | Datatype[];
+	export let bool_input: "checkbox" | "text" = "checkbox";
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let root: string;
@@ -110,6 +111,7 @@
 		}}
 		{wrap}
 		{datatype}
+		{bool_input}
 		{latex_delimiters}
 		editable={interactive}
 		{max_height}
