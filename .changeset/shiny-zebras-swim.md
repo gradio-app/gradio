@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Fix MCP server
+fix:Fix MCP server mounted path
