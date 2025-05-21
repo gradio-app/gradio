@@ -111,7 +111,7 @@ class DeepLinkButton(Button):
                     return response.text();
                 }})
                 .then(data => {{
-                    const currentUrl = new URL(window.location.origin);
+                    const currentUrl = new URL(window.location.href);
                     const cleanData = data.replace(/^"|"$/g, '');
                     if (cleanData) {{
                         currentUrl.searchParams.set('deep_link', cleanData);
