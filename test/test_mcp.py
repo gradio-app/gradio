@@ -1,6 +1,7 @@
 import os
 import tempfile
 
+import httpx
 import pytest
 from PIL import Image
 
@@ -114,3 +115,42 @@ def test_tool_prefix_character_replacement():
             os.environ["SPACE_ID"] = original_space_id
         else:
             os.environ.pop("SPACE_ID", None)
+
+
+def test_mcp_sse_transport():
+    _, url, _ = app.launch(mcp_server=True, prevent_thread_lock=True)
+
+    with httpx.Client(timeout=5) as client:
+        sse_url = f"{url}gradio_api/mcp/sse"
+
+        with client.stream("GET", sse_url) as response:
+            assert response.is_success
+
+            terminate_next = False
+            line = ""
+            for line in response.iter_lines():
+                if terminate_next:
+                    break
+                if line.startswith("event: endpoint"):
+                    terminate_next = True
+
+            messages_path = line[5:].strip()
+            messages_url = f"{url.rstrip('/')}{messages_path}"
+
+            message_response = client.post(
+                messages_url,
+                json={
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": "2025-03-26",
+                        "capabilities": {},
+                    },
+                    "jsonrpc": "2.0",
+                    "id": 0,
+                },
+                headers={"Content-Type": "application/json"},
+            )
+
+            assert message_response.is_success, (
+                f"Failed with status {message_response.status_code}: {message_response.text}"
+            )

@@ -12,7 +12,7 @@ from mcp.server import Server
 from mcp.server.sse import SseServerTransport
 from PIL import Image
 from starlette.applications import Starlette
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
 
 from gradio import processing_utils, route_utils, utils
@@ -138,7 +138,7 @@ class GradioMCPServer:
             app: The Gradio app to mount the MCP server on.
             subpath: The subpath to mount the MCP server on. E.g. "/gradio_api/mcp"
         """
-        messages_path = f"{subpath}/messages/"
+        messages_path = "/messages/"
         sse = SseServerTransport(messages_path)
 
         async def handle_sse(request):
@@ -157,6 +157,7 @@ class GradioMCPServer:
                         streams[1],
                         self.mcp_server.create_initialization_options(),
                     )
+                return Response()
             except Exception as e:
                 print(f"MCP SSE connection error: {str(e)}")
                 raise
