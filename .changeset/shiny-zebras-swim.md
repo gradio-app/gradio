@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Fix MCP server mounted path
+fix:Provide a workaround for the MCP integration for endpoints that have `gr.State` components
