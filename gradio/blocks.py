@@ -1819,40 +1819,40 @@ Received inputs:
 
         self.validate_inputs(block_fn, inputs)
 
-        if block_fn.preprocess:
-            processed_input = []
-            for i, block in enumerate(block_fn.inputs):
-                if not isinstance(block, components.Component):
-                    raise InvalidComponentError(
-                        f"{block.__class__} Component not a valid input component."
+        processed_input = []
+        for i, block in enumerate(block_fn.inputs):
+            if not isinstance(block, components.Component):
+                raise InvalidComponentError(
+                    f"{block.__class__} Component not a valid input component."
+                )
+            if block.stateful:
+                processed_input.append(state[block._id])
+            else:
+                if block._id in state:
+                    block = state[block._id]
+                inputs_cached = await processing_utils.async_move_files_to_cache(
+                    inputs[i],
+                    block,
+                    check_in_upload_folder=not explicit_call,
+                )
+                if getattr(block, "data_model", None) and inputs_cached is not None:
+                    data_model = cast(
+                        Union[GradioModel, GradioRootModel], block.data_model
                     )
-                if block.stateful:
-                    processed_input.append(state[block._id])
+                    inputs_cached = data_model.model_validate(
+                        inputs_cached, context={"validate_meta": True}
+                    )
+                if isinstance(inputs_cached, (GradioModel, GradioRootModel)):
+                    inputs_serialized = inputs_cached.model_dump()
                 else:
-                    if block._id in state:
-                        block = state[block._id]
-                    inputs_cached = await processing_utils.async_move_files_to_cache(
-                        inputs[i],
-                        block,
-                        check_in_upload_folder=not explicit_call,
-                    )
-                    if getattr(block, "data_model", None) and inputs_cached is not None:
-                        data_model = cast(
-                            Union[GradioModel, GradioRootModel], block.data_model
-                        )
-                        inputs_cached = data_model.model_validate(
-                            inputs_cached, context={"validate_meta": True}
-                        )
-                    if isinstance(inputs_cached, (GradioModel, GradioRootModel)):
-                        inputs_serialized = inputs_cached.model_dump()
-                    else:
-                        inputs_serialized = inputs_cached
-                    if block._id not in state:
-                        state[block._id] = block
-                    state._update_value_in_config(block._id, inputs_serialized)
+                    inputs_serialized = inputs_cached
+                if block._id not in state:
+                    state[block._id] = block
+                state._update_value_in_config(block._id, inputs_serialized)
+                if block_fn.preprocess:
                     processed_input.append(block.preprocess(inputs_cached))
-        else:
-            processed_input = inputs
+                else:
+                    processed_input.append(inputs_serialized)
         return processed_input
 
     def validate_outputs(self, block_fn: BlockFunction, predictions: Any | list[Any]):
