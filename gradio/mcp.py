@@ -202,14 +202,18 @@ class GradioMCPServer:
         return block_fn
 
     @staticmethod
-    def insert_empty_state(inputs: Sequence["Component | BlockContext"], data: list) -> list:
+    def insert_empty_state(
+        inputs: Sequence["Component | BlockContext"], data: list
+    ) -> list:
         for i, input_component_type in enumerate(inputs):
             if isinstance(input_component_type, State):
                 data.insert(i, None)
         return data
 
     @staticmethod
-    def pop_returned_state(inputs: Sequence["Component | BlockContext"], data: list) -> list:
+    def pop_returned_state(
+        inputs: Sequence["Component | BlockContext"], data: list
+    ) -> list:
         for i, input_component_type in enumerate(inputs):
             if isinstance(input_component_type, State):
                 data.pop(i)
