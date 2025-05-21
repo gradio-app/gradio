@@ -11,6 +11,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { Block } from "@gradio/atoms";
+	import { css_units } from "@gradio/utils";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -37,6 +38,7 @@
 	export let show_copy_button = false;
 	export let container = false;
 	export let theme_mode: ThemeMode;
+	export let padding = true;
 </script>
 
 <Block
@@ -57,7 +59,7 @@
 		variant="center"
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
-	<div class:pending={loading_status?.status === "pending"}>
+	<div class:padding class:pending={loading_status?.status === "pending"}>
 		<Markdown
 			{value}
 			{elem_classes}
@@ -84,5 +86,9 @@
 
 	.pending {
 		opacity: 0.2;
+	}
+
+	.padding {
+		padding: var(--block-padding);
 	}
 </style>

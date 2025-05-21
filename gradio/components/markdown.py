@@ -55,6 +55,7 @@ class Markdown(Component):
         min_height: int | str | None = None,
         show_copy_button: bool = False,
         container: bool = False,
+        padding: bool = True,
     ):
         """
         Parameters:
@@ -79,6 +80,7 @@ class Markdown(Component):
             min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If markdown content exceeds the height, the component will expand to fit the content. Will not have any effect if `height` is set and is larger than `min_height`.
             show_copy_button: If True, includes a copy button to copy the text in the Markdown component. Default is False.
             container: If True, the Markdown component will be displayed in a container. Default is False.
+            padding: If True, the Markdown component will have a certain padding (set by the `--block-padding` CSS variable) in all directions. Default is True.
         """
         self.rtl = rtl
         if latex_delimiters is None:
@@ -91,6 +93,7 @@ class Markdown(Component):
         self.max_height = max_height
         self.min_height = min_height
         self.show_copy_button = show_copy_button
+        self.padding = padding
 
         super().__init__(
             label=label,
