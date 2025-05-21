@@ -2,6 +2,7 @@ import base64
 import os
 import re
 import tempfile
+from collections.abc import Sequence
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -17,10 +18,12 @@ from starlette.routing import Mount, Route
 
 from gradio import processing_utils, route_utils, utils
 from gradio.blocks import BlockFunction
+from gradio.components import State
 from gradio.data_classes import FileData
 
 if TYPE_CHECKING:
-    from gradio.blocks import Blocks
+    from gradio.blocks import BlockContext, Blocks
+    from gradio.components import Component
 
 
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
@@ -91,11 +94,13 @@ class GradioMCPServer:
                 processed_args = []
             if block_fn is None:
                 raise ValueError(f"Unknown tool for this Gradio app: {name}")
+            processed_args = self.insert_empty_state(block_fn.inputs, processed_args)
             output = await self.blocks.process_api(
                 block_fn=block_fn,
                 inputs=processed_args,
                 request=self.request,
             )
+            processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
             return self.postprocess_output_data(output["data"])
 
         @server.list_tools()
@@ -195,6 +200,20 @@ class GradioMCPServer:
             None,
         )
         return block_fn
+
+    @staticmethod
+    def insert_empty_state(inputs: Sequence["Component | BlockContext"], data: list) -> list:
+        for i, input_component_type in enumerate(inputs):
+            if isinstance(input_component_type, State):
+                data.insert(i, None)
+        return data
+
+    @staticmethod
+    def pop_returned_state(inputs: Sequence["Component | BlockContext"], data: list) -> list:
+        for i, input_component_type in enumerate(inputs):
+            if isinstance(input_component_type, State):
+                data.pop(i)
+        return data
 
     def get_input_schema(
         self,
