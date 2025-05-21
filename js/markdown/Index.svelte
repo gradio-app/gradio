@@ -11,7 +11,6 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { Block } from "@gradio/atoms";
-	import { css_units } from "@gradio/utils";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
