@@ -2,6 +2,7 @@ import base64
 import os
 import re
 import tempfile
+import warnings
 from collections.abc import Sequence
 from io import BytesIO
 from pathlib import Path
@@ -51,6 +52,27 @@ class GradioMCPServer:
             self.tool_prefix = re.sub(r"[^a-zA-Z0-9]", "_", tool_prefix)
         else:
             self.tool_prefix = ""
+        self.warn_about_state_inputs()
+
+    def warn_about_state_inputs(self) -> None:
+        """
+        Warn about tools that have gr.State inputs.
+        """
+        if self.api_info:
+            for endpoint_name, endpoint_info in self.api_info[
+                "named_endpoints"
+            ].items():
+                tool_name = self.tool_prefix + endpoint_name.lstrip("/")
+                if endpoint_info["show_api"]:
+                    block_fn = self.get_block_fn_from_tool_name(tool_name)
+                    if block_fn and any(
+                        isinstance(input, State) for input in block_fn.inputs
+                    ):
+                        warnings.warn(
+                            "This MCP server includes a tool that has a gr.State input, which will not be "
+                            "updated between tool calls. The original, default value of the State will be "
+                            "used each time."
+                        )
 
     def create_mcp_server(self) -> Server:
         """
