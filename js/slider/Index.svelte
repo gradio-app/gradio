@@ -170,8 +170,18 @@
 		margin-bottom: var(--size-2);
 		display: flex;
 		justify-content: space-between;
-		align-items: center;
+		align-items: flex-start;
 		flex-wrap: wrap;
+		width: 100%;
+	}
+
+	.head > label {
+		flex: 1;
+	}
+
+	.head > .tab-like-container {
+		margin-left: auto;
+		order: 1;
 	}
 
 	.slider_input_container {
