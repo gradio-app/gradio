@@ -135,7 +135,7 @@
 					value={subVal}
 					depth={depth + 1}
 					is_last_item={i === child_nodes.length - 1}
-					key={subKey}
+					key={Array.isArray(value) && !show_indices ? null : subKey}
 					{open}
 					{theme_mode}
 					{show_indices}

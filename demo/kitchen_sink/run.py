@@ -119,7 +119,7 @@ demo = gr.Interface(
             label="HighlightedText", color_map={"punc": "pink", "test 0": "blue"}
         ),
         gr.HighlightedText(label="HighlightedText", show_legend=True),
-        gr.JSON(label="JSON"),
+        gr.JSON(label="JSON", show_indices=True),
         gr.HTML(label="HTML"),
         gr.File(label="File"),
         gr.Dataframe(label="Dataframe"),
