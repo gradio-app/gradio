@@ -31,6 +31,7 @@
 	export let i18n: I18nFormatter;
 	export let el: HTMLInputElement | null;
 	export let is_static: boolean;
+	export let bool_input: "text" | "checkbox";
 	export let col_count: [number, "fixed" | "dynamic"];
 
 	$: can_add_columns = col_count && col_count[1] === "dynamic";
@@ -110,6 +111,7 @@
 					{is_static}
 					{i18n}
 					coords={[i, 0]}
+					{bool_input}
 				/>
 				{#if sort_index !== -1}
 					<div class="sort-indicators">

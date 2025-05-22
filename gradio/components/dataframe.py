@@ -86,6 +86,7 @@ class Dataframe(Component):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         max_height: int | str = 500,
+        bool_input: Literal["text", "checkbox"] = "text",
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
@@ -119,6 +120,7 @@ class Dataframe(Component):
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             show_label: if True, will display label.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            bool_input: Determines which component is used for columns of type `bool`, as defined in `datatype`
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             max_height: The maximum height of the dataframe, specified in pixels if a number is passed, or in CSS units if a string is passed. If more rows are created than can fit in the height, a scrollbar will appear.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
@@ -183,6 +185,8 @@ class Dataframe(Component):
             else f"{w}px"
             for w in (column_widths or [])
         ]
+        self.bool_input = bool_input
+        print(f"bool_input {bool_input}")
         self.show_fullscreen_button = show_fullscreen_button
         self.show_copy_button = show_copy_button
         self.show_row_numbers = show_row_numbers
