@@ -96,33 +96,37 @@ class DeepLinkButton(Button):
     def get_share_link(
         self, value: str = "Share via Link", copied_value: str = "Link Copied!"
     ):
+        delete_sign_line = (
+            "currentUrl.searchParams.delete('__sign');" if utils.get_space() else ""
+        )
         return textwrap.dedent(
-            """
-        () => {
+            f"""
+        () => {{
             const sessionHash = window.__gradio_session_hash__;
-            fetch(`/gradio_api/deep_link?session_hash=${sessionHash}`)
-                .then(response => {
-                    if (!response.ok) {
+            fetch(`/gradio_api/deep_link?session_hash=${{sessionHash}}`)
+                .then(response => {{
+                    if (!response.ok) {{
                         throw new Error('Network response was not ok');
-                    }
+                    }}
                     return response.text();
-                })
-                .then(data => {
+                }})
+                .then(data => {{
                     const currentUrl = new URL(window.location.href);
                     const cleanData = data.replace(/^"|"$/g, '');
-                    if (cleanData) {
+                    if (cleanData) {{
                         currentUrl.searchParams.set('deep_link', cleanData);
-                    }
+                    }}
+                    {delete_sign_line}
                     navigator.clipboard.writeText(currentUrl.toString());
-                })
-                .catch(error => {
+                }})
+                .catch(error => {{
                     console.error('Error fetching deep link:', error);
                     return "Error";
-                });
+                }});
 
             return "BUTTON_COPIED_VALUE";
-        }
-    """.replace("BUTTON_DEFAULT_VALUE", value).replace(
+        }}
+        """.replace("BUTTON_DEFAULT_VALUE", value).replace(
                 "BUTTON_COPIED_VALUE", copied_value
             )
         ).replace("ID", self.elem_id)
