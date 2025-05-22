@@ -3,6 +3,9 @@
 	import { MarkdownCode } from "@gradio/markdown-code";
 	import type { I18nFormatter } from "@gradio/utils";
 	import SelectionButtons from "./icons/SelectionButtons.svelte";
+	import BooleanCell from "./BooleanCell.svelte";
+	import type { BoolInputType } from "./utils";
+
 	export let edit: boolean;
 	export let value: string | number = "";
 	export let display_value: string | null = null;
@@ -16,6 +19,7 @@
 		| "bool"
 		| "date"
 		| "image" = "str";
+	export let bool_input: BoolInputType = "checkbox";
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -99,9 +103,18 @@
 			is_expanded = !is_expanded;
 		}
 	}
+
+	function handle_bool_change(new_value: boolean): void {
+		value = new_value.toString();
+		const event = new FocusEvent("blur");
+		dispatch("blur", {
+			blur_event: event,
+			coords: coords
+		});
+	}
 </script>
 
-{#if edit}
+{#if edit && datatype !== "bool"}
 	<input
 		readonly={is_static}
 		aria-readonly={is_static}
@@ -120,48 +133,58 @@
 	/>
 {/if}
 
-<span
-	class:dragging={is_dragging}
-	on:click={handle_click}
-	on:keydown={handle_keydown}
-	tabindex="0"
-	role="button"
-	class:edit
-	class:expanded={is_expanded}
-	class:multiline={header}
-	on:focus|preventDefault
-	style={styling}
-	data-editable={editable}
-	data-max-chars={max_chars}
-	data-expanded={is_expanded}
-	placeholder=" "
-	class:text={datatype === "str"}
-	class:wrap={wrap_text}
->
-	{#if datatype === "image" && components.image}
-		<svelte:component
-			this={components.image}
-			value={{ url: display_text }}
-			show_label={false}
-			label="cell-image"
-			show_download_button={false}
-			{i18n}
-			gradio={{ dispatch: () => {} }}
-		/>
-	{:else if datatype === "html"}
-		{@html display_text}
-	{:else if datatype === "markdown"}
-		<MarkdownCode
-			message={display_text.toLocaleString()}
-			{latex_delimiters}
-			{line_breaks}
-			chatbot={false}
-			{root}
-		/>
-	{:else}
-		{display_text}
-	{/if}
-</span>
+{#if datatype === "bool"}
+	<BooleanCell
+		value={String(display_content)}
+		{editable}
+		{bool_input}
+		on_change={handle_bool_change}
+	/>
+{:else}
+	<span
+		class:dragging={is_dragging}
+		on:click={handle_click}
+		on:keydown={handle_keydown}
+		tabindex="0"
+		role="button"
+		class:edit
+		class:expanded={is_expanded}
+		class:multiline={header}
+		on:focus|preventDefault
+		style={styling}
+		data-editable={editable}
+		data-max-chars={max_chars}
+		data-expanded={is_expanded}
+		placeholder=" "
+		class:text={datatype === "str"}
+		class:wrap={wrap_text}
+	>
+		{#if datatype === "image" && components.image}
+			<svelte:component
+				this={components.image}
+				value={{ url: display_text }}
+				show_label={false}
+				label="cell-image"
+				show_download_button={false}
+				{i18n}
+				gradio={{ dispatch: () => {} }}
+			/>
+		{:else if datatype === "html"}
+			{@html display_text}
+		{:else if datatype === "markdown"}
+			<MarkdownCode
+				message={display_text.toLocaleString()}
+				{latex_delimiters}
+				{line_breaks}
+				chatbot={false}
+				{root}
+			/>
+		{:else}
+			{display_text}
+		{/if}
+	</span>
+{/if}
+
 {#if show_selection_buttons && coords && on_select_column && on_select_row}
 	<SelectionButtons
 		position="column"

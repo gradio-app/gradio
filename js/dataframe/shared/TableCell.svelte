@@ -2,7 +2,7 @@
 	import EditableCell from "./EditableCell.svelte";
 	import CellMenuButton from "./CellMenuButton.svelte";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
-	import type { Datatype } from "./utils";
+	import type { Datatype, BoolInputType } from "./utils";
 	import { is_cell_in_selection } from "./selection_utils";
 
 	export let value: string | number;
@@ -51,6 +51,7 @@
 	}[];
 	export let line_breaks: boolean;
 	export let datatype: Datatype;
+	export let bool_input: BoolInputType = "checkbox";
 	export let editing: [number, number] | false;
 	export let max_chars: number | undefined;
 	export let root: string;
@@ -131,6 +132,7 @@
 			{is_static}
 			edit={editing && editing[0] === index && editing[1] === j}
 			{datatype}
+			{bool_input}
 			on:focus={() => {
 				const row = index;
 				const col = j;
