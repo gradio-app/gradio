@@ -2,6 +2,19 @@
 
 ## 0.18.0
 
+### Dependency updates
+
+- @gradio/upload@0.16.6
+- @gradio/video@0.14.15
+- @gradio/code@0.14.5
+- @gradio/client@1.15.1
+- @gradio/button@0.5.1
+- @gradio/image@0.22.7
+- @gradio/gallery@0.15.20
+- @gradio/file@0.12.19
+
+## 0.18.0
+
 ### Features
 
 - [#11224](https://github.com/gradio-app/gradio/pull/11224) [`834e92c`](https://github.com/gradio-app/gradio/commit/834e92c187f200665c78c344f0b38f5adede807b) - Fix re-rendering with key when setting a value to None.  Thanks @aliabid94!
