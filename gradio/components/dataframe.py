@@ -86,7 +86,7 @@ class Dataframe(Component):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         max_height: int | str = 500,
-        bool_input: Literal["text", "checkbox"] = "text",
+        bool_input: Literal["text", "checkbox"] = "checkbox",
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
