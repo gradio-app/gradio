@@ -1,5 +1,11 @@
 # @gradio/markdown
 
+## 0.13.13
+
+### Fixes
+
+- [#11236](https://github.com/gradio-app/gradio/pull/11236) [`3a7750c`](https://github.com/gradio-app/gradio/commit/3a7750cb8e0f5f860c72db9ab02f7ce4d324d6c5) - Add padding param to gr.Markdown.  Thanks @hannahblair!
+
 ## 0.13.12
 
 ### Dependency updates

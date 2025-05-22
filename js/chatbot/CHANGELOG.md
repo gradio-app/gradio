@@ -1,5 +1,11 @@
 # @gradio/chatbot
 
+## 0.26.8
+
+### Features
+
+- [#11229](https://github.com/gradio-app/gradio/pull/11229) [`231ccfe`](https://github.com/gradio-app/gradio/commit/231ccfeed0a9f3971489e571cceaf8bea28fdd54) - Chatbot autoscroll fix.  Thanks @dawoodkhan82!
+
 ## 0.26.7
 
 ### Dependency updates

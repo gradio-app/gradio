@@ -1,5 +1,25 @@
 # gradio
 
+## 5.31.0
+
+### Features
+
+- [#11229](https://github.com/gradio-app/gradio/pull/11229) [`231ccfe`](https://github.com/gradio-app/gradio/commit/231ccfeed0a9f3971489e571cceaf8bea28fdd54) - Chatbot autoscroll fix.  Thanks @dawoodkhan82!
+- [#11224](https://github.com/gradio-app/gradio/pull/11224) [`834e92c`](https://github.com/gradio-app/gradio/commit/834e92c187f200665c78c344f0b38f5adede807b) - Fix re-rendering with key when setting a value to None.  Thanks @aliabid94!
+- [#10832](https://github.com/gradio-app/gradio/pull/10832) [`d457438`](https://github.com/gradio-app/gradio/commit/d4574381bdd12709183c3affe740fada82b8baea) - Screen recording.  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#11236](https://github.com/gradio-app/gradio/pull/11236) [`3a7750c`](https://github.com/gradio-app/gradio/commit/3a7750cb8e0f5f860c72db9ab02f7ce4d324d6c5) - Add padding param to gr.Markdown.  Thanks @hannahblair!
+- [#11238](https://github.com/gradio-app/gradio/pull/11238) [`13c8510`](https://github.com/gradio-app/gradio/commit/13c85108ec44408c614a353656d12221f0317150) - Fix DeepLink Query Parameters.  Thanks @freddyaboulton!
+- [#11228](https://github.com/gradio-app/gradio/pull/11228) [`0b7f753`](https://github.com/gradio-app/gradio/commit/0b7f753a8e400795b5e03fd3faf2a6d1f4426f05) - Improve slider alignment.  Thanks @hannahblair!
+- [#11227](https://github.com/gradio-app/gradio/pull/11227) [`4099700`](https://github.com/gradio-app/gradio/commit/40997002090b0ad7cd1037872523dcdd9bf45bc3) - Check file validity even if preprocess=False.  Thanks @freddyaboulton!
+- [#11230](https://github.com/gradio-app/gradio/pull/11230) [`62a8d97`](https://github.com/gradio-app/gradio/commit/62a8d97fe8a92886f22af11b5fdef14bace69ea8) - Fix Model3D `camera_position` param.  Thanks @dawoodkhan82!
+- [#11231](https://github.com/gradio-app/gradio/pull/11231) [`78a3854`](https://github.com/gradio-app/gradio/commit/78a38543d843a7afac360f9022318c4defa1682f) - Fix MCP server mounted path.  Thanks @abidlabs!
+- [#11244](https://github.com/gradio-app/gradio/pull/11244) [`ed97e39`](https://github.com/gradio-app/gradio/commit/ed97e390f1790b77192368a77cd2d10c90a232c5) - Ensure `show_indices` works as expected in gr.JSON.  Thanks @hannahblair!
+- [#11232](https://github.com/gradio-app/gradio/pull/11232) [`8ea7ce7`](https://github.com/gradio-app/gradio/commit/8ea7ce7312a743590c053bcece950ab001bbd8e5) - Provide a workaround for the MCP integration for endpoints that have `gr.State` components.  Thanks @abidlabs!
+- [#11246](https://github.com/gradio-app/gradio/pull/11246) [`bfb9bcf`](https://github.com/gradio-app/gradio/commit/bfb9bcf956c61c69e5809eb96d2bab2b3e9d9dcb) - Remove Deep Link events from API page.  Thanks @freddyaboulton!
+
 ## 5.30.0
 
 ### Features
