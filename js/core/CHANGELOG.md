@@ -1,5 +1,12 @@
 # @gradio/core
 
+## 0.18.0
+
+### Features
+
+- [#11224](https://github.com/gradio-app/gradio/pull/11224) [`834e92c`](https://github.com/gradio-app/gradio/commit/834e92c187f200665c78c344f0b38f5adede807b) - Fix re-rendering with key when setting a value to None.  Thanks @aliabid94!
+- [#10832](https://github.com/gradio-app/gradio/pull/10832) [`d457438`](https://github.com/gradio-app/gradio/commit/d4574381bdd12709183c3affe740fada82b8baea) - Screen recording.  Thanks @dawoodkhan82!
+
 ## 0.17.0
 
 ### Features
