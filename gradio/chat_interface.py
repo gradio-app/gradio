@@ -110,7 +110,7 @@ class ChatInterface(Blocks):
         show_progress: Literal["full", "minimal", "hidden"] = "minimal",
         fill_height: bool = True,
         fill_width: bool = False,
-        api_name: str | Literal[False] = "chat",
+        api_name: str | Literal[False] | None = "chat",
         save_history: bool = False,
     ):
         """
