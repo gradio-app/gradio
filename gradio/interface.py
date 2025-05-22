@@ -123,7 +123,7 @@ class Interface(Blocks):
         analytics_enabled: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
-        api_name: str | Literal[False] | None = "predict",
+        api_name: str | Literal[False] | None = None,
         _api_mode: bool = False,
         allow_duplication: bool = False,
         concurrency_limit: int | None | Literal["default"] = "default",

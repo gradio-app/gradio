@@ -168,7 +168,7 @@ class ChatInterface(Blocks):
             fill_width=fill_width,
             delete_cache=delete_cache,
         )
-        self.api_name = api_name
+        self.api_name: str | Literal[False] = api_name
         self.type = type
         self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
@@ -588,7 +588,7 @@ class ChatInterface(Blocks):
             submit_fn,
             [self.textbox, self.chatbot_state] + self.additional_inputs,
             [self.api_response, self.chatbot_state] + self.additional_outputs,
-            api_name=cast(Union[str, Literal[False]], self.api_name),
+            api_name=self.api_name,
             concurrency_limit=cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
             ),
