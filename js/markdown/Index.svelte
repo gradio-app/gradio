@@ -37,7 +37,7 @@
 	export let show_copy_button = false;
 	export let container = false;
 	export let theme_mode: ThemeMode;
-	export let padding = true;
+	export let padding = false;
 </script>
 
 <Block
