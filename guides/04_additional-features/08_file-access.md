@@ -88,7 +88,7 @@ from pathlib import Path
 
 import gradio as gr
 
-gr.set_static_paths(paths=[Path.cwd().absolute()/"assets"]])
+gr.set_static_paths(paths=[Path.cwd().absolute()/"assets"])
 
 with gr.Blocks() as demo:
     gr.HTML("<img src='/gradio_api/file=assets/logo.png'>")
