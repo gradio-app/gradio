@@ -32,6 +32,7 @@ test("gr.Error makes the toast show up", async ({ page }) => {
 
 	const toast = page.getByTestId("toast-body");
 	expect(toast).toContainText("Error");
+	expect(toast).toContainText("This should fail");
 	const close = page.getByTestId("toast-close");
 	await close.click();
 	await expect(page.getByTestId("toast-body")).toHaveCount(0);
