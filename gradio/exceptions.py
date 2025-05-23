@@ -86,13 +86,12 @@ class Error(AppError):
             title: The title to be displayed to the user at the top of the error modal.
             print_exception: Whether to print traceback of the error to the console when the error is raised.
         """
-        super().__init__(
-            message=message,
-            duration=duration,
-            visible=visible,
-            title=title,
-            print_exception=print_exception,
-        )
+        self.message = message
+        self.duration = duration
+        self.visible = visible
+        self.title = title
+        self.print_exception = print_exception
+        super().__init__(message)
 
     def __str__(self):
         return repr(self.message)
