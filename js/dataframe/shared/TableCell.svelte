@@ -21,6 +21,12 @@
 			coords: [number, number];
 		}>
 	) => void;
+	export let handle_checked_change: (
+		event: CustomEvent<{
+			current_checked: boolean;
+			coords: [number, number];
+		}>
+	) => void;
 	export let toggle_cell_menu: (
 		event: MouseEvent,
 		row: number,
@@ -67,6 +73,7 @@
 	export let is_dragging: boolean;
 	export let display_value: string | undefined;
 	export let wrap = false;
+	export let bool_input: "text" | "checkbox";
 
 	function get_cell_position(col_index: number): string {
 		if (col_index >= actual_pinned_columns) {
@@ -139,6 +146,7 @@
 				}
 			}}
 			on:blur={handle_blur}
+			on:checked_change={handle_checked_change}
 			{root}
 			{max_chars}
 			{i18n}
@@ -151,6 +159,7 @@
 			on_select_row={handle_select_row}
 			{is_dragging}
 			wrap_text={wrap}
+			{bool_input}
 		/>
 		{#if editable && should_show_cell_menu([index, j], selected_cells, editable)}
 			<CellMenuButton on_click={(event) => toggle_cell_menu(event, index, j)} />

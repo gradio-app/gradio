@@ -3,6 +3,8 @@
 	import { MarkdownCode } from "@gradio/markdown-code";
 	import type { I18nFormatter } from "@gradio/utils";
 	import SelectionButtons from "./icons/SelectionButtons.svelte";
+	import Checkbox from "../../checkbox/shared/Checkbox.svelte";
+	import type { ChangeEventHandler } from "svelte/elements";
 	export let edit: boolean;
 	export let value: string | number = "";
 	export let display_value: string | null = null;
@@ -30,6 +32,7 @@
 	export let i18n: I18nFormatter;
 	export let is_dragging = false;
 	export let wrap_text = false;
+	export let bool_input: "text" | "checkbox";
 
 	export let show_selection_buttons = false;
 	export let coords: [number, number];
@@ -37,6 +40,7 @@
 	export let on_select_row: ((row: number) => void) | null = null;
 
 	const dispatch = createEventDispatcher<{
+		checked_change: { current_checked: boolean; coords: [number, number] };
 		blur: { blur_event: FocusEvent; coords: [number, number] };
 		keydown: KeyboardEvent;
 	}>();
@@ -78,6 +82,19 @@
 		return {};
 	}
 
+	const handle_checked_change: ChangeEventHandler<HTMLInputElement> = (
+		event
+	): void => {
+		if (event.currentTarget.type !== "checkbox") return;
+
+		console.log("@chceked change", event.currentTarget.checked);
+
+		dispatch("checked_change", {
+			current_checked: event.currentTarget.checked,
+			coords: coords
+		});
+	};
+
 	function handle_blur(event: FocusEvent): void {
 		dispatch("blur", {
 			blur_event: event,
@@ -98,10 +115,38 @@
 		if (!edit && !header) {
 			is_expanded = !is_expanded;
 		}
+
+		if (datatype === "bool" && bool_input === "checkbox") {
+			console.log("@next checked - ", !value);
+
+			dispatch("checked_change", {
+				current_checked: !value,
+				coords: coords
+			});
+		}
 	}
 </script>
 
-{#if edit}
+{#if edit && !(datatype === "bool" && bool_input === "checkbox")}
+	<!-- <BaseCheckbox interactive={true} value={Boolean(value)} label="" 
+		
+		/> -->
+	<!-- <input
+		class="text-red"
+		type="checkbox"
+		readonly={is_static}
+		aria-readonly={is_static}
+		aria-label={is_static ? "Cell is read-only" : "Edit cell"}
+		bind:this={el}
+		bind:value
+		class:header
+		tabindex="-1"
+		on:blur={handle_blur}
+		on:mousedown|stopPropagation
+		on:mouseup|stopPropagation
+		on:click|stopPropagation
+		use:use_focus
+		on:keydown={handle_keydown} /> -->
 	<input
 		readonly={is_static}
 		aria-readonly={is_static}
@@ -126,7 +171,11 @@
 	on:keydown={handle_keydown}
 	tabindex="0"
 	role="button"
-	class:edit
+	class={edit
+		? "edit"
+		: datatype === "bool" && bool_input === "checkbox"
+			? "bool-field"
+			: ""}
 	class:expanded={is_expanded}
 	class:multiline={header}
 	on:focus|preventDefault
@@ -157,6 +206,20 @@
 			{line_breaks}
 			chatbot={false}
 			{root}
+		/>
+	{:else if datatype === "bool" && bool_input === "checkbox" && typeof value === "boolean"}
+		<input
+			readonly={is_static}
+			aria-readonly={is_static}
+			type="checkbox"
+			aria-label={is_static ? "Cell is read-only" : "Edit cell"}
+			bind:checked={value}
+			bind:this={el}
+			class="bool-checkbox"
+			on:mousedown|stopPropagation
+			on:mouseup|stopPropagation
+			on:click|stopPropagation
+			on:change={handle_checked_change}
 		/>
 	{:else}
 		{display_text}
@@ -240,7 +303,24 @@
 		object-fit: contain;
 	}
 
-	input:read-only {
+	.bool-field {
+		display: flex;
+		justify-content: center;
+		height: 20px;
+	}
+
+	.bool-checkbox {
+		background: gray;
+		border: 1px solid black;
+		width: 20px;
+		height: 20px;
+	}
+
+	input[type="checkbox"] {
+		cursor: pointer;
+	}
+
+	input:read-only:not([type="checkbox"]) {
 		cursor: not-allowed;
 	}
 

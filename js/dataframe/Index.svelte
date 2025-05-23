@@ -59,6 +59,7 @@
 	export let pinned_columns = 0;
 	export let static_columns: (string | number)[] = [];
 	export let fullscreen = false;
+	export let bool_input: "text" | "checkbox";
 
 	$: _headers = [...(value.headers || headers)];
 	$: display_value = value?.metadata?.display_value
@@ -127,5 +128,6 @@
 		{pinned_columns}
 		components={{ image: Image }}
 		{static_columns}
+		{bool_input}
 	/>
 </Block>

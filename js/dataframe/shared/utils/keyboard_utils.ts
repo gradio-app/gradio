@@ -6,13 +6,13 @@ import { get } from "svelte/store";
 import { copy_table_data } from "./table_utils";
 
 async function save_cell_value(
-	input_value: string,
+	input_value: string | boolean,
 	ctx: DataFrameContext,
 	row: number,
 	col: number
 ): Promise<void> {
 	if (!ctx.data || !ctx.data[row] || !ctx.data[row][col]) return;
-
+	
 	const old_value = ctx.data[row][col].value;
 	ctx.data[row][col].value = input_value;
 
@@ -36,8 +36,26 @@ export async function handle_cell_blur(
 
 	const input_el = event.target as HTMLInputElement;
 	if (!input_el || input_el.value === undefined) return;
+	
+	await save_cell_value(
+		input_el.value,
+		ctx, 
+		coords[0], 
+		coords[1]);
+}
 
-	await save_cell_value(input_el.value, ctx, coords[0], coords[1]);
+export async function handle_cell_checked_change(
+	current_checked: boolean,
+	ctx: DataFrameContext,
+	coords: [number, number]
+): Promise<void> {
+	if (!ctx.data || !ctx.headers || !ctx.els) return;
+
+	await save_cell_value(
+		current_checked,
+		ctx, 
+		coords[0], 
+		coords[1]);
 }
 
 function handle_header_navigation(
@@ -174,7 +192,7 @@ async function handle_enter_key(
 
 	const state = get(ctx.state);
 	if (!state.config.editable) return false;
-
+	
 	event.preventDefault();
 
 	const editing = state.ui_state.editing;
