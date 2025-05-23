@@ -13,9 +13,9 @@ import { vi } from "vitest";
 
 const server = initialise_server();
 
-beforeAll(() => server.listen());
+beforeAll(() => server.start());
 afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+afterAll(() => server.stop());
 
 describe("set_space_timeout", () => {
 	it("should set the sleep timeout for a space", async () => {

@@ -1,7 +1,6 @@
 // @vitest-environment node
 
-import path from "node:path";
-import { loadPyodide, PyodideInterface } from "pyodide";
+import { loadPyodide, type PyodideInterface } from "pyodide";
 import { describe, it, expect, beforeAll } from "vitest";
 import { writeFileWithParents, renameWithParents } from "./file";
 
@@ -9,9 +8,7 @@ describe("writeFileWithParents()", () => {
 	let pyodide: PyodideInterface;
 
 	beforeAll(async () => {
-		pyodide = await loadPyodide({
-			indexURL: path.resolve(__dirname, "../../node_modules/pyodide")
-		});
+		pyodide = await loadPyodide();
 	});
 
 	const testCases: { paths: string[] }[] = [
@@ -49,9 +46,7 @@ describe("renameWithParents", () => {
 	let pyodide: PyodideInterface;
 
 	beforeAll(async () => {
-		pyodide = await loadPyodide({
-			indexURL: path.resolve(__dirname, "../../node_modules/pyodide")
-		});
+		pyodide = await loadPyodide();
 	});
 
 	const testCases: { oldPath: string; newPath: string }[] = [

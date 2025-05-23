@@ -1,5 +1,5 @@
 import { test, describe, expect, vi, afterEach, assert } from "vitest";
-import { cleanup, render } from "@self/tootils";
+import { cleanup, render } from "@self/tootils/render";
 import event from "@testing-library/user-event";
 import { setupi18n } from "../core/src/i18n";
 import UploadButton from "./Index.svelte";

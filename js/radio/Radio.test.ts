@@ -1,6 +1,6 @@
 import { test, describe, assert, afterEach } from "vitest";
 
-import { cleanup, render } from "@self/tootils";
+import { cleanup, render } from "@self/tootils/render";
 import event from "@testing-library/user-event";
 
 import Radio from "./Index.svelte";

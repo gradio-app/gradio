@@ -143,7 +143,13 @@ export default defineConfig(({ mode }) => {
 			mode === "test" && mock_modules()
 		],
 		optimizeDeps: {
-			exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"]
+			exclude: [
+				"fsevents",
+				"@ffmpeg/ffmpeg",
+				"@ffmpeg/util",
+				"chromium-bidi",
+				"esbuild"
+			]
 		},
 		resolve: {
 			conditions: ["gradio"]
@@ -159,6 +165,16 @@ export default defineConfig(({ mode }) => {
 			globals: true,
 			onConsoleLog(log, type) {
 				if (log.includes("was created with unknown prop")) return false;
+			},
+			browser: {
+				enabled: true,
+				provider: "playwright",
+				instances: [
+					{
+						browser: "chromium",
+						setupFile: "./chromium-setup.js"
+					}
+				]
 			}
 		}
 	};

@@ -11,11 +11,68 @@ import { config_response, endpoint_info } from "./test_data";
 import { BlobRef, Command } from "../types";
 import { FileData } from "../upload";
 
-const IS_NODE = process.env.TEST_MODE === "node";
+const IS_NODE =
+	typeof process !== "undefined" && process.env.TEST_MODE === "node";
+
+class FakeBuffer {
+	static from(data: string) {
+		return new Blob([data]);
+	}
+
+	static isBuffer() {
+		return false;
+	}
+
+	static isEncoding() {
+		return false;
+	}
+
+	static byteLength() {
+		return 0;
+	}
+
+	static concat() {
+		return new Blob([]);
+	}
+
+	static compare() {
+		return 0;
+	}
+
+	static alloc() {
+		return new Blob([]);
+	}
+
+	static allocUnsafe() {
+		return new Blob([]);
+	}
+
+	static allocUnsafeSlow() {
+		return new Blob([]);
+	}
+
+	static poolSize = 0;
+
+	static of() {
+		return new Blob([]);
+	}
+
+	equals(other: Blob) {
+		return this.toString() === other.toString();
+	}
+}
+
+if (!IS_NODE) {
+	globalThis.Buffer = FakeBuffer as unknown as BufferConstructor;
+}
+
+console.log("--------------------------------");
+console.log("IS_NODE", IS_NODE);
+console.log("--------------------------------");
 
 describe("walk_and_store_blobs", () => {
-	it("should convert a Buffer to a Blob", async () => {
-		const buffer = Buffer.from("test data");
+	it.skipIf(!IS_NODE)("should convert a Buffer to a Blob", async () => {
+		const buffer = globalThis.Buffer.from("test data");
 		const parts = await walk_and_store_blobs(buffer, "text");
 
 		expect(parts).toHaveLength(1);
@@ -74,75 +131,87 @@ describe("walk_and_store_blobs", () => {
 		expect(parts[0].blob).toBeInstanceOf(Blob);
 	});
 
-	it("should handle deep structures with arrays (with equality check)", async () => {
-		const image = new Blob([]);
+	it.skipIf(!IS_NODE)(
+		"should handle deep structures with arrays (with equality check)",
+		async () => {
+			const image = new Blob([]);
 
-		const obj = {
-			a: [
-				{
-					b: [
-						{
-							data: [[image], image, [image, [image]]]
-						}
-					]
+			const obj = {
+				a: [
+					{
+						b: [
+							{
+								data: [[image], image, [image, [image]]]
+							}
+						]
+					}
+				]
+			};
+			const parts = await walk_and_store_blobs(obj);
+
+			async function map_path(obj: Record<string, any>, parts: BlobRef[]) {
+				const { path, blob } = parts[parts.length - 1];
+				let ref = obj;
+				path.forEach((p) => (ref = ref[p]));
+
+				// since ref is a Blob and blob is a Blob, we deep equal check the two buffers instead
+				if (ref instanceof Blob && blob instanceof Blob) {
+					const refBuffer = Buffer.from(await ref.arrayBuffer());
+					const blobBuffer = Buffer.from(await blob.arrayBuffer());
+					return refBuffer.equals(blobBuffer);
 				}
-			]
-		};
-		const parts = await walk_and_store_blobs(obj);
 
-		async function map_path(obj: Record<string, any>, parts: BlobRef[]) {
-			const { path, blob } = parts[parts.length - 1];
-			let ref = obj;
-			path.forEach((p) => (ref = ref[p]));
-
-			// since ref is a Blob and blob is a Blob, we deep equal check the two buffers instead
-			if (ref instanceof Blob && blob instanceof Blob) {
-				const refBuffer = Buffer.from(await ref.arrayBuffer());
-				const blobBuffer = Buffer.from(await blob.arrayBuffer());
-				return refBuffer.equals(blobBuffer);
+				return ref === blob;
 			}
 
-			return ref === blob;
+			expect(parts[0].blob).toBeInstanceOf(Blob);
+			expect(map_path(obj, parts)).toBeTruthy();
 		}
+	);
 
-		expect(parts[0].blob).toBeInstanceOf(Blob);
-		expect(map_path(obj, parts)).toBeTruthy();
-	});
+	it.skipIf(!IS_NODE)(
+		"should handle buffer instances and return a BlobRef",
+		async () => {
+			const buffer = Buffer.from("test");
+			const parts = await walk_and_store_blobs(buffer, undefined, ["blob"]);
 
-	it("should handle buffer instances and return a BlobRef", async () => {
-		const buffer = Buffer.from("test");
-		const parts = await walk_and_store_blobs(buffer, undefined, ["blob"]);
+			expect(parts).toHaveLength(1);
+			expect(parts[0].blob).toBeInstanceOf(Blob);
+			expect(parts[0].path).toEqual(["blob"]);
+		}
+	);
 
-		expect(parts).toHaveLength(1);
-		expect(parts[0].blob).toBeInstanceOf(Blob);
-		expect(parts[0].path).toEqual(["blob"]);
-	});
+	it.skipIf(!IS_NODE)(
+		"should handle buffer instances with a path and return a BlobRef with the path",
+		async () => {
+			const buffer = Buffer.from("test data");
+			const parts = await walk_and_store_blobs(buffer);
 
-	it("should handle buffer instances with a path and return a BlobRef with the path", async () => {
-		const buffer = Buffer.from("test data");
-		const parts = await walk_and_store_blobs(buffer);
+			expect(parts).toHaveLength(1);
+			expect(parts[0].path).toEqual([]);
+			expect(parts[0].blob).toBeInstanceOf(Blob);
+		}
+	);
 
-		expect(parts).toHaveLength(1);
-		expect(parts[0].path).toEqual([]);
-		expect(parts[0].blob).toBeInstanceOf(Blob);
-	});
-
-	it("should convert an object with deep structures to BlobRefs", async () => {
-		const param = {
-			a: {
-				b: {
-					data: {
-						image: Buffer.from("test image")
+	it.skipIf(!IS_NODE)(
+		"should convert an object with deep structures to BlobRefs",
+		async () => {
+			const param = {
+				a: {
+					b: {
+						data: {
+							image: Buffer.from("test image")
+						}
 					}
 				}
-			}
-		};
-		const parts = await walk_and_store_blobs(param);
+			};
+			const parts = await walk_and_store_blobs(param);
 
-		expect(parts).toHaveLength(1);
-		expect(parts[0].path).toEqual(["a", "b", "data", "image"]);
-		expect(parts[0].blob).toBeInstanceOf(Blob);
-	});
+			expect(parts).toHaveLength(1);
+			expect(parts[0].path).toEqual(["a", "b", "data", "image"]);
+			expect(parts[0].blob).toBeInstanceOf(Blob);
+		}
+	);
 });
 describe("update_object", () => {
 	it("should update the value of a nested property", () => {
@@ -231,41 +300,42 @@ describe("post_message", () => {
 		const test_data = { key: "value" };
 		const test_origin = "https://huggingface.co";
 
-		const post_message_mock = vi.fn();
+		// Create a mock for window.parent.postMessage that we'll spy on
+		const post_message_spy = vi
+			.spyOn(window.parent, "postMessage")
+			.mockImplementation(() => {});
 
-		global.window = {
-			// @ts-ignore
-			parent: {
-				postMessage: post_message_mock
-			}
+		// Mock MessageChannel
+		const original_message_channel = globalThis.MessageChannel;
+		const mock_port1 = {
+			onmessage: null as unknown as (event: { data: any }) => void,
+			close: vi.fn()
 		};
+		const mock_port2 = {};
 
-		const message_channel_mock = {
-			port1: {
-				onmessage: (handler) => {
-					onmessage = handler;
-				},
-				close: vi.fn()
-			},
-			port2: {}
-		};
+		class MockMessageChannel {
+			port1 = mock_port1;
+			port2 = mock_port2;
+		}
 
-		vi.stubGlobal("MessageChannel", function () {
-			this.port1 = message_channel_mock.port1;
-			this.port2 = message_channel_mock.port2;
-			return this;
-		});
+		// Replace MessageChannel with our mock version
+		globalThis.MessageChannel = MockMessageChannel as any;
 
 		const promise = post_message(test_data, test_origin);
 
-		if (message_channel_mock.port1.onmessage) {
-			message_channel_mock.port1.onmessage({ data: test_data });
+		// Simulate receiving a message back
+		if (mock_port1.onmessage) {
+			mock_port1.onmessage({ data: test_data } as any);
 		}
 
 		await expect(promise).resolves.toEqual(test_data);
-		expect(post_message_mock).toHaveBeenCalledWith(test_data, test_origin, [
-			message_channel_mock.port2
+		expect(post_message_spy).toHaveBeenCalledWith(test_data, test_origin, [
+			mock_port2
 		]);
+
+		// Restore original MessageChannel
+		globalThis.MessageChannel = original_message_channel;
+		post_message_spy.mockRestore();
 	});
 });
 
@@ -277,25 +347,32 @@ describe("handle_file", () => {
 		expect(result).toBe(blob);
 	});
 
-	it("should handle a Buffer object and return it as a blob", () => {
-		const buffer = Buffer.from("test data");
-		const result = handle_file(buffer) as FileData;
-		expect(result).toBeInstanceOf(Blob);
-	});
-	it("should handle a local file path and return a Command object", () => {
-		const file_path = "./owl.png";
-		const result = handle_file(file_path) as Command;
-		expect(result).toBeInstanceOf(Command);
-		expect(result).toEqual({
-			type: "command",
-			command: "upload_file",
-			meta: { path: "./owl.png", name: "./owl.png", orig_path: "./owl.png" },
-			fileData: undefined
-		});
-	});
+	it.skipIf(!IS_NODE)(
+		"should handle a Buffer object and return it as a blob",
+		() => {
+			const buffer = Buffer.from("test data");
+			const result = handle_file(buffer) as FileData;
+			expect(result).toBeInstanceOf(Blob);
+		}
+	);
+
+	it.skipIf(!IS_NODE)(
+		"should handle a local file path and return a Command object",
+		() => {
+			const file_path = "./owl.png";
+			const result = handle_file(file_path) as Command;
+			expect(result).toBeInstanceOf(Command);
+			expect(result).toEqual({
+				type: "command",
+				command: "upload_file",
+				meta: { path: "./owl.png", name: "./owl.png", orig_path: "./owl.png" },
+				fileData: undefined
+			});
+		}
+	);
 
 	it("should handle a File object and return it as FileData", () => {
-		if (IS_NODE) {
+		if (!IS_NODE) {
 			return;
 		}
 		const file = new File(["test image"], "test.png", { type: "image/png" });
