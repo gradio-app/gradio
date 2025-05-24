@@ -74,7 +74,8 @@
 		"sort_ascending": "Ordenar por ordem crescente",
 		"sort_descending": "Ordenar por ordem decrescente",
 		"drop_to_upload": "Solte ficheiros CSV ou TSV aqui para importar dados para o dataframe",
-		"clear_sort": "Limpar ordenação"
+		"clear_sort": "Limpar ordenação",
+		"filter": "Filtrar"
 	},
 	"dropdown": {
 		"dropdown": "Lista suspensa"

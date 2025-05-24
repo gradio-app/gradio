@@ -40,6 +40,9 @@ interface DataFrameState {
 			styling: string[][] | null;
 		} | null;
 	};
+	filter_state: {
+		filter_columns: number[];
+	};
 	ui_state: {
 		active_cell_menu: { row: number; col: number; x: number; y: number } | null;
 		active_header_menu: { col: number; x: number; y: number } | null;
@@ -60,6 +63,7 @@ interface DataFrameState {
 interface DataFrameActions {
 	handle_search: (query: string | null) => void;
 	handle_sort: (col: number, direction: SortDirection) => void;
+	handle_filter: (col: number) => void;
 	get_sort_status: (name: string, headers: string[]) => "none" | "asc" | "desc";
 	sort_data: (
 		data: any[][],
@@ -109,6 +113,7 @@ interface DataFrameActions {
 		dispatch: (e: "change" | "input", detail?: any) => void
 	) => Promise<void>;
 	reset_sort_state: () => void;
+	reset_filter_state: () => void;
 	set_active_cell_menu: (
 		menu: { row: number; col: number; x: number; y: number } | null
 	) => void;
@@ -244,6 +249,21 @@ function create_actions(
 						...s.sort_state,
 						sort_columns: sort_cols.slice(-3),
 						initial_data: initial_data
+					}
+				};
+			}),
+		handle_filter: (col) =>
+			update_state((s) => {
+				const filter_cols = s.filter_state.filter_columns.includes(col)
+					? s.filter_state.filter_columns.filter(
+						(c) => c !== col
+					)
+					: [...s.filter_state.filter_columns, col];
+
+				return {
+					filter_state: {
+						...s.filter_state,
+						filter_columns: filter_cols
 					}
 				};
 			}),
@@ -384,6 +404,12 @@ function create_actions(
 
 				return {
 					sort_state: { sort_columns: [], row_order: [], initial_data: null }
+				};
+			}),
+		reset_filter_state: () =>
+			update_state((s) => {
+				return {
+					filter_state: { filter_columns: [] }
 				};
 			}),
 		set_active_cell_menu: (menu) =>

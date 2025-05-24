@@ -259,6 +259,7 @@
 		} else {
 			df_actions.handle_sort(-1, "asc");
 			df_actions.reset_sort_state();
+			df_actions.reset_filter_state();
 		}
 
 		if ($df_state.current_search_query) {
@@ -345,6 +346,10 @@
 	$: if ($df_state.sort_state.sort_columns.length > 0) {
 		sort_data(data, display_value, styling);
 		df_actions.update_row_order(data);
+	}
+
+	function handle_filter(col: number): void {
+		df_actions.handle_filter(col);
 	}
 
 	async function edit_header(i: number, _select = false): Promise<void> {
@@ -1025,6 +1030,17 @@
 			? $df_state.sort_state.sort_columns.findIndex(
 					(item) => item.col === (active_header_menu?.col ?? -1)
 				) + 1 || null
+			: null}
+		on_filter={active_header_menu
+			? () => {
+					if (active_header_menu) {
+						handle_filter(active_header_menu.col);
+						df_actions.set_active_header_menu(null);
+					}
+				}
+			: undefined}
+		filter_active={active_header_menu
+			? $df_state.filter_state.filter_columns.includes(active_header_menu?.col ?? -1)
 			: null}
 	/>
 {/if}

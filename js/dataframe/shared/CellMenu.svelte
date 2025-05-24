@@ -21,6 +21,8 @@
 	export let on_clear_sort: () => void = () => {};
 	export let sort_direction: SortDirection | null = null;
 	export let sort_priority: number | null = null;
+	export let on_filter: () => void = () => {};
+	export let filter_active: boolean | null = null;
 	export let editable = true;
 
 	export let i18n: I18nFormatter;
@@ -84,6 +86,14 @@
 		<button role="menuitem" on:click={on_clear_sort}>
 			<CellMenuIcons icon="clear-sort" />
 			{i18n("dataframe.clear_sort")}
+		</button>
+		<button
+			role="menuitem"
+			on:click={() => on_filter()}
+			class:active={filter_active}
+		>
+			<CellMenuIcons icon="filter" />
+			{i18n("dataframe.filter")}
 		</button>
 	{/if}
 

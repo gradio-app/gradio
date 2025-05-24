@@ -89,7 +89,8 @@
 		"sort_ascending": "Sort ascending",
 		"sort_descending": "Sort descending",
 		"drop_to_upload": "Drop CSV or TSV files here to import data into dataframe",
-		"clear_sort": "Clear sort"
+		"clear_sort": "Clear sort",
+		"filter": "Filter"
 	},
 	"dropdown": {
 		"dropdown": "Dropdown"

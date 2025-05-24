@@ -85,7 +85,8 @@
 		"sort_ascending": "Ordenar em ordem crescente",
 		"sort_descending": "Ordenar em ordem decrescente",
 		"drop_to_upload": "Solte arquivos CSV ou TSV aqui para importar dados para o dataframe",
-		"clear_sort": "Limpar classificação"
+		"clear_sort": "Limpar classificação",
+		"filter": "Filtrar"
 	},
 	"dropdown": {
 		"dropdown": "Menu suspenso"
