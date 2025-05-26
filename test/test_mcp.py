@@ -23,9 +23,9 @@ def test_gradio_mcp_server_initialization():
 
 def test_get_block_fn_from_tool_name():
     server = GradioMCPServer(app)
-    result = server.get_block_fn_from_tool_name("test_tool")
+    result = server.get_block_fn_from_endpoint_name("test_tool")
     assert result == app.fns[0]
-    result = server.get_block_fn_from_tool_name("nonexistent_tool")
+    result = server.get_block_fn_from_endpoint_name("nonexistent_tool")
     assert result is None
 
 
