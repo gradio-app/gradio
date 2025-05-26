@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Use the function name as the default `api_name` in `gr.Interface`
+feat:Use the function name as the tool name in the Gradio MCP server
