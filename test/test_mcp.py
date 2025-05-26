@@ -29,6 +29,20 @@ def test_get_block_fn_from_tool_name():
     assert result is None
 
 
+def test_generate_tool_names_correctly_for_interfaces():
+    def echo(x):
+        return x
+
+    app = gr.TabbedInterface(
+        [
+            gr.Interface(echo, "text", "text"),
+            gr.Interface(echo, "image", "image"),
+        ]
+    )
+    server = GradioMCPServer(app)
+    assert server.tool_to_endpoint.keys() == {"echo", "echo_"}
+
+
 def test_convert_strings_to_filedata():
     server = GradioMCPServer(app)
 
