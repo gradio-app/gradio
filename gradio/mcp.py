@@ -227,6 +227,10 @@ class GradioMCPServer:
     def insert_empty_state(
         inputs: Sequence["Component | BlockContext"], data: list
     ) -> list:
+        """
+        Insert None placeholder values for any State input components, as State inputs
+        are not included in the endpoint schema.
+        """
         for i, input_component_type in enumerate(inputs):
             if isinstance(input_component_type, State):
                 data.insert(i, None)
@@ -236,6 +240,10 @@ class GradioMCPServer:
     def pop_returned_state(
         inputs: Sequence["Component | BlockContext"], data: list
     ) -> list:
+        """
+        Remove any values corresponding to State output components from the data
+        as State outputs are not included in the endpoint schema.
+        """
         for i, input_component_type in enumerate(inputs):
             if isinstance(input_component_type, State):
                 data.pop(i)
