@@ -56,6 +56,10 @@ class GradioMCPServer:
         self.warn_about_state_inputs()
 
     def get_tool_to_endpoint(self) -> dict[str, str]:
+        """
+        Gets all of the tools that are exposed by the Gradio app and also
+        creates a mapping from the tool names to the endpoint names in the API docs.
+        """
         tool_to_endpoint = {}
         for endpoint_name, endpoint_info in self.api_info["named_endpoints"].items():
             if endpoint_info["show_api"]:
