@@ -20,9 +20,7 @@ def generate_pet_name(animal_type, personality):
 
     return f"{prefix} {suffix}"
 
-with gr.Blocks(theme="soft") as demo:
-    with gr.Sidebar(position="right"):
-        pass
+with gr.Blocks(theme=gr.themes.Soft()) as demo:
     with gr.Sidebar(position="left"):
         gr.Markdown("# 🐾 Pet Name Generator")
         gr.Markdown("Use the options below to generate a unique pet name!")
