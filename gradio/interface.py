@@ -565,6 +565,7 @@ class Interface(Blocks):
                     inputs=None,
                     outputs=[self.deep_link],
                     js=True,
+                    show_api=False,
                 )
             self.render_examples()
             self.render_article()
@@ -951,6 +952,7 @@ class Interface(Blocks):
                     inputs=None,
                     outputs=[self.deep_link],
                     js=True,
+                    show_api=False,
                 )
 
     def __str__(self):

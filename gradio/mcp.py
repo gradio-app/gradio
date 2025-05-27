@@ -2,6 +2,8 @@ import base64
 import os
 import re
 import tempfile
+import warnings
+from collections.abc import Sequence
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -12,15 +14,17 @@ from mcp.server import Server
 from mcp.server.sse import SseServerTransport
 from PIL import Image
 from starlette.applications import Starlette
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
 
 from gradio import processing_utils, route_utils, utils
 from gradio.blocks import BlockFunction
+from gradio.components import State
 from gradio.data_classes import FileData
 
 if TYPE_CHECKING:
-    from gradio.blocks import Blocks
+    from gradio.blocks import BlockContext, Blocks
+    from gradio.components import Component
 
 
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
@@ -48,6 +52,27 @@ class GradioMCPServer:
             self.tool_prefix = re.sub(r"[^a-zA-Z0-9]", "_", tool_prefix)
         else:
             self.tool_prefix = ""
+        self.warn_about_state_inputs()
+
+    def warn_about_state_inputs(self) -> None:
+        """
+        Warn about tools that have gr.State inputs.
+        """
+        if self.api_info:
+            for endpoint_name, endpoint_info in self.api_info[
+                "named_endpoints"
+            ].items():
+                tool_name = self.tool_prefix + endpoint_name.lstrip("/")
+                if endpoint_info["show_api"]:
+                    block_fn = self.get_block_fn_from_tool_name(tool_name)
+                    if block_fn and any(
+                        isinstance(input, State) for input in block_fn.inputs
+                    ):
+                        warnings.warn(
+                            "This MCP server includes a tool that has a gr.State input, which will not be "
+                            "updated between tool calls. The original, default value of the State will be "
+                            "used each time."
+                        )
 
     def create_mcp_server(self) -> Server:
         """
@@ -91,11 +116,13 @@ class GradioMCPServer:
                 processed_args = []
             if block_fn is None:
                 raise ValueError(f"Unknown tool for this Gradio app: {name}")
+            processed_args = self.insert_empty_state(block_fn.inputs, processed_args)
             output = await self.blocks.process_api(
                 block_fn=block_fn,
                 inputs=processed_args,
                 request=self.request,
             )
+            processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
             return self.postprocess_output_data(output["data"])
 
         @server.list_tools()
@@ -138,7 +165,7 @@ class GradioMCPServer:
             app: The Gradio app to mount the MCP server on.
             subpath: The subpath to mount the MCP server on. E.g. "/gradio_api/mcp"
         """
-        messages_path = f"{subpath}/messages/"
+        messages_path = "/messages/"
         sse = SseServerTransport(messages_path)
 
         async def handle_sse(request):
@@ -157,6 +184,7 @@ class GradioMCPServer:
                         streams[1],
                         self.mcp_server.create_initialization_options(),
                     )
+                return Response()
             except Exception as e:
                 print(f"MCP SSE connection error: {str(e)}")
                 raise
@@ -194,6 +222,24 @@ class GradioMCPServer:
             None,
         )
         return block_fn
+
+    @staticmethod
+    def insert_empty_state(
+        inputs: Sequence["Component | BlockContext"], data: list
+    ) -> list:
+        for i, input_component_type in enumerate(inputs):
+            if isinstance(input_component_type, State):
+                data.insert(i, None)
+        return data
+
+    @staticmethod
+    def pop_returned_state(
+        inputs: Sequence["Component | BlockContext"], data: list
+    ) -> list:
+        for i, input_component_type in enumerate(inputs):
+            if isinstance(input_component_type, State):
+                data.pop(i)
+        return data
 
     def get_input_schema(
         self,
