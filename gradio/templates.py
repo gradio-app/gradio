@@ -622,6 +622,7 @@ class Numpy(components.Dataframe):
             Literal["str", "number", "bool", "date", "markdown", "html"]
             | Sequence[Literal["str", "number", "bool", "date", "markdown", "html"]]
         ) = "str",
+        bool_input: Literal["checkbox", "text"] = "checkbox",
         type: Literal["numpy"] = "numpy",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | I18nData | None = None,
@@ -660,6 +661,7 @@ class Numpy(components.Dataframe):
             row_count=row_count,
             col_count=col_count,
             datatype=datatype,
+            bool_input=bool_input,
             type=type,
             label=label,
             show_label=show_label,
@@ -707,6 +709,7 @@ class Matrix(components.Dataframe):
             Literal["str", "number", "bool", "date", "markdown", "html"]
             | Sequence[Literal["str", "number", "bool", "date", "markdown", "html"]]
         ) = "str",
+        bool_input: Literal["checkbox", "text"] = "checkbox",
         type: Literal["array"] = "array",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | I18nData | None = None,
@@ -745,6 +748,7 @@ class Matrix(components.Dataframe):
             row_count=row_count,
             col_count=col_count,
             datatype=datatype,
+            bool_input=bool_input,
             type=type,
             label=label,
             show_label=show_label,
@@ -792,6 +796,7 @@ class List(components.Dataframe):
             Literal["str", "number", "bool", "date", "markdown", "html"]
             | Sequence[Literal["str", "number", "bool", "date", "markdown", "html"]]
         ) = "str",
+        bool_input: Literal["checkbox", "text"] = "checkbox",
         type: Literal["array"] = "array",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | I18nData | None = None,
@@ -830,6 +835,7 @@ class List(components.Dataframe):
             row_count=row_count,
             col_count=col_count,
             datatype=datatype,
+            bool_input=bool_input,
             type=type,
             label=label,
             show_label=show_label,
