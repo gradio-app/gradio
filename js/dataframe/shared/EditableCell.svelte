@@ -34,11 +34,11 @@
 	export let i18n: I18nFormatter;
 	export let is_dragging = false;
 	export let wrap_text = false;
-
 	export let show_selection_buttons = false;
 	export let coords: [number, number];
 	export let on_select_column: ((col: number) => void) | null = null;
 	export let on_select_row: ((row: number) => void) | null = null;
+	export let el: HTMLInputElement | null;
 
 	const dispatch = createEventDispatcher<{
 		blur: { blur_event: FocusEvent; coords: [number, number] };
@@ -46,8 +46,6 @@
 	}>();
 
 	let is_expanded = false;
-
-	export let el: HTMLInputElement | null;
 
 	function truncate_text(
 		text: string | number,
@@ -106,9 +104,10 @@
 
 	function handle_bool_change(new_value: boolean): void {
 		value = new_value.toString();
-		const event = new FocusEvent("blur");
 		dispatch("blur", {
-			blur_event: event,
+			blur_event: {
+				target: el
+			} as FocusEvent,
 			coords: coords
 		});
 	}
@@ -135,6 +134,7 @@
 
 {#if datatype === "bool"}
 	<BooleanCell
+		bind:el
 		value={String(display_content)}
 		{editable}
 		{bool_input}

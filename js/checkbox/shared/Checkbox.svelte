@@ -5,6 +5,7 @@
 	export let value = false;
 	export let label = "Checkbox";
 	export let interactive: boolean;
+	export let el: HTMLInputElement | null = null;
 
 	const dispatch = createEventDispatcher<{
 		change: boolean;
@@ -43,6 +44,7 @@
 
 <label class:disabled>
 	<input
+		bind:this={el}
 		bind:checked={value}
 		on:keydown={handle_enter}
 		on:input={handle_input}

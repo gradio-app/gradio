@@ -2,6 +2,7 @@
 	import type { BoolInputType } from "./utils";
 	import { BaseCheckbox } from "@gradio/checkbox";
 
+	export let el: HTMLInputElement | null = null;
 	export let value: boolean | string = false;
 	export let editable = true;
 	export let bool_input: BoolInputType = "checkbox";
@@ -18,6 +19,7 @@
 {#if bool_input === "checkbox"}
 	<div class="bool-cell checkbox">
 		<BaseCheckbox
+			bind:el
 			bind:value={bool_value}
 			label=""
 			interactive={editable}
