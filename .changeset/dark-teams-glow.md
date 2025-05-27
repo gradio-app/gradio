@@ -1,5 +1,4 @@
 ---
-"@gradio/checkbox": minor
 "@gradio/dataframe": minor
 "gradio": minor
 ---
