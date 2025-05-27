@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/slider",
-	"version": "0.6.9",
+	"version": "0.6.10",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

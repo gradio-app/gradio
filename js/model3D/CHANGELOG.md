@@ -1,5 +1,11 @@
 # @gradio/model3d
 
+## 0.14.14
+
+### Fixes
+
+- [#11230](https://github.com/gradio-app/gradio/pull/11230) [`62a8d97`](https://github.com/gradio-app/gradio/commit/62a8d97fe8a92886f22af11b5fdef14bace69ea8) - Fix Model3D `camera_position` param.  Thanks @dawoodkhan82!
+
 ## 0.14.13
 
 ### Dependency updates
