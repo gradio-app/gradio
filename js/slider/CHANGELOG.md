@@ -1,5 +1,18 @@
 # @gradio/slider
 
+## 0.6.10
+
+### Fixes
+
+- [#11228](https://github.com/gradio-app/gradio/pull/11228) [`0b7f753`](https://github.com/gradio-app/gradio/commit/0b7f753a8e400795b5e03fd3faf2a6d1f4426f05) - Improve slider alignment.  Thanks @hannahblair!
+
+## 0.6.9
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.11
+- @gradio/atoms@0.16.1
+
 ## 0.6.8
 
 ### Dependency updates

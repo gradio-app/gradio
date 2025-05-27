@@ -38,5 +38,5 @@
 	disabled={!interactive}
 	on:click={() => gradio.dispatch("click")}
 >
-	{value ? gradio.i18n(value) : ""}
+	{value ?? ""}
 </Button>

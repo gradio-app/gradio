@@ -6,7 +6,12 @@
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import Plot from "./shared/Plot.svelte";
 
-	import { Block, BlockLabel } from "@gradio/atoms";
+	import {
+		Block,
+		BlockLabel,
+		FullscreenButton,
+		IconButtonWrapper
+	} from "@gradio/atoms";
 	import { Plot as PlotIcon } from "@gradio/icons";
 
 	import { StatusTracker } from "@gradio/statustracker";
@@ -35,6 +40,8 @@
 	export let show_actions_button = false;
 	export let _selectable = false;
 	export let x_lim: [number, number] | null = null;
+	export let show_fullscreen_button = false;
+	let fullscreen = false;
 </script>
 
 <Block
@@ -46,12 +53,23 @@
 	{scale}
 	{min_width}
 	allow_overflow={false}
+	bind:fullscreen
 >
 	<BlockLabel
 		{show_label}
 		label={label || gradio.i18n("plot.plot")}
 		Icon={PlotIcon}
 	/>
+	{#if show_fullscreen_button}
+		<IconButtonWrapper>
+			<FullscreenButton
+				{fullscreen}
+				on:fullscreen={({ detail }) => {
+					fullscreen = detail;
+				}}
+			/>
+		</IconButtonWrapper>
+	{/if}
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}

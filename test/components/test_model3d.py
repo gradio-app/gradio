@@ -30,6 +30,7 @@ class TestModel3D:
             "pan_speed": 1,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
         }
 
         file = "test/test_files/Box.gltf"

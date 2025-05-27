@@ -2,6 +2,7 @@
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Block } from "@gradio/atoms";
+	import { FullscreenButton, IconButtonWrapper } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { onMount } from "svelte";
@@ -48,6 +49,9 @@
 	export let caption: string | null = null;
 	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
 	export let tooltip: "axis" | "none" | "all" | string[] = "axis";
+	export let show_fullscreen_button = false;
+	let fullscreen = false;
+
 	function reformat_sort(
 		_sort: typeof sort
 	):
@@ -153,6 +157,10 @@
 
 	let vegaEmbed: typeof import("vega-embed").default;
 	async function load_chart(): Promise<void> {
+		if (mouse_down_on_chart) {
+			refresh_pending = true;
+			return;
+		}
 		if (view) {
 			view.finalize();
 		}
@@ -197,36 +205,31 @@
 			);
 			if (_selectable) {
 				view.addSignalListener("brush", function (_, value) {
+					mouse_down_on_chart = true;
 					if (Object.keys(value).length === 0) return;
 					clearTimeout(debounceTimeout);
 					let range: [number, number] = value[Object.keys(value)[0]];
 					if (x_temporal) {
 						range = [range[0] / 1000, range[1] / 1000];
 					}
-					let callback = (): void => {
+					debounceTimeout = setTimeout(function () {
+						mouse_down_on_chart = false;
 						gradio.dispatch("select", {
 							value: range,
 							index: range,
 							selected: true
 						});
-					};
-					if (mouse_down_on_chart) {
-						release_callback = callback;
-					} else {
-						debounceTimeout = setTimeout(function () {
-							gradio.dispatch("select", {
-								value: range,
-								index: range,
-								selected: true
-							});
-						}, 250);
+					}, 250);
+					if (refresh_pending) {
+						refresh_pending = false;
+						load_chart();
 					}
 				});
 			}
 		});
 	}
 
-	let release_callback: (() => void) | null = null;
+	let refresh_pending = false;
 	onMount(() => {
 		mounted = true;
 		return () => {
@@ -239,19 +242,6 @@
 			}
 		};
 	});
-
-	$: if (mounted && chart_element) {
-		chart_element.addEventListener("mousedown", () => {
-			mouse_down_on_chart = true;
-		});
-		chart_element.addEventListener("mouseup", () => {
-			mouse_down_on_chart = false;
-			if (release_callback) {
-				release_callback();
-				release_callback = null;
-			}
-		});
-	}
 
 	$: title,
 		x_title,
@@ -539,6 +529,7 @@
 	allow_overflow={false}
 	padding={true}
 	{height}
+	bind:fullscreen
 >
 	{#if loading_status}
 		<StatusTracker
@@ -548,7 +539,18 @@
 			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 	{/if}
+	{#if show_fullscreen_button}
+		<IconButtonWrapper>
+			<FullscreenButton
+				{fullscreen}
+				on:fullscreen={({ detail }) => {
+					fullscreen = detail;
+				}}
+			/>
+		</IconButtonWrapper>
+	{/if}
 	<BlockTitle {root} {show_label} info={undefined}>{label}</BlockTitle>
+
 	{#if value && is_browser}
 		<div bind:this={chart_element}></div>
 

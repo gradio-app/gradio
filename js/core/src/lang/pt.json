@@ -87,7 +87,8 @@
 		"runtime_error": "Há um erro de execução",
 		"space_not_working": "\"O Space não está a funcionar porque\" {0}",
 		"space_paused": "O Space está em pausa",
-		"use_via_api": "Utilizar via API"
+		"use_via_api": "Usar via API",
+		"use_via_api_or_mcp": "Usar via API ou MCP"
 	},
 	"file": {
 		"uploading": "A carregar..."

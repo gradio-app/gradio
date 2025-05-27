@@ -76,6 +76,7 @@
 	export let show_search: "none" | "search" | "filter" = "none";
 	export let pinned_columns = 0;
 	export let static_columns: (string | number)[] = [];
+	export let fullscreen = false;
 
 	const df_ctx = create_dataframe_context({
 		show_fullscreen_button,
@@ -127,23 +128,22 @@
 		observer.observe(parent);
 		document.addEventListener("click", handle_click_outside);
 		window.addEventListener("resize", handle_resize);
-		document.addEventListener("fullscreenchange", handle_fullscreen_change);
 
 		return () => {
 			observer.disconnect();
 			document.removeEventListener("click", handle_click_outside);
 			window.removeEventListener("resize", handle_resize);
-			document.removeEventListener(
-				"fullscreenchange",
-				handle_fullscreen_change
-			);
 		};
 	});
 
-	$: if (data || _headers || els) {
-		df_ctx.data = data;
-		df_ctx.headers = _headers;
-		df_ctx.els = els;
+	$: {
+		if (data || _headers || els) {
+			df_ctx.data = data;
+			df_ctx.headers = _headers;
+			df_ctx.els = els;
+			df_ctx.display_value = display_value;
+			df_ctx.styling = styling;
+		}
 	}
 
 	const dispatch = createEventDispatcher<{
@@ -169,7 +169,6 @@
 		display_value?: string;
 		styling?: string;
 	}[][] = [[]];
-	let is_fullscreen = false;
 	let dragging = false;
 	let color_accent_copied: string;
 	let filtered_to_original_map: number[] = [];
@@ -248,6 +247,9 @@
 			df_actions.reset_sort_state();
 		} else if ($df_state.sort_state.sort_columns.length > 0) {
 			sort_data(data, display_value, styling);
+		} else {
+			df_actions.handle_sort(-1, "asc");
+			df_actions.reset_sort_state();
 		}
 
 		if ($df_state.current_search_query) {
@@ -329,7 +331,6 @@
 
 	function clear_sort(): void {
 		df_actions.reset_sort_state();
-		sort_data(data, display_value, styling);
 	}
 
 	$: if ($df_state.sort_state.sort_columns.length > 0) {
@@ -523,20 +524,6 @@
 	): void {
 		const { blur_event, coords } = event.detail;
 		handle_cell_blur(blur_event, df_ctx, coords);
-	}
-
-	function toggle_fullscreen(): void {
-		if (!document.fullscreenElement) {
-			parent.requestFullscreen();
-			is_fullscreen = true;
-		} else {
-			document.exitFullscreen();
-			is_fullscreen = false;
-		}
-	}
-
-	function handle_fullscreen_change(): void {
-		is_fullscreen = !!document.fullscreenElement;
 	}
 
 	function toggle_header_menu(event: MouseEvent, col: number): void {
@@ -750,12 +737,12 @@
 			{/if}
 			<Toolbar
 				{show_fullscreen_button}
-				{is_fullscreen}
-				on:click={toggle_fullscreen}
+				{fullscreen}
 				on_copy={async () => await copy_table_data(data, null)}
 				{show_copy_button}
 				{show_search}
 				on:search={(e) => df_actions.handle_search(e.detail)}
+				on:fullscreen
 				on_commit_filter={commit_filter}
 				current_search_query={$df_state.current_search_query}
 			/>

@@ -283,6 +283,11 @@ def watchfn(reloader: SourceFileReloader):
     # module is available in the namespace of this thread
     module = reloader.watch_module
     no_reload_source_code = _remove_if_name_main_codeblock(str(reloader.demo_file))
+    # Reset the context to id 0 so that the loaded module is the same as the original
+    # See https://github.com/gradio-app/gradio/issues/10253
+    from gradio.context import Context
+
+    Context.id = 0
     exec(no_reload_source_code, module.__dict__)
     sys.modules[reloader.watch_module_name] = module
 
@@ -588,11 +593,16 @@ def assert_configs_are_equivalent_besides_ids(
     return True
 
 
-def delete_none(_dict: dict, skip_value: bool = False) -> dict:
+def delete_none(
+    _dict: dict, skip_value: bool = False, skip_props: list[str] | None = None
+) -> dict:
     """
     Delete keys whose values are None from a dictionary
     """
+    skip_props = [] if skip_props is None else skip_props
     for key, value in list(_dict.items()):
+        if key in skip_props:
+            continue
         if skip_value and key == "value":
             continue
         elif value is None:

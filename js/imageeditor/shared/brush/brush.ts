@@ -94,22 +94,18 @@ export class BrushTool implements Tool {
 		tool: ToolbarTool,
 		subtool: Subtool
 	): Promise<void> {
-		// Store context and tool information
 		this.image_editor_context = context;
 		this.current_tool = tool;
 		this.current_subtool = subtool;
 
-		// Set mode based on tool
 		this.state.mode = tool === "erase" ? "erase" : "draw";
 
-		// Set size based on mode
 		if (this.state.mode === "draw") {
 			this.state.brush_size = this.brush_size;
 		} else {
 			this.state.brush_size = this.eraser_size;
 		}
 
-		// Subscribe to scale changes
 		context.scale.subscribe((scale) => {
 			this.scale = scale;
 			if (this.brush_cursor) {
@@ -117,27 +113,22 @@ export class BrushTool implements Tool {
 			}
 		});
 
-		// Initialize brush cursor
 		this.brush_cursor = new BrushCursor(
 			this.image_editor_context,
 			this.state,
 			this.scale
 		);
 
-		// Set initial active state
 		this.brush_cursor.set_active(tool === "draw" || tool === "erase");
 
-		// Initialize brush textures
 		this.brush_textures = new BrushTextures(
 			this.image_editor_context,
 			context.app
 		);
 		this.brush_textures.initialize_textures();
 
-		// Set up event listeners
 		this.setup_event_listeners();
 
-		// Set cursor style for image container
 		this.handle_cursors(tool);
 	}
 
@@ -147,7 +138,6 @@ export class BrushTool implements Tool {
 	 * @private
 	 */
 	private handle_cursors(tool: ToolbarTool): void {
-		// Set cursor style to 'none' for all children of the image container
 		recurse_set_cursor(
 			this.image_editor_context.image_container.children as Container[],
 			"none"
@@ -160,7 +150,6 @@ export class BrushTool implements Tool {
 	 * @param {Subtool} subtool - The current subtool.
 	 */
 	set_tool(tool: ToolbarTool, subtool: Subtool): void {
-		// Update current tool and subtool
 		this.current_tool = tool;
 		this.current_subtool = subtool;
 
@@ -168,14 +157,10 @@ export class BrushTool implements Tool {
 			this.commit_pending_changes();
 		}
 
-		// Commit any pending changes
-
-		// Set brush cursor active state
 		if (this.brush_cursor) {
 			this.brush_cursor.set_active(tool === "draw" || tool === "erase");
 		}
 
-		// Update mode based on tool
 		const new_mode = tool === "erase" ? "erase" : "draw";
 		if (tool === "erase" || tool === "draw") {
 			this.brush_textures?.initialize_textures();
@@ -183,14 +168,12 @@ export class BrushTool implements Tool {
 		if (this.state.mode !== new_mode) {
 			this.state.mode = new_mode;
 
-			// Update brush size based on mode
 			if (this.state.mode === "draw") {
 				this.state.brush_size = this.brush_size;
 			} else {
 				this.state.brush_size = this.eraser_size;
 			}
 
-			// Update cursor
 			if (this.brush_cursor) {
 				this.brush_cursor.update_state(this.state, this.scale);
 			}
@@ -224,22 +207,18 @@ export class BrushTool implements Tool {
 
 		if (this.brush_cursor && !this.brush_cursor.is_over_image()) return;
 
-		// Preserve the current canvas state
 		if (this.brush_textures) {
 			this.brush_textures.preserve_canvas_state();
 		}
 
-		// Get the local position
 		const local_pos = this.image_editor_context.image_container.toLocal(
 			event.global
 		);
 
-		// Start drawing
 		this.is_drawing = true;
 		this.last_x = local_pos.x;
 		this.last_y = local_pos.y;
 
-		// Draw a single point
 		if (this.brush_textures) {
 			this.brush_textures.draw_segment(
 				local_pos.x,
@@ -260,20 +239,16 @@ export class BrushTool implements Tool {
 	 * @private
 	 */
 	private on_pointer_move(event: FederatedPointerEvent): void {
-		// Update cursor position
 		if (this.brush_cursor) {
 			this.brush_cursor.update_cursor_position(event);
 		}
 
-		// If not drawing, exit
 		if (!this.is_drawing) return;
 
-		// Get the local position
 		const local_pos = this.image_editor_context.image_container.toLocal(
 			event.global
 		);
 
-		// Draw line from last position to current position
 		if (this.brush_textures) {
 			this.brush_textures.draw_segment(
 				this.last_x,
@@ -287,7 +262,6 @@ export class BrushTool implements Tool {
 			);
 		}
 
-		// Update last position
 		this.last_x = local_pos.x;
 		this.last_y = local_pos.y;
 	}
@@ -297,13 +271,10 @@ export class BrushTool implements Tool {
 	 * @private
 	 */
 	private on_pointer_up(): void {
-		// If not drawing, exit
 		if (!this.is_drawing) return;
 
-		// Stop drawing
 		this.is_drawing = false;
 
-		// Commit the stroke
 		if (this.brush_textures) {
 			this.brush_textures.commit_stroke();
 		}
@@ -316,30 +287,24 @@ export class BrushTool implements Tool {
 	 * @private
 	 */
 	private setup_event_listeners(): void {
-		// Remove existing listeners if they exist
 		this.cleanup_event_listeners();
 
-		// Create bound event handlers
 		this._bound_pointer_down = this.on_pointer_down.bind(this);
 		this._bound_pointer_move = this.on_pointer_move.bind(this);
 		this._bound_pointer_up = this.on_pointer_up.bind(this);
 
-		// Set interactive mode for image container
 		const image_container = this.image_editor_context.image_container;
 		image_container.eventMode = "static";
 		image_container.interactiveChildren = true;
 
-		// Setup for stage
 		const stage = this.image_editor_context.app.stage;
 		stage.eventMode = "static";
 
-		// Add pointer events to the stage for global tracking
 		stage.on("pointerdown", this._bound_pointer_down);
 		stage.on("pointermove", this._bound_pointer_move);
 		stage.on("pointerup", this._bound_pointer_up);
 		stage.on("pointerupoutside", this._bound_pointer_up);
 
-		// Set up cursor event listeners
 		if (this.brush_cursor) {
 			this.brush_cursor.setup_event_listeners();
 		}
@@ -352,7 +317,6 @@ export class BrushTool implements Tool {
 	private cleanup_event_listeners(): void {
 		const stage = this.image_editor_context.app.stage;
 
-		// Remove event listeners if they exist
 		if (this._bound_pointer_down) {
 			stage.off("pointerdown", this._bound_pointer_down);
 			this._bound_pointer_down = null;
@@ -369,7 +333,6 @@ export class BrushTool implements Tool {
 			this._bound_pointer_up = null;
 		}
 
-		// Clean up cursor event listeners
 		if (this.brush_cursor) {
 			this.brush_cursor.cleanup_event_listeners();
 		}
@@ -380,14 +343,11 @@ export class BrushTool implements Tool {
 	 * @param {number} size - The new brush size.
 	 */
 	set_brush_size(size: number): void {
-		// Set brush size
 		this.brush_size = size;
 
-		// Update state if in draw mode
 		if (this.state.mode === "draw") {
 			this.state.brush_size = size;
 
-			// Update cursor
 			if (this.brush_cursor) {
 				this.brush_cursor.update_state(this.state, this.scale);
 			}
@@ -399,13 +359,10 @@ export class BrushTool implements Tool {
 	 * @param {string|ColorInput} color - The new brush color.
 	 */
 	set_brush_color(color: string | ColorInput): void {
-		// Convert to hex string
 		const color_string = tinycolor(color).toHexString();
 
-		// Set color
 		this.state.color = color_string;
 
-		// Update cursor
 		if (this.brush_cursor) {
 			this.brush_cursor.update_state(this.state, this.scale);
 		}
@@ -416,13 +373,10 @@ export class BrushTool implements Tool {
 	 * @param {number} opacity - The new brush opacity.
 	 */
 	set_brush_opacity(opacity: number): void {
-		// Clamp opacity between 0 and 1
 		const clamped_opacity = Math.max(0, Math.min(1, opacity));
 
-		// Set opacity
 		this.state.opacity = clamped_opacity;
 
-		// Update cursor
 		if (this.brush_cursor) {
 			this.brush_cursor.update_state(this.state, this.scale);
 		}
@@ -433,14 +387,11 @@ export class BrushTool implements Tool {
 	 * @param {number} size - The new eraser size.
 	 */
 	set_eraser_size(size: number): void {
-		// Store the new eraser size
 		this.eraser_size = size;
 
-		// Update state if in erase mode
 		if (this.state.mode === "erase") {
 			this.state.brush_size = size;
 
-			// Update cursor
 			if (this.brush_cursor) {
 				this.brush_cursor.update_state(this.state, this.scale);
 			}
@@ -469,19 +420,15 @@ export class BrushTool implements Tool {
 	 * Cleans up resources used by the brush tool.
 	 */
 	cleanup(): void {
-		// Commit any pending changes
 		this.commit_pending_changes();
 
-		// Clean up event listeners
 		this.cleanup_event_listeners();
 
-		// Clean up brush textures
 		if (this.brush_textures) {
 			this.brush_textures.cleanup();
 			this.brush_textures = null;
 		}
 
-		// Clean up brush cursor
 		if (this.brush_cursor) {
 			this.brush_cursor.cleanup();
 			this.brush_cursor = null;

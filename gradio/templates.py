@@ -10,6 +10,7 @@ import PIL.Image
 from gradio import components
 from gradio.components.audio import WaveformOptions
 from gradio.components.image_editor import Brush, Eraser, LayerOptions, WebcamOptions
+from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -29,8 +30,8 @@ class TextArea(components.Textbox):
         lines: int = 7,
         max_lines: int = 20,
         placeholder: str | None = None,
-        label: str | None = None,
-        info: str | None = None,
+        label: str | I18nData | None = None,
+        info: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: (
             components.Component
@@ -49,7 +50,8 @@ class TextArea(components.Textbox):
         autoscroll: bool = True,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         type: Literal["text", "password", "email"] = "text",
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
@@ -79,6 +81,7 @@ class TextArea(components.Textbox):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             type=type,
             text_align=text_align,
             rtl=rtl,
@@ -107,7 +110,7 @@ class Sketchpad(components.ImageEditor):
         ] = "RGBA",
         sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: (
             components.Component
@@ -125,7 +128,8 @@ class Sketchpad(components.ImageEditor):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         placeholder: str | None = None,
         mirror_webcam: bool | None = None,
         webcam_options: WebcamOptions | None = None,
@@ -164,6 +168,7 @@ class Sketchpad(components.ImageEditor):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             placeholder=placeholder,
             mirror_webcam=mirror_webcam,
             webcam_options=webcam_options,
@@ -199,7 +204,7 @@ class Paint(components.ImageEditor):
         ] = "RGBA",
         sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: (
             components.Component
@@ -217,7 +222,8 @@ class Paint(components.ImageEditor):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         mirror_webcam: bool | None = None,
         webcam_options: WebcamOptions | None = None,
         show_share_button: bool | None = None,
@@ -254,6 +260,7 @@ class Paint(components.ImageEditor):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             mirror_webcam=mirror_webcam,
             webcam_options=webcam_options,
             show_share_button=show_share_button,
@@ -293,7 +300,7 @@ class ImageMask(components.ImageEditor):
             "clipboard",
         ),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: (
             components.Component
@@ -311,7 +318,8 @@ class ImageMask(components.ImageEditor):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         placeholder: str | None = None,
         mirror_webcam: bool | None = None,
         show_share_button: bool | None = None,
@@ -350,6 +358,7 @@ class ImageMask(components.ImageEditor):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             placeholder=placeholder,
             mirror_webcam=mirror_webcam,
             webcam_options=webcam_options,
@@ -386,7 +395,7 @@ class PlayableVideo(components.Video):
         ) = None,
         height: int | str | None = None,
         width: int | str | None = None,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: (
             components.Component
@@ -403,7 +412,8 @@ class PlayableVideo(components.Video):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         mirror_webcam: bool | None = None,
         webcam_options: WebcamOptions | None = None,
         include_audio: bool | None = None,
@@ -437,6 +447,7 @@ class PlayableVideo(components.Video):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             mirror_webcam=mirror_webcam,
             include_audio=include_audio,
             autoplay=autoplay,
@@ -469,7 +480,7 @@ class Microphone(components.Audio):
             | None
         ) = None,
         type: Literal["numpy", "filepath"] = "numpy",
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: (
             components.Component
@@ -487,7 +498,8 @@ class Microphone(components.Audio):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         format: Literal["wav", "mp3"] = "wav",
         autoplay: bool = False,
         show_download_button: bool | None = None,
@@ -518,6 +530,7 @@ class Microphone(components.Audio):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             format=format,
             autoplay=autoplay,
             show_download_button=show_download_button,
@@ -545,7 +558,7 @@ class Files(components.File):
         file_count: Literal["multiple"] = "multiple",
         file_types: list[str] | None = None,
         type: Literal["filepath", "binary"] = "filepath",
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: (
             components.Component
@@ -563,7 +576,8 @@ class Files(components.File):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         allow_reordering: bool = False,
     ):
         super().__init__(
@@ -585,6 +599,7 @@ class Files(components.File):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             allow_reordering=allow_reordering,
         )
 
@@ -609,7 +624,7 @@ class Numpy(components.Dataframe):
         ) = "str",
         type: Literal["numpy"] = "numpy",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
         inputs: (
@@ -626,7 +641,8 @@ class Numpy(components.Dataframe):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
@@ -654,6 +670,7 @@ class Numpy(components.Dataframe):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             line_breaks=line_breaks,
             column_widths=column_widths,
             every=every,
@@ -692,7 +709,7 @@ class Matrix(components.Dataframe):
         ) = "str",
         type: Literal["array"] = "array",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
         inputs: (
@@ -709,7 +726,8 @@ class Matrix(components.Dataframe):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
@@ -737,6 +755,7 @@ class Matrix(components.Dataframe):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             line_breaks=line_breaks,
             column_widths=column_widths,
             every=every,
@@ -775,7 +794,7 @@ class List(components.Dataframe):
         ) = "str",
         type: Literal["array"] = "array",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
         inputs: (
@@ -792,7 +811,8 @@ class List(components.Dataframe):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
@@ -820,6 +840,7 @@ class List(components.Dataframe):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             line_breaks=line_breaks,
             column_widths=column_widths,
             every=every,

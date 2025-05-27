@@ -134,12 +134,10 @@
 
 	async function scroll_on_value_update(): Promise<void> {
 		if (!autoscroll) return;
-
 		if (is_at_bottom()) {
 			// Child components may be loaded asynchronously,
 			// so trigger the scroll again after they load.
 			scroll_after_component_load = true;
-
 			await tick(); // Wait for the DOM to update so that the scrollHeight is correct
 			scroll_to_bottom();
 		} else {
@@ -147,6 +145,9 @@
 		}
 	}
 	onMount(() => {
+		if (autoscroll) {
+			scroll_to_bottom();
+		}
 		scroll_on_value_update();
 	});
 	$: if (value || pending_message || _components) {

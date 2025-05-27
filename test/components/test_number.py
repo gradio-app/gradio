@@ -34,6 +34,7 @@ class TestNumber:
             "precision": None,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
         }
 
     def test_component_functions_integer(self):
@@ -68,6 +69,7 @@ class TestNumber:
             "precision": 0,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
         }
 
     def test_component_functions_precision(self):

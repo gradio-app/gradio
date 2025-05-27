@@ -9,6 +9,7 @@
 	export let open = false;
 	export let theme_mode: "system" | "light" | "dark" = "system";
 	export let show_indices = false;
+	export let interactive = true;
 
 	const dispatch = createEventDispatcher();
 	let root_element: HTMLElement;
@@ -82,9 +83,10 @@
 		<span class="content">
 			{#if is_collapsible(value)}
 				<button
-					data-pseudo-content={collapsed ? "▶" : "▼"}
+					data-pseudo-content={interactive ? (collapsed ? "▶" : "▼") : ""}
 					aria-label={collapsed ? "Expand" : "Collapse"}
 					class="toggle"
+					disabled={!interactive}
 					on:click={toggle_collapse}
 				/>
 			{/if}
@@ -133,7 +135,7 @@
 					value={subVal}
 					depth={depth + 1}
 					is_last_item={i === child_nodes.length - 1}
-					key={subKey}
+					key={Array.isArray(value) && !show_indices ? null : subKey}
 					{open}
 					{theme_mode}
 					{show_indices}

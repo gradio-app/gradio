@@ -9,14 +9,16 @@ from typing import (
     Literal,
 )
 
-import pandas as pd
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.data_classes import GradioModel
 from gradio.events import Events
+from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
+    import pandas as pd
+
     from gradio.components import Timer
 
 
@@ -56,11 +58,11 @@ class NativePlot(Component):
         x_label_angle: float = 0,
         y_label_angle: float = 0,
         x_axis_labels_visible: bool = True,
-        caption: str | None = None,
+        caption: str | I18nData | None = None,
         sort: Literal["x", "y", "-x", "-y"] | list[str] | None = None,
         tooltip: Literal["axis", "none", "all"] | list[str] = "axis",
         height: int | None = None,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -71,7 +73,9 @@ class NativePlot(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        show_fullscreen_button: bool = False,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         **kwargs,
     ):
         """
@@ -108,7 +112,9 @@ class NativePlot(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
+            show_fullscreen_button: If True, will show a button to make plot visible in fullscreen mode.
+            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
+            preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
         """
         self.x = x
         self.y = y
@@ -129,6 +135,7 @@ class NativePlot(Component):
         self.sort = sort
         self.tooltip = tooltip
         self.height = height
+        self.show_fullscreen_button = show_fullscreen_button
 
         if label is None and show_label is None:
             show_label = False
@@ -144,6 +151,7 @@ class NativePlot(Component):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             every=every,
             inputs=inputs,
         )
@@ -191,6 +199,8 @@ class NativePlot(Component):
             return value
 
         def get_simplified_type(dtype):
+            import pandas as pd
+
             if pd.api.types.is_numeric_dtype(dtype):
                 return "quantitative"
             elif pd.api.types.is_string_dtype(

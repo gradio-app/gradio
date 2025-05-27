@@ -9,6 +9,7 @@ from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.events import Events
+from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -98,7 +99,7 @@ class Code(Component):
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         lines: int = 5,
         max_lines: int | None = None,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         interactive: bool | None = None,
         show_label: bool | None = None,
         container: bool = True,
@@ -108,7 +109,8 @@ class Code(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         wrap_lines: bool = False,
         show_line_numbers: bool = True,
         autocomplete: bool = False,
@@ -129,7 +131,8 @@ class Code(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
+            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
+            preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             lines: Minimum number of visible lines to show in the code editor.
             max_lines: Maximum number of visible lines to show in the code editor. Defaults to None and will fill the height of the container.
             wrap_lines: If True, will wrap lines to the width of the container when overflow occurs. Defaults to False.
@@ -159,6 +162,7 @@ class Code(Component):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             value=value,
         )
 

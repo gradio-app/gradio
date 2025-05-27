@@ -1,5 +1,17 @@
 # @gradio/uploadbutton
 
+## 0.9.0
+
+### Features
+
+- [#11047](https://github.com/gradio-app/gradio/pull/11047) [`6d4b8a7`](https://github.com/gradio-app/gradio/commit/6d4b8a7f10daefc9c79aa224635da23fbaeebb76) - Implement custom i18n.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/client@1.15.0
+- @gradio/upload@0.16.5
+- @gradio/button@0.5.0
+
 ## 0.8.18
 
 ### Dependency updates

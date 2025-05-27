@@ -87,7 +87,8 @@
 		"runtime_error": "存在运行时错误",
 		"space_not_working": "\"Space 无法工作，原因：\" {0}",
 		"space_paused": "Space 已暂停",
-		"use_via_api": "通过 API 使用"
+		"use_via_api": "通过 API 使用",
+		"use_via_api_or_mcp": "通过 API 或 MCP 使用"
 	},
 	"file": {
 		"uploading": "正在上传..."

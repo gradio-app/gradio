@@ -69,6 +69,10 @@
 		"language": "Language",
 		"display_theme": "Display Theme",
 		"pwa": "Progressive Web App",
+		"record": "Record",
+		"stop_recording": "Stop Recording",
+		"screen_studio": "Screen Studio",
+		"share_gradio_tab": "[Sharing] Gradio Tab",
 		"run": "Run"
 	},
 	"dataframe": {
@@ -98,7 +102,8 @@
 		"runtime_error": "there is a runtime error",
 		"space_not_working": "\"Space isn't working because\" {0}",
 		"space_paused": "the space is paused",
-		"use_via_api": "Use via API"
+		"use_via_api": "Use via API",
+		"use_via_api_or_mcp": "Use via API or MCP"
 	},
 	"file": {
 		"uploading": "Uploading..."
