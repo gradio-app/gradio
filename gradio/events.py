@@ -1025,6 +1025,10 @@ def api(
 
 
 class Events:
+    blur = EventListener(
+        "blur",
+        doc="This listener is triggered when the {{ component }} is unfocused/blurred.",
+    )
     change = EventListener(
         "change",
         doc="Triggered when the value of the {{ component }} changes either because of user input (e.g. a user types in a textbox) OR because of a function update (e.g. an image receives a value from the output of an event trigger). See `.input()` for a listener that is only triggered by user input.",

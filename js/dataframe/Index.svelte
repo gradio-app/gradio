@@ -12,6 +12,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import type { Headers, Datatype, DataframeValue } from "./shared/utils";
+	import type { BoolInputType } from "./shared/utils";
 	import Image from "@gradio/image";
 
 	export let headers: Headers = [];
@@ -30,7 +31,7 @@
 	export let show_label = true;
 	export let wrap: boolean;
 	export let datatype: Datatype | Datatype[];
-	export let bool_input: "checkbox" | "text" = "checkbox";
+	export let bool_input: BoolInputType = "checkbox";
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let root: string;
