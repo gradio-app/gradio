@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:sidebar fixes
+fix:A few frontend / UI fixes to `gr.Sidebar`
