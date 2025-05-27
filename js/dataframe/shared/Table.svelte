@@ -36,7 +36,7 @@
 		handle_file_upload
 	} from "./utils/table_utils";
 	import { make_headers, process_data } from "./utils/data_processing";
-	import { handle_keydown, handle_cell_blur } from "./utils/keyboard_utils";
+	import { handle_keydown, handle_cell_blur, handle_cell_checked_change } from "./utils/keyboard_utils";
 	import {
 		create_drag_handlers,
 		type DragState,
@@ -77,6 +77,7 @@
 	export let pinned_columns = 0;
 	export let static_columns: (string | number)[] = [];
 	export let fullscreen = false;
+	export let bool_input: "text" | "checkbox";
 
 	const df_ctx = create_dataframe_context({
 		show_fullscreen_button,
@@ -526,6 +527,30 @@
 		handle_cell_blur(blur_event, df_ctx, coords);
 	}
 
+	function handle_checked_change(
+		event: CustomEvent<{
+			current_checked: boolean;
+			coords: [number, number]
+		}>
+	): void {
+		const { current_checked, coords } = event.detail;
+		handle_cell_checked_change(current_checked, df_ctx, coords);
+	}
+
+	function toggle_fullscreen(): void {
+		if (!document.fullscreenElement) {
+			parent.requestFullscreen();
+			is_fullscreen = true;
+		} else {
+			document.exitFullscreen();
+			is_fullscreen = false;
+		}
+	}
+
+	function handle_fullscreen_change(): void {
+		is_fullscreen = !!document.fullscreenElement;
+	}
+
 	function toggle_header_menu(event: MouseEvent, col: number): void {
 		event.stopPropagation();
 		if (active_header_menu && active_header_menu.col === col) {
@@ -793,6 +818,7 @@
 							{i18n}
 							bind:el={els[id].input}
 							{col_count}
+							{bool_input}
 						/>
 					{/each}
 				</tr>
@@ -822,7 +848,9 @@
 									on_select_column={df_actions.handle_select_column}
 									on_select_row={df_actions.handle_select_row}
 									{is_dragging}
+									{bool_input}
 									on:blur={handle_blur}
+
 								/>
 							</div>
 						</td>
@@ -899,6 +927,7 @@
 								{i18n}
 								bind:el={els[id].input}
 								{col_count}
+								{bool_input}
 							/>
 						{/each}
 					</tr>
@@ -941,6 +970,8 @@
 								bind:el={els[id]}
 								{is_dragging}
 								{wrap}
+								{bool_input}
+								{handle_checked_change}
 							/>
 						{/each}
 					</tr>
