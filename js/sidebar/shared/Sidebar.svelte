@@ -71,6 +71,7 @@
 	<button
 		on:click={() => {
 			_open = !_open;
+			open = _open;
 			if (_open) {
 				dispatch("expand");
 			} else {
