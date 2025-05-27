@@ -24,7 +24,7 @@ class Number(FormComponent):
     Demos: tax_calculator, blocks_simple_squares
     """
 
-    EVENTS = [Events.change, Events.input, Events.submit, Events.focus]
+    EVENTS = [Events.change, Events.input, Events.submit, Events.focus, Events.blur]
 
     def __init__(
         self,
