@@ -162,7 +162,6 @@
 		transform: translateX(100%);
 		box-shadow: var(--size-1) 0 var(--size-1) rgba(0, 0, 0, 0.05);
 	}
-	
 
 	.sidebar.open.right {
 		transform: translateX(-100%);
