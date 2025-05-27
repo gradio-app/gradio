@@ -159,19 +159,20 @@
 
 	.sidebar.open:not(.right) {
 		transform: translateX(100%);
-		box-shadow: var(--size-1) 0 var(--size-2) rgba(100, 89, 89, 0.1);
+		box-shadow: var(--size-1) 0 var(--size-1) rgba(0, 0, 0, 0.05);
 	}
+	
 
 	.sidebar.open.right {
 		transform: translateX(-100%);
-		box-shadow: calc(var(--size-1) * -1) 0 var(--size-2) rgba(100, 89, 89, 0.1);
+		box-shadow: calc(var(--size-1) * -1) 0 var(--size-1) rgba(0, 0, 0, 0.05);
 	}
 
 	.toggle-button {
 		position: absolute;
 		top: var(--size-4);
-		background: none;
-		border: none;
+		background: var(--background-fill-secondary);
+		border: 1px solid var(--border-color-primary);
 		cursor: pointer;
 		padding: var(--size-2);
 		display: flex;
@@ -180,6 +181,7 @@
 		width: var(--size-8);
 		height: var(--size-8);
 		z-index: 1001;
+		border-radius: 0;
 	}
 
 	.toggle-button:not(.reduce-motion) {
@@ -188,22 +190,32 @@
 
 	.sidebar:not(.right) .toggle-button {
 		right: calc(var(--size-8) * -1);
+		border-radius: 0 var(--size-8) var(--size-8) 0;
+		border-left: none;
 	}
 
 	.sidebar.right .toggle-button {
 		left: calc(var(--size-8) * -1);
 		transform: rotate(180deg);
+		border-radius: 0 var(--size-8) var(--size-8) 0;
+		border-left: none;
 	}
 
 	.open:not(.right) .toggle-button {
-		right: var(--size-2-5);
+		right: 0;
 		transform: rotate(180deg);
+		border-radius: 0 var(--size-8) var(--size-8) 0;
+		border-left: none;
+		border-right: 1px solid var(--border-color-primary);
 	}
 
 	.open.right .toggle-button {
-		left: auto;
-		right: var(--size-2-5);
+		left: 0;
+		right: auto;
 		transform: rotate(0deg);
+		border-radius: 0 var(--size-8) var(--size-8) 0;
+		border-left: none;
+		border-right: 1px solid var(--border-color-primary);
 	}
 
 	.chevron {
