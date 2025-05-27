@@ -852,7 +852,11 @@ export class AddLayerCommand implements Command {
 		this.previous_active_layer = current_active?.id || null;
 	}
 
-	async execute(): Promise<void> {
+	async execute(context?: ImageEditorContext): Promise<void> {
+		if (context) {
+			this.context = context;
+		}
+
 		this.context.layer_manager.create_layer({
 			width: this.width,
 			height: this.height,
@@ -949,7 +953,11 @@ export class RemoveLayerCommand implements Command {
 		}
 	}
 
-	async execute(): Promise<void> {
+	async execute(context?: ImageEditorContext): Promise<void> {
+		if (context) {
+			this.context = context;
+		}
+
 		this.context.layer_manager.delete_layer(this.layer_data.id);
 	}
 
@@ -1043,7 +1051,11 @@ export class ReorderLayerCommand implements Command {
 		}
 	}
 
-	async execute(): Promise<void> {
+	async execute(context?: ImageEditorContext): Promise<void> {
+		if (context) {
+			this.context = context;
+		}
+
 		this.context.layer_manager.move_layer(this.layer_id, this.direction);
 	}
 

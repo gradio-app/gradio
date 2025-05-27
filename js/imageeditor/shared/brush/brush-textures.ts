@@ -12,17 +12,19 @@ export class BrushCommand implements Command {
 	private layer_id: string;
 	private original_texture: Texture;
 	private final_texture: Texture;
+	private context: ImageEditorContext;
+
 	name: string;
 
 	constructor(
-		private context: ImageEditorContext,
+		context: ImageEditorContext,
 		layer_id: string,
 		original_texture: Texture,
 		final_texture: Texture
 	) {
 		this.name = "Draw";
 		this.layer_id = layer_id;
-
+		this.context = context;
 		this.original_texture = this.createTextureFrom(original_texture);
 		this.final_texture = this.createTextureFrom(final_texture);
 	}
@@ -49,16 +51,35 @@ export class BrushCommand implements Command {
 		return texture;
 	}
 
-	async execute(): Promise<void> {
-		const layer_textures = this.context.layer_manager.get_layer_textures(
+	async execute(context: ImageEditorContext): Promise<void> {
+		console.log("execute", context);
+		if (context) {
+			this.context = context;
+		}
+
+		console.log("layer_id", this.layer_id);
+		console.log("context", this.context.layer_manager.get_layers());
+		let layer_textures = this.context.layer_manager.get_layer_textures(
 			this.layer_id
 		);
+
+		console.log("layer_textures", layer_textures);
+		if (!layer_textures) {
+			const all_layers = this.context.layer_manager.get_layers();
+			const top_layer = all_layers[all_layers.length - 1];
+			console.log("top_layer", top_layer, all_layers);
+			layer_textures = this.context.layer_manager.get_layer_textures(
+				top_layer.id
+			);
+			console.log("layer_textures", layer_textures);
+		}
+
 		if (!layer_textures) return;
 
 		const temp_sprite = new Sprite(this.final_texture);
 		const temp_container = new Container();
 		temp_container.addChild(temp_sprite);
-
+		console.log("RENDERING");
 		this.context.app.renderer.render(temp_container, {
 			renderTexture: layer_textures.draw
 		});
@@ -97,7 +118,8 @@ export class BrushTextures {
 	private preview_sprite: Sprite | null = null;
 	private erase_graphics: Graphics | null = null;
 	private dimensions: { width: number; height: number };
-
+	private image_editor_context: ImageEditorContext;
+	private app: Application;
 	private is_new_stroke = true;
 
 	private current_opacity = 1.0;
@@ -107,10 +129,11 @@ export class BrushTextures {
 	private original_layer_texture: Texture | null = null;
 	private active_layer_id: string | null = null;
 
-	constructor(
-		private image_editor_context: ImageEditorContext,
-		private app: Application
-	) {
+	constructor(image_editor_context: ImageEditorContext, app: Application) {
+		this.image_editor_context = image_editor_context;
+		this.app = app;
+
+		console.log("app", this.image_editor_context.app);
 		this.dimensions = {
 			width: this.image_editor_context.image_container.width,
 			height: this.image_editor_context.image_container.height

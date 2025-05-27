@@ -255,7 +255,8 @@ export class ImageEditor {
 		this.init();
 	}
 
-	private get context(): ImageEditorContext {
+	get context(): ImageEditorContext {
+		console.log("context", this.app.renderer);
 		const editor = this;
 		return {
 			app: this.app,
@@ -289,7 +290,13 @@ export class ImageEditor {
 			});
 		}).observe(this.target_element);
 
+		console.log(this.dark);
+
 		this.app = new Application();
+
+		if (!this.dark) {
+			globalThis.__PIXI_APP__ = this.app;
+		}
 		await this.app.init({
 			width: container_box.width,
 			height: container_box.height,
@@ -300,11 +307,12 @@ export class ImageEditor {
 			antialias: true,
 			powerPreference: "high-performance"
 		});
+		console.log("app", "done initialising");
 
 		const canvas = this.app.canvas as HTMLCanvasElement;
 		canvas.style.background = "transparent";
 
-		await this.setup_containers();
+		this.setup_containers();
 
 		this.layer_manager.create_background_layer(this.width, this.height);
 
@@ -439,7 +447,7 @@ export class ImageEditor {
 		this.ready_resolve();
 	}
 
-	private async setup_containers(): Promise<void> {
+	private setup_containers(): void {
 		this.image_container = new Container({
 			eventMode: "static",
 			sortableChildren: true

@@ -40,7 +40,6 @@
 	}>();
 
 	export const antialias = true;
-	export const full_history: CommandNode | null = null;
 
 	export let changeable = false;
 	export let sources: Source[] = ["upload", "webcam", "clipboard"];
@@ -63,6 +62,7 @@
 	export let webcam_options: WebcamOptions;
 	export let show_download_button = false;
 	export let theme_mode: "dark" | "light";
+	export let full_history: CommandNode | null = null;
 
 	let pixi_target: HTMLDivElement;
 	let pixi_target_crop: HTMLDivElement;
@@ -218,6 +218,9 @@
 	onMount(() => {
 		let intersection_observer: IntersectionObserver;
 		let resize_observer: ResizeObserver;
+		console.log("background", background);
+		console.log("layers", layers);
+		console.log("composite", composite);
 		init_image_editor().then(() => {
 			mounted = true;
 			intersection_observer = new IntersectionObserver(() => {
@@ -230,6 +233,11 @@
 
 			intersection_observer.observe(pixi_target);
 			resize_observer.observe(pixi_target);
+
+			if (full_history) {
+				console.log("replaying history", full_history);
+				editor.command_manager.replay(full_history, editor.context);
+			}
 		});
 
 		// Set up mutation observer to detect visibility changes
@@ -310,6 +318,7 @@
 			dispatch("change");
 			can_undo = editor.command_manager.history.previous !== null;
 			can_redo = editor.command_manager.history.next !== null;
+			full_history = editor.command_manager.history;
 		});
 
 		if (background || layers.length > 0) {
@@ -363,6 +372,7 @@
 		dispatch("change");
 		can_undo = editor.command_manager.history.previous !== null;
 		can_redo = editor.command_manager.history.next !== null;
+		full_history = editor.command_manager.history;
 	}
 
 	$: background_image = can_undo && editor.command_manager.contains("AddImage");
@@ -588,12 +598,14 @@
 		editor.undo();
 		can_undo = editor.command_manager.history.previous !== null;
 		can_redo = editor.command_manager.history.next !== null;
+		full_history = editor.command_manager.history;
 	}
 
 	function handle_redo(): void {
 		editor.redo();
 		can_undo = editor.command_manager.history.previous !== null;
 		can_redo = editor.command_manager.history.next !== null;
+		full_history = editor.command_manager.history;
 	}
 </script>
 

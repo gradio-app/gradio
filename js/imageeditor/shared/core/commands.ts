@@ -1,4 +1,5 @@
 import { writable, type Writable } from "svelte/store";
+import type { ImageEditorContext } from "./editor";
 
 /**
  * Base command interface that is added to the command_managers history
@@ -27,7 +28,7 @@ export interface Command {
 	 * Called by the command manager to execute the command, can act as a no-op if the work has already been done
 	 * This function must be able to recreate the command if the command is undone and redone (`stop`/`start`/`continue` will not be called again)
 	 */
-	execute(): any | Promise<any>;
+	execute(context?: ImageEditorContext): any | Promise<any>;
 	/**
 	 * Called by the command manager to undo the command
 	 * This function must be able to undo the work done by the execute function
@@ -84,21 +85,34 @@ export class CommandManager {
 		this.current_history.set(this.history);
 	}
 
-	execute(command: Command): void {
-		command.execute();
+	async execute(command: Command, context: ImageEditorContext): Promise<void> {
+		await command.execute(context);
 		this.history.push(command);
 		this.history = this.history.next!;
 
 		this.current_history.set(this.history);
 	}
 
-	replay(full_history: CommandNode): void {
-		setTimeout(() => {
-			while (full_history.next) {
-				this.execute(full_history.next.command!);
-				full_history = full_history.next;
-			}
-		}, 1000);
+	async wait_for_next_frame(): Promise<void> {
+		return new Promise((resolve) => {
+			requestAnimationFrame(() => {
+				resolve();
+			});
+		});
+	}
+
+	async replay(
+		full_history: CommandNode,
+		context: ImageEditorContext
+	): Promise<void> {
+		while (full_history.previous) {
+			full_history = full_history.previous;
+		}
+
+		while (full_history.next) {
+			await this.execute(full_history.next.command!, context);
+			full_history = full_history.next;
+		}
 	}
 
 	contains(command_name: string): boolean {

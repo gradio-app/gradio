@@ -19,6 +19,7 @@
 		Source,
 		WebcamOptions
 	} from "./shared/types";
+	import type { CommandNode } from "./shared/core/commands";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -57,7 +58,7 @@
 	export let canvas_size: [number, number];
 	export let fixed_canvas = false;
 	export let show_fullscreen_button = true;
-	export let full_history: any = null;
+	export let full_history: CommandNode | null = null;
 	export let gradio: Gradio<{
 		change: never;
 		error: string;
@@ -242,7 +243,7 @@
 			layer_options={layers}
 			upload={(...args) => gradio.client.upload(...args)}
 			{placeholder}
-			{full_history}
+			bind:full_history
 			{webcam_options}
 			{show_download_button}
 			{theme_mode}
