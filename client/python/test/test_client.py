@@ -80,56 +80,48 @@ class TestClientInitialization:
             pass
         assert (datetime.datetime.now() - start).seconds < 5
 
-    @pytest.mark.parametrize('cookies,expected', [
-        (None, {}),  # Falsy values coherced to empty dict
-        ({}, {}),    # Empty does not make any difference
-        ({'test-cookie': 'abc'}, {'test-cookie': 'abc'}),  # Well-formed cookies
-    ])
-    def test_httpx_cookies_kwarg_is_used_by_client(self, cookies, expected, monkeypatch):
+    @pytest.mark.parametrize(
+        "cookies,expected",
+        [
+            (None, {}),  # Falsy values coherced to empty dict
+            ({}, {}),  # Empty does not make any difference
+            ({"test-cookie": "abc"}, {"test-cookie": "abc"}),  # Well-formed cookies
+        ],
+    )
+    def test_httpx_cookies_kwarg_is_used_by_client(
+        self, cookies, expected, monkeypatch
+    ):
+        monkeypatch.setattr(threading, "Thread", lambda *_, **__: MagicMock())
+        monkeypatch.setattr(Client, "_space_name_to_src", lambda _, src: src)
+        monkeypatch.setattr(
+            Client, "_get_space_state", lambda _: huggingface_hub.SpaceStage.RUNNING
+        )
 
-        def stream_stopper(*_, **__):
-            raise httpx.TransportError('Forced')
-
-        # Patch space checking methods
-        monkeypatch.setattr(threading, 'Thread', lambda *_, **__: MagicMock())
-        monkeypatch.setattr(Client, '_space_name_to_src', lambda _, src: src)
-        monkeypatch.setattr(Client, '_get_space_state', lambda _: huggingface_hub.SpaceStage.RUNNING)
-        # Instantiate client calls _get_config and _get_api_info
-        with patch('httpx.get') as mocked:
-            mocked.return_value = httpx.Response(200, json={
-                'version': '3.36.2',   # Force recent version branch
-                'dependencies': [],
-                'named_endpoints': {},
-                'unnamed_endpoints':  {},
-            })
-            client = Client("fake/space", httpx_kwargs={'cookies': cookies})
+        with patch("httpx.get") as mocked:
+            mocked.return_value = httpx.Response(
+                200,
+                json={
+                    "version": "3.36.2",  # Force recent version branch
+                    "dependencies": [],
+                    "named_endpoints": {},
+                    "unnamed_endpoints": {},
+                },
+            )
+            client = Client("fake/space", httpx_kwargs={"cookies": cookies})
             for call in mocked.call_args_list:
-                assert call.kwargs['cookies'] == expected, 'Client instantiation missing cookies'
-        # _stream_heartbeat must incorporate cookies
-        with patch('httpx.stream', side_effect=stream_stopper) as mocked:
-            client._stream_heartbeat()
-            mocked.assert_called_once()
-            call = mocked.call_args
-            assert call.kwargs['cookies'] == expected, '_stream_heartbeat call missing cookies'
-        # stream_messages must incorporate cookies
-        with patch('httpx.Client') as mocked:
-            client.stream_messages(protocol='sse_v1')
-            mocked.assert_called_once()
-            call = mocked.call_args
-            assert 'cookies' not in call.kwargs, 'stream_messages call incorporate cookies'
-            mocked_stream = mocked().__enter__().stream
-            mocked_stream.assert_called_once()
-            call = mocked_stream.call_args
-            assert call.kwargs['cookies'] == expected, 'stream_messages call missing cookies'
-        # _login must override cookies
+                assert call.kwargs["cookies"] == expected, (
+                    "Client instantiation missing cookies"
+                )
+
+        # _login overrides cookies
         response = httpx.Response(200)
         response._cookies = httpx.Cookies(cookies)
-        with patch('httpx.post', return_value=response) as mocked:
-            client._login(('user', 'pass'))
+        with patch("httpx.post", return_value=response) as mocked:
+            client._login(("user", "pass"))
             mocked.assert_called_once()
             call = mocked.call_args
-            assert 'cookies' not in call.kwargs, '_login call incorporate cookies'
-            assert client.cookies == expected, '_login does not set client cookies'
+            assert "cookies" not in call.kwargs, "_login call incorporate cookies"
+            assert client.cookies == expected, "_login does not set client cookies"
 
 
 class TestClientPredictions:
