@@ -178,7 +178,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: var(--size-8);
+		width: var(--size-7);
 		height: var(--size-8);
 		z-index: 1001;
 		border-radius: 0;
@@ -189,13 +189,13 @@
 	}
 
 	.sidebar:not(.right) .toggle-button {
-		right: calc(var(--size-8) * -1);
+		left: 100%;
 		border-radius: 0 var(--size-8) var(--size-8) 0;
 		border-left: none;
 	}
 
 	.sidebar.right .toggle-button {
-		left: calc(var(--size-8) * -1);
+		right: 100%;
 		transform: rotate(180deg);
 		border-radius: 0 var(--size-8) var(--size-8) 0;
 		border-left: none;
@@ -203,6 +203,7 @@
 
 	.open:not(.right) .toggle-button {
 		right: 0;
+		left: auto;
 		transform: rotate(180deg);
 		border-radius: 0 var(--size-8) var(--size-8) 0;
 		border-left: none;
@@ -219,18 +220,17 @@
 	}
 
 	.chevron {
-		width: 100%;
-		height: 100%;
 		position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		padding-right: 8px;
 	}
 
 	.chevron-left {
 		position: relative;
-		width: var(--size-3);
-		height: var(--size-3);
+		width: 12px;
+		height: 12px;
 		border-top: var(--size-0-5) solid var(--body-text-color);
 		border-right: var(--size-0-5) solid var(--body-text-color);
 		transform: rotate(45deg);
