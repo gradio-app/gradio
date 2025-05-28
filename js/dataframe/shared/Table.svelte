@@ -1092,7 +1092,11 @@
 		overflow-x: hidden;
 	}
 
-	.row-odd {
+	tr {
+		background: var(--table-even-background-fill);
+	}
+
+	tr.row-odd {
 		background: var(--table-odd-background-fill);
 	}
 
