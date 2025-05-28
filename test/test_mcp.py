@@ -91,10 +91,10 @@ def test_simplify_filedata_schema():
 
 def test_tool_prefix_character_replacement():
     test_cases = [
-        ("test-space", "test_space"),
-        ("flux.1_schnell", "flux_1_schnell"),
-        ("test\\backslash", "test_backslash"),
-        ("test:colon spaces ", "test_colon_spaces_"),
+        ("test-space", "test_space_"),
+        ("flux.1_schnell", "flux_1_schnell_"),
+        ("test\\backslash", "test_backslash_"),
+        ("test:colon spaces ", "test_colon_spaces__"),
     ]
 
     original_system = os.environ.get("SYSTEM")
