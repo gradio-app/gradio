@@ -877,12 +877,9 @@ class Client:
         return huggingface_hub.space_info(space, token=self.hf_token).host  # type: ignore
 
     def _login(self, auth: tuple[str, str]):
-        """Log in to :attr:`utils.LOGIN_URL` using provided ``auth`` credentials.
-
-        .. warning::
-
-           This method overwrites the :attr:`~.cookies`
-
+        """
+        Logs in to `utils.LOGIN_URL` using provided `auth` credentials.
+        Warning: This method overwrites `self.cookies`.
         """
         resp = httpx.post(
             urllib.parse.urljoin(self.src, utils.LOGIN_URL),
