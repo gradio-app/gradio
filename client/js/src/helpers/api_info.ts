@@ -419,7 +419,11 @@ export const map_data_to_params = (
 	const parameters = endpoint_info ? endpoint_info.parameters : [];
 
 	if (Array.isArray(data)) {
-		if (data.length > parameters.length) {
+		if (
+			endpoint_info &&
+			parameters.length > 0 &&
+			data.length > parameters.length
+		) {
 			console.warn("Too many arguments provided for the endpoint.");
 		}
 		return data;
