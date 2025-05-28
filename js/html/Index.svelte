@@ -23,6 +23,21 @@
 	export let max_height: number | undefined = undefined;
 	export let container = false;
 	export let padding = true;
+
+	const has_visible_content = (html: string): boolean => {
+		if (!html?.trim()) return false;
+		if (typeof document === "undefined") return true;
+		const div = document.createElement("div");
+		div.innerHTML = html;
+		document.body.appendChild(div);
+		const result = Array.from(div.children).some(
+			(el) => el.checkVisibility?.() ?? true
+		);
+		document.body.removeChild(div);
+		return result;
+	};
+
+	$: apply_padding = padding && has_visible_content(value);
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} padding={false}>
@@ -39,7 +54,7 @@
 	/>
 	<div
 		class="html-container"
-		class:padding
+		class:padding={apply_padding}
 		class:pending={loading_status?.status === "pending"}
 		style:min-height={min_height && loading_status?.status !== "pending"
 			? css_units(min_height)
