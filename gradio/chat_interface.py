@@ -907,9 +907,7 @@ class ChatInterface(Blocks):
         history: TupleFormat | list[MessageDict],
         *args,
     ) -> tuple:
-        print("message, history, args", message, history, args)
         inputs = [message, history] + list(args)
-        print("Inputs", inputs)
         if self.is_async:
             response = await self.fn(*inputs)
         else:
