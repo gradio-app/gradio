@@ -11,6 +11,7 @@ import inspect
 import os
 import warnings
 from collections.abc import AsyncGenerator, Callable, Generator, Sequence
+from functools import wraps
 from pathlib import Path
 from typing import Any, Literal, Union, cast
 
@@ -47,7 +48,6 @@ from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
 from gradio.i18n import I18nData
 from gradio.layouts import Accordion, Column, Group, Row
-from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
 
 
@@ -523,10 +523,51 @@ class ChatInterface(Blocks):
             ),
         )
 
+    def _api_wrapper(self, fn, submit_fn):
+        """Wrap the submit_fn in a way that preserves the signature of the original function.
+        That way, the API page shows the same parameters as the original function.
+        """
+        # Need two separate functions here because a `return`
+        # statement can't be placed in an async generator function.
+        # using different names because otherwise type checking complains
+        if self.is_generator:
+
+            @wraps(fn)
+            async def _wrapper(*args, **kwargs):
+                async for chunk in submit_fn(*args, **kwargs):
+                    yield chunk
+
+            return _wrapper
+        else:
+
+            @wraps(fn)
+            async def __wrapper(*args, **kwargs):
+                return await submit_fn(*args, **kwargs)
+
+            return __wrapper
+
     def _setup_events(self) -> None:
         from gradio import on
 
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
+
+        api_fn = self._api_wrapper(self.fn, submit_fn)
+        # signature = inspect.signature(submit_fn)
+        # base_signature = inspect.signature(self.fn)
+        # new_params = []
+        # for i, param in enumerate(base_signature.parameters.values()):
+        #     if i >= 2:
+        #         new_params.append(param)
+
+        # breakpoint()
+        # new_signature = inspect.Signature(
+        #     parameters=[
+        #         *list(signature.parameters.values())[:3],
+        #         *new_params,
+        #     ],
+        # )
+        # setattr(api_fn, "__signature__", new_signature)
+        # api_fn.__annotations__ = submit_fn.__annotations__
 
         synchronize_chat_state_kwargs = {
             "fn": lambda x: (x, x),
@@ -585,7 +626,7 @@ class ChatInterface(Blocks):
 
         # Creates the "/chat" API endpoint
         self.fake_api_btn.click(
-            submit_fn,
+            api_fn,
             [self.textbox, self.chatbot_state] + self.additional_inputs,
             [self.api_response, self.chatbot_state] + self.additional_outputs,
             api_name=self.api_name,
@@ -880,12 +921,11 @@ class ChatInterface(Blocks):
         self,
         message: str | MultimodalPostprocess,
         history: TupleFormat | list[MessageDict],
-        request: Request,
         *args,
     ) -> tuple:
-        inputs, _, _ = special_args(
-            self.fn, inputs=[message, history, *args], request=request
-        )
+        print("message, history, args", message, history, args)
+        inputs = [message, history] + list(args)
+        print("Inputs", inputs)
         if self.is_async:
             response = await self.fn(*inputs)
         else:
@@ -906,15 +946,12 @@ class ChatInterface(Blocks):
         self,
         message: str | MultimodalPostprocess,
         history: TupleFormat | list[MessageDict],
-        request: Request,
         *args,
     ) -> AsyncGenerator[
         tuple,
         None,
     ]:
-        inputs, _, _ = special_args(
-            self.fn, inputs=[message, history, *args], request=request
-        )
+        inputs = [message, history] + list(args)
         if self.is_async:
             generator = self.fn(*inputs)
         else:
