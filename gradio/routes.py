@@ -1032,7 +1032,7 @@ class App(FastAPI):
                 playlist += f"{segment['id']}{segment['extension']}\n"  # type: ignore
                 # HLS expects the start time of the video segments to be continuous
                 # Instead of re-encoding the user video chunks, we add a discontinuity tag
-                if segment["extension"] == "ts":
+                if segment["extension"] == ".ts":
                     playlist += "#EXT-X-DISCONTINUITY\n"
 
             if stream.ended:
