@@ -13,7 +13,7 @@ In this guide, we are going to explore how we can wrap the layout classes to cre
 We are going to follow the implementation from this Huggingface Space example:
 
 <gradio-app
-space="WoWoWoWololo/wrapping-layouts">
+space="gradio/wrapping-layouts">
 </gradio-app>
 
 ## Implementation

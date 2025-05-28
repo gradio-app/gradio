@@ -112,7 +112,7 @@ dashboard.queue().launch()
 
 Notice that by passing in a function to `gr.BarPlot()`, we have the BarPlot query the database as soon as the web app loads (and then again every 60 seconds because of the `every` parameter). Your final dashboard should look something like this:
 
-<gradio-app space="abidlabs/supabase"></gradio-app>
+<gradio-app space="gradio/supabase"></gradio-app>
 
 ## Conclusion
 
