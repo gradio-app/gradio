@@ -33,14 +33,25 @@ def test_generate_tool_names_correctly_for_interfaces():
     def echo(x):
         return x
 
+    class MyCallable:
+        def __call__(self, x):
+            return x
+
     app = gr.TabbedInterface(
         [
             gr.Interface(echo, "text", "text"),
             gr.Interface(echo, "image", "image"),
+            gr.Interface(lambda x: x, "audio", "audio"),
+            gr.Interface(MyCallable(), "text", "text"),
         ]
     )
     server = GradioMCPServer(app)
-    assert server.tool_to_endpoint.keys() == {"echo", "echo_"}
+    assert list(server.tool_to_endpoint.keys()) == [
+        "echo",
+        "echo_",
+        "<lambda>",
+        "MyCallable",
+    ]
 
 
 def test_convert_strings_to_filedata():

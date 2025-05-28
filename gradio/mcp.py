@@ -66,9 +66,15 @@ class GradioMCPServer:
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
                 if block_fn is None or block_fn.fn is None:
                     continue
-                tool_name = self.tool_prefix + (
-                    block_fn.fn.__name__ or endpoint_name.lstrip("/")
+                fn_name = (
+                    getattr(block_fn.fn, "__name__", None)
+                    or (
+                        hasattr(block_fn.fn, "__class__")
+                        and getattr(block_fn.fn.__class__, "__name__", None)
+                    )
+                    or endpoint_name.lstrip("/")
                 )
+                tool_name = self.tool_prefix + fn_name
                 while tool_name in tool_to_endpoint:
                     tool_name = tool_name + "_"
                 tool_to_endpoint[tool_name] = endpoint_name
