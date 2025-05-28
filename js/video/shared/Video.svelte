@@ -51,23 +51,12 @@
 
 	const dispatch = createEventDispatcher();
 
-	async function load_stream(
+	function load_stream(
 		src: string | null | undefined,
 		is_stream: boolean,
-		node: HTMLVideoElement | undefined
-	): Promise<void> {
+		node: HTMLVideoElement
+	): void {
 		if (!src || !is_stream) return;
-
-		if (!node) {
-			await new Promise<void>((resolve) => {
-				const checkNode = setInterval(() => {
-					if (node) {
-						clearInterval(checkNode);
-						resolve();
-					}
-				}, 100);
-			});
-		}
 
 		if (Hls.isSupported() && !stream_active) {
 			const hls = new Hls({
@@ -76,7 +65,6 @@
 				lowLatencyMode: true // Enable low latency mode
 			});
 			hls.loadSource(src);
-			// @ts-ignore
 			hls.attachMedia(node);
 			hls.on(Hls.Events.MANIFEST_PARSED, function () {
 				(node as HTMLVideoElement).play();
@@ -108,7 +96,9 @@
 
 	$: src, (stream_active = false);
 
-	$: load_stream(src, is_stream, node);
+	$: if (node && src && is_stream) {
+		load_stream(src, is_stream, node);
+	}
 </script>
 
 <!--
