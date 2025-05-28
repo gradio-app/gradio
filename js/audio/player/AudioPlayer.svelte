@@ -152,7 +152,7 @@
 
 	function load_stream(value: FileData | null): void {
 		if (!value || !value.is_stream || !value.url) return;
-		if (!audio_player) return;
+
 		if (Hls.isSupported() && !stream_active) {
 			// Set config to start playback after 1 second of data received
 			const hls = new Hls({
@@ -194,7 +194,9 @@
 		}
 	}
 
-	$: load_stream(value);
+	$: if (audio_player && value?.is_stream) {
+		load_stream(value);
+	}
 
 	onMount(() => {
 		window.addEventListener("keydown", (e) => {
