@@ -48,7 +48,7 @@ class GradioMCPServer:
         self.root_url = None
         tool_prefix = utils.get_space()
         if tool_prefix:
-            tool_prefix = tool_prefix.split("/")[-1]
+            tool_prefix = tool_prefix.split("/")[-1] + "_"
             self.tool_prefix = re.sub(r"[^a-zA-Z0-9]", "_", tool_prefix)
         else:
             self.tool_prefix = ""
