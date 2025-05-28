@@ -150,9 +150,21 @@
 
 	$: url && load_audio(url);
 
-	function load_stream(value: FileData | null): void {
+	async function load_stream(value: FileData | null): Promise<void> {
 		if (!value || !value.is_stream || !value.url) return;
-		if (!audio_player) return;
+
+		// Wait for audio_player to be available
+		if (!audio_player) {
+			await new Promise<void>((resolve) => {
+				const checkAudioPlayer = setInterval(() => {
+					if (audio_player) {
+						clearInterval(checkAudioPlayer);
+						resolve();
+					}
+				}, 100);
+			});
+		}
+
 		if (Hls.isSupported() && !stream_active) {
 			// Set config to start playback after 1 second of data received
 			const hls = new Hls({
