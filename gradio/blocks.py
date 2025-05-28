@@ -3092,7 +3092,7 @@ Received inputs:
         for startup_event in self.extra_startup_events:
             await startup_event()
 
-    def get_api_info(self, all_endpoints: bool = False) -> APIInfo | None:
+    def get_api_info(self, all_endpoints: bool = False) -> APIInfo:
         """
         Gets the information needed to generate the API docs from a Blocks.
         Parameters:
