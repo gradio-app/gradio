@@ -52,27 +52,46 @@ class GradioMCPServer:
             self.tool_prefix = re.sub(r"[^a-zA-Z0-9]", "_", tool_prefix)
         else:
             self.tool_prefix = ""
+        self.tool_to_endpoint = self.get_tool_to_endpoint()
         self.warn_about_state_inputs()
+
+    def get_tool_to_endpoint(self) -> dict[str, str]:
+        """
+        Gets all of the tools that are exposed by the Gradio app and also
+        creates a mapping from the tool names to the endpoint names in the API docs.
+        """
+        tool_to_endpoint = {}
+        for endpoint_name, endpoint_info in self.api_info["named_endpoints"].items():
+            if endpoint_info["show_api"]:
+                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+                if block_fn is None or block_fn.fn is None:
+                    continue
+                fn_name = (
+                    getattr(block_fn.fn, "__name__", None)
+                    or (
+                        hasattr(block_fn.fn, "__class__")
+                        and getattr(block_fn.fn.__class__, "__name__", None)
+                    )
+                    or endpoint_name.lstrip("/")
+                )
+                tool_name = self.tool_prefix + fn_name
+                while tool_name in tool_to_endpoint:
+                    tool_name = tool_name + "_"
+                tool_to_endpoint[tool_name] = endpoint_name
+        return tool_to_endpoint
 
     def warn_about_state_inputs(self) -> None:
         """
         Warn about tools that have gr.State inputs.
         """
-        if self.api_info:
-            for endpoint_name, endpoint_info in self.api_info[
-                "named_endpoints"
-            ].items():
-                tool_name = self.tool_prefix + endpoint_name.lstrip("/")
-                if endpoint_info["show_api"]:
-                    block_fn = self.get_block_fn_from_tool_name(tool_name)
-                    if block_fn and any(
-                        isinstance(input, State) for input in block_fn.inputs
-                    ):
-                        warnings.warn(
-                            "This MCP server includes a tool that has a gr.State input, which will not be "
-                            "updated between tool calls. The original, default value of the State will be "
-                            "used each time."
-                        )
+        for _, endpoint_name in self.tool_to_endpoint.items():
+            block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+            if block_fn and any(isinstance(input, State) for input in block_fn.inputs):
+                warnings.warn(
+                    "This MCP server includes a tool that has a gr.State input, which will not be "
+                    "updated between tool calls. The original, default value of the State will be "
+                    "used each time."
+                )
 
     def create_mcp_server(self) -> Server:
         """
@@ -101,9 +120,14 @@ class GradioMCPServer:
             processed_kwargs = self.convert_strings_to_filedata(
                 arguments, filedata_positions
             )
-            block_fn = self.get_block_fn_from_tool_name(name)
-            endpoint_name = f"/{name.removeprefix(self.tool_prefix)}"
-            if self.api_info and endpoint_name in self.api_info["named_endpoints"]:
+            endpoint_name = self.tool_to_endpoint.get(name)
+            if endpoint_name is None:
+                raise ValueError(f"Unknown tool for this Gradio app: {name}")
+
+            block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+            assert block_fn is not None  # noqa: S101
+
+            if endpoint_name in self.api_info["named_endpoints"]:
                 parameters_info = self.api_info["named_endpoints"][endpoint_name][
                     "parameters"
                 ]
@@ -114,8 +138,6 @@ class GradioMCPServer:
                 )
             else:
                 processed_args = []
-            if block_fn is None:
-                raise ValueError(f"Unknown tool for this Gradio app: {name}")
             processed_args = self.insert_empty_state(block_fn.inputs, processed_args)
             output = await self.blocks.process_api(
                 block_fn=block_fn,
@@ -130,29 +152,19 @@ class GradioMCPServer:
             """
             List all tools on the Gradio app.
             """
-            if not self.api_info:
-                return []
-
             tools = []
-            for endpoint_name, endpoint_info in self.api_info[
-                "named_endpoints"
-            ].items():
-                tool_name = self.tool_prefix + endpoint_name.lstrip("/")
-                if endpoint_info["show_api"]:
-                    block_fn = self.get_block_fn_from_tool_name(tool_name)
-                    if block_fn is None or block_fn.fn is None:
-                        continue
-                    description, parameters = utils.get_function_description(
-                        block_fn.fn
+            for tool_name, endpoint_name in self.tool_to_endpoint.items():
+                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+                assert block_fn is not None and block_fn.fn is not None  # noqa: S101
+                description, parameters = utils.get_function_description(block_fn.fn)
+                schema, _ = self.get_input_schema(tool_name, parameters)
+                tools.append(
+                    types.Tool(
+                        name=tool_name,
+                        description=description,
+                        inputSchema=schema,
                     )
-                    schema, _ = self.get_input_schema(tool_name, parameters)
-                    tools.append(
-                        types.Tool(
-                            name=tool_name,
-                            description=description,
-                            inputSchema=schema,
-                        )
-                    )
+                )
             return tools
 
         return server
@@ -203,21 +215,23 @@ class GradioMCPServer:
             ),
         )
 
-    def get_block_fn_from_tool_name(self, tool_name: str) -> "BlockFunction | None":
+    def get_block_fn_from_endpoint_name(
+        self, endpoint_name: str
+    ) -> "BlockFunction | None":
         """
-        Get the BlockFunction for a given tool name.
+        Get the BlockFunction for a given endpoint name (e.g. "/predict").
 
         Parameters:
-            tool_name: The name of the tool to get the BlockFunction for.
+            endpoint_name: The name of the endpoint to get the BlockFunction for.
 
         Returns:
-            The BlockFunction for the given tool name, or None if it is not found.
+            The BlockFunction for the given endpoint name, or None if it is not found.
         """
         block_fn = next(
             (
                 fn
                 for fn in self.blocks.fns.values()
-                if fn.api_name == tool_name.removeprefix(self.tool_prefix)
+                if fn.api_name == endpoint_name.lstrip("/")
             ),
             None,
         )
@@ -227,6 +241,10 @@ class GradioMCPServer:
     def insert_empty_state(
         inputs: Sequence["Component | BlockContext"], data: list
     ) -> list:
+        """
+        Insert None placeholder values for any State input components, as State inputs
+        are not included in the endpoint schema.
+        """
         for i, input_component_type in enumerate(inputs):
             if isinstance(input_component_type, State):
                 data.insert(i, None)
@@ -236,6 +254,10 @@ class GradioMCPServer:
     def pop_returned_state(
         inputs: Sequence["Component | BlockContext"], data: list
     ) -> list:
+        """
+        Remove any values corresponding to State output components from the data
+        as State outputs are not included in the endpoint schema.
+        """
         for i, input_component_type in enumerate(inputs):
             if isinstance(input_component_type, State):
                 data.pop(i)
@@ -256,12 +278,12 @@ class GradioMCPServer:
             - The input schema of the Gradio app API.
             - A list of positions of FileData objects in the input schema.
         """
-        endpoint_name = f"/{tool_name.removeprefix(self.tool_prefix)}"
-        named_endpoints = self.api_info["named_endpoints"]  # type: ignore
-        endpoint_info = named_endpoints.get(endpoint_name)
-
-        if endpoint_info is None:
+        endpoint_name = self.tool_to_endpoint.get(tool_name)
+        if endpoint_name is None:
             raise ValueError(f"Unknown tool for this Gradio app: {tool_name}")
+        named_endpoints = self.api_info["named_endpoints"]
+        endpoint_info = named_endpoints.get(endpoint_name)
+        assert endpoint_info is not None  # noqa: S101
 
         schema = {
             "type": "object",
@@ -293,16 +315,13 @@ class GradioMCPServer:
             return JSONResponse({})
 
         schemas = {}
-        for endpoint_name, endpoint_info in self.api_info["named_endpoints"].items():
-            tool_name = self.tool_prefix + endpoint_name.lstrip("/")
-            if endpoint_info["show_api"]:
-                block_fn = self.get_block_fn_from_tool_name(tool_name)
-                if block_fn is None or block_fn.fn is None:
-                    continue
-                description, parameters = utils.get_function_description(block_fn.fn)
-                schema, _ = self.get_input_schema(tool_name, parameters)
-                schemas[tool_name] = schema
-                schemas[tool_name]["description"] = description
+        for tool_name, endpoint_name in self.tool_to_endpoint.items():
+            block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+            assert block_fn is not None and block_fn.fn is not None  # noqa: S101
+            description, parameters = utils.get_function_description(block_fn.fn)
+            schema, _ = self.get_input_schema(tool_name, parameters)
+            schemas[tool_name] = schema
+            schemas[tool_name]["description"] = description
 
         return JSONResponse(schemas)
 
