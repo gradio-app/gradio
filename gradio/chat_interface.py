@@ -552,22 +552,6 @@ class ChatInterface(Blocks):
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
 
         api_fn = self._api_wrapper(self.fn, submit_fn)
-        # signature = inspect.signature(submit_fn)
-        # base_signature = inspect.signature(self.fn)
-        # new_params = []
-        # for i, param in enumerate(base_signature.parameters.values()):
-        #     if i >= 2:
-        #         new_params.append(param)
-
-        # breakpoint()
-        # new_signature = inspect.Signature(
-        #     parameters=[
-        #         *list(signature.parameters.values())[:3],
-        #         *new_params,
-        #     ],
-        # )
-        # setattr(api_fn, "__signature__", new_signature)
-        # api_fn.__annotations__ = submit_fn.__annotations__
 
         synchronize_chat_state_kwargs = {
             "fn": lambda x: (x, x),
