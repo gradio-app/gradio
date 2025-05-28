@@ -201,7 +201,7 @@ class GradioMCPServer:
                 return Response(
                     content=f"MCP SSE connection error: {str(e)}",
                     status_code=500,
-                    media_type="text/plain"
+                    media_type="text/plain",
                 )
 
         app.mount(
