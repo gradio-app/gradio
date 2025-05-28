@@ -229,8 +229,8 @@
 
 	.chevron-left {
 		position: relative;
-		width: 12px;
-		height: 12px;
+		width: var(--size-3);
+		height: var(--size-3);
 		border-top: var(--size-0-5) solid var(--body-text-color);
 		border-right: var(--size-0-5) solid var(--body-text-color);
 		transform: rotate(45deg);
