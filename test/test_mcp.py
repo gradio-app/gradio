@@ -23,10 +23,35 @@ def test_gradio_mcp_server_initialization():
 
 def test_get_block_fn_from_tool_name():
     server = GradioMCPServer(app)
-    result = server.get_block_fn_from_tool_name("test_tool")
+    result = server.get_block_fn_from_endpoint_name("test_tool")
     assert result == app.fns[0]
-    result = server.get_block_fn_from_tool_name("nonexistent_tool")
+    result = server.get_block_fn_from_endpoint_name("nonexistent_tool")
     assert result is None
+
+
+def test_generate_tool_names_correctly_for_interfaces():
+    def echo(x):
+        return x
+
+    class MyCallable:
+        def __call__(self, x):
+            return x
+
+    app = gr.TabbedInterface(
+        [
+            gr.Interface(echo, "text", "text"),
+            gr.Interface(echo, "image", "image"),
+            gr.Interface(lambda x: x, "audio", "audio"),
+            gr.Interface(MyCallable(), "text", "text"),
+        ]
+    )
+    server = GradioMCPServer(app)
+    assert list(server.tool_to_endpoint.keys()) == [
+        "echo",
+        "echo_",
+        "<lambda>",
+        "MyCallable",
+    ]
 
 
 def test_convert_strings_to_filedata():
