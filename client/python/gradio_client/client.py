@@ -113,7 +113,10 @@ class Client:
             self.headers.update(headers)
         self.ssl_verify = ssl_verify
         self.space_id = None
-        self.cookies: dict[str, str] = {}
+        self.httpx_kwargs = {} if httpx_kwargs is None else httpx_kwargs
+        self.cookies: dict[str, str] = dict(
+            (self.httpx_kwargs.pop("cookies", {})) or {}
+        )
         if isinstance(self.download_files, (str, Path)):
             if not os.path.exists(self.download_files):
                 os.makedirs(self.download_files, exist_ok=True)
@@ -148,7 +151,6 @@ class Client:
         if self.verbose:
             print(f"Loaded as API: {self.src} ✔")
 
-        self.httpx_kwargs = {} if httpx_kwargs is None else httpx_kwargs
         if auth is not None:
             self._login(auth)
 
@@ -594,6 +596,9 @@ class Client:
                     "config": json.dumps(self.config),
                     "serialize": False,
                 },
+                headers=self.headers,
+                cookies=self.cookies,
+                verify=self.ssl_verify,
                 **self.httpx_kwargs,
             )
             if fetch.is_success:
@@ -874,6 +879,10 @@ class Client:
         return huggingface_hub.space_info(space, token=self.hf_token).host  # type: ignore
 
     def _login(self, auth: tuple[str, str]):
+        """
+        Logs in to `utils.LOGIN_URL` using provided `auth` credentials.
+        Warning: This method overwrites `self.cookies`.
+        """
         resp = httpx.post(
             urllib.parse.urljoin(self.src, utils.LOGIN_URL),
             data={"username": auth[0], "password": auth[1]},
