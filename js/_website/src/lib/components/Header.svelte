@@ -25,7 +25,7 @@
 			<div class="flex flex-wrap items-center gap-x-4 gap-y-2 mx-auto">
 				<p class="text-md leading-6 text-gray-700 text-center mx-auto">
 					<strong class="font-semibold"
-						>Gradio Agents & MCP Hackathon · June 2-8</strong
+						>Gradio Agents & MCP Hackathon · Virtual, June 2-8 · $10k+ in prizes</strong
 					>
 				</p>
 				<a
