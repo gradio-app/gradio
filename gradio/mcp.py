@@ -116,56 +116,106 @@ class GradioMCPServer:
                 name: The name of the tool to call.
                 arguments: The arguments to pass to the tool.
             """
-            _, filedata_positions = self.get_input_schema(name)
-            processed_kwargs = self.convert_strings_to_filedata(
-                arguments, filedata_positions
-            )
-            endpoint_name = self.tool_to_endpoint.get(name)
-            if endpoint_name is None:
-                raise ValueError(f"Unknown tool for this Gradio app: {name}")
-
-            block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
-            assert block_fn is not None  # noqa: S101
-
-            if endpoint_name in self.api_info["named_endpoints"]:
-                parameters_info = self.api_info["named_endpoints"][endpoint_name][
-                    "parameters"
-                ]
-                processed_args = client_utils.construct_args(
-                    parameters_info,
-                    (),
-                    processed_kwargs,
+            print(f"[MCP DEBUG] call_tool called with name: {name}, arguments: {arguments}")
+            
+            try:
+                _, filedata_positions = self.get_input_schema(name)
+                print(f"[MCP DEBUG] Got input schema, filedata_positions: {filedata_positions}")
+                
+                processed_kwargs = self.convert_strings_to_filedata(
+                    arguments, filedata_positions
                 )
-            else:
-                processed_args = []
-            processed_args = self.insert_empty_state(block_fn.inputs, processed_args)
-            output = await self.blocks.process_api(
-                block_fn=block_fn,
-                inputs=processed_args,
-                request=self.request,
-            )
-            processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
-            return self.postprocess_output_data(output["data"])
+                print(f"[MCP DEBUG] Processed kwargs: {processed_kwargs}")
+                
+                endpoint_name = self.tool_to_endpoint.get(name)
+                if endpoint_name is None:
+                    print(f"[MCP DEBUG] Unknown tool: {name}")
+                    raise ValueError(f"Unknown tool for this Gradio app: {name}")
+                
+                print(f"[MCP DEBUG] Found endpoint: {endpoint_name}")
+                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+                assert block_fn is not None  # noqa: S101
+                print(f"[MCP DEBUG] Got block function: {block_fn}")
+
+                if endpoint_name in self.api_info["named_endpoints"]:
+                    parameters_info = self.api_info["named_endpoints"][endpoint_name][
+                        "parameters"
+                    ]
+                    print(f"[MCP DEBUG] Using parameters_info: {parameters_info}")
+                    processed_args = client_utils.construct_args(
+                        parameters_info,
+                        (),
+                        processed_kwargs,
+                    )
+                else:
+                    print(f"[MCP DEBUG] No parameters_info found, using empty args")
+                    processed_args = []
+                    
+                print(f"[MCP DEBUG] Processed args before state insertion: {processed_args}")
+                processed_args = self.insert_empty_state(block_fn.inputs, processed_args)
+                print(f"[MCP DEBUG] Processed args after state insertion: {processed_args}")
+                
+                print(f"[MCP DEBUG] About to call blocks.process_api...")
+                output = await self.blocks.process_api(
+                    block_fn=block_fn,
+                    inputs=processed_args,
+                    request=self.request,
+                )
+                print(f"[MCP DEBUG] Got output from process_api: {output}")
+                
+                processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
+                print(f"[MCP DEBUG] Processed args after state removal: {processed_args}")
+                
+                result = self.postprocess_output_data(output["data"])
+                print(f"[MCP DEBUG] Final result: {result}")
+                return result
+                
+            except Exception as e:
+                print(f"[MCP DEBUG] Exception in call_tool: {type(e).__name__}: {str(e)}")
+                print(f"[MCP DEBUG] call_tool exception traceback:")
+                import traceback
+                traceback.print_exc()
+                raise
 
         @server.list_tools()
         async def list_tools() -> list[types.Tool]:
             """
             List all tools on the Gradio app.
             """
-            tools = []
-            for tool_name, endpoint_name in self.tool_to_endpoint.items():
-                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
-                assert block_fn is not None and block_fn.fn is not None  # noqa: S101
-                description, parameters = utils.get_function_description(block_fn.fn)
-                schema, _ = self.get_input_schema(tool_name, parameters)
-                tools.append(
-                    types.Tool(
+            print(f"[MCP DEBUG] list_tools called")
+            print(f"[MCP DEBUG] Available tool_to_endpoint mapping: {self.tool_to_endpoint}")
+            
+            try:
+                tools = []
+                for tool_name, endpoint_name in self.tool_to_endpoint.items():
+                    print(f"[MCP DEBUG] Processing tool: {tool_name} -> {endpoint_name}")
+                    block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+                    assert block_fn is not None and block_fn.fn is not None  # noqa: S101
+                    print(f"[MCP DEBUG] Got block_fn: {block_fn}, fn: {block_fn.fn}")
+                    
+                    description, parameters = utils.get_function_description(block_fn.fn)
+                    print(f"[MCP DEBUG] Got description: {description}, parameters: {parameters}")
+                    
+                    schema, _ = self.get_input_schema(tool_name, parameters)
+                    print(f"[MCP DEBUG] Got schema: {schema}")
+                    
+                    tool = types.Tool(
                         name=tool_name,
                         description=description,
                         inputSchema=schema,
                     )
-                )
-            return tools
+                    print(f"[MCP DEBUG] Created tool: {tool}")
+                    tools.append(tool)
+                    
+                print(f"[MCP DEBUG] Returning {len(tools)} tools: {[t.name for t in tools]}")
+                return tools
+                
+            except Exception as e:
+                print(f"[MCP DEBUG] Exception in list_tools: {type(e).__name__}: {str(e)}")
+                print(f"[MCP DEBUG] list_tools exception traceback:")
+                import traceback
+                traceback.print_exc()
+                raise
 
         return server
 
@@ -177,43 +227,68 @@ class GradioMCPServer:
             app: The Gradio app to mount the MCP server on.
             subpath: The subpath to mount the MCP server on. E.g. "/gradio_api/mcp"
         """
+        print(f"[MCP DEBUG] Setting up SSE server at subpath: {subpath}")
         messages_path = "/messages/"
         sse = SseServerTransport(messages_path)
+        print(f"[MCP DEBUG] Created SseServerTransport with messages_path: {messages_path}")
 
         async def handle_sse(request):
+            print(f"[MCP DEBUG] handle_sse called with request: {request.method} {request.url}")
+            print(f"[MCP DEBUG] Request headers: {dict(request.headers)}")
+            
             self.request = request
             self.root_url = route_utils.get_root_url(
                 request=request,
                 route_path="/gradio_api/mcp/sse",
                 root_path=root_path,
             )
+            print(f"[MCP DEBUG] Set root_url: {self.root_url}")
+            
             try:
+                print(f"[MCP DEBUG] Attempting to connect SSE with scope: {request.scope}")
+                print(f"[MCP DEBUG] Request scope type: {request.scope.get('type')}")
+                print(f"[MCP DEBUG] Request scope path: {request.scope.get('path')}")
+                print(f"[MCP DEBUG] Request scope method: {request.scope.get('method')}")
+                
                 async with sse.connect_sse(
                     request.scope, request.receive, request._send
                 ) as streams:
+                    print(f"[MCP DEBUG] SSE connection established, streams: {streams}")
+                    print(f"[MCP DEBUG] About to run MCP server...")
+                    
                     await self.mcp_server.run(
                         streams[0],
                         streams[1],
                         self.mcp_server.create_initialization_options(),
                     )
+                    print(f"[MCP DEBUG] MCP server run completed successfully")
+                
+                print(f"[MCP DEBUG] SSE connection closed normally")
                 return Response()
             except Exception as e:
+                print(f"[MCP DEBUG] Exception in handle_sse: {type(e).__name__}: {str(e)}")
+                print(f"[MCP DEBUG] Exception traceback:")
+                import traceback
+                traceback.print_exc()
                 print(f"MCP SSE connection error: {str(e)}")
                 raise
 
-        app.mount(
-            subpath,
-            Starlette(
-                routes=[
-                    Route(
-                        "/schema",
-                        endpoint=self.get_complete_schema,  # Not required for MCP but useful for debugging
-                    ),
-                    Route("/sse", endpoint=handle_sse),
-                    Mount("/messages/", app=sse.handle_post_message),
-                ],
+        print(f"[MCP DEBUG] Setting up routes...")
+        routes = [
+            Route(
+                "/schema",
+                endpoint=self.get_complete_schema,  # Not required for MCP but useful for debugging
             ),
-        )
+            Route("/sse", endpoint=handle_sse),
+            Mount("/messages/", app=sse.handle_post_message),
+        ]
+        print(f"[MCP DEBUG] Created routes: {[r.path for r in routes]}")
+        
+        starlette_app = Starlette(routes=routes)
+        print(f"[MCP DEBUG] Created Starlette app, about to mount at: {subpath}")
+        
+        app.mount(subpath, starlette_app)
+        print(f"[MCP DEBUG] Successfully mounted Starlette app at {subpath}")
 
     def get_block_fn_from_endpoint_name(
         self, endpoint_name: str
@@ -311,11 +386,17 @@ class GradioMCPServer:
         Returns:
             A JSONResponse containing a dictionary mapping tool names to their input schemas.
         """
+        print(f"[MCP DEBUG] get_complete_schema called with request: {request.method} {request.url}")
+        print(f"[MCP DEBUG] get_complete_schema request headers: {dict(request.headers)}")
+        
         if not self.api_info:
+            print(f"[MCP DEBUG] No api_info available, returning empty schema")
             return JSONResponse({})
 
+        print(f"[MCP DEBUG] Processing tool schemas...")
         schemas = {}
         for tool_name, endpoint_name in self.tool_to_endpoint.items():
+            print(f"[MCP DEBUG] Processing tool: {tool_name} -> {endpoint_name}")
             block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
             assert block_fn is not None and block_fn.fn is not None  # noqa: S101
             description, parameters = utils.get_function_description(block_fn.fn)
@@ -323,6 +404,7 @@ class GradioMCPServer:
             schemas[tool_name] = schema
             schemas[tool_name]["description"] = description
 
+        print(f"[MCP DEBUG] Returning schemas for {len(schemas)} tools")
         return JSONResponse(schemas)
 
     def simplify_filedata_schema(
