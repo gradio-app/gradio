@@ -9,6 +9,8 @@ import prefixer from "postcss-prefix-selector";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 
+/// <reference types="@vitest/browser/providers/playwright" />
+
 const version_path = resolve(__dirname, "../../gradio/package.json");
 const theme_token_path = resolve(__dirname, "../theme/src/tokens.css");
 const version_raw = JSON.parse(
@@ -172,7 +174,10 @@ export default defineConfig(({ mode }) => {
 				instances: [
 					{
 						browser: "chromium",
-						setupFile: "./chromium-setup.js"
+						headless: false,
+						context: {
+							permissions: ["camera", "microphone"]
+						}
 					}
 				]
 			}

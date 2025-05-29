@@ -3,7 +3,9 @@
 	import "@gradio/theme/global.css";
 	import "@gradio/theme/pollen.css";
 	import "@gradio/theme/typography.css";
-	import "./svelte_init";
+	import { init } from "./svelte_init";
+
+	init();
 </script>
 
 <slot></slot>

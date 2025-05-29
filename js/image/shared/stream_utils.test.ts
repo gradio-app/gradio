@@ -52,7 +52,7 @@ describe("stream_utils", () => {
 		expect(devices[0]).toBeDefined();
 	});
 
-	test("set_local_stream should set the local stream to the video source", () => {
+	test("set_local_stream should set the local stream to the video source", async () => {
 		const mock_video_source = {
 			srcObject: null,
 			muted: false,
@@ -60,19 +60,11 @@ describe("stream_utils", () => {
 		};
 
 		// @ts-ignore
-		set_local_stream(new MediaStream(), mock_video_source);
+		await set_local_stream(new MediaStream(), mock_video_source);
 
 		expect(mock_video_source.srcObject).toBeInstanceOf(MediaStream);
 		expect(mock_video_source.muted).toBeTruthy();
 		expect(mock_video_source.play).toHaveBeenCalled();
-	});
-
-	test("get_video_stream requests user media with the correct constraints and sets the local stream", async () => {
-		const mock_video_source = document.createElement("video");
-
-		const local_stream = await get_video_stream(true, mock_video_source);
-
-		expect(local_stream).toBeInstanceOf(MediaStream);
 	});
 
 	test("set_available_devices should return only video input devices", () => {

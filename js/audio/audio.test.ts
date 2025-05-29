@@ -3,9 +3,6 @@ import { cleanup, render } from "@self/tootils/render";
 import Audio from "./";
 import type { LoadingStatus } from "@gradio/statustracker";
 import { setupi18n } from "../core/src/i18n";
-import ResizeObserver from "resize-observer-polyfill";
-
-global.ResizeObserver = ResizeObserver;
 
 const loading_status: LoadingStatus = {
 	eta: 0,

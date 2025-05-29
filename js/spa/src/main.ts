@@ -34,6 +34,7 @@ function create_custom_element(): void {
 	const o = {
 		SvelteComponent: svelte.SvelteComponent
 	};
+	console.log("svelte", svelte);
 	for (const key in svelte) {
 		if (key === "SvelteComponent") continue;
 		if (key === "SvelteComponentDev") {

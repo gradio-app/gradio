@@ -44,7 +44,7 @@
 
 	let content_height = 0;
 	async function refresh_height_map(_items: typeof items): Promise<void> {
-		if (viewport_height === 0) {
+		if (viewport_height === 0 || !viewport) {
 			return;
 		}
 
@@ -52,6 +52,10 @@
 		head_height =
 			viewport.querySelector(".thead")?.getBoundingClientRect().height || 0;
 		await tick();
+
+		if (!viewport) {
+			return;
+		}
 
 		const { scrollTop } = viewport;
 		table_scrollbar_width = viewport.offsetWidth - viewport.clientWidth;
@@ -155,6 +159,9 @@
 	}
 
 	async function handle_scroll(e: Event): Promise<void> {
+		if (!viewport) {
+			return;
+		}
 		const scroll_top = viewport.scrollTop;
 
 		show_scroll_button = scroll_top > 100;
