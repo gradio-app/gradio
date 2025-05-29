@@ -40,7 +40,7 @@ import InteractiveSlider from "@gradio/slider";
 import InteractiveTextbox from "@gradio/textbox";
 import InteractiveUploadButton from "@gradio/uploadbutton";
 import InteractiveVideo from "@gradio/video";
-import { LoadingStatus } from "@gradio/statustracker";
+import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {
 	eta: 0,
