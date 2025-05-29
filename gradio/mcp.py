@@ -437,6 +437,11 @@ class GradioMCPServer:
                         if parameters and p["parameter_name"] in parameters
                         else {}
                     ),
+                    **(
+                        {"default": p["parameter_default"]}
+                        if "parameter_default" in p and p["parameter_default"]
+                        else {}
+                    ),
                 }
                 for p in endpoint_info["parameters"]
             },
