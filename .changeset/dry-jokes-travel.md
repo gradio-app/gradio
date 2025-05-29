@@ -1,6 +1,6 @@
 ---
-"@gradio/core": minor
-"gradio": minor
+"@gradio/core": patch
+"gradio": patch
 ---
 
-feat:[WIP] Include default values in MCP docs
+feat:Include default values in MCP docs
