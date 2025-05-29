@@ -54,10 +54,10 @@
 	function load_stream(
 		src: string | null | undefined,
 		is_stream: boolean,
-		node: HTMLVideoElement | undefined
+		node: HTMLVideoElement
 	): void {
 		if (!src || !is_stream) return;
-		if (!node) return;
+
 		if (Hls.isSupported() && !stream_active) {
 			const hls = new Hls({
 				maxBufferLength: 1, // 0.5 seconds (500 ms)
@@ -96,7 +96,9 @@
 
 	$: src, (stream_active = false);
 
-	$: load_stream(src, is_stream, node);
+	$: if (node && src && is_stream) {
+		load_stream(src, is_stream, node);
+	}
 </script>
 
 <!--
