@@ -2665,7 +2665,7 @@ Received inputs:
             )
         else:
             self.node_server_name = self.node_port = self.node_process = None
-        
+
         self.i18n_instance = i18n
 
         if app_kwargs is None:

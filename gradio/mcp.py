@@ -79,11 +79,10 @@ class GradioMCPServer:
         async def lifespan(app: Starlette) -> AsyncIterator[None]:  # noqa: ARG001
             """Context manager for managing session manager lifecycle."""
             async with manager.run():
-                print("Application started with StreamableHTTP session manager!")
                 try:
                     yield
                 finally:
-                    print("Application shutting down...")
+                    pass
 
         self.lifespan = lifespan
         self.manager = manager
