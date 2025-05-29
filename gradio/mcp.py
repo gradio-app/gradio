@@ -264,7 +264,6 @@ class GradioMCPServer:
                     print(f"[MCP DEBUG] MCP server run completed successfully")
                 
                 print(f"[MCP DEBUG] SSE connection closed normally")
-                return Response()
             except Exception as e:
                 print(f"[MCP DEBUG] Exception in handle_sse: {type(e).__name__}: {str(e)}")
                 print(f"[MCP DEBUG] Exception traceback:")
