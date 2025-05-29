@@ -37,9 +37,9 @@ The MCP server will be accessible at:
 http://your-server:port/gradio_api/mcp/sse
 ```
 
-Gradio automatically converts the `letter_counter` function into an MCP tool that can be used by LLMs. The docstring of the function and the type hints of arguments will be used to generate the description of the tool and its parameters. The name of the function will be used as the name of your tool.
+Gradio automatically converts the `letter_counter` function into an MCP tool that can be used by LLMs. The docstring of the function and the type hints of arguments will be used to generate the description of the tool and its parameters. The name of the function will be used as the name of your tool. Any initial values you provide to your input components (e.g. "strawberry" and "r" in the `gr.Textbox` components above) will be used as the default values if your LLM doesn't specify a value for that particular input parameter.
 
-All you need to do is add this URL endpoint to your MCP Client (e.g. Claude Desktop, Cursor, or Cline), which typically means pasting this config in the settings:
+Now, all you need to do is add this URL endpoint to your MCP Client (e.g. Claude Desktop, Cursor, or Cline), which typically means pasting this config in the settings:
 
 ```
 {

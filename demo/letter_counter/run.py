@@ -18,8 +18,8 @@ def letter_counter(word, letter):
 
 demo = gr.Interface(
     fn=letter_counter,
-    inputs=["textbox", "textbox"],
-    outputs="number",
+    inputs=[gr.Textbox("strawberry"), gr.Textbox("r")],
+    outputs=[gr.Number()],
     title="Letter Counter",
     description="Enter text and a letter to count how many times the letter appears in the text."
 )
