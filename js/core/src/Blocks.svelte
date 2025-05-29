@@ -53,13 +53,6 @@
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
 
-	let i18n_ready = false;
-
-	(async () => {
-		await setupi18n(app.config?.i18n_translations ?? undefined);
-		i18n_ready = true;
-	})();
-
 	let {
 		layout: _layout,
 		targets,
@@ -838,6 +831,11 @@
 			screen_recorder.startRecording();
 		}
 	}
+
+	let i18n_ready = false;
+	setupi18n(app.config?.i18n_translations ?? undefined).then(() => {
+		i18n_ready = true;
+	});
 </script>
 
 <svelte:head>
