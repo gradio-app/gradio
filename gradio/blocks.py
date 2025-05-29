@@ -2694,6 +2694,7 @@ Received inputs:
                 if not quiet:
                     print(f"Error launching MCP server: {e}")
 
+        self.i18n_instance = i18n
         self.config = self.get_config_file()
 
         if self.is_running:
@@ -2804,7 +2805,6 @@ Received inputs:
                 f"Monitoring URL: {self.local_url}monitoring/{self.app.analytics_key}"
             )
         self.enable_monitoring = enable_monitoring in [True, None]
-        self.i18n_instance = i18n
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
