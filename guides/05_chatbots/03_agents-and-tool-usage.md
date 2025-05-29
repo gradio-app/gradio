@@ -73,7 +73,7 @@ Below, we show several complete examples of using `gr.Chatbot` and `gr.ChatInter
 
 We'll create a Gradio application simple agent that has access to a text-to-image tool.
 
-Tip: Make sure you read the transformers agent [documentation](https://huggingface.co/docs/transformers/en/agents) first
+Tip: Make sure you read the [smolagents documentation](https://huggingface.co/docs/smolagents/index) first
 
 We'll start by importing the necessary classes from transformers and gradio. 
 
