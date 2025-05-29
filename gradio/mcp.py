@@ -264,43 +264,71 @@ class GradioMCPServer:
             f"[MCP DEBUG] Created SseServerTransport with messages_path: {messages_path}"
         )
 
-        async def handle_sse(request):
-            print(
-                f"[MCP DEBUG] handle_sse called with request: {request.method} {request.url}"
-            )
-            print(f"[MCP DEBUG] Request headers: {dict(request.headers)}")
-
-            self.request = request
+        async def handle_sse(scope, receive, send):
+            """Raw ASGI application for handling SSE connections."""
+            print(f"[MCP DEBUG] handle_sse ASGI app called with scope: {scope}")
+            print(f"[MCP DEBUG] Request scope type: {scope.get('type')}")
+            print(f"[MCP DEBUG] Request scope path: {scope.get('path')}")
+            print(f"[MCP DEBUG] Request scope method: {scope.get('method')}")
+            
+            # Store request info for use in MCP tools
+            # Create a mock request object for compatibility
+            class MockRequest:
+                def __init__(self, scope):
+                    self.scope = scope
+                    self.method = scope.get('method', 'GET')
+                    
+                    # Create URL from scope
+                    scheme = scope.get('scheme', 'http')
+                    server_name, server_port = scope.get('server', ('localhost', 80))
+                    path = scope.get('path', '/')
+                    query_string = scope.get('query_string', b'').decode()
+                    
+                    import httpx
+                    self.url = httpx.URL(f"{scheme}://{server_name}:{server_port}{path}")
+                    if query_string:
+                        self.url = self.url.copy_with(query=query_string)
+                    
+                    # Create headers dict with get method
+                    self.headers = {}
+                    for name, value in scope.get('headers', []):
+                        key = name.decode()
+                        val = value.decode()
+                        self.headers[key] = val
+                    
+                    # Add get method to headers dict for compatibility
+                    def get_header(header_name, default=None):
+                        return self.headers.get(header_name.lower(), default)
+                    
+                    # Create a dict-like object with get method
+                    class HeaderDict(dict):
+                        def get(self, key, default=None):
+                            return super().get(key.lower(), default)
+                    
+                    self.headers = HeaderDict(self.headers)
+            
+            mock_request = MockRequest(scope)
+            self.request = mock_request
             self.root_url = route_utils.get_root_url(
-                request=request,
+                request=mock_request,  # type: ignore
                 route_path="/gradio_api/mcp/sse",
                 root_path=root_path,
             )
             print(f"[MCP DEBUG] Set root_url: {self.root_url}")
-
+            
             try:
-                print(
-                    f"[MCP DEBUG] Attempting to connect SSE with scope: {request.scope}"
-                )
-                print(f"[MCP DEBUG] Request scope type: {request.scope.get('type')}")
-                print(f"[MCP DEBUG] Request scope path: {request.scope.get('path')}")
-                print(
-                    f"[MCP DEBUG] Request scope method: {request.scope.get('method')}"
-                )
-
-                async with sse.connect_sse(
-                    request.scope, request.receive, request._send
-                ) as streams:
+                print(f"[MCP DEBUG] Attempting to connect SSE...")
+                async with sse.connect_sse(scope, receive, send) as streams:
                     print(f"[MCP DEBUG] SSE connection established, streams: {streams}")
                     print("[MCP DEBUG] About to run MCP server...")
-
+                    
                     await self.mcp_server.run(
                         streams[0],
                         streams[1],
                         self.mcp_server.create_initialization_options(),
                     )
                     print("[MCP DEBUG] MCP server run completed successfully")
-
+                
                 print("[MCP DEBUG] SSE connection closed normally")
             except Exception as e:
                 print(
@@ -308,7 +336,6 @@ class GradioMCPServer:
                 )
                 print("[MCP DEBUG] Exception traceback:")
                 import traceback
-
                 traceback.print_exc()
                 print(f"MCP SSE connection error: {str(e)}")
                 raise
@@ -319,7 +346,7 @@ class GradioMCPServer:
                 "/schema",
                 endpoint=self.get_complete_schema,  # Not required for MCP but useful for debugging
             ),
-            Route("/sse", endpoint=handle_sse),
+            Route("/sse", endpoint=handle_sse),  # This will be a raw ASGI app
             Mount("/messages/", app=sse.handle_post_message),
         ]
         print(f"[MCP DEBUG] Created routes: {[r.path for r in routes]}")
