@@ -551,6 +551,9 @@ class ChatInterface(Blocks):
 
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
 
+        submit_wrapped = self._api_wrapper(self.fn, submit_fn)
+        # To not conflict with the api_name
+        submit_wrapped.__name__ = "_submit_fn"
         api_fn = self._api_wrapper(self.fn, submit_fn)
 
         synchronize_chat_state_kwargs = {
@@ -561,7 +564,7 @@ class ChatInterface(Blocks):
             "queue": False,
         }
         submit_fn_kwargs = {
-            "fn": api_fn,
+            "fn": submit_wrapped,
             "inputs": [self.saved_input, self.chatbot_state] + self.additional_inputs,
             "outputs": [self.null_component, self.chatbot] + self.additional_outputs,
             "show_api": False,
