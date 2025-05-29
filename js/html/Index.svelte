@@ -27,14 +27,11 @@
 	const has_visible_content = (html: string): boolean => {
 		if (!html?.trim()) return false;
 		if (typeof document === "undefined") return true;
-		const div = document.createElement("div");
-		div.innerHTML = html;
-		document.body.appendChild(div);
-		const result = Array.from(div.children).some(
-			(el) => el.checkVisibility?.() ?? true
-		);
-		document.body.removeChild(div);
-		return result;
+
+		return Array.from(html.matchAll(/<(\w+)/g)).some((match) => {
+			const tag = match[1].toLowerCase();
+			return !["meta", "script", "style", "link", "title"].includes(tag);
+		});
 	};
 
 	$: apply_padding = padding && has_visible_content(value);
