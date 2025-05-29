@@ -30,6 +30,7 @@
 	export let autoscroll = true;
 	export let max_length: number | undefined = undefined;
 	export let root: string;
+	export let label_below: any = null;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -334,6 +335,11 @@
 			</button>
 		{/if}
 	</div>
+	{#if label_below}
+	<p class="label-below" style="margin-top: 0.5rem; margin-bottom: 0;">
+		{label_below}
+	</p>
+	{/if}
 </label>
 
 <style>

@@ -49,6 +49,7 @@
 	export let interactive: boolean;
 	export let root: string;
 	export let max_length: number | undefined = undefined;
+	export let label_below: string | undefined = undefined;
 </script>
 
 <Block
@@ -89,6 +90,7 @@
 		{container}
 		{autoscroll}
 		{max_length}
+		{label_below}
 		on:change={() => gradio.dispatch("change", value)}
 		on:input={() => gradio.dispatch("input")}
 		on:submit={() => gradio.dispatch("submit")}
