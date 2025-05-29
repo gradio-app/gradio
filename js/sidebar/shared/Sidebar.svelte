@@ -8,6 +8,8 @@
 	export let open = true;
 	export let width: number | string;
 	export let position: "left" | "right" = "left";
+	export let label: string | undefined;
+	export let show_label = false;
 
 	// Using a temporary variable to animate the sidebar opening at the start
 	let mounted = false;
@@ -82,6 +84,9 @@
 		aria-label="Toggle Sidebar"
 	>
 		<div class="chevron">
+			{#if show_label && label && !_open}
+				<span class="toggle-button-label">{label}</span>
+			{/if}
 			<span class="chevron-left"></span>
 		</div>
 	</button>
@@ -178,7 +183,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: var(--size-7);
+		min-width: var(--size-7);
 		height: var(--size-8);
 		z-index: 1001;
 		border-radius: 0;
@@ -186,6 +191,14 @@
 
 	.toggle-button:not(.reduce-motion) {
 		transition: all 0.3s ease-in-out;
+	}
+
+	.toggle-button-label {
+		display: inline-block;
+		margin-inline-end: var(--size-2);
+		font-size: var(--font-size-1);
+		text-wrap: nowrap;
+		color: var(--body-text-color);
 	}
 
 	.sidebar:not(.right) .toggle-button {

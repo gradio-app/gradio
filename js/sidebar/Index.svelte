@@ -13,6 +13,8 @@
 	}>;
 	export let width: number | string;
 	export let visible = true;
+	export let label: string | undefined;
+	export let show_label = false;
 </script>
 
 <StatusTracker
@@ -28,6 +30,8 @@
 		{width}
 		on:expand={() => gradio.dispatch("expand")}
 		on:collapse={() => gradio.dispatch("collapse")}
+		{label}
+		{show_label}
 	>
 		<Column>
 			<slot />
