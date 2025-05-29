@@ -196,13 +196,9 @@ class GradioMCPServer:
                         streams[1],
                         self.mcp_server.create_initialization_options(),
                     )
-                return Response()
             except Exception as e:
-                return Response(
-                    content=f"MCP SSE connection error: {str(e)}",
-                    status_code=500,
-                    media_type="text/plain",
-                )
+                print(f"MCP SSE connection error: {str(e)}")
+                raise
 
         app.mount(
             subpath,
