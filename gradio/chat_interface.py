@@ -561,7 +561,7 @@ class ChatInterface(Blocks):
             "queue": False,
         }
         submit_fn_kwargs = {
-            "fn": submit_fn,
+            "fn": api_fn,
             "inputs": [self.saved_input, self.chatbot_state] + self.additional_inputs,
             "outputs": [self.null_component, self.chatbot] + self.additional_outputs,
             "show_api": False,
