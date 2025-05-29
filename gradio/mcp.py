@@ -14,7 +14,7 @@ from mcp.server import Server
 from mcp.server.sse import SseServerTransport
 from PIL import Image
 from starlette.applications import Starlette
-from starlette.responses import JSONResponse, Response
+from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
 
 from gradio import processing_utils, route_utils, utils
@@ -116,22 +116,26 @@ class GradioMCPServer:
                 name: The name of the tool to call.
                 arguments: The arguments to pass to the tool.
             """
-            print(f"[MCP DEBUG] call_tool called with name: {name}, arguments: {arguments}")
-            
+            print(
+                f"[MCP DEBUG] call_tool called with name: {name}, arguments: {arguments}"
+            )
+
             try:
                 _, filedata_positions = self.get_input_schema(name)
-                print(f"[MCP DEBUG] Got input schema, filedata_positions: {filedata_positions}")
-                
+                print(
+                    f"[MCP DEBUG] Got input schema, filedata_positions: {filedata_positions}"
+                )
+
                 processed_kwargs = self.convert_strings_to_filedata(
                     arguments, filedata_positions
                 )
                 print(f"[MCP DEBUG] Processed kwargs: {processed_kwargs}")
-                
+
                 endpoint_name = self.tool_to_endpoint.get(name)
                 if endpoint_name is None:
                     print(f"[MCP DEBUG] Unknown tool: {name}")
                     raise ValueError(f"Unknown tool for this Gradio app: {name}")
-                
+
                 print(f"[MCP DEBUG] Found endpoint: {endpoint_name}")
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
                 assert block_fn is not None  # noqa: S101
@@ -148,32 +152,45 @@ class GradioMCPServer:
                         processed_kwargs,
                     )
                 else:
-                    print(f"[MCP DEBUG] No parameters_info found, using empty args")
+                    print("[MCP DEBUG] No parameters_info found, using empty args")
                     processed_args = []
-                    
-                print(f"[MCP DEBUG] Processed args before state insertion: {processed_args}")
-                processed_args = self.insert_empty_state(block_fn.inputs, processed_args)
-                print(f"[MCP DEBUG] Processed args after state insertion: {processed_args}")
-                
-                print(f"[MCP DEBUG] About to call blocks.process_api...")
+
+                print(
+                    f"[MCP DEBUG] Processed args before state insertion: {processed_args}"
+                )
+                processed_args = self.insert_empty_state(
+                    block_fn.inputs, processed_args
+                )
+                print(
+                    f"[MCP DEBUG] Processed args after state insertion: {processed_args}"
+                )
+
+                print("[MCP DEBUG] About to call blocks.process_api...")
                 output = await self.blocks.process_api(
                     block_fn=block_fn,
                     inputs=processed_args,
                     request=self.request,
                 )
                 print(f"[MCP DEBUG] Got output from process_api: {output}")
-                
-                processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
-                print(f"[MCP DEBUG] Processed args after state removal: {processed_args}")
-                
+
+                processed_args = self.pop_returned_state(
+                    block_fn.inputs, processed_args
+                )
+                print(
+                    f"[MCP DEBUG] Processed args after state removal: {processed_args}"
+                )
+
                 result = self.postprocess_output_data(output["data"])
                 print(f"[MCP DEBUG] Final result: {result}")
                 return result
-                
+
             except Exception as e:
-                print(f"[MCP DEBUG] Exception in call_tool: {type(e).__name__}: {str(e)}")
-                print(f"[MCP DEBUG] call_tool exception traceback:")
+                print(
+                    f"[MCP DEBUG] Exception in call_tool: {type(e).__name__}: {str(e)}"
+                )
+                print("[MCP DEBUG] call_tool exception traceback:")
                 import traceback
+
                 traceback.print_exc()
                 raise
 
@@ -182,23 +199,31 @@ class GradioMCPServer:
             """
             List all tools on the Gradio app.
             """
-            print(f"[MCP DEBUG] list_tools called")
-            print(f"[MCP DEBUG] Available tool_to_endpoint mapping: {self.tool_to_endpoint}")
-            
+            print("[MCP DEBUG] list_tools called")
+            print(
+                f"[MCP DEBUG] Available tool_to_endpoint mapping: {self.tool_to_endpoint}"
+            )
+
             try:
                 tools = []
                 for tool_name, endpoint_name in self.tool_to_endpoint.items():
-                    print(f"[MCP DEBUG] Processing tool: {tool_name} -> {endpoint_name}")
+                    print(
+                        f"[MCP DEBUG] Processing tool: {tool_name} -> {endpoint_name}"
+                    )
                     block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
                     assert block_fn is not None and block_fn.fn is not None  # noqa: S101
                     print(f"[MCP DEBUG] Got block_fn: {block_fn}, fn: {block_fn.fn}")
-                    
-                    description, parameters = utils.get_function_description(block_fn.fn)
-                    print(f"[MCP DEBUG] Got description: {description}, parameters: {parameters}")
-                    
+
+                    description, parameters = utils.get_function_description(
+                        block_fn.fn
+                    )
+                    print(
+                        f"[MCP DEBUG] Got description: {description}, parameters: {parameters}"
+                    )
+
                     schema, _ = self.get_input_schema(tool_name, parameters)
                     print(f"[MCP DEBUG] Got schema: {schema}")
-                    
+
                     tool = types.Tool(
                         name=tool_name,
                         description=description,
@@ -206,14 +231,19 @@ class GradioMCPServer:
                     )
                     print(f"[MCP DEBUG] Created tool: {tool}")
                     tools.append(tool)
-                    
-                print(f"[MCP DEBUG] Returning {len(tools)} tools: {[t.name for t in tools]}")
+
+                print(
+                    f"[MCP DEBUG] Returning {len(tools)} tools: {[t.name for t in tools]}"
+                )
                 return tools
-                
+
             except Exception as e:
-                print(f"[MCP DEBUG] Exception in list_tools: {type(e).__name__}: {str(e)}")
-                print(f"[MCP DEBUG] list_tools exception traceback:")
+                print(
+                    f"[MCP DEBUG] Exception in list_tools: {type(e).__name__}: {str(e)}"
+                )
+                print("[MCP DEBUG] list_tools exception traceback:")
                 import traceback
+
                 traceback.print_exc()
                 raise
 
@@ -230,12 +260,16 @@ class GradioMCPServer:
         print(f"[MCP DEBUG] Setting up SSE server at subpath: {subpath}")
         messages_path = "/messages/"
         sse = SseServerTransport(messages_path)
-        print(f"[MCP DEBUG] Created SseServerTransport with messages_path: {messages_path}")
+        print(
+            f"[MCP DEBUG] Created SseServerTransport with messages_path: {messages_path}"
+        )
 
         async def handle_sse(request):
-            print(f"[MCP DEBUG] handle_sse called with request: {request.method} {request.url}")
+            print(
+                f"[MCP DEBUG] handle_sse called with request: {request.method} {request.url}"
+            )
             print(f"[MCP DEBUG] Request headers: {dict(request.headers)}")
-            
+
             self.request = request
             self.root_url = route_utils.get_root_url(
                 request=request,
@@ -243,36 +277,43 @@ class GradioMCPServer:
                 root_path=root_path,
             )
             print(f"[MCP DEBUG] Set root_url: {self.root_url}")
-            
+
             try:
-                print(f"[MCP DEBUG] Attempting to connect SSE with scope: {request.scope}")
+                print(
+                    f"[MCP DEBUG] Attempting to connect SSE with scope: {request.scope}"
+                )
                 print(f"[MCP DEBUG] Request scope type: {request.scope.get('type')}")
                 print(f"[MCP DEBUG] Request scope path: {request.scope.get('path')}")
-                print(f"[MCP DEBUG] Request scope method: {request.scope.get('method')}")
-                
+                print(
+                    f"[MCP DEBUG] Request scope method: {request.scope.get('method')}"
+                )
+
                 async with sse.connect_sse(
                     request.scope, request.receive, request._send
                 ) as streams:
                     print(f"[MCP DEBUG] SSE connection established, streams: {streams}")
-                    print(f"[MCP DEBUG] About to run MCP server...")
-                    
+                    print("[MCP DEBUG] About to run MCP server...")
+
                     await self.mcp_server.run(
                         streams[0],
                         streams[1],
                         self.mcp_server.create_initialization_options(),
                     )
-                    print(f"[MCP DEBUG] MCP server run completed successfully")
-                
-                print(f"[MCP DEBUG] SSE connection closed normally")
+                    print("[MCP DEBUG] MCP server run completed successfully")
+
+                print("[MCP DEBUG] SSE connection closed normally")
             except Exception as e:
-                print(f"[MCP DEBUG] Exception in handle_sse: {type(e).__name__}: {str(e)}")
-                print(f"[MCP DEBUG] Exception traceback:")
+                print(
+                    f"[MCP DEBUG] Exception in handle_sse: {type(e).__name__}: {str(e)}"
+                )
+                print("[MCP DEBUG] Exception traceback:")
                 import traceback
+
                 traceback.print_exc()
                 print(f"MCP SSE connection error: {str(e)}")
                 raise
 
-        print(f"[MCP DEBUG] Setting up routes...")
+        print("[MCP DEBUG] Setting up routes...")
         routes = [
             Route(
                 "/schema",
@@ -282,10 +323,10 @@ class GradioMCPServer:
             Mount("/messages/", app=sse.handle_post_message),
         ]
         print(f"[MCP DEBUG] Created routes: {[r.path for r in routes]}")
-        
+
         starlette_app = Starlette(routes=routes)
         print(f"[MCP DEBUG] Created Starlette app, about to mount at: {subpath}")
-        
+
         app.mount(subpath, starlette_app)
         print(f"[MCP DEBUG] Successfully mounted Starlette app at {subpath}")
 
@@ -385,14 +426,18 @@ class GradioMCPServer:
         Returns:
             A JSONResponse containing a dictionary mapping tool names to their input schemas.
         """
-        print(f"[MCP DEBUG] get_complete_schema called with request: {request.method} {request.url}")
-        print(f"[MCP DEBUG] get_complete_schema request headers: {dict(request.headers)}")
-        
+        print(
+            f"[MCP DEBUG] get_complete_schema called with request: {request.method} {request.url}"
+        )
+        print(
+            f"[MCP DEBUG] get_complete_schema request headers: {dict(request.headers)}"
+        )
+
         if not self.api_info:
-            print(f"[MCP DEBUG] No api_info available, returning empty schema")
+            print("[MCP DEBUG] No api_info available, returning empty schema")
             return JSONResponse({})
 
-        print(f"[MCP DEBUG] Processing tool schemas...")
+        print("[MCP DEBUG] Processing tool schemas...")
         schemas = {}
         for tool_name, endpoint_name in self.tool_to_endpoint.items():
             print(f"[MCP DEBUG] Processing tool: {tool_name} -> {endpoint_name}")
