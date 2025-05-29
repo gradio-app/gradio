@@ -272,7 +272,9 @@
 																<div class="parameter">
 																	<code>{name}</code>
 																	<span class="parameter-type">
-																		({param.type}{param.default !== undefined ? `, default: ${JSON.stringify(param.default)}` : ""})
+																		({param.type}{param.default !== undefined
+																			? `, default: ${JSON.stringify(param.default)}`
+																			: ""})
 																	</span>
 																	<p class="parameter-description">
 																		{param.description
