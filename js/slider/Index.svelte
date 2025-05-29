@@ -324,6 +324,12 @@
 		}
 	}
 
+	@media (max-width: 520px) {
+		.head {
+			gap: var(--size-3);
+		}
+	}
+
 	@media (max-width: 420px) {
 		.head .tab-like-container {
 			margin-bottom: var(--size-4);
