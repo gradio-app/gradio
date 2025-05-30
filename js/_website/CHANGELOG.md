@@ -1,5 +1,17 @@
 # website
 
+## 0.57.0
+
+### Features
+
+- [#11268](https://github.com/gradio-app/gradio/pull/11268) [`7bf3161`](https://github.com/gradio-app/gradio/commit/7bf3161c0688e664053b9288a3867d001a306ba0) - Add hackathon to website banner.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/code@0.14.5
+- @gradio/paramviewer@0.7.10
+
 ## 0.56.2
 
 ### Dependency updates
