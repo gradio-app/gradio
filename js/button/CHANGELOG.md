@@ -1,5 +1,11 @@
 # @gradio/button
 
+## 0.5.2
+
+### Dependency updates
+
+- @gradio/image@0.22.8
+
 ## 0.5.1
 
 ### Dependency updates
