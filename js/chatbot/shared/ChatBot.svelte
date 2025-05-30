@@ -140,8 +140,6 @@
 			scroll_after_component_load = true;
 			await tick(); // Wait for the DOM to update so that the scrollHeight is correct
 			scroll_to_bottom();
-		} else {
-			show_scroll_button = true;
 		}
 	}
 	onMount(() => {
@@ -160,6 +158,7 @@
 				show_scroll_button = false;
 			} else {
 				scroll_after_component_load = false;
+				show_scroll_button = true;
 			}
 		}
 
