@@ -19,7 +19,12 @@
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import { type Client } from "@gradio/client";
 	import VirtualTable from "./VirtualTable.svelte";
-	import type { Headers, DataframeValue, Datatype } from "./utils";
+	import type {
+		Headers,
+		DataframeValue,
+		Datatype,
+		BoolInputType
+	} from "./utils";
 	import CellMenu from "./CellMenu.svelte";
 	import Toolbar from "./Toolbar.svelte";
 	import type { CellCoordinate } from "./types";
@@ -45,6 +50,7 @@
 	import { sort_data_and_preserve_selection } from "./utils/sort_utils";
 
 	export let datatype: Datatype | Datatype[];
+	export let bool_input: BoolInputType = "checkbox";
 	export let label: string | null = null;
 	export let show_label = true;
 	export let headers: Headers = [];
@@ -941,6 +947,7 @@
 								bind:el={els[id]}
 								{is_dragging}
 								{wrap}
+								{bool_input}
 							/>
 						{/each}
 					</tr>

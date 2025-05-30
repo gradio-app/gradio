@@ -62,6 +62,7 @@ class TestDataframe:
             "show_fullscreen_button": False,
             "show_copy_button": False,
             "max_chars": None,
+            "bool_input": "checkbox",
         }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(DataframeData(**x_data))
@@ -114,6 +115,7 @@ class TestDataframe:
             "show_fullscreen_button": False,
             "max_chars": None,
             "show_copy_button": False,
+            "bool_input": "checkbox",
         }
 
         dataframe_input = gr.Dataframe(column_widths=["100px", 200, "50%"])
