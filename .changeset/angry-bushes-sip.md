@@ -1,4 +1,5 @@
 ---
+"@gradio/image": patch
 "@gradio/preview": patch
 "gradio": patch
 ---
