@@ -16,13 +16,13 @@ with gr.Blocks() as app:
 
 
 def test_gradio_mcp_server_initialization():
-    server = GradioMCPServer(app)
+    server = GradioMCPServer(app, root_path="")
     assert server.blocks == app
     assert server.mcp_server is not None
 
 
 def test_get_block_fn_from_tool_name():
-    server = GradioMCPServer(app)
+    server = GradioMCPServer(app, root_path="")
     result = server.get_block_fn_from_endpoint_name("test_tool")
     assert result == app.fns[0]
     result = server.get_block_fn_from_endpoint_name("nonexistent_tool")
@@ -45,7 +45,7 @@ def test_generate_tool_names_correctly_for_interfaces():
             gr.Interface(MyCallable(), "text", "text"),
         ]
     )
-    server = GradioMCPServer(app)
+    server = GradioMCPServer(app, root_path="")
     assert list(server.tool_to_endpoint.keys()) == [
         "echo",
         "echo_",
@@ -55,7 +55,7 @@ def test_generate_tool_names_correctly_for_interfaces():
 
 
 def test_convert_strings_to_filedata():
-    server = GradioMCPServer(app)
+    server = GradioMCPServer(app, root_path="")
 
     test_data = {
         "text": "test text",
@@ -72,7 +72,7 @@ def test_convert_strings_to_filedata():
 
 
 def test_postprocess_output_data():
-    server = GradioMCPServer(app)
+    server = GradioMCPServer(app, root_path="")
 
     with tempfile.NamedTemporaryFile(suffix=".png") as temp_file:
         img = Image.new("RGB", (10, 10), color="red")
@@ -96,7 +96,7 @@ def test_postprocess_output_data():
 
 
 def test_simplify_filedata_schema():
-    server = GradioMCPServer(app)
+    server = GradioMCPServer(app, root_path="")
 
     test_schema = {
         "type": "object",
@@ -129,7 +129,7 @@ def test_tool_prefix_character_replacement():
         os.environ["SYSTEM"] = "spaces"
         for input_prefix, expected_prefix in test_cases:
             os.environ["SPACE_ID"] = input_prefix
-            server = GradioMCPServer(app)
+            server = GradioMCPServer(app, root_path="")
             assert server.tool_prefix == expected_prefix
     finally:
         if original_system is not None:
