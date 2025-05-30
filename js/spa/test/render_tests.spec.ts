@@ -56,3 +56,12 @@ test("Test examples work in render", async ({ page }) => {
 		"def"
 	);
 });
+
+test("Test keyed event listeners in render", async ({ page }) => {
+	await page.getByLabel("box-a").fill("a");
+	await page.waitForTimeout(1000);
+	await expect(page.getByLabel("box-b")).toHaveValue("a");
+	await page.getByLabel("box-a").fill("abc");
+	await page.waitForTimeout(1000);
+	await expect(page.getByLabel("box-b")).toHaveValue("abc");
+});

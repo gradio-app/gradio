@@ -594,6 +594,7 @@ class EventListener(str):
             time_limit: int | None = None,
             stream_every: float = 0.5,
             like_user_message: bool = False,
+            key: int | str | tuple[int | str, ...] | None = None,
         ) -> Dependency:
             """
             Parameters:
@@ -640,6 +641,7 @@ class EventListener(str):
                         concurrency_limit=concurrency_limit,
                         concurrency_id=concurrency_id,
                         show_api=show_api,
+                        key=key,
                     )
 
                     @wraps(func)
@@ -699,6 +701,7 @@ class EventListener(str):
                 ]
                 if _event_specific_args
                 else None,
+                key=key,
             )
             set_cancel_events(
                 [event_target],
@@ -757,6 +760,7 @@ def on(
     show_api: bool = True,
     time_limit: int | None = None,
     stream_every: float = 0.5,
+    key: int | str | tuple[int | str, ...] | None = None,
 ) -> Dependency:
     """
     Sets up an event listener that triggers a function when the specified event(s) occur. This is especially
@@ -834,6 +838,7 @@ def on(
                 trigger_mode=trigger_mode,
                 time_limit=time_limit,
                 stream_every=stream_every,
+                key=key,
             )
 
             @wraps(func)
@@ -892,6 +897,7 @@ def on(
         ],
         time_limit=time_limit,
         stream_every=stream_every,
+        key=key,
     )
     set_cancel_events(methods, cancels)
     return Dependency(None, dep.get_config(), dep_index, fn)
