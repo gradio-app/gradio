@@ -1,10 +1,6 @@
 import { test as base, type Locator, type Page } from "@playwright/test";
 import { spy } from "tinyspy";
 import { performance } from "node:perf_hooks";
-import url from "url";
-import path from "path";
-import fsPromises from "fs/promises";
-
 import type { SvelteComponent } from "svelte";
 import type { SpyFn } from "tinyspy";
 
@@ -16,22 +12,20 @@ export function wait(n: number): Promise<void> {
 	return new Promise((r) => setTimeout(r, n));
 }
 
-const ROOT_DIR = path.resolve(
-	url.fileURLToPath(import.meta.url),
-	"../../../.."
-);
+export const is_lite = import.meta.env.GRADIO_E2E_TEST_LITE;
 
-export const is_lite = !!process.env.GRADIO_E2E_TEST_LITE;
+console.log("================", import.meta.env);
 
 const test_normal = base.extend<{ setup: void }>({
 	setup: [
 		async ({ page }, use, testInfo): Promise<void> => {
-			const port = process.env.GRADIO_E2E_TEST_PORT;
+			const path = await import("path");
+			const port = import.meta.env.GRADIO_E2E_TEST_PORT;
 			const { file } = testInfo;
 			const test_name = path.basename(file, ".spec.ts");
 
 			await page.goto(`localhost:${port}/${test_name}`);
-			if (process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true") {
+			if (import.meta.env.GRADIO_SSR_MODE?.toLowerCase() === "true") {
 				await page.waitForSelector("#svelte-announcer");
 			}
 
@@ -46,6 +40,14 @@ const lite_url = "http://localhost:8000/for_e2e.html";
 let shared_page_for_lite: Page;
 const test_lite = base.extend<{ setup: void }>({
 	page: async ({ browser }, use, testInfo) => {
+		const url = await import("url");
+		const path = await import("path");
+		const fsPromises = await import("fs/promises");
+		const ROOT_DIR = path.resolve(
+			url.fileURLToPath(import.meta.url),
+			"../../../.."
+		);
+
 		if (shared_page_for_lite == null) {
 			shared_page_for_lite = await browser.newPage();
 		}
@@ -84,6 +86,14 @@ const test_lite = base.extend<{ setup: void }>({
 	},
 	setup: [
 		async ({ page }, use, testInfo) => {
+			const url = await import("url");
+			const path = await import("path");
+			const fsPromises = await import("fs/promises");
+			const ROOT_DIR = path.resolve(
+				url.fileURLToPath(import.meta.url),
+				"../../../.."
+			);
+
 			const { file } = testInfo;
 
 			console.debug("\nSetting up a test in lite mode", file);
@@ -200,7 +210,9 @@ export const drag_and_drop_file = async (
 	fileType = "",
 	count = 1
 ): Promise<void> => {
-	const buffer = (await fsPromises.readFile(filePath)).toString("base64");
+	const buffer = (await import("fs/promises"))
+		.readFile(filePath)
+		.then((buffer) => buffer.toString("base64"));
 
 	const dataTransfer = await page.evaluateHandle(
 		async ({ bufferData, localFileName, localFileType, count }) => {
@@ -238,7 +250,7 @@ export async function go_to_testcase(
 ): Promise<void> {
 	const url = page.url();
 	await page.goto(`${url.substring(0, url.length - 1)}_${test_case}_testcase`);
-	if (process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true") {
+	if (import.meta.env.GRADIO_SSR_MODE?.toLowerCase() === "true") {
 		await page.waitForSelector("#svelte-announcer");
 	}
 }
