@@ -367,11 +367,11 @@ about changing how previously created apps look. The `version` argument is optio
 
 By calling `push_to_hub` or `upload_theme`, the theme assets will be stored in a [HuggingFace space](https://huggingface.co/docs/hub/spaces-overview).
 
-The theme preview for our seafoam theme is here: [seafoam preview](https://huggingface.co/spaces/gradio/seafoam).
+For example, the theme preview for the calm seafoam theme is here: [calm seafoam preview](https://huggingface.co/spaces/shivalikasingh/calm_seafoam).
 
 <div class="wrapper">
 <iframe
-	src="https://gradio-seafoam.hf.space?__theme=light"
+	src="https://shivalikasingh-calm-seafoam.hf.space/?__theme=light"
 	frameborder="0"
 ></iframe>
 </div>
