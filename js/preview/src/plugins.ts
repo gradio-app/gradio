@@ -4,6 +4,7 @@ import preprocess from "svelte-preprocess";
 import { join } from "path";
 import { type ComponentConfig } from "./dev";
 import type { Preprocessor, PreprocessorGroup } from "svelte/compiler";
+import { deepmerge } from "./_deepmerge_internal";
 
 const svelte_codes_to_ignore: Record<string, string> = {
 	"reactive-component": "Icon"
@@ -131,3 +132,18 @@ export function make_gradio_plugin({
 		}
 	};
 }
+
+export const deepmerge_plugin: Plugin = {
+	name: "deepmerge",
+	enforce: "pre",
+	resolveId(id) {
+		if (id === "deepmerge") {
+			return "deepmerge_internal";
+		}
+	},
+	load(id) {
+		if (id === "deepmerge_internal") {
+			return deepmerge;
+		}
+	}
+};
