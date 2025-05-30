@@ -496,7 +496,8 @@ class BlockContext(Block):
                 ):
                     pseudo_parent.add_child(child)
                 else:
-                    pseudo_parent = expected_parent(render=False)
+                    key = None if child.key is None else (child.key, "_parent")
+                    pseudo_parent = expected_parent(render=False, key=key)
                     pseudo_parent.parent = self
                     children.append(pseudo_parent)
                     pseudo_parent.add_child(child)
@@ -550,6 +551,7 @@ class BlockFunction:
         show_api: bool = True,
         renderable: Renderable | None = None,
         rendered_in: Renderable | None = None,
+        render_iteration: int | None = None,
         is_cancel_function: bool = False,
         connection: Literal["stream", "sse"] = "sse",
         time_limit: float | None = None,
@@ -558,6 +560,7 @@ class BlockFunction:
         event_specific_args: list[str] | None = None,
         page: str = "",
         js_implementation: str | None = None,
+        key: str | int | tuple[int | str, ...] | None = None,
     ):
         self.fn = fn
         self._id = _id
@@ -592,6 +595,7 @@ class BlockFunction:
         ) or inspect.isasyncgenfunction(self.fn)
         self.renderable = renderable
         self.rendered_in = rendered_in
+        self.render_iteration = render_iteration
         self.page = page
         if js_implementation:
             self.fn.__js_implementation__ = js_implementation  # type: ignore
@@ -604,6 +608,7 @@ class BlockFunction:
         self.connection = connection
         self.like_user_message = like_user_message
         self.event_specific_args = event_specific_args
+        self.key = key
 
         self.spaces_auto_wrap()
 
@@ -769,6 +774,7 @@ class BlocksConfig:
         like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
         js_implementation: str | None = None,
+        key: str | int | tuple[int | str, ...] | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -894,13 +900,24 @@ class BlocksConfig:
                 "Cannot create event: events with js=True cannot have inputs."
             )
 
+        reuse_id = False
+        fn_id = self.fn_id
+        render_iteration = rendered_in.render_iteration if rendered_in else None
+
+        if rendered_in and key is not None:
+            for existing_fn in self.fns.values():
+                if existing_fn.key == key:
+                    reuse_id = True
+                    fn_id = existing_fn._id
+                    break
+
         block_fn = BlockFunction(
             fn,
             inputs,
             outputs,
             preprocess,
             postprocess,
-            _id=self.fn_id,
+            _id=fn_id,
             inputs_as_dict=inputs_as_dict,
             targets=_targets,
             batch=batch,
@@ -922,6 +939,7 @@ class BlocksConfig:
             show_api=show_api,
             renderable=renderable,
             rendered_in=rendered_in,
+            render_iteration=render_iteration,
             is_cancel_function=is_cancel_function,
             connection=connection,
             time_limit=time_limit,
@@ -930,10 +948,12 @@ class BlocksConfig:
             event_specific_args=event_specific_args,
             page=self.root_block.current_page,
             js_implementation=js_implementation,
+            key=key,
         )
 
-        self.fns[self.fn_id] = block_fn
-        self.fn_id += 1
+        self.fns[fn_id] = block_fn
+        if not reuse_id:
+            self.fn_id += 1
         return block_fn, block_fn._id
 
     @staticmethod

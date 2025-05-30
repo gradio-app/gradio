@@ -13,6 +13,7 @@ from gradio.layouts import Column, Row
 
 if TYPE_CHECKING:
     from gradio.events import EventListenerCallable
+    from gradio.blocks import BlockFunction
 
 
 class Renderable:
@@ -41,6 +42,7 @@ class Renderable:
         self.triggers: list[EventListenerMethod] = []
         self.page = Context.root_block.current_page
         self.key_to_id_map: dict[int | str | tuple[int | str], int] = {}
+        self.render_iteration = 0
 
         self.triggers = [EventListenerMethod(*t) for t in triggers]
         Context.root_block.default_config.set_event_trigger(
@@ -63,12 +65,10 @@ class Renderable:
         if blocks_config is None:
             raise ValueError("Reactive render must be inside a LocalContext.")
 
-        fn_ids_to_remove_from_last_render = []
-        for _id, fn in blocks_config.fns.items():
+        fns_from_last_render: list[BlockFunction] = []
+        for fn in blocks_config.fns.values():
             if fn.rendered_in is self:
-                fn_ids_to_remove_from_last_render.append(_id)
-        for _id in fn_ids_to_remove_from_last_render:
-            del blocks_config.fns[_id]
+                fns_from_last_render.append(fn)
 
         container_copy = self.ContainerClass(render=False, show_progress=True)
         container_copy._id = self.container_id
@@ -84,6 +84,12 @@ class Renderable:
         finally:
             LocalContext.renderable.set(None)
             LocalContext.key_to_id_map.set(None)
+
+        for fn in fns_from_last_render:
+            if blocks_config.fns[fn._id].render_iteration != self.render_iteration:
+                del blocks_config.fns[fn._id]
+
+        self.render_iteration += 1
 
 
 @document()

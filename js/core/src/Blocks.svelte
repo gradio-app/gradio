@@ -308,18 +308,6 @@
 			dep.pending_request = true;
 		}
 
-		let deps_to_remove: number[] = [];
-		if (dep.render_id != null) {
-			dependencies.forEach((other_dep, i) => {
-				if (other_dep.rendered_in === dep.render_id) {
-					deps_to_remove.push(i);
-				}
-			});
-		}
-		deps_to_remove.reverse().forEach((i) => {
-			dependencies.splice(i, 1);
-		});
-
 		let payload: Payload = {
 			fn_index: dep_index,
 			data: await Promise.all(
@@ -483,6 +471,15 @@
 				let _dependencies: Dependency[] = data.dependencies;
 				let render_id = data.render_id;
 
+				let deps_to_remove: number[] = [];
+				dependencies.forEach((old_dep, i) => {
+					if (old_dep.rendered_in === dep.render_id) {
+						deps_to_remove.push(i);
+					}
+				});
+				deps_to_remove.reverse().forEach((i) => {
+					dependencies.splice(i, 1);
+				});
 				_dependencies.forEach((dep) => {
 					dependencies.push(dep);
 				});
