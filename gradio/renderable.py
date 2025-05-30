@@ -12,8 +12,8 @@ from gradio.events import EventListener, EventListenerMethod
 from gradio.layouts import Column, Row
 
 if TYPE_CHECKING:
-    from gradio.events import EventListenerCallable
     from gradio.blocks import BlockFunction
+    from gradio.events import EventListenerCallable
 
 
 class Renderable:
