@@ -27,6 +27,7 @@ class Sidebar(BlockContext, metaclass=ComponentMeta):
     def __init__(
         self,
         label: str | I18nData | None = None,
+        show_label: bool = False,
         *,
         open: bool = True,
         visible: bool = True,
@@ -40,7 +41,8 @@ class Sidebar(BlockContext, metaclass=ComponentMeta):
     ):
         """
         Parameters:
-            label: name of the sidebar. Not displayed to the user.
+            label: name of the sidebar. Not displayed to the user (unless `show_label` is `True`).
+            show_label: if `True`, the label will be displayed in the sidebar toggle button next to the arrow. Defaults to `False`.
             open: if True, sidebar is open by default.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -54,6 +56,7 @@ class Sidebar(BlockContext, metaclass=ComponentMeta):
         self.open = open
         self.width = width
         self.position = position
+        self.show_label = show_label
         BlockContext.__init__(
             self,
             visible=visible,
