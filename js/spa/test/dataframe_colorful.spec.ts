@@ -1,11 +1,9 @@
 import { test, expect } from "@self/tootils";
 
-test("first couple of cells in table are highlighted correctly", async ({
-	page
-}) => {
-	const first_td = await page.locator("tbody tr.row-odd td").first();
-	await expect(first_td).not.toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+test("table rows are highlighted correctly", async ({ page }) => {
+	const first_tr = await page.locator("tbody tr").first();
+	await expect(first_tr).toHaveCSS("background-color", "rgb(255, 255, 255)");
 
-	const second_td = await page.locator("tbody tr.row-odd td").nth(1);
-	await expect(second_td).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+	const second_tr = await page.locator("tbody tr").nth(1);
+	await expect(second_tr).toHaveCSS("background-color", "rgb(250, 250, 250)");
 });

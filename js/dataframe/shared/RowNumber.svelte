@@ -27,15 +27,6 @@
 		text-overflow: ellipsis;
 		white-space: nowrap;
 		font-weight: var(--weight-semibold);
-		background: var(--table-even-background-fill);
 		border-right: 1px solid var(--border-color-primary);
-	}
-
-	:global(tr:nth-child(odd)) .row-number {
-		background: var(--table-odd-background-fill);
-	}
-
-	:global(tr:nth-child(even)) .row-number {
-		background: var(--table-even-background-fill);
 	}
 </style>

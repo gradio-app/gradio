@@ -6,7 +6,9 @@
 	// See https://containers.dev/features
 	"features": {
 		"ghcr.io/devcontainers/features/git:1": {},
-		"ghcr.io/devcontainers/features/node:1": {},
+		"ghcr.io/devcontainers/features/node:1": {
+			"pnpmVersion": "9"
+		},
 		"ghcr.io/devcontainers-contrib/features/ffmpeg-apt-get:1": {}
 	},
 

@@ -9,7 +9,7 @@ More than 300 awesome developers have contributed to the `gradio` library, and w
 
 - [Python 3.10+](https://www.python.org/downloads/)
 - [Node.js v16.14+](https://nodejs.dev/en/download/package-manager/) (only needed if you are making changes to the frontend)
-- [pnpm 8.1+](https://pnpm.io/8.x/installation) (only needed if you are making changes to the frontend)
+- [pnpm 9.x](https://pnpm.io/9.x/installation) (only needed if you are making changes to the frontend)
 
 **Steps to Contribute**:
 
@@ -254,7 +254,19 @@ scripts\run_backend_tests.bat
 pnpm test
 ```
 
-- Browser tests are located in `js/spa/test` and are defined as `*spec.ts` files. To run browser tests:
+- Browser tests are located in `js/spa/test` and are defined as `*spec.ts` files.
+
+To install browser test dependencies:
+
+```
+pip install -r demo/outbreak_forecast/requirements.txt
+pip install -r demo/stream_video_out/requirements.txt
+pnpm exec playwright install chromium firefox
+pnpm exec playwright install-deps chromium firefox
+pnpm --filter @gradio/utils --filter @gradio/theme package
+```
+
+To run browser tests:
 
 ```
 pnpm test:browser
