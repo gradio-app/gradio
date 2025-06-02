@@ -106,8 +106,12 @@
 		value = new_value.toString();
 		dispatch("blur", {
 			blur_event: {
-				target: el
-			} as FocusEvent,
+				target: {
+					type: "checkbox",
+					checked: new_value,
+					value: new_value.toString()
+				}
+			} as unknown as FocusEvent,
 			coords: coords
 		});
 	}
