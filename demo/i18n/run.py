@@ -2,16 +2,18 @@ import gradio as gr
 
 # create an i18n instance with translations for different languages
 i18n = gr.I18n(
-    en={"name_label": "Your Name", "submit_button": "Greet", "john_doe": "John English", "result_label": "Result"},
-    es={"name_label": "Tu Nombre", "submit_button": "Saludar", "john_doe": "John Spanish", "result_label": "Resultado"},
-    fr={"name_label": "Votre Nom", "submit_button": "Saluer", "john_doe": "John French", "result_label": "Résultat"},
-    de={"name_label": "Dein Name", "submit_button": "Grüßen", "john_doe": "John German", "result_label": "Ergebnis"},
+    en={"greeting": "Hello, welcome to my app!", "name_label": "Your Name", "submit_button": "Greet", "john_doe": "John English", "result_label": "Result"},
+    es={"greeting": "¡Hola, bienvenido a mi aplicación!", "name_label": "Tu Nombre", "submit_button": "Saludar", "john_doe": "John Spanish", "result_label": "Resultado"},
+    fr={"greeting": "Bonjour, bienvenue dans mon application!", "name_label": "Votre Nom", "submit_button": "Saluer", "john_doe": "John French", "result_label": "Résultat"},
+    de={"greeting": "Hallo, willkommen in meiner App!", "name_label": "Dein Name", "submit_button": "Grüßen", "john_doe": "John German", "result_label": "Ergebnis"},
 )
 
 def add_hello_world(name):
     return "hello " + name
 
 with gr.Blocks() as demo:
+    gr.Markdown(value=i18n("greeting"))
+
     with gr.Row():
         # use i18n() for any string that should be translated
         name_input = gr.Textbox(label=i18n("name_label"), value=i18n("john_doe"))

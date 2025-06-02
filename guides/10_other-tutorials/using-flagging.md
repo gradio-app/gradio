@@ -1,6 +1,6 @@
 # Using Flagging
 
-Related spaces: https://huggingface.co/spaces/gradio/calculator-flagging-crowdsourced, https://huggingface.co/spaces/gradio/calculator-flagging-options, https://huggingface.co/spaces/gradio/calculator-flag-basic
+Related spaces: https://huggingface.co/spaces/gradio/calculator-flagging-crowdsourced, https://huggingface.co/spaces/gradio/calculator-flagging-options, https://huggingface.co/spaces/gradio/calculator-flagging-basic
 Tags: FLAGGING, DATA
 
 ## Introduction
@@ -60,7 +60,7 @@ iface = gr.Interface(
 iface.launch()
 ```
 
-<gradio-app space="gradio/calculator-flag-basic/"></gradio-app>
+<gradio-app space="gradio/calculator-flagging-basic"></gradio-app>
 
 When you click the flag button above, the directory where the interface was launched will include a new flagged subfolder, with a csv file inside it. This csv file includes all the data that was flagged.
 
@@ -114,7 +114,7 @@ iface = gr.Interface(
 iface.launch()
 ```
 
-<gradio-app space="gradio/calculator-flagging-options/"></gradio-app>
+<gradio-app space="gradio/calculator-flagging-options"></gradio-app>
 
 When users click the flag button, the csv file will now include a column indicating the selected option.
 

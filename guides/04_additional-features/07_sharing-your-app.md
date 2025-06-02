@@ -1,4 +1,4 @@
-≤# Sharing Your App
+# Sharing Your App
 
 In this Guide, we dive more deeply into the various aspects of sharing a Gradio app with others. We will cover:
 
