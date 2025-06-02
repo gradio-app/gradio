@@ -496,7 +496,12 @@ class BlockContext(Block):
                 ):
                     pseudo_parent.add_child(child)
                 else:
-                    key = None if child.key is None else (child.key, "_parent")
+                    key = None
+                    if child.key is not None:
+                        if isinstance(child.key, tuple):
+                            key = child.key + ("_parent",)
+                        else:
+                            key = (child.key, "_parent")
                     pseudo_parent = expected_parent(render=False, key=key)
                     pseudo_parent.parent = self
                     children.append(pseudo_parent)
