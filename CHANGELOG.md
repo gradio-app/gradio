@@ -1,5 +1,13 @@
 # gradio
 
+## 5.32.1
+
+### Fixes
+
+- [#11304](https://github.com/gradio-app/gradio/pull/11304) [`bdbc210`](https://github.com/gradio-app/gradio/commit/bdbc210dbf09555b3bd8f647c6f19621771b5771) - Fix custom components build and dev mode with certain base components (Image and Audio at least).  Thanks @pngwn!
+- [#11307](https://github.com/gradio-app/gradio/pull/11307) [`bc299f1`](https://github.com/gradio-app/gradio/commit/bc299f12e54f765c2194da2c46a8d4520c44fbb3) - Show scroll to bottom button whenever user scrolls up in chatbot.  Thanks @dawoodkhan82!
+- [#11282](https://github.com/gradio-app/gradio/pull/11282) [`9a6a6f5`](https://github.com/gradio-app/gradio/commit/9a6a6f524e8e9784144d45ea7b6327a1a7b3593c) - Fix DataFrame Group Flicker.  Thanks @deckar01!
+
 ## 5.32.0
 
 ### Features

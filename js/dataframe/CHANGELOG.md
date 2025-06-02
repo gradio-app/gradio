@@ -1,5 +1,17 @@
 # @gradio/dataframe
 
+## 0.17.14
+
+### Fixes
+
+- [#11282](https://github.com/gradio-app/gradio/pull/11282) [`9a6a6f5`](https://github.com/gradio-app/gradio/commit/9a6a6f524e8e9784144d45ea7b6327a1a7b3593c) - Fix DataFrame Group Flicker.  Thanks @deckar01!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/markdown-code@0.4.3
+- @gradio/button@0.5.2
+
 ## 0.17.13
 
 ### Dependency updates
