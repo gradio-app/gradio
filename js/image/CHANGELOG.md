@@ -1,5 +1,15 @@
 # @gradio/image
 
+## 0.22.8
+
+### Fixes
+
+- [#11304](https://github.com/gradio-app/gradio/pull/11304) [`bdbc210`](https://github.com/gradio-app/gradio/commit/bdbc210dbf09555b3bd8f647c6f19621771b5771) - Fix custom components build and dev mode with certain base components (Image and Audio at least).  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
 ## 0.22.7
 
 ### Dependency updates
