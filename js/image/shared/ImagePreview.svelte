@@ -12,7 +12,7 @@
 	} from "@gradio/atoms";
 	import { Download, Image as ImageIcon } from "@gradio/icons";
 	import { get_coordinates_of_clicked_image } from "./utils";
-	import { Image } from "@gradio/image/shared";
+	import Image from "./Image.svelte";
 	import { DownloadLink } from "@gradio/wasm/svelte";
 
 	import type { I18nFormatter } from "@gradio/utils";

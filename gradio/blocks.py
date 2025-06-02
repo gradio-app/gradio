@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import copy
 import dataclasses
 import hashlib
@@ -163,6 +164,7 @@ class Block:
             if isinstance(preserved_by_key, str)
             else (preserved_by_key or [])
         )
+        self.mcp_server_obj = None
 
         # Keep tracks of files that should not be deleted when the delete_cache parmameter is set
         # These files are the default value of the component and files that are used in examples
@@ -2689,14 +2691,10 @@ Received inputs:
         else:
             self.node_server_name = self.node_port = self.node_process = None
 
-        # self.server_app is included for backwards compatibility
-        self.server_app = self.app = App.create_app(
-            self,
-            auth_dependency=auth_dependency,
-            app_kwargs=app_kwargs,
-            strict_cors=strict_cors,
-            ssr_mode=self.ssr_mode,
-        )
+        self.i18n_instance = i18n
+
+        if app_kwargs is None:
+            app_kwargs = {}
 
         mcp_subpath = API_PREFIX + "/mcp"
         if mcp_server is None:
@@ -2709,15 +2707,41 @@ Received inputs:
                     "In order to use `mcp_server=True`, you must install gradio with the `mcp` extra. Please install it with `pip install gradio[mcp]`"
                 ) from e
             try:
-                self.mcp_server_obj = gradio.mcp.GradioMCPServer(self)
-                self.mcp_server_obj.launch_mcp_on_sse(
-                    self.server_app, mcp_subpath, self.root_path
-                )
+                self.mcp_server_obj = gradio.mcp.GradioMCPServer(self, self.root_path)
                 self.mcp_server = True
+                user_lifespan = None
+                if "lifespan" in app_kwargs:
+                    user_lifespan = app_kwargs["lifespan"]
+
+                @contextlib.asynccontextmanager
+                async def _lifespan(app: App):
+                    async with contextlib.AsyncExitStack() as stack:
+                        if self.mcp_server_obj:
+                            await stack.enter_async_context(
+                                self.mcp_server_obj.lifespan(app)
+                            )
+                        if user_lifespan is not None:
+                            await stack.enter_async_context(user_lifespan(app))
+                        yield
+
+                app_kwargs["lifespan"] = _lifespan
             except Exception as e:
                 self.mcp_server = False
                 if not quiet:
                     print(f"Error launching MCP server: {e}")
+
+        self.server_app = self.app = App.create_app(
+            self,
+            auth_dependency=auth_dependency,
+            app_kwargs=app_kwargs,
+            strict_cors=strict_cors,
+            ssr_mode=self.ssr_mode,
+        )
+
+        if self.mcp_server_obj:
+            self.mcp_server_obj.launch_mcp_on_sse(
+                self.server_app, mcp_subpath, self.root_path
+            )
 
         self.config = self.get_config_file()
 
@@ -2829,7 +2853,6 @@ Received inputs:
                 f"Monitoring URL: {self.local_url}monitoring/{self.app.analytics_key}"
             )
         self.enable_monitoring = enable_monitoring in [True, None]
-        self.i18n_instance = i18n
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.

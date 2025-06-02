@@ -79,7 +79,7 @@ def sepia(input_img):
 
 demo = gr.TabbedInterface(
     [
-        gr.Interface(prime_factors, gr.Textbox(), gr.Textbox(), api_name="prime_factors"),
+        gr.Interface(prime_factors, gr.Textbox("1001"), gr.Textbox(), api_name="prime_factors"),
         gr.Interface(generate_cheetah_image, None, gr.Image(), api_name="generate_cheetah_image"),
         gr.Interface(image_orientation, gr.Image(type="pil"), gr.Textbox(), api_name="image_orientation"),
         gr.Interface(sepia, gr.Image(), gr.Image(), api_name="sepia"),
