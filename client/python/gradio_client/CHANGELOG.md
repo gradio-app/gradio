@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.10.2
+
+### Fixes
+
+- [#11215](https://github.com/gradio-app/gradio/pull/11215) [`2186ae3`](https://github.com/gradio-app/gradio/commit/2186ae3f4d6f8ac83883c359aed88a5b72746b5d) - Allow httpx_kwargs to contain cookies.  Thanks @santibreo!
+
 ## 1.10.1
 
 ### Features
