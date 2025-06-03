@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import time
 import gradio as gr
 
 def update_log():
@@ -64,6 +65,15 @@ with gr.Blocks() as demo:
             textbox = gr.Textbox(label="Set Label", value="Choices")
 
             textbox.change(lambda l: gr.Radio(label=l), textbox, letter_choices)
+
+    timer = gr.Timer(0.5)
+
+    @gr.render(triggers=[timer.tick], show_progress="hidden")
+    def render():
+        a = gr.Textbox(label="box-a", key="a")
+        b = gr.Textbox(label="box-b", key="b")
+        a.change(lambda x: time.sleep(0.5) or x, a, b, key="a-b")
+        gr.Number(value=round(time.time(), 2))
 
 
 if __name__ == '__main__':

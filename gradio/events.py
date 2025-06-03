@@ -594,6 +594,7 @@ class EventListener(str):
             time_limit: int | None = None,
             stream_every: float = 0.5,
             like_user_message: bool = False,
+            key: int | str | tuple[int | str, ...] | None = None,
         ) -> Dependency:
             """
             Parameters:
@@ -615,6 +616,7 @@ class EventListener(str):
                 concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
                 concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
                 show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
+                key: A unique key for this event listener to be used in @gr.render(). If set, this value identifies an event as identical across re-renders when the key is identical.
             """
 
             if fn == "decorator":
@@ -640,6 +642,7 @@ class EventListener(str):
                         concurrency_limit=concurrency_limit,
                         concurrency_id=concurrency_id,
                         show_api=show_api,
+                        key=key,
                     )
 
                     @wraps(func)
@@ -699,6 +702,7 @@ class EventListener(str):
                 ]
                 if _event_specific_args
                 else None,
+                key=key,
             )
             set_cancel_events(
                 [event_target],
@@ -757,6 +761,7 @@ def on(
     show_api: bool = True,
     time_limit: int | None = None,
     stream_every: float = 0.5,
+    key: int | str | tuple[int | str, ...] | None = None,
 ) -> Dependency:
     """
     Sets up an event listener that triggers a function when the specified event(s) occur. This is especially
@@ -834,6 +839,7 @@ def on(
                 trigger_mode=trigger_mode,
                 time_limit=time_limit,
                 stream_every=stream_every,
+                key=key,
             )
 
             @wraps(func)
@@ -892,6 +898,7 @@ def on(
         ],
         time_limit=time_limit,
         stream_every=stream_every,
+        key=key,
     )
     set_cancel_events(methods, cancels)
     return Dependency(None, dep.get_config(), dep_index, fn)
