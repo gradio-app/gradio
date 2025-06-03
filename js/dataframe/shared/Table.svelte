@@ -126,7 +126,7 @@
 		const observer = new IntersectionObserver((entries) => {
 			entries.forEach((entry) => {
 				if (entry.isIntersecting && !is_visible) {
-					set_cell_widths();
+					width_calculated = false;
 				}
 				is_visible = entry.isIntersecting;
 			});
@@ -229,6 +229,7 @@
 				}
 				last_width_data_length = 0;
 				last_width_column_count = 0;
+				width_calculated = false;
 			}
 		}
 
@@ -262,8 +263,8 @@
 			df_actions.handle_search(null);
 		}
 
-		if (parent && cells.length > 0) {
-			set_cell_widths();
+		if (parent && cells.length > 0 && (is_reset || is_different_structure)) {
+			width_calculated = false;
 		}
 	}
 
@@ -427,9 +428,17 @@
 
 	$: max = get_max(data);
 
-	// Modify how we trigger cell width calculations
-	// Only recalculate when cells actually change, not during sort
-	$: cells[0] && cells[0]?.clientWidth && set_cell_widths();
+	let width_calc_timeout: ReturnType<typeof setTimeout>;
+	$: if (cells[0] && cells[0]?.clientWidth) {
+		clearTimeout(width_calc_timeout);
+		width_calc_timeout = setTimeout(() => set_cell_widths(), 100);
+	}
+
+	let width_calculated = false;
+	$: if (cells[0] && !width_calculated) {
+		set_cell_widths();
+		width_calculated = true;
+	}
 	let cells: HTMLTableCellElement[] = [];
 	let parent: HTMLDivElement;
 	let table: HTMLTableElement;
@@ -655,6 +664,7 @@
 		selected_cells = [];
 		selected = false;
 		editing = false;
+		width_calculated = false;
 		set_cell_widths();
 	}
 
