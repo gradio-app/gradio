@@ -1,6 +1,6 @@
 ---
-"@gradio/client": minor
-"gradio": minor
+"@gradio/client": patch
+"gradio": patch
 ---
 
-feat:Fix image streaming - wait for ws to open
+fix:Fix image streaming - wait for ws to open
