@@ -504,6 +504,7 @@ export class Client {
 			}
 
 			ws.onopen = () => {
+				this.ws_map[url] = ws;
 				resolve();
 			};
 
@@ -520,7 +521,6 @@ export class Client {
 			};
 
 			ws.onmessage = (event) => {};
-			this.ws_map[url] = ws;
 		});
 	}
 
