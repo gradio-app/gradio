@@ -1,5 +1,32 @@
 # @gradio/chatbot
 
+## 0.26.10
+
+### Fixes
+
+- [#11307](https://github.com/gradio-app/gradio/pull/11307) [`bc299f1`](https://github.com/gradio-app/gradio/commit/bc299f12e54f765c2194da2c46a8d4520c44fbb3) - Show scroll to bottom button whenever user scrolls up in chatbot.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/gallery@0.15.21
+- @gradio/markdown-code@0.4.3
+- @gradio/plot@0.9.17
+- @gradio/video@0.14.16
+- @gradio/image@0.22.8
+
+## 0.26.9
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/client@1.15.1
+- @gradio/upload@0.16.6
+- @gradio/image@0.22.7
+- @gradio/gallery@0.15.20
+- @gradio/plot@0.9.17
+- @gradio/video@0.14.15
+
 ## 0.26.8
 
 ### Features

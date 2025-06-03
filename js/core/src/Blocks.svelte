@@ -53,8 +53,6 @@
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
 
-	setupi18n(app.config?.i18n_translations ?? undefined);
-
 	let {
 		layout: _layout,
 		targets,
@@ -833,6 +831,11 @@
 			screen_recorder.startRecording();
 		}
 	}
+
+	let i18n_ready = false;
+	setupi18n(app.config?.i18n_translations ?? undefined).then(() => {
+		i18n_ready = true;
+	});
 </script>
 
 <svelte:head>
@@ -846,7 +849,7 @@
 
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
-		{#if $_layout && app.config}
+		{#if $_layout && app.config && i18n_ready}
 			<MountComponents
 				rootNode={$_layout}
 				{root}

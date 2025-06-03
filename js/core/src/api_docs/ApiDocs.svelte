@@ -101,6 +101,7 @@
 		type: string;
 		description: string;
 		format?: string;
+		default?: any;
 	}
 
 	interface Tool {
@@ -267,24 +268,24 @@
 												<div class="tool-content">
 													{#if Object.keys(tool.parameters).length > 0}
 														<div class="tool-parameters">
-															{#if Object.keys(tool.parameters).length > 0}
-																{#each Object.entries(tool.parameters) as [name, param]}
-																	<div class="parameter">
-																		<code>{name}</code>
-																		<span class="parameter-type"
-																			>({param.type})</span
-																		>
-																		<p class="parameter-description">
-																			{param.description
-																				? param.description
-																				: "⚠︎ No description for this parameter in function docstring"}
-																		</p>
-																	</div>
-																{/each}
-															{:else}
-																<p>No parameters</p>
-															{/if}
+															{#each Object.entries(tool.parameters) as [name, param]}
+																<div class="parameter">
+																	<code>{name}</code>
+																	<span class="parameter-type">
+																		({param.type}{param.default !== undefined
+																			? `, default: ${JSON.stringify(param.default)}`
+																			: ""})
+																	</span>
+																	<p class="parameter-description">
+																		{param.description
+																			? param.description
+																			: "⚠︎ No description for this parameter in function docstring"}
+																	</p>
+																</div>
+															{/each}
 														</div>
+													{:else}
+														<p>Takes no input parameters</p>
 													{/if}
 												</div>
 											{/if}

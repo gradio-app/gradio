@@ -660,8 +660,8 @@ class TrackedIterable:
     def __init__(
         self,
         iterable: Iterable | None,
-        index: int | None,
-        length: int | None,
+        index: int | float | None,
+        length: int | float | None,
         desc: str | None,
         unit: str | None,
         _tqdm=None,
@@ -742,7 +742,7 @@ class Progress(Iterable):
         self,
         progress: float | tuple[int, int | None] | None,
         desc: str | None = None,
-        total: int | None = None,
+        total: int | float | None = None,
         unit: str = "steps",
         _tqdm=None,
     ):
@@ -772,7 +772,7 @@ class Progress(Iterable):
         self,
         iterable: Iterable | None,
         desc: str | None = None,
-        total: int | None = None,
+        total: int | float | None = None,
         unit: str = "steps",
         _tqdm=None,
     ):
@@ -797,7 +797,7 @@ class Progress(Iterable):
             )
         return self
 
-    def update(self, n=1):
+    def update(self, n: int | float = 1):
         """
         Increases latest iterable with specified number of steps.
         Parameters:

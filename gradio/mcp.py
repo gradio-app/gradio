@@ -1,9 +1,10 @@
 import base64
+import contextlib
 import os
 import re
 import tempfile
 import warnings
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -12,10 +13,13 @@ import gradio_client.utils as client_utils
 from mcp import types
 from mcp.server import Server
 from mcp.server.sse import SseServerTransport
+from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from PIL import Image
 from starlette.applications import Starlette
+from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
+from starlette.types import Receive, Scope, Send
 
 from gradio import processing_utils, route_utils, utils
 from gradio.blocks import BlockFunction
@@ -40,7 +44,7 @@ class GradioMCPServer:
         blocks: The Blocks app to create the MCP server for.
     """
 
-    def __init__(self, blocks: "Blocks"):
+    def __init__(self, blocks: "Blocks", root_path: str):
         self.blocks = blocks
         self.api_info = self.blocks.get_api_info()
         self.mcp_server = self.create_mcp_server()
@@ -54,6 +58,35 @@ class GradioMCPServer:
             self.tool_prefix = ""
         self.tool_to_endpoint = self.get_tool_to_endpoint()
         self.warn_about_state_inputs()
+
+        manager = StreamableHTTPSessionManager(
+            app=self.mcp_server, json_response=False, stateless=True
+        )
+
+        async def handle_streamable_http(
+            scope: Scope, receive: Receive, send: Send
+        ) -> None:
+            request = Request(scope, receive)
+            self.request = request
+            self.root_url = route_utils.get_root_url(
+                request=request,
+                route_path="/gradio_api/mcp/http",
+                root_path=root_path,
+            )
+            await manager.handle_request(scope, receive, send)
+
+        @contextlib.asynccontextmanager
+        async def lifespan(app: Starlette) -> AsyncIterator[None]:  # noqa: ARG001
+            """Context manager for managing session manager lifecycle."""
+            async with manager.run():
+                try:
+                    yield
+                finally:
+                    pass
+
+        self.lifespan = lifespan
+        self.manager = manager
+        self.handle_streamable_http = handle_streamable_http
 
     def get_tool_to_endpoint(self) -> dict[str, str]:
         """
@@ -211,6 +244,7 @@ class GradioMCPServer:
                     ),
                     Route("/sse", endpoint=handle_sse),
                     Mount("/messages/", app=sse.handle_post_message),
+                    Mount("/http/", app=self.handle_streamable_http),
                 ],
             ),
         )
@@ -293,6 +327,11 @@ class GradioMCPServer:
                     **(
                         {"description": parameters[p["parameter_name"]]}
                         if parameters and p["parameter_name"] in parameters
+                        else {}
+                    ),
+                    **(
+                        {"default": p["parameter_default"]}
+                        if "parameter_default" in p and p["parameter_default"]
                         else {}
                     ),
                 }
