@@ -13,7 +13,17 @@ async function save_cell_value(
 ): Promise<void> {
 	if (!ctx.data || !ctx.data[row] || !ctx.data[row][col]) return;
 
+	const old_value = ctx.data[row][col].value;
 	ctx.data[row][col].value = input_value;
+
+	if (old_value !== input_value && ctx.dispatch) {
+		ctx.dispatch("change", {
+			data: ctx.data.map((row) => row.map((cell) => cell.value)),
+			headers: ctx.headers?.map((h) => h.value) || [],
+			metadata: null
+		});
+	}
+
 	ctx.actions.set_selected([row, col]);
 }
 
