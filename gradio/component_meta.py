@@ -139,11 +139,11 @@ def create_or_modify_pyi(
             with open(str(pyi_file), mode="a") as f:
                 f.write(new_interface)
     else:
-        contents = pyi_file.read_text()
-        contents = contents.replace(current_interface, new_interface.strip())
-        current_contents = pyi_file.read_text()
-        if current_contents != contents:
-            with no_raise_exception():
+        with no_raise_exception():
+            contents = pyi_file.read_text()
+            contents = contents.replace(current_interface, new_interface.strip())
+            current_contents = pyi_file.read_text()
+            if current_contents != contents:
                 pyi_file.write_text(contents)
 
 
