@@ -104,7 +104,7 @@ gradio cc publish
 
 This will guide you through the following process:
 
-1. Upload your distribution files to PyPi. This is optional. If you decide to upload to PyPi, you will need a PyPI username and password. You can get one [here](https://pypi.org/account/register/).
+1. Upload your distribution files to PyPi. This is needed if you want to upload the demo to hugging face. You will need a PyPI username and password. You can get one [here](https://pypi.org/account/register/).
 2. Upload a demo of your component to hugging face spaces. This is also optional.
 
 
