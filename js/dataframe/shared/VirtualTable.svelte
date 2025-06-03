@@ -396,10 +396,6 @@
 		scroll-snap-align: start;
 	}
 
-	tbody > :global(tr:nth-child(even)) {
-		background: var(--table-even-background-fill);
-	}
-
 	tbody :global(td.pinned-column) {
 		position: sticky;
 		z-index: 3;

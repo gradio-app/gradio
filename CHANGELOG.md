@@ -1,5 +1,36 @@
 # gradio
 
+## 5.32.1
+
+### Fixes
+
+- [#11304](https://github.com/gradio-app/gradio/pull/11304) [`bdbc210`](https://github.com/gradio-app/gradio/commit/bdbc210dbf09555b3bd8f647c6f19621771b5771) - Fix custom components build and dev mode with certain base components (Image and Audio at least).  Thanks @pngwn!
+- [#11307](https://github.com/gradio-app/gradio/pull/11307) [`bc299f1`](https://github.com/gradio-app/gradio/commit/bc299f12e54f765c2194da2c46a8d4520c44fbb3) - Show scroll to bottom button whenever user scrolls up in chatbot.  Thanks @dawoodkhan82!
+- [#11282](https://github.com/gradio-app/gradio/pull/11282) [`9a6a6f5`](https://github.com/gradio-app/gradio/commit/9a6a6f524e8e9784144d45ea7b6327a1a7b3593c) - Fix DataFrame Group Flicker.  Thanks @deckar01!
+
+## 5.32.0
+
+### Features
+
+- [#11283](https://github.com/gradio-app/gradio/pull/11283) [`6ec91bf`](https://github.com/gradio-app/gradio/commit/6ec91bf3a224758d79dc3413e51ecb90d4302a50) - Add `_` between space name and tool name for mcp.  Thanks @abidlabs!
+- [#11289](https://github.com/gradio-app/gradio/pull/11289) [`1b6bd1e`](https://github.com/gradio-app/gradio/commit/1b6bd1ee5a96541e88b5834784b9acd6bd344187) - Include default values in MCP docs.  Thanks @abidlabs!
+- [#11300](https://github.com/gradio-app/gradio/pull/11300) [`6780f69`](https://github.com/gradio-app/gradio/commit/6780f69ded0067ac96f9cc73fddce9323b649bee) - Streamable HTTP Transport for MCP server.  Thanks @freddyaboulton!
+- [#11247](https://github.com/gradio-app/gradio/pull/11247) [`0a26311`](https://github.com/gradio-app/gradio/commit/0a2631127d970a19e7969401345bba124e68dcb4) - Use the function name as the tool name in the Gradio MCP server.  Thanks @abidlabs!
+
+### Fixes
+
+- [#11286](https://github.com/gradio-app/gradio/pull/11286) [`5bfc57e`](https://github.com/gradio-app/gradio/commit/5bfc57e3748e3d39050dd13e063705f8c8000c49) - Fix parameter names in ChatInterface view api page.  Thanks @freddyaboulton!
+- [#11270](https://github.com/gradio-app/gradio/pull/11270) [`636be09`](https://github.com/gradio-app/gradio/commit/636be09928448dd6d4ef29013dbf698f22787d3d) - A few frontend / UI fixes to `gr.Sidebar`.  Thanks @abidlabs!
+- [#11279](https://github.com/gradio-app/gradio/pull/11279) [`8ae434c`](https://github.com/gradio-app/gradio/commit/8ae434c58906fda5fe20a6b08a12b6007a47af09) - Ensure error text overflows as expected.  Thanks @hannahblair!
+- [#11272](https://github.com/gradio-app/gradio/pull/11272) [`8177b01`](https://github.com/gradio-app/gradio/commit/8177b014e5539aa1011a74856d065dbb17fa0326) - Fix bug where streaming one chunk of audio or video would not play.  Thanks @freddyaboulton!
+- [#11215](https://github.com/gradio-app/gradio/pull/11215) [`2186ae3`](https://github.com/gradio-app/gradio/commit/2186ae3f4d6f8ac83883c359aed88a5b72746b5d) - Allow httpx_kwargs to contain cookies.  Thanks @santibreo!
+- [#11271](https://github.com/gradio-app/gradio/pull/11271) [`ab25fb9`](https://github.com/gradio-app/gradio/commit/ab25fb9adb4e0401a060cdd07c0985483075123c) - Ensure i18n setup is complete when rendering.  Thanks @hannahblair!
+- [#11262](https://github.com/gradio-app/gradio/pull/11262) [`56d82d7`](https://github.com/gradio-app/gradio/commit/56d82d72ea71c218002f70063288aeb56a885727) - Add missing `blur` event to `gr.Number`.  Thanks @ExcellentAmericanEagle!
+- [#11243](https://github.com/gradio-app/gradio/pull/11243) [`35afa21`](https://github.com/gradio-app/gradio/commit/35afa21f0d6647e4fbda711f3f22a2fd54eedaf9) - Only show parameters warning when valid `endpoint_info` exists.  Thanks @hannahblair!
+- [#11285](https://github.com/gradio-app/gradio/pull/11285) [`c16dff0`](https://github.com/gradio-app/gradio/commit/c16dff0489983648c6aafe82b971b4a9b903961f) - Allow `gr.Progress` to take fractional steps and fractional total # of steps.  Thanks @abidlabs!
+- [#11278](https://github.com/gradio-app/gradio/pull/11278) [`ac2bcea`](https://github.com/gradio-app/gradio/commit/ac2bcea619806ff99a44d98c15ca5c5969cdd54d) - Add gap around slider input in mobile.  Thanks @hannahblair!
+- [#11273](https://github.com/gradio-app/gradio/pull/11273) [`f54f81b`](https://github.com/gradio-app/gradio/commit/f54f81bda84c1337fdd453e3fe837d0159e384ea) - Fix bug where only the first chunk of a video stream played audio.  Thanks @freddyaboulton!
+
 ## 5.31.0
 
 ### Features
