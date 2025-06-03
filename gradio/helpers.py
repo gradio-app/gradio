@@ -399,7 +399,7 @@ class Examples:
                         queue=False,
                         show_api=False,
                     )
-                    self.root_block.load.then(
+                    self.root_block.load(
                         load_example_output,
                         inputs=[
                             components.State(
