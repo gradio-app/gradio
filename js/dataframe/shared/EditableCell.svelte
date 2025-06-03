@@ -104,6 +104,16 @@
 
 	function handle_bool_change(new_value: boolean): void {
 		value = new_value.toString();
+		dispatch("blur", {
+			blur_event: {
+				target: {
+					type: "checkbox",
+					checked: new_value,
+					value: new_value.toString()
+				}
+			} as unknown as FocusEvent,
+			coords: coords
+		});
 	}
 </script>
 
