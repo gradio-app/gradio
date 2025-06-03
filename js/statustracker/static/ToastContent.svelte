@@ -221,6 +221,9 @@
 
 	.toast-text {
 		font-size: var(--text-lg);
+		word-wrap: break-word;
+		overflow-wrap: break-word;
+		word-break: break-word;
 	}
 
 	.toast-text.error {

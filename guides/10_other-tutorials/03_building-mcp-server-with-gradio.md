@@ -37,9 +37,9 @@ The MCP server will be accessible at:
 http://your-server:port/gradio_api/mcp/sse
 ```
 
-Gradio automatically converts the `letter_counter` function into an MCP tool that can be used by LLMs. The docstring of the function and the type hints of arguments will be used to generate the description of the tool and its parameters. 
+Gradio automatically converts the `letter_counter` function into an MCP tool that can be used by LLMs. The docstring of the function and the type hints of arguments will be used to generate the description of the tool and its parameters. The name of the function will be used as the name of your tool. Any initial values you provide to your input components (e.g. "strawberry" and "r" in the `gr.Textbox` components above) will be used as the default values if your LLM doesn't specify a value for that particular input parameter.
 
-All you need to do is add this URL endpoint to your MCP Client (e.g. Claude Desktop, Cursor, or Cline), which typically means pasting this config in the settings:
+Now, all you need to do is add this URL endpoint to your MCP Client (e.g. Claude Desktop, Cursor, or Cline), which typically means pasting this config in the settings:
 
 ```
 {
@@ -138,7 +138,7 @@ If you need to overcome these limitations, you'll need to create a custom MCP se
 In some cases, you may need to manually create an MCP Server that internally calls a Gradio app. This approach is useful when you want to:
 
 - Choose specific endpoints within a larger Gradio app to serve as tools
-- Customize how your tools are presented to LLMs (e.g. change the schema or description)
+- Customize how your tools are presented to LLMs (e.g. change the tool name, schema, or description)
 - Start the Gradio app MCP server when a tool is called (if you are running multiple Gradio apps locally and want to save memory / GPU)
 - Use a different MCP protocol than SSE
 
