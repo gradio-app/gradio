@@ -53,7 +53,7 @@ def create_examples(
     *,
     example_labels: list[str] | None = None,
     visible: bool = True,
-    preload: int | Literal[False] = 0,
+    preload: int | Literal[False] = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
     examples_obj = Examples(
@@ -113,7 +113,7 @@ class Examples:
         *,
         example_labels: list[str] | None = None,
         visible: bool = True,
-        preload: int | Literal[False] = 0,
+        preload: int | Literal[False] = False,
         _initiated_directly: bool = True,
     ):
         """
@@ -398,7 +398,8 @@ class Examples:
                         postprocess=False,
                         queue=False,
                         show_api=False,
-                    ).then(
+                    )
+                    self.root_block.load.then(
                         load_example_output,
                         inputs=[
                             components.State(
