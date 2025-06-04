@@ -118,10 +118,10 @@
 			const response = await fetch(`${root}gradio_api/mcp/schema`);
 			const schema = await response.json();
 
-			tools = Object.entries(schema).map(([name, tool]: [string, any]) => ({
-				name: `${name}`,
+			tools = schema.map((tool: any) => ({
+				name: tool.name,
 				description: tool.description || "",
-				parameters: tool.properties || {},
+				parameters: tool.inputSchema?.properties || {},
 				expanded: false
 			}));
 		} catch (error) {
