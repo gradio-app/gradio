@@ -362,7 +362,7 @@ class GradioMCPServer:
             info = {
                 "name": tool_name,
                 "description": description,
-                "inputSchema": schema
+                "inputSchema": schema,
             }
             schemas.append(info)
 
