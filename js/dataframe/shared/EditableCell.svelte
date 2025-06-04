@@ -4,7 +4,6 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import SelectionButtons from "./icons/SelectionButtons.svelte";
 	import BooleanCell from "./BooleanCell.svelte";
-	import type { BoolInputType } from "./utils";
 
 	export let edit: boolean;
 	export let value: string | number = "";
@@ -19,7 +18,6 @@
 		| "bool"
 		| "date"
 		| "image" = "str";
-	export let bool_input: BoolInputType = "checkbox";
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -141,7 +139,6 @@
 		bind:el
 		value={String(display_content)}
 		{editable}
-		{bool_input}
 		on_change={handle_bool_change}
 	/>
 {:else}
