@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { BaseCheckbox } from "@gradio/checkbox";
 
-	export let el: HTMLInputElement | null = null;
 	export let value: boolean | string = false;
 	export let editable = true;
 	export let on_change: (value: boolean) => void;
@@ -9,16 +8,8 @@
 	$: bool_value =
 		typeof value === "string" ? value.toLowerCase() === "true" : !!value;
 
-	$: text_value = bool_value ? "true" : "false";
-
 	function handle_change(event: CustomEvent<boolean>): void {
 		on_change(event.detail);
-	}
-
-	function handle_text_change(event: Event): void {
-		const target = event.target as HTMLInputElement;
-		const new_bool_value = target.value.toLowerCase() === "true";
-		on_change(new_bool_value);
 	}
 
 	function handle_mousedown(event: MouseEvent): void {

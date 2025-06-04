@@ -45,7 +45,6 @@
 	import { sort_data_and_preserve_selection } from "./utils/sort_utils";
 
 	export let datatype: Datatype | Datatype[];
-
 	export let label: string | null = null;
 	export let show_label = true;
 	export let headers: Headers = [];

@@ -32,6 +32,7 @@
 	export let i18n: I18nFormatter;
 	export let is_dragging = false;
 	export let wrap_text = false;
+
 	export let show_selection_buttons = false;
 	export let coords: [number, number];
 	export let on_select_column: ((col: number) => void) | null = null;
@@ -136,7 +137,6 @@
 
 {#if datatype === "bool"}
 	<BooleanCell
-		bind:el
 		value={String(display_content)}
 		{editable}
 		on_change={handle_bool_change}
