@@ -1,5 +1,11 @@
 # @gradio/nativeplot
 
+## 0.6.0
+
+### Features
+
+- [#11306](https://github.com/gradio-app/gradio/pull/11306) [`6cd608d`](https://github.com/gradio-app/gradio/commit/6cd608d8f9b1a142c58f0d2db861845ec267f705) - Improvements for plots and event listeners in re-renders.  Thanks @aliabid94!
+
 ## 0.5.17
 
 ### Dependency updates
