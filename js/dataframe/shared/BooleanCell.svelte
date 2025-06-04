@@ -30,15 +30,6 @@
 		on:change={handle_change}
 	/>
 </div>
-{#if editable}
-	<input
-		bind:this={el}
-		bind:value={text_value}
-		type="text"
-		class="bool-text-input"
-		on:change={handle_text_change}
-	/>
-{/if}
 
 <style>
 	.bool-cell {
@@ -63,11 +54,5 @@
 
 	.bool-cell :global(span) {
 		display: none;
-	}
-
-	.bool-text-input {
-		width: 100%;
-		border: none;
-		background: transparent;
 	}
 </style>
