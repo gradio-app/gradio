@@ -75,3 +75,25 @@ def clear_static_files():
     from gradio import data_classes
 
     data_classes._StaticFiles.clear()
+
+
+@pytest.fixture
+def test_mcp_app():
+    """Fixture that creates a test Gradio app with a simple text processing tool for MCP tests."""
+
+    def test_tool(x: str) -> str:
+        """
+        This is a test tool.
+        Parameters:
+        - x: str
+        Returns:
+        - the original value as a string
+        """
+        return str(x)
+
+    with gr.Blocks() as app:
+        t1 = gr.Textbox(label="Test Textbox")
+        t2 = gr.Textbox(label="Test Textbox 2")
+        t1.submit(test_tool, t1, t2)
+
+    return app

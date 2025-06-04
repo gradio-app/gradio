@@ -189,7 +189,15 @@ class GradioMCPServer:
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
                 assert block_fn is not None and block_fn.fn is not None  # noqa: S101
-                description, parameters = utils.get_function_description(block_fn.fn)
+                description, parameters, returns = utils.get_function_description(
+                    block_fn.fn
+                )
+                if returns:
+                    description += (
+                        ("" if description.endswith(".") else ".")
+                        + " Returns: "
+                        + ", ".join(returns)
+                    )
                 schema, _ = self.get_input_schema(tool_name, parameters)
                 tools.append(
                     types.Tool(
@@ -353,14 +361,26 @@ class GradioMCPServer:
         if not self.api_info:
             return JSONResponse({})
 
-        schemas = {}
+        schemas = []
         for tool_name, endpoint_name in self.tool_to_endpoint.items():
             block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
             assert block_fn is not None and block_fn.fn is not None  # noqa: S101
-            description, parameters = utils.get_function_description(block_fn.fn)
+            description, parameters, returns = utils.get_function_description(
+                block_fn.fn
+            )
+            if returns:
+                description += (
+                    ("" if description.endswith(".") else ".")
+                    + " Returns: "
+                    + ", ".join(returns)
+                )
             schema, _ = self.get_input_schema(tool_name, parameters)
-            schemas[tool_name] = schema
-            schemas[tool_name]["description"] = description
+            info = {
+                "name": tool_name,
+                "description": description,
+                "inputSchema": schema,
+            }
+            schemas.append(info)
 
         return JSONResponse(schemas)
 
