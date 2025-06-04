@@ -40,12 +40,15 @@
 		? window.requestAnimationFrame
 		: (cb: (...args: any[]) => void) => cb();
 
-	$: mounted && raf(() => refresh_height_map(sortedItems));
+	$: mounted && raf(refresh_height_map);
 
-	let content_height = 0;
-	async function refresh_height_map(_items: typeof items): Promise<void> {
+	async function refresh_height_map(): Promise<void> {
 		if (viewport_height === 0) {
 			return;
+		}
+
+		if (sortedItems.length < start) {
+			await scroll_to_index(sortedItems.length - 1, { behavior: "auto" });
 		}
 
 		// force header height calculation first
@@ -53,30 +56,44 @@
 			viewport.querySelector(".thead")?.getBoundingClientRect().height || 0;
 		await tick();
 
-		const { scrollTop } = viewport;
+		const scrollTop = Math.max(0, viewport.scrollTop);
+		show_scroll_button = scrollTop > 100;
 		table_scrollbar_width = viewport.offsetWidth - viewport.clientWidth;
 
-		content_height = top - (scrollTop - head_height);
-		let i = start;
-
-		while (content_height < max_height && i < _items.length) {
-			let row = rows[i - start];
-			if (!row) {
-				end = i + 1;
-				await tick(); // render the newly visible row
-				row = rows[i - start];
+		const row_top_border = get_computed_px_amount(rows[1], "border-top-width");
+		// acquire height map for currently visible rows
+		for (let v = 0; v < rows.length; v += 1) {
+			height_map[start + v] = rows[v].getBoundingClientRect().height;
+		}
+		let i = 0;
+		// start from top: thead, with its borders, plus the first border to afterwards neglect
+		let y = head_height + row_top_border / 2;
+		// loop items to find new start
+		while (i < sortedItems.length) {
+			const row_height = height_map[i] || average_height;
+			// we only want to jump if the full (incl. border) row is away
+			if (y + row_height > scrollTop) {
+				// this is the last index still inside the viewport
+				start = i;
+				top = y - (head_height + row_top_border / 2);
+				break;
 			}
-			let _h = row?.getBoundingClientRect().height;
-			if (!_h) {
-				_h = average_height;
-			}
-			const row_height = (height_map[i] = _h);
-			content_height += row_height;
+			y += row_height;
 			i += 1;
 		}
 
+		let content_height = head_height;
+		while (i < sortedItems.length) {
+			const row_height = height_map[i] || average_height;
+			content_height += row_height;
+			i += 1;
+			if (content_height - head_height > max_height) {
+				break;
+			}
+		}
+
 		end = i;
-		const remaining = _items.length - end;
+		const remaining = sortedItems.length - end;
 
 		const scrollbar_height = viewport.offsetHeight - viewport.clientHeight;
 		if (scrollbar_height > 0) {
@@ -89,14 +106,19 @@
 			filtered_height_map.length;
 
 		bottom = remaining * average_height;
-		height_map.length = _items.length;
+		if (!isFinite(bottom)) {
+			bottom = 200000;
+		}
+		height_map.length = sortedItems.length;
+		while (i < sortedItems.length) {
+			i += 1;
+			height_map[i] = average_height;
+		}
 		await tick();
-		if (!max_height) {
-			actual_height = content_height + 1;
-		} else if (content_height < max_height) {
-			actual_height = content_height + 2;
-		} else {
+		if (max_height && (remaining || start > 0)) {
 			actual_height = max_height;
+		} else {
+			actual_height = content_height;
 		}
 
 		await tick();
@@ -154,78 +176,6 @@
 		return x;
 	}
 
-	async function handle_scroll(e: Event): Promise<void> {
-		const scroll_top = viewport.scrollTop;
-
-		show_scroll_button = scroll_top > 100;
-
-		if (show_scroll_button) {
-			dispatch("scroll_top", scroll_top);
-		}
-
-		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
-		const is_start_overflow = sortedItems.length < start;
-
-		const row_top_border = get_computed_px_amount(rows[1], "border-top-width");
-
-		const actual_border_collapsed_width = 0;
-
-		if (is_start_overflow) {
-			await scroll_to_index(sortedItems.length - 1, { behavior: "auto" });
-		}
-
-		let new_start = 0;
-		// acquire height map for currently visible rows
-		for (let v = 0; v < rows.length; v += 1) {
-			height_map[start + v] = rows[v].getBoundingClientRect().height;
-		}
-		let i = 0;
-		// start from top: thead, with its borders, plus the first border to afterwards neglect
-		let y = head_height + row_top_border / 2;
-		let row_heights = [];
-		// loop items to find new start
-		while (i < sortedItems.length) {
-			const row_height = height_map[i] || average_height;
-			row_heights[i] = row_height;
-			// we only want to jump if the full (incl. border) row is away
-			if (y + row_height + actual_border_collapsed_width > scroll_top) {
-				// this is the last index still inside the viewport
-				new_start = i;
-				top = y - (head_height + row_top_border / 2);
-				break;
-			}
-			y += row_height;
-			i += 1;
-		}
-
-		new_start = Math.max(0, new_start);
-		while (i < sortedItems.length) {
-			const row_height = height_map[i] || average_height;
-			y += row_height;
-			i += 1;
-			if (y > scroll_top + viewport_height) {
-				break;
-			}
-		}
-		start = new_start;
-		end = i;
-		const remaining = sortedItems.length - end;
-		if (end === 0) {
-			end = 10;
-		}
-		average_height = (y - head_height) / end;
-		let remaining_height = remaining * average_height; // 0
-		// compute height map for remaining items
-		while (i < sortedItems.length) {
-			i += 1;
-			height_map[i] = average_height;
-		}
-		bottom = remaining_height;
-		if (!isFinite(bottom)) {
-			bottom = 200000;
-		}
-	}
-
 	export async function scroll_to_index(
 		index: number,
 		opts: ScrollToOptions,
@@ -269,7 +219,6 @@
 	onMount(() => {
 		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
 		mounted = true;
-		refresh_height_map(items);
 	});
 </script>
 
@@ -280,7 +229,7 @@
 			class:disable-scroll={disable_scroll}
 			bind:this={viewport}
 			bind:contentRect={viewport_box}
-			on:scroll={handle_scroll}
+			on:scroll={refresh_height_map}
 			style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px; --max-height: {max_height}px"
 		>
 			<thead class="thead" bind:offsetHeight={head_height}>
