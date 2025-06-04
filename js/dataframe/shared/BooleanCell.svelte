@@ -20,9 +20,30 @@
 		const new_bool_value = target.value.toLowerCase() === "true";
 		on_change(new_bool_value);
 	}
+
+	function handle_mousedown(event: MouseEvent): void {
+		event.stopPropagation();
+	}
+
+	function handle_click(event: MouseEvent): void {
+		event.stopPropagation();
+	}
+
+	function handle_keydown(event: KeyboardEvent): void {
+		if (event.key === "Enter" || event.key === " ") {
+			event.stopPropagation();
+		}
+	}
 </script>
 
-<div class="bool-cell checkbox">
+<div
+	class="bool-cell checkbox"
+	on:mousedown={handle_mousedown}
+	on:click={handle_click}
+	on:keydown={handle_keydown}
+	role="button"
+	tabindex="-1"
+>
 	<BaseCheckbox
 		bind:value={bool_value}
 		label=""
