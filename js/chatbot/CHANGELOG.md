@@ -1,5 +1,11 @@
 # @gradio/chatbot
 
+## 0.26.11
+
+### Features
+
+- [#11320](https://github.com/gradio-app/gradio/pull/11320) [`d6649e5`](https://github.com/gradio-app/gradio/commit/d6649e541d96ce94cd20bc8d7655c4c380c9cdb2) - Fix doc title for JS Chatbot.  Thanks @aymeric-roucher!
+
 ## 0.26.10
 
 ### Fixes

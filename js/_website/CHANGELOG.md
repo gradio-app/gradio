@@ -1,5 +1,11 @@
 # website
 
+## 0.57.1
+
+### Fixes
+
+- [#11315](https://github.com/gradio-app/gradio/pull/11315) [`86f2feb`](https://github.com/gradio-app/gradio/commit/86f2feb20b406fb9b7357c8ce2d2ffb69c21c1b6) - Update tweets on the landing page.  Thanks @aliabd!
+
 ## 0.57.0
 
 ### Dependency updates
