@@ -496,6 +496,40 @@ def test_get_extension_from_file_path_or_url(path_or_url, extension):
         ({}, {"a": 1, "b": 2}, [["add", ["a"], 1], ["add", ["b"], 2]]),
         (["a", "b"], {"a": 1, "b": 2}, [["replace", [], {"a": 1, "b": 2}]]),
         ("abc", "abcdef", [["append", [], "def"]]),
+        (
+            [
+                {"role": "user", "content": "Hello!", "metadata": {"id": 1}},
+                {"role": "assistant", "content": "b"},
+            ],
+            [
+                {
+                    "role": "assistant",
+                    "content": "Thinking...",
+                    "metadata": {"title": "Thinking..."},
+                },
+                {"role": "assistant", "content": "b"},
+            ],
+            [
+                ["replace", [0, "role"], "assistant"],
+                ["replace", [0, "content"], "Thinking..."],
+                ["delete", [0, "metadata", "id"], None],
+                ["add", [0, "metadata", "title"], "Thinking..."],
+            ],
+        ),
+        (
+            [
+                {"role": "user", "content": "Hello!", "metadata": {"id": 1}},
+                {"role": "assistant", "content": "b"},
+            ],
+            [
+                {"role": "user", "content": "No metadata", "metadata": {}},
+                {"role": "assistant", "content": "b"},
+            ],
+            [
+                ["replace", [0, "content"], "No metadata"],
+                ["delete", [0, "metadata", "id"], None],
+            ],
+        ),
     ],
 )
 def test_diff(old, new, expected_diff):
