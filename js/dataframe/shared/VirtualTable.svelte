@@ -54,7 +54,6 @@
 		// force header height calculation first
 		head_height =
 			viewport.querySelector(".thead")?.getBoundingClientRect().height || 0;
-		await tick();
 
 		const scrollTop = Math.max(0, viewport.scrollTop);
 		show_scroll_button = scrollTop > 100;
@@ -71,9 +70,8 @@
 		// loop items to find new start
 		while (i < sortedItems.length) {
 			const row_height = height_map[i] || average_height;
-			// we only want to jump if the full (incl. border) row is away
-			if (y + row_height > scrollTop) {
-				// this is the last index still inside the viewport
+			// keep a page of rows buffered above
+			if (y + row_height > scrollTop - max_height) {
 				start = i;
 				top = y - (head_height + row_top_border / 2);
 				break;
@@ -87,7 +85,8 @@
 			const row_height = height_map[i] || average_height;
 			content_height += row_height;
 			i += 1;
-			if (content_height - head_height > max_height) {
+			// keep a page of rows buffered below
+			if (content_height - head_height > 3 * max_height) {
 				break;
 			}
 		}
@@ -114,14 +113,11 @@
 			i += 1;
 			height_map[i] = average_height;
 		}
-		await tick();
 		if (max_height && (remaining || start > 0)) {
 			actual_height = max_height;
 		} else {
 			actual_height = content_height;
 		}
-
-		await tick();
 	}
 
 	$: scroll_and_render(selected);
