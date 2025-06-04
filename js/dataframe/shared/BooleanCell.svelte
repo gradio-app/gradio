@@ -51,6 +51,9 @@
 		width: var(--size-full);
 		height: var(--size-full);
 	}
+	.bool-cell :global(input:disabled) {
+		opacity: 0.8;
+	}
 
 	.bool-cell.checkbox {
 		justify-content: center;
