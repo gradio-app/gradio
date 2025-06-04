@@ -18,7 +18,10 @@ with gr.Blocks() as demo:
                 change_label_btn = gr.Button("Change Label", key=f"btn-{i}")
 
                 change_label_btn.click(
-                    lambda: gr.Textbox(label=random.choice("ABCDE"), info=random.choice("ABCDE")), outputs=number_box
+                    lambda: gr.Textbox(
+                        label=random.choice("ABCDE"), 
+                        info=random.choice("ABCDE")), 
+                        outputs=number_box
                 )
 
 if __name__ == "__main__":
