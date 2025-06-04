@@ -87,9 +87,9 @@ def test_mcp_app():
         Parameters:
         - x: str
         Returns:
-        - x: str
+        - the original value as a string
         """
-        return x
+        return str(x)
 
     with gr.Blocks() as app:
         t1 = gr.Textbox(label="Test Textbox")

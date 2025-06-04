@@ -189,7 +189,11 @@ class GradioMCPServer:
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
                 assert block_fn is not None and block_fn.fn is not None  # noqa: S101
-                description, parameters, _ = utils.get_function_description(block_fn.fn)
+                description, parameters, returns = utils.get_function_description(
+                    block_fn.fn
+                )
+                if returns:
+                    description += ". Returns: " + ", ".join(returns)
                 schema, _ = self.get_input_schema(tool_name, parameters)
                 tools.append(
                     types.Tool(
@@ -357,7 +361,11 @@ class GradioMCPServer:
         for tool_name, endpoint_name in self.tool_to_endpoint.items():
             block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
             assert block_fn is not None and block_fn.fn is not None  # noqa: S101
-            description, parameters, _ = utils.get_function_description(block_fn.fn)
+            description, parameters, returns = utils.get_function_description(
+                block_fn.fn
+            )
+            if returns:
+                description += ". Returns: " + ", ".join(returns)
             schema, _ = self.get_input_schema(tool_name, parameters)
             info = {
                 "name": tool_name,
