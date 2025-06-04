@@ -108,7 +108,7 @@ class Interface(Blocks):
         cache_mode: Literal["eager", "lazy"] | None = None,
         examples_per_page: int = 10,
         example_labels: list[str] | None = None,
-        preload_example: int | Literal[False] = 0,
+        preload_example: int | Literal[False] = False,
         live: bool = False,
         title: str | I18nData | None = None,
         description: str | None = None,
