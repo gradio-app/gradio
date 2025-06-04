@@ -149,7 +149,7 @@ def test_mcp_sse_transport(test_mcp_app):
         assert response.json() == [
             {
                 "name": "test_tool",
-                "description": "This is a test tool.. Returns: the original value as a string",
+                "description": "This is a test tool. Returns: the original value as a string",
                 "inputSchema": {
                     "type": "object",
                     "properties": {"x": {"type": "string"}},

@@ -193,7 +193,11 @@ class GradioMCPServer:
                     block_fn.fn
                 )
                 if returns:
-                    description += ". Returns: " + ", ".join(returns)
+                    description += (
+                        ("" if description.endswith(".") else ".")
+                        + " Returns: "
+                        + ", ".join(returns)
+                    )
                 schema, _ = self.get_input_schema(tool_name, parameters)
                 tools.append(
                     types.Tool(
@@ -365,7 +369,11 @@ class GradioMCPServer:
                 block_fn.fn
             )
             if returns:
-                description += ". Returns: " + ", ".join(returns)
+                description += (
+                    ("" if description.endswith(".") else ".")
+                    + " Returns: "
+                    + ", ".join(returns)
+                )
             schema, _ = self.get_input_schema(tool_name, parameters)
             info = {
                 "name": tool_name,
