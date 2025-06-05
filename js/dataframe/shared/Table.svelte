@@ -780,7 +780,7 @@
 		role="grid"
 		tabindex="0"
 	>
-		<table bind:this={table}>
+		<table bind:this={table} aria-hidden="true">
 			{#if label && label.length !== 0}
 				<caption class="sr-only">{label}</caption>
 			{/if}
