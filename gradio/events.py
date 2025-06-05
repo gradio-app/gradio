@@ -919,10 +919,10 @@ def api(
     stream_every: float = 0.5,
 ) -> Dependency:
     """
-    Sets up an API endpoint for a generic function that can be called via the gradio client. Derives its type from type-hints in the function signature.
+    Sets up an API or MCP endpoint for a generic function without needing define events listeners or components. Derives its typing from type hints in the provided function's signature rather than the components.
 
     Parameters:
-        fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
+        fn: the function to call when this event is triggered. Often a machine learning model's prediction function. The function should be fully typed, and the type hints will be used to derive the typing information for the API/MCP endpoint.
         api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, will use the functions name as the endpoint route. If set to a string, the endpoint will be exposed in the api docs with the given name.
         queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
         batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
