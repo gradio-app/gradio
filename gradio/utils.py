@@ -320,7 +320,6 @@ def watchfn(reloader: SourceFileReloader):
                 changed_demo_file = _remove_if_name_main_codeblock(
                     str(reloader.demo_file)
                 )
-                Context.id = 0
                 exec(changed_demo_file, module.__dict__)
             except Exception as error:
                 print(

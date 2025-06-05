@@ -81,6 +81,7 @@
 	}
 
 	async function run(): Promise<void> {
+		layout_creating = true;
 		await create_layout({
 			components,
 			layout,
@@ -91,6 +92,7 @@
 				fill_height
 			}
 		});
+		layout_creating = false;
 	}
 
 	export let search_params: URLSearchParams;
@@ -126,7 +128,10 @@
 
 	let api_calls: Payload[] = [];
 
+	let layout_creating = false;
 	export let render_complete = false;
+	$: render_complete = render_complete && !layout_creating;
+
 	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const dep = dependencies.find((dep) => dep.id === fn_index);
 		const input_type = components.find(
@@ -671,7 +676,6 @@
 			if (is_external_url(_link) && _target !== "_blank")
 				a[i].setAttribute("target", "_blank");
 		}
-
 		handle_load_triggers();
 
 		if (!target || render_complete) return;
