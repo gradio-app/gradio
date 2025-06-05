@@ -1,5 +1,6 @@
 import base64
 import contextlib
+import hashlib
 import os
 import re
 import tempfile
@@ -8,6 +9,7 @@ from collections.abc import AsyncIterator, Sequence
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+from urllib.parse import quote, unquote
 
 import gradio_client.utils as client_utils
 from mcp import types
@@ -553,40 +555,115 @@ class GradioMCPServer:
         image.save(buffer, format=format)
         return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
+    def _save_svg_to_temp(self, raw_svg: bytes) -> str:
+        """
+        Save SVG content to a temporary file and return the file path.
+
+        Parameters:
+            raw_svg: The raw SVG content as bytes.
+
+        Returns:
+            The path to the temporary SVG file.
+        """
+        hex_hash = hashlib.md5(raw_svg).hexdigest()[:10]
+        tmp_dir = Path(DEFAULT_TEMP_DIR)
+        tmp_dir.mkdir(parents=True, exist_ok=True)
+        tmp_path = tmp_dir / f"gradio_svg_{hex_hash}.svg"
+        tmp_path.write_bytes(raw_svg)
+        return str(tmp_path)
+
     def postprocess_output_data(
         self, data: Any
     ) -> list[types.TextContent | types.ImageContent]:
         """
-        Postprocess the output data from the Gradio app to convert FileData objects back to base64 encoded strings.
+        Convert the list returned by `Blocks.process_api()` into MCP-compatible
+        payloads.
+
+        Handles PNG/JPEG images through PIL, and SVG files (both data URIs and
+        file paths) by saving them to temporary files when needed and encoding
+        them as base64.
 
         Parameters:
             data: The output data to postprocess.
+
+        Returns:
+            List of MCP-compatible TextContent and ImageContent objects.
         """
-        return_values = []
+        return_values: list[types.TextContent | types.ImageContent] = []
+
+        # Add root_url to FileData/ImageData structures before processing
         if self.root_url:
             data = processing_utils.add_root_url(data, self.root_url, None)
+
         for output in data:
-            if client_utils.is_file_obj_with_meta(output):
-                if image := self.get_image(output["path"]):
-                    image_format = image.format or "png"
-                    base64_data = self.get_base64_data(image, image_format)
-                    mimetype = f"image/{image_format.lower()}"
-                    return_value = [
-                        types.ImageContent(
-                            type="image", data=base64_data, mimeType=mimetype
-                        ),
-                        types.TextContent(
-                            type="text",
-                            text=f"Image URL: {output['url'] or output['path']}",
-                        ),
-                    ]
-                else:
-                    return_value = [
-                        types.TextContent(
-                            type="text", text=str(output["url"] or output["path"])
-                        )
-                    ]
-            else:
-                return_value = [types.TextContent(type="text", text=str(output))]
-            return_values.extend(return_value)
+            # Check if output looks like FileData/ImageData
+            if isinstance(output, dict) and ("path" in output or "url" in output):
+                path: str | None = output.get("path")
+                url: str | None = output.get("url")
+
+                # Handle raster images (PIL can open them)
+                if path and (image := self.get_image(path)):
+                    fmt = (image.format or "PNG").lower()
+                    base64_data = self.get_base64_data(image, fmt)
+                    img_url = (
+                        url
+                        or f"{self.root_url}/gradio_api/file={quote(path)}"
+                        if self.root_url
+                        else path
+                    )
+                    return_values.extend(
+                        [
+                            types.ImageContent(
+                                type="image",
+                                data=base64_data,
+                                mimeType=f"image/{fmt}",
+                            ),
+                            types.TextContent(type="text", text=f"Image URL: {img_url}"),
+                        ]
+                    )
+                    continue
+
+                # Handle SVG files (data URI or *.svg file)
+                is_svg_file = path and path.lower().endswith(".svg")
+                is_svg_data_uri = url and url.startswith("data:image/svg+xml")
+
+                if is_svg_file or is_svg_data_uri:
+                    # Get SVG bytes
+                    if is_svg_file:
+                        raw_svg = Path(path).read_bytes()
+                    else:  # data:image/svg+xml,<content>
+                        raw_svg = unquote(url.split(",", 1)[1]).encode()
+                        path = self._save_svg_to_temp(raw_svg)
+
+                    # Build servable URL
+                    img_url = (
+                        f"{self.root_url}/gradio_api/file={quote(path)}"
+                        if self.root_url
+                        else path
+                    )
+
+                    # Encode as base64 and create payloads
+                    base64_data = base64.b64encode(raw_svg).decode()
+                    return_values.extend(
+                        [
+                            types.ImageContent(
+                                type="image",
+                                data=base64_data,
+                                mimeType="image/svg+xml",
+                            ),
+                            types.TextContent(type="text", text=f"Image URL: {img_url}"),
+                        ]
+                    )
+                    continue
+
+                # Other files → plain link
+                return_values.append(
+                    types.TextContent(type="text", text=str(url or path))
+                )
+
+            else:  # Primitive values: str, int, dict, etc.
+                return_values.append(
+                    types.TextContent(type="text", text=str(output))
+                )
+
         return return_values
