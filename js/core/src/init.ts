@@ -256,7 +256,11 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			}
 		});
 
-		new_components.forEach((c) => {
+		const components_to_add = new_components.concat(
+			replacement_components.filter((c) => !instance_map[c.id])
+		);
+
+		components_to_add.forEach((c) => {
 			instance_map[c.id] = c;
 			_component_map.set(c.id, c);
 		});
@@ -288,7 +292,6 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		parent?: ComponentMeta
 	): Promise<ComponentMeta> {
 		const instance = instance_map[node.id];
-
 		if (!instance.component) {
 			instance.component = (await constructor_map.get(
 				instance.component_class_id || instance.type
