@@ -3,7 +3,9 @@ import json
 import os
 import tempfile
 from copy import deepcopy
+from enum import Enum
 from pathlib import Path
+from typing import Any, Literal, Optional, Union
 from unittest.mock import MagicMock, patch
 
 import httpx
@@ -20,6 +22,12 @@ types["MultipleFile"] = {
 types["SingleFile"] = {"type": "string", "description": "filepath or URL to file"}
 types["FileWithAdditionalProperties"] = {"type": "object", "additionalProperties": True}
 HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
+
+
+class TestEnum(Enum):
+    VALUE1 = "option1"
+    VALUE2 = "option2"
+    VALUE3 = 42
 
 
 def test_encode_url_or_file_to_base64():
@@ -185,6 +193,62 @@ def test_json_schema_to_python_type(schema):
     else:
         raise ValueError(f"This test has not been modified to check {schema}")
     assert utils.json_schema_to_python_type(types[schema]) == answer
+
+
+@pytest.mark.parametrize(
+    "type_hint, expected_schema",
+    [
+        (str, {"type": "string"}),
+        (int, {"type": "integer"}),
+        (float, {"type": "number"}),
+        (bool, {"type": "boolean"}),
+        (type(None), {"type": "null"}),
+        (Any, {}),
+        (Union[str, int], {"anyOf": [{"type": "string"}, {"type": "integer"}]}),
+        (Optional[str], {"oneOf": [{"type": "null"}, {"type": "string"}]}),
+        (str | None, {"oneOf": [{"type": "null"}, {"type": "string"}]}),
+        (dict, {"type": "object", "additionalProperties": {}}),
+        (list, {"type": "array", "items": {}}),
+        (tuple, {"type": "array"}),
+        (set, {"type": "array", "uniqueItems": True}),
+        (frozenset, {"type": "array", "uniqueItems": True}),
+        (bytes, {"type": "string", "format": "byte"}),
+        (bytearray, {"type": "string", "format": "byte"}),
+        (TestEnum, {"enum": ["option1", "option2", 42]}),
+    ],
+)
+def test_python_type_to_json_schema(type_hint, expected_schema):
+    schema = utils.python_type_to_json_schema(type_hint)
+    assert schema == expected_schema
+
+
+@pytest.mark.parametrize(
+    "type_hint, expected_schema",
+    [
+        (tuple[int, ...], {"type": "array", "items": {"type": "integer"}}),
+        (
+            tuple[str, int],
+            {
+                "type": "array",
+                "prefixItems": [{"type": "string"}, {"type": "integer"}],
+                "minItems": 2,
+                "maxItems": 2,
+            },
+        ),
+        (set[str], {"type": "array", "uniqueItems": True, "items": {"type": "string"}}),
+        (
+            list[str | None],
+            {
+                "type": "array",
+                "items": {"oneOf": [{"type": "null"}, {"type": "string"}]},
+            },
+        ),
+        (Literal["a", "b", "c"], {"enum": ["a", "b", "c"]}),
+        (Literal["single"], {"const": "single"}),
+    ],
+)
+def test_python_type_to_json_schema_complex_nested_types(type_hint, expected_schema):
+    assert utils.python_type_to_json_schema(type_hint) == expected_schema
 
 
 class TestConstructArgs:
