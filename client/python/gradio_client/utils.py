@@ -1029,6 +1029,16 @@ def _python_type_to_json_schema(type_hint: Any) -> dict:
         return {"type": "number"}
     if type_hint is bool:
         return {"type": "boolean"}
+    if type_hint is dict:
+        return {"type": "object", "additionalProperties": {}}
+    if type_hint is list:
+        return {"type": "array", "items": {}}
+    if type_hint is tuple:
+        return {"type": "array"}
+    if type_hint is set or type_hint is frozenset:
+        return {"type": "array", "uniqueItems": True}
+    if type_hint is bytes or type_hint is bytearray:
+        return {"type": "string", "format": "byte"}
 
     origin = get_origin(type_hint)
 
@@ -1038,32 +1048,52 @@ def _python_type_to_json_schema(type_hint: Any) -> dict:
             return {"const": literal_values[0]}
         return {"enum": list(literal_values)}
 
-    if origin is Union or str(origin) == "|":
+    if (
+        origin is Union
+        or (hasattr(origin, "__name__") and origin.__name__ == "UnionType")
+        or str(origin) == "|"
+    ):
         types = get_args(type_hint)
         if len(types) == 2 and type(None) in types:
             other_type = next(t for t in types if t is not type(None))
             schema = _python_type_to_json_schema(other_type)
-            if "type" in schema:
-                schema["type"] = [schema["type"], "null"]
-            else:
-                schema["oneOf"] = [{"type": "null"}, schema]
-            return schema
+            return {"oneOf": [{"type": "null"}, schema]}
         return {"anyOf": [_python_type_to_json_schema(t) for t in types]}
 
     if origin is list:
-        item_type = get_args(type_hint)[0]
+        args = get_args(type_hint)
+        if not args:
+            return {"type": "array", "items": {}}
+        item_type = args[0]
         return {"type": "array", "items": _python_type_to_json_schema(item_type)}
     if origin is tuple:
         types = get_args(type_hint)
+        if not types:
+            return {"type": "array"}
+        if len(types) == 2 and types[1] is ...:
+            return {"type": "array", "items": _python_type_to_json_schema(types[0])}
         return {
             "type": "array",
             "prefixItems": [_python_type_to_json_schema(t) for t in types],
             "minItems": len(types),
             "maxItems": len(types),
         }
+    if origin is set or origin is frozenset:
+        args = get_args(type_hint)
+        if not args:
+            return {"type": "array", "uniqueItems": True}
+        item_type = args[0]
+        return {
+            "type": "array",
+            "uniqueItems": True,
+            "items": _python_type_to_json_schema(item_type),
+        }
 
     if origin is dict:
-        key_type, value_type = get_args(type_hint)
+        args = get_args(type_hint)
+        if not args:
+            return {"type": "object", "additionalProperties": {}}
+        key_type, value_type = args
         if key_type is not str:
             raise ValueError("JSON Schema only supports string keys in objects")
         schema = {
@@ -1071,6 +1101,10 @@ def _python_type_to_json_schema(type_hint: Any) -> dict:
             "additionalProperties": _python_type_to_json_schema(value_type),
         }
         return schema
+
+    if inspect.isclass(type_hint) and issubclass(type_hint, Enum):
+        enum_values = [item.value for item in type_hint]
+        return {"enum": enum_values}
 
     if inspect.isclass(type_hint) and hasattr(type_hint, "__annotations__"):
         properties = {}
@@ -1095,6 +1129,8 @@ def _python_type_to_json_schema(type_hint: Any) -> dict:
 
     if type_hint is Any:
         return {}
+
+    return {}
 
 
 def traverse(json_obj: Any, func: Callable, is_root: Callable[..., bool]) -> Any:
