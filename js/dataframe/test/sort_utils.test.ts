@@ -2,7 +2,7 @@ import { describe, test, expect } from "vitest";
 import {
 	get_sort_status,
 	sort_data,
-	SortDirection
+	type SortDirection
 } from "../shared/utils/sort_utils";
 
 describe("sort_utils", () => {

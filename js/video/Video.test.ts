@@ -9,7 +9,7 @@ import {
 	expect
 } from "vitest";
 import { spyOn } from "tinyspy";
-import { cleanup, render } from "@self/tootils";
+import { cleanup, render } from "@self/tootils/render";
 import { setupi18n } from "../core/src/i18n";
 
 import Video from "./Index.svelte";
