@@ -3,4 +3,4 @@
 "gradio_client": patch
 ---
 
-fix:Fix `gr.api()` to support json schema
+fix:Fix `gr.api()` to support more types, including optional params
