@@ -198,27 +198,15 @@ def test_json_schema_to_python_type(schema):
 @pytest.mark.parametrize(
     "type_hint, expected_schema",
     [
-        # Basic types that should have worked before our enhancements
         (str, {"type": "string"}),
         (int, {"type": "integer"}),
         (float, {"type": "number"}),
         (bool, {"type": "boolean"}),
         (type(None), {"type": "null"}),
         (Any, {}),
-        # Union types and optional types
         (Union[str, int], {"anyOf": [{"type": "string"}, {"type": "integer"}]}),
         (Optional[str], {"oneOf": [{"type": "null"}, {"type": "string"}]}),
         (str | None, {"oneOf": [{"type": "null"}, {"type": "string"}]}),
-    ],
-)
-def test_python_type_to_json_schema_basic_and_union_types(type_hint, expected_schema):
-    """Test basic types and union types that should have worked before our enhancements."""
-    assert utils.python_type_to_json_schema(type_hint) == expected_schema
-
-
-@pytest.mark.parametrize(
-    "type_hint, expected_schema",
-    [
         (dict, {"type": "object", "additionalProperties": {}}),
         (list, {"type": "array", "items": {}}),
         (tuple, {"type": "array"}),
@@ -226,19 +214,12 @@ def test_python_type_to_json_schema_basic_and_union_types(type_hint, expected_sc
         (frozenset, {"type": "array", "uniqueItems": True}),
         (bytes, {"type": "string", "format": "byte"}),
         (bytearray, {"type": "string", "format": "byte"}),
+        (TestEnum, {"enum": ["option1", "option2", 42]}),
     ],
 )
-def test_python_type_to_json_schema_bare_collection_and_binary_types(
-    type_hint, expected_schema
-):
-    """Test bare collection types and binary types."""
-    assert utils.python_type_to_json_schema(type_hint) == expected_schema
-
-
-def test_python_type_to_json_schema_enum_classes():
-    """Test Enum class handling."""
-    schema = utils.python_type_to_json_schema(TestEnum)
-    assert schema == {"enum": ["option1", "option2", 42]}
+def test_python_type_to_json_schema(type_hint, expected_schema):
+    schema = utils.python_type_to_json_schema(type_hint)
+    assert schema == expected_schema
 
 
 @pytest.mark.parametrize(

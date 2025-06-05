@@ -1021,6 +1021,8 @@ def _python_type_to_json_schema(type_hint: Any) -> dict:
     """Convert a Python type hint to a JSON schema."""
     if type_hint is type(None):
         return {"type": "null"}
+    if type_hint is Any:
+        return {}
     if type_hint is str:
         return {"type": "string"}
     if type_hint is int:
@@ -1048,11 +1050,7 @@ def _python_type_to_json_schema(type_hint: Any) -> dict:
             return {"const": literal_values[0]}
         return {"enum": list(literal_values)}
 
-    if (
-        origin is Union
-        or (hasattr(origin, "__name__") and origin.__name__ == "UnionType")
-        or str(origin) == "|"
-    ):
+    if origin is Union or (hasattr(origin, '__name__') and origin.__name__ == 'UnionType') or str(origin) == "|":
         types = get_args(type_hint)
         if len(types) == 2 and type(None) in types:
             other_type = next(t for t in types if t is not type(None))
@@ -1083,11 +1081,7 @@ def _python_type_to_json_schema(type_hint: Any) -> dict:
         if not args:
             return {"type": "array", "uniqueItems": True}
         item_type = args[0]
-        return {
-            "type": "array",
-            "uniqueItems": True,
-            "items": _python_type_to_json_schema(item_type),
-        }
+        return {"type": "array", "uniqueItems": True, "items": _python_type_to_json_schema(item_type)}
 
     if origin is dict:
         args = get_args(type_hint)
@@ -1126,9 +1120,6 @@ def _python_type_to_json_schema(type_hint: Any) -> dict:
         if required:
             schema["required"] = required
         return schema
-
-    if type_hint is Any:
-        return {}
 
     return {}
 
