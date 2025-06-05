@@ -74,7 +74,11 @@
 	}
 
 	let old_dependencies = dependencies;
-	$: if (dependencies !== old_dependencies && render_complete) {
+	$: if (
+		dependencies !== old_dependencies &&
+		render_complete &&
+		!layout_creating
+	) {
 		// re-run load triggers in SSR mode when page changes
 		handle_load_triggers();
 		old_dependencies = dependencies;
@@ -130,7 +134,6 @@
 
 	let layout_creating = false;
 	export let render_complete = false;
-	$: render_complete = render_complete && !layout_creating;
 
 	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const dep = dependencies.find((dep) => dep.id === fn_index);
