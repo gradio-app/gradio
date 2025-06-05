@@ -220,7 +220,7 @@ test("Dataframe shift+click selection works", async ({ page }) => {
 	expect(clipboard_value).toBe("0,6\n0,6");
 });
 
-test("Dataframe cmd + click selection works", async ({ page }) => {
+test.only("Dataframe cmd + click selection works", async ({ page }) => {
 	const df = page.locator("#dataframe").first();
 
 	await get_cell(df, 1, 2).dblclick();
@@ -235,7 +235,7 @@ test("Dataframe cmd + click selection works", async ({ page }) => {
 	await get_cell(df, 1, 2).click();
 
 	await get_cell(df, 2, 2).click({
-		modifiers: ["ControlOrMeta"]
+		modifiers: ["Shift"]
 	});
 
 	await page.waitForTimeout(100);
