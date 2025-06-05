@@ -591,12 +591,10 @@ class GradioMCPServer:
         """
         return_values: list[types.TextContent | types.ImageContent] = []
 
-        # Add root_url to FileData/ImageData structures before processing
         if self.root_url:
             data = processing_utils.add_root_url(data, self.root_url, None)
 
         for output in data:
-            # Check if output looks like FileData/ImageData
             if isinstance(output, dict) and ("path" in output or "url" in output):
                 path: str | None = output.get("path")
                 url: str | None = output.get("url")
