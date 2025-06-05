@@ -606,8 +606,7 @@ class GradioMCPServer:
                     fmt = (image.format or "PNG").lower()
                     base64_data = self.get_base64_data(image, fmt)
                     img_url = (
-                        url
-                        or f"{self.root_url}/gradio_api/file={quote(path)}"
+                        url or f"{self.root_url}/gradio_api/file={quote(path)}"
                         if self.root_url
                         else path
                     )
@@ -618,7 +617,9 @@ class GradioMCPServer:
                                 data=base64_data,
                                 mimeType=f"image/{fmt}",
                             ),
-                            types.TextContent(type="text", text=f"Image URL: {img_url}"),
+                            types.TextContent(
+                                type="text", text=f"Image URL: {img_url}"
+                            ),
                         ]
                     )
                     continue
@@ -651,7 +652,9 @@ class GradioMCPServer:
                                 data=base64_data,
                                 mimeType="image/svg+xml",
                             ),
-                            types.TextContent(type="text", text=f"Image URL: {img_url}"),
+                            types.TextContent(
+                                type="text", text=f"Image URL: {img_url}"
+                            ),
                         ]
                     )
                     continue
@@ -662,8 +665,6 @@ class GradioMCPServer:
                 )
 
             else:  # Primitive values: str, int, dict, etc.
-                return_values.append(
-                    types.TextContent(type="text", text=str(output))
-                )
+                return_values.append(types.TextContent(type="text", text=str(output)))
 
         return return_values
