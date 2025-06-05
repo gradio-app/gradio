@@ -135,17 +135,18 @@ def create_or_modify_pyi(
         )
         with no_raise_exception():
             pyi_file.write_text("\n".join(lines))
-    current_interface, _ = extract_class_source_code(pyi_file.read_text(), class_name)
-    if not current_interface:
-        with no_raise_exception():
+    with no_raise_exception():
+        current_interface, _ = extract_class_source_code(
+            pyi_file.read_text(), class_name
+        )
+        if not current_interface:
             with open(str(pyi_file), mode="a") as f:
                 f.write(new_interface)
-    else:
-        contents = pyi_file.read_text()
-        contents = contents.replace(current_interface, new_interface.strip())
-        current_contents = pyi_file.read_text()
-        if current_contents != contents:
-            with no_raise_exception():
+        else:
+            contents = pyi_file.read_text()
+            contents = contents.replace(current_interface, new_interface.strip())
+            current_contents = pyi_file.read_text()
+            if current_contents != contents:
                 pyi_file.write_text(contents)
 
 
