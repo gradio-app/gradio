@@ -129,10 +129,18 @@
 		document.addEventListener("click", handle_click_outside);
 		window.addEventListener("resize", handle_resize);
 
+		const global_mouse_up = (event: MouseEvent): void => {
+			if (is_dragging || drag_start) {
+				handle_mouse_up(event);
+			}
+		};
+		document.addEventListener("mouseup", global_mouse_up);
+
 		return () => {
 			observer.disconnect();
 			document.removeEventListener("click", handle_click_outside);
 			window.removeEventListener("resize", handle_resize);
+			document.removeEventListener("mouseup", global_mouse_up);
 		};
 	});
 

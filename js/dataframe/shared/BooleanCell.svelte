@@ -12,10 +12,6 @@
 		on_change(event.detail);
 	}
 
-	function handle_mousedown(event: MouseEvent): void {
-		event.stopPropagation();
-	}
-
 	function handle_click(event: MouseEvent): void {
 		event.stopPropagation();
 	}
@@ -29,7 +25,6 @@
 
 <div
 	class="bool-cell checkbox"
-	on:mousedown={handle_mousedown}
 	on:click={handle_click}
 	on:keydown={handle_keydown}
 	role="button"
