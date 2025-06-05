@@ -11,6 +11,7 @@
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/button": "workspace:^",
+		"@gradio/checkbox": "workspace:^",
 		"@gradio/client": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/markdown-code": "workspace:^",

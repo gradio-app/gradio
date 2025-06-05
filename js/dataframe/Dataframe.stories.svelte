@@ -60,11 +60,12 @@
 	name="Interactive dataframe with label"
 	args={{
 		values: [
-			["Cat", 5],
-			["Horse", 3],
-			["Snake", 1]
+			["Cat", 5, true],
+			["Horse", 3, false],
+			["Snake", 1, false]
 		],
-		headers: ["Animal", "Votes"],
+		headers: ["Animal", "Votes", "Is Pet"],
+		datatype: ["str", "number", "bool"],
 		label: "Animals",
 		show_label: true,
 		col_count: [2, "dynamic"],
@@ -93,14 +94,14 @@
 	name="Static dataframe"
 	args={{
 		values: [
-			["Cat", 5],
-			["Horse", 3],
-			["Snake", 1]
+			["Cat", 5, true],
+			["Horse", 3, false],
+			["Snake", 1, false]
 		],
-		headers: ["Animal", "Votes"],
-
+		headers: ["Animal", "Votes", "Is Pet"],
+		datatype: ["str", "number", "bool"],
 		label: "Animals",
-		col_count: [2, "dynamic"],
+		col_count: [3, "dynamic"],
 		row_count: [3, "dynamic"],
 		editable: false
 	}}

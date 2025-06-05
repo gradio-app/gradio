@@ -37,7 +37,12 @@ export async function handle_cell_blur(
 	const input_el = event.target as HTMLInputElement;
 	if (!input_el || input_el.value === undefined) return;
 
-	await save_cell_value(input_el.value, ctx, coords[0], coords[1]);
+	await save_cell_value(
+		input_el.type === "checkbox" ? String(input_el.checked) : input_el.value,
+		ctx,
+		coords[0],
+		coords[1]
+	);
 }
 
 function handle_header_navigation(

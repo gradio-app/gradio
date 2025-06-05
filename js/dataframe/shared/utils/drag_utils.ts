@@ -75,6 +75,11 @@ export function create_drag_handlers(
 		handle_mouse_move(event: MouseEvent): void {
 			if (!state.drag_start || !state.mouse_down_pos) return;
 
+			if (!(event.buttons & 1)) {
+				end_drag(event);
+				return;
+			}
+
 			const dx = Math.abs(event.clientX - state.mouse_down_pos.x);
 			const dy = Math.abs(event.clientY - state.mouse_down_pos.y);
 
