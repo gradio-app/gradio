@@ -1,5 +1,15 @@
 # @gradio/dataframe
 
+## 0.18.0
+
+### Features
+
+- [#11237](https://github.com/gradio-app/gradio/pull/11237) [`a6f6b40`](https://github.com/gradio-app/gradio/commit/a6f6b40dda5194fa5bc9926ef67f2a75f503e9a4) - Enhance boolean cell types in `gr.Dataframe`.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/checkbox@0.5.0
+
 ## 0.17.14
 
 ### Fixes

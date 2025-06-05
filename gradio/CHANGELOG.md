@@ -1,5 +1,16 @@
 # gradio
 
+## 5.34.0
+
+### Features
+
+- [#11237](https://github.com/gradio-app/gradio/pull/11237) [`a6f6b40`](https://github.com/gradio-app/gradio/commit/a6f6b40dda5194fa5bc9926ef67f2a75f503e9a4) - Enhance boolean cell types in `gr.Dataframe`.  Thanks @hannahblair!
+
+### Fixes
+
+- [#11347](https://github.com/gradio-app/gradio/pull/11347) [`fdce3a0`](https://github.com/gradio-app/gradio/commit/fdce3a094fe1278ae83fe2f8b134b4c268506cfe) - Fix `gr.api()` to support more types, including optional params.  Thanks @abidlabs!
+- [#11338](https://github.com/gradio-app/gradio/pull/11338) [`b31c3ed`](https://github.com/gradio-app/gradio/commit/b31c3edef97373b96f188072d5bb16db9d690261) - Fix Reload Mode when using gr.render.  Thanks @freddyaboulton!
+
 ## 5.33.0
 
 ### Features
