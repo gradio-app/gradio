@@ -1,6 +1,6 @@
 ---
-"gradio": minor
-"gradio_client": minor
+"gradio": patch
+"gradio_client": patch
 ---
 
-feat:Fix `gr.api()` to support json schema
+fix:Fix `gr.api()` to support json schema
