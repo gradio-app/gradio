@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import CellMenuIcons from "./CellMenuIcons.svelte";
+	import FilterMenu from "./FilterMenu.svelte";
 	import type { I18nFormatter } from "js/utils/src";
 	import type { SortDirection } from "./context/dataframe_context";
 
@@ -21,12 +22,13 @@
 	export let on_clear_sort: () => void = () => {};
 	export let sort_direction: SortDirection | null = null;
 	export let sort_priority: number | null = null;
-	export let on_filter: () => void = () => {};
+	/*export let on_filter: () => void = () => {};*/
 	export let filter_active: boolean | null = null;
 	export let editable = true;
 
 	export let i18n: I18nFormatter;
 	let menu_element: HTMLDivElement;
+	let active_filter_menu: { x: number, y: number } | null = null;
 
 	$: is_header = row === -1;
 	$: can_add_rows = editable && row_count[1] === "dynamic";
@@ -56,6 +58,14 @@
 
 		menu_element.style.left = `${new_x}px`;
 		menu_element.style.top = `${new_y}px`;
+	}
+
+	function toggle_filter_menu(): void {
+		const menu_rect = menu_element.getBoundingClientRect();
+		active_filter_menu = {
+			x: menu_rect.right,
+			y: menu_rect.top + menu_rect.height/2
+		};
 	}
 </script>
 
@@ -89,7 +99,7 @@
 		</button>
 		<button
 			role="menuitem"
-			on:click={() => on_filter()}
+			on:click|stopPropagation={toggle_filter_menu}
 			class:active={filter_active}
 		>
 			<CellMenuIcons icon="filter" />
@@ -156,6 +166,13 @@
 		{/if}
 	{/if}
 </div>
+
+{#if active_filter_menu}
+	<FilterMenu
+		x={active_filter_menu?.x ?? 0}
+		y={active_filter_menu?.y ?? 0}
+	/>
+{/if}
 
 <style>
 	.cell-menu {
