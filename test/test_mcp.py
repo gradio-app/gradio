@@ -199,7 +199,7 @@ def test_mcp_mount_gradio_app():
     mount_gradio_app(fastapi_app, app, path="/test", mcp_server=True)
 
     thread = threading.Thread(
-        target=uvicorn.run, args=(fastapi_app,), kwargs={"port": 6868}, daemon=True
+        target=uvicorn.run, args=(fastapi_app,), kwargs={"port": 6868}
     )
     thread.start()
 
