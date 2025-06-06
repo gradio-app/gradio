@@ -51,29 +51,23 @@
 			await scroll_to_index(sortedItems.length - 1, { behavior: "auto" });
 		}
 
-		// force header height calculation first
-		head_height =
-			viewport.querySelector(".thead")?.getBoundingClientRect().height || 0;
-
 		const scrollTop = Math.max(0, viewport.scrollTop);
 		show_scroll_button = scrollTop > 100;
 		table_scrollbar_width = viewport.offsetWidth - viewport.clientWidth;
 
-		const row_top_border = get_computed_px_amount(rows[1], "border-top-width");
 		// acquire height map for currently visible rows
 		for (let v = 0; v < rows.length; v += 1) {
 			height_map[start + v] = rows[v].getBoundingClientRect().height;
 		}
 		let i = 0;
-		// start from top: thead, with its borders, plus the first border to afterwards neglect
-		let y = head_height + row_top_border / 2;
+		let y = head_height;
 		// loop items to find new start
 		while (i < sortedItems.length) {
 			const row_height = height_map[i] || average_height;
 			// keep a page of rows buffered above
 			if (y + row_height > scrollTop - max_height) {
 				start = i;
-				top = y - (head_height + row_top_border / 2);
+				top = y - head_height;
 				break;
 			}
 			y += row_height;
@@ -160,16 +154,6 @@
 		}
 
 		return true;
-	}
-
-	function get_computed_px_amount(elem: HTMLElement, property: string): number {
-		if (!elem) {
-			return 0;
-		}
-		const compStyle = getComputedStyle(elem);
-
-		let x = parseInt(compStyle.getPropertyValue(property));
-		return x;
 	}
 
 	export async function scroll_to_index(
