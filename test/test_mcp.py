@@ -190,6 +190,11 @@ def test_mcp_mount_gradio_app():
 
     from gradio.routes import mount_gradio_app
 
+    with gr.Blocks() as app:
+        t1 = gr.Textbox(label="Test Textbox")
+        t2 = gr.Textbox(label="Test Textbox 2")
+        t1.submit(lambda x: x, t1, t2, api_name="test_tool")
+
     fastapi_app = FastAPI()
     mount_gradio_app(fastapi_app, app, path="/test", mcp_server=True)
 
