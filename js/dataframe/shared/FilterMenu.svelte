@@ -1,45 +1,42 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+	import { onMount } from "svelte";
 	import { Check } from "@gradio/icons";
 	import DropdownArrow from "../../icons/src/DropdownArrow.svelte";
+	import type { FilterDatatype } from "./context/dataframe_context";
 
-    export let x: number;
+	export let x: number;
 	export let y: number;
+	export let on_filter: (
+		datatype: FilterDatatype,
+		selected_filter: string,
+		value: string
+	) => void = () => {};
 
-    let menu_element: HTMLDivElement;
-    let datatype: "string" | "number" = "string";
-    let current_filter: string = "Contains";
-    let filter_dropdown_open: boolean = false;
+	let menu_element: HTMLDivElement;
+	let datatype: "string" | "number" = "string";
+	let current_filter: string = "Contains";
+	let filter_dropdown_open: boolean = false;
 	let filter_input_value: string = "";
 
 	const filter_options = {
-        string: [
-            "Contains",
-            "Does not contain",
-            "Starts with",
-            "Ends with",
-            "Is",
-            "Is not",
-            "Is empty",
-            "Is not empty"
-        ],
-        number: [
-            "=",
-            "≠",
-            ">",
-            "<",
-            "≥",
-            "≤",
-            "Is empty",
-            "Is not empty"
-        ]
-    };
+		string: [
+			"Contains",
+			"Does not contain",
+			"Starts with",
+			"Ends with",
+			"Is",
+			"Is not",
+			"Is empty",
+			"Is not empty"
+		],
+		number: ["=", "≠", ">", "<", "≥", "≤", "Is empty", "Is not empty"]
+	};
 
-    onMount(() => {
+	onMount(() => {
 		position_menu();
 	});
 
-    function position_menu(): void {
+	function position_menu(): void {
 		if (!menu_element) return;
 
 		const viewport_width = window.innerWidth;
@@ -61,112 +58,116 @@
 		menu_element.style.top = `${new_y}px`;
 	}
 
-    function handle_filter_input(e: Event): void {
+	function handle_filter_input(e: Event): void {
 		const target = e.target as HTMLInputElement;
 		filter_input_value = target.value;
-    }
+	}
 </script>
 
 <div bind:this={menu_element} class="filter-menu">
-    <div class="filter-datatype-container">
-        <span>Filter as</span>
-        <button
-            on:click|stopPropagation={() => {
-                datatype = (datatype === "string" ? "number" : "string");
-                current_filter = filter_options[datatype][0];
-            }}
-        >
-            {datatype}
-        </button>
-    </div>
+	<div class="filter-datatype-container">
+		<span>Filter as</span>
+		<button
+			on:click|stopPropagation={() => {
+				datatype = datatype === "string" ? "number" : "string";
+				current_filter = filter_options[datatype][0];
+			}}
+		>
+			{datatype}
+		</button>
+	</div>
 
-    <div class="input-container">
-        <div class="filter-dropdown">
-            <button on:click|stopPropagation={() => (filter_dropdown_open = !filter_dropdown_open)}>
-                {current_filter}
-                <DropdownArrow />
-            </button>
+	<div class="input-container">
+		<div class="filter-dropdown">
+			<button
+				on:click|stopPropagation={() =>
+					(filter_dropdown_open = !filter_dropdown_open)}
+			>
+				{current_filter}
+				<DropdownArrow />
+			</button>
 
-            {#if filter_dropdown_open}
-                <div class="dropdown-filter-options">
-                    {#each filter_options[datatype] as opt}
-                        <button
-                            on:click|stopPropagation={() => {
-                                current_filter = opt;
-                                filter_dropdown_open = !filter_dropdown_open;
-                            }}
-                            class="filter-option"
-                        >
-                            {opt}
-                        </button>
-                    {/each}
-                </div>
-            {/if}
-        </div>
+			{#if filter_dropdown_open}
+				<div class="dropdown-filter-options">
+					{#each filter_options[datatype] as opt}
+						<button
+							on:click|stopPropagation={() => {
+								current_filter = opt;
+								filter_dropdown_open = !filter_dropdown_open;
+							}}
+							class="filter-option"
+						>
+							{opt}
+						</button>
+					{/each}
+				</div>
+			{/if}
+		</div>
 
-        <input
-            type="text"
-            value={filter_input_value}
-            on:click|stopPropagation
-            on:input={handle_filter_input}
-            placeholder="Type a value"
-            class="filter-input"
-        />
-    </div>
+		<input
+			type="text"
+			value={filter_input_value}
+			on:click|stopPropagation
+			on:input={handle_filter_input}
+			placeholder="Type a value"
+			class="filter-input"
+		/>
+	</div>
 
-    <button
-        class="check-button"
-    >
-        <Check />
-    </button>
+	<button
+		class="check-button"
+		on:click={() => on_filter(datatype, current_filter, filter_input_value)}
+	>
+		<Check />
+	</button>
 </div>
 
 <style>
 	.filter-menu {
-        position: fixed;
+		position: fixed;
 		background: var(--background-fill-primary);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm);
-		padding: var(--size-1);
+		padding: var(--size-2);
 		display: flex;
 		flex-direction: column;
-		gap: var(--size-1);
+		gap: var(--size-2);
 		box-shadow: var(--shadow-drop-lg);
 		width: 300px;
 		z-index: var(--layer-1);
 	}
 
-    .filter-datatype-container {
-        display: flex;
-        gap: var(--size-1);
-        align-items: center;
-    }
+	.filter-datatype-container {
+		display: flex;
+		gap: var(--size-2);
+		align-items: center;
+	}
 
-    .filter-menu span {
-        font-size: var(--text-sm);
-        color: var(--body-text-color);
-    }
+	.filter-menu span {
+		font-size: var(--text-sm);
+		color: var(--body-text-color);
+	}
 
 	.filter-menu button {
-        background: none;
-        border: 1px solid var(--border-color-primary);
-        border-radius: var(--radius-sm);
-        padding: var(--size-1) var(--size-2);
-        color: var(--body-text-color);
-        font-size: var(--text-sm);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: var(--size-2);
-    }
+		background: none;
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-sm);
+		padding: var(--size-1) var(--size-2);
+		color: var(--body-text-color);
+		font-size: var(--text-sm);
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--size-2);
+	}
 
-    .filter-menu button:hover {
-        background-color: var(--background-fill-secondary);
-    }
+	.filter-menu button:hover {
+		background-color: var(--background-fill-secondary);
+	}
 
 	.filter-input {
-        width: var(--size-full);
+		width: var(--size-full);
 		height: var(--size-6);
 		padding: var(--size-2);
 		padding-right: var(--size-8);
@@ -179,51 +180,51 @@
 	}
 
 	.filter-input:hover {
-        border-color: var(--border-color-secondary);
+		border-color: var(--border-color-secondary);
 		background: var(--background-fill-primary);
 	}
 
 	.filter-input:focus {
-        outline: none;
+		outline: none;
 		border-color: var(--color-accent);
 		background: var(--background-fill-primary);
 		box-shadow: 0 0 0 1px var(--color-accent);
 	}
 
-    .dropdown-filter-options {
-        display: flex;
-        flex-direction: column;
-        background: var(--background-fill-primary);
-        border: 1px solid var(--border-color-primary);
-        border-radius: var(--radius-sm);
-        box-shadow: var(--shadow-drop-md);
-        position: absolute;
-        z-index: var(--layer-1);
-    }
+	.dropdown-filter-options {
+		display: flex;
+		flex-direction: column;
+		background: var(--background-fill-primary);
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-sm);
+		box-shadow: var(--shadow-drop-md);
+		position: absolute;
+		z-index: var(--layer-1);
+	}
 
-    .dropdown-filter-options .filter-option {
-        border: none;
-	    justify-content: flex-start;
-    }
+	.dropdown-filter-options .filter-option {
+		border: none;
+		justify-content: flex-start;
+	}
 
-    .input-container {
-        display: flex;
-        gap: var(--size-1);
-        align-items: center;
-    }
+	.input-container {
+		display: flex;
+		gap: var(--size-2);
+		align-items: center;
+	}
 
-    .input-container button {
-        width: 130px;
-    }
+	.input-container button {
+		width: 130px;
+	}
 
-    :global(svg.dropdown-arrow) {
-        width: var(--size-3);
-        height: var(--size-3);
-        margin-left: auto;
-    }
+	:global(svg.dropdown-arrow) {
+		width: var(--size-4);
+		height: var(--size-4);
+		margin-left: auto;
+	}
 
 	.filter-menu .check-button {
-        background: var(--color-accent);
+		background: var(--color-accent);
 		color: white;
 		border: none;
 		width: var(--size-full);

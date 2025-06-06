@@ -1,7 +1,8 @@
 <script lang="ts" context="module">
 	import {
 		create_dataframe_context,
-		type SortDirection
+		type SortDirection,
+		type FilterDatatype
 	} from "./context/dataframe_context";
 </script>
 
@@ -43,6 +44,7 @@
 		type DragHandlers
 	} from "./utils/drag_utils";
 	import { sort_data_and_preserve_selection } from "./utils/sort_utils";
+	import { filter_data_and_preserve_selection } from "./utils/filter_utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -259,6 +261,11 @@
 		} else {
 			df_actions.handle_sort(-1, "asc");
 			df_actions.reset_sort_state();
+		}
+
+		if ($df_state.filter_state.filter_columns.length > 0) {
+			filter_data(data, display_value, styling);
+		} else {
 			df_actions.reset_filter_state();
 		}
 
@@ -343,13 +350,29 @@
 		df_actions.reset_sort_state();
 	}
 
-	$: if ($df_state.sort_state.sort_columns.length > 0) {
-		sort_data(data, display_value, styling);
-		df_actions.update_row_order(data);
+	$: {
+		if ($df_state.filter_state.filter_columns.length > 0) {
+			filter_data(data, display_value, styling);
+		}
+
+		if ($df_state.sort_state.sort_columns.length > 0) {
+			sort_data(data, display_value, styling);
+			df_actions.update_row_order(data);
+		}
 	}
 
-	function handle_filter(col: number): void {
-		df_actions.handle_filter(col);
+	function handle_filter(
+		col: number,
+		datatype: FilterDatatype,
+		filter: string,
+		value: string
+	): void {
+		df_actions.handle_filter(col, datatype, filter, value);
+		filter_data(data, display_value, styling);
+	}
+
+	function clear_filter(): void {
+		df_actions.reset_filter_state();
 	}
 
 	async function edit_header(i: number, _select = false): Promise<void> {
@@ -514,6 +537,26 @@
 			get_current_indices
 		);
 
+		data = result.data;
+		selected = result.selected;
+	}
+
+	function filter_data(
+		_data: typeof data,
+		_display_value: string[][] | null,
+		_styling: string[][] | null
+	): void {
+		const result = filter_data_and_preserve_selection(
+			_data,
+			_display_value,
+			_styling,
+			$df_state.filter_state.filter_columns,
+			selected,
+			get_current_indices,
+			$df_state.filter_state.initial_data?.data,
+			$df_state.filter_state.initial_data?.display_value,
+			$df_state.filter_state.initial_data?.styling
+		);
 		data = result.data;
 		selected = result.selected;
 	}
@@ -1032,15 +1075,23 @@
 				) + 1 || null
 			: null}
 		on_filter={active_header_menu
-			? () => {
+			? (datatype, filter, value) => {
 					if (active_header_menu) {
-						handle_filter(active_header_menu.col);
+						handle_filter(active_header_menu.col, datatype, filter, value);
 						df_actions.set_active_header_menu(null);
 					}
 				}
 			: undefined}
+		on_clear_filter={active_header_menu
+			? () => {
+					clear_filter();
+					df_actions.set_active_header_menu(null);
+				}
+			: undefined}
 		filter_active={active_header_menu
-			? $df_state.filter_state.filter_columns.includes(active_header_menu?.col ?? -1)
+			? $df_state.filter_state.filter_columns.some(
+					(c) => c.col === (active_header_menu?.col ?? -1)
+				)
 			: null}
 	/>
 {/if}
