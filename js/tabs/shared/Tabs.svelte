@@ -201,7 +201,7 @@
 								}
 							}}
 						>
-							{t.label}
+							{t?.label !== undefined ? t?.label : "Tab " + (i + 1)}
 						</button>
 					{/if}
 				{/each}
