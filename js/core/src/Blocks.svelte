@@ -74,18 +74,13 @@
 	}
 
 	let old_dependencies = dependencies;
-	$: if (
-		dependencies !== old_dependencies &&
-		render_complete &&
-		!layout_creating
-	) {
+	$: if (dependencies !== old_dependencies && render_complete) {
 		// re-run load triggers in SSR mode when page changes
 		handle_load_triggers();
 		old_dependencies = dependencies;
 	}
 
 	async function run(): Promise<void> {
-		layout_creating = true;
 		await create_layout({
 			components,
 			layout,
@@ -96,7 +91,6 @@
 				fill_height
 			}
 		});
-		layout_creating = false;
 	}
 
 	export let search_params: URLSearchParams;
@@ -132,13 +126,7 @@
 
 	let api_calls: Payload[] = [];
 
-	// Only trigger the load events when layout is created
-	// In reload mode + @gr.render, the @gr.render load events
-	// are triggered before the layout is finished creating, causing
-	// the component values in the backend to be undefined.
-	let layout_creating = false;
 	export let render_complete = false;
-
 	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const dep = dependencies.find((dep) => dep.id === fn_index);
 		const input_type = components.find(
@@ -683,6 +671,7 @@
 			if (is_external_url(_link) && _target !== "_blank")
 				a[i].setAttribute("target", "_blank");
 		}
+
 		handle_load_triggers();
 
 		if (!target || render_complete) return;

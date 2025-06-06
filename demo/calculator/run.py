@@ -31,10 +31,4 @@ demo = gr.Interface(
 )
 
 if __name__ == "__main__":
-    from fastapi import FastAPI
-    from gradio.routes import mount_gradio_app
-
-    fastapi_app = FastAPI()
-    mount_gradio_app(fastapi_app, demo, path="/test", mcp_server=True)
-    import uvicorn
-    uvicorn.run(fastapi_app, port=7860)
+    demo.launch()

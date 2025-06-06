@@ -325,6 +325,7 @@
 		if (deep_link) {
 			query_params.deep_link = deep_link;
 		}
+
 		app = await Client.connect(api_url, {
 			status_callback: handle_status,
 			with_null_state: true,
