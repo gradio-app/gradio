@@ -182,6 +182,7 @@ def test_mcp_sse_transport():
             )
 
 
+@pytest.mark.serial
 def test_mcp_mount_gradio_app():
     import threading
 
@@ -199,7 +200,7 @@ def test_mcp_mount_gradio_app():
     mount_gradio_app(fastapi_app, app, path="/test", mcp_server=True)
 
     thread = threading.Thread(
-        target=uvicorn.run, args=(fastapi_app,), kwargs={"port": 6868}
+        target=uvicorn.run, args=(fastapi_app,), kwargs={"port": 6868}, daemon=True
     )
     thread.start()
 
