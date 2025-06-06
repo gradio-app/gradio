@@ -96,7 +96,7 @@
 		let filtered_height_map = height_map.filter((v) => typeof v === "number");
 		average_height =
 			filtered_height_map.reduce((a, b) => a + b, 0) /
-			filtered_height_map.length;
+				filtered_height_map.length || 30;
 
 		bottom = remaining * average_height;
 		if (!isFinite(bottom)) {
