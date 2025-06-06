@@ -170,6 +170,65 @@ def test_mcp_sse_transport(test_mcp_app):
 
             messages_path = line[5:].strip()
             messages_url = f"{url.rstrip('/')}{messages_path}"
+            print("messages_url", messages_url)
+
+            message_response = client.post(
+                messages_url,
+                json={
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": "2025-03-26",
+                        "capabilities": {},
+                    },
+                    "jsonrpc": "2.0",
+                    "id": 0,
+                },
+                headers={"Content-Type": "application/json"},
+            )
+
+            assert message_response.is_success, (
+                f"Failed with status {message_response.status_code}: {message_response.text}"
+            )
+
+
+@pytest.mark.serial
+def test_mcp_mount_gradio_app():
+    import threading
+
+    import uvicorn
+    from fastapi import FastAPI
+
+    from gradio.routes import mount_gradio_app
+
+    with gr.Blocks() as app:
+        t1 = gr.Textbox(label="Test Textbox")
+        t2 = gr.Textbox(label="Test Textbox 2")
+        t1.submit(lambda x: x, t1, t2, api_name="test_tool")
+
+    fastapi_app = FastAPI()
+    mount_gradio_app(fastapi_app, app, path="/test", mcp_server=True)
+
+    thread = threading.Thread(
+        target=uvicorn.run, args=(fastapi_app,), kwargs={"port": 6868}, daemon=True
+    )
+    thread.start()
+
+    with httpx.Client(timeout=5) as client:
+        sse_url = "http://localhost:6868/test/gradio_api/mcp/sse"
+
+        with client.stream("GET", sse_url) as response:
+            assert response.is_success
+
+            terminate_next = False
+            line = ""
+            for line in response.iter_lines():
+                if terminate_next:
+                    break
+                if line.startswith("event: endpoint"):
+                    terminate_next = True
+
+            messages_path = line[5:].strip()
+            messages_url = f"http://localhost:6868{messages_path}"
 
             message_response = client.post(
                 messages_url,
