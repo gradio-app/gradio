@@ -196,6 +196,7 @@ class Chatbot(Component):
         Events.clear,
         Events.copy,
         Events.edit,
+        Events.custom_button,
     ]
 
     def __init__(
@@ -242,6 +243,7 @@ class Chatbot(Component):
         allow_file_downloads=True,
         group_consecutive_messages: bool = True,
         allow_tags: list[str] | bool = False,
+        custom_buttons: list[dict[str, Any]] | None = None,
     ):
         """
         Parameters:
@@ -285,6 +287,7 @@ class Chatbot(Component):
             allow_file_downloads: If True, will show a download button for chatbot messages that contain media. Defaults to True.
             group_consecutive_messages: If True, will display consecutive messages from the same role in the same bubble. If False, will display each message in a separate bubble. Defaults to True.
             allow_tags: If a list of tags is provided, these tags will be preserved in the output chatbot messages, even if `sanitize_html` is `True`. For example, if this list is ["thinking"], the tags `<thinking>` and `</thinking>` will not be removed. If True, all custom tags (non-standard HTML tags) will be preserved. If False, no tags will be preserved (default behavior).
+            custom_buttons: If a list of buttons is provided, each button will appear below chatbot or user messages based on its visibility setting. Each button is defined by a dictionary with a label (text on the button), an icon, and a visible field ("all", "chatbot", or "user"). If None, no buttons are shown (default behavior).
         """
         if type is None:
             warnings.warn(
@@ -346,6 +349,7 @@ class Chatbot(Component):
         self.feedback_options = feedback_options
         self.feedback_value = feedback_value
         self.allow_tags = allow_tags if allow_tags else False
+        self.custom_buttons = custom_buttons
         super().__init__(
             label=label,
             every=every,
@@ -379,6 +383,18 @@ class Chatbot(Component):
             if self.type == "messages"
             else "a list of 2-part tuples, where each tuple contains the user message and the bot response message"
         )
+
+    @property
+    def custom_buttons(self) -> list[dict[str, Any]] | None:
+        return self._custom_buttons
+
+    @custom_buttons.setter
+    def custom_buttons(self, value: list[dict[str, Any]] | None):
+        if value is not None:
+            self._custom_buttons = value
+            self._validate_custom_buttons()
+        else:
+            self._custom_buttons = None
 
     def _setup_data_model(self):
         if self.type == "messages":
@@ -430,6 +446,51 @@ class Chatbot(Component):
             raise Error(
                 "Data incompatible with tuples format. Each message should be a list of length 2."
             )
+
+    def _validate_custom_buttons(self):
+        """
+        Ensures that each entry in self.custom_buttons is a dictionary
+        containing the required keys, with the label value of the expected type.
+        Raises an Error if any custom button is malformed.
+        """
+        if not self.custom_buttons:
+            return
+        valid_keys = ["visible", "label", "icon"]
+        for btn in self.custom_buttons:
+            if "visible" not in btn or btn.get("visible", None) is None:
+                btn["visible"] = "all"
+            if "icon" not in btn:
+                btn["icon"] = None
+            for key in btn:
+                if key not in valid_keys:
+                    raise Error(f"Custom_buttons do not have {key} key.")
+
+        label_values = []
+        for idx, button in enumerate(self.custom_buttons):
+            if not isinstance(button, dict):
+                raise TypeError(
+                    f"custom_buttons[{idx}] must be a dict, not {type(button).__name__}."
+                )
+
+            if "label" not in button:
+                raise Error("Custom_buttons is missing label key.")
+            # Validate 'label'
+            label_value = button["label"]
+            if not isinstance(label_value, str) or not label_value.strip():
+                raise ValueError(
+                    f"custom_buttons[{idx}]['label'] must be a non-empty string."
+                )
+            for value in label_values:
+                if value == label_value:
+                    raise ValueError("Labels in custom_buttons must be unique.")
+            label_values.append(label_value)
+
+            # Validate 'visible'
+            visible_value = button["visible"]
+            if visible_value not in ("all", "chatbot", "user"):
+                raise ValueError(
+                    "Values in custom_buttons must be 'all', 'chatbot', 'user', or 'None'."
+                )
 
     def _preprocess_content(
         self,

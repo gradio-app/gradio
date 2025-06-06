@@ -43,7 +43,10 @@
 	export let show_retry: boolean;
 	export let show_undo: boolean;
 	export let msg_format: "tuples" | "messages";
-	export let handle_action: (selected: string | null) => void;
+	export let handle_action: (
+		selected: string | null,
+		selected_label: string | null
+	) => void;
 	export let scroll: () => void;
 	export let allow_file_downloads: boolean;
 	export let in_edit_mode: boolean;
@@ -52,6 +55,13 @@
 	export let current_feedback: string | null = null;
 	export let allow_tags: string[] | boolean = false;
 	export let watermark: string | null = null;
+	export let custom_buttons:
+		| {
+				label: string;
+				visible: "all" | "user" | "chatbot";
+				icon: string | null;
+		  }[]
+		| null = null;
 	let messageElements: HTMLDivElement[] = [];
 	let previous_edit_mode = false;
 	let message_widths: number[] = Array(messages.length).fill(160);
@@ -93,7 +103,10 @@
 	}
 
 	type ButtonPanelProps = {
-		handle_action: (selected: string | null) => void;
+		handle_action: (
+			selected: string | null,
+			selected_label: string | null
+		) => void;
 		likeable: boolean;
 		feedback_options: string[];
 		show_retry: boolean;
@@ -109,6 +122,13 @@
 		dispatch: any;
 		current_feedback: string | null;
 		watermark: string | null;
+		custom_buttons:
+			| {
+					label: string;
+					visible: "all" | "user" | "chatbot";
+					icon: string | null;
+			  }[]
+			| null;
 	};
 
 	let button_panel_props: ButtonPanelProps;
@@ -128,7 +148,8 @@
 		layout,
 		dispatch,
 		current_feedback,
-		watermark
+		watermark,
+		custom_buttons
 	};
 </script>
 

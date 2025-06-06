@@ -9,7 +9,10 @@
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 
 	export let i18n: I18nFormatter;
-	export let handle_action: (selected: string | null) => void;
+	export let handle_action: (
+		selected: string | null,
+		selected_label: string | null
+	) => void;
 	export let feedback_options: string[];
 	export let selected: string | null = null;
 	$: extra_feedback = feedback_options.filter(
@@ -18,7 +21,7 @@
 
 	function toggleSelection(newSelection: string): void {
 		selected = selected === newSelection ? null : newSelection;
-		handle_action(selected);
+		handle_action(selected, null);
 	}
 </script>
 
@@ -63,7 +66,7 @@
 					style:font-weight={selected === option ? "bold" : "normal"}
 					on:click={() => {
 						toggleSelection(option);
-						handle_action(selected ? selected : null);
+						handle_action(selected ? selected : null, null);
 					}}>{option}</button
 				>
 			{/each}

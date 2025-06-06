@@ -42,7 +42,7 @@ from gradio.components.chatbot import (
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
 from gradio.context import get_blocks_context
-from gradio.events import Dependency, EditData, SelectData
+from gradio.events import CustomButtonsData, Dependency, EditData, SelectData
 from gradio.flagging import ChatCSVLogger
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
@@ -94,6 +94,7 @@ class ChatInterface(Blocks):
         theme: Theme | str | None = None,
         flagging_mode: Literal["never", "manual"] | None = None,
         flagging_options: list[str] | tuple[str, ...] | None = ("Like", "Dislike"),
+        custom_buttons: list[dict[str, Any]] | None = None,
         flagging_dir: str = ".gradio/flagged",
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
@@ -153,6 +154,7 @@ class ChatInterface(Blocks):
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
             api_name: defines how the chat endpoint appears in the API docs. Can be a string or False. If set to a string, the chat endpoint will be exposed in the API docs with the given name. If False, the chat endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to call this chat endpoint.
             save_history: if True, will save the chat history to the browser's local storage and display previous conversations in a side panel.
+            chatbot_buttons: extends the `custom_buttons` attribute of the `Chatbot` by also including a callable function to execute when each button is clicked. Each button is defined by a label, icon, visibility setting ("all", "chatbot", or "user"), and an associated function.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -247,6 +249,7 @@ class ChatInterface(Blocks):
                 "Invalid value for `flagging_mode` parameter."
                 "Must be: 'manual' or 'never'."
             )
+        self.custom_buttons = custom_buttons
         self.flagging_options = flagging_options
         self.flagging_dir = flagging_dir
         if isinstance(textbox, (Textbox, MultimodalTextbox)):
@@ -346,6 +349,13 @@ class ChatInterface(Blocks):
                 if not self._additional_inputs_in_examples
                 else None,
             )
+
+        if self.custom_buttons:
+            self.chatbot.custom_buttons = [
+                {k: v for k, v in btn.items() if k != "on_click"}
+                for btn in self.custom_buttons
+            ]
+
         with Group():
             with Row():
                 if textbox:
@@ -692,6 +702,14 @@ class ChatInterface(Blocks):
             self._pop_last_user_message,
             [self.chatbot],
             [self.chatbot, self.textbox],
+            show_api=False,
+            queue=False,
+        ).then(**synchronize_chat_state_kwargs).then(**save_fn_kwargs)
+
+        self.chatbot.custom_button(
+            self._handle_custom_button,
+            [self.chatbot],
+            [self.chatbot],
             show_api=False,
             queue=False,
         ).then(**synchronize_chat_state_kwargs).then(**save_fn_kwargs)
@@ -1126,6 +1144,73 @@ class ChatInterface(Blocks):
         if self.type == "tuples":
             history_ = self._messages_to_tuples(history_)  # type: ignore
         return history_, return_message  # type: ignore
+
+    def _handle_custom_button(
+        self,
+        event_data: CustomButtonsData,
+        history: list[MessageDict] | TupleFormat,
+    ) -> list[MessageDict] | TupleFormat:
+        """
+        Handles a custom button click event by matching the button label from the event data,
+        finding the corresponding button function, and executing it.
+        """
+        if self.custom_buttons:
+            for btn in self.custom_buttons:
+                if btn.get("label") == event_data.label:
+                    function = btn.get("on_click")
+                    if callable(function):
+                        result = function(history, event_data)
+
+                        if (
+                            isinstance(result, list)
+                            and all(
+                                isinstance(m, dict)
+                                and "role" in m
+                                and isinstance(m["role"], str)
+                                and "content" in m
+                                and isinstance(m["content"], str)
+                                for m in result
+                            )
+                            and self.type == "messages"
+                        ):
+                            return result
+
+                        if self.is_tuple_format(result) and self.type == "tuples":
+                            return cast(TupleFormat, result)
+
+                    return history
+
+        raise ValueError(
+            f"No matching custom button found for label: {event_data.label} in chatInterface"
+        )
+
+    def is_str_tuple_or_none(self, val) -> bool:
+        if val is None:
+            return True
+        if isinstance(val, str):
+            return True
+        if isinstance(val, tuple):
+            return all(isinstance(item, str) for item in val)
+        return False
+
+    def is_tuple_format(self, x) -> bool:
+        if not isinstance(x, Sequence):
+            return False
+
+        for item in x:
+            if not isinstance(item, (tuple, list)):
+                return False
+
+            if isinstance(item, tuple):
+                if len(item) != 2:
+                    return False
+                if not all(self.is_str_tuple_or_none(elem) for elem in item):
+                    return False
+
+            elif isinstance(item, list):
+                if not all(self.is_str_tuple_or_none(elem) for elem in item):
+                    return False
+        return True
 
     def render(self) -> ChatInterface:
         # If this is being rendered inside another Blocks, and the height is not explicitly set, set it to 400 instead of 200.

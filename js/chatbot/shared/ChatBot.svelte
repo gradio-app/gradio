@@ -6,7 +6,8 @@
 		is_last_bot_message,
 		group_messages,
 		load_components,
-		get_components_from_messages
+		get_components_from_messages,
+		type CustomButtonsData
 	} from "./utils";
 	import type { NormalisedMessage, Option } from "../types";
 	import { copy } from "@gradio/utils";
@@ -38,6 +39,7 @@
 	let old_value: NormalisedMessage[] | null = null;
 
 	import CopyAll from "./CopyAll.svelte";
+	import CustomButtons from "./CustomButtons.svelte";
 
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
@@ -91,6 +93,13 @@
 	export let like_user_message = false;
 	export let root: string;
 	export let allow_tags: string[] | boolean = false;
+	export let custom_buttons:
+		| {
+				label: string;
+				visible: "all" | "user" | "chatbot";
+				icon: string | null;
+		  }[]
+		| null = null;
 	export let watermark: string | null = null;
 	export let show_progress: "full" | "minimal" | "hidden" = "full";
 
@@ -119,6 +128,7 @@
 		example_select: SelectData;
 		option_select: SelectData;
 		copy: CopyData;
+		custom_button: CustomButtonsData;
 	}>();
 
 	function is_at_bottom(): boolean {
@@ -181,7 +191,9 @@
 	function handle_action(
 		i: number,
 		message: NormalisedMessage,
-		selected: string | null
+		selected: string | null,
+		message_group: NormalisedMessage[],
+		selected_label: string | null
 	): void {
 		if (selected === "undo" || selected === "retry") {
 			const val_ = value as NormalisedMessage[];
@@ -207,6 +219,14 @@
 				value: edit_messages[i].slice(),
 				previous_value: message.content as string
 			});
+		} else if (selected == "custom_button") {
+			if (selected_label) {
+				dispatch("custom_button", {
+					index: message.index,
+					values: message_group.map((m) => m.content as string),
+					label: selected_label
+				});
+			}
 		} else {
 			let feedback =
 				selected === "Like"
@@ -326,6 +346,7 @@
 					{feedback_options}
 					{current_feedback}
 					{allow_tags}
+					{custom_buttons}
 					{watermark}
 					show_like={role === "user" ? likeable && like_user_message : likeable}
 					show_retry={_retryable && is_last_bot_message(messages, value)}
@@ -338,16 +359,22 @@
 					in_edit_mode={edit_index === i}
 					bind:edit_messages
 					{show_copy_button}
-					handle_action={(selected) => {
+					handle_action={(selected, selected_label) => {
 						if (selected == "edit") {
 							edit_messages.splice(0, edit_messages.length);
 						}
 						if (selected === "edit" || selected === "edit_submit") {
 							messages.forEach((msg, index) => {
-								handle_action(selected === "edit" ? i : index, msg, selected);
+								handle_action(
+									selected === "edit" ? i : index,
+									msg,
+									selected,
+									messages,
+									selected_label
+								);
 							});
 						} else {
-							handle_action(i, messages[0], selected);
+							handle_action(i, messages[0], selected, messages, selected_label);
 						}
 					}}
 					scroll={is_browser ? scroll : () => {}}

@@ -234,6 +234,23 @@ describe("Chatbot", () => {
 		);
 	});
 
+	test("renders custom buttons with null icon and non-existing icon", async () => {
+		const customButtons = [
+			{ label: "Example1", icon: "NonExisting", visible: "user" },
+			{ label: "Example2", visible: "chatbot" }
+		];
+
+		const { getByText } = await render(Chatbot, {
+			label: "chatbot",
+			value: [["user message one", "bot message one"]],
+			custom_buttons: customButtons
+		});
+
+		for (const button of customButtons) {
+			expect(getByText(button.label)).toBeInTheDocument();
+		}
+	});
+
 	test("renders messages with allowed HTML tags", async () => {
 		const { container } = await render(Chatbot, {
 			loading_status,
