@@ -40,13 +40,13 @@
 		? window.requestAnimationFrame
 		: (cb: (...args: any[]) => void) => cb();
 
-	$: sortedItems, mounted && raf(refresh_height_map);
+	$: {
+		if (mounted && viewport_height && viewport.offsetParent) {
+			sortedItems, raf(refresh_height_map);
+		}
+	}
 
 	async function refresh_height_map(): Promise<void> {
-		if (viewport_height === 0 || !viewport.offsetParent) {
-			return;
-		}
-
 		if (sortedItems.length < start) {
 			await scroll_to_index(sortedItems.length - 1, { behavior: "auto" });
 		}
