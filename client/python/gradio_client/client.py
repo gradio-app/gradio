@@ -909,6 +909,16 @@ class Client:
             **self.httpx_kwargs,
         )
         if r.is_success:
+            # Cookies are sometimes needed to correctly route requests if the Gradio app is
+            # running on multiple replicas e.g. using cookie session-affinity in Kubernetes.
+            # This approach attaches cookies from the first response to subsequent requests
+            # without overriding existing cookies.
+            new_cookies = {
+                name: value
+                for name, value in r.cookies.items()
+                if value is not None and name not in self.cookies
+            }
+            self.cookies.update(new_cookies)
             return r.json()
         elif r.status_code == 401:
             raise AuthenticationError(
