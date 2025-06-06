@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Be Able to launch MCP server when mounting in FastAPI app
+fix:Be Able to launch MCP server when mounting in FastAPI app
