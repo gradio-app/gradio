@@ -132,6 +132,10 @@
 
 	let api_calls: Payload[] = [];
 
+	// Only trigger the load events when layout is created
+	// In reload mode + @gr.render, the @gr.render load events
+	// are triggered before the layout is finished creating, causing
+	// the component values in the backend to be undefined.
 	let layout_creating = false;
 	export let render_complete = false;
 

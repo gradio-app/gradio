@@ -255,7 +255,9 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 				}
 			}
 		});
-
+		
+		// Some components (like Forms) are not added to the instance_map when
+		// running reload mode + @gr.render. So we add them here.
 		const components_to_add = new_components.concat(
 			replacement_components.filter((c) => !instance_map[c.id])
 		);
