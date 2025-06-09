@@ -336,16 +336,11 @@ class App(FastAPI):
         self._asyncio_tasks = []
 
     @staticmethod
-    def create_app(
+    def setup_mcp_server(
         blocks: gradio.Blocks,
-        app_kwargs: dict[str, Any] | None = None,
-        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
-        strict_cors: bool = True,
-        ssr_mode: bool = False,
+        app_kwargs: dict[str, Any],
         mcp_server: bool | None = None,
-    ) -> App:
-        app_kwargs = app_kwargs or {}
-        app_kwargs.setdefault("default_response_class", ORJSONResponse)
+    ):
         mcp_subpath = API_PREFIX + "/mcp"
         if mcp_server is None:
             mcp_server = os.environ.get("GRADIO_MCP_SERVER", "False").lower() == "true"
@@ -380,6 +375,24 @@ class App(FastAPI):
             except Exception as e:
                 blocks.mcp_server = False
                 blocks.mcp_error = f"Error launching MCP server: {e}"
+
+        blocks.config = (
+            blocks.get_config_file()
+        )  # Because the config should include the fact that the MCP server is enabled
+        return mcp_subpath
+
+    @staticmethod
+    def create_app(
+        blocks: gradio.Blocks,
+        app_kwargs: dict[str, Any] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        strict_cors: bool = True,
+        ssr_mode: bool = False,
+        mcp_server: bool | None = None,
+    ) -> App:
+        app_kwargs = app_kwargs or {}
+        app_kwargs.setdefault("default_response_class", ORJSONResponse)
+        mcp_subpath = App.setup_mcp_server(blocks, app_kwargs, mcp_server)
 
         delete_cache = blocks.delete_cache or (None, None)
         app_kwargs["lifespan"] = create_lifespan_handler(
