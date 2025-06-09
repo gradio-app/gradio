@@ -50,6 +50,7 @@ class GradioMCPServer:
         self.blocks = blocks
         self.api_info = self.blocks.get_api_info()
         self.mcp_server = self.create_mcp_server()
+        self.root_path = root_path
         tool_prefix = utils.get_space()
         if tool_prefix:
             tool_prefix = tool_prefix.split("/")[-1] + "_"
@@ -143,7 +144,13 @@ class GradioMCPServer:
                 arguments: The arguments to pass to the tool.
             """
             context_request = self.mcp_server.request_context.request
-            print("context_request", context_request.url)
+            assert context_request is not None  # noqa: S101
+            root_url = route_utils.get_root_url(
+                request=context_request,
+                route_path="/gradio_api/mcp/messages",
+                root_path=self.root_path,
+            )
+            print("root_url", root_url)
             _, filedata_positions = self.get_input_schema(name)
             processed_kwargs = self.convert_strings_to_filedata(
                 arguments, filedata_positions
@@ -173,7 +180,7 @@ class GradioMCPServer:
                 request=context_request,
             )
             processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
-            return self.postprocess_output_data(output["data"])
+            return self.postprocess_output_data(output["data"], root_url)
 
         @server.list_tools()
         async def list_tools() -> list[types.Tool]:
@@ -556,7 +563,7 @@ class GradioMCPServer:
         return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
     def postprocess_output_data(
-        self, data: Any
+        self, data: Any, root_url: str
     ) -> list[types.TextContent | types.ImageContent]:
         """
         Postprocess the output data from the Gradio app to convert FileData objects back to base64 encoded strings.
@@ -565,8 +572,7 @@ class GradioMCPServer:
             data: The output data to postprocess.
         """
         return_values = []
-        if self.root_url:
-            data = processing_utils.add_root_url(data, self.root_url, None)
+        data = processing_utils.add_root_url(data, root_url, None)
         for output in data:
             if svg_bytes := self.get_svg(output):
                 base64_data = base64.b64encode(svg_bytes).decode("utf-8")
@@ -574,7 +580,7 @@ class GradioMCPServer:
                 svg_path = processing_utils.save_bytes_to_cache(
                     svg_bytes, f"{output['orig_name']}", DEFAULT_TEMP_DIR
                 )
-                svg_url = f"{self.root_url}/gradio_api/file={svg_path}"
+                svg_url = f"{root_url}/gradio_api/file={svg_path}"
                 return_value = [
                     types.ImageContent(
                         type="image", data=base64_data, mimeType=mimetype
