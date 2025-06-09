@@ -162,7 +162,6 @@ def test_mcp_sse_transport():
 
             messages_path = line[5:].strip()
             messages_url = f"{url.rstrip('/')}{messages_path}"
-            print("messages_url", messages_url)
 
             message_response = client.post(
                 messages_url,
