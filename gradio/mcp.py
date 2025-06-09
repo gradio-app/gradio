@@ -13,6 +13,7 @@ from urllib.parse import unquote
 import gradio_client.utils as client_utils
 from mcp import types
 from mcp.server import Server
+from mcp.server.fastmcp import Context
 from mcp.server.sse import SseServerTransport
 from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from PIL import Image
@@ -49,8 +50,6 @@ class GradioMCPServer:
         self.blocks = blocks
         self.api_info = self.blocks.get_api_info()
         self.mcp_server = self.create_mcp_server()
-        self.request = None
-        self.root_url = None
         tool_prefix = utils.get_space()
         if tool_prefix:
             tool_prefix = tool_prefix.split("/")[-1] + "_"
@@ -67,13 +66,6 @@ class GradioMCPServer:
         async def handle_streamable_http(
             scope: Scope, receive: Receive, send: Send
         ) -> None:
-            request = Request(scope, receive)
-            self.request = request
-            self.root_url = route_utils.get_root_url(
-                request=request,
-                route_path="/gradio_api/mcp/http",
-                root_path=root_path,
-            )
             await manager.handle_request(scope, receive, send)
 
         @contextlib.asynccontextmanager
@@ -150,6 +142,8 @@ class GradioMCPServer:
                 name: The name of the tool to call.
                 arguments: The arguments to pass to the tool.
             """
+            context_request = self.mcp_server.request_context.request
+            print("context_request", context_request.url)
             _, filedata_positions = self.get_input_schema(name)
             processed_kwargs = self.convert_strings_to_filedata(
                 arguments, filedata_positions
@@ -176,7 +170,7 @@ class GradioMCPServer:
             output = await self.blocks.process_api(
                 block_fn=block_fn,
                 inputs=processed_args,
-                request=self.request,
+                request=context_request,
             )
             processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
             return self.postprocess_output_data(output["data"])
@@ -223,12 +217,6 @@ class GradioMCPServer:
         sse = SseServerTransport(messages_path)
 
         async def handle_sse(request):
-            self.request = request
-            self.root_url = route_utils.get_root_url(
-                request=request,
-                route_path="/gradio_api/mcp/sse",
-                root_path=root_path,
-            )
             try:
                 async with sse.connect_sse(
                     request.scope, request.receive, request._send
