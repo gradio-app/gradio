@@ -25,7 +25,7 @@ from starlette.types import Receive, Scope, Send
 from gradio import processing_utils, route_utils, utils
 from gradio.blocks import BlockFunction
 from gradio.components import State
-from gradio.data_classes import FileData, FileDataDict
+from gradio.data_classes import FileData
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockContext, Blocks
@@ -546,12 +546,12 @@ class GradioMCPServer:
             return None
 
     @staticmethod
-    def get_svg(file_data: FileDataDict) -> bytes | None:
+    def get_svg(file_data: Any) -> bytes | None:
         """
-        If a file_data is a valid svg, returns bytes of the svg. Otherwise returns None.
+        If a file_data is a valid FileDataDict with a url that is a data:image/svg+xml, returns bytes of the svg. Otherwise returns None.
         """
-        if url := file_data.get("url"):
-            if url.startswith("data:image/svg"):
+        if isinstance(file_data, dict) and (url := file_data.get("url")):
+            if isinstance(url, str) and url.startswith("data:image/svg"):
                 return unquote(url.split(",", 1)[1]).encode()
             else:
                 return None
