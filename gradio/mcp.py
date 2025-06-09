@@ -24,7 +24,7 @@ from starlette.types import Receive, Scope, Send
 from gradio import processing_utils, route_utils, utils
 from gradio.blocks import BlockFunction
 from gradio.components import State
-from gradio.data_classes import FileData, FileDataDict
+from gradio.data_classes import FileData
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockContext, Blocks
