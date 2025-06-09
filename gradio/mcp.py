@@ -44,11 +44,11 @@ class GradioMCPServer:
         blocks: The Blocks app to create the MCP server for.
     """
 
-    def __init__(self, blocks: "Blocks", root_path: str):
+    def __init__(self, blocks: "Blocks"):
         self.blocks = blocks
         self.api_info = self.blocks.get_api_info()
         self.mcp_server = self.create_mcp_server()
-        self.root_path = root_path
+        self.root_path = ""
         tool_prefix = utils.get_space()
         if tool_prefix:
             tool_prefix = tool_prefix.split("/")[-1] + "_"
@@ -217,9 +217,11 @@ class GradioMCPServer:
         Parameters:
             app: The Gradio app to mount the MCP server on.
             subpath: The subpath to mount the MCP server on. E.g. "/gradio_api/mcp"
+            root_path: The root path of the Gradio Blocks app.
         """
         messages_path = "/messages/"
         sse = SseServerTransport(messages_path)
+        self.root_path = root_path
 
         async def handle_sse(request):
             try:
