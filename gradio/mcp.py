@@ -8,6 +8,7 @@ from collections.abc import AsyncIterator, Sequence
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+from urllib.parse import unquote
 
 import gradio_client.utils as client_utils
 from mcp import types
@@ -545,6 +546,19 @@ class GradioMCPServer:
             return None
 
     @staticmethod
+    def get_svg(file_data: Any) -> bytes | None:
+        """
+        If a file_data is a valid FileDataDict with a url that is a data:image/svg+xml, returns bytes of the svg. Otherwise returns None.
+        """
+        if isinstance(file_data, dict) and (url := file_data.get("url")):
+            if isinstance(url, str) and url.startswith("data:image/svg"):
+                return unquote(url.split(",", 1)[1]).encode()
+            else:
+                return None
+        else:
+            return None
+
+    @staticmethod
     def get_base64_data(image: Image.Image, format: str) -> str:
         """
         Returns a base64 encoded string of the image.
@@ -566,7 +580,23 @@ class GradioMCPServer:
         if self.root_url:
             data = processing_utils.add_root_url(data, self.root_url, None)
         for output in data:
-            if client_utils.is_file_obj_with_meta(output):
+            if svg_bytes := self.get_svg(output):
+                base64_data = base64.b64encode(svg_bytes).decode("utf-8")
+                mimetype = "image/svg+xml"
+                svg_path = processing_utils.save_bytes_to_cache(
+                    svg_bytes, f"{output['orig_name']}", DEFAULT_TEMP_DIR
+                )
+                svg_url = f"{self.root_url}/gradio_api/file={svg_path}"
+                return_value = [
+                    types.ImageContent(
+                        type="image", data=base64_data, mimeType=mimetype
+                    ),
+                    types.TextContent(
+                        type="text",
+                        text=f"SVG Image URL: {svg_url}",
+                    ),
+                ]
+            elif client_utils.is_file_obj_with_meta(output):
                 if image := self.get_image(output["path"]):
                     image_format = image.format or "png"
                     base64_data = self.get_base64_data(image, image_format)

@@ -84,6 +84,23 @@ def test_postprocess_output_data(test_mcp_app):
         assert result[1].type == "text"
         assert url in result[1].text
 
+    svg_data_uri = "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22100%22%20height%3D%22100%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2240%22%20fill%3D%22blue%22%2F%3E%3C%2Fsvg%3E"
+    test_data = [
+        {
+            "path": None,
+            "url": svg_data_uri,
+            "meta": {"_type": "gradio.FileData"},
+            "orig_name": "test.svg",
+        }
+    ]
+    result = server.postprocess_output_data(test_data)
+    assert len(result) == 2
+    assert result[0].type == "image"
+    assert result[0].mimeType == "image/svg+xml"
+    assert result[1].type == "text"
+    assert "Image URL:" in result[1].text
+    assert "/gradio_api/file=" in result[1].text
+
     test_data = ["test text"]
     result = server.postprocess_output_data(test_data)
     assert len(result) == 1
