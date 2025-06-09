@@ -142,13 +142,13 @@ class GradioMCPServer:
                 arguments: The arguments to pass to the tool.
             """
             context_request = self.mcp_server.request_context.request
-            assert context_request is not None  # noqa: S101
+            if context_request is None:
+                raise ValueError("Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio.")
             root_url = route_utils.get_root_url(
                 request=context_request,
                 route_path="/gradio_api/mcp/messages",
                 root_path=self.root_path,
             )
-            print("root_url", root_url)
             _, filedata_positions = self.get_input_schema(name)
             processed_kwargs = self.convert_strings_to_filedata(
                 arguments, filedata_positions
