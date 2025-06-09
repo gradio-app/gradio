@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-feat:Provide correct context requests information in mcp tool call
+feat:Inject the `Request` information in MCP tool calls
