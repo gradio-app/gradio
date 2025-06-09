@@ -3128,7 +3128,7 @@ Received inputs:
                 "show_api": fn.show_api,
             }
             fn_info = utils.get_function_params(fn.fn)  # type: ignore
-            description, _ = utils.get_function_description(fn.fn)
+            description, _, _ = utils.get_function_description(fn.fn)
             if description:
                 dependency_info["description"] = description
             skip_endpoint = False

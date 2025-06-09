@@ -1,5 +1,20 @@
 # gradio
 
+## 5.33.0
+
+### Features
+
+- [#11306](https://github.com/gradio-app/gradio/pull/11306) [`6cd608d`](https://github.com/gradio-app/gradio/commit/6cd608d8f9b1a142c58f0d2db861845ec267f705) - Improvements for plots and event listeners in re-renders.  Thanks @aliabid94!
+- [#11287](https://github.com/gradio-app/gradio/pull/11287) [`7b06b61`](https://github.com/gradio-app/gradio/commit/7b06b61efe84c9a6647378e71f421b20923a02b4) - Preload the first example for `gr.Interface` when examples are cached.  Thanks @abidlabs!
+- [#11328](https://github.com/gradio-app/gradio/pull/11328) [`ff39d56`](https://github.com/gradio-app/gradio/commit/ff39d568dc9a8a44807126c7366ac8f7dc63df12) - Update mcp schema to include return type information from function.  Thanks @abidlabs!
+- [#11320](https://github.com/gradio-app/gradio/pull/11320) [`d6649e5`](https://github.com/gradio-app/gradio/commit/d6649e541d96ce94cd20bc8d7655c4c380c9cdb2) - Fix doc title for JS Chatbot.  Thanks @aymeric-roucher!
+
+### Fixes
+
+- [#11327](https://github.com/gradio-app/gradio/pull/11327) [`5770fd0`](https://github.com/gradio-app/gradio/commit/5770fd0ad42a1ba8bb87a5c0f92bbf4dcf3e5a38) - Suppress error in create_or_modify_pyi.  Thanks @freddyaboulton!
+- [#11318](https://github.com/gradio-app/gradio/pull/11318) [`3e40af3`](https://github.com/gradio-app/gradio/commit/3e40af3df4669ce400db4c9308d0e20f0d7ddf96) - Fix textbox autoscroll in tabs.  Thanks @dawoodkhan82!
+- [#11326](https://github.com/gradio-app/gradio/pull/11326) [`477730e`](https://github.com/gradio-app/gradio/commit/477730ef51697a355a09020b235f6cc4a6fbb9dc) - Fix streaming chatbot diff logic.  Thanks @freddyaboulton!
+
 ## 5.32.1
 
 ### Fixes

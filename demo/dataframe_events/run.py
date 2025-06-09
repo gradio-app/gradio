@@ -55,11 +55,11 @@ with gr.Blocks() as demo:
             )
 
     tall_df_value = [
-        ["DeepSeek Coder", 79.3],
-        ["Llama 3.3", 68.9],
-        ["Qwen 2.5", 61.9],
-        ["Gemma 2", 59.5],
-        ["GPT 2", 18.3],
+        ["DeepSeek Coder", 79.3, True],
+        ["Llama 3.3", 68.9, True],
+        ["Qwen 2.5", 61.9, True],
+        ["Gemma 2", 59.5, False],
+        ["GPT 2", 18.3, False],
     ]
 
     def get_display_value(values):
@@ -76,7 +76,7 @@ with gr.Blocks() as demo:
 
     tall_df_value = {
         "data": tall_df_value,
-        "headers": ["Model", "% Correct (LeetCode Hard)"],
+        "headers": ["Model", "% Correct (LeetCode Hard)", "Is Open Source"],
         "metadata": {
             "display_value": display_value
         }
@@ -88,6 +88,7 @@ with gr.Blocks() as demo:
                 value=tall_df_value,
                 interactive=False,
                 label="Tall Dataframe (Scroll Vertically)",
+                datatype=["str", "number", "bool"],
                 max_height=200,
                 show_label=True,
                 elem_id="dataframe_tall",

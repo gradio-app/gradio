@@ -1,5 +1,11 @@
 # @gradio/textbox
 
+## 0.10.13
+
+### Fixes
+
+- [#11318](https://github.com/gradio-app/gradio/pull/11318) [`3e40af3`](https://github.com/gradio-app/gradio/commit/3e40af3df4669ce400db4c9308d0e20f0d7ddf96) - Fix textbox autoscroll in tabs.  Thanks @dawoodkhan82!
+
 ## 0.10.12
 
 ### Dependency updates
