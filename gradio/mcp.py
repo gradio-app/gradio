@@ -142,11 +142,6 @@ class GradioMCPServer:
                 arguments: The arguments to pass to the tool.
             """
             context_request = self.mcp_server.request_context.request
-            print("context_request", context_request)
-            print("session", self.mcp_server.request_context.session)
-            print("request.id", self.mcp_server.request_context.request_id)
-            print("request.meta", self.mcp_server.request_context.meta)
-            print("request.lifespan_context", self.mcp_server.request_context.lifespan_context)
             assert context_request is not None  # noqa: S101
             root_url = route_utils.get_root_url(
                 request=context_request,
