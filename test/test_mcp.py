@@ -1,5 +1,6 @@
 import os
 import tempfile
+import time
 
 import httpx
 import pytest
@@ -203,6 +204,21 @@ def test_mcp_mount_gradio_app():
         target=uvicorn.run, args=(fastapi_app,), kwargs={"port": 6868}, daemon=True
     )
     thread.start()
+
+    # Wait for Gradio app to start with exponential backoff
+    max_retries = 4
+    retry_delay = 0.1
+
+    for attempt in range(max_retries):
+        try:
+            with httpx.Client(timeout=1) as test_client:
+                test_response = test_client.get("http://localhost:6868/test/")
+                if test_response.status_code == 200:
+                    break
+        except (httpx.ConnectError, httpx.TimeoutException):
+            if attempt == max_retries - 1:
+                raise Exception("Gradio app did not start") from None
+            time.sleep(retry_delay * (2**attempt))
 
     with httpx.Client(timeout=5) as client:
         sse_url = "http://localhost:6868/test/gradio_api/mcp/sse"
