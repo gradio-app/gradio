@@ -8,7 +8,7 @@ from collections.abc import AsyncIterator, Sequence
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-from urllib.parse import quote, unquote
+from urllib.parse import unquote
 
 import gradio_client.utils as client_utils
 from mcp import types
@@ -583,7 +583,9 @@ class GradioMCPServer:
             if svg_bytes := self.get_svg(output):
                 base64_data = base64.b64encode(svg_bytes).decode("utf-8")
                 mimetype = "image/svg+xml"
-                svg_path = processing_utils.save_bytes_to_cache(svg_bytes, f"{output['orig_name']}", DEFAULT_TEMP_DIR)
+                svg_path = processing_utils.save_bytes_to_cache(
+                    svg_bytes, f"{output['orig_name']}", DEFAULT_TEMP_DIR
+                )
                 svg_url = f"{self.root_url}/gradio_api/file={svg_path}"
                 return_value = [
                     types.ImageContent(
