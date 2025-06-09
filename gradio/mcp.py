@@ -8,6 +8,7 @@ from collections.abc import AsyncIterator, Sequence
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+from urllib.parse import quote, unquote
 
 import gradio_client.utils as client_utils
 from mcp import types
@@ -24,7 +25,7 @@ from starlette.types import Receive, Scope, Send
 from gradio import processing_utils, route_utils, utils
 from gradio.blocks import BlockFunction
 from gradio.components import State
-from gradio.data_classes import FileData
+from gradio.data_classes import FileData, FileDataDict
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockContext, Blocks
@@ -545,18 +546,16 @@ class GradioMCPServer:
             return None
 
     @staticmethod
-    def get_svg(file_path: str) -> bytes | None:
+    def get_svg(file_data: FileDataDict) -> bytes | None:
         """
-        If a filepath is a valid svg, returns bytes of the svg. Otherwise returns None.
+        If a file_data is a valid svg, returns bytes of the svg. Otherwise returns None.
         """
-        if not os.path.exists(file_path):
-            return None
-        ext = os.path.splitext(file_path.lower())[1]
-        if ext != ".svg":
-            return None
-        try:
-            return Path(file_path).read_bytes()
-        except Exception:
+        if url := file_data.get("url"):
+            if url.startswith("data:image/svg"):
+                return unquote(url.split(",", 1)[1]).encode()
+            else:
+                return None
+        else:
             return None
 
     @staticmethod
@@ -581,22 +580,22 @@ class GradioMCPServer:
         if self.root_url:
             data = processing_utils.add_root_url(data, self.root_url, None)
         for output in data:
-            if client_utils.is_file_obj_with_meta(output):
-                print("output", output)
-                if svg_bytes := self.get_svg(output["path"]):
-                    print("svg_bytes", svg_bytes)
-                    base64_data = base64.b64encode(svg_bytes).decode("utf-8")
-                    mimetype = "image/svg+xml"
-                    return_value = [
-                        types.ImageContent(
-                            type="image", data=base64_data, mimeType=mimetype
-                        ),
-                        types.TextContent(
-                            type="text",
-                            text=f"Image URL: {output['url'] or output['path']}",
-                        ),
-                    ]
-                elif image := self.get_image(output["path"]):
+            if svg_bytes := self.get_svg(output):
+                base64_data = base64.b64encode(svg_bytes).decode("utf-8")
+                mimetype = "image/svg+xml"
+                svg_path = processing_utils.save_bytes_to_cache(svg_bytes, f"{output['orig_name']}", DEFAULT_TEMP_DIR)
+                svg_url = f"{self.root_url}/gradio_api/file={svg_path}"
+                return_value = [
+                    types.ImageContent(
+                        type="image", data=base64_data, mimeType=mimetype
+                    ),
+                    types.TextContent(
+                        type="text",
+                        text=f"SVG Image URL: {svg_url}",
+                    ),
+                ]
+            elif client_utils.is_file_obj_with_meta(output):
+                if image := self.get_image(output["path"]):
                     image_format = image.format or "png"
                     base64_data = self.get_base64_data(image, image_format)
                     mimetype = f"image/{image_format.lower()}"
