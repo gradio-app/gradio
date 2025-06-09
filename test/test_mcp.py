@@ -87,9 +87,8 @@ def test_postprocess_output_data(test_mcp_app):
         svg_content = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="40" fill="red"/></svg>'
         temp_file.write(svg_content)
         temp_file.flush()
-        url = f"http://localhost:7860/gradio_api/file={temp_file.name}"
         test_data = [
-            {"path": temp_file.name, "url": url, "meta": {"_type": "gradio.FileData"}}
+            {"path": temp_file.name, "url": None, "meta": {"_type": "gradio.FileData"}}
         ]
         result = server.postprocess_output_data(test_data)
         assert len(result) == 2
