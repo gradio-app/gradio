@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import re
 from inspect import signature
 
 import huggingface_hub as hub
@@ -10,6 +11,12 @@ import gradio.utils
 from gradio.sketch.sketchbox import SketchBox
 from gradio.sketch.utils import ai, get_header, set_kwarg
 
+
+def validate_code(code: str) -> bool:
+    # Allow only safe Python expressions (e.g., function definitions, assignments)
+    # Disallow imports, system calls, and other unsafe operations
+    safe_pattern = r"^[a-zA-Z0-9_=\s\(\)\[\]\{\}\.,:]+$"
+    return bool(re.match(safe_pattern, code))
 
 def create(app_file: str, config_file: str):
     file_name = os.path.basename(app_file)
@@ -421,6 +428,8 @@ def create(app_file: str, config_file: str):
 
                         def save_code(_history, _code):
                             try:
+                                if not validate_code(_code):
+                                    raise gr.Error("Invalid code provided.")
                                 exec(_code, created_fns_namespace)
                             except BaseException as e:
                                 raise gr.Error(f"Error saving function: {e}") from e
