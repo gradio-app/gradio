@@ -122,15 +122,34 @@ You can use either a public Space or a private Space as an MCP server. If you'd 
 }
 ```
 
+## Authentication and Credentials
+
+You may wish to authenticate users more precisely or let them provide other kinds of credentials or tokens in order to provide a custom experience for different users. 
+
+Gradio allows you to access the underlying `starlette.Request` that has made the tool call, which means that you can access headers, originating IP address, or any other information that is part of the network request. To do this, simply add a parameter in your function of the type `gr.Request`, and Gradio will automatically inject the request object as the parameter. 
+
+Here's an example:
+
+```py
+import gradio as gr
+
+def echo_headers(x, request: gr.Request):
+    return str(dict(request.headers))
+
+gr.Interface(echo_headers, "textbox", "textbox").launch(mcp_server=True)
+```
+
+This MCP server will simply ignore the user's input and echo back all of the headers from a user's request. One can build more complex apps using the same idea. See the [docs on `gr.Request`]() for more information.
+
 ## Limitations
 
 The approach outlined above provides an easy way to use any Gradio app as an MCP server. But there are a few limitations to keep in mind:
 
-1. There is no way to identify specific users within the MCP tool call. This means that you cannot store user state between calls within the Gradio app. If you use a `gr.State` component in your app, it will always be passed in with its original, default value. Similarly, you cannot obtain user-specific information with `gr.Request`.
+1. You cannot select specific endpoints in your Gradio expose as your tools (all endpoints with `show_api=True` are treated as tools), 
 
-2. You cannot select specific endpoints in your Gradio expose as your tools (all endpoints with `show_api=True` are treated as tools), or  change the descriptions of your tools unless you change the docstrings of your functions.
+2. You cannot change the descriptions of your tools unless you change the docstrings of your functions.
 
-If you need to overcome these limitations, you'll need to create a custom MCP server to call your Gradio application, as we describe next.
+If you need more flexibility, you can also create **a custom MCP server** to call your Gradio application, which we describe next.
 
 
 ## Custom MCP Servers
