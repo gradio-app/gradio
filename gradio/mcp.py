@@ -13,12 +13,10 @@ from urllib.parse import unquote
 import gradio_client.utils as client_utils
 from mcp import types
 from mcp.server import Server
-from mcp.server.fastmcp import Context
 from mcp.server.sse import SseServerTransport
 from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from PIL import Image
 from starlette.applications import Starlette
-from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
 from starlette.types import Receive, Scope, Send

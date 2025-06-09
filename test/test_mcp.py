@@ -69,6 +69,7 @@ def test_convert_strings_to_filedata(test_mcp_app):
 
 def test_postprocess_output_data(test_mcp_app):
     server = GradioMCPServer(test_mcp_app, root_path="")
+    fake_root_url = "http://localhost:7860"
 
     with tempfile.NamedTemporaryFile(suffix=".png") as temp_file:
         img = Image.new("RGB", (10, 10), color="red")
@@ -77,7 +78,7 @@ def test_postprocess_output_data(test_mcp_app):
         test_data = [
             {"path": temp_file.name, "url": url, "meta": {"_type": "gradio.FileData"}}
         ]
-        result = server.postprocess_output_data(test_data)
+        result = server.postprocess_output_data(test_data, fake_root_url)
         assert len(result) == 2
         assert result[0].type == "image"
         assert result[0].mimeType == "image/png"
@@ -93,7 +94,7 @@ def test_postprocess_output_data(test_mcp_app):
             "orig_name": "test.svg",
         }
     ]
-    result = server.postprocess_output_data(test_data)
+    result = server.postprocess_output_data(test_data, fake_root_url)
     assert len(result) == 2
     assert result[0].type == "image"
     assert result[0].mimeType == "image/svg+xml"
@@ -102,7 +103,7 @@ def test_postprocess_output_data(test_mcp_app):
     assert "/gradio_api/file=" in result[1].text
 
     test_data = ["test text"]
-    result = server.postprocess_output_data(test_data)
+    result = server.postprocess_output_data(test_data, fake_root_url)
     assert len(result) == 1
     assert result[0].type == "text"
     assert result[0].text == "test text"
