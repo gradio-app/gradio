@@ -142,6 +142,11 @@ def test_mcp_sse_transport(test_mcp_app):
     _, url, _ = test_mcp_app.launch(mcp_server=True, prevent_thread_lock=True)
 
     with httpx.Client(timeout=5) as client:
+        config_url = f"{url}config"
+        config_response = client.get(config_url)
+        assert config_response.is_success
+        assert config_response.json()["mcp_server"] is True
+
         schema_url = f"{url}gradio_api/mcp/schema"
         sse_url = f"{url}gradio_api/mcp/sse"
 
@@ -229,6 +234,11 @@ def test_mcp_mount_gradio_app():
             time.sleep(retry_delay * (2**attempt))
 
     with httpx.Client(timeout=5) as client:
+        config_url = "http://localhost:6868/test/config"
+        config_response = client.get(config_url)
+        assert config_response.is_success
+        assert config_response.json()["mcp_server"] is True
+
         sse_url = "http://localhost:6868/test/gradio_api/mcp/sse"
 
         with client.stream("GET", sse_url) as response:
