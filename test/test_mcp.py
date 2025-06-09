@@ -236,7 +236,6 @@ def test_mcp_mount_gradio_app():
     )
     thread.start()
 
-    # Wait for Gradio app to start with exponential backoff
     max_retries = 4
     retry_delay = 0.1
 
