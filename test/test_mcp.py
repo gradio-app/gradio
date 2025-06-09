@@ -1,5 +1,6 @@
 import os
 import tempfile
+import time
 
 import httpx
 import pytest
@@ -158,6 +159,11 @@ def test_mcp_sse_transport(test_mcp_app):
     _, url, _ = test_mcp_app.launch(mcp_server=True, prevent_thread_lock=True)
 
     with httpx.Client(timeout=5) as client:
+        config_url = f"{url}config"
+        config_response = client.get(config_url)
+        assert config_response.is_success
+        assert config_response.json()["mcp_server"] is True
+
         schema_url = f"{url}gradio_api/mcp/schema"
         sse_url = f"{url}gradio_api/mcp/sse"
 
@@ -187,6 +193,84 @@ def test_mcp_sse_transport(test_mcp_app):
 
             messages_path = line[5:].strip()
             messages_url = f"{url.rstrip('/')}{messages_path}"
+
+            message_response = client.post(
+                messages_url,
+                json={
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": "2025-03-26",
+                        "capabilities": {},
+                    },
+                    "jsonrpc": "2.0",
+                    "id": 0,
+                },
+                headers={"Content-Type": "application/json"},
+            )
+
+            assert message_response.is_success, (
+                f"Failed with status {message_response.status_code}: {message_response.text}"
+            )
+
+
+@pytest.mark.serial
+def test_mcp_mount_gradio_app():
+    import threading
+
+    import uvicorn
+    from fastapi import FastAPI
+
+    from gradio.routes import mount_gradio_app
+
+    with gr.Blocks() as app:
+        t1 = gr.Textbox(label="Test Textbox")
+        t2 = gr.Textbox(label="Test Textbox 2")
+        t1.submit(lambda x: x, t1, t2, api_name="test_tool")
+
+    fastapi_app = FastAPI()
+    mount_gradio_app(fastapi_app, app, path="/test", mcp_server=True)
+
+    thread = threading.Thread(
+        target=uvicorn.run, args=(fastapi_app,), kwargs={"port": 6868}, daemon=True
+    )
+    thread.start()
+
+    # Wait for Gradio app to start with exponential backoff
+    max_retries = 4
+    retry_delay = 0.1
+
+    for attempt in range(max_retries):
+        try:
+            with httpx.Client(timeout=1) as test_client:
+                test_response = test_client.get("http://localhost:6868/test/")
+                if test_response.status_code == 200:
+                    break
+        except (httpx.ConnectError, httpx.TimeoutException):
+            if attempt == max_retries - 1:
+                raise Exception("Gradio app did not start") from None
+            time.sleep(retry_delay * (2**attempt))
+
+    with httpx.Client(timeout=5) as client:
+        config_url = "http://localhost:6868/test/config"
+        config_response = client.get(config_url)
+        assert config_response.is_success
+        assert config_response.json()["mcp_server"] is True
+
+        sse_url = "http://localhost:6868/test/gradio_api/mcp/sse"
+
+        with client.stream("GET", sse_url) as response:
+            assert response.is_success
+
+            terminate_next = False
+            line = ""
+            for line in response.iter_lines():
+                if terminate_next:
+                    break
+                if line.startswith("event: endpoint"):
+                    terminate_next = True
+
+            messages_path = line[5:].strip()
+            messages_url = f"http://localhost:6868{messages_path}"
 
             message_response = client.post(
                 messages_url,
