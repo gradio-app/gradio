@@ -11,12 +11,14 @@ from typing import TYPE_CHECKING, Any
 from urllib.parse import unquote
 
 import gradio_client.utils as client_utils
+import httpx
 from mcp import types
 from mcp.server import Server
 from mcp.server.sse import SseServerTransport
 from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from PIL import Image
 from starlette.applications import Starlette
+from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
 from starlette.types import Receive, Scope, Send
@@ -79,6 +81,20 @@ class GradioMCPServer:
         self.lifespan = lifespan
         self.manager = manager
         self.handle_streamable_http = handle_streamable_http
+
+    def get_route_path(self, request: Request) -> str:
+        """
+        Gets the route path of the MCP server based on the incoming request. 
+        Can be different depending on whether the request is coming from the MCP SSE transport or the HTTP transport.
+        """
+        url = httpx.URL(str(request.url))
+        url = url.copy_with(query=None)
+        url = str(url).rstrip("/")
+        if url.endswith("/gradio_api/mcp/messages"):
+            return "/gradio_api/mcp/messages"
+        else:
+            return "/gradio_api/mcp/http"
+
 
     def get_tool_to_endpoint(self) -> dict[str, str]:
         """
@@ -144,9 +160,10 @@ class GradioMCPServer:
             context_request = self.mcp_server.request_context.request
             if context_request is None:
                 raise ValueError("Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio.")
+            route_path = self.get_route_path(context_request)
             root_url = route_utils.get_root_url(
                 request=context_request,
-                route_path="/gradio_api/mcp/messages",
+                route_path=route_path,
                 root_path=self.root_path,
             )
             _, filedata_positions = self.get_input_schema(name)
