@@ -12,13 +12,13 @@ from gradio.mcp import GradioMCPServer
 
 
 def test_gradio_mcp_server_initialization(test_mcp_app):
-    server = GradioMCPServer(test_mcp_app, root_path="")
+    server = GradioMCPServer(test_mcp_app)
     assert server.blocks == test_mcp_app
     assert server.mcp_server is not None
 
 
 def test_get_block_fn_from_tool_name(test_mcp_app):
-    server = GradioMCPServer(test_mcp_app, root_path="")
+    server = GradioMCPServer(test_mcp_app)
     result = server.get_block_fn_from_endpoint_name("test_tool")
     assert result == test_mcp_app.fns[0]
     result = server.get_block_fn_from_endpoint_name("nonexistent_tool")
@@ -41,7 +41,7 @@ def test_generate_tool_names_correctly_for_interfaces():
             gr.Interface(MyCallable(), "text", "text"),
         ]
     )
-    server = GradioMCPServer(app, root_path="")
+    server = GradioMCPServer(app)
     assert list(server.tool_to_endpoint.keys()) == [
         "echo",
         "echo_",
@@ -51,7 +51,7 @@ def test_generate_tool_names_correctly_for_interfaces():
 
 
 def test_convert_strings_to_filedata(test_mcp_app):
-    server = GradioMCPServer(test_mcp_app, root_path="")
+    server = GradioMCPServer(test_mcp_app)
 
     test_data = {
         "text": "test text",
@@ -68,7 +68,8 @@ def test_convert_strings_to_filedata(test_mcp_app):
 
 
 def test_postprocess_output_data(test_mcp_app):
-    server = GradioMCPServer(test_mcp_app, root_path="")
+    server = GradioMCPServer(test_mcp_app)
+    fake_root_url = "http://localhost:7860"
 
     with tempfile.NamedTemporaryFile(suffix=".png") as temp_file:
         img = Image.new("RGB", (10, 10), color="red")
@@ -77,7 +78,7 @@ def test_postprocess_output_data(test_mcp_app):
         test_data = [
             {"path": temp_file.name, "url": url, "meta": {"_type": "gradio.FileData"}}
         ]
-        result = server.postprocess_output_data(test_data)
+        result = server.postprocess_output_data(test_data, fake_root_url)
         assert len(result) == 2
         assert result[0].type == "image"
         assert result[0].mimeType == "image/png"
@@ -93,7 +94,7 @@ def test_postprocess_output_data(test_mcp_app):
             "orig_name": "test.svg",
         }
     ]
-    result = server.postprocess_output_data(test_data)
+    result = server.postprocess_output_data(test_data, fake_root_url)
     assert len(result) == 2
     assert result[0].type == "image"
     assert result[0].mimeType == "image/svg+xml"
@@ -102,14 +103,14 @@ def test_postprocess_output_data(test_mcp_app):
     assert "/gradio_api/file=" in result[1].text
 
     test_data = ["test text"]
-    result = server.postprocess_output_data(test_data)
+    result = server.postprocess_output_data(test_data, fake_root_url)
     assert len(result) == 1
     assert result[0].type == "text"
     assert result[0].text == "test text"
 
 
 def test_simplify_filedata_schema(test_mcp_app):
-    server = GradioMCPServer(test_mcp_app, root_path="")
+    server = GradioMCPServer(test_mcp_app)
 
     test_schema = {
         "type": "object",
@@ -142,7 +143,7 @@ def test_tool_prefix_character_replacement(test_mcp_app):
         os.environ["SYSTEM"] = "spaces"
         for input_prefix, expected_prefix in test_cases:
             os.environ["SPACE_ID"] = input_prefix
-            server = GradioMCPServer(test_mcp_app, root_path="")
+            server = GradioMCPServer(test_mcp_app)
             assert server.tool_prefix == expected_prefix
     finally:
         if original_system is not None:
@@ -235,7 +236,6 @@ def test_mcp_mount_gradio_app():
     )
     thread.start()
 
-    # Wait for Gradio app to start with exponential backoff
     max_retries = 4
     retry_delay = 0.1
 

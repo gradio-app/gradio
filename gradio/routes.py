@@ -352,9 +352,7 @@ class App(FastAPI):
                     "In order to use `mcp_server=True`, you must install gradio with the `mcp` extra. Please install it with `pip install gradio[mcp]`"
                 ) from e
             try:
-                blocks.mcp_server_obj = gradio.mcp.GradioMCPServer(
-                    blocks, blocks.root_path
-                )
+                blocks.mcp_server_obj = gradio.mcp.GradioMCPServer(blocks)
                 blocks.mcp_server = True
                 user_lifespan = None
                 if "lifespan" in app_kwargs:
