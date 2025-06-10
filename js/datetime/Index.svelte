@@ -32,6 +32,7 @@
 	let picker_ref: HTMLDivElement;
 	let input_ref: HTMLInputElement;
 	let timebox_ref: HTMLDivElement;
+	let calendar_button_ref: HTMLButtonElement;
 	let picker_position = { top: 0, left: 0 };
 
 	$: if (value !== old_value) {
@@ -86,9 +87,12 @@
 	let current_year = new Date().getFullYear();
 	let current_month = new Date().getMonth();
 	let selected_date = new Date();
-	let selected_hour = 0;
-	let selected_minute = 0;
-	let selected_second = 0;
+	let selected_hour = new Date().getHours();
+	let selected_minute = new Date().getMinutes();
+	let selected_second = new Date().getSeconds();
+	let is_pm = selected_hour >= 12;
+
+	$: display_hour = is_pm ? (selected_hour === 0 ? 12 : selected_hour > 12 ? selected_hour - 12 : selected_hour) : (selected_hour === 0 ? 12 : selected_hour);
 
 	const month_names = [
 		"January", "February", "March", "April", "May", "June",
@@ -119,6 +123,7 @@
 					selected_hour = parsed.getHours();
 					selected_minute = parsed.getMinutes();
 					selected_second = parsed.getSeconds();
+					is_pm = selected_hour >= 12;
 				}
 			} catch (e) {
 				// Invalid date, use current date
@@ -129,6 +134,7 @@
 				selected_hour = now.getHours();
 				selected_minute = now.getMinutes();
 				selected_second = now.getSeconds();
+				is_pm = selected_hour >= 12;
 			}
 		}
 	};
@@ -167,11 +173,11 @@
 	};
 
 	const calculate_picker_position = (): void => {
-		if (timebox_ref) {
-			const rect = timebox_ref.getBoundingClientRect();
+		if (calendar_button_ref) {
+			const rect = calendar_button_ref.getBoundingClientRect();
 			picker_position = {
 				top: rect.bottom + 4,
-				left: rect.left
+				left: rect.right - 280 // Subtract picker width to right-align it with the button
 			};
 		}
 	};
@@ -204,7 +210,8 @@
 
 	// Close picker when clicking outside
 	const handle_click_outside = (event: MouseEvent): void => {
-		if (show_picker && timebox_ref && !timebox_ref.contains(event.target as Node)) {
+		if (show_picker && picker_ref && !picker_ref.contains(event.target as Node) && 
+			calendar_button_ref && !calendar_button_ref.contains(event.target as Node)) {
 			close_picker();
 		}
 	};
@@ -259,6 +266,25 @@
 
 	// Initialize picker state
 	update_picker_from_value();
+
+	const toggle_am_pm = (): void => {
+		is_pm = !is_pm;
+		if (is_pm && selected_hour < 12) {
+			selected_hour += 12;
+		} else if (!is_pm && selected_hour >= 12) {
+			selected_hour -= 12;
+		}
+		update_time();
+	};
+
+	const update_display_hour = (new_hour: number): void => {
+		if (is_pm) {
+			selected_hour = new_hour === 12 ? 12 : new_hour + 12;
+		} else {
+			selected_hour = new_hour === 12 ? 0 : new_hour;
+		}
+		update_time();
+	};
 </script>
 
 <Block
@@ -292,6 +318,7 @@
 
 		{#if interactive}
 			<button
+				bind:this={calendar_button_ref}
 				class="calendar"
 				{disabled}
 				on:click={toggle_picker}
@@ -362,10 +389,10 @@
 								<input
 									id="hour"
 									type="number"
-									min="0"
-									max="23"
-									bind:value={selected_hour}
-									on:input={update_time}
+									min="1"
+									max="12"
+									bind:value={display_hour}
+									on:input={() => update_display_hour(display_hour)}
 								/>
 							</div>
 							<div class="time-input-group">
@@ -389,6 +416,17 @@
 									bind:value={selected_second}
 									on:input={update_time}
 								/>
+							</div>
+							<div class="time-input-group">
+								<span class="am-pm-label">Period</span>
+								<button
+									type="button"
+									class="am-pm-toggle"
+									on:click={toggle_am_pm}
+									aria-label="Toggle AM/PM"
+								>
+									{is_pm ? 'PM' : 'AM'}
+								</button>
 							</div>
 						</div>
 					</div>
@@ -655,5 +693,35 @@
 	.action-button:hover {
 		background: var(--button-secondary-background-fill-hover);
 		border-color: var(--button-secondary-border-color-hover);
+	}
+
+	.am-pm-label {
+		font-size: var(--text-xs);
+		color: var(--body-text-color-subdued);
+		font-weight: var(--weight-semibold);
+	}
+
+	.am-pm-toggle {
+		width: 50px;
+		padding: var(--size-1);
+		border: 1px solid var(--input-border-color);
+		border-radius: var(--radius-sm);
+		text-align: center;
+		font-size: var(--text-sm);
+		background: var(--button-secondary-background-fill);
+		color: var(--button-secondary-text-color);
+		cursor: pointer;
+		transition: var(--button-transition);
+	}
+
+	.am-pm-toggle:hover {
+		background: var(--button-secondary-background-fill-hover);
+		border-color: var(--button-secondary-border-color-hover);
+	}
+
+	.am-pm-toggle:focus {
+		outline: none;
+		border-color: var(--input-border-color-focus);
+		box-shadow: var(--input-shadow-focus);
 	}
 </style>
