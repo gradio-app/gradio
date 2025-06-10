@@ -255,7 +255,9 @@
 	});
 
 	$: resolved_value, check_thumbnails_overflow();
-	$: container_element, check_thumbnails_overflow();
+	$: if (container_element) {
+		check_thumbnails_overflow();
+	}
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
