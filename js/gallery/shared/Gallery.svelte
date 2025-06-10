@@ -232,13 +232,8 @@
 
 	let thumbnails_overflow = false;
 
-	$: console.log("thumbnails_overflow", thumbnails_overflow);
-
 	function check_thumbnails_overflow(): void {
-		console.log("check_thumbnails_overflow", container_element);
 		if (container_element) {
-			console.log("container_element.scrollWidth", container_element.scrollWidth);
-			console.log("container_element.clientWidth", container_element.clientWidth);
 			thumbnails_overflow =
 				container_element.scrollWidth > container_element.clientWidth;
 		}
