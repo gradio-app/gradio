@@ -1,34 +1,22 @@
-from gradio.themes.base import Base, ThemeClass
-from gradio.themes.citrus import Citrus
-from gradio.themes.default import Default
-from gradio.themes.glass import Glass
-from gradio.themes.monochrome import Monochrome
-from gradio.themes.ocean import Ocean
-from gradio.themes.origin import Origin
-from gradio.themes.soft import Soft
-from gradio.themes.utils import colors, sizes
-from gradio.themes.utils.colors import Color
-from gradio.themes.utils.fonts import Font, GoogleFont
-from gradio.themes.utils.sizes import Size
+import lazy_loader as lazy
 
-__all__ = [
-    "Base",
-    "Color",
-    "Default",
-    "Font",
-    "Glass",
-    "GoogleFont",
-    "Monochrome",
-    "Size",
-    "Soft",
-    "ThemeClass",
-    "colors",
-    "sizes",
-    "Origin",
-    "Citrus",
-    "Ocean",
-]
-
+__getattr__, __dir__, __all__ = lazy.attach(
+    __name__,
+    submodules=[],
+    submod_attrs={
+        "base": ["Base", "ThemeClass"],
+        "citrus": ["Citrus"],
+        "default": ["Default"],
+        "glass": ["Glass"],
+        "monochrome": ["Monochrome"],
+        "ocean": ["Ocean"],
+        "origin": ["Origin"],
+        "soft": ["Soft"],
+        "utils.colors": ["Color"],
+        "utils.fonts": ["Font", "GoogleFont"],
+        "utils.sizes": ["Size"],
+    },
+)
 
 def builder(*args, **kwargs):
     from gradio.themes.builder_app import demo

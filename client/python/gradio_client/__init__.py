@@ -1,11 +1,11 @@
-from gradio_client.client import Client
-from gradio_client.data_classes import FileData
-from gradio_client.utils import __version__, file, handle_file
+import lazy_loader as lazy
 
-__all__ = [
-    "Client",
-    "file",
-    "handle_file",
-    "FileData",
-    "__version__",
-]
+__getattr__, __dir__, __all__ = lazy.attach(
+    __name__,
+    submodules=[],
+    submod_attrs={
+        "client": ["Client"],
+        "utils": ["file", "handle_file", "__version__"],
+        "data_classes": ["FileData"],
+    }
+)

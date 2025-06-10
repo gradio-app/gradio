@@ -8,6 +8,7 @@ gradio_client==1.10.2
 httpx>=0.24.1
 huggingface_hub>=0.28.1
 Jinja2<4.0
+lazy-loader==0.4
 markupsafe>=2.0,<4.0
 numpy>=1.0,<3.0
 orjson~=3.0

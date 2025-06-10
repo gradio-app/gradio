@@ -12,7 +12,7 @@ from pathlib import Path
 
 import httpx
 
-from gradio.routes import App  # HACK: to avoid circular import # noqa: F401
+# from gradio.routes import App  # HACK: to avoid circular import # noqa: F401
 from gradio.tunneling import CERTIFICATE_PATH, Tunnel
 
 GRADIO_API_SERVER = "https://api.gradio.app/v3/tunnel-request"
