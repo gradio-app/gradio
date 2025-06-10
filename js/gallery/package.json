@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/gallery",
-	"version": "0.15.21",
+	"version": "0.15.22",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

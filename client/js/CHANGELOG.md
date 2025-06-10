@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 1.15.2
+
+### Fixes
+
+- [#11325](https://github.com/gradio-app/gradio/pull/11325) [`2b571e1`](https://github.com/gradio-app/gradio/commit/2b571e13afdc8031ce9c1291abf0fc7062340064) - Fix image streaming - wait for ws to open.  Thanks @freddyaboulton!
+
 ## 1.15.1
 
 ### Fixes

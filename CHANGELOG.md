@@ -1,5 +1,21 @@
 # gradio
 
+## 5.33.1
+
+### Features
+
+- [#11360](https://github.com/gradio-app/gradio/pull/11360) [`1eb4e2e`](https://github.com/gradio-app/gradio/commit/1eb4e2ec9decfb448379b6224e790b8d36690699) - Inject the `Request` information in MCP tool calls.  Thanks @abidlabs!
+- [#11237](https://github.com/gradio-app/gradio/pull/11237) [`a6f6b40`](https://github.com/gradio-app/gradio/commit/a6f6b40dda5194fa5bc9926ef67f2a75f503e9a4) - Enhance boolean cell types in `gr.Dataframe`.  Thanks @hannahblair!
+
+### Fixes
+
+- [#11350](https://github.com/gradio-app/gradio/pull/11350) [`9af8fc1`](https://github.com/gradio-app/gradio/commit/9af8fc1583c69f5f10ecfcd1c95f365525a99c83) - Be Able to launch MCP server when mounting in FastAPI app.  Thanks @freddyaboulton!
+- [#11344](https://github.com/gradio-app/gradio/pull/11344) [`b961441`](https://github.com/gradio-app/gradio/commit/b961441780d70c82504141bd4deae7b3290c2227) - Fixes default tab label.  Thanks @dawoodkhan82!
+- [#11348](https://github.com/gradio-app/gradio/pull/11348) [`250ae7a`](https://github.com/gradio-app/gradio/commit/250ae7a0088b2a42c89f40cc8f51cca2d72a63dd) - fix(mcp): package SVG outputs as proper ImageContent for MCP clients.  Thanks @DavidLMS!
+- [#11325](https://github.com/gradio-app/gradio/pull/11325) [`2b571e1`](https://github.com/gradio-app/gradio/commit/2b571e13afdc8031ce9c1291abf0fc7062340064) - Fix image streaming - wait for ws to open.  Thanks @freddyaboulton!
+- [#11347](https://github.com/gradio-app/gradio/pull/11347) [`fdce3a0`](https://github.com/gradio-app/gradio/commit/fdce3a094fe1278ae83fe2f8b134b4c268506cfe) - Fix `gr.api()` to support more types, including optional params.  Thanks @abidlabs!
+- [#11338](https://github.com/gradio-app/gradio/pull/11338) [`b31c3ed`](https://github.com/gradio-app/gradio/commit/b31c3edef97373b96f188072d5bb16db9d690261) - Fix Reload Mode when using gr.render.  Thanks @freddyaboulton!
+
 ## 5.33.0
 
 ### Features
