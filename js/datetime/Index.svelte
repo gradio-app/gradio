@@ -6,7 +6,7 @@
 	import type { Gradio } from "@gradio/utils";
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { Calendar } from "@gradio/icons";
-	import { onDestroy } from 'svelte';
+	import { onDestroy } from "svelte";
 
 	export let gradio: Gradio<{
 		change: undefined;
@@ -27,7 +27,7 @@
 	export let root: string;
 
 	export let include_time = true;
-	
+
 	let show_picker = false;
 	let picker_ref: HTMLDivElement;
 	let input_ref: HTMLInputElement;
@@ -83,7 +83,6 @@
 		gradio.dispatch("change");
 	};
 
-	// Calendar state
 	let current_year = new Date().getFullYear();
 	let current_month = new Date().getMonth();
 	let selected_date = new Date();
@@ -92,11 +91,29 @@
 	let selected_second = new Date().getSeconds();
 	let is_pm = selected_hour >= 12;
 
-	$: display_hour = is_pm ? (selected_hour === 0 ? 12 : selected_hour > 12 ? selected_hour - 12 : selected_hour) : (selected_hour === 0 ? 12 : selected_hour);
+	$: display_hour = is_pm
+		? selected_hour === 0
+			? 12
+			: selected_hour > 12
+				? selected_hour - 12
+				: selected_hour
+		: selected_hour === 0
+			? 12
+			: selected_hour;
 
 	const month_names = [
-		"January", "February", "March", "April", "May", "June",
-		"July", "August", "September", "October", "November", "December"
+		"January",
+		"February",
+		"March",
+		"April",
+		"May",
+		"June",
+		"July",
+		"August",
+		"September",
+		"October",
+		"November",
+		"December"
 	];
 
 	const get_days_in_month = (year: number, month: number): number => {
@@ -114,7 +131,7 @@
 				if (!include_time && entered_value.match(/^\d{4}-\d{2}-\d{2}$/)) {
 					date_to_parse += " 00:00:00";
 				}
-				
+
 				const parsed = new Date(date_to_parse.replace(" ", "T"));
 				if (!isNaN(parsed.getTime())) {
 					selected_date = parsed;
@@ -126,7 +143,6 @@
 					is_pm = selected_hour >= 12;
 				}
 			} catch (e) {
-				// Invalid date, use current date
 				const now = new Date();
 				selected_date = now;
 				current_year = now.getFullYear();
@@ -140,7 +156,14 @@
 	};
 
 	const select_date = (day: number): void => {
-		selected_date = new Date(current_year, current_month, day, selected_hour, selected_minute, selected_second);
+		selected_date = new Date(
+			current_year,
+			current_month,
+			day,
+			selected_hour,
+			selected_minute,
+			selected_second
+		);
 		update_value_from_picker();
 	};
 
@@ -150,7 +173,14 @@
 	};
 
 	const update_time = (): void => {
-		selected_date = new Date(current_year, current_month, selected_date.getDate(), selected_hour, selected_minute, selected_second);
+		selected_date = new Date(
+			current_year,
+			current_month,
+			selected_date.getDate(),
+			selected_hour,
+			selected_minute,
+			selected_second
+		);
 		update_value_from_picker();
 	};
 
@@ -177,7 +207,7 @@
 			const rect = calendar_button_ref.getBoundingClientRect();
 			picker_position = {
 				top: rect.bottom + 4,
-				left: rect.right - 280 // Subtract picker width to right-align it with the button
+				left: rect.right - 280
 			};
 		}
 	};
@@ -189,47 +219,47 @@
 			if (show_picker) {
 				update_picker_from_value();
 				calculate_picker_position();
-				// Add click outside listener after a small delay to avoid immediate closure
 				setTimeout(() => {
-					if (typeof window !== 'undefined') {
-						window.addEventListener('click', handle_click_outside);
+					if (typeof window !== "undefined") {
+						window.addEventListener("click", handle_click_outside);
 					}
 				}, 10);
-			} else if (typeof window !== 'undefined') {
-				window.removeEventListener('click', handle_click_outside);
+			} else if (typeof window !== "undefined") {
+				window.removeEventListener("click", handle_click_outside);
 			}
 		}
 	};
 
 	const close_picker = (): void => {
 		show_picker = false;
-		if (typeof window !== 'undefined') {
-			window.removeEventListener('click', handle_click_outside);
+		if (typeof window !== "undefined") {
+			window.removeEventListener("click", handle_click_outside);
 		}
 	};
 
-	// Close picker when clicking outside
 	const handle_click_outside = (event: MouseEvent): void => {
-		if (show_picker && picker_ref && !picker_ref.contains(event.target as Node) && 
-			calendar_button_ref && !calendar_button_ref.contains(event.target as Node)) {
+		if (
+			show_picker &&
+			picker_ref &&
+			!picker_ref.contains(event.target as Node) &&
+			calendar_button_ref &&
+			!calendar_button_ref.contains(event.target as Node)
+		) {
 			close_picker();
 		}
 	};
 
-	// Clean up event listener on component destroy
 	onDestroy(() => {
-		if (typeof window !== 'undefined') {
-			window.removeEventListener('click', handle_click_outside);
+		if (typeof window !== "undefined") {
+			window.removeEventListener("click", handle_click_outside);
 		}
 	});
 
-	// Generate calendar days
 	$: calendar_days = (() => {
 		const days_in_month = get_days_in_month(current_year, current_month);
 		const first_day = get_first_day_of_month(current_year, current_month);
 		const days = [];
 
-		// Previous month's days
 		const prev_month = current_month === 0 ? 11 : current_month - 1;
 		const prev_year = current_month === 0 ? current_year - 1 : current_year;
 		const days_in_prev_month = get_days_in_month(prev_year, prev_month);
@@ -242,7 +272,6 @@
 			});
 		}
 
-		// Current month's days
 		for (let day = 1; day <= days_in_month; day++) {
 			days.push({
 				day,
@@ -251,8 +280,7 @@
 			});
 		}
 
-		// Next month's days
-		const remaining_slots = 42 - days.length; // 6 rows × 7 days
+		const remaining_slots = 42 - days.length;
 		for (let day = 1; day <= remaining_slots; day++) {
 			days.push({
 				day,
@@ -264,7 +292,6 @@
 		return days;
 	})();
 
-	// Initialize picker state
 	update_picker_from_value();
 
 	const toggle_am_pm = (): void => {
@@ -329,18 +356,23 @@
 	</div>
 
 	{#if show_picker}
-		<div 
-			bind:this={picker_ref} 
+		<div
+			bind:this={picker_ref}
 			class="picker-container"
 			style="top: {picker_position.top}px; left: {picker_position.left}px;"
 		>
 			<div class="picker">
 				<div class="picker-header">
-					<button type="button" class="nav-button" on:click={previous_month}>‹</button>
+					<button type="button" class="nav-button" on:click={previous_month}
+						>‹</button
+					>
 					<div class="month-year">
-						{month_names[current_month]} {current_year}
+						{month_names[current_month]}
+						{current_year}
 					</div>
-					<button type="button" class="nav-button" on:click={next_month}>›</button>
+					<button type="button" class="nav-button" on:click={next_month}
+						>›</button
+					>
 				</div>
 
 				<div class="calendar-grid">
@@ -355,13 +387,14 @@
 					</div>
 
 					<div class="days">
-						{#each calendar_days as {day, is_current_month, is_next_month}}
+						{#each calendar_days as { day, is_current_month, is_next_month }}
 							<button
 								type="button"
 								class="day"
 								class:other-month={!is_current_month}
-								class:selected={is_current_month && day === selected_date.getDate() && 
-									current_month === selected_date.getMonth() && 
+								class:selected={is_current_month &&
+									day === selected_date.getDate() &&
+									current_month === selected_date.getMonth() &&
 									current_year === selected_date.getFullYear()}
 								on:click={() => {
 									if (is_current_month) {
@@ -425,7 +458,7 @@
 									on:click={toggle_am_pm}
 									aria-label="Toggle AM/PM"
 								>
-									{is_pm ? 'PM' : 'AM'}
+									{is_pm ? "PM" : "AM"}
 								</button>
 							</div>
 						</div>
@@ -433,21 +466,40 @@
 				{/if}
 
 				<div class="picker-actions">
-					<button type="button" class="action-button" on:click={() => {
-						const now = new Date();
-						selected_date = now;
-						current_year = now.getFullYear();
-						current_month = now.getMonth();
-						selected_hour = now.getHours();
-						selected_minute = now.getMinutes();
-						selected_second = now.getSeconds();
-						update_value_from_picker();
-					}}>
-						Now
+					<button
+						type="button"
+						class="action-button"
+						on:click={() => {
+							entered_value = "";
+							value = "";
+							close_picker();
+							gradio.dispatch("change");
+						}}
+					>
+						Clear
 					</button>
-					<button type="button" class="action-button" on:click={close_picker}>
-						Done
-					</button>
+					<div class="picker-actions-right">
+						<button
+							type="button"
+							class="action-button"
+							on:click={() => {
+								const now = new Date();
+								selected_date = now;
+								current_year = now.getFullYear();
+								current_month = now.getMonth();
+								selected_hour = now.getHours();
+								selected_minute = now.getMinutes();
+								selected_second = now.getSeconds();
+								is_pm = selected_hour >= 12;
+								update_value_from_picker();
+							}}
+						>
+							Now
+						</button>
+						<button type="button" class="action-button" on:click={close_picker}>
+							Done
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -460,12 +512,12 @@
 		justify-content: space-between;
 		align-items: flex-start;
 	}
-	
+
 	button {
 		cursor: pointer;
 		color: var(--body-text-color-subdued);
 	}
-	
+
 	button:hover {
 		color: var(--body-text-color);
 	}
@@ -473,7 +525,7 @@
 	::placeholder {
 		color: var(--input-placeholder-color);
 	}
-	
+
 	.timebox {
 		flex-grow: 1;
 		flex-shrink: 1;
@@ -481,11 +533,11 @@
 		position: relative;
 		background: var(--input-background-fill);
 	}
-	
+
 	.timebox :global(svg) {
 		height: 18px;
 	}
-	
+
 	.time {
 		padding: var(--input-padding);
 		color: var(--body-text-color);
@@ -501,17 +553,17 @@
 		border-bottom-left-radius: var(--input-radius);
 		box-shadow: var(--input-shadow);
 	}
-	
+
 	.time:disabled {
 		border-right: var(--input-border-width) solid var(--input-border-color);
 		border-top-right-radius: var(--input-radius);
 		border-bottom-right-radius: var(--input-radius);
 	}
-	
+
 	.time.invalid {
 		color: var(--body-text-color-subdued);
 	}
-	
+
 	.calendar {
 		display: inline-flex;
 		justify-content: center;
@@ -528,12 +580,12 @@
 		padding: var(--size-2);
 		border: var(--input-border-width) solid var(--input-border-color);
 	}
-	
+
 	.calendar:hover {
 		background: var(--button-secondary-background-fill-hover);
 		box-shadow: var(--button-primary-shadow-hover);
 	}
-	
+
 	.calendar:active {
 		box-shadow: var(--button-primary-shadow-active);
 	}
@@ -675,9 +727,15 @@
 	.picker-actions {
 		display: flex;
 		gap: var(--size-2);
-		justify-content: flex-end;
+		justify-content: space-between;
+		align-items: center;
 		border-top: 1px solid var(--border-color-primary);
 		padding-top: var(--size-3);
+	}
+
+	.picker-actions-right {
+		display: flex;
+		gap: var(--size-2);
 	}
 
 	.action-button {
@@ -704,24 +762,24 @@
 	.am-pm-toggle {
 		width: 50px;
 		padding: var(--size-1);
-		border: 1px solid var(--input-border-color);
+		border: 1px solid var(--button-primary-border-color);
 		border-radius: var(--radius-sm);
 		text-align: center;
 		font-size: var(--text-sm);
-		background: var(--button-secondary-background-fill);
-		color: var(--button-secondary-text-color);
+		background: var(--button-primary-background-fill);
+		color: var(--button-primary-text-color);
 		cursor: pointer;
 		transition: var(--button-transition);
 	}
 
 	.am-pm-toggle:hover {
-		background: var(--button-secondary-background-fill-hover);
-		border-color: var(--button-secondary-border-color-hover);
+		background: var(--button-primary-background-fill-hover);
+		border-color: var(--button-primary-border-color-hover);
 	}
 
 	.am-pm-toggle:focus {
 		outline: none;
-		border-color: var(--input-border-color-focus);
-		box-shadow: var(--input-shadow-focus);
+		border-color: var(--button-primary-border-color-focus);
+		box-shadow: var(--button-primary-shadow-focus);
 	}
 </style>
