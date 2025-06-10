@@ -230,11 +230,26 @@
 			? resolved_value[selected_index]
 			: null;
 
+	let thumbnails_overflow = false;
+
+	function check_thumbnails_overflow(): void {
+		if (container_element) {
+			thumbnails_overflow =
+				container_element.scrollWidth > container_element.clientWidth;
+		}
+	}
+
 	onMount(() => {
+		check_thumbnails_overflow();
 		document.addEventListener("fullscreenchange", () => {
 			is_full_screen = !!document.fullscreenElement;
 		});
+		window.addEventListener("resize", check_thumbnails_overflow);
+		return () =>
+			window.removeEventListener("resize", check_thumbnails_overflow);
 	});
+
+	$: resolved_value, check_thumbnails_overflow();
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
@@ -342,6 +357,9 @@
 					bind:this={container_element}
 					class="thumbnails scroll-hide"
 					data-testid="container_el"
+					style="justify-content: {thumbnails_overflow
+						? 'flex-start'
+						: 'center'};"
 				>
 					{#each resolved_value as media, i}
 						<button
@@ -541,7 +559,7 @@
 		display: flex;
 		position: absolute;
 		bottom: 0;
-		justify-content: center;
+		justify-content: flex-start;
 		align-items: center;
 		gap: var(--spacing-lg);
 		width: var(--size-full);
