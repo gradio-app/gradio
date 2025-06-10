@@ -6,6 +6,7 @@
 	import type { Gradio } from "@gradio/utils";
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { Calendar } from "@gradio/icons";
+	import { onDestroy } from 'svelte';
 
 	export let gradio: Gradio<{
 		change: undefined;
@@ -26,10 +27,17 @@
 	export let root: string;
 
 	export let include_time = true;
+	
+	let show_picker = false;
+	let picker_ref: HTMLDivElement;
+	let input_ref: HTMLInputElement;
+	let timebox_ref: HTMLDivElement;
+	let picker_position = { top: 0, left: 0 };
+
 	$: if (value !== old_value) {
 		old_value = value;
 		entered_value = value;
-		datevalue = value;
+		update_picker_from_value();
 		gradio.dispatch("change");
 	}
 
@@ -38,7 +46,7 @@
 		const pad = (num: number): string => num.toString().padStart(2, "0");
 
 		const year = date.getFullYear();
-		const month = pad(date.getMonth() + 1); // getMonth() returns 0-11
+		const month = pad(date.getMonth() + 1);
 		const day = pad(date.getDate());
 		const hours = pad(date.getHours());
 		const minutes = pad(date.getMinutes());
@@ -53,8 +61,6 @@
 	};
 
 	let entered_value = value;
-	let datetime: HTMLInputElement;
-	let datevalue = value;
 
 	const date_is_valid_format = (date: string | null): boolean => {
 		if (date === null || date === "") return true;
@@ -75,6 +81,184 @@
 		old_value = value = entered_value;
 		gradio.dispatch("change");
 	};
+
+	// Calendar state
+	let current_year = new Date().getFullYear();
+	let current_month = new Date().getMonth();
+	let selected_date = new Date();
+	let selected_hour = 0;
+	let selected_minute = 0;
+	let selected_second = 0;
+
+	const month_names = [
+		"January", "February", "March", "April", "May", "June",
+		"July", "August", "September", "October", "November", "December"
+	];
+
+	const get_days_in_month = (year: number, month: number): number => {
+		return new Date(year, month + 1, 0).getDate();
+	};
+
+	const get_first_day_of_month = (year: number, month: number): number => {
+		return new Date(year, month, 1).getDay();
+	};
+
+	const update_picker_from_value = (): void => {
+		if (entered_value && entered_value !== "") {
+			try {
+				let date_to_parse = entered_value;
+				if (!include_time && entered_value.match(/^\d{4}-\d{2}-\d{2}$/)) {
+					date_to_parse += " 00:00:00";
+				}
+				
+				const parsed = new Date(date_to_parse.replace(" ", "T"));
+				if (!isNaN(parsed.getTime())) {
+					selected_date = parsed;
+					current_year = parsed.getFullYear();
+					current_month = parsed.getMonth();
+					selected_hour = parsed.getHours();
+					selected_minute = parsed.getMinutes();
+					selected_second = parsed.getSeconds();
+				}
+			} catch (e) {
+				// Invalid date, use current date
+				const now = new Date();
+				selected_date = now;
+				current_year = now.getFullYear();
+				current_month = now.getMonth();
+				selected_hour = now.getHours();
+				selected_minute = now.getMinutes();
+				selected_second = now.getSeconds();
+			}
+		}
+	};
+
+	const select_date = (day: number): void => {
+		selected_date = new Date(current_year, current_month, day, selected_hour, selected_minute, selected_second);
+		update_value_from_picker();
+	};
+
+	const update_value_from_picker = (): void => {
+		entered_value = format_date(selected_date);
+		submit_values();
+	};
+
+	const update_time = (): void => {
+		selected_date = new Date(current_year, current_month, selected_date.getDate(), selected_hour, selected_minute, selected_second);
+		update_value_from_picker();
+	};
+
+	const previous_month = (): void => {
+		if (current_month === 0) {
+			current_month = 11;
+			current_year--;
+		} else {
+			current_month--;
+		}
+	};
+
+	const next_month = (): void => {
+		if (current_month === 11) {
+			current_month = 0;
+			current_year++;
+		} else {
+			current_month++;
+		}
+	};
+
+	const calculate_picker_position = (): void => {
+		if (timebox_ref) {
+			const rect = timebox_ref.getBoundingClientRect();
+			picker_position = {
+				top: rect.bottom + 4,
+				left: rect.left
+			};
+		}
+	};
+
+	const toggle_picker = (event: MouseEvent): void => {
+		if (!disabled) {
+			event.stopPropagation();
+			show_picker = !show_picker;
+			if (show_picker) {
+				update_picker_from_value();
+				calculate_picker_position();
+				// Add click outside listener after a small delay to avoid immediate closure
+				setTimeout(() => {
+					if (typeof window !== 'undefined') {
+						window.addEventListener('click', handle_click_outside);
+					}
+				}, 10);
+			} else if (typeof window !== 'undefined') {
+				window.removeEventListener('click', handle_click_outside);
+			}
+		}
+	};
+
+	const close_picker = (): void => {
+		show_picker = false;
+		if (typeof window !== 'undefined') {
+			window.removeEventListener('click', handle_click_outside);
+		}
+	};
+
+	// Close picker when clicking outside
+	const handle_click_outside = (event: MouseEvent): void => {
+		if (show_picker && timebox_ref && !timebox_ref.contains(event.target as Node)) {
+			close_picker();
+		}
+	};
+
+	// Clean up event listener on component destroy
+	onDestroy(() => {
+		if (typeof window !== 'undefined') {
+			window.removeEventListener('click', handle_click_outside);
+		}
+	});
+
+	// Generate calendar days
+	$: calendar_days = (() => {
+		const days_in_month = get_days_in_month(current_year, current_month);
+		const first_day = get_first_day_of_month(current_year, current_month);
+		const days = [];
+
+		// Previous month's days
+		const prev_month = current_month === 0 ? 11 : current_month - 1;
+		const prev_year = current_month === 0 ? current_year - 1 : current_year;
+		const days_in_prev_month = get_days_in_month(prev_year, prev_month);
+
+		for (let i = first_day - 1; i >= 0; i--) {
+			days.push({
+				day: days_in_prev_month - i,
+				is_current_month: false,
+				is_next_month: false
+			});
+		}
+
+		// Current month's days
+		for (let day = 1; day <= days_in_month; day++) {
+			days.push({
+				day,
+				is_current_month: true,
+				is_next_month: false
+			});
+		}
+
+		// Next month's days
+		const remaining_slots = 42 - days.length; // 6 rows × 7 days
+		for (let day = 1; day <= remaining_slots; day++) {
+			days.push({
+				day,
+				is_current_month: false,
+				is_next_month: true
+			});
+		}
+
+		return days;
+	})();
+
+	// Initialize picker state
+	update_picker_from_value();
 </script>
 
 <Block
@@ -89,8 +273,9 @@
 	<div class="label-content">
 		<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 	</div>
-	<div class="timebox">
+	<div bind:this={timebox_ref} class="timebox">
 		<input
+			bind:this={input_ref}
 			class="time"
 			bind:value={entered_value}
 			class:invalid={!valid}
@@ -102,47 +287,133 @@
 			}}
 			on:blur={submit_values}
 			{disabled}
+			placeholder={include_time ? "YYYY-MM-DD HH:MM:SS" : "YYYY-MM-DD"}
 		/>
-		{#if include_time}
-			<input
-				type="datetime-local"
-				class="datetime"
-				step="1"
-				bind:this={datetime}
-				bind:value={datevalue}
-				on:input={() => {
-					const date = new Date(datevalue);
-					entered_value = format_date(date);
-					submit_values();
-				}}
-				{disabled}
-			/>
-		{:else}
-			<input
-				type="date"
-				class="datetime"
-				step="1"
-				bind:this={datetime}
-				bind:value={datevalue}
-				on:input={() => {
-					const date = new Date(datevalue + "T00:00:00");
-					entered_value = format_date(date);
-					submit_values();
-				}}
-				{disabled}
-			/>
-		{/if}
 
 		{#if interactive}
 			<button
 				class="calendar"
 				{disabled}
-				on:click={() => {
-					datetime.showPicker();
-				}}><Calendar></Calendar></button
+				on:click={toggle_picker}
 			>
+				<Calendar />
+			</button>
 		{/if}
 	</div>
+
+	{#if show_picker}
+		<div 
+			bind:this={picker_ref} 
+			class="picker-container"
+			style="top: {picker_position.top}px; left: {picker_position.left}px;"
+		>
+			<div class="picker">
+				<div class="picker-header">
+					<button type="button" class="nav-button" on:click={previous_month}>‹</button>
+					<div class="month-year">
+						{month_names[current_month]} {current_year}
+					</div>
+					<button type="button" class="nav-button" on:click={next_month}>›</button>
+				</div>
+
+				<div class="calendar-grid">
+					<div class="weekdays">
+						<div class="weekday">Su</div>
+						<div class="weekday">Mo</div>
+						<div class="weekday">Tu</div>
+						<div class="weekday">We</div>
+						<div class="weekday">Th</div>
+						<div class="weekday">Fr</div>
+						<div class="weekday">Sa</div>
+					</div>
+
+					<div class="days">
+						{#each calendar_days as {day, is_current_month, is_next_month}}
+							<button
+								type="button"
+								class="day"
+								class:other-month={!is_current_month}
+								class:selected={is_current_month && day === selected_date.getDate() && 
+									current_month === selected_date.getMonth() && 
+									current_year === selected_date.getFullYear()}
+								on:click={() => {
+									if (is_current_month) {
+										select_date(day);
+									} else if (is_next_month) {
+										next_month();
+										select_date(day);
+									} else {
+										previous_month();
+										select_date(day);
+									}
+								}}
+							>
+								{day}
+							</button>
+						{/each}
+					</div>
+				</div>
+
+				{#if include_time}
+					<div class="time-picker">
+						<div class="time-inputs">
+							<div class="time-input-group">
+								<label for="hour">Hour</label>
+								<input
+									id="hour"
+									type="number"
+									min="0"
+									max="23"
+									bind:value={selected_hour}
+									on:input={update_time}
+								/>
+							</div>
+							<div class="time-input-group">
+								<label for="minute">Min</label>
+								<input
+									id="minute"
+									type="number"
+									min="0"
+									max="59"
+									bind:value={selected_minute}
+									on:input={update_time}
+								/>
+							</div>
+							<div class="time-input-group">
+								<label for="second">Sec</label>
+								<input
+									id="second"
+									type="number"
+									min="0"
+									max="59"
+									bind:value={selected_second}
+									on:input={update_time}
+								/>
+							</div>
+						</div>
+					</div>
+				{/if}
+
+				<div class="picker-actions">
+					<button type="button" class="action-button" on:click={() => {
+						const now = new Date();
+						selected_date = now;
+						current_year = now.getFullYear();
+						current_month = now.getMonth();
+						selected_hour = now.getHours();
+						selected_minute = now.getMinutes();
+						selected_second = now.getSeconds();
+						update_value_from_picker();
+					}}>
+						Now
+					</button>
+					<button type="button" class="action-button" on:click={close_picker}>
+						Done
+					</button>
+				</div>
+			</div>
+		</div>
+	{/if}
 </Block>
 
 <style>
@@ -151,10 +422,12 @@
 		justify-content: space-between;
 		align-items: flex-start;
 	}
+	
 	button {
 		cursor: pointer;
 		color: var(--body-text-color-subdued);
 	}
+	
 	button:hover {
 		color: var(--body-text-color);
 	}
@@ -162,6 +435,7 @@
 	::placeholder {
 		color: var(--input-placeholder-color);
 	}
+	
 	.timebox {
 		flex-grow: 1;
 		flex-shrink: 1;
@@ -169,9 +443,11 @@
 		position: relative;
 		background: var(--input-background-fill);
 	}
+	
 	.timebox :global(svg) {
 		height: 18px;
 	}
+	
 	.time {
 		padding: var(--input-padding);
 		color: var(--body-text-color);
@@ -187,14 +463,17 @@
 		border-bottom-left-radius: var(--input-radius);
 		box-shadow: var(--input-shadow);
 	}
+	
 	.time:disabled {
 		border-right: var(--input-border-width) solid var(--input-border-color);
 		border-top-right-radius: var(--input-radius);
 		border-bottom-right-radius: var(--input-radius);
 	}
+	
 	.time.invalid {
 		color: var(--body-text-color-subdued);
 	}
+	
 	.calendar {
 		display: inline-flex;
 		justify-content: center;
@@ -211,18 +490,170 @@
 		padding: var(--size-2);
 		border: var(--input-border-width) solid var(--input-border-color);
 	}
+	
 	.calendar:hover {
 		background: var(--button-secondary-background-fill-hover);
 		box-shadow: var(--button-primary-shadow-hover);
 	}
+	
 	.calendar:active {
 		box-shadow: var(--button-primary-shadow-active);
 	}
-	.datetime {
-		width: 0px;
-		padding: 0;
-		border: 0;
-		margin: 0;
+
+	.picker-container {
+		position: fixed;
+		z-index: 9999;
+		box-shadow: var(--shadow-drop-lg);
+		border-radius: var(--radius-lg);
+		background: var(--background-fill-primary);
+		border: 1px solid var(--border-color-primary);
+	}
+
+	.picker {
+		padding: var(--size-3);
+		min-width: 280px;
+	}
+
+	.picker-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: var(--size-3);
+	}
+
+	.nav-button {
 		background: none;
+		border: none;
+		font-size: var(--text-lg);
+		padding: var(--size-1);
+		border-radius: var(--radius-sm);
+		transition: var(--button-transition);
+	}
+
+	.nav-button:hover {
+		background: var(--button-secondary-background-fill-hover);
+	}
+
+	.month-year {
+		font-weight: var(--weight-semibold);
+		font-size: var(--text-base);
+		color: var(--body-text-color);
+	}
+
+	.calendar-grid {
+		margin-bottom: var(--size-3);
+	}
+
+	.weekdays {
+		display: grid;
+		grid-template-columns: repeat(7, 1fr);
+		gap: 1px;
+		margin-bottom: var(--size-2);
+	}
+
+	.weekday {
+		text-align: center;
+		font-size: var(--text-sm);
+		font-weight: var(--weight-semibold);
+		color: var(--body-text-color-subdued);
+		padding: var(--size-1);
+	}
+
+	.days {
+		display: grid;
+		grid-template-columns: repeat(7, 1fr);
+		gap: 1px;
+	}
+
+	.day {
+		aspect-ratio: 1;
+		border: none;
+		background: none;
+		border-radius: var(--radius-sm);
+		font-size: var(--text-sm);
+		transition: var(--button-transition);
+		color: var(--body-text-color);
+	}
+
+	.day:hover {
+		background: var(--button-secondary-background-fill-hover);
+	}
+
+	.day.other-month {
+		color: var(--body-text-color-subdued);
+	}
+
+	.day.selected {
+		background: var(--button-primary-background-fill);
+		color: var(--button-primary-text-color);
+	}
+
+	.day.selected:hover {
+		background: var(--button-primary-background-fill-hover);
+	}
+
+	.time-picker {
+		border-top: 1px solid var(--border-color-primary);
+		padding-top: var(--size-3);
+		margin-bottom: var(--size-3);
+	}
+
+	.time-inputs {
+		display: flex;
+		gap: var(--size-2);
+		justify-content: center;
+	}
+
+	.time-input-group {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--size-1);
+	}
+
+	.time-input-group label {
+		font-size: var(--text-xs);
+		color: var(--body-text-color-subdued);
+		font-weight: var(--weight-semibold);
+	}
+
+	.time-input-group input {
+		width: 50px;
+		padding: var(--size-1);
+		border: 1px solid var(--input-border-color);
+		border-radius: var(--radius-sm);
+		text-align: center;
+		font-size: var(--text-sm);
+		background: var(--input-background-fill);
+		color: var(--body-text-color);
+	}
+
+	.time-input-group input:focus {
+		outline: none;
+		border-color: var(--input-border-color-focus);
+		box-shadow: var(--input-shadow-focus);
+	}
+
+	.picker-actions {
+		display: flex;
+		gap: var(--size-2);
+		justify-content: flex-end;
+		border-top: 1px solid var(--border-color-primary);
+		padding-top: var(--size-3);
+	}
+
+	.action-button {
+		padding: var(--size-1) var(--size-3);
+		border: 1px solid var(--button-secondary-border-color);
+		border-radius: var(--radius-sm);
+		background: var(--button-secondary-background-fill);
+		color: var(--button-secondary-text-color);
+		font-size: var(--text-sm);
+		transition: var(--button-transition);
+	}
+
+	.action-button:hover {
+		background: var(--button-secondary-background-fill-hover);
+		border-color: var(--button-secondary-border-color-hover);
 	}
 </style>
