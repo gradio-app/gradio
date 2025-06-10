@@ -1,5 +1,16 @@
 # @self/spa
 
+## 0.8.2
+
+### Fixes
+
+- [#11338](https://github.com/gradio-app/gradio/pull/11338) [`b31c3ed`](https://github.com/gradio-app/gradio/commit/b31c3edef97373b96f188072d5bb16db9d690261) - Fix Reload Mode when using gr.render.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@1.15.2
+- @gradio/core@0.19.1
+
 ## 0.8.1
 
 ### Dependency updates

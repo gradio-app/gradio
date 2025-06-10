@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/audio",
-	"version": "0.17.16",
+	"version": "0.17.17",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
