@@ -28,6 +28,7 @@ def fn(
     audio2,
     file,
     df1,
+    time,
 ):
     return (
         (text1 if single_checkbox else text2)
@@ -79,6 +80,7 @@ def fn(
         os.path.join(os.path.dirname(__file__), "files/titanic.csv"),
         df1,  # Dataframe
         np.random.randint(0, 10, (4, 4)),  # Dataframe
+        time, # DateTime
     )
 
 demo = gr.Interface(
@@ -108,6 +110,7 @@ demo = gr.Interface(
         gr.Audio(label="Microphone", sources=["microphone"]),
         gr.File(label="File"),
         gr.Dataframe(label="Dataframe", headers=["Name", "Age", "Gender"]),
+        gr.DateTime(label="DateTime"),
     ],
     outputs=[
         gr.Textbox(label="Textbox"),
@@ -124,6 +127,7 @@ demo = gr.Interface(
         gr.File(label="File"),
         gr.Dataframe(label="Dataframe"),
         gr.Dataframe(label="Numpy"),
+        gr.DateTime(label="DateTime"),
     ],
     examples=[
         [
@@ -146,6 +150,7 @@ demo = gr.Interface(
             os.path.join(os.path.dirname(__file__), "files/cantina.wav"),
             os.path.join(os.path.dirname(__file__), "files/titanic.csv"),
             [[1, 2, 3, 4], [4, 5, 6, 7], [8, 9, 1, 2], [3, 4, 5, 6]],
+            "2025-06-10 12:00:00",
         ]
     ]
     * 3,
