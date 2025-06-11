@@ -744,7 +744,7 @@ class Client:
             return headers
         request = LocalContext.request.get()
         if request and hasattr(request, "headers") and "x-ip-token" in request.headers:
-                headers["x-ip-token"] = request.headers["x-ip-token"]
+            headers["x-ip-token"] = request.headers["x-ip-token"]
         return headers
 
     def _render_endpoints_info(
