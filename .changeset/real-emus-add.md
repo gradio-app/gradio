@@ -1,9 +1,9 @@
 ---
-"@gradio/code": minor
-"@gradio/markdown": minor
-"@gradio/simpletextbox": minor
-"@gradio/textbox": minor
-"gradio": minor
+"@gradio/code": patch
+"@gradio/markdown": patch
+"@gradio/simpletextbox": patch
+"@gradio/textbox": patch
+"gradio": patch
 ---
 
 feat:Truncate textbox examples to 70 chars
