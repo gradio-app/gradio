@@ -251,6 +251,7 @@
 			}
 		};
 	});
+	$: _color_map = JSON.stringify(color_map);
 
 	$: title,
 		x_title,
@@ -261,7 +262,7 @@
 		color,
 		x_bin,
 		_y_aggregate,
-		color_map,
+		_color_map,
 		x_start,
 		x_end,
 		y_start,
