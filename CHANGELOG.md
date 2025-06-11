@@ -1,5 +1,21 @@
 # gradio
 
+## 5.33.2
+
+### Features
+
+- [#11372](https://github.com/gradio-app/gradio/pull/11372) [`7282c9e`](https://github.com/gradio-app/gradio/commit/7282c9eb1ed0ce8608f9a1157f3243e8c1b0f597) - Plot re-render fixes.  Thanks @aliabid94!
+- [#11380](https://github.com/gradio-app/gradio/pull/11380) [`0b2b6cb`](https://github.com/gradio-app/gradio/commit/0b2b6cbd44562a2f5843af872fe6761c5f255185) - Truncate textbox examples to 70 chars.  Thanks @hannahblair!
+- [#11369](https://github.com/gradio-app/gradio/pull/11369) [`6aed692`](https://github.com/gradio-app/gradio/commit/6aed692d94541c0233648833cc87b2f217421d43) - Tiny typo when running gradio in colab.  Thanks @abidlabs!
+
+### Fixes
+
+- [#11363](https://github.com/gradio-app/gradio/pull/11363) [`5e3ec9c`](https://github.com/gradio-app/gradio/commit/5e3ec9cf2c221fcd0d84f07d5757b63940cc1238) - Redesign the `gr.Datetime` component and ensure it works within an iframe (e.g. on Spaces).  Thanks @abidlabs!
+- [#11368](https://github.com/gradio-app/gradio/pull/11368) [`3f53679`](https://github.com/gradio-app/gradio/commit/3f5367986e90c57465bdbb809b318da6aed5400d) - Fixes chatbot unsupported components.  Thanks @dawoodkhan82!
+- [#11364](https://github.com/gradio-app/gradio/pull/11364) [`467de5d`](https://github.com/gradio-app/gradio/commit/467de5d865f8b841cb0d065031d5458f52ee2d29) - Call load events on @gr.render.  Thanks @freddyaboulton!
+- [#11362](https://github.com/gradio-app/gradio/pull/11362) [`1b88339`](https://github.com/gradio-app/gradio/commit/1b883395eb3feceed60ec79fcf19285269e2b171) - Fix Gallery thumbnail overflow.  Thanks @freddyaboulton!
+- [#11379](https://github.com/gradio-app/gradio/pull/11379) [`546008c`](https://github.com/gradio-app/gradio/commit/546008c9c3e460e736da3feae0027b2b7b583e1e) - Fixes hardcoded HTTP protocol in dev reload.  Thanks @mtojek!
+
 ## 5.33.1
 
 ### Features

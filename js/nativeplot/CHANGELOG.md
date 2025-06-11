@@ -1,5 +1,11 @@
 # @gradio/nativeplot
 
+## 0.6.1
+
+### Features
+
+- [#11372](https://github.com/gradio-app/gradio/pull/11372) [`7282c9e`](https://github.com/gradio-app/gradio/commit/7282c9eb1ed0ce8608f9a1157f3243e8c1b0f597) - Plot re-render fixes.  Thanks @aliabid94!
+
 ## 0.6.0
 
 ### Features
