@@ -299,9 +299,16 @@ export async function load_components(
 		components.push(component);
 		component_name;
 	});
-	const loaded_components: LoadedComponent[] = await Promise.all(components);
-	loaded_components.forEach((component, i) => {
-		_components[names[i]] = component.default;
+
+	const resolved_components = await Promise.allSettled(components);
+	const supported_components: [number, LoadedComponent][] = resolved_components
+		.map((result, index) =>
+			result.status === "fulfilled" ? [index, result.value] : null
+		)
+		.filter((item): item is [number, LoadedComponent] => item !== null);
+
+	supported_components.forEach(([originalIndex, component]) => {
+		_components[names[originalIndex]] = component.default;
 	});
 
 	return _components;
