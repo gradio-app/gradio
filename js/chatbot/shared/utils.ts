@@ -144,7 +144,6 @@ function convert_file_message_to_component_message(
 	message: any
 ): ComponentData {
 	const _file = Array.isArray(message.file) ? message.file[0] : message.file;
-	console.log("message.file", message.file);
 	return {
 		component: get_component_for_mime_type(_file?.mime_type, _file),
 		value: message.file,
