@@ -62,4 +62,17 @@ for (const msg_format of ["tuples", "messages"]) {
 		await page.keyboard.press("Enter");
 		await expect(page.getByTestId("bot").locator("img")).toBeAttached();
 	});
+
+	test(`message format ${msg_format} - Model3D component properly displayed`, async ({
+		page
+	}) => {
+		if (msg_format === "messages") {
+			await go_to_testcase(page, "messages");
+		}
+		await page.getByTestId("model3d-radio-label").click();
+		await page.getByTestId("textbox").click();
+		await page.getByTestId("textbox").fill("model3d");
+		await page.keyboard.press("Enter");
+		await expect(page.getByTestId("bot").locator("model3d")).toBeAttached();
+	});
 }
