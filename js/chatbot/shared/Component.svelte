@@ -6,6 +6,7 @@
 		| "video"
 		| "image"
 		| "dataframe"
+		| "model3d"
 		| string;
 	export let components;
 	export let value;
@@ -45,7 +46,7 @@
 		line_breaks={props.line_breaks}
 		wrap={true}
 		root=""
-		gradio={{ dispatch: () => {} }}
+		gradio={{ dispatch: () => {}, i18n }}
 		datatype={props.datatype}
 		latex_delimiters={props.latex_delimiters}
 		col_count={props.col_count}
@@ -109,10 +110,28 @@
 		this={components[type]}
 		{value}
 		show_label={false}
-		label="chatbot-image"
+		label="chatbot-html"
 		show_share_button={true}
 		{i18n}
 		gradio={{ dispatch: () => {} }}
+		on:load
+	/>
+{:else if type === "model3d"}
+	<svelte:component
+		this={components[type]}
+		{value}
+		clear_color={props.clear_color}
+		display_mode={props.display_mode}
+		zoom_speed={props.zoom_speed}
+		pan_speed={props.pan_speed}
+		camera_position={props.camera_position}
+		has_change_history={true}
+		show_label={false}
+		root=""
+		interactive={false}
+		label="chatbot-model3d"
+		show_share_button={true}
+		gradio={{ dispatch: () => {}, i18n }}
 		on:load
 	/>
 {/if}
