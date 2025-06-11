@@ -1,6 +1,6 @@
 ---
-"@gradio/nativeplot": minor
-"gradio": minor
+"@gradio/nativeplot": patch
+"gradio": patch
 ---
 
 feat:Plot re-render fixes
