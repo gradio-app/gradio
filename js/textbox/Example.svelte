@@ -16,7 +16,7 @@
 		element.style.whiteSpace = "unset";
 	}
 
-	function truncate_text(text: string | null, max_length = 30): string {
+	function truncate_text(text: string | null, max_length = 60): string {
 		if (!text) return "";
 		const str = String(text);
 		if (str.length <= max_length) return str;
