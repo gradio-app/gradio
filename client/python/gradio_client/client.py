@@ -308,6 +308,9 @@ class Client:
 
     def send_data(self, data, hash_data, protocol):
         headers = self.add_zero_gpu_headers(self.headers)
+        print("#########################")
+        print("HEADERS from client.py file", headers)
+        print("#########################")
         req = httpx.post(
             self.sse_data_url,
             json={**data, **hash_data},
@@ -740,8 +743,11 @@ class Client:
         ):  # this is not running within a Gradio app as Gradio is not installed
             return headers
         request = LocalContext.request.get()
-        if request and hasattr(request, "headers") and "x-ip-token" in request.headers:
-            headers["x-ip-token"] = request.headers["x-ip-token"]
+        if request and hasattr(request, "headers"):
+            if "x-ip-token" in request.headers:
+                headers["x-ip-token"] = request.headers["x-ip-token"]
+            if "x-zerogpu-token" in request.headers:
+                headers["x-zerogpu-token"] = request.headers["x-zerogpu-token"]
         return headers
 
     def _render_endpoints_info(
