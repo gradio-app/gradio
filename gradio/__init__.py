@@ -8,7 +8,7 @@ from .wasm_utils import IS_WASM
 __version__ = get_package_version()
 
 __all__ = [
-    # Submodules
+    # Assumes we wish to export __all__ from these three
     *components.__all__,
     *layouts.__all__,
     *themes.__all__,
@@ -64,6 +64,7 @@ if not IS_WASM:
     __all__ += ["deploy", "load_ipython_extension"]
 
 def __getattr__(name):
+    # Assumes we wish to export __all__ from these three
     if hasattr(components, name):
         return getattr(components, name)
     if hasattr(layouts, name):
