@@ -1,7 +1,8 @@
+import sys
 from typing import TYPE_CHECKING
 import lazy_loader as lazy
 
-__lazy_getattr__, __dir__, __all__ = lazy.attach(
+__lazy_getattr__, _, __all__ = lazy.attach(
     __name__,
     submodules=[],
     submod_attrs={
@@ -56,8 +57,7 @@ __lazy_getattr__, __dir__, __all__ = lazy.attach(
         'textbox': ['Textbox'],
         'timer': ['Timer'],
         'upload_button': ['UploadButton'],
-        'video': ['Video'],
-        'layouts': ['Form'],
+        'video': ['Video']
     }
 )
 
@@ -74,10 +74,16 @@ _aliases = {
 def __getattr__(name):
     # Handle alias mapping
     if name in _aliases:
-        return __lazy_getattr__(_aliases[name])
+        mod = sys.modules[__name__]
+        original = __lazy_getattr__(_aliases[name])
+        setattr(mod, name, original)
+        return getattr(mod, name)
+    if name == 'Form':
+        return getattr(gradio.layouts, 'Form')
+
     return __lazy_getattr__(name)
 
-__all__.extend(_aliases.keys())
+__all__ += list(_aliases.keys())
 
 # Needed so static type inference doesn't break
 # Make sure these imports stay synchronized with the lazy imports above
@@ -135,3 +141,11 @@ if TYPE_CHECKING:
     from gradio.components.upload_button import UploadButton
     from gradio.components.video import Video
     from gradio.layouts import Form
+
+    Text = Textbox
+    DataFrame = Dataframe
+    Highlightedtext = HighlightedText
+    Annotatedimage = AnnotatedImage
+    Highlight = HighlightedText
+    Checkboxgroup = CheckboxGroup
+    Json = JSON
