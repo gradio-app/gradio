@@ -16,6 +16,13 @@
 		element.style.whiteSpace = "unset";
 	}
 
+	function truncate_text(text: string | null, max_length = 30): string {
+		if (!text) return "";
+		const str = String(text);
+		if (str.length <= max_length) return str;
+		return str.slice(0, max_length) + "...";
+	}
+
 	onMount(() => {
 		set_styles(el, size);
 	});
@@ -28,7 +35,7 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	{value ? value : ""}
+	{truncate_text(value)}
 </div>
 
 <style>
