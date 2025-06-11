@@ -1,5 +1,17 @@
 # @gradio/core
 
+## 0.19.2
+
+### Fixes
+
+- [#11364](https://github.com/gradio-app/gradio/pull/11364) [`467de5d`](https://github.com/gradio-app/gradio/commit/467de5d865f8b841cb0d065031d5458f52ee2d29) - Call load events on @gr.render.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/gallery@0.15.23
+- @gradio/code@0.14.7
+- @gradio/textbox@0.10.14
+
 ## 0.19.1
 
 ### Fixes
