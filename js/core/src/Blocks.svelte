@@ -497,6 +497,11 @@
 					dependencies: dependencies,
 					render_id: render_id
 				});
+				_dependencies.forEach((dep) => {
+					if (dep.targets.some((dep) => dep[1] === "load")) {
+						wait_then_trigger_api_call(dep.id);
+					}
+				});
 			}
 
 			function handle_log(msg: LogMessage): void {
