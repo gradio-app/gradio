@@ -115,7 +115,6 @@ function get_component_for_mime_type(
 	mime_type: string | null | undefined,
 	file?: { path?: string }
 ): string {
-	console.log("mime_type", mime_type);
 	if (!mime_type) {
 		const path = file?.path;
 		if (path) {
