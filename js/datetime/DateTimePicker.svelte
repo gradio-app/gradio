@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
-	import { 
-		format_date, 
-		generate_calendar_days, 
-		calculate_display_hour, 
-		convert_display_hour_to_24h, 
-		month_names 
-	} from './utils';
+	import { createEventDispatcher } from "svelte";
+	import {
+		format_date,
+		generate_calendar_days,
+		calculate_display_hour,
+		convert_display_hour_to_24h,
+		month_names
+	} from "./utils";
 
 	export let selected_date: Date;
 	export let current_year: number;
@@ -28,17 +28,31 @@
 	$: calendar_days = generate_calendar_days(current_year, current_month);
 
 	const select_date = (day: number): void => {
-		selected_date = new Date(current_year, current_month, day, selected_hour, selected_minute, selected_second);
+		selected_date = new Date(
+			current_year,
+			current_month,
+			day,
+			selected_hour,
+			selected_minute,
+			selected_second
+		);
 		update_value();
 	};
 
 	const update_value = (): void => {
 		const formatted = format_date(selected_date, include_time);
-		dispatch('update', { date: selected_date, formatted });
+		dispatch("update", { date: selected_date, formatted });
 	};
 
 	const update_time = (): void => {
-		selected_date = new Date(current_year, current_month, selected_date.getDate(), selected_hour, selected_minute, selected_second);
+		selected_date = new Date(
+			current_year,
+			current_month,
+			selected_date.getDate(),
+			selected_hour,
+			selected_minute,
+			selected_second
+		);
 		update_value();
 	};
 
@@ -88,15 +102,18 @@
 	};
 </script>
 
-<div 
+<div
 	class="picker-container"
 	style="top: {position.top}px; left: {position.left}px;"
 >
 	<div class="picker">
 		<div class="picker-header">
-			<button type="button" class="nav-button" on:click={previous_month}>‹</button>
+			<button type="button" class="nav-button" on:click={previous_month}
+				>‹</button
+			>
 			<div class="month-year">
-				{month_names[current_month]} {current_year}
+				{month_names[current_month]}
+				{current_year}
 			</div>
 			<button type="button" class="nav-button" on:click={next_month}>›</button>
 		</div>
@@ -192,14 +209,22 @@
 		{/if}
 
 		<div class="picker-actions">
-			<button type="button" class="action-button" on:click={() => dispatch('clear')}>
+			<button
+				type="button"
+				class="action-button"
+				on:click={() => dispatch("clear")}
+			>
 				Clear
 			</button>
 			<div class="picker-actions-right">
 				<button type="button" class="action-button" on:click={handle_now}>
 					Now
 				</button>
-				<button type="button" class="action-button" on:click={() => dispatch('close')}>
+				<button
+					type="button"
+					class="action-button"
+					on:click={() => dispatch("close")}
+				>
 					Done
 				</button>
 			</div>
@@ -405,4 +430,4 @@
 		background: var(--button-secondary-background-fill-hover);
 		border-color: var(--button-secondary-border-color-hover);
 	}
-</style> 
+</style>

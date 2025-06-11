@@ -17,7 +17,10 @@ export const format_date = (date: Date, include_time: boolean): string => {
 	return date_str;
 };
 
-export const date_is_valid_format = (date: string | null, include_time: boolean): boolean => {
+export const date_is_valid_format = (
+	date: string | null,
+	include_time: boolean
+): boolean => {
 	if (date === null || date === "") return true;
 	const valid_regex = include_time
 		? /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
@@ -36,7 +39,10 @@ export const get_first_day_of_month = (year: number, month: number): number => {
 	return new Date(year, month, 1).getDay();
 };
 
-export const parse_date_value = (entered_value: string, include_time: boolean): {
+export const parse_date_value = (
+	entered_value: string,
+	include_time: boolean
+): {
 	selected_date: Date;
 	current_year: number;
 	current_month: number;
@@ -63,7 +69,7 @@ export const parse_date_value = (entered_value: string, include_time: boolean): 
 		if (!include_time && entered_value.match(/^\d{4}-\d{2}-\d{2}$/)) {
 			date_to_parse += " 00:00:00";
 		}
-		
+
 		const parsed = new Date(date_to_parse.replace(" ", "T"));
 		if (!isNaN(parsed.getTime())) {
 			return {
@@ -92,7 +98,10 @@ export const parse_date_value = (entered_value: string, include_time: boolean): 
 	};
 };
 
-export const generate_calendar_days = (current_year: number, current_month: number): {
+export const generate_calendar_days = (
+	current_year: number,
+	current_month: number
+): {
 	day: number;
 	is_current_month: boolean;
 	is_next_month: boolean;
@@ -133,13 +142,25 @@ export const generate_calendar_days = (current_year: number, current_month: numb
 	return days;
 };
 
-export const calculate_display_hour = (selected_hour: number, is_pm: boolean): number => {
-	return is_pm 
-		? (selected_hour === 0 ? 12 : selected_hour > 12 ? selected_hour - 12 : selected_hour)
-		: (selected_hour === 0 ? 12 : selected_hour);
+export const calculate_display_hour = (
+	selected_hour: number,
+	is_pm: boolean
+): number => {
+	return is_pm
+		? selected_hour === 0
+			? 12
+			: selected_hour > 12
+				? selected_hour - 12
+				: selected_hour
+		: selected_hour === 0
+			? 12
+			: selected_hour;
 };
 
-export const convert_display_hour_to_24h = (display_hour: number, is_pm: boolean): number => {
+export const convert_display_hour_to_24h = (
+	display_hour: number,
+	is_pm: boolean
+): number => {
 	if (is_pm) {
 		return display_hour === 12 ? 12 : display_hour + 12;
 	}
@@ -147,6 +168,16 @@ export const convert_display_hour_to_24h = (display_hour: number, is_pm: boolean
 };
 
 export const month_names = [
-	"January", "February", "March", "April", "May", "June",
-	"July", "August", "September", "October", "November", "December"
-]; 
+	"January",
+	"February",
+	"March",
+	"April",
+	"May",
+	"June",
+	"July",
+	"August",
+	"September",
+	"October",
+	"November",
+	"December"
+];

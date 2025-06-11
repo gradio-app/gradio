@@ -6,9 +6,9 @@
 	import type { Gradio } from "@gradio/utils";
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { Calendar } from "@gradio/icons";
-	import { onDestroy } from 'svelte';
-	import DateTimePicker from './DateTimePicker.svelte';
-	import { format_date, date_is_valid_format, parse_date_value } from './utils';
+	import { onDestroy } from "svelte";
+	import DateTimePicker from "./DateTimePicker.svelte";
+	import { format_date, date_is_valid_format, parse_date_value } from "./utils";
 
 	export let gradio: Gradio<{
 		change: undefined;
@@ -28,7 +28,7 @@
 	export let min_width: number | undefined = undefined;
 	export let root: string;
 	export let include_time = true;
-	
+
 	let show_picker = false;
 	let picker_ref: HTMLDivElement;
 	let input_ref: HTMLInputElement;
@@ -92,10 +92,12 @@
 				setTimeout(() => {
 					if (typeof window !== "undefined") {
 						window.addEventListener("click", handle_click_outside);
+						window.addEventListener("scroll", handle_scroll, true);
 					}
 				}, 10);
 			} else if (typeof window !== "undefined") {
 				window.removeEventListener("click", handle_click_outside);
+				window.removeEventListener("scroll", handle_scroll, true);
 			}
 		}
 	};
@@ -104,6 +106,7 @@
 		show_picker = false;
 		if (typeof window !== "undefined") {
 			window.removeEventListener("click", handle_click_outside);
+			window.removeEventListener("scroll", handle_scroll, true);
 		}
 	};
 
@@ -119,7 +122,15 @@
 		}
 	};
 
-	const handle_picker_update = (event: CustomEvent<{ date: Date; formatted: string }>): void => {
+	const handle_scroll = (): void => {
+		if (show_picker) {
+			calculate_picker_position();
+		}
+	};
+
+	const handle_picker_update = (
+		event: CustomEvent<{ date: Date; formatted: string }>
+	): void => {
 		entered_value = event.detail.formatted;
 		submit_values();
 	};
@@ -134,6 +145,7 @@
 	onDestroy(() => {
 		if (typeof window !== "undefined") {
 			window.removeEventListener("click", handle_click_outside);
+			window.removeEventListener("scroll", handle_scroll, true);
 		}
 	});
 
@@ -207,12 +219,12 @@
 		justify-content: space-between;
 		align-items: flex-start;
 	}
-	
+
 	button {
 		cursor: pointer;
 		color: var(--body-text-color-subdued);
 	}
-	
+
 	button:hover {
 		color: var(--body-text-color);
 	}
@@ -220,7 +232,7 @@
 	::placeholder {
 		color: var(--input-placeholder-color);
 	}
-	
+
 	.timebox {
 		flex-grow: 1;
 		flex-shrink: 1;
@@ -228,11 +240,11 @@
 		position: relative;
 		background: var(--input-background-fill);
 	}
-	
+
 	.timebox :global(svg) {
 		height: 18px;
 	}
-	
+
 	.time {
 		padding: var(--input-padding);
 		color: var(--body-text-color);
@@ -248,17 +260,17 @@
 		border-bottom-left-radius: var(--input-radius);
 		box-shadow: var(--input-shadow);
 	}
-	
+
 	.time:disabled {
 		border-right: var(--input-border-width) solid var(--input-border-color);
 		border-top-right-radius: var(--input-radius);
 		border-bottom-right-radius: var(--input-radius);
 	}
-	
+
 	.time.invalid {
 		color: var(--body-text-color-subdued);
 	}
-	
+
 	.calendar {
 		display: inline-flex;
 		justify-content: center;
@@ -275,12 +287,12 @@
 		padding: var(--size-2);
 		border: var(--input-border-width) solid var(--input-border-color);
 	}
-	
+
 	.calendar:hover {
 		background: var(--button-secondary-background-fill-hover);
 		box-shadow: var(--button-primary-shadow-hover);
 	}
-	
+
 	.calendar:active {
 		box-shadow: var(--button-primary-shadow-active);
 	}
