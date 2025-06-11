@@ -2803,7 +2803,7 @@ Received inputs:
             if self.is_colab or self.is_hosted_notebook:
                 if not quiet:
                     print(
-                        "It looks like you are running Gradio on a hosted a Jupyter notebook. For the Gradio app to work, sharing must be enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                        "It looks like you are running Gradio on a hosted Jupyter notebook, which requires `share=True`. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
                     )
                 self.share = True
             else:
