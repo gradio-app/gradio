@@ -24,7 +24,7 @@ How to do this will be explained in the following section.
 
 ### Avoiding Rate Limits 
 
-When a user pressed enter in the textbox, we will extract their token from the `X-IP-Token` header of the incoming request.
+When a user presses enter in the textbox, we will extract their token from the `X-IP-Token` header of the incoming request.
 We will use this header when constructing the gradio client.
 The following hypothetical text-to-image application shows how this is done.
 <br> 
@@ -45,5 +45,7 @@ with gr.Blocks() as demo:
     image = gr.Image()
     prompt = gr.Textbox(max_lines=1)
     prompt.submit(text_to_image, [prompt], [image])
+
+demo.launch()
 ```
 
