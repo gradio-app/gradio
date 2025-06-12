@@ -80,11 +80,7 @@ export async function resolve_config(
 		location.origin !== "http://localhost:9876" &&
 		!window.gradio_config.dev_mode
 	) {
-		const path = window.gradio_config.root;
-		const config = window.gradio_config;
-		let config_root = resolve_root(endpoint, config.root, false);
-		config.root = config_root;
-		return { ...config, path } as Config;
+		return window.gradio_config as Config;
 	} else if (endpoint) {
 		let config_url = join_urls(
 			endpoint,
@@ -103,7 +99,6 @@ export async function resolve_config(
 		}
 		if (response?.status === 200) {
 			let config = await response.json();
-			config.path = config.path ?? "";
 			config.root = endpoint;
 			config.dependencies?.forEach((dep: any, i: number) => {
 				if (dep.id === undefined) {
