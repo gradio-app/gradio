@@ -26,7 +26,6 @@
 	let old_value = value;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let root: string;
 	export let include_time = true;
 
 	let show_picker = false;
