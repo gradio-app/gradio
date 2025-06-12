@@ -604,7 +604,7 @@ class Examples:
             examples = list(csv.reader(cache))
 
         if cached_index + 1 >= len(examples):
-            raise IndexError("Cached example not found in cache file")            
+            raise IndexError("Cached example not found in cache file")
         example = examples[cached_index + 1]  # +1 to adjust for header
 
         output = []
