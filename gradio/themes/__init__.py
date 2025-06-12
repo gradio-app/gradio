@@ -20,17 +20,19 @@ __lazy_getattr__, __dir__, __all__ = lazy.attach(
     },
 )
 
+
 def __getattr__(name):
     if name == "Color":
-       return colors.Color
+        return colors.Color
     if name == "Font":
-       return fonts.Font
+        return fonts.Font
     if name == "GoogleFont":
-       return fonts.GoogleFont
+        return fonts.GoogleFont
     if name == "Size":
-       return sizes.Size
-     
+        return sizes.Size
+
     return __lazy_getattr__(name)
+
 
 # Needed so static type inference doesn't break
 # Make sure these imports stay synchronized with the lazy imports above
@@ -46,6 +48,7 @@ if TYPE_CHECKING:
     from gradio.themes.utils.colors import Color
     from gradio.themes.utils.fonts import Font, GoogleFont
     from gradio.themes.utils.sizes import Size
+
 
 def builder(*args, **kwargs):
     from gradio.themes.builder_app import demo

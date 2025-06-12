@@ -4,83 +4,88 @@ import lazy_loader as lazy
 
 # Assumption: all these are subclasses of Component
 _component_submod_attrs = {
-    'annotated_image': ['AnnotatedImage'],
-    'audio': ['Audio'],
-    'base': [
-        'FormComponent',
+    "annotated_image": ["AnnotatedImage"],
+    "audio": ["Audio"],
+    "base": [
+        "FormComponent",
     ],
-    'browser_state': ['BrowserState'],
-    'button': ['Button'],
-    'chatbot': ['Chatbot'],
-    'checkbox': ['Checkbox'],
-    'checkboxgroup': ['CheckboxGroup'],
-    'clear_button': ['ClearButton'],
-    'code': ['Code'],
-    'color_picker': ['ColorPicker'],
-    'dataframe': ['Dataframe'],
-    'dataset': ['Dataset'],
-    'datetime': ['DateTime'],
-    'deep_link_button': ['DeepLinkButton'],
-    'download_button': ['DownloadButton'],
-    'dropdown': ['Dropdown'],
-    'duplicate_button': ['DuplicateButton'],
-    'fallback': ['Fallback'],
-    'file': ['File'],
-    'file_explorer': ['FileExplorer'],
-    'gallery': ['Gallery'],
-    'highlighted_text': ['HighlightedText'],
-    'html': ['HTML'],
-    'image': ['Image'],
-    'image_editor': ['ImageEditor'],
-    'imageslider': ['ImageSlider'],
-    'json_component': ['JSON'],
-    'label': ['Label'],
-    'login_button': ['LoginButton'],
-    'markdown': ['Markdown'],
-    'model3d': ['Model3D'],
-    'multimodal_textbox': ['MultimodalTextbox'],
-    'native_plot': ['BarPlot', 'LinePlot', 'NativePlot', 'ScatterPlot'],
-    'number': ['Number'],
-    'paramviewer': ['ParamViewer'],
-    'plot': ['Plot'],
-    'radio': ['Radio'],
-    'slider': ['Slider'],
-    'state': ['State'],
-    'textbox': ['Textbox'],
-    'timer': ['Timer'],
-    'upload_button': ['UploadButton'],
-    'video': ['Video']
+    "browser_state": ["BrowserState"],
+    "button": ["Button"],
+    "chatbot": ["Chatbot"],
+    "checkbox": ["Checkbox"],
+    "checkboxgroup": ["CheckboxGroup"],
+    "clear_button": ["ClearButton"],
+    "code": ["Code"],
+    "color_picker": ["ColorPicker"],
+    "dataframe": ["Dataframe"],
+    "dataset": ["Dataset"],
+    "datetime": ["DateTime"],
+    "deep_link_button": ["DeepLinkButton"],
+    "download_button": ["DownloadButton"],
+    "dropdown": ["Dropdown"],
+    "duplicate_button": ["DuplicateButton"],
+    "fallback": ["Fallback"],
+    "file": ["File"],
+    "file_explorer": ["FileExplorer"],
+    "gallery": ["Gallery"],
+    "highlighted_text": ["HighlightedText"],
+    "html": ["HTML"],
+    "image": ["Image"],
+    "image_editor": ["ImageEditor"],
+    "imageslider": ["ImageSlider"],
+    "json_component": ["JSON"],
+    "label": ["Label"],
+    "login_button": ["LoginButton"],
+    "markdown": ["Markdown"],
+    "model3d": ["Model3D"],
+    "multimodal_textbox": ["MultimodalTextbox"],
+    "native_plot": ["BarPlot", "LinePlot", "NativePlot", "ScatterPlot"],
+    "number": ["Number"],
+    "paramviewer": ["ParamViewer"],
+    "plot": ["Plot"],
+    "radio": ["Radio"],
+    "slider": ["Slider"],
+    "state": ["State"],
+    "textbox": ["Textbox"],
+    "timer": ["Timer"],
+    "upload_button": ["UploadButton"],
+    "video": ["Video"],
 }
 # Also subclasses of Component, but are just aliases
 _aliases = {
-    'Text': 'Textbox',
-    'DataFrame': 'Dataframe',
-    'Highlightedtext': 'HighlightedText',
-    'Annotatedimage': 'AnnotatedImage',
-    'Highlight': 'HighlightedText',
-    'Checkboxgroup': 'CheckboxGroup',
-    'Json': 'JSON',
+    "Text": "Textbox",
+    "DataFrame": "Dataframe",
+    "Highlightedtext": "HighlightedText",
+    "Annotatedimage": "AnnotatedImage",
+    "Highlight": "HighlightedText",
+    "Checkboxgroup": "CheckboxGroup",
+    "Json": "JSON",
 }
 
 # Not subclasses of Component
 _other_submod_attrs = {
-    'base': [
-        'Component',
-        '_Keywords',
-        'StreamingInput',
-        'StreamingOutput',
-        'component',
-        'get_component_instance',
+    "base": [
+        "Component",
+        "_Keywords",
+        "StreamingInput",
+        "StreamingOutput",
+        "component",
+        "get_component_instance",
     ],
-    'chatbot': ['ChatMessage', 'MessageDict'],
+    "chatbot": ["ChatMessage", "MessageDict"],
 }
 
- 
+
 __lazy_getattr__, _, __all__ = lazy.attach(
     __name__,
     submodules=[],
-    submod_attrs= {submod: _component_submod_attrs.get(submod, []) + _other_submod_attrs.get(submod, []) for submod in _component_submod_attrs.keys() | _other_submod_attrs.keys()}
+    submod_attrs={
+        submod: _component_submod_attrs.get(submod, [])
+        + _other_submod_attrs.get(submod, [])
+        for submod in _component_submod_attrs.keys() | _other_submod_attrs.keys()
+    },
 )
+
 
 def __getattr__(name):
     # Handle alias mapping
@@ -89,10 +94,11 @@ def __getattr__(name):
         original = __lazy_getattr__(_aliases[name])
         setattr(mod, name, original)
         return original
-    if name == 'Form':
-        return getattr(gradio.layouts, 'Form')
+    if name == "Form":
+        return getattr(gradio.layouts, "Form")
 
     return __lazy_getattr__(name)
+
 
 __all__ += list(_aliases.keys())
 

@@ -64,7 +64,7 @@ _submod_attrs = {
         "Timer",
         "UploadButton",
         "Video",
-        "component"
+        "component",
     ],
     "components.audio": ["WaveformOptions"],
     "components.image_editor": ["Brush", "Eraser", "LayerOptions", "WebcamOptions"],
@@ -112,27 +112,31 @@ _submod_attrs = {
 }
 # in templates.py not templates/
 _templates_attrs = [
-        "Files",
-        "ImageMask",
-        "List",
-        "Matrix",
-        "Mic",
-        "Microphone",
-        "Numpy",
-        "Paint",
-        "PlayableVideo",
-        "Sketchpad",
-        "TextArea",
+    "Files",
+    "ImageMask",
+    "List",
+    "Matrix",
+    "Mic",
+    "Microphone",
+    "Numpy",
+    "Paint",
+    "PlayableVideo",
+    "Sketchpad",
+    "TextArea",
 ]
 if not IS_WASM:
     _submod_attrs["cli"] = ["deploy", "load_ipython_extension"]
 
 __lazy_getattr__, _, __all__ = lazy.attach(
-    __name__, submodules=["blocks", "components", "layouts", "themes"], submod_attrs=_submod_attrs
+    __name__,
+    submodules=["blocks", "components", "layouts", "themes"],
+    submod_attrs=_submod_attrs,
 )
 
 __all__ += ["Theme", "Examples"]
 __all__ += _templates_attrs
+
+
 def __getattr__(name):
     if name == "Theme":
         return importlib.import_module("gradio.themes").Base
@@ -218,7 +222,12 @@ if TYPE_CHECKING:
         component,
     )
     from gradio.components.audio import WaveformOptions
-    from gradio.components.image_editor import Brush, Eraser, LayerOptions, WebcamOptions
+    from gradio.components.image_editor import (
+        Brush,
+        Eraser,
+        LayerOptions,
+        WebcamOptions,
+    )
     from gradio.data_classes import FileData
     from gradio.events import (
         CopyData,
@@ -245,7 +254,16 @@ if TYPE_CHECKING:
     from gradio.helpers import create_examples as Examples  # noqa: N812
     from gradio.i18n import I18n
     from gradio.interface import Interface, TabbedInterface, close_all
-    from gradio.layouts import Accordion, Column, Group, Row, Sidebar, Tab, TabItem, Tabs
+    from gradio.layouts import (
+        Accordion,
+        Column,
+        Group,
+        Row,
+        Sidebar,
+        Tab,
+        TabItem,
+        Tabs,
+    )
     from gradio.oauth import OAuthProfile, OAuthToken
     from gradio.renderable import render
     from gradio.routes import Request, mount_gradio_app
@@ -265,7 +283,7 @@ if TYPE_CHECKING:
     from gradio.themes import Base as Theme
     from gradio.utils import NO_RELOAD, FileSize, get_package_version, set_static_paths
     from gradio.wasm_utils import IS_WASM
-    
+
     if not IS_WASM:
         from gradio.cli import deploy
-        from gradio.ipython_ext import load_ipython_extension 
+        from gradio.ipython_ext import load_ipython_extension
