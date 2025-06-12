@@ -184,7 +184,6 @@
 			_fetch={(...args) => gradio.client.fetch(...args)}
 			load_component={gradio.load_component}
 			msg_format={type}
-			root={gradio.root}
 			{allow_file_downloads}
 			{allow_tags}
 			{watermark}

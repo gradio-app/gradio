@@ -28,7 +28,6 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let interactive: boolean;
-	export let root: string;
 	export let placeholder: string | undefined = undefined;
 
 	export let gradio: Gradio<{
@@ -94,7 +93,6 @@
 			upload={(...args) => gradio.client.upload(...args)}
 			stream_handler={(...args) => gradio.client.stream(...args)}
 			bind:value
-			{root}
 			on:clear={() => gradio.dispatch("clear")}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload={() => gradio.dispatch("upload")}

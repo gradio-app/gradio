@@ -22,7 +22,6 @@
 	export let upload: Client["upload"];
 	export let thought_index: number;
 	export let target: HTMLElement | null;
-	export let root: string;
 	export let theme_mode: "light" | "dark" | "system";
 	export let _fetch: typeof fetch;
 	export let scroll: () => void;
@@ -104,7 +103,6 @@
 			{render_markdown}
 			{latex_delimiters}
 			{sanitize_html}
-			{root}
 			{allow_tags}
 		/>
 		{#if thought_node.metadata?.status === "pending"}
@@ -147,7 +145,6 @@
 				{upload}
 				{thought_index}
 				{target}
-				{root}
 				{theme_mode}
 				{_fetch}
 				{scroll}
@@ -170,7 +167,6 @@
 							{upload}
 							thought_index={thought_index + 1}
 							{target}
-							{root}
 							{theme_mode}
 							{_fetch}
 							{scroll}

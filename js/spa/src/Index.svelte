@@ -316,7 +316,9 @@
 				? `http://localhost:${
 						typeof server_port === "number" ? server_port : 7860
 					}`
-				: space || src || location.origin;
+				: space ||
+					src ||
+					(location.origin + location.pathname).replace(/\/$/, "");
 
 		const deep_link = new URLSearchParams(window.location.search).get(
 			"deep_link"

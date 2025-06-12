@@ -87,7 +87,7 @@
 	padding={true}
 >
 	<div class="label-content">
-		<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+		<BlockTitle {show_label} {info}>{label}</BlockTitle>
 	</div>
 	<div class="timebox">
 		<input

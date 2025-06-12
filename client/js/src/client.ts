@@ -320,6 +320,7 @@ export class Client {
 				throw new Error(CONFIG_ERROR_MSG);
 			}
 
+			config.root = configUrl;
 			return this.config_success(config);
 		} catch (e: any) {
 			if (space_id && status_callback) {
@@ -346,12 +347,6 @@ export class Client {
 	): Promise<Config | client_return> {
 		this.config = _config;
 		this.api_prefix = _config.api_prefix || "";
-
-		if (typeof window !== "undefined" && typeof document !== "undefined") {
-			if (window.location.protocol === "https:") {
-				this.config.root = this.config.root.replace("http://", "https://");
-			}
-		}
 
 		if (this.config.auth_required) {
 			return this.prepare_return_obj();
@@ -426,7 +421,7 @@ export class Client {
 		if (component?.props?.root_url) {
 			root_url = component.props.root_url;
 		} else {
-			root_url = this.config.root;
+			root_url = this.app_reference;
 		}
 
 		let body: FormData | string;

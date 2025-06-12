@@ -89,7 +89,6 @@
 	export let _retryable = false;
 	export let _undoable = false;
 	export let like_user_message = false;
-	export let root: string;
 	export let allow_tags: string[] | boolean = false;
 	export let watermark: string | null = null;
 
@@ -310,7 +309,6 @@
 					{line_breaks}
 					{theme_mode}
 					{target}
-					{root}
 					{upload}
 					{selectable}
 					{sanitize_html}
@@ -381,7 +379,6 @@
 			{examples}
 			{placeholder}
 			{latex_delimiters}
-			{root}
 			on:example_select={(e) => dispatch("example_select", e.detail)}
 		/>
 	{/if}
