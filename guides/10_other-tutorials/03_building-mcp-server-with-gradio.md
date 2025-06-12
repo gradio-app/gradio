@@ -141,6 +141,16 @@ gr.Interface(echo_headers, "textbox", "textbox").launch(mcp_server=True)
 
 This MCP server will simply ignore the user's input and echo back all of the headers from a user's request. One can build more complex apps using the same idea. See the [docs on `gr.Request`](https://www.gradio.app/main/docs/gradio/request) for more information (note that only the core Starlette attributes of the `gr.Request` object will be present, attributes such as Gradio's `.session_hash` will not be present).
 
+## Adding MCP-Only Tools
+
+So far, all of our MCP tools have corresponded to event listeners in the UI. This works well for functions that directly update the UI, but may not work if you wish to expose a "pure logic" function that should return raw data (e.g., a JSON object) without directly causing a UI update.
+
+In order to expose such an MCP tool, you can create a pure Gradio API endpoint using `gr.api` (see [full docs here](https://www.gradio.app/main/docs/gradio/api)). Here's an example of creating an MCP tool that slices a list:
+
+$code_mcp_tool_only
+
+Note that if you use this approach, your function signature must be fully typed, including the return value, as these signature are used to determine the typing information for the MCP tool.
+
 ## Limitations
 
 The approach outlined above provides an easy way to use any Gradio app as an MCP server. But there are a few limitations to keep in mind:
