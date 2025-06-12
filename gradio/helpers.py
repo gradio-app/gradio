@@ -584,7 +584,7 @@ class Examples:
                     output = [value[0] for value in output]
                 self.cache_logger.flag(output)
                 with open(self.cached_indices_file, "a") as f:
-                    f.write(f"{example_id}\n")
+                    f.write(f"{example_id or i}\n")
 
             # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
             self.root_block.default_config.fns.pop(fn_index)
