@@ -628,7 +628,11 @@ def get_all_components() -> list[type[Component] | type[BlockContext]]:
         classes_to_check.extend(subclass.__subclasses__())
         subclasses.append(subclass)
     # unavoidable eager importing
-    subclasses += [ getattr(components, c) for c in components.__all__ ]
+    subclasses += set([ getattr(gr, c) for c in gr._templates_attrs ])
+    subclasses += [ getattr(components, c) for cs in components._component_submod_attrs.values() for c in cs ]
+    # these have duplicate class names, so don't append. But need to import to populate __dict__ 
+    # with alias names.
+    [ getattr(components, c) for c in components._aliases.keys() ]
 
     return [
         c

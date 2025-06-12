@@ -1,3 +1,4 @@
+import sys
 import importlib
 import lazy_loader as lazy
 from .utils import NO_RELOAD, FileSize, get_package_version, set_static_paths
@@ -107,7 +108,9 @@ _submod_attrs = {
     "oauth": ["OAuthProfile", "OAuthToken"],
     "renderable": ["render"],
     "routes": ["Request", "mount_gradio_app"],
-    "templates": [
+}
+# in templates.py not templates/
+_templates_attrs = [
         "Files",
         "ImageMask",
         "List",
@@ -119,20 +122,25 @@ _submod_attrs = {
         "PlayableVideo",
         "Sketchpad",
         "TextArea",
-    ],
-}
+]
 if not IS_WASM:
     _submod_attrs["cli"] = ["deploy", "load_ipython_extension"]
 
 __lazy_getattr__, _, __all__ = lazy.attach(
-    __name__, submodules=["components", "layouts", "themes"], submod_attrs=_submod_attrs
+    __name__, submodules=["blocks", "components", "layouts", "themes"], submod_attrs=_submod_attrs
 )
 
 __all__ += ["Theme", "Examples"]
+__all__ += _templates_attrs
 def __getattr__(name):
-  if name == "Theme":
-      return importlib.import_module("gradio.themes").Base
-  if name == "Examples":
-      return importlib.import_module("gradio.helpers").create_examples
+    if name == "Theme":
+        return importlib.import_module("gradio.themes").Base
+    if name == "Examples":
+        return importlib.import_module("gradio.helpers").create_examples
+    if name in _templates_attrs:
+        mod = sys.modules[__name__]
+        original = getattr(importlib.import_module("gradio.templates"), name)
+        setattr(mod, name, original)
+        return original
 
-  return __lazy_getattr__(name)
+    return __lazy_getattr__(name)
