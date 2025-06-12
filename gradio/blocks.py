@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import copy
 import dataclasses
 import hashlib
@@ -104,6 +103,7 @@ except Exception:
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components.base import Component
+    from gradio.mcp import GradioMCPServer
     from gradio.renderable import Renderable
 
 BUILT_IN_THEMES: dict[str, Theme] = {
@@ -1190,6 +1190,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.theme_hash = theme_hasher.hexdigest()
 
         self.encrypt = False
+        self.mcp_server_obj: None | GradioMCPServer = None
+        self.mcp_error: None | str = None
         self.share = False
         self.enable_queue = True
         self.max_threads = 40
@@ -2696,52 +2698,16 @@ Received inputs:
         if app_kwargs is None:
             app_kwargs = {}
 
-        mcp_subpath = API_PREFIX + "/mcp"
-        if mcp_server is None:
-            mcp_server = os.environ.get("GRADIO_MCP_SERVER", "False").lower() == "true"
-        if mcp_server:
-            try:
-                import gradio.mcp
-            except ImportError as e:
-                raise ImportError(
-                    "In order to use `mcp_server=True`, you must install gradio with the `mcp` extra. Please install it with `pip install gradio[mcp]`"
-                ) from e
-            try:
-                self.mcp_server_obj = gradio.mcp.GradioMCPServer(self, self.root_path)
-                self.mcp_server = True
-                user_lifespan = None
-                if "lifespan" in app_kwargs:
-                    user_lifespan = app_kwargs["lifespan"]
-
-                @contextlib.asynccontextmanager
-                async def _lifespan(app: App):
-                    async with contextlib.AsyncExitStack() as stack:
-                        if self.mcp_server_obj:
-                            await stack.enter_async_context(
-                                self.mcp_server_obj.lifespan(app)
-                            )
-                        if user_lifespan is not None:
-                            await stack.enter_async_context(user_lifespan(app))
-                        yield
-
-                app_kwargs["lifespan"] = _lifespan
-            except Exception as e:
-                self.mcp_server = False
-                if not quiet:
-                    print(f"Error launching MCP server: {e}")
-
         self.server_app = self.app = App.create_app(
             self,
             auth_dependency=auth_dependency,
             app_kwargs=app_kwargs,
             strict_cors=strict_cors,
             ssr_mode=self.ssr_mode,
+            mcp_server=mcp_server,
         )
-
-        if self.mcp_server_obj:
-            self.mcp_server_obj.launch_mcp_on_sse(
-                self.server_app, mcp_subpath, self.root_path
-            )
+        if self.mcp_server and not quiet:
+            print(self.mcp_error)
 
         self.config = self.get_config_file()
 
@@ -2837,7 +2803,7 @@ Received inputs:
             if self.is_colab or self.is_hosted_notebook:
                 if not quiet:
                     print(
-                        "It looks like you are running Gradio on a hosted a Jupyter notebook. For the Gradio app to work, sharing must be enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                        "It looks like you are running Gradio on a hosted Jupyter notebook, which requires `share=True`. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
                     )
                 self.share = True
             else:
@@ -2933,6 +2899,7 @@ Received inputs:
                 print("* To create a public link, set `share=True` in `launch()`.")
             self.share_url = None
 
+        mcp_subpath = API_PREFIX + "/mcp"
         if self.mcp_server:
             print(
                 f"\n🔨 MCP server (using SSE) running at: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"

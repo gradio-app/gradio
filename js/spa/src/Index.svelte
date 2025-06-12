@@ -326,7 +326,6 @@
 		if (deep_link) {
 			query_params.deep_link = deep_link;
 		}
-
 		app = await Client.connect(api_url, {
 			status_callback: handle_status,
 			with_null_state: true,
@@ -382,7 +381,9 @@
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(api_url);
-				let url = new URL(`http://${host}${app.api_prefix}/dev/reload`);
+				let url = new URL(
+					`${window.location.protocol}//${host}${app.api_prefix}/dev/reload`
+				);
 				stream = new EventSource(url);
 				stream.addEventListener("error", async (e) => {
 					new_message_fn("Error", "Error reloading app", "error");

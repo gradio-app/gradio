@@ -65,7 +65,7 @@ export class Client {
 	abort_controller: AbortController | null = null;
 	stream_instance: EventSource | null = null;
 	current_payload: any;
-	ws_map: Record<string, WebSocket | "failed"> = {};
+	ws_map: Record<string, WebSocket | "pending" | "failed" | "closed"> = {};
 
 	get_url_config(url: string | null = null): Config {
 		if (!this.config) {
@@ -498,7 +498,9 @@ export class Client {
 				return;
 			}
 
+			this.ws_map[url] = "pending";
 			ws.onopen = () => {
+				this.ws_map[url] = ws;
 				resolve();
 			};
 
@@ -510,12 +512,10 @@ export class Client {
 			};
 
 			ws.onclose = () => {
-				delete this.ws_map[url];
-				this.ws_map[url] = "failed";
+				this.ws_map[url] = "closed";
 			};
 
 			ws.onmessage = (event) => {};
-			this.ws_map[url] = ws;
 		});
 	}
 
@@ -523,6 +523,12 @@ export class Client {
 		// connect if not connected
 		if (!(url in this.ws_map)) {
 			await this.connect_ws(url);
+		} else if (
+			this.ws_map[url] === "pending" ||
+			this.ws_map[url] === "closed" ||
+			this.ws_map[url] === "failed"
+		) {
+			return;
 		}
 		const ws = this.ws_map[url];
 		if (ws instanceof WebSocket) {

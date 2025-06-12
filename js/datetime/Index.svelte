@@ -6,6 +6,9 @@
 	import type { Gradio } from "@gradio/utils";
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { Calendar } from "@gradio/icons";
+	import { onDestroy } from "svelte";
+	import DateTimePicker from "./DateTimePicker.svelte";
+	import { format_date, date_is_valid_format, parse_date_value } from "./utils";
 
 	export let gradio: Gradio<{
 		change: undefined;
@@ -24,57 +27,129 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let root: string;
-
 	export let include_time = true;
+
+	let show_picker = false;
+	let picker_ref: HTMLDivElement;
+	let input_ref: HTMLInputElement;
+	let calendar_button_ref: HTMLButtonElement;
+	let picker_position = { top: 0, left: 0 };
+
 	$: if (value !== old_value) {
 		old_value = value;
 		entered_value = value;
-		datevalue = value;
+		update_picker_from_value();
 		gradio.dispatch("change");
 	}
 
-	const format_date = (date: Date): string => {
-		if (date.toJSON() === null) return "";
-		const pad = (num: number): string => num.toString().padStart(2, "0");
-
-		const year = date.getFullYear();
-		const month = pad(date.getMonth() + 1); // getMonth() returns 0-11
-		const day = pad(date.getDate());
-		const hours = pad(date.getHours());
-		const minutes = pad(date.getMinutes());
-		const seconds = pad(date.getSeconds());
-
-		const date_str = `${year}-${month}-${day}`;
-		const time_str = `${hours}:${minutes}:${seconds}`;
-		if (include_time) {
-			return `${date_str} ${time_str}`;
-		}
-		return date_str;
-	};
-
 	let entered_value = value;
-	let datetime: HTMLInputElement;
-	let datevalue = value;
 
-	const date_is_valid_format = (date: string | null): boolean => {
-		if (date === null || date === "") return true;
-		const valid_regex = include_time
-			? /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
-			: /^\d{4}-\d{2}-\d{2}$/;
-		const is_valid_date = date.match(valid_regex) !== null;
-		const is_valid_now =
-			date.match(/^(?:\s*now\s*(?:-\s*\d+\s*[dmhs])?)?\s*$/) !== null;
-		return is_valid_date || is_valid_now;
-	};
-
-	$: valid = date_is_valid_format(entered_value);
+	$: valid = date_is_valid_format(entered_value, include_time);
 
 	const submit_values = (): void => {
 		if (entered_value === value) return;
-		if (!date_is_valid_format(entered_value)) return;
+		if (!date_is_valid_format(entered_value, include_time)) return;
 		old_value = value = entered_value;
 		gradio.dispatch("change");
 	};
+
+	let current_year = new Date().getFullYear();
+	let current_month = new Date().getMonth();
+	let selected_date = new Date();
+	let selected_hour = new Date().getHours();
+	let selected_minute = new Date().getMinutes();
+	let selected_second = new Date().getSeconds();
+	let is_pm = selected_hour >= 12;
+
+	const update_picker_from_value = (): void => {
+		const parsed = parse_date_value(entered_value, include_time);
+		selected_date = parsed.selected_date;
+		current_year = parsed.current_year;
+		current_month = parsed.current_month;
+		selected_hour = parsed.selected_hour;
+		selected_minute = parsed.selected_minute;
+		selected_second = parsed.selected_second;
+		is_pm = parsed.is_pm;
+	};
+
+	const calculate_picker_position = (): void => {
+		if (calendar_button_ref) {
+			const rect = calendar_button_ref.getBoundingClientRect();
+			picker_position = {
+				top: rect.bottom + 4,
+				left: rect.right - 280
+			};
+		}
+	};
+
+	const toggle_picker = (event: MouseEvent): void => {
+		if (!disabled) {
+			event.stopPropagation();
+			show_picker = !show_picker;
+			if (show_picker) {
+				update_picker_from_value();
+				calculate_picker_position();
+				setTimeout(() => {
+					if (typeof window !== "undefined") {
+						window.addEventListener("click", handle_click_outside);
+						window.addEventListener("scroll", handle_scroll, true);
+					}
+				}, 10);
+			} else if (typeof window !== "undefined") {
+				window.removeEventListener("click", handle_click_outside);
+				window.removeEventListener("scroll", handle_scroll, true);
+			}
+		}
+	};
+
+	const close_picker = (): void => {
+		show_picker = false;
+		if (typeof window !== "undefined") {
+			window.removeEventListener("click", handle_click_outside);
+			window.removeEventListener("scroll", handle_scroll, true);
+		}
+	};
+
+	const handle_click_outside = (event: MouseEvent): void => {
+		if (
+			show_picker &&
+			picker_ref &&
+			!picker_ref.contains(event.target as Node) &&
+			calendar_button_ref &&
+			!calendar_button_ref.contains(event.target as Node)
+		) {
+			close_picker();
+		}
+	};
+
+	const handle_scroll = (): void => {
+		if (show_picker) {
+			calculate_picker_position();
+		}
+	};
+
+	const handle_picker_update = (
+		event: CustomEvent<{ date: Date; formatted: string }>
+	): void => {
+		entered_value = event.detail.formatted;
+		submit_values();
+	};
+
+	const handle_picker_clear = (): void => {
+		entered_value = "";
+		value = "";
+		close_picker();
+		gradio.dispatch("change");
+	};
+
+	onDestroy(() => {
+		if (typeof window !== "undefined") {
+			window.removeEventListener("click", handle_click_outside);
+			window.removeEventListener("scroll", handle_scroll, true);
+		}
+	});
+
+	update_picker_from_value();
 </script>
 
 <Block
@@ -91,6 +166,7 @@
 	</div>
 	<div class="timebox">
 		<input
+			bind:this={input_ref}
 			class="time"
 			bind:value={entered_value}
 			class:invalid={!valid}
@@ -102,47 +178,39 @@
 			}}
 			on:blur={submit_values}
 			{disabled}
+			placeholder={include_time ? "YYYY-MM-DD HH:MM:SS" : "YYYY-MM-DD"}
 		/>
-		{#if include_time}
-			<input
-				type="datetime-local"
-				class="datetime"
-				step="1"
-				bind:this={datetime}
-				bind:value={datevalue}
-				on:input={() => {
-					const date = new Date(datevalue);
-					entered_value = format_date(date);
-					submit_values();
-				}}
-				{disabled}
-			/>
-		{:else}
-			<input
-				type="date"
-				class="datetime"
-				step="1"
-				bind:this={datetime}
-				bind:value={datevalue}
-				on:input={() => {
-					const date = new Date(datevalue + "T00:00:00");
-					entered_value = format_date(date);
-					submit_values();
-				}}
-				{disabled}
-			/>
-		{/if}
 
 		{#if interactive}
 			<button
+				bind:this={calendar_button_ref}
 				class="calendar"
 				{disabled}
-				on:click={() => {
-					datetime.showPicker();
-				}}><Calendar></Calendar></button
+				on:click={toggle_picker}
 			>
+				<Calendar />
+			</button>
 		{/if}
 	</div>
+
+	{#if show_picker}
+		<div bind:this={picker_ref}>
+			<DateTimePicker
+				bind:selected_date
+				bind:current_year
+				bind:current_month
+				bind:selected_hour
+				bind:selected_minute
+				bind:selected_second
+				bind:is_pm
+				{include_time}
+				position={picker_position}
+				on:update={handle_picker_update}
+				on:clear={handle_picker_clear}
+				on:close={close_picker}
+			/>
+		</div>
+	{/if}
 </Block>
 
 <style>
@@ -151,10 +219,12 @@
 		justify-content: space-between;
 		align-items: flex-start;
 	}
+
 	button {
 		cursor: pointer;
 		color: var(--body-text-color-subdued);
 	}
+
 	button:hover {
 		color: var(--body-text-color);
 	}
@@ -162,6 +232,7 @@
 	::placeholder {
 		color: var(--input-placeholder-color);
 	}
+
 	.timebox {
 		flex-grow: 1;
 		flex-shrink: 1;
@@ -169,9 +240,11 @@
 		position: relative;
 		background: var(--input-background-fill);
 	}
+
 	.timebox :global(svg) {
 		height: 18px;
 	}
+
 	.time {
 		padding: var(--input-padding);
 		color: var(--body-text-color);
@@ -187,14 +260,17 @@
 		border-bottom-left-radius: var(--input-radius);
 		box-shadow: var(--input-shadow);
 	}
+
 	.time:disabled {
 		border-right: var(--input-border-width) solid var(--input-border-color);
 		border-top-right-radius: var(--input-radius);
 		border-bottom-right-radius: var(--input-radius);
 	}
+
 	.time.invalid {
 		color: var(--body-text-color-subdued);
 	}
+
 	.calendar {
 		display: inline-flex;
 		justify-content: center;
@@ -211,18 +287,13 @@
 		padding: var(--size-2);
 		border: var(--input-border-width) solid var(--input-border-color);
 	}
+
 	.calendar:hover {
 		background: var(--button-secondary-background-fill-hover);
 		box-shadow: var(--button-primary-shadow-hover);
 	}
+
 	.calendar:active {
 		box-shadow: var(--button-primary-shadow-active);
-	}
-	.datetime {
-		width: 0px;
-		padding: 0;
-		border: 0;
-		margin: 0;
-		background: none;
 	}
 </style>

@@ -336,20 +336,69 @@ class App(FastAPI):
         self._asyncio_tasks = []
 
     @staticmethod
+    def setup_mcp_server(
+        blocks: gradio.Blocks,
+        app_kwargs: dict[str, Any],
+        mcp_server: bool | None = None,
+    ):
+        mcp_subpath = API_PREFIX + "/mcp"
+        if mcp_server is None:
+            mcp_server = os.environ.get("GRADIO_MCP_SERVER", "False").lower() == "true"
+        if mcp_server:
+            try:
+                import gradio.mcp
+            except ImportError as e:
+                raise ImportError(
+                    "In order to use `mcp_server=True`, you must install gradio with the `mcp` extra. Please install it with `pip install gradio[mcp]`"
+                ) from e
+            try:
+                blocks.mcp_server_obj = gradio.mcp.GradioMCPServer(blocks)
+                blocks.mcp_server = True
+                user_lifespan = None
+                if "lifespan" in app_kwargs:
+                    user_lifespan = app_kwargs["lifespan"]
+
+                @contextlib.asynccontextmanager
+                async def _lifespan(app: App):
+                    async with contextlib.AsyncExitStack() as stack:
+                        if blocks.mcp_server_obj:
+                            await stack.enter_async_context(
+                                blocks.mcp_server_obj.lifespan(app)
+                            )
+                        if user_lifespan is not None:
+                            await stack.enter_async_context(user_lifespan(app))
+                        yield
+
+                app_kwargs["lifespan"] = _lifespan
+            except Exception as e:
+                blocks.mcp_server = False
+                blocks.mcp_error = f"Error launching MCP server: {e}"
+
+        blocks.config = (
+            blocks.get_config_file()
+        )  # Because the config should include the fact that the MCP server is enabled
+        return mcp_subpath
+
+    @staticmethod
     def create_app(
         blocks: gradio.Blocks,
         app_kwargs: dict[str, Any] | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         strict_cors: bool = True,
         ssr_mode: bool = False,
+        mcp_server: bool | None = None,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
+        mcp_subpath = App.setup_mcp_server(blocks, app_kwargs, mcp_server)
+
         delete_cache = blocks.delete_cache or (None, None)
         app_kwargs["lifespan"] = create_lifespan_handler(
             app_kwargs.get("lifespan", None), *delete_cache
         )
         app = App(auth_dependency=auth_dependency, **app_kwargs, debug=True)
+        if blocks.mcp_server_obj:
+            blocks.mcp_server_obj.launch_mcp_on_sse(app, mcp_subpath, blocks.root_path)
         router = APIRouter(prefix=API_PREFIX)
 
         app.configure_app(blocks)
@@ -1769,7 +1818,9 @@ class App(FastAPI):
                     from gradio.monitoring_dashboard import data
                     from gradio.monitoring_dashboard import demo as dashboard
 
-                    mount_gradio_app(app, dashboard, path=analytics_url)
+                    mount_gradio_app(
+                        app, dashboard, path=analytics_url, mcp_server=False
+                    )
                     dashboard._queue.start()
                     analytics = app.get_blocks()._queue.event_analytics
                     data["data"] = analytics
@@ -1944,6 +1995,7 @@ def mount_gradio_app(
     enable_monitoring: bool | None = None,
     pwa: bool | None = None,
     i18n: I18n | None = None,
+    mcp_server: bool | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -1968,6 +2020,7 @@ def mount_gradio_app(
         node_server_name: The name of the Node server to use for SSR. If None, will use GRADIO_NODE_SERVER_NAME environment variable or search for a node binary in the system.
         i18n: If provided, the i18n instance to use for this gradio app.
         node_port: The port on which the Node server should run. If None, will use GRADIO_NODE_SERVER_PORT environment variable or find a free port.
+        mcp_server: If True, the MCP server will be launched on the gradio app. If None, will use GRADIO_MCP_SERVER environment variable or default to False.
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -2056,6 +2109,7 @@ def mount_gradio_app(
         app_kwargs=app_kwargs,
         auth_dependency=auth_dependency,
         ssr_mode=blocks.ssr_mode,
+        mcp_server=mcp_server,
     )
     old_lifespan = app.router.lifespan_context
 

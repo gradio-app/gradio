@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/dataframe",
-	"version": "0.17.14",
+	"version": "0.17.15",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -11,6 +11,7 @@
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/button": "workspace:^",
+		"@gradio/checkbox": "workspace:^",
 		"@gradio/client": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/markdown-code": "workspace:^",

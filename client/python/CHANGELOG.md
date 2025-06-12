@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.10.3
+
+### Fixes
+
+- [#11347](https://github.com/gradio-app/gradio/pull/11347) [`fdce3a0`](https://github.com/gradio-app/gradio/commit/fdce3a094fe1278ae83fe2f8b134b4c268506cfe) - Fix `gr.api()` to support more types, including optional params.  Thanks @abidlabs!
+
 ## 1.10.2
 
 ### Fixes

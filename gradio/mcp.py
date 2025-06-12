@@ -8,8 +8,10 @@ from collections.abc import AsyncIterator, Sequence
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+from urllib.parse import unquote
 
 import gradio_client.utils as client_utils
+import httpx
 from mcp import types
 from mcp.server import Server
 from mcp.server.sse import SseServerTransport
@@ -44,12 +46,11 @@ class GradioMCPServer:
         blocks: The Blocks app to create the MCP server for.
     """
 
-    def __init__(self, blocks: "Blocks", root_path: str):
+    def __init__(self, blocks: "Blocks"):
         self.blocks = blocks
         self.api_info = self.blocks.get_api_info()
         self.mcp_server = self.create_mcp_server()
-        self.request = None
-        self.root_url = None
+        self.root_path = ""
         tool_prefix = utils.get_space()
         if tool_prefix:
             tool_prefix = tool_prefix.split("/")[-1] + "_"
@@ -66,13 +67,6 @@ class GradioMCPServer:
         async def handle_streamable_http(
             scope: Scope, receive: Receive, send: Send
         ) -> None:
-            request = Request(scope, receive)
-            self.request = request
-            self.root_url = route_utils.get_root_url(
-                request=request,
-                route_path="/gradio_api/mcp/http",
-                root_path=root_path,
-            )
             await manager.handle_request(scope, receive, send)
 
         @contextlib.asynccontextmanager
@@ -87,6 +81,19 @@ class GradioMCPServer:
         self.lifespan = lifespan
         self.manager = manager
         self.handle_streamable_http = handle_streamable_http
+
+    def get_route_path(self, request: Request) -> str:
+        """
+        Gets the route path of the MCP server based on the incoming request.
+        Can be different depending on whether the request is coming from the MCP SSE transport or the HTTP transport.
+        """
+        url = httpx.URL(str(request.url))
+        url = url.copy_with(query=None)
+        url = str(url).rstrip("/")
+        if url.endswith("/gradio_api/mcp/messages"):
+            return "/gradio_api/mcp/messages"
+        else:
+            return "/gradio_api/mcp/http"
 
     def get_tool_to_endpoint(self) -> dict[str, str]:
         """
@@ -149,6 +156,17 @@ class GradioMCPServer:
                 name: The name of the tool to call.
                 arguments: The arguments to pass to the tool.
             """
+            context_request = self.mcp_server.request_context.request
+            if context_request is None:
+                raise ValueError(
+                    "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
+                )
+            route_path = self.get_route_path(context_request)
+            root_url = route_utils.get_root_url(
+                request=context_request,
+                route_path=route_path,
+                root_path=self.root_path,
+            )
             _, filedata_positions = self.get_input_schema(name)
             processed_kwargs = self.convert_strings_to_filedata(
                 arguments, filedata_positions
@@ -175,10 +193,10 @@ class GradioMCPServer:
             output = await self.blocks.process_api(
                 block_fn=block_fn,
                 inputs=processed_args,
-                request=self.request,
+                request=context_request,
             )
             processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
-            return self.postprocess_output_data(output["data"])
+            return self.postprocess_output_data(output["data"], root_url)
 
         @server.list_tools()
         async def list_tools() -> list[types.Tool]:
@@ -217,17 +235,13 @@ class GradioMCPServer:
         Parameters:
             app: The Gradio app to mount the MCP server on.
             subpath: The subpath to mount the MCP server on. E.g. "/gradio_api/mcp"
+            root_path: The root path of the Gradio Blocks app.
         """
         messages_path = "/messages/"
         sse = SseServerTransport(messages_path)
+        self.root_path = root_path
 
         async def handle_sse(request):
-            self.request = request
-            self.root_url = route_utils.get_root_url(
-                request=request,
-                route_path="/gradio_api/mcp/sse",
-                root_path=root_path,
-            )
             try:
                 async with sse.connect_sse(
                     request.scope, request.receive, request._send
@@ -545,6 +559,19 @@ class GradioMCPServer:
             return None
 
     @staticmethod
+    def get_svg(file_data: Any) -> bytes | None:
+        """
+        If a file_data is a valid FileDataDict with a url that is a data:image/svg+xml, returns bytes of the svg. Otherwise returns None.
+        """
+        if isinstance(file_data, dict) and (url := file_data.get("url")):
+            if isinstance(url, str) and url.startswith("data:image/svg"):
+                return unquote(url.split(",", 1)[1]).encode()
+            else:
+                return None
+        else:
+            return None
+
+    @staticmethod
     def get_base64_data(image: Image.Image, format: str) -> str:
         """
         Returns a base64 encoded string of the image.
@@ -554,7 +581,7 @@ class GradioMCPServer:
         return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
     def postprocess_output_data(
-        self, data: Any
+        self, data: Any, root_url: str
     ) -> list[types.TextContent | types.ImageContent]:
         """
         Postprocess the output data from the Gradio app to convert FileData objects back to base64 encoded strings.
@@ -563,10 +590,25 @@ class GradioMCPServer:
             data: The output data to postprocess.
         """
         return_values = []
-        if self.root_url:
-            data = processing_utils.add_root_url(data, self.root_url, None)
+        data = processing_utils.add_root_url(data, root_url, None)
         for output in data:
-            if client_utils.is_file_obj_with_meta(output):
+            if svg_bytes := self.get_svg(output):
+                base64_data = base64.b64encode(svg_bytes).decode("utf-8")
+                mimetype = "image/svg+xml"
+                svg_path = processing_utils.save_bytes_to_cache(
+                    svg_bytes, f"{output['orig_name']}", DEFAULT_TEMP_DIR
+                )
+                svg_url = f"{root_url}/gradio_api/file={svg_path}"
+                return_value = [
+                    types.ImageContent(
+                        type="image", data=base64_data, mimeType=mimetype
+                    ),
+                    types.TextContent(
+                        type="text",
+                        text=f"SVG Image URL: {svg_url}",
+                    ),
+                ]
+            elif client_utils.is_file_obj_with_meta(output):
                 if image := self.get_image(output["path"]):
                     image_format = image.format or "png"
                     base64_data = self.get_base64_data(image, image_format)

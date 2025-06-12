@@ -11,6 +11,13 @@
 		right: string;
 		display: boolean;
 	}[];
+
+	function truncate_text(text: string | null, max_length = 60): string {
+		if (!text) return "";
+		const str = String(text);
+		if (str.length <= max_length) return str;
+		return str.slice(0, max_length) + "...";
+	}
 </script>
 
 <div
@@ -20,7 +27,7 @@
 	class="prose"
 >
 	<MarkdownCode
-		message={value ? value : ""}
+		message={truncate_text(value)}
 		{latex_delimiters}
 		{sanitize_html}
 		{line_breaks}
