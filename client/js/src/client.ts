@@ -421,7 +421,7 @@ export class Client {
 		if (component?.props?.root_url) {
 			root_url = component.props.root_url;
 		} else {
-			root_url = this.app_reference;
+			root_url = this.config.root;
 		}
 
 		let body: FormData | string;
