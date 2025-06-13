@@ -583,6 +583,9 @@ class Examples:
                 if self.batch:
                     output = [value[0] for value in output]
                 self.cache_logger.flag(output)
+                with open(self.cached_indices_file, "a") as f:
+                    f.write(f"{example_id or i}\n")
+
             # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
             self.root_block.default_config.fns.pop(fn_index)
 
@@ -591,20 +594,19 @@ class Examples:
         Parameters:
             example_id: The id of the example to process (zero-indexed).
         """
-        if self.cache_examples == "lazy":
-            if (cached_index := self._get_cached_index_if_cached(example_id)) is None:
-                client_utils.synchronize_async(self.cache, example_id)
-                with open(self.cached_indices_file, "a") as f:
-                    f.write(f"{example_id}\n")
-                with open(self.cached_indices_file) as f:
-                    example_id = len(f.readlines()) - 1
-            else:
-                example_id = cached_index
+        cached_index = self._get_cached_index_if_cached(example_id)
+        if cached_index is None:
+            client_utils.synchronize_async(self.cache, example_id)
+            with open(self.cached_indices_file) as f:
+                cached_index = len(f.readlines()) - 1
 
         with open(self.cached_file, encoding="utf-8") as cache:
             examples = list(csv.reader(cache))
 
-        example = examples[example_id + 1]  # +1 to adjust for header
+        if cached_index + 1 >= len(examples):
+            raise IndexError("Cached example not found in cache file")
+        example = examples[cached_index + 1]  # +1 to adjust for header
+
         output = []
         if self.outputs is None:
             raise ValueError("self.outputs is missing")
