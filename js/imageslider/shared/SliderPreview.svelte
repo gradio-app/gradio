@@ -195,7 +195,7 @@
 					src={value?.[1]?.url}
 					alt=""
 					loading="lazy"
-					{style}
+					style="{style}; background: var(--block-background-fill);"
 					transform="translate({$transform.x}px, {$transform.y}px) scale({$transform.z})"
 					{fullscreen}
 					{max_height}
