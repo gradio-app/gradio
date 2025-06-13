@@ -25,7 +25,7 @@ export async function load({
 }> {
 	const api_url =
 		browser && !local_dev_mode
-			? (location.origin + location.pathname).replace(/\/$/, "")
+			? new URL(location.pathname, location.origin).href.replace(/\/$/, "")
 			: server;
 	const deepLink = url.searchParams.get("deep_link");
 	const app = await Client.connect(api_url, {

@@ -317,7 +317,7 @@
 					}`
 				: space ||
 					src ||
-					(location.origin + location.pathname).replace(/\/$/, "");
+					new URL(location.pathname, location.origin).href.replace(/\/$/, "");
 
 		const deep_link = new URLSearchParams(window.location.search).get(
 			"deep_link"

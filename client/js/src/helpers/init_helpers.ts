@@ -80,6 +80,10 @@ export async function resolve_config(
 		location.origin !== "http://localhost:9876" &&
 		!window.gradio_config.dev_mode
 	) {
+		if (window.gradio_config.current_page) {
+			endpoint = endpoint.substring(0, endpoint.lastIndexOf("/"));
+		}
+		window.gradio_config.root = endpoint;
 		return { ...window.gradio_config } as Config;
 	} else if (endpoint) {
 		let config_url = join_urls(

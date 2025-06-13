@@ -320,7 +320,6 @@ export class Client {
 				throw new Error(CONFIG_ERROR_MSG);
 			}
 
-			config.root = configUrl;
 			return this.config_success(config);
 		} catch (e: any) {
 			if (space_id && status_callback) {
