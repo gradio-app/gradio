@@ -620,23 +620,26 @@ def resolve_singleton(_list: list[Any] | Any) -> Any:
 def get_all_components() -> list[type[Component] | type[BlockContext]]:
     import gradio as gr
     import gradio.components as components
+    from gradio.components import Component
 
-    classes_to_check = gr.blocks.BlockContext.__subclasses__()  # type: ignore
+    # have to eagerly import all known lazy-loaded Component subclasses
+    for c in gr._templates_attrs:
+        getattr(gr, c)
+    for cs in components._component_submod_attrs.values():
+      for c in cs:
+        getattr(components, c)
+    for c in components._aliases.keys():
+        getattr(components, c)
+
+    classes_to_check = (
+        Component.__subclasses__()
+        + gr.blocks.BlockContext.__subclasses__()  # type: ignore
+    )
     subclasses = []
     while classes_to_check:
         subclass = classes_to_check.pop()
         classes_to_check.extend(subclass.__subclasses__())
         subclasses.append(subclass)
-    # unavoidable eager importing
-    subclasses += set([getattr(gr, c) for c in gr._templates_attrs])
-    subclasses += [
-        getattr(components, c)
-        for cs in components._component_submod_attrs.values()
-        for c in cs
-    ]
-    # these have duplicate class names, so don't append. But need to import to populate __dict__
-    # with alias names.
-    [getattr(components, c) for c in components._aliases.keys()]
 
     return [
         c
