@@ -808,6 +808,10 @@ class Queue:
             # Failure, but don't raise an error
             return
         async with app.lock:
+            try:
+                app.iterators[event_id].aclose()  # type: ignore
+            except Exception:
+                pass
             del app.iterators[event_id]
             app.iterators_to_reset.add(event_id)
         return
