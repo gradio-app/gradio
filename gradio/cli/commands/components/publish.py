@@ -86,6 +86,12 @@ def _publish(
             help="Whether to upload the source code of the custom component, to share with the community."
         ),
     ] = False,
+    repo_id: Annotated[
+        Optional[str],
+        Option(
+            help="The repository id to upload the demo to. If not provided, a space will be created with the same name as the package in the HuggingFace account corresponding to the hf_token."
+        ),
+    ] = None,
 ):
     custom_component_analytics(
         "publish",
@@ -243,7 +249,7 @@ def _publish(
 
             api = HfApi(token=hf_token)
             repo_url = api.create_repo(
-                repo_id=package_name,
+                repo_id=repo_id or package_name,
                 repo_type="space",
                 exist_ok=True,
                 space_sdk="gradio",
