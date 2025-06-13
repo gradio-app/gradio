@@ -10,6 +10,7 @@
 	export let value: null | FileData;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
+	export let root: string;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 
@@ -55,6 +56,7 @@
 			filetype="image/*"
 			on:load={handle_upload}
 			on:error
+			{root}
 		>
 			{#if value === null}
 				<slot />

@@ -80,7 +80,7 @@ export async function resolve_config(
 		location.origin !== "http://localhost:9876" &&
 		!window.gradio_config.dev_mode
 	) {
-		return window.gradio_config as Config;
+		return { ...window.gradio_config } as Config;
 	} else if (endpoint) {
 		let config_url = join_urls(
 			endpoint,
