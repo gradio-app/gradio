@@ -52,12 +52,11 @@ async function run(): Promise<void> {
 			...parsed_args
 		};
 		process.env.GRADIO_BACKEND_PORT = backend_port.toString();
-
 		const _process = spawn(
 			parsed_args["gradio-path"],
 			[parsed_args.app, "--watch-dirs", options.component_dir],
 			{
-				shell: true,
+				shell: false,
 				stdio: "pipe",
 				cwd: process.cwd(),
 				env: {
