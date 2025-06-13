@@ -448,7 +448,8 @@ class Chatbot(Component):
             capitalized_component = (
                 chat_message.component.upper()
                 if chat_message.component in ("json", "html")
-                else "Model3D" if chat_message.component == "model3d"
+                else "Model3D"
+                if chat_message.component == "model3d"
                 else chat_message.component.capitalize()
             )
             component = import_component_and_data(capitalized_component)

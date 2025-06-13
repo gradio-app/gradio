@@ -124,7 +124,9 @@
 		display_mode={props.display_mode}
 		zoom_speed={props.zoom_speed}
 		pan_speed={props.pan_speed}
-		{...(props.camera_position !== undefined && { camera_position: props.camera_position })}
+		{...props.camera_position !== undefined && {
+			camera_position: props.camera_position
+		}}
 		has_change_history={true}
 		show_label={false}
 		root=""
