@@ -2,6 +2,12 @@
 
 ## 0.15.23
 
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.15.23
+
 ### Fixes
 
 - [#11362](https://github.com/gradio-app/gradio/pull/11362) [`1b88339`](https://github.com/gradio-app/gradio/commit/1b883395eb3feceed60ec79fcf19285269e2b171) - Fix Gallery thumbnail overflow.  Thanks @freddyaboulton!

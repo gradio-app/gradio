@@ -4,6 +4,13 @@
 
 ### Dependency updates
 
+- @gradio/statustracker@0.10.12
+- @gradio/checkbox@0.4.23
+
+## 0.5.31
+
+### Dependency updates
+
 - @gradio/upload@0.16.7
 - @gradio/checkbox@0.4.23
 - @gradio/client@1.15.2
