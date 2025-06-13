@@ -6,7 +6,7 @@
 	import type { Gradio, SelectData, LikeData, CopyData } from "@gradio/utils";
 
 	import ChatBot from "./shared/ChatBot.svelte";
-	import type { UndoRetryData } from "./shared/utils";
+	import type { CustomButtonsData, UndoRetryData } from "./shared/utils";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { Chat } from "@gradio/icons";
@@ -20,6 +20,7 @@
 	} from "./types";
 
 	import { normalise_tuples, normalise_messages } from "./shared/utils";
+	import CustomButtons from "./shared/CustomButtons.svelte";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -48,6 +49,13 @@
 	export let _undoable = false;
 	export let group_consecutive_messages = true;
 	export let allow_tags: string[] | boolean = false;
+	export let custom_buttons:
+		| {
+				label: string;
+				visible: "all" | "user" | "chatbot";
+				icon: string | null;
+		  }[]
+		| null = null;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -67,6 +75,7 @@
 		undo: UndoRetryData;
 		clear: null;
 		copy: CopyData;
+		custom_button: CustomButtonsData;
 	}>;
 
 	let _value: NormalisedMessage[] | null = [];
@@ -172,6 +181,7 @@
 				value = value;
 				gradio.dispatch("edit", e.detail);
 			}}
+			on:custom_button={(e) => gradio.dispatch("custom_button", e.detail)}
 			{avatar_images}
 			{sanitize_html}
 			{line_breaks}
@@ -189,6 +199,7 @@
 			{allow_file_downloads}
 			{allow_tags}
 			{watermark}
+			{custom_buttons}
 		/>
 	</div>
 </Block>

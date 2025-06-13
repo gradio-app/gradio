@@ -459,6 +459,52 @@ class CopyData(EventData):
         """
 
 
+@document()
+class CustomButtonsData(EventData):
+    """
+    The CustomButtonsData class is a subclass of gr.EventData that carries information
+    when a custom button in the Chatbot is clicked. When CustomButtonsData is added as a
+    type hint to an event listener method, a CustomButtonsData object will automatically
+    be passed as the value of that argument.
+    Example:
+        import gradio as gr
+        examples = [
+            {"role": "user", "content": "User message 1."},
+        ]
+
+        def custom_on_click(data: gr.CustomButtonsData, history: list[gr.MessageDict]):
+            history[data.index]["content"]= "Changed"
+            return history
+
+        with gr.Blocks() as demo:
+            chatbot = gr.Chatbot(
+                type="messages",
+                custom_buttons = [{
+                    "label": "CustomButton",
+                    "visible": "all"
+                }]
+            )
+            chatbot.custom_button(custom_on_click, chatbot, chatbot)
+            demo.load(lambda: examples, None, chatbot)
+        demo.launch()
+    """
+
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.index: int | tuple[int, int] = data["index"]
+        """
+        The index of the message in which the custom button was clicked
+        """
+        self.values: tuple[str] = data["values"]
+        """
+        The value of the message in which the custom button was clicked
+        """
+        self.label: str = data["label"]
+        """
+        The label of the custom button that was clicked
+        """
+
+
 @dataclasses.dataclass
 class EventListenerMethod:
     block: Block | None
@@ -1201,4 +1247,8 @@ class Events:
     copy = EventListener(
         "copy",
         doc="This listener is triggered when the user copies content from the {{ component }}. Uses event data gradio.CopyData to carry information about the copied content. See EventData documentation on how to use this event data",
+    )
+    custom_button = EventListener(
+        "custom_button",
+        doc="This listener is triggered when the user clicks on one of the custom buttons in the chatbot message.",
     )

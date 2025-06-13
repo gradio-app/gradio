@@ -108,6 +108,12 @@ export interface EditData {
 	previous_value: string;
 }
 
+export interface CustomButtonsData {
+	index: number | [number, number];
+	label: string | null;
+	values: string[];
+}
+
 const redirect_src_url = (src: string, root: string): string =>
 	src.replace('src="/file', `src="${root}file`);
 
