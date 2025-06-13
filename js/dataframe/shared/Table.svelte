@@ -477,6 +477,9 @@
 
 	function set_cell_widths(): void {
 		const column_count = data[0]?.length || 0;
+		if ($df_state.filter_state.filter_columns.length > 0) {
+			return;
+		}
 		if (
 			last_width_data_length === data.length &&
 			last_width_column_count === column_count &&
