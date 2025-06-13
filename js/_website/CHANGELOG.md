@@ -1,5 +1,19 @@
 # website
 
+## 0.57.3
+
+### Dependency updates
+
+- @gradio/code@0.14.7
+
+## 0.57.2
+
+### Dependency updates
+
+- @gradio/tabs@0.4.5
+- @gradio/tabitem@0.4.5
+- @gradio/code@0.14.6
+
 ## 0.57.1
 
 ### Fixes

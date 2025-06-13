@@ -74,13 +74,18 @@
 	}
 
 	let old_dependencies = dependencies;
-	$: if (dependencies !== old_dependencies && render_complete) {
+	$: if (
+		dependencies !== old_dependencies &&
+		render_complete &&
+		!layout_creating
+	) {
 		// re-run load triggers in SSR mode when page changes
 		handle_load_triggers();
 		old_dependencies = dependencies;
 	}
 
 	async function run(): Promise<void> {
+		layout_creating = true;
 		await create_layout({
 			components,
 			layout,
@@ -91,6 +96,7 @@
 				fill_height
 			}
 		});
+		layout_creating = false;
 	}
 
 	export let search_params: URLSearchParams;
@@ -126,7 +132,9 @@
 
 	let api_calls: Payload[] = [];
 
+	let layout_creating = false;
 	export let render_complete = false;
+
 	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const dep = dependencies.find((dep) => dep.id === fn_index);
 		const input_type = components.find(
@@ -489,6 +497,11 @@
 					dependencies: dependencies,
 					render_id: render_id
 				});
+				_dependencies.forEach((dep) => {
+					if (dep.targets.some((dep) => dep[1] === "load")) {
+						wait_then_trigger_api_call(dep.id);
+					}
+				});
 			}
 
 			function handle_log(msg: LogMessage): void {
@@ -671,7 +684,6 @@
 			if (is_external_url(_link) && _target !== "_blank")
 				a[i].setAttribute("target", "_blank");
 		}
-
 		handle_load_triggers();
 
 		if (!target || render_complete) return;
