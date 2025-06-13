@@ -135,7 +135,7 @@ function get_component_for_mime_type(
 	if (mime_type.includes("audio")) return "audio";
 	if (mime_type.includes("video")) return "video";
 	if (mime_type.includes("image")) return "image";
-	if (mime_type.includes("model")) return "model3D";
+	if (mime_type.includes("model")) return "model3d";
 	return "file";
 }
 
