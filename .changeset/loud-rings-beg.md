@@ -5,6 +5,7 @@
 "@gradio/checkboxgroup": patch
 "@gradio/client": patch
 "@gradio/colorpicker": patch
+"@gradio/core": patch
 "@gradio/dataframe": patch
 "@gradio/datetime": patch
 "@gradio/dropdown": patch
