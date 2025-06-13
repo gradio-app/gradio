@@ -619,21 +619,20 @@ def resolve_singleton(_list: list[Any] | Any) -> Any:
 
 def get_all_components() -> list[type[Component] | type[BlockContext]]:
     import gradio as gr
-    import gradio.components as components
+    from gradio import components
     from gradio.components import Component
 
     # have to eagerly import all known lazy-loaded Component subclasses
     for c in gr._templates_attrs:
         getattr(gr, c)
     for cs in components._component_submod_attrs.values():
-      for c in cs:
-        getattr(components, c)
-    for c in components._aliases.keys():
+        for c in cs:
+            getattr(components, c)
+    for c in components._aliases:
         getattr(components, c)
 
     classes_to_check = (
-        Component.__subclasses__()
-        + gr.blocks.BlockContext.__subclasses__()  # type: ignore
+        Component.__subclasses__() + gr.blocks.BlockContext.__subclasses__()  # type: ignore
     )
     subclasses = []
     while classes_to_check:

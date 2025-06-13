@@ -1,7 +1,9 @@
-import sys
 import importlib
-import lazy_loader as lazy
+import sys
 from typing import TYPE_CHECKING
+
+import lazy_loader as lazy
+
 from .utils import NO_RELOAD, FileSize, get_package_version, set_static_paths
 from .wasm_utils import IS_WASM
 
@@ -133,15 +135,24 @@ __lazy_getattr__, _, __all__ = lazy.attach(
     submod_attrs=_submod_attrs,
 )
 
-__all__ += ["Theme", "Examples"]
-__all__ += _templates_attrs
+# Need to be explicit to keep linter happy
+__all__ = (
+    list(__all__)
+    + list(_templates_attrs)
+    + [
+        "Theme",
+        "Examples",
+    ]
+)
 
 
 def __getattr__(name):
     if name == "Theme":
-        return importlib.import_module("gradio.themes").Base
+        from .themes import Base as Theme
+        return Theme
     if name == "Examples":
-        return importlib.import_module("gradio.helpers").create_examples
+        from .helpers import create_examples as Examples
+        return Examples
     if name in _templates_attrs:
         mod = sys.modules[__name__]
         original = getattr(importlib.import_module("gradio.templates"), name)
@@ -287,3 +298,128 @@ if TYPE_CHECKING:
     if not IS_WASM:
         from gradio.cli import deploy
         from gradio.ipython_ext import load_ipython_extension
+
+    __all__ = [
+        "Accordion",
+        "AnnotatedImage",
+        "Annotatedimage",
+        "Audio",
+        "BarPlot",
+        "Blocks",
+        "BrowserState",
+        "Brush",
+        "Button",
+        "CSVLogger",
+        "ChatInterface",
+        "ChatMessage",
+        "Chatbot",
+        "Checkbox",
+        "CheckboxGroup",
+        "Checkboxgroup",
+        "ClearButton",
+        "Code",
+        "ColorPicker",
+        "Column",
+        "CopyData",
+        "DataFrame",
+        "Dataframe",
+        "Dataset",
+        "DateTime",
+        "DeletedFileData",
+        "DownloadButton",
+        "DownloadData",
+        "Dropdown",
+        "DuplicateButton",
+        "EditData",
+        "Eraser",
+        "Error",
+        "EventData",
+        "Examples",
+        "File",
+        "FileData",
+        "FileExplorer",
+        "FileSize",
+        "Files",
+        "FlaggingCallback",
+        "Gallery",
+        "Group",
+        "HTML",
+        "Highlight",
+        "HighlightedText",
+        "Highlightedtext",
+        "IS_WASM",
+        "Image",
+        "ImageEditor",
+        "ImageSlider",
+        "ImageMask",
+        "Info",
+        "Interface",
+        "JSON",
+        "Json",
+        "KeyUpData",
+        "Label",
+        "LayerOptions",
+        "LikeData",
+        "LinePlot",
+        "List",
+        "LoginButton",
+        "Markdown",
+        "Matrix",
+        "MessageDict",
+        "Mic",
+        "Microphone",
+        "Model3D",
+        "MultimodalTextbox",
+        "NO_RELOAD",
+        "Number",
+        "Numpy",
+        "OAuthProfile",
+        "OAuthToken",
+        "Paint",
+        "ParamViewer",
+        "PlayableVideo",
+        "Plot",
+        "Progress",
+        "Radio",
+        "Request",
+        "RetryData",
+        "Row",
+        "ScatterPlot",
+        "SelectData",
+        "Sidebar",
+        "SimpleCSVLogger",
+        "Sketchpad",
+        "Slider",
+        "State",
+        "Success",
+        "Tab",
+        "TabItem",
+        "TabbedInterface",
+        "Tabs",
+        "Text",
+        "TextArea",
+        "Textbox",
+        "Theme",
+        "Timer",
+        "UndoData",
+        "UploadButton",
+        "Video",
+        "Warning",
+        "WaveformOptions",
+        "WebcamOptions",
+        "__version__",
+        "close_all",
+        "deploy",
+        "get_package_version",
+        "I18n",
+        "load",
+        "load_chat",
+        "load_ipython_extension",
+        "mount_gradio_app",
+        "on",
+        "render",
+        "set_static_paths",
+        "skip",
+        "update",
+        "DeepLinkButton",
+    ]

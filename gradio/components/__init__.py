@@ -1,5 +1,6 @@
 import sys
 from typing import TYPE_CHECKING
+
 import lazy_loader as lazy
 
 # Assumption: all these are subclasses of Component
@@ -95,7 +96,9 @@ def __getattr__(name):
         setattr(mod, name, original)
         return original
     if name == "Form":
-        return getattr(gradio.layouts, "Form")
+        from gradio import layouts
+
+        return layouts.Form
 
     return __lazy_getattr__(name)
 
@@ -166,3 +169,70 @@ if TYPE_CHECKING:
     Highlight = HighlightedText
     Checkboxgroup = CheckboxGroup
     Json = JSON
+
+    __all__ = [
+        "Audio",
+        "BarPlot",
+        "Button",
+        "Chatbot",
+        "ChatMessage",
+        "ClearButton",
+        "Component",
+        "component",
+        "get_component_instance",
+        "_Keywords",
+        "Checkbox",
+        "CheckboxGroup",
+        "Code",
+        "ColorPicker",
+        "Dataframe",
+        "DataFrame",
+        "Dataset",
+        "DownloadButton",
+        "DuplicateButton",
+        "Fallback",
+        "Form",
+        "FormComponent",
+        "Gallery",
+        "HTML",
+        "FileExplorer",
+        "Image",
+        "JSON",
+        "Json",
+        "Label",
+        "LinePlot",
+        "BrowserState",
+        "LoginButton",
+        "Markdown",
+        "MessageDict",
+        "Textbox",
+        "DateTime",
+        "Dropdown",
+        "Model3D",
+        "File",
+        "HighlightedText",
+        "AnnotatedImage",
+        "CheckboxGroup",
+        "Text",
+        "Highlightedtext",
+        "Annotatedimage",
+        "Highlight",
+        "Checkboxgroup",
+        "Number",
+        "Plot",
+        "Radio",
+        "ScatterPlot",
+        "Slider",
+        "State",
+        "Timer",
+        "UploadButton",
+        "Video",
+        "StreamingInput",
+        "StreamingOutput",
+        "ImageEditor",
+        "ImageSlider",
+        "ParamViewer",
+        "MultimodalTextbox",
+        "NativePlot",
+        "DeepLinkButton",
+    ]

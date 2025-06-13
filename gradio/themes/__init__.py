@@ -1,5 +1,7 @@
-import lazy_loader as lazy
 from typing import TYPE_CHECKING
+
+import lazy_loader as lazy
+
 from .utils import colors, fonts, sizes
 
 __lazy_getattr__, __dir__, __all__ = lazy.attach(
@@ -48,6 +50,24 @@ if TYPE_CHECKING:
     from gradio.themes.utils.colors import Color
     from gradio.themes.utils.fonts import Font, GoogleFont
     from gradio.themes.utils.sizes import Size
+
+    __all__ = [
+        "Base",
+        "Color",
+        "Default",
+        "Font",
+        "Glass",
+        "GoogleFont",
+        "Monochrome",
+        "Size",
+        "Soft",
+        "ThemeClass",
+        "colors",
+        "sizes",
+        "Origin",
+        "Citrus",
+        "Ocean",
+    ]
 
 
 def builder(*args, **kwargs):

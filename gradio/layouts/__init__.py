@@ -1,5 +1,6 @@
-import lazy_loader as lazy
 from typing import TYPE_CHECKING
+
+import lazy_loader as lazy
 
 __getattr__, __dir__, __all__ = lazy.attach(
     __name__,
@@ -25,3 +26,15 @@ if TYPE_CHECKING:
     from .row import Row
     from .sidebar import Sidebar
     from .tabs import Tab, TabItem, Tabs
+
+    __all__ = [
+        "Accordion",
+        "Column",
+        "Form",
+        "Row",
+        "Group",
+        "Tabs",
+        "Tab",
+        "TabItem",
+        "Sidebar",
+    ]
