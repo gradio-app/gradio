@@ -1,5 +1,15 @@
 # @gradio/chatbot
 
+## 0.26.13
+
+### Fixes
+
+- [#11368](https://github.com/gradio-app/gradio/pull/11368) [`3f53679`](https://github.com/gradio-app/gradio/commit/3f5367986e90c57465bdbb809b318da6aed5400d) - Fixes chatbot unsupported components.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/gallery@0.15.23
+
 ## 0.26.12
 
 ### Dependency updates
