@@ -17,7 +17,6 @@
 "@gradio/radio": patch
 "@gradio/sanitize": patch
 "@gradio/simpledropdown": patch
-"@gradio/simpleimage": patch
 "@gradio/simpletextbox": patch
 "@gradio/slider": patch
 "@gradio/textbox": patch
