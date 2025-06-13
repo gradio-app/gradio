@@ -30,7 +30,6 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let interactive = true;
-	export let root: string;
 	export let rtl = false;
 
 	function handle_change(): void {
@@ -64,7 +63,7 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 
-	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">
 		{#each choices as [display_value, internal_value], i (i)}

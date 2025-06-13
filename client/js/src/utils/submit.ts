@@ -295,7 +295,7 @@ export function submit(
 					let url = new URL(
 						`${ws_protocol}://${resolve_root(
 							host,
-							config.path as string,
+							config.root as string,
 							true
 						)}/queue/join${url_params ? "?" + url_params : ""}`
 					);

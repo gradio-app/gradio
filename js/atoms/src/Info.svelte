@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
 	export let info: string;
-	export let root: string;
 </script>
 
 <div>
-	<Markdown {root} message={info} sanitize_html={true} />
+	<Markdown message={info} sanitize_html={true} />
 </div>
 
 <style>

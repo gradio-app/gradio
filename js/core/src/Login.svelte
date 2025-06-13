@@ -50,7 +50,6 @@
 		<Form>
 			<Block>
 				<Textbox
-					{root}
 					label={$_("login.username")}
 					lines={1}
 					show_label={true}
@@ -62,7 +61,6 @@
 
 			<Block>
 				<Textbox
-					{root}
 					label={$_("login.password")}
 					lines={1}
 					show_label={true}

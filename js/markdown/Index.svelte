@@ -71,7 +71,6 @@
 			{line_breaks}
 			{header_links}
 			{show_copy_button}
-			root={gradio.root}
 			{loading_status}
 			{theme_mode}
 		/>

@@ -14,7 +14,6 @@
 		right: string;
 		display: boolean;
 	}[];
-	export let root: string;
 
 	const dispatch = createEventDispatcher<{
 		example_select: SelectData;
@@ -36,7 +35,7 @@
 <div class="placeholder-content" role="complementary">
 	{#if placeholder !== null}
 		<div class="placeholder">
-			<Markdown message={placeholder} {latex_delimiters} {root} />
+			<Markdown message={placeholder} {latex_delimiters} />
 		</div>
 	{/if}
 	{#if examples !== null}

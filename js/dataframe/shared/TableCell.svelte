@@ -53,7 +53,6 @@
 	export let datatype: Datatype;
 	export let editing: [number, number] | false;
 	export let max_chars: number | undefined;
-	export let root: string;
 	export let editable: boolean;
 	export let is_static = false;
 	export let i18n: I18nFormatter;
@@ -139,7 +138,6 @@
 				}
 			}}
 			on:blur={handle_blur}
-			{root}
 			{max_chars}
 			{i18n}
 			{components}

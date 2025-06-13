@@ -19,7 +19,6 @@
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let header_links = false;
-	export let root: string;
 	export let allow_tags: string[] | boolean = false;
 	export let theme_mode: ThemeMode = "system";
 	let el: HTMLSpanElement;
@@ -101,7 +100,7 @@
 		}
 
 		if (sanitize_html && sanitize) {
-			parsedValue = sanitize(parsedValue, root);
+			parsedValue = sanitize(parsedValue);
 		}
 		return parsedValue;
 	}
