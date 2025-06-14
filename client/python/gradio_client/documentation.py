@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import dataclasses
+import importlib
 import inspect
 import warnings
 from collections import defaultdict
@@ -45,20 +46,21 @@ def extract_instance_attr_doc(cls, attr):
 
 _module_prefixes = [
     ("gradio._simple_templates", "component"),
-    ("gradio.block", "block"),
-    ("gradio.chat", "chatinterface"),
-    ("gradio.component", "component"),
+    ("gradio.blocks", "block"),
+    ("gradio.chat_interface", "chatinterface"),
+    ("gradio.components", "component"),
     ("gradio.events", "helpers"),
     ("gradio.data_classes", "helpers"),
     ("gradio.exceptions", "helpers"),
     ("gradio.external", "helpers"),
-    ("gradio.flag", "flagging"),
+    ("gradio.flagging", "flagging"),
     ("gradio.helpers", "helpers"),
     ("gradio.interface", "interface"),
-    ("gradio.layout", "layout"),
-    ("gradio.route", "routes"),
-    ("gradio.theme", "themes"),
-    ("gradio_client.", "py-client"),
+    ("gradio.layouts", "layout"),
+    ("gradio.routes", "routes"),
+    ("gradio.route_utils", "helpers"),
+    ("gradio.themes", "themes"),
+    ("gradio_client", "py-client"),
     ("gradio.utils", "helpers"),
     ("gradio.renderable", "renderable"),
 ]
@@ -245,6 +247,12 @@ def document_cls(cls):
 
 
 def generate_documentation():
+    # Force imports to get documentation
+    for m, _ in _module_prefixes:
+        mod = importlib.import_module(m)
+        for a in dir(mod):
+            getattr(mod, a)
+
     documentation = {}
     for mode, class_list in classes_to_document.items():
         documentation[mode] = []

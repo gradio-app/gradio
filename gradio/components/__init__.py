@@ -105,6 +105,11 @@ def __getattr__(name):
 
 __all__ += list(_aliases.keys())
 
+
+def __dir__():
+    return __all__.copy()
+
+
 # Needed so static type inference doesn't break
 # Make sure these imports stay synchronized with the lazy imports above
 if TYPE_CHECKING:

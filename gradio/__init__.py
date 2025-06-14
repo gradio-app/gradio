@@ -146,12 +146,18 @@ __all__ = (
 )
 
 
+def __dir__():
+    return __all__.copy()
+
+
 def __getattr__(name):
     if name == "Theme":
         from .themes import Base as Theme
+
         return Theme
     if name == "Examples":
-        from .helpers import create_examples as Examples
+        from .helpers import create_examples as Examples  # noqa
+
         return Examples
     if name in _templates_attrs:
         mod = sys.modules[__name__]
