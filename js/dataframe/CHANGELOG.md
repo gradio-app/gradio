@@ -1,5 +1,32 @@
 # @gradio/dataframe
 
+## 0.17.16
+
+### Fixes
+
+- [#11349](https://github.com/gradio-app/gradio/pull/11349) [`bed858b`](https://github.com/gradio-app/gradio/commit/bed858b62b9887e606618bea5fe8a2f212b4a645) - Fix DataFrame Scroll Divergence.  Thanks @deckar01!
+- [#11346](https://github.com/gradio-app/gradio/pull/11346) [`3a9a002`](https://github.com/gradio-app/gradio/commit/3a9a0025efd49942303517c5dbd426d41241b7f6) - Hide native Dataframe to screen readers.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/markdown-code@0.4.3
+- @gradio/statustracker@0.10.12
+- @gradio/button@0.5.3
+- @gradio/checkbox@0.4.23
+
+## 0.17.15
+
+### Features
+
+- [#11237](https://github.com/gradio-app/gradio/pull/11237) [`a6f6b40`](https://github.com/gradio-app/gradio/commit/a6f6b40dda5194fa5bc9926ef67f2a75f503e9a4) - Enhance boolean cell types in `gr.Dataframe`.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/upload@0.16.7
+- @gradio/checkbox@0.4.23
+- @gradio/client@1.15.2
+- @gradio/button@0.5.3
+
 ## 0.17.14
 
 ### Fixes

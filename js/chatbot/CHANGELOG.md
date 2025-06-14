@@ -1,5 +1,39 @@
 # @gradio/chatbot
 
+## 0.26.14
+
+### Fixes
+
+- [#11386](https://github.com/gradio-app/gradio/pull/11386) [`92aa905`](https://github.com/gradio-app/gradio/commit/92aa9058e101a6f4ddf72495a87ae392802d9f2d) - Hide pending message indicator ("...") from `gr.Chatbot` if `show_progress="hidden"`.  Thanks @abidlabs!
+- [#11378](https://github.com/gradio-app/gradio/pull/11378) [`3ec4a7c`](https://github.com/gradio-app/gradio/commit/3ec4a7c376b5eee9e2d5a0b858c374b417f8c61a) - Add Model3D support in Chatbot.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/gallery@0.15.23
+- @gradio/markdown-code@0.4.3
+- @gradio/plot@0.9.17
+- @gradio/statustracker@0.10.12
+
+## 0.26.13
+
+### Fixes
+
+- [#11368](https://github.com/gradio-app/gradio/pull/11368) [`3f53679`](https://github.com/gradio-app/gradio/commit/3f5367986e90c57465bdbb809b318da6aed5400d) - Fixes chatbot unsupported components.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/gallery@0.15.23
+
+## 0.26.12
+
+### Dependency updates
+
+- @gradio/upload@0.16.7
+- @gradio/video@0.14.17
+- @gradio/client@1.15.2
+- @gradio/image@0.22.9
+- @gradio/gallery@0.15.22
+
 ## 0.26.11
 
 ### Features

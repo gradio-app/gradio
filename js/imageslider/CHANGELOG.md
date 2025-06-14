@@ -1,5 +1,22 @@
 # @gradio/imageslider
 
+## 0.2.5
+
+### Fixes
+
+- [#11381](https://github.com/gradio-app/gradio/pull/11381) [`0e6fae0`](https://github.com/gradio-app/gradio/commit/0e6fae015069b6b4c44523642abfbbfced394ab2) - Fix transparent bg issue in gr.ImageSlider.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.2.4
+
+### Dependency updates
+
+- @gradio/upload@0.16.7
+- @gradio/client@1.15.2
+
 ## 0.2.3
 
 ### Dependency updates

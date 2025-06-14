@@ -1,5 +1,17 @@
 # @gradio/textbox
 
+## 0.10.14
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.10.14
+
+### Features
+
+- [#11380](https://github.com/gradio-app/gradio/pull/11380) [`0b2b6cb`](https://github.com/gradio-app/gradio/commit/0b2b6cbd44562a2f5843af872fe6761c5f255185) - Truncate textbox examples to 70 chars.  Thanks @hannahblair!
+
 ## 0.10.13
 
 ### Fixes

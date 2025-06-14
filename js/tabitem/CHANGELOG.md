@@ -1,5 +1,17 @@
 # @gradio/tabitem
 
+## 0.4.5
+
+### Dependency updates
+
+- @gradio/tabs@0.4.5
+
+## 0.4.5
+
+### Dependency updates
+
+- @gradio/tabs@0.4.5
+
 ## 0.4.4
 
 ### Dependency updates
