@@ -262,7 +262,7 @@ class GradioMCPServer:
                 routes=[
                     Route(
                         "/schema",
-                        endpoint=self.get_complete_schema,  # Not required for MCP but useful for debugging
+                        endpoint=self.get_complete_schema,  # Not required for MCP but used by the Hugging Face MCP server to get the schema for MCP Spaces without needing to establish an SSE connection
                     ),
                     Route("/sse", endpoint=handle_sse),
                     Mount("/messages/", app=sse.handle_post_message),
@@ -364,7 +364,9 @@ class GradioMCPServer:
 
     async def get_complete_schema(self, request) -> JSONResponse:  # noqa: ARG002
         """
-        Get the complete schema of the Gradio app API. (For debugging purposes)
+        Get the complete schema of the Gradio app API. For debugging purposes, also used by
+        the Hugging Face MCP server to get the schema for MCP Spaces without needing to
+        establish an SSE connection.
 
         Parameters:
             request: The Starlette request object.
