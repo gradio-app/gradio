@@ -10,8 +10,8 @@ class BaseMessage(BaseModel):
 
 
 class ProgressUnit(BaseModel):
-    index: Optional[int] = None
-    length: Optional[int] = None
+    index: Optional[int | float] = None
+    length: Optional[int | float] = None
     unit: Optional[str] = None
     progress: Optional[float] = None
     desc: Optional[str] = None

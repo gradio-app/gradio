@@ -1,5 +1,47 @@
 # @gradio/gallery
 
+## 0.15.23
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.15.23
+
+### Fixes
+
+- [#11362](https://github.com/gradio-app/gradio/pull/11362) [`1b88339`](https://github.com/gradio-app/gradio/commit/1b883395eb3feceed60ec79fcf19285269e2b171) - Fix Gallery thumbnail overflow.  Thanks @freddyaboulton!
+
+## 0.15.22
+
+### Dependency updates
+
+- @gradio/upload@0.16.7
+- @gradio/video@0.14.17
+- @gradio/client@1.15.2
+- @gradio/file@0.12.20
+- @gradio/image@0.22.9
+
+## 0.15.21
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/video@0.14.16
+- @gradio/image@0.22.8
+- @gradio/file@0.12.19
+
+## 0.15.20
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/client@1.15.1
+- @gradio/upload@0.16.6
+- @gradio/image@0.22.7
+- @gradio/file@0.12.19
+- @gradio/video@0.14.15
+
 ## 0.15.19
 
 ### Features

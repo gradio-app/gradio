@@ -1,6 +1,6 @@
 # Custom Components in 5 minutes
 
-Gradio includes the ability for developers to create their own custom components and use them in Gradio apps.You can publish your components as Python packages so that other users can use them as well.
+Gradio includes the ability for developers to create their own custom components and use them in Gradio apps. You can publish your components as Python packages so that other users can use them as well.
 
 Users will be able to use all of Gradio's existing functions, such as `gr.Blocks`, `gr.Interface`, API usage, themes, etc. with Custom Components. This guide will cover how to get started making custom components.
 
@@ -104,7 +104,7 @@ gradio cc publish
 
 This will guide you through the following process:
 
-1. Upload your distribution files to PyPi. This is optional. If you decide to upload to PyPi, you will need a PyPI username and password. You can get one [here](https://pypi.org/account/register/).
+1. Upload your distribution files to PyPi. This makes it easier to upload the demo to Hugging Face spaces. Otherwise your package must be at a publicly available url. If you decide to upload to PyPi, you will need a PyPI username and password. You can get one [here](https://pypi.org/account/register/).
 2. Upload a demo of your component to hugging face spaces. This is also optional.
 
 

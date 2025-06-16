@@ -1,5 +1,27 @@
 # @gradio/slider
 
+## 0.6.11
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.6.11
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.6.11
+
+### Fixes
+
+- [#11278](https://github.com/gradio-app/gradio/pull/11278) [`ac2bcea`](https://github.com/gradio-app/gradio/commit/ac2bcea619806ff99a44d98c15ca5c5969cdd54d) - Add gap around slider input in mobile.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
 ## 0.6.10
 
 ### Fixes

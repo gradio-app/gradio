@@ -1,5 +1,29 @@
 # @gradio/checkbox
 
+## 0.4.23
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.4.23
+
+### Features
+
+- [#11237](https://github.com/gradio-app/gradio/pull/11237) [`a6f6b40`](https://github.com/gradio-app/gradio/commit/a6f6b40dda5194fa5bc9926ef67f2a75f503e9a4) - Enhance boolean cell types in `gr.Dataframe`.  Thanks @hannahblair!
+
+## 0.4.22
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.4.22
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
 ## 0.4.21
 
 ### Dependency updates

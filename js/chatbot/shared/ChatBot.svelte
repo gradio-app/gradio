@@ -92,6 +92,7 @@
 	export let root: string;
 	export let allow_tags: string[] | boolean = false;
 	export let watermark: string | null = null;
+	export let show_progress: "full" | "minimal" | "hidden" = "full";
 
 	let target: HTMLElement | null = null;
 	let edit_index: number | null = null;
@@ -139,9 +140,8 @@
 			// so trigger the scroll again after they load.
 			scroll_after_component_load = true;
 			await tick(); // Wait for the DOM to update so that the scrollHeight is correct
+			await new Promise((resolve) => setTimeout(resolve, 300));
 			scroll_to_bottom();
-		} else {
-			show_scroll_button = true;
 		}
 	}
 	onMount(() => {
@@ -160,6 +160,7 @@
 				show_scroll_button = false;
 			} else {
 				scroll_after_component_load = false;
+				show_scroll_button = true;
 			}
 		}
 
@@ -354,11 +355,11 @@
 					{allow_file_downloads}
 					on:copy={(e) => dispatch("copy", e.detail)}
 				/>
-				{#if generating && messages[messages.length - 1].role === "assistant" && messages[messages.length - 1].metadata?.status === "done"}
+				{#if show_progress !== "hidden" && generating && messages[messages.length - 1].role === "assistant" && messages[messages.length - 1].metadata?.status === "done"}
 					<Pending {layout} {avatar_images} />
 				{/if}
 			{/each}
-			{#if pending_message}
+			{#if show_progress !== "hidden" && pending_message}
 				<Pending {layout} {avatar_images} />
 			{:else if options}
 				<div class="options">

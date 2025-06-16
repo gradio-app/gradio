@@ -1,5 +1,28 @@
 # @gradio/sidebar
 
+## 0.1.14
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.1.14
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.1.14
+
+### Fixes
+
+- [#11270](https://github.com/gradio-app/gradio/pull/11270) [`636be09`](https://github.com/gradio-app/gradio/commit/636be09928448dd6d4ef29013dbf698f22787d3d) - A few frontend / UI fixes to `gr.Sidebar`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/column@0.2.0
+
 ## 0.1.13
 
 ### Dependency updates

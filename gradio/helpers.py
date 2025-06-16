@@ -53,6 +53,7 @@ def create_examples(
     *,
     example_labels: list[str] | None = None,
     visible: bool = True,
+    preload: int | Literal[False] = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
     examples_obj = Examples(
@@ -74,6 +75,7 @@ def create_examples(
         example_labels=example_labels,
         visible=visible,
         _initiated_directly=False,
+        preload=preload,
     )
     examples_obj.create()
     return examples_obj
@@ -111,6 +113,7 @@ class Examples:
         *,
         example_labels: list[str] | None = None,
         visible: bool = True,
+        preload: int | Literal[False] = False,
         _initiated_directly: bool = True,
     ):
         """
@@ -131,6 +134,7 @@ class Examples:
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is not False.
             example_labels: A list of labels for each example. If provided, the length of this list should be the same as the number of examples, and these labels will be used in the UI instead of rendering the example values.
             visible: If False, the examples component will be hidden in the UI.
+            preload: If an integer is provided (and examples are being cached), the example at that index in the examples list will be preloaded when the Gradio app is loaded. If False, no example will be preloaded.
         """
         if _initiated_directly:
             warnings.warn(
@@ -259,6 +263,7 @@ class Examples:
         self.batch = batch
         self.example_labels = example_labels
         self.working_directory = working_directory
+        self.preload = preload
 
         from gradio import components
 
@@ -375,6 +380,38 @@ class Examples:
                     api_name=self.api_name,
                     show_api=False,
                 )
+
+                if (
+                    self.preload is not False
+                    and self.cache_examples != "lazy"
+                    and self.root_block
+                ):
+                    self.root_block.load(
+                        load_example_input,
+                        inputs=[
+                            components.State(
+                                (self.preload, self.non_none_examples[self.preload])
+                            )
+                        ],
+                        outputs=self.inputs,
+                        show_progress="hidden",
+                        postprocess=False,
+                        queue=False,
+                        show_api=False,
+                    )
+                    self.root_block.load(
+                        load_example_output,
+                        inputs=[
+                            components.State(
+                                (self.preload, self.non_none_examples[self.preload])
+                            )
+                        ],
+                        outputs=self.outputs,
+                        postprocess=False,
+                        show_progress="hidden",
+                        show_api=False,
+                    )
+
             else:
 
                 def load_example(example_tuple):
@@ -546,6 +583,9 @@ class Examples:
                 if self.batch:
                     output = [value[0] for value in output]
                 self.cache_logger.flag(output)
+                with open(self.cached_indices_file, "a") as f:
+                    f.write(f"{example_id or i}\n")
+
             # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
             self.root_block.default_config.fns.pop(fn_index)
 
@@ -554,20 +594,19 @@ class Examples:
         Parameters:
             example_id: The id of the example to process (zero-indexed).
         """
-        if self.cache_examples == "lazy":
-            if (cached_index := self._get_cached_index_if_cached(example_id)) is None:
-                client_utils.synchronize_async(self.cache, example_id)
-                with open(self.cached_indices_file, "a") as f:
-                    f.write(f"{example_id}\n")
-                with open(self.cached_indices_file) as f:
-                    example_id = len(f.readlines()) - 1
-            else:
-                example_id = cached_index
+        cached_index = self._get_cached_index_if_cached(example_id)
+        if cached_index is None:
+            client_utils.synchronize_async(self.cache, example_id)
+            with open(self.cached_indices_file) as f:
+                cached_index = len(f.readlines()) - 1
 
         with open(self.cached_file, encoding="utf-8") as cache:
             examples = list(csv.reader(cache))
 
-        example = examples[example_id + 1]  # +1 to adjust for header
+        if cached_index + 1 >= len(examples):
+            raise IndexError("Cached example not found in cache file")
+        example = examples[cached_index + 1]  # +1 to adjust for header
+
         output = []
         if self.outputs is None:
             raise ValueError("self.outputs is missing")
@@ -624,8 +663,8 @@ class TrackedIterable:
     def __init__(
         self,
         iterable: Iterable | None,
-        index: int | None,
-        length: int | None,
+        index: int | float | None,
+        length: int | float | None,
         desc: str | None,
         unit: str | None,
         _tqdm=None,
@@ -706,7 +745,7 @@ class Progress(Iterable):
         self,
         progress: float | tuple[int, int | None] | None,
         desc: str | None = None,
-        total: int | None = None,
+        total: int | float | None = None,
         unit: str = "steps",
         _tqdm=None,
     ):
@@ -736,7 +775,7 @@ class Progress(Iterable):
         self,
         iterable: Iterable | None,
         desc: str | None = None,
-        total: int | None = None,
+        total: int | float | None = None,
         unit: str = "steps",
         _tqdm=None,
     ):
@@ -761,7 +800,7 @@ class Progress(Iterable):
             )
         return self
 
-    def update(self, n=1):
+    def update(self, n: int | float = 1):
         """
         Increases latest iterable with specified number of steps.
         Parameters:

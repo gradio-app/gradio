@@ -120,7 +120,7 @@
 		const observer = new IntersectionObserver((entries) => {
 			entries.forEach((entry) => {
 				if (entry.isIntersecting && !is_visible) {
-					set_cell_widths();
+					width_calculated = false;
 				}
 				is_visible = entry.isIntersecting;
 			});
@@ -129,10 +129,18 @@
 		document.addEventListener("click", handle_click_outside);
 		window.addEventListener("resize", handle_resize);
 
+		const global_mouse_up = (event: MouseEvent): void => {
+			if (is_dragging || drag_start) {
+				handle_mouse_up(event);
+			}
+		};
+		document.addEventListener("mouseup", global_mouse_up);
+
 		return () => {
 			observer.disconnect();
 			document.removeEventListener("click", handle_click_outside);
 			window.removeEventListener("resize", handle_resize);
+			document.removeEventListener("mouseup", global_mouse_up);
 		};
 	});
 
@@ -223,6 +231,7 @@
 				}
 				last_width_data_length = 0;
 				last_width_column_count = 0;
+				width_calculated = false;
 			}
 		}
 
@@ -256,8 +265,8 @@
 			df_actions.handle_search(null);
 		}
 
-		if (parent && cells.length > 0) {
-			set_cell_widths();
+		if (parent && cells.length > 0 && (is_reset || is_different_structure)) {
+			width_calculated = false;
 		}
 	}
 
@@ -421,9 +430,17 @@
 
 	$: max = get_max(data);
 
-	// Modify how we trigger cell width calculations
-	// Only recalculate when cells actually change, not during sort
-	$: cells[0] && cells[0]?.clientWidth && set_cell_widths();
+	let width_calc_timeout: ReturnType<typeof setTimeout>;
+	$: if (cells[0] && cells[0]?.clientWidth) {
+		clearTimeout(width_calc_timeout);
+		width_calc_timeout = setTimeout(() => set_cell_widths(), 100);
+	}
+
+	let width_calculated = false;
+	$: if (cells[0] && !width_calculated) {
+		set_cell_widths();
+		width_calculated = true;
+	}
 	let cells: HTMLTableCellElement[] = [];
 	let parent: HTMLDivElement;
 	let table: HTMLTableElement;
@@ -649,6 +666,7 @@
 		selected_cells = [];
 		selected = false;
 		editing = false;
+		width_calculated = false;
 		set_cell_widths();
 	}
 
@@ -762,7 +780,7 @@
 		role="grid"
 		tabindex="0"
 	>
-		<table bind:this={table}>
+		<table bind:this={table} aria-hidden="true">
 			{#if label && label.length !== 0}
 				<caption class="sr-only">{label}</caption>
 			{/if}
@@ -1092,7 +1110,11 @@
 		overflow-x: hidden;
 	}
 
-	.row-odd {
+	tr {
+		background: var(--table-even-background-fill);
+	}
+
+	tr.row-odd {
 		background: var(--table-odd-background-fill);
 	}
 

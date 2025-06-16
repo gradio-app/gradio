@@ -1,5 +1,40 @@
 # @gradio/audio
 
+## 0.17.17
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/button@0.5.3
+
+## 0.17.17
+
+### Dependency updates
+
+- @gradio/upload@0.16.7
+- @gradio/client@1.15.2
+- @gradio/button@0.5.3
+
+## 0.17.16
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/button@0.5.2
+
+## 0.17.15
+
+### Fixes
+
+- [#11272](https://github.com/gradio-app/gradio/pull/11272) [`8177b01`](https://github.com/gradio-app/gradio/commit/8177b014e5539aa1011a74856d065dbb17fa0326) - Fix bug where streaming one chunk of audio or video would not play.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/client@1.15.1
+- @gradio/button@0.5.1
+- @gradio/upload@0.16.6
+
 ## 0.17.14
 
 ### Dependency updates

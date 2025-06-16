@@ -1,5 +1,101 @@
 # @gradio/core
 
+## 0.19.2
+
+### Dependency updates
+
+- @gradio/gallery@0.15.23
+- @gradio/plot@0.9.17
+- @gradio/statustracker@0.10.12
+- @gradio/button@0.5.3
+- @gradio/checkbox@0.4.23
+- @gradio/code@0.14.7
+- @gradio/paramviewer@0.7.10
+- @gradio/tabitem@0.4.5
+- @gradio/tabs@0.4.5
+
+## 0.19.2
+
+### Fixes
+
+- [#11364](https://github.com/gradio-app/gradio/pull/11364) [`467de5d`](https://github.com/gradio-app/gradio/commit/467de5d865f8b841cb0d065031d5458f52ee2d29) - Call load events on @gr.render.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/gallery@0.15.23
+- @gradio/code@0.14.7
+- @gradio/textbox@0.10.14
+
+## 0.19.1
+
+### Fixes
+
+- [#11338](https://github.com/gradio-app/gradio/pull/11338) [`b31c3ed`](https://github.com/gradio-app/gradio/commit/b31c3edef97373b96f188072d5bb16db9d690261) - Fix Reload Mode when using gr.render.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/upload@0.16.7
+- @gradio/video@0.14.17
+- @gradio/checkbox@0.4.23
+- @gradio/client@1.15.2
+- @gradio/button@0.5.3
+- @gradio/tabs@0.4.5
+- @gradio/tabitem@0.4.5
+- @gradio/code@0.14.6
+- @gradio/file@0.12.20
+- @gradio/image@0.22.9
+- @gradio/gallery@0.15.22
+
+## 0.19.0
+
+### Features
+
+- [#11306](https://github.com/gradio-app/gradio/pull/11306) [`6cd608d`](https://github.com/gradio-app/gradio/commit/6cd608d8f9b1a142c58f0d2db861845ec267f705) - Improvements for plots and event listeners in re-renders.  Thanks @aliabid94!
+- [#11328](https://github.com/gradio-app/gradio/pull/11328) [`ff39d56`](https://github.com/gradio-app/gradio/commit/ff39d568dc9a8a44807126c7366ac8f7dc63df12) - Update mcp schema to include return type information from function.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/textbox@0.10.13
+
+## 0.18.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/gallery@0.15.21
+- @gradio/plot@0.9.17
+- @gradio/button@0.5.2
+- @gradio/video@0.14.16
+- @gradio/image@0.22.8
+- @gradio/file@0.12.19
+
+## 0.18.1
+
+### Features
+
+- [#11289](https://github.com/gradio-app/gradio/pull/11289) [`1b6bd1e`](https://github.com/gradio-app/gradio/commit/1b6bd1ee5a96541e88b5834784b9acd6bd344187) - Include default values in MCP docs.  Thanks @abidlabs!
+
+### Fixes
+
+- [#11271](https://github.com/gradio-app/gradio/pull/11271) [`ab25fb9`](https://github.com/gradio-app/gradio/commit/ab25fb9adb4e0401a060cdd07c0985483075123c) - Ensure i18n setup is complete when rendering.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/column@0.2.0
+- @gradio/code@0.14.5
+- @gradio/paramviewer@0.7.10
+- @gradio/client@1.15.1
+- @gradio/button@0.5.1
+- @gradio/upload@0.16.6
+- @gradio/image@0.22.7
+- @gradio/gallery@0.15.20
+- @gradio/plot@0.9.17
+- @gradio/checkbox@0.4.22
+- @gradio/file@0.12.19
+- @gradio/video@0.14.15
+- @gradio/textbox@0.10.12
+
 ## 0.18.0
 
 ### Features

@@ -1,5 +1,17 @@
 # @gradio/preview
 
+## 0.13.2
+
+### Fixes
+
+- [#11395](https://github.com/gradio-app/gradio/pull/11395) [`59e8b23`](https://github.com/gradio-app/gradio/commit/59e8b236cbbbfd3ad7667fbad31a16677098d9a6) - Be able to run gradio cc dev if the parent directory has spaces.  Thanks @freddyaboulton!
+
+## 0.13.1
+
+### Fixes
+
+- [#11304](https://github.com/gradio-app/gradio/pull/11304) [`bdbc210`](https://github.com/gradio-app/gradio/commit/bdbc210dbf09555b3bd8f647c6f19621771b5771) - Fix custom components build and dev mode with certain base components (Image and Audio at least).  Thanks @pngwn!
+
 ## 0.13.0
 
 ### Features

@@ -1,5 +1,57 @@
 # website
 
+## 0.57.4
+
+### Fixes
+
+- [#11370](https://github.com/gradio-app/gradio/pull/11370) [`992f84b`](https://github.com/gradio-app/gradio/commit/992f84bc0147ebacbf76bc6ca7d931ccdeb06839) - Fix zerogu-guide.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/code@0.14.7
+- @gradio/paramviewer@0.7.10
+- @gradio/tabitem@0.4.5
+- @gradio/tabs@0.4.5
+
+## 0.57.3
+
+### Dependency updates
+
+- @gradio/code@0.14.7
+
+## 0.57.2
+
+### Dependency updates
+
+- @gradio/tabs@0.4.5
+- @gradio/tabitem@0.4.5
+- @gradio/code@0.14.6
+
+## 0.57.1
+
+### Fixes
+
+- [#11315](https://github.com/gradio-app/gradio/pull/11315) [`86f2feb`](https://github.com/gradio-app/gradio/commit/86f2feb20b406fb9b7357c8ce2d2ffb69c21c1b6) - Update tweets on the landing page.  Thanks @aliabd!
+
+## 0.57.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.57.0
+
+### Features
+
+- [#11268](https://github.com/gradio-app/gradio/pull/11268) [`7bf3161`](https://github.com/gradio-app/gradio/commit/7bf3161c0688e664053b9288a3867d001a306ba0) - Add hackathon to website banner.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/code@0.14.5
+- @gradio/paramviewer@0.7.10
+
 ## 0.56.2
 
 ### Dependency updates
