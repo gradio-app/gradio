@@ -287,11 +287,9 @@ def detect_audio_format(data: bytes) -> str:
 def save_bytes_to_cache(data: bytes, file_name: str, cache_dir: str) -> str:
     path = Path(cache_dir) / hash_bytes(data)
     path.mkdir(exist_ok=True, parents=True)
-
     if not Path(file_name).suffix:
         detected_extension = detect_audio_format(data)
         file_name = file_name + detected_extension
-
     path = path / Path(file_name).name
     path.write_bytes(data)
     return str(path.resolve())
