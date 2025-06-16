@@ -122,7 +122,7 @@ class Examples:
             inputs: the component or list of components corresponding to the examples
             outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache_examples` is not False.
             fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache_examples` is not False. Also required if `run_on_click` is True.
-            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter is True (as long as `fn` and `outputs` are also provided). The default option otherwise is False.
+            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter is True (as long as `fn` and `outputs` are also provided). The default option otherwise is False. Note that examples are cached separately from Gradio's queue() so certain features, such as gr.Progress(), gr.Info(), gr.Warning(), etc. will not be displayed in Gradio's UI for cached examples.
             cache_mode: if "lazy", examples are cached after their first use. If "eager", all examples are cached at app launch. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager".
             examples_per_page: how many examples to show per page.
             label: the label to use for the examples component (by default, "Examples")
@@ -685,7 +685,6 @@ class Progress(Iterable):
     The Progress class provides a custom progress tracker that is used in a function signature.
     To attach a Progress tracker to a function, simply add a parameter right after the input parameters that has a default value set to a `gradio.Progress()` instance.
     The Progress tracker can then be updated in the function by calling the Progress object or using the `tqdm` method on an Iterable.
-    The Progress tracker is currently only available with `queue()`.
     Example:
         import gradio as gr
         import time
@@ -695,7 +694,7 @@ class Progress(Iterable):
             for i in progress.tqdm(range(100)):
                 time.sleep(0.1)
             return x
-        gr.Interface(my_function, gr.Textbox(), gr.Textbox()).queue().launch()
+        gr.Interface(my_function, gr.Textbox(), gr.Textbox()).launch()
     """
 
     def __init__(
