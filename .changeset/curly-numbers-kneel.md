@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Fix example caching with `gr.Progress`
+fix:Resolve issues around example caching with `gr.Progress`
