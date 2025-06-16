@@ -130,7 +130,7 @@ class Gallery(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
-            columns: Represents the number of images that should be shown in one rows.
+            columns: Represents the number of images that should be shown in one row.
             rows: Represents the number of rows in the image grid.
             height: The height of the gallery component, specified in pixels if a number is passed, or in CSS units if a string is passed. If more images are displayed than can fit in the height, a scrollbar will appear.
             allow_preview: If True, images in the gallery will be enlarged when they are clicked. Default is True.
