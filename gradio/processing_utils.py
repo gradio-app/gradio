@@ -276,12 +276,11 @@ def detect_audio_format(data: bytes) -> str:
     if len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"WAVE":
         return ".wav"
     # Check MP3 format (ID3 tag)
-    elif len(data) >= 3 and data[:3] == b"ID3":
+    elif len(data) >= 3 and data[:3] == b"ID3":  # noqa: SIM114
         return ".mp3"
     # Check MP3 format (sync frame)
     elif len(data) >= 2 and data[:2] == b"\xff\xfb":
         return ".mp3"
-
     return ""
 
 
@@ -289,13 +288,9 @@ def save_bytes_to_cache(data: bytes, file_name: str, cache_dir: str) -> str:
     path = Path(cache_dir) / hash_bytes(data)
     path.mkdir(exist_ok=True, parents=True)
 
-    # Auto-detect audio format from header bytes
-    detected_extension = detect_audio_format(data)
-
-    # Use detected extension if original filename has no extension
-    file_name_path = Path(file_name)
-    if detected_extension and not file_name_path.suffix:
-        file_name = file_name_path.stem + detected_extension
+    if not Path(file_name).suffix:
+        detected_extension = detect_audio_format(data)
+        file_name = file_name + detected_extension
 
     path = path / Path(file_name).name
     path.write_bytes(data)
