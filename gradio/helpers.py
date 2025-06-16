@@ -798,7 +798,10 @@ class Progress(Iterable):
             self.iterables.append(
                 TrackedIterable(iter(iterable), 0, length, desc, unit, _tqdm)
             )
-        return self
+            return self
+        if iterable is None:
+            return iter([])
+        return iter(iterable)
 
     def update(self, n: int | float = 1):
         """
