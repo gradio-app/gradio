@@ -16,7 +16,7 @@
 	});
 </script>
 
-<!-- 4.0 Launch BANNER  -->
+<!-- Launch BANNER  -->
 <div class="main-header flex-row mb-4">
 	<div
 		class="relative isolate flex items-center gap-x-6 overflow-hidden bg-gradient-to-r from-white via-yellow-200 to-white px-6 py-2 sm:px-3.5 sm:before:flex-1 mx-auto"
@@ -24,15 +24,13 @@
 		<div class="flex flex-wrap items-center gap-x-4 gap-y-2 flex-grow">
 			<div class="flex flex-wrap items-center gap-x-4 gap-y-2 mx-auto">
 				<p class="text-md leading-6 text-gray-700 text-center mx-auto">
-					<strong class="font-semibold"
-						>Gradio Agents & MCP Hackathon · Virtual, June 2-8 · $10k+ in prizes</strong
-					>
+					<strong class="font-semibold">Gradio Agents & MCP Hackathon </strong>
 				</p>
 				<a
-					href="https://huggingface.co/Agents-MCP-Hackathon"
+					href="/hackathon-winners"
 					target="_blank"
 					class="mx-auto flex-none rounded-full px-3.5 py-1 text-sm font-semibold text-white bg-gradient-to-br from-orange-300 via-orange-500 to-orange-300 hover:drop-shadow-md"
-					>Register Now <span aria-hidden="true">&rarr;</span></a
+					>Winners <span aria-hidden="true">&rarr;</span></a
 				>
 			</div>
 		</div>
