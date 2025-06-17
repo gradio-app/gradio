@@ -117,12 +117,12 @@ def start_server(
         try:
             # The fastest way to check if a port is available is to try to bind to it with socket.
             # If the port is not available, socket will throw an OSError.
-            s = socket.socket()
+            s = socket.socket(socket.AF_INET6 if ":" in host else socket.AF_INET)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            # Really, we should be checking if (server_name, server_port) is available, but
-            # socket.bind() doesn't seem to throw an OSError with ipv6 addresses, based on my testing.
-            # Instead, we just check if the port is available on localhost.
-            s.bind((LOCALHOST_NAME, port))
+            # For IPv6 addresses, we need to set the IPV6_V6ONLY option to 0 to allow both IPv4 and IPv6
+            if ":" in host:
+                s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+            s.bind((host, port))
             s.close()
 
             # To avoid race conditions, so we also check if the port by trying to start the uvicorn server.
