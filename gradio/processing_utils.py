@@ -353,6 +353,17 @@ def lru_cache_async(maxsize: int = 128):
     return decorator
 
 
+class ProxyAwareTransport(httpx.AsyncBaseTransport):
+    def __init__(self, transport: httpx.AsyncBaseTransport | None = None):
+        self.transport = transport or httpx.AsyncHTTPTransport()
+        self.proxies = os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY")
+
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        if self.proxies:
+            request.headers["Proxy"] = self.proxies
+        return await self.transport.handle_async_request(request)
+
+
 async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
     temp_dir = Path(cache_dir) / hash_url(url)
     temp_dir.mkdir(exist_ok=True, parents=True)
@@ -368,8 +379,11 @@ async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
         return full_temp_file_path
 
     hostname = parsed_url.hostname
+    proxy_transport = ProxyAwareTransport(async_transport)
     response = await sh.get(
-        url, domain_whitelist=PUBLIC_HOSTNAME_WHITELIST, _transport=async_transport
+        url, 
+        domain_whitelist=PUBLIC_HOSTNAME_WHITELIST, 
+        _transport=proxy_transport
     )
 
     while response.is_redirect:
@@ -382,7 +396,7 @@ async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
         response = await sh.get(
             redirect_url,
             domain_whitelist=PUBLIC_HOSTNAME_WHITELIST,
-            _transport=async_transport,
+            _transport=proxy_transport
         )
 
     if response.status_code != 200:
