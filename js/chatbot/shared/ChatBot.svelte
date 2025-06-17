@@ -139,6 +139,7 @@
 			// so trigger the scroll again after they load.
 			scroll_after_component_load = true;
 			await tick(); // Wait for the DOM to update so that the scrollHeight is correct
+			await new Promise((resolve) => setTimeout(resolve, 300));
 			scroll_to_bottom();
 		}
 	}

@@ -300,6 +300,12 @@
 		border: none;
 	}
 
+	.bot:has(.model3D),
+	.user:has(.model3D) {
+		border: none;
+		max-width: 75%;
+	}
+
 	.message-row :not(.avatar-container) :global(img) {
 		margin: var(--size-2);
 		max-height: 300px;
