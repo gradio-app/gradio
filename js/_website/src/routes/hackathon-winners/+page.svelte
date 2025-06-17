@@ -76,7 +76,9 @@
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>🛰️ Sentinel One</span>
 			</div>
-			<code class="font-light text-md mb-2">Paul Barbaste, Tristan Darrigol & Clément Peponnet</code>
+			<code class="font-light text-md mb-2"
+				>Paul Barbaste, Tristan Darrigol & Clément Peponnet</code
+			>
 			<div class="relative pr-4 text-lg font-light">
 				Climate risk evaluation multiagents. Instantly analyze climate risks
 				from any location.
