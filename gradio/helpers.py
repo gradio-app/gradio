@@ -711,6 +711,8 @@ class Progress(Iterable):
         self.iterables: list[TrackedIterable] = []
 
     def __len__(self):
+        if not self.iterables:
+            return 0
         return self.iterables[-1].length
 
     def __iter__(self):
@@ -852,28 +854,40 @@ def patch_tqdm() -> None:
     ):
         self._progress = LocalContext.progress.get()
         if self._progress is not None:
-            self._progress.tqdm(iterable, desc, total, unit, _tqdm=self)
-            kwargs["file"] = open(os.devnull, "w")  # noqa: SIM115
+            # Check if the progress object has a valid callback
+            callback = self._progress._progress_callback()
+            if callback is not None:
+                self._progress.tqdm(iterable, desc, total, unit, _tqdm=self)
+                kwargs["file"] = open(os.devnull, "w")  # noqa: SIM115
         self.__init__orig__(iterable, desc, total, *args, unit=unit, **kwargs)
 
     def iter_tqdm(self):
         if self._progress is not None:
-            return self._progress
+            # Check if the progress object has a valid callback
+            callback = self._progress._progress_callback()
+            if callback is not None:
+                return self._progress
         return self.__iter__orig__()
 
     def update_tqdm(self, n=1):
         if self._progress is not None:
-            self._progress.update(n)
+            callback = self._progress._progress_callback()
+            if callback is not None:
+                self._progress.update(n)
         return self.__update__orig__(n)
 
     def close_tqdm(self):
         if self._progress is not None:
-            self._progress.close(self)
+            callback = self._progress._progress_callback()
+            if callback is not None:
+                self._progress.close(self)
         return self.__close__orig__()
 
     def exit_tqdm(self, exc_type, exc_value, traceback):
         if self._progress is not None:
-            self._progress.close(self)
+            callback = self._progress._progress_callback()
+            if callback is not None:
+                self._progress.close(self)
         return self.__exit__orig__(exc_type, exc_value, traceback)
 
     # Backup
