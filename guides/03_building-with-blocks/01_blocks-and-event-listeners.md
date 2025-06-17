@@ -99,7 +99,9 @@ with gr.Blocks() as demo:
 
 Above, each return statement returns two values corresponding to `food_box` and `status_box`, respectively.
 
-Instead of returning a list of values corresponding to each output component in order, you can also return a dictionary, with the key corresponding to the output component and the value as the new value. This also allows you to skip updating some output components.
+**Note:** if your event listener has a single output component, you should **not** return it as a single-item list. This will not work, since Gradio does not know whether to interpret that outer list as part of your return value. You should instead just return that value directly.
+
+Now, let's see option (2). Instead of returning a list of values corresponding to each output component in order, you can also return a dictionary, with the key corresponding to the output component and the value as the new value. This also allows you to skip updating some output components.
 
 ```python
 with gr.Blocks() as demo:
