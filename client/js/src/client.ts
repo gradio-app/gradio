@@ -314,7 +314,6 @@ export class Client {
 		try {
 			// Create base URL
 			let configUrl = `${http_protocol}//${host}`;
-			console.log("url", `${http_protocol}//${host}`)
 			config = await this.resolve_config(configUrl);
 
 			if (!config) {
