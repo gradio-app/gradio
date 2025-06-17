@@ -379,11 +379,11 @@ async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
         return full_temp_file_path
 
     hostname = parsed_url.hostname
-    proxy_transport = ProxyAwareTransport(async_transport)
+    transport = ProxyAwareTransport(async_transport) if os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY") else async_transport
     response = await sh.get(
-        url, 
+        url,
         domain_whitelist=PUBLIC_HOSTNAME_WHITELIST, 
-        _transport=proxy_transport
+        _transport=transport
     )
 
     while response.is_redirect:
@@ -396,7 +396,7 @@ async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
         response = await sh.get(
             redirect_url,
             domain_whitelist=PUBLIC_HOSTNAME_WHITELIST,
-            _transport=proxy_transport
+            _transport=transport
         )
 
     if response.status_code != 200:
