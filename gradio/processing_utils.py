@@ -353,70 +353,51 @@ def lru_cache_async(maxsize: int = 128):
     return decorator
 
 
-async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
-    temp_dir = Path(cache_dir) / hash_url(url)
-    temp_dir.mkdir(exist_ok=True, parents=True)
-
+def _get_proxy_for_url(url: str) -> str | None:
     parsed_url = urlparse(url)
-    base_path = parsed_url.path.rstrip("/")
-    filename = (
-        client_utils.strip_invalid_filename_characters(Path(base_path).name) or "file"
-    )
+    if parsed_url.scheme == "https":
+        return os.environ.get("https_proxy") or os.environ.get("HTTPS_PROXY")
+    return os.environ.get("http_proxy") or os.environ.get("HTTP_PROXY")
 
-    full_temp_file_path = str(abspath(temp_dir / filename))
-    if Path(full_temp_file_path).exists():
-        return full_temp_file_path
 
-    hostname = parsed_url.hostname
-    response = await sh.get(
-        url, domain_whitelist=PUBLIC_HOSTNAME_WHITELIST, _transport=async_transport
-    )
+async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
+    parsed_url = urlparse(url)
+    if not parsed_url.netloc:
+        raise ValueError(f"URL {url} does not have a valid hostname")
 
-    while response.is_redirect:
-        redirect_url = response.headers["Location"]
-        redirect_parsed = urlparse(redirect_url)
-
-        if not redirect_parsed.hostname:
-            redirect_url = f"{parsed_url.scheme}://{hostname}{redirect_url}"
-
-        response = await sh.get(
-            redirect_url,
-            domain_whitelist=PUBLIC_HOSTNAME_WHITELIST,
-            _transport=async_transport,
-        )
-
-    if response.status_code != 200:
-        raise Exception(f"Failed to download file. Status code: {response.status_code}")
-
-    async with aiofiles.open(full_temp_file_path, "wb") as f:
-        async for chunk in response.aiter_bytes():
-            await f.write(chunk)
-
-    return full_temp_file_path
+    proxy = _get_proxy_for_url(url)
+    transport = httpx.AsyncHTTPTransport(proxy=proxy) if proxy else None
+    
+    async with httpx.AsyncClient(transport=transport) as client:
+        try:
+            response = await client.get(url, follow_redirects=False)
+            response.raise_for_status()
+            temp_file = tempfile.NamedTemporaryFile(delete=False, dir=cache_dir)
+            async with aiofiles.open(temp_file.name, "wb") as f:
+                await f.write(response.content)
+            return temp_file.name
+        except httpx.HTTPError as e:
+            raise ValueError(f"Failed to download {url}: {str(e)}")
 
 
 def unsafe_download(url: str, cache_dir: str) -> str:
-    temp_dir = Path(cache_dir) / hash_url(url)
-    temp_dir.mkdir(exist_ok=True, parents=True)
-    filename = client_utils.strip_invalid_filename_characters(Path(url).name)
-    full_temp_file_path = str(abspath(temp_dir / filename))
+    parsed_url = urlparse(url)
+    if not parsed_url.netloc:
+        raise ValueError(f"URL {url} does not have a valid hostname")
 
-    with (
-        sync_client.stream("GET", url, follow_redirects=True) as r,
-        open(full_temp_file_path, "wb") as f,
-    ):
-        for chunk in r.iter_raw():
-            f.write(chunk)
-
-    # print path and file size
-    print(
-        f"Downloaded {full_temp_file_path} ({os.path.getsize(full_temp_file_path)} bytes)"
-    )
-    log.info(
-        f"Downloaded {full_temp_file_path} ({os.path.getsize(full_temp_file_path)} bytes)"
-    )
-
-    return full_temp_file_path
+    proxy = _get_proxy_for_url(url)
+    transport = httpx.HTTPTransport(proxy=proxy) if proxy else None
+    
+    with httpx.Client(transport=transport) as client:
+        try:
+            response = client.get(url, follow_redirects=False)
+            response.raise_for_status()
+            temp_file = tempfile.NamedTemporaryFile(delete=False, dir=cache_dir)
+            with open(temp_file.name, "wb") as f:
+                f.write(response.content)
+            return temp_file.name
+        except httpx.HTTPError as e:
+            raise ValueError(f"Failed to download {url}: {str(e)}")
 
 
 def ssrf_protected_download(url: str, cache_dir: str) -> str:
