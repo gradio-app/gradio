@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix Styled Table Sorting
+fix:Fix Styled DataFrame Sorting
