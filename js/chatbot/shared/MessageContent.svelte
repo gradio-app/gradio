@@ -18,7 +18,6 @@
 	export let line_breaks: boolean;
 	export let upload: Client["upload"];
 	export let target: HTMLElement | null;
-	export let root: string;
 	export let theme_mode: "light" | "dark" | "system";
 	export let _components: Record<string, ComponentType<SvelteComponent>>;
 	export let render_markdown: boolean;
@@ -40,7 +39,6 @@
 			{render_markdown}
 			{line_breaks}
 			on:load={scroll}
-			{root}
 			{allow_tags}
 			{theme_mode}
 		/>

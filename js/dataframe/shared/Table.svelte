@@ -805,7 +805,6 @@
 							{latex_delimiters}
 							{line_breaks}
 							{max_chars}
-							{root}
 							{editable}
 							is_static={static_columns.includes(i)}
 							{i18n}
@@ -830,7 +829,6 @@
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
 									edit={false}
 									el={null}
-									{root}
 									{editable}
 									{i18n}
 									show_selection_buttons={selected_cells.length === 1 &&
@@ -911,7 +909,6 @@
 								{latex_delimiters}
 								{line_breaks}
 								{max_chars}
-								{root}
 								{editable}
 								is_static={static_columns.includes(i)}
 								{i18n}
@@ -949,7 +946,6 @@
 								datatype={Array.isArray(datatype) ? datatype[j] : datatype}
 								{editing}
 								{max_chars}
-								{root}
 								{editable}
 								is_static={static_columns.includes(j)}
 								{i18n}

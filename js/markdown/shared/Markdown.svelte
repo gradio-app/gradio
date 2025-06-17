@@ -24,7 +24,6 @@
 	export let header_links = false;
 	export let height: number | string | undefined = undefined;
 	export let show_copy_button = false;
-	export let root: string;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let theme_mode: ThemeMode;
 	let copied = false;
@@ -81,7 +80,6 @@
 		{line_breaks}
 		chatbot={false}
 		{header_links}
-		{root}
 		{theme_mode}
 	/>
 </div>

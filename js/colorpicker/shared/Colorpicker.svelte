@@ -12,7 +12,6 @@
 	export let info: string | undefined = undefined;
 	export let disabled = false;
 	export let show_label = true;
-	export let root: string;
 
 	export let current_mode: "hex" | "rgb" | "hsl" = "hex";
 	export let dialog_open = false;
@@ -169,7 +168,7 @@
 	}
 </script>
 
-<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+<BlockTitle {show_label} {info}>{label}</BlockTitle>
 <button
 	class="dialog-button"
 	style:background={value}

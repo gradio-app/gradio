@@ -20,7 +20,6 @@
 	export let container = true;
 	export let allow_custom_value = false;
 	export let filterable = true;
-	export let root: string;
 
 	let filter_input: HTMLElement;
 
@@ -199,7 +198,7 @@
 </script>
 
 <div class:container>
-	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">
 		<div class="wrap-inner" class:show_options>

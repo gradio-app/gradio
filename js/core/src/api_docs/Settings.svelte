@@ -115,7 +115,6 @@
 			label="Language"
 			choices={language_choices}
 			show_label={false}
-			{root}
 			value={current_locale}
 			on:change={handleLanguageChange}
 		/>

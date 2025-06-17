@@ -18,7 +18,6 @@
 	export let value_is_output = false;
 	export let label = "Checkbox";
 	export let info: string | undefined = undefined;
-	export let root: string;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -54,7 +53,7 @@
 	/>
 
 	{#if info}
-		<Info {root} {info} />
+		<Info {info} />
 	{/if}
 
 	<BaseCheckbox

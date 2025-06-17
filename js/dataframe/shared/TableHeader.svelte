@@ -26,7 +26,6 @@
 	}[];
 	export let line_breaks: boolean;
 	export let max_chars: number | undefined;
-	export let root: string;
 	export let editable: boolean;
 	export let i18n: I18nFormatter;
 	export let el: HTMLInputElement | null;
@@ -105,7 +104,6 @@
 						}
 					}}
 					header
-					{root}
 					{editable}
 					{is_static}
 					{i18n}

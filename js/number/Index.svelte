@@ -29,7 +29,6 @@
 	export let value_is_output = false;
 	export let step: number | null = null;
 	export let interactive: boolean;
-	export let root: string;
 
 	function handle_change(): void {
 		if (!isNaN(value) && value !== null) {
@@ -71,7 +70,7 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	<label class="block" class:container>
-		<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+		<BlockTitle {show_label} {info}>{label}</BlockTitle>
 		<input
 			aria-label={label}
 			type="number"
