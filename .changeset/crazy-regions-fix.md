@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Support ipv6 in windows
+fix:Support ipv6 in windows
