@@ -55,7 +55,7 @@ with block:
             label="Generated images",
             show_label=False,
             elem_id="gallery",
-            columns=[2],
+            columns=2,
         )
 
         advanced_button = gr.Button("Advanced options", elem_id="advanced-btn")
