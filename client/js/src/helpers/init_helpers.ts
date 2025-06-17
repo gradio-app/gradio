@@ -84,6 +84,7 @@ export async function resolve_config(
 			endpoint = endpoint.substring(0, endpoint.lastIndexOf("/"));
 		}
 		window.gradio_config.root = endpoint;
+		// @ts-ignore
 		return { ...window.gradio_config } as Config;
 	} else if (endpoint) {
 		let config_url = join_urls(
