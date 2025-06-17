@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 1.15.3
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
 ## 1.15.2
 
 ### Fixes

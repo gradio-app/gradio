@@ -1,5 +1,21 @@
 # @gradio/dataframe
 
+## 0.17.17
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/markdown-code@0.4.4
+- @gradio/atoms@0.16.2
+- @gradio/client@1.15.3
+- @gradio/upload@0.16.8
+- @gradio/checkbox@0.4.24
+- @gradio/button@0.5.4
+
 ## 0.17.16
 
 ### Fixes
