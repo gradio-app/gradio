@@ -854,7 +854,6 @@ def patch_tqdm() -> None:
     ):
         self._progress = LocalContext.progress.get()
         if self._progress is not None:
-            # Check if the progress object has a valid callback
             callback = self._progress._progress_callback()
             if callback is not None:
                 self._progress.tqdm(iterable, desc, total, unit, _tqdm=self)
@@ -863,7 +862,6 @@ def patch_tqdm() -> None:
 
     def iter_tqdm(self):
         if self._progress is not None:
-            # Check if the progress object has a valid callback
             callback = self._progress._progress_callback()
             if callback is not None:
                 return self._progress
