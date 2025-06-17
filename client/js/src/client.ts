@@ -347,12 +347,6 @@ export class Client {
 		this.config = _config;
 		this.api_prefix = _config.api_prefix || "";
 
-		if (typeof window !== "undefined" && typeof document !== "undefined") {
-			if (window.location.protocol === "https:") {
-				this.config.root = this.config.root.replace("http://", "https://");
-			}
-		}
-
 		if (this.config.auth_required) {
 			return this.prepare_return_obj();
 		}
