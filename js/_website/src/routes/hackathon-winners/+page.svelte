@@ -48,7 +48,7 @@
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>🎮 LLMGameHub</span>
 			</div>
-			<code class="font-light text-md mb-2">gsavin</code>
+			<code class="font-light text-md mb-2">gsavin & kikikita</code>
 			<div class="relative pr-4 text-lg font-light">
 				Your personal visual novel. Craft your own adventures with an AI-powered
 				game master!
@@ -76,7 +76,7 @@
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>🛰️ Sentinel One</span>
 			</div>
-			<code class="font-light text-md mb-2">PaulB7</code>
+			<code class="font-light text-md mb-2">Paul Barbaste, Tristan Darrigol & Clément Peponnet</code>
 			<div class="relative pr-4 text-lg font-light">
 				Climate risk evaluation multiagents. Instantly analyze climate risks
 				from any location.
@@ -290,7 +290,7 @@
 		<div class="relative mb-2 flex items-center text-lg font-semibold">
 			<span>🕵️ Agent Inspector</span>
 		</div>
-		<code class="font-light text-md mb-2">p3nguknight</code>
+		<code class="font-light text-md mb-2">p3nguknight & Francois Lancelot</code>
 		<div class="relative pr-4 text-lg font-light">
 			Whether you're building, testing, or fine-tuning your agent, Agent
 			Inspector helps you understand what's happening under the hood.
