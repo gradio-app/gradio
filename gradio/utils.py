@@ -101,10 +101,15 @@ def safe_get_lock() -> asyncio.Lock:
     the main thread.
     """
     try:
-        asyncio.get_event_loop()
+        loop = asyncio.get_event_loop()
+        if loop.is_closed():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
         return asyncio.Lock()
     except RuntimeError:
-        return None  # type: ignore
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return asyncio.Lock()
 
 
 def safe_get_stop_event() -> asyncio.Event:
