@@ -125,7 +125,7 @@ class MultimodalTextbox(FormComponent):
             submit_btn: If False, will not show a submit button. If a string, will use that string as the submit button text.
             stop_btn: If True, will show a stop button (useful for streaming demos). If a string, will use that string as the stop button text.
             max_plain_text_length: Maximum length of plain text in the textbox. If the text exceeds this length, the text will be pasted as a file. Default is 1000.
-            html_attrs: Additional HTML attributes to be added to the component.
+            html_attrs: A dictionary of HTML attributes to be applied to the input/textarea elements. For example, {"autocorrect": "off", "spellcheck": "false"} to disable autocorrect and spellcheck. 
         """
         valid_sources: list[Literal["upload", "microphone"]] = ["upload", "microphone"]
         if sources is None:

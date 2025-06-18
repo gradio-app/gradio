@@ -99,7 +99,7 @@ class Textbox(FormComponent):
             max_length: maximum number of characters (including newlines) allowed in the textbox. If None, there is no maximum length.
             submit_btn: If False, will not show a submit button. If True, will show a submit button with an icon. If a string, will use that string as the submit button text. When the submit button is shown, the border of the textbox will be removed, which is useful for creating a chat interface.
             stop_btn: If False, will not show a stop button. If True, will show a stop button with an icon. If a string, will use that string as the stop button text. When the stop button is shown, the border of the textbox will be removed, which is useful for creating a chat interface.
-            html_attrs: A dictionary of HTML attributes to be applied to the input/textarea elements. For example, {"autocorrect": "off", "spellcheck": "false"} to disable autocorrect and spellcheck.
+            html_attrs: A dictionary of HTML attributes to be applied to the input/textarea elements. For example, {"autocorrect": "off", "spellcheck": "false"} to disable autocorrect and spellcheck. 
         """
         if type not in ["text", "password", "email"]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
