@@ -41,6 +41,7 @@ class SimpleTextbox(FormComponent):
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
+        html_attrs: dict[str, str] | None = None,
     ):
         """
         Parameters:
@@ -60,9 +61,11 @@ class SimpleTextbox(FormComponent):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
+            html_attrs: Additional HTML attributes to be added to the component's HTML element.
         """
         self.placeholder = placeholder
         self.rtl = rtl
+        self.html_attrs = html_attrs
         super().__init__(
             label=label,
             every=every,

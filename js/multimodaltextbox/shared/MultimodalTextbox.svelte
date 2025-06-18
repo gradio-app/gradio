@@ -59,6 +59,7 @@
 	};
 	export let sources: ["microphone" | "upload"] = ["upload"];
 	export let active_source: "microphone" | null = null;
+	export let html_attrs: Record<string, string> | undefined = undefined;
 	let upload_component: Upload;
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let can_scroll: boolean;
@@ -449,6 +450,7 @@
 			on:scroll={handle_scroll}
 			on:paste={handle_paste}
 			style={text_align ? "text-align: " + text_align : ""}
+			{...html_attrs}
 		/>
 		{#if submit_btn}
 			<button

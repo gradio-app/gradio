@@ -67,6 +67,7 @@ class Textbox(FormComponent):
         max_length: int | None = None,
         submit_btn: str | bool | None = False,
         stop_btn: str | bool | None = False,
+        html_attrs: dict[str, str] | None = None,
     ):
         """
         Parameters:
@@ -97,6 +98,8 @@ class Textbox(FormComponent):
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             max_length: maximum number of characters (including newlines) allowed in the textbox. If None, there is no maximum length.
             submit_btn: If False, will not show a submit button. If True, will show a submit button with an icon. If a string, will use that string as the submit button text. When the submit button is shown, the border of the textbox will be removed, which is useful for creating a chat interface.
+            stop_btn: If False, will not show a stop button. If True, will show a stop button with an icon. If a string, will use that string as the stop button text. When the stop button is shown, the border of the textbox will be removed, which is useful for creating a chat interface.
+            html_attrs: A dictionary of HTML attributes to be applied to the input/textarea elements. For example, {"autocorrect": "off", "spellcheck": "false"} to disable autocorrect and spellcheck.
         """
         if type not in ["text", "password", "email"]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
@@ -143,6 +146,7 @@ class Textbox(FormComponent):
         self.rtl = rtl
         self.text_align = text_align
         self.max_length = max_length
+        self.html_attrs = html_attrs
 
     def preprocess(self, payload: str | None) -> str | None:
         """
