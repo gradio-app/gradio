@@ -94,7 +94,7 @@
 		if (can_scroll && autoscroll) {
 			scroll();
 		}
-		if (el && el.tagName === 'TEXTAREA') {
+		if (el && el.tagName === "TEXTAREA") {
 			update_scrollbar_visibility(el as HTMLTextAreaElement);
 		}
 		value_is_output = false;
@@ -198,15 +198,17 @@
 		}
 
 		target.style.height = `${scroll_height}px`;
-		
+
 		update_scrollbar_visibility(target);
 	}
 
 	function update_scrollbar_visibility(textarea: HTMLTextAreaElement): void {
 		const content_height = textarea.scrollHeight;
 		const visible_height = textarea.clientHeight;
-		const line_height = parseFloat(window.getComputedStyle(textarea).lineHeight);
-		const threshold = line_height * 1.5;		
+		const line_height = parseFloat(
+			window.getComputedStyle(textarea).lineHeight
+		);
+		const threshold = line_height * 1.5;
 		if (content_height > visible_height + threshold) {
 			textarea.style.overflowY = "scroll";
 		} else {
@@ -417,11 +419,6 @@
 	input::placeholder,
 	textarea::placeholder {
 		color: var(--input-placeholder-color);
-	}
-
-	/* Smooth scrollbar transitions */
-	textarea {
-		transition: overflow-y 0.2s ease;
 	}
 
 	.copy-button {
