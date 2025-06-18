@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:Add scrollbar to `gr.Textbox` if number of lines > 1 (textarea)
+feat:Add scrollbar to `gr.Textbox` if lines of text exceed lines in text area
