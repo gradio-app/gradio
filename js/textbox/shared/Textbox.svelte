@@ -94,9 +94,8 @@
 		if (can_scroll && autoscroll) {
 			scroll();
 		}
-		// Update scrollbar visibility after component updates
 		if (el && el.tagName === 'TEXTAREA') {
-			updateScrollbarVisibility(el as HTMLTextAreaElement);
+			update_scrollbar_visibility(el as HTMLTextAreaElement);
 		}
 		value_is_output = false;
 	});
@@ -200,17 +199,14 @@
 
 		target.style.height = `${scroll_height}px`;
 		
-		// Update scrollbar visibility based on content overflow
-		updateScrollbarVisibility(target);
+		update_scrollbar_visibility(target);
 	}
 
-	function updateScrollbarVisibility(textarea: HTMLTextAreaElement): void {
-		// Only show scrollbar if content height exceeds visible height by more than 1 line
+	function update_scrollbar_visibility(textarea: HTMLTextAreaElement): void {
 		const contentHeight = textarea.scrollHeight;
 		const visibleHeight = textarea.clientHeight;
 		const lineHeight = parseFloat(window.getComputedStyle(textarea).lineHeight);
-		const threshold = lineHeight * 1.5; // Show scrollbar only if content exceeds visible area by more than 1.5 lines
-		
+		const threshold = lineHeight * 1.5;		
 		if (contentHeight > visibleHeight + threshold) {
 			textarea.style.overflowY = "scroll";
 		} else {
