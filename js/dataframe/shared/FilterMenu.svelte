@@ -149,6 +149,7 @@
 	}
 
 	.filter-menu button {
+		height: var(--size-6);
 		background: none;
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm);
