@@ -94,6 +94,10 @@
 		if (can_scroll && autoscroll) {
 			scroll();
 		}
+		// Update scrollbar visibility after component updates
+		if (el && el.tagName === 'TEXTAREA') {
+			updateScrollbarVisibility(el as HTMLTextAreaElement);
+		}
 		value_is_output = false;
 	});
 	$: value, handle_change();
@@ -195,6 +199,23 @@
 		}
 
 		target.style.height = `${scroll_height}px`;
+		
+		// Update scrollbar visibility based on content overflow
+		updateScrollbarVisibility(target);
+	}
+
+	function updateScrollbarVisibility(textarea: HTMLTextAreaElement): void {
+		// Only show scrollbar if content height exceeds visible height by more than 1 line
+		const contentHeight = textarea.scrollHeight;
+		const visibleHeight = textarea.clientHeight;
+		const lineHeight = parseFloat(window.getComputedStyle(textarea).lineHeight);
+		const threshold = lineHeight * 1.5; // Show scrollbar only if content exceeds visible area by more than 1.5 lines
+		
+		if (contentHeight > visibleHeight + threshold) {
+			textarea.style.overflowY = "scroll";
+		} else {
+			textarea.style.overflowY = "hidden";
+		}
 	}
 
 	function text_area_resize(
@@ -202,7 +223,8 @@
 		_value: string
 	): any | undefined {
 		if (lines === _max_lines) return;
-		_el.style.overflowY = "scroll";
+		// Start with hidden scrollbar, will be shown dynamically if needed
+		_el.style.overflowY = "hidden";
 		_el.addEventListener("input", resize);
 
 		if (!_value.trim()) return;
@@ -400,6 +422,11 @@
 	input::placeholder,
 	textarea::placeholder {
 		color: var(--input-placeholder-color);
+	}
+
+	/* Smooth scrollbar transitions */
+	textarea {
+		transition: overflow-y 0.2s ease;
 	}
 
 	.copy-button {
