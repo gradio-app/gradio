@@ -223,8 +223,7 @@
 		_value: string
 	): any | undefined {
 		if (lines === _max_lines) return;
-		// Start with hidden scrollbar, will be shown dynamically if needed
-		_el.style.overflowY = "hidden";
+		_el.style.overflowY = "scroll";
 		_el.addEventListener("input", resize);
 
 		if (!_value.trim()) return;
