@@ -153,8 +153,8 @@
 				style="font-size: 2.5rem;"
 			>
 				<span class="text-xl font-semibold bg-green-100 p-1 rounded-md"
-					>$2,500</span
-				> 🥇
+					>$500</span
+				> 🥈
 			</div>
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>📚 Doc-MCP</span>
