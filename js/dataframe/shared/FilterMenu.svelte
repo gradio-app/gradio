@@ -72,6 +72,7 @@
 				datatype = datatype === "string" ? "number" : "string";
 				current_filter = filter_options[datatype][0];
 			}}
+			aria-label={`Change filter type. Filtering ${datatype}s`}
 		>
 			{datatype}
 		</button>
@@ -82,6 +83,7 @@
 			<button
 				on:click|stopPropagation={() =>
 					(filter_dropdown_open = !filter_dropdown_open)}
+				aria-label={`Change filter. Using '${current_filter}'`}
 			>
 				{current_filter}
 				<DropdownArrow />
