@@ -1,6 +1,6 @@
 ---
-"@gradio/textbox": minor
-"gradio": minor
+"@gradio/textbox": patch
+"gradio": patch
 ---
 
-feat:Improvements to `gr.Textbox`: scrollbars and the ability to handle attributes
+feat:Add scrollbar to `gr.Textbox` if number of lines > 1 (if a textarea is being rendered)
