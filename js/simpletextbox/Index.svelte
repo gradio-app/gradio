@@ -27,7 +27,6 @@
 	export let value_is_output = false;
 	export let interactive: boolean;
 	export let rtl = false;
-	export let html_attrs: Record<string, string> | undefined = undefined;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	const container = true;
@@ -85,7 +84,6 @@
 			disabled={!interactive}
 			dir={rtl ? "rtl" : "ltr"}
 			on:keypress={handle_keypress}
-			{...html_attrs}
 		/>
 	</label>
 </Block>
