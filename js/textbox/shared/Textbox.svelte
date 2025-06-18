@@ -298,6 +298,7 @@
 			<textarea
 				data-testid="textbox"
 				use:text_area_resize={value}
+				class="scroll-hide"
 				dir={rtl ? "rtl" : "ltr"}
 				class:no-label={!show_label && (submit_btn || stop_btn)}
 				bind:value
