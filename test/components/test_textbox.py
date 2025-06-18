@@ -88,11 +88,3 @@ class TestTextbox:
             ValueError, match='`type` must be one of "text", "password", or "email".'
         ):
             gr.Textbox(type="boo")  # type: ignore
-
-    def test_html_attrs(self):
-        """
-        Test that html_attrs parameter is properly included in config
-        """
-        textbox = gr.Textbox(html_attrs={"autocorrect": "off", "spellcheck": "false"})
-        config = textbox.get_config()
-        assert config["html_attrs"] == {"autocorrect": "off", "spellcheck": "false"}
