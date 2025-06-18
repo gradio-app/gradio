@@ -203,11 +203,11 @@
 	}
 
 	function update_scrollbar_visibility(textarea: HTMLTextAreaElement): void {
-		const contentHeight = textarea.scrollHeight;
-		const visibleHeight = textarea.clientHeight;
-		const lineHeight = parseFloat(window.getComputedStyle(textarea).lineHeight);
-		const threshold = lineHeight * 1.5;		
-		if (contentHeight > visibleHeight + threshold) {
+		const content_height = textarea.scrollHeight;
+		const visible_height = textarea.clientHeight;
+		const line_height = parseFloat(window.getComputedStyle(textarea).lineHeight);
+		const threshold = line_height * 1.5;		
+		if (content_height > visible_height + threshold) {
 			textarea.style.overflowY = "scroll";
 		} else {
 			textarea.style.overflowY = "hidden";
