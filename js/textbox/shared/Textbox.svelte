@@ -241,7 +241,6 @@
 				<input
 					data-testid="textbox"
 					type="text"
-					class="scroll-hide"
 					dir={rtl ? "rtl" : "ltr"}
 					bind:value
 					bind:this={el}
@@ -259,7 +258,6 @@
 				<input
 					data-testid="password"
 					type="password"
-					class="scroll-hide"
 					bind:value
 					bind:this={el}
 					{placeholder}
@@ -276,7 +274,6 @@
 				<input
 					data-testid="textbox"
 					type="email"
-					class="scroll-hide"
 					bind:value
 					bind:this={el}
 					{placeholder}
@@ -294,7 +291,6 @@
 			<textarea
 				data-testid="textbox"
 				use:text_area_resize={value}
-				class="scroll-hide"
 				dir={rtl ? "rtl" : "ltr"}
 				class:no-label={!show_label && (submit_btn || stop_btn)}
 				bind:value
@@ -366,7 +362,34 @@
 		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
 		border: none;
+		overflow-y: auto;
+		scrollbar-width: thin;
+		scrollbar-color: var(--scrollbar-color, #c1c1c1) var(--scrollbar-track-color, #f1f1f1);
 	}
+
+	/* Webkit scrollbar styles */
+	input::-webkit-scrollbar,
+	textarea::-webkit-scrollbar {
+		width: 8px;
+	}
+
+	input::-webkit-scrollbar-track,
+	textarea::-webkit-scrollbar-track {
+		background: var(--scrollbar-track-color, #f1f1f1);
+		border-radius: 4px;
+	}
+
+	input::-webkit-scrollbar-thumb,
+	textarea::-webkit-scrollbar-thumb {
+		background: var(--scrollbar-color, #c1c1c1);
+		border-radius: 4px;
+	}
+
+	input::-webkit-scrollbar-thumb:hover,
+	textarea::-webkit-scrollbar-thumb:hover {
+		background: var(--scrollbar-hover-color, #a8a8a8);
+	}
+
 	textarea.no-label {
 		padding-top: 5px;
 		padding-bottom: 5px;
