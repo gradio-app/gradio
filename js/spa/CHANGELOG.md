@@ -1,5 +1,16 @@
 # @self/spa
 
+## 0.8.4
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/client@1.15.3
+- @gradio/core@0.19.3
+
 ## 0.8.3
 
 ### Fixes
