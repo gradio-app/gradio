@@ -55,7 +55,6 @@
 	export let tooltip: "axis" | "none" | "all" | string[] = "axis";
 	export let show_fullscreen_button = false;
 	let fullscreen = false;
-	let fullscreen_complete = false;
 
 	function reformat_sort(
 		_sort: typeof sort
@@ -163,6 +162,7 @@
 	let view: View;
 	let mounted = false;
 	let old_width: number;
+	let old_height: number;
 	let resizeObserver: ResizeObserver;
 
 	let vegaEmbed: typeof import("vega-embed").default;
@@ -176,6 +176,7 @@
 		}
 		if (!value || !chart_element) return;
 		old_width = chart_element.offsetWidth;
+		old_height = chart_element.offsetHeight;
 		const spec = create_vega_lite_spec();
 		if (!spec) return;
 		resizeObserver = new ResizeObserver((el) => {
@@ -189,6 +190,10 @@
 				load_chart();
 			} else {
 				view.signal("width", el[0].target.offsetWidth).run();
+			}
+			if (old_height !== el[0].target.offsetHeight && fullscreen) {
+				view.signal("height", el[0].target.offsetHeight).run();
+				old_height = el[0].target.offsetHeight;
 			}
 		});
 
@@ -272,7 +277,7 @@
 		sort,
 		mounted,
 		chart_element,
-		fullscreen_complete,
+		fullscreen,
 		computed_style && requestAnimationFrame(load_chart);
 
 	function create_vega_lite_spec(): Spec | null {
@@ -516,7 +521,7 @@
 					: [])
 			],
 			width: chart_element.offsetWidth,
-			height: height || fullscreen_complete ? "container" : undefined,
+			height: height || fullscreen ? "container" : undefined,
 			title: title || undefined
 		};
 		/* eslint-enable complexity */
@@ -543,7 +548,6 @@
 	padding={true}
 	{height}
 	bind:fullscreen
-	bind:fullscreen_complete
 >
 	{#if loading_status}
 		<StatusTracker
