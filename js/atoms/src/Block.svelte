@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onMount } from "svelte";
+
 	export let height: number | string | undefined = undefined;
 	export let min_height: number | string | undefined = undefined;
 	export let max_height: number | string | undefined = undefined;
@@ -21,6 +23,7 @@
 	export let resizable = false;
 	export let rtl = false;
 	export let fullscreen = false;
+	export let fullscreen_complete = false;
 	let old_fullscreen = fullscreen;
 
 	let element: HTMLElement;
@@ -47,6 +50,7 @@
 		} else {
 			preexpansionBoundingRect = null;
 			window.removeEventListener("keydown", handleKeydown);
+			fullscreen_complete = false;
 		}
 	}
 
@@ -81,6 +85,12 @@
 		window.addEventListener("mousemove", onMouseMove);
 		window.addEventListener("mouseup", onMouseUp);
 	};
+
+	onMount(() => {
+		element.addEventListener("animationend", (e) => {
+			fullscreen_complete = true;
+		});
+	});
 </script>
 
 <svelte:element

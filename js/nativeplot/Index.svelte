@@ -55,6 +55,7 @@
 	export let tooltip: "axis" | "none" | "all" | string[] = "axis";
 	export let show_fullscreen_button = false;
 	let fullscreen = false;
+	let fullscreen_complete = false;
 
 	function reformat_sort(
 		_sort: typeof sort
@@ -271,6 +272,7 @@
 		sort,
 		mounted,
 		chart_element,
+		fullscreen_complete,
 		computed_style && requestAnimationFrame(load_chart);
 
 	function create_vega_lite_spec(): Spec | null {
@@ -514,7 +516,7 @@
 					: [])
 			],
 			width: chart_element.offsetWidth,
-			height: height ? "container" : undefined,
+			height: height || fullscreen_complete ? "container" : undefined,
 			title: title || undefined
 		};
 		/* eslint-enable complexity */
@@ -541,6 +543,7 @@
 	padding={true}
 	{height}
 	bind:fullscreen
+	bind:fullscreen_complete
 >
 	{#if loading_status}
 		<StatusTracker
