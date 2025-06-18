@@ -362,30 +362,29 @@
 		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
 		border: none;
+	}
+
+	textarea {
 		overflow-y: auto;
 		scrollbar-width: thin;
 		scrollbar-color: var(--scrollbar-color, #c1c1c1) var(--scrollbar-track-color, #f1f1f1);
 	}
 
-	/* Webkit scrollbar styles */
-	input::-webkit-scrollbar,
+	/* Webkit scrollbar styles only for textarea */
 	textarea::-webkit-scrollbar {
 		width: 8px;
 	}
 
-	input::-webkit-scrollbar-track,
 	textarea::-webkit-scrollbar-track {
 		background: var(--scrollbar-track-color, #f1f1f1);
 		border-radius: 4px;
 	}
 
-	input::-webkit-scrollbar-thumb,
 	textarea::-webkit-scrollbar-thumb {
 		background: var(--scrollbar-color, #c1c1c1);
 		border-radius: 4px;
 	}
 
-	input::-webkit-scrollbar-thumb:hover,
 	textarea::-webkit-scrollbar-thumb:hover {
 		background: var(--scrollbar-hover-color, #a8a8a8);
 	}
