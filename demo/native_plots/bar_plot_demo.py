@@ -14,14 +14,12 @@ with gr.Blocks() as bar_plots:
         temp_sensor_data,
         x="time",
         y="temperature",
-        show_fullscreen_button=True,
     )
     temp_by_time_location = gr.BarPlot(
         temp_sensor_data,
         x="time",
         y="temperature",
         color="location",
-        show_fullscreen_button=True,
     )
 
     time_graphs = [temp_by_time, temp_by_time_location]
