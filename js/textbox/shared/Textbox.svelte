@@ -29,7 +29,8 @@
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autoscroll = true;
 	export let max_length: number | undefined = undefined;
-	export let html_attributesbutesbutes: Record<string, string> | undefined = undefined;
+	export let html_attributesbutesbutes: Record<string, string> | undefined =
+		undefined;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
