@@ -314,7 +314,7 @@
 				on:focus
 				on:scroll={handle_scroll}
 				style={text_align ? "text-align: " + text_align : ""}
-				{...html_attributesbutes}
+				{...html_attributes}
 			/>
 		{/if}
 		{#if submit_btn}

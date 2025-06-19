@@ -48,7 +48,7 @@
 	export let autoscroll = true;
 	export let interactive: boolean;
 	export let max_length: number | undefined = undefined;
-	export let html_attributesbutes: Record<string, string> | undefined = undefined;
+	export let html_attributesord<string, string> | undefined = undefined;
 </script>
 
 <Block
@@ -88,7 +88,7 @@
 		{container}
 		{autoscroll}
 		{max_length}
-		{html_attributesbutes}
+		{html_attributes}
 		on:change={() => gradio.dispatch("change", value)}
 		on:input={() => gradio.dispatch("input")}
 		on:submit={() => gradio.dispatch("submit")}
