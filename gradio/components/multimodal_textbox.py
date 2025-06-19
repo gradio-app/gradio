@@ -92,7 +92,7 @@ class MultimodalTextbox(FormComponent):
         submit_btn: str | bool | None = True,
         stop_btn: str | bool | None = False,
         max_plain_text_length: int = 1000,
-        html_attrs: dict[str, str] | None = None,
+        html_attributes: dict[str, str] | None = None,
     ):
         """
         Parameters:
@@ -125,7 +125,7 @@ class MultimodalTextbox(FormComponent):
             submit_btn: If False, will not show a submit button. If a string, will use that string as the submit button text.
             stop_btn: If True, will show a stop button (useful for streaming demos). If a string, will use that string as the stop button text.
             max_plain_text_length: Maximum length of plain text in the textbox. If the text exceeds this length, the text will be pasted as a file. Default is 1000.
-            html_attrs: A dictionary of HTML attributes to be applied to the input/textarea elements. For example, {"autocorrect": "off", "spellcheck": "false"} to disable autocorrect and spellcheck.
+            html_attributes: A dictionary of HTML attributes to be applied to the input/textarea elements. For example, {"autocorrect": "off", "spellcheck": "false"} to disable autocorrect and spellcheck.
         """
         valid_sources: list[Literal["upload", "microphone"]] = ["upload", "microphone"]
         if sources is None:
@@ -157,7 +157,7 @@ class MultimodalTextbox(FormComponent):
         self.autofocus = autofocus
         self.autoscroll = autoscroll
         self.max_plain_text_length = max_plain_text_length
-        self.html_attrs = html_attrs
+        self.html_attributes = html_attributes
 
         super().__init__(
             label=label,
