@@ -1,5 +1,11 @@
 # gradio
 
+## 5.34.2
+
+### Features
+
+- [#11418](https://github.com/gradio-app/gradio/pull/11418) [`e398c51`](https://github.com/gradio-app/gradio/commit/e398c51e610713d7dc1ed0a1ee43d7d313b8ca6a) - Full screen plots take full height.  Thanks @aliabid94!
+
 ## 5.34.1
 
 ### Fixes
