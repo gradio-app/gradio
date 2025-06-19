@@ -161,6 +161,7 @@
 	let view: View;
 	let mounted = false;
 	let old_width: number;
+	let old_height: number;
 	let resizeObserver: ResizeObserver;
 
 	let vegaEmbed: typeof import("vega-embed").default;
@@ -174,6 +175,7 @@
 		}
 		if (!value || !chart_element) return;
 		old_width = chart_element.offsetWidth;
+		old_height = chart_element.offsetHeight;
 		const spec = create_vega_lite_spec();
 		if (!spec) return;
 		resizeObserver = new ResizeObserver((el) => {
@@ -187,6 +189,10 @@
 				load_chart();
 			} else {
 				view.signal("width", el[0].target.offsetWidth).run();
+			}
+			if (old_height !== el[0].target.offsetHeight && fullscreen) {
+				view.signal("height", el[0].target.offsetHeight).run();
+				old_height = el[0].target.offsetHeight;
 			}
 		});
 
@@ -270,6 +276,7 @@
 		sort,
 		mounted,
 		chart_element,
+		fullscreen,
 		computed_style && requestAnimationFrame(load_chart);
 
 	function create_vega_lite_spec(): Spec | null {
@@ -513,7 +520,7 @@
 					: [])
 			],
 			width: chart_element.offsetWidth,
-			height: height ? "container" : undefined,
+			height: height || fullscreen ? "container" : undefined,
 			title: title || undefined
 		};
 		/* eslint-enable complexity */
