@@ -13,4 +13,10 @@
 		background: var(--body-background-fill);
 		color: var(--body-text-color);
 	}
+
+	@media (prefers-color-scheme: dark) {
+		:global(body:not(.theme-loaded)) {
+			background: var(--neutral-950);
+		}
+	}
 </style>
