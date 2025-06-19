@@ -58,7 +58,7 @@
 	export let interactive: boolean;
 	export let root: string;
 	export let file_count: "single" | "multiple" | "directory";
-	export let max_plain_text_length = 1000;
+	export let max_plain_text_length: number;
 	export let sources: ["microphone" | "upload"] = ["upload"];
 	export let waveform_options: WaveformOptions = {};
 	export let html_attributes: Record<string, string> | undefined = undefined;
