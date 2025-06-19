@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Add `html_attrs` to `gr.Textbox` and `gr.MultimodalTextbox`
+feat:Add `html_attributes` to `gr.Textbox` and `gr.MultimodalTextbox`
