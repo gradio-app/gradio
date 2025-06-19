@@ -311,7 +311,7 @@
 	role="group"
 	aria-label="Multimedia input field"
 >
-	<BlockTitle {root} {show_label} {info} {rtl}>{label}</BlockTitle>
+	<BlockTitle {show_label} {info} {rtl}>{label}</BlockTitle>
 	{#if value.files.length > 0 || uploading}
 		<div
 			class="thumbnails scroll-hide"

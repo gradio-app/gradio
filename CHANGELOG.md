@@ -1,5 +1,21 @@
 # gradio
 
+## 5.34.2
+
+### Features
+
+- [#11418](https://github.com/gradio-app/gradio/pull/11418) [`e398c51`](https://github.com/gradio-app/gradio/commit/e398c51e610713d7dc1ed0a1ee43d7d313b8ca6a) - Full screen plots take full height.  Thanks @aliabid94!
+
+## 5.34.1
+
+### Fixes
+
+- [#11408](https://github.com/gradio-app/gradio/pull/11408) [`9082647`](https://github.com/gradio-app/gradio/commit/9082647e48e94d104d3fe1b9325f993d3b0cc0bb) - Make the method for getting the `asyncio` event loop more robust.  Thanks @abidlabs!
+- [#11400](https://github.com/gradio-app/gradio/pull/11400) [`8bb7776`](https://github.com/gradio-app/gradio/commit/8bb7776c88b1f2b08940247ae0adee24cc73f460) - Resolve issues around example caching with `gr.Progress`.  Thanks @abidlabs!
+- [#11399](https://github.com/gradio-app/gradio/pull/11399) [`4757302`](https://github.com/gradio-app/gradio/commit/4757302c9d4164f483a881ad993941b844cc1f25) - Miscellaneous fixes around docstrings & documentation.  Thanks @abidlabs!
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+- [#11397](https://github.com/gradio-app/gradio/pull/11397) [`5a7790d`](https://github.com/gradio-app/gradio/commit/5a7790d473c762e873d986d4953c6fc2f2b749f9) - Add detect audio format from bytes.  Thanks @yahiro-code!
+
 ## 5.34.0
 
 ### Features
