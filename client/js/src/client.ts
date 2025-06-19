@@ -272,9 +272,13 @@ export class Client {
 		app_reference: string,
 		options: ClientOptions = {
 			events: ["data"]
-		}
+		},
+		session_hash: string | null = null
 	): Promise<Client> {
 		const client = new this(app_reference, options); // this refers to the class itself, not the instance
+		if (session_hash) {
+			client.session_hash = session_hash;
+		}
 		await client.init();
 		return client;
 	}
