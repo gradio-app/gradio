@@ -744,6 +744,9 @@ class SyncToAsyncIterator:
             run_sync_iterator_async, self.iterator, limiter=self.limiter
         )
 
+    def aclose(self):
+        self.iterator.close()
+
 
 async def async_iteration(iterator):
     return await anext(iterator)
