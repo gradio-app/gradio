@@ -94,6 +94,9 @@
 		if (can_scroll && autoscroll) {
 			scroll();
 		}
+		if (el && el.tagName === "TEXTAREA") {
+			update_scrollbar_visibility(el as HTMLTextAreaElement);
+		}
 		value_is_output = false;
 	});
 	$: value, handle_change();
@@ -195,6 +198,22 @@
 		}
 
 		target.style.height = `${scroll_height}px`;
+
+		update_scrollbar_visibility(target);
+	}
+
+	function update_scrollbar_visibility(textarea: HTMLTextAreaElement): void {
+		const content_height = textarea.scrollHeight;
+		const visible_height = textarea.clientHeight;
+		const line_height = parseFloat(
+			window.getComputedStyle(textarea).lineHeight
+		);
+		const threshold = line_height * 1.5;
+		if (content_height > visible_height + threshold) {
+			textarea.style.overflowY = "scroll";
+		} else {
+			textarea.style.overflowY = "hidden";
+		}
 	}
 
 	function text_area_resize(
@@ -294,7 +313,6 @@
 			<textarea
 				data-testid="textbox"
 				use:text_area_resize={value}
-				class="scroll-hide"
 				dir={rtl ? "rtl" : "ltr"}
 				class:no-label={!show_label && (submit_btn || stop_btn)}
 				bind:value
