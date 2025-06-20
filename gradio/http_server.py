@@ -97,7 +97,7 @@ def start_server(
         raise ValueError("ssl_certfile must be provided if ssl_keyfile is provided.")
 
     server_name = server_name or LOCALHOST_NAME
-    url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
+    url_host_name = "localhost" if server_name == "0.0.0.0" or server_name == "[::]" else server_name
 
     # Strip IPv6 brackets from the address if they exist.
     # This is needed as http://[::1]:port/ is a valid browser address,
