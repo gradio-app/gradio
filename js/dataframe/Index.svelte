@@ -14,7 +14,6 @@
 	import type { Headers, Datatype, DataframeValue } from "./shared/utils";
 	import Image from "@gradio/image";
 
-	export let headers: Headers = [];
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -59,15 +58,6 @@
 	export let pinned_columns = 0;
 	export let static_columns: (string | number)[] = [];
 	export let fullscreen = false;
-
-	$: _headers = [...(value.headers || headers)];
-	$: display_value = value?.metadata?.display_value
-		? [...value?.metadata?.display_value]
-		: null;
-	$: styling =
-		!interactive && value?.metadata?.styling
-			? [...value?.metadata?.styling]
-			: null;
 </script>
 
 <Block
@@ -94,9 +84,9 @@
 		{row_count}
 		{col_count}
 		values={value.data}
-		{display_value}
-		{styling}
-		headers={_headers}
+		display_value={value.metadata?.display_value}
+		styling={value.metadata?.styling}
+		headers={value.headers}
 		{fullscreen}
 		on:change={(e) => {
 			value.data = e.detail.data;
