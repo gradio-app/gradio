@@ -1,5 +1,11 @@
 # @gradio/dataframe
 
+## 0.17.18
+
+### Fixes
+
+- [#11407](https://github.com/gradio-app/gradio/pull/11407) [`f3f9590`](https://github.com/gradio-app/gradio/commit/f3f9590d539b9e6fe3937a1bdc48006ee174fb8f) - Fix Styled DataFrame Sorting.  Thanks @deckar01!
+
 ## 0.17.17
 
 ### Fixes
