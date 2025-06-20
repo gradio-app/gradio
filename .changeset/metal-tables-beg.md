@@ -1,9 +1,9 @@
 ---
-"@gradio/client": minor
-"@gradio/core": minor
-"@self/app": minor
-"@self/spa": minor
-"gradio": minor
+"@gradio/client": patch
+"@gradio/core": patch
+"@self/app": patch
+"@self/spa": patch
+"gradio": patch
 ---
 
-feat:Preserve value in reload mode
+fix:Preserve value in reload mode
