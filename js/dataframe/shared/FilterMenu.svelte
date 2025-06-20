@@ -4,8 +4,6 @@
 	import DropdownArrow from "../../icons/src/DropdownArrow.svelte";
 	import type { FilterDatatype } from "./context/dataframe_context";
 
-	export let x: number;
-	export let y: number;
 	export let on_filter: (
 		datatype: FilterDatatype,
 		selected_filter: string,
@@ -43,19 +41,11 @@
 		const viewport_height = window.innerHeight;
 		const menu_rect = menu_element.getBoundingClientRect();
 
-		let new_x = x;
-		let new_y = y;
+		const x = (viewport_width - menu_rect.width) / 2;
+		const y = (viewport_height - menu_rect.height) / 2;
 
-		if (new_x + menu_rect.width > viewport_width) {
-			new_x = x - menu_rect.width - 10;
-		}
-
-		if (new_y + menu_rect.height > viewport_height) {
-			new_y = y - menu_rect.height;
-		}
-
-		menu_element.style.left = `${new_x}px`;
-		menu_element.style.top = `${new_y}px`;
+		menu_element.style.left = `${x}px`;
+		menu_element.style.top = `${y}px`;
 	}
 
 	function handle_filter_input(e: Event): void {
@@ -64,67 +54,80 @@
 	}
 </script>
 
-<div bind:this={menu_element} class="filter-menu">
-	<div class="filter-datatype-container">
-		<span>Filter as</span>
-		<button
-			on:click|stopPropagation={() => {
-				datatype = datatype === "string" ? "number" : "string";
-				current_filter = filter_options[datatype][0];
-			}}
-			aria-label={`Change filter type. Filtering ${datatype}s`}
-		>
-			{datatype}
-		</button>
-	</div>
-
-	<div class="input-container">
-		<div class="filter-dropdown">
+<div>
+	<div class="background"></div>
+	<div bind:this={menu_element} class="filter-menu">
+		<div class="filter-datatype-container">
+			<span>Filter as</span>
 			<button
-				on:click|stopPropagation={() =>
-					(filter_dropdown_open = !filter_dropdown_open)}
-				aria-label={`Change filter. Using '${current_filter}'`}
+				on:click|stopPropagation={() => {
+					datatype = datatype === "string" ? "number" : "string";
+					current_filter = filter_options[datatype][0];
+				}}
+				aria-label={`Change filter type. Filtering ${datatype}s`}
 			>
-				{current_filter}
-				<DropdownArrow />
+				{datatype}
 			</button>
-
-			{#if filter_dropdown_open}
-				<div class="dropdown-filter-options">
-					{#each filter_options[datatype] as opt}
-						<button
-							on:click|stopPropagation={() => {
-								current_filter = opt;
-								filter_dropdown_open = !filter_dropdown_open;
-							}}
-							class="filter-option"
-						>
-							{opt}
-						</button>
-					{/each}
-				</div>
-			{/if}
 		</div>
 
-		<input
-			type="text"
-			value={filter_input_value}
-			on:click|stopPropagation
-			on:input={handle_filter_input}
-			placeholder="Type a value"
-			class="filter-input"
-		/>
-	</div>
+		<div class="input-container">
+			<div class="filter-dropdown">
+				<button
+					on:click|stopPropagation={() =>
+						(filter_dropdown_open = !filter_dropdown_open)}
+					aria-label={`Change filter. Using '${current_filter}'`}
+				>
+					{current_filter}
+					<DropdownArrow />
+				</button>
 
-	<button
-		class="check-button"
-		on:click={() => on_filter(datatype, current_filter, filter_input_value)}
-	>
-		<Check />
-	</button>
+				{#if filter_dropdown_open}
+					<div class="dropdown-filter-options">
+						{#each filter_options[datatype] as opt}
+							<button
+								on:click|stopPropagation={() => {
+									current_filter = opt;
+									filter_dropdown_open = !filter_dropdown_open;
+								}}
+								class="filter-option"
+							>
+								{opt}
+							</button>
+						{/each}
+					</div>
+				{/if}
+			</div>
+
+			<input
+				type="text"
+				value={filter_input_value}
+				on:click|stopPropagation
+				on:input={handle_filter_input}
+				placeholder="Type a value"
+				class="filter-input"
+			/>
+		</div>
+
+		<button
+			class="check-button"
+			on:click={() => on_filter(datatype, current_filter, filter_input_value)}
+		>
+			<Check />
+		</button>
+	</div>
 </div>
 
 <style>
+	.background {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		background-color: rgba(0, 0, 0, 0.4);
+		z-index: 20;
+	}
+
 	.filter-menu {
 		position: fixed;
 		background: var(--background-fill-primary);
@@ -136,7 +139,7 @@
 		gap: var(--size-2);
 		box-shadow: var(--shadow-drop-lg);
 		width: 300px;
-		z-index: var(--layer-1);
+		z-index: 21;
 	}
 
 	.filter-datatype-container {

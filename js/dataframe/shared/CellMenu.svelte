@@ -188,11 +188,7 @@
 </div>
 
 {#if active_filter_menu}
-	<FilterMenu
-		x={active_filter_menu?.x ?? 0}
-		y={active_filter_menu?.y ?? 0}
-		{on_filter}
-	/>
+	<FilterMenu {on_filter} />
 {/if}
 
 <style>
