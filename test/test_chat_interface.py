@@ -227,6 +227,32 @@ class TestInit:
             None,
         )
 
+    def test_custom_chatobot_with_custom_button_events(self):
+        def fake_handler(history, data):
+            return history
+
+        with gr.Blocks() as demo:
+            chatbot = gr.Chatbot()
+            gr.ChatInterface(
+                fn=lambda x, y: x,
+                chatbot=chatbot,
+                custom_buttons=[
+                    {
+                        "label": "x",
+                        "visible": "all",
+                        "icon": "Check",
+                        "on_click": fake_handler,
+                    }
+                ],
+            )
+
+        dependencies = demo.fns.values()
+
+        assert next(
+            (d for d in dependencies if d.targets == [(chatbot._id, "custom_button")]),
+            None,
+        )
+
     def test_chatbot_type_mismatch(self):
         chatbot = gr.Chatbot()
         chat_interface = gr.ChatInterface(

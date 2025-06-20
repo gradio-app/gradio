@@ -1,5 +1,6 @@
 <script lang="ts">
 	import LikeDislike from "./LikeDislike.svelte";
+	import CustomButtons from "./CustomButtons.svelte";
 	import Copy from "./Copy.svelte";
 	import type { FileData } from "@gradio/client";
 	import type { NormalisedMessage, TextMessage, ThoughtNode } from "../types";
@@ -23,15 +24,25 @@
 	export let generating: boolean;
 	export let current_feedback: string | null;
 
-	export let handle_action: (selected: string | null) => void;
+	export let handle_action: (
+		selected: string | null,
+		selected_label: string | null
+	) => void;
 	export let layout: "bubble" | "panel";
 	export let dispatch: any;
+	export let custom_buttons:
+		| {
+				label: string;
+				visible: "all" | "user" | "chatbot";
+				icon: string | null;
+		  }[]
+		| null = null;
 
 	$: message_text = is_all_text(message) ? all_text(message) : "";
 	$: show_copy = show_copy_button && message && is_all_text(message);
 </script>
 
-{#if show_copy || show_retry || show_undo || show_edit || likeable}
+{#if show_copy || show_retry || show_undo || show_edit || likeable || custom_buttons}
 	<div
 		class="message-buttons-{position} {layout} message-buttons {avatar !==
 			null && 'with-avatar'}"
@@ -41,13 +52,13 @@
 				<IconButton
 					label={i18n("chatbot.submit")}
 					Icon={Check}
-					on:click={() => handle_action("edit_submit")}
+					on:click={() => handle_action("edit_submit", null)}
 					disabled={generating}
 				/>
 				<IconButton
 					label={i18n("chatbot.cancel")}
 					Icon={Clear}
-					on:click={() => handle_action("edit_cancel")}
+					on:click={() => handle_action("edit_cancel", null)}
 					disabled={generating}
 				/>
 			{:else}
@@ -62,7 +73,7 @@
 					<IconButton
 						Icon={Retry}
 						label={i18n("chatbot.retry")}
-						on:click={() => handle_action("retry")}
+						on:click={() => handle_action("retry", null)}
 						disabled={generating}
 					/>
 				{/if}
@@ -70,7 +81,7 @@
 					<IconButton
 						label={i18n("chatbot.undo")}
 						Icon={Undo}
-						on:click={() => handle_action("undo")}
+						on:click={() => handle_action("undo", null)}
 						disabled={generating}
 					/>
 				{/if}
@@ -78,7 +89,7 @@
 					<IconButton
 						label={i18n("chatbot.edit")}
 						Icon={Edit}
-						on:click={() => handle_action("edit")}
+						on:click={() => handle_action("edit", null)}
 						disabled={generating}
 					/>
 				{/if}
@@ -89,6 +100,9 @@
 						selected={current_feedback}
 						{i18n}
 					/>
+				{/if}
+				{#if custom_buttons}
+					<CustomButtons {handle_action} {custom_buttons} {position} />
 				{/if}
 			{/if}
 		</IconButtonWrapper>
