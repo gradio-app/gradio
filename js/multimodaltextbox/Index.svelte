@@ -61,6 +61,7 @@
 	export let max_plain_text_length: number;
 	export let sources: ["microphone" | "upload"] = ["upload"];
 	export let waveform_options: WaveformOptions = {};
+	export let html_attributes: Record<string, string> | undefined = undefined;
 
 	let dragging: boolean;
 	let active_source: "microphone" | null = null;
@@ -169,5 +170,6 @@
 		upload={(...args) => gradio.client.upload(...args)}
 		stream_handler={(...args) => gradio.client.stream(...args)}
 		{max_plain_text_length}
+		{html_attributes}
 	/>
 </Block>

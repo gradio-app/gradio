@@ -29,6 +29,8 @@
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autoscroll = true;
 	export let max_length: number | undefined = undefined;
+	export let html_attributesbutesbutes: Record<string, string> | undefined =
+		undefined;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -254,6 +256,7 @@
 					on:select={handle_select}
 					on:focus
 					style={text_align ? "text-align: " + text_align : ""}
+					{...html_attributesbutesbutes}
 				/>
 			{:else if type === "password"}
 				<input
@@ -271,6 +274,7 @@
 					on:select={handle_select}
 					on:focus
 					autocomplete=""
+					{...html_attributesbutesbutes}
 				/>
 			{:else if type === "email"}
 				<input
@@ -288,6 +292,7 @@
 					on:select={handle_select}
 					on:focus
 					autocomplete="email"
+					{...html_attributesbutesbutes}
 				/>
 			{/if}
 		{:else}
@@ -310,6 +315,7 @@
 				on:focus
 				on:scroll={handle_scroll}
 				style={text_align ? "text-align: " + text_align : ""}
+				{...html_attributes}
 			/>
 		{/if}
 		{#if submit_btn}
