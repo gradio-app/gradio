@@ -4,7 +4,7 @@
 	import type { Gradio } from "@gradio/utils";
 
 	export let scale: number | null = null;
-	export let gap = true;
+	export let gap: boolean | null = null;
 	export let min_width = 0;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -18,7 +18,7 @@
 <div
 	id={elem_id}
 	class="column {elem_classes.join(' ')}"
-	class:gap
+	class:gap={gap ?? true}
 	class:compact={variant === "compact"}
 	class:panel={variant === "panel"}
 	class:hide={!visible}
