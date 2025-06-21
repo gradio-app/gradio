@@ -8,31 +8,53 @@ import {
 } from "pixi.js";
 import { type ImageEditorContext } from "../core/editor";
 import { type Command } from "../core/commands";
+
+/**
+ * Represents a single drawing segment with all its parameters
+ */
+interface BrushSegment {
+	from_x: number;
+	from_y: number;
+	to_x: number;
+	to_y: number;
+	size: number;
+	color: string;
+	opacity: number;
+	mode: "draw" | "erase";
+}
+
+/**
+ * Represents a complete brush stroke containing multiple segments
+ */
+interface BrushStroke {
+	segments: BrushSegment[];
+	layer_id: string;
+}
+
 export class BrushCommand implements Command {
-	private layer_id: string;
-	private original_texture: Texture;
-	private final_texture: Texture;
+	private stroke_data: BrushStroke;
 	private context: ImageEditorContext;
+	private original_texture: Texture | null = null;
 
 	name: string;
 
 	constructor(
 		context: ImageEditorContext,
-		layer_id: string,
-		original_texture: Texture,
-		final_texture: Texture
+		stroke_data: BrushStroke,
+		original_texture?: Texture
 	) {
 		this.name = "Draw";
-		this.layer_id = layer_id;
+		this.stroke_data = stroke_data;
 		this.context = context;
-		this.original_texture = this.createTextureFrom(original_texture);
-		this.final_texture = this.createTextureFrom(final_texture);
+		if (original_texture) {
+			this.original_texture = this.create_texture_from(original_texture);
+		}
 	}
 
 	/**
 	 * Creates a new texture with the same content as the source texture
 	 */
-	private createTextureFrom(source: Texture): Texture {
+	private create_texture_from(source: Texture): Texture {
 		const texture = RenderTexture.create({
 			width: source.width,
 			height: source.height,
@@ -51,45 +73,236 @@ export class BrushCommand implements Command {
 		return texture;
 	}
 
+	/**
+	 * Recreates the stroke by rendering all segments from the stored parameters
+	 * Preserves the exact order of draw/erase operations
+	 */
+	private render_stroke_from_data(
+		stroke_data: BrushStroke,
+		target_texture: RenderTexture
+	): void {
+		// Process segments in order to preserve draw/erase sequence
+		for (let i = 0; i < stroke_data.segments.length; i++) {
+			const segment = stroke_data.segments[i];
+
+			if (segment.mode === "draw") {
+				this.apply_draw_segment(segment, target_texture);
+			} else {
+				this.apply_erase_segment(segment, target_texture);
+			}
+		}
+	}
+
+	/**
+	 * Apply a single draw segment to the target texture
+	 */
+	private apply_draw_segment(
+		segment: BrushSegment,
+		target_texture: RenderTexture
+	): void {
+		const graphics = new Graphics();
+		const container = new Container();
+		container.addChild(graphics);
+
+		// Set up color
+		let colorValue = 0xffffff;
+		try {
+			if (segment.color.startsWith("#")) {
+				colorValue = parseInt(segment.color.replace("#", "0x"), 16);
+			}
+		} catch (e) {
+			colorValue = 0xffffff;
+		}
+
+		graphics.setFillStyle({
+			color: colorValue,
+			alpha: 1.0
+		});
+
+		// Render the segment
+		this.render_segment_to_graphics(graphics, segment);
+
+		// Create temp texture for this segment
+		const segment_texture = RenderTexture.create({
+			width: target_texture.width,
+			height: target_texture.height,
+			resolution: window.devicePixelRatio || 1
+		});
+
+		// Render segment to temp texture
+		this.context.app.renderer.render(container, {
+			renderTexture: segment_texture
+		});
+
+		// Composite temp texture onto target with opacity
+		const composite_container = new Container();
+		const existing_sprite = new Sprite(target_texture);
+		composite_container.addChild(existing_sprite);
+
+		const segment_sprite = new Sprite(segment_texture);
+		segment_sprite.alpha = segment.opacity;
+		composite_container.addChild(segment_sprite);
+
+		// Clear target and render composite
+		const clear_container = new Container();
+		this.context.app.renderer.render(clear_container, {
+			renderTexture: target_texture
+		});
+		clear_container.destroy();
+
+		this.context.app.renderer.render(composite_container, {
+			renderTexture: target_texture
+		});
+
+		// Cleanup
+		container.destroy({ children: true });
+		composite_container.destroy({ children: true });
+		segment_texture.destroy();
+	}
+
+	/**
+	 * Apply a single erase segment to the target texture
+	 */
+	private apply_erase_segment(
+		segment: BrushSegment,
+		target_texture: RenderTexture
+	): void {
+		const graphics = new Graphics();
+		const container = new Container();
+		container.addChild(graphics);
+
+		// Set up white for erase mask
+		graphics.setFillStyle({
+			color: 0xffffff,
+			alpha: 1.0
+		});
+
+		// Render the segment
+		this.render_segment_to_graphics(graphics, segment);
+
+		// Create temp texture for erase mask
+		const mask_texture = RenderTexture.create({
+			width: target_texture.width,
+			height: target_texture.height,
+			resolution: window.devicePixelRatio || 1
+		});
+
+		// Render erase mask to temp texture
+		this.context.app.renderer.render(container, {
+			renderTexture: mask_texture
+		});
+
+		// Apply inverse mask to target texture
+		const mask_container = new Container();
+		const content_sprite = new Sprite(target_texture);
+		mask_container.addChild(content_sprite);
+
+		const mask_sprite = new Sprite(mask_texture);
+		mask_container.setMask({ mask: mask_sprite, inverse: true });
+
+		// Clear target and render masked result
+		const clear_container = new Container();
+		this.context.app.renderer.render(clear_container, {
+			renderTexture: target_texture
+		});
+		clear_container.destroy();
+
+		this.context.app.renderer.render(mask_container, {
+			renderTexture: target_texture
+		});
+
+		// Cleanup
+		container.destroy({ children: true });
+		mask_container.destroy({ children: true });
+		mask_texture.destroy();
+	}
+
+	/**
+	 * Renders a segment to a graphics object (extracted from renderSegment)
+	 */
+	private render_segment_to_graphics(
+		graphics: Graphics,
+		segment: BrushSegment
+	): void {
+		const distance = Math.sqrt(
+			Math.pow(segment.to_x - segment.from_x, 2) +
+				Math.pow(segment.to_y - segment.from_y, 2)
+		);
+
+		if (distance < 0.1) {
+			graphics.circle(segment.from_x, segment.from_y, segment.size).fill();
+		} else {
+			const spacing = Math.max(segment.size / 3, 2);
+			const steps = Math.max(Math.ceil(distance / spacing), 2);
+
+			for (let i = 0; i < steps; i++) {
+				const t = i / (steps - 1);
+				const x = segment.from_x + (segment.to_x - segment.from_x) * t;
+				const y = segment.from_y + (segment.to_y - segment.from_y) * t;
+
+				graphics.circle(x, y, segment.size).fill();
+			}
+		}
+	}
+
 	async execute(context: ImageEditorContext): Promise<void> {
-		console.log("execute", context);
 		if (context) {
 			this.context = context;
 		}
 
-		console.log("layer_id", this.layer_id);
-		console.log("context", this.context.layer_manager.get_layers());
 		let layer_textures = this.context.layer_manager.get_layer_textures(
-			this.layer_id
+			this.stroke_data.layer_id
 		);
 
-		console.log("layer_textures", layer_textures);
 		if (!layer_textures) {
 			const all_layers = this.context.layer_manager.get_layers();
 			const top_layer = all_layers[all_layers.length - 1];
-			console.log("top_layer", top_layer, all_layers);
 			layer_textures = this.context.layer_manager.get_layer_textures(
 				top_layer.id
 			);
-			console.log("layer_textures", layer_textures);
 		}
 
 		if (!layer_textures) return;
 
-		const temp_sprite = new Sprite(this.final_texture);
+		// Create a temporary texture to render the stroke
+		const temp_texture = RenderTexture.create({
+			width: layer_textures.draw.width,
+			height: layer_textures.draw.height,
+			resolution: window.devicePixelRatio || 1
+		});
+
+		// Copy current layer content to temp texture
+		const current_sprite = new Sprite(layer_textures.draw);
 		const temp_container = new Container();
-		temp_container.addChild(temp_sprite);
-		console.log("RENDERING");
+		temp_container.addChild(current_sprite);
+
 		this.context.app.renderer.render(temp_container, {
-			renderTexture: layer_textures.draw
+			renderTexture: temp_texture
 		});
 
 		temp_container.destroy({ children: true });
+
+		// Render the stroke from stored parameters
+		this.render_stroke_from_data(this.stroke_data, temp_texture);
+
+		// Copy result back to layer texture
+		const final_sprite = new Sprite(temp_texture);
+		const final_container = new Container();
+		final_container.addChild(final_sprite);
+
+		this.context.app.renderer.render(final_container, {
+			renderTexture: layer_textures.draw
+		});
+
+		final_container.destroy({ children: true });
+		temp_texture.destroy();
 	}
 
 	async undo(): Promise<void> {
+		if (!this.original_texture) return;
+
 		const layer_textures = this.context.layer_manager.get_layer_textures(
-			this.layer_id
+			this.stroke_data.layer_id
 		);
 		if (!layer_textures) return;
 
@@ -129,11 +342,13 @@ export class BrushTextures {
 	private original_layer_texture: Texture | null = null;
 	private active_layer_id: string | null = null;
 
+	// New: Store stroke segments for parameter-based history
+	private current_stroke_segments: BrushSegment[] = [];
+
 	constructor(image_editor_context: ImageEditorContext, app: Application) {
 		this.image_editor_context = image_editor_context;
 		this.app = app;
 
-		console.log("app", this.image_editor_context.app);
 		this.dimensions = {
 			width: this.image_editor_context.image_container.width,
 			height: this.image_editor_context.image_container.height
@@ -297,13 +512,10 @@ export class BrushTextures {
 		if (!this.erase_graphics || !this.erase_texture) return;
 
 		this.erase_graphics.clear();
-		this.erase_graphics.beginFill(0xffffff, 1);
-		this.erase_graphics.drawRect(
-			0,
-			0,
-			this.dimensions.width,
-			this.dimensions.height
-		);
+		this.erase_graphics.setFillStyle({ color: 0xffffff, alpha: 1.0 });
+		this.erase_graphics
+			.rect(0, 0, this.dimensions.width, this.dimensions.height)
+			.fill();
 		this.erase_graphics.endFill();
 
 		this.app.renderer.render(this.erase_graphics, {
@@ -341,65 +553,20 @@ export class BrushTextures {
 			this.image_editor_context.layer_manager.get_layer_textures(layer.id);
 		if (!layer_textures) return;
 
-		const currentOpacity = this.current_opacity;
+		// Create the stroke data with all segments
+		const stroke_data: BrushStroke = {
+			segments: [...this.current_stroke_segments],
+			layer_id: this.active_layer_id
+		};
 
-		if (this.current_mode === "draw") {
-			const temp_container = new Container();
-
-			const base_sprite = new Sprite(layer_textures.draw);
-			temp_container.addChild(base_sprite);
-
-			const stroke_sprite = new Sprite(this.stroke_texture);
-			stroke_sprite.alpha = currentOpacity;
-			temp_container.addChild(stroke_sprite);
-
-			this.app.renderer.render(temp_container, {
-				renderTexture: layer_textures.draw
-			});
-
-			temp_container.destroy({ children: true });
-		} else {
-			if (!this.stroke_texture) return;
-
-			const erase_container = new Container();
-
-			const content_sprite = new Sprite(layer_textures.draw);
-			erase_container.addChild(content_sprite);
-
-			const mask_sprite = new Sprite(this.stroke_texture);
-
-			erase_container.setMask({ mask: mask_sprite, inverse: true });
-
-			this.app.renderer.render(erase_container, {
-				renderTexture: layer_textures.draw
-			});
-
-			erase_container.destroy({ children: true });
-		}
-
-		const final_texture = RenderTexture.create({
-			width: this.dimensions.width,
-			height: this.dimensions.height,
-			resolution: window.devicePixelRatio || 1
-		});
-
-		const final_container = new Container();
-		const final_sprite = new Sprite(layer_textures.draw);
-		final_container.addChild(final_sprite);
-
-		this.app.renderer.render(final_container, {
-			renderTexture: final_texture
-		});
-
-		final_container.destroy({ children: true });
-
+		// Create the brush command with the original texture for undo
 		const brush_command = new BrushCommand(
 			this.image_editor_context,
-			this.active_layer_id,
-			this.original_layer_texture,
-			final_texture
+			stroke_data,
+			this.original_layer_texture
 		);
 
+		// Clean up the stroke graphics and texture
 		if (this.stroke_graphics) {
 			this.stroke_graphics.clear();
 		}
@@ -409,20 +576,23 @@ export class BrushTextures {
 		});
 		clear_container.destroy();
 
+		// Reset state for next stroke
 		this.is_new_stroke = true;
-
-		final_texture.destroy();
-
 		this.original_layer_texture = null;
 		this.active_layer_id = null;
+		this.current_stroke_segments = [];
 
-		this.image_editor_context.command_manager.execute(brush_command);
+		// Execute the command - this will apply the stroke using the proper logic
+		this.image_editor_context.command_manager.execute(
+			brush_command,
+			this.image_editor_context
+		);
 	}
 
 	/**
 	 * Calculates the distance between two points.
 	 */
-	private calculateDistance(
+	private calculate_distance(
 		x1: number,
 		y1: number,
 		x2: number,
@@ -464,6 +634,8 @@ export class BrushTextures {
 
 		if (this.is_new_stroke) {
 			this.stroke_graphics.clear();
+			// Clear the stroke segments array for new stroke
+			this.current_stroke_segments = [];
 
 			const clear_container = new Container();
 			this.app.renderer.render(clear_container, {
@@ -473,6 +645,18 @@ export class BrushTextures {
 
 			this.is_new_stroke = false;
 		}
+
+		// Store segment parameters for history
+		this.current_stroke_segments.push({
+			from_x,
+			from_y,
+			to_x,
+			to_y,
+			size: scaled_size,
+			color,
+			opacity: this.current_opacity,
+			mode
+		});
 
 		if (mode === "draw") {
 			let colorValue = 0xffffff;
@@ -494,7 +678,7 @@ export class BrushTextures {
 			});
 		}
 
-		const distance = this.calculateDistance(from_x, from_y, to_x, to_y);
+		const distance = this.calculate_distance(from_x, from_y, to_x, to_y);
 
 		if (distance < 0.1) {
 			this.stroke_graphics.circle(from_x, from_y, scaled_size).fill();

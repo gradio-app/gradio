@@ -76,10 +76,10 @@ export class CommandManager {
 			this.current_history.set(this.history);
 		}
 	}
-	redo(): void {
+	redo(context?: ImageEditorContext): void {
 		if (this.history.next) {
 			this.history = this.history.next;
-			this.history.command?.execute();
+			this.history.command?.execute(context);
 		}
 
 		this.current_history.set(this.history);
@@ -110,9 +110,12 @@ export class CommandManager {
 		}
 
 		while (full_history.next) {
-			await this.execute(full_history.next.command!, context);
+			await full_history.next.command!.execute(context);
 			full_history = full_history.next;
 		}
+
+		this.history = full_history;
+		this.current_history.set(this.history);
 	}
 
 	contains(command_name: string): boolean {

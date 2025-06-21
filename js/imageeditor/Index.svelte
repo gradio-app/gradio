@@ -200,7 +200,6 @@
 
 		<InteractiveImageEditor
 			{border_region}
-			on:history={(e) => (full_history = e.detail)}
 			bind:is_dragging
 			{canvas_size}
 			on:change={() => handle_history_change()}

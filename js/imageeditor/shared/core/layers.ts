@@ -794,13 +794,16 @@ export class LayerManager {
 		for (const layer of this.layers) {
 			this.delete_layer(layer.id);
 		}
+		let i = 0;
 		for (const layer of this.layer_options.layers) {
 			this.create_layer({
 				width,
 				height,
 				layer_name: layer,
-				user_created: false
+				user_created: false,
+				layer_id: `layer-${i}`
 			});
+			i++;
 		}
 
 		this.active_layer = this.layers[0].container;
