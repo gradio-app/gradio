@@ -33,21 +33,20 @@
 		tick().then(() => dispatch("select", { value: label, index: tab_index }));
 </script>
 
-<!-- {#if $selected_tab === id && visible} -->
-<div
-	id={elem_id}
-	class="tabitem {elem_classes.join(' ')}"
-	class:grow-children={scale >= 1}
-	style:display={$selected_tab === id && visible ? "flex" : "none"}
-	style:flex-grow={scale}
-	role="tabpanel"
->
-	<Column scale={scale >= 1 ? scale : null}>
-		<slot />
-	</Column>
-</div>
-
-<!-- {/if} -->
+{#if $selected_tab === id && visible}
+	<div
+		id={elem_id}
+		class="tabitem {elem_classes.join(' ')}"
+		class:grow-children={scale >= 1}
+		style:display={$selected_tab === id && visible ? "flex" : "none"}
+		style:flex-grow={scale}
+		role="tabpanel"
+	>
+		<Column scale={scale >= 1 ? scale : null}>
+			<slot />
+		</Column>
+	</div>
+{/if}
 
 <style>
 	div {

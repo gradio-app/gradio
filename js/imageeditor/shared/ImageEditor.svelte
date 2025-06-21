@@ -7,6 +7,7 @@
 
 <script lang="ts">
 	import { onMount, createEventDispatcher, tick } from "svelte";
+	import { get } from "svelte/store";
 	import Toolbar, { type Tool as ToolbarTool } from "./Toolbar.svelte";
 	import { CropTool } from "./crop/crop";
 	import { ResizeTool } from "./resize/resize";
@@ -33,14 +34,12 @@
 		clear?: never;
 		save: void;
 		change: void;
-		history: CommandManager["current_history"];
 		upload: void;
 		input: void;
 		download_error: string;
 	}>();
 
 	export const antialias = true;
-	export const full_history: CommandNode | null = null;
 
 	export let changeable = false;
 	export let sources: Source[] = ["upload", "webcam", "clipboard"];
@@ -63,6 +62,7 @@
 	export let webcam_options: WebcamOptions;
 	export let show_download_button = false;
 	export let theme_mode: "dark" | "light";
+	export let full_history: CommandNode | null = null;
 
 	let pixi_target: HTMLDivElement;
 	let pixi_target_crop: HTMLDivElement;
@@ -75,8 +75,46 @@
 	}
 
 	function refresh_tools(): void {
+		if (!editor || !ready) return;
 		editor.set_tool(current_tool);
 		editor.set_subtool(current_subtool);
+	}
+
+	// ensure tools are properly configured when layer state changes
+	$: if (editor && ready && editor.layers) {
+		const current_layers = get(editor.layers);
+
+		// only refresh if we have layers but no active layer, or if current tool is draw/erase
+		if (
+			(current_layers.layers.length > 0 && !current_layers.active_layer) ||
+			current_tool === "draw" ||
+			current_tool === "erase"
+		) {
+			refresh_tools_for_layer_changes(current_layers);
+		}
+	}
+
+	/**
+	 * Refreshes tools when layer state changes
+	 */
+	function refresh_tools_for_layer_changes(current_layers: any): void {
+		if (!editor || !ready) return;
+
+		if (current_layers.layers.length > 0 && !current_layers.active_layer) {
+			editor.set_layer(current_layers.layers[0].id);
+		}
+
+		// reapply current tool to ensure it targets the correct layer
+		if (current_tool) {
+			editor.set_tool(current_tool);
+			if (current_subtool) {
+				editor.set_subtool(current_subtool);
+			}
+		}
+
+		if (brush && (current_tool === "draw" || current_tool === "erase")) {
+			brush.set_tool(current_tool, current_subtool);
+		}
 	}
 
 	function check_if_should_init(): boolean {
@@ -218,6 +256,7 @@
 	onMount(() => {
 		let intersection_observer: IntersectionObserver;
 		let resize_observer: ResizeObserver;
+
 		init_image_editor().then(() => {
 			mounted = true;
 			intersection_observer = new IntersectionObserver(() => {
@@ -230,9 +269,13 @@
 
 			intersection_observer.observe(pixi_target);
 			resize_observer.observe(pixi_target);
-		});
 
-		// Set up mutation observer to detect visibility changes
+			if (full_history) {
+				editor.command_manager.replay(full_history, editor.context).then(() => {
+					refresh_tools_after_history();
+				});
+			}
+		});
 
 		return () => {
 			if (intersection_observer) {
@@ -246,6 +289,32 @@
 			}
 		};
 	});
+
+	/**
+	 * Refreshes tool state after history replay to ensure proper layer targeting
+	 */
+	function refresh_tools_after_history(): void {
+		if (!editor || !ready) return;
+
+		const current_layers = get(editor.layers);
+
+		if (current_layers.layers.length > 0 && !current_layers.active_layer) {
+			editor.set_layer(current_layers.layers[0].id);
+		}
+
+		if (current_tool) {
+			editor.set_tool(current_tool);
+			if (current_subtool) {
+				editor.set_subtool(current_subtool);
+			}
+		}
+
+		if (brush && (current_tool === "draw" || current_tool === "erase")) {
+			brush.set_tool(current_tool, current_subtool);
+		}
+
+		full_history = editor.command_manager.history;
+	}
 
 	let crop: ImageEditor;
 	let crop_zoom: ZoomTool;
@@ -291,8 +360,12 @@
 		});
 
 		editor.dimensions.subscribe((dimensions) => {
-			// Store dimensions for later comparison
 			last_dimensions = { ...dimensions };
+		});
+
+		editor.command_manager.current_history.subscribe((history) => {
+			can_undo = history.previous !== null;
+			can_redo = history.next !== null;
 		});
 
 		await Promise.all([editor.ready, crop.ready]).then(() => {
@@ -308,8 +381,7 @@
 
 		editor.on("change", () => {
 			dispatch("change");
-			can_undo = editor.command_manager.history.previous !== null;
-			can_redo = editor.command_manager.history.next !== null;
+			full_history = editor.command_manager.history;
 		});
 
 		if (background || layers.length > 0) {
@@ -324,6 +396,8 @@
 			await add_image_from_url(composite);
 			handle_tool_change({ tool: "draw" });
 		}
+
+		refresh_tools();
 	}
 
 	$: if (
@@ -361,8 +435,6 @@
 		dispatch("upload");
 		dispatch("input");
 		dispatch("change");
-		can_undo = editor.command_manager.history.previous !== null;
-		can_redo = editor.command_manager.history.next !== null;
 	}
 
 	$: background_image = can_undo && editor.command_manager.contains("AddImage");
@@ -586,14 +658,10 @@
 
 	function handle_undo(): void {
 		editor.undo();
-		can_undo = editor.command_manager.history.previous !== null;
-		can_redo = editor.command_manager.history.next !== null;
 	}
 
 	function handle_redo(): void {
 		editor.redo();
-		can_undo = editor.command_manager.history.previous !== null;
-		can_redo = editor.command_manager.history.next !== null;
 	}
 </script>
 

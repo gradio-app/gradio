@@ -223,7 +223,6 @@
 	on:clear={() => dispatch("clear")}
 	on:download_error
 	{sources}
-	{full_history}
 	bind:background_image
 	bind:current_tool
 	brush_options={brush}
@@ -240,6 +239,7 @@
 	{show_download_button}
 	{theme_mode}
 	bind:can_undo
+	bind:full_history
 >
 	{#if current_tool === "image" && !can_undo}
 		<div class="empty wrap">
