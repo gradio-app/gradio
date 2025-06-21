@@ -24,40 +24,28 @@ How to do this will be explained in the following section.
 
 ### Avoiding Rate Limits 
 
-When a user visits the page, we will extract their token from the `X-IP-Token` header of the incoming request.
-We will use this header value in all subsequent client requests.
+When a user presses enter in the textbox, we will extract their token from the `X-IP-Token` header of the incoming request.
+We will use this header when constructing the gradio client.
 The following hypothetical text-to-image application shows how this is done.
 <br> 
-
-We use the `load` event to extract the user's `x-ip-token` header when they visit the page.
-We create a new client with this header passed to the `headers` parameter.
-This ensures all subsequent predictions pass this header to the ZeroGPU space.
-The client is saved in a State variable so that it's kept independent from other users.
-It will be deleted automatically when the user exits the page.
 
 
 ```python
 import gradio as gr
 from gradio_client import Client
 
-def text_to_image(client, prompt):
+def text_to_image(prompt, request: gr.Request):
+    x_ip_token = request.headers['x-ip-token']
+    client = Client("hysts/SDXL", headers={"x-ip-token": x_ip_token})
     img = client.predict(prompt, api_name="/predict")
     return img
 
 
-def set_client_for_session(request: gr.Request):
-    x_ip_token = request.headers['x-ip-token']
-
-    # The "gradio/text-to-image" space is a ZeroGPU space
-    return Client("gradio/text-to-image", headers={"X-IP-Token": x_ip_token})
-
 with gr.Blocks() as demo:
-    client = gr.State()
     image = gr.Image()
     prompt = gr.Textbox(max_lines=1)
+    prompt.submit(text_to_image, [prompt], [image])
 
-    prompt.submit(text_to_image, [client, prompt], [image])
-
-    demo.load(set_client_for_session, None, client)
+demo.launch()
 ```
 

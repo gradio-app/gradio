@@ -29,7 +29,6 @@
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autoscroll = true;
 	export let max_length: number | undefined = undefined;
-	export let root: string;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -67,7 +66,13 @@
 	}>();
 
 	beforeUpdate(() => {
-		can_scroll = el && el.offsetHeight + el.scrollTop > el.scrollHeight - 100;
+		if (
+			!user_has_scrolled_up &&
+			el &&
+			el.offsetHeight + el.scrollTop > el.scrollHeight - 100
+		) {
+			can_scroll = true;
+		}
 	});
 
 	const scroll = (): void => {
@@ -228,7 +233,7 @@
 			>
 		{/if}
 	{/if}
-	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="input-container">
 		{#if lines === 1 && _max_lines === 1}

@@ -112,12 +112,30 @@ const redirect_src_url = (src: string, root: string): string =>
 	src.replace('src="/file', `src="${root}file`);
 
 function get_component_for_mime_type(
-	mime_type: string | null | undefined
+	mime_type: string | null | undefined,
+	file?: { path?: string }
 ): string {
-	if (!mime_type) return "file";
+	if (!mime_type) {
+		const path = file?.path;
+		if (path) {
+			const lower_path = path.toLowerCase();
+			if (
+				lower_path.endsWith(".glb") ||
+				lower_path.endsWith(".gltf") ||
+				lower_path.endsWith(".obj") ||
+				lower_path.endsWith(".stl") ||
+				lower_path.endsWith(".splat") ||
+				lower_path.endsWith(".ply")
+			) {
+				return "model3d";
+			}
+		}
+		return "file";
+	}
 	if (mime_type.includes("audio")) return "audio";
 	if (mime_type.includes("video")) return "video";
 	if (mime_type.includes("image")) return "image";
+	if (mime_type.includes("model")) return "model3d";
 	return "file";
 }
 
@@ -126,7 +144,7 @@ function convert_file_message_to_component_message(
 ): ComponentData {
 	const _file = Array.isArray(message.file) ? message.file[0] : message.file;
 	return {
-		component: get_component_for_mime_type(_file?.mime_type),
+		component: get_component_for_mime_type(_file?.mime_type, _file),
 		value: message.file,
 		alt_text: message.alt_text,
 		constructor_args: {},
@@ -293,15 +311,25 @@ export async function load_components(
 		if (_components[component_name] || component_name === "file") {
 			return;
 		}
-		const variant = component_name === "dataframe" ? "component" : "base";
+		const variant =
+			component_name === "dataframe" || component_name === "model3d"
+				? "component"
+				: "base";
 		const { name, component } = load_component(component_name, variant);
 		names.push(name);
 		components.push(component);
 		component_name;
 	});
-	const loaded_components: LoadedComponent[] = await Promise.all(components);
-	loaded_components.forEach((component, i) => {
-		_components[names[i]] = component.default;
+
+	const resolved_components = await Promise.allSettled(components);
+	const supported_components: [number, LoadedComponent][] = resolved_components
+		.map((result, index) =>
+			result.status === "fulfilled" ? [index, result.value] : null
+		)
+		.filter((item): item is [number, LoadedComponent] => item !== null);
+
+	supported_components.forEach(([originalIndex, component]) => {
+		_components[names[originalIndex]] = component.default;
 	});
 
 	return _components;

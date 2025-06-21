@@ -1,5 +1,96 @@
 # @gradio/chatbot
 
+## 0.26.15
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/video@0.14.18
+- @gradio/markdown-code@0.4.4
+- @gradio/atoms@0.16.2
+- @gradio/client@1.15.3
+- @gradio/gallery@0.15.24
+- @gradio/plot@0.9.18
+- @gradio/upload@0.16.8
+- @gradio/image@0.22.10
+
+## 0.26.14
+
+### Fixes
+
+- [#11386](https://github.com/gradio-app/gradio/pull/11386) [`92aa905`](https://github.com/gradio-app/gradio/commit/92aa9058e101a6f4ddf72495a87ae392802d9f2d) - Hide pending message indicator ("...") from `gr.Chatbot` if `show_progress="hidden"`.  Thanks @abidlabs!
+- [#11378](https://github.com/gradio-app/gradio/pull/11378) [`3ec4a7c`](https://github.com/gradio-app/gradio/commit/3ec4a7c376b5eee9e2d5a0b858c374b417f8c61a) - Add Model3D support in Chatbot.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/gallery@0.15.23
+- @gradio/markdown-code@0.4.3
+- @gradio/plot@0.9.17
+- @gradio/statustracker@0.10.12
+
+## 0.26.13
+
+### Fixes
+
+- [#11368](https://github.com/gradio-app/gradio/pull/11368) [`3f53679`](https://github.com/gradio-app/gradio/commit/3f5367986e90c57465bdbb809b318da6aed5400d) - Fixes chatbot unsupported components.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/gallery@0.15.23
+
+## 0.26.12
+
+### Dependency updates
+
+- @gradio/upload@0.16.7
+- @gradio/video@0.14.17
+- @gradio/client@1.15.2
+- @gradio/image@0.22.9
+- @gradio/gallery@0.15.22
+
+## 0.26.11
+
+### Features
+
+- [#11320](https://github.com/gradio-app/gradio/pull/11320) [`d6649e5`](https://github.com/gradio-app/gradio/commit/d6649e541d96ce94cd20bc8d7655c4c380c9cdb2) - Fix doc title for JS Chatbot.  Thanks @aymeric-roucher!
+
+## 0.26.10
+
+### Fixes
+
+- [#11307](https://github.com/gradio-app/gradio/pull/11307) [`bc299f1`](https://github.com/gradio-app/gradio/commit/bc299f12e54f765c2194da2c46a8d4520c44fbb3) - Show scroll to bottom button whenever user scrolls up in chatbot.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/gallery@0.15.21
+- @gradio/markdown-code@0.4.3
+- @gradio/plot@0.9.17
+- @gradio/video@0.14.16
+- @gradio/image@0.22.8
+
+## 0.26.9
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/client@1.15.1
+- @gradio/upload@0.16.6
+- @gradio/image@0.22.7
+- @gradio/gallery@0.15.20
+- @gradio/plot@0.9.17
+- @gradio/video@0.14.15
+
+## 0.26.8
+
+### Features
+
+- [#11229](https://github.com/gradio-app/gradio/pull/11229) [`231ccfe`](https://github.com/gradio-app/gradio/commit/231ccfeed0a9f3971489e571cceaf8bea28fdd54) - Chatbot autoscroll fix.  Thanks @dawoodkhan82!
+
 ## 0.26.7
 
 ### Dependency updates

@@ -1,5 +1,46 @@
 # @gradio/textbox
 
+## 0.10.15
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/atoms@0.16.2
+
+## 0.10.14
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.10.14
+
+### Features
+
+- [#11380](https://github.com/gradio-app/gradio/pull/11380) [`0b2b6cb`](https://github.com/gradio-app/gradio/commit/0b2b6cbd44562a2f5843af872fe6761c5f255185) - Truncate textbox examples to 70 chars.  Thanks @hannahblair!
+
+## 0.10.13
+
+### Fixes
+
+- [#11318](https://github.com/gradio-app/gradio/pull/11318) [`3e40af3`](https://github.com/gradio-app/gradio/commit/3e40af3df4669ce400db4c9308d0e20f0d7ddf96) - Fix textbox autoscroll in tabs.  Thanks @dawoodkhan82!
+
+## 0.10.12
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.10.12
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
 ## 0.10.11
 
 ### Dependency updates

@@ -1,5 +1,40 @@
 # @gradio/datetime
 
+## 0.3.16
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/atoms@0.16.2
+
+## 0.3.15
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.3.15
+
+### Fixes
+
+- [#11363](https://github.com/gradio-app/gradio/pull/11363) [`5e3ec9c`](https://github.com/gradio-app/gradio/commit/5e3ec9cf2c221fcd0d84f07d5757b63940cc1238) - Redesign the `gr.Datetime` component and ensure it works within an iframe (e.g. on Spaces).  Thanks @abidlabs!
+
+## 0.3.14
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.3.14
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
 ## 0.3.13
 
 ### Dependency updates

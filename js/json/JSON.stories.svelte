@@ -3,7 +3,7 @@
 	import JSON from "./Index.svelte";
 	import { userEvent, within } from "@storybook/test";
 
-	const SAMPLE_JSON = {
+	const example_json = {
 		items: {
 			item: [
 				{
@@ -20,6 +20,14 @@
 		}
 	};
 
+	const example_arr = [
+		"first item",
+		"second item",
+		"third item",
+		{ name: "fourth item", type: "object" },
+		["nested", "array", "example"]
+	];
+
 	export const meta = {
 		title: "Components/JSON",
 		component: JSON
@@ -27,15 +35,15 @@
 </script>
 
 <Template let:args>
-	<JSON value={SAMPLE_JSON} {...args} />
+	<JSON value={example_json} {...args} />
 </Template>
 
 <Story name="Default JSON" args={{}} />
 
 <Story
-	name="JSON Interactions"
+	name="with interactivity"
 	args={{
-		value: SAMPLE_JSON,
+		value: example_json,
 		interactive: true
 	}}
 	play={async ({ canvasElement }) => {
@@ -51,10 +59,28 @@
 />
 
 <Story
-	name="JSON viewed as list with height"
+	name="with show_indices and height"
 	args={{
-		value: SAMPLE_JSON,
+		value: example_json,
 		show_indices: true,
 		height: 200
+	}}
+/>
+
+<Story
+	name="with array and show_indices"
+	args={{
+		value: example_arr,
+		show_indices: true,
+		open: true
+	}}
+/>
+
+<Story
+	name="with array and hidden indices"
+	args={{
+		value: example_arr,
+		show_indices: false,
+		open: true
 	}}
 />

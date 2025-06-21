@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/datetime",
-	"version": "0.3.13",
+	"version": "0.3.16",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

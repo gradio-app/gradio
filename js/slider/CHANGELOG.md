@@ -1,5 +1,44 @@
 # @gradio/slider
 
+## 0.6.12
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/atoms@0.16.2
+
+## 0.6.11
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.6.11
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.6.11
+
+### Fixes
+
+- [#11278](https://github.com/gradio-app/gradio/pull/11278) [`ac2bcea`](https://github.com/gradio-app/gradio/commit/ac2bcea619806ff99a44d98c15ca5c5969cdd54d) - Add gap around slider input in mobile.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.6.10
+
+### Fixes
+
+- [#11228](https://github.com/gradio-app/gradio/pull/11228) [`0b7f753`](https://github.com/gradio-app/gradio/commit/0b7f753a8e400795b5e03fd3faf2a6d1f4426f05) - Improve slider alignment.  Thanks @hannahblair!
+
 ## 0.6.9
 
 ### Dependency updates

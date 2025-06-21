@@ -1,5 +1,52 @@
 # @gradio/nativeplot
 
+## 0.6.3
+
+### Features
+
+- [#11418](https://github.com/gradio-app/gradio/pull/11418) [`e398c51`](https://github.com/gradio-app/gradio/commit/e398c51e610713d7dc1ed0a1ee43d7d313b8ca6a) - Full screen plots take full height.  Thanks @aliabid94!
+
+## 0.6.2
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/atoms@0.16.2
+
+## 0.6.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.6.1
+
+### Features
+
+- [#11372](https://github.com/gradio-app/gradio/pull/11372) [`7282c9e`](https://github.com/gradio-app/gradio/commit/7282c9eb1ed0ce8608f9a1157f3243e8c1b0f597) - Plot re-render fixes.  Thanks @aliabid94!
+
+## 0.6.0
+
+### Features
+
+- [#11306](https://github.com/gradio-app/gradio/pull/11306) [`6cd608d`](https://github.com/gradio-app/gradio/commit/6cd608d8f9b1a142c58f0d2db861845ec267f705) - Improvements for plots and event listeners in re-renders.  Thanks @aliabid94!
+
+## 0.5.17
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.5.17
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
 ## 0.5.16
 
 ### Features

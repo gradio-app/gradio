@@ -27,7 +27,6 @@
 		is_colab: boolean;
 		show_api: boolean;
 		stylesheets?: string[];
-		path: string;
 		app_id?: string;
 		fill_height?: boolean;
 		fill_width?: boolean;
@@ -316,7 +315,9 @@
 				? `http://localhost:${
 						typeof server_port === "number" ? server_port : 7860
 					}`
-				: space || src || location.origin;
+				: space ||
+					src ||
+					new URL(location.pathname, location.origin).href.replace(/\/$/, "");
 
 		const deep_link = new URLSearchParams(window.location.search).get(
 			"deep_link"
@@ -325,7 +326,6 @@
 		if (deep_link) {
 			query_params.deep_link = deep_link;
 		}
-
 		app = await Client.connect(api_url, {
 			status_callback: handle_status,
 			with_null_state: true,
@@ -381,7 +381,9 @@
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(api_url);
-				let url = new URL(`http://${host}${app.api_prefix}/dev/reload`);
+				let url = new URL(
+					`${window.location.protocol}//${host}${app.api_prefix}/dev/reload`
+				);
 				stream = new EventSource(url);
 				stream.addEventListener("error", async (e) => {
 					new_message_fn("Error", "Error reloading app", "error");

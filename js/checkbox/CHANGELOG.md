@@ -1,5 +1,40 @@
 # @gradio/checkbox
 
+## 0.4.24
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/atoms@0.16.2
+
+## 0.4.23
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.4.23
+
+### Features
+
+- [#11237](https://github.com/gradio-app/gradio/pull/11237) [`a6f6b40`](https://github.com/gradio-app/gradio/commit/a6f6b40dda5194fa5bc9926ef67f2a75f503e9a4) - Enhance boolean cell types in `gr.Dataframe`.  Thanks @hannahblair!
+
+## 0.4.22
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.4.22
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
 ## 0.4.21
 
 ### Dependency updates

@@ -1,5 +1,11 @@
 # @gradio/tabs
 
+## 0.4.5
+
+### Fixes
+
+- [#11344](https://github.com/gradio-app/gradio/pull/11344) [`b961441`](https://github.com/gradio-app/gradio/commit/b961441780d70c82504141bd4deae7b3290c2227) - Fixes default tab label.  Thanks @dawoodkhan82!
+
 ## 0.4.4
 
 ### Fixes

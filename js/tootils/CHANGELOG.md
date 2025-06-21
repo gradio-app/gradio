@@ -1,5 +1,29 @@
 # @self/tootils
 
+## 0.7.24
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+
+## 0.7.23
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.7.23
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.7.23
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
 ## 0.7.22
 
 ### Dependency updates

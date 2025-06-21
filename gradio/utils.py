@@ -101,18 +101,28 @@ def safe_get_lock() -> asyncio.Lock:
     the main thread.
     """
     try:
-        asyncio.get_event_loop()
+        loop = asyncio.get_event_loop()
+        if loop.is_closed():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
         return asyncio.Lock()
     except RuntimeError:
-        return None  # type: ignore
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return asyncio.Lock()
 
 
 def safe_get_stop_event() -> asyncio.Event:
     try:
-        asyncio.get_event_loop()
+        loop = asyncio.get_event_loop()
+        if loop.is_closed():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
         return asyncio.Event()
     except RuntimeError:
-        return None  # type: ignore
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return asyncio.Event()
 
 
 class BaseReloader(ABC):
@@ -593,11 +603,16 @@ def assert_configs_are_equivalent_besides_ids(
     return True
 
 
-def delete_none(_dict: dict, skip_value: bool = False) -> dict:
+def delete_none(
+    _dict: dict, skip_value: bool = False, skip_props: list[str] | None = None
+) -> dict:
     """
     Delete keys whose values are None from a dictionary
     """
+    skip_props = [] if skip_props is None else skip_props
     for key, value in list(_dict.items()):
+        if key in skip_props:
+            continue
         if skip_value and key == "value":
             continue
         elif value is None:
@@ -1286,7 +1301,7 @@ def diff(old, new):
             # So subtract 1 since deleting one element will shift all the indices
             deletes_seen = 0
             for edit in edits:
-                if edit[0] == "delete":
+                if edit[0] == "delete" and isinstance(edit[1][-1], int):
                     edit[1] = [edit[1][-1] - deletes_seen]
                     deletes_seen += 1
             return edits
@@ -1670,12 +1685,13 @@ def dict_factory(items):
     return d
 
 
-def get_function_description(fn: Callable) -> tuple[str, dict[str, str]]:
+def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[str]]:
     """
-    Get the description of a function and its parameters by parsing the docstring.
+    Get the description of a function, its parameters, and return values by parsing the docstring.
     The docstring should be formatted as follows: first lines are the description
     of the function, then a line starts with "Args:", "Parameters:", or "Arguments:",
-    followed by lines of the form "param_name: description".
+    followed by lines of the form "param_name: description", then optionally a line
+    that starts with "Returns:" followed by descriptions of return values.
 
     Parameters:
         fn: The function to get the docstring for.
@@ -1683,20 +1699,22 @@ def get_function_description(fn: Callable) -> tuple[str, dict[str, str]]:
     Returns:
         - The docstring of the function
         - A dictionary of parameter names and their descriptions
+        - A list of return value descriptions
     """
     fn_docstring = fn.__doc__
     description = ""
     parameters = {}
+    returns = []
 
     if not fn_docstring:
-        return description, parameters
+        return description, parameters, returns
 
     lines = fn_docstring.strip().split("\n")
 
     description_lines = []
     for line in lines:
         line = line.strip()
-        if line.startswith(("Args:", "Parameters:", "Arguments:")):
+        if line.startswith(("Args:", "Parameters:", "Arguments:", "Returns:")):
             break
         if line:
             description_lines.append(line)
@@ -1713,10 +1731,21 @@ def get_function_description(fn: Callable) -> tuple[str, dict[str, str]]:
             len(lines),
         )
 
-        for line in lines[param_start_idx + 1 :]:
+        returns_start_idx = next(
+            (i for i, line in enumerate(lines) if line.strip().startswith("Returns:")),
+            len(lines),
+        )
+
+        # Parse parameters section (from param_start_idx to returns_start_idx or end)
+        param_end_idx = (
+            returns_start_idx if returns_start_idx < len(lines) else len(lines)
+        )
+        for line in lines[param_start_idx + 1 : param_end_idx]:
             line = line.strip()
             if not line:
                 continue
+            if line.startswith("Returns:"):
+                break
 
             try:
                 if ":" in line:
@@ -1727,7 +1756,25 @@ def get_function_description(fn: Callable) -> tuple[str, dict[str, str]]:
             except Exception:
                 continue
 
+        # Parse returns section
+        if returns_start_idx < len(lines):
+            for line in lines[returns_start_idx + 1 :]:
+                line = line.strip()
+                if not line:
+                    continue
+
+                try:
+                    if line.startswith("-"):
+                        returns.append(line[1:].strip())
+                    elif ":" in line:
+                        _, return_desc = line.split(":", 1)
+                        returns.append(return_desc.strip())
+                    else:
+                        returns.append(line)
+                except Exception:
+                    continue
+
     except Exception:
         pass
 
-    return description, parameters
+    return description, parameters, returns

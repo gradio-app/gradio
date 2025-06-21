@@ -103,6 +103,7 @@ except Exception:
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components.base import Component
+    from gradio.mcp import GradioMCPServer
     from gradio.renderable import Renderable
 
 BUILT_IN_THEMES: dict[str, Theme] = {
@@ -163,6 +164,7 @@ class Block:
             if isinstance(preserved_by_key, str)
             else (preserved_by_key or [])
         )
+        self.mcp_server_obj = None
 
         # Keep tracks of files that should not be deleted when the delete_cache parmameter is set
         # These files are the default value of the component and files that are used in examples
@@ -496,7 +498,13 @@ class BlockContext(Block):
                 ):
                     pseudo_parent.add_child(child)
                 else:
-                    pseudo_parent = expected_parent(render=False)
+                    key = None
+                    if child.key is not None:
+                        if isinstance(child.key, tuple):
+                            key = child.key + ("_parent",)
+                        else:
+                            key = (child.key, "_parent")
+                    pseudo_parent = expected_parent(render=False, key=key)
                     pseudo_parent.parent = self
                     children.append(pseudo_parent)
                     pseudo_parent.add_child(child)
@@ -550,6 +558,7 @@ class BlockFunction:
         show_api: bool = True,
         renderable: Renderable | None = None,
         rendered_in: Renderable | None = None,
+        render_iteration: int | None = None,
         is_cancel_function: bool = False,
         connection: Literal["stream", "sse"] = "sse",
         time_limit: float | None = None,
@@ -558,6 +567,7 @@ class BlockFunction:
         event_specific_args: list[str] | None = None,
         page: str = "",
         js_implementation: str | None = None,
+        key: str | int | tuple[int | str, ...] | None = None,
     ):
         self.fn = fn
         self._id = _id
@@ -592,6 +602,7 @@ class BlockFunction:
         ) or inspect.isasyncgenfunction(self.fn)
         self.renderable = renderable
         self.rendered_in = rendered_in
+        self.render_iteration = render_iteration
         self.page = page
         if js_implementation:
             self.fn.__js_implementation__ = js_implementation  # type: ignore
@@ -604,6 +615,7 @@ class BlockFunction:
         self.connection = connection
         self.like_user_message = like_user_message
         self.event_specific_args = event_specific_args
+        self.key = key
 
         self.spaces_auto_wrap()
 
@@ -769,6 +781,7 @@ class BlocksConfig:
         like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
         js_implementation: str | None = None,
+        key: str | int | tuple[int | str, ...] | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -894,13 +907,24 @@ class BlocksConfig:
                 "Cannot create event: events with js=True cannot have inputs."
             )
 
+        reuse_id = False
+        fn_id = self.fn_id
+        render_iteration = rendered_in.render_iteration if rendered_in else None
+
+        if rendered_in and key is not None:
+            for existing_fn in self.fns.values():
+                if existing_fn.key == key:
+                    reuse_id = True
+                    fn_id = existing_fn._id
+                    break
+
         block_fn = BlockFunction(
             fn,
             inputs,
             outputs,
             preprocess,
             postprocess,
-            _id=self.fn_id,
+            _id=fn_id,
             inputs_as_dict=inputs_as_dict,
             targets=_targets,
             batch=batch,
@@ -922,6 +946,7 @@ class BlocksConfig:
             show_api=show_api,
             renderable=renderable,
             rendered_in=rendered_in,
+            render_iteration=render_iteration,
             is_cancel_function=is_cancel_function,
             connection=connection,
             time_limit=time_limit,
@@ -930,10 +955,12 @@ class BlocksConfig:
             event_specific_args=event_specific_args,
             page=self.root_block.current_page,
             js_implementation=js_implementation,
+            key=key,
         )
 
-        self.fns[self.fn_id] = block_fn
-        self.fn_id += 1
+        self.fns[fn_id] = block_fn
+        if not reuse_id:
+            self.fn_id += 1
         return block_fn, block_fn._id
 
     @staticmethod
@@ -946,10 +973,20 @@ class BlocksConfig:
         if renderable and _id not in rendered_ids:
             return {}
         props = block.get_config() if hasattr(block, "get_config") else {}
+
+        skip_none_deletion = []
+        if (
+            renderable and block.key
+        ):  # Nones are important for replacing a value in a keyed component
+            skip_none_deletion = [
+                prop for prop, val in block.constructor_args.items() if val is None
+            ]
+        utils.delete_none(props, skip_props=skip_none_deletion)
+
         block_config = {
             "id": _id,
             "type": block.get_block_name(),
-            "props": utils.delete_none(props),
+            "props": props,
             "skip_api": block.skip_api,
             "component_class_id": getattr(block, "component_class_id", None),
             "key": block.unique_key(),
@@ -1153,6 +1190,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.theme_hash = theme_hasher.hexdigest()
 
         self.encrypt = False
+        self.mcp_server_obj: None | GradioMCPServer = None
+        self.mcp_error: None | str = None
         self.share = False
         self.enable_queue = True
         self.max_threads = 40
@@ -1809,40 +1848,40 @@ Received inputs:
 
         self.validate_inputs(block_fn, inputs)
 
-        if block_fn.preprocess:
-            processed_input = []
-            for i, block in enumerate(block_fn.inputs):
-                if not isinstance(block, components.Component):
-                    raise InvalidComponentError(
-                        f"{block.__class__} Component not a valid input component."
+        processed_input = []
+        for i, block in enumerate(block_fn.inputs):
+            if not isinstance(block, components.Component):
+                raise InvalidComponentError(
+                    f"{block.__class__} Component not a valid input component."
+                )
+            if block.stateful:
+                processed_input.append(state[block._id])
+            else:
+                if block._id in state:
+                    block = state[block._id]
+                inputs_cached = await processing_utils.async_move_files_to_cache(
+                    inputs[i],
+                    block,
+                    check_in_upload_folder=not explicit_call,
+                )
+                if getattr(block, "data_model", None) and inputs_cached is not None:
+                    data_model = cast(
+                        Union[GradioModel, GradioRootModel], block.data_model
                     )
-                if block.stateful:
-                    processed_input.append(state[block._id])
+                    inputs_cached = data_model.model_validate(
+                        inputs_cached, context={"validate_meta": True}
+                    )
+                if isinstance(inputs_cached, (GradioModel, GradioRootModel)):
+                    inputs_serialized = inputs_cached.model_dump()
                 else:
-                    if block._id in state:
-                        block = state[block._id]
-                    inputs_cached = await processing_utils.async_move_files_to_cache(
-                        inputs[i],
-                        block,
-                        check_in_upload_folder=not explicit_call,
-                    )
-                    if getattr(block, "data_model", None) and inputs_cached is not None:
-                        data_model = cast(
-                            Union[GradioModel, GradioRootModel], block.data_model
-                        )
-                        inputs_cached = data_model.model_validate(
-                            inputs_cached, context={"validate_meta": True}
-                        )
-                    if isinstance(inputs_cached, (GradioModel, GradioRootModel)):
-                        inputs_serialized = inputs_cached.model_dump()
-                    else:
-                        inputs_serialized = inputs_cached
-                    if block._id not in state:
-                        state[block._id] = block
-                    state._update_value_in_config(block._id, inputs_serialized)
+                    inputs_serialized = inputs_cached
+                if block._id not in state:
+                    state[block._id] = block
+                state._update_value_in_config(block._id, inputs_serialized)
+                if block_fn.preprocess:
                     processed_input.append(block.preprocess(inputs_cached))
-        else:
-            processed_input = inputs
+                else:
+                    processed_input.append(inputs_serialized)
         return processed_input
 
     def validate_outputs(self, block_fn: BlockFunction, predictions: Any | list[Any]):
@@ -2654,35 +2693,21 @@ Received inputs:
         else:
             self.node_server_name = self.node_port = self.node_process = None
 
-        # self.server_app is included for backwards compatibility
+        self.i18n_instance = i18n
+
+        if app_kwargs is None:
+            app_kwargs = {}
+
         self.server_app = self.app = App.create_app(
             self,
             auth_dependency=auth_dependency,
             app_kwargs=app_kwargs,
             strict_cors=strict_cors,
             ssr_mode=self.ssr_mode,
+            mcp_server=mcp_server,
         )
-
-        mcp_subpath = API_PREFIX + "/mcp"
-        if mcp_server is None:
-            mcp_server = os.environ.get("GRADIO_MCP_SERVER", "False").lower() == "true"
-        if mcp_server:
-            try:
-                import gradio.mcp
-            except ImportError as e:
-                raise ImportError(
-                    "In order to use `mcp_server=True`, you must install gradio with the `mcp` extra. Please install it with `pip install gradio[mcp]`"
-                ) from e
-            try:
-                self.mcp_server_obj = gradio.mcp.GradioMCPServer(self)
-                self.mcp_server_obj.launch_mcp_on_sse(
-                    self.server_app, mcp_subpath, self.root_path
-                )
-                self.mcp_server = True
-            except Exception as e:
-                self.mcp_server = False
-                if not quiet:
-                    print(f"Error launching MCP server: {e}")
+        if self.mcp_server and not quiet:
+            print(self.mcp_error)
 
         self.config = self.get_config_file()
 
@@ -2778,7 +2803,7 @@ Received inputs:
             if self.is_colab or self.is_hosted_notebook:
                 if not quiet:
                     print(
-                        "It looks like you are running Gradio on a hosted a Jupyter notebook. For the Gradio app to work, sharing must be enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                        "It looks like you are running Gradio on a hosted Jupyter notebook, which requires `share=True`. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
                     )
                 self.share = True
             else:
@@ -2794,7 +2819,6 @@ Received inputs:
                 f"Monitoring URL: {self.local_url}monitoring/{self.app.analytics_key}"
             )
         self.enable_monitoring = enable_monitoring in [True, None]
-        self.i18n_instance = i18n
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
@@ -2875,6 +2899,7 @@ Received inputs:
                 print("* To create a public link, set `share=True` in `launch()`.")
             self.share_url = None
 
+        mcp_subpath = API_PREFIX + "/mcp"
         if self.mcp_server:
             print(
                 f"\n🔨 MCP server (using SSE) running at: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
@@ -3082,7 +3107,7 @@ Received inputs:
         for startup_event in self.extra_startup_events:
             await startup_event()
 
-    def get_api_info(self, all_endpoints: bool = False) -> APIInfo | None:
+    def get_api_info(self, all_endpoints: bool = False) -> APIInfo:
         """
         Gets the information needed to generate the API docs from a Blocks.
         Parameters:
@@ -3103,7 +3128,7 @@ Received inputs:
                 "show_api": fn.show_api,
             }
             fn_info = utils.get_function_params(fn.fn)  # type: ignore
-            description, _ = utils.get_function_description(fn.fn)
+            description, _, _ = utils.get_function_description(fn.fn)
             if description:
                 dependency_info["description"] = description
             skip_endpoint = False

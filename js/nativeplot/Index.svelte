@@ -22,7 +22,6 @@
 	export let x: string;
 	export let y: string;
 	export let color: string | null = null;
-	export let root: string;
 	$: unique_colors =
 		color && value && value.datatypes[color] === "nominal"
 			? Array.from(new Set(_data.map((d) => d[color])))
@@ -43,6 +42,10 @@
 	export let color_map: Record<string, string> | null = null;
 	export let x_lim: [number, number] | null = null;
 	export let y_lim: [number, number] | null = null;
+	$: x_lim = x_lim || null; // for some unknown reason, x_lim was getting set to undefined when used in re-render, so this line is needed
+	$: y_lim = y_lim || null;
+	$: [x_start, x_end] = x_lim === null ? [undefined, undefined] : x_lim;
+	$: [y_start, y_end] = y_lim || [undefined, undefined];
 	export let x_label_angle: number | null = null;
 	export let y_label_angle: number | null = null;
 	export let x_axis_labels_visible = true;
@@ -144,6 +147,11 @@
 		});
 	}
 	$: _data = value ? reformat_data(value) : [];
+	let old_value = value;
+	$: if (old_value !== value && view) {
+		old_value = value;
+		view.data("data", _data).runAsync();
+	}
 
 	const is_browser = typeof window !== "undefined";
 	let chart_element: HTMLDivElement;
@@ -153,6 +161,7 @@
 	let view: View;
 	let mounted = false;
 	let old_width: number;
+	let old_height: number;
 	let resizeObserver: ResizeObserver;
 
 	let vegaEmbed: typeof import("vega-embed").default;
@@ -166,6 +175,7 @@
 		}
 		if (!value || !chart_element) return;
 		old_width = chart_element.offsetWidth;
+		old_height = chart_element.offsetHeight;
 		const spec = create_vega_lite_spec();
 		if (!spec) return;
 		resizeObserver = new ResizeObserver((el) => {
@@ -179,6 +189,10 @@
 				load_chart();
 			} else {
 				view.signal("width", el[0].target.offsetWidth).run();
+			}
+			if (old_height !== el[0].target.offsetHeight && fullscreen) {
+				view.signal("height", el[0].target.offsetHeight).run();
+				old_height = el[0].target.offsetHeight;
 			}
 		});
 
@@ -219,11 +233,11 @@
 							index: range,
 							selected: true
 						});
+						if (refresh_pending) {
+							refresh_pending = false;
+							load_chart();
+						}
 					}, 250);
-					if (refresh_pending) {
-						refresh_pending = false;
-						load_chart();
-					}
 				});
 			}
 		});
@@ -242,6 +256,7 @@
 			}
 		};
 	});
+	$: _color_map = JSON.stringify(color_map);
 
 	$: title,
 		x_title,
@@ -252,14 +267,16 @@
 		color,
 		x_bin,
 		_y_aggregate,
-		color_map,
-		x_lim,
-		y_lim,
+		_color_map,
+		x_start,
+		x_end,
+		y_start,
+		y_end,
 		caption,
 		sort,
-		value,
 		mounted,
 		chart_element,
+		fullscreen,
 		computed_style && requestAnimationFrame(load_chart);
 
 	function create_vega_lite_spec(): Spec | null {
@@ -503,7 +520,7 @@
 					: [])
 			],
 			width: chart_element.offsetWidth,
-			height: height ? "container" : undefined,
+			height: height || fullscreen ? "container" : undefined,
 			title: title || undefined
 		};
 		/* eslint-enable complexity */
@@ -549,7 +566,7 @@
 			/>
 		</IconButtonWrapper>
 	{/if}
-	<BlockTitle {root} {show_label} info={undefined}>{label}</BlockTitle>
+	<BlockTitle {show_label} info={undefined}>{label}</BlockTitle>
 
 	{#if value && is_browser}
 		<div bind:this={chart_element}></div>

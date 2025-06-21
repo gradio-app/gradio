@@ -108,6 +108,7 @@ class Interface(Blocks):
         cache_mode: Literal["eager", "lazy"] | None = None,
         examples_per_page: int = 10,
         example_labels: list[str] | None = None,
+        preload_example: int | Literal[False] = False,
         live: bool = False,
         title: str | I18nData | None = None,
         description: str | None = None,
@@ -155,9 +156,10 @@ class Interface(Blocks):
             inputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If set to None, then only the output components will be displayed.
             outputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If set to None, then only the input components will be displayed.
             examples: sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided, but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
-            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter defaults to True (as long as `fn` and `outputs` are also provided).
+            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter defaults to True (as long as `fn` and `outputs` are also provided).  Note that examples are cached separately from Gradio's queue() so certain features, such as gr.Progress(), gr.Info(), gr.Warning(), etc. will not be displayed in Gradio's UI for cached examples.
             cache_mode: if "lazy", examples are cached after their first use. If "eager", all examples are cached at app launch. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager". In HuggingFace Spaces, this parameter defaults to "eager" except for ZeroGPU Spaces, in which case it defaults to "lazy".
             examples_per_page: if examples are provided, how many to display per page.
+            preload_example: If an integer is provided (and examples are being cached), the example at that index in the examples list will be preloaded when the Gradio app is first loaded. If False, no example will be preloaded.
             live: whether the interface should automatically rerun if any of the inputs change.
             title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
@@ -170,7 +172,7 @@ class Interface(Blocks):
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             batch: if True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
             max_batch_size: the maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
-            api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, the name of the prediction function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
+            api_name: defines how the prediction endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, the name of the prediction function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this prediction endpoint.
             allow_duplication: if True, then will show a 'Duplicate Spaces' button on Hugging Face Spaces.
             concurrency_limit: if set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which itself is 1 by default).
             css: Custom css as a code string. This css will be included in the demo webpage.
@@ -251,6 +253,7 @@ class Interface(Blocks):
 
         self.cache_examples = cache_examples
         self.cache_mode: Literal["eager", "lazy"] | None = cache_mode
+        self.preload_example = preload_example
 
         self.main_input_components = [
             get_component_instance(i, unrender=True) for i in inputs
@@ -565,6 +568,7 @@ class Interface(Blocks):
                     inputs=None,
                     outputs=[self.deep_link],
                     js=True,
+                    show_api=False,
                 )
             self.render_examples()
             self.render_article()
@@ -944,6 +948,7 @@ class Interface(Blocks):
                 _api_mode=self.api_mode,
                 batch=self.batch,
                 example_labels=self.example_labels,
+                preload=self.preload_example,
             )
             if self.deep_link and self.examples_handler.cache_event:
                 self.examples_handler.cache_event.then(
@@ -951,6 +956,7 @@ class Interface(Blocks):
                     inputs=None,
                     outputs=[self.deep_link],
                     js=True,
+                    show_api=False,
                 )
 
     def __str__(self):

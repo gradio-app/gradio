@@ -1,5 +1,47 @@
 # @gradio/model3d
 
+## 0.14.17
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/atoms@0.16.2
+- @gradio/client@1.15.3
+- @gradio/upload@0.16.8
+
+## 0.14.16
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.14.16
+
+### Dependency updates
+
+- @gradio/upload@0.16.7
+- @gradio/client@1.15.2
+
+## 0.14.15
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.14.15
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/client@1.15.1
+- @gradio/upload@0.16.6
+
+## 0.14.14
+
+### Fixes
+
+- [#11230](https://github.com/gradio-app/gradio/pull/11230) [`62a8d97`](https://github.com/gradio-app/gradio/commit/62a8d97fe8a92886f22af11b5fdef14bace69ea8) - Fix Model3D `camera_position` param.  Thanks @dawoodkhan82!
+
 ## 0.14.13
 
 ### Dependency updates

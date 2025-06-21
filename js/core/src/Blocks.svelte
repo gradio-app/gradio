@@ -53,8 +53,6 @@
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
 
-	setupi18n(app.config?.i18n_translations ?? undefined);
-
 	let {
 		layout: _layout,
 		targets,
@@ -76,13 +74,18 @@
 	}
 
 	let old_dependencies = dependencies;
-	$: if (dependencies !== old_dependencies && render_complete) {
+	$: if (
+		dependencies !== old_dependencies &&
+		render_complete &&
+		!layout_creating
+	) {
 		// re-run load triggers in SSR mode when page changes
 		handle_load_triggers();
 		old_dependencies = dependencies;
 	}
 
 	async function run(): Promise<void> {
+		layout_creating = true;
 		await create_layout({
 			components,
 			layout,
@@ -93,6 +96,7 @@
 				fill_height
 			}
 		});
+		layout_creating = false;
 	}
 
 	export let search_params: URLSearchParams;
@@ -128,7 +132,9 @@
 
 	let api_calls: Payload[] = [];
 
+	let layout_creating = false;
 	export let render_complete = false;
+
 	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const dep = dependencies.find((dep) => dep.id === fn_index);
 		const input_type = components.find(
@@ -308,18 +314,6 @@
 			dep.pending_request = true;
 		}
 
-		let deps_to_remove: number[] = [];
-		if (dep.render_id != null) {
-			dependencies.forEach((other_dep, i) => {
-				if (other_dep.rendered_in === dep.render_id) {
-					deps_to_remove.push(i);
-				}
-			});
-		}
-		deps_to_remove.reverse().forEach((i) => {
-			dependencies.splice(i, 1);
-		});
-
 		let payload: Payload = {
 			fn_index: dep_index,
 			data: await Promise.all(
@@ -483,6 +477,15 @@
 				let _dependencies: Dependency[] = data.dependencies;
 				let render_id = data.render_id;
 
+				let deps_to_remove: number[] = [];
+				dependencies.forEach((old_dep, i) => {
+					if (old_dep.rendered_in === dep.render_id) {
+						deps_to_remove.push(i);
+					}
+				});
+				deps_to_remove.reverse().forEach((i) => {
+					dependencies.splice(i, 1);
+				});
 				_dependencies.forEach((dep) => {
 					dependencies.push(dep);
 				});
@@ -493,6 +496,11 @@
 					root: root + api_prefix,
 					dependencies: dependencies,
 					render_id: render_id
+				});
+				_dependencies.forEach((dep) => {
+					if (dep.targets.some((dep) => dep[1] === "load")) {
+						wait_then_trigger_api_call(dep.id);
+					}
 				});
 			}
 
@@ -676,7 +684,6 @@
 			if (is_external_url(_link) && _target !== "_blank")
 				a[i].setAttribute("target", "_blank");
 		}
-
 		handle_load_triggers();
 
 		if (!target || render_complete) return;
@@ -833,6 +840,11 @@
 			screen_recorder.startRecording();
 		}
 	}
+
+	let i18n_ready = false;
+	setupi18n(app.config?.i18n_translations ?? undefined).then(() => {
+		i18n_ready = true;
+	});
 </script>
 
 <svelte:head>
@@ -846,7 +858,7 @@
 
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
-		{#if $_layout && app.config}
+		{#if $_layout && app.config && i18n_ready}
 			<MountComponents
 				rootNode={$_layout}
 				{root}

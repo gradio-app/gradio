@@ -37,9 +37,9 @@ The MCP server will be accessible at:
 http://your-server:port/gradio_api/mcp/sse
 ```
 
-Gradio automatically converts the `letter_counter` function into an MCP tool that can be used by LLMs. The docstring of the function and the type hints of arguments will be used to generate the description of the tool and its parameters. 
+Gradio automatically converts the `letter_counter` function into an MCP tool that can be used by LLMs. The docstring of the function and the type hints of arguments will be used to generate the description of the tool and its parameters. The name of the function will be used as the name of your tool. Any initial values you provide to your input components (e.g. "strawberry" and "r" in the `gr.Textbox` components above) will be used as the default values if your LLM doesn't specify a value for that particular input parameter.
 
-All you need to do is add this URL endpoint to your MCP Client (e.g. Claude Desktop, Cursor, or Cline), which typically means pasting this config in the settings:
+Now, all you need to do is add this URL endpoint to your MCP Client (e.g. Claude Desktop, Cursor, or Cline), which typically means pasting this config in the settings:
 
 ```
 {
@@ -122,13 +122,52 @@ You can use either a public Space or a private Space as an MCP server. If you'd 
 }
 ```
 
+## Authentication and Credentials
+
+You may wish to authenticate users more precisely or let them provide other kinds of credentials or tokens in order to provide a custom experience for different users. 
+
+Gradio allows you to access the underlying `starlette.Request` that has made the tool call, which means that you can access headers, originating IP address, or any other information that is part of the network request. To do this, simply add a parameter in your function of the type `gr.Request`, and Gradio will automatically inject the request object as the parameter.
+
+Here's an example:
+
+```py
+import gradio as gr
+
+def echo_headers(x, request: gr.Request):
+    return str(dict(request.headers))
+
+gr.Interface(echo_headers, "textbox", "textbox").launch(mcp_server=True)
+```
+
+This MCP server will simply ignore the user's input and echo back all of the headers from a user's request. One can build more complex apps using the same idea. See the [docs on `gr.Request`](https://www.gradio.app/main/docs/gradio/request) for more information (note that only the core Starlette attributes of the `gr.Request` object will be present, attributes such as Gradio's `.session_hash` will not be present).
+
+## Adding MCP-Only Tools
+
+So far, all of our MCP tools have corresponded to event listeners in the UI. This works well for functions that directly update the UI, but may not work if you wish to expose a "pure logic" function that should return raw data (e.g., a JSON object) without directly causing a UI update.
+
+In order to expose such an MCP tool, you can create a pure Gradio API endpoint using `gr.api` (see [full docs here](https://www.gradio.app/main/docs/gradio/api)). Here's an example of creating an MCP tool that slices a list:
+
+$code_mcp_tool_only
+
+Note that if you use this approach, your function signature must be fully typed, including the return value, as these signature are used to determine the typing information for the MCP tool.
+
+## Limitations
+
+The approach outlined above provides an easy way to use any Gradio app as an MCP server. But there are a few limitations to keep in mind:
+
+1. There is no way to identify specific users within the MCP tool call. This means that you cannot store user state between calls within the Gradio app. If you use a `gr.State` component in your app, it will always be passed in with its original, default value.
+
+2. You cannot select specific endpoints in your Gradio expose as your tools (all endpoints with `show_api=True` are treated as tools), or  change the descriptions of your tools unless you change the docstrings of your functions.
+
+If you need to overcome these limitations, you'll need to create **a custom MCP server** to call your Gradio application, which we describe next.
+
 
 ## Custom MCP Servers
 
-For a more fine-grained control, you might want to manually create an MCP Server that interfaces with hosted Gradio apps. This approach is useful when you want to:
+In some cases, you may need to manually create an MCP Server that internally calls a Gradio app. This approach is useful when you want to:
 
 - Choose specific endpoints within a larger Gradio app to serve as tools
-- Customize how your tools are presented to LLMs (e.g. change the schema or description)
+- Customize how your tools are presented to LLMs (e.g. change the tool name, schema, or description)
 - Start the Gradio app MCP server when a tool is called (if you are running multiple Gradio apps locally and want to save memory / GPU)
 - Use a different MCP protocol than SSE
 

@@ -1,26 +1,36 @@
 import base64
+import contextlib
 import os
 import re
 import tempfile
+import warnings
+from collections.abc import AsyncIterator, Sequence
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+from urllib.parse import unquote
 
 import gradio_client.utils as client_utils
+import httpx
 from mcp import types
 from mcp.server import Server
 from mcp.server.sse import SseServerTransport
+from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from PIL import Image
 from starlette.applications import Starlette
-from starlette.responses import JSONResponse
+from starlette.requests import Request
+from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
+from starlette.types import Receive, Scope, Send
 
 from gradio import processing_utils, route_utils, utils
 from gradio.blocks import BlockFunction
+from gradio.components import State
 from gradio.data_classes import FileData
 
 if TYPE_CHECKING:
-    from gradio.blocks import Blocks
+    from gradio.blocks import BlockContext, Blocks
+    from gradio.components import Component
 
 
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
@@ -40,14 +50,88 @@ class GradioMCPServer:
         self.blocks = blocks
         self.api_info = self.blocks.get_api_info()
         self.mcp_server = self.create_mcp_server()
-        self.request = None
-        self.root_url = None
+        self.root_path = ""
         tool_prefix = utils.get_space()
         if tool_prefix:
-            tool_prefix = tool_prefix.split("/")[-1]
+            tool_prefix = tool_prefix.split("/")[-1] + "_"
             self.tool_prefix = re.sub(r"[^a-zA-Z0-9]", "_", tool_prefix)
         else:
             self.tool_prefix = ""
+        self.tool_to_endpoint = self.get_tool_to_endpoint()
+        self.warn_about_state_inputs()
+
+        manager = StreamableHTTPSessionManager(
+            app=self.mcp_server, json_response=False, stateless=True
+        )
+
+        async def handle_streamable_http(
+            scope: Scope, receive: Receive, send: Send
+        ) -> None:
+            await manager.handle_request(scope, receive, send)
+
+        @contextlib.asynccontextmanager
+        async def lifespan(app: Starlette) -> AsyncIterator[None]:  # noqa: ARG001
+            """Context manager for managing session manager lifecycle."""
+            async with manager.run():
+                try:
+                    yield
+                finally:
+                    pass
+
+        self.lifespan = lifespan
+        self.manager = manager
+        self.handle_streamable_http = handle_streamable_http
+
+    def get_route_path(self, request: Request) -> str:
+        """
+        Gets the route path of the MCP server based on the incoming request.
+        Can be different depending on whether the request is coming from the MCP SSE transport or the HTTP transport.
+        """
+        url = httpx.URL(str(request.url))
+        url = url.copy_with(query=None)
+        url = str(url).rstrip("/")
+        if url.endswith("/gradio_api/mcp/messages"):
+            return "/gradio_api/mcp/messages"
+        else:
+            return "/gradio_api/mcp/http"
+
+    def get_tool_to_endpoint(self) -> dict[str, str]:
+        """
+        Gets all of the tools that are exposed by the Gradio app and also
+        creates a mapping from the tool names to the endpoint names in the API docs.
+        """
+        tool_to_endpoint = {}
+        for endpoint_name, endpoint_info in self.api_info["named_endpoints"].items():
+            if endpoint_info["show_api"]:
+                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+                if block_fn is None or block_fn.fn is None:
+                    continue
+                fn_name = (
+                    getattr(block_fn.fn, "__name__", None)
+                    or (
+                        hasattr(block_fn.fn, "__class__")
+                        and getattr(block_fn.fn.__class__, "__name__", None)
+                    )
+                    or endpoint_name.lstrip("/")
+                )
+                tool_name = self.tool_prefix + fn_name
+                while tool_name in tool_to_endpoint:
+                    tool_name = tool_name + "_"
+                tool_to_endpoint[tool_name] = endpoint_name
+        return tool_to_endpoint
+
+    def warn_about_state_inputs(self) -> None:
+        """
+        Warn about tools that have gr.State inputs.
+        """
+        for _, endpoint_name in self.tool_to_endpoint.items():
+            block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+            if block_fn and any(isinstance(input, State) for input in block_fn.inputs):
+                warnings.warn(
+                    "This MCP server includes a tool that has a gr.State input, which will not be "
+                    "updated between tool calls. The original, default value of the State will be "
+                    "used each time."
+                )
 
     def create_mcp_server(self) -> Server:
         """
@@ -72,13 +156,29 @@ class GradioMCPServer:
                 name: The name of the tool to call.
                 arguments: The arguments to pass to the tool.
             """
+            context_request = self.mcp_server.request_context.request
+            if context_request is None:
+                raise ValueError(
+                    "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
+                )
+            route_path = self.get_route_path(context_request)
+            root_url = route_utils.get_root_url(
+                request=context_request,
+                route_path=route_path,
+                root_path=self.root_path,
+            )
             _, filedata_positions = self.get_input_schema(name)
             processed_kwargs = self.convert_strings_to_filedata(
                 arguments, filedata_positions
             )
-            block_fn = self.get_block_fn_from_tool_name(name)
-            endpoint_name = f"/{name.removeprefix(self.tool_prefix)}"
-            if self.api_info and endpoint_name in self.api_info["named_endpoints"]:
+            endpoint_name = self.tool_to_endpoint.get(name)
+            if endpoint_name is None:
+                raise ValueError(f"Unknown tool for this Gradio app: {name}")
+
+            block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+            assert block_fn is not None  # noqa: S101
+
+            if endpoint_name in self.api_info["named_endpoints"]:
                 parameters_info = self.api_info["named_endpoints"][endpoint_name][
                     "parameters"
                 ]
@@ -89,43 +189,41 @@ class GradioMCPServer:
                 )
             else:
                 processed_args = []
-            if block_fn is None:
-                raise ValueError(f"Unknown tool for this Gradio app: {name}")
+            processed_args = self.insert_empty_state(block_fn.inputs, processed_args)
             output = await self.blocks.process_api(
                 block_fn=block_fn,
                 inputs=processed_args,
-                request=self.request,
+                request=context_request,
             )
-            return self.postprocess_output_data(output["data"])
+            processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
+            return self.postprocess_output_data(output["data"], root_url)
 
         @server.list_tools()
         async def list_tools() -> list[types.Tool]:
             """
             List all tools on the Gradio app.
             """
-            if not self.api_info:
-                return []
-
             tools = []
-            for endpoint_name, endpoint_info in self.api_info[
-                "named_endpoints"
-            ].items():
-                tool_name = self.tool_prefix + endpoint_name.lstrip("/")
-                if endpoint_info["show_api"]:
-                    block_fn = self.get_block_fn_from_tool_name(tool_name)
-                    if block_fn is None or block_fn.fn is None:
-                        continue
-                    description, parameters = utils.get_function_description(
-                        block_fn.fn
+            for tool_name, endpoint_name in self.tool_to_endpoint.items():
+                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+                assert block_fn is not None and block_fn.fn is not None  # noqa: S101
+                description, parameters, returns = utils.get_function_description(
+                    block_fn.fn
+                )
+                if returns:
+                    description += (
+                        ("" if description.endswith(".") else ".")
+                        + " Returns: "
+                        + ", ".join(returns)
                     )
-                    schema, _ = self.get_input_schema(tool_name, parameters)
-                    tools.append(
-                        types.Tool(
-                            name=tool_name,
-                            description=description,
-                            inputSchema=schema,
-                        )
+                schema, _ = self.get_input_schema(tool_name, parameters)
+                tools.append(
+                    types.Tool(
+                        name=tool_name,
+                        description=description,
+                        inputSchema=schema,
                     )
+                )
             return tools
 
         return server
@@ -137,17 +235,13 @@ class GradioMCPServer:
         Parameters:
             app: The Gradio app to mount the MCP server on.
             subpath: The subpath to mount the MCP server on. E.g. "/gradio_api/mcp"
+            root_path: The root path of the Gradio Blocks app.
         """
-        messages_path = f"{subpath}/messages/"
+        messages_path = "/messages/"
         sse = SseServerTransport(messages_path)
+        self.root_path = root_path
 
         async def handle_sse(request):
-            self.request = request
-            self.root_url = route_utils.get_root_url(
-                request=request,
-                route_path="/gradio_api/mcp/sse",
-                root_path=root_path,
-            )
             try:
                 async with sse.connect_sse(
                     request.scope, request.receive, request._send
@@ -157,6 +251,7 @@ class GradioMCPServer:
                         streams[1],
                         self.mcp_server.create_initialization_options(),
                     )
+                return Response()
             except Exception as e:
                 print(f"MCP SSE connection error: {str(e)}")
                 raise
@@ -167,33 +262,62 @@ class GradioMCPServer:
                 routes=[
                     Route(
                         "/schema",
-                        endpoint=self.get_complete_schema,  # Not required for MCP but useful for debugging
+                        endpoint=self.get_complete_schema,  # Not required for MCP but used by the Hugging Face MCP server to get the schema for MCP Spaces without needing to establish an SSE connection
                     ),
                     Route("/sse", endpoint=handle_sse),
                     Mount("/messages/", app=sse.handle_post_message),
+                    Mount("/http/", app=self.handle_streamable_http),
                 ],
             ),
         )
 
-    def get_block_fn_from_tool_name(self, tool_name: str) -> "BlockFunction | None":
+    def get_block_fn_from_endpoint_name(
+        self, endpoint_name: str
+    ) -> "BlockFunction | None":
         """
-        Get the BlockFunction for a given tool name.
+        Get the BlockFunction for a given endpoint name (e.g. "/predict").
 
         Parameters:
-            tool_name: The name of the tool to get the BlockFunction for.
+            endpoint_name: The name of the endpoint to get the BlockFunction for.
 
         Returns:
-            The BlockFunction for the given tool name, or None if it is not found.
+            The BlockFunction for the given endpoint name, or None if it is not found.
         """
         block_fn = next(
             (
                 fn
                 for fn in self.blocks.fns.values()
-                if fn.api_name == tool_name.removeprefix(self.tool_prefix)
+                if fn.api_name == endpoint_name.lstrip("/")
             ),
             None,
         )
         return block_fn
+
+    @staticmethod
+    def insert_empty_state(
+        inputs: Sequence["Component | BlockContext"], data: list
+    ) -> list:
+        """
+        Insert None placeholder values for any State input components, as State inputs
+        are not included in the endpoint schema.
+        """
+        for i, input_component_type in enumerate(inputs):
+            if isinstance(input_component_type, State):
+                data.insert(i, None)
+        return data
+
+    @staticmethod
+    def pop_returned_state(
+        inputs: Sequence["Component | BlockContext"], data: list
+    ) -> list:
+        """
+        Remove any values corresponding to State output components from the data
+        as State outputs are not included in the endpoint schema.
+        """
+        for i, input_component_type in enumerate(inputs):
+            if isinstance(input_component_type, State):
+                data.pop(i)
+        return data
 
     def get_input_schema(
         self,
@@ -210,12 +334,12 @@ class GradioMCPServer:
             - The input schema of the Gradio app API.
             - A list of positions of FileData objects in the input schema.
         """
-        endpoint_name = f"/{tool_name.removeprefix(self.tool_prefix)}"
-        named_endpoints = self.api_info["named_endpoints"]  # type: ignore
-        endpoint_info = named_endpoints.get(endpoint_name)
-
-        if endpoint_info is None:
+        endpoint_name = self.tool_to_endpoint.get(tool_name)
+        if endpoint_name is None:
             raise ValueError(f"Unknown tool for this Gradio app: {tool_name}")
+        named_endpoints = self.api_info["named_endpoints"]
+        endpoint_info = named_endpoints.get(endpoint_name)
+        assert endpoint_info is not None  # noqa: S101
 
         schema = {
             "type": "object",
@@ -227,6 +351,11 @@ class GradioMCPServer:
                         if parameters and p["parameter_name"] in parameters
                         else {}
                     ),
+                    **(
+                        {"default": p["parameter_default"]}
+                        if "parameter_default" in p and p["parameter_default"]
+                        else {}
+                    ),
                 }
                 for p in endpoint_info["parameters"]
             },
@@ -235,7 +364,9 @@ class GradioMCPServer:
 
     async def get_complete_schema(self, request) -> JSONResponse:  # noqa: ARG002
         """
-        Get the complete schema of the Gradio app API. (For debugging purposes)
+        Get the complete schema of the Gradio app API. For debugging purposes, also used by
+        the Hugging Face MCP server to get the schema for MCP Spaces without needing to
+        establish an SSE connection.
 
         Parameters:
             request: The Starlette request object.
@@ -246,17 +377,26 @@ class GradioMCPServer:
         if not self.api_info:
             return JSONResponse({})
 
-        schemas = {}
-        for endpoint_name, endpoint_info in self.api_info["named_endpoints"].items():
-            tool_name = self.tool_prefix + endpoint_name.lstrip("/")
-            if endpoint_info["show_api"]:
-                block_fn = self.get_block_fn_from_tool_name(tool_name)
-                if block_fn is None or block_fn.fn is None:
-                    continue
-                description, parameters = utils.get_function_description(block_fn.fn)
-                schema, _ = self.get_input_schema(tool_name, parameters)
-                schemas[tool_name] = schema
-                schemas[tool_name]["description"] = description
+        schemas = []
+        for tool_name, endpoint_name in self.tool_to_endpoint.items():
+            block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+            assert block_fn is not None and block_fn.fn is not None  # noqa: S101
+            description, parameters, returns = utils.get_function_description(
+                block_fn.fn
+            )
+            if returns:
+                description += (
+                    ("" if description.endswith(".") else ".")
+                    + " Returns: "
+                    + ", ".join(returns)
+                )
+            schema, _ = self.get_input_schema(tool_name, parameters)
+            info = {
+                "name": tool_name,
+                "description": description,
+                "inputSchema": schema,
+            }
+            schemas.append(info)
 
         return JSONResponse(schemas)
 
@@ -421,6 +561,19 @@ class GradioMCPServer:
             return None
 
     @staticmethod
+    def get_svg(file_data: Any) -> bytes | None:
+        """
+        If a file_data is a valid FileDataDict with a url that is a data:image/svg+xml, returns bytes of the svg. Otherwise returns None.
+        """
+        if isinstance(file_data, dict) and (url := file_data.get("url")):
+            if isinstance(url, str) and url.startswith("data:image/svg"):
+                return unquote(url.split(",", 1)[1]).encode()
+            else:
+                return None
+        else:
+            return None
+
+    @staticmethod
     def get_base64_data(image: Image.Image, format: str) -> str:
         """
         Returns a base64 encoded string of the image.
@@ -430,7 +583,7 @@ class GradioMCPServer:
         return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
     def postprocess_output_data(
-        self, data: Any
+        self, data: Any, root_url: str
     ) -> list[types.TextContent | types.ImageContent]:
         """
         Postprocess the output data from the Gradio app to convert FileData objects back to base64 encoded strings.
@@ -439,10 +592,25 @@ class GradioMCPServer:
             data: The output data to postprocess.
         """
         return_values = []
-        if self.root_url:
-            data = processing_utils.add_root_url(data, self.root_url, None)
+        data = processing_utils.add_root_url(data, root_url, None)
         for output in data:
-            if client_utils.is_file_obj_with_meta(output):
+            if svg_bytes := self.get_svg(output):
+                base64_data = base64.b64encode(svg_bytes).decode("utf-8")
+                mimetype = "image/svg+xml"
+                svg_path = processing_utils.save_bytes_to_cache(
+                    svg_bytes, f"{output['orig_name']}", DEFAULT_TEMP_DIR
+                )
+                svg_url = f"{root_url}/gradio_api/file={svg_path}"
+                return_value = [
+                    types.ImageContent(
+                        type="image", data=base64_data, mimeType=mimetype
+                    ),
+                    types.TextContent(
+                        type="text",
+                        text=f"SVG Image URL: {svg_url}",
+                    ),
+                ]
+            elif client_utils.is_file_obj_with_meta(output):
                 if image := self.get_image(output["path"]):
                     image_format = image.format or "png"
                     base64_data = self.get_base64_data(image, image_format)

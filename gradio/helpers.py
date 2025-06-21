@@ -53,6 +53,7 @@ def create_examples(
     *,
     example_labels: list[str] | None = None,
     visible: bool = True,
+    preload: int | Literal[False] = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
     examples_obj = Examples(
@@ -74,6 +75,7 @@ def create_examples(
         example_labels=example_labels,
         visible=visible,
         _initiated_directly=False,
+        preload=preload,
     )
     examples_obj.create()
     return examples_obj
@@ -111,6 +113,7 @@ class Examples:
         *,
         example_labels: list[str] | None = None,
         visible: bool = True,
+        preload: int | Literal[False] = False,
         _initiated_directly: bool = True,
     ):
         """
@@ -119,7 +122,7 @@ class Examples:
             inputs: the component or list of components corresponding to the examples
             outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache_examples` is not False.
             fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache_examples` is not False. Also required if `run_on_click` is True.
-            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter is True (as long as `fn` and `outputs` are also provided). The default option otherwise is False.
+            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter is True (as long as `fn` and `outputs` are also provided). The default option otherwise is False. Note that examples are cached separately from Gradio's queue() so certain features, such as gr.Progress(), gr.Info(), gr.Warning(), etc. will not be displayed in Gradio's UI for cached examples.
             cache_mode: if "lazy", examples are cached after their first use. If "eager", all examples are cached at app launch. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager".
             examples_per_page: how many examples to show per page.
             label: the label to use for the examples component (by default, "Examples")
@@ -131,6 +134,7 @@ class Examples:
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is not False.
             example_labels: A list of labels for each example. If provided, the length of this list should be the same as the number of examples, and these labels will be used in the UI instead of rendering the example values.
             visible: If False, the examples component will be hidden in the UI.
+            preload: If an integer is provided (and examples are being cached), the example at that index in the examples list will be preloaded when the Gradio app is loaded. If False, no example will be preloaded.
         """
         if _initiated_directly:
             warnings.warn(
@@ -259,6 +263,7 @@ class Examples:
         self.batch = batch
         self.example_labels = example_labels
         self.working_directory = working_directory
+        self.preload = preload
 
         from gradio import components
 
@@ -375,6 +380,38 @@ class Examples:
                     api_name=self.api_name,
                     show_api=False,
                 )
+
+                if (
+                    self.preload is not False
+                    and self.cache_examples != "lazy"
+                    and self.root_block
+                ):
+                    self.root_block.load(
+                        load_example_input,
+                        inputs=[
+                            components.State(
+                                (self.preload, self.non_none_examples[self.preload])
+                            )
+                        ],
+                        outputs=self.inputs,
+                        show_progress="hidden",
+                        postprocess=False,
+                        queue=False,
+                        show_api=False,
+                    )
+                    self.root_block.load(
+                        load_example_output,
+                        inputs=[
+                            components.State(
+                                (self.preload, self.non_none_examples[self.preload])
+                            )
+                        ],
+                        outputs=self.outputs,
+                        postprocess=False,
+                        show_progress="hidden",
+                        show_api=False,
+                    )
+
             else:
 
                 def load_example(example_tuple):
@@ -546,6 +583,9 @@ class Examples:
                 if self.batch:
                     output = [value[0] for value in output]
                 self.cache_logger.flag(output)
+                with open(self.cached_indices_file, "a") as f:
+                    f.write(f"{example_id or i}\n")
+
             # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
             self.root_block.default_config.fns.pop(fn_index)
 
@@ -554,20 +594,19 @@ class Examples:
         Parameters:
             example_id: The id of the example to process (zero-indexed).
         """
-        if self.cache_examples == "lazy":
-            if (cached_index := self._get_cached_index_if_cached(example_id)) is None:
-                client_utils.synchronize_async(self.cache, example_id)
-                with open(self.cached_indices_file, "a") as f:
-                    f.write(f"{example_id}\n")
-                with open(self.cached_indices_file) as f:
-                    example_id = len(f.readlines()) - 1
-            else:
-                example_id = cached_index
+        cached_index = self._get_cached_index_if_cached(example_id)
+        if cached_index is None:
+            client_utils.synchronize_async(self.cache, example_id)
+            with open(self.cached_indices_file) as f:
+                cached_index = len(f.readlines()) - 1
 
         with open(self.cached_file, encoding="utf-8") as cache:
             examples = list(csv.reader(cache))
 
-        example = examples[example_id + 1]  # +1 to adjust for header
+        if cached_index + 1 >= len(examples):
+            raise IndexError("Cached example not found in cache file")
+        example = examples[cached_index + 1]  # +1 to adjust for header
+
         output = []
         if self.outputs is None:
             raise ValueError("self.outputs is missing")
@@ -624,8 +663,8 @@ class TrackedIterable:
     def __init__(
         self,
         iterable: Iterable | None,
-        index: int | None,
-        length: int | None,
+        index: int | float | None,
+        length: int | float | None,
         desc: str | None,
         unit: str | None,
         _tqdm=None,
@@ -646,7 +685,6 @@ class Progress(Iterable):
     The Progress class provides a custom progress tracker that is used in a function signature.
     To attach a Progress tracker to a function, simply add a parameter right after the input parameters that has a default value set to a `gradio.Progress()` instance.
     The Progress tracker can then be updated in the function by calling the Progress object or using the `tqdm` method on an Iterable.
-    The Progress tracker is currently only available with `queue()`.
     Example:
         import gradio as gr
         import time
@@ -656,7 +694,7 @@ class Progress(Iterable):
             for i in progress.tqdm(range(100)):
                 time.sleep(0.1)
             return x
-        gr.Interface(my_function, gr.Textbox(), gr.Textbox()).queue().launch()
+        gr.Interface(my_function, gr.Textbox(), gr.Textbox()).launch()
     """
 
     def __init__(
@@ -673,6 +711,8 @@ class Progress(Iterable):
         self.iterables: list[TrackedIterable] = []
 
     def __len__(self):
+        if not self.iterables:
+            return 0
         return self.iterables[-1].length
 
     def __iter__(self):
@@ -706,7 +746,7 @@ class Progress(Iterable):
         self,
         progress: float | tuple[int, int | None] | None,
         desc: str | None = None,
-        total: int | None = None,
+        total: int | float | None = None,
         unit: str = "steps",
         _tqdm=None,
     ):
@@ -736,7 +776,7 @@ class Progress(Iterable):
         self,
         iterable: Iterable | None,
         desc: str | None = None,
-        total: int | None = None,
+        total: int | float | None = None,
         unit: str = "steps",
         _tqdm=None,
     ):
@@ -759,9 +799,12 @@ class Progress(Iterable):
             self.iterables.append(
                 TrackedIterable(iter(iterable), 0, length, desc, unit, _tqdm)
             )
-        return self
+            return self
+        if iterable is None:
+            return iter([])
+        return iter(iterable)
 
-    def update(self, n=1):
+    def update(self, n: int | float = 1):
         """
         Increases latest iterable with specified number of steps.
         Parameters:
@@ -811,28 +854,38 @@ def patch_tqdm() -> None:
     ):
         self._progress = LocalContext.progress.get()
         if self._progress is not None:
-            self._progress.tqdm(iterable, desc, total, unit, _tqdm=self)
-            kwargs["file"] = open(os.devnull, "w")  # noqa: SIM115
+            callback = self._progress._progress_callback()
+            if callback is not None:
+                self._progress.tqdm(iterable, desc, total, unit, _tqdm=self)
+                kwargs["file"] = open(os.devnull, "w")  # noqa: SIM115
         self.__init__orig__(iterable, desc, total, *args, unit=unit, **kwargs)
 
     def iter_tqdm(self):
         if self._progress is not None:
-            return self._progress
+            callback = self._progress._progress_callback()
+            if callback is not None:
+                return self._progress
         return self.__iter__orig__()
 
     def update_tqdm(self, n=1):
         if self._progress is not None:
-            self._progress.update(n)
+            callback = self._progress._progress_callback()
+            if callback is not None:
+                self._progress.update(n)
         return self.__update__orig__(n)
 
     def close_tqdm(self):
         if self._progress is not None:
-            self._progress.close(self)
+            callback = self._progress._progress_callback()
+            if callback is not None:
+                self._progress.close(self)
         return self.__close__orig__()
 
     def exit_tqdm(self, exc_type, exc_value, traceback):
         if self._progress is not None:
-            self._progress.close(self)
+            callback = self._progress._progress_callback()
+            if callback is not None:
+                self._progress.close(self)
         return self.__exit__orig__(exc_type, exc_value, traceback)
 
     # Backup

@@ -496,6 +496,40 @@ def test_get_extension_from_file_path_or_url(path_or_url, extension):
         ({}, {"a": 1, "b": 2}, [["add", ["a"], 1], ["add", ["b"], 2]]),
         (["a", "b"], {"a": 1, "b": 2}, [["replace", [], {"a": 1, "b": 2}]]),
         ("abc", "abcdef", [["append", [], "def"]]),
+        (
+            [
+                {"role": "user", "content": "Hello!", "metadata": {"id": 1}},
+                {"role": "assistant", "content": "b"},
+            ],
+            [
+                {
+                    "role": "assistant",
+                    "content": "Thinking...",
+                    "metadata": {"title": "Thinking..."},
+                },
+                {"role": "assistant", "content": "b"},
+            ],
+            [
+                ["replace", [0, "role"], "assistant"],
+                ["replace", [0, "content"], "Thinking..."],
+                ["delete", [0, "metadata", "id"], None],
+                ["add", [0, "metadata", "title"], "Thinking..."],
+            ],
+        ),
+        (
+            [
+                {"role": "user", "content": "Hello!", "metadata": {"id": 1}},
+                {"role": "assistant", "content": "b"},
+            ],
+            [
+                {"role": "user", "content": "No metadata", "metadata": {}},
+                {"role": "assistant", "content": "b"},
+            ],
+            [
+                ["replace", [0, "content"], "No metadata"],
+                ["delete", [0, "metadata", "id"], None],
+            ],
+        ),
     ],
 )
 def test_diff(old, new, expected_diff):
@@ -734,29 +768,35 @@ class TestGetFunctionDescription:
             Args:
                 param1: First parameter
                 param2: Second parameter
+            Returns:
+                - First return value
+                - Second return value
             """
             pass
 
-        description, parameters = get_function_description(test_func)
+        description, parameters, returns = get_function_description(test_func)
         assert description == "This is a test function."
         assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
+        assert returns == ["First return value", "Second return value"]
 
     def test_function_with_no_docstring(self):
         def test_func():
             pass
 
-        description, parameters = get_function_description(test_func)
+        description, parameters, returns = get_function_description(test_func)
         assert description == ""
         assert parameters == {}
+        assert returns == []
 
     def test_function_with_no_parameters(self):
         def test_func():
             """This is a test function with no parameters."""
             pass
 
-        description, parameters = get_function_description(test_func)
+        description, parameters, returns = get_function_description(test_func)
         assert description == "This is a test function with no parameters."
         assert parameters == {}
+        assert returns == []
 
     def test_function_with_alternate_parameter_section(self):
         def test_func():
@@ -767,9 +807,10 @@ class TestGetFunctionDescription:
             """
             pass
 
-        description, parameters = get_function_description(test_func)
+        description, parameters, returns = get_function_description(test_func)
         assert description == "This is a test function."
         assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
+        assert returns == []
 
     def test_function_with_arguments_section(self):
         def test_func():
@@ -777,12 +818,16 @@ class TestGetFunctionDescription:
             Arguments:
                 param1: First parameter
                 param2: Second parameter
+            Returns:
+                x: First return value
+                y: Second return value
             """
             pass
 
-        description, parameters = get_function_description(test_func)
+        description, parameters, returns = get_function_description(test_func)
         assert description == "This is a test function."
         assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
+        assert returns == ["First return value", "Second return value"]
 
     def test_function_with_multiline_description(self):
         def test_func():
@@ -794,12 +839,13 @@ class TestGetFunctionDescription:
             """
             pass
 
-        description, parameters = get_function_description(test_func)
+        description, parameters, returns = get_function_description(test_func)
         assert (
             description
             == "This is a test function. It has multiple lines of description."
         )
         assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
+        assert returns == []
 
     def test_function_with_malformed_params(self):
         def test_func():
@@ -808,12 +854,16 @@ class TestGetFunctionDescription:
             param1: description1
             param2
             param3: description3
+            Returns:
+                - First return value
+                - Second return value
             """
             pass
 
-        description, parameters = get_function_description(test_func)
+        description, parameters, returns = get_function_description(test_func)
         assert description == "This is a test function."
         assert parameters == {"param1": "description1", "param3": "description3"}
+        assert returns == ["First return value", "Second return value"]
 
     def test_function_with_nested_colons(self):
         def test_func():
@@ -824,9 +874,10 @@ class TestGetFunctionDescription:
             """
             pass
 
-        description, parameters = get_function_description(test_func)
+        description, parameters, returns = get_function_description(test_func)
         assert description == "This is a test function."
         assert parameters == {
             "param1": "description1: with nested colon",
             "param2": "description2",
         }
+        assert returns == []

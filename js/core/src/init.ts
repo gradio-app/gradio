@@ -179,13 +179,15 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		root: string;
 		dependencies: Dependency[];
 	}): void {
+		components.forEach((c) => {
+			for (const prop in c.props) {
+				if (c.props[prop] === null) {
+					c.props[prop] = undefined;
+				}
+			}
+		});
 		let replacement_components: ComponentMeta[] = [];
 		let new_components: ComponentMeta[] = [];
-		console.log("old_keys", keys_per_render_id[render_id]);
-		console.log(
-			"new_keys",
-			components.map((c) => c.key)
-		);
 		components.forEach((c) => {
 			if (c.key == null || !keys_per_render_id[render_id]?.includes(c.key)) {
 				new_components.push(c);
@@ -193,7 +195,6 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 				replacement_components.push(c);
 			}
 		});
-		console.log(new_components.length, replacement_components.length);
 		let _constructor_map = preload_all_components(new_components, root);
 		_constructor_map.forEach((v, k) => {
 			constructor_map.set(k, v);
@@ -255,7 +256,11 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			}
 		});
 
-		new_components.forEach((c) => {
+		const components_to_add = new_components.concat(
+			replacement_components.filter((c) => !instance_map[c.id])
+		);
+
+		components_to_add.forEach((c) => {
 			instance_map[c.id] = c;
 			_component_map.set(c.id, c);
 		});
@@ -287,7 +292,6 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		parent?: ComponentMeta
 	): Promise<ComponentMeta> {
 		const instance = instance_map[node.id];
-
 		if (!instance.component) {
 			instance.component = (await constructor_map.get(
 				instance.component_class_id || instance.type

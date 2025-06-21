@@ -1,5 +1,40 @@
 # @gradio/simpletextbox
 
+## 0.3.24
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/atoms@0.16.2
+
+## 0.3.23
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.3.23
+
+### Features
+
+- [#11380](https://github.com/gradio-app/gradio/pull/11380) [`0b2b6cb`](https://github.com/gradio-app/gradio/commit/0b2b6cbd44562a2f5843af872fe6761c5f255185) - Truncate textbox examples to 70 chars.  Thanks @hannahblair!
+
+## 0.3.22
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.3.22
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
 ## 0.3.21
 
 ### Dependency updates
