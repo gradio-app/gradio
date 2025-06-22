@@ -3,8 +3,9 @@
 	import { browser } from "$app/environment";
 	import { goto } from "$app/navigation";
 	import { version } from "$lib/json/version.json";
+	import { past_versions } from "$lib/json/past_versions.json";
 
-	export let choices = [version, "4.44.1", "main"];
+	export let choices = [version, "main", "4.44.1", "────────────", ...past_versions];
 	export let value: string = $page.params?.version || version;
 	export let docs_type = "python";
 
@@ -58,6 +59,10 @@
 	class="rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0 text-xs mt-2 py-1 pl-2 pr-7 font-mono"
 >
 	{#each choices as choice}
-		<option value={choice}>{choice}</option>
+		{#if choice !== "────────────"}
+			<option value={choice}>{choice}</option>
+		{:else}
+			<option disabled>────────────</option>
+		{/if}
 	{/each}
 </select>
