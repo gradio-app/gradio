@@ -853,6 +853,7 @@
 							{toggle_header_menu}
 							{end_header_edit}
 							sort_columns={$df_state.sort_state.sort_columns}
+							filter_columns={$df_state.filter_state.filter_columns}
 							{latex_delimiters}
 							{line_breaks}
 							{max_chars}
@@ -957,6 +958,7 @@
 								{toggle_header_menu}
 								{end_header_edit}
 								sort_columns={$df_state.sort_state.sort_columns}
+								filter_columns={$df_state.filter_state.filter_columns}
 								{latex_delimiters}
 								{line_breaks}
 								{max_chars}
