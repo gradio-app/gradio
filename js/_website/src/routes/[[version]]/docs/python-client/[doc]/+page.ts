@@ -22,7 +22,9 @@ export async function load({ params, parent }) {
 		throw error(404);
 	}
 
-	let version_append = on_main ? "/" : "_" + url_version.replace(/\./g, "-") + "/";
+	let version_append = on_main
+		? "/"
+		: "_" + url_version.replace(/\./g, "-") + "/";
 
 	let module;
 
