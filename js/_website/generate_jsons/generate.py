@@ -11,6 +11,7 @@ from src import changelog, demos, docs, guides
 WEBSITE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 GRADIO_DIR = os.path.abspath(os.path.join(WEBSITE_DIR, "..", "..", "gradio"))
 ROOT_DIR = os.path.abspath(os.path.join(WEBSITE_DIR, "..", ".."))
+CHANGELOG = os.path.abspath(os.path.join(WEBSITE_DIR, "..", "..", "CHANGELOG.md"))
 
 
 def make_dir(root, path):
@@ -56,6 +57,24 @@ def convert_to_pypi_prerelease(version: str) -> str:
     return re.sub(r"(\d+\.\d+\.\d+)-([-a-z]+)\.(\d+)", replacement, version)
 
 
+def get_all_5_x_versions():
+    from packaging.version import Version, InvalidVersion
+    import sys
+    with open(CHANGELOG, "r") as f:
+        VERSION_RE = re.compile(
+            r'^##\s+(5\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)\s*$',    
+            re.MULTILINE,
+        )
+        versions = VERSION_RE.findall(f.read())
+        uniq: set[str] = set(versions)
+        try:
+            return sorted(uniq, key=Version, reverse=True)[1:]
+        except InvalidVersion as err:            
+            print(f"Warning: {err}", file=sys.stderr)
+        return sorted(uniq, reverse=True)[1:]
+
+
+
 def get_latest_release():
     with open(make_dir(ROOT_DIR, "client/js/package.json")) as f:
         js_client_version = json.load(f)["version"]
@@ -78,6 +97,8 @@ def get_latest_release():
                 },
                 j,
             )
+        with open(make_dir(WEBSITE_DIR, "src/lib/json/past_versions.json"), "w+") as j:
+            json.dump({"past_versions": get_all_5_x_versions()}, j)
         if not os.path.exists(
             make_dir(WEBSITE_DIR, f"src/lib/templates_{version.replace('.', '-')}")
         ):
