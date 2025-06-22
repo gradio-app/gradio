@@ -11,7 +11,6 @@
 		right: string;
 		display: boolean;
 	}[];
-	export let root: string;
 
 	function truncate_text(text: string | null, max_length = 60): string {
 		if (!text) return "";
@@ -33,7 +32,6 @@
 		{sanitize_html}
 		{line_breaks}
 		chatbot={false}
-		{root}
 	/>
 </div>
 

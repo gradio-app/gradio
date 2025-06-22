@@ -1,5 +1,31 @@
 # website
 
+## 0.58.0
+
+### Features
+
+- [#11410](https://github.com/gradio-app/gradio/pull/11410) [`8607c35`](https://github.com/gradio-app/gradio/commit/8607c35acf75661ae6b9ac5acc81071796e6b681) - Add gallery of hackathon winners to the website.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.14.8
+- @gradio/paramviewer@0.7.11
+- @gradio/statustracker@0.10.13
+
+## 0.57.4
+
+### Fixes
+
+- [#11370](https://github.com/gradio-app/gradio/pull/11370) [`992f84b`](https://github.com/gradio-app/gradio/commit/992f84bc0147ebacbf76bc6ca7d931ccdeb06839) - Fix zerogu-guide.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/code@0.14.7
+- @gradio/paramviewer@0.7.10
+- @gradio/tabitem@0.4.5
+- @gradio/tabs@0.4.5
+
 ## 0.57.3
 
 ### Dependency updates

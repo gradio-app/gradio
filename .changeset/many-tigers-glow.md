@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix DataFrame Scroll Divergence
+fix:Fix Styled DataFrame Sorting

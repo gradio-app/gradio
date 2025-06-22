@@ -29,7 +29,6 @@
 		is_colab: boolean;
 		show_api: boolean;
 		stylesheets?: string[];
-		path: string;
 		app_id?: string;
 		fill_height?: boolean;
 		fill_width?: boolean;
@@ -145,6 +144,7 @@
 		const dark_class_element = is_embed ? target.parentElement! : document.body;
 		const bg_element = is_embed ? target : target.parentElement!;
 		bg_element.style.background = "var(--body-background-fill)";
+		dark_class_element.classList.add("theme-loaded");
 		if (theme === "dark") {
 			dark_class_element.classList.add("dark");
 		} else {

@@ -26,7 +26,6 @@
 	export let line_breaks = true;
 	export let editable = true;
 	export let is_static = false;
-	export let root: string;
 	export let max_chars: number | null = null;
 	export let components: Record<string, any> = {};
 	export let i18n: I18nFormatter;
@@ -178,7 +177,6 @@
 				{latex_delimiters}
 				{line_breaks}
 				chatbot={false}
-				{root}
 			/>
 		{:else}
 			{display_text}

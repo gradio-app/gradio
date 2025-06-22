@@ -1,5 +1,36 @@
 # gradio
 
+## 5.34.2
+
+### Features
+
+- [#11418](https://github.com/gradio-app/gradio/pull/11418) [`e398c51`](https://github.com/gradio-app/gradio/commit/e398c51e610713d7dc1ed0a1ee43d7d313b8ca6a) - Full screen plots take full height.  Thanks @aliabid94!
+
+## 5.34.1
+
+### Fixes
+
+- [#11408](https://github.com/gradio-app/gradio/pull/11408) [`9082647`](https://github.com/gradio-app/gradio/commit/9082647e48e94d104d3fe1b9325f993d3b0cc0bb) - Make the method for getting the `asyncio` event loop more robust.  Thanks @abidlabs!
+- [#11400](https://github.com/gradio-app/gradio/pull/11400) [`8bb7776`](https://github.com/gradio-app/gradio/commit/8bb7776c88b1f2b08940247ae0adee24cc73f460) - Resolve issues around example caching with `gr.Progress`.  Thanks @abidlabs!
+- [#11399](https://github.com/gradio-app/gradio/pull/11399) [`4757302`](https://github.com/gradio-app/gradio/commit/4757302c9d4164f483a881ad993941b844cc1f25) - Miscellaneous fixes around docstrings & documentation.  Thanks @abidlabs!
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+- [#11397](https://github.com/gradio-app/gradio/pull/11397) [`5a7790d`](https://github.com/gradio-app/gradio/commit/5a7790d473c762e873d986d4953c6fc2f2b749f9) - Add detect audio format from bytes.  Thanks @yahiro-code!
+
+## 5.34.0
+
+### Features
+
+- [#11393](https://github.com/gradio-app/gradio/pull/11393) [`43ece52`](https://github.com/gradio-app/gradio/commit/43ece52e847bb7cb9333e7262372ba342e41971f) - Be able to specify repo-id in gradio cc publish.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#11386](https://github.com/gradio-app/gradio/pull/11386) [`92aa905`](https://github.com/gradio-app/gradio/commit/92aa9058e101a6f4ddf72495a87ae392802d9f2d) - Hide pending message indicator ("...") from `gr.Chatbot` if `show_progress="hidden"`.  Thanks @abidlabs!
+- [#11378](https://github.com/gradio-app/gradio/pull/11378) [`3ec4a7c`](https://github.com/gradio-app/gradio/commit/3ec4a7c376b5eee9e2d5a0b858c374b417f8c61a) - Add Model3D support in Chatbot.  Thanks @dawoodkhan82!
+- [#11349](https://github.com/gradio-app/gradio/pull/11349) [`bed858b`](https://github.com/gradio-app/gradio/commit/bed858b62b9887e606618bea5fe8a2f212b4a645) - Fix DataFrame Scroll Divergence.  Thanks @deckar01!
+- [#11381](https://github.com/gradio-app/gradio/pull/11381) [`0e6fae0`](https://github.com/gradio-app/gradio/commit/0e6fae015069b6b4c44523642abfbbfced394ab2) - Fix transparent bg issue in gr.ImageSlider.  Thanks @hannahblair!
+- [#11346](https://github.com/gradio-app/gradio/pull/11346) [`3a9a002`](https://github.com/gradio-app/gradio/commit/3a9a0025efd49942303517c5dbd426d41241b7f6) - Hide native Dataframe to screen readers.  Thanks @hannahblair!
+- [#11382](https://github.com/gradio-app/gradio/pull/11382) [`5ff539e`](https://github.com/gradio-app/gradio/commit/5ff539e4764fba0e0a100accfcc3d4fa43e470a0) - Fix cached examples in `@gr.render`.  Thanks @abidlabs!
+
 ## 5.33.2
 
 ### Features

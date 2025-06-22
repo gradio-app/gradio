@@ -1,5 +1,35 @@
 # @gradio/dataframe
 
+## 0.17.17
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/markdown-code@0.4.4
+- @gradio/atoms@0.16.2
+- @gradio/client@1.15.3
+- @gradio/upload@0.16.8
+- @gradio/checkbox@0.4.24
+- @gradio/button@0.5.4
+
+## 0.17.16
+
+### Fixes
+
+- [#11349](https://github.com/gradio-app/gradio/pull/11349) [`bed858b`](https://github.com/gradio-app/gradio/commit/bed858b62b9887e606618bea5fe8a2f212b4a645) - Fix DataFrame Scroll Divergence.  Thanks @deckar01!
+- [#11346](https://github.com/gradio-app/gradio/pull/11346) [`3a9a002`](https://github.com/gradio-app/gradio/commit/3a9a0025efd49942303517c5dbd426d41241b7f6) - Hide native Dataframe to screen readers.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/markdown-code@0.4.3
+- @gradio/statustracker@0.10.12
+- @gradio/button@0.5.3
+- @gradio/checkbox@0.4.23
+
 ## 0.17.15
 
 ### Features

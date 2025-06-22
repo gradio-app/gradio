@@ -1,5 +1,43 @@
 # @gradio/core
 
+## 0.19.3
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.14.8
+- @gradio/paramviewer@0.7.11
+- @gradio/statustracker@0.10.13
+- @gradio/video@0.14.18
+- @gradio/atoms@0.16.2
+- @gradio/client@1.15.3
+- @gradio/gallery@0.15.24
+- @gradio/plot@0.9.18
+- @gradio/upload@0.16.8
+- @gradio/checkbox@0.4.24
+- @gradio/button@0.5.4
+- @gradio/image@0.22.10
+- @gradio/column@0.2.0
+- @gradio/textbox@0.10.15
+- @gradio/file@0.12.21
+
+## 0.19.2
+
+### Dependency updates
+
+- @gradio/gallery@0.15.23
+- @gradio/plot@0.9.17
+- @gradio/statustracker@0.10.12
+- @gradio/button@0.5.3
+- @gradio/checkbox@0.4.23
+- @gradio/code@0.14.7
+- @gradio/paramviewer@0.7.10
+- @gradio/tabitem@0.4.5
+- @gradio/tabs@0.4.5
+
 ## 0.19.2
 
 ### Fixes
