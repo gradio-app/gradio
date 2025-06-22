@@ -97,25 +97,28 @@ def get_latest_release():
                 },
                 j,
             )
+        past_versions = get_all_5_x_versions()
         with open(make_dir(WEBSITE_DIR, "src/lib/json/past_versions.json"), "w+") as j:
-            json.dump({"past_versions": get_all_5_x_versions()}, j)
+            json.dump({"past_versions": past_versions}, j)
+        for v in past_versions:
+            if not os.path.exists(
+                make_dir(WEBSITE_DIR, f"src/lib/templates_{v.replace('.', '-')}")
+            ):
+                print(f"Downloading templates from S3: {v}")
+                download_from_s3(
+                    "gradio-docs-json",
+                    f"{v}/templates/",
+                    make_dir(WEBSITE_DIR, f"src/lib/templates_{v.replace('.', '-')}"),
+                )
         if not os.path.exists(
-            make_dir(WEBSITE_DIR, f"src/lib/templates_{version.replace('.', '-')}")
+            make_dir(WEBSITE_DIR, "src/lib/templates_4-44-1")
         ):
-            print(f"Downloading templates from S3: {version}")
-            download_from_s3(
-                "gradio-docs-json",
-                f"{version}/templates/",
-                make_dir(WEBSITE_DIR, f"src/lib/templates_{version.replace('.', '-')}"),
-            )
-
             print("Downloading templates from S3: 4.44.1")
             download_from_s3(
                 "gradio-docs-json",
-                "4.44.1/templates/",
-                make_dir(WEBSITE_DIR, "src/lib/templates_4-44-1"),
-            )
-
+            "4.44.1/templates/",
+            make_dir(WEBSITE_DIR, "src/lib/templates_4-44-1"),
+        )
 
 def create_dir_if_not_exists(path):
     if not os.path.exists(path):
