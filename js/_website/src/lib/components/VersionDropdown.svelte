@@ -5,7 +5,13 @@
 	import { version } from "$lib/json/version.json";
 	import { past_versions } from "$lib/json/past_versions.json";
 
-	export let choices = [version, "main", "4.44.1", "────────────", ...past_versions];
+	export let choices = [
+		version,
+		"main",
+		"4.44.1",
+		"────────────",
+		...past_versions
+	];
 	export let value: string = $page.params?.version || version;
 	export let docs_type = "python";
 
