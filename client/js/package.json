@@ -9,7 +9,9 @@
 	"exports": {
 		".": {
 			"gradio": "./src/index.ts",
-			"import": "./dist/index.js"
+			"browser": "./dist/browser.js",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
 		},
 		"./package.json": "./package.json"
 	},
@@ -30,8 +32,10 @@
 	},
 	"scripts": {
 		"bundle": "vite build --ssr",
+		"bundle:browser": "BROWSER_BUILD=true vite build",
 		"generate_types": "tsc",
-		"build": "pnpm bundle && pnpm generate_types",
+		"clean": "rm -rf dist",
+		"build": "pnpm clean && pnpm bundle && pnpm bundle:browser && pnpm generate_types",
 		"test": "pnpm test:client && pnpm test:client:node",
 		"test:client": "vitest run -c vite.config.js",
 		"test:client:node": "TEST_MODE=node vitest run -c vite.config.js",

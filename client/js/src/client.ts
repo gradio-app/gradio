@@ -214,8 +214,10 @@ export class Client {
 			(typeof window === "undefined" || !("WebSocket" in window)) &&
 			!global.WebSocket
 		) {
-			const ws = await import("ws");
-			global.WebSocket = ws.WebSocket as unknown as typeof WebSocket;
+			if (!BROWSER_BUILD) {
+				const ws = await import("ws");
+				global.WebSocket = ws.WebSocket as unknown as typeof WebSocket;
+			}
 		}
 
 		if (this.options.auth) {
