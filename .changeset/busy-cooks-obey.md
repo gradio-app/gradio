@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix Hot Reload Gap
+fix:Remove gap parametger from gr.Column
