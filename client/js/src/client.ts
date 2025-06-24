@@ -39,6 +39,8 @@ import {
 	COMPONENT_SERVER_URL
 } from "./constants";
 
+declare const BROWSER_BUILD: boolean;
+
 export class Client {
 	app_reference: string;
 	options: ClientOptions;
