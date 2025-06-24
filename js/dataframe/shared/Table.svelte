@@ -348,6 +348,7 @@
 
 	function clear_sort(): void {
 		df_actions.reset_sort_state();
+		sort_data(data, display_value, styling);
 	}
 
 	$: {
@@ -373,6 +374,7 @@
 
 	function clear_filter(): void {
 		df_actions.reset_filter_state();
+		filter_data(data, display_value, styling);
 	}
 
 	async function edit_header(i: number, _select = false): Promise<void> {
