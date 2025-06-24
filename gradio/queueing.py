@@ -34,6 +34,7 @@ from gradio.utils import (
     LRUCache,
     error_payload,
     run_coro_in_background,
+    safe_aclose_iterator,
     safe_get_lock,
     set_task_name,
 )
@@ -809,7 +810,7 @@ class Queue:
             return
         async with app.lock:
             try:
-                app.iterators[event_id].aclose()  # type: ignore
+                await safe_aclose_iterator(app.iterators[event_id])
             except Exception:
                 pass
             del app.iterators[event_id]
