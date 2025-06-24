@@ -43,8 +43,6 @@
 		keydown: KeyboardEvent;
 	}>();
 
-	let is_expanded = false;
-
 	function truncate_text(
 		text: string | number,
 		max_length: number | null = null,
@@ -57,8 +55,7 @@
 		return str.slice(0, max_length) + "...";
 	}
 
-	$: should_truncate =
-		!edit && !is_expanded && max_chars !== null && max_chars > 0;
+	$: should_truncate = !edit && max_chars !== null && max_chars > 0;
 
 	$: display_content = editable
 		? value
@@ -86,18 +83,7 @@
 	}
 
 	function handle_keydown(event: KeyboardEvent): void {
-		if (event.key === "Enter") {
-			if (!header) {
-				is_expanded = !is_expanded;
-			}
-		}
 		dispatch("keydown", event);
-	}
-
-	function handle_click(): void {
-		if (!edit && !header) {
-			is_expanded = !is_expanded;
-		}
 	}
 
 	function handle_bool_change(new_value: boolean): void {
@@ -143,18 +129,17 @@
 {:else}
 	<span
 		class:dragging={is_dragging}
-		on:click={handle_click}
 		on:keydown={handle_keydown}
 		tabindex="0"
 		role="button"
 		class:edit
-		class:expanded={is_expanded}
+		class:expanded={edit}
 		class:multiline={header}
 		on:focus|preventDefault
 		style={styling}
 		data-editable={editable}
 		data-max-chars={max_chars}
-		data-expanded={is_expanded}
+		data-expanded={edit}
 		placeholder=" "
 		class:text={datatype === "str"}
 		class:wrap={wrap_text}
