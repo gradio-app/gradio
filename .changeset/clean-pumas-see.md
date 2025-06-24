@@ -1,5 +1,6 @@
 ---
 "@gradio/client": patch
+"@gradio/sanitize": patch
 "gradio": patch
 ---
 
