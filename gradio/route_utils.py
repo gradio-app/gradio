@@ -688,7 +688,7 @@ class GradioMultiPartParser:
         }
 
         # Create the parser.
-        parser = MultipartParser(boundary, callbacks)  # type: ignore
+        parser = MultipartParser(boundary, callbacks, self.max_file_size)  # type: ignore
         try:
             # Feed the parser with data from the request.
             async for chunk in self.stream:
