@@ -113,7 +113,6 @@
 		tabindex="-1"
 		on:blur={handle_blur}
 		on:mousedown|stopPropagation
-		on:mouseup|stopPropagation
 		on:click|stopPropagation
 		use:use_focus
 		on:keydown={handle_keydown}
