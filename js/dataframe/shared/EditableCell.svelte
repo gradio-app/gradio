@@ -36,7 +36,7 @@
 	export let coords: [number, number];
 	export let on_select_column: ((col: number) => void) | null = null;
 	export let on_select_row: ((row: number) => void) | null = null;
-	export let el: HTMLInputElement | null;
+	export let el: HTMLTextAreaElement | null;
 
 	const dispatch = createEventDispatcher<{
 		blur: { blur_event: FocusEvent; coords: [number, number] };
@@ -67,7 +67,7 @@
 		? truncate_text(display_content, max_chars, datatype === "image")
 		: display_content;
 
-	function use_focus(node: HTMLInputElement): any {
+	function use_focus(node: HTMLTextAreaElement): any {
 		requestAnimationFrame(() => {
 			node.focus();
 		});
@@ -102,10 +102,9 @@
 </script>
 
 {#if edit && datatype !== "bool"}
-	<input
+	<textarea
 		readonly={is_static}
 		aria-readonly={is_static}
-		role="textbox"
 		aria-label={is_static ? "Cell is read-only" : "Edit cell"}
 		bind:this={el}
 		bind:value
@@ -186,7 +185,7 @@
 		cursor: crosshair !important;
 	}
 
-	input {
+	textarea {
 		position: absolute;
 		flex: 1 1 0%;
 		transform: translateX(-0.1px);
@@ -195,9 +194,15 @@
 		background: transparent;
 		cursor: text;
 		width: calc(100% - var(--size-2));
+		resize: none;
+		height: 100%;
+		padding-left: 0;
+		font-size: inherit;
+		font-weight: inherit;
+		line-height: var(--line-lg);
 	}
 
-	input:focus {
+	textarea:focus {
 		outline: none;
 	}
 
@@ -250,7 +255,7 @@
 		object-fit: contain;
 	}
 
-	input:read-only {
+	textarea:read-only {
 		cursor: not-allowed;
 	}
 
