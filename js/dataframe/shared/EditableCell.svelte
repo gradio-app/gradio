@@ -197,6 +197,10 @@
 		width: calc(100% - var(--size-2));
 	}
 
+	input:focus {
+		outline: none;
+	}
+
 	span {
 		flex: 1 1 0%;
 		position: relative;
