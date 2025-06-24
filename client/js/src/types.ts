@@ -158,7 +158,7 @@ export interface Config {
 	auth_required?: true;
 	analytics_enabled: boolean;
 	connect_heartbeat: boolean;
-	auth_message: string;
+	auth_message: string | null;
 	components: ComponentMeta[];
 	css: string | null;
 	js: string | null;
@@ -408,4 +408,9 @@ export interface RenderMessage extends Render {
 	type: "render";
 	endpoint: string;
 	fn_index: number;
+}
+
+export interface AuthError extends Error {
+	auth_required: boolean;
+	auth_message: string | null;
 }

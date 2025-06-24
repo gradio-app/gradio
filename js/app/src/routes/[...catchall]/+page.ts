@@ -21,16 +21,40 @@ export async function load({
 	config: Config;
 	api_url: string;
 	layout: unknown;
-	app: Client;
+	app: Client | null;
 }> {
+	let app: Client;
 	const api_url =
 		browser && !local_dev_mode ? new URL(".", location.href).href : server;
 	const deepLink = url.searchParams.get("deep_link");
-	const app = await Client.connect(api_url, {
-		with_null_state: true,
-		events: ["data", "log", "status", "render"],
-		query_params: deepLink ? { deep_link: deepLink } : undefined
-	});
+	try {
+		app = await Client.connect(api_url, {
+			with_null_state: true,
+			events: ["data", "log", "status", "render"],
+			query_params: deepLink ? { deep_link: deepLink } : undefined
+		});
+	} catch (error: any) {
+		const errorMessage = error.message || "";
+		const auth_message = errorMessage.replace(/^Error:\s*/, "");
+		return {
+			Render: Login,
+			config: {
+				auth_message: auth_message,
+				auth_required: true,
+				components: [],
+				current_page: "",
+				dependencies: [],
+				layout: {},
+				pages: [],
+				page: {},
+				root: url.origin,
+				space_id: null
+			},
+			api_url,
+			layout: {},
+			app: null
+		};
+	}
 
 	if (!app.config) {
 		throw new Error("No config found");
