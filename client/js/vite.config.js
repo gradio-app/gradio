@@ -6,20 +6,21 @@ const TEST_MODE = process.env.TEST_MODE || "happy-dom";
 export default defineConfig(({ mode }) => {
 	const production = mode === "production";
 	const isBrowserBuild = process.env.BROWSER_BUILD === "true";
-	
+
 	if (mode === "preview") {
 		return {
 			entry: "index.html"
 		};
 	}
-	
+
 	return {
 		build: {
 			emptyOutDir: false,
 			lib: {
 				entry: "src/index.ts",
 				formats: ["es"],
-				fileName: (format) => isBrowserBuild ? `browser.${format}.js` : `index.${format}.js`
+				fileName: (format) =>
+					isBrowserBuild ? `browser.${format}.js` : `index.${format}.js`
 			},
 			rollupOptions: {
 				input: "src/index.ts",
