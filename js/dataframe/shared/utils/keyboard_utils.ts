@@ -180,9 +180,10 @@ async function handle_enter_key(
 	const state = get(ctx.state);
 	if (!state.config.editable) return false;
 
-	event.preventDefault();
-
 	const editing = state.ui_state.editing;
+	if (editing && event.shiftKey) return false;
+
+	event.preventDefault();
 
 	if (editing && dequal(editing, [i, j])) {
 		const cell_id = ctx.data[i][j].id;
@@ -191,6 +192,8 @@ async function handle_enter_key(
 			await save_cell_value(input_el.value, ctx, i, j);
 		}
 		ctx.actions.set_editing(false);
+		await tick();
+		ctx.parent_element?.focus();
 	} else {
 		ctx.actions.set_editing([i, j]);
 	}
