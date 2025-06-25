@@ -236,6 +236,17 @@ def _remove_if_name_main_codeblock(file_path: str):
     return code_removed
 
 
+def _get_imported_modules(file_path: str):
+    with open(file_path, encoding="utf-8") as file:
+        code = file.read()
+    tree = ast.parse(code)
+    imported_modules = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            imported_modules.append(node.module)
+    return imported_modules
+
+
 def _find_module(source_file: Path) -> ModuleType | None:
     for s, v in sys.modules.items():
         if s not in {"__main__", "__mp_main__"} and getattr(v, "__file__", None) == str(
@@ -284,53 +295,70 @@ def watchfn(reloader: SourceFileReloader):
 
     reload_dirs = [Path(dir_) for dir_ in reloader.watch_dirs]
     import sys
+    import importlib
+
+    def is_in_watch_dirs(file_path):
+        if not file_path:
+            return False
+        try:
+            file_path = Path(file_path).resolve()
+        except Exception:
+            return False
+        for watch_dir in reload_dirs:
+            try:
+                if file_path.is_relative_to(watch_dir):
+                    return True
+            except AttributeError:
+                # Python <3.9 fallback
+                try:
+                    file_path.relative_to(watch_dir)
+                    return True
+                except ValueError:
+                    continue
+        return False
 
     for dir_ in reload_dirs:
         sys.path.insert(0, str(dir_))
 
     mtimes = {}
-    # Need to import the module in this thread so that the
-    # module is available in the namespace of this thread
-    module = reloader.watch_module
-    no_reload_source_code = _remove_if_name_main_codeblock(str(reloader.demo_file))
-    # Reset the context to id 0 so that the loaded module is the same as the original
-    # See https://github.com/gradio-app/gradio/issues/10253
     from gradio.context import Context
-
-    Context.id = 0
-    exec(no_reload_source_code, module.__dict__)
-    sys.modules[reloader.watch_module_name] = module
 
     while reloader.should_watch():
         changed = get_changes()
         if changed:
             print(f"Changes detected in: {changed}")
             try:
-                # How source file reloading works
-                # 1. Remove the gr.no_reload code blocks from the temp file
-                # 2. Execute the changed source code in the original module's namespac
-                # 3. Delete the package the module is in from sys.modules.
-                # This is so that the updated module is available in the entire package
-                # 4. Do 1-2 for the main demo file even if it did not change.
-                # This is because the main demo file may import the changed file and we need the
-                # changes to be reflected in the main demo file.
+                # Remove all modules whose __file__ is in any of the watch_dirs
+                for modname, mod in list(sys.modules.items()):
+                    file = getattr(mod, "__file__", None)
+                    if file and is_in_watch_dirs(file):
+                        del sys.modules[modname]
+                # Always do a fresh reload of the main watched module
+                module = importlib.import_module(reloader.watch_module_name)
+                # Reset the context to id 0 so that the loaded module is the same as the original
+                # See https://github.com/gradio-app/gradio/issues/10253
+                Context.id = 0
+                # Remove the gr.no_reload code blocks and exec in the new module's dict
+                no_reload_source_code = _remove_if_name_main_codeblock(str(reloader.demo_file))
+                exec(no_reload_source_code, module.__dict__)
+                sys.modules[reloader.watch_module_name] = module
 
-                if changed.suffix == ".py":
+                if changed.suffix == ".py" and changed != reloader.demo_file:
                     changed_in_copy = _remove_if_name_main_codeblock(str(changed))
-                    if changed != reloader.demo_file:
-                        changed_module = _find_module(changed)
-                        if changed_module:
-                            exec(changed_in_copy, changed_module.__dict__)
-                            top_level_parent = sys.modules[
-                                changed_module.__name__.split(".")[0]
-                            ]
-                            if top_level_parent != changed_module:
-                                importlib.reload(top_level_parent)
+                    changed_module = _find_module(changed)
+                    if changed_module:
+                        exec(changed_in_copy, changed_module.__dict__)
+                        top_level_parent = sys.modules[
+                            changed_module.__name__.split(".")[0]
+                        ]
+                        print("CHANGED MODULE", changed_module)
+                        print("TOP LEVEL PARENT", top_level_parent)
+                        if top_level_parent != changed_module:
+                            importlib.reload(top_level_parent)
 
-                changed_demo_file = _remove_if_name_main_codeblock(
-                    str(reloader.demo_file)
-                )
-                exec(changed_demo_file, module.__dict__)
+                demo = getattr(module, reloader.demo_name)
+                reloader.swap_blocks(demo)
+                mtimes = {}
             except Exception as error:
                 print(
                     f"Reloading {reloader.watch_module_name} failed with the following exception: "
@@ -341,9 +369,6 @@ def watchfn(reloader: SourceFileReloader):
                 reloader.alert_change("error")
                 reloader.app.reload_error_message = traceback.format_exc()
                 continue
-            demo = getattr(module, reloader.demo_name)
-            reloader.swap_blocks(demo)
-            mtimes = {}
         time.sleep(0.05)
 
 
