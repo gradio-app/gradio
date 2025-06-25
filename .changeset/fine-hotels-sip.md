@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix potential DoS vulnerability
+fix:Fix potential DoS vulnerability
