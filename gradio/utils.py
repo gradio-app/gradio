@@ -236,17 +236,6 @@ def _remove_if_name_main_codeblock(file_path: str):
     return code_removed
 
 
-def _get_imported_modules(file_path: str):
-    with open(file_path, encoding="utf-8") as file:
-        code = file.read()
-    tree = ast.parse(code)
-    imported_modules = []
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.Import, ast.ImportFrom)):
-            imported_modules.append(node.module)
-    return imported_modules
-
-
 def _find_module(source_file: Path) -> ModuleType | None:
     for s, v in sys.modules.items():
         if s not in {"__main__", "__mp_main__"} and getattr(v, "__file__", None) == str(
@@ -304,24 +293,23 @@ def watchfn(reloader: SourceFileReloader):
             file_path = Path(file_path).resolve()
         except Exception:
             return False
-        for watch_dir in reload_dirs:
-            try:
-                if file_path.is_relative_to(watch_dir):
-                    return True
-            except AttributeError:
-                # Python <3.9 fallback
-                try:
-                    file_path.relative_to(watch_dir)
-                    return True
-                except ValueError:
-                    continue
-        return False
+        return any(file_path.is_relative_to(watch_dir) for watch_dir in reload_dirs)
 
     for dir_ in reload_dirs:
         sys.path.insert(0, str(dir_))
 
     mtimes = {}
+    # Need to import the module in this thread so that the
+    # module is available in the namespace of this thread
+    module = reloader.watch_module
+    no_reload_source_code = _remove_if_name_main_codeblock(str(reloader.demo_file))
+    # Reset the context to id 0 so that the loaded module is the same as the original
+    # See https://github.com/gradio-app/gradio/issues/10253
     from gradio.context import Context
+
+    Context.id = 0
+    exec(no_reload_source_code, module.__dict__)
+    sys.modules[reloader.watch_module_name] = module
 
     while reloader.should_watch():
         changed = get_changes()
@@ -343,18 +331,23 @@ def watchfn(reloader: SourceFileReloader):
                 exec(no_reload_source_code, module.__dict__)
                 sys.modules[reloader.watch_module_name] = module
 
-                if changed.suffix == ".py" and changed != reloader.demo_file:
-                    changed_in_copy = _remove_if_name_main_codeblock(str(changed))
-                    changed_module = _find_module(changed)
-                    if changed_module:
-                        exec(changed_in_copy, changed_module.__dict__)
-                        top_level_parent = sys.modules[
-                            changed_module.__name__.split(".")[0]
-                        ]
-                        print("CHANGED MODULE", changed_module)
-                        print("TOP LEVEL PARENT", top_level_parent)
-                        if top_level_parent != changed_module:
-                            importlib.reload(top_level_parent)
+                # if changed.suffix == ".py" and changed != reloader.demo_file:
+                #     changed_in_copy = _remove_if_name_main_codeblock(str(changed))
+                #     changed_module = _find_module(changed)
+                #     if changed_module:
+                #         exec(changed_in_copy, changed_module.__dict__)
+                #         top_level_parent = sys.modules[
+                #             changed_module.__name__.split(".")[0]
+                #         ]
+                #         print("CHANGED MODULE", changed_module)
+                #         print("TOP LEVEL PARENT", top_level_parent)
+                #         if top_level_parent != changed_module:
+                #             importlib.reload(top_level_parent)
+                # changed_demo_file = _remove_if_name_main_codeblock(
+                #     str(reloader.demo_file)
+                # )
+                # Context.id = 0
+                # exec(changed_demo_file, module.__dict__)
 
                 demo = getattr(module, reloader.demo_name)
                 reloader.swap_blocks(demo)
