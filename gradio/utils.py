@@ -18,6 +18,7 @@ import pkgutil
 import posixpath
 import re
 import shutil
+import site
 import subprocess
 import sys
 import tempfile
@@ -284,16 +285,21 @@ def watchfn(reloader: SourceFileReloader):
 
     reload_dirs = [Path(dir_) for dir_ in reloader.watch_dirs]
     import sys
-    import importlib
 
-    def is_in_watch_dirs(file_path):
+    site_packages_dirs = [Path(p).resolve() for p in site.getsitepackages()]
+
+    def is_in_watch_dirs_and_not_sitepackages(file_path):
         if not file_path:
             return False
         try:
             file_path = Path(file_path).resolve()
         except Exception:
             return False
-        return any(file_path.is_relative_to(watch_dir) for watch_dir in reload_dirs)
+        in_watch = any(file_path.is_relative_to(watch_dir) for watch_dir in reload_dirs)
+        in_sitepkg = any(
+            file_path.is_relative_to(site_dir) for site_dir in site_packages_dirs
+        )
+        return in_watch and not in_sitepkg
 
     for dir_ in reload_dirs:
         sys.path.insert(0, str(dir_))
@@ -316,38 +322,23 @@ def watchfn(reloader: SourceFileReloader):
         if changed:
             print(f"Changes detected in: {changed}")
             try:
-                # Remove all modules whose __file__ is in any of the watch_dirs
+                # Remove all modules whose __file__ is in any of the watch_dirs but not in site-packages
+                # Also skip gradio.cli.commands.reload to avoid resetting the reload_thread variable
                 for modname, mod in list(sys.modules.items()):
                     file = getattr(mod, "__file__", None)
-                    if file and is_in_watch_dirs(file):
+                    if (
+                        file
+                        and is_in_watch_dirs_and_not_sitepackages(file)
+                        and modname != "gradio.cli.commands.reload"
+                    ):
                         del sys.modules[modname]
-                # Always do a fresh reload of the main watched module
-                module = importlib.import_module(reloader.watch_module_name)
-                # Reset the context to id 0 so that the loaded module is the same as the original
-                # See https://github.com/gradio-app/gradio/issues/10253
+
                 Context.id = 0
                 # Remove the gr.no_reload code blocks and exec in the new module's dict
-                no_reload_source_code = _remove_if_name_main_codeblock(str(reloader.demo_file))
+                no_reload_source_code = _remove_if_name_main_codeblock(
+                    str(reloader.demo_file)
+                )
                 exec(no_reload_source_code, module.__dict__)
-                sys.modules[reloader.watch_module_name] = module
-
-                # if changed.suffix == ".py" and changed != reloader.demo_file:
-                #     changed_in_copy = _remove_if_name_main_codeblock(str(changed))
-                #     changed_module = _find_module(changed)
-                #     if changed_module:
-                #         exec(changed_in_copy, changed_module.__dict__)
-                #         top_level_parent = sys.modules[
-                #             changed_module.__name__.split(".")[0]
-                #         ]
-                #         print("CHANGED MODULE", changed_module)
-                #         print("TOP LEVEL PARENT", top_level_parent)
-                #         if top_level_parent != changed_module:
-                #             importlib.reload(top_level_parent)
-                # changed_demo_file = _remove_if_name_main_codeblock(
-                #     str(reloader.demo_file)
-                # )
-                # Context.id = 0
-                # exec(changed_demo_file, module.__dict__)
 
                 demo = getattr(module, reloader.demo_name)
                 reloader.swap_blocks(demo)
