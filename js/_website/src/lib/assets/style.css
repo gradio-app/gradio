@@ -265,6 +265,10 @@ code.language-bash {
 	@apply text-red-700;
 }
 
+.warning p {
+	@apply inline;
+}
+
 .shared-link:before {
 	content: url("img/anchor_orange.svg");
 	width: 15px;
