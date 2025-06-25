@@ -245,6 +245,10 @@ code.language-bash {
 	@apply text-green-700;
 }
 
+.tip p {
+	@apply inline;
+}
+
 .warning {
 	@apply bg-gradient-to-br from-red-50 to-white border-red-50 border-l-2 border-l-red-300 text-red-700 p-4 px-6;
 }
