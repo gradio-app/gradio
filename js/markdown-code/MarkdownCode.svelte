@@ -100,7 +100,8 @@
 		}
 
 		if (sanitize_html && sanitize) {
-			parsedValue = sanitize(parsedValue);
+			const root = typeof window !== "undefined" ? window.location.href : "";
+			parsedValue = sanitize(parsedValue, root);
 		}
 		return parsedValue;
 	}
