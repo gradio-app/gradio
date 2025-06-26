@@ -717,7 +717,7 @@ class GradioMultiPartParser:
                 # the main thread.
                 for part, data in self._file_parts_to_write:
                     assert part.file  # for type checkers  # noqa: S101
-                    if part.file.size or 0 + len(data) > self.max_file_size:
+                    if (part.file.size or 0) + len(data) > self.max_file_size:
                         if self.upload_progress is not None:
                             self.upload_progress.set_done(self.upload_id)  # type: ignore
                         raise MultiPartException(
