@@ -134,7 +134,7 @@
 	let ready = false;
 	let render_complete = false;
 	let config: Config;
-	let loading_text = $_("common.loading") + "...";
+	let loading_text = "Loading...";
 	let active_theme_mode: ThemeMode;
 	let api_url: string;
 

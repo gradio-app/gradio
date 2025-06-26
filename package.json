@@ -78,6 +78,7 @@
 		"prettier-plugin-svelte": "^3.2.3",
 		"sirv": "^2.0.4",
 		"sirv-cli": "^2.0.2",
+		"sonda": "^0.8.2",
 		"svelte": "^4.2.15",
 		"svelte-check": "^4.0.5",
 		"svelte-eslint-parser": "^0.36.0",

@@ -42,6 +42,7 @@ from fastapi import (
     HTTPException,
     status,
 )
+from brotli_asgi import BrotliMiddleware
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
@@ -405,6 +406,11 @@ class App(FastAPI):
 
         if not wasm_utils.IS_WASM:
             app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
+            # Add Brotli compression middleware for better performance on text-based resources
+            app.add_middleware(
+                BrotliMiddleware,
+                quality=4,
+            )
 
         if ssr_mode:
 

@@ -289,8 +289,6 @@ export class ImageEditor {
 			});
 		}).observe(this.target_element);
 
-		console.log(this.dark);
-
 		this.app = new Application();
 
 		if (!this.dark) {
@@ -306,7 +304,6 @@ export class ImageEditor {
 			antialias: true,
 			powerPreference: "high-performance"
 		});
-		console.log("app", "done initialising");
 
 		const canvas = this.app.canvas as HTMLCanvasElement;
 		canvas.style.background = "transparent";
@@ -642,32 +639,19 @@ export class ImageEditor {
 	}
 
 	set_tool(tool: ToolbarTool): void {
-		console.log("🛠️ [Editor] Setting tool", {
-			tool,
-			layers_count: this.layer_manager.get_layers().length,
-			active_layer_id: this.layer_manager
-				.get_layers()
-				.find((l) => l.container === this.layer_manager.get_active_layer())?.id
-		});
 		this.current_tool = tool;
 
 		for (const tool of this.tools.values()) {
 			tool.set_tool(this.current_tool, this.current_subtool);
 		}
-		console.log("✅ [Editor] Tool set completed");
 	}
 
 	set_subtool(subtool: Subtool): void {
-		console.log("🔧 [Editor] Setting subtool", {
-			subtool,
-			current_tool: this.current_tool
-		});
 		this.current_subtool = subtool;
 
 		for (const tool of this.tools.values()) {
 			tool.set_tool(this.current_tool, this.current_subtool);
 		}
-		console.log("✅ [Editor] Subtool set completed");
 	}
 
 	set_background_image(image: Sprite): void {
@@ -724,22 +708,11 @@ export class ImageEditor {
 	 * @returns A Promise that resolves when all layers are added
 	 */
 	async add_layers_from_url(layer_urls: string[] | undefined): Promise<void> {
-		console.log("📥 [Editor] Starting add_layers_from_url", {
-			layer_urls,
-			current_layers: this.layer_manager
-				.get_layers()
-				.map((l) => ({ id: l.id, name: l.name }))
-		});
-
 		this.command_manager.reset();
 		const _layers = this.layer_manager.get_layers();
-		console.log("🗑️ [Editor] Deleting existing layers", {
-			layers_to_delete: _layers.map((l) => ({ id: l.id, name: l.name }))
-		});
 		_layers.forEach((l) => this.layer_manager.delete_layer(l.id));
 
 		if (layer_urls === undefined || layer_urls.length === 0) {
-			console.log("📝 [Editor] Creating default layer (no URLs provided)");
 			this.layer_manager.create_layer({
 				width: this.width,
 				height: this.height,
@@ -751,20 +724,11 @@ export class ImageEditor {
 
 		const created_layer_ids: string[] = [];
 		for await (const url of layer_urls) {
-			console.log("🖼️ [Editor] Adding layer from URL", { url });
 			const layer_id = await this.layer_manager.add_layer_from_url(url);
 			if (layer_id) {
 				created_layer_ids.push(layer_id);
-				console.log("✅ [Editor] Layer created from URL", { layer_id, url });
-			} else {
-				console.log("❌ [Editor] Failed to create layer from URL", { url });
 			}
 		}
-
-		console.log("🎯 [Editor] Setting active layer after URL loading", {
-			created_layer_ids,
-			setting_active_to: created_layer_ids[0]
-		});
 
 		// Set the active layer to the first newly created layer
 		if (created_layer_ids.length > 0) {
@@ -778,27 +742,11 @@ export class ImageEditor {
 
 		this.notify("change");
 		this.notify("input");
-
-		console.log("✅ [Editor] add_layers_from_url completed", {
-			final_layers: this.layer_manager
-				.get_layers()
-				.map((l) => ({ id: l.id, name: l.name })),
-			active_layer: this.layer_manager
-				.get_layers()
-				.find((l) => l.container === this.layer_manager.get_active_layer())?.id
-		});
 	}
 
 	set_layer(id: string): void {
-		console.log("🎯 [Editor] Setting active layer", {
-			layer_id: id,
-			available_layers: this.layer_manager
-				.get_layers()
-				.map((l) => ({ id: l.id, name: l.name, visible: l.visible }))
-		});
 		this.layer_manager.set_active_layer(id);
 		this.notify("change");
-		console.log("✅ [Editor] Active layer set", { active_layer_id: id });
 	}
 
 	move_layer(id: string, direction: "up" | "down"): void {
