@@ -11,6 +11,7 @@
 	import type { View } from "vega";
 	import { LineChart as LabelIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
+	import { _ } from "svelte-i18n";
 
 	interface PlotData {
 		columns: string[];
@@ -120,11 +121,42 @@
 			}
 		}
 	}
-	function reformat_data(data: PlotData): {
+	function reformat_data(data: PlotData, x_start: number| undefined, x_end : number | undefined ): {
 		[x: string]: string | number;
 	}[] {
+		let x_index = data.columns.indexOf(x);
+		let y_index = data.columns.indexOf(y);
+		let color_index = color ? data.columns.indexOf(color) : null;
+		let datatable = data.data;
+
+		if (x_start !== undefined && x_end !== undefined) {
+			const _x_start = x_temporal ? x_start * 1000 : x_start;
+			const _x_end = x_temporal ? x_end * 1000 : x_end;
+			let largest_before_start: Record<string, [number, number]> = {};
+			let smallest_after_end: Record<string, [number, number]> = {};
+			const _datatable = datatable.filter((row, i) => {
+				const x_value = row[x_index] as number;
+				const color_value = color_index !== null ? row[color_index] as string : "any";
+				if (x_value < _x_start && (largest_before_start[color_value] === undefined || x_value > largest_before_start[color_value][1])) {
+					largest_before_start[color_value] = [i, x_value];
+				}
+				if (x_value > _x_end && (smallest_after_end[color_value] === undefined || x_value < smallest_after_end[color_value][1])) {
+					smallest_after_end[color_value] = [i, x_value];
+				}
+				return (
+					x_value >= x_start &&
+					x_value <= x_end
+				);
+			});
+			datatable = [
+				...(Object.values(largest_before_start).map(([i, _]) => datatable[i])),
+				..._datatable,
+				...(Object.values(smallest_after_end).map(([i, _]) => datatable[i])),
+			]
+		}
+
 		if (tooltip == "all" || Array.isArray(tooltip)) {
-			return data.data.map((row) => {
+			return datatable.map((row) => {
 				const obj: { [x: string]: string | number } = {};
 				data.columns.forEach((col, i) => {
 					obj[col] = row[i];
@@ -132,10 +164,7 @@
 				return obj;
 			});
 		}
-		let x_index = data.columns.indexOf(x);
-		let y_index = data.columns.indexOf(y);
-		let color_index = color ? data.columns.indexOf(color) : null;
-		return data.data.map((row) => {
+		return datatable.map((row) => {
 			const obj = {
 				[x]: row[x_index],
 				[y]: row[y_index]
@@ -146,7 +175,7 @@
 			return obj;
 		});
 	}
-	$: _data = value ? reformat_data(value) : [];
+	$: _data = value ? reformat_data(value, x_start, x_end) : [];
 	let old_value = value;
 	$: if (old_value !== value && view) {
 		old_value = value;
@@ -199,7 +228,7 @@
 		if (!vegaEmbed) {
 			vegaEmbed = (await import("vega-embed")).default;
 		}
-		vegaEmbed(chart_element, spec, { actions: false }).then(function (result) {
+		vegaEmbed(chart_element, spec, { actions: true }).then(function (result) {
 			view = result.view;
 
 			resizeObserver.observe(chart_element);
@@ -405,7 +434,7 @@
 								field: y,
 								title: y_title || y,
 								type: value.datatypes[y],
-								scale: y_lim ? { domain: y_lim } : undefined,
+								scale: y_lim ? { domain: y_lim } : { zero : false },
 								aggregate: aggregating ? _y_aggregate : undefined
 							},
 							color: color
