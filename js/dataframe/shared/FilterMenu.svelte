@@ -12,9 +12,9 @@
 
 	let menu_element: HTMLDivElement;
 	let datatype: "string" | "number" = "string";
-	let current_filter: string = "Contains";
-	let filter_dropdown_open: boolean = false;
-	let filter_input_value: string = "";
+	let current_filter = "Contains";
+	let filter_dropdown_open = false;
+	let filter_input_value = "";
 
 	const filter_options = {
 		string: [
