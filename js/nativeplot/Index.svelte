@@ -130,7 +130,12 @@
 		x_start: number | undefined,
 		x_end: number | undefined
 	): PlotData["data"] {
-		if (data.length < 1000 || x_bin !== null || value?.mark !== "line") {
+		if (
+			data.length < 1000 ||
+			x_bin !== null ||
+			value?.mark !== "line" ||
+			value?.datatypes[x] === "nominal"
+		) {
 			return data;
 		}
 		const bin_count = 250;
