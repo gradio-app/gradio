@@ -549,7 +549,6 @@ class GradioMultiPartParser:
 
     """
 
-    max_file_size = 1024 * 1024
     max_header_size = 1024 * 8
 
     def __init__(
