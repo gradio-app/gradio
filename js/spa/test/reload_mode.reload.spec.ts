@@ -24,14 +24,12 @@ test("gradio reload mode works and updates UI after file edit", async ({
 }) => {
 	test.setTimeout(30 * 1000);
 	try {
-		console.info("LAUNCHING APP");
 		// 1. Launch the demo
 		const { _process: server_process, port } = await launch_app_background(
 			`GRADIO_SERVER_PORT=7423 gradio ${demo_file}`,
 			process.cwd()
 		);
 		_process = server_process;
-		console.info("RELOAD MODE", port);
 		await page.goto(`http://localhost:${port}`);
 		await page.waitForTimeout(2000);
 

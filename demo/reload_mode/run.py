@@ -1,4 +1,5 @@
 import gradio as gr
+from functions import get_status
 
 if gr.NO_RELOAD:
     def eat(food):
@@ -8,7 +9,7 @@ if gr.NO_RELOAD:
             return {status_box: "hungry"}
 else:
     def eat(food):
-        return {status_box: "reloaded"}
+        return {status_box: get_status()}
 
 
 with gr.Blocks() as demo:
