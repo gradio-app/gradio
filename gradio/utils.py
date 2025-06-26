@@ -187,20 +187,6 @@ class SourceFileReloader(BaseReloader):
         self.alert_change("reload")
 
 
-class DynamicBoolean(int):
-    def __init__(self, value: int):
-        self.value = bool(value)
-
-    def __bool__(self):
-        return self.value
-
-    def set(self, value: int):
-        self.value = bool(value)
-
-
-NO_RELOAD = DynamicBoolean(True)
-
-
 def _remove_if_name_main_codeblock(file_path: str):
     """Parse the file, remove the gr.no_reload code blocks, and write the file back to disk.
 
@@ -252,12 +238,12 @@ def watchfn(reloader: SourceFileReloader):
     get_changes is taken from uvicorn's default file watcher.
     """
 
-    NO_RELOAD.set(False)
-
     # The thread running watchfn will be the thread reloading
     # the app. So we need to modify this thread_data attr here
     # so that subsequent calls to reload don't launch the app
-    from gradio.cli.commands.reload import reload_thread
+    from gradio.cli.commands.reload import NO_RELOAD, reload_thread
+
+    NO_RELOAD.set(False)
 
     reload_thread.running_reload = True
 
@@ -334,6 +320,7 @@ def watchfn(reloader: SourceFileReloader):
                         del sys.modules[modname]
 
                 Context.id = 0
+                NO_RELOAD.set(False)
                 # Remove the gr.no_reload code blocks and exec in the new module's dict
                 no_reload_source_code = _remove_if_name_main_codeblock(
                     str(reloader.demo_file)
