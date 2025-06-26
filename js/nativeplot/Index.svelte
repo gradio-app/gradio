@@ -42,11 +42,12 @@
 		| undefined = undefined;
 	export let color_map: Record<string, string> | null = null;
 	export let x_lim: [number, number] | null = null;
-	export let y_lim: [number, number] | null = null;
+	export let y_lim: [number, number] | null | "origin" = null;
 	$: x_lim = x_lim || null; // for some unknown reason, x_lim was getting set to undefined when used in re-render, so this line is needed
 	$: y_lim = y_lim || null;
 	$: [x_start, x_end] = x_lim === null ? [undefined, undefined] : x_lim;
-	$: [y_start, y_end] = y_lim || [undefined, undefined];
+	$: [y_start, y_end] =
+		y_lim === "origin" ? [0, undefined] : y_lim || [undefined, undefined];
 	export let x_label_angle: number | null = null;
 	export let y_label_angle: number | null = null;
 	export let x_axis_labels_visible = true;
@@ -121,7 +122,11 @@
 			}
 		}
 	}
-	function reformat_data(data: PlotData, x_start: number| undefined, x_end : number | undefined ): {
+	function reformat_data(
+		data: PlotData,
+		x_start: number | undefined,
+		x_end: number | undefined
+	): {
 		[x: string]: string | number;
 	}[] {
 		let x_index = data.columns.indexOf(x);
@@ -136,23 +141,29 @@
 			let smallest_after_end: Record<string, [number, number]> = {};
 			const _datatable = datatable.filter((row, i) => {
 				const x_value = row[x_index] as number;
-				const color_value = color_index !== null ? row[color_index] as string : "any";
-				if (x_value < _x_start && (largest_before_start[color_value] === undefined || x_value > largest_before_start[color_value][1])) {
+				const color_value =
+					color_index !== null ? (row[color_index] as string) : "any";
+				if (
+					x_value < _x_start &&
+					(largest_before_start[color_value] === undefined ||
+						x_value > largest_before_start[color_value][1])
+				) {
 					largest_before_start[color_value] = [i, x_value];
 				}
-				if (x_value > _x_end && (smallest_after_end[color_value] === undefined || x_value < smallest_after_end[color_value][1])) {
+				if (
+					x_value > _x_end &&
+					(smallest_after_end[color_value] === undefined ||
+						x_value < smallest_after_end[color_value][1])
+				) {
 					smallest_after_end[color_value] = [i, x_value];
 				}
-				return (
-					x_value >= x_start &&
-					x_value <= x_end
-				);
+				return x_value >= x_start && x_value <= x_end;
 			});
 			datatable = [
-				...(Object.values(largest_before_start).map(([i, _]) => datatable[i])),
+				...Object.values(largest_before_start).map(([i, _]) => datatable[i]),
 				..._datatable,
-				...(Object.values(smallest_after_end).map(([i, _]) => datatable[i])),
-			]
+				...Object.values(smallest_after_end).map(([i, _]) => datatable[i])
+			];
 		}
 
 		if (tooltip == "all" || Array.isArray(tooltip)) {
@@ -228,7 +239,7 @@
 		if (!vegaEmbed) {
 			vegaEmbed = (await import("vega-embed")).default;
 		}
-		vegaEmbed(chart_element, spec, { actions: true }).then(function (result) {
+		vegaEmbed(chart_element, spec, { actions: false }).then(function (result) {
 			view = result.view;
 
 			resizeObserver.observe(chart_element);
@@ -434,7 +445,10 @@
 								field: y,
 								title: y_title || y,
 								type: value.datatypes[y],
-								scale: y_lim ? { domain: y_lim } : { zero : false },
+								scale:
+									y_lim instanceof Array
+										? { domain: y_lim }
+										: { zero: y_lim === "origin" },
 								aggregate: aggregating ? _y_aggregate : undefined
 							},
 							color: color
