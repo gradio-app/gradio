@@ -13,7 +13,7 @@
 	title="Components/DataFrame"
 	component={Table}
 	parameters={{
-		test: {
+		test: {-
 			dangerouslyIgnoreUnhandledErrors: true // ignore fullscreen permission error
 		}
 	}}
@@ -115,7 +115,7 @@
 		await userEvent.keyboard("new value");
 
 		const final_value = cells[0].textContent;
-		if (initial_value.strip() !== final_value.strip()) {
+		if (initial_value?.trim() !== final_value?.trim()) {
 			throw new Error("Cell content changed when it should be non-editable");
 		}
 
