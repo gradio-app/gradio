@@ -21,7 +21,7 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let value = 0;
+	export let value: number | null = null;
 	export let show_label: boolean;
 	export let minimum: number | undefined = undefined;
 	export let maximum: number | undefined = undefined;
@@ -29,9 +29,10 @@
 	export let value_is_output = false;
 	export let step: number | null = null;
 	export let interactive: boolean;
+	export let placeholder = "";
 
 	function handle_change(): void {
-		if (!isNaN(value) && value !== null) {
+		if (value !== null && !isNaN(value)) {
 			gradio.dispatch("change");
 			if (!value_is_output) {
 				gradio.dispatch("input");
@@ -78,6 +79,7 @@
 			min={minimum}
 			max={maximum}
 			{step}
+			{placeholder}
 			on:keypress={handle_keypress}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
