@@ -11,7 +11,6 @@
 	import type { View } from "vega";
 	import { LineChart as LabelIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
-	import { _ } from "svelte-i18n";
 
 	interface PlotData {
 		columns: string[];
