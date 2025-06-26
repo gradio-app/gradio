@@ -1,5 +1,6 @@
 ---
 "@gradio/markdown-code": minor
+"@gradio/model3d": minor
 "gradio": minor
 ---
 
