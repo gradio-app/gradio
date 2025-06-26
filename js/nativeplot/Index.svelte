@@ -135,8 +135,9 @@
 		let datatable = data.data;
 
 		if (x_start !== undefined && x_end !== undefined) {
-			const _x_start = x_temporal ? x_start * 1000 : x_start;
-			const _x_end = x_temporal ? x_end * 1000 : x_end;
+			const time_factor = data.datatypes[x] === "temporal" ? 1000 : 1;
+			const _x_start = x_start * time_factor;
+			const _x_end = x_end * time_factor;
 			let largest_before_start: Record<string, [number, number]> = {};
 			let smallest_after_end: Record<string, [number, number]> = {};
 			const _datatable = datatable.filter((row, i) => {
@@ -157,7 +158,7 @@
 				) {
 					smallest_after_end[color_value] = [i, x_value];
 				}
-				return x_value >= x_start && x_value <= x_end;
+				return x_value >= _x_start && x_value <= _x_end;
 			});
 			datatable = [
 				...Object.values(largest_before_start).map(([i, _]) => datatable[i]),
@@ -244,6 +245,7 @@
 
 			resizeObserver.observe(chart_element);
 			var debounceTimeout: NodeJS.Timeout;
+			var lastSelectTime = 0;
 			view.addEventListener("dblclick", () => {
 				gradio.dispatch("double_click");
 			});
@@ -259,6 +261,7 @@
 			);
 			if (_selectable) {
 				view.addSignalListener("brush", function (_, value) {
+					if (Date.now() - lastSelectTime < 1000) return;
 					mouse_down_on_chart = true;
 					if (Object.keys(value).length === 0) return;
 					clearTimeout(debounceTimeout);
@@ -268,6 +271,7 @@
 					}
 					debounceTimeout = setTimeout(function () {
 						mouse_down_on_chart = false;
+						lastSelectTime = Date.now();
 						gradio.dispatch("select", {
 							value: range,
 							index: range,
