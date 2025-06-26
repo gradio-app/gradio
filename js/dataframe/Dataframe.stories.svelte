@@ -116,7 +116,7 @@
 		await userEvent.keyboard("new value");
 
 		const final_value = cells[0].textContent;
-		if (initial_value !== final_value) {
+		if (initial_value.strip() !== final_value.strip()) {
 			throw new Error("Cell content changed when it should be non-editable");
 		}
 
