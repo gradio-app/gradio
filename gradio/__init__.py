@@ -71,6 +71,7 @@ from gradio.components.image_editor import Brush, Eraser, LayerOptions, WebcamOp
 from gradio.data_classes import FileData
 from gradio.events import (
     CopyData,
+    CustomButtonsData,
     DeletedFileData,
     DownloadData,
     EditData,
@@ -144,6 +145,7 @@ __all__ = [
     "Column",
     "Component",
     "CopyData",
+    "CustomButtonsData",
     "DataFrame",
     "Dataframe",
     "Dataset",
