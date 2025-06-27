@@ -126,6 +126,20 @@ def safe_get_stop_event() -> asyncio.Event:
         return asyncio.Event()
 
 
+class DynamicBoolean(int):
+    def __init__(self, value: int):
+        self.value = bool(value)
+
+    def __bool__(self):
+        return self.value
+
+    def set(self, value: int):
+        self.value = bool(value)
+
+
+NO_RELOAD = DynamicBoolean(True)
+
+
 class BaseReloader(ABC):
     @property
     @abstractmethod
@@ -241,7 +255,7 @@ def watchfn(reloader: SourceFileReloader):
     # The thread running watchfn will be the thread reloading
     # the app. So we need to modify this thread_data attr here
     # so that subsequent calls to reload don't launch the app
-    from gradio.cli.commands.reload import NO_RELOAD, reload_thread
+    from gradio.cli.commands.reload import reload_thread
 
     NO_RELOAD.set(False)
 
@@ -315,7 +329,8 @@ def watchfn(reloader: SourceFileReloader):
                     if (
                         file
                         and is_in_watch_dirs_and_not_sitepackages(file)
-                        and modname != "gradio.cli.commands.reload"
+                        and modname
+                        not in {"gradio.cli.commands.reload", "gradio.utils"}
                     ):
                         del sys.modules[modname]
 
