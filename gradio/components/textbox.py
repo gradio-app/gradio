@@ -35,12 +35,16 @@ class InputHTMLAttributes:
         aria_placeholder: The aria-placeholder attribute for the input/textarea element. A string providing placeholder text for screen readers.
     """
 
-    autocapitalize: Optional[Literal["off", "none", "on", "sentences", "words", "characters"]] = None
+    autocapitalize: Optional[
+        Literal["off", "none", "on", "sentences", "words", "characters"]
+    ] = None
     autocorrect: Optional[Literal["on", "off"]] = None
     spellcheck: Optional[bool] = None
     autocomplete: Optional[str] = None
     tabindex: Optional[int] = None
-    enterkeyhint: Optional[Literal["enter", "done", "go", "next", "previous", "search", "send"]] = None
+    enterkeyhint: Optional[
+        Literal["enter", "done", "go", "next", "previous", "search", "send"]
+    ] = None
     lang: Optional[str] = None
     aria_label: Optional[str] = None
     aria_describedby: Optional[str] = None
