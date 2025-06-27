@@ -34,6 +34,7 @@ class InputHTMLAttributes:
         aria_describedby: The aria-describedby attribute for the input/textarea element. A string containing IDs of elements that describe this element.
         aria_placeholder: The aria-placeholder attribute for the input/textarea element. A string providing placeholder text for screen readers.
     """
+
     autocapitalize: Optional[str] = None
     autocorrect: Optional[bool] = None
     spellcheck: Optional[bool] = None
