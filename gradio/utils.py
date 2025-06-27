@@ -154,7 +154,9 @@ class BaseReloader(ABC):
         demo.has_launched = True
         demo.max_file_size = self.running_app.blocks.max_file_size
         demo.is_running = True
-        self.running_app.state_holder.reset(demo)
+        self.running_app.state_holder.set_blocks(demo)
+        for session in self.running_app.state_holder.session_data.values():
+            session.blocks_config = copy.copy(demo.default_config)
         self.running_app.blocks = demo
 
 
@@ -382,44 +384,64 @@ def deep_equal(a: Any, b: Any) -> bool:
 
 
 def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
-    from gradio.blocks import BlockContext
+    from gradio.blocks import Block, BlockContext
 
-    assigned_keys = [
-        block.key for block in new_blocks.children if block.key is not None
+    new_keys = [
+        block.key for block in new_blocks.blocks.values() if block.key is not None
     ]
 
     def reassign_context_keys(
-        old_context: BlockContext | None, new_context: BlockContext
+        old_block: Block | None,
+        new_block: Block,
+        top_level=False,
     ):
-        for i, new_block in enumerate(new_context.children):
-            if old_context and i < len(old_context.children):
-                old_block = old_context.children[i]
+        same_block_type = old_block.__class__ == new_block.__class__
+        if new_block.key is None:
+            if (
+                same_block_type
+                and old_block is not None
+                and old_block.key not in new_keys
+                and deep_equal(
+                    getattr(old_block, "value", None),
+                    getattr(new_block, "value", None),
+                )
+            ):
+                new_block.key = old_block.key
             else:
-                old_block = None
-            if new_block.key is None:
-                if (
-                    old_block.__class__ == new_block.__class__
-                    and old_block is not None
-                    and old_block.key not in assigned_keys
-                    and deep_equal(
-                        getattr(old_block, "value", None),
-                        getattr(new_block, "value", None),
-                    )
-                ):
-                    new_block.key = old_block.key
-                else:
-                    new_block.key = f"__{new_block._id}__"
+                new_block.key = f"__{new_block._id}__"
 
-            if isinstance(new_block, BlockContext):
-                if (
-                    isinstance(old_block, BlockContext)
-                    and old_block.__class__ == new_block.__class__
-                ):
-                    reassign_context_keys(old_block, new_block)
-                else:
-                    reassign_context_keys(None, new_block)
+        if (
+            old_block
+            and same_block_type
+            and old_block.key is not None
+            and old_block.key == new_block.key
+        ):
+            if not top_level:
+                new_blocks.default_config.blocks[old_block._id] = (
+                    new_blocks.default_config.blocks[new_block._id]
+                )
+                del new_blocks.default_config.blocks[new_block._id]
+            for fn in new_blocks.default_config.fns.values():
+                for target_idx, target in enumerate(fn.targets):
+                    if target[0] == new_block._id:
+                        fn.targets[target_idx] = (old_block._id, target[1])
 
-    reassign_context_keys(old_blocks, new_blocks)
+            new_block._id = old_block._id
+
+        if (
+            isinstance(new_block, BlockContext)
+            and isinstance(old_block, BlockContext)
+            and same_block_type
+        ):
+            for i, new_block_child in enumerate(new_block.children):
+                if i < len(old_block.children):
+                    old_block_child = old_block.children[i]
+                else:
+                    old_block_child = None
+                reassign_context_keys(old_block_child, new_block_child)
+
+    old_blocks.key = new_blocks.key = "__blocks__"
+    reassign_context_keys(old_blocks, new_blocks, top_level=True)
 
 
 def colab_check() -> bool:
