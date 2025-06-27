@@ -2,7 +2,6 @@
 	import { default as Info } from "./Info.svelte";
 	export let show_label = true;
 	export let info: string | undefined = undefined;
-	export let root: string;
 	export let rtl = false;
 </script>
 
@@ -16,7 +15,7 @@
 	<slot />
 </span>
 {#if info}
-	<Info {root} {info} />
+	<Info {info} />
 {/if}
 
 <style>

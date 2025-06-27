@@ -23,7 +23,6 @@
 	export let label = gradio.i18n("checkbox.checkbox_group");
 	export let info: string | undefined = undefined;
 	export let show_label = true;
-	export let root: string;
 
 	export let loading_status: LoadingStatus;
 	export let interactive = true;
@@ -61,7 +60,7 @@
 		{...loading_status}
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
-	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap" data-testid="checkbox-group">
 		{#each choices as [display_value, internal_value], i}

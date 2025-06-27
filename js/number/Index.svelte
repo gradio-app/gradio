@@ -21,7 +21,7 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let value = 0;
+	export let value: number | null = null;
 	export let show_label: boolean;
 	export let minimum: number | undefined = undefined;
 	export let maximum: number | undefined = undefined;
@@ -29,10 +29,14 @@
 	export let value_is_output = false;
 	export let step: number | null = null;
 	export let interactive: boolean;
-	export let root: string;
+	export let placeholder = "";
+
+	if (value === null && placeholder === "") {
+		value = 0;
+	}
 
 	function handle_change(): void {
-		if (!isNaN(value) && value !== null) {
+		if (value !== null && !isNaN(value)) {
 			gradio.dispatch("change");
 			if (!value_is_output) {
 				gradio.dispatch("input");
@@ -71,7 +75,7 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	<label class="block" class:container>
-		<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+		<BlockTitle {show_label} {info}>{label}</BlockTitle>
 		<input
 			aria-label={label}
 			type="number"
@@ -79,6 +83,7 @@
 			min={minimum}
 			max={maximum}
 			{step}
+			{placeholder}
 			on:keypress={handle_keypress}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}

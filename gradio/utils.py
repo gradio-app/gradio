@@ -18,6 +18,7 @@ import pkgutil
 import posixpath
 import re
 import shutil
+import site
 import subprocess
 import sys
 import tempfile
@@ -101,18 +102,42 @@ def safe_get_lock() -> asyncio.Lock:
     the main thread.
     """
     try:
-        asyncio.get_event_loop()
+        loop = asyncio.get_event_loop()
+        if loop.is_closed():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
         return asyncio.Lock()
     except RuntimeError:
-        return None  # type: ignore
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return asyncio.Lock()
 
 
 def safe_get_stop_event() -> asyncio.Event:
     try:
-        asyncio.get_event_loop()
+        loop = asyncio.get_event_loop()
+        if loop.is_closed():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
         return asyncio.Event()
     except RuntimeError:
-        return None  # type: ignore
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return asyncio.Event()
+
+
+class DynamicBoolean(int):
+    def __init__(self, value: int):
+        self.value = bool(value)
+
+    def __bool__(self):
+        return self.value
+
+    def set(self, value: int):
+        self.value = bool(value)
+
+
+NO_RELOAD = DynamicBoolean(True)
 
 
 class BaseReloader(ABC):
@@ -178,20 +203,6 @@ class SourceFileReloader(BaseReloader):
         self.alert_change("reload")
 
 
-class DynamicBoolean(int):
-    def __init__(self, value: int):
-        self.value = bool(value)
-
-    def __bool__(self):
-        return self.value
-
-    def set(self, value: int):
-        self.value = bool(value)
-
-
-NO_RELOAD = DynamicBoolean(True)
-
-
 def _remove_if_name_main_codeblock(file_path: str):
     """Parse the file, remove the gr.no_reload code blocks, and write the file back to disk.
 
@@ -243,12 +254,12 @@ def watchfn(reloader: SourceFileReloader):
     get_changes is taken from uvicorn's default file watcher.
     """
 
-    NO_RELOAD.set(False)
-
     # The thread running watchfn will be the thread reloading
     # the app. So we need to modify this thread_data attr here
     # so that subsequent calls to reload don't launch the app
     from gradio.cli.commands.reload import reload_thread
+
+    NO_RELOAD.set(False)
 
     reload_thread.running_reload = True
 
@@ -277,6 +288,21 @@ def watchfn(reloader: SourceFileReloader):
     reload_dirs = [Path(dir_) for dir_ in reloader.watch_dirs]
     import sys
 
+    site_packages_dirs = [Path(p).resolve() for p in site.getsitepackages()]
+
+    def is_in_watch_dirs_and_not_sitepackages(file_path):
+        if not file_path:
+            return False
+        try:
+            file_path = Path(file_path).resolve()
+        except Exception:
+            return False
+        in_watch = any(file_path.is_relative_to(watch_dir) for watch_dir in reload_dirs)
+        in_sitepkg = any(
+            file_path.is_relative_to(site_dir) for site_dir in site_packages_dirs
+        )
+        return in_watch and not in_sitepkg
+
     for dir_ in reload_dirs:
         sys.path.insert(0, str(dir_))
 
@@ -298,31 +324,29 @@ def watchfn(reloader: SourceFileReloader):
         if changed:
             print(f"Changes detected in: {changed}")
             try:
-                # How source file reloading works
-                # 1. Remove the gr.no_reload code blocks from the temp file
-                # 2. Execute the changed source code in the original module's namespac
-                # 3. Delete the package the module is in from sys.modules.
-                # This is so that the updated module is available in the entire package
-                # 4. Do 1-2 for the main demo file even if it did not change.
-                # This is because the main demo file may import the changed file and we need the
-                # changes to be reflected in the main demo file.
+                # Remove all modules whose __file__ is in any of the watch_dirs but not in site-packages
+                # Also skip gradio.cli.commands.reload to avoid resetting the reload_thread variable
+                for modname, mod in list(sys.modules.items()):
+                    file = getattr(mod, "__file__", None)
+                    if (
+                        file
+                        and is_in_watch_dirs_and_not_sitepackages(file)
+                        and modname
+                        not in {"gradio.cli.commands.reload", "gradio.utils"}
+                    ):
+                        del sys.modules[modname]
 
-                if changed.suffix == ".py":
-                    changed_in_copy = _remove_if_name_main_codeblock(str(changed))
-                    if changed != reloader.demo_file:
-                        changed_module = _find_module(changed)
-                        if changed_module:
-                            exec(changed_in_copy, changed_module.__dict__)
-                            top_level_parent = sys.modules[
-                                changed_module.__name__.split(".")[0]
-                            ]
-                            if top_level_parent != changed_module:
-                                importlib.reload(top_level_parent)
-
-                changed_demo_file = _remove_if_name_main_codeblock(
+                Context.id = 0
+                NO_RELOAD.set(False)
+                # Remove the gr.no_reload code blocks and exec in the new module's dict
+                no_reload_source_code = _remove_if_name_main_codeblock(
                     str(reloader.demo_file)
                 )
-                exec(changed_demo_file, module.__dict__)
+                exec(no_reload_source_code, module.__dict__)
+
+                demo = getattr(module, reloader.demo_name)
+                reloader.swap_blocks(demo)
+                mtimes = {}
             except Exception as error:
                 print(
                     f"Reloading {reloader.watch_module_name} failed with the following exception: "
@@ -333,9 +357,6 @@ def watchfn(reloader: SourceFileReloader):
                 reloader.alert_change("error")
                 reloader.app.reload_error_message = traceback.format_exc()
                 continue
-            demo = getattr(module, reloader.demo_name)
-            reloader.swap_blocks(demo)
-            mtimes = {}
         time.sleep(0.05)
 
 
@@ -755,6 +776,9 @@ class SyncToAsyncIterator:
         return await anyio.to_thread.run_sync(
             run_sync_iterator_async, self.iterator, limiter=self.limiter
         )
+
+    def aclose(self):
+        self.iterator.close()
 
 
 async def async_iteration(iterator):
@@ -1790,3 +1814,27 @@ def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[st
         pass
 
     return description, parameters, returns
+
+
+async def safe_aclose_iterator(iterator, timeout=60.0, retry_interval=0.05):
+    """
+    Safely close generators by calling the aclose method.
+    Sync generators are tricky because if you call `aclose` while the loop is running
+    then you get a ValueError and the generator will not shut down gracefully.
+    So the solution is to retry calling the aclose method until we succeed (with timeout).
+    """
+    start = time.monotonic()
+    if isinstance(iterator, SyncToAsyncIterator):
+        while True:
+            try:
+                iterator.aclose()
+                break
+            except ValueError as e:
+                if "already executing" in str(e):
+                    if time.monotonic() - start > timeout:
+                        raise
+                    await asyncio.sleep(retry_interval)
+                else:
+                    raise
+    else:
+        iterator.aclose()
