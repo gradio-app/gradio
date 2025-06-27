@@ -7,6 +7,8 @@
 	import SortArrowUp from "./icons/SortArrowUp.svelte";
 	import SortArrowDown from "./icons/SortArrowDown.svelte";
 	import type { SortDirection } from "./context/dataframe_context";
+	import CellMenuIcons from "./CellMenuIcons.svelte";
+	import type { FilterDatatype } from "./context/dataframe_context";
 	export let value: string;
 	export let i: number;
 	export let actual_pinned_columns: number;
@@ -18,6 +20,12 @@
 	export let toggle_header_menu: (event: MouseEvent, col: number) => void;
 	export let end_header_edit: (event: CustomEvent<KeyboardEvent>) => void;
 	export let sort_columns: { col: number; direction: SortDirection }[] = [];
+	export let filter_columns: {
+		col: number;
+		datatype: FilterDatatype;
+		filter: string;
+		value: string;
+	}[] = [];
 
 	export let latex_delimiters: {
 		left: string;
@@ -34,6 +42,7 @@
 
 	$: can_add_columns = col_count && col_count[1] === "dynamic";
 	$: sort_index = sort_columns.findIndex((item) => item.col === i);
+	$: filter_index = filter_columns.findIndex((item) => item.col === i);
 	$: sort_priority = sort_index !== -1 ? sort_index + 1 : null;
 	$: current_direction =
 		sort_index !== -1 ? sort_columns[sort_index].direction : null;
@@ -63,6 +72,7 @@
 	class:last-pinned={i === actual_pinned_columns - 1}
 	class:focus={header_edit === i || selected_header === i}
 	class:sorted={sort_index !== -1}
+	class:filtered={filter_index !== -1}
 	aria-sort={get_sort_status(value, sort_columns, headers) === "none"
 		? "none"
 		: get_sort_status(value, sort_columns, headers) === "asc"
@@ -123,6 +133,13 @@
 								{sort_priority}
 							</span>
 						{/if}
+					</div>
+				{/if}
+				{#if filter_index !== -1}
+					<div class="filter-indicators">
+						<span class="filter-icon">
+							<CellMenuIcons icon="filter" />
+						</span>
 					</div>
 				{/if}
 			</button>
@@ -241,6 +258,20 @@
 		width: var(--size-2-5);
 		height: var(--size-2-5);
 		padding: var(--size-1-5);
+	}
+
+	.filter-indicators {
+		display: flex;
+		align-items: center;
+		margin-left: var(--size-1);
+		gap: var(--size-1);
+	}
+
+	.filter-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--body-text-color);
 	}
 
 	.pinned-column {
