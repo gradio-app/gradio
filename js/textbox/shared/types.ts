@@ -4,7 +4,7 @@ export interface InputHTMLAttributes {
 	spellcheck?: boolean | null;
 	autocomplete?: string | null;
 	tabindex?: number | null;
-	enterkeyhint?: string | null;
+	enterkeyhint?: "enter" | "done" | "go" | "next" | "previous" | "search" | "send" | null;
 	lang?: string | null;
 	aria_label?: string | null;
 	aria_describedby?: string | null;
