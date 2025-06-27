@@ -30,7 +30,8 @@ export async function load({ params, parent }) {
         }
     }
 
-    let version_append = on_main ? "/" : "_" + version.replace(/\./g, "-") + "/";
+
+    let version_append = on_main ? "/" : "_" + url_version.replace(/\./g, "-") + "/";
 
     let module;
     for (const path in modules) {

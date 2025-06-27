@@ -2,45 +2,48 @@ import json
 import os
 import re
 from subprocess import run
-import boto3
+import boto3, pathlib
 from botocore import UNSIGNED
-from botocore.client import Config
-
+from botocore.config import Config
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from src import changelog, demos, docs, guides
 
 WEBSITE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 GRADIO_DIR = os.path.abspath(os.path.join(WEBSITE_DIR, "..", "..", "gradio"))
 ROOT_DIR = os.path.abspath(os.path.join(WEBSITE_DIR, "..", ".."))
+CHANGELOG = os.path.abspath(os.path.join(WEBSITE_DIR, "..", "..", "CHANGELOG.md"))
 
 
 def make_dir(root, path):
     return os.path.abspath(os.path.join(root, path))
 
+MAX_WORKERS = 16
 
-def download_from_s3(bucket_name, s3_folder, local_dir):
-    print(f"Downloading templates from S3: {bucket_name}/{s3_folder} to {local_dir}")
+def download_from_s3(bucket_name: str, s3_folder: str, local_dir: str):
+    print(f"Downloading {bucket_name}/{s3_folder} → {local_dir}")
     s3 = boto3.client("s3", config=Config(signature_version=UNSIGNED))
+    paginator = s3.get_paginator("list_objects_v2")
 
-    try:
-        objects = s3.list_objects_v2(Bucket=bucket_name, Prefix=s3_folder)
-    except Exception as e:
-        print(f"Error listing objects in bucket {bucket_name}: {e}")
-        return
+    def _one(key: str):
+        if key.endswith("/"):
+            return
+        local_path = (
+            pathlib.Path(local_dir) /
+            pathlib.Path(os.path.relpath(key, s3_folder))
+        )
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+        s3.download_file(bucket_name, key, str(local_path))
 
-    for obj in objects.get("Contents", []):
-        s3_key = obj["Key"]
-        local_file_path = os.path.join(local_dir, os.path.relpath(s3_key, s3_folder))
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
+        futures = []
+        for page in paginator.paginate(Bucket=bucket_name, Prefix=s3_folder):
+            for obj in page.get("Contents", []):
+                futures.append(pool.submit(_one, obj["Key"]))
 
-        if s3_key.endswith("/"):
-            continue
+        for f in as_completed(futures):
+            f.result()
 
-        try:
-            os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
-            s3.download_file(bucket_name, s3_key, local_file_path)
-        except Exception as e:
-            print(f"Error downloading {s3_key}: {e}")
-
-    print(f"Download process completed for {bucket_name}/{s3_folder}")
+    print(f"✔ Done: {bucket_name}/{s3_folder}")
 
 
 def convert_to_pypi_prerelease(version: str) -> str:
@@ -56,7 +59,25 @@ def convert_to_pypi_prerelease(version: str) -> str:
     return re.sub(r"(\d+\.\d+\.\d+)-([-a-z]+)\.(\d+)", replacement, version)
 
 
-def get_latest_release():
+def get_all_5_x_versions():
+    from packaging.version import Version, InvalidVersion
+    import sys
+    with open(CHANGELOG, "r") as f:
+        VERSION_RE = re.compile(
+            r'^##\s+(5\.\d+\.\d+)(?:-(?!beta)[0-9A-Za-z.-]+)?\s*$',
+            re.MULTILINE,
+        )
+        versions = VERSION_RE.findall(f.read())
+        uniq: set[str] = set(versions)
+        try:
+            return sorted(uniq, key=Version, reverse=True)
+        except InvalidVersion as err:            
+            print(f"Warning: {err}", file=sys.stderr)
+        return sorted(uniq, reverse=True)
+
+
+
+def get_versions():
     with open(make_dir(ROOT_DIR, "client/js/package.json")) as f:
         js_client_version = json.load(f)["version"]
     with open(make_dir(GRADIO_DIR, "package.json")) as f:
@@ -78,22 +99,32 @@ def get_latest_release():
                 },
                 j,
             )
-        if not os.path.exists(
-            make_dir(WEBSITE_DIR, f"src/lib/templates_{version.replace('.', '-')}")
-        ):
-            print(f"Downloading templates from S3: {version}")
-            download_from_s3(
-                "gradio-docs-json",
-                f"{version}/templates/",
-                make_dir(WEBSITE_DIR, f"src/lib/templates_{version.replace('.', '-')}"),
-            )
 
-            print("Downloading templates from S3: 4.44.1")
-            download_from_s3(
-                "gradio-docs-json",
-                "4.44.1/templates/",
-                make_dir(WEBSITE_DIR, "src/lib/templates_4-44-1"),
-            )
+        past_versions = get_all_5_x_versions()
+        with open(make_dir(WEBSITE_DIR, "src/lib/json/past_versions.json"), "w+") as j:
+            json.dump({"past_versions": past_versions}, j)
+
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
+            futures = []
+            for v in past_versions:
+                target = make_dir(WEBSITE_DIR, f"src/lib/templates_{v.replace('.', '-')}")
+                if not os.path.exists(target):
+                    futures.append(pool.submit(
+                        download_from_s3,
+                        "gradio-docs-json", f"{v}/templates/", target
+                    ))
+
+            target_4 = make_dir(WEBSITE_DIR, "src/lib/templates_4-44-1")
+            if not os.path.exists(target_4):
+                futures.append(pool.submit(
+                    download_from_s3,
+                    "gradio-docs-json", "4.44.1/templates/", target_4
+                ))
+
+            for f in as_completed(futures):
+                f.result()
+        print(f"\n\n✔ All Done\n\n")
+
 
 
 def create_dir_if_not_exists(path):
@@ -109,7 +140,7 @@ guides.generate(make_dir(WEBSITE_DIR, "src/lib/json/guides/") + "/")
 SYSTEM_PROMPT, FALLBACK_PROMPT = docs.generate(make_dir(WEBSITE_DIR, "src/lib/json/docs.json"))
 _, _ = docs.generate(make_dir(WEBSITE_DIR, "src/lib/templates/docs.json"))
 changelog.generate(make_dir(WEBSITE_DIR, "src/lib/json/changelog.json"))
-get_latest_release()
+get_versions()
 
 # print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 # print(SYSTEM_PROMPT)
