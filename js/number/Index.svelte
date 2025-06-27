@@ -31,6 +31,10 @@
 	export let interactive: boolean;
 	export let placeholder = "";
 
+	if (value === null && placeholder === "") {
+		value = 0;
+	}
+
 	function handle_change(): void {
 		if (value !== null && !isNaN(value)) {
 			gradio.dispatch("change");

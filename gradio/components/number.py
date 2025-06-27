@@ -53,7 +53,7 @@ class Number(FormComponent):
     ):
         """
         Parameters:
-            value: default value. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
+            value: default value. If None, the component will be empty and show the `placeholder` if is set. If no `placeholder` is set, the component will show 0. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             label: the label for this component, displayed above the component if `show_label` is `True` and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component corresponds to.
             placeholder: placeholder hint to provide behind number input.
             info: additional component description, appears below the label in smaller font. Supports markdown / HTML syntax.
