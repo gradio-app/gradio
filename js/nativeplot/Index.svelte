@@ -120,6 +120,91 @@
 			}
 		}
 	}
+
+	function downsample(
+		data: PlotData["data"],
+		x_index: number,
+		y_index: number,
+		color_index: number | null,
+		x_start: number | undefined,
+		x_end: number | undefined
+	): PlotData["data"] {
+		if (
+			data.length < 1000 ||
+			x_bin !== null ||
+			value?.mark !== "line" ||
+			value?.datatypes[x] === "nominal"
+		) {
+			return data;
+		}
+		const bin_count = 250;
+		let min_max_bins_per_color: Record<
+			string,
+			[number | null, number, number | null, number][]
+		> = {};
+		if (x_start === undefined || x_end === undefined) {
+			data.forEach((row) => {
+				let x_value = row[x_index] as number;
+				if (x_start === undefined || x_value < x_start) {
+					x_start = x_value;
+				}
+				if (x_end === undefined || x_value > x_end) {
+					x_end = x_value;
+				}
+			});
+		}
+		if (x_start === undefined || x_end === undefined) {
+			return data;
+		}
+		const x_range = x_end - x_start;
+		const bin_size = x_range / bin_count;
+		data.forEach((row, i) => {
+			const x_value = row[x_index] as number;
+			const y_value = row[y_index] as number;
+			const color_value =
+				color_index !== null ? (row[color_index] as string) : "any";
+			const bin_index = Math.floor((x_value - (x_start as number)) / bin_size);
+			if (min_max_bins_per_color[color_value] === undefined) {
+				min_max_bins_per_color[color_value] = [];
+			}
+			min_max_bins_per_color[color_value][bin_index] = min_max_bins_per_color[
+				color_value
+			][bin_index] || [
+				null,
+				Number.POSITIVE_INFINITY,
+				null,
+				Number.NEGATIVE_INFINITY
+			];
+			if (y_value < min_max_bins_per_color[color_value][bin_index][1]) {
+				min_max_bins_per_color[color_value][bin_index][0] = i;
+				min_max_bins_per_color[color_value][bin_index][1] = y_value;
+			}
+			if (y_value > min_max_bins_per_color[color_value][bin_index][3]) {
+				min_max_bins_per_color[color_value][bin_index][2] = i;
+				min_max_bins_per_color[color_value][bin_index][3] = y_value;
+			}
+		});
+		const downsampled_data: PlotData["data"] = [];
+		Object.values(min_max_bins_per_color).forEach((bins) => {
+			bins.forEach(([min_index, _, max_index, __]) => {
+				let indices: number[] = [];
+				if (min_index !== null && max_index !== null) {
+					indices = [
+						Math.min(min_index, max_index),
+						Math.max(min_index, max_index)
+					];
+				} else if (min_index !== null) {
+					indices = [min_index];
+				} else if (max_index !== null) {
+					indices = [max_index];
+				}
+				indices.forEach((index) => {
+					downsampled_data.push(data[index]);
+				});
+			});
+		});
+		return downsampled_data;
+	}
 	function reformat_data(
 		data: PlotData,
 		x_start: number | undefined,
@@ -160,9 +245,25 @@
 			});
 			datatable = [
 				...Object.values(largest_before_start).map(([i, _]) => datatable[i]),
-				..._datatable,
+				...downsample(
+					_datatable,
+					x_index,
+					y_index,
+					color_index,
+					_x_start,
+					_x_end
+				),
 				...Object.values(smallest_after_end).map(([i, _]) => datatable[i])
 			];
+		} else {
+			datatable = downsample(
+				datatable,
+				x_index,
+				y_index,
+				color_index,
+				undefined,
+				undefined
+			);
 		}
 
 		if (tooltip == "all" || Array.isArray(tooltip)) {
