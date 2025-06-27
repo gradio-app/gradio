@@ -59,7 +59,7 @@ class TextArea(components.Textbox):
         max_length: int | None = None,
         submit_btn: str | bool | None = False,
         stop_btn: str | bool | None = False,
-        html_attributes: dict[str, str] | None = None,
+        html_attributes: Any = None,
     ):
         super().__init__(
             value=value,

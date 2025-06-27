@@ -9,6 +9,8 @@
 	import { Copy, Check, Send, Square } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData, CopyData } from "@gradio/utils";
+	import type { InputHTMLAttributes } from "./types";
+	import { convertHtmlAttributes } from "./utils";
 
 	export let value = "";
 	export let value_is_output = false;
@@ -29,8 +31,7 @@
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autoscroll = true;
 	export let max_length: number | undefined = undefined;
-	export let html_attributesbutesbutes: Record<string, string> | undefined =
-		undefined;
+	export let html_attributes: InputHTMLAttributes | null = null;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -39,6 +40,9 @@
 	let previous_scroll_top = 0;
 	let user_has_scrolled_up = false;
 	let _max_lines: number;
+
+	// Convert InputHTMLAttributes to HTML attributes
+	$: html_attrs = convertHtmlAttributes(html_attributes);
 
 	const show_textbox_border = !submit_btn;
 
@@ -256,7 +260,7 @@
 					on:select={handle_select}
 					on:focus
 					style={text_align ? "text-align: " + text_align : ""}
-					{...html_attributesbutesbutes}
+					{...html_attrs}
 				/>
 			{:else if type === "password"}
 				<input
@@ -274,7 +278,7 @@
 					on:select={handle_select}
 					on:focus
 					autocomplete=""
-					{...html_attributesbutesbutes}
+					{...html_attrs}
 				/>
 			{:else if type === "email"}
 				<input
@@ -292,7 +296,7 @@
 					on:select={handle_select}
 					on:focus
 					autocomplete="email"
-					{...html_attributesbutesbutes}
+					{...html_attrs}
 				/>
 			{/if}
 		{:else}
@@ -315,7 +319,7 @@
 				on:focus
 				on:scroll={handle_scroll}
 				style={text_align ? "text-align: " + text_align : ""}
-				{...html_attributes}
+				{...html_attrs}
 			/>
 		{/if}
 		{#if submit_btn}

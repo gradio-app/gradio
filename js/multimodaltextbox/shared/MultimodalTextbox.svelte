@@ -25,6 +25,8 @@
 	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 	import InteractiveAudio from "../../audio/interactive/InteractiveAudio.svelte";
+	import type { InputHTMLAttributes } from "./types";
+	import { convertHtmlAttributes } from "./utils";
 
 	export let value: { text: string; files: FileData[] } = {
 		text: "",
@@ -59,7 +61,11 @@
 	};
 	export let sources: ["microphone" | "upload"] = ["upload"];
 	export let active_source: "microphone" | null = null;
-	export let html_attributes: Record<string, string> | undefined = undefined;
+	export let html_attributes: InputHTMLAttributes | null = null;
+	
+	// Convert InputHTMLAttributes to HTML attributes
+	$: html_attrs = convertHtmlAttributes(html_attributes);
+
 	let upload_component: Upload;
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let can_scroll: boolean;
@@ -450,7 +456,7 @@
 			on:scroll={handle_scroll}
 			on:paste={handle_paste}
 			style={text_align ? "text-align: " + text_align : ""}
-			{...html_attributes}
+			{...html_attrs}
 		/>
 		{#if submit_btn}
 			<button

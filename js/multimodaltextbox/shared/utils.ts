@@ -58,3 +58,5 @@ export function text_area_resize(
 		destroy: () => _el.removeEventListener("input", handle_input)
 	};
 }
+
+export { convertHtmlAttributes } from "../../textbox/shared/utils";
