@@ -201,9 +201,9 @@
 
 	function update_scrollbar_visibility(textarea: HTMLTextAreaElement): void {
 		// Using "auto" scroll does not work, as the scrollbar is visible even
-		// when the content is about the same height as the visible height. So
+		// when the content is about the same height as the textarea height. So
 		// here, we add the scrollbar if the content is longer than a threshold
-		// of 1 line height beyond the visible height.
+		// of 1 line height beyond the textarea height.
 		const content_height = textarea.scrollHeight;
 		const visible_height = textarea.clientHeight;
 		const line_height = parseFloat(
