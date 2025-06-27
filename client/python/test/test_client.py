@@ -106,6 +106,7 @@ class TestClientInitialization:
                     "named_endpoints": {},
                     "unnamed_endpoints": {},
                 },
+                request=httpx.Request("GET", "https://fake/space"),
             )
             client = Client("fake/space", httpx_kwargs={"cookies": cookies})
             for call in mocked.call_args_list:
