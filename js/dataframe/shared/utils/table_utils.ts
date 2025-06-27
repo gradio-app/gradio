@@ -1,6 +1,8 @@
 import type { Headers, HeadersWithIDs, TableCell, TableData } from "../types";
 import { sort_data } from "./sort_utils";
+import { filter_data } from "./filter_utils";
 import type { SortDirection } from "./sort_utils";
+import type { FilterDatatype } from "./filter_utils";
 import { dsvFormat } from "d3-dsv";
 
 export function make_cell_id(row: number, col: number): string {
@@ -45,6 +47,56 @@ export function sort_table_data(
 
 	if (styling) {
 		const new_styling = indices.map((i: number) => styling[i]);
+		styling.splice(0, styling.length, ...new_styling);
+	}
+}
+
+export function filter_table_data(
+	data: TableData,
+	display_value: string[][] | null,
+	styling: string[][] | null,
+	filter_columns: {
+		col: number;
+		datatype: FilterDatatype;
+		filter: string;
+		value: string;
+	}[],
+	original_data?: TableData,
+	original_display_value?: string[][] | null,
+	original_styling?: string[][] | null
+): void {
+	const base_data = original_data ?? data;
+	const base_display_value = original_display_value ?? display_value;
+	const base_styling = original_styling ?? styling;
+
+	if (!filter_columns.length) {
+		data.splice(0, data.length, ...base_data.map((row) => [...row]));
+		if (display_value && base_display_value) {
+			display_value.splice(
+				0,
+				display_value.length,
+				...base_display_value.map((row) => [...row])
+			);
+		}
+		if (styling && base_styling) {
+			styling.splice(0, styling.length, ...base_styling.map((row) => [...row]));
+		}
+		return;
+	}
+	if (!data || !data.length) return;
+
+	const indices = filter_data(base_data, filter_columns);
+
+	const new_data = indices.map((i: number) => base_data[i]);
+	data.splice(0, data.length, ...new_data);
+
+	if (display_value && base_display_value) {
+		const new_display = indices.map((i: number) => base_display_value[i]);
+		display_value.splice(0, display_value.length, ...new_display);
+	}
+
+	if (styling && base_styling) {
+		const new_styling = indices.map((i: number) => base_styling[i]);
 		styling.splice(0, styling.length, ...new_styling);
 	}
 }
