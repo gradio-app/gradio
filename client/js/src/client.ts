@@ -275,6 +275,9 @@ export class Client {
 		}
 	): Promise<Client> {
 		const client = new this(app_reference, options); // this refers to the class itself, not the instance
+		if (options.session_hash) {
+			client.session_hash = options.session_hash;
+		}
 		await client.init();
 		return client;
 	}

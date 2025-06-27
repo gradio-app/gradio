@@ -316,6 +316,7 @@ export interface ClientOptions {
 	events?: EventType[];
 	headers?: Record<string, string>;
 	query_params?: Record<string, string>;
+	session_hash?: string;
 }
 
 export interface FileData {
