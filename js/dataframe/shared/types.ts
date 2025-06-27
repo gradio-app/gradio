@@ -22,7 +22,7 @@ export type ElementRefs = Record<
 	string,
 	{
 		cell: null | HTMLTableCellElement;
-		input: null | HTMLInputElement;
+		input: null | HTMLTextAreaElement;
 	}
 >;
 

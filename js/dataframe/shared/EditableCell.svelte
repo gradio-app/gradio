@@ -36,14 +36,12 @@
 	export let coords: [number, number];
 	export let on_select_column: ((col: number) => void) | null = null;
 	export let on_select_row: ((row: number) => void) | null = null;
-	export let el: HTMLInputElement | null;
+	export let el: HTMLTextAreaElement | null;
 
 	const dispatch = createEventDispatcher<{
 		blur: { blur_event: FocusEvent; coords: [number, number] };
 		keydown: KeyboardEvent;
 	}>();
-
-	let is_expanded = false;
 
 	function truncate_text(
 		text: string | number,
@@ -57,8 +55,7 @@
 		return str.slice(0, max_length) + "...";
 	}
 
-	$: should_truncate =
-		!edit && !is_expanded && max_chars !== null && max_chars > 0;
+	$: should_truncate = !edit && max_chars !== null && max_chars > 0;
 
 	$: display_content = editable
 		? value
@@ -70,7 +67,13 @@
 		? truncate_text(display_content, max_chars, datatype === "image")
 		: display_content;
 
-	function use_focus(node: HTMLInputElement): any {
+	$: cell_description = coords
+		? header
+			? `Header cell ${coords[1] + 1}: ${display_text}`
+			: `Cell row ${coords[0] + 1}, column ${coords[1] + 1}: ${display_text}`
+		: `Cell: ${display_text}`;
+
+	function use_focus(node: HTMLTextAreaElement): any {
 		requestAnimationFrame(() => {
 			node.focus();
 		});
@@ -86,18 +89,7 @@
 	}
 
 	function handle_keydown(event: KeyboardEvent): void {
-		if (event.key === "Enter") {
-			if (!header) {
-				is_expanded = !is_expanded;
-			}
-		}
 		dispatch("keydown", event);
-	}
-
-	function handle_click(): void {
-		if (!edit && !header) {
-			is_expanded = !is_expanded;
-		}
 	}
 
 	function handle_bool_change(new_value: boolean): void {
@@ -116,18 +108,20 @@
 </script>
 
 {#if edit && datatype !== "bool"}
-	<input
+	<textarea
 		readonly={is_static}
 		aria-readonly={is_static}
-		role="textbox"
-		aria-label={is_static ? "Cell is read-only" : "Edit cell"}
+		aria-label={is_static
+			? `Read-only cell: ${display_text}`
+			: "Edit cell content. Press Shift+Enter for new line, Enter to save"}
+		aria-multiline="true"
 		bind:this={el}
 		bind:value
 		class:header
 		tabindex="-1"
+		placeholder="Type here. Shift+Enter for new line, Enter to save"
 		on:blur={handle_blur}
 		on:mousedown|stopPropagation
-		on:mouseup|stopPropagation
 		on:click|stopPropagation
 		use:use_focus
 		on:keydown={handle_keydown}
@@ -143,18 +137,18 @@
 {:else}
 	<span
 		class:dragging={is_dragging}
-		on:click={handle_click}
 		on:keydown={handle_keydown}
 		tabindex="0"
 		role="button"
+		aria-label={cell_description}
 		class:edit
-		class:expanded={is_expanded}
+		class:expanded={edit}
 		class:multiline={header}
 		on:focus|preventDefault
 		style={styling}
 		data-editable={editable}
 		data-max-chars={max_chars}
-		data-expanded={is_expanded}
+		data-expanded={edit}
 		placeholder=" "
 		class:text={datatype === "str"}
 		class:wrap={wrap_text}
@@ -202,7 +196,7 @@
 		cursor: crosshair !important;
 	}
 
-	input {
+	textarea {
 		position: absolute;
 		flex: 1 1 0%;
 		transform: translateX(-0.1px);
@@ -211,6 +205,16 @@
 		background: transparent;
 		cursor: text;
 		width: calc(100% - var(--size-2));
+		resize: none;
+		height: 100%;
+		padding-left: 0;
+		font-size: inherit;
+		font-weight: inherit;
+		line-height: var(--line-lg);
+	}
+
+	textarea:focus {
+		outline: none;
 	}
 
 	span {
@@ -262,7 +266,7 @@
 		object-fit: contain;
 	}
 
-	input:read-only {
+	textarea:read-only {
 		cursor: not-allowed;
 	}
 
