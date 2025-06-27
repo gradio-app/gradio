@@ -98,3 +98,6 @@ js/storybook/theme.css
 
 # playwright
 .config/playwright/.cache
+
+*.local.*
+.claude/

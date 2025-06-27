@@ -204,7 +204,11 @@ export class AddImageCommand implements BgImageCommand {
 		return [this.current_canvas_size.width, this.current_canvas_size.height];
 	}
 
-	async execute(): Promise<void> {
+	async execute(context?: ImageEditorContext): Promise<void> {
+		if (context) {
+			this.context = context;
+		}
+
 		await this.start();
 
 		if (this.sprite === null) {
