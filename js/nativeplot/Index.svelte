@@ -41,7 +41,7 @@
 		| undefined = undefined;
 	export let color_map: Record<string, string> | null = null;
 	export let x_lim: [number, number] | null = null;
-	export let y_lim: [number, number] | null = null;
+	export let y_lim: [number | null, number | null] | null = null;
 	$: x_lim = x_lim || null; // for some unknown reason, x_lim was getting set to undefined when used in re-render, so this line is needed
 	$: y_lim = y_lim || null;
 	$: [x_start, x_end] = x_lim === null ? [undefined, undefined] : x_lim;
@@ -120,11 +120,154 @@
 			}
 		}
 	}
-	function reformat_data(data: PlotData): {
+
+	function downsample(
+		data: PlotData["data"],
+		x_index: number,
+		y_index: number,
+		color_index: number | null,
+		x_start: number | undefined,
+		x_end: number | undefined
+	): PlotData["data"] {
+		if (
+			data.length < 1000 ||
+			x_bin !== null ||
+			value?.mark !== "line" ||
+			value?.datatypes[x] === "nominal"
+		) {
+			return data;
+		}
+		const bin_count = 250;
+		let min_max_bins_per_color: Record<
+			string,
+			[number | null, number, number | null, number][]
+		> = {};
+		if (x_start === undefined || x_end === undefined) {
+			data.forEach((row) => {
+				let x_value = row[x_index] as number;
+				if (x_start === undefined || x_value < x_start) {
+					x_start = x_value;
+				}
+				if (x_end === undefined || x_value > x_end) {
+					x_end = x_value;
+				}
+			});
+		}
+		if (x_start === undefined || x_end === undefined) {
+			return data;
+		}
+		const x_range = x_end - x_start;
+		const bin_size = x_range / bin_count;
+		data.forEach((row, i) => {
+			const x_value = row[x_index] as number;
+			const y_value = row[y_index] as number;
+			const color_value =
+				color_index !== null ? (row[color_index] as string) : "any";
+			const bin_index = Math.floor((x_value - (x_start as number)) / bin_size);
+			if (min_max_bins_per_color[color_value] === undefined) {
+				min_max_bins_per_color[color_value] = [];
+			}
+			min_max_bins_per_color[color_value][bin_index] = min_max_bins_per_color[
+				color_value
+			][bin_index] || [
+				null,
+				Number.POSITIVE_INFINITY,
+				null,
+				Number.NEGATIVE_INFINITY
+			];
+			if (y_value < min_max_bins_per_color[color_value][bin_index][1]) {
+				min_max_bins_per_color[color_value][bin_index][0] = i;
+				min_max_bins_per_color[color_value][bin_index][1] = y_value;
+			}
+			if (y_value > min_max_bins_per_color[color_value][bin_index][3]) {
+				min_max_bins_per_color[color_value][bin_index][2] = i;
+				min_max_bins_per_color[color_value][bin_index][3] = y_value;
+			}
+		});
+		const downsampled_data: PlotData["data"] = [];
+		Object.values(min_max_bins_per_color).forEach((bins) => {
+			bins.forEach(([min_index, _, max_index, __]) => {
+				let indices: number[] = [];
+				if (min_index !== null && max_index !== null) {
+					indices = [
+						Math.min(min_index, max_index),
+						Math.max(min_index, max_index)
+					];
+				} else if (min_index !== null) {
+					indices = [min_index];
+				} else if (max_index !== null) {
+					indices = [max_index];
+				}
+				indices.forEach((index) => {
+					downsampled_data.push(data[index]);
+				});
+			});
+		});
+		return downsampled_data;
+	}
+	function reformat_data(
+		data: PlotData,
+		x_start: number | undefined,
+		x_end: number | undefined
+	): {
 		[x: string]: string | number;
 	}[] {
+		let x_index = data.columns.indexOf(x);
+		let y_index = data.columns.indexOf(y);
+		let color_index = color ? data.columns.indexOf(color) : null;
+		let datatable = data.data;
+
+		if (x_start !== undefined && x_end !== undefined) {
+			const time_factor = data.datatypes[x] === "temporal" ? 1000 : 1;
+			const _x_start = x_start * time_factor;
+			const _x_end = x_end * time_factor;
+			let largest_before_start: Record<string, [number, number]> = {};
+			let smallest_after_end: Record<string, [number, number]> = {};
+			const _datatable = datatable.filter((row, i) => {
+				const x_value = row[x_index] as number;
+				const color_value =
+					color_index !== null ? (row[color_index] as string) : "any";
+				if (
+					x_value < _x_start &&
+					(largest_before_start[color_value] === undefined ||
+						x_value > largest_before_start[color_value][1])
+				) {
+					largest_before_start[color_value] = [i, x_value];
+				}
+				if (
+					x_value > _x_end &&
+					(smallest_after_end[color_value] === undefined ||
+						x_value < smallest_after_end[color_value][1])
+				) {
+					smallest_after_end[color_value] = [i, x_value];
+				}
+				return x_value >= _x_start && x_value <= _x_end;
+			});
+			datatable = [
+				...Object.values(largest_before_start).map(([i, _]) => datatable[i]),
+				...downsample(
+					_datatable,
+					x_index,
+					y_index,
+					color_index,
+					_x_start,
+					_x_end
+				),
+				...Object.values(smallest_after_end).map(([i, _]) => datatable[i])
+			];
+		} else {
+			datatable = downsample(
+				datatable,
+				x_index,
+				y_index,
+				color_index,
+				undefined,
+				undefined
+			);
+		}
+
 		if (tooltip == "all" || Array.isArray(tooltip)) {
-			return data.data.map((row) => {
+			return datatable.map((row) => {
 				const obj: { [x: string]: string | number } = {};
 				data.columns.forEach((col, i) => {
 					obj[col] = row[i];
@@ -132,10 +275,7 @@
 				return obj;
 			});
 		}
-		let x_index = data.columns.indexOf(x);
-		let y_index = data.columns.indexOf(y);
-		let color_index = color ? data.columns.indexOf(color) : null;
-		return data.data.map((row) => {
+		return datatable.map((row) => {
 			const obj = {
 				[x]: row[x_index],
 				[y]: row[y_index]
@@ -146,7 +286,7 @@
 			return obj;
 		});
 	}
-	$: _data = value ? reformat_data(value) : [];
+	$: _data = value ? reformat_data(value, x_start, x_end) : [];
 	let old_value = value;
 	$: if (old_value !== value && view) {
 		old_value = value;
@@ -204,6 +344,7 @@
 
 			resizeObserver.observe(chart_element);
 			var debounceTimeout: NodeJS.Timeout;
+			var lastSelectTime = 0;
 			view.addEventListener("dblclick", () => {
 				gradio.dispatch("double_click");
 			});
@@ -219,6 +360,7 @@
 			);
 			if (_selectable) {
 				view.addSignalListener("brush", function (_, value) {
+					if (Date.now() - lastSelectTime < 1000) return;
 					mouse_down_on_chart = true;
 					if (Object.keys(value).length === 0) return;
 					clearTimeout(debounceTimeout);
@@ -228,6 +370,7 @@
 					}
 					debounceTimeout = setTimeout(function () {
 						mouse_down_on_chart = false;
+						lastSelectTime = Date.now();
 						gradio.dispatch("select", {
 							value: range,
 							index: range,
@@ -405,7 +548,11 @@
 								field: y,
 								title: y_title || y,
 								type: value.datatypes[y],
-								scale: y_lim ? { domain: y_lim } : undefined,
+								scale: {
+									zero: false,
+									domainMin: y_start ?? undefined,
+									domainMax: y_end ?? undefined
+								},
 								aggregate: aggregating ? _y_aggregate : undefined
 							},
 							color: color

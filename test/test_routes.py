@@ -104,6 +104,15 @@ class TestRoutes:
         with open(file, "rb") as saved_file:
             assert saved_file.read() == b"abcdefghijklmnopqrstuvwxyz"
 
+    def test_header_size_limit(self, test_client):
+        with open("test/test_files/alphabet.txt", "rb") as f:
+            long_filename = "5" * 9000
+            response = test_client.post(
+                f"{API_PREFIX}/upload",
+                files={"files": (long_filename, f, "text/plain")},
+            )
+        assert response.status_code == 413
+
     def test_predict_route(self, test_client):
         response = test_client.post(
             f"{API_PREFIX}/api/predict/", json={"data": ["test"], "fn_index": 0}

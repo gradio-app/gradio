@@ -72,6 +72,10 @@ jobs:
         run: |
           . venv/bin/activate
           ./scripts/type_check_backend.sh
+      - name: uv pip freeze
+        run: |
+          . ${{steps.install_deps.outputs.venv_activate}}
+          uv pip freeze
       - name: Run parallel tests
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}

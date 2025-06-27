@@ -549,7 +549,7 @@ class GradioMultiPartParser:
 
     """
 
-    max_file_size = 1024 * 1024
+    max_header_size = 1024 * 8
 
     def __init__(
         self,
@@ -561,6 +561,7 @@ class GradioMultiPartParser:
         upload_id: str | None = None,
         upload_progress: FileUploadProgress | None = None,
         max_file_size: int | float,
+        max_header_size: int = max_header_size,
     ) -> None:
         self.headers = headers
         self.stream = stream
@@ -572,8 +573,10 @@ class GradioMultiPartParser:
         self._current_files = 0
         self._current_fields = 0
         self.max_file_size = max_file_size
+        self.max_header_size = max_header_size
         self._current_partial_header_name: bytes = b""
         self._current_partial_header_value: bytes = b""
+        self._current_header_size: int = 0
         self._current_part = MultipartPart()
         self._charset = ""
         self._file_parts_to_write: list[tuple[MultipartPart, bytes]] = []
@@ -582,6 +585,7 @@ class GradioMultiPartParser:
 
     def on_part_begin(self) -> None:
         self._current_part = MultipartPart()
+        self._current_header_size = 0
 
     def on_part_data(self, data: bytes, start: int, end: int) -> None:
         message_bytes = data[start:end]
@@ -611,11 +615,23 @@ class GradioMultiPartParser:
             # self.items is used in the return value.
             self.items.append((self._current_part.field_name, self._current_part.file))
 
+    def _check_header_size(self, additional_bytes: int):
+        if self._current_header_size + additional_bytes > self.max_header_size:
+            raise MultiPartException(
+                f"Headers exceeded maximum allowed size of {self.max_header_size} bytes."
+            )
+
     def on_header_field(self, data: bytes, start: int, end: int) -> None:
+        additional_header_bytes = end - start
+        self._check_header_size(additional_header_bytes)
         self._current_partial_header_name += data[start:end]
+        self._current_header_size += additional_header_bytes
 
     def on_header_value(self, data: bytes, start: int, end: int) -> None:
+        additional_header_bytes = end - start
+        self._check_header_size(additional_header_bytes)
         self._current_partial_header_value += data[start:end]
+        self._current_header_size += additional_header_bytes
 
     def on_header_end(self) -> None:
         field = self._current_partial_header_name.lower()
@@ -700,14 +716,14 @@ class GradioMultiPartParser:
                 # the main thread.
                 for part, data in self._file_parts_to_write:
                     assert part.file  # for type checkers  # noqa: S101
-                    await part.file.write(data)
-                    part.file.sha.update(data)  # type: ignore
-                    if os.stat(part.file.file.name).st_size > self.max_file_size:
+                    if (part.file.size or 0) + len(data) > self.max_file_size:
                         if self.upload_progress is not None:
                             self.upload_progress.set_done(self.upload_id)  # type: ignore
                         raise MultiPartException(
                             f"File size exceeded maximum allowed size of {self.max_file_size} bytes."
                         )
+                    await part.file.write(data)
+                    part.file.sha.update(data)  # type: ignore
                 for part in self._file_parts_to_finish:
                     assert part.file  # for type checkers  # noqa: S101
                     await part.file.seek(0)
