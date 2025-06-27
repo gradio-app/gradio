@@ -13,7 +13,7 @@
 	title="Components/DataFrame"
 	component={Table}
 	parameters={{
-		test: {-
+		test: {
 			dangerouslyIgnoreUnhandledErrors: true // ignore fullscreen permission error
 		}
 	}}
