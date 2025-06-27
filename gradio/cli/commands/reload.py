@@ -24,19 +24,6 @@ from rich import print
 import gradio
 from gradio import utils
 
-
-class DynamicBoolean(int):
-    def __init__(self, value: int):
-        self.value = bool(value)
-
-    def __bool__(self):
-        return self.value
-
-    def set(self, value: int):
-        self.value = bool(value)
-
-
-NO_RELOAD = DynamicBoolean(True)
 reload_thread = threading.local()
 
 
