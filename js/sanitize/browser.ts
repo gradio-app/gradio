@@ -1,6 +1,6 @@
 import Amuchina from "amuchina";
 
-const is_external_url = (link: string | null, root: string): boolean => {
+const is_external_url = (link: string | null, root = ""): boolean => {
 	try {
 		return !!link && new URL(link).origin !== new URL(root).origin;
 	} catch (e) {
@@ -8,7 +8,7 @@ const is_external_url = (link: string | null, root: string): boolean => {
 	}
 };
 
-export function sanitize(source: string, root: string): string {
+export function sanitize(source: string, root = ""): string {
 	const amuchina = new Amuchina();
 	const node = new DOMParser().parseFromString(source, "text/html");
 	walk_nodes(node.body, "A", (node) => {
