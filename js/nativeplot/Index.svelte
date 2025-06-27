@@ -548,7 +548,11 @@
 								field: y,
 								title: y_title || y,
 								type: value.datatypes[y],
-								scale: { zero: false, domainMin: y_start, domainMax: y_end },
+								scale: {
+									zero: false,
+									domainMin: y_start ?? undefined,
+									domainMax: y_end ?? undefined
+								},
 								aggregate: aggregating ? _y_aggregate : undefined
 							},
 							color: color
