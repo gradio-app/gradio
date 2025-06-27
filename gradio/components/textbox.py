@@ -38,16 +38,9 @@ class InputHTMLAttributes:
     autocorrect: Optional[bool] = None
     spellcheck: Optional[bool] = None
     autocomplete: Optional[str] = None
-    readonly: Optional[bool] = None
-    required: Optional[bool] = None
-    pattern: Optional[str] = None
-    minlength: Optional[int] = None
     tabindex: Optional[int] = None
     enterkeyhint: Optional[str] = None
-    inputmode: Optional[str] = None
-    dir: Optional[str] = None
     lang: Optional[str] = None
-    title: Optional[str] = None
     aria_label: Optional[str] = None
     aria_describedby: Optional[str] = None
     aria_placeholder: Optional[str] = None
