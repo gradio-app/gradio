@@ -8,6 +8,7 @@ import gradio.templates
 from gradio import components, layouts, themes
 from gradio.blocks import Blocks
 from gradio.chat_interface import ChatInterface
+from gradio.cli.commands.reload import NO_RELOAD
 from gradio.components import (
     HTML,
     JSON,
@@ -111,7 +112,7 @@ from gradio.templates import (
     TextArea,
 )
 from gradio.themes import Base as Theme
-from gradio.utils import NO_RELOAD, FileSize, get_package_version, set_static_paths
+from gradio.utils import FileSize, get_package_version, set_static_paths
 from gradio.wasm_utils import IS_WASM
 
 if not IS_WASM:
