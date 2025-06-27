@@ -111,7 +111,6 @@
 		const canvas = within(canvasElement);
 		const cells = canvas.getAllByRole("cell");
 		const initial_value = cells[0].textContent;
-
 		await userEvent.click(cells[0]);
 		await userEvent.keyboard("new value");
 
