@@ -2,7 +2,7 @@ import gradio as gr
 from functions import get_status
 
 if gr.NO_RELOAD:
-    def eat(food):
+    def eat(food): # type: ignore
         if food > 0:
             return {food_box: food - 1, status_box: "full"}
         else:
