@@ -744,6 +744,9 @@ class SyncToAsyncIterator:
             run_sync_iterator_async, self.iterator, limiter=self.limiter
         )
 
+    def aclose(self):
+        self.iterator.close()
+
 
 async def async_iteration(iterator):
     return await anext(iterator)
@@ -1778,3 +1781,27 @@ def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[st
         pass
 
     return description, parameters, returns
+
+
+async def safe_aclose_iterator(iterator, timeout=60.0, retry_interval=0.05):
+    """
+    Safely close generators by calling the aclose method.
+    Sync generators are tricky because if you call `aclose` while the loop is running
+    then you get a ValueError and the generator will not shut down gracefully.
+    So the solution is to retry calling the aclose method until we succeed (with timeout).
+    """
+    start = time.monotonic()
+    if isinstance(iterator, SyncToAsyncIterator):
+        while True:
+            try:
+                iterator.aclose()
+                break
+            except ValueError as e:
+                if "already executing" in str(e):
+                    if time.monotonic() - start > timeout:
+                        raise
+                    await asyncio.sleep(retry_interval)
+                else:
+                    raise
+    else:
+        iterator.aclose()

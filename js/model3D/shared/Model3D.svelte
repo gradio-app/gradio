@@ -74,7 +74,7 @@
 	label={label || i18n("3D_model.3d_model")}
 />
 {#if value}
-	<div class="model3D">
+	<div class="model3D" data-testid="model3d">
 		<IconButtonWrapper>
 			{#if !use_3dgs}
 				<!-- Canvas3DGS doesn't implement the undo method (reset_camera_position) -->

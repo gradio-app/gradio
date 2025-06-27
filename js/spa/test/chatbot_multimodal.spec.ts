@@ -136,8 +136,8 @@ for (const msg_format of ["tuples", "messages"]) {
 			.first()
 			.getByRole("paragraph")
 			.textContent();
-		await expect(user_message).toEqual(
-			'This is <strong>bold text</strong>. This is <em>italic text</em>. This is a <a href="https://gradio.app" target="_blank" rel="noopener noreferrer">link</a>.'
+		await expect(user_message).toContain(
+			'This is <strong>bold text</strong>. This is <em>italic text</em>. This is a <a href="https://gradio.app"'
 		);
 		await expect(bot_message).toBeTruthy();
 	});

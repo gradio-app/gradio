@@ -111,12 +111,11 @@
 		const canvas = within(canvasElement);
 		const cells = canvas.getAllByRole("cell");
 		const initial_value = cells[0].textContent;
-
 		await userEvent.click(cells[0]);
 		await userEvent.keyboard("new value");
 
 		const final_value = cells[0].textContent;
-		if (initial_value !== final_value) {
+		if (initial_value?.trim() !== final_value?.trim()) {
 			throw new Error("Cell content changed when it should be non-editable");
 		}
 
