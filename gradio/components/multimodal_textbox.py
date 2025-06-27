@@ -13,6 +13,7 @@ from pydantic import Field
 from typing_extensions import NotRequired
 
 from gradio.components.base import Component, FormComponent
+from gradio.components.textbox import InputHTMLAttributes
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
 from gradio.exceptions import Error
@@ -92,7 +93,7 @@ class MultimodalTextbox(FormComponent):
         submit_btn: str | bool | None = True,
         stop_btn: str | bool | None = False,
         max_plain_text_length: int = 1000,
-        html_attributes: dict[str, str] | None = None,
+        html_attributes: InputHTMLAttributes | None = None,
     ):
         """
         Parameters:
