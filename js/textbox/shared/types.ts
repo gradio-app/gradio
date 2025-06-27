@@ -1,5 +1,5 @@
 export interface InputHTMLAttributes {
-	autocapitalize?: string | null;
+	autocapitalize?: "off" | "none" | "on" | "sentences" | "words" | "characters" | null;
 	autocorrect?: boolean | null;
 	spellcheck?: boolean | null;
 	autocomplete?: string | null;
