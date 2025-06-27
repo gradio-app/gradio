@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 @dataclasses.dataclass
 class InputHTMLAttributes:
     """
-    A dataclass for specifying HTML attributes for the input/textarea element.
+    A dataclass for specifying HTML attributes for the input/textarea element. If any of these attributes are not provided, the browser will use its default value.
     Parameters:
         autocapitalize: The autocapitalize attribute for the input/textarea element. Can be "off", "none", "on", "sentences", "words", or "characters".
         autocorrect: The autocorrect attribute for the input/textarea element. Can be True (enabled) or False (disabled).
