@@ -73,6 +73,8 @@ for (const msg_format of ["tuples", "messages"]) {
 		await page.getByTestId("textbox").click();
 		await page.getByTestId("textbox").fill("model3d");
 		await page.keyboard.press("Enter");
-		await expect(page.getByTestId("bot").locator("model3d")).toBeAttached();
+		await expect(
+			page.getByTestId("bot").locator('[data-testid="model3d"]')
+		).toBeAttached();
 	});
 }
