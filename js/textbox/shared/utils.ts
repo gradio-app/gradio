@@ -18,8 +18,8 @@ export function convert_html_attributes(
 	};
 
 	for (const [key, value] of Object.entries(attrs)) {
-		const htmlKey = key.replace(/_/g, "-");
-		add_attr(htmlKey, value);
+		const html_key = key.replace(/_/g, "-");
+		add_attr(html_key, value);
 	}
 
 	return result;
