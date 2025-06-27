@@ -62,7 +62,7 @@
 	export let sources: ["microphone" | "upload"] = ["upload"];
 	export let active_source: "microphone" | null = null;
 	export let html_attributes: InputHTMLAttributes | null = null;
-	
+
 	// Convert InputHTMLAttributes to HTML attributes
 	$: html_attrs = convert_html_attributes(html_attributes);
 

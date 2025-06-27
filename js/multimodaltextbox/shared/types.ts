@@ -1,1 +1,1 @@
-export type { InputHTMLAttributes } from "../../textbox/shared/types"; 
+export type { InputHTMLAttributes } from "../../textbox/shared/types";

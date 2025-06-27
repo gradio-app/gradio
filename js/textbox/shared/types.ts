@@ -9,4 +9,4 @@ export interface InputHTMLAttributes {
 	aria_label?: string | null;
 	aria_describedby?: string | null;
 	aria_placeholder?: string | null;
-} 
+}
