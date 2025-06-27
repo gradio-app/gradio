@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix Lite + Playground
+fix:Fix Lite + Playground
