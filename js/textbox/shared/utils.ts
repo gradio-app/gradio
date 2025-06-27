@@ -41,12 +41,12 @@ export function convert_html_attributes(
 	for (const [key, value] of Object.entries(attrs)) {
 		if (key === "autocapitalize") {
 			add_autocapitalize(value);
-		}
-		if (key === "autocorrect") {
+		} else if (key === "autocorrect") {
 			add_autocorrect(value);
+		} else {
+			const htmlKey = key.replace(/_/g, "-");
+			add_attr(htmlKey, value);
 		}
-		const htmlKey = key.replace(/_/g, "-");
-		add_attr(htmlKey, value);
 	}
 
 	return result;
