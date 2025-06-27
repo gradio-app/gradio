@@ -59,4 +59,4 @@ export function text_area_resize(
 	};
 }
 
-export { convertHtmlAttributes } from "../../textbox/shared/utils";
+export { convert_html_attributes } from "../../textbox/shared/utils";

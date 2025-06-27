@@ -26,7 +26,7 @@
 	import type { SelectData } from "@gradio/utils";
 	import InteractiveAudio from "../../audio/interactive/InteractiveAudio.svelte";
 	import type { InputHTMLAttributes } from "./types";
-	import { convertHtmlAttributes } from "./utils";
+	import { convert_html_attributes } from "./utils";
 
 	export let value: { text: string; files: FileData[] } = {
 		text: "",
@@ -64,7 +64,7 @@
 	export let html_attributes: InputHTMLAttributes | null = null;
 	
 	// Convert InputHTMLAttributes to HTML attributes
-	$: html_attrs = convertHtmlAttributes(html_attributes);
+	$: html_attrs = convert_html_attributes(html_attributes);
 
 	let upload_component: Upload;
 	let el: HTMLTextAreaElement | HTMLInputElement;

@@ -1,12 +1,11 @@
 import type { InputHTMLAttributes } from "./types";
 
-export function convertHtmlAttributes(attrs: InputHTMLAttributes | null | undefined): Record<string, string> {
+export function convert_html_attributes(attrs: InputHTMLAttributes | null | undefined): Record<string, string> {
 	if (!attrs) return {};
 	
 	const result: Record<string, string> = {};
 	
-	// Helper function to add attribute if not null
-	const addAttr = (key: string, value: any): void => {
+	const add_attr = (key: string, value: any): void => {
 		if (value !== null && value !== undefined) {
 			if (typeof value === 'boolean') {
 				result[key] = value ? 'true' : 'false';
@@ -16,17 +15,14 @@ export function convertHtmlAttributes(attrs: InputHTMLAttributes | null | undefi
 		}
 	};
 	
-	// Convert each attribute
-	addAttr('autocapitalize', attrs.autocapitalize);
-	addAttr('autocorrect', attrs.autocorrect);
-	addAttr('spellcheck', attrs.spellcheck);
-	addAttr('autocomplete', attrs.autocomplete);
-	addAttr('tabindex', attrs.tabindex);
-	addAttr('enterkeyhint', attrs.enterkeyhint);
-	addAttr('lang', attrs.lang);
-	addAttr('aria-label', attrs.aria_label);
-	addAttr('aria-describedby', attrs.aria_describedby);
-	addAttr('aria-placeholder', attrs.aria_placeholder);
+	const to_kebab_case = (str: string): string => {
+		return str.replace(/_/g, '-');
+	};
+	
+	for (const [key, value] of Object.entries(attrs)) {
+		const html_key = to_kebab_case(key);
+		add_attr(html_key, value);
+	}
 	
 	return result;
 } 

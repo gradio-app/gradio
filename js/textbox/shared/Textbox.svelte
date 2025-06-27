@@ -10,7 +10,7 @@
 	import { fade } from "svelte/transition";
 	import type { SelectData, CopyData } from "@gradio/utils";
 	import type { InputHTMLAttributes } from "./types";
-	import { convertHtmlAttributes } from "./utils";
+	import { convert_html_attributes } from "./utils";
 
 	export let value = "";
 	export let value_is_output = false;
@@ -42,7 +42,7 @@
 	let _max_lines: number;
 
 	// Convert InputHTMLAttributes to HTML attributes
-	$: html_attrs = convertHtmlAttributes(html_attributes);
+	$: html_attrs = convert_html_attributes(html_attributes);
 
 	const show_textbox_border = !submit_btn;
 
