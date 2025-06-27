@@ -1,5 +1,15 @@
 # @self/app
 
+## 1.49.15
+
+### Fixes
+
+- [#11414](https://github.com/gradio-app/gradio/pull/11414) [`b2b40b6`](https://github.com/gradio-app/gradio/commit/b2b40b633d3aae5e2538198f116abd57aab6eea4) - Fixes white background appears while a Gradio app with SSR is loading.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/core@0.19.3
+
 ## 1.49.14
 
 ### Fixes

@@ -4,7 +4,6 @@
 	import type { Gradio } from "@gradio/utils";
 
 	export let scale: number | null = null;
-	export let gap = true;
 	export let min_width = 0;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -18,7 +17,6 @@
 <div
 	id={elem_id}
 	class="column {elem_classes.join(' ')}"
-	class:gap
 	class:compact={variant === "compact"}
 	class:panel={variant === "panel"}
 	class:hide={!visible}
@@ -45,15 +43,12 @@
 		display: flex;
 		position: relative;
 		flex-direction: column;
+		gap: var(--layout-gap);
 	}
 
 	div > :global(*),
 	div > :global(.form > *) {
 		width: var(--size-full);
-	}
-
-	.gap {
-		gap: var(--layout-gap);
 	}
 
 	.hide {
