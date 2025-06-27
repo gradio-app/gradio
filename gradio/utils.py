@@ -130,6 +130,8 @@ class BaseReloader(ABC):
         demo.max_file_size = self.running_app.blocks.max_file_size
         demo.is_running = True
         self.running_app.state_holder.set_blocks(demo)
+        for session in self.running_app.state_holder.session_data.values():
+            session.blocks_config = copy.copy(demo.default_config)
         self.running_app.blocks = demo
 
 
@@ -361,14 +363,16 @@ def deep_equal(a: Any, b: Any) -> bool:
 
 
 def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
-    from gradio.blocks import BlockContext, Block
+    from gradio.blocks import Block, BlockContext
 
     new_keys = [
         block.key for block in new_blocks.blocks.values() if block.key is not None
     ]
 
     def reassign_context_keys(
-        old_block: Block | None, new_block: Block, top_level=False,
+        old_block: Block | None,
+        new_block: Block,
+        top_level=False,
     ):
         same_block_type = old_block.__class__ == new_block.__class__
         if new_block.key is None:
@@ -384,10 +388,17 @@ def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
                 new_block.key = old_block.key
             else:
                 new_block.key = f"__{new_block._id}__"
-        
-        if old_block and same_block_type and old_block.key is not None and old_block.key == new_block.key:
+
+        if (
+            old_block
+            and same_block_type
+            and old_block.key is not None
+            and old_block.key == new_block.key
+        ):
             if not top_level:
-                new_blocks.default_config.blocks[old_block._id] = new_blocks.default_config.blocks[new_block._id]
+                new_blocks.default_config.blocks[old_block._id] = (
+                    new_blocks.default_config.blocks[new_block._id]
+                )
                 del new_blocks.default_config.blocks[new_block._id]
             for fn in new_blocks.default_config.fns.values():
                 for target_idx, target in enumerate(fn.targets):
@@ -396,8 +407,11 @@ def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
 
             new_block._id = old_block._id
 
-
-        if isinstance(new_block, BlockContext) and isinstance(old_block, BlockContext) and same_block_type:
+        if (
+            isinstance(new_block, BlockContext)
+            and isinstance(old_block, BlockContext)
+            and same_block_type
+        ):
             for i, new_block_child in enumerate(new_block.children):
                 if i < len(old_block.children):
                     old_block_child = old_block.children[i]
