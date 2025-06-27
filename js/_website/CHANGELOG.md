@@ -1,5 +1,16 @@
 # website
 
+## 0.59.0
+
+### Features
+
+- [#11437](https://github.com/gradio-app/gradio/pull/11437) [`7d98414`](https://github.com/gradio-app/gradio/commit/7d984145e7c0051424cd3f8f20152703966192b9) - Add support for markdown in tips and warnings.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/tabitem@0.4.6
+- @gradio/code@0.14.9
+
 ## 0.58.0
 
 ### Features

@@ -1,5 +1,12 @@
 # @gradio/client
 
+## 1.15.4
+
+### Fixes
+
+- [#11432](https://github.com/gradio-app/gradio/pull/11432) [`dd1eee5`](https://github.com/gradio-app/gradio/commit/dd1eee5f9cd3d70773912fd6444d093bdcea321a) - Fix bug where cancelling an event would close the event stream.  Thanks @freddyaboulton!
+- [#11421](https://github.com/gradio-app/gradio/pull/11421) [`c2acf6e`](https://github.com/gradio-app/gradio/commit/c2acf6e33025fe7bbfe0660c182006651cc95090) - Preserve value in reload mode.  Thanks @aliabid94!
+
 ## 1.15.3
 
 ### Fixes

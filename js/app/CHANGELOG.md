@@ -1,5 +1,16 @@
 # @self/app
 
+## 1.49.16
+
+### Fixes
+
+- [#11421](https://github.com/gradio-app/gradio/pull/11421) [`c2acf6e`](https://github.com/gradio-app/gradio/commit/c2acf6e33025fe7bbfe0660c182006651cc95090) - Preserve value in reload mode.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/client@1.15.4
+- @gradio/core@0.20.0
+
 ## 1.49.15
 
 ### Fixes

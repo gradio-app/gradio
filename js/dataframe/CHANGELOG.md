@@ -1,5 +1,21 @@
 # @gradio/dataframe
 
+## 0.18.0
+
+### Features
+
+- [#11392](https://github.com/gradio-app/gradio/pull/11392) [`dc760a6`](https://github.com/gradio-app/gradio/commit/dc760a6dd7d3375f99913059803a826cdf0f7102) - Add column-specific filtering to `gr.Dataframe`.  Thanks @tiago-gsantos!
+
+### Fixes
+
+- [#11407](https://github.com/gradio-app/gradio/pull/11407) [`f3f9590`](https://github.com/gradio-app/gradio/commit/f3f9590d539b9e6fe3937a1bdc48006ee174fb8f) - Fix Styled DataFrame Sorting.  Thanks @deckar01!
+
+### Dependency updates
+
+- @gradio/upload@0.16.9
+- @gradio/client@1.15.4
+- @gradio/button@0.5.5
+
 ## 0.17.17
 
 ### Fixes

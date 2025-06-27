@@ -1,5 +1,11 @@
 # @gradio/nativeplot
 
+## 0.7.0
+
+### Features
+
+- [#11442](https://github.com/gradio-app/gradio/pull/11442) [`f114f7f`](https://github.com/gradio-app/gradio/commit/f114f7f56b50b0176526a13ad3fcf2a81c077491) - Downsample heavy line plots.  Thanks @aliabid94!
+
 ## 0.6.3
 
 ### Features
