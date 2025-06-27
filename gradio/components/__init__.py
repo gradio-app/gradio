@@ -46,7 +46,7 @@ from gradio.components.plot import Plot
 from gradio.components.radio import Radio
 from gradio.components.slider import Slider
 from gradio.components.state import State
-from gradio.components.textbox import Textbox
+from gradio.components.textbox import InputHTMLAttributes, Textbox
 from gradio.components.timer import Timer
 from gradio.components.upload_button import UploadButton
 from gradio.components.video import Video
@@ -125,4 +125,5 @@ __all__ = [
     "MultimodalTextbox",
     "NativePlot",
     "DeepLinkButton",
+    "InputHTMLAttributes"
 ]
