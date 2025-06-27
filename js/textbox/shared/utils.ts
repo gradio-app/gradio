@@ -17,36 +17,9 @@ export function convert_html_attributes(
 		}
 	};
 
-	const add_autocorrect = (value: boolean | null | undefined): void => {
-		if (value !== null && value !== undefined) {
-			result["autocorrect"] = value ? "on" : "off";
-		}
-	};
-
-	const add_autocapitalize = (value: string | null | undefined): void => {
-		if (value !== null && value !== undefined) {
-			const mapping: Record<string, string> = {
-				sentences: "sentences",
-				words: "words",
-				characters: "characters",
-				off: "off",
-				none: "off",
-				false: "off",
-				true: "sentences"
-			};
-			result["autocapitalize"] = mapping[value.toLowerCase()] || value;
-		}
-	};
-
 	for (const [key, value] of Object.entries(attrs)) {
-		if (key === "autocapitalize") {
-			add_autocapitalize(value);
-		} else if (key === "autocorrect") {
-			add_autocorrect(value);
-		} else {
-			const htmlKey = key.replace(/_/g, "-");
-			add_attr(htmlKey, value);
-		}
+		const htmlKey = key.replace(/_/g, "-");
+		add_attr(htmlKey, value);
 	}
 
 	return result;

@@ -41,7 +41,6 @@
 	let user_has_scrolled_up = false;
 	let _max_lines: number;
 
-	// Convert InputHTMLAttributes to HTML attributes
 	$: html_attrs = convert_html_attributes(html_attributes);
 
 	const show_textbox_border = !submit_btn;
