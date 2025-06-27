@@ -94,9 +94,6 @@
 		if (can_scroll && autoscroll) {
 			scroll();
 		}
-		if (el && el.tagName === "TEXTAREA") {
-			update_scrollbar_visibility(el as HTMLTextAreaElement);
-		}
 		value_is_output = false;
 	});
 	$: value, handle_change();
