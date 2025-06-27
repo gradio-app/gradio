@@ -125,5 +125,5 @@ __all__ = [
     "MultimodalTextbox",
     "NativePlot",
     "DeepLinkButton",
-    "InputHTMLAttributes"
+    "InputHTMLAttributes",
 ]
