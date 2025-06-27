@@ -1,4 +1,3 @@
----
 "@gradio/textbox": patch
 "gradio": patch
 ---
