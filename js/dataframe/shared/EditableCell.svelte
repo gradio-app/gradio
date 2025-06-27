@@ -67,6 +67,12 @@
 		? truncate_text(display_content, max_chars, datatype === "image")
 		: display_content;
 
+	$: cell_description = coords
+		? header
+			? `Header cell ${coords[1] + 1}: ${display_text}`
+			: `Cell row ${coords[0] + 1}, column ${coords[1] + 1}: ${display_text}`
+		: `Cell: ${display_text}`;
+
 	function use_focus(node: HTMLTextAreaElement): any {
 		requestAnimationFrame(() => {
 			node.focus();
@@ -105,11 +111,15 @@
 	<textarea
 		readonly={is_static}
 		aria-readonly={is_static}
-		aria-label={is_static ? "Cell is read-only" : "Edit cell"}
+		aria-label={is_static
+			? `Read-only cell: ${display_text}`
+			: "Edit cell content. Press Shift+Enter for new line, Enter to save"}
+		aria-multiline="true"
 		bind:this={el}
 		bind:value
 		class:header
 		tabindex="-1"
+		placeholder="Type here. Shift+Enter for new line, Enter to save"
 		on:blur={handle_blur}
 		on:mousedown|stopPropagation
 		on:click|stopPropagation
@@ -130,6 +140,7 @@
 		on:keydown={handle_keydown}
 		tabindex="0"
 		role="button"
+		aria-label={cell_description}
 		class:edit
 		class:expanded={edit}
 		class:multiline={header}
