@@ -200,6 +200,25 @@
 		}
 
 		target.style.height = `${scroll_height}px`;
+
+		update_scrollbar_visibility(target);
+	}
+
+	function update_scrollbar_visibility(textarea: HTMLTextAreaElement): void {
+		// Using "auto" scroll does not work, as the scrollbar is visible even
+		// when the content is about the same height as the textarea height. So
+		// here, we add the scrollbar if the content is longer than a threshold
+		// of 1 line height beyond the textarea height.
+		const content_height = textarea.scrollHeight;
+		const visible_height = textarea.clientHeight;
+		const line_height = parseFloat(
+			window.getComputedStyle(textarea).lineHeight
+		);
+		if (content_height > visible_height + line_height) {
+			textarea.style.overflowY = "scroll";
+		} else {
+			textarea.style.overflowY = "hidden";
+		}
 	}
 
 	function text_area_resize(
@@ -302,7 +321,6 @@
 			<textarea
 				data-testid="textbox"
 				use:text_area_resize={value}
-				class="scroll-hide"
 				dir={rtl ? "rtl" : "ltr"}
 				class:no-label={!show_label && (submit_btn || stop_btn)}
 				bind:value

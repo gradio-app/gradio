@@ -1,7 +1,5 @@
----
-"@gradio/multimodaltextbox": minor
-"@gradio/textbox": minor
-"gradio": minor
+"@gradio/textbox": patch
+"gradio": patch
 ---
 
-feat:Add `html_attributes` to `gr.Textbox` and `gr.MultimodalTextbox`
+feat:Add scrollbar to `gr.Textbox` if lines of text exceed lines in text area
