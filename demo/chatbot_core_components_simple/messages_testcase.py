@@ -53,6 +53,10 @@ def bot(history, response_type):
             html_src(random.choice(["harmful", "neutral", "beneficial"]))
             )
        }
+    elif response_type == "model3d":
+        msg = {"role": "assistant", "content": gr.Model3D(
+           "https://github.com/gradio-app/gradio/raw/main/test/test_files/Fox.gltf"
+        )}
     else:
         msg = {"role": "assistant", "content": "Cool!"}
     history.append(msg)
@@ -73,6 +77,7 @@ with gr.Blocks(fill_height=True) as demo:
             "video",
             "audio",
             "html",
+            "model3d",
         ],
         value="text",
         label="Response Type",
