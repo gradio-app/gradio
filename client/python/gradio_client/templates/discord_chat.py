@@ -2,7 +2,6 @@ import asyncio
 import os
 import threading
 from threading import Event
-from typing import Optional
 
 import discord
 import gradio as gr
@@ -23,7 +22,7 @@ async def wait(job):
         await asyncio.sleep(0.2)
 
 
-def get_client(session: Optional[str] = None) -> grc.Client:
+def get_client(session: str | None = None) -> grc.Client:
     client = grc.Client("<<app-src>>", hf_token=os.getenv("HF_TOKEN"))
     if session:
         client.session_hash = session

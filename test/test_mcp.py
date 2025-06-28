@@ -216,12 +216,17 @@ def test_mcp_sse_transport(test_mcp_app):
 
 @pytest.mark.serial
 def test_mcp_mount_gradio_app():
+    import asyncio
     import threading
 
     import uvicorn
     from fastapi import FastAPI
+    from sse_starlette.sse import AppStatus
 
     from gradio.routes import mount_gradio_app
+
+    # Fix: Reset shared event object for the current thread/event loop
+    AppStatus.should_exit_event = asyncio.Event()
 
     with gr.Blocks() as app:
         t1 = gr.Textbox(label="Test Textbox")

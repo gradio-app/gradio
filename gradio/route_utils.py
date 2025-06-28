@@ -22,7 +22,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     BinaryIO,
-    Optional,
     Union,
 )
 from urllib.parse import urlparse
@@ -236,8 +235,8 @@ def get_fn(blocks: Blocks, api_name: str | None, body: PredictBody) -> BlockFunc
 def compile_gr_request(
     body: PredictBodyInternal,
     fn: BlockFunction,
-    username: Optional[str],
-    request: Optional[fastapi.Request],
+    username: str | None,
+    request: fastapi.Request | None,
 ):
     # If this fn_index cancels jobs, then the only input we need is the
     # current session hash

@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated
 
 from typer import Option
 
@@ -7,7 +7,7 @@ from gradio_client import Client
 
 def main(
     src: Annotated[
-        Optional[str],
+        str | None,
         Option(
             help="The space id or url or gradio app you want to deploy as a gradio bot."
         ),
@@ -19,10 +19,10 @@ def main(
         list[str], Option(help="Api names to turn into discord bots")
     ] = None,
     to_id: Annotated[
-        Optional[str], Option(help="Name of the space used to host the discord bot")
+        str | None, Option(help="Name of the space used to host the discord bot")
     ] = None,
     hf_token: Annotated[
-        Optional[str],
+        str | None,
         Option(
             help=(
                 "Hugging Face token. Can be ommitted if you are logged in via huggingface_hub cli. "

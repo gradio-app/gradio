@@ -2,7 +2,7 @@ from collections import namedtuple
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import ClassVar, Literal, Optional, Union
+from typing import ClassVar, Literal, Union
 from uuid import UUID
 
 import pytest
@@ -49,7 +49,7 @@ class DictModel2(GradioModel):
 
 
 class OptionalModel(GradioModel):
-    optional_data: Optional[int]
+    optional_data: int | None
 
     answer: ClassVar = "dict(optional_data: int | None)"
 
