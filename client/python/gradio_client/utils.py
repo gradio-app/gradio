@@ -24,7 +24,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Literal,
-    Optional,
     TypedDict,
     Union,
     get_args,
@@ -191,11 +190,11 @@ class Status(Enum):
 
 @dataclass
 class ProgressUnit:
-    index: Optional[int]
-    length: Optional[int]
-    unit: Optional[str]
-    progress: Optional[float]
-    desc: Optional[str]
+    index: int | None
+    length: int | None
+    unit: str | None
+    progress: float | None
+    desc: str | None
 
     @classmethod
     def from_msg(cls, data: list[dict]) -> list[ProgressUnit]:

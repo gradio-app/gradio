@@ -8,7 +8,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Literal,
-    Optional,
     Union,
 )
 
@@ -45,7 +44,7 @@ def _import_polars():
 class DataframeData(GradioModel):
     headers: list[Any]
     data: Union[list[list[Any]], list[tuple[Any, ...]]]
-    metadata: Optional[dict[str, Optional[list[Any]]]] = None
+    metadata: dict[str, list[Any] | None] | None = None
 
 
 @document()

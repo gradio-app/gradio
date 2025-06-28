@@ -3,7 +3,7 @@ Defines internal helper methods for handling transformers and diffusers pipeline
 These are used by load_from_pipeline method in pipelines.py.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 from PIL import Image
@@ -11,7 +11,7 @@ from PIL import Image
 from gradio import components
 
 
-def handle_transformers_pipeline(pipeline: Any) -> Optional[dict[str, Any]]:
+def handle_transformers_pipeline(pipeline: Any) -> dict[str, Any] | None:
     try:
         import transformers
     except ImportError as ie:
@@ -196,7 +196,7 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[dict[str, Any]]:
     raise ValueError(f"Unsupported transformers pipeline type: {type(pipeline)}")
 
 
-def handle_diffusers_pipeline(pipeline: Any) -> Optional[dict[str, Any]]:
+def handle_diffusers_pipeline(pipeline: Any) -> dict[str, Any] | None:
     try:
         import diffusers
     except ImportError as ie:
