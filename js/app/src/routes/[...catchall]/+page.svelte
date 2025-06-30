@@ -260,7 +260,6 @@
 		window.gradio_config = data.config;
 		config = data.config;
 
-
 		if (config.deep_link_state === "invalid") {
 			pending_deep_link_error = true;
 		}

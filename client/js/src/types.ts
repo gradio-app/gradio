@@ -409,8 +409,3 @@ export interface RenderMessage extends Render {
 	endpoint: string;
 	fn_index: number;
 }
-
-export interface AuthError extends Error {
-	auth_required: boolean;
-	auth_message: string | null;
-}

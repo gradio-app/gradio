@@ -34,8 +34,8 @@ export async function load({
 			query_params: deepLink ? { deep_link: deepLink } : undefined
 		});
 	} catch (error: any) {
-		const errorMessage = error.message || "";
-		const auth_message = errorMessage.replace(/^Error:\s*/, "");
+		const error_message = error.message || "";
+		const auth_message = error_message.replace(/^Error:?\s*/, "") || "";
 		return {
 			Render: Login,
 			config: {
