@@ -44,8 +44,8 @@ def test_generate_tool_names_correctly_for_interfaces():
     server = GradioMCPServer(app)
     assert list(server.tool_to_endpoint.keys()) == [
         "echo",
-        "echo_",
-        "<lambda>",
+        "echo_1",
+        "_lambda_",
         "MyCallable",
     ]
 
@@ -130,10 +130,10 @@ def test_simplify_filedata_schema(test_mcp_app):
 
 def test_tool_prefix_character_replacement(test_mcp_app):
     test_cases = [
-        ("test-space", "test_space_"),
-        ("flux.1_schnell", "flux_1_schnell_"),
-        ("test\\backslash", "test_backslash_"),
-        ("test:colon spaces ", "test_colon_spaces__"),
+        ("test-space", "test_space_test_tool"),
+        ("flux.1_schnell", "flux_1_schnell_test_tool"),
+        ("test\\backslash", "test_backslash_test_tool"),
+        ("test:colon spaces ", "test_colon_spaces__test_tool"),
     ]
 
     original_system = os.environ.get("SYSTEM")
@@ -141,10 +141,10 @@ def test_tool_prefix_character_replacement(test_mcp_app):
 
     try:
         os.environ["SYSTEM"] = "spaces"
-        for input_prefix, expected_prefix in test_cases:
-            os.environ["SPACE_ID"] = input_prefix
+        for space_id, tool_name in test_cases:
+            os.environ["SPACE_ID"] = space_id
             server = GradioMCPServer(test_mcp_app)
-            assert server.tool_prefix == expected_prefix
+            assert tool_name in server.tool_to_endpoint
     finally:
         if original_system is not None:
             os.environ["SYSTEM"] = original_system

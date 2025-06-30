@@ -1,6 +1,7 @@
 import base64
 import contextlib
 import os
+import re
 import tempfile
 import warnings
 from collections.abc import AsyncIterator, Sequence
@@ -96,12 +97,10 @@ class GradioMCPServer:
     ) -> str:
         """
         Sanitizes a tool name to make it a valid MCP tool name (only
-        alphanumeric characters, underscores, and hyphens, <= 128 characters).
+        alphanumeric characters, underscores, <= 128 characters)
         and is unique among the existing tool names.
         """
-        tool_name = "".join(
-            [char for char in tool_name if char.isalnum() or char in "_-"]
-        )
+        tool_name = re.sub(r"[^a-zA-Z0-9]", "_", tool_name)
         tool_name = tool_name[:120]  # Leave room for suffix if needed
         tool_name_base = tool_name
         suffix = 1
