@@ -460,7 +460,10 @@ class App(FastAPI):
                 return
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={"error": "Not authenticated", "auth_message": blocks.auth_message}
+                detail={
+                    "error": "Not authenticated",
+                    "auth_message": blocks.auth_message,
+                },
             )
 
         @router.get("/token")
@@ -672,7 +675,11 @@ class App(FastAPI):
             elif app.auth_dependency:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail={"error": "Not authenticated", "auth_message": blocks.auth_message}                )
+                    detail={
+                        "error": "Not authenticated",
+                        "auth_message": blocks.auth_message,
+                    },
+                )
             else:
                 config = {
                     "auth_required": True,
