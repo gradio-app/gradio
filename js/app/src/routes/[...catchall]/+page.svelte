@@ -144,6 +144,7 @@
 		const dark_class_element = is_embed ? target.parentElement! : document.body;
 		const bg_element = is_embed ? target : target.parentElement!;
 		bg_element.style.background = "var(--body-background-fill)";
+		dark_class_element.classList.add("theme-loaded");
 		if (theme === "dark") {
 			dark_class_element.classList.add("dark");
 		} else {
@@ -309,11 +310,15 @@
 				});
 				stream.addEventListener("reload", async (event) => {
 					app.close();
-					app = await Client.connect(data.api_url, {
-						status_callback: handle_status,
-						with_null_state: true,
-						events: ["data", "log", "status", "render"]
-					});
+					app = await Client.connect(
+						data.api_url,
+						{
+							status_callback: handle_status,
+							with_null_state: true,
+							events: ["data", "log", "status", "render"]
+						},
+						app.session_hash
+					);
 
 					if (!app.config) {
 						throw new Error("Could not resolve app config");

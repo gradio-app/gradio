@@ -1,5 +1,11 @@
 # @gradio/sketchbox
 
+## 0.6.11
+
+### Dependency updates
+
+- @gradio/column@0.2.1
+
 ## 0.6.10
 
 ### Dependency updates

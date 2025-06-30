@@ -1,5 +1,32 @@
 # gradio
 
+## 5.35.0
+
+### Features
+
+- [#11429](https://github.com/gradio-app/gradio/pull/11429) [`1a718e7`](https://github.com/gradio-app/gradio/commit/1a718e72f0aef043f4ee4a6cfd2af4f68902ce63) - Add placeholder support to number component.  Thanks @seb-goodman!
+- [#11447](https://github.com/gradio-app/gradio/pull/11447) [`58631ef`](https://github.com/gradio-app/gradio/commit/58631efdf3e2ff805ce625b7ef63e651f01af03e) - Revert .only marker in e2e tests.  Thanks @freddyaboulton!
+- [#11392](https://github.com/gradio-app/gradio/pull/11392) [`dc760a6`](https://github.com/gradio-app/gradio/commit/dc760a6dd7d3375f99913059803a826cdf0f7102) - Add column-specific filtering to `gr.Dataframe`.  Thanks @tiago-gsantos!
+- [#11442](https://github.com/gradio-app/gradio/pull/11442) [`f114f7f`](https://github.com/gradio-app/gradio/commit/f114f7f56b50b0176526a13ad3fcf2a81c077491) - Downsample heavy line plots.  Thanks @aliabid94!
+
+### Fixes
+
+- [#11426](https://github.com/gradio-app/gradio/pull/11426) [`fa4018a`](https://github.com/gradio-app/gradio/commit/fa4018a99ee815e33bc228bfb0183dd820246eb1) - Remove gap parametger from gr.Column.  Thanks @deckar01!
+- [#11041](https://github.com/gradio-app/gradio/pull/11041) [`474aa30`](https://github.com/gradio-app/gradio/commit/474aa30979c14793e00852ad2f4ef6c12a41b900) - Attach cookies to client after first request (to support multiple-replica setups with cookie-based affinity).  Thanks @abidlabs!
+- [#11433](https://github.com/gradio-app/gradio/pull/11433) [`a37f9b8`](https://github.com/gradio-app/gradio/commit/a37f9b895a21771f6491f56ab07f9c01b9885fe3) - Fix potential DoS vulnerability.  Thanks @rllj!
+- [#11432](https://github.com/gradio-app/gradio/pull/11432) [`dd1eee5`](https://github.com/gradio-app/gradio/commit/dd1eee5f9cd3d70773912fd6444d093bdcea321a) - Fix bug where cancelling an event would close the event stream.  Thanks @freddyaboulton!
+- [#11456](https://github.com/gradio-app/gradio/pull/11456) [`4de7169`](https://github.com/gradio-app/gradio/commit/4de716919873336939a212be96c2f359cd565a68) - Fix Lite + Playground.  Thanks @freddyaboulton!
+- [#11407](https://github.com/gradio-app/gradio/pull/11407) [`f3f9590`](https://github.com/gradio-app/gradio/commit/f3f9590d539b9e6fe3937a1bdc48006ee174fb8f) - Fix Styled DataFrame Sorting.  Thanks @deckar01!
+- [#11421](https://github.com/gradio-app/gradio/pull/11421) [`c2acf6e`](https://github.com/gradio-app/gradio/commit/c2acf6e33025fe7bbfe0660c182006651cc95090) - Preserve value in reload mode.  Thanks @aliabid94!
+- [#11439](https://github.com/gradio-app/gradio/pull/11439) [`4a208fd`](https://github.com/gradio-app/gradio/commit/4a208fd38d0fef87b81a4f5f28615dd9db3af056) - Fix hot reload bug where indirectly referenced modules are not loaded.  Thanks @freddyaboulton!
+- [#11396](https://github.com/gradio-app/gradio/pull/11396) [`eaf3b93`](https://github.com/gradio-app/gradio/commit/eaf3b936c29305067b9effedceb6e14b1b15f7cd) - Ensure Sync generators get closed if they are cancelled.  Thanks @freddyaboulton!
+
+## 5.34.2
+
+### Features
+
+- [#11418](https://github.com/gradio-app/gradio/pull/11418) [`e398c51`](https://github.com/gradio-app/gradio/commit/e398c51e610713d7dc1ed0a1ee43d7d313b8ca6a) - Full screen plots take full height.  Thanks @aliabid94!
+
 ## 5.34.1
 
 ### Fixes
