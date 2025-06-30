@@ -158,7 +158,7 @@ export interface Config {
 	auth_required?: true;
 	analytics_enabled: boolean;
 	connect_heartbeat: boolean;
-	auth_message: string | null;
+	auth_message: string;
 	components: ComponentMeta[];
 	css: string | null;
 	js: string | null;
