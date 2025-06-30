@@ -1,5 +1,12 @@
 # @gradio/number
 
+## 0.6.0
+
+### Features
+
+- [#11429](https://github.com/gradio-app/gradio/pull/11429) [`1a718e7`](https://github.com/gradio-app/gradio/commit/1a718e72f0aef043f4ee4a6cfd2af4f68902ce63) - Add placeholder support to number component.  Thanks @seb-goodman!
+- [#11447](https://github.com/gradio-app/gradio/pull/11447) [`58631ef`](https://github.com/gradio-app/gradio/commit/58631efdf3e2ff805ce625b7ef63e651f01af03e) - Revert .only marker in e2e tests.  Thanks @freddyaboulton!
+
 ## 0.5.23
 
 ### Fixes
