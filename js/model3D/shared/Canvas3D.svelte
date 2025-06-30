@@ -14,7 +14,7 @@
 	export let pan_speed: number;
 
 	$: url = value.url;
-	$: console.log(clear_color);
+
 	/* URL resolution for the Wasm mode. */
 	export let resolved_url: typeof url = undefined; // Exposed to be bound to the download link in the parent component.
 	// The prop can be updated before the Promise from `resolve_wasm_src` is resolved.
