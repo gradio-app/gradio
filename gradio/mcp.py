@@ -1,7 +1,6 @@
 import base64
 import contextlib
 import os
-import re
 import tempfile
 import warnings
 from collections.abc import AsyncIterator, Sequence
@@ -51,12 +50,8 @@ class GradioMCPServer:
         self.api_info = self.blocks.get_api_info()
         self.mcp_server = self.create_mcp_server()
         self.root_path = ""
-        tool_prefix = utils.get_space()
-        if tool_prefix:
-            tool_prefix = tool_prefix.split("/")[-1] + "_"
-            self.tool_prefix = re.sub(r"[^a-zA-Z0-9]", "_", tool_prefix)
-        else:
-            self.tool_prefix = ""
+        space_id = utils.get_space()
+        self.tool_prefix = space_id.split("/")[-1] + "_" if space_id else ""
         self.tool_to_endpoint = self.get_tool_to_endpoint()
         self.warn_about_state_inputs()
 
@@ -95,6 +90,26 @@ class GradioMCPServer:
         else:
             return "/gradio_api/mcp/http"
 
+    @staticmethod
+    def valid_and_unique_tool_name(
+        tool_name: str, existing_tool_names: set[str]
+    ) -> str:
+        """
+        Sanitizes a tool name to make it a valid MCP tool name (only
+        alphanumeric characters, underscores, and hyphens, <= 128 characters).
+        and is unique among the existing tool names.
+        """
+        tool_name = "".join(
+            [char for char in tool_name if char.isalnum() or char in "_-"]
+        )
+        tool_name = tool_name[:120]  # Leave room for suffix if needed
+        tool_name_base = tool_name
+        suffix = 1
+        while tool_name in existing_tool_names:
+            tool_name = tool_name_base + f"_{suffix}"
+            suffix += 1
+        return tool_name
+
     def get_tool_to_endpoint(self) -> dict[str, str]:
         """
         Gets all of the tools that are exposed by the Gradio app and also
@@ -115,8 +130,9 @@ class GradioMCPServer:
                     or endpoint_name.lstrip("/")
                 )
                 tool_name = self.tool_prefix + fn_name
-                while tool_name in tool_to_endpoint:
-                    tool_name = tool_name + "_"
+                tool_name = self.valid_and_unique_tool_name(
+                    tool_name, set(tool_to_endpoint.keys())
+                )
                 tool_to_endpoint[tool_name] = endpoint_name
         return tool_to_endpoint
 
