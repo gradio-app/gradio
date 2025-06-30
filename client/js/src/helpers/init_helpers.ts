@@ -111,7 +111,7 @@ async function handleConfigResponse(
 	if (response?.status === 401 && !authorized) {
 		const error_data = await response.json();
 		const auth_message = error_data?.detail?.auth_message;
-		throw new Error(auth_message || "");
+		throw new Error(auth_message || MISSING_CREDENTIALS_MSG);
 	} else if (response?.status === 401 && authorized) {
 		throw new Error(INVALID_CREDENTIALS_MSG);
 	}

@@ -9,6 +9,7 @@ import {
 } from "@gradio/core";
 import { get } from "svelte/store";
 import type { Config } from "@gradio/client";
+import { MISSING_CREDENTIALS_MSG } from "@gradio/client";
 
 import Blocks from "@gradio/core/blocks";
 import Login from "@gradio/core/login";
@@ -35,7 +36,10 @@ export async function load({
 		});
 	} catch (error: any) {
 		const error_message = error.message || "";
-		const auth_message = error_message.replace(/^Error:?\s*/, "") || "";
+		let auth_message = "";
+		if (!error_message.includes(MISSING_CREDENTIALS_MSG)) {
+			auth_message = error_message.replace(/^Error:?\s*/, "");
+		}
 		return {
 			Render: Login,
 			config: {
