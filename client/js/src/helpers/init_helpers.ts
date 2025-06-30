@@ -97,24 +97,36 @@ export async function resolve_config(
 			credentials: "include"
 		});
 
-		if (response?.status === 401 && !this.options.auth) {
-			throw new Error(MISSING_CREDENTIALS_MSG);
-		} else if (response?.status === 401 && this.options.auth) {
-			throw new Error(INVALID_CREDENTIALS_MSG);
-		}
-		if (response?.status === 200) {
-			let config = await response.json();
-			config.root = endpoint;
-			config.dependencies?.forEach((dep: any, i: number) => {
-				if (dep.id === undefined) {
-					dep.id = i;
-				}
-			});
-			return config;
-		} else if (response?.status === 401) {
-			throw new Error(UNAUTHORIZED_MSG);
-		}
-		throw new Error(CONFIG_ERROR_MSG);
+		return handleConfigResponse(response, endpoint, !!this.options.auth);
+	}
+
+	throw new Error(CONFIG_ERROR_MSG);
+}
+
+async function handleConfigResponse(
+	response: Response,
+	endpoint: string,
+	authorized: boolean
+): Promise<Config> {
+	if (response?.status === 401 && !authorized) {
+		const error_data = await response.json();
+		const auth_message = error_data?.detail?.auth_message;
+		throw new Error(auth_message || MISSING_CREDENTIALS_MSG);
+	} else if (response?.status === 401 && authorized) {
+		throw new Error(INVALID_CREDENTIALS_MSG);
+	}
+
+	if (response?.status === 200) {
+		let config = await response.json();
+		config.root = endpoint;
+		config.dependencies?.forEach((dep: any, i: number) => {
+			if (dep.id === undefined) {
+				dep.id = i;
+			}
+		});
+		return config;
+	} else if (response?.status === 401) {
+		throw new Error(UNAUTHORIZED_MSG);
 	}
 
 	throw new Error(CONFIG_ERROR_MSG);
