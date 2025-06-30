@@ -12,7 +12,7 @@ class TestModel3D:
         assert model_component.get_config() == {
             "value": None,
             "display_mode": None,
-            "clear_color": [0, 0, 0, 0],
+            "clear_color": [0.5, 0.5, 0.5, 1.0],
             "label": "Model",
             "show_label": True,
             "container": True,
