@@ -86,7 +86,7 @@ class Model3D(Component):
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
         """
         self.display_mode = display_mode
-        self.clear_color = clear_color or [0, 0, 0, 0]
+        self.clear_color = clear_color or [0.5, 0.5, 0.5, 1.0]
         self.camera_position = camera_position
         self.height = height
         self.zoom_speed = zoom_speed
