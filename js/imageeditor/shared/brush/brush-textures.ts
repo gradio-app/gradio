@@ -81,140 +81,131 @@ export class BrushCommand implements Command {
 		stroke_data: BrushStroke,
 		target_texture: RenderTexture
 	): void {
-		// Process segments in order to preserve draw/erase sequence
-		for (let i = 0; i < stroke_data.segments.length; i++) {
-			const segment = stroke_data.segments[i];
+		// Separate draw and erase segments
+		const draw_segments = stroke_data.segments.filter((s) => s.mode === "draw");
+		const erase_segments = stroke_data.segments.filter(
+			(s) => s.mode === "erase"
+		);
 
-			if (segment.mode === "draw") {
-				this.apply_draw_segment(segment, target_texture);
-			} else {
-				this.apply_erase_segment(segment, target_texture);
+		// Handle draw segments first (same as before)
+		if (draw_segments.length > 0) {
+			const graphics = new Graphics();
+			const container = new Container();
+			container.addChild(graphics);
+			let alpha = 1;
+
+			for (const segment of draw_segments) {
+				if (segment.opacity < alpha) {
+					alpha = segment.opacity;
+				}
+				let colorValue = 0xffffff;
+				if (segment.color.startsWith("#")) {
+					colorValue = parseInt(segment.color.replace("#", "0x"), 16);
+				}
+
+				graphics.setFillStyle({
+					color: colorValue,
+					alpha: 1
+				});
+
+				this.render_segment_to_graphics(graphics, segment);
 			}
+
+			// Render draw segments with alpha
+			const alpha_sprite_texture = RenderTexture.create({
+				width: target_texture.width,
+				height: target_texture.height,
+				resolution: window.devicePixelRatio || 1
+			});
+
+			const alpha_sprite = new Sprite(alpha_sprite_texture);
+			this.context.app.renderer.render({
+				container: container,
+				target: alpha_sprite_texture
+			});
+
+			alpha_sprite.alpha = alpha;
+
+			this.context.app.renderer.render({
+				container: alpha_sprite,
+				target: target_texture,
+				clear: false
+			});
+
+			container.destroy({ children: true });
+			alpha_sprite.destroy();
+			alpha_sprite_texture.destroy();
 		}
-	}
 
-	/**
-	 * Apply a single draw segment to the target texture
-	 */
-	private apply_draw_segment(
-		segment: BrushSegment,
-		target_texture: RenderTexture
-	): void {
-		const graphics = new Graphics();
-		const container = new Container();
-		container.addChild(graphics);
+		// Handle erase segments using masking
+		if (erase_segments.length > 0) {
+			// First, copy the current target texture content to a temporary texture
+			const temp_content_texture = RenderTexture.create({
+				width: target_texture.width,
+				height: target_texture.height,
+				resolution: window.devicePixelRatio || 1
+			});
 
-		// Set up color
-		let colorValue = 0xffffff;
-		try {
-			if (segment.color.startsWith("#")) {
-				colorValue = parseInt(segment.color.replace("#", "0x"), 16);
+			const copy_sprite = new Sprite(target_texture);
+			const copy_container = new Container();
+			copy_container.addChild(copy_sprite);
+
+			this.context.app.renderer.render({
+				container: copy_container,
+				target: temp_content_texture,
+				clear: true
+			});
+
+			// Create erase mask from all erase segments
+			const erase_graphics = new Graphics();
+			const erase_container = new Container();
+			erase_container.addChild(erase_graphics);
+
+			erase_graphics.setFillStyle({
+				color: 0xffffff,
+				alpha: 1.0
+			});
+
+			for (const segment of erase_segments) {
+				this.render_segment_to_graphics(erase_graphics, segment);
 			}
-		} catch (e) {
-			colorValue = 0xffffff;
+
+			// Create mask texture
+			const mask_texture = RenderTexture.create({
+				width: target_texture.width,
+				height: target_texture.height,
+				resolution: window.devicePixelRatio || 1
+			});
+
+			this.context.app.renderer.render({
+				container: erase_container,
+				target: mask_texture,
+				clear: true
+			});
+
+			// Apply inverse mask: show content where mask is black (not white)
+			const content_sprite = new Sprite(temp_content_texture);
+			const mask_sprite = new Sprite(mask_texture);
+
+			// Create a container to hold the masked content
+			const masked_container = new Container();
+			masked_container.addChild(content_sprite);
+			masked_container.setMask({ mask: mask_sprite, inverse: true }); // Inverse mask = erase
+
+			// Render the masked result back to target
+			this.context.app.renderer.render({
+				container: masked_container,
+				target: target_texture,
+				clear: true
+			});
+
+			// Cleanup
+			copy_container.destroy({ children: true });
+			erase_container.destroy({ children: true });
+			masked_container.destroy({ children: true });
+			temp_content_texture.destroy();
+			mask_texture.destroy();
 		}
-
-		graphics.setFillStyle({
-			color: colorValue,
-			alpha: 1.0
-		});
-
-		// Render the segment
-		this.render_segment_to_graphics(graphics, segment);
-
-		// Create temp texture for this segment
-		const segment_texture = RenderTexture.create({
-			width: target_texture.width,
-			height: target_texture.height,
-			resolution: window.devicePixelRatio || 1
-		});
-
-		// Render segment to temp texture
-		this.context.app.renderer.render(container, {
-			renderTexture: segment_texture
-		});
-
-		// Composite temp texture onto target with opacity
-		const composite_container = new Container();
-		const existing_sprite = new Sprite(target_texture);
-		composite_container.addChild(existing_sprite);
-
-		const segment_sprite = new Sprite(segment_texture);
-		segment_sprite.alpha = segment.opacity;
-		composite_container.addChild(segment_sprite);
-
-		// Clear target and render composite
-		const clear_container = new Container();
-		this.context.app.renderer.render(clear_container, {
-			renderTexture: target_texture
-		});
-		clear_container.destroy();
-
-		this.context.app.renderer.render(composite_container, {
-			renderTexture: target_texture
-		});
-
-		// Cleanup
-		container.destroy({ children: true });
-		composite_container.destroy({ children: true });
-		segment_texture.destroy();
-	}
-
-	/**
-	 * Apply a single erase segment to the target texture
-	 */
-	private apply_erase_segment(
-		segment: BrushSegment,
-		target_texture: RenderTexture
-	): void {
-		const graphics = new Graphics();
-		const container = new Container();
-		container.addChild(graphics);
-
-		// Set up white for erase mask
-		graphics.setFillStyle({
-			color: 0xffffff,
-			alpha: 1.0
-		});
-
-		// Render the segment
-		this.render_segment_to_graphics(graphics, segment);
-
-		// Create temp texture for erase mask
-		const mask_texture = RenderTexture.create({
-			width: target_texture.width,
-			height: target_texture.height,
-			resolution: window.devicePixelRatio || 1
-		});
-
-		// Render erase mask to temp texture
-		this.context.app.renderer.render(container, {
-			renderTexture: mask_texture
-		});
-
-		// Apply inverse mask to target texture
-		const mask_container = new Container();
-		const content_sprite = new Sprite(target_texture);
-		mask_container.addChild(content_sprite);
-
-		const mask_sprite = new Sprite(mask_texture);
-		mask_container.setMask({ mask: mask_sprite, inverse: true });
-
-		// Clear target and render masked result
-		const clear_container = new Container();
-		this.context.app.renderer.render(clear_container, {
-			renderTexture: target_texture
-		});
-		clear_container.destroy();
-
-		this.context.app.renderer.render(mask_container, {
-			renderTexture: target_texture
-		});
-
-		// Cleanup
-		container.destroy({ children: true });
-		mask_container.destroy({ children: true });
-		mask_texture.destroy();
 	}
 
 	/**
@@ -276,8 +267,10 @@ export class BrushCommand implements Command {
 		const temp_container = new Container();
 		temp_container.addChild(current_sprite);
 
-		this.context.app.renderer.render(temp_container, {
-			renderTexture: temp_texture
+		this.context.app.renderer.render({
+			container: temp_container,
+			target: temp_texture,
+			clear: true
 		});
 
 		temp_container.destroy({ children: true });
@@ -290,8 +283,10 @@ export class BrushCommand implements Command {
 		const final_container = new Container();
 		final_container.addChild(final_sprite);
 
-		this.context.app.renderer.render(final_container, {
-			renderTexture: layer_textures.draw
+		this.context.app.renderer.render({
+			container: final_container,
+			target: layer_textures.draw,
+			clear: true
 		});
 
 		final_container.destroy({ children: true });
@@ -310,8 +305,10 @@ export class BrushCommand implements Command {
 		const temp_container = new Container();
 		temp_container.addChild(temp_sprite);
 
-		this.context.app.renderer.render(temp_container, {
-			renderTexture: layer_textures.draw
+		this.context.app.renderer.render({
+			container: temp_container,
+			target: layer_textures.draw,
+			clear: true
 		});
 
 		temp_container.destroy({ children: true });
@@ -383,15 +380,7 @@ export class BrushTextures {
 
 		this.display_container = new Container();
 
-		const active_layer =
-			this.image_editor_context.layer_manager.get_active_layer();
-		if (active_layer) {
-			active_layer.addChild(this.display_container);
-		} else {
-			this.image_editor_context.image_container.addChild(
-				this.display_container
-			);
-		}
+		this.image_editor_context.image_container.addChild(this.display_container);
 
 		this.stroke_container = new Container();
 		this.stroke_graphics = new Graphics();
@@ -566,7 +555,6 @@ export class BrushTextures {
 			this.original_layer_texture
 		);
 
-		// Clean up the stroke graphics and texture
 		if (this.stroke_graphics) {
 			this.stroke_graphics.clear();
 		}
@@ -764,6 +752,17 @@ export class BrushTextures {
 	 */
 	get_dimensions(): { width: number; height: number } {
 		return this.dimensions;
+	}
+
+	/**
+	 * Checks if textures are properly initialized.
+	 */
+	get textures_initialized(): boolean {
+		return !!(
+			this.stroke_texture &&
+			this.display_container &&
+			this.preview_sprite
+		);
 	}
 
 	/**

@@ -84,12 +84,8 @@
 	$: if (editor && ready && editor.layers) {
 		const current_layers = get(editor.layers);
 
-		// only refresh if we have layers but no active layer, or if current tool is draw/erase
-		if (
-			(current_layers.layers.length > 0 && !current_layers.active_layer) ||
-			current_tool === "draw" ||
-			current_tool === "erase"
-		) {
+		// only refresh if we have layers but no active layer (don't refresh on every draw/erase operation)
+		if (current_layers.layers.length > 0 && !current_layers.active_layer) {
 			refresh_tools_for_layer_changes(current_layers);
 		}
 	}
@@ -276,6 +272,10 @@
 				});
 			}
 		});
+
+		if (typeof window !== "undefined") {
+			(window as any).editor = editor;
+		}
 
 		return () => {
 			if (intersection_observer) {

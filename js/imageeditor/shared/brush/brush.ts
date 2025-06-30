@@ -164,10 +164,12 @@ export class BrushTool implements Tool {
 		}
 
 		const new_mode = tool === "erase" ? "erase" : "draw";
-		const needs_texture_init = tool === "erase" || tool === "draw";
+		const mode_changed = this.state.mode !== new_mode;
+		const needs_brush_tool = tool === "erase" || tool === "draw";
+		const textures_initialized = this.brush_textures?.textures_initialized ?? false;
 
-		// Only initialize textures if we actually need them and mode changed
-		if (needs_texture_init) {
+		// Only initialize textures if we need brush tools AND (mode changed OR textures not initialized)
+		if (needs_brush_tool && (mode_changed || !textures_initialized)) {
 			this.brush_textures?.initialize_textures();
 		}
 

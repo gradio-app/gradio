@@ -53,6 +53,10 @@ export class CommandNode {
 	}
 
 	push(command: Command): void {
+		// Clear any existing forward history when adding a new command
+		// This implements linear undo/redo (no branching)
+		this.next = null;
+
 		const node = new CommandNode(command);
 		node.previous = this;
 		this.next = node;
@@ -68,21 +72,24 @@ export class CommandManager {
 
 	current_history = writable(this.history);
 
+	constructor() {
+		// Constructor left empty - no logging needed
+	}
+
 	undo(): void {
 		if (this.history.previous) {
 			this.history.command?.undo();
 			this.history = this.history.previous;
 
-			this.current_history.set(this.history);
+			this.current_history.update(() => this.history);
 		}
 	}
 	redo(context?: ImageEditorContext): void {
 		if (this.history.next) {
 			this.history = this.history.next;
 			this.history.command?.execute(context);
+			this.current_history.update(() => this.history);
 		}
-
-		this.current_history.set(this.history);
 	}
 
 	async execute(command: Command, context: ImageEditorContext): Promise<void> {
@@ -90,7 +97,7 @@ export class CommandManager {
 		this.history.push(command);
 		this.history = this.history.next!;
 
-		this.current_history.set(this.history);
+		this.current_history.update(() => this.history);
 	}
 
 	async wait_for_next_frame(): Promise<void> {
@@ -115,7 +122,7 @@ export class CommandManager {
 		}
 
 		this.history = full_history;
-		this.current_history.set(this.history);
+		this.current_history.update(() => this.history);
 	}
 
 	contains(command_name: string): boolean {
@@ -130,6 +137,6 @@ export class CommandManager {
 	reset(): void {
 		this.history = new CommandNode();
 
-		this.current_history.set(this.history);
+		this.current_history.update(() => this.history);
 	}
 }

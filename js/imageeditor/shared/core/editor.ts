@@ -662,6 +662,7 @@ export class ImageEditor {
 		this.layer_manager.reset_layers(this.width, this.height);
 		this.background_image = undefined;
 		this.background_image_present.set(false);
+		this.command_manager.reset();
 
 		await this.set_image_properties({
 			width: this.width,
@@ -671,7 +672,7 @@ export class ImageEditor {
 			animate: false
 		});
 
-		this.command_manager = new CommandManager();
+		// this.command_manager = new CommandManager();
 
 		this.layer_manager.create_background_layer(this.width, this.height);
 
