@@ -10,7 +10,9 @@
 
 	export let value: null | FileData;
 	export let display_mode: "solid" | "point_cloud" | "wireframe" = "solid";
-	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
+	export let clear_color: [number, number, number, number] = [
+		0.5, 0.5, 0.5, 1.0
+	];
 	export let label = "";
 	export let show_label: boolean;
 	export let root: string;
