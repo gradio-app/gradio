@@ -746,7 +746,16 @@ export class LayerManager {
 					return null;
 				})
 			),
-			composite: await get_canvas_blob(this.app.renderer, this.image_container)
+			composite: await get_canvas_blob(
+				this.app.renderer,
+				this.image_container,
+				{
+					width,
+					height,
+					x: 0,
+					y: 0
+				}
+			)
 		};
 
 		return blobs;

@@ -16,8 +16,6 @@
 	onMount(() => {
 		dispatch("mount");
 	});
-
-	$: console.log("MountComponents", rootNode);
 </script>
 
 {#if rootNode}

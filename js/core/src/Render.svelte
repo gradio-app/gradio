@@ -78,8 +78,6 @@
 		client,
 		load_component
 	);
-
-	$: console.log("render", node.type, node.children);
 </script>
 
 {#if node.component}
@@ -102,7 +100,6 @@
 	>
 		{#if node.children && node.children.length}
 			{#each node.children as _node (_node.id)}
-				{@const x = console.log("child", _node.type)}
 				<svelte:self
 					node={_node}
 					component={_node.component}
