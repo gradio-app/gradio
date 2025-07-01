@@ -9,12 +9,12 @@ from typing import Any
 
 from gradio_client.documentation import document
 
-from gradio.components.base import FormComponent
+from gradio.components.base import Component
 from gradio.events import Events
 
 
 @document()
-class State(FormComponent):
+class State(Component):
     EVENTS = [Events.change]
     """
     Special hidden component that stores session state across runs of the demo by the
@@ -94,5 +94,5 @@ class State(FormComponent):
         return config
 
     def breaks_grouping(self) -> bool:
-        """State components should not break FormComponent grouping chains."""
+        """State components should not break wrapper grouping chains."""
         return False

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { afterUpdate, tick, onMount } from "svelte";
-	// KaTeX will be lazily imported when math is detected
 	import { create_marked } from "./utils";
 	import { sanitize } from "@gradio/sanitize";
 	import "./prism.css";
@@ -111,7 +110,7 @@
 		}
 
 		if (sanitize_html && sanitize) {
-			parsedValue = sanitize(parsedValue, location.href);
+			parsedValue = sanitize(parsedValue);
 		}
 		return parsedValue;
 	}
@@ -123,11 +122,8 @@
 	}
 
 	async function render_html(value: string): Promise<void> {
-		// Lazily load and render KaTeX if math syntax is detected
 		if (latex_delimiters.length > 0 && value && has_math_syntax(value)) {
 			if (!katex_loaded) {
-				console.log("LOADING KAtex");
-				// Dynamically import KaTeX CSS and render function
 				await Promise.all([
 					import("katex/dist/katex.min.css"),
 					import("katex/contrib/auto-render")
@@ -139,9 +135,6 @@
 					});
 				});
 			} else {
-				console.log("LOADING KAtex");
-
-				// KaTeX already loaded, just render
 				const { default: render_math_in_element } = await import(
 					"katex/contrib/auto-render"
 				);
