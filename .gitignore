@@ -94,7 +94,10 @@ client/js/test.js
 storybook-static
 build-storybook.log
 js/storybook/theme.css
-#js/storybook/public/output-image.png
 
 # playwright
 .config/playwright/.cache
+
+# claude
+.claude/
+CLAUDE.md
