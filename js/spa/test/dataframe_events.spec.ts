@@ -366,3 +366,18 @@ test("Dataframe select events work as expected", async ({ page }) => {
 
 	expect(restored_selected_cell_value).toBe("DeepSeek Coder");
 });
+
+test("Dataframe keyboard events allow newlines", async ({ page }) => {
+	await page.getByRole("button", { name: "Update dataframe" }).click();
+	await page.waitForTimeout(500);
+
+	const df = page.locator("#dataframe");
+	await get_cell(df, 0, 0).click();
+
+	await page.getByLabel("Edit cell").fill("42");
+	await page.getByLabel("Edit cell").press("Shift+Enter");
+	await page.getByLabel("Edit cell").pressSequentially("don't panic");
+	await page.getByLabel("Edit cell").press("Enter");
+
+	expect(await get_cell(df, 0, 0).textContent()).toBe(" 42\ndon't panic   ⋮");
+});
