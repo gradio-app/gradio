@@ -1,5 +1,6 @@
 import base64
 import contextlib
+import copy
 import os
 import re
 import tempfile
@@ -454,6 +455,8 @@ class GradioMCPServer:
                 path = []
             if defs is None:
                 defs = {}
+            # Deep copy the node to avoid modifying the original node
+            node = copy.deepcopy(node)
 
             if isinstance(node, dict):
                 if "$defs" in node:
