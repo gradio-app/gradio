@@ -53,8 +53,6 @@ export class CommandNode {
 	}
 
 	push(command: Command): void {
-		// Clear any existing forward history when adding a new command
-		// This implements linear undo/redo (no branching)
 		this.next = null;
 
 		const node = new CommandNode(command);
@@ -69,12 +67,7 @@ export class CommandNode {
  */
 export class CommandManager {
 	history: CommandNode = new CommandNode();
-
 	current_history = writable(this.history);
-
-	constructor() {
-		// Constructor left empty - no logging needed
-	}
 
 	undo(): void {
 		if (this.history.previous) {

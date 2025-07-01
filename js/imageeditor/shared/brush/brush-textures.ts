@@ -81,13 +81,11 @@ export class BrushCommand implements Command {
 		stroke_data: BrushStroke,
 		target_texture: RenderTexture
 	): void {
-		// Separate draw and erase segments
 		const draw_segments = stroke_data.segments.filter((s) => s.mode === "draw");
 		const erase_segments = stroke_data.segments.filter(
 			(s) => s.mode === "erase"
 		);
 
-		// Handle draw segments first (same as before)
 		if (draw_segments.length > 0) {
 			const graphics = new Graphics();
 			const container = new Container();
@@ -111,7 +109,8 @@ export class BrushCommand implements Command {
 				this.render_segment_to_graphics(graphics, segment);
 			}
 
-			// Render draw segments with alpha
+			// we need a sprite in order to set the alpha and for that we need a texture
+			// i'm not entirely sure why other approaches didn't work
 			const alpha_sprite_texture = RenderTexture.create({
 				width: target_texture.width,
 				height: target_texture.height,
@@ -137,9 +136,8 @@ export class BrushCommand implements Command {
 			alpha_sprite_texture.destroy();
 		}
 
-		// Handle erase segments using masking
 		if (erase_segments.length > 0) {
-			// First, copy the current target texture content to a temporary texture
+			// create a temp texture to work with
 			const temp_content_texture = RenderTexture.create({
 				width: target_texture.width,
 				height: target_texture.height,
@@ -156,7 +154,7 @@ export class BrushCommand implements Command {
 				clear: true
 			});
 
-			// Create erase mask from all erase segments
+			// create a graphics object to draw the erase segments
 			const erase_graphics = new Graphics();
 			const erase_container = new Container();
 			erase_container.addChild(erase_graphics);
@@ -170,7 +168,7 @@ export class BrushCommand implements Command {
 				this.render_segment_to_graphics(erase_graphics, segment);
 			}
 
-			// Create mask texture
+			// create a separate texture to hold the mask
 			const mask_texture = RenderTexture.create({
 				width: target_texture.width,
 				height: target_texture.height,
@@ -183,23 +181,21 @@ export class BrushCommand implements Command {
 				clear: true
 			});
 
-			// Apply inverse mask: show content where mask is black (not white)
 			const content_sprite = new Sprite(temp_content_texture);
 			const mask_sprite = new Sprite(mask_texture);
 
-			// Create a container to hold the masked content
+			// only now do we create a sprite from the original texture and add the mask
 			const masked_container = new Container();
 			masked_container.addChild(content_sprite);
-			masked_container.setMask({ mask: mask_sprite, inverse: true }); // Inverse mask = erase
+			masked_container.setMask({ mask: mask_sprite, inverse: true }); // inverse mask = erase
 
-			// Render the masked result back to target
+			// now we can render the masked content back to the target texture
 			this.context.app.renderer.render({
 				container: masked_container,
 				target: target_texture,
 				clear: true
 			});
 
-			// Cleanup
 			copy_container.destroy({ children: true });
 			erase_container.destroy({ children: true });
 			masked_container.destroy({ children: true });
@@ -255,14 +251,14 @@ export class BrushCommand implements Command {
 
 		if (!layer_textures) return;
 
-		// Create a temporary texture to render the stroke
+		// create a temporary texture to render the stroke
 		const temp_texture = RenderTexture.create({
 			width: layer_textures.draw.width,
 			height: layer_textures.draw.height,
 			resolution: window.devicePixelRatio || 1
 		});
 
-		// Copy current layer content to temp texture
+		// copy current layer content to temp texture
 		const current_sprite = new Sprite(layer_textures.draw);
 		const temp_container = new Container();
 		temp_container.addChild(current_sprite);
@@ -275,10 +271,9 @@ export class BrushCommand implements Command {
 
 		temp_container.destroy({ children: true });
 
-		// Render the stroke from stored parameters
 		this.render_stroke_from_data(this.stroke_data, temp_texture);
 
-		// Copy result back to layer texture
+		// copy final result back to layer texture
 		const final_sprite = new Sprite(temp_texture);
 		const final_container = new Container();
 		final_container.addChild(final_sprite);
@@ -333,13 +328,8 @@ export class BrushTextures {
 	private is_new_stroke = true;
 
 	private current_opacity = 1.0;
-
-	private current_mode: "draw" | "erase" = "draw";
-
 	private original_layer_texture: Texture | null = null;
 	private active_layer_id: string | null = null;
-
-	// New: Store stroke segments for parameter-based history
 	private current_stroke_segments: BrushSegment[] = [];
 
 	constructor(image_editor_context: ImageEditorContext, app: Application) {
@@ -542,13 +532,11 @@ export class BrushTextures {
 			this.image_editor_context.layer_manager.get_layer_textures(layer.id);
 		if (!layer_textures) return;
 
-		// Create the stroke data with all segments
 		const stroke_data: BrushStroke = {
 			segments: [...this.current_stroke_segments],
 			layer_id: this.active_layer_id
 		};
 
-		// Create the brush command with the original texture for undo
 		const brush_command = new BrushCommand(
 			this.image_editor_context,
 			stroke_data,
@@ -564,13 +552,11 @@ export class BrushTextures {
 		});
 		clear_container.destroy();
 
-		// Reset state for next stroke
 		this.is_new_stroke = true;
 		this.original_layer_texture = null;
 		this.active_layer_id = null;
 		this.current_stroke_segments = [];
 
-		// Execute the command - this will apply the stroke using the proper logic
 		this.image_editor_context.command_manager.execute(
 			brush_command,
 			this.image_editor_context
@@ -614,7 +600,6 @@ export class BrushTextures {
 			this.preserve_canvas_state();
 		}
 
-		this.current_mode = mode;
 		this.current_opacity =
 			mode === "draw" ? Math.min(Math.max(opacity, 0), 1) : 0.5;
 
@@ -622,7 +607,6 @@ export class BrushTextures {
 
 		if (this.is_new_stroke) {
 			this.stroke_graphics.clear();
-			// Clear the stroke segments array for new stroke
 			this.current_stroke_segments = [];
 
 			const clear_container = new Container();
@@ -634,7 +618,6 @@ export class BrushTextures {
 			this.is_new_stroke = false;
 		}
 
-		// Store segment parameters for history
 		this.current_stroke_segments.push({
 			from_x,
 			from_y,

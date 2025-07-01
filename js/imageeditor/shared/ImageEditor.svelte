@@ -80,11 +80,9 @@
 		editor.set_subtool(current_subtool);
 	}
 
-	// ensure tools are properly configured when layer state changes
 	$: if (editor && ready && editor.layers) {
 		const current_layers = get(editor.layers);
 
-		// only refresh if we have layers but no active layer (don't refresh on every draw/erase operation)
 		if (current_layers.layers.length > 0 && !current_layers.active_layer) {
 			refresh_tools_for_layer_changes(current_layers);
 		}
@@ -161,7 +159,6 @@
 		if (!editor || !source || !check_if_should_init()) return;
 		let url: string;
 
-		// Handle different source types
 		if (typeof source === "string") {
 			url = source;
 		} else if (source?.meta?._type === "gradio.FileData" && source?.url) {
@@ -195,7 +192,6 @@
 	): Promise<void> {
 		if (!editor || !source.length || !check_if_should_init()) return;
 
-		// Handle different source types
 		if (
 			Array.isArray(source) &&
 			source.every((item) => item?.meta?._type === "gradio.FileData")
@@ -237,10 +233,8 @@
 				current_dimensions.width !== last_dimensions.width ||
 				current_dimensions.height !== last_dimensions.height
 			) {
-				// Use set_zoom with "fit" to reset to appropriate zoom level
 				zoom.set_zoom("fit");
 
-				// Update the last known dimensions
 				last_dimensions = {
 					width: current_dimensions.width,
 					height: current_dimensions.height

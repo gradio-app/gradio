@@ -86,6 +86,27 @@ with gr.Blocks(title="Multi-Component Demo with 10 Tabs") as demo:
             text_input.change(
                 process_text, inputs=[text_input, text_area], outputs=text_output
             )
+        with gr.Tab("📝 Text 2", id="tab_text_2"):
+            gr.Markdown("### Text Processing")
+            text_input_2 = gr.Textbox(
+                label="Input Text",
+                placeholder="Enter your text here...",
+                interactive=True,
+            )
+            text_area_2 = gr.TextArea(
+                label="Large Text Area",
+                placeholder="Enter longer text...",
+                interactive=True,
+            )
+            text_output_2 = gr.Textbox(label="Processed Text", interactive=True)
+
+            def process_text(text1, text2):
+                combined = f"Text 1: {text1}\nText 2: {text2}\nTotal characters: {len(text1) + len(text2)}"
+                return combined
+
+            text_input_2.change(
+                process_text, inputs=[text_input_2, text_area_2], outputs=text_output_2
+            )
 
         # Tab 1: 3D Model Viewer
         with gr.Tab("🎯 3D Model", id="tab_3d"):

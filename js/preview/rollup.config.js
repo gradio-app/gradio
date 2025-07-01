@@ -6,7 +6,7 @@ import ts from "@rollup/plugin-typescript";
 import node from "@rollup/plugin-node-resolve";
 import cjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
-import terser  from "@rollup/plugin-terser";
+import terser from "@rollup/plugin-terser";
 
 const onwarn = (warning, warn) => {
 	if (warning.plugin === "typescript") return;

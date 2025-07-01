@@ -34,6 +34,7 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
+from brotli_asgi import BrotliMiddleware
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -42,7 +43,6 @@ from fastapi import (
     HTTPException,
     status,
 )
-from brotli_asgi import BrotliMiddleware
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,

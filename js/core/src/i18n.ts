@@ -9,14 +9,21 @@ import {
 import { formatter } from "./gradio_helper";
 
 const langs = import.meta.glob("./lang/*.json");
+import en from "./lang/en.json";
 
 export interface I18nData {
 	__type__: "translation_metadata";
 	key: string;
 }
 
+export type Lang = {
+	[key: string]: Record<string, string> | string;
+};
+
 export interface LangsRecord {
-	[lang: string]: () => Promise<unknown>;
+	[lang: string]:
+		| { type: "lazy"; data: () => Promise<Lang> }
+		| { type: "static"; data: Lang };
 }
 
 export function is_translation_metadata(obj: any): obj is I18nData {
@@ -87,12 +94,17 @@ export function translate_if_needed(value: any): string {
 }
 
 export function process_langs(): LangsRecord {
-	return Object.fromEntries(
+	const lazy_langs = Object.fromEntries(
 		Object.entries(langs).map(([path, mod]) => [
 			path.split("/").pop()!.split(".")[0],
-			mod
+			{ type: "lazy", data: mod }
 		])
 	);
+
+	return {
+		...lazy_langs,
+		en: { type: "static", data: en }
+	};
 }
 
 const processed_langs = process_langs();
@@ -144,8 +156,6 @@ export async function setupi18n(
 		initialLocale: initial_locale
 	});
 
-	await waitLocale();
-
 	i18n_initialized = true;
 }
 
@@ -181,7 +191,14 @@ export function load_translations(translations: {
 		}
 
 		for (const lang in translations.processed_langs) {
-			register(lang, translations.processed_langs[lang]);
+			if (
+				lang === "en" &&
+				translations.processed_langs[lang].type === "static"
+			) {
+				addMessages(lang, en);
+			} else if (translations.processed_langs[lang].type === "lazy") {
+				register(lang, translations.processed_langs[lang].data);
+			}
 		}
 	} catch (e) {
 		console.error("Error loading translations:", e);

@@ -672,8 +672,6 @@ export class ImageEditor {
 			animate: false
 		});
 
-		// this.command_manager = new CommandManager();
-
 		this.layer_manager.create_background_layer(this.width, this.height);
 
 		for (const tool of this.tools.values()) {
@@ -731,7 +729,6 @@ export class ImageEditor {
 			}
 		}
 
-		// Set the active layer to the first newly created layer
 		if (created_layer_ids.length > 0) {
 			this.layer_manager.set_active_layer(created_layer_ids[0]);
 		}
