@@ -19,6 +19,8 @@
 	export let _id: number;
 	export let visible: boolean;
 
+	$: _visible = typeof visible === "boolean" ? visible : true;
+
 	const s = (id: number, p: string, v: any): CustomEvent =>
 		new CustomEvent("prop_change", { detail: { id, prop: p, value: v } });
 
@@ -49,7 +51,7 @@
 		return ProxiedMyClass;
 	}
 
-	$: _component = wrap(component);
+	let _component = wrap(component);
 
 	const supported_props = [
 		"description",
@@ -70,8 +72,6 @@
 
 	$: translate_prop($$restProps);
 	$: value = translate_if_needed(value);
-
-	$: console.log("visible", visible, $$restProps, component);
 </script>
 
 {#if visible}

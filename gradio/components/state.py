@@ -92,3 +92,7 @@ class State(FormComponent):
         config = super().get_config()
         del config["value"]
         return config
+
+    def breaks_grouping(self) -> bool:
+        """State components should not break FormComponent grouping chains."""
+        return False

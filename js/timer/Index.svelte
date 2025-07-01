@@ -10,6 +10,8 @@
 	let old_active: boolean;
 	let interval: NodeJS.Timeout;
 
+	$: console.log("value", value, active);
+
 	$: if (old_value !== value || active !== old_active) {
 		if (interval) clearInterval(interval);
 		if (active) {

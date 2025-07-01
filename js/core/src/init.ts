@@ -330,6 +330,10 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		}
 		instance.parent = parent;
 
+		// if (instance.type === "timer") {
+		// 	console.log("timer", instance, constructor_map);
+		// }
+
 		if (instance.type === "dataset") {
 			instance.props.component_map = get_component(
 				instance.type,
@@ -388,7 +392,8 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			instance.props.initial_tabs = child_tab_items?.map((child) => ({
 				label: child.props.label,
 				id: child.props.id,
-				visible: child.props.visible,
+				visible:
+					typeof child.props.visible === "boolean" ? child.props.visible : true,
 				interactive: child.props.interactive,
 				order: child.props.order
 			}));
@@ -420,8 +425,6 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			newly_visible_ids.has(c.id)
 		);
 
-		console.log("components_to_load", components_to_load);
-
 		for (const component of components_to_load) {
 			const constructor_key = component.component_class_id || component.type;
 
@@ -447,6 +450,10 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 				if (!component.component) {
 					component.component = (await loadable_component)?.default;
 				}
+			} else {
+				component.component =
+					(await constructor_map.get(constructor_key))?.default ??
+					component.component;
 			}
 		}
 	}
@@ -944,7 +951,11 @@ function determine_visible_components(
 	}
 
 	// Check if the component itself is visible
-	const component_visible = parent_visible && component.props.visible !== false;
+	const component_visible =
+		parent_visible &&
+		(typeof component.props.visible === "boolean"
+			? component.props.visible
+			: true);
 
 	// Handle tab_item special case
 	if (component.type === "tabitem") {
