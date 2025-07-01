@@ -1,3 +1,4 @@
+import copy
 import os
 import tempfile
 import time
@@ -122,10 +123,13 @@ def test_simplify_filedata_schema(test_mcp_app):
             },
         },
     }
+    old_schema = copy.deepcopy(test_schema)
 
     simplified_schema, filedata_positions = server.simplify_filedata_schema(test_schema)
     assert simplified_schema["properties"]["image"]["type"] == "string"
     assert filedata_positions == [["image"]]
+    # Verify that the original schema is not modified
+    assert test_schema == old_schema
 
 
 def test_tool_prefix_character_replacement(test_mcp_app):
@@ -214,10 +218,7 @@ def test_mcp_sse_transport(test_mcp_app):
             )
 
 
-@pytest.mark.serial
-def test_mcp_mount_gradio_app():
-    import threading
-
+def make_app():
     import uvicorn
     from fastapi import FastAPI
 
@@ -230,62 +231,68 @@ def test_mcp_mount_gradio_app():
 
     fastapi_app = FastAPI()
     mount_gradio_app(fastapi_app, app, path="/test", mcp_server=True)
+    uvicorn.run(fastapi_app, port=6868)
 
-    thread = threading.Thread(
-        target=uvicorn.run, args=(fastapi_app,), kwargs={"port": 6868}, daemon=True
-    )
-    thread.start()
 
-    max_retries = 4
-    retry_delay = 0.1
+@pytest.mark.serial
+def test_mcp_mount_gradio_app():
+    import multiprocessing
 
-    for attempt in range(max_retries):
-        try:
-            with httpx.Client(timeout=1) as test_client:
-                test_response = test_client.get("http://localhost:6868/test/")
-                if test_response.status_code == 200:
-                    break
-        except (httpx.ConnectError, httpx.TimeoutException):
-            if attempt == max_retries - 1:
-                raise Exception("Gradio app did not start") from None
-            time.sleep(retry_delay * (2**attempt))
+    process = multiprocessing.Process(target=make_app)
+    try:
+        process.start()
+        max_retries = 4
+        retry_delay = 2
 
-    with httpx.Client(timeout=5) as client:
-        config_url = "http://localhost:6868/test/config"
-        config_response = client.get(config_url)
-        assert config_response.is_success
-        assert config_response.json()["mcp_server"] is True
+        for attempt in range(max_retries):
+            try:
+                with httpx.Client(timeout=1) as test_client:
+                    test_response = test_client.get("http://localhost:6868/test/")
+                    if test_response.status_code == 200:
+                        break
+            except (httpx.ConnectError, httpx.TimeoutException):
+                if attempt == max_retries - 1:
+                    raise Exception("Gradio app did not start") from None
+                time.sleep(retry_delay * (2**attempt))
 
-        sse_url = "http://localhost:6868/test/gradio_api/mcp/sse"
+        with httpx.Client(timeout=5) as client:
+            config_url = "http://localhost:6868/test/config"
+            config_response = client.get(config_url)
+            assert config_response.is_success
+            assert config_response.json()["mcp_server"] is True
 
-        with client.stream("GET", sse_url) as response:
-            assert response.is_success
+            sse_url = "http://localhost:6868/test/gradio_api/mcp/sse"
 
-            terminate_next = False
-            line = ""
-            for line in response.iter_lines():
-                if terminate_next:
-                    break
-                if line.startswith("event: endpoint"):
-                    terminate_next = True
+            with client.stream("GET", sse_url) as response:
+                assert response.is_success
 
-            messages_path = line[5:].strip()
-            messages_url = f"http://localhost:6868{messages_path}"
+                terminate_next = False
+                line = ""
+                for line in response.iter_lines():
+                    if terminate_next:
+                        break
+                    if line.startswith("event: endpoint"):
+                        terminate_next = True
 
-            message_response = client.post(
-                messages_url,
-                json={
-                    "method": "initialize",
-                    "params": {
-                        "protocolVersion": "2025-03-26",
-                        "capabilities": {},
+                messages_path = line[5:].strip()
+                messages_url = f"http://localhost:6868{messages_path}"
+
+                message_response = client.post(
+                    messages_url,
+                    json={
+                        "method": "initialize",
+                        "params": {
+                            "protocolVersion": "2025-03-26",
+                            "capabilities": {},
+                        },
+                        "jsonrpc": "2.0",
+                        "id": 0,
                     },
-                    "jsonrpc": "2.0",
-                    "id": 0,
-                },
-                headers={"Content-Type": "application/json"},
-            )
+                    headers={"Content-Type": "application/json"},
+                )
 
-            assert message_response.is_success, (
-                f"Failed with status {message_response.status_code}: {message_response.text}"
-            )
+                assert message_response.is_success, (
+                    f"Failed with status {message_response.status_code}: {message_response.text}"
+                )
+    finally:
+        process.terminate()
