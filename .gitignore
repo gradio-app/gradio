@@ -98,3 +98,7 @@ js/storybook/theme.css
 
 # playwright
 .config/playwright/.cache
+
+# claude
+.claude
+CLAUDE.md
