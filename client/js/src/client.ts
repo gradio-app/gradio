@@ -39,6 +39,8 @@ import {
 	COMPONENT_SERVER_URL
 } from "./constants";
 
+declare const BROWSER_BUILD: boolean;
+
 export class Client {
 	app_reference: string;
 	options: ClientOptions;
@@ -214,8 +216,10 @@ export class Client {
 			(typeof window === "undefined" || !("WebSocket" in window)) &&
 			!global.WebSocket
 		) {
-			const ws = await import("ws");
-			global.WebSocket = ws.WebSocket as unknown as typeof WebSocket;
+			if (!BROWSER_BUILD) {
+				const ws = await import("ws");
+				global.WebSocket = ws.WebSocket as unknown as typeof WebSocket;
+			}
 		}
 
 		if (this.options.auth) {
