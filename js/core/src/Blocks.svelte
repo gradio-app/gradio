@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick, onMount } from "svelte";
+	import { tick, onMount, SvelteComponent } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
 	import { writable } from "svelte/store";
@@ -16,6 +16,11 @@
 	import type { ShareData, ValueData } from "@gradio/utils";
 	import MountComponents from "./MountComponents.svelte";
 	import { prefix_css } from "./css";
+
+	import type ApiDocs from "./api_docs/ApiDocs.svelte";
+	import type ApiRecorder from "./api_docs/ApiRecorder.svelte";
+	import type Settings from "./api_docs/Settings.svelte";
+	import type { ComponentType } from "svelte";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
@@ -108,9 +113,9 @@
 	let allow_video_trim = true;
 
 	// Lazy component loading state
-	let ApiDocs: any = null;
-	let ApiRecorder: any = null;
-	let Settings: any = null;
+	let ApiDocs: ComponentType<ApiDocs> | null = null;
+	let ApiRecorder: ComponentType<ApiRecorder> | null = null;
+	let Settings: ComponentType<Settings> | null = null;
 
 	async function loadApiDocs(): Promise<void> {
 		if (!ApiDocs || !ApiRecorder) {
@@ -927,6 +932,7 @@
 					}}
 					on:mouseenter={() => {
 						loadApiDocs();
+						loadApiRecorder();
 					}}
 					class="show-api"
 				>
@@ -1006,10 +1012,11 @@
 			<svelte:component
 				this={ApiDocs}
 				root_node={$_layout}
-				on:close={() => {
+				on:close={(event) => {
 					set_api_docs_visible(false);
 					api_calls = [];
-					api_recorder_visible = false;
+					api_recorder_visible = api_recorder_visible =
+						event.detail?.api_recorder_visible;
 				}}
 				{dependencies}
 				{root}
