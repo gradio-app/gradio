@@ -102,3 +102,4 @@ js/storybook/theme.css
 *.local.*
 .claude/
 CLAUDE.md
+.sonda/

@@ -34,7 +34,6 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
-from brotli_asgi import BrotliMiddleware
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -65,6 +64,7 @@ from starlette.responses import RedirectResponse
 
 import gradio
 from gradio import ranged_response, route_utils, utils, wasm_utils
+from gradio.brotli_middleware import BrotliMiddleware
 from gradio.context import Context
 from gradio.data_classes import (
     CancelBody,
