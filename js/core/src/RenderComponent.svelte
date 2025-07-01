@@ -49,7 +49,7 @@
 		return ProxiedMyClass;
 	}
 
-	const _component = wrap(component);
+	$: _component = wrap(component);
 
 	const supported_props = [
 		"description",
@@ -70,6 +70,8 @@
 
 	$: translate_prop($$restProps);
 	$: value = translate_if_needed(value);
+
+	$: console.log("visible", visible, $$restProps, component);
 </script>
 
 {#if visible}

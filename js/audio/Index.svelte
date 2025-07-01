@@ -117,6 +117,8 @@
 	let color_accent = "darkorange";
 
 	onMount(() => {
+		console.log("props", $$props);
+
 		color_accent = getComputedStyle(document?.documentElement).getPropertyValue(
 			"--color-accent"
 		);

@@ -31,6 +31,8 @@
 
 	$: $selected_tab_index === tab_index &&
 		tick().then(() => dispatch("select", { value: label, index: tab_index }));
+
+	$: console.log("tab_index", $selected_tab, id, visible);
 </script>
 
 {#if $selected_tab === id && visible}

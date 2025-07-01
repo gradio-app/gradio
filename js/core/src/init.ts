@@ -420,6 +420,8 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			newly_visible_ids.has(c.id)
 		);
 
+		console.log("components_to_load", components_to_load);
+
 		for (const component of components_to_load) {
 			const constructor_key = component.component_class_id || component.type;
 
