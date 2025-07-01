@@ -13,6 +13,7 @@ from pydantic import Field
 from typing_extensions import NotRequired
 
 from gradio.components.base import Component, FormComponent
+from gradio.components.textbox import InputHTMLAttributes
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
 from gradio.exceptions import Error
@@ -92,6 +93,7 @@ class MultimodalTextbox(FormComponent):
         submit_btn: str | bool | None = True,
         stop_btn: str | bool | None = False,
         max_plain_text_length: int = 1000,
+        html_attributes: InputHTMLAttributes | None = None,
     ):
         """
         Parameters:
@@ -124,6 +126,7 @@ class MultimodalTextbox(FormComponent):
             submit_btn: If False, will not show a submit button. If a string, will use that string as the submit button text.
             stop_btn: If True, will show a stop button (useful for streaming demos). If a string, will use that string as the stop button text.
             max_plain_text_length: Maximum length of plain text in the textbox. If the text exceeds this length, the text will be pasted as a file. Default is 1000.
+            html_attributes: An instance of gr.InputHTMLAttributes, which can be used to set HTML attributes for the input/textarea elements. Example: InputHTMLAttributes(autocorrect="off", spellcheck=False) to disable autocorrect and spellcheck.
         """
         valid_sources: list[Literal["upload", "microphone"]] = ["upload", "microphone"]
         if sources is None:
@@ -155,6 +158,7 @@ class MultimodalTextbox(FormComponent):
         self.autofocus = autofocus
         self.autoscroll = autoscroll
         self.max_plain_text_length = max_plain_text_length
+        self.html_attributes = html_attributes
 
         super().__init__(
             label=label,

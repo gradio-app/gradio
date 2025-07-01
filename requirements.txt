@@ -5,7 +5,7 @@ brotli-asgi>=1.3.0
 fastapi>=0.115.2,<1.0
 ffmpy
 groovy~=0.1
-gradio_client==1.10.3
+gradio_client==1.10.4
 httpx>=0.24.1
 huggingface_hub>=0.28.1
 Jinja2<4.0

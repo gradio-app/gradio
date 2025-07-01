@@ -111,6 +111,15 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		flush();
 		app = _app;
 
+		if (instance_map) {
+			// re-render in reload mode
+			components.forEach((c) => {
+				if (c.props.value == null && c.id in instance_map) {
+					c.props.value = instance_map[c.id].props.value;
+				}
+			});
+		}
+
 		_components = components;
 		inputs = new Set();
 		outputs = new Set();
