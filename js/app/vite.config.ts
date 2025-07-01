@@ -3,7 +3,6 @@ import { defineConfig } from "vite";
 
 // @ts-ignore
 import custom_media from "postcss-custom-media";
-import Sonda from "sonda/vite";
 // @ts-ignore
 import prefixer from "postcss-prefix-selector";
 import { cpSync, readFileSync, writeFileSync } from "fs";
@@ -125,8 +124,7 @@ export default defineConfig(({ mode }) => {
 						}
 					}
 				}
-			},
-			Sonda()
+			}
 		]
 	};
 });
