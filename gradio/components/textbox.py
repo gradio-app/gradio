@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import dataclasses
 import warnings
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, Optional
 
 from gradio_client.documentation import document
 
@@ -14,6 +15,40 @@ from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
     from gradio.components import Timer
+
+
+@document()
+@dataclasses.dataclass
+class InputHTMLAttributes:
+    """
+    A dataclass for specifying HTML attributes for the input/textarea element. If any of these attributes are not provided, the browser will use its default value.
+    Parameters:
+        autocapitalize: The autocapitalize attribute for the input/textarea element. Can be "off", "none", "on", "sentences", "words", or "characters".
+        autocorrect: The autocorrect attribute for the input/textarea element. Can be True (enabled) or False (disabled).
+        spellcheck: The spellcheck attribute for the input/textarea element. Can be True (enabled) or False (disabled).
+        autocomplete: The autocomplete attribute for the input/textarea element. Can be "on", "off", or specific values like "email", "current-password", "new-password", etc.
+        tabindex: The tabindex attribute for the input/textarea element. An integer specifying the tab order.
+        enterkeyhint: The enterkeyhint attribute for the input/textarea element. Can be "enter", "done", "go", "next", "previous", "search", or "send".
+        lang: The lang attribute for the input/textarea element. A string containing a language code (e.g., "en", "es", "fr").
+        aria_label: The aria-label attribute for the input/textarea element. A string providing an accessible name for screen readers.
+        aria_describedby: The aria-describedby attribute for the input/textarea element. A string containing IDs of elements that describe this element.
+        aria_placeholder: The aria-placeholder attribute for the input/textarea element. A string providing placeholder text for screen readers.
+    """
+
+    autocapitalize: Optional[
+        Literal["off", "none", "on", "sentences", "words", "characters"]
+    ] = None
+    autocorrect: Optional[Literal["on", "off"]] = None
+    spellcheck: Optional[bool] = None
+    autocomplete: Optional[str] = None
+    tabindex: Optional[int] = None
+    enterkeyhint: Optional[
+        Literal["enter", "done", "go", "next", "previous", "search", "send"]
+    ] = None
+    lang: Optional[str] = None
+    aria_label: Optional[str] = None
+    aria_describedby: Optional[str] = None
+    aria_placeholder: Optional[str] = None
 
 
 @document()
@@ -67,6 +102,7 @@ class Textbox(FormComponent):
         max_length: int | None = None,
         submit_btn: str | bool | None = False,
         stop_btn: str | bool | None = False,
+        html_attributes: InputHTMLAttributes | None = None,
     ):
         """
         Parameters:
@@ -97,6 +133,8 @@ class Textbox(FormComponent):
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             max_length: maximum number of characters (including newlines) allowed in the textbox. If None, there is no maximum length.
             submit_btn: If False, will not show a submit button. If True, will show a submit button with an icon. If a string, will use that string as the submit button text. When the submit button is shown, the border of the textbox will be removed, which is useful for creating a chat interface.
+            stop_btn: If False, will not show a stop button. If True, will show a stop button with an icon. If a string, will use that string as the stop button text. When the stop button is shown, the border of the textbox will be removed, which is useful for creating a chat interface.
+            html_attributes: An instance of gr.InputHTMLAttributes, which can be used to set HTML attributes for the input/textarea elements. Example: InputHTMLAttributes(autocorrect="off", spellcheck=False) to disable autocorrect and spellcheck.
         """
         if type not in ["text", "password", "email"]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
@@ -143,6 +181,7 @@ class Textbox(FormComponent):
         self.rtl = rtl
         self.text_align = text_align
         self.max_length = max_length
+        self.html_attributes = html_attributes
 
     def preprocess(self, payload: str | None) -> str | None:
         """

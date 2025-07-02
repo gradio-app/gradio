@@ -1,5 +1,52 @@
 # @gradio/core
 
+## 0.20.0
+
+### Features
+
+- [#11392](https://github.com/gradio-app/gradio/pull/11392) [`dc760a6`](https://github.com/gradio-app/gradio/commit/dc760a6dd7d3375f99913059803a826cdf0f7102) - Add column-specific filtering to `gr.Dataframe`.  Thanks @tiago-gsantos!
+
+### Fixes
+
+- [#11421](https://github.com/gradio-app/gradio/pull/11421) [`c2acf6e`](https://github.com/gradio-app/gradio/commit/c2acf6e33025fe7bbfe0660c182006651cc95090) - Preserve value in reload mode.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/tabitem@0.4.6
+- @gradio/code@0.14.9
+- @gradio/upload@0.16.9
+- @gradio/video@0.14.19
+- @gradio/client@1.15.4
+- @gradio/button@0.5.5
+- @gradio/column@0.2.1
+- @gradio/image@0.22.11
+- @gradio/gallery@0.15.25
+- @gradio/file@0.12.22
+
+## 0.19.3
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.14.8
+- @gradio/paramviewer@0.7.11
+- @gradio/statustracker@0.10.13
+- @gradio/video@0.14.18
+- @gradio/atoms@0.16.2
+- @gradio/client@1.15.3
+- @gradio/gallery@0.15.24
+- @gradio/plot@0.9.18
+- @gradio/upload@0.16.8
+- @gradio/checkbox@0.4.24
+- @gradio/button@0.5.4
+- @gradio/image@0.22.10
+- @gradio/column@0.2.0
+- @gradio/textbox@0.10.15
+- @gradio/file@0.12.21
+
 ## 0.19.2
 
 ### Dependency updates

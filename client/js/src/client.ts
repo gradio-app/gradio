@@ -39,6 +39,8 @@ import {
 	COMPONENT_SERVER_URL
 } from "./constants";
 
+declare const BROWSER_BUILD: boolean;
+
 export class Client {
 	app_reference: string;
 	options: ClientOptions;
@@ -214,8 +216,10 @@ export class Client {
 			(typeof window === "undefined" || !("WebSocket" in window)) &&
 			!global.WebSocket
 		) {
-			const ws = await import("ws");
-			global.WebSocket = ws.WebSocket as unknown as typeof WebSocket;
+			if (!BROWSER_BUILD) {
+				const ws = await import("ws");
+				global.WebSocket = ws.WebSocket as unknown as typeof WebSocket;
+			}
 		}
 
 		if (this.options.auth) {
@@ -275,6 +279,9 @@ export class Client {
 		}
 	): Promise<Client> {
 		const client = new this(app_reference, options); // this refers to the class itself, not the instance
+		if (options.session_hash) {
+			client.session_hash = options.session_hash;
+		}
 		await client.init();
 		return client;
 	}
@@ -346,12 +353,6 @@ export class Client {
 	): Promise<Config | client_return> {
 		this.config = _config;
 		this.api_prefix = _config.api_prefix || "";
-
-		if (typeof window !== "undefined" && typeof document !== "undefined") {
-			if (window.location.protocol === "https:") {
-				this.config.root = this.config.root.replace("http://", "https://");
-			}
-		}
 
 		if (this.config.auth_required) {
 			return this.prepare_return_obj();

@@ -27,7 +27,6 @@
 		is_colab: boolean;
 		show_api: boolean;
 		stylesheets?: string[];
-		path: string;
 		app_id?: string;
 		fill_height?: boolean;
 		fill_width?: boolean;
@@ -316,7 +315,9 @@
 				? `http://localhost:${
 						typeof server_port === "number" ? server_port : 7860
 					}`
-				: space || src || location.origin;
+				: space ||
+					src ||
+					new URL(location.pathname, location.origin).href.replace(/\/$/, "");
 
 		const deep_link = new URLSearchParams(window.location.search).get(
 			"deep_link"
@@ -394,7 +395,8 @@
 					app = await Client.connect(api_url, {
 						status_callback: handle_status,
 						with_null_state: true,
-						events: ["data", "log", "status", "render"]
+						events: ["data", "log", "status", "render"],
+						session_hash: app.session_hash
 					});
 
 					if (!app.config) {

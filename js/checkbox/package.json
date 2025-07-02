@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/checkbox",
-	"version": "0.4.23",
+	"version": "0.4.24",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

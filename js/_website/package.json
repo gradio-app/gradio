@@ -1,9 +1,9 @@
 {
 	"name": "website",
-	"version": "0.57.4",
+	"version": "0.59.0",
 	"private": true,
 	"scripts": {
-		"dev": "pip install boto3 && python generate_jsons/generate.py && python ../../scripts/generate_theme.py --outfile ./src/lib/assets/theme.css && vite dev",
+		"dev": "pip install boto3 markdown && python generate_jsons/generate.py && python ../../scripts/generate_theme.py --outfile ./src/lib/assets/theme.css && vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
