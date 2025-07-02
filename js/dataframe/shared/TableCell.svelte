@@ -59,7 +59,7 @@
 	export let components: Record<string, any> = {};
 	export let el: {
 		cell: HTMLTableCellElement | null;
-		input: HTMLInputElement | null;
+		input: HTMLTextAreaElement | null;
 	};
 	export let handle_select_column: (col: number) => void;
 	export let handle_select_row: (row: number) => void;

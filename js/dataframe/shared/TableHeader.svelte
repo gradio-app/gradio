@@ -36,7 +36,7 @@
 	export let max_chars: number | undefined;
 	export let editable: boolean;
 	export let i18n: I18nFormatter;
-	export let el: HTMLInputElement | null;
+	export let el: HTMLTextAreaElement | null;
 	export let is_static: boolean;
 	export let col_count: [number, "fixed" | "dynamic"];
 

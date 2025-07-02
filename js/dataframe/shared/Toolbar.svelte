@@ -21,7 +21,7 @@
 	let input_value = "";
 
 	function handle_search_input(e: Event): void {
-		const target = e.target as HTMLInputElement;
+		const target = e.target as HTMLTextAreaElement;
 		input_value = target.value;
 		const new_query = input_value || null;
 		if (current_search_query !== new_query) {
