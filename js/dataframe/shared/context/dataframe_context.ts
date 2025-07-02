@@ -180,7 +180,7 @@ export interface DataFrameContext {
 	styling?: string[][] | null;
 	els?: Record<
 		string,
-		{ cell: HTMLTableCellElement | null; input: HTMLInputElement | null }
+		{ cell: HTMLTableCellElement | null; input: HTMLTextAreaElement | null }
 	>;
 	parent_element?: HTMLElement;
 	get_data_at?: (row: number, col: number) => string | number;
