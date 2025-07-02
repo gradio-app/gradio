@@ -406,7 +406,6 @@ class App(FastAPI):
 
         if not wasm_utils.IS_WASM:
             app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
-            # Add Brotli compression middleware for better performance on text-based resources
             app.add_middleware(
                 BrotliMiddleware,
                 quality=4,
