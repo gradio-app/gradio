@@ -11,4 +11,4 @@
 "website": minor
 ---
 
-feat:only render visible components
+feat:Improve load times of the Gradio front-end
