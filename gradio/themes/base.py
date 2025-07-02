@@ -467,14 +467,31 @@ class Base(ThemeClass):
         # Font
         if isinstance(font, (fonts.Font, str)):
             font = [font]
+        # System fonts that should not be converted to LocalFont
+        system_fonts = {
+            "ui-sans-serif",
+            "system-ui",
+            "sans-serif",
+            "serif",
+            "monospace",
+            "cursive",
+            "fantasy",
+            "ui-monospace",
+            "Consolas",
+        }
+
         self._font = [
-            fontfam if isinstance(fontfam, fonts.Font) else fonts.LocalFont(fontfam)
+            fontfam
+            if isinstance(fontfam, fonts.Font) or fontfam in system_fonts
+            else fonts.LocalFont(fontfam)
             for fontfam in font
         ]
         if isinstance(font_mono, (fonts.Font, str)):
             font_mono = [font_mono]
         self._font_mono = [
-            fontfam if isinstance(fontfam, fonts.Font) else fonts.LocalFont(fontfam)
+            fontfam
+            if isinstance(fontfam, fonts.Font) or fontfam in system_fonts
+            else fonts.LocalFont(fontfam)
             for fontfam in font_mono
         ]
         self.font = ", ".join(str(font) for font in self._font)
@@ -483,14 +500,15 @@ class Base(ThemeClass):
         self._stylesheets = []
         self._font_css = []
         for font in self._font + self._font_mono:
-            font_stylesheet = font.stylesheet()
-            if isinstance(font_stylesheet, str):
-                self._stylesheets.append(font_stylesheet)
-            elif isinstance(font_stylesheet, dict):
-                if font_stylesheet["url"]:
-                    self._stylesheets.append(font_stylesheet["url"])
-                elif font_stylesheet["css"]:
-                    self._font_css.append(font_stylesheet["css"])
+            if isinstance(font, fonts.Font):
+                font_stylesheet = font.stylesheet()
+                if isinstance(font_stylesheet, str):
+                    self._stylesheets.append(font_stylesheet)
+                elif isinstance(font_stylesheet, dict):
+                    if font_stylesheet.get("url"):
+                        self._stylesheets.append(font_stylesheet["url"])
+                    elif font_stylesheet.get("css"):
+                        self._font_css.append(font_stylesheet["css"])
 
         self.set()
 

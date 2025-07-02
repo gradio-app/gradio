@@ -29,6 +29,29 @@
 			name="twitter:image"
 			content="https://raw.githubusercontent.com/gradio-app/gradio/main/js/_website/src/lib/assets/img/header-image.jpg"
 		/>
+		<style>
+			:root {
+				--bg: {{ config.get('body_css', {}).get('body_background_fill', 'white') }};
+				--col:   {{ config.get('body_css', {}).get('body_text_color', '#1f2937') }};
+				--bg-dark: {{ config.get('body_css', {}).get('body_background_fill_dark', '#0b0f19') }};
+				--col-dark: {{ config.get('body_css', {}).get('body_text_color_dark', '#f3f4f6') }};
+			}
+
+
+			body {
+				background: var(--bg);
+				color: var(--col);
+				font-family: Arial, Helvetica, sans-serif;
+			}
+
+			@media (prefers-color-scheme: dark) {
+				body {
+					background: var(--bg-dark);
+					color: var(--col-dark);
+				}
+			}
+		</style>
+
 		<script data-gradio-mode>
 			window.__gradio_mode__ = "app";
 			window.iFrameResizer = {
@@ -45,6 +68,19 @@
 		></script>
 
 		%sveltekit.head%
+
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link
+			rel="preconnect"
+			href="https://fonts.gstatic.com"
+			crossorigin="anonymous"
+		/>
+		<script
+			src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/iframeResizer.contentWindow.min.js"
+			async
+		></script>
+
+		<link rel="manifest" href="/manifest.json" />
 	</head>
 	<body
 		data-sveltekit-preload-data="hover"

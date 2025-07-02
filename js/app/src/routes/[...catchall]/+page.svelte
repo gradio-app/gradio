@@ -379,6 +379,13 @@
 
 <svelte:head>
 	<link rel="stylesheet" href={"./theme.css?v=" + config?.theme_hash} />
+	{#if config?.stylesheets}
+		{#each config.stylesheets as stylesheet}
+			{#if stylesheet.startsWith("http:") || stylesheet.startsWith("https:")}
+				<link rel="stylesheet" href={stylesheet} />
+			{/if}
+		{/each}
+	{/if}
 	<link rel="manifest" href="/manifest.json" />
 </svelte:head>
 
