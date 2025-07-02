@@ -3,7 +3,6 @@ import { defineConfig } from "vite";
 
 // @ts-ignore
 import custom_media from "postcss-custom-media";
-import global_data from "@csstools/postcss-global-data";
 // @ts-ignore
 import prefixer from "postcss-prefix-selector";
 import { cpSync, readFileSync, writeFileSync } from "fs";
@@ -54,7 +53,8 @@ export default defineConfig(({ mode }) => {
 					"./svelte/svelte.js"
 				]
 			},
-			minify: false
+			minify: true,
+			sourcemap: true
 		},
 		define: {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),

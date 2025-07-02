@@ -746,7 +746,16 @@ export class LayerManager {
 					return null;
 				})
 			),
-			composite: await get_canvas_blob(this.app.renderer, this.image_container)
+			composite: await get_canvas_blob(
+				this.app.renderer,
+				this.image_container,
+				{
+					width,
+					height,
+					x: 0,
+					y: 0
+				}
+			)
 		};
 
 		return blobs;
@@ -794,13 +803,16 @@ export class LayerManager {
 		for (const layer of this.layers) {
 			this.delete_layer(layer.id);
 		}
+		let i = 0;
 		for (const layer of this.layer_options.layers) {
 			this.create_layer({
 				width,
 				height,
 				layer_name: layer,
-				user_created: false
+				user_created: false,
+				layer_id: `layer-${i}`
 			});
+			i++;
 		}
 
 		this.active_layer = this.layers[0].container;
@@ -852,7 +864,11 @@ export class AddLayerCommand implements Command {
 		this.previous_active_layer = current_active?.id || null;
 	}
 
-	async execute(): Promise<void> {
+	async execute(context?: ImageEditorContext): Promise<void> {
+		if (context) {
+			this.context = context;
+		}
+
 		this.context.layer_manager.create_layer({
 			width: this.width,
 			height: this.height,
@@ -949,7 +965,11 @@ export class RemoveLayerCommand implements Command {
 		}
 	}
 
-	async execute(): Promise<void> {
+	async execute(context?: ImageEditorContext): Promise<void> {
+		if (context) {
+			this.context = context;
+		}
+
 		this.context.layer_manager.delete_layer(this.layer_data.id);
 	}
 
@@ -1043,7 +1063,11 @@ export class ReorderLayerCommand implements Command {
 		}
 	}
 
-	async execute(): Promise<void> {
+	async execute(context?: ImageEditorContext): Promise<void> {
+		if (context) {
+			this.context = context;
+		}
+
 		this.context.layer_manager.move_layer(this.layer_id, this.direction);
 	}
 

@@ -158,13 +158,21 @@ export class BrushTool implements Tool {
 		}
 
 		if (this.brush_cursor) {
-			this.brush_cursor.set_active(tool === "draw" || tool === "erase");
+			const should_be_active = tool === "draw" || tool === "erase";
+
+			this.brush_cursor.set_active(should_be_active);
 		}
 
 		const new_mode = tool === "erase" ? "erase" : "draw";
-		if (tool === "erase" || tool === "draw") {
+		const mode_changed = this.state.mode !== new_mode;
+		const needs_brush_tool = tool === "erase" || tool === "draw";
+		const textures_initialized =
+			this.brush_textures?.textures_initialized ?? false;
+
+		if (needs_brush_tool && (mode_changed || !textures_initialized)) {
 			this.brush_textures?.initialize_textures();
 		}
+
 		if (this.state.mode !== new_mode) {
 			this.state.mode = new_mode;
 
@@ -198,6 +206,7 @@ export class BrushTool implements Tool {
 	private on_pointer_down(event: FederatedPointerEvent): void {
 		const current_layer =
 			this.image_editor_context.layer_manager.get_active_layer();
+
 		if (
 			!current_layer?.visible ||
 			(this.current_tool !== "erase" && this.current_tool !== "draw")
@@ -205,7 +214,9 @@ export class BrushTool implements Tool {
 			return;
 		}
 
-		if (this.brush_cursor && !this.brush_cursor.is_over_image()) return;
+		if (this.brush_cursor && !this.brush_cursor.is_over_image()) {
+			return;
+		}
 
 		if (this.brush_textures) {
 			this.brush_textures.preserve_canvas_state();

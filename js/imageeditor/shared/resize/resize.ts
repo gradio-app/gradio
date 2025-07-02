@@ -45,7 +45,11 @@ export class ResizeCommand implements Command {
 		this.reset_ui = reset_ui;
 	}
 
-	async execute(): Promise<void> {
+	async execute(context?: ImageEditorContext): Promise<void> {
+		if (context) {
+			this.context = context;
+		}
+
 		if (!this.context.background_image) return;
 
 		this.context.background_image.width = this.new_width;

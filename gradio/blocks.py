@@ -278,6 +278,14 @@ class Block:
     def get_expected_parent(self) -> type[BlockContext] | None:
         return None
 
+    def breaks_grouping(self) -> bool:
+        """
+        Whether this component breaks FormComponent grouping chains.
+        Components that return False will not reset the pseudo_parent
+        when encountered during fill_expected_parents grouping.
+        """
+        return True
+
     def get_config(self):
         config = {}
         signature = inspect.signature(self.__class__.__init__)
@@ -490,7 +498,8 @@ class BlockContext(Block):
         for child in self.children:
             expected_parent = child.get_expected_parent()
             if not expected_parent or isinstance(self, expected_parent):
-                pseudo_parent = None
+                if child.breaks_grouping():
+                    pseudo_parent = None
                 children.append(child)
             else:
                 if pseudo_parent is not None and isinstance(

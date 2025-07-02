@@ -255,7 +255,7 @@ export class ImageEditor {
 		this.init();
 	}
 
-	private get context(): ImageEditorContext {
+	get context(): ImageEditorContext {
 		const editor = this;
 		return {
 			app: this.app,
@@ -290,6 +290,10 @@ export class ImageEditor {
 		}).observe(this.target_element);
 
 		this.app = new Application();
+
+		if (!this.dark) {
+			(globalThis as any).__PIXI_APP__ = this.app;
+		}
 		await this.app.init({
 			width: container_box.width,
 			height: container_box.height,
@@ -304,7 +308,7 @@ export class ImageEditor {
 		const canvas = this.app.canvas as HTMLCanvasElement;
 		canvas.style.background = "transparent";
 
-		await this.setup_containers();
+		this.setup_containers();
 
 		this.layer_manager.create_background_layer(this.width, this.height);
 
@@ -439,7 +443,7 @@ export class ImageEditor {
 		this.ready_resolve();
 	}
 
-	private async setup_containers(): Promise<void> {
+	private setup_containers(): void {
 		this.image_container = new Container({
 			eventMode: "static",
 			sortableChildren: true
@@ -586,7 +590,7 @@ export class ImageEditor {
 	}
 
 	async execute_command(command: Command): Promise<void> {
-		await this.command_manager.execute(command);
+		await this.command_manager.execute(command, this.context);
 	}
 
 	undo(): void {
@@ -595,7 +599,7 @@ export class ImageEditor {
 	}
 
 	redo(): void {
-		this.command_manager.redo();
+		this.command_manager.redo(this.context);
 		this.notify("change");
 	}
 
@@ -619,7 +623,6 @@ export class ImageEditor {
 	 * @param url The URL of the image to add
 	 */
 	async add_image_from_url(url: string): Promise<void> {
-		this.command_manager.reset();
 		const image_tool = this.tools.get("image") as ImageTool;
 		const texture = await Assets.load(url);
 		await image_tool.add_image({
@@ -658,6 +661,7 @@ export class ImageEditor {
 		this.layer_manager.reset_layers(this.width, this.height);
 		this.background_image = undefined;
 		this.background_image_present.set(false);
+		this.command_manager.reset();
 
 		await this.set_image_properties({
 			width: this.width,
@@ -666,8 +670,6 @@ export class ImageEditor {
 			position: { x: 0, y: 0 },
 			animate: false
 		});
-
-		this.command_manager = new CommandManager();
 
 		this.layer_manager.create_background_layer(this.width, this.height);
 
@@ -694,7 +696,7 @@ export class ImageEditor {
 			make_active: true
 		});
 
-		this.command_manager.execute(add_layer_command);
+		this.execute_command(add_layer_command);
 		this.notify("change");
 	}
 
@@ -707,6 +709,7 @@ export class ImageEditor {
 		this.command_manager.reset();
 		const _layers = this.layer_manager.get_layers();
 		_layers.forEach((l) => this.layer_manager.delete_layer(l.id));
+
 		if (layer_urls === undefined || layer_urls.length === 0) {
 			this.layer_manager.create_layer({
 				width: this.width,
@@ -717,11 +720,17 @@ export class ImageEditor {
 			return;
 		}
 
+		const created_layer_ids: string[] = [];
 		for await (const url of layer_urls) {
-			await this.layer_manager.add_layer_from_url(url);
+			const layer_id = await this.layer_manager.add_layer_from_url(url);
+			if (layer_id) {
+				created_layer_ids.push(layer_id);
+			}
 		}
 
-		this.layer_manager.set_active_layer(_layers[0].id);
+		if (created_layer_ids.length > 0) {
+			this.layer_manager.set_active_layer(created_layer_ids[0]);
+		}
 
 		const resize_tool = this.tools.get("resize") as any;
 		if (resize_tool && typeof resize_tool.set_border_region === "function") {
@@ -743,13 +752,13 @@ export class ImageEditor {
 			id,
 			direction
 		);
-		this.command_manager.execute(reorder_layer_command);
+		this.execute_command(reorder_layer_command);
 		this.notify("change");
 	}
 
 	delete_layer(id: string): void {
 		const remove_layer_command = new RemoveLayerCommand(this.context, id);
-		this.command_manager.execute(remove_layer_command);
+		this.execute_command(remove_layer_command);
 		this.notify("change");
 	}
 
