@@ -98,6 +98,7 @@ js/storybook/theme.css
 # playwright
 .config/playwright/.cache
 
-# claude
+*.local.*
 .claude/
 CLAUDE.md
+.sonda/

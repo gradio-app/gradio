@@ -64,6 +64,7 @@ from starlette.responses import RedirectResponse
 
 import gradio
 from gradio import ranged_response, route_utils, utils, wasm_utils
+from gradio.brotli_middleware import BrotliMiddleware
 from gradio.context import Context
 from gradio.data_classes import (
     CancelBody,
@@ -405,6 +406,10 @@ class App(FastAPI):
 
         if not wasm_utils.IS_WASM:
             app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
+            app.add_middleware(
+                BrotliMiddleware,
+                quality=4,
+            )
 
         if ssr_mode:
 
