@@ -165,7 +165,7 @@
 
 	let els: Record<
 		string,
-		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
+		{ cell: null | HTMLTableCellElement; input: null | HTMLTextAreaElement }
 	> = {};
 	let data_binding: Record<string, (typeof data)[0][0]> = {};
 	let _headers = make_headers(headers, col_count, els, make_id);
