@@ -1,6 +1,9 @@
 import Amuchina from "amuchina";
 
-const is_external_url = (link: string | null, root = ""): boolean => {
+const is_external_url = (
+	link: string | null,
+	root = location.href
+): boolean => {
 	try {
 		return !!link && new URL(link).origin !== new URL(root).origin;
 	} catch (e) {
@@ -8,12 +11,12 @@ const is_external_url = (link: string | null, root = ""): boolean => {
 	}
 };
 
-export function sanitize(source: string, root = ""): string {
+export function sanitize(source: string): string {
 	const amuchina = new Amuchina();
 	const node = new DOMParser().parseFromString(source, "text/html");
 	walk_nodes(node.body, "A", (node) => {
 		if (node instanceof HTMLElement && "target" in node) {
-			if (is_external_url(node.getAttribute("href"), root)) {
+			if (is_external_url(node.getAttribute("href"), location.href)) {
 				node.setAttribute("target", "_blank");
 				node.setAttribute("rel", "noopener noreferrer");
 			}

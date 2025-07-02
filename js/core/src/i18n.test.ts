@@ -7,7 +7,7 @@ import {
 	beforeEach,
 	afterEach
 } from "vitest";
-import { process_langs } from "./i18n";
+import { Lang, process_langs } from "./i18n";
 import languagesByAnyCode from "wikidata-lang/indexes/by_any_code";
 import BCP47 from "./lang/BCP47_codes";
 import {
@@ -36,22 +36,31 @@ describe("i18n", () => {
 	test("languages are loaded correctly", () => {
 		const langs = process_langs();
 		assert.ok(langs.en);
-		assert.ok(langs.en.common);
+		assert.ok((langs.en as { type: "static"; data: Lang }).data.common);
 	});
 
-	test("language codes follow the correct format", () => {
+	test("language codes follow the correct format", async () => {
 		const langs = Object.entries(process_langs());
 
-		langs.forEach(([code, translation]) => {
-			const BCP47_REGEX = /^.{2}-.{2}$/;
+		await Promise.all(
+			langs.map(async ([code, translation]) => {
+				const BCP47_REGEX = /^.{2}-.{2}$/;
 
-			if (BCP47_REGEX.test(code)) {
-				assert.ok(BCP47.includes(code));
-			} else {
-				assert.exists(languagesByAnyCode[code]);
-			}
-			assert.ok(translation.common);
-		});
+				if (BCP47_REGEX.test(code)) {
+					assert.ok(BCP47.includes(code));
+				} else {
+					assert.exists(languagesByAnyCode[code]);
+				}
+
+				let data: Lang;
+				if (translation.type === "lazy") {
+					data = await translation.data();
+				} else {
+					data = translation.data;
+				}
+				assert.ok(data.common);
+			})
+		);
 	});
 
 	describe("basic functions", () => {
@@ -106,7 +115,7 @@ describe("i18n", () => {
 				}
 			};
 
-			load_translations(custom_translations);
+			load_translations({ processed_langs: {}, custom_translations });
 
 			expect(mockAddMessages).toHaveBeenCalledTimes(2);
 			expect(mockAddMessages).toHaveBeenCalledWith(

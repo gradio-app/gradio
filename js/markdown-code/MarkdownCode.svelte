@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { afterUpdate, tick, onMount } from "svelte";
-	import render_math_in_element from "katex/contrib/auto-render";
-	import "katex/dist/katex.min.css";
 	import { create_marked } from "./utils";
 	import { sanitize } from "@gradio/sanitize";
 	import "./prism.css";
@@ -23,12 +21,24 @@
 	export let theme_mode: ThemeMode = "system";
 	let el: HTMLSpanElement;
 	let html: string;
+	let katex_loaded = false;
 
 	const marked = create_marked({
 		header_links,
 		line_breaks,
 		latex_delimiters: latex_delimiters || []
 	});
+
+	function has_math_syntax(text: string): boolean {
+		if (!latex_delimiters || latex_delimiters.length === 0) {
+			return false;
+		}
+
+		return latex_delimiters.some(
+			(delimiter) =>
+				text.includes(delimiter.left) && text.includes(delimiter.right)
+		);
+	}
 
 	function escapeRegExp(string: string): string {
 		return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -112,12 +122,22 @@
 	}
 
 	async function render_html(value: string): Promise<void> {
-		if (latex_delimiters.length > 0 && value) {
-			const containsDelimiter = latex_delimiters.some(
-				(delimiter) =>
-					value.includes(delimiter.left) && value.includes(delimiter.right)
-			);
-			if (containsDelimiter) {
+		if (latex_delimiters.length > 0 && value && has_math_syntax(value)) {
+			if (!katex_loaded) {
+				await Promise.all([
+					import("katex/dist/katex.min.css"),
+					import("katex/contrib/auto-render")
+				]).then(([, { default: render_math_in_element }]) => {
+					katex_loaded = true;
+					render_math_in_element(el, {
+						delimiters: latex_delimiters,
+						throwOnError: false
+					});
+				});
+			} else {
+				const { default: render_math_in_element } = await import(
+					"katex/contrib/auto-render"
+				);
 				render_math_in_element(el, {
 					delimiters: latex_delimiters,
 					throwOnError: false
