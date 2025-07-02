@@ -5,7 +5,7 @@ export function make_headers(
 	col_count: [number, "fixed" | "dynamic"],
 	els: Record<
 		string,
-		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
+		{ cell: null | HTMLTableCellElement; input: null | HTMLTextAreaElement }
 	>,
 	make_id: () => string
 ): HeadersWithIDs {
@@ -38,7 +38,7 @@ export function process_data(
 	values: (string | number)[][],
 	els: Record<
 		string,
-		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
+		{ cell: null | HTMLTableCellElement; input: null | HTMLTextAreaElement }
 	>,
 	data_binding: Record<string, any>,
 	make_id: () => string,
