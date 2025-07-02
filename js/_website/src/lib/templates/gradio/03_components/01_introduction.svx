@@ -10,10 +10,19 @@
     delete components_no_dataclasses["optiondict"];
     delete components_no_dataclasses["metadatadict"];
     delete components_no_dataclasses["layeroptions"];
-    delete components_no_dataclasses["webcamoptions"]
+    delete components_no_dataclasses["webcamoptions"];
+    delete components_no_dataclasses["inputhtmlattributes"]
 
     let events = get_object("events");
     let events_matrix = get_object("events_matrix");
+
+    // $: {
+    //     Object.entries(components_no_dataclasses).forEach(([name, obj]) => {
+    //         if (!events_matrix[obj.name]) {
+    //             console.log(`Component not in events_matrix: ${name}`);
+    //         }
+    //     });
+    // }
 
 </script>
 
