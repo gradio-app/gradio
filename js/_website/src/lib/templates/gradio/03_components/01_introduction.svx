@@ -2,6 +2,7 @@
     import dataflow from "$lib/assets/img/dataflow.svg"
     import {get_object} from "../../process_json.ts";
     let components = get_object("components");
+    
     let components_no_dataclasses = {...components};
     delete components_no_dataclasses["brush"];
     delete components_no_dataclasses["eraser"];
