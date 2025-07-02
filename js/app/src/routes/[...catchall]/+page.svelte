@@ -224,7 +224,6 @@
 	let ready = false;
 	let render_complete = false;
 	$: config = data.config;
-	let loading_text = "Loading...";
 
 	let intersecting: ReturnType<typeof create_intersection_store> = {
 		register: () => {},

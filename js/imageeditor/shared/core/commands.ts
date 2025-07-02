@@ -1,4 +1,4 @@
-import { writable, type Writable } from "svelte/store";
+import { writable } from "svelte/store";
 import type { ImageEditorContext } from "./editor";
 
 /**
@@ -129,7 +129,6 @@ export class CommandManager {
 
 	reset(): void {
 		this.history = new CommandNode();
-
 		this.current_history.update(() => this.history);
 	}
 }

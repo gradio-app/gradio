@@ -260,11 +260,15 @@
 			intersection_observer.observe(pixi_target);
 			resize_observer.observe(pixi_target);
 
-			if (full_history) {
-				editor.command_manager.replay(full_history, editor.context).then(() => {
-					refresh_tools_after_history();
-				});
-			}
+			setTimeout(() => {
+				if (full_history && editor) {
+					editor.command_manager
+						.replay(full_history, editor.context)
+						.then(() => {
+							refresh_tools_after_history();
+						});
+				}
+			}, 0);
 		});
 
 		if (typeof window !== "undefined") {
@@ -401,7 +405,7 @@
 		editor &&
 		ready
 	) {
-		editor.reset_canvas();
+		// editor.reset_canvas();
 		handle_tool_change({ tool: "image" });
 		background_image = false;
 		has_drawn = false;
@@ -420,10 +424,12 @@
 	): Promise<void> {
 		if (files == null) return;
 		if (!sources.includes("upload")) return;
+		editor.reset_canvas();
 		const _file = Array.isArray(files) ? files[0] : files;
 		await editor.add_image({ image: _file });
 		await crop.add_image({ image: _file });
 		crop.reset();
+
 		background_image = true;
 		handle_tool_change({ tool: "draw" });
 		dispatch("upload");

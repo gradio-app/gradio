@@ -19,8 +19,6 @@
 	export let _id: number;
 	export let visible: boolean;
 
-	$: _visible = typeof visible === "boolean" ? visible : true;
-
 	const s = (id: number, p: string, v: any): CustomEvent =>
 		new CustomEvent("prop_change", { detail: { id, prop: p, value: v } });
 
@@ -83,7 +81,6 @@
 		{elem_id}
 		{elem_classes}
 		{target}
-		{visible}
 		{...$$restProps}
 		{theme_mode}
 		{root}

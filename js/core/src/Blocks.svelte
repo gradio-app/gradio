@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick, onMount, SvelteComponent } from "svelte";
+	import { tick, onMount } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
 	import { writable } from "svelte/store";
@@ -9,7 +9,6 @@
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import type { UpdateTransaction } from "./init";
 	import { setupi18n } from "./i18n";
-	// ApiDocs, ApiRecorder, and Settings will be lazily imported when needed
 	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";

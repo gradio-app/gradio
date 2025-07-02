@@ -623,7 +623,6 @@ export class ImageEditor {
 	 * @param url The URL of the image to add
 	 */
 	async add_image_from_url(url: string): Promise<void> {
-		this.command_manager.reset();
 		const image_tool = this.tools.get("image") as ImageTool;
 		const texture = await Assets.load(url);
 		await image_tool.add_image({

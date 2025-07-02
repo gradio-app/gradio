@@ -8,6 +8,40 @@ import {
 } from "svelte-i18n";
 import { formatter } from "./gradio_helper";
 
+const lang_map = {
+	ar: "العربية",
+	ca: "Català",
+	ckb: "کوردی",
+	de: "Deutsch",
+	en: "English",
+	es: "Español",
+	eu: "Euskara",
+	fa: "فارسی",
+	fi: "Suomi",
+	fr: "Français",
+	he: "עברית",
+	hi: "हिंदी",
+	ja: "日本語",
+	ko: "한국어",
+	lt: "Lietuvių",
+	nb: "Norsk bokmål",
+	nl: "Nederlands",
+	pl: "Polski",
+	"pt-BR": "Português do Brasil",
+	pt: "Português",
+	ro: "Română",
+	ru: "Русский",
+	sv: "Svenska",
+	ta: "தமிழ்",
+	th: "ภาษาไทย",
+	tr: "Türkçe",
+	uk: "Українська",
+	ur: "اردو",
+	uz: "O'zbek",
+	"zh-CN": "简体中文",
+	"zh-TW": "繁體中文"
+};
+
 const langs = import.meta.glob("./lang/*.json");
 import en from "./lang/en.json";
 
@@ -112,7 +146,7 @@ const available_locales = Object.keys(processed_langs);
 
 export const language_choices: [string, string][] = Object.entries(
 	processed_langs
-).map(([code, data]) => [code, code]);
+).map(([code]) => [lang_map[code as keyof typeof lang_map] || code, code]);
 
 export let all_common_keys: Set<string> = new Set();
 
