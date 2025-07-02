@@ -5,7 +5,7 @@ Code is based on GZipMiddleware shipped with starlette.
 
 import io
 import re
-from typing import List, NoReturn, Union
+from typing import NoReturn
 
 from brotli import MODE_FONT, MODE_GENERIC, MODE_TEXT, Compressor  # type: ignore
 from starlette.datastructures import Headers, MutableHeaders
@@ -33,7 +33,7 @@ class BrotliMiddleware:
         lgblock: int = 0,
         minimum_size: int = 400,
         gzip_fallback: bool = True,
-        excluded_handlers: Union[List, None] = None,
+        excluded_handlers: list[str] | None = None,
     ) -> None:
         """
         Arguments.
@@ -199,5 +199,5 @@ class BrotliResponder:
         return self.br_file.compress(body)
 
 
-async def unattached_send(message: Message) -> NoReturn:
+async def unattached_send() -> NoReturn:
     raise RuntimeError("send awaitable not set")  # pragma: no cover
