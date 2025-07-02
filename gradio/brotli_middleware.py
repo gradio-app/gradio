@@ -110,8 +110,8 @@ class BrotliResponder:
         self.lgwin = lgwin
         self.lgblock = lgblock
         self.minimum_size = minimum_size
-        self.send = unattached_send  # type: Send
-        self.initial_message = {}  # type: Message
+        self.send: Send = unattached_send
+        self.initial_message: Message = {}
         self.started = False
         self.content_encoding_set = False
         self.br_file = Compressor(
@@ -199,5 +199,5 @@ class BrotliResponder:
         return self.br_file.compress(body)
 
 
-async def unattached_send() -> NoReturn:
+async def unattached_send(_: Message) -> NoReturn:
     raise RuntimeError("send awaitable not set")  # pragma: no cover
