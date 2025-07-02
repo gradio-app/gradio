@@ -1,12 +1,10 @@
 ---
-"@gradio/audio": minor
 "@gradio/core": minor
 "@gradio/imageeditor": minor
 "@gradio/markdown-code": minor
 "@gradio/preview": minor
 "@gradio/sanitize": minor
 "@gradio/tabitem": minor
-"@gradio/timer": minor
 "@self/app": minor
 "@self/spa": minor
 "gradio": minor
