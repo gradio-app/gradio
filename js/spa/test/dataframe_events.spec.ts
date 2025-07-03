@@ -257,7 +257,7 @@ test("Static columns cannot be edited", async ({ page }) => {
 	await page.waitForTimeout(100);
 
 	const is_disabled =
-		(await static_column_cell.locator("input").getAttribute("readonly")) !==
+		(await static_column_cell.locator("textarea").getAttribute("readonly")) !==
 		null;
 	expect(is_disabled).toBe(true);
 
@@ -266,7 +266,7 @@ test("Static columns cannot be edited", async ({ page }) => {
 	await page.waitForTimeout(100);
 
 	const is_not_disabled = await editable_cell
-		.locator("input")
+		.locator("textarea")
 		.getAttribute("aria-readonly");
 	expect(is_not_disabled).toEqual("false");
 });
@@ -365,4 +365,19 @@ test("Dataframe select events work as expected", async ({ page }) => {
 		.inputValue();
 
 	expect(restored_selected_cell_value).toBe("DeepSeek Coder");
+});
+
+test("Dataframe keyboard events allow newlines", async ({ page }) => {
+	await page.getByRole("button", { name: "Update dataframe" }).click();
+	await page.waitForTimeout(500);
+
+	const df = page.locator("#dataframe");
+	await get_cell(df, 0, 0).click();
+
+	await page.getByLabel("Edit cell").fill("42");
+	await page.getByLabel("Edit cell").press("Shift+Enter");
+	await page.getByLabel("Edit cell").pressSequentially("don't panic");
+	await page.getByLabel("Edit cell").press("Enter");
+
+	expect(await get_cell(df, 0, 0).textContent()).toBe(" 42\ndon't panic   ⋮");
 });

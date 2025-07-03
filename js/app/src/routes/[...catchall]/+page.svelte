@@ -89,8 +89,6 @@
 	import { init } from "@huggingface/space-header";
 	import { browser } from "$app/environment";
 
-	setupi18n();
-
 	const dispatch = createEventDispatcher();
 	export let data;
 
@@ -226,7 +224,6 @@
 	let ready = false;
 	let render_complete = false;
 	$: config = data.config;
-	let loading_text = $_("common.loading") + "...";
 
 	let intersecting: ReturnType<typeof create_intersection_store> = {
 		register: () => {},
@@ -253,8 +250,12 @@
 	let pending_deep_link_error = false;
 
 	let gradio_dev_mode = "";
-
+	let i18n_ready: boolean;
 	onMount(async () => {
+		setupi18n().then(() => {
+			i18n_ready = true;
+		});
+
 		//@ts-ignore
 		config = data.config;
 		window.gradio_config = config;
@@ -396,7 +397,7 @@
 	fill_width={config?.fill_width || false}
 	bind:wrapper
 >
-	{#if config?.auth_required}
+	{#if config?.auth_required && i18n_ready}
 		<svelte:component
 			this={data.Render}
 			auth_message={config.auth_message}
@@ -404,7 +405,7 @@
 			space_id={space}
 			{app_mode}
 		/>
-	{:else if config && app}
+	{:else if config && app && i18n_ready}
 		<svelte:component
 			this={data.Render}
 			{app}
