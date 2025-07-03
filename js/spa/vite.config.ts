@@ -60,7 +60,7 @@ const CDN_BASE = "https://gradio.s3-us-west-2.amazonaws.com";
 const TEST_MODE = process.env.TEST_MODE || "happy-dom";
 
 //@ts-ignore
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, isSsrBuild }) => {
 	const production = mode === "production";
 	const development = mode === "development";
 
@@ -81,6 +81,7 @@ export default defineConfig(({ mode }) => {
 			}
 		},
 		define: {
+			BROWSER_BUILD: JSON.stringify(true),
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
 			BACKEND_URL: production
 				? JSON.stringify("")
@@ -142,6 +143,7 @@ export default defineConfig(({ mode }) => {
 			inject_component_loader({ mode }),
 			mode === "test" && mock_modules()
 		],
+
 		optimizeDeps: {
 			exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"]
 		},
