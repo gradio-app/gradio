@@ -1338,7 +1338,7 @@ def diff(old, new):
             deletes_seen = 0
             for edit in edits:
                 if edit[0] == "delete" and isinstance(edit[1][-1], int):
-                    edit[1] = [edit[1][-1] - deletes_seen]
+                    edit[1][-1] -= deletes_seen
                     deletes_seen += 1
             return edits
 

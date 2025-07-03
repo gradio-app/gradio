@@ -49,7 +49,7 @@
 		return ProxiedMyClass;
 	}
 
-	const _component = wrap(component);
+	let _component = wrap(component);
 
 	const supported_props = [
 		"description",
@@ -72,20 +72,19 @@
 	$: value = translate_if_needed(value);
 </script>
 
-<!-- {#if visible} -->
-<svelte:component
-	this={_component}
-	bind:this={instance}
-	bind:value
-	on:prop_change
-	{elem_id}
-	{elem_classes}
-	{target}
-	{visible}
-	{...$$restProps}
-	{theme_mode}
-	{root}
->
-	<slot />
-</svelte:component>
-<!-- {/if} -->
+{#if visible}
+	<svelte:component
+		this={_component}
+		bind:this={instance}
+		bind:value
+		on:prop_change
+		{elem_id}
+		{elem_classes}
+		{target}
+		{...$$restProps}
+		{theme_mode}
+		{root}
+	>
+		<slot />
+	</svelte:component>
+{/if}
