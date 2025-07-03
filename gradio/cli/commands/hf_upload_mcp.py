@@ -3,8 +3,9 @@ def main(url_or_space_id: str):
 
     import requests
     from huggingface_hub import space_info
+    from mcp.server.fastmcp import FastMCP
 
-    import gradio as gr
+    mcp = FastMCP("hf-upload-mcp")
 
     if url_or_space_id.startswith("http"):
         url = url_or_space_id
@@ -13,7 +14,8 @@ def main(url_or_space_id: str):
 
     print(f"Uploading to {url}")
 
-    def upload_to_space(file: str):
+    @mcp.tool()
+    def upload_to_space(file: str) -> str:
         """Upload a local file to a Hugging Face Space.
         Arguments:
             file: A complete, absolutepath to a local file to upload.
@@ -26,11 +28,7 @@ def main(url_or_space_id: str):
         result = response.json()[0]
         return f"{url}/gradio_api/file={result}"
 
-    gr.Interface(
-        fn=upload_to_space,
-        inputs=gr.Textbox(label="File"),
-        outputs=gr.Textbox(label="Uploaded File URL"),
-    ).launch(mcp_server=True)
+    mcp.run(transport="stdio")
 
 
 if __name__ == "__main__":
