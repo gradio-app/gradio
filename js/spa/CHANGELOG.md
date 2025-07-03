@@ -1,5 +1,16 @@
 # @self/spa
 
+## 0.9.0
+
+### Features
+
+- [#11427](https://github.com/gradio-app/gradio/pull/11427) [`6b2bcd0`](https://github.com/gradio-app/gradio/commit/6b2bcd097ae5ef999a7fb273ecf7c7e4c0eab305) - Improve load times of the Gradio front-end.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/client@1.15.5
+- @gradio/core@0.21.0
+
 ## 0.8.5
 
 ### Fixes
