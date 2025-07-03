@@ -300,9 +300,9 @@
 								<p>&nbsp;</p>
 								<em>Note</em>: Gradio MCP servers need files to be accessible
 								via publicly available URLs so the <code>hf_upload_files</code>
-								server is included for your convenience. You can omit if if you
-								are fine manually uploading files yourself. Before using it, you
-								must install
+								server is included for your convenience. You can omit if if you are
+								fine manually uploading files yourself. Before using it, you must
+								install
 								<a
 									href="https://docs.astral.sh/uv/getting-started/installation/"
 									target="_blank">uv</a
