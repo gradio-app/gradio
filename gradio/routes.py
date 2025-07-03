@@ -342,7 +342,6 @@ class App(FastAPI):
         app_kwargs: dict[str, Any],
         mcp_server: bool | None = None,
     ):
-        print("setup_mcp_server")
         mcp_subpath = API_PREFIX + "/mcp"
         if mcp_server is None:
             mcp_server = os.environ.get("GRADIO_MCP_SERVER", "False").lower() == "true"
@@ -373,9 +372,6 @@ class App(FastAPI):
 
                 app_kwargs["lifespan"] = _lifespan
             except Exception as e:
-                import traceback
-
-                traceback.print_exc()
                 blocks.mcp_server = False
                 blocks.mcp_error = f"Error launching MCP server: {e}"
 
