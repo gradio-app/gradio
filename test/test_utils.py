@@ -530,6 +530,14 @@ def test_get_extension_from_file_path_or_url(path_or_url, extension):
                 ["delete", [0, "metadata", "id"], None],
             ],
         ),
+        (
+            {"data": [[1, 1], [2, 2], [3, 3]]},
+            {"data": [[1, 1]]},
+            [
+                ["delete", ["data", 1], None],
+                ["delete", ["data", 1], None],
+            ],
+        ),
     ],
 )
 def test_diff(old, new, expected_diff):
