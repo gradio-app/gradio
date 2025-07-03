@@ -296,7 +296,17 @@
 
 								<strong>Integration</strong>: To add this MCP to clients that
 								support SSE (e.g. Cursor, Windsurf, Cline), simply add the
-								following configuration to your MCP config:
+								following configuration to your MCP config.
+								<p>&nbsp;</p>
+								<em>Note</em>: Gradio MCP servers need files to be accessible
+								via publicly available URLs so the <code>hf_upload_files</code>
+								server is included for your convenience. You can omit if if you
+								are fine manually uploading files yourself. Before using it, you
+								must install
+								<a
+									href="https://docs.astral.sh/uv/getting-started/installation/"
+									target="_blank">uv</a
+								>.
 								<p>&nbsp;</p>
 								<Block>
 									<code>
@@ -307,6 +317,16 @@
 														mcpServers: {
 															gradio: {
 																url: mcp_server_url
+															},
+															hf_upload_files: {
+																command: "uvx",
+																args: [
+																	"--from",
+																	"gradio[mcp]",
+																	"gradio",
+																	"hf-upload-mcp",
+																	root
+																]
 															}
 														}
 													},
@@ -321,6 +341,16 @@
 														mcpServers: {
 															gradio: {
 																url: mcp_server_url
+															},
+															hf_upload_files: {
+																command: "uvx",
+																args: [
+																	"--from",
+																	"gradio[mcp]",
+																	"gradio",
+																	"hf-upload-mcp",
+																	root
+																]
 															}
 														}
 													},
@@ -352,6 +382,16 @@
 																	"--transport",
 																	"sse-only"
 																]
+															},
+															hf_upload_files: {
+																command: "uvx",
+																args: [
+																	"--from",
+																	"gradio[mcp]",
+																	"gradio",
+																	"hf-upload-mcp",
+																	root
+																]
 															}
 														}
 													},
@@ -371,6 +411,16 @@
 																	mcp_server_url,
 																	"--transport",
 																	"sse-only"
+																]
+															},
+															hf_upload_files: {
+																command: "uvx",
+																args: [
+																	"--from",
+																	"gradio[mcp]",
+																	"gradio",
+																	"hf-upload-mcp",
+																	root
 																]
 															}
 														}
