@@ -30,6 +30,7 @@ interface DataFrameState {
 		max_height: number;
 		column_widths: string[];
 		max_chars?: number;
+		static_columns?: (string | number)[];
 	};
 	current_search_query: string | null;
 	sort_state: {
