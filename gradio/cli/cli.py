@@ -4,7 +4,14 @@ import typer
 from gradio_client.cli import deploy_discord  # type: ignore
 from rich.console import Console
 
-from .commands import custom_component, deploy, print_environment_info, reload, sketch
+from .commands import (
+    custom_component,
+    deploy,
+    hf_upload_mcp,
+    print_environment_info,
+    reload,
+    sketch,
+)
 
 app = typer.Typer()
 app.command("environment", help="Print Gradio environment information.")(
@@ -36,5 +43,7 @@ def cli():
         except ValueError:
             console = Console()
             console.print_exception()
+    elif args[0] in {"hf-upload-mcp"}:
+        hf_upload_mcp(args[1])
     else:
         typer.run(reload)
