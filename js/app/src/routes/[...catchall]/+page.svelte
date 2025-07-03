@@ -1,13 +1,11 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	import { mount_css } from "@gradio/core";
 
 	import type { Client as ClientType } from "@gradio/client";
 
 	import type { ComponentMeta, Dependency, LayoutNode } from "@gradio/core";
 	declare let GRADIO_VERSION: string;
 
-	declare let BUILD_MODE: string;
 	interface Config {
 		deep_link_state?: "none" | "valid" | "invalid";
 		auth_required?: true;
@@ -252,9 +250,9 @@
 	let gradio_dev_mode = "";
 	let i18n_ready: boolean;
 	onMount(async () => {
-		setupi18n().then(() => {
-			i18n_ready = true;
-		});
+		// setupi18n().then(() => {
+		// 	i18n_ready = true;
+		// });
 
 		//@ts-ignore
 		config = data.config;
@@ -397,7 +395,7 @@
 	fill_width={config?.fill_width || false}
 	bind:wrapper
 >
-	{#if config?.auth_required && i18n_ready}
+	{#if config?.auth_required}
 		<svelte:component
 			this={data.Render}
 			auth_message={config.auth_message}
@@ -405,7 +403,7 @@
 			space_id={space}
 			{app_mode}
 		/>
-	{:else if config && app && i18n_ready}
+	{:else if config && app}
 		<svelte:component
 			this={data.Render}
 			{app}
