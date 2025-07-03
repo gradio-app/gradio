@@ -73,6 +73,7 @@ class TestChatbot:
             "allow_tags": False,
             "show_copy_all_button": False,
             "examples": None,
+            "custom_buttons": None,
             "watermark": None,
         }
 
