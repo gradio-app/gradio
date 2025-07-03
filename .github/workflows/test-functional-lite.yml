@@ -44,7 +44,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: install dependencies
         id: install_deps
-        uses: "gradio-app/gradio/.github/actions/install-all-deps"
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           build_lite: true
           skip_build: true
