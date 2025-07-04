@@ -24,12 +24,12 @@ jobs:
       - name: install dependencies
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
-          python_version: "3.10"
+          python_version: "3.12"
           skip_build: "false"
       - name: Build packages
         run: |
           . venv/bin/activate
-          pip install -U build hatch packaging>=23.2  # packaging>=23.2 is needed to build Lite due to https://github.com/pypa/hatch/issues/1381
+          uv pip install -U build hatch pyodide-build packaging>=23.2  # packaging>=23.2 is needed to build Lite due to https://github.com/pypa/hatch/issues/1381
           pnpm package
           pnpm --filter @gradio/client --filter @gradio/lite --filter @gradio/preview build
 
