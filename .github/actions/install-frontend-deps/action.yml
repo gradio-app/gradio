@@ -50,6 +50,6 @@ runs:
       shell: bash
       run: |
         . ${{ env.VENV_ACTIVATE }}
-        uv pip install . build hatch pyodide-build packaging>=23.2  # packaging>=23.2 is needed to build Lite due to https://github.com/pypa/hatch/issues/1381
+        uv pip install . build hatch pyodide-build>=0.30.5 packaging>=23.2  # packaging>=23.2 is needed to build Lite due to https://github.com/pypa/hatch/issues/1381
         python -c "import pydantic; print('pydantic.__version__: ', pydantic.__version__); print('pydantic.__file__:', pydantic.__file__)"
         pnpm build:lite
