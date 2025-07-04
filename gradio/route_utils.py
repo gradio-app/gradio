@@ -23,6 +23,7 @@ from typing import (
     Any,
     BinaryIO,
     Optional,
+    TypeAlias,
     Union,
 )
 from urllib.parse import urlparse
@@ -209,6 +210,9 @@ class Request:
             self.state = request_state
         self.__dict__ = state
 
+
+class Header(str):
+    pass
 
 class FnIndexInferError(Exception):
     pass

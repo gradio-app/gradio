@@ -27,6 +27,7 @@ from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
 from gradio.i18n import I18nData
 from gradio.utils import UnhashableKeyDict
+from gradio.route_utils import Header
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.components import Component
@@ -1010,6 +1011,19 @@ def special_args(
                             "This action requires a logged in user. Please sign in and retry."
                         )
                     inputs.insert(i, oauth_token)
+        elif type_hint in (Header, Optional[Header]):
+            if inputs is not None and request is not None:
+                header_name = param.name.replace("_", "-").lower()
+                header_value = None
+                if hasattr(request, "headers"):
+                    for k, v in dict(request.headers).items():
+                        if k.lower() == header_name:
+                            header_value = v
+                            break
+                if len(inputs) > i:
+                    inputs[i] = header_value
+                else:
+                    inputs.insert(i, header_value)
         elif (
             type_hint
             and inspect.isclass(type_hint)

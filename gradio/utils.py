@@ -1028,6 +1028,7 @@ def is_special_typed_parameter(name, parameter_types):
     from gradio.helpers import EventData
     from gradio.oauth import OAuthProfile, OAuthToken
     from gradio.routes import Request
+    from gradio.route_utils import Header
 
     """Checks if parameter has a type hint designating it as a gr.Request, gr.EventData, gr.OAuthProfile or gr.OAuthToken."""
     hint = parameter_types.get(name)
@@ -1039,6 +1040,8 @@ def is_special_typed_parameter(name, parameter_types):
         Optional[OAuthProfile],
         OAuthToken,
         Optional[OAuthToken],
+        Header,
+        Optional[Header],
     )
     is_event_data = inspect.isclass(hint) and issubclass(hint, EventData)
     return is_request or is_event_data or is_oauth_arg
