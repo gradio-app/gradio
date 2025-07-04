@@ -1,5 +1,6 @@
 ---
-"gradio": patch
+"@gradio/core": minor
+"gradio": minor
 ---
 
-fix:Fix MCP server broken on main
+feat:Proposal: Making it easier for MCP developers call APIs with user credentials
