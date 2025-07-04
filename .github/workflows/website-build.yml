@@ -55,7 +55,7 @@ jobs:
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           skip_build: true
-          python_version: "3.10"
+          python_version: "3.12"
       - name: build client
         run: pnpm --filter @gradio/client build
 
