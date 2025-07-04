@@ -84,7 +84,7 @@ runs:
         uv pip install -e client/python
         uv pip install -e ".[oauth, mcp]"
     - name: install-frontend
-      uses: "./.github/actions/install-frontend-deps"
+      uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
       with:
         skip_build: ${{ inputs.skip_build }}
         build_lite: ${{ inputs.build_lite }}
