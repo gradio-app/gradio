@@ -409,6 +409,7 @@ class App(FastAPI):
             app.add_middleware(
                 BrotliMiddleware,
                 quality=4,
+                excluded_handlers=[mcp_subpath],
             )
 
         if ssr_mode:

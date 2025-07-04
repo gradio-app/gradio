@@ -8,7 +8,7 @@ import warnings
 from collections.abc import AsyncIterator, Sequence
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 from urllib.parse import unquote
 
 import gradio_client.utils as client_utils
@@ -28,6 +28,7 @@ from gradio import processing_utils, route_utils, utils
 from gradio.blocks import BlockFunction
 from gradio.components import State
 from gradio.data_classes import FileData
+from gradio.route_utils import Header
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockContext, Blocks
@@ -407,11 +408,24 @@ class GradioMCPServer:
                     + ", ".join(returns)
                 )
             schema, _ = self.get_input_schema(tool_name, parameters)
+
+            type_hints = utils.get_type_hints(block_fn.fn)
+            required_headers = []
+            for param_name, type_hint in type_hints.items():
+                if type_hint is Header or type_hint is Optional[Header]:
+                    header_name = param_name.replace("_", "-").lower()
+                    required_headers.append(header_name)
+            meta = None
+            if required_headers:
+                meta = {"headers": required_headers}
+
             info = {
                 "name": tool_name,
                 "description": description,
                 "inputSchema": schema,
             }
+            if meta is not None:
+                info["meta"] = meta
             schemas.append(info)
 
         return JSONResponse(schemas)
