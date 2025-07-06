@@ -23,7 +23,6 @@ from typing import (
     Any,
     BinaryIO,
     Optional,
-    TypeAlias,
     Union,
 )
 from urllib.parse import urlparse
@@ -213,6 +212,7 @@ class Request:
 
 class Header(str):
     pass
+
 
 class FnIndexInferError(Exception):
     pass

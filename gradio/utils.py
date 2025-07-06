@@ -1027,8 +1027,8 @@ def get_type_hints(fn):
 def is_special_typed_parameter(name, parameter_types):
     from gradio.helpers import EventData
     from gradio.oauth import OAuthProfile, OAuthToken
-    from gradio.routes import Request
     from gradio.route_utils import Header
+    from gradio.routes import Request
 
     """Checks if parameter has a type hint designating it as a gr.Request, gr.EventData, gr.OAuthProfile or gr.OAuthToken."""
     hint = parameter_types.get(name)
