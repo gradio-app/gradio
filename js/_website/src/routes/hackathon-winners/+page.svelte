@@ -8,6 +8,14 @@
 	import ChessTools from "$lib/assets/img/chess.png";
 	import Consilium from "$lib/assets/img/consilium.png";
 	import MMORPG from "$lib/assets/img/mmorpg.png";
+	import modal_logo from "$lib/assets/img/modal-logo.png";
+	import sambanova_logo from "$lib/assets/img/sambanova-logo.png";
+	import mistral_logo from "$lib/assets/img/mistral-logo.png";
+	import llamaindex_logo from "$lib/assets/img/llamaindex-logo.png";
+	import shallowcoderesearch from "$lib/assets/img/shallowcoderesearch.png";
+	import instagramcaption from "$lib/assets/img/instagramcaption.png";
+	import nasaspaceexplorer from "$lib/assets/img/nasaspaceexplorer.png";
+	import opensorus from "$lib/assets/img/opensorus.png";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
 </script>
@@ -321,7 +329,7 @@
 				</span>
 				<span class="text-xl font-semibold bg-green-100 p-1 rounded-md"
 					>$500</span
-				> 👑
+				>
 			</div>
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>🎭 Consilium</span>
@@ -346,7 +354,7 @@
 				</span>
 				<span class="text-xl font-semibold bg-green-100 p-1 rounded-md"
 					>$500</span
-				> 🌟
+				>
 			</div>
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>🎮 MMORPG with MCP Integration</span>
@@ -361,6 +369,150 @@
 </div>
 
 <!-- -->
+
+<div class="container mx-auto px-4 relative pt-8 mb-0 mt-8">
+	<h1 class="mb-4 flex items-center text-2xl align-middle font-light right-0">
+		<img src={modal_logo} alt="Modal Labs Logo" class="w-10 mr-2" />
+		Modal Labs Choice Award <span class="ml-1 font-semibold"> Winner</span>
+	</h1>
+
+	<div class="flex flex-col lg:flex-row gap-5 mt-8">
+		<a
+			href="https://huggingface.co/spaces/Agents-MCP-Hackathon/ShallowCodeResearch"
+			target="_blank"
+			class="from-orange-100 shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-gradient-to-r px-3 pb-4 lg:pt-6 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 align-middle"
+		>
+			<div
+				class="lg:absolute top-0 right-0 mr-4 text-green-500"
+				style="font-size: 2rem;"
+			>
+				<span class="text-xl font-semibold bg-green-100 p-1 rounded-md"
+					>$5000</span
+				>
+			</div>
+			<div class="relative mb-2 flex items-center text-lg font-semibold">
+				<span>Shallow Research Code Assistant Hub</span>
+			</div>
+			<code class="font-light text-md mb-2">HallD</code>
+			<div class="relative pr-4 text-lg font-light">
+				Streamlined interface for AI-assisted research and code generation
+			</div>
+			<img
+				src={shallowcoderesearch}
+				alt="ShallowCodeResearch UI Screenshot"
+				class="m-2 mt-3 p-5"
+			/>
+		</a>
+	</div>
+</div>
+
+<!--  -->
+<div class="container mx-auto px-4 relative pt-8 mb-0 mt-8">
+	<h1 class="mb-4 flex items-center text-2xl align-middle font-light right-0">
+		<img src={sambanova_logo} alt="Sambanova Logo" class="w-10 mr-2" />
+		Sambanova Choice Award <span class="ml-1 font-semibold"> Winner</span>
+	</h1>
+
+	<div class="flex flex-col lg:flex-row gap-5 mt-8">
+		<a
+			href="https://huggingface.co/spaces/Agents-MCP-Hackathon/caption-creator-pro"
+			target="_blank"
+			class="from-purple-100 shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-gradient-to-r px-3 pb-4 lg:pt-6 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 align-middle"
+		>
+			<div
+				class="lg:absolute top-0 right-0 mr-4 text-green-500"
+				style="font-size: 2rem;"
+			>
+				<span class="text-xl font-semibold bg-green-100 p-1 rounded-md"
+					>$500</span
+				>
+			</div>
+			<div class="relative mb-2 flex items-center text-lg font-semibold">
+				<span>📱 INSTAGRAM CAPTION GENERATOR</span>
+			</div>
+			<code class="font-light text-md mb-2">GChilukala</code>
+			<div class="relative pr-4 text-lg font-light">
+				Advanced AI-Powered Instagram Caption Generator with SambaNova
+				Integration
+			</div>
+			<img
+				src={instagramcaption}
+				alt="Instagram Caption Generator UI Screenshot"
+				class="m-2 mt-3 p-5"
+			/>
+		</a>
+	</div>
+</div>
+
+<!--  -->
+<div class="container mx-auto px-4 relative pt-8 mb-0 mt-8">
+	<h1 class="mb-4 flex items-center text-2xl align-middle font-light right-0">
+		<img src={mistral_logo} alt="Mistral Logo" class="w-10 mr-2" />
+		Mistral Choice Award <span class="ml-1 font-semibold"> Winner</span>
+	</h1>
+
+	<div class="flex flex-col lg:flex-row gap-5 mt-8">
+		<a
+			href="https://huggingface.co/spaces/Agents-MCP-Hackathon/OpenSorus"
+			target="_blank"
+			class="from-green-100 shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-gradient-to-r px-3 pb-4 lg:pt-6 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 align-middle"
+		>
+			<div
+				class="lg:absolute top-0 right-0 mr-4 text-green-500"
+				style="font-size: 2rem;"
+			>
+				<span class="text-xl font-semibold bg-green-100 p-1 rounded-md"
+					>$2000 API Credits</span
+				>
+			</div>
+			<div class="relative mb-2 flex items-center text-lg font-semibold">
+				<span>OpenSorus</span>
+			</div>
+			<code class="font-light text-md mb-2">halfacupoftea</code>
+			<div class="relative pr-4 text-lg font-light">
+				AI Maintainer Agent for GitHub Issues
+			</div>
+			<img src={opensorus} alt="OpenSorus UI Screenshot" class="m-2 mt-3 p-5" />
+		</a>
+	</div>
+</div>
+
+<!--  -->
+<div class="container mx-auto px-4 relative pt-8 mb-0 mt-8">
+	<h1 class="mb-4 flex items-center text-2xl align-middle font-light right-0">
+		<img src={llamaindex_logo} alt="LlamaIndex Logo" class="w-10 mr-2" />
+		LlamaIndex Choice Award <span class="ml-1 font-semibold"> Winner</span>
+	</h1>
+
+	<div class="flex flex-col lg:flex-row gap-5 mt-8">
+		<a
+			href="https://huggingface.co/spaces/Agents-MCP-Hackathon/nasa-space-explorer"
+			target="_blank"
+			class="from-blue-100 shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-gradient-to-r px-3 pb-4 lg:pt-6 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 align-middle"
+		>
+			<div
+				class="lg:absolute top-0 right-0 mr-4 text-green-500"
+				style="font-size: 2rem;"
+			>
+				<span class="text-xl font-semibold bg-green-100 p-1 rounded-md"
+					>$1,000</span
+				>
+			</div>
+			<div class="relative mb-2 flex items-center text-lg font-semibold">
+				<span>🚀 NASA Space Explorer Assistant</span>
+			</div>
+			<code class="font-light text-md mb-2">ClementeH</code>
+			<div class="relative pr-4 text-lg font-light">
+				MCP-powered space data access + AI Chat Assistant
+			</div>
+			<img
+				src={nasaspaceexplorer}
+				alt="NASA Space Explorer Assistant UI Screenshot"
+				class="m-2 mt-3 p-5"
+			/>
+		</a>
+	</div>
+</div>
 
 <style>
 	.quick-link {
