@@ -127,58 +127,59 @@
 				parameters: tool.inputSchema?.properties || {},
 				expanded: false
 			}));
-			
+
 			headers = schema.map((tool: any) => tool.meta?.headers || []).flat();
 			console.log("headers", headers);
 			if (headers.length > 0) {
-					mcp_json_sse = {
-						mcpServers: {
-							gradio: {
-								url: mcp_server_url,
-								headers: headers.reduce((accumulator, current_key) => {
-									// @ts-ignore
-									accumulator[current_key] = "<YOUR_HEADER_VALUE>";
-									return accumulator;
-								}, {})
-							}
+				mcp_json_sse = {
+					mcpServers: {
+						gradio: {
+							url: mcp_server_url,
+							headers: headers.reduce((accumulator, current_key) => {
+								// @ts-ignore
+								accumulator[current_key] = "<YOUR_HEADER_VALUE>";
+								return accumulator;
+							}, {})
 						}
 					}
-					console.log("mcp_json_sse", mcp_json_sse);
-					mcp_json_stdio = {
-							mcpServers: {
-								gradio: {
-									command: "npx",
-									args: [
-										"mcp-remote",
-										mcp_server_url,
-										"--transport",
-										"sse-only",
-										...headers.map((header) => ["--header", `${header}: <YOUR_HEADER_VALUE>`]).flat()
-									]
-								}
-							}
-						}
-				} else {
-					mcp_json_sse = {
-						mcpServers: {
-							gradio: {
-								url: mcp_server_url
-							}
-						}}
-					mcp_json_stdio = {
-						mcpServers: {
-							gradio: {
-								command: "npx",
-								args: [
-									"mcp-remote",
-									mcp_server_url,
-									"--transport",
-									"sse-only"
-								]
-							}
+				};
+				console.log("mcp_json_sse", mcp_json_sse);
+				mcp_json_stdio = {
+					mcpServers: {
+						gradio: {
+							command: "npx",
+							args: [
+								"mcp-remote",
+								mcp_server_url,
+								"--transport",
+								"sse-only",
+								...headers
+									.map((header) => [
+										"--header",
+										`${header}: <YOUR_HEADER_VALUE>`
+									])
+									.flat()
+							]
 						}
 					}
-				}
+				};
+			} else {
+				mcp_json_sse = {
+					mcpServers: {
+						gradio: {
+							url: mcp_server_url
+						}
+					}
+				};
+				mcp_json_stdio = {
+					mcpServers: {
+						gradio: {
+							command: "npx",
+							args: ["mcp-remote", mcp_server_url, "--transport", "sse-only"]
+						}
+					}
+				};
+			}
 		} catch (error) {
 			console.error("Failed to fetch MCP tools:", error);
 			tools = [];
@@ -197,7 +198,7 @@
 				mcp_server_active = response.ok;
 				if (mcp_server_active) {
 					fetchMcpTools();
-				}			
+				}
 			})
 			.catch(() => {
 				mcp_server_active = false;
@@ -357,19 +358,11 @@
 									<code>
 										<div class="copy">
 											<CopyButton
-												code={JSON.stringify(
-													mcp_json_sse,
-													null,
-													2
-												)}
+												code={JSON.stringify(mcp_json_sse, null, 2)}
 											/>
 										</div>
 										<div>
-											<pre>{JSON.stringify(
-													mcp_json_sse,
-													null,
-													2
-												)}</pre>
+											<pre>{JSON.stringify(mcp_json_sse, null, 2)}</pre>
 										</div>
 									</code>
 								</Block>
@@ -384,19 +377,11 @@
 									<code>
 										<div class="copy">
 											<CopyButton
-												code={JSON.stringify(
-													mcp_json_stdio,
-													null,
-													2
-												)}
+												code={JSON.stringify(mcp_json_stdio, null, 2)}
 											/>
 										</div>
 										<div>
-											<pre>{JSON.stringify(
-													mcp_json_stdio,
-													null,
-													2
-												)}</pre>
+											<pre>{JSON.stringify(mcp_json_stdio, null, 2)}</pre>
 										</div>
 									</code>
 								</Block>
