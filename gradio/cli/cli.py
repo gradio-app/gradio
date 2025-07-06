@@ -44,6 +44,6 @@ def cli():
             console = Console()
             console.print_exception()
     elif args[0] in {"hf-upload-mcp"}:
-        hf_upload_mcp(args[1])
+        hf_upload_mcp(args[1], args[2])
     else:
         typer.run(reload)

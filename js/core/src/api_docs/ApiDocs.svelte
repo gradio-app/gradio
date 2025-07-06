@@ -112,11 +112,27 @@
 	}
 
 	let tools: Tool[] = [];
+	let mcp_json_sse: any;
+	let mcp_json_stdio: any;
+
+	const upload_file_mcp_server = {
+		command: "uvx",
+		args: [
+			"--from",
+			"gradio[mcp]",
+			"gradio",
+			"hf-upload-mcp",
+			root,
+			"<SOURCE_DIRECTORY>"
+		]
+	};
 
 	async function fetchMcpTools() {
 		try {
 			const response = await fetch(`${root}gradio_api/mcp/schema`);
-			const schema = await response.json();
+			const payload = await response.json();
+			const file_data_present = payload.meta?.file_data_present;
+			const schema = payload.tools;
 
 			tools = schema.map((tool: any) => ({
 				name: tool.name,
@@ -124,6 +140,27 @@
 				parameters: tool.inputSchema?.properties || {},
 				expanded: false
 			}));
+			mcp_json_sse = {
+				mcpServers: {
+					gradio: {
+						url: mcp_server_url
+					}
+				}
+			};
+
+			mcp_json_stdio = {
+				mcpServers: {
+					gradio: {
+						command: "npx",
+						args: ["mcp-remote", mcp_server_url, "--transport", "sse-only"]
+					}
+				}
+			};
+
+			if (file_data_present) {
+				mcp_json_sse.mcpServers.hf_upload_files = upload_file_mcp_server;
+				mcp_json_stdio.mcpServers.hf_upload_files = upload_file_mcp_server;
+			}
 		} catch (error) {
 			console.error("Failed to fetch MCP tools:", error);
 			tools = [];
@@ -312,51 +349,11 @@
 									<code>
 										<div class="copy">
 											<CopyButton
-												code={JSON.stringify(
-													{
-														mcpServers: {
-															gradio: {
-																url: mcp_server_url
-															},
-															hf_upload_files: {
-																command: "uvx",
-																args: [
-																	"--from",
-																	"gradio[mcp]",
-																	"gradio",
-																	"hf-upload-mcp",
-																	root
-																]
-															}
-														}
-													},
-													null,
-													2
-												)}
+												code={JSON.stringify(mcp_json_sse, null, 2)}
 											/>
 										</div>
 										<div>
-											<pre>{JSON.stringify(
-													{
-														mcpServers: {
-															gradio: {
-																url: mcp_server_url
-															},
-															hf_upload_files: {
-																command: "uvx",
-																args: [
-																	"--from",
-																	"gradio[mcp]",
-																	"gradio",
-																	"hf-upload-mcp",
-																	root
-																]
-															}
-														}
-													},
-													null,
-													2
-												)}</pre>
+											<pre>{JSON.stringify(mcp_json_sse, null, 2)}</pre>
 										</div>
 									</code>
 								</Block>
@@ -371,63 +368,11 @@
 									<code>
 										<div class="copy">
 											<CopyButton
-												code={JSON.stringify(
-													{
-														mcpServers: {
-															gradio: {
-																command: "npx",
-																args: [
-																	"mcp-remote",
-																	mcp_server_url,
-																	"--transport",
-																	"sse-only"
-																]
-															},
-															hf_upload_files: {
-																command: "uvx",
-																args: [
-																	"--from",
-																	"gradio[mcp]",
-																	"gradio",
-																	"hf-upload-mcp",
-																	root
-																]
-															}
-														}
-													},
-													null,
-													2
-												)}
+												code={JSON.stringify(mcp_json_stdio, null, 2)}
 											/>
 										</div>
 										<div>
-											<pre>{JSON.stringify(
-													{
-														mcpServers: {
-															gradio: {
-																command: "npx",
-																args: [
-																	"mcp-remote",
-																	mcp_server_url,
-																	"--transport",
-																	"sse-only"
-																]
-															},
-															hf_upload_files: {
-																command: "uvx",
-																args: [
-																	"--from",
-																	"gradio[mcp]",
-																	"gradio",
-																	"hf-upload-mcp",
-																	root
-																]
-															}
-														}
-													},
-													null,
-													2
-												)}</pre>
+											<pre>{JSON.stringify(mcp_json_stdio, null, 2)}</pre>
 										</div>
 									</code>
 								</Block>

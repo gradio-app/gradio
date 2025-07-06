@@ -393,6 +393,8 @@ class GradioMCPServer:
         if not self.api_info:
             return JSONResponse({})
 
+        file_data_present = False
+
         schemas = []
         for tool_name, endpoint_name in self.tool_to_endpoint.items():
             block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
@@ -406,7 +408,9 @@ class GradioMCPServer:
                     + " Returns: "
                     + ", ".join(returns)
                 )
-            schema, _ = self.get_input_schema(tool_name, parameters)
+            schema, filedata_positions = self.get_input_schema(tool_name, parameters)
+            if len(filedata_positions) > 0 and not file_data_present:
+                file_data_present = True
             info = {
                 "name": tool_name,
                 "description": description,
@@ -414,7 +418,9 @@ class GradioMCPServer:
             }
             schemas.append(info)
 
-        return JSONResponse(schemas)
+        return JSONResponse(
+            {"tools": schemas, "meta": {"file_data_present": file_data_present}}
+        )
 
     def simplify_filedata_schema(
         self, schema: dict[str, Any]

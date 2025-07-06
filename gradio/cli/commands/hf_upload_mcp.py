@@ -1,9 +1,11 @@
-def main(url_or_space_id: str):
-    from pathlib import Path
-
+def main(url_or_space_id: str, source_directory: str):
     import requests
     from huggingface_hub import space_info
     from mcp.server.fastmcp import FastMCP
+
+    from gradio.utils import abspath, is_in_or_equal
+
+    source_path = abspath(source_directory)
 
     mcp = FastMCP("hf-upload-mcp")
 
@@ -11,8 +13,6 @@ def main(url_or_space_id: str):
         url = url_or_space_id
     else:
         url = f"https://{space_info(url_or_space_id).subdomain}.hf.space"
-
-    print(f"Uploading to {url}")
 
     @mcp.tool()
     def upload_to_space(file: str) -> str:
@@ -23,7 +23,12 @@ def main(url_or_space_id: str):
             A URL to the uploaded file.
         """
 
-        with open(Path(file.strip()).resolve(), "rb") as f:
+        target_path = abspath(file)
+
+        if not is_in_or_equal(target_path, source_path):
+            raise ValueError(f"File {file} is not in {source_path}")
+
+        with open(target_path, "rb") as f:
             response = requests.post(f"{url}/gradio_api/upload", files={"files": f})
         result = response.json()[0]
         return f"{url}/gradio_api/file={result}"
