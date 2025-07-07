@@ -1,13 +1,11 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	import { mount_css } from "@gradio/core";
 
 	import type { Client as ClientType } from "@gradio/client";
 
 	import type { ComponentMeta, Dependency, LayoutNode } from "@gradio/core";
 	declare let GRADIO_VERSION: string;
 
-	declare let BUILD_MODE: string;
 	interface Config {
 		deep_link_state?: "none" | "valid" | "invalid";
 		auth_required?: true;
@@ -80,16 +78,12 @@
 	import type { SpaceStatus } from "@gradio/client";
 	import { Embed } from "@gradio/core";
 	import type { ThemeMode } from "@gradio/core";
-	import { StatusTracker } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
-	import { setupi18n } from "@gradio/core";
 	import { Client } from "@gradio/client";
 	import { page } from "$app/stores";
 
 	import { init } from "@huggingface/space-header";
 	import { browser } from "$app/environment";
-
-	setupi18n();
 
 	const dispatch = createEventDispatcher();
 	export let data;
@@ -209,14 +203,7 @@
 		}
 	}
 
-	// These utilities are exported to be injectable for the Wasm version.
-
-	// export let Client: typeof ClientType;
-
 	export let space: string | null;
-	// export let host: string | null;
-	// export let src: string | null;
-
 	let _id = id++;
 
 	let loader_status: "pending" | "error" | "complete" | "generating" =
@@ -226,7 +213,6 @@
 	let ready = false;
 	let render_complete = false;
 	$: config = data.config;
-	let loading_text = $_("common.loading") + "...";
 
 	let intersecting: ReturnType<typeof create_intersection_store> = {
 		register: () => {},
@@ -253,7 +239,7 @@
 	let pending_deep_link_error = false;
 
 	let gradio_dev_mode = "";
-
+	let i18n_ready: boolean;
 	onMount(async () => {
 		//@ts-ignore
 		config = data.config;
