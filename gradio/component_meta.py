@@ -8,6 +8,7 @@ from pathlib import Path
 
 from jinja2 import Template
 
+from gradio import wasm_utils
 from gradio.events import EventListener
 from gradio.exceptions import ComponentDefinitionError
 from gradio.utils import no_raise_exception
@@ -221,5 +222,6 @@ class ComponentMeta(ABCMeta):
         if "EVENTS" in attrs:
             attrs["EVENTS"] = new_events
         component_class = super().__new__(cls, name, bases, attrs)
-        create_or_modify_pyi(component_class, name, events)
+        if not wasm_utils.IS_WASM:
+            create_or_modify_pyi(component_class, name, events)
         return component_class
