@@ -84,7 +84,7 @@ from gradio.events import (
     on,
 )
 from gradio.exceptions import Error
-from gradio.external import load, load_chat
+from gradio.external import load, load_chat, load_openapi_spec
 from gradio.flagging import (
     CSVLogger,
     FlaggingCallback,
@@ -239,6 +239,7 @@ __all__ = [
     "load",
     "load_chat",
     "load_ipython_extension",
+    "load_openapi_spec",
     "mount_gradio_app",
     "on",
     "render",

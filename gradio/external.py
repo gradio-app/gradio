@@ -872,7 +872,7 @@ def load_chat(
 
 
 @document()
-def load_from_openapi(
+def load_openapi_spec(
     openapi_spec: str | dict,
     base_url: str,
     paths: list[str] | None = None,
@@ -917,7 +917,9 @@ def load_from_openapi(
     with gr.Blocks(
         title=spec.get("info", {}).get("title", "OpenAPI Interface")
     ) as demo:
-        gr.Markdown(spec.get("info", {}).get("description", ""))
+        with gr.Sidebar():
+            gr.Markdown(f"## {spec.get('info', {}).get('title', 'OpenAPI Interface')}")
+            gr.Markdown(spec.get("info", {}).get("description", ""))
 
         for path, path_item in api_paths.items():
             for method, operation in path_item.items():
