@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Fix MCP server broken on main
+fix:Upgrade mcp version for security
