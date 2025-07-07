@@ -869,3 +869,179 @@ def load_chat(
         else None,
         **kwargs,
     )
+
+
+@document()
+def load_from_openapi(
+    openapi_spec: str | dict,
+    base_url: str,
+    paths: list[str] | None = None,
+) -> Blocks:
+    """
+    Load a Gradio app from an OpenAPI specification.
+
+    Parameters:
+        openapi_spec: URL, file path, or dictionary containing the OpenAPI specification (JSON format only)
+        base_url: Base URL for the API endpoints
+        paths: Optional list of specific API paths to create Gradio endpoints from
+    Returns:
+        A Gradio Blocks app with endpoints generated from the OpenAPI spec
+    """
+    import httpx
+
+    if isinstance(openapi_spec, dict):
+        spec = openapi_spec
+    elif isinstance(openapi_spec, str):
+        if openapi_spec.startswith(("http://", "https://")):
+            response = httpx.get(openapi_spec)
+            response.raise_for_status()
+            content = response.text
+        else:
+            with open(openapi_spec) as f:
+                content = f.read()
+
+        try:
+            import json
+
+            spec = json.loads(content)
+        except json.JSONDecodeError:
+            raise ValueError("openapi_spec must be a JSON string or dictionary")
+    else:
+        raise ValueError("openapi_spec must be a string (URL/file path) or dictionary")
+
+    api_paths = spec.get("paths", {})
+    if paths is not None:
+        api_paths = {path: api_paths[path] for path in paths if path in api_paths}
+
+    if not api_paths:
+        raise ValueError("No valid paths found in the OpenAPI specification")
+
+    with gr.Blocks(
+        title=spec.get("info", {}).get("title", "OpenAPI Interface")
+    ) as demo:
+        gr.Markdown(spec.get("info", {}).get("description", ""))
+
+        for path, path_item in api_paths.items():
+            for method, operation in path_item.items():
+                if method.lower() not in ["get", "post", "put", "patch", "delete"]:
+                    continue
+
+                def create_endpoint_fn(
+                    endpoint_path, endpoint_method, endpoint_operation
+                ):
+                    def endpoint_fn(*args):
+                        url = f"{base_url.rstrip('/')}{endpoint_path}"
+
+                        headers = {"Content-Type": "application/json"}
+
+                        params = {}
+                        body_data = {}
+
+                        operation_params = endpoint_operation.get("parameters", [])
+                        request_body = endpoint_operation.get("requestBody", {})
+
+                        param_index = 0
+                        for param in operation_params:
+                            if param_index < len(args):
+                                if param.get("in") == "query":
+                                    params[param["name"]] = args[param_index]
+                                elif param.get("in") == "path":
+                                    url = url.replace(
+                                        f"{{{param['name']}}}", str(args[param_index])
+                                    )
+                                param_index += 1
+
+                        if request_body and param_index < len(args):
+                            body_data = args[param_index]
+
+                        try:
+                            if endpoint_method.lower() == "get":
+                                response = httpx.get(
+                                    url, params=params, headers=headers
+                                )
+                            elif endpoint_method.lower() == "post":
+                                response = httpx.post(
+                                    url, params=params, json=body_data, headers=headers
+                                )
+                            elif endpoint_method.lower() == "put":
+                                response = httpx.put(
+                                    url, params=params, json=body_data, headers=headers
+                                )
+                            elif endpoint_method.lower() == "patch":
+                                response = httpx.patch(
+                                    url, params=params, json=body_data, headers=headers
+                                )
+                            elif endpoint_method.lower() == "delete":
+                                response = httpx.delete(
+                                    url, params=params, headers=headers
+                                )
+
+                            response.raise_for_status()
+                            return response.json()
+                        except Exception as e:
+                            return f"Error: {str(e)}"
+
+                    return endpoint_fn
+
+                components_list = []
+
+                for param in operation.get("parameters", []):
+                    param_name = param["name"]
+                    param_schema = param.get("schema", {})
+                    param_type = param_schema.get("type", "string")
+
+                    if param_type in ("number", "integer"):
+                        component = gr.Number(
+                            label=param_name, value=param_schema.get("default")
+                        )
+                    elif param_type == "boolean":
+                        component = gr.Checkbox(
+                            label=param_name, value=param_schema.get("default", False)
+                        )
+                    elif param_type == "array":
+                        component = gr.Textbox(
+                            label=f"{param_name} (JSON array)", value="[]"
+                        )
+                    elif param_type == "object":
+                        component = gr.JSON(label=param_name, value={})
+                    else:
+                        component = gr.Textbox(
+                            label=param_name, value=param_schema.get("default", "")
+                        )
+
+                    components_list.append(component)
+
+                request_body = operation.get("requestBody", {})
+                if request_body:
+                    content = request_body.get("content", {})
+                    if "application/json" in content:
+                        schema = content["application/json"].get("schema", {})
+                        if schema.get("type") == "object":
+                            component = gr.JSON(label="Request Body", value={})
+                        else:
+                            component = gr.Textbox(
+                                label="Request Body (JSON)", value="{}"
+                            )
+                        components_list.append(component)
+
+                endpoint_fn = create_endpoint_fn(path, method, operation)
+                endpoint_fn.__name__ = f"{method}_{path.replace('/', '_').replace('{', '').replace('}', '')}"
+
+                with gr.Group():
+                    gr.Markdown(f"**{method.upper()} {path}**")
+                    if operation.get("summary"):
+                        gr.Markdown(operation["summary"])
+
+                    inputs = components_list if components_list else []
+                    output = gr.JSON(label="Response")
+
+                    gr.Interface(
+                        fn=endpoint_fn,
+                        inputs=inputs,
+                        outputs=output,
+                        title=f"{method.upper()} {path}",
+                        description=operation.get("description", ""),
+                        _api_mode=True,
+                    )
+
+    return demo
