@@ -883,7 +883,7 @@ def load_from_openapi(
     Parameters:
         openapi_spec: URL, file path, or dictionary containing the OpenAPI specification (JSON format only)
         base_url: Base URL for the API endpoints
-        paths: Optional list of specific API paths to create Gradio endpoints from
+        paths: Optional list of specific API paths to create Gradio endpoints from, e.g.["/api/v1/books", "/api/v1/authors"]
     Returns:
         A Gradio Blocks app with endpoints generated from the OpenAPI spec
     """
