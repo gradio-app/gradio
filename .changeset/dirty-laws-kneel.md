@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Prevent deletion of static columns
+fix:Prevent deletion of values in static columns
