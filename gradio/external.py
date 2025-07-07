@@ -17,7 +17,7 @@ import huggingface_hub
 from gradio_client import Client
 from gradio_client.client import Endpoint
 from gradio_client.documentation import document
-from gradio_client.utils import encode_url_or_file_to_base64
+from gradio_client.utils import encode_url_or_file_to_base64, is_http_url_like
 from packaging import version
 
 import gradio as gr
@@ -887,12 +887,10 @@ def load_from_openapi(
     Returns:
         A Gradio Blocks app with endpoints generated from the OpenAPI spec
     """
-    import httpx
-
     if isinstance(openapi_spec, dict):
         spec = openapi_spec
     elif isinstance(openapi_spec, str):
-        if openapi_spec.startswith(("http://", "https://")):
+        if is_http_url_like(openapi_spec):
             response = httpx.get(openapi_spec)
             response.raise_for_status()
             content = response.text
@@ -904,8 +902,8 @@ def load_from_openapi(
             import json
 
             spec = json.loads(content)
-        except json.JSONDecodeError:
-            raise ValueError("openapi_spec must be a JSON string or dictionary")
+        except json.JSONDecodeError as e:
+            raise ValueError("openapi_spec must be a JSON string or dictionary") from e
     else:
         raise ValueError("openapi_spec must be a string (URL/file path) or dictionary")
 
@@ -1041,7 +1039,6 @@ def load_from_openapi(
                         outputs=output,
                         title=f"{method.upper()} {path}",
                         description=operation.get("description", ""),
-                        _api_mode=True,
                     )
 
     return demo
