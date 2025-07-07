@@ -366,3 +366,24 @@ test("Dataframe select events work as expected", async ({ page }) => {
 
 	expect(restored_selected_cell_value).toBe("DeepSeek Coder");
 });
+
+test("Dataframe static columns cannot be cleared with Delete key", async ({
+	page
+}) => {
+	const df = page.locator("#dataframe");
+
+	const static_cell = get_cell(df, 0, 4);
+	const initial_static_cell_value = await static_cell.innerText();
+	await static_cell.click();
+	await page.keyboard.press("Escape");
+	await page.keyboard.press("Delete");
+
+	expect(initial_static_cell_value).toBe("0");
+
+	const editable_cell = get_cell(df, 0, 1);
+	await editable_cell.click();
+	await page.keyboard.press("Escape");
+	await page.keyboard.press("Delete");
+
+	expect(await editable_cell.innerText()).toBe("⋮");
+});
