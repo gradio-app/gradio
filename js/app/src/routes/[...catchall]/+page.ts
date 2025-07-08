@@ -1,5 +1,6 @@
 // import { type LayoutServerLoad } from "./$types";
 import { browser } from "$app/environment";
+import { setupi18n } from "@gradio/core";
 
 import { Client } from "@gradio/client";
 import {
@@ -16,7 +17,7 @@ import Login from "@gradio/core/login";
 
 export async function load({
 	url,
-	data: { server, port, local_dev_mode, custom_path }
+	data: { server, port, local_dev_mode }
 }): Promise<{
 	Render: typeof Login | typeof Blocks;
 	config: Config;
@@ -52,7 +53,30 @@ export async function load({
 				pages: [],
 				page: {},
 				root: url.origin,
-				space_id: null
+				space_id: null,
+				analytics_enabled: false,
+				connect_heartbeat: false,
+				css: "",
+				js: "",
+				theme_hash: 0,
+				head: "",
+				dev_mode: false,
+				enable_queue: false,
+				show_error: false,
+				fill_height: false,
+				fill_width: false,
+				mode: "blocks",
+				theme: "default",
+				title: "",
+				version: "",
+				api_prefix: "",
+
+				is_space: false,
+				is_colab: false,
+				show_api: false,
+				stylesheets: [],
+				protocol: "sse_v3",
+				username: ""
 			},
 			api_url,
 			layout: {},
@@ -64,7 +88,7 @@ export async function load({
 		throw new Error("No config found");
 	}
 
-	let page_config = app.get_url_config(url);
+	let page_config = app.get_url_config(url.toString());
 
 	const { create_layout, layout } = create_components(undefined);
 
@@ -75,11 +99,13 @@ export async function load({
 		layout: page_config.layout,
 		root: app.config.root + app.config.api_prefix,
 		options: {
-			fill_height: app.config.fill_height
+			fill_height: app.config.fill_height ?? false
 		}
 	});
 
 	const layouts = get(layout);
+
+	await setupi18n();
 
 	return {
 		Render: app.config?.auth_required ? Login : Blocks,
