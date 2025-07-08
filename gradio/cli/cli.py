@@ -4,7 +4,7 @@ import typer
 from gradio_client.cli import deploy_discord  # type: ignore
 from rich.console import Console
 
-from .commands import custom_component, deploy, print_environment_info, reload, sketch
+from .commands import custom_component, deploy, print_environment_info, reload, sketch, mockup
 
 app = typer.Typer()
 app.command("environment", help="Print Gradio environment information.")(
@@ -18,6 +18,7 @@ app.command("deploy-discord", help="Deploy a Gradio app to Discord.")(
     deploy_discord.main
 )
 app.command("sketch", help="Open the Sketch app to design a Gradio app.")(sketch)
+app.command("mockup", help="Generate UI mockup from ASCII in source file.")(mockup)
 
 
 def cli():
