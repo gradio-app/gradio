@@ -52,7 +52,25 @@ class MockupParser:
         "button": r'\[button\]\s+"([^"]*)"',
         "checkbox": r'\[checkbox\]\s+"([^"]*)"',
         "row": r'\[row\]',
-        "column": r'\[column\]'
+        "column": r'\[column\]',
+        "dropdown": r'\[dropdown\]\s+"([^"]*)"',
+        "radio": r'\[radio\]\s+"([^"]*)"',
+        "checkboxgroup": r'\[checkboxgroup\]\s+"([^"]*)"',
+        "number": r'\[number\]\s+"([^"]*)"',
+        "image": r'\[image\]\s+"([^"]*)"',
+        "video": r'\[video\]\s+"([^"]*)"',
+        "audio": r'\[audio\]\s+"([^"]*)"',
+        "dataframe": r'\[dataframe\]\s+"([^"]*)"',
+        "chatbot": r'\[chatbot\]\s+"([^"]*)"',
+        "markdown": r'\[markdown\]\s+"([^"]*)"',
+        "highlightedtext": r'\[highlightedtext\]\s+"([^"]*)"',
+        "tabs": r'\[tabs\]',
+        "tab": r'\[tab\]\s+"([^"]*)"',
+        "accordion": r'\[accordion\]\s+"([^"]*)"',
+        "plot": r'\[plot\]\s+"([^"]*)"',
+        "html": r'\[html\]\s+"([^"]*)"',
+        "file": r'\[file\]\s+"([^"]*)"',
+        "uploadbutton": r'\[uploadbutton\]\s+"([^"]*)"',
     }
 
     @staticmethod
@@ -111,12 +129,19 @@ class MockupParser:
                 else:
                     elements.append(container)
                 container_stack.append(container)
+            elif re.match(MockupParser.ASCII_COMPONENTS["tabs"], line):
+                container = {"type": "tabs", "elements": []}
+                if container_stack:
+                    container_stack[-1]["elements"].append(container)
+                else:
+                    elements.append(container)
+                container_stack.append(container)
                 
             # Check components
             else:
                 component = None
                 for comp_type, pattern in MockupParser.ASCII_COMPONENTS.items():
-                    if comp_type in ["row", "column"]:
+                    if comp_type in ["row", "column", "tabs"]:
                         continue
                     match = re.match(pattern, line)
                     if match:
@@ -133,6 +158,15 @@ class MockupParser:
                                 "min": int(match.group(2)),
                                 "max": int(match.group(3))
                             }
+                        elif comp_type in ["tab", "accordion"]:
+                            # Special containers that need to be handled differently
+                            component = {"type": comp_type, "label": match.group(1), "elements": []}
+                            if container_stack:
+                                container_stack[-1]["elements"].append(component)
+                            else:
+                                elements.append(component)
+                            container_stack.append(component)
+                            component = None  # Don't process further
                         else:
                             component = {"type": comp_type, "label": match.group(1)}
                         break

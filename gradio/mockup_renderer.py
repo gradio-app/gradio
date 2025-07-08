@@ -108,6 +108,148 @@ def generate_mockup_html(parsed_mockup: dict) -> str:
                 padding: 15px 0; 
                 width: 100%; 
             }
+            .container-label {
+                font-weight: bold;
+                margin-bottom: 10px;
+                padding: 8px;
+                background: #e8e8e8;
+                border-radius: 4px;
+            }
+            .tabs {
+                border: 1px solid #ddd;
+                border-radius: 4px;
+            }
+            .tab {
+                border-left: 3px solid #4CAF50;
+                margin: 10px 0;
+            }
+            .accordion {
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                margin: 10px 0;
+            }
+            select {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                background: white;
+            }
+            .radio-group, .checkbox-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-top: 8px;
+            }
+            .radio-group label, .checkbox-group label {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-weight: normal;
+                margin-bottom: 0;
+            }
+            .image-placeholder, .video-placeholder, .audio-placeholder, .plot-placeholder, .html-placeholder {
+                background: #f0f0f0;
+                border: 2px dashed #ccc;
+                border-radius: 4px;
+                padding: 40px;
+                text-align: center;
+                color: #666;
+                font-size: 18px;
+            }
+            .dataframe-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 8px;
+            }
+            .dataframe-table th, .dataframe-table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            .dataframe-table th {
+                background: #f5f5f5;
+                font-weight: bold;
+            }
+            .chatbot-container {
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                padding: 15px;
+                height: 200px;
+                overflow-y: auto;
+                background: #fafafa;
+                margin-bottom: 10px;
+            }
+            .chat-message {
+                margin: 8px 0;
+                padding: 8px;
+                border-radius: 4px;
+            }
+            .chat-message.user {
+                background: #e3f2fd;
+                margin-left: 20px;
+            }
+            .chat-message.bot {
+                background: #f5f5f5;
+                margin-right: 20px;
+            }
+            .chat-input {
+                display: flex;
+                gap: 10px;
+            }
+            .chat-input input {
+                flex: 1;
+            }
+            .chat-input button {
+                margin: 0;
+            }
+            .markdown {
+                background: transparent;
+                box-shadow: none;
+                padding: 10px 0;
+            }
+            .markdown-content {
+                color: #333;
+                line-height: 1.6;
+            }
+            .highlighted-text {
+                font-family: monospace;
+                padding: 10px;
+                background: #f8f8f8;
+                border-radius: 4px;
+            }
+            .highlight-add {
+                background: #d4edda;
+                color: #155724;
+                padding: 2px 4px;
+                border-radius: 2px;
+            }
+            .highlight-remove {
+                background: #f8d7da;
+                color: #721c24;
+                padding: 2px 4px;
+                border-radius: 2px;
+            }
+            .file-upload {
+                border: 2px dashed #ddd;
+                border-radius: 4px;
+                padding: 20px;
+                text-align: center;
+                background: #fafafa;
+            }
+            .file-placeholder {
+                margin-top: 10px;
+                color: #666;
+            }
+            .upload-button {
+                background: #2196F3 !important;
+                color: white;
+                border: none;
+                padding: 12px 20px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 16px;
+            }
         </style>
     </head>
     <body>
@@ -115,8 +257,10 @@ def generate_mockup_html(parsed_mockup: dict) -> str:
     """
     
     for element in parsed_mockup["layout"]:
-        if element["type"] in ["row", "column"]:
-            html += f'<div class="container {element["type"]}">'  # row or column
+        if element["type"] in ["row", "column", "tabs", "tab", "accordion"]:
+            html += f'<div class="container {element["type"]}">'
+            if element["type"] in ["tabs", "tab", "accordion"]:
+                html += f'<div class="container-label">{element.get("label", "")}</div>'
             for comp in element["elements"]:
                 html += _render_component(comp)
             html += "</div>"
@@ -197,11 +341,148 @@ def _render_component(comp: dict) -> str:
             </label>
         </div>
         """
-    elif comp_type in ["row", "column"]:
+    elif comp_type in ["row", "column", "tabs", "tab", "accordion"]:
         # Handle nested containers
         html = f'<div class="container {comp_type}">'
+        if comp_type in ["tabs", "tab", "accordion"]:
+            html += f'<div class="container-label">{comp.get("label", "")}</div>'
         for nested_comp in comp["elements"]:
             html += _render_component(nested_comp)
         html += "</div>"
         return html
+    elif comp_type == "dropdown":
+        return f"""
+        <div class=\"component\">
+            <label>{comp['label']}</label>
+            <select>
+                <option>Choose an option</option>
+                <option>Option 1</option>
+                <option>Option 2</option>
+            </select>
+        </div>
+        """
+    elif comp_type == "radio":
+        return f"""
+        <div class=\"component\">
+            <label>{comp['label']}</label>
+            <div class=\"radio-group\">
+                <label><input type=\"radio\" name=\"{comp['label']}\" value=\"option1\"> Option 1</label>
+                <label><input type=\"radio\" name=\"{comp['label']}\" value=\"option2\"> Option 2</label>
+            </div>
+        </div>
+        """
+    elif comp_type == "checkboxgroup":
+        return f"""
+        <div class=\"component\">
+            <label>{comp['label']}</label>
+            <div class=\"checkbox-group\">
+                <label><input type=\"checkbox\" name=\"{comp['label']}\"> Option 1</label>
+                <label><input type=\"checkbox\" name=\"{comp['label']}\"> Option 2</label>
+            </div>
+        </div>
+        """
+    elif comp_type == "number":
+        return f"""
+        <div class=\"component\">
+            <label>{comp['label']}</label>
+            <input type=\"number\" placeholder=\"Enter a number\" />
+        </div>
+        """
+    elif comp_type == "image":
+        return f"""
+        <div class=\"component\">
+            <label>{comp['label']}</label>
+            <div class=\"image-placeholder\">📷 Image Component</div>
+        </div>
+        """
+    elif comp_type == "video":
+        return f"""
+        <div class=\"component\">
+            <label>{comp['label']}</label>
+            <div class=\"video-placeholder\">🎥 Video Component</div>
+        </div>
+        """
+    elif comp_type == "audio":
+        return f"""
+        <div class=\"component\">
+            <label>{comp['label']}</label>
+            <div class=\"audio-placeholder\">🎵 Audio Component</div>
+        </div>
+        """
+    elif comp_type == "dataframe":
+        return f"""
+        <div class=\"component\">
+            <label>{comp['label']}</label>
+            <table class=\"dataframe-table\">
+                <thead>
+                    <tr><th>Column 1</th><th>Column 2</th><th>Column 3</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Data 1</td><td>Data 2</td><td>Data 3</td></tr>
+                    <tr><td>Data 4</td><td>Data 5</td><td>Data 6</td></tr>
+                </tbody>
+            </table>
+        </div>
+        """
+    elif comp_type == "chatbot":
+        return f"""
+        <div class=\"component\">
+            <label>{comp['label']}</label>
+            <div class=\"chatbot-container\">
+                <div class=\"chat-message user\">👤 Hello!</div>
+                <div class=\"chat-message bot\">🤖 Hi there! How can I help you?</div>
+            </div>
+            <div class=\"chat-input\">
+                <input type=\"text\" placeholder=\"Type a message...\" />
+                <button>Send</button>
+            </div>
+        </div>
+        """
+    elif comp_type == "markdown":
+        return f"""
+        <div class=\"component markdown\">
+            <div class=\"markdown-content\">{comp['label']}</div>
+        </div>
+        """
+    elif comp_type == "highlightedtext":
+        return f"""
+        <div class=\"component\">
+            <label>{comp['label']}</label>
+            <div class=\"highlighted-text\">
+                <span class=\"highlight-add\">Added text</span>
+                <span>Normal text</span>
+                <span class=\"highlight-remove\">Removed text</span>
+            </div>
+        </div>
+        """
+    elif comp_type == "plot":
+        return f"""
+        <div class=\"component\">
+            <label>{comp['label']}</label>
+            <div class=\"plot-placeholder\">📊 Plot Component</div>
+        </div>
+        """
+    elif comp_type == "html":
+        return f"""
+        <div class=\"component\">
+            <label>{comp['label']}</label>
+            <div class=\"html-placeholder\">🌐 HTML Component</div>
+        </div>
+        """
+    elif comp_type == "file":
+        return f"""
+        <div class=\"component\">
+            <label>{comp['label']}</label>
+            <div class=\"file-upload\">
+                <input type=\"file\" />
+                <div class=\"file-placeholder\">📁 Drop files here or click to upload</div>
+            </div>
+        </div>
+        """
+    elif comp_type == "uploadbutton":
+        return f"""
+        <div class=\"component\">
+            <button class=\"upload-button\">📁 {comp['label']}</button>
+        </div>
+        """
     return ""
