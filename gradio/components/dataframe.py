@@ -76,9 +76,8 @@ class Dataframe(Component):
         row_count: int | tuple[int, str] = (1, "dynamic"),
         col_count: int | tuple[int, str] | None = None,
         datatype: Literal["str", "number", "bool", "date", "markdown", "html", "image"]
-        | Sequence[
-            Literal["str", "number", "bool", "date", "markdown", "html"]
-        ] = "str",
+        | Sequence[Literal["str", "number", "bool", "date", "markdown", "html"]]
+        | None = None,
         type: Literal["pandas", "numpy", "array", "polars"] = "pandas",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | I18nData | None = None,
@@ -159,7 +158,7 @@ class Dataframe(Component):
             if headers is not None
             else [str(i) for i in (range(1, self.col_count[0] + 1))]
         )
-        self.datatype = datatype
+
         valid_types = ["pandas", "numpy", "array", "polars"]
         if type not in valid_types:
             raise ValueError(
@@ -170,6 +169,11 @@ class Dataframe(Component):
                 "Polars is not installed. Please install using `pip install polars`."
             )
         self.type = type
+
+        if datatype is None:
+            self.set_auto_datatype(value)
+        else:
+            self.datatype = datatype
 
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
@@ -460,6 +464,91 @@ class Dataframe(Component):
             data=data,
             metadata=metadata,  # type: ignore
         )
+
+    def set_auto_datatype(self, value):
+        """
+        Automatically sets the datatype of each column based on the data provided. If the datatype can't be inferred, it defaults to "str".
+        """
+        import pandas as pd
+        from pandas.io.formats.style import Styler
+
+        dtype_mapping = {
+            "str": "str",
+            "object": "str",
+            "string": "str",
+            "utf": "str",
+            "int": "number",
+            "float": "number",
+            "bool": "bool",
+            "boolean": "bool",
+            "datetime": "date",
+            "date": "date",
+            "timedelta": "date",
+            "timestamp": "date",
+            "category": "str",
+            "categorical": "str",
+        }
+
+        import re
+
+        brackets_re = re.compile(
+            r"\[.*?\]|\(.*?\)"
+        )  # Matches brackets and their contents
+        numbers_re = re.compile(r"\s*\d+\s*$")  # Matches trailing numbers and spaces
+
+        if isinstance(value, pd.DataFrame):
+            self.datatype = [
+                dtype_mapping.get(
+                    numbers_re.sub("", brackets_re.sub("", str(dtype))).lower(), "str"
+                )
+                for dtype in value.dtypes
+            ]
+
+        elif isinstance(value, Styler):
+            self.datatype = [
+                dtype_mapping.get(
+                    numbers_re.sub("", brackets_re.sub("", str(dtype))).lower(), "str"
+                )
+                for dtype in value.data.dtypes
+            ]
+
+        elif isinstance(value, np.ndarray):
+            self.datatype = [
+                dtype_mapping.get(
+                    numbers_re.sub(
+                        "", brackets_re.sub("", str(type(value[0, i]).__name__))
+                    ).lower(),
+                    "str",
+                )
+                for i in range(value.shape[1])
+            ]
+
+        elif isinstance(value, list):
+            self.datatype = [
+                dtype_mapping.get(
+                    numbers_re.sub(
+                        "", brackets_re.sub("", str(type(val).__name__))
+                    ).lower(),
+                    "str",
+                )
+                for val in value[0]
+            ]
+
+        elif _is_polars_available():
+            pl = _import_polars()
+            if isinstance(value, pl.DataFrame):
+                self.datatype = [
+                    dtype_mapping.get(
+                        numbers_re.sub("", brackets_re.sub("", str(dtype))).lower(),
+                        "str",
+                    )
+                    for dtype in value.dtypes
+                ]
+            else:
+                self.datatype = "str"
+
+        else:
+            self.datatype = "str"
 
     @staticmethod
     def __extract_metadata(
