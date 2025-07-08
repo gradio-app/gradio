@@ -415,12 +415,11 @@ class GradioMCPServer:
                 "name": tool_name,
                 "description": description,
                 "inputSchema": schema,
+                "meta": {"file_data_present": file_data_present},
             }
             schemas.append(info)
 
-        return JSONResponse(
-            {"tools": schemas, "meta": {"file_data_present": file_data_present}}
-        )
+        return JSONResponse(schemas)
 
     def simplify_filedata_schema(
         self, schema: dict[str, Any]

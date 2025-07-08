@@ -7,10 +7,10 @@ from rich.console import Console
 from .commands import (
     custom_component,
     deploy,
-    hf_upload_mcp,
     print_environment_info,
     reload,
     sketch,
+    upload_mcp,
 )
 
 app = typer.Typer()
@@ -43,7 +43,7 @@ def cli():
         except ValueError:
             console = Console()
             console.print_exception()
-    elif args[0] in {"hf-upload-mcp"}:
-        hf_upload_mcp(args[1], args[2])
+    elif args[0] in {"upload-mcp"}:
+        upload_mcp(args[1], args[2])
     else:
         typer.run(reload)

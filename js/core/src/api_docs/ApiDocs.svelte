@@ -114,6 +114,7 @@
 	let tools: Tool[] = [];
 	let mcp_json_sse: any;
 	let mcp_json_stdio: any;
+	let file_data_present = false;
 
 	const upload_file_mcp_server = {
 		command: "uvx",
@@ -121,18 +122,17 @@
 			"--from",
 			"gradio[mcp]",
 			"gradio",
-			"hf-upload-mcp",
+			"upload-mcp",
 			root,
-			"<SOURCE_DIRECTORY>"
+			"<UPLOAD_DIRECTORY>"
 		]
 	};
 
 	async function fetchMcpTools() {
 		try {
 			const response = await fetch(`${root}gradio_api/mcp/schema`);
-			const payload = await response.json();
-			const file_data_present = payload.meta?.file_data_present;
-			const schema = payload.tools;
+			const schema = await response.json();
+			file_data_present = schema.map((tool: any) => tool.meta?.file_data_present).some((present: boolean) => present);
 
 			tools = schema.map((tool: any) => ({
 				name: tool.name,
@@ -158,8 +158,8 @@
 			};
 
 			if (file_data_present) {
-				mcp_json_sse.mcpServers.hf_upload_files = upload_file_mcp_server;
-				mcp_json_stdio.mcpServers.hf_upload_files = upload_file_mcp_server;
+				mcp_json_sse.mcpServers.upload_files = upload_file_mcp_server;
+				mcp_json_stdio.mcpServers.upload_files = upload_file_mcp_server;
 			}
 		} catch (error) {
 			console.error("Failed to fetch MCP tools:", error);
@@ -335,16 +335,19 @@
 								support SSE (e.g. Cursor, Windsurf, Cline), simply add the
 								following configuration to your MCP config.
 								<p>&nbsp;</p>
+								{#if file_data_present}
 								<em>Note</em>: Gradio MCP servers need files to be accessible
-								via publicly available URLs so the <code>hf_upload_files</code>
-								server is included for your convenience. You can omit if if you are
-								fine manually uploading files yourself. Before using it, you must
+								via publicly available URLs so the <code>upload_files</code>
+								server is included for your convenience. 
+								This server can upload files located in the specified <code>UPLOAD_DIRECTORY</code> argument to this application.
+								You can omit if if you are fine manually uploading files yourself. Before using it, you must
 								install
 								<a
 									href="https://docs.astral.sh/uv/getting-started/installation/"
 									target="_blank">uv</a
 								>.
 								<p>&nbsp;</p>
+								{/if}
 								<Block>
 									<code>
 										<div class="copy">
