@@ -432,7 +432,7 @@ By default, Gradio collects certain analytics to help us better understand the u
 * The IP address which is used solely to measure the number of unique developers using Gradio
 * The version of Gradio that is running
 
-No information is collected from _users_ of your Gradio app. If you'd like to diable analytics altogether, you can do so by setting the `analytics_enabled` parameter to `False` in `gr.Blocks`, `gr.Interface`, or `gr.ChatInterface`. Or, you can set the GRADIO_ANALYTICS_ENABLED environment variable to `"False"` to apply this to all Gradio apps created across your system.
+No information is collected from _users_ of your Gradio app. If you'd like to disable analytics altogether, you can do so by setting the `analytics_enabled` parameter to `False` in `gr.Blocks`, `gr.Interface`, or `gr.ChatInterface`. Or, you can set the GRADIO_ANALYTICS_ENABLED environment variable to `"False"` to apply this to all Gradio apps created across your system.
 
 *Note*: this reflects the analytics policy as of `gradio>=4.32.0`.
 
