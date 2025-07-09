@@ -1,6 +1,6 @@
 {
 	"name": "@self/spa",
-	"version": "0.9.0",
+	"version": "0.9.1",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -14,12 +14,12 @@
 		"build:css": "pollen -c pollen.config.cjs -o src/pollen-dev.css"
 	},
 	"devDependencies": {
-		"@self/build": "workspace:^",
 		"@gradio/client": "workspace:^",
 		"@gradio/core": "workspace:^",
 		"@gradio/theme": "workspace:^",
 		"@gradio/wasm": "workspace:^",
-		"@huggingface/space-header": "^1.0.3",
+		"@huggingface/space-header": "^1.0.4",
+		"@self/build": "workspace:^",
 		"@types/eventsource": "^1.1.15",
 		"cross-env": "^7.0.3"
 	},
