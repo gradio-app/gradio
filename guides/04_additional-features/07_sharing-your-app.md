@@ -164,7 +164,7 @@ To embed with IFrames instead (if you cannot add javascript to your website, for
 
 Again, you can find the `src=` attribute to your Space's embed URL, which you can find in the "Embed this Space" button.
 
-Note: if you use IFrames, you'll probably want to add a fixed `height` attribute and set `style="border:0;"` to remove the boreder. In addition, if your app requires permissions such as access to the webcam or the microphone, you'll need to provide that as well using the `allow` attribute.
+Note: if you use IFrames, you'll probably want to add a fixed `height` attribute and set `style="border:0;"` to remove the border. In addition, if your app requires permissions such as access to the webcam or the microphone, you'll need to provide that as well using the `allow` attribute.
 
 ## API Page
 
@@ -299,7 +299,7 @@ When the user clicks on the login button, they get redirected in a new page to a
 Users can revoke access to their profile at any time in their [settings](https://huggingface.co/settings/connected-applications).
 
 As seen above, OAuth features are available only when your app runs in a Space. However, you often need to test your app
-locally before deploying it. To test OAuth features locally, your machine must be logged in to Hugging Face. Please run `huggingface-cli login` or set `HF_TOKEN` as environment variable with one of your access token. You can generate a new token in your settings page (https://huggingface.co/settings/tokens). Then, clicking on the `gr.LoginButton` will login your local Hugging Face profile, allowing you to debug your app with your Hugging Face account before deploying it to a Space.
+locally before deploying it. To test OAuth features locally, your machine must be logged in to Hugging Face. Please run `huggingface-cli login` or set `HF_TOKEN` as environment variable with one of your access token. You can generate a new token in your settings page (https://huggingface.co/settings/tokens). Then, clicking on the `gr.LoginButton` will log in to your local Hugging Face profile, allowing you to debug your app with your Hugging Face account before deploying it to a Space.
 
 **Security Note**: It is important to note that adding a `gr.LoginButton` does not restrict users from using your app, in the same way that adding [username-password authentication](/guides/sharing-your-app#password-protected-app) does. This means that users of your app who have not logged in with Hugging Face can still access and run events in your Gradio app -- the difference is that the `gr.OAuthProfile` or `gr.OAuthToken` will be `None` in the corresponding functions.
 
@@ -432,7 +432,7 @@ By default, Gradio collects certain analytics to help us better understand the u
 * The IP address which is used solely to measure the number of unique developers using Gradio
 * The version of Gradio that is running
 
-No information is collected from _users_ of your Gradio app. If you'd like to diable analytics altogether, you can do so by setting the `analytics_enabled` parameter to `False` in `gr.Blocks`, `gr.Interface`, or `gr.ChatInterface`. Or, you can set the GRADIO_ANALYTICS_ENABLED environment variable to `"False"` to apply this to all Gradio apps created across your system.
+No information is collected from _users_ of your Gradio app. If you'd like to disable analytics altogether, you can do so by setting the `analytics_enabled` parameter to `False` in `gr.Blocks`, `gr.Interface`, or `gr.ChatInterface`. Or, you can set the GRADIO_ANALYTICS_ENABLED environment variable to `"False"` to apply this to all Gradio apps created across your system.
 
 *Note*: this reflects the analytics policy as of `gradio>=4.32.0`.
 
