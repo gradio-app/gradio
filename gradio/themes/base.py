@@ -467,22 +467,10 @@ class Base(ThemeClass):
         # Font
         if isinstance(font, (fonts.Font, str)):
             font = [font]
-        # System fonts that should not be converted to LocalFont
-        system_fonts = {
-            "ui-sans-serif",
-            "system-ui",
-            "sans-serif",
-            "serif",
-            "monospace",
-            "cursive",
-            "fantasy",
-            "ui-monospace",
-            "Consolas",
-        }
 
         self._font = [
             fontfam
-            if isinstance(fontfam, fonts.Font) or fontfam in system_fonts
+            if isinstance(fontfam, (fonts.Font, str))
             else fonts.LocalFont(fontfam)
             for fontfam in font
         ]
@@ -490,7 +478,7 @@ class Base(ThemeClass):
             font_mono = [font_mono]
         self._font_mono = [
             fontfam
-            if isinstance(fontfam, fonts.Font) or fontfam in system_fonts
+            if isinstance(fontfam, (fonts.Font, str))
             else fonts.LocalFont(fontfam)
             for fontfam in font_mono
         ]

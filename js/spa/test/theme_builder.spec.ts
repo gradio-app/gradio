@@ -11,7 +11,7 @@ test("test theme builder changes are applied", async ({ page }) => {
 	const go_btn = page.getByRole("button", { name: "Go", exact: true });
 	await expect(go_btn).toHaveCSS(
 		"font-family",
-		'Montserrat, ui-sans-serif, "system-ui", sans-serif'
+		'Montserrat, ui-sans-serif, system-ui, sans-serif'
 	);
 	await expect(go_btn).toHaveCSS("background-color", "rgb(16, 185, 129)");
 
