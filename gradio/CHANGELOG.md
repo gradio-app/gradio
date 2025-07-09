@@ -1,5 +1,30 @@
 # gradio
 
+## 5.36.1
+
+### Features
+
+- [#11539](https://github.com/gradio-app/gradio/pull/11539) [`6b6d95b`](https://github.com/gradio-app/gradio/commit/6b6d95b6409f9136233ba1d4f55a1cab9e040070) - Update @huggingface/space-header to 1.0.4.  Thanks @aayush4vedi!
+
+## 5.36.0
+
+### Features
+
+- [#11427](https://github.com/gradio-app/gradio/pull/11427) [`6b2bcd0`](https://github.com/gradio-app/gradio/commit/6b2bcd097ae5ef999a7fb273ecf7c7e4c0eab305) - Improve load times of the Gradio front-end.  Thanks @pngwn!
+- [#11157](https://github.com/gradio-app/gradio/pull/11157) [`c207de9`](https://github.com/gradio-app/gradio/commit/c207de96f8ae2ce6c74026ff696c7fa4cf3a87c7) - Build the Gradio wheel for Lite before packaging.  Thanks @whitphx!
+- [#11511](https://github.com/gradio-app/gradio/pull/11511) [`1a99336`](https://github.com/gradio-app/gradio/commit/1a99336043076e7b0a4c4b07f97082f0361882f4) - Fix SSR.  Thanks @pngwn!
+
+### Fixes
+
+- [#11430](https://github.com/gradio-app/gradio/pull/11430) [`4d4cd4b`](https://github.com/gradio-app/gradio/commit/4d4cd4b08d6daafc66e0189a2b274916da00d480) - fix exports + add browser build.  Thanks @pngwn!
+- [#11435](https://github.com/gradio-app/gradio/pull/11435) [`50d43a8`](https://github.com/gradio-app/gradio/commit/50d43a8e8bc2a4862668a5d46a5e6482b4f75fe3) - SSR Auth Fix.  Thanks @dawoodkhan82!
+- [#11528](https://github.com/gradio-app/gradio/pull/11528) [`2948687`](https://github.com/gradio-app/gradio/commit/294868733862c392c46c1d17e71f47fa30bb3461) - only compress text resources with brotli.  Thanks @pngwn!
+- [#11537](https://github.com/gradio-app/gradio/pull/11537) [`8eb253b`](https://github.com/gradio-app/gradio/commit/8eb253be32a01c0c67911d7a7a3762c52a76a87b) - fix html attribute spreading bug and pin `httpx`.  Thanks @abidlabs!
+- [#11436](https://github.com/gradio-app/gradio/pull/11436) [`f49b8da`](https://github.com/gradio-app/gradio/commit/f49b8da1c062dbd81acb8e7fdcdc9a09a272d02f) - Multi-Line DataFrame Editing.  Thanks @deckar01!
+- [#11466](https://github.com/gradio-app/gradio/pull/11466) [`2c969c9`](https://github.com/gradio-app/gradio/commit/2c969c9bf78aad9ab5124e0387ab74d6028b48b2) - Fix schema modification bug in MCP.  Thanks @freddyaboulton!
+- [#11506](https://github.com/gradio-app/gradio/pull/11506) [`c439380`](https://github.com/gradio-app/gradio/commit/c439380d9f6ea7a9e15a486d8c1acc80708583a1) - Fix Delete Diff Keys.  Thanks @deckar01!
+- [#11477](https://github.com/gradio-app/gradio/pull/11477) [`b97c817`](https://github.com/gradio-app/gradio/commit/b97c817f87c2ef6de3541df5a8e7e098a5e7b719) - Improve logic for sanitizing MCP tool names.  Thanks @abidlabs!
+
 ## 5.35.0
 
 ### Features

@@ -595,8 +595,8 @@ importers:
         specifier: workspace:^
         version: link:../wasm
       '@huggingface/space-header':
-        specifier: ^1.0.3
-        version: 1.0.3
+        specifier: ^1.0.4
+        version: 1.0.4
       '@self/build':
         specifier: workspace:^
         version: link:../build
@@ -2333,8 +2333,8 @@ importers:
         specifier: workspace:^
         version: link:../wasm
       '@huggingface/space-header':
-        specifier: ^1.0.3
-        version: 1.0.3
+        specifier: ^1.0.4
+        version: 1.0.4
       '@self/build':
         specifier: workspace:^
         version: link:../build
@@ -3694,8 +3694,8 @@ packages:
   '@formatjs/intl-localematcher@0.5.4':
     resolution: {integrity: sha512-zTwEpWOzZ2CiKcB93BLngUX59hQkuZjT2+SAQEscSm52peDW/getsawMcWF1rGRpMCX6D7nSJA3CzJ8gn13N/g==}
 
-  '@huggingface/space-header@1.0.3':
-    resolution: {integrity: sha512-7W9QzGsBNl+IGFRjb3Py2cJpWCNgULL8RR+u69URP8FG4cPVH+5g6kKS2OrapPfZ/IoakFZSoI84ORSToL6qTw==}
+  '@huggingface/space-header@1.0.4':
+    resolution: {integrity: sha512-GZu/LJZ6W1kuhiCevOt4iZrNb/vJvm8egSp7jTvjWlACkYddvKNEFGZ3HK8FE7fM2tUztotauMrbHVe8eQ9/ww==}
 
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
@@ -10808,7 +10808,7 @@ snapshots:
     dependencies:
       tslib: 2.6.2
 
-  '@huggingface/space-header@1.0.3': {}
+  '@huggingface/space-header@1.0.4': {}
 
   '@humanwhocodes/config-array@0.13.0':
     dependencies:
