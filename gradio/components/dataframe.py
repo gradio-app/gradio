@@ -75,9 +75,8 @@ class Dataframe(Component):
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
         col_count: int | tuple[int, str] | None = None,
-        datatype: Literal["str", "number", "bool", "date", "markdown", "html", "image"]
-        | Sequence[Literal["str", "number", "bool", "date", "markdown", "html"]]
-        | None = None,
+        datatype: Literal["str", "number", "bool", "date", "markdown", "html", "image", "auto"]
+        | Sequence[Literal["str", "number", "bool", "date", "markdown", "html"]] = "str",
         type: Literal["pandas", "numpy", "array", "polars"] = "pandas",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | I18nData | None = None,
@@ -111,7 +110,7 @@ class Dataframe(Component):
             headers: List of str header names. These are used to set the column headers of the dataframe if the value does not have headers. If None, no headers are shown.
             row_count: Limit number of rows for input and decide whether user can create new rows or delete existing rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
             col_count: Limit number of columns for input and decide whether user can create new columns or delete existing columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
-            datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown". Boolean columns will display as checkboxes.
+            datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown". Boolean columns will display as checkboxes. If the datatype "auto" is used, the column datatypes are automatically selected based on the value input if possible.
             type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, "polars" for polars dataframe, or "array" for a Python list of lists.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html). Only applies to columns whose datatype is "markdown".
@@ -170,7 +169,7 @@ class Dataframe(Component):
             )
         self.type = type
 
-        if datatype is None:
+        if datatype is "auto":
             self.set_auto_datatype(value)
         else:
             self.datatype = datatype
