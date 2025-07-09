@@ -132,7 +132,9 @@
 		try {
 			const response = await fetch(`${root}gradio_api/mcp/schema`);
 			const schema = await response.json();
-			file_data_present = schema.map((tool: any) => tool.meta?.file_data_present).some((present: boolean) => present);
+			file_data_present = schema
+				.map((tool: any) => tool.meta?.file_data_present)
+				.some((present: boolean) => present);
 
 			tools = schema.map((tool: any) => ({
 				name: tool.name,
@@ -336,17 +338,18 @@
 								following configuration to your MCP config.
 								<p>&nbsp;</p>
 								{#if file_data_present}
-								<em>Note</em>: Gradio MCP servers need files to be accessible
-								via publicly available URLs so the <code>upload_files</code>
-								server is included for your convenience. 
-								This server can upload files located in the specified <code>UPLOAD_DIRECTORY</code> argument to this application.
-								You can omit if if you are fine manually uploading files yourself. Before using it, you must
-								install
-								<a
-									href="https://docs.astral.sh/uv/getting-started/installation/"
-									target="_blank">uv</a
-								>.
-								<p>&nbsp;</p>
+									<em>Note</em>: Gradio MCP servers need files to be accessible
+									via publicly available URLs so the <code>upload_files</code>
+									server is included for your convenience. This server can upload
+									files located in the specified <code>UPLOAD_DIRECTORY</code>
+									argument to this application. You can omit if if you are fine
+									manually uploading files yourself. Before using it, you must
+									install
+									<a
+										href="https://docs.astral.sh/uv/getting-started/installation/"
+										target="_blank">uv</a
+									>.
+									<p>&nbsp;</p>
 								{/if}
 								<Block>
 									<code>
