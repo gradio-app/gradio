@@ -49,7 +49,7 @@ jobs:
         id: install_deps
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
-          python_version: "3.12"
+          python_version: "3.10"
           test: true
       - name: install dependencies for specific tests
         run: |
