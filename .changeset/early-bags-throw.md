@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Fix Delete Diff Keys
+feat:set python version

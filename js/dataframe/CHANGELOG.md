@@ -1,5 +1,21 @@
 # @gradio/dataframe
 
+## 0.18.1
+
+### Fixes
+
+- [#11436](https://github.com/gradio-app/gradio/pull/11436) [`f49b8da`](https://github.com/gradio-app/gradio/commit/f49b8da1c062dbd81acb8e7fdcdc9a09a272d02f) - Multi-Line DataFrame Editing.  Thanks @deckar01!
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+- @gradio/statustracker@0.10.14
+- @gradio/upload@0.16.10
+- @gradio/client@1.15.5
+- @gradio/markdown-code@0.5.0
+- @gradio/button@0.5.6
+- @gradio/checkbox@0.4.25
+
 ## 0.18.0
 
 ### Features
