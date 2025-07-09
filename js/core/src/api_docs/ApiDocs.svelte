@@ -342,9 +342,8 @@
 									via publicly available URLs so the <code>upload_files</code>
 									server is included for your convenience. This server can upload
 									files located in the specified <code>UPLOAD_DIRECTORY</code>
-									argument to this application. You can omit if if you are fine
-									manually uploading files yourself. Before using it, you must
-									install
+									argument to this application. You can omit if if you are fine manually
+									uploading files yourself. Before using it, you must install
 									<a
 										href="https://docs.astral.sh/uv/getting-started/installation/"
 										target="_blank">uv</a
