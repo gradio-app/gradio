@@ -30,9 +30,6 @@ class InputHTMLAttributes:
         tabindex: The tabindex attribute for the input/textarea element. An integer specifying the tab order.
         enterkeyhint: The enterkeyhint attribute for the input/textarea element. Can be "enter", "done", "go", "next", "previous", "search", or "send".
         lang: The lang attribute for the input/textarea element. A string containing a language code (e.g., "en", "es", "fr").
-        aria_label: The aria-label attribute for the input/textarea element. A string providing an accessible name for screen readers.
-        aria_describedby: The aria-describedby attribute for the input/textarea element. A string containing IDs of elements that describe this element.
-        aria_placeholder: The aria-placeholder attribute for the input/textarea element. A string providing placeholder text for screen readers.
     """
 
     autocapitalize: Optional[
@@ -46,9 +43,6 @@ class InputHTMLAttributes:
         Literal["enter", "done", "go", "next", "previous", "search", "send"]
     ] = None
     lang: Optional[str] = None
-    aria_label: Optional[str] = None
-    aria_describedby: Optional[str] = None
-    aria_placeholder: Optional[str] = None
 
 
 @document()
