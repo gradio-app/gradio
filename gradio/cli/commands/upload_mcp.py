@@ -7,10 +7,10 @@ def main(url_or_space_id: str, source_directory: str):
 
     source_path = abspath(source_directory)
 
-    mcp = FastMCP("hf-upload-mcp")
+    mcp = FastMCP("upload-mcp")
 
     if url_or_space_id.startswith("http"):
-        url = url_or_space_id
+        url = url_or_space_id.rstrip("/")
     else:
         url = f"https://{space_info(url_or_space_id).subdomain}.hf.space"
 
@@ -30,6 +30,7 @@ def main(url_or_space_id: str, source_directory: str):
 
         with open(target_path, "rb") as f:
             response = requests.post(f"{url}/gradio_api/upload", files={"files": f})
+        response.raise_for_status()
         result = response.json()[0]
         return f"{url}/gradio_api/file={result}"
 
