@@ -540,9 +540,9 @@ with gr.Blocks(  # noqa: SIM117
                 + text_size.expand()
                 + spacing_size.expand()
                 + radius_size.expand()
-                + pad_to_4([f.name for f in font])
+                + pad_to_4([f.name if hasattr(f, "name") else f for f in font])
                 + pad_to_4(font_is_google)
-                + pad_to_4([f.name for f in font_mono])
+                + pad_to_4([f.name if hasattr(f, "name") else f for f in font_mono])
                 + pad_to_4(font_mono_is_google)
                 + var_output
             )
@@ -849,20 +849,22 @@ with gr.Blocks(theme=theme) as demo:
                 None,
                 js="""(css, fonts) => {
                     document.getElementById('theme_css').innerHTML = css;
-                    let existing_font_links = document.querySelectorAll('link[rel="stylesheet"][href^="https://fonts.googleapis.com/css"]');
-                    existing_font_links.forEach(link => {
-                        if (fonts.includes(link.href)) {
-                            fonts = fonts.filter(font => font != link.href);
-                        } else {
-                            link.remove();
-                        }
-                    });
-                    fonts.forEach(font => {
-                        let link = document.createElement('link');
-                        link.rel = 'stylesheet';
-                        link.href = font;
-                        document.head.appendChild(link);
-                    });
+                    if (fonts && Array.isArray(fonts)) {
+                        let existing_font_links = document.querySelectorAll('link[rel="stylesheet"][href^="https://fonts.googleapis.com/css"]');
+                        existing_font_links.forEach(link => {
+                            if (fonts.includes(link.href)) {
+                                fonts = fonts.filter(font => font != link.href);
+                            } else {
+                                link.remove();
+                            }
+                        });
+                        fonts.forEach(font => {
+                            let link = document.createElement('link');
+                            link.rel = 'stylesheet';
+                            link.href = font;
+                            document.head.appendChild(link);
+                        });
+                    }
                 }""",
                 show_api=False,
             )
