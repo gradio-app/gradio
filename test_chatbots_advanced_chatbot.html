@@ -247,4 +247,53 @@
     </head>
     <body>
         <div class="gradio-mockup">
-    </div></body></html>
+    
+        <div class="component">
+            <label>Conversation History</label>
+            <div class="chatbot-container">
+                <div class="chat-message user">👤 Hello!</div>
+                <div class="chat-message bot">🤖 Hi there! How can I help you?</div>
+            </div>
+            <div class="chat-input">
+                <input type="text" placeholder="Type a message..." />
+                <button>Send</button>
+            </div>
+        </div>
+        <div class="container row">
+            <div class="component">
+                <label>Type your message</label>
+                <input type="text" placeholder="Type your message" />
+            </div>
+            
+        <div class="component">
+            <button>Send</button>
+        </div>
+        <div class="container row">
+        <div class="component">
+            <button>Clear History</button>
+        </div>
+        
+        <div class="component">
+            <button>Export Chat</button>
+        </div>
+        <div class="container accordion"><div class="container-label">Settings</div>
+        <div class="component">
+            <label>Response Length</label>
+            <div class="slider-container">
+                <input type="range" min="10" max="500" value="10" />
+            </div>
+        </div>
+        
+        <div class="component">
+            <label>
+                <input type="checkbox"> Enable context memory
+            </label>
+        </div>
+        
+        <div class="component">
+            <label>Model</label>
+            <select>
+                <option value="GPT-3.5">GPT-3.5</option><option value="GPT-4">GPT-4</option><option value="Claude">Claude</option>
+            </select>
+        </div>
+        </div></div></div></div></body></html>

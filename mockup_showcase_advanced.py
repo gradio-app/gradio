@@ -7,7 +7,7 @@ def get_example_list():
     """Get a list of all available examples"""
     examples = []
     for category, demos in PLAYGROUND_EXAMPLES.items():
-        for demo_name in demos.keys():
+        for demo_name in demos:
             examples.append(f"{category} → {demo_name}")
     return examples
 

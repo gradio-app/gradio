@@ -250,6 +250,56 @@ def generate_mockup_html(parsed_mockup: dict) -> str:
                 cursor: pointer;
                 font-size: 16px;
             }
+            .annotated-image-placeholder {
+                position: relative;
+                width: 100%;
+                height: 200px;
+                background: #f0f0f0;
+                border: 2px dashed #ccc;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 48px;
+                color: #888;
+            }
+            .image-base {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                background: rgba(255, 255, 255, 0.9);
+                padding: 5px;
+                border-radius: 4px;
+                font-size: 12px;
+            }
+            .annotations {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+            }
+            .annotation-box {
+                position: absolute;
+                background: rgba(255, 0, 0, 0.2);
+                border: 2px solid #ff0000;
+                border-radius: 4px;
+                padding: 2px 4px;
+                font-size: 10px;
+                color: #ff0000;
+            }
+            .annotation-box:first-child {
+                top: 20px;
+                left: 50px;
+                width: 60px;
+                height: 40px;
+            }
+            .annotation-box:last-child {
+                bottom: 20px;
+                right: 50px;
+                width: 60px;
+                height: 40px;
+            }
         </style>
     </head>
     <body>
@@ -351,33 +401,41 @@ def _render_component(comp: dict) -> str:
         html += "</div>"
         return html
     elif comp_type == "dropdown":
+        choices = comp.get("choices", ["Choose an option", "Option 1", "Option 2"])
+        options_html = ""
+        for choice in choices:
+            options_html += f'<option value="{choice}">{choice}</option>'
         return f"""
         <div class=\"component\">
             <label>{comp['label']}</label>
             <select>
-                <option>Choose an option</option>
-                <option>Option 1</option>
-                <option>Option 2</option>
+                {options_html}
             </select>
         </div>
         """
     elif comp_type == "radio":
+        choices = comp.get("choices", ["Option 1", "Option 2"])
+        radio_html = ""
+        for choice in choices:
+            radio_html += f'<label><input type="radio" name="{comp["label"]}" value="{choice}"> {choice}</label>'
         return f"""
         <div class=\"component\">
             <label>{comp['label']}</label>
             <div class=\"radio-group\">
-                <label><input type=\"radio\" name=\"{comp['label']}\" value=\"option1\"> Option 1</label>
-                <label><input type=\"radio\" name=\"{comp['label']}\" value=\"option2\"> Option 2</label>
+                {radio_html}
             </div>
         </div>
         """
     elif comp_type == "checkboxgroup":
+        choices = comp.get("choices", ["Option 1", "Option 2"])
+        checkbox_html = ""
+        for choice in choices:
+            checkbox_html += f'<label><input type="checkbox" name="{comp["label"]}"> {choice}</label>'
         return f"""
         <div class=\"component\">
             <label>{comp['label']}</label>
             <div class=\"checkbox-group\">
-                <label><input type=\"checkbox\" name=\"{comp['label']}\"> Option 1</label>
-                <label><input type=\"checkbox\" name=\"{comp['label']}\"> Option 2</label>
+                {checkbox_html}
             </div>
         </div>
         """
@@ -483,6 +541,19 @@ def _render_component(comp: dict) -> str:
         return f"""
         <div class=\"component\">
             <button class=\"upload-button\">📁 {comp['label']}</button>
+        </div>
+        """
+    elif comp_type == "annotatedimage":
+        return f"""
+        <div class=\"component\">
+            <label>{comp['label']}</label>
+            <div class=\"annotated-image-placeholder\">
+                <div class=\"image-base\">🖼️ Base Image</div>
+                <div class=\"annotations\">
+                    <div class=\"annotation-box\">📦 Object 1</div>
+                    <div class=\"annotation-box\">📦 Object 2</div>
+                </div>
+            </div>
         </div>
         """
     return ""

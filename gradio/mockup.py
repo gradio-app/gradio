@@ -53,11 +53,12 @@ class MockupParser:
         "checkbox": r'\[checkbox\]\s+"([^"]*)"',
         "row": r'\[row\]',
         "column": r'\[column\]',
-        "dropdown": r'\[dropdown\]\s+"([^"]*)"',
-        "radio": r'\[radio\]\s+"([^"]*)"',
-        "checkboxgroup": r'\[checkboxgroup\]\s+"([^"]*)"',
+        "dropdown": r'\[dropdown\]\s+"([^"]*)"(?:\s+choices=\[([^\]]*)\])?',
+        "radio": r'\[radio\]\s+"([^"]*)"(?:\s+choices=\[([^\]]*)\])?',
+        "checkboxgroup": r'\[checkboxgroup\]\s+"([^"]*)"(?:\s+choices=\[([^\]]*)\])?',
         "number": r'\[number\]\s+"([^"]*)"',
         "image": r'\[image\]\s+"([^"]*)"',
+        "annotatedimage": r'\[annotatedimage\]\s+"([^"]*)"',
         "video": r'\[video\]\s+"([^"]*)"',
         "audio": r'\[audio\]\s+"([^"]*)"',
         "dataframe": r'\[dataframe\]\s+"([^"]*)"',
@@ -158,6 +159,18 @@ class MockupParser:
                                 "min": int(match.group(2)),
                                 "max": int(match.group(3))
                             }
+                        elif comp_type in ["dropdown", "radio", "checkboxgroup"]:
+                            choices = []
+                            if match.group(2):
+                                # Parse choices from string like "choice1", "choice2", "choice3"
+                                choices_str = match.group(2).strip()
+                                if choices_str:
+                                    choices = [choice.strip(' "') for choice in choices_str.split(',')]
+                            component = {
+                                "type": comp_type,
+                                "label": match.group(1),
+                                "choices": choices
+                            }
                         elif comp_type in ["tab", "accordion"]:
                             # Special containers that need to be handled differently
                             component = {"type": comp_type, "label": match.group(1), "elements": []}
@@ -179,7 +192,7 @@ class MockupParser:
                         elements.append(component)
                     
                     # Then check if we need to exit containers for specific buttons
-                    if (component["type"] == "button" and 
+                    if (component["type"] == "button" and
                         len(container_stack) > 1 and  # Only exit if we're in nested containers
                         component["label"].lower() in ["submit", "create task", "save form", "send message"]):
                         # Remove the button from the container and add it to top level

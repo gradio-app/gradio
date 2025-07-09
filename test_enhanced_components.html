@@ -247,4 +247,36 @@
     </head>
     <body>
         <div class="gradio-mockup">
-    </div></body></html>
+    
+        <div class="component">
+            <label>Language</label>
+            <select>
+                <option value="English">English</option><option value="Spanish">Spanish</option><option value="French">French</option>
+            </select>
+        </div>
+        
+        <div class="component">
+            <label>Gender</label>
+            <div class="radio-group">
+                <label><input type="radio" name="Gender" value="Male"> Male</label><label><input type="radio" name="Gender" value="Female"> Female</label><label><input type="radio" name="Gender" value="Other"> Other</label>
+            </div>
+        </div>
+        
+        <div class="component">
+            <label>Features</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox" name="Features"> feature1</label><label><input type="checkbox" name="Features"> feature2</label><label><input type="checkbox" name="Features"> feature3</label>
+            </div>
+        </div>
+        
+        <div class="component">
+            <label>Object Detection Results</label>
+            <div class="annotated-image-placeholder">
+                <div class="image-base">🖼️ Base Image</div>
+                <div class="annotations">
+                    <div class="annotation-box">📦 Object 1</div>
+                    <div class="annotation-box">📦 Object 2</div>
+                </div>
+            </div>
+        </div>
+        </div></body></html>
