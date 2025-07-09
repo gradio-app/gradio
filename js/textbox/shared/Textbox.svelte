@@ -10,7 +10,6 @@
 	import { fade } from "svelte/transition";
 	import type { SelectData, CopyData } from "@gradio/utils";
 	import type { InputHTMLAttributes } from "./types";
-	import { convert_html_attributes } from "./utils";
 
 	export let value = "";
 	export let value_is_output = false;
@@ -40,8 +39,6 @@
 	let previous_scroll_top = 0;
 	let user_has_scrolled_up = false;
 	let _max_lines: number;
-
-	$: html_attrs = convert_html_attributes(html_attributes) && console.log("html_attrs", html_attributes, html_attrs);
 
 	const show_textbox_border = !submit_btn;
 
@@ -278,7 +275,13 @@
 					on:select={handle_select}
 					on:focus
 					style={text_align ? "text-align: " + text_align : ""}
-					{...html_attrs}
+					autocapitalize={html_attributes?.autocapitalize}
+					autocorrect={html_attributes?.autocorrect}
+					spellcheck={html_attributes?.spellcheck}
+					autocomplete={html_attributes?.autocomplete}
+					tabindex={html_attributes?.tabindex}
+					enterkeyhint={html_attributes?.enterkeyhint}
+					lang={html_attributes?.lang}
 				/>
 			{:else if type === "password"}
 				<input
@@ -296,7 +299,12 @@
 					on:select={handle_select}
 					on:focus
 					autocomplete=""
-					{...html_attrs}
+					autocapitalize={html_attributes?.autocapitalize}
+					autocorrect={html_attributes?.autocorrect}
+					spellcheck={html_attributes?.spellcheck}
+					tabindex={html_attributes?.tabindex}
+					enterkeyhint={html_attributes?.enterkeyhint}
+					lang={html_attributes?.lang}
 				/>
 			{:else if type === "email"}
 				<input
@@ -314,7 +322,12 @@
 					on:select={handle_select}
 					on:focus
 					autocomplete="email"
-					{...html_attrs}
+					autocapitalize={html_attributes?.autocapitalize}
+					autocorrect={html_attributes?.autocorrect}
+					spellcheck={html_attributes?.spellcheck}
+					tabindex={html_attributes?.tabindex}
+					enterkeyhint={html_attributes?.enterkeyhint}
+					lang={html_attributes?.lang}
 				/>
 			{/if}
 		{:else}
@@ -336,7 +349,13 @@
 				on:focus
 				on:scroll={handle_scroll}
 				style={text_align ? "text-align: " + text_align : ""}
-				{...html_attrs}
+				autocapitalize={html_attributes?.autocapitalize}
+				autocorrect={html_attributes?.autocorrect}
+				spellcheck={html_attributes?.spellcheck}
+				autocomplete={html_attributes?.autocomplete}
+				tabindex={html_attributes?.tabindex}
+				enterkeyhint={html_attributes?.enterkeyhint}
+				lang={html_attributes?.lang}
 			/>
 		{/if}
 		{#if submit_btn}
