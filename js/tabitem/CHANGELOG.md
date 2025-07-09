@@ -1,5 +1,16 @@
 # @gradio/tabitem
 
+## 0.5.0
+
+### Features
+
+- [#11427](https://github.com/gradio-app/gradio/pull/11427) [`6b2bcd0`](https://github.com/gradio-app/gradio/commit/6b2bcd097ae5ef999a7fb273ecf7c7e4c0eab305) - Improve load times of the Gradio front-end.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/column@0.2.1
+- @gradio/tabs@0.4.5
+
 ## 0.4.6
 
 ### Dependency updates
