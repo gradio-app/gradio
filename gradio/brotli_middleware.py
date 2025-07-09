@@ -100,7 +100,19 @@ class BrotliMiddleware:
     def _is_compressible_file_type(self, scope: Scope) -> bool:
         """Check if the requested file has a compressible file extension."""
         path = scope.get("path", "")
-        compressible_extensions = {".html", ".htm", ".js", ".css", ".json"}
+        compressible_extensions = {
+            ".html",
+            ".htm",
+            ".js",
+            ".css",
+            ".json",
+            ".md",
+            ".txt",
+            ".csv",
+            ".tsv",
+            ".xml",
+            ".svg",
+        }
         if "." in path:
             extension = "." + path.split(".")[-1].lower()
             return extension in compressible_extensions
