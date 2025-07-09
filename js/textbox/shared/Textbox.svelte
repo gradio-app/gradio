@@ -41,7 +41,7 @@
 	let user_has_scrolled_up = false;
 	let _max_lines: number;
 
-	$: html_attrs = convert_html_attributes(html_attributes);
+	$: html_attrs = convert_html_attributes(html_attributes) && console.log("html_attrs", html_attributes, html_attrs);
 
 	const show_textbox_border = !submit_btn;
 
