@@ -1,5 +1,11 @@
 # @self/component-test
 
+## 0.5.26
+
+### Dependency updates
+
+- @gradio/video@0.14.20
+
 ## 0.5.25
 
 ### Dependency updates
