@@ -1,5 +1,6 @@
 def main(url_or_space_id: str, source_directory: str):
     import requests
+    from gradio_client.utils import is_http_url_like
     from huggingface_hub import space_info
     from mcp.server.fastmcp import FastMCP
 
@@ -9,7 +10,7 @@ def main(url_or_space_id: str, source_directory: str):
 
     mcp = FastMCP("upload-mcp")
 
-    if url_or_space_id.startswith("http"):
+    if is_http_url_like(url_or_space_id):
         url = url_or_space_id.rstrip("/")
     else:
         url = f"https://{space_info(url_or_space_id).subdomain}.hf.space"
