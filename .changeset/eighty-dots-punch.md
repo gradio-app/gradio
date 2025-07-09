@@ -1,7 +1,7 @@
 ---
-"@gradio/multimodaltextbox": minor
-"@gradio/textbox": minor
-"gradio": minor
+"@gradio/multimodaltextbox": patch
+"@gradio/textbox": patch
+"gradio": patch
 ---
 
-feat:fix html attribute spreading bug and pin `httpx`
+fix:fix html attribute spreading bug and pin `httpx`
