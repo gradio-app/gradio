@@ -2419,7 +2419,7 @@ Received inputs:
         else:
             self.parent.children.extend(self.children)
         self.config = self.get_config_file()
-        self.app = App.create_app(self)
+        self.app = App.create_app(self, mcp_server=False)
         self.progress_tracking = any(
             block_fn.tracks_progress for block_fn in self.fns.values()
         )
@@ -2472,7 +2472,7 @@ Received inputs:
             blocks=self,
             default_concurrency_limit=default_concurrency_limit,
         )
-        self.app = App.create_app(self)
+        self.app = App.create_app(self, mcp_server=False)
         return self
 
     def validate_queue_settings(self):
