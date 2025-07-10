@@ -88,6 +88,7 @@ function handle_header_navigation(
 	return false;
 }
 
+// eslint-disable-next-line complexity
 function handle_delete_operation(
 	event: KeyboardEvent,
 	ctx: DataFrameContext
@@ -100,6 +101,11 @@ function handle_delete_operation(
 
 	const editing = state.ui_state.editing;
 	const selected_cells = state.ui_state.selected_cells;
+
+	const static_columns = state.config.static_columns || [];
+	if (selected_cells.some(([_, col]) => static_columns.includes(col))) {
+		return false;
+	}
 
 	if (editing) {
 		const [row, col] = editing;

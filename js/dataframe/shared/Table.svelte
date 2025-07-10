@@ -92,7 +92,8 @@
 		wrap,
 		max_height,
 		column_widths,
-		max_chars
+		max_chars,
+		static_columns
 	});
 
 	const { state: df_state, actions: df_actions } = df_ctx;
