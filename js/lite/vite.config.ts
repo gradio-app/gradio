@@ -8,7 +8,6 @@ import global_data from "@csstools/postcss-global-data";
 import prefixer from "postcss-prefix-selector";
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import { glob } from "glob";
 
 const version_path = resolve(__dirname, "../../gradio/package.json");
 const theme_token_path = resolve(__dirname, "../theme/src/tokens.css");
@@ -45,17 +44,6 @@ const client_version_raw = JSON.parse(
 ).version.trim();
 
 const client_python_version = convert_to_pypi_prerelease(client_version_raw);
-
-const gradio_wheel_path = (() => {
-	const wheelPattern = `../../dist-lite/gradio-${python_version}-cp3*-none-any.whl`;
-	const matches = glob.sync(wheelPattern, { cwd: __dirname });
-
-	if (matches.length === 0) {
-		throw new Error(`No wheel file found matching pattern: ${wheelPattern}`);
-	}
-
-	return resolve(__dirname, matches[0]);
-})();
 
 import {
 	inject_ejs,
@@ -198,7 +186,10 @@ export default defineConfig(({ mode }) => {
 			conditions: ["gradio"],
 			alias: {
 				// For the Wasm app to import the wheel file URLs.
-				"gradio.whl": gradio_wheel_path,
+				"gradio.whl": resolve(
+					__dirname,
+					`../../dist-lite/gradio-${python_version}-py3-none-any.whl`
+				),
 				"gradio_client.whl": resolve(
 					__dirname,
 					`../../client/python/dist/gradio_client-${client_python_version}-py3-none-any.whl`

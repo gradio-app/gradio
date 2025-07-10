@@ -11,7 +11,7 @@
 	],
 	"scripts": {
 		"cssbuild": "python ../../scripts/generate_theme.py --outfile ./src/theme.css",
-		"pybuild:gradio": "cd ../../ && hatch build -t lite && pyodide py-compile --keep $(find dist-lite -name 'gradio-*-py3-none-any.whl' | tail -n 1)",
+		"pybuild:gradio": "cd ../../ && hatch build -t lite",
 		"pybuild:gradio-client": "cd ../../client/python && python -m build",
 		"pybuild": "run-p pybuild:*",
 		"build": "pnpm pybuild && pnpm cssbuild && pnpm --filter @gradio/client build && pnpm --filter @gradio/wasm build && vite build --mode production",
@@ -23,13 +23,12 @@
 		"test:browser:dev": "GRADIO_E2E_TEST_LITE=1 pnpm --filter @self/spa test:browser:dev"
 	},
 	"devDependencies": {
+		"gradio": "workspace:^",
 		"@gradio/atoms": "workspace:^",
-		"@gradio/core": "workspace:^",
-		"@gradio/theme": "workspace:^",
-		"@gradio/wasm": "workspace:^",
 		"@self/build": "workspace:^",
+		"@gradio/core": "workspace:^",
 		"@self/spa": "workspace:^",
-		"glob": "^11.0.2",
-		"gradio": "workspace:^"
+		"@gradio/theme": "workspace:^",
+		"@gradio/wasm": "workspace:^"
 	}
 }

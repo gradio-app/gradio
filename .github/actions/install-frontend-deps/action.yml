@@ -50,5 +50,5 @@ runs:
       shell: bash
       run: |
         . venv/bin/activate
-        python -m pip install -U build hatch pyodide-build packaging>=23.2  # packaging>=23.2 is needed to build Lite due to https://github.com/pypa/hatch/issues/1381
+        python -m pip install -U build hatch packaging>=23.2  # packaging>=23.2 is needed to build Lite due to https://github.com/pypa/hatch/issues/1381
         pnpm build:lite

@@ -83,9 +83,6 @@ artifacts = ["!gradio/templates", "!*.pyi", "!/gradio/test_data", "!/gradio/_fro
 directory = "dist-lite"
 dependencies = ["lite-builder @ {root:uri}/../.config/lite-builder"]
 
-[tool.hatch.build.targets.lite.hooks.custom]
-path = ".config/pycompile-lite-wheel.py"
-
 [tool.hatch.build.targets.wheel.hooks.custom]
 path = ".config/copy_frontend.py"
 
