@@ -1,5 +1,32 @@
 # @gradio/core
 
+## 0.21.0
+
+### Features
+
+- [#11427](https://github.com/gradio-app/gradio/pull/11427) [`6b2bcd0`](https://github.com/gradio-app/gradio/commit/6b2bcd097ae5ef999a7fb273ecf7c7e4c0eab305) - Improve load times of the Gradio front-end.  Thanks @pngwn!
+- [#11511](https://github.com/gradio-app/gradio/pull/11511) [`1a99336`](https://github.com/gradio-app/gradio/commit/1a99336043076e7b0a4c4b07f97082f0361882f4) - Fix SSR.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+- @gradio/statustracker@0.10.14
+- @gradio/column@0.2.1
+- @gradio/tabs@0.4.5
+- @gradio/upload@0.16.10
+- @gradio/video@0.14.20
+- @gradio/tabitem@0.5.0
+- @gradio/code@0.14.10
+- @gradio/paramviewer@0.7.12
+- @gradio/client@1.15.5
+- @gradio/image@0.22.12
+- @gradio/button@0.5.6
+- @gradio/checkbox@0.4.25
+- @gradio/gallery@0.15.26
+- @gradio/plot@0.9.19
+- @gradio/textbox@0.10.16
+- @gradio/file@0.12.23
+
 ## 0.20.0
 
 ### Features

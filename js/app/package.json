@@ -1,6 +1,6 @@
 {
 	"name": "@self/app",
-	"version": "1.49.16",
+	"version": "1.50.1",
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",
@@ -28,7 +28,7 @@
 		"@gradio/core": "workspace:^",
 		"@gradio/theme": "workspace:^",
 		"@gradio/wasm": "workspace:^",
-		"@huggingface/space-header": "^1.0.3",
+		"@huggingface/space-header": "^1.0.4",
 		"@self/build": "workspace:^",
 		"@sveltejs/adapter-node": "^5.2.2",
 		"svelte-preprocess": "^6.0.3"
