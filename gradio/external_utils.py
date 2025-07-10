@@ -298,6 +298,7 @@ def create_endpoint_fn(
     base_url: str,
 ):
     def endpoint_fn(*args):
+        print("args", args)
         url = f"{base_url.rstrip('/')}{endpoint_path}"
 
         headers = {"Content-Type": "application/json"}
@@ -335,10 +336,12 @@ def create_endpoint_fn(
                     body_data = b""
             else:
                 body_data = json.loads(args[param_index])
-
+        print(">>>>>")
         try:
             if endpoint_method.lower() == "get":
+                print("get")
                 response = httpx.get(url, params=params, headers=headers)
+                print("after get")
             elif endpoint_method.lower() == "post":
                 response = httpx.post(
                     url,
@@ -368,8 +371,14 @@ def create_endpoint_fn(
             else:
                 raise ValueError(f"Unsupported HTTP method: {endpoint_method}")
 
-            response.raise_for_status()
-            return response.json()
+            if response.status_code in [200, 201, 202, 204]:
+                return response.json()
+            else:
+                return {
+                    "__status__": "error",
+                    "status_code": response.status_code,
+                    "message": response.text,
+                }
         except Exception as e:
             return f"Error: {str(e)}"
 
