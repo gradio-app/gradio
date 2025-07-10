@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from gradio import wasm_utils
 from gradio.component_meta import create_or_modify_pyi
 from gradio.events import EventListener, Events
 
@@ -18,8 +17,7 @@ class BlocksMeta(type):
             trigger.set_doc(component=name)
             attrs[event] = trigger.listener
         component_class = super().__new__(cls, name, bases, attrs)
-        if not wasm_utils.IS_WASM:
-            create_or_modify_pyi(BlocksEvents, "BlocksEvents", BLOCKS_EVENTS)
+        create_or_modify_pyi(BlocksEvents, "BlocksEvents", BLOCKS_EVENTS)
         return component_class
 
 
