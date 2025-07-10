@@ -1,9 +1,7 @@
 ---
-"@gradio/client": minor
-"@gradio/core": minor
-"@gradio/multimodaltextbox": minor
-"@gradio/textbox": minor
-"gradio": minor
+"@gradio/client": patch
+"@gradio/core": patch
+"gradio": patch
 ---
 
 feat:Connection handling messaging
