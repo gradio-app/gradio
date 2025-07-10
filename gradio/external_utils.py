@@ -422,7 +422,7 @@ def create_endpoint_fn(
 
         new_sig = inspect.Signature(parameters=sig_params)
 
-        endpoint_fn.__signature__ = new_sig
+        endpoint_fn.__signature__ = new_sig  # type: ignore
 
     return endpoint_fn
 
