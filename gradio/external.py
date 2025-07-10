@@ -876,6 +876,7 @@ def load_openapi_spec(
     openapi_spec: str | dict,
     base_url: str,
     paths: list[str] | None = None,
+    methods: list[Literal["get", "post", "put", "patch", "delete"]] | None = None,
 ) -> Blocks:
     """
     Load a Gradio app from an OpenAPI v3 specification.
@@ -884,6 +885,7 @@ def load_openapi_spec(
         openapi_spec: URL, file path, or dictionary containing the OpenAPI specification (v3, JSON format only)
         base_url: Base URL for the API endpoints
         paths: Optional list of specific API paths to create Gradio endpoints from. Supports exact matches, regex patterns, or a mix of both, e.g. ["/api/v1/books", ".*users.*", "/api/v2/.*"]. If None, all paths in the OpenAPI spec will be included.
+        methods: Optional list of HTTP methods to include in the Gradio endpoints. If None, all methods will be included.
     Returns:
         A Gradio Blocks app with endpoints generated from the OpenAPI spec
     """
@@ -923,7 +925,7 @@ def load_openapi_spec(
     valid_api_paths = []
     for path, path_item in api_paths.items():
         for method, operation in path_item.items():
-            if method.lower() not in ["get", "post", "put", "patch", "delete"]:
+            if methods and method.lower() not in [m.lower() for m in methods]:
                 continue
             valid_api_paths.append((path, method, operation))
 
