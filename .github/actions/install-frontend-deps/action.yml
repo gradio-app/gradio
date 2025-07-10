@@ -49,6 +49,6 @@ runs:
       if: inputs.build_lite == 'true' && steps.frontend-lite-cache.outputs.cache-hit != 'true'
       shell: bash
       run: |
-        . ${{ env.VENV_ACTIVATE }}
-        uv pip install -U build hatch pyodide-build packaging>=23.2  # packaging>=23.2 is needed to build Lite due to https://github.com/pypa/hatch/issues/1381
+        . venv/bin/activate
+        python -m pip install -U build hatch pyodide-build packaging>=23.2  # packaging>=23.2 is needed to build Lite due to https://github.com/pypa/hatch/issues/1381
         pnpm build:lite
