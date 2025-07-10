@@ -48,7 +48,7 @@ jobs:
         with:
           build_lite: true
           skip_build: true
-          python_version: "3.12.7" # Same as the Python version that the used Pyodide version is based on
+          python_version: "3.10"
           test: true
       - run: pnpm exec playwright install chromium firefox
       - name: build essential packages
