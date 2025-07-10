@@ -466,17 +466,6 @@ def component_from_parameter_schema(param_info: dict) -> components.Component:
             value="[]",
             info=param_description,
         )
-    elif param_type == "object":
-        component = gr.JSON(label=param_name, value={})
-    elif param_type == "string" and param_format in ("binary", "base64"):
-        if not content_media_type:
-            component = gr.File(label=param_name)
-        elif content_media_type.startswith("image/"):
-            component = gr.Image(label=param_name)
-        elif content_media_type.startswith("audio/"):
-            component = gr.Audio(label=param_name)
-        else:
-            component = gr.File(label=param_name)
     else:
         component = gr.Textbox(
             label=param_name,
