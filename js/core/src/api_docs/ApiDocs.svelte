@@ -274,7 +274,7 @@
 									<div class="mcp-url">
 										<label
 											><span class="status-indicator active">●</span>MCP Server
-											URL</label
+											URL (SSE)</label
 										>
 										<div class="textbox">
 											<input type="text" readonly value={mcp_server_url} />
@@ -333,23 +333,10 @@
 								</div>
 								<p>&nbsp;</p>
 
-								<strong>Integration</strong>: To add this MCP to clients that
+								<strong>SSE Transport</strong>: To add this MCP to clients that
 								support SSE (e.g. Cursor, Windsurf, Cline), simply add the
 								following configuration to your MCP config.
 								<p>&nbsp;</p>
-								{#if file_data_present}
-									<em>Note</em>: Gradio MCP servers need files to be accessible
-									via publicly available URLs so the <code>upload_files</code>
-									server is included for your convenience. This server can upload
-									files located in the specified <code>UPLOAD_DIRECTORY</code>
-									argument to this application. You can omit if if you are fine manually
-									uploading files yourself. Before using it, you must install
-									<a
-										href="https://docs.astral.sh/uv/getting-started/installation/"
-										target="_blank">uv</a
-									>.
-									<p>&nbsp;</p>
-								{/if}
 								<Block>
 									<code>
 										<div class="copy">
@@ -362,9 +349,26 @@
 										</div>
 									</code>
 								</Block>
-								<p>&nbsp;</p>
-								<em>Experimental stdio support</em>: For clients that only
-								support stdio, first
+								{#if file_data_present}
+									<p>&nbsp;</p>
+									<em>Note about files</em>: Gradio MCP servers that have files
+									as inputs need the files as URLs, so the
+									<code>upload_files</code>
+									tool is included for your convenience. This tool can upload
+									files located in the specified <code>UPLOAD_DIRECTORY</code>
+									argument (an absolute path in your local machine) or any of its
+									subdirectories to the Gradio app. You can omit this tool if you
+									are fine manually uploading files yourself and providing the URLs.
+									Before using this tool, you must have
+									<a
+										href="https://docs.astral.sh/uv/getting-started/installation/"
+										target="_blank">uv installed</a
+									>.
+									<p>&nbsp;</p>
+								{/if}
+
+								<strong>STDIO Transport</strong>: For clients that only support
+								stdio (e.g. Claude Desktop), first
 								<a href="https://nodejs.org/en/download/" target="_blank"
 									>install Node.js</a
 								>. Then, you can use the following command:
