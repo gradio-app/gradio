@@ -945,7 +945,7 @@ def load_openapi_spec(
             components_list = []
 
             for param in operation.get("parameters", []):
-                component = external_utils.component_from_openapi_schema(param)
+                component = external_utils.component_from_parameter_schema(param)
                 components_list.append(component)
 
             request_body = operation.get("requestBody")

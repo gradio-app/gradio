@@ -317,23 +317,51 @@ def create_endpoint_fn(
                     url = url.replace(f"{{{param['name']}}}", str(args[param_index]))
                 param_index += 1
 
+        is_file_upload = False
         if request_body and param_index < len(args):
-            body_data = json.loads(args[param_index])
+            content = request_body.get("content", {})
+            for content_type in content:
+                if content_type in ["application/octet-stream", "multipart/form-data"]:
+                    is_file_upload = True
+                    break
+
+        if request_body and param_index < len(args):
+            if is_file_upload:
+                file_data = args[param_index]
+                if file_data:
+                    headers = {"Content-Type": "application/octet-stream"}
+                    body_data = file_data
+                else:
+                    body_data = b""
+            else:
+                body_data = json.loads(args[param_index])
 
         try:
             if endpoint_method.lower() == "get":
                 response = httpx.get(url, params=params, headers=headers)
             elif endpoint_method.lower() == "post":
                 response = httpx.post(
-                    url, params=params, json=body_data, headers=headers
+                    url,
+                    params=params,
+                    content=body_data if is_file_upload else None,
+                    json=body_data if not is_file_upload else None,
+                    headers=headers,
                 )
             elif endpoint_method.lower() == "put":
                 response = httpx.put(
-                    url, params=params, json=body_data, headers=headers
+                    url,
+                    params=params,
+                    content=body_data if is_file_upload else None,
+                    json=body_data if not is_file_upload else None,
+                    headers=headers,
                 )
             elif endpoint_method.lower() == "patch":
                 response = httpx.patch(
-                    url, params=params, json=body_data, headers=headers
+                    url,
+                    params=params,
+                    content=body_data if is_file_upload else None,
+                    json=body_data if not is_file_upload else None,
+                    headers=headers,
                 )
             elif endpoint_method.lower() == "delete":
                 response = httpx.delete(url, params=params, headers=headers)
@@ -348,7 +376,7 @@ def create_endpoint_fn(
     return endpoint_fn
 
 
-def component_from_openapi_schema(param_info: dict) -> components.Component:
+def component_from_parameter_schema(param_info: dict) -> components.Component:
     import gradio as gr
 
     # print("param_info", param_info)
@@ -437,6 +465,12 @@ def component_from_request_body_schema(
 
     content = request_body.get("content", {})
     description = request_body.get("description", "Request Body")
+
+    for content_type, content_schema in content.items():
+        if content_type in ["application/octet-stream", "multipart/form-data"]:
+            schema = resolve_schema_ref(content_schema.get("schema", {}), spec)
+            if schema.get("type") == "string" and schema.get("format") == "binary":
+                return gr.File(label="File")
 
     json_content = content.get("application/json", {})
     if not json_content:
