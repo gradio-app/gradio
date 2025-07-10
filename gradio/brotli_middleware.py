@@ -66,7 +66,11 @@ class BrotliMiddleware:
             self.excluded_handlers = []
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if self._is_handler_excluded(scope) or scope["type"] != "http":
+        if (
+            self._is_handler_excluded(scope)
+            or scope["type"] != "http"
+            or not self._is_compressible_file_type(scope)
+        ):
             return await self.app(scope, receive, send)
         headers = Headers(scope=scope)
         if "br" in headers.get("Accept-Encoding", ""):
@@ -90,6 +94,30 @@ class BrotliMiddleware:
         handler = scope.get("path", "")
 
         return any(pattern.search(handler) for pattern in self.excluded_handlers)
+
+    # explicitly handle html, js, css, json via a whitelist. woff2 files are already compressed.
+    # we don't want to compress binary files as they do not benefit much and it can cause bugs
+    def _is_compressible_file_type(self, scope: Scope) -> bool:
+        """Check if the requested file has a compressible file extension."""
+        path = scope.get("path", "")
+        compressible_extensions = {
+            ".html",
+            ".htm",
+            ".js",
+            ".css",
+            ".json",
+            ".md",
+            ".txt",
+            ".csv",
+            ".tsv",
+            ".xml",
+            ".svg",
+        }
+        if "." in path:
+            extension = "." + path.split(".")[-1].lower()
+            return extension in compressible_extensions
+
+        return False
 
 
 class BrotliResponder:

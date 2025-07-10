@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/button",
-	"version": "0.5.5",
+	"version": "0.5.6",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
