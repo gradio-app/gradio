@@ -883,10 +883,7 @@ def load_openapi_spec(
     Parameters:
         openapi_spec: URL, file path, or dictionary containing the OpenAPI specification (v3, JSON format only)
         base_url: Base URL for the API endpoints
-        paths: Optional list of specific API paths to create Gradio endpoints from. Supports both exact matches and regex patterns. If None, all paths in the OpenAPI spec will be included. Examples:
-            - Exact matches: ["/api/v1/books", "/api/v1/authors"]
-            - Regex patterns: [".*books.*", "/api/v1/.*", ".*users.*"]
-            - Mixed: ["/api/v1/books", ".*users.*", "/api/v2/.*"]
+        paths: Optional list of specific API paths to create Gradio endpoints from. Supports exact matches, regex patterns, or a mix of both, e.g. ["/api/v1/books", ".*users.*", "/api/v2/.*"]. If None, all paths in the OpenAPI spec will be included.
     Returns:
         A Gradio Blocks app with endpoints generated from the OpenAPI spec
     """
