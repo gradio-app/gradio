@@ -56,6 +56,7 @@
 	export let max_file_size: number | undefined = undefined;
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
+	let broken_connection = false;
 
 	let {
 		layout: _layout,
@@ -273,13 +274,17 @@
 
 	let _error_id = -1;
 
-	let user_left_page = false;
-
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 	const DUPLICATE_MESSAGE = $_("blocks.long_requests_queue");
 	const MOBILE_QUEUE_WARNING = $_("blocks.connection_can_break");
-	const MOBILE_RECONNECT_MESSAGE = $_("blocks.lost_connection");
+	const LOST_CONNECTION_MESSAGE =
+		"Connection to the server was lost. Attempting reconnection...";
+	const CHANGED_CONNECTION_MESSAGE =
+		"Reconnected to server, but the server has changed. You may need to <a href=''>refresh the page</a>.";
+	const RECONNECTION_MESSAGE = "Connection re-established.";
+	const SESSION_NOT_FOUND_MESSAGE =
+		"Session not found - this is likely because the machine you were connected to has changed. <a href=''>Refresh the page</a> to continue.";
 	const WAITING_FOR_INPUTS_MESSAGE = $_("blocks.waiting_for_inputs");
 	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
 	const SHOW_MOBILE_QUEUE_WARNING_ON_ETA = 10;
@@ -419,6 +424,39 @@
 				} else {
 					dep.final_event = payload;
 				}
+			}
+		}
+
+		async function reconnect() {
+			const connection_status = await app.reconnect();
+			if (connection_status === "broken") {
+				setTimeout(reconnect, 1000);
+			} else if (connection_status === "changed") {
+				broken_connection = false;
+				messages = [
+					new_message(
+						"Changed Connection",
+						CHANGED_CONNECTION_MESSAGE,
+						-1,
+						"info",
+						null,
+						true
+					),
+					...messages
+				];
+			} else if (connection_status === "connected") {
+				broken_connection = false;
+				messages = [
+					new_message(
+						"Reconnected",
+						RECONNECTION_MESSAGE,
+						-1,
+						"success",
+						null,
+						true
+					),
+					...messages
+				];
 			}
 		}
 
@@ -565,6 +603,35 @@
 
 			/* eslint-disable complexity */
 			function handle_status_update(message: StatusMessage): void {
+				if (message.broken && !broken_connection) {
+					messages = [
+						new_message(
+							"Broken Connection",
+							LOST_CONNECTION_MESSAGE,
+							-1,
+							"error",
+							null,
+							true
+						),
+						...messages
+					];
+
+					broken_connection = true;
+					setTimeout(reconnect, 1000);
+				}
+				if (message.session_not_found) {
+					messages = [
+						new_message(
+							"Session Not Found",
+							SESSION_NOT_FOUND_MESSAGE,
+							-1,
+							"error",
+							null,
+							true
+						),
+						...messages
+					];
+				}
 				const { fn_index, ...status } = message;
 				if (status.stage === "streaming" && status.time_limit) {
 					dep.inputs.forEach((id) => {
@@ -634,16 +701,11 @@
 					});
 					submit_map.delete(dep_index);
 				}
-				if (status.broken && is_mobile_device && user_left_page) {
-					window.setTimeout(() => {
-						messages = [
-							new_message("Error", MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
-							...messages
-						];
-					}, 0);
-					wait_then_trigger_api_call(dep.id, payload.trigger_id, event_data);
-					user_left_page = false;
-				} else if (status.stage === "error") {
+				if (
+					status.stage === "error" &&
+					!broken_connection &&
+					!message.session_not_found
+				) {
 					if (status.message) {
 						const _message = status.message.replace(
 							MESSAGE_QUOTE_RE,
@@ -849,12 +911,6 @@
 	let is_screen_recording = writable(false);
 
 	onMount(() => {
-		document.addEventListener("visibilitychange", function () {
-			if (document.visibilityState === "hidden") {
-				user_left_page = true;
-			}
-		});
-
 		is_mobile_device =
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 				navigator.userAgent

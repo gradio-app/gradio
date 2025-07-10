@@ -159,7 +159,7 @@ export function submit(
 		}
 
 		const resolve_heartbeat = async (config: Config): Promise<void> => {
-			await this._resolve_hearbeat(config);
+			await this._resolve_heartbeat(config);
 		};
 
 		async function handle_render_config(render_config: any): Promise<void> {
@@ -594,9 +594,11 @@ export function submit(
 								time: new Date()
 							});
 						} else if (status !== 200) {
+							that.connection_broken = true;
 							fire_event({
 								type: "status",
 								stage: "error",
+								broken: true,
 								message: BROKEN_CONNECTION_MSG,
 								queue: true,
 								endpoint: _endpoint,
@@ -629,8 +631,12 @@ export function submit(
 										});
 									} else if (type === "complete") {
 										complete = status;
-									} else if (type == "unexpected_error") {
+									} else if (
+										type == "unexpected_error" ||
+										type == "broken_connection"
+									) {
 										console.error("Unexpected error", status?.message);
+										const broken = type === "broken_connection";
 										fire_event({
 											type: "status",
 											stage: "error",
@@ -638,6 +644,8 @@ export function submit(
 												status?.message || "An Unexpected Error Occurred!",
 											queue: true,
 											endpoint: _endpoint,
+											broken,
+											session_not_found: status?.session_not_found,
 											fn_index,
 											time: new Date()
 										});

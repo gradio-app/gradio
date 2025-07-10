@@ -156,6 +156,7 @@ export type SpaceStatusCallback = (a: SpaceStatus) => void;
 export interface Config {
 	deep_link_state?: "none" | "valid" | "invalid";
 	auth_required?: true;
+	app_id?: string;
 	analytics_enabled: boolean;
 	connect_heartbeat: boolean;
 	auth_message: string;
@@ -382,6 +383,7 @@ export interface Status {
 	time?: Date;
 	changed_state_ids?: number[];
 	time_limit?: number;
+	session_not_found?: boolean;
 }
 
 export interface StatusMessage extends Status {

@@ -1426,7 +1426,6 @@ class App(FastAPI):
                         ):
                             raise HTTPException(
                                 status_code=status.HTTP_404_NOT_FOUND,
-                                detail="Session not found.",
                             )
 
                         heartbeat_rate = 15
@@ -1482,6 +1481,7 @@ class App(FastAPI):
                 except BaseException as e:
                     message = UnexpectedErrorMessage(
                         message=str(e),
+                        session_not_found=isinstance(e, HTTPException),
                     )
                     response = process_msg(message)
                     if isinstance(e, asyncio.CancelledError):

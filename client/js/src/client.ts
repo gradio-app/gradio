@@ -34,6 +34,7 @@ import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import {
 	API_INFO_ERROR_MSG,
+	APP_ID_URL,
 	CONFIG_ERROR_MSG,
 	HEARTBEAT_URL,
 	COMPONENT_SERVER_URL
@@ -227,14 +228,14 @@ export class Client {
 		}
 
 		await this._resolve_config().then(({ config }) =>
-			this._resolve_hearbeat(config)
+			this._resolve_heartbeat(config)
 		);
 
 		this.api_info = await this.view_api();
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
 	}
 
-	async _resolve_hearbeat(_config: Config): Promise<void> {
+	async _resolve_heartbeat(_config: Config): Promise<void> {
 		if (_config) {
 			this.config = _config;
 			this.api_prefix = _config.api_prefix || "";
@@ -284,6 +285,27 @@ export class Client {
 		}
 		await client.init();
 		return client;
+	}
+
+	async reconnect(): Promise<"connected" | "broken" | "changed"> {
+		const app_id_url = new URL(
+			`${this.config!.root}${this.api_prefix}/${APP_ID_URL}`
+		);
+		let app_id: string;
+		try {
+			const response = await this.fetch(app_id_url);
+			if (!response.ok) {
+				throw new Error();
+			}
+			app_id = ((await response.json()) as any).app_id;
+		} catch (e) {
+			return "broken";
+		}
+		if (app_id !== this.config!.app_id) {
+			return "changed";
+		} else {
+			return "connected";
+		}
 	}
 
 	close(): void {
