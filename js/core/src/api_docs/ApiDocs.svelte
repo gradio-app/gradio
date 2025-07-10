@@ -354,8 +354,8 @@
 									<em>Note about files</em>: Gradio MCP servers that have files
 									as inputs need the files as URLs, so the
 									<code>upload_files</code>
-									tool is included for your convenience. This tool can upload
-									files located in the specified <code>UPLOAD_DIRECTORY</code>
+									tool is included for your convenience. This tool can upload files
+									located in the specified <code>UPLOAD_DIRECTORY</code>
 									argument (an absolute path in your local machine) or any of its
 									subdirectories to the Gradio app. You can omit this tool if you
 									are fine manually uploading files yourself and providing the URLs.
