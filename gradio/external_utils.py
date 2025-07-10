@@ -355,7 +355,15 @@ def component_from_openapi_schema(param_schema: dict) -> components.Component:
     param_format = param_schema.get("format")
     content_media_type = param_schema.get("contentMediaType")
 
-    if param_type in ("number", "integer"):
+    enum_values = param_schema.get("enum")
+    if enum_values is not None:
+        component = gr.Dropdown(
+            choices=enum_values,
+            label=param_name,
+            value=param_schema.get("default"),
+            allow_custom_value=False
+        )
+    elif param_type in ("number", "integer"):
         component = gr.Number(label=param_name, value=param_schema.get("default"))
     elif param_type == "boolean":
         component = gr.Checkbox(
