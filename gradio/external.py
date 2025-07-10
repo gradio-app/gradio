@@ -936,10 +936,10 @@ def load_openapi_spec(
             gr.Markdown(f"## {spec.get('info', {}).get('title', 'OpenAPI Interface')}")
             gr.Markdown(spec.get("info", {}).get("description", ""))
             gr.Markdown("### API Endpoints")
+            api_path_str = ""
             for path, method, _ in valid_api_paths:
-                gr.Markdown(
-                    f"* <a href='#{method.upper()}_{path.replace('/', '_').replace('{', '').replace('}', '')}'>{method.upper()} <code style='font-size: inherit;'>{path}</code></a>"
-                )
+                api_path_str += f"* <a href='#{method.upper()}_{path.replace('/', '_').replace('{', '').replace('}', '')}'>{method.upper()} <code style='font-size: inherit;'>{path}</code></a>\n"
+            gr.Markdown(api_path_str)
 
         for path, method, operation in valid_api_paths:
             components_list = []
@@ -964,7 +964,8 @@ def load_openapi_spec(
             )
 
             gr.Markdown(
-                f"<h2 id='{method.upper()}_{path.replace('/', '_').replace('{', '').replace('}', '')}'>{method.upper()} <code style='font-size: inherit;'>{path}</code></h2>"
+                f"<h2 id='{method.upper()}_{path.replace('/', '_').replace('{', '').replace('}', '')}'>"
+                f"{external_utils.method_box(method)} <code style='font-size: inherit;'>{path}</code></h2>"
             )
             if operation.get("summary"):
                 gr.Markdown(operation["summary"])

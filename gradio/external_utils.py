@@ -435,8 +435,6 @@ def component_from_parameter_schema(param_info: dict) -> components.Component:
 
     param_schema = param_info.get("schema", {})
     param_type = param_schema.get("type")
-    param_format = param_schema.get("format")
-    content_media_type = param_schema.get("contentMediaType")
     enum_values = param_schema.get("enum")
     default_value = param_schema.get("default")
 
@@ -547,3 +545,22 @@ def component_from_request_body_schema(
     )
 
     return component
+
+
+def method_box(method: str) -> str:
+    color_map = {
+        "GET": "#61affe",
+        "POST": "#49cc90",
+        "PUT": "#fca130",
+        "DELETE": "#f93e3e",
+        "PATCH": "#50e3c2",
+    }
+    color = color_map.get(method.upper(), "#999")
+    return (
+        f"<span style='"
+        f"display:inline-block;min-width:48px;padding:2px 10px;border-radius:4px;"
+        f"background:{color};color:white;font-weight:bold;font-family:monospace;"
+        f"margin-right:8px;text-align:center;border:2px solid {color};"
+        f"box-shadow:0 1px 2px rgba(0,0,0,0.08);'"
+        f">{method.upper()}</span>"
+    )
