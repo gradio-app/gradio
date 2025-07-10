@@ -884,7 +884,7 @@ def load_openapi_spec(
     Parameters:
         openapi_spec: URL, file path, or dictionary containing the OpenAPI specification (v3, JSON format only)
         base_url: Base URL for the API endpoints, e.g. "https://api.example.com/v1". This is used to construct the full URL for each endpoint.
-        paths: Optional list of specific API paths to create Gradio endpoints from. Supports exact matches, regex patterns, or a mix of both, e.g. ["/api/v1/books", ".*users.*", "/api/v2/.*"]. If None, all paths in the OpenAPI spec will be included.
+        paths: Optional list of specific API paths to create Gradio endpoints from. Supports regex patterns, e.g. ["/api/v1/books", ".*users.*"]. If None, all paths in the OpenAPI spec will be included.
         methods: Optional list of HTTP methods to include in the Gradio endpoints. If None, all methods will be included.
     Returns:
         A Gradio Blocks app with endpoints generated from the OpenAPI spec
@@ -945,10 +945,16 @@ def load_openapi_spec(
             components_list = []
 
             for param in operation.get("parameters", []):
-                component = external_utils.component_from_openapi_schema(
-                    param
-                )
+                component = external_utils.component_from_openapi_schema(param)
                 components_list.append(component)
+
+            request_body = operation.get("requestBody")
+            if request_body:
+                body_component = external_utils.component_from_request_body_schema(
+                    request_body, spec
+                )
+                if body_component:
+                    components_list.append(body_component)
 
             endpoint_fn = external_utils.create_endpoint_fn(
                 path, method, operation, base_url

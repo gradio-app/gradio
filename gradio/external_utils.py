@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import json
 import math
 import re
 import warnings
@@ -317,7 +318,7 @@ def create_endpoint_fn(
                 param_index += 1
 
         if request_body and param_index < len(args):
-            body_data = args[param_index]
+            body_data = json.loads(args[param_index])
 
         try:
             if endpoint_method.lower() == "get":
@@ -405,5 +406,72 @@ def component_from_openapi_schema(param_info: dict) -> components.Component:
             value=default_value,
             info=param_description,
         )
+
+    return component
+
+
+def resolve_schema_ref(schema: dict, spec: dict) -> dict:
+    """Resolve schema references in OpenAPI spec."""
+    if "$ref" in schema:
+        ref_path = schema["$ref"]
+        if ref_path.startswith("#/components/schemas/"):
+            schema_name = ref_path.split("/")[-1]
+            return spec.get("components", {}).get("schemas", {}).get(schema_name, {})
+        elif ref_path.startswith("#/"):
+            path_parts = ref_path.split("/")[1:]
+            current = spec
+            for part in path_parts:
+                current = current.get(part, {})
+            return current
+    return schema
+
+
+def component_from_request_body_schema(
+    request_body: dict, spec: dict
+) -> components.Component | None:
+    """Create a Gradio component from an OpenAPI request body schema."""
+    import gradio as gr
+
+    if not request_body:
+        return None
+
+    content = request_body.get("content", {})
+    description = request_body.get("description", "Request Body")
+
+    json_content = content.get("application/json", {})
+    if not json_content:
+        for content_type, content_schema in content.items():
+            if content_type.startswith("application/"):
+                json_content = content_schema
+                break
+
+    if not json_content:
+        return None
+
+    schema = resolve_schema_ref(json_content.get("schema", {}), spec)
+
+    default_value = schema.get("example", {})
+    if not default_value and schema.get("type") == "object":
+        properties = schema.get("properties", {})
+        default_value = {}
+        for prop_name, prop_schema in properties.items():
+            prop_schema = resolve_schema_ref(prop_schema, spec)
+            prop_type = prop_schema.get("type")
+            if prop_type == "string":
+                default_value[prop_name] = prop_schema.get("example", "")
+            elif prop_type in ("number", "integer"):
+                default_value[prop_name] = prop_schema.get("example", 0)
+            elif prop_type == "boolean":
+                default_value[prop_name] = prop_schema.get("example", False)
+            elif prop_type == "array":
+                default_value[prop_name] = prop_schema.get("example", [])
+            elif prop_type == "object":
+                default_value[prop_name] = prop_schema.get("example", {})
+
+    component = gr.Textbox(
+        label="Request Body",
+        value=json.dumps(default_value, indent=2),
+        info=description,
+    )
 
     return component
