@@ -347,30 +347,47 @@ def create_endpoint_fn(
     return endpoint_fn
 
 
-def component_from_openapi_schema(param_schema: dict) -> components.Component:
+def component_from_openapi_schema(param_info: dict) -> components.Component:
     import gradio as gr
 
-    param_name = param_schema.get("name")
+    # print("param_info", param_info)
+
+    param_name = param_info.get("name")
+    param_description = param_info.get("description")
+
+    param_schema = param_info.get("schema", {})
     param_type = param_schema.get("type")
     param_format = param_schema.get("format")
     content_media_type = param_schema.get("contentMediaType")
-
     enum_values = param_schema.get("enum")
+    default_value = param_schema.get("default")
+
     if enum_values is not None:
         component = gr.Dropdown(
             choices=enum_values,
             label=param_name,
-            value=param_schema.get("default"),
-            allow_custom_value=False
+            value=default_value,
+            allow_custom_value=False,
+            info=param_description,
         )
     elif param_type in ("number", "integer"):
-        component = gr.Number(label=param_name, value=param_schema.get("default"))
+        component = gr.Number(
+            label=param_name,
+            value=default_value,
+            info=param_description,
+        )
     elif param_type == "boolean":
         component = gr.Checkbox(
-            label=param_name, value=param_schema.get("default", False)
+            label=param_name,
+            value=default_value,
+            info=param_description,
         )
     elif param_type == "array":
-        component = gr.Textbox(label=f"{param_name} (JSON array)", value="[]")
+        component = gr.Textbox(
+            label=f"{param_name} (JSON array)",
+            value="[]",
+            info=param_description,
+        )
     elif param_type == "object":
         component = gr.JSON(label=param_name, value={})
     elif param_type == "string" and param_format in ("binary", "base64"):
@@ -383,6 +400,10 @@ def component_from_openapi_schema(param_schema: dict) -> components.Component:
         else:
             component = gr.File(label=param_name)
     else:
-        component = gr.Textbox(label=param_name, value=param_schema.get("default", ""))
+        component = gr.Textbox(
+            label=param_name,
+            value=default_value,
+            info=param_description,
+        )
 
     return component
