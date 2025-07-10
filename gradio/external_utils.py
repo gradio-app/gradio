@@ -288,3 +288,93 @@ def handle_hf_error(e: Exception):
         raise Error("Unauthorized, please make sure you are signed in.") from e
     else:
         raise Error(str(e)) from e
+
+
+def create_endpoint_fn(
+    endpoint_path: str,
+    endpoint_method: str,
+    endpoint_operation: dict,
+    base_url: str,
+):
+    def endpoint_fn(*args):
+        url = f"{base_url.rstrip('/')}{endpoint_path}"
+
+        headers = {"Content-Type": "application/json"}
+
+        params = {}
+        body_data = {}
+
+        operation_params = endpoint_operation.get("parameters", [])
+        request_body = endpoint_operation.get("requestBody", {})
+
+        param_index = 0
+        for param in operation_params:
+            if param_index < len(args):
+                if param.get("in") == "query":
+                    params[param["name"]] = args[param_index]
+                elif param.get("in") == "path":
+                    url = url.replace(f"{{{param['name']}}}", str(args[param_index]))
+                param_index += 1
+
+        if request_body and param_index < len(args):
+            body_data = args[param_index]
+
+        try:
+            if endpoint_method.lower() == "get":
+                response = httpx.get(url, params=params, headers=headers)
+            elif endpoint_method.lower() == "post":
+                response = httpx.post(
+                    url, params=params, json=body_data, headers=headers
+                )
+            elif endpoint_method.lower() == "put":
+                response = httpx.put(
+                    url, params=params, json=body_data, headers=headers
+                )
+            elif endpoint_method.lower() == "patch":
+                response = httpx.patch(
+                    url, params=params, json=body_data, headers=headers
+                )
+            elif endpoint_method.lower() == "delete":
+                response = httpx.delete(url, params=params, headers=headers)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {endpoint_method}")
+
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            return f"Error: {str(e)}"
+
+    return endpoint_fn
+
+
+def component_from_openapi_schema(param_schema: dict) -> components.Component:
+    import gradio as gr
+
+    param_name = param_schema.get("name")
+    param_type = param_schema.get("type")
+    param_format = param_schema.get("format")
+    content_media_type = param_schema.get("contentMediaType")
+
+    if param_type in ("number", "integer"):
+        component = gr.Number(label=param_name, value=param_schema.get("default"))
+    elif param_type == "boolean":
+        component = gr.Checkbox(
+            label=param_name, value=param_schema.get("default", False)
+        )
+    elif param_type == "array":
+        component = gr.Textbox(label=f"{param_name} (JSON array)", value="[]")
+    elif param_type == "object":
+        component = gr.JSON(label=param_name, value={})
+    elif param_type == "string" and param_format in ("binary", "base64"):
+        if not content_media_type:
+            component = gr.File(label=param_name)
+        elif content_media_type.startswith("image/"):
+            component = gr.Image(label=param_name)
+        elif content_media_type.startswith("audio/"):
+            component = gr.Audio(label=param_name)
+        else:
+            component = gr.File(label=param_name)
+    else:
+        component = gr.Textbox(label=param_name, value=param_schema.get("default", ""))
+
+    return component

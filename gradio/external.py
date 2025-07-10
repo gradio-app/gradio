@@ -899,8 +899,6 @@ def load_openapi_spec(
                 content = f.read()
 
         try:
-            import json
-
             spec = json.loads(content)
         except json.JSONDecodeError as e:
             raise ValueError("openapi_spec must be a JSON string or dictionary") from e
@@ -929,137 +927,29 @@ def load_openapi_spec(
             gr.Markdown(spec.get("info", {}).get("description", ""))
             gr.Markdown("### API Endpoints")
             for path, method, _ in valid_api_paths:
-                gr.Markdown(f"* <a href='#{method.upper()}_{path.replace('/', '_').replace('{', '').replace('}', '')}'>{method.upper()} <code style='font-size: inherit;'>{path}</code></a>")
+                gr.Markdown(
+                    f"* <a href='#{method.upper()}_{path.replace('/', '_').replace('{', '').replace('}', '')}'>{method.upper()} <code style='font-size: inherit;'>{path}</code></a>"
+                )
 
         for path, method, operation in valid_api_paths:
-            def create_endpoint_fn(
-                endpoint_path, endpoint_method, endpoint_operation
-            ):
-                def endpoint_fn(*args):
-                    url = f"{base_url.rstrip('/')}{endpoint_path}"
-
-                    headers = {"Content-Type": "application/json"}
-
-                    params = {}
-                    body_data = {}
-
-                    operation_params = endpoint_operation.get("parameters", [])
-                    request_body = endpoint_operation.get("requestBody", {})
-
-                    param_index = 0
-                    for param in operation_params:
-                        if param_index < len(args):
-                            if param.get("in") == "query":
-                                params[param["name"]] = args[param_index]
-                            elif param.get("in") == "path":
-                                url = url.replace(
-                                    f"{{{param['name']}}}", str(args[param_index])
-                                )
-                            param_index += 1
-
-                    if request_body and param_index < len(args):
-                        body_data = args[param_index]
-
-                    try:
-                        if endpoint_method.lower() == "get":
-                            response = httpx.get(
-                                url, params=params, headers=headers
-                            )
-                        elif endpoint_method.lower() == "post":
-                            response = httpx.post(
-                                url, params=params, json=body_data, headers=headers
-                            )
-                        elif endpoint_method.lower() == "put":
-                            response = httpx.put(
-                                url, params=params, json=body_data, headers=headers
-                            )
-                        elif endpoint_method.lower() == "patch":
-                            response = httpx.patch(
-                                url, params=params, json=body_data, headers=headers
-                            )
-                        elif endpoint_method.lower() == "delete":
-                            response = httpx.delete(
-                                url, params=params, headers=headers
-                            )
-
-                        response.raise_for_status()
-                        return response.json()
-                    except Exception as e:
-                        return f"Error: {str(e)}"
-
-                return endpoint_fn
-
             components_list = []
 
             for param in operation.get("parameters", []):
-                param_name = param["name"]
-                param_schema = param.get("schema", {})
-                param_type = param_schema.get("type", "string")
-                param_format = param_schema.get("format", "")
-                content_media_type = param_schema.get("contentMediaType", "")
-
-                if param_type in ("number", "integer"):
-                    component = gr.Number(
-                        label=param_name, value=param_schema.get("default")
-                    )
-                elif param_type == "boolean":
-                    component = gr.Checkbox(
-                        label=param_name, value=param_schema.get("default", False)
-                    )
-                elif param_type == "array":
-                    component = gr.Textbox(
-                        label=f"{param_name} (JSON array)", value="[]"
-                    )
-                elif param_type == "object":
-                    component = gr.JSON(label=param_name, value={})
-                elif param_type == "string" and param_format in ("binary", "base64"):
-                    if content_media_type.startswith("image/"):
-                        component = gr.Image(label=param_name)
-                    elif content_media_type.startswith("audio/"):
-                        component = gr.Audio(label=param_name)
-                    else:
-                        component = gr.File(label=param_name)
-                else:
-                    component = gr.Textbox(
-                        label=param_name, value=param_schema.get("default", "")
-                    )
-
+                component = external_utils.component_from_openapi_schema(
+                    param.get("schema", {})
+                )
                 components_list.append(component)
 
-            request_body = operation.get("requestBody", {})
-            if request_body:
-                content = request_body.get("content", {})
-                if "application/json" in content:
-                    schema = content["application/json"].get("schema", {})
-                    if schema.get("type") == "object":
-                        component = gr.JSON(label="Request Body", value={})
-                    else:
-                        component = gr.Textbox(
-                            label="Request Body (JSON)", value="{}"
-                        )
-                    components_list.append(component)
-                elif "multipart/form-data" in content:
-                    schema = content["multipart/form-data"].get("schema", {})
-                    properties = schema.get("properties", {})
-                    for prop, prop_schema in properties.items():
-                        prop_type = prop_schema.get("type", "string")
-                        prop_format = prop_schema.get("format", "")
-                        content_media_type = prop_schema.get("contentMediaType", "")
-                        if prop_type == "string" and prop_format in ("binary", "base64"):
-                            if content_media_type.startswith("image/"):
-                                component = gr.Image(label=prop)
-                            elif content_media_type.startswith("audio/"):
-                                component = gr.Audio(label=prop)
-                            else:
-                                component = gr.File(label=prop)
-                        else:
-                            component = gr.Textbox(label=prop)
-                        components_list.append(component)
+            endpoint_fn = external_utils.create_endpoint_fn(
+                path, method, operation, base_url
+            )
+            endpoint_fn.__name__ = (
+                f"{method}_{path.replace('/', '_').replace('{', '').replace('}', '')}"
+            )
 
-            endpoint_fn = create_endpoint_fn(path, method, operation)
-            endpoint_fn.__name__ = f"{method}_{path.replace('/', '_').replace('{', '').replace('}', '')}"
-
-            gr.Markdown(f"<h2 id='{method.upper()}_{path.replace('/', '_').replace('{', '').replace('}', '')}'>{method.upper()} <code style='font-size: inherit;'>{path}</code></h2>")
+            gr.Markdown(
+                f"<h2 id='{method.upper()}_{path.replace('/', '_').replace('{', '').replace('}', '')}'>{method.upper()} <code style='font-size: inherit;'>{path}</code></h2>"
+            )
             if operation.get("summary"):
                 gr.Markdown(operation["summary"])
 
