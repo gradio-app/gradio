@@ -8,4 +8,4 @@ demo = gr.load_openapi_spec(
 )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(mcp_server=True)

@@ -1813,6 +1813,7 @@ def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[st
     except Exception:
         pass
 
+    print("parameters", parameters)
     return description, parameters, returns
 
 

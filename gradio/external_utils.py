@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import inspect
 import json
 import math
 import re
@@ -297,8 +298,10 @@ def create_endpoint_fn(
     endpoint_operation: dict,
     base_url: str,
 ):
+    # Get request body info for docstring generation
+    request_body = endpoint_operation.get("requestBody", {})
+
     def endpoint_fn(*args):
-        print("args", args)
         url = f"{base_url.rstrip('/')}{endpoint_path}"
 
         headers = {"Content-Type": "application/json"}
@@ -336,12 +339,9 @@ def create_endpoint_fn(
                     body_data = b""
             else:
                 body_data = json.loads(args[param_index])
-        print(">>>>>")
         try:
             if endpoint_method.lower() == "get":
-                print("get")
                 response = httpx.get(url, params=params, headers=headers)
-                print("after get")
             elif endpoint_method.lower() == "post":
                 response = httpx.post(
                     url,
@@ -382,13 +382,53 @@ def create_endpoint_fn(
         except Exception as e:
             return f"Error: {str(e)}"
 
+    summary = endpoint_operation.get("summary", "")
+    description = endpoint_operation.get("description", "")
+
+    param_docs = []
+    param_names = []
+
+    for param in endpoint_operation.get("parameters", []):
+        param_name = param.get("name", "")
+        param_desc = param.get("description", "")
+        param_names.append(param_name)
+        param_docs.append(f"    {param_name}: {param_desc}")
+
+    if request_body:
+        body_desc = request_body.get("description", "Request body")
+        param_docs.append(f"    request_body: {body_desc}")
+        param_names.append("request_body")
+
+    docstring_parts = []
+    if description or summary:
+        docstring_parts.append(description or summary)
+    if param_docs:
+        docstring_parts.append("Parameters:")
+        docstring_parts.extend(param_docs)
+
+    endpoint_fn.__doc__ = "\n".join(docstring_parts)
+
+    if param_names:
+        sig_params = []
+        for name in param_names:
+            sig_params.append(
+                inspect.Parameter(
+                    name=name, kind=inspect.Parameter.POSITIONAL_OR_KEYWORD
+                )
+            )
+        sig_params.append(
+            inspect.Parameter(name="args", kind=inspect.Parameter.VAR_POSITIONAL)
+        )
+
+        new_sig = inspect.Signature(parameters=sig_params)
+
+        endpoint_fn.__signature__ = new_sig
+
     return endpoint_fn
 
 
 def component_from_parameter_schema(param_info: dict) -> components.Component:
     import gradio as gr
-
-    # print("param_info", param_info)
 
     param_name = param_info.get("name")
     param_description = param_info.get("description")
