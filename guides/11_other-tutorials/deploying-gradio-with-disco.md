@@ -92,7 +92,7 @@ This command will:
 - Set up the Disco server.
 - Configure the initial SSL certificate.
 
-> **Note:** Disco will automatically try to use your default SSH keys. If you use a non-standard key, you can specify the path with the `-i` flag, like so: `disco init -i /path/to/your/ssh/key root@disco.example.com`
+Tip: Disco will automatically try to use your default SSH keys. If you use a non-standard key, you can specify the path with the `-i` flag, like so: `disco init -i /path/to/your/ssh/key root@disco.example.com`
 
 ### Step 6: Fork the Example Gradio App
 
