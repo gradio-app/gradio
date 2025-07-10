@@ -1,5 +1,14 @@
 # gradio
 
+## 5.36.2
+
+### Features
+
+- [#11542](https://github.com/gradio-app/gradio/pull/11542) [`bfe0104`](https://github.com/gradio-app/gradio/commit/bfe0104a278e0fe719cd1bcc8535ab5f4b6da0d4) - set python version.  Thanks @abidlabs!
+- [#11548](https://github.com/gradio-app/gradio/pull/11548) [`b961410`](https://github.com/gradio-app/gradio/commit/b9614106136b8a3a82bb425820ce348a6f586859) - test.  Thanks @abidlabs!
+- [#11544](https://github.com/gradio-app/gradio/pull/11544) [`abc42a3`](https://github.com/gradio-app/gradio/commit/abc42a36a7ca91b1266b4814a03ac8d7586d0935) - testing.  Thanks @abidlabs!
+- [#11549](https://github.com/gradio-app/gradio/pull/11549) [`5d0522c`](https://github.com/gradio-app/gradio/commit/5d0522c566d35d5eeee209108684af734cd097df) - Cc2.  Thanks @abidlabs!
+
 ## 5.36.1
 
 ### Features
