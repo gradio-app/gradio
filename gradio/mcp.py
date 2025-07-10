@@ -10,7 +10,9 @@ from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib.parse import unquote
+from anyio.to_thread import run_sync
 
+from gradio_client import Client, handle_file
 import gradio_client.utils as client_utils
 import httpx
 from mcp import types
@@ -56,6 +58,8 @@ class GradioMCPServer:
         self.tool_prefix = space_id.split("/")[-1] + "_" if space_id else ""
         self.tool_to_endpoint = self.get_tool_to_endpoint()
         self.warn_about_state_inputs()
+        self._local_url: str
+        self._client_instance: Client
 
         manager = StreamableHTTPSessionManager(
             app=self.mcp_server, json_response=False, stateless=True
@@ -78,6 +82,10 @@ class GradioMCPServer:
         self.lifespan = lifespan
         self.manager = manager
         self.handle_streamable_http = handle_streamable_http
+
+    @property
+    def local_url(self) -> str:
+        return self._local_url
 
     def get_route_path(self, request: Request) -> str:
         """
@@ -149,6 +157,9 @@ class GradioMCPServer:
                     "used each time."
                 )
 
+    def _create_client(self, url):
+        return Client(url, download_files=False)
+
     def create_mcp_server(self) -> Server:
         """
         Create an MCP server for the given Gradio Blocks app.
@@ -172,11 +183,15 @@ class GradioMCPServer:
                 name: The name of the tool to call.
                 arguments: The arguments to pass to the tool.
             """
-            context_request = self.mcp_server.request_context.request
+            context_request: Request | None = self.mcp_server.request_context.request
+            print("Meta", self.mcp_server.request_context.meta)
             if context_request is None:
                 raise ValueError(
                     "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
                 )
+            if not hasattr(self, "_client_instance"):
+                # TODO: Per-request headers
+                self._client_instance = await run_sync(self._create_client, self.local_url)
             route_path = self.get_route_path(context_request)
             root_url = route_utils.get_root_url(
                 request=context_request,
@@ -205,12 +220,14 @@ class GradioMCPServer:
                 )
             else:
                 processed_args = []
-            processed_args = self.insert_empty_state(block_fn.inputs, processed_args)
-            output = await self.blocks.process_api(
-                block_fn=block_fn,
-                inputs=processed_args,
-                request=context_request,
-            )
+            request_headers = dict(context_request.headers.items())
+            request_headers.pop("content-length", None)
+            async for update in self._client_instance.submit(*processed_args,
+                                                             api_name=endpoint_name,
+                                                             headers=request_headers):
+                print("update", update)
+                if update.type == "output" and update.final:
+                    output = update.outputs
             processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
             return self.postprocess_output_data(output["data"], root_url)
 
@@ -548,13 +565,12 @@ class GradioMCPServer:
                 if node.startswith("data:"):
                     # Even though base64 is not officially part of our schema, some MCP clients
                     # might return base64 encoded strings, so try to save it to a temporary file.
-                    return FileData(
-                        path=processing_utils.save_base64_to_cache(
+                    return handle_file(processing_utils.save_base64_to_cache(
                             node, DEFAULT_TEMP_DIR
                         )
                     )
                 elif node.startswith(("http://", "https://")):
-                    return FileData(path=node)
+                    return handle_file(node)
                 else:
                     raise ValueError(
                         f"Invalid file data format, provide a url ('http://...' or 'https://...'). Received: {node}"
