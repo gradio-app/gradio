@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 import warnings
 from typing import Any
@@ -37,7 +38,6 @@ class I18nData:
         This returns a special format that can be recognized by the frontend
         as needing translation.
         """
-        import json
 
         return f"__i18n__{json.dumps(self.to_dict())}"
 
@@ -72,6 +72,14 @@ class I18nData:
             return self
 
         return method
+
+    def __eq__(self, other):
+        if type(self) is type(other):
+            return str(self) == str(other)
+        return False
+
+    def __hash__(self) -> int:
+        return hash(str(self))
 
     def tojson(self) -> dict[str, Any]:
         """
