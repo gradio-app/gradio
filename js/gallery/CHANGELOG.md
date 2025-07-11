@@ -1,5 +1,17 @@
 # @gradio/gallery
 
+## 0.15.26
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+- @gradio/statustracker@0.10.14
+- @gradio/upload@0.16.10
+- @gradio/video@0.14.20
+- @gradio/client@1.15.5
+- @gradio/image@0.22.12
+- @gradio/file@0.12.23
+
 ## 0.15.25
 
 ### Dependency updates

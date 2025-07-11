@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Multi-Line DataFrame Editing
+fix:Prevent deletion of values in static columns

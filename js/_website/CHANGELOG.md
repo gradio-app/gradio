@@ -1,5 +1,25 @@
 # website
 
+## 0.60.0
+
+### Features
+
+- [#11427](https://github.com/gradio-app/gradio/pull/11427) [`6b2bcd0`](https://github.com/gradio-app/gradio/commit/6b2bcd097ae5ef999a7fb273ecf7c7e4c0eab305) - Improve load times of the Gradio front-end.  Thanks @pngwn!
+- [#11505](https://github.com/gradio-app/gradio/pull/11505) [`3c20f9f`](https://github.com/gradio-app/gradio/commit/3c20f9f1007f8b7b305c92bbcbb95d2c44ee17ad) - Add back theme.css to fix website build.  Thanks @aliabd!
+- [#11517](https://github.com/gradio-app/gradio/pull/11517) [`40c87f1`](https://github.com/gradio-app/gradio/commit/40c87f180759434367538506df8310769d99346a) - Add more hackathon winners to gallery.  Thanks @aliabd!
+
+### Fixes
+
+- [#11430](https://github.com/gradio-app/gradio/pull/11430) [`4d4cd4b`](https://github.com/gradio-app/gradio/commit/4d4cd4b08d6daafc66e0189a2b274916da00d480) - fix exports + add browser build.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.14
+- @gradio/tabs@0.4.5
+- @gradio/tabitem@0.5.0
+- @gradio/code@0.14.10
+- @gradio/paramviewer@0.7.12
+
 ## 0.59.0
 
 ### Features

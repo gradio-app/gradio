@@ -1,7 +1,6 @@
 ---
-"@gradio/client": patch
 "@self/app": patch
 "gradio": patch
 ---
 
-fix:SSR Auth Fix
+fix:Fix fonts in SSR mode
