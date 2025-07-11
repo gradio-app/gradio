@@ -75,8 +75,12 @@ class Dataframe(Component):
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
         col_count: int | tuple[int, str] | None = None,
-        datatype: Literal["str", "number", "bool", "date", "markdown", "html", "image", "auto"]
-        | Sequence[Literal["str", "number", "bool", "date", "markdown", "html"]] = "str",
+        datatype: Literal[
+            "str", "number", "bool", "date", "markdown", "html", "image", "auto"
+        ]
+        | Sequence[
+            Literal["str", "number", "bool", "date", "markdown", "html"]
+        ] = "str",
         type: Literal["pandas", "numpy", "array", "polars"] = "pandas",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | I18nData | None = None,
@@ -169,7 +173,7 @@ class Dataframe(Component):
             )
         self.type = type
 
-        if datatype is "auto":
+        if datatype == "auto":
             self.set_auto_datatype(value)
         else:
             self.datatype = datatype
