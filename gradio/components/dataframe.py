@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import warnings
 from collections.abc import Callable, Sequence
 from typing import (
@@ -491,8 +492,6 @@ class Dataframe(Component):
             "category": "str",
             "categorical": "str",
         }
-
-        import re
 
         brackets_re = re.compile(
             r"\[.*?\]|\(.*?\)"
