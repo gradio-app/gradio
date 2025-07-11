@@ -427,3 +427,91 @@ class TestDataframe:
         # when static_columns is not specified at all, col_count should remain as specified
         dataframe = gr.Dataframe(col_count=(4, "dynamic"))
         assert dataframe.col_count[1] == "dynamic"
+
+    def test_auto_datatype(self):
+        from datetime import datetime
+
+        import polars as pl
+
+        df_headers = [
+            "String",
+            "Int",
+            "Float",
+            "Pandas Time",
+            "Numpy Time",
+            "Datetime",
+            "Boolean",
+        ]
+
+        list_data = [
+            [
+                "Irish Red Fox",
+                185000,
+                4.2,
+                pd.Timestamp("2017-01-01T12"),
+                np.datetime64("now"),
+                datetime(2022, 1, 1),
+                True,
+            ],
+            [
+                "Irish Badger",
+                95000,
+                8.5,
+                pd.Timestamp("2018-01-01T12"),
+                np.datetime64("now"),
+                datetime(2023, 1, 1),
+                True,
+            ],
+            [
+                "Irish Otter",
+                13500,
+                5.5,
+                pd.Timestamp("2025-01-01T12"),
+                np.datetime64("now"),
+                datetime(2024, 1, 1),
+                False,
+            ],
+        ]
+        np_data = np.array(list_data, dtype=object)
+        pl_data = pl.DataFrame(list_data, schema=df_headers)
+
+        pd_data = pd.DataFrame(list_data, columns=df_headers)
+        styler_data = pd_data.style.apply(
+            lambda row: [
+                "background-color: lightgreen" if row["Boolean"] else "" for _ in row
+            ],
+            axis=1,
+        )
+
+        result = ["str", "number", "number", "date", "date", "date", "bool"]
+
+        # Test for pandas input
+        dataframe = gr.Dataframe(
+            value=pd_data, headers=df_headers, interactive=True, datatype="auto"
+        )
+        assert dataframe.datatype == result
+
+        # Test for list input
+        dataframe = gr.Dataframe(
+            value=list_data, headers=df_headers, interactive=True, datatype="auto"
+        )
+        assert dataframe.datatype == result
+
+        # Test for numpy input
+        dataframe = gr.Dataframe(
+            value=np_data, headers=df_headers, interactive=True, datatype="auto"
+        )
+        assert dataframe.datatype == result
+
+        # Test for styler input
+        dataframe = gr.Dataframe(
+            value=styler_data, headers=df_headers, interactive=True, datatype="auto"
+        )
+        assert dataframe.datatype == result
+
+        # Test for polars input
+        dataframe = gr.Dataframe(
+            value=pl_data, headers=df_headers, interactive=True, datatype="auto"
+        )
+        result = ["str", "number", "number", "str", "str", "date", "bool"]
+        assert dataframe.datatype == result
