@@ -474,7 +474,7 @@ class TestDataframe:
         np_data = np.array(list_data, dtype=object)
         pl_data = pl.DataFrame(list_data, schema=df_headers)
 
-        pd_data = pd.DataFrame(list_data, columns=df_headers)
+        pd_data = pd.DataFrame(list_data, columns=df_headers)  # type: ignore
         styler_data = pd_data.style.apply(
             lambda row: [
                 "background-color: lightgreen" if row["Boolean"] else "" for _ in row
@@ -484,7 +484,6 @@ class TestDataframe:
 
         result = ["str", "number", "number", "date", "date", "date", "bool"]
 
-        # Test for pandas input
         dataframe = gr.Dataframe(
             value=pd_data, headers=df_headers, interactive=True, datatype="auto"
         )
