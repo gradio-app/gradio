@@ -1,5 +1,8 @@
+from datetime import datetime
+
 import numpy as np
 import pandas as pd
+import polars as pl
 import pytest
 
 import gradio as gr
@@ -429,10 +432,6 @@ class TestDataframe:
         assert dataframe.col_count[1] == "dynamic"
 
     def test_auto_datatype(self):
-        from datetime import datetime
-
-        import polars as pl
-
         df_headers = [
             "String",
             "Int",
@@ -491,25 +490,21 @@ class TestDataframe:
         )
         assert dataframe.datatype == result
 
-        # Test for list input
         dataframe = gr.Dataframe(
             value=list_data, headers=df_headers, interactive=True, datatype="auto"
         )
         assert dataframe.datatype == result
 
-        # Test for numpy input
         dataframe = gr.Dataframe(
             value=np_data, headers=df_headers, interactive=True, datatype="auto"
         )
         assert dataframe.datatype == result
 
-        # Test for styler input
         dataframe = gr.Dataframe(
             value=styler_data, headers=df_headers, interactive=True, datatype="auto"
         )
         assert dataframe.datatype == result
 
-        # Test for polars input
         dataframe = gr.Dataframe(
             value=pl_data, headers=df_headers, interactive=True, datatype="auto"
         )
