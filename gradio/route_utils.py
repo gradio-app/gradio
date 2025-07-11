@@ -210,6 +210,10 @@ class Request:
         self.__dict__ = state
 
 
+class Header(str):
+    pass
+
+
 class FnIndexInferError(Exception):
     pass
 
