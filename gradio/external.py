@@ -936,9 +936,15 @@ def load_openapi_spec(
             gr.Markdown(f"## {spec.get('info', {}).get('title', 'OpenAPI Interface')}")
             gr.Markdown(spec.get("info", {}).get("description", ""))
             gr.Markdown("### API Endpoints")
-            api_path_str = ""
+            api_path_str = "<div style='overflow-x: auto; overflow-y: auto; max-height: 500px;'><ul>"
             for path, method, _ in valid_api_paths:
-                api_path_str += f"* <a href='#{method.upper()}_{path.replace('/', '_').replace('{', '').replace('}', '')}'>{method.upper()} <code style='font-size: inherit;'>{path}</code></a>\n"
+                api_path_str += (
+                    f"<li style='white-space: nowrap;'>"
+                    f"<a href='#{method.upper()}_{path.replace('/', '_').replace('{', '').replace('}', '')}' style='white-space: nowrap;'>"
+                    f"{method.upper()} <code style='font-size: inherit; white-space: nowrap;'>{path}</code>"
+                    f"</a></li>\n"
+                )
+            api_path_str += "</ul></div>"
             gr.Markdown(api_path_str)
 
         for path, method, operation in valid_api_paths:

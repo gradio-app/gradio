@@ -116,7 +116,6 @@ class JSON(Component):
         if value is None:
             return None
         if isinstance(value, str):
-            print("value", value)
             return JsonData(orjson.loads(value))
         else:
             # Use orjson to convert NumPy arrays and datetime objects to JSON.
