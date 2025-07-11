@@ -235,6 +235,25 @@ class Dataframe(Component):
         """
         import pandas as pd
 
+        # Quick Fix better change it in js
+        if isinstance(self.datatype, list):
+            for row in payload.data:
+                if isinstance(row, list):
+                    for i, col in enumerate(row):
+                        if i < len(self.datatype):
+                            if self.datatype[i] == "number":
+                                try:
+                                    row[i] = float(col) if col not in [None, ""] else None
+                                except ValueError:
+                                    row[i] = None
+                            elif self.datatype[i] == "bool":
+                                row[i] = str(col).lower() == 'true'
+                            elif self.datatype[i] == "date":
+                                try:
+                                    row[i] = pd.to_datetime(col)
+                                except Exception:
+                                    row[i] = col
+
         if self.type == "pandas":
             if payload.headers is not None:
                 return pd.DataFrame(
