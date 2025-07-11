@@ -182,6 +182,7 @@ def test_mcp_sse_transport(test_mcp_app):
                     "type": "object",
                     "properties": {"x": {"type": "string"}},
                 },
+                "meta": {"file_data_present": False},
             }
         ]
 
