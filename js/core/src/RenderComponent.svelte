@@ -3,7 +3,7 @@
 <script lang="ts">
 	import type { ComponentMeta, ThemeMode } from "./types";
 	import type { SvelteComponent, ComponentType } from "svelte";
-	import { translate_if_needed } from "./i18n";
+	import { translate_if_needed, extractI18nKey } from "./i18n";
 	// @ts-ignore
 	import { bind, binding_callbacks } from "svelte/internal";
 
@@ -60,27 +60,6 @@
 		"label",
 		"choices"
 	];
-
-	function extractI18nKey(input: string): string {
-		const prefix = "__i18n__";
-		if (!input.startsWith(prefix)) return input;
-
-		const jsonPart = input.slice(prefix.length);
-		try {
-			const parsed = JSON.parse(jsonPart);
-			if (
-			typeof parsed === "object" &&
-			parsed !== null &&
-			parsed.__type__ === "translation_metadata" &&
-			typeof parsed.key === "string"
-			) {
-				const decodedKey = JSON.parse(`"${parsed.key}"`);
-				return decodedKey;
-			}
-		} catch {
-		}
-		return input;
-	}
 
 	function translate_prop(obj: SvelteRestProps): void {
 		for (const key in obj) {
