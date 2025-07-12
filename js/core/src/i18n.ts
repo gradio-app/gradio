@@ -127,6 +127,61 @@ export function translate_if_needed(value: any): string {
 	}
 }
 
+export function extractI18nKey(value: any): string {
+	if (typeof value !== "string") {
+		return value;
+	}
+
+	const i18n_marker = "__i18n__";
+	const marker_index = value.indexOf(i18n_marker);
+
+	if (marker_index === -1) {
+		return value;
+	}
+
+	try {
+		const before_marker =
+			marker_index > 0 ? value.substring(0, marker_index) : "";
+
+		const after_marker_index = marker_index + i18n_marker.length;
+		const json_start = value.indexOf("{", after_marker_index);
+		let json_end = -1;
+		let bracket_count = 0;
+
+		for (let i = json_start; i < value.length; i++) {
+			if (value[i] === "{") bracket_count++;
+			if (value[i] === "}") bracket_count--;
+			if (bracket_count === 0) {
+				json_end = i + 1;
+				break;
+			}
+		}
+
+		if (json_end === -1) {
+			console.error("Could not find end of JSON in i18n string");
+			return value;
+		}
+
+		const metadata_json = value.substring(json_start, json_end);
+		const after_json = json_end < value.length ? value.substring(json_end) : "";
+
+		try {
+			const metadata = JSON.parse(metadata_json);
+
+			if (metadata && metadata.key) {
+				return before_marker + metadata.key + after_json;
+			}
+		} catch (jsonError) {
+			console.error("Error parsing i18n JSON:", jsonError);
+		}
+
+		return value;
+	} catch (e) {
+		console.error("Error processing extraction:", e);
+		return value;
+	}
+}
+
 export function process_langs(): LangsRecord {
 	const lazy_langs = Object.fromEntries(
 		Object.entries(langs).map(([path, mod]) => [
