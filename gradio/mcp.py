@@ -8,13 +8,14 @@ import warnings
 from collections.abc import AsyncIterator, Sequence
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import unquote
-from anyio.to_thread import run_sync
 
-from gradio_client import Client, handle_file
 import gradio_client.utils as client_utils
 import httpx
+from anyio.to_thread import run_sync
+from gradio_client import Client, handle_file
+from gradio_client.utils import Status, StatusUpdate
 from mcp import types
 from mcp.server import Server
 from mcp.server.sse import SseServerTransport
@@ -29,7 +30,6 @@ from starlette.types import Receive, Scope, Send
 from gradio import processing_utils, route_utils, utils
 from gradio.blocks import BlockFunction
 from gradio.components import State
-from gradio.data_classes import FileData
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockContext, Blocks
@@ -185,13 +185,18 @@ class GradioMCPServer:
             """
             context_request: Request | None = self.mcp_server.request_context.request
             print("Meta", self.mcp_server.request_context.meta)
+            progress_token = None
+            if self.mcp_server.request_context.meta is not None:
+                progress_token = self.mcp_server.request_context.meta.progressToken
             if context_request is None:
                 raise ValueError(
                     "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
                 )
             if not hasattr(self, "_client_instance"):
                 # TODO: Per-request headers
-                self._client_instance = await run_sync(self._create_client, self.local_url)
+                self._client_instance = await run_sync(
+                    self._create_client, self.local_url
+                )
             route_path = self.get_route_path(context_request)
             root_url = route_utils.get_root_url(
                 request=context_request,
@@ -222,11 +227,49 @@ class GradioMCPServer:
                 processed_args = []
             request_headers = dict(context_request.headers.items())
             request_headers.pop("content-length", None)
-            async for update in self._client_instance.submit(*processed_args,
-                                                             api_name=endpoint_name,
-                                                             headers=request_headers):
-                print("update", update)
-                if update.type == "output" and update.final:
+            step = 0
+            async for update in self._client_instance.submit(
+                *processed_args, api_name=endpoint_name, headers=request_headers
+            ):
+                if update.type == "status" and progress_token is not None:
+                    update = cast(StatusUpdate, update)
+
+                    if update.code in [Status.JOINING_QUEUE, Status.STARTING]:
+                        message = "Joined server queue."
+                    elif update.code in [Status.IN_QUEUE]:
+                        message = f"In queue. Position {update.rank} out of {update.queue_size}."
+                        if update.eta is not None:
+                            message += (
+                                f" Estimated time remaining: {update.eta} seconds."
+                            )
+                    elif update.code in [Status.PROGRESS]:
+                        for progress_unit in update.progress_data or []:
+                            title = (
+                                "Progress"
+                                if progress_unit.desc is not None
+                                else f"Progress {progress_unit.desc}"
+                            )
+                            if (
+                                progress_unit.index is not None
+                                and progress_unit.length is not None
+                            ):
+                                message = f"{title}: Step {progress_unit.index} of {progress_unit.length}"
+                            elif (
+                                progress_unit.index is not None
+                                and progress_unit.length is None
+                            ):
+                                message = f"{title}: Step {progress_unit.index}"
+                    elif update.code in [Status.PROCESSING, Status.ITERATING]:
+                        message = "Processing"
+
+                    await self.mcp_server.request_context.session.send_progress_notification(
+                        progress_token=progress_token,
+                        progress=step,
+                        message=message,
+                        total=41,
+                    )
+                    step += 1
+                elif update.type == "output" and update.final:
                     output = update.outputs
             processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
             return self.postprocess_output_data(output["data"], root_url)
@@ -565,9 +608,8 @@ class GradioMCPServer:
                 if node.startswith("data:"):
                     # Even though base64 is not officially part of our schema, some MCP clients
                     # might return base64 encoded strings, so try to save it to a temporary file.
-                    return handle_file(processing_utils.save_base64_to_cache(
-                            node, DEFAULT_TEMP_DIR
-                        )
+                    return handle_file(
+                        processing_utils.save_base64_to_cache(node, DEFAULT_TEMP_DIR)
                     )
                 elif node.startswith(("http://", "https://")):
                     return handle_file(node)

@@ -24,13 +24,13 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Literal,
+    NewType,
     Optional,
     TypedDict,
     Union,
     get_args,
     get_origin,
     get_type_hints,
-    NewType,
 )
 
 import fsspec.asyn
@@ -226,6 +226,7 @@ class StatusUpdate:
     log: tuple[str, str] | None = None
     type: Literal["status", "output"] = "status"
 
+
 @dataclass
 class OutputUpdate:
     """Update message sent from the worker thread to the Job on the main thread."""
@@ -236,6 +237,7 @@ class OutputUpdate:
 
 
 Update = NewType("Update", StatusUpdate | OutputUpdate)
+
 
 def create_initial_status_update():
     return StatusUpdate(
@@ -608,7 +610,9 @@ def stream_sse_v1plus(
                 helper.updates.put_nowait(status_update)
             if msg["msg"] == ServerMessage.process_completed:
                 del pending_messages_per_event[event_id]
-                helper.updates.put_nowait(OutputUpdate(outputs=msg["output"], final=True))
+                helper.updates.put_nowait(
+                    OutputUpdate(outputs=msg["output"], final=True)
+                )
                 return msg["output"]
             elif msg["msg"] == ServerMessage.server_stopped:
                 raise ValueError("Server stopped.")

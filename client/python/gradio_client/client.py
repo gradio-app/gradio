@@ -17,7 +17,7 @@ import time
 import urllib.parse
 import uuid
 import warnings
-from collections.abc import Callable
+from collections.abc import AsyncGenerator, Callable
 from concurrent.futures import Future
 from dataclasses import dataclass
 from datetime import datetime
@@ -45,11 +45,11 @@ from gradio_client.utils import (
     Communicator,
     JobStatus,
     Message,
-    OutputUpdate,
     QueueError,
     ServerMessage,
     Status,
     StatusUpdate,
+    Update,
 )
 
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
@@ -495,13 +495,15 @@ class Client:
             *args, api_name=api_name, fn_index=fn_index, headers=headers, **kwargs
         ).result()
 
-    def new_helper(self, fn_index: int, headers: dict[str, str] | None = None) -> Communicator:
+    def new_helper(
+        self, fn_index: int, headers: dict[str, str] | None = None
+    ) -> Communicator:
         return Communicator(
             Lock(),
             JobStatus(),
             self.endpoints[fn_index].process_predictions,
             self.reset_url,
-            request_headers=headers
+            request_headers=headers,
         )
 
     def submit(
@@ -553,7 +555,9 @@ class Client:
             helper = self.new_helper(inferred_fn_index, headers=headers)
             end_to_end_fn = endpoint.make_end_to_end_fn(helper)
         else:
-            end_to_end_fn = cast(EndpointV3Compatibility, endpoint).make_end_to_end_fn(None)
+            end_to_end_fn = cast(EndpointV3Compatibility, endpoint).make_end_to_end_fn(
+                None
+            )
         future = self.executor.submit(end_to_end_fn, *args)
 
         cancel_fn = endpoint.make_cancel(helper)
@@ -1300,7 +1304,9 @@ class Endpoint:
             if self.protocol == "sse":
                 result = self._sse_fn_v0(data, hash_data, helper)  # type: ignore
             elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3"):
-                event_id = self.client.send_data(data, hash_data, self.protocol, helper.request_headers)
+                event_id = self.client.send_data(
+                    data, hash_data, self.protocol, helper.request_headers
+                )
                 self.client.pending_event_ids.add(event_id)
                 self.client.pending_messages_per_event[event_id] = []
                 helper.event_id = event_id
@@ -1562,12 +1568,11 @@ class Job(Future):
                     raise StopIteration()
                 time.sleep(0.001)
 
-
-    async def __aiter__(self):
+    async def __aiter__(self) -> AsyncGenerator[Update, None]:
         """Async iterator that yields all updates from the communicator.updates queue."""
         if not self.communicator:
             return
-        
+
         while True:
             get = self.communicator.updates.get()
             try:
