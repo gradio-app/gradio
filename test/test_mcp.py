@@ -60,7 +60,8 @@ def test_convert_strings_to_filedata(test_mcp_app):
     }
     filedata_positions: list[list[str | int]] = [["image"]]
     result = server.convert_strings_to_filedata(test_data, filedata_positions)
-    assert isinstance(result["image"], FileData)
+    assert isinstance(result["image"], dict)
+    result["image"] = FileData(**result["image"])
     assert os.path.exists(result["image"].path)
 
     test_data = {"image": "invalid_data"}

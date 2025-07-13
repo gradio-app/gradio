@@ -58,7 +58,7 @@ class GradioMCPServer:
         self.tool_prefix = space_id.split("/")[-1] + "_" if space_id else ""
         self.tool_to_endpoint = self.get_tool_to_endpoint()
         self.warn_about_state_inputs()
-        self._local_url: str
+        self._local_url: str | None = None
         self._client_instance: Client
 
         manager = StreamableHTTPSessionManager(
@@ -84,7 +84,7 @@ class GradioMCPServer:
         self.handle_streamable_http = handle_streamable_http
 
     @property
-    def local_url(self) -> str:
+    def local_url(self) -> str | None:
         return self._local_url
 
     def get_route_path(self, request: Request) -> str:
@@ -192,17 +192,19 @@ class GradioMCPServer:
                 raise ValueError(
                     "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
                 )
-            if not hasattr(self, "_client_instance"):
-                # TODO: Per-request headers
-                self._client_instance = await run_sync(
-                    self._create_client, self.local_url
-                )
             route_path = self.get_route_path(context_request)
             root_url = route_utils.get_root_url(
                 request=context_request,
                 route_path=route_path,
                 root_path=self.root_path,
             )
+            if not hasattr(self, "_client_instance"):
+                # TODO: Per-request headers
+                print("self.local_url", self.local_url)
+                print("root_url", root_url)
+                self._client_instance = await run_sync(
+                    self._create_client, self.local_url or root_url
+                )
             _, filedata_positions = self.get_input_schema(name)
             processed_kwargs = self.convert_strings_to_filedata(
                 arguments, filedata_positions

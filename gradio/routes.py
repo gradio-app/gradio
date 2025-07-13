@@ -2010,6 +2010,7 @@ def mount_gradio_app(
     pwa: bool | None = None,
     i18n: I18n | None = None,
     mcp_server: bool | None = None,
+    local_url: str | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -2125,6 +2126,13 @@ def mount_gradio_app(
         ssr_mode=blocks.ssr_mode,
         mcp_server=mcp_server,
     )
+    if local_url is None and mcp_server:
+        warnings.warn(
+            "When mounting a Gradio MCP server to a FastAPI app, it is recommended to supply the local_url to the Gradio App in mount_gradio_app. "
+            "Otherwise, the MCP server has to dynamically determine the URL it's running in. "
+        )
+    elif local_url and mcp_server and gradio_app.blocks:
+        gradio_app.blocks.mcp_server_obj._local_url = local_url
     old_lifespan = app.router.lifespan_context
 
     @contextlib.asynccontextmanager
