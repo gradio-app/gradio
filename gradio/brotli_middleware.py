@@ -113,7 +113,7 @@ class BrotliMiddleware:
             ".xml",
             ".svg",
             ".splat",
-            ".ply"
+            ".ply",
         }
         if "." in path:
             extension = "." + path.split(".")[-1].lower()
