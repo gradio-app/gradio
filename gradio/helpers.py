@@ -51,7 +51,7 @@ def create_examples(
     postprocess: bool = True,
     show_api: bool = False,
     api_name: str | Literal[False] = "load_example",
-    api_description: str | None = None,
+    api_description: str | None | Literal[False] = False,
     batch: bool = False,
     *,
     example_labels: list[str] | None = None,
