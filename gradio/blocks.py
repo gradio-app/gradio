@@ -2721,7 +2721,7 @@ Received inputs:
             ssr_mode=self.ssr_mode,
             mcp_server=mcp_server,
         )
-        if self.mcp_server and not quiet:
+        if self.mcp_error and not quiet:
             print(self.mcp_error)
 
         self.config = self.get_config_file()
