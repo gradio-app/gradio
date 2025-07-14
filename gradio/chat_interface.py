@@ -111,6 +111,7 @@ class ChatInterface(Blocks):
         fill_height: bool = True,
         fill_width: bool = False,
         api_name: str | Literal[False] = "chat",
+        api_description: str | None = None,
         save_history: bool = False,
     ):
         """
@@ -152,6 +153,7 @@ class ChatInterface(Blocks):
             fill_height: if True, the chat interface will expand to the height of window.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
             api_name: defines how the chat endpoint appears in the API docs. Can be a string or False. If set to a string, the chat endpoint will be exposed in the API docs with the given name. If False, the chat endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to call this chat endpoint.
+            api_description: a description for the API endpoint. If provided, will be displayed in the API docs.
             save_history: if True, will save the chat history to the browser's local storage and display previous conversations in a side panel.
         """
         super().__init__(
@@ -169,6 +171,7 @@ class ChatInterface(Blocks):
             delete_cache=delete_cache,
         )
         self.api_name: str | Literal[False] = api_name
+        self.api_description = api_description
         self.type = type
         self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
@@ -617,6 +620,7 @@ class ChatInterface(Blocks):
             [self.textbox, self.chatbot_state] + self.additional_inputs,
             [self.api_response, self.chatbot_state] + self.additional_outputs,
             api_name=self.api_name,
+            api_description=self.api_description,
             concurrency_limit=cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
             ),

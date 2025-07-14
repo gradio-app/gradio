@@ -50,6 +50,7 @@ def create_examples(
     preprocess: bool = True,
     postprocess: bool = True,
     api_name: str | Literal[False] = "load_example",
+    api_description: str | None = None,
     batch: bool = False,
     *,
     example_labels: list[str] | None = None,
@@ -72,6 +73,7 @@ def create_examples(
         preprocess=preprocess,
         postprocess=postprocess,
         api_name=api_name,
+        api_description=api_description,
         batch=batch,
         example_labels=example_labels,
         visible=visible,
@@ -110,6 +112,7 @@ class Examples:
         preprocess: bool = True,
         postprocess: bool = True,
         api_name: str | Literal[False] = "load_example",
+        api_description: str | None = None,
         batch: bool = False,
         *,
         example_labels: list[str] | None = None,
@@ -132,6 +135,7 @@ class Examples:
             preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if `cache_examples` is not False.
             postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if `cache_examples` is not False.
             api_name: Defines how the event associated with clicking on the examples appears in the API docs. Can be a string or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use the example function.
+            api_description: Defines the description of the endpoint in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given description. If None (default), the function's docstring will be used as the API endpoint description.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is not False.
             example_labels: A list of labels for each example. If provided, the length of this list should be the same as the number of examples, and these labels will be used in the UI instead of rendering the example values.
             visible: If False, the examples component will be hidden in the UI.
@@ -261,6 +265,7 @@ class Examples:
         self.preprocess = preprocess
         self.postprocess = postprocess
         self.api_name: str | Literal[False] = api_name
+        self.api_description = api_description
         self.batch = batch
         self.example_labels = example_labels
         self.working_directory = working_directory
@@ -379,6 +384,7 @@ class Examples:
                     outputs=self.outputs,
                     postprocess=False,
                     api_name=self.api_name,
+                    api_description=self.api_description,
                     show_api=False,
                 )
 
@@ -439,6 +445,7 @@ class Examples:
                     postprocess=False,
                     queue=False,
                     api_name=self.api_name,
+                    api_description=self.api_description,
                     show_api=False,
                 )
 
