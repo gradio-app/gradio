@@ -922,6 +922,8 @@ def load_openapi(
 
     if not api_paths:
         raise ValueError("No valid paths found in the OpenAPI specification")
+    else:
+        print(f"* Loaded {len(api_paths)} paths from the OpenAPI specification")
 
     valid_api_paths = []
     for path, path_item in api_paths.items():
