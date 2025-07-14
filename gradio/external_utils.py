@@ -399,7 +399,7 @@ def create_endpoint_fn(
         param_docs.append(f"    {param_name}: {param_desc}")
 
     if request_body:
-        body_desc = request_body.get("description", "Request body")
+        body_desc = request_body.get("description", "URL of file")
         param_docs.append(f"    request_body: {body_desc}")
         param_names.append("request_body")
 
