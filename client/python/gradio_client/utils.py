@@ -232,6 +232,7 @@ class OutputUpdate:
     """Update message sent from the worker thread to the Job on the main thread."""
 
     outputs: list[Any]
+    success: bool
     type: Literal["output"] = "output"
     final: bool = False
 
@@ -605,13 +606,19 @@ def stream_sse_v1plus(
                     except Exception as e:
                         result = [e]
                     helper.job.outputs.append(result)
-                    helper.updates.put_nowait(OutputUpdate(outputs=result))
+                    helper.updates.put_nowait(
+                        OutputUpdate(outputs=result, success=msg.get("success", True))
+                    )
                 helper.job.latest_status = status_update
                 helper.updates.put_nowait(status_update)
             if msg["msg"] == ServerMessage.process_completed:
                 del pending_messages_per_event[event_id]
                 helper.updates.put_nowait(
-                    OutputUpdate(outputs=msg["output"], final=True)
+                    OutputUpdate(
+                        outputs=msg["output"],
+                        final=True,
+                        success=msg.get("success", True),
+                    )
                 )
                 return msg["output"]
             elif msg["msg"] == ServerMessage.server_stopped:

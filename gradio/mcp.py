@@ -268,12 +268,21 @@ class GradioMCPServer:
                         progress_token=progress_token,
                         progress=step,
                         message=message,
-                        total=41,
                     )
                     step += 1
                 elif update.type == "output" and update.final:
-                    output = update.outputs
-            processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
+                    if update.success:
+                        output = update.outputs
+                    else:
+                        # Have to raise an error so that call_tool returns an error payload
+                        raise RuntimeError(
+                            update.outputs.get("title")
+                            or update.outputs.get("error")
+                            or "Error!"
+                        )
+            processed_args = self.pop_returned_state(
+                block_fn.inputs, processed_args
+            )
             return self.postprocess_output_data(output["data"], root_url)
 
         @server.list_tools()
