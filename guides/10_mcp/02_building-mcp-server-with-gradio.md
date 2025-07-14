@@ -141,6 +141,42 @@ gr.Interface(echo_headers, "textbox", "textbox").launch(mcp_server=True)
 
 This MCP server will simply ignore the user's input and echo back all of the headers from a user's request. One can build more complex apps using the same idea. See the [docs on `gr.Request`](https://www.gradio.app/main/docs/gradio/request) for more information (note that only the core Starlette attributes of the `gr.Request` object will be present, attributes such as Gradio's `.session_hash` will not be present).
 
+### Using the gr.Header class
+
+A common pattern in MCP server development is to use authentication headers to call services on behalf of your users. Instead of using a `gr.Request` object like in the example above, you can use a `gr.Header` argument. Gradio will automatically extract that header from the incoming request (if it exists) and pass it to your function.
+
+In the example below, the `X-API-Token` header is extracted from the incoming request and passed in as the `x_api_token` argument to `make_api_request_on_behalf_of_user`.
+
+The benefit of using `gr.Header` is that the MCP connection docs will automatically display the headers you need to supply when connecting to the server! See the image below:
+
+```python
+import gradio as gr
+
+def make_api_request_on_behalf_of_user(prompt: str, x_api_token: gr.Header):
+    """Make a request to everyone's favorite API.
+    Args:
+        prompt: The prompt to send to the API.
+    Returns:
+        The response from the API.
+    Raises:
+        AssertionError: If the API token is not valid.
+    """
+    return "Hello from the API" if not x_api_token else "Hello from the API with token!"
+
+
+demo = gr.Interface(
+    make_api_request_on_behalf_of_user,
+    [
+        gr.Textbox(label="Prompt"),
+    ],
+    gr.Textbox(label="Response"),
+)
+
+demo.launch(mcp_server=True)
+```
+
+![MCP Header Connection Page](https://github.com/user-attachments/assets/e264eedf-a91a-476b-880d-5be0d5934134)
+
 ## Adding MCP-Only Tools
 
 So far, all of our MCP tools have corresponded to event listeners in the UI. This works well for functions that directly update the UI, but may not work if you wish to expose a "pure logic" function that should return raw data (e.g., a JSON object) without directly causing a UI update.
