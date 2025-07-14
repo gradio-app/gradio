@@ -177,6 +177,20 @@ demo.launch(mcp_server=True)
 
 ![MCP Header Connection Page](https://github.com/user-attachments/assets/e264eedf-a91a-476b-880d-5be0d5934134)
 
+## Modifying Tool Descriptions
+
+Gradio automatically sets the tool name based on the name of your function, and the description from the docstring of your function. But you may want to change how the description appears to your LLM. You can do this by using the `api_description` parameter in `Interface`, `ChatInterface`, or any event listener. This parameter takes three different kinds of values:
+
+* `None` (default): in which case the tool description is automatically created from the docstring of the function
+* `False`: in which case, no tool description appears to the LLM.
+* `str`: any arbitrary string to use as the tool description.
+
+In addition to modifying the tool descriptions, you can also toggle which tools appear to the LLM. You can do this by setting the `show_api` parameter, which is by default `True`. Setting it to `False` hides the endpoint from the API docs and from the MCP server.
+
+Here's an example that shows these parameters in actions:
+
+$code_mcp_tools
+
 ## Adding MCP-Only Tools
 
 So far, all of our MCP tools have corresponded to event listeners in the UI. This works well for functions that directly update the UI, but may not work if you wish to expose a "pure logic" function that should return raw data (e.g., a JSON object) without directly causing a UI update.
