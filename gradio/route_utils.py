@@ -210,7 +210,30 @@ class Request:
         self.__dict__ = state
 
 
+@document()
 class Header(str):
+    """A string that represents a header value in an incoming HTTP request to the Gradio app.
+
+    When you type a function argument of type `Header`, Gradio will automatically extract that header from the request and pass it to the function.
+    Note that it's common for header values to use hyphens, e.g. `x-forwarded-host`, and these will automatically be converted to underscores.
+    So make sure you use underscores in your function arguments.
+
+    Example:
+        import gradio as gr
+
+        def make_api_request_on_behalf_of_user(prompt: str, x_api_token: gr.Header):
+            return "Hello from the API" if not x_api_token else "Hello from the API with token!"
+
+        demo = gr.Interface(
+            make_api_request_on_behalf_of_user,
+            [
+                gr.Textbox(label="Prompt"),
+            ],
+            gr.Textbox(label="Response"),
+        )
+
+        demo.launch(mcp_server=True)
+    """
     pass
 
 
