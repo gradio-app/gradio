@@ -1,8 +1,9 @@
 <script lang="ts">
 	import "@gradio/theme";
-	import "../../../app/test/mocks/theme.css";
+	// import "../../../app/test/mocks/theme.css";
 	// import { page } from "$app/stores";
 	// import { afterNavigate } from "$app";
+	import "../lib/theme.css";
 
 	const links = [
 		["/embeds", "Embeds"],
@@ -31,10 +32,9 @@
 </svelte:head>
 
 <div class="prose">
-	<h1><span style="color: var(--color-accent);">Gradio</span> Test Space</h1>
 	<ul>
 		{#each links as [url, name]}
-			<!-- <li><a href={url} class:active={url === $page.route.id}>{name}</a></li> -->
+			<li><a href={url}>{name}</a></li>
 		{/each}
 	</ul>
 	<slot />
