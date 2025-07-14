@@ -2131,7 +2131,12 @@ def mount_gradio_app(
             "When mounting a Gradio MCP server to a FastAPI app, it is recommended to supply the local_url to the Gradio App in mount_gradio_app. "
             "Otherwise, the MCP server has to dynamically determine the URL it's running in. "
         )
-    elif local_url and mcp_server and gradio_app.blocks:
+    elif (
+        local_url
+        and mcp_server
+        and gradio_app.blocks
+        and gradio_app.blocks.mcp_server_obj is not None
+    ):
         gradio_app.blocks.mcp_server_obj._local_url = local_url
     old_lifespan = app.router.lifespan_context
 
