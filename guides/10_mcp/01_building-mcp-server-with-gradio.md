@@ -187,27 +187,16 @@ $code_mcp_tool_only
 
 Note that if you use this approach, your function signature must be fully typed, including the return value, as these signature are used to determine the typing information for the MCP tool.
 
-## Limitations
 
-The approach outlined above provides an easy way to use any Gradio app as an MCP server. But there are a few limitations to keep in mind:
+## Gradio with FastMCP
 
-1. There is no way to identify specific users within the MCP tool call. This means that you cannot store user state between calls within the Gradio app. If you use a `gr.State` component in your app, it will always be passed in with its original, default value.
+In some cases, you may decide not to use Gradio's built-in integration and instead manually create an FastMCP Server that calls a Gradio app. This approach is useful when you want to:
 
-2. You cannot select specific endpoints in your Gradio expose as your tools (all endpoints with `show_api=True` are treated as tools), or  change the descriptions of your tools unless you change the docstrings of your functions.
-
-If you need to overcome these limitations, you'll need to create **a custom MCP server** to call your Gradio application, which we describe next.
-
-
-## Custom MCP Servers
-
-In some cases, you may need to manually create an MCP Server that internally calls a Gradio app. This approach is useful when you want to:
-
-- Choose specific endpoints within a larger Gradio app to serve as tools
-- Customize how your tools are presented to LLMs (e.g. change the tool name, schema, or description)
+- Store state / identify users between calls instead of treating every tool call completely independently
 - Start the Gradio app MCP server when a tool is called (if you are running multiple Gradio apps locally and want to save memory / GPU)
 - Use a different MCP protocol than SSE
 
-This is very doable thanks to the [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) and the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk). Here's an example of creating a custom MCP server that connects to various Gradio apps hosted on [HuggingFace Spaces](https://huggingface.co/spaces) using the `stdio` protocol:
+This is very doable thanks to the [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) and the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)'s `FastMCP` class. Here's an example of creating a custom MCP server that connects to various Gradio apps hosted on [HuggingFace Spaces](https://huggingface.co/spaces) using the `stdio` protocol:
 
 ```python
 from mcp.server.fastmcp import FastMCP
