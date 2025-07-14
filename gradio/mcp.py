@@ -264,6 +264,8 @@ class GradioMCPServer:
                                 message = f"{title}: Step {progress_unit.index}"
                     elif update.code in [Status.PROCESSING, Status.ITERATING]:
                         message = "Processing"
+                    else:
+                        message = None
 
                     await self.mcp_server.request_context.session.send_progress_notification(
                         progress_token=progress_token,
