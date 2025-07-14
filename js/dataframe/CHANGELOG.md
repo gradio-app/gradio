@@ -1,5 +1,11 @@
 # @gradio/dataframe
 
+## 0.18.2
+
+### Fixes
+
+- [#11496](https://github.com/gradio-app/gradio/pull/11496) [`ee0da48`](https://github.com/gradio-app/gradio/commit/ee0da481446da5ffd79151a457cd3847db645bfb) - Prevent deletion of values in static columns.  Thanks @hannahblair!
+
 ## 0.18.1
 
 ### Fixes

@@ -1,5 +1,15 @@
 # @self/app
 
+## 1.50.2
+
+### Fixes
+
+- [#11504](https://github.com/gradio-app/gradio/pull/11504) [`1bb635d`](https://github.com/gradio-app/gradio/commit/1bb635d7721232dd715478a1c52620771dca1a20) - Fix fonts in SSR mode.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/core@0.22.0
+
 ## 1.50.1
 
 ### Features

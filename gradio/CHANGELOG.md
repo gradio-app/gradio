@@ -1,5 +1,17 @@
 # gradio
 
+## 5.37.0
+
+### Features
+
+- [#11572](https://github.com/gradio-app/gradio/pull/11572) [`552a5eb`](https://github.com/gradio-app/gradio/commit/552a5ebf9beb5d543f82a24a546daaf9ad3d88b1) - handle i18n error when browsers aren't set to en.  Thanks @hannahblair!
+- [#11527](https://github.com/gradio-app/gradio/pull/11527) [`13597b8`](https://github.com/gradio-app/gradio/commit/13597b8a7f0bd1c73a2e269a95a831f5b0e1a1d7) - Add method to the gr.Dataframe to automatic generation of the datatype-Parameter.  Thanks @janosch6!
+
+### Fixes
+
+- [#11504](https://github.com/gradio-app/gradio/pull/11504) [`1bb635d`](https://github.com/gradio-app/gradio/commit/1bb635d7721232dd715478a1c52620771dca1a20) - Fix fonts in SSR mode.  Thanks @dawoodkhan82!
+- [#11496](https://github.com/gradio-app/gradio/pull/11496) [`ee0da48`](https://github.com/gradio-app/gradio/commit/ee0da481446da5ffd79151a457cd3847db645bfb) - Prevent deletion of values in static columns.  Thanks @hannahblair!
+
 ## 5.36.2
 
 ### Features
