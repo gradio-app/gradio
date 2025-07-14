@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import base64
+import inspect
+import json
 import math
 import re
 import warnings
@@ -288,3 +290,281 @@ def handle_hf_error(e: Exception):
         raise Error("Unauthorized, please make sure you are signed in.") from e
     else:
         raise Error(str(e)) from e
+
+
+def create_endpoint_fn(
+    endpoint_path: str,
+    endpoint_method: str,
+    endpoint_operation: dict,
+    base_url: str,
+):
+    # Get request body info for docstring generation
+    request_body = endpoint_operation.get("requestBody", {})
+
+    def endpoint_fn(*args):
+        url = f"{base_url.rstrip('/')}{endpoint_path}"
+
+        headers = {"Content-Type": "application/json"}
+
+        params = {}
+        body_data = {}
+
+        operation_params = endpoint_operation.get("parameters", [])
+        request_body = endpoint_operation.get("requestBody", {})
+
+        param_index = 0
+        for param in operation_params:
+            if param_index < len(args):
+                if param.get("in") == "query":
+                    params[param["name"]] = args[param_index]
+                elif param.get("in") == "path":
+                    url = url.replace(f"{{{param['name']}}}", str(args[param_index]))
+                param_index += 1
+
+        is_file_upload = False
+        if request_body and param_index < len(args):
+            content = request_body.get("content", {})
+            for content_type in content:
+                if content_type in ["application/octet-stream", "multipart/form-data"]:
+                    is_file_upload = True
+                    break
+
+        if request_body and param_index < len(args):
+            if is_file_upload:
+                file_data = args[param_index]
+                if file_data:
+                    headers = {"Content-Type": "application/octet-stream"}
+                    body_data = file_data
+                else:
+                    body_data = b""
+            else:
+                body_data = json.loads(args[param_index])
+        try:
+            if endpoint_method.lower() == "get":
+                response = httpx.get(url, params=params, headers=headers)
+            elif endpoint_method.lower() == "post":
+                response = httpx.post(
+                    url,
+                    params=params,
+                    content=body_data if is_file_upload else None,
+                    json=body_data if not is_file_upload else None,
+                    headers=headers,
+                )
+            elif endpoint_method.lower() == "put":
+                response = httpx.put(
+                    url,
+                    params=params,
+                    content=body_data if is_file_upload else None,
+                    json=body_data if not is_file_upload else None,
+                    headers=headers,
+                )
+            elif endpoint_method.lower() == "patch":
+                response = httpx.patch(
+                    url,
+                    params=params,
+                    content=body_data if is_file_upload else None,
+                    json=body_data if not is_file_upload else None,
+                    headers=headers,
+                )
+            elif endpoint_method.lower() == "delete":
+                response = httpx.delete(url, params=params, headers=headers)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {endpoint_method}")
+
+            if response.status_code in [200, 201, 202, 204]:
+                return response.json()
+            else:
+                return {
+                    "__status__": "error",
+                    "status_code": response.status_code,
+                    "message": response.text,
+                }
+        except Exception as e:
+            return f"Error: {str(e)}"
+
+    summary = endpoint_operation.get("summary", "")
+    description = endpoint_operation.get("description", "")
+
+    param_docs = []
+    param_names = []
+
+    for param in endpoint_operation.get("parameters", []):
+        param_name = param.get("name", "")
+        param_desc = param.get("description", "")
+        param_schema = param.get("schema", {})
+        param_enum = param_schema.get("enum", [])
+        if param_enum:
+            param_desc += f" (Choices: {', '.join(param_enum)})"
+        param_names.append(param_name)
+        param_docs.append(f"    {param_name}: {param_desc}")
+
+    if request_body:
+        body_desc = request_body.get("description", "URL of file")
+        param_docs.append(f"    request_body: {body_desc}")
+        param_names.append("request_body")
+
+    docstring_parts = []
+    if description or summary:
+        docstring_parts.append(description or summary)
+    if param_docs:
+        docstring_parts.append("Parameters:")
+        docstring_parts.extend(param_docs)
+
+    endpoint_fn.__doc__ = "\n".join(docstring_parts)
+
+    if param_names:
+        sig_params = []
+        for name in param_names:
+            sig_params.append(
+                inspect.Parameter(
+                    name=name, kind=inspect.Parameter.POSITIONAL_OR_KEYWORD
+                )
+            )
+        sig_params.append(
+            inspect.Parameter(name="args", kind=inspect.Parameter.VAR_POSITIONAL)
+        )
+
+        new_sig = inspect.Signature(parameters=sig_params)
+
+        endpoint_fn.__signature__ = new_sig  # type: ignore
+
+    return endpoint_fn
+
+
+def component_from_parameter_schema(param_info: dict) -> components.Component:
+    import gradio as gr
+
+    param_name = param_info.get("name")
+    param_description = param_info.get("description")
+
+    param_schema = param_info.get("schema", {})
+    param_type = param_schema.get("type")
+    enum_values = param_schema.get("enum")
+    default_value = param_schema.get("default")
+
+    if enum_values is not None:
+        component = gr.Dropdown(
+            choices=enum_values,
+            label=param_name,
+            value=default_value,
+            allow_custom_value=False,
+            info=param_description,
+        )
+    elif param_type in ("number", "integer"):
+        component = gr.Number(
+            label=param_name,
+            value=default_value,
+            info=param_description,
+        )
+    elif param_type == "boolean":
+        component = gr.Checkbox(
+            label=param_name,
+            value=default_value,
+            info=param_description,
+        )
+    elif param_type == "array":
+        component = gr.Textbox(
+            label=f"{param_name} (JSON array)",
+            value="[]",
+            info=param_description,
+        )
+    else:
+        component = gr.Textbox(
+            label=param_name,
+            value=default_value,
+            info=param_description,
+        )
+
+    return component
+
+
+def resolve_schema_ref(schema: dict, spec: dict) -> dict:
+    """Resolve schema references in OpenAPI spec."""
+    if "$ref" in schema:
+        ref_path = schema["$ref"]
+        if ref_path.startswith("#/components/schemas/"):
+            schema_name = ref_path.split("/")[-1]
+            return spec.get("components", {}).get("schemas", {}).get(schema_name, {})
+        elif ref_path.startswith("#/"):
+            path_parts = ref_path.split("/")[1:]
+            current = spec
+            for part in path_parts:
+                current = current.get(part, {})
+            return current
+    return schema
+
+
+def component_from_request_body_schema(
+    request_body: dict, spec: dict
+) -> components.Component | None:
+    """Create a Gradio component from an OpenAPI request body schema."""
+    import gradio as gr
+
+    if not request_body:
+        return None
+
+    content = request_body.get("content", {})
+    description = request_body.get("description", "Request Body")
+
+    for content_type, content_schema in content.items():
+        if content_type in ["application/octet-stream", "multipart/form-data"]:
+            schema = resolve_schema_ref(content_schema.get("schema", {}), spec)
+            if schema.get("type") == "string" and schema.get("format") == "binary":
+                return gr.File(label="File")
+
+    json_content = content.get("application/json", {})
+    if not json_content:
+        for content_type, content_schema in content.items():
+            if content_type.startswith("application/"):
+                json_content = content_schema
+                break
+
+    if not json_content:
+        return None
+
+    schema = resolve_schema_ref(json_content.get("schema", {}), spec)
+
+    default_value = schema.get("example", {})
+    if not default_value and schema.get("type") == "object":
+        properties = schema.get("properties", {})
+        default_value = {}
+        for prop_name, prop_schema in properties.items():
+            prop_schema = resolve_schema_ref(prop_schema, spec)
+            prop_type = prop_schema.get("type")
+            if prop_type == "string":
+                default_value[prop_name] = prop_schema.get("example", "")
+            elif prop_type in ("number", "integer"):
+                default_value[prop_name] = prop_schema.get("example", 0)
+            elif prop_type == "boolean":
+                default_value[prop_name] = prop_schema.get("example", False)
+            elif prop_type == "array":
+                default_value[prop_name] = prop_schema.get("example", [])
+            elif prop_type == "object":
+                default_value[prop_name] = prop_schema.get("example", {})
+
+    component = gr.Textbox(
+        label="Request Body",
+        value=json.dumps(default_value, indent=2),
+        info=description,
+    )
+
+    return component
+
+
+def method_box(method: str) -> str:
+    color_map = {
+        "GET": "#61affe",
+        "POST": "#49cc90",
+        "PUT": "#fca130",
+        "DELETE": "#f93e3e",
+        "PATCH": "#50e3c2",
+    }
+    color = color_map.get(method.upper(), "#999")
+    return (
+        f"<span style='"
+        f"display:inline-block;min-width:48px;padding:2px 10px;border-radius:4px;"
+        f"background:{color};color:white;font-weight:bold;font-family:monospace;"
+        f"margin-right:8px;text-align:center;border:2px solid {color};"
+        f"box-shadow:0 1px 2px rgba(0,0,0,0.08);'"
+        f">{method.upper()}</span>"
+    )
