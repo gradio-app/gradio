@@ -230,6 +230,7 @@ class GradioMCPServer:
             request_headers = dict(context_request.headers.items())
             request_headers.pop("content-length", None)
             step = 0
+            output = {"data": []}
             async for update in self._client_instance.submit(
                 *processed_args, api_name=endpoint_name, headers=request_headers
             ):
@@ -280,9 +281,7 @@ class GradioMCPServer:
                             or update.outputs.get("error")
                             or "Error!"
                         )
-            processed_args = self.pop_returned_state(
-                block_fn.inputs, processed_args
-            )
+            processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
             return self.postprocess_output_data(output["data"], root_url)
 
         @server.list_tools()
