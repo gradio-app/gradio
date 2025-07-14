@@ -509,3 +509,25 @@ class TestDataframe:
         )
         result = ["str", "number", "number", "str", "str", "date", "bool"]
         assert dataframe.datatype == result
+
+    def test_boolean_dtype_preservation(self):
+        """Test that boolean dtype is preserved when processing frontend data with string boolean values."""
+        dataframe_component = gr.Dataframe(
+            datatype=["str", "bool"],
+            type="pandas"
+        )
+
+        frontend_data = DataframeData(
+            headers=['name', 'active'],
+            data=[
+                ['Alice', 'true'],
+                ['Bob', 'false'],
+                ['Charlie', True],
+                ['Diana', False]
+            ]
+        )
+
+        result_df = dataframe_component.preprocess(frontend_data)
+
+        assert result_df['active'].dtype == 'bool', f"Expected bool dtype, got {result_df['active'].dtype}"  # type: ignore
+        assert result_df['active'].tolist() == [True, False, True, False], f"Boolean values incorrect: {result_df['active'].tolist()}"  # type: ignore
