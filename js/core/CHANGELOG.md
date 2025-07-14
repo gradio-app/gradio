@@ -1,5 +1,11 @@
 # @gradio/core
 
+## 0.22.0
+
+### Features
+
+- [#11572](https://github.com/gradio-app/gradio/pull/11572) [`552a5eb`](https://github.com/gradio-app/gradio/commit/552a5ebf9beb5d543f82a24a546daaf9ad3d88b1) - handle i18n error when browsers aren't set to en.  Thanks @hannahblair!
+
 ## 0.21.0
 
 ### Features

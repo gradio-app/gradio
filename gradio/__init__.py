@@ -97,6 +97,7 @@ from gradio.interface import Interface, TabbedInterface, close_all
 from gradio.layouts import Accordion, Column, Group, Row, Sidebar, Tab, TabItem, Tabs
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.renderable import render
+from gradio.route_utils import Header
 from gradio.routes import Request, mount_gradio_app
 from gradio.templates import (
     Files,
@@ -166,6 +167,7 @@ __all__ = [
     "FlaggingCallback",
     "Gallery",
     "Group",
+    "Header",
     "HTML",
     "Highlight",
     "HighlightedText",
