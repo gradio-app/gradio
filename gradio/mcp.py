@@ -248,7 +248,7 @@ class GradioMCPServer:
                         for progress_unit in update.progress_data or []:
                             title = (
                                 "Progress"
-                                if progress_unit.desc is not None
+                                if progress_unit.desc is None
                                 else f"Progress {progress_unit.desc}"
                             )
                             if (
