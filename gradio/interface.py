@@ -125,6 +125,7 @@ class Interface(Blocks):
         batch: bool = False,
         max_batch_size: int = 4,
         api_name: str | Literal[False] | None = "predict",
+        api_description: str | None | Literal[False] = False,
         _api_mode: bool = False,
         allow_duplication: bool = False,
         concurrency_limit: int | None | Literal["default"] = "default",
@@ -219,6 +220,7 @@ class Interface(Blocks):
         self.time_limit = time_limit
         self.stream_every = stream_every
         self.api_name: str | Literal[False] | None = api_name
+        self.api_description: str | None | Literal[False] = api_description
         self.interface_type = InterfaceTypes.STANDARD
         if (inputs is None or inputs == []) and (outputs is None or outputs == []):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
@@ -725,6 +727,7 @@ class Interface(Blocks):
                     None,
                     self.output_components,
                     api_name=self.api_name,
+                    api_description=self.api_description,
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
                     batch=self.batch,
@@ -745,6 +748,7 @@ class Interface(Blocks):
                     self.input_components,
                     self.output_components,
                     api_name=self.api_name,
+                    api_description=self.api_description,
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
                     show_progress="hidden" if streaming_event else self.show_progress,
@@ -793,6 +797,7 @@ class Interface(Blocks):
                     self.input_components,
                     self.output_components,
                     api_name=self.api_name,
+                    api_description=self.api_description,
                     scroll_to_output=True,
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
@@ -826,6 +831,7 @@ class Interface(Blocks):
                     self.input_components,
                     self.output_components,
                     api_name=self.api_name,
+                    api_description=self.api_description,
                     scroll_to_output=True,
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
