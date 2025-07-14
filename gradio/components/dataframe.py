@@ -243,7 +243,6 @@ class Dataframe(Component):
         """
         import pandas as pd
 
-        # Quick Fix better change it in js
         if isinstance(self.datatype, list):
             for row in payload.data:
                 if isinstance(row, list):
