@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:fix i18n when browsers aren't set to en
+feat:handle i18n error when browsers aren't set to en
