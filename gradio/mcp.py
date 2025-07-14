@@ -270,7 +270,7 @@ class GradioMCPServer:
                     await self.mcp_server.request_context.session.send_progress_notification(
                         progress_token=progress_token,
                         progress=step,
-                        message=message,
+                        message=message,  # type: ignore
                     )
                     step += 1
                 elif update.type == "output" and update.final:
