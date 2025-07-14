@@ -111,7 +111,7 @@ class ChatInterface(Blocks):
         fill_height: bool = True,
         fill_width: bool = False,
         api_name: str | Literal[False] = "chat",
-        api_description: str | None | Literal[False] = False,
+        api_description: str | None | Literal[False] = None,
         save_history: bool = False,
     ):
         """

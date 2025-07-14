@@ -577,7 +577,7 @@ class EventListener(str):
             | Set[Component | BlockContext]
             | None = None,
             api_name: str | None | Literal[False] = None,
-            api_description: str | None | Literal[False] = False,
+            api_description: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
             show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
             show_progress_on: Component | Sequence[Component] | None = None,
@@ -748,7 +748,7 @@ def on(
     | None = None,
     *,
     api_name: str | None | Literal[False] = None,
-    api_description: str | None | Literal[False] = False,
+    api_description: str | None | Literal[False] = None,
     scroll_to_output: bool = False,
     show_progress: Literal["full", "minimal", "hidden"] = "full",
     show_progress_on: Component | Sequence[Component] | None = None,
