@@ -747,6 +747,7 @@ def on(
     | Set[Component | BlockContext]
     | None = None,
     *,
+    show_api: bool = True,
     api_name: str | None | Literal[False] = None,
     api_description: str | None | Literal[False] = None,
     scroll_to_output: bool = False,
