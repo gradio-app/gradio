@@ -3143,11 +3143,13 @@ Received inputs:
                 "show_api": fn.show_api,
             }
             fn_info = utils.get_function_params(fn.fn)  # type: ignore
-            description, _, _ = utils.get_function_description(fn.fn)
-            if fn.api_description is not None:
-                description = fn.api_description
-            if description:
+            if fn.api_description is False:
+                dependency_info["description"] = ""
+            elif fn.api_description is None:
+                description, _, _ = utils.get_function_description(fn.fn)
                 dependency_info["description"] = description
+            else:
+                dependency_info["description"] = fn.api_description
             skip_endpoint = False
 
             inputs = fn.inputs
