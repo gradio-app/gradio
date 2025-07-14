@@ -391,6 +391,10 @@ def create_endpoint_fn(
     for param in endpoint_operation.get("parameters", []):
         param_name = param.get("name", "")
         param_desc = param.get("description", "")
+        param_schema = param.get("schema", {})
+        param_enum = param_schema.get("enum", [])
+        if param_enum:
+            param_desc += f" (Choices: {', '.join(param_enum)})"
         param_names.append(param_name)
         param_docs.append(f"    {param_name}: {param_desc}")
 
