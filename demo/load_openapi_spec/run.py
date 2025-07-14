@@ -1,6 +1,6 @@
 import gradio as gr
 
-demo = gr.load_openapi_spec(
+demo = gr.load_openapi(
     openapi_spec="https://petstore3.swagger.io/api/v3/openapi.json",
     base_url="https://petstore3.swagger.io/api/v3",
     paths=["/pet.*"],

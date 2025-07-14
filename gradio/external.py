@@ -872,9 +872,10 @@ def load_chat(
 
 
 @document()
-def load_openapi_spec(
+def load_openapi(
     openapi_spec: str | dict,
     base_url: str,
+    *,
     paths: list[str] | None = None,
     methods: list[Literal["get", "post", "put", "patch", "delete"]] | None = None,
 ) -> Blocks:
