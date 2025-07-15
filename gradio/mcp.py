@@ -306,7 +306,7 @@ class GradioMCPServer:
     @property
     def _file_data_tool_description(self) -> str:
         """
-        Whether the Gradio app has a tool that accepts file data as an input.
+        Sentence prompting the agent to use the upload_file_to_gradio_or_hf tool if a file is passed as an input.
         """
         return " If a user passes a file as an input, use the upload_file_to_gradio_or_hf tool, if present, to upload the file to the gradio app, and then use the returned path as the input to the tool"
 
