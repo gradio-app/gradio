@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import warnings
 from collections.abc import Callable, Sequence
 from typing import (
@@ -75,7 +76,9 @@ class Dataframe(Component):
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
         col_count: int | tuple[int, str] | None = None,
-        datatype: Literal["str", "number", "bool", "date", "markdown", "html", "image"]
+        datatype: Literal[
+            "str", "number", "bool", "date", "markdown", "html", "image", "auto"
+        ]
         | Sequence[
             Literal["str", "number", "bool", "date", "markdown", "html"]
         ] = "str",
@@ -112,7 +115,7 @@ class Dataframe(Component):
             headers: List of str header names. These are used to set the column headers of the dataframe if the value does not have headers. If None, no headers are shown.
             row_count: Limit number of rows for input and decide whether user can create new rows or delete existing rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
             col_count: Limit number of columns for input and decide whether user can create new columns or delete existing columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
-            datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown". Boolean columns will display as checkboxes.
+            datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown". Boolean columns will display as checkboxes. If the datatype "auto" is used, the column datatypes are automatically selected based on the value input if possible.
             type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, "polars" for polars dataframe, or "array" for a Python list of lists.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html). Only applies to columns whose datatype is "markdown".
@@ -159,7 +162,7 @@ class Dataframe(Component):
             if headers is not None
             else [str(i) for i in (range(1, self.col_count[0] + 1))]
         )
-        self.datatype = datatype
+
         valid_types = ["pandas", "numpy", "array", "polars"]
         if type not in valid_types:
             raise ValueError(
@@ -170,6 +173,11 @@ class Dataframe(Component):
                 "Polars is not installed. Please install using `pip install polars`."
             )
         self.type = type
+
+        if datatype == "auto":
+            self.set_auto_datatype(value)
+        else:
+            self.datatype = datatype
 
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
@@ -460,6 +468,89 @@ class Dataframe(Component):
             data=data,
             metadata=metadata,  # type: ignore
         )
+
+    def set_auto_datatype(self, value):
+        """
+        Automatically sets the datatype of each column based on the data provided. If the datatype can't be inferred, it defaults to "str".
+        """
+        import pandas as pd
+        from pandas.io.formats.style import Styler
+
+        dtype_mapping = {
+            "str": "str",
+            "object": "str",
+            "string": "str",
+            "utf": "str",
+            "int": "number",
+            "float": "number",
+            "bool": "bool",
+            "boolean": "bool",
+            "datetime": "date",
+            "date": "date",
+            "timedelta": "date",
+            "timestamp": "date",
+            "category": "str",
+            "categorical": "str",
+        }
+
+        brackets_re = re.compile(
+            r"\[.*?\]|\(.*?\)"
+        )  # Matches brackets and their contents
+        numbers_re = re.compile(r"\s*\d+\s*$")  # Matches trailing numbers and spaces
+
+        if isinstance(value, pd.DataFrame):
+            self.datatype = [
+                dtype_mapping.get(
+                    numbers_re.sub("", brackets_re.sub("", str(dtype))).lower(), "str"
+                )
+                for dtype in value.dtypes
+            ]
+
+        elif isinstance(value, Styler):
+            self.datatype = [
+                dtype_mapping.get(
+                    numbers_re.sub("", brackets_re.sub("", str(dtype))).lower(), "str"
+                )
+                for dtype in value.data.dtypes
+            ]
+
+        elif isinstance(value, np.ndarray):
+            self.datatype = [
+                dtype_mapping.get(
+                    numbers_re.sub(
+                        "", brackets_re.sub("", str(type(value[0, i]).__name__))
+                    ).lower(),
+                    "str",
+                )
+                for i in range(value.shape[1])
+            ]
+
+        elif isinstance(value, list):
+            self.datatype = [
+                dtype_mapping.get(
+                    numbers_re.sub(
+                        "", brackets_re.sub("", str(type(val).__name__))
+                    ).lower(),
+                    "str",
+                )
+                for val in value[0]
+            ]
+
+        elif _is_polars_available():
+            pl = _import_polars()
+            if isinstance(value, pl.DataFrame):
+                self.datatype = [
+                    dtype_mapping.get(
+                        numbers_re.sub("", brackets_re.sub("", str(dtype))).lower(),
+                        "str",
+                    )
+                    for dtype in value.dtypes
+                ]
+            else:
+                self.datatype = "str"
+
+        else:
+            self.datatype = "str"
 
     @staticmethod
     def __extract_metadata(

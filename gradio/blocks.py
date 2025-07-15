@@ -554,6 +554,7 @@ class BlockFunction:
         concurrency_id: str | None = None,
         tracks_progress: bool = False,
         api_name: str | Literal[False] = False,
+        api_description: str | None | Literal[False] = None,
         js: str | Literal[True] | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
         show_progress_on: Sequence[Component] | None = None,
@@ -595,6 +596,7 @@ class BlockFunction:
         self.targets = targets
         self.name = getattr(fn, "__name__", "fn") if fn is not None else None
         self.api_name = api_name
+        self.api_description = api_description
         self.js = js
         self.show_progress = show_progress
         self.show_progress_on = show_progress_on
@@ -657,6 +659,7 @@ class BlockFunction:
             "js": self.js,
             "queue": self.queue,
             "api_name": self.api_name,
+            "api_description": self.api_description,
             "scroll_to_output": self.scroll_to_output,
             "show_progress": self.show_progress,
             "show_progress_on": None
@@ -769,6 +772,7 @@ class BlocksConfig:
         show_progress: Literal["full", "minimal", "hidden"] = "full",
         show_progress_on: Component | Sequence[Component] | None = None,
         api_name: str | None | Literal[False] = None,
+        api_description: str | None | Literal[False] = None,
         js: str | Literal[True] | None = None,
         no_target: bool = False,
         queue: bool = True,
@@ -804,7 +808,8 @@ class BlocksConfig:
             scroll_to_output: whether to scroll to output of dependency on trigger
             show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
             show_progress_on: Component or list of components to show the progress animation on. If None, will show the progress animation on all of the output components.
-            api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
+            api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
+            api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for the Blocks.load() event and .then() events
             queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
@@ -942,6 +947,7 @@ class BlocksConfig:
             concurrency_id=concurrency_id,
             tracks_progress=progress_index is not None,
             api_name=api_name,
+            api_description=api_description,
             js=js,
             show_progress=show_progress,
             show_progress_on=show_progress_on,
@@ -1262,7 +1268,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.upload_file_set = set()
         self.temp_file_sets = [self.upload_file_set]
         self.title = title
-        self.show_api = not wasm_utils.IS_WASM
+        self.show_api_in_footer = not wasm_utils.IS_WASM
 
         # Only used when an Interface is loaded from a config
         self.predict = None
@@ -2335,7 +2341,7 @@ Received inputs:
             "space_id": self.space_id,
             "enable_queue": True,  # launch attributes
             "show_error": getattr(self, "show_error", False),
-            "show_api": self.show_api,
+            "show_api": self.show_api_in_footer,
             "is_colab": utils.colab_check(),
             "max_file_size": getattr(self, "max_file_size", None),
             "stylesheets": self.stylesheets,
@@ -2715,7 +2721,7 @@ Received inputs:
             ssr_mode=self.ssr_mode,
             mcp_server=mcp_server,
         )
-        if self.mcp_server and not quiet:
+        if self.mcp_error and not quiet:
             print(self.mcp_error)
 
         self.config = self.get_config_file()
@@ -3138,9 +3144,15 @@ Received inputs:
                 "returns": [],
                 "show_api": fn.show_api,
             }
-            fn_info = utils.get_function_params(fn.fn)  # type: ignore
-            description, _, _ = utils.get_function_description(fn.fn)
-            if description:
+            fn_info = utils.get_function_params(fn.fn)
+            if fn.api_description is False:
+                dependency_info["description"] = ""
+            elif fn.api_description is None:
+                description, _, _ = utils.get_function_description(fn.fn)
+                dependency_info["description"] = description
+            else:
+                description = fn.api_description
+                assert isinstance(description, str)  # noqa: S101
                 dependency_info["description"] = description
             skip_endpoint = False
 
