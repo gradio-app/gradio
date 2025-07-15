@@ -192,9 +192,10 @@
 						}
 					}
 				};
-			if (file_data_present) {
-				mcp_json_sse.mcpServers.upload_files = upload_file_mcp_server;
-				mcp_json_stdio.mcpServers.upload_files = upload_file_mcp_server;
+				if (file_data_present) {
+					mcp_json_sse.mcpServers.upload_files = upload_file_mcp_server;
+					mcp_json_stdio.mcpServers.upload_files = upload_file_mcp_server;
+				}
 			}
 		} catch (error) {
 			console.error("Failed to fetch MCP tools:", error);
