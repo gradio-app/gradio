@@ -15,14 +15,13 @@
 	}
 
 	export let dependency: Dependency;
-	export let dependency_index: number;
 	export let root: string;
 	export let api_prefix: string;
 	export let space_id: string | null;
 	export let endpoint_parameters: any;
-	export let named: boolean;
 	export let username: string | null;
 	export let current_language: "python" | "javascript" | "bash";
+	export let api_description: string | null = null;
 
 	let python_code: HTMLElement;
 	let js_code: HTMLElement;
@@ -42,11 +41,10 @@
 </script>
 
 <div class="container">
-	{#if named}
-		<EndpointDetail {named} api_name={dependency.api_name} />
-	{:else}
-		<EndpointDetail {named} fn_index={dependency_index} />
-	{/if}
+	<EndpointDetail
+		api_name={dependency.api_name}
+		description={api_description}
+	/>
 	{#if current_language === "python"}
 		<Block>
 			<code>
@@ -99,9 +97,9 @@ const example{component} = await response_{i}.blob();
 const client = await Client.connect(<span class="token string"
 							>"{space_id || root}"</span
 						>{#if username !== null}, &lbrace;auth: ["{username}", **password**]&rbrace;{/if});
-const result = await client.predict({#if named}<span class="api-name"
-								>"/{dependency.api_name}"</span
-							>{:else}{dependency_index}{/if}, &lbrace; <!--
+const result = await client.predict(<span class="api-name"
+							>"/{dependency.api_name}"</span
+						>, &lbrace; <!--
 -->{#each endpoint_parameters as { label, parameter_name, type, python_type, component, example_input, serializer }, i}<!--
 		-->{#if blob_components.includes(component)}<!--
 	-->

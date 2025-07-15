@@ -330,6 +330,7 @@ def hello_world_with_state_and_accordion():
             gr.Textbox("Hello!")
 
         def greeting(name, state):
+            """This is a greeting function."""
             state += 1
             return state, f"Hello {name}", state, gr.Accordion(open=False)
 
