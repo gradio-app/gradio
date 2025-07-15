@@ -250,11 +250,13 @@ class Dataframe(Component):
                         if i < len(self.datatype):
                             if self.datatype[i] == "number":
                                 try:
-                                    row[i] = float(col) if col not in [None, ""] else None
+                                    row[i] = (
+                                        float(col) if col not in [None, ""] else None
+                                    )
                                 except ValueError:
                                     row[i] = None
                             elif self.datatype[i] == "bool":
-                                row[i] = str(col).lower() == 'true'
+                                row[i] = str(col).lower() == "true"
                             elif self.datatype[i] == "date":
                                 try:
                                     row[i] = pd.to_datetime(col)
