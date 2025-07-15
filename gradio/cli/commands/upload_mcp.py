@@ -16,8 +16,8 @@ def main(url_or_space_id: str, source_directory: str):
         url = f"https://{space_info(url_or_space_id).subdomain}.hf.space"
 
     @mcp.tool()
-    def upload_to_space(file: str) -> str:
-        """Upload a local file to a Hugging Face Space.
+    def upload_to_gradio_app(file: str) -> str:
+        """Upload a local file to a lication.
         Arguments:
             file: A complete, absolutepath to a local file to upload.
         Returns:
