@@ -225,7 +225,7 @@ class GradioMCPServer:
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
                 assert block_fn is not None and block_fn.fn is not None  # noqa: S101
 
-                description, parameters = self.get_fn_description(block_fn)
+                description, parameters = self.get_fn_description(block_fn, tool_name)
                 schema, _ = self.get_input_schema(tool_name, parameters)
                 tools.append(
                     types.Tool(
@@ -303,17 +303,27 @@ class GradioMCPServer:
         )
         return block_fn
 
+    @property
+    def _file_data_tool_description(self) -> str:
+        """
+        Sentence prompting the agent to use the upload_file_to_gradio_or_hf tool if a file is passed as an input.
+        """
+        return " If a user passes a file as an input, use the upload_file_to_gradio_or_hf tool, if present, to upload the file to the gradio app, and then use the returned path as the input to the tool"
+
     def get_fn_description(
-        self, block_fn: "BlockFunction"
+        self, block_fn: "BlockFunction", tool_name: str
     ) -> tuple[str, dict[str, str]]:
         """
         Get the description of a function, which is used to describe the tool in the MCP server.
         Also returns the description of each parameter of the function as a dictionary.
         """
         description, parameters, returns = utils.get_function_description(block_fn.fn)  # type: ignore
+        _, filedata_positions = self.get_input_schema(tool_name, parameters)
         if block_fn.api_description is False:
             description = ""
         elif block_fn.api_description is None:
+            if len(filedata_positions) > 0:
+                description += self._file_data_tool_description
             if returns:
                 description += (
                     ("" if description.endswith(".") else ".")
@@ -322,6 +332,8 @@ class GradioMCPServer:
                 )
         else:
             description = block_fn.api_description
+            if len(filedata_positions) > 0:
+                description += self._file_data_tool_description  # type: ignore
         assert isinstance(description, str)  # noqa: S101
         return description, parameters
 
@@ -409,13 +421,17 @@ class GradioMCPServer:
         if not self.api_info:
             return JSONResponse({})
 
+        file_data_present = False
+
         schemas = []
         for tool_name, endpoint_name in self.tool_to_endpoint.items():
             block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
             assert block_fn is not None and block_fn.fn is not None  # noqa: S101
 
-            description, parameters = self.get_fn_description(block_fn)
-            schema, _ = self.get_input_schema(tool_name, parameters)
+            description, parameters = self.get_fn_description(block_fn, tool_name)
+            schema, filedata_positions = self.get_input_schema(tool_name, parameters)
+            if len(filedata_positions) > 0 and not file_data_present:
+                file_data_present = True
 
             type_hints = utils.get_type_hints(block_fn.fn)
             required_headers = []
@@ -431,6 +447,7 @@ class GradioMCPServer:
                 "name": tool_name,
                 "description": description,
                 "inputSchema": schema,
+                "meta": {"file_data_present": file_data_present},
             }
             if meta is not None:
                 info["meta"] = meta
