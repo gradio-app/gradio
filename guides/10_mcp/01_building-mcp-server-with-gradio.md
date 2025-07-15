@@ -141,6 +141,56 @@ gr.Interface(echo_headers, "textbox", "textbox").launch(mcp_server=True)
 
 This MCP server will simply ignore the user's input and echo back all of the headers from a user's request. One can build more complex apps using the same idea. See the [docs on `gr.Request`](https://www.gradio.app/main/docs/gradio/request) for more information (note that only the core Starlette attributes of the `gr.Request` object will be present, attributes such as Gradio's `.session_hash` will not be present).
 
+### Using the gr.Header class
+
+A common pattern in MCP server development is to use authentication headers to call services on behalf of your users. Instead of using a `gr.Request` object like in the example above, you can use a `gr.Header` argument. Gradio will automatically extract that header from the incoming request (if it exists) and pass it to your function.
+
+In the example below, the `X-API-Token` header is extracted from the incoming request and passed in as the `x_api_token` argument to `make_api_request_on_behalf_of_user`.
+
+The benefit of using `gr.Header` is that the MCP connection docs will automatically display the headers you need to supply when connecting to the server! See the image below:
+
+```python
+import gradio as gr
+
+def make_api_request_on_behalf_of_user(prompt: str, x_api_token: gr.Header):
+    """Make a request to everyone's favorite API.
+    Args:
+        prompt: The prompt to send to the API.
+    Returns:
+        The response from the API.
+    Raises:
+        AssertionError: If the API token is not valid.
+    """
+    return "Hello from the API" if not x_api_token else "Hello from the API with token!"
+
+
+demo = gr.Interface(
+    make_api_request_on_behalf_of_user,
+    [
+        gr.Textbox(label="Prompt"),
+    ],
+    gr.Textbox(label="Response"),
+)
+
+demo.launch(mcp_server=True)
+```
+
+![MCP Header Connection Page](https://github.com/user-attachments/assets/e264eedf-a91a-476b-880d-5be0d5934134)
+
+## Modifying Tool Descriptions
+
+Gradio automatically sets the tool name based on the name of your function, and the description from the docstring of your function. But you may want to change how the description appears to your LLM. You can do this by using the `api_description` parameter in `Interface`, `ChatInterface`, or any event listener. This parameter takes three different kinds of values:
+
+* `None` (default): in which case the tool description is automatically created from the docstring of the function
+* `False`: in which case, no tool description appears to the LLM.
+* `str`: any arbitrary string to use as the tool description.
+
+In addition to modifying the tool descriptions, you can also toggle which tools appear to the LLM. You can do this by setting the `show_api` parameter, which is by default `True`. Setting it to `False` hides the endpoint from the API docs and from the MCP server.
+
+Here's an example that shows these parameters in actions:
+
+$code_mcp_tools
+
 ## Adding MCP-Only Tools
 
 So far, all of our MCP tools have corresponded to event listeners in the UI. This works well for functions that directly update the UI, but may not work if you wish to expose a "pure logic" function that should return raw data (e.g., a JSON object) without directly causing a UI update.
@@ -151,27 +201,16 @@ $code_mcp_tool_only
 
 Note that if you use this approach, your function signature must be fully typed, including the return value, as these signature are used to determine the typing information for the MCP tool.
 
-## Limitations
 
-The approach outlined above provides an easy way to use any Gradio app as an MCP server. But there are a few limitations to keep in mind:
+## Gradio with FastMCP
 
-1. There is no way to identify specific users within the MCP tool call. This means that you cannot store user state between calls within the Gradio app. If you use a `gr.State` component in your app, it will always be passed in with its original, default value.
+In some cases, you may decide not to use Gradio's built-in integration and instead manually create an FastMCP Server that calls a Gradio app. This approach is useful when you want to:
 
-2. You cannot select specific endpoints in your Gradio expose as your tools (all endpoints with `show_api=True` are treated as tools), or  change the descriptions of your tools unless you change the docstrings of your functions.
-
-If you need to overcome these limitations, you'll need to create **a custom MCP server** to call your Gradio application, which we describe next.
-
-
-## Custom MCP Servers
-
-In some cases, you may need to manually create an MCP Server that internally calls a Gradio app. This approach is useful when you want to:
-
-- Choose specific endpoints within a larger Gradio app to serve as tools
-- Customize how your tools are presented to LLMs (e.g. change the tool name, schema, or description)
+- Store state / identify users between calls instead of treating every tool call completely independently
 - Start the Gradio app MCP server when a tool is called (if you are running multiple Gradio apps locally and want to save memory / GPU)
 - Use a different MCP protocol than SSE
 
-This is very doable thanks to the [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) and the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk). Here's an example of creating a custom MCP server that connects to various Gradio apps hosted on [HuggingFace Spaces](https://huggingface.co/spaces) using the `stdio` protocol:
+This is very doable thanks to the [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) and the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)'s `FastMCP` class. Here's an example of creating a custom MCP server that connects to various Gradio apps hosted on [HuggingFace Spaces](https://huggingface.co/spaces) using the `stdio` protocol:
 
 ```python
 from mcp.server.fastmcp import FastMCP

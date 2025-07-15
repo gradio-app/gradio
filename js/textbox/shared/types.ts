@@ -21,7 +21,4 @@ export interface InputHTMLAttributes {
 		| "send"
 		| null;
 	lang?: string | null;
-	aria_label?: string | null;
-	aria_describedby?: string | null;
-	aria_placeholder?: string | null;
 }
