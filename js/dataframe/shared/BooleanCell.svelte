@@ -8,45 +8,16 @@
 	$: bool_value =
 		typeof value === "string" ? value.toLowerCase() === "true" : !!value;
 
-	let internal_value = bool_value;
-	$: if (bool_value !== internal_value) {
-		internal_value = bool_value;
-	}
-
 	function handle_change(event: CustomEvent<boolean>): void {
-		internal_value = event.detail;
-		on_change(event.detail);
-	}
-
-	function handle_click(event: MouseEvent): void {
 		if (editable) {
-			const new_value = !internal_value;
-			internal_value = new_value;
-			on_change(new_value);
-		}
-	}
-
-	function handle_keydown(event: KeyboardEvent): void {
-		if (event.key === "Enter" || event.key === " ") {
-			event.stopPropagation();
-			if (editable) {
-				const new_value = !internal_value;
-				internal_value = new_value;
-				on_change(new_value);
-			}
+			on_change(event.detail);
 		}
 	}
 </script>
 
-<div
-	class="bool-cell"
-	on:click={handle_click}
-	on:keydown={handle_keydown}
-	role="button"
-	tabindex="-1"
->
+<div class="bool-cell" role="button" tabindex="-1">
 	<BaseCheckbox
-		bind:value={internal_value}
+		bind:value={bool_value}
 		label=""
 		interactive={editable}
 		on:change={handle_change}
@@ -58,8 +29,9 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: var(--size-full);
+		width: min-content;
 		height: var(--size-full);
+		margin: 0 auto;
 	}
 
 	.bool-cell :global(input:disabled) {
