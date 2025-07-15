@@ -26,6 +26,7 @@ from gradio.events import Dependency, EventData
 from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
 from gradio.i18n import I18nData
+from gradio.route_utils import Header
 from gradio.utils import UnhashableKeyDict
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
@@ -48,7 +49,9 @@ def create_examples(
     run_on_click: bool = False,
     preprocess: bool = True,
     postprocess: bool = True,
+    show_api: bool = False,
     api_name: str | Literal[False] = "load_example",
+    api_description: str | None | Literal[False] = None,
     batch: bool = False,
     *,
     example_labels: list[str] | None = None,
@@ -70,7 +73,9 @@ def create_examples(
         run_on_click=run_on_click,
         preprocess=preprocess,
         postprocess=postprocess,
+        show_api=show_api,
         api_name=api_name,
+        api_description=api_description,
         batch=batch,
         example_labels=example_labels,
         visible=visible,
@@ -108,7 +113,9 @@ class Examples:
         run_on_click: bool = False,
         preprocess: bool = True,
         postprocess: bool = True,
+        show_api: bool = False,
         api_name: str | Literal[False] = "load_example",
+        api_description: str | None | Literal[False] = None,
         batch: bool = False,
         *,
         example_labels: list[str] | None = None,
@@ -130,7 +137,9 @@ class Examples:
             run_on_click: if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.
             preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if `cache_examples` is not False.
             postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if `cache_examples` is not False.
+            show_api: Whether to show the event associated with clicking on the examples in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients.
             api_name: Defines how the event associated with clicking on the examples appears in the API docs. Can be a string or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use the example function.
+            api_description: Description of the event associated with clicking on the examples in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is not False.
             example_labels: A list of labels for each example. If provided, the length of this list should be the same as the number of examples, and these labels will be used in the UI instead of rendering the example values.
             visible: If False, the examples component will be hidden in the UI.
@@ -259,7 +268,9 @@ class Examples:
         self._api_mode = _api_mode
         self.preprocess = preprocess
         self.postprocess = postprocess
+        self.show_api = show_api
         self.api_name: str | Literal[False] = api_name
+        self.api_description: str | None | Literal[False] = api_description
         self.batch = batch
         self.example_labels = example_labels
         self.working_directory = working_directory
@@ -378,7 +389,8 @@ class Examples:
                     outputs=self.outputs,
                     postprocess=False,
                     api_name=self.api_name,
-                    show_api=False,
+                    api_description=self.api_description,
+                    show_api=self.show_api,
                 )
 
                 if (
@@ -438,7 +450,8 @@ class Examples:
                     postprocess=False,
                     queue=False,
                     api_name=self.api_name,
-                    show_api=False,
+                    api_description=self.api_description,
+                    show_api=self.show_api,
                 )
 
                 if self.run_on_click:
@@ -1010,6 +1023,19 @@ def special_args(
                             "This action requires a logged in user. Please sign in and retry."
                         )
                     inputs.insert(i, oauth_token)
+        elif type_hint in (Header, Optional[Header]):
+            if inputs is not None and request is not None:
+                header_name = param.name.replace("_", "-").lower()
+                header_value = None
+                if hasattr(request, "headers"):
+                    for k, v in dict(request.headers).items():
+                        if k.lower() == header_name:
+                            header_value = v
+                            break
+                if len(inputs) > i:
+                    inputs[i] = header_value
+                else:
+                    inputs.insert(i, header_value)
         elif (
             type_hint
             and inspect.isclass(type_hint)

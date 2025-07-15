@@ -112,6 +112,7 @@
 	}
 
 	let tools: Tool[] = [];
+	let headers: string[] = [];
 	let mcp_json_sse: any;
 	let mcp_json_stdio: any;
 	let file_data_present = false;
@@ -142,23 +143,55 @@
 				parameters: tool.inputSchema?.properties || {},
 				expanded: false
 			}));
-			mcp_json_sse = {
-				mcpServers: {
-					gradio: {
-						url: mcp_server_url
+			headers = schema.map((tool: any) => tool.meta?.headers || []).flat();
+			if (headers.length > 0) {
+				mcp_json_sse = {
+					mcpServers: {
+						gradio: {
+							url: mcp_server_url,
+							headers: headers.reduce((accumulator, current_key) => {
+								// @ts-ignore
+								accumulator[current_key] = "<YOUR_HEADER_VALUE>";
+								return accumulator;
+							}, {})
+						}
 					}
-				}
-			};
-
-			mcp_json_stdio = {
-				mcpServers: {
-					gradio: {
-						command: "npx",
-						args: ["mcp-remote", mcp_server_url, "--transport", "sse-only"]
+				};
+				mcp_json_stdio = {
+					mcpServers: {
+						gradio: {
+							command: "npx",
+							args: [
+								"mcp-remote",
+								mcp_server_url,
+								"--transport",
+								"sse-only",
+								...headers
+									.map((header) => [
+										"--header",
+										`${header}: <YOUR_HEADER_VALUE>`
+									])
+									.flat()
+							]
+						}
 					}
-				}
-			};
-
+				};
+			} else {
+				mcp_json_sse = {
+					mcpServers: {
+						gradio: {
+							url: mcp_server_url
+						}
+					}
+				};
+				mcp_json_stdio = {
+					mcpServers: {
+						gradio: {
+							command: "npx",
+							args: ["mcp-remote", mcp_server_url, "--transport", "sse-only"]
+						}
+					}
+				};
 			if (file_data_present) {
 				mcp_json_sse.mcpServers.upload_files = upload_file_mcp_server;
 				mcp_json_stdio.mcpServers.upload_files = upload_file_mcp_server;
@@ -457,21 +490,22 @@
 				{/if}
 
 				{#if current_language !== "mcp"}
-					{#each dependencies as dependency, dependency_index}
+					{#each dependencies as dependency}
 						{#if dependency.show_api && info.named_endpoints["/" + dependency.api_name]}
 							<div class="endpoint-container">
 								<CodeSnippet
-									named={true}
 									endpoint_parameters={info.named_endpoints[
 										"/" + dependency.api_name
 									].parameters}
 									{dependency}
-									{dependency_index}
 									{current_language}
 									{root}
 									{space_id}
 									{username}
 									api_prefix={app.api_prefix}
+									api_description={info.named_endpoints[
+										"/" + dependency.api_name
+									].description}
 								/>
 
 								<ParametersSnippet
