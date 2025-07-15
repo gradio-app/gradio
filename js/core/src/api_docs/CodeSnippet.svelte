@@ -41,7 +41,10 @@
 </script>
 
 <div class="container">
-	<EndpointDetail api_name={dependency.api_name} description={api_description} />
+	<EndpointDetail
+		api_name={dependency.api_name}
+		description={api_description}
+	/>
 	{#if current_language === "python"}
 		<Block>
 			<code>
@@ -95,8 +98,8 @@ const client = await Client.connect(<span class="token string"
 							>"{space_id || root}"</span
 						>{#if username !== null}, &lbrace;auth: ["{username}", **password**]&rbrace;{/if});
 const result = await client.predict(<span class="api-name"
-								>"/{dependency.api_name}"</span
-							>, &lbrace; <!--
+							>"/{dependency.api_name}"</span
+						>, &lbrace; <!--
 -->{#each endpoint_parameters as { label, parameter_name, type, python_type, component, example_input, serializer }, i}<!--
 		-->{#if blob_components.includes(component)}<!--
 	-->

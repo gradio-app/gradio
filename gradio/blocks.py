@@ -3143,7 +3143,6 @@ Received inputs:
                 "show_api": fn.show_api,
             }
             fn_info = utils.get_function_params(fn.fn)
-            print(f"fn.api_description: {fn.api_description}")
             if fn.api_description is False:
                 dependency_info["description"] = ""
             elif fn.api_description is None:

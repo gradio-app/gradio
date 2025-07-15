@@ -470,7 +470,9 @@
 									{space_id}
 									{username}
 									api_prefix={app.api_prefix}
-									api_description={info.named_endpoints["/" + dependency.api_name].description}
+									api_description={info.named_endpoints[
+										"/" + dependency.api_name
+									].description}
 								/>
 
 								<ParametersSnippet
