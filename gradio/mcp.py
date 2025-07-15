@@ -8,7 +8,7 @@ import warnings
 from collections.abc import AsyncIterator, Sequence
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, Optional, cast
 from urllib.parse import unquote
 
 import gradio_client.utils as client_utils

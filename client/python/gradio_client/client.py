@@ -922,7 +922,6 @@ class Client:
             verify=self.ssl_verify,
             **self.httpx_kwargs,
         )
-        print("Got config")
         if r.is_success:
             # Cookies are sometimes needed to correctly route requests if the Gradio app is
             # running on multiple replicas e.g. using cookie session-affinity in Kubernetes.
