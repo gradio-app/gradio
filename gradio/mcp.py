@@ -310,7 +310,7 @@ class GradioMCPServer:
         Get the description of a function, which is used to describe the tool in the MCP server.
         Also returns the description of each parameter of the function as a dictionary.
         """
-        description, parameters, returns = utils.get_function_description(block_fn.fn)
+        description, parameters, returns = utils.get_function_description(block_fn.fn)  # type: ignore
         if block_fn.api_description is False:
             description = ""
         elif block_fn.api_description is None:
@@ -322,6 +322,7 @@ class GradioMCPServer:
                 )
         else:
             description = block_fn.api_description
+        assert isinstance(description, str)  # noqa: S101
         return description, parameters
 
     @staticmethod

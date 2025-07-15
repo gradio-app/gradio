@@ -173,7 +173,7 @@ class ChatInterface(Blocks):
             delete_cache=delete_cache,
         )
         self.api_name: str | Literal[False] = api_name
-        self.api_description = api_description
+        self.api_description: str | None | Literal[False] = api_description
         self.show_api = show_api
         self.type = type
         self.multimodal = multimodal

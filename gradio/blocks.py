@@ -3149,7 +3149,9 @@ Received inputs:
                 description, _, _ = utils.get_function_description(fn.fn)
                 dependency_info["description"] = description
             else:
-                dependency_info["description"] = fn.api_description
+                description = fn.api_description
+                assert isinstance(description, str)  # noqa: S101
+                dependency_info["description"] = description
             skip_endpoint = False
 
             inputs = fn.inputs

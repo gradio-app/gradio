@@ -115,7 +115,7 @@ class Examples:
         postprocess: bool = True,
         show_api: bool = False,
         api_name: str | Literal[False] = "load_example",
-        api_description: str | None = None,
+        api_description: str | None | Literal[False] = None,
         batch: bool = False,
         *,
         example_labels: list[str] | None = None,
@@ -270,7 +270,7 @@ class Examples:
         self.postprocess = postprocess
         self.show_api = show_api
         self.api_name: str | Literal[False] = api_name
-        self.api_description = api_description
+        self.api_description: str | None | Literal[False] = api_description
         self.batch = batch
         self.example_labels = example_labels
         self.working_directory = working_directory
