@@ -224,15 +224,8 @@ class GradioMCPServer:
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
                 assert block_fn is not None and block_fn.fn is not None  # noqa: S101
-                description, parameters, returns = utils.get_function_description(
-                    block_fn.fn
-                )
-                if returns:
-                    description += (
-                        ("" if description.endswith(".") else ".")
-                        + " Returns: "
-                        + ", ".join(returns)
-                    )
+
+                description, parameters = self.get_fn_description(block_fn)
                 schema, _ = self.get_input_schema(tool_name, parameters)
                 tools.append(
                     types.Tool(
@@ -309,6 +302,27 @@ class GradioMCPServer:
             None,
         )
         return block_fn
+
+    def get_fn_description(
+        self, block_fn: "BlockFunction"
+    ) -> tuple[str, dict[str, str]]:
+        """
+        Get the description of a function, which is used to describe the tool in the MCP server.
+        Also returns the description of each parameter of the function as a dictionary.
+        """
+        description, parameters, returns = utils.get_function_description(block_fn.fn)
+        if block_fn.api_description is False:
+            description = ""
+        elif block_fn.api_description is None:
+            if returns:
+                description += (
+                    ("" if description.endswith(".") else ".")
+                    + " Returns: "
+                    + ", ".join(returns)
+                )
+        else:
+            description = block_fn.api_description
+        return description, parameters
 
     @staticmethod
     def insert_empty_state(
@@ -398,15 +412,8 @@ class GradioMCPServer:
         for tool_name, endpoint_name in self.tool_to_endpoint.items():
             block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
             assert block_fn is not None and block_fn.fn is not None  # noqa: S101
-            description, parameters, returns = utils.get_function_description(
-                block_fn.fn
-            )
-            if returns:
-                description += (
-                    ("" if description.endswith(".") else ".")
-                    + " Returns: "
-                    + ", ".join(returns)
-                )
+
+            description, parameters = self.get_fn_description(block_fn)
             schema, _ = self.get_input_schema(tool_name, parameters)
 
             type_hints = utils.get_type_hints(block_fn.fn)

@@ -457,21 +457,20 @@
 				{/if}
 
 				{#if current_language !== "mcp"}
-					{#each dependencies as dependency, dependency_index}
+					{#each dependencies as dependency}
 						{#if dependency.show_api && info.named_endpoints["/" + dependency.api_name]}
 							<div class="endpoint-container">
 								<CodeSnippet
-									named={true}
 									endpoint_parameters={info.named_endpoints[
 										"/" + dependency.api_name
 									].parameters}
 									{dependency}
-									{dependency_index}
 									{current_language}
 									{root}
 									{space_id}
 									{username}
 									api_prefix={app.api_prefix}
+									api_description={info.named_endpoints["/" + dependency.api_name].description}
 								/>
 
 								<ParametersSnippet

@@ -763,7 +763,6 @@ def on(
     js: str | Literal[True] | None = None,
     concurrency_limit: int | None | Literal["default"] = "default",
     concurrency_id: str | None = None,
-    show_api: bool = True,
     time_limit: int | None = None,
     stream_every: float = 0.5,
     key: int | str | tuple[int | str, ...] | None = None,
@@ -873,7 +872,6 @@ def on(
         for trigger in triggers:
             if trigger.callback:  # type: ignore
                 trigger.callback(trigger.__self__)  # type: ignore
-
     dep, dep_index = root_block.set_event_trigger(
         methods,
         fn,
