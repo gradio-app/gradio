@@ -226,9 +226,7 @@ class GradioMCPServer:
                 assert block_fn is not None and block_fn.fn is not None  # noqa: S101
 
                 description, parameters = self.get_fn_description(block_fn, tool_name)
-                schema, _ = self.get_input_schema(
-                    tool_name, parameters
-                )
+                schema, _ = self.get_input_schema(tool_name, parameters)
                 tools.append(
                     types.Tool(
                         name=tool_name,
@@ -310,7 +308,7 @@ class GradioMCPServer:
         """
         Whether the Gradio app has a tool that accepts file data as an input.
         """
-        return " If a user passes a file as an input, use the upload_to_gradio_app tool, if present, to upload the file to the gradio app, and then use the returned path as the input to the tool"
+        return " If a user passes a file as an input, use the upload_file_to_gradio_or_hf tool, if present, to upload the file to the gradio app, and then use the returned path as the input to the tool"
 
     def get_fn_description(
         self, block_fn: "BlockFunction", tool_name: str
@@ -335,7 +333,7 @@ class GradioMCPServer:
         else:
             description = block_fn.api_description
             if len(filedata_positions) > 0:
-                description += self._file_data_tool_description # type: ignore
+                description += self._file_data_tool_description  # type: ignore
         assert isinstance(description, str)  # noqa: S101
         return description, parameters
 
