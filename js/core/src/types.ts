@@ -61,7 +61,6 @@ export interface Dependency {
 	status?: string;
 	queue: boolean | null;
 	api_name: string | null;
-	description: string | null;
 	cancels: number[];
 	types: DependencyTypes;
 	collects_event_data: boolean;
