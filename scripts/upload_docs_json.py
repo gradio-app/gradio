@@ -3,6 +3,8 @@ import html2text
 from bs4 import BeautifulSoup 
 import re
 from pathlib import Path
+import json
+from subprocess import run
 
 
 api = HfApi()
@@ -67,17 +69,6 @@ def markdown_to_docs(markdown: str, *, page_url: str, page_title: str, docs: lis
     return docs
 
 
-# commit_message = "XXXX"
-# commit_hash = "0000000000000000000000000000000000000000"
-
-# api.upload_file(
-#     path_or_fileobj="docs.json",        
-#     path_in_repo="docs.json",
-#     repo_id="gradio/docs",
-#     repo_type="dataset",
-#     commit_message=f"Changes from {commit_message} {commit_hash}"
-# )
-
 if __name__ == "__main__":
     ROOT = Path(__file__).parent.parent
     DOCS_DIR = (ROOT / "js/_website/build/docs").resolve()
@@ -98,17 +89,32 @@ if __name__ == "__main__":
                         page_title = page_title,
                         docs = docs
                     )
-
+    
     print(f"Generated {len(docs)} chunks.")
 
-    for d in docs[:50]:
-        assert len(d["text"]) <= MAX_LEN, "chunk too large!"
-        print("="*100)
-        print(d["source_page_url"])
-        print("-"*20)
-        print(d["source_page_title"])
-        print("-"*20)
-        print(d["heading1"])
-        print("-"*20)
-        print(d["text"])
-        print("-"*20)
+    with open((ROOT / "scripts/docs.json").resolve(), "w") as f:
+        json.dump(docs, f)
+    
+    result = run(
+        ["git", "log", "-1", "--pretty=format:%H|%s"],
+        capture_output=True,
+        text=True,     
+        check=True
+    )
+    sha, subject = result.stdout.strip().split("|", 1)
+    commit_hash = sha[:7]
+    commit_message = subject if len(subject) <= 30 else subject[:30] + "..."
+
+    try:
+        commit_info = api.upload_file(
+            path_or_fileobj=(ROOT / "scripts/docs.json").resolve(),        
+            path_in_repo="docs.json",
+            repo_id="gradio/docs",
+            repo_type="dataset",
+            commit_message=f"Changes from: {commit_hash} '{commit_message}'"
+        )
+        print("✅  docs.json uploaded")
+    except Exception as e:
+        print(f"❌  Error uploading docs.json: {e}")
+
+
