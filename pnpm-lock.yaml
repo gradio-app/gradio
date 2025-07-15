@@ -468,6 +468,9 @@ importers:
       '@sveltejs/kit':
         specifier: ^2.22.2
         version: 2.22.2(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.4.17(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.43.1)))(svelte@4.2.15)(vite@5.4.17(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.43.1))
+      iframe-resizer:
+        specifier: ^4.3.1
+        version: 4.4.5
 
   js/_website:
     dependencies:
@@ -6938,6 +6941,10 @@ packages:
   iconv-lite@0.6.3:
     resolution: {integrity: sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==}
     engines: {node: '>=0.10.0'}
+
+  iframe-resizer@4.4.5:
+    resolution: {integrity: sha512-U8bCywf/Gh07O69RXo6dXAzTtODQrxaHGHRI7Nt4ipXsuq6EMxVsOP/jjaP43YtXz/ibESS0uSVDN3sOGCzSmw==}
+    engines: {node: '>=0.8.0'}
 
   ignore@4.0.6:
     resolution: {integrity: sha512-cyFDKrqc/YdcWFniJhzI42+AzS+gNwmUzOSFcRCQYwySuBBBy/KjuxWLZ/FHEH6Moq1NizMOBWyTcv8O4OZIMg==}
@@ -14741,6 +14748,8 @@ snapshots:
   iconv-lite@0.6.3:
     dependencies:
       safer-buffer: 2.1.2
+
+  iframe-resizer@4.4.5: {}
 
   ignore@4.0.6: {}
 

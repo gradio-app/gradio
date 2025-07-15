@@ -1,5 +1,6 @@
 <script lang="ts">
 	import "@gradio/theme";
+	import "../styles.css";
 	// import "../../../app/test/mocks/theme.css";
 	// import { page } from "$app/stores";
 	// import { afterNavigate } from "$app";
@@ -44,13 +45,19 @@
 	div {
 		margin: auto;
 		width: 100%;
-		max-width: 800px;
+		display: flex;
+		flex-direction: column;
+
+		min-height: 100dvh;
 	}
 
 	ul {
 		display: flex;
+		justify-content: center;
+		align-items: center;
 		gap: var(--spacing-xxl);
 		list-style: none;
+		height: 55px;
 	}
 
 	a {
