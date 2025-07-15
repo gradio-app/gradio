@@ -42,6 +42,7 @@ jobs:
           path: output.json
           name: changes
   build:
+    environment: build_website
     name: "website-build"
     runs-on: ubuntu-22.04
     needs: changes
