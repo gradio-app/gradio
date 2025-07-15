@@ -17,7 +17,7 @@ import huggingface_hub
 from gradio_client import Client
 from gradio_client.client import Endpoint
 from gradio_client.documentation import document
-from gradio_client.utils import encode_url_or_file_to_base64
+from gradio_client.utils import encode_url_or_file_to_base64, is_http_url_like
 from packaging import version
 
 import gradio as gr
@@ -869,3 +869,123 @@ def load_chat(
         else None,
         **kwargs,
     )
+
+
+@document()
+def load_openapi(
+    openapi_spec: str | dict,
+    base_url: str,
+    *,
+    paths: list[str] | None = None,
+    methods: list[Literal["get", "post", "put", "patch", "delete"]] | None = None,
+) -> Blocks:
+    """
+    Load a Gradio app from an OpenAPI v3 specification.
+
+    Parameters:
+        openapi_spec: URL, file path, or dictionary containing the OpenAPI specification (v3, JSON format only)
+        base_url: Base URL for the API endpoints, e.g. "https://api.example.com/v1". This is used to construct the full URL for each endpoint.
+        paths: Optional list of specific API paths to create Gradio endpoints from. Supports regex patterns, e.g. ["/api/v1/books", ".*users.*"]. If None, all paths in the OpenAPI spec will be included.
+        methods: Optional list of HTTP methods to include in the Gradio endpoints. If None, all methods will be included.
+    Returns:
+        A Gradio Blocks app with endpoints generated from the OpenAPI spec
+    """
+    if isinstance(openapi_spec, dict):
+        spec = openapi_spec
+    elif isinstance(openapi_spec, str):
+        if is_http_url_like(openapi_spec):
+            response = httpx.get(openapi_spec)
+            response.raise_for_status()
+            content = response.text
+        else:
+            with open(openapi_spec) as f:
+                content = f.read()
+
+        try:
+            spec = json.loads(content)
+        except json.JSONDecodeError as e:
+            raise ValueError("openapi_spec must be a JSON string or dictionary") from e
+    else:
+        raise ValueError("openapi_spec must be a string (URL/file path) or dictionary")
+
+    api_paths = spec.get("paths", {})
+    if paths is not None:
+        import re
+
+        filtered_paths = {}
+        for path in api_paths:
+            for pattern in paths:
+                if re.match(pattern, path):
+                    filtered_paths[path] = api_paths[path]
+                    break
+        api_paths = filtered_paths
+
+    if not api_paths:
+        raise ValueError("No valid paths found in the OpenAPI specification")
+    else:
+        print(f"* Loaded {len(api_paths)} paths from the OpenAPI specification")
+
+    valid_api_paths = []
+    for path, path_item in api_paths.items():
+        for method, operation in path_item.items():
+            if methods and method.lower() not in [m.lower() for m in methods]:
+                continue
+            valid_api_paths.append((path, method, operation))
+
+    with gr.Blocks(
+        title=spec.get("info", {}).get("title", "OpenAPI Interface")
+    ) as demo:
+        with gr.Sidebar():
+            gr.Markdown(f"## {spec.get('info', {}).get('title', 'OpenAPI Interface')}")
+            gr.Markdown(spec.get("info", {}).get("description", ""))
+            gr.Markdown("### API Endpoints")
+            api_path_str = "<div style='overflow-x: auto; overflow-y: auto; max-height: 500px;'><ul>"
+            for path, method, _ in valid_api_paths:
+                api_path_str += (
+                    f"<li style='white-space: nowrap;'>"
+                    f"<a href='#{method.upper()}_{path.replace('/', '_').replace('{', '').replace('}', '')}' style='white-space: nowrap;'>"
+                    f"{method.upper()} <code style='font-size: inherit; white-space: nowrap;'>{path}</code>"
+                    f"</a></li>\n"
+                )
+            api_path_str += "</ul></div>"
+            gr.Markdown(api_path_str)
+
+        for path, method, operation in valid_api_paths:
+            components_list = []
+
+            for param in operation.get("parameters", []):
+                component = external_utils.component_from_parameter_schema(param)
+                components_list.append(component)
+
+            request_body = operation.get("requestBody")
+            if request_body:
+                body_component = external_utils.component_from_request_body_schema(
+                    request_body, spec
+                )
+                if body_component:
+                    components_list.append(body_component)
+
+            endpoint_fn = external_utils.create_endpoint_fn(
+                path, method, operation, base_url
+            )
+            endpoint_fn.__name__ = (
+                f"{method}_{path.replace('/', '_').replace('{', '').replace('}', '')}"
+            )
+
+            gr.Markdown(
+                f"<h2 id='{method.upper()}_{path.replace('/', '_').replace('{', '').replace('}', '')}'>"
+                f"{external_utils.method_box(method)} <code style='font-size: inherit;'>{path}</code></h2>"
+            )
+            if operation.get("summary"):
+                gr.Markdown(operation["summary"])
+
+            inputs = components_list if components_list else []
+            output = gr.JSON(label="Response")
+
+            gr.Interface(
+                fn=endpoint_fn,
+                inputs=inputs,
+                outputs=output,
+            )
+
+    return demo

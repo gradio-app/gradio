@@ -577,6 +577,7 @@ class EventListener(str):
             | Set[Component | BlockContext]
             | None = None,
             api_name: str | None | Literal[False] = None,
+            api_description: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
             show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
             show_progress_on: Component | Sequence[Component] | None = None,
@@ -602,6 +603,7 @@ class EventListener(str):
                 inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
                 outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
                 api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
+                api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
                 scroll_to_output: If True, will scroll to output component on completion
                 show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
                 show_progress_on: Component or list of components to show the progress animation on. If None, will show the progress animation on all of the output components.
@@ -681,6 +683,7 @@ class EventListener(str):
                 show_progress=show_progress,
                 show_progress_on=show_progress_on,
                 api_name=api_name,
+                api_description=api_description,
                 js=js,
                 concurrency_limit=concurrency_limit,
                 concurrency_id=concurrency_id,
@@ -744,7 +747,9 @@ def on(
     | Set[Component | BlockContext]
     | None = None,
     *,
+    show_api: bool = True,
     api_name: str | None | Literal[False] = None,
+    api_description: str | None | Literal[False] = None,
     scroll_to_output: bool = False,
     show_progress: Literal["full", "minimal", "hidden"] = "full",
     show_progress_on: Component | Sequence[Component] | None = None,
@@ -758,7 +763,6 @@ def on(
     js: str | Literal[True] | None = None,
     concurrency_limit: int | None | Literal["default"] = "default",
     concurrency_id: str | None = None,
-    show_api: bool = True,
     time_limit: int | None = None,
     stream_every: float = 0.5,
     key: int | str | tuple[int | str, ...] | None = None,
@@ -868,7 +872,6 @@ def on(
         for trigger in triggers:
             if trigger.callback:  # type: ignore
                 trigger.callback(trigger.__self__)  # type: ignore
-
     dep, dep_index = root_block.set_event_trigger(
         methods,
         fn,
@@ -880,6 +883,7 @@ def on(
         show_progress=show_progress,
         show_progress_on=show_progress_on,
         api_name=api_name,
+        api_description=api_description,
         js=js,
         concurrency_limit=concurrency_limit,
         concurrency_id=concurrency_id,
@@ -909,6 +913,7 @@ def api(
     fn: Callable | Literal["decorator"] = "decorator",
     *,
     api_name: str | None | Literal[False] = None,
+    api_description: str | None = None,
     queue: bool = True,
     batch: bool = False,
     max_batch_size: int = 4,
@@ -924,6 +929,7 @@ def api(
     Parameters:
         fn: the function to call when this event is triggered. Often a machine learning model's prediction function. The function should be fully typed, and the type hints will be used to derive the typing information for the API/MCP endpoint.
         api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, will use the functions name as the endpoint route. If set to a string, the endpoint will be exposed in the api docs with the given name.
+        api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
         queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
         batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
         max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
@@ -960,6 +966,7 @@ def api(
             api(
                 fn=func,
                 api_name=api_name,
+                api_description=api_description,
                 queue=queue,
                 batch=batch,
                 max_batch_size=max_batch_size,
@@ -1017,6 +1024,7 @@ def api(
         scroll_to_output=False,
         show_progress="hidden",
         api_name=api_name,
+        api_description=api_description,
         js=None,
         concurrency_limit=concurrency_limit,
         concurrency_id=concurrency_id,

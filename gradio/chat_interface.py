@@ -111,6 +111,8 @@ class ChatInterface(Blocks):
         fill_height: bool = True,
         fill_width: bool = False,
         api_name: str | Literal[False] = "chat",
+        api_description: str | None | Literal[False] = None,
+        show_api: bool = True,
         save_history: bool = False,
     ):
         """
@@ -152,6 +154,8 @@ class ChatInterface(Blocks):
             fill_height: if True, the chat interface will expand to the height of window.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
             api_name: defines how the chat endpoint appears in the API docs. Can be a string or False. If set to a string, the chat endpoint will be exposed in the API docs with the given name. If False, the chat endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to call this chat endpoint.
+            api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
+            show_api: whether to show the chat endpoint in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
             save_history: if True, will save the chat history to the browser's local storage and display previous conversations in a side panel.
         """
         super().__init__(
@@ -169,6 +173,8 @@ class ChatInterface(Blocks):
             delete_cache=delete_cache,
         )
         self.api_name: str | Literal[False] = api_name
+        self.api_description: str | None | Literal[False] = api_description
+        self.show_api = show_api
         self.type = type
         self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
@@ -617,6 +623,8 @@ class ChatInterface(Blocks):
             [self.textbox, self.chatbot_state] + self.additional_inputs,
             [self.api_response, self.chatbot_state] + self.additional_outputs,
             api_name=self.api_name,
+            api_description=self.api_description,
+            show_api=self.show_api,
             concurrency_limit=cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
             ),

@@ -1151,6 +1151,7 @@ class TestAPIInfo:
                         "component": "Number",
                     }
                 ],
+                "description": "",
             }
             assert api_info["unnamed_endpoints"] == {}
 
@@ -1216,8 +1217,9 @@ class TestAPIInfo:
                                 "component": "Textbox",
                             }
                         ],
+                        "description": "",
                     },
-                    "/show_group": {"parameters": [], "returns": []},
+                    "/show_group": {"parameters": [], "returns": [], "description": ""},
                 },
                 "unnamed_endpoints": {},
             }
@@ -1256,6 +1258,7 @@ class TestAPIInfo:
                                 "component": "Number",
                             },
                         ],
+                        "description": "This is a greeting function.",
                     },
                     "/open": {
                         "parameters": [],
@@ -1267,6 +1270,7 @@ class TestAPIInfo:
                                 "component": "Number",
                             }
                         ],
+                        "description": "",
                     },
                     "/close": {
                         "parameters": [],
@@ -1278,6 +1282,7 @@ class TestAPIInfo:
                                 "component": "Number",
                             }
                         ],
+                        "description": "",
                     },
                 },
                 "unnamed_endpoints": {},
