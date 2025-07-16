@@ -439,10 +439,12 @@
 						CHANGED_CONNECTION_MESSAGE,
 						-1,
 						"info",
-						null,
+						3,
 						true
 					),
-					...messages
+					...messages.map((m) =>
+						m.message === LOST_CONNECTION_MESSAGE ? { ...m, visible: false } : m
+					)
 				];
 			} else if (connection_status === "connected") {
 				broken_connection = false;
@@ -455,7 +457,9 @@
 						null,
 						true
 					),
-					...messages
+					...messages.map((m) =>
+						m.message === LOST_CONNECTION_MESSAGE ? { ...m, visible: false } : m
+					)
 				];
 			}
 		}

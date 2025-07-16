@@ -386,9 +386,12 @@
 				);
 				stream = new EventSource(url);
 				stream.addEventListener("error", async (e) => {
-					new_message_fn("Error", "Error reloading app", "error");
 					// @ts-ignore
-					console.error(JSON.parse(e.data));
+					let event_data: string | undefined = e.data;
+					if (event_data) {
+						new_message_fn("Error", "Error reloading app", "error");
+						console.error(JSON.parse(event_data));
+					}
 				});
 				stream.addEventListener("reload", async (event) => {
 					app.close();
