@@ -1,5 +1,16 @@
 # @gradio/textbox
 
+## 0.10.16
+
+### Fixes
+
+- [#11537](https://github.com/gradio-app/gradio/pull/11537) [`8eb253b`](https://github.com/gradio-app/gradio/commit/8eb253be32a01c0c67911d7a7a3762c52a76a87b) - fix html attribute spreading bug and pin `httpx`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+- @gradio/statustracker@0.10.14
+
 ## 0.10.15
 
 ### Fixes

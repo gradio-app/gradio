@@ -2,6 +2,12 @@
 
 ## 0.2.1
 
+### Dependency updates
+
+- @gradio/statustracker@0.10.14
+
+## 0.2.1
+
 ### Fixes
 
 - [#11426](https://github.com/gradio-app/gradio/pull/11426) [`fa4018a`](https://github.com/gradio-app/gradio/commit/fa4018a99ee815e33bc228bfb0183dd820246eb1) - Remove gap parametger from gr.Column.  Thanks @deckar01!
