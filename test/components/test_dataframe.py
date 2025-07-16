@@ -514,16 +514,18 @@ class TestDataframe:
         """Test that boolean dtype is preserved when processing frontend data with string boolean values."""
         dataframe_component = gr.Dataframe(datatype=["str", "bool"], type="pandas")
 
-        frontend_data = DataframeData(**{
-            "headers": ["name", "active"],
-            "data": [
-                ["Alice", "true"],
-                ["Bob", "false"],
-                ["Charlie", True],
-                ["Diana", False],
-            ],
-            "metadata": None,
-        })
+        frontend_data = DataframeData(
+            **{
+                "headers": ["name", "active"],
+                "data": [
+                    ["Alice", "true"],
+                    ["Bob", "false"],
+                    ["Charlie", True],
+                    ["Diana", False],
+                ],
+                "metadata": None,
+            }
+        )
 
         result_df = dataframe_component.preprocess(frontend_data)
 
