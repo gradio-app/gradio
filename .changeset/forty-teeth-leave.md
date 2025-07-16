@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Add Gradio File Input keyword to gradio file inputs
+fix:Add Gradio File Input keyword to gradio file inputs
