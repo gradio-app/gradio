@@ -332,7 +332,11 @@ def watchfn(reloader: SourceFileReloader):
                         file
                         and is_in_watch_dirs_and_not_sitepackages(file)
                         and modname
-                        not in {"gradio.cli.commands.reload", "gradio.utils", "gradio.context"}
+                        not in {
+                            "gradio.cli.commands.reload",
+                            "gradio.utils",
+                            "gradio.context",
+                        }
                     ):
                         del sys.modules[modname]
 
@@ -408,12 +412,9 @@ def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
             else:
                 new_block.key = f"__{new_block._id}__"
 
-        if (
-            isinstance(new_block, BlockContext)
-            and same_block_type
-        ):
+        if isinstance(new_block, BlockContext) and same_block_type:
             for i, new_block_child in enumerate(new_block.children):
-                if i < len(old_block.children): # type: ignore
+                if i < len(old_block.children):  # type: ignore
                     old_block_child = old_block.children[i]
                 else:
                     old_block_child = None

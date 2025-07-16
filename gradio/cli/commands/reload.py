@@ -11,7 +11,6 @@ from __future__ import annotations
 import inspect
 import os
 import re
-import site
 import subprocess
 import sys
 import threading
@@ -32,6 +31,7 @@ def _setup_config(
     demo_name: str = "demo",
     additional_watch_dirs: list[str] | None = None,
     encoding: str = "utf-8",
+    watch_library: bool = False,
 ):
     original_path = Path(demo_path)
     app_text = original_path.read_text(encoding=encoding)
@@ -64,15 +64,11 @@ def _setup_config(
     message_change_count = 0
 
     watching_dirs = []
-    if str(gradio_folder).strip():
-        package_install = any(
-            utils.is_in_or_equal(gradio_folder, d) for d in site.getsitepackages()
-        )
-        if not package_install:
-            # This is a source install
-            watching_dirs.append(gradio_folder)
-            message += f" '{gradio_folder}'"
-            message_change_count += 1
+    if str(gradio_folder).strip() and watch_library:
+        # This is a source install
+        watching_dirs.append(gradio_folder)
+        message += f" '{gradio_folder}'"
+        message_change_count += 1
 
     abs_parent = abs_original_path.parent
     if str(abs_parent).strip():
@@ -82,7 +78,7 @@ def _setup_config(
         message += f" '{abs_parent}'"
 
     abs_current = Path.cwd().absolute()
-    if str(abs_current).strip():
+    if str(abs_current).strip() and abs_current not in watching_dirs:
         watching_dirs.append(abs_current)
         if message_change_count == 1:
             message += ","
@@ -108,10 +104,11 @@ def main(
     demo_name: str = "demo",
     watch_dirs: Optional[list[str]] = None,
     encoding: str = "utf-8",
+    watch_library: bool = False,
 ):
     # default execution pattern to start the server and watch changes
     module_name, path, watch_sources, demo_name = _setup_config(
-        demo_path, demo_name, watch_dirs, encoding
+        demo_path, demo_name, watch_dirs, encoding, watch_library
     )
 
     # Pass the following data as environment variables

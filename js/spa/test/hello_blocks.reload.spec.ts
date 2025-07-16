@@ -123,7 +123,6 @@ if __name__ == "__main__":
 		await expect(page.getByLabel("y")).toHaveValue("");
 		await expect(page.getByLabel("z")).toHaveValue("");
 
-
 		const demo3 = `
 import gradio as gr
     
@@ -159,7 +158,9 @@ if __name__ == "__main__":
 	}
 });
 
-test("gradio dev mode works with removing / changing existing elements", async ({ page }) => {
+test("gradio dev mode works with removing / changing existing elements", async ({
+	page
+}) => {
 	test.setTimeout(20 * 1000);
 
 	try {
@@ -311,8 +312,9 @@ if __name__ == "__main__":
 	}
 });
 
-
-test("gradio dev mode works when switching between interface / blocks / chatinterface", async ({ page }) => {
+test("gradio dev mode works when switching between interface / blocks / chatinterface", async ({
+	page
+}) => {
 	test.setTimeout(20 * 1000);
 
 	try {
@@ -350,7 +352,6 @@ if __name__ == "__main__":
 				PYTHONUNBUFFERED: "true"
 			}
 		});
-
 
 		await expect(page.getByText("Chatbot")).toBeVisible();
 		const textbox = page.getByTestId("textbox");
@@ -466,14 +467,10 @@ if __name__ == "__main__":
 			}
 		});
 
-		
 		await page.getByLabel("sentence").fill("We looove Gradio!");
 		await page.getByLabel("letter").fill("o");
 		await page.getByRole("button", { name: "Submit" }).click();
 		await expect(page.getByLabel("count")).toHaveValue("4");
-
-
-
 	} finally {
 		if (_process) kill_process(_process);
 	}
