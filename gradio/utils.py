@@ -414,10 +414,8 @@ def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
 
         if isinstance(new_block, BlockContext) and same_block_type:
             for i, new_block_child in enumerate(new_block.children):
-                if i < len(old_block.children):  # type: ignore
-                    old_block_child = old_block.children[i]
-                else:
-                    old_block_child = None
+                old_children = getattr(old_block, "children", [])
+                old_block_child = old_children[i] if i < len(old_children) else None
                 reassign_context_keys(old_block_child, new_block_child)
 
     reassign_context_keys(old_blocks, new_blocks)
