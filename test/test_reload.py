@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 
-import gradio
 import gradio as gr
 from gradio.cli.commands.reload import _setup_config
 from gradio.http_server import Server
