@@ -70,6 +70,7 @@ class CloseStreamMessage(BaseMessage):
 class UnexpectedErrorMessage(BaseMessage):
     msg: Literal[ServerMessage.unexpected_error] = ServerMessage.unexpected_error  # type: ignore
     message: str
+    session_not_found: bool = False
     success: Literal[False] = False
 
 

@@ -245,6 +245,7 @@ export function handle_message(
 		| "none"
 		| "heartbeat"
 		| "streaming"
+		| "broken_connection"
 		| "unexpected_error";
 	data?: any;
 	status?: Status;
@@ -274,6 +275,17 @@ export function handle_message(
 		case "unexpected_error":
 			return {
 				type: "unexpected_error",
+				status: {
+					queue,
+					message: data.message,
+					session_not_found: data.session_not_found,
+					stage: "error",
+					success: false
+				}
+			};
+		case "broken_connection":
+			return {
+				type: "broken_connection",
 				status: {
 					queue,
 					message: data.message,
