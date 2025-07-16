@@ -594,7 +594,6 @@ export function submit(
 								time: new Date()
 							});
 						} else if (status !== 200) {
-							that.connection_broken = true;
 							fire_event({
 								type: "status",
 								stage: "error",
