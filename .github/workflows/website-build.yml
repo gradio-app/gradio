@@ -77,7 +77,7 @@ jobs:
           mkdir -p scripts
           curl https://raw.githubusercontent.com/gradio-app/gradio/main/scripts/upload_docs_json.py -o scripts/upload_docs_json.py
 
-      - name: Upload docs.json to HF dataset 
+      - name: Upload docs.json to HF dataset
         if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'refs/heads/main'
         env:
           HF_TOKEN: ${{ secrets.HF_DOCS_TOKEN }}
