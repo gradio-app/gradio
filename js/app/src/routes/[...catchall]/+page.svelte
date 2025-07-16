@@ -301,9 +301,9 @@
 						{
 							status_callback: handle_status,
 							with_null_state: true,
-							events: ["data", "log", "status", "render"]
+							events: ["data", "log", "status", "render"],
+							session_hash: app.session_hash
 						},
-						app.session_hash
 					);
 
 					if (!app.config) {
