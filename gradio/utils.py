@@ -332,11 +332,14 @@ def watchfn(reloader: SourceFileReloader):
                         file
                         and is_in_watch_dirs_and_not_sitepackages(file)
                         and modname
-                        not in {"gradio.cli.commands.reload", "gradio.utils"}
+                        not in {
+                            "gradio.cli.commands.reload",
+                            "gradio.utils",
+                            "gradio.context",
+                        }
                     ):
                         del sys.modules[modname]
 
-                Context.id = 0
                 NO_RELOAD.set(False)
                 # Remove the gr.no_reload code blocks and exec in the new module's dict
                 no_reload_source_code = _remove_if_name_main_codeblock(
@@ -393,9 +396,8 @@ def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
     def reassign_context_keys(
         old_block: Block | None,
         new_block: Block,
-        top_level=False,
     ):
-        same_block_type = old_block.__class__ == new_block.__class__
+        same_block_type = old_block.__class__.__name__ == new_block.__class__.__name__
         if new_block.key is None:
             if (
                 same_block_type
@@ -410,38 +412,13 @@ def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
             else:
                 new_block.key = f"__{new_block._id}__"
 
-        if (
-            old_block
-            and same_block_type
-            and old_block.key is not None
-            and old_block.key == new_block.key
-        ):
-            if not top_level:
-                new_blocks.default_config.blocks[old_block._id] = (
-                    new_blocks.default_config.blocks[new_block._id]
-                )
-                del new_blocks.default_config.blocks[new_block._id]
-            for fn in new_blocks.default_config.fns.values():
-                for target_idx, target in enumerate(fn.targets):
-                    if target[0] == new_block._id:
-                        fn.targets[target_idx] = (old_block._id, target[1])
-
-            new_block._id = old_block._id
-
-        if (
-            isinstance(new_block, BlockContext)
-            and isinstance(old_block, BlockContext)
-            and same_block_type
-        ):
+        if isinstance(new_block, BlockContext) and same_block_type:
             for i, new_block_child in enumerate(new_block.children):
-                if i < len(old_block.children):
-                    old_block_child = old_block.children[i]
-                else:
-                    old_block_child = None
+                old_children = getattr(old_block, "children", [])
+                old_block_child = old_children[i] if i < len(old_children) else None
                 reassign_context_keys(old_block_child, new_block_child)
 
-    old_blocks.key = new_blocks.key = "__blocks__"
-    reassign_context_keys(old_blocks, new_blocks, top_level=True)
+    reassign_context_keys(old_blocks, new_blocks)
 
 
 def colab_check() -> bool:
@@ -1027,6 +1004,7 @@ def get_type_hints(fn):
 def is_special_typed_parameter(name, parameter_types):
     from gradio.helpers import EventData
     from gradio.oauth import OAuthProfile, OAuthToken
+    from gradio.route_utils import Header
     from gradio.routes import Request
 
     """Checks if parameter has a type hint designating it as a gr.Request, gr.EventData, gr.OAuthProfile or gr.OAuthToken."""
@@ -1039,6 +1017,8 @@ def is_special_typed_parameter(name, parameter_types):
         Optional[OAuthProfile],
         OAuthToken,
         Optional[OAuthToken],
+        Header,
+        Optional[Header],
     )
     is_event_data = inspect.isclass(hint) and issubclass(hint, EventData)
     return is_request or is_event_data or is_oauth_arg

@@ -299,15 +299,12 @@
 				});
 				stream.addEventListener("reload", async (event) => {
 					app.close();
-					app = await Client.connect(
-						data.api_url,
-						{
-							status_callback: handle_status,
-							with_null_state: true,
-							events: ["data", "log", "status", "render"]
-						},
-						app.session_hash
-					);
+					app = await Client.connect(data.api_url, {
+						status_callback: handle_status,
+						with_null_state: true,
+						events: ["data", "log", "status", "render"],
+						session_hash: app.session_hash
+					});
 
 					if (!app.config) {
 						throw new Error("Could not resolve app config");
@@ -368,6 +365,13 @@
 
 <svelte:head>
 	<link rel="stylesheet" href={"./theme.css?v=" + config?.theme_hash} />
+	{#if config?.stylesheets}
+		{#each config.stylesheets as stylesheet}
+			{#if stylesheet.startsWith("http:") || stylesheet.startsWith("https:")}
+				<link rel="stylesheet" href={stylesheet} />
+			{/if}
+		{/each}
+	{/if}
 	<link rel="manifest" href="/manifest.json" />
 </svelte:head>
 

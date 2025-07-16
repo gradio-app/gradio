@@ -114,8 +114,14 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		if (instance_map) {
 			// re-render in reload mode
 			components.forEach((c) => {
-				if (c.props.value == null && c.id in instance_map) {
-					c.props.value = instance_map[c.id].props.value;
+				if (c.props.value == null && c.key) {
+					// If the component has a key, we preserve its value by finding a matching instance with the same key
+					const matching_instance = Object.values(instance_map).find(
+						(instance) => instance.key === c.key
+					);
+					if (matching_instance) {
+						c.props.value = matching_instance.props.value;
+					}
 				}
 			});
 		}

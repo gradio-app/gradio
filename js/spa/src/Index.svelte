@@ -90,7 +90,10 @@
 	import { setWorkerProxyContext } from "@gradio/wasm/svelte";
 	import { init } from "@huggingface/space-header";
 
-	setupi18n();
+	let i18n_ready = false;
+	setupi18n().then(() => {
+		i18n_ready = true;
+	});
 
 	const dispatch = createEventDispatcher();
 
@@ -451,25 +454,33 @@
 		| "PAUSED";
 
 	// todo @hannahblair: translate these messages
-	const discussion_message = {
-		readable_error: {
-			NO_APP_FILE: $_("errors.no_app_file"),
-			CONFIG_ERROR: $_("errors.config_error"),
-			BUILD_ERROR: $_("errors.build_error"),
-			RUNTIME_ERROR: $_("errors.runtime_error"),
-			PAUSED: $_("errors.space_paused")
-		} as const,
-		title(error: error_types): string {
-			return encodeURIComponent($_("errors.space_not_working"));
-		},
-		description(error: error_types, site: string): string {
-			return encodeURIComponent(
-				`Hello,\n\nFirstly, thanks for creating this space!\n\nI noticed that the space isn't working correctly because there is ${
-					this.readable_error[error] || "an error"
-				}.\n\nIt would be great if you could take a look at this because this space is being embedded on ${site}.\n\nThanks!`
-			);
-		}
+	let discussion_message: {
+		readable_error: Record<error_types, string>;
+		title: (error: error_types) => string;
+		description: (error: error_types, site: string) => string;
 	};
+
+	$: if (i18n_ready) {
+		discussion_message = {
+			readable_error: {
+				NO_APP_FILE: $_("errors.no_app_file"),
+				CONFIG_ERROR: $_("errors.config_error"),
+				BUILD_ERROR: $_("errors.build_error"),
+				RUNTIME_ERROR: $_("errors.runtime_error"),
+				PAUSED: $_("errors.space_paused")
+			} as const,
+			title(error: error_types): string {
+				return encodeURIComponent($_("errors.space_not_working"));
+			},
+			description(error: error_types, site: string): string {
+				return encodeURIComponent(
+					`Hello,\n\nFirstly, thanks for creating this space!\n\nI noticed that the space isn't working correctly because there is ${
+						this.readable_error[error] || "an error"
+					}.\n\nIt would be great if you could take a look at this because this space is being embedded on ${site}.\n\nThanks!`
+				);
+			}
+		};
+	}
 
 	onMount(async () => {
 		intersecting.register(_id, wrapper);
@@ -548,7 +559,7 @@
 			<!-- todo: translate message text -->
 			<div class="error" slot="error">
 				<p><strong>{status?.message || ""}</strong></p>
-				{#if (status.status === "space_error" || status.status === "paused") && status.discussions_enabled}
+				{#if (status.status === "space_error" || status.status === "paused") && status.discussions_enabled && discussion_message}
 					<p>
 						Please <a
 							href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
@@ -561,7 +572,7 @@
 							contact the author of the space</a
 						> to let them know.
 					</p>
-				{:else}
+				{:else if i18n_ready}
 					<p>{$_("errors.contact_page_author")}</p>
 				{/if}
 			</div>
