@@ -429,7 +429,7 @@
 			}
 		}
 
-		async function reconnect(): void {
+		async function reconnect(): Promise<void> {
 			const connection_status = await app.reconnect();
 			if (connection_status === "broken") {
 				setTimeout(reconnect, 1000);
