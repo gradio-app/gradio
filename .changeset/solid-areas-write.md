@@ -1,7 +1,7 @@
 ---
-"@gradio/core": minor
-"@self/app": minor
-"gradio": minor
+"@gradio/core": patch
+"@self/app": patch
+"gradio": patch
 ---
 
 feat:Fix reload mode
