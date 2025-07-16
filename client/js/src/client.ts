@@ -303,9 +303,8 @@ export class Client {
 		}
 		if (app_id !== this.config!.app_id) {
 			return "changed";
-		} else {
-			return "connected";
 		}
+		return "connected";
 	}
 
 	close(): void {
