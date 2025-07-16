@@ -139,15 +139,22 @@ class SessionState:
     def state_components(self) -> Iterator[tuple[State, Any, bool]]:
         from gradio.components import State
 
-        for id in self.state_data:
-            block = self.blocks_config.blocks[id]
-            if isinstance(block, State) and id in self._state_ttl:
-                time_to_live, created_at = self._state_ttl[id]
+        state_ids_to_delete = []
+        for _id in self.state_data:
+            if _id not in self.blocks_config.blocks:
+                # state may have been deleted in reload or re-render
+                state_ids_to_delete.append(_id)
+                continue
+            block = self.blocks_config.blocks[_id]
+            if isinstance(block, State) and _id in self._state_ttl:
+                time_to_live, created_at = self._state_ttl[_id]
                 if self.is_closed:
                     time_to_live = self.STATE_TTL_WHEN_CLOSED
-                value = self.state_data[id]
+                value = self.state_data[_id]
                 yield (
                     block,
                     value,
                     (datetime.datetime.now() - created_at).seconds > time_to_live,
                 )
+        for _id in state_ids_to_delete:
+            del self.state_data[_id]
