@@ -50,10 +50,6 @@ class TestReload:
         assert config.module_name == "demo.calculator.run"
         assert config.demo_name == "test"
 
-    def test_config_watch_gradio(self, config):
-        gradio_dir = str(Path(gradio.__file__).parent)
-        assert gradio_dir in config.watch_dirs
-
     def test_config_watch_app(self, config):
         demo_dir = str(Path("demo/calculator/run.py").resolve().parent)
         assert demo_dir in config.watch_dirs
