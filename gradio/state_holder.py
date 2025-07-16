@@ -158,4 +158,3 @@ class SessionState:
                 )
         for _id in state_ids_to_delete:
             del self.state_data[_id]
-            del self._state_ttl[_id]

@@ -475,3 +475,100 @@ if __name__ == "__main__":
 		if (_process) kill_process(_process);
 	}
 });
+
+test("gradio dev mode works with gr.render()", async ({ page }) => {
+	test.setTimeout(20 * 1000);
+
+	try {
+		const { _process: server_process, port: port } =
+			await launch_app_background(
+				`gradio ${join(process.cwd(), "run.py")}`,
+				process.cwd()
+			);
+
+		_process = server_process;
+		console.log("Connected to port", port);
+
+		await page.goto(`http://localhost:${port}`);
+
+		const demo1 = `
+import gradio as gr
+
+with gr.Blocks() as demo:
+	text = gr.Textbox(label="name")
+	name = gr.State("---")
+	text.submit(lambda x:x, text, name)
+	
+	@gr.render(inputs=name)
+	def render_name(name):
+		for i, letter in enumerate(name):
+			gr.Textbox(letter, label=f"Letter {i + 1}")
+
+if __name__ == "__main__":
+	demo.launch()		
+    `;
+		// write contents of demo to a local 'run.py' file
+		spawnSync(`echo '${demo1}' > ${join(process.cwd(), "run.py")}`, {
+			shell: true,
+			stdio: "pipe",
+			env: {
+				...process.env,
+				PYTHONUNBUFFERED: "true"
+			}
+		});
+
+		await expect(page.getByLabel("Letter 1")).toHaveValue("-");
+		await expect(page.getByLabel("Letter 2")).toHaveValue("-");
+		await expect(page.getByLabel("Letter 3")).toHaveValue("-");
+
+		await page.getByLabel("name").fill("qwerty");
+		await page.keyboard.press("Enter");
+
+		await expect(page.getByLabel("Letter 1")).toHaveValue("q");
+		await expect(page.getByLabel("Letter 2")).toHaveValue("w");
+		await expect(page.getByLabel("Letter 3")).toHaveValue("e");
+		await expect(page.getByLabel("Letter 4")).toHaveValue("r");
+		await expect(page.getByLabel("Letter 5")).toHaveValue("t");
+		await expect(page.getByLabel("Letter 6")).toHaveValue("y");
+
+		const demo2 = `
+import gradio as gr
+
+with gr.Blocks() as demo:
+	text = gr.Textbox(label="name2")
+	name = gr.State("---")
+	text.submit(lambda x:x, text, name)
+	
+	@gr.render(inputs=name)
+	def render_name(name):
+		for i, letter in enumerate(name):
+			gr.Textbox(letter, label=f"Letter {i + 1}")
+
+if __name__ == "__main__":
+	demo.launch()	
+    `;
+		// write contents of demo to a local 'run.py' file
+		spawnSync(`echo '${demo2}' > ${join(process.cwd(), "run.py")}`, {
+			shell: true,
+			stdio: "pipe",
+			env: {
+				...process.env,
+				PYTHONUNBUFFERED: "true"
+			}
+		});
+
+		await expect(page.getByLabel("Letter 1")).toHaveValue("-");
+		await expect(page.getByLabel("Letter 2")).toHaveValue("-");
+		await expect(page.getByLabel("Letter 3")).toHaveValue("-");
+
+		await page.getByLabel("name2").fill("1234");
+		await page.keyboard.press("Enter");
+
+		await expect(page.getByLabel("Letter 1")).toHaveValue("1");
+		await expect(page.getByLabel("Letter 2")).toHaveValue("2");
+		await expect(page.getByLabel("Letter 3")).toHaveValue("3");
+		await expect(page.getByLabel("Letter 4")).toHaveValue("4");
+	} finally {
+		if (_process) kill_process(_process);
+	}
+});
