@@ -613,9 +613,15 @@ def stream_sse_v1plus(
                 helper.updates.put_nowait(status_update)
             if msg["msg"] == ServerMessage.process_completed:
                 del pending_messages_per_event[event_id]
+                if not msg.get("success", True):
+                    # Create a new copy of the error dict so we
+                    # can preserve the error message (it gets popped later)
+                    output = dict(msg["output"].items())
+                else:
+                    output = msg["output"]
                 helper.updates.put_nowait(
                     OutputUpdate(
-                        outputs=msg["output"],
+                        outputs=output,
                         final=True,
                         success=msg.get("success", True),
                     )

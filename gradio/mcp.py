@@ -185,7 +185,6 @@ class GradioMCPServer:
                 arguments: The arguments to pass to the tool.
             """
             context_request: Request | None = self.mcp_server.request_context.request
-            print("Meta", self.mcp_server.request_context.meta)
             progress_token = None
             if self.mcp_server.request_context.meta is not None:
                 progress_token = self.mcp_server.request_context.meta.progressToken
@@ -201,8 +200,6 @@ class GradioMCPServer:
             )
             if not hasattr(self, "_client_instance"):
                 # TODO: Per-request headers
-                print("self.local_url", self.local_url)
-                print("root_url", root_url)
                 self._client_instance = await run_sync(
                     self._create_client, self.local_url or root_url
                 )
@@ -275,15 +272,20 @@ class GradioMCPServer:
                     )
                     step += 1
                 elif update.type == "output" and update.final:
-                    if update.success:
-                        output = update.outputs
-                    else:
-                        # Have to raise an error so that call_tool returns an error payload
-                        raise RuntimeError(
-                            update.outputs.get("title")
-                            or update.outputs.get("error")
-                            or "Error!"
-                        )
+                    output = update.outputs
+                    if not update.success:
+                        error_title = output.get("title")
+                        error_message = output.get("error")
+                        if error_title and error_message:
+                            msg = f"{error_title}: {error_message}"
+                        elif error_message:
+                            msg = error_message
+                        elif error_title:
+                            msg = error_title
+                        else:
+                            msg = "Error!"
+                        # Need to raise an error so that call_tool returns an error payload
+                        raise RuntimeError(msg)
             processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
             return self.postprocess_output_data(output["data"], root_url)
 
