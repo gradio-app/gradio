@@ -528,6 +528,10 @@ class TestDataframe:
         )
 
         result_df = dataframe_component.preprocess(frontend_data)
+        assert isinstance(result_df, pd.DataFrame)
+        from typing import cast
+
+        result_df = cast(pd.DataFrame, result_df)
 
         assert result_df["active"].dtype == "bool", (  # type: ignore
             f"Expected bool dtype, got {result_df['active'].dtype}"
