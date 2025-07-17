@@ -38,11 +38,13 @@ class TestTextbox:
             "autofocus": False,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "info": None,
             "autoscroll": True,
             "max_length": None,
             "submit_btn": False,
             "stop_btn": False,
+            "html_attributes": None,
         }
 
     @pytest.mark.asyncio

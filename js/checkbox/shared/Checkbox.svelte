@@ -106,7 +106,7 @@
 
 	input[disabled],
 	.disabled {
-		cursor: not-allowed;
+		cursor: not-allowed !important;
 	}
 
 	input:hover {

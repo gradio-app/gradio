@@ -123,3 +123,23 @@ with gr.Blocks() as demo:
     gr.Examples(["hello", "bonjour", "merhaba"], input_textbox)
     input_textbox.render()
 ```
+
+Similarly, if you have already defined a component in a Gradio app, but wish to unrender it so that you can define in a different part of your application, then you can call the `.unrender()` method. In the following example, the `Textbox` will appear in the third column:
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        with gr.Column():
+            gr.Markdown("Row 1")
+            textbox = gr.Textbox()
+        with gr.Column():
+            gr.Markdown("Row 2")
+            textbox.unrender()
+        with gr.Column():
+            gr.Markdown("Row 3")
+            textbox.render()
+
+demo.launch()
+```

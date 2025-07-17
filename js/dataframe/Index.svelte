@@ -14,7 +14,6 @@
 	import type { Headers, Datatype, DataframeValue } from "./shared/utils";
 	import Image from "@gradio/image";
 
-	export let headers: Headers = [];
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -58,15 +57,7 @@
 	export let show_search: "none" | "search" | "filter" = "none";
 	export let pinned_columns = 0;
 	export let static_columns: (string | number)[] = [];
-
-	$: _headers = [...(value.headers || headers)];
-	$: display_value = value?.metadata?.display_value
-		? [...value?.metadata?.display_value]
-		: null;
-	$: styling =
-		!interactive && value?.metadata?.styling
-			? [...value?.metadata?.styling]
-			: null;
+	export let fullscreen = false;
 </script>
 
 <Block
@@ -78,6 +69,7 @@
 	{scale}
 	{min_width}
 	overflow_behavior="visible"
+	bind:fullscreen
 >
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
@@ -92,9 +84,10 @@
 		{row_count}
 		{col_count}
 		values={value.data}
-		{display_value}
-		{styling}
-		headers={_headers}
+		display_value={value.metadata?.display_value}
+		styling={value.metadata?.styling}
+		headers={value.headers}
+		{fullscreen}
 		on:change={(e) => {
 			value.data = e.detail.data;
 			value.headers = e.detail.headers;
@@ -102,6 +95,9 @@
 		}}
 		on:input={(e) => gradio.dispatch("input")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
+		on:fullscreen={({ detail }) => {
+			fullscreen = detail;
+		}}
 		{wrap}
 		{datatype}
 		{latex_delimiters}

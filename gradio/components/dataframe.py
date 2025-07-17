@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import warnings
 from collections.abc import Callable, Sequence
 from typing import (
@@ -19,6 +20,7 @@ from gradio_client.documentation import document
 from gradio.components.base import Component
 from gradio.data_classes import GradioModel
 from gradio.events import Events
+from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -74,13 +76,15 @@ class Dataframe(Component):
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
         col_count: int | tuple[int, str] | None = None,
-        datatype: Literal["str", "number", "bool", "date", "markdown", "html", "image"]
+        datatype: Literal[
+            "str", "number", "bool", "date", "markdown", "html", "image", "auto"
+        ]
         | Sequence[
             Literal["str", "number", "bool", "date", "markdown", "html"]
         ] = "str",
         type: Literal["pandas", "numpy", "array", "polars"] = "pandas",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
@@ -92,7 +96,8 @@ class Dataframe(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
@@ -110,7 +115,7 @@ class Dataframe(Component):
             headers: List of str header names. These are used to set the column headers of the dataframe if the value does not have headers. If None, no headers are shown.
             row_count: Limit number of rows for input and decide whether user can create new rows or delete existing rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
             col_count: Limit number of columns for input and decide whether user can create new columns or delete existing columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
-            datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown".
+            datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown". Boolean columns will display as checkboxes. If the datatype "auto" is used, the column datatypes are automatically selected based on the value input if possible.
             type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, "polars" for polars dataframe, or "array" for a Python list of lists.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html). Only applies to columns whose datatype is "markdown".
@@ -126,7 +131,8 @@ class Dataframe(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
+            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
+            preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             wrap: If True, the text in table cells will wrap when appropriate. If False and the `column_width` parameter is not set, the column widths will expand based on the cell contents and the table may need to be horizontally scrolled. If `column_width` is set, then any overflow text will be hidden.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies for columns of type "markdown."
             column_widths: An optional list representing the width of each column. The elements of the list should be in the format "100px" (ints are also accepted and converted to pixel values) or "10%". The percentage width is calculated based on the viewport width of the table. If not provided, the column widths will be automatically determined based on the content of the cells.
@@ -156,7 +162,7 @@ class Dataframe(Component):
             if headers is not None
             else [str(i) for i in (range(1, self.col_count[0] + 1))]
         )
-        self.datatype = datatype
+
         valid_types = ["pandas", "numpy", "array", "polars"]
         if type not in valid_types:
             raise ValueError(
@@ -167,6 +173,11 @@ class Dataframe(Component):
                 "Polars is not installed. Please install using `pip install polars`."
             )
         self.type = type
+
+        if datatype == "auto":
+            self.set_auto_datatype(value)
+        else:
+            self.datatype = datatype
 
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
@@ -208,6 +219,7 @@ class Dataframe(Component):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             value=value,
         )
         self._value_description = (
@@ -456,6 +468,89 @@ class Dataframe(Component):
             data=data,
             metadata=metadata,  # type: ignore
         )
+
+    def set_auto_datatype(self, value):
+        """
+        Automatically sets the datatype of each column based on the data provided. If the datatype can't be inferred, it defaults to "str".
+        """
+        import pandas as pd
+        from pandas.io.formats.style import Styler
+
+        dtype_mapping = {
+            "str": "str",
+            "object": "str",
+            "string": "str",
+            "utf": "str",
+            "int": "number",
+            "float": "number",
+            "bool": "bool",
+            "boolean": "bool",
+            "datetime": "date",
+            "date": "date",
+            "timedelta": "date",
+            "timestamp": "date",
+            "category": "str",
+            "categorical": "str",
+        }
+
+        brackets_re = re.compile(
+            r"\[.*?\]|\(.*?\)"
+        )  # Matches brackets and their contents
+        numbers_re = re.compile(r"\s*\d+\s*$")  # Matches trailing numbers and spaces
+
+        if isinstance(value, pd.DataFrame):
+            self.datatype = [
+                dtype_mapping.get(
+                    numbers_re.sub("", brackets_re.sub("", str(dtype))).lower(), "str"
+                )
+                for dtype in value.dtypes
+            ]
+
+        elif isinstance(value, Styler):
+            self.datatype = [
+                dtype_mapping.get(
+                    numbers_re.sub("", brackets_re.sub("", str(dtype))).lower(), "str"
+                )
+                for dtype in value.data.dtypes
+            ]
+
+        elif isinstance(value, np.ndarray):
+            self.datatype = [
+                dtype_mapping.get(
+                    numbers_re.sub(
+                        "", brackets_re.sub("", str(type(value[0, i]).__name__))
+                    ).lower(),
+                    "str",
+                )
+                for i in range(value.shape[1])
+            ]
+
+        elif isinstance(value, list):
+            self.datatype = [
+                dtype_mapping.get(
+                    numbers_re.sub(
+                        "", brackets_re.sub("", str(type(val).__name__))
+                    ).lower(),
+                    "str",
+                )
+                for val in value[0]
+            ]
+
+        elif _is_polars_available():
+            pl = _import_polars()
+            if isinstance(value, pl.DataFrame):
+                self.datatype = [
+                    dtype_mapping.get(
+                        numbers_re.sub("", brackets_re.sub("", str(dtype))).lower(),
+                        "str",
+                    )
+                    for dtype in value.dtypes
+                ]
+            else:
+                self.datatype = "str"
+
+        else:
+            self.datatype = "str"
 
     @staticmethod
     def __extract_metadata(

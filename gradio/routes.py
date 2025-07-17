@@ -64,6 +64,7 @@ from starlette.responses import RedirectResponse
 
 import gradio
 from gradio import ranged_response, route_utils, utils, wasm_utils
+from gradio.brotli_middleware import BrotliMiddleware
 from gradio.context import Context
 from gradio.data_classes import (
     CancelBody,
@@ -78,6 +79,7 @@ from gradio.data_classes import (
     UserProvidedPath,
 )
 from gradio.exceptions import Error, InvalidPathError
+from gradio.i18n import I18n
 from gradio.node_server import (
     start_node_server,
 )
@@ -96,6 +98,7 @@ from gradio.route_utils import (  # noqa: F401
     create_lifespan_handler,
     move_uploaded_files_to_cache,
 )
+from gradio.screen_recording_utils import process_video_with_ffmpeg
 from gradio.server_messages import (
     CloseStreamMessage,
     EstimationMessage,
@@ -116,6 +119,8 @@ from gradio.utils import (
 if TYPE_CHECKING:
     from gradio.blocks import Block
 
+import shutil
+import tempfile
 
 mimetypes.init()
 
@@ -150,6 +155,10 @@ XSS_SAFE_MIMETYPES = {
     "text/plain",
     "application/json",
 }
+
+DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
+    Path(tempfile.gettempdir()) / "gradio"
+)
 
 
 class ORJSONResponse(JSONResponse):
@@ -328,26 +337,80 @@ class App(FastAPI):
         self._asyncio_tasks = []
 
     @staticmethod
+    def setup_mcp_server(
+        blocks: gradio.Blocks,
+        app_kwargs: dict[str, Any],
+        mcp_server: bool | None = None,
+    ):
+        mcp_subpath = API_PREFIX + "/mcp"
+        if mcp_server is None:
+            mcp_server = os.environ.get("GRADIO_MCP_SERVER", "False").lower() == "true"
+        if mcp_server:
+            try:
+                import gradio.mcp
+            except ImportError as e:
+                raise ImportError(
+                    'In order to use `mcp_server=True`, you must install gradio with the `mcp` extra. Please install it with `pip install "gradio[mcp]"`'
+                ) from e
+            try:
+                blocks.mcp_server_obj = gradio.mcp.GradioMCPServer(blocks)
+                blocks.mcp_server = True
+                user_lifespan = None
+                if "lifespan" in app_kwargs:
+                    user_lifespan = app_kwargs["lifespan"]
+
+                @contextlib.asynccontextmanager
+                async def _lifespan(app: App):
+                    async with contextlib.AsyncExitStack() as stack:
+                        if blocks.mcp_server_obj:
+                            await stack.enter_async_context(
+                                blocks.mcp_server_obj.lifespan(app)
+                            )
+                        if user_lifespan is not None:
+                            await stack.enter_async_context(user_lifespan(app))
+                        yield
+
+                app_kwargs["lifespan"] = _lifespan
+            except Exception as e:
+                blocks.mcp_server = False
+                blocks.mcp_error = f"Error launching MCP server: {e}"
+
+        blocks.config = (
+            blocks.get_config_file()
+        )  # Because the config should include the fact that the MCP server is enabled
+        return mcp_subpath
+
+    @staticmethod
     def create_app(
         blocks: gradio.Blocks,
         app_kwargs: dict[str, Any] | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         strict_cors: bool = True,
         ssr_mode: bool = False,
+        mcp_server: bool | None = None,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
+        mcp_subpath = App.setup_mcp_server(blocks, app_kwargs, mcp_server)
+
         delete_cache = blocks.delete_cache or (None, None)
         app_kwargs["lifespan"] = create_lifespan_handler(
             app_kwargs.get("lifespan", None), *delete_cache
         )
         app = App(auth_dependency=auth_dependency, **app_kwargs, debug=True)
+        if blocks.mcp_server_obj:
+            blocks.mcp_server_obj.launch_mcp_on_sse(app, mcp_subpath, blocks.root_path)
         router = APIRouter(prefix=API_PREFIX)
 
         app.configure_app(blocks)
 
         if not wasm_utils.IS_WASM:
             app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
+            app.add_middleware(
+                BrotliMiddleware,
+                quality=4,
+                excluded_handlers=[mcp_subpath],
+            )
 
         if ssr_mode:
 
@@ -402,7 +465,11 @@ class App(FastAPI):
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 return
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={
+                    "error": "Not authenticated",
+                    "auth_message": blocks.auth_message,
+                },
             )
 
         @router.get("/token")
@@ -613,7 +680,11 @@ class App(FastAPI):
                 config["current_page"] = page
             elif app.auth_dependency:
                 raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail={
+                        "error": "Not authenticated",
+                        "auth_message": blocks.auth_message,
+                    },
                 )
             else:
                 config = {
@@ -801,6 +872,10 @@ class App(FastAPI):
                 components, deep_link_state = load_deep_link(deep_link, config, page="")  # type: ignore
                 config["components"] = components  # type: ignore
                 config["deep_link_state"] = deep_link_state
+            if hasattr(blocks, "i18n_instance") and blocks.i18n_instance:
+                config["i18n_translations"] = blocks.i18n_instance.translations_dict
+            else:
+                config["i18n_translations"] = None
             return ORJSONResponse(content=config)
 
         @app.get("/static/{path:path}")
@@ -916,8 +991,13 @@ class App(FastAPI):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             abs_path = utils.abspath(path_or_url)
-            if abs_path.is_dir() or not abs_path.exists():
-                raise HTTPException(403, f"File not allowed: {path_or_url}.")
+            # Catch potential permission errors to not display the full traceback
+            # see https://github.com/gradio-app/gradio/issues/11194
+            try:
+                if abs_path.is_dir() or not abs_path.exists():
+                    raise HTTPException(403, f"File not allowed: {path_or_url}.")
+            except Exception as e:
+                raise HTTPException(403, f"File not allowed: {path_or_url}.") from e
 
             from gradio.data_classes import _StaticFiles
 
@@ -1013,6 +1093,10 @@ class App(FastAPI):
             for segment in stream.segments:
                 playlist += f"#EXTINF:{segment['duration']:.3f},\n"
                 playlist += f"{segment['id']}{segment['extension']}\n"  # type: ignore
+                # HLS expects the start time of the video segments to be continuous
+                # Instead of re-encoding the user video chunks, we add a discontinuity tag
+                if segment["extension"] == ".ts":
+                    playlist += "#EXT-X-DISCONTINUITY\n"
 
             if stream.ended:
                 playlist += "#EXT-X-ENDLIST\n"
@@ -1342,7 +1426,6 @@ class App(FastAPI):
                         ):
                             raise HTTPException(
                                 status_code=status.HTTP_404_NOT_FOUND,
-                                detail="Session not found.",
                             )
 
                         heartbeat_rate = 15
@@ -1398,6 +1481,7 @@ class App(FastAPI):
                 except BaseException as e:
                     message = UnexpectedErrorMessage(
                         message=str(e),
+                        session_not_found=isinstance(e, HTTPException),
                     )
                     response = process_msg(message)
                     if isinstance(e, asyncio.CancelledError):
@@ -1748,7 +1832,9 @@ class App(FastAPI):
                     from gradio.monitoring_dashboard import data
                     from gradio.monitoring_dashboard import demo as dashboard
 
-                    mount_gradio_app(app, dashboard, path=analytics_url)
+                    mount_gradio_app(
+                        app, dashboard, path=analytics_url, mcp_server=False
+                    )
                     dashboard._queue.start()
                     analytics = app.get_blocks()._queue.event_analytics
                     data["data"] = analytics
@@ -1759,8 +1845,105 @@ class App(FastAPI):
             else:
                 raise HTTPException(status_code=403, detail="Invalid key.")
 
-        app.include_router(router)
+        @router.post("/process_recording", dependencies=[Depends(login_check)])
+        async def process_recording(
+            request: fastapi.Request,
+        ):
+            try:
+                content_type_header = request.headers.get("Content-Type")
+                content_type: bytes
+                content_type, _ = parse_options_header(content_type_header or "")
+                if content_type != b"multipart/form-data":
+                    raise HTTPException(status_code=400, detail="Invalid content type.")
 
+                app = request.app
+                max_file_size = (
+                    app.get_blocks().max_file_size
+                    if hasattr(app, "get_blocks")
+                    else None
+                )
+                max_file_size = max_file_size if max_file_size is not None else math.inf
+
+                multipart_parser = GradioMultiPartParser(
+                    request.headers,
+                    request.stream(),
+                    max_files=1,
+                    max_fields=10,
+                    max_file_size=max_file_size,
+                )
+                form = await multipart_parser.parse()
+            except MultiPartException as exc:
+                code = 413 if "maximum allowed size" in exc.message else 400
+                return PlainTextResponse(exc.message, status_code=code)
+
+            video_files = form.getlist("video")
+            if not video_files or not isinstance(video_files[0], GradioUploadFile):
+                raise HTTPException(status_code=400, detail="No video file provided")
+
+            video_file = video_files[0]
+
+            params = {}
+            if (
+                form.get("remove_segment_start") is not None
+                and form.get("remove_segment_end") is not None
+            ):
+                params["remove_segment_start"] = form.get("remove_segment_start")
+                params["remove_segment_end"] = form.get("remove_segment_end")
+
+            zoom_effects_json = form.get("zoom_effects")
+            if zoom_effects_json:
+                try:
+                    params["zoom_effects"] = json.loads(str(zoom_effects_json))
+                except json.JSONDecodeError:
+                    params["zoom_effects"] = []
+
+            with tempfile.NamedTemporaryFile(
+                delete=False, suffix=".mp4", dir=DEFAULT_TEMP_DIR
+            ) as input_file:
+                video_file.file.seek(0)
+                shutil.copyfileobj(video_file.file, input_file)
+                input_path = input_file.name
+
+            if wasm_utils.IS_WASM or shutil.which("ffmpeg") is None:
+                return FileResponse(
+                    input_path,
+                    media_type="video/mp4",
+                    filename="gradio-screen-recording.mp4",
+                    background=BackgroundTask(lambda: cleanup_files([input_path])),
+                )
+
+            output_path = tempfile.mkstemp(
+                suffix="_processed.mp4", dir=DEFAULT_TEMP_DIR
+            )[1]
+
+            try:
+                processed_path, temp_files = await process_video_with_ffmpeg(
+                    input_path, output_path, params
+                )
+
+                return FileResponse(
+                    processed_path,
+                    media_type="video/mp4",
+                    filename="gradio-screen-recording.mp4",
+                    background=BackgroundTask(lambda: cleanup_files(temp_files)),
+                )
+            except Exception:
+                return FileResponse(
+                    input_path,
+                    media_type="video/mp4",
+                    filename="gradio-screen-recording.mp4",
+                    background=BackgroundTask(lambda: cleanup_files([input_path])),
+                )
+
+        def cleanup_files(files):
+            for file in files:
+                try:
+                    if file and os.path.exists(file):
+                        os.unlink(file)
+                except Exception as e:
+                    print(f"Error cleaning up file {file}: {str(e)}")
+
+        app.include_router(router)
         return app
 
 
@@ -1825,6 +2008,8 @@ def mount_gradio_app(
     node_port: int | None = None,
     enable_monitoring: bool | None = None,
     pwa: bool | None = None,
+    i18n: I18n | None = None,
+    mcp_server: bool | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -1847,7 +2032,9 @@ def mount_gradio_app(
         show_api: If False, hides the "Use via API" button on the Gradio interface.
         ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         node_server_name: The name of the Node server to use for SSR. If None, will use GRADIO_NODE_SERVER_NAME environment variable or search for a node binary in the system.
+        i18n: If provided, the i18n instance to use for this gradio app.
         node_port: The port on which the Node server should run. If None, will use GRADIO_NODE_SERVER_PORT environment variable or find a free port.
+        mcp_server: If True, the MCP server will be launched on the gradio app. If None, will use GRADIO_MCP_SERVER environment variable or default to False.
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -1877,7 +2064,8 @@ def mount_gradio_app(
     blocks.enable_monitoring = enable_monitoring
     if pwa is not None:
         blocks.pwa = pwa
-
+    if i18n is not None:
+        blocks.i18n_instance = i18n
     if auth is not None and auth_dependency is not None:
         raise ValueError(
             "You cannot provide both `auth` and `auth_dependency` in mount_gradio_app(). Please choose one."
@@ -1935,6 +2123,7 @@ def mount_gradio_app(
         app_kwargs=app_kwargs,
         auth_dependency=auth_dependency,
         ssr_mode=blocks.ssr_mode,
+        mcp_server=mcp_server,
     )
     old_lifespan = app.router.lifespan_context
 

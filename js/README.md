@@ -102,7 +102,9 @@ Currently the following checks are run in CI:
 
 ```
 pip install -r demo/outbreak_forecast/requirements.txt
-pnpm exec playwright install chromium
-pnpm exec playwright install-deps chromium
+pip install -r demo/stream_video_out/requirements.txt
+pnpm exec playwright install chromium firefox
+pnpm exec playwright install-deps chromium firefox
+pnpm --filter @gradio/utils --filter @gradio/theme package
 pnpm test:browser:full
 ```

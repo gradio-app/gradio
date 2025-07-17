@@ -136,8 +136,8 @@ for (const msg_format of ["tuples", "messages"]) {
 			.first()
 			.getByRole("paragraph")
 			.textContent();
-		await expect(user_message).toEqual(
-			'This is <strong>bold text</strong>. This is <em>italic text</em>. This is a <a href="https://gradio.app" target="_blank" rel="noopener noreferrer">link</a>.'
+		await expect(user_message).toContain(
+			'This is <strong>bold text</strong>. This is <em>italic text</em>. This is a <a href="https://gradio.app"'
 		);
 		await expect(bot_message).toBeTruthy();
 	});
@@ -197,11 +197,11 @@ for (const msg_format of ["tuples", "messages"]) {
 		const textbox = await page.getByTestId("textbox");
 		await textbox.fill("This is LaTeX $$x^2$$");
 		await page.keyboard.press("Enter");
-		const user_message = await page
-			.getByTestId("user")
-			.first()
-			.getByRole("paragraph")
-			.innerHTML();
+		const userElement = page.getByTestId("user").first().getByRole("paragraph");
+
+		await userElement.locator(".katex-display").waitFor({ state: "visible" });
+
+		const user_message = await userElement.innerHTML();
 		const bot_message = await page
 			.getByTestId("bot")
 			.first()

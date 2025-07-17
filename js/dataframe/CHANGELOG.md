@@ -1,5 +1,139 @@
 # @gradio/dataframe
 
+## 0.18.3
+
+### Fixes
+
+- [#11534](https://github.com/gradio-app/gradio/pull/11534) [`5259f22`](https://github.com/gradio-app/gradio/commit/5259f229939177cc2027db5164c9321566fb3eeb) - Allow changing value with single click instead of double click.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/client@1.15.6
+- @gradio/statustracker@0.10.15
+- @gradio/button@0.5.7
+- @gradio/upload@0.16.11
+- @gradio/checkbox@0.4.26
+
+## 0.18.2
+
+### Fixes
+
+- [#11496](https://github.com/gradio-app/gradio/pull/11496) [`ee0da48`](https://github.com/gradio-app/gradio/commit/ee0da481446da5ffd79151a457cd3847db645bfb) - Prevent deletion of values in static columns.  Thanks @hannahblair!
+
+## 0.18.1
+
+### Fixes
+
+- [#11436](https://github.com/gradio-app/gradio/pull/11436) [`f49b8da`](https://github.com/gradio-app/gradio/commit/f49b8da1c062dbd81acb8e7fdcdc9a09a272d02f) - Multi-Line DataFrame Editing.  Thanks @deckar01!
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+- @gradio/statustracker@0.10.14
+- @gradio/upload@0.16.10
+- @gradio/client@1.15.5
+- @gradio/markdown-code@0.5.0
+- @gradio/button@0.5.6
+- @gradio/checkbox@0.4.25
+
+## 0.18.0
+
+### Features
+
+- [#11392](https://github.com/gradio-app/gradio/pull/11392) [`dc760a6`](https://github.com/gradio-app/gradio/commit/dc760a6dd7d3375f99913059803a826cdf0f7102) - Add column-specific filtering to `gr.Dataframe`.  Thanks @tiago-gsantos!
+
+### Fixes
+
+- [#11407](https://github.com/gradio-app/gradio/pull/11407) [`f3f9590`](https://github.com/gradio-app/gradio/commit/f3f9590d539b9e6fe3937a1bdc48006ee174fb8f) - Fix Styled DataFrame Sorting.  Thanks @deckar01!
+
+### Dependency updates
+
+- @gradio/upload@0.16.9
+- @gradio/client@1.15.4
+- @gradio/button@0.5.5
+
+## 0.17.17
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/markdown-code@0.4.4
+- @gradio/atoms@0.16.2
+- @gradio/client@1.15.3
+- @gradio/upload@0.16.8
+- @gradio/checkbox@0.4.24
+- @gradio/button@0.5.4
+
+## 0.17.16
+
+### Fixes
+
+- [#11349](https://github.com/gradio-app/gradio/pull/11349) [`bed858b`](https://github.com/gradio-app/gradio/commit/bed858b62b9887e606618bea5fe8a2f212b4a645) - Fix DataFrame Scroll Divergence.  Thanks @deckar01!
+- [#11346](https://github.com/gradio-app/gradio/pull/11346) [`3a9a002`](https://github.com/gradio-app/gradio/commit/3a9a0025efd49942303517c5dbd426d41241b7f6) - Hide native Dataframe to screen readers.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/markdown-code@0.4.3
+- @gradio/statustracker@0.10.12
+- @gradio/button@0.5.3
+- @gradio/checkbox@0.4.23
+
+## 0.17.15
+
+### Features
+
+- [#11237](https://github.com/gradio-app/gradio/pull/11237) [`a6f6b40`](https://github.com/gradio-app/gradio/commit/a6f6b40dda5194fa5bc9926ef67f2a75f503e9a4) - Enhance boolean cell types in `gr.Dataframe`.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/upload@0.16.7
+- @gradio/checkbox@0.4.23
+- @gradio/client@1.15.2
+- @gradio/button@0.5.3
+
+## 0.17.14
+
+### Fixes
+
+- [#11282](https://github.com/gradio-app/gradio/pull/11282) [`9a6a6f5`](https://github.com/gradio-app/gradio/commit/9a6a6f524e8e9784144d45ea7b6327a1a7b3593c) - Fix DataFrame Group Flicker.  Thanks @deckar01!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/markdown-code@0.4.3
+- @gradio/button@0.5.2
+
+## 0.17.13
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/client@1.15.1
+- @gradio/button@0.5.1
+- @gradio/upload@0.16.6
+
+## 0.17.12
+
+### Features
+
+- [#11177](https://github.com/gradio-app/gradio/pull/11177) [`3068196`](https://github.com/gradio-app/gradio/commit/3068196d47234fd1c1634f33b9ddfc089f5cbbe0) - Improved, smoother fullscreen mode for components.  Thanks @aliabid94!
+
+### Fixes
+
+- [#11221](https://github.com/gradio-app/gradio/pull/11221) [`5f3e84d`](https://github.com/gradio-app/gradio/commit/5f3e84d870572b2851a5243be341d7aab4e166c1) - Ensure Clear sort works as expected.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.11
+- @gradio/atoms@0.16.1
+- @gradio/client@1.15.0
+- @gradio/upload@0.16.5
+- @gradio/button@0.5.0
+
 ## 0.17.11
 
 ### Dependency updates

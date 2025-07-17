@@ -34,7 +34,7 @@ with gr.Blocks(css=".container { max-width: 800px; margin: auto; }") as demo:
         gallery = gr.Gallery(
             label="Generated images",
             show_label=False,
-            columns=(1, 3),
+            columns=1,
             height="auto",
         )
     btn.click(img, inputs=text, outputs=gallery)

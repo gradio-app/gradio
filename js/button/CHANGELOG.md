@@ -1,5 +1,71 @@
 # @gradio/button
 
+## 0.5.7
+
+### Dependency updates
+
+- @gradio/client@1.15.6
+- @gradio/upload@0.16.11
+- @gradio/image@0.22.13
+
+## 0.5.6
+
+### Dependency updates
+
+- @gradio/upload@0.16.10
+- @gradio/client@1.15.5
+- @gradio/image@0.22.12
+
+## 0.5.5
+
+### Dependency updates
+
+- @gradio/upload@0.16.9
+- @gradio/client@1.15.4
+- @gradio/image@0.22.11
+
+## 0.5.4
+
+### Dependency updates
+
+- @gradio/client@1.15.3
+- @gradio/upload@0.16.8
+- @gradio/image@0.22.10
+
+## 0.5.3
+
+### Dependency updates
+
+- @gradio/upload@0.16.7
+- @gradio/client@1.15.2
+- @gradio/image@0.22.9
+
+## 0.5.2
+
+### Dependency updates
+
+- @gradio/image@0.22.8
+
+## 0.5.1
+
+### Dependency updates
+
+- @gradio/client@1.15.1
+- @gradio/upload@0.16.6
+- @gradio/image@0.22.7
+
+## 0.5.0
+
+### Features
+
+- [#11047](https://github.com/gradio-app/gradio/pull/11047) [`6d4b8a7`](https://github.com/gradio-app/gradio/commit/6d4b8a7f10daefc9c79aa224635da23fbaeebb76) - Implement custom i18n.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/client@1.15.0
+- @gradio/upload@0.16.5
+- @gradio/image@0.22.6
+
 ## 0.4.18
 
 ### Dependency updates

@@ -1,5 +1,82 @@
 # @gradio/imageslider
 
+## 0.2.9
+
+### Dependency updates
+
+- @gradio/client@1.15.6
+- @gradio/statustracker@0.10.15
+- @gradio/upload@0.16.11
+
+## 0.2.8
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+- @gradio/statustracker@0.10.14
+- @gradio/upload@0.16.10
+- @gradio/client@1.15.5
+
+## 0.2.7
+
+### Dependency updates
+
+- @gradio/upload@0.16.9
+- @gradio/client@1.15.4
+
+## 0.2.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/atoms@0.16.2
+- @gradio/client@1.15.3
+- @gradio/upload@0.16.8
+
+## 0.2.5
+
+### Fixes
+
+- [#11381](https://github.com/gradio-app/gradio/pull/11381) [`0e6fae0`](https://github.com/gradio-app/gradio/commit/0e6fae015069b6b4c44523642abfbbfced394ab2) - Fix transparent bg issue in gr.ImageSlider.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.2.4
+
+### Dependency updates
+
+- @gradio/upload@0.16.7
+- @gradio/client@1.15.2
+
+## 0.2.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.2.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/client@1.15.1
+- @gradio/upload@0.16.6
+
+## 0.2.2
+
+### Features
+
+- [#11177](https://github.com/gradio-app/gradio/pull/11177) [`3068196`](https://github.com/gradio-app/gradio/commit/3068196d47234fd1c1634f33b9ddfc089f5cbbe0) - Improved, smoother fullscreen mode for components.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.11
+- @gradio/atoms@0.16.1
+- @gradio/client@1.15.0
+- @gradio/upload@0.16.5
+
 ## 0.2.1
 
 ### Dependency updates

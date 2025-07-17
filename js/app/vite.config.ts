@@ -3,7 +3,6 @@ import { defineConfig } from "vite";
 
 // @ts-ignore
 import custom_media from "postcss-custom-media";
-import global_data from "@csstools/postcss-global-data";
 // @ts-ignore
 import prefixer from "postcss-prefix-selector";
 import { cpSync, readFileSync, writeFileSync } from "fs";
@@ -29,7 +28,7 @@ const version = version_raw.replace(/\./g, "-");
 const GRADIO_VERSION = version_raw || "asd_stub_asd";
 const CDN_BASE = "https://gradio.s3-us-west-2.amazonaws.com";
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, isSsrBuild }) => {
 	const production = mode === "production";
 	const development = mode === "development";
 	return {
@@ -54,9 +53,11 @@ export default defineConfig(({ mode }) => {
 					"./svelte/svelte.js"
 				]
 			},
-			minify: false
+			minify: true,
+			sourcemap: true
 		},
 		define: {
+			BROWSER_BUILD: JSON.stringify(isSsrBuild),
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
 			BACKEND_URL: production
 				? JSON.stringify("")

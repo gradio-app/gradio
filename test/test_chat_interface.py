@@ -416,6 +416,21 @@ class TestExampleMessages:
         with connect(chat) as client:
             assert "/double" in client.view_api(return_format="dict")["named_endpoints"]
 
+    def test_chat_interface_api_names_with_additional_inputs(self, connect):
+        def response(message, history, random_number: int):
+            return str(random_number)
+
+        chat = gr.ChatInterface(
+            response, additional_inputs=[gr.Textbox(label="Random number")]
+        )
+        with connect(chat) as client:
+            endpoints = client.view_api(return_format="dict")["named_endpoints"]
+            assert "/chat" in endpoints
+            assert any(
+                p["parameter_name"] == "random_number"
+                for p in endpoints["/chat"]["parameters"]
+            )
+
     def test_example_icons_set_if_multimodal_false(self):
         demo = gr.ChatInterface(
             fn=double,

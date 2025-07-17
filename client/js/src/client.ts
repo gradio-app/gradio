@@ -34,10 +34,13 @@ import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import {
 	API_INFO_ERROR_MSG,
+	APP_ID_URL,
 	CONFIG_ERROR_MSG,
 	HEARTBEAT_URL,
 	COMPONENT_SERVER_URL
 } from "./constants";
+
+declare const BROWSER_BUILD: boolean;
 
 export class Client {
 	app_reference: string;
@@ -65,7 +68,7 @@ export class Client {
 	abort_controller: AbortController | null = null;
 	stream_instance: EventSource | null = null;
 	current_payload: any;
-	ws_map: Record<string, WebSocket | "failed"> = {};
+	ws_map: Record<string, WebSocket | "pending" | "failed" | "closed"> = {};
 
 	get_url_config(url: string | null = null): Config {
 		if (!this.config) {
@@ -214,8 +217,10 @@ export class Client {
 			(typeof window === "undefined" || !("WebSocket" in window)) &&
 			!global.WebSocket
 		) {
-			const ws = await import("ws");
-			global.WebSocket = ws.WebSocket as unknown as typeof WebSocket;
+			if (!BROWSER_BUILD) {
+				const ws = await import("ws");
+				global.WebSocket = ws.WebSocket as unknown as typeof WebSocket;
+			}
 		}
 
 		if (this.options.auth) {
@@ -223,14 +228,14 @@ export class Client {
 		}
 
 		await this._resolve_config().then(({ config }) =>
-			this._resolve_hearbeat(config)
+			this._resolve_heartbeat(config)
 		);
 
 		this.api_info = await this.view_api();
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
 	}
 
-	async _resolve_hearbeat(_config: Config): Promise<void> {
+	async _resolve_heartbeat(_config: Config): Promise<void> {
 		if (_config) {
 			this.config = _config;
 			this.api_prefix = _config.api_prefix || "";
@@ -275,8 +280,31 @@ export class Client {
 		}
 	): Promise<Client> {
 		const client = new this(app_reference, options); // this refers to the class itself, not the instance
+		if (options.session_hash) {
+			client.session_hash = options.session_hash;
+		}
 		await client.init();
 		return client;
+	}
+
+	async reconnect(): Promise<"connected" | "broken" | "changed"> {
+		const app_id_url = new URL(
+			`${this.config!.root}${this.api_prefix}/${APP_ID_URL}`
+		);
+		let app_id: string;
+		try {
+			const response = await this.fetch(app_id_url);
+			if (!response.ok) {
+				throw new Error();
+			}
+			app_id = ((await response.json()) as any).app_id;
+		} catch (e) {
+			return "broken";
+		}
+		if (app_id !== this.config!.app_id) {
+			return "changed";
+		}
+		return "connected";
 	}
 
 	close(): void {
@@ -346,12 +374,6 @@ export class Client {
 	): Promise<Config | client_return> {
 		this.config = _config;
 		this.api_prefix = _config.api_prefix || "";
-
-		if (typeof window !== "undefined" && typeof document !== "undefined") {
-			if (window.location.protocol === "https:") {
-				this.config.root = this.config.root.replace("http://", "https://");
-			}
-		}
 
 		if (this.config.auth_required) {
 			return this.prepare_return_obj();
@@ -503,7 +525,9 @@ export class Client {
 				return;
 			}
 
+			this.ws_map[url] = "pending";
 			ws.onopen = () => {
+				this.ws_map[url] = ws;
 				resolve();
 			};
 
@@ -515,12 +539,10 @@ export class Client {
 			};
 
 			ws.onclose = () => {
-				delete this.ws_map[url];
-				this.ws_map[url] = "failed";
+				this.ws_map[url] = "closed";
 			};
 
 			ws.onmessage = (event) => {};
-			this.ws_map[url] = ws;
 		});
 	}
 
@@ -528,6 +550,12 @@ export class Client {
 		// connect if not connected
 		if (!(url in this.ws_map)) {
 			await this.connect_ws(url);
+		} else if (
+			this.ws_map[url] === "pending" ||
+			this.ws_map[url] === "closed" ||
+			this.ws_map[url] === "failed"
+		) {
+			return;
 		}
 		const ws = this.ws_map[url];
 		if (ws instanceof WebSocket) {

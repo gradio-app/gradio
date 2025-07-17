@@ -112,7 +112,7 @@
 				/>
 			{/if}
 		</div>
-	{:else if playable()}
+	{:else if value?.url}
 		{#key value?.url}
 			<Player
 				{upload}
@@ -126,6 +126,7 @@
 				on:pause
 				on:stop
 				on:end
+				on:error
 				mirror={webcam_options.mirror && active_source === "webcam"}
 				{label}
 				{handle_change}

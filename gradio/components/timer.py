@@ -65,3 +65,7 @@ class Timer(Component):
 
     def example_value(self):
         return 1
+
+    def breaks_grouping(self) -> bool:
+        """Timer components should not break wrapper grouping chains."""
+        return False

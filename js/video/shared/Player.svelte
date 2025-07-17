@@ -113,6 +113,7 @@
 			on:click={play_pause}
 			on:play
 			on:pause
+			on:error
 			on:ended={handle_end}
 			bind:currentTime={time}
 			bind:duration

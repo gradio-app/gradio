@@ -11,6 +11,7 @@ import inspect
 import os
 import warnings
 from collections.abc import AsyncGenerator, Callable, Generator, Sequence
+from functools import wraps
 from pathlib import Path
 from typing import Any, Literal, Union, cast
 
@@ -45,8 +46,8 @@ from gradio.events import Dependency, EditData, SelectData
 from gradio.flagging import ChatCSVLogger
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
+from gradio.i18n import I18nData
 from gradio.layouts import Accordion, Column, Group, Row
-from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
 
 
@@ -88,7 +89,7 @@ class ChatInterface(Blocks):
         run_examples_on_click: bool = True,
         cache_examples: bool | None = None,
         cache_mode: Literal["eager", "lazy"] | None = None,
-        title: str | None = None,
+        title: str | I18nData | None = None,
         description: str | None = None,
         theme: Theme | str | None = None,
         flagging_mode: Literal["never", "manual"] | None = None,
@@ -110,6 +111,8 @@ class ChatInterface(Blocks):
         fill_height: bool = True,
         fill_width: bool = False,
         api_name: str | Literal[False] = "chat",
+        api_description: str | None | Literal[False] = None,
+        show_api: bool = True,
         save_history: bool = False,
     ):
         """
@@ -126,7 +129,7 @@ class ChatInterface(Blocks):
             examples: sample inputs for the function; if provided, appear within the chatbot and can be clicked to populate the chatbot input. Should be a list of strings representing text-only examples, or a list of dictionaries (with keys `text` and `files`) representing multimodal examples. If `additional_inputs` are provided, the examples must be a list of lists, where the first element of each inner list is the string or dictionary example message and the remaining elements are the example values for the additional inputs -- in this case, the examples will appear under the chatbot.
             example_labels: labels for the examples, to be displayed instead of the examples themselves. If provided, should be a list of strings with the same length as the examples list. Only applies when examples are displayed within the chatbot (i.e. when `additional_inputs` is not provided).
             example_icons: icons for the examples, to be displayed above the examples. If provided, should be a list of string URLs or local paths with the same length as the examples list. Only applies when examples are displayed within the chatbot (i.e. when `additional_inputs` is not provided).
-            cache_examples: if True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
+            cache_examples: if True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.  Note that examples are cached separately from Gradio's queue() so certain features, such as gr.Progress(), gr.Info(), gr.Warning(), etc. will not be displayed in Gradio's UI for cached examples.
             cache_mode: if "eager", all examples are cached at app launch. If "lazy", examples are cached for all users after the first use by any user of the app. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager".
             run_examples_on_click: if True, clicking on an example will run the example through the chatbot fn and the response will be displayed in the chatbot. If False, clicking on an example will only populate the chatbot input with the example message. Has no effect if `cache_examples` is True
             title: a title for the interface; if provided, appears above chatbot in large font. Also used as the tab title when opened in a browser window.
@@ -150,7 +153,9 @@ class ChatInterface(Blocks):
             show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
             fill_height: if True, the chat interface will expand to the height of window.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
-            api_name: the name of the API endpoint to use for the chat interface. Defaults to "chat". Set to False to disable the API endpoint.
+            api_name: defines how the chat endpoint appears in the API docs. Can be a string or False. If set to a string, the chat endpoint will be exposed in the API docs with the given name. If False, the chat endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to call this chat endpoint.
+            api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
+            show_api: whether to show the chat endpoint in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
             save_history: if True, will save the chat history to the browser's local storage and display previous conversations in a side panel.
         """
         super().__init__(
@@ -167,7 +172,9 @@ class ChatInterface(Blocks):
             fill_width=fill_width,
             delete_cache=delete_cache,
         )
-        self.api_name = api_name
+        self.api_name: str | Literal[False] = api_name
+        self.api_description: str | None | Literal[False] = api_description
+        self.show_api = show_api
         self.type = type
         self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
@@ -522,10 +529,38 @@ class ChatInterface(Blocks):
             ),
         )
 
+    def _api_wrapper(self, fn, submit_fn):
+        """Wrap the submit_fn in a way that preserves the signature of the original function.
+        That way, the API page shows the same parameters as the original function.
+        """
+        # Need two separate functions here because a `return`
+        # statement can't be placed in an async generator function.
+        # using different names because otherwise type checking complains
+        if self.is_generator:
+
+            @wraps(fn)
+            async def _wrapper(*args, **kwargs):
+                async for chunk in submit_fn(*args, **kwargs):
+                    yield chunk
+
+            return _wrapper
+        else:
+
+            @wraps(fn)
+            async def __wrapper(*args, **kwargs):
+                return await submit_fn(*args, **kwargs)
+
+            return __wrapper
+
     def _setup_events(self) -> None:
         from gradio import on
 
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
+
+        submit_wrapped = self._api_wrapper(self.fn, submit_fn)
+        # To not conflict with the api_name
+        submit_wrapped.__name__ = "_submit_fn"
+        api_fn = self._api_wrapper(self.fn, submit_fn)
 
         synchronize_chat_state_kwargs = {
             "fn": lambda x: (x, x),
@@ -535,7 +570,7 @@ class ChatInterface(Blocks):
             "queue": False,
         }
         submit_fn_kwargs = {
-            "fn": submit_fn,
+            "fn": submit_wrapped,
             "inputs": [self.saved_input, self.chatbot_state] + self.additional_inputs,
             "outputs": [self.null_component, self.chatbot] + self.additional_outputs,
             "show_api": False,
@@ -584,10 +619,12 @@ class ChatInterface(Blocks):
 
         # Creates the "/chat" API endpoint
         self.fake_api_btn.click(
-            submit_fn,
+            api_fn,
             [self.textbox, self.chatbot_state] + self.additional_inputs,
             [self.api_response, self.chatbot_state] + self.additional_outputs,
-            api_name=cast(Union[str, Literal[False]], self.api_name),
+            api_name=self.api_name,
+            api_description=self.api_description,
+            show_api=self.show_api,
             concurrency_limit=cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
             ),
@@ -879,12 +916,9 @@ class ChatInterface(Blocks):
         self,
         message: str | MultimodalPostprocess,
         history: TupleFormat | list[MessageDict],
-        request: Request,
         *args,
     ) -> tuple:
-        inputs, _, _ = special_args(
-            self.fn, inputs=[message, history, *args], request=request
-        )
+        inputs = [message, history] + list(args)
         if self.is_async:
             response = await self.fn(*inputs)
         else:
@@ -905,15 +939,12 @@ class ChatInterface(Blocks):
         self,
         message: str | MultimodalPostprocess,
         history: TupleFormat | list[MessageDict],
-        request: Request,
         *args,
     ) -> AsyncGenerator[
         tuple,
         None,
     ]:
-        inputs, _, _ = special_args(
-            self.fn, inputs=[message, history, *args], request=request
-        )
+        inputs = [message, history] + list(args)
         if self.is_async:
             generator = self.fn(*inputs)
         else:

@@ -28,9 +28,9 @@
 
 	function update_hue_from_mouse(x: number): void {
 		if (!hue_rect) return;
-		const _x = clamp(x - hue_rect.left, 0, hue_rect.width); // Get the x-coordinate relative to the box
+		const _x = clamp(x - hue_rect.left, 0, hue_rect.width); // get the x-coordinate relative to the box
 		hue_marker_pos = _x;
-		const _hue = (_x / hue_rect.width) * 360; // Scale the x position to a hue value (0-360)
+		const _hue = (_x / hue_rect.width) * 360; // scale the x position to a hue value (0-360)
 
 		hue = _hue;
 

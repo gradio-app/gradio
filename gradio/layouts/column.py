@@ -39,6 +39,8 @@ class Column(BlockContext, metaclass=ComponentMeta):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         show_progress: bool = False,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = None,
     ):
         """
         Parameters:
@@ -50,6 +52,8 @@ class Column(BlockContext, metaclass=ComponentMeta):
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             show_progress: If True, shows progress animation when being updated.
+            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
+            preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
         """
         if scale != round(scale):
             warnings.warn(
@@ -68,4 +72,6 @@ class Column(BlockContext, metaclass=ComponentMeta):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
+            key=key,
+            preserved_by_key=preserved_by_key,
         )

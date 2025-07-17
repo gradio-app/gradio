@@ -43,6 +43,7 @@ class TestFile:
             "proxy_url": None,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "height": None,
             "type": "filepath",
             "allow_reordering": False,

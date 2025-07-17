@@ -1,5 +1,39 @@
 # @gradio/atoms
 
+## 0.16.3
+
+### Dependency updates
+
+- @gradio/markdown-code@0.5.0
+
+## 0.16.2
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/markdown-code@0.4.4
+
+## 0.16.1
+
+### Dependency updates
+
+- @gradio/markdown-code@0.4.3
+
+## 0.16.1
+
+### Dependency updates
+
+- @gradio/markdown-code@0.4.3
+
+## 0.16.1
+
+### Features
+
+- [#11177](https://github.com/gradio-app/gradio/pull/11177) [`3068196`](https://github.com/gradio-app/gradio/commit/3068196d47234fd1c1634f33b9ddfc089f5cbbe0) - Improved, smoother fullscreen mode for components.  Thanks @aliabid94!
+
 ## 0.16.0
 
 ### Features

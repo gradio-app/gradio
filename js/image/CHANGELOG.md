@@ -1,5 +1,82 @@
 # @gradio/image
 
+## 0.22.13
+
+### Dependency updates
+
+- @gradio/client@1.15.6
+- @gradio/statustracker@0.10.15
+- @gradio/upload@0.16.11
+
+## 0.22.12
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+- @gradio/statustracker@0.10.14
+- @gradio/upload@0.16.10
+- @gradio/client@1.15.5
+
+## 0.22.11
+
+### Dependency updates
+
+- @gradio/upload@0.16.9
+- @gradio/client@1.15.4
+
+## 0.22.10
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/atoms@0.16.2
+- @gradio/client@1.15.3
+- @gradio/upload@0.16.8
+
+## 0.22.9
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.22.9
+
+### Dependency updates
+
+- @gradio/upload@0.16.7
+- @gradio/client@1.15.2
+
+## 0.22.8
+
+### Fixes
+
+- [#11304](https://github.com/gradio-app/gradio/pull/11304) [`bdbc210`](https://github.com/gradio-app/gradio/commit/bdbc210dbf09555b3bd8f647c6f19621771b5771) - Fix custom components build and dev mode with certain base components (Image and Audio at least).  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.22.7
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/client@1.15.1
+- @gradio/upload@0.16.6
+
+## 0.22.6
+
+### Features
+
+- [#11177](https://github.com/gradio-app/gradio/pull/11177) [`3068196`](https://github.com/gradio-app/gradio/commit/3068196d47234fd1c1634f33b9ddfc089f5cbbe0) - Improved, smoother fullscreen mode for components.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.11
+- @gradio/atoms@0.16.1
+- @gradio/client@1.15.0
+- @gradio/upload@0.16.5
+
 ## 0.22.5
 
 ### Fixes

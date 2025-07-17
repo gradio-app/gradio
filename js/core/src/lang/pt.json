@@ -74,7 +74,9 @@
 		"sort_ascending": "Ordenar por ordem crescente",
 		"sort_descending": "Ordenar por ordem decrescente",
 		"drop_to_upload": "Solte ficheiros CSV ou TSV aqui para importar dados para o dataframe",
-		"clear_sort": "Limpar ordenação"
+		"clear_sort": "Limpar ordenação",
+		"filter": "Filtrar",
+		"clear_filter": "Limpar filtros"
 	},
 	"dropdown": {
 		"dropdown": "Lista suspensa"
@@ -87,7 +89,8 @@
 		"runtime_error": "Há um erro de execução",
 		"space_not_working": "\"O Space não está a funcionar porque\" {0}",
 		"space_paused": "O Space está em pausa",
-		"use_via_api": "Utilizar via API"
+		"use_via_api": "Usar via API",
+		"use_via_api_or_mcp": "Usar via API ou MCP"
 	},
 	"file": {
 		"uploading": "A carregar..."

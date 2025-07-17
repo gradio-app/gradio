@@ -1,5 +1,119 @@
 # @self/spa
 
+## 0.10.1
+
+### Features
+
+- [#11543](https://github.com/gradio-app/gradio/pull/11543) [`ac95ac0`](https://github.com/gradio-app/gradio/commit/ac95ac0d8c2e65d1632376e632fb7d16131334b6) - Connection handling messaging.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/core@0.23.0
+- @gradio/client@1.15.6
+
+## 0.10.0
+
+### Features
+
+- [#11572](https://github.com/gradio-app/gradio/pull/11572) [`552a5eb`](https://github.com/gradio-app/gradio/commit/552a5ebf9beb5d543f82a24a546daaf9ad3d88b1) - handle i18n error when browsers aren't set to en.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/core@0.22.0
+
+## 0.9.1
+
+### Features
+
+- [#11539](https://github.com/gradio-app/gradio/pull/11539) [`6b6d95b`](https://github.com/gradio-app/gradio/commit/6b6d95b6409f9136233ba1d4f55a1cab9e040070) - Update @huggingface/space-header to 1.0.4.  Thanks @aayush4vedi!
+
+## 0.9.0
+
+### Features
+
+- [#11427](https://github.com/gradio-app/gradio/pull/11427) [`6b2bcd0`](https://github.com/gradio-app/gradio/commit/6b2bcd097ae5ef999a7fb273ecf7c7e4c0eab305) - Improve load times of the Gradio front-end.  Thanks @pngwn!
+- [#11511](https://github.com/gradio-app/gradio/pull/11511) [`1a99336`](https://github.com/gradio-app/gradio/commit/1a99336043076e7b0a4c4b07f97082f0361882f4) - Fix SSR.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/client@1.15.5
+- @gradio/core@0.21.0
+
+## 0.8.5
+
+### Fixes
+
+- [#11421](https://github.com/gradio-app/gradio/pull/11421) [`c2acf6e`](https://github.com/gradio-app/gradio/commit/c2acf6e33025fe7bbfe0660c182006651cc95090) - Preserve value in reload mode.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/client@1.15.4
+- @gradio/core@0.20.0
+
+## 0.8.4
+
+### Dependency updates
+
+- @gradio/core@0.19.3
+
+## 0.8.4
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/client@1.15.3
+- @gradio/core@0.19.3
+
+## 0.8.3
+
+### Fixes
+
+- [#11379](https://github.com/gradio-app/gradio/pull/11379) [`546008c`](https://github.com/gradio-app/gradio/commit/546008c9c3e460e736da3feae0027b2b7b583e1e) - Fixes hardcoded HTTP protocol in dev reload.  Thanks @mtojek!
+
+### Dependency updates
+
+- @gradio/core@0.19.2
+
+## 0.8.2
+
+### Fixes
+
+- [#11338](https://github.com/gradio-app/gradio/pull/11338) [`b31c3ed`](https://github.com/gradio-app/gradio/commit/b31c3edef97373b96f188072d5bb16db9d690261) - Fix Reload Mode when using gr.render.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@1.15.2
+- @gradio/core@0.19.1
+
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/core@0.19.0
+
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/client@1.15.1
+- @gradio/core@0.18.1
+
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/core@0.18.0
+
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/client@1.15.0
+- @gradio/core@0.17.0
+
 ## 0.8.1
 
 ### Dependency updates

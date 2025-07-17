@@ -1,5 +1,87 @@
 # @gradio/audio
 
+## 0.17.21
+
+### Dependency updates
+
+- @gradio/client@1.15.6
+- @gradio/statustracker@0.10.15
+- @gradio/button@0.5.7
+- @gradio/upload@0.16.11
+
+## 0.17.20
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+- @gradio/statustracker@0.10.14
+- @gradio/upload@0.16.10
+- @gradio/client@1.15.5
+- @gradio/button@0.5.6
+
+## 0.17.19
+
+### Dependency updates
+
+- @gradio/upload@0.16.9
+- @gradio/client@1.15.4
+- @gradio/button@0.5.5
+
+## 0.17.18
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/atoms@0.16.2
+- @gradio/client@1.15.3
+- @gradio/upload@0.16.8
+- @gradio/button@0.5.4
+
+## 0.17.17
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/button@0.5.3
+
+## 0.17.17
+
+### Dependency updates
+
+- @gradio/upload@0.16.7
+- @gradio/client@1.15.2
+- @gradio/button@0.5.3
+
+## 0.17.16
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/button@0.5.2
+
+## 0.17.15
+
+### Fixes
+
+- [#11272](https://github.com/gradio-app/gradio/pull/11272) [`8177b01`](https://github.com/gradio-app/gradio/commit/8177b014e5539aa1011a74856d065dbb17fa0326) - Fix bug where streaming one chunk of audio or video would not play.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/client@1.15.1
+- @gradio/button@0.5.1
+- @gradio/upload@0.16.6
+
+## 0.17.14
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.11
+- @gradio/atoms@0.16.1
+- @gradio/client@1.15.0
+- @gradio/upload@0.16.5
+- @gradio/button@0.5.0
+
 ## 0.17.13
 
 ### Dependency updates

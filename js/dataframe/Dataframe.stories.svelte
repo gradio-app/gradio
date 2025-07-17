@@ -60,11 +60,12 @@
 	name="Interactive dataframe with label"
 	args={{
 		values: [
-			["Cat", 5],
-			["Horse", 3],
-			["Snake", 1]
+			["Cat", 5, true],
+			["Horse", 3, false],
+			["Snake", 1, false]
 		],
-		headers: ["Animal", "Votes"],
+		headers: ["Animal", "Votes", "Is Pet"],
+		datatype: ["str", "number", "bool"],
 		label: "Animals",
 		show_label: true,
 		col_count: [2, "dynamic"],
@@ -93,14 +94,14 @@
 	name="Static dataframe"
 	args={{
 		values: [
-			["Cat", 5],
-			["Horse", 3],
-			["Snake", 1]
+			["Cat", 5, true],
+			["Horse", 3, false],
+			["Snake", 1, false]
 		],
-		headers: ["Animal", "Votes"],
-
+		headers: ["Animal", "Votes", "Is Pet"],
+		datatype: ["str", "number", "bool"],
 		label: "Animals",
-		col_count: [2, "dynamic"],
+		col_count: [3, "dynamic"],
 		row_count: [3, "dynamic"],
 		editable: false
 	}}
@@ -110,12 +111,11 @@
 		const canvas = within(canvasElement);
 		const cells = canvas.getAllByRole("cell");
 		const initial_value = cells[0].textContent;
-
 		await userEvent.click(cells[0]);
 		await userEvent.keyboard("new value");
 
 		const final_value = cells[0].textContent;
-		if (initial_value !== final_value) {
+		if (initial_value?.trim() !== final_value?.trim()) {
 			throw new Error("Cell content changed when it should be non-editable");
 		}
 
@@ -364,7 +364,7 @@
 		await userEvent.click(copy_button);
 
 		const fullscreen_button = canvas.getByRole("button", {
-			name: "Enter fullscreen"
+			name: "Fullscreen"
 		});
 		await userEvent.click(fullscreen_button);
 

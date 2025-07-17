@@ -31,7 +31,6 @@
 	export let line_breaks: boolean;
 	export let upload: Client["upload"];
 	export let target: HTMLElement | null;
-	export let root: string;
 	export let theme_mode: "light" | "dark" | "system";
 	export let _components: Record<string, ComponentType<SvelteComponent>>;
 	export let i: number;
@@ -204,7 +203,6 @@
 									{upload}
 									{thought_index}
 									{target}
-									{root}
 									{theme_mode}
 									{_fetch}
 									{scroll}
@@ -224,7 +222,6 @@
 									{upload}
 									{thought_index}
 									{target}
-									{root}
 									{theme_mode}
 									{_fetch}
 									{scroll}
@@ -301,6 +298,12 @@
 
 	.component.gallery {
 		border: none;
+	}
+
+	.bot:has(.model3D),
+	.user:has(.model3D) {
+		border: none;
+		max-width: 75%;
 	}
 
 	.message-row :not(.avatar-container) :global(img) {

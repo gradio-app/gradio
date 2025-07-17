@@ -1,5 +1,80 @@
 # @gradio/dataset
 
+## 0.4.27
+
+### Dependency updates
+
+- @gradio/client@1.15.6
+- @gradio/upload@0.16.11
+- @gradio/textbox@0.10.17
+
+## 0.4.26
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+- @gradio/upload@0.16.10
+- @gradio/client@1.15.5
+- @gradio/textbox@0.10.16
+
+## 0.4.25
+
+### Dependency updates
+
+- @gradio/upload@0.16.9
+- @gradio/client@1.15.4
+
+## 0.4.24
+
+### Dependency updates
+
+- @gradio/atoms@0.16.2
+- @gradio/client@1.15.3
+- @gradio/upload@0.16.8
+- @gradio/textbox@0.10.15
+
+## 0.4.23
+
+### Dependency updates
+
+- @gradio/textbox@0.10.14
+
+## 0.4.22
+
+### Dependency updates
+
+- @gradio/upload@0.16.7
+- @gradio/client@1.15.2
+
+## 0.4.21
+
+### Dependency updates
+
+- @gradio/textbox@0.10.13
+
+## 0.4.20
+
+### Dependency updates
+
+- @gradio/client@1.15.1
+- @gradio/upload@0.16.6
+- @gradio/textbox@0.10.12
+
+## 0.4.19
+
+### Dependency updates
+
+- @gradio/atoms@0.16.1
+- @gradio/client@1.15.0
+- @gradio/upload@0.16.5
+- @gradio/textbox@0.10.11
+
+## 0.4.18
+
+### Fixes
+
+- [#11181](https://github.com/gradio-app/gradio/pull/11181) [`ee7f17e`](https://github.com/gradio-app/gradio/commit/ee7f17e25642bc4b86f2272b3b5cfcf77c08adf1) - Fix the `.select()` event in `gr.Dataset` in table layout.  Thanks @abidlabs!
+
 ## 0.4.17
 
 ### Dependency updates

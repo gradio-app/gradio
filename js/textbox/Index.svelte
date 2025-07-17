@@ -11,6 +11,7 @@
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
+	import type { InputHTMLAttributes } from "./shared/types";
 
 	export let gradio: Gradio<{
 		change: string;
@@ -47,8 +48,8 @@
 	export let autofocus = false;
 	export let autoscroll = true;
 	export let interactive: boolean;
-	export let root: string;
 	export let max_length: number | undefined = undefined;
+	export let html_attributes: InputHTMLAttributes | null = null;
 </script>
 
 <Block
@@ -74,7 +75,6 @@
 		bind:value_is_output
 		{label}
 		{info}
-		{root}
 		{show_label}
 		{lines}
 		{type}
@@ -89,6 +89,7 @@
 		{container}
 		{autoscroll}
 		{max_length}
+		{html_attributes}
 		on:change={() => gradio.dispatch("change", value)}
 		on:input={() => gradio.dispatch("input")}
 		on:submit={() => gradio.dispatch("submit")}

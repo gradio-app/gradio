@@ -1,5 +1,98 @@
 # @gradio/multimodaltextbox
 
+## 0.10.13
+
+### Dependency updates
+
+- @gradio/video@0.14.21
+- @gradio/client@1.15.6
+- @gradio/statustracker@0.10.15
+- @gradio/upload@0.16.11
+- @gradio/image@0.22.13
+
+## 0.10.12
+
+### Fixes
+
+- [#11537](https://github.com/gradio-app/gradio/pull/11537) [`8eb253b`](https://github.com/gradio-app/gradio/commit/8eb253be32a01c0c67911d7a7a3762c52a76a87b) - fix html attribute spreading bug and pin `httpx`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+- @gradio/statustracker@0.10.14
+- @gradio/upload@0.16.10
+- @gradio/video@0.14.20
+- @gradio/client@1.15.5
+- @gradio/image@0.22.12
+
+## 0.10.11
+
+### Dependency updates
+
+- @gradio/upload@0.16.9
+- @gradio/video@0.14.19
+- @gradio/client@1.15.4
+- @gradio/image@0.22.11
+
+## 0.10.10
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/video@0.14.18
+- @gradio/atoms@0.16.2
+- @gradio/client@1.15.3
+- @gradio/upload@0.16.8
+- @gradio/image@0.22.10
+
+## 0.10.9
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.10.9
+
+### Dependency updates
+
+- @gradio/upload@0.16.7
+- @gradio/video@0.14.17
+- @gradio/client@1.15.2
+- @gradio/image@0.22.9
+
+## 0.10.8
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/video@0.14.16
+- @gradio/image@0.22.8
+
+## 0.10.7
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/client@1.15.1
+- @gradio/upload@0.16.6
+- @gradio/image@0.22.7
+- @gradio/video@0.14.15
+
+## 0.10.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.11
+- @gradio/atoms@0.16.1
+- @gradio/client@1.15.0
+- @gradio/upload@0.16.5
+- @gradio/image@0.22.6
+- @gradio/video@0.14.14
+
 ## 0.10.5
 
 ### Dependency updates

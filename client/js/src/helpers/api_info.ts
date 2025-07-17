@@ -245,6 +245,7 @@ export function handle_message(
 		| "none"
 		| "heartbeat"
 		| "streaming"
+		| "broken_connection"
 		| "unexpected_error";
 	data?: any;
 	status?: Status;
@@ -274,6 +275,17 @@ export function handle_message(
 		case "unexpected_error":
 			return {
 				type: "unexpected_error",
+				status: {
+					queue,
+					message: data.message,
+					session_not_found: data.session_not_found,
+					stage: "error",
+					success: false
+				}
+			};
+		case "broken_connection":
+			return {
+				type: "broken_connection",
 				status: {
 					queue,
 					message: data.message,
@@ -419,7 +431,11 @@ export const map_data_to_params = (
 	const parameters = endpoint_info ? endpoint_info.parameters : [];
 
 	if (Array.isArray(data)) {
-		if (data.length > parameters.length) {
+		if (
+			endpoint_info &&
+			parameters.length > 0 &&
+			data.length > parameters.length
+		) {
 			console.warn("Too many arguments provided for the endpoint.");
 		}
 		return data;

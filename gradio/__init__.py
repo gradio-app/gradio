@@ -44,6 +44,7 @@ from gradio.components import (
     Image,
     ImageEditor,
     ImageSlider,
+    InputHTMLAttributes,
     Json,
     Label,
     LinePlot,
@@ -84,7 +85,7 @@ from gradio.events import (
     on,
 )
 from gradio.exceptions import Error
-from gradio.external import load, load_chat
+from gradio.external import load, load_chat, load_openapi
 from gradio.flagging import (
     CSVLogger,
     FlaggingCallback,
@@ -92,10 +93,12 @@ from gradio.flagging import (
 )
 from gradio.helpers import Info, Progress, Success, Warning, skip, update
 from gradio.helpers import create_examples as Examples  # noqa: N812
+from gradio.i18n import I18n
 from gradio.interface import Interface, TabbedInterface, close_all
 from gradio.layouts import Accordion, Column, Group, Row, Sidebar, Tab, TabItem, Tabs
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.renderable import render
+from gradio.route_utils import Header
 from gradio.routes import Request, mount_gradio_app
 from gradio.templates import (
     Files,
@@ -141,6 +144,7 @@ __all__ = [
     "Code",
     "ColorPicker",
     "Column",
+    "Component",
     "CopyData",
     "DataFrame",
     "Dataframe",
@@ -165,6 +169,7 @@ __all__ = [
     "FlaggingCallback",
     "Gallery",
     "Group",
+    "Header",
     "HTML",
     "Highlight",
     "HighlightedText",
@@ -175,6 +180,7 @@ __all__ = [
     "ImageSlider",
     "ImageMask",
     "Info",
+    "InputHTMLAttributes",
     "Interface",
     "JSON",
     "Json",
@@ -233,9 +239,11 @@ __all__ = [
     "close_all",
     "deploy",
     "get_package_version",
+    "I18n",
     "load",
     "load_chat",
     "load_ipython_extension",
+    "load_openapi",
     "mount_gradio_app",
     "on",
     "render",

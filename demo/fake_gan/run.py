@@ -22,7 +22,7 @@ def fake_gan():
 with gr.Blocks() as demo:
     gallery = gr.Gallery(
         label="Generated images", show_label=False, elem_id="gallery"
-    , columns=[3], rows=[1], object_fit="contain", height="auto")
+    , columns=1, object_fit="contain", height="auto")
     btn = gr.Button("Generate images", scale=0)
 
     btn.click(fake_gan, None, gallery)

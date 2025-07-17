@@ -63,5 +63,5 @@
 	}}
 	upload={(...args) => gradio.client.upload(...args)}
 >
-	{label ? gradio.i18n(label) : ""}
+	{label ?? ""}
 </UploadButton>

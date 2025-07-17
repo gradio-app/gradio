@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { join } from "path";
 import { build } from "vite";
-import { plugins, make_gradio_plugin } from "./plugins";
+import { plugins, make_gradio_plugin, deepmerge_plugin } from "./plugins";
 import type { PreRenderedChunk } from "rollup";
 import { examine_module } from "./index";
 
@@ -70,7 +70,8 @@ export async function make_build({
 						configFile: false,
 						plugins: [
 							...plugins(component_config),
-							make_gradio_plugin({ mode: "build", svelte_dir })
+							make_gradio_plugin({ mode: "build", svelte_dir }),
+							deepmerge_plugin
 						],
 						resolve: {
 							conditions: ["gradio"]

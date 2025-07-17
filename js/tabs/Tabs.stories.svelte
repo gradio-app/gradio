@@ -52,3 +52,53 @@
 </Template>
 
 <Story name="Tabs" args={{}} />
+
+<Story name="TabsLastInvisible" args={{}}>
+	<Tabs selected="tab-1" gradio={undefined}>
+		<TabItem
+			order={0}
+			id="tab-1"
+			label="This is visible tab 1"
+			gradio={undefined}
+			visible
+			interactive
+			scale={0}
+		></TabItem>
+		<TabItem
+			order={1}
+			id="tab-2"
+			label="This is visible tab 2"
+			gradio={undefined}
+			visible
+			interactive
+			scale={0}
+		></TabItem>
+		<TabItem
+			order={2}
+			id="tab-3"
+			label="This is visible tab 3"
+			gradio={undefined}
+			visible
+			interactive
+			scale={0}
+		></TabItem>
+		<TabItem
+			order={3}
+			id="tab-4"
+			label="This is invisible tab 4"
+			gradio={undefined}
+			visible={false}
+			interactive
+			scale={0}
+		></TabItem>
+		<TabItem
+			order={4}
+			id="tab-5"
+			label="This is invisible tab 5"
+			gradio={undefined}
+			visible={false}
+			interactive
+			scale={0}
+		></TabItem>
+	</Tabs>
+</Story>

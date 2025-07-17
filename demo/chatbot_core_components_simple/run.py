@@ -1,7 +1,7 @@
 import gradio as gr
 import random
 
-# Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support for streaming text.
+# Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, video, & model3d). Plus shows support for streaming text.
 
 color_map = {
     "harmful": "crimson",
@@ -52,6 +52,10 @@ def bot(history, response_type):
         history[-1][1] = gr.HTML(
             html_src(random.choice(["harmful", "neutral", "beneficial"]))
         )
+    elif response_type == "model3d":
+        history[-1][1] = gr.Model3D(
+           "https://github.com/gradio-app/gradio/raw/main/test/test_files/Fox.gltf"
+        )
     else:
         history[-1][1] = "Cool!"
     return history
@@ -70,6 +74,7 @@ with gr.Blocks(fill_height=True) as demo:
             "video",
             "audio",
             "html",
+            "model3d",
         ],
         value="text",
         label="Response Type",

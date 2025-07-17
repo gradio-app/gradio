@@ -29,6 +29,7 @@ class TestJSON:
             "_selectable": False,
             "open": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "show_indices": False,
             "max_height": 500,
             "min_height": None,

@@ -1,5 +1,39 @@
 # gradio_client
 
+## 1.11.0
+
+### Features
+
+- [#11567](https://github.com/gradio-app/gradio/pull/11567) [`150ed18`](https://github.com/gradio-app/gradio/commit/150ed18b856e34d5a96a9e17bd5ad510e11872a6) - Stream Progress Updates to MCP clients.  Thanks @freddyaboulton!
+
+## 1.10.4
+
+### Fixes
+
+- [#11041](https://github.com/gradio-app/gradio/pull/11041) [`474aa30`](https://github.com/gradio-app/gradio/commit/474aa30979c14793e00852ad2f4ef6c12a41b900) - Attach cookies to client after first request (to support multiple-replica setups with cookie-based affinity).  Thanks @abidlabs!
+
+## 1.10.3
+
+### Fixes
+
+- [#11347](https://github.com/gradio-app/gradio/pull/11347) [`fdce3a0`](https://github.com/gradio-app/gradio/commit/fdce3a094fe1278ae83fe2f8b134b4c268506cfe) - Fix `gr.api()` to support more types, including optional params.  Thanks @abidlabs!
+
+## 1.10.2
+
+### Fixes
+
+- [#11215](https://github.com/gradio-app/gradio/pull/11215) [`2186ae3`](https://github.com/gradio-app/gradio/commit/2186ae3f4d6f8ac83883c359aed88a5b72746b5d) - Allow httpx_kwargs to contain cookies.  Thanks @santibreo!
+
+## 1.10.1
+
+### Features
+
+- [#11185](https://github.com/gradio-app/gradio/pull/11185) [`e64b83b`](https://github.com/gradio-app/gradio/commit/e64b83bf42a813d9269e519189523f8390a72ec4) - Evaluate index variable in argument description.  Thanks @emmanuel-ferdman!
+
+### Fixes
+
+- [#11172](https://github.com/gradio-app/gradio/pull/11172) [`b618571`](https://github.com/gradio-app/gradio/commit/b618571ed17a8cece4bf9f1f55ed2e8bf7b59c46) - Fix python client SSE decoding issue.  Thanks @freddyaboulton!
+
 ## 1.10.0
 
 ### Features

@@ -69,6 +69,10 @@
 		"language": "Language",
 		"display_theme": "Display Theme",
 		"pwa": "Progressive Web App",
+		"record": "Record",
+		"stop_recording": "Stop Recording",
+		"screen_studio": "Screen Studio",
+		"share_gradio_tab": "[Sharing] Gradio Tab",
 		"run": "Run"
 	},
 	"dataframe": {
@@ -85,7 +89,9 @@
 		"sort_ascending": "Sort ascending",
 		"sort_descending": "Sort descending",
 		"drop_to_upload": "Drop CSV or TSV files here to import data into dataframe",
-		"clear_sort": "Clear sort"
+		"clear_sort": "Clear sort",
+		"filter": "Filter",
+		"clear_filter": "Clear filters"
 	},
 	"dropdown": {
 		"dropdown": "Dropdown"
@@ -98,7 +104,8 @@
 		"runtime_error": "there is a runtime error",
 		"space_not_working": "\"Space isn't working because\" {0}",
 		"space_paused": "the space is paused",
-		"use_via_api": "Use via API"
+		"use_via_api": "Use via API",
+		"use_via_api_or_mcp": "Use via API or MCP"
 	},
 	"file": {
 		"uploading": "Uploading..."

@@ -442,3 +442,27 @@ async def test_async_private_request_fail():
         await processing_utils.async_ssrf_protected_download(
             "http://192.168.1.250.nip.io/image.png", tempdir.name
         )
+
+
+class TestAudioFormatDetection:
+    @pytest.mark.parametrize(
+        "file_path,expected",
+        [
+            ("test/test_files/audio_sample.wav", ".wav"),
+            ("gradio/test_data/test_audio.mp3", ".mp3"),
+        ],
+    )
+    def test_detect_audio_format_files(self, file_path, expected):
+        with open(file_path, "rb") as f:
+            assert processing_utils.detect_audio_format(f.read()) == expected
+
+    @pytest.mark.parametrize(
+        "data,expected",
+        [
+            (b"\x00\x00\x00\x00\x00\x00\x00\x00", ""),  # Unknown format
+            (b"\xff\xff", ""),  # Too short
+            (b"", ""),  # Empty
+        ],
+    )
+    def test_detect_audio_format_edge_cases(self, data, expected):
+        assert processing_utils.detect_audio_format(data) == expected

@@ -97,7 +97,8 @@
 		"runtime_error": "Er is een runtime-fout",
 		"space_not_working": "\"Space werkt niet omdat\" {0}",
 		"space_paused": "De Space is gepauzeerd",
-		"use_via_api": "Gebruik via API"
+		"use_via_api": "Gebruik via API",
+		"use_via_api_or_mcp": "Gebruik via API of MCP"
 	},
 	"file": {
 		"uploading": "Uploaden..."

@@ -299,6 +299,10 @@ def _create_frontend(
         str(Path(__file__).parent / "files" / "gradio.config.js"),
         frontend / "gradio.config.js",
     )
+    shutil.copy(
+        str(Path(__file__).parent / "files" / "tsconfig.json"),
+        frontend / "tsconfig.json",
+    )
 
 
 def _replace_old_class_name(old_class_name: str, new_class_name: str, content: str):

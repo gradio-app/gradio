@@ -23,9 +23,16 @@ export function create_drag_handlers(
 	parent_element?: HTMLElement
 ): DragHandlers {
 	const start_drag = (event: MouseEvent, row: number, col: number): void => {
+		const target = event.target as HTMLElement;
+		const is_checkbox_click =
+			(target as HTMLInputElement).type === "checkbox" ||
+			target.closest('input[type="checkbox"]') ||
+			target.closest(".bool-cell");
+
 		if (
 			event.target instanceof HTMLAnchorElement ||
-			(show_row_numbers && col === -1)
+			(show_row_numbers && col === -1) ||
+			is_checkbox_click
 		)
 			return;
 
@@ -74,6 +81,11 @@ export function create_drag_handlers(
 
 		handle_mouse_move(event: MouseEvent): void {
 			if (!state.drag_start || !state.mouse_down_pos) return;
+
+			if (!(event.buttons & 1)) {
+				end_drag(event);
+				return;
+			}
 
 			const dx = Math.abs(event.clientX - state.mouse_down_pos.x);
 			const dy = Math.abs(event.clientY - state.mouse_down_pos.y);

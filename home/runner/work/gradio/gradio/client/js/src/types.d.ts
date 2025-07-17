@@ -132,6 +132,7 @@ export interface Config {
     api_prefix?: string;
     fill_height?: boolean;
     fill_width?: boolean;
+    current_page: string;
 }
 export interface ComponentMeta {
     type: string;

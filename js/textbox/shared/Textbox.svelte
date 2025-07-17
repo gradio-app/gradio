@@ -9,6 +9,7 @@
 	import { Copy, Check, Send, Square } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData, CopyData } from "@gradio/utils";
+	import type { InputHTMLAttributes } from "./types";
 
 	export let value = "";
 	export let value_is_output = false;
@@ -29,7 +30,7 @@
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autoscroll = true;
 	export let max_length: number | undefined = undefined;
-	export let root: string;
+	export let html_attributes: InputHTMLAttributes | null = null;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -67,7 +68,13 @@
 	}>();
 
 	beforeUpdate(() => {
-		can_scroll = el && el.offsetHeight + el.scrollTop > el.scrollHeight - 100;
+		if (
+			!user_has_scrolled_up &&
+			el &&
+			el.offsetHeight + el.scrollTop > el.scrollHeight - 100
+		) {
+			can_scroll = true;
+		}
 	});
 
 	const scroll = (): void => {
@@ -190,6 +197,25 @@
 		}
 
 		target.style.height = `${scroll_height}px`;
+
+		update_scrollbar_visibility(target);
+	}
+
+	function update_scrollbar_visibility(textarea: HTMLTextAreaElement): void {
+		// Using "auto" scroll does not work, as the scrollbar is visible even
+		// when the content is about the same height as the textarea height. So
+		// here, we add the scrollbar if the content is longer than a threshold
+		// of 1 line height beyond the textarea height.
+		const content_height = textarea.scrollHeight;
+		const visible_height = textarea.clientHeight;
+		const line_height = parseFloat(
+			window.getComputedStyle(textarea).lineHeight
+		);
+		if (content_height > visible_height + line_height) {
+			textarea.style.overflowY = "scroll";
+		} else {
+			textarea.style.overflowY = "hidden";
+		}
 	}
 
 	function text_area_resize(
@@ -228,7 +254,7 @@
 			>
 		{/if}
 	{/if}
-	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="input-container">
 		{#if lines === 1 && _max_lines === 1}
@@ -249,6 +275,13 @@
 					on:select={handle_select}
 					on:focus
 					style={text_align ? "text-align: " + text_align : ""}
+					autocapitalize={html_attributes?.autocapitalize}
+					autocorrect={html_attributes?.autocorrect}
+					spellcheck={html_attributes?.spellcheck}
+					autocomplete={html_attributes?.autocomplete}
+					tabindex={html_attributes?.tabindex}
+					enterkeyhint={html_attributes?.enterkeyhint}
+					lang={html_attributes?.lang}
 				/>
 			{:else if type === "password"}
 				<input
@@ -266,6 +299,12 @@
 					on:select={handle_select}
 					on:focus
 					autocomplete=""
+					autocapitalize={html_attributes?.autocapitalize}
+					autocorrect={html_attributes?.autocorrect}
+					spellcheck={html_attributes?.spellcheck}
+					tabindex={html_attributes?.tabindex}
+					enterkeyhint={html_attributes?.enterkeyhint}
+					lang={html_attributes?.lang}
 				/>
 			{:else if type === "email"}
 				<input
@@ -283,13 +322,18 @@
 					on:select={handle_select}
 					on:focus
 					autocomplete="email"
+					autocapitalize={html_attributes?.autocapitalize}
+					autocorrect={html_attributes?.autocorrect}
+					spellcheck={html_attributes?.spellcheck}
+					tabindex={html_attributes?.tabindex}
+					enterkeyhint={html_attributes?.enterkeyhint}
+					lang={html_attributes?.lang}
 				/>
 			{/if}
 		{:else}
 			<textarea
 				data-testid="textbox"
 				use:text_area_resize={value}
-				class="scroll-hide"
 				dir={rtl ? "rtl" : "ltr"}
 				class:no-label={!show_label && (submit_btn || stop_btn)}
 				bind:value
@@ -305,6 +349,13 @@
 				on:focus
 				on:scroll={handle_scroll}
 				style={text_align ? "text-align: " + text_align : ""}
+				autocapitalize={html_attributes?.autocapitalize}
+				autocorrect={html_attributes?.autocorrect}
+				spellcheck={html_attributes?.spellcheck}
+				autocomplete={html_attributes?.autocomplete}
+				tabindex={html_attributes?.tabindex}
+				enterkeyhint={html_attributes?.enterkeyhint}
+				lang={html_attributes?.lang}
 			/>
 		{/if}
 		{#if submit_btn}

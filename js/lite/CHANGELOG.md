@@ -1,5 +1,84 @@
 # @gradio/lite
 
+## 5.38.0
+
+### Dependency updates
+
+- @gradio/core@0.23.0
+
+## 5.37.0
+
+### Dependency updates
+
+- @gradio/core@0.22.0
+
+## 5.36.0
+
+### Features
+
+- [#11157](https://github.com/gradio-app/gradio/pull/11157) [`c207de9`](https://github.com/gradio-app/gradio/commit/c207de96f8ae2ce6c74026ff696c7fa4cf3a87c7) - Build the Gradio wheel for Lite before packaging.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+- @gradio/core@0.21.0
+
+## 5.35.0
+
+### Dependency updates
+
+- @gradio/core@0.20.0
+
+## 5.34.2
+
+### Dependency updates
+
+- @gradio/core@0.19.3
+
+## 5.34.1
+
+### Dependency updates
+
+- @gradio/atoms@0.16.2
+- @gradio/core@0.19.3
+
+## 5.33.2
+
+### Dependency updates
+
+- @gradio/core@0.19.2
+
+## 5.33.1
+
+### Dependency updates
+
+- @gradio/core@0.19.1
+
+## 5.33.0
+
+### Dependency updates
+
+- @gradio/core@0.19.0
+
+## 5.32.0
+
+### Dependency updates
+
+- @gradio/core@0.18.1
+
+## 5.31.0
+
+### Dependency updates
+
+- @gradio/core@0.18.0
+
+## 5.30.0
+
+### Dependency updates
+
+- @gradio/atoms@0.16.1
+- @gradio/core@0.17.0
+
 ## 5.29.0
 
 ### Dependency updates

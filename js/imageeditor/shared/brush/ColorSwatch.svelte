@@ -21,7 +21,6 @@
 
 	$: _colors = show_empty ? colors : colors.filter((c) => c);
 
-	// Helper function to extract color from either a color input or a tuple
 	function get_color(color_input: ColorInput | ColorTuple): string {
 		if (Array.isArray(color_input)) {
 			return color_input[0] as string;
@@ -29,7 +28,6 @@
 		return color_input as string;
 	}
 
-	// Helper function to extract opacity from a tuple or return undefined
 	function get_opacity(
 		color_input: ColorInput | ColorTuple
 	): number | undefined {
@@ -37,7 +35,6 @@
 			return color_input[1];
 		}
 
-		// For string colors, check if there's opacity in the color itself
 		const color = tinycolor(color_input);
 		return color.getAlpha();
 	}

@@ -4,7 +4,7 @@ import os
 import plotly.express as px
 import random
 
-# Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support for streaming text.
+# Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, video, & model3d). Plus shows support for streaming text.
 
 txt = """
 Absolutely! The mycorrhizal network, often referred to as the "Wood Wide Web," is a symbiotic association between fungi and the roots of most plant species. Here’s a deeper dive into how it works and its implications:
@@ -189,10 +189,14 @@ def bot(history, response_type):
         content = {"path": os.path.join("files", "world.mp4"), "alt_text": "description"}
     elif response_type == "txt_file":
         content = {"path": os.path.join("files", "sample.txt"), "alt_text": "description"}
+    elif response_type == "model3d_file":
+        content = {"path": os.path.join("files", "Duck.glb"), "alt_text": "description"}
     elif response_type == "html":
         content = gr.HTML(
             html_src(random.choice(["harmful", "neutral", "beneficial"]))
         )
+    elif response_type == "model3d":
+        content = gr.Model3D(os.path.join("files", "Duck.glb"))
     else:
         content = txt
     msg["content"] = content # type: ignore
@@ -219,6 +223,7 @@ with gr.Blocks(fill_height=True) as demo:
             "image_file",
             "video_file",
             "txt_file",
+            "model3d_file",
             "plot",
             "matplotlib_plot",
             "bokeh_plot",
@@ -229,6 +234,7 @@ with gr.Blocks(fill_height=True) as demo:
             "video",
             "audio",
             "html",
+            "model3d",
         ],
         value="text",
         label="Response Type",

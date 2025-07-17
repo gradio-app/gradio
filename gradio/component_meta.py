@@ -8,6 +8,7 @@ from pathlib import Path
 
 from jinja2 import Template
 
+from gradio import wasm_utils
 from gradio.events import EventListener
 from gradio.exceptions import ComponentDefinitionError
 from gradio.utils import no_raise_exception
@@ -41,6 +42,8 @@ INTERFACE_TEMPLATE = '''
         concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
         show_api: bool = True,
+        key: int | str | tuple[int | str, ...] | None = None,
+        api_description: str | None | Literal[False] = None,
     {% for arg in event.event_specific_args %}
         {{ arg.name }}: {{ arg.type }},
     {% endfor %}
@@ -66,6 +69,8 @@ INTERFACE_TEMPLATE = '''
             concurrency_limit: if set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
             concurrency_id: if set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
             show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
+            key: A unique key for this event listener to be used in @gr.render(). If set, this value identifies an event as identical across re-renders when the key is identical.
+            api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
         {% for arg in event.event_specific_args %}
             {{ arg.name }}: {{ arg.doc }},
         {% endfor %}
@@ -133,17 +138,18 @@ def create_or_modify_pyi(
         )
         with no_raise_exception():
             pyi_file.write_text("\n".join(lines))
-    current_interface, _ = extract_class_source_code(pyi_file.read_text(), class_name)
-    if not current_interface:
-        with no_raise_exception():
+    with no_raise_exception():
+        current_interface, _ = extract_class_source_code(
+            pyi_file.read_text(), class_name
+        )
+        if not current_interface:
             with open(str(pyi_file), mode="a") as f:
                 f.write(new_interface)
-    else:
-        contents = pyi_file.read_text()
-        contents = contents.replace(current_interface, new_interface.strip())
-        current_contents = pyi_file.read_text()
-        if current_contents != contents:
-            with no_raise_exception():
+        else:
+            contents = pyi_file.read_text()
+            contents = contents.replace(current_interface, new_interface.strip())
+            current_contents = pyi_file.read_text()
+            if current_contents != contents:
                 pyi_file.write_text(contents)
 
 
@@ -218,5 +224,6 @@ class ComponentMeta(ABCMeta):
         if "EVENTS" in attrs:
             attrs["EVENTS"] = new_events
         component_class = super().__new__(cls, name, bases, attrs)
-        create_or_modify_pyi(component_class, name, events)
+        if not wasm_utils.IS_WASM:
+            create_or_modify_pyi(component_class, name, events)
         return component_class

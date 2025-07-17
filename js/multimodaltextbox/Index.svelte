@@ -14,6 +14,7 @@
 	import type { FileData } from "@gradio/client";
 	import { onMount } from "svelte";
 	import type { WaveformOptions } from "../audio/shared/types";
+	import type { InputHTMLAttributes } from "./shared/types";
 
 	export let gradio: Gradio<{
 		change: typeof value;
@@ -61,6 +62,7 @@
 	export let max_plain_text_length: number;
 	export let sources: ["microphone" | "upload"] = ["upload"];
 	export let waveform_options: WaveformOptions = {};
+	export let html_attributes: InputHTMLAttributes | null = null;
 
 	let dragging: boolean;
 	let active_source: "microphone" | null = null;
@@ -169,5 +171,6 @@
 		upload={(...args) => gradio.client.upload(...args)}
 		stream_handler={(...args) => gradio.client.stream(...args)}
 		{max_plain_text_length}
+		{html_attributes}
 	/>
 </Block>

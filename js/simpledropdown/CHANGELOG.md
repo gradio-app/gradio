@@ -1,5 +1,54 @@
 # @gradio/simpledropdown
 
+## 0.3.25
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.15
+
+## 0.3.24
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+- @gradio/statustracker@0.10.14
+
+## 0.3.23
+
+### Fixes
+
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/atoms@0.16.2
+
+## 0.3.22
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.3.22
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.3.22
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.3.21
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.11
+- @gradio/atoms@0.16.1
+
 ## 0.3.20
 
 ### Dependency updates

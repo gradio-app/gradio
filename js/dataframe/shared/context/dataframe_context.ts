@@ -13,6 +13,7 @@ import {
 export const DATAFRAME_KEY = Symbol("dataframe");
 
 export type SortDirection = "asc" | "desc";
+export type FilterDatatype = "string" | "number";
 export type CellCoordinate = [number, number];
 
 interface DataFrameState {
@@ -29,11 +30,30 @@ interface DataFrameState {
 		max_height: number;
 		column_widths: string[];
 		max_chars?: number;
+		static_columns?: (string | number)[];
 	};
 	current_search_query: string | null;
 	sort_state: {
 		sort_columns: { col: number; direction: SortDirection }[];
 		row_order: number[];
+		initial_data: {
+			data: { id: string; value: string | number }[][];
+			display_value: string[][] | null;
+			styling: string[][] | null;
+		} | null;
+	};
+	filter_state: {
+		filter_columns: {
+			col: number;
+			datatype: FilterDatatype;
+			filter: string;
+			value: string;
+		}[];
+		initial_data: {
+			data: { id: string; value: string | number }[][];
+			display_value: string[][] | null;
+			styling: string[][] | null;
+		} | null;
 	};
 	ui_state: {
 		active_cell_menu: { row: number; col: number; x: number; y: number } | null;
@@ -55,6 +75,12 @@ interface DataFrameState {
 interface DataFrameActions {
 	handle_search: (query: string | null) => void;
 	handle_sort: (col: number, direction: SortDirection) => void;
+	handle_filter: (
+		col: number,
+		datatype: FilterDatatype,
+		filter: string,
+		value: string
+	) => void;
 	get_sort_status: (name: string, headers: string[]) => "none" | "asc" | "desc";
 	sort_data: (
 		data: any[][],
@@ -104,6 +130,7 @@ interface DataFrameActions {
 		dispatch: (e: "change" | "input", detail?: any) => void
 	) => Promise<void>;
 	reset_sort_state: () => void;
+	reset_filter_state: () => void;
 	set_active_cell_menu: (
 		menu: { row: number; col: number; x: number; y: number } | null
 	) => void;
@@ -149,9 +176,11 @@ export interface DataFrameContext {
 	actions: DataFrameActions;
 	data?: any[][];
 	headers?: { id: string; value: string }[];
+	display_value?: string[][] | null;
+	styling?: string[][] | null;
 	els?: Record<
 		string,
-		{ cell: HTMLTableCellElement | null; input: HTMLInputElement | null }
+		{ cell: HTMLTableCellElement | null; input: HTMLTextAreaElement | null }
 	>;
 	parent_element?: HTMLElement;
 	get_data_at?: (row: number, col: number) => string | number;
@@ -202,6 +231,15 @@ function create_actions(
 		return { data: new_data, headers: new_headers };
 	};
 
+	const update_array = (
+		source: { id: string; value: string | number }[][] | string[][] | null,
+		target: any[] | null | undefined
+	): void => {
+		if (source && target) {
+			target.splice(0, target.length, ...JSON.parse(JSON.stringify(source)));
+		}
+	};
+
 	return {
 		handle_search: (query) =>
 			update_state((s) => ({ current_search_query: query })),
@@ -217,8 +255,60 @@ function create_actions(
 				) {
 					sort_cols.push({ col, direction });
 				}
+
+				const initial_data =
+					s.sort_state.initial_data ||
+					(context.data && sort_cols.length > 0
+						? {
+								data: JSON.parse(JSON.stringify(context.data)),
+								display_value: context.display_value
+									? JSON.parse(JSON.stringify(context.display_value))
+									: null,
+								styling: context.styling
+									? JSON.parse(JSON.stringify(context.styling))
+									: null
+							}
+						: null);
+
 				return {
-					sort_state: { ...s.sort_state, sort_columns: sort_cols.slice(-3) }
+					sort_state: {
+						...s.sort_state,
+						sort_columns: sort_cols.slice(-3),
+						initial_data: initial_data
+					}
+				};
+			}),
+		handle_filter: (col, datatype, filter, value) =>
+			update_state((s) => {
+				const filter_cols = s.filter_state.filter_columns.some(
+					(c) => c.col === col
+				)
+					? s.filter_state.filter_columns.filter((c) => c.col !== col)
+					: [
+							...s.filter_state.filter_columns,
+							{ col, datatype, filter, value }
+						];
+
+				const initial_data =
+					s.filter_state.initial_data ||
+					(context.data && filter_cols.length > 0
+						? {
+								data: JSON.parse(JSON.stringify(context.data)),
+								display_value: context.display_value
+									? JSON.parse(JSON.stringify(context.display_value))
+									: null,
+								styling: context.styling
+									? JSON.parse(JSON.stringify(context.styling))
+									: null
+							}
+						: null);
+
+				return {
+					filter_state: {
+						...s.filter_state,
+						filter_columns: filter_cols,
+						initial_data: initial_data
+					}
 				};
 			}),
 		get_sort_status: (name, headers) => {
@@ -319,7 +409,8 @@ function create_actions(
 			) {
 				if (!dequal(current_headers, previous_headers)) {
 					update_state((s) => ({
-						sort_state: { sort_columns: [], row_order: [] }
+						sort_state: { sort_columns: [], row_order: [], initial_data: null },
+						filter_state: { filter_columns: [], initial_data: null }
 					}));
 				}
 				dispatch("change", {
@@ -331,9 +422,33 @@ function create_actions(
 			}
 		},
 		reset_sort_state: () =>
-			update_state((s) => ({
-				sort_state: { sort_columns: [], row_order: [] }
-			})),
+			update_state((s) => {
+				if (s.sort_state.initial_data && context.data) {
+					const original = s.sort_state.initial_data;
+
+					update_array(original.data, context.data);
+					update_array(original.display_value, context.display_value);
+					update_array(original.styling, context.styling);
+				}
+
+				return {
+					sort_state: { sort_columns: [], row_order: [], initial_data: null }
+				};
+			}),
+		reset_filter_state: () =>
+			update_state((s) => {
+				if (s.filter_state.initial_data && context.data) {
+					const original = s.filter_state.initial_data;
+
+					update_array(original.data, context.data);
+					update_array(original.display_value, context.display_value);
+					update_array(original.styling, context.styling);
+				}
+
+				return {
+					filter_state: { filter_columns: [], initial_data: null }
+				};
+			}),
 		set_active_cell_menu: (menu) =>
 			update_state((s) => ({
 				ui_state: { ...s.ui_state, active_cell_menu: menu }
@@ -546,7 +661,8 @@ export function create_dataframe_context(
 	const state = writable<DataFrameState>({
 		config,
 		current_search_query: null,
-		sort_state: { sort_columns: [], row_order: [] },
+		sort_state: { sort_columns: [], row_order: [], initial_data: null },
+		filter_state: { filter_columns: [], initial_data: null },
 		ui_state: {
 			active_cell_menu: null,
 			active_header_menu: null,

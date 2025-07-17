@@ -61,6 +61,7 @@ class TestLabel:
             "color": None,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "show_heading": True,
         }
 

@@ -71,6 +71,7 @@ from gradio.exceptions import (
     InvalidComponentError,
 )
 from gradio.helpers import create_tracker, skip, special_args
+from gradio.i18n import I18n, I18nData
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
@@ -102,6 +103,7 @@ except Exception:
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components.base import Component
+    from gradio.mcp import GradioMCPServer
     from gradio.renderable import Renderable
 
 BUILT_IN_THEMES: dict[str, Theme] = {
@@ -126,12 +128,21 @@ class Block:
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         visible: bool = True,
         proxy_url: str | None = None,
     ):
-        self._id = Context.id
-        Context.id += 1
+        key_to_id_map = LocalContext.key_to_id_map.get()
+        if key is not None and key_to_id_map and key in key_to_id_map:
+            self.is_render_replacement = True
+            self._id = key_to_id_map[key]
+        else:
+            self.is_render_replacement = False
+            self._id = Context.id
+            Context.id += 1
+            if key is not None and key_to_id_map is not None:
+                key_to_id_map[key] = self._id
         self.visible = visible
         self.elem_id = elem_id
         self.elem_classes = (
@@ -148,6 +159,13 @@ class Block:
         self.temp_files: set[str] = set()
         self.GRADIO_CACHE = get_upload_folder()
         self.key = key
+        self.preserved_by_key = (
+            [preserved_by_key]
+            if isinstance(preserved_by_key, str)
+            else (preserved_by_key or [])
+        )
+        self.mcp_server_obj = None
+
         # Keep tracks of files that should not be deleted when the delete_cache parmameter is set
         # These files are the default value of the component and files that are used in examples
         self.keep_in_cache = set()
@@ -155,6 +173,11 @@ class Block:
 
         if render:
             self.render()
+
+    def unique_key(self) -> int | None:
+        if self.key is None:
+            return None
+        return hash((self.rendered_in._id if self.rendered_in else None, self.key))
 
     @property
     def stateful(self) -> bool:
@@ -187,7 +210,11 @@ class Block:
         root_context = get_blocks_context()
         render_context = get_render_context()
         self.rendered_in = LocalContext.renderable.get()
-        if root_context is not None and self._id in root_context.blocks:
+        if (
+            root_context is not None
+            and self._id in root_context.blocks
+            and not self.is_render_replacement
+        ):
             raise DuplicateBlockError(
                 f"A block with id: {self._id} has already been rendered in the current Blocks."
             )
@@ -195,6 +222,7 @@ class Block:
             if root_context:
                 self.page = root_context.root_block.current_page
             render_context.add(self)
+            self.parent = render_context
         if root_context is not None:
             root_context.blocks[self._id] = self
             self.is_rendered = True
@@ -208,10 +236,10 @@ class Block:
         Removes self from the layout and collection of blocks, but does not delete any event triggers.
         """
         root_context = get_blocks_context()
-        render_context = get_render_context()
-        if render_context is not None:
+        if hasattr(self, "parent") and self.parent is not None:
             try:
-                render_context.children.remove(self)
+                self.parent.children.remove(self)
+                self.parent = None
             except ValueError:
                 pass
         if root_context is not None:
@@ -250,6 +278,14 @@ class Block:
     def get_expected_parent(self) -> type[BlockContext] | None:
         return None
 
+    def breaks_grouping(self) -> bool:
+        """
+        Whether this component breaks FormComponent grouping chains.
+        Components that return False will not reset the pseudo_parent
+        when encountered during fill_expected_parents grouping.
+        """
+        return True
+
     def get_config(self):
         config = {}
         signature = inspect.signature(self.__class__.__init__)
@@ -265,8 +301,6 @@ class Block:
                 config = {**to_add, **config}
         config.pop("render", None)
         config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_class()}
-        if self.rendered_in is not None:
-            config["rendered_in"] = self.rendered_in._id
         for event_attribute in ["_selectable", "_undoable", "_retryable", "likeable"]:
             if (attributable := getattr(self, event_attribute, None)) is not None:
                 config[event_attribute] = attributable
@@ -403,6 +437,8 @@ class BlockContext(Block):
         elem_classes: list[str] | str | None = None,
         visible: bool = True,
         render: bool = True,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = None,
     ):
         """
         Parameters:
@@ -418,6 +454,8 @@ class BlockContext(Block):
             elem_classes=elem_classes,
             visible=visible,
             render=render,
+            key=key,
+            preserved_by_key=preserved_by_key,
         )
 
     TEMPLATE_DIR = DeveloperPath("./templates/")
@@ -460,7 +498,8 @@ class BlockContext(Block):
         for child in self.children:
             expected_parent = child.get_expected_parent()
             if not expected_parent or isinstance(self, expected_parent):
-                pseudo_parent = None
+                if child.breaks_grouping():
+                    pseudo_parent = None
                 children.append(child)
             else:
                 if pseudo_parent is not None and isinstance(
@@ -468,7 +507,13 @@ class BlockContext(Block):
                 ):
                     pseudo_parent.add_child(child)
                 else:
-                    pseudo_parent = expected_parent(render=False)
+                    key = None
+                    if child.key is not None:
+                        if isinstance(child.key, tuple):
+                            key = child.key + ("_parent",)
+                        else:
+                            key = (child.key, "_parent")
+                    pseudo_parent = expected_parent(render=False, key=key)
                     pseudo_parent.parent = self
                     children.append(pseudo_parent)
                     pseudo_parent.add_child(child)
@@ -509,6 +554,7 @@ class BlockFunction:
         concurrency_id: str | None = None,
         tracks_progress: bool = False,
         api_name: str | Literal[False] = False,
+        api_description: str | None | Literal[False] = None,
         js: str | Literal[True] | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
         show_progress_on: Sequence[Component] | None = None,
@@ -522,6 +568,7 @@ class BlockFunction:
         show_api: bool = True,
         renderable: Renderable | None = None,
         rendered_in: Renderable | None = None,
+        render_iteration: int | None = None,
         is_cancel_function: bool = False,
         connection: Literal["stream", "sse"] = "sse",
         time_limit: float | None = None,
@@ -530,6 +577,7 @@ class BlockFunction:
         event_specific_args: list[str] | None = None,
         page: str = "",
         js_implementation: str | None = None,
+        key: str | int | tuple[int | str, ...] | None = None,
     ):
         self.fn = fn
         self._id = _id
@@ -548,6 +596,7 @@ class BlockFunction:
         self.targets = targets
         self.name = getattr(fn, "__name__", "fn") if fn is not None else None
         self.api_name = api_name
+        self.api_description = api_description
         self.js = js
         self.show_progress = show_progress
         self.show_progress_on = show_progress_on
@@ -564,6 +613,7 @@ class BlockFunction:
         ) or inspect.isasyncgenfunction(self.fn)
         self.renderable = renderable
         self.rendered_in = rendered_in
+        self.render_iteration = render_iteration
         self.page = page
         if js_implementation:
             self.fn.__js_implementation__ = js_implementation  # type: ignore
@@ -576,6 +626,7 @@ class BlockFunction:
         self.connection = connection
         self.like_user_message = like_user_message
         self.event_specific_args = event_specific_args
+        self.key = key
 
         self.spaces_auto_wrap()
 
@@ -608,6 +659,7 @@ class BlockFunction:
             "js": self.js,
             "queue": self.queue,
             "api_name": self.api_name,
+            "api_description": self.api_description,
             "scroll_to_output": self.scroll_to_output,
             "show_progress": self.show_progress,
             "show_progress_on": None
@@ -720,6 +772,7 @@ class BlocksConfig:
         show_progress: Literal["full", "minimal", "hidden"] = "full",
         show_progress_on: Component | Sequence[Component] | None = None,
         api_name: str | None | Literal[False] = None,
+        api_description: str | None | Literal[False] = None,
         js: str | Literal[True] | None = None,
         no_target: bool = False,
         queue: bool = True,
@@ -741,6 +794,7 @@ class BlocksConfig:
         like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
         js_implementation: str | None = None,
+        key: str | int | tuple[int | str, ...] | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -754,7 +808,8 @@ class BlocksConfig:
             scroll_to_output: whether to scroll to output of dependency on trigger
             show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
             show_progress_on: Component or list of components to show the progress animation on. If None, will show the progress animation on all of the output components.
-            api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
+            api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
+            api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for the Blocks.load() event and .then() events
             queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
@@ -866,13 +921,24 @@ class BlocksConfig:
                 "Cannot create event: events with js=True cannot have inputs."
             )
 
+        reuse_id = False
+        fn_id = self.fn_id
+        render_iteration = rendered_in.render_iteration if rendered_in else None
+
+        if rendered_in and key is not None:
+            for existing_fn in self.fns.values():
+                if existing_fn.key == key:
+                    reuse_id = True
+                    fn_id = existing_fn._id
+                    break
+
         block_fn = BlockFunction(
             fn,
             inputs,
             outputs,
             preprocess,
             postprocess,
-            _id=self.fn_id,
+            _id=fn_id,
             inputs_as_dict=inputs_as_dict,
             targets=_targets,
             batch=batch,
@@ -881,6 +947,7 @@ class BlocksConfig:
             concurrency_id=concurrency_id,
             tracks_progress=progress_index is not None,
             api_name=api_name,
+            api_description=api_description,
             js=js,
             show_progress=show_progress,
             show_progress_on=show_progress_on,
@@ -894,6 +961,7 @@ class BlocksConfig:
             show_api=show_api,
             renderable=renderable,
             rendered_in=rendered_in,
+            render_iteration=render_iteration,
             is_cancel_function=is_cancel_function,
             connection=connection,
             time_limit=time_limit,
@@ -902,10 +970,12 @@ class BlocksConfig:
             event_specific_args=event_specific_args,
             page=self.root_block.current_page,
             js_implementation=js_implementation,
+            key=key,
         )
 
-        self.fns[self.fn_id] = block_fn
-        self.fn_id += 1
+        self.fns[fn_id] = block_fn
+        if not reuse_id:
+            self.fn_id += 1
         return block_fn, block_fn._id
 
     @staticmethod
@@ -915,22 +985,31 @@ class BlocksConfig:
         block: Block | Component,
         renderable: Renderable | None = None,
     ) -> dict:
-        if renderable:
-            if _id not in rendered_ids:
-                return {}
-            if block.key:
-                block.key = f"{renderable._id}-{block.key}"
+        if renderable and _id not in rendered_ids:
+            return {}
         props = block.get_config() if hasattr(block, "get_config") else {}
+
+        skip_none_deletion = []
+        if (
+            renderable and block.key
+        ):  # Nones are important for replacing a value in a keyed component
+            skip_none_deletion = [
+                prop for prop, val in block.constructor_args.items() if val is None
+            ]
+        utils.delete_none(props, skip_props=skip_none_deletion)
+
         block_config = {
             "id": _id,
             "type": block.get_block_name(),
-            "props": utils.delete_none(props),
+            "props": props,
             "skip_api": block.skip_api,
             "component_class_id": getattr(block, "component_class_id", None),
-            "key": block.key,
+            "key": block.unique_key(),
         }
         if renderable:
             block_config["renderable"] = renderable._id
+        if block.rendered_in is not None:
+            block_config["rendered_in"] = block.rendered_in._id
         if not block.skip_api:
             block_config["api_info"] = block.api_info()  # type: ignore
             if hasattr(block, "api_info_as_input"):
@@ -1077,7 +1156,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         theme: Theme | str | None = None,
         analytics_enabled: bool | None = None,
         mode: str = "blocks",
-        title: str = "Gradio",
+        title: str | I18nData = "Gradio",
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
         js: str | Literal[True] | None = None,
@@ -1126,6 +1205,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.theme_hash = theme_hasher.hexdigest()
 
         self.encrypt = False
+        self.mcp_server_obj: None | GradioMCPServer = None
+        self.mcp_error: None | str = None
         self.share = False
         self.enable_queue = True
         self.max_threads = 40
@@ -1151,6 +1232,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.state_holder: StateHolder
         self.custom_mount_path: str | None = None
         self.pwa = False
+        self.mcp_server = False
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -1186,7 +1268,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.upload_file_set = set()
         self.temp_file_sets = [self.upload_file_set]
         self.title = title
-        self.show_api = not wasm_utils.IS_WASM
+        self.show_api_in_footer = not wasm_utils.IS_WASM
 
         # Only used when an Interface is loaded from a config
         self.predict = None
@@ -1781,40 +1863,40 @@ Received inputs:
 
         self.validate_inputs(block_fn, inputs)
 
-        if block_fn.preprocess:
-            processed_input = []
-            for i, block in enumerate(block_fn.inputs):
-                if not isinstance(block, components.Component):
-                    raise InvalidComponentError(
-                        f"{block.__class__} Component not a valid input component."
+        processed_input = []
+        for i, block in enumerate(block_fn.inputs):
+            if not isinstance(block, components.Component):
+                raise InvalidComponentError(
+                    f"{block.__class__} Component not a valid input component."
+                )
+            if block.stateful:
+                processed_input.append(state[block._id])
+            else:
+                if block._id in state:
+                    block = state[block._id]
+                inputs_cached = await processing_utils.async_move_files_to_cache(
+                    inputs[i],
+                    block,
+                    check_in_upload_folder=not explicit_call,
+                )
+                if getattr(block, "data_model", None) and inputs_cached is not None:
+                    data_model = cast(
+                        Union[GradioModel, GradioRootModel], block.data_model
                     )
-                if block.stateful:
-                    processed_input.append(state[block._id])
+                    inputs_cached = data_model.model_validate(
+                        inputs_cached, context={"validate_meta": True}
+                    )
+                if isinstance(inputs_cached, (GradioModel, GradioRootModel)):
+                    inputs_serialized = inputs_cached.model_dump()
                 else:
-                    if block._id in state:
-                        block = state[block._id]
-                    inputs_cached = await processing_utils.async_move_files_to_cache(
-                        inputs[i],
-                        block,
-                        check_in_upload_folder=not explicit_call,
-                    )
-                    if getattr(block, "data_model", None) and inputs_cached is not None:
-                        data_model = cast(
-                            Union[GradioModel, GradioRootModel], block.data_model
-                        )
-                        inputs_cached = data_model.model_validate(
-                            inputs_cached, context={"validate_meta": True}
-                        )
-                    if isinstance(inputs_cached, (GradioModel, GradioRootModel)):
-                        inputs_serialized = inputs_cached.model_dump()
-                    else:
-                        inputs_serialized = inputs_cached
-                    if block._id not in state:
-                        state[block._id] = block
-                    state[block._id].value = inputs_serialized
+                    inputs_serialized = inputs_cached
+                if block._id not in state:
+                    state[block._id] = block
+                state._update_value_in_config(block._id, inputs_serialized)
+                if block_fn.preprocess:
                     processed_input.append(block.preprocess(inputs_cached))
-        else:
-            processed_input = inputs
+                else:
+                    processed_input.append(inputs_serialized)
         return processed_input
 
     def validate_outputs(self, block_fn: BlockFunction, predictions: Any | list[Any]):
@@ -1925,11 +2007,16 @@ Received inputs:
                     kwargs["render"] = False
 
                     state[block._id] = block.__class__(**kwargs)
+                    state._update_config(block._id)
                     prediction_value = postprocess_update_dict(
                         block=state[block._id],
                         update_dict=prediction_value,
                         postprocess=block_fn.postprocess,
                     )
+                    if "value" in prediction_value:
+                        state._update_value_in_config(
+                            block._id, prediction_value.get("value")
+                        )
                 elif block_fn.postprocess:
                     if not isinstance(block, components.Component):
                         raise InvalidComponentError(
@@ -1951,7 +2038,9 @@ Received inputs:
                     )
                     if block._id not in state:
                         state[block._id] = block
-                    state[block._id].value = prediction_value_serialized
+                    state._update_value_in_config(
+                        block._id, prediction_value_serialized
+                    )
 
                 outputs_cached = await processing_utils.async_move_files_to_cache(
                     prediction_value,
@@ -2252,7 +2341,7 @@ Received inputs:
             "space_id": self.space_id,
             "enable_queue": True,  # launch attributes
             "show_error": getattr(self, "show_error", False),
-            "show_api": self.show_api,
+            "show_api": self.show_api_in_footer,
             "is_colab": utils.colab_check(),
             "max_file_size": getattr(self, "max_file_size", None),
             "stylesheets": self.stylesheets,
@@ -2276,6 +2365,12 @@ Received inputs:
             "pwa": self.pwa,
             "pages": self.pages,
             "page": {},
+            "mcp_server": self.mcp_server,
+            "i18n_translations": (
+                getattr(self.i18n_instance, "translations_dict", None)
+                if getattr(self, "i18n_instance", None) is not None
+                else None
+            ),
         }
         config.update(self.default_config.get_config())  # type: ignore
         config["connect_heartbeat"] = utils.connect_heartbeat(
@@ -2330,7 +2425,7 @@ Received inputs:
         else:
             self.parent.children.extend(self.children)
         self.config = self.get_config_file()
-        self.app = App.create_app(self)
+        self.app = App.create_app(self, mcp_server=False)
         self.progress_tracking = any(
             block_fn.tracks_progress for block_fn in self.fns.values()
         )
@@ -2383,7 +2478,7 @@ Received inputs:
             blocks=self,
             default_concurrency_limit=default_concurrency_limit,
         )
-        self.app = App.create_app(self)
+        self.app = App.create_app(self, mcp_server=False)
         return self
 
     def validate_queue_settings(self):
@@ -2443,6 +2538,7 @@ Received inputs:
         pwa: bool | None = None,
         mcp_server: bool | None = None,
         _frontend: bool = True,
+        i18n: I18n | None = None,
     ) -> tuple[App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -2482,6 +2578,7 @@ Received inputs:
             strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
             ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
+            i18n: An I18n instance containing custom translations, which are used to translate strings in our components (e.g. the labels of components or Markdown strings). This feature can only be used to translate static text in the frontend, not values in the backend.
             mcp_server: If True, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools. If None (default behavior), then the GRADIO_MCP_SERVER environment variable will be used to determine if the MCP server should be enabled (which is "True" on Hugging Face Spaces).
         Returns:
             app: FastAPI app object that is running the demo
@@ -2587,7 +2684,6 @@ Received inputs:
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
         self.transpile_to_js(quiet=quiet)
-        self.config = self.get_config_file()
 
         self.ssr_mode = (
             False
@@ -2612,34 +2708,23 @@ Received inputs:
         else:
             self.node_server_name = self.node_port = self.node_process = None
 
-        # self.server_app is included for backwards compatibility
+        self.i18n_instance = i18n
+
+        if app_kwargs is None:
+            app_kwargs = {}
+
         self.server_app = self.app = App.create_app(
             self,
             auth_dependency=auth_dependency,
             app_kwargs=app_kwargs,
             strict_cors=strict_cors,
             ssr_mode=self.ssr_mode,
+            mcp_server=mcp_server,
         )
+        if self.mcp_error and not quiet:
+            print(self.mcp_error)
 
-        mcp_subpath = API_PREFIX + "/mcp"
-        if mcp_server is None:
-            mcp_server = os.environ.get("GRADIO_MCP_SERVER", "False").lower() == "true"
-        if mcp_server:
-            try:
-                import gradio.mcp
-            except ImportError as e:
-                raise ImportError(
-                    "In order to use `mcp_server=True`, you must install gradio with the `mcp` extra. Please install it with `pip install gradio[mcp]`"
-                ) from e
-            try:
-                self.mcp_server_obj = gradio.mcp.GradioMCPServer(self)
-                self.mcp_server_obj.launch_mcp_on_sse(
-                    self.server_app, mcp_subpath, self.root_path
-                )
-            except Exception as e:
-                mcp_server = False
-                if not quiet:
-                    print(f"Error launching MCP server: {e}")
+        self.config = self.get_config_file()
 
         if self.is_running:
             if not isinstance(self.local_url, str):
@@ -2688,6 +2773,8 @@ Received inputs:
             )
             self.share_server_tls_certificate = share_server_tls_certificate
             self.has_launched = True
+            if self.mcp_server_obj:
+                self.mcp_server_obj._local_url = self.local_url
 
             self.protocol = (
                 "https"
@@ -2733,7 +2820,7 @@ Received inputs:
             if self.is_colab or self.is_hosted_notebook:
                 if not quiet:
                     print(
-                        "It looks like you are running Gradio on a hosted a Jupyter notebook. For the Gradio app to work, sharing must be enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                        "It looks like you are running Gradio on a hosted Jupyter notebook, which requires `share=True`. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
                     )
                 self.share = True
             else:
@@ -2829,7 +2916,8 @@ Received inputs:
                 print("* To create a public link, set `share=True` in `launch()`.")
             self.share_url = None
 
-        if mcp_server:
+        mcp_subpath = API_PREFIX + "/mcp"
+        if self.mcp_server:
             print(
                 f"\n🔨 MCP server (using SSE) running at: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
             )
@@ -3036,7 +3124,7 @@ Received inputs:
         for startup_event in self.extra_startup_events:
             await startup_event()
 
-    def get_api_info(self, all_endpoints: bool = False) -> APIInfo | None:
+    def get_api_info(self, all_endpoints: bool = False) -> APIInfo:
         """
         Gets the information needed to generate the API docs from a Blocks.
         Parameters:
@@ -3056,9 +3144,15 @@ Received inputs:
                 "returns": [],
                 "show_api": fn.show_api,
             }
-            fn_info = utils.get_function_params(fn.fn)  # type: ignore
-            description, _ = utils.get_function_description(fn.fn)
-            if description:
+            fn_info = utils.get_function_params(fn.fn)
+            if fn.api_description is False:
+                dependency_info["description"] = ""
+            elif fn.api_description is None:
+                description, _, _ = utils.get_function_description(fn.fn)
+                dependency_info["description"] = description
+            else:
+                description = fn.api_description
+                assert isinstance(description, str)  # noqa: S101
                 dependency_info["description"] = description
             skip_endpoint = False
 

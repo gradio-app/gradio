@@ -1,13 +1,11 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	import { mount_css } from "@gradio/core";
 
 	import type { Client as ClientType } from "@gradio/client";
 
 	import type { ComponentMeta, Dependency, LayoutNode } from "@gradio/core";
 	declare let GRADIO_VERSION: string;
 
-	declare let BUILD_MODE: string;
 	interface Config {
 		deep_link_state?: "none" | "valid" | "invalid";
 		auth_required?: true;
@@ -29,7 +27,6 @@
 		is_colab: boolean;
 		show_api: boolean;
 		stylesheets?: string[];
-		path: string;
 		app_id?: string;
 		fill_height?: boolean;
 		fill_width?: boolean;
@@ -81,16 +78,12 @@
 	import type { SpaceStatus } from "@gradio/client";
 	import { Embed } from "@gradio/core";
 	import type { ThemeMode } from "@gradio/core";
-	import { StatusTracker } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
-	import { setupi18n } from "@gradio/core";
 	import { Client } from "@gradio/client";
 	import { page } from "$app/stores";
 
 	import { init } from "@huggingface/space-header";
 	import { browser } from "$app/environment";
-
-	setupi18n();
 
 	const dispatch = createEventDispatcher();
 	export let data;
@@ -145,6 +138,7 @@
 		const dark_class_element = is_embed ? target.parentElement! : document.body;
 		const bg_element = is_embed ? target : target.parentElement!;
 		bg_element.style.background = "var(--body-background-fill)";
+		dark_class_element.classList.add("theme-loaded");
 		if (theme === "dark") {
 			dark_class_element.classList.add("dark");
 		} else {
@@ -209,14 +203,7 @@
 		}
 	}
 
-	// These utilities are exported to be injectable for the Wasm version.
-
-	// export let Client: typeof ClientType;
-
 	export let space: string | null;
-	// export let host: string | null;
-	// export let src: string | null;
-
 	let _id = id++;
 
 	let loader_status: "pending" | "error" | "complete" | "generating" =
@@ -226,7 +213,6 @@
 	let ready = false;
 	let render_complete = false;
 	$: config = data.config;
-	let loading_text = $_("common.loading") + "...";
 
 	let intersecting: ReturnType<typeof create_intersection_store> = {
 		register: () => {},
@@ -253,7 +239,7 @@
 	let pending_deep_link_error = false;
 
 	let gradio_dev_mode = "";
-
+	let i18n_ready: boolean;
 	onMount(async () => {
 		//@ts-ignore
 		config = data.config;
@@ -304,16 +290,20 @@
 				let url = new URL(`http://${host}${app.api_prefix}/dev/reload`);
 				stream = new EventSource(url);
 				stream.addEventListener("error", async (e) => {
-					new_message_fn("Error", "Error reloading app", "error");
 					// @ts-ignore
-					console.error(JSON.parse(e.data));
+					let event_data: string | undefined = e.data;
+					if (event_data) {
+						new_message_fn("Error", "Error reloading app", "error");
+						console.error(JSON.parse(event_data));
+					}
 				});
 				stream.addEventListener("reload", async (event) => {
 					app.close();
 					app = await Client.connect(data.api_url, {
 						status_callback: handle_status,
 						with_null_state: true,
-						events: ["data", "log", "status", "render"]
+						events: ["data", "log", "status", "render"],
+						session_hash: app.session_hash
 					});
 
 					if (!app.config) {
@@ -375,6 +365,13 @@
 
 <svelte:head>
 	<link rel="stylesheet" href={"./theme.css?v=" + config?.theme_hash} />
+	{#if config?.stylesheets}
+		{#each config.stylesheets as stylesheet}
+			{#if stylesheet.startsWith("http:") || stylesheet.startsWith("https:")}
+				<link rel="stylesheet" href={stylesheet} />
+			{/if}
+		{/each}
+	{/if}
 	<link rel="manifest" href="/manifest.json" />
 </svelte:head>
 

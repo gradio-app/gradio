@@ -273,9 +273,14 @@ class TestProcessExamples:
             prediction = io.examples_handler.load_from_cache(0)
         assert prediction[0].path.endswith(".webp")
 
-    def test_caching_audio(self, patched_cache_folder, connect):
+    def test_caching_audio_with_progress(self, patched_cache_folder, connect):
+        def audio_identity(x, prog=gr.Progress()):
+            for _ in prog.tqdm(range(5)):
+                pass
+            return x
+
         io = gr.Interface(
-            lambda x: x,
+            audio_identity,
             "audio",
             "audio",
             examples=[["test/test_files/audio_sample.wav"]],
@@ -550,6 +555,7 @@ class TestProcessExamples:
                 "show_copy_button": False,
                 "__type__": "update",
                 "visible": True,
+                "preserved_by_key": ["value"],
                 "value": "Hello,",
                 "type": "text",
                 "stop_btn": False,
@@ -568,6 +574,7 @@ class TestProcessExamples:
                 "autoscroll": True,
                 "elem_classes": [],
                 "rtl": False,
+                "preserved_by_key": ["value"],
                 "show_copy_button": False,
                 "__type__": "update",
                 "visible": True,

@@ -32,8 +32,10 @@ class TestNumber:
             "proxy_url": None,
             "info": None,
             "precision": None,
+            "placeholder": None,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
         }
 
     def test_component_functions_integer(self):
@@ -66,8 +68,10 @@ class TestNumber:
             "proxy_url": None,
             "info": None,
             "precision": 0,
+            "placeholder": None,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
         }
 
     def test_component_functions_precision(self):

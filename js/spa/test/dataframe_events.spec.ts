@@ -109,7 +109,7 @@ test("Tall dataframe has vertical scrolling", async ({ page }) => {
 	expect(visible_rows).toBeLessThan(50);
 
 	const column_count = await tall_df_block.locator(".thead > tr > th").count();
-	expect(column_count).toBe(3);
+	expect(column_count).toBe(4);
 });
 
 test("Dataframe can be cleared and updated indirectly", async ({ page }) => {
@@ -235,7 +235,7 @@ test("Dataframe cmd + click selection works", async ({ page }) => {
 	await get_cell(df, 1, 2).click();
 
 	await get_cell(df, 2, 2).click({
-		modifiers: ["ControlOrMeta"]
+		modifiers: ["Shift"]
 	});
 
 	await page.waitForTimeout(100);
@@ -257,7 +257,7 @@ test("Static columns cannot be edited", async ({ page }) => {
 	await page.waitForTimeout(100);
 
 	const is_disabled =
-		(await static_column_cell.locator("input").getAttribute("readonly")) !==
+		(await static_column_cell.locator("textarea").getAttribute("readonly")) !==
 		null;
 	expect(is_disabled).toBe(true);
 
@@ -266,7 +266,7 @@ test("Static columns cannot be edited", async ({ page }) => {
 	await page.waitForTimeout(100);
 
 	const is_not_disabled = await editable_cell
-		.locator("input")
+		.locator("textarea")
 		.getAttribute("aria-readonly");
 	expect(is_not_disabled).toEqual("false");
 });
@@ -365,4 +365,40 @@ test("Dataframe select events work as expected", async ({ page }) => {
 		.inputValue();
 
 	expect(restored_selected_cell_value).toBe("DeepSeek Coder");
+});
+
+test("Dataframe static columns cannot be cleared with Delete key", async ({
+	page
+}) => {
+	const df = page.locator("#dataframe");
+
+	const static_cell = get_cell(df, 0, 4);
+	const initial_static_cell_value = await static_cell.innerText();
+	await static_cell.click();
+	await page.keyboard.press("Escape");
+	await page.keyboard.press("Delete");
+
+	expect(initial_static_cell_value).toBe("0");
+
+	const editable_cell = get_cell(df, 0, 1);
+	await editable_cell.click();
+	await page.keyboard.press("Escape");
+	await page.keyboard.press("Delete");
+
+	expect(await editable_cell.innerText()).toBe("⋮");
+});
+
+test("Dataframe keyboard events allow newlines", async ({ page }) => {
+	await page.getByRole("button", { name: "Update dataframe" }).click();
+	await page.waitForTimeout(500);
+
+	const df = page.locator("#dataframe");
+	await get_cell(df, 0, 0).click();
+
+	await page.getByLabel("Edit cell").fill("42");
+	await page.getByLabel("Edit cell").press("Shift+Enter");
+	await page.getByLabel("Edit cell").pressSequentially("don't panic");
+	await page.getByLabel("Edit cell").press("Enter");
+
+	expect(await get_cell(df, 0, 0).textContent()).toBe(" 42\ndon't panic   ⋮");
 });

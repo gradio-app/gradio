@@ -1,5 +1,90 @@
 # @gradio/imageeditor
 
+## 0.16.1
+
+### Dependency updates
+
+- @gradio/client@1.15.6
+- @gradio/statustracker@0.10.15
+- @gradio/upload@0.16.11
+- @gradio/image@0.22.13
+
+## 0.16.0
+
+### Features
+
+- [#11427](https://github.com/gradio-app/gradio/pull/11427) [`6b2bcd0`](https://github.com/gradio-app/gradio/commit/6b2bcd097ae5ef999a7fb273ecf7c7e4c0eab305) - Improve load times of the Gradio front-end.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+- @gradio/statustracker@0.10.14
+- @gradio/upload@0.16.10
+- @gradio/client@1.15.5
+- @gradio/image@0.22.12
+
+## 0.15.5
+
+### Dependency updates
+
+- @gradio/upload@0.16.9
+- @gradio/client@1.15.4
+- @gradio/image@0.22.11
+
+## 0.15.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/atoms@0.16.2
+- @gradio/client@1.15.3
+- @gradio/upload@0.16.8
+- @gradio/image@0.22.10
+
+## 0.15.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.15.3
+
+### Dependency updates
+
+- @gradio/upload@0.16.7
+- @gradio/client@1.15.2
+- @gradio/image@0.22.9
+
+## 0.15.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/image@0.22.8
+
+## 0.15.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/client@1.15.1
+- @gradio/upload@0.16.6
+- @gradio/image@0.22.7
+
+## 0.15.0
+
+### Features
+
+- [#11192](https://github.com/gradio-app/gradio/pull/11192) [`a03736f`](https://github.com/gradio-app/gradio/commit/a03736f97c642b338aa701166d3a0b299a46d27a) - Add undo and redo to the `ImageEditor` component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.11
+- @gradio/atoms@0.16.1
+- @gradio/client@1.15.0
+- @gradio/upload@0.16.5
+- @gradio/image@0.22.6
+
 ## 0.14.5
 
 ### Dependency updates

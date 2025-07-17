@@ -27,7 +27,6 @@
 		is_colab: boolean;
 		show_api: boolean;
 		stylesheets?: string[];
-		path: string;
 		app_id?: string;
 		fill_height?: boolean;
 		fill_width?: boolean;
@@ -91,7 +90,10 @@
 	import { setWorkerProxyContext } from "@gradio/wasm/svelte";
 	import { init } from "@huggingface/space-header";
 
-	setupi18n();
+	let i18n_ready = false;
+	setupi18n().then(() => {
+		i18n_ready = true;
+	});
 
 	const dispatch = createEventDispatcher();
 
@@ -135,7 +137,7 @@
 	let ready = false;
 	let render_complete = false;
 	let config: Config;
-	let loading_text = $_("common.loading") + "...";
+	let loading_text = "Loading...";
 	let active_theme_mode: ThemeMode;
 	let api_url: string;
 
@@ -316,7 +318,9 @@
 				? `http://localhost:${
 						typeof server_port === "number" ? server_port : 7860
 					}`
-				: space || src || location.origin;
+				: space ||
+					src ||
+					new URL(location.pathname, location.origin).href.replace(/\/$/, "");
 
 		const deep_link = new URLSearchParams(window.location.search).get(
 			"deep_link"
@@ -325,7 +329,6 @@
 		if (deep_link) {
 			query_params.deep_link = deep_link;
 		}
-
 		app = await Client.connect(api_url, {
 			status_callback: handle_status,
 			with_null_state: true,
@@ -381,19 +384,25 @@
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(api_url);
-				let url = new URL(`http://${host}${app.api_prefix}/dev/reload`);
+				let url = new URL(
+					`${window.location.protocol}//${host}${app.api_prefix}/dev/reload`
+				);
 				stream = new EventSource(url);
 				stream.addEventListener("error", async (e) => {
-					new_message_fn("Error", "Error reloading app", "error");
 					// @ts-ignore
-					console.error(JSON.parse(e.data));
+					let event_data: string | undefined = e.data;
+					if (event_data) {
+						new_message_fn("Error", "Error reloading app", "error");
+						console.error(JSON.parse(event_data));
+					}
 				});
 				stream.addEventListener("reload", async (event) => {
 					app.close();
 					app = await Client.connect(api_url, {
 						status_callback: handle_status,
 						with_null_state: true,
-						events: ["data", "log", "status", "render"]
+						events: ["data", "log", "status", "render"],
+						session_hash: app.session_hash
 					});
 
 					if (!app.config) {
@@ -445,25 +454,33 @@
 		| "PAUSED";
 
 	// todo @hannahblair: translate these messages
-	const discussion_message = {
-		readable_error: {
-			NO_APP_FILE: $_("errors.no_app_file"),
-			CONFIG_ERROR: $_("errors.config_error"),
-			BUILD_ERROR: $_("errors.build_error"),
-			RUNTIME_ERROR: $_("errors.runtime_error"),
-			PAUSED: $_("errors.space_paused")
-		} as const,
-		title(error: error_types): string {
-			return encodeURIComponent($_("errors.space_not_working"));
-		},
-		description(error: error_types, site: string): string {
-			return encodeURIComponent(
-				`Hello,\n\nFirstly, thanks for creating this space!\n\nI noticed that the space isn't working correctly because there is ${
-					this.readable_error[error] || "an error"
-				}.\n\nIt would be great if you could take a look at this because this space is being embedded on ${site}.\n\nThanks!`
-			);
-		}
+	let discussion_message: {
+		readable_error: Record<error_types, string>;
+		title: (error: error_types) => string;
+		description: (error: error_types, site: string) => string;
 	};
+
+	$: if (i18n_ready) {
+		discussion_message = {
+			readable_error: {
+				NO_APP_FILE: $_("errors.no_app_file"),
+				CONFIG_ERROR: $_("errors.config_error"),
+				BUILD_ERROR: $_("errors.build_error"),
+				RUNTIME_ERROR: $_("errors.runtime_error"),
+				PAUSED: $_("errors.space_paused")
+			} as const,
+			title(error: error_types): string {
+				return encodeURIComponent($_("errors.space_not_working"));
+			},
+			description(error: error_types, site: string): string {
+				return encodeURIComponent(
+					`Hello,\n\nFirstly, thanks for creating this space!\n\nI noticed that the space isn't working correctly because there is ${
+						this.readable_error[error] || "an error"
+					}.\n\nIt would be great if you could take a look at this because this space is being embedded on ${site}.\n\nThanks!`
+				);
+			}
+		};
+	}
 
 	onMount(async () => {
 		intersecting.register(_id, wrapper);
@@ -542,7 +559,7 @@
 			<!-- todo: translate message text -->
 			<div class="error" slot="error">
 				<p><strong>{status?.message || ""}</strong></p>
-				{#if (status.status === "space_error" || status.status === "paused") && status.discussions_enabled}
+				{#if (status.status === "space_error" || status.status === "paused") && status.discussions_enabled && discussion_message}
 					<p>
 						Please <a
 							href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
@@ -555,7 +572,7 @@
 							contact the author of the space</a
 						> to let them know.
 					</p>
-				{:else}
+				{:else if i18n_ready}
 					<p>{$_("errors.contact_page_author")}</p>
 				{/if}
 			</div>

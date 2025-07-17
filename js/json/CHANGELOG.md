@@ -1,5 +1,62 @@
 # @gradio/json
 
+## 0.5.27
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.15
+
+## 0.5.26
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+- @gradio/statustracker@0.10.14
+
+## 0.5.25
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/atoms@0.16.2
+
+## 0.5.24
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.5.24
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.5.24
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.5.23
+
+### Fixes
+
+- [#11244](https://github.com/gradio-app/gradio/pull/11244) [`ed97e39`](https://github.com/gradio-app/gradio/commit/ed97e390f1790b77192368a77cd2d10c90a232c5) - Ensure `show_indices` works as expected in gr.JSON.  Thanks @hannahblair!
+
+## 0.5.22
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.11
+- @gradio/atoms@0.16.1
+
+## 0.5.21
+
+### Fixes
+
+- [#11184](https://github.com/gradio-app/gradio/pull/11184) [`f1a1c50`](https://github.com/gradio-app/gradio/commit/f1a1c5049ec1a5fcd3353b090a138fa63137790f) - Add Example component for JSON.  Thanks @freddyaboulton!
+
 ## 0.5.20
 
 ### Dependency updates

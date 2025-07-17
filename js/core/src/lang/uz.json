@@ -97,7 +97,8 @@
 		"runtime_error": "Bajarilish vaqti xatosi mavjud",
 		"space_not_working": "\"Space ishlamayapti, chunki\" {0}",
 		"space_paused": "Space to'xtatilgan",
-		"use_via_api": "API orqali foydalaning"
+		"use_via_api": "API orqali foydalaning",
+		"use_via_api_or_mcp": "API yoki MCP orqali foydalaning"
 	},
 	"file": {
 		"uploading": "Yuklanmoqda..."

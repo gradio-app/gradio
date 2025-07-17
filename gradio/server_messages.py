@@ -10,8 +10,8 @@ class BaseMessage(BaseModel):
 
 
 class ProgressUnit(BaseModel):
-    index: Optional[int] = None
-    length: Optional[int] = None
+    index: Optional[int | float] = None
+    length: Optional[int | float] = None
     unit: Optional[str] = None
     progress: Optional[float] = None
     desc: Optional[str] = None
@@ -70,6 +70,7 @@ class CloseStreamMessage(BaseMessage):
 class UnexpectedErrorMessage(BaseMessage):
     msg: Literal[ServerMessage.unexpected_error] = ServerMessage.unexpected_error  # type: ignore
     message: str
+    session_not_found: bool = False
     success: Literal[False] = False
 
 

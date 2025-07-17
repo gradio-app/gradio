@@ -51,7 +51,7 @@
 
 	let canvas3d: Canvas3D | undefined;
 	function handle_undo(): void {
-		canvas3d?.reset_camera_position(camera_position, zoom_speed, pan_speed);
+		canvas3d?.reset_camera_position();
 	}
 
 	$: {
@@ -60,7 +60,7 @@
 			current_settings.zoom_speed !== zoom_speed ||
 			current_settings.pan_speed !== pan_speed
 		) {
-			canvas3d?.reset_camera_position(camera_position, zoom_speed, pan_speed);
+			canvas3d?.update_camera(camera_position, zoom_speed, pan_speed);
 			current_settings = { camera_position, zoom_speed, pan_speed };
 		}
 	}
@@ -74,7 +74,7 @@
 	label={label || i18n("3D_model.3d_model")}
 />
 {#if value}
-	<div class="model3D">
+	<div class="model3D" data-testid="model3d">
 		<IconButtonWrapper>
 			{#if !use_3dgs}
 				<!-- Canvas3DGS doesn't implement the undo method (reset_camera_position) -->

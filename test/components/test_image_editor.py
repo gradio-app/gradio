@@ -49,6 +49,7 @@ class TestImageEditor:
             "show_share_button": False,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "transforms": ("crop", "resize"),
             "eraser": {"default_size": "auto"},
             "brush": {

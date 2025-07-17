@@ -87,7 +87,8 @@
 		"runtime_error": "Произошла ошибка выполнения",
 		"space_not_working": "\"Space не работает, потому что\" {0}",
 		"space_paused": "Space приостановлен",
-		"use_via_api": "Использовать через API"
+		"use_via_api": "Использовать через API",
+		"use_via_api_or_mcp": "Использовать через API или MCP"
 	},
 	"file": {
 		"uploading": "Загрузка..."

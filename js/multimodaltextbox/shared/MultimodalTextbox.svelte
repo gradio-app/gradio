@@ -25,6 +25,7 @@
 	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 	import InteractiveAudio from "../../audio/interactive/InteractiveAudio.svelte";
+	import type { InputHTMLAttributes } from "./types";
 
 	export let value: { text: string; files: FileData[] } = {
 		text: "",
@@ -59,6 +60,8 @@
 	};
 	export let sources: ["microphone" | "upload"] = ["upload"];
 	export let active_source: "microphone" | null = null;
+	export let html_attributes: InputHTMLAttributes | null = null;
+
 	let upload_component: Upload;
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let can_scroll: boolean;
@@ -311,7 +314,7 @@
 	role="group"
 	aria-label="Multimedia input field"
 >
-	<BlockTitle {root} {show_label} {info} {rtl}>{label}</BlockTitle>
+	<BlockTitle {show_label} {info} {rtl}>{label}</BlockTitle>
 	{#if value.files.length > 0 || uploading}
 		<div
 			class="thumbnails scroll-hide"
@@ -449,6 +452,13 @@
 			on:scroll={handle_scroll}
 			on:paste={handle_paste}
 			style={text_align ? "text-align: " + text_align : ""}
+			autocapitalize={html_attributes?.autocapitalize}
+			autocorrect={html_attributes?.autocorrect}
+			spellcheck={html_attributes?.spellcheck}
+			autocomplete={html_attributes?.autocomplete}
+			tabindex={html_attributes?.tabindex}
+			enterkeyhint={html_attributes?.enterkeyhint}
+			lang={html_attributes?.lang}
 		/>
 		{#if submit_btn}
 			<button

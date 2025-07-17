@@ -15,7 +15,6 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-	export let root: string;
 	export let gradio: Gradio<{
 		change: string;
 		input: never;
@@ -63,7 +62,7 @@
 	{/if}
 
 	<label class:container>
-		<BlockTitle {root} {show_label} info={undefined}>{label}</BlockTitle>
+		<BlockTitle {show_label} info={undefined}>{label}</BlockTitle>
 		<select disabled={!interactive} bind:value={display_value}>
 			{#each choices as choice}
 				<option>{choice[0]}</option>

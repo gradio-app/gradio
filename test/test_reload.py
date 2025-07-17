@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 
-import gradio
 import gradio as gr
 from gradio.cli.commands.reload import _setup_config
 from gradio.http_server import Server
@@ -49,10 +48,6 @@ class TestReload:
     def test_config_custom_app(self, config):
         assert config.module_name == "demo.calculator.run"
         assert config.demo_name == "test"
-
-    def test_config_watch_gradio(self, config):
-        gradio_dir = str(Path(gradio.__file__).parent)
-        assert gradio_dir in config.watch_dirs
 
     def test_config_watch_app(self, config):
         demo_dir = str(Path("demo/calculator/run.py").resolve().parent)

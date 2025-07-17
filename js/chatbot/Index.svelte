@@ -145,6 +145,7 @@
 			{rtl}
 			{show_copy_button}
 			{like_user_message}
+			show_progress={loading_status?.show_progress || "full"}
 			on:change={() => gradio.dispatch("change", value)}
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:like={(e) => gradio.dispatch("like", e.detail)}
@@ -184,7 +185,6 @@
 			_fetch={(...args) => gradio.client.fetch(...args)}
 			load_component={gradio.load_component}
 			msg_format={type}
-			root={gradio.root}
 			{allow_file_downloads}
 			{allow_tags}
 			{watermark}

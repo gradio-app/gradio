@@ -131,7 +131,7 @@
 
 	.toast-body.info {
 		border: 1px solid var(--color-grey-700);
-		background: var (--color-grey-50);
+		background: var(--color-grey-50);
 	}
 	:global(.dark) .toast-body.info {
 		border: 1px solid var(--color-grey-500);
@@ -221,6 +221,9 @@
 
 	.toast-text {
 		font-size: var(--text-lg);
+		word-wrap: break-word;
+		overflow-wrap: break-word;
+		word-break: break-word;
 	}
 
 	.toast-text.error {

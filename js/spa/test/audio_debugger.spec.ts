@@ -15,8 +15,13 @@ test("audio waveform", async ({ page }) => {
 	await page
 		.getByTestId("waveform-x")
 		.getByLabel("Adjust playback speed to 1.5x")
+		.first()
 		.click();
-	await page.getByLabel("Adjust playback speed to 2x").click();
+	await page
+		.getByTestId("waveform-x")
+		.getByLabel("Adjust playback speed to 2x")
+		.first()
+		.click();
 
 	await page
 		.getByTestId("waveform-x")
@@ -33,14 +38,17 @@ test("audio waveform", async ({ page }) => {
 	await page
 		.getByTestId("waveform-output")
 		.getByLabel("Adjust playback speed to 1.5x")
+		.first()
 		.click();
 	await page
 		.getByTestId("waveform-output")
 		.getByLabel("Skip backwards by 0.15 seconds")
+		.first()
 		.click();
 	await page
 		.getByTestId("waveform-output")
 		.getByLabel("Skip forward by 0.15 seconds")
+		.first()
 		.click();
 });
 

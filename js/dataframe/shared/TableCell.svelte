@@ -53,14 +53,13 @@
 	export let datatype: Datatype;
 	export let editing: [number, number] | false;
 	export let max_chars: number | undefined;
-	export let root: string;
 	export let editable: boolean;
 	export let is_static = false;
 	export let i18n: I18nFormatter;
 	export let components: Record<string, any> = {};
 	export let el: {
 		cell: HTMLTableCellElement | null;
-		input: HTMLInputElement | null;
+		input: HTMLTextAreaElement | null;
 	};
 	export let handle_select_column: (col: number) => void;
 	export let handle_select_row: (row: number) => void;
@@ -139,7 +138,6 @@
 				}
 			}}
 			on:blur={handle_blur}
-			{root}
 			{max_chars}
 			{i18n}
 			{components}

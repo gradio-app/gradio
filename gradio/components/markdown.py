@@ -10,6 +10,7 @@ from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.events import Events
+from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -32,9 +33,9 @@ class Markdown(Component):
 
     def __init__(
         self,
-        value: str | Callable | None = None,
+        value: str | I18nData | Callable | None = None,
         *,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
@@ -44,7 +45,8 @@ class Markdown(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         sanitize_html: bool = True,
         line_breaks: bool = False,
         header_links: bool = False,
@@ -53,6 +55,7 @@ class Markdown(Component):
         min_height: int | str | None = None,
         show_copy_button: bool = False,
         container: bool = False,
+        padding: bool = False,
     ):
         """
         Parameters:
@@ -67,7 +70,8 @@ class Markdown(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
+            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
+            preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             sanitize_html: If False, will disable HTML sanitization when converted from markdown. This is not recommended, as it can lead to security vulnerabilities.
             line_breaks: If True, will enable Github-flavored Markdown line breaks in chatbot messages. If False (default), single new lines will be ignored.
             header_links: If True, will automatically create anchors for headings, displaying a link icon on hover.
@@ -76,6 +80,7 @@ class Markdown(Component):
             min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If markdown content exceeds the height, the component will expand to fit the content. Will not have any effect if `height` is set and is larger than `min_height`.
             show_copy_button: If True, includes a copy button to copy the text in the Markdown component. Default is False.
             container: If True, the Markdown component will be displayed in a container. Default is False.
+            padding: If True, the Markdown component will have a certain padding (set by the `--block-padding` CSS variable) in all directions. Default is False.
         """
         self.rtl = rtl
         if latex_delimiters is None:
@@ -88,6 +93,7 @@ class Markdown(Component):
         self.max_height = max_height
         self.min_height = min_height
         self.show_copy_button = show_copy_button
+        self.padding = padding
 
         super().__init__(
             label=label,
@@ -99,6 +105,7 @@ class Markdown(Component):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             value=value,
             container=container,
         )
@@ -112,15 +119,21 @@ class Markdown(Component):
         """
         return payload
 
-    def postprocess(self, value: str | None) -> str | None:
+    def postprocess(self, value: str | I18nData | None) -> str | dict | None:
         """
         Parameters:
             value: Expects a valid `str` that can be rendered as Markdown.
         Returns:
             The same `str` as the input, but with leading and trailing whitespace removed.
+            If an I18nData object is provided, returns it serialized for the frontend to translate.
         """
         if value is None:
             return None
+
+        if isinstance(value, I18nData):
+            # preserve the I18nData object for frontend translation
+            return str(value)
+
         unindented_y = inspect.cleandoc(value)
         return unindented_y
 

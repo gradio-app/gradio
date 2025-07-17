@@ -104,6 +104,15 @@ class TestRoutes:
         with open(file, "rb") as saved_file:
             assert saved_file.read() == b"abcdefghijklmnopqrstuvwxyz"
 
+    def test_header_size_limit(self, test_client):
+        with open("test/test_files/alphabet.txt", "rb") as f:
+            long_filename = "5" * 9000
+            response = test_client.post(
+                f"{API_PREFIX}/upload",
+                files={"files": (long_filename, f, "text/plain")},
+            )
+        assert response.status_code == 413
+
     def test_predict_route(self, test_client):
         response = test_client.post(
             f"{API_PREFIX}/api/predict/", json={"data": ["test"], "fn_index": 0}
@@ -1168,14 +1177,14 @@ class TestShowAPI:
     @patch.object(wasm_utils, "IS_WASM", True)
     def test_show_api_false_when_is_wasm_true(self):
         interface = Interface(lambda x: x, "text", "text", examples=[["hannah"]])
-        assert interface.show_api is False, (
+        assert interface.show_api_in_footer is False, (
             "show_api should be False when IS_WASM is True"
         )
 
     @patch.object(wasm_utils, "IS_WASM", False)
     def test_show_api_true_when_is_wasm_false(self):
         interface = Interface(lambda x: x, "text", "text", examples=[["hannah"]])
-        assert interface.show_api is True, (
+        assert interface.show_api_in_footer is True, (
             "show_api should be True when IS_WASM is False"
         )
 
@@ -1709,7 +1718,7 @@ def test_mount_gradio_app_args_match_launch_args():
         "self",
         "strict_cors",
         "max_threads",
-        "mcp_server",
+        "i18n",
     }
 
     missing_params = []
@@ -1837,3 +1846,42 @@ def test_get_request_origin_with_headers(headers, server, route_path, expected_o
     request = Request(scope)
     origin = get_request_origin(request, route_path)
     assert origin == expected_origin
+
+
+def test_deep_link_unique_per_session():
+    import requests
+    from gradio_client import Client
+
+    with gr.Blocks() as demo:
+        text = gr.Textbox()
+        out = gr.Textbox(label="output")
+        gr.DeepLinkButton()
+        text.submit(fn=lambda x: gr.Textbox(x, lines=int(x)), inputs=text, outputs=out)
+
+    _, url, _ = demo.launch(prevent_thread_lock=True)
+    client_1 = Client(url)
+    client_2 = Client(url)
+    _ = client_1.predict(x="9", api_name="/lambda_1")
+    _ = client_2.predict(x="6", api_name="/lambda_1")
+
+    link_1 = requests.get(
+        f"{url}/gradio_api/deep_link?session_hash={client_1.session_hash}"
+    ).text
+    link_2 = requests.get(
+        f"{url}/gradio_api/deep_link?session_hash={client_2.session_hash}"
+    ).text
+
+    config_1 = requests.get(f"{url}/config?deep_link={link_1[1:-1]}").json()
+    config_2 = requests.get(f"{url}/config?deep_link={link_2[1:-1]}").json()
+    verified_configs = [False, False]
+    for i, config in enumerate([config_1, config_2]):
+        for component in config["components"]:
+            if component["props"].get("label", "") == "output":
+                number = 9
+                if i == 1:
+                    number = 6
+                verified_configs[i] = component["props"][
+                    "lines"
+                ] == number and component["props"]["value"][0] == str(number)
+
+    assert all(verified_configs)

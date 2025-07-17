@@ -1,5 +1,35 @@
 # @gradio/statustracker
 
+## 0.10.15
+
+### Features
+
+- [#11543](https://github.com/gradio-app/gradio/pull/11543) [`ac95ac0`](https://github.com/gradio-app/gradio/commit/ac95ac0d8c2e65d1632376e632fb7d16131334b6) - Connection handling messaging.  Thanks @aliabid94!
+
+## 0.10.14
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+
+## 0.10.13
+
+### Dependency updates
+
+- @gradio/atoms@0.16.2
+
+## 0.10.12
+
+### Fixes
+
+- [#11279](https://github.com/gradio-app/gradio/pull/11279) [`8ae434c`](https://github.com/gradio-app/gradio/commit/8ae434c58906fda5fe20a6b08a12b6007a47af09) - Ensure error text overflows as expected.  Thanks @hannahblair!
+
+## 0.10.11
+
+### Dependency updates
+
+- @gradio/atoms@0.16.1
+
 ## 0.10.10
 
 ### Dependency updates

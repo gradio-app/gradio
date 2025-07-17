@@ -1,9 +1,9 @@
 <svelte:options immutable={true} />
 
 <script lang="ts">
-	import type { Gradio } from "./gradio_helper";
 	import type { ComponentMeta, ThemeMode } from "./types";
 	import type { SvelteComponent, ComponentType } from "svelte";
+	import { translate_if_needed } from "./i18n";
 	// @ts-ignore
 	import { bind, binding_callbacks } from "svelte/internal";
 
@@ -49,23 +49,42 @@
 		return ProxiedMyClass;
 	}
 
-	const _component = wrap(component);
+	let _component = wrap(component);
+
+	const supported_props = [
+		"description",
+		"info",
+		"title",
+		"placeholder",
+		"value",
+		"label"
+	];
+
+	function translate_prop(obj: SvelteRestProps): void {
+		for (const key in obj) {
+			if (supported_props.includes(key as string)) {
+				obj[key] = translate_if_needed(obj[key]);
+			}
+		}
+	}
+
+	$: translate_prop($$restProps);
+	$: value = translate_if_needed(value);
 </script>
 
-<!-- {#if visible} -->
-<svelte:component
-	this={_component}
-	bind:this={instance}
-	bind:value
-	on:prop_change
-	{elem_id}
-	{elem_classes}
-	{target}
-	{visible}
-	{...$$restProps}
-	{theme_mode}
-	{root}
->
-	<slot />
-</svelte:component>
-<!-- {/if} -->
+{#if visible}
+	<svelte:component
+		this={_component}
+		bind:this={instance}
+		bind:value
+		on:prop_change
+		{elem_id}
+		{elem_classes}
+		{target}
+		{...$$restProps}
+		{theme_mode}
+		{root}
+	>
+		<slot />
+	</svelte:component>
+{/if}

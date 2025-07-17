@@ -36,7 +36,7 @@ Note: setting an `api_name=False` also means that downstream apps will not be ab
 
 You can also add new API routes to your Gradio application that do not correspond to events in your UI.
 
-For example, in this Gradio applicaiton, we add a new route that adds numbers and slices a list:
+For example, in this Gradio application, we add a new route that adds numbers and slices a list:
 
 ```py
 import gradio as gr

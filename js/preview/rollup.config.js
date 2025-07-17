@@ -6,6 +6,7 @@ import ts from "@rollup/plugin-typescript";
 import node from "@rollup/plugin-node-resolve";
 import cjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
+import terser from "@rollup/plugin-terser";
 
 const onwarn = (warning, warn) => {
 	if (warning.plugin === "typescript") return;
@@ -30,12 +31,13 @@ const output_svelte_dir = join(
 	"svelte"
 );
 
-const plugins = [node({ preferBuiltins: true }), json(), cjs(), ts()];
+const plugins = [node({ preferBuiltins: true }), json(), cjs(), ts(), terser()];
 
 export default [
 	{
 		input: "src/svelte-submodules.ts",
 		output: {
+			minify: true,
 			file: join(output_svelte_dir, "svelte-submodules.js"),
 			format: "esm"
 		},
@@ -45,6 +47,7 @@ export default [
 	{
 		input: "src/svelte-internal.ts",
 		output: {
+			minify: true,
 			file: join(output_svelte_dir, "svelte.js"),
 			format: "esm"
 		},

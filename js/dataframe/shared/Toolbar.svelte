@@ -1,12 +1,13 @@
 <script lang="ts">
-	import { Maximize, Minimize, Copy, Check } from "@gradio/icons";
+	import { Copy, Check } from "@gradio/icons";
+	import { FullscreenButton } from "@gradio/atoms";
 	import { onDestroy } from "svelte";
 	import { createEventDispatcher } from "svelte";
 
 	export let show_fullscreen_button = false;
 	export let show_copy_button = false;
 	export let show_search: "none" | "search" | "filter" = "none";
-	export let is_fullscreen = false;
+	export let fullscreen = false;
 	export let on_copy: () => Promise<void>;
 	export let on_commit_filter: () => void;
 
@@ -20,7 +21,7 @@
 	let input_value = "";
 
 	function handle_search_input(e: Event): void {
-		const target = e.target as HTMLInputElement;
+		const target = e.target as HTMLTextAreaElement;
 		input_value = target.value;
 		const new_query = input_value || null;
 		if (current_search_query !== new_query) {
@@ -87,18 +88,7 @@
 			</button>
 		{/if}
 		{#if show_fullscreen_button}
-			<button
-				class="toolbar-button"
-				on:click
-				aria-label={is_fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-				title={is_fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-			>
-				{#if is_fullscreen}
-					<Minimize />
-				{:else}
-					<Maximize />
-				{/if}
-			</button>
+			<FullscreenButton {fullscreen} on:fullscreen />
 		{/if}
 	</div>
 </div>

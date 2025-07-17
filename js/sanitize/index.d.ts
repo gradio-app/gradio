@@ -1,1 +1,1 @@
-export declare function sanitize(source: string, root: string): string;
+export declare function sanitize(source: string): string;

@@ -87,7 +87,8 @@
 		"runtime_error": "เกิดข้อผิดพลาดขณะทำงาน",
 		"space_not_working": "\"Space ใช้งานไม่ได้เนื่องจาก\" {0}",
 		"space_paused": "Space ถูกหยุดชั่วคราว",
-		"use_via_api": "ใช้งานผ่าน API"
+		"use_via_api": "ใช้งานผ่าน API",
+		"use_via_api_or_mcp": "ใช้งานผ่าน API หรือ MCP"
 	},
 	"file": {
 		"uploading": "กำลังอัปโหลด..."

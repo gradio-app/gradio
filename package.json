@@ -6,7 +6,7 @@
 		"dev": "pnpm css && pnpm --filter @gradio/preview build && pnpm --filter @self/app dev",
 		"dev:lite": " pnpm --filter @gradio/lite dev",
 		"css": "pnpm --filter @gradio/theme generate",
-		"build": "pnpm css && pnpm --filter @self/app build --emptyOutDir && pnpm --filter @self/spa build --emptyOutDir && pnpm --filter @gradio/preview build",
+		"build": "NODE_OPTIONS='--max-old-space-size=8192' pnpm css && NODE_OPTIONS='--max-old-space-size=8192' pnpm --filter @self/app build --emptyOutDir && NODE_OPTIONS='--max-old-space-size=8192' pnpm --filter @self/spa build --emptyOutDir && NODE_OPTIONS='--max-old-space-size=8192' pnpm --filter @gradio/preview build",
 		"build:lite": "pnpm --filter @gradio/lite build",
 		"format:check": "prettier --ignore-path .config/.prettierignore --check --config .config/.prettierrc.json --plugin prettier-plugin-svelte .",
 		"format:write": "prettier --ignore-path .config/.prettierignore --write --config .config/.prettierrc.json --plugin prettier-plugin-svelte .",

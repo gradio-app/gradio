@@ -156,6 +156,7 @@ export type SpaceStatusCallback = (a: SpaceStatus) => void;
 export interface Config {
 	deep_link_state?: "none" | "valid" | "invalid";
 	auth_required?: true;
+	app_id?: string;
 	analytics_enabled: boolean;
 	connect_heartbeat: boolean;
 	auth_message: string;
@@ -179,7 +180,6 @@ export interface Config {
 	is_colab: boolean;
 	show_api: boolean;
 	stylesheets: string[];
-	path: string;
 	current_page: string;
 	page: Record<
 		string,
@@ -198,6 +198,8 @@ export interface Config {
 	fill_height?: boolean;
 	fill_width?: boolean;
 	pwa?: boolean;
+	i18n_translations?: Record<string, Record<string, string>> | null;
+	mcp_server?: boolean;
 }
 
 // todo: DRY up types
@@ -315,6 +317,7 @@ export interface ClientOptions {
 	events?: EventType[];
 	headers?: Record<string, string>;
 	query_params?: Record<string, string>;
+	session_hash?: string;
 }
 
 export interface FileData {
@@ -380,6 +383,7 @@ export interface Status {
 	time?: Date;
 	changed_state_ids?: number[];
 	time_limit?: number;
+	session_not_found?: boolean;
 }
 
 export interface StatusMessage extends Status {

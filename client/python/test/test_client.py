@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import pathlib
 import tempfile
+import threading
 import time
 import uuid
 from concurrent.futures import CancelledError, TimeoutError, wait
@@ -78,6 +79,50 @@ class TestClientInitialization:
         with connect(many_endpoint_demo):
             pass
         assert (datetime.datetime.now() - start).seconds < 5
+
+    @pytest.mark.parametrize(
+        "cookies,expected",
+        [
+            (None, {}),  # Falsy values coherced to empty dict
+            ({}, {}),  # Empty does not make any difference
+            ({"test-cookie": "abc"}, {"test-cookie": "abc"}),  # Well-formed cookies
+        ],
+    )
+    def test_httpx_cookies_kwarg_is_used_by_client(
+        self, cookies, expected, monkeypatch
+    ):
+        monkeypatch.setattr(threading, "Thread", lambda *_, **__: MagicMock())
+        monkeypatch.setattr(Client, "_space_name_to_src", lambda _, src: src)
+        monkeypatch.setattr(
+            Client, "_get_space_state", lambda _: huggingface_hub.SpaceStage.RUNNING
+        )
+
+        with patch("httpx.get") as mocked:
+            mocked.return_value = httpx.Response(
+                200,
+                json={
+                    "version": "3.36.2",  # Force recent version branch
+                    "dependencies": [],
+                    "named_endpoints": {},
+                    "unnamed_endpoints": {},
+                },
+                request=httpx.Request("GET", "https://fake/space"),
+            )
+            client = Client("fake/space", httpx_kwargs={"cookies": cookies})
+            for call in mocked.call_args_list:
+                assert call.kwargs["cookies"] == expected, (
+                    "Client instantiation missing cookies"
+                )
+
+        # _login overrides cookies
+        response = httpx.Response(200)
+        response._cookies = httpx.Cookies(cookies)
+        with patch("httpx.post", return_value=response) as mocked:
+            client._login(("user", "pass"))
+            mocked.assert_called_once()
+            call = mocked.call_args
+            assert "cookies" not in call.kwargs, "_login call incorporate cookies"
+            assert client.cookies == expected, "_login does not set client cookies"
 
 
 class TestClientPredictions:
@@ -1106,6 +1151,7 @@ class TestAPIInfo:
                         "component": "Number",
                     }
                 ],
+                "description": "",
             }
             assert api_info["unnamed_endpoints"] == {}
 
@@ -1171,8 +1217,9 @@ class TestAPIInfo:
                                 "component": "Textbox",
                             }
                         ],
+                        "description": "",
                     },
-                    "/show_group": {"parameters": [], "returns": []},
+                    "/show_group": {"parameters": [], "returns": [], "description": ""},
                 },
                 "unnamed_endpoints": {},
             }
@@ -1211,6 +1258,7 @@ class TestAPIInfo:
                                 "component": "Number",
                             },
                         ],
+                        "description": "This is a greeting function.",
                     },
                     "/open": {
                         "parameters": [],
@@ -1222,6 +1270,7 @@ class TestAPIInfo:
                                 "component": "Number",
                             }
                         ],
+                        "description": "",
                     },
                     "/close": {
                         "parameters": [],
@@ -1233,6 +1282,7 @@ class TestAPIInfo:
                                 "component": "Number",
                             }
                         ],
+                        "description": "",
                     },
                 },
                 "unnamed_endpoints": {},

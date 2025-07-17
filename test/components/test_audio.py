@@ -71,6 +71,7 @@ class TestAudio:
             },
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "loop": False,
         }
         assert audio_input.preprocess(None) is None
@@ -129,6 +130,7 @@ class TestAudio:
             },
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "loop": False,
         }
 

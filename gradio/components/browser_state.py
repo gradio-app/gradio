@@ -8,12 +8,12 @@ from typing import Any
 
 from gradio_client.documentation import document
 
-from gradio.components.base import Component
+from gradio.components.base import FormComponent
 from gradio.events import Events
 
 
 @document()
-class BrowserState(Component):
+class BrowserState(FormComponent):
     EVENTS = [Events.change]
     """
     Special component that stores state in the browser's localStorage in an encrypted format.

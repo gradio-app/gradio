@@ -3,6 +3,8 @@
 	import { MarkdownCode } from "@gradio/markdown-code";
 	import type { I18nFormatter } from "@gradio/utils";
 	import SelectionButtons from "./icons/SelectionButtons.svelte";
+	import BooleanCell from "./BooleanCell.svelte";
+
 	export let edit: boolean;
 	export let value: string | number = "";
 	export let display_value: string | null = null;
@@ -24,7 +26,6 @@
 	export let line_breaks = true;
 	export let editable = true;
 	export let is_static = false;
-	export let root: string;
 	export let max_chars: number | null = null;
 	export let components: Record<string, any> = {};
 	export let i18n: I18nFormatter;
@@ -35,15 +36,12 @@
 	export let coords: [number, number];
 	export let on_select_column: ((col: number) => void) | null = null;
 	export let on_select_row: ((row: number) => void) | null = null;
+	export let el: HTMLTextAreaElement | null;
 
 	const dispatch = createEventDispatcher<{
 		blur: { blur_event: FocusEvent; coords: [number, number] };
 		keydown: KeyboardEvent;
 	}>();
-
-	let is_expanded = false;
-
-	export let el: HTMLInputElement | null;
 
 	function truncate_text(
 		text: string | number,
@@ -57,8 +55,7 @@
 		return str.slice(0, max_length) + "...";
 	}
 
-	$: should_truncate =
-		!edit && !is_expanded && max_chars !== null && max_chars > 0;
+	$: should_truncate = !edit && max_chars !== null && max_chars > 0;
 
 	$: display_content = editable
 		? value
@@ -70,7 +67,7 @@
 		? truncate_text(display_content, max_chars, datatype === "image")
 		: display_content;
 
-	function use_focus(node: HTMLInputElement): any {
+	function use_focus(node: HTMLTextAreaElement): any {
 		requestAnimationFrame(() => {
 			node.focus();
 		});
@@ -86,26 +83,28 @@
 	}
 
 	function handle_keydown(event: KeyboardEvent): void {
-		if (event.key === "Enter") {
-			if (!header) {
-				is_expanded = !is_expanded;
-			}
-		}
 		dispatch("keydown", event);
 	}
 
-	function handle_click(): void {
-		if (!edit && !header) {
-			is_expanded = !is_expanded;
-		}
+	function handle_bool_change(new_value: boolean): void {
+		value = new_value.toString();
+		dispatch("blur", {
+			blur_event: {
+				target: {
+					type: "checkbox",
+					checked: new_value,
+					value: new_value.toString()
+				}
+			} as unknown as FocusEvent,
+			coords: coords
+		});
 	}
 </script>
 
-{#if edit}
-	<input
+{#if edit && datatype !== "bool"}
+	<textarea
 		readonly={is_static}
 		aria-readonly={is_static}
-		role="textbox"
 		aria-label={is_static ? "Cell is read-only" : "Edit cell"}
 		bind:this={el}
 		bind:value
@@ -113,55 +112,61 @@
 		tabindex="-1"
 		on:blur={handle_blur}
 		on:mousedown|stopPropagation
-		on:mouseup|stopPropagation
 		on:click|stopPropagation
 		use:use_focus
 		on:keydown={handle_keydown}
 	/>
 {/if}
 
-<span
-	class:dragging={is_dragging}
-	on:click={handle_click}
-	on:keydown={handle_keydown}
-	tabindex="0"
-	role="button"
-	class:edit
-	class:expanded={is_expanded}
-	class:multiline={header}
-	on:focus|preventDefault
-	style={styling}
-	data-editable={editable}
-	data-max-chars={max_chars}
-	data-expanded={is_expanded}
-	placeholder=" "
-	class:text={datatype === "str"}
-	class:wrap={wrap_text}
->
-	{#if datatype === "image" && components.image}
-		<svelte:component
-			this={components.image}
-			value={{ url: display_text }}
-			show_label={false}
-			label="cell-image"
-			show_download_button={false}
-			{i18n}
-			gradio={{ dispatch: () => {} }}
-		/>
-	{:else if datatype === "html"}
-		{@html display_text}
-	{:else if datatype === "markdown"}
-		<MarkdownCode
-			message={display_text.toLocaleString()}
-			{latex_delimiters}
-			{line_breaks}
-			chatbot={false}
-			{root}
-		/>
-	{:else}
-		{display_text}
-	{/if}
-</span>
+{#if datatype === "bool"}
+	<BooleanCell
+		value={String(display_content)}
+		{editable}
+		on_change={handle_bool_change}
+	/>
+{:else}
+	<span
+		class:dragging={is_dragging}
+		on:keydown={handle_keydown}
+		tabindex="0"
+		role="button"
+		class:edit
+		class:expanded={edit}
+		class:multiline={header}
+		on:focus|preventDefault
+		style={styling}
+		data-editable={editable}
+		data-max-chars={max_chars}
+		data-expanded={edit}
+		placeholder=" "
+		class:text={datatype === "str"}
+		class:wrap={wrap_text}
+	>
+		{#if datatype === "image" && components.image}
+			<svelte:component
+				this={components.image}
+				value={{ url: display_text }}
+				show_label={false}
+				label="cell-image"
+				show_download_button={false}
+				{i18n}
+				gradio={{ dispatch: () => {} }}
+			/>
+		{:else if datatype === "html"}
+			{@html display_text}
+		{:else if datatype === "markdown"}
+			<MarkdownCode
+				message={display_text.toLocaleString()}
+				{latex_delimiters}
+				{line_breaks}
+				chatbot={false}
+			/>
+		{:else}
+			{display_text}
+		{/if}
+	</span>
+{/if}
+
 {#if show_selection_buttons && coords && on_select_column && on_select_row}
 	<SelectionButtons
 		position="column"
@@ -180,7 +185,7 @@
 		cursor: crosshair !important;
 	}
 
-	input {
+	textarea {
 		position: absolute;
 		flex: 1 1 0%;
 		transform: translateX(-0.1px);
@@ -189,6 +194,16 @@
 		background: transparent;
 		cursor: text;
 		width: calc(100% - var(--size-2));
+		resize: none;
+		height: 100%;
+		padding-left: 0;
+		font-size: inherit;
+		font-weight: inherit;
+		line-height: var(--line-lg);
+	}
+
+	textarea:focus {
+		outline: none;
 	}
 
 	span {
@@ -240,7 +255,7 @@
 		object-fit: contain;
 	}
 
-	input:read-only {
+	textarea:read-only {
 		cursor: not-allowed;
 	}
 

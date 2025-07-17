@@ -1,5 +1,61 @@
 # @gradio/accordion
 
+## 0.5.20
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.15
+- @gradio/column@0.2.1
+
+## 0.5.19
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+- @gradio/statustracker@0.10.14
+- @gradio/column@0.2.1
+
+## 0.5.18
+
+### Dependency updates
+
+- @gradio/column@0.2.1
+
+## 0.5.17
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+- @gradio/atoms@0.16.2
+- @gradio/column@0.2.0
+
+## 0.5.16
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.5.16
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.5.16
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+- @gradio/column@0.2.0
+
+## 0.5.15
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.11
+- @gradio/atoms@0.16.1
+- @gradio/column@0.2.0
+
 ## 0.5.14
 
 ### Dependency updates

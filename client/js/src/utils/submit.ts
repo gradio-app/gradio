@@ -129,8 +129,6 @@ export function submit(
 				}
 				reset_request = { fn_index, session_hash };
 			} else {
-				close_stream(stream_status, that.abort_controller);
-				close();
 				reset_request = { event_id };
 				cancel_request = { event_id, session_hash, fn_index };
 			}
@@ -161,7 +159,7 @@ export function submit(
 		}
 
 		const resolve_heartbeat = async (config: Config): Promise<void> => {
-			await this._resolve_hearbeat(config);
+			await this._resolve_heartbeat(config);
 		};
 
 		async function handle_render_config(render_config: any): Promise<void> {
@@ -295,7 +293,7 @@ export function submit(
 					let url = new URL(
 						`${ws_protocol}://${resolve_root(
 							host,
-							config.path as string,
+							config.root as string,
 							true
 						)}/queue/join${url_params ? "?" + url_params : ""}`
 					);
@@ -599,6 +597,7 @@ export function submit(
 							fire_event({
 								type: "status",
 								stage: "error",
+								broken: true,
 								message: BROKEN_CONNECTION_MSG,
 								queue: true,
 								endpoint: _endpoint,
@@ -631,8 +630,12 @@ export function submit(
 										});
 									} else if (type === "complete") {
 										complete = status;
-									} else if (type == "unexpected_error") {
+									} else if (
+										type == "unexpected_error" ||
+										type == "broken_connection"
+									) {
 										console.error("Unexpected error", status?.message);
+										const broken = type === "broken_connection";
 										fire_event({
 											type: "status",
 											stage: "error",
@@ -640,6 +643,8 @@ export function submit(
 												status?.message || "An Unexpected Error Occurred!",
 											queue: true,
 											endpoint: _endpoint,
+											broken,
+											session_not_found: status?.session_not_found,
 											fn_index,
 											time: new Date()
 										});

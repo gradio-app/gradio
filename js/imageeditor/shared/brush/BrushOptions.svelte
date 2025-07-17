@@ -47,7 +47,6 @@
 		if (!color) return;
 		selected_color = color;
 
-		// Update opacity if provided
 		if (opacity !== undefined) {
 			selected_opacity = opacity;
 		}
@@ -80,11 +79,9 @@
 	export let preview = false;
 	function handle_preview(): void {
 		if (!preview) {
-			// Show preview immediately when requested
 			preview = true;
 			debounced_close_preview();
 		} else {
-			// Only use debounce when hiding the preview
 			debounced_close_preview();
 		}
 	}

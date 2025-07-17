@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import markdown
 
 DIR = os.path.dirname(__file__)
 GUIDES_DIR = os.path.abspath(os.path.join(DIR, "../../../../../guides"))
@@ -88,7 +89,7 @@ for guide_folder in guide_folders:
         guide_content = re.sub(
             r"(\n\nTip: )(.*?)(?=\n\n|$)", 
             lambda x: f"""
-            <p class='tip'>
+            <div class='tip'>
                 <span class="inline-flex" style="align-items: baseline">
                     <svg class="self-center w-5 h-5 mx-1" xmlns="http://www.w3.org/2000/svg" width="800px" height="800px" viewBox="0 0 24 24" fill="currentColor">
                         <path fill-rule="evenodd" clip-rule="evenodd" d="M9.25 18.7089C9.25 18.2894 9.58579 17.9494 10 17.9494H14C14.4142 17.9494 14.75 18.2894 14.75 18.7089C14.75 19.1283 14.4142 19.4684 14 19.4684H10C9.58579 19.4684 9.25 19.1283 9.25 18.7089ZM9.91667 21.2405C9.91667 20.821 10.2525 20.481 10.6667 20.481H13.3333C13.7475 20.481 14.0833 20.821 14.0833 21.2405C14.0833 21.66 13.7475 22 13.3333 22H10.6667C10.2525 22 9.91667 21.66 9.91667 21.2405Z"/>
@@ -96,8 +97,8 @@ for guide_folder in guide_folders:
                     </svg>
                 <span><strong>Tip:</strong></span>
                 </span>
-                {x.group(2)}
-            </p>
+                {markdown.markdown(x.group(2))}
+            </div>
                 """,
             guide_content,
         )
@@ -105,15 +106,15 @@ for guide_folder in guide_folders:
         guide_content = re.sub(
             r"(\n\nWarning: )(.*?)(?=\n\n|$)", 
             lambda x: f"""
-            <p class='warning'>
+            <div class='warning'>
                 <span class="inline-flex" style="align-items: baseline">
                     <svg class="self-center w-5 h-5 mx-1" xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' fill='currentColor' version='1.1' width='800px' height='800px' viewBox='0 0 554.2 554.199' xml:space='preserve'>
                         <path d='M538.5,386.199L356.5,70.8c-16.4-28.4-46.7-45.9-79.501-45.9c-32.8,0-63.1,17.5-79.5,45.9L12.3,391.6   c-16.4,28.4-16.4,63.4,0,91.8C28.7,511.8,59,529.3,91.8,529.3H462.2c0.101,0,0.2,0,0.2,0c50.7,0,91.8-41.101,91.8-91.8   C554.2,418.5,548.4,400.8,538.5,386.199z M316.3,416.899c0,21.7-16.7,38.3-39.2,38.3s-39.2-16.6-39.2-38.3V416   c0-21.601,16.7-38.301,39.2-38.301S316.3,394.3,316.3,416V416.899z M317.2,158.7L297.8,328.1c-1.3,12.2-9.4,19.8-20.7,19.8   s-19.4-7.7-20.7-19.8L237,158.6c-1.3-13.1,5.801-23,18-23H299.1C311.3,135.7,318.5,145.6,317.2,158.7z'/>
                     </svg>
                 <span><strong>Warning:</strong></span>
                 </span>
-                {x.group(2)}
-            </p>
+                {markdown.markdown(x.group(2))}
+            </div>
                 """, 
             guide_content,
         )

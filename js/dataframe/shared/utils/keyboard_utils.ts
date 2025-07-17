@@ -37,7 +37,12 @@ export async function handle_cell_blur(
 	const input_el = event.target as HTMLInputElement;
 	if (!input_el || input_el.value === undefined) return;
 
-	await save_cell_value(input_el.value, ctx, coords[0], coords[1]);
+	await save_cell_value(
+		input_el.type === "checkbox" ? String(input_el.checked) : input_el.value,
+		ctx,
+		coords[0],
+		coords[1]
+	);
 }
 
 function handle_header_navigation(
@@ -83,6 +88,7 @@ function handle_header_navigation(
 	return false;
 }
 
+// eslint-disable-next-line complexity
 function handle_delete_operation(
 	event: KeyboardEvent,
 	ctx: DataFrameContext
@@ -95,6 +101,11 @@ function handle_delete_operation(
 
 	const editing = state.ui_state.editing;
 	const selected_cells = state.ui_state.selected_cells;
+
+	const static_columns = state.config.static_columns || [];
+	if (selected_cells.some(([_, col]) => static_columns.includes(col))) {
+		return false;
+	}
 
 	if (editing) {
 		const [row, col] = editing;
@@ -175,9 +186,10 @@ async function handle_enter_key(
 	const state = get(ctx.state);
 	if (!state.config.editable) return false;
 
-	event.preventDefault();
-
 	const editing = state.ui_state.editing;
+	if (editing && event.shiftKey) return false;
+
+	event.preventDefault();
 
 	if (editing && dequal(editing, [i, j])) {
 		const cell_id = ctx.data[i][j].id;
@@ -186,6 +198,8 @@ async function handle_enter_key(
 			await save_cell_value(input_el.value, ctx, i, j);
 		}
 		ctx.actions.set_editing(false);
+		await tick();
+		ctx.parent_element?.focus();
 	} else {
 		ctx.actions.set_editing([i, j]);
 	}

@@ -66,6 +66,7 @@
 	export let show_fullscreen_button: boolean;
 	export let input_ready: boolean;
 	export let webcam_options: WebcamOptions;
+	let fullscreen = false;
 
 	let uploading = false;
 	$: input_ready = !uploading;
@@ -140,6 +141,7 @@
 		{container}
 		{scale}
 		{min_width}
+		bind:fullscreen
 	>
 		<StatusTracker
 			autoscroll={gradio.autoscroll}
@@ -150,6 +152,10 @@
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => gradio.dispatch("error", detail)}
+			on:fullscreen={({ detail }) => {
+				fullscreen = detail;
+			}}
+			{fullscreen}
 			{value}
 			{label}
 			{show_label}
@@ -174,6 +180,7 @@
 		{container}
 		{scale}
 		{min_width}
+		bind:fullscreen
 		on:dragenter={handle_drag_event}
 		on:dragleave={handle_drag_event}
 		on:dragover={handle_drag_event}
@@ -195,6 +202,7 @@
 			selectable={_selectable}
 			{root}
 			{sources}
+			{fullscreen}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => {
 				gradio.dispatch("clear");
@@ -211,6 +219,9 @@
 			}}
 			on:close_stream={() => {
 				gradio.dispatch("close_stream", "stream");
+			}}
+			on:fullscreen={({ detail }) => {
+				fullscreen = detail;
 			}}
 			{label}
 			{show_label}
