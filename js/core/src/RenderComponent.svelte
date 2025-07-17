@@ -3,7 +3,7 @@
 <script lang="ts">
 	import type { ComponentMeta, ThemeMode } from "./types";
 	import type { SvelteComponent, ComponentType } from "svelte";
-	import { translate_if_needed } from "./i18n";
+	import { translate_if_needed, extractI18nKey } from "./i18n";
 	// @ts-ignore
 	import { bind, binding_callbacks } from "svelte/internal";
 
@@ -57,13 +57,20 @@
 		"title",
 		"placeholder",
 		"value",
-		"label"
+		"label",
+		"choices"
 	];
 
 	function translate_prop(obj: SvelteRestProps): void {
 		for (const key in obj) {
 			if (supported_props.includes(key as string)) {
-				obj[key] = translate_if_needed(obj[key]);
+				if (key === "choices" && Array.isArray(obj[key])) {
+					obj[key] = obj[key].map((choice: any) => {
+						return [translate_if_needed(choice[0]), extractI18nKey(choice[1])];
+					});
+				} else {
+					obj[key] = translate_if_needed(obj[key]);
+				}
 			}
 		}
 	}
@@ -73,18 +80,18 @@
 </script>
 
 {#if visible}
-	<svelte:component
-		this={_component}
-		bind:this={instance}
-		bind:value
-		on:prop_change
-		{elem_id}
-		{elem_classes}
-		{target}
-		{...$$restProps}
-		{theme_mode}
-		{root}
-	>
-		<slot />
-	</svelte:component>
+<svelte:component
+	this={_component}
+	bind:this={instance}
+	bind:value
+	on:prop_change
+	{elem_id}
+	{elem_classes}
+	{target}
+	{...$$restProps}
+	{theme_mode}
+	{root}
+>
+	<slot />
+</svelte:component>
 {/if}

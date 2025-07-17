@@ -46,13 +46,13 @@ class Dropdown(FormComponent):
 
     def __init__(
         self,
-        choices: Sequence[str | int | float | tuple[str, str | int | float]]
-        | None = None,
+        choices: Sequence[str | int | float | I18nData | tuple[str | I18nData, str | int | float]] | None = None,
         *,
         value: str
         | int
         | float
-        | Sequence[str | int | float]
+        | I18nData
+        | Sequence[str | I18nData | int | float]
         | Callable
         | DefaultValue
         | None = DEFAULT_VALUE,
@@ -194,7 +194,7 @@ class Dropdown(FormComponent):
         if payload is None:
             return None
 
-        choice_values = [value for _, value in self.choices]
+        choice_values = [value if not isinstance(value, I18nData) else value.key for _, value in self.choices]
         if not self.allow_custom_value:
             if isinstance(payload, list):
                 for value in payload:
@@ -232,8 +232,8 @@ class Dropdown(FormComponent):
         )
 
     def postprocess(
-        self, value: str | int | float | list[str | int | float] | None
-    ) -> str | int | float | list[str | int | float] | None:
+        self, value: str | I18nData | int | float | list[str | I18nData | int | float] | None
+    ) -> str | I18nData | int | float | list[str | I18nData | int | float] | None:
         """
         Parameters:
             value: Expects a `str | int | float` corresponding to the value of the dropdown entry to be selected. Or, if `multiselect` is True, expects a `list` of values corresponding to the selected dropdown entries.
