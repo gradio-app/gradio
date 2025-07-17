@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Revert untranslated `Loading` text
+fix:Ensure initial `Loading` text is translated in SPA mode
