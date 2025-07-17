@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix missing visible prop in RenderComponent.svelte for gradio-modal rendering
+fix:Ensure component visibility is correctly propagated to all components 
