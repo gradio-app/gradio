@@ -482,6 +482,7 @@ class Client:
             api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint.
             fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
             kwargs: The keyword arguments to pass to the remote API endpoint.
+            headers: Additional headers to send to the remote Gradio app on this request. This parameter will overrides the headers provided in the Client constructor if they have the same keys.
         Returns:
             The result of the API call. Will be a Tuple if the API has multiple outputs.
         Example:
@@ -525,6 +526,7 @@ class Client:
             fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
             result_callbacks: A callback function, or list of callback functions, to be called when the result is ready. If a list of functions is provided, they will be called in order. The return values from the remote API are provided as separate parameters into the callback. If None, no callback will be called.
             kwargs: The keyword arguments to pass to the remote API endpoint.
+            headers: Additional headers to send to the remote Gradio app on this request. This parameter will overrides the headers provided in the Client constructor if they have the same keys.
         Returns:
             A Job object that can be used to retrieve the status and result of the remote API call.
         Example:
