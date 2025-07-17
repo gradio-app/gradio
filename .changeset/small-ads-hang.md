@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:fix: add missing space at end of warning sentences for proper grammar
+fix:fix: add missing space at end of warning sentences for proper grammar
