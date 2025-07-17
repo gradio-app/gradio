@@ -9,27 +9,13 @@
 		typeof value === "string" ? value.toLowerCase() === "true" : !!value;
 
 	function handle_change(event: CustomEvent<boolean>): void {
-		on_change(event.detail);
-	}
-
-	function handle_click(event: MouseEvent): void {
-		event.stopPropagation();
-	}
-
-	function handle_keydown(event: KeyboardEvent): void {
-		if (event.key === "Enter" || event.key === " ") {
-			event.stopPropagation();
+		if (editable) {
+			on_change(event.detail);
 		}
 	}
 </script>
 
-<div
-	class="bool-cell checkbox"
-	on:click={handle_click}
-	on:keydown={handle_keydown}
-	role="button"
-	tabindex="-1"
->
+<div class="bool-cell" role="button" tabindex="-1">
 	<BaseCheckbox
 		bind:value={bool_value}
 		label=""
@@ -43,15 +29,13 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: var(--size-full);
+		width: min-content;
 		height: var(--size-full);
-	}
-	.bool-cell :global(input:disabled) {
-		opacity: 0.8;
+		margin: 0 auto;
 	}
 
-	.bool-cell.checkbox {
-		justify-content: center;
+	.bool-cell :global(input:disabled) {
+		cursor: not-allowed;
 	}
 
 	.bool-cell :global(label) {

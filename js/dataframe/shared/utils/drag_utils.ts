@@ -23,9 +23,16 @@ export function create_drag_handlers(
 	parent_element?: HTMLElement
 ): DragHandlers {
 	const start_drag = (event: MouseEvent, row: number, col: number): void => {
+		const target = event.target as HTMLElement;
+		const is_checkbox_click =
+			(target as HTMLInputElement).type === "checkbox" ||
+			target.closest('input[type="checkbox"]') ||
+			target.closest(".bool-cell");
+
 		if (
 			event.target instanceof HTMLAnchorElement ||
-			(show_row_numbers && col === -1)
+			(show_row_numbers && col === -1) ||
+			is_checkbox_click
 		)
 			return;
 
