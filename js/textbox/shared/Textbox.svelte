@@ -395,15 +395,13 @@
 
 	input,
 	textarea {
-		flex-grow: 1;
+		flex: 1 1 auto;
+		min-width: 0;
 		outline: none !important;
 		margin-top: 0px;
 		margin-bottom: 0px;
 		resize: none;
 		z-index: 1;
-		display: block;
-		position: relative;
-		outline: none !important;
 		background: var(--input-background-fill);
 		padding: var(--input-padding);
 		width: 100%;
