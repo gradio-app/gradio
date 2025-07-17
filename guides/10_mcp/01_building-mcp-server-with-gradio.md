@@ -72,13 +72,11 @@ Now, all you need to do is add this URL endpoint to your MCP Client (e.g. Claude
    export GRADIO_MCP_SERVER=True
    ```
 
-3. **File Handling**: The server automatically handles file data conversions, including:
-   - Converting base64-encoded strings to file data
+3. **File Handling**: The Gradio MCP server automatically handles file data conversions, including:
    - Processing image files and returning them in the correct format
    - Managing temporary file storage
 
-    It is **strongly** recommended that input images and files be passed as full URLs ("http://..." or "https:/...") as MCP Clients do not always handle local files correctly.
-
+    By default, the Gradio MCP server accepts input images and files as full URLs ("http://..." or "https:/..."). For convenience, an additional STDIO-based MCP server is also generated, which can be used to upload files to any remote Gradio app and which returns a URL that can be used for subsequent tool calls.
 
 4. **Hosted MCP Servers on 󠀠🤗 Spaces**: You can publish your Gradio application for free on Hugging Face Spaces, which will allow you to have a free hosted MCP server. Here's an example of such a Space: https://huggingface.co/spaces/abidlabs/mcp-tools. Notice that you can add this config to your MCP Client to start using the tools from this Space immediately:
 
@@ -176,6 +174,17 @@ demo.launch(mcp_server=True)
 ```
 
 ![MCP Header Connection Page](https://github.com/user-attachments/assets/e264eedf-a91a-476b-880d-5be0d5934134)
+
+### Sending Progress Updates
+
+The Gradio MCP server automatically sends progress updates to your MCP Client based on the queue in the Gradio application. If you'd like to send custom progress updates, you can do so using the same mechanism as you would use to display progress updates in the UI of your Gradio app: by using the `gr.Progress` class!
+
+Here's an example of how to do this:
+
+$code_mcp_progress
+
+[Here are the docs](https://www.gradio.app/docs/gradio/progress) for the `gr.Progress` class, which can also automatically track `tqdm` calls.
+
 
 ## Modifying Tool Descriptions
 
