@@ -303,7 +303,7 @@ class Interface(Blocks):
 
             if cache_examples:
                 warnings.warn(
-                    "Cache examples cannot be used with state inputs and outputs."
+                    "Cache examples cannot be used with state inputs and outputs. "
                     "Setting cache_examples to False."
                 )
             self.cache_examples = False
@@ -423,7 +423,7 @@ class Interface(Blocks):
         # (2) check for env variable, (3) default to "manual"
         if allow_flagging is not None:
             warnings.warn(
-                "The `allow_flagging` parameter in `Interface` is deprecated."
+                "The `allow_flagging` parameter in `Interface` is deprecated. "
                 "Use `flagging_mode` instead."
             )
             flagging_mode = allow_flagging
