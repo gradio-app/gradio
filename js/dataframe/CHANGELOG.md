@@ -1,5 +1,19 @@
 # @gradio/dataframe
 
+## 0.18.3
+
+### Fixes
+
+- [#11534](https://github.com/gradio-app/gradio/pull/11534) [`5259f22`](https://github.com/gradio-app/gradio/commit/5259f229939177cc2027db5164c9321566fb3eeb) - Allow changing value with single click instead of double click.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/client@1.15.6
+- @gradio/statustracker@0.10.15
+- @gradio/button@0.5.7
+- @gradio/upload@0.16.11
+- @gradio/checkbox@0.4.26
+
 ## 0.18.2
 
 ### Fixes

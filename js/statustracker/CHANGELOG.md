@@ -1,5 +1,11 @@
 # @gradio/statustracker
 
+## 0.10.15
+
+### Features
+
+- [#11543](https://github.com/gradio-app/gradio/pull/11543) [`ac95ac0`](https://github.com/gradio-app/gradio/commit/ac95ac0d8c2e65d1632376e632fb7d16131334b6) - Connection handling messaging.  Thanks @aliabid94!
+
 ## 0.10.14
 
 ### Dependency updates

@@ -1,5 +1,11 @@
 # @gradio/nativeplot
 
+## 0.7.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.15
+
 ## 0.7.1
 
 ### Dependency updates
