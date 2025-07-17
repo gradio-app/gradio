@@ -1,6 +1,6 @@
 ---
-"@gradio/textbox": minor
-"gradio": minor
+"@gradio/textbox": patch
+"gradio": patch
 ---
 
-feat:Ensure `gr.Textbox` is responsive with content
+fix:Ensure `gr.Textbox` is responsive with content
