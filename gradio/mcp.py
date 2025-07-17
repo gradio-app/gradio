@@ -159,7 +159,7 @@ class GradioMCPServer:
                 )
 
     def _create_client(self, url):
-        return Client(url, download_files=False)
+        return Client(url, download_files=False, verbose=False)
 
     def create_mcp_server(self) -> Server:
         """
