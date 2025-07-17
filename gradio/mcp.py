@@ -306,9 +306,9 @@ class GradioMCPServer:
     @property
     def _file_data_tool_description(self) -> str:
         """
-        Sentence prompting the agent to use the upload_file_to_gradio_or_hf tool if a file is passed as an input.
+        Sentence prompting the agent to use the upload_file_to_gradio tool if a file is passed as an input.
         """
-        return " If a user passes a file as an input, use the upload_file_to_gradio_or_hf tool, if present, to upload the file to the gradio app, and then use the returned path as the input to the tool"
+        return " If a user passes a file as an input, use the upload_file_to_gradio tool, if present, to upload the file to the gradio app and create a Gradio File Input. Then use the returned path as the input to the tool"
 
     def get_fn_description(
         self, block_fn: "BlockFunction", tool_name: str
@@ -521,7 +521,7 @@ class GradioMCPServer:
                     for key in ["properties", "additional_description", "$defs"]:
                         node.pop(key, None)
                     node["type"] = "string"
-                    node["format"] = "a http or https url to a file"
+                    node["format"] = "Gradio File Input - a http or https url to a file"
 
                 result = {}
                 is_schema_root = "type" in node and "properties" in node

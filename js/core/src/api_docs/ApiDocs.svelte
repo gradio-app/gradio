@@ -193,8 +193,10 @@
 					}
 				};
 				if (file_data_present) {
-					mcp_json_sse.mcpServers.upload_files = upload_file_mcp_server;
-					mcp_json_stdio.mcpServers.upload_files = upload_file_mcp_server;
+					mcp_json_sse.mcpServers.upload_files_to_gradio =
+						upload_file_mcp_server;
+					mcp_json_stdio.mcpServers.upload_files_to_gradio =
+						upload_file_mcp_server;
 				}
 			}
 		} catch (error) {
@@ -387,7 +389,7 @@
 									<p>&nbsp;</p>
 									<em>Note about files</em>: Gradio MCP servers that have files
 									as inputs need the files as URLs, so the
-									<code>upload_files</code>
+									<code>upload_files_to_gradio</code>
 									tool is included for your convenience. This tool can upload files
 									located in the specified <code>UPLOAD_DIRECTORY</code>
 									argument (an absolute path in your local machine) or any of its

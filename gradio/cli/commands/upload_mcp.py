@@ -16,12 +16,12 @@ def main(url_or_space_id: str, source_directory: str):
         url = f"https://{space_info(url_or_space_id).subdomain}.hf.space"
 
     @mcp.tool()
-    def upload_file_to_gradio_or_hf(file: str) -> str:
-        """Upload a local file to a lication.
+    def upload_file_to_gradio(file: str) -> str:
+        """Generate a Gradio File Input for a local file by uploading it to a Gradio app and returning the URL.
         Arguments:
-            file: A complete, absolutepath to a local file to upload.
+            file: A complete, absolute path to a local file to upload.
         Returns:
-            A URL to the uploaded file.
+            Gradio File Input - A URL to the uploaded file.
         """
 
         target_path = abspath(file)
