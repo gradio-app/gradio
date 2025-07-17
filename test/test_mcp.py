@@ -60,7 +60,8 @@ def test_convert_strings_to_filedata(test_mcp_app):
     }
     filedata_positions: list[list[str | int]] = [["image"]]
     result = server.convert_strings_to_filedata(test_data, filedata_positions)
-    assert isinstance(result["image"], FileData)
+    assert isinstance(result["image"], dict)
+    result["image"] = FileData(**result["image"])
     assert os.path.exists(result["image"].path)
 
     test_data = {"image": "invalid_data"}
@@ -297,3 +298,25 @@ def test_mcp_mount_gradio_app():
                 )
     finally:
         process.terminate()
+
+
+@pytest.mark.asyncio
+async def test_associative_keyword_in_schema():
+    import json
+
+    def test_tool(x):
+        return x
+
+    demo = gr.Interface(test_tool, "image", "image")
+    server = GradioMCPServer(demo)
+    schema = (await server.get_complete_schema(None)).body.decode("utf-8")  # type: ignore
+    schema = json.loads(schema)
+    assert (
+        schema[0]["inputSchema"]["properties"]["x"]["format"]
+        == "Gradio File Input - a http or https url to a file"
+    )
+    assert (
+        "to upload the file to the gradio app and create a Gradio File Input"
+        in schema[0]["description"]
+    )
+    assert schema[0]["meta"]["file_data_present"]

@@ -2773,6 +2773,8 @@ Received inputs:
             )
             self.share_server_tls_certificate = share_server_tls_certificate
             self.has_launched = True
+            if self.mcp_server_obj:
+                self.mcp_server_obj._local_url = self.local_url
 
             self.protocol = (
                 "https"

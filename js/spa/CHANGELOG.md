@@ -1,5 +1,16 @@
 # @self/spa
 
+## 0.10.1
+
+### Features
+
+- [#11543](https://github.com/gradio-app/gradio/pull/11543) [`ac95ac0`](https://github.com/gradio-app/gradio/commit/ac95ac0d8c2e65d1632376e632fb7d16131334b6) - Connection handling messaging.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/core@0.23.0
+- @gradio/client@1.15.6
+
 ## 0.10.0
 
 ### Features

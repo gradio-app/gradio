@@ -8,11 +8,14 @@ import warnings
 from collections.abc import AsyncIterator, Sequence
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, Optional, cast
 from urllib.parse import unquote
 
 import gradio_client.utils as client_utils
 import httpx
+from anyio.to_thread import run_sync
+from gradio_client import Client, handle_file
+from gradio_client.utils import Status, StatusUpdate
 from mcp import types
 from mcp.server import Server
 from mcp.server.sse import SseServerTransport
@@ -27,7 +30,6 @@ from starlette.types import Receive, Scope, Send
 from gradio import processing_utils, route_utils, utils
 from gradio.blocks import BlockFunction
 from gradio.components import State
-from gradio.data_classes import FileData
 from gradio.route_utils import Header
 
 if TYPE_CHECKING:
@@ -57,6 +59,8 @@ class GradioMCPServer:
         self.tool_prefix = space_id.split("/")[-1] + "_" if space_id else ""
         self.tool_to_endpoint = self.get_tool_to_endpoint()
         self.warn_about_state_inputs()
+        self._local_url: str | None = None
+        self._client_instance: Client
 
         manager = StreamableHTTPSessionManager(
             app=self.mcp_server, json_response=False, stateless=True
@@ -79,6 +83,10 @@ class GradioMCPServer:
         self.lifespan = lifespan
         self.manager = manager
         self.handle_streamable_http = handle_streamable_http
+
+    @property
+    def local_url(self) -> str | None:
+        return self._local_url
 
     def get_route_path(self, request: Request) -> str:
         """
@@ -150,6 +158,9 @@ class GradioMCPServer:
                     "used each time."
                 )
 
+    def _create_client(self, url):
+        return Client(url, download_files=False, verbose=False)
+
     def create_mcp_server(self) -> Server:
         """
         Create an MCP server for the given Gradio Blocks app.
@@ -173,7 +184,10 @@ class GradioMCPServer:
                 name: The name of the tool to call.
                 arguments: The arguments to pass to the tool.
             """
-            context_request = self.mcp_server.request_context.request
+            context_request: Request | None = self.mcp_server.request_context.request
+            progress_token = None
+            if self.mcp_server.request_context.meta is not None:
+                progress_token = self.mcp_server.request_context.meta.progressToken
             if context_request is None:
                 raise ValueError(
                     "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
@@ -184,6 +198,11 @@ class GradioMCPServer:
                 route_path=route_path,
                 root_path=self.root_path,
             )
+            if not hasattr(self, "_client_instance"):
+                # TODO: Per-request headers
+                self._client_instance = await run_sync(
+                    self._create_client, self.local_url or root_url
+                )
             _, filedata_positions = self.get_input_schema(name)
             processed_kwargs = self.convert_strings_to_filedata(
                 arguments, filedata_positions
@@ -206,12 +225,67 @@ class GradioMCPServer:
                 )
             else:
                 processed_args = []
-            processed_args = self.insert_empty_state(block_fn.inputs, processed_args)
-            output = await self.blocks.process_api(
-                block_fn=block_fn,
-                inputs=processed_args,
-                request=context_request,
-            )
+            request_headers = dict(context_request.headers.items())
+            request_headers.pop("content-length", None)
+            step = 0
+            output = {"data": []}
+            async for update in self._client_instance.submit(
+                *processed_args, api_name=endpoint_name, headers=request_headers
+            ):
+                if update.type == "status" and progress_token is not None:
+                    update = cast(StatusUpdate, update)
+
+                    if update.code in [Status.JOINING_QUEUE, Status.STARTING]:
+                        message = "Joined server queue."
+                    elif update.code in [Status.IN_QUEUE]:
+                        message = f"In queue. Position {update.rank} out of {update.queue_size}."
+                        if update.eta is not None:
+                            message += (
+                                f" Estimated time remaining: {update.eta} seconds."
+                            )
+                    elif update.code in [Status.PROGRESS]:
+                        for progress_unit in update.progress_data or []:
+                            title = (
+                                "Progress"
+                                if progress_unit.desc is None
+                                else f"Progress {progress_unit.desc}"
+                            )
+                            if (
+                                progress_unit.index is not None
+                                and progress_unit.length is not None
+                            ):
+                                message = f"{title}: Step {progress_unit.index} of {progress_unit.length}"
+                            elif (
+                                progress_unit.index is not None
+                                and progress_unit.length is None
+                            ):
+                                message = f"{title}: Step {progress_unit.index}"
+                    elif update.code in [Status.PROCESSING, Status.ITERATING]:
+                        message = "Processing"
+                    else:
+                        message = None
+
+                    await self.mcp_server.request_context.session.send_progress_notification(
+                        progress_token=progress_token,
+                        progress=step,
+                        message=message,  # type: ignore
+                    )
+                    step += 1
+                elif update.type == "output" and update.final:
+                    output = update.outputs
+                    if not update.success:
+                        error_title = output.get("title")
+                        error_message = output.get("error")
+                        if error_title and error_message:
+                            msg = f"{error_title}: {error_message}"
+                        elif error_message:
+                            msg = error_message
+                        elif error_title:
+                            msg = error_title
+                        else:
+                            msg = "Error!"
+                        # Need to raise an error so that call_tool returns an error payload
+                        raise RuntimeError(msg)
             processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
             return self.postprocess_output_data(output["data"], root_url)
 
@@ -306,9 +380,9 @@ class GradioMCPServer:
     @property
     def _file_data_tool_description(self) -> str:
         """
-        Sentence prompting the agent to use the upload_file_to_gradio_or_hf tool if a file is passed as an input.
+        Sentence prompting the agent to use the upload_file_to_gradio tool if a file is passed as an input.
         """
-        return " If a user passes a file as an input, use the upload_file_to_gradio_or_hf tool, if present, to upload the file to the gradio app, and then use the returned path as the input to the tool"
+        return " If a user passes a file as an input, use the upload_file_to_gradio tool, if present, to upload the file to the gradio app and create a Gradio File Input. Then use the returned path as the input to the tool"
 
     def get_fn_description(
         self, block_fn: "BlockFunction", tool_name: str
@@ -521,7 +595,7 @@ class GradioMCPServer:
                     for key in ["properties", "additional_description", "$defs"]:
                         node.pop(key, None)
                     node["type"] = "string"
-                    node["format"] = "a http or https url to a file"
+                    node["format"] = "Gradio File Input - a http or https url to a file"
 
                 result = {}
                 is_schema_root = "type" in node and "properties" in node
@@ -587,13 +661,11 @@ class GradioMCPServer:
                 if node.startswith("data:"):
                     # Even though base64 is not officially part of our schema, some MCP clients
                     # might return base64 encoded strings, so try to save it to a temporary file.
-                    return FileData(
-                        path=processing_utils.save_base64_to_cache(
-                            node, DEFAULT_TEMP_DIR
-                        )
+                    return handle_file(
+                        processing_utils.save_base64_to_cache(node, DEFAULT_TEMP_DIR)
                     )
                 elif node.startswith(("http://", "https://")):
-                    return FileData(path=node)
+                    return handle_file(node)
                 else:
                     raise ValueError(
                         f"Invalid file data format, provide a url ('http://...' or 'https://...'). Received: {node}"
