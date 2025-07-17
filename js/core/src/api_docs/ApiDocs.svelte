@@ -193,8 +193,10 @@
 					}
 				};
 				if (file_data_present) {
-					mcp_json_sse.mcpServers.upload_files_to_gradio = upload_file_mcp_server;
-					mcp_json_stdio.mcpServers.upload_files_to_gradio = upload_file_mcp_server;
+					mcp_json_sse.mcpServers.upload_files_to_gradio =
+						upload_file_mcp_server;
+					mcp_json_stdio.mcpServers.upload_files_to_gradio =
+						upload_file_mcp_server;
 				}
 			}
 		} catch (error) {
