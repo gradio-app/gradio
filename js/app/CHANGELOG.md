@@ -1,5 +1,17 @@
 # @self/app
 
+## 1.50.3
+
+### Features
+
+- [#11543](https://github.com/gradio-app/gradio/pull/11543) [`ac95ac0`](https://github.com/gradio-app/gradio/commit/ac95ac0d8c2e65d1632376e632fb7d16131334b6) - Connection handling messaging.  Thanks @aliabid94!
+- [#11584](https://github.com/gradio-app/gradio/pull/11584) [`78428cb`](https://github.com/gradio-app/gradio/commit/78428cb29bf6dc66d583b7cf93dd404aef737e75) - Fix reload mode.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/core@0.23.0
+- @gradio/client@1.15.6
+
 ## 1.50.2
 
 ### Fixes

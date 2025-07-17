@@ -1,5 +1,36 @@
 # @gradio/core
 
+## 0.23.0
+
+### Features
+
+- [#11578](https://github.com/gradio-app/gradio/pull/11578) [`872798a`](https://github.com/gradio-app/gradio/commit/872798a780dd81c834a44b05277f6c9ebe09de8b) - Add an `api_description` parameter for API and MCP server.  Thanks @abidlabs!
+- [#11543](https://github.com/gradio-app/gradio/pull/11543) [`ac95ac0`](https://github.com/gradio-app/gradio/commit/ac95ac0d8c2e65d1632376e632fb7d16131334b6) - Connection handling messaging.  Thanks @aliabid94!
+- [#11508](https://github.com/gradio-app/gradio/pull/11508) [`f5a6fa8`](https://github.com/gradio-app/gradio/commit/f5a6fa8c52bcb8f508e10ea54a3427f3dab8e3f8) - Handle uploading files in mcp server automatically.  Thanks @freddyaboulton!
+- [#11515](https://github.com/gradio-app/gradio/pull/11515) [`2c24ca7`](https://github.com/gradio-app/gradio/commit/2c24ca709396291a344d981c19ed1655028b5d64) - Making it easier for MCP developers call APIs with user credentials.  Thanks @freddyaboulton!
+- [#11584](https://github.com/gradio-app/gradio/pull/11584) [`78428cb`](https://github.com/gradio-app/gradio/commit/78428cb29bf6dc66d583b7cf93dd404aef737e75) - Fix reload mode.  Thanks @aliabid94!
+
+### Fixes
+
+- [#11590](https://github.com/gradio-app/gradio/pull/11590) [`33b6057`](https://github.com/gradio-app/gradio/commit/33b6057dc5cbdfdab15b1ee000b0f0b3d9f3fff6) - Add Gradio File Input keyword to gradio file inputs.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/video@0.14.21
+- @gradio/client@1.15.6
+- @gradio/statustracker@0.10.15
+- @gradio/button@0.5.7
+- @gradio/upload@0.16.11
+- @gradio/checkbox@0.4.26
+- @gradio/image@0.22.13
+- @gradio/gallery@0.15.27
+- @gradio/plot@0.9.20
+- @gradio/textbox@0.10.17
+- @gradio/file@0.12.24
+- @gradio/code@0.14.11
+- @gradio/paramviewer@0.7.13
+- @gradio/column@0.2.1
+
 ## 0.22.0
 
 ### Features

@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.11.0
+
+### Features
+
+- [#11567](https://github.com/gradio-app/gradio/pull/11567) [`150ed18`](https://github.com/gradio-app/gradio/commit/150ed18b856e34d5a96a9e17bd5ad510e11872a6) - Stream Progress Updates to MCP clients.  Thanks @freddyaboulton!
+
 ## 1.10.4
 
 ### Fixes
