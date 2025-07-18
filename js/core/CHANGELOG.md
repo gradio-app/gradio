@@ -1,5 +1,11 @@
 # @gradio/core
 
+## 0.23.1
+
+### Fixes
+
+- [#11599](https://github.com/gradio-app/gradio/pull/11599) [`c39d373`](https://github.com/gradio-app/gradio/commit/c39d3739bf2494ad13556174757cdd56060f033e) - Ensure component visibility is correctly propagated to all components.  Thanks @copilot-swe-agent!
+
 ## 0.23.0
 
 ### Features

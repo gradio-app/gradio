@@ -1,5 +1,17 @@
 # gradio
 
+## 5.38.1
+
+### Features
+
+- [#11596](https://github.com/gradio-app/gradio/pull/11596) [`432abb0`](https://github.com/gradio-app/gradio/commit/432abb0418088fed54c4d486aed3e3bdf91f7b25) - Upgrade `gsplat`.  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#11599](https://github.com/gradio-app/gradio/pull/11599) [`c39d373`](https://github.com/gradio-app/gradio/commit/c39d3739bf2494ad13556174757cdd56060f033e) - Ensure component visibility is correctly propagated to all components.  Thanks @copilot-swe-agent!
+- [#11591](https://github.com/gradio-app/gradio/pull/11591) [`92f2d41`](https://github.com/gradio-app/gradio/commit/92f2d410fc1322ffff62b2da53b4d288c65863a8) - fix: add missing space at end of warning sentences for proper grammar.  Thanks @ZsgsDesign!
+- [#11595](https://github.com/gradio-app/gradio/pull/11595) [`801f288`](https://github.com/gradio-app/gradio/commit/801f2887b95393c406aef57f0b0c7344753b03c6) - Ensure initial `Loading` text is translated in SPA mode.  Thanks @hannahblair!
+
 ## 5.38.0
 
 ### Features
