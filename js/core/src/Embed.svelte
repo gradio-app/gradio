@@ -28,44 +28,44 @@
 		};
 	}
 
-	onMount(() => {
-		const resize_debounced = debounce(() => {
-			if ("parentIFrame" in window) {
-				console.log("parentIFrame");
-			}
-			if ("parentIFrame" in window) {
-				const rect = wrapper?.getBoundingClientRect();
-				if (rect) {
-					window.parentIFrame?.size(rect.height);
-					console.log("resized", rect);
-				}
-			}
-		}, 100);
+	// onMount(() => {
+	// 	const resize_debounced = debounce(() => {
+	// 		if ("parentIFrame" in window) {
+	// 			console.log("parentIFrame");
+	// 		}
+	// 		if ("parentIFrame" in window) {
+	// 			const rect = wrapper?.getBoundingClientRect();
+	// 			if (rect) {
+	// 				window.parentIFrame?.size(rect.height);
+	// 				console.log("resized", rect);
+	// 			}
+	// 		}
+	// 	}, 100);
 
-		window.parentIFrame.autoResize(false);
-		window.parentIFrame.getPageInfo(console.log);
+	// 	window.parentIFrame.autoResize(false);
+	// 	window.parentIFrame.getPageInfo(console.log);
 
-		const resize_observer = new ResizeObserver((entries) => {
-			resize_debounced();
-		});
-		resize_observer.observe(wrapper, {
-			box: "content-box"
-		});
+	// 	const resize_observer = new ResizeObserver((entries) => {
+	// 		resize_debounced();
+	// 	});
+	// 	resize_observer.observe(wrapper, {
+	// 		box: "content-box"
+	// 	});
 
-		const mutation_observer = new MutationObserver((entries) => {
-			resize_debounced();
-		});
-		mutation_observer.observe(wrapper, {
-			attributes: true,
-			childList: true,
-			subtree: true
-		});
+	// 	const mutation_observer = new MutationObserver((entries) => {
+	// 		resize_debounced();
+	// 	});
+	// 	mutation_observer.observe(wrapper, {
+	// 		attributes: true,
+	// 		childList: true,
+	// 		subtree: true
+	// 	});
 
-		const intersection_observer = new IntersectionObserver((entries) => {
-			resize_debounced();
-		});
-		intersection_observer.observe(wrapper);
-	});
+	// 	const intersection_observer = new IntersectionObserver((entries) => {
+	// 		resize_debounced();
+	// 	});
+	// 	intersection_observer.observe(wrapper);
+	// });
 </script>
 
 <div
@@ -76,6 +76,7 @@
 	class="gradio-container gradio-container-{version}"
 	style:min-height={loaded ? "initial" : initial_height}
 	style:flex-grow={!display ? "1" : "auto"}
+	data-iframe-height
 >
 	{#if pages.length > 1}
 		<div class="nav-holder">
