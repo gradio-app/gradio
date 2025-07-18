@@ -45,6 +45,7 @@
 	} from "./utils/drag_utils";
 	import { sort_data_and_preserve_selection } from "./utils/sort_utils";
 	import { filter_data_and_preserve_selection } from "./utils/filter_utils";
+	import { cast_value_to_type } from "./utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -687,7 +688,14 @@
 			});
 
 			const change_payload = {
-				data: filtered_data,
+				data: filtered_data.map((row) =>
+					row.map((cell, colIndex) =>
+						cast_value_to_type(
+							cell,
+							Array.isArray(datatype) ? datatype[colIndex] : datatype
+						)
+					)
+				),
 				headers: _headers.map((h) => h.value),
 				metadata: {
 					display_value: filtered_display_values,

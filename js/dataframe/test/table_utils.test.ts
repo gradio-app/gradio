@@ -1,6 +1,7 @@
 import { describe, test, expect } from "vitest";
 import { make_cell_id, make_header_id } from "../shared/utils/table_utils";
 import { process_data, make_headers } from "../shared/utils/data_processing";
+import { cast_value_to_type } from "../shared/utils";
 
 function make_id(): string {
 	return Math.random().toString(36).substring(2, 15);
@@ -131,5 +132,35 @@ describe("table_utils", () => {
 			expect(result[2].value).toBe("City");
 			expect(Object.keys(els).length).toBe(3);
 		});
+	});
+});
+
+describe("cast_value_to_type", () => {
+	test("casts to number", () => {
+		expect(cast_value_to_type("42", "number")).toBe(42);
+		expect(cast_value_to_type(3.14, "number")).toBe(3.14);
+		expect(cast_value_to_type("not a number", "number")).toBe("not a number");
+	});
+	test("casts to bool", () => {
+		expect(cast_value_to_type("true", "bool")).toBe(true);
+		expect(cast_value_to_type("false", "bool")).toBe(false);
+		expect(cast_value_to_type(1, "bool")).toBe(true);
+		expect(cast_value_to_type(0, "bool")).toBe(false);
+		expect(cast_value_to_type("1", "bool")).toBe(true);
+		expect(cast_value_to_type("0", "bool")).toBe(false);
+		expect(cast_value_to_type("yes", "bool")).toBe("yes");
+		expect(cast_value_to_type("no", "bool")).toBe("no");
+		expect(cast_value_to_type("on", "bool")).toBe("on");
+		expect(cast_value_to_type("off", "bool")).toBe("off");
+		expect(cast_value_to_type("random", "bool")).toBe("random");
+	});
+	test("casts to date", () => {
+		const result = cast_value_to_type("2023-01-01", "date");
+		expect(result).toBe("2023-01-01T00:00:00.000Z");
+		expect(typeof cast_value_to_type("not a date", "date")).toBe("string");
+	});
+	test("returns value as-is for str", () => {
+		expect(cast_value_to_type("hello", "str")).toBe("hello");
+		expect(cast_value_to_type(123, "str")).toBe(123);
 	});
 });
