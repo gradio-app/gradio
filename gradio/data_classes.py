@@ -179,10 +179,21 @@ class GradioBaseModel(ABC):
         pass
 
 
-class JsonData(RootModel):
+class JsonData(BaseModel):
     """JSON data returned from a component that should not be modified further."""
 
     root: JsonValue
+    original_str: Optional[str] = None  # Store original formatted JSON string if available
+
+    def model_dump(self, **kwargs):
+        """Return the root value for compatibility with existing code."""
+        # If we have an original string, include it in the response
+        if self.original_str is not None:
+            return {
+                "root": self.root,
+                "original_str": self.original_str
+            }
+        return self.root
 
 
 class GradioModel(GradioBaseModel, BaseModel):

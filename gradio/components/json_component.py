@@ -106,6 +106,25 @@ class JSON(Component):
         """
         return payload
 
+    def _is_formatted_json(self, json_str: str) -> bool:
+        """
+        Check if a JSON string is formatted (has meaningful indentation or newlines).
+        """
+        try:
+            # Parse the JSON and re-serialize it without formatting
+            parsed = orjson.loads(json_str)
+            compact = orjson.dumps(parsed).decode('utf-8')
+            
+            # Check if the original string has newlines or significant indentation
+            # This is a stronger indicator of intentional formatting
+            stripped = json_str.strip()
+            has_newlines = '\n' in stripped
+            has_significant_indentation = '    ' in stripped or '\t' in stripped
+            
+            return has_newlines or has_significant_indentation
+        except (orjson.JSONDecodeError, ValueError):
+            return False
+
     def postprocess(self, value: dict | list | str | None) -> JsonData | None:
         """
         Parameters:
@@ -116,13 +135,18 @@ class JSON(Component):
         if value is None:
             return None
         if isinstance(value, str):
-            return JsonData(orjson.loads(value))
+            parsed_value = orjson.loads(value)
+            # Check if the original string was formatted and preserve it
+            if self._is_formatted_json(value):
+                return JsonData(root=parsed_value, original_str=value)
+            else:
+                return JsonData(root=parsed_value)
         else:
             # Use orjson to convert NumPy arrays and datetime objects to JSON.
             # This ensures a backward compatibility with the previous behavior.
             # See https://github.com/gradio-app/gradio/pull/8041
             return JsonData(
-                orjson.loads(
+                root=orjson.loads(
                     orjson.dumps(
                         value,
                         option=orjson.OPT_SERIALIZE_NUMPY
