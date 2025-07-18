@@ -112,3 +112,38 @@ class TestJSON:
         else:
             assert postprocessed_value.model_dump() == expected
             assert json.loads(json.dumps(postprocessed_value.model_dump())) == expected
+
+    def test_formatted_json_string_preservation(self):
+        """Test that formatted JSON strings preserve their original formatting."""
+        json_component = gr.JSON()
+        
+        # Test with formatted JSON (should preserve original string)
+        formatted_json = """{
+    "name": "Test",
+    "value": 42,
+    "nested": {
+        "key": "value"
+    }
+}"""
+        
+        result = json_component.postprocess(formatted_json)
+        
+        # Check that the result contains both parsed data and original string
+        assert result is not None
+        assert hasattr(result, 'root')
+        assert hasattr(result, 'original_str')
+        assert result.root == {"name": "Test", "value": 42, "nested": {"key": "value"}}
+        assert result.original_str == formatted_json
+        
+        # Check that frontend receives the original string
+        frontend_data = result.model_dump()
+        assert isinstance(frontend_data, dict)
+        assert 'root' in frontend_data
+        assert 'original_str' in frontend_data
+        assert frontend_data['original_str'] == formatted_json
+        
+        # Test with compact JSON (should not preserve)
+        compact_json = '{"name":"Test","value":42}'
+        result2 = json_component.postprocess(compact_json)
+        assert result2.original_str is None
+        assert result2.model_dump() == {"name": "Test", "value": 42}

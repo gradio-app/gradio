@@ -15,6 +15,10 @@
 
 	$: json_max_height = `calc(100% - ${label_height}px)`;
 
+	// Handle the new data structure that may contain original_str
+	$: display_value = value && typeof value === "object" && value.root !== undefined ? value.root : value;
+	$: original_str = value && typeof value === "object" && value.original_str !== undefined ? value.original_str : null;
+
 	let copied = false;
 	let timer: NodeJS.Timeout;
 
@@ -28,7 +32,9 @@
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
-			await navigator.clipboard.writeText(JSON.stringify(value, null, 2));
+			// Use original formatted string if available, otherwise format the value
+			const text_to_copy = original_str || JSON.stringify(display_value, null, 2);
+			await navigator.clipboard.writeText(text_to_copy);
 			copy_feedback();
 		}
 	}
@@ -47,7 +53,7 @@
 	});
 </script>
 
-{#if value && value !== '""' && !is_empty(value)}
+{#if display_value && display_value !== '""' && !is_empty(display_value)}
 	{#if show_copy_button}
 		<IconButtonWrapper>
 			<IconButton
@@ -60,7 +66,7 @@
 	{/if}
 	<div class="json-holder" style:max-height={json_max_height}>
 		<JSONNode
-			{value}
+			value={display_value}
 			depth={0}
 			is_root={true}
 			{open}
