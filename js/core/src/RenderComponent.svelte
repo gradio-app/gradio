@@ -81,6 +81,7 @@
 		{elem_id}
 		{elem_classes}
 		{target}
+		{visible}
 		{...$$restProps}
 		{theme_mode}
 		{root}
