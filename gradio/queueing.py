@@ -810,9 +810,12 @@ class Queue:
             return
         async with app.lock:
             try:
+                print("IN reset_iterators")
                 await safe_aclose_iterator(app.iterators[event_id])
             except Exception:
-                pass
+                print("Error in closing")
+                import traceback
+                traceback.print_exc()
             del app.iterators[event_id]
             app.iterators_to_reset.add(event_id)
         return

@@ -389,7 +389,9 @@
 			await Promise.all(
 				dep.cancels.map(async (fn_index) => {
 					const submission = submit_map.get(fn_index);
+					console.log("cancelling submission", submission);
 					submission?.cancel();
+					console.log("submission cancelled");
 					return submission;
 				})
 			);
@@ -415,6 +417,7 @@
 		}
 
 		function trigger_prediction(dep: Dependency, payload: Payload): void {
+			console.log("dep", dep, payload);
 			if (dep.trigger_mode === "once") {
 				if (!dep.pending_request)
 					make_prediction(payload, dep.connection == "stream");
@@ -525,8 +528,10 @@
 			}
 
 			submit_map.set(dep_index, submission);
+			console.log("set submit_map", dep_index, submission);
 
 			for await (const message of submission) {
+				console.log("message", message);
 				if (payload.js_implementation) {
 					return;
 				}
@@ -548,6 +553,7 @@
 					make_prediction(dep.final_event, dep.connection == "stream");
 				}
 				dep.pending_request = false;
+				console.log("set pending request to false");
 				handle_update(data, fn_index);
 				set_status($loading_status);
 			}
@@ -656,6 +662,7 @@
 					fn_index
 				});
 				set_status($loading_status);
+				console.log("Set status tu $status", status.stage);
 				if (
 					!showed_duplicate_message &&
 					space_id !== null &&
@@ -697,6 +704,7 @@
 					});
 				}
 				if (status.stage === "complete") {
+					console.log("Completed", dep_index);
 					dependencies.forEach(async (dep) => {
 						if (dep.trigger_after === fn_index) {
 							wait_then_trigger_api_call(dep.id, payload.trigger_id);
@@ -706,6 +714,7 @@
 						modify_stream(id, "closed");
 					});
 					submit_map.delete(dep_index);
+					console.log("deleted submit_map", dep_index);
 				}
 				if (
 					status.stage === "error" &&
