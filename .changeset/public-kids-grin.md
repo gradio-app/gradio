@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix iterator cancelling
+fix:Fix event cancelling bug
