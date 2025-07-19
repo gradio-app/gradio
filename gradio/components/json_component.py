@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import warnings
 from collections.abc import Callable, Sequence
 from typing import (
     TYPE_CHECKING,
@@ -113,6 +114,7 @@ class JSON(Component):
         Returns:
             Returns the JSON as a `list` or `dict`.
         """
+
         def default_json(o):
             """
             Check if the string representation of the object is already a valid JSON string. If it is,
@@ -122,10 +124,10 @@ class JSON(Component):
                 return orjson.loads(str(o))
             except orjson.JSONDecodeError:
                 return str(o)
-            
+
         if value is None:
             return None
-        
+
         if not isinstance(value, (str, dict, list, Callable)):
             warnings.warn(
                 f"JSON component received unexpected type {type(value)}. "
