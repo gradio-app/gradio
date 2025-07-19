@@ -72,6 +72,7 @@ from gradio.data_classes import (
     UserProvidedPath,
 )
 from gradio.exceptions import Error, InvalidPathError
+import inspect
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext, Blocks
@@ -1717,7 +1718,7 @@ def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[st
         - A dictionary of parameter names and their descriptions
         - A list of return value descriptions
     """
-    fn_docstring = fn.__doc__
+    fn_docstring = inspect.getdoc(fn)
     description = ""
     parameters = {}
     returns = []
