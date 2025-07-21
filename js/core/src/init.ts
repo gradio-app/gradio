@@ -148,8 +148,6 @@ export function create_components(
 		constructor_map = new Map();
 		_component_map = new Map();
 
-		// instance_map = {};
-
 		// Store current layout and root for dynamic visibility recalculation
 		current_layout = layout;
 		current_root = root;

@@ -851,7 +851,6 @@
 	}
 
 	value_change((id, value) => {
-		console.log("value_change", id, value);
 		const deps = $targets[id]?.["change"];
 
 		deps?.forEach((dep_id) => {
