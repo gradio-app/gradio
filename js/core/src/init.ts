@@ -28,8 +28,15 @@ const raf = is_browser
  * Create a store with the layout and a map of targets
  * @returns A store with the layout and a map of targets
  */
-let has_run = new Set<number>();
-export function create_components(initial_layout: ComponentMeta | undefined): {
+export function create_components(
+	{
+		initial_layout = undefined
+	}: {
+		initial_layout: ComponentMeta | undefined;
+	} = {
+		initial_layout: undefined
+	}
+): {
 	layout: Writable<ComponentMeta>;
 	targets: Writable<TargetMap>;
 	update_value: (updates: UpdateTransaction[]) => void;
@@ -56,6 +63,8 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		root: string;
 		dependencies: Dependency[];
 	}) => void;
+	value_change: (cb: (id: number, value: any) => void) => void;
+	instance_map: { [id: number]: ComponentMeta };
 } {
 	let _component_map: Map<number, ComponentMeta>;
 
@@ -64,7 +73,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 	let inputs: Set<number>;
 	let outputs: Set<number>;
 	let constructor_map: Map<ComponentMeta["type"], LoadingComponent>;
-	let instance_map: { [id: number]: ComponentMeta };
+	let instance_map: { [id: number]: ComponentMeta } = {};
 	let loading_status: ReturnType<typeof create_loading_status_store> =
 		create_loading_status_store();
 	const layout_store: Writable<ComponentMeta> = writable(initial_layout);
@@ -72,6 +81,12 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 	let app: client_return;
 	let keys_per_render_id: Record<number, (string | number)[]> = {};
 	let _rootNode: ComponentMeta;
+
+	let value_change_cb: ((id: number, value: any) => void) | null = null;
+
+	function value_change(cb: (id: number, value: any) => void): void {
+		value_change_cb = cb;
+	}
 
 	// Store current layout and root for dynamic visibility recalculation
 	let current_layout: LayoutNode;
@@ -133,7 +148,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		constructor_map = new Map();
 		_component_map = new Map();
 
-		instance_map = {};
+		// instance_map = {};
 
 		// Store current layout and root for dynamic visibility recalculation
 		current_layout = layout;
@@ -172,13 +187,9 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 
 		constructor_map = preload_visible_components(components, layout, root);
 
-		instance_map = components.reduce(
-			(acc, c) => {
-				acc[c.id] = c;
-				return acc;
-			},
-			{} as { [id: number]: ComponentMeta }
-		);
+		components.forEach((c) => {
+			instance_map[c.id] = c;
+		});
 
 		await walk_layout(layout, root, _components);
 
@@ -327,18 +338,11 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			const constructor_key = instance.component_class_id || instance.type;
 			let component_constructor = constructor_map.get(constructor_key);
 
-			// Only load component if it was preloaded (i.e., it's visible)
 			if (component_constructor) {
 				instance.component = (await component_constructor)?.default;
 			}
-			// If component wasn't preloaded, leave it unloaded for now
-			// It will be loaded later when/if it becomes visible
 		}
 		instance.parent = parent;
-
-		// if (instance.type === "timer") {
-		// 	console.log("timer", instance, constructor_map);
-		// }
 
 		if (instance.type === "dataset") {
 			instance.props.component_map = get_component(
@@ -515,6 +519,14 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 						new_value = { ...update.value };
 					else new_value = update.value;
 					instance.props[update.prop] = new_value;
+
+					if (
+						update.prop === "value" &&
+						typeof instance.props.visible === "boolean" &&
+						!instance.props.visible
+					) {
+						value_change_cb?.(update.id, new_value);
+					}
 				}
 			}
 			return layout;
@@ -631,7 +643,9 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		loading_status,
 		scheduled_updates: update_scheduled_store,
 		create_layout: create_layout,
-		rerender_layout
+		rerender_layout,
+		value_change,
+		instance_map
 	};
 }
 
