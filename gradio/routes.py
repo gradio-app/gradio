@@ -77,6 +77,7 @@ from gradio.data_classes import (
     ResetBody,
     SimplePredictBody,
     UserProvidedPath,
+    VibeEditBody,
 )
 from gradio.exceptions import Error, InvalidPathError
 from gradio.i18n import I18n
@@ -1934,6 +1935,43 @@ class App(FastAPI):
                     filename="gradio-screen-recording.mp4",
                     background=BackgroundTask(lambda: cleanup_files([input_path])),
                 )
+
+        @router.post("/vibe-edit/")
+        @router.post("/vibe-edit")
+        async def vibe_edit(body: VibeEditBody): 
+            import huggingface_hub
+            import openai
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+            with open(GRADIO_WATCH_DEMO_PATH) as f:
+                demo_code = f.read()
+
+            # client = huggingface_hub.InferenceClient()
+                client = openai.Client(
+                    base_url="https://openrouter.ai/api/v1",
+                    api_key="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"
+                )
+            content = ""
+            prompt = f"""
+You are a Python code generator. Given the following existing code and prompt, return the full new code.
+Existing code:
+```python
+{demo_code}
+```
+
+Prompt:
+{body.prompt}"""
+            content = client.chat.completions.create(
+                model="moonshotai/kimi-k2",
+                messages=[{"role": "user", "content": prompt}]
+            ).choices[0].message.content
+
+            if "```python\n" in content:
+                start = content.index("```python\n") + len("```python\n")
+                end = content.find("\n```", start)
+                content = content[start:end] if end != -1 else content[start:]
+            
+            with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
+                f.write(content)
 
         def cleanup_files(files):
             for file in files:

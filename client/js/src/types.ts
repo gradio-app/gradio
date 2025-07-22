@@ -159,6 +159,7 @@ export interface Config {
 	app_id?: string;
 	analytics_enabled: boolean;
 	connect_heartbeat: boolean;
+	dev_mode: boolean;
 	auth_message: string;
 	components: ComponentMeta[];
 	css: string | null;

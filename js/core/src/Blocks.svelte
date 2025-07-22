@@ -14,6 +14,7 @@
 	import type { ToastMessage } from "@gradio/statustracker";
 	import type { ShareData, ValueData } from "@gradio/utils";
 	import MountComponents from "./MountComponents.svelte";
+	import VibeEditor from "./VibeEditor.svelte";
 	import { prefix_css } from "./css";
 
 	import type ApiDocs from "./api_docs/ApiDocs.svelte";
@@ -56,6 +57,7 @@
 	export let max_file_size: number | undefined = undefined;
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
+	export let dev_mode: boolean = false;
 	let broken_connection = false;
 
 	let {
@@ -1117,6 +1119,10 @@
 
 {#if messages}
 	<Toast {messages} on:close={handle_error_close} />
+{/if}
+
+{#if dev_mode}
+	<VibeEditor {app} {root}></VibeEditor>
 {/if}
 
 <style>
