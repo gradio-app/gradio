@@ -320,3 +320,23 @@ async def test_associative_keyword_in_schema():
         in schema[0]["description"]
     )
     assert schema[0]["meta"]["file_data_present"]
+
+
+def test_get_function_description_inherits_parent_docstring():
+    """
+    Test that get_function_description correctly retrieves docstrings
+    from a method's parent class if the method itself has none.
+    """
+    from gradio.utils import get_function_description
+
+    class Parent:
+        def method(self):
+            """This is the docstring from the parent class."""
+            pass
+
+    class Child(Parent):
+        def method(self):
+            pass  # No docstring here
+
+    description = get_function_description(Child().method)
+    assert "This is the docstring from the parent class." in description
