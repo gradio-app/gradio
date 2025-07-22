@@ -193,6 +193,7 @@ Gradio automatically sets the tool name based on the name of your function, and 
 * `None` (default): in which case the tool description is automatically created from the docstring of the function
 * `False`: in which case, no tool description appears to the LLM.
 * `str`: any arbitrary string to use as the tool description.
+> **Note**: If `api_description=None`, Gradio will use the function’s docstring. If the function does not have its own docstring but overrides a method from a parent class, the parent’s docstring will be automatically inherited and used in the API docs.
 
 In addition to modifying the tool descriptions, you can also toggle which tools appear to the LLM. You can do this by setting the `show_api` parameter, which is by default `True`. Setting it to `False` hides the endpoint from the API docs and from the MCP server.
 
