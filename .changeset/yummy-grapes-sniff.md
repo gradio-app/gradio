@@ -1,7 +1,7 @@
 ---
-"@gradio/core": patch
-"@self/app": patch
-"gradio": patch
+"@gradio/core": minor
+"@self/app": minor
+"gradio": minor
 ---
 
-fix:fix change events for hidden components
+feat:fix change events for hidden components
