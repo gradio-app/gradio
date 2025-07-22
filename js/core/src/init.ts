@@ -64,7 +64,6 @@ export function create_components(
 		dependencies: Dependency[];
 	}) => void;
 	value_change: (cb: (id: number, value: any) => void) => void;
-	instance_map: { [id: number]: ComponentMeta };
 } {
 	let _component_map: Map<number, ComponentMeta>;
 
@@ -73,7 +72,7 @@ export function create_components(
 	let inputs: Set<number>;
 	let outputs: Set<number>;
 	let constructor_map: Map<ComponentMeta["type"], LoadingComponent>;
-	let instance_map: { [id: number]: ComponentMeta } = {};
+	let instance_map: { [id: number]: ComponentMeta };
 	let loading_status: ReturnType<typeof create_loading_status_store> =
 		create_loading_status_store();
 	const layout_store: Writable<ComponentMeta> = writable(initial_layout);
@@ -147,6 +146,7 @@ export function create_components(
 		pending_updates = [];
 		constructor_map = new Map();
 		_component_map = new Map();
+		instance_map = {};
 
 		// Store current layout and root for dynamic visibility recalculation
 		current_layout = layout;
@@ -185,9 +185,13 @@ export function create_components(
 
 		constructor_map = preload_visible_components(components, layout, root);
 
-		components.forEach((c) => {
-			instance_map[c.id] = c;
-		});
+		instance_map = components.reduce(
+			(acc, c) => {
+				acc[c.id] = c;
+				return acc;
+			},
+			{} as { [id: number]: ComponentMeta }
+		);
 
 		await walk_layout(layout, root, _components);
 
@@ -642,8 +646,7 @@ export function create_components(
 		scheduled_updates: update_scheduled_store,
 		create_layout: create_layout,
 		rerender_layout,
-		value_change,
-		instance_map
+		value_change
 	};
 }
 

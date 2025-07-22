@@ -70,8 +70,7 @@
 		scheduled_updates,
 		create_layout,
 		rerender_layout,
-		value_change,
-		instance_map
+		value_change
 	} = create_components({
 		initial_layout
 	});
@@ -835,7 +834,6 @@
 						app.close_ws(url);
 					}
 				});
-			} else if (event === "change" && !instance_map[id].props.visible) {
 			} else {
 				const deps = $targets[id]?.[event];
 
