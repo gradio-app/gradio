@@ -1,4 +1,5 @@
 import { writable, type Writable, get } from "svelte/store";
+import { dequal } from "dequal";
 
 import type {
 	ComponentMeta,
@@ -512,6 +513,7 @@ export function create_components(
 					const instance = instance_map[update.id];
 					if (!instance) continue;
 					let new_value;
+					const old_value = instance.props[update.prop];
 					if (update.value instanceof Map) new_value = new Map(update.value);
 					else if (update.value instanceof Set)
 						new_value = new Set(update.value);
@@ -524,8 +526,8 @@ export function create_components(
 
 					if (
 						update.prop === "value" &&
-						typeof instance.props.visible === "boolean" &&
-						!instance.props.visible
+						!is_visible(instance) &&
+						!dequal(old_value, new_value)
 					) {
 						value_change_cb?.(update.id, new_value);
 					}
@@ -1108,4 +1110,16 @@ export function preload_all_components(
 	});
 
 	return constructor_map;
+}
+
+function is_visible(component: ComponentMeta): boolean {
+	if (
+		typeof component.props.visible === "boolean" &&
+		component.props.visible === false
+	) {
+		return false;
+	} else if (component.parent) {
+		return is_visible(component.parent);
+	}
+	return true;
 }
