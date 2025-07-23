@@ -35,14 +35,20 @@
 		["stdio", "STDIO"]
 	] as const;
 
-	$: display_url = current_transport === "sse" ? mcp_server_url : mcp_server_url.replace("/sse", "");
+	$: display_url =
+		current_transport === "sse"
+			? mcp_server_url
+			: mcp_server_url.replace("/sse", "");
 
 	// Helper function to add/remove file upload tool from config
-	function updateConfigWithFileUpload(baseConfig: any, includeUpload: boolean): any {
+	function updateConfigWithFileUpload(
+		baseConfig: any,
+		includeUpload: boolean
+	): any {
 		if (!baseConfig) return null;
-		
+
 		const config = JSON.parse(JSON.stringify(baseConfig)); // Deep copy
-		
+
 		if (includeUpload && file_data_present) {
 			const upload_file_mcp_server = {
 				command: "uvx",
@@ -51,7 +57,9 @@
 					"gradio[mcp]",
 					"gradio",
 					"upload-mcp",
-					current_transport === "sse" ? mcp_server_url : mcp_server_url.replace("/sse", ""),
+					current_transport === "sse"
+						? mcp_server_url
+						: mcp_server_url.replace("/sse", ""),
 					"<UPLOAD_DIRECTORY>"
 				]
 			};
@@ -59,52 +67,63 @@
 		} else {
 			delete config.mcpServers?.upload_files_to_gradio;
 		}
-		
+
 		return config;
 	}
 
 	// Create configurations with conditional file upload
 	$: mcp_json_streamable_http = updateConfigWithFileUpload(
-		mcp_json_sse ? {
-			...mcp_json_sse,
-			mcpServers: {
-				...mcp_json_sse.mcpServers,
-				gradio: {
-					...mcp_json_sse.mcpServers.gradio,
-					url: display_url
+		mcp_json_sse
+			? {
+					...mcp_json_sse,
+					mcpServers: {
+						...mcp_json_sse.mcpServers,
+						gradio: {
+							...mcp_json_sse.mcpServers.gradio,
+							url: display_url
+						}
+					}
 				}
-			}
-		} : null,
+			: null,
 		include_file_upload
 	);
 
-	$: mcp_json_sse_updated = updateConfigWithFileUpload(mcp_json_sse, include_file_upload);
-	$: mcp_json_stdio_updated = updateConfigWithFileUpload(mcp_json_stdio, include_file_upload);
+	$: mcp_json_sse_updated = updateConfigWithFileUpload(
+		mcp_json_sse,
+		include_file_upload
+	);
+	$: mcp_json_stdio_updated = updateConfigWithFileUpload(
+		mcp_json_stdio,
+		include_file_upload
+	);
 </script>
 
 {#if mcp_server_active}
-	<!-- Transport Selection -->
 	<div class="transport-selection">
 		<div class="snippets">
 			<span class="transport-label">Transport:</span>
 			{#each transports as [transport, display_name]}
-				<li
-					class="snippet {current_transport === transport ? 'current-lang' : 'inactive-lang'}"
+				<button
+					type="button"
+					class="snippet {current_transport === transport
+						? 'current-lang'
+						: 'inactive-lang'}"
 					on:click={() => (current_transport = transport)}
 				>
 					{display_name}
-				</li>
+				</button>
 			{/each}
 		</div>
 	</div>
 
-	<!-- Server URL (not shown for STDIO) -->
 	{#if current_transport !== "stdio"}
 		<Block>
 			<div class="mcp-url">
 				<label for="mcp-server-url"
-					><span class="status-indicator active">●</span>MCP Server
-					URL ({current_transport === "sse" ? "SSE" : "Streamable HTTP"})</label
+					><span class="status-indicator active">●</span>MCP Server URL ({current_transport ===
+					"sse"
+						? "SSE"
+						: "Streamable HTTP"})</label
 				>
 				<div class="textbox">
 					<input id="mcp-server-url" type="text" readonly value={display_url} />
@@ -115,7 +134,7 @@
 		<p>&nbsp;</p>
 	{/if}
 
-	<strong>Available MCP Tools</strong>
+	<strong>{tools.length} Available MCP Tools</strong>
 	<div class="mcp-tools">
 		{#each tools as tool}
 			<div class="tool-item">
@@ -131,9 +150,7 @@
 								: "⚠︎ No description provided in function docstring"}</span
 						></span
 					>
-					<span class="tool-arrow"
-						>{tool.expanded ? "▼" : "▶"}</span
-					>
+					<span class="tool-arrow">{tool.expanded ? "▼" : "▶"}</span>
 				</button>
 				{#if tool.expanded}
 					<div class="tool-content">
@@ -165,40 +182,10 @@
 	</div>
 	<p>&nbsp;</p>
 
-	<!-- File Upload Tool Checkbox -->
-	{#if file_data_present}
-		<div class="file-upload-section">
-			<label class="checkbox-label">
-				<input
-					type="checkbox"
-					bind:checked={include_file_upload}
-					class="checkbox"
-				/>
-				Include file upload tool
-			</label>
-			<p class="file-upload-explanation">
-				<em>Note about files</em>: Gradio MCP servers that have files
-				as inputs need the files as URLs, so the
-				<code>upload_files_to_gradio</code>
-				tool can upload files located in the specified <code>UPLOAD_DIRECTORY</code>
-				argument (an absolute path in your local machine) or any of its
-				subdirectories to the Gradio app. You can omit this tool if you
-				are fine manually uploading files yourself and providing the URLs.
-				Before using this tool, you must have
-				<a
-					href="https://docs.astral.sh/uv/getting-started/installation/"
-					target="_blank">uv installed</a
-				>.
-			</p>
-		</div>
-		<p>&nbsp;</p>
-	{/if}
-
-	<!-- Configuration Section -->
 	{#if current_transport === "streamable_http"}
 		<strong>Streamable HTTP Transport</strong>: To add this MCP to clients that
-		support HTTP streaming (default for most modern clients), simply add the
-		following configuration to your MCP config.
+		support Streamable HTTP, simply add the following configuration to your MCP
+		config.
 		<p>&nbsp;</p>
 		<Block>
 			<code>
@@ -213,16 +200,14 @@
 			</code>
 		</Block>
 	{:else if current_transport === "sse"}
-		<strong>SSE Transport</strong>: To add this MCP to clients that
-		support SSE (e.g. Cursor, Windsurf, Cline), simply add the
-		following configuration to your MCP config.
+		<strong>SSE Transport</strong>: To add this MCP to clients that support
+		server-sent events (SSE), simply add the following configuration to your MCP
+		config.
 		<p>&nbsp;</p>
 		<Block>
 			<code>
 				<div class="copy">
-					<CopyButton
-						code={JSON.stringify(mcp_json_sse_updated, null, 2)}
-					/>
+					<CopyButton code={JSON.stringify(mcp_json_sse_updated, null, 2)} />
 				</div>
 				<div>
 					<pre>{JSON.stringify(mcp_json_sse_updated, null, 2)}</pre>
@@ -230,18 +215,15 @@
 			</code>
 		</Block>
 	{:else if current_transport === "stdio"}
-		<strong>STDIO Transport</strong>: For clients that only support
-		stdio (e.g. Claude Desktop), first
-		<a href="https://nodejs.org/en/download/" target="_blank"
-			>install Node.js</a
+		<strong>STDIO Transport</strong>: For clients that only support stdio (e.g.
+		Claude Desktop), first
+		<a href="https://nodejs.org/en/download/" target="_blank">install Node.js</a
 		>. Then, you can use the following command:
 		<p>&nbsp;</p>
 		<Block>
 			<code>
 				<div class="copy">
-					<CopyButton
-						code={JSON.stringify(mcp_json_stdio_updated, null, 2)}
-					/>
+					<CopyButton code={JSON.stringify(mcp_json_stdio_updated, null, 2)} />
 				</div>
 				<div>
 					<pre>{JSON.stringify(mcp_json_stdio_updated, null, 2)}</pre>
@@ -249,6 +231,30 @@
 			</code>
 		</Block>
 	{/if}
+	{#if file_data_present}
+		<div class="file-upload-section">
+			<label class="checkbox-label">
+				<input
+					type="checkbox"
+					bind:checked={include_file_upload}
+					class="checkbox"
+				/>
+				Include Gradio file upload tool
+			</label>
+			<p class="file-upload-explanation">
+				The <code>upload_files_to_gradio</code> tool uploads files from your
+				local <code>UPLOAD_DIRECTORY</code> (or any of its subdirectories) to
+				the Gradio app. This is needed because MCP servers require files to be
+				provided as URLs. You can omit this tool if you prefer to upload files
+				manually. This tool requires
+				<a
+					href="https://docs.astral.sh/uv/getting-started/installation/"
+					target="_blank">uv</a
+				> to be installed.
+			</p>
+		</div>
+	{/if}
+
 	<p>&nbsp;</p>
 	<p>
 		<a href={mcp_docs} target="_blank">
@@ -256,10 +262,11 @@
 		</a>
 	</p>
 {:else}
-	This Gradio app can also serve as an MCP server, with an MCP
-	tool corresponding to each API endpoint. To enable this, launch
-	this Gradio app with <code>.launch(mcp_server=True)</code> or
-	set the <code>GRADIO_MCP_SERVER</code> env variable to
+	This Gradio app can also serve as an MCP server, with an MCP tool
+	corresponding to each API endpoint. To enable this, launch this Gradio app
+	with <code>.launch(mcp_server=True)</code> or set the
+	<code>GRADIO_MCP_SERVER</code>
+	env variable to
 	<code>"True"</code>.
 {/if}
 
@@ -285,7 +292,7 @@
 	}
 
 	.file-upload-section {
-		margin-bottom: var(--size-4);
+		margin-top: var(--size-4);
 		padding: var(--size-3);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-md);
@@ -317,8 +324,6 @@
 	.file-upload-explanation {
 		margin: 0;
 		color: var(--body-text-color);
-		font-size: var(--text-lg);
-		line-height: 1.4;
 	}
 
 	.snippet {
@@ -495,5 +500,9 @@
 	.parameter-description {
 		margin-top: var(--size-1);
 		color: var(--body-text-color);
+	}
+
+	a {
+		text-decoration: underline;
 	}
 </style>
