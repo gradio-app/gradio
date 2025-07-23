@@ -395,6 +395,7 @@
 
 	input,
 	textarea {
+		flex-grow: 1;
 		outline: none !important;
 		margin-top: 0px;
 		margin-bottom: 0px;
