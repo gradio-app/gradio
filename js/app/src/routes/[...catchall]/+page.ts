@@ -90,7 +90,7 @@ export async function load({
 
 	let page_config = app.get_url_config(url.toString());
 
-	const { create_layout, layout } = create_components(undefined);
+	const { create_layout, layout } = create_components();
 
 	await create_layout({
 		app,

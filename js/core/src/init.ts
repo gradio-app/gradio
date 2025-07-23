@@ -1,4 +1,5 @@
 import { writable, type Writable, get } from "svelte/store";
+import { dequal } from "dequal";
 
 import type {
 	ComponentMeta,
@@ -28,8 +29,15 @@ const raf = is_browser
  * Create a store with the layout and a map of targets
  * @returns A store with the layout and a map of targets
  */
-let has_run = new Set<number>();
-export function create_components(initial_layout: ComponentMeta | undefined): {
+export function create_components(
+	{
+		initial_layout = undefined
+	}: {
+		initial_layout: ComponentMeta | undefined;
+	} = {
+		initial_layout: undefined
+	}
+): {
 	layout: Writable<ComponentMeta>;
 	targets: Writable<TargetMap>;
 	update_value: (updates: UpdateTransaction[]) => void;
@@ -56,6 +64,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		root: string;
 		dependencies: Dependency[];
 	}) => void;
+	value_change: (cb: (id: number, value: any) => void) => void;
 } {
 	let _component_map: Map<number, ComponentMeta>;
 
@@ -72,6 +81,12 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 	let app: client_return;
 	let keys_per_render_id: Record<number, (string | number)[]> = {};
 	let _rootNode: ComponentMeta;
+
+	let value_change_cb: ((id: number, value: any) => void) | null = null;
+
+	function value_change(cb: (id: number, value: any) => void): void {
+		value_change_cb = cb;
+	}
 
 	// Store current layout and root for dynamic visibility recalculation
 	let current_layout: LayoutNode;
@@ -132,7 +147,6 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		pending_updates = [];
 		constructor_map = new Map();
 		_component_map = new Map();
-
 		instance_map = {};
 
 		// Store current layout and root for dynamic visibility recalculation
@@ -327,18 +341,11 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			const constructor_key = instance.component_class_id || instance.type;
 			let component_constructor = constructor_map.get(constructor_key);
 
-			// Only load component if it was preloaded (i.e., it's visible)
 			if (component_constructor) {
 				instance.component = (await component_constructor)?.default;
 			}
-			// If component wasn't preloaded, leave it unloaded for now
-			// It will be loaded later when/if it becomes visible
 		}
 		instance.parent = parent;
-
-		// if (instance.type === "timer") {
-		// 	console.log("timer", instance, constructor_map);
-		// }
 
 		if (instance.type === "dataset") {
 			instance.props.component_map = get_component(
@@ -506,6 +513,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 					const instance = instance_map[update.id];
 					if (!instance) continue;
 					let new_value;
+					const old_value = instance.props[update.prop];
 					if (update.value instanceof Map) new_value = new Map(update.value);
 					else if (update.value instanceof Set)
 						new_value = new Set(update.value);
@@ -515,6 +523,14 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 						new_value = { ...update.value };
 					else new_value = update.value;
 					instance.props[update.prop] = new_value;
+
+					if (
+						update.prop === "value" &&
+						!is_visible(instance) &&
+						!dequal(old_value, new_value)
+					) {
+						value_change_cb?.(update.id, new_value);
+					}
 				}
 			}
 			return layout;
@@ -631,7 +647,8 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		loading_status,
 		scheduled_updates: update_scheduled_store,
 		create_layout: create_layout,
-		rerender_layout
+		rerender_layout,
+		value_change
 	};
 }
 
@@ -1093,4 +1110,16 @@ export function preload_all_components(
 	});
 
 	return constructor_map;
+}
+
+function is_visible(component: ComponentMeta): boolean {
+	if (
+		typeof component.props.visible === "boolean" &&
+		component.props.visible === false
+	) {
+		return false;
+	} else if (component.parent) {
+		return is_visible(component.parent);
+	}
+	return true;
 }
