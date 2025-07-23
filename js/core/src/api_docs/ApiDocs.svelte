@@ -71,6 +71,7 @@
 		["python", "Python", python],
 		["javascript", "JavaScript", javascript],
 		["bash", "cURL", bash],
+		["mcp", "MCP", mcp]
 	];
 
 	let is_running = false;
@@ -236,12 +237,10 @@
 				mcp_server_active = response.ok;
 				if (mcp_server_active) {
 					fetchMcpTools();
-					langs.unshift(["mcp", "MCP", mcp]);
 					if (!is_valid_language(lang_param)) {
 						current_language = "mcp";
 					}
 				} else {
-					langs.push(["mcp", "MCP", mcp]);
 					if (!is_valid_language(lang_param)) {
 						current_language = "python";
 					}
