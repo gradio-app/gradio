@@ -52,6 +52,21 @@
 	export let api_calls: Payload[] = [];
 	let current_language: "python" | "javascript" | "bash" | "mcp" = "python";
 
+	function set_query_param(key: string, value: string) {
+		const url = new URL(window.location.href);
+		url.searchParams.set(key, value);
+		history.replaceState(null, "", url.toString());
+	}
+
+	function get_query_param(key: string): string | null {
+		const url = new URL(window.location.href);
+		return url.searchParams.get(key);
+	}
+
+	function is_valid_language(lang: string | null): boolean {
+		return ["python", "javascript", "bash", "mcp"].includes(lang ?? "");
+	}
+
 	const langs = [
 		["python", "Python", python],
 		["javascript", "JavaScript", javascript],
@@ -211,12 +226,24 @@
 			window.parentIFrame?.scrollTo(0, 0);
 		}
 
+		const lang_param = get_query_param("lang");
+		if (is_valid_language(lang_param)) {
+			current_language = lang_param as "python" | "javascript" | "bash" | "mcp";
+		}
+
 		// Check MCP server status and fetch tools if active
 		fetch(mcp_server_url)
 			.then((response) => {
 				mcp_server_active = response.ok;
 				if (mcp_server_active) {
 					fetchMcpTools();
+					if (!is_valid_language(lang_param)) {
+						current_language = "mcp";
+					}
+				} else {
+					if (!is_valid_language(lang_param)) {
+						current_language = "python";
+					}
 				}
 			})
 			.catch(() => {
@@ -252,7 +279,10 @@
 						<li
 							class="snippet
 						{current_language === language ? 'current-lang' : 'inactive-lang'}"
-							on:click={() => (current_language = language)}
+							on:click={() => {
+								current_language = language;
+								set_query_param("lang", language);
+							}}
 						>
 							<img src={img} alt="" />
 							{display_name}
