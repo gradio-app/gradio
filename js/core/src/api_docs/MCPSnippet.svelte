@@ -27,6 +27,7 @@
 
 	type Transport = "streamable_http" | "sse" | "stdio";
 	let current_transport: Transport = "streamable_http";
+	let include_file_upload = true;
 
 	const transports = [
 		["streamable_http", "Streamable HTTP"],
@@ -36,17 +37,49 @@
 
 	$: display_url = current_transport === "sse" ? mcp_server_url : mcp_server_url.replace("/sse", "");
 
-	// Create mcp_json_streamable_http configuration
-	$: mcp_json_streamable_http = mcp_json_sse ? {
-		...mcp_json_sse,
-		mcpServers: {
-			...mcp_json_sse.mcpServers,
-			gradio: {
-				...mcp_json_sse.mcpServers.gradio,
-				url: display_url
-			}
+	// Helper function to add/remove file upload tool from config
+	function updateConfigWithFileUpload(baseConfig: any, includeUpload: boolean): any {
+		if (!baseConfig) return null;
+		
+		const config = JSON.parse(JSON.stringify(baseConfig)); // Deep copy
+		
+		if (includeUpload && file_data_present) {
+			const upload_file_mcp_server = {
+				command: "uvx",
+				args: [
+					"--from",
+					"gradio[mcp]",
+					"gradio",
+					"upload-mcp",
+					current_transport === "sse" ? mcp_server_url : mcp_server_url.replace("/sse", ""),
+					"<UPLOAD_DIRECTORY>"
+				]
+			};
+			config.mcpServers.upload_files_to_gradio = upload_file_mcp_server;
+		} else {
+			delete config.mcpServers?.upload_files_to_gradio;
 		}
-	} : null;
+		
+		return config;
+	}
+
+	// Create configurations with conditional file upload
+	$: mcp_json_streamable_http = updateConfigWithFileUpload(
+		mcp_json_sse ? {
+			...mcp_json_sse,
+			mcpServers: {
+				...mcp_json_sse.mcpServers,
+				gradio: {
+					...mcp_json_sse.mcpServers.gradio,
+					url: display_url
+				}
+			}
+		} : null,
+		include_file_upload
+	);
+
+	$: mcp_json_sse_updated = updateConfigWithFileUpload(mcp_json_sse, include_file_upload);
+	$: mcp_json_stdio_updated = updateConfigWithFileUpload(mcp_json_stdio, include_file_upload);
 </script>
 
 {#if mcp_server_active}
@@ -132,6 +165,35 @@
 	</div>
 	<p>&nbsp;</p>
 
+	<!-- File Upload Tool Checkbox -->
+	{#if file_data_present}
+		<div class="file-upload-section">
+			<label class="checkbox-label">
+				<input
+					type="checkbox"
+					bind:checked={include_file_upload}
+					class="checkbox"
+				/>
+				Include file upload tool
+			</label>
+			<p class="file-upload-explanation">
+				<em>Note about files</em>: Gradio MCP servers that have files
+				as inputs need the files as URLs, so the
+				<code>upload_files_to_gradio</code>
+				tool can upload files located in the specified <code>UPLOAD_DIRECTORY</code>
+				argument (an absolute path in your local machine) or any of its
+				subdirectories to the Gradio app. You can omit this tool if you
+				are fine manually uploading files yourself and providing the URLs.
+				Before using this tool, you must have
+				<a
+					href="https://docs.astral.sh/uv/getting-started/installation/"
+					target="_blank">uv installed</a
+				>.
+			</p>
+		</div>
+		<p>&nbsp;</p>
+	{/if}
+
 	<!-- Configuration Section -->
 	{#if current_transport === "streamable_http"}
 		<strong>Streamable HTTP Transport</strong>: To add this MCP to clients that
@@ -159,11 +221,11 @@
 			<code>
 				<div class="copy">
 					<CopyButton
-						code={JSON.stringify(mcp_json_sse, null, 2)}
+						code={JSON.stringify(mcp_json_sse_updated, null, 2)}
 					/>
 				</div>
 				<div>
-					<pre>{JSON.stringify(mcp_json_sse, null, 2)}</pre>
+					<pre>{JSON.stringify(mcp_json_sse_updated, null, 2)}</pre>
 				</div>
 			</code>
 		</Block>
@@ -178,32 +240,14 @@
 			<code>
 				<div class="copy">
 					<CopyButton
-						code={JSON.stringify(mcp_json_stdio, null, 2)}
+						code={JSON.stringify(mcp_json_stdio_updated, null, 2)}
 					/>
 				</div>
 				<div>
-					<pre>{JSON.stringify(mcp_json_stdio, null, 2)}</pre>
+					<pre>{JSON.stringify(mcp_json_stdio_updated, null, 2)}</pre>
 				</div>
 			</code>
 		</Block>
-	{/if}
-
-	{#if file_data_present && current_transport !== "stdio"}
-		<p>&nbsp;</p>
-		<em>Note about files</em>: Gradio MCP servers that have files
-		as inputs need the files as URLs, so the
-		<code>upload_files_to_gradio</code>
-		tool is included for your convenience. This tool can upload files
-		located in the specified <code>UPLOAD_DIRECTORY</code>
-		argument (an absolute path in your local machine) or any of its
-		subdirectories to the Gradio app. You can omit this tool if you
-		are fine manually uploading files yourself and providing the URLs.
-		Before using this tool, you must have
-		<a
-			href="https://docs.astral.sh/uv/getting-started/installation/"
-			target="_blank">uv installed</a
-		>.
-		<p>&nbsp;</p>
 	{/if}
 	<p>&nbsp;</p>
 	<p>
@@ -238,6 +282,43 @@
 		font-weight: 600;
 		color: var(--body-text-color);
 		margin-right: var(--size-2);
+	}
+
+	.file-upload-section {
+		margin-bottom: var(--size-4);
+		padding: var(--size-3);
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-md);
+		background: var(--background-fill-secondary);
+	}
+
+	.checkbox-label {
+		display: flex;
+		align-items: center;
+		font-weight: 600;
+		color: var(--body-text-color);
+		cursor: pointer;
+		margin-bottom: var(--size-2);
+	}
+
+	.checkbox {
+		margin-right: var(--size-2);
+		width: var(--size-4);
+		height: var(--size-4);
+		cursor: pointer;
+		accent-color: var(--color-accent);
+	}
+
+	.checkbox:checked {
+		background-color: var(--color-accent);
+		border-color: var(--color-accent);
+	}
+
+	.file-upload-explanation {
+		margin: 0;
+		color: var(--body-text-color);
+		font-size: var(--text-md);
+		line-height: 1.4;
 	}
 
 	.snippet {
