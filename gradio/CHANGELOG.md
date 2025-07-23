@@ -1,5 +1,21 @@
 # gradio
 
+## 5.38.1
+
+### Features
+
+- [#11607](https://github.com/gradio-app/gradio/pull/11607) [`271675d`](https://github.com/gradio-app/gradio/commit/271675d5646851cf3be7d823cde042c111280969) - Use inspect.getdoc to inherit parent method docstrings in get_function_description.  Thanks @Toshaksha!
+- [#11619](https://github.com/gradio-app/gradio/pull/11619) [`33c5d2b`](https://github.com/gradio-app/gradio/commit/33c5d2bb8214c0d7a90daca0f1eaf96411a52e79) - Add a query param for the selected language & make MCP the default option when `mcp_server` is enabled.  Thanks @abidlabs!
+- [#11596](https://github.com/gradio-app/gradio/pull/11596) [`432abb0`](https://github.com/gradio-app/gradio/commit/432abb0418088fed54c4d486aed3e3bdf91f7b25) - Upgrade `gsplat`.  Thanks @dawoodkhan82!
+- [#11615](https://github.com/gradio-app/gradio/pull/11615) [`e2b66d7`](https://github.com/gradio-app/gradio/commit/e2b66d718f3a8f57b6ee224502849ee737b1b120) - fix change events for hidden components.  Thanks @pngwn!
+
+### Fixes
+
+- [#11608](https://github.com/gradio-app/gradio/pull/11608) [`9de70ed`](https://github.com/gradio-app/gradio/commit/9de70eda897db7a36b661d6ff04d2cbb07e00a23) - Fix for the JSON component's ability to display a formatted JSON string.  Thanks @anirbanbasu!
+- [#11599](https://github.com/gradio-app/gradio/pull/11599) [`c39d373`](https://github.com/gradio-app/gradio/commit/c39d3739bf2494ad13556174757cdd56060f033e) - Ensure component visibility is correctly propagated to all components.  Thanks @copilot-swe-agent!
+- [#11591](https://github.com/gradio-app/gradio/pull/11591) [`92f2d41`](https://github.com/gradio-app/gradio/commit/92f2d410fc1322ffff62b2da53b4d288c65863a8) - fix: add missing space at end of warning sentences for proper grammar.  Thanks @ZsgsDesign!
+- [#11595](https://github.com/gradio-app/gradio/pull/11595) [`801f288`](https://github.com/gradio-app/gradio/commit/801f2887b95393c406aef57f0b0c7344753b03c6) - Ensure initial `Loading` text is translated in SPA mode.  Thanks @hannahblair!
+
 ## 5.38.0
 
 ### Features
