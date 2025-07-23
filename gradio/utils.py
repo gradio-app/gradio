@@ -72,7 +72,6 @@ from gradio.data_classes import (
     UserProvidedPath,
 )
 from gradio.exceptions import Error, InvalidPathError
-import inspect
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext, Blocks
