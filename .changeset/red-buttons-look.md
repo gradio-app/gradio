@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Expose Streamable HTTP endpoint in MCP Server
+feat:Expose Streamable HTTP endpoint in MCP Server at `/mcp`
