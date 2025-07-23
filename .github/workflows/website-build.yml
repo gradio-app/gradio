@@ -70,7 +70,7 @@ jobs:
         run: |
           python3 -m venv venv
           . venv/bin/activate
-          pip install huggingface-hub==0.23.2 html2text beautifulsoup4
+          pip install huggingface-hub==0.28.1 html2text beautifulsoup4
 
       - name: Get docs.json Upload Script
         run: |
