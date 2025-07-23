@@ -212,7 +212,7 @@ pillow==11.1.0
     #   scikit-image
 pluggy==1.5.0
     # via pytest
-polars==0.20.5
+polars==1.31.0
     # via -r test/requirements.in
 prompt-toolkit==3.0.50
     # via ipython

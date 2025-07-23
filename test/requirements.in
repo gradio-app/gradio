@@ -14,7 +14,7 @@ matplotlib
 httpx
 huggingface_hub
 hypothesis
-polars==0.20.5
+polars==1.31.0
 pydantic[email]
 pytest
 pytest-asyncio
