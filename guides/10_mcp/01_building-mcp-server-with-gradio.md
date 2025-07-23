@@ -196,7 +196,7 @@ Gradio automatically sets the tool name based on the name of your function, and 
 
 In addition to modifying the tool descriptions, you can also toggle which tools appear to the LLM. You can do this by setting the `show_api` parameter, which is by default `True`. Setting it to `False` hides the endpoint from the API docs and from the MCP server.
 
-Here's an example that shows these parameters in actions:
+Here's an example that shows the `api_description` and `show_api` parameters in actions:
 
 $code_mcp_tools
 
