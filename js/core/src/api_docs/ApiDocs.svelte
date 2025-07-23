@@ -67,12 +67,12 @@
 		return ["python", "javascript", "bash", "mcp"].includes(lang ?? "");
 	}
 
-	let langs = [
+	const langs = [
 		["python", "Python", python],
 		["javascript", "JavaScript", javascript],
 		["bash", "cURL", bash],
 		["mcp", "MCP", mcp]
-	];
+	] as const;
 
 	let is_running = false;
 	let mcp_server_active = false;
@@ -280,10 +280,8 @@
 							class="snippet
 						{current_language === language ? 'current-lang' : 'inactive-lang'}"
 							on:click={() => {
-								if (is_valid_language(language)) {
-									current_language = language;
-									set_query_param("lang", language);
-								}
+								current_language = language;
+								set_query_param("lang", language);
 							}}
 						>
 							<img src={img} alt="" />
