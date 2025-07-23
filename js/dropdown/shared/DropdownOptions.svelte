@@ -73,7 +73,6 @@
 			input_width = rect?.width || 0;
 		}
 		if (distance_from_bottom > distance_from_top || from_top) {
-			console.log("distance_from_top", distance_from_top);
 			top = `${distance_from_top}px`;
 			max_height = distance_from_bottom;
 			bottom = null;

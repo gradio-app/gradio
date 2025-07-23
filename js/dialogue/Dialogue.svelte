@@ -6,7 +6,6 @@
 	import { BaseDropdown, BaseDropdownOptions } from "@gradio/dropdown";
 	import type { SelectData, CopyData } from "@gradio/utils";
 	import type { DialogueLine } from "./utils";
-	import { BaseTextbox } from "@gradio/textbox";
 	import Switch from "./Switch.svelte";
 
 	export let speakers: string[] = [];
@@ -36,6 +35,7 @@
 	let currentLineIndex = -1;
 	let filtered_emotions: string[] = [];
 	let input_elements: HTMLInputElement[] = [];
+	let textarea_element: HTMLTextAreaElement;
 	let old_value = JSON.stringify(value);
 	let offset_from_top = 0;
 	$: if (value.length === 0 && dialogue_lines.length === 0) {
@@ -85,7 +85,7 @@
 	}
 
 	function handle_input(event: Event, index: number): void {
-		const input = event.target as HTMLInputElement;
+		const input = event.target as HTMLInputElement || HTMLTextAreaElement;
 		if (input && !input_elements[index]) {
 			input_elements[index] = input;
 		}
@@ -125,15 +125,16 @@
 
 		if (
 			show_menu &&
-			position_reference_index !== -1 &&
-			dialogue_container_element
+			position_reference_index !== -1
 		) {
 			showEmotionMenu = true;
 			const input_rect = input.getBoundingClientRect();
 			// Position menu below the current input by calculating the distance from the top of the container
 			// and use 1.5 times the input height.
-			const container_rect = dialogue_container_element.getBoundingClientRect();
-			offset_from_top = container_rect.top + input_rect.height * (index + 1.5);
+			if (dialogue_container_element) {
+				const container_rect = dialogue_container_element.getBoundingClientRect();
+				offset_from_top = container_rect.top + input_rect.height * (index + 1.5);
+			}
 		} else {
 			showEmotionMenu = false;
 		}
@@ -154,24 +155,30 @@
 	function insert_emotion(e: CustomEvent): void {
 		const emotion = emotions[e.detail.target.dataset.index];
 		if (currentLineIndex >= 0 && currentLineIndex < dialogue_lines.length) {
-			const text = dialogue_lines[currentLineIndex].text;
-			const currentInput = input_elements[currentLineIndex];
+			let text;
+			let currentInput;
+			if (checked) {
+				currentInput = textarea_element;
+				text = textbox_value;
+			} else {
+				currentInput = input_elements[currentLineIndex];
+				text = dialogue_lines[currentLineIndex].text;
+			}
 			const cursorPosition = currentInput?.selectionStart || 0;
-
 			const lastColonIndex = text.lastIndexOf(":", cursorPosition - 1);
-
 			if (lastColonIndex >= 0) {
-				const newText =
-					text.substring(0, lastColonIndex) +
-					`${emotion} ` +
-					text.substring(cursorPosition);
-
+				const beforeColon = text.substring(0, lastColonIndex);
+				const afterCursor = text.substring(cursorPosition);
+				
+				// Filter out any speaker tags when in plain text mode
+				const filteredBeforeColon = beforeColon.replace(/\[S\d+\]/g, '').trim();
+				const newText = `${filteredBeforeColon}${emotion} ${afterCursor}`;
 				update_line(currentLineIndex, "text", newText);
 
 				tick().then(() => {
 					const updatedInput = input_elements[currentLineIndex];
 					if (updatedInput) {
-						const newCursorPosition = lastColonIndex + emotion.length + 1;
+						const newCursorPosition = filteredBeforeColon.length + emotion.length + 1;
 						updatedInput.setSelectionRange(
 							newCursorPosition,
 							newCursorPosition
@@ -378,15 +385,38 @@
 			{/if}
 		</div>
 	{:else}
-		<BaseTextbox
+		<textarea
+			data-testid="textbox"
 			bind:value={textbox_value}
-			lines={5}
-			show_label={false}
-			{value_is_output}
+			{placeholder}
+			rows={5}
 			{disabled}
-			{root}
-			{label}
+			on:input={(event) => handle_input(event, 0)}
+			on:focus={(event) => handle_input(event, 0)}
+			on:keydown={(event) => {
+				if (event.key === "Escape" && showEmotionMenu) {
+					showEmotionMenu = false;
+					event.preventDefault();
+				}
+			}}
+			bind:this={textarea_element}
 		/>
+		{#if showEmotionMenu}
+			<div
+				id="emotion-menu"
+				class="emotion-menu"
+				transition:fade={{ duration: 100 }}
+			>
+				<BaseDropdownOptions
+					choices={emotions.map((s, i) => [s, i])}
+					filtered_indices={filtered_emotions.map((s) => emotions.indexOf(s))}
+					show_options={true}
+					on:change={(e) => insert_emotion(e)}
+					{offset_from_top}
+					from_top={true}
+				/>
+			</div>
+		{/if}
 	{/if}
 
 	<div class="controls-row">
@@ -465,6 +495,43 @@
 		font-weight: var(--input-text-weight);
 		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
+	}
+
+	textarea {
+		flex-grow: 1;
+		outline: none !important;
+		margin-top: 0px;
+		margin-bottom: 0px;
+		resize: none;
+		z-index: 1;
+		display: block;
+		position: relative;
+		outline: none !important;
+		background: var(--input-background-fill);
+		padding: var(--input-padding);
+		width: 100%;
+		color: var(--body-text-color);
+		font-weight: var(--input-text-weight);
+		font-size: var(--input-text-size);
+		line-height: var(--line-sm);
+		box-shadow: var(--input-shadow);
+		border: var(--input-border-width) solid var(--input-border-color);
+		border-radius: var(--input-radius);
+	}
+
+	textarea:disabled {
+		-webkit-opacity: 1;
+		opacity: 1;
+	}
+	
+	textarea:focus {
+		box-shadow: var(--input-shadow-focus);
+		border-color: var(--input-border-color-focus);
+		background: var(--input-background-fill-focus);
+	}
+
+	textarea::placeholder {
+		color: var(--input-placeholder-color);
 	}
 
 	.action-column {
