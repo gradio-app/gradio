@@ -1,5 +1,15 @@
 # @self/spa
 
+## 0.10.2
+
+### Fixes
+
+- [#11595](https://github.com/gradio-app/gradio/pull/11595) [`801f288`](https://github.com/gradio-app/gradio/commit/801f2887b95393c406aef57f0b0c7344753b03c6) - Ensure initial `Loading` text is translated in SPA mode.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/core@0.23.1
+
 ## 0.10.1
 
 ### Features
