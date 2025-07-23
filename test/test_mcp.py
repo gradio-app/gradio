@@ -161,63 +161,157 @@ def test_tool_prefix_character_replacement(test_mcp_app):
             os.environ.pop("SPACE_ID", None)
 
 
+@pytest.mark.serial
 def test_mcp_sse_transport(test_mcp_app):
     _, url, _ = test_mcp_app.launch(mcp_server=True, prevent_thread_lock=True)
 
-    with httpx.Client(timeout=5) as client:
-        config_url = f"{url}config"
-        config_response = client.get(config_url)
-        assert config_response.is_success
-        assert config_response.json()["mcp_server"] is True
+    try:
+        with httpx.Client(timeout=5) as client:
+            config_url = f"{url}config"
+            config_response = client.get(config_url)
+            assert config_response.is_success
+            assert config_response.json()["mcp_server"] is True
 
-        schema_url = f"{url}gradio_api/mcp/schema"
-        sse_url = f"{url}gradio_api/mcp/sse"
+            schema_url = f"{url}gradio_api/mcp/schema"
+            sse_url = f"{url}gradio_api/mcp/sse"
 
-        response = client.get(schema_url)
-        assert response.is_success
-        assert response.json() == [
-            {
-                "name": "test_tool",
-                "description": "This is a test tool. Returns: the original value as a string",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {"x": {"type": "string"}},
-                },
-                "meta": {"file_data_present": False},
-            }
-        ]
-
-        with client.stream("GET", sse_url) as response:
+            response = client.get(schema_url)
             assert response.is_success
+            assert response.json() == [
+                {
+                    "name": "test_tool",
+                    "description": "This is a test tool. Returns: the original value as a string",
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": {"x": {"type": "string"}},
+                    },
+                    "meta": {"file_data_present": False},
+                }
+            ]
 
-            terminate_next = False
-            line = ""
-            for line in response.iter_lines():
-                if terminate_next:
-                    break
-                if line.startswith("event: endpoint"):
-                    terminate_next = True
+            with client.stream("GET", sse_url) as response:
+                assert response.is_success
 
-            messages_path = line[5:].strip()
-            messages_url = f"{url.rstrip('/')}{messages_path}"
+                terminate_next = False
+                line = ""
+                for line in response.iter_lines():
+                    if terminate_next:
+                        break
+                    if line.startswith("event: endpoint"):
+                        terminate_next = True
 
-            message_response = client.post(
-                messages_url,
+                messages_path = line[5:].strip()
+                messages_url = f"{url.rstrip('/')}{messages_path}"
+
+                message_response = client.post(
+                    messages_url,
+                    json={
+                        "method": "initialize",
+                        "params": {
+                            "protocolVersion": "2025-03-26",
+                            "capabilities": {},
+                            "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                        },
+                        "jsonrpc": "2.0",
+                        "id": 0,
+                    },
+                    headers={"Content-Type": "application/json"},
+                )
+
+                assert message_response.is_success, (
+                    f"Failed with status {message_response.status_code}: {message_response.text}"
+                )
+    finally:
+        test_mcp_app.close()
+
+
+def make_streamable_http_app():
+    def test_tool(x: str) -> str:
+        """
+        This is a test tool.
+        Parameters:
+        - x: str
+        Returns:
+        - the original value as a string
+        """
+        return str(x)
+
+    with gr.Blocks() as app:
+        t1 = gr.Textbox(label="Test Textbox")
+        t2 = gr.Textbox(label="Test Textbox 2")
+        t1.submit(test_tool, t1, t2, api_name="test_tool")
+
+    app.launch(server_port=6869, mcp_server=True, prevent_thread_lock=False)
+
+
+@pytest.mark.serial
+def test_mcp_streamable_http_transport():
+    import multiprocessing
+    import time
+
+    process = multiprocessing.Process(target=make_streamable_http_app)
+    try:
+        process.start()
+        max_retries = 4
+        retry_delay = 2
+
+        for attempt in range(max_retries):
+            try:
+                with httpx.Client(timeout=1) as test_client:
+                    test_response = test_client.get("http://localhost:6869/")
+                    if test_response.status_code == 200:
+                        break
+            except (httpx.ConnectError, httpx.TimeoutException):
+                if attempt == max_retries - 1:
+                    raise Exception("Gradio app did not start") from None
+                time.sleep(retry_delay * (2**attempt))
+
+        with httpx.Client(timeout=5) as client:
+            config_url = "http://localhost:6869/config"
+            config_response = client.get(config_url)
+            assert config_response.is_success
+            assert config_response.json()["mcp_server"] is True
+
+            schema_url = "http://localhost:6869/gradio_api/mcp/schema"
+            streamable_http_url = "http://localhost:6869/gradio_api/mcp/"
+
+            response = client.get(schema_url)
+            assert response.is_success
+            assert response.json() == [
+                {
+                    "name": "test_tool",
+                    "description": "This is a test tool. Returns: the original value as a string",
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": {"x": {"type": "string"}},
+                    },
+                    "meta": {"file_data_present": False},
+                }
+            ]
+
+            response = client.post(
+                streamable_http_url,
                 json={
                     "method": "initialize",
                     "params": {
                         "protocolVersion": "2025-03-26",
                         "capabilities": {},
+                        "clientInfo": {"name": "test-client", "version": "1.0.0"},
                     },
                     "jsonrpc": "2.0",
                     "id": 0,
                 },
-                headers={"Content-Type": "application/json"},
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
             )
 
-            assert message_response.is_success, (
-                f"Failed with status {message_response.status_code}: {message_response.text}"
+            assert response.is_success, (
+                f"Failed with status {response.status_code}: {response.text}"
             )
+    finally:
+        process.terminate()
 
 
 def make_app():
@@ -286,6 +380,7 @@ def test_mcp_mount_gradio_app():
                         "params": {
                             "protocolVersion": "2025-03-26",
                             "capabilities": {},
+                            "clientInfo": {"name": "test-client", "version": "1.0.0"},
                         },
                         "jsonrpc": "2.0",
                         "id": 0,
