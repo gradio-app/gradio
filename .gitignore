@@ -102,3 +102,6 @@ js/storybook/theme.css
 .claude/
 CLAUDE.md
 .sonda/
+
+# docs upload
+scripts/docs.json
