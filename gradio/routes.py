@@ -1948,7 +1948,7 @@ class App(FastAPI):
             # client = huggingface_hub.InferenceClient()
                 client = openai.Client(
                     base_url="https://openrouter.ai/api/v1",
-                    api_key="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"
+                    api_key=""
                 )
             content = ""
             prompt = f"""
