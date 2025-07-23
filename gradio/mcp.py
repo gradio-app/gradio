@@ -99,7 +99,7 @@ class GradioMCPServer:
         if url.endswith("/gradio_api/mcp/messages"):
             return "/gradio_api/mcp/messages"
         else:
-            return "/gradio_api/mcp/http"
+            return "/gradio_api/mcp"
 
     @staticmethod
     def valid_and_unique_tool_name(
@@ -350,7 +350,7 @@ class GradioMCPServer:
                     ),
                     Route("/sse", endpoint=handle_sse),
                     Mount("/messages/", app=sse.handle_post_message),
-                    Mount("/http/", app=self.handle_streamable_http),
+                    Mount("/", app=self.handle_streamable_http),
                 ],
             ),
         )
