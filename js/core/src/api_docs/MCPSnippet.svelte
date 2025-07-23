@@ -317,7 +317,7 @@
 	.file-upload-explanation {
 		margin: 0;
 		color: var(--body-text-color);
-		font-size: var(--text-md);
+		font-size: var(--text-lg);
 		line-height: 1.4;
 	}
 
