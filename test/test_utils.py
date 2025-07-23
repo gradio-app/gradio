@@ -889,3 +889,23 @@ class TestGetFunctionDescription:
             "param2": "description2",
         }
         assert returns == []
+
+    def test_get_function_description_inherits_parent_docstring(self):
+        """
+        Test that get_function_description correctly retrieves docstrings
+        from a method's parent class if the method itself has none.
+        """
+
+        class Parent:
+            def method(self):
+                """This is the docstring from the parent class."""
+                pass
+
+        class Child(Parent):
+            def method(self):
+                pass  # No docstring here
+
+        description, parameters, returns = get_function_description(Child().method)
+        assert parameters == {}
+        assert returns == []
+        assert description == "This is the docstring from the parent class."

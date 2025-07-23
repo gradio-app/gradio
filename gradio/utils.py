@@ -1717,7 +1717,7 @@ def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[st
         - A dictionary of parameter names and their descriptions
         - A list of return value descriptions
     """
-    fn_docstring = fn.__doc__
+    fn_docstring = inspect.getdoc(fn)
     description = ""
     parameters = {}
     returns = []
