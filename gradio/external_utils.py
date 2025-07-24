@@ -297,6 +297,7 @@ def create_endpoint_fn(
     endpoint_method: str,
     endpoint_operation: dict,
     base_url: str,
+    auth_token: str | None = None,
 ):
     # Get request body info for docstring generation
     request_body = endpoint_operation.get("requestBody", {})
@@ -305,6 +306,8 @@ def create_endpoint_fn(
         url = f"{base_url.rstrip('/')}{endpoint_path}"
 
         headers = {"Content-Type": "application/json"}
+        if auth_token:
+            headers["Authorization"] = f"Bearer {auth_token}"
 
         params = {}
         body_data = {}
@@ -333,7 +336,7 @@ def create_endpoint_fn(
             if is_file_upload:
                 file_data = args[param_index]
                 if file_data:
-                    headers = {"Content-Type": "application/octet-stream"}
+                    headers["Content-Type"] = "application/octet-stream"
                     body_data = file_data
                 else:
                     body_data = b""
