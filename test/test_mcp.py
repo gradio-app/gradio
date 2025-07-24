@@ -225,31 +225,12 @@ def test_mcp_sse_transport(test_mcp_app):
         test_mcp_app.close()
 
 
-def make_streamable_http_app():
-    def test_tool(x: str) -> str:
-        """
-        This is a test tool.
-        Parameters:
-        - x: str
-        Returns:
-        - the original value as a string
-        """
-        return str(x)
-
-    with gr.Blocks() as app:
-        t1 = gr.Textbox(label="Test Textbox")
-        t2 = gr.Textbox(label="Test Textbox 2")
-        t1.submit(test_tool, t1, t2, api_name="test_tool")
-
-    app.launch(server_port=6869, mcp_server=True, prevent_thread_lock=False)
-
-
 @pytest.mark.serial
-def test_mcp_streamable_http_transport():
+def test_mounted_mcp_server_streamable_http_transport():
     import multiprocessing
     import time
 
-    process = multiprocessing.Process(target=make_streamable_http_app)
+    process = multiprocessing.Process(target=make_app)
     try:
         process.start()
         max_retries = 4
@@ -258,7 +239,7 @@ def test_mcp_streamable_http_transport():
         for attempt in range(max_retries):
             try:
                 with httpx.Client(timeout=1) as test_client:
-                    test_response = test_client.get("http://localhost:6869/")
+                    test_response = test_client.get("http://localhost:6869/test")
                     if test_response.status_code == 200:
                         break
             except (httpx.ConnectError, httpx.TimeoutException):
@@ -267,13 +248,13 @@ def test_mcp_streamable_http_transport():
                 time.sleep(retry_delay * (2**attempt))
 
         with httpx.Client(timeout=5) as client:
-            config_url = "http://localhost:6869/config"
+            config_url = "http://localhost:6869/test/config"
             config_response = client.get(config_url)
             assert config_response.is_success
             assert config_response.json()["mcp_server"] is True
 
-            schema_url = "http://localhost:6869/gradio_api/mcp/schema"
-            streamable_http_url = "http://localhost:6869/gradio_api/mcp/"
+            schema_url = "http://localhost:6869/test/gradio_api/mcp/schema"
+            streamable_http_url = "http://localhost:6869/test/gradio_api/mcp/"
 
             response = client.get(schema_url)
             assert response.is_success
@@ -320,79 +301,25 @@ def make_app():
 
     from gradio.routes import mount_gradio_app
 
+    def test_tool(x: str) -> str:
+        """
+        This is a test tool.
+        Parameters:
+        - x: str
+        Returns:
+        - the original value as a string
+        """
+        return str(x)
+
     with gr.Blocks() as app:
         t1 = gr.Textbox(label="Test Textbox")
         t2 = gr.Textbox(label="Test Textbox 2")
-        t1.submit(lambda x: x, t1, t2, api_name="test_tool")
+        t1.submit(test_tool, t1, t2, api_name="test_tool")
 
     fastapi_app = FastAPI()
     mount_gradio_app(fastapi_app, app, path="/test", mcp_server=True)
-    uvicorn.run(fastapi_app, port=6868)
+    uvicorn.run(fastapi_app, port=6869)
 
-
-@pytest.mark.serial
-def test_mcp_mount_gradio_app():
-    import multiprocessing
-
-    process = multiprocessing.Process(target=make_app)
-    try:
-        process.start()
-        max_retries = 4
-        retry_delay = 2
-
-        for attempt in range(max_retries):
-            try:
-                with httpx.Client(timeout=1) as test_client:
-                    test_response = test_client.get("http://localhost:6868/test/")
-                    if test_response.status_code == 200:
-                        break
-            except (httpx.ConnectError, httpx.TimeoutException):
-                if attempt == max_retries - 1:
-                    raise Exception("Gradio app did not start") from None
-                time.sleep(retry_delay * (2**attempt))
-
-        with httpx.Client(timeout=5) as client:
-            config_url = "http://localhost:6868/test/config"
-            config_response = client.get(config_url)
-            assert config_response.is_success
-            assert config_response.json()["mcp_server"] is True
-
-            sse_url = "http://localhost:6868/test/gradio_api/mcp/sse"
-
-            with client.stream("GET", sse_url) as response:
-                assert response.is_success
-
-                terminate_next = False
-                line = ""
-                for line in response.iter_lines():
-                    if terminate_next:
-                        break
-                    if line.startswith("event: endpoint"):
-                        terminate_next = True
-
-                messages_path = line[5:].strip()
-                messages_url = f"http://localhost:6868{messages_path}"
-
-                message_response = client.post(
-                    messages_url,
-                    json={
-                        "method": "initialize",
-                        "params": {
-                            "protocolVersion": "2025-03-26",
-                            "capabilities": {},
-                            "clientInfo": {"name": "test-client", "version": "1.0.0"},
-                        },
-                        "jsonrpc": "2.0",
-                        "id": 0,
-                    },
-                    headers={"Content-Type": "application/json"},
-                )
-
-                assert message_response.is_success, (
-                    f"Failed with status {message_response.status_code}: {message_response.text}"
-                )
-    finally:
-        process.terminate()
 
 
 @pytest.mark.asyncio

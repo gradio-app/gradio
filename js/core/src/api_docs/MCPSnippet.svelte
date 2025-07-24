@@ -38,7 +38,7 @@
 	$: display_url =
 		current_transport === "sse"
 			? mcp_server_url
-			: mcp_server_url.replace("/sse", "");
+			: mcp_server_url.replace("/sse", "/");
 
 	// Helper function to add/remove file upload tool from config
 	function updateConfigWithFileUpload(
