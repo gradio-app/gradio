@@ -1,5 +1,15 @@
 # @self/spa
 
+## 0.10.3
+
+### Fixes
+
+- [#11632](https://github.com/gradio-app/gradio/pull/11632) [`8f19bff`](https://github.com/gradio-app/gradio/commit/8f19bffd04a73d4fc1080f5854caa0361516f3af) - ensure i18n is initialised before displaying localised loading text.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/core@0.23.2
+
 ## 0.10.2
 
 ### Fixes

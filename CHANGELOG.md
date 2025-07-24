@@ -1,5 +1,12 @@
 # gradio
 
+## 5.38.2
+
+### Fixes
+
+- [#11632](https://github.com/gradio-app/gradio/pull/11632) [`8f19bff`](https://github.com/gradio-app/gradio/commit/8f19bffd04a73d4fc1080f5854caa0361516f3af) - ensure i18n is initialised before displaying localised loading text.  Thanks @pngwn!
+- [#11598](https://github.com/gradio-app/gradio/pull/11598) [`33d9c48`](https://github.com/gradio-app/gradio/commit/33d9c4812b0cadfb741c0f8116a9fad74e991237) - Ensure `gr.Textbox` is responsive with content.  Thanks @hannahblair!
+
 ## 5.38.1
 
 ### Features
