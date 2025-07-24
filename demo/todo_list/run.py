@@ -17,7 +17,7 @@ with gr.Blocks() as demo:
         gr.Markdown(f"### Incomplete Tasks ({len(incomplete)})")
         for task in incomplete:
             with gr.Row():
-                gr.Textbox(task['name'], show_label=False, container=False)
+                gr.Textbox(task['name'], show_label=False, container=False,  max_lines=1)
                 done_btn = gr.Button("Done", scale=0)
                 def mark_done(task=task):
                     task["complete"] = True
@@ -32,7 +32,7 @@ with gr.Blocks() as demo:
 
         gr.Markdown(f"### Complete Tasks ({len(complete)})")
         for task in complete:
-            gr.Textbox(task['name'], show_label=False, container=False)
+            gr.Textbox(task['name'], show_label=False, container=False, max_lines=1)
 
 if __name__ == "__main__":
     demo.launch()
