@@ -41,7 +41,6 @@ def main():
                     failed_restarts.append((space_id, str(e)))
                     print(f"  → Failed to restart {space_id}: {e}")
 
-        # Print summary
         print("\n" + "=" * 50)
         print("SUMMARY:")
         print(f"Total Spaces: {len(spaces)}")
