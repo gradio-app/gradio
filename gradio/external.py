@@ -466,7 +466,9 @@ def from_model(
     elif p == "image-text-to-text":
         inputs = [
             components.Image(type="filepath", label="Input Image"),
-            components.Textbox(label="Input Text", placeholder="Ask a question about the image"),
+            components.Textbox(
+                label="Input Text", placeholder="Ask a question about the image"
+            ),
         ]
         outputs = components.Textbox(label="Generated Text")
         examples = [
