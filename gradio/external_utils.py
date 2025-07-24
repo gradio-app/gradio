@@ -11,6 +11,7 @@ import warnings
 
 import httpx
 import yaml
+from gradio_client.utils import encode_url_or_file_to_base64
 from huggingface_hub import HfApi, ImageClassificationOutputElement, InferenceClient
 
 from gradio import components
@@ -217,6 +218,36 @@ def object_detection_wrapper(client: InferenceClient):
         return (input, formatted_annotations)
 
     return object_detection_inner
+
+def image_text_to_text_wrapper(client: InferenceClient):
+    def chat_fn(image, text):        
+        messages = [
+            {
+                "role": "user", 
+                "content": [
+                    {"type": "image_url", "image_url": {"url": encode_url_or_file_to_base64(image)}},
+                    {"type": "text", "text": text}
+                ]
+            }
+        ]
+        
+        try:
+            response = client.chat_completion(messages=messages, stream=False)
+            return response.choices[0].message.content
+        except Exception as e:
+            # Fallback to image_to_text for models that don't support chat_completion
+            try:
+                # Some models expect text as a parameter to image_to_text
+                return client.image_to_text(image, text=text)
+            except Exception:
+                # Final fallback without text parameter
+                try:
+                    result = client.image_to_text(image)
+                    return f"Image description: {result}\n\nUser question: {text}\n\nNote: This model doesn't support question-answering about images, only image captioning."
+                except Exception:
+                    handle_hf_error(e)
+
+    return chat_fn
 
 
 def chatbot_preprocess(text, state):
