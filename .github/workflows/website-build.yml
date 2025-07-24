@@ -70,7 +70,7 @@ jobs:
         run: |
           python3 -m venv venv
           . venv/bin/activate
-          pip install huggingface-hub==0.23.2 html2text beautifulsoup4
+          pip install huggingface-hub==0.28.1 html2text beautifulsoup4
 
       - name: Get docs.json Upload Script
         run: |
@@ -81,7 +81,9 @@ jobs:
         if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'refs/heads/main'
         env:
           HF_TOKEN: ${{ secrets.HF_DOCS_TOKEN }}
-        run: python scripts/upload_docs_json.py
+        run: |
+          . venv/bin/activate
+          python scripts/upload_docs_json.py
 
       - name: upload website artifacts
         uses: actions/upload-artifact@v4
