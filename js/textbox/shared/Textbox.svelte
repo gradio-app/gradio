@@ -42,7 +42,7 @@
 
 	const show_textbox_border = !submit_btn;
 
-	$: if (max_lines === undefined) {
+	$: if (max_lines === undefined || max_lines === null) {
 		if (type === "text") {
 			_max_lines = Math.max(lines, 20);
 		} else {
