@@ -4,4 +4,4 @@
 "gradio": patch
 ---
 
-fix:ensure i18n is initialise before displaying localised loading text
+fix:ensure i18n is initialised before displaying localised loading text
