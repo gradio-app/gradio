@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/model3d",
-	"version": "0.14.20",
+	"version": "0.14.21",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -19,7 +19,7 @@
 		"@babylonjs/core": "^8.2.0",
 		"@babylonjs/loaders": "^8.2.0",
 		"dequal": "^2.0.2",
-		"gsplat": "^1.0.5"
+		"gsplat": "^1.2.9"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
