@@ -3,7 +3,7 @@ import gradio as gr
 with gr.Blocks() as demo:
 
     tasks = gr.State([])
-    new_task = gr.Textbox(label="Task Name", autofocus=True)
+    new_task = gr.Textbox(label="Task Name", autofocus=True, max_lines=1)
 
     def add_task(tasks, new_task_name):
         return tasks + [{"name": new_task_name, "complete": False}], ""
@@ -32,7 +32,7 @@ with gr.Blocks() as demo:
 
         gr.Markdown(f"### Complete Tasks ({len(complete)})")
         for task in complete:
-            gr.Textbox(task['name'], show_label=False, container=False, max_lines=1)
+            gr.Textbox(task['name'], show_label=False, container=False)
 
 if __name__ == "__main__":
     demo.launch()
