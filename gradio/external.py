@@ -917,8 +917,6 @@ def load_openapi(
     api_paths = spec.get("paths", {})
 
     if paths is not None or exclude_paths is not None:
-        import re
-
         filtered_paths = {}
         for path in api_paths:
             if exclude_paths:
