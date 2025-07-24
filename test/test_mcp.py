@@ -290,8 +290,13 @@ def test_mounted_mcp_server_streamable_http_transport():
             assert response.is_success, (
                 f"Failed with status {response.status_code}: {response.text}"
             )
+
+            time.sleep(0.5)
     finally:
         process.terminate()
+        process.join(
+            timeout=5
+        )  # This is needed to avoid connection from closing before the process is terminated on CI
 
 
 def make_app():
