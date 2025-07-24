@@ -878,6 +878,7 @@ def load_openapi(
     *,
     paths: list[str] | None = None,
     methods: list[Literal["get", "post", "put", "patch", "delete"]] | None = None,
+    auth_token: str | None = None,
 ) -> Blocks:
     """
     Load a Gradio app from an OpenAPI v3 specification.
@@ -887,6 +888,7 @@ def load_openapi(
         base_url: Base URL for the API endpoints, e.g. "https://api.example.com/v1". This is used to construct the full URL for each endpoint.
         paths: Optional list of specific API paths to create Gradio endpoints from. Supports regex patterns, e.g. ["/api/v1/books", ".*users.*"]. If None, all paths in the OpenAPI spec will be included.
         methods: Optional list of HTTP methods to include in the Gradio endpoints. If None, all methods will be included.
+        auth_token: Optional authentication token to be sent as a Bearer token in the Authorization header for all API requests.
     Returns:
         A Gradio Blocks app with endpoints generated from the OpenAPI spec
     """
@@ -966,7 +968,7 @@ def load_openapi(
                     components_list.append(body_component)
 
             endpoint_fn = external_utils.create_endpoint_fn(
-                path, method, operation, base_url
+                path, method, operation, base_url, auth_token
             )
             endpoint_fn.__name__ = (
                 f"{method}_{path.replace('/', '_').replace('{', '').replace('}', '')}"
