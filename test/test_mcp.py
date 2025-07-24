@@ -228,7 +228,6 @@ def test_mcp_sse_transport(test_mcp_app):
 @pytest.mark.serial
 def test_mounted_mcp_server_streamable_http_transport():
     import multiprocessing
-    import time
 
     process = multiprocessing.Process(target=make_app)
     try:
