@@ -17,6 +17,9 @@ import {
 	changeLocale,
 	is_translation_metadata
 } from "./i18n";
+import { loading } from "./lang/loading";
+
+const loading_count = Object.keys(loading).length;
 
 vi.mock("svelte-i18n", () => ({
 	locale: { set: vi.fn() },
@@ -117,7 +120,7 @@ describe("i18n", () => {
 
 			load_translations({ processed_langs: {}, custom_translations });
 
-			expect(mockAddMessages).toHaveBeenCalledTimes(2);
+			expect(mockAddMessages).toHaveBeenCalledTimes(loading_count + 2);
 			expect(mockAddMessages).toHaveBeenCalledWith(
 				"en",
 				custom_translations.en
