@@ -320,7 +320,6 @@ def make_app():
     uvicorn.run(fastapi_app, port=6869)
 
 
-
 @pytest.mark.asyncio
 async def test_associative_keyword_in_schema():
     import json
