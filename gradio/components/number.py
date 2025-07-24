@@ -101,7 +101,7 @@ class Number(FormComponent):
         )
 
     @staticmethod
-    def _round_to_precision(num: float | int, precision: int | None) -> float | int:
+    def round_to_precision(num: float | int, precision: int | None) -> float | int:
         """
         Round to a given precision.
 
@@ -120,8 +120,8 @@ class Number(FormComponent):
         else:
             return round(num, precision)
 
-    @staticmethod   
-    def _raise_if_out_of_bounds(num: float | int, minimum: float | int | None, maximum: float | int | None) -> None:
+    @staticmethod
+    def raise_if_out_of_bounds(num: float | int, minimum: float | int | None, maximum: float | int | None) -> None:
         if minimum is not None and num < minimum:
             raise Error(f"Value {num} is less than minimum value {minimum}.")
         if maximum is not None and num > maximum:
@@ -136,8 +136,8 @@ class Number(FormComponent):
         """
         if payload is None:
             return None
-        self._raise_if_out_of_bounds(payload, self.minimum, self.maximum)
-        return self._round_to_precision(payload, self.precision)
+        self.raise_if_out_of_bounds(payload, self.minimum, self.maximum)
+        return self.round_to_precision(payload, self.precision)
 
     def postprocess(self, value: float | int | None) -> float | int | None:
         """
@@ -148,7 +148,7 @@ class Number(FormComponent):
         """
         if value is None:
             return None
-        return self._round_to_precision(value, self.precision)
+        return self.round_to_precision(value, self.precision)
 
     def api_info(self) -> dict[str, str]:
         if self.precision == 0:
@@ -156,7 +156,7 @@ class Number(FormComponent):
         return {"type": "number"}
 
     def example_payload(self) -> Any:
-        return self._round_to_precision(3 if self.minimum is None else self.minimum, self.precision)
+        return self.round_to_precision(3 if self.minimum is None else self.minimum, self.precision)
 
     def example_value(self) -> Any:
-        return self._round_to_precision(3 if self.minimum is None else self.minimum, self.precision)
+        return self.round_to_precision(3 if self.minimum is None else self.minimum, self.precision)
