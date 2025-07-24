@@ -7,6 +7,7 @@ import {
 	waitLocale
 } from "svelte-i18n";
 import { formatter } from "./gradio_helper";
+import { loading } from "./lang/loading";
 
 const lang_map = {
 	ar: "العربية",
@@ -236,5 +237,11 @@ export function load_translations(translations: {
 		}
 	} catch (e) {
 		console.error("Error loading translations:", e);
+	}
+
+	for (const lang in loading) {
+		addMessages(lang, {
+			common: { loading: loading[lang as keyof typeof loading] }
+		});
 	}
 }
