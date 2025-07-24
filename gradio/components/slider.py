@@ -140,7 +140,9 @@ class Slider(FormComponent):
         Returns:
             The value of the slider within the range.
         """
-        return Number.round_to_precision(self.minimum if value is None else value, self.precision)
+        return Number.round_to_precision(
+            self.minimum if value is None else value, self.precision
+        )
 
     def preprocess(self, payload: float) -> float:
         """

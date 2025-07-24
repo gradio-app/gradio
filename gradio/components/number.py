@@ -121,7 +121,9 @@ class Number(FormComponent):
             return round(num, precision)
 
     @staticmethod
-    def raise_if_out_of_bounds(num: float | int, minimum: float | int | None, maximum: float | int | None) -> None:
+    def raise_if_out_of_bounds(
+        num: float | int, minimum: float | int | None, maximum: float | int | None
+    ) -> None:
         if minimum is not None and num < minimum:
             raise Error(f"Value {num} is less than minimum value {minimum}.")
         if maximum is not None and num > maximum:
@@ -156,7 +158,11 @@ class Number(FormComponent):
         return {"type": "number"}
 
     def example_payload(self) -> Any:
-        return self.round_to_precision(3 if self.minimum is None else self.minimum, self.precision)
+        return self.round_to_precision(
+            3 if self.minimum is None else self.minimum, self.precision
+        )
 
     def example_value(self) -> Any:
-        return self.round_to_precision(3 if self.minimum is None else self.minimum, self.precision)
+        return self.round_to_precision(
+            3 if self.minimum is None else self.minimum, self.precision
+        )
