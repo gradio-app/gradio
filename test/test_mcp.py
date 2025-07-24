@@ -161,6 +161,7 @@ def test_tool_prefix_character_replacement(test_mcp_app):
             os.environ.pop("SPACE_ID", None)
 
 
+@pytest.mark.serial
 def test_mcp_sse_transport(test_mcp_app):
     _, url, _ = test_mcp_app.launch(mcp_server=True, prevent_thread_lock=True)
 
@@ -243,6 +244,7 @@ def make_streamable_http_app():
     app.launch(server_port=6869, mcp_server=True, prevent_thread_lock=False)
 
 
+@pytest.mark.serial
 def test_mcp_streamable_http_transport():
     import multiprocessing
     import time
@@ -328,6 +330,7 @@ def make_app():
     uvicorn.run(fastapi_app, port=6868)
 
 
+@pytest.mark.serial
 def test_mcp_mount_gradio_app():
     import multiprocessing
 
