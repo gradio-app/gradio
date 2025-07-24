@@ -32,7 +32,7 @@ with gr.Blocks() as demo:
 
         gr.Markdown(f"### Complete Tasks ({len(complete)})")
         for task in complete:
-            gr.Textbox(task['name'], show_label=False, container=False)
+            gr.Textbox(task['name'], show_label=False, container=False, max_lines=1)
 
 if __name__ == "__main__":
     demo.launch()
