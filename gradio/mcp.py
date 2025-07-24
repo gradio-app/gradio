@@ -69,6 +69,14 @@ class GradioMCPServer:
         async def handle_streamable_http(
             scope: Scope, receive: Receive, send: Send
         ) -> None:
+            path = scope.get("path", "")
+            if path not in ["/gradio_api/mcp", "/gradio_api/mcp/", "/gradio_api/mcp/http", "/gradio_api/mcp/http/"]:
+                response = Response(
+                    content=f"Path '{path}' not found. The MCP HTTP transport is available at /gradio_api/mcp/http.",
+                    status_code=404,
+                )
+                await response(scope, receive, send)
+                return
             await manager.handle_request(scope, receive, send)
 
         @contextlib.asynccontextmanager
