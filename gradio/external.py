@@ -462,6 +462,22 @@ def from_model(
             ]
         ]
         fn = client.image_to_image
+    # example model: meta-llama/Llama-3.2-11B-Vision-Instruct
+    elif p == "image-text-to-text":
+        inputs = [
+            components.Image(type="filepath", label="Input Image"),
+            components.Textbox(
+                label="Input Text", placeholder="Ask a question about the image"
+            ),
+        ]
+        outputs = components.Textbox(label="Generated Text")
+        examples = [
+            [
+                "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+                "What animal is in the image?",
+            ]
+        ]
+        fn = external_utils.image_text_to_text_wrapper(client)
     else:
         raise ValueError(f"Unsupported pipeline type: {p}")
 
