@@ -933,6 +933,7 @@ class CustomCORSMiddleware:
 def delete_files_created_by_app(blocks: Blocks, age: int | None) -> None:
     """Delete files that are older than age. If age is None, delete all files."""
     dont_delete = set()
+
     for component in blocks.blocks.values():
         dont_delete.update(getattr(component, "keep_in_cache", set()))
     for temp_set in blocks.temp_file_sets:
@@ -995,14 +996,14 @@ def create_lifespan_handler(
 
     @asynccontextmanager
     async def _handler(app: App):
+        state = None
         async with AsyncExitStack() as stack:
             await stack.enter_async_context(_delete_state_handler(app))
             if frequency and age:
                 await stack.enter_async_context(_lifespan_handler(app, frequency, age))
             if user_lifespan is not None:
-                async with user_lifespan(app) as state:
-                    yield state
-            yield
+                state = await stack.enter_async_context(user_lifespan(app))
+            yield state
 
     return _handler
 
