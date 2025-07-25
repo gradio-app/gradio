@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 from gradio_client.documentation import document
 
 from gradio.components.base import Component, FormComponent
+from gradio.components.number import Number
 from gradio.events import Events
 from gradio.i18n import I18nData
 
@@ -35,6 +36,7 @@ class Slider(FormComponent):
         value: float | Callable | None = None,
         *,
         step: float | None = None,
+        precision: int | None = None,
         label: str | I18nData | None = None,
         info: str | I18nData | None = None,
         every: Timer | float | None = None,
@@ -55,10 +57,11 @@ class Slider(FormComponent):
     ):
         """
         Parameters:
-            minimum: minimum value for slider.
-            maximum: maximum value for slider.
+            minimum: minimum value for slider. When used as an input, if a user provides a smaller value, a gr.Error exception is raised by the backend.
+            maximum: maximum value for slider. When used as an input, if a user provides a larger value, a gr.Error exception is raised by the backend.
             value: default value for slider. If a function is provided, the function will be called each time the app loads to set the initial value of this component. Ignored if randomized=True.
             step: increment between slider values.
+            precision: Precision to round input/output to. If set to 0, will round to nearest integer and convert type to int. If None, no rounding happens.
             label: the label for this component, displayed above the component if `show_label` is `True` and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component corresponds to.
             info: additional component description, appears below the label in smaller font. Supports markdown / HTML syntax.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
@@ -79,6 +82,7 @@ class Slider(FormComponent):
         """
         self.minimum = minimum
         self.maximum = maximum
+        self.precision = precision
         if step is None:
             difference = maximum - minimum
             power = math.floor(math.log10(difference) - 2)
@@ -109,7 +113,7 @@ class Slider(FormComponent):
 
     def api_info(self) -> dict[str, Any]:
         return {
-            "type": "number",
+            "type": "integer" if self.precision == 0 else "number",
             "description": f"numeric value between {self.minimum} and {self.maximum}",
         }
 
@@ -136,7 +140,9 @@ class Slider(FormComponent):
         Returns:
             The value of the slider within the range.
         """
-        return self.minimum if value is None else value
+        return Number.round_to_precision(
+            self.minimum if value is None else value, self.precision
+        )
 
     def preprocess(self, payload: float) -> float:
         """
@@ -145,4 +151,5 @@ class Slider(FormComponent):
         Returns:
             Passes slider value as a {float} into the function.
         """
-        return payload
+        Number.raise_if_out_of_bounds(payload, self.minimum, self.maximum)
+        return Number.round_to_precision(payload, self.precision)
