@@ -1000,7 +1000,8 @@ def create_lifespan_handler(
             if frequency and age:
                 await stack.enter_async_context(_lifespan_handler(app, frequency, age))
             if user_lifespan is not None:
-                await stack.enter_async_context(user_lifespan(app))
+                async with user_lifespan(app) as state:
+                    yield state
             yield
 
     return _handler
