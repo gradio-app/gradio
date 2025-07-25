@@ -2919,7 +2919,9 @@ Received inputs:
         mcp_subpath = API_PREFIX + "/mcp"
         if self.mcp_server:
             print(
-                f"\n🔨 MCP server (using SSE) running at: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
+                "\n🔨 Launching MCP server:"
+                f"\n* Streamable HTTP URL: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/"
+                f"\n* SSE URL: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
             )
 
         if inbrowser and not wasm_utils.IS_WASM:
