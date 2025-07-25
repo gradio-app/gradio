@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 import gradio as gr
@@ -98,3 +100,52 @@ def test_create_endpoint_fn_docstring():
     assert doc
     assert "Returns a pet by its ID" in doc
     assert "petId" in doc
+
+
+@patch("httpx.get")
+def test_create_endpoint_fn_with_auth_token(mock_get):
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"result": "success"}
+    mock_get.return_value = mock_response
+
+    operation = {
+        "parameters": [
+            {"name": "id", "in": "query", "schema": {"type": "string"}},
+        ],
+        "summary": "Test endpoint with auth",
+    }
+    fn = create_endpoint_fn(
+        "/test",
+        "get",
+        operation,
+        "http://api.example.com",
+        auth_token="my-secret-token",
+    )
+
+    result = fn("test-id")
+
+    mock_get.assert_called_once()
+    call_args = mock_get.call_args
+    assert call_args[1]["headers"]["Authorization"] == "Bearer my-secret-token"
+    assert call_args[1]["headers"]["Content-Type"] == "application/json"
+    assert result == {"result": "success"}
+
+
+def test_create_endpoint_fn_without_auth_token():
+    with patch("httpx.get") as mock_get:
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"result": "success"}
+        mock_get.return_value = mock_response
+
+        operation = {"summary": "Test endpoint without auth"}
+        fn = create_endpoint_fn(
+            "/test", "get", operation, "http://api.example.com", auth_token=None
+        )
+
+        fn()
+
+        call_args = mock_get.call_args
+        assert "Authorization" not in call_args[1]["headers"]
+        assert call_args[1]["headers"]["Content-Type"] == "application/json"

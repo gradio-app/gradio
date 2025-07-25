@@ -137,7 +137,7 @@
 	let ready = false;
 	let render_complete = false;
 	let config: Config;
-	let loading_text = $_("common.loading") + "..." || "Loading...";
+	let loading_text = "Loading...";
 
 	let active_theme_mode: ThemeMode;
 	let api_url: string;
@@ -462,6 +462,7 @@
 	};
 
 	$: if (i18n_ready) {
+		loading_text = $_("common.loading") + "...";
 		discussion_message = {
 			readable_error: {
 				NO_APP_FILE: $_("errors.no_app_file"),
@@ -534,78 +535,80 @@
 	{is_lite}
 	bind:wrapper
 >
-	{#if (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}
-		<StatusTracker
-			absolute={!is_embed}
-			status={loader_status}
-			timer={false}
-			queue_position={null}
-			queue_size={null}
-			translucent={true}
-			{loading_text}
-			i18n={$_}
-			{autoscroll}
-		>
-			<div class="load-text" slot="additional-loading-text">
-				{#if gradio_dev_mode === "dev"}
-					<p>
-						If your custom component never loads, consult the troubleshooting <a
-							style="color: blue;"
-							href="https://www.gradio.app/guides/frequently-asked-questions#the-development-server-didnt-work-for-me"
-							>guide</a
-						>.
-					</p>
-				{/if}
-			</div>
-			<!-- todo: translate message text -->
-			<div class="error" slot="error">
-				<p><strong>{status?.message || ""}</strong></p>
-				{#if (status.status === "space_error" || status.status === "paused") && status.discussions_enabled && discussion_message}
-					<p>
-						Please <a
-							href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
-								status?.detail
-							)}&description={discussion_message.description(
-								status?.detail,
-								location.origin
-							)}"
-						>
-							contact the author of the space</a
-						> to let them know.
-					</p>
-				{:else if i18n_ready}
-					<p>{$_("errors.contact_page_author")}</p>
-				{/if}
-			</div>
-		</StatusTracker>
-	{/if}
-	{#if config?.auth_required && Login}
-		<Login
-			auth_message={config.auth_message}
-			root={config.root}
-			space_id={space}
-			{app_mode}
-		/>
-	{:else if config && Blocks && css_ready}
-		<Blocks
-			{app}
-			{...config}
-			fill_height={!is_embed && config.fill_height}
-			theme_mode={active_theme_mode}
-			{control_page_title}
-			target={wrapper}
-			{autoscroll}
-			bind:ready
-			bind:render_complete
-			bind:add_new_message={new_message_fn}
-			show_footer={!is_embed}
-			{app_mode}
-			{version}
-			api_prefix={config.api_prefix || ""}
-			max_file_size={config.max_file_size}
-			initial_layout={undefined}
-			search_params={new URLSearchParams(window.location.search)}
-		/>
+	{#if i18n_ready}
+		{#if (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}
+			<StatusTracker
+				absolute={!is_embed}
+				status={loader_status}
+				timer={false}
+				queue_position={null}
+				queue_size={null}
+				translucent={true}
+				{loading_text}
+				i18n={$_}
+				{autoscroll}
+			>
+				<div class="load-text" slot="additional-loading-text">
+					{#if gradio_dev_mode === "dev"}
+						<p>
+							If your custom component never loads, consult the troubleshooting <a
+								style="color: blue;"
+								href="https://www.gradio.app/guides/frequently-asked-questions#the-development-server-didnt-work-for-me"
+								>guide</a
+							>.
+						</p>
+					{/if}
+				</div>
+				<!-- todo: translate message text -->
+				<div class="error" slot="error">
+					<p><strong>{status?.message || ""}</strong></p>
+					{#if (status.status === "space_error" || status.status === "paused") && status.discussions_enabled && discussion_message}
+						<p>
+							Please <a
+								href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
+									status?.detail
+								)}&description={discussion_message.description(
+									status?.detail,
+									location.origin
+								)}"
+							>
+								contact the author of the space</a
+							> to let them know.
+						</p>
+					{:else if i18n_ready}
+						<p>{$_("errors.contact_page_author")}</p>
+					{/if}
+				</div>
+			</StatusTracker>
+		{/if}
+		{#if config?.auth_required && Login}
+			<Login
+				auth_message={config.auth_message}
+				root={config.root}
+				space_id={space}
+				{app_mode}
+			/>
+		{:else if config && Blocks && css_ready}
+			<Blocks
+				{app}
+				{...config}
+				fill_height={!is_embed && config.fill_height}
+				theme_mode={active_theme_mode}
+				{control_page_title}
+				target={wrapper}
+				{autoscroll}
+				bind:ready
+				bind:render_complete
+				bind:add_new_message={new_message_fn}
+				show_footer={!is_embed}
+				{app_mode}
+				{version}
+				api_prefix={config.api_prefix || ""}
+				max_file_size={config.max_file_size}
+				initial_layout={undefined}
+				search_params={new URLSearchParams(window.location.search)}
+			/>
+		{/if}
 	{/if}
 </Embed>
 
