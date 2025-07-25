@@ -3,6 +3,7 @@ import { cleanup, render, fireEvent } from "@self/tootils";
 import Chatbot from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 import type { FileData } from "@gradio/client";
+import { group_messages } from "./shared/utils";
 
 const loading_status: LoadingStatus = {
 	eta: 0,
@@ -247,5 +248,66 @@ describe("Chatbot", () => {
 		assert.isTrue(
 			botMessage?.innerHTML.includes("<thinking>processing query...</thinking>")
 		);
+	});
+
+	test("groups messages correctly when display_consecutive_in_same_bubble is true", () => {
+		const messages = [
+			{ role: "user", content: "Hello", type: "text", index: 0 },
+			{ role: "assistant", content: "Hi there", type: "text", index: 1 },
+			{ role: "assistant", content: "How can I help?", type: "text", index: 2 },
+			{ role: "user", content: "Thanks", type: "text", index: 3 }
+		];
+
+		const grouped = group_messages(messages, "messages", true);
+		
+		// Should have 3 groups: user, assistant (2 messages), user
+		assert.equal(grouped.length, 3);
+		assert.equal(grouped[0].length, 1); // First user message
+		assert.equal(grouped[1].length, 2); // Two consecutive assistant messages
+		assert.equal(grouped[2].length, 1); // Second user message
+	});
+
+	test("groups messages correctly when display_consecutive_in_same_bubble is false", () => {
+		const messages = [
+			{ role: "user", content: "Hello", type: "text", index: 0 },
+			{ role: "assistant", content: "Hi there", type: "text", index: 1 },
+			{ role: "assistant", content: "How can I help?", type: "text", index: 2 },
+			{ role: "user", content: "Thanks", type: "text", index: 3 }
+		];
+
+		const grouped = group_messages(messages, "messages", false);
+		
+		// Should have 4 groups: each message should be its own group
+		assert.equal(grouped.length, 4);
+		assert.equal(grouped[0].length, 1); // First user message
+		assert.equal(grouped[1].length, 1); // First assistant message
+		assert.equal(grouped[2].length, 1); // Second assistant message
+		assert.equal(grouped[3].length, 1); // Second user message
+	});
+
+	test("displays like/dislike buttons on every message when group_consecutive_messages is false", async () => {
+		const messages = [
+			{ role: "user", content: "Hello" },
+			{ role: "assistant", content: "Hi there" },
+			{ role: "assistant", content: "How can I help?" },
+			{ role: "user", content: "Thanks" },
+			{ role: "assistant", content: "You're welcome!" }
+		];
+
+		const { container } = await render(Chatbot, {
+			loading_status,
+			label: "chatbot",
+			value: messages,
+			type: "messages",
+			group_consecutive_messages: false,
+			feedback_options: ["Like", "Dislike"]
+		});
+
+		// Count the number of like/dislike button panels
+		const buttonPanels = container.querySelectorAll(".message-buttons");
+		
+		// Should have like/dislike buttons for each assistant message
+		// (3 assistant messages total)
+		assert.equal(buttonPanels.length, 3);
 	});
 });
