@@ -76,6 +76,11 @@ jobs:
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}
           uv pip freeze
+      - name: Restart Spaces (flaky tests only)
+        if: matrix.test-type == 'flaky'
+        run: |
+          . ${{steps.install_deps.outputs.venv_activate}}
+          python scripts/restart_spaces.py
       - name: Run parallel tests
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}
