@@ -69,6 +69,21 @@ class GradioMCPServer:
         async def handle_streamable_http(
             scope: Scope, receive: Receive, send: Send
         ) -> None:
+            path = scope.get("path", "")
+            if not path.endswith(
+                (
+                    "/gradio_api/mcp",
+                    "/gradio_api/mcp/",
+                    "/gradio_api/mcp/http",
+                    "/gradio_api/mcp/http/",
+                )
+            ):
+                response = Response(
+                    content=f"Path '{path}' not found. The MCP HTTP transport is available at /gradio_api/mcp.",
+                    status_code=404,
+                )
+                await response(scope, receive, send)
+                return
             await manager.handle_request(scope, receive, send)
 
         @contextlib.asynccontextmanager
@@ -99,7 +114,7 @@ class GradioMCPServer:
         if url.endswith("/gradio_api/mcp/messages"):
             return "/gradio_api/mcp/messages"
         else:
-            return "/gradio_api/mcp/http"
+            return "/gradio_api/mcp"
 
     @staticmethod
     def valid_and_unique_tool_name(
@@ -350,7 +365,7 @@ class GradioMCPServer:
                     ),
                     Route("/sse", endpoint=handle_sse),
                     Mount("/messages/", app=sse.handle_post_message),
-                    Mount("/http/", app=self.handle_streamable_http),
+                    Mount("/", app=self.handle_streamable_http),
                 ],
             ),
         )

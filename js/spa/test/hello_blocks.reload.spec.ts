@@ -84,6 +84,7 @@ if __name__ == "__main__":
 
 		await expect(page.getByLabel("z")).toHaveValue("new");
 		await page.getByLabel("x").fill("gradio");
+		await expect(page.getByLabel("x")).toHaveValue("gradio");
 		await expect(page.getByLabel("y")).toHaveValue("oidarg");
 		await expect(page.getByLabel("z")).toHaveValue("gradio");
 

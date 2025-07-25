@@ -1,5 +1,26 @@
 # @gradio/core
 
+## 0.23.2
+
+### Fixes
+
+- [#11632](https://github.com/gradio-app/gradio/pull/11632) [`8f19bff`](https://github.com/gradio-app/gradio/commit/8f19bffd04a73d4fc1080f5854caa0361516f3af) - ensure i18n is initialised before displaying localised loading text.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/textbox@0.10.18
+
+## 0.23.1
+
+### Features
+
+- [#11619](https://github.com/gradio-app/gradio/pull/11619) [`33c5d2b`](https://github.com/gradio-app/gradio/commit/33c5d2bb8214c0d7a90daca0f1eaf96411a52e79) - Add a query param for the selected language & make MCP the default option when `mcp_server` is enabled.  Thanks @abidlabs!
+- [#11615](https://github.com/gradio-app/gradio/pull/11615) [`e2b66d7`](https://github.com/gradio-app/gradio/commit/e2b66d718f3a8f57b6ee224502849ee737b1b120) - fix change events for hidden components.  Thanks @pngwn!
+
+### Fixes
+
+- [#11599](https://github.com/gradio-app/gradio/pull/11599) [`c39d373`](https://github.com/gradio-app/gradio/commit/c39d3739bf2494ad13556174757cdd56060f033e) - Ensure component visibility is correctly propagated to all components.  Thanks @copilot-swe-agent!
+
 ## 0.23.0
 
 ### Features

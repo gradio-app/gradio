@@ -42,6 +42,7 @@ jobs:
           path: output.json
           name: changes
   build:
+    environment: build_website
     name: "website-build"
     runs-on: ubuntu-22.04
     needs: changes
@@ -64,6 +65,25 @@ jobs:
 
       - name: find
         run: find . -type d
+
+      - name: Install Hub Client Library and docs.json Requirements
+        run: |
+          python3 -m venv venv
+          . venv/bin/activate
+          pip install huggingface-hub==0.28.1 html2text beautifulsoup4
+
+      - name: Get docs.json Upload Script
+        run: |
+          mkdir -p scripts
+          curl https://raw.githubusercontent.com/gradio-app/gradio/main/scripts/upload_docs_json.py -o scripts/upload_docs_json.py
+
+      - name: Upload docs.json to HF dataset
+        if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'refs/heads/main'
+        env:
+          HF_TOKEN: ${{ secrets.HF_DOCS_TOKEN }}
+        run: |
+          . venv/bin/activate
+          python scripts/upload_docs_json.py
 
       - name: upload website artifacts
         uses: actions/upload-artifact@v4
