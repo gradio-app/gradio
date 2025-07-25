@@ -1,5 +1,11 @@
 # @gradio/core
 
+## 0.24.0
+
+### Features
+
+- [#11622](https://github.com/gradio-app/gradio/pull/11622) [`ae9aaee`](https://github.com/gradio-app/gradio/commit/ae9aaeea62974f1fb533946a2a7c8461572778ef) - Expose Streamable HTTP endpoint in MCP Server at `/mcp`.  Thanks @abidlabs!
+
 ## 0.23.2
 
 ### Fixes

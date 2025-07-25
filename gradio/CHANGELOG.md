@@ -1,5 +1,18 @@
 # gradio
 
+## 5.39.0
+
+### Features
+
+- [#11635](https://github.com/gradio-app/gradio/pull/11635) [`64a87c6`](https://github.com/gradio-app/gradio/commit/64a87c6a3924de13aae47acfa069c9ccd469103f) - Improve schema for `gr.Number` and `gr.Slider` and other related changes around precision and minimum/maximum range.  Thanks @abidlabs!
+- [#11622](https://github.com/gradio-app/gradio/pull/11622) [`ae9aaee`](https://github.com/gradio-app/gradio/commit/ae9aaeea62974f1fb533946a2a7c8461572778ef) - Expose Streamable HTTP endpoint in MCP Server at `/mcp`.  Thanks @abidlabs!
+- [#11625](https://github.com/gradio-app/gradio/pull/11625) [`129a2f6`](https://github.com/gradio-app/gradio/commit/129a2f64313de13f58f89af8598a779b27416a38) - Add image text to text pipeline.  Thanks @elanehan!
+- [#11630](https://github.com/gradio-app/gradio/pull/11630) [`1d196db`](https://github.com/gradio-app/gradio/commit/1d196db188d44cbfd118644b25132090ee79ab92) - Add `auth_token` and `exclude_paths` to `gr.load_openapi`.  Thanks @abidlabs!
+
+### Fixes
+
+- [#11559](https://github.com/gradio-app/gradio/pull/11559) [`dd9d8f1`](https://github.com/gradio-app/gradio/commit/dd9d8f1ed677e2d09a3061764c312f40133ab50d) - `gr.Dataframe` returns a `number` \ `bool` when the corresponding column is edited.  Thanks @janosch6!
+
 ## 5.38.2
 
 ### Fixes
