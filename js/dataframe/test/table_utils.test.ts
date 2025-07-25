@@ -142,8 +142,8 @@ describe("cast_value_to_type", () => {
 		expect(cast_value_to_type("not a number", "number")).toBe("not a number");
 	});
 	test("casts to bool", () => {
-		expect(cast_value_to_type("true", "bool")).toBe(true);
-		expect(cast_value_to_type("false", "bool")).toBe(false);
+		expect(cast_value_to_type("True", "bool")).toBe(true);
+		expect(cast_value_to_type("False", "bool")).toBe(false);
 		expect(cast_value_to_type(1, "bool")).toBe(true);
 		expect(cast_value_to_type(0, "bool")).toBe(false);
 		expect(cast_value_to_type("1", "bool")).toBe(true);

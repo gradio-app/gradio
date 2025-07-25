@@ -37,6 +37,7 @@
 		handle_file_upload
 	} from "./utils/table_utils";
 	import { make_headers, process_data } from "./utils/data_processing";
+	import { cast_value_to_type } from "./utils";
 	import { handle_keydown, handle_cell_blur } from "./utils/keyboard_utils";
 	import {
 		create_drag_handlers,
@@ -45,7 +46,6 @@
 	} from "./utils/drag_utils";
 	import { sort_data_and_preserve_selection } from "./utils/sort_utils";
 	import { filter_data_and_preserve_selection } from "./utils/filter_utils";
-	import { cast_value_to_type } from "./utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -331,7 +331,15 @@
 	$: {
 		if (data || _headers) {
 			df_actions.trigger_change(
-				data,
+				data.map((row, rowIdx) =>
+					row.map((cell, colIdx) => {
+						const dtype = Array.isArray(datatype) ? datatype[colIdx] : datatype;
+						return {
+							...cell,
+							value: cast_value_to_type(cell.value, dtype)
+						};
+					})
+				),
 				_headers,
 				previous_data,
 				previous_headers,
@@ -688,14 +696,7 @@
 			});
 
 			const change_payload = {
-				data: filtered_data.map((row) =>
-					row.map((cell, colIndex) =>
-						cast_value_to_type(
-							cell,
-							Array.isArray(datatype) ? datatype[colIndex] : datatype
-						)
-					)
-				),
+				data: filtered_data,
 				headers: _headers.map((h) => h.value),
 				metadata: {
 					display_value: filtered_display_values,
