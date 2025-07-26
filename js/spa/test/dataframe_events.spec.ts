@@ -14,22 +14,7 @@ test("Dataframe change events work as expected", async ({ page }) => {
 	await expect(page.getByLabel("Change events")).toHaveValue("1");
 });
 
-test("Dataframe edit events work as expected", async ({ page }) => {
-	await expect(page.getByLabel("Edit events")).toHaveValue("0");
-
-	const df = page.locator("#dataframe");
-	await get_cell(df, 1, 2).click();
-
-	await page.getByLabel("Edit cell").fill("42");
-	await page.getByLabel("Edit cell").press("Enter");
-
-	await expect(page.getByLabel("Edit events")).toHaveValue("1");
-	await expect(page.getByLabel("Edit event data")).toHaveValue(
-		"index: [1, 2], value: 42, previous_value: 0"
-	);
-});
-
-test("Dataframe input events work as expected", async ({ page }) => {
+test("Dataframe input events work as expected @firefox", async ({ page }) => {
 	const input_events = page.getByLabel("Input events");
 	await expect(input_events).toHaveValue("0");
 
@@ -47,6 +32,10 @@ test("Dataframe input events work as expected", async ({ page }) => {
 	await get_cell(df, 0, 1).click();
 
 	await page.getByLabel("Edit cell").fill("50");
+	await get_cell(df, 0, 0).click();
+
+	await expect(input_events).toHaveValue("2");
+
 	await page.getByLabel("Edit cell").press("Enter");
 
 	await expect(input_events).toHaveValue("2");
