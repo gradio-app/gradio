@@ -117,6 +117,12 @@ class Dialogue(Textbox):
         )
 
     def preprocess(self, payload: DialogueModel) -> str:  # type: ignore
+        """
+        Parameters:
+            value: Expects a `DialogueModel` object.
+        Returns:
+            Returns the dialogue as a string.
+        """
         formatter = self.formatter
         if not formatter:
             formatter = self.default_formatter
@@ -136,8 +142,14 @@ class Dialogue(Textbox):
         data = DialogueModel(root=value)  # type: ignore
         return self.preprocess(data)
 
-    def postprocess(self, value):
-        return value
+    def postprocess(self, value: list[dict[str, str]]):
+        """
+        Parameters:
+            value: Expects a list of dictionaries of dialogue lines.
+        Returns:
+            Returns the dialogue as a `DialogueModel` object.
+        """
+        return DialogueModel(root=[DialogueLine(speaker=line["speaker"], text=line["text"]) for line in value])
 
     def as_example(self, value):
         return self.preprocess(DialogueModel(root=value))

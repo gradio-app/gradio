@@ -338,6 +338,22 @@
 								}}
 								bind:this={input_elements[i]}
 							/>
+							{#if showEmotionMenu && currentLineIndex === i}
+								<div
+									id="emotion-menu"
+									class="emotion-menu"
+									transition:fade={{ duration: 100 }}
+								>
+									<BaseDropdownOptions
+										choices={emotions.map((s, i) => [s, i])}
+										filtered_indices={filtered_emotions.map((s) => emotions.indexOf(s))}
+										show_options={true}
+										on:change={(e) => insert_emotion(e)}
+										{offset_from_top}
+										from_top={true}
+									/>
+								</div>
+							{/if}
 						</div>
 					</div>
 					{#if max_lines == undefined || (max_lines && i < max_lines - 1)}
@@ -366,11 +382,29 @@
 					{/if}
 				</div>
 			{/each}
-
+		</div>
+	{:else}
+		<div class="textarea-container">
+			<textarea
+				data-testid="textbox"
+				bind:value={textbox_value}
+				{placeholder}
+				rows={5}
+				{disabled}
+				on:input={(event) => handle_input(event, 0)}
+				on:focus={(event) => handle_input(event, 0)}
+				on:keydown={(event) => {
+					if (event.key === "Escape" && showEmotionMenu) {
+						showEmotionMenu = false;
+						event.preventDefault();
+					}
+				}}
+				bind:this={textarea_element}
+			/>
 			{#if showEmotionMenu}
 				<div
 					id="emotion-menu"
-					class="emotion-menu"
+					class="emotion-menu-plain-text"
 					transition:fade={{ duration: 100 }}
 				>
 					<BaseDropdownOptions
@@ -378,45 +412,10 @@
 						filtered_indices={filtered_emotions.map((s) => emotions.indexOf(s))}
 						show_options={true}
 						on:change={(e) => insert_emotion(e)}
-						{offset_from_top}
-						from_top={true}
 					/>
 				</div>
 			{/if}
 		</div>
-	{:else}
-		<textarea
-			data-testid="textbox"
-			bind:value={textbox_value}
-			{placeholder}
-			rows={5}
-			{disabled}
-			on:input={(event) => handle_input(event, 0)}
-			on:focus={(event) => handle_input(event, 0)}
-			on:keydown={(event) => {
-				if (event.key === "Escape" && showEmotionMenu) {
-					showEmotionMenu = false;
-					event.preventDefault();
-				}
-			}}
-			bind:this={textarea_element}
-		/>
-		{#if showEmotionMenu}
-			<div
-				id="emotion-menu"
-				class="emotion-menu"
-				transition:fade={{ duration: 100 }}
-			>
-				<BaseDropdownOptions
-					choices={emotions.map((s, i) => [s, i])}
-					filtered_indices={filtered_emotions.map((s) => emotions.indexOf(s))}
-					show_options={true}
-					on:change={(e) => insert_emotion(e)}
-					{offset_from_top}
-					from_top={true}
-				/>
-			</div>
-		{/if}
 	{/if}
 
 	<div class="controls-row">
@@ -634,5 +633,25 @@
 		color: var(--block-label-color);
 		font: var(--font-sans);
 		font-size: var(--button-small-text-size);
+	}
+
+	.emotion-menu {
+		position: absolute;
+		width: 100%;
+		top: 100%;
+		left: 0;
+	}
+
+	.emotion-menu-plain-text {
+		position: relative;
+		width: 100%;
+	}
+
+	.emotion-menu-plain-text :global(.options) {
+		position: static !important;
+		width: 100% !important;
+		max-height: none !important;
+		top: auto !important;
+		bottom: auto !important;
 	}
 </style>
