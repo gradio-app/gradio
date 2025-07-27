@@ -69,7 +69,7 @@
 		"plotly.js-dist-min": "^2.32.0",
 		"polka": "1.0.0-next.25",
 		"pollen-css": "^4.6.2",
-		"postcss": "^8.4.38",
+		"postcss": "8.4.38",
 		"postcss-custom-media": "^10.0.4",
 		"postcss-nested": "^5.0.6",
 		"postcss-prefix-selector": "^1.16.1",

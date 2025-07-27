@@ -1,5 +1,21 @@
 # @self/app
 
+## 1.50.5
+
+### Dependency updates
+
+- @gradio/core@0.23.2
+
+## 1.50.4
+
+### Features
+
+- [#11615](https://github.com/gradio-app/gradio/pull/11615) [`e2b66d7`](https://github.com/gradio-app/gradio/commit/e2b66d718f3a8f57b6ee224502849ee737b1b120) - fix change events for hidden components.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/core@0.23.1
+
 ## 1.50.3
 
 ### Features

@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/core",
-	"version": "0.23.0",
+	"version": "0.23.2",
 	"type": "module",
 	"devDependencies": {
 		"@gradio/accordion": "workspace:^",
@@ -8,6 +8,7 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/audio": "workspace:^",
 		"@gradio/box": "workspace:^",
+		"@gradio/browserstate": "workspace:^",
 		"@gradio/button": "workspace:^",
 		"@gradio/chatbot": "workspace:^",
 		"@gradio/checkbox": "workspace:^",
@@ -35,7 +36,6 @@
 		"@gradio/imageslider": "workspace:^",
 		"@gradio/json": "workspace:^",
 		"@gradio/label": "workspace:^",
-		"@gradio/browserstate": "workspace:^",
 		"@gradio/markdown": "workspace:^",
 		"@gradio/model3d": "workspace:^",
 		"@gradio/multimodaltextbox": "workspace:^",
@@ -94,5 +94,8 @@
 		"type": "git",
 		"url": "git+https://github.com/gradio-app/gradio.git",
 		"directory": "js/core"
+	},
+	"dependencies": {
+		"dequal": "^2.0.2"
 	}
 }
