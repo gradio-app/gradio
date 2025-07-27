@@ -142,14 +142,24 @@ class Dialogue(Textbox):
         data = DialogueModel(root=value)  # type: ignore
         return self.preprocess(data)
 
-    def postprocess(self, value: list[dict[str, str]]):
+    def postprocess(self, value: list[dict[str, str]] | str | None) -> DialogueModel | None:
         """
         Parameters:
-            value: Expects a list of dictionaries of dialogue lines.
+            value: Expects a list of dictionaries of dialogue lines, where each dictionary contains 'speaker' and 'text' keys, or a string.
         Returns:
-            Returns the dialogue as a `DialogueModel` object.
+            Returns the dialogue as a `DialogueModel` object for the frontend.
         """
-        return DialogueModel(root=[DialogueLine(speaker=line["speaker"], text=line["text"]) for line in value])
+        if value is None:
+            return None
+
+        if isinstance(value, str):
+            return DialogueModel(root=value)
+
+        dialogue_lines = [
+            DialogueLine(speaker=line["speaker"], text=line["text"])
+            for line in value
+        ]
+        return DialogueModel(root=dialogue_lines)
 
     def as_example(self, value):
         return self.preprocess(DialogueModel(root=value))
