@@ -522,6 +522,40 @@ class TestRoutes:
             assert client.get("/demo", headers={"user": "abubakar"}).is_success
             assert not client.get("/demo").is_success
 
+    def test_mount_gradio_app_with_lifespan_state(
+        self,
+    ):
+        from fastapi.responses import PlainTextResponse
+
+        @asynccontextmanager
+        async def lifespan(_):
+            yield {"hello": "world"}
+
+        app = FastAPI(lifespan=lifespan)
+
+        gr.mount_gradio_app(app, Blocks(), "/gradio")
+
+        @app.get("/")
+        async def test_route(request: Request):
+            return PlainTextResponse(request.state.hello)
+
+        with TestClient(app) as client:
+            assert client.get("/").is_success
+            assert client.get("/").text.strip() == "world"
+
+    def test_gradio_launch_lifespan_state(self, connect):
+        @asynccontextmanager
+        async def lifespan(_):
+            yield {"hello": "world"}
+
+        def predict(request: gr.Request):
+            return request.state.hello
+
+        demo = gr.Interface(predict, None, "textbox")
+        with connect(demo, app_kwargs={"lifespan": lifespan}) as client:
+            result = client.predict(None, api_name="/predict")
+            assert result == "world"
+
     def test_static_file_missing(self, test_client):
         response = test_client.get(rf"{API_PREFIX}/static/not-here.js")
         assert response.status_code == 404
