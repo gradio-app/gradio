@@ -85,7 +85,7 @@
 	}
 
 	function handle_input(event: Event, index: number): void {
-		const input = event.target as HTMLInputElement || HTMLTextAreaElement;
+		const input = (event.target as HTMLInputElement) || HTMLTextAreaElement;
 		if (input && !input_elements[index]) {
 			input_elements[index] = input;
 		}
@@ -123,17 +123,16 @@
 			}
 		}
 
-		if (
-			show_menu &&
-			position_reference_index !== -1
-		) {
+		if (show_menu && position_reference_index !== -1) {
 			showEmotionMenu = true;
 			const input_rect = input.getBoundingClientRect();
 			// Position menu below the current input by calculating the distance from the top of the container
 			// and use 1.5 times the input height.
 			if (dialogue_container_element) {
-				const container_rect = dialogue_container_element.getBoundingClientRect();
-				offset_from_top = container_rect.top + input_rect.height * (index + 1.5);
+				const container_rect =
+					dialogue_container_element.getBoundingClientRect();
+				offset_from_top =
+					container_rect.top + input_rect.height * (index + 1.5);
 			}
 		} else {
 			showEmotionMenu = false;
@@ -169,16 +168,17 @@
 			if (lastColonIndex >= 0) {
 				const beforeColon = text.substring(0, lastColonIndex);
 				const afterCursor = text.substring(cursorPosition);
-				
+
 				// Filter out any speaker tags when in plain text mode
-				const filteredBeforeColon = beforeColon.replace(/\[S\d+\]/g, '').trim();
+				const filteredBeforeColon = beforeColon.replace(/\[S\d+\]/g, "").trim();
 				const newText = `${filteredBeforeColon}${emotion} ${afterCursor}`;
 				update_line(currentLineIndex, "text", newText);
 
 				tick().then(() => {
 					const updatedInput = input_elements[currentLineIndex];
 					if (updatedInput) {
-						const newCursorPosition = filteredBeforeColon.length + emotion.length + 1;
+						const newCursorPosition =
+							filteredBeforeColon.length + emotion.length + 1;
 						updatedInput.setSelectionRange(
 							newCursorPosition,
 							newCursorPosition
@@ -346,7 +346,9 @@
 								>
 									<BaseDropdownOptions
 										choices={emotions.map((s, i) => [s, i])}
-										filtered_indices={filtered_emotions.map((s) => emotions.indexOf(s))}
+										filtered_indices={filtered_emotions.map((s) =>
+											emotions.indexOf(s)
+										)}
 										show_options={true}
 										on:change={(e) => insert_emotion(e)}
 										{offset_from_top}
@@ -522,7 +524,7 @@
 		-webkit-opacity: 1;
 		opacity: 1;
 	}
-	
+
 	textarea:focus {
 		box-shadow: var(--input-shadow-focus);
 		border-color: var(--input-border-color-focus);
