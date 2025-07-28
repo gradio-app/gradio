@@ -61,6 +61,7 @@ class GradioMCPServer:
         self.warn_about_state_inputs()
         self._local_url: str | None = None
         self._client_instance: Client
+        self._selected_tools: set[str] | None = None
 
         manager = StreamableHTTPSessionManager(
             app=self.mcp_server, json_response=False, stateless=True
@@ -84,6 +85,22 @@ class GradioMCPServer:
                 )
                 await response(scope, receive, send)
                 return
+
+            # Parse tools query parameter
+            query_string = scope.get("query_string", b"").decode()
+            query_params = {}
+            if query_string:
+                for param in query_string.split("&"):
+                    if "=" in param:
+                        key, value = param.split("=", 1)
+                        query_params[key] = unquote(value)
+
+            if "tools" in query_params:
+                tools = query_params["tools"].split(",")
+                self._selected_tools = set(tools)
+            else:
+                self._selected_tools = None
+
             await manager.handle_request(scope, receive, send)
 
         @contextlib.asynccontextmanager
@@ -226,6 +243,10 @@ class GradioMCPServer:
             if endpoint_name is None:
                 raise ValueError(f"Unknown tool for this Gradio app: {name}")
 
+            # Check if tool is in selected tools when filtering is active
+            if self._selected_tools is not None and name not in self._selected_tools:
+                raise ValueError(f"Tool '{name}' is not in the selected tools list")
+
             block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
             assert block_fn is not None  # noqa: S101
 
@@ -311,6 +332,13 @@ class GradioMCPServer:
             """
             tools = []
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
+                # Filter tools based on selection if specified
+                if (
+                    self._selected_tools is not None
+                    and tool_name not in self._selected_tools
+                ):
+                    continue
+
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
                 assert block_fn is not None and block_fn.fn is not None  # noqa: S101
 
@@ -342,6 +370,14 @@ class GradioMCPServer:
 
         async def handle_sse(request):
             try:
+                # Parse tools query parameter from the request
+                query_params = dict(request.query_params)
+                if "tools" in query_params:
+                    tools = query_params["tools"].split(",")
+                    self._selected_tools = set(tools)
+                else:
+                    self._selected_tools = None
+
                 async with sse.connect_sse(
                     request.scope, request.receive, request._send
                 ) as streams:
@@ -495,7 +531,7 @@ class GradioMCPServer:
         }
         return self.simplify_filedata_schema(schema)
 
-    async def get_complete_schema(self, request) -> JSONResponse:  # noqa: ARG002
+    async def get_complete_schema(self, request) -> JSONResponse:
         """
         Get the complete schema of the Gradio app API. For debugging purposes, also used by
         the Hugging Face MCP server to get the schema for MCP Spaces without needing to
@@ -510,10 +546,20 @@ class GradioMCPServer:
         if not self.api_info:
             return JSONResponse({})
 
+        # Parse tools query parameter from the request
+        query_params = dict(request.query_params)
+        selected_tools = None
+        if "tools" in query_params:
+            tools = query_params["tools"].split(",")
+            selected_tools = set(tools)
+
         file_data_present = False
 
         schemas = []
         for tool_name, endpoint_name in self.tool_to_endpoint.items():
+            # Filter tools based on selection if specified
+            if selected_tools is not None and tool_name not in selected_tools:
+                continue
             block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
             assert block_fn is not None and block_fn.fn is not None  # noqa: S101
 

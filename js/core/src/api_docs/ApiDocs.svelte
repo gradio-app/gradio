@@ -110,7 +110,23 @@
 
 	const dispatch = createEventDispatcher();
 
-	const mcp_server_url = `${root}gradio_api/mcp/sse`;
+	$: selectedToolsArray = Array.from(selectedTools);
+	$: mcp_server_url =
+		selectedToolsArray.length > 0 && selectedToolsArray.length < tools.length
+			? `${root}gradio_api/mcp/sse?tools=${selectedToolsArray.join(",")}`
+			: `${root}gradio_api/mcp/sse`;
+
+	// Update MCP JSON configurations when tools change
+	$: if (mcp_json_sse && selectedTools.size > 0) {
+		const baseUrl =
+			selectedToolsArray.length > 0 && selectedToolsArray.length < tools.length
+				? `${root}gradio_api/mcp/sse?tools=${selectedToolsArray.join(",")}`
+				: `${root}gradio_api/mcp/sse`;
+		mcp_json_sse.mcpServers.gradio.url = baseUrl;
+		if (mcp_json_stdio) {
+			mcp_json_stdio.mcpServers.gradio.args[1] = baseUrl;
+		}
+	}
 
 	interface ToolParameter {
 		title?: string;
@@ -132,6 +148,7 @@
 	let mcp_json_sse: any;
 	let mcp_json_stdio: any;
 	let file_data_present = false;
+	let selectedTools: Set<string> = new Set();
 
 	const upload_file_mcp_server = {
 		command: "uvx",
@@ -145,9 +162,17 @@
 		]
 	};
 
-	async function fetchMcpTools() {
+	async function fetchMcpTools(includeSelectedTools = false) {
 		try {
-			const response = await fetch(`${root}gradio_api/mcp/schema`);
+			let schemaUrl = `${root}gradio_api/mcp/schema`;
+			if (
+				includeSelectedTools &&
+				selectedToolsArray.length > 0 &&
+				selectedToolsArray.length < tools.length
+			) {
+				schemaUrl = `${root}gradio_api/mcp/schema?tools=${selectedToolsArray.join(",")}`;
+			}
+			const response = await fetch(schemaUrl);
 			const schema = await response.json();
 			file_data_present = schema
 				.map((tool: any) => tool.meta?.file_data_present)
@@ -159,6 +184,8 @@
 				parameters: tool.inputSchema?.properties || {},
 				expanded: false
 			}));
+			// Initialize all tools as selected by default
+			selectedTools = new Set(tools.map((tool) => tool.name));
 			headers = schema.map((tool: any) => tool.meta?.headers || []).flat();
 			if (headers.length > 0) {
 				mcp_json_sse = {
@@ -339,7 +366,9 @@
 							<MCPSnippet
 								{mcp_server_active}
 								{mcp_server_url}
-								{tools}
+								tools={tools.filter((tool) => selectedTools.has(tool.name))}
+								allTools={tools}
+								bind:selectedTools
 								{mcp_json_sse}
 								{mcp_json_stdio}
 								{file_data_present}

@@ -5,6 +5,8 @@
 	export let mcp_server_active: boolean;
 	export let mcp_server_url: string;
 	export let tools: Tool[];
+	export let allTools: Tool[] = [];
+	export let selectedTools: Set<string> = new Set();
 	export let mcp_json_sse: any;
 	export let mcp_json_stdio: any;
 	export let file_data_present: boolean;
@@ -134,24 +136,65 @@
 		<p>&nbsp;</p>
 	{/if}
 
-	<strong>{tools.length} Available MCP Tools</strong>
-	<div class="mcp-tools">
-		{#each tools as tool}
-			<div class="tool-item">
+	<div class="tool-selection">
+		<strong
+			>{allTools.length > 0 ? allTools.length : tools.length} Available MCP Tools</strong
+		>
+		{#if allTools.length > 0}
+			<div class="tool-selection-controls">
 				<button
-					class="tool-header"
-					on:click={() => (tool.expanded = !tool.expanded)}
+					class="select-all-btn"
+					on:click={() => {
+						selectedTools = new Set(allTools.map((t) => t.name));
+					}}
 				>
-					<span
-						><span class="tool-name">{tool.name}</span> &nbsp;
-						<span class="tool-description"
-							>{tool.description
-								? tool.description
-								: "⚠︎ No description provided in function docstring"}</span
-						></span
-					>
-					<span class="tool-arrow">{tool.expanded ? "▼" : "▶"}</span>
+					Select All
 				</button>
+				<button
+					class="select-none-btn"
+					on:click={() => {
+						selectedTools = new Set();
+					}}
+				>
+					Select None
+				</button>
+			</div>
+		{/if}
+	</div>
+	<div class="mcp-tools">
+		{#each allTools.length > 0 ? allTools : tools as tool}
+			<div class="tool-item">
+				<div class="tool-header-wrapper">
+					{#if allTools.length > 0}
+						<input
+							type="checkbox"
+							class="tool-checkbox"
+							checked={selectedTools.has(tool.name)}
+							on:change={(e) => {
+								if (e.currentTarget.checked) {
+									selectedTools.add(tool.name);
+								} else {
+									selectedTools.delete(tool.name);
+								}
+								selectedTools = selectedTools;
+							}}
+						/>
+					{/if}
+					<button
+						class="tool-header"
+						on:click={() => (tool.expanded = !tool.expanded)}
+					>
+						<span
+							><span class="tool-name">{tool.name}</span> &nbsp;
+							<span class="tool-description"
+								>{tool.description
+									? tool.description
+									: "⚠︎ No description provided in function docstring"}</span
+							></span
+						>
+						<span class="tool-arrow">{tool.expanded ? "▼" : "▶"}</span>
+					</button>
+				</div>
 				{#if tool.expanded}
 					<div class="tool-content">
 						{#if Object.keys(tool.parameters).length > 0}
@@ -438,6 +481,34 @@
 		overflow: hidden;
 	}
 
+	.tool-selection {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: var(--size-2);
+	}
+
+	.tool-selection-controls {
+		display: flex;
+		gap: var(--size-2);
+	}
+
+	.select-all-btn,
+	.select-none-btn {
+		padding: var(--size-1) var(--size-2);
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-sm);
+		background: var(--background-fill-primary);
+		color: var(--body-text-color);
+		cursor: pointer;
+		font-size: var(--text-sm);
+	}
+
+	.select-all-btn:hover,
+	.select-none-btn:hover {
+		background: var(--background-fill-secondary);
+	}
+
 	.tool-item {
 		border-bottom: 1px solid var(--border-color-primary);
 	}
@@ -446,8 +517,22 @@
 		border-bottom: none;
 	}
 
+	.tool-header-wrapper {
+		display: flex;
+		align-items: center;
+	}
+
+	.tool-checkbox {
+		margin: var(--size-3);
+		margin-right: 0;
+		width: var(--size-4);
+		height: var(--size-4);
+		cursor: pointer;
+		accent-color: var(--color-accent);
+	}
+
 	.tool-header {
-		width: 100%;
+		flex: 1;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
