@@ -2,7 +2,7 @@ import gradio as gr
 import httpx
 
 
-emotions = [
+tags = [
     "(laughs)",
     "(clears throat)",
     "(sighs)",
@@ -65,7 +65,7 @@ with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
             dialogue = gr.Dialogue(
-                speakers=speakers, emotions=emotions, formatter=formatter
+                speakers=speakers, tags=tags, formatter=formatter
             )
         with gr.Column():
             with gr.Row():

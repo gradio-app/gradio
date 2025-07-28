@@ -29,7 +29,7 @@
 
 	export let label = "Dialogue";
 	export let speakers: string[] = [];
-	export let emotions: string[] = [];
+	export let tags: string[] = [];
 	export let info: string | undefined = undefined;
 	export let placeholder: string | undefined = undefined;
 	export let elem_id = "";
@@ -79,7 +79,7 @@
 		{show_copy_button}
 		{container}
 		{speakers}
-		{emotions}
+		{tags}
 		{placeholder}
 		{show_submit_button}
 		{server}

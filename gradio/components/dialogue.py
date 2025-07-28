@@ -38,11 +38,11 @@ class Dialogue(Textbox):
         *,
         speakers: list[str] | None = None,
         formatter: Callable | None = None,
-        emotions: list[str] | None = None,
+        tags: list[str] | None = None,
         separator: str = " ",
         label: str | None = "Dialogue",
         info: str
-        | None = "Type colon (:) in the dialogue line to see the available emotion and intonation tags",
+        | None = "Type colon (:) in the dialogue line to see the available tags",
         placeholder: str | None = "Enter dialogue here...",
         show_label: bool | None = None,
         container: bool = True,
@@ -65,7 +65,7 @@ class Dialogue(Textbox):
             value: Value of the dialogue. It is a list of dictionaries, each containing a 'speaker' key and a 'text' key. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             speakers: The different speakers allowed in the dialogue.
             formatter: A function that formats the dialogue line dictionary, e.g. {"speaker": "Speaker 1", "text": "Hello, how are you?"} into a string, e.g. "Speaker 1: Hello, how are you?".
-            emotions: The different emotions and intonation allowed in the dialogue. Emotions are displayed in an autocomplete menu below the input textbox when the user starts typing `:`. Use the exact emotion name expected by the AI model or inference function.
+            tags: The different tags allowed in the dialogue. Tags are displayed in an autocomplete menu below the input textbox when the user starts typing `:`. Use the exact tag name expected by the AI model or inference function.
             separator: The separator between the different dialogue lines used to join the formatted dialogue lines into a single string. For example, a newline character or empty string.
             max_lines: maximum number of lines allowed in the dialogue.
             placeholder: placeholder hint to provide behind textarea.
@@ -105,7 +105,7 @@ class Dialogue(Textbox):
             max_lines=max_lines,
         )
         self.speakers = speakers
-        self.emotions = emotions or []
+        self.tags = tags or []
         self.formatter = formatter
         self.separator = separator
         self.show_submit_button = show_submit_button

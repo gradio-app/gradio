@@ -9,7 +9,7 @@
 	import Switch from "./Switch.svelte";
 
 	export let speakers: string[] = [];
-	export let emotions: string[] = [];
+	export let tags: string[] = [];
 	export let value: DialogueLine[] | string = [];
 	export let value_is_output = false;
 	export let placeholder = "Type here...";
@@ -31,9 +31,9 @@
 	let dialogue_lines: DialogueLine[] = [];
 	let dialogue_container_element: HTMLDivElement;
 
-	let showEmotionMenu = false;
+	let showTagMenu = false;
 	let currentLineIndex = -1;
-	let filtered_emotions: string[] = [];
+	let filtered_tags: string[] = [];
 	let input_elements: HTMLInputElement[] = [];
 	let textarea_element: HTMLTextAreaElement;
 	let old_value = JSON.stringify(value);
@@ -98,13 +98,13 @@
 		if (text[cursor_position - 1] === ":") {
 			currentLineIndex = index;
 			position_reference_index = cursor_position;
-			const search_text = get_emotion_search_text(text, cursor_position);
-			filtered_emotions = emotions.filter(
-				(emotion) =>
+			const search_text = get_tag_search_text(text, cursor_position);
+			filtered_tags = tags.filter(
+				(tag) =>
 					search_text === "" ||
-					emotion.toLowerCase().includes(search_text.toLowerCase())
+					tag.toLowerCase().includes(search_text.toLowerCase())
 			);
-			show_menu = filtered_emotions.length > 0;
+			show_menu = filtered_tags.length > 0;
 		} else {
 			const lastColonIndex = text.lastIndexOf(":", cursor_position - 1);
 			if (
@@ -112,19 +112,19 @@
 				!text.substring(lastColonIndex + 1, cursor_position).includes(" ")
 			) {
 				currentLineIndex = index;
-				position_reference_index = lastColonIndex + 1; // Position menu relative to the start of the potential emotion
+				position_reference_index = lastColonIndex + 1; // Position menu relative to the start of the potential tag
 				const searchText = text.substring(lastColonIndex + 1, cursor_position);
-				filtered_emotions = emotions.filter(
-					(emotion) =>
+				filtered_tags = tags.filter(
+					(tag) =>
 						searchText === "" ||
-						emotion.toLowerCase().includes(searchText.toLowerCase())
+						tag.toLowerCase().includes(searchText.toLowerCase())
 				);
-				show_menu = filtered_emotions.length > 0;
+				show_menu = filtered_tags.length > 0;
 			}
 		}
 
 		if (show_menu && position_reference_index !== -1) {
-			showEmotionMenu = true;
+			showTagMenu = true;
 			const input_rect = input.getBoundingClientRect();
 			// Position menu below the current input by calculating the distance from the top of the container
 			// and use 1.5 times the input height.
@@ -135,15 +135,12 @@
 					container_rect.top + input_rect.height * (index + 1.5);
 			}
 		} else {
-			showEmotionMenu = false;
+			showTagMenu = false;
 		}
 	}
 
-	// Get the typed text after the last colon for filtering emotions
-	function get_emotion_search_text(
-		text: string,
-		cursorPosition: number
-	): string {
+	// Get the typed text after the last colon for filtering tags
+	function get_tag_search_text(text: string, cursorPosition: number): string {
 		const lastColonIndex = text.lastIndexOf(":", cursorPosition - 1);
 		if (lastColonIndex >= 0) {
 			return text.substring(lastColonIndex + 1, cursorPosition);
@@ -151,8 +148,8 @@
 		return "";
 	}
 
-	function insert_emotion(e: CustomEvent): void {
-		const emotion = emotions[e.detail.target.dataset.index];
+	function insert_tag(e: CustomEvent): void {
+		const tag = tags[e.detail.target.dataset.index];
 		if (currentLineIndex >= 0 && currentLineIndex < dialogue_lines.length) {
 			let text;
 			let currentInput;
@@ -171,14 +168,14 @@
 
 				// Filter out any speaker tags when in plain text mode
 				const filteredBeforeColon = beforeColon.replace(/\[S\d+\]/g, "").trim();
-				const newText = `${filteredBeforeColon}${emotion} ${afterCursor}`;
+				const newText = `${filteredBeforeColon}${tag} ${afterCursor}`;
 				update_line(currentLineIndex, "text", newText);
 
 				tick().then(() => {
 					const updatedInput = input_elements[currentLineIndex];
 					if (updatedInput) {
 						const newCursorPosition =
-							filteredBeforeColon.length + emotion.length + 1;
+							filteredBeforeColon.length + tag.length + 1;
 						updatedInput.setSelectionRange(
 							newCursorPosition,
 							newCursorPosition
@@ -188,16 +185,16 @@
 				});
 			}
 
-			showEmotionMenu = false;
+			showTagMenu = false;
 		}
 	}
 
 	function handle_click_outside(event: MouseEvent): void {
-		if (showEmotionMenu) {
+		if (showTagMenu) {
 			const target = event.target as Node;
-			const emotionMenu = document.getElementById("emotion-menu");
-			if (emotionMenu && !emotionMenu.contains(target)) {
-				showEmotionMenu = false;
+			const tagMenu = document.getElementById("tag-menu");
+			if (tagMenu && !tagMenu.contains(target)) {
+				showTagMenu = false;
 			}
 		}
 	}
@@ -331,26 +328,24 @@
 								on:input={(event) => handle_input(event, i)}
 								on:focus={(event) => handle_input(event, i)}
 								on:keydown={(event) => {
-									if (event.key === "Escape" && showEmotionMenu) {
-										showEmotionMenu = false;
+									if (event.key === "Escape" && showTagMenu) {
+										showTagMenu = false;
 										event.preventDefault();
 									}
 								}}
 								bind:this={input_elements[i]}
 							/>
-							{#if showEmotionMenu && currentLineIndex === i}
+							{#if showTagMenu && currentLineIndex === i}
 								<div
-									id="emotion-menu"
-									class="emotion-menu"
+									id="tag-menu"
+									class="tag-menu"
 									transition:fade={{ duration: 100 }}
 								>
 									<BaseDropdownOptions
-										choices={emotions.map((s, i) => [s, i])}
-										filtered_indices={filtered_emotions.map((s) =>
-											emotions.indexOf(s)
-										)}
+										choices={tags.map((s, i) => [s, i])}
+										filtered_indices={filtered_tags.map((s) => tags.indexOf(s))}
 										show_options={true}
-										on:change={(e) => insert_emotion(e)}
+										on:change={(e) => insert_tag(e)}
 										{offset_from_top}
 										from_top={true}
 									/>
@@ -396,24 +391,24 @@
 				on:input={(event) => handle_input(event, 0)}
 				on:focus={(event) => handle_input(event, 0)}
 				on:keydown={(event) => {
-					if (event.key === "Escape" && showEmotionMenu) {
-						showEmotionMenu = false;
+					if (event.key === "Escape" && showTagMenu) {
+						showTagMenu = false;
 						event.preventDefault();
 					}
 				}}
 				bind:this={textarea_element}
 			/>
-			{#if showEmotionMenu}
+			{#if showTagMenu}
 				<div
-					id="emotion-menu"
-					class="emotion-menu-plain-text"
+					id="tag-menu"
+					class="tag-menu-plain-text"
 					transition:fade={{ duration: 100 }}
 				>
 					<BaseDropdownOptions
-						choices={emotions.map((s, i) => [s, i])}
-						filtered_indices={filtered_emotions.map((s) => emotions.indexOf(s))}
+						choices={tags.map((s, i) => [s, i])}
+						filtered_indices={filtered_tags.map((s) => tags.indexOf(s))}
 						show_options={true}
-						on:change={(e) => insert_emotion(e)}
+						on:change={(e) => insert_tag(e)}
 					/>
 				</div>
 			{/if}
@@ -637,19 +632,19 @@
 		font-size: var(--button-small-text-size);
 	}
 
-	.emotion-menu {
+	.tag-menu {
 		position: absolute;
 		width: 100%;
 		top: 100%;
 		left: 0;
 	}
 
-	.emotion-menu-plain-text {
+	.tag-menu-plain-text {
 		position: relative;
 		width: 100%;
 	}
 
-	.emotion-menu-plain-text :global(.options) {
+	.tag-menu-plain-text :global(.options) {
 		position: static !important;
 		width: 100% !important;
 		max-height: none !important;
