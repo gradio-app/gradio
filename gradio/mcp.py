@@ -58,7 +58,6 @@ class GradioMCPServer:
         space_id = utils.get_space()
         self.tool_prefix = space_id.split("/")[-1] + "_" if space_id else ""
         self.tool_to_endpoint = self.get_tool_to_endpoint()
-        self.tool_name_without_prefix_to_full_name = self._create_tool_name_mapping()
         self.warn_about_state_inputs()
         self._local_url: str | None = None
         self._client_instance: Client
@@ -124,7 +123,7 @@ class GradioMCPServer:
         """
         Extract the selected tools from the request query parameters.
         Returns None if no tools parameter is specified (meaning all tools are available).
-        Maps tool names without prefix to their full names.
+        Adds the tool prefix if needed.
         """
         if request is None:
             return None
@@ -134,8 +133,17 @@ class GradioMCPServer:
             tools = query_params["tools"].split(",")
             full_tool_names = set()
             for tool in tools:
-                full_name = self.tool_name_without_prefix_to_full_name.get(tool, tool)
-                full_tool_names.add(full_name)
+                # Check if the tool already has the prefix or if it exists as-is
+                if tool in self.tool_to_endpoint:
+                    full_tool_names.add(tool)
+                elif (
+                    self.tool_prefix
+                    and (self.tool_prefix + tool) in self.tool_to_endpoint
+                ):
+                    full_tool_names.add(self.tool_prefix + tool)
+                else:
+                    # Tool not found, add it anyway to let the error be handled later
+                    full_tool_names.add(tool)
             return full_tool_names
         return None
 
@@ -156,19 +164,6 @@ class GradioMCPServer:
             tool_name = tool_name_base + f"_{suffix}"
             suffix += 1
         return tool_name
-
-    def _create_tool_name_mapping(self) -> dict[str, str]:
-        """
-        Create a mapping from tool names without prefix to full tool names.
-        """
-        mapping = {}
-        for tool_name in self.tool_to_endpoint:
-            if self.tool_prefix and tool_name.startswith(self.tool_prefix):
-                name_without_prefix = tool_name[len(self.tool_prefix) :]
-                mapping[name_without_prefix] = tool_name
-            else:
-                mapping[tool_name] = tool_name
-        return mapping
 
     def get_tool_to_endpoint(self) -> dict[str, str]:
         """

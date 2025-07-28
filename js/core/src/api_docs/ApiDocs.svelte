@@ -153,7 +153,7 @@
 
 	function removeToolPrefix(toolName: string): string {
 		if (tool_prefix && toolName.startsWith(tool_prefix)) {
-			return toolName.substring(tool_prefix.length);
+			return toolName.slice(tool_prefix.length);
 		}
 		return toolName;
 	}
