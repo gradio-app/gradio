@@ -282,13 +282,13 @@ export function group_messages(
 		if (!(message.role === "assistant" || message.role === "user")) {
 			continue;
 		}
-		
+
 		// If display_consecutive_in_same_bubble is false, each message should be its own group
 		if (!display_consecutive_in_same_bubble) {
 			groupedMessages.push([message]);
 			continue;
 		}
-		
+
 		if (message.role === currentRole) {
 			currentGroup.push(message);
 		} else {

@@ -175,7 +175,9 @@
 			dispatch("change");
 		}
 	}
-	$: groupedMessages = value && group_messages(value, msg_format, display_consecutive_in_same_bubble);
+	$: groupedMessages =
+		value &&
+		group_messages(value, msg_format, display_consecutive_in_same_bubble);
 	$: options = value && get_last_bot_options();
 
 	function handle_action(

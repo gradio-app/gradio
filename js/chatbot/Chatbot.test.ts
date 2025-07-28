@@ -259,7 +259,7 @@ describe("Chatbot", () => {
 		];
 
 		const grouped = group_messages(messages, "messages", true);
-		
+
 		// Should have 3 groups: user, assistant (2 messages), user
 		assert.equal(grouped.length, 3);
 		assert.equal(grouped[0].length, 1); // First user message
@@ -276,7 +276,7 @@ describe("Chatbot", () => {
 		];
 
 		const grouped = group_messages(messages, "messages", false);
-		
+
 		// Should have 4 groups: each message should be its own group
 		assert.equal(grouped.length, 4);
 		assert.equal(grouped[0].length, 1); // First user message
@@ -305,7 +305,7 @@ describe("Chatbot", () => {
 
 		// Count the number of like/dislike button panels
 		const buttonPanels = container.querySelectorAll(".message-buttons");
-		
+
 		// Should have like/dislike buttons for each assistant message
 		// (3 assistant messages total)
 		assert.equal(buttonPanels.length, 3);
