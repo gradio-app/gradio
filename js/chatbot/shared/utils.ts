@@ -271,7 +271,8 @@ export function is_last_bot_message(
 
 export function group_messages(
 	messages: NormalisedMessage[],
-	msg_format: "messages" | "tuples"
+	msg_format: "messages" | "tuples",
+	display_consecutive_in_same_bubble = true
 ): NormalisedMessage[][] {
 	const groupedMessages: NormalisedMessage[][] = [];
 	let currentGroup: NormalisedMessage[] = [];
@@ -281,6 +282,13 @@ export function group_messages(
 		if (!(message.role === "assistant" || message.role === "user")) {
 			continue;
 		}
+
+		// If display_consecutive_in_same_bubble is false, each message should be its own group
+		if (!display_consecutive_in_same_bubble) {
+			groupedMessages.push([message]);
+			continue;
+		}
+
 		if (message.role === currentRole) {
 			currentGroup.push(message);
 		} else {
