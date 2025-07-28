@@ -300,7 +300,9 @@ describe("Chatbot", () => {
 			value: messages,
 			type: "messages",
 			group_consecutive_messages: false,
-			feedback_options: ["Like", "Dislike"]
+			show_copy_button: false,
+			feedback_options: ["Like", "Dislike"],
+			likeable: true
 		});
 
 		// Count the number of like/dislike button panels
