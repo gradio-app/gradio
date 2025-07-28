@@ -58,7 +58,7 @@ with gr.Blocks() as demo:
         <h1 style='text-align: center; display: flex; align-items: center; justify-content: center;'>
         <img src="https://huggingface.co/datasets/freddyaboulton/bucket/resolve/main/dancing_huggy.gif" alt="Dancing Huggy" style="height: 100px; margin-right: 10px"> Dia Dialogue Generation Model
         </h1>
-        <h2 style='text-align: center; display: flex; align-items: center; justify-content: center;'>Model by <a href="https://huggingface.co/nari-labs/Dia-1.6B"> Nari Labs</a>. Powered by HF and <a href="https://fal.ai/">Fal AI</a>  API.</h2>
+        <h2 style='text-align: center; display: flex; align-items: center; justify-content: center;'>Model by &nbsp;<a href="https://huggingface.co/nari-labs/Dia-1.6B"> Nari Labs</a>. Powered by HF and &nbsp; <a href="https://fal.ai/">Fal AI</a>&nbsp;  API.</h2>
         <h3>Dia is a dialogue generation model that can generate realistic dialogue between two speakers. Use the dialogue component to create a conversation and then hit the submit button in the bottom right corner to see it come to life .</h3>
         """
     )
