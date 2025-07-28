@@ -111,16 +111,16 @@
 	const dispatch = createEventDispatcher();
 
 	$: selectedToolsArray = Array.from(selectedTools);
+	$: selectedToolsWithoutPrefix = selectedToolsArray.map(removeToolPrefix);
 	$: mcp_server_url =
 		selectedToolsArray.length > 0 && selectedToolsArray.length < tools.length
-			? `${root}gradio_api/mcp/sse?tools=${selectedToolsArray.join(",")}`
+			? `${root}gradio_api/mcp/sse?tools=${selectedToolsWithoutPrefix.join(",")}`
 			: `${root}gradio_api/mcp/sse`;
 
-	// Update MCP JSON configurations when tools change
 	$: if (mcp_json_sse && selectedTools.size > 0) {
 		const baseUrl =
 			selectedToolsArray.length > 0 && selectedToolsArray.length < tools.length
-				? `${root}gradio_api/mcp/sse?tools=${selectedToolsArray.join(",")}`
+				? `${root}gradio_api/mcp/sse?tools=${selectedToolsWithoutPrefix.join(",")}`
 				: `${root}gradio_api/mcp/sse`;
 		mcp_json_sse.mcpServers.gradio.url = baseUrl;
 		if (mcp_json_stdio) {
@@ -149,6 +149,14 @@
 	let mcp_json_stdio: any;
 	let file_data_present = false;
 	let selectedTools: Set<string> = new Set();
+	let tool_prefix = space_id ? space_id.split("/").pop() + "_" : "";
+
+	function removeToolPrefix(toolName: string): string {
+		if (tool_prefix && toolName.startsWith(tool_prefix)) {
+			return toolName.substring(tool_prefix.length);
+		}
+		return toolName;
+	}
 
 	const upload_file_mcp_server = {
 		command: "uvx",
@@ -170,7 +178,7 @@
 				selectedToolsArray.length > 0 &&
 				selectedToolsArray.length < tools.length
 			) {
-				schemaUrl = `${root}gradio_api/mcp/schema?tools=${selectedToolsArray.join(",")}`;
+				schemaUrl = `${root}gradio_api/mcp/schema?tools=${selectedToolsWithoutPrefix.join(",")}`;
 			}
 			const response = await fetch(schemaUrl);
 			const schema = await response.json();
@@ -184,7 +192,6 @@
 				parameters: tool.inputSchema?.properties || {},
 				expanded: false
 			}));
-			// Initialize all tools as selected by default
 			selectedTools = new Set(tools.map((tool) => tool.name));
 			headers = schema.map((tool: any) => tool.meta?.headers || []).flat();
 			if (headers.length > 0) {
@@ -192,11 +199,13 @@
 					mcpServers: {
 						gradio: {
 							url: mcp_server_url,
-							headers: headers.reduce((accumulator, current_key) => {
-								// @ts-ignore
-								accumulator[current_key] = "<YOUR_HEADER_VALUE>";
-								return accumulator;
-							}, {})
+							headers: headers.reduce(
+								(accumulator: Record<string, string>, current_key: string) => {
+									accumulator[current_key] = "<YOUR_HEADER_VALUE>";
+									return accumulator;
+								},
+								{}
+							)
 						}
 					}
 				};

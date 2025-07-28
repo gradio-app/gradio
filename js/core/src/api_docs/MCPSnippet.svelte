@@ -49,7 +49,7 @@
 	): any {
 		if (!baseConfig) return null;
 
-		const config = JSON.parse(JSON.stringify(baseConfig)); // Deep copy
+		const config = JSON.parse(JSON.stringify(baseConfig));
 
 		if (includeUpload && file_data_present) {
 			const upload_file_mcp_server = {
@@ -73,7 +73,6 @@
 		return config;
 	}
 
-	// Create configurations with conditional file upload
 	$: mcp_json_streamable_http = updateConfigWithFileUpload(
 		mcp_json_sse
 			? {
@@ -523,12 +522,17 @@
 	}
 
 	.tool-checkbox {
-		margin: var(--size-3);
-		margin-right: 0;
+		margin-left: var(--size-3);
+		margin-right: var(--size-2);
 		width: var(--size-4);
 		height: var(--size-4);
 		cursor: pointer;
 		accent-color: var(--color-accent);
+	}
+
+	.tool-checkbox:checked {
+		background-color: var(--color-accent);
+		border-color: var(--color-accent);
 	}
 
 	.tool-header {

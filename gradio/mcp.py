@@ -58,6 +58,7 @@ class GradioMCPServer:
         space_id = utils.get_space()
         self.tool_prefix = space_id.split("/")[-1] + "_" if space_id else ""
         self.tool_to_endpoint = self.get_tool_to_endpoint()
+        self.tool_name_without_prefix_to_full_name = self._create_tool_name_mapping()
         self.warn_about_state_inputs()
         self._local_url: str | None = None
         self._client_instance: Client
@@ -123,6 +124,7 @@ class GradioMCPServer:
         """
         Extract the selected tools from the request query parameters.
         Returns None if no tools parameter is specified (meaning all tools are available).
+        Maps tool names without prefix to their full names.
         """
         if request is None:
             return None
@@ -130,7 +132,11 @@ class GradioMCPServer:
         query_params = dict(request.query_params)
         if "tools" in query_params:
             tools = query_params["tools"].split(",")
-            return set(tools)
+            full_tool_names = set()
+            for tool in tools:
+                full_name = self.tool_name_without_prefix_to_full_name.get(tool, tool)
+                full_tool_names.add(full_name)
+            return full_tool_names
         return None
 
     @staticmethod
@@ -150,6 +156,19 @@ class GradioMCPServer:
             tool_name = tool_name_base + f"_{suffix}"
             suffix += 1
         return tool_name
+
+    def _create_tool_name_mapping(self) -> dict[str, str]:
+        """
+        Create a mapping from tool names without prefix to full tool names.
+        """
+        mapping = {}
+        for tool_name in self.tool_to_endpoint:
+            if self.tool_prefix and tool_name.startswith(self.tool_prefix):
+                name_without_prefix = tool_name[len(self.tool_prefix) :]
+                mapping[name_without_prefix] = tool_name
+            else:
+                mapping[tool_name] = tool_name
+        return mapping
 
     def get_tool_to_endpoint(self) -> dict[str, str]:
         """
@@ -225,7 +244,6 @@ class GradioMCPServer:
                     "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
                 )
 
-            # Get selected tools from the current request
             selected_tools = self.get_selected_tools_from_request(context_request)
 
             route_path = self.get_route_path(context_request)
@@ -247,7 +265,6 @@ class GradioMCPServer:
             if endpoint_name is None:
                 raise ValueError(f"Unknown tool for this Gradio app: {name}")
 
-            # Check if tool is in selected tools when filtering is active
             if selected_tools is not None and name not in selected_tools:
                 raise ValueError(f"Tool '{name}' is not in the selected tools list")
 
@@ -334,13 +351,11 @@ class GradioMCPServer:
             """
             List all tools on the Gradio app.
             """
-            # Get selected tools from the current request context
             context_request: Request | None = self.mcp_server.request_context.request
             selected_tools = self.get_selected_tools_from_request(context_request)
 
             tools = []
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
-                # Filter tools based on selection if specified
                 if selected_tools is not None and tool_name not in selected_tools:
                     continue
 
@@ -543,7 +558,6 @@ class GradioMCPServer:
         if not self.api_info:
             return JSONResponse({})
 
-        # Parse tools query parameter from the request
         query_params = dict(request.query_params)
         selected_tools = None
         if "tools" in query_params:
@@ -554,7 +568,6 @@ class GradioMCPServer:
 
         schemas = []
         for tool_name, endpoint_name in self.tool_to_endpoint.items():
-            # Filter tools based on selection if specified
             if selected_tools is not None and tool_name not in selected_tools:
                 continue
             block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
