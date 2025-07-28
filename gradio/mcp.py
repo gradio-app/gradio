@@ -61,7 +61,6 @@ class GradioMCPServer:
         self.warn_about_state_inputs()
         self._local_url: str | None = None
         self._client_instance: Client
-        self._selected_tools: set[str] | None = None
 
         manager = StreamableHTTPSessionManager(
             app=self.mcp_server, json_response=False, stateless=True
@@ -85,21 +84,6 @@ class GradioMCPServer:
                 )
                 await response(scope, receive, send)
                 return
-
-            # Parse tools query parameter
-            query_string = scope.get("query_string", b"").decode()
-            query_params = {}
-            if query_string:
-                for param in query_string.split("&"):
-                    if "=" in param:
-                        key, value = param.split("=", 1)
-                        query_params[key] = unquote(value)
-
-            if "tools" in query_params:
-                tools = query_params["tools"].split(",")
-                self._selected_tools = set(tools)
-            else:
-                self._selected_tools = None
 
             await manager.handle_request(scope, receive, send)
 
@@ -132,6 +116,22 @@ class GradioMCPServer:
             return "/gradio_api/mcp/messages"
         else:
             return "/gradio_api/mcp"
+
+    def get_selected_tools_from_request(
+        self, request: Request | None
+    ) -> set[str] | None:
+        """
+        Extract the selected tools from the request query parameters.
+        Returns None if no tools parameter is specified (meaning all tools are available).
+        """
+        if request is None:
+            return None
+
+        query_params = dict(request.query_params)
+        if "tools" in query_params:
+            tools = query_params["tools"].split(",")
+            return set(tools)
+        return None
 
     @staticmethod
     def valid_and_unique_tool_name(
@@ -224,6 +224,10 @@ class GradioMCPServer:
                 raise ValueError(
                     "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
                 )
+
+            # Get selected tools from the current request
+            selected_tools = self.get_selected_tools_from_request(context_request)
+
             route_path = self.get_route_path(context_request)
             root_url = route_utils.get_root_url(
                 request=context_request,
@@ -244,7 +248,7 @@ class GradioMCPServer:
                 raise ValueError(f"Unknown tool for this Gradio app: {name}")
 
             # Check if tool is in selected tools when filtering is active
-            if self._selected_tools is not None and name not in self._selected_tools:
+            if selected_tools is not None and name not in selected_tools:
                 raise ValueError(f"Tool '{name}' is not in the selected tools list")
 
             block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
@@ -330,13 +334,14 @@ class GradioMCPServer:
             """
             List all tools on the Gradio app.
             """
+            # Get selected tools from the current request context
+            context_request: Request | None = self.mcp_server.request_context.request
+            selected_tools = self.get_selected_tools_from_request(context_request)
+
             tools = []
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
                 # Filter tools based on selection if specified
-                if (
-                    self._selected_tools is not None
-                    and tool_name not in self._selected_tools
-                ):
+                if selected_tools is not None and tool_name not in selected_tools:
                     continue
 
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
@@ -370,14 +375,6 @@ class GradioMCPServer:
 
         async def handle_sse(request):
             try:
-                # Parse tools query parameter from the request
-                query_params = dict(request.query_params)
-                if "tools" in query_params:
-                    tools = query_params["tools"].split(",")
-                    self._selected_tools = set(tools)
-                else:
-                    self._selected_tools = None
-
                 async with sse.connect_sse(
                     request.scope, request.receive, request._send
                 ) as streams:
