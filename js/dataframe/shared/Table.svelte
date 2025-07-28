@@ -20,7 +20,7 @@
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import { type Client } from "@gradio/client";
 	import VirtualTable from "./VirtualTable.svelte";
-	import type { Headers, DataframeValue, Datatype } from "./utils/utils";
+	import type { Headers, DataframeValue, Datatype, EditData } from "./utils/utils";
 	import CellMenu from "./CellMenu.svelte";
 	import Toolbar from "./Toolbar.svelte";
 	import type { CellCoordinate } from "./types";
@@ -163,6 +163,7 @@
 		input: undefined;
 		select: SelectData;
 		search: string | null;
+		edit: EditData;
 	}>();
 
 	let els: Record<

@@ -48,3 +48,9 @@ export function cast_value_to_type(
 	}
 	return v;
 }
+
+export interface EditData {
+	index: number | [number, number];
+	value: string;
+	previous_value: string;
+}

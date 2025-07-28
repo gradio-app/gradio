@@ -127,7 +127,7 @@ interface DataFrameActions {
 		previous_data: string[][],
 		previous_headers: string[],
 		value_is_output: boolean,
-		dispatch: (e: "change" | "input", detail?: any) => void
+		dispatch: (e: "change" | "input" | "edit", detail?: any) => void
 	) => Promise<void>;
 	reset_sort_state: () => void;
 	reset_filter_state: () => void;
@@ -186,7 +186,7 @@ export interface DataFrameContext {
 	get_data_at?: (row: number, col: number) => string | number;
 	get_column?: (col: number) => (string | number)[];
 	get_row?: (row: number) => (string | number)[];
-	dispatch?: (e: "change" | "select" | "search", detail?: any) => void;
+	dispatch?: (e: "change" | "select" | "search" | "edit", detail?: any) => void;
 }
 
 function create_actions(
@@ -416,6 +416,14 @@ function create_actions(
 					headers: current_headers,
 					metadata: null
 				});
+				const index = s.ui_state.selected;
+				if (index) {
+					dispatch("edit", {
+						index,
+						value: data[index[0]][index[1]].value,
+						previous_value: previous_data[index[0]][index[1]]
+					});
+				}
 				if (!value_is_output) dispatch("input");
 			}
 		},
