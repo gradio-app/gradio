@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Let users choose the MCP tools from docs pane
+feat:Allow users choose the MCP tools from MCP docs pane
