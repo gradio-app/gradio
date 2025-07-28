@@ -2131,13 +2131,13 @@ def mount_gradio_app(
     async def new_lifespan(app: FastAPI):
         async with old_lifespan(
             app
-        ):  # Insert the startup events inside the FastAPI context manager
+        ) as state:  # Insert the startup events inside the FastAPI context manager
             async with gradio_app.router.lifespan_context(gradio_app):
                 gradio_app.get_blocks().run_startup_events()
                 await gradio_app.get_blocks().run_extra_startup_events()
-                yield
+                yield state
 
-    app.router.lifespan_context = new_lifespan
+    app.router.lifespan_context = new_lifespan  # type: ignore
 
     app.mount(path, gradio_app)
     return app
