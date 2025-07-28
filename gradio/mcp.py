@@ -128,7 +128,7 @@ class GradioMCPServer:
         if request is None:
             return None
 
-        query_params = dict(request.query_params)
+        query_params = dict(getattr(request, "query_params", {}))
         if "tools" in query_params:
             tools = query_params["tools"].split(",")
             full_tool_names = set()
@@ -553,7 +553,7 @@ class GradioMCPServer:
         if not self.api_info:
             return JSONResponse({})
 
-        query_params = dict(request.query_params)
+        query_params = dict(getattr(request, "query_params", {}))
         selected_tools = None
         if "tools" in query_params:
             tools = query_params["tools"].split(",")
