@@ -20,7 +20,6 @@
 	export let container = true;
 	export let max_lines: number | undefined = undefined;
 	export let show_copy_button = false;
-	export let root: string;
 	export let show_submit_button = true;
 	let checked = false;
 
@@ -416,7 +415,7 @@
 
 	<div class="controls-row">
 		<div class="switch-container">
-			<Switch label="Plain Text" bind:checked {disabled} />
+			<Switch label="Plain Text" bind:checked />
 		</div>
 
 		{#if show_submit_button}
