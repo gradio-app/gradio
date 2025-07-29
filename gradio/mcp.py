@@ -119,31 +119,17 @@ class GradioMCPServer:
 
     def get_selected_tools_from_request(
         self, request: Request | None
-    ) -> set[str] | None:
+    ) -> list[str] | None:
         """
-        Extract the selected tools from the request query parameters.
+        Extract the selected tools from the request query parameters and return the full tool names (with the tool prefix).
         Returns None if no tools parameter is specified (meaning all tools are available).
-        Adds the tool prefix if needed.
         """
         if request is None:
             return None
-
         query_params = dict(getattr(request, "query_params", {}))
         if "tools" in query_params:
             tools = query_params["tools"].split(",")
-            full_tool_names = set()
-            for tool in tools:
-                # Check if the tool already has the prefix or if it exists as-is
-                if tool in self.tool_to_endpoint:
-                    full_tool_names.add(tool)
-                elif (
-                    self.tool_prefix
-                    and (self.tool_prefix + tool) in self.tool_to_endpoint
-                ):
-                    full_tool_names.add(self.tool_prefix + tool)
-                else:
-                    # Tool not found, add it anyway to let the error be handled later
-                    full_tool_names.add(tool)
+            full_tool_names = [self.tool_prefix + tool for tool in tools]
             return full_tool_names
         return None
 
