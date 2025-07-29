@@ -2044,9 +2044,7 @@ Received inputs:
                 elif not block_fn.postprocess:
                     if block._id not in state:
                         state[block._id] = block
-                    state._update_value_in_config(
-                        block._id, prediction_value
-                    )
+                    state._update_value_in_config(block._id, prediction_value)
 
                 outputs_cached = await processing_utils.async_move_files_to_cache(
                     prediction_value,
