@@ -4,7 +4,10 @@
 
 	export let mcp_server_active: boolean;
 	export let mcp_server_url: string;
+	export let mcp_server_url_streamable: string;
 	export let tools: Tool[];
+	export let all_tools: Tool[] = [];
+	export let selected_tools: Set<string> = new Set();
 	export let mcp_json_sse: any;
 	export let mcp_json_stdio: any;
 	export let file_data_present: boolean;
@@ -36,20 +39,18 @@
 	] as const;
 
 	$: display_url =
-		current_transport === "sse"
-			? mcp_server_url
-			: mcp_server_url.replace("/sse", "/");
+		current_transport === "sse" ? mcp_server_url : mcp_server_url_streamable;
 
 	// Helper function to add/remove file upload tool from config
-	function updateConfigWithFileUpload(
-		baseConfig: any,
-		includeUpload: boolean
+	function update_config_with_file_upload(
+		base_config: any,
+		include_upload: boolean
 	): any {
-		if (!baseConfig) return null;
+		if (!base_config) return null;
 
-		const config = JSON.parse(JSON.stringify(baseConfig)); // Deep copy
+		const config = JSON.parse(JSON.stringify(base_config));
 
-		if (includeUpload && file_data_present) {
+		if (include_upload && file_data_present) {
 			const upload_file_mcp_server = {
 				command: "uvx",
 				args: [
@@ -59,7 +60,7 @@
 					"upload-mcp",
 					current_transport === "sse"
 						? mcp_server_url
-						: mcp_server_url.replace("/sse", ""),
+						: mcp_server_url_streamable,
 					"<UPLOAD_DIRECTORY>"
 				]
 			};
@@ -71,8 +72,7 @@
 		return config;
 	}
 
-	// Create configurations with conditional file upload
-	$: mcp_json_streamable_http = updateConfigWithFileUpload(
+	$: mcp_json_streamable_http = update_config_with_file_upload(
 		mcp_json_sse
 			? {
 					...mcp_json_sse,
@@ -80,7 +80,7 @@
 						...mcp_json_sse.mcpServers,
 						gradio: {
 							...mcp_json_sse.mcpServers.gradio,
-							url: display_url
+							url: mcp_server_url_streamable
 						}
 					}
 				}
@@ -88,11 +88,11 @@
 		include_file_upload
 	);
 
-	$: mcp_json_sse_updated = updateConfigWithFileUpload(
+	$: mcp_json_sse_updated = update_config_with_file_upload(
 		mcp_json_sse,
 		include_file_upload
 	);
-	$: mcp_json_stdio_updated = updateConfigWithFileUpload(
+	$: mcp_json_stdio_updated = update_config_with_file_upload(
 		mcp_json_stdio,
 		include_file_upload
 	);
@@ -134,24 +134,70 @@
 		<p>&nbsp;</p>
 	{/if}
 
-	<strong>{tools.length} Available MCP Tools</strong>
-	<div class="mcp-tools">
-		{#each tools as tool}
-			<div class="tool-item">
+	<div class="tool-selection">
+		<strong
+			>{all_tools.length > 0 ? all_tools.length : tools.length} Available MCP Tools</strong
+		>
+		{#if all_tools.length > 0}
+			<div class="tool-selection-controls">
 				<button
-					class="tool-header"
-					on:click={() => (tool.expanded = !tool.expanded)}
+					class="select-all-btn"
+					on:click={() => {
+						selected_tools = new Set(all_tools.map((t) => t.name));
+					}}
 				>
-					<span
-						><span class="tool-name">{tool.name}</span> &nbsp;
-						<span class="tool-description"
-							>{tool.description
-								? tool.description
-								: "⚠︎ No description provided in function docstring"}</span
-						></span
-					>
-					<span class="tool-arrow">{tool.expanded ? "▼" : "▶"}</span>
+					Select All
 				</button>
+				<button
+					class="select-none-btn"
+					on:click={() => {
+						selected_tools = new Set();
+					}}
+				>
+					Select None
+				</button>
+			</div>
+		{/if}
+	</div>
+	<div class="mcp-tools">
+		{#each all_tools.length > 0 ? all_tools : tools as tool}
+			<div class="tool-item">
+				<div class="tool-header-wrapper">
+					{#if all_tools.length > 0}
+						<input
+							type="checkbox"
+							class="tool-checkbox"
+							checked={selected_tools.has(tool.name) ||
+								current_transport !== "streamable_http"}
+							disabled={current_transport !== "streamable_http"}
+							style={current_transport !== "streamable_http"
+								? "opacity: 0.5; cursor: not-allowed;"
+								: ""}
+							on:change={(e) => {
+								if (e.currentTarget.checked) {
+									selected_tools.add(tool.name);
+								} else {
+									selected_tools.delete(tool.name);
+								}
+								selected_tools = selected_tools;
+							}}
+						/>
+					{/if}
+					<button
+						class="tool-header"
+						on:click={() => (tool.expanded = !tool.expanded)}
+					>
+						<span
+							><span class="tool-name">{tool.name}</span> &nbsp;
+							<span class="tool-description"
+								>{tool.description
+									? tool.description
+									: "⚠︎ No description provided in function docstring"}</span
+							></span
+						>
+						<span class="tool-arrow">{tool.expanded ? "▼" : "▶"}</span>
+					</button>
+				</div>
 				{#if tool.expanded}
 					<div class="tool-content">
 						{#if Object.keys(tool.parameters).length > 0}
@@ -200,9 +246,10 @@
 			</code>
 		</Block>
 	{:else if current_transport === "sse"}
-		<strong>SSE Transport</strong>: To add this MCP to clients that support
-		server-sent events (SSE), simply add the following configuration to your MCP
-		config.
+		<strong>SSE Transport</strong>: The SSE transport has been deprecated by the
+		MCP spec. We recommend using the Streamable HTTP transport instead. But to
+		add this MCP to clients that only support server-sent events (SSE), simply
+		add the following configuration to your MCP config.
 		<p>&nbsp;</p>
 		<Block>
 			<code>
@@ -438,6 +485,34 @@
 		overflow: hidden;
 	}
 
+	.tool-selection {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: var(--size-2);
+	}
+
+	.tool-selection-controls {
+		display: flex;
+		gap: var(--size-2);
+	}
+
+	.select-all-btn,
+	.select-none-btn {
+		padding: var(--size-1) var(--size-2);
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-sm);
+		background: var(--background-fill-primary);
+		color: var(--body-text-color);
+		cursor: pointer;
+		font-size: var(--text-sm);
+	}
+
+	.select-all-btn:hover,
+	.select-none-btn:hover {
+		background: var(--background-fill-secondary);
+	}
+
 	.tool-item {
 		border-bottom: 1px solid var(--border-color-primary);
 	}
@@ -446,8 +521,27 @@
 		border-bottom: none;
 	}
 
+	.tool-header-wrapper {
+		display: flex;
+		align-items: center;
+	}
+
+	.tool-checkbox {
+		margin-left: var(--size-3);
+		margin-right: var(--size-2);
+		width: var(--size-4);
+		height: var(--size-4);
+		cursor: pointer;
+		accent-color: var(--color-accent);
+	}
+
+	.tool-checkbox:checked {
+		background-color: var(--color-accent);
+		border-color: var(--color-accent);
+	}
+
 	.tool-header {
-		width: 100%;
+		flex: 1;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;

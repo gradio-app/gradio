@@ -15,7 +15,7 @@
 <h2>
 	<img src={api_logo} alt="" />
 	<div class="title">
-		API documentation
+		{#if current_language === "mcp"}MCP{:else}API{/if} documentation
 		<div class="url">
 			{root}
 		</div>
