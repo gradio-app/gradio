@@ -170,16 +170,9 @@
 		]
 	};
 
-	async function fetchMcpTools(includeSelectedTools = false) {
+	async function fetchMcpTools() {
 		try {
 			let schemaUrl = `${root}gradio_api/mcp/schema`;
-			if (
-				includeSelectedTools &&
-				selectedToolsArray.length > 0 &&
-				selectedToolsArray.length < tools.length
-			) {
-				schemaUrl = `${root}gradio_api/mcp/schema?tools=${selectedToolsWithoutPrefix.join(",")}`;
-			}
 			const response = await fetch(schemaUrl);
 			const schema = await response.json();
 			file_data_present = schema
