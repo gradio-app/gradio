@@ -301,7 +301,7 @@
 	{/if}
 
 	<!-- svelte-ignore missing-declaration -->
-	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 	{#if !checked}
 		<div class="dialogue-container" bind:this={dialogue_container_element}>
 			{#each dialogue_lines as line, i}
@@ -314,7 +314,6 @@
 							choices={speakers.map((s) => [s, s])}
 							show_label={false}
 							container={true}
-							root={""}
 							label={""}
 						/>
 					</div>

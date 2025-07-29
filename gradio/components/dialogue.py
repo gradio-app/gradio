@@ -144,7 +144,7 @@ class Dialogue(Textbox):
 
     def postprocess(
         self, value: list[dict[str, str]] | str | None
-    ) -> DialogueModel | None:
+    ) -> DialogueModel | None:  # type: ignore
         """
         Parameters:
             value: Expects a list of dictionaries of dialogue lines, where each dictionary contains 'speaker' and 'text' keys, or a string.
