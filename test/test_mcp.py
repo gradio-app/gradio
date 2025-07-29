@@ -75,7 +75,9 @@ def test_postprocess_output_data(test_mcp_app):
     server = GradioMCPServer(test_mcp_app)
     fake_root_url = "http://localhost:7860"
 
-    with tempfile.NamedTemporaryFile(suffix=".png") as temp_file:
+    temp_file = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+    temp_file.close()
+    try:
         img = Image.new("RGB", (10, 10), color="red")
         img.save(temp_file.name)
         url = f"http://localhost:7860/gradio_api/file={temp_file.name}"
@@ -88,6 +90,8 @@ def test_postprocess_output_data(test_mcp_app):
         assert result[0].mimeType == "image/png"
         assert result[1].type == "text"
         assert url in result[1].text
+    finally:
+        os.unlink(temp_file.name)
 
     svg_data_uri = "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22100%22%20height%3D%22100%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2240%22%20fill%3D%22blue%22%2F%3E%3C%2Fsvg%3E"
     test_data = [
