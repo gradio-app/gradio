@@ -17,7 +17,6 @@ env:
   CI: true
   NODE_OPTIONS: "--max-old-space-size=8192"
 
-
 jobs:
   changes:
     permissions:
