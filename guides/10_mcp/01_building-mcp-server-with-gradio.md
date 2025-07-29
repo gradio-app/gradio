@@ -194,7 +194,7 @@ Gradio automatically sets the tool name based on the name of your function, and 
 * `False`: no tool description appears to the LLM.
 * `str`: an arbitrary string to use as the tool description.
 
-In addition to modifying the tool descriptions, you can also toggle which tools appear to the LLM. You can do this by setting the `show_api` parameter, which is by default `True`. Setting it to `False` hides the endpoint from the API docs and from the MCP server.
+In addition to modifying the tool descriptions, you can also toggle which tools appear to the LLM. You can do this by setting the `show_api` parameter, which is by default `True`. Setting it to `False` hides the endpoint from the API docs and from the MCP server. If you expose multiple tools, users of your app will also be able to toggle which tools they'd like to add to their MCP server by checking boxes in the "view MCP or API" panel.
 
 Here's an example that shows the `api_description` and `show_api` parameters in actions:
 
@@ -217,7 +217,6 @@ In some cases, you may decide not to use Gradio's built-in integration and inste
 
 - Store state / identify users between calls instead of treating every tool call completely independently
 - Start the Gradio app MCP server when a tool is called (if you are running multiple Gradio apps locally and want to save memory / GPU)
-- Use a different MCP protocol than SSE
 
 This is very doable thanks to the [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) and the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)'s `FastMCP` class. Here's an example of creating a custom MCP server that connects to various Gradio apps hosted on [HuggingFace Spaces](https://huggingface.co/spaces) using the `stdio` protocol:
 

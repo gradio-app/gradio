@@ -110,7 +110,27 @@
 
 	const dispatch = createEventDispatcher();
 
-	const mcp_server_url = `${root}gradio_api/mcp/sse`;
+	$: selected_tools_array = Array.from(selected_tools);
+	$: selected_tools_without_prefix =
+		selected_tools_array.map(remove_tool_prefix);
+	$: mcp_server_url = `${root}gradio_api/mcp/sse`;
+	$: mcp_server_url_streamable =
+		selected_tools_array.length > 0 &&
+		selected_tools_array.length < tools.length
+			? `${root}gradio_api/mcp/?tools=${selected_tools_without_prefix.join(",")}`
+			: `${root}gradio_api/mcp/`;
+
+	$: if (mcp_json_sse && selected_tools.size > 0) {
+		const baseUrl =
+			selected_tools_array.length > 0 &&
+			selected_tools_array.length < tools.length
+				? `${root}gradio_api/mcp/sse?tools=${selected_tools_without_prefix.join(",")}`
+				: `${root}gradio_api/mcp/sse`;
+		mcp_json_sse.mcpServers.gradio.url = baseUrl;
+		if (mcp_json_stdio) {
+			mcp_json_stdio.mcpServers.gradio.args[1] = baseUrl;
+		}
+	}
 
 	interface ToolParameter {
 		title?: string;
@@ -132,6 +152,15 @@
 	let mcp_json_sse: any;
 	let mcp_json_stdio: any;
 	let file_data_present = false;
+	let selected_tools: Set<string> = new Set();
+	let tool_prefix = space_id ? space_id.split("/").pop() + "_" : "";
+
+	function remove_tool_prefix(toolName: string): string {
+		if (tool_prefix && toolName.startsWith(tool_prefix)) {
+			return toolName.slice(tool_prefix.length);
+		}
+		return toolName;
+	}
 
 	const upload_file_mcp_server = {
 		command: "uvx",
@@ -145,9 +174,10 @@
 		]
 	};
 
-	async function fetchMcpTools() {
+	async function fetch_mcp_tools() {
 		try {
-			const response = await fetch(`${root}gradio_api/mcp/schema`);
+			let schema_url = `${root}gradio_api/mcp/schema`;
+			const response = await fetch(schema_url);
 			const schema = await response.json();
 			file_data_present = schema
 				.map((tool: any) => tool.meta?.file_data_present)
@@ -159,17 +189,20 @@
 				parameters: tool.inputSchema?.properties || {},
 				expanded: false
 			}));
+			selected_tools = new Set(tools.map((tool) => tool.name));
 			headers = schema.map((tool: any) => tool.meta?.headers || []).flat();
 			if (headers.length > 0) {
 				mcp_json_sse = {
 					mcpServers: {
 						gradio: {
 							url: mcp_server_url,
-							headers: headers.reduce((accumulator, current_key) => {
-								// @ts-ignore
-								accumulator[current_key] = "<YOUR_HEADER_VALUE>";
-								return accumulator;
-							}, {})
+							headers: headers.reduce(
+								(accumulator: Record<string, string>, current_key: string) => {
+									accumulator[current_key] = "<YOUR_HEADER_VALUE>";
+									return accumulator;
+								},
+								{}
+							)
 						}
 					}
 				};
@@ -237,7 +270,7 @@
 			.then((response) => {
 				mcp_server_active = response.ok;
 				if (mcp_server_active) {
-					fetchMcpTools();
+					fetch_mcp_tools();
 					if (!is_valid_language(lang_param)) {
 						current_language = "mcp";
 					}
@@ -339,7 +372,10 @@
 							<MCPSnippet
 								{mcp_server_active}
 								{mcp_server_url}
-								{tools}
+								{mcp_server_url_streamable}
+								tools={tools.filter((tool) => selected_tools.has(tool.name))}
+								all_tools={tools}
+								bind:selected_tools
 								{mcp_json_sse}
 								{mcp_json_stdio}
 								{file_data_present}

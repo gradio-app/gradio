@@ -84,6 +84,7 @@ class GradioMCPServer:
                 )
                 await response(scope, receive, send)
                 return
+
             await manager.handle_request(scope, receive, send)
 
         @contextlib.asynccontextmanager
@@ -115,6 +116,22 @@ class GradioMCPServer:
             return "/gradio_api/mcp/messages"
         else:
             return "/gradio_api/mcp"
+
+    def get_selected_tools_from_request(
+        self, request: Request | None
+    ) -> list[str] | None:
+        """
+        Extract the selected tools from the request query parameters and return the full tool names (with the tool prefix).
+        Returns None if no tools parameter is specified (meaning all tools are available).
+        """
+        if request is None:
+            return None
+        query_params = dict(getattr(request, "query_params", {}))
+        if "tools" in query_params:
+            tools = query_params["tools"].split(",")
+            full_tool_names = [self.tool_prefix + tool for tool in tools]
+            return full_tool_names
+        return None
 
     @staticmethod
     def valid_and_unique_tool_name(
@@ -207,6 +224,9 @@ class GradioMCPServer:
                 raise ValueError(
                     "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
                 )
+
+            selected_tools = self.get_selected_tools_from_request(context_request)
+
             route_path = self.get_route_path(context_request)
             root_url = route_utils.get_root_url(
                 request=context_request,
@@ -225,6 +245,9 @@ class GradioMCPServer:
             endpoint_name = self.tool_to_endpoint.get(name)
             if endpoint_name is None:
                 raise ValueError(f"Unknown tool for this Gradio app: {name}")
+
+            if selected_tools is not None and name not in selected_tools:
+                raise ValueError(f"Tool '{name}' is not in the selected tools list")
 
             block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
             assert block_fn is not None  # noqa: S101
@@ -309,8 +332,14 @@ class GradioMCPServer:
             """
             List all tools on the Gradio app.
             """
+            context_request: Request | None = self.mcp_server.request_context.request
+            selected_tools = self.get_selected_tools_from_request(context_request)
+
             tools = []
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
+                if selected_tools is not None and tool_name not in selected_tools:
+                    continue
+
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
                 assert block_fn is not None and block_fn.fn is not None  # noqa: S101
 
@@ -495,7 +524,7 @@ class GradioMCPServer:
         }
         return self.simplify_filedata_schema(schema)
 
-    async def get_complete_schema(self, request) -> JSONResponse:  # noqa: ARG002
+    async def get_complete_schema(self, request) -> JSONResponse:
         """
         Get the complete schema of the Gradio app API. For debugging purposes, also used by
         the Hugging Face MCP server to get the schema for MCP Spaces without needing to
@@ -510,10 +539,18 @@ class GradioMCPServer:
         if not self.api_info:
             return JSONResponse({})
 
+        query_params = dict(getattr(request, "query_params", {}))
+        selected_tools = None
+        if "tools" in query_params:
+            tools = query_params["tools"].split(",")
+            selected_tools = set(tools)
+
         file_data_present = False
 
         schemas = []
         for tool_name, endpoint_name in self.tool_to_endpoint.items():
+            if selected_tools is not None and tool_name not in selected_tools:
+                continue
             block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
             assert block_fn is not None and block_fn.fn is not None  # noqa: S101
 

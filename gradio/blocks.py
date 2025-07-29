@@ -2920,8 +2920,8 @@ Received inputs:
         if self.mcp_server:
             print(
                 "\n🔨 Launching MCP server:"
-                f"\n* Streamable HTTP URL: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/"
-                f"\n* SSE URL: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
+                f"\n** Streamable HTTP URL: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/"
+                f"\n* [Deprecated] SSE URL: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
             )
 
         if inbrowser and not wasm_utils.IS_WASM:

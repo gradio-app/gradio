@@ -1,4 +1,5 @@
 import copy
+import json
 import os
 import tempfile
 import time
@@ -6,6 +7,7 @@ import time
 import httpx
 import pytest
 from PIL import Image
+from starlette.requests import Request
 
 import gradio as gr
 from gradio.data_classes import FileData
@@ -302,14 +304,22 @@ def test_mcp_mount_gradio_app():
 
 @pytest.mark.asyncio
 async def test_associative_keyword_in_schema():
-    import json
-
     def test_tool(x):
         return x
 
     demo = gr.Interface(test_tool, "image", "image")
     server = GradioMCPServer(demo)
-    schema = (await server.get_complete_schema(None)).body.decode("utf-8")  # type: ignore
+
+    scope = {
+        "type": "http",
+        "headers": [],
+        "server": ("localhost", 7860),
+        "path": "/gradio_api/mcp/schema",
+        "query_string": "",
+    }
+    request = Request(scope)
+
+    schema = (await server.get_complete_schema(request)).body.decode("utf-8")  # type: ignore
     schema = json.loads(schema)
     assert (
         schema[0]["inputSchema"]["properties"]["x"]["format"]
@@ -320,3 +330,49 @@ async def test_associative_keyword_in_schema():
         in schema[0]["description"]
     )
     assert schema[0]["meta"]["file_data_present"]
+
+
+@pytest.mark.asyncio
+async def test_tool_selection_via_query_params():
+    def tool_1(x):
+        return x
+
+    def tool_2(x):
+        return x
+
+    demo = gr.TabbedInterface(
+        [
+            gr.Interface(tool_1, "image", "image"),
+            gr.Interface(tool_2, "image", "image"),
+        ]
+    )
+
+    server = GradioMCPServer(demo)
+
+    scope = {
+        "type": "http",
+        "headers": [],
+        "server": ("localhost", 7860),
+        "path": "/gradio_api/mcp/schema",
+        "query_string": "",
+    }
+    request = Request(scope)
+
+    schema = (await server.get_complete_schema(request)).body.decode("utf-8")  # type: ignore
+    schema = json.loads(schema)
+    assert schema[0]["name"] == "tool_1"
+    assert schema[1]["name"] == "tool_2"
+
+    scope = {
+        "type": "http",
+        "headers": [],
+        "server": ("localhost", 7860),
+        "path": "/gradio_api/mcp/schema",
+        "query_string": "tools=tool_2",
+    }
+    request = Request(scope)
+
+    schema = (await server.get_complete_schema(request)).body.decode("utf-8")  # type: ignore
+    schema = json.loads(schema)
+    assert len(schema) == 1
+    assert schema[0]["name"] == "tool_2"
