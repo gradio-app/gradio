@@ -655,7 +655,6 @@ class App(FastAPI):
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
-                config = route_utils.update_root_in_config(config, root)
                 deep_link_state = "none"
                 components = [
                     component
@@ -678,6 +677,9 @@ class App(FastAPI):
                 ]
                 config["layout"] = config["page"][page]["layout"]
                 config["current_page"] = page
+                # Update root after loading the deep link state (if applicable)
+                # so that static files are served from the correct root
+                config = route_utils.update_root_in_config(config, root)
             elif app.auth_dependency:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -866,7 +868,6 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request, route_path="/config", root_path=app.root_path
             )
-            config = route_utils.update_root_in_config(config, root)
             config["username"] = get_current_user(request)
             if deep_link:
                 components, deep_link_state = load_deep_link(deep_link, config, page="")  # type: ignore
@@ -876,6 +877,7 @@ class App(FastAPI):
                 config["i18n_translations"] = blocks.i18n_instance.translations_dict
             else:
                 config["i18n_translations"] = None
+            config = route_utils.update_root_in_config(config, root)
             return ORJSONResponse(content=config)
 
         @app.get("/static/{path:path}")
