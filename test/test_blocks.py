@@ -516,15 +516,13 @@ class TestComponentsInBlocks:
             for dep in interface.config["dependencies"]
             if "tick" in [target[1] for target in dep["targets"]]
         ]
-        assert len(dependencies_on_load) == len(io_components) - 1
-        assert len(dependencies_on_tick) == len(io_components) - 1
+        assert len(dependencies_on_load) == len(io_components)
+        assert len(dependencies_on_tick) == len(io_components)
 
     def test_get_load_events(self, io_components):
         components = []
         with gr.Blocks() as demo:
             for component in io_components:
-                if component == gr.Dialogue:
-                    continue
                 components.append(component(value=lambda: None, every=1))
         assert "dependencies" in demo.config
         assert all(
