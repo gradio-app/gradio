@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_OPTIONS: "--max-old-space-size=4096"
+  NODE_OPTIONS: "--max-old-space-size=8192"
   HF_TOKEN: ${{ vars.HF_TOKEN }}
 
 permissions: {}
