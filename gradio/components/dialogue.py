@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from gradio.components.base import server
-from gradio.components.textbox import Textbox
+from gradio.components.base import Component, server
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Events
 
@@ -17,7 +16,7 @@ class DialogueModel(GradioRootModel):
     root: list[DialogueLine] | str
 
 
-class Dialogue(Textbox):
+class Dialogue(Component):
     """
     Creates a dialogue components for users to enter dialogue between speakers.
 
@@ -43,7 +42,7 @@ class Dialogue(Textbox):
         label: str | None = "Dialogue",
         info: str
         | None = "Type colon (:) in the dialogue line to see the available tags",
-        placeholder: str | None = "Enter dialogue here...",
+        placeholder: str | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -89,7 +88,6 @@ class Dialogue(Textbox):
             value="",
             label=label,
             info=info,
-            placeholder=placeholder,
             show_label=show_label,
             container=container,
             scale=scale,
@@ -97,13 +95,14 @@ class Dialogue(Textbox):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
-            autofocus=autofocus,
-            autoscroll=autoscroll,
             elem_classes=elem_classes,
             render=render,
             key=key,
-            max_lines=max_lines,
         )
+        self.placeholder = placeholder
+        self.autofocus = autofocus
+        self.autoscroll = autoscroll
+        self.max_lines = max_lines
         self.speakers = speakers
         self.tags = tags or []
         self.formatter = formatter
@@ -142,7 +141,7 @@ class Dialogue(Textbox):
         data = DialogueModel(root=value)  # type: ignore
         return self.preprocess(data)
 
-    def postprocess( # type: ignore
+    def postprocess(  # type: ignore
         self, value: list[dict[str, str]] | str | None
     ) -> DialogueModel | None:
         """

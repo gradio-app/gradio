@@ -45,7 +45,6 @@
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let value_is_output = false;
 	export let interactive: boolean;
-	export let root: string;
 	export let show_submit_button = true;
 </script>
 
@@ -73,7 +72,6 @@
 		bind:value_is_output
 		{label}
 		{info}
-		{root}
 		{show_label}
 		{max_lines}
 		{show_copy_button}
