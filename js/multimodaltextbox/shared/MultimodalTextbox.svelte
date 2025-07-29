@@ -69,7 +69,8 @@
 	let user_has_scrolled_up = false;
 	export let dragging = false;
 	let uploading = false;
-	let oldValue = value.text;
+	// value can be null in multimodalchatinterface when loading a deep link
+	let oldValue = value?.text ?? "";
 	let recording = false;
 	$: dispatch("drag", dragging);
 	let mic_audio: FileData | null = null;
