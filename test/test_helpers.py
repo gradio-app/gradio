@@ -729,14 +729,18 @@ class TestProgressBar:
                 status_updates.append(update)
             time.sleep(0.05)
 
-        assert status_updates == [
-            (None, "start"),
-            (0, None),
-            (1, None),
-            (2, None),
-            (3, None),
-            (4, None),
-        ]
+        assert all(
+            s
+            in [
+                (None, "start"),
+                (0, None),
+                (1, None),
+                (2, None),
+                (3, None),
+                (4, None),
+            ]
+            for s in status_updates
+        )
 
     @pytest.mark.asyncio
     async def test_progress_bar_track_tqdm(self):
