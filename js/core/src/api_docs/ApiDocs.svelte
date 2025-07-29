@@ -110,17 +110,21 @@
 
 	const dispatch = createEventDispatcher();
 
-	$: selectedToolsArray = Array.from(selectedTools);
-	$: selectedToolsWithoutPrefix = selectedToolsArray.map(removeToolPrefix);
-	$: mcp_server_url =
-		selectedToolsArray.length > 0 && selectedToolsArray.length < tools.length
-			? `${root}gradio_api/mcp/sse?tools=${selectedToolsWithoutPrefix.join(",")}`
-			: `${root}gradio_api/mcp/sse`;
+	$: selected_tools_array = Array.from(selected_tools);
+	$: selected_tools_without_prefix =
+		selected_tools_array.map(remove_tool_prefix);
+	$: mcp_server_url = `${root}gradio_api/mcp/sse`;
+	$: mcp_server_url_streamable =
+		selected_tools_array.length > 0 &&
+		selected_tools_array.length < tools.length
+			? `${root}gradio_api/mcp/?tools=${selected_tools_without_prefix.join(",")}`
+			: `${root}gradio_api/mcp/`;
 
-	$: if (mcp_json_sse && selectedTools.size > 0) {
+	$: if (mcp_json_sse && selected_tools.size > 0) {
 		const baseUrl =
-			selectedToolsArray.length > 0 && selectedToolsArray.length < tools.length
-				? `${root}gradio_api/mcp/sse?tools=${selectedToolsWithoutPrefix.join(",")}`
+			selected_tools_array.length > 0 &&
+			selected_tools_array.length < tools.length
+				? `${root}gradio_api/mcp/sse?tools=${selected_tools_without_prefix.join(",")}`
 				: `${root}gradio_api/mcp/sse`;
 		mcp_json_sse.mcpServers.gradio.url = baseUrl;
 		if (mcp_json_stdio) {
@@ -148,10 +152,10 @@
 	let mcp_json_sse: any;
 	let mcp_json_stdio: any;
 	let file_data_present = false;
-	let selectedTools: Set<string> = new Set();
+	let selected_tools: Set<string> = new Set();
 	let tool_prefix = space_id ? space_id.split("/").pop() + "_" : "";
 
-	function removeToolPrefix(toolName: string): string {
+	function remove_tool_prefix(toolName: string): string {
 		if (tool_prefix && toolName.startsWith(tool_prefix)) {
 			return toolName.slice(tool_prefix.length);
 		}
@@ -170,10 +174,10 @@
 		]
 	};
 
-	async function fetchMcpTools() {
+	async function fetch_mcp_tools() {
 		try {
-			let schemaUrl = `${root}gradio_api/mcp/schema`;
-			const response = await fetch(schemaUrl);
+			let schema_url = `${root}gradio_api/mcp/schema`;
+			const response = await fetch(schema_url);
 			const schema = await response.json();
 			file_data_present = schema
 				.map((tool: any) => tool.meta?.file_data_present)
@@ -185,7 +189,7 @@
 				parameters: tool.inputSchema?.properties || {},
 				expanded: false
 			}));
-			selectedTools = new Set(tools.map((tool) => tool.name));
+			selected_tools = new Set(tools.map((tool) => tool.name));
 			headers = schema.map((tool: any) => tool.meta?.headers || []).flat();
 			if (headers.length > 0) {
 				mcp_json_sse = {
@@ -266,7 +270,7 @@
 			.then((response) => {
 				mcp_server_active = response.ok;
 				if (mcp_server_active) {
-					fetchMcpTools();
+					fetch_mcp_tools();
 					if (!is_valid_language(lang_param)) {
 						current_language = "mcp";
 					}
@@ -368,9 +372,10 @@
 							<MCPSnippet
 								{mcp_server_active}
 								{mcp_server_url}
-								tools={tools.filter((tool) => selectedTools.has(tool.name))}
-								allTools={tools}
-								bind:selectedTools
+								{mcp_server_url_streamable}
+								tools={tools.filter((tool) => selected_tools.has(tool.name))}
+								all_tools={tools}
+								bind:selected_tools
 								{mcp_json_sse}
 								{mcp_json_stdio}
 								{file_data_present}

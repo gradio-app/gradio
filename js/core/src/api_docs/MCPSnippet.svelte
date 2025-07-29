@@ -4,9 +4,10 @@
 
 	export let mcp_server_active: boolean;
 	export let mcp_server_url: string;
+	export let mcp_server_url_streamable: string;
 	export let tools: Tool[];
-	export let allTools: Tool[] = [];
-	export let selectedTools: Set<string> = new Set();
+	export let all_tools: Tool[] = [];
+	export let selected_tools: Set<string> = new Set();
 	export let mcp_json_sse: any;
 	export let mcp_json_stdio: any;
 	export let file_data_present: boolean;
@@ -38,20 +39,18 @@
 	] as const;
 
 	$: display_url =
-		current_transport === "sse"
-			? mcp_server_url
-			: mcp_server_url.replace("/sse", "/");
+		current_transport === "sse" ? mcp_server_url : mcp_server_url_streamable;
 
 	// Helper function to add/remove file upload tool from config
-	function updateConfigWithFileUpload(
-		baseConfig: any,
-		includeUpload: boolean
+	function update_config_with_file_upload(
+		base_config: any,
+		include_upload: boolean
 	): any {
-		if (!baseConfig) return null;
+		if (!base_config) return null;
 
-		const config = JSON.parse(JSON.stringify(baseConfig));
+		const config = JSON.parse(JSON.stringify(base_config));
 
-		if (includeUpload && file_data_present) {
+		if (include_upload && file_data_present) {
 			const upload_file_mcp_server = {
 				command: "uvx",
 				args: [
@@ -61,7 +60,7 @@
 					"upload-mcp",
 					current_transport === "sse"
 						? mcp_server_url
-						: mcp_server_url.replace("/sse", ""),
+						: mcp_server_url_streamable,
 					"<UPLOAD_DIRECTORY>"
 				]
 			};
@@ -73,7 +72,7 @@
 		return config;
 	}
 
-	$: mcp_json_streamable_http = updateConfigWithFileUpload(
+	$: mcp_json_streamable_http = update_config_with_file_upload(
 		mcp_json_sse
 			? {
 					...mcp_json_sse,
@@ -81,7 +80,7 @@
 						...mcp_json_sse.mcpServers,
 						gradio: {
 							...mcp_json_sse.mcpServers.gradio,
-							url: display_url
+							url: mcp_server_url_streamable
 						}
 					}
 				}
@@ -89,11 +88,11 @@
 		include_file_upload
 	);
 
-	$: mcp_json_sse_updated = updateConfigWithFileUpload(
+	$: mcp_json_sse_updated = update_config_with_file_upload(
 		mcp_json_sse,
 		include_file_upload
 	);
-	$: mcp_json_stdio_updated = updateConfigWithFileUpload(
+	$: mcp_json_stdio_updated = update_config_with_file_upload(
 		mcp_json_stdio,
 		include_file_upload
 	);
@@ -137,14 +136,14 @@
 
 	<div class="tool-selection">
 		<strong
-			>{allTools.length > 0 ? allTools.length : tools.length} Available MCP Tools</strong
+			>{all_tools.length > 0 ? all_tools.length : tools.length} Available MCP Tools</strong
 		>
-		{#if allTools.length > 0}
+		{#if all_tools.length > 0}
 			<div class="tool-selection-controls">
 				<button
 					class="select-all-btn"
 					on:click={() => {
-						selectedTools = new Set(allTools.map((t) => t.name));
+						selected_tools = new Set(all_tools.map((t) => t.name));
 					}}
 				>
 					Select All
@@ -152,7 +151,7 @@
 				<button
 					class="select-none-btn"
 					on:click={() => {
-						selectedTools = new Set();
+						selected_tools = new Set();
 					}}
 				>
 					Select None
@@ -161,21 +160,26 @@
 		{/if}
 	</div>
 	<div class="mcp-tools">
-		{#each allTools.length > 0 ? allTools : tools as tool}
+		{#each all_tools.length > 0 ? all_tools : tools as tool}
 			<div class="tool-item">
 				<div class="tool-header-wrapper">
-					{#if allTools.length > 0}
+					{#if all_tools.length > 0}
 						<input
 							type="checkbox"
 							class="tool-checkbox"
-							checked={selectedTools.has(tool.name)}
+							checked={selected_tools.has(tool.name) ||
+								current_transport !== "streamable_http"}
+							disabled={current_transport !== "streamable_http"}
+							style={current_transport !== "streamable_http"
+								? "opacity: 0.5; cursor: not-allowed;"
+								: ""}
 							on:change={(e) => {
 								if (e.currentTarget.checked) {
-									selectedTools.add(tool.name);
+									selected_tools.add(tool.name);
 								} else {
-									selectedTools.delete(tool.name);
+									selected_tools.delete(tool.name);
 								}
-								selectedTools = selectedTools;
+								selected_tools = selected_tools;
 							}}
 						/>
 					{/if}
@@ -242,9 +246,10 @@
 			</code>
 		</Block>
 	{:else if current_transport === "sse"}
-		<strong>SSE Transport</strong>: To add this MCP to clients that support
-		server-sent events (SSE), simply add the following configuration to your MCP
-		config.
+		<strong>SSE Transport</strong>: The SSE transport has been deprecated by the
+		MCP spec. We recommend using the Streamable HTTP transport instead. But to
+		add this MCP to clients that only support server-sent events (SSE), simply
+		add the following configuration to your MCP config.
 		<p>&nbsp;</p>
 		<Block>
 			<code>
