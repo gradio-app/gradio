@@ -4,7 +4,11 @@ import pytest
 
 from gradio import Interface, networking
 
-pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="Skipped on Windows as Windows CI doesn't support tunneling")
+pytestmark = pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="Skipped on Windows as Windows CI doesn't support tunneling",
+)
+
 
 @pytest.mark.flaky
 def test_setup_tunnel():
