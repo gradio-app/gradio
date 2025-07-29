@@ -502,11 +502,7 @@ class TestComponentsInBlocks:
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
         interface = gr.Interface(
             lambda *args: None,
-            inputs=[
-                comp(value=lambda: None, every=1)
-                for comp in io_components
-                if comp != gr.Dialogue
-            ],
+            inputs=[comp(value=lambda: None, every=1) for comp in io_components],
             outputs=None,
         )
         assert "dependencies" in interface.config
