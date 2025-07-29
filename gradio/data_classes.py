@@ -125,8 +125,13 @@ class PredictBodyInternal(PredictBody):
 class ResetBody(BaseModel):
     event_id: str
 
+
 class VibeEditBody(BaseModel):
     prompt: str
+
+
+class VibeCodeBody(BaseModel):
+    code: str
 
 
 class ComponentServerJSONBody(BaseModel):

@@ -14,7 +14,6 @@
 	import type { ToastMessage } from "@gradio/statustracker";
 	import type { ShareData, ValueData } from "@gradio/utils";
 	import MountComponents from "./MountComponents.svelte";
-	import VibeEditor from "./VibeEditor.svelte";
 	import { prefix_css } from "./css";
 
 	import type ApiDocs from "./api_docs/ApiDocs.svelte";
@@ -91,6 +90,8 @@
 		old_dependencies = dependencies;
 	}
 
+	let vibe_editor_width = 350;
+
 	async function run(): Promise<void> {
 		await setupi18n(app.config?.i18n_translations || undefined);
 
@@ -120,6 +121,7 @@
 	let ApiDocs: ComponentType<ApiDocs> | null = null;
 	let ApiRecorder: ComponentType<ApiRecorder> | null = null;
 	let Settings: ComponentType<Settings> | null = null;
+	let VibeEditor: ComponentType | null = null;
 
 	async function loadApiDocs(): Promise<void> {
 		if (!ApiDocs || !ApiRecorder) {
@@ -141,6 +143,13 @@
 		if (!Settings) {
 			const settings_module = await import("./api_docs/Settings.svelte");
 			Settings = settings_module.default;
+		}
+	}
+
+	async function loadVibeEditor(): Promise<void> {
+		if (!VibeEditor) {
+			const vibe_editor_module = await import("../../vibeeditor/Index.svelte");
+			VibeEditor = vibe_editor_module.default;
 		}
 	}
 
@@ -934,6 +943,16 @@
 			}
 		);
 
+		// Listen for vibe editor resize events
+		const handleVibeEditorResize = (event: CustomEvent) => {
+			vibe_editor_width = event.detail.width;
+		};
+
+		window.addEventListener(
+			"vibeEditorResize",
+			handleVibeEditorResize as EventListener
+		);
+
 		// Load components if they should be visible on initial page load
 		if (api_docs_visible) {
 			loadApiDocs();
@@ -944,6 +963,17 @@
 		if (settings_visible) {
 			loadSettings();
 		}
+		if (dev_mode) {
+			loadVibeEditor();
+		}
+
+		// Cleanup function
+		return () => {
+			window.removeEventListener(
+				"vibeEditorResize",
+				handleVibeEditorResize as EventListener
+			);
+		};
 	});
 
 	function screen_recording(): void {
@@ -965,7 +995,11 @@
 </svelte:head>
 
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
-	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
+	<div
+		class="contain"
+		style:flex-grow={app_mode ? "1" : "auto"}
+		style:margin-right={dev_mode ? `${vibe_editor_width}px` : "0"}
+	>
 		{#if $_layout && app.config}
 			<MountComponents
 				rootNode={$_layout}
@@ -1121,8 +1155,8 @@
 	<Toast {messages} on:close={handle_error_close} />
 {/if}
 
-{#if dev_mode}
-	<VibeEditor {app} {root}></VibeEditor>
+{#if dev_mode && VibeEditor}
+	<svelte:component this={VibeEditor} {app} {root} />
 {/if}
 
 <style>

@@ -1200,6 +1200,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/vibeeditor':
+        specifier: workspace:^
+        version: link:../vibeeditor
       '@gradio/video':
         specifier: workspace:^
         version: link:../video
@@ -2520,6 +2523,28 @@ importers:
       svelte-i18n:
         specifier: ^3.6.0
         version: 3.6.0(svelte@4.2.15)
+
+  js/vibeeditor:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
 
   js/video:
     dependencies:

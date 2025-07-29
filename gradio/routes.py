@@ -37,6 +37,7 @@ import orjson
 from fastapi import (
     APIRouter,
     BackgroundTasks,
+    Body,
     Depends,
     FastAPI,
     HTTPException,
@@ -77,6 +78,7 @@ from gradio.data_classes import (
     ResetBody,
     SimplePredictBody,
     UserProvidedPath,
+    VibeCodeBody,
     VibeEditBody,
 )
 from gradio.exceptions import Error, InvalidPathError
@@ -1936,20 +1938,34 @@ class App(FastAPI):
                     background=BackgroundTask(lambda: cleanup_files([input_path])),
                 )
 
+        # Create temp directory for vibe edit history
+        vibe_edit_history_dir = Path(DEFAULT_TEMP_DIR) / "vibe_edit_history"
+        vibe_edit_history_dir.mkdir(exist_ok=True, parents=True)
+
         @router.post("/vibe-edit/")
         @router.post("/vibe-edit")
-        async def vibe_edit(body: VibeEditBody): 
-            import huggingface_hub
+        async def vibe_edit(body: VibeEditBody):
             import openai
+
             from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            # Save current state before making changes
             with open(GRADIO_WATCH_DEMO_PATH) as f:
                 demo_code = f.read()
 
+            # Generate random hash for this snapshot
+            snapshot_hash = secrets.token_hex(16)
+            snapshot_file = vibe_edit_history_dir / f"{snapshot_hash}.py"
+
+            # Save the current state to history
+            with open(snapshot_file, "w") as f:
+                f.write(demo_code)
+
             # client = huggingface_hub.InferenceClient()
-                client = openai.Client(
-                    base_url="https://openrouter.ai/api/v1",
-                    api_key=""
-                )
+            client = openai.Client(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=os.getenv("OPENROUTER_API_KEY"),
+            )
             content = ""
             prompt = f"""
 You are a Python code generator. Given the following existing code and prompt, return the full new code.
@@ -1960,18 +1976,72 @@ Existing code:
 
 Prompt:
 {body.prompt}"""
-            content = client.chat.completions.create(
-                model="moonshotai/kimi-k2",
-                messages=[{"role": "user", "content": prompt}]
-            ).choices[0].message.content
+            content = (
+                client.chat.completions.create(
+                    model="z-ai/glm-4.5", messages=[{"role": "user", "content": prompt}]
+                )
+                .choices[0]
+                .message.content
+            )
 
             if "```python\n" in content:
                 start = content.index("```python\n") + len("```python\n")
                 end = content.find("\n```", start)
                 content = content[start:end] if end != -1 else content[start:]
-            
+
             with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
                 f.write(content)
+
+            return {"hash": snapshot_hash, "code": content}
+
+        @router.post("/undo-vibe-edit/")
+        @router.post("/undo-vibe-edit")
+        async def undo_vibe_edit(hash: str = Body(..., embed=True)):
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            snapshot_file = vibe_edit_history_dir / f"{hash}.py"
+
+            if not snapshot_file.exists():
+                raise HTTPException(status_code=404, detail="Snapshot not found")
+
+            # Restore the file from the snapshot
+            with open(snapshot_file) as f:
+                saved_content = f.read()
+
+            with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
+                f.write(saved_content)
+
+            return {"success": True}
+
+        @router.get("/vibe-code/")
+        @router.get("/vibe-code")
+        async def get_vibe_code():
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            try:
+                with open(GRADIO_WATCH_DEMO_PATH) as f:
+                    code = f.read()
+                return {"code": code}
+            except FileNotFoundError:
+                raise HTTPException(status_code=404, detail="Demo file not found") from None
+            except Exception as e:
+                raise HTTPException(
+                    status_code=500, detail=f"Error reading file: {str(e)}"
+                ) from e
+
+        @router.post("/vibe-code/")
+        @router.post("/vibe-code")
+        async def update_vibe_code(body: VibeCodeBody):
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            try:
+                with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
+                    f.write(body.code)
+                return {"success": True}
+            except Exception as e:
+                raise HTTPException(
+                    status_code=500, detail=f"Error writing file: {str(e)}"
+                ) from e
 
         def cleanup_files(files):
             for file in files:
