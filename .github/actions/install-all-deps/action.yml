@@ -54,10 +54,17 @@ runs:
       run: |
         python -m pip install --upgrade virtualenv
         python -m virtualenv venv
-    - name: Install uv
+    - name: Install uv (linux)
+      if: ${{ inputs.os == 'ubuntu-latest' }}
       shell: bash
       run: |
         curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    - name: Install uv (windows)
+      if: ${{ inputs.os == 'windows-latest' }}
+      shell: bash
+      run: |
+        powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
     - uses: actions/cache@v4
       id: cache
