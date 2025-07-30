@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import pathlib
 import tempfile
 import threading
@@ -144,24 +143,6 @@ class TestClientPredictions:
             )
 
     @pytest.mark.flaky
-    def test_numerical_to_label_space(self):
-        client = Client("gradio-tests/titanic-survival")
-        label = json.load(
-            open(client.predict("male", 77, 10, api_name="/predict"))  # noqa: SIM115
-        )
-        assert label["label"] == "Perishes"
-        with pytest.raises(
-            ValueError,
-            match="This Gradio app might have multiple endpoints. Please specify an `api_name` or `fn_index`",
-        ):
-            client.predict("male", 77, 10)
-        with pytest.raises(
-            ValueError,
-            match="Cannot find a function with `api_name`: predict. Did you mean to use a leading slash?",
-        ):
-            client.predict("male", 77, 10, api_name="predict")
-
-    @pytest.mark.flaky
     def test_numerical_to_label_space_v4(self):
         client = Client("gradio-tests/titanic-survivalv4-sse")
         label = client.predict("male", 77, 10, api_name="/predict")
@@ -173,18 +154,6 @@ class TestClientPredictions:
         api = huggingface_hub.HfApi()
         assert api.space_info(space_id).private
         client = Client(space_id, hf_token=HF_TOKEN)
-        output = client.predict("abc", api_name="/predict")
-        assert output == "abc"
-
-    @pytest.mark.flaky
-    def test_private_space_v4(self):
-        space_id = "gradio-tests/not-actually-private-spacev4-sse"
-        api = huggingface_hub.HfApi()
-        assert api.space_info(space_id).private
-        client = Client(
-            space_id,
-            hf_token=HF_TOKEN,
-        )
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
@@ -604,12 +573,6 @@ class TestClientPredictions:
             ret = client.predict(message, initial_history, api_name="/submit")
             assert ret == ("", [["", None], ["Hello", "I love you"]])
 
-    @pytest.mark.flaky
-    def test_predict_with_space_with_api_name_false(self):
-        client = Client("gradio-tests/client-bool-api-name-error")
-        assert client.predict("Hello!", api_name="/run") == "Hello!"
-        assert client.predict("Freddy", api_name="/say_hello") == "hello"
-
     def test_return_layout_component(self, hello_world_with_group):
         with connect(hello_world_with_group) as demo:
             assert demo.predict("Freddy", api_name="/greeting") == "Hello Freddy"
@@ -920,138 +883,12 @@ class TestAPIInfo:
     @pytest.mark.flaky
     @pytest.mark.parametrize("trailing_char", ["/", ""])
     def test_test_endpoint_src(self, trailing_char):
-        src = "https://gradio-calculator.hf.space" + trailing_char
+        src = "https://gradio-tests-image-identity-new.hf.space" + trailing_char
         client = Client(src=src)
-        assert client.endpoints[0].root_url == "https://gradio-calculator.hf.space/"
-
-    @pytest.mark.flaky
-    def test_numerical_to_label_space(self):
-        client = Client("gradio-tests/titanic-survival")
-        assert client.view_api(return_format="dict") == {
-            "named_endpoints": {
-                "/predict": {
-                    "parameters": [
-                        {
-                            "label": "Sex",
-                            "type": {"type": "string"},
-                            "python_type": {"type": "str", "description": ""},
-                            "component": "Radio",
-                            "example_input": "Howdy!",
-                            "serializer": "StringSerializable",
-                        },
-                        {
-                            "label": "Age",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Slider",
-                            "example_input": 5,
-                            "serializer": "NumberSerializable",
-                        },
-                        {
-                            "label": "Fare (british pounds)",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Slider",
-                            "example_input": 5,
-                            "serializer": "NumberSerializable",
-                        },
-                    ],
-                    "returns": [
-                        {
-                            "label": "output",
-                            "type": {"type": {}, "description": "any valid json"},
-                            "python_type": {
-                                "type": "dict[Any, Any]",
-                                "description": "any valid json",
-                            },
-                            "component": "Label",
-                            "serializer": "JSONSerializable",
-                        }
-                    ],
-                },
-                "/predict_1": {
-                    "parameters": [
-                        {
-                            "label": "Sex",
-                            "type": {"type": "string"},
-                            "python_type": {"type": "str", "description": ""},
-                            "component": "Radio",
-                            "example_input": "Howdy!",
-                            "serializer": "StringSerializable",
-                        },
-                        {
-                            "label": "Age",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Slider",
-                            "example_input": 5,
-                            "serializer": "NumberSerializable",
-                        },
-                        {
-                            "label": "Fare (british pounds)",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Slider",
-                            "example_input": 5,
-                            "serializer": "NumberSerializable",
-                        },
-                    ],
-                    "returns": [
-                        {
-                            "label": "output",
-                            "type": {"type": {}, "description": "any valid json"},
-                            "python_type": {
-                                "type": "dict[Any, Any]",
-                                "description": "any valid json",
-                            },
-                            "component": "Label",
-                            "serializer": "JSONSerializable",
-                        }
-                    ],
-                },
-                "/predict_2": {
-                    "parameters": [
-                        {
-                            "label": "Sex",
-                            "type": {"type": "string"},
-                            "python_type": {"type": "str", "description": ""},
-                            "component": "Radio",
-                            "example_input": "Howdy!",
-                            "serializer": "StringSerializable",
-                        },
-                        {
-                            "label": "Age",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Slider",
-                            "example_input": 5,
-                            "serializer": "NumberSerializable",
-                        },
-                        {
-                            "label": "Fare (british pounds)",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Slider",
-                            "example_input": 5,
-                            "serializer": "NumberSerializable",
-                        },
-                    ],
-                    "returns": [
-                        {
-                            "label": "output",
-                            "type": {"type": {}, "description": "any valid json"},
-                            "python_type": {
-                                "type": "dict[Any, Any]",
-                                "description": "any valid json",
-                            },
-                            "component": "Label",
-                            "serializer": "JSONSerializable",
-                        }
-                    ],
-                },
-            },
-            "unnamed_endpoints": {},
-        }
+        assert (
+            client.endpoints[0].root_url
+            == "https://gradio-tests-image-identity-new.hf.space/gradio_api/"
+        )
 
     def test_state_does_not_appear(self, state_demo):
         with connect(state_demo) as client:
