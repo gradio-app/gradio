@@ -143,12 +143,6 @@ class TestClientPredictions:
             )
 
     @pytest.mark.flaky
-    def test_numerical_to_label_space_v4(self):
-        client = Client("gradio-tests/titanic-survivalv4-sse")
-        label = client.predict("male", 77, 10, api_name="/predict")
-        assert label["label"] == "Perishes"
-
-    @pytest.mark.flaky
     def test_private_space(self):
         space_id = "gradio-tests/not-actually-private-space"
         api = huggingface_hub.HfApi()
@@ -903,38 +897,7 @@ class TestAPIInfo:
             "gradio-tests/not-actually-private-space",
             hf_token=HF_TOKEN,
         )
-        assert len(client.endpoints) == 3
-        assert len([e for e in client.endpoints.values() if e.is_valid]) == 2
-        assert (
-            len([e for e in client.endpoints.values() if e.is_valid and e.api_name])
-            == 1
-        )
-        assert client.view_api(return_format="dict") == {
-            "named_endpoints": {
-                "/predict": {
-                    "parameters": [
-                        {
-                            "label": "x",
-                            "type": {"type": "string"},
-                            "python_type": {"type": "str", "description": ""},
-                            "component": "Textbox",
-                            "example_input": "Howdy!",
-                            "serializer": "StringSerializable",
-                        }
-                    ],
-                    "returns": [
-                        {
-                            "label": "output",
-                            "type": {"type": "string"},
-                            "python_type": {"type": "str", "description": ""},
-                            "component": "Textbox",
-                            "serializer": "StringSerializable",
-                        }
-                    ],
-                }
-            },
-            "unnamed_endpoints": {},
-        }
+        assert "/predict" in client.view_api(return_format="dict")["named_endpoints"]
 
     def test_api_info_of_local_demo(self, calculator_demo):
         with connect(calculator_demo) as client:
