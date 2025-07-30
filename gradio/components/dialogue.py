@@ -18,7 +18,7 @@ class DialogueModel(GradioRootModel):
 
 class Dialogue(Component):
     """
-    Creates a dialogue components for users to enter dialogue between speakers.
+Creates a Dialogue component for displaying or collecting multi-speaker conversations. This component can be used as input to allow users to enter dialogue involving multiple speakers, or as output to display diarized speech, such as the result of a transcription or speaker identification model. Each message can be associated with a specific speaker, making it suitable for use cases like conversations, interviews, or meetings.
 
     Demos: dia_dialogue_demo
     """
