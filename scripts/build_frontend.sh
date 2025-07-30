@@ -9,4 +9,4 @@ python scripts/generate_theme.py
 
 echo "Building the frontend..."
 pnpm i --frozen-lockfile --ignore-scripts
-pnpm build
+NODE_OPTIONS="--max-old-space-size=8192" pnpm build
