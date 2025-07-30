@@ -32,8 +32,9 @@
 
 	let showTagMenu = false;
 	let currentLineIndex = -1;
+	let selectedOptionIndex = 0;
 	let filtered_tags: string[] = [];
-	let input_elements: HTMLInputElement[] = [];
+	let input_elements: (HTMLInputElement | HTMLTextAreaElement)[] = [];
 	let textarea_element: HTMLTextAreaElement;
 	let old_value = JSON.stringify(value);
 	let offset_from_top = 0;
@@ -50,6 +51,15 @@
 		} else if (dialogue_lines.length < input_elements.length) {
 			input_elements = input_elements.slice(0, dialogue_lines.length);
 		}
+
+		tick().then(() => {
+			input_elements.forEach((element) => {
+				if (element && element instanceof HTMLTextAreaElement) {
+					element.style.height = "auto";
+					element.style.height = element.scrollHeight + "px";
+				}
+			});
+		});
 	}
 
 	function add_line(index: number): void {
@@ -104,6 +114,7 @@
 					tag.toLowerCase().includes(search_text.toLowerCase())
 			);
 			show_menu = filtered_tags.length > 0;
+			selectedOptionIndex = 0;
 		} else {
 			const lastColonIndex = text.lastIndexOf(":", cursor_position - 1);
 			if (
@@ -119,6 +130,7 @@
 						tag.toLowerCase().includes(searchText.toLowerCase())
 				);
 				show_menu = filtered_tags.length > 0;
+				selectedOptionIndex = 0;
 			}
 		}
 
@@ -147,9 +159,9 @@
 		return "";
 	}
 
-	function insert_tag(e: CustomEvent): void {
-		const tag = tags[e.detail.target.dataset.index];
-		if (currentLineIndex >= 0 && currentLineIndex < dialogue_lines.length) {
+	function insert_selected_tag(): void {
+		const tag = filtered_tags[selectedOptionIndex];
+		if (tag) {
 			let text;
 			let currentInput;
 			if (checked) {
@@ -165,26 +177,109 @@
 				const beforeColon = text.substring(0, lastColonIndex);
 				const afterCursor = text.substring(cursorPosition);
 
-				// Filter out any speaker tags when in plain text mode
-				const filteredBeforeColon = beforeColon.replace(/\[S\d+\]/g, "").trim();
-				const newText = `${filteredBeforeColon}${tag} ${afterCursor}`;
-				update_line(currentLineIndex, "text", newText);
+				if (checked) {
+					// plain text mode: don't filter speaker tags
+					const newText = `${beforeColon}${tag} ${afterCursor}`;
+					textbox_value = newText;
+					value = newText;
 
-				tick().then(() => {
-					const updatedInput = input_elements[currentLineIndex];
-					if (updatedInput) {
-						const newCursorPosition =
-							filteredBeforeColon.length + tag.length + 1;
-						updatedInput.setSelectionRange(
-							newCursorPosition,
-							newCursorPosition
-						);
-						updatedInput.focus();
-					}
-				});
+					tick().then(() => {
+						if (textarea_element) {
+							const newCursorPosition = beforeColon.length + tag.length + 1;
+							textarea_element.setSelectionRange(
+								newCursorPosition,
+								newCursorPosition
+							);
+							textarea_element.focus();
+						}
+					});
+				} else {
+					// dialogue line mode
+					const filteredBeforeColon = beforeColon
+						.replace(/\[S\d+\]/g, "")
+						.trim();
+					const newText = `${filteredBeforeColon}${tag} ${afterCursor}`;
+					update_line(currentLineIndex, "text", newText);
+
+					tick().then(() => {
+						const updatedInput = input_elements[currentLineIndex];
+						if (updatedInput) {
+							const newCursorPosition =
+								filteredBeforeColon.length + tag.length + 1;
+							updatedInput.setSelectionRange(
+								newCursorPosition,
+								newCursorPosition
+							);
+							updatedInput.focus();
+						}
+					});
+				}
 			}
 
 			showTagMenu = false;
+			selectedOptionIndex = 0;
+		}
+	}
+
+	function insert_tag(e: CustomEvent): void {
+		const tag = tags[e.detail.target.dataset.index];
+		if (tag) {
+			let text;
+			let currentInput;
+			if (checked) {
+				currentInput = textarea_element;
+				text = textbox_value;
+			} else {
+				currentInput = input_elements[currentLineIndex];
+				text = dialogue_lines[currentLineIndex].text;
+			}
+			const cursorPosition = currentInput?.selectionStart || 0;
+			const lastColonIndex = text.lastIndexOf(":", cursorPosition - 1);
+			if (lastColonIndex >= 0) {
+				const beforeColon = text.substring(0, lastColonIndex);
+				const afterCursor = text.substring(cursorPosition);
+
+				if (checked) {
+					// plain text mode: don't filter speaker tags
+					const newText = `${beforeColon}${tag} ${afterCursor}`;
+					textbox_value = newText;
+					value = newText;
+
+					tick().then(() => {
+						if (textarea_element) {
+							const newCursorPosition = beforeColon.length + tag.length + 1;
+							textarea_element.setSelectionRange(
+								newCursorPosition,
+								newCursorPosition
+							);
+							textarea_element.focus();
+						}
+					});
+				} else {
+					// dialogue line mode
+					const filteredBeforeColon = beforeColon
+						.replace(/\[S\d+\]/g, "")
+						.trim();
+					const newText = `${filteredBeforeColon}${tag} ${afterCursor}`;
+					update_line(currentLineIndex, "text", newText);
+
+					tick().then(() => {
+						const updatedInput = input_elements[currentLineIndex];
+						if (updatedInput) {
+							const newCursorPosition =
+								filteredBeforeColon.length + tag.length + 1;
+							updatedInput.setSelectionRange(
+								newCursorPosition,
+								newCursorPosition
+							);
+							updatedInput.focus();
+						}
+					});
+				}
+			}
+
+			showTagMenu = false;
+			selectedOptionIndex = 0;
 		}
 	}
 
@@ -318,8 +413,7 @@
 					</div>
 					<div class="text-column">
 						<div class="input-container">
-							<input
-								type="text"
+							<textarea
 								bind:value={line.text}
 								{placeholder}
 								{disabled}
@@ -328,11 +422,32 @@
 								on:keydown={(event) => {
 									if (event.key === "Escape" && showTagMenu) {
 										showTagMenu = false;
+										selectedOptionIndex = 0;
 										event.preventDefault();
+									} else if (showTagMenu && currentLineIndex === i) {
+										if (event.key === "ArrowDown") {
+											selectedOptionIndex = Math.min(
+												selectedOptionIndex + 1,
+												filtered_tags.length - 1
+											);
+											event.preventDefault();
+										} else if (event.key === "ArrowUp") {
+											selectedOptionIndex = Math.max(
+												selectedOptionIndex - 1,
+												0
+											);
+											event.preventDefault();
+										} else if (event.key === "Enter") {
+											if (filtered_tags[selectedOptionIndex]) {
+												insert_selected_tag();
+											}
+											event.preventDefault();
+										}
 									}
 								}}
 								bind:this={input_elements[i]}
-							/>
+								rows="1"
+							></textarea>
 							{#if showTagMenu && currentLineIndex === i}
 								<div
 									id="tag-menu"
@@ -342,6 +457,9 @@
 									<BaseDropdownOptions
 										choices={tags.map((s, i) => [s, i])}
 										filtered_indices={filtered_tags.map((s) => tags.indexOf(s))}
+										active_index={filtered_tags.map((s) => tags.indexOf(s))[
+											selectedOptionIndex
+										]}
 										show_options={true}
 										on:change={(e) => insert_tag(e)}
 										{offset_from_top}
@@ -352,7 +470,7 @@
 						</div>
 					</div>
 					{#if max_lines == undefined || (max_lines && i < max_lines - 1)}
-						<div class:action-column={i == 0}>
+						<div class:action-column={i == 0} class:hidden={disabled}>
 							<button
 								class="add-button"
 								on:click={() => add_line(i)}
@@ -364,7 +482,7 @@
 						</div>
 					{/if}
 					{#if i > 0}
-						<div class="action-column">
+						<div class="action-column" class:hidden={disabled}>
 							<button
 								class="delete-button"
 								on:click={() => delete_line(i)}
@@ -391,7 +509,24 @@
 				on:keydown={(event) => {
 					if (event.key === "Escape" && showTagMenu) {
 						showTagMenu = false;
+						selectedOptionIndex = 0;
 						event.preventDefault();
+					} else if (showTagMenu) {
+						if (event.key === "ArrowDown") {
+							selectedOptionIndex = Math.min(
+								selectedOptionIndex + 1,
+								filtered_tags.length - 1
+							);
+							event.preventDefault();
+						} else if (event.key === "ArrowUp") {
+							selectedOptionIndex = Math.max(selectedOptionIndex - 1, 0);
+							event.preventDefault();
+						} else if (event.key === "Enter") {
+							if (filtered_tags[selectedOptionIndex]) {
+								insert_selected_tag();
+							}
+							event.preventDefault();
+						}
 					}
 				}}
 				bind:this={textarea_element}
@@ -405,6 +540,9 @@
 					<BaseDropdownOptions
 						choices={tags.map((s, i) => [s, i])}
 						filtered_indices={filtered_tags.map((s) => tags.indexOf(s))}
+						active_index={filtered_tags.map((s) => tags.indexOf(s))[
+							selectedOptionIndex
+						]}
 						show_options={true}
 						on:change={(e) => insert_tag(e)}
 					/>
@@ -418,7 +556,7 @@
 			<Switch label="Plain Text" bind:checked />
 		</div>
 
-		{#if show_submit_button}
+		{#if show_submit_button && !disabled}
 			<div class="submit-container">
 				<button class="submit-button" on:click={handle_submit} {disabled}>
 					<Send />
@@ -467,14 +605,16 @@
 		margin-right: var(--spacing-sm);
 	}
 
-	.text-column input {
+	.text-column textarea {
 		width: 100%;
 		padding: var(--spacing-sm);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm);
 		color: var(--body-text-color);
 		background: var(--input-background-fill);
+		height: auto;
 		min-height: 30px;
+		max-height: none;
 		flex-grow: 1;
 		margin-top: 0px;
 		margin-bottom: 0px;
@@ -489,6 +629,11 @@
 		font-weight: var(--input-text-weight);
 		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
+		white-space: pre-wrap;
+		word-wrap: break-word;
+		overflow-wrap: break-word;
+		overflow: hidden;
+		box-sizing: border-box;
 	}
 
 	textarea {
@@ -648,5 +793,9 @@
 		max-height: none !important;
 		top: auto !important;
 		bottom: auto !important;
+	}
+
+	.hidden {
+		visibility: hidden;
 	}
 </style>
