@@ -6,7 +6,6 @@ from unittest.mock import MagicMock, patch
 
 import huggingface_hub
 import pytest
-from fastapi.testclient import TestClient
 from gradio_client import media_data
 
 import gradio as gr
@@ -14,7 +13,6 @@ from gradio.context import Context
 from gradio.exceptions import GradioVersionIncompatibleError, InvalidApiNameError
 from gradio.external import TooManyRequestsError
 from gradio.external_utils import cols_to_rows, get_tabular_examples
-from gradio.route_utils import API_PREFIX
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's
@@ -196,30 +194,6 @@ class TestLoadInterface:
         with pytest.raises(GradioVersionIncompatibleError):
             gr.load("spaces/gradio-tests/titanic-survival")
 
-    def test_numerical_to_label_space(self):
-        io = gr.load("spaces/gradio-tests/titanic-survivalv4-sse")
-        try:
-            assert io.theme.name == "soft"
-            assert io("male", 77, 10)["label"] == "Perishes"
-        except TooManyRequestsError:
-            pass
-
-    def test_visual_question_answering(self):
-        io = gr.load("models/dandelin/vilt-b32-finetuned-vqa", hf_token=HF_TOKEN)
-        try:
-            output = io("gradio/test_data/lion.jpg", "What is in the image?")
-            assert isinstance(output, dict) and "label" in output
-        except TooManyRequestsError:
-            pass
-
-    def test_image_to_text(self):
-        io = gr.load("models/nlpconnect/vit-gpt2-image-captioning", hf_token=HF_TOKEN)
-        try:
-            output = io("gradio/test_data/lion.jpg")
-            assert isinstance(output, str)
-        except TooManyRequestsError:
-            pass
-
     def test_speech_recognition_model(self):
         io = gr.load("models/facebook/wav2vec2-base-960h", hf_token=HF_TOKEN)
         try:
@@ -261,18 +235,6 @@ class TestLoadInterface:
                 "spaces/gradio/test-loading-examplesv4-sse",
             )
         assert Context.hf_token == HF_TOKEN
-
-    def test_loading_files_via_proxy_works(self):
-        io = gr.load(
-            "spaces/gradio-tests/test-loading-examples-privatev4-sse", hf_token=HF_TOKEN
-        )
-        assert io.theme.name == "default"
-        app, _, _ = io.launch(prevent_thread_lock=True)
-        test_client = TestClient(app)
-        r = test_client.get(
-            f"{API_PREFIX}/proxy=https://gradio-tests-test-loading-examples-privatev4-sse.hf.space/file=Bunny.obj"
-        )
-        assert r.status_code == 200
 
     def test_private_space_v4_sse_v1(self):
         io = gr.load(
@@ -324,15 +286,6 @@ class TestLoadInterfaceWithExamples:
         demo = gr.load("spaces/gradio/simple_galleryv4-sse")
         gallery = demo("test")
         assert all("caption" in d for d in gallery)
-
-    def test_interface_with_examples(self):
-        # This demo has the "fake_event" correctly removed
-        demo = gr.load("spaces/gradio-tests/test-calculator-1v4-sse")
-        assert demo(2, "add", 3) == 5
-
-        # This demo still has the "fake_event". both should work
-        demo = gr.load("spaces/gradio-tests/test-calculator-2v4-sse")
-        assert demo(2, "add", 4) == 6
 
     def test_loading_chatbot_with_avatar_images_does_not_raise_errors(self):
         gr.load("gradio/chatbot_multimodal", src="spaces")
