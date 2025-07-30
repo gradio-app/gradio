@@ -1,5 +1,23 @@
 # @gradio/core
 
+## 0.24.0
+
+### Features
+
+- [#11651](https://github.com/gradio-app/gradio/pull/11651) [`5b0e212`](https://github.com/gradio-app/gradio/commit/5b0e212ec0d54b5d793985de94c216bc5a73f610) - Allow users choose the MCP tools from MCP docs pane.  Thanks @abidlabs!
+- [#11622](https://github.com/gradio-app/gradio/pull/11622) [`ae9aaee`](https://github.com/gradio-app/gradio/commit/ae9aaeea62974f1fb533946a2a7c8461572778ef) - Expose Streamable HTTP endpoint in MCP Server at `/mcp`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/upload@0.16.12
+- @gradio/video@0.14.22
+- @gradio/code@0.14.12
+- @gradio/client@1.15.7
+- @gradio/gallery@0.15.28
+- @gradio/image@0.22.14
+- @gradio/button@0.5.8
+- @gradio/file@0.12.25
+
 ## 0.23.2
 
 ### Fixes
