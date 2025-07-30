@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Load Cached Examples from DeepLink
+fix:Load Cached Examples from DeepLink
