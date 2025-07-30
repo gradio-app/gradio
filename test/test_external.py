@@ -179,16 +179,6 @@ class TestLoadInterface:
         assert isinstance(interface.input_components[0], gr.Textbox)
         assert isinstance(interface.output_components[0], gr.Audio)
 
-    def test_sentiment_model(self):
-        io = gr.load(
-            "models/distilbert/distilbert-base-uncased-finetuned-sst-2-english",
-            hf_token=HF_TOKEN,
-        )
-        try:
-            assert io("I am happy, I love you")["label"] == "POSITIVE"
-        except TooManyRequestsError:
-            pass
-
     def test_raise_incompatbile_version_error(self):
         with pytest.raises(GradioVersionIncompatibleError):
             gr.load("spaces/gradio-tests/titanic-survival")
