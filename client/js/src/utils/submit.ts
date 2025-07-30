@@ -763,7 +763,6 @@ export function submit(
 		function push(
 			data: { value: GradioEvent; done: boolean } | PromiseLike<never>
 		): void {
-			// if (done) return;
 			if (resolvers.length > 0) {
 				(resolvers.shift() as (typeof resolvers)[0])(data);
 			} else {
@@ -784,10 +783,6 @@ export function submit(
 			if (values.length > 0) {
 				return Promise.resolve(values.shift() as (typeof values)[0]);
 			}
-			// if (done) {
-			// 	console.log("returning cause done")
-			// 	return Promise.resolve({ value: undefined, done: true });
-			// }
 			return new Promise((resolve) => resolvers.push(resolve));
 		}
 
