@@ -180,6 +180,8 @@ numpy==2.2.2
     #   scipy
     #   tifffile
     #   transformers
+openai==1.63.2
+    # via -r test/requirements.in
 orjson==3.10.15
     # via gradio
 packaging==24.2
