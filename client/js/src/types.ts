@@ -160,13 +160,13 @@ export interface Config {
 	analytics_enabled: boolean;
 	connect_heartbeat: boolean;
 	dev_mode: boolean;
+	vibe_mode: boolean;
 	auth_message: string;
 	components: ComponentMeta[];
 	css: string | null;
 	js: string | null;
 	head: string | null;
 	dependencies: Dependency[];
-	dev_mode: boolean;
 	enable_queue: boolean;
 	show_error: boolean;
 	layout: any;
