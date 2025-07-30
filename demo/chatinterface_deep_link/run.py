@@ -16,8 +16,20 @@ chat = gr.ChatInterface(
 )
 
 with gr.Blocks() as demo:
-    chat.render()
-    gr.DeepLinkButton()
+
+        chat.render()
+        gr.DeepLinkButton()
+
+with demo.route("cached_examples"):
+        gr.Interface(lambda x, y: f"{y}: {x}",
+                     inputs=[gr.Textbox(label="name"),
+                             gr.Radio(label="Salutation", choices=["Hello", "Greetings"])
+                     ],
+                     outputs=gr.Textbox(label="Output"),
+                     examples=[["Freddy", "Hello"]],
+                     cache_examples=True,
+                     deep_link=True)
+
 
 
 if __name__ == "__main__":
