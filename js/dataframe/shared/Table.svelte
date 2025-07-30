@@ -37,6 +37,7 @@
 		handle_file_upload
 	} from "./utils/table_utils";
 	import { make_headers, process_data } from "./utils/data_processing";
+	import { cast_value_to_type } from "./utils";
 	import { handle_keydown, handle_cell_blur } from "./utils/keyboard_utils";
 	import {
 		create_drag_handlers,
@@ -330,7 +331,15 @@
 	$: {
 		if (data || _headers) {
 			df_actions.trigger_change(
-				data,
+				data.map((row, rowIdx) =>
+					row.map((cell, colIdx) => {
+						const dtype = Array.isArray(datatype) ? datatype[colIdx] : datatype;
+						return {
+							...cell,
+							value: cast_value_to_type(cell.value, dtype)
+						};
+					})
+				),
 				_headers,
 				previous_data,
 				previous_headers,

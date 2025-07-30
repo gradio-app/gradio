@@ -103,7 +103,7 @@ class DeepLinkButton(Button):
             f"""
         () => {{
             const sessionHash = window.__gradio_session_hash__;
-            fetch(`/gradio_api/deep_link?session_hash=${{sessionHash}}`)
+            fetch(`gradio_api/deep_link?session_hash=${{sessionHash}}`)
                 .then(response => {{
                     if (!response.ok) {{
                         throw new Error('Network response was not ok');
