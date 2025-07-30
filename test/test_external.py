@@ -184,7 +184,8 @@ class TestLoadInterface:
 
     def test_sentiment_model(self):
         io = gr.load(
-            "models/distilbert/distilbert-base-uncased-finetuned-sst-2-english", hf_token=HF_TOKEN
+            "models/distilbert/distilbert-base-uncased-finetuned-sst-2-english",
+            hf_token=HF_TOKEN,
         )
         try:
             assert io("I am happy, I love you")["label"] == "POSITIVE"
