@@ -1,6 +1,7 @@
 import os
 import random
 import re
+import sys
 
 import gradio_client
 import pytest
@@ -8,6 +9,9 @@ import requests
 
 TEST_NAME = "reverse_proxy"
 folder = os.path.dirname(os.path.abspath(__file__))
+
+
+pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="Skipped on Windows")
 
 
 @pytest.fixture(scope="module")
