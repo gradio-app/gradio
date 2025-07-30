@@ -1,5 +1,17 @@
 # @gradio/dataframe
 
+## 0.18.4
+
+### Fixes
+
+- [#11559](https://github.com/gradio-app/gradio/pull/11559) [`dd9d8f1`](https://github.com/gradio-app/gradio/commit/dd9d8f1ed677e2d09a3061764c312f40133ab50d) - `gr.Dataframe` returns a `number` \ `bool` when the corresponding column is edited.  Thanks @janosch6!
+
+### Dependency updates
+
+- @gradio/upload@0.16.12
+- @gradio/client@1.15.7
+- @gradio/button@0.5.8
+
 ## 0.18.3
 
 ### Fixes

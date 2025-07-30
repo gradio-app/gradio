@@ -2,6 +2,13 @@
 
 ## 0.10.3
 
+### Dependency updates
+
+- @gradio/client@1.15.7
+- @gradio/core@0.24.0
+
+## 0.10.3
+
 ### Fixes
 
 - [#11632](https://github.com/gradio-app/gradio/pull/11632) [`8f19bff`](https://github.com/gradio-app/gradio/commit/8f19bffd04a73d4fc1080f5854caa0361516f3af) - ensure i18n is initialised before displaying localised loading text.  Thanks @pngwn!

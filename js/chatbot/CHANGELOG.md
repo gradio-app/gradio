@@ -1,5 +1,19 @@
 # @gradio/chatbot
 
+## 0.26.19
+
+### Fixes
+
+- [#11601](https://github.com/gradio-app/gradio/pull/11601) [`7d5a762`](https://github.com/gradio-app/gradio/commit/7d5a7629794146b33217e0cf34a289d35d1e36da) - Fix like/dislike buttons to appear on every message when group_consecutive_messages=False.  Thanks @copilot-swe-agent!
+
+### Dependency updates
+
+- @gradio/upload@0.16.12
+- @gradio/video@0.14.22
+- @gradio/client@1.15.7
+- @gradio/gallery@0.15.28
+- @gradio/image@0.22.14
+
 ## 0.26.18
 
 ### Dependency updates

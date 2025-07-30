@@ -1,5 +1,24 @@
 # gradio
 
+## 5.39.0
+
+### Features
+
+- [#11635](https://github.com/gradio-app/gradio/pull/11635) [`64a87c6`](https://github.com/gradio-app/gradio/commit/64a87c6a3924de13aae47acfa069c9ccd469103f) - Improve schema for `gr.Number` and `gr.Slider` and other related changes around precision and minimum/maximum range.  Thanks @abidlabs!
+- [#11651](https://github.com/gradio-app/gradio/pull/11651) [`5b0e212`](https://github.com/gradio-app/gradio/commit/5b0e212ec0d54b5d793985de94c216bc5a73f610) - Allow users choose the MCP tools from MCP docs pane.  Thanks @abidlabs!
+- [#11622](https://github.com/gradio-app/gradio/pull/11622) [`ae9aaee`](https://github.com/gradio-app/gradio/commit/ae9aaeea62974f1fb533946a2a7c8461572778ef) - Expose Streamable HTTP endpoint in MCP Server at `/mcp`.  Thanks @abidlabs!
+- [#11625](https://github.com/gradio-app/gradio/pull/11625) [`129a2f6`](https://github.com/gradio-app/gradio/commit/129a2f64313de13f58f89af8598a779b27416a38) - Add image text to text pipeline.  Thanks @elanehan!
+- [#11630](https://github.com/gradio-app/gradio/pull/11630) [`1d196db`](https://github.com/gradio-app/gradio/commit/1d196db188d44cbfd118644b25132090ee79ab92) - Add `auth_token` and `exclude_paths` to `gr.load_openapi`.  Thanks @abidlabs!
+
+### Fixes
+
+- [#11652](https://github.com/gradio-app/gradio/pull/11652) [`69ecab3`](https://github.com/gradio-app/gradio/commit/69ecab35782a6704be6c1164eed41e8ade04e503) - Load Cached Examples from DeepLink.  Thanks @freddyaboulton!
+- [#11601](https://github.com/gradio-app/gradio/pull/11601) [`7d5a762`](https://github.com/gradio-app/gradio/commit/7d5a7629794146b33217e0cf34a289d35d1e36da) - Fix like/dislike buttons to appear on every message when group_consecutive_messages=False.  Thanks @copilot-swe-agent!
+- [#11650](https://github.com/gradio-app/gradio/pull/11650) [`81f9296`](https://github.com/gradio-app/gradio/commit/81f92968812e258d0f5e6f7c0ab7db6d6fb58719) - Fix some DeepLink Bugs.  Thanks @freddyaboulton!
+- [#11604](https://github.com/gradio-app/gradio/pull/11604) [`83e14bc`](https://github.com/gradio-app/gradio/commit/83e14bcfa653e2ec477f0d09b497adf605734e46) - Fix event cancelling bug.  Thanks @freddyaboulton!
+- [#11643](https://github.com/gradio-app/gradio/pull/11643) [`8923c42`](https://github.com/gradio-app/gradio/commit/8923c42fcd367eebac75313c44ed76725c903dc8) - Fix lifespan state.  Thanks @freddyaboulton!
+- [#11559](https://github.com/gradio-app/gradio/pull/11559) [`dd9d8f1`](https://github.com/gradio-app/gradio/commit/dd9d8f1ed677e2d09a3061764c312f40133ab50d) - `gr.Dataframe` returns a `number` \ `bool` when the corresponding column is edited.  Thanks @janosch6!
+
 ## 5.38.2
 
 ### Fixes
