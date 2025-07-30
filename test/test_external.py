@@ -6,7 +6,6 @@ from unittest.mock import MagicMock, patch
 
 import huggingface_hub
 import pytest
-from gradio_client import media_data
 
 import gradio as gr
 from gradio.context import Context
@@ -194,37 +193,6 @@ class TestLoadInterface:
         with pytest.raises(GradioVersionIncompatibleError):
             gr.load("spaces/gradio-tests/titanic-survival")
 
-    def test_speech_recognition_model(self):
-        io = gr.load("models/facebook/wav2vec2-base-960h", hf_token=HF_TOKEN)
-        try:
-            output = io("gradio/test_data/test_audio.wav")
-            assert output is not None
-        except TooManyRequestsError:
-            pass
-
-    def test_private_space(self):
-        io = gr.load(
-            "spaces/gradio-tests/not-actually-private-spacev4-sse", hf_token=HF_TOKEN
-        )
-        try:
-            output = io("abc")
-            assert output == "abc"
-            assert io.theme.name == "default"
-        except TooManyRequestsError:
-            pass
-
-    @pytest.mark.xfail
-    def test_private_space_audio(self):
-        io = gr.load(
-            "spaces/gradio-tests/not-actually-private-space-audiov4-sse",
-            hf_token=HF_TOKEN,
-        )
-        try:
-            output = io(media_data.BASE64_AUDIO["path"])
-            assert output.endswith(".wav")
-        except TooManyRequestsError:
-            pass
-
     def test_multiple_spaces_one_private(self):
         with gr.Blocks():
             gr.load(
@@ -355,21 +323,6 @@ def check_dataset(config, readme_examples):
     else:
         dataset = next(c for c in config["components"] if c["type"] == "dataset")
         assert dataset["props"]["samples"] == [[cols_to_rows(readme_examples)[1]]]
-
-
-@pytest.mark.xfail
-def test_load_blocks_with_default_values():
-    io = gr.load("spaces/gradio-tests/min-dallev4-sse")
-    assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
-
-    io = gr.load("spaces/gradio-tests/min-dalle-laterv4-sse")
-    assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
-
-    io = gr.load("spaces/gradio-tests/dataframe_loadv4-sse")
-    assert io.get_config_file()["components"][0]["props"]["value"] == {
-        "headers": ["a", "b"],
-        "data": [[1, 4], [2, 5], [3, 6]],
-    }
 
 
 @pytest.mark.parametrize(

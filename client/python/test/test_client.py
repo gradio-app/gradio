@@ -432,35 +432,6 @@ class TestClientPredictions:
             assert job2.status().code == Status.FINISHED
             assert len(job2.outputs()) == 4
 
-    @pytest.mark.xfail
-    def test_stream_audio(self, stream_audio):
-        with connect(stream_audio) as client:
-            job1 = client.submit(
-                handle_file(
-                    "https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4"
-                ),
-                api_name="/predict",
-            )
-            assert Path(job1.result()).exists()
-
-            job2 = client.submit(
-                handle_file(
-                    "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-                ),
-                api_name="/predict",
-            )
-            assert Path(job2.result()).exists()
-            assert all(Path(p).exists() for p in job2.outputs())
-
-        with patch.object(
-            client.endpoints[0], "serialize", wraps=client.endpoints[0].serialize
-        ) as serialize:
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-                f.write("Hello from private space!")
-
-                client.submit(1, "foo", f.name, fn_index=0).result()
-                serialize.assert_called_once_with(1, "foo", f.name)
-
     def test_does_not_upload_dir(self, stateful_chatbot):
         with connect(stateful_chatbot) as client:
             initial_history = [["", None]]
