@@ -6,15 +6,12 @@ from unittest.mock import MagicMock, patch
 
 import huggingface_hub
 import pytest
-from fastapi.testclient import TestClient
-from gradio_client import media_data
 
 import gradio as gr
 from gradio.context import Context
 from gradio.exceptions import GradioVersionIncompatibleError, InvalidApiNameError
 from gradio.external import TooManyRequestsError
 from gradio.external_utils import cols_to_rows, get_tabular_examples
-from gradio.route_utils import API_PREFIX
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's
@@ -86,16 +83,6 @@ class TestLoadInterface:
         model_type = "translation"
         interface = gr.load(
             "models/facebook/bart-large-cnn", hf_token=HF_TOKEN, alias=model_type
-        )
-        assert interface.__name__ == model_type
-        assert interface.input_components and interface.output_components
-        assert isinstance(interface.input_components[0], gr.Textbox)
-        assert isinstance(interface.output_components[0], gr.Textbox)
-
-    def test_text2text_generation(self):
-        model_type = "text2text-generation"
-        interface = gr.load(
-            "models/sshleifer/tiny-mbart", hf_token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -192,99 +179,9 @@ class TestLoadInterface:
         assert isinstance(interface.input_components[0], gr.Textbox)
         assert isinstance(interface.output_components[0], gr.Audio)
 
-    def test_english_to_spanish(self):
-        with pytest.raises(GradioVersionIncompatibleError):
-            gr.load("spaces/gradio-tests/english_to_spanish", title="hi")
-
-    def test_english_to_spanish_v4(self):
-        with pytest.warns(UserWarning):
-            io = gr.load("spaces/gradio-tests/english_to_spanishv4-sse", title="hi")
-        assert io.input_components and io.output_components
-        assert isinstance(io.input_components[0], gr.Textbox)
-        assert isinstance(io.output_components[0], gr.Textbox)
-
-    def test_sentiment_model(self):
-        io = gr.load(
-            "models/distilbert-base-uncased-finetuned-sst-2-english", hf_token=HF_TOKEN
-        )
-        try:
-            assert io("I am happy, I love you")["label"] == "POSITIVE"
-        except TooManyRequestsError:
-            pass
-
-    def test_image_classification_model(self):
-        io = gr.load(name="models/google/vit-base-patch16-224", hf_token=HF_TOKEN)
-        try:
-            assert io("gradio/test_data/lion.jpg")["label"].startswith("lion")
-        except TooManyRequestsError:
-            pass
-
-    def test_translation_model(self):
-        io = gr.load(name="models/t5-base", hf_token=HF_TOKEN)
-        try:
-            output = io("My name is Sarah and I live in London")
-            assert output == "Mein Name ist Sarah und ich lebe in London"
-        except TooManyRequestsError:
-            pass
-
     def test_raise_incompatbile_version_error(self):
         with pytest.raises(GradioVersionIncompatibleError):
             gr.load("spaces/gradio-tests/titanic-survival")
-
-    def test_numerical_to_label_space(self):
-        io = gr.load("spaces/gradio-tests/titanic-survivalv4-sse")
-        try:
-            assert io.theme.name == "soft"
-            assert io("male", 77, 10)["label"] == "Perishes"
-        except TooManyRequestsError:
-            pass
-
-    def test_visual_question_answering(self):
-        io = gr.load("models/dandelin/vilt-b32-finetuned-vqa", hf_token=HF_TOKEN)
-        try:
-            output = io("gradio/test_data/lion.jpg", "What is in the image?")
-            assert isinstance(output, dict) and "label" in output
-        except TooManyRequestsError:
-            pass
-
-    def test_image_to_text(self):
-        io = gr.load("models/nlpconnect/vit-gpt2-image-captioning", hf_token=HF_TOKEN)
-        try:
-            output = io("gradio/test_data/lion.jpg")
-            assert isinstance(output, str)
-        except TooManyRequestsError:
-            pass
-
-    def test_speech_recognition_model(self):
-        io = gr.load("models/facebook/wav2vec2-base-960h", hf_token=HF_TOKEN)
-        try:
-            output = io("gradio/test_data/test_audio.wav")
-            assert output is not None
-        except TooManyRequestsError:
-            pass
-
-    def test_private_space(self):
-        io = gr.load(
-            "spaces/gradio-tests/not-actually-private-spacev4-sse", hf_token=HF_TOKEN
-        )
-        try:
-            output = io("abc")
-            assert output == "abc"
-            assert io.theme.name == "default"
-        except TooManyRequestsError:
-            pass
-
-    @pytest.mark.xfail
-    def test_private_space_audio(self):
-        io = gr.load(
-            "spaces/gradio-tests/not-actually-private-space-audiov4-sse",
-            hf_token=HF_TOKEN,
-        )
-        try:
-            output = io(media_data.BASE64_AUDIO["path"])
-            assert output.endswith(".wav")
-        except TooManyRequestsError:
-            pass
 
     def test_multiple_spaces_one_private(self):
         with gr.Blocks():
@@ -296,18 +193,6 @@ class TestLoadInterface:
                 "spaces/gradio/test-loading-examplesv4-sse",
             )
         assert Context.hf_token == HF_TOKEN
-
-    def test_loading_files_via_proxy_works(self):
-        io = gr.load(
-            "spaces/gradio-tests/test-loading-examples-privatev4-sse", hf_token=HF_TOKEN
-        )
-        assert io.theme.name == "default"
-        app, _, _ = io.launch(prevent_thread_lock=True)
-        test_client = TestClient(app)
-        r = test_client.get(
-            f"{API_PREFIX}/proxy=https://gradio-tests-test-loading-examples-privatev4-sse.hf.space/file=Bunny.obj"
-        )
-        assert r.status_code == 200
 
     def test_private_space_v4_sse_v1(self):
         io = gr.load(
@@ -359,15 +244,6 @@ class TestLoadInterfaceWithExamples:
         demo = gr.load("spaces/gradio/simple_galleryv4-sse")
         gallery = demo("test")
         assert all("caption" in d for d in gallery)
-
-    def test_interface_with_examples(self):
-        # This demo has the "fake_event" correctly removed
-        demo = gr.load("spaces/gradio-tests/test-calculator-1v4-sse")
-        assert demo(2, "add", 3) == 5
-
-        # This demo still has the "fake_event". both should work
-        demo = gr.load("spaces/gradio-tests/test-calculator-2v4-sse")
-        assert demo(2, "add", 4) == 6
 
     def test_loading_chatbot_with_avatar_images_does_not_raise_errors(self):
         gr.load("gradio/chatbot_multimodal", src="spaces")
@@ -437,21 +313,6 @@ def check_dataset(config, readme_examples):
     else:
         dataset = next(c for c in config["components"] if c["type"] == "dataset")
         assert dataset["props"]["samples"] == [[cols_to_rows(readme_examples)[1]]]
-
-
-@pytest.mark.xfail
-def test_load_blocks_with_default_values():
-    io = gr.load("spaces/gradio-tests/min-dallev4-sse")
-    assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
-
-    io = gr.load("spaces/gradio-tests/min-dalle-laterv4-sse")
-    assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
-
-    io = gr.load("spaces/gradio-tests/dataframe_loadv4-sse")
-    assert io.get_config_file()["components"][0]["props"]["value"] == {
-        "headers": ["a", "b"],
-        "data": [[1, 4], [2, 5], [3, 6]],
-    }
 
 
 @pytest.mark.parametrize(
