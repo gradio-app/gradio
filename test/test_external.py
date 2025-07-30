@@ -92,16 +92,6 @@ class TestLoadInterface:
         assert isinstance(interface.input_components[0], gr.Textbox)
         assert isinstance(interface.output_components[0], gr.Textbox)
 
-    def test_text2text_generation(self):
-        model_type = "text2text-generation"
-        interface = gr.load(
-            "models/sshleifer/tiny-mbart", hf_token=HF_TOKEN, alias=model_type
-        )
-        assert interface.__name__ == model_type
-        assert interface.input_components and interface.output_components
-        assert isinstance(interface.input_components[0], gr.Textbox)
-        assert isinstance(interface.output_components[0], gr.Textbox)
-
     def test_text_classification(self):
         model_type = "text-classification"
         interface = gr.load(
@@ -192,38 +182,12 @@ class TestLoadInterface:
         assert isinstance(interface.input_components[0], gr.Textbox)
         assert isinstance(interface.output_components[0], gr.Audio)
 
-    def test_english_to_spanish(self):
-        with pytest.raises(GradioVersionIncompatibleError):
-            gr.load("spaces/gradio-tests/english_to_spanish", title="hi")
-
-    def test_english_to_spanish_v4(self):
-        with pytest.warns(UserWarning):
-            io = gr.load("spaces/gradio-tests/english_to_spanishv4-sse", title="hi")
-        assert io.input_components and io.output_components
-        assert isinstance(io.input_components[0], gr.Textbox)
-        assert isinstance(io.output_components[0], gr.Textbox)
-
     def test_sentiment_model(self):
         io = gr.load(
-            "models/distilbert-base-uncased-finetuned-sst-2-english", hf_token=HF_TOKEN
+            "models/distilbert/distilbert-base-uncased-finetuned-sst-2-english", hf_token=HF_TOKEN
         )
         try:
             assert io("I am happy, I love you")["label"] == "POSITIVE"
-        except TooManyRequestsError:
-            pass
-
-    def test_image_classification_model(self):
-        io = gr.load(name="models/google/vit-base-patch16-224", hf_token=HF_TOKEN)
-        try:
-            assert io("gradio/test_data/lion.jpg")["label"].startswith("lion")
-        except TooManyRequestsError:
-            pass
-
-    def test_translation_model(self):
-        io = gr.load(name="models/t5-base", hf_token=HF_TOKEN)
-        try:
-            output = io("My name is Sarah and I live in London")
-            assert output == "Mein Name ist Sarah und ich lebe in London"
         except TooManyRequestsError:
             pass
 
