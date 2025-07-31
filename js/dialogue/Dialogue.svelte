@@ -38,6 +38,11 @@
 	let textarea_element: HTMLTextAreaElement;
 	let old_value = JSON.stringify(value);
 	let offset_from_top = 0;
+
+	if (speakers.length === 0) {
+		checked = true;
+	}
+
 	$: if (value.length === 0 && dialogue_lines.length === 0) {
 		dialogue_lines = [{ speaker: speakers[0], text: "" }];
 	}
@@ -396,7 +401,7 @@
 
 	<!-- svelte-ignore missing-declaration -->
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
-	{#if !checked}
+	{#if !checked || speakers.length > 0}
 		<div class="dialogue-container" bind:this={dialogue_container_element}>
 			{#each dialogue_lines as line, i}
 				<div class="dialogue-line">
@@ -552,7 +557,7 @@
 	{/if}
 
 	<div class="controls-row">
-		<div class="switch-container">
+		<div class="switch-container" class:hidden={speakers.length === 0}>
 			<Switch label="Plain Text" bind:checked />
 		</div>
 
