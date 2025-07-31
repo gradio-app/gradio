@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/fileexplorer",
-	"version": "0.5.35",
+	"version": "0.5.36",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
