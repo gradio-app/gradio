@@ -2005,7 +2005,7 @@ Prompt:
             with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
                 f.write(content)
 
-            return {"hash": snapshot_hash, "code": content}
+            return {"hash": snapshot_hash}
 
         @router.post("/undo-vibe-edit/")
         @router.post("/undo-vibe-edit")
