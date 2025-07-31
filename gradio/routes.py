@@ -1968,12 +1968,12 @@ class App(FastAPI):
 
             # client = huggingface_hub.InferenceClient()
             client = openai.Client(
-                base_url="https://openrouter.ai/api/v1",
-                api_key=os.getenv("OPENROUTER_API_KEY"),
+                base_url="https://router.huggingface.co/together/v1",
+                api_key=os.getenv("HF_API_KEY")
             )
             content = ""
             prompt = f"""
-You are a Python code generator. Given the following existing code and prompt, return the full new code.
+You are a Gradio code generator. Given the following existing code and prompt, return the full new code.
 Existing code:
 ```python
 {demo_code}
@@ -1981,13 +1981,23 @@ Existing code:
 
 Prompt:
 {body.prompt}"""
+            system_prompt = load_system_prompt()
+            system_prompt = system_prompt[:-12485] # current system prompt is too long, need to fix on /llms.txt endpoint
             content = (
                 client.chat.completions.create(
-                    model="z-ai/glm-4.5", messages=[{"role": "user", "content": prompt}]
+                    model="Qwen/Qwen2.5-72B-Instruct-Turbo", 
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt}
+                        ],
+                    max_tokens=1000,
                 )
                 .choices[0]
                 .message.content
             )
+
+            if content is None:
+                raise HTTPException(status_code=500, detail="Error generating code")
 
             if "```python\n" in content:
                 start = content.index("```python\n") + len("```python\n")
@@ -2078,6 +2088,48 @@ Prompt:
 ########
 # Helper functions
 ########
+
+
+def load_system_prompt():
+    prompt_rules = """Generate code for using the Gradio python library.
+
+The following RULES must be followed.  Whenever you are forming a response, ensure all rules have been followed otherwise start over.
+
+RULES:
+Only respond with code, not text.
+Only respond with valid Python syntax.
+Never include backticks in your response such as \`\`\` or \`\`\`python.
+Do not include any code that is not necessary for the app to run.
+Respond with a full Gradio app.
+Respond with a full Gradio app using correct syntax and features of the latest Gradio version. DO NOT write code that doesn't follow the signatures listed.
+Add comments explaining the code, but do not include any text that is not formatted as a Python comment.
+Make sure the code includes all necessary imports.
+
+
+Here's an example of a valid response:
+
+# This is a simple Gradio app that greets the user.
+import gradio as gr
+
+# Define a function that takes a name and returns a greeting.
+def greet(name):
+    return "Hello " + name + "!"
+
+# Create a Gradio interface that takes a textbox input, runs it through the greet function, and returns output to a textbox.
+demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
+
+# Launch the interface.
+demo.launch()
+
+"""
+    try:
+        with httpx.Client() as client:
+            response = client.get("https://www.gradio.app/llms.txt")
+            system_prompt = response.text
+    except Exception as e:
+        system_prompt = ""
+    system_prompt = prompt_rules + system_prompt + prompt_rules
+    return system_prompt
 
 
 def routes_safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
