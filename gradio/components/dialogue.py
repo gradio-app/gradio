@@ -62,7 +62,7 @@ class Dialogue(Component):
         """
         Parameters:
             value: Value of the dialogue. It is a list of dictionaries, each containing a 'speaker' key and a 'text' key. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
-            speakers: The different speakers allowed in the dialogue.
+            speakers: The different speakers allowed in the dialogue. If `None` or an empty list, no speakers will be displayed. Instead, the component will be a standard textarea that optionally supports `tags` autocompletion.
             formatter: A function that formats the dialogue line dictionary, e.g. {"speaker": "Speaker 1", "text": "Hello, how are you?"} into a string, e.g. "Speaker 1: Hello, how are you?". This function is run on user input and the resulting string is passed into the prediction function.
             tags: The different tags allowed in the dialogue. Tags are displayed in an autocomplete menu below the input textbox when the user starts typing `:`. Use the exact tag name expected by the AI model or inference function.
             separator: The separator between the different dialogue lines used to join the formatted dialogue lines into a single string. For example, a newline character or empty string.
