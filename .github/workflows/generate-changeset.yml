@@ -27,6 +27,8 @@ jobs:
       pr_number: ${{ steps.pr_details.outputs.pr_number }}
       source_repo: ${{ steps.pr_details.outputs.source_repo }}
       source_branch: ${{ steps.pr_details.outputs.source_branch }}
+      actor: ${{ steps.pr_details.outputs.actor }}
+      sha: ${{ steps.pr_details.outputs.sha }}
     steps:
       - name: get pr details
         id: pr_details
@@ -52,6 +54,7 @@ jobs:
     outputs:
       skipped: ${{ steps.version.outputs.skipped }}
       comment_url: ${{ steps.version.outputs.comment_url }}
+      approved: ${{ steps.version.outputs.approved }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -67,6 +70,23 @@ jobs:
           main_pkg: gradio
           pr_number: ${{ needs.get-pr.outputs.pr_number }}
           branch_name: ${{ needs.get-pr.outputs.source_branch }}
+          actor: ${{ needs.get-pr.outputs.actor }}
+  update-status:
+    permissions:
+      actions: read
+      statuses: write
+    runs-on: ubuntu-latest
+    needs: [version, get-pr]
+    steps:
+      - name: update status
+        uses: gradio-app/github/actions/commit-status@main
+        with:
+          sha: ${{ needs.get-pr.outputs.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: "Changeset Results"
+          pr: ${{ needs.get-pr.outputs.pr_number }}
+          result: ${{ needs.version.outputs.approved == 'true' && 'success' || 'failure' }}
+          type: all
   comment-changes-skipped:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [get-pr, version]
