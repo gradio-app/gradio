@@ -1945,6 +1945,11 @@ class App(FastAPI):
         @router.post("/vibe-edit/")
         @router.post("/vibe-edit")
         async def vibe_edit(body: VibeEditBody):
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403, detail="Vibe editor is not enabled. Use --vibe flag to enable."
+                )
+            
             import openai
 
             from gradio.http_server import GRADIO_WATCH_DEMO_PATH
@@ -2007,6 +2012,11 @@ Prompt:
         @router.post("/undo-vibe-edit/")
         @router.post("/undo-vibe-edit")
         async def undo_vibe_edit(hash: str = Body(..., embed=True)):
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403, detail="Vibe editor is not enabled. Use --vibe flag to enable."
+                )
+            
             from gradio.http_server import GRADIO_WATCH_DEMO_PATH
 
             snapshot_file = vibe_edit_history_dir / f"{hash}.py"
@@ -2026,6 +2036,11 @@ Prompt:
         @router.get("/vibe-code/")
         @router.get("/vibe-code")
         async def get_vibe_code():
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403, detail="Vibe editor is not enabled. Use --vibe flag to enable."
+                )
+            
             from gradio.http_server import GRADIO_WATCH_DEMO_PATH
 
             try:
@@ -2042,6 +2057,11 @@ Prompt:
         @router.post("/vibe-code/")
         @router.post("/vibe-code")
         async def update_vibe_code(body: VibeCodeBody):
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403, detail="Vibe editor is not enabled. Use --vibe flag to enable."
+                )
+            
             from gradio.http_server import GRADIO_WATCH_DEMO_PATH
 
             try:

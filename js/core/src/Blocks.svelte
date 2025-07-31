@@ -57,6 +57,7 @@
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
 	export let dev_mode: boolean = false;
+	export let vibe_mode: boolean = false;
 	let broken_connection = false;
 
 	let {
@@ -963,7 +964,7 @@
 		if (settings_visible) {
 			loadSettings();
 		}
-		if (dev_mode) {
+		if (vibe_mode) {
 			loadVibeEditor();
 		}
 
@@ -998,7 +999,7 @@
 	<div
 		class="contain"
 		style:flex-grow={app_mode ? "1" : "auto"}
-		style:margin-right={dev_mode ? `${vibe_editor_width}px` : "0"}
+		style:margin-right={vibe_mode ? `${vibe_editor_width}px` : "0"}
 	>
 		{#if $_layout && app.config}
 			<MountComponents
@@ -1155,7 +1156,7 @@
 	<Toast {messages} on:close={handle_error_close} />
 {/if}
 
-{#if dev_mode && VibeEditor}
+{#if vibe_mode && VibeEditor}
 	<svelte:component this={VibeEditor} {app} {root} />
 {/if}
 

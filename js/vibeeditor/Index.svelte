@@ -215,18 +215,20 @@
 			</div>
 		{:else if activeTab === "code"}
 			<div class="code-content">
-				<BaseCode
-					bind:value={codeValue}
-					language="python"
-					lines={10}
-					dark_mode={false}
-					basic={true}
-					readonly={false}
-					placeholder="Enter your code here..."
-					wrap_lines={true}
-					show_line_numbers={true}
-					autocomplete={false}
-				/>
+				<div class="code-editor-container">
+					<BaseCode
+						bind:value={codeValue}
+						language="python"
+						lines={10}
+						dark_mode={false}
+						basic={true}
+						readonly={false}
+						placeholder="Enter your code here..."
+						wrap_lines={true}
+						show_line_numbers={true}
+						autocomplete={false}
+					/>
+				</div>
 				<button class="update-code-button" on:click={updateCode}>
 					Update Code
 				</button>
@@ -338,6 +340,13 @@
 		padding: 16px;
 		gap: 12px;
 		overflow: hidden;
+	}
+
+	.code-editor-container {
+		flex: 1;
+		overflow-y: auto;
+		overflow-x: hidden;
+		min-height: 0; /* Allow flex child to shrink below content size */
 	}
 
 	.update-code-button {
