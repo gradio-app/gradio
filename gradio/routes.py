@@ -1949,8 +1949,6 @@ class App(FastAPI):
                 raise HTTPException(
                     status_code=403, detail="Vibe editor is not enabled. Use --vibe flag to enable."
                 )
-            
-            import openai
 
             from gradio.http_server import GRADIO_WATCH_DEMO_PATH
 
@@ -1966,11 +1964,12 @@ class App(FastAPI):
             with open(snapshot_file, "w") as f:
                 f.write(demo_code)
 
-            # client = huggingface_hub.InferenceClient()
-            client = openai.Client(
-                base_url="https://router.huggingface.co/together/v1",
-                api_key=os.getenv("HF_API_KEY")
-            )
+            from huggingface_hub import InferenceClient
+
+            client = InferenceClient(
+                    provider="together"
+                )
+            
             content = ""
             prompt = f"""
 You are a Gradio code generator. Given the following existing code and prompt, return the full new code.
@@ -1982,10 +1981,9 @@ Existing code:
 Prompt:
 {body.prompt}"""
             system_prompt = load_system_prompt()
-            system_prompt = system_prompt[:-12485] # current system prompt is too long, need to fix on /llms.txt endpoint
             content = (
-                client.chat.completions.create(
-                    model="Qwen/Qwen2.5-72B-Instruct-Turbo", 
+                client.chat_completion(
+                    model="Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8",
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": prompt}
@@ -2098,7 +2096,7 @@ The following RULES must be followed.  Whenever you are forming a response, ensu
 RULES:
 Only respond with code, not text.
 Only respond with valid Python syntax.
-Never include backticks in your response such as \`\`\` or \`\`\`python.
+Never include backticks in your response such as ``` or ```python.
 Do not include any code that is not necessary for the app to run.
 Respond with a full Gradio app.
 Respond with a full Gradio app using correct syntax and features of the latest Gradio version. DO NOT write code that doesn't follow the signatures listed.

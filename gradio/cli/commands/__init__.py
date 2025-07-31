@@ -4,6 +4,7 @@ from .deploy_space import deploy
 from .reload import main as reload
 from .sketch import launch as sketch
 from .upload_mcp import main as upload_mcp
+from .hf_login import hf_login
 
 __all__ = [
     "deploy",
@@ -12,4 +13,5 @@ __all__ = [
     "custom_component",
     "sketch",
     "upload_mcp",
+    "hf_login"
 ]

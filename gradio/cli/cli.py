@@ -11,6 +11,7 @@ from .commands import (
     reload,
     sketch,
     upload_mcp,
+    hf_login
 )
 
 app = typer.Typer()
@@ -74,6 +75,8 @@ demo.launch()"""
         # Print security warning
         print("\n⚠️  WARNING: Vibe editor mode is enabled. Anyone who can access the Gradio endpoint can modify files and run arbitrary code on the host machine. Use with caution!\n")
         
+        hf_login()
+
         # Update sys.argv to run reload with the demo path
         sys.argv = ["gradio", str(demo_path)]
         typer.run(reload)
