@@ -1969,7 +1969,7 @@ class App(FastAPI):
             # client = huggingface_hub.InferenceClient()
             client = openai.Client(
                 base_url="https://router.huggingface.co/together/v1",
-                api_key=os.getenv("HF_API_KEY"),
+                api_key=os.getenv("HF_API_KEY")
             )
             content = ""
             prompt = f"""
@@ -2088,6 +2088,7 @@ Prompt:
 ########
 # Helper functions
 ########
+
 
 def load_system_prompt():
     prompt_rules = """Generate code for using the Gradio python library.
