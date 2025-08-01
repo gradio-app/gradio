@@ -13,5 +13,5 @@ __all__ = [
     "custom_component",
     "sketch",
     "upload_mcp",
-    "hf_login"
+    "hf_login",
 ]

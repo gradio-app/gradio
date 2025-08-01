@@ -1,7 +1,4 @@
-from huggingface_hub import (
-    interpreter_login,
-    whoami
-)
+from huggingface_hub import interpreter_login, whoami
 import os
 
 

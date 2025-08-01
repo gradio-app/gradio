@@ -1947,7 +1947,8 @@ class App(FastAPI):
         async def vibe_edit(body: VibeEditBody):
             if not blocks.vibe_mode:
                 raise HTTPException(
-                    status_code=403, detail="Vibe editor is not enabled. Use --vibe flag to enable."
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
                 )
 
             from gradio.http_server import GRADIO_WATCH_DEMO_PATH
@@ -1966,10 +1967,8 @@ class App(FastAPI):
 
             from huggingface_hub import InferenceClient
 
-            client = InferenceClient(
-                    provider="together"
-                )
-            
+            client = InferenceClient(provider="together")
+
             content = ""
             prompt = f"""
 You are a Gradio code generator. Given the following existing code and prompt, return the full new code.
@@ -1986,8 +1985,8 @@ Prompt:
                     model="Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8",
                     messages=[
                         {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt}
-                        ],
+                        {"role": "user", "content": prompt},
+                    ],
                     max_tokens=1000,
                 )
                 .choices[0]
@@ -2012,9 +2011,10 @@ Prompt:
         async def undo_vibe_edit(hash: str = Body(..., embed=True)):
             if not blocks.vibe_mode:
                 raise HTTPException(
-                    status_code=403, detail="Vibe editor is not enabled. Use --vibe flag to enable."
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
                 )
-            
+
             from gradio.http_server import GRADIO_WATCH_DEMO_PATH
 
             snapshot_file = vibe_edit_history_dir / f"{hash}.py"
@@ -2036,9 +2036,10 @@ Prompt:
         async def get_vibe_code():
             if not blocks.vibe_mode:
                 raise HTTPException(
-                    status_code=403, detail="Vibe editor is not enabled. Use --vibe flag to enable."
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
                 )
-            
+
             from gradio.http_server import GRADIO_WATCH_DEMO_PATH
 
             try:
@@ -2046,7 +2047,9 @@ Prompt:
                     code = f.read()
                 return {"code": code}
             except FileNotFoundError:
-                raise HTTPException(status_code=404, detail="Demo file not found") from None
+                raise HTTPException(
+                    status_code=404, detail="Demo file not found"
+                ) from None
             except Exception as e:
                 raise HTTPException(
                     status_code=500, detail=f"Error reading file: {str(e)}"
@@ -2057,9 +2060,10 @@ Prompt:
         async def update_vibe_code(body: VibeCodeBody):
             if not blocks.vibe_mode:
                 raise HTTPException(
-                    status_code=403, detail="Vibe editor is not enabled. Use --vibe flag to enable."
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
                 )
-            
+
             from gradio.http_server import GRADIO_WATCH_DEMO_PATH
 
             try:

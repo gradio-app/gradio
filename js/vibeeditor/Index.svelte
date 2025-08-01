@@ -10,11 +10,7 @@
 	let isResizing = false;
 	let editorElement: HTMLDivElement;
 	let activeTab: "chat" | "code" = "chat";
-	
-	// Watch for tab changes and sync code when switching to code tab
-	$: if (activeTab === "code") {
-		fetchCode();
-	}
+
 	let codeValue = "";
 
 	interface Message {
@@ -147,50 +143,12 @@
 		}
 	};
 
+	$: app, fetchCode();
+
 	onMount(() => {
-		// Fetch the current code when component mounts
-		fetchCode();
-
-		// Listen for app reconnection events (when reload happens)
-		const handleAppReconnect = () => {
-			// Refetch the code when the app reconnects after a reload
-			fetchCode();
-		};
-
-		// Listen for WebSocket connection events that indicate a reload
-		const handleWebSocketOpen = () => {
-			// Refetch code when WebSocket reconnects (indicates reload)
-			fetchCode();
-		};
-
-		// Set up periodic code syncing in dev mode to catch external file changes
-		const syncInterval = setInterval(() => {
-			if (activeTab === "code") {
-				fetchCode();
-			}
-		}, 2000); // Check every 2 seconds when code tab is active
-
-		// Listen for focus events to sync when user returns to browser
-		const handleWindowFocus = () => {
-			if (activeTab === "code") {
-				fetchCode();
-			}
-		};
-
-		window.addEventListener("focus", handleWindowFocus);
-
-		// Listen for custom events that might be dispatched on app reload  
-		window.addEventListener("gradio:reload", handleAppReconnect);
-		window.addEventListener("gradio:reconnect", handleAppReconnect);
-
-		// Clean up event listeners on unmount
 		return () => {
 			document.removeEventListener("mousemove", handleResizeMove);
 			document.removeEventListener("mouseup", handleResizeEnd);
-			window.removeEventListener("focus", handleWindowFocus);
-			window.removeEventListener("gradio:reload", handleAppReconnect);
-			window.removeEventListener("gradio:reconnect", handleAppReconnect);
-			clearInterval(syncInterval);
 		};
 	});
 </script>

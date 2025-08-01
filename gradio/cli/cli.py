@@ -11,7 +11,7 @@ from .commands import (
     reload,
     sketch,
     upload_mcp,
-    hf_login
+    hf_login,
 )
 
 app = typer.Typer()
@@ -50,16 +50,16 @@ def cli():
         # Handle --vibe flag
         import os
         from pathlib import Path
-        
+
         # Set vibe mode environment variable
         os.environ["GRADIO_VIBE_MODE"] = "1"
-        
+
         # Default to demo.py if no filename provided
         if len(args) == 1:
             demo_path = Path("demo.py")
         else:
             demo_path = Path(args[1])
-        
+
         # Create the file if it doesn't exist
         if not demo_path.exists():
             template_content = """import gradio as gr
@@ -71,10 +71,12 @@ demo.launch()"""
             with open(demo_path, "w") as f:
                 f.write(template_content)
             print(f"Created {demo_path} with default Gradio template.")
-        
+
         # Print security warning
-        print("\n⚠️  WARNING: Vibe editor mode is enabled. Anyone who can access the Gradio endpoint can modify files and run arbitrary code on the host machine. Use with caution!\n")
-        
+        print(
+            "\n⚠️  WARNING: Vibe editor mode is enabled. Anyone who can access the Gradio endpoint can modify files and run arbitrary code on the host machine. Use with caution!\n"
+        )
+
         hf_login()
 
         # Update sys.argv to run reload with the demo path

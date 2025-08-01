@@ -120,11 +120,11 @@ def main(
         GRADIO_WATCH_DEMO_NAME=demo_name,
         GRADIO_WATCH_DEMO_PATH=str(path),
     )
-    
+
     # Preserve GRADIO_VIBE_MODE if it was set
     if "GRADIO_VIBE_MODE" in os.environ:
         env_vars["GRADIO_VIBE_MODE"] = os.environ["GRADIO_VIBE_MODE"]
-    
+
     popen = subprocess.Popen(
         [sys.executable, "-u", path],
         env=env_vars,
