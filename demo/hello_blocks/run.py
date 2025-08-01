@@ -1,17 +1,15 @@
 import gradio as gr
 
+
+def greet(name):
+    return "Hello " + name + "!"
+
+
 with gr.Blocks() as demo:
-    with gr.Row():  # Row for textboxes
-        textbox1 = gr.Textbox(label="Textbox 1")
-        textbox2 = gr.Textbox(label="Textbox 2")
-    
-    with gr.Row():  # Row for buttons
-        btn = gr.Button("Reverse")
+    name = gr.Textbox(label="Name")
+    output = gr.Textbox(label="Output Box")
+    greet_btn = gr.Button("Greet")
+    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
 
-    def reverse_and_capitalize(text):
-        return text[::-1]
-
-    btn.click(reverse_and_capitalize, inputs=textbox1, outputs=textbox2)
-    textbox1.submit(reverse_and_capitalize, inputs=textbox1, outputs=textbox2)
-
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()
