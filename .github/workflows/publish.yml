@@ -10,7 +10,6 @@ on:
 env:
   CI: true
   PNPM_CACHE_FOLDER: .pnpm-store
-  NODE_OPTIONS: "--max-old-space-size=4096"
 jobs:
   version_or_publish:
     runs-on: ubuntu-22.04

@@ -20,6 +20,7 @@
 	import bash from "./img/bash.svg";
 	import ResponseSnippet from "./ResponseSnippet.svelte";
 	import mcp from "./img/mcp.svg";
+	import MCPSnippet from "./MCPSnippet.svelte";
 
 	export let dependencies: Dependency[];
 	export let root: string;
@@ -51,6 +52,21 @@
 
 	export let api_calls: Payload[] = [];
 	let current_language: "python" | "javascript" | "bash" | "mcp" = "python";
+
+	function set_query_param(key: string, value: string) {
+		const url = new URL(window.location.href);
+		url.searchParams.set(key, value);
+		history.replaceState(null, "", url.toString());
+	}
+
+	function get_query_param(key: string): string | null {
+		const url = new URL(window.location.href);
+		return url.searchParams.get(key);
+	}
+
+	function is_valid_language(lang: string | null): boolean {
+		return ["python", "javascript", "bash", "mcp"].includes(lang ?? "");
+	}
 
 	const langs = [
 		["python", "Python", python],
@@ -94,7 +110,27 @@
 
 	const dispatch = createEventDispatcher();
 
-	const mcp_server_url = `${root}gradio_api/mcp/sse`;
+	$: selected_tools_array = Array.from(selected_tools);
+	$: selected_tools_without_prefix =
+		selected_tools_array.map(remove_tool_prefix);
+	$: mcp_server_url = `${root}gradio_api/mcp/sse`;
+	$: mcp_server_url_streamable =
+		selected_tools_array.length > 0 &&
+		selected_tools_array.length < tools.length
+			? `${root}gradio_api/mcp/?tools=${selected_tools_without_prefix.join(",")}`
+			: `${root}gradio_api/mcp/`;
+
+	$: if (mcp_json_sse && selected_tools.size > 0) {
+		const baseUrl =
+			selected_tools_array.length > 0 &&
+			selected_tools_array.length < tools.length
+				? `${root}gradio_api/mcp/sse?tools=${selected_tools_without_prefix.join(",")}`
+				: `${root}gradio_api/mcp/sse`;
+		mcp_json_sse.mcpServers.gradio.url = baseUrl;
+		if (mcp_json_stdio) {
+			mcp_json_stdio.mcpServers.gradio.args[1] = baseUrl;
+		}
+	}
 
 	interface ToolParameter {
 		title?: string;
@@ -116,6 +152,15 @@
 	let mcp_json_sse: any;
 	let mcp_json_stdio: any;
 	let file_data_present = false;
+	let selected_tools: Set<string> = new Set();
+	let tool_prefix = space_id ? space_id.split("/").pop() + "_" : "";
+
+	function remove_tool_prefix(toolName: string): string {
+		if (tool_prefix && toolName.startsWith(tool_prefix)) {
+			return toolName.slice(tool_prefix.length);
+		}
+		return toolName;
+	}
 
 	const upload_file_mcp_server = {
 		command: "uvx",
@@ -129,9 +174,10 @@
 		]
 	};
 
-	async function fetchMcpTools() {
+	async function fetch_mcp_tools() {
 		try {
-			const response = await fetch(`${root}gradio_api/mcp/schema`);
+			let schema_url = `${root}gradio_api/mcp/schema`;
+			const response = await fetch(schema_url);
 			const schema = await response.json();
 			file_data_present = schema
 				.map((tool: any) => tool.meta?.file_data_present)
@@ -143,17 +189,20 @@
 				parameters: tool.inputSchema?.properties || {},
 				expanded: false
 			}));
+			selected_tools = new Set(tools.map((tool) => tool.name));
 			headers = schema.map((tool: any) => tool.meta?.headers || []).flat();
 			if (headers.length > 0) {
 				mcp_json_sse = {
 					mcpServers: {
 						gradio: {
 							url: mcp_server_url,
-							headers: headers.reduce((accumulator, current_key) => {
-								// @ts-ignore
-								accumulator[current_key] = "<YOUR_HEADER_VALUE>";
-								return accumulator;
-							}, {})
+							headers: headers.reduce(
+								(accumulator: Record<string, string>, current_key: string) => {
+									accumulator[current_key] = "<YOUR_HEADER_VALUE>";
+									return accumulator;
+								},
+								{}
+							)
 						}
 					}
 				};
@@ -211,12 +260,24 @@
 			window.parentIFrame?.scrollTo(0, 0);
 		}
 
+		const lang_param = get_query_param("lang");
+		if (is_valid_language(lang_param)) {
+			current_language = lang_param as "python" | "javascript" | "bash" | "mcp";
+		}
+
 		// Check MCP server status and fetch tools if active
 		fetch(mcp_server_url)
 			.then((response) => {
 				mcp_server_active = response.ok;
 				if (mcp_server_active) {
-					fetchMcpTools();
+					fetch_mcp_tools();
+					if (!is_valid_language(lang_param)) {
+						current_language = "mcp";
+					}
+				} else {
+					if (!is_valid_language(lang_param)) {
+						current_language = "python";
+					}
 				}
 			})
 			.catch(() => {
@@ -252,7 +313,10 @@
 						<li
 							class="snippet
 						{current_language === language ? 'current-lang' : 'inactive-lang'}"
-							on:click={() => (current_language = language)}
+							on:click={() => {
+								current_language = language;
+								set_query_param("lang", language);
+							}}
 						>
 							<img src={img} alt="" />
 							{display_name}
@@ -305,135 +369,18 @@
 								target="_blank">docs</a
 							>) if you don't already have it installed.
 						{:else if current_language == "mcp"}
-							{#if mcp_server_active}
-								<Block>
-									<div class="mcp-url">
-										<label
-											><span class="status-indicator active">●</span>MCP Server
-											URL (SSE)</label
-										>
-										<div class="textbox">
-											<input type="text" readonly value={mcp_server_url} />
-											<CopyButton code={mcp_server_url} />
-										</div>
-									</div>
-								</Block>
-								<p>&nbsp;</p>
-								<strong>Available MCP Tools</strong>
-								<div class="mcp-tools">
-									{#each tools as tool}
-										<div class="tool-item">
-											<button
-												class="tool-header"
-												on:click={() => (tool.expanded = !tool.expanded)}
-											>
-												<span
-													><span class="tool-name">{tool.name}</span> &nbsp;
-													<span class="tool-description"
-														>{tool.description
-															? tool.description
-															: "⚠︎ No description provided in function docstring"}</span
-													></span
-												>
-												<span class="tool-arrow"
-													>{tool.expanded ? "▼" : "▶"}</span
-												>
-											</button>
-											{#if tool.expanded}
-												<div class="tool-content">
-													{#if Object.keys(tool.parameters).length > 0}
-														<div class="tool-parameters">
-															{#each Object.entries(tool.parameters) as [name, param]}
-																<div class="parameter">
-																	<code>{name}</code>
-																	<span class="parameter-type">
-																		({param.type}{param.default !== undefined
-																			? `, default: ${JSON.stringify(param.default)}`
-																			: ""})
-																	</span>
-																	<p class="parameter-description">
-																		{param.description
-																			? param.description
-																			: "⚠︎ No description for this parameter in function docstring"}
-																	</p>
-																</div>
-															{/each}
-														</div>
-													{:else}
-														<p>Takes no input parameters</p>
-													{/if}
-												</div>
-											{/if}
-										</div>
-									{/each}
-								</div>
-								<p>&nbsp;</p>
-
-								<strong>SSE Transport</strong>: To add this MCP to clients that
-								support SSE (e.g. Cursor, Windsurf, Cline), simply add the
-								following configuration to your MCP config.
-								<p>&nbsp;</p>
-								<Block>
-									<code>
-										<div class="copy">
-											<CopyButton
-												code={JSON.stringify(mcp_json_sse, null, 2)}
-											/>
-										</div>
-										<div>
-											<pre>{JSON.stringify(mcp_json_sse, null, 2)}</pre>
-										</div>
-									</code>
-								</Block>
-								{#if file_data_present}
-									<p>&nbsp;</p>
-									<em>Note about files</em>: Gradio MCP servers that have files
-									as inputs need the files as URLs, so the
-									<code>upload_files_to_gradio</code>
-									tool is included for your convenience. This tool can upload files
-									located in the specified <code>UPLOAD_DIRECTORY</code>
-									argument (an absolute path in your local machine) or any of its
-									subdirectories to the Gradio app. You can omit this tool if you
-									are fine manually uploading files yourself and providing the URLs.
-									Before using this tool, you must have
-									<a
-										href="https://docs.astral.sh/uv/getting-started/installation/"
-										target="_blank">uv installed</a
-									>.
-									<p>&nbsp;</p>
-								{/if}
-
-								<strong>STDIO Transport</strong>: For clients that only support
-								stdio (e.g. Claude Desktop), first
-								<a href="https://nodejs.org/en/download/" target="_blank"
-									>install Node.js</a
-								>. Then, you can use the following command:
-								<p>&nbsp;</p>
-								<Block>
-									<code>
-										<div class="copy">
-											<CopyButton
-												code={JSON.stringify(mcp_json_stdio, null, 2)}
-											/>
-										</div>
-										<div>
-											<pre>{JSON.stringify(mcp_json_stdio, null, 2)}</pre>
-										</div>
-									</code>
-								</Block>
-								<p>&nbsp;</p>
-								<p>
-									<a href={mcp_docs} target="_blank">
-										Read more about MCP in the Gradio docs
-									</a>
-								</p>
-							{:else}
-								This Gradio app can also serve as an MCP server, with an MCP
-								tool corresponding to each API endpoint. To enable this, launch
-								this Gradio app with <code>.launch(mcp_server=True)</code> or
-								set the <code>GRADIO_MCP_SERVER</code> env variable to
-								<code>"True"</code>.
-							{/if}
+							<MCPSnippet
+								{mcp_server_active}
+								{mcp_server_url}
+								{mcp_server_url_streamable}
+								tools={tools.filter((tool) => selected_tools.has(tool.name))}
+								all_tools={tools}
+								bind:selected_tools
+								{mcp_json_sse}
+								{mcp_json_stdio}
+								{file_data_present}
+								{mcp_docs}
+							/>
 						{:else}
 							1. Confirm that you have cURL installed on your system.
 						{/if}
@@ -607,6 +554,7 @@
 		color: var(--body-text-color);
 		line-height: 1;
 		user-select: none;
+		font-size: var(--text-lg);
 	}
 
 	.current-lang {
@@ -627,7 +575,8 @@
 
 	.snippet img {
 		margin-right: var(--size-1-5);
-		width: var(--size-3);
+		width: var(--size-4);
+		height: var(--size-4);
 	}
 
 	.header {
@@ -725,137 +674,5 @@
 
 	.api-name {
 		color: var(--color-accent);
-	}
-
-	.mcp-url {
-		padding: var(--size-2);
-		position: relative;
-	}
-
-	.mcp-url label {
-		display: block;
-		margin-bottom: var(--size-2);
-		font-weight: 600;
-		color: var(--body-text-color);
-	}
-
-	.mcp-url .textbox {
-		display: flex;
-		align-items: center;
-		gap: var(--size-2);
-		border: 1px solid var(--border-color-primary);
-		border-radius: var(--radius-sm);
-		padding: var(--size-2);
-		background: var(--background-fill-primary);
-	}
-
-	.mcp-url input {
-		flex: 1;
-		border: none;
-		background: none;
-		color: var(--body-text-color);
-		font-family: var(--font-mono);
-		font-size: var(--text-md);
-		width: 100%;
-	}
-
-	.mcp-url input:focus {
-		outline: none;
-	}
-
-	.status-indicator {
-		display: inline-block;
-		margin-right: var(--size-1-5);
-		position: relative;
-		top: -1px;
-		font-size: 0.8em;
-	}
-
-	.status-indicator.active {
-		color: #4caf50;
-		animation: pulse 1s infinite;
-	}
-
-	@keyframes pulse {
-		0% {
-			opacity: 1;
-		}
-		50% {
-			opacity: 0.6;
-		}
-		100% {
-			opacity: 1;
-		}
-	}
-
-	.mcp-tools {
-		margin-top: var(--size-4);
-		border: 1px solid var(--border-color-primary);
-		border-radius: var(--radius-md);
-		overflow: hidden;
-	}
-
-	.tool-item {
-		border-bottom: 1px solid var(--border-color-primary);
-	}
-
-	.tool-item:last-child {
-		border-bottom: none;
-	}
-
-	.tool-header {
-		width: 100%;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: var(--size-3);
-		background: var(--background-fill-primary);
-		border: none;
-		cursor: pointer;
-		text-align: left;
-	}
-
-	.tool-header:hover {
-		background: var(--background-fill-secondary);
-	}
-
-	.tool-name {
-		font-family: var(--font-mono);
-		font-weight: 600;
-	}
-
-	.tool-arrow {
-		color: var(--body-text-color-subdued);
-	}
-
-	.tool-content {
-		padding: var(--size-3);
-		background: var(--background-fill-secondary);
-	}
-
-	.tool-description {
-		margin-bottom: var(--size-3);
-		color: var(--body-text-color);
-	}
-	.parameter {
-		margin-bottom: var(--size-2);
-		padding: var(--size-2);
-		background: var(--background-fill-primary);
-		border-radius: var(--radius-sm);
-	}
-
-	.parameter code {
-		font-weight: 600;
-		color: var(--color-accent);
-	}
-
-	.parameter-type {
-		color: var(--body-text-color-subdued);
-		margin-left: var(--size-1);
-	}
-
-	.parameter-description {
-		margin-top: var(--size-1);
-		color: var(--body-text-color);
 	}
 </style>

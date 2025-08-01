@@ -13,7 +13,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_OPTIONS: "--max-old-space-size=4096"
   HF_TOKEN: ${{ vars.HF_TOKEN }}
 
 permissions: {}
@@ -80,7 +79,8 @@ jobs:
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}
           python -m pytest -n auto -m "${{ matrix.test-type }} and not serial"
-      - name: Run serial tests
+      - name: Run non-flaky serial tests
+        if: matrix.test-type == 'not flaky'
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}
           python -m pytest -m "${{ matrix.test-type }} and serial"

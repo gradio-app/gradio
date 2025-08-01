@@ -13,6 +13,9 @@ concurrency:
 
 permissions: {}
 
+env:
+  CI: true
+
 jobs:
   changes:
     permissions:

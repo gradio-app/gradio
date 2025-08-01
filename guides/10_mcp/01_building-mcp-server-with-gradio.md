@@ -190,19 +190,19 @@ $code_mcp_progress
 
 Gradio automatically sets the tool name based on the name of your function, and the description from the docstring of your function. But you may want to change how the description appears to your LLM. You can do this by using the `api_description` parameter in `Interface`, `ChatInterface`, or any event listener. This parameter takes three different kinds of values:
 
-* `None` (default): in which case the tool description is automatically created from the docstring of the function
-* `False`: in which case, no tool description appears to the LLM.
-* `str`: any arbitrary string to use as the tool description.
+* `None` (default): the tool description is automatically created from the docstring of the function (or its parent's docstring if it does not have a docstring but inherits from a method that does.)
+* `False`: no tool description appears to the LLM.
+* `str`: an arbitrary string to use as the tool description.
 
-In addition to modifying the tool descriptions, you can also toggle which tools appear to the LLM. You can do this by setting the `show_api` parameter, which is by default `True`. Setting it to `False` hides the endpoint from the API docs and from the MCP server.
+In addition to modifying the tool descriptions, you can also toggle which tools appear to the LLM. You can do this by setting the `show_api` parameter, which is by default `True`. Setting it to `False` hides the endpoint from the API docs and from the MCP server. If you expose multiple tools, users of your app will also be able to toggle which tools they'd like to add to their MCP server by checking boxes in the "view MCP or API" panel.
 
-Here's an example that shows these parameters in actions:
+Here's an example that shows the `api_description` and `show_api` parameters in actions:
 
 $code_mcp_tools
 
 ## Adding MCP-Only Tools
 
-So far, all of our MCP tools have corresponded to event listeners in the UI. This works well for functions that directly update the UI, but may not work if you wish to expose a "pure logic" function that should return raw data (e.g., a JSON object) without directly causing a UI update.
+So far, all of our MCP tools have corresponded to event listeners in the UI. This works well for functions that directly update the UI, but may not work if you wish to expose a "pure logic" function that should return raw data (e.g. a JSON object) without directly causing a UI update.
 
 In order to expose such an MCP tool, you can create a pure Gradio API endpoint using `gr.api` (see [full docs here](https://www.gradio.app/main/docs/gradio/api)). Here's an example of creating an MCP tool that slices a list:
 
@@ -217,7 +217,6 @@ In some cases, you may decide not to use Gradio's built-in integration and inste
 
 - Store state / identify users between calls instead of treating every tool call completely independently
 - Start the Gradio app MCP server when a tool is called (if you are running multiple Gradio apps locally and want to save memory / GPU)
-- Use a different MCP protocol than SSE
 
 This is very doable thanks to the [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) and the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)'s `FastMCP` class. Here's an example of creating a custom MCP server that connects to various Gradio apps hosted on [HuggingFace Spaces](https://huggingface.co/spaces) using the `stdio` protocol:
 

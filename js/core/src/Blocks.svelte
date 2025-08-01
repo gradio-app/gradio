@@ -71,8 +71,11 @@
 		loading_status,
 		scheduled_updates,
 		create_layout,
-		rerender_layout
-	} = create_components(initial_layout);
+		rerender_layout,
+		value_change
+	} = create_components({
+		initial_layout
+	});
 
 	$: components, layout, dependencies, root, app, fill_height, target, run();
 
@@ -856,6 +859,16 @@
 
 		render_complete = true;
 	}
+
+	value_change((id, value) => {
+		const deps = $targets[id]?.["change"];
+
+		deps?.forEach((dep_id) => {
+			requestAnimationFrame(() => {
+				wait_then_trigger_api_call(dep_id, id, value);
+			});
+		});
+	});
 
 	const handle_load_triggers = (): void => {
 		dependencies.forEach((dep) => {
