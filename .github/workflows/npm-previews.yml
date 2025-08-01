@@ -6,7 +6,6 @@ on:
 env:
   CI: true
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
-  NODE_OPTIONS: "--max-old-space-size=8192"
 
 concurrency:
   group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
