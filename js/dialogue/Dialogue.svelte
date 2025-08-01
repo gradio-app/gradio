@@ -10,7 +10,7 @@
 
 	export let speakers: string[] = [];
 	export let tags: string[] = [];
-	export let value: DialogueLine[] | string = [];
+	export let value: DialogueLine[] | string = "";
 	export let value_is_output = false;
 	export let placeholder = "Type here...";
 	export let label: string;
@@ -330,18 +330,40 @@
 		}
 	}
 
-	$: sync_value(dialogue_lines);
+	$: if (!checked) {
+		sync_value(dialogue_lines);
+	}
 
-	// Update on value changes from outside
+	$: if (checked && speakers.length > 0 && typeof value !== "string") {
+		const formatted = value
+			.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
+			.join(" ");
+		textbox_value = formatted;
+		value = formatted;
+	}
+
+	$: if (!checked && speakers.length > 0 && typeof value === "string") {
+		dialogue_lines = string_to_dialogue_lines(value);
+		value = [...dialogue_lines];
+	}
+
 	$: if (JSON.stringify(value) !== old_value) {
-		handle_change();
 		old_value = JSON.stringify(value);
 		if (typeof value !== "string") {
 			dialogue_lines = [...value];
-			value_to_string(value).then((result) => {
-				textbox_value = result;
-			});
+			if (checked && speakers.length > 0) {
+				const formatted = value
+					.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
+					.join(" ");
+				textbox_value = formatted;
+			}
+		} else {
+			textbox_value = value;
+			if (!checked && speakers.length > 0) {
+				dialogue_lines = string_to_dialogue_lines(value);
+			}
 		}
+		handle_change();
 	}
 
 	async function value_to_string(
@@ -351,6 +373,46 @@
 			return value;
 		}
 		return await server.format(value);
+	}
+
+	function string_to_dialogue_lines(text: string): DialogueLine[] {
+		if (!text.trim()) {
+			return [{ speaker: speakers[0] || "", text: "" }];
+		}
+
+		const dialogueLines: DialogueLine[] = [];
+		const speakerMatches = [];
+		const speakerRegex = /\b(Speaker\s+\d+):\s*/g;
+		let match;
+
+		while ((match = speakerRegex.exec(text)) !== null) {
+			speakerMatches.push({
+				speaker: match[1].trim(),
+				startIndex: match.index,
+				endIndex: match.index + match[0].length
+			});
+		}
+		if (speakerMatches.length === 0) {
+			dialogueLines.push({ speaker: speakers[0] || "", text: text.trim() });
+		} else {
+			for (let i = 0; i < speakerMatches.length; i++) {
+				const currentMatch = speakerMatches[i];
+				const nextMatch = speakerMatches[i + 1];
+
+				const textStart = currentMatch.endIndex;
+				const textEnd = nextMatch ? nextMatch.startIndex : text.length;
+				const speakerText = text.substring(textStart, textEnd).trim();
+
+				dialogueLines.push({
+					speaker:
+						speakers.find(
+							(s) => s.toLowerCase() === currentMatch.speaker.toLowerCase()
+						) || currentMatch.speaker,
+					text: speakerText
+				});
+			}
+		}
+		return dialogueLines;
 	}
 
 	async function handle_copy(): Promise<void> {
@@ -372,7 +434,12 @@
 
 	function handle_submit(): void {
 		if (checked) {
-			value = textbox_value;
+			if (speakers.length === 0) {
+				value = textbox_value;
+			} else {
+				const parsed_lines = string_to_dialogue_lines(textbox_value);
+				value = [...parsed_lines];
+			}
 		}
 		dispatch("submit");
 	}
@@ -401,7 +468,7 @@
 
 	<!-- svelte-ignore missing-declaration -->
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
-	{#if !checked || speakers.length > 0}
+	{#if !checked}
 		<div class="dialogue-container" bind:this={dialogue_container_element}>
 			{#each dialogue_lines as line, i}
 				<div class="dialogue-line">
@@ -509,7 +576,10 @@
 				{placeholder}
 				rows={5}
 				{disabled}
-				on:input={(event) => handle_input(event, 0)}
+				on:input={(event) => {
+					handle_input(event, 0);
+					value = textbox_value;
+				}}
 				on:focus={(event) => handle_input(event, 0)}
 				on:keydown={(event) => {
 					if (event.key === "Escape" && showTagMenu) {

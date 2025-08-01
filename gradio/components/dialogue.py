@@ -118,7 +118,7 @@ class Dialogue(Component):
     def preprocess(self, payload: DialogueModel) -> str:  # type: ignore
         """
         Parameters:
-            value: Expects a `DialogueModel` object.
+            value: Expects a `DialogueModel` object or string.
         Returns:
             Returns the dialogue as a string.
         """
@@ -136,7 +136,7 @@ class Dialogue(Component):
         return f"[{speaker}] {text}"
 
     @server
-    async def format(self, value: list[dict]):
+    async def format(self, value: list[dict] | str):
         """Format the dialogue in the frontend into a string that's copied to the clipboard."""
         data = DialogueModel(root=value)  # type: ignore
         return self.preprocess(data)
@@ -146,7 +146,7 @@ class Dialogue(Component):
     ) -> DialogueModel | None:
         """
         Parameters:
-            value: Expects a list of dictionaries of dialogue lines, where each dictionary contains 'speaker' and 'text' keys, or a string.
+            value: Expects a string or a list of dictionaries of dialogue lines, where each dictionary contains 'speaker' and 'text' keys, or a string.
         Returns:
             Returns the dialogue as a `DialogueModel` object for the frontend.
         """
