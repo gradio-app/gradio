@@ -41,6 +41,7 @@
 		input: never;
 		clear_status: LoadingStatus;
 		search: string | null;
+		edit: SelectData;
 	}>;
 	export let latex_delimiters: {
 		left: string;
@@ -95,6 +96,7 @@
 		}}
 		on:input={(e) => gradio.dispatch("input")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
+		on:edit={(e) => gradio.dispatch("edit", e.detail)}
 		on:fullscreen={({ detail }) => {
 			fullscreen = detail;
 		}}
