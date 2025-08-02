@@ -1264,6 +1264,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.favicon_path = None
         self.auth = None
         self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
+        self.vibe_mode = bool(os.getenv("GRADIO_VIBE_MODE", ""))
         self.app_id = random.getrandbits(64)
         self.upload_file_set = set()
         self.temp_file_sets = [self.upload_file_set]
@@ -2335,6 +2336,7 @@ Received inputs:
             "mode": self.mode,
             "app_id": self.app_id,
             "dev_mode": self.dev_mode,
+            "vibe_mode": self.vibe_mode,
             "analytics_enabled": self.analytics_enabled,
             "components": [],
             "css": self.css,

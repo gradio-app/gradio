@@ -37,6 +37,7 @@ import orjson
 from fastapi import (
     APIRouter,
     BackgroundTasks,
+    Body,
     Depends,
     FastAPI,
     HTTPException,
@@ -77,6 +78,8 @@ from gradio.data_classes import (
     ResetBody,
     SimplePredictBody,
     UserProvidedPath,
+    VibeCodeBody,
+    VibeEditBody,
 )
 from gradio.exceptions import Error, InvalidPathError
 from gradio.i18n import I18n
@@ -1937,6 +1940,139 @@ class App(FastAPI):
                     background=BackgroundTask(lambda: cleanup_files([input_path])),
                 )
 
+        vibe_edit_history_dir = Path(DEFAULT_TEMP_DIR) / "vibe_edit_history"
+        vibe_edit_history_dir.mkdir(exist_ok=True, parents=True)
+
+        @router.post("/vibe-edit/")
+        @router.post("/vibe-edit")
+        async def vibe_edit(body: VibeEditBody):
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
+                )
+
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            with open(GRADIO_WATCH_DEMO_PATH) as f:
+                demo_code = f.read()
+
+            snapshot_hash = secrets.token_hex(16)
+            snapshot_file = vibe_edit_history_dir / f"{snapshot_hash}.py"
+
+            with open(snapshot_file, "w") as f:
+                f.write(demo_code)
+
+            from huggingface_hub import InferenceClient
+
+            client = InferenceClient(provider="together")
+
+            content = ""
+            prompt = f"""
+You are a Gradio code generator. Given the following existing code and prompt, return the full new code.
+Existing code:
+```python
+{demo_code}
+```
+
+Prompt:
+{body.prompt}"""
+            system_prompt = load_system_prompt()
+            content = (
+                client.chat_completion(
+                    model="Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt},
+                    ],
+                    max_tokens=1000,
+                )
+                .choices[0]
+                .message.content
+            )
+
+            if content is None:
+                raise HTTPException(status_code=500, detail="Error generating code")
+
+            if "```python\n" in content:
+                start = content.index("```python\n") + len("```python\n")
+                end = content.find("\n```", start)
+                content = content[start:end] if end != -1 else content[start:]
+
+            with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
+                f.write(content)
+
+            return {"hash": snapshot_hash}
+
+        @router.post("/undo-vibe-edit/")
+        @router.post("/undo-vibe-edit")
+        async def undo_vibe_edit(hash: str = Body(..., embed=True)):
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
+                )
+
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            snapshot_file = vibe_edit_history_dir / f"{hash}.py"
+
+            if not snapshot_file.exists():
+                raise HTTPException(status_code=404, detail="Snapshot not found")
+
+            # Restore the file from the snapshot
+            with open(snapshot_file) as f:
+                saved_content = f.read()
+
+            with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
+                f.write(saved_content)
+
+            return {"success": True}
+
+        @router.get("/vibe-code/")
+        @router.get("/vibe-code")
+        async def get_vibe_code():
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
+                )
+
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            try:
+                with open(GRADIO_WATCH_DEMO_PATH) as f:
+                    code = f.read()
+                return {"code": code}
+            except FileNotFoundError:
+                raise HTTPException(
+                    status_code=404, detail="Demo file not found"
+                ) from None
+            except Exception as e:
+                raise HTTPException(
+                    status_code=500, detail=f"Error reading file: {str(e)}"
+                ) from e
+
+        @router.post("/vibe-code/")
+        @router.post("/vibe-code")
+        async def update_vibe_code(body: VibeCodeBody):
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
+                )
+
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            try:
+                with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
+                    f.write(body.code)
+                return {"success": True}
+            except Exception as e:
+                raise HTTPException(
+                    status_code=500, detail=f"Error writing file: {str(e)}"
+                ) from e
+
         def cleanup_files(files):
             for file in files:
                 try:
@@ -1952,6 +2088,48 @@ class App(FastAPI):
 ########
 # Helper functions
 ########
+
+
+def load_system_prompt():
+    prompt_rules = """Generate code for using the Gradio python library.
+
+The following RULES must be followed.  Whenever you are forming a response, ensure all rules have been followed otherwise start over.
+
+RULES:
+Only respond with code, not text.
+Only respond with valid Python syntax.
+Never include backticks in your response such as ``` or ```python.
+Do not include any code that is not necessary for the app to run.
+Respond with a full Gradio app.
+Respond with a full Gradio app using correct syntax and features of the latest Gradio version. DO NOT write code that doesn't follow the signatures listed.
+Add comments explaining the code, but do not include any text that is not formatted as a Python comment.
+Make sure the code includes all necessary imports.
+
+
+Here's an example of a valid response:
+
+# This is a simple Gradio app that greets the user.
+import gradio as gr
+
+# Define a function that takes a name and returns a greeting.
+def greet(name):
+    return "Hello " + name + "!"
+
+# Create a Gradio interface that takes a textbox input, runs it through the greet function, and returns output to a textbox.
+demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
+
+# Launch the interface.
+demo.launch()
+
+"""
+    try:
+        with httpx.Client() as client:
+            response = client.get("https://www.gradio.app/llms.txt")
+            system_prompt = response.text
+    except Exception as e:
+        system_prompt = ""
+    system_prompt = prompt_rules + system_prompt + prompt_rules
+    return system_prompt
 
 
 def routes_safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
