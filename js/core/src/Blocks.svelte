@@ -957,7 +957,6 @@
 			}
 		);
 
-		// Listen for vibe editor resize events
 		const handleVibeEditorResize = (event: CustomEvent) => {
 			vibe_editor_width = event.detail.width;
 		};
@@ -980,14 +979,6 @@
 		if (vibe_mode) {
 			loadVibeEditor();
 		}
-
-		// Cleanup function
-		return () => {
-			window.removeEventListener(
-				"vibeEditorResize",
-				handleVibeEditorResize as EventListener
-			);
-		};
 	});
 
 	function screen_recording(): void {

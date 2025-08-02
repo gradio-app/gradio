@@ -22,7 +22,7 @@
 
 	let message_history: Message[] = [];
 
-	const submit = () => {
+	const submit = (): void => {
 		if (prompt.trim() === "") return;
 
 		const userMessageIndex = message_history.length;
@@ -69,7 +69,10 @@
 			});
 	};
 
-	const undoMessage = async (hash: string, messageIndex: number) => {
+	const undoMessage = async (
+		hash: string,
+		messageIndex: number
+	): Promise<void> => {
 		try {
 			await app.post_data(`${root}/gradio_api/undo-vibe-edit/`, { hash });
 
@@ -82,7 +85,7 @@
 		}
 	};
 
-	const handleResizeStart = (e: MouseEvent) => {
+	const handleResizeStart = (e: MouseEvent): void => {
 		e.preventDefault();
 		isResizing = true;
 		document.addEventListener("mousemove", handleResizeMove);
@@ -91,7 +94,7 @@
 		document.body.style.userSelect = "none";
 	};
 
-	const handleResizeMove = (e: MouseEvent) => {
+	const handleResizeMove = (e: MouseEvent): void => {
 		if (!isResizing) return;
 
 		const minWidth = 250;
@@ -108,7 +111,7 @@
 		);
 	};
 
-	const handleResizeEnd = () => {
+	const handleResizeEnd = (): void => {
 		isResizing = false;
 		document.removeEventListener("mousemove", handleResizeMove);
 		document.removeEventListener("mouseup", handleResizeEnd);
@@ -116,7 +119,7 @@
 		document.body.style.userSelect = "";
 	};
 
-	const fetchCode = async () => {
+	const fetchCode = async (): Promise<void> => {
 		try {
 			const response = await fetch(`${root}/gradio_api/vibe-code/`, {
 				method: "GET",
@@ -133,7 +136,7 @@
 		}
 	};
 
-	const updateCode = async () => {
+	const updateCode = async (): Promise<void> => {
 		try {
 			await app.post_data(`${root}/gradio_api/vibe-code/`, {
 				code: codeValue

@@ -1940,7 +1940,6 @@ class App(FastAPI):
                     background=BackgroundTask(lambda: cleanup_files([input_path])),
                 )
 
-        # Create temp directory for vibe edit history
         vibe_edit_history_dir = Path(DEFAULT_TEMP_DIR) / "vibe_edit_history"
         vibe_edit_history_dir.mkdir(exist_ok=True, parents=True)
 
@@ -1955,15 +1954,12 @@ class App(FastAPI):
 
             from gradio.http_server import GRADIO_WATCH_DEMO_PATH
 
-            # Save current state before making changes
             with open(GRADIO_WATCH_DEMO_PATH) as f:
                 demo_code = f.read()
 
-            # Generate random hash for this snapshot
             snapshot_hash = secrets.token_hex(16)
             snapshot_file = vibe_edit_history_dir / f"{snapshot_hash}.py"
 
-            # Save the current state to history
             with open(snapshot_file, "w") as f:
                 f.write(demo_code)
 
