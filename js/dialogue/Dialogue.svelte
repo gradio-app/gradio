@@ -155,7 +155,6 @@
 		}
 	}
 
-	// Get the typed text after the last colon for filtering tags
 	function get_tag_search_text(text: string, cursorPosition: number): string {
 		const lastColonIndex = text.lastIndexOf(":", cursorPosition - 1);
 		if (lastColonIndex >= 0) {
@@ -186,7 +185,12 @@
 					// plain text mode: don't filter speaker tags
 					const newText = `${beforeColon}${tag} ${afterCursor}`;
 					textbox_value = newText;
-					value = newText;
+					if (speakers.length === 0) {
+						value = newText;
+					} else {
+						const parsed_lines = string_to_dialogue_lines(newText);
+						value = [...parsed_lines];
+					}
 
 					tick().then(() => {
 						if (textarea_element) {
@@ -248,7 +252,12 @@
 					// plain text mode: don't filter speaker tags
 					const newText = `${beforeColon}${tag} ${afterCursor}`;
 					textbox_value = newText;
-					value = newText;
+					if (speakers.length === 0) {
+						value = newText;
+					} else {
+						const parsed_lines = string_to_dialogue_lines(newText);
+						value = [...parsed_lines];
+					}
 
 					tick().then(() => {
 						if (textarea_element) {
@@ -330,33 +339,16 @@
 		}
 	}
 
-	$: if (!checked) {
-		sync_value(dialogue_lines);
-	}
-
-	$: if (checked && speakers.length > 0 && typeof value !== "string") {
-		const formatted = value
-			.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
-			.join(" ");
-		textbox_value = formatted;
-		value = formatted;
-	}
-
-	$: if (!checked && speakers.length > 0 && typeof value === "string") {
-		dialogue_lines = string_to_dialogue_lines(value);
-		value = [...dialogue_lines];
-	}
+	$: sync_value(dialogue_lines);
 
 	$: if (JSON.stringify(value) !== old_value) {
 		old_value = JSON.stringify(value);
 		if (typeof value !== "string") {
 			dialogue_lines = [...value];
-			if (checked && speakers.length > 0) {
-				const formatted = value
-					.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
-					.join(" ");
-				textbox_value = formatted;
-			}
+			const formatted = value
+				.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
+				.join(" ");
+			textbox_value = formatted;
 		} else {
 			textbox_value = value;
 			if (!checked && speakers.length > 0) {
@@ -553,18 +545,16 @@
 							</button>
 						</div>
 					{/if}
-					{#if i > 0}
-						<div class="action-column" class:hidden={disabled}>
-							<button
-								class="delete-button"
-								on:click={() => delete_line(i)}
-								aria-label="Remove current line"
-								{disabled}
-							>
-								<Trash />
-							</button>
-						</div>
-					{/if}
+					<div class="action-column" class:hidden={disabled || i == 0}>
+						<button
+							class="delete-button"
+							on:click={() => delete_line(i)}
+							aria-label="Remove current line"
+							{disabled}
+						>
+							<Trash />
+						</button>
+					</div>
 				</div>
 			{/each}
 		</div>
@@ -578,7 +568,12 @@
 				{disabled}
 				on:input={(event) => {
 					handle_input(event, 0);
-					value = textbox_value;
+					if (speakers.length === 0) {
+						value = textbox_value;
+					} else {
+						const parsed_lines = string_to_dialogue_lines(textbox_value);
+						value = [...parsed_lines];
+					}
 				}}
 				on:focus={(event) => handle_input(event, 0)}
 				on:keydown={(event) => {
@@ -749,7 +744,6 @@
 	}
 
 	.action-column {
-		flex: 0 0 40px;
 		display: flex;
 		justify-content: center;
 	}
