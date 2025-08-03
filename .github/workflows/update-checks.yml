@@ -2,7 +2,8 @@ name: "update-checks"
 
 on:
   workflow_run:
-    workflows: ["python", "js", "functional", "functional-lite"]
+    workflows:
+      ["python", "js", "functional", "functional-lite", "generate-changeset"]
     types:
       - completed
 
@@ -59,6 +60,9 @@ jobs:
       - name: set functional-lite check name
         if: github.event.workflow_run.name == 'functional-lite'
         run: echo "CHECK_NAME=functional-lite / functional-test-lite (pull_request)" >> $GITHUB_ENV
+      - name: set changeset approval status
+        if: github.event.workflow_run.name == 'generate-changeset'
+        run: echo "CHECK_NAME=changeset-approval (pull_request)" >> $GITHUB_ENV
       - name: update status
         uses: gradio-app/github/actions/set-commit-status@main
         with:
