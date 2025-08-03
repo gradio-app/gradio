@@ -124,7 +124,7 @@ interface DataFrameActions {
 	trigger_change: (
 		data: any[][],
 		headers: any[],
-		previous_data: string[][],
+		previous_data: any[][],
 		previous_headers: string[],
 		value_is_output: boolean,
 		dispatch: (e: "change" | "input" | "edit", detail?: any) => void
@@ -397,9 +397,7 @@ function create_actions(
 			if (s.current_search_query) return;
 
 			const current_headers = headers.map((h) => h.value);
-			const current_data = data.map((row) =>
-				row.map((cell) => String(cell.value))
-			);
+			const current_data = data.map((row) => row.map((cell) => cell.value));
 
 			if (
 				!dequal(current_data, previous_data) ||

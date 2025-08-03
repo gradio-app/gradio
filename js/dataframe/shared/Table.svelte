@@ -327,7 +327,7 @@
 	}
 
 	let previous_headers = _headers.map((h) => h.value);
-	let previous_data = data.map((row) => row.map((cell) => String(cell.value)));
+	let previous_data = data.map((row) => row.map((cell) => cell.value));
 
 	$: {
 		if (data || _headers) {
@@ -347,7 +347,7 @@
 				value_is_output,
 				dispatch
 			);
-			previous_data = data.map((row) => row.map((cell) => String(cell.value)));
+			previous_data = data.map((row) => row.map((cell) => cell.value));
 			previous_headers = _headers.map((h) => h.value);
 		}
 	}
