@@ -553,6 +553,8 @@
 				>
 					<div
 						class="speaker-column"
+						role="button"
+						tabindex="0"
 						on:mouseenter={() => (hoveredSpeaker = line.speaker)}
 						on:mouseleave={() => (hoveredSpeaker = null)}
 					>
