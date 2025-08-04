@@ -167,6 +167,8 @@ export class ImageEditor {
 	private target_element: HTMLElement;
 	private width: number;
 	private height: number;
+	private original_width: number;
+	private original_height: number;
 	dimensions: Spring<{ width: number; height: number }>;
 	scale: Spring<number>;
 	private position: Spring<{ x: number; y: number }>;
@@ -209,6 +211,8 @@ export class ImageEditor {
 		this.target_element = options.target_element;
 		this.width = options.width;
 		this.height = options.height;
+		this.original_width = options.width;
+		this.original_height = options.height;
 		this.command_manager = new CommandManager();
 
 		this.ready = new Promise((resolve) => {
@@ -658,6 +662,9 @@ export class ImageEditor {
 	}
 
 	async reset_canvas(): Promise<void> {
+		this.width = this.original_width;
+		this.height = this.original_height;
+
 		this.layer_manager.reset_layers(this.width, this.height);
 		this.background_image = undefined;
 		this.background_image_present.set(false);
