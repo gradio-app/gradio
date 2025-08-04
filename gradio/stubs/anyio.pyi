@@ -1,6 +1,6 @@
 """ This module contains type hints for the anyio library. It was auto-generated so may include errors."""
-from typing import Any, Callable, Coroutine, TypeVar, overload, Optional, Union
 from types import TracebackType
+from typing import Any, Callable, Coroutine, Optional, TypeVar, Union, overload
 
 T = TypeVar('T')
 T_Retval = TypeVar('T_Retval')
