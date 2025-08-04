@@ -495,6 +495,11 @@
 
 	<!-- svelte-ignore missing-declaration -->
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
+	{#if speakers.length !== 0}
+		<div class="switch-container top-switch">
+			<Switch label="Plain Text" bind:checked />
+		</div>
+	{/if}
 	{#if !checked}
 		<div class="dialogue-container" bind:this={dialogue_container_element}>
 			{#each dialogue_lines as line, i}
@@ -656,19 +661,13 @@
 		</div>
 	{/if}
 
-	<div class="controls-row">
-		<div class="switch-container" class:hidden={speakers.length === 0}>
-			<Switch label="Plain Text" bind:checked />
+	{#if show_submit_button && !disabled}
+		<div class="submit-container">
+			<button class="submit-button" on:click={handle_submit} {disabled}>
+				<Send />
+			</button>
 		</div>
-
-		{#if show_submit_button && !disabled}
-			<div class="submit-container">
-				<button class="submit-button" on:click={handle_submit} {disabled}>
-					<Send />
-				</button>
-			</div>
-		{/if}
-	</div>
+	{/if}
 </label>
 
 <style>
@@ -696,6 +695,10 @@
 		display: flex;
 		align-items: center;
 		margin-bottom: var(--spacing-sm);
+	}
+
+	.dialogue-line:has(.action-column.hidden) .text-column {
+		margin-right: 0;
 	}
 
 	.speaker-column {
@@ -819,9 +822,15 @@
 		justify-content: flex-start;
 	}
 
+	.switch-container.top-switch {
+		margin-bottom: var(--spacing-sm);
+		justify-content: flex-end;
+	}
+
 	.submit-container {
 		display: flex;
 		justify-content: flex-end;
+		margin-top: var(--spacing-sm);
 	}
 
 	.submit-container button[disabled] {
@@ -900,6 +909,6 @@
 	}
 
 	.hidden {
-		visibility: hidden;
+		display: none;
 	}
 </style>
