@@ -85,24 +85,25 @@
 </div>
 
 <style>
-	div :global(.math.inline) {
-		fill: var(--body-text-color);
-		display: inline-block;
-		vertical-align: middle;
-		padding: var(--size-1-5) -var(--size-1);
-		color: var(--body-text-color);
-	}
+  div :global(.math.inline) {
+    fill: var(--body-text-color);
+    display: inline-block;
+    vertical-align: middle;
+    padding: var(--size-1-5) -var(--size-1);
+    color: var(--body-text-color);
+  }
 
-	div :global(.math.inline svg) {
-		display: inline;
-		margin-bottom: 0.22em;
-	}
+  div :global(.math.inline svg) {
+    display: inline;
+    margin-bottom: 0.22em;
+  }
 
-	div {
-		max-width: 100%;
-	}
+  div {
+    max-width: 100%;
+    white-space: pre-wrap;   /* ← keeps \n line breaks when embedded */
+  }
 
-	.hide {
-		display: none;
-	}
+  .hide {
+    display: none;
+  }
 </style>
