@@ -546,8 +546,8 @@
 			{#each dialogue_lines as line, i}
 				<div
 					class="dialogue-line"
-					style="--speaker-bg-color: {hoveredSpeaker === null ||
-					hoveredSpeaker === line.speaker
+					style="--speaker-bg-color: {disabled &&
+					(hoveredSpeaker === null || hoveredSpeaker === line.speaker)
 						? speakerColors[line.speaker] || 'transparent'
 						: 'transparent'}"
 				>
@@ -555,18 +555,26 @@
 						class="speaker-column"
 						role="button"
 						tabindex="0"
-						on:mouseenter={() => (hoveredSpeaker = line.speaker)}
-						on:mouseleave={() => (hoveredSpeaker = null)}
+						on:mouseenter={() => disabled && (hoveredSpeaker = line.speaker)}
+						on:mouseleave={() => disabled && (hoveredSpeaker = null)}
 					>
-						<BaseDropdown
-							bind:value={line.speaker}
-							on:change={() => update_line(i, "speaker", line.speaker)}
-							{disabled}
-							choices={speakers.map((s) => [s, s])}
-							show_label={false}
-							container={true}
-							label={""}
-						/>
+						{#if disabled}
+							<textarea
+								bind:value={line.speaker}
+								{disabled}
+								rows="1"
+								readonly
+							/>
+						{:else}
+							<BaseDropdown
+								bind:value={line.speaker}
+								on:change={() => update_line(i, "speaker", line.speaker)}
+								choices={speakers.map((s) => [s, s])}
+								show_label={false}
+								container={true}
+								label={""}
+							/>
+						{/if}
 					</div>
 					<div class="text-column">
 						<div class="input-container">
@@ -761,14 +769,31 @@
 		align-items: center;
 	}
 
-	.speaker-column :global(.wrap) {
-		background-color: var(--speaker-bg-color) !important;
-		border-radius: var(--radius-sm);
+	.speaker-column textarea {
+		background: var(--speaker-bg-color);
 		transition: background-color 0.2s ease;
-	}
-
-	.speaker-column :global(.wrap input) {
-		background-color: transparent !important;
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-sm);
+		padding: var(--input-padding);
+		color: var(--body-text-color);
+		font-weight: var(--input-text-weight);
+		font-size: var(--input-text-size);
+		line-height: var(--line-sm);
+		resize: none;
+		width: 100%;
+		box-sizing: border-box;
+		height: auto;
+		min-height: 30px;
+		max-height: none;
+		margin-top: 0px;
+		margin-bottom: 0px;
+		z-index: 1;
+		display: block;
+		position: relative;
+		white-space: pre-wrap;
+		word-wrap: break-word;
+		overflow-wrap: break-word;
+		overflow: hidden;
 	}
 
 	.text-column {
@@ -805,6 +830,15 @@
 		overflow-wrap: break-word;
 		overflow: hidden;
 		box-sizing: border-box;
+	}
+
+	.text-column textarea {
+		color: var(--body-text-color);
+	}
+
+	.dialogue-line[style*="--speaker-bg-color: rgba"] .text-column textarea,
+	.dialogue-line[style*="--speaker-bg-color: rgba"] .speaker-column textarea {
+		color: black;
 	}
 
 	textarea {
