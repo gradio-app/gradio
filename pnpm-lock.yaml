@@ -356,6 +356,9 @@ importers:
       '@gradio/uploadbutton':
         specifier: workspace:^
         version: link:js/uploadbutton
+      '@gradio/vibeeditor':
+        specifier: workspace:^
+        version: link:js/vibeeditor
       '@gradio/video':
         specifier: workspace:^
         version: link:js/video

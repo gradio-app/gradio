@@ -149,6 +149,7 @@
 		"@gradio/upload": "workspace:^",
 		"@gradio/uploadbutton": "workspace:^",
 		"@gradio/video": "workspace:^",
+		"@gradio/vibeeditor": "workspace:^",
 		"@storybook/addon-a11y": "^8.3.6",
 		"@storybook/addon-essentials": "^8.3.6",
 		"@storybook/addon-interactions": "^8.3.6",
