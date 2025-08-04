@@ -41,6 +41,29 @@
 	let copied = false;
 	let timer: any;
 	let textbox_value = "";
+	
+	// Default color palette for speakers
+	const defaultColors = [
+		"#fef3c7", // amber-100
+		"#dbeafe", // blue-100
+		"#d1fae5", // emerald-100
+		"#fce7f3", // pink-100
+		"#e9d5ff", // purple-100
+		"#fed7aa", // orange-100
+		"#e0e7ff", // indigo-100
+		"#cffafe", // cyan-100
+		"#f3e8ff", // violet-100
+		"#fecaca"  // red-100
+	];
+	
+	// Create color mapping for speakers
+	let speakerColors: Record<string, string> = {};
+	$: {
+		speakerColors = {};
+		speakers.forEach((speaker, index) => {
+			speakerColors[speaker] = defaultColors[index % defaultColors.length];
+		});
+	}
 
 	if (speakers.length === 0) {
 		checked = true;
@@ -503,7 +526,7 @@
 	{#if !checked}
 		<div class="dialogue-container" bind:this={dialogue_container_element}>
 			{#each dialogue_lines as line, i}
-				<div class="dialogue-line">
+				<div class="dialogue-line" style="--speaker-bg-color: {speakerColors[line.speaker] || 'transparent'}">
 					<div class="speaker-column">
 						<BaseDropdown
 							bind:value={line.speaker}
@@ -707,6 +730,15 @@
 		display: flex;
 		align-items: center;
 	}
+	
+	.speaker-column :global(.wrap) {
+		background-color: var(--speaker-bg-color) !important;
+		border-radius: var(--radius-sm);
+	}
+	
+	.speaker-column :global(.wrap input) {
+		background-color: transparent !important;
+	}
 
 	.text-column {
 		flex: 1;
@@ -719,7 +751,7 @@
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm);
 		color: var(--body-text-color);
-		background: var(--input-background-fill);
+		background: var(--speaker-bg-color);
 		height: auto;
 		min-height: 30px;
 		max-height: none;
@@ -730,7 +762,6 @@
 		z-index: 1;
 		display: block;
 		position: relative;
-		background: var(--input-background-fill);
 		padding: var(--input-padding);
 		width: 100%;
 		color: var(--body-text-color);
@@ -807,14 +838,6 @@
 
 	.add-button:hover {
 		color: var(--color-accent);
-	}
-
-	.controls-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: var(--spacing-sm);
-		margin-top: var(--spacing-sm);
 	}
 
 	.switch-container {
