@@ -500,7 +500,7 @@ class TestProcessExamples:
         )
         with connect(io):
             prediction = io.examples_handler.load_from_cache(0)
-        assert prediction == ["hel", "3"]
+        assert prediction == ["hel", 3]
 
     def test_caching_with_non_io_component(self, patched_cache_folder, connect):
         def predict(name):
