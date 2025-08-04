@@ -42,6 +42,7 @@
 	let copied = false;
 	let timer: any;
 	let textbox_value = "";
+	let hoveredSpeaker: string | null = null;
 
 	const defaultColorNames = [
 		"red",
@@ -545,10 +546,16 @@
 			{#each dialogue_lines as line, i}
 				<div
 					class="dialogue-line"
-					style="--speaker-bg-color: {speakerColors[line.speaker] ||
-						'transparent'}"
+					style="--speaker-bg-color: {hoveredSpeaker === null ||
+					hoveredSpeaker === line.speaker
+						? speakerColors[line.speaker] || 'transparent'
+						: 'transparent'}"
 				>
-					<div class="speaker-column">
+					<div
+						class="speaker-column"
+						on:mouseenter={() => (hoveredSpeaker = line.speaker)}
+						on:mouseleave={() => (hoveredSpeaker = null)}
+					>
 						<BaseDropdown
 							bind:value={line.speaker}
 							on:change={() => update_line(i, "speaker", line.speaker)}
@@ -755,6 +762,7 @@
 	.speaker-column :global(.wrap) {
 		background-color: var(--speaker-bg-color) !important;
 		border-radius: var(--radius-sm);
+		transition: background-color 0.2s ease;
 	}
 
 	.speaker-column :global(.wrap input) {
@@ -773,6 +781,7 @@
 		border-radius: var(--radius-sm);
 		color: var(--body-text-color);
 		background: var(--speaker-bg-color);
+		transition: background-color 0.2s ease;
 		height: auto;
 		min-height: 30px;
 		max-height: none;
