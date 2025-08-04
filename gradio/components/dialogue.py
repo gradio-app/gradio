@@ -122,6 +122,12 @@ class Dialogue(Component):
         Returns:
             Returns the dialogue as a string.
         """
+        if (isinstance(payload.root, str) and payload.root == "") or (
+            isinstance(payload.root, list)
+            and len(payload.root) == 1
+            and payload.root[0].text == ""
+        ):
+            return ""
         formatter = self.formatter
         if not formatter:
             formatter = self.default_formatter

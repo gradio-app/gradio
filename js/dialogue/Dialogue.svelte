@@ -43,10 +43,6 @@
 		checked = true;
 	}
 
-	$: if (value.length === 0 && dialogue_lines.length === 0) {
-		dialogue_lines = [{ speaker: speakers[0], text: "" }];
-	}
-
 	$: {
 		if (dialogue_lines.length > input_elements.length) {
 			input_elements = [
@@ -343,7 +339,7 @@
 
 	$: if (JSON.stringify(value) !== old_value) {
 		old_value = JSON.stringify(value);
-		if (typeof value !== "string") {
+		if (value && typeof value !== "string") {
 			dialogue_lines = [...value];
 			const formatted = value
 				.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
@@ -371,7 +367,6 @@
 		if (!text.trim()) {
 			return [{ speaker: speakers[0] || "", text: "" }];
 		}
-
 		const dialogueLines: DialogueLine[] = [];
 		const speakerMatches = [];
 		const speakerRegex = /\b(Speaker\s+\d+):\s*/g;
