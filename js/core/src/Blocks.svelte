@@ -56,8 +56,7 @@
 	export let max_file_size: number | undefined = undefined;
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
-	export let dev_mode: boolean = false;
-	export let vibe_mode: boolean = false;
+	export let vibe_mode = false;
 	let broken_connection = false;
 
 	let {
@@ -957,7 +956,7 @@
 			}
 		);
 
-		const handleVibeEditorResize = (event: CustomEvent) => {
+		const handleVibeEditorResize = (event: CustomEvent): void => {
 			vibe_editor_width = event.detail.width;
 		};
 
