@@ -1,0 +1,12 @@
+semantic_version-2.10.0.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+semantic_version-2.10.0.dist-info/LICENSE,sha256=qF5-8vvGcNJnge1oRM0xp-itpl0hMo91oLAkAvquN-o,1317
+semantic_version-2.10.0.dist-info/METADATA,sha256=dBTUaaVpBGtqJGv7HxBaqxt6v9wyqVJT8VQy6jAVmqY,9687
+semantic_version-2.10.0.dist-info/RECORD,,
+semantic_version-2.10.0.dist-info/WHEEL,sha256=Z-nyYpwrcSqxfdux5Mbn_DQ525iP7J2DG3JgGvOYyTQ,110
+semantic_version-2.10.0.dist-info/top_level.txt,sha256=8WNFqF6w9sgwWGOgIxBq65HQ6zakOE7tCaGKz0inQlI,17
+semantic_version/__init__.py,sha256=6f5c-uBdxzZyyMmKQbijcQFQ_km9pCz5C5YWXW1B048,540
+semantic_version/__pycache__/__init__.cpython-310.pyc,,
+semantic_version/__pycache__/base.cpython-310.pyc,,
+semantic_version/__pycache__/django_fields.cpython-310.pyc,,
+semantic_version/base.py,sha256=WuLdqIg4g9zruxYsrPgoc8uaRjD8rwG6onWGTwylcQQ,48115
+semantic_version/django_fields.py,sha256=ctqNHIrK2BwhqEkXcUBbRvTGO7wZVdJU1ub-MTyqCt0,3510

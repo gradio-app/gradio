@@ -1,0 +1,3 @@
+[console_scripts]
+gradio = gradio.cli:cli
+upload_theme = gradio.themes.upload_theme:main

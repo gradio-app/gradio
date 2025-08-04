@@ -5,6 +5,7 @@
 	export let value = false;
 	export let label = "Checkbox";
 	export let interactive: boolean;
+	export let indeterminate = false; // BİZİM ƏLAVƏ ETDİYİMİZ YENİ PARAMETR
 
 	const dispatch = createEventDispatcher<{
 		change: boolean;
@@ -44,6 +45,7 @@
 <label class:disabled>
 	<input
 		bind:checked={value}
+		bind:indeterminate
 		on:keydown={handle_enter}
 		on:input={handle_input}
 		{disabled}

@@ -1,0 +1,83 @@
+Metadata-Version: 2.4
+Name: ffmpy
+Version: 0.6.1
+Summary: A simple Python wrapper for FFmpeg
+Keywords: ffmpeg,ffprobe,ffplay,ffserver,wrapper,media,audio,video,transcoding
+Author: Andrii Yurchuk
+Author-email: Andrii Yurchuk < <ay@mntw.re>>
+License-Expression: MIT
+Classifier: Topic :: Multimedia :: Sound/Audio
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: POSIX
+Classifier: Operating System :: POSIX :: BSD
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Operating System :: MacOS :: MacOS X
+Requires-Dist: psutil>=5.8.0 ; extra == 'psutil'
+Requires-Python: >=3.9
+Provides-Extra: psutil
+Description-Content-Type: text/x-rst
+
+.. image:: https://github.com/Ch00k/ffmpy/workflows/test/badge.svg
+    :target: https://github.com/Ch00k/ffmpy/actions
+    :alt: Tests
+
+.. image:: https://codecov.io/gh/Ch00k/ffmpy/branch/master/graphs/badge.svg
+    :target: https://codecov.io/github/Ch00k/ffmpy
+    :alt: Coverage
+
+.. image:: https://readthedocs.org/projects/ffmpy/badge/?version=latest
+    :target: http://ffmpy.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation
+
+.. image:: https://img.shields.io/pypi/v/ffmpy.svg
+    :target: https://pypi.python.org/pypi/ffmpy
+    :alt: Latest version
+
+
+ffmpy
+=====
+*ffmpy* is a simple `FFmpeg <http://ffmpeg.org/>`_ command line wrapper. It implements a Pythonic interface for FFmpeg command line compilation and uses Python's `subprocess <https://docs.python.org/2/library/subprocess.html>`_ to execute the compiled command line.
+
+*ffmpy* requires Python 3.8 or greater.
+
+Installation
+------------
+::
+
+  pip install ffmpy
+
+Quick example
+-------------
+.. code:: python
+
+  from ffmpy import FFmpeg
+  ff = FFmpeg(
+      inputs={'input.mp4': None},
+      outputs={'output.avi': None}
+  )
+  ff.run()
+
+This will take the ``input.mp4`` file in the current directory as the input, change the video container from MP4 to AVI without changing any other video parameters, and create a new output file ``output.avi`` in the current directory.
+
+Documentation
+-------------
+http://ffmpy.rtfd.io
+
+See `Examples <http://ffmpy.readthedocs.io/en/latest/examples.html>`_ section for usage examples.
+
+License
+-------
+ffmpy is licensed under the terms of MIT license

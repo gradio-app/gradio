@@ -1,0 +1,324 @@
+Metadata-Version: 2.1
+Name: semantic-version
+Version: 2.10.0
+Summary: A library implementing the 'SemVer' scheme.
+Home-page: https://github.com/rbarrois/python-semanticversion
+Author: Raphaël Barrois
+Author-email: raphael.barrois+semver@polytechnique.org
+License: BSD
+Keywords: semantic version,versioning,version
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=2.7
+Description-Content-Type: text/x-rst
+Provides-Extra: dev
+Requires-Dist: Django (>=1.11) ; extra == 'dev'
+Requires-Dist: nose2 ; extra == 'dev'
+Requires-Dist: tox ; extra == 'dev'
+Requires-Dist: check-manifest ; extra == 'dev'
+Requires-Dist: coverage ; extra == 'dev'
+Requires-Dist: flake8 ; extra == 'dev'
+Requires-Dist: wheel ; extra == 'dev'
+Requires-Dist: zest.releaser[recommended] ; extra == 'dev'
+Requires-Dist: readme-renderer (<25.0) ; (python_version == "3.4") and extra == 'dev'
+Requires-Dist: colorama (<=0.4.1) ; (python_version == "3.4") and extra == 'dev'
+Provides-Extra: doc
+Requires-Dist: Sphinx ; extra == 'doc'
+Requires-Dist: sphinx-rtd-theme ; extra == 'doc'
+
+Introduction
+============
+
+This small python library provides a few tools to handle `SemVer`_ in Python.
+It follows strictly the 2.0.0 version of the SemVer scheme.
+
+.. image:: https://github.com/rbarrois/python-semanticversion/actions/workflows/test.yml/badge.svg
+    :target: https://github.com/rbarrois/python-semanticversion/actions/workflows/test.yml
+
+.. image:: https://img.shields.io/pypi/v/semantic_version.svg
+    :target: https://python-semanticversion.readthedocs.io/en/latest/changelog.html
+    :alt: Latest Version
+
+.. image:: https://img.shields.io/pypi/pyversions/semantic_version.svg
+    :target: https://pypi.python.org/pypi/semantic_version/
+    :alt: Supported Python versions
+
+.. image:: https://img.shields.io/pypi/wheel/semantic_version.svg
+    :target: https://pypi.python.org/pypi/semantic_version/
+    :alt: Wheel status
+
+.. image:: https://img.shields.io/pypi/l/semantic_version.svg
+    :target: https://pypi.python.org/pypi/semantic_version/
+    :alt: License
+
+Links
+-----
+
+- Package on `PyPI`_: https://pypi.org/project/semantic-version/
+- Doc on `ReadTheDocs <http://readthedocs.org/>`_: https://python-semanticversion.readthedocs.io/
+- Source on `GitHub <http://github.com/>`_: http://github.com/rbarrois/python-semanticversion/
+- Build on Github Actions: https://github.com/rbarrois/python-semanticversion/actions
+- Semantic Version specification: `SemVer`_
+
+
+Getting started
+===============
+
+Install the package from `PyPI`_, using pip:
+
+.. code-block:: sh
+
+    pip install semantic-version
+
+Or from GitHub:
+
+.. code-block:: sh
+
+    $ git clone git://github.com/rbarrois/python-semanticversion.git
+
+
+Import it in your code:
+
+
+.. code-block:: python
+
+    import semantic_version
+
+
+This module provides classes to handle semantic versions:
+
+- ``Version`` represents a version number (``0.1.1-alpha+build.2012-05-15``)
+- ``BaseSpec``-derived classes represent requirement specifications (``>=0.1.1,<0.3.0``):
+
+  - ``SimpleSpec`` describes a natural description syntax
+  - ``NpmSpec`` is used for NPM-style range descriptions.
+
+Versions
+--------
+
+Defining a ``Version`` is quite simple:
+
+
+.. code-block:: pycon
+
+    >>> import semantic_version
+    >>> v = semantic_version.Version('0.1.1')
+    >>> v.major
+    0
+    >>> v.minor
+    1
+    >>> v.patch
+    1
+    >>> v.prerelease
+    []
+    >>> v.build
+    []
+    >>> list(v)
+    [0, 1, 1, [], []]
+
+If the provided version string is invalid, a ``ValueError`` will be raised:
+
+.. code-block:: pycon
+
+    >>> semantic_version.Version('0.1')
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/Users/rbarrois/dev/semantic_version/src/semantic_version/base.py", line 64, in __init__
+        major, minor, patch, prerelease, build = self.parse(version_string, partial)
+      File "/Users/rbarrois/dev/semantic_version/src/semantic_version/base.py", line 86, in parse
+        raise ValueError('Invalid version string: %r' % version_string)
+    ValueError: Invalid version string: '0.1'
+
+
+One may also create a ``Version`` with named components:
+
+.. code-block:: pycon
+
+    >>> semantic_version.Version(major=0, minor=1, patch=2)
+    Version('0.1.2')
+
+In that case, ``major``, ``minor`` and ``patch`` are mandatory, and must be integers.
+``prerelease`` and ``build``, if provided, must be tuples of strings:
+
+.. code-block:: pycon
+
+    >>> semantic_version.Version(major=0, minor=1, patch=2, prerelease=('alpha', '2'))
+    Version('0.1.2-alpha.2')
+
+
+Some user-supplied input might not match the semantic version scheme.
+For such cases, the ``Version.coerce`` method will try to convert any
+version-like string into a valid semver version:
+
+.. code-block:: pycon
+
+    >>> Version.coerce('0')
+    Version('0.0.0')
+    >>> Version.coerce('0.1.2.3.4')
+    Version('0.1.2+3.4')
+    >>> Version.coerce('0.1.2a3')
+    Version('0.1.2-a3')
+
+Working with versions
+"""""""""""""""""""""
+
+Obviously, versions can be compared:
+
+
+.. code-block:: pycon
+
+    >>> semantic_version.Version('0.1.1') < semantic_version.Version('0.1.2')
+    True
+    >>> semantic_version.Version('0.1.1') > semantic_version.Version('0.1.1-alpha')
+    True
+    >>> semantic_version.Version('0.1.1') <= semantic_version.Version('0.1.1-alpha')
+    False
+
+You can also get a new version that represents a bump in one of the version levels:
+
+.. code-block:: pycon
+
+    >>> v = semantic_version.Version('0.1.1+build')
+    >>> new_v = v.next_major()
+    >>> str(new_v)
+    '1.0.0'
+    >>> v = semantic_version.Version('1.1.1+build')
+    >>> new_v = v.next_minor()
+    >>> str(new_v)
+    '1.2.0'
+    >>> v = semantic_version.Version('1.1.1+build')
+    >>> new_v = v.next_patch()
+    >>> str(new_v)
+    '1.1.2'
+
+
+
+Requirement specification
+-------------------------
+
+python-semanticversion provides a couple of ways to describe a range of accepted
+versions:
+
+- The ``SimpleSpec`` class provides a simple, easily understood scheme --
+  somewhat inspired from PyPI range notations;
+- The ``NpmSpec`` class supports the whole NPM range specification scheme:
+
+  .. code-block:: pycon
+
+      >>> Version('0.1.2') in NpmSpec('0.1.0-alpha.2 .. 0.2.4')
+      True
+      >>> Version('0.1.2') in NpmSpec('>=0.1.1 <0.1.3 || 2.x')
+      True
+      >>> Version('2.3.4') in NpmSpec('>=0.1.1 <0.1.3 || 2.x')
+      True
+
+The ``SimpleSpec`` scheme
+"""""""""""""""""""""""""
+
+Basic usage is simply a comparator and a base version:
+
+.. code-block:: pycon
+
+    >>> s = SimpleSpec('>=0.1.1')  # At least 0.1.1
+    >>> s.match(Version('0.1.1'))
+    True
+    >>> s.match(Version('0.1.1-alpha1'))  # pre-release doesn't satisfy version spec
+    False
+    >>> s.match(Version('0.1.0'))
+    False
+
+Combining specifications can be expressed as follows:
+
+  .. code-block:: pycon
+
+      >>> SimpleSpec('>=0.1.1,<0.3.0')
+
+Simpler test syntax is also available using the ``in`` keyword:
+
+.. code-block:: pycon
+
+    >>> s = SimpleSpec('==0.1.1')
+    >>> Version('0.1.1+git7ccc72') in s  # build variants are equivalent to full versions
+    True
+    >>> Version('0.1.1-alpha1') in s     # pre-release variants don't match the full version.
+    False
+    >>> Version('0.1.2') in s
+    False
+
+
+Refer to the full documentation at
+https://python-semanticversion.readthedocs.io/en/latest/ for more details on the
+``SimpleSpec`` scheme.
+
+
+
+Using a specification
+"""""""""""""""""""""
+
+The ``SimpleSpec.filter`` method filters an iterable of ``Version``:
+
+.. code-block:: pycon
+
+    >>> s = SimpleSpec('>=0.1.0,<0.4.0')
+    >>> versions = (Version('0.%d.0' % i) for i in range(6))
+    >>> for v in s.filter(versions):
+    ...     print v
+    0.1.0
+    0.2.0
+    0.3.0
+
+It is also possible to select the 'best' version from such iterables:
+
+
+.. code-block:: pycon
+
+    >>> s = SimpleSpec('>=0.1.0,<0.4.0')
+    >>> versions = (Version('0.%d.0' % i) for i in range(6))
+    >>> s.select(versions)
+    Version('0.3.0')
+
+
+
+Contributing
+============
+
+In order to contribute to the source code:
+
+- Open an issue on `GitHub`_: https://github.com/rbarrois/python-semanticversion/issues
+- Fork the `repository <https://github.com/rbarrois/python-semanticversion>`_
+  and submit a pull request on `GitHub`_
+- Or send me a patch (mailto:raphael.barrois+semver@polytechnique.org)
+
+When submitting patches or pull requests, you should respect the following rules:
+
+- Coding conventions are based on :pep:`8`
+- The whole test suite must pass after adding the changes
+- The test coverage for a new feature must be 100%
+- New features and methods should be documented in the ``reference`` section
+  and included in the ``changelog``
+- Include your name in the ``contributors`` section
+
+.. note:: All files should contain the following header::
+
+          # -*- encoding: utf-8 -*-
+          # Copyright (c) The python-semanticversion project
+
+.. _SemVer: http://semver.org/
+.. _PyPI: http://pypi.python.org/
+
+
