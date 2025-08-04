@@ -114,6 +114,8 @@ class Dialogue(Component):
         self.value = (
             self.preprocess(DialogueModel(root=value)) if value is not None else value  # type: ignore
         )
+        if not interactive:
+            self.info = None
 
     def preprocess(self, payload: DialogueModel) -> str:  # type: ignore
         """
