@@ -152,7 +152,7 @@
 
 	async function loadVibeEditor(): Promise<void> {
 		if (!VibeEditor) {
-			const vibe_editor_module = await import("../../vibeeditor/Index.svelte");
+			const vibe_editor_module = await import("@gradio/vibeeditor");
 			VibeEditor = vibe_editor_module.default;
 		}
 	}
