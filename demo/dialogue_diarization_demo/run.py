@@ -1,3 +1,4 @@
+# type: ignore
 import gradio as gr
 from pyannote.audio import Pipeline
 import whisper

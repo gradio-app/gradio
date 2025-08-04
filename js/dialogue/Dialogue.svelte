@@ -21,6 +21,7 @@
 	export let max_lines: number | undefined = undefined;
 	export let show_copy_button = false;
 	export let show_submit_button = true;
+	export let color_map: Record<string, string> | null = null;
 	let checked = false;
 
 	export let server: {
@@ -41,28 +42,44 @@
 	let copied = false;
 	let timer: any;
 	let textbox_value = "";
-	
-	// Default color palette for speakers
-	const defaultColors = [
-		"#fef3c7", // amber-100
-		"#dbeafe", // blue-100
-		"#d1fae5", // emerald-100
-		"#fce7f3", // pink-100
-		"#e9d5ff", // purple-100
-		"#fed7aa", // orange-100
-		"#e0e7ff", // indigo-100
-		"#cffafe", // cyan-100
-		"#f3e8ff", // violet-100
-		"#fecaca"  // red-100
+
+	const defaultColorNames = [
+		"red",
+		"green",
+		"blue",
+		"yellow",
+		"purple",
+		"teal",
+		"orange",
+		"cyan",
+		"lime",
+		"pink"
 	];
-	
-	// Create color mapping for speakers
+
+	const colorNameToHex: Record<string, string> = {
+		red: "rgba(254, 202, 202, 0.7)",
+		green: "rgba(209, 250, 229, 0.7)",
+		blue: "rgba(219, 234, 254, 0.7)",
+		yellow: "rgba(254, 243, 199, 0.7)",
+		purple: "rgba(233, 213, 255, 0.7)",
+		teal: "rgba(204, 251, 241, 0.7)",
+		orange: "rgba(254, 215, 170, 0.7)",
+		cyan: "rgba(207, 250, 254, 0.7)",
+		lime: "rgba(217, 249, 157, 0.7)",
+		pink: "rgba(252, 231, 243, 0.7)"
+	};
+
 	let speakerColors: Record<string, string> = {};
 	$: {
-		speakerColors = {};
-		speakers.forEach((speaker, index) => {
-			speakerColors[speaker] = defaultColors[index % defaultColors.length];
-		});
+		if (color_map) {
+			speakerColors = { ...color_map };
+		} else {
+			speakerColors = {};
+			speakers.forEach((speaker, index) => {
+				const colorName = defaultColorNames[index % defaultColorNames.length];
+				speakerColors[speaker] = colorNameToHex[colorName];
+			});
+		}
 	}
 
 	if (speakers.length === 0) {
@@ -526,7 +543,11 @@
 	{#if !checked}
 		<div class="dialogue-container" bind:this={dialogue_container_element}>
 			{#each dialogue_lines as line, i}
-				<div class="dialogue-line" style="--speaker-bg-color: {speakerColors[line.speaker] || 'transparent'}">
+				<div
+					class="dialogue-line"
+					style="--speaker-bg-color: {speakerColors[line.speaker] ||
+						'transparent'}"
+				>
 					<div class="speaker-column">
 						<BaseDropdown
 							bind:value={line.speaker}
@@ -730,12 +751,12 @@
 		display: flex;
 		align-items: center;
 	}
-	
+
 	.speaker-column :global(.wrap) {
 		background-color: var(--speaker-bg-color) !important;
 		border-radius: var(--radius-sm);
 	}
-	
+
 	.speaker-column :global(.wrap input) {
 		background-color: transparent !important;
 	}

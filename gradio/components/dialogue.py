@@ -39,6 +39,7 @@ class Dialogue(Component):
         formatter: Callable | None = None,
         tags: list[str] | None = None,
         separator: str = " ",
+        color_map: dict[str, str] | None = None,
         label: str | None = "Dialogue",
         info: str
         | None = "Type colon (:) in the dialogue line to see the available tags",
@@ -66,6 +67,7 @@ class Dialogue(Component):
             formatter: A function that formats the dialogue line dictionary, e.g. {"speaker": "Speaker 1", "text": "Hello, how are you?"} into a string, e.g. "Speaker 1: Hello, how are you?". This function is run on user input and the resulting string is passed into the prediction function.
             tags: The different tags allowed in the dialogue. Tags are displayed in an autocomplete menu below the input textbox when the user starts typing `:`. Use the exact tag name expected by the AI model or inference function.
             separator: The separator between the different dialogue lines used to join the formatted dialogue lines into a single string. For example, a newline character or empty string.
+            color_map: A dictionary mapping speaker names to colors. The colors may be specified as hex codes or by their names. For example: {"Speaker 1": "red", "Speaker 2": "#FFEE22"}. If not provided, default colors will be assigned to speakers.
             max_lines: maximum number of lines allowed in the dialogue.
             placeholder: placeholder hint to provide behind textarea.
             label: the label for this component, displayed above the component if `show_label` is `True` and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component corresponds to.
@@ -107,6 +109,7 @@ class Dialogue(Component):
         self.tags = tags or []
         self.formatter = formatter
         self.separator = separator
+        self.color_map = color_map
         self.show_submit_button = show_submit_button
         self.show_copy_button = show_copy_button
         if isinstance(value, Callable):
