@@ -7,11 +7,11 @@ from rich.console import Console
 from .commands import (
     custom_component,
     deploy,
+    hf_login,
     print_environment_info,
     reload,
     sketch,
     upload_mcp,
-    hf_login,
 )
 
 app = typer.Typer()
@@ -52,10 +52,7 @@ def cli():
 
         os.environ["GRADIO_VIBE_MODE"] = "1"
 
-        if len(args) == 1:
-            demo_path = Path("demo.py")
-        else:
-            demo_path = Path(args[1])
+        demo_path = Path("demo.py") if len(args) == 1 else Path(args[1])
 
         if not demo_path.exists():
             template_content = """import gradio as gr

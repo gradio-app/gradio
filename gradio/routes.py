@@ -2126,7 +2126,7 @@ demo.launch()
         with httpx.Client() as client:
             response = client.get("https://www.gradio.app/llms.txt")
             system_prompt = response.text
-    except Exception as e:
+    except Exception:
         system_prompt = ""
     system_prompt = prompt_rules + system_prompt + prompt_rules
     return system_prompt
