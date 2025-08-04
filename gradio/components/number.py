@@ -166,3 +166,8 @@ class Number(FormComponent):
         return self.round_to_precision(
             3 if self.minimum is None else self.minimum, self.precision
         )
+
+    def read_from_flag(self, payload: str):
+        import ast
+
+        return ast.literal_eval(payload)

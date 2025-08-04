@@ -153,3 +153,8 @@ class Slider(FormComponent):
         """
         Number.raise_if_out_of_bounds(payload, self.minimum, self.maximum)
         return Number.round_to_precision(payload, self.precision)
+
+    def read_from_flag(self, payload: Any):
+        import ast
+
+        return ast.literal_eval(payload)
