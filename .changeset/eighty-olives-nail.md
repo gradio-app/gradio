@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix imed zoom
+fix:Fix the ImageEditor's auto-zoom, canvas resize, and zoom functionality.
