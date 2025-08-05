@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
+from gradio_client.documentation import document
+
 from gradio.components.base import Component, server
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Events
 
-from gradio_client.documentation import document
 
 class DialogueLine(GradioModel):
     speaker: str
@@ -15,6 +16,7 @@ class DialogueLine(GradioModel):
 
 class DialogueModel(GradioRootModel):
     root: list[DialogueLine] | str
+
 
 @document()
 class Dialogue(Component):
