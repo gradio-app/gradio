@@ -2,6 +2,12 @@
 
 ## 0.24.0
 
+### Dependency updates
+
+- @gradio/dropdown@0.10.0
+
+## 0.24.0
+
 ### Features
 
 - [#11651](https://github.com/gradio-app/gradio/pull/11651) [`5b0e212`](https://github.com/gradio-app/gradio/commit/5b0e212ec0d54b5d793985de94c216bc5a73f610) - Allow users choose the MCP tools from MCP docs pane.  Thanks @abidlabs!

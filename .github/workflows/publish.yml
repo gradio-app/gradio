@@ -28,10 +28,8 @@ jobs:
       - name: Build packages
         run: |
           . venv/bin/activate
-          uv pip install -U build hatch pyodide-build packaging>=23.2  # packaging>=23.2 is needed to build Lite due to https://github.com/pypa/hatch/issues/1381
           pnpm package
-          pnpm --filter @gradio/client --filter @gradio/lite --filter @gradio/preview build
-
+          pnpm --filter @gradio/client --filter @gradio/preview build
       - name: create and publish versions
         id: changesets
         uses: changesets/action@aba318e9165b45b7948c60273e0b72fce0a64eb9 # @v1
