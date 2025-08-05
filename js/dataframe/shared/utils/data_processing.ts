@@ -1,4 +1,5 @@
 import type { Headers, HeadersWithIDs } from "./utils";
+import type { CellValue } from "../types";
 
 export function make_headers(
 	_head: Headers,
@@ -35,7 +36,7 @@ export function make_headers(
 }
 
 export function process_data(
-	values: (string | number)[][],
+	values: CellValue[][],
 	els: Record<
 		string,
 		{ cell: null | HTMLTableCellElement; input: null | HTMLTextAreaElement }
@@ -43,7 +44,7 @@ export function process_data(
 	data_binding: Record<string, any>,
 	make_id: () => string,
 	display_value: string[][] | null = null
-): { id: string; value: string | number; display_value?: string }[][] {
+): { id: string; value: CellValue; display_value?: string }[][] {
 	if (!values || values.length === 0) {
 		return [];
 	}

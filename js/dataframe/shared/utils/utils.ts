@@ -1,5 +1,7 @@
+import type { CellValue } from "../types";
+
 export type Headers = string[];
-export type Data = (string | number)[][];
+export type Data = CellValue[][];
 
 export type Datatype =
 	| "str"
@@ -26,10 +28,7 @@ export type DataframeValue = {
  * @param t - The type to coerce to.
  * @returns The coerced value.
  */
-export function cast_value_to_type(
-	v: any,
-	t: Datatype
-): string | number | boolean {
+export function cast_value_to_type(v: any, t: Datatype): CellValue {
 	if (t === "number") {
 		const n = Number(v);
 		return isNaN(n) ? v : n;
