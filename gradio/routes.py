@@ -1965,7 +1965,7 @@ class App(FastAPI):
 
             from huggingface_hub import InferenceClient
 
-            client = InferenceClient(provider="together")
+            client = InferenceClient(provider="hf-inference")
 
             content = ""
             prompt = f"""
@@ -1980,7 +1980,7 @@ Prompt:
             system_prompt = load_system_prompt()
             content = (
                 client.chat_completion(
-                    model="Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8",
+                    model="openai/gpt-oss-120b",
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": prompt},
