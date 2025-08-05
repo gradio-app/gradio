@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any
 
@@ -166,3 +167,7 @@ class Number(FormComponent):
         return self.round_to_precision(
             3 if self.minimum is None else self.minimum, self.precision
         )
+
+    def read_from_flag(self, payload: str):
+        """Numbers are stored as strings in the flagging file, so we need to parse them as json."""
+        return json.loads(payload)
