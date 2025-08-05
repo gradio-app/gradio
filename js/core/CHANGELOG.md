@@ -1,5 +1,22 @@
 # @gradio/core
 
+## 0.25.0
+
+### Features
+
+- [#11662](https://github.com/gradio-app/gradio/pull/11662) [`a78f5fa`](https://github.com/gradio-app/gradio/commit/a78f5fa466a4b11ffaaafc5099a64df49afb6e41) - Gradio vibe editor.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.14.13
+- @gradio/upload@0.16.13
+- @gradio/video@0.14.23
+- @gradio/client@1.16.0
+- @gradio/image@0.22.15
+- @gradio/button@0.5.9
+- @gradio/gallery@0.15.29
+- @gradio/file@0.12.26
+
 ## 0.24.0
 
 ### Dependency updates
