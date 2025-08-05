@@ -1,5 +1,17 @@
 # gradio
 
+## 5.41.0
+
+### Features
+
+- [#11662](https://github.com/gradio-app/gradio/pull/11662) [`a78f5fa`](https://github.com/gradio-app/gradio/commit/a78f5fa466a4b11ffaaafc5099a64df49afb6e41) - Gradio vibe editor.  Thanks @aliabid94!
+- [#11674](https://github.com/gradio-app/gradio/pull/11674) [`27d9aef`](https://github.com/gradio-app/gradio/commit/27d9aef4831d99ec46f9b5553fc7e149afe23f5f) - Add dialogue component to docs.  Thanks @aliabd!
+
+### Fixes
+
+- [#11667](https://github.com/gradio-app/gradio/pull/11667) [`07d19f7`](https://github.com/gradio-app/gradio/commit/07d19f7af3b60ff4a931d2c6740c9d61e6685dcb) - Fix the ImageEditor's auto-zoom, canvas resize, and zoom functionality.  Thanks @pngwn!
+- [#11666](https://github.com/gradio-app/gradio/pull/11666) [`4060858`](https://github.com/gradio-app/gradio/commit/4060858f353f37d3ba6d38df39752af8c1a5c6af) - Fix cached examples bug.  Thanks @freddyaboulton!
+
 ## 5.40.0
 
 ### Features
