@@ -1,5 +1,13 @@
 # @gradio/dataframe
 
+## 0.18.5
+
+### Dependency updates
+
+- @gradio/upload@0.16.13
+- @gradio/client@1.16.0
+- @gradio/button@0.5.9
+
 ## 0.18.4
 
 ### Fixes
