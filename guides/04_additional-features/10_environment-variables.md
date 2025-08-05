@@ -195,6 +195,25 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_CHAT_FLAGGING_MODE="manual"
   ```
 
+### 21. `GRADIO_WATCH_DIRS`
+
+- **Description**: Specifies directories to watch for file changes when running Gradio in development mode. When files in these directories change, the Gradio app will automatically reload. Multiple directories can be specified by separating them with commas. This is primarily used by the `gradio` CLI command for development workflows.
+- **Default**: `""`
+- **Example**:
+  ```sh
+  export GRADIO_WATCH_DIRS="/path/to/src,/path/to/templates"
+  ```
+
+### 22. `GRADIO_VIBE_MODE`
+
+- **Description**: Enables the Vibe editor mode, which provides an in-browser chat that can be used to write or edit your Gradio app using natural language. When enabled, anyone who can access the Gradio endpoint can modify files and run arbitrary code on the host machine. Use with extreme caution in production environments.
+- **Default**: `""`
+- **Options**: Any non-empty string enables the mode
+- **Example**:
+  ```sh
+  export GRADIO_VIBE_MODE="1"
+  ```
+
 
 
 ## How to Set Environment Variables
