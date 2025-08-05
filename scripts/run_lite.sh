@@ -8,7 +8,7 @@ source scripts/helpers.sh
 pnpm_required
 jq_required
 
-pip install pyodide-build
+pip install pyodide-build==0.30.5
 
 GRADIO_VERSION=$(jq -r .version ${ROOTDIR}/gradio/package.json)
 GRADIO_CLIENT_VERSION=$(jq -r .version ${ROOTDIR}/client/python/gradio_client/package.json)
