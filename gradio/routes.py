@@ -1994,6 +1994,11 @@ Prompt:
 
             if content is None:
                 raise HTTPException(status_code=500, detail="Error generating code")
+           
+            reasoning = None
+            if "<reasoning>" in content:
+                reasoning = content.split("<reasoning>")[1].split("</reasoning>")[0]
+                content = content.replace(f"<reasoning>{reasoning}</reasoning>", "").strip()
 
             if "```python\n" in content:
                 start = content.index("```python\n") + len("```python\n")
@@ -2022,6 +2027,7 @@ Prompt:
                     "lines_added": lines_added,
                     "lines_removed": lines_removed,
                 },
+                "reasoning": reasoning
             }
 
         @router.post("/undo-vibe-edit/")
@@ -2116,30 +2122,31 @@ def load_system_prompt():
 The following RULES must be followed.  Whenever you are forming a response, ensure all rules have been followed otherwise start over.
 
 RULES:
-Only respond with code, not text.
-Only respond with valid Python syntax.
+Respond with code written in valid Python syntax, along with one coherent explanation surrounded by <reasoning> tags.
+Any text that is not code, should be surrounded by one large <reasoning> tag.
 Never include backticks in your response such as ``` or ```python.
 Do not include any code that is not necessary for the app to run.
 Respond with a full Gradio app.
 Respond with a full Gradio app using correct syntax and features of the latest Gradio version. DO NOT write code that doesn't follow the signatures listed.
-Add comments explaining the code, but do not include any text that is not formatted as a Python comment.
+Do not add comments explaining the code, unless they are very necessary to understand the code.
 Make sure the code includes all necessary imports.
+Clearly explain the changes, summary, or reasoning for the code you respond with, inside one large <reasoning> tag.
 
 
 Here's an example of a valid response:
 
-# This is a simple Gradio app that greets the user.
+<reasoning>
+I created a simple Gradio app that greets the user. It defines a function then creates a gradio interface and launches it.
+</reasoning>
+
 import gradio as gr
 
-# Define a function that takes a name and returns a greeting.
 def greet(name):
     return "Hello " + name + "!"
 
-# Create a Gradio interface that takes a textbox input, runs it through the greet function, and returns output to a textbox.
 demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
 
-# Launch the interface.
-demo.launch()
+demo.launch() 
 
 """
     try:

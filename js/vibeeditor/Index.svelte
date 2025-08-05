@@ -53,6 +53,7 @@
 				const responseData = response as {
 					hash: string;
 					diff_stats: { lines_added: number; lines_removed: number };
+					reasoning: string;
 				};
 
 				// Update diff stats from response
@@ -67,7 +68,7 @@
 
 				message_history = message_history.map((msg, index) =>
 					index === botMessageIndex
-						? { text: "Done.", isBot: true, isPending: false }
+						? { text: responseData.reasoning ? responseData.reasoning : "Done.", isBot: true, isPending: false }
 						: msg
 				);
 			})
