@@ -17,6 +17,7 @@ class DialogueLine(GradioModel):
 class DialogueModel(GradioRootModel):
     root: list[DialogueLine] | str
 
+
 @document()
 class Dialogue(Component):
     """
