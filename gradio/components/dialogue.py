@@ -6,6 +6,7 @@ from gradio.components.base import Component, server
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Events
 
+from gradio_client.documentation import document
 
 class DialogueLine(GradioModel):
     speaker: str
@@ -15,12 +16,12 @@ class DialogueLine(GradioModel):
 class DialogueModel(GradioRootModel):
     root: list[DialogueLine] | str
 
-
+@document()
 class Dialogue(Component):
     """
     Creates a Dialogue component for displaying or collecting multi-speaker conversations. This component can be used as input to allow users to enter dialogue involving multiple speakers, or as output to display diarized speech, such as the result of a transcription or speaker identification model. Each message can be associated with a specific speaker, making it suitable for use cases like conversations, interviews, or meetings.
 
-        Demos: dia_dialogue_demo
+    Demos: dia_dialogue_demo
     """
 
     EVENTS = [
@@ -123,7 +124,7 @@ class Dialogue(Component):
     def preprocess(self, payload: DialogueModel) -> str:  # type: ignore
         """
         Parameters:
-            value: Expects a `DialogueModel` object or string.
+            payload: Expects a `DialogueModel` object or string.
         Returns:
             Returns the dialogue as a string.
         """
