@@ -258,6 +258,7 @@
 	</div>
 
 	<div class="input-section">
+		<div class="powered-by">Powered by: <code>gpt-oss</code></div>
 		<textarea
 			on:keydown={(e) => {
 				if (e.key === "Enter" && !e.shiftKey) {
@@ -276,7 +277,6 @@
 		>
 			Send
 		</button>
-		<div class="powered-by">Using GPT OSS</div>
 	</div>
 </div>
 
@@ -501,8 +501,8 @@
 	}
 
 	.powered-by {
-		text-align: center;
-		font-size: 10px;
+		text-align: right;
+		font-size: 12px;
 		color: var(--body-text-color-subdued);
 	}
 
