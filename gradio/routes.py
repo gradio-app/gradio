@@ -122,6 +122,7 @@ from gradio.utils import (
 if TYPE_CHECKING:
     from gradio.blocks import Block
 
+import difflib
 import shutil
 import tempfile
 
@@ -1955,13 +1956,13 @@ class App(FastAPI):
             from gradio.http_server import GRADIO_WATCH_DEMO_PATH
 
             with open(GRADIO_WATCH_DEMO_PATH) as f:
-                demo_code = f.read()
+                original_code = f.read()
 
             snapshot_hash = secrets.token_hex(16)
             snapshot_file = vibe_edit_history_dir / f"{snapshot_hash}.py"
 
             with open(snapshot_file, "w") as f:
-                f.write(demo_code)
+                f.write(original_code)
 
             from huggingface_hub import InferenceClient
 
@@ -1972,7 +1973,7 @@ class App(FastAPI):
 You are a Gradio code generator. Given the following existing code and prompt, return the full new code.
 Existing code:
 ```python
-{demo_code}
+{original_code}
 ```
 
 Prompt:
@@ -1999,10 +2000,29 @@ Prompt:
                 end = content.find("\n```", start)
                 content = content[start:end] if end != -1 else content[start:]
 
+            # Calculate diff stats
+            original_lines = original_code.splitlines(keepends=True)
+            new_lines = content.splitlines(keepends=True)
+            diff = list(difflib.unified_diff(original_lines, new_lines, n=0))
+
+            lines_added = 0
+            lines_removed = 0
+            for line in diff:
+                if line.startswith("+") and not line.startswith("+++"):
+                    lines_added += 1
+                elif line.startswith("-") and not line.startswith("---"):
+                    lines_removed += 1
+
             with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
                 f.write(content)
 
-            return {"hash": snapshot_hash}
+            return {
+                "hash": snapshot_hash,
+                "diff_stats": {
+                    "lines_added": lines_added,
+                    "lines_removed": lines_removed,
+                },
+            }
 
         @router.post("/undo-vibe-edit/")
         @router.post("/undo-vibe-edit")

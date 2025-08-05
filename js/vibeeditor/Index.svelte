@@ -12,6 +12,7 @@
 	let activeTab: "chat" | "code" = "chat";
 
 	let codeValue = "";
+	let diffStats: { lines_added: number; lines_removed: number } | null = null;
 
 	interface Message {
 		text: string;
@@ -24,6 +25,9 @@
 
 	const submit = (): void => {
 		if (prompt.trim() === "") return;
+
+		// Clear diff stats when submitting new prompt
+		diffStats = null;
 
 		const userMessageIndex = message_history.length;
 		message_history = [...message_history, { text: prompt, isBot: false }];
@@ -46,7 +50,14 @@
 					throw new Error(`Error: ${status_code}`);
 				}
 
-				const responseData = response as { hash: string };
+				const responseData = response as {
+					hash: string;
+					diff_stats: { lines_added: number; lines_removed: number };
+				};
+
+				// Update diff stats from response
+				diffStats = responseData.diff_stats;
+
 				message_history = message_history.map((msg, index) => {
 					console.log(index, userMessageIndex, responseData.hash);
 					return index === userMessageIndex
@@ -75,6 +86,9 @@
 	): Promise<void> => {
 		try {
 			await app.post_data(`${root}/gradio_api/undo-vibe-edit/`, { hash });
+
+			// Clear diff stats when undoing
+			diffStats = null;
 
 			const messageToUndo = message_history[messageIndex];
 			prompt = messageToUndo.text;
@@ -180,6 +194,16 @@
 			on:click={() => (activeTab = "code")}
 		>
 			Code
+			{#if diffStats && (diffStats.lines_added > 0 || diffStats.lines_removed > 0)}
+				<span class="diff-stats">
+					{#if diffStats.lines_added > 0}
+						<span class="added">+{diffStats.lines_added}</span>
+					{/if}
+					{#if diffStats.lines_removed > 0}
+						<span class="removed">-{diffStats.lines_removed}</span>
+					{/if}
+				</span>
+			{/if}
 		</button>
 	</div>
 
@@ -252,6 +276,7 @@
 		>
 			Send
 		</button>
+		<div class="powered-by">Using GPT OSS</div>
 	</div>
 </div>
 
@@ -473,5 +498,27 @@
 		background: var(--button-secondary-background-fill);
 		color: var(--button-secondary-text-color);
 		cursor: not-allowed;
+	}
+
+	.powered-by {
+		text-align: center;
+		font-size: 10px;
+		color: var(--body-text-color-subdued);
+	}
+
+	.diff-stats {
+		margin-left: 8px;
+		display: inline-flex;
+		gap: 4px;
+		font-size: 11px;
+		font-weight: 600;
+	}
+
+	.diff-stats .added {
+		color: #22c55e;
+	}
+
+	.diff-stats .removed {
+		color: #ef4444;
 	}
 </style>
