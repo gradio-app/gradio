@@ -206,7 +206,7 @@ Environment variables in Gradio provide a way to customize your applications and
 
 ### 22. `GRADIO_VIBE_MODE`
 
-- **Description**: Enables the Vibe editor mode, which provides an in-browser code editor for modifying and running Gradio applications. When enabled, anyone who can access the Gradio endpoint can modify files and run arbitrary code on the host machine. Use with extreme caution in production environments.
+- **Description**: Enables the Vibe editor mode, which provides an in-browser chat that can be used to write or edit your Gradio app using natural language. When enabled, anyone who can access the Gradio endpoint can modify files and run arbitrary code on the host machine. Use with extreme caution in production environments.
 - **Default**: `""`
 - **Options**: Any non-empty string enables the mode
 - **Example**:
