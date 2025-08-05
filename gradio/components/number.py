@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any
 
@@ -168,6 +169,5 @@ class Number(FormComponent):
         )
 
     def read_from_flag(self, payload: str):
-        import ast
-
-        return ast.literal_eval(payload)
+        """Numbers are stored as strings in the flagging file, so we need to parse them as json."""
+        return json.loads(payload)
