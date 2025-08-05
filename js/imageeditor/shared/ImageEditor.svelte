@@ -175,6 +175,7 @@
 			crop.set_tool("image");
 			crop.set_subtool("crop");
 			background_image = true;
+			zoom.set_zoom("fit");
 			dispatch("upload");
 			dispatch("input");
 		} catch (error) {
@@ -405,7 +406,8 @@
 		editor &&
 		ready
 	) {
-		// editor.reset_canvas();
+		editor.reset_canvas();
+		zoom.set_zoom("fit");
 		handle_tool_change({ tool: "image" });
 		background_image = false;
 		has_drawn = false;
@@ -431,6 +433,7 @@
 		crop.reset();
 
 		background_image = true;
+		zoom.set_zoom("fit");
 		handle_tool_change({ tool: "draw" });
 		dispatch("upload");
 		dispatch("input");

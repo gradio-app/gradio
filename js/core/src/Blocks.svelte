@@ -56,6 +56,7 @@
 	export let max_file_size: number | undefined = undefined;
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
+	export let vibe_mode = false;
 	let broken_connection = false;
 
 	let {
@@ -92,6 +93,8 @@
 		old_dependencies = dependencies;
 	}
 
+	let vibe_editor_width = 350;
+
 	async function run(): Promise<void> {
 		await setupi18n(app.config?.i18n_translations || undefined);
 
@@ -121,6 +124,7 @@
 	let ApiDocs: ComponentType<ApiDocs> | null = null;
 	let ApiRecorder: ComponentType<ApiRecorder> | null = null;
 	let Settings: ComponentType<Settings> | null = null;
+	let VibeEditor: ComponentType | null = null;
 
 	async function loadApiDocs(): Promise<void> {
 		if (!ApiDocs || !ApiRecorder) {
@@ -142,6 +146,13 @@
 		if (!Settings) {
 			const settings_module = await import("./api_docs/Settings.svelte");
 			Settings = settings_module.default;
+		}
+	}
+
+	async function loadVibeEditor(): Promise<void> {
+		if (!VibeEditor) {
+			const vibe_editor_module = await import("@gradio/vibeeditor");
+			VibeEditor = vibe_editor_module.default;
 		}
 	}
 
@@ -945,6 +956,15 @@
 			}
 		);
 
+		const handleVibeEditorResize = (event: CustomEvent): void => {
+			vibe_editor_width = event.detail.width;
+		};
+
+		window.addEventListener(
+			"vibeEditorResize",
+			handleVibeEditorResize as EventListener
+		);
+
 		// Load components if they should be visible on initial page load
 		if (api_docs_visible) {
 			loadApiDocs();
@@ -954,6 +974,9 @@
 		}
 		if (settings_visible) {
 			loadSettings();
+		}
+		if (vibe_mode) {
+			loadVibeEditor();
 		}
 	});
 
@@ -976,7 +999,11 @@
 </svelte:head>
 
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
-	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
+	<div
+		class="contain"
+		style:flex-grow={app_mode ? "1" : "auto"}
+		style:margin-right={vibe_mode ? `${vibe_editor_width}px` : "0"}
+	>
 		{#if $_layout && app.config}
 			<MountComponents
 				rootNode={$_layout}
@@ -1130,6 +1157,10 @@
 
 {#if messages}
 	<Toast {messages} on:close={handle_error_close} />
+{/if}
+
+{#if vibe_mode && VibeEditor}
+	<svelte:component this={VibeEditor} {app} {root} />
 {/if}
 
 <style>
