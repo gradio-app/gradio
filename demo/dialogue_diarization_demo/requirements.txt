@@ -1,0 +1,9 @@
+gradio
+torch
+torchaudio
+pyannote.audio
+openai-whisper
+librosa
+numpy
+transformers
+speechbrain 

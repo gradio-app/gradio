@@ -8,6 +8,8 @@
 	export let selected_indices: (string | number)[] = [];
 	export let active_index: number | null = null;
 	export let remember_scroll = false;
+	export let offset_from_top = 0;
+	export let from_top = false;
 
 	let distance_from_top: number;
 	let distance_from_bottom: number;
@@ -22,7 +24,11 @@
 	function calculate_window_distance(): void {
 		const { top: ref_top, bottom: ref_bottom } =
 			refElement.getBoundingClientRect();
-		distance_from_top = ref_top;
+		if (from_top) {
+			distance_from_top = offset_from_top;
+		} else {
+			distance_from_top = ref_top;
+		}
 		distance_from_bottom = innerHeight - ref_bottom;
 	}
 
@@ -66,7 +72,7 @@
 			input_height = rect?.height || 0;
 			input_width = rect?.width || 0;
 		}
-		if (distance_from_bottom > distance_from_top) {
+		if (distance_from_bottom > distance_from_top || from_top) {
 			top = `${distance_from_top}px`;
 			max_height = distance_from_bottom;
 			bottom = null;

@@ -1,9 +1,9 @@
 {
-	"name": "@gradio/dropdown",
-	"version": "0.10.0",
-	"description": "Gradio UI packages",
+	"name": "@gradio/dialogue",
+	"version": "0.1.0",
+	"description": "Gradio dialogue component",
 	"type": "module",
-	"author": "",
+	"author": "Gradio",
 	"license": "ISC",
 	"private": false,
 	"main_changeset": true,
@@ -24,7 +24,9 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
-		"@gradio/utils": "workspace:^"
+		"@gradio/utils": "workspace:^",
+		"@gradio/dropdown": "workspace:^",
+		"@gradio/textbox": "workspace:^"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
@@ -35,6 +37,6 @@
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/gradio-app/gradio.git",
-		"directory": "js/dropdown"
+		"directory": "js/dialogue"
 	}
 }
