@@ -2,11 +2,12 @@
 	import { createEventDispatcher } from "svelte";
 	import { MarkdownCode } from "@gradio/markdown-code";
 	import type { I18nFormatter } from "@gradio/utils";
+	import type { CellValue } from "./types";
 	import SelectionButtons from "./icons/SelectionButtons.svelte";
 	import BooleanCell from "./BooleanCell.svelte";
 
 	export let edit: boolean;
-	export let value: string | number = "";
+	export let value: CellValue = "";
 	export let display_value: string | null = null;
 	export let styling = "";
 	export let header = false;
@@ -44,7 +45,7 @@
 	}>();
 
 	function truncate_text(
-		text: string | number,
+		text: CellValue,
 		max_length: number | null = null,
 		is_image = false
 	): string {
@@ -86,18 +87,8 @@
 		dispatch("keydown", event);
 	}
 
-	function handle_bool_change(new_value: boolean): void {
-		value = new_value.toString();
-		dispatch("blur", {
-			blur_event: {
-				target: {
-					type: "checkbox",
-					checked: new_value,
-					value: new_value.toString()
-				}
-			} as unknown as FocusEvent,
-			coords: coords
-		});
+	function commit_change(checked: boolean): void {
+		handle_blur({ target: { value } } as unknown as FocusEvent);
 	}
 </script>
 
@@ -118,12 +109,8 @@
 	/>
 {/if}
 
-{#if datatype === "bool"}
-	<BooleanCell
-		value={String(display_content)}
-		{editable}
-		on_change={handle_bool_change}
-	/>
+{#if datatype === "bool" && typeof value === "boolean"}
+	<BooleanCell bind:value {editable} on_change={commit_change} />
 {:else}
 	<span
 		class:dragging={is_dragging}

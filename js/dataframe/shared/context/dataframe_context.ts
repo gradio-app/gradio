@@ -2,6 +2,7 @@ import { getContext, setContext } from "svelte";
 import { dequal } from "dequal";
 import { writable, get } from "svelte/store";
 import { sort_table_data } from "../utils/table_utils";
+import type { CellValue } from "../types";
 import { tick } from "svelte";
 import {
 	handle_selection,
@@ -30,14 +31,14 @@ interface DataFrameState {
 		max_height: number;
 		column_widths: string[];
 		max_chars?: number;
-		static_columns?: (string | number)[];
+		static_columns?: CellValue[];
 	};
 	current_search_query: string | null;
 	sort_state: {
 		sort_columns: { col: number; direction: SortDirection }[];
 		row_order: number[];
 		initial_data: {
-			data: { id: string; value: string | number }[][];
+			data: { id: string; value: CellValue }[][];
 			display_value: string[][] | null;
 			styling: string[][] | null;
 		} | null;
@@ -50,7 +51,7 @@ interface DataFrameState {
 			value: string;
 		}[];
 		initial_data: {
-			data: { id: string; value: string | number }[][];
+			data: { id: string; value: CellValue }[][];
 			display_value: string[][] | null;
 			styling: string[][] | null;
 		} | null;
@@ -183,9 +184,9 @@ export interface DataFrameContext {
 		{ cell: HTMLTableCellElement | null; input: HTMLTextAreaElement | null }
 	>;
 	parent_element?: HTMLElement;
-	get_data_at?: (row: number, col: number) => string | number;
-	get_column?: (col: number) => (string | number)[];
-	get_row?: (row: number) => (string | number)[];
+	get_data_at?: (row: number, col: number) => CellValue;
+	get_column?: (col: number) => CellValue[];
+	get_row?: (row: number) => CellValue[];
 	dispatch?: (e: "change" | "select" | "search" | "edit", detail?: any) => void;
 }
 
@@ -230,7 +231,7 @@ function create_actions(
 	};
 
 	const update_array = (
-		source: { id: string; value: string | number }[][] | string[][] | null,
+		source: { id: string; value: CellValue }[][] | string[][] | null,
 		target: any[] | null | undefined
 	): void => {
 		if (source && target) {
