@@ -25,6 +25,7 @@ jobs:
         with:
           python_version: "3.12"
           skip_build: "false"
+          build_lite: "true"
       - name: Build packages
         run: |
           . venv/bin/activate
