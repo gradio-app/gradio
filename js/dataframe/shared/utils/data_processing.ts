@@ -1,5 +1,6 @@
-import type { Headers, HeadersWithIDs } from "./utils";
+import type { Datatype, Headers, HeadersWithIDs } from "./utils";
 import type { CellValue } from "../types";
+import { cast_value_to_type } from "./utils";
 
 export function make_headers(
 	_head: Headers,
@@ -43,7 +44,8 @@ export function process_data(
 	>,
 	data_binding: Record<string, any>,
 	make_id: () => string,
-	display_value: string[][] | null = null
+	display_value: string[][] | null = null,
+	datatype: Datatype | Datatype[]
 ): { id: string; value: CellValue; display_value?: string }[][] {
 	if (!values || values.length === 0) {
 		return [];
@@ -61,9 +63,11 @@ export function process_data(
 				display = String(value);
 			}
 
+			const dtype = Array.isArray(datatype) ? datatype[j] : datatype;
+
 			return {
 				id: _id,
-				value,
+				value: cast_value_to_type(value, dtype),
 				display_value: display
 			};
 		});
