@@ -1994,11 +1994,13 @@ Prompt:
 
             if content is None:
                 raise HTTPException(status_code=500, detail="Error generating code")
-           
+
             reasoning = None
             if "<reasoning>" in content:
                 reasoning = content.split("<reasoning>")[1].split("</reasoning>")[0]
-                content = content.replace(f"<reasoning>{reasoning}</reasoning>", "").strip()
+                content = content.replace(
+                    f"<reasoning>{reasoning}</reasoning>", ""
+                ).strip()
 
             if "```python\n" in content:
                 start = content.index("```python\n") + len("```python\n")
@@ -2027,7 +2029,7 @@ Prompt:
                     "lines_added": lines_added,
                     "lines_removed": lines_removed,
                 },
-                "reasoning": reasoning
+                "reasoning": reasoning,
             }
 
         @router.post("/undo-vibe-edit/")
@@ -2146,8 +2148,7 @@ def greet(name):
 
 demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
 
-demo.launch() 
-
+demo.launch()
 """
     try:
         with httpx.Client() as client:

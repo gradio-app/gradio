@@ -68,7 +68,11 @@
 
 				message_history = message_history.map((msg, index) =>
 					index === botMessageIndex
-						? { text: responseData.reasoning ? responseData.reasoning : "Done.", isBot: true, isPending: false }
+						? {
+								text: responseData.reasoning ? responseData.reasoning : "Done.",
+								isBot: true,
+								isPending: false
+							}
 						: msg
 				);
 			})
