@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:change
+fix: vibe editor by not hard-coding inference provider 
