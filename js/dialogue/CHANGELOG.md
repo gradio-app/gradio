@@ -1,5 +1,11 @@
 # @gradio/dialogue
 
+## 0.1.1
+
+### Features
+
+- [#11686](https://github.com/gradio-app/gradio/pull/11686) [`b995b1c`](https://github.com/gradio-app/gradio/commit/b995b1ce2932cf9cb96ca1b48205fac802000d6d) - Some tweaks to Dialogue Component.  Thanks @freddyaboulton!
+
 ## 0.1.0
 
 ### Features

@@ -1,5 +1,16 @@
 # gradio
 
+## 5.41.1
+
+### Features
+
+- [#11688](https://github.com/gradio-app/gradio/pull/11688) [`56f3f09`](https://github.com/gradio-app/gradio/commit/56f3f09b6c629a5719088806dbbb37f272d8d4f5) - Fix column header logic in gr.Dataframe.  Thanks @hannahblair!
+- [#11686](https://github.com/gradio-app/gradio/pull/11686) [`b995b1c`](https://github.com/gradio-app/gradio/commit/b995b1ce2932cf9cb96ca1b48205fac802000d6d) - Some tweaks to Dialogue Component.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#11685](https://github.com/gradio-app/gradio/pull/11685) [`56d2b90`](https://github.com/gradio-app/gradio/commit/56d2b90e2c37c58ba19c9cbd55fe881946b007ed) - vibe editor by not hard-coding inference provider.  Thanks @abidlabs!
+
 ## 5.41.0
 
 ### Features
