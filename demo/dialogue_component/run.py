@@ -6,7 +6,7 @@ with gr.Blocks() as demo:
                 value=[
                     {"speaker": "Speaker 1", "text": "Hello, how are you?"},
                     {"speaker": "Speaker 2", "text": "I'm fine, thank you!"},
-                ], separator="\n", interactive=False)
+                ], separator="\n", interactive=True)
     output = gr.Textbox(label="Output", value="")
     dd.submit(lambda x: x, inputs=dd, outputs=output)
 demo.launch()

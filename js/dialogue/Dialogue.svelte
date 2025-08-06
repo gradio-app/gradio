@@ -29,7 +29,8 @@
 		unformat: (body: object) => Promise<DialogueLine[]>;
 	};
 
-	let dialogue_lines: DialogueLine[] = value && (typeof value !== "string") ? [...value] : [];
+	let dialogue_lines: DialogueLine[] =
+		value && typeof value !== "string" ? [...value] : [];
 	let dialogue_container_element: HTMLDivElement;
 
 	let showTagMenu = false;
@@ -264,7 +265,7 @@
 					if (speakers.length === 0) {
 						value = newText;
 					} else {
-						value = await server.unformat({text: newText});
+						value = await server.unformat({ text: newText });
 					}
 
 					tick().then(() => {
@@ -305,7 +306,7 @@
 		}
 	}
 
-	function insert_tag(e: CustomEvent): void {
+	async function insert_tag(e: CustomEvent): Promise<void> {
 		const tag = tags[e.detail.target.dataset.index];
 		if (tag) {
 			let text;
@@ -330,8 +331,7 @@
 					if (speakers.length === 0) {
 						value = newText;
 					} else {
-						const parsed_lines = string_to_dialogue_lines(newText);
-						value = [...parsed_lines];
+						value = await server.unformat({ text: newText });
 					}
 
 					tick().then(() => {
@@ -504,16 +504,13 @@
 
 	async function handle_submit(): Promise<void> {
 		if (checked) {
-			server.unformat({text: textbox_value}).then((lines) => {
-				console.log("value in submit", value)
-				value = lines;
-			});
+			value = await server.unformat({ text: textbox_value });
 		}
 		dispatch("submit");
 	}
 
 	onMount(async () => {
-		if(typeof value === "string") {
+		if (typeof value === "string") {
 			textbox_value = value;
 		} else if (value && value.length > 0) {
 			const formatted = await value_to_string(value);
@@ -521,7 +518,7 @@
 		} else {
 			textbox_value = "";
 		}
-	})
+	});
 </script>
 
 <svelte:window on:click={handle_click_outside} />
@@ -549,11 +546,15 @@
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 	{#if speakers.length !== 0}
 		<div class="switch-container top-switch">
-			<Switch label="Plain Text" bind:checked on:click={async (e) => {
-				if (!e.detail.checked) {
-					value = await server.unformat({text: textbox_value})
-				}
-			}} />
+			<Switch
+				label="Plain Text"
+				bind:checked
+				on:click={async (e) => {
+					if (!e.detail.checked) {
+						value = await server.unformat({ text: textbox_value });
+					}
+				}}
+			/>
 		</div>
 	{/if}
 	{#if !checked}
