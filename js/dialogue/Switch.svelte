@@ -1,15 +1,18 @@
 <script lang="ts">
 	// based on https://svelte.dev/playground/d65a4e9f0ae74d1eb1b08d13e428af32?version=3.35.0
 
+	import { createEventDispatcher } from "svelte";
 	export let label;
 	export let checked = false;
 	export let disabled = false;
+	const dispatch = createEventDispatcher();
 	// @ts-ignore
 	function handleClick(event: Event): void {
 		const target = event.target;
 		// @ts-ignore
 		const state = target.getAttribute("aria-checked");
 		checked = state === "true" ? false : true;
+		dispatch("click", { checked });
 	}
 </script>
 
