@@ -400,7 +400,6 @@
 	}
 
 	function sync_value(dialogueLines: DialogueLine[]): void {
-		console.log("Syncing value with dialogue lines:", dialogueLines);
 		if (speakers.length !== 0) {
 			value = [...dialogueLines];
 			if (JSON.stringify(value) !== old_value) {
@@ -423,9 +422,7 @@
 		old_value = JSON.stringify(value);
 		if (value && typeof value !== "string") {
 			dialogue_lines = [...value];
-			console.log("Updating dialogue lines from value:", dialogue_lines);
 			value_to_string(value).then((formatted) => {
-				console.log("Formatted value:", formatted);
 				textbox_value = formatted;
 			});
 		} else {
