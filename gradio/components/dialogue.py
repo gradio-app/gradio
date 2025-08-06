@@ -90,7 +90,7 @@ class Dialogue(Component):
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
         """
         super().__init__(
-            value="",
+            value=value,
             label=label,
             info=info,
             show_label=show_label,
@@ -115,11 +115,6 @@ class Dialogue(Component):
         self.color_map = color_map
         self.show_submit_button = show_submit_button
         self.show_copy_button = show_copy_button
-        if isinstance(value, Callable):
-            value = value()
-        self.value = (
-            self.preprocess(DialogueModel(root=value)) if value is not None else value  # type: ignore
-        )
         if not interactive:
             self.info = None
 

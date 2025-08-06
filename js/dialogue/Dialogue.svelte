@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
+	import { createEventDispatcher, tick, onMount } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Copy, Check, Send, Plus, Trash } from "@gradio/icons";
 	import { fade } from "svelte/transition";
@@ -28,7 +28,7 @@
 		format: (body: DialogueLine[]) => Promise<string>;
 	};
 
-	let dialogue_lines: DialogueLine[] = [];
+	let dialogue_lines: DialogueLine[] = value && (typeof value !== "string") ? [...value] : [];
 	let dialogue_container_element: HTMLDivElement;
 
 	let showTagMenu = false;
@@ -400,6 +400,7 @@
 	}
 
 	function sync_value(dialogueLines: DialogueLine[]): void {
+		console.log("Syncing value with dialogue lines:", dialogueLines);
 		if (speakers.length !== 0) {
 			value = [...dialogueLines];
 			if (JSON.stringify(value) !== old_value) {
@@ -413,6 +414,10 @@
 		}
 	}
 
+	$: console.log("Dialogue value changed:", value);
+	$: console.log("Dialogue lines:", dialogue_lines);
+	$: console.log("Textbox value:", textbox_value);
+
 	$: sync_value(dialogue_lines);
 
 	$: if (JSON.stringify(value) !== old_value) {
@@ -422,10 +427,11 @@
 		old_value = JSON.stringify(value);
 		if (value && typeof value !== "string") {
 			dialogue_lines = [...value];
-			const formatted = value
-				.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
-				.join(" ");
-			textbox_value = formatted;
+			console.log("Updating dialogue lines from value:", dialogue_lines);
+			value_to_string(value).then((formatted) => {
+				console.log("Formatted value:", formatted);
+				textbox_value = formatted;
+			});
 		} else {
 			textbox_value = value;
 			if (!checked && speakers.length > 0 && value) {
@@ -511,6 +517,18 @@
 		}
 		dispatch("submit");
 	}
+
+	onMount(async () => {
+		if(typeof value === "string") {
+			textbox_value = value;
+		} else if (value && value.length > 0) {
+			const formatted = await value_to_string(value);
+			console.log("Formatted value on mount:", formatted);
+			textbox_value = formatted;
+		} else {
+			textbox_value = "";
+		}
+	})
 </script>
 
 <svelte:window on:click={handle_click_outside} />
