@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:Fix column header logic
+feat:Fix column header logic in gr.Dataframe
