@@ -161,7 +161,6 @@ class Dialogue(Component):
             text = line[bracket_end + 1 :].strip()
             return {"speaker": speaker, "text": text}
         else:
-            # If it doesn't match the default pattern, treat as unknown speaker
             return {"speaker": "Unknown", "text": line}
 
     @server
