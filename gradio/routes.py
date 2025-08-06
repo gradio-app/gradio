@@ -1966,7 +1966,7 @@ class App(FastAPI):
 
             from huggingface_hub import InferenceClient
 
-            client = InferenceClient(provider="hf-inference")
+            client = InferenceClient()
 
             content = ""
             prompt = f"""
