@@ -839,3 +839,37 @@
 		column_widths: ["200px", "200px", "200px"]
 	}}
 />
+
+<Story
+	name="Dataframe column addition test"
+	args={{
+		values: [
+			["Alice", 25],
+			["Bob", 30],
+			["Carol", 22]
+		],
+		headers: ["Name", "Age"],
+		label: "Column Addition Test",
+		col_count: [2, "dynamic"],
+		row_count: [3, "dynamic"],
+		editable: true
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const user = userEvent.setup();
+
+		const header_menu_button = canvas.getAllByLabelText("Open cell menu")[0];
+		await user.click(header_menu_button);
+
+		const add_column_button = canvas.getByText("Add column to the right");
+		await user.click(add_column_button);
+
+		const new_header = canvas.getAllByText("Header 3")[0];
+		await user.keyboard("{Enter}");
+
+		const input = canvas.getByRole("textbox");
+		await user.clear(input);
+		await user.type(input, "New Column");
+		await user.keyboard("{Enter}");
+	}}
+/>
