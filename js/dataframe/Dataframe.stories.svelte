@@ -865,7 +865,7 @@
 		await user.click(add_column_button);
 
 		const new_header = canvas.getAllByText("Header 3")[0];
-		await user.click(new_header);
+		await user.keyboard("{Enter}");
 
 		const input = canvas.getByRole("textbox");
 		await user.clear(input);
