@@ -1,5 +1,11 @@
 # @gradio/dataframe
 
+## 0.18.6
+
+### Features
+
+- [#11688](https://github.com/gradio-app/gradio/pull/11688) [`56f3f09`](https://github.com/gradio-app/gradio/commit/56f3f09b6c629a5719088806dbbb37f272d8d4f5) - Fix column header logic in gr.Dataframe.  Thanks @hannahblair!
+
 ## 0.18.5
 
 ### Dependency updates
