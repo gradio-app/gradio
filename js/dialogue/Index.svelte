@@ -25,6 +25,7 @@
 
 	export let server: {
 		format: (body: DialogueLine[]) => Promise<string>;
+		unformat: (body: object) => Promise<DialogueLine[]>;
 	};
 
 	export let label = "Dialogue";

@@ -40,6 +40,7 @@ class Dialogue(Component):
         *,
         speakers: list[str] | None = None,
         formatter: Callable | None = None,
+        unformatter: Callable | None = None,
         tags: list[str] | None = None,
         separator: str = " ",
         color_map: dict[str, str] | None = None,
@@ -68,6 +69,7 @@ class Dialogue(Component):
             value: Value of the dialogue. It is a list of dictionaries, each containing a 'speaker' key and a 'text' key. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             speakers: The different speakers allowed in the dialogue. If `None` or an empty list, no speakers will be displayed. Instead, the component will be a standard textarea that optionally supports `tags` autocompletion.
             formatter: A function that formats the dialogue line dictionary, e.g. {"speaker": "Speaker 1", "text": "Hello, how are you?"} into a string, e.g. "Speaker 1: Hello, how are you?". This function is run on user input and the resulting string is passed into the prediction function.
+            unformatter: A function that parses a formatted dialogue string back into a dialogue line dictionary. Should take a single string line and return a dictionary with 'speaker' and 'text' keys. If not provided, the default unformatter will attempt to parse the default formatter pattern.
             tags: The different tags allowed in the dialogue. Tags are displayed in an autocomplete menu below the input textbox when the user starts typing `:`. Use the exact tag name expected by the AI model or inference function.
             separator: The separator between the different dialogue lines used to join the formatted dialogue lines into a single string. For example, a newline character or empty string.
             color_map: A dictionary mapping speaker names to colors. The colors may be specified as hex codes or by their names. For example: {"Speaker 1": "red", "Speaker 2": "#FFEE22"}. If not provided, default colors will be assigned to speakers. This is only used if `interactive` is False.
@@ -90,7 +92,7 @@ class Dialogue(Component):
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
         """
         super().__init__(
-            value="",
+            value=value,
             label=label,
             info=info,
             show_label=show_label,
@@ -111,15 +113,11 @@ class Dialogue(Component):
         self.speakers = speakers
         self.tags = tags or []
         self.formatter = formatter
+        self.unformatter = unformatter
         self.separator = separator
         self.color_map = color_map
         self.show_submit_button = show_submit_button
         self.show_copy_button = show_copy_button
-        if isinstance(value, Callable):
-            value = value()
-        self.value = (
-            self.preprocess(DialogueModel(root=value)) if value is not None else value  # type: ignore
-        )
         if not interactive:
             self.info = None
 
@@ -149,11 +147,54 @@ class Dialogue(Component):
     def default_formatter(speaker: str, text: str) -> str:
         return f"[{speaker}] {text}"
 
+    @staticmethod
+    def default_unformatter(line: str) -> dict[str, str]:
+        """Parse a formatted dialogue line back into speaker and text components."""
+        line = line.strip()
+        if not line:
+            return {"speaker": "", "text": ""}
+
+        # Try to parse using the default formatter pattern: [speaker] text
+        if line.startswith("[") and "]" in line:
+            bracket_end = line.find("]")
+            speaker = line[1:bracket_end]
+            text = line[bracket_end + 1 :].strip()
+            return {"speaker": speaker, "text": text}
+        else:
+            # If it doesn't match the default pattern, treat as unknown speaker
+            return {"speaker": "Unknown", "text": line}
+
     @server
     async def format(self, value: list[dict] | str):
         """Format the dialogue in the frontend into a string that's copied to the clipboard."""
         data = DialogueModel(root=value)  # type: ignore
         return self.preprocess(data)
+
+    @server
+    async def unformat(self, payload: dict):
+        """Parse a formatted dialogue string back into dialogue data structure."""
+
+        value = payload.get("text", "")
+
+        if not value or value.strip() == "":
+            return []
+
+        lines = value.split(self.separator)
+        dialogue_lines = []
+        unformatter = self.unformatter
+        if not unformatter:
+            unformatter = self.default_unformatter
+
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+
+            parsed_line = unformatter(line)
+            if parsed_line["speaker"] or parsed_line["text"]:  # Skip empty lines
+                dialogue_lines.append(parsed_line)
+
+        return dialogue_lines
 
     def postprocess(  # type: ignore
         self, value: list[dict[str, str]] | str | None

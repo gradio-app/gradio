@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
+	import { createEventDispatcher, tick, onMount } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Copy, Check, Send, Plus, Trash } from "@gradio/icons";
 	import { fade } from "svelte/transition";
@@ -26,9 +26,11 @@
 
 	export let server: {
 		format: (body: DialogueLine[]) => Promise<string>;
+		unformat: (body: object) => Promise<DialogueLine[]>;
 	};
 
-	let dialogue_lines: DialogueLine[] = [];
+	let dialogue_lines: DialogueLine[] =
+		value && typeof value !== "string" ? [...value] : [];
 	let dialogue_container_element: HTMLDivElement;
 
 	let showTagMenu = false;
@@ -238,7 +240,7 @@
 		return "";
 	}
 
-	function insert_selected_tag(): void {
+	async function insert_selected_tag(): Promise<void> {
 		const tag = filtered_tags[selectedOptionIndex];
 		if (tag) {
 			let text;
@@ -263,8 +265,7 @@
 					if (speakers.length === 0) {
 						value = newText;
 					} else {
-						const parsed_lines = string_to_dialogue_lines(newText);
-						value = [...parsed_lines];
+						value = await server.unformat({ text: newText });
 					}
 
 					tick().then(() => {
@@ -305,7 +306,7 @@
 		}
 	}
 
-	function insert_tag(e: CustomEvent): void {
+	async function insert_tag(e: CustomEvent): Promise<void> {
 		const tag = tags[e.detail.target.dataset.index];
 		if (tag) {
 			let text;
@@ -330,8 +331,7 @@
 					if (speakers.length === 0) {
 						value = newText;
 					} else {
-						const parsed_lines = string_to_dialogue_lines(newText);
-						value = [...parsed_lines];
+						value = await server.unformat({ text: newText });
 					}
 
 					tick().then(() => {
@@ -422,10 +422,9 @@
 		old_value = JSON.stringify(value);
 		if (value && typeof value !== "string") {
 			dialogue_lines = [...value];
-			const formatted = value
-				.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
-				.join(" ");
-			textbox_value = formatted;
+			value_to_string(value).then((formatted) => {
+				textbox_value = formatted;
+			});
 		} else {
 			textbox_value = value;
 			if (!checked && speakers.length > 0 && value) {
@@ -500,17 +499,23 @@
 		}, 1000);
 	}
 
-	function handle_submit(): void {
+	async function handle_submit(): Promise<void> {
 		if (checked) {
-			if (speakers.length === 0) {
-				value = textbox_value;
-			} else {
-				const parsed_lines = string_to_dialogue_lines(textbox_value);
-				value = [...parsed_lines];
-			}
+			value = await server.unformat({ text: textbox_value });
 		}
 		dispatch("submit");
 	}
+
+	onMount(async () => {
+		if (typeof value === "string") {
+			textbox_value = value;
+		} else if (value && value.length > 0) {
+			const formatted = await value_to_string(value);
+			textbox_value = formatted;
+		} else {
+			textbox_value = "";
+		}
+	});
 </script>
 
 <svelte:window on:click={handle_click_outside} />
@@ -538,7 +543,15 @@
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 	{#if speakers.length !== 0}
 		<div class="switch-container top-switch">
-			<Switch label="Plain Text" bind:checked />
+			<Switch
+				label="Plain Text"
+				bind:checked
+				on:click={async (e) => {
+					if (!e.detail.checked) {
+						value = await server.unformat({ text: textbox_value });
+					}
+				}}
+			/>
 		</div>
 	{/if}
 	{#if !checked}
@@ -669,12 +682,6 @@
 				{disabled}
 				on:input={(event) => {
 					handle_input(event, 0);
-					if (speakers.length === 0) {
-						value = textbox_value;
-					} else {
-						const parsed_lines = string_to_dialogue_lines(textbox_value);
-						value = [...parsed_lines];
-					}
 				}}
 				on:focus={(event) => handle_input(event, 0)}
 				on:keydown={(event) => {
