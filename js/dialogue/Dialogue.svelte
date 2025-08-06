@@ -26,6 +26,7 @@
 
 	export let server: {
 		format: (body: DialogueLine[]) => Promise<string>;
+		unformat: (body: object) => Promise<DialogueLine[]>;
 	};
 
 	let dialogue_lines: DialogueLine[] = value && (typeof value !== "string") ? [...value] : [];
@@ -238,7 +239,7 @@
 		return "";
 	}
 
-	function insert_selected_tag(): void {
+	async function insert_selected_tag(): Promise<void> {
 		const tag = filtered_tags[selectedOptionIndex];
 		if (tag) {
 			let text;
@@ -263,8 +264,7 @@
 					if (speakers.length === 0) {
 						value = newText;
 					} else {
-						const parsed_lines = string_to_dialogue_lines(newText);
-						value = [...parsed_lines];
+						value = await server.unformat({text: newText});
 					}
 
 					tick().then(() => {
@@ -414,10 +414,6 @@
 		}
 	}
 
-	$: console.log("Dialogue value changed:", value);
-	$: console.log("Dialogue lines:", dialogue_lines);
-	$: console.log("Textbox value:", textbox_value);
-
 	$: sync_value(dialogue_lines);
 
 	$: if (JSON.stringify(value) !== old_value) {
@@ -506,14 +502,12 @@
 		}, 1000);
 	}
 
-	function handle_submit(): void {
+	async function handle_submit(): Promise<void> {
 		if (checked) {
-			if (speakers.length === 0) {
-				value = textbox_value;
-			} else {
-				const parsed_lines = string_to_dialogue_lines(textbox_value);
-				value = [...parsed_lines];
-			}
+			server.unformat({text: textbox_value}).then((lines) => {
+				console.log("value in submit", value)
+				value = lines;
+			});
 		}
 		dispatch("submit");
 	}
@@ -523,7 +517,6 @@
 			textbox_value = value;
 		} else if (value && value.length > 0) {
 			const formatted = await value_to_string(value);
-			console.log("Formatted value on mount:", formatted);
 			textbox_value = formatted;
 		} else {
 			textbox_value = "";
@@ -556,7 +549,11 @@
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 	{#if speakers.length !== 0}
 		<div class="switch-container top-switch">
-			<Switch label="Plain Text" bind:checked />
+			<Switch label="Plain Text" bind:checked on:click={async (e) => {
+				if (!e.detail.checked) {
+					value = await server.unformat({text: textbox_value})
+				}
+			}} />
 		</div>
 	{/if}
 	{#if !checked}
@@ -687,12 +684,6 @@
 				{disabled}
 				on:input={(event) => {
 					handle_input(event, 0);
-					if (speakers.length === 0) {
-						value = textbox_value;
-					} else {
-						const parsed_lines = string_to_dialogue_lines(textbox_value);
-						value = [...parsed_lines];
-					}
 				}}
 				on:focus={(event) => handle_input(event, 0)}
 				on:keydown={(event) => {
