@@ -111,9 +111,9 @@ class Client:
             library_name="gradio_client",
             library_version=utils.__version__,
         )
-        if "Authorization" in self.headers:
-            self.headers["X-HF-Authorization"] = self.headers["Authorization"]
-            del self.headers["Authorization"]
+        if "authorization" in self.headers:
+            self.headers["x-hf-authorization"] = self.headers["authorization"]
+            del self.headers["authorization"]
         if headers:
             self.headers.update(headers)
         self.ssl_verify = ssl_verify
