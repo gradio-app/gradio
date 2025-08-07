@@ -1966,11 +1966,11 @@ class App(FastAPI):
 
             from huggingface_hub import InferenceClient
 
-            client = InferenceClient(provider="hf-inference")
+            client = InferenceClient()
 
             content = ""
             prompt = f"""
-You are a Gradio code generator. Given the following existing code and prompt, return the full new code.
+You are a code generator for Gradio apps. Given the following existing code and prompt, return the full new code.
 Existing code:
 ```python
 {original_code}

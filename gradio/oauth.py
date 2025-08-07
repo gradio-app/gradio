@@ -197,13 +197,22 @@ def _generate_redirect_uri(request: fastapi.Request) -> str:
         # otherwise => keep query params
         target = "/?" + urllib.parse.urlencode(request.query_params)
 
+    # On Spaces, the redirect URI must always be https://<space_host>/login/callback,
+    # so if a custom domain is used, we need to replace it with the hf.space URL
+    if space_host := os.getenv("SPACE_HOST"):
+        print(f"SPACE_HOST: {space_host}")
+        space_host = space_host.split(",")[
+            0
+        ]  # When custom domain is used, SPACE_HOST is a comma-separated list
+        print(f"SPACE_HOST after split: {space_host}")
+        redirect_uri = f"https://{space_host}/login/callback?{urllib.parse.urlencode({'_target_url': target})}"
+        print(f"Redirect URI: {redirect_uri}")
+        return redirect_uri
+
     redirect_uri = request.url_for("oauth_redirect_callback").include_query_params(
         _target_url=target
     )
     redirect_uri_as_str = str(redirect_uri)
-    if redirect_uri.netloc.endswith(".hf.space"):
-        # In Space, FastAPI redirect as http but we want https
-        redirect_uri_as_str = redirect_uri_as_str.replace("http://", "https://")
     return redirect_uri_as_str
 
 
