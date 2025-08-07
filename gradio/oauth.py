@@ -197,14 +197,9 @@ def _generate_redirect_uri(request: fastapi.Request) -> str:
         # otherwise => keep query params
         target = "/?" + urllib.parse.urlencode(request.query_params)
 
-    redirect_uri = request.url_for("oauth_redirect_callback").include_query_params(
-        _target_url=target
-    )
-    redirect_uri_as_str = str(redirect_uri)
-    if redirect_uri.netloc.endswith(".hf.space"):
-        # In Space, FastAPI redirect as http but we want https
-        redirect_uri_as_str = redirect_uri_as_str.replace("http://", "https://")
-    return redirect_uri_as_str
+    # Hardcoded callback URL with query parameters
+    redirect_uri = f"https://gradio-chat-gradio-app-hfips.hf.space/login/callback?_target_url={urllib.parse.quote(target)}"
+    return redirect_uri
 
 
 def _redirect_to_target(
