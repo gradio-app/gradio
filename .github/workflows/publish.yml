@@ -10,7 +10,6 @@ on:
 env:
   CI: true
   PNPM_CACHE_FOLDER: .pnpm-store
-  NODE_OPTIONS: "--max-old-space-size=4096"
 jobs:
   version_or_publish:
     runs-on: ubuntu-22.04
@@ -26,13 +25,12 @@ jobs:
         with:
           python_version: "3.12"
           skip_build: "false"
+          build_lite: "true"
       - name: Build packages
         run: |
           . venv/bin/activate
-          uv pip install -U build hatch pyodide-build packaging>=23.2  # packaging>=23.2 is needed to build Lite due to https://github.com/pypa/hatch/issues/1381
           pnpm package
-          pnpm --filter @gradio/client --filter @gradio/lite --filter @gradio/preview build
-
+          pnpm --filter @gradio/client --filter @gradio/preview build
       - name: create and publish versions
         id: changesets
         uses: changesets/action@aba318e9165b45b7948c60273e0b72fce0a64eb9 # @v1

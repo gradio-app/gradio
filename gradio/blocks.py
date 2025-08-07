@@ -1264,6 +1264,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.favicon_path = None
         self.auth = None
         self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
+        self.vibe_mode = bool(os.getenv("GRADIO_VIBE_MODE", ""))
         self.app_id = random.getrandbits(64)
         self.upload_file_set = set()
         self.temp_file_sets = [self.upload_file_set]
@@ -2041,6 +2042,10 @@ Received inputs:
                     state._update_value_in_config(
                         block._id, prediction_value_serialized
                     )
+                elif not block_fn.postprocess:
+                    if block._id not in state:
+                        state[block._id] = block
+                    state._update_value_in_config(block._id, prediction_value)
 
                 outputs_cached = await processing_utils.async_move_files_to_cache(
                     prediction_value,
@@ -2331,6 +2336,7 @@ Received inputs:
             "mode": self.mode,
             "app_id": self.app_id,
             "dev_mode": self.dev_mode,
+            "vibe_mode": self.vibe_mode,
             "analytics_enabled": self.analytics_enabled,
             "components": [],
             "css": self.css,
@@ -2919,7 +2925,9 @@ Received inputs:
         mcp_subpath = API_PREFIX + "/mcp"
         if self.mcp_server:
             print(
-                f"\n🔨 MCP server (using SSE) running at: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
+                "\n🔨 Launching MCP server:"
+                f"\n** Streamable HTTP URL: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/"
+                f"\n* [Deprecated] SSE URL: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
             )
 
         if inbrowser and not wasm_utils.IS_WASM:

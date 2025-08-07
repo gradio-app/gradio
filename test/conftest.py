@@ -30,6 +30,7 @@ def io_components():
             gr.State,
             gr.LoginButton,
             gr.Timer,
+            gr.Dialogue,
         ]:
             continue
         if subclass in gr.components.FormComponent.__subclasses__():

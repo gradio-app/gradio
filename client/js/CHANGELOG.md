@@ -1,5 +1,17 @@
 # @gradio/client
 
+## 1.16.0
+
+### Features
+
+- [#11662](https://github.com/gradio-app/gradio/pull/11662) [`a78f5fa`](https://github.com/gradio-app/gradio/commit/a78f5fa466a4b11ffaaafc5099a64df49afb6e41) - Gradio vibe editor.  Thanks @aliabid94!
+
+## 1.15.7
+
+### Fixes
+
+- [#11604](https://github.com/gradio-app/gradio/pull/11604) [`83e14bc`](https://github.com/gradio-app/gradio/commit/83e14bcfa653e2ec477f0d09b497adf605734e46) - Fix event cancelling bug.  Thanks @freddyaboulton!
+
 ## 1.15.6
 
 ### Features

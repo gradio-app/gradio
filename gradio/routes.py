@@ -37,6 +37,7 @@ import orjson
 from fastapi import (
     APIRouter,
     BackgroundTasks,
+    Body,
     Depends,
     FastAPI,
     HTTPException,
@@ -77,6 +78,8 @@ from gradio.data_classes import (
     ResetBody,
     SimplePredictBody,
     UserProvidedPath,
+    VibeCodeBody,
+    VibeEditBody,
 )
 from gradio.exceptions import Error, InvalidPathError
 from gradio.i18n import I18n
@@ -119,6 +122,7 @@ from gradio.utils import (
 if TYPE_CHECKING:
     from gradio.blocks import Block
 
+import difflib
 import shutil
 import tempfile
 
@@ -655,7 +659,6 @@ class App(FastAPI):
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
-                config = route_utils.update_root_in_config(config, root)
                 deep_link_state = "none"
                 components = [
                     component
@@ -678,6 +681,9 @@ class App(FastAPI):
                 ]
                 config["layout"] = config["page"][page]["layout"]
                 config["current_page"] = page
+                # Update root after loading the deep link state (if applicable)
+                # so that static files are served from the correct root
+                config = route_utils.update_root_in_config(config, root)
             elif app.auth_dependency:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -866,7 +872,6 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request, route_path="/config", root_path=app.root_path
             )
-            config = route_utils.update_root_in_config(config, root)
             config["username"] = get_current_user(request)
             if deep_link:
                 components, deep_link_state = load_deep_link(deep_link, config, page="")  # type: ignore
@@ -876,6 +881,7 @@ class App(FastAPI):
                 config["i18n_translations"] = blocks.i18n_instance.translations_dict
             else:
                 config["i18n_translations"] = None
+            config = route_utils.update_root_in_config(config, root)
             return ORJSONResponse(content=config)
 
         @app.get("/static/{path:path}")
@@ -1935,6 +1941,166 @@ class App(FastAPI):
                     background=BackgroundTask(lambda: cleanup_files([input_path])),
                 )
 
+        vibe_edit_history_dir = Path(DEFAULT_TEMP_DIR) / "vibe_edit_history"
+        vibe_edit_history_dir.mkdir(exist_ok=True, parents=True)
+
+        @router.post("/vibe-edit/")
+        @router.post("/vibe-edit")
+        async def vibe_edit(body: VibeEditBody):
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
+                )
+
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            with open(GRADIO_WATCH_DEMO_PATH) as f:
+                original_code = f.read()
+
+            snapshot_hash = secrets.token_hex(16)
+            snapshot_file = vibe_edit_history_dir / f"{snapshot_hash}.py"
+
+            with open(snapshot_file, "w") as f:
+                f.write(original_code)
+
+            from huggingface_hub import InferenceClient
+
+            client = InferenceClient()
+
+            content = ""
+            prompt = f"""
+You are a code generator for Gradio apps. Given the following existing code and prompt, return the full new code.
+Existing code:
+```python
+{original_code}
+```
+
+Prompt:
+{body.prompt}"""
+            system_prompt = load_system_prompt()
+            content = (
+                client.chat_completion(
+                    model="openai/gpt-oss-120b",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt},
+                    ],
+                    max_tokens=1000,
+                )
+                .choices[0]
+                .message.content
+            )
+
+            if content is None:
+                raise HTTPException(status_code=500, detail="Error generating code")
+
+            reasoning = None
+            if "<reasoning>" in content:
+                reasoning = content.split("<reasoning>")[1].split("</reasoning>")[0]
+                content = content.replace(
+                    f"<reasoning>{reasoning}</reasoning>", ""
+                ).strip()
+
+            if "```python\n" in content:
+                start = content.index("```python\n") + len("```python\n")
+                end = content.find("\n```", start)
+                content = content[start:end] if end != -1 else content[start:]
+
+            # Calculate diff stats
+            original_lines = original_code.splitlines(keepends=True)
+            new_lines = content.splitlines(keepends=True)
+            diff = list(difflib.unified_diff(original_lines, new_lines, n=0))
+
+            lines_added = 0
+            lines_removed = 0
+            for line in diff:
+                if line.startswith("+") and not line.startswith("+++"):
+                    lines_added += 1
+                elif line.startswith("-") and not line.startswith("---"):
+                    lines_removed += 1
+
+            with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
+                f.write(content)
+
+            return {
+                "hash": snapshot_hash,
+                "diff_stats": {
+                    "lines_added": lines_added,
+                    "lines_removed": lines_removed,
+                },
+                "reasoning": reasoning,
+            }
+
+        @router.post("/undo-vibe-edit/")
+        @router.post("/undo-vibe-edit")
+        async def undo_vibe_edit(hash: str = Body(..., embed=True)):
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
+                )
+
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            snapshot_file = vibe_edit_history_dir / f"{hash}.py"
+
+            if not snapshot_file.exists():
+                raise HTTPException(status_code=404, detail="Snapshot not found")
+
+            # Restore the file from the snapshot
+            with open(snapshot_file) as f:
+                saved_content = f.read()
+
+            with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
+                f.write(saved_content)
+
+            return {"success": True}
+
+        @router.get("/vibe-code/")
+        @router.get("/vibe-code")
+        async def get_vibe_code():
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
+                )
+
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            try:
+                with open(GRADIO_WATCH_DEMO_PATH) as f:
+                    code = f.read()
+                return {"code": code}
+            except FileNotFoundError:
+                raise HTTPException(
+                    status_code=404, detail="Demo file not found"
+                ) from None
+            except Exception as e:
+                raise HTTPException(
+                    status_code=500, detail=f"Error reading file: {str(e)}"
+                ) from e
+
+        @router.post("/vibe-code/")
+        @router.post("/vibe-code")
+        async def update_vibe_code(body: VibeCodeBody):
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
+                )
+
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            try:
+                with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
+                    f.write(body.code)
+                return {"success": True}
+            except Exception as e:
+                raise HTTPException(
+                    status_code=500, detail=f"Error writing file: {str(e)}"
+                ) from e
+
         def cleanup_files(files):
             for file in files:
                 try:
@@ -1950,6 +2116,48 @@ class App(FastAPI):
 ########
 # Helper functions
 ########
+
+
+def load_system_prompt():
+    prompt_rules = """Generate code for using the Gradio python library.
+
+The following RULES must be followed.  Whenever you are forming a response, ensure all rules have been followed otherwise start over.
+
+RULES:
+Respond with code written in valid Python syntax, along with one coherent explanation surrounded by <reasoning> tags.
+Any text that is not code, should be surrounded by one large <reasoning> tag.
+Never include backticks in your response such as ``` or ```python.
+Do not include any code that is not necessary for the app to run.
+Respond with a full Gradio app.
+Respond with a full Gradio app using correct syntax and features of the latest Gradio version. DO NOT write code that doesn't follow the signatures listed.
+Do not add comments explaining the code, unless they are very necessary to understand the code.
+Make sure the code includes all necessary imports.
+Clearly explain the changes, summary, or reasoning for the code you respond with, inside one large <reasoning> tag.
+
+
+Here's an example of a valid response:
+
+<reasoning>
+I created a simple Gradio app that greets the user. It defines a function then creates a gradio interface and launches it.
+</reasoning>
+
+import gradio as gr
+
+def greet(name):
+    return "Hello " + name + "!"
+
+demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
+
+demo.launch()
+"""
+    try:
+        with httpx.Client() as client:
+            response = client.get("https://www.gradio.app/llms.txt")
+            system_prompt = response.text
+    except Exception:
+        system_prompt = ""
+    system_prompt = prompt_rules + system_prompt + prompt_rules
+    return system_prompt
 
 
 def routes_safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
@@ -2131,13 +2339,13 @@ def mount_gradio_app(
     async def new_lifespan(app: FastAPI):
         async with old_lifespan(
             app
-        ):  # Insert the startup events inside the FastAPI context manager
+        ) as state:  # Insert the startup events inside the FastAPI context manager
             async with gradio_app.router.lifespan_context(gradio_app):
                 gradio_app.get_blocks().run_startup_events()
                 await gradio_app.get_blocks().run_extra_startup_events()
-                yield
+                yield state
 
-    app.router.lifespan_context = new_lifespan
+    app.router.lifespan_context = new_lifespan  # type: ignore
 
     app.mount(path, gradio_app)
     return app

@@ -1,5 +1,25 @@
 # @gradio/imageeditor
 
+## 0.16.3
+
+### Fixes
+
+- [#11667](https://github.com/gradio-app/gradio/pull/11667) [`07d19f7`](https://github.com/gradio-app/gradio/commit/07d19f7af3b60ff4a931d2c6740c9d61e6685dcb) - Fix the ImageEditor's auto-zoom, canvas resize, and zoom functionality.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/upload@0.16.13
+- @gradio/client@1.16.0
+- @gradio/image@0.22.15
+
+## 0.16.2
+
+### Dependency updates
+
+- @gradio/upload@0.16.12
+- @gradio/client@1.15.7
+- @gradio/image@0.22.14
+
 ## 0.16.1
 
 ### Dependency updates

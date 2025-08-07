@@ -21,6 +21,7 @@ from gradio.components.dataframe import Dataframe
 from gradio.components.dataset import Dataset
 from gradio.components.datetime import DateTime
 from gradio.components.deep_link_button import DeepLinkButton
+from gradio.components.dialogue import Dialogue
 from gradio.components.download_button import DownloadButton
 from gradio.components.dropdown import Dropdown
 from gradio.components.duplicate_button import DuplicateButton
@@ -78,6 +79,7 @@ __all__ = [
     "Dataframe",
     "DataFrame",
     "Dataset",
+    "Dialogue",
     "DownloadButton",
     "DuplicateButton",
     "Fallback",

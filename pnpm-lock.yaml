@@ -82,6 +82,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.19
         version: 10.4.19(postcss@8.4.38)
+      cross-env:
+        specifier: ^7.0.3
+        version: 7.0.3
       esbuild:
         specifier: ^0.21.0
         version: 0.21.0
@@ -239,6 +242,9 @@ importers:
       '@gradio/datetime':
         specifier: workspace:^
         version: link:js/datetime
+      '@gradio/dialogue':
+        specifier: workspace:^
+        version: link:js/dialogue
       '@gradio/downloadbutton':
         specifier: workspace:^
         version: link:js/downloadbutton
@@ -353,6 +359,9 @@ importers:
       '@gradio/uploadbutton':
         specifier: workspace:^
         version: link:js/uploadbutton
+      '@gradio/vibeeditor':
+        specifier: workspace:^
+        version: link:js/vibeeditor
       '@gradio/video':
         specifier: workspace:^
         version: link:js/video
@@ -1203,6 +1212,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/vibeeditor':
+        specifier: workspace:^
+        version: link:../vibeeditor
       '@gradio/video':
         specifier: workspace:^
         version: link:../video
@@ -1307,6 +1319,34 @@ importers:
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
+
+  js/dialogue:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/dropdown':
+        specifier: workspace:^
+        version: link:../dropdown
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/textbox':
+        specifier: workspace:^
+        version: link:../textbox
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
@@ -2523,6 +2563,28 @@ importers:
       svelte-i18n:
         specifier: ^3.6.0
         version: 3.6.0(svelte@4.2.15)
+
+  js/vibeeditor:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
 
   js/video:
     dependencies:

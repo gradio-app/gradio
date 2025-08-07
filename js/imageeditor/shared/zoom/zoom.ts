@@ -521,14 +521,13 @@ export class ZoomTool implements Tool {
 		hard?: boolean,
 		is_fit_zoom?: boolean
 	): void {
-		const cursor_relative_to_image = {
-			x: (point.x - this.local_position.x) / this.local_scale,
-			y: (point.y - this.local_position.y) / this.local_scale
-		};
+		const container = this.image_editor_context.image_container;
+		const current_world_pos = container.getGlobalPosition();
+		const current_scale = container.scale.x;
 
-		const image_percentages = {
-			x: cursor_relative_to_image.x / this.local_dimensions.width,
-			y: cursor_relative_to_image.y / this.local_dimensions.height
+		const cursor_image_pixel = {
+			x: (point.x - current_world_pos.x) / current_scale,
+			y: (point.y - current_world_pos.y) / current_scale
 		};
 
 		const fit_zoom = this.calculate_min_zoom(
@@ -538,27 +537,25 @@ export class ZoomTool implements Tool {
 		const min_zoom = Math.min(fit_zoom, 1);
 		new_zoom = Math.min(Math.max(new_zoom, min_zoom), this.max_zoom);
 
-		const new_scaled_width = this.local_dimensions.width * new_zoom;
-		const new_scaled_height = this.local_dimensions.height * new_zoom;
-
-		let new_position = {
-			x: point.x - new_scaled_width * image_percentages.x,
-			y: point.y - new_scaled_height * image_percentages.y
+		const new_container_world_pos = {
+			x: point.x - cursor_image_pixel.x * new_zoom,
+			y: point.y - cursor_image_pixel.y * new_zoom
 		};
 
 		if (new_zoom === min_zoom || is_fit_zoom) {
 			const canvas_width = this.image_editor_context.app.screen.width;
 			const canvas_height = this.image_editor_context.app.screen.height;
+			const new_scaled_width = this.local_dimensions.width * new_zoom;
+			const new_scaled_height = this.local_dimensions.height * new_zoom;
 
-			new_position = {
-				x: (canvas_width - new_scaled_width) / 2,
-				y: (canvas_height - this.pad_bottom - new_scaled_height) / 2
-			};
+			new_container_world_pos.x = (canvas_width - new_scaled_width) / 2;
+			new_container_world_pos.y =
+				(canvas_height - this.pad_bottom - new_scaled_height) / 2;
 		}
 
 		this.image_editor_context.set_image_properties({
 			scale: new_zoom,
-			position: new_position,
+			position: new_container_world_pos,
 			animate: typeof hard === "boolean" ? !hard : new_zoom === min_zoom
 		});
 		this.min_zoom.set(new_zoom === min_zoom);

@@ -1,5 +1,29 @@
 # @gradio/lite
 
+## 5.41.0
+
+### Dependency updates
+
+- @gradio/core@0.25.0
+
+## 5.39.0
+
+### Dependency updates
+
+- @gradio/core@0.24.0
+
+## 5.38.2
+
+### Dependency updates
+
+- @gradio/core@0.23.2
+
+## 5.38.1
+
+### Dependency updates
+
+- @gradio/core@0.23.1
+
 ## 5.38.0
 
 ### Dependency updates
