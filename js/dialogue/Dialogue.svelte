@@ -90,22 +90,6 @@
 		value = "";
 	}
 
-	$: if (
-		value &&
-		value.length === 0 &&
-		dialogue_lines.length === 0 &&
-		speakers.length !== 0
-	) {
-		dialogue_lines = [{ speaker: speakers[0], text: "" }];
-		value = [...dialogue_lines];
-		if (typeof value !== "string") {
-			const formatted = value
-				.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
-				.join(" ");
-			textbox_value = formatted;
-		}
-	}
-
 	$: {
 		if (dialogue_lines.length > input_elements.length) {
 			input_elements = [
@@ -133,12 +117,6 @@
 			{ speaker: newSpeaker, text: "" },
 			...dialogue_lines.slice(index + 1)
 		];
-		if (typeof value !== "string") {
-			const formatted = value
-				.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
-				.join(" ");
-			textbox_value = formatted;
-		}
 
 		tick().then(() => {
 			if (input_elements[index + 1]) {
@@ -152,12 +130,6 @@
 			...dialogue_lines.slice(0, index),
 			...dialogue_lines.slice(index + 1)
 		];
-		if (typeof value !== "string") {
-			const formatted = value
-				.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
-				.join(" ");
-			textbox_value = formatted;
-		}
 	}
 
 	function update_line(
@@ -167,12 +139,6 @@
 	): void {
 		dialogue_lines[index][key] = value;
 		dialogue_lines = [...dialogue_lines];
-		if (typeof value !== "string") {
-			const formatted = dialogue_lines
-				.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
-				.join(" ");
-			textbox_value = formatted;
-		}
 	}
 
 	function handle_input(event: Event, index: number): void {
@@ -400,17 +366,8 @@
 	}
 
 	function sync_value(dialogueLines: DialogueLine[]): void {
-		console.log("Syncing value with dialogue lines:", dialogueLines);
 		if (speakers.length !== 0) {
 			value = [...dialogueLines];
-			if (JSON.stringify(value) !== old_value) {
-				handle_change();
-				old_value = JSON.stringify(value);
-				const formatted = value
-					.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
-					.join(" ");
-				textbox_value = formatted;
-			}
 		}
 	}
 
@@ -429,7 +386,9 @@
 		} else {
 			textbox_value = value;
 			if (!checked && speakers.length > 0 && value) {
-				dialogue_lines = string_to_dialogue_lines(value);
+				server.unformat({ text: textbox_value }).then((lines) => {
+					dialogue_lines = lines;
+				});
 			}
 		}
 		handle_change();
@@ -442,45 +401,6 @@
 			return value;
 		}
 		return await server.format(value);
-	}
-
-	function string_to_dialogue_lines(text: string): DialogueLine[] {
-		if (!text.trim()) {
-			return [{ speaker: speakers[0] || "", text: "" }];
-		}
-		const dialogueLines: DialogueLine[] = [];
-		const speakerMatches = [];
-		const speakerRegex = /\b(Speaker\s+\d+):\s*/g;
-		let match;
-
-		while ((match = speakerRegex.exec(text)) !== null) {
-			speakerMatches.push({
-				speaker: match[1].trim(),
-				startIndex: match.index,
-				endIndex: match.index + match[0].length
-			});
-		}
-		if (speakerMatches.length === 0) {
-			dialogueLines.push({ speaker: speakers[0] || "", text: text.trim() });
-		} else {
-			for (let i = 0; i < speakerMatches.length; i++) {
-				const currentMatch = speakerMatches[i];
-				const nextMatch = speakerMatches[i + 1];
-
-				const textStart = currentMatch.endIndex;
-				const textEnd = nextMatch ? nextMatch.startIndex : text.length;
-				const speakerText = text.substring(textStart, textEnd).trim();
-
-				dialogueLines.push({
-					speaker:
-						speakers.find(
-							(s) => s.toLowerCase() === currentMatch.speaker.toLowerCase()
-						) || currentMatch.speaker,
-					text: speakerText
-				});
-			}
-		}
-		return dialogueLines;
 	}
 
 	async function handle_copy(): Promise<void> {
