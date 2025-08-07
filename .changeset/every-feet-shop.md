@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix `gr.LoginButton` to work on custom domains
+fix:Fix `gr.LoginButton` to work on custom domains
