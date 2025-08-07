@@ -423,9 +423,7 @@
 		old_value = JSON.stringify(value);
 		if (value && typeof value !== "string") {
 			dialogue_lines = [...value];
-			console.log("Updating dialogue lines from value:", dialogue_lines);
 			value_to_string(value).then((formatted) => {
-				console.log("Formatted value:", formatted);
 				textbox_value = formatted;
 			});
 		} else {
