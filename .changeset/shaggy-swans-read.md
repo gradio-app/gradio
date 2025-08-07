@@ -1,6 +1,6 @@
 ---
-"@gradio/atoms": minor
-"gradio": minor
+"@gradio/atoms": patch
+"gradio": patch
 ---
 
-feat:Fix z-index of icon button wrapper
+fix:Fix z-index of icon button wrapper
