@@ -35,6 +35,7 @@ class LoginButton(Button):
         value: str = "Sign in with Hugging Face",
         logout_value: str = "Logout ({})",
         *,
+        redirect_url: str | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop", "huggingface"] = "huggingface",
@@ -53,8 +54,10 @@ class LoginButton(Button):
     ):
         """
         Parameters:
+            redirect_url: The URL to redirect to after login. If not provided, the user will be redirected to the same page on which the button is located. Can be a relative or absolute URL, as long as it targets the same Space subdomain (see https://huggingface.co/docs/hub/en/spaces-oauth#redirect-urls).
             logout_value: The text to display when the user is signed in. The string should contain a placeholder for the username with a call-to-action to logout, e.g. "Logout ({})".
         """
+        self.redirect_url = redirect_url
         self.logout_value = logout_value
         super().__init__(
             value,
@@ -83,7 +86,7 @@ class LoginButton(Button):
         # ('self' value will be either "Sign in with Hugging Face" or "Signed in as ...")
         _js = _js_handle_redirect.replace(
             "BUTTON_DEFAULT_VALUE", json.dumps(self.value)
-        ).replace("REDIRECT_URL", self.page)
+        ).replace("REDIRECT_URL", self.redirect_url or self.page)
         self.click(fn=None, inputs=[self], outputs=None, js=_js)
 
         self.attach_load_event(self._check_login_status, None)
