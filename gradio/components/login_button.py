@@ -118,7 +118,8 @@ class LoginButton(Button):
 # on the same tab.
 _js_handle_redirect = """
 (buttonValue) => {
-    uri = buttonValue === BUTTON_DEFAULT_VALUE ? '/login/huggingface?_target_url=/REDIRECT_URL' : '/logout?_target_url=/REDIRECT_URL';
+    const redirectUrl = REDIRECT_URL.startsWith('http') ? REDIRECT_URL : '/' + REDIRECT_URL;
+    uri = buttonValue === BUTTON_DEFAULT_VALUE ? '/login/huggingface?_target_url=' + redirectUrl : '/logout?_target_url=' + redirectUrl;
     window.parent?.postMessage({ type: "SET_SCROLLING", enabled: true }, "*");
     setTimeout(() => {
         window.location.assign(uri + window.location.search);
