@@ -1,5 +1,34 @@
 # @gradio/core
 
+## 0.26.0
+
+### Features
+
+- [#11691](https://github.com/gradio-app/gradio/pull/11691) [`2605a99`](https://github.com/gradio-app/gradio/commit/2605a99bf29bebbbb0a97cc8e0015b5bf8d8e79b) - Add .failure() event listener for error handling.  Thanks @elanehan!
+
+### Fixes
+
+- [#11698](https://github.com/gradio-app/gradio/pull/11698) [`fc41f09`](https://github.com/gradio-app/gradio/commit/fc41f0950b7c427abcebdc9a113148a219d8f3f6) - Fix visibility changes in gr.render.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.14.14
+- @gradio/paramviewer@0.7.14
+- @gradio/statustracker@0.10.16
+- @gradio/video@0.14.24
+- @gradio/atoms@0.16.4
+- @gradio/column@0.2.1
+- @gradio/client@1.17.0
+- @gradio/upload@0.16.14
+- @gradio/button@0.5.10
+- @gradio/gallery@0.15.30
+- @gradio/plot@0.9.21
+- @gradio/checkbox@0.4.27
+- @gradio/textbox@0.10.19
+- @gradio/dropdown@0.10.1
+- @gradio/file@0.12.27
+- @gradio/image@0.22.16
+
 ## 0.25.0
 
 ### Features

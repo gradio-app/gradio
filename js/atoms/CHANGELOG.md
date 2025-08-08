@@ -1,5 +1,11 @@
 # @gradio/atoms
 
+## 0.16.4
+
+### Fixes
+
+- [#11692](https://github.com/gradio-app/gradio/pull/11692) [`0b91ca9`](https://github.com/gradio-app/gradio/commit/0b91ca914774fe617bc5987986e14bf1b81fcb8d) - Fix z-index of icon button wrapper.  Thanks @dawoodkhan82!
+
 ## 0.16.3
 
 ### Dependency updates

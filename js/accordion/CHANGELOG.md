@@ -1,5 +1,13 @@
 # @gradio/accordion
 
+## 0.5.21
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.16
+- @gradio/atoms@0.16.4
+- @gradio/column@0.2.1
+
 ## 0.5.20
 
 ### Dependency updates
