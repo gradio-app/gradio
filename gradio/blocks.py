@@ -1476,7 +1476,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         "trigger_only_on_success"
                     )
                     dependency["trigger_only_on_failure"] = dependency.pop(
-                        "trigger_only_on_failure"
+                        "trigger_only_on_failure", False
                     )
                     dependency["no_target"] = True
                 else:
