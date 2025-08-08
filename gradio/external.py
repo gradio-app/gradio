@@ -185,10 +185,8 @@ def load_blocks_from_huggingface(
         Context.hf_token = hf_token
 
     if src == "spaces":
-        # Spaces can read the token, so we don't want to pass it in unless the user explicitly provides it
-        token = False if hf_token is None else hf_token
         blocks = from_spaces(
-            name, hf_token=token, alias=alias, provider=provider, **kwargs
+            name, hf_token=hf_token, alias=alias, provider=provider, **kwargs
         )
     else:
         blocks = from_model(
@@ -511,7 +509,7 @@ def from_model(
 
 def from_spaces(
     space_name: str,
-    hf_token: str | None | Literal[False],
+    hf_token: str | None,
     alias: str | None,
     provider: PROVIDER_T | None = None,
     **kwargs,
@@ -573,7 +571,7 @@ def from_spaces(
         return from_spaces_blocks(space=space_name, hf_token=hf_token)
 
 
-def from_spaces_blocks(space: str, hf_token: str | None | Literal[False]) -> Blocks:
+def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
     client = Client(
         space,
         hf_token=hf_token,
@@ -608,7 +606,7 @@ def from_spaces_interface(
     model_name: str,
     config: dict,
     alias: str | None,
-    hf_token: str | None | Literal[False],
+    hf_token: str | None,
     iframe_url: str,
     **kwargs,
 ) -> Interface:
