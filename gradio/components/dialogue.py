@@ -1,7 +1,7 @@
 from __future__ import annotations
-from typing import Literal
 
 from collections.abc import Callable
+from typing import Literal
 
 from gradio_client.documentation import document
 
@@ -70,6 +70,7 @@ class Dialogue(Component):
         """
         Parameters:
             value: Value of the dialogue. It is a list of dictionaries, each containing a 'speaker' key and a 'text' key. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
+            type: The type of the component, either "dialogue" for a multi-speaker dialogue or "text" for a single text input. Defaults to "text".
             speakers: The different speakers allowed in the dialogue. If `None` or an empty list, no speakers will be displayed. Instead, the component will be a standard textarea that optionally supports `tags` autocompletion.
             formatter: A function that formats the dialogue line dictionary, e.g. {"speaker": "Speaker 1", "text": "Hello, how are you?"} into a string, e.g. "Speaker 1: Hello, how are you?". This function is run on user input and the resulting string is passed into the prediction function.
             unformatter: A function that parses a formatted dialogue string back into a dialogue line dictionary. Should take a single string line and return a dictionary with 'speaker' and 'text' keys. If not provided, the default unformatter will attempt to parse the default formatter pattern.
@@ -93,6 +94,7 @@ class Dialogue(Component):
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
             show_submit_button: If True, includes a submit button to submit the dialogue.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
+            ui_mode: Determines the user interface mode of the component. Can be "dialogue-only" (displays dialogue lines), "text-only" (displays a single text input), or "both" (displays both dialogue lines and a text input). Defaults to "both".
         """
         super().__init__(
             value=value,
@@ -135,6 +137,8 @@ class Dialogue(Component):
         """
         if self.type == "dialogue":
             return payload.model_dump()
+
+    def _format(self, payload: DialogueModel) -> str:
         if (isinstance(payload.root, str) and payload.root == "") or (
             isinstance(payload.root, list)
             and len(payload.root) == 1
@@ -174,7 +178,7 @@ class Dialogue(Component):
     async def format(self, value: list[dict] | str):
         """Format the dialogue in the frontend into a string that's copied to the clipboard."""
         data = DialogueModel(root=value)  # type: ignore
-        return self.preprocess(data)
+        return self._format(data)
 
     @server
     async def unformat(self, payload: dict):
