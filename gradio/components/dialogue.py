@@ -172,7 +172,6 @@ class Dialogue(Component):
     @server
     async def unformat(self, payload: dict):
         """Parse a formatted dialogue string back into dialogue data structure."""
-
         value = payload.get("text", "")
 
         if not value or value.strip() == "":

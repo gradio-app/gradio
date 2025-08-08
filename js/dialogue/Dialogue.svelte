@@ -45,6 +45,8 @@
 	let timer: any;
 	let textbox_value = "";
 	let hoveredSpeaker: string | null = null;
+	let is_unformatting = false;
+	let is_formatting = false;
 
 	const defaultColorNames = [
 		"red",
@@ -378,19 +380,6 @@
 			dialogue_lines = [];
 		}
 		old_value = JSON.stringify(value);
-		if (value && typeof value !== "string") {
-			dialogue_lines = [...value];
-			value_to_string(value).then((formatted) => {
-				textbox_value = formatted;
-			});
-		} else {
-			textbox_value = value;
-			if (!checked && speakers.length > 0 && value) {
-				server.unformat({ text: textbox_value }).then((lines) => {
-					dialogue_lines = lines;
-				});
-			}
-		}
 		handle_change();
 	}
 
@@ -463,20 +452,47 @@
 	<!-- svelte-ignore missing-declaration -->
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 	{#if speakers.length !== 0}
-		<div class="switch-container top-switch">
+		<div
+			class="switch-container top-switch"
+			class:switch-disabled={is_formatting || is_unformatting}
+		>
 			<Switch
 				label="Plain Text"
 				bind:checked
+				disabled={is_formatting || is_unformatting}
 				on:click={async (e) => {
 					if (!e.detail.checked) {
-						value = await server.unformat({ text: textbox_value });
+						is_unformatting = true;
+						try {
+							value = await server.unformat({ text: textbox_value });
+							dialogue_lines = [...value];
+						} finally {
+							is_unformatting = false;
+						}
+					} else {
+						is_formatting = true;
+						try {
+							textbox_value = await value_to_string(dialogue_lines);
+						} finally {
+							is_formatting = false;
+						}
 					}
 				}}
 			/>
 		</div>
 	{/if}
 	{#if !checked}
-		<div class="dialogue-container" bind:this={dialogue_container_element}>
+		<div
+			class="dialogue-container"
+			bind:this={dialogue_container_element}
+			class:loading={is_unformatting}
+		>
+			{#if is_unformatting}
+				<div class="loading-overlay" transition:fade={{ duration: 200 }}>
+					<div class="loading-spinner"></div>
+					<div class="loading-text">Converting to dialogue format...</div>
+				</div>
+			{/if}
 			{#each dialogue_lines as line, i}
 				<div
 					class="dialogue-line"
@@ -593,8 +609,14 @@
 				</div>
 			{/each}
 		</div>
-	{:else}
-		<div class="textarea-container">
+	{:else if checked}
+		<div class="textarea-container" class:loading={is_formatting}>
+			{#if is_formatting}
+				<div class="loading-overlay" transition:fade={{ duration: 200 }}>
+					<div class="loading-spinner"></div>
+					<div class="loading-text">Converting to plain text...</div>
+				</div>
+			{/if}
 			<textarea
 				data-testid="textbox"
 				bind:value={textbox_value}
@@ -837,6 +859,12 @@
 	.switch-container {
 		display: flex;
 		justify-content: flex-start;
+		transition: opacity 0.2s ease-in-out;
+	}
+
+	.switch-container.switch-disabled {
+		opacity: 0.6;
+		pointer-events: none;
 	}
 
 	.switch-container.top-switch {
@@ -927,5 +955,60 @@
 
 	.hidden {
 		display: none;
+	}
+
+	.loading-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: var(--input-background-fill);
+		opacity: 0.95;
+		backdrop-filter: blur(2px);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		z-index: 10;
+		border-radius: var(--input-radius);
+	}
+
+	.loading-spinner {
+		width: 24px;
+		height: 24px;
+		border: 2px solid var(--border-color-primary);
+		border-top: 2px solid var(--color-accent);
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+		margin-bottom: var(--spacing-sm);
+	}
+
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
+	}
+
+	.loading-text {
+		color: var(--body-text-color);
+		font-size: var(--text-sm);
+		font-weight: 500;
+		opacity: 0.8;
+	}
+
+	.dialogue-container.loading,
+	.textarea-container.loading {
+		position: relative;
+		opacity: 0.7;
+		transition: opacity 0.3s ease-in-out;
+	}
+
+	.dialogue-container,
+	.textarea-container {
+		transition: opacity 0.3s ease-in-out;
 	}
 </style>
