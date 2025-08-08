@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.11.1
+
+### Features
+
+- [#11700](https://github.com/gradio-app/gradio/pull/11700) [`37d4c48`](https://github.com/gradio-app/gradio/commit/37d4c4809616595642f8d4a60be37d9915317443) - Have `Client` send authorization token with the `X-HF-Authorization` token.  Thanks @abidlabs!
+
 ## 1.11.0
 
 ### Features
