@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Literal
 
 from collections.abc import Callable
 
@@ -38,6 +39,7 @@ class Dialogue(Component):
         self,
         value: list[dict[str, str]] | Callable | None = None,
         *,
+        type: Literal["dialogue", "text"] = "text",
         speakers: list[str] | None = None,
         formatter: Callable | None = None,
         unformatter: Callable | None = None,
@@ -63,6 +65,7 @@ class Dialogue(Component):
         max_lines: int | None = None,
         show_submit_button: bool = True,
         show_copy_button: bool = True,
+        ui_mode: Literal["dialogue-only", "text-only", "both"] = "both",
     ):
         """
         Parameters:
@@ -106,6 +109,8 @@ class Dialogue(Component):
             render=render,
             key=key,
         )
+        self.ui_mode = ui_mode
+        self.type = type
         self.placeholder = placeholder
         self.autofocus = autofocus
         self.autoscroll = autoscroll
@@ -121,13 +126,15 @@ class Dialogue(Component):
         if not interactive:
             self.info = None
 
-    def preprocess(self, payload: DialogueModel) -> str:  # type: ignore
+    def preprocess(self, payload: DialogueModel) -> str | dict[str, str]:  # type: ignore
         """
         Parameters:
             payload: Expects a `DialogueModel` object or string.
         Returns:
             Returns the dialogue as a string.
         """
+        if self.type == "dialogue":
+            return payload.model_dump()
         if (isinstance(payload.root, str) and payload.root == "") or (
             isinstance(payload.root, list)
             and len(payload.root) == 1

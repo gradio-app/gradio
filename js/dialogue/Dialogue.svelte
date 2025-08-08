@@ -22,15 +22,24 @@
 	export let show_copy_button = false;
 	export let show_submit_button = true;
 	export let color_map: Record<string, string> | null = null;
-	let checked = false;
+	export let ui_mode: "dialogue-only" | "text-only" | "both" = "both";
+	let checked = ui_mode === "text-only";
 
 	export let server: {
 		format: (body: DialogueLine[]) => Promise<string>;
 		unformat: (body: object) => Promise<DialogueLine[]>;
 	};
 
-	let dialogue_lines: DialogueLine[] =
-		value && typeof value !== "string" ? [...value] : [];
+	let dialogue_lines: DialogueLine[] = [];
+
+	if (value && value.length && typeof value !== "string") {
+		dialogue_lines = [...value];
+	} else if (value && typeof value !== "string") {
+		dialogue_lines = [
+			{ speaker: `${speakers.length ? speakers[0] : ""}`, text: "" }
+		];
+	}
+
 	let dialogue_container_element: HTMLDivElement;
 
 	let showTagMenu = false;
@@ -47,6 +56,7 @@
 	let hoveredSpeaker: string | null = null;
 	let is_unformatting = false;
 	let is_formatting = false;
+	let is_internal_update = false;
 
 	const defaultColorNames = [
 		"red",
@@ -369,6 +379,7 @@
 
 	function sync_value(dialogueLines: DialogueLine[]): void {
 		if (speakers.length !== 0) {
+			is_internal_update = true;
 			value = [...dialogueLines];
 		}
 	}
@@ -380,6 +391,17 @@
 			dialogue_lines = [];
 		}
 		old_value = JSON.stringify(value);
+		if (typeof value === "string") {
+			textbox_value = value;
+		} else if (typeof value === "object" && Array.isArray(value)) {
+			dialogue_lines = [...value];
+			if (!is_internal_update || checked) {
+				value_to_string(dialogue_lines).then((result) => {
+					textbox_value = result;
+				});
+			}
+		}
+		is_internal_update = false;
 		handle_change();
 	}
 
@@ -451,7 +473,7 @@
 
 	<!-- svelte-ignore missing-declaration -->
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
-	{#if speakers.length !== 0}
+	{#if speakers.length !== 0 && ui_mode === "both"}
 		<div
 			class="switch-container top-switch"
 			class:switch-disabled={is_formatting || is_unformatting}
@@ -481,7 +503,7 @@
 			/>
 		</div>
 	{/if}
-	{#if !checked}
+	{#if !checked && ui_mode !== "text-only"}
 		<div
 			class="dialogue-container"
 			bind:this={dialogue_container_element}
@@ -609,7 +631,7 @@
 				</div>
 			{/each}
 		</div>
-	{:else if checked}
+	{:else if checked && ui_mode !== "dialogue-only"}
 		<div class="textarea-container" class:loading={is_formatting}>
 			{#if is_formatting}
 				<div class="loading-overlay" transition:fade={{ duration: 200 }}>
