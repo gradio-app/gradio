@@ -1169,7 +1169,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         :return: list of all current instances.
         """
         return list(Blocks.instances)
-    
+
     @classmethod
     def get_running_instances(cls) -> list[Blocks]:
         """
@@ -3116,7 +3116,7 @@ Received inputs:
         """
         if not self.is_running:
             return
-    
+
         try:
             if wasm_utils.IS_WASM:
                 # NOTE:
