@@ -1037,5 +1037,5 @@ class TabbedInterface(Blocks):
 
 
 def close_all(verbose: bool = True) -> None:
-    for instance in Blocks.get_instances():
+    for instance in Blocks.get_running_instances():
         instance.close(verbose)
