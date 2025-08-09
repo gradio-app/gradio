@@ -3141,6 +3141,7 @@ Received inputs:
             if verbose:
                 print(f"Closing server running on port: {self.server_port}")
         except (AttributeError, OSError):  # can't close if not running
+            Blocks.running_instances.discard(self)
             pass
 
     def block_thread(
