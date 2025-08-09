@@ -156,7 +156,7 @@ For example, in the chatbot example below, we first update the chatbot with the 
 $code_chatbot_consecutive
 $demo_chatbot_consecutive
 
-The `.then()` method of an event listener executes the subsequent event regardless of whether the previous event raised any errors. If you'd like to only run subsequent events if the previous event executed successfully, use the `.success()` method, which takes the same arguments as `.then()`.
+The `.then()` method of an event listener executes the subsequent event regardless of whether the previous event raised any errors. If you'd like to only run subsequent events if the previous event executed successfully, use the `.success()` method, which takes the same arguments as `.then()`. Conversely, if you'd like to only run subsequent events if the previous event failed (i.e., raised an error), use the `.failure()` method. This is particularly useful for error handling workflows, such as displaying error messages or restoring previous states when an operation fails.
 
 ## Binding Multiple Triggers to a Function
 

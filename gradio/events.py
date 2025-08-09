@@ -90,7 +90,7 @@ class Dependency(dict):
         """
         The Dependency object is usualy not created directly but is returned when an event listener is set up. It contains the configuration
         data for the event listener, and can be used to set up additional event listeners that depend on the completion of the current event
-        listener using .then() and .success().
+        listener using .then(), .success(), and .failure().
 
         Demos: chatbot_consecutive, blocks_chained_events
         """
@@ -103,6 +103,7 @@ class Dependency(dict):
                 "then",
                 trigger_after=dep_index,
                 trigger_only_on_success=False,
+                trigger_only_on_failure=False,
                 has_trigger=False,
             ).listener,
             trigger,
@@ -115,12 +116,26 @@ class Dependency(dict):
                 "success",
                 trigger_after=dep_index,
                 trigger_only_on_success=True,
+                trigger_only_on_failure=False,
                 has_trigger=False,
             ).listener,
             trigger,
         )
         """
         Triggered after directly preceding event is completed, if it was successful.
+        """
+        self.failure = partial(
+            EventListener(
+                "failure",
+                trigger_after=dep_index,
+                trigger_only_on_success=False,
+                trigger_only_on_failure=True,
+                has_trigger=False,
+            ).listener,
+            trigger,
+        )
+        """
+        Triggered after directly preceding event is completed, if it failed.
         """
 
     def __call__(self, *args, **kwargs):
@@ -505,6 +520,7 @@ class EventListener(str):
         callback: Callable | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
+        trigger_only_on_failure: bool = False,
         doc: str = "",
         connection: Literal["sse", "stream"] = "sse",
         event_specific_args: list[dict[str, str]] | None = None,
@@ -516,6 +532,7 @@ class EventListener(str):
         self.show_progress = show_progress
         self.trigger_after = trigger_after
         self.trigger_only_on_success = trigger_only_on_success
+        self.trigger_only_on_failure = trigger_only_on_failure
         self.callback = callback
         self.doc = doc
         self.connection = connection
@@ -527,6 +544,7 @@ class EventListener(str):
             callback,
             trigger_after,
             trigger_only_on_success,
+            trigger_only_on_failure,
             self.event_specific_args,
             self.connection,
         )
@@ -547,6 +565,7 @@ class EventListener(str):
             self.callback,
             self.trigger_after,
             self.trigger_only_on_success,
+            self.trigger_only_on_failure,
             self.doc,
             self.connection,  # type: ignore
             self.event_specific_args,
@@ -560,6 +579,7 @@ class EventListener(str):
         _callback: Callable | None,
         _trigger_after: int | None,
         _trigger_only_on_success: bool,
+        _trigger_only_on_failure: bool,
         _event_specific_args: list[dict[str, str]],
         _connection: Literal["sse", "stream"] = "sse",
     ):
@@ -692,6 +712,7 @@ class EventListener(str):
                 max_batch_size=max_batch_size,
                 trigger_after=_trigger_after,
                 trigger_only_on_success=_trigger_only_on_success,
+                trigger_only_on_failure=_trigger_only_on_failure,
                 trigger_mode=trigger_mode,
                 show_api=show_api,
                 connection=_connection,

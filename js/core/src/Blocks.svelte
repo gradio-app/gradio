@@ -712,7 +712,10 @@
 				}
 				if (status.stage === "complete") {
 					dependencies.forEach(async (dep) => {
-						if (dep.trigger_after === fn_index) {
+						if (
+							dep.trigger_after === fn_index &&
+							!dep.trigger_only_on_failure
+						) {
 							wait_then_trigger_api_call(dep.id, payload.trigger_id);
 						}
 					});
@@ -747,7 +750,7 @@
 					dependencies.map(async (dep) => {
 						if (
 							dep.trigger_after === fn_index &&
-							!dep.trigger_only_on_success
+							(!dep.trigger_only_on_success || dep.trigger_only_on_failure)
 						) {
 							wait_then_trigger_api_call(dep.id, payload.trigger_id);
 						}

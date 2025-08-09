@@ -191,6 +191,7 @@ export interface Dependency {
     pending_request?: boolean;
     trigger_after?: number;
     trigger_only_on_success?: boolean;
+    trigger_only_on_failure?: boolean;
     trigger_mode: "once" | "multiple" | "always_last";
     final_event: Payload | null;
     show_api: boolean;

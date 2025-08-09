@@ -73,7 +73,9 @@ class TestEvent:
         assert parent.config["dependencies"][3]["trigger_after"] == 2
 
         assert not parent.config["dependencies"][2]["trigger_only_on_success"]
+        assert not parent.config["dependencies"][2]["trigger_only_on_failure"]
         assert parent.config["dependencies"][3]["trigger_only_on_success"]
+        assert not parent.config["dependencies"][3]["trigger_only_on_failure"]
 
     def test_on_listener(self):
         with gr.Blocks() as demo:

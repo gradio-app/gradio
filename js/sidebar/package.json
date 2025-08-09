@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/sidebar",
-	"version": "0.1.18",
+	"version": "0.1.19",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
