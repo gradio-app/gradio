@@ -128,9 +128,6 @@ const config = {
 			],
 			handleMissingId: "warn"
 		},
-		files: {
-			lib: "src/lib"
-		},
 		adapter: adapter({
 			fallback: "404.html"
 		}),
