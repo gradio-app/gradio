@@ -15,6 +15,7 @@ import sys
 import threading
 import time
 import warnings
+import weakref
 import webbrowser
 from collections import defaultdict
 from collections.abc import AsyncIterator, Callable, Coroutine, Sequence, Set
@@ -1157,6 +1158,25 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     Guides: blocks-and-event-listeners, controlling-layout, state-in-blocks, custom-CSS-and-JS, using-blocks-like-functions
     """
 
+    # stores references to all currently existing Blocks instances
+    instances: weakref.WeakSet = weakref.WeakSet()
+
+    running_instances = set()
+
+    @classmethod
+    def get_instances(cls) -> list[Blocks]:
+        """
+        :return: list of all current instances.
+        """
+        return list(Blocks.instances)
+
+    @classmethod
+    def get_running_instances(cls) -> list[Blocks]:
+        """
+        :return: list of all currently running instances.
+        """
+        return list(Blocks.running_instances)
+
     def __init__(
         self,
         theme: Theme | str | None = None,
@@ -1307,6 +1327,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 "version": get_package_version(),
             }
             analytics.initiated_analytics(data)
+
+        Blocks.instances.add(self)
 
         self.queue()
 
@@ -2781,6 +2803,7 @@ Received inputs:
             self.server_port = server_port
             self.server = server
             self.is_running = True
+            Blocks.running_instances.add(self)
             self.is_colab = utils.colab_check()
             self.is_hosted_notebook = utils.is_hosted_notebook()
             self.share_server_address = share_server_address
@@ -3091,6 +3114,9 @@ Received inputs:
         """
         Closes the Interface that was launched and frees the port.
         """
+        if not self.is_running:
+            return
+
         try:
             if wasm_utils.IS_WASM:
                 # NOTE:
@@ -3105,6 +3131,7 @@ Received inputs:
             self._queue.close()
             # set this before closing server to shut down heartbeats
             self.is_running = False
+            Blocks.running_instances.discard(self)
             self.app.stop_event.set()
             if self.server:
                 self.server.close()
