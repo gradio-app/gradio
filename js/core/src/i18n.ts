@@ -45,7 +45,6 @@ const lang_map = {
 
 const langs = import.meta.glob("./lang/*.json");
 import en from "./lang/en.json";
-
 export interface I18nData {
 	__type__: "translation_metadata";
 	key: string;
@@ -153,6 +152,11 @@ export let all_common_keys: Set<string> = new Set();
 
 let i18n_initialized = false;
 let previous_translations: Record<string, Record<string, string>> | undefined;
+
+init({
+	fallbackLocale: "en",
+	initialLocale: getLocaleFromNavigator() || "en"
+});
 
 export async function setupi18n(
 	custom_translations?: Record<string, Record<string, string>>
