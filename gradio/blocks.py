@@ -3104,6 +3104,9 @@ Received inputs:
         """
         Closes the Interface that was launched and frees the port.
         """
+        if not self.is_running:
+            return
+    
         try:
             if wasm_utils.IS_WASM:
                 # NOTE:
