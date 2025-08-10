@@ -13,6 +13,7 @@
 	export let disable_scroll = false;
 	export let show_scroll_button = false;
 	export let viewport: HTMLTableElement;
+	export let label: string | null = null;
 
 	const dispatch = createEventDispatcher<{
 		scroll_top: number;
@@ -47,6 +48,10 @@
 	}
 
 	async function refresh_height_map(): Promise<void> {
+		if (!viewport) {
+			return;
+		}
+
 		if (sortedItems.length < start) {
 			await scroll_to_index(sortedItems.length - 1, { behavior: "auto" });
 		}
@@ -212,6 +217,9 @@
 			on:scroll={refresh_height_map}
 			style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px; --max-height: {max_height}px"
 		>
+			{#if label && label.length !== 0}
+				<caption class="sr-only">{label}</caption>
+			{/if}
 			<thead class="thead" bind:offsetHeight={head_height}>
 				<slot name="thead" />
 			</thead>
@@ -219,7 +227,9 @@
 				{#if visible.length && visible[0].data.length}
 					{#each visible as item (item.data[0].id)}
 						<slot name="tbody" item={item.data} index={item.index}>
-							Missing Table Row
+							<tr>
+								<td>Missing Table Row</td>
+							</tr>
 						</slot>
 					{/each}
 				{/if}

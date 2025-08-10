@@ -2,11 +2,11 @@
 
 ```html
 <script>
-    import { BaseDataFrame, BaseExample } from "@gradio/dataframe";
+    import { Base, BaseExample } from "@gradio/dataframe";
 </script>
 ```
 
-BaseDataFrame
+Base
 ```javascript
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;

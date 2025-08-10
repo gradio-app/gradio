@@ -15,6 +15,9 @@ async function save_cell_value(
 
 	const old_value = ctx.data[row][col].value;
 	ctx.data[row][col].value = input_value;
+	if (ctx.data[row][col].display_value !== undefined) {
+		ctx.data[row][col].display_value = input_value;
+	}
 
 	if (old_value !== input_value && ctx.dispatch) {
 		ctx.dispatch("change", {
@@ -243,10 +246,7 @@ function handle_default_key(
 
 	const editing = state.ui_state.editing;
 
-	if (
-		(!editing || (editing && dequal(editing, [i, j]))) &&
-		event.key.length === 1
-	) {
+	if (event.key.length === 1 && (!editing || !dequal(editing, [i, j]))) {
 		ctx.actions.set_editing([i, j]);
 		return true;
 	}
