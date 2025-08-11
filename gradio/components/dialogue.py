@@ -39,7 +39,7 @@ class Dialogue(Component):
         self,
         value: list[dict[str, str]] | Callable | None = None,
         *,
-        type: Literal["dialogue", "text"] = "text",
+        type: Literal["list", "text"] = "text",
         speakers: list[str] | None = None,
         formatter: Callable | None = None,
         unformatter: Callable | None = None,
@@ -70,7 +70,7 @@ class Dialogue(Component):
         """
         Parameters:
             value: Value of the dialogue. It is a list of dictionaries, each containing a 'speaker' key and a 'text' key. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
-            type: The type of the component, either "dialogue" for a multi-speaker dialogue or "text" for a single text input. Defaults to "text".
+            type: The type of the component, either "list" for a multi-speaker dialogue consisting of dictionaries with 'speaker' and 'text' keys or "text" for a single text input. Defaults to "text".
             speakers: The different speakers allowed in the dialogue. If `None` or an empty list, no speakers will be displayed. Instead, the component will be a standard textarea that optionally supports `tags` autocompletion.
             formatter: A function that formats the dialogue line dictionary, e.g. {"speaker": "Speaker 1", "text": "Hello, how are you?"} into a string, e.g. "Speaker 1: Hello, how are you?". This function is run on user input and the resulting string is passed into the prediction function.
             unformatter: A function that parses a formatted dialogue string back into a dialogue line dictionary. Should take a single string line and return a dictionary with 'speaker' and 'text' keys. If not provided, the default unformatter will attempt to parse the default formatter pattern.
@@ -128,15 +128,16 @@ class Dialogue(Component):
         if not interactive:
             self.info = None
 
-    def preprocess(self, payload: DialogueModel) -> str | dict[str, str]:  # type: ignore
+    def preprocess(self, payload: DialogueModel) -> str | list[dict[str, str]]:  # type: ignore
         """
         Parameters:
             payload: Expects a `DialogueModel` object or string.
         Returns:
-            Returns the dialogue as a string.
+            Returns the dialogue as a string or list of dictionaries.
         """
         if self.type == "dialogue":
             return payload.model_dump()
+        return self._format(payload)
 
     def _format(self, payload: DialogueModel) -> str:
         if (isinstance(payload.root, str) and payload.root == "") or (
