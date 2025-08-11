@@ -1,5 +1,19 @@
 # gradio
 
+## 5.42.0
+
+### Features
+
+- [#11703](https://github.com/gradio-app/gradio/pull/11703) [`cbc6a84`](https://github.com/gradio-app/gradio/commit/cbc6a84494bd28693527c7bcfadb05762dd4f3d3) - Fix flaky tests for release.  Thanks @abidlabs!
+- [#11700](https://github.com/gradio-app/gradio/pull/11700) [`37d4c48`](https://github.com/gradio-app/gradio/commit/37d4c4809616595642f8d4a60be37d9915317443) - Have `Client` send authorization token with the `X-HF-Authorization` token.  Thanks @abidlabs!
+- [#11691](https://github.com/gradio-app/gradio/pull/11691) [`2605a99`](https://github.com/gradio-app/gradio/commit/2605a99bf29bebbbb0a97cc8e0015b5bf8d8e79b) - Add .failure() event listener for error handling.  Thanks @elanehan!
+
+### Fixes
+
+- [#11697](https://github.com/gradio-app/gradio/pull/11697) [`caca402`](https://github.com/gradio-app/gradio/commit/caca402c3a1b74f9a79302313cb17b635854f36a) - Fix `gr.LoginButton` to work on custom domains.  Thanks @abidlabs!
+- [#11692](https://github.com/gradio-app/gradio/pull/11692) [`0b91ca9`](https://github.com/gradio-app/gradio/commit/0b91ca914774fe617bc5987986e14bf1b81fcb8d) - Fix z-index of icon button wrapper.  Thanks @dawoodkhan82!
+- [#11698](https://github.com/gradio-app/gradio/pull/11698) [`fc41f09`](https://github.com/gradio-app/gradio/commit/fc41f0950b7c427abcebdc9a113148a219d8f3f6) - Fix visibility changes in gr.render.  Thanks @aliabid94!
+
 ## 5.41.1
 
 ### Features
