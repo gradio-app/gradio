@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Support MCP Resources and Prompts
+feat:Support FastMCP in MCP integration, Part I
