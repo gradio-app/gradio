@@ -1,3 +1,4 @@
+# 
 import base64
 import contextlib
 import copy
@@ -356,9 +357,9 @@ class GradioMCPServer:
 
         return server
 
-    def launch_mcp_on_sse(self, app: Starlette, subpath: str, root_path: str) -> None:
+    def launch_mcp_server(self, app: Starlette, subpath: str, root_path: str) -> None:
         """
-        Launch the MCP server on the SSE transport.
+        Launch the MCP server using both the SSE transport and the Streamable HTTP transport.
 
         Parameters:
             app: The Gradio app to mount the MCP server on.
