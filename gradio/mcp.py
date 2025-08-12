@@ -9,7 +9,7 @@ import warnings
 from collections.abc import AsyncIterator, Sequence
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, Literal, Optional, cast
 from urllib.parse import unquote
 
 import gradio_client.utils as client_utils
@@ -34,6 +34,8 @@ from gradio.components import State
 from gradio.route_utils import Header
 
 if TYPE_CHECKING:
+    from mcp.server.fastmcp import FastMCP
+
     from gradio.blocks import BlockContext, Blocks
     from gradio.components import Component
 
@@ -49,12 +51,24 @@ class GradioMCPServer:
 
     Args:
         blocks: The Blocks app to create the MCP server for.
+        mcp_server: If True, create a new MCP server from the functions in the Gradio Blocks app. 
+                   If a FastMCP instance is provided, extract the tools, resources, and prompts 
+                   from the FastMCP server and add them to the Gradio MCP server.
     """
 
-    def __init__(self, blocks: "Blocks"):
+    def __init__(self, blocks: "Blocks", mcp_server: "FastMCP" | Literal[True] = True):
+        """
+        Initialize the GradioMCPServer.
+        
+        Args:
+            blocks: The Blocks app to create the MCP server for.
+            mcp_server: If True, create a new MCP server from the functions in the Gradio Blocks app. 
+                       If a FastMCP instance is provided, extract the tools, resources, and prompts 
+                       from the FastMCP server and add them to the Gradio MCP server.
+        """
         self.blocks = blocks
         self.api_info = self.blocks.get_api_info()
-        self.mcp_server = self.create_mcp_server()
+        self.mcp_server = self.create_mcp_server(mcp_server)
         self.root_path = ""
         space_id = utils.get_space()
         self.tool_prefix = space_id.split("/")[-1] + "_" if space_id else ""
@@ -194,17 +208,48 @@ class GradioMCPServer:
     def _create_client(self, url):
         return Client(url, download_files=False, verbose=False)
 
-    def create_mcp_server(self) -> Server:
+    def create_mcp_server(self, mcp_server: "FastMCP" | Literal[True] = True) -> Server:
         """
         Create an MCP server for the given Gradio Blocks app.
 
         Parameters:
-            blocks: The Blocks app to create the MCP server for.
+            mcp_server: If True, create a new MCP server from the functions in the Gradio Blocks app. If a FastMCP instance is provided, extract the tools, resources, and prompts from the FastMCP server and add them to the Gradio MCP server.
 
         Returns:
             The MCP server.
         """
         server = Server(str(self.blocks.title or "Gradio App"))
+        
+        # Store FastMCP tools if provided
+        self.fastmcp_tools = {}
+        if isinstance(mcp_server, FastMCP):
+            # Extract tools from FastMCP server
+            try:
+                if hasattr(mcp_server, '_tools'):
+                    for tool_name, tool_info in mcp_server._tools.items():
+                        # Check for name conflicts with Gradio tools
+                        if tool_name in self.tool_to_endpoint:
+                            warnings.warn(f"FastMCP tool '{tool_name}' conflicts with Gradio tool. FastMCP tool will take precedence.")
+                        self.fastmcp_tools[tool_name] = tool_info
+                else:
+                    # Fallback: try to access tools through other attributes
+                    for attr_name in ['tools', 'registered_tools', 'tool_registry']:
+                        if hasattr(mcp_server, attr_name):
+                            tools_attr = getattr(mcp_server, attr_name)
+                            if hasattr(tools_attr, 'items'):
+                                for tool_name, tool_info in tools_attr.items():
+                                    # Check for name conflicts with Gradio tools
+                                    if tool_name in self.tool_to_endpoint:
+                                        warnings.warn(f"FastMCP tool '{tool_name}' conflicts with Gradio tool. FastMCP tool will take precedence.")
+                                    self.fastmcp_tools[tool_name] = tool_info
+                                break
+            except Exception as e:
+                warnings.warn(f"Could not extract tools from FastMCP server: {e}")
+            
+            # Log the tools that were found
+            if self.fastmcp_tools:
+                tool_names = list(self.fastmcp_tools.keys())
+                print(f"FastMCP integration: Found {len(tool_names)} tools: {', '.join(tool_names)}")
 
         @server.call_tool()
         async def call_tool(
@@ -217,6 +262,24 @@ class GradioMCPServer:
                 name: The name of the tool to call.
                 arguments: The arguments to pass to the tool.
             """
+            # Check if this is a FastMCP tool
+            if name in self.fastmcp_tools:
+                tool_info = self.fastmcp_tools[name]
+                try:
+                    # Call the FastMCP tool function
+                    if hasattr(tool_info, 'function'):
+                        result = await tool_info.function(**arguments)
+                    elif hasattr(tool_info, 'func'):
+                        result = await tool_info.func(**arguments)
+                    elif callable(tool_info):
+                        result = await tool_info(**arguments)
+                    else:
+                        raise RuntimeError(f"FastMCP tool {name} has no callable function")
+                    return [types.TextContent(type="text", text=str(result))]
+                except Exception as e:
+                    raise RuntimeError(f"Error calling FastMCP tool {name}: {str(e)}")
+            
+            # Handle Gradio tools as before
             context_request: Request | None = self.mcp_server.request_context.request
             progress_token = None
             if self.mcp_server.request_context.meta is not None:
@@ -337,6 +400,50 @@ class GradioMCPServer:
             selected_tools = self.get_selected_tools_from_request(context_request)
 
             tools = []
+            
+            # Add FastMCP tools
+            for tool_name, tool_info in self.fastmcp_tools.items():
+                if selected_tools is not None and tool_name not in selected_tools:
+                    continue
+                    
+                try:
+                    # Try to extract description and schema from tool_info
+                    description = ""
+                    input_schema = {}
+                    
+                    if hasattr(tool_info, 'description'):
+                        description = tool_info.description or ""
+                    elif hasattr(tool_info, 'doc'):
+                        description = tool_info.doc or ""
+                    elif hasattr(tool_info, '__doc__'):
+                        description = tool_info.__doc__ or ""
+                    
+                    if hasattr(tool_info, 'input_schema'):
+                        input_schema = tool_info.input_schema or {}
+                    elif hasattr(tool_info, 'schema'):
+                        input_schema = tool_info.schema or {}
+                    elif hasattr(tool_info, 'parameters'):
+                        input_schema = tool_info.parameters or {}
+                    
+                    # Convert FastMCP tool to MCP Tool type
+                    tools.append(
+                        types.Tool(
+                            name=tool_name,
+                            description=description,
+                            inputSchema=input_schema,
+                        )
+                    )
+                except Exception as e:
+                    # If we can't extract info, add a basic entry
+                    tools.append(
+                        types.Tool(
+                            name=tool_name,
+                            description=f"FastMCP tool: {tool_name}",
+                            inputSchema={},
+                        )
+                    )
+
+            # Add Gradio tools
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
                 if selected_tools is not None and tool_name not in selected_tools:
                     continue
@@ -549,6 +656,49 @@ class GradioMCPServer:
         file_data_present = False
 
         schemas = []
+        
+        # Add FastMCP tools to schema
+        for tool_name, tool_info in self.fastmcp_tools.items():
+            if selected_tools is not None and tool_name not in selected_tools:
+                continue
+                
+            try:
+                # Try to extract description and schema from tool_info
+                description = ""
+                input_schema = {}
+                
+                if hasattr(tool_info, 'description'):
+                    description = tool_info.description or ""
+                elif hasattr(tool_info, 'doc'):
+                    description = tool_info.doc or ""
+                elif hasattr(tool_info, '__doc__'):
+                    description = tool_info.__doc__ or ""
+                
+                if hasattr(tool_info, 'input_schema'):
+                    input_schema = tool_info.input_schema or {}
+                elif hasattr(tool_info, 'schema'):
+                    input_schema = tool_info.schema or {}
+                elif hasattr(tool_info, 'parameters'):
+                    input_schema = tool_info.parameters or {}
+                
+                info = {
+                    "name": tool_name,
+                    "description": description,
+                    "inputSchema": input_schema,
+                    "meta": {"file_data_present": file_data_present},
+                }
+                schemas.append(info)
+            except Exception as e:
+                # If we can't extract info, add a basic entry
+                info = {
+                    "name": tool_name,
+                    "description": f"FastMCP tool: {tool_name}",
+                    "inputSchema": {},
+                    "meta": {"file_data_present": file_data_present},
+                }
+                schemas.append(info)
+        
+        # Add Gradio tools to schema
         for tool_name, endpoint_name in self.tool_to_endpoint.items():
             if selected_tools is not None and tool_name not in selected_tools:
                 continue
