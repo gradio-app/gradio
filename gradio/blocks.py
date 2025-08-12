@@ -102,6 +102,8 @@ except Exception:
 
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
+    from mcp.server.fastmcp import FastMCP
+
     from gradio.components.base import Component
     from gradio.mcp import GradioMCPServer
     from gradio.renderable import Renderable
@@ -2381,7 +2383,7 @@ Received inputs:
             "pwa": self.pwa,
             "pages": self.pages,
             "page": {},
-            "mcp_server": self.mcp_server,
+            "mcp_server": bool(self.mcp_server),
             "i18n_translations": (
                 getattr(self.i18n_instance, "translations_dict", None)
                 if getattr(self, "i18n_instance", None) is not None
@@ -2552,7 +2554,7 @@ Received inputs:
         node_port: int | None = None,
         ssr_mode: bool | None = None,
         pwa: bool | None = None,
-        mcp_server: bool | None = None,
+        mcp_server: bool | FastMCP | None = None,
         _frontend: bool = True,
         i18n: I18n | None = None,
     ) -> tuple[App, str, str]:
@@ -2595,7 +2597,7 @@ Received inputs:
             ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
             i18n: An I18n instance containing custom translations, which are used to translate strings in our components (e.g. the labels of components or Markdown strings). This feature can only be used to translate static text in the frontend, not values in the backend.
-            mcp_server: If True, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools. If None (default behavior), then the GRADIO_MCP_SERVER environment variable will be used to determine if the MCP server should be enabled (which is "True" on Hugging Face Spaces).
+            mcp_server: If True, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools. If None (default behavior), then the GRADIO_MCP_SERVER environment variable will be used to determine if the MCP server should be enabled. Alternatively, a FastMCP instance can be provided, which will be launched along with the Gradio app, and any tools, resources, or prompts defined in the FastMCP server will also be available through Gradio's MCP server.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo

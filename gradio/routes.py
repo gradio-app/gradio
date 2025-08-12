@@ -120,6 +120,8 @@ from gradio.utils import (
 )
 
 if TYPE_CHECKING:
+    from mcp.server.fastmcp import FastMCP
+
     from gradio.blocks import Block
 
 import difflib
@@ -344,7 +346,7 @@ class App(FastAPI):
     def setup_mcp_server(
         blocks: gradio.Blocks,
         app_kwargs: dict[str, Any],
-        mcp_server: bool | None = None,
+        mcp_server: bool | FastMCP | None = None,
     ):
         mcp_subpath = API_PREFIX + "/mcp"
         if mcp_server is None:
@@ -391,7 +393,7 @@ class App(FastAPI):
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         strict_cors: bool = True,
         ssr_mode: bool = False,
-        mcp_server: bool | None = None,
+        mcp_server: bool | FastMCP | None = None,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
