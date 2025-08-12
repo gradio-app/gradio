@@ -23,6 +23,7 @@ from gradio_client.utils import Status, StatusUpdate
 from mcp import types
 from mcp.server import Server
 from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp.tools.base import Tool
 from mcp.server.sse import SseServerTransport
 from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from PIL import Image
@@ -246,7 +247,14 @@ class GradioMCPServer:
                 arguments: The arguments to pass to the tool.
             """
             if name in self.fastmcp_tools:
-                return await self.fastmcp_tools[name].run(arguments)
+                return_value = self.fastmcp_tools[name].fn(**arguments)
+                if isinstance(return_value, tuple):
+                    return [
+                        types.TextContent(type="text", text=str(r))
+                        for r in return_value
+                    ]
+                else:
+                    return [types.TextContent(type="text", text=str(return_value))]
 
             context_request: Request | None = self.mcp_server.request_context.request
             progress_token = None
@@ -373,7 +381,14 @@ class GradioMCPServer:
             for tool_name, tool in self.fastmcp_tools.items():
                 if selected_tools is not None and tool_name not in selected_tools:
                     continue
-                tools.append(tool)
+                description, input_schema = self.get_fastmcp_tool_schema(tool)
+                tools.append(
+                    types.Tool(
+                        name=tool_name,
+                        description=description,
+                        inputSchema=input_schema,
+                    )
+                )
 
             # Add Gradio tools
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
@@ -564,6 +579,27 @@ class GradioMCPServer:
         }
         return self.simplify_filedata_schema(schema)
 
+    @staticmethod
+    def get_fastmcp_tool_schema(tool: Tool) -> tuple[str, dict[str, Any]]:
+        """
+        Get the description and schema of a FastMCP tool.
+        """
+        description = getattr(tool, "description", "")
+        input_schema = {}
+        if hasattr(tool, "parameters"):
+            input_schema = {"type": "object", "properties": {}}
+            for param, param_info in tool.parameters.get("properties", {}).items():
+                input_schema["properties"][param] = {
+                    "type": param_info.get("type", "string"),
+                }
+                if "default" in param_info:
+                    input_schema["properties"][param]["default"] = param_info["default"]
+                if "description" in param_info:
+                    input_schema["properties"][param]["description"] = param_info[
+                        "description"
+                    ]
+        return description, input_schema
+
     async def get_complete_schema(self, request) -> JSONResponse:
         """
         Get the complete schema of the Gradio app API. For debugging purposes, also used by
@@ -593,23 +629,8 @@ class GradioMCPServer:
         for tool_name, tool in self.fastmcp_tools.items():
             if selected_tools is not None and tool_name not in selected_tools:
                 continue
-            description = getattr(tool, "description", "")
-            input_schema = {}
-            if hasattr(tool, "parameters"):
-                input_schema = {"type": "object", "properties": {}}
-                for param, param_info in tool.parameters.get("properties", {}).items():
-                    input_schema["properties"][param] = {
-                        "type": param_info.get("type", "string"),
-                    }
-                    if "default" in param_info:
-                        input_schema["properties"][param]["default"] = param_info[
-                            "default"
-                        ]
-                    if "description" in param_info:
-                        input_schema["properties"][param]["description"] = param_info[
-                            "description"
-                        ]
 
+            description, input_schema = self.get_fastmcp_tool_schema(tool)
             schemas.append(
                 {
                     "name": tool.name,
