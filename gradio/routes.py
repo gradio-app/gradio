@@ -359,7 +359,7 @@ class App(FastAPI):
                     'In order to use `mcp_server=True`, you must install gradio with the `mcp` extra. Please install it with `pip install "gradio[mcp]"`'
                 ) from e
             try:
-                blocks.mcp_server_obj = gradio.mcp.GradioMCPServer(blocks)
+                blocks.mcp_server_obj = gradio.mcp.GradioMCPServer(blocks, mcp_server)
                 blocks.mcp_server = True
                 user_lifespan = None
                 if "lifespan" in app_kwargs:
@@ -377,7 +377,7 @@ class App(FastAPI):
                         yield
 
                 app_kwargs["lifespan"] = _lifespan
-            except Exception as e:
+            except ZeroDivisionError as e:
                 blocks.mcp_server = False
                 blocks.mcp_error = f"Error launching MCP server: {e}"
 
@@ -405,7 +405,7 @@ class App(FastAPI):
         )
         app = App(auth_dependency=auth_dependency, **app_kwargs, debug=True)
         if blocks.mcp_server_obj:
-            blocks.mcp_server_obj.launch_mcp_on_sse(app, mcp_subpath, blocks.root_path)
+            blocks.mcp_server_obj.launch_mcp_server(app, mcp_subpath, blocks.root_path)
         router = APIRouter(prefix=API_PREFIX)
 
         app.configure_app(blocks)
