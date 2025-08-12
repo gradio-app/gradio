@@ -6,6 +6,7 @@ import time
 
 import httpx
 import pytest
+from mcp.server.fastmcp import FastMCP
 from PIL import Image
 from starlette.requests import Request
 
@@ -26,6 +27,56 @@ def test_get_block_fn_from_tool_name(test_mcp_app):
     assert result == test_mcp_app.fns[0]
     result = server.get_block_fn_from_endpoint_name("nonexistent_tool")
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_get_all_tools_including_fastmcp_tools():
+    mcp = FastMCP("Math")
+
+    @mcp.tool()
+    def add(a: int, b: int = 3) -> int:
+        """Add two numbers"""
+        return a + b
+
+    def subtract(a: int, b: int) -> int:
+        """Subtract two numbers"""
+        return a - b
+
+    gradio_app = gr.Interface(subtract, ["number", "number"], "number")
+    server = GradioMCPServer(gradio_app, mcp)
+    scope = {
+        "type": "http",
+        "headers": [],
+        "server": ("localhost", 7860),
+        "path": "/gradio_api/mcp/schema",
+        "query_string": "",
+    }
+    request = Request(scope)
+    response = await server.get_complete_schema(request)
+    response = json.loads(response.body.decode("utf-8"))  # type: ignore
+    assert response == [
+        {
+            "name": "add",
+            "description": "Add two numbers",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "a": {"type": "integer"},
+                    "b": {"type": "integer", "default": 3},
+                },
+            },
+            "meta": {"file_data_present": False},
+        },
+        {
+            "name": "subtract",
+            "description": "Subtract two numbers",
+            "inputSchema": {
+                "type": "object",
+                "properties": {"a": {"type": "number"}, "b": {"type": "number"}},
+            },
+            "meta": {"file_data_present": False},
+        },
+    ]
 
 
 def test_generate_tool_names_correctly_for_interfaces():
