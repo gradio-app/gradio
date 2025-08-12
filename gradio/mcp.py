@@ -600,9 +600,15 @@ class GradioMCPServer:
                 for param, param_info in tool.parameters.get("properties", {}).items():
                     input_schema["properties"][param] = {
                         "type": param_info.get("type", "string"),
-                        "description": param_info.get("description", ""),
-                        "default": param_info.get("default", ""),
                     }
+                    if "default" in param_info:
+                        input_schema["properties"][param]["default"] = param_info[
+                            "default"
+                        ]
+                    if "description" in param_info:
+                        input_schema["properties"][param]["description"] = param_info[
+                            "description"
+                        ]
 
             schemas.append(
                 {
