@@ -2,7 +2,7 @@
 
 Tags: REAL-TIME, IMMERSIVE, FASTRTC, VIDEO, AUDIO, STREAMING, GEMINI, WEBRTC
 
-FastRTC is a library that lets you build low-latency real-time apps over WebRTC. In this guide, you’ll implement a Gemini Audio + Video Chat that:
+FastRTC is a library that lets you build low-latency real-time apps over WebRTC. In this guide, you’ll implement a fun demo where Gemini is an art history teacher and will describe the uploaded artwork to you:
 - Streams your webcam and microphone to a Gemini real-time session
 - Sends periodic video frames (and an optional uploaded image) to the model
 - Streams back the model’s audio responses in real time
@@ -13,20 +13,13 @@ FastRTC is a library that lets you build low-latency real-time apps over WebRTC.
 
 ### Prerequisites
 - Python 3.9+
-- A Gemini API key in the environment: `GEMINI_API_KEY`
+- A Gemini API key: `GEMINI_API_KEY`
 
 Install the dependencies:
 
 ```bash
 pip install "fastrtc[vad, tts]" gradio google-genai python-dotenv websockets pillow
 ```
-
-Create a `.env` file with your Gemini key:
-
-```bash
-echo "GEMINI_API_KEY=your_key_here" > .env
-```
-
 
 ## 1) Encoders for audio and images
 Encoder functions to send audio as base64-encoded data and images as base64-encoded JPEG.
@@ -91,11 +84,12 @@ class GeminiHandler(AsyncAudioVideoStreamHandler):
         return GeminiHandler()
 
     async def start_up(self):
+        await self.wait_for_args()
+        api_key = self.latest_args[3]
         client = genai.Client(
-            api_key=os.getenv("GEMINI_API_KEY"),
-            http_options={"api_version": "v1alpha"},
+            api_key=api_key, http_options={"api_version": "v1alpha"}
         )
-        config = {"response_modalities": ["AUDIO"]}
+        config = {"response_modalities": ["AUDIO"], "system_instruction": "You are an art history teacher that will describe the artwork passed in as an image to the user. Describe the history and significance of the artwork."}
         async with client.aio.live.connect(
             model="gemini-2.0-flash-exp",
             config=config,
@@ -106,10 +100,10 @@ class GeminiHandler(AsyncAudioVideoStreamHandler):
                 try:
                     async for response in turn:
                         if data := response.data:
-                            # Gemini returns bytes for audio; convert to np.int16 mono
                             audio = np.frombuffer(data, dtype=np.int16).reshape(1, -1)
-                            self.audio_queue.put_nowait(audio)
+                        self.audio_queue.put_nowait(audio)
                 except websockets.exceptions.ConnectionClosedOK:
+                    print("connection closed")
                     break
 
     # Video: receive and (optionally) send frames to Gemini
@@ -119,9 +113,9 @@ class GeminiHandler(AsyncAudioVideoStreamHandler):
             self.last_frame_time = time.time()
             await self.session.send(input=encode_image(frame))
             # If there is an uploaded image passed alongside the WebRTC component,
-            # it will be available in latest_args[1]
-            if self.latest_args[1] is not None:
-                await self.session.send(input=encode_image(self.latest_args[1]))
+            # it will be available in latest_args[2]
+            if self.latest_args[2] is not None:
+                await self.session.send(input=encode_image(self.latest_args[2]))
 
     async def video_emit(self) -> np.ndarray:
         frame = await wait_for_item(self.video_queue, 0.01)
@@ -164,8 +158,16 @@ stream = Stream(
     handler=GeminiHandler(),
     modality="audio-video",
     mode="send-receive",
+    rtc_configuration=get_cloudflare_turn_credentials_async if get_space() else None,
+    time_limit=180 if get_space() else None,
     additional_inputs=[
-        gr.Image(label="Image", type="numpy", sources=["upload", "clipboard"])
+        gr.Markdown(
+            "## 🎨 Art History Teacher\n\n"
+            "Provide an image of the artwork and Gemini will describe it to you."
+            "To get a Gemini API key, please visit the [Gemini API Key](https://console.cloud.google.com/apis/api/generativelanguage.googleapis.com/credentials) page."
+        ),
+        gr.Image(label="Image", type="numpy", sources=["upload", "clipboard"]),
+        gr.Textbox(label="Gemini API Key"),
     ],
     ui_args={
         "icon": "https://www.gstatic.com/lamda/images/gemini_favicon_f069958c85030456e93de685481c559f160ea06b.png",
