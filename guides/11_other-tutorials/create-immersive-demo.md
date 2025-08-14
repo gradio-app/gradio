@@ -12,7 +12,7 @@ FastRTC is a library that lets you build low-latency real-time apps over WebRTC.
 <gradio-app space="gradio/Gemini-Art-Critic"></gradio-app>
 
 ### Prerequisites
-- Python 3.9+
+- Python 3.10+
 - A Gemini API key: `GEMINI_API_KEY`
 
 Install the dependencies:
@@ -93,7 +93,7 @@ class GeminiHandler(AsyncAudioVideoStreamHandler):
         client = genai.Client(
             api_key=api_key, http_options={"api_version": "v1alpha"}
         )
-        config = {"response_modalities": ["AUDIO"], "system_instruction": "You are an art critic that will critique the artwork passed in as an image to the user. Critique the artwork in a funny and lighthearted way. Be concise and to the point. Be friendly and engaging. Be helpful and informative. Be funny and lighthearted. Be concise and to the point. Be friendly and engaging."}
+        config = {"response_modalities": ["AUDIO"], "system_instruction": "You are an art critic that will critique the artwork passed in as an image to the user. Critique the artwork in a funny and lighthearted way. Be concise and to the point. Be friendly and engaging. Be helpful and informative. Be funny and lighthearted."}
         async with client.aio.live.connect(
             model="gemini-2.0-flash-exp",
             config=config,
