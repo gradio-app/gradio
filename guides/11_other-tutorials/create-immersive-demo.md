@@ -9,7 +9,7 @@ FastRTC is a library that lets you build low-latency real-time apps over WebRTC.
 - Creates a polished full-screen Gradio `WebRTC` UI
 
 ### What you’ll build
-<gradio-app space="gradio/gemini-audio-video"></gradio-app>
+<gradio-app space="gradio/Gemini-Art-Critic"></gradio-app>
 
 ### Prerequisites
 - Python 3.9+
