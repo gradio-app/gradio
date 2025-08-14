@@ -9,6 +9,10 @@ FastRTC is a library that lets you build low-latency real-time apps over WebRTC.
 - Creates a polished full-screen Gradio `WebRTC` UI
 
 ### What you’ll build
+<video autoplay loop>
+  <source src="https://github.com/gradio-app/gradio/blob/main/guides/assets/art-critic.mp4?raw=true" type="video/mp4" />
+</video>
+
 <gradio-app space="gradio/Gemini-Art-Critic"></gradio-app>
 
 ### Prerequisites
