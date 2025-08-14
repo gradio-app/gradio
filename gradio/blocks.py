@@ -1239,6 +1239,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.custom_mount_path: str | None = None
         self.pwa = False
         self.mcp_server = False
+        self.mcp_resources = {}
+        self.mcp_prompts = {}
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -1317,6 +1319,14 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     @blocks.setter
     def blocks(self, value: dict[int, Component | Block]):
         self.default_config.blocks = value
+    
+    @property
+    def mcp(self):
+        """Access MCP decorators for resources and prompts."""
+        from gradio.mcp import MCPDecorators
+        if not hasattr(self, "_mcp_decorators"):
+            self._mcp_decorators = MCPDecorators(self)
+        return self._mcp_decorators
 
     @property
     def fns(self) -> dict[int, BlockFunction]:
