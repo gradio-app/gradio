@@ -168,7 +168,7 @@ stream = Stream(
     additional_inputs=[
         gr.Markdown(
             "## 🎨 Art Critic\n\n"
-            "Provide an image of your artwork and Gemini will critique it for you."
+            "Provide an image of your artwork or hold it up to the webcam, and Gemini will critique it for you."
             "To get a Gemini API key, please visit the [Gemini API Key](https://console.cloud.google.com/apis/api/generativelanguage.googleapis.com/credentials) page."
             "To get an HF Token, please visit the [HF Token](https://huggingface.co/settings/tokens) page."
         ),
