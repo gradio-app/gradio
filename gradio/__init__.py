@@ -5,7 +5,7 @@ import gradio.image_utils
 import gradio.processing_utils
 import gradio.sketch
 import gradio.templates
-from gradio import components, layouts, themes
+from gradio import components, layouts, mcp, themes
 from gradio.blocks import Blocks
 from gradio.chat_interface import ChatInterface
 from gradio.components import (
@@ -253,39 +253,3 @@ __all__ = [
     "DeepLinkButton",
     "mcp",
 ]
-
-
-# Simple MCP decorators that just add attributes to functions
-class _MCPDecorators:
-    """Simple MCP decorators that add metadata to functions."""
-    
-    def resource(self, uri_template: str, description: str | None = None, mime_type: str | None = None):
-        """Decorator to mark a function as an MCP resource."""
-        def decorator(fn):
-            fn._mcp_type = "resource"
-            fn._mcp_uri_template = uri_template
-            fn._mcp_description = description
-            fn._mcp_mime_type = mime_type or "text/plain"
-            return fn
-        return decorator
-    
-    def prompt(self, name: str | None = None, description: str | None = None):
-        """Decorator to mark a function as an MCP prompt."""
-        def decorator(fn):
-            fn._mcp_type = "prompt"
-            fn._mcp_name = name or fn.__name__
-            fn._mcp_description = description
-            return fn
-        return decorator
-    
-    def tool(self, name: str | None = None, description: str | None = None):
-        """Decorator to mark a function as an MCP tool (optional - tools are auto-detected)."""
-        def decorator(fn):
-            fn._mcp_type = "tool"
-            fn._mcp_name = name
-            fn._mcp_description = description
-            return fn
-        return decorator
-
-
-mcp = _MCPDecorators()
