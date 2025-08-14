@@ -251,84 +251,41 @@ __all__ = [
     "skip",
     "update",
     "DeepLinkButton",
+    "mcp",
 ]
 
 
-# Define a special attribute name that won't conflict with the mcp.py module
-_mcp_proxy_instance = None
-
-def _get_mcp_proxy():
-    """Get or create the global MCP proxy instance."""
-    global _mcp_proxy_instance
-    if _mcp_proxy_instance is None:
-        _mcp_proxy_instance = _MCPProxy()
-    return _mcp_proxy_instance
-
-class _MCPProxy:
-    """A proxy object that provides MCP decorators for the current Blocks context."""
+# Simple MCP decorators that just add attributes to functions
+class _MCPDecorators:
+    """Simple MCP decorators that add metadata to functions."""
     
-    def __init__(self):
-        self._pending_registrations = []
+    def resource(self, uri_template: str, description: str | None = None, mime_type: str | None = None):
+        """Decorator to mark a function as an MCP resource."""
+        def decorator(fn):
+            fn._mcp_type = "resource"
+            fn._mcp_uri_template = uri_template
+            fn._mcp_description = description
+            fn._mcp_mime_type = mime_type or "text/plain"
+            return fn
+        return decorator
     
-    def __getattr__(self, name):
-        # Get the current Blocks context
-        from gradio.context import Context
-        current_blocks = Context.block
-        if current_blocks is None:
-            # Return a deferred decorator that will register when a Blocks context is available
-            return self._create_deferred_decorator(name)
-        return getattr(current_blocks.mcp, name)
+    def prompt(self, name: str | None = None, description: str | None = None):
+        """Decorator to mark a function as an MCP prompt."""
+        def decorator(fn):
+            fn._mcp_type = "prompt"
+            fn._mcp_name = name or fn.__name__
+            fn._mcp_description = description
+            return fn
+        return decorator
     
-    def _create_deferred_decorator(self, decorator_name):
-        """Create a decorator that defers registration until a Blocks context is available."""
-        def deferred_decorator(*args, **kwargs):
-            def decorator(fn):
-                # Store the registration for later
-                self._pending_registrations.append((decorator_name, args, kwargs, fn))
-                return fn
-            return decorator
-        return deferred_decorator
-    
-    def _apply_pending_registrations(self, blocks):
-        """Apply all pending registrations to a Blocks instance."""
-        for decorator_name, args, kwargs, fn in self._pending_registrations:
-            decorator_fn = getattr(blocks.mcp, decorator_name)
-            # Apply the decorator
-            decorator_fn(*args, **kwargs)(fn)
-        # Clear pending registrations
-        self._pending_registrations.clear()
+    def tool(self, name: str | None = None, description: str | None = None):
+        """Decorator to mark a function as an MCP tool (optional - tools are auto-detected)."""
+        def decorator(fn):
+            fn._mcp_type = "tool"
+            fn._mcp_name = name
+            fn._mcp_description = description
+            return fn
+        return decorator
 
 
-# Use a property to always return the same proxy instance, 
-# even if the mcp.py module gets imported and overwrites the namespace
-class _MCPAttribute:
-    def __get__(self, obj, type=None):
-        return _get_mcp_proxy()
-
-# Create a module-level property descriptor
-import sys
-class _ModulePropertyMeta(type(sys.modules[__name__])):
-    @property 
-    def mcp(self):
-        return _get_mcp_proxy()
-
-# Replace the module's metaclass to support the property
-old_module = sys.modules[__name__]
-sys.modules[__name__].__class__ = _ModulePropertyMeta
-
-
-# Hook into Blocks creation to apply pending MCP registrations
-def _patch_blocks_init():
-    from gradio.blocks import Blocks
-    original_init = Blocks.__init__
-    
-    def patched_init(self, *args, **kwargs):
-        result = original_init(self, *args, **kwargs)
-        # Apply any pending MCP registrations from the global mcp proxy
-        proxy = _get_mcp_proxy()
-        proxy._apply_pending_registrations(self)
-        return result
-    
-    Blocks.__init__ = patched_init
-
-_patch_blocks_init()
+mcp = _MCPDecorators()
