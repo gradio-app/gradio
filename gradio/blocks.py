@@ -1319,15 +1319,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.default_config.blocks = value
 
     @property
-    def mcp(self):
-        """Access MCP decorators for resources and prompts."""
-        from gradio.mcp import MCPDecorators
-
-        if not hasattr(self, "_mcp_decorators"):
-            self._mcp_decorators = MCPDecorators(self)
-        return self._mcp_decorators
-
-    @property
     def fns(self) -> dict[int, BlockFunction]:
         return self.default_config.fns
 
