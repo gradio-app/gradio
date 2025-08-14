@@ -2,7 +2,7 @@
 
 Tags: REAL-TIME, IMMERSIVE, FASTRTC, VIDEO, AUDIO, STREAMING, GEMINI, WEBRTC
 
-FastRTC is a library that lets you build low-latency real-time apps over WebRTC. In this guide, you’ll implement a fun demo where Gemini is an art history teacher and will describe the uploaded artwork to you:
+FastRTC is a library that lets you build low-latency real-time apps over WebRTC. In this guide, you’ll implement a fun demo where Gemini is an art critic and will critique your uploaded artwork:
 - Streams your webcam and microphone to a Gemini real-time session
 - Sends periodic video frames (and an optional uploaded image) to the model
 - Streams back the model’s audio responses in real time
@@ -63,7 +63,7 @@ import numpy as np
 import websockets
 from dotenv import load_dotenv
 from google import genai
-from fastrtc import AsyncAudioVideoStreamHandler, wait_for_item
+from fastrtc import AsyncAudioVideoStreamHandler, wait_for_item, WebRTCError
 
 load_dotenv()
 
@@ -86,10 +86,14 @@ class GeminiHandler(AsyncAudioVideoStreamHandler):
     async def start_up(self):
         await self.wait_for_args()
         api_key = self.latest_args[3]
+        hf_token = self.latest_args[4]
+        if hf_token is None or hf_token == "":
+            raise WebRTCError("HF Token is required")
+        os.environ["HF_TOKEN"] = hf_token
         client = genai.Client(
             api_key=api_key, http_options={"api_version": "v1alpha"}
         )
-        config = {"response_modalities": ["AUDIO"], "system_instruction": "You are an art history teacher that will describe the artwork passed in as an image to the user. Describe the history and significance of the artwork."}
+        config = {"response_modalities": ["AUDIO"], "system_instruction": "You are an art critic that will critique the artwork passed in as an image to the user. Critique the artwork in a funny and lighthearted way. Be concise and to the point. Be friendly and engaging. Be helpful and informative. Be funny and lighthearted. Be concise and to the point. Be friendly and engaging."}
         async with client.aio.live.connect(
             model="gemini-2.0-flash-exp",
             config=config,
@@ -152,22 +156,25 @@ We’ll add an optional `gr.Image` input alongside the `WebRTC` component. The h
 
 ```python
 import gradio as gr
-from fastrtc import Stream, WebRTC
+from fastrtc import Stream, WebRTC, get_hf_turn_credentials
+
 
 stream = Stream(
     handler=GeminiHandler(),
     modality="audio-video",
     mode="send-receive",
-    rtc_configuration=get_cloudflare_turn_credentials_async if get_space() else None,
-    time_limit=180 if get_space() else None,
+    server_rtc_configuration=get_hf_turn_credentials(ttl=600*10000),
+    rtc_configuration=get_hf_turn_credentials(),
     additional_inputs=[
         gr.Markdown(
-            "## 🎨 Art History Teacher\n\n"
-            "Provide an image of the artwork and Gemini will describe it to you."
+            "## 🎨 Art Critic\n\n"
+            "Provide an image of your artwork and Gemini will critique it for you."
             "To get a Gemini API key, please visit the [Gemini API Key](https://console.cloud.google.com/apis/api/generativelanguage.googleapis.com/credentials) page."
+            "To get an HF Token, please visit the [HF Token](https://huggingface.co/settings/tokens) page."
         ),
-        gr.Image(label="Image", type="numpy", sources=["upload", "clipboard"]),
-        gr.Textbox(label="Gemini API Key"),
+        gr.Image(label="Artwork", value="mona_lisa.jpg", type="numpy", sources=["upload", "clipboard"]),
+        gr.Textbox(label="Gemini API Key", type="password"),
+        gr.Textbox(label="HF Token", type="password"),
     ],
     ui_args={
         "icon": "https://www.gstatic.com/lamda/images/gemini_favicon_f069958c85030456e93de685481c559f160ea06b.png",
@@ -175,10 +182,13 @@ stream = Stream(
         "icon_button_color": "rgb(255, 255, 255)",
         "title": "Gemini Audio Video Chat",
     },
+    time_limit=90,
+    concurrency_limit=5,
 )
 
 if __name__ == "__main__":
     stream.ui.launch()
+
 ```
 
 ### References
