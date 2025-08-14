@@ -535,7 +535,6 @@ export function create_components(
 		// After applying updates, check if we need to load new components
 		if (had_visibility_changes && current_layout && previous_visible_ids) {
 			raf(async () => {
-				console.log("Finding visible components", current_layout, _components);
 				const new_visible_ids = determine_visible_components(
 					current_layout,
 					_components
@@ -548,8 +547,6 @@ export function create_components(
 						newly_visible_ids.add(id);
 					}
 				}
-				console.log("New visible component IDs and types:", newly_visible_ids, Array.from(newly_visible_ids).map(id => _component_map.get(id)?.type));
-				console.log("Newly visible components and types:", newly_visible_ids, Array.from(newly_visible_ids).map(id => _component_map.get(id)?.type));
 
 				// Load the newly visible components
 				await load_newly_visible_components(newly_visible_ids);
