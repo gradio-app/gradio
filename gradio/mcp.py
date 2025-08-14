@@ -371,7 +371,7 @@ class GradioMCPServer:
                 ):
                     uri_template = block_fn.fn._mcp_uri_template
                     parameters = re.findall(r"\{([^}]+)\}", uri_template)
-                    if not parameters:  # Static resource
+                    if not parameters:
                         resources.append(
                             types.Resource(
                                 uri=uri_template,
@@ -400,7 +400,7 @@ class GradioMCPServer:
                 ):
                     uri_template = block_fn.fn._mcp_uri_template
                     parameters = re.findall(r"\{([^}]+)\}", uri_template)
-                    if parameters:  # Template resource
+                    if parameters:
                         templates.append(
                             types.ResourceTemplate(
                                 uriTemplate=uri_template,
@@ -418,7 +418,6 @@ class GradioMCPServer:
             """
             Read a specific resource by URI.
             """
-            # Find the matching resource function
             for endpoint_name in self.tool_to_endpoint.values():
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
                 if (
@@ -430,8 +429,7 @@ class GradioMCPServer:
                     uri_template = block_fn.fn._mcp_uri_template
                     parameters = re.findall(r"\{([^}]+)\}", uri_template)
 
-                    if parameters:  # Template resource
-                        # Try to match the template pattern
+                    if parameters:
                         pattern = re.escape(uri_template)
                         for param in parameters:
                             pattern = pattern.replace(
@@ -439,7 +437,6 @@ class GradioMCPServer:
                             )
                         match = re.match(f"^{pattern}$", uri)
                         if match:
-                            # Call the function with extracted parameters
                             kwargs = match.groupdict()
                             result = await run_sync(block_fn.fn, **kwargs)
                             mime_type = block_fn.fn._mcp_mime_type
@@ -453,7 +450,7 @@ class GradioMCPServer:
                                 return types.TextResourceContents(
                                     uri=uri, mimeType=mime_type, text=str(result)
                                 )
-                    elif uri_template == uri:  # Static resource
+                    elif uri_template == uri:
                         result = await run_sync(block_fn.fn)
                         mime_type = block_fn.fn._mcp_mime_type
                         if isinstance(result, bytes):
@@ -483,7 +480,6 @@ class GradioMCPServer:
                     and hasattr(block_fn.fn, "_mcp_type")
                     and block_fn.fn._mcp_type == "prompt"
                 ):
-                    # Extract arguments from function signature
                     sig = inspect.signature(block_fn.fn)
                     arguments = []
                     for param_name, param in sig.parameters.items():
@@ -514,7 +510,6 @@ class GradioMCPServer:
             """
             Get a specific prompt with filled-in arguments.
             """
-            # Find the prompt function
             prompt_fn = None
             for endpoint_name in self.tool_to_endpoint.values():
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
@@ -533,7 +528,6 @@ class GradioMCPServer:
 
             arguments = arguments or {}
 
-            # Extract function signature to handle arguments
             sig = inspect.signature(prompt_fn)
             kwargs = {}
             for param_name, param in sig.parameters.items():
@@ -550,7 +544,6 @@ class GradioMCPServer:
 
             result = await run_sync(prompt_fn, **kwargs)
 
-            # Convert the result to a prompt message
             return types.GetPromptResult(
                 messages=[
                     types.PromptMessage(
