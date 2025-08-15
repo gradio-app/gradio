@@ -19,8 +19,7 @@ export default defineConfig(({ mode }) => {
 			lib: {
 				entry: "src/index.ts",
 				formats: ["es"],
-				fileName: (format) =>
-					isBrowserBuild ? `browser.${format}.js` : `index.${format}.js`
+				fileName: isBrowserBuild ? `browser` : `index`
 			},
 			rollupOptions: {
 				input: "src/index.ts",
