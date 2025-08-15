@@ -1,6 +1,6 @@
 pytest-asyncio
 pytest==7.1.2
 pytest-xdist
-pyright==1.1.372
+ty
 gradio
 pydub==0.25.1

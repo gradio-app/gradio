@@ -10,5 +10,11 @@ call scripts\helpers.bat pip_required
 echo Adding py.typed file to gradio.
 type nul > gradio\py.typed
 
-:: Run pyright
-python -m pyright
+:: Run ty
+ty check ^
+  --exclude "gradio/themes/" ^
+  --exclude "gradio/_frontend_code/" ^
+  --exclude "gradio/components/*_plot.py" ^
+  --exclude "gradio/node/*.py" ^
+  --exclude "gradio/_frontend_code/*.py" ^
+  gradio demo test
