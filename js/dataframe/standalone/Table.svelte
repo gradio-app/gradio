@@ -3,49 +3,51 @@
 		create_dataframe_context,
 		type SortDirection,
 		type FilterDatatype
-	} from "./context/dataframe_context";
+	} from "../shared/context/dataframe_context";
 </script>
 
 <script lang="ts">
 	import { afterUpdate, createEventDispatcher, tick, onMount } from "svelte";
 	import { dequal } from "dequal/lite";
-	import { Upload } from "@gradio/upload";
+	import { Upload } from "./stubs";
 
-	import EditableCell from "./EditableCell.svelte";
-	import RowNumber from "./RowNumber.svelte";
-	import TableHeader from "./TableHeader.svelte";
-	import TableCell from "./TableCell.svelte";
-	import EmptyRowButton from "./EmptyRowButton.svelte";
-	import type { SelectData } from "@gradio/utils";
-	import type { I18nFormatter } from "js/core/src/gradio_helper";
-	import { type Client } from "@gradio/client";
-	import VirtualTable from "./VirtualTable.svelte";
-	import type { Headers, DataframeValue, Datatype } from "./utils";
-	import CellMenu from "./CellMenu.svelte";
-	import Toolbar from "./Toolbar.svelte";
-	import type { CellCoordinate } from "./types";
+	import EditableCell from "../shared/EditableCell.svelte";
+	import RowNumber from "../shared/RowNumber.svelte";
+	import TableHeader from "../shared/TableHeader.svelte";
+	import TableCell from "../shared/TableCell.svelte";
+	import EmptyRowButton from "../shared/EmptyRowButton.svelte";
+	import type { SelectData, I18nFormatter, Client } from "./stubs";
+
+	import VirtualTable from "../shared/VirtualTable.svelte";
+	import type { Headers, DataframeValue, Datatype } from "../shared/utils";
+	import CellMenu from "../shared/CellMenu.svelte";
+	import Toolbar from "../shared/Toolbar.svelte";
+	import type { CellCoordinate } from "../shared/types";
 	import {
 		is_cell_selected,
 		should_show_cell_menu,
 		get_current_indices,
 		handle_click_outside as handle_click_outside_util,
 		calculate_selection_positions
-	} from "./selection_utils";
+	} from "../shared/selection_utils";
 	import {
 		copy_table_data,
 		get_max,
 		handle_file_upload
-	} from "./utils/table_utils";
-	import { make_headers, process_data } from "./utils/data_processing";
-	import { cast_value_to_type } from "./utils";
-	import { handle_keydown, handle_cell_blur } from "./utils/keyboard_utils";
+	} from "../shared/utils/table_utils";
+	import { make_headers, process_data } from "../shared/utils/data_processing";
+	import { cast_value_to_type } from "../shared/utils";
+	import {
+		handle_keydown,
+		handle_cell_blur
+	} from "../shared/utils/keyboard_utils";
 	import {
 		create_drag_handlers,
 		type DragState,
 		type DragHandlers
-	} from "./utils/drag_utils";
-	import { sort_data_and_preserve_selection } from "./utils/sort_utils";
-	import { filter_data_and_preserve_selection } from "./utils/filter_utils";
+	} from "../shared/utils/drag_utils";
+	import { sort_data_and_preserve_selection } from "../shared/utils/sort_utils";
+	import { filter_data_and_preserve_selection } from "../shared/utils/filter_utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;

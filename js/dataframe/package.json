@@ -10,8 +10,6 @@
 	"main": "./Index.svelte",
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
-		"@gradio/button": "workspace:^",
-		"@gradio/checkbox": "workspace:^",
 		"@gradio/client": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/markdown-code": "workspace:^",
@@ -27,10 +25,22 @@
 		"katex": "^0.16.7",
 		"marked": "^12.0.0"
 	},
+	"peerDependencies": {
+		"svelte": "^4.0.0 || ^5.0.0"
+	},
+	"optionalDependencies": {
+		"@gradio/checkbox": "workspace:^"
+	},
+	"files": [
+		"Base.svelte",
+		"standalone/**/*",
+		"shared/**/*"
+	],
 	"exports": {
 		".": {
 			"gradio": "./Index.svelte",
-			"svelte": "./dist/Index.svelte",
+			"svelte": "./standalone/Index.svelte",
+			"default": "./standalone/Index.svelte",
 			"types": "./dist/Index.svelte.d.ts"
 		},
 		"./example": {
@@ -39,9 +49,6 @@
 			"types": "./dist/Example.svelte.d.ts"
 		},
 		"./package.json": "./package.json"
-	},
-	"peerDependencies": {
-		"svelte": "^4.0.0"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
