@@ -47,7 +47,7 @@
 	export let value_is_output = false;
 	export let interactive: boolean;
 	export let show_submit_button = true;
-	export let ui_mode: "dialogue-only" | "text-only" | "both" = "both";
+	export let ui_mode: "dialogue" | "text" | "both" = "both";
 </script>
 
 <!-- svelte-ignore missing-declaration -->

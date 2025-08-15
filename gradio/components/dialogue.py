@@ -65,7 +65,7 @@ class Dialogue(Component):
         max_lines: int | None = None,
         show_submit_button: bool = True,
         show_copy_button: bool = True,
-        ui_mode: Literal["dialogue-only", "text-only", "both"] = "both",
+        ui_mode: Literal["dialogue", "text", "both"] = "both",
     ):
         """
         Parameters:
@@ -94,7 +94,7 @@ class Dialogue(Component):
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
             show_submit_button: If True, includes a submit button to submit the dialogue.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
-            ui_mode: Determines the user interface mode of the component. Can be "dialogue-only" (displays dialogue lines), "text-only" (displays a single text input), or "both" (displays both dialogue lines and a text input). Defaults to "both".
+            ui_mode: Determines the user interface mode of the component. Can be "dialogue" (displays dialogue lines), "text" (displays a single text input), or "both" (displays both dialogue lines and a text input). Defaults to "both".
         """
         super().__init__(
             value=value,

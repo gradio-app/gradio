@@ -22,8 +22,8 @@
 	export let show_copy_button = false;
 	export let show_submit_button = true;
 	export let color_map: Record<string, string> | null = null;
-	export let ui_mode: "dialogue-only" | "text-only" | "both" = "both";
-	let checked = ui_mode === "text-only";
+	export let ui_mode: "dialogue" | "text" | "both" = "both";
+	let checked = ui_mode === "text";
 
 	export let server: {
 		format: (body: DialogueLine[]) => Promise<string>;
@@ -503,7 +503,7 @@
 			/>
 		</div>
 	{/if}
-	{#if !checked && ui_mode !== "text-only"}
+	{#if !checked && ui_mode !== "text"}
 		<div
 			class="dialogue-container"
 			bind:this={dialogue_container_element}
@@ -631,7 +631,7 @@
 				</div>
 			{/each}
 		</div>
-	{:else if checked && ui_mode !== "dialogue-only"}
+	{:else if checked && ui_mode !== "dialogue"}
 		<div class="textarea-container" class:loading={is_formatting}>
 			{#if is_formatting}
 				<div class="loading-overlay" transition:fade={{ duration: 200 }}>
