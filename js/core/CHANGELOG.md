@@ -2,6 +2,19 @@
 
 ## 0.26.0
 
+### Dependency updates
+
+- @gradio/code@0.14.15
+- @gradio/upload@0.16.15
+- @gradio/video@0.14.25
+- @gradio/client@1.17.1
+- @gradio/button@0.5.11
+- @gradio/image@0.22.17
+- @gradio/gallery@0.15.31
+- @gradio/file@0.12.28
+
+## 0.26.0
+
 ### Features
 
 - [#11691](https://github.com/gradio-app/gradio/pull/11691) [`2605a99`](https://github.com/gradio-app/gradio/commit/2605a99bf29bebbbb0a97cc8e0015b5bf8d8e79b) - Add .failure() event listener for error handling.  Thanks @elanehan!
