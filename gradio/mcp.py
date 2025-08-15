@@ -1,6 +1,7 @@
 import base64
 import contextlib
 import copy
+import inspect
 import os
 import re
 import tempfile
@@ -353,6 +354,204 @@ class GradioMCPServer:
                     )
                 )
             return tools
+
+        @server.list_resources()
+        async def list_resources() -> list[types.Resource]:
+            """
+            List all available resources.
+            """
+            resources = []
+            for endpoint_name in self.tool_to_endpoint.values():
+                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+                if (
+                    block_fn
+                    and block_fn.fn
+                    and hasattr(block_fn.fn, "_mcp_type")
+                    and block_fn.fn._mcp_type == "resource"
+                ):
+                    uri_template = block_fn.fn._mcp_uri_template
+                    parameters = re.findall(r"\{([^}]+)\}", uri_template)
+                    if not parameters:
+                        resources.append(
+                            types.Resource(
+                                uri=uri_template,
+                                name=block_fn.fn.__name__,
+                                description=block_fn.fn._mcp_description
+                                or block_fn.fn.__doc__
+                                or "No description",
+                                mimeType=block_fn.fn._mcp_mime_type,
+                            )
+                        )
+            return resources
+
+        @server.list_resource_templates()
+        async def list_resource_templates() -> list[types.ResourceTemplate]:
+            """
+            List all available resource templates.
+            """
+            templates = []
+            for endpoint_name in self.tool_to_endpoint.values():
+                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+                if (
+                    block_fn
+                    and block_fn.fn
+                    and hasattr(block_fn.fn, "_mcp_type")
+                    and block_fn.fn._mcp_type == "resource"
+                ):
+                    uri_template = block_fn.fn._mcp_uri_template
+                    parameters = re.findall(r"\{([^}]+)\}", uri_template)
+                    if parameters:
+                        templates.append(
+                            types.ResourceTemplate(
+                                uriTemplate=uri_template,
+                                name=block_fn.fn.__name__,
+                                description=block_fn.fn._mcp_description
+                                or block_fn.fn.__doc__
+                                or "No description",
+                                mimeType=block_fn.fn._mcp_mime_type,
+                            )
+                        )
+            return templates
+
+        @server.read_resource()
+        async def read_resource(uri: str) -> types.ReadResourceResult:
+            """
+            Read a specific resource by URI.
+            """
+            for endpoint_name in self.tool_to_endpoint.values():
+                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+                if (
+                    block_fn
+                    and block_fn.fn
+                    and hasattr(block_fn.fn, "_mcp_type")
+                    and block_fn.fn._mcp_type == "resource"
+                ):
+                    uri_template = block_fn.fn._mcp_uri_template
+                    parameters = re.findall(r"\{([^}]+)\}", uri_template)
+
+                    if parameters:
+                        pattern = re.escape(uri_template)
+                        for param in parameters:
+                            pattern = pattern.replace(
+                                f"\\{{{param}\\}}", f"(?P<{param}>[^/]+)"
+                            )
+                        match = re.match(f"^{pattern}$", uri)
+                        if match:
+                            kwargs = match.groupdict()
+                            result = await run_sync(block_fn.fn, **kwargs)
+                            mime_type = block_fn.fn._mcp_mime_type
+                            if isinstance(result, bytes):
+                                return types.BlobResourceContents(
+                                    uri=uri,
+                                    mimeType=mime_type,
+                                    blob=base64.b64encode(result).decode("utf-8"),
+                                )
+                            else:
+                                return types.TextResourceContents(
+                                    uri=uri, mimeType=mime_type, text=str(result)
+                                )
+                    elif uri_template == uri:
+                        result = await run_sync(block_fn.fn)
+                        mime_type = block_fn.fn._mcp_mime_type
+                        if isinstance(result, bytes):
+                            return types.BlobResourceContents(
+                                uri=uri,
+                                mimeType=mime_type,
+                                blob=base64.b64encode(result).decode("utf-8"),
+                            )
+                        else:
+                            return types.TextResourceContents(
+                                uri=uri, mimeType=mime_type, text=str(result)
+                            )
+
+            raise ValueError(f"Resource not found: {uri}")
+
+        @server.list_prompts()
+        async def list_prompts() -> list[types.Prompt]:
+            """
+            List all available prompts.
+            """
+            prompts = []
+            for endpoint_name in self.tool_to_endpoint.values():
+                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+                if (
+                    block_fn
+                    and block_fn.fn
+                    and hasattr(block_fn.fn, "_mcp_type")
+                    and block_fn.fn._mcp_type == "prompt"
+                ):
+                    sig = inspect.signature(block_fn.fn)
+                    arguments = []
+                    for param_name, param in sig.parameters.items():
+                        if param_name not in ["self", "cls"]:
+                            arguments.append(
+                                types.PromptArgument(
+                                    name=param_name,
+                                    description=f"Parameter {param_name}",
+                                    required=param.default == inspect.Parameter.empty,
+                                )
+                            )
+
+                    prompts.append(
+                        types.Prompt(
+                            name=block_fn.fn._mcp_name,
+                            description=block_fn.fn._mcp_description
+                            or block_fn.fn.__doc__
+                            or "No description",
+                            arguments=arguments,
+                        )
+                    )
+            return prompts
+
+        @server.get_prompt()
+        async def get_prompt(
+            name: str, arguments: dict[str, Any] | None = None
+        ) -> types.GetPromptResult:
+            """
+            Get a specific prompt with filled-in arguments.
+            """
+            prompt_fn = None
+            for endpoint_name in self.tool_to_endpoint.values():
+                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+                if (
+                    block_fn
+                    and block_fn.fn
+                    and hasattr(block_fn.fn, "_mcp_type")
+                    and block_fn.fn._mcp_type == "prompt"
+                    and block_fn.fn._mcp_name == name
+                ):
+                    prompt_fn = block_fn.fn
+                    break
+
+            if not prompt_fn:
+                raise ValueError(f"Prompt not found: {name}")
+
+            arguments = arguments or {}
+
+            sig = inspect.signature(prompt_fn)
+            kwargs = {}
+            for param_name, param in sig.parameters.items():
+                if param_name in ["self", "cls"]:
+                    continue
+                if param_name in arguments:
+                    kwargs[param_name] = arguments[param_name]
+                elif param.default != inspect.Parameter.empty:
+                    kwargs[param_name] = param.default
+                else:
+                    raise ValueError(
+                        f"Required argument '{param_name}' not provided for prompt '{name}'"
+                    )
+
+            result = await run_sync(prompt_fn, **kwargs)
+
+            return types.GetPromptResult(
+                messages=[
+                    types.PromptMessage(
+                        role="user",
+                        content=types.TextContent(type="text", text=str(result)),
+                    )
+                ]
+            )
 
         return server
 
@@ -815,3 +1014,47 @@ class GradioMCPServer:
                 return_value = [types.TextContent(type="text", text=str(output))]
             return_values.extend(return_value)
         return return_values
+
+
+######################################################
+### MCP decorators that add metadata to functions.
+######################################################
+
+
+def resource(
+    uri_template: str, description: str | None = None, mime_type: str | None = None
+):
+    """Decorator to mark a function as an MCP resource."""
+
+    def decorator(fn):
+        fn._mcp_type = "resource"
+        fn._mcp_uri_template = uri_template
+        fn._mcp_description = description
+        fn._mcp_mime_type = mime_type or "text/plain"
+        return fn
+
+    return decorator
+
+
+def prompt(name: str | None = None, description: str | None = None):
+    """Decorator to mark a function as an MCP prompt."""
+
+    def decorator(fn):
+        fn._mcp_type = "prompt"
+        fn._mcp_name = name or fn.__name__
+        fn._mcp_description = description
+        return fn
+
+    return decorator
+
+
+def tool(name: str | None = None, description: str | None = None):
+    """Decorator to mark a function as an MCP tool (optional, since functions are registered as tools by default)."""
+
+    def decorator(fn):
+        fn._mcp_type = "tool"
+        fn._mcp_name = name
+        fn._mcp_description = description
+        return fn
+
+    return decorator
