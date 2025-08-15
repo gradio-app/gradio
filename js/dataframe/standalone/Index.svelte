@@ -3,7 +3,7 @@
 	import "./dataframe.css";
 	import { onMount, onDestroy } from "svelte";
 
-	async function requestFullscreenFor(element: Element): Promise<void> {
+	async function request_fullscreen(element: Element): Promise<void> {
 		const anyEl = element as any;
 		if ((element as any).requestFullscreen) {
 			await (element as any).requestFullscreen();
@@ -14,7 +14,7 @@
 		}
 	}
 
-	async function exitFullscreenIfActive(): Promise<void> {
+	async function exit_fullscreen_if_active(): Promise<void> {
 		const anyDoc = document as any;
 		if (document.fullscreenElement && document.exitFullscreen) {
 			await document.exitFullscreen();
@@ -25,7 +25,7 @@
 		}
 	}
 
-	function isFullscreenElement(element: Element | null): boolean {
+	function is_fullscreen_element(element: Element | null): boolean {
 		if (!element) return false;
 		const anyDoc = document as any;
 		return (
@@ -96,7 +96,6 @@
 		"dynamic"
 	];
 	export let root = "";
-	// Standalone default: resolve known dataframe.* tokens to English, else echo key
 	export let i18n: (key: string) => string = (key: string) =>
 		default_i18n[key] ?? key;
 	export let upload = null;
@@ -112,16 +111,16 @@
 
 	async function enter_fullscreen(): Promise<void> {
 		if (!container) return;
-		await requestFullscreenFor(container);
+		await request_fullscreen(container);
 	}
 
 	async function exit_fullscreen(): Promise<void> {
-		await exitFullscreenIfActive();
+		await exit_fullscreen_if_active();
 		fullscreen = false;
 	}
 
 	function handle_fullscreen_change(): void {
-		fullscreen = isFullscreenElement(container);
+		fullscreen = is_fullscreen_element(container);
 	}
 
 	onMount(() => {
