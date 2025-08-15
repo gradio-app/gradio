@@ -1,5 +1,16 @@
 # gradio
 
+## 5.43.0
+
+### Features
+
+- [#11696](https://github.com/gradio-app/gradio/pull/11696) [`985f0d7`](https://github.com/gradio-app/gradio/commit/985f0d7804683b8aec19fc385953190dd8a3a35b) - Add ui_mode and type to gr.Dialogue.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#11709](https://github.com/gradio-app/gradio/pull/11709) [`48f1dcf`](https://github.com/gradio-app/gradio/commit/48f1dcf58cd6437daa03a8cf1c9942aae2cec421) - Fix output paths for the @gradio/client browser build.  Thanks @pngwn!
+- [#11707](https://github.com/gradio-app/gradio/pull/11707) [`296a0d0`](https://github.com/gradio-app/gradio/commit/296a0d09acd98f82d924d07ea6b96861d0eadc32) - Fix three server closure bugs.  Thanks @l3331l4!
+
 ## 5.42.0
 
 ### Features

@@ -1,5 +1,11 @@
 # @gradio/dialogue
 
+## 0.2.0
+
+### Features
+
+- [#11696](https://github.com/gradio-app/gradio/pull/11696) [`985f0d7`](https://github.com/gradio-app/gradio/commit/985f0d7804683b8aec19fc385953190dd8a3a35b) - Add ui_mode and type to gr.Dialogue.  Thanks @freddyaboulton!
+
 ## 0.1.2
 
 ### Dependency updates
