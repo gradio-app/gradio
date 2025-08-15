@@ -6,16 +6,19 @@
 	"main": "dist/index.js",
 	"author": "",
 	"license": "ISC",
-	"exports": {
-		".": {
-			"gradio": "./src/index.ts",
-			"browser": "./dist/browser.es.js",
-			"import": "./dist/index.js",
-			"default": "./dist/index.js"
-		},
-		"./package.json": "./package.json",
-		"./browser.js": "./dist/browser.es.js"
-	},
+  "exports": {
+    ".": {
+	  "types": "./dist/index.d.ts",
+      "gradio": "./src/index.ts",
+      "browser": "./dist/browser.es.js",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json",
+    "./browser.js": {
+		"types":"./dist/index.d.ts",
+		"default": "./dist/browser.es.js"
+  },
 	"dependencies": {
 		"@types/eventsource": "^1.1.15",
 		"bufferutil": "^4.0.7",
