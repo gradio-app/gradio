@@ -100,6 +100,7 @@
 
 	div {
 		max-width: 100%;
+		white-space: pre-wrap; /* ← keeps \n line breaks when embedded */
 	}
 
 	.hide {
