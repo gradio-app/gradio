@@ -1,6 +1,6 @@
-<!-- Standalone stub for FullscreenButton -->
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
+	import { Maximize, Minimize } from "@gradio/icons";
 
 	export let value = false;
 	export let visible = true;
@@ -15,15 +15,9 @@
 		aria-label={value ? "Exit fullscreen" : "Enter fullscreen"}
 	>
 		{#if value}
-			<!-- Minimize icon -->
-			<svg viewBox="0 0 16 16" width="16" height="16">
-				<path d="M1 1h6v6H1V1zm8 8h6v6H9V9z" fill="currentColor" />
-			</svg>
+			<Minimize />
 		{:else}
-			<!-- Maximize icon -->
-			<svg viewBox="0 0 16 16" width="16" height="16">
-				<path d="M2 2v12h12V2H2zm10 10H4V4h8v8z" fill="currentColor" />
-			</svg>
+			<Maximize />
 		{/if}
 	</button>
 {/if}
