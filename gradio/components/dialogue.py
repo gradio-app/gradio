@@ -44,7 +44,7 @@ class Dialogue(Component):
         formatter: Callable | None = None,
         unformatter: Callable | None = None,
         tags: list[str] | None = None,
-        separator: str = " ",
+        separator: str = "\n",
         color_map: dict[str, str] | None = None,
         label: str | None = "Dialogue",
         info: str
@@ -75,7 +75,7 @@ class Dialogue(Component):
             formatter: A function that formats the dialogue line dictionary, e.g. {"speaker": "Speaker 1", "text": "Hello, how are you?"} into a string, e.g. "Speaker 1: Hello, how are you?". This function is run on user input and the resulting string is passed into the prediction function.
             unformatter: A function that parses a formatted dialogue string back into a dialogue line dictionary. Should take a single string line and return a dictionary with 'speaker' and 'text' keys. If not provided, the default unformatter will attempt to parse the default formatter pattern.
             tags: The different tags allowed in the dialogue. Tags are displayed in an autocomplete menu below the input textbox when the user starts typing `:`. Use the exact tag name expected by the AI model or inference function.
-            separator: The separator between the different dialogue lines used to join the formatted dialogue lines into a single string. For example, a newline character or empty string.
+            separator: The separator between the different dialogue lines used to join the formatted dialogue lines into a single string. It should be unambiguous. For example, a newline character or tab character.
             color_map: A dictionary mapping speaker names to colors. The colors may be specified as hex codes or by their names. For example: {"Speaker 1": "red", "Speaker 2": "#FFEE22"}. If not provided, default colors will be assigned to speakers. This is only used if `interactive` is False.
             max_lines: maximum number of lines allowed in the dialogue.
             placeholder: placeholder hint to provide behind textarea.
@@ -111,6 +111,8 @@ class Dialogue(Component):
             render=render,
             key=key,
         )
+        if separator == " ":
+            raise ValueError("Separator cannot be an empty string.")
         self.ui_mode = ui_mode
         self.type = type
         self.placeholder = placeholder
@@ -135,7 +137,7 @@ class Dialogue(Component):
         Returns:
             Returns the dialogue as a string or list of dictionaries.
         """
-        if self.type == "dialogue":
+        if self.type == "list":
             return payload.model_dump()
         return self._format(payload)
 
@@ -160,7 +162,7 @@ class Dialogue(Component):
         return f"[{speaker}] {text}"
 
     @staticmethod
-    def default_unformatter(line: str) -> dict[str, str]:
+    def default_unformatter(line: str, default_speaker: str) -> dict[str, str]:
         """Parse a formatted dialogue line back into speaker and text components."""
         line = line.strip()
         if not line:
@@ -173,7 +175,7 @@ class Dialogue(Component):
             text = line[bracket_end + 1 :].strip()
             return {"speaker": speaker, "text": text}
         else:
-            return {"speaker": "Unknown", "text": line}
+            return {"speaker": default_speaker, "text": line}
 
     @server
     async def format(self, value: list[dict] | str):
@@ -195,12 +197,16 @@ class Dialogue(Component):
         if not unformatter:
             unformatter = self.default_unformatter
 
+        default_speaker = "Unknown"
+        if isinstance(self.speakers, list) and len(self.speakers):
+            default_speaker = self.speakers[0]
+
         for line in lines:
             line = line.strip()
             if not line:
                 continue
 
-            parsed_line = unformatter(line)
+            parsed_line = unformatter(line, default_speaker)
             if parsed_line["speaker"] or parsed_line["text"]:  # Skip empty lines
                 dialogue_lines.append(parsed_line)
 
