@@ -82,6 +82,7 @@ from gradio.data_classes import (
     VibeEditBody,
 )
 from gradio.exceptions import Error, InvalidPathError
+from gradio.helpers import special_args
 from gradio.i18n import I18n
 from gradio.node_server import (
     start_node_server,
@@ -1580,10 +1581,16 @@ class App(FastAPI):
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="Function not found.",
                 )
+            processed_input, _, _ = special_args(
+                fn,
+                [body.data],
+                request,  # type: ignore
+                None,
+            )
             if inspect.iscoroutinefunction(fn):
-                return await fn(body.data)
+                return await fn(*processed_input)
             else:
-                return fn(body.data)
+                return fn(*processed_input)
 
         @router.get(
             "/queue/status",
