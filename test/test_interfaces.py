@@ -41,7 +41,6 @@ class TestInterface:
     def test_close_all(self):
         interface = Interface(lambda input: None, "textbox", "label")
         interface.close = MagicMock()
-        Blocks.running_instances.add(interface)
         close_all()
         interface.close.assert_called()
 
