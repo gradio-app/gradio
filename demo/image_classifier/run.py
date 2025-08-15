@@ -1,6 +1,6 @@
 import os
 import requests
-import tensorflow as tf
+import tensorflow as tf  # type: ignore
 
 import gradio as gr
 

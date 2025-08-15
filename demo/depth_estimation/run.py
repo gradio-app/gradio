@@ -3,7 +3,7 @@ from transformers import DPTFeatureExtractor, DPTForDepthEstimation
 import torch
 import numpy as np
 from PIL import Image
-import open3d as o3d
+import open3d as o3d  # type: ignore
 from pathlib import Path
 
 feature_extractor = DPTFeatureExtractor.from_pretrained("Intel/dpt-large")
