@@ -1,6 +1,6 @@
 ---
-"@gradio/dialogue": patch
-"gradio": patch
+"@gradio/dialogue": minor
+"gradio": minor
 ---
 
-fix:Some more dialogue tweaks
+feat:Add ui_mode and type to gr.Dialogue
