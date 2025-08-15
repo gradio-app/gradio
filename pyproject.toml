@@ -102,7 +102,6 @@ include = [
 ]
 
 [tool.ty]
-# Additional search paths for modules
 environment.extra-paths = ["gradio/stubs"]
 
 [tool.ruff]
