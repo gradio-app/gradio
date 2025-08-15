@@ -42,6 +42,9 @@ class TestInterface:
         interface = Interface(lambda input: None, "textbox", "label")
         interface.close = MagicMock()
         close_all()
+        interface.close.assert_not_called()
+        interface.launch(prevent_thread_lock=True)
+        close_all()
         interface.close.assert_called()
 
     def test_no_input_or_output(self):
