@@ -5,7 +5,7 @@ import string
 import os
 import pandas as pd
 
-from constants import (
+from constants import (  # type: ignore
     file_dir,
     img_dir,
     highlighted_text,

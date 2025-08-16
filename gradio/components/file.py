@@ -193,7 +193,7 @@ class File(Component):
             return downloaded_files
         if client_utils.is_http_url_like(value):
             downloaded_file = processing_utils.save_url_to_cache(
-                value, self.GRADIO_CACHE
+                str(value), self.GRADIO_CACHE
             )
             return downloaded_file
         else:

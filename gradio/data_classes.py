@@ -168,9 +168,9 @@ class GradioBaseModel(ABC):
 
         # TODO: Making sure path is unique should be done in caller
         def unique_copy(obj: dict):
-            data = FileData(**obj)
+            data = FileData(**obj)  # type: ignore
             return data._copy_to_dir(
-                str(pathlib.Path(dir / secrets.token_hex(10)))
+                str(pathlib.Path(dir) / secrets.token_hex(10))
             ).model_dump()
 
         return self.__class__.from_json(
@@ -325,7 +325,7 @@ class FileData(GradioModel):
         """
         if isinstance(obj, dict):
             try:
-                return not FileData(**obj).is_none
+                return not FileData(**obj).is_none  # type: ignore
             except (TypeError, ValidationError):
                 return False
         return False

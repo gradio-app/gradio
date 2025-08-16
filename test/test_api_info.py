@@ -126,7 +126,7 @@ class DurationModel(GradioModel):
 
 
 class IPv4Model(GradioModel):
-    ipv4_address: IPvAnyAddress
+    ipv4_address: IPvAnyAddress  # type: ignore
 
     answer: ClassVar = "dict(ipv4_address: str)"
 

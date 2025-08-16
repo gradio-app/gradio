@@ -493,7 +493,9 @@ class Video(StreamingOutput, Component):
 
         command = ff.cmd.split(" ")
         process = await asyncio.create_subprocess_exec(
-            *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+            *command,
+            stdout=asyncio.subprocess.PIPE,  # type: ignore
+            stderr=asyncio.subprocess.PIPE,  # type: ignore
         )
 
         _, stderr = await process.communicate()
@@ -545,7 +547,9 @@ class Video(StreamingOutput, Component):
             output_file.name,
         ]
         process = await asyncio.create_subprocess_exec(
-            *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+            *command,
+            stdout=asyncio.subprocess.PIPE,  # type: ignore
+            stderr=asyncio.subprocess.PIPE,  # type: ignore
         )
 
         _, stderr = await process.communicate()

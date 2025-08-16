@@ -780,7 +780,7 @@ class Progress(Iterable):
                 index = None
             callback(
                 self.iterables
-                + [TrackedIterable(None, index, total, desc, unit, _tqdm, progress)]
+                + [TrackedIterable(None, index, total, desc, unit, _tqdm, progress)]  # type: ignore
             )
         else:
             return progress
@@ -849,8 +849,8 @@ class Progress(Iterable):
 
     @staticmethod
     def _progress_callback():
-        blocks = LocalContext.blocks.get()
-        event_id = LocalContext.event_id.get()
+        blocks = LocalContext.blocks.get(None)
+        event_id = LocalContext.event_id.get(None)
         if not (blocks and event_id):
             return None
         return partial(blocks._queue.set_progress, event_id)
@@ -865,7 +865,7 @@ def patch_tqdm() -> None:
     def init_tqdm(
         self, iterable=None, desc=None, total=None, unit="steps", *args, **kwargs
     ):
-        self._progress = LocalContext.progress.get()
+        self._progress = LocalContext.progress.get(None)
         if self._progress is not None:
             callback = self._progress._progress_callback()
             if callback is not None:
@@ -903,22 +903,22 @@ def patch_tqdm() -> None:
 
     # Backup
     if not hasattr(_tqdm.tqdm, "__init__orig__"):
-        _tqdm.tqdm.__init__orig__ = _tqdm.tqdm.__init__
+        _tqdm.tqdm.__init__orig__ = _tqdm.tqdm.__init__  # type: ignore
     if not hasattr(_tqdm.tqdm, "__update__orig__"):
-        _tqdm.tqdm.__update__orig__ = _tqdm.tqdm.update
+        _tqdm.tqdm.__update__orig__ = _tqdm.tqdm.update  # type: ignore
     if not hasattr(_tqdm.tqdm, "__close__orig__"):
-        _tqdm.tqdm.__close__orig__ = _tqdm.tqdm.close
+        _tqdm.tqdm.__close__orig__ = _tqdm.tqdm.close  # type: ignore
     if not hasattr(_tqdm.tqdm, "__exit__orig__"):
-        _tqdm.tqdm.__exit__orig__ = _tqdm.tqdm.__exit__
+        _tqdm.tqdm.__exit__orig__ = _tqdm.tqdm.__exit__  # type: ignore
     if not hasattr(_tqdm.tqdm, "__iter__orig__"):
-        _tqdm.tqdm.__iter__orig__ = _tqdm.tqdm.__iter__
+        _tqdm.tqdm.__iter__orig__ = _tqdm.tqdm.__iter__  # type: ignore
 
     # Patch
-    _tqdm.tqdm.__init__ = init_tqdm
-    _tqdm.tqdm.update = update_tqdm
-    _tqdm.tqdm.close = close_tqdm
-    _tqdm.tqdm.__exit__ = exit_tqdm
-    _tqdm.tqdm.__iter__ = iter_tqdm
+    _tqdm.tqdm.__init__ = init_tqdm  # type: ignore
+    _tqdm.tqdm.update = update_tqdm  # type: ignore
+    _tqdm.tqdm.close = close_tqdm  # type: ignore
+    _tqdm.tqdm.__exit__ = exit_tqdm  # type: ignore
+    _tqdm.tqdm.__iter__ = iter_tqdm  # type: ignore
 
     if hasattr(_tqdm, "auto") and hasattr(_tqdm.auto, "tqdm"):
         _tqdm.auto.tqdm = _tqdm.tqdm
@@ -1119,8 +1119,8 @@ def log_message(
 ):
     from gradio.context import LocalContext
 
-    blocks = LocalContext.blocks.get()
-    event_id = LocalContext.event_id.get()
+    blocks = LocalContext.blocks.get(None)
+    event_id = LocalContext.event_id.get(None)
     if blocks is None or event_id is None:
         # Function called outside of Gradio if blocks is None
         # Or from /api/predict if event_id is None
