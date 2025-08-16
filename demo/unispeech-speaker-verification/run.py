@@ -1,3 +1,4 @@
+# type: ignore
 import gradio as gr
 import torch
 from torchaudio.sox_effects import apply_effects_file  # type: ignore

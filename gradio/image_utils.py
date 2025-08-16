@@ -119,6 +119,7 @@ def decode_base64_to_image(encoding: str) -> PIL.Image.Image:
             "Failed to transpose image %s based on EXIF data.",
             img,
         )
+    assert img is not None  # noqa: S101
     return img
 
 
