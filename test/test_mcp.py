@@ -167,6 +167,7 @@ def test_tool_prefix_character_replacement(test_mcp_app):
             os.environ.pop("SPACE_ID", None)
 
 
+@pytest.mark.serial
 def test_mcp_sse_transport(test_mcp_app):
     _, url, _ = test_mcp_app.launch(mcp_server=True, prevent_thread_lock=True)
 
