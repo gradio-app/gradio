@@ -166,7 +166,7 @@ def render(
     def wrapper_function(fn):
         Renderable(
             fn,
-            inputs,
+            inputs,  # type: ignore
             _triggers,
             concurrency_limit,
             concurrency_id,

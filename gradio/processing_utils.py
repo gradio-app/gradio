@@ -512,7 +512,7 @@ def move_files_to_cache(
             utils.set_static_paths([payload.path])
 
     def _move_to_cache(d: dict):
-        payload = FileData(**d)
+        payload = FileData(**d)  # type: ignore
         # If the gradio app developer is returning a URL from
         # postprocess, it means the component can display a URL
         # without it being served from the gradio server
@@ -632,7 +632,7 @@ async def async_move_files_to_cache(
             utils.set_static_paths([payload.path])
 
     async def _move_to_cache(d: dict):
-        payload = FileData(**d)
+        payload = FileData(**d)  # type: ignore
         # If the gradio app developer is returning a URL from
         # postprocess, it means the component can display a URL
         # without it being served from the gradio server
