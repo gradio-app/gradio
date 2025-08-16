@@ -139,7 +139,7 @@ def to_binary(x: str | dict) -> bytes:
             base64str = client_utils.encode_url_or_file_to_base64(x["path"])
     else:
         base64str = x
-    return base64.b64decode(extract_base64_data(base64str))
+    return base64.b64decode(extract_base64_data(base64str))  # type: ignore
 
 
 def extract_base64_data(x: str) -> str:

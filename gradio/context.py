@@ -20,20 +20,20 @@ class Context:
 
 
 class LocalContext:
-    blocks: ContextVar[Blocks | None] = ContextVar("blocks", default=None)
-    blocks_config: ContextVar[BlocksConfig | None] = ContextVar(
+    blocks: ContextVar[Blocks | None] = ContextVar[Blocks | None]("blocks", default=None)
+    blocks_config: ContextVar[BlocksConfig | None] = ContextVar[BlocksConfig | None](
         "blocks_config", default=None
     )
-    renderable: ContextVar[Renderable | None] = ContextVar("renderable", default=None)
-    render_block: ContextVar[BlockContext | None] = ContextVar(
+    renderable: ContextVar[Renderable | None] = ContextVar[Renderable | None]("renderable", default=None)
+    render_block: ContextVar[BlockContext | None] = ContextVar[BlockContext | None](
         "render_block", default=None
     )
     in_event_listener: ContextVar[bool] = ContextVar("in_event_listener", default=False)
-    event_id: ContextVar[str | None] = ContextVar("event_id", default=None)
-    request: ContextVar[Request | None] = ContextVar("request", default=None)
-    progress: ContextVar[Progress | None] = ContextVar("progress", default=None)
+    event_id: ContextVar[str | None] = ContextVar[str | None]("event_id", default=None)
+    request: ContextVar[Request | None] = ContextVar[Request | None]("request", default=None)
+    progress: ContextVar[Progress | None] = ContextVar[Progress | None]("progress", default=None)
     key_to_id_map: ContextVar[dict[int | str | tuple[str | int, ...], int] | None] = (
-        ContextVar("key_to_id_map", default=None)
+        ContextVar[dict[int | str | tuple[str | int, ...], int] | None]("key_to_id_map", default=None)
     )
 
 

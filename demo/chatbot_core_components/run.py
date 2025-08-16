@@ -1,7 +1,7 @@
 # type: ignore
 import gradio as gr
 import os
-import plotly.express as  # type: ignore px
+import plotly.express as px  # type: ignore
 import random
 
 # Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, video, & model3d). Plus shows support for streaming text.

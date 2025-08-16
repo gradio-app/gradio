@@ -780,7 +780,7 @@ class Progress(Iterable):
                 index = None
             callback(
                 self.iterables
-                + [TrackedIterable(None, index, total, desc, unit, _tqdm, progress)]
+                + [TrackedIterable(None, index, total, desc, unit, _tqdm, progress)]  # type: ignore
             )
         else:
             return progress
@@ -903,22 +903,22 @@ def patch_tqdm() -> None:
 
     # Backup
     if not hasattr(_tqdm.tqdm, "__init__orig__"):
-        _tqdm.tqdm.__init__orig__ = _tqdm.tqdm.__init__
+        _tqdm.tqdm.__init__orig__ = _tqdm.tqdm.__init__  # type: ignore
     if not hasattr(_tqdm.tqdm, "__update__orig__"):
-        _tqdm.tqdm.__update__orig__ = _tqdm.tqdm.update
+        _tqdm.tqdm.__update__orig__ = _tqdm.tqdm.update  # type: ignore
     if not hasattr(_tqdm.tqdm, "__close__orig__"):
-        _tqdm.tqdm.__close__orig__ = _tqdm.tqdm.close
+        _tqdm.tqdm.__close__orig__ = _tqdm.tqdm.close  # type: ignore
     if not hasattr(_tqdm.tqdm, "__exit__orig__"):
-        _tqdm.tqdm.__exit__orig__ = _tqdm.tqdm.__exit__
+        _tqdm.tqdm.__exit__orig__ = _tqdm.tqdm.__exit__  # type: ignore
     if not hasattr(_tqdm.tqdm, "__iter__orig__"):
-        _tqdm.tqdm.__iter__orig__ = _tqdm.tqdm.__iter__
+        _tqdm.tqdm.__iter__orig__ = _tqdm.tqdm.__iter__  # type: ignore
 
     # Patch
-    _tqdm.tqdm.__init__ = init_tqdm
-    _tqdm.tqdm.update = update_tqdm
-    _tqdm.tqdm.close = close_tqdm
-    _tqdm.tqdm.__exit__ = exit_tqdm
-    _tqdm.tqdm.__iter__ = iter_tqdm
+    _tqdm.tqdm.__init__ = init_tqdm  # type: ignore
+    _tqdm.tqdm.update = update_tqdm  # type: ignore
+    _tqdm.tqdm.close = close_tqdm  # type: ignore
+    _tqdm.tqdm.__exit__ = exit_tqdm  # type: ignore
+    _tqdm.tqdm.__iter__ = iter_tqdm  # type: ignore
 
     if hasattr(_tqdm, "auto") and hasattr(_tqdm.auto, "tqdm"):
         _tqdm.auto.tqdm = _tqdm.tqdm
