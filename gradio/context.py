@@ -28,7 +28,9 @@ class LocalContext:
     event_id: ContextVar[str | None] = ContextVar("event_id")
     request: ContextVar[Request | None] = ContextVar("request")
     progress: ContextVar[Progress | None] = ContextVar("progress")
-    key_to_id_map: ContextVar[dict[int | str | tuple[str | int, ...], int] | None] = ContextVar("key_to_id_map")
+    key_to_id_map: ContextVar[dict[int | str | tuple[str | int, ...], int] | None] = (
+        ContextVar("key_to_id_map")
+    )
 
 
 def get_render_context() -> BlockContext | None:

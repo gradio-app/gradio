@@ -27,7 +27,9 @@ app_map = {}
 # Context variables are natively supported in asyncio and
 # can manage data in each task (https://docs.python.org/3/library/contextvars.html#asyncio-support),
 # so we can use them for this purpose.
-_app_id_context_var: ContextVar[str | None] = ContextVar[str | None]("app_id", default=None)
+_app_id_context_var: ContextVar[str | None] = ContextVar[str | None](
+    "app_id", default=None
+)
 
 
 @contextmanager

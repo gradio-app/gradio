@@ -422,7 +422,9 @@ class Block:
         if isinstance(url_or_file_path, Path):
             url_or_file_path = str(url_or_file_path)
         if client_utils.is_http_url_like(url_or_file_path):
-            return FileData(path=str(url_or_file_path), url=str(url_or_file_path)).model_dump()
+            return FileData(
+                path=str(url_or_file_path), url=str(url_or_file_path)
+            ).model_dump()
         else:
             data = {"path": url_or_file_path, "meta": {"_type": "gradio.FileData"}}
             try:
@@ -893,7 +895,11 @@ class BlocksConfig:
                 else:
                     name = fn.__name__
                 api_name = "".join(
-                    [s for s in str(name) if s not in set(string.punctuation) - {"-", "_"}]
+                    [
+                        s
+                        for s in str(name)
+                        if s not in set(string.punctuation) - {"-", "_"}
+                    ]
                 )
             elif js is not None:
                 api_name = "js_fn"
@@ -956,7 +962,9 @@ class BlocksConfig:
             api_description=api_description,
             js=js,
             show_progress=show_progress,
-            show_progress_on=show_progress_on if isinstance(show_progress_on, (list, tuple)) or show_progress_on is None else [show_progress_on],
+            show_progress_on=show_progress_on
+            if isinstance(show_progress_on, (list, tuple)) or show_progress_on is None
+            else [show_progress_on],
             cancels=cancels,
             collects_event_data=collects_event_data,
             trigger_after=trigger_after,
@@ -1754,7 +1762,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 block_fn.renderable.fn if block_fn.renderable else block_fn.fn
             )
             processed_input, progress_index, _ = special_args(
-                fn_to_analyze, processed_input, request, event_data  # type: ignore
+                fn_to_analyze,
+                processed_input,
+                request,  # type: ignore
+                event_data,  # type: ignore
             )
             progress_tracker = (
                 processed_input[progress_index] if progress_index is not None else None
@@ -3071,7 +3082,9 @@ Received inputs:
             else:
                 raise ValueError("Please run `launch()` first.")
         if wandb is not None:
-            assert hasattr(wandb, 'log') and hasattr(wandb, 'Html'), "wandb module missing required attributes"
+            assert hasattr(wandb, "log") and hasattr(wandb, "Html"), (  # noqa: S101
+                "wandb module missing required attributes"
+            )
             analytics_integration = "WandB"
             if self.share_url is not None:
                 wandb.log(  # type: ignore
@@ -3092,7 +3105,9 @@ Received inputs:
                     "The WandB integration requires you to `launch(share=True)` first."
                 )
         if mlflow is not None:
-            assert hasattr(mlflow, 'log_param'), "mlflow module missing required attributes"
+            assert hasattr(mlflow, "log_param"), (  # noqa: S101
+                "mlflow module missing required attributes"
+            )
             analytics_integration = "MLFlow"
             if self.share_url is not None:
                 mlflow.log_param("Gradio Interface Share Link", self.share_url)  # type: ignore

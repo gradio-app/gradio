@@ -158,10 +158,14 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
             y[1] for y in x.targets if y[0] in blocks.blocks
         ]
         inputs_telemetry = inputs_telemetry + [
-            blocks.blocks[int(y)].get_block_name() for y in x.inputs if y in blocks.blocks
+            blocks.blocks[int(y)].get_block_name()
+            for y in x.inputs
+            if y in blocks.blocks
         ]
         outputs_telemetry = outputs_telemetry + [
-            blocks.blocks[int(y)].get_block_name() for y in x.outputs if y in blocks.blocks
+            blocks.blocks[int(y)].get_block_name()
+            for y in x.outputs
+            if y in blocks.blocks
         ]
 
     def get_inputs_outputs(

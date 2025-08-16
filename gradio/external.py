@@ -99,7 +99,11 @@ def load(
 
     if not accept_token:
         return load_blocks_from_huggingface(
-            name=name, src=src, hf_token=token, provider=provider, **kwargs  # type: ignore
+            name=name,
+            src=src,  # type: ignore
+            hf_token=token,
+            provider=provider,
+            **kwargs,  # type: ignore
         )
     elif isinstance(accept_token, gr.LoginButton):
         with gr.Blocks(fill_height=True) as demo:
@@ -649,11 +653,11 @@ def from_spaces_interface(
 
     kwargs = dict(config, **kwargs)
     kwargs["_api_mode"] = True
-    
+
     fn = kwargs.pop("fn", None)
     inputs = kwargs.pop("inputs", None)
     outputs = kwargs.pop("outputs", None)
-    
+
     interface = gr.Interface(fn, inputs, outputs, **kwargs)
     return interface
 

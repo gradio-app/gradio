@@ -4,7 +4,7 @@ import base64
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Literal, cast
+from typing import Literal
 from urllib.parse import quote
 
 import httpx
