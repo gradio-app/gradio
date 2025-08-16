@@ -849,8 +849,8 @@ class Progress(Iterable):
 
     @staticmethod
     def _progress_callback():
-        blocks = LocalContext.blocks.get()
-        event_id = LocalContext.event_id.get()
+        blocks = LocalContext.blocks.get(None)
+        event_id = LocalContext.event_id.get(None)
         if not (blocks and event_id):
             return None
         return partial(blocks._queue.set_progress, event_id)
@@ -865,7 +865,7 @@ def patch_tqdm() -> None:
     def init_tqdm(
         self, iterable=None, desc=None, total=None, unit="steps", *args, **kwargs
     ):
-        self._progress = LocalContext.progress.get()
+        self._progress = LocalContext.progress.get(None)
         if self._progress is not None:
             callback = self._progress._progress_callback()
             if callback is not None:
@@ -1119,8 +1119,8 @@ def log_message(
 ):
     from gradio.context import LocalContext
 
-    blocks = LocalContext.blocks.get()
-    event_id = LocalContext.event_id.get()
+    blocks = LocalContext.blocks.get(None)
+    event_id = LocalContext.event_id.get(None)
     if blocks is None or event_id is None:
         # Function called outside of Gradio if blocks is None
         # Or from /api/predict if event_id is None

@@ -134,7 +134,7 @@ class Block:
         visible: bool = True,
         proxy_url: str | None = None,
     ):
-        key_to_id_map = LocalContext.key_to_id_map.get()
+        key_to_id_map = LocalContext.key_to_id_map.get(None)
         if key is not None and key_to_id_map and key in key_to_id_map:
             self.is_render_replacement = True
             self._id = key_to_id_map[key]
@@ -210,7 +210,7 @@ class Block:
         """
         root_context = get_blocks_context()
         render_context = get_render_context()
-        self.rendered_in = LocalContext.renderable.get()
+        self.rendered_in = LocalContext.renderable.get(None)
         if (
             root_context is not None
             and self._id in root_context.blocks
@@ -926,7 +926,7 @@ class BlocksConfig:
         if collects_event_data is None:
             collects_event_data = event_data_index is not None
 
-        rendered_in = LocalContext.renderable.get()
+        rendered_in = LocalContext.renderable.get(None)
 
         if js is True and inputs:
             raise ValueError(

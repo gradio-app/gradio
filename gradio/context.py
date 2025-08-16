@@ -34,21 +34,21 @@ class LocalContext:
 
 
 def get_render_context() -> BlockContext | None:
-    if LocalContext.renderable.get():
-        return LocalContext.render_block.get()
+    if LocalContext.renderable.get(None):
+        return LocalContext.render_block.get(None)
     else:
         return Context.block
 
 
 def set_render_context(block: BlockContext | None):
-    if LocalContext.renderable.get():
+    if LocalContext.renderable.get(None):
         LocalContext.render_block.set(block)
     else:
         Context.block = block
 
 
 def get_blocks_context() -> BlocksConfig | None:
-    if LocalContext.renderable.get():
-        return LocalContext.blocks_config.get()
+    if LocalContext.renderable.get(None):
+        return LocalContext.blocks_config.get(None)
     elif Context.root_block:
         return Context.root_block.default_config
