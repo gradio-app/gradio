@@ -1,7 +1,7 @@
 # type: ignore
 import spaces
 import gradio as gr
-import cv2
+import cv2  # type: ignore
 from PIL import Image
 import torch
 import time
