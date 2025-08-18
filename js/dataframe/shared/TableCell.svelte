@@ -116,6 +116,7 @@
 		active_cell_menu.row === index &&
 		active_cell_menu.col === j}
 	class:dragging={is_dragging}
+	role="gridcell"
 >
 	<div class="cell-wrap">
 		<EditableCell

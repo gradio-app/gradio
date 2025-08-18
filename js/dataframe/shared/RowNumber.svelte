@@ -4,7 +4,7 @@
 </script>
 
 {#if is_header}
-	<th tabindex="-1" class="row-number">
+	<th tabindex="-1" class="row-number" role="columnheader" aria-hidden="true">
 		<div class="cell-wrap">
 			<div class="header-content">
 				<div class="header-text"></div>
@@ -12,7 +12,14 @@
 		</div>
 	</th>
 {:else}
-	<td class="row-number" tabindex="-1" data-row={index} data-col="row-number">
+	<td
+		class="row-number"
+		tabindex="-1"
+		data-row={index}
+		data-col="row-number"
+		role="rowheader"
+		aria-hidden="true"
+	>
 		{index !== null ? index + 1 : ""}
 	</td>
 {/if}
