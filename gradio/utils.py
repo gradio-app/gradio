@@ -205,7 +205,7 @@ class SourceFileReloader(BaseReloader):
         self.alert_change("reload")
 
 
-def _remove_if_name_main_codeblock(file_path: str, encoding: str = "utf-8") -> str:
+def _remove_if_name_main_codeblock(file_path: str, encoding: str = "utf-8"):
     """Parse the file, remove the gr.no_reload code blocks, and write the file back to disk.
 
     Parameters:
