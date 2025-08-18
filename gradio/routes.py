@@ -374,7 +374,7 @@ class App(FastAPI):
                         yield
 
                 app_kwargs["lifespan"] = _lifespan
-            except ZeroDivisionError as e:
+            except Exception as e:
                 blocks.mcp_server = False
                 blocks.mcp_error = f"Error launching MCP server: {e}"
 
