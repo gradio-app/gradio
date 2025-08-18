@@ -4,15 +4,15 @@ import random
 import os
 
 import numpy as np
-import spaces
+import spaces  # type: ignore
 import gradio as gr
 import torch
 
-from parler_tts import ParlerTTSForConditionalGeneration
+from parler_tts import ParlerTTSForConditionalGeneration  # type: ignore
 from pydub import AudioSegment
 from transformers import AutoTokenizer, AutoFeatureExtractor, set_seed
 from huggingface_hub import InferenceClient
-from streamer import ParlerTTSStreamer
+from streamer import ParlerTTSStreamer  # type: ignore
 import time
 
 

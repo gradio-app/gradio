@@ -136,13 +136,13 @@ class JSON(Component):
             )
 
         if isinstance(value, str):
-            return JsonData(orjson.loads(value))
+            return JsonData(root=orjson.loads(value))
         else:
             # Use orjson to convert NumPy arrays and datetime objects to JSON.
             # This ensures a backward compatibility with the previous behavior.
             # See https://github.com/gradio-app/gradio/pull/8041
             return JsonData(
-                orjson.loads(
+                root=orjson.loads(
                     orjson.dumps(
                         value,
                         option=orjson.OPT_SERIALIZE_NUMPY

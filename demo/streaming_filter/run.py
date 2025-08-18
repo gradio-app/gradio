@@ -1,6 +1,6 @@
 import gradio as gr
 import numpy as np
-import cv2
+import cv2  # type: ignore
 
 def transform_cv2(frame, transform):
     if transform == "cartoon":
