@@ -377,7 +377,11 @@ class GradioMCPServer:
             List all available resources.
             """
             resources = []
-            for endpoint_name in self.tool_to_endpoint.values():
+            selected_tools = self.get_selected_tools_from_request()
+            for tool_name, endpoint_name in self.tool_to_endpoint.items():
+                if selected_tools is not None and tool_name not in selected_tools:
+                    continue
+
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
                 if (
                     block_fn
@@ -407,7 +411,11 @@ class GradioMCPServer:
             List all available resource templates.
             """
             templates = []
-            for endpoint_name in self.tool_to_endpoint.values():
+            selected_tools = self.get_selected_tools_from_request()
+            for tool_name, endpoint_name in self.tool_to_endpoint.items():
+                if selected_tools is not None and tool_name not in selected_tools:
+                    continue
+
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
                 if (
                     block_fn
@@ -500,7 +508,11 @@ class GradioMCPServer:
             List all available prompts.
             """
             prompts = []
+            selected_tools = self.get_selected_tools_from_request()
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
+                if selected_tools is not None and tool_name not in selected_tools:
+                    continue
+
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
                 if (
                     block_fn
@@ -536,8 +548,8 @@ class GradioMCPServer:
             client = await run_sync(self._get_or_create_client)
 
             endpoint_name = None
-            for ep_name in self.tool_to_endpoint.values():
-                block_fn = self.get_block_fn_from_endpoint_name(ep_name)
+            for endpoint_name in self.tool_to_endpoint.values():
+                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
                 if (
                     block_fn
                     and block_fn.fn
@@ -545,7 +557,6 @@ class GradioMCPServer:
                     and block_fn.fn._mcp_type == "prompt"
                     and block_fn.fn._mcp_name == name
                 ):
-                    endpoint_name = ep_name
                     break
 
             if not endpoint_name:
