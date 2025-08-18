@@ -418,6 +418,24 @@ class GradioMCPServer:
             """
             Read a specific resource by URI.
             """
+            context_request: Request | None = self.mcp_server.request_context.request
+            if context_request is None:
+                raise ValueError(
+                    "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
+                )
+
+            route_path = self.get_route_path(context_request)
+            root_url = route_utils.get_root_url(
+                request=context_request,
+                route_path=route_path,
+                root_path=self.root_path,
+            )
+
+            if not hasattr(self, "_client_instance"):
+                self._client_instance = await run_sync(
+                    self._create_client, self.local_url or root_url
+                )
+
             for endpoint_name in self.tool_to_endpoint.values():
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
                 if (
@@ -429,6 +447,9 @@ class GradioMCPServer:
                     uri_template = block_fn.fn._mcp_uri_template
                     parameters = re.findall(r"\{([^}]+)\}", uri_template)
 
+                    kwargs = {}
+                    matched = False
+
                     if parameters:
                         pattern = re.escape(uri_template)
                         for param in parameters:
@@ -438,20 +459,32 @@ class GradioMCPServer:
                         match = re.match(f"^{pattern}$", uri)
                         if match:
                             kwargs = match.groupdict()
-                            result = await run_sync(block_fn.fn, **kwargs)
-                            mime_type = block_fn.fn._mcp_mime_type
-                            if isinstance(result, bytes):
-                                return types.BlobResourceContents(
-                                    uri=uri,
-                                    mimeType=mime_type,
-                                    blob=base64.b64encode(result).decode("utf-8"),
-                                )
-                            else:
-                                return types.TextResourceContents(
-                                    uri=uri, mimeType=mime_type, text=str(result)
-                                )
+                            matched = True
                     elif uri_template == uri:
-                        result = await run_sync(block_fn.fn)
+                        matched = True
+
+                    if matched:
+                        # Use the client to call the function
+                        if endpoint_name in self.api_info["named_endpoints"]:
+                            parameters_info = self.api_info["named_endpoints"][endpoint_name][
+                                "parameters"
+                            ]
+                            processed_args = client_utils.construct_args(
+                                parameters_info,
+                                (),
+                                kwargs,
+                            )
+                        else:
+                            processed_args = list(kwargs.values())
+
+                        async for update in self._client_instance.submit(
+                            *processed_args, api_name=endpoint_name
+                        ):
+                            if update.type == "output" and update.final:
+                                output = update.outputs
+                                result = output["data"][0]
+                                break
+
                         mime_type = block_fn.fn._mcp_mime_type
                         if isinstance(result, bytes):
                             return types.BlobResourceContents(
@@ -789,12 +822,10 @@ class GradioMCPServer:
                     header_name = param_name.replace("_", "-").lower()
                     required_headers.append(header_name)
 
-            # Determine MCP type
             mcp_type = "tool"  # Default
             if hasattr(block_fn.fn, "_mcp_type"):
                 mcp_type = block_fn.fn._mcp_type
 
-            # Build meta dict
             meta = {"file_data_present": file_data_present, "mcp_type": mcp_type}
             if required_headers:
                 meta["headers"] = required_headers
