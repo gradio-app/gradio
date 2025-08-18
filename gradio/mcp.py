@@ -119,16 +119,15 @@ class GradioMCPServer:
         else:
             return "/gradio_api/mcp"
 
-    def get_selected_tools_from_request(
-        self, request: Request | None
-    ) -> list[str] | None:
+    def get_selected_tools_from_request(self) -> list[str] | None:
         """
         Extract the selected tools from the request query parameters and return the full tool names (with the tool prefix).
         Returns None if no tools parameter is specified (meaning all tools are available).
         """
-        if request is None:
+        context_request: Request | None = self.mcp_server.request_context.request
+        if context_request is None:
             return None
-        query_params = dict(getattr(request, "query_params", {}))
+        query_params = dict(getattr(context_request, "query_params", {}))
         if "tools" in query_params:
             tools = query_params["tools"].split(",")
             full_tool_names = [self.tool_prefix + tool for tool in tools]
@@ -192,9 +191,22 @@ class GradioMCPServer:
                     "used each time."
                 )
 
-    def _get_or_create_client(self, url: str) -> Client:
+    def _get_or_create_client(self) -> Client:
         if self._client_instance is None:
-            self._client_instance = Client(url, download_files=False, verbose=False)
+            context_request: Request | None = self.mcp_server.request_context.request
+            if context_request is None:
+                raise ValueError(
+                    "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
+                )
+            route_path = self.get_route_path(context_request)
+            root_url = route_utils.get_root_url(
+                request=context_request,
+                route_path=route_path,
+                root_path=self.root_path,
+            )
+            self._client_instance = Client(
+                self.local_url or root_url, download_files=False, verbose=False
+            )
         return self._client_instance
 
     def create_mcp_server(self) -> Server:
@@ -220,25 +232,11 @@ class GradioMCPServer:
                 name: The name of the tool to call.
                 arguments: The arguments to pass to the tool.
             """
-            context_request: Request | None = self.mcp_server.request_context.request
             progress_token = None
             if self.mcp_server.request_context.meta is not None:
                 progress_token = self.mcp_server.request_context.meta.progressToken
-            if context_request is None:
-                raise ValueError(
-                    "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
-                )
-
-            selected_tools = self.get_selected_tools_from_request(context_request)
-            route_path = self.get_route_path(context_request)
-            root_url = route_utils.get_root_url(
-                request=context_request,
-                route_path=route_path,
-                root_path=self.root_path,
-            )
-            client = await run_sync(
-                self._get_or_create_client, self.local_url or root_url
-            )
+            selected_tools = self.get_selected_tools_from_request()
+            client = await run_sync(self._get_or_create_client)
             _, filedata_positions = self.get_input_schema(name)
             processed_kwargs = self.convert_strings_to_filedata(
                 arguments, filedata_positions
@@ -264,6 +262,11 @@ class GradioMCPServer:
                 )
             else:
                 processed_args = []
+            context_request: Request | None = self.mcp_server.request_context.request
+            if context_request is None:
+                raise ValueError(
+                    "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
+                )
             request_headers = dict(context_request.headers.items())
             request_headers.pop("content-length", None)
             step = 0
@@ -326,6 +329,12 @@ class GradioMCPServer:
                         # Need to raise an error so that call_tool returns an error payload
                         raise RuntimeError(msg)
             processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
+            route_path = self.get_route_path(context_request)
+            root_url = route_utils.get_root_url(
+                request=context_request,
+                route_path=route_path,
+                root_path=self.root_path,
+            )
             return self.postprocess_output_data(output["data"], root_url)
 
         @server.list_tools()
@@ -333,8 +342,7 @@ class GradioMCPServer:
             """
             List all tools on the Gradio app.
             """
-            context_request: Request | None = self.mcp_server.request_context.request
-            selected_tools = self.get_selected_tools_from_request(context_request)
+            selected_tools = self.get_selected_tools_from_request()
 
             tools = []
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
@@ -421,21 +429,7 @@ class GradioMCPServer:
             Read a specific resource by URI.
             """
             uri = str(uri)
-            context_request: Request | None = self.mcp_server.request_context.request
-            if context_request is None:
-                raise ValueError(
-                    "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
-                )
-
-            route_path = self.get_route_path(context_request)
-            root_url = route_utils.get_root_url(
-                request=context_request,
-                route_path=route_path,
-                root_path=self.root_path,
-            )
-            client = await run_sync(
-                self._get_or_create_client, self.local_url or root_url
-            )
+            client = await run_sync(self._get_or_create_client)
             for endpoint_name in self.tool_to_endpoint.values():
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
 
@@ -531,22 +525,7 @@ class GradioMCPServer:
             """
             Get a specific prompt with filled-in arguments.
             """
-            context_request: Request | None = self.mcp_server.request_context.request
-            if context_request is None:
-                raise ValueError(
-                    "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
-                )
-
-            route_path = self.get_route_path(context_request)
-            root_url = route_utils.get_root_url(
-                request=context_request,
-                route_path=route_path,
-                root_path=self.root_path,
-            )
-
-            client = await run_sync(
-                self._get_or_create_client, self.local_url or root_url
-            )
+            client = await run_sync(self._get_or_create_client)
 
             endpoint_name = None
             for ep_name in self.tool_to_endpoint.values():
