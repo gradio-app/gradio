@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:handle fullscreen event
+feat:Exit fullscreen mode when gr.Image value is cleared 
