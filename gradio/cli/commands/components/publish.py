@@ -4,7 +4,7 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import semantic_version
 from huggingface_hub import HfApi
@@ -30,13 +30,13 @@ def _ignore(_src, names):
     return ignored
 
 
-def _get_version_from_file(dist_file: Path) -> Optional[str]:
+def _get_version_from_file(dist_file: Path) -> str | None:
     match = re.search(r"-(\d+\.\d+\.\d+[a-zA-Z]*\d*)-", dist_file.name)
     if match:
         return match.group(1)
 
 
-def _get_max_version(distribution_files: list[Path]) -> Optional[str]:
+def _get_max_version(distribution_files: list[Path]) -> str | None:
     versions = []
     for p in distribution_files:
         version = _get_version_from_file(p)
@@ -61,15 +61,13 @@ def _publish(
     upload_demo: Annotated[
         bool, Option(help="Whether to upload demo to HuggingFace.")
     ] = True,
-    demo_dir: Annotated[
-        Optional[Path], Option(help="Path to the demo directory.")
-    ] = None,
+    demo_dir: Annotated[Path | None, Option(help="Path to the demo directory.")] = None,
     source_dir: Annotated[
         Path,
         Option(help="Path to the source directory of the custom component."),
     ] = Path("."),
     hf_token: Annotated[
-        Optional[str],
+        str | None,
         Option(
             help="HuggingFace token for uploading demo. Can be omitted if already logged in via huggingface cli."
         ),
@@ -87,7 +85,7 @@ def _publish(
         ),
     ] = False,
     repo_id: Annotated[
-        Optional[str],
+        str | None,
         Option(
             help="The repository id to upload the demo to. If not provided, a space will be created with the same name as the package in the HuggingFace account corresponding to the hf_token."
         ),

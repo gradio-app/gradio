@@ -1,7 +1,6 @@
 import base64
 import contextlib
 import copy
-import inspect
 import os
 import re
 import tempfile
@@ -235,7 +234,9 @@ class GradioMCPServer:
                 route_path=route_path,
                 root_path=self.root_path,
             )
-            client = await run_sync(self._get_or_create_client, self.local_url or root_url)
+            client = await run_sync(
+                self._get_or_create_client, self.local_url or root_url
+            )
             _, filedata_positions = self.get_input_schema(name)
             processed_kwargs = self.convert_strings_to_filedata(
                 arguments, filedata_positions
@@ -428,7 +429,9 @@ class GradioMCPServer:
                 root_path=self.root_path,
             )
 
-            client = await run_sync(self._get_or_create_client, self.local_url or root_url)
+            client = await run_sync(
+                self._get_or_create_client, self.local_url or root_url
+            )
 
             for endpoint_name in self.tool_to_endpoint.values():
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
@@ -460,9 +463,9 @@ class GradioMCPServer:
                     if matched:
                         # Use the client to call the function
                         if endpoint_name in self.api_info["named_endpoints"]:
-                            parameters_info = self.api_info["named_endpoints"][endpoint_name][
-                                "parameters"
-                            ]
+                            parameters_info = self.api_info["named_endpoints"][
+                                endpoint_name
+                            ]["parameters"]
                             processed_args = client_utils.construct_args(
                                 parameters_info,
                                 (),
@@ -507,9 +510,15 @@ class GradioMCPServer:
                     and hasattr(block_fn.fn, "_mcp_type")
                     and block_fn.fn._mcp_type == "prompt"
                 ):
-                    description, parameters, _ = utils.get_function_description(block_fn.fn)
-                    print("parameters", parameters)
-                    arguments = [types.PromptArgument(name=param_name, description=param_description) for param_name, param_description in parameters.items()]
+                    description, parameters, _ = utils.get_function_description(
+                        block_fn.fn
+                    )
+                    arguments = [
+                        types.PromptArgument(
+                            name=param_name, description=param_description
+                        )
+                        for param_name, param_description in parameters.items()
+                    ]
                     prompts.append(
                         types.Prompt(
                             name=tool_name,
@@ -540,8 +549,8 @@ class GradioMCPServer:
             )
 
             client = await run_sync(
-                    self._get_or_create_client, self.local_url or root_url
-                )
+                self._get_or_create_client, self.local_url or root_url
+            )
 
             endpoint_name = None
             for ep_name in self.tool_to_endpoint.values():
@@ -576,7 +585,7 @@ class GradioMCPServer:
             else:
                 processed_args = list(arguments.values())
 
-            async for update in client.submit(
+            async for update in self._client_instance.submit(
                 *processed_args, api_name=endpoint_name
             ):
                 if update.type == "output" and update.final:

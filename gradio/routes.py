@@ -25,7 +25,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Literal,
-    Optional,
     Union,
     cast,
 )
@@ -455,7 +454,7 @@ class App(FastAPI):
 
         @router.get("/user")
         @router.get("/user/")
-        def get_current_user(request: fastapi.Request) -> Optional[str]:
+        def get_current_user(request: fastapi.Request) -> str | None:
             if app.auth_dependency is not None:
                 return app.auth_dependency(request)
             token = request.cookies.get(
@@ -1645,7 +1644,7 @@ class App(FastAPI):
         async def upload_file(
             request: fastapi.Request,
             bg_tasks: BackgroundTasks,
-            upload_id: Optional[str] = None,
+            upload_id: str | None = None,
         ):
             content_type_header = request.headers.get("Content-Type")
             content_type: bytes

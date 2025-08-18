@@ -869,7 +869,11 @@ class TestGetFunctionDescription:
 
         description, parameters, returns = get_function_description(test_func)
         assert description == "This is a test function."
-        assert parameters == {"param1": "description1", "param2": "", "param3": "description3"}
+        assert parameters == {
+            "param1": "description1",
+            "param2": "",
+            "param3": "description3",
+        }
         assert returns == ["First return value", "Second return value"]
 
     def test_function_with_nested_colons(self):
