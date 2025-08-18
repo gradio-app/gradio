@@ -350,7 +350,15 @@ class GradioMCPServer:
                     continue
 
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
-                assert block_fn is not None and block_fn.fn is not None  # noqa: S101
+                if (
+                    block_fn is None
+                    or block_fn.fn is None
+                    or (
+                        hasattr(block_fn.fn, "_mcp_type")
+                        and block_fn.fn._mcp_type != "tool"
+                    )
+                ):
+                    continue
 
                 description, parameters = self.get_fn_description(block_fn, tool_name)
                 schema, _ = self.get_input_schema(tool_name, parameters)
