@@ -505,7 +505,7 @@ class GradioMCPServer:
             List all available prompts.
             """
             prompts = []
-            for endpoint_name in self.tool_to_endpoint.values():
+            for tool_name, endpoint_name in self.tool_to_endpoint.items():
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
                 if (
                     block_fn
@@ -513,23 +513,13 @@ class GradioMCPServer:
                     and hasattr(block_fn.fn, "_mcp_type")
                     and block_fn.fn._mcp_type == "prompt"
                 ):
-                    sig = inspect.signature(block_fn.fn)
-                    arguments = []
-                    for param_name, param in sig.parameters.items():
-                        arguments.append(
-                            types.PromptArgument(
-                                name=param_name,
-                                description=f"Parameter {param_name}",
-                                required=param.default == inspect.Parameter.empty,
-                            )
-                        )
-
+                    description, parameters, _ = utils.get_function_description(block_fn.fn)
+                    print("parameters", parameters)
+                    arguments = [types.PromptArgument(name=param_name, description=param_description) for param_name, param_description in parameters.items()]
                     prompts.append(
                         types.Prompt(
-                            name=block_fn.fn._mcp_name,
-                            description=block_fn.fn._mcp_description
-                            or block_fn.fn.__doc__
-                            or "No description",
+                            name=tool_name,
+                            description=description,
                             arguments=arguments,
                         )
                     )
