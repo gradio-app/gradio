@@ -20,39 +20,35 @@ class Context:
 
 
 class LocalContext:
-    blocks: ContextVar[Blocks | None] = ContextVar("blocks", default=None)
-    blocks_config: ContextVar[BlocksConfig | None] = ContextVar(
-        "blocks_config", default=None
-    )
-    renderable: ContextVar[Renderable | None] = ContextVar("renderable", default=None)
-    render_block: ContextVar[BlockContext | None] = ContextVar(
-        "render_block", default=None
-    )
-    in_event_listener: ContextVar[bool] = ContextVar("in_event_listener", default=False)
-    event_id: ContextVar[str | None] = ContextVar("event_id", default=None)
-    request: ContextVar[Request | None] = ContextVar("request", default=None)
-    progress: ContextVar[Progress | None] = ContextVar("progress", default=None)
+    blocks: ContextVar[Blocks | None] = ContextVar("blocks")
+    blocks_config: ContextVar[BlocksConfig | None] = ContextVar("blocks_config")
+    renderable: ContextVar[Renderable | None] = ContextVar("renderable")
+    render_block: ContextVar[BlockContext | None] = ContextVar("render_block")
+    in_event_listener: ContextVar[bool] = ContextVar("in_event_listener")
+    event_id: ContextVar[str | None] = ContextVar("event_id")
+    request: ContextVar[Request | None] = ContextVar("request")
+    progress: ContextVar[Progress | None] = ContextVar("progress")
     key_to_id_map: ContextVar[dict[int | str | tuple[str | int, ...], int] | None] = (
-        ContextVar("key_to_id_map", default=None)
+        ContextVar("key_to_id_map")
     )
 
 
 def get_render_context() -> BlockContext | None:
-    if LocalContext.renderable.get():
-        return LocalContext.render_block.get()
+    if LocalContext.renderable.get(None):
+        return LocalContext.render_block.get(None)
     else:
         return Context.block
 
 
 def set_render_context(block: BlockContext | None):
-    if LocalContext.renderable.get():
+    if LocalContext.renderable.get(None):
         LocalContext.render_block.set(block)
     else:
         Context.block = block
 
 
 def get_blocks_context() -> BlocksConfig | None:
-    if LocalContext.renderable.get():
-        return LocalContext.blocks_config.get()
+    if LocalContext.renderable.get(None):
+        return LocalContext.blocks_config.get(None)
     elif Context.root_block:
         return Context.root_block.default_config

@@ -476,7 +476,7 @@ class TestRoutes:
     def test_mount_gradio_app_with_startup(self):
         app = FastAPI()
 
-        @app.on_event("startup")
+        @app.on_event("startup")  # type: ignore
         async def empty_startup():
             return
 
