@@ -191,8 +191,22 @@ class GradioMCPServer:
                     "used each time."
                 )
 
-    def _create_client(self, url):
-        return Client(url, download_files=False, verbose=False)
+    def get_or_create_client(self) -> Client:
+        if not hasattr(self, "_client_instance"):
+            context_request: Request | None = self.mcp_server.request_context.request
+            if context_request is None:
+                raise ValueError(
+                    "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
+                )
+
+            route_path = self.get_route_path(context_request)
+            root_url = route_utils.get_root_url(
+                request=context_request,
+                route_path=route_path,
+                root_path=self.root_path,
+            )
+            self._client_instance = Client(self.local_url or root_url, download_files=False, verbose=False)
+        return self._client_instance
 
     def create_mcp_server(self) -> Server:
         """
@@ -227,18 +241,7 @@ class GradioMCPServer:
                 )
 
             selected_tools = self.get_selected_tools_from_request(context_request)
-
-            route_path = self.get_route_path(context_request)
-            root_url = route_utils.get_root_url(
-                request=context_request,
-                route_path=route_path,
-                root_path=self.root_path,
-            )
-            if not hasattr(self, "_client_instance"):
-                # TODO: Per-request headers
-                self._client_instance = await run_sync(
-                    self._create_client, self.local_url or root_url
-                )
+            client = self.get_or_create_client()
             _, filedata_positions = self.get_input_schema(name)
             processed_kwargs = self.convert_strings_to_filedata(
                 arguments, filedata_positions
@@ -268,7 +271,7 @@ class GradioMCPServer:
             request_headers.pop("content-length", None)
             step = 0
             output = {"data": []}
-            async for update in self._client_instance.submit(
+            async for update in client.submit(
                 *processed_args, api_name=endpoint_name, headers=request_headers
             ):
                 if update.type == "status" and progress_token is not None:
@@ -326,7 +329,7 @@ class GradioMCPServer:
                         # Need to raise an error so that call_tool returns an error payload
                         raise RuntimeError(msg)
             processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
-            return self.postprocess_output_data(output["data"], root_url)
+            return self.postprocess_output_data(output["data"], client.root_url)
 
         @server.list_tools()
         async def list_tools() -> list[types.Tool]:
@@ -418,23 +421,7 @@ class GradioMCPServer:
             """
             Read a specific resource by URI.
             """
-            context_request: Request | None = self.mcp_server.request_context.request
-            if context_request is None:
-                raise ValueError(
-                    "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
-                )
-
-            route_path = self.get_route_path(context_request)
-            root_url = route_utils.get_root_url(
-                request=context_request,
-                route_path=route_path,
-                root_path=self.root_path,
-            )
-
-            if not hasattr(self, "_client_instance"):
-                self._client_instance = await run_sync(
-                    self._create_client, self.local_url or root_url
-                )
+            client = self.get_or_create_client()
 
             for endpoint_name in self.tool_to_endpoint.values():
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
@@ -477,7 +464,7 @@ class GradioMCPServer:
                         else:
                             processed_args = list(kwargs.values())
 
-                        async for update in self._client_instance.submit(
+                        async for update in client.submit(
                             *processed_args, api_name=endpoint_name
                         ):
                             if update.type == "output" and update.final:
@@ -514,7 +501,6 @@ class GradioMCPServer:
                     and block_fn.fn._mcp_type == "prompt"
                 ):
                     description, parameters, _ = utils.get_function_description(block_fn.fn)
-                    print("parameters", parameters)
                     arguments = [types.PromptArgument(name=param_name, description=param_description) for param_name, param_description in parameters.items()]
                     prompts.append(
                         types.Prompt(
@@ -532,24 +518,7 @@ class GradioMCPServer:
             """
             Get a specific prompt with filled-in arguments.
             """
-            context_request: Request | None = self.mcp_server.request_context.request
-            if context_request is None:
-                raise ValueError(
-                    "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
-                )
-
-            route_path = self.get_route_path(context_request)
-            root_url = route_utils.get_root_url(
-                request=context_request,
-                route_path=route_path,
-                root_path=self.root_path,
-            )
-
-            if not hasattr(self, "_client_instance"):
-                self._client_instance = await run_sync(
-                    self._create_client, self.local_url or root_url
-                )
-
+            client = self.get_or_create_client()
             endpoint_name = None
             for ep_name in self.tool_to_endpoint.values():
                 block_fn = self.get_block_fn_from_endpoint_name(ep_name)
@@ -583,7 +552,7 @@ class GradioMCPServer:
             else:
                 processed_args = list(arguments.values())
 
-            async for update in self._client_instance.submit(
+            async for update in client.submit(
                 *processed_args, api_name=endpoint_name
             ):
                 if update.type == "output" and update.final:
