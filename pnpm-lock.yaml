@@ -1227,9 +1227,12 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
-      '@gradio/client':
+      '@gradio/button':
         specifier: workspace:^
-        version: link:../../client/js
+        version: link:../button
+      '@gradio/checkbox':
+        specifier: workspace:^
+        version: link:../checkbox
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
@@ -1242,9 +1245,6 @@ importers:
       '@gradio/upload':
         specifier: workspace:^
         version: link:../upload
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
       '@types/d3-dsv':
         specifier: ^3.0.0
         version: 3.0.0
@@ -1270,16 +1270,18 @@ importers:
         specifier: ^12.0.0
         version: 12.0.0
       svelte:
-        specifier: ^4.0.0 || ^5.0.0
+        specifier: '>=4.0.0 <6.0.0'
         version: 4.2.15
-    optionalDependencies:
-      '@gradio/checkbox':
-        specifier: workspace:^
-        version: link:../checkbox
     devDependencies:
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/dataset:
     dependencies:
@@ -5292,11 +5294,6 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
-  acorn@8.11.3:
-    resolution: {integrity: sha512-Y9rRfJG5jcKOE0CLisYbojUjIrIEE7AGMzA/Sm4BslANhbS+cDMpgBdcPT91oJ7OuJ9hYJBx59RjbhxVnrF8Xg==}
-    engines: {node: '>=0.4.0'}
-    hasBin: true
-
   acorn@8.14.1:
     resolution: {integrity: sha512-OvQ/2pUDKmgfCg++xsTX1wGxfTaszcHVcTctW4UJB4hibJx2HXxxO5UmVgyjMa+ZDsiaf5wWLXYpRWMmBI0QHg==}
     engines: {node: '>=0.4.0'}
@@ -5990,15 +5987,6 @@ packages:
 
   dayjs@1.11.13:
     resolution: {integrity: sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg==}
-
-  debug@4.3.4:
-    resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
-    engines: {node: '>=6.0'}
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
 
   debug@4.4.0:
     resolution: {integrity: sha512-6WTZ/IxCY/T6BALoZHaE4ctp9xm+Z5kY/pzYaCHRFeyVhojxlrm+46y68HA6hr0TcwEssoxNiDEUJQjfPZ/RYA==}
@@ -7623,9 +7611,6 @@ packages:
     resolution: {integrity: sha512-eu38+hdgojoyq63s+yTpN4XMBdt5l8HhMhc4VKLO9KM5caLIBvUm4thi7fFaxyTmCKeNnXZ5pAlBwCUnhA09uw==}
     engines: {node: '>=10'}
 
-  ms@2.1.2:
-    resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
-
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
@@ -8489,10 +8474,6 @@ packages:
 
   smob@1.5.0:
     resolution: {integrity: sha512-g6T+p7QO8npa+/hNx9ohv1E5pVCmWrVCUzUXJyLdMmftX6ER0oiWY/w9knEonLpnOp6b6FenKnMfR8gqwWdwig==}
-
-  source-map-js@1.0.2:
-    resolution: {integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==}
-    engines: {node: '>=0.10.0'}
 
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
@@ -11105,7 +11086,7 @@ snapshots:
 
   '@rollup/pluginutils@5.0.5(rollup@4.17.2)':
     dependencies:
-      '@types/estree': 1.0.5
+      '@types/estree': 1.0.7
       estree-walker: 2.0.2
       picomatch: 2.3.1
     optionalDependencies:
@@ -11666,10 +11647,10 @@ snapshots:
   '@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.43.1))':
     dependencies:
       '@sveltejs/vite-plugin-svelte-inspector': 2.1.0(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.43.1)))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.43.1))
-      debug: 4.3.4
+      debug: 4.4.0
       deepmerge: 4.3.1
       kleur: 4.1.5
-      magic-string: 0.30.10
+      magic-string: 0.30.17
       svelte: 4.2.15
       svelte-hmr: 0.16.0(svelte@4.2.15)
       vite: 5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.43.1)
@@ -11680,10 +11661,10 @@ snapshots:
   '@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.9(@types/node@20.12.8)(lightningcss@1.21.7)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.43.1))':
     dependencies:
       '@sveltejs/vite-plugin-svelte-inspector': 2.1.0(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.9(@types/node@20.12.8)(lightningcss@1.21.7)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.43.1)))(svelte@4.2.15)(vite@5.2.9(@types/node@20.12.8)(lightningcss@1.21.7)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.43.1))
-      debug: 4.3.4
+      debug: 4.4.0
       deepmerge: 4.3.1
       kleur: 4.1.5
-      magic-string: 0.30.10
+      magic-string: 0.30.17
       svelte: 4.2.15
       svelte-hmr: 0.16.0(svelte@4.2.15)
       vite: 5.2.9(@types/node@20.12.8)(lightningcss@1.21.7)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.43.1)
@@ -11694,10 +11675,10 @@ snapshots:
   '@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.4.19(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))(terser@5.43.1))':
     dependencies:
       '@sveltejs/vite-plugin-svelte-inspector': 2.1.0(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.4.19(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))(terser@5.43.1)))(svelte@4.2.15)(vite@5.4.19(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))(terser@5.43.1))
-      debug: 4.3.4
+      debug: 4.4.0
       deepmerge: 4.3.1
       kleur: 4.1.5
-      magic-string: 0.30.10
+      magic-string: 0.30.17
       svelte: 4.2.15
       svelte-hmr: 0.16.0(svelte@4.2.15)
       vite: 5.4.19(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))(terser@5.43.1)
@@ -12234,8 +12215,6 @@ snapshots:
 
   acorn@7.4.1: {}
 
-  acorn@8.11.3: {}
-
   acorn@8.14.1: {}
 
   acorn@8.15.0: {}
@@ -12590,8 +12569,8 @@ snapshots:
   code-red@1.0.4:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.0
-      '@types/estree': 1.0.5
-      acorn: 8.11.3
+      '@types/estree': 1.0.7
+      acorn: 8.15.0
       estree-walker: 3.0.3
       periscopic: 3.1.0
 
@@ -12937,10 +12916,6 @@ snapshots:
   date-fns@3.6.0: {}
 
   dayjs@1.11.13: {}
-
-  debug@4.3.4:
-    dependencies:
-      ms: 2.1.2
 
   debug@4.4.0:
     dependencies:
@@ -13551,8 +13526,8 @@ snapshots:
 
   espree@9.2.0:
     dependencies:
-      acorn: 8.14.1
-      acorn-jsx: 5.3.2(acorn@8.14.1)
+      acorn: 8.15.0
+      acorn-jsx: 5.3.2(acorn@8.15.0)
       eslint-visitor-keys: 3.4.3
 
   espree@9.6.1:
@@ -13583,7 +13558,7 @@ snapshots:
 
   estree-walker@3.0.3:
     dependencies:
-      '@types/estree': 1.0.5
+      '@types/estree': 1.0.7
 
   esutils@2.0.3: {}
 
@@ -14147,7 +14122,7 @@ snapshots:
 
   is-reference@3.0.2:
     dependencies:
-      '@types/estree': 1.0.5
+      '@types/estree': 1.0.7
 
   is-reference@3.0.3:
     dependencies:
@@ -14711,7 +14686,7 @@ snapshots:
   miniflare@3.20240821.0(bufferutil@4.0.7):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
-      acorn: 8.14.1
+      acorn: 8.15.0
       acorn-walk: 8.3.2
       capnp-ts: 0.7.0
       exit-hook: 2.2.1
@@ -14762,7 +14737,7 @@ snapshots:
 
   mlly@1.7.4:
     dependencies:
-      acorn: 8.14.1
+      acorn: 8.15.0
       pathe: 2.0.3
       pkg-types: 1.3.1
       ufo: 1.5.4
@@ -14770,8 +14745,6 @@ snapshots:
   mri@1.2.0: {}
 
   mrmime@2.0.0: {}
-
-  ms@2.1.2: {}
 
   ms@2.1.3: {}
 
@@ -15628,9 +15601,9 @@ snapshots:
 
   sass@1.66.1:
     dependencies:
-      chokidar: 3.5.3
+      chokidar: 3.6.0
       immutable: 4.3.4
-      source-map-js: 1.0.2
+      source-map-js: 1.2.1
 
   sax@1.3.0: {}
 
@@ -15715,8 +15688,6 @@ snapshots:
   slashes@3.0.12: {}
 
   smob@1.5.0: {}
-
-  source-map-js@1.0.2: {}
 
   source-map-js@1.2.1: {}
 
@@ -15827,7 +15798,7 @@ snapshots:
   stylus@0.63.0:
     dependencies:
       '@adobe/css-tools': 4.3.3
-      debug: 4.3.4
+      debug: 4.4.0
       glob: 7.2.3
       sax: 1.3.0
       source-map: 0.7.4
@@ -15999,7 +15970,7 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.0
       '@jridgewell/trace-mapping': 0.3.25
       '@types/estree': 1.0.7
-      acorn: 8.14.1
+      acorn: 8.15.0
       aria-query: 5.3.2
       axobject-query: 4.1.0
       code-red: 1.0.4
@@ -16279,7 +16250,7 @@ snapshots:
 
   unplugin@1.16.1:
     dependencies:
-      acorn: 8.14.1
+      acorn: 8.15.0
       webpack-virtual-modules: 0.6.2
 
   update-browserslist-db@1.1.3(browserslist@4.24.4):

@@ -1,38 +1,6 @@
 <script lang="ts">
-	import Base from "../Base.svelte";
+	import Table from "../shared/Table.svelte";
 	import "./dataframe.css";
-	import { onMount, onDestroy } from "svelte";
-
-	async function request_fullscreen(element: Element): Promise<void> {
-		const anyEl = element as any;
-		if ((element as any).requestFullscreen) {
-			await (element as any).requestFullscreen();
-			return;
-		}
-		if (anyEl.webkitRequestFullscreen) {
-			anyEl.webkitRequestFullscreen();
-		}
-	}
-
-	async function exit_fullscreen_if_active(): Promise<void> {
-		const anyDoc = document as any;
-		if (document.fullscreenElement && document.exitFullscreen) {
-			await document.exitFullscreen();
-			return;
-		}
-		if (anyDoc.webkitFullscreenElement && anyDoc.webkitExitFullscreen) {
-			anyDoc.webkitExitFullscreen();
-		}
-	}
-
-	function is_fullscreen_element(element: Element | null): boolean {
-		if (!element) return false;
-		const anyDoc = document as any;
-		return (
-			document.fullscreenElement === element ||
-			anyDoc.webkitFullscreenElement === element
-		);
-	}
 
 	const default_i18n: Record<string, string> = {
 		"dataframe.add_row_above": "Add row above",
@@ -98,47 +66,20 @@
 	export let root = "";
 	export let i18n: (key: string) => string = (key: string) =>
 		default_i18n[key] ?? key;
-	export let upload = null;
-	export let stream_handler = null;
 	export let value_is_output = false;
 	export let display_value: string[][] | null = null;
 	export let styling: string[][] | null = null;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-
-	let container: HTMLDivElement;
-
-	async function enter_fullscreen(): Promise<void> {
-		if (!container) return;
-		await request_fullscreen(container);
-	}
-
-	async function exit_fullscreen(): Promise<void> {
-		await exit_fullscreen_if_active();
-		fullscreen = false;
-	}
-
-	function handle_fullscreen_change(): void {
-		fullscreen = is_fullscreen_element(container);
-	}
-
-	onMount(() => {
-		document.addEventListener("fullscreenchange", handle_fullscreen_change);
-	});
-
-	onDestroy(() => {
-		document.removeEventListener("fullscreenchange", handle_fullscreen_change);
-	});
 </script>
 
 <div
 	class="gradio-dataframe-standalone {elem_classes.join(' ')}"
 	class:visible
 	id={elem_id}
-	bind:this={container}
 >
-	<Base
+	<Table
 		{value}
 		{headers}
 		{datatype}
@@ -163,8 +104,6 @@
 		{row_count}
 		{root}
 		{i18n}
-		{upload}
-		{stream_handler}
 		{value_is_output}
 		{display_value}
 		{styling}
@@ -176,13 +115,7 @@
 		on:keydown
 		on:input
 		on:select
-		on:fullscreen={({ detail }) => {
-			if (detail) {
-				void enter_fullscreen();
-			} else {
-				void exit_fullscreen();
-			}
-		}}
+		on:fullscreen
 	/>
 </div>
 
