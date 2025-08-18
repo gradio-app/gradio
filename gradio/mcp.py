@@ -483,14 +483,13 @@ class GradioMCPServer:
                     sig = inspect.signature(block_fn.fn)
                     arguments = []
                     for param_name, param in sig.parameters.items():
-                        if param_name not in ["self", "cls"]:
-                            arguments.append(
-                                types.PromptArgument(
-                                    name=param_name,
-                                    description=f"Parameter {param_name}",
-                                    required=param.default == inspect.Parameter.empty,
-                                )
+                        arguments.append(
+                            types.PromptArgument(
+                                name=param_name,
+                                description=f"Parameter {param_name}",
+                                required=param.default == inspect.Parameter.empty,
                             )
+                        )
 
                     prompts.append(
                         types.Prompt(
@@ -547,35 +546,27 @@ class GradioMCPServer:
             arguments = arguments or {}
 
             block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
-            assert block_fn is not None
+            assert block_fn is not None  # noqa: S101
 
             if endpoint_name in self.api_info["named_endpoints"]:
                 parameters_info = self.api_info["named_endpoints"][endpoint_name][
                     "parameters"
                 ]
                 processed_args = client_utils.construct_args(
-                    arguments,
                     parameters_info,
-                    serialize=False,
-                    is_interface=False,
+                    (),
+                    arguments,
                 )
             else:
                 processed_args = list(arguments.values())
 
-            request_headers = {
-                "Cookie": context_request.headers.get("cookie", ""),
-                "X-Forwarded-For": context_request.headers.get("x-forwarded-for", ""),
-            }
-
-            output = {"data": []}
             async for update in self._client_instance.submit(
-                *processed_args, api_name=endpoint_name, headers=request_headers
+                *processed_args, api_name=endpoint_name
             ):
-                if update.type == "data":
-                    output = update.data
+                if update.type == "output" and update.final:
+                    output = update.outputs
+                    result = output["data"][0]
                     break
-
-            result = output["data"][0] if output["data"] else ""
 
             return types.GetPromptResult(
                 messages=[
@@ -797,18 +788,23 @@ class GradioMCPServer:
                 if type_hint is Header or type_hint is Optional[Header]:
                     header_name = param_name.replace("_", "-").lower()
                     required_headers.append(header_name)
-            meta = None
+
+            # Determine MCP type
+            mcp_type = "tool"  # Default
+            if hasattr(block_fn.fn, "_mcp_type"):
+                mcp_type = block_fn.fn._mcp_type
+
+            # Build meta dict
+            meta = {"file_data_present": file_data_present, "mcp_type": mcp_type}
             if required_headers:
-                meta = {"headers": required_headers}
+                meta["headers"] = required_headers
 
             info = {
                 "name": tool_name,
                 "description": description,
                 "inputSchema": schema,
-                "meta": {"file_data_present": file_data_present},
+                "meta": meta,
             }
-            if meta is not None:
-                info["meta"] = meta
             schemas.append(info)
 
         return JSONResponse(schemas)
