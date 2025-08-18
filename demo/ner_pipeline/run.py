@@ -2,7 +2,7 @@ from transformers import pipeline
 
 import gradio as gr
 
-ner_pipeline = pipeline("ner")
+ner_pipeline = pipeline("ner")  # type: ignore
 
 examples = [
     "Does Chicago have any stores and does Joe live here?",
