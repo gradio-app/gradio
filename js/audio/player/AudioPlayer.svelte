@@ -219,7 +219,15 @@
 	bind:this={audio_player}
 	on:ended={() => dispatch("stop")}
 	on:play={() => dispatch("play")}
-/>
+>
+	<track 
+		kind="captions" 
+		src="data:text/vtt;base64,V0VCVlRUCg0KMDA6MDA6MDAuMDAwIC0tPiAwMDowMDowMy4wMDAKSGVsbG8sIHdlbGNvbWUgdG8gdGhpcyBhdWRpbyBjb250ZW50Lg0KDTAwOjAwOjAzLjAwMCAtLT4gMDA6MDA6MDcuMDAwClRvZGF5IHdlJ2xsIGRpc2N1c3MgaG93IHN1YnRpdGxlcyB3b3JrIHdpdGggYXVkaW8uDQoNMDA6MDA6MDcuMDAwIC0tPiAwMDowMDoxMi4wMDAKVGhpcyBpcyBhIHNpbXBsZSBleGFtcGxlIG9mIFZUVCAgZm9ybWF0dGluZy4NCg0KMDA6MDA6MTIuMDAwIC0tPiAwMDowMDoxNy4wMDAKV2l0aCBtdWx0aXBsZSBsYW5ndWFnZXMgYW5kIGFjY2Vzc2liaWxpdHkgZmVhdHVyZXMuDQoNMDA6MDA6MTcuMDAwIC0tPiAwMDowMDoyMi4wMDAKVGhlIGJyb3dzZXIgaGFuZGxlcyB0aGlzIGF1dG9tYXRpY2FsbHkuDQo=" 
+		srclang="en"
+		label="English Captions"
+		default 
+	/>
+</audio>
 {#if value === null}
 	<Empty size="small">
 		<Music />
