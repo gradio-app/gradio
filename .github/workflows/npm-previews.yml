@@ -46,6 +46,8 @@ jobs:
         uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
         with:
           skip_build: true
+      - name: package
+        run: pnpm package
       - name: build client
         run: pnpm --filter @gradio/client --filter @gradio/wasm --filter @gradio/preview build
       - name: publish npm previews
