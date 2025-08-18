@@ -510,9 +510,27 @@ class GradioMCPServer:
             """
             Get a specific prompt with filled-in arguments.
             """
-            prompt_fn = None
-            for endpoint_name in self.tool_to_endpoint.values():
-                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+            context_request: Request | None = self.mcp_server.request_context.request
+            if context_request is None:
+                raise ValueError(
+                    "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
+                )
+
+            route_path = self.get_route_path(context_request)
+            root_url = route_utils.get_root_url(
+                request=context_request,
+                route_path=route_path,
+                root_path=self.root_path,
+            )
+
+            if not hasattr(self, "_client_instance"):
+                self._client_instance = await run_sync(
+                    self._create_client, self.local_url or root_url
+                )
+
+            endpoint_name = None
+            for ep_name in self.tool_to_endpoint.values():
+                block_fn = self.get_block_fn_from_endpoint_name(ep_name)
                 if (
                     block_fn
                     and block_fn.fn
@@ -520,29 +538,44 @@ class GradioMCPServer:
                     and block_fn.fn._mcp_type == "prompt"
                     and block_fn.fn._mcp_name == name
                 ):
-                    prompt_fn = block_fn.fn
+                    endpoint_name = ep_name
                     break
 
-            if not prompt_fn:
+            if not endpoint_name:
                 raise ValueError(f"Prompt not found: {name}")
 
             arguments = arguments or {}
 
-            sig = inspect.signature(prompt_fn)
-            kwargs = {}
-            for param_name, param in sig.parameters.items():
-                if param_name in ["self", "cls"]:
-                    continue
-                if param_name in arguments:
-                    kwargs[param_name] = arguments[param_name]
-                elif param.default != inspect.Parameter.empty:
-                    kwargs[param_name] = param.default
-                else:
-                    raise ValueError(
-                        f"Required argument '{param_name}' not provided for prompt '{name}'"
-                    )
+            block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+            assert block_fn is not None
 
-            result = await run_sync(prompt_fn, **kwargs)
+            if endpoint_name in self.api_info["named_endpoints"]:
+                parameters_info = self.api_info["named_endpoints"][endpoint_name][
+                    "parameters"
+                ]
+                processed_args = client_utils.construct_args(
+                    arguments,
+                    parameters_info,
+                    serialize=False,
+                    is_interface=False,
+                )
+            else:
+                processed_args = list(arguments.values())
+
+            request_headers = {
+                "Cookie": context_request.headers.get("cookie", ""),
+                "X-Forwarded-For": context_request.headers.get("x-forwarded-for", ""),
+            }
+
+            output = {"data": []}
+            async for update in self._client_instance.submit(
+                *processed_args, api_name=endpoint_name, headers=request_headers
+            ):
+                if update.type == "data":
+                    output = update.data
+                    break
+
+            result = output["data"][0] if output["data"] else ""
 
             return types.GetPromptResult(
                 messages=[
