@@ -18,11 +18,11 @@ from gradio_client import Client, handle_file
 from gradio_client.utils import Status, StatusUpdate
 from mcp import types
 from mcp.server import Server
+from mcp.server.lowlevel.helper_types import ReadResourceContents
 from mcp.server.sse import SseServerTransport
 from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
-from mcp.server.fastmcp.resources.base import Resource
-from mcp.server.fastmcp.resources.types import FunctionResource
 from PIL import Image
+from pydantic import AnyUrl
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
@@ -371,7 +371,9 @@ class GradioMCPServer:
                 ):
                     uri_template = block_fn.fn._mcp_uri_template
                     parameters = re.findall(r"\{([^}]+)\}", uri_template)
-                    description, parameters, _ = utils.get_function_description(block_fn.fn)
+                    description, parameters, _ = utils.get_function_description(
+                        block_fn.fn
+                    )
                     if not parameters:
                         resources.append(
                             types.Resource(
@@ -399,7 +401,9 @@ class GradioMCPServer:
                 ):
                     uri_template = block_fn.fn._mcp_uri_template
                     parameters = re.findall(r"\{([^}]+)\}", uri_template)
-                    description, parameters, _ = utils.get_function_description(block_fn.fn)
+                    description, parameters, _ = utils.get_function_description(
+                        block_fn.fn
+                    )
                     if parameters:
                         templates.append(
                             types.ResourceTemplate(
@@ -412,21 +416,11 @@ class GradioMCPServer:
             return templates
 
         @server.read_resource()
-        async def read_resource(uri: str) -> types.ReadResourceResult:
+        async def read_resource(uri: AnyUrl | str) -> list[ReadResourceContents]:
             """
             Read a specific resource by URI.
             """
-            print(f"DEBUG: read_resource called with uri: {uri}")
-            print(f"DEBUG: uri type: {type(uri)}")
-            
-            # Convert AnyUrl to string if needed
-            if hasattr(uri, 'url') and uri.url:
-                uri = str(uri.url)
-                print(f"DEBUG: converted AnyUrl to string: {uri}")
-            elif hasattr(uri, '__str__'):
-                uri = str(uri)
-                print(f"DEBUG: converted to string: {uri}")
-            
+            uri = str(uri)
             context_request: Request | None = self.mcp_server.request_context.request
             if context_request is None:
                 raise ValueError(
@@ -434,125 +428,67 @@ class GradioMCPServer:
                 )
 
             route_path = self.get_route_path(context_request)
-            print(f"DEBUG: route_path: {route_path}")
-            
             root_url = route_utils.get_root_url(
                 request=context_request,
                 route_path=route_path,
                 root_path=self.root_path,
             )
-            print(f"DEBUG: root_url: {root_url}")
-
             client = await run_sync(
                 self._get_or_create_client, self.local_url or root_url
             )
-            print(f"DEBUG: client created successfully")
-
             for endpoint_name in self.tool_to_endpoint.values():
-                print(f"DEBUG: checking endpoint: {endpoint_name}")
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
-                print(f"DEBUG: block_fn found: {block_fn is not None}")
-                
+
                 if (
                     block_fn
                     and block_fn.fn
                     and hasattr(block_fn.fn, "_mcp_type")
                     and block_fn.fn._mcp_type == "resource"
                 ):
-                    print(f"DEBUG: found resource function: {block_fn.fn.__name__}")
                     uri_template = block_fn.fn._mcp_uri_template
                     parameters = re.findall(r"\{([^}]+)\}", uri_template)
 
                     kwargs = {}
                     matched = False
 
-                    print(f"DEBUG: parameters: {parameters}")
-                    print(f"DEBUG: uri_template: {uri_template}")
-                    print(f"DEBUG: uri: {uri}")
-
                     if parameters:
-                        print(f"DEBUG: processing parameters with regex")
                         pattern = re.escape(uri_template)
                         for param in parameters:
                             pattern = pattern.replace(
                                 f"\\{{{param}\\}}", f"(?P<{param}>[^/]+)"
                             )
-                        print(f"DEBUG: regex pattern: {pattern}")
                         match = re.match(f"^{pattern}$", uri)
-                        print(f"DEBUG: regex match result: {match}")
                         if match:
                             kwargs = match.groupdict()
-                            print(f"DEBUG: kwargs from regex: {kwargs}")
-                            print(f"DEBUG: kwargs types: {[(k, type(v)) for k, v in kwargs.items()]}")
                             matched = True
                     elif uri_template == uri:
-                        print(f"DEBUG: exact match found")
                         matched = True
 
-                    print(f"DEBUG: matched: {matched}")
                     if matched:
-                        print(f"DEBUG: about to process args")
                         if endpoint_name in self.api_info["named_endpoints"]:
                             parameters_info = self.api_info["named_endpoints"][
                                 endpoint_name
                             ]["parameters"]
-                            print(f"DEBUG: parameters_info: {parameters_info}")
-                            print(f"DEBUG: calling construct_args with kwargs: {kwargs}")
                             processed_args = client_utils.construct_args(
                                 parameters_info,
                                 (),
                                 kwargs,
                             )
-                            print(f"DEBUG: processed_args: {processed_args}")
                         else:
                             processed_args = list(kwargs.values())
-                            print(f"DEBUG: processed_args (fallback): {processed_args}")
 
-                        print(f"DEBUG: about to call client.submit with api_name: {endpoint_name}")
-                        print(f"DEBUG: starting client.submit loop")
                         async for update in client.submit(
                             *processed_args, api_name=endpoint_name
                         ):
-                            print(f"DEBUG: update type: {update.type}")
                             if update.type == "output" and update.final:
-                                print(f"DEBUG: final output received")
                                 output = update.outputs
-                                print(f"DEBUG: output: {output}")
                                 result = output["data"][0]
-                                print(f"DEBUG: result: {result}")
-                                print(f"DEBUG: result type: {type(result)}")
                                 break
 
                         mime_type = block_fn.fn._mcp_mime_type
-                        print(f"DEBUG: mime_type: {mime_type}")
-                        print(f"DEBUG: about to process result")
-                        # Check if this is a template (has parameters) or regular resource
-                        if parameters:
-                            # Template resource - return FunctionResource
-                            print(f"DEBUG: returning FunctionResource for template")
-                            result_obj = FunctionResource(
-                                uri=uri,
-                                name=block_fn.fn.__name__,
-                                title=block_fn.fn.__name__,
-                                description=block_fn.fn._mcp_description or "",
-                                mime_type=mime_type,
-                                fn=lambda: result,
-                            )
-                        else:
-                            # Regular resource - return Resource
-                            print(f"DEBUG: returning Resource for regular resource")
-                            result_obj = Resource(
-                                uri=uri,
-                                name=block_fn.fn.__name__,
-                                title=block_fn.fn.__name__,
-                                description=block_fn.fn._mcp_description or "",
-                                mime_type=mime_type,
-                            )
-                        
-                        print(f"DEBUG: returning result object: {result_obj}")
-                        print(f"DEBUG: result_obj type: {type(result_obj)}")
-                        print(f"DEBUG: result_obj attributes: {dir(result_obj)}")
-                        return result_obj
+                        return [
+                            ReadResourceContents(content=result, mime_type=mime_type)
+                        ]
 
             raise ValueError(f"Resource not found: {uri}")
 
@@ -645,9 +581,7 @@ class GradioMCPServer:
             else:
                 processed_args = list(arguments.values())
 
-            async for update in client.submit(
-                *processed_args, api_name=endpoint_name
-            ):
+            async for update in client.submit(*processed_args, api_name=endpoint_name):
                 if update.type == "output" and update.final:
                     output = update.outputs
                     result = output["data"][0]
