@@ -1,6 +1,6 @@
 ---
-"@gradio/image": minor
-"gradio": minor
+"@gradio/image": patch
+"gradio": patch
 ---
 
-feat:Exit fullscreen mode when gr.Image value is cleared 
+fix:Exit fullscreen mode when `gr.Image` value is cleared 
