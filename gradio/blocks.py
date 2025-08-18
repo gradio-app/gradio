@@ -15,6 +15,7 @@ import sys
 import threading
 import time
 import warnings
+import weakref
 import webbrowser
 from collections import defaultdict
 from collections.abc import AsyncIterator, Callable, Coroutine, Sequence, Set
@@ -1157,6 +1158,16 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     Guides: blocks-and-event-listeners, controlling-layout, state-in-blocks, custom-CSS-and-JS, using-blocks-like-functions
     """
 
+    # stores references to all currently existing Blocks instances
+    instances: weakref.WeakSet = weakref.WeakSet()
+
+    @classmethod
+    def get_instances(cls) -> list[Blocks]:
+        """
+        :return: list of all current instances.
+        """
+        return list(Blocks.instances)
+
     def __init__(
         self,
         theme: Theme | str | None = None,
@@ -1307,6 +1318,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 "version": get_package_version(),
             }
             analytics.initiated_analytics(data)
+
+        Blocks.instances.add(self)
 
         self.queue()
 
@@ -3091,6 +3104,9 @@ Received inputs:
         """
         Closes the Interface that was launched and frees the port.
         """
+        if not self.is_running:
+            return
+
         try:
             if wasm_utils.IS_WASM:
                 # NOTE:

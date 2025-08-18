@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
+	import { Play, Pause, Maximize, Undo } from "@gradio/icons";
 	import Video from "./Video.svelte";
 	import VideoControls from "./VideoControls.svelte";
 	import type { FileData, Client } from "@gradio/client";
@@ -168,7 +168,7 @@
 				on:click={open_full_screen}
 				on:keypress={open_full_screen}
 			>
-				<Maximise />
+				<Maximize />
 			</div>
 		</div>
 	</div>
