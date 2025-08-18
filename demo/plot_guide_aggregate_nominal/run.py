@@ -1,5 +1,5 @@
 import gradio as gr
-from data import df
+from data import df  # type: ignore
 
 with gr.Blocks() as demo:
     gr.BarPlot(df, x="ethnicity", y="height", y_aggregate="mean")

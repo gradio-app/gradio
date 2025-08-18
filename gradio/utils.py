@@ -495,7 +495,7 @@ def download_if_url(article: str) -> str:
     return article
 
 
-HASH_SEED_PATH = os.path.join(os.path.dirname(gradio.__file__), "hash_seed.txt")
+HASH_SEED_PATH = os.path.join(os.path.dirname(gradio.__file__), "hash_seed.txt")  # type: ignore
 
 
 def get_hash_seed() -> str:

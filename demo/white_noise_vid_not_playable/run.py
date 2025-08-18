@@ -1,4 +1,4 @@
-import cv2
+import cv2  # type: ignore
 import gradio as gr
 import numpy as np
 

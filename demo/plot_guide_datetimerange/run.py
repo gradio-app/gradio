@@ -1,6 +1,6 @@
 import gradio as gr
-from gradio_datetimerange import DateTimeRange
-from data import df
+from gradio_datetimerange import DateTimeRange  # type: ignore
+from data import df  # type: ignore
 
 with gr.Blocks() as demo:
     daterange = DateTimeRange(["now - 24h", "now"])

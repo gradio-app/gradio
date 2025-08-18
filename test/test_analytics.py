@@ -15,7 +15,7 @@ class TestAnalytics:
     @patch("httpx.get")
     def test_should_warn_with_unable_to_parse(self, mock_get, monkeypatch):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
-        mock_get.side_effect = json.decoder.JSONDecodeError("Expecting value", "", 0)
+        mock_get.side_effect = json.decoder.JSONDecodeError("Expecting value", "", 0)  # type: ignore
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")

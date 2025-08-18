@@ -48,8 +48,8 @@ def test_stable_diffusion_pipeline():
 
 @pytest.mark.flaky
 def test_interface_in_blocks():
-    pipe1 = transformers.pipeline(model="deepset/roberta-base-squad2")
-    pipe2 = transformers.pipeline(model="deepset/roberta-base-squad2")
+    pipe1 = transformers.pipeline(model="deepset/roberta-base-squad2")  # type: ignore
+    pipe2 = transformers.pipeline(model="deepset/roberta-base-squad2")  # type: ignore
     with gr.Blocks() as demo:
         with gr.Tab("Image Inference"):
             gr.Interface.from_pipeline(pipe1)
@@ -63,7 +63,7 @@ def test_interface_in_blocks():
 def test_transformers_load_from_pipeline():
     from transformers import pipeline
 
-    pipe = pipeline(model="deepset/roberta-base-squad2")
+    pipe = pipeline(model="deepset/roberta-base-squad2")  # type: ignore
     io = gr.Interface.from_pipeline(pipe)
     assert io.input_components[0].label == "Context"
     assert io.input_components[1].label == "Question"

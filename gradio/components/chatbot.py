@@ -508,7 +508,7 @@ class Chatbot(Component):
         if self.type == "tuples":
             if not isinstance(payload, ChatbotDataTuples):
                 raise Error("Data incompatible with the tuples format")
-            return self._preprocess_messages_tuples(cast(ChatbotDataTuples, payload))
+            return self._preprocess_messages_tuples(payload)
         if not isinstance(payload, ChatbotDataMessages):
             raise Error("Data incompatible with the messages format")
         message_dicts = []

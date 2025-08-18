@@ -1,5 +1,5 @@
 import gradio as gr
-from data import temp_sensor_data, food_rating_data
+from data import temp_sensor_data, food_rating_data  # type: ignore
 
 with gr.Blocks() as line_plots:
     with gr.Row():

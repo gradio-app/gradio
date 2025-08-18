@@ -1,5 +1,5 @@
 import gradio as gr
-from functions import get_status
+from functions import get_status  # type: ignore
 
 if gr.NO_RELOAD:
     def eat(food): # type: ignore

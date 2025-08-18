@@ -2,7 +2,7 @@ def main(url_or_space_id: str, source_directory: str):
     import requests
     from gradio_client.utils import is_http_url_like
     from huggingface_hub import space_info
-    from mcp.server.fastmcp import FastMCP
+    from mcp.server.fastmcp import FastMCP  # type: ignore
 
     from gradio.utils import abspath, is_in_or_equal
 

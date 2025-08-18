@@ -142,7 +142,7 @@ class Plot(Component):
             out_y = processing_utils.encode_plot_to_base64(value, self.format)
         elif "bokeh" in value.__module__:
             dtype = "bokeh"
-            from bokeh.embed import json_item
+            from bokeh.embed import json_item  # type: ignore
 
             out_y = json.dumps(json_item(value))
         else:

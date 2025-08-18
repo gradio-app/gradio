@@ -10,5 +10,4 @@ call scripts\helpers.bat pip_required
 echo Adding py.typed file to gradio.
 type nul > gradio\py.typed
 
-:: Run pyright
-python -m pyright
+ty check
