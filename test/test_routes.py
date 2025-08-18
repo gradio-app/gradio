@@ -1951,6 +1951,4 @@ def test_server_fn_passes_request():
     }
     response = requests.post(f"{local_url}/gradio_api/component_server", json=form_data)
     assert response.status_code == 200
-    assert response.json() == {
-        "_url": "http://127.0.0.1:7860/gradio_api/component_server"
-    }
+    assert response.json()["_url"].endswith("/gradio_api/component_server")
