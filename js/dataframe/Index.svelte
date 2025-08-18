@@ -9,7 +9,6 @@
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { Block } from "@gradio/atoms";
 	import Table from "./shared/Table.svelte";
-	import { Upload } from "@gradio/upload";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import type { Datatype, DataframeValue } from "./shared/utils/utils";
