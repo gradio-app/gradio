@@ -1507,6 +1507,7 @@ class App(FastAPI):
             request: fastapi.Request,
         ) -> Union[ComponentServerJSONBody, ComponentServerBlobBody]:
             content_type = request.headers.get("Content-Type")
+            print("content_type", content_type)
 
             if isinstance(content_type, str) and content_type.startswith(
                 "multipart/form-data"
