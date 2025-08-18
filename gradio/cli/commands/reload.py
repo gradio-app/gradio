@@ -119,6 +119,7 @@ def main(
         GRADIO_WATCH_MODULE_NAME=module_name,
         GRADIO_WATCH_DEMO_NAME=demo_name,
         GRADIO_WATCH_DEMO_PATH=str(path),
+        GRADIO_WATCH_ENCODING=encoding,
     )
 
     if "GRADIO_VIBE_MODE" in os.environ:

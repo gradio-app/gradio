@@ -170,6 +170,7 @@ class SourceFileReloader(BaseReloader):
         watch_module: ModuleType,
         stop_event: threading.Event,
         demo_name: str = "demo",
+        encoding="utf-8",
     ) -> None:
         super().__init__()
         self.app = app
@@ -179,6 +180,7 @@ class SourceFileReloader(BaseReloader):
         self.demo_name = demo_name
         self.demo_file = Path(demo_file)
         self.watch_module = watch_module
+        self.encoding = encoding
 
     @property
     def running_app(self) -> App:
@@ -203,14 +205,14 @@ class SourceFileReloader(BaseReloader):
         self.alert_change("reload")
 
 
-def _remove_if_name_main_codeblock(file_path: str):
+def _remove_if_name_main_codeblock(file_path: str, encoding: str = "utf-8") -> str:
     """Parse the file, remove the gr.no_reload code blocks, and write the file back to disk.
 
     Parameters:
         file_path (str): The path to the file to remove the no_reload code blocks from.
     """
 
-    with open(file_path, encoding="utf-8") as file:
+    with open(file_path, encoding=encoding) as file:
         code = file.read()
 
     tree = ast.parse(code)
@@ -310,7 +312,9 @@ def watchfn(reloader: SourceFileReloader):
     # Need to import the module in this thread so that the
     # module is available in the namespace of this thread
     module = reloader.watch_module
-    no_reload_source_code = _remove_if_name_main_codeblock(str(reloader.demo_file))
+    no_reload_source_code = _remove_if_name_main_codeblock(
+        str(reloader.demo_file), encoding=reloader.encoding
+    )
     # Reset the context to id 0 so that the loaded module is the same as the original
     # See https://github.com/gradio-app/gradio/issues/10253
     from gradio.context import Context
@@ -343,7 +347,7 @@ def watchfn(reloader: SourceFileReloader):
                 NO_RELOAD.set(False)
                 # Remove the gr.no_reload code blocks and exec in the new module's dict
                 no_reload_source_code = _remove_if_name_main_codeblock(
-                    str(reloader.demo_file)
+                    str(reloader.demo_file), encoding=reloader.encoding
                 )
                 exec(no_reload_source_code, module.__dict__)
 
