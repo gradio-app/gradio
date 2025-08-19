@@ -52,8 +52,8 @@
 	export let show_label = true;
 	export let headers: Headers = [];
 	export let values: (string | number)[][] = [];
-	export let col_count: [number, "fixed" | "dynamic"];
-	export let row_count: [number, "fixed" | "dynamic"];
+	export let col_count: [number, "fixed" | "dynamic"] = [0, "dynamic"];
+	export let row_count: [number, "fixed" | "dynamic"] = [0, "dynamic"];
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -413,7 +413,7 @@
 	async function add_row(index?: number): Promise<void> {
 		parent.focus();
 
-		if (row_count[1] !== "dynamic") return;
+		if (Array.isArray(row_count) && row_count[1] !== "dynamic") return;
 
 		const new_row = Array(data[0]?.length || headers.length)
 			.fill(0)
@@ -436,7 +436,7 @@
 
 	async function add_col(index?: number): Promise<void> {
 		parent.focus();
-		if (col_count[1] !== "dynamic") return;
+		if (Array.isArray(col_count) && col_count[1] !== "dynamic") return;
 
 		const result = df_actions.add_col(data, headers, make_id, index);
 
@@ -632,7 +632,7 @@
 	});
 
 	function delete_col_at(index: number): void {
-		if (col_count[1] !== "dynamic") return;
+		if (Array.isArray(col_count) && col_count[1] !== "dynamic") return;
 		if (data[0].length <= 1) return;
 
 		const result = df_actions.delete_col_at(data, headers, index);
@@ -1035,7 +1035,7 @@
 		{/if}
 	</div>
 </div>
-{#if data.length === 0 && editable && row_count[1] === "dynamic"}
+{#if data.length === 0 && editable && (Array.isArray(row_count) ? row_count[1] === "dynamic" : true)}
 	<EmptyRowButton on_click={() => add_row()} />
 {/if}
 
