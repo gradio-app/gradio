@@ -1,43 +1,20 @@
 <script lang="ts">
 	import Table from "../shared/Table.svelte";
-	import "./dataframe.css";
+	import type { Datatype, DataframeValue } from "../shared/utils/utils";
+	import type { I18nFormatter } from "@gradio/utils";
 
-	const default_i18n: Record<string, string> = {
-		"dataframe.add_row_above": "Add row above",
-		"dataframe.add_row_below": "Add row below",
-		"dataframe.delete_row": "Delete row",
-		"dataframe.add_column_left": "Add column left",
-		"dataframe.add_column_right": "Add column right",
-		"dataframe.delete_column": "Delete column",
-		"dataframe.sort_asc": "Sort ascending",
-		"dataframe.sort_desc": "Sort descending",
-		"dataframe.sort_ascending": "Sort ascending",
-		"dataframe.sort_descending": "Sort descending",
-		"dataframe.clear_sort": "Clear sort",
-		"dataframe.filter": "Filter",
-		"dataframe.clear_filter": "Clear filter",
-		"dataframe.copy": "Copy",
-		"dataframe.paste": "Paste",
-		"dataframe.cut": "Cut",
-		"dataframe.select_all": "Select all",
-		"dataframe.fullscreen": "Fullscreen",
-		"dataframe.exit_fullscreen": "Exit fullscreen",
-		"dataframe.search": "Search",
-		"dataframe.export": "Export",
-		"dataframe.import": "Import",
-		"dataframe.edit": "Edit",
-		"dataframe.save": "Save",
-		"dataframe.cancel": "Cancel",
-		"dataframe.confirm": "Confirm",
-		"dataframe.reset": "Reset",
-		"dataframe.clear": "Clear",
-		"dataframe.undo": "Undo",
-		"dataframe.redo": "Redo"
+	export let i18n: I18nFormatter;
+	const i18n_fn = (key: string | null | undefined): string => {
+		if (!key) return "";
+		return i18n[key] ?? key;
 	};
 
-	export let value: (string | number)[][] = [];
-	export let headers: string[] = [];
-	export let datatype: any = "str";
+	export let value: DataframeValue = {
+		data: [["", "", ""]],
+		headers: ["1", "2", "3"],
+		metadata: null
+	};
+	export let datatype: Datatype | Datatype[];
 	export let editable = true;
 	export let show_row_numbers = false;
 	export let max_height = 500;
@@ -54,34 +31,17 @@
 	export let label: string | null = null;
 	export let show_label = true;
 	export let latex_delimiters: any[] = [];
-	export let components: Record<string, any> = {};
-	export let col_count: [number, "fixed" | "dynamic"] = [
-		headers.length,
-		"dynamic"
-	];
-	export let row_count: [number, "fixed" | "dynamic"] = [
-		value.length,
-		"dynamic"
-	];
+	export let col_count: [number, "fixed" | "dynamic"];
+	export let row_count: [number, "fixed" | "dynamic"];
+
 	export let root = "";
-	export let i18n: (key: string) => string = (key: string) =>
-		default_i18n[key] ?? key;
-	export let value_is_output = false;
-	export let display_value: string[][] | null = null;
-	export let styling: string[][] | null = null;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
-	export let visible = true;
 </script>
 
-<div
-	class="gradio-dataframe-standalone {elem_classes.join(' ')}"
-	class:visible
-	id={elem_id}
->
+<div class="gradio-dataframe-standalone {elem_classes.join(' ')}" id={elem_id}>
 	<Table
-		{value}
-		{headers}
+		values={value.data}
 		{datatype}
 		{editable}
 		{show_row_numbers}
@@ -99,30 +59,17 @@
 		{label}
 		{show_label}
 		{latex_delimiters}
-		{components}
 		{col_count}
 		{row_count}
 		{root}
-		{i18n}
-		{value_is_output}
-		{display_value}
-		{styling}
-		{elem_id}
-		{elem_classes}
-		{visible}
+		i18n={i18n_fn}
 		on:change
 		on:blur
 		on:keydown
 		on:input
 		on:select
 		on:fullscreen
+		upload={async () => null}
+		stream_handler={() => new EventSource("about:blank")}
 	/>
 </div>
-
-<style>
-	.gradio-dataframe-standalone {
-		width: 100%;
-		height: 100%;
-		overflow: hidden;
-	}
-</style>
