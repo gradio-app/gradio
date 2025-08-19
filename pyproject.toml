@@ -101,7 +101,10 @@ include = [
   "/client/js",
 ]
 
-[tool.pyright]
+[tool.ty]
+environment.extra-paths = ["gradio/stubs"]
+
+[tool.ty.src]
 include = [
   "gradio/**/*.py",
   "demo/**/*.py",
@@ -113,10 +116,8 @@ exclude = [
   "gradio/components/*_plot.py",
   "gradio/node/*.py",
   "gradio/_frontend_code/*.py",
+  "gradio/cli/commands/cli_env_info.py"
 ]
-stubPath = "gradio/stubs"
-extraPaths = ["gradio/stubs"]
-reportMissingImports = false
 
 [tool.ruff]
 exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py"]

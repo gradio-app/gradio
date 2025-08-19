@@ -27,7 +27,9 @@ app_map = {}
 # Context variables are natively supported in asyncio and
 # can manage data in each task (https://docs.python.org/3/library/contextvars.html#asyncio-support),
 # so we can use them for this purpose.
-_app_id_context_var: ContextVar[str | None] = ContextVar("app_id", default=None)
+_app_id_context_var: ContextVar[str | None] = ContextVar[str | None](
+    "app_id", default=None
+)
 
 
 @contextmanager
@@ -41,7 +43,7 @@ def app_id_context(app_id: str):
 # for the Wasm worker to get a reference to
 # the Gradio's FastAPI app instance (`app`).
 def register_app(_app):
-    app_id = _app_id_context_var.get()
+    app_id = _app_id_context_var.get(None)
 
     if app_id in app_map:
         app = app_map[app_id]
@@ -79,7 +81,7 @@ def send_error(error: Exception | None):
     if error is None:
         return
 
-    app_id = _app_id_context_var.get()
+    app_id = _app_id_context_var.get(None)
     callback = error_traceback_callback_map.get(app_id)
     if not callback:
         LOGGER.warning(
