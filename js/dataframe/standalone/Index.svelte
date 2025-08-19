@@ -12,7 +12,7 @@
 	export let value: DataframeValue = {
 		data: [["", "", ""]],
 		headers: ["1", "2", "3"],
-		metadata: null,
+		metadata: null
 	};
 	export let datatype: Datatype | Datatype[] = [];
 	export let editable = true;
