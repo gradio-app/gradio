@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import re
-from typing import Annotated, Optional
+from typing import Annotated
 
 import huggingface_hub
 from rich import print
@@ -118,9 +118,9 @@ def format_title(title: str):
 
 
 def deploy(
-    title: Annotated[Optional[str], Option(help="Spaces app title")] = None,
+    title: Annotated[str | None, Option(help="Spaces app title")] = None,
     app_file: Annotated[
-        Optional[str], Option(help="File containing the Gradio app")
+        str | None, Option(help="File containing the Gradio app")
     ] = None,
 ):
     if (
