@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix render visiblity issue
+fix:Ensure it is possible to use `@render` to generate Tabs
