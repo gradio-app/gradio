@@ -1260,15 +1260,6 @@ importers:
       dequal:
         specifier: ^2.0.2
         version: 2.0.2
-      dompurify:
-        specifier: ^3.0.3
-        version: 3.0.3
-      katex:
-        specifier: ^0.16.7
-        version: 0.16.10
-      marked:
-        specifier: ^12.0.0
-        version: 12.0.0
       svelte:
         specifier: '>=4.0.0 <6.0.0'
         version: 4.2.15

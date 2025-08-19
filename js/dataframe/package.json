@@ -20,10 +20,7 @@
 		"@types/dompurify": "^3.0.2",
 		"@types/katex": "^0.16.0",
 		"d3-dsv": "^3.0.1",
-		"dequal": "^2.0.2",
-		"dompurify": "^3.0.3",
-		"katex": "^0.16.7",
-		"marked": "^12.0.0"
+		"dequal": "^2.0.2"
 	},
 	"exports": {
 		".": {
