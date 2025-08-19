@@ -228,7 +228,7 @@ class GradioMCPServer:
             )
         return self._client_instance
 
-    def create_mcp_server(self) -> Server:
+    def create_mcp_server(self) -> "Server":
         """
         Create an MCP server for the given Gradio Blocks app.
 
@@ -1031,7 +1031,7 @@ class GradioMCPServer:
 
     def postprocess_output_data(
         self, data: Any, root_url: str
-    ) -> list[types.TextContent | types.ImageContent]:
+    ) -> list["types.TextContent | types.ImageContent"]:
         """
         Postprocess the output data from the Gradio app to convert FileData objects back to base64 encoded strings.
 
