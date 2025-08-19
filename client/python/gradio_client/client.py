@@ -758,7 +758,7 @@ class Client:
             ImportError
         ):  # this is not running within a Gradio app as Gradio is not installed
             return headers
-        request = LocalContext.request.get()
+        request = LocalContext.request.get(None)
         if request and hasattr(request, "headers") and "x-ip-token" in request.headers:
             headers["x-ip-token"] = request.headers["x-ip-token"]
         return headers
