@@ -13,6 +13,7 @@ from .commands import (
     sketch,
     upload_mcp,
 )
+from gradio import analytics
 
 app = typer.Typer()
 app.command("environment", help="Print Gradio environment information.")(
@@ -51,6 +52,7 @@ def cli():
         from pathlib import Path
 
         os.environ["GRADIO_VIBE_MODE"] = "1"
+        analytics.vibe_analytics()
 
         demo_path = Path("demo.py") if len(args) == 1 else Path(args[1])
 
