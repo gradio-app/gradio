@@ -11,7 +11,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Literal,
-    Optional,
     Union,
     cast,
 )
@@ -35,33 +34,33 @@ ImageType = Union[np.ndarray, PIL.Image.Image, str]
 
 
 class EditorValue(TypedDict):
-    background: Optional[ImageType]
+    background: ImageType | None
     layers: list[ImageType]
-    composite: Optional[ImageType]
+    composite: ImageType | None
 
 
 class EditorExampleValue(TypedDict):
-    background: Optional[str]
-    layers: Optional[list[Union[str, None]]]
-    composite: Optional[str]
+    background: str | None
+    layers: list[Union[str, None]] | None
+    composite: str | None
 
 
 class EditorData(GradioModel):
-    background: Optional[FileData] = None
+    background: FileData | None = None
     layers: list[FileData] = []
-    composite: Optional[FileData] = None
-    id: Optional[str] = None
+    composite: FileData | None = None
+    id: str | None = None
 
 
 class EditorDataBlobs(GradioModel):
-    background: Optional[bytes]
+    background: bytes | None
     layers: list[Union[bytes, None]]
-    composite: Optional[bytes]
+    composite: bytes | None
 
 
 class BlobData(TypedDict):
     type: str
-    index: Optional[int]
+    index: int | None
     file: bytes
     id: str
 

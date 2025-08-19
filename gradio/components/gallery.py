@@ -9,7 +9,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Literal,
-    Optional,
     Union,
 )
 from urllib.parse import quote, urlparse
@@ -37,12 +36,12 @@ CaptionedGalleryMediaType = tuple[GalleryMediaType, str]
 
 class GalleryImage(GradioModel):
     image: ImageData
-    caption: Optional[str] = None
+    caption: str | None = None
 
 
 class GalleryVideo(GradioModel):
     video: FileData
-    caption: Optional[str] = None
+    caption: str | None = None
 
 
 class GalleryData(GradioRootModel):
