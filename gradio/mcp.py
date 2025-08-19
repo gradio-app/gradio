@@ -1,3 +1,4 @@
+
 import base64
 import contextlib
 import copy
@@ -30,6 +31,10 @@ from gradio.components import State
 from gradio.route_utils import Header
 
 if TYPE_CHECKING:
+    from mcp import types  # noqa: F401
+    from mcp.server import Server  # noqa: F401
+    from mcp.server.lowlevel.helper_types import ReadResourceContents  # noqa: F401
+
     from gradio.blocks import BlockContext, Blocks
     from gradio.components import Component
 
@@ -511,6 +516,8 @@ class GradioMCPServer:
                                 break
 
                         mime_type = block_fn.fn._mcp_mime_type
+                        if mime_type != "text/plain":
+                            result = base64.b64decode(result.encode("ascii"))
                         return [
                             self.ReadResourceContents(
                                 content=result, mime_type=mime_type
