@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.12.1
+
+### Features
+
+- [#11744](https://github.com/gradio-app/gradio/pull/11744) [`f54e454`](https://github.com/gradio-app/gradio/commit/f54e454d6c2e256873f49e8bfb89f7161ec0a040) - fix client.  Thanks @abidlabs!
+
 ## 1.12.0
 
 ### Features

@@ -1,5 +1,12 @@
 # gradio
 
+## 5.43.1
+
+### Features
+
+- [#11744](https://github.com/gradio-app/gradio/pull/11744) [`f54e454`](https://github.com/gradio-app/gradio/commit/f54e454d6c2e256873f49e8bfb89f7161ec0a040) - fix client.  Thanks @abidlabs!
+- [#11743](https://github.com/gradio-app/gradio/pull/11743) [`a420ef4`](https://github.com/gradio-app/gradio/commit/a420ef42e895fb78f78c835923f10c5da8fb873c) - Remove unneeded `svelte-ignore` lines in gr.Dialogue.  Thanks @hannahblair!
+
 ## 5.43.0
 
 ### Features
