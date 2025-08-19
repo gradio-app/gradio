@@ -1,5 +1,35 @@
 # @gradio/core
 
+## 0.27.0
+
+### Features
+
+- [#11723](https://github.com/gradio-app/gradio/pull/11723) [`379f0c1`](https://github.com/gradio-app/gradio/commit/379f0c151943b5f269910eba4a4c7abc6145a11c) - Support MCP resources and prompts.  Thanks @abidlabs!
+
+### Fixes
+
+- [#11725](https://github.com/gradio-app/gradio/pull/11725) [`080f888`](https://github.com/gradio-app/gradio/commit/080f888e3b173b5b2deef5eaf9754f2a63adf1aa) - Ensure it is possible to use `@render` to generate Tabs.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.14.15
+- @gradio/statustracker@0.10.17
+- @gradio/paramviewer@0.7.15
+- @gradio/atoms@0.16.5
+- @gradio/column@0.2.1
+- @gradio/client@1.17.1
+- @gradio/icons@0.13.0
+- @gradio/upload@0.16.15
+- @gradio/image@0.22.17
+- @gradio/dropdown@0.10.2
+- @gradio/textbox@0.10.20
+- @gradio/button@0.5.11
+- @gradio/gallery@0.15.31
+- @gradio/plot@0.9.22
+- @gradio/checkbox@0.4.28
+- @gradio/file@0.12.28
+- @gradio/video@0.15.0
+
 ## 0.26.0
 
 ### Features

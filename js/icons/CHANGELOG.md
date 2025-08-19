@@ -1,5 +1,11 @@
 # @gradio/icons
 
+## 0.13.0
+
+### Features
+
+- [#11721](https://github.com/gradio-app/gradio/pull/11721) [`58d9d9e`](https://github.com/gradio-app/gradio/commit/58d9d9e98194dada5267ac1599063cf21723cbde) - Remove dupe maximise/maximize icon.  Thanks @hannahblair!
+
 ## 0.12.0
 
 ### Features
