@@ -16,11 +16,6 @@ import httpx
 from anyio.to_thread import run_sync
 from gradio_client import Client, handle_file
 from gradio_client.utils import Status, StatusUpdate
-from mcp import types
-from mcp.server import Server
-from mcp.server.lowlevel.helper_types import ReadResourceContents
-from mcp.server.sse import SseServerTransport
-from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from PIL import Image
 from pydantic import AnyUrl
 from starlette.applications import Starlette
@@ -46,11 +41,18 @@ DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
 
 class GradioMCPServer:
     """
-    A class for creating an MCP server around a Gradio app.
+    A class for creating an MCP server around a Gradio app. This class
+    requires `mcp` to be installed.
 
     Args:
         blocks: The Blocks app to create the MCP server for.
     """
+
+    from mcp import types
+    from mcp.server import Server
+    from mcp.server.lowlevel.helper_types import ReadResourceContents
+    from mcp.server.sse import SseServerTransport
+    from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 
     def __init__(self, blocks: "Blocks"):
         self.blocks = blocks
@@ -64,7 +66,7 @@ class GradioMCPServer:
         self._local_url: str | None = None
         self._client_instance: Client | None = None
 
-        manager = StreamableHTTPSessionManager(
+        manager = self.StreamableHTTPSessionManager(
             app=self.mcp_server, json_response=False, stateless=True
         )
 
@@ -219,12 +221,12 @@ class GradioMCPServer:
         Returns:
             The MCP server.
         """
-        server = Server(str(self.blocks.title or "Gradio App"))
+        server = self.Server(str(self.blocks.title or "Gradio App"))
 
         @server.call_tool()
         async def call_tool(
             name: str, arguments: dict[str, Any]
-        ) -> list[types.TextContent | types.ImageContent]:
+        ) -> list[self.types.TextContent | self.types.ImageContent]:
             """
             Call a tool on the Gradio app.
 
@@ -338,7 +340,7 @@ class GradioMCPServer:
             return self.postprocess_output_data(output["data"], root_url)
 
         @server.list_tools()
-        async def list_tools() -> list[types.Tool]:
+        async def list_tools() -> list[self.types.Tool]:
             """
             List all tools on the Gradio app.
             """
@@ -363,7 +365,7 @@ class GradioMCPServer:
                 description, parameters = self.get_fn_description(block_fn, tool_name)
                 schema, _ = self.get_input_schema(tool_name, parameters)
                 tools.append(
-                    types.Tool(
+                    self.types.Tool(
                         name=tool_name,
                         description=description,
                         inputSchema=schema,
@@ -372,7 +374,7 @@ class GradioMCPServer:
             return tools
 
         @server.list_resources()
-        async def list_resources() -> list[types.Resource]:
+        async def list_resources() -> list[self.types.Resource]:
             """
             List all available resources.
             """
@@ -396,7 +398,7 @@ class GradioMCPServer:
                     )
                     if not parameters:
                         resources.append(
-                            types.Resource(
+                            self.types.Resource(
                                 uri=uri_template,
                                 name=block_fn.fn.__name__,
                                 description=description,
@@ -406,7 +408,7 @@ class GradioMCPServer:
             return resources
 
         @server.list_resource_templates()
-        async def list_resource_templates() -> list[types.ResourceTemplate]:
+        async def list_resource_templates() -> list[self.types.ResourceTemplate]:
             """
             List all available resource templates.
             """
@@ -430,7 +432,7 @@ class GradioMCPServer:
                     )
                     if parameters:
                         templates.append(
-                            types.ResourceTemplate(
+                            self.types.ResourceTemplate(
                                 uriTemplate=uri_template,
                                 name=block_fn.fn.__name__,
                                 description=description,
@@ -440,7 +442,7 @@ class GradioMCPServer:
             return templates
 
         @server.read_resource()
-        async def read_resource(uri: AnyUrl | str) -> list[ReadResourceContents]:
+        async def read_resource(uri: AnyUrl | str) -> list[self.ReadResourceContents]:
             """
             Read a specific resource by URI.
             """
@@ -497,13 +499,15 @@ class GradioMCPServer:
 
                         mime_type = block_fn.fn._mcp_mime_type
                         return [
-                            ReadResourceContents(content=result, mime_type=mime_type)
+                            self.ReadResourceContents(
+                                content=result, mime_type=mime_type
+                            )
                         ]
 
             raise ValueError(f"Resource not found: {uri}")
 
         @server.list_prompts()
-        async def list_prompts() -> list[types.Prompt]:
+        async def list_prompts() -> list[self.types.Prompt]:
             """
             List all available prompts.
             """
@@ -524,13 +528,13 @@ class GradioMCPServer:
                         block_fn.fn
                     )
                     arguments = [
-                        types.PromptArgument(
+                        self.types.PromptArgument(
                             name=param_name, description=param_description
                         )
                         for param_name, param_description in parameters.items()
                     ]
                     prompts.append(
-                        types.Prompt(
+                        self.types.Prompt(
                             name=tool_name,
                             description=description,
                             arguments=arguments,
@@ -541,7 +545,7 @@ class GradioMCPServer:
         @server.get_prompt()
         async def get_prompt(
             name: str, arguments: dict[str, Any] | None = None
-        ) -> types.GetPromptResult:
+        ) -> self.types.GetPromptResult:
             """
             Get a specific prompt with filled-in arguments.
             """
@@ -585,11 +589,11 @@ class GradioMCPServer:
                     result = output["data"][0]
                     break
 
-            return types.GetPromptResult(
+            return self.types.GetPromptResult(
                 messages=[
-                    types.PromptMessage(
+                    self.types.PromptMessage(
                         role="user",
-                        content=types.TextContent(type="text", text=str(result)),
+                        content=self.types.TextContent(type="text", text=str(result)),
                     )
                 ]
             )
@@ -606,7 +610,7 @@ class GradioMCPServer:
             root_path: The root path of the Gradio Blocks app.
         """
         messages_path = "/messages/"
-        sse = SseServerTransport(messages_path)
+        sse = self.SseServerTransport(messages_path)
         self.root_path = root_path
 
         async def handle_sse(request):
@@ -1026,10 +1030,10 @@ class GradioMCPServer:
                 )
                 svg_url = f"{root_url}/gradio_api/file={svg_path}"
                 return_value = [
-                    types.ImageContent(
+                    self.types.ImageContent(
                         type="image", data=base64_data, mimeType=mimetype
                     ),
-                    types.TextContent(
+                    self.types.TextContent(
                         type="text",
                         text=f"SVG Image URL: {svg_url}",
                     ),
@@ -1040,22 +1044,22 @@ class GradioMCPServer:
                     base64_data = self.get_base64_data(image, image_format)
                     mimetype = f"image/{image_format.lower()}"
                     return_value = [
-                        types.ImageContent(
+                        self.types.ImageContent(
                             type="image", data=base64_data, mimeType=mimetype
                         ),
-                        types.TextContent(
+                        self.types.TextContent(
                             type="text",
                             text=f"Image URL: {output['url'] or output['path']}",
                         ),
                     ]
                 else:
                     return_value = [
-                        types.TextContent(
+                        self.types.TextContent(
                             type="text", text=str(output["url"] or output["path"])
                         )
                     ]
             else:
-                return_value = [types.TextContent(type="text", text=str(output))]
+                return_value = [self.types.TextContent(type="text", text=str(output))]
             return_values.extend(return_value)
         return return_values
 
