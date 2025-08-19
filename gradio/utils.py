@@ -146,6 +146,8 @@ class BaseReloader(ABC):
         demo.has_launched = True
         demo.max_file_size = self.running_app.blocks.max_file_size
         demo.is_running = True
+        demo.allowed_paths = self.running_app.blocks.allowed_paths
+        demo.blocked_paths = self.running_app.blocks.blocked_paths
         self.running_app.state_holder.set_blocks(demo)
         for session in self.running_app.state_holder.session_data.values():
             session.blocks_config = copy.copy(demo.default_config)
