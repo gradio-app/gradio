@@ -546,11 +546,14 @@ class GradioMCPServer:
                     description, parameters, _ = utils.get_function_description(
                         block_fn.fn
                     )
+                    function_params = utils.get_function_params(block_fn.fn)
                     arguments = [
                         self.types.PromptArgument(
-                            name=param_name, description=param_description
+                            name=param_name,
+                            description=parameters.get(param_name, ""),
+                            required=not has_default,
                         )
-                        for param_name, param_description in parameters.items()
+                        for param_name, has_default, _, _ in function_params
                     ]
                     prompts.append(
                         self.types.Prompt(
