@@ -82,6 +82,7 @@ from gradio.data_classes import (
     VibeEditBody,
 )
 from gradio.exceptions import Error, InvalidPathError
+from gradio.helpers import special_args
 from gradio.i18n import I18n
 from gradio.node_server import (
     start_node_server,
@@ -300,7 +301,7 @@ class App(FastAPI):
         auth = blocks.auth
         if auth is not None:
             if not callable(auth):
-                self.auth = {account[0]: account[1] for account in auth}
+                self.auth = {account[0]: account[1] for account in auth}  # type: ignore
             else:
                 self.auth = auth
         else:
@@ -535,7 +536,7 @@ class App(FastAPI):
                 return RedirectResponse(url=root, status_code=status.HTTP_302_FOUND)
             if (
                 not callable(app.auth)
-                and username in app.auth
+                and username in app.auth  # type: ignore
                 and compare_passwords_securely(password, app.auth[username])  # type: ignore
             ) or (callable(app.auth) and app.auth.__call__(username, password)):  # type: ignore
                 token = secrets.token_urlsafe(16)
@@ -1053,7 +1054,7 @@ class App(FastAPI):
         @router.post("/stream/{event_id}")
         async def _(event_id: str, body: PredictBody, request: fastapi.Request):
             event = app.get_blocks()._queue.event_ids_to_events[event_id]
-            body = PredictBodyInternal(**body.model_dump(), request=request)
+            body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
             event.data = body
             event.signal.set()
             return {"msg": "success"}
@@ -1064,9 +1065,9 @@ class App(FastAPI):
             try:
                 while True:
                     data = await websocket.receive_json()
-                    body = PredictBody(**data)
+                    body = PredictBody(**data)  # type: ignore
                     event = app.get_blocks()._queue.event_ids_to_events[event_id]
-                    body_internal = PredictBodyInternal(
+                    body_internal = PredictBodyInternal(  # type: ignore
                         **body.model_dump(), request=None
                     )
                     event.data = body_internal
@@ -1256,7 +1257,7 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            body = PredictBodyInternal(**body.model_dump(), request=request)
+            body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=body
             )
@@ -1303,7 +1304,7 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            full_body = PredictBody(**body.model_dump(), simple_format=True)
+            full_body = PredictBody(**body.model_dump(), simple_format=True)  # type: ignore
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=full_body
             )
@@ -1338,7 +1339,7 @@ class App(FastAPI):
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     detail="Queue is stopped.",
                 )
-            body = PredictBodyInternal(**body.model_dump(), request=request)
+            body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
             success, event_id = await blocks._queue.push(
                 body=body, request=request, username=username
             )
@@ -1506,6 +1507,7 @@ class App(FastAPI):
             request: fastapi.Request,
         ) -> Union[ComponentServerJSONBody, ComponentServerBlobBody]:
             content_type = request.headers.get("Content-Type")
+            print("content_type", content_type)
 
             if isinstance(content_type, str) and content_type.startswith(
                 "multipart/form-data"
@@ -1580,10 +1582,16 @@ class App(FastAPI):
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="Function not found.",
                 )
+            processed_input, _, _ = special_args(
+                fn,
+                [body.data],
+                request,  # type: ignore
+                None,
+            )
             if inspect.iscoroutinefunction(fn):
-                return await fn(body.data)
+                return await fn(*processed_input)
             else:
-                return fn(body.data)
+                return fn(*processed_input)
 
         @router.get(
             "/queue/status",
