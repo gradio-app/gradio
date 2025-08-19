@@ -19,13 +19,16 @@ Usage (Svelte/SvelteKit)
 <script lang="ts">
   import Dataframe from "@gradio/dataframe";
 
-  const data = [
-    ["Alice", 25, true],
-    ["Bob", 30, false]
-  ];
+  const value = {
+    data: [
+      ["Alice", 25, true],
+      ["Bob", 30, false]
+    ],
+    headers: ["Name", "Age", "Active"],
+    metadata: null
+  };
 
-  const headers = ["Name", "Age", "Active"];
-  const datatype = ["str", "number", "bool"];
+  const datatype = ["str", "number", "bool"]; // Optional
 
   function handle_change(e: any) {
     console.log("changed", e.detail);
@@ -41,8 +44,7 @@ Usage (Svelte/SvelteKit)
 </script>
 
 <Dataframe
-  value={data}
-  {headers}
+  {value}
   {datatype}
   show_search="search"
   show_row_numbers={true}
@@ -60,21 +62,14 @@ Props
 
 | Prop                    | Type                                   | Default   | Description                                                |
 |-------------------------|----------------------------------------|-----------|------------------------------------------------------------|
-| `value`                 | `(string \| number \| boolean)[][]`      | —         | Table data as rows x columns.                              |
-| `headers`               | `string[]`                              | `[]` or inferred | Column headers.                                      |
-| `datatype`              | `string[] \| string`                   | `"str"`   | Per-column or global: `"str"`, `"number"`, `"bool"`, `"date"`, `"markdown"`, `"html"`. |
-| `editable`              | `boolean`                               | `false`   | Enable cell editing.                                       |
-| `show_row_numbers`      | `boolean`                               | `false`   | Show a row-number column.                                  |
-| `max_height`            | `number`                                | —         | Max table height (px); scrolls when exceeded.              |
-| `show_search`           | `"none" \| "search" \| "filter"`       | `"none"`  | Show search input (and filter UI when `"filter"`).         |
-| `show_copy_button`      | `boolean`                               | `false`   | Show copy-to-clipboard button.                             |
-| `show_fullscreen_button`| `boolean`                               | `false`   | Show fullscreen toggle button.                             |
-| `wrap`                  | `boolean`                               | `false`   | Wrap cell text (otherwise may scroll horizontally).        |
-| `line_breaks`           | `boolean`                               | `true`    | Enable GFM line breaks in markdown cells.                  |
-| `column_widths`         | `string[]`                              | —         | Width per column, e.g. `"120px"` or `"15%"`.               |
-| `max_chars`             | `number`                                | —         | Truncate cell display after N characters.                  |
-| `pinned_columns`        | `number`                                | `0`       | Pin N columns from the left.                               |
-| `static_columns`        | `(string \| number)[]`                 | `[]`      | Disable edits/structure for these columns.                 |
+| `value`                 | `object`                               | —         | Object containing `data` (array of rows), `headers` (array of column names), and `metadata` |
+| `datatype`              | `string[]`                             | `[]`      | Array of data types for each column: `"str"`, `"number"`, `"bool"`, `"date"`, `"markdown"`, `"html"` |
+| `i18n`                  | `object`                               | `{}`      | Internationalization object for translations               |
+| `editable`              | `boolean`                               | `true`    | Enable cell editing                                        |
+| `show_row_numbers`      | `boolean`                               | `true`    | Show a row-number column                                   |
+| `show_search`           | `string \| boolean`                     | `"search"` | Show search input. Can be `true`, `false`, or custom text |
+| `show_copy_button`      | `boolean`                               | `true`    | Show copy-to-clipboard button                              |
+| `show_fullscreen_button`| `boolean`                               | `true`    | Show fullscreen toggle button                              |
 | `fullscreen`            | `boolean`                               | `false`   | Control fullscreen state externally.                       |
 | `label`                 | `string \| null`                       | `null`    | Accessible caption for the table.                          |
 | `show_label`            | `boolean`                               | `true`    | Show/hide the label visually.                              |
@@ -111,7 +106,7 @@ Custom Styling
 
 The package publishes `dataframe.css` with the default styles. You can override the styles by adding your own CSS.
 
-Option 1: Override the internal design tokens
+Override the internal design tokens
 
 ```svelte
   <div class="df-theme">
@@ -127,39 +122,6 @@ Option 1: Override the internal design tokens
         --table-odd-background-fill: #0e1530;
         --body-text-color: #e5e7eb;
         --input-text-size: 14px;
-      }
-    </style>
-```
-
-Option 2: Override the internal styles
-
-```svelte
-    <div class="df-override">
-      <Dataframe ... />
-    </div>
-
-    <style>
-      /* Border only wraps the actual table */
-      .df-override :global(.table-wrap) {
-        border: 1px solid #7c3aed;
-        border-radius: 10px;
-        overflow: hidden;
-      }
-
-      /* Header/row styling */
-      .df-override :global(.thead th) {
-        background: #1f2937;
-        color: #fff;
-      }
-
-      .df-override :global(.tbody td) {
-        padding: 8px 10px;
-      }
-
-      /* Pinned column divider */
-      .df-override :global(td.last-pinned),
-      .df-override :global(th.last-pinned) {
-        border-right: 1px solid #7c3aed;
       }
     </style>
 ```

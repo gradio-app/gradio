@@ -1,5 +1,5 @@
 import { dequal } from "dequal/lite";
-import { handle_delete_key } from "../selection_utils";
+import { handle_delete_key } from "../utils/selection_utils";
 import type { DataFrameContext } from "../context/dataframe_context";
 import { tick } from "svelte";
 import { get } from "svelte/store";
