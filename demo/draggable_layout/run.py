@@ -1,57 +1,54 @@
 import gradio as gr
-
-def process_text(text1, text2, text3, text4):
-    return f"Textbox 1: {text1}\nTextbox 2: {text2}\nTextbox 3: {text3}\nTextbox 4: {text4}"
+import numpy as np
+import pandas as pd
 
 with gr.Blocks() as demo:
-    gr.Markdown("# Draggable Layout Demo")
-    gr.Markdown("Try dragging the textboxes below to reorder them!")
+    gr.Markdown("# Draggable Dashboard Demo")
+    gr.Markdown("Drag the charts around to reorder them!")
     
-    with gr.Row():
-        with gr.Column(scale=1):
-            gr.Markdown("### Horizontal Layout")
-            gr.Markdown("These components are arranged horizontally and can be dragged to reorder:")
-            
-            with gr.Draggable():
-                textbox1 = gr.Textbox(label="Textbox 1", value="First", elem_id="tb1")
-                textbox2 = gr.Textbox(label="Textbox 2", value="Second", elem_id="tb2")
-                textbox3 = gr.Textbox(label="Textbox 3", value="Third", elem_id="tb3")
-                textbox4 = gr.Textbox(label="Textbox 4", value="Fourth", elem_id="tb4")
-        
-        with gr.Column(scale=1):
-            gr.Markdown("### Vertical Layout")
-            gr.Markdown("These components are arranged vertically and can be dragged to reorder:")
-            
-            with gr.Column():
-                with gr.Draggable():
-                    slider1 = gr.Slider(label="Slider 1", minimum=0, maximum=100, value=25)
-                    slider2 = gr.Slider(label="Slider 2", minimum=0, maximum=100, value=50)
-                    slider3 = gr.Slider(label="Slider 3", minimum=0, maximum=100, value=75)
-                    dropdown = gr.Dropdown(["Option A", "Option B", "Option C"], label="Dropdown", value="Option A")
+    x = np.linspace(0, 10, 100)
+    data = pd.DataFrame({
+        'x': x,
+        'y1': np.random.normal(100, 20, 100) + 10 * np.sin(x),
+        'y2': np.random.normal(500, 100, 100) + 50 * np.cos(x),
+        'y3': np.random.normal(1000, 200, 100) + 100 * np.sin(x/2),
+        'y4': np.random.normal(0.15, 0.05, 100) + 0.05 * np.cos(x/3)
+    })
     
-    gr.Markdown("### Panel Variant")
-    with gr.Draggable(variant="panel"):
-        gr.Button("Button 1", variant="primary")
-        gr.Button("Button 2", variant="secondary")
-        gr.Button("Button 3")
-        gr.Button("Button 4", variant="stop")
-    
-    gr.Markdown("### Mixed Components")
     with gr.Draggable():
-        gr.Image(label="Image Upload")
-        gr.Audio(label="Audio Upload")
-        gr.File(label="File Upload")
-        gr.Video(label="Video Upload")
-    
-    with gr.Row():
-        process_btn = gr.Button("Process Text Inputs", variant="primary")
-        output = gr.Textbox(label="Combined Output", lines=4)
-    
-    process_btn.click(
-        fn=process_text,
-        inputs=[textbox1, textbox2, textbox3, textbox4],
-        outputs=output
-    )
+        with gr.Row():
+            gr.LinePlot(
+                data,
+                x="x",
+                y="y1",
+                title="Chart 1",
+                height=200,
+                width=300
+            )
+            gr.LinePlot(
+                data,
+                x="x",
+                y="y2",
+                title="Chart 2",
+                height=200,
+                width=300
+            )
+            gr.LinePlot(
+                data,
+                x="x",
+                y="y3",
+                title="Chart 3",
+                height=200,
+                width=300
+            )
+            gr.LinePlot(
+                data,
+                x="x",
+                y="y4",
+                title="Chart 4",
+                height=200,
+                width=300
+            )
 
 if __name__ == "__main__":
     demo.launch()
