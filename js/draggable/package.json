@@ -5,22 +5,27 @@
 	"type": "module",
 	"author": "",
 	"license": "ISC",
-	"private": true,
+	"main_changeset": true,
+	"private": false,
 	"exports": {
 		".": {
-			"gradio": "./Index.svelte"
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
 		},
 		"./package.json": "./package.json"
 	},
-	"dependencies": {
-		"@gradio/atoms": "workspace:^",
+	"devDependencies": {
+		"@gradio/preview": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:^"
 	},
-	"devDependencies": {
-		"@gradio/preview": "workspace:^"
-	},
 	"peerDependencies": {
-		"svelte": "^5.0.0"
+		"svelte": "^4.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/draggable"
 	}
 }
