@@ -1,4 +1,5 @@
 <script lang="ts">
+	/** eslint-disable svelte/valid-compile */
 	import Table from "../shared/Table.svelte";
 	import type { Datatype, DataframeValue } from "../shared/utils/utils";
 	import type { I18nFormatter } from "@gradio/utils";
