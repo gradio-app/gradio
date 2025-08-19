@@ -1,6 +1,6 @@
 ---
-"@gradio/dialogue": minor
-"gradio": minor
+"@gradio/dialogue": patch
+"gradio": patch
 ---
 
 feat:Remove unneeded `svelte-ignore` lines in gr.Dialogue
