@@ -48,6 +48,9 @@ class GradioMCPServer:
         blocks: The Blocks app to create the MCP server for.
     """
 
+    # Imports are here to avoid needing to install `mcp` when not using this class.
+    # This way, we are able to export `gr.tool`, `gr.resource`, etc. to `__init__.py`
+    # without the user needing to have `mcp` installed.
     from mcp import types
     from mcp.server import Server
     from mcp.server.lowlevel.helper_types import ReadResourceContents
