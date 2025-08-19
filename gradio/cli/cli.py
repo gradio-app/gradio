@@ -4,6 +4,8 @@ import typer
 from gradio_client.cli import deploy_discord  # type: ignore
 from rich.console import Console
 
+from gradio import analytics
+
 from .commands import (
     custom_component,
     deploy,
@@ -13,7 +15,6 @@ from .commands import (
     sketch,
     upload_mcp,
 )
-from gradio import analytics
 
 app = typer.Typer()
 app.command("environment", help="Print Gradio environment information.")(
