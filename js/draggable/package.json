@@ -1,0 +1,26 @@
+{
+	"name": "@gradio/draggable",
+	"version": "0.1.0",
+	"description": "Gradio Draggable layout component",
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"private": true,
+	"exports": {
+		".": {
+			"gradio": "./Index.svelte"
+		},
+		"./package.json": "./package.json"
+	},
+	"dependencies": {
+		"@gradio/atoms": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/utils": "workspace:^"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
+	"peerDependencies": {
+		"svelte": "^5.0.0"
+	}
+}
