@@ -15,7 +15,6 @@ import subprocess
 import sys
 import threading
 from pathlib import Path
-from typing import Optional
 
 import typer
 from rich import print
@@ -102,7 +101,7 @@ def _setup_config(
 def main(
     demo_path: Path,
     demo_name: str = "demo",
-    watch_dirs: Optional[list[str]] = None,
+    watch_dirs: list[str] | None = None,
     encoding: str = "utf-8",
     watch_library: bool = False,
 ):
