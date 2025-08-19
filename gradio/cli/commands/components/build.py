@@ -4,7 +4,7 @@ import importlib
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import semantic_version
 import typer
@@ -36,7 +36,7 @@ def _build(
         bool, typer.Option(help="Whether to generate the documentation as well.")
     ] = True,
     python_path: Annotated[
-        Optional[str],
+        str | None,
         typer.Option(
             help="Path to python executable. If None, will use the default path found by `which python3`. If python3 is not found, `which python` will be tried. If both fail an error will be raised."
         ),

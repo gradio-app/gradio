@@ -12,7 +12,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Literal,
-    Optional,
     Union,
     cast,
 )
@@ -72,10 +71,10 @@ class OptionDict(TypedDict):
 
 class FileDataDict(TypedDict):
     path: str  # server filepath
-    url: NotRequired[Optional[str]]  # normalised server url
-    size: NotRequired[Optional[int]]  # size in bytes
-    orig_name: NotRequired[Optional[str]]  # original filename
-    mime_type: NotRequired[Optional[str]]
+    url: NotRequired[str | None]  # normalised server url
+    size: NotRequired[int | None]  # size in bytes
+    orig_name: NotRequired[str | None]  # original filename
+    mime_type: NotRequired[str | None]
     is_stream: NotRequired[bool]
     meta: dict[Literal["_type"], Literal["gradio.FileData"]]
 
@@ -89,7 +88,7 @@ class MessageDict(TypedDict):
 
 class FileMessage(GradioModel):
     file: FileData
-    alt_text: Optional[str] = None
+    alt_text: str | None = None
 
 
 class ComponentMessage(GradioModel):
@@ -110,9 +109,9 @@ class ChatbotDataTuples(GradioRootModel):
 
 class Message(GradioModel):
     role: str
-    metadata: Optional[MetadataDict] = None
+    metadata: MetadataDict | None = None
     content: Union[str, FileMessage, ComponentMessage]
-    options: Optional[list[OptionDict]] = None
+    options: list[OptionDict] | None = None
 
 
 class ExampleMessage(TypedDict):

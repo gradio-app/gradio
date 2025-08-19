@@ -188,9 +188,9 @@ def test_mcp_sse_transport(test_mcp_app):
                 "description": "This is a test tool. Returns: the original value as a string",
                 "inputSchema": {
                     "type": "object",
-                    "properties": {"x": {"type": "string"}},
+                    "properties": {"x": {"type": "string", "description": ""}},
                 },
-                "meta": {"file_data_present": False},
+                "meta": {"file_data_present": False, "mcp_type": "tool"},
             }
         ]
 

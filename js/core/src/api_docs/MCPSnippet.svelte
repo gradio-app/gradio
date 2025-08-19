@@ -26,6 +26,10 @@
 		description: string;
 		parameters: Record<string, ToolParameter>;
 		expanded?: boolean;
+		meta: {
+			mcp_type: "tool" | "resource" | "prompt";
+			file_data_present: boolean;
+		};
 	}
 
 	type Transport = "streamable_http" | "sse" | "stdio";
@@ -37,6 +41,12 @@
 		["sse", "SSE"],
 		["stdio", "STDIO"]
 	] as const;
+
+	const tool_type_emojis = {
+		tool: "🔧",
+		resource: "📕",
+		prompt: "💬"
+	};
 
 	$: display_url =
 		current_transport === "sse" ? mcp_server_url : mcp_server_url_streamable;
@@ -136,7 +146,9 @@
 
 	<div class="tool-selection">
 		<strong
-			>{all_tools.length > 0 ? all_tools.length : tools.length} Available MCP Tools</strong
+			>{all_tools.length > 0 ? all_tools.length : tools.length} Available MCP Tools
+			({tool_type_emojis.tool}), Resources ({tool_type_emojis.resource}), and
+			Prompts ({tool_type_emojis.prompt})</strong
 		>
 		{#if all_tools.length > 0}
 			<div class="tool-selection-controls">
@@ -188,7 +200,10 @@
 						on:click={() => (tool.expanded = !tool.expanded)}
 					>
 						<span
-							><span class="tool-name">{tool.name}</span> &nbsp;
+							><span class="tool-name"
+								>{tool_type_emojis[tool.meta.mcp_type]} {tool.name}</span
+							>
+							&nbsp;
 							<span class="tool-description"
 								>{tool.description
 									? tool.description

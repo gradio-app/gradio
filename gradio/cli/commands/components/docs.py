@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 import re
 from pathlib import Path
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 import requests
 import tomlkit as toml
@@ -20,15 +20,13 @@ def _docs(
     path: Annotated[
         Path, Argument(help="The directory of the custom component.")
     ] = Path("."),
-    demo_dir: Annotated[
-        Optional[Path], Option(help="Path to the demo directory.")
-    ] = None,
-    demo_name: Annotated[Optional[str], Option(help="Name of the demo file.")] = None,
+    demo_dir: Annotated[Path | None, Option(help="Path to the demo directory.")] = None,
+    demo_name: Annotated[str | None, Option(help="Name of the demo file.")] = None,
     readme_path: Annotated[
-        Optional[Path], Option(help="Path to the README.md file.")
+        Path | None, Option(help="Path to the README.md file.")
     ] = None,
     space_url: Annotated[
-        Optional[str], Option(help="URL of the Space to use for the demo.")
+        str | None, Option(help="URL of the Space to use for the demo.")
     ] = None,
     generate_space: Annotated[
         bool,
