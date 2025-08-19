@@ -61,6 +61,13 @@ class GradioMCPServer:
         pass
 
     def __init__(self, blocks: "Blocks"):
+        try:
+            import mcp  # noqa: F401
+        except ImportError as e:
+            raise ImportError(
+                "The `mcp` package is required to use the Gradio MCP integration. Please install it with the `mcp` extra: `pip install gradio[mcp]`."
+            ) from e
+
         self.blocks = blocks
         self.api_info = self.blocks.get_api_info()
         self.mcp_server = self.create_mcp_server()
