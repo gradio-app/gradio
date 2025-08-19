@@ -23,7 +23,24 @@ class TestHTML:
             "max_height": None,
             "container": False,
             "padding": True,
+            "autoscroll": True,
         }
+
+    def test_autoscroll_parameter(self):
+        """
+        Test that autoscroll parameter is properly set
+        """
+        # Test default autoscroll (True)
+        html_component_default = gr.components.HTML("#Welcome")
+        assert html_component_default.autoscroll is True
+        
+        # Test autoscroll=False
+        html_component_no_scroll = gr.components.HTML("#Welcome", autoscroll=False)
+        assert html_component_no_scroll.autoscroll is False
+        
+        # Test autoscroll=True explicitly
+        html_component_scroll = gr.components.HTML("#Welcome", autoscroll=True)
+        assert html_component_scroll.autoscroll is True
 
     def test_in_interface(self):
         """

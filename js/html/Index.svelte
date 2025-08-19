@@ -23,6 +23,7 @@
 	export let max_height: number | undefined = undefined;
 	export let container = false;
 	export let padding = true;
+	export let autoscroll = true;
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} padding={false}>
@@ -50,6 +51,7 @@
 			{value}
 			{elem_classes}
 			{visible}
+			{autoscroll}
 			on:change={() => gradio.dispatch("change")}
 			on:click={() => gradio.dispatch("click")}
 		/>
