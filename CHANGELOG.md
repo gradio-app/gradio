@@ -1,5 +1,24 @@
 # gradio
 
+## 5.43.0
+
+### Features
+
+- [#11721](https://github.com/gradio-app/gradio/pull/11721) [`58d9d9e`](https://github.com/gradio-app/gradio/commit/58d9d9e98194dada5267ac1599063cf21723cbde) - Remove dupe maximise/maximize icon.  Thanks @hannahblair!
+- [#11731](https://github.com/gradio-app/gradio/pull/11731) [`8fd8ccd`](https://github.com/gradio-app/gradio/commit/8fd8ccdd634217c17519155d51f3de0a9272f63b) - Switch from `pyright` to `ty`.  Thanks @abidlabs!
+- [#11723](https://github.com/gradio-app/gradio/pull/11723) [`379f0c1`](https://github.com/gradio-app/gradio/commit/379f0c151943b5f269910eba4a4c7abc6145a11c) - Support MCP resources and prompts.  Thanks @abidlabs!
+- [#11696](https://github.com/gradio-app/gradio/pull/11696) [`985f0d7`](https://github.com/gradio-app/gradio/commit/985f0d7804683b8aec19fc385953190dd8a3a35b) - Add ui_mode and type to gr.Dialogue.  Thanks @freddyaboulton!
+- [#11741](https://github.com/gradio-app/gradio/pull/11741) [`7ce7a11`](https://github.com/gradio-app/gradio/commit/7ce7a110f0dda51cee8a0bd1beb2d9f3c12b3fa9) - Add analytics for `gradio --vibe`.  Thanks @abidlabs!
+- [#11730](https://github.com/gradio-app/gradio/pull/11730) [`99ec14c`](https://github.com/gradio-app/gradio/commit/99ec14c64621424f821146e76472b1a07a59bd12) - Support passing in gr.Request in server functions.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#11709](https://github.com/gradio-app/gradio/pull/11709) [`48f1dcf`](https://github.com/gradio-app/gradio/commit/48f1dcf58cd6437daa03a8cf1c9942aae2cec421) - Fix output paths for the @gradio/client browser build.  Thanks @pngwn!
+- [#11720](https://github.com/gradio-app/gradio/pull/11720) [`4d3d983`](https://github.com/gradio-app/gradio/commit/4d3d983083c1317925aba1f67c8d5d3c944525ca) - Exit fullscreen mode when `gr.Image` value is cleared.  Thanks @hannahblair!
+- [#11725](https://github.com/gradio-app/gradio/pull/11725) [`080f888`](https://github.com/gradio-app/gradio/commit/080f888e3b173b5b2deef5eaf9754f2a63adf1aa) - Ensure it is possible to use `@render` to generate Tabs.  Thanks @aliabid94!
+- [#11734](https://github.com/gradio-app/gradio/pull/11734) [`2210fca`](https://github.com/gradio-app/gradio/commit/2210fca715c8db3d41efc376fe7af3acb33faa38) - Refactor: remove deprecated get_event_loop() fallback.  Thanks @TakaSoap!
+- [#11707](https://github.com/gradio-app/gradio/pull/11707) [`296a0d0`](https://github.com/gradio-app/gradio/commit/296a0d09acd98f82d924d07ea6b96861d0eadc32) - Fix three server closure bugs.  Thanks @l3331l4!
+
 ## 5.42.0
 
 ### Features
