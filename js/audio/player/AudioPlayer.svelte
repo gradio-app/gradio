@@ -208,6 +208,27 @@
 			}
 		});
 	});
+
+	// Handle captions when audio_player is available
+	$: if (audio_player) {
+		const track = audio_player.textTracks[0];
+		if (track) {
+			// Safari needs to be specifically told to show this track
+			track.mode = "showing";
+			
+			// Add event listener for caption changes
+			track.addEventListener('cuechange', function() {
+				if (this.activeCues && this.activeCues[0]) {
+					// Update caption
+					const captionElement = document.getElementById('vtt-text');
+					if (captionElement) {
+						const cue = this.activeCues[0] as VTTCue;
+						captionElement.innerText = cue.text;
+					}
+				}
+			});
+		}
+	}
 </script>
 
 <audio
@@ -220,14 +241,12 @@
 	on:ended={() => dispatch("stop")}
 	on:play={() => dispatch("play")}
 >
-	<track 
-		kind="captions" 
-		src="data:text/vtt;base64,V0VCVlRUCg0KMDA6MDA6MDAuMDAwIC0tPiAwMDowMDowMy4wMDAKSGVsbG8sIHdlbGNvbWUgdG8gdGhpcyBhdWRpbyBjb250ZW50Lg0KDTAwOjAwOjAzLjAwMCAtLT4gMDA6MDA6MDcuMDAwClRvZGF5IHdlJ2xsIGRpc2N1c3MgaG93IHN1YnRpdGxlcyB3b3JrIHdpdGggYXVkaW8uDQoNMDA6MDA6MDcuMDAwIC0tPiAwMDowMDoxMi4wMDAKVGhpcyBpcyBhIHNpbXBsZSBleGFtcGxlIG9mIFZUVCAgZm9ybWF0dGluZy4NCg0KMDA6MDA6MTIuMDAwIC0tPiAwMDowMDoxNy4wMDAKV2l0aCBtdWx0aXBsZSBsYW5ndWFnZXMgYW5kIGFjY2Vzc2liaWxpdHkgZmVhdHVyZXMuDQoNMDA6MDA6MTcuMDAwIC0tPiAwMDowMDoyMi4wMDAKVGhlIGJyb3dzZXIgaGFuZGxlcyB0aGlzIGF1dG9tYXRpY2FsbHkuDQo=" 
-		srclang="en"
-		label="English Captions"
-		default 
-	/>
+        <track default kind="captions" label="captions" srclang="en" src="data:text/vtt;base64,V0VCVlRUCg0KMDA6MDA6MDAuMDAwIC0tPiAwMDowMDowMy4wMDAKSGVsbG8sIHdlbGNvbWUgdG8gdGhpcyBhdWRpbyBjb250ZW50Lg0KDTAwOjAwOjAzLjAwMCAtLT4gMDA6MDA6MDcuMDAwClRvZGF5IHdlJ2xsIGRpc2N1c3MgaG93IHN1YnRpdGxlcyB3b3JrIHdpdGggYXVkaW8uDQoNMDA6MDA6MDcuMDAwIC0tPiAwMDowMDoxMi4wMDAKVGhpcyBpcyBhIHNpbXBsZSBleGFtcGxlIG9mIFZUVCAgZm9ybWF0dGluZy4NCg0KMDA6MDA6MTIuMDAwIC0tPiAwMDowMDoxNy4wMDAKV2l0aCBtdWx0aXBsZSBsYW5ndWFnZXMgYW5kIGFjY2Vzc2liaWxpdHkgZmVhdHVyZXMuDQoNMDA6MDA6MTcuMDAwIC0tPiAwMDowMDoyMi4wMDAKVGhlIGJyb3dzZXIgaGFuZGxlcyB0aGlzIGF1dG9tYXRpY2FsbHkuDQo=" />
 </audio>
+
+<!-- Caption Display -->
+<div id="vtt-text" class="caption-display" style="text-align:center;font-family:monospace;font-weight:bold;text-wrap:balance">Captions will appear here...</div>
+
 {#if value === null}
 	<Empty size="small">
 		<Music />
@@ -325,5 +344,20 @@
 
 	.hidden {
 		display: none;
+	}
+
+	.caption-display {
+		background: rgba(0, 0, 0, 0.85);
+		color: white;
+		padding: 12px 16px;
+		margin: 8px 0;
+		border-radius: 6px;
+		font-size: 14px;
+		text-align: center;
+		max-width: 400px;
+		line-height: 1.4;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		min-height: 20px;
 	}
 </style>
