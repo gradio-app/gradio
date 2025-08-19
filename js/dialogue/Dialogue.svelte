@@ -471,7 +471,6 @@
 		{/if}
 	{/if}
 
-	<!-- svelte-ignore missing-declaration -->
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 	{#if speakers.length !== 0 && ui_mode === "both"}
 		<div
