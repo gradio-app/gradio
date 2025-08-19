@@ -102,28 +102,20 @@ def safe_get_lock() -> asyncio.Lock:
     the main thread.
     """
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_closed():
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-        return asyncio.Lock()
+        loop = asyncio.get_running_loop()
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        return asyncio.Lock()
+    return asyncio.Lock()
 
 
 def safe_get_stop_event() -> asyncio.Event:
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_closed():
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-        return asyncio.Event()
+        loop = asyncio.get_running_loop()
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        return asyncio.Event()
+    return asyncio.Event()
 
 
 class DynamicBoolean(int):
@@ -495,7 +487,7 @@ def download_if_url(article: str) -> str:
     return article
 
 
-HASH_SEED_PATH = os.path.join(os.path.dirname(gradio.__file__), "hash_seed.txt")
+HASH_SEED_PATH = os.path.join(os.path.dirname(gradio.__file__), "hash_seed.txt")  # type: ignore
 
 
 def get_hash_seed() -> str:

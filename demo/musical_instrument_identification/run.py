@@ -1,9 +1,9 @@
 import gradio as gr
 import torch
-import torchaudio
+import torchaudio  # type: ignore
 from timeit import default_timer as timer
-from data_setups import audio_preprocess, resample
-import gdown
+from data_setups import audio_preprocess, resample  # type: ignore
+import gdown  # type: ignore
 
 url = 'https://drive.google.com/uc?id=1X5CR18u0I-ZOi_8P0cNptCe5JGk9Ro0C'
 output = 'piano.wav'
