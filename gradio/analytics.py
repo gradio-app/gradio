@@ -257,6 +257,19 @@ def sketch_analytics() -> None:
     )
 
 
+def vibe_analytics() -> None:
+    data = {
+        "command": "vibe",
+    }
+    if not analytics_enabled():
+        return
+
+    _do_analytics_request(
+        topic="gradio/vibe",
+        data=data,
+    )
+
+
 def integration_analytics(data: dict[str, Any]) -> None:
     if not analytics_enabled():
         return
