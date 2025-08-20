@@ -289,7 +289,7 @@ export function create_components(
 						}
 					}
 				} else {
-					delete instance_map?.[_id];
+					if (instance_map) delete instance_map[_id];
 					if (_component_map.has(_id)) {
 						_component_map.delete(_id);
 					}
