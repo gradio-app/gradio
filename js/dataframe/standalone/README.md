@@ -104,26 +104,33 @@ The package publishes `types.d.ts` with `DataframeProps` module declarations.
 Custom Styling
 --------------
 
-The package publishes `dataframe.css` with the default styles. You can override the styles by adding your own CSS.
+The standalone package exposes a small, intuitive set of public CSS variables you should use to theme the Dataframe. These variables are namespaced with `--gr-df-*` and are the recommended way to override the default styling.
 
-Override the internal design tokens
+- `--gr-df-table-bg-even` — background for even rows
+- `--gr-df-table-bg-odd` — background for odd rows
+- `--gr-df-table-border` — table border color
+- `--gr-df-table-radius` — table corner radius
+- `--gr-df-table-text` — table text color
+- `--gr-df-accent` — primary accent color
+- `--gr-df-accent-soft` — soft/pale accent color
+- `--gr-df-header-bg` — header row background color
+- `--gr-df-header-text` — header row text color
+- `--gr-df-selected-cell-bg` — selected cell background
+- `--gr-df-cell-padding` — cell padding (shorthand, maps to internal spacing)
+- `--gr-df-font-size` — table body font-size
+
+Example:
 
 ```svelte
-  <div class="df-theme">
-      <Dataframe ... />
-    </div>
+<div class="df-theme">
+  <Dataframe ... />
+</div>
 
-    <style>
-      .df-theme {
-        --border-color-primary: #7c3aed;
-        --radius-md: 10px;
-        --background-fill-primary: #0b1020;
-        --table-even-background-fill: #121936;
-        --table-odd-background-fill: #0e1530;
-        --body-text-color: #e5e7eb;
-        --input-text-size: 14px;
-      }
-    </style>
+<style>
+  .df-theme {
+    --gr-df-accent:        #7c3aed;
+  }
+</style>
 ```
 
 License
