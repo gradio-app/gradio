@@ -2,6 +2,7 @@ name: "npm"
 
 on:
   pull_request:
+  push:
 
 env:
   CI: true
@@ -39,7 +40,6 @@ jobs:
     name: npm-previews
     runs-on: ubuntu-22.04
     needs: changes
-    if: needs.changes.outputs.should_run == 'true'
     steps:
       - uses: actions/checkout@v4
       - name: install dependencies
