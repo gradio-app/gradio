@@ -20,20 +20,20 @@
 	let drag_preview: HTMLElement | null = null;
 	let current_drop_target: HTMLElement | null = null;
 
-	function setup_drag_and_drop() {
+	function setup_drag_and_drop(): void {
 		if (!container_el) return;
-		
+
 		items = [];
-		
+
 		const children = Array.from(container_el.children) as HTMLElement[];
 		children.forEach((child, index) => {
 			if (child.classList.contains("status-tracker")) return;
-			
+
 			items.push(child);
 			child.setAttribute("draggable", "true");
 			child.setAttribute("data-index", index.toString());
 			child.setAttribute("aria-grabbed", "false");
-			
+
 			child.addEventListener("dragstart", handle_drag_start);
 			child.addEventListener("dragend", handle_drag_end);
 			child.addEventListener("dragover", handle_drag_over);
@@ -43,15 +43,15 @@
 		});
 	}
 
-	function handle_drag_start(e: DragEvent) {
+	function handle_drag_start(e: DragEvent): void {
 		if (e.stopPropagation) {
 			e.stopPropagation();
 		}
-		
+
 		const target = e.currentTarget as HTMLElement;
 		dragged_el = target;
 		dragged_index = parseInt(target.dataset.index || "-1");
-		
+
 		drag_preview = target.cloneNode(true) as HTMLElement;
 		drag_preview.classList.add("drag-preview");
 		drag_preview.style.position = "fixed";
@@ -61,119 +61,122 @@
 		drag_preview.style.pointerEvents = "none";
 		drag_preview.style.zIndex = "1000";
 		document.body.appendChild(drag_preview);
-		
+
 		target.setAttribute("aria-grabbed", "true");
 		target.classList.add("dragging");
-		
+
 		announce_to_screen_reader(`Started dragging item ${dragged_index + 1}`);
-		
+
 		if (e.dataTransfer) {
 			e.dataTransfer.effectAllowed = "move";
 			e.dataTransfer.setData("text/html", target.outerHTML);
 		}
 	}
 
-	function handle_drag_end(e: DragEvent) {
+	function handle_drag_end(e: DragEvent): void {
 		if (e.stopPropagation) {
 			e.stopPropagation();
 		}
-		
+
 		const target = e.currentTarget as HTMLElement;
 		target.classList.remove("dragging");
 		target.setAttribute("aria-grabbed", "false");
-		
+
 		if (drag_preview && drag_preview.parentNode) {
 			drag_preview.parentNode.removeChild(drag_preview);
 			drag_preview = null;
 		}
-		
+
 		if (current_drop_target) {
 			current_drop_target.style.border = "";
 			current_drop_target.style.borderRadius = "";
 			current_drop_target = null;
 		}
-		
+
 		dragged_el = null;
 		dragged_index = -1;
-		
+
 		announce_to_screen_reader("Drag operation completed");
 	}
 
-	function handle_drag_over(e: DragEvent) {
+	function handle_drag_over(e: DragEvent): boolean {
 		if (e.preventDefault) {
 			e.preventDefault();
 		}
-		
+
 		if (e.dataTransfer) {
 			e.dataTransfer.dropEffect = "move";
 		}
-		
+
 		return false;
 	}
 
-	function handle_drag_enter(e: DragEvent) {
+	function handle_drag_enter(e: DragEvent): void {
 		if (e.stopPropagation) {
 			e.stopPropagation();
 		}
-		
+
 		const target = e.currentTarget as HTMLElement;
 		if (target === dragged_el) return;
-		
+
 		if (current_drop_target && current_drop_target !== target) {
 			current_drop_target.style.border = "";
 			current_drop_target.style.borderRadius = "";
 		}
-		
+
 		target.style.border = "2px dashed var(--border-color-primary)";
 		target.style.borderRadius = "8px";
 		current_drop_target = target;
-		
+
 		target.classList.add("drag-over");
-		
+
 		const target_index = parseInt(target.dataset.index || "-1");
-		announce_to_screen_reader(`Can drop item ${dragged_index + 1} at position ${target_index + 1}`);
+		announce_to_screen_reader(
+			`Can drop item ${dragged_index + 1} at position ${target_index + 1}`
+		);
 	}
 
-	function handle_drag_leave(e: DragEvent) {
-	}
+	function handle_drag_leave(e: DragEvent): void {}
 
-	async function handle_drop(e: DragEvent) {
+	async function handle_drop(e: DragEvent): Promise<boolean> {
 		if (e.stopPropagation) {
 			e.stopPropagation();
 		}
-		
+
 		const target = e.currentTarget as HTMLElement;
 		target.classList.remove("drag-over");
-		
+
 		if (current_drop_target) {
 			current_drop_target.style.border = "";
 			current_drop_target.style.borderRadius = "";
 			current_drop_target = null;
 		}
-		
+
 		if (dragged_el && dragged_el !== target && container_el) {
 			const target_index = parseInt(target.dataset.index || "-1");
-			
+
 			const placeholder = document.createElement("div");
 			placeholder.style.display = "none";
 			container_el.insertBefore(placeholder, dragged_el);
-			
+
 			container_el.insertBefore(dragged_el, target);
-			
+
 			container_el.insertBefore(target, placeholder);
-			
+
 			container_el.removeChild(placeholder);
-			
-			announce_to_screen_reader(`Swapped item ${dragged_index + 1} with item ${target_index + 1}`);
-			
+
+			announce_to_screen_reader(
+				`Swapped item ${dragged_index + 1} with item ${target_index + 1}`
+			);
+
 			await tick();
 			setup_drag_and_drop();
 		}
-		
+
 		return false;
 	}
 
-	function announce_to_screen_reader(message: string) {
+	function announce_to_screen_reader(message: string): void {
 		let live_region = document.getElementById("drag-announcements");
 		if (!live_region) {
 			live_region = document.createElement("div");
@@ -187,28 +190,28 @@
 			live_region.style.overflow = "hidden";
 			document.body.appendChild(live_region);
 		}
-		
+
 		live_region.textContent = message;
 	}
 
 	onMount(() => {
 		setup_drag_and_drop();
-		
+
 		const observer = new MutationObserver(() => {
 			setup_drag_and_drop();
 		});
-		
+
 		if (container_el) {
 			observer.observe(container_el, {
 				childList: true,
 				subtree: false
 			});
 		}
-		
+
 		return () => {
 			observer.disconnect();
-			
-			items.forEach(item => {
+
+			items.forEach((item) => {
 				item.removeEventListener("dragstart", handle_drag_start);
 				item.removeEventListener("dragend", handle_drag_end);
 				item.removeEventListener("dragover", handle_drag_over);
