@@ -46,7 +46,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
       - name: install dependencies
         uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
         with:
