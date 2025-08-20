@@ -1233,6 +1233,9 @@ importers:
       '@gradio/checkbox':
         specifier: workspace:^
         version: link:../checkbox
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
@@ -1245,6 +1248,9 @@ importers:
       '@gradio/upload':
         specifier: workspace:^
         version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
       '@types/d3-dsv':
         specifier: ^3.0.0
         version: 3.0.0
@@ -1264,15 +1270,9 @@ importers:
         specifier: '>=4.0.0 <6.0.0'
         version: 4.2.15
     devDependencies:
-      '@gradio/client':
-        specifier: workspace:^
-        version: link:../../client/js
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
 
   js/dataset:
     dependencies:
