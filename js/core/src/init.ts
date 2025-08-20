@@ -129,7 +129,6 @@ export function create_components(
 		if (instance_map) {
 			// re-render in reload mode
 			components.forEach((c) => {
-
 				if (c.props.value == null && c.key) {
 					// If the component has a key, we preserve its value by finding a matching instance with the same key
 					const matching_instance = Object.values(instance_map).find(
