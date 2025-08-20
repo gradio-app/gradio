@@ -42,14 +42,14 @@ jobs:
     needs: changes
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
       - name: install dependencies
         uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
         with:
           skip_build: true
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       - name: Verify Node version
         run: node --version
       - name: build client
