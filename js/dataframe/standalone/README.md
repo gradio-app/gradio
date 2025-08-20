@@ -133,6 +133,9 @@ Example:
 </style>
 ```
 
+> **Note:** This standalone component does **not** currently support file upload functionality (e.g. drag-and-dropping to populate the dataframe) that is available in the core Gradio Dataframe component.
+
+
 License
 -------
 
