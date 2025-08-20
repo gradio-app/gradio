@@ -29,7 +29,7 @@ class Draggable(BlockContext, metaclass=ComponentMeta):
     def __init__(
         self,
         *,
-        orientation: Literal["row", "column"] = "row",
+        orientation: Literal["row", "column"] = "column",
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
