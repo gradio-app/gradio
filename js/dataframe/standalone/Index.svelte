@@ -4,7 +4,7 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import { default_i18n } from "./default_i18n";
 
-	export let i18n: I18nFormatter | undefined;
+	export let i18n: I18nFormatter | undefined = undefined;
 	const i18n_fn = (key: string | null | undefined): string => {
 		if (!key) return "";
 		if (typeof i18n === "function") return (i18n as any)(key);
@@ -35,8 +35,8 @@
 	export let label: string | null = null;
 	export let show_label = true;
 	export let latex_delimiters: any[] = [];
-	export let col_count: [number, "fixed" | "dynamic"] | undefined;
-	export let row_count: [number, "fixed" | "dynamic"] | undefined;
+	export let col_count: [number, "fixed" | "dynamic"] | undefined = undefined;
+	export let row_count: [number, "fixed" | "dynamic"] | undefined = undefined;
 
 	// mirrors default row count and column count logic in dataframe.py
 	$: resolved_row_count = (() => {

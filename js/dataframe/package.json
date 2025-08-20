@@ -28,7 +28,7 @@
 		".": {
 			"gradio": "./Index.svelte",
 			"svelte": "./dist/standalone/Index.svelte",
-			"types": "./dist/Index.svelte.d.ts"
+			"types": "./dist/standalone/Index.svelte.d.ts"
 		},
 		"./example": {
 			"gradio": "./Example.svelte",
