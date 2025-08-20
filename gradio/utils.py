@@ -1715,7 +1715,12 @@ def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[st
     """
     fn_docstring = inspect.getdoc(fn)
     description = ""
-    parameters = {}
+    try:  # This can fail if the function is a builtin
+        parameters: dict[str, str] = {
+            param.name: "" for param in inspect.signature(fn).parameters.values()
+        }
+    except ValueError:
+        parameters: dict[str, str] = {}
     returns = []
 
     if not fn_docstring:
@@ -1763,7 +1768,7 @@ def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[st
                 if ":" in line:
                     param_name, param_desc = line.split(":", 1)
                     param_name = param_name.split(" ")[0].strip()
-                    if param_name:
+                    if param_name and param_name in parameters:
                         parameters[param_name] = param_desc.strip()
             except Exception:
                 continue
