@@ -34,7 +34,6 @@
 			child.setAttribute("data-index", index.toString());
 			child.setAttribute("aria-grabbed", "false");
 			
-			// Add drag event listeners to the child
 			child.addEventListener("dragstart", handle_drag_start);
 			child.addEventListener("dragend", handle_drag_end);
 			child.addEventListener("dragover", handle_drag_over);
@@ -53,7 +52,6 @@
 		dragged_el = target;
 		dragged_index = parseInt(target.dataset.index || "-1");
 		
-		// Create drag preview
 		drag_preview = target.cloneNode(true) as HTMLElement;
 		drag_preview.classList.add("drag-preview");
 		drag_preview.style.position = "fixed";
@@ -64,11 +62,9 @@
 		drag_preview.style.zIndex = "1000";
 		document.body.appendChild(drag_preview);
 		
-		// Update ARIA
 		target.setAttribute("aria-grabbed", "true");
 		target.classList.add("dragging");
 		
-		// Announce to screen readers
 		announce_to_screen_reader(`Started dragging item ${dragged_index + 1}`);
 		
 		if (e.dataTransfer) {
@@ -86,13 +82,11 @@
 		target.classList.remove("dragging");
 		target.setAttribute("aria-grabbed", "false");
 		
-		// Remove drag preview
 		if (drag_preview && drag_preview.parentNode) {
 			drag_preview.parentNode.removeChild(drag_preview);
 			drag_preview = null;
 		}
 		
-		// Remove dashed border from current drop target
 		if (current_drop_target) {
 			current_drop_target.style.border = "";
 			current_drop_target.style.borderRadius = "";
@@ -102,7 +96,6 @@
 		dragged_el = null;
 		dragged_index = -1;
 		
-		// Announce to screen readers
 		announce_to_screen_reader("Drag operation completed");
 	}
 
@@ -126,27 +119,22 @@
 		const target = e.currentTarget as HTMLElement;
 		if (target === dragged_el) return;
 		
-		// Remove border from previous drop target
 		if (current_drop_target && current_drop_target !== target) {
 			current_drop_target.style.border = "";
 			current_drop_target.style.borderRadius = "";
 		}
 		
-		// Add dashed border to the new target component
 		target.style.border = "2px dashed var(--border-color-primary)";
 		target.style.borderRadius = "8px";
 		current_drop_target = target;
 		
 		target.classList.add("drag-over");
 		
-		// Announce to screen readers
 		const target_index = parseInt(target.dataset.index || "-1");
 		announce_to_screen_reader(`Can drop item ${dragged_index + 1} at position ${target_index + 1}`);
 	}
 
 	function handle_drag_leave(e: DragEvent) {
-		// Don't remove the border on dragleave - keep it until drop
-		// This prevents the border from flickering as you move the cursor
 	}
 
 	async function handle_drop(e: DragEvent) {
@@ -157,7 +145,6 @@
 		const target = e.currentTarget as HTMLElement;
 		target.classList.remove("drag-over");
 		
-		// Remove dashed border
 		if (current_drop_target) {
 			current_drop_target.style.border = "";
 			current_drop_target.style.borderRadius = "";
@@ -167,21 +154,16 @@
 		if (dragged_el && dragged_el !== target && container_el) {
 			const target_index = parseInt(target.dataset.index || "-1");
 			
-			// Create a temporary placeholder to mark where the dragged element was
 			const placeholder = document.createElement("div");
 			placeholder.style.display = "none";
 			container_el.insertBefore(placeholder, dragged_el);
 			
-			// Move the dragged element to the target's position
 			container_el.insertBefore(dragged_el, target);
 			
-			// Move the target element to where the dragged element was
 			container_el.insertBefore(target, placeholder);
 			
-			// Remove the placeholder
 			container_el.removeChild(placeholder);
 			
-			// Announce the reordering to screen readers
 			announce_to_screen_reader(`Swapped item ${dragged_index + 1} with item ${target_index + 1}`);
 			
 			await tick();
@@ -192,7 +174,6 @@
 	}
 
 	function announce_to_screen_reader(message: string) {
-		// Create a live region for screen reader announcements
 		let live_region = document.getElementById("drag-announcements");
 		if (!live_region) {
 			live_region = document.createElement("div");
@@ -312,9 +293,6 @@
 
 	.draggable > :global(.reordering) {
 		transition: all 0.3s ease;
-		transform: scale(1.05);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-		z-index: 1000;
 	}
 
 	.horizontal > :global(*),
