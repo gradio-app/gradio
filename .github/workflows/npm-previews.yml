@@ -40,8 +40,14 @@ jobs:
     name: npm-previews
     runs-on: ubuntu-22.04
     needs: changes
+    env:
+      NODE_OPTIONS: --trace-uncaught
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       - name: install dependencies
         uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
         with:
