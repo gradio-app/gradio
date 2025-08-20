@@ -1,5 +1,68 @@
 # @gradio/dataframe
 
+## 0.18.8
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.17
+- @gradio/atoms@0.16.5
+- @gradio/client@1.17.1
+- @gradio/icons@0.13.0
+- @gradio/upload@0.16.15
+- @gradio/button@0.5.11
+- @gradio/checkbox@0.4.28
+
+## 0.18.7
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.16
+- @gradio/atoms@0.16.4
+- @gradio/client@1.17.0
+- @gradio/upload@0.16.14
+- @gradio/button@0.5.10
+- @gradio/checkbox@0.4.27
+
+## 0.18.6
+
+### Features
+
+- [#11688](https://github.com/gradio-app/gradio/pull/11688) [`56f3f09`](https://github.com/gradio-app/gradio/commit/56f3f09b6c629a5719088806dbbb37f272d8d4f5) - Fix column header logic in gr.Dataframe.  Thanks @hannahblair!
+
+## 0.18.5
+
+### Dependency updates
+
+- @gradio/upload@0.16.13
+- @gradio/client@1.16.0
+- @gradio/button@0.5.9
+
+## 0.18.4
+
+### Fixes
+
+- [#11559](https://github.com/gradio-app/gradio/pull/11559) [`dd9d8f1`](https://github.com/gradio-app/gradio/commit/dd9d8f1ed677e2d09a3061764c312f40133ab50d) - `gr.Dataframe` returns a `number` \ `bool` when the corresponding column is edited.  Thanks @janosch6!
+
+### Dependency updates
+
+- @gradio/upload@0.16.12
+- @gradio/client@1.15.7
+- @gradio/button@0.5.8
+
+## 0.18.3
+
+### Fixes
+
+- [#11534](https://github.com/gradio-app/gradio/pull/11534) [`5259f22`](https://github.com/gradio-app/gradio/commit/5259f229939177cc2027db5164c9321566fb3eeb) - Allow changing value with single click instead of double click.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/client@1.15.6
+- @gradio/statustracker@0.10.15
+- @gradio/button@0.5.7
+- @gradio/upload@0.16.11
+- @gradio/checkbox@0.4.26
+
 ## 0.18.2
 
 ### Fixes

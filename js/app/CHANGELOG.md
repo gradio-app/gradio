@@ -1,5 +1,61 @@
 # @self/app
 
+## 1.50.9
+
+### Dependency updates
+
+- @gradio/client@1.17.1
+- @gradio/core@0.27.0
+
+## 1.50.8
+
+### Dependency updates
+
+- @gradio/client@1.17.0
+- @gradio/core@0.26.0
+
+## 1.50.7
+
+### Dependency updates
+
+- @gradio/client@1.16.0
+- @gradio/core@0.25.0
+
+## 1.50.6
+
+### Dependency updates
+
+- @gradio/client@1.15.7
+- @gradio/core@0.24.0
+
+## 1.50.5
+
+### Dependency updates
+
+- @gradio/core@0.23.2
+
+## 1.50.4
+
+### Features
+
+- [#11615](https://github.com/gradio-app/gradio/pull/11615) [`e2b66d7`](https://github.com/gradio-app/gradio/commit/e2b66d718f3a8f57b6ee224502849ee737b1b120) - fix change events for hidden components.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/core@0.23.1
+
+## 1.50.3
+
+### Features
+
+- [#11543](https://github.com/gradio-app/gradio/pull/11543) [`ac95ac0`](https://github.com/gradio-app/gradio/commit/ac95ac0d8c2e65d1632376e632fb7d16131334b6) - Connection handling messaging.  Thanks @aliabid94!
+- [#11584](https://github.com/gradio-app/gradio/pull/11584) [`78428cb`](https://github.com/gradio-app/gradio/commit/78428cb29bf6dc66d583b7cf93dd404aef737e75) - Fix reload mode.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/core@0.23.0
+- @gradio/client@1.15.6
+
 ## 1.50.2
 
 ### Fixes

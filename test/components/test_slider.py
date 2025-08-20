@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+import pytest
+
 import gradio as gr
 
 
@@ -19,6 +21,7 @@ class TestSlider:
             "minimum": 10,
             "maximum": 20,
             "step": 1,
+            "precision": None,
             "value": 15,
             "name": "slider",
             "show_label": True,
@@ -69,3 +72,26 @@ class TestSlider:
         # because 0.30000000000000004 != 0.3
         assert slider.get_random_value() == 0.3
         mock_randint.assert_called()
+
+    def test_raise_if_out_of_bounds(self):
+        """
+        raise_if_out_of_bounds
+        """
+        slider = gr.Slider(precision=2, minimum=0, maximum=10)
+        slider.preprocess(5)
+        with pytest.raises(gr.Error):
+            slider.preprocess(11)
+        with pytest.raises(gr.Error):
+            slider.preprocess(-1)
+
+    def test_precision(self):
+        """
+        Preprocess, postprocess
+        """
+        slider = gr.Slider(precision=None)
+        assert slider.preprocess(5.1) == 5.1
+        assert slider.api_info()["type"] == "number"
+
+        slider = gr.Slider(precision=0)
+        assert slider.preprocess(5.1) == 5
+        assert slider.api_info()["type"] == "integer"

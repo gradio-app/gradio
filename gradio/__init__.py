@@ -5,7 +5,7 @@ import gradio.image_utils
 import gradio.processing_utils
 import gradio.sketch
 import gradio.templates
-from gradio import components, layouts, themes
+from gradio import components, layouts, mcp, themes
 from gradio.blocks import Blocks
 from gradio.chat_interface import ChatInterface
 from gradio.components import (
@@ -31,6 +31,7 @@ from gradio.components import (
     Dataset,
     DateTime,
     DeepLinkButton,
+    Dialogue,
     DownloadButton,
     Dropdown,
     DuplicateButton,
@@ -149,6 +150,7 @@ __all__ = [
     "Dataframe",
     "Dataset",
     "DateTime",
+    "Dialogue",
     "DeletedFileData",
     "DownloadButton",
     "DownloadData",
@@ -249,4 +251,5 @@ __all__ = [
     "skip",
     "update",
     "DeepLinkButton",
+    "mcp",
 ]

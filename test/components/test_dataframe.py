@@ -507,5 +507,5 @@ class TestDataframe:
         dataframe = gr.Dataframe(
             value=pl_data, headers=df_headers, interactive=True, datatype="auto"
         )
-        result = ["str", "number", "number", "str", "str", "date", "bool"]
+        result = ["str", "number", "number", "date", "str", "date", "bool"]
         assert dataframe.datatype == result

@@ -104,19 +104,6 @@ export function submit(
 		}
 
 		async function cancel(): Promise<void> {
-			const _status: Status = {
-				stage: "complete",
-				queue: false,
-				time: new Date()
-			};
-			complete = _status;
-			fire_event({
-				..._status,
-				type: "status",
-				endpoint: _endpoint,
-				fn_index: fn_index
-			});
-
 			let reset_request = {};
 			let cancel_request = {};
 			if (protocol === "ws") {
@@ -159,7 +146,7 @@ export function submit(
 		}
 
 		const resolve_heartbeat = async (config: Config): Promise<void> => {
-			await this._resolve_hearbeat(config);
+			await this._resolve_heartbeat(config);
 		};
 
 		async function handle_render_config(render_config: any): Promise<void> {
@@ -597,6 +584,7 @@ export function submit(
 							fire_event({
 								type: "status",
 								stage: "error",
+								broken: true,
 								message: BROKEN_CONNECTION_MSG,
 								queue: true,
 								endpoint: _endpoint,
@@ -629,8 +617,12 @@ export function submit(
 										});
 									} else if (type === "complete") {
 										complete = status;
-									} else if (type == "unexpected_error") {
+									} else if (
+										type == "unexpected_error" ||
+										type == "broken_connection"
+									) {
 										console.error("Unexpected error", status?.message);
+										const broken = type === "broken_connection";
 										fire_event({
 											type: "status",
 											stage: "error",
@@ -638,6 +630,8 @@ export function submit(
 												status?.message || "An Unexpected Error Occurred!",
 											queue: true,
 											endpoint: _endpoint,
+											broken,
+											session_not_found: status?.session_not_found,
 											fn_index,
 											time: new Date()
 										});
@@ -699,7 +693,6 @@ export function submit(
 												endpoint: _endpoint,
 												fn_index
 											});
-
 											close();
 										}
 									}
@@ -770,7 +763,6 @@ export function submit(
 		function push(
 			data: { value: GradioEvent; done: boolean } | PromiseLike<never>
 		): void {
-			if (done) return;
 			if (resolvers.length > 0) {
 				(resolvers.shift() as (typeof resolvers)[0])(data);
 			} else {
@@ -788,9 +780,9 @@ export function submit(
 		}
 
 		function next(): Promise<IteratorResult<GradioEvent, unknown>> {
-			if (values.length > 0)
+			if (values.length > 0) {
 				return Promise.resolve(values.shift() as (typeof values)[0]);
-			if (done) return Promise.resolve({ value: undefined, done: true });
+			}
 			return new Promise((resolve) => resolvers.push(resolve));
 		}
 

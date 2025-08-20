@@ -1,5 +1,61 @@
 # @gradio/gallery
 
+## 0.15.31
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.17
+- @gradio/atoms@0.16.5
+- @gradio/client@1.17.1
+- @gradio/icons@0.13.0
+- @gradio/upload@0.16.15
+- @gradio/image@0.22.17
+- @gradio/file@0.12.28
+- @gradio/video@0.15.0
+
+## 0.15.30
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.16
+- @gradio/video@0.14.24
+- @gradio/atoms@0.16.4
+- @gradio/client@1.17.0
+- @gradio/upload@0.16.14
+- @gradio/file@0.12.27
+- @gradio/image@0.22.16
+
+## 0.15.29
+
+### Dependency updates
+
+- @gradio/upload@0.16.13
+- @gradio/video@0.14.23
+- @gradio/client@1.16.0
+- @gradio/image@0.22.15
+- @gradio/file@0.12.26
+
+## 0.15.28
+
+### Dependency updates
+
+- @gradio/upload@0.16.12
+- @gradio/video@0.14.22
+- @gradio/client@1.15.7
+- @gradio/image@0.22.14
+- @gradio/file@0.12.25
+
+## 0.15.27
+
+### Dependency updates
+
+- @gradio/video@0.14.21
+- @gradio/client@1.15.6
+- @gradio/statustracker@0.10.15
+- @gradio/upload@0.16.11
+- @gradio/image@0.22.13
+- @gradio/file@0.12.24
+
 ## 0.15.26
 
 ### Dependency updates

@@ -1,5 +1,49 @@
 # website
 
+## 0.61.2
+
+### Features
+
+- [#11704](https://github.com/gradio-app/gradio/pull/11704) [`0189862`](https://github.com/gradio-app/gradio/commit/0189862a61af54b718f43badf57ecee11b5deae4) - chore: remove no-op setting.  Thanks @benmccann!
+
+### Dependency updates
+
+- @gradio/code@0.14.15
+- @gradio/statustracker@0.10.17
+- @gradio/paramviewer@0.7.15
+
+## 0.61.1
+
+### Dependency updates
+
+- @gradio/code@0.14.14
+- @gradio/paramviewer@0.7.14
+- @gradio/statustracker@0.10.16
+
+## 0.61.0
+
+### Features
+
+- [#11674](https://github.com/gradio-app/gradio/pull/11674) [`27d9aef`](https://github.com/gradio-app/gradio/commit/27d9aef4831d99ec46f9b5553fc7e149afe23f5f) - Add dialogue component to docs.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.14.13
+
+## 0.60.2
+
+### Dependency updates
+
+- @gradio/code@0.14.12
+
+## 0.60.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.15
+- @gradio/code@0.14.11
+- @gradio/paramviewer@0.7.13
+
 ## 0.60.0
 
 ### Features

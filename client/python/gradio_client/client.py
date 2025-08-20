@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import concurrent.futures
 import hashlib
 import json
@@ -16,14 +17,14 @@ import time
 import urllib.parse
 import uuid
 import warnings
-from collections.abc import Callable
+from collections.abc import AsyncGenerator, Callable
 from concurrent.futures import Future
 from dataclasses import dataclass
 from datetime import datetime
 from functools import partial
 from pathlib import Path
 from threading import Lock
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 import httpx
 import huggingface_hub
@@ -48,6 +49,7 @@ from gradio_client.utils import (
     ServerMessage,
     Status,
     StatusUpdate,
+    Update,
 )
 
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
@@ -76,7 +78,7 @@ class Client:
     def __init__(
         self,
         src: str,
-        hf_token: str | Literal[False] | None = False,
+        hf_token: str | None = None,
         max_workers: int = 40,
         verbose: bool = True,
         auth: tuple[str, str] | None = None,
@@ -91,7 +93,7 @@ class Client:
         """
         Parameters:
             src: either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
-            hf_token: optional Hugging Face token to use to access private Spaces. By default, no token is sent to the server. Set `hf_token=None` to use the locally saved token if there is one (warning: only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). Find your tokens here: https://huggingface.co/settings/tokens.
+            hf_token: optional Hugging Face token to use to access private Spaces. By default, the locally saved token is used if there is one. Find your tokens here: https://huggingface.co/settings/tokens.
             max_workers: maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
             verbose: whether the client should print statements to the console.
             headers: additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. This parameter will override the default headers if they have the same keys.
@@ -109,6 +111,9 @@ class Client:
             library_name="gradio_client",
             library_version=utils.__version__,
         )
+        if "authorization" in self.headers:
+            self.headers["x-hf-authorization"] = self.headers["authorization"]
+            del self.headers["authorization"]
         if headers:
             self.headers.update(headers)
         self.ssl_verify = ssl_verify
@@ -306,8 +311,10 @@ class Client:
             traceback.print_exc()
             raise e
 
-    def send_data(self, data, hash_data, protocol):
+    def send_data(self, data, hash_data, protocol, request_headers):
         headers = self.add_zero_gpu_headers(self.headers)
+        if request_headers is not None:
+            headers = {**request_headers, **headers}
         req = httpx.post(
             self.sse_data_url,
             json={**data, **hash_data},
@@ -344,7 +351,7 @@ class Client:
         cls,
         from_id: str,
         to_id: str | None = None,
-        hf_token: str | Literal[False] | None = False,
+        hf_token: str | None = None,
         private: bool = True,
         hardware: Literal[
             "cpu-basic",
@@ -467,6 +474,7 @@ class Client:
         *args,
         api_name: str | None = None,
         fn_index: int | None = None,
+        headers: dict[str, str] | None = None,
         **kwargs,
     ) -> Any:
         """
@@ -477,6 +485,7 @@ class Client:
             api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint.
             fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
             kwargs: The keyword arguments to pass to the remote API endpoint.
+            headers: Additional headers to send to the remote Gradio app on this request. This parameter will overrides the headers provided in the Client constructor if they have the same keys.
         Returns:
             The result of the API call. Will be a Tuple if the API has multiple outputs.
         Example:
@@ -487,15 +496,18 @@ class Client:
         """
         self._infer_fn_index(api_name, fn_index)
         return self.submit(
-            *args, api_name=api_name, fn_index=fn_index, **kwargs
+            *args, api_name=api_name, fn_index=fn_index, headers=headers, **kwargs
         ).result()
 
-    def new_helper(self, fn_index: int) -> Communicator:
+    def new_helper(
+        self, fn_index: int, headers: dict[str, str] | None = None
+    ) -> Communicator:
         return Communicator(
             Lock(),
             JobStatus(),
             self.endpoints[fn_index].process_predictions,
             self.reset_url,
+            request_headers=headers,
         )
 
     def submit(
@@ -503,6 +515,7 @@ class Client:
         *args,
         api_name: str | None = None,
         fn_index: int | None = None,
+        headers: dict[str, str] | None = None,
         result_callbacks: Callable | list[Callable] | None = None,
         **kwargs,
     ) -> Job:
@@ -516,6 +529,7 @@ class Client:
             fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
             result_callbacks: A callback function, or list of callback functions, to be called when the result is ready. If a list of functions is provided, they will be called in order. The return values from the remote API are provided as separate parameters into the callback. If None, no callback will be called.
             kwargs: The keyword arguments to pass to the remote API endpoint.
+            headers: Additional headers to send to the remote Gradio app on this request. This parameter will overrides the headers provided in the Client constructor if they have the same keys.
         Returns:
             A Job object that can be used to retrieve the status and result of the remote API call.
         Example:
@@ -543,8 +557,12 @@ class Client:
             "sse_v2.1",
             "sse_v3",
         ):
-            helper = self.new_helper(inferred_fn_index)
-        end_to_end_fn = endpoint.make_end_to_end_fn(helper)
+            helper = self.new_helper(inferred_fn_index, headers=headers)
+            end_to_end_fn = endpoint.make_end_to_end_fn(helper)
+        else:
+            end_to_end_fn = cast(EndpointV3Compatibility, endpoint).make_end_to_end_fn(
+                None
+            )
         future = self.executor.submit(end_to_end_fn, *args)
 
         cancel_fn = endpoint.make_cancel(helper)
@@ -678,6 +696,7 @@ class Client:
                             ]
                         }
                     }
+                }
                 'unnamed_endpoints': {
                     2: {
                         'parameters': [
@@ -739,7 +758,7 @@ class Client:
             ImportError
         ):  # this is not running within a Gradio app as Gradio is not installed
             return headers
-        request = LocalContext.request.get()
+        request = LocalContext.request.get(None)
         if request and hasattr(request, "headers") and "x-ip-token" in request.headers:
             headers["x-ip-token"] = request.headers["x-ip-token"]
         return headers
@@ -957,7 +976,7 @@ class Client:
         discord_bot_token: str | None = None,
         api_names: list[str | tuple[str, str]] | None = None,
         to_id: str | None = None,
-        hf_token: str | Literal[False] | None = False,
+        hf_token: str | None = None,
         private: bool = False,
     ):
         """
@@ -1177,7 +1196,7 @@ class Endpoint:
     def __str__(self):
         return self.__repr__()
 
-    def make_end_to_end_fn(self, helper: Communicator | None = None):
+    def make_end_to_end_fn(self, helper: Communicator):
         _predict = self.make_predict(helper)
 
         def _inner(*data):
@@ -1273,7 +1292,7 @@ class Endpoint:
 
         return _cancel
 
-    def make_predict(self, helper: Communicator | None = None):
+    def make_predict(self, helper: Communicator):
         def _predict(*data) -> tuple:
             data = {
                 "data": data,
@@ -1289,7 +1308,9 @@ class Endpoint:
             if self.protocol == "sse":
                 result = self._sse_fn_v0(data, hash_data, helper)  # type: ignore
             elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3"):
-                event_id = self.client.send_data(data, hash_data, self.protocol)
+                event_id = self.client.send_data(
+                    data, hash_data, self.protocol, helper.request_headers
+                )
                 self.client.pending_event_ids.add(event_id)
                 self.client.pending_messages_per_event[event_id] = []
                 helper.event_id = event_id
@@ -1550,6 +1571,21 @@ class Job(Future):
                 ):
                     raise StopIteration()
                 time.sleep(0.001)
+
+    async def __aiter__(self) -> AsyncGenerator[Update, None]:
+        """Async iterator that yields all updates from the communicator.updates queue."""
+        if not self.communicator:
+            return
+
+        while True:
+            get = self.communicator.updates.get()
+            try:
+                update = await asyncio.wait_for(get, timeout=0.5)
+                yield update
+            except asyncio.TimeoutError:
+                if self.done():
+                    return
+                continue
 
     def result(self, timeout: float | None = None) -> Any:
         """

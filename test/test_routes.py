@@ -476,7 +476,7 @@ class TestRoutes:
     def test_mount_gradio_app_with_startup(self):
         app = FastAPI()
 
-        @app.on_event("startup")
+        @app.on_event("startup")  # type: ignore
         async def empty_startup():
             return
 
@@ -521,6 +521,40 @@ class TestRoutes:
         with TestClient(app) as client:
             assert client.get("/demo", headers={"user": "abubakar"}).is_success
             assert not client.get("/demo").is_success
+
+    def test_mount_gradio_app_with_lifespan_state(
+        self,
+    ):
+        from fastapi.responses import PlainTextResponse
+
+        @asynccontextmanager
+        async def lifespan(_):
+            yield {"hello": "world"}
+
+        app = FastAPI(lifespan=lifespan)
+
+        gr.mount_gradio_app(app, Blocks(), "/gradio")
+
+        @app.get("/")
+        async def test_route(request: Request):
+            return PlainTextResponse(request.state.hello)
+
+        with TestClient(app) as client:
+            assert client.get("/").is_success
+            assert client.get("/").text.strip() == "world"
+
+    def test_gradio_launch_lifespan_state(self, connect):
+        @asynccontextmanager
+        async def lifespan(_):
+            yield {"hello": "world"}
+
+        def predict(request: gr.Request):
+            return request.state.hello
+
+        demo = gr.Interface(predict, None, "textbox")
+        with connect(demo, app_kwargs={"lifespan": lifespan}) as client:
+            result = client.predict(None, api_name="/predict")
+            assert result == "world"
 
     def test_static_file_missing(self, test_client):
         response = test_client.get(rf"{API_PREFIX}/static/not-here.js")
@@ -1885,3 +1919,36 @@ def test_deep_link_unique_per_session():
                 ] == number and component["props"]["value"][0] == str(number)
 
     assert all(verified_configs)
+
+
+def test_server_fn_passes_request():
+    import requests
+
+    from gradio.components.base import server
+
+    def get_url(self, request: gr.Request):
+        return request.url
+
+    tb = gr.Textbox()
+    tb.get_url = server(get_url)  # type: ignore
+
+    iface = gr.Interface(lambda x: f"Hello {x}", inputs=tb, outputs="code")
+    component_id = None
+    for component in iface.config["components"]:
+        if component["type"] == "textbox":  # type: ignore
+            component_id = component["id"]  # type: ignore
+            break
+
+    assert component_id
+    _, local_url, _ = iface.launch(prevent_thread_lock=True)
+    print(local_url)
+
+    form_data = {
+        "session_hash": "foo",
+        "component_id": component_id,
+        "fn_name": "get_url",
+        "data": json.dumps({"foo": "bar"}),
+    }
+    response = requests.post(f"{local_url}/gradio_api/component_server", json=form_data)
+    assert response.status_code == 200
+    assert response.json()["_url"].endswith("/gradio_api/component_server")

@@ -1,6 +1,7 @@
+# type: ignore
 import gradio as gr
 import torch
-from torchaudio.sox_effects import apply_effects_file
+from torchaudio.sox_effects import apply_effects_file  # type: ignore
 from transformers import AutoFeatureExtractor, AutoModelForAudioXVector
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

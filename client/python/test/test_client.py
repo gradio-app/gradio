@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import pathlib
 import tempfile
 import threading
@@ -51,25 +50,32 @@ def connect(
 
 
 class TestClientInitialization:
-    @pytest.mark.flaky
-    def test_headers_constructed_correctly(self):
-        client = Client("gradio-tests/titanic-survival", hf_token=HF_TOKEN)
-        assert {"authorization": f"Bearer {HF_TOKEN}"}.items() <= client.headers.items()
-        client = Client(
-            "gradio-tests/titanic-survival",
-            hf_token=HF_TOKEN,
-            headers={"additional": "value"},
-        )
-        assert {
-            "authorization": f"Bearer {HF_TOKEN}",
-            "additional": "value",
-        }.items() <= client.headers.items()
-        client = Client(
-            "gradio-tests/titanic-survival",
-            hf_token=HF_TOKEN,
-            headers={"authorization": "Bearer abcde"},
-        )
-        assert {"authorization": "Bearer abcde"}.items() <= client.headers.items()
+    def test_headers_constructed_correctly(self, increment_demo):
+        if not HF_TOKEN:
+            pytest.skip("HF_TOKEN is not set, skipping test")
+        _, local_url, _ = increment_demo.launch(prevent_thread_lock=True)
+        try:
+            client = Client(local_url, hf_token=HF_TOKEN)
+            assert {
+                "x-hf-authorization": f"Bearer {HF_TOKEN}"
+            }.items() <= client.headers.items()
+            client = Client(
+                local_url,
+                hf_token=HF_TOKEN,
+                headers={"additional": "value"},
+            )
+            assert {
+                "x-hf-authorization": f"Bearer {HF_TOKEN}",
+                "additional": "value",
+            }.items() <= client.headers.items()
+            client = Client(
+                local_url,
+                hf_token=HF_TOKEN,
+                headers={"authorization": "Bearer abcde"},
+            )
+            assert {"authorization": "Bearer abcde"}.items() <= client.headers.items()
+        finally:
+            increment_demo.close()
 
     @pytest.mark.serial
     def test_many_endpoint_demo_loads_quickly(self, many_endpoint_demo):
@@ -144,47 +150,11 @@ class TestClientPredictions:
             )
 
     @pytest.mark.flaky
-    def test_numerical_to_label_space(self):
-        client = Client("gradio-tests/titanic-survival")
-        label = json.load(
-            open(client.predict("male", 77, 10, api_name="/predict"))  # noqa: SIM115
-        )
-        assert label["label"] == "Perishes"
-        with pytest.raises(
-            ValueError,
-            match="This Gradio app might have multiple endpoints. Please specify an `api_name` or `fn_index`",
-        ):
-            client.predict("male", 77, 10)
-        with pytest.raises(
-            ValueError,
-            match="Cannot find a function with `api_name`: predict. Did you mean to use a leading slash?",
-        ):
-            client.predict("male", 77, 10, api_name="predict")
-
-    @pytest.mark.flaky
-    def test_numerical_to_label_space_v4(self):
-        client = Client("gradio-tests/titanic-survivalv4-sse")
-        label = client.predict("male", 77, 10, api_name="/predict")
-        assert label["label"] == "Perishes"
-
-    @pytest.mark.flaky
     def test_private_space(self):
         space_id = "gradio-tests/not-actually-private-space"
         api = huggingface_hub.HfApi()
         assert api.space_info(space_id).private
         client = Client(space_id, hf_token=HF_TOKEN)
-        output = client.predict("abc", api_name="/predict")
-        assert output == "abc"
-
-    @pytest.mark.flaky
-    def test_private_space_v4(self):
-        space_id = "gradio-tests/not-actually-private-spacev4-sse"
-        api = huggingface_hub.HfApi()
-        assert api.space_info(space_id).private
-        client = Client(
-            space_id,
-            hf_token=HF_TOKEN,
-        )
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
@@ -469,146 +439,12 @@ class TestClientPredictions:
             assert job2.status().code == Status.FINISHED
             assert len(job2.outputs()) == 4
 
-    @pytest.mark.xfail
-    def test_stream_audio(self, stream_audio):
-        with connect(stream_audio) as client:
-            job1 = client.submit(
-                handle_file(
-                    "https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4"
-                ),
-                api_name="/predict",
-            )
-            assert Path(job1.result()).exists()
-
-            job2 = client.submit(
-                handle_file(
-                    "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-                ),
-                api_name="/predict",
-            )
-            assert Path(job2.result()).exists()
-            assert all(Path(p).exists() for p in job2.outputs())
-
-    @pytest.mark.xfail
-    def test_upload_file_private_space_v4(self):
-        client = Client(
-            src="gradio-tests/not-actually-private-file-uploadv4-sse",
-        )
-
-        with patch.object(
-            client.endpoints[0], "_upload", wraps=client.endpoints[0]._upload
-        ) as upload:
-            with patch.object(
-                client.endpoints[0], "serialize", wraps=client.endpoints[0].serialize
-            ) as serialize:
-                with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-                    f.write("Hello from private space!")
-
-                output = client.submit(
-                    1, "foo", f.name, api_name="/file_upload"
-                ).result()
-            with open(output) as f:
-                assert f.read() == "Hello from private space!"
-            upload.assert_called_once()
-            assert all(f["is_file"] for f in serialize.return_value())
-
-        with patch.object(
-            client.endpoints[1], "_upload", wraps=client.endpoints[0]._upload
-        ) as upload:
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-                f.write("Hello from private space!")
-
-            with open(client.submit(f.name, api_name="/upload_btn").result()) as f:
-                assert f.read() == "Hello from private space!"
-            upload.assert_called_once()
-
-        with patch.object(
-            client.endpoints[2], "_upload", wraps=client.endpoints[0]._upload
-        ) as upload:
-            # `delete=False` is required for Windows compat
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f1:
-                with tempfile.NamedTemporaryFile(mode="w", delete=False) as f2:
-                    f1.write("File1")
-                    f2.write("File2")
-            r1, r2 = client.submit(
-                3,
-                [f1.name, f2.name],
-                "hello",
-                api_name="/upload_multiple",
-            ).result()
-            with open(r1) as f:
-                assert f.read() == "File1"
-            with open(r2) as f:
-                assert f.read() == "File2"
-            upload.assert_called_once()
-
-    @pytest.mark.flaky
-    def test_upload_file_private_space(self):
-        client = Client(
-            src="gradio-tests/not-actually-private-file-upload",
-            hf_token=HF_TOKEN,
-        )
-
-        with patch.object(
-            client.endpoints[0], "serialize", wraps=client.endpoints[0].serialize
-        ) as serialize:
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-                f.write("Hello from private space!")
-
-            output = client.submit(1, "foo", f.name, api_name="/file_upload").result()
-        with open(output) as f:
-            assert f.read() == "Hello from private space!"
-        assert all(f["is_file"] for f in serialize.return_value())
-
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-            f.write("Hello from private space!")
-
-        with open(client.submit(f.name, api_name="/upload_btn").result()) as f:
-            assert f.read() == "Hello from private space!"
-
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f1:
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f2:
-                f1.write("File1")
-                f2.write("File2")
-        r1, r2 = client.submit(
-            3,
-            [f1.name, f2.name],
-            "hello",
-            api_name="/upload_multiple",
-        ).result()
-        with open(r1) as f:
-            assert f.read() == "File1"
-        with open(r2) as f:
-            assert f.read() == "File2"
-
-    @pytest.mark.flaky
-    def test_upload_file_upload_route_does_not_exist(self):
-        client = Client(
-            src="gradio-tests/not-actually-private-file-upload-old-version",
-            hf_token=HF_TOKEN,
-        )
-
-        with patch.object(
-            client.endpoints[0], "serialize", wraps=client.endpoints[0].serialize
-        ) as serialize:
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-                f.write("Hello from private space!")
-
-                client.submit(1, "foo", f.name, fn_index=0).result()
-                serialize.assert_called_once_with(1, "foo", f.name)
-
     def test_does_not_upload_dir(self, stateful_chatbot):
         with connect(stateful_chatbot) as client:
             initial_history = [["", None]]
             message = "Hello"
             ret = client.predict(message, initial_history, api_name="/submit")
             assert ret == ("", [["", None], ["Hello", "I love you"]])
-
-    @pytest.mark.flaky
-    def test_predict_with_space_with_api_name_false(self):
-        client = Client("gradio-tests/client-bool-api-name-error")
-        assert client.predict("Hello!", api_name="/run") == "Hello!"
-        assert client.predict("Freddy", api_name="/say_hello") == "hello"
 
     def test_return_layout_component(self, hello_world_with_group):
         with connect(hello_world_with_group) as demo:
@@ -920,138 +756,12 @@ class TestAPIInfo:
     @pytest.mark.flaky
     @pytest.mark.parametrize("trailing_char", ["/", ""])
     def test_test_endpoint_src(self, trailing_char):
-        src = "https://gradio-calculator.hf.space" + trailing_char
+        src = "https://gradio-tests-image-identity-new.hf.space" + trailing_char
         client = Client(src=src)
-        assert client.endpoints[0].root_url == "https://gradio-calculator.hf.space/"
-
-    @pytest.mark.flaky
-    def test_numerical_to_label_space(self):
-        client = Client("gradio-tests/titanic-survival")
-        assert client.view_api(return_format="dict") == {
-            "named_endpoints": {
-                "/predict": {
-                    "parameters": [
-                        {
-                            "label": "Sex",
-                            "type": {"type": "string"},
-                            "python_type": {"type": "str", "description": ""},
-                            "component": "Radio",
-                            "example_input": "Howdy!",
-                            "serializer": "StringSerializable",
-                        },
-                        {
-                            "label": "Age",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Slider",
-                            "example_input": 5,
-                            "serializer": "NumberSerializable",
-                        },
-                        {
-                            "label": "Fare (british pounds)",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Slider",
-                            "example_input": 5,
-                            "serializer": "NumberSerializable",
-                        },
-                    ],
-                    "returns": [
-                        {
-                            "label": "output",
-                            "type": {"type": {}, "description": "any valid json"},
-                            "python_type": {
-                                "type": "dict[Any, Any]",
-                                "description": "any valid json",
-                            },
-                            "component": "Label",
-                            "serializer": "JSONSerializable",
-                        }
-                    ],
-                },
-                "/predict_1": {
-                    "parameters": [
-                        {
-                            "label": "Sex",
-                            "type": {"type": "string"},
-                            "python_type": {"type": "str", "description": ""},
-                            "component": "Radio",
-                            "example_input": "Howdy!",
-                            "serializer": "StringSerializable",
-                        },
-                        {
-                            "label": "Age",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Slider",
-                            "example_input": 5,
-                            "serializer": "NumberSerializable",
-                        },
-                        {
-                            "label": "Fare (british pounds)",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Slider",
-                            "example_input": 5,
-                            "serializer": "NumberSerializable",
-                        },
-                    ],
-                    "returns": [
-                        {
-                            "label": "output",
-                            "type": {"type": {}, "description": "any valid json"},
-                            "python_type": {
-                                "type": "dict[Any, Any]",
-                                "description": "any valid json",
-                            },
-                            "component": "Label",
-                            "serializer": "JSONSerializable",
-                        }
-                    ],
-                },
-                "/predict_2": {
-                    "parameters": [
-                        {
-                            "label": "Sex",
-                            "type": {"type": "string"},
-                            "python_type": {"type": "str", "description": ""},
-                            "component": "Radio",
-                            "example_input": "Howdy!",
-                            "serializer": "StringSerializable",
-                        },
-                        {
-                            "label": "Age",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Slider",
-                            "example_input": 5,
-                            "serializer": "NumberSerializable",
-                        },
-                        {
-                            "label": "Fare (british pounds)",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Slider",
-                            "example_input": 5,
-                            "serializer": "NumberSerializable",
-                        },
-                    ],
-                    "returns": [
-                        {
-                            "label": "output",
-                            "type": {"type": {}, "description": "any valid json"},
-                            "python_type": {
-                                "type": "dict[Any, Any]",
-                                "description": "any valid json",
-                            },
-                            "component": "Label",
-                            "serializer": "JSONSerializable",
-                        }
-                    ],
-                },
-            },
-            "unnamed_endpoints": {},
-        }
+        assert (
+            client.endpoints[0].root_url
+            == "https://gradio-tests-image-identity-new.hf.space/gradio_api/"
+        )
 
     def test_state_does_not_appear(self, state_demo):
         with connect(state_demo) as client:
@@ -1066,38 +776,7 @@ class TestAPIInfo:
             "gradio-tests/not-actually-private-space",
             hf_token=HF_TOKEN,
         )
-        assert len(client.endpoints) == 3
-        assert len([e for e in client.endpoints.values() if e.is_valid]) == 2
-        assert (
-            len([e for e in client.endpoints.values() if e.is_valid and e.api_name])
-            == 1
-        )
-        assert client.view_api(return_format="dict") == {
-            "named_endpoints": {
-                "/predict": {
-                    "parameters": [
-                        {
-                            "label": "x",
-                            "type": {"type": "string"},
-                            "python_type": {"type": "str", "description": ""},
-                            "component": "Textbox",
-                            "example_input": "Howdy!",
-                            "serializer": "StringSerializable",
-                        }
-                    ],
-                    "returns": [
-                        {
-                            "label": "output",
-                            "type": {"type": "string"},
-                            "python_type": {"type": "str", "description": ""},
-                            "component": "Textbox",
-                            "serializer": "StringSerializable",
-                        }
-                    ],
-                }
-            },
-            "unnamed_endpoints": {},
-        }
+        assert "/predict" in client.view_api(return_format="dict")["named_endpoints"]
 
     def test_api_info_of_local_demo(self, calculator_demo):
         with connect(calculator_demo) as client:

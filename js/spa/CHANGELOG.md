@@ -1,5 +1,64 @@
 # @self/spa
 
+## 0.10.3
+
+### Dependency updates
+
+- @gradio/client@1.17.1
+- @gradio/core@0.27.0
+
+## 0.10.3
+
+### Dependency updates
+
+- @gradio/client@1.17.0
+- @gradio/core@0.26.0
+
+## 0.10.3
+
+### Dependency updates
+
+- @gradio/client@1.16.0
+- @gradio/core@0.25.0
+
+## 0.10.3
+
+### Dependency updates
+
+- @gradio/client@1.15.7
+- @gradio/core@0.24.0
+
+## 0.10.3
+
+### Fixes
+
+- [#11632](https://github.com/gradio-app/gradio/pull/11632) [`8f19bff`](https://github.com/gradio-app/gradio/commit/8f19bffd04a73d4fc1080f5854caa0361516f3af) - ensure i18n is initialised before displaying localised loading text.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/core@0.23.2
+
+## 0.10.2
+
+### Fixes
+
+- [#11595](https://github.com/gradio-app/gradio/pull/11595) [`801f288`](https://github.com/gradio-app/gradio/commit/801f2887b95393c406aef57f0b0c7344753b03c6) - Ensure initial `Loading` text is translated in SPA mode.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/core@0.23.1
+
+## 0.10.1
+
+### Features
+
+- [#11543](https://github.com/gradio-app/gradio/pull/11543) [`ac95ac0`](https://github.com/gradio-app/gradio/commit/ac95ac0d8c2e65d1632376e632fb7d16131334b6) - Connection handling messaging.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/core@0.23.0
+- @gradio/client@1.15.6
+
 ## 0.10.0
 
 ### Features

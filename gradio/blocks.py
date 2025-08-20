@@ -15,6 +15,7 @@ import sys
 import threading
 import time
 import warnings
+import weakref
 import webbrowser
 from collections import defaultdict
 from collections.abc import AsyncIterator, Callable, Coroutine, Sequence, Set
@@ -133,7 +134,7 @@ class Block:
         visible: bool = True,
         proxy_url: str | None = None,
     ):
-        key_to_id_map = LocalContext.key_to_id_map.get()
+        key_to_id_map = LocalContext.key_to_id_map.get(None)
         if key is not None and key_to_id_map and key in key_to_id_map:
             self.is_render_replacement = True
             self._id = key_to_id_map[key]
@@ -209,7 +210,7 @@ class Block:
         """
         root_context = get_blocks_context()
         render_context = get_render_context()
-        self.rendered_in = LocalContext.renderable.get()
+        self.rendered_in = LocalContext.renderable.get(None)
         if (
             root_context is not None
             and self._id in root_context.blocks
@@ -421,7 +422,9 @@ class Block:
         if isinstance(url_or_file_path, Path):
             url_or_file_path = str(url_or_file_path)
         if client_utils.is_http_url_like(url_or_file_path):
-            return FileData(path=url_or_file_path, url=url_or_file_path).model_dump()
+            return FileData(
+                path=str(url_or_file_path), url=str(url_or_file_path)
+            ).model_dump()
         else:
             data = {"path": url_or_file_path, "meta": {"_type": "gradio.FileData"}}
             try:
@@ -562,6 +565,7 @@ class BlockFunction:
         collects_event_data: bool = False,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
+        trigger_only_on_failure: bool = False,
         trigger_mode: Literal["always_last", "once", "multiple"] = "once",
         queue: bool = True,
         scroll_to_output: bool = False,
@@ -604,6 +608,7 @@ class BlockFunction:
         self.collects_event_data = collects_event_data
         self.trigger_after = trigger_after
         self.trigger_only_on_success = trigger_only_on_success
+        self.trigger_only_on_failure = trigger_only_on_failure
         self.trigger_mode = trigger_mode
         self.queue = False if fn is None else queue
         self.scroll_to_output = False if utils.get_space() else scroll_to_output
@@ -675,6 +680,7 @@ class BlockFunction:
             "collects_event_data": self.collects_event_data,
             "trigger_after": self.trigger_after,
             "trigger_only_on_success": self.trigger_only_on_success,
+            "trigger_only_on_failure": self.trigger_only_on_failure,
             "trigger_mode": self.trigger_mode,
             "show_api": self.show_api,
             "rendered_in": self.rendered_in._id if self.rendered_in else None,
@@ -782,6 +788,7 @@ class BlocksConfig:
         collects_event_data: bool | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
+        trigger_only_on_failure: bool = False,
         trigger_mode: Literal["once", "multiple", "always_last"] | None = "once",
         concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
@@ -819,6 +826,7 @@ class BlocksConfig:
             collects_event_data: whether to collect event data for this event
             trigger_after: if set, this event will be triggered after 'trigger_after' function index
             trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
+            trigger_only_on_failure: if True, this event will only be triggered if the previous event failed i.e. raised an exception (only applies if `trigger_after` is set)
             trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` and `.key_up()` events) would allow a second submission after the pending event is complete.
             concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `queue()`, which itself is 1 by default).
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
@@ -887,7 +895,11 @@ class BlocksConfig:
                 else:
                     name = fn.__name__
                 api_name = "".join(
-                    [s for s in name if s not in set(string.punctuation) - {"-", "_"}]
+                    [
+                        s
+                        for s in str(name)
+                        if s not in set(string.punctuation) - {"-", "_"}
+                    ]
                 )
             elif js is not None:
                 api_name = "js_fn"
@@ -914,7 +926,7 @@ class BlocksConfig:
         if collects_event_data is None:
             collects_event_data = event_data_index is not None
 
-        rendered_in = LocalContext.renderable.get()
+        rendered_in = LocalContext.renderable.get(None)
 
         if js is True and inputs:
             raise ValueError(
@@ -950,11 +962,14 @@ class BlocksConfig:
             api_description=api_description,
             js=js,
             show_progress=show_progress,
-            show_progress_on=show_progress_on,
+            show_progress_on=show_progress_on
+            if isinstance(show_progress_on, (list, tuple)) or show_progress_on is None
+            else [show_progress_on],
             cancels=cancels,
             collects_event_data=collects_event_data,
             trigger_after=trigger_after,
             trigger_only_on_success=trigger_only_on_success,
+            trigger_only_on_failure=trigger_only_on_failure,
             trigger_mode=trigger_mode,
             queue=queue,
             scroll_to_output=scroll_to_output,
@@ -1151,6 +1166,16 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     Guides: blocks-and-event-listeners, controlling-layout, state-in-blocks, custom-CSS-and-JS, using-blocks-like-functions
     """
 
+    # stores references to all currently existing Blocks instances
+    instances: weakref.WeakSet = weakref.WeakSet()
+
+    @classmethod
+    def get_instances(cls) -> list[Blocks]:
+        """
+        :return: list of all current instances.
+        """
+        return list(Blocks.instances)
+
     def __init__(
         self,
         theme: Theme | str | None = None,
@@ -1264,6 +1289,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.favicon_path = None
         self.auth = None
         self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
+        self.vibe_mode = bool(os.getenv("GRADIO_VIBE_MODE", ""))
         self.app_id = random.getrandbits(64)
         self.upload_file_set = set()
         self.temp_file_sets = [self.upload_file_set]
@@ -1300,6 +1326,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 "version": get_package_version(),
             }
             analytics.initiated_analytics(data)
+
+        Blocks.instances.add(self)
 
         self.queue()
 
@@ -1468,6 +1496,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     dependency["trigger_only_on_success"] = dependency.pop(
                         "trigger_only_on_success"
                     )
+                    dependency["trigger_only_on_failure"] = dependency.pop(
+                        "trigger_only_on_failure", False
+                    )
                     dependency["no_target"] = True
                 else:
                     targets = [
@@ -1479,7 +1510,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                             original_mapping, _targets, trigger
                         )
                     ]
-                dependency = root_block.default_config.set_event_trigger(
+                dependency = root_block.default_config.set_event_trigger(  # type: ignore
                     targets=targets, fn=fn, **dependency
                 )[0]
                 if first_dependency is None:
@@ -1551,6 +1582,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             collects_event_data=None,
             trigger_after=None,
             trigger_only_on_success=False,
+            trigger_only_on_failure=False,
             trigger_mode="once",
             concurrency_limit="default",
             concurrency_id=None,
@@ -1716,7 +1748,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             blocks=self,
             event_id=event_id,
             in_event_listener=in_event_listener,
-            request=request,
+            request=request,  # type: ignore
             state=state,
         )
 
@@ -1730,7 +1762,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 block_fn.renderable.fn if block_fn.renderable else block_fn.fn
             )
             processed_input, progress_index, _ = special_args(
-                fn_to_analyze, processed_input, request, event_data
+                fn_to_analyze,
+                processed_input,
+                request,  # type: ignore
+                event_data,  # type: ignore
             )
             progress_tracker = (
                 processed_input[progress_index] if progress_index is not None else None
@@ -2041,6 +2076,10 @@ Received inputs:
                     state._update_value_in_config(
                         block._id, prediction_value_serialized
                     )
+                elif not block_fn.postprocess:
+                    if block._id not in state:
+                        state[block._id] = block
+                    state._update_value_in_config(block._id, prediction_value)
 
                 outputs_cached = await processing_utils.async_move_files_to_cache(
                     prediction_value,
@@ -2331,6 +2370,7 @@ Received inputs:
             "mode": self.mode,
             "app_id": self.app_id,
             "dev_mode": self.dev_mode,
+            "vibe_mode": self.vibe_mode,
             "analytics_enabled": self.analytics_enabled,
             "components": [],
             "css": self.css,
@@ -2773,6 +2813,8 @@ Received inputs:
             )
             self.share_server_tls_certificate = share_server_tls_certificate
             self.has_launched = True
+            if self.mcp_server_obj:
+                self.mcp_server_obj._local_url = self.local_url
 
             self.protocol = (
                 "https"
@@ -2917,7 +2959,9 @@ Received inputs:
         mcp_subpath = API_PREFIX + "/mcp"
         if self.mcp_server:
             print(
-                f"\n🔨 MCP server (using SSE) running at: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
+                "\n🔨 Launching MCP server:"
+                f"\n** Streamable HTTP URL: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/"
+                f"\n* [Deprecated] SSE URL: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
             )
 
         if inbrowser and not wasm_utils.IS_WASM:
@@ -3038,11 +3082,14 @@ Received inputs:
             else:
                 raise ValueError("Please run `launch()` first.")
         if wandb is not None:
+            assert hasattr(wandb, "log") and hasattr(wandb, "Html"), (  # noqa: S101
+                "wandb module missing required attributes"
+            )
             analytics_integration = "WandB"
             if self.share_url is not None:
-                wandb.log(
+                wandb.log(  # type: ignore
                     {
-                        "Gradio panel": wandb.Html(
+                        "Gradio panel": wandb.Html(  # type: ignore
                             '<iframe src="'
                             + self.share_url
                             + '" width="'
@@ -3058,11 +3105,14 @@ Received inputs:
                     "The WandB integration requires you to `launch(share=True)` first."
                 )
         if mlflow is not None:
+            assert hasattr(mlflow, "log_param"), (  # noqa: S101
+                "mlflow module missing required attributes"
+            )
             analytics_integration = "MLFlow"
             if self.share_url is not None:
-                mlflow.log_param("Gradio Interface Share Link", self.share_url)
+                mlflow.log_param("Gradio Interface Share Link", self.share_url)  # type: ignore
             else:
-                mlflow.log_param("Gradio Interface Local Link", self.local_url)
+                mlflow.log_param("Gradio Interface Local Link", self.local_url)  # type: ignore
         if self.analytics_enabled and analytics_integration:
             data = {"integration": analytics_integration}
             analytics.integration_analytics(data)
@@ -3071,6 +3121,9 @@ Received inputs:
         """
         Closes the Interface that was launched and frees the port.
         """
+        if not self.is_running:
+            return
+
         try:
             if wasm_utils.IS_WASM:
                 # NOTE:
@@ -3214,7 +3267,9 @@ Received inputs:
                         "type": info,
                         "python_type": {
                             "type": python_type,
-                            "description": info.get("additional_description", ""),
+                            "description": (info or {}).get(
+                                "additional_description", ""
+                            ),
                         },
                         "component": type.capitalize(),
                         "example_input": example,

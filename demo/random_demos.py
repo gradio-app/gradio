@@ -31,7 +31,7 @@ for d, demo_name in enumerate(random.sample(demos_list, args.num_demos)):
     print(f"Launching demo {d+1}/{args.num_demos}: {demo_name}")
     # import the run.py file from inside the directory specified by args.demo_name
     run = importlib.import_module(f"{demo_name}.run")
-    demo: gr.Blocks = run.demo
+    demo: gr.Blocks = run.demo  # type: ignore
     if d == args.num_demos - 1:
         demo.launch(prevent_thread_lock=False, inbrowser=True)  # prevent main thread from exiting
     else:

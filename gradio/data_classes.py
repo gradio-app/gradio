@@ -14,7 +14,6 @@ from typing import (
     Any,
     Literal,
     NewType,
-    Optional,
     Union,
 )
 
@@ -56,7 +55,7 @@ class CancelBody(BaseModel):
 
 class SimplePredictBody(BaseModel):
     data: list[Any]
-    session_hash: Optional[str] = None
+    session_hash: str | None = None
 
 
 class _StarletteRequestPydanticAnnotation:
@@ -84,14 +83,14 @@ PydanticStarletteRequest = Annotated[Request, _StarletteRequestPydanticAnnotatio
 
 
 class PredictBody(BaseModel):
-    session_hash: Optional[str] = None
-    event_id: Optional[str] = None
+    session_hash: str | None = None
+    event_id: str | None = None
     data: list[Any]
-    event_data: Optional[Any] = None
-    fn_index: Optional[int] = None
-    trigger_id: Optional[int] = None
+    event_data: Any | None = None
+    fn_index: int | None = None
+    trigger_id: int | None = None
     simple_format: bool = False
-    batched: Optional[bool] = (
+    batched: bool | None = (
         False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
     )
 
@@ -117,13 +116,21 @@ class PredictBody(BaseModel):
 class PredictBodyInternal(PredictBody):
     "Separate class to avoid exposing PydanticStarletteRequest in the API validation"
 
-    request: Optional[PydanticStarletteRequest] = (
+    request: PydanticStarletteRequest | None = (
         None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
     )
 
 
 class ResetBody(BaseModel):
     event_id: str
+
+
+class VibeEditBody(BaseModel):
+    prompt: str
+
+
+class VibeCodeBody(BaseModel):
+    code: str
 
 
 class ComponentServerJSONBody(BaseModel):
@@ -160,9 +167,9 @@ class GradioBaseModel(ABC):
 
         # TODO: Making sure path is unique should be done in caller
         def unique_copy(obj: dict):
-            data = FileData(**obj)
+            data = FileData(**obj)  # type: ignore
             return data._copy_to_dir(
-                str(pathlib.Path(dir / secrets.token_hex(10)))
+                str(pathlib.Path(dir) / secrets.token_hex(10))
             ).model_dump()
 
         return self.__class__.from_json(
@@ -202,10 +209,10 @@ GradioDataModel = Union[GradioModel, GradioRootModel]
 
 class FileDataDict(TypedDict):
     path: str  # server filepath
-    url: NotRequired[Optional[str]]  # normalised server url
-    size: NotRequired[Optional[int]]  # size in bytes
-    orig_name: NotRequired[Optional[str]]  # original filename
-    mime_type: NotRequired[Optional[str]]
+    url: NotRequired[str | None]  # normalised server url
+    size: NotRequired[int | None]  # size in bytes
+    orig_name: NotRequired[str | None]  # original filename
+    mime_type: NotRequired[str | None]
     is_stream: bool
     meta: NotRequired[dict]
 
@@ -230,10 +237,10 @@ class FileData(GradioModel):
     """
 
     path: str  # server filepath
-    url: Optional[str] = None  # normalised server url
-    size: Optional[int] = None  # size in bytes
-    orig_name: Optional[str] = None  # original filename
-    mime_type: Optional[str] = None
+    url: str | None = None  # normalised server url
+    size: int | None = None  # size in bytes
+    orig_name: str | None = None  # original filename
+    mime_type: str | None = None
     is_stream: bool = False
     meta: FileDataMeta = Field(default_factory=lambda: {"_type": "gradio.FileData"})
 
@@ -317,7 +324,7 @@ class FileData(GradioModel):
         """
         if isinstance(obj, dict):
             try:
-                return not FileData(**obj).is_none
+                return not FileData(**obj).is_none  # type: ignore
             except (TypeError, ValidationError):
                 return False
         return False
@@ -373,6 +380,7 @@ class BlocksConfigDict(TypedDict):
     mode: str
     app_id: int
     dev_mode: bool
+    vibe_mode: bool
     analytics_enabled: bool
     components: list[dict[str, Any]]
     css: str | None
@@ -414,13 +422,13 @@ class MediaStreamChunk(TypedDict):
 
 
 class ImageData(GradioModel):
-    path: Optional[str] = Field(default=None, description="Path to a local file")
-    url: Optional[str] = Field(
+    path: str | None = Field(default=None, description="Path to a local file")
+    url: str | None = Field(
         default=None, description="Publicly available url or base64 encoded image"
     )
-    size: Optional[int] = Field(default=None, description="Size of image in bytes")
-    orig_name: Optional[str] = Field(default=None, description="Original filename")
-    mime_type: Optional[str] = Field(default=None, description="mime type of image")
+    size: int | None = Field(default=None, description="Size of image in bytes")
+    orig_name: str | None = Field(default=None, description="Original filename")
+    mime_type: str | None = Field(default=None, description="mime type of image")
     is_stream: bool = Field(default=False, description="Can always be set to False")
     meta: dict = {"_type": "gradio.FileData"}
 

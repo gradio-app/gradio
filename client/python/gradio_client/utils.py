@@ -24,7 +24,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Literal,
-    Optional,
+    NewType,
     TypedDict,
     Union,
     get_args,
@@ -191,11 +191,11 @@ class Status(Enum):
 
 @dataclass
 class ProgressUnit:
-    index: Optional[int]
-    length: Optional[int]
-    unit: Optional[str]
-    progress: Optional[float]
-    desc: Optional[str]
+    index: int | None
+    length: int | None
+    unit: str | None
+    progress: float | None
+    desc: str | None
 
     @classmethod
     def from_msg(cls, data: list[dict]) -> list[ProgressUnit]:
@@ -223,6 +223,20 @@ class StatusUpdate:
     time: datetime | None
     progress_data: list[ProgressUnit] | None
     log: tuple[str, str] | None = None
+    type: Literal["status", "output"] = "status"
+
+
+@dataclass
+class OutputUpdate:
+    """Update message sent from the worker thread to the Job on the main thread."""
+
+    outputs: list[Any]
+    success: bool
+    type: Literal["output"] = "output"
+    final: bool = False
+
+
+Update = NewType("Update", StatusUpdate | OutputUpdate)
 
 
 def create_initial_status_update():
@@ -259,6 +273,8 @@ class Communicator:
     should_cancel: bool = False
     event_id: str | None = None
     thread_complete: bool = False
+    request_headers: dict[str, str] | None = None
+    updates: asyncio.Queue[Update] = field(default_factory=asyncio.Queue)
 
 
 ########################
@@ -589,9 +605,26 @@ def stream_sse_v1plus(
                     except Exception as e:
                         result = [e]
                     helper.job.outputs.append(result)
+                    helper.updates.put_nowait(
+                        OutputUpdate(outputs=result, success=msg.get("success", True))
+                    )
                 helper.job.latest_status = status_update
+                helper.updates.put_nowait(status_update)
             if msg["msg"] == ServerMessage.process_completed:
                 del pending_messages_per_event[event_id]
+                if not msg.get("success", True):
+                    # Create a new copy of the error dict so we
+                    # can preserve the error message (it gets popped later)
+                    output = dict(msg["output"].items())
+                else:
+                    output = msg["output"]
+                helper.updates.put_nowait(
+                    OutputUpdate(
+                        outputs=output,
+                        final=True,
+                        success=msg.get("success", True),
+                    )
+                )
                 return msg["output"]
             elif msg["msg"] == ServerMessage.server_stopped:
                 raise ValueError("Server stopped.")

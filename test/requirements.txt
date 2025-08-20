@@ -180,6 +180,8 @@ numpy==2.2.2
     #   scipy
     #   tifffile
     #   transformers
+openai==1.63.2
+    # via -r test/requirements.in
 orjson==3.10.15
     # via gradio
 packaging==24.2
@@ -212,7 +214,7 @@ pillow==11.1.0
     #   scikit-image
 pluggy==1.5.0
     # via pytest
-polars==0.20.5
+polars==1.31.0
     # via -r test/requirements.in
 prompt-toolkit==3.0.50
     # via ipython
@@ -287,7 +289,7 @@ rpds-py==0.22.3
     # via
     #   jsonschema
     #   referencing
-ruff==0.11.13
+ruff==0.12.9
     # via
     #   -r test/requirements.in
     #   gradio

@@ -56,6 +56,8 @@
 	export let max_file_size: number | undefined = undefined;
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
+	export let vibe_mode = false;
+	let broken_connection = false;
 
 	let {
 		layout: _layout,
@@ -68,8 +70,11 @@
 		loading_status,
 		scheduled_updates,
 		create_layout,
-		rerender_layout
-	} = create_components(initial_layout);
+		rerender_layout,
+		value_change
+	} = create_components({
+		initial_layout
+	});
 
 	$: components, layout, dependencies, root, app, fill_height, target, run();
 
@@ -87,6 +92,8 @@
 		handle_load_triggers();
 		old_dependencies = dependencies;
 	}
+
+	let vibe_editor_width = 350;
 
 	async function run(): Promise<void> {
 		await setupi18n(app.config?.i18n_translations || undefined);
@@ -117,6 +124,7 @@
 	let ApiDocs: ComponentType<ApiDocs> | null = null;
 	let ApiRecorder: ComponentType<ApiRecorder> | null = null;
 	let Settings: ComponentType<Settings> | null = null;
+	let VibeEditor: ComponentType | null = null;
 
 	async function loadApiDocs(): Promise<void> {
 		if (!ApiDocs || !ApiRecorder) {
@@ -138,6 +146,13 @@
 		if (!Settings) {
 			const settings_module = await import("./api_docs/Settings.svelte");
 			Settings = settings_module.default;
+		}
+	}
+
+	async function loadVibeEditor(): Promise<void> {
+		if (!VibeEditor) {
+			const vibe_editor_module = await import("@gradio/vibeeditor");
+			VibeEditor = vibe_editor_module.default;
 		}
 	}
 
@@ -275,13 +290,17 @@
 
 	let _error_id = -1;
 
-	let user_left_page = false;
-
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 	const DUPLICATE_MESSAGE = $_("blocks.long_requests_queue");
 	const MOBILE_QUEUE_WARNING = $_("blocks.connection_can_break");
-	const MOBILE_RECONNECT_MESSAGE = $_("blocks.lost_connection");
+	const LOST_CONNECTION_MESSAGE =
+		"Connection to the server was lost. Attempting reconnection...";
+	const CHANGED_CONNECTION_MESSAGE =
+		"Reconnected to server, but the server has changed. You may need to <a href=''>refresh the page</a>.";
+	const RECONNECTION_MESSAGE = "Connection re-established.";
+	const SESSION_NOT_FOUND_MESSAGE =
+		"Session not found - this is likely because the machine you were connected to has changed. <a href=''>Refresh the page</a> to continue.";
 	const WAITING_FOR_INPUTS_MESSAGE = $_("blocks.waiting_for_inputs");
 	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
 	const SHOW_MOBILE_QUEUE_WARNING_ON_ETA = 10;
@@ -421,6 +440,43 @@
 				} else {
 					dep.final_event = payload;
 				}
+			}
+		}
+
+		async function reconnect(): Promise<void> {
+			const connection_status = await app.reconnect();
+			if (connection_status === "broken") {
+				setTimeout(reconnect, 1000);
+			} else if (connection_status === "changed") {
+				broken_connection = false;
+				messages = [
+					new_message(
+						"Changed Connection",
+						CHANGED_CONNECTION_MESSAGE,
+						-1,
+						"info",
+						3,
+						true
+					),
+					...messages.map((m) =>
+						m.message === LOST_CONNECTION_MESSAGE ? { ...m, visible: false } : m
+					)
+				];
+			} else if (connection_status === "connected") {
+				broken_connection = false;
+				messages = [
+					new_message(
+						"Reconnected",
+						RECONNECTION_MESSAGE,
+						-1,
+						"success",
+						null,
+						true
+					),
+					...messages.map((m) =>
+						m.message === LOST_CONNECTION_MESSAGE ? { ...m, visible: false } : m
+					)
+				];
 			}
 		}
 
@@ -567,6 +623,35 @@
 
 			/* eslint-disable complexity */
 			function handle_status_update(message: StatusMessage): void {
+				if (message.broken && !broken_connection) {
+					messages = [
+						new_message(
+							"Broken Connection",
+							LOST_CONNECTION_MESSAGE,
+							-1,
+							"error",
+							null,
+							true
+						),
+						...messages
+					];
+
+					broken_connection = true;
+					setTimeout(reconnect, 1000);
+				}
+				if (message.session_not_found) {
+					messages = [
+						new_message(
+							"Session Not Found",
+							SESSION_NOT_FOUND_MESSAGE,
+							-1,
+							"error",
+							null,
+							true
+						),
+						...messages
+					];
+				}
 				const { fn_index, ...status } = message;
 				if (status.stage === "streaming" && status.time_limit) {
 					dep.inputs.forEach((id) => {
@@ -627,7 +712,10 @@
 				}
 				if (status.stage === "complete") {
 					dependencies.forEach(async (dep) => {
-						if (dep.trigger_after === fn_index) {
+						if (
+							dep.trigger_after === fn_index &&
+							!dep.trigger_only_on_failure
+						) {
 							wait_then_trigger_api_call(dep.id, payload.trigger_id);
 						}
 					});
@@ -636,16 +724,11 @@
 					});
 					submit_map.delete(dep_index);
 				}
-				if (status.broken && is_mobile_device && user_left_page) {
-					window.setTimeout(() => {
-						messages = [
-							new_message("Error", MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
-							...messages
-						];
-					}, 0);
-					wait_then_trigger_api_call(dep.id, payload.trigger_id, event_data);
-					user_left_page = false;
-				} else if (status.stage === "error") {
+				if (
+					status.stage === "error" &&
+					!broken_connection &&
+					!message.session_not_found
+				) {
 					if (status.message) {
 						const _message = status.message.replace(
 							MESSAGE_QUOTE_RE,
@@ -667,7 +750,7 @@
 					dependencies.map(async (dep) => {
 						if (
 							dep.trigger_after === fn_index &&
-							!dep.trigger_only_on_success
+							(!dep.trigger_only_on_success || dep.trigger_only_on_failure)
 						) {
 							wait_then_trigger_api_call(dep.id, payload.trigger_id);
 						}
@@ -779,6 +862,16 @@
 		render_complete = true;
 	}
 
+	value_change((id, value) => {
+		const deps = $targets[id]?.["change"];
+
+		deps?.forEach((dep_id) => {
+			requestAnimationFrame(() => {
+				wait_then_trigger_api_call(dep_id, id, value);
+			});
+		});
+	});
+
 	const handle_load_triggers = (): void => {
 		dependencies.forEach((dep) => {
 			if (dep.targets.some((dep) => dep[1] === "load")) {
@@ -851,12 +944,6 @@
 	let is_screen_recording = writable(false);
 
 	onMount(() => {
-		document.addEventListener("visibilitychange", function () {
-			if (document.visibilityState === "hidden") {
-				user_left_page = true;
-			}
-		});
-
 		is_mobile_device =
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 				navigator.userAgent
@@ -872,6 +959,15 @@
 			}
 		);
 
+		const handleVibeEditorResize = (event: CustomEvent): void => {
+			vibe_editor_width = event.detail.width;
+		};
+
+		window.addEventListener(
+			"vibeEditorResize",
+			handleVibeEditorResize as EventListener
+		);
+
 		// Load components if they should be visible on initial page load
 		if (api_docs_visible) {
 			loadApiDocs();
@@ -881,6 +977,9 @@
 		}
 		if (settings_visible) {
 			loadSettings();
+		}
+		if (vibe_mode) {
+			loadVibeEditor();
 		}
 	});
 
@@ -941,6 +1040,7 @@
 		class="contain"
 		style:flex-grow={app_mode ? "1" : "auto"}
 		bind:this={root_container}
+		style:margin-right={vibe_mode ? `${vibe_editor_width}px` : "0"}
 	>
 		{#if $_layout && app.config}
 			<MountComponents
@@ -1095,6 +1195,10 @@
 
 {#if messages}
 	<Toast {messages} on:close={handle_error_close} />
+{/if}
+
+{#if vibe_mode && VibeEditor}
+	<svelte:component this={VibeEditor} {app} {root} />
 {/if}
 
 <style>

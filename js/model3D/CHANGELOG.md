@@ -1,5 +1,52 @@
 # @gradio/model3d
 
+## 0.14.25
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.17
+- @gradio/atoms@0.16.5
+- @gradio/client@1.17.1
+- @gradio/icons@0.13.0
+- @gradio/upload@0.16.15
+
+## 0.14.24
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.16
+- @gradio/atoms@0.16.4
+- @gradio/client@1.17.0
+- @gradio/upload@0.16.14
+
+## 0.14.23
+
+### Dependency updates
+
+- @gradio/upload@0.16.13
+- @gradio/client@1.16.0
+
+## 0.14.22
+
+### Dependency updates
+
+- @gradio/upload@0.16.12
+- @gradio/client@1.15.7
+
+## 0.14.21
+
+### Features
+
+- [#11596](https://github.com/gradio-app/gradio/pull/11596) [`432abb0`](https://github.com/gradio-app/gradio/commit/432abb0418088fed54c4d486aed3e3bdf91f7b25) - Upgrade `gsplat`.  Thanks @dawoodkhan82!
+
+## 0.14.20
+
+### Dependency updates
+
+- @gradio/client@1.15.6
+- @gradio/statustracker@0.10.15
+- @gradio/upload@0.16.11
+
 ## 0.14.19
 
 ### Dependency updates

@@ -1,5 +1,157 @@
 # @gradio/core
 
+## 0.27.0
+
+### Features
+
+- [#11723](https://github.com/gradio-app/gradio/pull/11723) [`379f0c1`](https://github.com/gradio-app/gradio/commit/379f0c151943b5f269910eba4a4c7abc6145a11c) - Support MCP resources and prompts.  Thanks @abidlabs!
+
+### Fixes
+
+- [#11725](https://github.com/gradio-app/gradio/pull/11725) [`080f888`](https://github.com/gradio-app/gradio/commit/080f888e3b173b5b2deef5eaf9754f2a63adf1aa) - Ensure it is possible to use `@render` to generate Tabs.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.14.15
+- @gradio/statustracker@0.10.17
+- @gradio/paramviewer@0.7.15
+- @gradio/atoms@0.16.5
+- @gradio/column@0.2.1
+- @gradio/client@1.17.1
+- @gradio/icons@0.13.0
+- @gradio/upload@0.16.15
+- @gradio/image@0.22.17
+- @gradio/dropdown@0.10.2
+- @gradio/textbox@0.10.20
+- @gradio/button@0.5.11
+- @gradio/gallery@0.15.31
+- @gradio/plot@0.9.22
+- @gradio/checkbox@0.4.28
+- @gradio/file@0.12.28
+- @gradio/video@0.15.0
+
+## 0.26.0
+
+### Features
+
+- [#11691](https://github.com/gradio-app/gradio/pull/11691) [`2605a99`](https://github.com/gradio-app/gradio/commit/2605a99bf29bebbbb0a97cc8e0015b5bf8d8e79b) - Add .failure() event listener for error handling.  Thanks @elanehan!
+
+### Fixes
+
+- [#11698](https://github.com/gradio-app/gradio/pull/11698) [`fc41f09`](https://github.com/gradio-app/gradio/commit/fc41f0950b7c427abcebdc9a113148a219d8f3f6) - Fix visibility changes in gr.render.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.14.14
+- @gradio/paramviewer@0.7.14
+- @gradio/statustracker@0.10.16
+- @gradio/video@0.14.24
+- @gradio/atoms@0.16.4
+- @gradio/column@0.2.1
+- @gradio/client@1.17.0
+- @gradio/upload@0.16.14
+- @gradio/button@0.5.10
+- @gradio/gallery@0.15.30
+- @gradio/plot@0.9.21
+- @gradio/checkbox@0.4.27
+- @gradio/textbox@0.10.19
+- @gradio/dropdown@0.10.1
+- @gradio/file@0.12.27
+- @gradio/image@0.22.16
+
+## 0.25.0
+
+### Features
+
+- [#11662](https://github.com/gradio-app/gradio/pull/11662) [`a78f5fa`](https://github.com/gradio-app/gradio/commit/a78f5fa466a4b11ffaaafc5099a64df49afb6e41) - Gradio vibe editor.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.14.13
+- @gradio/upload@0.16.13
+- @gradio/video@0.14.23
+- @gradio/client@1.16.0
+- @gradio/image@0.22.15
+- @gradio/button@0.5.9
+- @gradio/gallery@0.15.29
+- @gradio/file@0.12.26
+
+## 0.24.0
+
+### Dependency updates
+
+- @gradio/dropdown@0.10.0
+
+## 0.24.0
+
+### Features
+
+- [#11651](https://github.com/gradio-app/gradio/pull/11651) [`5b0e212`](https://github.com/gradio-app/gradio/commit/5b0e212ec0d54b5d793985de94c216bc5a73f610) - Allow users choose the MCP tools from MCP docs pane.  Thanks @abidlabs!
+- [#11622](https://github.com/gradio-app/gradio/pull/11622) [`ae9aaee`](https://github.com/gradio-app/gradio/commit/ae9aaeea62974f1fb533946a2a7c8461572778ef) - Expose Streamable HTTP endpoint in MCP Server at `/mcp`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/upload@0.16.12
+- @gradio/video@0.14.22
+- @gradio/code@0.14.12
+- @gradio/client@1.15.7
+- @gradio/gallery@0.15.28
+- @gradio/image@0.22.14
+- @gradio/button@0.5.8
+- @gradio/file@0.12.25
+
+## 0.23.2
+
+### Fixes
+
+- [#11632](https://github.com/gradio-app/gradio/pull/11632) [`8f19bff`](https://github.com/gradio-app/gradio/commit/8f19bffd04a73d4fc1080f5854caa0361516f3af) - ensure i18n is initialised before displaying localised loading text.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/textbox@0.10.18
+
+## 0.23.1
+
+### Features
+
+- [#11619](https://github.com/gradio-app/gradio/pull/11619) [`33c5d2b`](https://github.com/gradio-app/gradio/commit/33c5d2bb8214c0d7a90daca0f1eaf96411a52e79) - Add a query param for the selected language & make MCP the default option when `mcp_server` is enabled.  Thanks @abidlabs!
+- [#11615](https://github.com/gradio-app/gradio/pull/11615) [`e2b66d7`](https://github.com/gradio-app/gradio/commit/e2b66d718f3a8f57b6ee224502849ee737b1b120) - fix change events for hidden components.  Thanks @pngwn!
+
+### Fixes
+
+- [#11599](https://github.com/gradio-app/gradio/pull/11599) [`c39d373`](https://github.com/gradio-app/gradio/commit/c39d3739bf2494ad13556174757cdd56060f033e) - Ensure component visibility is correctly propagated to all components.  Thanks @copilot-swe-agent!
+
+## 0.23.0
+
+### Features
+
+- [#11578](https://github.com/gradio-app/gradio/pull/11578) [`872798a`](https://github.com/gradio-app/gradio/commit/872798a780dd81c834a44b05277f6c9ebe09de8b) - Add an `api_description` parameter for API and MCP server.  Thanks @abidlabs!
+- [#11543](https://github.com/gradio-app/gradio/pull/11543) [`ac95ac0`](https://github.com/gradio-app/gradio/commit/ac95ac0d8c2e65d1632376e632fb7d16131334b6) - Connection handling messaging.  Thanks @aliabid94!
+- [#11508](https://github.com/gradio-app/gradio/pull/11508) [`f5a6fa8`](https://github.com/gradio-app/gradio/commit/f5a6fa8c52bcb8f508e10ea54a3427f3dab8e3f8) - Handle uploading files in mcp server automatically.  Thanks @freddyaboulton!
+- [#11515](https://github.com/gradio-app/gradio/pull/11515) [`2c24ca7`](https://github.com/gradio-app/gradio/commit/2c24ca709396291a344d981c19ed1655028b5d64) - Making it easier for MCP developers call APIs with user credentials.  Thanks @freddyaboulton!
+- [#11584](https://github.com/gradio-app/gradio/pull/11584) [`78428cb`](https://github.com/gradio-app/gradio/commit/78428cb29bf6dc66d583b7cf93dd404aef737e75) - Fix reload mode.  Thanks @aliabid94!
+
+### Fixes
+
+- [#11590](https://github.com/gradio-app/gradio/pull/11590) [`33b6057`](https://github.com/gradio-app/gradio/commit/33b6057dc5cbdfdab15b1ee000b0f0b3d9f3fff6) - Add Gradio File Input keyword to gradio file inputs.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/video@0.14.21
+- @gradio/client@1.15.6
+- @gradio/statustracker@0.10.15
+- @gradio/button@0.5.7
+- @gradio/upload@0.16.11
+- @gradio/checkbox@0.4.26
+- @gradio/image@0.22.13
+- @gradio/gallery@0.15.27
+- @gradio/plot@0.9.20
+- @gradio/textbox@0.10.17
+- @gradio/file@0.12.24
+- @gradio/code@0.14.11
+- @gradio/paramviewer@0.7.13
+- @gradio/column@0.2.1
+
 ## 0.22.0
 
 ### Features

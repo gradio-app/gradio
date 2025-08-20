@@ -1,5 +1,60 @@
 # @gradio/multimodaltextbox
 
+## 0.10.17
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.17
+- @gradio/atoms@0.16.5
+- @gradio/client@1.17.1
+- @gradio/icons@0.13.0
+- @gradio/upload@0.16.15
+- @gradio/image@0.22.17
+- @gradio/video@0.15.0
+
+## 0.10.16
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.16
+- @gradio/video@0.14.24
+- @gradio/atoms@0.16.4
+- @gradio/client@1.17.0
+- @gradio/upload@0.16.14
+- @gradio/image@0.22.16
+
+## 0.10.15
+
+### Dependency updates
+
+- @gradio/upload@0.16.13
+- @gradio/video@0.14.23
+- @gradio/client@1.16.0
+- @gradio/image@0.22.15
+
+## 0.10.14
+
+### Fixes
+
+- [#11650](https://github.com/gradio-app/gradio/pull/11650) [`81f9296`](https://github.com/gradio-app/gradio/commit/81f92968812e258d0f5e6f7c0ab7db6d6fb58719) - Fix some DeepLink Bugs.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/upload@0.16.12
+- @gradio/video@0.14.22
+- @gradio/client@1.15.7
+- @gradio/image@0.22.14
+
+## 0.10.13
+
+### Dependency updates
+
+- @gradio/video@0.14.21
+- @gradio/client@1.15.6
+- @gradio/statustracker@0.10.15
+- @gradio/upload@0.16.11
+- @gradio/image@0.22.13
+
 ## 0.10.12
 
 ### Fixes

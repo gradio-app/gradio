@@ -27,7 +27,7 @@ def outbreak(plot_type, r, month, countries, social_distancing):
         plt.legend(countries)
         return fig
     elif plot_type == "Plotly":
-        import plotly.express as px
+        import plotly.express as px  # type: ignore
 
         fig = px.line(df, x="day", y=countries)
         fig.update_layout(
@@ -43,8 +43,8 @@ def outbreak(plot_type, r, month, countries, social_distancing):
         fig = altair.Chart(df).mark_line().encode(x="day", y="value", color="country")
         return fig
     elif plot_type == "Bokeh":
-        from bokeh.plotting import figure
-        from bokeh.models import ColumnDataSource
+        from bokeh.plotting import figure  # type: ignore
+        from bokeh.models import ColumnDataSource  # type: ignore
 
         source = ColumnDataSource(df)
         fig = figure(title="Outbreak in " + month, x_axis_label="Days since Day 0", y_axis_label="Cases")

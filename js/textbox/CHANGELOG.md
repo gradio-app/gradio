@@ -1,5 +1,32 @@
 # @gradio/textbox
 
+## 0.10.20
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.17
+- @gradio/atoms@0.16.5
+- @gradio/icons@0.13.0
+
+## 0.10.19
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.16
+- @gradio/atoms@0.16.4
+
+## 0.10.18
+
+### Fixes
+
+- [#11598](https://github.com/gradio-app/gradio/pull/11598) [`33d9c48`](https://github.com/gradio-app/gradio/commit/33d9c4812b0cadfb741c0f8116a9fad74e991237) - Ensure `gr.Textbox` is responsive with content.  Thanks @hannahblair!
+
+## 0.10.17
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.15
+
 ## 0.10.16
 
 ### Fixes

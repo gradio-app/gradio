@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import warnings
 from collections.abc import Callable, Sequence
 from typing import (
     TYPE_CHECKING,
@@ -113,21 +114,40 @@ class JSON(Component):
         Returns:
             Returns the JSON as a `list` or `dict`.
         """
+
+        def default_json(o):
+            """
+            Check if the string representation of the object is already a valid JSON string. If it is,
+            parse it as JSON without the need to double quote it as string.
+            """
+            try:
+                return orjson.loads(str(o))
+            except orjson.JSONDecodeError:
+                return str(o)
+
         if value is None:
             return None
+
+        if not isinstance(value, (str, dict, list, Callable)):
+            warnings.warn(
+                f"JSON component received unexpected type {type(value)}. "
+                "Expected a string (including a valid JSON string), dict, list, or Callable.",
+                UserWarning,
+            )
+
         if isinstance(value, str):
-            return JsonData(orjson.loads(value))
+            return JsonData(root=orjson.loads(value))
         else:
             # Use orjson to convert NumPy arrays and datetime objects to JSON.
             # This ensures a backward compatibility with the previous behavior.
             # See https://github.com/gradio-app/gradio/pull/8041
             return JsonData(
-                orjson.loads(
+                root=orjson.loads(
                     orjson.dumps(
                         value,
                         option=orjson.OPT_SERIALIZE_NUMPY
                         | orjson.OPT_PASSTHROUGH_DATETIME,
-                        default=str,
+                        default=default_json,
                     )
                 )
             )

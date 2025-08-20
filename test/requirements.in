@@ -14,13 +14,14 @@ matplotlib
 httpx
 huggingface_hub
 hypothesis
-polars==0.20.5
+nbformat
+openai==1.63.2
+polars==1.31.0
 pydantic[email]
 pytest
 pytest-asyncio
 pytest-cov
 pytest-rerunfailures
-ruff>=0.1.13
 respx
 scikit-image
 torch

@@ -1,0 +1,42 @@
+{
+	"name": "@gradio/dialogue",
+	"version": "0.2.1",
+	"description": "Gradio dialogue component",
+	"type": "module",
+	"author": "Gradio",
+	"license": "ISC",
+	"private": false,
+	"main_changeset": true,
+	"exports": {
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		},
+		"./example": {
+			"gradio": "./Example.svelte",
+			"svelte": "./dist/Example.svelte",
+			"types": "./dist/Example.svelte.d.ts"
+		},
+		"./package.json": "./package.json"
+	},
+	"dependencies": {
+		"@gradio/atoms": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/utils": "workspace:^",
+		"@gradio/dropdown": "workspace:^",
+		"@gradio/textbox": "workspace:^"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/dialogue"
+	}
+}

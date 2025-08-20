@@ -1,5 +1,68 @@
 # @gradio/chatbot
 
+## 0.26.22
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.17
+- @gradio/atoms@0.16.5
+- @gradio/client@1.17.1
+- @gradio/icons@0.13.0
+- @gradio/upload@0.16.15
+- @gradio/image@0.22.17
+- @gradio/gallery@0.15.31
+- @gradio/plot@0.9.22
+- @gradio/video@0.15.0
+
+## 0.26.21
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.16
+- @gradio/video@0.14.24
+- @gradio/atoms@0.16.4
+- @gradio/client@1.17.0
+- @gradio/upload@0.16.14
+- @gradio/gallery@0.15.30
+- @gradio/plot@0.9.21
+- @gradio/image@0.22.16
+
+## 0.26.20
+
+### Dependency updates
+
+- @gradio/upload@0.16.13
+- @gradio/video@0.14.23
+- @gradio/client@1.16.0
+- @gradio/image@0.22.15
+- @gradio/gallery@0.15.29
+
+## 0.26.19
+
+### Fixes
+
+- [#11601](https://github.com/gradio-app/gradio/pull/11601) [`7d5a762`](https://github.com/gradio-app/gradio/commit/7d5a7629794146b33217e0cf34a289d35d1e36da) - Fix like/dislike buttons to appear on every message when group_consecutive_messages=False.  Thanks @copilot-swe-agent!
+
+### Dependency updates
+
+- @gradio/upload@0.16.12
+- @gradio/video@0.14.22
+- @gradio/client@1.15.7
+- @gradio/gallery@0.15.28
+- @gradio/image@0.22.14
+
+## 0.26.18
+
+### Dependency updates
+
+- @gradio/video@0.14.21
+- @gradio/client@1.15.6
+- @gradio/statustracker@0.10.15
+- @gradio/upload@0.16.11
+- @gradio/image@0.22.13
+- @gradio/gallery@0.15.27
+- @gradio/plot@0.9.20
+
 ## 0.26.17
 
 ### Dependency updates

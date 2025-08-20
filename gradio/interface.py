@@ -8,7 +8,6 @@ import inspect
 import json
 import os
 import warnings
-import weakref
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -61,16 +60,6 @@ class Interface(Blocks):
     Demos: hello_world, hello_world_2, hello_world_3
     Guides: quickstart, key-features, sharing-your-app, interface-state, reactive-interfaces, advanced-interface-features, setting-up-a-gradio-demo-for-maximum-performance
     """
-
-    # stores references to all currently existing Interface instances
-    instances: weakref.WeakSet = weakref.WeakSet()
-
-    @classmethod
-    def get_instances(cls) -> list[Interface]:
-        """
-        :return: list of all current instances.
-        """
-        return list(Interface.instances)
 
     @classmethod
     def from_pipeline(
@@ -303,7 +292,7 @@ class Interface(Blocks):
 
             if cache_examples:
                 warnings.warn(
-                    "Cache examples cannot be used with state inputs and outputs."
+                    "Cache examples cannot be used with state inputs and outputs. "
                     "Setting cache_examples to False."
                 )
             self.cache_examples = False
@@ -423,7 +412,7 @@ class Interface(Blocks):
         # (2) check for env variable, (3) default to "manual"
         if allow_flagging is not None:
             warnings.warn(
-                "The `allow_flagging` parameter in `Interface` is deprecated."
+                "The `allow_flagging` parameter in `Interface` is deprecated. "
                 "Use `flagging_mode` instead."
             )
             flagging_mode = allow_flagging
@@ -470,7 +459,6 @@ class Interface(Blocks):
 
         self.favicon_path = None
         self.i18n_instance = None
-        Interface.instances.add(self)
 
         param_types = utils.get_type_hints(self.fn)
         # param_names = inspect.getfullargspec(self.fn)[0]
@@ -1049,5 +1037,6 @@ class TabbedInterface(Blocks):
 
 
 def close_all(verbose: bool = True) -> None:
-    for io in Interface.get_instances():
-        io.close(verbose)
+    for instance in Blocks.get_instances():
+        if instance.is_running:
+            instance.close(verbose)

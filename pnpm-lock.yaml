@@ -82,6 +82,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.19
         version: 10.4.19(postcss@8.4.38)
+      cross-env:
+        specifier: ^7.0.3
+        version: 7.0.3
       esbuild:
         specifier: ^0.21.0
         version: 0.21.0
@@ -125,7 +128,7 @@ importers:
         specifier: ^4.6.2
         version: 4.6.2
       postcss:
-        specifier: ^8.4.38
+        specifier: 8.4.38
         version: 8.4.38
       postcss-custom-media:
         specifier: ^10.0.4
@@ -239,6 +242,9 @@ importers:
       '@gradio/datetime':
         specifier: workspace:^
         version: link:js/datetime
+      '@gradio/dialogue':
+        specifier: workspace:^
+        version: link:js/dialogue
       '@gradio/downloadbutton':
         specifier: workspace:^
         version: link:js/downloadbutton
@@ -353,6 +359,9 @@ importers:
       '@gradio/uploadbutton':
         specifier: workspace:^
         version: link:js/uploadbutton
+      '@gradio/vibeeditor':
+        specifier: workspace:^
+        version: link:js/vibeeditor
       '@gradio/video':
         specifier: workspace:^
         version: link:js/video
@@ -1038,6 +1047,9 @@ importers:
 
   js/core:
     dependencies:
+      dequal:
+        specifier: ^2.0.2
+        version: 2.0.3
       svelte:
         specifier: ^4.0.0
         version: 4.2.15
@@ -1216,6 +1228,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/vibeeditor':
+        specifier: workspace:^
+        version: link:../vibeeditor
       '@gradio/video':
         specifier: workspace:^
         version: link:../video
@@ -1320,6 +1335,34 @@ importers:
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
+
+  js/dialogue:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/dropdown':
+        specifier: workspace:^
+        version: link:../dropdown
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/textbox':
+        specifier: workspace:^
+        version: link:../textbox
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
@@ -1894,8 +1937,8 @@ importers:
         specifier: ^2.0.2
         version: 2.0.3
       gsplat:
-        specifier: ^1.0.5
-        version: 1.0.5
+        specifier: ^1.2.9
+        version: 1.2.9
       svelte:
         specifier: ^4.0.0
         version: 4.2.15
@@ -2536,6 +2579,28 @@ importers:
       svelte-i18n:
         specifier: ^3.6.0
         version: 3.6.0(svelte@4.2.15)
+
+  js/vibeeditor:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
 
   js/video:
     dependencies:
@@ -6817,8 +6882,8 @@ packages:
     resolution: {integrity: sha512-59LZHPdGZVh695Ud9lRzPBVTtlX9ZCV150Er2W43ro37wVof0ctenSaskPPjN7lVTIN8mSZt8PHUNKZuNQUuxw==}
     engines: {node: ^12.22.0 || ^14.16.0 || ^16.0.0 || >=17.0.0}
 
-  gsplat@1.0.5:
-    resolution: {integrity: sha512-SM85+qMA/UwdDk2lFRmkJvLhD5A+qloRzINmPzjvXJ6Iugl3yAEr8TomVQmge0z1i98bHEoSZrJC/UOKVXq3Hg==}
+  gsplat@1.2.9:
+    resolution: {integrity: sha512-zfpaL9TEQD4oHNesL77KYeRgWvIy2+7P3jRsOA0d8So4Cv/OELRoMXo687ZEXqUMCekiXJgpFw9dz12021NFlw==}
 
   hachure-fill@0.5.2:
     resolution: {integrity: sha512-3GKBOn+m2LX9iq+JC1064cSFprJY4jL1jCXTcpnfER5HYE2l/4EfWSGzkPa/ZDBmYI0ZOEj5VHV/eKnPGkHuOg==}
@@ -8749,10 +8814,6 @@ packages:
     resolution: {integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==}
     engines: {node: '>=0.10.0'}
 
-  source-map-js@1.2.0:
-    resolution: {integrity: sha512-itJW8lvSA0TXEphiRoawsCksnlf8SyvmFzIhltqAHluXd88pkCd+cXJVHTDwdCr0IzwptSm035IHQktUu1QUMg==}
-    engines: {node: '>=0.10.0'}
-
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
@@ -9996,7 +10057,7 @@ snapshots:
       '@babel/helper-validator-identifier': 7.24.5
       chalk: 2.4.2
       js-tokens: 4.0.0
-      picocolors: 1.0.0
+      picocolors: 1.1.1
 
   '@babel/parser@7.23.3':
     dependencies:
@@ -13191,7 +13252,7 @@ snapshots:
   css-tree@2.3.1:
     dependencies:
       mdn-data: 2.0.30
-      source-map-js: 1.2.0
+      source-map-js: 1.2.1
 
   css-vars-ponyfill@2.4.9:
     dependencies:
@@ -14620,7 +14681,7 @@ snapshots:
 
   graphql@16.8.1: {}
 
-  gsplat@1.0.5: {}
+  gsplat@1.2.9: {}
 
   hachure-fill@0.5.2: {}
 
@@ -16064,9 +16125,9 @@ snapshots:
 
   postcss@8.4.38:
     dependencies:
-      nanoid: 3.3.7
-      picocolors: 1.0.0
-      source-map-js: 1.2.0
+      nanoid: 3.3.11
+      picocolors: 1.1.1
+      source-map-js: 1.2.1
 
   postcss@8.5.3:
     dependencies:
@@ -16691,8 +16752,6 @@ snapshots:
   smob@1.5.0: {}
 
   source-map-js@1.0.2: {}
-
-  source-map-js@1.2.0: {}
 
   source-map-js@1.2.1: {}
 
@@ -17337,7 +17396,7 @@ snapshots:
     dependencies:
       browserslist: 4.23.0
       escalade: 3.1.2
-      picocolors: 1.0.0
+      picocolors: 1.1.1
 
   update-browserslist-db@1.1.3(browserslist@4.24.4):
     dependencies:

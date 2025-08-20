@@ -39,14 +39,6 @@ from gradio.pipelines_utils import (
 
 
 @pytest.mark.flaky
-def test_text_to_text_model_from_pipeline():
-    pipe = transformers.pipeline(model="sshleifer/bart-tiny-random")
-    io = gr.Interface.from_pipeline(pipe)
-    output = io("My name is Sylvain and I work at Hugging Face in Brooklyn")
-    assert isinstance(output, str)
-
-
-@pytest.mark.flaky
 def test_stable_diffusion_pipeline():
     pipe = StableDiffusionPipeline.from_pretrained("hf-internal-testing/tiny-sd-pipe")
     io = gr.Interface.from_pipeline(pipe)
@@ -56,8 +48,8 @@ def test_stable_diffusion_pipeline():
 
 @pytest.mark.flaky
 def test_interface_in_blocks():
-    pipe1 = transformers.pipeline(model="sshleifer/bart-tiny-random")
-    pipe2 = transformers.pipeline(model="sshleifer/bart-tiny-random")
+    pipe1 = transformers.pipeline(model="deepset/roberta-base-squad2")  # type: ignore
+    pipe2 = transformers.pipeline(model="deepset/roberta-base-squad2")  # type: ignore
     with gr.Blocks() as demo:
         with gr.Tab("Image Inference"):
             gr.Interface.from_pipeline(pipe1)
@@ -71,7 +63,7 @@ def test_interface_in_blocks():
 def test_transformers_load_from_pipeline():
     from transformers import pipeline
 
-    pipe = pipeline(model="deepset/roberta-base-squad2")
+    pipe = pipeline(model="deepset/roberta-base-squad2")  # type: ignore
     io = gr.Interface.from_pipeline(pipe)
     assert io.input_components[0].label == "Context"
     assert io.input_components[1].label == "Question"

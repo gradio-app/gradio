@@ -290,21 +290,21 @@
 				let url = new URL(`http://${host}${app.api_prefix}/dev/reload`);
 				stream = new EventSource(url);
 				stream.addEventListener("error", async (e) => {
-					new_message_fn("Error", "Error reloading app", "error");
 					// @ts-ignore
-					console.error(JSON.parse(e.data));
+					let event_data: string | undefined = e.data;
+					if (event_data) {
+						new_message_fn("Error", "Error reloading app", "error");
+						console.error(JSON.parse(event_data));
+					}
 				});
 				stream.addEventListener("reload", async (event) => {
 					app.close();
-					app = await Client.connect(
-						data.api_url,
-						{
-							status_callback: handle_status,
-							with_null_state: true,
-							events: ["data", "log", "status", "render"]
-						},
-						app.session_hash
-					);
+					app = await Client.connect(data.api_url, {
+						status_callback: handle_status,
+						with_null_state: true,
+						events: ["data", "log", "status", "render"],
+						session_hash: app.session_hash
+					});
 
 					if (!app.config) {
 						throw new Error("Could not resolve app config");

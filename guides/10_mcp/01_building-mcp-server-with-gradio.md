@@ -72,13 +72,11 @@ Now, all you need to do is add this URL endpoint to your MCP Client (e.g. Claude
    export GRADIO_MCP_SERVER=True
    ```
 
-3. **File Handling**: The server automatically handles file data conversions, including:
-   - Converting base64-encoded strings to file data
+3. **File Handling**: The Gradio MCP server automatically handles file data conversions, including:
    - Processing image files and returning them in the correct format
    - Managing temporary file storage
 
-    It is **strongly** recommended that input images and files be passed as full URLs ("http://..." or "https:/...") as MCP Clients do not always handle local files correctly.
-
+    By default, the Gradio MCP server accepts input images and files as full URLs ("http://..." or "https:/..."). For convenience, an additional STDIO-based MCP server is also generated, which can be used to upload files to any remote Gradio app and which returns a URL that can be used for subsequent tool calls.
 
 4. **Hosted MCP Servers on 󠀠🤗 Spaces**: You can publish your Gradio application for free on Hugging Face Spaces, which will allow you to have a free hosted MCP server. Here's an example of such a Space: https://huggingface.co/spaces/abidlabs/mcp-tools. Notice that you can add this config to your MCP Client to start using the tools from this Space immediately:
 
@@ -177,23 +175,62 @@ demo.launch(mcp_server=True)
 
 ![MCP Header Connection Page](https://github.com/user-attachments/assets/e264eedf-a91a-476b-880d-5be0d5934134)
 
+### Sending Progress Updates
+
+The Gradio MCP server automatically sends progress updates to your MCP Client based on the queue in the Gradio application. If you'd like to send custom progress updates, you can do so using the same mechanism as you would use to display progress updates in the UI of your Gradio app: by using the `gr.Progress` class!
+
+Here's an example of how to do this:
+
+$code_mcp_progress
+
+[Here are the docs](https://www.gradio.app/docs/gradio/progress) for the `gr.Progress` class, which can also automatically track `tqdm` calls.
+
+
 ## Modifying Tool Descriptions
 
 Gradio automatically sets the tool name based on the name of your function, and the description from the docstring of your function. But you may want to change how the description appears to your LLM. You can do this by using the `api_description` parameter in `Interface`, `ChatInterface`, or any event listener. This parameter takes three different kinds of values:
 
-* `None` (default): in which case the tool description is automatically created from the docstring of the function
-* `False`: in which case, no tool description appears to the LLM.
-* `str`: any arbitrary string to use as the tool description.
+* `None` (default): the tool description is automatically created from the docstring of the function (or its parent's docstring if it does not have a docstring but inherits from a method that does.)
+* `False`: no tool description appears to the LLM.
+* `str`: an arbitrary string to use as the tool description.
 
-In addition to modifying the tool descriptions, you can also toggle which tools appear to the LLM. You can do this by setting the `show_api` parameter, which is by default `True`. Setting it to `False` hides the endpoint from the API docs and from the MCP server.
+In addition to modifying the tool descriptions, you can also toggle which tools appear to the LLM. You can do this by setting the `show_api` parameter, which is by default `True`. Setting it to `False` hides the endpoint from the API docs and from the MCP server. If you expose multiple tools, users of your app will also be able to toggle which tools they'd like to add to their MCP server by checking boxes in the "view MCP or API" panel.
 
-Here's an example that shows these parameters in actions:
+Here's an example that shows the `api_description` and `show_api` parameters in actions:
 
 $code_mcp_tools
 
-## Adding MCP-Only Tools
 
-So far, all of our MCP tools have corresponded to event listeners in the UI. This works well for functions that directly update the UI, but may not work if you wish to expose a "pure logic" function that should return raw data (e.g., a JSON object) without directly causing a UI update.
+
+## MCP Resources and Prompts
+
+In addition to tools (which execute functions generally and are the default for any function exposed through the Gradio MCP integration), MCP supports two other important primitives: **resources** (for exposing data) and **prompts** (for defining reusable templates). Gradio provides decorators to easily create MCP servers with all three capabilities.
+
+
+### Creating MCP Resources
+
+Use the `@gr.mcp.resource` decorator on any function to expose data through your Gradio app. Resources can be static (always available at a fixed URI) or templated (with parameters in the URI).
+
+$code_mcp_resources_and_prompts
+
+In this example:
+- The `get_greeting` function is exposed as a resource with a URI template `greeting://{name}`
+- When an MCP client requests `greeting://Alice`, it receives "Hello, Alice!"
+- Resources can also return images and other types of files or binary data. In order to return non-text data, you should specify the `mime_type` parameter in `@gr.mcp.resource()` and return a Base64 string from your function.
+
+### Creating MCP Prompts  
+
+Prompts help standardize how users interact with your tools. They're especially useful for complex workflows that require specific formatting or multiple steps.
+
+The `greet_user` function in the example above is decorated with `@gr.mcp.prompt()`, which:
+- Makes it available as a prompt template in MCP clients
+- Accepts parameters (`name` and `style`) to customize the output
+- Returns a structured prompt that guides the LLM's behavior
+
+
+## Adding MCP-Only Functions
+
+So far, all of our MCP tools, resources, or prompts have corresponded to event listeners in the UI. This works well for functions that directly update the UI, but may not work if you wish to expose a "pure logic" function that should return raw data (e.g. a JSON object) without directly causing a UI update.
 
 In order to expose such an MCP tool, you can create a pure Gradio API endpoint using `gr.api` (see [full docs here](https://www.gradio.app/main/docs/gradio/api)). Here's an example of creating an MCP tool that slices a list:
 
@@ -201,14 +238,12 @@ $code_mcp_tool_only
 
 Note that if you use this approach, your function signature must be fully typed, including the return value, as these signature are used to determine the typing information for the MCP tool.
 
-
 ## Gradio with FastMCP
 
 In some cases, you may decide not to use Gradio's built-in integration and instead manually create an FastMCP Server that calls a Gradio app. This approach is useful when you want to:
 
 - Store state / identify users between calls instead of treating every tool call completely independently
 - Start the Gradio app MCP server when a tool is called (if you are running multiple Gradio apps locally and want to save memory / GPU)
-- Use a different MCP protocol than SSE
 
 This is very doable thanks to the [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) and the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)'s `FastMCP` class. Here's an example of creating a custom MCP server that connects to various Gradio apps hosted on [HuggingFace Spaces](https://huggingface.co/spaces) using the `stdio` protocol:
 

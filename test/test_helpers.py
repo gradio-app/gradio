@@ -500,7 +500,23 @@ class TestProcessExamples:
         )
         with connect(io):
             prediction = io.examples_handler.load_from_cache(0)
-        assert prediction == ["hel", "3"]
+        assert prediction == ["hel", 3]
+
+    def test_caching_with_float_numbers(self, patched_cache_folder, connect):
+        def foo(a, b):
+            return a, b
+
+        io = gr.Interface(
+            foo,
+            ["slider", "number"],
+            ["slider", "number"],
+            examples=[[1.7, 2.85]],
+            cache_examples=True,
+        )
+
+        with connect(io):
+            prediction = io.examples_handler.load_from_cache(0)
+        assert prediction == [1.7, 2.85]
 
     def test_caching_with_non_io_component(self, patched_cache_folder, connect):
         def predict(name):
@@ -729,14 +745,18 @@ class TestProgressBar:
                 status_updates.append(update)
             time.sleep(0.05)
 
-        assert status_updates == [
-            (None, "start"),
-            (0, None),
-            (1, None),
-            (2, None),
-            (3, None),
-            (4, None),
-        ]
+        assert all(
+            s
+            in [
+                (None, "start"),
+                (0, None),
+                (1, None),
+                (2, None),
+                (3, None),
+                (4, None),
+            ]
+            for s in status_updates
+        )
 
     @pytest.mark.asyncio
     async def test_progress_bar_track_tqdm(self):

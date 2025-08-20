@@ -771,7 +771,7 @@ def test_error_payload():
 
 class TestGetFunctionDescription:
     def test_basic_function_description(self):
-        def test_func():
+        def test_func(param1, param2):
             """This is a test function.
             Args:
                 param1: First parameter
@@ -807,7 +807,7 @@ class TestGetFunctionDescription:
         assert returns == []
 
     def test_function_with_alternate_parameter_section(self):
-        def test_func():
+        def test_func(param1, param2):
             """This is a test function.
             Parameters:
                 param1: First parameter
@@ -821,7 +821,7 @@ class TestGetFunctionDescription:
         assert returns == []
 
     def test_function_with_arguments_section(self):
-        def test_func():
+        def test_func(param1, param2):
             """This is a test function.
             Arguments:
                 param1: First parameter
@@ -838,7 +838,7 @@ class TestGetFunctionDescription:
         assert returns == ["First return value", "Second return value"]
 
     def test_function_with_multiline_description(self):
-        def test_func():
+        def test_func(param1, param2):
             """This is a test function.
             It has multiple lines of description.
             Args:
@@ -855,12 +855,11 @@ class TestGetFunctionDescription:
         assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
         assert returns == []
 
-    def test_function_with_malformed_params(self):
-        def test_func():
+    def test_function_with_missing_params(self):
+        def test_func(param1, param2, param3):
             """This is a test function.
             Args:
             param1: description1
-            param2
             param3: description3
             Returns:
                 - First return value
@@ -870,11 +869,15 @@ class TestGetFunctionDescription:
 
         description, parameters, returns = get_function_description(test_func)
         assert description == "This is a test function."
-        assert parameters == {"param1": "description1", "param3": "description3"}
+        assert parameters == {
+            "param1": "description1",
+            "param2": "",
+            "param3": "description3",
+        }
         assert returns == ["First return value", "Second return value"]
 
     def test_function_with_nested_colons(self):
-        def test_func():
+        def test_func(param1, param2):
             """This is a test function.
             Args:
             param1: description1: with nested colon
@@ -889,3 +892,23 @@ class TestGetFunctionDescription:
             "param2": "description2",
         }
         assert returns == []
+
+    def test_get_function_description_inherits_parent_docstring(self):
+        """
+        Test that get_function_description correctly retrieves docstrings
+        from a method's parent class if the method itself has none.
+        """
+
+        class Parent:
+            def method(self):
+                """This is the docstring from the parent class."""
+                pass
+
+        class Child(Parent):
+            def method(self):
+                pass  # No docstring here
+
+        description, parameters, returns = get_function_description(Child().method)
+        assert parameters == {}
+        assert returns == []
+        assert description == "This is the docstring from the parent class."

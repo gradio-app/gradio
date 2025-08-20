@@ -44,7 +44,7 @@ if TYPE_CHECKING:
 def load(
     name: str,
     src: Callable[[str, str | None], Blocks]
-    | Literal["models", "spaces"]
+    | Literal["models", "spaces", "huggingface"]
     | None = None,
     token: str | None = None,
     hf_token: str | None = None,
@@ -95,11 +95,15 @@ def load(
         token = os.environ.get("HF_TOKEN")
 
     if isinstance(src, Callable):
-        return src(name, token, **kwargs)
+        return src(name, token, **kwargs)  # type: ignore
 
     if not accept_token:
         return load_blocks_from_huggingface(
-            name=name, src=src, hf_token=token, provider=provider, **kwargs
+            name=name,
+            src=src,  # type: ignore
+            hf_token=token,
+            provider=provider,
+            **kwargs,  # type: ignore
         )
     elif isinstance(accept_token, gr.LoginButton):
         with gr.Blocks(fill_height=True) as demo:
@@ -111,7 +115,7 @@ def load(
                 token_value = None if oauth_token is None else oauth_token.token
                 return load_blocks_from_huggingface(
                     name=name,
-                    src=src,
+                    src=src,  # type: ignore
                     hf_token=token_value,
                     provider=provider,
                     **kwargs,
@@ -159,7 +163,7 @@ def load(
             def create(token_value):
                 return load_blocks_from_huggingface(
                     name=name,
-                    src=src,
+                    src=src,  # type: ignore
                     hf_token=token_value,
                     provider=provider,
                     **kwargs,
@@ -185,10 +189,8 @@ def load_blocks_from_huggingface(
         Context.hf_token = hf_token
 
     if src == "spaces":
-        # Spaces can read the token, so we don't want to pass it in unless the user explicitly provides it
-        token = False if hf_token is None else hf_token
         blocks = from_spaces(
-            name, hf_token=token, alias=alias, provider=provider, **kwargs
+            name, hf_token=hf_token, alias=alias, provider=provider, **kwargs
         )
     else:
         blocks = from_model(
@@ -462,6 +464,22 @@ def from_model(
             ]
         ]
         fn = client.image_to_image
+    # example model: meta-llama/Llama-3.2-11B-Vision-Instruct
+    elif p == "image-text-to-text":
+        inputs = [
+            components.Image(type="filepath", label="Input Image"),
+            components.Textbox(
+                label="Input Text", placeholder="Ask a question about the image"
+            ),
+        ]
+        outputs = components.Textbox(label="Generated Text")
+        examples = [
+            [
+                "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+                "What animal is in the image?",
+            ]
+        ]
+        fn = external_utils.image_text_to_text_wrapper(client)
     else:
         raise ValueError(f"Unsupported pipeline type: {p}")
 
@@ -489,13 +507,18 @@ def from_model(
     }
 
     kwargs = dict(interface_info, **kwargs)
-    interface = gr.Interface(**kwargs)
+
+    fn = kwargs.pop("fn", None)
+    inputs = kwargs.pop("inputs", None)
+    outputs = kwargs.pop("outputs", None)
+
+    interface = gr.Interface(fn, inputs, outputs, **kwargs)
     return interface
 
 
 def from_spaces(
     space_name: str,
-    hf_token: str | None | Literal[False],
+    hf_token: str | None,
     alias: str | None,
     provider: PROVIDER_T | None = None,
     **kwargs,
@@ -557,7 +580,7 @@ def from_spaces(
         return from_spaces_blocks(space=space_name, hf_token=hf_token)
 
 
-def from_spaces_blocks(space: str, hf_token: str | None | Literal[False]) -> Blocks:
+def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
     client = Client(
         space,
         hf_token=hf_token,
@@ -592,7 +615,7 @@ def from_spaces_interface(
     model_name: str,
     config: dict,
     alias: str | None,
-    hf_token: str | None | Literal[False],
+    hf_token: str | None,
     iframe_url: str,
     **kwargs,
 ) -> Interface:
@@ -630,7 +653,12 @@ def from_spaces_interface(
 
     kwargs = dict(config, **kwargs)
     kwargs["_api_mode"] = True
-    interface = gr.Interface(**kwargs)
+
+    fn = kwargs.pop("fn", None)
+    inputs = kwargs.pop("inputs", None)
+    outputs = kwargs.pop("outputs", None)
+
+    interface = gr.Interface(fn, inputs, outputs, **kwargs)
     return interface
 
 
@@ -877,7 +905,10 @@ def load_openapi(
     base_url: str,
     *,
     paths: list[str] | None = None,
+    exclude_paths: list[str] | None = None,
     methods: list[Literal["get", "post", "put", "patch", "delete"]] | None = None,
+    auth_token: str | None = None,
+    **interface_kwargs,
 ) -> Blocks:
     """
     Load a Gradio app from an OpenAPI v3 specification.
@@ -885,8 +916,11 @@ def load_openapi(
     Parameters:
         openapi_spec: URL, file path, or dictionary containing the OpenAPI specification (v3, JSON format only)
         base_url: Base URL for the API endpoints, e.g. "https://api.example.com/v1". This is used to construct the full URL for each endpoint.
-        paths: Optional list of specific API paths to create Gradio endpoints from. Supports regex patterns, e.g. ["/api/v1/books", ".*users.*"]. If None, all paths in the OpenAPI spec will be included.
+        paths: Optional list of specific API paths to create Gradio endpoints from. Supports regex patterns, e.g. ["/api/v1/books", ".*user.*"]. If None, all paths in the OpenAPI spec will be included.
+        exclude_paths: Optional list of API paths to exclude from the Gradio endpoints. Supports regex patterns and takes precedence over `paths`. For example, [".*internal.*"] will exclude all paths containing "internal".
         methods: Optional list of HTTP methods to include in the Gradio endpoints. If None, all methods will be included.
+        auth_token: Optional authentication token to be sent as a Bearer token in the Authorization header for all API requests.
+        interface_kwargs: Additional keyword arguments to pass to each generated gr.Interface instance (e.g., title, description, article, examples_per_page, etc.)
     Returns:
         A Gradio Blocks app with endpoints generated from the OpenAPI spec
     """
@@ -909,15 +943,27 @@ def load_openapi(
         raise ValueError("openapi_spec must be a string (URL/file path) or dictionary")
 
     api_paths = spec.get("paths", {})
-    if paths is not None:
-        import re
 
+    if paths is not None or exclude_paths is not None:
         filtered_paths = {}
         for path in api_paths:
-            for pattern in paths:
-                if re.match(pattern, path):
-                    filtered_paths[path] = api_paths[path]
-                    break
+            if exclude_paths:
+                excluded = False
+                for exclude_pattern in exclude_paths:
+                    if re.match(exclude_pattern, path):
+                        excluded = True
+                        break
+                if excluded:
+                    continue
+
+            if paths is not None:
+                for pattern in paths:
+                    if re.match(pattern, path):
+                        filtered_paths[path] = api_paths[path]
+                        break
+            else:
+                filtered_paths[path] = api_paths[path]
+
         api_paths = filtered_paths
 
     if not api_paths:
@@ -966,7 +1012,7 @@ def load_openapi(
                     components_list.append(body_component)
 
             endpoint_fn = external_utils.create_endpoint_fn(
-                path, method, operation, base_url
+                path, method, operation, base_url, auth_token
             )
             endpoint_fn.__name__ = (
                 f"{method}_{path.replace('/', '_').replace('{', '').replace('}', '')}"
@@ -986,6 +1032,7 @@ def load_openapi(
                 fn=endpoint_fn,
                 inputs=inputs,
                 outputs=output,
+                **interface_kwargs,
             )
 
     return demo

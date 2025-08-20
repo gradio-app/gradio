@@ -1,5 +1,29 @@
 # gradio_client
 
+## 1.12.1
+
+### Features
+
+- [#11744](https://github.com/gradio-app/gradio/pull/11744) [`f54e454`](https://github.com/gradio-app/gradio/commit/f54e454d6c2e256873f49e8bfb89f7161ec0a040) - fix client.  Thanks @abidlabs!
+
+## 1.12.0
+
+### Features
+
+- [#11723](https://github.com/gradio-app/gradio/pull/11723) [`379f0c1`](https://github.com/gradio-app/gradio/commit/379f0c151943b5f269910eba4a4c7abc6145a11c) - Support MCP resources and prompts.  Thanks @abidlabs!
+
+## 1.11.1
+
+### Features
+
+- [#11700](https://github.com/gradio-app/gradio/pull/11700) [`37d4c48`](https://github.com/gradio-app/gradio/commit/37d4c4809616595642f8d4a60be37d9915317443) - Have `Client` send authorization token with the `X-HF-Authorization` token.  Thanks @abidlabs!
+
+## 1.11.0
+
+### Features
+
+- [#11567](https://github.com/gradio-app/gradio/pull/11567) [`150ed18`](https://github.com/gradio-app/gradio/commit/150ed18b856e34d5a96a9e17bd5ad510e11872a6) - Stream Progress Updates to MCP clients.  Thanks @freddyaboulton!
+
 ## 1.10.4
 
 ### Fixes

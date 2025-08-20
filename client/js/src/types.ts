@@ -156,15 +156,17 @@ export type SpaceStatusCallback = (a: SpaceStatus) => void;
 export interface Config {
 	deep_link_state?: "none" | "valid" | "invalid";
 	auth_required?: true;
+	app_id?: string;
 	analytics_enabled: boolean;
 	connect_heartbeat: boolean;
+	dev_mode: boolean;
+	vibe_mode: boolean;
 	auth_message: string;
 	components: ComponentMeta[];
 	css: string | null;
 	js: string | null;
 	head: string | null;
 	dependencies: Dependency[];
-	dev_mode: boolean;
 	enable_queue: boolean;
 	show_error: boolean;
 	layout: any;
@@ -264,6 +266,7 @@ export interface Dependency {
 	pending_request?: boolean;
 	trigger_after?: number;
 	trigger_only_on_success?: boolean;
+	trigger_only_on_failure?: boolean;
 	trigger_mode: "once" | "multiple" | "always_last";
 	final_event: Payload | null;
 	show_api: boolean;
@@ -382,6 +385,7 @@ export interface Status {
 	time?: Date;
 	changed_state_ids?: number[];
 	time_limit?: number;
+	session_not_found?: boolean;
 }
 
 export interface StatusMessage extends Status {

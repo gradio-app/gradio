@@ -1,5 +1,45 @@
 # @gradio/button
 
+## 0.5.11
+
+### Dependency updates
+
+- @gradio/client@1.17.1
+- @gradio/upload@0.16.15
+- @gradio/image@0.22.17
+
+## 0.5.10
+
+### Dependency updates
+
+- @gradio/client@1.17.0
+- @gradio/upload@0.16.14
+- @gradio/image@0.22.16
+
+## 0.5.9
+
+### Dependency updates
+
+- @gradio/upload@0.16.13
+- @gradio/client@1.16.0
+- @gradio/image@0.22.15
+
+## 0.5.8
+
+### Dependency updates
+
+- @gradio/upload@0.16.12
+- @gradio/client@1.15.7
+- @gradio/image@0.22.14
+
+## 0.5.7
+
+### Dependency updates
+
+- @gradio/client@1.15.6
+- @gradio/upload@0.16.11
+- @gradio/image@0.22.13
+
 ## 0.5.6
 
 ### Dependency updates
