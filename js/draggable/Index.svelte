@@ -57,8 +57,6 @@
 		target.setAttribute("aria-grabbed", "true");
 		target.classList.add("dragging");
 
-		announce_to_screen_reader(`Started dragging item ${dragged_index + 1}`);
-
 		if (e.dataTransfer) {
 			e.dataTransfer.effectAllowed = "move";
 			e.dataTransfer.setData("text/html", target.outerHTML);
@@ -83,8 +81,6 @@
 
 		dragged_el = null;
 		dragged_index = -1;
-
-		announce_to_screen_reader("Drag operation completed");
 	}
 
 	function handle_drag_over(e: DragEvent): boolean {
@@ -117,11 +113,6 @@
 		current_drop_target = target;
 
 		target.classList.add("drag-over");
-
-		const target_index = parseInt(target.dataset.index || "-1");
-		announce_to_screen_reader(
-			`Can drop item ${dragged_index + 1} at position ${target_index + 1}`
-		);
 	}
 
 	async function handle_drop(e: DragEvent): Promise<boolean> {
@@ -143,8 +134,6 @@
 			)
 				return false;
 
-			const target_index = parseInt(target.dataset.index || "-1");
-
 			const placeholder = document.createElement("div");
 			placeholder.style.display = "none";
 			container_el.insertBefore(placeholder, dragged_el);
@@ -153,30 +142,11 @@
 			container_el.insertBefore(target, placeholder);
 			container_el.removeChild(placeholder);
 
-			announce_to_screen_reader(
-				`Swapped item ${dragged_index + 1} with item ${target_index + 1}`
-			);
-
 			await tick();
 			setup_drag_and_drop();
 		}
 
 		return false;
-	}
-
-	function announce_to_screen_reader(message: string): void {
-		let live_region = document.getElementById("drag-announcements");
-		if (!live_region) {
-			live_region = document.createElement("div");
-			live_region.id = "drag-announcements";
-			live_region.setAttribute("aria-live", "polite");
-			live_region.setAttribute("aria-atomic", "true");
-			live_region.style.cssText =
-				"position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden";
-			document.body.appendChild(live_region);
-		}
-
-		live_region.textContent = message;
 	}
 
 	onMount(() => {
