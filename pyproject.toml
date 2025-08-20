@@ -191,4 +191,9 @@ ignore = [
 
 [tool.pytest.ini_options]
 GRADIO_ANALYTICS_ENABLED = "False"
-filterwarnings = ["ignore::UserWarning:gradio.*:", "ignore::DeprecationWarning:gradio.*:"]
+filterwarnings = ["ignore::UserWarning:gradio.*:", "ignore::DeprecationWarning:gradio.*:", "ignore::DeprecationWarning:websockets.*", "ignore::DeprecationWarning:uvicorn.protocols.websockets.*",
+"ignore:cannot collect test class"]
+markers = [
+    "serial: tests that should be run sequentially",
+]
+asyncio_default_fixture_loop_scope = "function"

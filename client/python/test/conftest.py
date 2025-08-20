@@ -265,7 +265,7 @@ def count_generator_demo_exception():
 @pytest.fixture
 def file_io_demo():
     demo = gr.Interface(
-        lambda _: print("foox"),
+        lambda *_: _,
         [gr.File(file_count="multiple"), "file"],
         [gr.File(file_count="multiple"), "file"],
     )
@@ -276,7 +276,7 @@ def file_io_demo():
 @pytest.fixture
 def stateful_chatbot():
     with gr.Blocks() as demo:
-        chatbot = gr.Chatbot()
+        chatbot = gr.Chatbot(type="tuples")
         msg = gr.Textbox()
         clear = gr.Button("Clear")
         st = gr.State([1, 2, 3])
@@ -417,7 +417,7 @@ def gradio_temp_dir(monkeypatch, tmp_path):
 
 @pytest.fixture
 def long_response_with_info():
-    def long_response(_):
+    def long_response():
         gr.Info("Beginning long response")
         time.sleep(17)
         gr.Info("Done!")

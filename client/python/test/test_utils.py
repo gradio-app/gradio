@@ -14,7 +14,7 @@ from huggingface_hub import HfFolder
 
 from gradio_client import media_data, utils
 
-types = json.loads(importlib.resources.read_text("gradio_client", "types.json"))
+types = json.loads(importlib.resources.files("gradio_client").joinpath("types.json").read_text())
 types["MultipleFile"] = {
     "type": "array",
     "items": {"type": "string", "description": "filepath or URL to file"},

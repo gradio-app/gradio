@@ -439,6 +439,7 @@ class TestClientPredictions:
             assert job2.status().code == Status.FINISHED
             assert len(job2.outputs()) == 4
 
+    @pytest.mark.filterwarnings("ignore")
     def test_does_not_upload_dir(self, stateful_chatbot):
         with connect(stateful_chatbot) as client:
             initial_history = [["", None]]
