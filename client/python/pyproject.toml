@@ -68,3 +68,8 @@ known-first-party = [
 [tool.pytest.ini_options]
 GRADIO_ANALYTICS_ENABLED = "False"
 HF_HUB_DISABLE_TELEMETRY =  "1"
+filterwarnings = ["ignore::UserWarning:gradio_client.*:", "ignore::DeprecationWarning:gradio_client.*:", "ignore:cannot collect test class", "ignore::DeprecationWarning:uvicorn.protocols.websockets.*"]
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+    "serial: tests that should be run sequentially",
+]
