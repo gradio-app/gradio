@@ -24,7 +24,6 @@
 	},
 	"exports": {
 		".": {
-			"import": "./dist/standalone/Index.svelte",
 			"gradio": "./Index.svelte",
 			"svelte": "./dist/standalone/Index.svelte",
 			"types": "./dist/Index.svelte.d.ts"
