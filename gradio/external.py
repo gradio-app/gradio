@@ -868,7 +868,7 @@ def load_chat(
         )
         response = ""
         for chunk in stream:
-            if chunk.choices[0].delta.content is not None:
+            if chunk.choices and chunk.choices[0].delta.content is not None:
                 response += chunk.choices[0].delta.content
                 yield response
 
