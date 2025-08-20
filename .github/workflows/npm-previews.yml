@@ -44,15 +44,18 @@ jobs:
       NODE_OPTIONS: --trace-uncaught
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
       - name: install dependencies
         uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
         with:
           skip_build: true
+      - name: Setup Node.js 20 (override)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: Verify Node version
+        run: node --version
       - name: build client
         run: pnpm --filter @gradio/client --filter @gradio/wasm --filter @gradio/preview build
       - name: publish npm previews
-        run: pnpx pkg-pr-new publish './js/*' './client/js' --comment=off
+        run: pnpx pkg-pr-new@latest publish './js/*' './client/js' --comment=off
