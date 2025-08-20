@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Remove gray line present in ChatInterface demos
+fix:Remove gray line present in ChatInterface demos
