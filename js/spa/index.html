@@ -73,8 +73,6 @@
 		/>
 		<meta name="twitter:image" content="{{ config['thumbnail'] or '' }}" />
 
-		
-
 		%gradio_config%%gradio_api_info%
 
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -92,7 +90,7 @@
 			// console.log("window.iFrameResizer", window.iFrameResizer, window.parentIFrame);
 			window.iFrameResizer = {
 				heightCalculationMethod: "taggedElement",
-				autoResize: false,
+				autoResize: false
 			};
 			window.parent?.postMessage(
 				{ type: "SET_SCROLLING", enabled: false },

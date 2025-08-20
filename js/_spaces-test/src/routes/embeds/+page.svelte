@@ -6,18 +6,17 @@
 	let iframe: HTMLIFrameElement;
 
 	onMount(() => {
-		console.log({ iframeResize: iframeResize.iframeResize });
 		import("@self/spa/webcomponent");
 		gradio_container = document.querySelector("gradio-container");
 		const iframe_resizer_attribute = "iframe-resizer";
-		iframeResize.iframeResize(
+		console.log("iframeResize", iframeResize);
+		iframeResize.iframeResizer(
 			{
 				heightCalculationMethod: "lowestElement",
 				checkOrigin: false,
 				warningTimeout: 0,
-				scrolling: "omit",
+				scrolling: false,
 				onInit: (iframe: HTMLIFrameElement) => {
-					console.log("iframe resized", iframe);
 					iframe.setAttribute(iframe_resizer_attribute, "");
 					iframe.setAttribute("scrolling", "no");
 					iframe.style.overflow = "hidden";
@@ -36,18 +35,27 @@
 	});
 </script>
 
-<iframe
-	src="http://localhost:9876/"
-	bind:this={iframe}
-	allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; clipboard-read; clipboard-write; display-capture; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; serial; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking"
-	sandbox="allow-downloads allow-forms allow-modals allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-storage-access-by-user-activation"
-></iframe>
+<div>
+	<iframe
+		src="http://localhost:9876/"
+		bind:this={iframe}
+		allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; clipboard-read; clipboard-write; display-capture; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; serial; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking"
+		sandbox="allow-downloads allow-forms allow-modals allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-storage-access-by-user-activation"
+	></iframe>
+</div>
 
 <style>
-	iframe {
-		width: 1px;
+	div {
+		display: flex;
+		width: 100%;
 		min-width: 100%;
 		flex: 1;
+		border: none;
+		margin: 0;
+	}
+
+	iframe {
+		width: 100%;
 		border: none;
 	}
 </style>

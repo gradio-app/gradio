@@ -471,6 +471,10 @@ importers:
       iframe-resizer:
         specifier: ^4.3.1
         version: 4.4.5
+    devDependencies:
+      '@types/iframe-resizer':
+        specifier: ^4.0.0
+        version: 4.0.0
 
   js/_website:
     dependencies:
@@ -4812,6 +4816,9 @@ packages:
 
   '@types/http-errors@2.0.4':
     resolution: {integrity: sha512-D0CFMMtydbJAegzOyHjtiKPLlvnm3iTZyZRSZoLq2mRhDdmLfIWOCYPfQJ4cu2erKghU++QvjcUjp/5h7hESpA==}
+
+  '@types/iframe-resizer@4.0.0':
+    resolution: {integrity: sha512-RKrT4goNVtqZvf9WPkV0cUcphQWXzLVW1IE4yOIY21c1W+obJJbcHFD1lQu5ncNHm/6TeQSeedVf9bmkx2NaGQ==}
 
   '@types/istanbul-lib-coverage@2.0.6':
     resolution: {integrity: sha512-2QF/t/auWm0lsy8XtKVPG19v3sSOQlJe/YHZgfjb/KBBHOGSV+J2q/S671rcq9uTBrLAXmZpqJiaQbMT+zNU1w==}
@@ -12283,6 +12290,8 @@ snapshots:
       '@types/unist': 3.0.2
 
   '@types/http-errors@2.0.4': {}
+
+  '@types/iframe-resizer@4.0.0': {}
 
   '@types/istanbul-lib-coverage@2.0.6': {}
 

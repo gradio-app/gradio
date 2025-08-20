@@ -80,7 +80,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 	function set_event_specific_args(dependencies: Dependency[]): void {
 		dependencies.forEach((dep) => {
 			dep.targets.forEach((target) => {
-				const instance = instance_map[target[0]];
+				const instance = instance_map?.[target[0]];
 				if (instance && dep.event_specific_args?.length > 0) {
 					dep.event_specific_args?.forEach((arg: string) => {
 						instance.props[arg] = dep[arg as keyof Dependency];
@@ -115,7 +115,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			// re-render in reload mode
 			components.forEach((c) => {
 				if (c.props.value == null && c.id in instance_map) {
-					c.props.value = instance_map[c.id].props.value;
+					c.props.value = instance_map?.[c.id].props.value;
 				}
 			});
 		}
@@ -241,7 +241,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 
 		target_map.set(_target_map);
 
-		let current_element = instance_map[layout.id];
+		let current_element = instance_map?.[layout.id];
 		let all_current_children: ComponentMeta[] = [];
 		const add_to_current_children = (component: ComponentMeta): void => {
 			all_current_children.push(component);
@@ -260,7 +260,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 					(c) => c.key === component.key
 				);
 				if (component.key != null && replacement_component !== undefined) {
-					const instance = instance_map[component.id];
+					const instance = instance_map?.[component.id];
 					for (const prop in replacement_component.props) {
 						if (
 							!(
@@ -273,7 +273,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 						}
 					}
 				} else {
-					delete instance_map[_id];
+					delete instance_map?.[_id];
 					if (_component_map.has(_id)) {
 						_component_map.delete(_id);
 					}
@@ -282,17 +282,18 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		});
 
 		const components_to_add = new_components.concat(
-			replacement_components.filter((c) => !instance_map[c.id])
+			replacement_components.filter((c) => !instance_map?.[c.id])
 		);
 
 		components_to_add.forEach((c) => {
 			instance_map[c.id] = c;
+
 			_component_map.set(c.id, c);
 		});
 		if (current_element.parent) {
 			current_element.parent.children![
 				current_element.parent.children!.indexOf(current_element)
-			] = instance_map[layout.id];
+			] = instance_map?.[layout.id];
 		}
 
 		walk_layout(
@@ -316,7 +317,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		components: ComponentMeta[],
 		parent?: ComponentMeta
 	): Promise<ComponentMeta> {
-		const instance = instance_map[node.id];
+		const instance = instance_map?.[node.id];
 		if (!instance.component) {
 			const constructor_key = instance.component_class_id || instance.type;
 			let component_constructor = constructor_map.get(constructor_key);
@@ -373,7 +374,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		if (instance.type === "tabs" && !instance.props.initial_tabs) {
 			const tab_items_props =
 				node.children?.map((c, i) => {
-					const instance = instance_map[c.id];
+					const instance = instance_map?.[c.id];
 					instance.props.id ??= c.id;
 					return {
 						type: instance.type,
@@ -401,7 +402,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 
 		if (instance.type === "tabs") {
 			node.children?.forEach((c, i) => {
-				const child = instance_map[c.id];
+				const child = instance_map?.[c.id];
 				child.props.order = i;
 			});
 		}
@@ -466,7 +467,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 	function has_visibility_changes(updates: UpdateTransaction[][]): boolean {
 		return updates.some((update_batch) =>
 			update_batch.some((update) => {
-				const instance = instance_map[update.id];
+				const instance = instance_map?.[update.id];
 				if (!instance) return false;
 
 				// Check for visibility property changes
@@ -497,7 +498,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 				for (let j = 0; j < pending_updates[i].length; j++) {
 					const update = pending_updates[i][j];
 					if (!update) continue;
-					const instance = instance_map[update.id];
+					const instance = instance_map?.[update.id];
 					if (!instance) continue;
 					let new_value;
 					if (update.value instanceof Map) new_value = new Map(update.value);

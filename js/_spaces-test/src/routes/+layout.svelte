@@ -32,7 +32,7 @@
 	/>
 </svelte:head>
 
-<div class="prose">
+<div>
 	<ul>
 		{#each links as [url, name]}
 			<li><a href={url}>{name}</a></li>
