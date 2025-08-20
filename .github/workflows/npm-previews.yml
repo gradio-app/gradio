@@ -2,7 +2,6 @@ name: "npm"
 
 on:
   pull_request:
-  push:
 
 env:
   CI: true
@@ -40,6 +39,7 @@ jobs:
     name: npm-previews
     runs-on: ubuntu-22.04
     needs: changes
+    if: needs.changes.outputs.should_run == 'true'
     steps:
       - uses: actions/checkout@v4
       - name: install dependencies
@@ -50,9 +50,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Verify Node version
-        run: node --version
       - name: build client
         run: pnpm --filter @gradio/client --filter @gradio/wasm --filter @gradio/preview build
       - name: publish npm previews
-        run: pnpx pkg-pr-new@latest publish './js/*' './client/js' --comment=off
+        run: pnpx pkg-pr-new publish './js/*' './client/js' --comment=off
