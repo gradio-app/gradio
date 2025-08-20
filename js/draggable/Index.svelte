@@ -50,8 +50,6 @@
 
 		drag_preview = target.cloneNode(true) as HTMLElement;
 		drag_preview.classList.add("drag-preview");
-		drag_preview.style.cssText =
-			"position:fixed;top:-1000px;left:-1000px;opacity:0.7;pointer-events:none;z-index:1000";
 		document.body.appendChild(drag_preview);
 
 		target.setAttribute("aria-grabbed", "true");
@@ -258,5 +256,14 @@
 	.vertical > :global(*),
 	.vertical > :global(.form > *) {
 		width: var(--size-full);
+	}
+
+	.drag-preview {
+		position: fixed;
+		top: -1000px;
+		left: -1000px;
+		opacity: 0.7;
+		pointer-events: none;
+		z-index: 1000;
 	}
 </style>
