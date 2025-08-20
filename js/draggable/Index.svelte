@@ -7,117 +7,78 @@
 	export let elem_id: string;
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let variant: "default" | "panel" | "compact" = "default";
+	export let orientation: "row" | "column" = "row";
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let gradio: Gradio | undefined = undefined;
 	export let show_progress = false;
-	export let height: number | string | undefined;
-	export let min_height: number | string | undefined;
-	export let max_height: number | string | undefined;
 
-	let containerEl: HTMLDivElement;
-	let draggedEl: HTMLElement | null = null;
-	let draggedIndex: number = -1;
-	let dropTargetIndex: number = -1;
+	let container_el: HTMLDivElement;
+	let dragged_el: HTMLElement | null = null;
+	let dragged_index: number = -1;
 	let items: HTMLElement[] = [];
-	let isHorizontal = false;
-	let dragPlaceholder: HTMLDivElement | null = null;
+	let is_horizontal = orientation === "row";
 
-	const get_dimension = (
-		dimension_value: string | number | undefined
-	): string | undefined => {
-		if (dimension_value === undefined) {
-			return undefined;
-		}
-		if (typeof dimension_value === "number") {
-			return dimension_value + "px";
-		} else if (typeof dimension_value === "string") {
-			return dimension_value;
-		}
-	};
-
-	function detectLayout() {
-		if (!containerEl) return;
+	function setup_drag_and_drop() {
+		if (!container_el) return;
 		
-		// Check parent's layout direction
-		const parent = containerEl.parentElement;
-		if (parent) {
-			const computedStyle = window.getComputedStyle(parent);
-			const flexDirection = computedStyle.flexDirection;
+		items = [];
+		
+		const children = Array.from(container_el.children) as HTMLElement[];
+		children.forEach((child, index) => {
+			if (child.classList.contains("status-tracker")) return;
 			
-			// If parent is a row or has row flex-direction, continue horizontally
-			// Otherwise, layout vertically
-			isHorizontal = flexDirection === "row" || flexDirection === "row-reverse" || 
-						  parent.classList.contains("row");
-		}
-	}
-
-	function setupDragAndDrop() {
-		if (!containerEl) return;
-		
-		// Get all direct children that are draggable
-		items = Array.from(containerEl.children).filter(
-			(child): child is HTMLElement => 
-				child instanceof HTMLElement && !child.classList.contains("drag-placeholder")
-		);
-		
-		items.forEach((item, index) => {
-			item.draggable = true;
-			item.style.cursor = "grab";
-			item.dataset.index = index.toString();
+			items.push(child);
+			child.setAttribute("draggable", "true");
+			child.setAttribute("data-index", index.toString());
 			
-			// Add drag event listeners
-			item.addEventListener("dragstart", handleDragStart);
-			item.addEventListener("dragend", handleDragEnd);
-			item.addEventListener("dragover", handleDragOver);
-			item.addEventListener("drop", handleDrop);
-			item.addEventListener("dragenter", handleDragEnter);
-			item.addEventListener("dragleave", handleDragLeave);
+			child.removeEventListener("dragstart", handle_drag_start);
+			child.removeEventListener("dragend", handle_drag_end);
+			child.removeEventListener("dragover", handle_drag_over);
+			child.removeEventListener("drop", handle_drop);
+			child.removeEventListener("dragenter", handle_drag_enter);
+			child.removeEventListener("dragleave", handle_drag_leave);
+			
+			child.addEventListener("dragstart", handle_drag_start);
+			child.addEventListener("dragend", handle_drag_end);
+			child.addEventListener("dragover", handle_drag_over);
+			child.addEventListener("drop", handle_drop);
+			child.addEventListener("dragenter", handle_drag_enter);
+			child.addEventListener("dragleave", handle_drag_leave);
 		});
 	}
 
-	function handleDragStart(e: DragEvent) {
+	function handle_drag_start(e: DragEvent) {
+		if (e.stopPropagation) {
+			e.stopPropagation();
+		}
+		
 		const target = e.currentTarget as HTMLElement;
-		draggedEl = target;
-		draggedIndex = parseInt(target.dataset.index || "-1");
+		dragged_el = target;
+		dragged_index = parseInt(target.dataset.index || "-1");
 		
-		// Add dragging styles
-		target.style.opacity = "0.5";
-		target.style.cursor = "grabbing";
-		
-		// Set drag effect
 		if (e.dataTransfer) {
 			e.dataTransfer.effectAllowed = "move";
-			e.dataTransfer.setData("text/html", target.innerHTML);
+			e.dataTransfer.setData("text/html", target.outerHTML);
 		}
+		
+		target.classList.add("dragging");
 	}
 
-	function handleDragEnd(e: DragEvent) {
+	function handle_drag_end(e: DragEvent) {
+		if (e.stopPropagation) {
+			e.stopPropagation();
+		}
+		
 		const target = e.currentTarget as HTMLElement;
+		target.classList.remove("dragging");
 		
-		// Remove dragging styles
-		target.style.opacity = "";
-		target.style.cursor = "grab";
-		
-		// Remove any placeholders
-		if (dragPlaceholder && dragPlaceholder.parentNode) {
-			dragPlaceholder.parentNode.removeChild(dragPlaceholder);
-			dragPlaceholder = null;
-		}
-		
-		// Reset all hover states
-		items.forEach(item => {
-			item.classList.remove("drag-over");
-		});
-		
-		draggedEl = null;
-		draggedIndex = -1;
-		dropTargetIndex = -1;
+		dragged_el = null;
+		dragged_index = -1;
 	}
 
-	function handleDragOver(e: DragEvent) {
+	function handle_drag_over(e: DragEvent) {
 		if (e.preventDefault) {
-			e.preventDefault(); // Allows us to drop
+			e.preventDefault();
 		}
 		
 		if (e.dataTransfer) {
@@ -127,142 +88,96 @@
 		return false;
 	}
 
-	function handleDragEnter(e: DragEvent) {
-		const target = e.currentTarget as HTMLElement;
-		if (target !== draggedEl) {
-			target.classList.add("drag-over");
-			
-			// Create and show placeholder
-			if (!dragPlaceholder) {
-				dragPlaceholder = document.createElement("div");
-				dragPlaceholder.className = "drag-placeholder";
-				dragPlaceholder.style.transition = "all 0.2s ease";
-			}
-			
-			// Calculate where to show placeholder
-			const targetIndex = parseInt(target.dataset.index || "-1");
-			if (targetIndex !== -1 && draggedIndex !== -1) {
-				const rect = target.getBoundingClientRect();
-				const midpoint = isHorizontal ? 
-					rect.left + rect.width / 2 : 
-					rect.top + rect.height / 2;
-				
-				const cursorPos = isHorizontal ? e.clientX : e.clientY;
-				const insertBefore = cursorPos < midpoint;
-				
-				dropTargetIndex = insertBefore ? targetIndex : targetIndex + 1;
-				
-				// Show placeholder
-				if (draggedEl) {
-					const draggedRect = draggedEl.getBoundingClientRect();
-					if (isHorizontal) {
-						dragPlaceholder.style.width = draggedRect.width + "px";
-						dragPlaceholder.style.height = "100%";
-					} else {
-						dragPlaceholder.style.width = "100%";
-						dragPlaceholder.style.height = draggedRect.height + "px";
-					}
-				}
-			}
-		}
-	}
-
-	function handleDragLeave(e: DragEvent) {
-		const target = e.currentTarget as HTMLElement;
-		target.classList.remove("drag-over");
-	}
-
-	async function handleDrop(e: DragEvent) {
+	function handle_drag_enter(e: DragEvent) {
 		if (e.stopPropagation) {
-			e.stopPropagation(); // stops some browsers from redirecting
+			e.stopPropagation();
+		}
+		
+		const target = e.currentTarget as HTMLElement;
+		target.classList.add("drag-over");
+	}
+
+	function handle_drag_leave(e: DragEvent) {
+		if (e.stopPropagation) {
+			e.stopPropagation();
+		}
+		
+		const target = e.currentTarget as HTMLElement;
+		target.classList.remove("drag-over");
+	}
+
+	async function handle_drop(e: DragEvent) {
+		if (e.stopPropagation) {
+			e.stopPropagation();
 		}
 		
 		const target = e.currentTarget as HTMLElement;
 		target.classList.remove("drag-over");
 		
-		if (draggedEl && draggedEl !== target && containerEl) {
-			const targetIndex = parseInt(target.dataset.index || "-1");
+		if (dragged_el && dragged_el !== target && container_el) {
+			const target_index = parseInt(target.dataset.index || "-1");
 			
-			// Calculate drop position based on cursor position
 			const rect = target.getBoundingClientRect();
-			const midpoint = isHorizontal ? 
+			const midpoint = is_horizontal ? 
 				rect.left + rect.width / 2 : 
 				rect.top + rect.height / 2;
 			
-			const cursorPos = isHorizontal ? e.clientX : e.clientY;
-			const insertBefore = cursorPos < midpoint;
+			const cursor_pos = is_horizontal ? e.clientX : e.clientY;
+			const insert_before = cursor_pos < midpoint;
 			
-			// Reorder the DOM elements
-			if (insertBefore) {
-				containerEl.insertBefore(draggedEl, target);
+			if (insert_before) {
+				container_el.insertBefore(dragged_el, target);
 			} else {
-				// Insert after target
 				if (target.nextSibling) {
-					containerEl.insertBefore(draggedEl, target.nextSibling);
+					container_el.insertBefore(dragged_el, target.nextSibling);
 				} else {
-					containerEl.appendChild(draggedEl);
+					container_el.appendChild(dragged_el);
 				}
 			}
 			
-			// Wait for DOM update then re-setup drag handlers
 			await tick();
-			setupDragAndDrop();
+			setup_drag_and_drop();
 		}
 		
 		return false;
 	}
 
 	onMount(() => {
-		detectLayout();
-		setupDragAndDrop();
+		setup_drag_and_drop();
 		
-		// Re-detect layout on window resize
-		const resizeObserver = new ResizeObserver(() => {
-			detectLayout();
+		const observer = new MutationObserver(() => {
+			setup_drag_and_drop();
 		});
 		
-		if (containerEl) {
-			resizeObserver.observe(containerEl);
+		if (container_el) {
+			observer.observe(container_el, {
+				childList: true,
+				subtree: false
+			});
 		}
 		
 		return () => {
-			resizeObserver.disconnect();
+			observer.disconnect();
 			
-			// Clean up event listeners
 			items.forEach(item => {
-				item.removeEventListener("dragstart", handleDragStart);
-				item.removeEventListener("dragend", handleDragEnd);
-				item.removeEventListener("dragover", handleDragOver);
-				item.removeEventListener("drop", handleDrop);
-				item.removeEventListener("dragenter", handleDragEnter);
-				item.removeEventListener("dragleave", handleDragLeave);
+				item.removeEventListener("dragstart", handle_drag_start);
+				item.removeEventListener("dragend", handle_drag_end);
+				item.removeEventListener("dragover", handle_drag_over);
+				item.removeEventListener("drop", handle_drop);
+				item.removeEventListener("dragenter", handle_drag_enter);
+				item.removeEventListener("dragleave", handle_drag_leave);
 			});
 		};
 	});
 
-	// Re-setup when children change
-	$: if (containerEl) {
-		const observer = new MutationObserver(() => {
-			setupDragAndDrop();
-		});
-		
-		observer.observe(containerEl, {
-			childList: true,
-			subtree: false
-		});
-	}
+	$: is_horizontal = orientation === "row";
 </script>
 
 <div
-	bind:this={containerEl}
-	class:compact={variant === "compact"}
-	class:panel={variant === "panel"}
+	bind:this={container_el}
 	class:hide={!visible}
-	class:horizontal={isHorizontal}
-	class:vertical={!isHorizontal}
-	style:height={get_dimension(height)}
-	style:max-height={get_dimension(max_height)}
-	style:min-height={get_dimension(min_height)}
+	class:horizontal={is_horizontal}
+	class:vertical={!is_horizontal}
 	id={elem_id}
 	class="draggable {elem_classes.join(' ')}"
 >
@@ -302,18 +217,6 @@
 		display: none;
 	}
 
-	.compact > :global(*),
-	.compact :global(.box) {
-		border-radius: 0;
-	}
-
-	.compact,
-	.panel {
-		border-radius: var(--container-radius);
-		background: var(--background-fill-secondary);
-		padding: var(--size-2);
-	}
-
 	.draggable > :global(*) {
 		transition: transform 0.2s ease;
 	}
@@ -329,13 +232,6 @@
 
 	.draggable > :global(*:active) {
 		cursor: grabbing;
-	}
-
-	:global(.drag-placeholder) {
-		background: var(--background-fill-primary);
-		border: 2px dashed var(--border-color-primary);
-		border-radius: var(--radius-md);
-		opacity: 0.5;
 	}
 
 	.horizontal > :global(*),

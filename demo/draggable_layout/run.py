@@ -15,40 +15,78 @@ with gr.Blocks() as demo:
         'y4': np.random.normal(0.15, 0.05, 100) + 0.05 * np.cos(x/3)
     })
     
-    with gr.Draggable():
-        with gr.Row():
-            gr.LinePlot(
-                data,
-                x="x",
-                y="y1",
-                title="Chart 1",
-                height=200,
-                width=300
-            )
-            gr.LinePlot(
-                data,
-                x="x",
-                y="y2",
-                title="Chart 2",
-                height=200,
-                width=300
-            )
-            gr.LinePlot(
-                data,
-                x="x",
-                y="y3",
-                title="Chart 3",
-                height=200,
-                width=300
-            )
-            gr.LinePlot(
-                data,
-                x="x",
-                y="y4",
-                title="Chart 4",
-                height=200,
-                width=300
-            )
+    with gr.Row():
+        with gr.Column(scale=1):
+            gr.Markdown("### Horizontal Layout (orientation='row')")
+            with gr.Draggable(orientation="row"):
+                gr.LinePlot(
+                    data,
+                    x="x",
+                    y="y1",
+                    title="Chart 1",
+                    height=200,
+                    width=300
+                )
+                gr.LinePlot(
+                    data,
+                    x="x",
+                    y="y2",
+                    title="Chart 2",
+                    height=200,
+                    width=300
+                )
+                gr.LinePlot(
+                    data,
+                    x="x",
+                    y="y3",
+                    title="Chart 3",
+                    height=200,
+                    width=300
+                )
+                gr.LinePlot(
+                    data,
+                    x="x",
+                    y="y4",
+                    title="Chart 4",
+                    height=200,
+                    width=300
+                )
+        
+        with gr.Column(scale=1):
+            gr.Markdown("### Vertical Layout (orientation='column')")
+            with gr.Draggable(orientation="column"):
+                gr.LinePlot(
+                    data,
+                    x="x",
+                    y="y1",
+                    title="Chart 1",
+                    height=200,
+                    width=300
+                )
+                gr.LinePlot(
+                    data,
+                    x="x",
+                    y="y2",
+                    title="Chart 2",
+                    height=200,
+                    width=300
+                )
+                gr.LinePlot(
+                    data,
+                    x="x",
+                    y="y3",
+                    title="Chart 3",
+                    height=200,
+                    width=300
+                )
+                gr.LinePlot(
+                    data,
+                    x="x",
+                    y="y4",
+                    title="Chart 4",
+                    height=200,
+                    width=300
+                )
 
 if __name__ == "__main__":
     demo.launch()
