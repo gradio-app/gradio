@@ -19,53 +19,6 @@
 
 	const set_page: ((page: string) => void) | undefined =
 		getContext("set_lite_page");
-
-	function debounce(fn: () => void, delay: number) {
-		let timeout: NodeJS.Timeout;
-		return () => {
-			clearTimeout(timeout);
-			timeout = setTimeout(fn, delay);
-		};
-	}
-
-	// onMount(() => {
-	// 	const resize_debounced = debounce(() => {
-	// 		if ("parentIFrame" in window) {
-	// 			console.log("parentIFrame");
-	// 		}
-	// 		if ("parentIFrame" in window) {
-	// 			const rect = wrapper?.getBoundingClientRect();
-	// 			if (rect) {
-	// 				window.parentIFrame?.size(rect.height);
-	// 				console.log("resized", rect);
-	// 			}
-	// 		}
-	// 	}, 100);
-
-	// 	window.parentIFrame.autoResize(false);
-	// 	window.parentIFrame.getPageInfo(console.log);
-
-	// 	const resize_observer = new ResizeObserver((entries) => {
-	// 		resize_debounced();
-	// 	});
-	// 	resize_observer.observe(wrapper, {
-	// 		box: "content-box"
-	// 	});
-
-	// 	const mutation_observer = new MutationObserver((entries) => {
-	// 		resize_debounced();
-	// 	});
-	// 	mutation_observer.observe(wrapper, {
-	// 		attributes: true,
-	// 		childList: true,
-	// 		subtree: true
-	// 	});
-
-	// 	const intersection_observer = new IntersectionObserver((entries) => {
-	// 		resize_debounced();
-	// 	});
-	// 	intersection_observer.observe(wrapper);
-	// });
 </script>
 
 <div

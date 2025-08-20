@@ -87,10 +87,9 @@
 		></script>
 		<script data-gradio-mode>
 			window.__gradio_mode__ = "app";
-			// console.log("window.iFrameResizer", window.iFrameResizer, window.parentIFrame);
 			window.iFrameResizer = {
-				heightCalculationMethod: "taggedElement",
-				autoResize: false
+				autoResize: false,
+				sizeWidth: false
 			};
 			window.parent?.postMessage(
 				{ type: "SET_SCROLLING", enabled: false },

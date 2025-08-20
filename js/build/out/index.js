@@ -259,7 +259,6 @@ function inject_component_loader({ mode }) {
   };
 }
 function resolve_svelte(enable) {
-  console.log("RESOLVING SVELTE", enable);
   return {
     enforce: "pre",
     name: "resolve-svelte",
@@ -278,7 +277,6 @@ function resolve_svelte(enable) {
           "svelte",
           "svelte.js"
         );
-        console.log("RESOLVING SVELTE", mod);
         return { id: mod, external: "absolute" };
       }
     }

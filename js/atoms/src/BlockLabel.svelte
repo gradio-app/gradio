@@ -19,9 +19,7 @@
 	<span>
 		<Icon />
 	</span>
-	<!-- {label} -->
-
-	I AM A LABEL
+	{label}
 </label>
 
 <style>
