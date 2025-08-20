@@ -8,4 +8,4 @@
 "gradio": patch
 ---
 
-fix:10826 iframe resizer
+fix:fix various iFrame related UI issues when deploying to spaces 
