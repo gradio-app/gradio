@@ -39,14 +39,11 @@
 			child.addEventListener("dragover", handle_drag_over);
 			child.addEventListener("drop", handle_drop);
 			child.addEventListener("dragenter", handle_drag_enter);
-			child.addEventListener("dragleave", handle_drag_leave);
 		});
 	}
 
 	function handle_drag_start(e: DragEvent): void {
-		if (e.stopPropagation) {
-			e.stopPropagation();
-		}
+		e.stopPropagation?.();
 
 		const target = e.currentTarget as HTMLElement;
 		dragged_el = target;
@@ -54,12 +51,7 @@
 
 		drag_preview = target.cloneNode(true) as HTMLElement;
 		drag_preview.classList.add("drag-preview");
-		drag_preview.style.position = "fixed";
-		drag_preview.style.top = "-1000px";
-		drag_preview.style.left = "-1000px";
-		drag_preview.style.opacity = "0.7";
-		drag_preview.style.pointerEvents = "none";
-		drag_preview.style.zIndex = "1000";
+		drag_preview.style.cssText = "position:fixed;top:-1000px;left:-1000px;opacity:0.7;pointer-events:none;z-index:1000";
 		document.body.appendChild(drag_preview);
 
 		target.setAttribute("aria-grabbed", "true");
@@ -74,18 +66,14 @@
 	}
 
 	function handle_drag_end(e: DragEvent): void {
-		if (e.stopPropagation) {
-			e.stopPropagation();
-		}
+		e.stopPropagation?.();
 
 		const target = e.currentTarget as HTMLElement;
 		target.classList.remove("dragging");
 		target.setAttribute("aria-grabbed", "false");
 
-		if (drag_preview && drag_preview.parentNode) {
-			drag_preview.parentNode.removeChild(drag_preview);
-			drag_preview = null;
-		}
+		drag_preview?.remove();
+		drag_preview = null;
 
 		if (current_drop_target) {
 			current_drop_target.style.border = "";
@@ -100,24 +88,20 @@
 	}
 
 	function handle_drag_over(e: DragEvent): boolean {
-		if (e.preventDefault) {
-			e.preventDefault();
-		}
-
-		if (e.dataTransfer) {
-			e.dataTransfer.dropEffect = "move";
-		}
-
+		e.preventDefault();
+		e.dataTransfer && (e.dataTransfer.dropEffect = "move");
 		return false;
 	}
 
 	function handle_drag_enter(e: DragEvent): void {
-		if (e.stopPropagation) {
-			e.stopPropagation();
-		}
+		e.stopPropagation?.();
 
 		const target = e.currentTarget as HTMLElement;
 		if (target === dragged_el) return;
+
+		if (!dragged_el || !container_el) return;
+
+		if (dragged_el.parentElement !== container_el || target.parentElement !== container_el) return;
 
 		if (current_drop_target && current_drop_target !== target) {
 			current_drop_target.style.border = "";
@@ -136,12 +120,8 @@
 		);
 	}
 
-	function handle_drag_leave(e: DragEvent): void {}
-
 	async function handle_drop(e: DragEvent): Promise<boolean> {
-		if (e.stopPropagation) {
-			e.stopPropagation();
-		}
+		e.stopPropagation?.();
 
 		const target = e.currentTarget as HTMLElement;
 		target.classList.remove("drag-over");
@@ -153,6 +133,8 @@
 		}
 
 		if (dragged_el && dragged_el !== target && container_el) {
+			if (dragged_el.parentElement !== container_el || target.parentElement !== container_el) return false;
+
 			const target_index = parseInt(target.dataset.index || "-1");
 
 			const placeholder = document.createElement("div");
@@ -160,9 +142,7 @@
 			container_el.insertBefore(placeholder, dragged_el);
 
 			container_el.insertBefore(dragged_el, target);
-
 			container_el.insertBefore(target, placeholder);
-
 			container_el.removeChild(placeholder);
 
 			announce_to_screen_reader(
@@ -183,11 +163,7 @@
 			live_region.id = "drag-announcements";
 			live_region.setAttribute("aria-live", "polite");
 			live_region.setAttribute("aria-atomic", "true");
-			live_region.style.position = "absolute";
-			live_region.style.left = "-10000px";
-			live_region.style.width = "1px";
-			live_region.style.height = "1px";
-			live_region.style.overflow = "hidden";
+			live_region.style.cssText = "position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden";
 			document.body.appendChild(live_region);
 		}
 
@@ -197,9 +173,7 @@
 	onMount(() => {
 		setup_drag_and_drop();
 
-		const observer = new MutationObserver(() => {
-			setup_drag_and_drop();
-		});
+		const observer = new MutationObserver(setup_drag_and_drop);
 
 		if (container_el) {
 			observer.observe(container_el, {
@@ -217,7 +191,6 @@
 				item.removeEventListener("dragover", handle_drag_over);
 				item.removeEventListener("drop", handle_drop);
 				item.removeEventListener("dragenter", handle_drag_enter);
-				item.removeEventListener("dragleave", handle_drag_leave);
 			});
 		};
 	});
