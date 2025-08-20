@@ -16,7 +16,6 @@
 	let dragged_el: HTMLElement | null = null;
 	let dragged_index = -1;
 	let items: HTMLElement[] = [];
-	let is_horizontal = orientation === "row";
 	let drag_preview: HTMLElement | null = null;
 	let current_drop_target: HTMLElement | null = null;
 
@@ -51,7 +50,8 @@
 
 		drag_preview = target.cloneNode(true) as HTMLElement;
 		drag_preview.classList.add("drag-preview");
-		drag_preview.style.cssText = "position:fixed;top:-1000px;left:-1000px;opacity:0.7;pointer-events:none;z-index:1000";
+		drag_preview.style.cssText =
+			"position:fixed;top:-1000px;left:-1000px;opacity:0.7;pointer-events:none;z-index:1000";
 		document.body.appendChild(drag_preview);
 
 		target.setAttribute("aria-grabbed", "true");
@@ -101,7 +101,11 @@
 
 		if (!dragged_el || !container_el) return;
 
-		if (dragged_el.parentElement !== container_el || target.parentElement !== container_el) return;
+		if (
+			dragged_el.parentElement !== container_el ||
+			target.parentElement !== container_el
+		)
+			return;
 
 		if (current_drop_target && current_drop_target !== target) {
 			current_drop_target.style.border = "";
@@ -133,7 +137,11 @@
 		}
 
 		if (dragged_el && dragged_el !== target && container_el) {
-			if (dragged_el.parentElement !== container_el || target.parentElement !== container_el) return false;
+			if (
+				dragged_el.parentElement !== container_el ||
+				target.parentElement !== container_el
+			)
+				return false;
 
 			const target_index = parseInt(target.dataset.index || "-1");
 
@@ -163,7 +171,8 @@
 			live_region.id = "drag-announcements";
 			live_region.setAttribute("aria-live", "polite");
 			live_region.setAttribute("aria-atomic", "true");
-			live_region.style.cssText = "position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden";
+			live_region.style.cssText =
+				"position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden";
 			document.body.appendChild(live_region);
 		}
 
@@ -194,15 +203,13 @@
 			});
 		};
 	});
-
-	$: is_horizontal = orientation === "row";
 </script>
 
 <div
 	bind:this={container_el}
 	class:hide={!visible}
-	class:horizontal={is_horizontal}
-	class:vertical={!is_horizontal}
+	class:horizontal={orientation === "row"}
+	class:vertical={orientation === "column"}
 	id={elem_id}
 	class="draggable {elem_classes.join(' ')}"
 	role="region"
