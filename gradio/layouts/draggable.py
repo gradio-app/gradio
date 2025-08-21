@@ -12,7 +12,8 @@ from gradio.component_meta import ComponentMeta
 class Draggable(BlockContext, metaclass=ComponentMeta):
     """
     Draggable is a layout element within Blocks that renders children with drag and drop functionality.
-    A user can reorder children by dragging them around and snapping them into place.
+    A user can reorder children by dragging them around and snapping them into place. If a child is a
+    layout (e.g. gr.Row, gr.Group), all the components in the child layout will drag together.
 
     Demos: draggable_dashboard
     """

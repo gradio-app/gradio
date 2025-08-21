@@ -33,20 +33,43 @@
 		items = [];
 
 		const children = Array.from(container_el.children) as HTMLElement[];
-		children.forEach((child, index) => {
+		let itemIndex = 0;
+
+		children.forEach((child) => {
 			if (child.classList.contains("status-tracker")) return;
 
-			items.push(child);
-			child.classList.add("draggable-item");
-			child.setAttribute("draggable", "true");
-			child.setAttribute("data-index", index.toString());
-			child.setAttribute("aria-grabbed", "false");
+			if (child.classList.contains("form") && child.children.length > 0) {
+				const formChildren = Array.from(child.children) as HTMLElement[];
+				formChildren.forEach((formChild) => {
+					items.push(formChild);
+					formChild.classList.add("draggable-item");
+					formChild.setAttribute("draggable", "true");
+					formChild.setAttribute("data-index", itemIndex.toString());
+					formChild.setAttribute("aria-grabbed", "false");
 
-			child.addEventListener("dragstart", handle_drag_start);
-			child.addEventListener("dragend", handle_drag_end);
-			child.addEventListener("dragover", handle_drag_over);
-			child.addEventListener("drop", handle_drop);
-			child.addEventListener("dragenter", handle_drag_enter);
+					formChild.addEventListener("dragstart", handle_drag_start);
+					formChild.addEventListener("dragend", handle_drag_end);
+					formChild.addEventListener("dragover", handle_drag_over);
+					formChild.addEventListener("drop", handle_drop);
+					formChild.addEventListener("dragenter", handle_drag_enter);
+
+					itemIndex++;
+				});
+			} else {
+				items.push(child);
+				child.classList.add("draggable-item");
+				child.setAttribute("draggable", "true");
+				child.setAttribute("data-index", itemIndex.toString());
+				child.setAttribute("aria-grabbed", "false");
+
+				child.addEventListener("dragstart", handle_drag_start);
+				child.addEventListener("dragend", handle_drag_end);
+				child.addEventListener("dragover", handle_drag_over);
+				child.addEventListener("drop", handle_drop);
+				child.addEventListener("dragenter", handle_drag_enter);
+
+				itemIndex++;
+			}
 		});
 	}
 
@@ -104,11 +127,26 @@
 
 		if (!dragged_el || !container_el) return;
 
+		const draggedParent = dragged_el.parentElement;
+		const targetParent = target.parentElement;
+
+		const isDraggedInForm =
+			draggedParent?.classList.contains("form") &&
+			draggedParent.parentElement === container_el;
+		const isTargetInForm =
+			targetParent?.classList.contains("form") &&
+			targetParent.parentElement === container_el;
+		const isDraggedDirect = draggedParent === container_el;
+		const isTargetDirect = targetParent === container_el;
+
 		if (
-			dragged_el.parentElement !== container_el ||
-			target.parentElement !== container_el
-		)
+			!(
+				(isDraggedInForm || isDraggedDirect) &&
+				(isTargetInForm || isTargetDirect)
+			)
+		) {
 			return;
+		}
 
 		if (current_drop_target && current_drop_target !== target) {
 			current_drop_target.style.border = "";
@@ -135,19 +173,36 @@
 		}
 
 		if (dragged_el && dragged_el !== target && container_el) {
+			const draggedParent = dragged_el.parentElement;
+			const targetParent = target.parentElement;
+
+			const isDraggedInForm =
+				draggedParent?.classList.contains("form") &&
+				draggedParent.parentElement === container_el;
+			const isTargetInForm =
+				targetParent?.classList.contains("form") &&
+				targetParent.parentElement === container_el;
+			const isDraggedDirect = draggedParent === container_el;
+			const isTargetDirect = targetParent === container_el;
+
 			if (
-				dragged_el.parentElement !== container_el ||
-				target.parentElement !== container_el
-			)
+				!(
+					(isDraggedInForm || isDraggedDirect) &&
+					(isTargetInForm || isTargetDirect)
+				)
+			) {
 				return false;
+			}
 
 			const placeholder = document.createElement("div");
 			placeholder.style.display = "none";
-			container_el.insertBefore(placeholder, dragged_el);
 
-			container_el.insertBefore(dragged_el, target);
-			container_el.insertBefore(target, placeholder);
-			container_el.removeChild(placeholder);
+			draggedParent!.insertBefore(placeholder, dragged_el);
+
+			targetParent!.insertBefore(dragged_el, target);
+			draggedParent!.insertBefore(target, placeholder);
+
+			placeholder.remove();
 
 			await tick();
 			setup_drag_and_drop();
@@ -228,30 +283,36 @@
 		display: none;
 	}
 
-	.draggable > :global(.draggable-item) {
+	.draggable > :global(.draggable-item),
+	.draggable > :global(.form > .draggable-item) {
 		transition: transform 0.2s ease;
 	}
 
-	.draggable > :global(.draggable-item.drag-over) {
+	.draggable > :global(.draggable-item.drag-over),
+	.draggable > :global(.form > .draggable-item.drag-over) {
 		transform: scale(0.98);
 		opacity: 0.8;
 	}
 
-	.draggable > :global(.draggable-item:hover) {
+	.draggable > :global(.draggable-item:hover),
+	.draggable > :global(.form > .draggable-item:hover) {
 		cursor: grab;
 	}
 
-	.draggable > :global(.draggable-item:active) {
+	.draggable > :global(.draggable-item:active),
+	.draggable > :global(.form > .draggable-item:active) {
 		cursor: grabbing;
 	}
 
-	.draggable > :global(.draggable-item.dragging) {
+	.draggable > :global(.draggable-item.dragging),
+	.draggable > :global(.form > .draggable-item.dragging) {
 		opacity: 0.5;
 		transform: scale(1.02);
 		z-index: 1001;
 	}
 
-	.draggable > :global(.draggable-item.reordering) {
+	.draggable > :global(.draggable-item.reordering),
+	.draggable > :global(.form > .draggable-item.reordering) {
 		transition: all 0.3s ease;
 	}
 
