@@ -655,7 +655,7 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request,
                 route_path=f"/{page}",
-                root_path=app.root_path,
+                root_path=app.root_path or blocks.custom_mount_path,
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
