@@ -19,56 +19,57 @@
 	let drag_preview: HTMLElement | null = null;
 	let current_drop_target: HTMLElement | null = null;
 
+	const drag_event_handlers = [
+		{ event: "dragstart", handler: handle_drag_start },
+		{ event: "dragend", handler: handle_drag_end },
+		{ event: "dragover", handler: handle_drag_over },
+		{ event: "drop", handler: handle_drop },
+		{ event: "dragenter", handler: handle_drag_enter }
+	] as const;
+
+	function add_drag_listeners(element: HTMLElement): void {
+		drag_event_handlers.forEach(({ event, handler }) => {
+			element.addEventListener(event, handler);
+		});
+	}
+
+	function remove_drag_listeners(element: HTMLElement): void {
+		drag_event_handlers.forEach(({ event, handler }) => {
+			element.removeEventListener(event, handler);
+		});
+	}
+
+	function setup_draggable_item(element: HTMLElement, index: number): void {
+		element.classList.add("draggable-item");
+		element.setAttribute("draggable", "true");
+		element.setAttribute("data-index", index.toString());
+		element.setAttribute("aria-grabbed", "false");
+		add_drag_listeners(element);
+	}
+
 	function setup_drag_and_drop(): void {
 		if (!container_el) return;
 
-		items.forEach((item) => {
-			item.removeEventListener("dragstart", handle_drag_start);
-			item.removeEventListener("dragend", handle_drag_end);
-			item.removeEventListener("dragover", handle_drag_over);
-			item.removeEventListener("drop", handle_drop);
-			item.removeEventListener("dragenter", handle_drag_enter);
-		});
-
+		items.forEach(remove_drag_listeners);
 		items = [];
 
 		const children = Array.from(container_el.children) as HTMLElement[];
-		let itemIndex = 0;
+		let item_index = 0;
 
 		children.forEach((child) => {
 			if (child.classList.contains("status-tracker")) return;
 
 			if (child.classList.contains("form") && child.children.length > 0) {
-				const formChildren = Array.from(child.children) as HTMLElement[];
-				formChildren.forEach((formChild) => {
-					items.push(formChild);
-					formChild.classList.add("draggable-item");
-					formChild.setAttribute("draggable", "true");
-					formChild.setAttribute("data-index", itemIndex.toString());
-					formChild.setAttribute("aria-grabbed", "false");
-
-					formChild.addEventListener("dragstart", handle_drag_start);
-					formChild.addEventListener("dragend", handle_drag_end);
-					formChild.addEventListener("dragover", handle_drag_over);
-					formChild.addEventListener("drop", handle_drop);
-					formChild.addEventListener("dragenter", handle_drag_enter);
-
-					itemIndex++;
+				const form_children = Array.from(child.children) as HTMLElement[];
+				form_children.forEach((form_child) => {
+					items.push(form_child);
+					setup_draggable_item(form_child, item_index);
+					item_index++;
 				});
 			} else {
 				items.push(child);
-				child.classList.add("draggable-item");
-				child.setAttribute("draggable", "true");
-				child.setAttribute("data-index", itemIndex.toString());
-				child.setAttribute("aria-grabbed", "false");
-
-				child.addEventListener("dragstart", handle_drag_start);
-				child.addEventListener("dragend", handle_drag_end);
-				child.addEventListener("dragover", handle_drag_over);
-				child.addEventListener("drop", handle_drop);
-				child.addEventListener("dragenter", handle_drag_enter);
-
-				itemIndex++;
+				setup_draggable_item(child, item_index);
+				item_index++;
 			}
 		});
 	}
@@ -225,14 +226,7 @@
 
 		return () => {
 			observer.disconnect();
-
-			items.forEach((item) => {
-				item.removeEventListener("dragstart", handle_drag_start);
-				item.removeEventListener("dragend", handle_drag_end);
-				item.removeEventListener("dragover", handle_drag_over);
-				item.removeEventListener("drop", handle_drop);
-				item.removeEventListener("dragenter", handle_drag_enter);
-			});
+			items.forEach(remove_drag_listeners);
 		};
 	});
 </script>
