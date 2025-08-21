@@ -101,7 +101,7 @@ The package publishes `types.d.ts` with `DataframeProps` module declarations.
 Custom Styling
 --------------
 
-The standalone package exposes a small, intuitive set of public CSS variables you should use to theme the Dataframe. These variables are namespaced with `--gr-df-*` and are the recommended way to override the default styling.
+The standalone package exposes a small, intuitive set of public CSS variables you can use to theme the Dataframe. These variables are namespaced with `--gr-df-*` and are the recommended way to override the default styling.
 
 **Color Variables**
 - `--gr-df-table-bg-even` — background for even rows
@@ -129,9 +129,17 @@ Example:
 
 <style>
   .df-theme {
-    --gr-df-accent:        #7c3aed;
+    --gr-df-accent: #7c3aed;
   }
 </style>
+```
+
+Alternatively, you can target internal classes within the Dataframe using a global override. 
+
+```css
+.df-theme :global(.cell-wrap) {
+		background-color: #7c3aed ;
+	}
 ```
 
 > **Note:** This standalone component does **not** currently support file upload functionality (e.g. drag-and-dropping to populate the dataframe) that is available in the core Gradio Dataframe component.
