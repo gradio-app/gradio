@@ -436,7 +436,7 @@
 
 	async function add_col(index?: number): Promise<void> {
 		parent.focus();
-		if (Array.isArray(col_count) && col_count[1] !== "dynamic") return;
+		if (col_count[1] !== "dynamic") return;
 
 		const result = df_actions.add_col(data, headers, make_id, index);
 

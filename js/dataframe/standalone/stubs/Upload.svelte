@@ -1,12 +1,11 @@
 <script lang="ts">
 	export const aria_label = "";
-	export let height = "100%";
 	export const root = "";
 	export const upload: any = null;
 	export const stream_handler: any = null;
 </script>
 
-<div style={`height:${height};`}>
+<div>
 	<slot />
 </div>
 
