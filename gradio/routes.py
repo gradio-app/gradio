@@ -870,7 +870,7 @@ class App(FastAPI):
         def get_config(request: fastapi.Request, deep_link: str = ""):
             config = utils.safe_deepcopy(app.get_blocks().config)
             root = route_utils.get_root_url(
-                request=request, route_path="/config", root_path=app.root_path
+                request=request, route_path="/config", root_path=app.root_path or blocks.custom_mount_path
             )
             config["username"] = get_current_user(request)
             if deep_link:
