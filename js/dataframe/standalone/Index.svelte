@@ -19,7 +19,7 @@
 		headers: ["1", "2", "3"],
 		metadata: null
 	};
-	export let datatype: Datatype | Datatype[] = [];
+	export let datatype: Datatype | Datatype[] = "str";
 	export let editable = true;
 	export let show_row_numbers = false;
 	export let max_height = 500;
@@ -503,6 +503,7 @@
 			--gr-df-checkbox-border-color-focus,
 			var(--df-checkbox-border-color-focus, var(--df-color-accent, #f97316))
 		);
+		--checkbox-check: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
 		--button-transition: var(--df-button-transition, none);
 		--max-height: var(--df-max-height, 500px);
 		--df-layer-1: 10;
@@ -617,5 +618,71 @@
 		height: 1px;
 		overflow: hidden;
 		white-space: nowrap;
+	}
+
+	:global(input[type="checkbox"]) {
+		accent-color: var(--color-accent);
+	}
+
+	:global(label) {
+		display: flex;
+		align-items: center;
+		transition: all 0.15s ease;
+		cursor: pointer;
+		/* default label color */
+		color: #111111;
+		font-weight: 400;
+		font-size: 14px;
+		line-height: 1.5;
+	}
+
+	:global(label) > * + * {
+		margin-left: 8px;
+	}
+
+	:global(input) {
+		--ring-color: transparent;
+		position: relative;
+		/* default shadow */
+		box-shadow: none;
+		border: 1px solid #888888;
+		border-radius: 6px;
+		background-color: #ffffff;
+		line-height: 1;
+	}
+
+	:global(input:checked),
+	:global(input:checked:hover),
+	:global(input:checked:focus) {
+		/* checked state: orange */
+		background-image: none;
+		background-color: #f97316;
+		border-color: #f97316;
+	}
+
+	:global(input:checked:focus) {
+		background-image: none;
+		background-color: #f97316;
+		border-color: #f97316;
+	}
+
+	:global(input:hover) {
+		border-color: #1e90ff;
+		background-color: #e6f0ff;
+	}
+
+	:global(input:focus) {
+		border-color: #f97316;
+		background-color: #fff4e6;
+	}
+
+	:global(input[disabled]),
+	:global(.disabled) {
+		cursor: not-allowed !important;
+		opacity: 0.6;
+	}
+
+	:global(input:hover) {
+		cursor: pointer;
 	}
 </style>
