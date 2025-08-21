@@ -11,6 +11,7 @@ export { default as Chat } from "./Chat.svelte";
 export { default as Check } from "./Check.svelte";
 export { default as Circle } from "./Circle.svelte";
 export { default as Clear } from "./Clear.svelte";
+export { default as ClosedCaption } from "./ClosedCaption.svelte";
 export { default as Code } from "./Code.svelte";
 export { default as Color } from "./Color.svelte";
 export { default as ColorPickerSolid } from "./ColorPickerSolid.svelte";

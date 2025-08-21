@@ -14,6 +14,7 @@
 	import Hls from "hls.js";
 
 	export let value: null | FileData = null;
+	export let subtitles: null | string = null;
 	$: url = value?.url;
 	export let label: string;
 	export let i18n: I18nFormatter;
@@ -34,6 +35,8 @@
 	let waveform: WaveSurfer | undefined;
 	let playing = false;
 
+	let subtitleContainer: HTMLDivElement;
+
 	let timeRef: HTMLTimeElement;
 	let durationRef: HTMLTimeElement;
 	let audio_duration: number;
@@ -41,9 +44,8 @@
 	let trimDuration = 0;
 
 	let show_volume_slider = false;
-	let audio_player: HTMLAudioElement;
-
 	let stream_active = false;
+	let subtitles_toggle = false;
 
 	const dispatch = createEventDispatcher<{
 		stop: undefined;
@@ -62,6 +64,15 @@
 			container: container,
 			...waveform_settings
 		});
+
+		if (subtitles && waveform) {
+			if (subtitles_toggle) {
+				addSubtitlesToWaveform(waveform, subtitles);
+			} else {
+				hideSubtitles();
+			}
+		}
+
 		resolve_wasm_src(value?.url).then((resolved_src) => {
 			if (resolved_src && waveform) {
 				return waveform.load(resolved_src);
@@ -142,13 +153,19 @@
 			if (!resolved_src || value?.is_stream) return;
 			if (waveform_options.show_recording_waveform) {
 				waveform?.load(resolved_src);
-			} else if (audio_player) {
-				audio_player.src = resolved_src;
 			}
 		});
 	}
 
 	$: url && load_audio(url);
+
+	$: if (subtitles && waveform) {
+		if (subtitles_toggle) {
+			addSubtitlesToWaveform(waveform, subtitles);
+		} else {
+			hideSubtitles();
+		}
+	}
 
 	function load_stream(value: FileData | null): void {
 		if (!value || !value.is_stream || !value.url) return;
@@ -161,26 +178,18 @@
 				lowLatencyMode: true
 			});
 			hls.loadSource(value.url);
-			hls.attachMedia(audio_player);
-			hls.on(Hls.Events.MANIFEST_PARSED, function () {
-				if (waveform_settings.autoplay) audio_player.play();
-			});
+
+			hls.on(Hls.Events.MANIFEST_PARSED, function () {});
 			hls.on(Hls.Events.ERROR, function (event, data) {
-				console.error("HLS error:", event, data);
 				if (data.fatal) {
 					switch (data.type) {
 						case Hls.ErrorTypes.NETWORK_ERROR:
-							console.error(
-								"Fatal network error encountered, trying to recover"
-							);
 							hls.startLoad();
 							break;
 						case Hls.ErrorTypes.MEDIA_ERROR:
-							console.error("Fatal media error encountered, trying to recover");
 							hls.recoverMediaError();
 							break;
 						default:
-							console.error("Fatal error, cannot recover");
 							hls.destroy();
 							break;
 					}
@@ -188,14 +197,8 @@
 			});
 			stream_active = true;
 		} else if (!stream_active) {
-			audio_player.src = value.url;
-			if (waveform_settings.autoplay) audio_player.play();
 			stream_active = true;
 		}
-	}
-
-	$: if (audio_player && value?.is_stream) {
-		load_stream(value);
 	}
 
 	onMount(() => {
@@ -209,43 +212,96 @@
 		});
 	});
 
-	// Handle captions when audio_player is available
-	$: if (audio_player) {
-		const track = audio_player.textTracks[0];
-		if (track) {
-			// Safari needs to be specifically told to show this track
-			track.mode = "showing";
-			
-			// Add event listener for caption changes
-			track.addEventListener('cuechange', function() {
-				if (this.activeCues && this.activeCues[0]) {
-					// Update caption
-					const captionElement = document.getElementById('vtt-text');
-					if (captionElement) {
-						const cue = this.activeCues[0] as VTTCue;
-						captionElement.innerText = cue.text;
-					}
+	async function addSubtitlesToWaveform(
+		wavesurfer: WaveSurfer,
+		subtitleUrl: string
+	): Promise<void> {
+		try {
+			const response = await fetch(subtitleUrl);
+			const vttContent = await response.text();
+
+			const subtitles = parseVTT(vttContent);
+
+			if (subtitles.length > 0) {
+				let currentSubtitle = "";
+				if (subtitleContainer) {
+					subtitleContainer.style.display = "";
+					wavesurfer.on("audioprocess", (time) => {
+						const subtitle = subtitles.find(
+							(s) => time >= s.start && time <= s.end
+						);
+						if (subtitle && subtitle.text !== currentSubtitle) {
+							currentSubtitle = subtitle.text;
+							subtitleContainer.textContent = currentSubtitle;
+						} else if (!subtitle && currentSubtitle !== "") {
+							currentSubtitle = "";
+							subtitleContainer.textContent = "";
+						}
+					});
+
+					wavesurfer.on("seek", (progress) => {
+						const time = progress * wavesurfer.getDuration();
+						const subtitle = subtitles.find(
+							(s) => time >= s.start && time <= s.end
+						);
+						if (subtitle) {
+							currentSubtitle = subtitle.text;
+							subtitleContainer.textContent = currentSubtitle;
+						} else {
+							currentSubtitle = "";
+							subtitleContainer.textContent = "";
+						}
+					});
 				}
-			});
+			}
+		} catch (error) {}
+	}
+
+	function hideSubtitles(): void {
+		if (subtitleContainer) {
+			subtitleContainer.style.display = "none";
 		}
 	}
+
+	function parseVTT(
+		vttContent: string
+	): { start: number; end: number; text: string }[] {
+		const lines = vttContent.split("\n");
+		const subtitles: { start: number; end: number; text: string }[] = [];
+
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i].trim();
+			if (line.includes(" --> ")) {
+				const [startTime, endTime] = line.split(" --> ");
+				const start = parseTimeToSeconds(startTime);
+				const end = parseTimeToSeconds(endTime);
+
+				let text = "";
+				for (let j = i + 1; j < lines.length && lines[j].trim() !== ""; j++) {
+					if (text) text += " ";
+					text += lines[j].trim();
+				}
+
+				if (text) {
+					subtitles.push({ start, end, text });
+				}
+			}
+		}
+
+		return subtitles;
+	}
+
+	function parseTimeToSeconds(timeStr: string): number {
+		const parts = timeStr.split(":");
+		if (parts.length === 3) {
+			const hours = parseInt(parts[0]);
+			const minutes = parseInt(parts[1]);
+			const seconds = parseFloat(parts[2]);
+			return hours * 3600 + minutes * 60 + seconds;
+		}
+		return 0;
+	}
 </script>
-
-<audio
-	class="standard-player"
-	class:hidden={use_waveform}
-	controls
-	autoplay={waveform_settings.autoplay}
-	on:load
-	bind:this={audio_player}
-	on:ended={() => dispatch("stop")}
-	on:play={() => dispatch("play")}
->
-        <track default kind="captions" label="captions" srclang="en" src="data:text/vtt;base64,V0VCVlRUCg0KMDA6MDA6MDAuMDAwIC0tPiAwMDowMDowMy4wMDAKSGVsbG8sIHdlbGNvbWUgdG8gdGhpcyBhdWRpbyBjb250ZW50Lg0KDTAwOjAwOjAzLjAwMCAtLT4gMDA6MDA6MDcuMDAwClRvZGF5IHdlJ2xsIGRpc2N1c3MgaG93IHN1YnRpdGxlcyB3b3JrIHdpdGggYXVkaW8uDQoNMDA6MDA6MDcuMDAwIC0tPiAwMDowMDoxMi4wMDAKVGhpcyBpcyBhIHNpbXBsZSBleGFtcGxlIG9mIFZUVCAgZm9ybWF0dGluZy4NCg0KMDA6MDA6MTIuMDAwIC0tPiAwMDowMDoxNy4wMDAKV2l0aCBtdWx0aXBsZSBsYW5ndWFnZXMgYW5kIGFjY2Vzc2liaWxpdHkgZmVhdHVyZXMuDQoNMDA6MDA6MTcuMDAwIC0tPiAwMDowMDoyMi4wMDAKVGhlIGJyb3dzZXIgaGFuZGxlcyB0aGlzIGF1dG9tYXRpY2FsbHkuDQo=" />
-</audio>
-
-<!-- Caption Display -->
-<div id="vtt-text" class="caption-display" style="text-align:center;font-family:monospace;font-weight:bold;text-wrap:balance">Captions will appear here...</div>
 
 {#if value === null}
 	<Empty size="small">
@@ -274,6 +330,8 @@
 			</div>
 		</div>
 
+		<div bind:this={subtitleContainer} class="subtitle-display"></div>
+
 		<WaveformControls
 			{container}
 			{waveform}
@@ -285,11 +343,13 @@
 			bind:mode
 			bind:trimDuration
 			bind:show_volume_slider
+			bind:subtitles_toggle
 			show_redo={interactive}
 			{handle_reset_value}
 			{waveform_options}
 			{trim_region_settings}
 			{editable}
+			show_subtitles={subtitles !== null}
 		/>
 	</div>
 {/if}
@@ -337,27 +397,22 @@
 		position: relative;
 	}
 
-	.standard-player {
-		width: 100%;
-		padding: var(--size-2);
-	}
-
-	.hidden {
-		display: none;
-	}
-
-	.caption-display {
-		background: rgba(0, 0, 0, 0.85);
+	.subtitle-display {
 		color: white;
 		padding: 12px 16px;
 		margin: 8px 0;
-		border-radius: 6px;
 		font-size: 14px;
 		text-align: center;
-		max-width: 400px;
+		max-width: 600px;
 		line-height: 1.4;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-		border: 1px solid rgba(255, 255, 255, 0.1);
 		min-height: 20px;
+		font-family: monospace;
+		font-weight: bold;
+		margin: 0 auto;
+		transition: opacity 0.2s ease-in-out;
+	}
+
+	.subtitle-display:empty {
+		display: none;
 	}
 </style>

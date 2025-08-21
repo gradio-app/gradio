@@ -44,6 +44,7 @@
 	export let stream_every: number;
 	export let input_ready: boolean;
 	export let recording = false;
+	export let subtitles: null | FileData = null;
 	let uploading = false;
 	$: input_ready = !uploading;
 
@@ -196,6 +197,7 @@
 			{show_download_button}
 			{show_share_button}
 			{value}
+			{subtitles}
 			{label}
 			{loop}
 			{waveform_settings}
@@ -232,6 +234,7 @@
 			{show_label}
 			{show_download_button}
 			{value}
+			{subtitles}
 			on:change={({ detail }) => (value = detail)}
 			on:stream={({ detail }) => {
 				value = detail;
