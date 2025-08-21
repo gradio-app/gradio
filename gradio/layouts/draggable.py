@@ -14,14 +14,7 @@ class Draggable(BlockContext, metaclass=ComponentMeta):
     Draggable is a layout element within Blocks that renders children with drag and drop functionality.
     A user can reorder children by dragging them around and snapping them into place.
 
-    Example:
-        with gr.Blocks() as demo:
-            with gr.Draggable(orientation="row"):
-                gr.Textbox(label="Item 1")
-                gr.Textbox(label="Item 2")
-                gr.Textbox(label="Item 3")
-        demo.launch()
-    Guides: controlling-layout
+    Demos: draggable_dashboard
     """
 
     EVENTS = []
