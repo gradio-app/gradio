@@ -16,7 +16,6 @@
 	let dragged_el: HTMLElement | null = null;
 	let dragged_index = -1;
 	let items: HTMLElement[] = [];
-	let drag_preview: HTMLElement | null = null;
 	let current_drop_target: HTMLElement | null = null;
 
 	const drag_event_handlers = [
@@ -81,9 +80,7 @@
 		dragged_el = target;
 		dragged_index = parseInt(target.dataset.index || "-1");
 
-		drag_preview = target.cloneNode(true) as HTMLElement;
-		drag_preview.classList.add("drag-preview");
-		document.body.appendChild(drag_preview);
+		// Remove custom drag preview to prevent double preview
 
 		target.setAttribute("aria-grabbed", "true");
 		target.classList.add("dragging");
@@ -101,8 +98,7 @@
 		target.classList.remove("dragging");
 		target.setAttribute("aria-grabbed", "false");
 
-		drag_preview?.remove();
-		drag_preview = null;
+		// No custom drag preview to clean up
 
 		if (current_drop_target) {
 			current_drop_target.style.border = "";
