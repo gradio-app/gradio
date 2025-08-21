@@ -20,7 +20,10 @@
 
 	const drag_event_handlers = [
 		{ event: "dragstart", handler: handle_drag_start },
-		{ event: "dragend", handler: handle_drag_end },
+		{ event: "dragend", handler: handle_drag_end }
+	] as const;
+
+	const drop_event_handlers = [
 		{ event: "dragover", handler: handle_drag_over },
 		{ event: "drop", handler: handle_drop },
 		{ event: "dragenter", handler: handle_drag_enter }
@@ -38,18 +41,46 @@
 		});
 	}
 
+	function add_drop_listeners(element: HTMLElement): void {
+		drop_event_handlers.forEach(({ event, handler }) => {
+			element.addEventListener(event, handler);
+		});
+	}
+
+	function remove_drop_listeners(element: HTMLElement): void {
+		drop_event_handlers.forEach(({ event, handler }) => {
+			element.removeEventListener(event, handler);
+		});
+	}
+
 	function setup_draggable_item(element: HTMLElement, index: number): void {
 		element.classList.add("draggable-item");
-		element.setAttribute("draggable", "true");
 		element.setAttribute("data-index", index.toString());
-		element.setAttribute("aria-grabbed", "false");
-		add_drag_listeners(element);
+		element.style.position = "relative";
+		
+		const handle = document.createElement("div");
+		handle.className = "drag-handle";
+		handle.setAttribute("draggable", "true");
+		handle.setAttribute("aria-grabbed", "false");
+		handle.setAttribute("data-index", index.toString());
+		handle.innerHTML = "⋮⋮";
+		
+		element.appendChild(handle);
+		add_drag_listeners(handle);
+		add_drop_listeners(element);
 	}
 
 	function setup_drag_and_drop(): void {
 		if (!container_el) return;
 
-		items.forEach(remove_drag_listeners);
+		items.forEach(item => {
+			const handle = item.querySelector('.drag-handle');
+			if (handle) {
+				remove_drag_listeners(handle as HTMLElement);
+				handle.remove();
+			}
+			remove_drop_listeners(item);
+		});
 		items = [];
 
 		const children = Array.from(container_el.children) as HTMLElement[];
@@ -76,29 +107,28 @@
 	function handle_drag_start(e: DragEvent): void {
 		e.stopPropagation?.();
 
-		const target = e.currentTarget as HTMLElement;
-		dragged_el = target;
-		dragged_index = parseInt(target.dataset.index || "-1");
+		const handle = e.currentTarget as HTMLElement;
+		const element = handle.parentElement as HTMLElement;
+		dragged_el = element;
+		dragged_index = parseInt(handle.dataset.index || "-1");
 
-		// Remove custom drag preview to prevent double preview
-
-		target.setAttribute("aria-grabbed", "true");
-		target.classList.add("dragging");
+		handle.setAttribute("aria-grabbed", "true");
+		element.classList.add("dragging");
 
 		if (e.dataTransfer) {
 			e.dataTransfer.effectAllowed = "move";
-			e.dataTransfer.setData("text/html", target.outerHTML);
+			e.dataTransfer.setData("text/html", element.outerHTML);
+			e.dataTransfer.setDragImage(element, 10, 10);
 		}
 	}
 
 	function handle_drag_end(e: DragEvent): void {
 		e.stopPropagation?.();
 
-		const target = e.currentTarget as HTMLElement;
-		target.classList.remove("dragging");
-		target.setAttribute("aria-grabbed", "false");
-
-		// No custom drag preview to clean up
+		const handle = e.currentTarget as HTMLElement;
+		const element = handle.parentElement as HTMLElement;
+		element.classList.remove("dragging");
+		handle.setAttribute("aria-grabbed", "false");
 
 		if (current_drop_target) {
 			current_drop_target.style.border = "";
@@ -201,6 +231,12 @@
 
 			placeholder.remove();
 
+			dragged_el?.classList.remove("dragging");
+			const draggedHandle = dragged_el?.querySelector('.drag-handle') as HTMLElement;
+			if (draggedHandle) {
+				draggedHandle.setAttribute("aria-grabbed", "false");
+			}
+
 			await tick();
 			setup_drag_and_drop();
 		}
@@ -222,7 +258,13 @@
 
 		return () => {
 			observer.disconnect();
-			items.forEach(remove_drag_listeners);
+			items.forEach(item => {
+				const handle = item.querySelector('.drag-handle');
+				if (handle) {
+					remove_drag_listeners(handle as HTMLElement);
+				}
+				remove_drop_listeners(item);
+			});
 		};
 	});
 </script>
@@ -284,16 +326,6 @@
 		opacity: 0.8;
 	}
 
-	.draggable > :global(.draggable-item:hover),
-	.draggable > :global(.form > .draggable-item:hover) {
-		cursor: grab;
-	}
-
-	.draggable > :global(.draggable-item:active),
-	.draggable > :global(.form > .draggable-item:active) {
-		cursor: grabbing;
-	}
-
 	.draggable > :global(.draggable-item.dragging),
 	.draggable > :global(.form > .draggable-item.dragging) {
 		opacity: 0.5;
@@ -301,9 +333,39 @@
 		z-index: 1001;
 	}
 
-	.draggable > :global(.draggable-item.reordering),
-	.draggable > :global(.form > .draggable-item.reordering) {
-		transition: all 0.3s ease;
+	.draggable > :global(.draggable-item .drag-handle) {
+		position: absolute;
+		top: 4px;
+		left: 4px;
+		width: 20px;
+		height: 20px;
+		background: rgba(0, 0, 0, 0.1);
+		border: 1px solid rgba(0, 0, 0, 0.2);
+		border-radius: 4px;
+		cursor: grab;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 10px;
+		color: rgba(0, 0, 0, 0.6);
+		opacity: 0;
+		transition: opacity 0.2s ease;
+		z-index: 10;
+		user-select: none;
+	}
+
+	.draggable > :global(.draggable-item:hover .drag-handle) {
+		opacity: 1;
+	}
+
+	.draggable > :global(.draggable-item .drag-handle:hover) {
+		background: rgba(0, 0, 0, 0.15);
+		border-color: rgba(0, 0, 0, 0.3);
+	}
+
+	.draggable > :global(.draggable-item .drag-handle:active) {
+		cursor: grabbing;
+		background: rgba(0, 0, 0, 0.2);
 	}
 
 	.horizontal > :global(.draggable-item),
@@ -318,11 +380,4 @@
 		width: var(--size-full);
 	}
 
-	.drag-preview {
-		position: fixed;
-		visibility: hidden;
-		opacity: 0.7;
-		pointer-events: none;
-		z-index: 1000;
-	}
 </style>
