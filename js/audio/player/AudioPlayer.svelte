@@ -427,6 +427,11 @@
 		position: relative;
 	}
 
+	.standard-player {
+		width: 100%;
+		padding: var(--size-2);
+	}
+
 	.subtitle-display {
 		color: white;
 		padding: 12px 16px;
@@ -442,6 +447,7 @@
 		transition: opacity 0.2s ease-in-out;
 	}
 
+	.hidden,
 	.subtitle-display:empty {
 		display: none;
 	}
