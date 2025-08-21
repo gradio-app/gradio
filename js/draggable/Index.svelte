@@ -364,13 +364,17 @@
 	}
 
 	.draggable > :global(.draggable-item .drag-handle:hover) {
-		background: var(--background-fill-secondary-dark);
-		border-color: rgba(0, 0, 0, 0.3);
+		background: var(--background-fill-secondary);
+		border-color: var(--border-color-primary);
+		opacity: 1;
+		z-index: 101;
 	}
 
 	.draggable > :global(.draggable-item .drag-handle:active) {
 		cursor: grabbing;
-		background: var(--background-fill-secondary-dark);
+		background: var(--background-fill-secondary);
+		opacity: 1;
+		z-index: 101;
 	}
 
 	.horizontal > :global(.draggable-item),
