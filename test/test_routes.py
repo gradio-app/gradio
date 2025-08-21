@@ -453,8 +453,10 @@ class TestRoutes:
 
     def test_mount_gradio_app_with_path_params(self):
         app = FastAPI()
+
         def print_id(_, request: gr.Request):
-            return request.path_params['id']
+            return request.path_params["id"]
+
         demo = gr.Interface(print_id, "textbox", "textbox")
         app = gr.mount_gradio_app(
             app,
@@ -464,7 +466,6 @@ class TestRoutes:
         with TestClient(app) as client:
             response = client.get("/project/123")
             assert response.status_code == 200
-
 
     def test_mount_gradio_app_with_lifespan(self):
         @asynccontextmanager
