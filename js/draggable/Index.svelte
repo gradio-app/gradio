@@ -131,8 +131,7 @@
 		handle.setAttribute("aria-grabbed", "false");
 
 		if (current_drop_target) {
-			current_drop_target.style.border = "";
-			current_drop_target.style.borderRadius = "";
+			current_drop_target.classList.remove("drop-target");
 			current_drop_target = null;
 		}
 
@@ -176,26 +175,21 @@
 		}
 
 		if (current_drop_target && current_drop_target !== target) {
-			current_drop_target.style.border = "";
-			current_drop_target.style.borderRadius = "";
+			current_drop_target.classList.remove("drop-target");
 		}
 
-		target.style.border = "2px dashed var(--border-color-primary)";
-		target.style.borderRadius = "8px";
+		target.classList.add("drop-target");
 		current_drop_target = target;
-
-		target.classList.add("drag-over");
 	}
 
 	async function handle_drop(e: DragEvent): Promise<boolean> {
 		e.stopPropagation?.();
 
 		const target = e.currentTarget as HTMLElement;
-		target.classList.remove("drag-over");
+		target.classList.remove("drop-target");
 
 		if (current_drop_target) {
-			current_drop_target.style.border = "";
-			current_drop_target.style.borderRadius = "";
+			current_drop_target.classList.remove("drop-target");
 			current_drop_target = null;
 		}
 
@@ -319,11 +313,13 @@
 
 	.draggable > :global(.draggable-item),
 	.draggable > :global(.form > .draggable-item) {
-		transition: transform 0.2s ease;
+		transition: transform 0.2s ease, border 0.2s ease;
 	}
 
-	.draggable > :global(.draggable-item.drag-over),
-	.draggable > :global(.form > .draggable-item.drag-over) {
+	.draggable > :global(.draggable-item.drop-target),
+	.draggable > :global(.form > .draggable-item.drop-target) {
+		border: 2px dashed var(--border-color-primary) !important;
+		border-radius: 8px;
 		transform: scale(0.98);
 		opacity: 0.8;
 	}
