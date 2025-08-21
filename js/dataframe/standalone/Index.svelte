@@ -619,4 +619,16 @@
 		background-image: none;
 		background-color: transparent;
 	}
+
+	:global(.sr-only) {
+		clip: rect(0, 0, 0, 0);
+		position: absolute;
+		margin: -1px;
+		border-width: 0;
+		padding: 0;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		white-space: nowrap;
+	}
 </style>
