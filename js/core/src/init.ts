@@ -216,10 +216,6 @@ export function create_components(
 		root: string;
 		dependencies: Dependency[];
 	}): void {
-		// Update current layout and root for dynamic visibility recalculation
-		current_layout = layout;
-		current_root = root;
-
 		components.forEach((c) => {
 			for (const prop in c.props) {
 				if (c.props[prop] === null) {
@@ -430,11 +426,12 @@ export function create_components(
 	 * @param newly_visible_ids Set of component IDs that are now visible
 	 */
 	async function load_newly_visible_components(
-		newly_visible_ids: Set<number>
+		newly_visible_ids: Set<number>,
+		components: ComponentMeta[]
 	): Promise<void> {
 		if (newly_visible_ids.size === 0) return;
 
-		const components_to_load = _components.filter((c) =>
+		const components_to_load = components.filter((c) =>
 			newly_visible_ids.has(c.id)
 		);
 
@@ -448,7 +445,7 @@ export function create_components(
 						component.type,
 						component.component_class_id,
 						current_root,
-						_components
+						components
 					);
 
 				constructor_map.set(constructor_key, loadable_component);
@@ -496,12 +493,15 @@ export function create_components(
 	function flush(): void {
 		const had_visibility_changes = has_visibility_changes(pending_updates);
 		let previous_visible_ids: Set<number> | undefined;
+		const all_components = _component_map
+			? [..._component_map.values()]
+			: _components;
 
 		// Capture current visibility state before applying updates
 		if (had_visibility_changes && current_layout) {
 			previous_visible_ids = determine_visible_components(
 				current_layout,
-				_components
+				all_components
 			);
 		}
 
@@ -541,7 +541,7 @@ export function create_components(
 			raf(async () => {
 				const new_visible_ids = determine_visible_components(
 					current_layout,
-					_components
+					all_components
 				);
 				const newly_visible_ids = new Set<number>();
 
@@ -553,7 +553,7 @@ export function create_components(
 				}
 
 				// Load the newly visible components
-				await load_newly_visible_components(newly_visible_ids);
+				await load_newly_visible_components(newly_visible_ids, all_components);
 
 				// Trigger a layout update to render the newly loaded components
 				if (newly_visible_ids.size > 0) {

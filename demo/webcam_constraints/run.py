@@ -1,5 +1,5 @@
 import gradio as gr
-import cv2
+import cv2  # type: ignore
 
 def get_video_shape(video):
     cap = cv2.VideoCapture(video)

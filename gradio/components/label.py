@@ -6,7 +6,7 @@ import json
 import operator
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Union
 
 from gradio_client.documentation import document
 
@@ -20,13 +20,13 @@ if TYPE_CHECKING:
 
 
 class LabelConfidence(GradioModel):
-    label: Optional[Union[str, int, float]] = None
-    confidence: Optional[float] = None
+    label: Union[str, int, float] | None = None
+    confidence: float | None = None
 
 
 class LabelData(GradioModel):
-    label: Optional[Union[str, int, float]] = None
-    confidences: Optional[list[LabelConfidence]] = None
+    label: Union[str, int, float] | None = None
+    confidences: list[LabelConfidence] | None = None
 
 
 @document()

@@ -1,5 +1,28 @@
 # @gradio/image
 
+## 0.22.17
+
+### Fixes
+
+- [#11720](https://github.com/gradio-app/gradio/pull/11720) [`4d3d983`](https://github.com/gradio-app/gradio/commit/4d3d983083c1317925aba1f67c8d5d3c944525ca) - Exit fullscreen mode when `gr.Image` value is cleared.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.17
+- @gradio/atoms@0.16.5
+- @gradio/client@1.17.1
+- @gradio/icons@0.13.0
+- @gradio/upload@0.16.15
+
+## 0.22.16
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.16
+- @gradio/atoms@0.16.4
+- @gradio/client@1.17.0
+- @gradio/upload@0.16.14
+
 ## 0.22.15
 
 ### Dependency updates
