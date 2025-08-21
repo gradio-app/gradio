@@ -8,8 +8,7 @@ export type Datatype =
 	| "date"
 	| "markdown"
 	| "html"
-	| "image"
-	| "auto";
+	| "image";
 
 export type Metadata = {
 	[key: string]: string[][] | null;
