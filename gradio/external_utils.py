@@ -140,7 +140,7 @@ def conversational_wrapper(client: InferenceClient):
         try:
             out = ""
             for chunk in client.chat_completion(messages=history, stream=True):
-                out += chunk.choices[0].delta.content or ""
+                out += chunk.choices[0].delta.content or "" if chunk.choices else ""
                 yield out
         except Exception as e:
             handle_hf_error(e)
