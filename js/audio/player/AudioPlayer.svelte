@@ -36,6 +36,7 @@
 	let playing = false;
 
 	let subtitleContainer: HTMLDivElement;
+	let audio_player: HTMLAudioElement;
 
 	let timeRef: HTMLTimeElement;
 	let durationRef: HTMLTimeElement;
@@ -153,6 +154,8 @@
 			if (!resolved_src || value?.is_stream) return;
 			if (waveform_options.show_recording_waveform) {
 				waveform?.load(resolved_src);
+			} else if (audio_player) {
+				audio_player.src = resolved_src;
 			}
 		});
 	}
@@ -178,8 +181,10 @@
 				lowLatencyMode: true
 			});
 			hls.loadSource(value.url);
-
-			hls.on(Hls.Events.MANIFEST_PARSED, function () {});
+			hls.attachMedia(audio_player);
+			hls.on(Hls.Events.MANIFEST_PARSED, function () {
+				if (waveform_settings.autoplay) audio_player.play();
+			});
 			hls.on(Hls.Events.ERROR, function (event, data) {
 				if (data.fatal) {
 					switch (data.type) {
@@ -197,8 +202,14 @@
 			});
 			stream_active = true;
 		} else if (!stream_active) {
+			audio_player.src = value.url;
+			if (waveform_settings.autoplay) audio_player.play();
 			stream_active = true;
 		}
+	}
+
+	$: if (audio_player && value?.is_stream) {
+		load_stream(value);
 	}
 
 	onMount(() => {
@@ -351,6 +362,11 @@
 			{editable}
 			show_subtitles={subtitles !== null}
 		/>
+		<audio
+			bind:this={audio_player}
+			preload="metadata"
+			style="display: none;"
+		></audio>
 	</div>
 {/if}
 

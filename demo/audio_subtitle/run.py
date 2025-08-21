@@ -10,7 +10,7 @@ def audio_demo(audio, subtitle=None):
     if subtitle is None:
         return audio
     if subtitle is not None:
-    return gr.Audio(label="Out", value=audio, subtitles=subtitle.name)
+        return gr.Audio(label="Out", value=audio, subtitles=subtitle.name)
 
 demo = gr.Interface(
     fn=audio_demo,
