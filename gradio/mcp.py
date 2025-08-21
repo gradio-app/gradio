@@ -845,6 +845,7 @@ class GradioMCPServer:
                 "description": description,
                 "inputSchema": schema,
                 "meta": meta,
+                "endpoint_name": block_fn.api_name,
             }
             schemas.append(info)
 

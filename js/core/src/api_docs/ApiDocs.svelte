@@ -99,6 +99,7 @@
 	};
 
 	let js_info: Record<string, any>;
+	let analytics: Record<string, any>;
 
 	get_info().then((data) => {
 		info = data;
@@ -106,6 +107,19 @@
 
 	get_js_info().then((js_api_info) => {
 		js_info = js_api_info;
+	});
+
+	async function get_summary(): Promise<{
+		functions: any;
+	}> {
+		let response = await fetch(root.replace(/\/$/, "") + "/monitoring/summary");
+		let data = await response.json();
+		return data;
+	}
+
+	get_summary().then((summary) => {
+		console.log("Analytics summary:", summary);
+		analytics = summary.functions;
 	});
 
 	const dispatch = createEventDispatcher();
@@ -149,6 +163,7 @@
 			mcp_type: "tool" | "resource" | "prompt";
 			file_data_present: boolean;
 		};
+		endpoint_name: string;
 	}
 
 	let tools: Tool[] = [];
@@ -192,7 +207,8 @@
 				description: tool.description || "",
 				parameters: tool.inputSchema?.properties || {},
 				meta: tool.meta,
-				expanded: false
+				expanded: false,
+				endpoint_name: tool.endpoint_name
 			}));
 			selected_tools = new Set(tools.map((tool) => tool.name));
 			headers = schema.map((tool: any) => tool.meta?.headers || []).flat();
@@ -385,6 +401,7 @@
 								{mcp_json_stdio}
 								{file_data_present}
 								{mcp_docs}
+								{analytics}
 							/>
 						{:else}
 							1. Confirm that you have cURL installed on your system.

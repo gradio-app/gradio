@@ -2,6 +2,11 @@
 	import { Block } from "@gradio/atoms";
 	import CopyButton from "./CopyButton.svelte";
 
+	function formatLatency(val: number) {
+		if (val < 1) return `${Math.round(val * 1000)} ms`;
+		return `${val.toFixed(2)} s`;
+	}
+
 	export let mcp_server_active: boolean;
 	export let mcp_server_url: string;
 	export let mcp_server_url_streamable: string;
@@ -12,6 +17,9 @@
 	export let mcp_json_stdio: any;
 	export let file_data_present: boolean;
 	export let mcp_docs: string;
+	export let analytics: Record<string, any>;
+
+	$: console.log("analytics:", analytics);
 
 	interface ToolParameter {
 		title?: string;
@@ -30,6 +38,7 @@
 			mcp_type: "tool" | "resource" | "prompt";
 			file_data_present: boolean;
 		};
+		endpoint_name: string;
 	}
 
 	type Transport = "streamable_http" | "sse" | "stdio";
@@ -106,6 +115,8 @@
 		mcp_json_stdio,
 		include_file_upload
 	);
+
+	$: console.log("tools", tools);
 </script>
 
 {#if mcp_server_active}
@@ -199,17 +210,47 @@
 						class="tool-header"
 						on:click={() => (tool.expanded = !tool.expanded)}
 					>
-						<span
-							><span class="tool-name"
-								>{tool_type_emojis[tool.meta.mcp_type]} {tool.name}</span
-							>
+						<span>
+							<span class="tool-name">
+								{tool_type_emojis[tool.meta.mcp_type]}
+								{tool.name}
+							</span>
 							&nbsp;
-							<span class="tool-description"
-								>{tool.description
+							<span class="tool-description">
+								{tool.description
 									? tool.description
-									: "⚠︎ No description provided in function docstring"}</span
-							></span
-						>
+									: "⚠︎ No description provided in function docstring"}
+							</span>
+							{#if analytics[tool.endpoint_name]}
+								<span
+									class="tool-analytics"
+									style="color: var(--body-text-color-subdued); margin-left: 1em;"
+								>
+									Success: {Math.round(
+										analytics[tool.endpoint_name].success_rate * 100
+									)}% &nbsp;|&nbsp; Total: {analytics[tool.endpoint_name]
+										.total_requests}
+									&nbsp;|&nbsp; Latency (p50/p90/p99):
+									{formatLatency(
+										analytics[tool.endpoint_name].process_time_percentiles[
+											"50th"
+										]
+									)}
+									/
+									{formatLatency(
+										analytics[tool.endpoint_name].process_time_percentiles[
+											"90th"
+										]
+									)}
+									/
+									{formatLatency(
+										analytics[tool.endpoint_name].process_time_percentiles[
+											"99th"
+										]
+									)}
+								</span>
+							{/if}
+						</span>
 						<span class="tool-arrow">{tool.expanded ? "▼" : "▶"}</span>
 					</button>
 				</div>
@@ -333,6 +374,10 @@
 {/if}
 
 <style>
+	.tool-analytics {
+		font-size: 0.95em;
+		color: var(--body-text-color-subdued);
+	}
 	.transport-selection {
 		margin-bottom: var(--size-4);
 	}
