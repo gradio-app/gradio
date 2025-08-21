@@ -57,14 +57,14 @@
 		element.classList.add("draggable-item");
 		element.setAttribute("data-index", index.toString());
 		element.style.position = "relative";
-		
+
 		const handle = document.createElement("div");
 		handle.className = "drag-handle";
 		handle.setAttribute("draggable", "true");
 		handle.setAttribute("aria-grabbed", "false");
 		handle.setAttribute("data-index", index.toString());
 		handle.innerHTML = "⋮⋮";
-		
+
 		element.appendChild(handle);
 		add_drag_listeners(handle);
 		add_drop_listeners(element);
@@ -73,8 +73,8 @@
 	function setup_drag_and_drop(): void {
 		if (!container_el) return;
 
-		items.forEach(item => {
-			const handle = item.querySelector('.drag-handle');
+		items.forEach((item) => {
+			const handle = item.querySelector(".drag-handle");
 			if (handle) {
 				remove_drag_listeners(handle as HTMLElement);
 				handle.remove();
@@ -232,7 +232,9 @@
 			placeholder.remove();
 
 			dragged_el?.classList.remove("dragging");
-			const draggedHandle = dragged_el?.querySelector('.drag-handle') as HTMLElement;
+			const draggedHandle = dragged_el?.querySelector(
+				".drag-handle"
+			) as HTMLElement;
 			if (draggedHandle) {
 				draggedHandle.setAttribute("aria-grabbed", "false");
 			}
@@ -258,8 +260,8 @@
 
 		return () => {
 			observer.disconnect();
-			items.forEach(item => {
-				const handle = item.querySelector('.drag-handle');
+			items.forEach((item) => {
+				const handle = item.querySelector(".drag-handle");
 				if (handle) {
 					remove_drag_listeners(handle as HTMLElement);
 				}
@@ -339,7 +341,11 @@
 		left: 4px;
 		width: 20px;
 		height: 20px;
-		background: rgba(0, 0, 0, 0.1);
+		min-width: 20px;
+		max-width: 20px;
+		min-height: 20px;
+		max-height: 20px;
+		background: var(--background-fill-secondary);
 		border: 1px solid rgba(0, 0, 0, 0.2);
 		border-radius: 4px;
 		cursor: grab;
@@ -347,11 +353,12 @@
 		align-items: center;
 		justify-content: center;
 		font-size: 10px;
-		color: rgba(0, 0, 0, 0.6);
+		color: var(--body-text-color-subdued);
 		opacity: 0;
 		transition: opacity 0.2s ease;
-		z-index: 10;
+		z-index: 100;
 		user-select: none;
+		flex-shrink: 0;
 	}
 
 	.draggable > :global(.draggable-item:hover .drag-handle) {
@@ -359,13 +366,13 @@
 	}
 
 	.draggable > :global(.draggable-item .drag-handle:hover) {
-		background: rgba(0, 0, 0, 0.15);
+		background: var(--background-fill-secondary-dark);
 		border-color: rgba(0, 0, 0, 0.3);
 	}
 
 	.draggable > :global(.draggable-item .drag-handle:active) {
 		cursor: grabbing;
-		background: rgba(0, 0, 0, 0.2);
+		background: var(--background-fill-secondary-dark);
 	}
 
 	.horizontal > :global(.draggable-item),
@@ -379,5 +386,4 @@
 	.vertical > :global(.form > .draggable-item) {
 		width: var(--size-full);
 	}
-
 </style>
