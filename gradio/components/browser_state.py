@@ -75,5 +75,5 @@ class BrowserState(Component):
         return "test"
 
     def breaks_grouping(self) -> bool:
-        """State components should not break wrapper grouping chains."""
+        """BrowserState components should not break wrapper grouping chains."""
         return False
