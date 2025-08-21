@@ -146,10 +146,10 @@
 		/* Dataframe-scoped defaults (only used as fallbacks) */
 		--df-font-family: var(
 			--gr-df-font-family,
-			"Inter",
-			"Segoe UI",
-			"Roboto",
-			"Helvetica Neue",
+			"IBM Plex Mono",
+			ui-monospace,
+			Consolas,
+			monospace
 		);
 		--df-table-radius: var(--df-radius-sm, 4px);
 		--df-border-color-primary: var(--df-neutral-200, #e4e4e7);
@@ -416,7 +416,7 @@
 		--radius-3xl: var(--df-radius-3xl, 22px);
 		--radius-full: var(--df-radius-full, 9999px);
 
-		--font: var(--df-font-family,);
+		--font-mono: var(--df-font-family,);
 
 		--input-background-fill: var(
 			--gr-df-input-background-fill,
