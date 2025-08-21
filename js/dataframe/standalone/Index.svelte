@@ -81,6 +81,9 @@
 <div class="gradio-dataframe-standalone">
 	<Table
 		values={value.data}
+		headers={value.headers}
+		display_value={value?.metadata?.display_value}
+		styling={value?.metadata?.styling}
 		{datatype}
 		{editable}
 		{show_row_numbers}
@@ -115,6 +118,7 @@
 
 <style>
 	.gradio-dataframe-standalone {
+		--gr-df-font-family: unset;
 		--gr-df-table-bg-even: unset;
 		--gr-df-table-bg-odd: unset;
 		--gr-df-table-border: unset;
@@ -140,6 +144,13 @@
 		--gr-df-checkbox-border-radius: unset;
 
 		/* Dataframe-scoped defaults (only used as fallbacks) */
+		--df-font-family: var(
+			--gr-df-font-family,
+			"Inter",
+			"Segoe UI",
+			"Roboto",
+			"Helvetica Neue",
+		);
 		--df-table-radius: var(--df-radius-sm, 4px);
 		--df-border-color-primary: var(--df-neutral-200, #e4e4e7);
 		--df-background-fill-primary: #ffffff;
@@ -404,6 +415,8 @@
 		--radius-2xl: var(--df-radius-2xl, 16px);
 		--radius-3xl: var(--df-radius-3xl, 22px);
 		--radius-full: var(--df-radius-full, 9999px);
+
+		--font: var(--df-font-family,);
 
 		--input-background-fill: var(
 			--gr-df-input-background-fill,
