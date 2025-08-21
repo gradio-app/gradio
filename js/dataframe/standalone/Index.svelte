@@ -281,7 +281,7 @@
 			--df-background-fill-primary,
 			var(--background-fill-primary, #ffffff)
 		);
-		--df-body-text-color: var(--df-neutral-800, #1f2937);
+		--df-body-text-color: var(--gr-df-table-text, --df-neutral-800);
 		--df-body-text-size: var(--df-text-md, 14px);
 		--df-body-text-weight: 400;
 
@@ -352,19 +352,7 @@
 			var(--shadow-inset, rgba(0, 0, 0, 0.05) 0px 2px 4px 0px inset);
 
 		--table-radius: var(--gr-df-table-radius, var(--df-table-radius, 4px));
-		--header-background: var(
-			--gr-df-header-bg,
-			var(--df-background-fill-secondary, #f9fafb)
-		);
-		--header-text-color: var(
-			--gr-df-header-text,
-			var(--df-table-text-color, #111827)
-		);
 		--table-row-hover: var(--gr-df-table-row-hover, var(--color-accent-soft));
-		--selected-cell-background: var(
-			--gr-df-selected-cell-bg,
-			var(--color-accent-soft)
-		);
 		--cell-padding: var(--gr-df-cell-padding, var(--size-2));
 		--df-font-size: var(--gr-df-font-size, var(--text-md));
 		--border-color-primary: var(--df-border-color-primary, #e5e7eb);
@@ -549,11 +537,6 @@
 		--table-border-color: var(
 			--gr-df-table-border,
 			var(--border-color-primary, #d1d5db)
-		);
-
-		--table-text-color: var(
-			--gr-df-table-text,
-			var(--body-text-color, #111827)
 		);
 	}
 

@@ -110,9 +110,6 @@ The standalone package exposes a small, intuitive set of public CSS variables yo
 - `--gr-df-table-text` — table text color
 - `--gr-df-accent` — primary accent color
 - `--gr-df-accent-soft` — soft/pale accent color
-- `--gr-df-header-bg` — header row background color
-- `--gr-df-header-text` — header row text color
-- `--gr-df-selected-cell-bg` — selected cell background
 
 **Font Variables**
 - `--gr-df-font-size` — table body font-size
