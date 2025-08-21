@@ -106,6 +106,7 @@ The standalone package exposes a small, intuitive set of public CSS variables yo
 **Color Variables**
 - `--gr-df-table-bg-even` — background for even rows
 - `--gr-df-table-bg-odd` — background for odd rows
+- `--gr-df-copied-cell-color` - background for copied cells
 - `--gr-df-table-border` — table border color
 - `--gr-df-table-text` — table text color
 - `--gr-df-accent` — primary accent color
@@ -115,9 +116,6 @@ The standalone package exposes a small, intuitive set of public CSS variables yo
 - `--gr-df-font-size` — table body font-size
 - `--gr-df-font-mono` — monospace font family
 - `--gr-df-font-sans` — sans serif font family
-
-**Spacing Variables**
-- `--gr-df-cell-padding` — cell padding (shorthand, maps to internal spacing)
 
 **Border/Radius Variables**
 - `--gr-df-table-radius` — table corner radius

@@ -151,6 +151,7 @@
 		--gr-df-input-placeholder-color: unset;
 		--gr-df-input-radius: unset;
 		--gr-df-input-text-size: unset;
+		--gr-df-copied-cell-color: unset;
 
 		--gr-df-checkbox-border-color: unset;
 		--gr-df-checkbox-background-color: unset;
@@ -174,7 +175,7 @@
 			sans-serif
 		);
 		--df-table-radius: var(--df-radius-sm, 4px);
-		--df-border-color-primary: var(--df-neutral-200, #e4e4e7);
+		--df-border-color-primary: var(--gr-df-table-border, var(--df-neutral-200));
 		--df-background-fill-primary: #ffffff;
 		--df-background-fill-secondary: #f8fafc;
 		--df-color-accent: #7c3aed;
@@ -290,8 +291,6 @@
 		--df-background-fill-primary: white;
 		--df-background-fill-secondary: var(--df-neutral-50, #f9fafb);
 		--df-border-color-accent: var(--df-primary-300, #fdba74);
-		--df-border-color-primary: var(--df-neutral-200, #e5e7eb);
-
 		--df-body-text-color-subdued: var(--df-neutral-400, #9ca3af);
 		--df-table-text-color: var(--df-body-text-color, #111827);
 		--df-shadow-drop: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
@@ -355,7 +354,6 @@
 		--table-row-hover: var(--gr-df-table-row-hover, var(--color-accent-soft));
 		--cell-padding: var(--gr-df-cell-padding, var(--size-2));
 		--df-font-size: var(--gr-df-font-size, var(--text-md));
-		--border-color-primary: var(--df-border-color-primary, #e5e7eb);
 		--background-fill-primary: var(--df-background-fill-primary, #ffffff);
 		--background-fill-secondary: var(--df-background-fill-secondary, #f8fafc);
 		--color-accent: var(--gr-df-accent, var(--df-color-accent, #7c3aed));
@@ -363,7 +361,10 @@
 			--gr-df-accent-soft,
 			var(--df-color-accent-soft, #f3e8ff)
 		);
-		--color-accent-copied: var(--df-color-accent-copied, #faf5ff);
+		--color-accent-copied: var(
+			--gr-df-copied-cell-color,
+			var(--color-accent-soft)
+		);
 		--body-text-color: var(--df-body-text-color, #111827);
 		--block-background-fill: var(
 			--df-block-background-fill,
@@ -378,6 +379,7 @@
 			--gr-df-table-bg-odd,
 			var(--df-table-odd-background-fill, #f9fafb)
 		);
+		--border-color-primary: var(--df-border-color-primary, #e5e7eb);
 		--radius-sm: var(--df-radius-sm, 4px);
 		--size-1: var(--df-size-1, 4px);
 		--size-2: var(--df-size-2, 8px);
@@ -534,10 +536,6 @@
 			0 1px 2px -1px rgb(0 0 0 / 0.1);
 		--shadow-inset: rgba(0, 0, 0, 0.05) 0px 2px 4px 0px inset;
 		--shadow-spread: 3px;
-		--table-border-color: var(
-			--gr-df-table-border,
-			var(--border-color-primary, #d1d5db)
-		);
 	}
 
 	.gradio-dataframe-standalone.fullscreen {
@@ -549,6 +547,7 @@
 		z-index: 1000;
 		overflow: auto;
 		border-radius: 0;
+		background-color: var(--block-background-fill);
 	}
 
 	:global(.gradio-container),
