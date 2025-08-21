@@ -22,6 +22,14 @@
 	function setup_drag_and_drop(): void {
 		if (!container_el) return;
 
+		items.forEach((item) => {
+			item.removeEventListener("dragstart", handle_drag_start);
+			item.removeEventListener("dragend", handle_drag_end);
+			item.removeEventListener("dragover", handle_drag_over);
+			item.removeEventListener("drop", handle_drop);
+			item.removeEventListener("dragenter", handle_drag_enter);
+		});
+
 		items = [];
 
 		const children = Array.from(container_el.children) as HTMLElement[];
@@ -29,6 +37,7 @@
 			if (child.classList.contains("status-tracker")) return;
 
 			items.push(child);
+			child.classList.add("draggable-item");
 			child.setAttribute("draggable", "true");
 			child.setAttribute("data-index", index.toString());
 			child.setAttribute("aria-grabbed", "false");
@@ -219,42 +228,42 @@
 		display: none;
 	}
 
-	.draggable > :global(*) {
+	.draggable > :global(.draggable-item) {
 		transition: transform 0.2s ease;
 	}
 
-	.draggable > :global(.drag-over) {
+	.draggable > :global(.draggable-item.drag-over) {
 		transform: scale(0.98);
 		opacity: 0.8;
 	}
 
-	.draggable > :global(*:hover) {
+	.draggable > :global(.draggable-item:hover) {
 		cursor: grab;
 	}
 
-	.draggable > :global(*:active) {
+	.draggable > :global(.draggable-item:active) {
 		cursor: grabbing;
 	}
 
-	.draggable > :global(.dragging) {
+	.draggable > :global(.draggable-item.dragging) {
 		opacity: 0.5;
 		transform: scale(1.02);
 		z-index: 1001;
 	}
 
-	.draggable > :global(.reordering) {
+	.draggable > :global(.draggable-item.reordering) {
 		transition: all 0.3s ease;
 	}
 
-	.horizontal > :global(*),
-	.horizontal > :global(.form > *) {
+	.horizontal > :global(.draggable-item),
+	.horizontal > :global(.form > .draggable-item) {
 		flex: 1 1 0%;
 		flex-wrap: wrap;
 		min-width: min(160px, 100%);
 	}
 
-	.vertical > :global(*),
-	.vertical > :global(.form > *) {
+	.vertical > :global(.draggable-item),
+	.vertical > :global(.form > .draggable-item) {
 		width: var(--size-full);
 	}
 
