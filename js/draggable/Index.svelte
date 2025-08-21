@@ -313,7 +313,9 @@
 
 	.draggable > :global(.draggable-item),
 	.draggable > :global(.form > .draggable-item) {
-		transition: transform 0.2s ease, border 0.2s ease;
+		transition:
+			transform 0.2s ease,
+			border 0.2s ease;
 	}
 
 	.draggable > :global(.draggable-item.drop-target),
