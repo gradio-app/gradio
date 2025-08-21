@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount, tick, createEventDispatcher } from "svelte";
-	import { _ } from "svelte-i18n";
 
 	export let items: any[][] = [];
 
