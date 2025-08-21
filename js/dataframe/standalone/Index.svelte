@@ -116,7 +116,10 @@
 		row_count={resolved_row_count}
 		{root}
 		i18n={i18n_fn}
-		on:change
+		on:change={(e) => {
+			value.data = e.detail.data;
+			value.headers = e.detail.headers;
+		}}
 		on:blur
 		on:keydown
 		on:input
