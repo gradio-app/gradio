@@ -154,22 +154,22 @@
 
 		if (!dragged_el || !container_el) return;
 
-		const draggedParent = dragged_el.parentElement;
-		const targetParent = target.parentElement;
+		const dragged_parent = dragged_el.parentElement;
+		const target_parent = target.parentElement;
 
-		const isDraggedInForm =
-			draggedParent?.classList.contains("form") &&
-			draggedParent.parentElement === container_el;
-		const isTargetInForm =
-			targetParent?.classList.contains("form") &&
-			targetParent.parentElement === container_el;
-		const isDraggedDirect = draggedParent === container_el;
-		const isTargetDirect = targetParent === container_el;
+		const is_dragged_in_form =
+			dragged_parent?.classList.contains("form") &&
+			dragged_parent.parentElement === container_el;
+		const is_target_in_form =
+			target_parent?.classList.contains("form") &&
+			target_parent.parentElement === container_el;
+		const is_dragged_direct = dragged_parent === container_el;
+		const is_target_direct = target_parent === container_el;
 
 		if (
 			!(
-				(isDraggedInForm || isDraggedDirect) &&
-				(isTargetInForm || isTargetDirect)
+				(is_dragged_in_form || is_dragged_direct) &&
+				(is_target_in_form || is_target_direct)
 			)
 		) {
 			return;
@@ -200,22 +200,22 @@
 		}
 
 		if (dragged_el && dragged_el !== target && container_el) {
-			const draggedParent = dragged_el.parentElement;
-			const targetParent = target.parentElement;
+			const dragged_parent = dragged_el.parentElement;
+			const target_parent = target.parentElement;
 
-			const isDraggedInForm =
-				draggedParent?.classList.contains("form") &&
-				draggedParent.parentElement === container_el;
-			const isTargetInForm =
-				targetParent?.classList.contains("form") &&
-				targetParent.parentElement === container_el;
-			const isDraggedDirect = draggedParent === container_el;
-			const isTargetDirect = targetParent === container_el;
+			const is_dragged_in_form =
+				dragged_parent?.classList.contains("form") &&
+				dragged_parent.parentElement === container_el;
+			const is_target_in_form =
+				target_parent?.classList.contains("form") &&
+				target_parent.parentElement === container_el;
+			const is_dragged_direct = dragged_parent === container_el;
+			const is_target_direct = target_parent === container_el;
 
 			if (
 				!(
-					(isDraggedInForm || isDraggedDirect) &&
-					(isTargetInForm || isTargetDirect)
+					(is_dragged_in_form || is_dragged_direct) &&
+					(is_target_in_form || is_target_direct)
 				)
 			) {
 				return false;
@@ -224,19 +224,19 @@
 			const placeholder = document.createElement("div");
 			placeholder.style.display = "none";
 
-			draggedParent!.insertBefore(placeholder, dragged_el);
+			dragged_parent!.insertBefore(placeholder, dragged_el);
 
-			targetParent!.insertBefore(dragged_el, target);
-			draggedParent!.insertBefore(target, placeholder);
+			target_parent!.insertBefore(dragged_el, target);
+			dragged_parent!.insertBefore(target, placeholder);
 
 			placeholder.remove();
 
 			dragged_el?.classList.remove("dragging");
-			const draggedHandle = dragged_el?.querySelector(
+			const dragged_handle = dragged_el?.querySelector(
 				".drag-handle"
 			) as HTMLElement;
-			if (draggedHandle) {
-				draggedHandle.setAttribute("aria-grabbed", "false");
+			if (dragged_handle) {
+				dragged_handle.setAttribute("aria-grabbed", "false");
 			}
 
 			await tick();
