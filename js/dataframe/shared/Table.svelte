@@ -836,14 +836,9 @@
 		class:no-wrap={!wrap}
 		style="height:{table_height}px;"
 		class:menu-open={active_cell_menu || active_header_menu}
-		on:keydown={(e) => handle_keydown(e, df_ctx)}
-		on:mousemove={handle_mouse_move}
-		on:mouseup={handle_mouse_up}
-		on:mouseleave={handle_mouse_up}
-		role="grid"
-		tabindex="0"
+		role="group"
 	>
-		<table bind:this={table} aria-hidden="true">
+		<table bind:this={table} aria-hidden="true" role="presentation">
 			{#if label && label.length !== 0}
 				<caption class="sr-only">{label}</caption>
 			{/if}
@@ -949,6 +944,11 @@
 					bind:viewport
 					bind:show_scroll_button
 					on:scroll_top={(_) => {}}
+					aria_label={label}
+					on_keydown={(e) => handle_keydown(e, df_ctx)}
+					on_mousemove={handle_mouse_move}
+					on_mouseup={handle_mouse_up}
+					on_mouseleave={handle_mouse_up}
 				>
 					{#if label && label.length !== 0}
 						<caption class="sr-only">{label}</caption>

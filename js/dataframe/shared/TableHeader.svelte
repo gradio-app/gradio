@@ -85,6 +85,7 @@
 		event.stopPropagation();
 	}}
 	title={value}
+	role="columnheader"
 >
 	<div class="cell-wrap">
 		<div class="header-content">

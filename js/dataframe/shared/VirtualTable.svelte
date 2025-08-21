@@ -13,9 +13,15 @@
 	export let disable_scroll = false;
 	export let show_scroll_button = false;
 	export let viewport: HTMLTableElement;
+	export let aria_label: string | null = null;
+	export let on_keydown: ((e: KeyboardEvent) => void) | null = null;
+	export let on_mousemove: ((e: MouseEvent) => void) | null = null;
+	export let on_mouseup: ((e: MouseEvent) => void) | null = null;
+	export let on_mouseleave: ((e: MouseEvent) => void) | null = null;
 
 	const dispatch = createEventDispatcher<{
 		scroll_top: number;
+		mouse_leave: void;
 	}>();
 
 	let height = "100%";
@@ -211,6 +217,16 @@
 			bind:contentRect={viewport_box}
 			on:scroll={refresh_height_map}
 			style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px; --max-height: {max_height}px"
+			role="grid"
+			aria-label={aria_label || undefined}
+			tabindex="0"
+			on:keydown={(e) => on_keydown && on_keydown(e)}
+			on:mousemove={(e) => on_mousemove && on_mousemove(e)}
+			on:mouseup={(e) => on_mouseup && on_mouseup(e)}
+			on:mouseleave={(e) => {
+				on_mouseleave && on_mouseleave(e);
+				dispatch("mouse_leave");
+			}}
 		>
 			<thead class="thead" bind:offsetHeight={head_height}>
 				<slot name="thead" />
