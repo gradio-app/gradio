@@ -411,8 +411,8 @@ importers:
         specifier: ^8.3.6
         version: 8.6.14(bufferutil@4.0.7)(prettier@3.2.5)
       wikidata-lang:
-        specifier: ^4.1.2
-        version: 4.1.3
+        specifier: 4.1.2
+        version: 4.1.2
 
   client/js:
     dependencies:
@@ -9485,8 +9485,8 @@ packages:
   wide-align@1.1.5:
     resolution: {integrity: sha512-eDMORYaPNZ4sQIuuYPDHdQvf4gyCF9rEEV/yPxGfwPkRodwEgiMUUXTx/dex+Me0wxx53S+NgUHaP7y3MGlDmg==}
 
-  wikidata-lang@4.1.3:
-    resolution: {integrity: sha512-UBtTGJ6FBoWqBCL+4LSR8Un+xywlVvVVKtmLXCnHjZ78IzySBJ7rnMVu2i4iZM5hPXH0dThfXIxYwmvn6OtxSg==}
+  wikidata-lang@4.1.2:
+    resolution: {integrity: sha512-Nw+loOQQO02cVZQCAFCaE5IWdPakX9zXLr4Pjv0GA81OyI+TPWC6iLy/0cORL6YbYde19MbRVITIHiKRv1HmFA==}
 
   with@7.0.2:
     resolution: {integrity: sha512-RNGKj82nUPg3g5ygxkQl0R937xLyho1J24ItRCBTr/m1YnZkzJy1hUiHUJrc/VlsDQzsCnInEGSg3bci0Lmd4w==}
@@ -16998,7 +16998,7 @@ snapshots:
     dependencies:
       string-width: 4.2.3
 
-  wikidata-lang@4.1.3: {}
+  wikidata-lang@4.1.2: {}
 
   with@7.0.2:
     dependencies:
