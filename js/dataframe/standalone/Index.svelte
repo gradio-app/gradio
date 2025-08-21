@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from "svelte";
 	import Table from "../shared/Table.svelte";
 	import type { Datatype, DataframeValue } from "../shared/utils/utils";
 	import type { I18nFormatter } from "@gradio/utils";
@@ -76,9 +77,19 @@
 	}
 
 	let root = "";
+
+	onMount(() => {
+		const handler = (e: KeyboardEvent): void => {
+			if (e.key === "Escape") {
+				fullscreen = false;
+			}
+		};
+		window.addEventListener("keydown", handler);
+		return () => window.removeEventListener("keydown", handler);
+	});
 </script>
 
-<div class="gradio-dataframe-standalone">
+<div class="gradio-dataframe-standalone" class:fullscreen>
 	<Table
 		values={value.data}
 		headers={value.headers}
@@ -110,7 +121,7 @@
 		on:keydown
 		on:input
 		on:select
-		on:fullscreen
+		on:fullscreen={(e) => (fullscreen = e.detail)}
 		upload={async () => null}
 		stream_handler={() => new EventSource("about:blank")}
 	/>
@@ -415,8 +426,17 @@
 		--radius-2xl: var(--df-radius-2xl, 16px);
 		--radius-3xl: var(--df-radius-3xl, 22px);
 		--radius-full: var(--df-radius-full, 9999px);
-
-		--font-mono: var(--df-font-family,);
+		--font-mono: var(
+			--df-font-family,
+			Inter,
+			system-ui,
+			-apple-system,
+			"Segoe UI",
+			Roboto,
+			"Helvetica Neue",
+			Arial,
+			sans-serif
+		);
 
 		--input-background-fill: var(
 			--gr-df-input-background-fill,
@@ -527,6 +547,17 @@
 			--gr-df-table-text,
 			var(--body-text-color, #111827)
 		);
+	}
+
+	.gradio-dataframe-standalone.fullscreen {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		z-index: 1000;
+		overflow: auto;
+		border-radius: 0;
 	}
 
 	:global(.gradio-container),
