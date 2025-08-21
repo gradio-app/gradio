@@ -17,7 +17,6 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/client": "workspace:^",
-		"@gradio/utils": "workspace:^",
 		"@types/d3-dsv": "^3.0.0",
 		"@types/dompurify": "^3.0.2",
 		"@types/katex": "^0.16.0",

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import type { I18nFormatter } from "@gradio/utils";
+	import type { I18nFormatter } from "../../shared/types";
 	import SortButtonUp from "./SortButtonUp.svelte";
 	import SortButtonDown from "./SortButtonDown.svelte";
 	import { IconButton } from "@gradio/atoms";

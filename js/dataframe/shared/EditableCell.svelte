@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { MarkdownCode } from "@gradio/markdown-code";
-	import type { I18nFormatter } from "@gradio/utils";
+	import type { I18nFormatter } from "../shared/types";
 	import SelectionButtons from "./icons/SelectionButtons.svelte";
 	import BooleanCell from "./BooleanCell.svelte";
 

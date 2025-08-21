@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Table from "../shared/Table.svelte";
 	import type { Datatype, DataframeValue } from "../shared/utils/utils";
-	import type { I18nFormatter } from "@gradio/utils";
+	import type { I18nFormatter } from "../shared/types";
 	import { default_i18n } from "./default_i18n";
 
 	export let i18n: I18nFormatter | undefined = undefined;

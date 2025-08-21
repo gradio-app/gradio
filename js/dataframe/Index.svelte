@@ -6,7 +6,7 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import type { Gradio, SelectData } from "./shared/types";
 	import { Block } from "@gradio/atoms";
 	import Table from "./shared/Table.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
