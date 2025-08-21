@@ -53,7 +53,6 @@ test("gradio dev mode respects allowed paths after reload", async ({
 				process.cwd()
 			);
 		_process = server_process;
-		console.log("Connected to port", port);
 		const demo = `
 import gradio as gr
         
@@ -76,8 +75,6 @@ if __name__ == "__main__":
 				PYTHONUNBUFFERED: "true"
 			}
 		});
-
-		console.log("PWD", process.cwd());
 
 		await expect(async () => {
 			const blockLabels = await page.locator('[data-testid="block-label"]');
