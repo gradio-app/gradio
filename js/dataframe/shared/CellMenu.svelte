@@ -2,7 +2,7 @@
 	import { onMount } from "svelte";
 	import CellMenuIcons from "./CellMenuIcons.svelte";
 	import FilterMenu from "./FilterMenu.svelte";
-	import type { I18nFormatter } from "../shared/types";
+	import type { I18nFormatter } from "@gradio/utils";
 	import type {
 		SortDirection,
 		FilterDatatype
