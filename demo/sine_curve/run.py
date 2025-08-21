@@ -1,6 +1,6 @@
 import math
 import gradio as gr
-import plotly.express as px
+import plotly.express as px  # type: ignore
 import numpy as np
 
 plot_end = 2 * math.pi

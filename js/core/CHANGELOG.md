@@ -1,5 +1,64 @@
 # @gradio/core
 
+## 0.27.0
+
+### Features
+
+- [#11723](https://github.com/gradio-app/gradio/pull/11723) [`379f0c1`](https://github.com/gradio-app/gradio/commit/379f0c151943b5f269910eba4a4c7abc6145a11c) - Support MCP resources and prompts.  Thanks @abidlabs!
+
+### Fixes
+
+- [#11725](https://github.com/gradio-app/gradio/pull/11725) [`080f888`](https://github.com/gradio-app/gradio/commit/080f888e3b173b5b2deef5eaf9754f2a63adf1aa) - Ensure it is possible to use `@render` to generate Tabs.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.14.15
+- @gradio/statustracker@0.10.17
+- @gradio/paramviewer@0.7.15
+- @gradio/atoms@0.16.5
+- @gradio/column@0.2.1
+- @gradio/client@1.17.1
+- @gradio/icons@0.13.0
+- @gradio/upload@0.16.15
+- @gradio/image@0.22.17
+- @gradio/dropdown@0.10.2
+- @gradio/textbox@0.10.20
+- @gradio/button@0.5.11
+- @gradio/gallery@0.15.31
+- @gradio/plot@0.9.22
+- @gradio/checkbox@0.4.28
+- @gradio/file@0.12.28
+- @gradio/video@0.15.0
+
+## 0.26.0
+
+### Features
+
+- [#11691](https://github.com/gradio-app/gradio/pull/11691) [`2605a99`](https://github.com/gradio-app/gradio/commit/2605a99bf29bebbbb0a97cc8e0015b5bf8d8e79b) - Add .failure() event listener for error handling.  Thanks @elanehan!
+
+### Fixes
+
+- [#11698](https://github.com/gradio-app/gradio/pull/11698) [`fc41f09`](https://github.com/gradio-app/gradio/commit/fc41f0950b7c427abcebdc9a113148a219d8f3f6) - Fix visibility changes in gr.render.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.14.14
+- @gradio/paramviewer@0.7.14
+- @gradio/statustracker@0.10.16
+- @gradio/video@0.14.24
+- @gradio/atoms@0.16.4
+- @gradio/column@0.2.1
+- @gradio/client@1.17.0
+- @gradio/upload@0.16.14
+- @gradio/button@0.5.10
+- @gradio/gallery@0.15.30
+- @gradio/plot@0.9.21
+- @gradio/checkbox@0.4.27
+- @gradio/textbox@0.10.19
+- @gradio/dropdown@0.10.1
+- @gradio/file@0.12.27
+- @gradio/image@0.22.16
+
 ## 0.25.0
 
 ### Features

@@ -22,15 +22,24 @@
 	export let show_copy_button = false;
 	export let show_submit_button = true;
 	export let color_map: Record<string, string> | null = null;
-	let checked = false;
+	export let ui_mode: "dialogue" | "text" | "both" = "both";
+	let checked = ui_mode === "text";
 
 	export let server: {
 		format: (body: DialogueLine[]) => Promise<string>;
 		unformat: (body: object) => Promise<DialogueLine[]>;
 	};
 
-	let dialogue_lines: DialogueLine[] =
-		value && typeof value !== "string" ? [...value] : [];
+	let dialogue_lines: DialogueLine[] = [];
+
+	if (value && value.length && typeof value !== "string") {
+		dialogue_lines = [...value];
+	} else if (value && typeof value !== "string") {
+		dialogue_lines = [
+			{ speaker: `${speakers.length ? speakers[0] : ""}`, text: "" }
+		];
+	}
+
 	let dialogue_container_element: HTMLDivElement;
 
 	let showTagMenu = false;
@@ -45,6 +54,9 @@
 	let timer: any;
 	let textbox_value = "";
 	let hoveredSpeaker: string | null = null;
+	let is_unformatting = false;
+	let is_formatting = false;
+	let is_internal_update = false;
 
 	const defaultColorNames = [
 		"red",
@@ -90,22 +102,6 @@
 		value = "";
 	}
 
-	$: if (
-		value &&
-		value.length === 0 &&
-		dialogue_lines.length === 0 &&
-		speakers.length !== 0
-	) {
-		dialogue_lines = [{ speaker: speakers[0], text: "" }];
-		value = [...dialogue_lines];
-		if (typeof value !== "string") {
-			const formatted = value
-				.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
-				.join(" ");
-			textbox_value = formatted;
-		}
-	}
-
 	$: {
 		if (dialogue_lines.length > input_elements.length) {
 			input_elements = [
@@ -133,12 +129,6 @@
 			{ speaker: newSpeaker, text: "" },
 			...dialogue_lines.slice(index + 1)
 		];
-		if (typeof value !== "string") {
-			const formatted = value
-				.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
-				.join(" ");
-			textbox_value = formatted;
-		}
 
 		tick().then(() => {
 			if (input_elements[index + 1]) {
@@ -152,12 +142,6 @@
 			...dialogue_lines.slice(0, index),
 			...dialogue_lines.slice(index + 1)
 		];
-		if (typeof value !== "string") {
-			const formatted = value
-				.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
-				.join(" ");
-			textbox_value = formatted;
-		}
 	}
 
 	function update_line(
@@ -167,12 +151,6 @@
 	): void {
 		dialogue_lines[index][key] = value;
 		dialogue_lines = [...dialogue_lines];
-		if (typeof value !== "string") {
-			const formatted = dialogue_lines
-				.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
-				.join(" ");
-			textbox_value = formatted;
-		}
 	}
 
 	function handle_input(event: Event, index: number): void {
@@ -401,15 +379,8 @@
 
 	function sync_value(dialogueLines: DialogueLine[]): void {
 		if (speakers.length !== 0) {
+			is_internal_update = true;
 			value = [...dialogueLines];
-			if (JSON.stringify(value) !== old_value) {
-				handle_change();
-				old_value = JSON.stringify(value);
-				const formatted = value
-					.map((line: DialogueLine) => `${line.speaker}: ${line.text}`)
-					.join(" ");
-				textbox_value = formatted;
-			}
 		}
 	}
 
@@ -420,17 +391,17 @@
 			dialogue_lines = [];
 		}
 		old_value = JSON.stringify(value);
-		if (value && typeof value !== "string") {
-			dialogue_lines = [...value];
-			value_to_string(value).then((formatted) => {
-				textbox_value = formatted;
-			});
-		} else {
+		if (typeof value === "string") {
 			textbox_value = value;
-			if (!checked && speakers.length > 0 && value) {
-				dialogue_lines = string_to_dialogue_lines(value);
+		} else if (typeof value === "object" && Array.isArray(value)) {
+			dialogue_lines = [...value];
+			if (!is_internal_update || checked) {
+				value_to_string(dialogue_lines).then((result) => {
+					textbox_value = result;
+				});
 			}
 		}
+		is_internal_update = false;
 		handle_change();
 	}
 
@@ -441,45 +412,6 @@
 			return value;
 		}
 		return await server.format(value);
-	}
-
-	function string_to_dialogue_lines(text: string): DialogueLine[] {
-		if (!text.trim()) {
-			return [{ speaker: speakers[0] || "", text: "" }];
-		}
-		const dialogueLines: DialogueLine[] = [];
-		const speakerMatches = [];
-		const speakerRegex = /\b(Speaker\s+\d+):\s*/g;
-		let match;
-
-		while ((match = speakerRegex.exec(text)) !== null) {
-			speakerMatches.push({
-				speaker: match[1].trim(),
-				startIndex: match.index,
-				endIndex: match.index + match[0].length
-			});
-		}
-		if (speakerMatches.length === 0) {
-			dialogueLines.push({ speaker: speakers[0] || "", text: text.trim() });
-		} else {
-			for (let i = 0; i < speakerMatches.length; i++) {
-				const currentMatch = speakerMatches[i];
-				const nextMatch = speakerMatches[i + 1];
-
-				const textStart = currentMatch.endIndex;
-				const textEnd = nextMatch ? nextMatch.startIndex : text.length;
-				const speakerText = text.substring(textStart, textEnd).trim();
-
-				dialogueLines.push({
-					speaker:
-						speakers.find(
-							(s) => s.toLowerCase() === currentMatch.speaker.toLowerCase()
-						) || currentMatch.speaker,
-					text: speakerText
-				});
-			}
-		}
-		return dialogueLines;
 	}
 
 	async function handle_copy(): Promise<void> {
@@ -539,23 +471,49 @@
 		{/if}
 	{/if}
 
-	<!-- svelte-ignore missing-declaration -->
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
-	{#if speakers.length !== 0}
-		<div class="switch-container top-switch">
+	{#if speakers.length !== 0 && ui_mode === "both"}
+		<div
+			class="switch-container top-switch"
+			class:switch-disabled={is_formatting || is_unformatting}
+		>
 			<Switch
 				label="Plain Text"
 				bind:checked
+				disabled={is_formatting || is_unformatting}
 				on:click={async (e) => {
 					if (!e.detail.checked) {
-						value = await server.unformat({ text: textbox_value });
+						is_unformatting = true;
+						try {
+							value = await server.unformat({ text: textbox_value });
+							dialogue_lines = [...value];
+						} finally {
+							is_unformatting = false;
+						}
+					} else {
+						is_formatting = true;
+						try {
+							textbox_value = await value_to_string(dialogue_lines);
+						} finally {
+							is_formatting = false;
+						}
 					}
 				}}
 			/>
 		</div>
 	{/if}
-	{#if !checked}
-		<div class="dialogue-container" bind:this={dialogue_container_element}>
+	{#if !checked && ui_mode !== "text"}
+		<div
+			class="dialogue-container"
+			bind:this={dialogue_container_element}
+			class:loading={is_unformatting}
+		>
+			{#if is_unformatting}
+				<div class="loading-overlay" transition:fade={{ duration: 200 }}>
+					<div class="loading-spinner"></div>
+					<div class="loading-text">Converting to dialogue format...</div>
+				</div>
+			{/if}
 			{#each dialogue_lines as line, i}
 				<div
 					class="dialogue-line"
@@ -672,8 +630,14 @@
 				</div>
 			{/each}
 		</div>
-	{:else}
-		<div class="textarea-container">
+	{:else if checked && ui_mode !== "dialogue"}
+		<div class="textarea-container" class:loading={is_formatting}>
+			{#if is_formatting}
+				<div class="loading-overlay" transition:fade={{ duration: 200 }}>
+					<div class="loading-spinner"></div>
+					<div class="loading-text">Converting to plain text...</div>
+				</div>
+			{/if}
 			<textarea
 				data-testid="textbox"
 				bind:value={textbox_value}
@@ -916,6 +880,12 @@
 	.switch-container {
 		display: flex;
 		justify-content: flex-start;
+		transition: opacity 0.2s ease-in-out;
+	}
+
+	.switch-container.switch-disabled {
+		opacity: 0.6;
+		pointer-events: none;
 	}
 
 	.switch-container.top-switch {
@@ -1006,5 +976,60 @@
 
 	.hidden {
 		display: none;
+	}
+
+	.loading-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: var(--input-background-fill);
+		opacity: 0.95;
+		backdrop-filter: blur(2px);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		z-index: 10;
+		border-radius: var(--input-radius);
+	}
+
+	.loading-spinner {
+		width: 24px;
+		height: 24px;
+		border: 2px solid var(--border-color-primary);
+		border-top: 2px solid var(--color-accent);
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+		margin-bottom: var(--spacing-sm);
+	}
+
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
+	}
+
+	.loading-text {
+		color: var(--body-text-color);
+		font-size: var(--text-sm);
+		font-weight: 500;
+		opacity: 0.8;
+	}
+
+	.dialogue-container.loading,
+	.textarea-container.loading {
+		position: relative;
+		opacity: 0.7;
+		transition: opacity 0.3s ease-in-out;
+	}
+
+	.dialogue-container,
+	.textarea-container {
+		transition: opacity 0.3s ease-in-out;
 	}
 </style>

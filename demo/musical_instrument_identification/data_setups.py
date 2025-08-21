@@ -1,9 +1,9 @@
 # Make function to find classes in target directory
 import os
-import librosa
+import librosa  # type: ignore
 import torch
 import numpy as np
-from torchaudio.transforms import Resample
+from torchaudio.transforms import Resample  # type: ignore
 
 SAMPLE_RATE = 44100
 AUDIO_LEN = 2.90

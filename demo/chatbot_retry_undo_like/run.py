@@ -22,7 +22,7 @@ def respond(
         stream=True,
         model="HuggingFaceH4/zephyr-7b-beta"
     ):
-        response["content"] += message.choices[0].delta.content or ""
+        response["content"] += message.choices[0].delta.content or "" if message.choices else ""
         yield history + [response]
 
 

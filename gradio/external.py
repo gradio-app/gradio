@@ -44,7 +44,7 @@ if TYPE_CHECKING:
 def load(
     name: str,
     src: Callable[[str, str | None], Blocks]
-    | Literal["models", "spaces"]
+    | Literal["models", "spaces", "huggingface"]
     | None = None,
     token: str | None = None,
     hf_token: str | None = None,
@@ -95,11 +95,15 @@ def load(
         token = os.environ.get("HF_TOKEN")
 
     if isinstance(src, Callable):
-        return src(name, token, **kwargs)
+        return src(name, token, **kwargs)  # type: ignore
 
     if not accept_token:
         return load_blocks_from_huggingface(
-            name=name, src=src, hf_token=token, provider=provider, **kwargs
+            name=name,
+            src=src,  # type: ignore
+            hf_token=token,
+            provider=provider,
+            **kwargs,  # type: ignore
         )
     elif isinstance(accept_token, gr.LoginButton):
         with gr.Blocks(fill_height=True) as demo:
@@ -111,7 +115,7 @@ def load(
                 token_value = None if oauth_token is None else oauth_token.token
                 return load_blocks_from_huggingface(
                     name=name,
-                    src=src,
+                    src=src,  # type: ignore
                     hf_token=token_value,
                     provider=provider,
                     **kwargs,
@@ -159,7 +163,7 @@ def load(
             def create(token_value):
                 return load_blocks_from_huggingface(
                     name=name,
-                    src=src,
+                    src=src,  # type: ignore
                     hf_token=token_value,
                     provider=provider,
                     **kwargs,
@@ -185,10 +189,8 @@ def load_blocks_from_huggingface(
         Context.hf_token = hf_token
 
     if src == "spaces":
-        # Spaces can read the token, so we don't want to pass it in unless the user explicitly provides it
-        token = False if hf_token is None else hf_token
         blocks = from_spaces(
-            name, hf_token=token, alias=alias, provider=provider, **kwargs
+            name, hf_token=hf_token, alias=alias, provider=provider, **kwargs
         )
     else:
         blocks = from_model(
@@ -505,13 +507,18 @@ def from_model(
     }
 
     kwargs = dict(interface_info, **kwargs)
-    interface = gr.Interface(**kwargs)
+
+    fn = kwargs.pop("fn", None)
+    inputs = kwargs.pop("inputs", None)
+    outputs = kwargs.pop("outputs", None)
+
+    interface = gr.Interface(fn, inputs, outputs, **kwargs)
     return interface
 
 
 def from_spaces(
     space_name: str,
-    hf_token: str | None | Literal[False],
+    hf_token: str | None,
     alias: str | None,
     provider: PROVIDER_T | None = None,
     **kwargs,
@@ -573,7 +580,7 @@ def from_spaces(
         return from_spaces_blocks(space=space_name, hf_token=hf_token)
 
 
-def from_spaces_blocks(space: str, hf_token: str | None | Literal[False]) -> Blocks:
+def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
     client = Client(
         space,
         hf_token=hf_token,
@@ -608,7 +615,7 @@ def from_spaces_interface(
     model_name: str,
     config: dict,
     alias: str | None,
-    hf_token: str | None | Literal[False],
+    hf_token: str | None,
     iframe_url: str,
     **kwargs,
 ) -> Interface:
@@ -646,7 +653,12 @@ def from_spaces_interface(
 
     kwargs = dict(config, **kwargs)
     kwargs["_api_mode"] = True
-    interface = gr.Interface(**kwargs)
+
+    fn = kwargs.pop("fn", None)
+    inputs = kwargs.pop("inputs", None)
+    outputs = kwargs.pop("outputs", None)
+
+    interface = gr.Interface(fn, inputs, outputs, **kwargs)
     return interface
 
 
@@ -856,7 +868,7 @@ def load_chat(
         )
         response = ""
         for chunk in stream:
-            if chunk.choices[0].delta.content is not None:
+            if chunk.choices and chunk.choices[0].delta.content is not None:
                 response += chunk.choices[0].delta.content
                 yield response
 
