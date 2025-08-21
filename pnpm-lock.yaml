@@ -2548,9 +2548,6 @@ importers:
       '@gradio/theme':
         specifier: workspace:^
         version: link:../theme
-      svelte-i18n:
-        specifier: ^3.6.0
-        version: 3.6.0(svelte@5.38.1)
 
   js/vibeeditor:
     dependencies:
@@ -11161,7 +11158,7 @@ snapshots:
 
   '@rollup/pluginutils@5.0.5(rollup@4.17.2)':
     dependencies:
-      '@types/estree': 1.0.7
+      '@types/estree': 1.0.5
       estree-walker: 2.0.2
       picomatch: 2.3.1
     optionalDependencies:
@@ -16024,16 +16021,6 @@ snapshots:
       intl-messageformat: 9.13.0
       sade: 1.8.1
       svelte: 4.2.15
-      tiny-glob: 0.2.9
-
-  svelte-i18n@3.6.0(svelte@5.38.1):
-    dependencies:
-      cli-color: 2.0.3
-      deepmerge: 4.3.1
-      estree-walker: 2.0.2
-      intl-messageformat: 9.13.0
-      sade: 1.8.1
-      svelte: 5.38.1
       tiny-glob: 0.2.9
 
   svelte-i18n@4.0.1(svelte@4.2.15):
