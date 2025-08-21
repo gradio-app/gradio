@@ -25,10 +25,7 @@ Usage (Svelte/SvelteKit)
       ["Bob", 30, false]
     ],
     headers: ["Name", "Age", "Active"],
-    metadata: null
   };
-
-  const datatype = ["str", "number", "bool"]; // Optional
 
   function handle_change(e: any) {
     console.log("changed", e.detail);
@@ -106,19 +103,27 @@ Custom Styling
 
 The standalone package exposes a small, intuitive set of public CSS variables you should use to theme the Dataframe. These variables are namespaced with `--gr-df-*` and are the recommended way to override the default styling.
 
+**Color Variables**
 - `--gr-df-table-bg-even` — background for even rows
 - `--gr-df-table-bg-odd` — background for odd rows
 - `--gr-df-table-border` — table border color
-- `--gr-df-table-radius` — table corner radius
 - `--gr-df-table-text` — table text color
 - `--gr-df-accent` — primary accent color
 - `--gr-df-accent-soft` — soft/pale accent color
 - `--gr-df-header-bg` — header row background color
 - `--gr-df-header-text` — header row text color
 - `--gr-df-selected-cell-bg` — selected cell background
-- `--gr-df-cell-padding` — cell padding (shorthand, maps to internal spacing)
+
+**Font Variables**
 - `--gr-df-font-size` — table body font-size
-- `--gr-df-font-family` - table body font-family
+- `--gr-df-font-mono` — monospace font family
+- `--gr-df-font-sans` — sans serif font family
+
+**Spacing Variables**
+- `--gr-df-cell-padding` — cell padding (shorthand, maps to internal spacing)
+
+**Border/Radius Variables**
+- `--gr-df-table-radius` — table corner radius
 
 Example:
 

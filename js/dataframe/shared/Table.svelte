@@ -1212,7 +1212,7 @@
 	.header-row .label {
 		flex: 1 1 auto;
 		margin-right: auto;
-		font-family: var(--font-mono);
+		font-family: var(--font-sans);
 	}
 
 	.header-row .label p {

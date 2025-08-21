@@ -132,7 +132,8 @@
 
 <style>
 	.gradio-dataframe-standalone {
-		--gr-df-font-family: unset;
+		--gr-df-font-mono: unset;
+		--gr-df-font-sans: unset;
 		--gr-df-table-bg-even: unset;
 		--gr-df-table-bg-odd: unset;
 		--gr-df-table-border: unset;
@@ -158,12 +159,19 @@
 		--gr-df-checkbox-border-radius: unset;
 
 		/* Dataframe-scoped defaults (only used as fallbacks) */
-		--df-font-family: var(
-			--gr-df-font-family,
+		--df-font-mono: var(
+			--gr-df-font-mono,
 			"IBM Plex Mono",
 			ui-monospace,
 			Consolas,
 			monospace
+		);
+		--df-font-sans: var(
+			--gr-df-font-sans,
+			"Source Sans Pro",
+			ui-sans-serif,
+			system-ui,
+			sans-serif
 		);
 		--df-table-radius: var(--df-radius-sm, 4px);
 		--df-border-color-primary: var(--df-neutral-200, #e4e4e7);
@@ -429,15 +437,12 @@
 		--radius-2xl: var(--df-radius-2xl, 16px);
 		--radius-3xl: var(--df-radius-3xl, 22px);
 		--radius-full: var(--df-radius-full, 9999px);
-		--font-mono: var(
-			--df-font-family,
-			Inter,
+		--font-mono: var(--df-font-mono, "Courier New", Courier, monospace);
+		--font-sans: var(
+			--df-font-sans,
+			"Source Sans Pro",
+			ui-sans-serif,
 			system-ui,
-			-apple-system,
-			"Segoe UI",
-			Roboto,
-			"Helvetica Neue",
-			Arial,
 			sans-serif
 		);
 
