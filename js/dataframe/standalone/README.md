@@ -19,7 +19,7 @@ Usage (Svelte/SvelteKit)
 <script lang="ts">
   import Dataframe from "@gradio/dataframe";
 
-  const value = {
+  let value = {
     data: [
       ["Alice", 25, true],
       ["Bob", 30, false]
@@ -41,7 +41,7 @@ Usage (Svelte/SvelteKit)
 </script>
 
 <Dataframe
-  {value}
+  bind:value
   {datatype}
   show_search="search"
   show_row_numbers={true}
