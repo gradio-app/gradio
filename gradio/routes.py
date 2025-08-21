@@ -310,7 +310,7 @@ class App(FastAPI):
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
-        self.root_path = blocks.root_path or blocks.custom_mount_path or ""
+        self.root_path = blocks.root_path or ""
         self.state_holder.set_blocks(blocks)
 
     def get_blocks(self) -> gradio.Blocks:
@@ -655,7 +655,7 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request,
                 route_path=f"/{page}",
-                root_path=app.root_path,
+                root_path=app.root_path or blocks.custom_mount_path,
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
@@ -870,7 +870,9 @@ class App(FastAPI):
         def get_config(request: fastapi.Request, deep_link: str = ""):
             config = utils.safe_deepcopy(app.get_blocks().config)
             root = route_utils.get_root_url(
-                request=request, route_path="/config", root_path=app.root_path
+                request=request,
+                route_path="/config",
+                root_path=app.root_path or blocks.custom_mount_path,
             )
             config["username"] = get_current_user(request)
             if deep_link:
@@ -2390,6 +2392,7 @@ def mount_gradio_app(
 
     app.router.lifespan_context = new_lifespan  # type: ignore
 
+    print("new", path)
     app.mount(path, gradio_app)
     return app
 
