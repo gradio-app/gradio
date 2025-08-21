@@ -36,7 +36,6 @@
 	let playing = false;
 
 	let subtitleContainer: HTMLDivElement;
-	let audio_player: HTMLAudioElement;
 
 	let timeRef: HTMLTimeElement;
 	let durationRef: HTMLTimeElement;
@@ -45,6 +44,8 @@
 	let trimDuration = 0;
 
 	let show_volume_slider = false;
+	let audio_player: HTMLAudioElement;
+
 	let stream_active = false;
 	let subtitles_toggle = false;
 
@@ -186,15 +187,21 @@
 				if (waveform_settings.autoplay) audio_player.play();
 			});
 			hls.on(Hls.Events.ERROR, function (event, data) {
+				console.error("HLS error:", event, data);
 				if (data.fatal) {
 					switch (data.type) {
 						case Hls.ErrorTypes.NETWORK_ERROR:
+							console.error(
+								"Fatal network error encountered, trying to recover"
+							);
 							hls.startLoad();
 							break;
 						case Hls.ErrorTypes.MEDIA_ERROR:
+							console.error("Fatal media error encountered, trying to recover");
 							hls.recoverMediaError();
 							break;
 						default:
+							console.error("Fatal error, cannot recover");
 							hls.destroy();
 							break;
 					}
@@ -314,6 +321,16 @@
 	}
 </script>
 
+<audio
+	class="standard-player"
+	class:hidden={use_waveform}
+	controls
+	autoplay={waveform_settings.autoplay}
+	on:load
+	bind:this={audio_player}
+	on:ended={() => dispatch("stop")}
+	on:play={() => dispatch("play")}
+/>
 {#if value === null}
 	<Empty size="small">
 		<Music />
@@ -362,10 +379,7 @@
 			{editable}
 			show_subtitles={subtitles !== null}
 		/>
-		<audio
-			bind:this={audio_player}
-			preload="metadata"
-			style="display: none;"
+		<audio bind:this={audio_player} preload="metadata" style="display: none;"
 		></audio>
 	</div>
 {/if}
