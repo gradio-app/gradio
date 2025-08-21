@@ -838,7 +838,6 @@
 		class="table-wrap"
 		class:dragging={is_dragging}
 		class:no-wrap={!wrap}
-		style="height:{table_height}px;"
 		class:menu-open={active_cell_menu || active_header_menu}
 		on:keydown={(e) => handle_keydown(e, df_ctx)}
 		on:mousemove={handle_mouse_move}
