@@ -260,8 +260,7 @@
 
 	.drag-preview {
 		position: fixed;
-		top: -1000px;
-		left: -1000px;
+		visibility: hidden;
 		opacity: 0.7;
 		pointer-events: none;
 		z-index: 1000;
