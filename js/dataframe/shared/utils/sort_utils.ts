@@ -1,4 +1,4 @@
-import type { Headers } from "../types";
+import type { Headers, CellValue } from "../types";
 import { sort_table_data } from "./table_utils";
 
 export type SortDirection = "asc" | "desc";
@@ -21,7 +21,7 @@ export function get_sort_status(
 }
 
 export function sort_data(
-	data: { id: string; value: string | number }[][],
+	data: { id: string; value: CellValue }[][],
 	sort_columns: { col: number; direction: SortDirection }[]
 ): number[] {
 	if (!data || !data.length || !data[0]) {
@@ -64,14 +64,14 @@ export function sort_data(
 }
 
 export function sort_data_and_preserve_selection(
-	data: { id: string; value: string | number }[][],
+	data: { id: string; value: CellValue }[][],
 	display_value: string[][] | null,
 	styling: string[][] | null,
 	sort_columns: { col: number; direction: SortDirection }[],
 	selected: [number, number] | false,
 	get_current_indices: (
 		id: string,
-		data: { id: string; value: string | number }[][]
+		data: { id: string; value: CellValue }[][]
 	) => [number, number]
 ): { data: typeof data; selected: [number, number] | false } {
 	let id = null;
