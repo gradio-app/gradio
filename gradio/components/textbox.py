@@ -5,7 +5,7 @@ from __future__ import annotations
 import dataclasses
 import warnings
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, Any, Literal, Optional
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
@@ -32,17 +32,17 @@ class InputHTMLAttributes:
         lang: The lang attribute for the input/textarea element. A string containing a language code (e.g., "en", "es", "fr").
     """
 
-    autocapitalize: Optional[
-        Literal["off", "none", "on", "sentences", "words", "characters"]
-    ] = None
-    autocorrect: Optional[Literal["on", "off"]] = None
-    spellcheck: Optional[bool] = None
-    autocomplete: Optional[str] = None
-    tabindex: Optional[int] = None
-    enterkeyhint: Optional[
-        Literal["enter", "done", "go", "next", "previous", "search", "send"]
-    ] = None
-    lang: Optional[str] = None
+    autocapitalize: (
+        Literal["off", "none", "on", "sentences", "words", "characters"] | None
+    ) = None
+    autocorrect: Literal["on", "off"] | None = None
+    spellcheck: bool | None = None
+    autocomplete: str | None = None
+    tabindex: int | None = None
+    enterkeyhint: (
+        Literal["enter", "done", "go", "next", "previous", "search", "send"] | None
+    ) = None
+    lang: str | None = None
 
 
 @document()
