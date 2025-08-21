@@ -118,6 +118,7 @@ The standalone package exposes a small, intuitive set of public CSS variables yo
 - `--gr-df-selected-cell-bg` — selected cell background
 - `--gr-df-cell-padding` — cell padding (shorthand, maps to internal spacing)
 - `--gr-df-font-size` — table body font-size
+- `--gr-df-font-family` - table body font-family
 
 Example:
 
