@@ -11,7 +11,7 @@
 	import Table from "./shared/Table.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import type { Headers, Datatype, DataframeValue } from "./shared/utils";
+	import type { Datatype, DataframeValue } from "./shared/utils/utils";
 	import Image from "@gradio/image";
 
 	export let elem_id = "";

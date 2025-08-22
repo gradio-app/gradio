@@ -50,6 +50,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - name: package
+        run: pnpm package
       - name: build client
         run: pnpm --filter @gradio/client --filter @gradio/wasm --filter @gradio/preview build
       - name: publish npm previews

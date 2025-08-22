@@ -166,7 +166,7 @@
 		"chromatic": "^11.3.0",
 		"eslint-plugin-jsdoc": "^48.2.3",
 		"storybook": "^8.3.6",
-		"wikidata-lang": "^4.1.2"
+		"wikidata-lang": "4.1.2"
 	},
 	"engines": {
 		"node": ">=18.0.0",

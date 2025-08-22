@@ -99,6 +99,7 @@
 		align-items: center;
 		gap: var(--size-2);
 		flex: 0 0 auto;
+		font-family: var(--font-sans);
 	}
 
 	.toolbar-buttons {
