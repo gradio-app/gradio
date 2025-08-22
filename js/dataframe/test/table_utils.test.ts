@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest";
 import { make_cell_id, make_header_id } from "../shared/utils/table_utils";
 import { process_data, make_headers } from "../shared/utils/data_processing";
-import { cast_value_to_type } from "../shared/utils";
+import { cast_value_to_type } from "../shared/utils/utils";
 
 function make_id(): string {
 	return Math.random().toString(36).substring(2, 15);
