@@ -259,6 +259,7 @@
 		{#if show_subtitles}
 			<button
 				class="action icon cc-button"
+				data-testid="subtitles-toggle"
 				style="color: {subtitles_toggle
 					? 'var(--color-accent)'
 					: 'var(--neutral-400)'}"
