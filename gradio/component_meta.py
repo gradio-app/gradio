@@ -157,8 +157,8 @@ def get_local_contexts():
     from gradio.context import LocalContext
 
     return (
-        LocalContext.in_event_listener.get(),
-        LocalContext.renderable.get() is not None,
+        LocalContext.in_event_listener.get(False),
+        LocalContext.renderable.get(None) is not None,
     )
 
 

@@ -61,7 +61,7 @@ class Renderable:
         )
 
     def apply(self, *args, **kwargs):
-        blocks_config = LocalContext.blocks_config.get()
+        blocks_config = LocalContext.blocks_config.get(None)
         if blocks_config is None:
             raise ValueError("Reactive render must be inside a LocalContext.")
 
@@ -166,7 +166,7 @@ def render(
     def wrapper_function(fn):
         Renderable(
             fn,
-            inputs,
+            inputs,  # type: ignore
             _triggers,
             concurrency_limit,
             concurrency_id,

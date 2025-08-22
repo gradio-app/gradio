@@ -146,6 +146,7 @@ def start_server(
                     stop_event=threading.Event(),
                     demo_file=GRADIO_WATCH_DEMO_PATH,
                     watch_module=sys.modules["__main__"],
+                    encoding=os.getenv("GRADIO_WATCH_ENCODING", "utf-8"),
                 )
             server = Server(config=config, reloader=reloader)
             server.run_in_thread()

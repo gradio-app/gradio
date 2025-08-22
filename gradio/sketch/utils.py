@@ -97,7 +97,7 @@ If an LLM is not helpful for the task, there is no need to use huggingface_hub. 
     client = huggingface_hub.InferenceClient(token=hf_token)
     content = ""
     for token in client.chat_completion(chat_history, stream=True, model=code_model):
-        content += token.choices[0].delta.content or ""
+        content += token.choices[0].delta.content or "" if token.choices else ""
         if "```python\n" in content:
             start = content.index("```python\n") + len("```python\n")
             end = content.find("\n```", start)

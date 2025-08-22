@@ -1,7 +1,7 @@
 import gradio as gr
 import pandas as pd
-import plotly.express as px
-from helpers import retrieve_pip_installs, retrieve_stars, retrieve_issues
+import plotly.express as px  # type: ignore
+from helpers import retrieve_pip_installs, retrieve_stars, retrieve_issues  # type: ignore
 
 LIBRARIES = ["accelerate", "datasets", "diffusers", "evaluate", "gradio", "hub_docs",
              "huggingface_hub", "optimum", "pytorch_image_models", "tokenizers", "transformers"]

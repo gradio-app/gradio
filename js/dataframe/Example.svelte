@@ -39,15 +39,15 @@
 						{/if}
 					</tr>
 				{/each}
-				{#if value.length > 3}
-					<div
-						class="overlay"
-						class:odd={index % 2 != 0}
-						class:even={index % 2 == 0}
-						class:button={type === "gallery"}
-					/>
-				{/if}
 			</table>
+			{#if value.length > 3}
+				<div
+					class="overlay"
+					class:odd={index % 2 != 0}
+					class:even={index % 2 == 0}
+					class:button={type === "gallery"}
+				></div>
+			{/if}
 		{/if}
 	</div>
 {/if}

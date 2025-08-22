@@ -2,7 +2,7 @@
 # Before running this, make sure you have exported your Anthropic API key as an environment variable:
 # export ANTHROPIC_API_KEY="your-anthropic-api-key"
 
-import anthropic
+import anthropic  # type: ignore
 import gradio as gr
 
 client = anthropic.Anthropic()

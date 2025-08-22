@@ -50,7 +50,6 @@
 	export let ui_mode: "dialogue" | "text" | "both" = "both";
 </script>
 
-<!-- svelte-ignore missing-declaration -->
 <Block
 	{visible}
 	{elem_id}

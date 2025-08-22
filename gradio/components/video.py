@@ -9,7 +9,7 @@ import tempfile
 import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Optional
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client import handle_file
 from gradio_client import utils as client_utils
@@ -34,7 +34,7 @@ if not wasm_utils.IS_WASM:
 
 class VideoData(GradioModel):
     video: FileData
-    subtitles: Optional[FileData] = None
+    subtitles: FileData | None = None
 
 
 @document()
@@ -493,7 +493,9 @@ class Video(StreamingOutput, Component):
 
         command = ff.cmd.split(" ")
         process = await asyncio.create_subprocess_exec(
-            *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+            *command,
+            stdout=asyncio.subprocess.PIPE,  # type: ignore
+            stderr=asyncio.subprocess.PIPE,  # type: ignore
         )
 
         _, stderr = await process.communicate()
@@ -545,7 +547,9 @@ class Video(StreamingOutput, Component):
             output_file.name,
         ]
         process = await asyncio.create_subprocess_exec(
-            *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+            *command,
+            stdout=asyncio.subprocess.PIPE,  # type: ignore
+            stderr=asyncio.subprocess.PIPE,  # type: ignore
         )
 
         _, stderr = await process.communicate()

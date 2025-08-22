@@ -1,5 +1,5 @@
 import gradio as gr
-import cv2
+import cv2  # type: ignore
 from huggingface_hub import hf_hub_download
 from gradio_webrtc import WebRTC  # type: ignore
 from twilio.rest import Client  # type: ignore

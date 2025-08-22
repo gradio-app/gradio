@@ -205,6 +205,7 @@
 			{fullscreen}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => {
+				fullscreen = false;
 				gradio.dispatch("clear");
 			}}
 			on:stream={({ detail }) => gradio.dispatch("stream", detail)}

@@ -1,6 +1,6 @@
 import gradio as gr
-import nltk
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
+import nltk  # type: ignore
+from nltk.sentiment.vader import SentimentIntensityAnalyzer  # type: ignore
 
 nltk.download("vader_lexicon")
 sid = SentimentIntensityAnalyzer()

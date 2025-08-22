@@ -8,7 +8,7 @@ import {
 	get_next_cell_coordinates,
 	get_range_selection,
 	move_cursor
-} from "../selection_utils";
+} from "../utils/selection_utils";
 
 export const DATAFRAME_KEY = Symbol("dataframe");
 

@@ -44,7 +44,7 @@ for p in sorted(os.listdir("./demos")):
             demo_module = importlib.import_module("run")
         else:
             demo_module = importlib.reload(demo_module)
-        all_demos.append((p, demo_module.demo, False))
+        all_demos.append((p, demo_module.demo, False))  # type: ignore
     except Exception as e:
         with gr.Blocks() as demo:
             gr.Markdown(f"Error loading demo: {e}")

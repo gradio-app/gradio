@@ -5,7 +5,7 @@ import gradio.image_utils
 import gradio.processing_utils
 import gradio.sketch
 import gradio.templates
-from gradio import components, layouts, themes
+from gradio import components, layouts, mcp, themes
 from gradio.blocks import Blocks
 from gradio.chat_interface import ChatInterface
 from gradio.components import (
@@ -251,4 +251,5 @@ __all__ = [
     "skip",
     "update",
     "DeepLinkButton",
+    "mcp",
 ]

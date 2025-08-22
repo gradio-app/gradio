@@ -63,7 +63,7 @@ def test_convert_strings_to_filedata(test_mcp_app):
     filedata_positions: list[list[str | int]] = [["image"]]
     result = server.convert_strings_to_filedata(test_data, filedata_positions)
     assert isinstance(result["image"], dict)
-    result["image"] = FileData(**result["image"])
+    result["image"] = FileData(**result["image"])  # type: ignore
     assert os.path.exists(result["image"].path)
 
     test_data = {"image": "invalid_data"}
@@ -87,9 +87,9 @@ def test_postprocess_output_data(test_mcp_app):
         result = server.postprocess_output_data(test_data, fake_root_url)
         assert len(result) == 2
         assert result[0].type == "image"
-        assert result[0].mimeType == "image/png"
+        assert result[0].mimeType == "image/png"  # type: ignore
         assert result[1].type == "text"
-        assert url in result[1].text
+        assert url in result[1].text  # type: ignore
     finally:
         os.unlink(temp_file.name)
 
@@ -105,16 +105,16 @@ def test_postprocess_output_data(test_mcp_app):
     result = server.postprocess_output_data(test_data, fake_root_url)
     assert len(result) == 2
     assert result[0].type == "image"
-    assert result[0].mimeType == "image/svg+xml"
+    assert result[0].mimeType == "image/svg+xml"  # type: ignore
     assert result[1].type == "text"
-    assert "Image URL:" in result[1].text
-    assert "/gradio_api/file=" in result[1].text
+    assert "Image URL:" in result[1].text  # type: ignore
+    assert "/gradio_api/file=" in result[1].text  # type: ignore
 
     test_data = ["test text"]
     result = server.postprocess_output_data(test_data, fake_root_url)
     assert len(result) == 1
     assert result[0].type == "text"
-    assert result[0].text == "test text"
+    assert result[0].text == "test text"  # type: ignore
 
 
 def test_simplify_filedata_schema(test_mcp_app):
@@ -167,6 +167,7 @@ def test_tool_prefix_character_replacement(test_mcp_app):
             os.environ.pop("SPACE_ID", None)
 
 
+@pytest.mark.serial
 def test_mcp_sse_transport(test_mcp_app):
     _, url, _ = test_mcp_app.launch(mcp_server=True, prevent_thread_lock=True)
 
@@ -187,9 +188,9 @@ def test_mcp_sse_transport(test_mcp_app):
                 "description": "This is a test tool. Returns: the original value as a string",
                 "inputSchema": {
                     "type": "object",
-                    "properties": {"x": {"type": "string"}},
+                    "properties": {"x": {"type": "string", "description": ""}},
                 },
-                "meta": {"file_data_present": False},
+                "meta": {"file_data_present": False, "mcp_type": "tool"},
             }
         ]
 

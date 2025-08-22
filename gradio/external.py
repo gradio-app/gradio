@@ -44,7 +44,7 @@ if TYPE_CHECKING:
 def load(
     name: str,
     src: Callable[[str, str | None], Blocks]
-    | Literal["models", "spaces"]
+    | Literal["models", "spaces", "huggingface"]
     | None = None,
     token: str | None = None,
     hf_token: str | None = None,
@@ -95,11 +95,15 @@ def load(
         token = os.environ.get("HF_TOKEN")
 
     if isinstance(src, Callable):
-        return src(name, token, **kwargs)
+        return src(name, token, **kwargs)  # type: ignore
 
     if not accept_token:
         return load_blocks_from_huggingface(
-            name=name, src=src, hf_token=token, provider=provider, **kwargs
+            name=name,
+            src=src,  # type: ignore
+            hf_token=token,
+            provider=provider,
+            **kwargs,  # type: ignore
         )
     elif isinstance(accept_token, gr.LoginButton):
         with gr.Blocks(fill_height=True) as demo:
@@ -111,7 +115,7 @@ def load(
                 token_value = None if oauth_token is None else oauth_token.token
                 return load_blocks_from_huggingface(
                     name=name,
-                    src=src,
+                    src=src,  # type: ignore
                     hf_token=token_value,
                     provider=provider,
                     **kwargs,
@@ -159,7 +163,7 @@ def load(
             def create(token_value):
                 return load_blocks_from_huggingface(
                     name=name,
-                    src=src,
+                    src=src,  # type: ignore
                     hf_token=token_value,
                     provider=provider,
                     **kwargs,
@@ -503,7 +507,12 @@ def from_model(
     }
 
     kwargs = dict(interface_info, **kwargs)
-    interface = gr.Interface(**kwargs)
+
+    fn = kwargs.pop("fn", None)
+    inputs = kwargs.pop("inputs", None)
+    outputs = kwargs.pop("outputs", None)
+
+    interface = gr.Interface(fn, inputs, outputs, **kwargs)
     return interface
 
 
@@ -644,7 +653,12 @@ def from_spaces_interface(
 
     kwargs = dict(config, **kwargs)
     kwargs["_api_mode"] = True
-    interface = gr.Interface(**kwargs)
+
+    fn = kwargs.pop("fn", None)
+    inputs = kwargs.pop("inputs", None)
+    outputs = kwargs.pop("outputs", None)
+
+    interface = gr.Interface(fn, inputs, outputs, **kwargs)
     return interface
 
 
@@ -854,7 +868,7 @@ def load_chat(
         )
         response = ""
         for chunk in stream:
-            if chunk.choices[0].delta.content is not None:
+            if chunk.choices and chunk.choices[0].delta.content is not None:
                 response += chunk.choices[0].delta.content
                 yield response
 

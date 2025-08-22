@@ -40,12 +40,12 @@ class TestInterface:
 
     def test_close_all(self):
         interface = Interface(lambda input: None, "textbox", "label")
-        interface.close = MagicMock()
+        interface.close = MagicMock()  # type: ignore
         close_all()
-        interface.close.assert_not_called()
+        interface.close.assert_not_called()  # type: ignore
         interface.launch(prevent_thread_lock=True)
         close_all()
-        interface.close.assert_called()
+        interface.close.assert_called()  # type: ignore
 
     def test_no_input_or_output(self):
         with pytest.raises(TypeError):

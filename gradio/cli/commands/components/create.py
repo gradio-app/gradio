@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
 from rich import print
@@ -25,13 +25,13 @@ def _create(
         ),
     ],
     directory: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(
             help="Directory to create the component in. Default is None. If None, will be created in <component-name> directory in the current directory."
         ),
     ] = None,
     package_name: Annotated[
-        Optional[str],
+        str | None,
         typer.Option(help="Name of the package. Default is gradio_{name.lower()}"),
     ] = None,
     template: Annotated[
@@ -51,7 +51,7 @@ def _create(
         typer.Option(help="NPM install command to use. Default is 'npm install'."),
     ] = "npm install",
     pip_path: Annotated[
-        Optional[str],
+        str | None,
         typer.Option(
             help="Path to pip executable. If None, will use the default path found by `which pip3`. If pip3 is not found, `which pip` will be tried. If both fail an error will be raised."
         ),
