@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getContext } from "svelte";
+	import { getContext, onMount } from "svelte";
 	import space_logo from "./images/spaces.svg";
 	import { _ } from "svelte-i18n";
 	export let wrapper: HTMLDivElement;
