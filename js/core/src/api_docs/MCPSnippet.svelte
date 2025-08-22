@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Block } from "@gradio/atoms";
 	import CopyButton from "./CopyButton.svelte";
+	import { Tool, Prompt, Resource } from "@gradio/icons";
 
 	export let mcp_server_active: boolean;
 	export let mcp_server_url: string;
@@ -42,10 +43,10 @@
 		["stdio", "STDIO"]
 	] as const;
 
-	const tool_type_emojis = {
-		tool: "🔧",
-		resource: "📕",
-		prompt: "💬"
+	const tool_type_icons: Record<Tool["meta"]["mcp_type"], typeof Tool> = {
+		tool: Tool,
+		resource: Resource,
+		prompt: Prompt
 	};
 
 	$: display_url =
@@ -145,11 +146,12 @@
 	{/if}
 
 	<div class="tool-selection">
-		<strong
-			>{all_tools.length > 0 ? all_tools.length : tools.length} Available MCP Tools
-			({tool_type_emojis.tool}), Resources ({tool_type_emojis.resource}), and
-			Prompts ({tool_type_emojis.prompt})</strong
-		>
+		<strong>
+			{all_tools.length > 0 ? all_tools.length : tools.length} Available MCP Tools
+			(<span style="display: inline-block;"><Tool /></span>), Resources (<span
+				style="display: inline-block;"><Resource /></span
+			>), and Prompts (<span style="display: inline-block;"><Prompt /></span>)
+		</strong>
 		{#if all_tools.length > 0}
 			<div class="tool-selection-controls">
 				<button
@@ -199,17 +201,21 @@
 						class="tool-header"
 						on:click={() => (tool.expanded = !tool.expanded)}
 					>
-						<span
-							><span class="tool-name"
-								>{tool_type_emojis[tool.meta.mcp_type]} {tool.name}</span
-							>
+						<span style="display: inline-block; vertical-align: middle;">
+							<span style="display: inline-block; padding-right: 6px;">
+								{#if tool_type_icons[tool.meta.mcp_type]}
+									{@const Icon = tool_type_icons[tool.meta.mcp_type]}
+									<Icon />
+								{/if}
+							</span>
+							<span class="tool-name">{tool.name}</span>
 							&nbsp;
-							<span class="tool-description"
-								>{tool.description
+							<span class="tool-description">
+								{tool.description
 									? tool.description
-									: "⚠︎ No description provided in function docstring"}</span
-							></span
-						>
+									: "⚠︎ No description provided in function docstring"}
+							</span>
+						</span>
 						<span class="tool-arrow">{tool.expanded ? "▼" : "▶"}</span>
 					</button>
 				</div>
@@ -614,4 +620,6 @@
 	a {
 		text-decoration: underline;
 	}
+
+	/* .mcp-icon is now styled above */
 </style>
