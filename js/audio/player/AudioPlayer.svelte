@@ -236,9 +236,9 @@
 	): Promise<void> {
 		try {
 			const response = await fetch(subtitleUrl);
-			const vttContent = await response.text();
+			const subtitleContent = await response.text();
 
-			const subtitles = parseVTT(vttContent);
+			const subtitles = parseSubtitles(subtitleContent);
 
 			if (subtitles.length > 0) {
 				let currentSubtitle = "";
@@ -281,10 +281,10 @@
 		}
 	}
 
-	function parseVTT(
-		vttContent: string
+	function parseSubtitles(
+		subtitleContent: string
 	): { start: number; end: number; text: string }[] {
-		const lines = vttContent.split("\n");
+		const lines = subtitleContent.split("\n");
 		const subtitles: { start: number; end: number; text: string }[] = [];
 
 		for (let i = 0; i < lines.length; i++) {
