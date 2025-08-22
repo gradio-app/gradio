@@ -26,7 +26,7 @@
 		"ci:publish": "pnpm changeset tag && git push origin --tags && pnpm publish --no-git-checks --access public -r --filter=@gradio/*",
 		"chromatic": "chromatic",
 		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts",
-		"website": "pnpm --filter website --dir js/_website dev",
+		"website": "pnpm --filter website dev",
 		"package": "pnpm --filter @gradio/* --filter=!@gradio/wasm --filter=!@gradio/lite --filter=!@gradio/client --filter=!@gradio/preview exec svelte-package --input=. --cwd=../../.config/"
 	},
 	"type": "module",
