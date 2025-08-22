@@ -148,9 +148,12 @@
 	<div class="tool-selection">
 		<strong>
 			{all_tools.length > 0 ? all_tools.length : tools.length} Available MCP Tools
-			(<span style="display: inline-block;"><Tool /></span>), Resources (<span
-				style="display: inline-block;"><Resource /></span
-			>), and Prompts (<span style="display: inline-block;"><Prompt /></span>)
+			(<span style="display: inline-block; vertical-align: sub;"><Tool /></span
+			>), Resources (<span style="display: inline-block; vertical-align: sub;"
+				><Resource /></span
+			>), and Prompts (<span style="display: inline-block; vertical-align: sub;"
+				><Prompt /></span
+			>)
 		</strong>
 		{#if all_tools.length > 0}
 			<div class="tool-selection-controls">
@@ -201,8 +204,10 @@
 						class="tool-header"
 						on:click={() => (tool.expanded = !tool.expanded)}
 					>
-						<span style="display: inline-block; vertical-align: middle;">
-							<span style="display: inline-block; padding-right: 6px;">
+						<span style="display: inline-block">
+							<span
+								style="display: inline-block; padding-right: 6px; vertical-align: sub"
+							>
 								{#if tool_type_icons[tool.meta.mcp_type]}
 									{@const Icon = tool_type_icons[tool.meta.mcp_type]}
 									<Icon />
