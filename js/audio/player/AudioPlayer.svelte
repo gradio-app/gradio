@@ -35,7 +35,7 @@
 	let waveform: WaveSurfer | undefined;
 	let playing = false;
 
-	let subtitleContainer: HTMLDivElement;
+	let subtitle_container: HTMLDivElement;
 
 	let timeRef: HTMLTimeElement;
 	let durationRef: HTMLTimeElement;
@@ -48,6 +48,7 @@
 
 	let stream_active = false;
 	let subtitles_toggle = false;
+	let subtitle_event_handlers: (() => void)[] = [];
 
 	const dispatch = createEventDispatcher<{
 		stop: undefined;
@@ -69,9 +70,9 @@
 
 		if (subtitles && waveform) {
 			if (subtitles_toggle) {
-				addSubtitlesToWaveform(waveform, subtitles);
+				add_subtitles_to_waveform(waveform, subtitles);
 			} else {
-				hideSubtitles();
+				hide_subtitles();
 			}
 		}
 
@@ -165,9 +166,9 @@
 
 	$: if (subtitles && waveform) {
 		if (subtitles_toggle) {
-			addSubtitlesToWaveform(waveform, subtitles);
+			add_subtitles_to_waveform(waveform, subtitles);
 		} else {
-			hideSubtitles();
+			hide_subtitles();
 		}
 	}
 
@@ -230,69 +231,67 @@
 		});
 	});
 
-	async function addSubtitlesToWaveform(
+	async function add_subtitles_to_waveform(
 		wavesurfer: WaveSurfer,
-		subtitleUrl: string
+		subtitle_url: string
 	): Promise<void> {
+		clear_subtitles();
 		try {
-			const response = await fetch(subtitleUrl);
-			const subtitleContent = await response.text();
+			const response = await fetch(subtitle_url);
+			const subtitle_content = await response.text();
 
-			const subtitles = parseSubtitles(subtitleContent);
-
+			const subtitles = parse_subtitles(subtitle_content);
 			if (subtitles.length > 0) {
-				let currentSubtitle = "";
-				if (subtitleContainer) {
-					subtitleContainer.style.display = "";
-					wavesurfer.on("audioprocess", (time) => {
+				let current_subtitle = "";
+				if (subtitle_container) {
+					subtitle_container.style.display = "";
+					const audioProcessHandler = (time: number): void => {
 						const subtitle = subtitles.find(
 							(s) => time >= s.start && time <= s.end
 						);
-						if (subtitle && subtitle.text !== currentSubtitle) {
-							currentSubtitle = subtitle.text;
-							subtitleContainer.textContent = currentSubtitle;
-						} else if (!subtitle && currentSubtitle !== "") {
-							currentSubtitle = "";
-							subtitleContainer.textContent = "";
+						if (subtitle && subtitle.text !== current_subtitle) {
+							current_subtitle = subtitle.text;
+							subtitle_container.textContent = current_subtitle;
+						} else if (!subtitle && current_subtitle !== "") {
+							current_subtitle = "";
+							subtitle_container.textContent = "";
 						}
-					});
-
-					wavesurfer.on("seek", (progress) => {
-						const time = progress * wavesurfer.getDuration();
-						const subtitle = subtitles.find(
-							(s) => time >= s.start && time <= s.end
-						);
-						if (subtitle) {
-							currentSubtitle = subtitle.text;
-							subtitleContainer.textContent = currentSubtitle;
-						} else {
-							currentSubtitle = "";
-							subtitleContainer.textContent = "";
-						}
+					};
+					wavesurfer.on("audioprocess", audioProcessHandler);
+					subtitle_event_handlers.push(() => {
+						wavesurfer.un("audioprocess", audioProcessHandler);
 					});
 				}
 			}
 		} catch (error) {}
 	}
 
-	function hideSubtitles(): void {
-		if (subtitleContainer) {
-			subtitleContainer.style.display = "none";
+	function hide_subtitles(): void {
+		if (subtitle_container) {
+			subtitle_container.style.display = "none";
 		}
 	}
 
-	function parseSubtitles(
-		subtitleContent: string
+	function clear_subtitles(): void {
+		if (subtitle_container) {
+			subtitle_container.textContent = "";
+		}
+		subtitle_event_handlers.forEach((handler) => handler());
+		subtitle_event_handlers = [];
+	}
+
+	function parse_subtitles(
+		subtitle_content: string
 	): { start: number; end: number; text: string }[] {
-		const lines = subtitleContent.split("\n");
+		const lines = subtitle_content.split("\n");
 		const subtitles: { start: number; end: number; text: string }[] = [];
 
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i].trim();
 			if (line.includes(" --> ")) {
-				const [startTime, endTime] = line.split(" --> ");
-				const start = parseTimeToSeconds(startTime);
-				const end = parseTimeToSeconds(endTime);
+				const [start_time, end_time] = line.split(" --> ");
+				const start = parse_time_to_seconds(start_time);
+				const end = parse_time_to_seconds(end_time);
 
 				let text = "";
 				for (let j = i + 1; j < lines.length && lines[j].trim() !== ""; j++) {
@@ -309,8 +308,8 @@
 		return subtitles;
 	}
 
-	function parseTimeToSeconds(timeStr: string): number {
-		const parts = timeStr.split(":");
+	function parse_time_to_seconds(time_str: string): number {
+		const parts = time_str.split(":");
 		if (parts.length === 3) {
 			const hours = parseInt(parts[0]);
 			const minutes = parseInt(parts[1]);
@@ -358,7 +357,7 @@
 			</div>
 		</div>
 
-		<div bind:this={subtitleContainer} class="subtitle-display"></div>
+		<div bind:this={subtitle_container} class="subtitle-display"></div>
 
 		<WaveformControls
 			{container}
