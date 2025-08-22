@@ -4,15 +4,16 @@ Standalone Svelte component that brings Gradio's Dataframe UI to any Svelte/Svel
 
 ## Install
 
-```
+```shell
 npm i @gradio/dataframe
-# or
+```
+```shell
 pnpm add @gradio/dataframe
 ```
 
 ## Usage (Svelte/SvelteKit)
 
-```svelte
+```typescript
 <script lang="ts">
   import Dataframe from "@gradio/dataframe";
 
@@ -48,41 +49,120 @@ pnpm add @gradio/dataframe
   on:change={handle_change}
   on:select={handle_select}
   on:input={handle_input}
-/>
+  />
 ```
 
 ## Props
 
+```typescript
+interface DataframeProps {
+  /**
+   * The value object containing the table data, headers, and optional metadata.
+   * Example: { data: [...], headers: [...], metadata?: any }
+   * Default: { data: [[]], headers: [] }
+   */
+  value: {
+    data: (string | number | boolean)[][];
+    headers: string[];
+    metadata?: any;
+  };
 
-| Prop                    | Type                                   | Default   | Description                                                |
-|-------------------------|----------------------------------------|-----------|------------------------------------------------------------|
-| `value`                 | `object`                               | —         | Object containing `data` (array of rows), `headers` (array of column names), and `metadata` |
-| `datatype`              | `string[]`                             | `[]`      | Array of data types for each column: `"str"`, `"number"`, `"bool"`, `"date"`, `"markdown"`, `"html"` |
-| `i18n`                  | `object`                               | `{}`      | Internationalization object for translations               |
-| `editable`              | `boolean`                               | `true`    | Enable cell editing                                        |
-| `show_row_numbers`      | `boolean`                               | `true`    | Show a row-number column                                   |
-| `show_search`           | `string \| boolean`                     | `"search"` | Show search input. Can be `true`, `false`, or custom text |
-| `show_copy_button`      | `boolean`                               | `true`    | Show copy-to-clipboard button                              |
-| `show_fullscreen_button`| `boolean`                               | `true`    | Show fullscreen toggle button                              |
-| `fullscreen`            | `boolean`                               | `false`   | Control fullscreen state externally.                       |
-| `label`                 | `string \| null`                       | `null`    | Accessible caption for the table.                          |
-| `show_label`            | `boolean`                               | `true`    | Show/hide the label visually.                              |
+  /**
+   * Array of data types per column. Supported: "str", "number", "bool", "date", "markdown", "html".
+   * Default: []
+   */
+  datatype?: string[];
+
+  /**
+   * Enable or disable cell editing.
+   * Default: true
+   */
+  editable?: boolean;
+
+  /**
+   * Show or hide the row number column.
+   * Default: true
+   */
+  show_row_numbers?: boolean;
+
+  /**
+   * Show search input. Can be "search", "filter", or "none.
+   * Default: "none"
+   */
+  show_search?: "none" | "search" | "filter" | boolean;
+
+  /**
+   * Show or hide the copy to clipboard button.
+   * Default: true
+   */
+  show_copy_button?: boolean;
+
+  /**
+   * Show or hide the fullscreen toggle button.
+   * Default: true
+   */
+  show_fullscreen_button?: boolean;
+
+  /**
+   * Accessible caption for the table.
+   * Default: null
+   */
+  label?: string | null;
+
+  /**
+   * Show or hide the dataframe label.
+   * Default: true
+   */
+  show_label?: boolean;
+
+  /**
+   * (Optional) Set column widths in CSS units (e.g. ["100px", "20%", ...]).
+   */
+  column_widths?: string[];
+
+  /**
+   * (Optional) Set the maximum height of the table in pixels.
+   * Default: 500
+   */
+  max_height?: number;
+
+  /**
+   * (Optional) Set the maximum number of characters per cell.
+   */
+  max_chars?: number;
+
+  /**
+   * (Optional) Enable or disable line breaks in cells.
+   * Default: true
+   */
+  line_breaks?: boolean;
+
+  /**
+   * (Optional) Enable or disable text wrapping in cells.
+   * Default: false
+   */
+  wrap?: boolean;
+}
+```
 
 ## Events
 
-
 The component emits the following events:
 
-| Event   | Trigger                                      | Return type                                                   |
-|---------|-----------------------------------------------------|---------------------------------------------------------------|
-| change  | Table data changes             | `{ data: (string \| number \| boolean)[][], headers: string[], metadata: null }` |
-| select  | Cell selection change                              | `{ index: number[], value: any, selected: boolean }`          |
-| input   | User input | `string \| null`                                              |
+```typescript
+// Fired when table data changes
+on:change={(e: CustomEvent<{ data: (string | number | boolean)[][]; headers: string[]; metadata: any }>) => void}
 
+// Fired when a cell is selected
+on:select={(e: CustomEvent<{ index: number[]; value: any; selected: boolean }>) => void}
+
+// Fired on user input (search/filter)
+on:input={(e: CustomEvent<string | null>) => void}
+```
 
 Example:
 
-```svelte
+```typescript
 <Dataframe
   on:change={(e) => console.log('data', e.detail)}
   on:input={(e) => console.log('input', e.detail)}
@@ -92,13 +172,11 @@ Example:
 
 ## TypeScript
 
-
 The package publishes `types.d.ts` with `DataframeProps` module declarations.
 
 ## Custom Styling
 
-
-The standalone package exposes a small, intuitive set of public CSS variables you can use to theme the Dataframe. These variables are namespaced with `--gr-df-*` and are the recommended way to override the default styling.
+The standalone package exposes a small set of public CSS variables you can use to theme the Dataframe. These variables are namespaced with `--gr-df-*` and are the recommended way to override the default styling.
 
 **Color Variables**
 - `--gr-df-table-bg-even` — background for even rows
@@ -119,7 +197,7 @@ The standalone package exposes a small, intuitive set of public CSS variables yo
 
 Example:
 
-```svelte
+```javascript
 <div class="df-theme">
   <Dataframe ... />
 </div>
@@ -133,13 +211,13 @@ Example:
 
 Alternatively, you can target internal classes within the Dataframe using a global override. 
 
-```css
+```javascript
 .df-theme :global(.cell-wrap) {
 		background-color: #7c3aed ;
 	}
 ```
 
-> **Note:** This standalone component does **not** currently support the file upload functionality (e.g. drag-and-dropping to populate the dataframe) that is available in the Gradio Dataframe component.
+**Note:** This standalone component does **not** currently support the file upload functionality (e.g. drag-and-dropping to populate the dataframe) that is available in the Gradio Dataframe component.
 
 
 ## License
