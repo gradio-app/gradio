@@ -4,4 +4,4 @@
 "website": minor
 ---
 
-feat:Df docs
+feat:Add JS Dataframe documentation to docs
