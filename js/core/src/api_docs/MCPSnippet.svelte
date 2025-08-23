@@ -626,5 +626,4 @@
 		text-decoration: underline;
 	}
 
-	/* .mcp-icon is now styled above */
 </style>
