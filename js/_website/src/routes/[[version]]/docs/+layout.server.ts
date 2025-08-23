@@ -42,8 +42,8 @@ export async function load({ params, url }) {
 	let docs: { [key: string]: any } = docs_json.docs;
 	let js = docs_json.js || {};
 	let js_pages =
-		docs_json.js_pages.filter((p: string) =>
-			components_to_document.includes(p)
+		docs_json.js_pages.filter(
+			(p: string) => !components_to_document.includes(p)
 		) || [];
 	let js_client = docs_json.js_client;
 	let on_main = params.version === "main";
