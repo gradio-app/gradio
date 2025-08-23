@@ -4,16 +4,21 @@ Standalone Svelte component that brings Gradio's Dataframe UI to any Svelte/Svel
 
 ## Install
 
+With `npm`:
+
 ```shell
 npm i @gradio/dataframe
 ```
+
+With `pnpm`:
+
 ```shell
 pnpm add @gradio/dataframe
 ```
 
 ## Usage (Svelte/SvelteKit)
 
-```typescript
+```svelte
 <script lang="ts">
   import Dataframe from "@gradio/dataframe";
 
@@ -56,6 +61,7 @@ pnpm add @gradio/dataframe
 
 ```typescript
 interface DataframeProps {
+
   /**
    * The value object containing the table data, headers, and optional metadata.
    * Example: { data: [...], headers: [...], metadata?: any }
@@ -149,7 +155,7 @@ interface DataframeProps {
 
 The component emits the following events:
 
-```typescript
+```ts
 // Fired when table data changes
 on:change={(e: CustomEvent<{ data: (string | number | boolean)[][]; headers: string[]; metadata: any }>) => void}
 
@@ -162,7 +168,7 @@ on:input={(e: CustomEvent<string | null>) => void}
 
 Example:
 
-```typescript
+```svelte
 <Dataframe
   on:change={(e) => console.log('data', e.detail)}
   on:input={(e) => console.log('input', e.detail)}
@@ -197,7 +203,7 @@ The standalone package exposes a small set of public CSS variables you can use t
 
 Example:
 
-```javascript
+```svelte
 <div class="df-theme">
   <Dataframe ... />
 </div>
@@ -211,10 +217,10 @@ Example:
 
 Alternatively, you can target internal classes within the Dataframe using a global override. 
 
-```javascript
+```css
 .df-theme :global(.cell-wrap) {
-		background-color: #7c3aed ;
-	}
+  background-color: #7c3aed ;
+}
 ```
 
 **Note:** This standalone component does **not** currently support the file upload functionality (e.g. drag-and-dropping to populate the dataframe) that is available in the Gradio Dataframe component.

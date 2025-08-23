@@ -10,6 +10,7 @@ import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-csv";
 import "prismjs/components/prism-markup";
+import "prism-svelte";
 import { error } from "@sveltejs/kit";
 
 export const prerender = true;
@@ -33,7 +34,11 @@ const langs = {
 	json: "json",
 	typescript: "typescript",
 	javascript: "javascript",
-	directory: "json"
+	directory: "json",
+	svelte: "svelte",
+	sv: "svelte",
+	md: "markdown",
+	css: "css"
 };
 
 function highlight(code: string, lang: string | undefined) {

@@ -13,6 +13,7 @@ import "prismjs/components/prism-json";
 import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-csv";
 import "prismjs/components/prism-markup";
+import "prism-svelte";
 
 const langs = {
 	python: "python",
@@ -23,7 +24,11 @@ const langs = {
 	shell: "bash",
 	json: "json",
 	typescript: "typescript",
-	directory: "json"
+	directory: "json",
+	svelte: "svelte",
+	sv: "svelte",
+	md: "markdown",
+	css: "css"
 };
 
 function highlight(code: string, lang: string | undefined) {
