@@ -84,7 +84,7 @@
 	$: waveform?.on(
 		"timeupdate",
 		(currentTime: any) =>
-			timeRef && (timeRef.textContent = format_time(currentTime))
+			timeRef && (timeRef.textContent != format_time(currentTime)) && (timeRef.textContent = format_time(currentTime))
 	);
 
 	$: waveform?.on("ready", () => {
