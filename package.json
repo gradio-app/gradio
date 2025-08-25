@@ -108,6 +108,7 @@
 		"@gradio/column": "workspace:^",
 		"@gradio/core": "workspace:^",
 		"@gradio/dialogue": "workspace:^",
+		"@gradio/draggable": "workspace:^",
 		"@gradio/dataframe": "workspace:^",
 		"@gradio/dataset": "workspace:^",
 		"@gradio/datetime": "workspace:^",
