@@ -429,7 +429,7 @@ Gradio apps can function as MCP (Model Context Protocol) servers, allowing LLMs 
 
 ## Rate Limits
 
-When publishing your app publicly, and making it available via API or via MCP server, you might want to set rate limits to prevent users from abusing your app. You can identify users using their IP address (using the `gr.Request` object [as discussed above](#accessing-the-network-request-directly)) or, if they are logged in via Hugging Face OAuth, using their username. To see a complete example of how to set rate limits, please see [this Gradio app]().
+When publishing your app publicly, and making it available via API or via MCP server, you might want to set rate limits to prevent users from abusing your app. You can identify users using their IP address (using the `gr.Request` object [as discussed above](#accessing-the-network-request-directly)) or, if they are logged in via Hugging Face OAuth, using their username. To see a complete example of how to set rate limits, please see [this Gradio app](https://github.com/gradio-app/gradio/blob/main/demo/rate_limit/run.py).
 
 ## Analytics
 
