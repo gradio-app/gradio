@@ -77,7 +77,6 @@ def run_action(profile: gr.OAuthProfile | None, request: gr.Request) -> tuple[st
     
     return result, status
 
-# Create the Gradio app
 with gr.Blocks(title="Rate Limiting Demo") as demo:
     gr.Markdown("# Rate Limiting Demo App")
     gr.Markdown("This app demonstrates rate limiting based on authentication status.")
