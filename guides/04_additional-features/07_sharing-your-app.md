@@ -10,8 +10,10 @@ In this Guide, we dive more deeply into the various aspects of sharing a Gradio 
 6. [Accessing network requests](#accessing-the-network-request-directly)
 7. [Mounting within FastAPI](#mounting-within-another-fast-api-app)
 8. [Authentication](#authentication)
-9. [Analytics](#analytics)
-10. [Progressive Web Apps (PWAs)](#progressive-web-app-pwa)
+9. [MCP Servers](#mcp-servers)
+10. [Rate Limits](#rate-limits)
+11. [Analytics](#analytics)
+12. [Progressive Web Apps (PWAs)](#progressive-web-app-pwa)
 
 ## Sharing Demos
 
@@ -421,6 +423,13 @@ if __name__ == '__main__':
 
 There are actually two separate Gradio apps in this example! One that simply displays a log in button (this demo is accessible to any user), while the other main demo is only accessible to users that are logged in. You can try this example out on [this Space](https://huggingface.co/spaces/gradio/oauth-example).
 
+## MCP Servers
+
+Gradio apps can function as MCP (Model Context Protocol) servers, allowing LLMs to use your app's functions as tools. By simply setting `mcp_server=True` in the `.launch()` method, Gradio automatically converts your app's functions into MCP tools that can be called by MCP clients like Claude Desktop, Cursor, or Cline. The server exposes tools based on your function names, docstrings, and type hints, and can handle file uploads, authentication headers, and progress updates. You can also create MCP-only functions using `gr.api` and expose resources and prompts using decorators. For a comprehensive guide on building MCP servers with Gradio, see [Building an MCP Server with Gradio](https://www.gradio.app/guides/building-mcp-server-with-gradio).
+
+## Rate Limits
+
+When publishing your app publicly, and making it available via API or via MCP server, you might want to set rate limits to prevent users from abusing your app. You can identify users using their IP address (using the `gr.Request` object [as discussed above](#accessing-the-network-request-directly)) or, if they are logged in via Hugging Face OAuth, using their username. To see a complete example of how to set rate limits, please see [this Gradio app](https://github.com/gradio-app/gradio/blob/main/demo/rate_limit/run.py).
 
 ## Analytics
 

@@ -22,10 +22,18 @@ if TYPE_CHECKING:
 @document()
 class LoginButton(Button):
     """
-    Creates a button that redirects the user to Sign with Hugging Face using OAuth. If
-    created inside of a Blocks context, it will add an event to check if the user is logged in
-    and update the button text accordingly. If created outside of a Blocks context, call the
-    `LoginButton.activate()` method to add the event.
+    Creates a "Sign In" button that redirects the user to sign in with Hugging Face OAuth.
+    Once the user is signed in, the button will act as a logout button, and you can
+    retrieve a signed-in user's profile by adding a parameter of type `gr.OAuthProfile`
+    to any Gradio function. This will only work if this Gradio app is running in a
+    Hugging Face Space. Permissions for the OAuth app can be configured in the Spaces
+    README file, as described here: <a href="https://huggingface.co/docs/hub/en/spaces-oauth" target="_blank">Spaces OAuth Docs</a>.
+    For local development, instead of OAuth, the local Hugging Face account that is
+    logged in (via `hf auth login`) will be available through the `gr.OAuthProfile`
+    object.
+
+    Demos: login_with_huggingface
+    Guides: sharing-your-app
     """
 
     is_template = True
