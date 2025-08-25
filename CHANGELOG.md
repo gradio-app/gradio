@@ -1,5 +1,22 @@
 # gradio
 
+## 5.44.0
+
+### Features
+
+- [#11747](https://github.com/gradio-app/gradio/pull/11747) [`513d21e`](https://github.com/gradio-app/gradio/commit/513d21ef002f56d8d5ea2bf8edc95d9638393362) - feat: Add autoscroll parameter to HTML component.  Thanks @Rishirandhawa!
+- [#11736](https://github.com/gradio-app/gradio/pull/11736) [`40451c9`](https://github.com/gradio-app/gradio/commit/40451c9923f9f00866cfb4f4cd3ab4b755200da8) - Support different encodings in reload mode.  Thanks @freddyaboulton!
+- [#11767](https://github.com/gradio-app/gradio/pull/11767) [`f67faa4`](https://github.com/gradio-app/gradio/commit/f67faa464add0ef6a4a58d60eb2ae850125ebb87) - Use icons instead of Emojis in MCP page.  Thanks @freddyaboulton!
+- [#11773](https://github.com/gradio-app/gradio/pull/11773) [`e16e45c`](https://github.com/gradio-app/gradio/commit/e16e45c57d0293dd82b40c6ba6260100544937f3) - Add docs for auth and rate limiting.  Thanks @abidlabs!
+
+### Fixes
+
+- [#11771](https://github.com/gradio-app/gradio/pull/11771) [`f53b24b`](https://github.com/gradio-app/gradio/commit/f53b24b010a98d9028d8bade39db9c4dd37782d1) - Fix file upload error due to file extension case differences.  Thanks @rca-umb!
+- [#11756](https://github.com/gradio-app/gradio/pull/11756) [`62209da`](https://github.com/gradio-app/gradio/commit/62209dae1d25bd9bc9e6cdf0c3885d722c43b947) - Remove gray line present in ChatInterface demos.  Thanks @freddyaboulton!
+- [#11757](https://github.com/gradio-app/gradio/pull/11757) [`710bbc2`](https://github.com/gradio-app/gradio/commit/710bbc2894bf52111a4d33dc059e2d5796fb2c61) - Allow path parameter when mounting app.  Thanks @aliabid94!
+- [#11755](https://github.com/gradio-app/gradio/pull/11755) [`9260ffb`](https://github.com/gradio-app/gradio/commit/9260ffbd4dcef33886362f0ce468003dfd83141b) - Fix handling of missing `choices` in streaming response.  Thanks @alugowski!
+- [#11746](https://github.com/gradio-app/gradio/pull/11746) [`354f236`](https://github.com/gradio-app/gradio/commit/354f2365fec5b257ee2830eb5239a250d1eb3228) - Fix bug where allowed paths not respected after first reload.  Thanks @freddyaboulton!
+
 ## 5.43.1
 
 ### Features

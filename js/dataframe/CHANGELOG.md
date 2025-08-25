@@ -1,5 +1,16 @@
 # @gradio/dataframe
 
+## 0.19.0
+
+### Features
+
+- [#11712](https://github.com/gradio-app/gradio/pull/11712) [`0025e1a`](https://github.com/gradio-app/gradio/commit/0025e1a157edef57def99e4bf24a3686ff38eaca) - Publish gr.Dataframe as standalone library.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/icons@0.13.1
+- @gradio/upload@0.16.16
+
 ## 0.18.8
 
 ### Dependency updates
