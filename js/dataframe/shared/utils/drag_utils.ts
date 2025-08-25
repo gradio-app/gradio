@@ -1,5 +1,5 @@
 import type { CellCoordinate } from "../types";
-import { get_range_selection } from "../selection_utils";
+import { get_range_selection } from "../utils/selection_utils";
 
 export type DragState = {
 	is_dragging: boolean;
