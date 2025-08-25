@@ -68,6 +68,7 @@ export async function load({ params, parent }) {
 	if (!js_pages.some((p: string) => p === params.jsdoc)) {
 		throw error(404);
 	}
+
 	function plugin() {
 		return function transform(tree: any) {
 			tree.children.forEach((n: any) => {

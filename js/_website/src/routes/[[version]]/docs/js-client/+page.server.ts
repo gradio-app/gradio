@@ -36,7 +36,8 @@ const langs = {
 	directory: "json",
 	svelte: "svelte",
 	sv: "svelte",
-	md: "markdown"
+	md: "markdown",
+	css: "css"
 };
 
 function highlight(code: string, lang: string | undefined) {
@@ -118,6 +119,8 @@ export async function load({ parent }) {
 		}
 	});
 	let readme_html = await compiled?.code;
+
+	console.log({ components });
 
 	return {
 		readme_html,
