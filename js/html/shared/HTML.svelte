@@ -12,12 +12,18 @@
 	}>();
 
 	let div: HTMLDivElement;
+	let scrollable_parent: HTMLElement | null = null;
 
 	function get_scrollable_parent(element: HTMLElement): HTMLElement | null {
 		let parent = element.parentElement;
 		while (parent) {
 			const style = window.getComputedStyle(parent);
-			if (style.overflow === 'auto' || style.overflow === 'scroll' || style.overflowY === 'auto' || style.overflowY === 'scroll') {
+			if (
+				style.overflow === "auto" ||
+				style.overflow === "scroll" ||
+				style.overflowY === "auto" ||
+				style.overflowY === "scroll"
+			) {
 				return parent;
 			}
 			parent = parent.parentElement;
@@ -26,17 +32,23 @@
 	}
 
 	function is_at_bottom(): boolean {
-		const scrollableParent = get_scrollable_parent(div);
-		if (!scrollableParent) {
-			return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100;
+		if (!div) return true;
+		if (!scrollable_parent) {
+			return (
+				window.innerHeight + window.scrollY >=
+				document.documentElement.scrollHeight - 100
+			);
 		}
-		return scrollableParent.offsetHeight + scrollableParent.scrollTop >= scrollableParent.scrollHeight - 100;
+		return (
+			scrollable_parent.offsetHeight + scrollable_parent.scrollTop >=
+			scrollable_parent.scrollHeight - 100
+		);
 	}
 
 	function scroll_to_bottom(): void {
-		const scrollableParent = get_scrollable_parent(div);
-		if (scrollableParent) {
-			scrollableParent.scrollTo(0, scrollableParent.scrollHeight);
+		if (!div) return;
+		if (scrollable_parent) {
+			scrollable_parent.scrollTo(0, scrollable_parent.scrollHeight);
 		} else {
 			window.scrollTo(0, document.documentElement.scrollHeight);
 		}
@@ -44,6 +56,9 @@
 
 	async function scroll_on_value_update(): Promise<void> {
 		if (!autoscroll || !div) return;
+		if (!scrollable_parent) {
+			scrollable_parent = get_scrollable_parent(div);
+		}
 		if (is_at_bottom()) {
 			await new Promise((resolve) => setTimeout(resolve, 300));
 			scroll_to_bottom();
