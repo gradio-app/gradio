@@ -117,4 +117,17 @@ describe("Audio", () => {
 
 		assert.notExists(queryByTestId("source-select"));
 	});
+
+	test("renders audio component with subtitles", async () => {
+		const { getByTestId } = await render(Audio, {
+			...default_values,
+			subtitles:
+				"https://raw.githubusercontent.com/gradio-app/gradio/refs/heads/main/demo/video_subtitle/files/s2.vtt",
+			streaming: false,
+			pending: false,
+			sources: ["microphone"],
+			interactive: true
+		});
+		assert.exists(getByTestId("subtitles-toggle"));
+	});
 });

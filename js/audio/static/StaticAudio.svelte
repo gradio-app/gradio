@@ -16,6 +16,7 @@
 	import type { WaveformOptions } from "../shared/types";
 
 	export let value: null | FileData = null;
+	export let subtitles: null | FileData = null;
 	export let label: string;
 	export let show_label = true;
 	export let show_download_button = true;
@@ -78,6 +79,7 @@
 
 	<AudioPlayer
 		{value}
+		subtitles={subtitles?.url}
 		{label}
 		{i18n}
 		{waveform_settings}

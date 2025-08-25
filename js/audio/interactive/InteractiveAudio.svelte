@@ -15,6 +15,7 @@
 	import type { WaveformOptions } from "../shared/types";
 
 	export let value: null | FileData = null;
+	export let subtitles: null | FileData = null;
 	export let label: string;
 	export let root: string;
 	export let loop: boolean;
@@ -305,6 +306,7 @@
 		<AudioPlayer
 			bind:mode
 			{value}
+			subtitles={subtitles?.url}
 			{label}
 			{i18n}
 			{dispatch_blob}
