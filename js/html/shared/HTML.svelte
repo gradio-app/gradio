@@ -92,9 +92,4 @@
 	.hide {
 		display: none;
 	}
-
-	.prose {
-		overflow-wrap: break-word;
-		word-wrap: break-word;
-	}
 </style>
