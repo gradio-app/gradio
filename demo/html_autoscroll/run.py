@@ -8,7 +8,7 @@ def longer(val):
         yield val
 
 with gr.Blocks() as demo:
-    h = gr.HTML(value="<p>This is a paragraph 0.</p>"*200, max_height=200, autoscroll=True)
+    h = gr.HTML(value="<p>This is a paragraph 0.</p>", max_height=200, autoscroll=True)
     demo.load(longer, h, h)
 
 demo.launch()

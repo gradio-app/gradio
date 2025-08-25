@@ -26,7 +26,6 @@
 	}
 
 	function is_at_bottom(): boolean {
-		if (!div) return true;
 		const scrollableParent = get_scrollable_parent(div);
 		if (!scrollableParent) {
 			return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100;
@@ -35,7 +34,6 @@
 	}
 
 	function scroll_to_bottom(): void {
-		if (!div) return;
 		const scrollableParent = get_scrollable_parent(div);
 		if (scrollableParent) {
 			scrollableParent.scrollTo(0, scrollableParent.scrollHeight);
@@ -45,8 +43,7 @@
 	}
 
 	async function scroll_on_value_update(): Promise<void> {
-		if (!autoscroll) return;
-		await tick();
+		if (!autoscroll || !div) return;
 		if (is_at_bottom()) {
 			await new Promise((resolve) => setTimeout(resolve, 300));
 			scroll_to_bottom();
