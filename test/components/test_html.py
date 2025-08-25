@@ -23,7 +23,7 @@ class TestHTML:
             "max_height": None,
             "container": False,
             "padding": True,
-            "autoscroll": True,
+            "autoscroll": False,
         }
 
     def test_in_interface(self):
