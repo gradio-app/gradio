@@ -1706,7 +1706,7 @@ def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[st
     of the function, then a line starts with "Args:", "Parameters:", or "Arguments:",
     followed by lines of the form "param_name: description", then optionally lines
     that starts with "Returns:" followed by descriptions of return values. All lines
-    after the "Returns:" line is added in the `returns` list (including e.g. "Examples").
+    after the "Returns:" line are added in the `returns` list (including e.g. "Examples").
 
     Parameters:
         fn: The function to get the docstring for.
