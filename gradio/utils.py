@@ -1704,8 +1704,9 @@ def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[st
     Get the description of a function, its parameters, and return values by parsing the docstring.
     The docstring should be formatted as follows: first lines are the description
     of the function, then a line starts with "Args:", "Parameters:", or "Arguments:",
-    followed by lines of the form "param_name: description", then optionally a line
-    that starts with "Returns:" followed by descriptions of return values.
+    followed by lines of the form "param_name: description", then optionally lines
+    that starts with "Returns:" followed by descriptions of return values. All lines
+    after the "Returns:" line is added in the `returns` list (including e.g. "Examples").
 
     Parameters:
         fn: The function to get the docstring for.
@@ -1782,16 +1783,7 @@ def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[st
                 if not line:
                     continue
 
-                try:
-                    if line.startswith("-"):
-                        returns.append(line[1:].strip())
-                    elif ":" in line:
-                        _, return_desc = line.split(":", 1)
-                        returns.append(return_desc.strip())
-                    else:
-                        returns.append(line)
-                except Exception:
-                    continue
+                returns.append(line)
 
     except Exception:
         pass
