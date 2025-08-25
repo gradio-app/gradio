@@ -2,7 +2,6 @@
 	import { createEventDispatcher, tick, getContext } from "svelte";
 	import type { FileData } from "@gradio/client";
 	import { prepare_files, type Client } from "@gradio/client";
-	import { _ } from "svelte-i18n";
 	import UploadProgress from "./UploadProgress.svelte";
 	import { create_drag } from "./utils";
 
@@ -212,7 +211,7 @@
 
 	async function load_files_from_upload(files: File[]): Promise<void> {
 		const files_to_load = files.filter((file) => {
-			const file_extension = "." + file.name.split(".").pop();
+			const file_extension = "." + file.name.toLowerCase().split(".").pop();
 			if (
 				file_extension &&
 				is_valid_mimetype(accept_file_types, file_extension, file.type)
