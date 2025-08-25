@@ -23,7 +23,7 @@
 	export let max_height: number | undefined = undefined;
 	export let container = false;
 	export let padding = true;
-	export let autoscroll = true;
+	export let autoscroll = false;
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} padding={false}>

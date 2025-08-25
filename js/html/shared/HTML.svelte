@@ -4,7 +4,7 @@
 	export let elem_classes: string[] = [];
 	export let value: string;
 	export let visible = true;
-	export let autoscroll = true;
+	export let autoscroll = false;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -13,20 +13,42 @@
 
 	let div: HTMLDivElement;
 
+	function get_scrollable_parent(element: HTMLElement): HTMLElement | null {
+		let parent = element.parentElement;
+		while (parent) {
+			const style = window.getComputedStyle(parent);
+			if (style.overflow === 'auto' || style.overflow === 'scroll' || style.overflowY === 'auto' || style.overflowY === 'scroll') {
+				return parent;
+			}
+			parent = parent.parentElement;
+		}
+		return null;
+	}
+
 	function is_at_bottom(): boolean {
-		return div && div.offsetHeight + div.scrollTop > div.scrollHeight - 100;
+		if (!div) return true;
+		const scrollableParent = get_scrollable_parent(div);
+		if (!scrollableParent) {
+			return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100;
+		}
+		return scrollableParent.offsetHeight + scrollableParent.scrollTop >= scrollableParent.scrollHeight - 100;
 	}
 
 	function scroll_to_bottom(): void {
 		if (!div) return;
-		div.scrollTo(0, div.scrollHeight);
+		const scrollableParent = get_scrollable_parent(div);
+		if (scrollableParent) {
+			scrollableParent.scrollTo(0, scrollableParent.scrollHeight);
+		} else {
+			window.scrollTo(0, document.documentElement.scrollHeight);
+		}
 	}
 
 	async function scroll_on_value_update(): Promise<void> {
 		if (!autoscroll) return;
+		await tick();
 		if (is_at_bottom()) {
-			await tick(); // Wait for the DOM to update so that the scrollHeight is correct
-			await new Promise((resolve) => setTimeout(resolve, 100));
+			await new Promise((resolve) => setTimeout(resolve, 300));
 			scroll_to_bottom();
 		}
 	}
@@ -35,6 +57,7 @@
 		if (autoscroll) {
 			scroll_to_bottom();
 		}
+		scroll_on_value_update();
 	});
 
 	$: value, dispatch("change");
@@ -56,5 +79,10 @@
 <style>
 	.hide {
 		display: none;
+	}
+
+	.prose {
+		overflow-wrap: break-word;
+		word-wrap: break-word;
 	}
 </style>
