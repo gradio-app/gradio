@@ -72,3 +72,6 @@ export { default as Retry } from "./Retry.svelte";
 export { default as ScrollDownArrow } from "./ScrollDownArrow.svelte";
 export { default as ZoomIn } from "./ZoomIn.svelte";
 export { default as ZoomOut } from "./ZoomOut.svelte";
+export { default as Tool } from "./Tool.svelte";
+export { default as Prompt } from "./Prompt.svelte";
+export { default as Resource } from "./Resource.svelte";
