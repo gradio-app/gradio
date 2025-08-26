@@ -27,7 +27,7 @@ class LoginButton(Button):
     retrieve a signed-in user's profile by adding a parameter of type `gr.OAuthProfile`
     to any Gradio function. This will only work if this Gradio app is running in a
     Hugging Face Space. Permissions for the OAuth app can be configured in the Spaces
-    README file, as described here: <a href="https://huggingface.co/docs/hub/en/spaces-oauth" target="_blank">Spaces OAuth Docs</a>.
+    README file, as described here: https://huggingface.co/docs/hub/en/spaces-oauth.
     For local development, instead of OAuth, the local Hugging Face account that is
     logged in (via `hf auth login`) will be available through the `gr.OAuthProfile`
     object.
