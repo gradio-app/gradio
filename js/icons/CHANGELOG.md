@@ -1,5 +1,11 @@
 # @gradio/icons
 
+## 0.13.1
+
+### Features
+
+- [#11767](https://github.com/gradio-app/gradio/pull/11767) [`f67faa4`](https://github.com/gradio-app/gradio/commit/f67faa464add0ef6a4a58d60eb2ae850125ebb87) - Use icons instead of Emojis in MCP page.  Thanks @freddyaboulton!
+
 ## 0.13.0
 
 ### Features
