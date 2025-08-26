@@ -120,7 +120,6 @@ export async function load({ parent }) {
 	});
 	let readme_html = await compiled?.code;
 
-
 	return {
 		readme_html,
 		components,
