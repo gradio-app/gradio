@@ -120,8 +120,7 @@ def format_title(title: str):
 
 
 def deploy_to_gcloud():
-    """Deploy a Gradio app to Google Cloud Run."""
-    # Check if gcloud is installed
+    """Deploy a Gradio app to Google Cloud Run. Always uses app.py as the entry point."""
     if not shutil.which("gcloud"):
         print(
             "[bold red]gcloud CLI is not installed.[/bold red]\n"
@@ -130,15 +129,45 @@ def deploy_to_gcloud():
         )
         return
 
+    if not os.path.exists("app.py"):
+        print(
+            "[bold red]Error:[/bold red] app.py not found. Google Cloud Run deployment requires app.py as the entry point."
+        )
+        return
+
+    requirements_file = "requirements.txt"
+    if not os.path.exists(requirements_file):
+        if (
+            input(
+                f"Create requirements.txt with gradio=={gr.__version__}? (y/n) [y]: "
+            ).lower()
+            != "n"
+        ):
+            with open(requirements_file, "w", encoding="utf-8") as f:
+                f.write(f"gradio=={gr.__version__}\n")
+            print(f"Created requirements.txt with gradio=={gr.__version__}")
+    else:
+        with open(requirements_file, encoding="utf-8") as f:
+            requirements_content = f.read()
+
+        if "gradio" not in requirements_content and (
+            input(
+                f"Add gradio=={gr.__version__} to requirements.txt? (y/n) [y]: "
+            ).lower()
+            != "n"
+        ):
+            with open(requirements_file, "a", encoding="utf-8") as f:
+                f.write(f"gradio=={gr.__version__}\n")
+            print(f"Added gradio=={gr.__version__} to requirements.txt")
+
     print("[bold]Deploying to Google Cloud Run...[/bold]")
 
-    # Run gcloud run deploy with --source=. and --created-by=gradio
     try:
         subprocess.run(
             ["gcloud", "run", "deploy", "--source=.", "--created-by=gradio"],
             check=True,
             text=True,
-            capture_output=False,  # Allow interactive prompts
+            capture_output=False,
         )
         print("[green]✓ Deployment complete![/green]")
     except subprocess.CalledProcessError as e:
@@ -158,19 +187,19 @@ def deploy(
         str | None, Option(help="Deployment provider (spaces or gcloud)")
     ] = "spaces",
 ):
-    # Handle Google Cloud deployment
     if provider == "gcloud":
+        if app_file and app_file != "app.py":
+            print(
+                "[yellow]Warning:[/yellow] --app-file is ignored for Google Cloud Run deployment. Using app.py as entry point."
+            )
         deploy_to_gcloud()
         return
 
-    # Handle Hugging Face Spaces deployment (default)
     if provider != "spaces":
         print(f"[red]Unknown provider: {provider}. Use 'spaces' or 'gcloud'.[/red]")
         return
 
-    if (
-        os.getenv("SYSTEM") == "spaces"
-    ):  # in case a repo with this function is uploaded to spaces
+    if os.getenv("SYSTEM") == "spaces":
         return
 
     hf_api = huggingface_hub.HfApi()
