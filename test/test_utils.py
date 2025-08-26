@@ -785,7 +785,33 @@ class TestGetFunctionDescription:
         description, parameters, returns = get_function_description(test_func)
         assert description == "This is a test function."
         assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
-        assert returns == ["First return value", "Second return value"]
+        assert returns == ["- First return value", "- Second return value"]
+
+    def test_function_with_extended_returns(self):
+        def test_func(param1, param2):
+            """This is a test function.
+            Args:
+                param1: First parameter
+                param2: Second parameter
+            Returns:
+                - First return value
+                - Second return value
+            Examples:
+                - Example 1
+                - Example 2
+            """
+            pass
+
+        description, parameters, returns = get_function_description(test_func)
+        assert description == "This is a test function."
+        assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
+        assert returns == [
+            "- First return value",
+            "- Second return value",
+            "Examples:",
+            "- Example 1",
+            "- Example 2",
+        ]
 
     def test_function_with_no_docstring(self):
         def test_func():
@@ -835,7 +861,7 @@ class TestGetFunctionDescription:
         description, parameters, returns = get_function_description(test_func)
         assert description == "This is a test function."
         assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
-        assert returns == ["First return value", "Second return value"]
+        assert returns == ["x: First return value", "y: Second return value"]
 
     def test_function_with_multiline_description(self):
         def test_func(param1, param2):
@@ -874,7 +900,7 @@ class TestGetFunctionDescription:
             "param2": "",
             "param3": "description3",
         }
-        assert returns == ["First return value", "Second return value"]
+        assert returns == ["- First return value", "- Second return value"]
 
     def test_function_with_nested_colons(self):
         def test_func(param1, param2):
