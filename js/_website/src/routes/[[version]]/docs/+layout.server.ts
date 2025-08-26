@@ -9,6 +9,8 @@ const VERSION = version.version;
 
 let cache = new Map();
 
+const components_to_document = ["dataframe", "js-client"];
+
 async function load_release_docs(
 	version: string
 ): Promise<typeof import("$lib/json/docs.json")> {
@@ -39,7 +41,10 @@ export async function load({ params, url }) {
 
 	let docs: { [key: string]: any } = docs_json.docs;
 	let js = docs_json.js || {};
-	let js_pages = docs_json.js_pages || [];
+	let js_pages =
+		docs_json.js_pages.filter((p: string) =>
+			components_to_document.includes(p)
+		) || [];
 	let js_client = docs_json.js_client;
 	let on_main = params.version === "main";
 	let pages: any = docs_json.pages;
