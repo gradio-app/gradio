@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import os
 import re
+import shutil
+import subprocess
 from typing import Annotated
 
 import huggingface_hub
@@ -117,12 +119,55 @@ def format_title(title: str):
     return title
 
 
+def deploy_to_gcloud():
+    """Deploy a Gradio app to Google Cloud Run."""
+    # Check if gcloud is installed
+    if not shutil.which("gcloud"):
+        print(
+            "[bold red]gcloud CLI is not installed.[/bold red]\n"
+            "Please install the Google Cloud SDK from: "
+            "[link]https://cloud.google.com/sdk/docs/install[/link]"
+        )
+        return
+
+    print("[bold]Deploying to Google Cloud Run...[/bold]")
+
+    # Run gcloud run deploy with --source=. and --created-by=gradio
+    try:
+        subprocess.run(
+            ["gcloud", "run", "deploy", "--source=.", "--created-by=gradio"],
+            check=True,
+            text=True,
+            capture_output=False,  # Allow interactive prompts
+        )
+        print("[green]✓ Deployment complete![/green]")
+    except subprocess.CalledProcessError as e:
+        print(f"[red]Deployment failed: {e}[/red]")
+        return
+    except KeyboardInterrupt:
+        print("\n[yellow]Deployment cancelled.[/yellow]")
+        return
+
+
 def deploy(
     title: Annotated[str | None, Option(help="Spaces app title")] = None,
     app_file: Annotated[
         str | None, Option(help="File containing the Gradio app")
     ] = None,
+    provider: Annotated[
+        str | None, Option(help="Deployment provider (spaces or gcloud)")
+    ] = "spaces",
 ):
+    # Handle Google Cloud deployment
+    if provider == "gcloud":
+        deploy_to_gcloud()
+        return
+
+    # Handle Hugging Face Spaces deployment (default)
+    if provider != "spaces":
+        print(f"[red]Unknown provider: {provider}. Use 'spaces' or 'gcloud'.[/red]")
+        return
+
     if (
         os.getenv("SYSTEM") == "spaces"
     ):  # in case a repo with this function is uploaded to spaces
