@@ -2,8 +2,8 @@
 	import EditableCell from "./EditableCell.svelte";
 	import CellMenuButton from "./CellMenuButton.svelte";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
-	import type { Datatype } from "./utils";
-	import { is_cell_in_selection } from "./selection_utils";
+	import type { Datatype } from "./utils/utils";
+	import { is_cell_in_selection } from "./utils/selection_utils";
 
 	export let value: string | number;
 	export let index: number;
