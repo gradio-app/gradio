@@ -5,10 +5,8 @@ export const prerender = true;
 async function urlExists(fetch: any, url: string): Promise<boolean> {
 	try {
 		const res = await fetch(url, { method: "HEAD" });
-		console.log("URL EXISTS", url, res, res.ok);
 		return res.ok;
 	} catch (e) {
-		console.log("URL EXISTS ERROR", url, e, false);
 		return false;
 	}
 }
@@ -21,8 +19,6 @@ export async function load({ params, fetch }) {
 		? `/${params.version}/docs/js/js-client`
 		: `/docs/js/js-client`;
 	const exists = await urlExists(fetch, url);
-
-	console.log(url, exists, params);
 
 	if (exists) {
 		throw redirect(302, url);

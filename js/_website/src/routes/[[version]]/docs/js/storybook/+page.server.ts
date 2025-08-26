@@ -10,7 +10,6 @@ import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-csv";
 import "prismjs/components/prism-markup";
 import "prism-svelte";
-import { error } from "@sveltejs/kit";
 
 export const prerender = true;
 

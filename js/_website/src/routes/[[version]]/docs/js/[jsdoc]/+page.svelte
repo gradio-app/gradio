@@ -12,7 +12,6 @@
 	let js_components = js_pages.filter((c) => c !== "js-client");
 	$: name = data.name;
 
-	$: console.log({ name, js_pages });
 
 	$: prev_obj =
 		$page.params?.jsdoc === "atoms"

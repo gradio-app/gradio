@@ -17,8 +17,6 @@ async function load_release_docs(
 	if (cache.has(version)) {
 		return cache.get(version);
 	}
-
-	console.log("loading docs for", version);
 	let docs_json = await fetch(`${DOCS_BUCKET}/${version}/docs.json`);
 
 	let json = await docs_json.json();
@@ -32,8 +30,6 @@ async function load_main_docs(): Promise<typeof import("$lib/json/docs.json")> {
 }
 
 export async function load({ params, url }) {
-	console.log("loading docs for", params);
-	console.log("URL", url);
 	if (params?.version === VERSION) {
 		throw redirect(302, url.href.replace(`/${params.version}`, ""));
 	}

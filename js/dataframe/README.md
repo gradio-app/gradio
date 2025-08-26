@@ -1,6 +1,8 @@
 # @gradio/dataframe
 
-Standalone Svelte component that brings Gradio's Dataframe UI to any Svelte/SvelteKit project. 
+Standalone Svelte component that brings Gradio's Dataframe UI to any Svelte/SvelteKit project.
+
+This component is lightweight, virtualized for efficient rendering of large datasets, and offers features like column freezing, and customizable styling via CSS variables. Use this component when you need a highly interactive, accessible, and easily themeable table for user-facing applications, especially where seamless Svelte/SvelteKit integration is important.
 
 ## Install
 
@@ -15,6 +17,8 @@ With `pnpm`:
 ```shell
 pnpm add @gradio/dataframe
 ```
+
+**[View on npm](https://www.npmjs.com/package/@gradio/dataframe)**
 
 ## Usage (Svelte/SvelteKit)
 
