@@ -2,10 +2,12 @@
 	import { Client } from "@gradio/client";
 	import { onMount } from "svelte";
 	import { BaseCode } from "@gradio/code";
+	import { BaseMultimodalTextbox } from "@gradio/multimodaltextbox";
+	import type { FileData } from "@gradio/client";
 
 	export let app: Client;
 	export let root: string;
-	let prompt = "";
+	let prompt: { text: string; files: FileData[] } = { text: "", files: [] };
 	let editorWidth = 350;
 	let isResizing = false;
 	let editorElement: HTMLDivElement;
@@ -13,9 +15,11 @@
 
 	let codeValue = "";
 	let diffStats: { lines_added: number; lines_removed: number } | null = null;
+	let hasImages = false;
 
 	interface Message {
 		text: string;
+		files: FileData[];
 		isBot: boolean;
 		isPending?: boolean;
 		hash?: string;
@@ -24,25 +28,35 @@
 	let message_history: Message[] = [];
 
 	const submit = (): void => {
-		if (prompt.trim() === "") return;
+		if (prompt.text.trim() === "" && prompt.files.length === 0) return;
 
 		// Clear diff stats when submitting new prompt
 		diffStats = null;
 
 		const userMessageIndex = message_history.length;
-		message_history = [...message_history, { text: prompt, isBot: false }];
+		message_history = [
+			...message_history,
+			{ text: prompt.text, files: prompt.files, isBot: false }
+		];
 
 		const botMessageIndex = message_history.length;
 		message_history = [
 			...message_history,
-			{ text: "Working...", isBot: true, isPending: true }
+			{ text: "Working...", files: [], isBot: true, isPending: true }
 		];
 
-		const userPrompt = prompt;
-		prompt = "";
+		const userPrompt = prompt.text;
+		const userFiles = prompt.files;
+		prompt = { text: "", files: [] };
+
+		// Check if there are images to determine which model to use
+		hasImages = userFiles.some(
+			(file) => file.mime_type && file.mime_type.includes("image")
+		);
 
 		const post = app.post_data(`${root}/gradio_api/vibe-edit/`, {
-			prompt: userPrompt
+			prompt: userPrompt,
+			files: userFiles
 		});
 		post
 			.then(([response, status_code]) => {
@@ -70,6 +84,7 @@
 					index === botMessageIndex
 						? {
 								text: responseData.reasoning ? responseData.reasoning : "Done.",
+								files: [],
 								isBot: true,
 								isPending: false
 							}
@@ -79,7 +94,12 @@
 			.catch((error) => {
 				message_history = message_history.map((msg, index) =>
 					index === botMessageIndex
-						? { text: "Error occurred.", isBot: true, isPending: false }
+						? {
+								text: "Error occurred.",
+								files: [],
+								isBot: true,
+								isPending: false
+							}
 						: msg
 				);
 			});
@@ -96,7 +116,7 @@
 			diffStats = null;
 
 			const messageToUndo = message_history[messageIndex];
-			prompt = messageToUndo.text;
+			prompt = { text: messageToUndo.text, files: messageToUndo.files };
 
 			message_history = message_history.slice(0, messageIndex);
 		} catch (error) {
@@ -222,7 +242,22 @@
 						class:user-message={!message.isBot}
 					>
 						<div class="message-content">
-							<span class="message-text">{message.text}</span>
+							<div class="message-text">
+								<span>{message.text}</span>
+								{#if message.files && message.files.length > 0}
+									<div class="message-files">
+										{#each message.files as file}
+											{#if file.mime_type && file.mime_type.includes("image")}
+												<img
+													src={file.url}
+													alt="Uploaded image"
+													class="message-image"
+												/>
+											{/if}
+										{/each}
+									</div>
+								{/if}
+							</div>
 							{#if !message.isBot && message.hash && !message.isPending}
 								<button
 									class="undo-button"
@@ -263,22 +298,36 @@
 	</div>
 
 	<div class="input-section">
-		<div class="powered-by">Powered by: <code>gpt-oss</code></div>
-		<textarea
-			on:keydown={(e) => {
-				if (e.key === "Enter" && !e.shiftKey) {
-					e.preventDefault();
-					submit();
-				}
-			}}
+		<div class="powered-by">
+			Powered by: <a
+				style="text-decoration: underline;"
+				href={hasImages
+					? "https://hf.co/baidu/ERNIE-4.5-VL-424B-A47B-Base-PT"
+					: "https://hf.co/openai/gpt-oss-120b"}
+				target="_blank">{hasImages ? "ERNIE-4.5-VL" : "gpt-oss"}</a
+			>
+		</div>
+		<BaseMultimodalTextbox
 			bind:value={prompt}
 			placeholder="What can I add or change?"
-			class="prompt-input"
+			lines={1}
+			max_lines={10}
+			file_types={["image"]}
+			file_count="multiple"
+			sources={["upload"]}
+			submit_btn={false}
+			show_label={false}
+			label=""
+			i18n={(value) => value || ""}
+			waveform_settings={{}}
+			{root}
+			upload={(...args) => app.upload(...args)}
+			stream_handler={(...args) => app.stream(...args)}
 		/>
 		<button
 			on:click={submit}
 			class="submit-button"
-			disabled={prompt.trim() === ""}
+			disabled={prompt.text.trim() === "" && prompt.files.length === 0}
 		>
 			Send
 		</button>
@@ -433,6 +482,33 @@
 		flex: 1;
 	}
 
+	.message-files {
+		margin-top: 8px;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.message-image {
+		max-width: 200px;
+		max-height: 150px;
+		border-radius: var(--radius-sm);
+		object-fit: cover;
+	}
+
+	.file-item {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		font-size: 12px;
+		color: var(--body-text-color-subdued);
+	}
+
+	.file-item :global(svg) {
+		width: 16px;
+		height: 16px;
+	}
+
 	.undo-button {
 		background: var(--button-secondary-background-fill);
 		color: var(--button-secondary-text-color);
@@ -464,24 +540,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: 12px;
-	}
-
-	.prompt-input {
-		width: 100%;
-		min-height: 80px;
-		background: var(--input-background-fill);
-		border: 1px solid var(--border-color-primary);
-		border-radius: var(--input-radius);
-		padding: 12px;
-		resize: vertical;
-		outline: none;
-		font-family: inherit;
-		font-size: 14px;
-		color: var(--body-text-color);
-	}
-
-	.prompt-input:focus {
-		border-color: var(--color-accent);
 	}
 
 	.submit-button {
@@ -525,5 +583,9 @@
 
 	.diff-stats .removed {
 		color: #ef4444;
+	}
+
+	:global(.upload-button) {
+		margin-right: 0.5rem !important;
 	}
 </style>
