@@ -144,7 +144,6 @@ class Queue:
         self.ANAYLTICS_CACHE_FREQUENCY = int(
             os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "10")
         )
-        print("SELF.ANAYLTICS_CACHE_FREQUENCY", self.ANAYLTICS_CACHE_FREQUENCY)
 
     def compute_analytics_summary(self, event_analytics):
         if (
