@@ -451,6 +451,22 @@ class TestRoutes:
         assert demo.allowed_paths == ["test/test_files/bus.png"]
         assert demo.show_error
 
+    def test_mount_gradio_app_with_path_params(self):
+        app = FastAPI()
+
+        def print_id(_, request: gr.Request):
+            return request.path_params["id"]
+
+        demo = gr.Interface(print_id, "textbox", "textbox")
+        app = gr.mount_gradio_app(
+            app,
+            demo,
+            path="/project/{id}",
+        )
+        with TestClient(app) as client:
+            response = client.get("/project/123")
+            assert response.status_code == 200
+
     def test_mount_gradio_app_with_lifespan(self):
         @asynccontextmanager
         async def empty_lifespan(app: FastAPI):
@@ -476,7 +492,7 @@ class TestRoutes:
     def test_mount_gradio_app_with_startup(self):
         app = FastAPI()
 
-        @app.on_event("startup")
+        @app.on_event("startup")  # type: ignore
         async def empty_startup():
             return
 
@@ -1919,3 +1935,36 @@ def test_deep_link_unique_per_session():
                 ] == number and component["props"]["value"][0] == str(number)
 
     assert all(verified_configs)
+
+
+def test_server_fn_passes_request():
+    import requests
+
+    from gradio.components.base import server
+
+    def get_url(self, request: gr.Request):
+        return request.url
+
+    tb = gr.Textbox()
+    tb.get_url = server(get_url)  # type: ignore
+
+    iface = gr.Interface(lambda x: f"Hello {x}", inputs=tb, outputs="code")
+    component_id = None
+    for component in iface.config["components"]:
+        if component["type"] == "textbox":  # type: ignore
+            component_id = component["id"]  # type: ignore
+            break
+
+    assert component_id
+    _, local_url, _ = iface.launch(prevent_thread_lock=True)
+    print(local_url)
+
+    form_data = {
+        "session_hash": "foo",
+        "component_id": component_id,
+        "fn_name": "get_url",
+        "data": json.dumps({"foo": "bar"}),
+    }
+    response = requests.post(f"{local_url}/gradio_api/component_server", json=form_data)
+    assert response.status_code == 200
+    assert response.json()["_url"].endswith("/gradio_api/component_server")

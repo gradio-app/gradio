@@ -3,7 +3,7 @@ from __future__ import annotations
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 from rich.markup import escape
 from typer import Argument, Option
@@ -99,7 +99,7 @@ def _install(
         str, Option(help="NPM install command to use. Default is 'npm install'.")
     ] = "npm install",
     pip_path: Annotated[
-        Optional[str],
+        str | None,
         Option(
             help="Path to pip executable. If None, will use the default path found by `which pip3`. If pip3 is not found, `which pip` will be tried. If both fail an error will be raised."
         ),

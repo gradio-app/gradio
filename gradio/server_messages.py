@@ -1,4 +1,4 @@
-from typing import Literal, Optional, Union
+from typing import Literal, Union
 
 from gradio_client.utils import ServerMessage
 from pydantic import BaseModel
@@ -6,15 +6,15 @@ from pydantic import BaseModel
 
 class BaseMessage(BaseModel):
     msg: ServerMessage
-    event_id: Optional[str] = None
+    event_id: str | None = None
 
 
 class ProgressUnit(BaseModel):
-    index: Optional[int | float] = None
-    length: Optional[int | float] = None
-    unit: Optional[str] = None
-    progress: Optional[float] = None
-    desc: Optional[str] = None
+    index: int | float | None = None
+    length: int | float | None = None
+    unit: str | None = None
+    progress: float | None = None
+    desc: str | None = None
 
 
 class ProgressMessage(BaseMessage):
@@ -26,28 +26,28 @@ class LogMessage(BaseMessage):
     msg: Literal[ServerMessage.log] = ServerMessage.log  # type: ignore
     log: str
     level: Literal["info", "warning", "success"]
-    duration: Optional[float] = 10
+    duration: float | None = 10
     visible: bool = True
     title: str
 
 
 class EstimationMessage(BaseMessage):
     msg: Literal[ServerMessage.estimation] = ServerMessage.estimation  # type: ignore
-    rank: Optional[int] = None
+    rank: int | None = None
     queue_size: int
-    rank_eta: Optional[float] = None
+    rank_eta: float | None = None
 
 
 class ProcessStartsMessage(BaseMessage):
     msg: Literal[ServerMessage.process_starts] = ServerMessage.process_starts  # type: ignore
-    eta: Optional[float] = None
+    eta: float | None = None
 
 
 class ProcessCompletedMessage(BaseMessage):
     msg: Literal[ServerMessage.process_completed] = ServerMessage.process_completed  # type: ignore
     output: dict
     success: bool
-    title: Optional[str] = None
+    title: str | None = None
 
 
 class ProcessGeneratingMessage(BaseMessage):
@@ -56,7 +56,7 @@ class ProcessGeneratingMessage(BaseMessage):
     )
     output: dict
     success: bool
-    time_limit: Optional[float] = None
+    time_limit: float | None = None
 
 
 class HeartbeatMessage(BaseMessage):

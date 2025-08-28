@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Block } from "@gradio/atoms";
 	import CopyButton from "./CopyButton.svelte";
+	import { Tool, Prompt, Resource } from "@gradio/icons";
 
 	export let mcp_server_active: boolean;
 	export let mcp_server_url: string;
@@ -26,6 +27,10 @@
 		description: string;
 		parameters: Record<string, ToolParameter>;
 		expanded?: boolean;
+		meta: {
+			mcp_type: "tool" | "resource" | "prompt";
+			file_data_present: boolean;
+		};
 	}
 
 	type Transport = "streamable_http" | "sse" | "stdio";
@@ -37,6 +42,12 @@
 		["sse", "SSE"],
 		["stdio", "STDIO"]
 	] as const;
+
+	const tool_type_icons: Record<Tool["meta"]["mcp_type"], typeof Tool> = {
+		tool: Tool,
+		resource: Resource,
+		prompt: Prompt
+	};
 
 	$: display_url =
 		current_transport === "sse" ? mcp_server_url : mcp_server_url_streamable;
@@ -135,9 +146,15 @@
 	{/if}
 
 	<div class="tool-selection">
-		<strong
-			>{all_tools.length > 0 ? all_tools.length : tools.length} Available MCP Tools</strong
-		>
+		<strong>
+			{all_tools.length > 0 ? all_tools.length : tools.length} Available MCP Tools
+			(<span style="display: inline-block; vertical-align: sub;"><Tool /></span
+			>), Resources (<span style="display: inline-block; vertical-align: sub;"
+				><Resource /></span
+			>), and Prompts (<span style="display: inline-block; vertical-align: sub;"
+				><Prompt /></span
+			>)
+		</strong>
 		{#if all_tools.length > 0}
 			<div class="tool-selection-controls">
 				<button
@@ -187,14 +204,23 @@
 						class="tool-header"
 						on:click={() => (tool.expanded = !tool.expanded)}
 					>
-						<span
-							><span class="tool-name">{tool.name}</span> &nbsp;
-							<span class="tool-description"
-								>{tool.description
+						<span style="display: inline-block">
+							<span
+								style="display: inline-block; padding-right: 6px; vertical-align: sub"
+							>
+								{#if tool_type_icons[tool.meta.mcp_type]}
+									{@const Icon = tool_type_icons[tool.meta.mcp_type]}
+									<Icon />
+								{/if}
+							</span>
+							<span class="tool-name">{tool.name}</span>
+							&nbsp;
+							<span class="tool-description">
+								{tool.description
 									? tool.description
-									: "⚠︎ No description provided in function docstring"}</span
-							></span
-						>
+									: "⚠︎ No description provided in function docstring"}
+							</span>
+						</span>
 						<span class="tool-arrow">{tool.expanded ? "▼" : "▶"}</span>
 					</button>
 				</div>
