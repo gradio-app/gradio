@@ -967,72 +967,22 @@ function determine_visible_components(
 	parent_tabs_context?: { selected_tab_id?: string | number }
 ): Set<number> {
 	const visible_components: Set<number> = new Set();
+
 	const component = components.find((c) => c.id === layout.id);
 
 	if (!component) {
 		return visible_components;
 	}
 
-	// Check if the component itself is visible
-	const component_visible =
-		parent_visible &&
-		(typeof component.props.visible === "boolean"
-			? component.props.visible
-			: true);
-
-	// Handle tab_item special case
-	if (component.type === "tabitem") {
-		if (
-			is_tab_item_visible(component, component_visible, parent_tabs_context)
-		) {
-			visible_components.add(component.id);
-
-			// Process children if this tab item is visible
-			const child_visible = process_children_visibility(
-				layout,
-				components,
-				parent_tabs_context
-			);
-			child_visible.forEach((id) => visible_components.add(id));
-		}
-		// If tab item is not visible, none of its children should be loaded
-		return visible_components;
-	}
-
-	// Handle tabs component
-	if (component.type === "tabs") {
-		if (component_visible) {
-			visible_components.add(component.id);
-
-			// Determine which tab should be selected
-			const selected_tab_id = get_selected_tab_id(
-				component,
-				layout,
-				components
-			);
-
-			// Process children with tabs context
-			const child_visible = process_children_visibility(layout, components, {
-				selected_tab_id
-			});
-			child_visible.forEach((id) => visible_components.add(id));
-		}
-		return visible_components;
-	}
-
-	// For regular components
-	if (component_visible) {
-		visible_components.add(component.id);
-
-		// Process children if this component is visible
-		const child_visible = process_children_visibility(
-			layout,
-			components,
-			parent_tabs_context
-		);
-		child_visible.forEach((id) => visible_components.add(id));
-	}
-	// If component is not visible, don't process children
+	// disabled for now
+	// add everything to the visible components set
+	const child_visible = process_children_visibility(
+		layout,
+		components,
+		parent_tabs_context
+	);
+	child_visible.forEach((id) => visible_components.add(id));
+	visible_components.add(layout.id);
 
 	return visible_components;
 }

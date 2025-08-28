@@ -32,7 +32,5 @@
 	{scale}
 	on:select={({ detail }) => gradio?.dispatch("select", detail)}
 >
-	{#if visible}
-		<slot />
-	{/if}
+	<slot />
 </TabItem>
