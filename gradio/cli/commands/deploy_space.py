@@ -159,9 +159,11 @@ def check_gcloud_auth():
             print(f"[red]Failed to run 'gcloud init': {init_error}[/red]")
             return False
     except FileNotFoundError:
-        print("[bold red]gcloud CLI not found. Please install Google Cloud SDK.[/bold red]")
+        print(
+            "[bold red]gcloud CLI not found. Please install Google Cloud SDK.[/bold red]"
+        )
         return False
-    
+
     return True
 
 
@@ -176,7 +178,9 @@ def deploy_to_gcloud():
         return
 
     if not check_gcloud_auth():
-        print("[bold red]Google Cloud configuration failed. Please run 'gcloud init' manually.[/bold red]")
+        print(
+            "[bold red]Google Cloud configuration failed. Please run 'gcloud init' manually.[/bold red]"
+        )
         return
 
     if not os.path.exists("app.py"):
