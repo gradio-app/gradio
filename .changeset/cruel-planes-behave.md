@@ -1,6 +1,6 @@
 ---
-"@gradio/gallery": minor
-"gradio": minor
+"@gradio/gallery": patch
+"gradio": patch
 ---
 
-feat:Allow deleting and uploading additional images to interactive `gr.Gallery` 
+fix:Allow deleting and uploading additional images to interactive `gr.Gallery` 
