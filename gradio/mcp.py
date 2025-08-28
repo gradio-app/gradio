@@ -836,7 +836,11 @@ class GradioMCPServer:
             if hasattr(block_fn.fn, "_mcp_type"):
                 mcp_type = block_fn.fn._mcp_type
 
-            meta = {"file_data_present": file_data_present, "mcp_type": mcp_type}
+            meta = {
+                "file_data_present": file_data_present,
+                "mcp_type": mcp_type,
+                "endpoint_name": block_fn.api_name,
+            }
             if required_headers:
                 meta["headers"] = required_headers
 
@@ -845,7 +849,6 @@ class GradioMCPServer:
                 "description": description,
                 "inputSchema": schema,
                 "meta": meta,
-                "endpoint_name": block_fn.api_name,
             }
             schemas.append(info)
 

@@ -138,7 +138,6 @@ def test_analytics_summary(monkeypatch):
             api_name="/predict",
         )
         event_analytics = tc.get("/monitoring/summary").json()
-        print("event_analytics", event_analytics)
         assert "predict" in event_analytics["functions"]
         assert event_analytics["functions"]["predict"]["total_requests"] == 2
         client.predict("a", api_name="/predict")

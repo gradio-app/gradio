@@ -2,7 +2,10 @@
 	export let api_name: string | null = null;
 	export let description: string | null = null;
 	export let analytics: Record<string, any>;
-	import { format_latency } from "./utils";
+	import { format_latency, get_color_from_success_rate } from "./utils";
+
+	const success_rate = api_name ? analytics[api_name]?.success_rate : 0;
+	const color = get_color_from_success_rate(success_rate);
 </script>
 
 <h3>
@@ -11,9 +14,9 @@
 	<span class="desc">{description}</span>
 	{#if analytics && api_name && analytics[api_name]}
 		<span class="analytics">
-			Success: {Math.round(analytics[api_name].success_rate * 100)}%
-			&nbsp;|&nbsp; Total: {analytics[api_name].total_requests}
-			&nbsp;|&nbsp; p50/p90/p99:
+			Total requests: {analytics[api_name].total_requests} (<span style={color}>{Math.round(success_rate * 100)}%</span> successful)
+			&nbsp;|&nbsp;
+			p50/p90/p99:
 			{format_latency(analytics[api_name].process_time_percentiles["50th"])}
 			/
 			{format_latency(analytics[api_name].process_time_percentiles["90th"])}

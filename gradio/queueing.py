@@ -141,24 +141,29 @@ class Queue:
         )
         self.event_analytics: dict[str, dict[str, float | str | None]] = {}
         self.cached_event_analytics_summary = {"functions": {}}
-        self.n_events_since_last_analytics_cache = 0
+        self.event_count_at_last_cache = 0
         self.ANAYLTICS_CACHE_FREQUENCY = int(
-            os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "10")
+            os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "1")
         )
 
     def compute_analytics_summary(self, event_analytics):
         if (
-            len(event_analytics) - self.n_events_since_last_analytics_cache
+            len(event_analytics) - self.event_count_at_last_cache
             >= self.ANAYLTICS_CACHE_FREQUENCY
         ):
-            df = pd.DataFrame(list(event_analytics.values()))
-            self.n_events_since_last_analytics_cache = len(event_analytics)
+            with pd.option_context("future.no_silent_downcasting", True):
+                df = (
+                    pd.DataFrame(list(event_analytics.values()))
+                    .fillna(value=np.nan)
+                    .infer_objects(copy=False)
+                )  # type: ignore
+            self.event_count_at_last_cache = len(event_analytics)
             grouped = df.groupby("function")
             metrics = {"functions": {}}
             for fn_name, fn_df in grouped:
                 status = fn_df["status"].values
                 success = np.sum(status == "success")
-                failure = np.sum(status == "failure")
+                failure = np.sum(status == "failed")
                 total = success + failure
                 success_rate = success / total if total > 0 else None
                 percentiles = np.percentile(fn_df["process_time"].values, [50, 90, 99])  # type: ignore
@@ -690,6 +695,7 @@ class Queue:
                             success=False,
                         ),
                     )
+                    await run_sync(self.compute_analytics_summary, self.event_analytics)
             if response and response.get("is_generating", False):
                 old_response = response
                 old_err = err
