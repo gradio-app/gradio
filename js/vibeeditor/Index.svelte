@@ -248,10 +248,7 @@
 									<div class="message-files">
 										{#each message.files as file}
 											{#if file.mime_type && file.mime_type.includes("image")}
-                <img
-                  src={file.url}
-                  class="message-image"
-                />
+												<img src={file.url} class="message-image" />
 											{/if}
 										{/each}
 									</div>
@@ -494,7 +491,6 @@
 		border-radius: var(--radius-sm);
 		object-fit: cover;
 	}
-
 
 	.undo-button {
 		background: var(--button-secondary-background-fill);
