@@ -1,5 +1,17 @@
 # gradio
 
+## 5.44.1
+
+### Features
+
+- [#11776](https://github.com/gradio-app/gradio/pull/11776) [`3393b70`](https://github.com/gradio-app/gradio/commit/3393b7060ffe4b50053442b07cc4ca321b572235) - Support deploying to Google Cloud using `gradio deploy --provider gcloud`.  Thanks @abidlabs!
+- [#11764](https://github.com/gradio-app/gradio/pull/11764) [`e6ce731`](https://github.com/gradio-app/gradio/commit/e6ce731bbcf2889c8147e57bc2ca97e2c731ddf5) - Display performance metrics for API/MCP requests in View API page.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#11769](https://github.com/gradio-app/gradio/pull/11769) [`b4299fe`](https://github.com/gradio-app/gradio/commit/b4299feab01e1f8ce06043cc743b093612749ad4) - Fix reactive feedback loop in audio player causing a crash.  Thanks @its5Q!
+- [#11782](https://github.com/gradio-app/gradio/pull/11782) [`e132283`](https://github.com/gradio-app/gradio/commit/e132283b2289d3689927a8fa7f0b4ac8f8628a18) - remove dompurify, update mermaid.  Thanks @pngwn!
+
 ## 5.44.0
 
 ### Features

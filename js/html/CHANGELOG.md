@@ -2,6 +2,12 @@
 
 ## 0.7.0
 
+### Dependency updates
+
+- @gradio/statustracker@0.10.18
+
+## 0.7.0
+
 ### Features
 
 - [#11747](https://github.com/gradio-app/gradio/pull/11747) [`513d21e`](https://github.com/gradio-app/gradio/commit/513d21ef002f56d8d5ea2bf8edc95d9638393362) - feat: Add autoscroll parameter to HTML component.  Thanks @Rishirandhawa!
