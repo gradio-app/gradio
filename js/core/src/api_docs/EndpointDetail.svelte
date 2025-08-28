@@ -9,7 +9,7 @@
 	API name:
 	<span class="post">{"/" + api_name}</span>
 	<span class="desc">{description}</span>
-	{#if analytics && analytics[api_name]}
+	{#if analytics && api_name && analytics[api_name]}
 		<span class="analytics">
 			Success: {Math.round(analytics[api_name].success_rate * 100)}%
 			&nbsp;|&nbsp; Total: {analytics[api_name].total_requests}

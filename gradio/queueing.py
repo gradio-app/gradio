@@ -44,8 +44,6 @@ from gradio.utils import (
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks
 
-ANAYLTICS_CACHE_FREQUENCY = int(os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "100"))
-
 
 class Event:
     def __init__(
@@ -143,18 +141,16 @@ class Queue:
         self.event_analytics: dict[str, dict[str, float | str | None]] = {}
         self.cached_event_analytics_summary = {"functions": {}}
         self.n_events_since_last_analytics_cache = 0
+        self.ANAYLTICS_CACHE_FREQUENCY = int(
+            os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "10")
+        )
+        print("SELF.ANAYLTICS_CACHE_FREQUENCY", self.ANAYLTICS_CACHE_FREQUENCY)
 
     def compute_analytics_summary(self, event_analytics):
-        print("len(event_analytics)", len(event_analytics))
-        print(
-            "self.n_events_since_last_analytics_cache",
-            self.n_events_since_last_analytics_cache,
-        )
         if (
             len(event_analytics) - self.n_events_since_last_analytics_cache
-            > ANAYLTICS_CACHE_FREQUENCY
+            >= self.ANAYLTICS_CACHE_FREQUENCY
         ):
-            print("Computing")
             df = pd.DataFrame(list(event_analytics.values()))
             self.n_events_since_last_analytics_cache = len(event_analytics)
             grouped = df.groupby("function")
