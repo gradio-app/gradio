@@ -1,3 +1,4 @@
+# type: ignore
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import gradio as gr
 

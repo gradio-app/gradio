@@ -47,9 +47,9 @@
 	export let value_is_output = false;
 	export let interactive: boolean;
 	export let show_submit_button = true;
+	export let ui_mode: "dialogue" | "text" | "both" = "both";
 </script>
 
-<!-- svelte-ignore missing-declaration -->
 <Block
 	{visible}
 	{elem_id}
@@ -82,6 +82,7 @@
 		{placeholder}
 		{show_submit_button}
 		{server}
+		{ui_mode}
 		on:change={() => gradio.dispatch("change", value)}
 		on:input={() => gradio.dispatch("input")}
 		on:submit={() => gradio.dispatch("submit")}

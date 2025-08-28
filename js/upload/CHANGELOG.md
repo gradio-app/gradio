@@ -1,5 +1,30 @@
 # @gradio/upload
 
+## 0.16.16
+
+### Fixes
+
+- [#11771](https://github.com/gradio-app/gradio/pull/11771) [`f53b24b`](https://github.com/gradio-app/gradio/commit/f53b24b010a98d9028d8bade39db9c4dd37782d1) - Fix file upload error due to file extension case differences.  Thanks @rca-umb!
+
+### Dependency updates
+
+- @gradio/icons@0.13.1
+
+## 0.16.15
+
+### Dependency updates
+
+- @gradio/atoms@0.16.5
+- @gradio/client@1.17.1
+- @gradio/icons@0.13.0
+
+## 0.16.14
+
+### Dependency updates
+
+- @gradio/atoms@0.16.4
+- @gradio/client@1.17.0
+
 ## 0.16.13
 
 ### Dependency updates

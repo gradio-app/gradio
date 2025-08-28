@@ -53,76 +53,12 @@
 					See the <a class="link" href="/changelog">Release History</a>
 				</p>
 			</div>
-			<div class="w-full flex flex-wrap justify-between my-4">
-				{#if prev_obj}
-					<a
-						href="./{prev_obj}"
-						class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
-					>
-						<div class="flex text-lg">
-							<span class="text-orange-500 mr-1">&#8592;</span>
-							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
-								{prev_obj}
-							</p>
-						</div>
-					</a>
-				{:else}
-					<div />
-				{/if}
-				{#if next_obj}
-					<a
-						href="./{next_obj}"
-						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
-					>
-						<div class="flex text-lg">
-							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
-								{next_obj}
-							</p>
-							<span class="text-orange-500 ml-1">&#8594;</span>
-						</div>
-					</a>
-				{:else}
-					<div />
-				{/if}
-			</div>
 			<div class="js_readme">
 				<div class="lg:ml-10 mt-5">
 					<div class="prose text-lg max-w-full">
 						{@html readme_html}
 					</div>
 				</div>
-			</div>
-			<div class="w-full flex flex-wrap justify-between my-4">
-				{#if prev_obj}
-					<a
-						href="./{prev_obj}"
-						class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
-					>
-						<div class="flex text-lg">
-							<span class="text-orange-500 mr-1">&#8592;</span>
-							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
-								{prev_obj}
-							</p>
-						</div>
-					</a>
-				{:else}
-					<div />
-				{/if}
-				{#if next_obj}
-					<a
-						href="./{next_obj}"
-						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
-					>
-						<div class="flex text-lg">
-							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
-								{next_obj}
-							</p>
-							<span class="text-orange-500 ml-1">&#8594;</span>
-						</div>
-					</a>
-				{:else}
-					<div />
-				{/if}
 			</div>
 		</div>
 	</div>

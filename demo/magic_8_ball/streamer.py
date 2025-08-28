@@ -1,7 +1,7 @@
 from queue import Queue
 from transformers.generation.streamers import BaseStreamer
 from typing import Optional
-from parler_tts import ParlerTTSForConditionalGeneration
+from parler_tts import ParlerTTSForConditionalGeneration  # type: ignore
 import numpy as np
 import math
 import torch

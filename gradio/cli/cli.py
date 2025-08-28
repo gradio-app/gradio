@@ -4,6 +4,8 @@ import typer
 from gradio_client.cli import deploy_discord  # type: ignore
 from rich.console import Console
 
+from gradio import analytics
+
 from .commands import (
     custom_component,
     deploy,
@@ -51,6 +53,7 @@ def cli():
         from pathlib import Path
 
         os.environ["GRADIO_VIBE_MODE"] = "1"
+        analytics.vibe_analytics()
 
         demo_path = Path("demo.py") if len(args) == 1 else Path(args[1])
 

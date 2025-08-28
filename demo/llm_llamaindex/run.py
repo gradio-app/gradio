@@ -2,7 +2,7 @@
 # Before running this, make sure you have exported your OpenAI API key as an environment variable:
 # export OPENAI_API_KEY="your-openai-api-key"
 
-from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader  # type: ignore
 import gradio as gr
 
 def answer(message, history):
