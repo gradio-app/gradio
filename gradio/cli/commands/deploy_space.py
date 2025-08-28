@@ -143,12 +143,15 @@ def check_gcloud_auth():
 
         if not project_result.stdout.strip():
             print("[bold yellow]No Google Cloud project is selected.[/bold yellow]")
-            print("Running 'gcloud init' to select a project...")
-            subprocess.run(["gcloud", "init"], check=True)
-            return
+            project_id = input("Enter your Google Cloud project ID: ")
+            if not project_id:
+                print("[red]Project ID is required for deployment.[/red]")
+                return None
+            return project_id
 
         print(f"[green]✓ Authenticated as: {auth_result.stdout.strip()}[/green]")
         print(f"[green]✓ Project: {project_result.stdout.strip()}[/green]")
+        return project_result.stdout.strip()
 
     except subprocess.CalledProcessError as e:
         print(f"[bold red]Error checking Google Cloud configuration: {e}[/bold red]")
@@ -177,15 +180,16 @@ def deploy_to_gcloud():
         )
         return
 
-    if not check_gcloud_auth():
+    project_id = check_gcloud_auth()
+    if not project_id:
         print(
             "[bold red]Google Cloud configuration failed. Please run 'gcloud init' manually.[/bold red]"
         )
         return
 
-    if not os.path.exists("app.py"):
+    if not os.path.exists("app.py") and not os.path.exists("main.py"):
         print(
-            "[bold red]Error:[/bold red] app.py not found. Google Cloud Run deployment requires app.py as the entry point."
+            "[bold red]Error:[/bold red] app.py and main.py not found. Google Cloud Run deployment requires app.py or main.py as the entry point."
         )
         return
 
@@ -193,13 +197,16 @@ def deploy_to_gcloud():
     if not os.path.exists(requirements_file):
         if (
             input(
-                f"Create requirements.txt with gradio=={gr.__version__}? (y/n) [y]: "
+                f"A requirements.txt file is necessary for Google Cloud Run deployment. Create requirements.txt with gradio=={gr.__version__}? (y/n) [y]: "
             ).lower()
             != "n"
         ):
             with open(requirements_file, "w", encoding="utf-8") as f:
                 f.write(f"gradio=={gr.__version__}\n")
             print(f"Created requirements.txt with gradio=={gr.__version__}")
+        else:
+            print("\n[yellow]Deployment cancelled.[/yellow]")
+            return
     else:
         with open(requirements_file, encoding="utf-8") as f:
             requirements_content = f.read()
@@ -217,8 +224,12 @@ def deploy_to_gcloud():
     print("[bold]Deploying to Google Cloud Run...[/bold]")
 
     try:
+        deploy_command = ["gcloud", "run", "deploy", "--source=.", "--labels=created-by=gradio"]
+        if project_id:
+            deploy_command.extend(["--project", project_id])
+        
         subprocess.run(
-            ["gcloud", "run", "deploy", "--source=.", "--labels=created-by=gradio"],
+            deploy_command,
             check=True,
             text=True,
             capture_output=False,
