@@ -194,6 +194,7 @@
 						<button
 							role="tab"
 							class:selected={t.id === $selected_tab}
+							class:completed={$selected_tab > t.id}
 							aria-selected={t.id === $selected_tab}
 							aria-controls={t.elem_id}
 							disabled={!t.interactive}
@@ -201,6 +202,10 @@
 							id={t.elem_id ? t.elem_id + "-button" : null}
 							data-tab-id={t.id}
 							on:click={() => {
+								if (name === "stepper" && t.id > $selected_tab) {
+									return;
+								}
+
 								if (t.id !== $selected_tab) {
 									change_tab(t.id);
 									dispatch("select", { value: t.label, index: i });
@@ -228,7 +233,12 @@
 					{#each overflow_tabs as t}
 						{#if t?.visible}
 							<button
-								on:click={() => change_tab(t?.id)}
+								on:click={() => {
+									if (name === "stepper" && t?.id > $selected_tab) {
+										return;
+									}
+									change_tab(t?.id);
+								}}
 								class:selected={t?.id === $selected_tab}
 							>
 								{t?.label}
@@ -266,6 +276,9 @@
 
 	.stepper .tab-wrapper {
 		border: none;
+		height: auto;
+		padding-bottom: 0;
+		padding-top: var(--layout-gap);
 	}
 
 	.tab-container {
@@ -328,9 +341,14 @@
 		align-items: center;
 		white-space: nowrap;
 		position: relative;
-		border: 1px solid var(--border-color-primary);
+		border: 2px solid var(--border-color-primary);
 		margin: 0 var(--size-2);
 		border-radius: var(--radius-lg);
+	}
+
+	.stepper button.completed {
+		border-color: var(--color-accent);
+		color: var(--color-accent);
 	}
 
 	.tabs button:disabled {
@@ -341,6 +359,10 @@
 	.stepper button:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+
+	.stepper button:not(.completed):not(.selected) {
+		cursor: auto;
 	}
 
 	.tabs button:hover:not(:disabled):not(.selected) {
@@ -360,9 +382,9 @@
 	}
 
 	.stepper .selected {
-		background-color: transparent;
 		background-color: var(--color-accent);
 		color: var(--button-primary-text-color);
+		border-color: var(--color-accent);
 		position: relative;
 	}
 
@@ -393,18 +415,20 @@
 		transform: translateY(calc(-50% + 1px));
 	}
 
-	.stepper .selected::after {
-		/* content: "";
+	.stepper .completed:not(:first-child)::after,
+	.stepper .selected:not(:first-child)::after {
+		content: "";
 		position: absolute;
 		bottom: 0;
-		left: calc(100% + 1px);
+		right: calc(100% + 2px);
 		width: var(--size-4);
 		height: 100%;
-		border-bottom: 1px solid var(--border-color-primary); */
+		border-bottom: 1px solid var(--border-color-primary);
 		animation: fade-grow-stepper 0.2s ease-out forwards;
 		transform-origin: center;
 		z-index: 1;
-		/* transform: translateY(calc(-50% + 1px)); */
+		transform: translateY(calc(-50% + 1px));
+		border-color: var(--color-accent);
 	}
 
 	@keyframes fade-grow {
