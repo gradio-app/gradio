@@ -248,11 +248,10 @@
 									<div class="message-files">
 										{#each message.files as file}
 											{#if file.mime_type && file.mime_type.includes("image")}
-												<img
-													src={file.url}
-													alt="Uploaded image"
-													class="message-image"
-												/>
+                <img
+                  src={file.url}
+                  class="message-image"
+                />
 											{/if}
 										{/each}
 									</div>
@@ -496,18 +495,6 @@
 		object-fit: cover;
 	}
 
-	.file-item {
-		display: flex;
-		align-items: center;
-		gap: 4px;
-		font-size: 12px;
-		color: var(--body-text-color-subdued);
-	}
-
-	.file-item :global(svg) {
-		width: 16px;
-		height: 16px;
-	}
 
 	.undo-button {
 		background: var(--button-secondary-background-fill);
