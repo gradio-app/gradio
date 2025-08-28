@@ -22,7 +22,7 @@ app.command("environment", help="Print Gradio environment information.")(
 )
 app.command(
     "deploy",
-    help="Deploy a Gradio app to Spaces. Must be called within the directory you would like to deploy.",
+    help="Deploy a Gradio app to Spaces or Google Cloud Run. Must be called within the directory you would like to deploy.",
 )(deploy)
 app.command("deploy-discord", help="Deploy a Gradio app to Discord.")(
     deploy_discord.main
