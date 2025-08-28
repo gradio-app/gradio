@@ -232,10 +232,11 @@
 									style="color: var(--body-text-color-subdued); margin-left: 1em;"
 								>
 									Total requests: {analytics[tool.meta.endpoint_name]
-										.total_requests} (<span style={color}
-										>{success_rate * 100}%</span
+										.total_requests}
+									<span style={color}
+										>({Math.round(success_rate * 100)}% successful)</span
 									>
-									successful) &nbsp;|&nbsp; p50/p90/p99:
+									&nbsp;|&nbsp; p50/p90/p99:
 									{format_latency(
 										analytics[tool.meta.endpoint_name].process_time_percentiles[
 											"50th"

@@ -152,7 +152,6 @@ export function get_color_from_success_rate(success_rate: number): string {
 		return "color: green;";
 	} else if (success_rate > 0.1) {
 		return "color: orange;";
-	} else {
-		return "color: red;";
 	}
+	return "color: red;";
 }
