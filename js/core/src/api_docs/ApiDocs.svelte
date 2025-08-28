@@ -161,8 +161,8 @@
 		meta: {
 			mcp_type: "tool" | "resource" | "prompt";
 			file_data_present: boolean;
+			endpoint_name: string;
 		};
-		endpoint_name: string;
 	}
 
 	let tools: Tool[] = [];
