@@ -1970,14 +1970,14 @@ class App(FastAPI):
 
             content = ""
             system_prompt = load_system_prompt()
-            
 
-            has_images = len(body.files) > 0 
-            
+
+            has_images = len(body.files) > 0
+
             if has_images:
                 # Use ERNIE model for image processing
                 model = "baidu/ERNIE-4.5-VL-424B-A47B-Base-PT"
-                
+
                 image_messages = []
                 for file in body.files:
                     if file.mime_type and "image" in file.mime_type:
@@ -1990,7 +1990,7 @@ class App(FastAPI):
                                     "url": f"data:{file.mime_type};base64,{img_data}"
                                 }
                             })
-                
+
                 prompt = f"""
 You are a code generator for Gradio apps. Given the following existing code, prompt, and images, return the full new code.
 Existing code:
@@ -2003,11 +2003,11 @@ Prompt:
 
 Please analyze the provided images and generate code based on the visual content and the text prompt.
 """
-                
+
                 messages = [
                     {"role": "system", "content": system_prompt},
                     {
-                        "role": "user", 
+                        "role": "user",
                         "content": [
                             {"type": "text", "text": prompt}
                         ] + image_messages
