@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Literal, cast
 import fastapi
 import numpy as np
 import pandas as pd
+from anyio.to_thread import run_sync
 
 from gradio import route_utils, routes, wasm_utils
 from gradio.data_classes import (
@@ -834,7 +835,7 @@ class Queue:
                     )
                 else:
                     self.event_analytics[event._id]["status"] = "cancelled"
-                self.compute_analytics_summary(self.event_analytics)
+                await run_sync(self.compute_analytics_summary, self.event_analytics)
 
     async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route
