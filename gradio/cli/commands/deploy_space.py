@@ -119,6 +119,52 @@ def format_title(title: str):
     return title
 
 
+def check_gcloud_auth():
+    """Check if user is logged in to Google Cloud and has a project selected."""
+    try:
+        auth_result = subprocess.run(
+            ["gcloud", "auth", "list", "--filter=status:ACTIVE"],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+
+        if not auth_result.stdout.strip():
+            print("[bold yellow]You are not logged in to Google Cloud.[/bold yellow]")
+            print("Running 'gcloud init' to set up authentication...")
+            subprocess.run(["gcloud", "init"], check=True)
+
+        project_result = subprocess.run(
+            ["gcloud", "config", "get-value", "project"],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+
+        if not project_result.stdout.strip():
+            print("[bold yellow]No Google Cloud project is selected.[/bold yellow]")
+            print("Running 'gcloud init' to select a project...")
+            subprocess.run(["gcloud", "init"], check=True)
+            return
+
+        print(f"[green]✓ Authenticated as: {auth_result.stdout.strip()}[/green]")
+        print(f"[green]✓ Project: {project_result.stdout.strip()}[/green]")
+
+    except subprocess.CalledProcessError as e:
+        print(f"[bold red]Error checking Google Cloud configuration: {e}[/bold red]")
+        print("Running 'gcloud init' to set up configuration...")
+        try:
+            subprocess.run(["gcloud", "init"], check=True)
+        except subprocess.CalledProcessError as init_error:
+            print(f"[red]Failed to run 'gcloud init': {init_error}[/red]")
+            return False
+    except FileNotFoundError:
+        print("[bold red]gcloud CLI not found. Please install Google Cloud SDK.[/bold red]")
+        return False
+    
+    return True
+
+
 def deploy_to_gcloud():
     """Deploy a Gradio app to Google Cloud Run. Always uses app.py as the entry point."""
     if not shutil.which("gcloud"):
@@ -127,6 +173,10 @@ def deploy_to_gcloud():
             "Please install the Google Cloud SDK from: "
             "[link]https://cloud.google.com/sdk/docs/install[/link]"
         )
+        return
+
+    if not check_gcloud_auth():
+        print("[bold red]Google Cloud configuration failed. Please run 'gcloud init' manually.[/bold red]")
         return
 
     if not os.path.exists("app.py"):
@@ -164,7 +214,7 @@ def deploy_to_gcloud():
 
     try:
         subprocess.run(
-            ["gcloud", "run", "deploy", "--source=.", "--created-by=gradio"],
+            ["gcloud", "run", "deploy", "--source=.", "--labels=created-by=gradio"],
             check=True,
             text=True,
             capture_output=False,
