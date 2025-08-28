@@ -41,37 +41,12 @@
 					See the <a class="link" href="/changelog">Release History</a>
 				</p>
 			</div>
-			<div class="w-full flex flex-wrap justify-between my-4">
-				<div />
-				<a
-					href="./atoms"
-					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
-				>
-					<div class="flex text-lg">
-						<p class="whitespace-nowrap overflow-hidden text-ellipsis">atoms</p>
-						<span class="text-orange-500 ml-1">&#8594;</span>
-					</div>
-				</a>
-			</div>
 			<div class="flex flex-row lg:ml-10 mt-5">
 				<iframe
 					id="storybook"
 					src="https://main--649585a46a67480e3074dc75.chromatic.com/"
 					class="grow m-0 p-0 h-[70vh] border border-gray-200 shadow-xl rounded-xl w-full"
 				></iframe>
-			</div>
-			<div class="w-full flex flex-wrap justify-between my-4">
-				<div />
-
-				<a
-					href="./atoms"
-					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
-				>
-					<div class="flex text-lg">
-						<p class="whitespace-nowrap overflow-hidden text-ellipsis">atoms</p>
-						<span class="text-orange-500 ml-1">&#8594;</span>
-					</div>
-				</a>
 			</div>
 		</div>
 	</div>

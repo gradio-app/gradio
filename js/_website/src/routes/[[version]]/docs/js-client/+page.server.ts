@@ -10,6 +10,7 @@ import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-csv";
 import "prismjs/components/prism-markup";
+import "prism-svelte";
 
 function plugin() {
 	return function transform(tree: any) {
@@ -32,7 +33,11 @@ const langs = {
 	ts: "typescript",
 	javascript: "javascript",
 	js: "javascript",
-	directory: "json"
+	directory: "json",
+	svelte: "svelte",
+	sv: "svelte",
+	md: "markdown",
+	css: "css"
 };
 
 function highlight(code: string, lang: string | undefined) {

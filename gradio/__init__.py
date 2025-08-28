@@ -98,6 +98,7 @@ from gradio.interface import Interface, TabbedInterface, close_all
 from gradio.layouts import (
     Accordion,
     Column,
+    Draggable,
     Group,
     Row,
     Sidebar,

@@ -248,6 +248,9 @@ importers:
       '@gradio/downloadbutton':
         specifier: workspace:^
         version: link:js/downloadbutton
+      '@gradio/draggable':
+        specifier: workspace:^
+        version: link:js/draggable
       '@gradio/dropdown':
         specifier: workspace:^
         version: link:js/dropdown
@@ -1379,6 +1382,22 @@ importers:
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
+
+  js/draggable:
+    dependencies:
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/dropdown:
     dependencies:
