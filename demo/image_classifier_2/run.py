@@ -1,7 +1,7 @@
 import requests
 import torch
 from PIL import Image
-from torchvision import transforms
+from torchvision import transforms  # type: ignore
 
 import gradio as gr
 

@@ -1,4 +1,4 @@
-import type { Headers, HeadersWithIDs } from "../utils";
+import type { Headers, HeadersWithIDs } from "./utils";
 
 export function make_headers(
 	_head: Headers,

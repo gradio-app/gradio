@@ -216,10 +216,6 @@ export function create_components(
 		root: string;
 		dependencies: Dependency[];
 	}): void {
-		// Update current layout and root for dynamic visibility recalculation
-		current_layout = layout;
-		current_root = root;
-
 		components.forEach((c) => {
 			for (const prop in c.props) {
 				if (c.props[prop] === null) {

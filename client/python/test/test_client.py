@@ -51,6 +51,8 @@ def connect(
 
 class TestClientInitialization:
     def test_headers_constructed_correctly(self, increment_demo):
+        if not HF_TOKEN:
+            pytest.skip("HF_TOKEN is not set, skipping test")
         _, local_url, _ = increment_demo.launch(prevent_thread_lock=True)
         try:
             client = Client(local_url, hf_token=HF_TOKEN)

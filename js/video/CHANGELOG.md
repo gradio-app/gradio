@@ -1,5 +1,37 @@
 # @gradio/video
 
+## 0.15.0
+
+### Dependency updates
+
+- @gradio/icons@0.13.1
+- @gradio/upload@0.16.16
+
+## 0.15.0
+
+### Features
+
+- [#11721](https://github.com/gradio-app/gradio/pull/11721) [`58d9d9e`](https://github.com/gradio-app/gradio/commit/58d9d9e98194dada5267ac1599063cf21723cbde) - Remove dupe maximise/maximize icon.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.17
+- @gradio/atoms@0.16.5
+- @gradio/client@1.17.1
+- @gradio/icons@0.13.0
+- @gradio/upload@0.16.15
+- @gradio/image@0.22.17
+
+## 0.14.24
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.16
+- @gradio/atoms@0.16.4
+- @gradio/client@1.17.0
+- @gradio/upload@0.16.14
+- @gradio/image@0.22.16
+
 ## 0.14.23
 
 ### Dependency updates

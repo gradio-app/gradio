@@ -1,9 +1,9 @@
 import gradio as gr
-import pypistats
+import pypistats  # type: ignore
 from datetime import date
 from dateutil.relativedelta import relativedelta
 import pandas as pd
-from prophet import Prophet
+from prophet import Prophet  # type: ignore
 pd.options.plotting.backend = "plotly"
 
 def get_forecast(lib, time):

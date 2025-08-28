@@ -289,7 +289,7 @@ rpds-py==0.22.3
     # via
     #   jsonschema
     #   referencing
-ruff==0.11.13
+ruff==0.12.9
     # via
     #   -r test/requirements.in
     #   gradio

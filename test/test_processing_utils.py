@@ -184,7 +184,7 @@ class TestImagePreprocessing:
         new_img = processing_utils.resize_and_crop(img, (20, 20))
         assert new_img.size == (20, 20)
         with pytest.raises(ValueError):
-            processing_utils.resize_and_crop(
+            processing_utils.resize_and_crop(  # type: ignore
                 **{"img": img, "size": (20, 20), "crop_type": "test"}
             )
 

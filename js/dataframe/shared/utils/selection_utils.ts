@@ -1,4 +1,4 @@
-import type { CellCoordinate } from "./types";
+import type { CellCoordinate } from "./../types";
 
 export type CellData = { id: string; value: string | number };
 

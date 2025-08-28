@@ -104,7 +104,7 @@ def version_check():
                 f"however version {latest_pkg_version} is available, please upgrade. \n"
                 f"--------"
             )
-    except json.decoder.JSONDecodeError:
+    except json.decoder.JSONDecodeError:  # type: ignore
         warnings.warn("unable to parse version details from package URL.")
     except KeyError:
         warnings.warn("package URL does not contain version info.")
@@ -150,7 +150,7 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
     for x in blocks.fns.values():
         targets_telemetry = targets_telemetry + [
             # Sometimes the target can be the Blocks object itself, so we need to check if its in blocks.blocks
-            blocks.blocks[y[0]].get_block_name()
+            blocks.blocks[int(y[0])].get_block_name()
             for y in x.targets
             if y[0] in blocks.blocks
         ]
@@ -158,10 +158,14 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
             y[1] for y in x.targets if y[0] in blocks.blocks
         ]
         inputs_telemetry = inputs_telemetry + [
-            blocks.blocks[y].get_block_name() for y in x.inputs if y in blocks.blocks
+            blocks.blocks[int(y)].get_block_name()
+            for y in x.inputs
+            if y in blocks.blocks
         ]
         outputs_telemetry = outputs_telemetry + [
-            blocks.blocks[y].get_block_name() for y in x.outputs if y in blocks.blocks
+            blocks.blocks[int(y)].get_block_name()
+            for y in x.outputs
+            if y in blocks.blocks
         ]
 
     def get_inputs_outputs(
@@ -249,6 +253,19 @@ def sketch_analytics() -> None:
 
     _do_analytics_request(
         topic="gradio/sketch",
+        data=data,
+    )
+
+
+def vibe_analytics() -> None:
+    data = {
+        "command": "vibe",
+    }
+    if not analytics_enabled():
+        return
+
+    _do_analytics_request(
+        topic="gradio/vibe",
         data=data,
     )
 

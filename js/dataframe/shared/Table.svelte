@@ -20,7 +20,7 @@
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import { type Client } from "@gradio/client";
 	import VirtualTable from "./VirtualTable.svelte";
-	import type { Headers, DataframeValue, Datatype } from "./utils";
+	import type { Headers, DataframeValue, Datatype } from "./utils/utils";
 	import CellMenu from "./CellMenu.svelte";
 	import Toolbar from "./Toolbar.svelte";
 	import type { CellCoordinate } from "./types";
@@ -30,14 +30,14 @@
 		get_current_indices,
 		handle_click_outside as handle_click_outside_util,
 		calculate_selection_positions
-	} from "./selection_utils";
+	} from "./utils/selection_utils";
 	import {
 		copy_table_data,
 		get_max,
 		handle_file_upload
 	} from "./utils/table_utils";
 	import { make_headers, process_data } from "./utils/data_processing";
-	import { cast_value_to_type } from "./utils";
+	import { cast_value_to_type } from "./utils/utils";
 	import { handle_keydown, handle_cell_blur } from "./utils/keyboard_utils";
 	import {
 		create_drag_handlers,
@@ -500,6 +500,10 @@
 			return;
 		}
 
+		if (!parent) {
+			return;
+		}
+
 		last_width_data_length = data.length;
 		last_width_column_count = column_count;
 
@@ -834,7 +838,6 @@
 		class="table-wrap"
 		class:dragging={is_dragging}
 		class:no-wrap={!wrap}
-		style="height:{table_height}px;"
 		class:menu-open={active_cell_menu || active_header_menu}
 		on:keydown={(e) => handle_keydown(e, df_ctx)}
 		on:mousemove={handle_mouse_move}
@@ -948,11 +951,9 @@
 						active_header_menu !== null}
 					bind:viewport
 					bind:show_scroll_button
+					{label}
 					on:scroll_top={(_) => {}}
 				>
-					{#if label && label.length !== 0}
-						<caption class="sr-only">{label}</caption>
-					{/if}
 					<tr slot="thead">
 						{#if show_row_numbers}
 							<RowNumber is_header={true} />
@@ -1211,6 +1212,7 @@
 	.header-row .label {
 		flex: 1 1 auto;
 		margin-right: auto;
+		font-family: var(--font-sans);
 	}
 
 	.header-row .label p {

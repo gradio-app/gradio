@@ -200,16 +200,43 @@ Here's an example that shows the `api_description` and `show_api` parameters in 
 
 $code_mcp_tools
 
-## Adding MCP-Only Tools
 
-So far, all of our MCP tools have corresponded to event listeners in the UI. This works well for functions that directly update the UI, but may not work if you wish to expose a "pure logic" function that should return raw data (e.g. a JSON object) without directly causing a UI update.
+
+## MCP Resources and Prompts
+
+In addition to tools (which execute functions generally and are the default for any function exposed through the Gradio MCP integration), MCP supports two other important primitives: **resources** (for exposing data) and **prompts** (for defining reusable templates). Gradio provides decorators to easily create MCP servers with all three capabilities.
+
+
+### Creating MCP Resources
+
+Use the `@gr.mcp.resource` decorator on any function to expose data through your Gradio app. Resources can be static (always available at a fixed URI) or templated (with parameters in the URI).
+
+$code_mcp_resources_and_prompts
+
+In this example:
+- The `get_greeting` function is exposed as a resource with a URI template `greeting://{name}`
+- When an MCP client requests `greeting://Alice`, it receives "Hello, Alice!"
+- Resources can also return images and other types of files or binary data. In order to return non-text data, you should specify the `mime_type` parameter in `@gr.mcp.resource()` and return a Base64 string from your function.
+
+### Creating MCP Prompts  
+
+Prompts help standardize how users interact with your tools. They're especially useful for complex workflows that require specific formatting or multiple steps.
+
+The `greet_user` function in the example above is decorated with `@gr.mcp.prompt()`, which:
+- Makes it available as a prompt template in MCP clients
+- Accepts parameters (`name` and `style`) to customize the output
+- Returns a structured prompt that guides the LLM's behavior
+
+
+## Adding MCP-Only Functions
+
+So far, all of our MCP tools, resources, or prompts have corresponded to event listeners in the UI. This works well for functions that directly update the UI, but may not work if you wish to expose a "pure logic" function that should return raw data (e.g. a JSON object) without directly causing a UI update.
 
 In order to expose such an MCP tool, you can create a pure Gradio API endpoint using `gr.api` (see [full docs here](https://www.gradio.app/main/docs/gradio/api)). Here's an example of creating an MCP tool that slices a list:
 
 $code_mcp_tool_only
 
 Note that if you use this approach, your function signature must be fully typed, including the return value, as these signature are used to determine the typing information for the MCP tool.
-
 
 ## Gradio with FastMCP
 

@@ -70,6 +70,11 @@
 		dispatch("change", null);
 	}
 
+	function handle_remove_image_click(event: MouseEvent): void {
+		handle_clear();
+		event.stopPropagation();
+	}
+
 	async function handle_save(
 		img_blob: Blob | any,
 		event: "change" | "stream" | "upload"
@@ -173,11 +178,7 @@
 			<IconButton
 				Icon={Clear}
 				label="Remove Image"
-				on:click={(event) => {
-					value = null;
-					dispatch("clear");
-					event.stopPropagation();
-				}}
+				on:click={handle_remove_image_click}
 			/>
 		{/if}
 	</IconButtonWrapper>

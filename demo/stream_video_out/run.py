@@ -1,5 +1,5 @@
 import gradio as gr
-import cv2
+import cv2  # type: ignore
 import os
 from pathlib import Path
 import atexit

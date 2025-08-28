@@ -4,7 +4,7 @@ import base64
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Literal, cast
+from typing import Literal
 from urllib.parse import quote
 
 import httpx
@@ -119,7 +119,8 @@ def decode_base64_to_image(encoding: str) -> PIL.Image.Image:
             "Failed to transpose image %s based on EXIF data.",
             img,
         )
-    return cast(PIL.Image.Image, img)
+    assert img is not None  # noqa: S101
+    return img
 
 
 def decode_base64_to_image_array(encoding: str) -> np.ndarray:
@@ -233,7 +234,7 @@ def preprocess_image(
                 im = im.convert(image_mode)
     return format_image(
         im,
-        type=cast(Literal["numpy", "pil", "filepath"], type),
+        type=type,
         cache_dir=cache_dir,
         name=name,
         format=suffix,

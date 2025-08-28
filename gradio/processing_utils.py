@@ -139,7 +139,7 @@ def to_binary(x: str | dict) -> bytes:
             base64str = client_utils.encode_url_or_file_to_base64(x["path"])
     else:
         base64str = x
-    return base64.b64decode(extract_base64_data(base64str))
+    return base64.b64decode(extract_base64_data(base64str))  # type: ignore
 
 
 def extract_base64_data(x: str) -> str:
@@ -507,12 +507,12 @@ def move_files_to_cache(
         # If the app has not launched, this path can be considered an "allowed path"
         # This is mainly so that svg files can be displayed inline for button/chatbot icons
         if (
-            (blocks := LocalContext.blocks.get()) is None or not blocks.is_running
+            (blocks := LocalContext.blocks.get(None)) is None or not blocks.is_running
         ) and (mimetypes.guess_type(payload.path)[0] == "image/svg+xml"):
             utils.set_static_paths([payload.path])
 
     def _move_to_cache(d: dict):
-        payload = FileData(**d)
+        payload = FileData(**d)  # type: ignore
         # If the gradio app developer is returning a URL from
         # postprocess, it means the component can display a URL
         # without it being served from the gradio server
@@ -558,7 +558,7 @@ def move_files_to_cache(
 
 
 def _check_allowed(path: str | Path, check_in_upload_folder: bool):
-    blocks = LocalContext.blocks.get()
+    blocks = LocalContext.blocks.get(None)
     if blocks is None or not blocks.has_launched:
         return
 
@@ -627,12 +627,12 @@ async def async_move_files_to_cache(
         # If the app has not launched, this path can be considered an "allowed path"
         # This is mainly so that svg files can be displayed inline for button/chatbot icons
         if (
-            (blocks := LocalContext.blocks.get()) is None or not blocks.is_running
+            (blocks := LocalContext.blocks.get(None)) is None or not blocks.is_running
         ) and (mimetypes.guess_type(payload.path)[0] == "image/svg+xml"):
             utils.set_static_paths([payload.path])
 
     async def _move_to_cache(d: dict):
-        payload = FileData(**d)
+        payload = FileData(**d)  # type: ignore
         # If the gradio app developer is returning a URL from
         # postprocess, it means the component can display a URL
         # without it being served from the gradio server

@@ -1,5 +1,5 @@
 import gradio as gr
-from gradio.components.dialogue import DialogueLine
+from gradio.components.dialogue import DialogueLine, DialogueModel
 
 
 class TestDialogue:
@@ -15,7 +15,7 @@ class TestDialogue:
         ]
 
         preprocessed = dialogue.preprocess(gr.Dialogue.data_model(root=dialogue_data))
-        assert preprocessed == "[Speaker 1] Hello there! [Speaker 2] Hi, how are you?"
+        assert preprocessed == "[Speaker 1] Hello there!\n[Speaker 2] Hi, how are you?"
 
         postprocessed = dialogue.postprocess(
             [
@@ -73,7 +73,7 @@ class TestDialogue:
         ]
 
         preprocessed = dialogue.preprocess(gr.Dialogue.data_model(root=dialogue_data))
-        assert preprocessed == "Alice: Hello! Bob: Hi there!"
+        assert preprocessed == "Alice: Hello!\nBob: Hi there!"
 
     def test_dialogue_without_speakers(self):
         """
@@ -136,3 +136,22 @@ class TestDialogue:
         assert isinstance(example_str, str)
         assert "Speaker 1" in example_str
         assert "Hello, how are you?" in example_str
+
+    def test_dialogue_preprocess_list(self):
+        """
+        Test preprocess with a list of DialogueLine objects
+        """
+        dialogue = gr.Dialogue(speakers=["Speaker 1", "Speaker 2"], type="list")
+
+        dialogue_data = DialogueModel(
+            root=[
+                DialogueLine(speaker="Speaker 1", text="Hello!"),
+                DialogueLine(speaker="Speaker 2", text="Hi!"),
+            ]
+        )
+
+        preprocessed = dialogue.preprocess(dialogue_data)
+        assert preprocessed == [
+            {"speaker": "Speaker 1", "text": "Hello!"},
+            {"speaker": "Speaker 2", "text": "Hi!"},
+        ]
