@@ -8,6 +8,6 @@ with gr.Blocks() as demo:
         ("files/cheetah.jpg", "cheetah3"),
         ("files/world.mp4", "world2")
     ]
-    gr.Gallery(value=gallery_items, columns=4)
+    gr.Gallery(value=gallery_items, columns=4, interactive=True)
 
 demo.launch()
