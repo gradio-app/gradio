@@ -147,9 +147,7 @@ export function format_latency(val: number): string {
 	return `${val.toFixed(2)} s`;
 }
 
-export function get_color_from_success_rate(
-	success_rate: number
-): string {
+export function get_color_from_success_rate(success_rate: number): string {
 	if (success_rate > 0.9) {
 		return "color: green;";
 	} else if (success_rate > 0.1) {

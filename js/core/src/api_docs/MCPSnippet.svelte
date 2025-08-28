@@ -181,7 +181,8 @@
 	</div>
 	<div class="mcp-tools">
 		{#each all_tools.length > 0 ? all_tools : tools as tool}
-			{@const success_rate = analytics[tool.meta.endpoint_name]?.success_rate || 0}
+			{@const success_rate =
+				analytics[tool.meta.endpoint_name]?.success_rate || 0}
 			{@const color = get_color_from_success_rate(success_rate)}
 			<div class="tool-item">
 				<div class="tool-header-wrapper">
@@ -231,9 +232,10 @@
 									style="color: var(--body-text-color-subdued); margin-left: 1em;"
 								>
 									Total requests: {analytics[tool.meta.endpoint_name]
-										.total_requests} (<span style={color}>{success_rate * 100
-									}%</span> successful)
-									&nbsp;|&nbsp; p50/p90/p99:
+										.total_requests} (<span style={color}
+										>{success_rate * 100}%</span
+									>
+									successful) &nbsp;|&nbsp; p50/p90/p99:
 									{format_latency(
 										analytics[tool.meta.endpoint_name].process_time_percentiles[
 											"50th"

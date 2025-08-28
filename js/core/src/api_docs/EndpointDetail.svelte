@@ -14,9 +14,10 @@
 	<span class="desc">{description}</span>
 	{#if analytics && api_name && analytics[api_name]}
 		<span class="analytics">
-			Total requests: {analytics[api_name].total_requests} (<span style={color}>{Math.round(success_rate * 100)}%</span> successful)
-			&nbsp;|&nbsp;
-			p50/p90/p99:
+			Total requests: {analytics[api_name].total_requests} (<span style={color}
+				>{Math.round(success_rate * 100)}%</span
+			>
+			successful) &nbsp;|&nbsp; p50/p90/p99:
 			{format_latency(analytics[api_name].process_time_percentiles["50th"])}
 			/
 			{format_latency(analytics[api_name].process_time_percentiles["90th"])}
