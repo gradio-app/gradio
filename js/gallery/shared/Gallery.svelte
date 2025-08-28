@@ -50,7 +50,7 @@
 	export let show_fullscreen_button = true;
 	export let display_icon_button_wrapper_top_corner = false;
 	export let fullscreen = false;
-	export let root: string = "";
+	export let root = "";
 	export let file_types: string[] | null = ["image", "video"];
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"] | undefined = undefined;
