@@ -16,7 +16,13 @@
 	import { tick } from "svelte";
 	import type { GalleryImage, GalleryVideo } from "../types";
 
-	import { Download, Image as ImageIcon, Clear, Play, Upload as UploadIcon } from "@gradio/icons";
+	import {
+		Download,
+		Image as ImageIcon,
+		Clear,
+		Play,
+		Upload as UploadIcon
+	} from "@gradio/icons";
 	import { FileData } from "@gradio/client";
 	import type { Client } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
@@ -459,7 +465,10 @@
 								}
 								selected_index = i;
 							}}
-							aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
+							aria-label={"Thumbnail " +
+								(i + 1) +
+								" of " +
+								resolved_value.length}
 						>
 							{#if "image" in entry}
 								<Image
