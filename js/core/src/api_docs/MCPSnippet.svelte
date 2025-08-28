@@ -2,6 +2,7 @@
 	import { Block } from "@gradio/atoms";
 	import CopyButton from "./CopyButton.svelte";
 	import { Tool, Prompt, Resource } from "@gradio/icons";
+	import { format_latency, get_color_from_success_rate } from "./utils";
 
 	export let mcp_server_active: boolean;
 	export let mcp_server_url: string;
@@ -13,6 +14,7 @@
 	export let mcp_json_stdio: any;
 	export let file_data_present: boolean;
 	export let mcp_docs: string;
+	export let analytics: Record<string, any>;
 
 	interface ToolParameter {
 		title?: string;
@@ -30,6 +32,7 @@
 		meta: {
 			mcp_type: "tool" | "resource" | "prompt";
 			file_data_present: boolean;
+			endpoint_name: string;
 		};
 	}
 
@@ -178,6 +181,9 @@
 	</div>
 	<div class="mcp-tools">
 		{#each all_tools.length > 0 ? all_tools : tools as tool}
+			{@const success_rate =
+				analytics[tool.meta.endpoint_name]?.success_rate || 0}
+			{@const color = get_color_from_success_rate(success_rate)}
 			<div class="tool-item">
 				<div class="tool-header-wrapper">
 					{#if all_tools.length > 0}
@@ -220,6 +226,36 @@
 									? tool.description
 									: "⚠︎ No description provided in function docstring"}
 							</span>
+							{#if analytics[tool.meta.endpoint_name]}
+								<span
+									class="tool-analytics"
+									style="color: var(--body-text-color-subdued); margin-left: 1em;"
+								>
+									Total requests: {analytics[tool.meta.endpoint_name]
+										.total_requests}
+									<span style={color}
+										>({Math.round(success_rate * 100)}% successful)</span
+									>
+									&nbsp;|&nbsp; p50/p90/p99:
+									{format_latency(
+										analytics[tool.meta.endpoint_name].process_time_percentiles[
+											"50th"
+										]
+									)}
+									/
+									{format_latency(
+										analytics[tool.meta.endpoint_name].process_time_percentiles[
+											"90th"
+										]
+									)}
+									/
+									{format_latency(
+										analytics[tool.meta.endpoint_name].process_time_percentiles[
+											"99th"
+										]
+									)}
+								</span>
+							{/if}
 						</span>
 						<span class="tool-arrow">{tool.expanded ? "▼" : "▶"}</span>
 					</button>
@@ -344,6 +380,10 @@
 {/if}
 
 <style>
+	.tool-analytics {
+		font-size: 0.95em;
+		color: var(--body-text-color-subdued);
+	}
 	.transport-selection {
 		margin-bottom: var(--size-4);
 	}
