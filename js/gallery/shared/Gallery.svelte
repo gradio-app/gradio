@@ -734,12 +734,12 @@
 
 	.delete-button {
 		position: absolute;
-		bottom: var(--block-label-margin);
-		left: var(--block-label-margin);
+		bottom: 0;
+		left: 0;
 		z-index: var(--layer-1);
 		border-top: 1px solid var(--border-color-primary);
 		border-right: 1px solid var(--border-color-primary);
-		border-radius: var(--block-label-radius);
+		border-radius: 0 var(--radius-sm) 0 0;
 		background: var(--background-fill-secondary);
 		padding: var(--block-label-padding);
 		cursor: pointer;
@@ -751,6 +751,10 @@
 		font-size: var(--block-label-text-size);
 		color: var(--block-label-text-color);
 		font-weight: var(--weight-semibold);
+		width: auto;
+		height: auto;
+		min-width: fit-content;
+		min-height: fit-content;
 	}
 
 	.gallery-item:hover .delete-button {
@@ -762,8 +766,8 @@
 	}
 
 	.delete-button :global(svg) {
-		width: var(--text-sm);
-		height: var(--text-sm);
+		width: var(--text-md);
+		height: var(--text-md);
 		color: var(--block-label-text-color);
 	}
 </style>
