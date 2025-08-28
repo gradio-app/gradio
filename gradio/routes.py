@@ -1836,15 +1836,8 @@ class App(FastAPI):
             return HTMLResponse("See console for monitoring URL.")
 
         @app.get("/monitoring/summary")
-        def _():
-            import pandas as pd
-
-            analytics = app.get_blocks()._queue.event_analytics
-            df = pd.DataFrame(list(analytics.values()))
-            if not df.shape[0]:
-                return {"functions": {}}
-            metrics = compute_metrics(df)
-            return metrics
+        async def _():
+            return app.get_blocks()._queue.cached_event_analytics_summary
 
         @app.get("/monitoring/{key}")
         async def analytics_dashboard(key: str):
@@ -1870,31 +1863,6 @@ class App(FastAPI):
                 )
             else:
                 raise HTTPException(status_code=403, detail="Invalid key.")
-
-        @staticmethod
-        def compute_metrics(df):
-            import numpy as np
-
-            grouped = df.groupby("function")
-            metrics = {"functions": {}}
-            for fn_name, fn_df in grouped:
-                status = fn_df["status"].values
-                success = np.sum(status == "success")
-                failure = np.sum(status == "failure")
-                total = success + failure
-                success_rate = success / total if total > 0 else None
-
-                percentiles = np.percentile(fn_df["process_time"].values, [50, 90, 99])
-                metrics["functions"][fn_name] = {
-                    "success_rate": success_rate,
-                    "process_time_percentiles": {
-                        "50th": percentiles[0],  # type: ignore
-                        "90th": percentiles[1],  # type: ignore
-                        "99th": percentiles[2],  # type: ignore
-                    },
-                    "total_requests": fn_df.shape[0],
-                }
-            return metrics
 
         @router.post("/process_recording", dependencies=[Depends(login_check)])
         async def process_recording(

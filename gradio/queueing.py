@@ -12,6 +12,8 @@ from queue import Queue as ThreadQueue
 from typing import TYPE_CHECKING, Literal, cast
 
 import fastapi
+import numpy as np
+import pandas as pd
 
 from gradio import route_utils, routes, wasm_utils
 from gradio.data_classes import (
@@ -41,6 +43,8 @@ from gradio.utils import (
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks
+
+ANAYLTICS_CACHE_FREQUENCY = int(os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "100"))
 
 
 class Event:
@@ -137,6 +141,42 @@ class Queue:
             default_concurrency_limit
         )
         self.event_analytics: dict[str, dict[str, float | str | None]] = {}
+        self.cached_event_analytics_summary = {"functions": {}}
+        self.n_events_since_last_analytics_cache = 0
+
+    def compute_analytics_summary(self, event_analytics):
+        print("len(event_analytics)", len(event_analytics))
+        print(
+            "self.n_events_since_last_analytics_cache",
+            self.n_events_since_last_analytics_cache,
+        )
+        if (
+            len(event_analytics) - self.n_events_since_last_analytics_cache
+            > ANAYLTICS_CACHE_FREQUENCY
+        ):
+            print("Computing")
+            df = pd.DataFrame(list(event_analytics.values()))
+            self.n_events_since_last_analytics_cache = len(event_analytics)
+            grouped = df.groupby("function")
+            metrics = {"functions": {}}
+            for fn_name, fn_df in grouped:
+                status = fn_df["status"].values
+                success = np.sum(status == "success")
+                failure = np.sum(status == "failure")
+                total = success + failure
+                success_rate = success / total if total > 0 else None
+                percentiles = np.percentile(fn_df["process_time"].values, [50, 90, 99])  # type: ignore
+                metrics["functions"][fn_name] = {
+                    "success_rate": success_rate,
+                    "process_time_percentiles": {
+                        "50th": percentiles[0],  # type: ignore
+                        "90th": percentiles[1],  # type: ignore
+                        "99th": percentiles[2],  # type: ignore
+                    },
+                    "total_requests": fn_df.shape[0],
+                }
+            self.cached_event_analytics_summary = metrics
+        return self.cached_event_analytics_summary
 
     def start(self):
         self.active_jobs = [None] * self.max_thread_count
@@ -799,6 +839,7 @@ class Queue:
                     )
                 else:
                     self.event_analytics[event._id]["status"] = "cancelled"
+                self.compute_analytics_summary(self.event_analytics)
 
     async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route

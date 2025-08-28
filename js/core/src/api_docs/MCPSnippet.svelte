@@ -2,11 +2,7 @@
 	import { Block } from "@gradio/atoms";
 	import CopyButton from "./CopyButton.svelte";
 	import { Tool, Prompt, Resource } from "@gradio/icons";
-
-	function formatLatency(val: number) {
-		if (val < 1) return `${Math.round(val * 1000)} ms`;
-		return `${val.toFixed(2)} s`;
-	}
+	import { format_latency } from "./utils";
 
 	export let mcp_server_active: boolean;
 	export let mcp_server_url: string;
@@ -19,8 +15,6 @@
 	export let file_data_present: boolean;
 	export let mcp_docs: string;
 	export let analytics: Record<string, any>;
-
-	$: console.log("analytics:", analytics);
 
 	interface ToolParameter {
 		title?: string;
@@ -116,8 +110,6 @@
 		mcp_json_stdio,
 		include_file_upload
 	);
-
-	$: console.log("tools", tools);
 </script>
 
 {#if mcp_server_active}
@@ -240,20 +232,20 @@
 										analytics[tool.endpoint_name].success_rate * 100
 									)}% &nbsp;|&nbsp; Total: {analytics[tool.endpoint_name]
 										.total_requests}
-									&nbsp;|&nbsp; Latency (p50/p90/p99):
-									{formatLatency(
+									&nbsp;|&nbsp; p50/p90/p99:
+									{format_latency(
 										analytics[tool.endpoint_name].process_time_percentiles[
 											"50th"
 										]
 									)}
 									/
-									{formatLatency(
+									{format_latency(
 										analytics[tool.endpoint_name].process_time_percentiles[
 											"90th"
 										]
 									)}
 									/
-									{formatLatency(
+									{format_latency(
 										analytics[tool.endpoint_name].process_time_percentiles[
 											"99th"
 										]

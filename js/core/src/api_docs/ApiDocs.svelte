@@ -276,6 +276,9 @@
 	}
 
 	onMount(() => {
+		const controller = new AbortController();
+		const signal = controller.signal;
+
 		document.body.style.overflow = "hidden";
 		if ("parentIFrame" in window) {
 			window.parentIFrame?.scrollTo(0, 0);
@@ -287,7 +290,7 @@
 		}
 
 		// Check MCP server status and fetch tools if active
-		fetch(mcp_server_url)
+		fetch(mcp_server_url, { signal: signal })
 			.then((response) => {
 				mcp_server_active = response.ok;
 				if (mcp_server_active) {
@@ -300,6 +303,7 @@
 						current_language = "python";
 					}
 				}
+				controller.abort();
 			})
 			.catch(() => {
 				mcp_server_active = false;
@@ -311,7 +315,7 @@
 	});
 </script>
 
-{#if info}
+{#if info && analytics}
 	{#if api_count}
 		<div class="banner-wrap">
 			<ApiBanner
@@ -478,6 +482,7 @@
 									api_description={info.named_endpoints[
 										"/" + dependency.api_name
 									].description}
+									{analytics}
 								/>
 
 								<ParametersSnippet

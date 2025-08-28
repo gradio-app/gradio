@@ -141,3 +141,8 @@ function stringify_except_file_function(obj: any): string {
 	const regexNone = /"UNQUOTEDNone"/g;
 	return jsonString.replace(regexNone, "None");
 }
+
+export function format_latency(val: number) {
+	if (val < 1) return `${Math.round(val * 1000)} ms`;
+	return `${val.toFixed(2)} s`;
+}
