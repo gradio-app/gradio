@@ -118,7 +118,6 @@
 	}
 
 	get_summary().then((summary) => {
-		console.log("Analytics summary:", summary);
 		analytics = summary.functions;
 	});
 
