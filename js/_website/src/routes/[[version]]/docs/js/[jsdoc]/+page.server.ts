@@ -10,6 +10,7 @@ import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-csv";
 import "prismjs/components/prism-markup";
+import "prism-svelte";
 import { error } from "@sveltejs/kit";
 
 export const prerender = true;
@@ -32,8 +33,14 @@ const langs = {
 	shell: "bash",
 	json: "json",
 	typescript: "typescript",
+	ts: "typescript",
 	javascript: "javascript",
-	directory: "json"
+	js: "javascript",
+	directory: "json",
+	svelte: "svelte",
+	sv: "svelte",
+	md: "markdown",
+	css: "css"
 };
 
 function highlight(code: string, lang: string | undefined) {
@@ -61,6 +68,7 @@ export async function load({ params, parent }) {
 	if (!js_pages.some((p: string) => p === params.jsdoc)) {
 		throw error(404);
 	}
+
 	function plugin() {
 		return function transform(tree: any) {
 			tree.children.forEach((n: any) => {

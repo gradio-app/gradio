@@ -81,6 +81,46 @@
 				return waveform.load(resolved_src);
 			}
 		});
+
+		waveform?.on("decode", (duration: any) => {
+			audio_duration = duration;
+			durationRef && (durationRef.textContent = format_time(duration));
+		});
+
+		waveform?.on(
+			"timeupdate",
+			(currentTime: any) =>
+				timeRef && (timeRef.textContent = format_time(currentTime))
+		);
+
+		waveform?.on("ready", () => {
+			if (!waveform_settings.autoplay) {
+				waveform?.stop();
+			} else {
+				waveform?.play();
+			}
+		});
+
+		waveform?.on("finish", () => {
+			if (loop) {
+				waveform?.play();
+			} else {
+				playing = false;
+				dispatch("stop");
+			}
+		});
+		waveform?.on("pause", () => {
+			playing = false;
+			dispatch("pause");
+		});
+		waveform?.on("play", () => {
+			playing = true;
+			dispatch("play");
+		});
+
+		waveform?.on("load", () => {
+			dispatch("load");
+		});
 	};
 
 	$: if (use_waveform && container !== undefined && container !== null) {
@@ -89,46 +129,6 @@
 		create_waveform();
 		playing = false;
 	}
-
-	$: waveform?.on("decode", (duration: any) => {
-		audio_duration = duration;
-		durationRef && (durationRef.textContent = format_time(duration));
-	});
-
-	$: waveform?.on(
-		"timeupdate",
-		(currentTime: any) =>
-			timeRef && (timeRef.textContent = format_time(currentTime))
-	);
-
-	$: waveform?.on("ready", () => {
-		if (!waveform_settings.autoplay) {
-			waveform?.stop();
-		} else {
-			waveform?.play();
-		}
-	});
-
-	$: waveform?.on("finish", () => {
-		if (loop) {
-			waveform?.play();
-		} else {
-			playing = false;
-			dispatch("stop");
-		}
-	});
-	$: waveform?.on("pause", () => {
-		playing = false;
-		dispatch("pause");
-	});
-	$: waveform?.on("play", () => {
-		playing = true;
-		dispatch("play");
-	});
-
-	$: waveform?.on("load", () => {
-		dispatch("load");
-	});
 
 	const handle_trim_audio = async (
 		start: number,
