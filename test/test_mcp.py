@@ -186,12 +186,15 @@ def test_mcp_sse_transport(test_mcp_app):
             {
                 "name": "test_tool",
                 "description": "This is a test tool. Returns: - the original value as a string",
-                "endpoint_name": "test_tool",
                 "inputSchema": {
                     "type": "object",
                     "properties": {"x": {"type": "string", "description": ""}},
                 },
-                "meta": {"file_data_present": False, "mcp_type": "tool"},
+                "meta": {
+                    "file_data_present": False,
+                    "mcp_type": "tool",
+                    "endpoint_name": "test_tool",
+                },
             }
         ]
 
