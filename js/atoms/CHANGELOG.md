@@ -4,6 +4,12 @@
 
 ### Dependency updates
 
+- @gradio/markdown-code@0.5.1
+
+## 0.16.5
+
+### Dependency updates
+
 - @gradio/icons@0.13.1
 
 ## 0.16.5
