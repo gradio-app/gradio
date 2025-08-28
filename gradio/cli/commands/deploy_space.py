@@ -224,10 +224,16 @@ def deploy_to_gcloud():
     print("[bold]Deploying to Google Cloud Run...[/bold]")
 
     try:
-        deploy_command = ["gcloud", "run", "deploy", "--source=.", "--labels=created-by=gradio"]
+        deploy_command = [
+            "gcloud",
+            "run",
+            "deploy",
+            "--source=.",
+            "--labels=created-by=gradio",
+        ]
         if project_id:
             deploy_command.extend(["--project", project_id])
-        
+
         subprocess.run(
             deploy_command,
             check=True,
