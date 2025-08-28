@@ -95,7 +95,18 @@ from gradio.helpers import Info, Progress, Success, Warning, skip, update
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.i18n import I18n
 from gradio.interface import Interface, TabbedInterface, close_all
-from gradio.layouts import Accordion, Column, Group, Row, Sidebar, Tab, TabItem, Tabs
+from gradio.layouts import (
+    Accordion,
+    Column,
+    Group,
+    Row,
+    Sidebar,
+    Step,
+    Stepper,
+    Tab,
+    TabItem,
+    Tabs,
+)
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.renderable import render
 from gradio.route_utils import Header
@@ -219,6 +230,8 @@ __all__ = [
     "Sketchpad",
     "Slider",
     "State",
+    "Step",
+    "Stepper",
     "Success",
     "Tab",
     "TabItem",
