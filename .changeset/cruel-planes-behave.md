@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:changes
+feat:Allow deleting and uploading additional images to interactive `gr.Gallery` 
