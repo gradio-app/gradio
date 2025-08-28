@@ -1,5 +1,16 @@
 # @gradio/chatbot
 
+## 0.26.23
+
+### Fixes
+
+- [#11782](https://github.com/gradio-app/gradio/pull/11782) [`e132283`](https://github.com/gradio-app/gradio/commit/e132283b2289d3689927a8fa7f0b4ac8f8628a18) - remove dompurify, update mermaid.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.18
+- @gradio/markdown-code@0.5.1
+
 ## 0.26.22
 
 ### Dependency updates
