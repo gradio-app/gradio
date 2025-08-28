@@ -43,8 +43,8 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                     )
                     process = await asyncio.create_subprocess_exec(
                         *ff.cmd.split(),
-                        stdout=asyncio.subprocess.PIPE,
-                        stderr=asyncio.subprocess.PIPE,
+                        stdout=asyncio.subprocess.PIPE,  # type: ignore  # type: ignore
+                        stderr=asyncio.subprocess.PIPE,  # type: ignore  # type: ignore
                     )
                     stdout, stderr = await process.communicate()
 
@@ -56,8 +56,8 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                 )
                 process = await asyncio.create_subprocess_exec(
                     *ff.cmd.split(),
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
+                    stdout=asyncio.subprocess.PIPE,  # type: ignore
+                    stderr=asyncio.subprocess.PIPE,  # type: ignore
                 )
                 stdout, stderr = await process.communicate()
 
@@ -86,8 +86,8 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
                     )
                     process = await asyncio.create_subprocess_exec(
                         *ff.cmd.split(),
-                        stdout=asyncio.subprocess.PIPE,
-                        stderr=asyncio.subprocess.PIPE,
+                        stdout=asyncio.subprocess.PIPE,  # type: ignore  # type: ignore
+                        stderr=asyncio.subprocess.PIPE,  # type: ignore  # type: ignore
                     )
                     stdout, stderr = await process.communicate()
 
@@ -136,8 +136,8 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
         )
         process = await asyncio.create_subprocess_exec(
             *ff.cmd.split(),
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,  # type: ignore
+            stderr=asyncio.subprocess.PIPE,  # type: ignore
         )
         stdout, stderr = await process.communicate()
 
@@ -158,8 +158,8 @@ async def process_video_with_ffmpeg(input_path, output_path, params):
         )
         process = await asyncio.create_subprocess_exec(
             *ff.cmd.split(),
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,  # type: ignore
+            stderr=asyncio.subprocess.PIPE,  # type: ignore
         )
         stdout, stderr = await process.communicate()
 
@@ -255,8 +255,8 @@ async def zoom_in(
 
         process = await asyncio.create_subprocess_shell(
             duration_cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,  # type: ignore
+            stderr=asyncio.subprocess.PIPE,  # type: ignore
         )
         stdout, stderr = await process.communicate()
 
@@ -313,8 +313,8 @@ async def zoom_in(
         cmd_parts = ff.cmd.split()
         process = await asyncio.create_subprocess_exec(
             *cmd_parts,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,  # type: ignore
+            stderr=asyncio.subprocess.PIPE,  # type: ignore
         )
         stdout, stderr = await process.communicate()
 

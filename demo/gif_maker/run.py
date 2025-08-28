@@ -1,4 +1,4 @@
-import cv2
+import cv2  # type: ignore
 import gradio as gr
 
 def gif_maker(img_files):

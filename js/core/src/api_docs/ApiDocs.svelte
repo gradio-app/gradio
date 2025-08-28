@@ -145,6 +145,10 @@
 		description: string;
 		parameters: Record<string, ToolParameter>;
 		expanded?: boolean;
+		meta: {
+			mcp_type: "tool" | "resource" | "prompt";
+			file_data_present: boolean;
+		};
 	}
 
 	let tools: Tool[] = [];
@@ -187,6 +191,7 @@
 				name: tool.name,
 				description: tool.description || "",
 				parameters: tool.inputSchema?.properties || {},
+				meta: tool.meta,
 				expanded: false
 			}));
 			selected_tools = new Set(tools.map((tool) => tool.name));
