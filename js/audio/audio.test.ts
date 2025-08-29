@@ -1,5 +1,5 @@
 import { test, describe, assert, afterEach } from "vitest";
-import { cleanup, render } from "@self/tootils";
+import { cleanup, getByTestId, render } from "@self/tootils";
 import Audio from "./";
 import type { LoadingStatus } from "@gradio/statustracker";
 import { setupi18n } from "../core/src/i18n";
@@ -121,14 +121,13 @@ describe("Audio", () => {
 	test("renders audio component with subtitles", async () => {
 		const { getByTestId } = await render(Audio, {
 			...default_values,
-			subtitles:
-			{
+			subtitles: {
 				url: "https://raw.githubusercontent.com/gradio-app/gradio/refs/heads/main/demo/video_subtitle/files/s2.vtt",
 				path: "https://raw.githubusercontent.com/gradio-app/gradio/refs/heads/main/demo/video_subtitle/files/s2.vtt",
 				orig_name: "s2.vtt"
 			},
 			interactive: false
 		});
-		assert.exists(getByTestId("subtitles-toggle"));
+		assert.equal(getByTestId("subtitles-display").textContent, "");
 	});
 });

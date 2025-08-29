@@ -32,7 +32,7 @@
 	export let trim_region_settings: WaveformOptions = {};
 	export let show_volume_slider = false;
 	export let editable = true;
-	export let subtitles_toggle = false;
+	export let subtitles_toggle = true;
 	export let show_subtitles = false;
 	export let trimDuration = 0;
 

@@ -47,7 +47,7 @@
 	let audio_player: HTMLAudioElement;
 
 	let stream_active = false;
-	let subtitles_toggle = false;
+	let subtitles_toggle = true;
 	let subtitle_event_handlers: (() => void)[] = [];
 
 	const dispatch = createEventDispatcher<{
@@ -329,6 +329,7 @@
 	bind:this={audio_player}
 	on:ended={() => dispatch("stop")}
 	on:play={() => dispatch("play")}
+	preload="metadata"
 />
 {#if value === null}
 	<Empty size="small">
@@ -357,7 +358,11 @@
 			</div>
 		</div>
 
-		<div bind:this={subtitle_container} class="subtitle-display"></div>
+		<div
+			bind:this={subtitle_container}
+			class="subtitle-display"
+			data-testid="subtitle-display"
+		></div>
 
 		<WaveformControls
 			{container}
@@ -378,8 +383,6 @@
 			{editable}
 			show_subtitles={subtitles !== null}
 		/>
-		<audio bind:this={audio_player} preload="metadata" style="display: none;"
-		></audio>
 	</div>
 {/if}
 
