@@ -6,7 +6,6 @@ from PIL import Image
 def gif_maker(img_files):
     img_array = []
     for filename, _ in img_files:
-        print("filename", filename)
         pil_img = Image.open(filename)
         if pil_img.mode in ('RGBA', 'LA', 'P'):
             pil_img = pil_img.convert('RGB')

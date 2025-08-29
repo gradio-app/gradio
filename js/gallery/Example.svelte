@@ -60,8 +60,8 @@
 	}
 
 	.container.gallery .images-wrapper {
-		flex-direction: column;
-		gap: var(--spacing-xs);
+		flex-direction: row;
+		gap: 0;
 	}
 
 	.image-container {
@@ -75,8 +75,13 @@
 	}
 
 	.container.gallery .image-container {
-		width: 100%;
+		width: var(--size-20);
 		height: var(--size-20);
+		margin-left: calc(-1 * var(--size-8));
+	}
+
+	.container.gallery .image-container:first-child {
+		margin-left: 0;
 	}
 
 	.image-container img,

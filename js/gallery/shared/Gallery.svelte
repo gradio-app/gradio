@@ -92,6 +92,21 @@
 					return {};
 				}) as GalleryData[]);
 
+	let effective_columns: number | number[] | undefined = columns;
+
+	$: {
+		if (resolved_value && columns) {
+			const item_count = resolved_value.length;
+			if (Array.isArray(columns)) {
+				effective_columns = columns.map(col => Math.min(col, item_count));
+			} else {
+				effective_columns = Math.min(columns, item_count);
+			}
+		} else {
+			effective_columns = columns;
+		}
+	}
+
 	let prev_value: GalleryData[] | null = value;
 	if (selected_index == null && preview && value?.length) {
 		selected_index = 0;
@@ -451,7 +466,7 @@
 			{/if}
 			<div
 				class="grid-container"
-				style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
+				style="--grid-cols:{effective_columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
 				class:pt-6={show_label}
 			>
 				{#each resolved_value as entry, i}
@@ -775,7 +790,7 @@
 	}
 
 	.delete-button :global(svg) {
-		width: var(--text-md);
+		width: var(--text-xs);
 		height: var(--text-md);
 		color: var(--block-label-text-color);
 	}
