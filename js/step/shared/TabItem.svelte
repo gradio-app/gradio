@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getContext, onMount, createEventDispatcher, tick } from "svelte";
-	import { TABS } from "@gradio/tabs";
+	import { TABS } from "@gradio/stepper";
 	import Column from "@gradio/column";
 	import type { SelectData } from "@gradio/utils";
 
@@ -25,22 +25,29 @@
 		order
 	);
 
-	$: console.log("tab_index", tab_index, id, order);
-
 	onMount(() => {
 		return (): void => unregister_tab({ label, id, elem_id }, order);
 	});
+
+	$: console.log(
+		"tab_index",
+		tab_index,
+		id,
+		order,
+		$selected_tab_index,
+		$selected_tab
+	);
 
 	$: $selected_tab_index === tab_index &&
 		tick().then(() => dispatch("select", { value: label, index: tab_index }));
 </script>
 
-{#if $selected_tab === id && visible}
+{#if $selected_tab === tab_index && visible}
 	<div
 		id={elem_id}
 		class="tabitem {elem_classes.join(' ')}"
 		class:grow-children={scale >= 1}
-		style:display={$selected_tab === id && visible ? "flex" : "none"}
+		style:display={$selected_tab === tab_index && visible ? "flex" : "none"}
 		style:flex-grow={scale}
 		role="tabpanel"
 	>

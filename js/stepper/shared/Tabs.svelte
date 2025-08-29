@@ -22,7 +22,6 @@
 	export let elem_classes: string[] = [];
 	export let selected: number | string;
 	export let initial_tabs: Tab[];
-	export let name: "tabs" | "stepper" = "tabs";
 
 	let tabs: (Tab | null)[] = [...initial_tabs];
 	let visible_tabs: (Tab | null)[] = [...initial_tabs];
@@ -37,9 +36,7 @@
 	const selected_tab = writable<false | number | string>(
 		selected || tabs[0]?.id || false
 	);
-	const selected_tab_index = writable<number>(
-		tabs.findIndex((t) => t?.id === selected) || 0
-	);
+	const selected_tab_index = writable<number>(0);
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		select: SelectData;
@@ -49,25 +46,28 @@
 	let overflow_has_selected_tab = false;
 	let tab_els: Record<string | number, HTMLElement> = {};
 
-	$: console.log("selected", selected);
-
 	onMount(() => {
+		console.log("onMount", tab_nav_el);
 		if (!tab_nav_el) return;
 		const observer = new IntersectionObserver((entries) => {
 			handle_menu_overflow();
 		});
-		observer.observe(tab_nav_el);
+		// observer.observe(tab_nav_el);
 	});
+
+	let i = 0;
 
 	setContext(TABS, {
 		register_tab: (tab: Tab, order: number) => {
-			tabs[order] = tab;
+			tabs[order || i] = tab;
+			console.log("register_tab", tab, order, i);
 
 			if ($selected_tab === false && tab.visible && tab.interactive) {
-				$selected_tab = tab.id;
+				$selected_tab = i;
 				$selected_tab_index = order;
 			}
-			return order;
+			i++;
+			return i - 1;
 		},
 		unregister_tab: (tab: Tab, order: number) => {
 			if ($selected_tab === tab.id) {
@@ -79,8 +79,10 @@
 		selected_tab_index
 	});
 
-	function change_tab(id: string | number | undefined): void {
-		const tab_to_activate = tabs.find((t) => t?.id === id);
+	function change_tab(id: number): void {
+		const tab_to_activate = tabs[id];
+		console.log("tabs", tabs);
+		console.log("change_tab", id, tab_to_activate);
 		if (
 			id !== undefined &&
 			tab_to_activate &&
@@ -88,9 +90,10 @@
 			tab_to_activate.visible &&
 			$selected_tab !== tab_to_activate.id
 		) {
+			console.log("change_tab", id, tab_to_activate);
 			selected = id;
 			$selected_tab = id;
-			$selected_tab_index = tabs.findIndex((t) => t?.id === id);
+			$selected_tab_index = tabs[i];
 			dispatch("change");
 			overflow_menu_open = false;
 		}
@@ -98,7 +101,7 @@
 
 	$: tabs, selected !== null && change_tab(selected);
 	$: tabs, tab_nav_el, tab_els, handle_menu_overflow();
-
+	$: console.log("selected_tab_index", $selected_tab_index);
 	function handle_outside_click(event: MouseEvent): void {
 		if (
 			overflow_menu_open &&
@@ -160,8 +163,6 @@
 		return tab_sizes;
 	}
 
-	$: console.log({ tabs });
-
 	$: tab_scale =
 		tabs[$selected_tab_index >= 0 ? $selected_tab_index : 0]?.scale;
 </script>
@@ -172,7 +173,7 @@
 />
 
 <div
-	class=" {elem_classes.join(' ')} {name}"
+	class="tabs {elem_classes.join(' ')}"
 	class:hide={!visible}
 	id={elem_id}
 	style:flex-grow={tab_scale}
@@ -193,21 +194,16 @@
 					{#if t?.visible}
 						<button
 							role="tab"
-							class:selected={t.id === $selected_tab}
-							class:completed={$selected_tab > t.id}
-							aria-selected={t.id === $selected_tab}
+							class:selected={i === $selected_tab}
+							aria-selected={i === $selected_tab}
 							aria-controls={t.elem_id}
 							disabled={!t.interactive}
 							aria-disabled={!t.interactive}
 							id={t.elem_id ? t.elem_id + "-button" : null}
 							data-tab-id={t.id}
 							on:click={() => {
-								if (name === "stepper" && t.id > $selected_tab) {
-									return;
-								}
-
 								if (t.id !== $selected_tab) {
-									change_tab(t.id);
+									change_tab(i);
 									dispatch("select", { value: t.label, index: i });
 								}
 							}}
@@ -230,15 +226,10 @@
 					<OverflowIcon />
 				</button>
 				<div class="overflow-dropdown" class:hide={!overflow_menu_open}>
-					{#each overflow_tabs as t}
+					{#each overflow_tabs as t, i}
 						{#if t?.visible}
 							<button
-								on:click={() => {
-									if (name === "stepper" && t?.id > $selected_tab) {
-										return;
-									}
-									change_tab(t?.id);
-								}}
+								on:click={() => change_tab(i)}
 								class:selected={t?.id === $selected_tab}
 							>
 								{t?.label}
@@ -253,8 +244,7 @@
 </div>
 
 <style>
-	.tabs,
-	.stepper {
+	.tabs {
 		position: relative;
 		display: flex;
 		flex-direction: column;
@@ -274,13 +264,6 @@
 		padding-bottom: var(--size-2);
 	}
 
-	.stepper .tab-wrapper {
-		border: none;
-		height: auto;
-		padding-bottom: 0;
-		padding-top: var(--layout-gap);
-	}
-
 	.tab-container {
 		display: flex;
 		align-items: center;
@@ -290,11 +273,7 @@
 		height: var(--size-8);
 	}
 
-	.stepper .tab-container {
-		justify-content: center;
-	}
-
-	.tabs .tab-container::after {
+	.tab-container::after {
 		content: "";
 		position: absolute;
 		bottom: 0;
@@ -309,7 +288,7 @@
 		margin-left: var(--size-2);
 	}
 
-	.tabs button {
+	button {
 		margin-bottom: 0;
 		border: none;
 		border-radius: 0;
@@ -326,69 +305,23 @@
 		position: relative;
 	}
 
-	.stepper button {
-		margin-bottom: 0;
-		border: none;
-		border-radius: 0;
-		padding: 0 var(--size-4);
-		color: var(--body-text-color);
-		font-weight: var(--section-header-text-weight);
-		font-size: var(--section-header-text-size);
-		transition: background-color color 0.2s ease-out;
-		background-color: transparent;
-		height: 100%;
-		display: flex;
-		align-items: center;
-		white-space: nowrap;
-		position: relative;
-		border: 2px solid var(--border-color-primary);
-		margin: 0 var(--size-2);
-		border-radius: var(--radius-lg);
-	}
-
-	.stepper button.completed {
-		border-color: var(--color-accent);
-		color: var(--color-accent);
-	}
-
-	.tabs button:disabled {
+	button:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
 
-	.stepper button:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-
-	.stepper button:not(.completed):not(.selected) {
-		cursor: auto;
-	}
-
-	.tabs button:hover:not(:disabled):not(.selected) {
+	button:hover:not(:disabled):not(.selected) {
 		background-color: var(--background-fill-secondary);
 		color: var(--body-text-color);
 	}
 
-	.stepper button:hover:not(:disabled):not(.selected) {
-		background-color: var(--background-fill-secondary);
-		color: var(--body-text-color);
-	}
-
-	.tabs .selected {
+	.selected {
 		background-color: transparent;
 		color: var(--color-accent);
 		position: relative;
 	}
 
-	.stepper .selected {
-		background-color: var(--color-accent);
-		color: var(--button-primary-text-color);
-		border-color: var(--color-accent);
-		position: relative;
-	}
-
-	.tabs .selected::after {
+	.selected::after {
 		content: "";
 		position: absolute;
 		bottom: 0;
@@ -401,36 +334,6 @@
 		z-index: 1;
 	}
 
-	.stepper button:not(:first-child)::after {
-		content: "";
-		position: absolute;
-		bottom: 0;
-		right: calc(100% + 1px);
-		width: var(--size-4);
-		height: 100%;
-		border-bottom: 1px solid var(--border-color-primary);
-		animation: fade-grow-stepper 0.2s ease-out forwards;
-		transform-origin: center;
-		z-index: 1;
-		transform: translateY(calc(-50% + 1px));
-	}
-
-	.stepper .completed:not(:first-child)::after,
-	.stepper .selected:not(:first-child)::after {
-		content: "";
-		position: absolute;
-		bottom: 0;
-		right: calc(100% + 2px);
-		width: var(--size-4);
-		height: 100%;
-		border-bottom: 1px solid var(--border-color-primary);
-		animation: fade-grow-stepper 0.2s ease-out forwards;
-		transform-origin: center;
-		z-index: 1;
-		transform: translateY(calc(-50% + 1px));
-		border-color: var(--color-accent);
-	}
-
 	@keyframes fade-grow {
 		from {
 			opacity: 0;
@@ -439,17 +342,6 @@
 		to {
 			opacity: 1;
 			transform: scaleX(1);
-		}
-	}
-
-	@keyframes fade-grow-stepper {
-		from {
-			opacity: 0;
-			transform: scaleX(0.8) translateY(calc(-50% + 1px));
-		}
-		to {
-			opacity: 1;
-			transform: scaleX(1) translateY(calc(-50% + 1px));
 		}
 	}
 

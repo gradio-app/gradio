@@ -14,7 +14,6 @@
 	export let elem_classes: string[] = [];
 	export let selected: number | string;
 	export let initial_tabs: Tab[] = [];
-	export let name: "tabs" | "stepper" = "tabs";
 	export let gradio:
 		| Gradio<{
 				change: never;
@@ -23,7 +22,6 @@
 		| undefined;
 
 	$: dispatch("prop_change", { selected });
-	$: console.log($$props);
 </script>
 
 <Tabs
@@ -34,7 +32,6 @@
 	on:change={() => gradio?.dispatch("change")}
 	on:select={(e) => gradio?.dispatch("select", e.detail)}
 	{initial_tabs}
-	{name}
 >
 	<slot />
 </Tabs>
