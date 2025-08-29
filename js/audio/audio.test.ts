@@ -122,9 +122,11 @@ describe("Audio", () => {
 		const { getByTestId } = await render(Audio, {
 			...default_values,
 			subtitles:
-				"https://raw.githubusercontent.com/gradio-app/gradio/refs/heads/main/demo/video_subtitle/files/s2.vtt",
-			streaming: false,
-			pending: false,
+			{
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/refs/heads/main/demo/video_subtitle/files/s2.vtt",
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/refs/heads/main/demo/video_subtitle/files/s2.vtt",
+				orig_name: "s2.vtt"
+			},
 			interactive: false
 		});
 		assert.exists(getByTestId("subtitles-toggle"));
