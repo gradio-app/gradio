@@ -6,11 +6,11 @@ b = os.path.join(os.path.dirname(__file__), "files/b.mp3")
 s1 = os.path.join(os.path.dirname(__file__), "files/s1.srt")
 s2 = os.path.join(os.path.dirname(__file__), "files/s2.vtt")
 
-def add_subtitles_to_audio(audio, subtitle=None):
-    if subtitle is None:
+def add_subtitles_to_audio(audio, subtitles=None):
+    if subtitles is None:
         return audio
-    if subtitle is not None:
-        return gr.Audio(label="Out", value=audio, subtitles=subtitle.name)
+    if subtitles is not None:
+        return gr.Audio(label="Out", value=audio, subtitles=subtitles.name)
 
 demo = gr.Interface(
     fn=add_subtitles_to_audio,

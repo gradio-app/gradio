@@ -432,17 +432,17 @@
 	}
 
 	.subtitle-display {
-		color: white;
-		padding: 12px 16px;
-		margin: 8px 0;
-		font-size: 14px;
+		color: var(--text-secondary);
+		font-size: var(--text-lg);
 		text-align: center;
 		max-width: 600px;
-		line-height: 1.4;
-		min-height: 20px;
-		font-family: monospace;
-		font-weight: bold;
-		margin: 0 auto;
+		line-height: 1.3;
+		min-height: var(--size-4);
+		font-family: var(--font-sans);
+		font-weight: normal;
+		margin: var(--size-2) auto;
+		padding: var(--size-1) var(--size-2);
+		border-radius: 2px;
 		transition: opacity 0.2s ease-in-out;
 	}
 
