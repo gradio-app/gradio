@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Allow deleting and uploading additional images to interactive `gr.Gallery` 
+fix:Allow deleting and uploading additional images to interactive `gr.Gallery` and other fixes
