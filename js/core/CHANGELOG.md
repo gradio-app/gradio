@@ -1,5 +1,15 @@
 # @gradio/core
 
+## 0.27.2
+
+### Features
+
+- [#11764](https://github.com/gradio-app/gradio/pull/11764) [`e6ce731`](https://github.com/gradio-app/gradio/commit/e6ce731bbcf2889c8147e57bc2ca97e2c731ddf5) - Display performance metrics for API/MCP requests in View API page.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.18
+
 ## 0.27.1
 
 ### Features

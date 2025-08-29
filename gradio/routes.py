@@ -1835,6 +1835,10 @@ class App(FastAPI):
             print(f"* Monitoring URL: {monitoring_url} *")
             return HTMLResponse("See console for monitoring URL.")
 
+        @app.get("/monitoring/summary")
+        async def _():
+            return app.get_blocks()._queue.cached_event_analytics_summary
+
         @app.get("/monitoring/{key}")
         async def analytics_dashboard(key: str):
             if not blocks.enable_monitoring:
