@@ -65,7 +65,7 @@
 		preview_open: undefined;
 		preview_close: undefined;
 		fullscreen: boolean;
-		delete: number;
+		delete: { file: FileData; index: number };
 		upload: FileData | FileData[];
 		error: string;
 	}>();
@@ -98,7 +98,7 @@
 		if (resolved_value && columns) {
 			const item_count = resolved_value.length;
 			if (Array.isArray(columns)) {
-				effective_columns = columns.map(col => Math.min(col, item_count));
+				effective_columns = columns.map((col) => Math.min(col, item_count));
 			} else {
 				effective_columns = Math.min(columns, item_count);
 			}
@@ -285,8 +285,26 @@
 	}
 
 	function handle_item_delete(index: number): void {
-		if (!value) return;
-		dispatch("delete", index);
+		if (!value || !resolved_value) return;
+
+		const deleted_item = resolved_value[index];
+		let deleted_file_data;
+
+		if ("image" in deleted_item) {
+			deleted_file_data = {
+				file: deleted_item.image,
+				index: index
+			};
+		} else if ("video" in deleted_item) {
+			deleted_file_data = {
+				file: deleted_item.video,
+				index: index
+			};
+		}
+
+		if (deleted_file_data) {
+			dispatch("delete", deleted_file_data);
+		}
 	}
 
 	let uploading = false;

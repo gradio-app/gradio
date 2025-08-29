@@ -45,6 +45,7 @@
 		select: SelectData;
 		share: ShareData;
 		error: string;
+		delete: { file: FileData; index: number };
 		prop_change: Record<string, any>;
 		clear_status: LoadingStatus;
 		preview_open: never;
@@ -57,9 +58,13 @@
 
 	$: no_value = value === null ? true : value.length === 0;
 
-	function handle_delete(event: CustomEvent<number>): void {
+	function handle_delete(
+		event: CustomEvent<{ file: FileData; index: number }>
+	): void {
 		if (!value) return;
-		value = value.filter((_, index) => index !== event.detail);
+		const { index } = event.detail;
+		gradio.dispatch("delete", event.detail);
+		value = value.filter((_, i) => i !== index);
 		gradio.dispatch("change", value);
 	}
 	$: selected_index, dispatch("prop_change", { selected_index });

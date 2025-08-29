@@ -61,6 +61,7 @@ class Gallery(Component):
         Events.select,
         Events.upload,
         Events.change,
+        Events.delete,
         EventListener(
             "preview_close",
             doc="This event is triggered when the Gallery preview is closed by the user",
@@ -156,7 +157,9 @@ class Gallery(Component):
         )
         self.selected_index = selected_index
         if type not in ["numpy", "pil", "filepath"]:
-            raise ValueError(f"Invalid type: {type}. Must be one of ['numpy', 'pil', 'filepath']")
+            raise ValueError(
+                f"Invalid type: {type}. Must be one of ['numpy', 'pil', 'filepath']"
+            )
         self.type = type
         self.show_fullscreen_button = show_fullscreen_button
         self.file_types = file_types

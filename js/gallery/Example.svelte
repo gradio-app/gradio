@@ -24,7 +24,12 @@
 					</div>
 				{:else if "video" in item && item.video}
 					<div class="image-container">
-						<video src={item.video.url} controls={false} muted preload="metadata" />
+						<video
+							src={item.video.url}
+							controls={false}
+							muted
+							preload="metadata"
+						/>
 						{#if item.caption}
 							<span class="caption">{item.caption}</span>
 						{/if}
