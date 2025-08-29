@@ -14,6 +14,7 @@
 	import Hls from "hls.js";
 
 	export let value: null | FileData = null;
+	export let subtitles: null | string = null;
 	$: url = value?.url;
 	export let label: string;
 	export let i18n: I18nFormatter;
@@ -34,6 +35,8 @@
 	let waveform: WaveSurfer | undefined;
 	let playing = false;
 
+	let subtitle_container: HTMLDivElement;
+
 	let timeRef: HTMLTimeElement;
 	let durationRef: HTMLTimeElement;
 	let audio_duration: number;
@@ -44,6 +47,8 @@
 	let audio_player: HTMLAudioElement;
 
 	let stream_active = false;
+	let subtitles_toggle = true;
+	let subtitle_event_handlers: (() => void)[] = [];
 
 	const dispatch = createEventDispatcher<{
 		stop: undefined;
@@ -62,6 +67,15 @@
 			container: container,
 			...waveform_settings
 		});
+
+		if (subtitles && waveform) {
+			if (subtitles_toggle) {
+				add_subtitles_to_waveform(waveform, subtitles);
+			} else {
+				hide_subtitles();
+			}
+		}
+
 		resolve_wasm_src(value?.url).then((resolved_src) => {
 			if (resolved_src && waveform) {
 				return waveform.load(resolved_src);
@@ -150,6 +164,14 @@
 
 	$: url && load_audio(url);
 
+	$: if (subtitles && waveform) {
+		if (subtitles_toggle) {
+			add_subtitles_to_waveform(waveform, subtitles);
+		} else {
+			hide_subtitles();
+		}
+	}
+
 	function load_stream(value: FileData | null): void {
 		if (!value || !value.is_stream || !value.url) return;
 
@@ -208,6 +230,94 @@
 			}
 		});
 	});
+
+	async function add_subtitles_to_waveform(
+		wavesurfer: WaveSurfer,
+		subtitle_url: string
+	): Promise<void> {
+		clear_subtitles();
+		try {
+			const response = await fetch(subtitle_url);
+			const subtitle_content = await response.text();
+
+			const subtitles = parse_subtitles(subtitle_content);
+			if (subtitles.length > 0) {
+				let current_subtitle = "";
+				if (subtitle_container) {
+					subtitle_container.style.display = "";
+					const audioProcessHandler = (time: number): void => {
+						const subtitle = subtitles.find(
+							(s) => time >= s.start && time <= s.end
+						);
+						if (subtitle && subtitle.text !== current_subtitle) {
+							current_subtitle = subtitle.text;
+							subtitle_container.textContent = current_subtitle;
+						} else if (!subtitle && current_subtitle !== "") {
+							current_subtitle = "";
+							subtitle_container.textContent = "";
+						}
+					};
+					wavesurfer.on("audioprocess", audioProcessHandler);
+					subtitle_event_handlers.push(() => {
+						wavesurfer.un("audioprocess", audioProcessHandler);
+					});
+				}
+			}
+		} catch (error) {}
+	}
+
+	function hide_subtitles(): void {
+		if (subtitle_container) {
+			subtitle_container.style.display = "none";
+		}
+	}
+
+	function clear_subtitles(): void {
+		if (subtitle_container) {
+			subtitle_container.textContent = "";
+		}
+		subtitle_event_handlers.forEach((handler) => handler());
+		subtitle_event_handlers = [];
+	}
+
+	function parse_subtitles(
+		subtitle_content: string
+	): { start: number; end: number; text: string }[] {
+		const lines = subtitle_content.split("\n");
+		const subtitles: { start: number; end: number; text: string }[] = [];
+
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i].trim();
+			if (line.includes(" --> ")) {
+				const [start_time, end_time] = line.split(" --> ");
+				const start = parse_time_to_seconds(start_time);
+				const end = parse_time_to_seconds(end_time);
+
+				let text = "";
+				for (let j = i + 1; j < lines.length && lines[j].trim() !== ""; j++) {
+					if (text) text += " ";
+					text += lines[j].trim();
+				}
+
+				if (text) {
+					subtitles.push({ start, end, text });
+				}
+			}
+		}
+
+		return subtitles;
+	}
+
+	function parse_time_to_seconds(time_str: string): number {
+		const parts = time_str.split(":");
+		if (parts.length === 3) {
+			const hours = parseInt(parts[0]);
+			const minutes = parseInt(parts[1]);
+			const seconds = parseFloat(parts[2]);
+			return hours * 3600 + minutes * 60 + seconds;
+		}
+		return 0;
+	}
 </script>
 
 <audio
@@ -219,6 +329,7 @@
 	bind:this={audio_player}
 	on:ended={() => dispatch("stop")}
 	on:play={() => dispatch("play")}
+	preload="metadata"
 />
 {#if value === null}
 	<Empty size="small">
@@ -247,6 +358,12 @@
 			</div>
 		</div>
 
+		<div
+			bind:this={subtitle_container}
+			class="subtitle-display"
+			data-testid="subtitle-display"
+		></div>
+
 		<WaveformControls
 			{container}
 			{waveform}
@@ -258,11 +375,13 @@
 			bind:mode
 			bind:trimDuration
 			bind:show_volume_slider
+			bind:subtitles_toggle
 			show_redo={interactive}
 			{handle_reset_value}
 			{waveform_options}
 			{trim_region_settings}
 			{editable}
+			show_subtitles={subtitles !== null}
 		/>
 	</div>
 {/if}
@@ -315,7 +434,23 @@
 		padding: var(--size-2);
 	}
 
-	.hidden {
+	.subtitle-display {
+		color: var(--text-secondary);
+		font-size: var(--text-lg);
+		text-align: center;
+		max-width: 600px;
+		line-height: 1.3;
+		min-height: var(--size-4);
+		font-family: var(--font-sans);
+		font-weight: normal;
+		margin: var(--size-2) auto;
+		padding: var(--size-1) var(--size-2);
+		border-radius: 2px;
+		transition: opacity 0.2s ease-in-out;
+	}
+
+	.hidden,
+	.subtitle-display:empty {
 		display: none;
 	}
 </style>
