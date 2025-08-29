@@ -207,8 +207,6 @@ class Audio(
         if subtitles is not None:
             self.subtitles = handle_file(subtitles)
             self.subtitles = handle_file(subtitles)
-        else:
-            self.subtitles = None
 
         super().__init__(
             label=label,
