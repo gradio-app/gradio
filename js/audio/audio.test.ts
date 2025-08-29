@@ -125,8 +125,7 @@ describe("Audio", () => {
 				"https://raw.githubusercontent.com/gradio-app/gradio/refs/heads/main/demo/video_subtitle/files/s2.vtt",
 			streaming: false,
 			pending: false,
-			sources: ["microphone"],
-			interactive: true
+			interactive: false
 		});
 		assert.exists(getByTestId("subtitles-toggle"));
 	});
