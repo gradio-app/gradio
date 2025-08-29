@@ -1,22 +1,42 @@
-import cv2  # type: ignore
 import gradio as gr
+import os
+import tempfile
+from PIL import Image
 
 def gif_maker(img_files):
     img_array = []
-    size = (1, 1)
-    for filename in img_files:
-        img = cv2.imread(filename.name)
-        height, width, _ = img.shape
-        size = (width,height)
-        img_array.append(img)
-    output_file = "test.mp4"
-    out = cv2.VideoWriter(output_file,cv2.VideoWriter_fourcc(*'h264'), 15, size)  # type: ignore
-    for i in range(len(img_array)):
-        out.write(img_array[i])
-    out.release()
+    for filename, _ in img_files:
+        print("filename", filename)
+        pil_img = Image.open(filename)
+        if pil_img.mode in ('RGBA', 'LA', 'P'):
+            pil_img = pil_img.convert('RGB')
+        img_array.append(pil_img)
+    
+    with tempfile.NamedTemporaryFile(suffix='.gif', delete=False) as tmp_file:
+        output_file = tmp_file.name
+    
+    if img_array:
+        img_array[0].save(
+            output_file,
+            save_all=True,
+            append_images=img_array[1:],
+            duration=200,
+            loop=0
+        )
     return output_file
 
-demo = gr.Interface(gif_maker, inputs=gr.File(file_count="multiple"), outputs=gr.Video())
+demo = gr.Interface(
+    gif_maker,
+    inputs=gr.Gallery(),
+    outputs=gr.Image(),
+    examples=[
+        [[
+            os.path.join(os.path.dirname(__file__), "images/1.png"),
+            os.path.join(os.path.dirname(__file__), "images/2.png"),
+            os.path.join(os.path.dirname(__file__), "images/3.png"),
+        ]],
+    ],
+)
 
 if __name__ == "__main__":
     demo.launch()

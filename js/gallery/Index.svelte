@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
 	export { default as BaseGallery } from "./shared/Gallery.svelte";
+	export { default as BaseExample } from "./Example.svelte";
 </script>
 
 <script lang="ts">

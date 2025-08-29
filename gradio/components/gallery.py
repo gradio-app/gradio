@@ -54,7 +54,7 @@ class Gallery(Component):
     Creates a gallery component that allows displaying a grid of images or videos, and optionally captions. If used as an input, the user can upload images or videos to the gallery.
     If used as an output, the user can click on individual images or videos to view them at a higher resolution.
 
-    Demos: fake_gan
+    Demos: fake_gan, gif_maker
     """
 
     EVENTS = [
@@ -155,6 +155,8 @@ class Gallery(Component):
             else show_download_button
         )
         self.selected_index = selected_index
+        if type not in ["numpy", "pil", "filepath"]:
+            raise ValueError(f"Invalid type: {type}. Must be one of ['numpy', 'pil', 'filepath']")
         self.type = type
         self.show_fullscreen_button = show_fullscreen_button
         self.file_types = file_types
