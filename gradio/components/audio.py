@@ -203,7 +203,9 @@ class Audio(
         self.min_length = min_length
         self.max_length = max_length
         self.recording = recording
+        self.subtitles = None
         if subtitles is not None:
+            self.subtitles = handle_file(subtitles)
             self.subtitles = handle_file(subtitles)
         else:
             self.subtitles = None
