@@ -14,7 +14,7 @@
 >
 	{#if value && value.length > 0}
 		<div class="images-wrapper">
-			{#each value as item}
+			{#each value.slice(0, 3) as item}
 				{#if "image" in item && item.image}
 					<div class="image-container">
 						<img src={item.image.url} alt={item.caption || ""} />
@@ -36,6 +36,9 @@
 					</div>
 				{/if}
 			{/each}
+			{#if value.length > 3}
+				<div class="more-indicator">…</div>
+			{/if}
 		</div>
 	{/if}
 </div>
@@ -87,6 +90,27 @@
 
 	.container.gallery .image-container:first-child {
 		margin-left: 0;
+	}
+
+	.more-indicator {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: var(--text-lg);
+		font-weight: bold;
+		color: var(--border-color-primary);
+	}
+
+	.container.table .more-indicator {
+		width: var(--size-12);
+		height: var(--size-12);
+	}
+
+	.container.gallery .more-indicator {
+		width: var(--size-20);
+		height: var(--size-20);
+		margin-left: calc(-1 * var(--size-8));
+		margin-right: calc(-1 * var(--size-6));
 	}
 
 	.image-container img,
