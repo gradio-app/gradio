@@ -114,7 +114,7 @@ class Audio(
         waveform_options: WaveformOptions | dict | None = None,
         loop: bool = False,
         recording: bool = False,
-        subtitles: str | Path | None = None,
+        subtitles: str | Path | list[dict[str, Any]] | None = None,
     ):
         """
         Parameters:
@@ -146,7 +146,7 @@ class Audio(
             waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int), trim_region_color (str). Default is None, which uses the default values for these options. [See `gr.WaveformOptions` docs](#waveform-options).
             loop: If True, the audio will loop when it reaches the end and continue playing from the beginning.
             recording: If True, the audio component will be set to record audio from the microphone if the source is set to "microphone". Defaults to False.
-            subtitles: A subtitle file (srt or vtt) for the audio.
+            subtitles: A subtitle file (srt, vtt, or json) for the audio, or a list of subtitle dictionaries in the format [{"text": str, "timestamp": [start, end]}] where timestamps are in seconds. JSON files should contain an array of subtitle objects.
         """
         valid_sources: list[Literal["upload", "microphone"]] = ["upload", "microphone"]
         if sources is None:
@@ -203,10 +203,6 @@ class Audio(
         self.min_length = min_length
         self.max_length = max_length
         self.recording = recording
-        self.subtitles = None
-        if subtitles is not None:
-            self.subtitles = handle_file(subtitles)
-
         super().__init__(
             label=label,
             every=every,
@@ -229,6 +225,12 @@ class Audio(
             if self.type == "filepath"
             else "a tuple of [sample_rate: int, data: np.ndarray] of audio data"
         )
+        self.subtitles = None
+        if subtitles is not None:
+            if isinstance(subtitles, list):
+                self.subtitles = self._process_json_subtitles(subtitles)
+            else:
+                self.subtitles = self._process_subtitle_file(subtitles)
 
     def example_payload(self) -> Any:
         return handle_file(
@@ -404,6 +406,62 @@ class Audio(
             )
             output_file.path = str(new_path)
         return output_file
+
+    def _process_json_subtitles(self, subtitles: list[dict[str, Any]]) -> FileData:
+        import tempfile
+        for i, subtitle in enumerate(subtitles):
+            if not isinstance(subtitle, dict):
+                raise ValueError(f"Subtitle at index {i} must be a dictionary")
+            if "text" not in subtitle:
+                raise ValueError(f"Subtitle at index {i} missing required 'text' field")
+            if "timestamp" not in subtitle:
+                raise ValueError(f"Subtitle at index {i} missing required 'timestamp' field")
+            if not isinstance(subtitle["timestamp"], (list, tuple)) or len(subtitle["timestamp"]) != 2:
+                raise ValueError(f"Subtitle at index {i} 'timestamp' must be a list/tuple of [start, end]")
+
+        vtt_content = self._convert_json_to_vtt(subtitles)
+        temp_file = tempfile.NamedTemporaryFile(
+            delete=False, suffix=".vtt"
+        )
+        with open(temp_file.name, "w", encoding="utf-8") as f:
+            f.write(vtt_content)
+
+        return handle_file(temp_file.name)
+
+    def _process_subtitle_file(self, subtitle_file: str | Path) -> FileData:
+        import json
+        from pathlib import Path
+        file_path = Path(subtitle_file)
+        if file_path.suffix.lower() == '.json':
+            try:
+                with open(file_path, encoding='utf-8') as f:
+                    json_data = json.load(f)
+                if isinstance(json_data, list):
+                    return self._process_json_subtitles(json_data)
+                else:
+                    raise ValueError("JSON subtitle file must contain a list of subtitle objects") from None
+
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Invalid JSON format in subtitle file: {e}") from e
+            except Exception as e:
+                raise ValueError(f"Error reading JSON subtitle file: {e}") from e
+        return handle_file(subtitle_file)
+
+    def _convert_json_to_vtt(self, subtitles: list[dict[str, Any]]) -> str:
+        vtt = "WEBVTT\n\n"
+        for subtitle in subtitles:
+            start_time, end_time = subtitle["timestamp"]
+            vtt += f"{self._format_vtt_time(start_time)} --> {self._format_vtt_time(end_time)}\n"
+            vtt += f"{subtitle['text']}\n\n"
+        return vtt
+
+    def _format_vtt_time(self, seconds: float) -> str:
+        """Format time in seconds to WebVTT time format (HH:MM:SS.mmm)."""
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        secs = int(seconds % 60)
+        milliseconds = int((seconds % 1) * 1000)
+        return f"{hours:02d}:{minutes:02d}:{secs:02d}.{milliseconds:03d}"
 
     def process_example(
         self, value: tuple[int, np.ndarray] | str | Path | bytes | None
