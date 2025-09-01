@@ -1100,6 +1100,33 @@ def test_show_api_queue_not_enabled():
     assert not io.show_api
 
 
+def test_config_show_api_reflects_launch_flag():
+    with gr.Blocks() as demo:
+        gr.Markdown("Hello")
+
+    app, _, _ = demo.launch(prevent_thread_lock=True, show_api=False)
+    client = TestClient(app)
+    config = client.get("/config").json()
+    assert config["show_api"] is False
+    demo.close()
+
+    app, _, _ = demo.launch(prevent_thread_lock=True, show_api=True)
+    client = TestClient(app)
+    config = client.get("/config").json()
+    assert config["show_api"] is True
+    demo.close()
+
+
+def test_config_show_api_reflects_mount_flag():
+    app = FastAPI()
+    with gr.Blocks() as demo:
+        gr.Markdown("Hello")
+
+    gr.mount_gradio_app(app, demo, path="/gr", show_api=False)
+    client = TestClient(app)
+    config = client.get("/gr/config").json()
+    assert config["show_api"] is False
+
 def test_orjson_serialization():
     df = pd.DataFrame(
         {
