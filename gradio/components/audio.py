@@ -409,20 +409,26 @@ class Audio(
 
     def _process_json_subtitles(self, subtitles: list[dict[str, Any]]) -> FileData:
         import tempfile
+
         for i, subtitle in enumerate(subtitles):
             if not isinstance(subtitle, dict):
                 raise ValueError(f"Subtitle at index {i} must be a dictionary")
             if "text" not in subtitle:
                 raise ValueError(f"Subtitle at index {i} missing required 'text' field")
             if "timestamp" not in subtitle:
-                raise ValueError(f"Subtitle at index {i} missing required 'timestamp' field")
-            if not isinstance(subtitle["timestamp"], (list, tuple)) or len(subtitle["timestamp"]) != 2:
-                raise ValueError(f"Subtitle at index {i} 'timestamp' must be a list/tuple of [start, end]")
+                raise ValueError(
+                    f"Subtitle at index {i} missing required 'timestamp' field"
+                )
+            if (
+                not isinstance(subtitle["timestamp"], (list, tuple))
+                or len(subtitle["timestamp"]) != 2
+            ):
+                raise ValueError(
+                    f"Subtitle at index {i} 'timestamp' must be a list/tuple of [start, end]"
+                )
 
         vtt_content = self._convert_json_to_vtt(subtitles)
-        temp_file = tempfile.NamedTemporaryFile(
-            delete=False, suffix=".vtt"
-        )
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".vtt")
         with open(temp_file.name, "w", encoding="utf-8") as f:
             f.write(vtt_content)
 
@@ -431,15 +437,18 @@ class Audio(
     def _process_subtitle_file(self, subtitle_file: str | Path) -> FileData:
         import json
         from pathlib import Path
+
         file_path = Path(subtitle_file)
-        if file_path.suffix.lower() == '.json':
+        if file_path.suffix.lower() == ".json":
             try:
-                with open(file_path, encoding='utf-8') as f:
+                with open(file_path, encoding="utf-8") as f:
                     json_data = json.load(f)
                 if isinstance(json_data, list):
                     return self._process_json_subtitles(json_data)
                 else:
-                    raise ValueError("JSON subtitle file must contain a list of subtitle objects") from None
+                    raise ValueError(
+                        "JSON subtitle file must contain a list of subtitle objects"
+                    ) from None
 
             except json.JSONDecodeError as e:
                 raise ValueError(f"Invalid JSON format in subtitle file: {e}") from e
