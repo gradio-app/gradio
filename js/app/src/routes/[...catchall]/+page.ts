@@ -1,6 +1,5 @@
 // import { type LayoutServerLoad } from "./$types";
 import { browser } from "$app/environment";
-import { setupi18n } from "@gradio/core";
 
 import { Client } from "@gradio/client";
 import {
@@ -104,8 +103,6 @@ export async function load({
 	});
 
 	const layouts = get(layout);
-
-	await setupi18n();
 
 	return {
 		Render: app.config?.auth_required ? Login : Blocks,

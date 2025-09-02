@@ -588,7 +588,7 @@
 				space_id={space}
 				{app_mode}
 			/>
-		{:else if config && Blocks && css_ready}
+		{:else if config && Blocks && css_ready && i18n_ready}
 			<Blocks
 				{app}
 				{...config}
