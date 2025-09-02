@@ -11,7 +11,7 @@
 	import InteractiveAudio from "./interactive/InteractiveAudio.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { Block, UploadText } from "@gradio/atoms";
-	import type { WaveformOptions } from "./shared/types";
+	import type { WaveformOptions, SubtitleData } from "./shared/types";
 
 	export let value_is_output = false;
 	export let elem_id = "";
@@ -44,7 +44,7 @@
 	export let stream_every: number;
 	export let input_ready: boolean;
 	export let recording = false;
-	export let subtitles: null | FileData = null;
+	export let subtitles: null | FileData | SubtitleData[] = null;
 	let uploading = false;
 	$: input_ready = !uploading;
 

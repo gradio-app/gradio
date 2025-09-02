@@ -8,13 +8,13 @@
 	import { Empty } from "@gradio/atoms";
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 	import type { FileData } from "@gradio/client";
-	import type { WaveformOptions } from "../shared/types";
+	import type { WaveformOptions, SubtitleData } from "../shared/types";
 	import { createEventDispatcher } from "svelte";
 
 	import Hls from "hls.js";
 
 	export let value: null | FileData = null;
-	export let subtitles: null | string = null;
+	export let subtitles: null | string | SubtitleData[] = null;
 	$: url = value?.url;
 	export let label: string;
 	export let i18n: I18nFormatter;
@@ -233,14 +233,19 @@
 
 	async function add_subtitles_to_waveform(
 		wavesurfer: WaveSurfer,
-		subtitle_url: string
+		subtitle_data: string | SubtitleData[]
 	): Promise<void> {
 		clear_subtitles();
 		try {
-			const response = await fetch(subtitle_url);
-			const subtitle_content = await response.text();
+			let subtitles: SubtitleData[];
+			if (Array.isArray(subtitle_data)) {
+				subtitles = subtitle_data;
+			} else {
+				const response = await fetch(subtitle_data);
+				const subtitle_content = await response.text();
+				subtitles = parse_subtitles(subtitle_content);
+			}
 
-			const subtitles = parse_subtitles(subtitle_content);
 			if (subtitles.length > 0) {
 				let current_subtitle = "";
 				if (subtitle_container) {
@@ -280,11 +285,9 @@
 		subtitle_event_handlers = [];
 	}
 
-	function parse_subtitles(
-		subtitle_content: string
-	): { start: number; end: number; text: string }[] {
+	function parse_subtitles(subtitle_content: string): SubtitleData[] {
 		const lines = subtitle_content.split("\n");
-		const subtitles: { start: number; end: number; text: string }[] = [];
+		const subtitles: SubtitleData[] = [];
 
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i].trim();

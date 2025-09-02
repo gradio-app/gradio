@@ -407,9 +407,9 @@ class Audio(
             output_file.path = str(new_path)
         return output_file
 
-    def _process_json_subtitles(self, subtitles: list[dict[str, Any]]) -> FileData:
-        import tempfile
-
+    def _process_json_subtitles(
+        self, subtitles: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         for i, subtitle in enumerate(subtitles):
             if not isinstance(subtitle, dict):
                 raise ValueError(f"Subtitle at index {i} must be a dictionary")
@@ -426,15 +426,18 @@ class Audio(
                 raise ValueError(
                     f"Subtitle at index {i} 'timestamp' must be a list/tuple of [start, end]"
                 )
+        return [
+            {
+                "start": subtitle["timestamp"][0],
+                "end": subtitle["timestamp"][1],
+                "text": subtitle["text"],
+            }
+            for subtitle in subtitles
+        ]
 
-        vtt_content = self._convert_json_to_vtt(subtitles)
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".vtt")
-        with open(temp_file.name, "w", encoding="utf-8") as f:
-            f.write(vtt_content)
-
-        return handle_file(temp_file.name)
-
-    def _process_subtitle_file(self, subtitle_file: str | Path) -> FileData:
+    def _process_subtitle_file(
+        self, subtitle_file: str | Path
+    ) -> FileData | list[dict[str, Any]]:
         import json
         from pathlib import Path
 
@@ -455,22 +458,6 @@ class Audio(
             except Exception as e:
                 raise ValueError(f"Error reading JSON subtitle file: {e}") from e
         return handle_file(subtitle_file)
-
-    def _convert_json_to_vtt(self, subtitles: list[dict[str, Any]]) -> str:
-        vtt = "WEBVTT\n\n"
-        for subtitle in subtitles:
-            start_time, end_time = subtitle["timestamp"]
-            vtt += f"{self._format_vtt_time(start_time)} --> {self._format_vtt_time(end_time)}\n"
-            vtt += f"{subtitle['text']}\n\n"
-        return vtt
-
-    def _format_vtt_time(self, seconds: float) -> str:
-        """Format time in seconds to WebVTT time format (HH:MM:SS.mmm)."""
-        hours = int(seconds // 3600)
-        minutes = int((seconds % 3600) // 60)
-        secs = int(seconds % 60)
-        milliseconds = int((seconds % 1) * 1000)
-        return f"{hours:02d}:{minutes:02d}:{secs:02d}.{milliseconds:03d}"
 
     def process_example(
         self, value: tuple[int, np.ndarray] | str | Path | bytes | None
