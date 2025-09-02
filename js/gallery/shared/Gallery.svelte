@@ -7,7 +7,7 @@
 		IconButtonWrapper,
 		FullscreenButton
 	} from "@gradio/atoms";
-	import { ModifyUpload } from "@gradio/upload";
+	import { ModifyUpload, Upload as UploadComponent } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
 	import { Image } from "@gradio/image/shared";
 	import { Video } from "@gradio/video/shared";
@@ -16,8 +16,15 @@
 	import { tick } from "svelte";
 	import type { GalleryImage, GalleryVideo } from "../types";
 
-	import { Download, Image as ImageIcon, Clear, Play } from "@gradio/icons";
+	import {
+		Download,
+		Image as ImageIcon,
+		Clear,
+		Play,
+		Upload as UploadIcon
+	} from "@gradio/icons";
 	import { FileData } from "@gradio/client";
+	import type { Client } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
 	import type { I18nFormatter } from "@gradio/utils";
 
@@ -43,6 +50,11 @@
 	export let show_fullscreen_button = true;
 	export let display_icon_button_wrapper_top_corner = false;
 	export let fullscreen = false;
+	export let root = "";
+	export let file_types: string[] | null = ["image", "video"];
+	export let max_file_size: number | null = null;
+	export let upload: Client["upload"] | undefined = undefined;
+	export let stream_handler: Client["stream"] | undefined = undefined;
 
 	let is_full_screen = false;
 	let image_container: HTMLElement;
@@ -53,6 +65,9 @@
 		preview_open: undefined;
 		preview_close: undefined;
 		fullscreen: boolean;
+		delete: { file: FileData; index: number };
+		upload: FileData | FileData[];
+		error: string;
 	}>();
 
 	// tracks whether the value of the gallery was reset
@@ -76,6 +91,21 @@
 					}
 					return {};
 				}) as GalleryData[]);
+
+	let effective_columns: number | number[] | undefined = columns;
+
+	$: {
+		if (resolved_value && columns) {
+			const item_count = resolved_value.length;
+			if (Array.isArray(columns)) {
+				effective_columns = columns.map((col) => Math.min(col, item_count));
+			} else {
+				effective_columns = Math.min(columns, item_count);
+			}
+		} else {
+			effective_columns = columns;
+		}
+	}
 
 	let prev_value: GalleryData[] | null = value;
 	if (selected_index == null && preview && value?.length) {
@@ -253,6 +283,31 @@
 	$: if (container_element) {
 		check_thumbnails_overflow();
 	}
+
+	function handle_item_delete(index: number): void {
+		if (!value || !resolved_value) return;
+
+		const deleted_item = resolved_value[index];
+		let deleted_file_data;
+
+		if ("image" in deleted_item) {
+			deleted_file_data = {
+				file: deleted_item.image,
+				index: index
+			};
+		} else if ("video" in deleted_item) {
+			deleted_file_data = {
+				file: deleted_item.video,
+				index: index
+			};
+		}
+
+		if (deleted_file_data) {
+			dispatch("delete", deleted_file_data);
+		}
+	}
+
+	let uploading = false;
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
@@ -408,51 +463,82 @@
 			class:hidden={is_full_screen}
 		>
 			{#if interactive && selected_index === null}
-				<ModifyUpload {i18n} on:clear={() => (value = [])} />
+				<ModifyUpload {i18n} on:clear={() => (value = [])}>
+					{#if upload && stream_handler}
+						<IconButton Icon={UploadIcon} label={i18n("common.upload")}>
+							<UploadComponent
+								icon_upload={true}
+								on:load={(e) => dispatch("upload", e.detail)}
+								filetype={file_types}
+								file_count="multiple"
+								{max_file_size}
+								{root}
+								bind:uploading
+								on:error={(e) => dispatch("error", e.detail)}
+								{stream_handler}
+								{upload}
+							/>
+						</IconButton>
+					{/if}
+				</ModifyUpload>
 			{/if}
 			<div
 				class="grid-container"
-				style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
+				style="--grid-cols:{effective_columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
 				class:pt-6={show_label}
 			>
 				{#each resolved_value as entry, i}
-					<button
-						class="thumbnail-item thumbnail-lg"
-						class:selected={selected_index === i}
-						on:click={() => {
-							if (selected_index === null && allow_preview) {
-								dispatch("preview_open");
-							}
-							selected_index = i;
-						}}
-						aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
-					>
-						{#if "image" in entry}
-							<Image
-								alt={entry.caption || ""}
-								src={typeof entry.image === "string"
-									? entry.image
-									: entry.image.url}
-								loading="lazy"
-							/>
-						{:else}
-							<Play />
-							<Video
-								src={entry.video.url}
-								title={entry.caption || null}
-								is_stream={false}
-								data-testid={"thumbnail " + (i + 1)}
-								alt=""
-								loading="lazy"
-								loop={false}
-							/>
+					<div class="gallery-item">
+						<button
+							class="thumbnail-item thumbnail-lg"
+							class:selected={selected_index === i}
+							on:click={() => {
+								if (selected_index === null && allow_preview) {
+									dispatch("preview_open");
+								}
+								selected_index = i;
+							}}
+							aria-label={"Thumbnail " +
+								(i + 1) +
+								" of " +
+								resolved_value.length}
+						>
+							{#if "image" in entry}
+								<Image
+									alt={entry.caption || ""}
+									src={typeof entry.image === "string"
+										? entry.image
+										: entry.image.url}
+									loading="lazy"
+								/>
+							{:else}
+								<Play />
+								<Video
+									src={entry.video.url}
+									title={entry.caption || null}
+									is_stream={false}
+									data-testid={"thumbnail " + (i + 1)}
+									alt=""
+									loading="lazy"
+									loop={false}
+								/>
+							{/if}
+							{#if entry.caption}
+								<div class="caption-label">
+									{entry.caption}
+								</div>
+							{/if}
+						</button>
+						{#if interactive}
+							<button
+								class="delete-button"
+								on:click|stopPropagation={() => handle_item_delete(i)}
+								aria-label="Delete image"
+							>
+								<Clear />
+							</button>
 						{/if}
-						{#if entry.caption}
-							<div class="caption-label">
-								{entry.caption}
-							</div>
-						{/if}
-					</button>
+					</div>
 				{/each}
 			</div>
 		</div>
@@ -680,5 +766,50 @@
 
 	.grid-wrap.minimal {
 		padding: 0;
+	}
+
+	.gallery-item {
+		position: relative;
+		width: 100%;
+		height: 100%;
+	}
+
+	.delete-button {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		z-index: var(--layer-1);
+		border-top: 1px solid var(--border-color-primary);
+		border-right: 1px solid var(--border-color-primary);
+		border-radius: 0 var(--radius-sm) 0 var(--radius-sm);
+		background: var(--background-fill-secondary);
+		padding: var(--block-label-padding);
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		opacity: 0;
+		transition: opacity 0.2s ease;
+		font-size: var(--block-label-text-size);
+		color: var(--block-label-text-color);
+		font-weight: var(--weight-semibold);
+		width: auto;
+		height: auto;
+		min-width: fit-content;
+		min-height: fit-content;
+	}
+
+	.gallery-item:hover .delete-button {
+		opacity: 1;
+	}
+
+	.delete-button:hover {
+		opacity: 0.8;
+	}
+
+	.delete-button :global(svg) {
+		width: var(--text-xs);
+		height: var(--text-md);
+		color: var(--block-label-text-color);
 	}
 </style>
