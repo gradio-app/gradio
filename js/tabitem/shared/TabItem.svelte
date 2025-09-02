@@ -25,8 +25,6 @@
 		order
 	);
 
-	$: console.log("tab_index", tab_index, id, order);
-
 	onMount(() => {
 		return (): void => unregister_tab({ label, id, elem_id }, order);
 	});

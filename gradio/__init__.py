@@ -102,11 +102,11 @@ from gradio.layouts import (
     Group,
     Row,
     Sidebar,
-    Step,
-    Stepper,
     Tab,
     TabItem,
     Tabs,
+    Walkthrough,
+    WalkthroughStep,
 )
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.renderable import render
@@ -231,8 +231,6 @@ __all__ = [
     "Sketchpad",
     "Slider",
     "State",
-    "Step",
-    "Stepper",
     "Success",
     "Tab",
     "TabItem",
@@ -246,6 +244,8 @@ __all__ = [
     "UndoData",
     "UploadButton",
     "Video",
+    "Walkthrough",
+    "WalkthroughStep",
     "Warning",
     "WaveformOptions",
     "WebcamOptions",

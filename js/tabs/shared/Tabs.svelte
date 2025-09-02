@@ -22,7 +22,6 @@
 	export let elem_classes: string[] = [];
 	export let selected: number | string;
 	export let initial_tabs: Tab[];
-	export let name: "tabs" | "stepper" = "tabs";
 
 	let tabs: (Tab | null)[] = [...initial_tabs];
 	let visible_tabs: (Tab | null)[] = [...initial_tabs];
@@ -48,8 +47,6 @@
 	let is_overflowing = false;
 	let overflow_has_selected_tab = false;
 	let tab_els: Record<string | number, HTMLElement> = {};
-
-	$: console.log("selected", selected);
 
 	onMount(() => {
 		if (!tab_nav_el) return;
@@ -160,8 +157,6 @@
 		return tab_sizes;
 	}
 
-	$: console.log({ tabs });
-
 	$: tab_scale =
 		tabs[$selected_tab_index >= 0 ? $selected_tab_index : 0]?.scale;
 </script>
@@ -172,7 +167,7 @@
 />
 
 <div
-	class=" {elem_classes.join(' ')} {name}"
+	class="tabs {elem_classes.join(' ')}"
 	class:hide={!visible}
 	id={elem_id}
 	style:flex-grow={tab_scale}
@@ -202,10 +197,6 @@
 							id={t.elem_id ? t.elem_id + "-button" : null}
 							data-tab-id={t.id}
 							on:click={() => {
-								if (name === "stepper" && t.id > $selected_tab) {
-									return;
-								}
-
 								if (t.id !== $selected_tab) {
 									change_tab(t.id);
 									dispatch("select", { value: t.label, index: i });
@@ -234,9 +225,6 @@
 						{#if t?.visible}
 							<button
 								on:click={() => {
-									if (name === "stepper" && t?.id > $selected_tab) {
-										return;
-									}
 									change_tab(t?.id);
 								}}
 								class:selected={t?.id === $selected_tab}
@@ -253,8 +241,7 @@
 </div>
 
 <style>
-	.tabs,
-	.stepper {
+	.tabs {
 		position: relative;
 		display: flex;
 		flex-direction: column;
@@ -274,13 +261,6 @@
 		padding-bottom: var(--size-2);
 	}
 
-	.stepper .tab-wrapper {
-		border: none;
-		height: auto;
-		padding-bottom: 0;
-		padding-top: var(--layout-gap);
-	}
-
 	.tab-container {
 		display: flex;
 		align-items: center;
@@ -288,10 +268,6 @@
 		position: relative;
 		overflow: hidden;
 		height: var(--size-8);
-	}
-
-	.stepper .tab-container {
-		justify-content: center;
 	}
 
 	.tabs .tab-container::after {
@@ -326,43 +302,9 @@
 		position: relative;
 	}
 
-	.stepper button {
-		margin-bottom: 0;
-		border: none;
-		border-radius: 0;
-		padding: 0 var(--size-4);
-		color: var(--body-text-color);
-		font-weight: var(--section-header-text-weight);
-		font-size: var(--section-header-text-size);
-		transition: background-color color 0.2s ease-out;
-		background-color: transparent;
-		height: 100%;
-		display: flex;
-		align-items: center;
-		white-space: nowrap;
-		position: relative;
-		border: 2px solid var(--border-color-primary);
-		margin: 0 var(--size-2);
-		border-radius: var(--radius-lg);
-	}
-
-	.stepper button.completed {
-		border-color: var(--color-accent);
-		color: var(--color-accent);
-	}
-
 	.tabs button:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
-	}
-
-	.stepper button:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-
-	.stepper button:not(.completed):not(.selected) {
-		cursor: auto;
 	}
 
 	.tabs button:hover:not(:disabled):not(.selected) {
@@ -370,21 +312,9 @@
 		color: var(--body-text-color);
 	}
 
-	.stepper button:hover:not(:disabled):not(.selected) {
-		background-color: var(--background-fill-secondary);
-		color: var(--body-text-color);
-	}
-
 	.tabs .selected {
 		background-color: transparent;
 		color: var(--color-accent);
-		position: relative;
-	}
-
-	.stepper .selected {
-		background-color: var(--color-accent);
-		color: var(--button-primary-text-color);
-		border-color: var(--color-accent);
 		position: relative;
 	}
 
@@ -401,36 +331,6 @@
 		z-index: 1;
 	}
 
-	.stepper button:not(:first-child)::after {
-		content: "";
-		position: absolute;
-		bottom: 0;
-		right: calc(100% + 1px);
-		width: var(--size-4);
-		height: 100%;
-		border-bottom: 1px solid var(--border-color-primary);
-		animation: fade-grow-stepper 0.2s ease-out forwards;
-		transform-origin: center;
-		z-index: 1;
-		transform: translateY(calc(-50% + 1px));
-	}
-
-	.stepper .completed:not(:first-child)::after,
-	.stepper .selected:not(:first-child)::after {
-		content: "";
-		position: absolute;
-		bottom: 0;
-		right: calc(100% + 2px);
-		width: var(--size-4);
-		height: 100%;
-		border-bottom: 1px solid var(--border-color-primary);
-		animation: fade-grow-stepper 0.2s ease-out forwards;
-		transform-origin: center;
-		z-index: 1;
-		transform: translateY(calc(-50% + 1px));
-		border-color: var(--color-accent);
-	}
-
 	@keyframes fade-grow {
 		from {
 			opacity: 0;
@@ -439,17 +339,6 @@
 		to {
 			opacity: 1;
 			transform: scaleX(1);
-		}
-	}
-
-	@keyframes fade-grow-stepper {
-		from {
-			opacity: 0;
-			transform: scaleX(0.8) translateY(calc(-50% + 1px));
-		}
-		to {
-			opacity: 1;
-			transform: scaleX(1) translateY(calc(-50% + 1px));
 		}
 	}
 

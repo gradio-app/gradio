@@ -144,8 +144,6 @@
 		"@gradio/slider": "workspace:^",
 		"@gradio/state": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
-		"@gradio/step": "workspace:^",
-		"@gradio/stepper": "workspace:^",
 		"@gradio/tabitem": "workspace:^",
 		"@gradio/tabs": "workspace:^",
 		"@gradio/textbox": "workspace:^",

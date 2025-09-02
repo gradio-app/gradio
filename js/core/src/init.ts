@@ -381,7 +381,7 @@ export function create_components(
 
 		if (
 			(instance.type === "tabs" && !instance.props.initial_tabs) ||
-			(instance.type === "stepper" && !instance.props.initial_tabs)
+			(instance.type === "walkthrough" && !instance.props.initial_tabs)
 		) {
 			const tab_items_props =
 				node.children?.map((c, i) => {
@@ -397,9 +397,8 @@ export function create_components(
 					};
 				}) || [];
 
-			const _type = instance.type === "stepper" ? "step" : "tabitem";
-
-			console.log("tab_items_props", tab_items_props, instance.type);
+			const _type =
+				instance.type === "walkthrough" ? "walkthroughstep" : "tabitem";
 
 			const child_tab_items = tab_items_props.filter(
 				(child) => child.type === _type
@@ -415,7 +414,7 @@ export function create_components(
 			}));
 		}
 
-		if (instance.type === "tabs" || instance.type === "stepper") {
+		if (instance.type === "tabs" || instance.type === "walkthrough") {
 			node.children?.forEach((c, i) => {
 				const child = instance_map[c.id];
 				child.props.order = i;

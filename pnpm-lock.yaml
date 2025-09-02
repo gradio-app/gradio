@@ -344,12 +344,6 @@ importers:
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:js/statustracker
-      '@gradio/step':
-        specifier: workspace:^
-        version: link:js/step
-      '@gradio/stepper':
-        specifier: workspace:^
-        version: link:js/stepper
       '@gradio/tabitem':
         specifier: workspace:^
         version: link:js/tabitem
@@ -1194,12 +1188,6 @@ importers:
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
-      '@gradio/step':
-        specifier: workspace:^
-        version: link:../step
-      '@gradio/stepper':
-        specifier: workspace:^
-        version: link:../stepper
       '@gradio/tabitem':
         specifier: workspace:^
         version: link:../tabitem
@@ -2415,38 +2403,6 @@ importers:
       '@gradio/sanitize':
         specifier: ^0.2.0
         version: 0.2.0
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
-      svelte:
-        specifier: ^4.0.0
-        version: 4.2.15
-    devDependencies:
-      '@gradio/preview':
-        specifier: workspace:^
-        version: link:../preview
-
-  js/step:
-    dependencies:
-      '@gradio/column':
-        specifier: workspace:^
-        version: link:../column
-      '@gradio/stepper':
-        specifier: workspace:^
-        version: link:../stepper
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
-      svelte:
-        specifier: ^4.0.0
-        version: 4.2.15
-    devDependencies:
-      '@gradio/preview':
-        specifier: workspace:^
-        version: link:../preview
-
-  js/stepper:
-    dependencies:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils

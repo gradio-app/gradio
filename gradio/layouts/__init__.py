@@ -5,8 +5,8 @@ from .form import Form
 from .group import Group
 from .row import Row
 from .sidebar import Sidebar
-from .stepper import Step, Stepper
 from .tabs import Tab, TabItem, Tabs
+from .walkthrough import Walkthrough, WalkthroughStep
 
 __all__ = [
     "Accordion",
@@ -15,10 +15,10 @@ __all__ = [
     "Form",
     "Row",
     "Group",
-    "Step",
-    "Stepper",
     "Tabs",
     "Tab",
     "TabItem",
     "Sidebar",
+    "Walkthrough",
+    "WalkthroughStep",
 ]

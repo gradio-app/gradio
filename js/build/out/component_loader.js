@@ -12,11 +12,8 @@ export function load_component({ api_url, name, id, variant }) {
 	const _component_map = {
 		// eslint-disable-next-line no-undef
 		...component_map,
-		...(!comps ? {} : comps)
+		...(!comps ? {} : comps),
 	};
-
-	name = name === "stepper" ? "tabs" : name;
-	name = name === "step" ? "tabitem" : name;
 
 	let _id = id || name;
 
