@@ -1127,6 +1127,7 @@ def test_config_show_api_reflects_mount_flag():
     config = client.get("/gr/config").json()
     assert config["show_api"] is False
 
+
 def test_orjson_serialization():
     df = pd.DataFrame(
         {
@@ -1246,6 +1247,7 @@ def test_api_name_set_for_all_events(connect):
         assert client.predict("freddy", api_name="/goodbye") == "Goodbye freddy"
         assert client.predict("freddy", api_name="/greet_me") == "Hello"
         assert client.predict("freddy", api_name="/Say__goodbye") == "Goodbye"
+
 
 def test_component_server_endpoints(connect):
     here = os.path.dirname(os.path.abspath(__file__))
