@@ -128,6 +128,6 @@ describe("Audio", () => {
 			},
 			interactive: false
 		});
-		assert.equal(getByTestId("subtitles-display").textContent, "");
+		assert.equal(getByTestId("subtitle-display").textContent, "");
 	});
 });
