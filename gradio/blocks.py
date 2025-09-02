@@ -1294,7 +1294,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.upload_file_set = set()
         self.temp_file_sets = [self.upload_file_set]
         self.title = title
-        self.show_api_in_footer = not wasm_utils.IS_WASM
 
         # Only used when an Interface is loaded from a config
         self.predict = None
@@ -2381,7 +2380,7 @@ Received inputs:
             "space_id": self.space_id,
             "enable_queue": True,  # launch attributes
             "show_error": getattr(self, "show_error", False),
-            "show_api": self.show_api_in_footer,
+            "show_api": getattr(self, "show_api", True),
             "is_colab": utils.colab_check(),
             "max_file_size": getattr(self, "max_file_size", None),
             "stylesheets": self.stylesheets,
