@@ -84,7 +84,7 @@ from gradio.events import (
     api,
     on,
 )
-from gradio.exceptions import Error
+from gradio.exceptions import Error, ValidatorError
 from gradio.external import load, load_chat, load_openapi
 from gradio.flagging import (
     CSVLogger,
@@ -241,6 +241,7 @@ __all__ = [
     "Timer",
     "UndoData",
     "UploadButton",
+    "ValidatorError",
     "Video",
     "Warning",
     "WaveformOptions",
