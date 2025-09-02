@@ -695,33 +695,30 @@ class EventListener(str):
                 block if _has_trigger else None, _event_name
             )
 
-            # Handle validator: create validator event first, then chain the main function
             if validator is not None:
-                print("Creating validator event")
-                # First, create the validator event with queue=False
                 validator_dep, validator_index = root_block.set_event_trigger(
                     [event_target],
                     validator,
                     inputs,
-                    None,  # Validators typically don't have outputs
+                    None,
                     preprocess=preprocess,
-                    postprocess=True,  # Postprocessing for validators
+                    postprocess=True,
                     scroll_to_output=False,
-                    show_progress="hidden",  # Hide progress for validators
+                    show_progress="hidden",
                     show_progress_on=None,
-                    api_name=False,  # Don't expose validator in API
+                    api_name=False,
                     api_description=False,
-                    js=js,  # Pass through JS for initial trigger
+                    js=js,
                     concurrency_limit=concurrency_limit,
                     concurrency_id=concurrency_id,
-                    queue=False,  # Validators run immediately without queue
-                    batch=False,  # No batching for validators
+                    queue=False,
+                    batch=False,
                     max_batch_size=max_batch_size,
                     trigger_after=_trigger_after,
                     trigger_only_on_success=_trigger_only_on_success,
                     trigger_only_on_failure=_trigger_only_on_failure,
                     trigger_mode=trigger_mode,
-                    show_api=False,  # Don't show validator in API
+                    show_api=False,
                     connection=_connection,
                     time_limit=time_limit,
                     stream_every=stream_every,
@@ -733,12 +730,11 @@ class EventListener(str):
                     ]
                     if _event_specific_args
                     else None,
-                    key=None,  # Validators don't need keys
+                    key=None,
                 )
 
-                # Now create the main event that triggers after validator succeeds
                 dep, dep_index = root_block.set_event_trigger(
-                    [],  # No direct trigger, triggered by validator completion
+                    [],
                     fn,
                     inputs,
                     outputs,
@@ -749,14 +745,14 @@ class EventListener(str):
                     show_progress_on=show_progress_on,
                     api_name=api_name,
                     api_description=api_description,
-                    js=None,  # JS already handled by validator
+                    js=None,
                     concurrency_limit=concurrency_limit,
                     concurrency_id=concurrency_id,
                     queue=queue,
                     batch=batch,
                     max_batch_size=max_batch_size,
-                    trigger_after=validator_index,  # Chain after validator
-                    trigger_only_on_success=True,  # Only run if validator succeeds
+                    trigger_after=validator_index,
+                    trigger_only_on_success=True,
                     trigger_only_on_failure=False,
                     trigger_mode=trigger_mode,
                     show_api=show_api,
@@ -764,11 +760,10 @@ class EventListener(str):
                     time_limit=time_limit,
                     stream_every=stream_every,
                     like_user_message=like_user_message,
-                    event_specific_args=None,  # Event args already handled by validator
+                    event_specific_args=None,
                     key=key,
                 )
             else:
-                # No validator, proceed with normal event registration
                 dep, dep_index = root_block.set_event_trigger(
                     [event_target],
                     fn,
