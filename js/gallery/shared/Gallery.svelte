@@ -781,7 +781,7 @@
 		z-index: var(--layer-1);
 		border-top: 1px solid var(--border-color-primary);
 		border-right: 1px solid var(--border-color-primary);
-		border-radius: 0 var(--radius-sm) 0 0;
+		border-radius: 0 var(--radius-sm) 0 var(--radius-sm);
 		background: var(--background-fill-secondary);
 		padding: var(--block-label-padding);
 		cursor: pointer;
