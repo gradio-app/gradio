@@ -14,6 +14,9 @@
 	export let initial_tabs: Tab[];
 
 	let tabs: (Tab | null)[] = [...initial_tabs];
+	let stepper_container: HTMLDivElement;
+	let show_labels_for_all = true;
+	let measurement_container: HTMLDivElement;
 
 	$: has_tabs = tabs.length > 0;
 
@@ -27,6 +30,42 @@
 		change: undefined;
 		select: SelectData;
 	}>();
+
+	async function check_overflow(): Promise<void> {
+		if (!stepper_container || !measurement_container) return;
+
+		await tick();
+
+		// First, show all labels to measure
+		show_labels_for_all = true;
+		await tick();
+
+		// Measure if content fits
+		const containerWidth = stepper_container.offsetWidth;
+		const contentWidth = measurement_container.scrollWidth;
+
+		// If content doesn't fit, hide non-active labels
+		if (contentWidth > containerWidth + 10) {
+			// 10px buffer
+			show_labels_for_all = false;
+		}
+	}
+
+	onMount(() => {
+		check_overflow();
+
+		const observer = new ResizeObserver(() => {
+			check_overflow();
+		});
+
+		if (stepper_container) {
+			observer.observe(stepper_container);
+		}
+
+		return () => {
+			observer.disconnect();
+		};
+	});
 
 	setContext(TABS, {
 		register_tab: (tab: Tab, order: number) => {
@@ -70,6 +109,8 @@
 				selected,
 				tabs.findIndex((t) => t?.id === selected)
 			);
+	$: tabs, check_overflow();
+	$: $selected_tab_index, check_overflow();
 
 	$: tab_scale =
 		tabs[$selected_tab_index >= 0 ? $selected_tab_index : 0]?.scale;
@@ -85,6 +126,8 @@
 	}
 </script>
 
+<svelte:window on:resize={check_overflow} />
+
 <div
 	class="stepper {elem_classes.join(' ')}"
 	class:hide={!visible}
@@ -92,11 +135,21 @@
 	style:flex-grow={tab_scale}
 >
 	{#if has_tabs}
-		<div class="stepper-wrapper">
-			<div class="stepper-container" role="tablist">
+		<div class="stepper-wrapper" bind:this={stepper_container}>
+			<div
+				class="stepper-container"
+				bind:this={measurement_container}
+				role="tablist"
+			>
 				{#each tabs as t, i}
 					{#if t?.visible}
 						<div class="step-item">
+							{#if i < tabs.length - 1}
+								<div
+									class="step-connector"
+									class:completed={i < $selected_tab_index}
+								></div>
+							{/if}
 							<button
 								role="tab"
 								class="step-button"
@@ -137,17 +190,13 @@
 										{i + 1}
 									{/if}
 								</span>
-								<span class="step-label">
-									{t?.label !== undefined ? t?.label : "Step " + (i + 1)}
-								</span>
+								{#if show_labels_for_all || i === $selected_tab_index}
+									<span class="step-label">
+										{t?.label !== undefined ? t?.label : "Step " + (i + 1)}
+									</span>
+								{/if}
 							</button>
 						</div>
-						{#if i < tabs.length - 1}
-							<div
-								class="step-connector"
-								class:completed={i < $selected_tab_index}
-							></div>
-						{/if}
 					{/if}
 				{/each}
 			</div>
@@ -173,32 +222,32 @@
 		align-items: center;
 		position: relative;
 		padding: var(--size-4) 0;
+		overflow: hidden;
 	}
 
 	.stepper-container {
 		display: flex;
+		justify-content: space-between;
 		align-items: center;
 		width: 100%;
 		position: relative;
-		gap: var(--size-2);
 	}
 
 	.step-item {
 		display: flex;
 		align-items: center;
-		flex: 1;
+		justify-content: center;
+		flex: 1 1 0;
 		position: relative;
-	}
-
-	.step-item:last-child {
-		flex: 0;
 	}
 
 	.step-button {
 		display: flex;
+		flex-direction: column;
 		align-items: center;
-		gap: var(--size-3);
-		padding: var(--size-2) var(--size-3);
+		justify-content: center;
+		gap: var(--size-1);
+		padding: var(--size-2);
 		border: none;
 		background: transparent;
 		cursor: pointer;
@@ -221,7 +270,8 @@
 	}
 
 	.step-button.active {
-		color: var(--body-text-color);
+		color: var(--color-accent);
+		font-weight: var(--weight-semibold);
 	}
 
 	.step-button.completed {
@@ -236,10 +286,10 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 28px;
-		height: 28px;
+		width: 32px;
+		height: 32px;
 		border-radius: 50%;
-		font-size: var(--text-md);
+		font-size: var(--text-sm);
 		font-weight: var(--weight-semibold);
 		transition: all 0.2s ease;
 		flex-shrink: 0;
@@ -259,40 +309,29 @@
 	.pending .step-number {
 		background-color: var(--background-fill-secondary);
 		color: var(--body-text-color-subdued);
+		border: 2px solid var(--border-color-primary);
 	}
 
 	.step-label {
-		display: none;
-
-		font-size: var(--text-md);
-		line-height: 1.5;
+		font-size: var(--text-sm);
+		line-height: 1.2;
+		text-align: center;
+		max-width: 120px;
 	}
 
 	.step-connector {
+		position: absolute;
+		left: 50%;
 		width: 100%;
-		height: 1px;
+		height: 2px;
 		background-color: var(--border-color-primary);
 		transition: background-color 0.3s ease;
-		transform: translateY(1px);
+		top: 16px;
+		z-index: 0;
 	}
 
 	.step-connector.completed {
 		background-color: var(--color-accent);
-	}
-
-	@media (--screen-xs) {
-		.step-label {
-			display: block;
-		}
-
-		.step-button {
-			padding: var(--size-1);
-		}
-
-		.step-connector {
-			width: calc(100% - 32px);
-			left: 100%;
-		}
 	}
 
 	:global(.dark) .pending .step-number {
