@@ -432,7 +432,6 @@
 				<Microphone />
 			</button>
 		{/if}
-		<!-- svelte-ignore a11y-autofocus -->
 		<textarea
 			data-testid="textbox"
 			use:text_area_resize={{
