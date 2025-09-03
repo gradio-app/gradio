@@ -21,10 +21,8 @@ vi.mock("svelte-i18n", () => ({
 	addMessages: vi.fn(),
 	init: vi.fn().mockResolvedValue(undefined),
 
-	
 	getLocaleFromNavigator: vi.fn(() => "en"),
 
-	
 	waitLocale: vi.fn(() => Promise.resolve())
 }));
 
@@ -36,15 +34,14 @@ vi.mock("svelte/store", () => ({
 import { locale, addMessages } from "svelte-i18n";
 
 import {
-  Lang,
-  process_langs,
-  translate_if_needed,
-  get_initial_locale,
-  load_translations,
-  changeLocale,
-  is_translation_metadata
+	Lang,
+	process_langs,
+	translate_if_needed,
+	get_initial_locale,
+	load_translations,
+	changeLocale,
+	is_translation_metadata
 } from "./i18n";
-
 
 describe("i18n", () => {
 	test("languages are loaded correctly", () => {

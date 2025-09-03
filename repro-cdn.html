@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Embed newline repro</title>
+		<!-- same CDN the maintainer used -->
+		<script
+			type="module"
+			src="https://gradio.s3-us-west-2.amazonaws.com/5.41.0/gradio.js"
+		></script>
+		<style>
+			body {
+				font:
+					14px system-ui,
+					sans-serif;
+				margin: 24px;
+			}
+		</style>
+	</head>
+	<body>
+		<h2>CDN newline test</h2>
+		<div id="root"></div>
+
+		<script type="module">
+			const host = document.getElementById("root");
+			const md = "Line 1\nLine 2\nLine 3";
+
+			window.addEventListener("load", () => {
+				const g = window.gradio || window.__GRADIO__;
+
+				const markdown = g?.markdown || g?.components?.markdown;
+
+				if (markdown) {
+					markdown(md).mount(host);
+					return;
+				}
+
+				host.textContent =
+					"No markdown() factory found. window.gradio keys = " +
+					JSON.stringify(Object.keys(g ?? {}));
+			});
+		</script>
+	</body>
+</html>

@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Markdown line-break test</title>
+		<!-- no external <script src="…"> line needed in dev mode -->
+	</head>
+
+	<body>
+		<script type="module">
+			/* -----------------------------------------------------------
+         Dev-mode bundles are split: Svelte-Kit injects an inline
+         import() that pulls in two files.  The second one
+         (app.js) is the one that exports the UI factories.
+         --------------------------------------------------------- */
+
+			const DEV_BUNDLE =
+				"/@fs/workspaces/gradio-aryan/js/app/.svelte-kit/generated/client/app.js";
+			// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+			// If your path looks slightly different, copy the exact one
+			// from the page source of  http://localhost:9876/  and
+			// replace it here.  Leave the leading “/”.
+
+			// Multiline markdown we want to render
+			const md = `Line 1
+Line 2
+Line 3`;
+
+			import(DEV_BUNDLE)
+				.then((mod) => {
+					// Find a markdown() factory—export styles vary by branch
+					const api =
+						mod.markdown || // new export
+						(mod.default && mod.default.markdown) || // older default export
+						window.__GRADIO__ || // dev global on some builds
+						window.gradio;
+
+					if (!api || !api.markdown) {
+						document.body.textContent =
+							"Could not find markdown() factory in the dev bundle.";
+						return;
+					}
+					api.markdown(md).mount(document.body);
+				})
+				.catch((err) => {
+					document.body.textContent =
+						"Failed to load dev bundle: " + err.message;
+					console.error(err);
+				});
+		</script>
+	</body>
+</html>
