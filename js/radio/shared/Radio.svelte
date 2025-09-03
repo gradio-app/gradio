@@ -15,8 +15,11 @@
 
 	$: is_selected = selected === internal_value;
 
-	function handle_change(): void {
-		if (is_selected) {
+	function handle_input(
+		e: Event & { currentTarget: EventTarget & HTMLInputElement }
+	): void {
+		is_selected = e.currentTarget.checked;
+		if (e.currentTarget.checked) {
 			dispatch("input", internal_value);
 		}
 	}
@@ -35,7 +38,7 @@
 		value={internal_value}
 		aria-checked={is_selected}
 		bind:group={selected}
-		on:change={handle_change}
+		on:input={handle_input}
 	/>
 	<span>{display_value}</span>
 </label>
