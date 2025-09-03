@@ -154,23 +154,41 @@ class BaseReloader(ABC):
         self.running_app.blocks = demo
 
 
-class JuriggedReloader(BaseReloader):
+class ServerReloader(BaseReloader):
+    @property
+    @abstractmethod
+    def stop_event(self) -> threading.Event:
+        pass
+
+    def stop(self) -> None:
+        self.stop_event.set()
+
+
+class JuriggedReloader(ServerReloader):
     def __init__(
         self,
         app: App,
+        watch_dirs: list[str],
         watch_module: ModuleType,
+        stop_event: threading.Event,
         demo_name: str = "demo",
     ):
         self.app = app
         self.demo_name = demo_name
+        self.watch_dirs = watch_dirs
         self.watch_module = watch_module
+        self._stop_event = stop_event
 
     @property
     def running_app(self) -> App:
         return self.app
 
+    @property
+    def stop_event(self) -> threading.Event:
+        return self._stop_event
 
-class SourceFileReloader(BaseReloader):
+
+class SourceFileReloader(ServerReloader):
     def __init__(
         self,
         app: App,
@@ -186,7 +204,7 @@ class SourceFileReloader(BaseReloader):
         self.app = app
         self.watch_dirs = watch_dirs
         self.watch_module_name = watch_module_name
-        self.stop_event = stop_event
+        self._stop_event = stop_event
         self.demo_name = demo_name
         self.demo_file = Path(demo_file)
         self.watch_module = watch_module
@@ -196,11 +214,12 @@ class SourceFileReloader(BaseReloader):
     def running_app(self) -> App:
         return self.app
 
+    @property
+    def stop_event(self) -> threading.Event:
+        return self._stop_event
+
     def should_watch(self) -> bool:
         return not self.stop_event.is_set()
-
-    def stop(self) -> None:
-        self.stop_event.set()
 
     def alert_change(self, change_type: Literal["reload", "error"] = "reload"):
         self.app.change_type = change_type
@@ -262,20 +281,26 @@ def _find_module(source_file: Path) -> ModuleType | None:
 
 def watchfn_jurigged(reloader: JuriggedReloader):
     from jurigged import watch
+    from gradio.cli.commands.reload import reload_thread
 
     def prerun(*args, **kwargs):
         NO_RELOAD.set(False)
+        reload_thread.running_reload = True
 
     def postrun(*args, **kwargs):
         NO_RELOAD.set(True)
         demo = getattr(reloader.watch_module, reloader.demo_name)
         reloader.swap_blocks(demo)
 
-    watcher = watch(autostart=False)
+    if reloader.watch_dirs:
+        watcher = watch(autostart=False)
+    else:
+        watcher = watch(autostart=False, pattern=reloader.watch_dirs)
     watcher.prerun.register(prerun)
     watcher.postrun.register(postrun)
     watcher.start()
-    watcher.join()
+    reloader.stop_event.wait()
+    watcher.stop()
 
 
 def watchfn(reloader: SourceFileReloader):

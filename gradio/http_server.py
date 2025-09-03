@@ -7,15 +7,20 @@ import threading
 import time
 from functools import partial
 from typing import TYPE_CHECKING
+from typing import Callable
+from typing import TypeVar
 
 import uvicorn
 from uvicorn.config import Config
 
 from gradio.exceptions import ServerFailedToStartError
 from gradio.routes import App
+from gradio.utils import ServerReloader
+from gradio.utils import JuriggedReloader, watchfn_jurigged
 from gradio.utils import SourceFileReloader, watchfn
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
+    T_ServerReloader = TypeVar('T_ServerReloader', bound=ServerReloader)
     pass
 
 # By default, the local server will try to open on localhost, port 7860.
@@ -23,6 +28,8 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
 INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
 TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
 LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
+
+GRADIO_HOT_RELOAD = os.getenv("GRADIO_HOT_RELOAD", "false").lower() in ("1", "t", "true")
 
 should_watch = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
 GRADIO_WATCH_DIRS = (
@@ -35,7 +42,10 @@ GRADIO_WATCH_DEMO_PATH = os.getenv("GRADIO_WATCH_DEMO_PATH", "")
 
 class Server(uvicorn.Server):
     def __init__(
-        self, config: Config, reloader: SourceFileReloader | None = None
+        self,
+        config: Config,
+        reloader: T_ServerReloader | None = None,
+        watchfn: Callable[[T_ServerReloader], None] = watchfn,
     ) -> None:
         self.running_app = config.app
         super().__init__(config)
@@ -136,8 +146,16 @@ def start_server(
                 ssl_certfile=ssl_certfile,
                 ssl_keyfile_password=ssl_keyfile_password,
             )
-            reloader = None
-            if GRADIO_WATCH_DIRS:
+            if GRADIO_HOT_RELOAD:
+                reloader = JuriggedReloader(
+                    app=app,
+                    watch_dirs=GRADIO_WATCH_DIRS,
+                    demo_name=GRADIO_WATCH_DEMO_NAME,
+                    stop_event=threading.Event(),
+                    watch_module=sys.modules["__main__"],
+                )
+                server = Server(config=config, reloader=reloader, watchfn=watchfn_jurigged)
+            elif GRADIO_WATCH_DIRS:
                 reloader = SourceFileReloader(
                     app=app,
                     watch_dirs=GRADIO_WATCH_DIRS,
@@ -148,7 +166,9 @@ def start_server(
                     watch_module=sys.modules["__main__"],
                     encoding=os.getenv("GRADIO_WATCH_ENCODING", "utf-8"),
                 )
-            server = Server(config=config, reloader=reloader)
+                server = Server(config=config, reloader=reloader)
+            else:
+                server = Server(config=config)
             server.run_in_thread()
             break
         except (OSError, ServerFailedToStartError):
