@@ -20,8 +20,7 @@ from gradio.utils import JuriggedReloader, watchfn_jurigged
 from gradio.utils import SourceFileReloader, watchfn
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    T_ServerReloader = TypeVar('T_ServerReloader', bound=ServerReloader)
-    pass
+    _ServerReloaderT = TypeVar('_ServerReloaderT', bound=ServerReloader)
 
 # By default, the local server will try to open on localhost, port 7860.
 # If that is not available, then it will try 7861, 7862, ... 7959.
@@ -44,8 +43,8 @@ class Server(uvicorn.Server):
     def __init__(
         self,
         config: Config,
-        reloader: T_ServerReloader | None = None,
-        watchfn: Callable[[T_ServerReloader], None] = watchfn,
+        reloader: _ServerReloaderT | None = None,
+        watchfn: Callable[[_ServerReloaderT], None] = watchfn,
     ) -> None:
         self.running_app = config.app
         super().__init__(config)
