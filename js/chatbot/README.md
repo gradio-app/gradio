@@ -6,8 +6,8 @@
 </script>
 ```
 
-
 BaseChatBot
+
 ```javascript
 	export let value:
 		| [

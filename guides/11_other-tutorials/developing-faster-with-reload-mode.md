@@ -73,7 +73,7 @@ Then you would launch it in reload mode like this: `gradio run.py --demo-name=my
 By default, the Gradio use UTF-8 encoding for scripts. **For reload mode**, If you are using encoding formats other than UTF-8 (such as cp1252), make sure you've done like this:
 
 1. Configure encoding declaration of python script, for example: `# -*- coding: cp1252 -*-`
-2. Confirm that your code editor has identified that encoding format. 
+2. Confirm that your code editor has identified that encoding format.
 3. Run like this: `gradio run.py --encoding cp1252`
 
 🔥 If your application accepts command line arguments, you can pass them in as well. Here's an example:
@@ -101,14 +101,13 @@ Which you could run like this: `gradio run.py --name Gretel`
 
 As a small aside, this auto-reloading happens if you change your `run.py` source code or the Gradio source code. Meaning that this can be useful if you decide to [contribute to Gradio itself](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md) ✅
 
-
 ## Controlling the Reload 🎛️
 
 By default, reload mode will re-run your entire script for every change you make.
 But there are some cases where this is not desirable.
 For example, loading a machine learning model should probably only happen once to save time. There are also some Python libraries that use C or Rust extensions that throw errors when they are reloaded, like `numpy` and `tiktoken`.
 
-In these situations, you can place code that you do not want to be re-run inside an `if gr.NO_RELOAD:`  codeblock. Here's an example of how you can use it to only load a transformers model once during the development process.
+In these situations, you can place code that you do not want to be re-run inside an `if gr.NO_RELOAD:` codeblock. Here's an example of how you can use it to only load a transformers model once during the development process.
 
 Tip: The value of `gr.NO_RELOAD` is `True`. So you don't have to change your script when you are done developing and want to run it in production. Simply run the file with `python` instead of `gradio`.
 
@@ -129,7 +128,7 @@ if __name__ == "__main__":
 
 You can also enable Gradio's **Vibe Mode**, which, which provides an in-browser chat that can be used to write or edit your Gradio app using natural language. To enable this, simply run use the `--vibe` flag with Gradio, e.g. `gradio --vibe app.py`.
 
-Vibe Mode lets you describe commands using natural language and have an LLM write or edit the code in your Gradio app. The LLM is powered by Hugging Face's [Inference Providers](https://huggingface.co/docs/inference-providers/en/index), so you must be logged into Hugging Face locally to use this. 
+Vibe Mode lets you describe commands using natural language and have an LLM write or edit the code in your Gradio app. The LLM is powered by Hugging Face's [Inference Providers](https://huggingface.co/docs/inference-providers/en/index), so you must be logged into Hugging Face locally to use this.
 
 Note: When Vibe Mode is enabled, anyone who can access the Gradio endpoint can modify files and run arbitrary code on the host machine. Use only for local development.
 

@@ -14,7 +14,7 @@ Gradio JavaScript客户端使得使用任何Gradio应用作为API非常简单。
 import { Client } from "@gradio/client";
 
 const response = await fetch(
-	"https://github.com/audio-samples/audio-samples.github.io/raw/master/samples/wav/ted_speakers/SalmanKhan/sample-1.wav"
+  "https://github.com/audio-samples/audio-samples.github.io/raw/master/samples/wav/ted_speakers/SalmanKhan/sample-1.wav",
 );
 const audio_file = await response.blob();
 
@@ -69,7 +69,7 @@ const app = Client.connect("abidlabs/my-private-space", { hf_token="hf_..." })
 import { Client } from "@gradio/client";
 
 const response = await fetch(
-	"https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+  "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
 );
 const audio_file = await response.blob();
 
@@ -85,9 +85,9 @@ const transcription = app.predict("/predict", [audio_file]);
 import { Client } from "@gradio/client";
 
 const app = await Client.duplicate("abidlabs/whisper", {
-	hf_token: "hf_...",
-	timeout: 60,
-	hardware: "a10g-small"
+  hf_token: "hf_...",
+  timeout: 60,
+  hardware: "a10g-small",
 });
 ```
 
@@ -121,25 +121,25 @@ console.log(app_info);
 
 ```json
 {
-	"named_endpoints": {
-		"/predict": {
-			"parameters": [
-				{
-					"label": "text",
-					"component": "Textbox",
-					"type": "string"
-				}
-			],
-			"returns": [
-				{
-					"label": "output",
-					"component": "Textbox",
-					"type": "string"
-				}
-			]
-		}
-	},
-	"unnamed_endpoints": {}
+  "named_endpoints": {
+    "/predict": {
+      "parameters": [
+        {
+          "label": "text",
+          "component": "Textbox",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        {
+          "label": "output",
+          "component": "Textbox",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "unnamed_endpoints": {}
 }
 ```
 
@@ -173,7 +173,7 @@ const result = await app.predict("/predict", [4, "add", 5]);
 import { Client } from "@gradio/client";
 
 const response = await fetch(
-	"https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+  "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
 );
 const audio_file = await response.blob();
 
@@ -189,11 +189,11 @@ const result = await Client.connect.predict("/predict", [audio_file]);
 import { Client } from "@gradio/client";
 
 function log_result(payload) {
-	const {
-		data: [translation]
-	} = payload;
+  const {
+    data: [translation],
+  } = payload;
 
-	console.log(`翻译结果为：${translation}`);
+  console.log(`翻译结果为：${translation}`);
 }
 
 const app = await Client.connect("abidlabs/en2fr");
@@ -210,7 +210,7 @@ job.on("data", log_result);
 import { Client } from "@gradio/client";
 
 function log_status(status) {
-	console.log(`此作业的当前状态为：${JSON.stringify(status, null, 2)}`);
+  console.log(`此作业的当前状态为：${JSON.stringify(status, null, 2)}`);
 }
 
 const app = await Client.connect("abidlabs/en2fr");
@@ -262,6 +262,6 @@ const job = app.submit(0, [9]);
 job.on("data", (data) => console.log(data));
 
 setTimeout(() => {
-	job.cancel();
+  job.cancel();
 }, 3000);
 ```

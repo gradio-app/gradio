@@ -2,11 +2,12 @@
 
 ```html
 <script>
-    import {BaseDropdown, BaseMultiselect, BaseExample } from "@gradio/dropdown";
+	import { BaseDropdown, BaseMultiselect, BaseExample } from "@gradio/dropdown";
 </script>
 ```
 
 BaseDropdown
+
 ```javascript
 	export let label: string;
 	export let info: string | undefined = undefined;
@@ -21,6 +22,7 @@ BaseDropdown
 ```
 
 BaseMultiselect
+
 ```javascript
 	export let label: string;
 	export let info: string | undefined = undefined;
@@ -37,8 +39,9 @@ BaseMultiselect
 ```
 
 BaseExample
+
 ```javascript
 	export let value: string;
 	export let type: "gallery" | "table";
-	export let selected = false;    
+	export let selected = false;
 ```

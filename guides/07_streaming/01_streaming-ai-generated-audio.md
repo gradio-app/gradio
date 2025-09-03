@@ -52,9 +52,8 @@ We're doing this in two parts because only `read_response` will require a GPU. O
 
 As mentioned above, we'll use [Hugging Face's Inference API](https://huggingface.co/docs/huggingface_hub/guides/inference) to transcribe the audio and generate a response from an LLM. After instantiating the client, I use the `automatic_speech_recognition` method (this automatically uses Whisper running on Hugging Face's Inference Servers) to transcribe the audio. Then I pass the question to an LLM (Mistal-7B-Instruct) to generate a response. We are prompting the LLM to act like a magic 8 ball with the system message.
 
-Our `generate_response` function will also send empty updates to the output textbox and audio components (returning `None`). 
+Our `generate_response` function will also send empty updates to the output textbox and audio components (returning `None`).
 This is because I want the Gradio progress tracker to be displayed over the components but I don't want to display the answer until the audio is ready.
-
 
 ```python
 from huggingface_hub import InferenceClient
@@ -72,7 +71,7 @@ def generate_response(audio):
                                               "Keep your answers short and do not include the phrase 'Magic 8 Ball' in your response. If the question does not make sense or is off-topic, say 'Foolish questions get foolish answers.'"
                                               "For example, 'Magic 8 Ball, should I get a dog?', 'A dog is ready for you but are you ready for the dog?'")},
                 {"role": "user", "content": f"Magic 8 Ball please answer this question -  {question}"}]
-    
+
     response = client.chat_completion(messages, max_tokens=64, seed=random.randint(1, 5000),
                                       model="mistralai/Mistral-7B-Instruct-v0.3")
 
@@ -80,15 +79,11 @@ def generate_response(audio):
     return response, None, None
 ```
 
-
 Now that we have our text response, we'll read it aloud with Parler TTS. The `read_response` function will be a python generator that yields the next chunk of audio as it's ready.
-
 
 We'll be using the [Mini v0.1](https://huggingface.co/parler-tts/parler_tts_mini_v0.1) for the feature extraction but the [Jenny fine tuned version](https://huggingface.co/parler-tts/parler-tts-mini-jenny-30H) for the voice. This is so that the voice is consistent across generations.
 
-
-Streaming audio with transformers requires a custom Streamer class. You can see the implementation [here](https://huggingface.co/spaces/gradio/magic-8-ball/blob/main/streamer.py). Additionally, we'll convert the output to bytes so that it can be streamed faster from the backend. 
-
+Streaming audio with transformers requires a custom Streamer class. You can see the implementation [here](https://huggingface.co/spaces/gradio/magic-8-ball/blob/main/streamer.py). Additionally, we'll convert the output to bytes so that it can be streamed faster from the backend.
 
 ```python
 from streamer import ParlerTTSStreamer
@@ -149,5 +144,3 @@ def read_response(answer):
 ## Conclusion
 
 You can see our final application [here](https://huggingface.co/spaces/gradio/magic-8-ball)!
-
-

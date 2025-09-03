@@ -14,7 +14,7 @@ const loading_status: LoadingStatus = {
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0,
-	show_progress: "full"
+	show_progress: "full",
 };
 
 describe("Dropdown", () => {
@@ -34,14 +34,14 @@ describe("Dropdown", () => {
 			label: "Dropdown",
 			choices: [
 				["choice", "choice"],
-				["choice2", "choice2"]
+				["choice2", "choice2"],
 			],
 			filterable: false,
-			interactive: false
+			interactive: false,
 		});
 
 		const item: HTMLInputElement = getByLabelText(
-			"Dropdown"
+			"Dropdown",
 		) as HTMLInputElement;
 		assert.equal(item.value, "choice");
 	});
@@ -55,14 +55,14 @@ describe("Dropdown", () => {
 			label: "Dropdown",
 			choices: [
 				["choice", "choice"],
-				["name2", "choice2"]
+				["name2", "choice2"],
 			],
 			filterable: true,
-			interactive: true
+			interactive: true,
 		});
 
 		const item: HTMLInputElement = getByLabelText(
-			"Dropdown"
+			"Dropdown",
 		) as HTMLInputElement;
 
 		await item.focus();
@@ -83,16 +83,16 @@ describe("Dropdown", () => {
 			label: "Dropdown",
 			choices: [
 				["apple", "apple"],
-				["zebra", "zebra"]
+				["zebra", "zebra"],
 			],
 			filterable: true,
-			interactive: true
+			interactive: true,
 		});
 
 		const key_up_event = listen("key_up");
 
 		const item: HTMLInputElement = getByLabelText(
-			"Dropdown"
+			"Dropdown",
 		) as HTMLInputElement;
 
 		await item.focus();
@@ -119,14 +119,14 @@ describe("Dropdown", () => {
 			max_choices: undefined,
 			choices: [
 				["default", "default"],
-				["other", "other"]
+				["other", "other"],
 			],
 			filterable: false,
-			interactive: true
+			interactive: true,
 		});
 
 		const item: HTMLInputElement = getByLabelText(
-			"Dropdown"
+			"Dropdown",
 		) as HTMLInputElement;
 
 		item.focus();
@@ -143,14 +143,14 @@ describe("Dropdown", () => {
 			allow_custom_value: true,
 			choices: [
 				["dwight", "dwight"],
-				["michael", "michael"]
+				["michael", "michael"],
 			],
 			filterable: true,
-			interactive: true
+			interactive: true,
 		});
 
 		const item: HTMLInputElement = getByLabelText(
-			"Dropdown"
+			"Dropdown",
 		) as HTMLInputElement;
 		const change_event = listen("change");
 
@@ -170,14 +170,14 @@ describe("Dropdown", () => {
 			label: "Dropdown",
 			choices: [
 				["default", "default"],
-				["other", "other"]
+				["other", "other"],
 			],
 			filterable: true,
-			interactive: true
+			interactive: true,
 		});
 
 		const item: HTMLInputElement = getByLabelText(
-			"Dropdown"
+			"Dropdown",
 		) as HTMLInputElement;
 		const blur_event = listen("blur");
 		const focus_event = listen("focus");
@@ -199,14 +199,14 @@ describe("Dropdown", () => {
 			choices: [
 				["apple", "apple"],
 				["zebra", "zebra"],
-				["pony", "pony"]
+				["pony", "pony"],
 			],
 			filterable: true,
-			interactive: true
+			interactive: true,
 		});
 
 		const item: HTMLInputElement = getByLabelText(
-			"Dropdown"
+			"Dropdown",
 		) as HTMLInputElement;
 
 		item.focus();
@@ -235,15 +235,15 @@ describe("Dropdown", () => {
 				choices: [
 					["apple", "apple"],
 					["zebra", "zebra"],
-					["pony", "pony"]
+					["pony", "pony"],
 				],
 				filterable: true,
-				interactive: true
-			}
+				interactive: true,
+			},
 		);
 
 		const item: HTMLInputElement = getByLabelText(
-			"Dropdown"
+			"Dropdown",
 		) as HTMLInputElement;
 
 		await item.focus();
@@ -257,8 +257,8 @@ describe("Dropdown", () => {
 			choices: [
 				["apple", "apple"],
 				["zebra", "zebra"],
-				["pony", "pony"]
-			]
+				["pony", "pony"],
+			],
 		});
 
 		item.focus();
@@ -279,15 +279,15 @@ describe("Dropdown", () => {
 				choices: [
 					["apple", "apple"],
 					["zebra", "zebra"],
-					["pony", "pony"]
+					["pony", "pony"],
 				],
 				filterable: true,
-				interactive: true
-			}
+				interactive: true,
+			},
 		);
 
 		const item: HTMLInputElement = getByLabelText(
-			"Dropdown"
+			"Dropdown",
 		) as HTMLInputElement;
 
 		await item.focus();
@@ -309,15 +309,15 @@ describe("Dropdown", () => {
 				choices: [
 					["apple", "apple"],
 					["zebra", "zebra"],
-					["pony", "pony"]
+					["pony", "pony"],
 				],
 				filterable: true,
-				interactive: true
-			}
+				interactive: true,
+			},
 		);
 
 		const item: HTMLInputElement = getByLabelText(
-			"Dropdown"
+			"Dropdown",
 		) as HTMLInputElement;
 
 		await item.focus();
@@ -339,15 +339,15 @@ describe("Dropdown", () => {
 				choices: [
 					["apple", "apple"],
 					["zebra", "zebra"],
-					["pony", "pony"]
+					["pony", "pony"],
 				],
 				filterable: true,
-				interactive: true
-			}
+				interactive: true,
+			},
 		);
 
 		const item: HTMLInputElement = getByLabelText(
-			"Dropdown"
+			"Dropdown",
 		) as HTMLInputElement;
 
 		expect(item.value).toBe("apple");
@@ -383,15 +383,15 @@ describe("Dropdown", () => {
 				choices: [
 					["apple", "apple_internal_value"],
 					["zebra", "zebra_internal_value"],
-					["pony", "pony_internal_value"]
+					["pony", "pony_internal_value"],
 				],
 				filterable: true,
-				interactive: true
-			}
+				interactive: true,
+			},
 		);
 
 		const item: HTMLInputElement = getByLabelText(
-			"Dropdown"
+			"Dropdown",
 		) as HTMLInputElement;
 
 		expect(item.value).toBe("apple");
@@ -417,14 +417,14 @@ describe("Dropdown", () => {
 			label: "Dropdown",
 			choices: [
 				["apple_choice", "apple_internal_value"],
-				["zebra_choice", "zebra_internal_value"]
+				["zebra_choice", "zebra_internal_value"],
 			],
 			filterable: true,
-			interactive: true
+			interactive: true,
 		});
 
 		const item: HTMLInputElement = getByLabelText(
-			"Dropdown"
+			"Dropdown",
 		) as HTMLInputElement;
 
 		await expect(item.value).toBe("apple_choice");
@@ -432,8 +432,8 @@ describe("Dropdown", () => {
 		component.$set({
 			choices: [
 				["apple_new_choice", "apple_internal_value"],
-				["zebra_new_choice", "zebra_internal_value"]
-			]
+				["zebra_new_choice", "zebra_internal_value"],
+			],
 		});
 
 		await item.focus();
@@ -450,14 +450,14 @@ describe("Dropdown", () => {
 			label: "Dropdown",
 			choices: [
 				["apple_choice", "apple_internal_value"],
-				["zebra_choice", "zebra_internal_value"]
+				["zebra_choice", "zebra_internal_value"],
 			],
 			filterable: true,
-			interactive: true
+			interactive: true,
 		});
 
 		const item: HTMLInputElement = getByLabelText(
-			"Dropdown"
+			"Dropdown",
 		) as HTMLInputElement;
 
 		await expect(item.value).toBe("apple_choice");
@@ -465,8 +465,8 @@ describe("Dropdown", () => {
 		component.$set({
 			choices: [
 				["apple_new_choice", "apple_internal_value"],
-				["zebra_new_choice", "zebra_internal_value"]
-			]
+				["zebra_new_choice", "zebra_internal_value"],
+			],
 		});
 
 		await expect(item.value).toBe("apple_choice");
@@ -481,13 +481,13 @@ describe("Dropdown", () => {
 			label: "Dropdown",
 			choices: [
 				["apple_choice", "apple_internal_value"],
-				["zebra_choice", "zebra_internal_value"]
+				["zebra_choice", "zebra_internal_value"],
 			],
 			filterable: true,
-			interactive: true
+			interactive: true,
 		});
 		const item: HTMLInputElement = getByLabelText(
-			"Dropdown"
+			"Dropdown",
 		) as HTMLInputElement;
 		await expect(item.value).toBe("apple_choice");
 	});
@@ -501,13 +501,13 @@ describe("Dropdown", () => {
 			label: "Dropdown",
 			choices: [
 				["apple_choice", "apple_internal_value"],
-				["zebra_choice", "zebra_internal_value"]
+				["zebra_choice", "zebra_internal_value"],
 			],
 			filterable: true,
-			interactive: true
+			interactive: true,
 		});
 		const item: HTMLInputElement = getByLabelText(
-			"Dropdown"
+			"Dropdown",
 		) as HTMLInputElement;
 		await expect(item.value).toBe("");
 	});

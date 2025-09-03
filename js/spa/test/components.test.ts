@@ -50,14 +50,14 @@ const loading_status: LoadingStatus = {
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0,
-	show_progress: "full"
+	show_progress: "full",
 };
 
 const components = [
 	[
 		"StaticAnnotatedImage",
 		StaticAnnotatedImage,
-		{ height: 100, width: 100, value: null, interactive: false }
+		{ height: 100, width: 100, value: null, interactive: false },
 	],
 	["InteractiveAudio", InteractiveAudio, { interactive: true }],
 	["StaticAudio", StaticAudio, { interactive: false }],
@@ -68,12 +68,12 @@ const components = [
 	[
 		"InteractiveCheckboxGroup",
 		InteractiveCheckboxGroup,
-		{ choices: ["a", "b", "c"], interactive: true }
+		{ choices: ["a", "b", "c"], interactive: true },
 	],
 	[
 		"StaticCheckboxGroup",
 		StaticCheckboxGroup,
-		{ choices: ["a", "b", "c"], interactive: false }
+		{ choices: ["a", "b", "c"], interactive: false },
 	],
 	["InteractiveColorPicker", InteractiveColorPicker, { interactive: true }],
 	["StaticColorPicker", StaticColorPicker, { interactive: false }],
@@ -84,8 +84,8 @@ const components = [
 			value: [[1, 2, 3]],
 			col_count: [3, "fixed"],
 			row_count: [3, "fixed"],
-			interactive: true
-		}
+			interactive: true,
+		},
 	],
 	[
 		"StaticDataFrame",
@@ -94,18 +94,18 @@ const components = [
 			value: [[1, 2, 3]],
 			col_count: [3, "fixed"],
 			row_count: [3, "fixed"],
-			interactive: false
-		}
+			interactive: false,
+		},
 	],
 	[
 		"InteractiveDropdown",
 		InteractiveDropdown,
-		{ choices: ["a", "b", "c"], interactive: true }
+		{ choices: ["a", "b", "c"], interactive: true },
 	],
 	[
 		"StaticDropdown",
 		StaticDropdown,
-		{ choices: ["a", "b", "c"], interactive: false }
+		{ choices: ["a", "b", "c"], interactive: false },
 	],
 	["InteractiveFile", InteractiveFile, { interactive: true }],
 	["StaticFile", StaticFile, { interactive: false }],
@@ -132,7 +132,7 @@ const components = [
 	[
 		"InteractiveTextbox",
 		InteractiveTextbox,
-		{ container: false, interactive: true }
+		{ container: false, interactive: true },
 	],
 	["StaticTextbox", StaticTextbox, { container: false, interactive: false }],
 	// ["InteractiveTimeSeries", InteractiveTimeSeries, {}],
@@ -142,9 +142,9 @@ const components = [
 	[
 		"InteractiveVideo",
 		InteractiveVideo,
-		{ interactive: true, webcam_options: { mirror: true, constraints: null } }
+		{ interactive: true, webcam_options: { mirror: true, constraints: null } },
 	],
-	["StaticVideo", StaticVideo, { interactive: false }]
+	["StaticVideo", StaticVideo, { interactive: false }],
 ] as const;
 
 describe("all components should apply provided class names", () => {
@@ -168,8 +168,8 @@ describe("all components should apply provided class names", () => {
 					"light",
 					"3.1.1",
 					"",
-					false
-				)
+					false,
+				),
 			});
 
 			const elem = container.querySelector(`.test-class`);
@@ -196,7 +196,7 @@ describe("all components should apply provided id", () => {
 			const { container } = await render(component, {
 				...props,
 				loading_status,
-				elem_id: "test-id"
+				elem_id: "test-id",
 			});
 
 			const elem = container.querySelector(`#test-id`);
@@ -224,7 +224,7 @@ describe("all components should be invisible when visible=false", () => {
 				...props,
 				loading_status,
 				elem_id: "test-id",
-				visible: false
+				visible: false,
 			});
 
 			const elem = container.querySelector(`#test-id`);
@@ -254,7 +254,7 @@ describe("all components should have the appropriate label when set via the `lab
 				const { getAllByText } = await render(component, {
 					...props,
 					loading_status,
-					label: name + "LABEL_TEST"
+					label: name + "LABEL_TEST",
 				});
 
 				const elems = getAllByText(name + "LABEL_TEST");

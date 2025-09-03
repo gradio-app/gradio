@@ -179,4 +179,4 @@ Potential areas for enhancement:
 2. **Tool Extensions**: Add support for more tools and tool options
 3. **Layer Effects**: Add support for layer effects and blending modes
 4. **Selection Tools**: Enhance selection tools and operations
-5. **Export Options**: Add more export options and formats 
+5. **Export Options**: Add more export options and formats

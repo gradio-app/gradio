@@ -2,7 +2,6 @@
 
 Interact with Gradio APIs using our JavaScript (and TypeScript) client.
 
-
 ## Installation
 
 The Gradio JavaScript Client is available on npm as `@gradio/client`. You can install it as below:
@@ -19,7 +18,7 @@ Or, you can include it directly in your HTML via the jsDelivr CDN:
 
 ## Usage
 
-The JavaScript Gradio Client exposes the Client class, `Client`, along with various other utility functions. `Client` is used to initialise and establish a connection to, or duplicate, a Gradio app. 
+The JavaScript Gradio Client exposes the Client class, `Client`, along with various other utility functions. `Client` is used to initialise and establish a connection to, or duplicate, a Gradio app.
 
 ### `Client`
 
@@ -41,7 +40,7 @@ This function accepts two arguments: `source` and `options`:
 This is the url or name of the gradio app whose API you wish to connect to. This parameter is required and should always be a string. For example:
 
 ```ts
-Client.connect("user/space-name");  
+Client.connect("user/space-name");
 ```
 
 #### `options`
@@ -73,7 +72,7 @@ import { Client, type SpaceStatus } from "@gradio/client";
 
 const app = await Client.connect("user/space-name", {
 	// The space_status parameter does not need to be manually annotated, this is just for illustration.
-	space_status: (space_status: SpaceStatus) => console.log(space_status)
+	space_status: (space_status: SpaceStatus) => console.log(space_status),
 });
 ```
 
@@ -137,7 +136,7 @@ const app = await Client.connect("user/space-name");
 const result = await app.predict("/predict", {
 	input: 1,
 	word_1: "Hello",
-	word_2: "friends"
+	word_2: "friends",
 });
 ```
 
@@ -154,7 +153,7 @@ const submission = app.submit("/predict", { name: "Chewbacca" });
 
 The `submit` method accepts the same [`endpoint`](#endpoint) and [`payload`](#payload) arguments as `predict`.
 
-The `submit` method does not return a promise and should not be awaited, instead it returns an async iterator with a  `cancel` method.
+The `submit` method does not return a promise and should not be awaited, instead it returns an async iterator with a `cancel` method.
 
 ##### Accessing values
 
@@ -164,7 +163,7 @@ Iterating the submission allows you to access the events related to the submitte
 import { Client } from "@gradio/client";
 
 const app = await Client.connect("user/space-name", {
-	events: ["data", "status"]
+	events: ["data", "status"],
 });
 ```
 
@@ -201,20 +200,18 @@ Usage looks like this:
 import { Client } from "@gradio/client";
 
 const app = await Client.connect("user/space-name");
-const submission = app
-	.submit("/predict", { name: "Chewbacca" })
+const submission = app.submit("/predict", { name: "Chewbacca" });
 
-	for await (const msg of submission) {
-		if (msg.type === "data") {
-			console.log(msg.data);
-		}
-
-		if (msg.type === "status") {
-			console.log(msg);
-		}
+for await (const msg of submission) {
+	if (msg.type === "data") {
+		console.log(msg.data);
 	}
-```
 
+	if (msg.type === "status") {
+		console.log(msg);
+	}
+}
+```
 
 ##### `cancel`
 
@@ -224,9 +221,7 @@ Certain types of gradio function can run repeatedly and in some cases indefinite
 import { Client } from "@gradio/client";
 
 const app = await Client.connect("user/space-name");
-const submission = app
-	.submit("/predict", { name: "Chewbacca" })
-
+const submission = app.submit("/predict", { name: "Chewbacca" });
 
 // later
 
@@ -267,7 +262,7 @@ The duplicate function will attempt to duplicate the space that is referenced an
 import { Client } from "@gradio/client";
 
 const app = await Client.duplicate("user/space-name", {
-	hf_token: "hf_..."
+	hf_token: "hf_...",
 });
 ```
 
@@ -292,7 +287,7 @@ import { Client } from "@gradio/client";
 
 const app = await Client.duplicate("user/space-name", {
 	hf_token: "hf_...",
-	private: true
+	private: true,
 });
 ```
 
@@ -306,7 +301,7 @@ import { Client } from "@gradio/client";
 const app = await Client.duplicate("user/space-name", {
 	hf_token: "hf_...",
 	private: true,
-	timeout: 5
+	timeout: 5,
 });
 ```
 
@@ -336,7 +331,7 @@ import { Client } from "@gradio/client";
 const app = await Client.duplicate("user/space-name", {
 	hf_token: "hf_...",
 	private: true,
-	hardware: "a10g-small"
+	hardware: "a10g-small",
 });
 ```
 
@@ -359,21 +354,23 @@ const result = await app.predict("/predict", {
 	flat: [handle_file(url), handle_file(buffer)],
 	nested: {
 		image: handle_file(url),
-		layers: [handle_file(buffer)]
+		layers: [handle_file(buffer)],
 	},
 	deeply_nested: {
 		image: handle_file(url),
-		layers: [{
-			layer1: handle_file(buffer),
-			layer2: handle_file(buffer)
-		}]
-	}
+		layers: [
+			{
+				layer1: handle_file(buffer),
+				layer2: handle_file(buffer),
+			},
+		],
+	},
 });
 ```
 
 #### filepaths
 
-`handle_file` can be passed a local filepath which it will upload to the client server and return a reference that the client can understand. 
+`handle_file` can be passed a local filepath which it will upload to the client server and return a reference that the client can understand.
 
 This only works in a node environment.
 

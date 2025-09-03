@@ -1,14 +1,14 @@
 # Resource Cleanup
 
 Your Gradio application may create resources during its lifetime.
-Examples of resources are `gr.State` variables, any variables you create and explicitly hold in memory, or files you save to disk. 
+Examples of resources are `gr.State` variables, any variables you create and explicitly hold in memory, or files you save to disk.
 Over time, these resources can use up all of your server's RAM or disk space and crash your application.
 
 Gradio provides some tools for you to clean up the resources created by your app:
 
 1. Automatic deletion of `gr.State` variables.
 2. Automatic cache cleanup with the `delete_cache` parameter.
-2. The `Blocks.unload` event.
+3. The `Blocks.unload` event.
 
 Let's take a look at each of them individually.
 
@@ -25,9 +25,9 @@ You can control the deletion behavior further with the following two parameters 
 
 Your Gradio application will save uploaded and generated files to a special directory called the cache directory. Gradio uses a hashing scheme to ensure that duplicate files are not saved to the cache but over time the size of the cache will grow (especially if your app goes viral 😉).
 
-Gradio can periodically clean up the cache for you if you specify the `delete_cache` parameter of `gr.Blocks()`, `gr.Interface()`, or `gr.ChatInterface()`. 
+Gradio can periodically clean up the cache for you if you specify the `delete_cache` parameter of `gr.Blocks()`, `gr.Interface()`, or `gr.ChatInterface()`.
 This parameter is a tuple of the form `[frequency, age]` both expressed in number of seconds.
-Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. 
+Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created.
 For example, setting this to (86400, 86400) will delete temporary files every day if they are older than a day old.
 Additionally, the cache will be deleted entirely when the server restarts.
 

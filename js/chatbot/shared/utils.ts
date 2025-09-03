@@ -9,14 +9,14 @@ import type {
 	NormalisedMessage,
 	Message,
 	MessageRole,
-	ThoughtNode
+	ThoughtNode,
 } from "../types";
 import type { LoadedComponent } from "../../core/src/types";
 import { Gradio } from "@gradio/utils";
 
 export const format_chat_for_sharing = async (
 	chat: NormalisedMessage[],
-	url_length_limit = 1800
+	url_length_limit = 1800,
 ): Promise<string> => {
 	let messages_to_share = [...chat];
 	let formatted = await format_messages(messages_to_share);
@@ -36,7 +36,7 @@ export const format_chat_for_sharing = async (
 				if (msg.content.length > max_length) {
 					return {
 						...msg,
-						content: msg.content.substring(0, max_length) + "..."
+						content: msg.content.substring(0, max_length) + "...",
 					};
 				}
 			}
@@ -61,7 +61,7 @@ const format_messages = async (chat: NormalisedMessage[]): Promise<string> => {
 				const regexPatterns = {
 					audio: /<audio.*?src="(\/file=.*?)"/g,
 					video: /<video.*?src="(\/file=.*?)"/g,
-					image: /<img.*?src="(\/file=.*?)".*?\/>|!\[.*?\]\((\/file=.*?)\)/g
+					image: /<img.*?src="(\/file=.*?)".*?\/>|!\[.*?\]\((\/file=.*?)\)/g,
 				};
 
 				html_content = message.content;
@@ -92,7 +92,7 @@ const format_messages = async (chat: NormalisedMessage[]): Promise<string> => {
 			}
 
 			return `${speaker_emoji}: ${html_content}`;
-		})
+		}),
 	);
 	return messages.filter((msg) => msg !== "").join("\n");
 };
@@ -113,7 +113,7 @@ const redirect_src_url = (src: string, root: string): string =>
 
 function get_component_for_mime_type(
 	mime_type: string | null | undefined,
-	file?: { path?: string }
+	file?: { path?: string },
 ): string {
 	if (!mime_type) {
 		const path = file?.path;
@@ -140,7 +140,7 @@ function get_component_for_mime_type(
 }
 
 function convert_file_message_to_component_message(
-	message: any
+	message: any,
 ): ComponentData {
 	const _file = Array.isArray(message.file) ? message.file[0] : message.file;
 	return {
@@ -148,13 +148,13 @@ function convert_file_message_to_component_message(
 		value: message.file,
 		alt_text: message.alt_text,
 		constructor_args: {},
-		props: {}
+		props: {},
 	} as ComponentData;
 }
 
 export function normalise_messages(
 	messages: Message[] | null,
-	root: string
+	root: string,
 ): NormalisedMessage[] | null {
 	if (messages === null) return messages;
 
@@ -170,18 +170,18 @@ export function normalise_messages(
 							content: redirect_src_url(message.content, root),
 							type: "text",
 							index: i,
-							options: message.options
+							options: message.options,
 						}
 					: "file" in message.content
 						? {
 								content: convert_file_message_to_component_message(
-									message.content
+									message.content,
 								),
 								metadata: message.metadata,
 								role: message.role,
 								type: "component",
 								index: i,
-								options: message.options
+								options: message.options,
 							}
 						: ({ type: "component", ...message } as ComponentMessage);
 
@@ -211,7 +211,7 @@ export function normalise_messages(
 
 export function normalise_tuples(
 	messages: TupleFormat,
-	root: string
+	root: string,
 ): NormalisedMessage[] | null {
 	if (messages === null) return messages;
 	const msg = messages.flatMap((message_pair, i) => {
@@ -225,7 +225,7 @@ export function normalise_tuples(
 					type: "text",
 					content: redirect_src_url(message, root),
 					metadata: { title: null },
-					index: [i, index]
+					index: [i, index],
 				} as TextMessage;
 			}
 
@@ -234,7 +234,7 @@ export function normalise_tuples(
 					content: convert_file_message_to_component_message(message),
 					role: role,
 					type: "component",
-					index: [i, index]
+					index: [i, index],
 				} as ComponentMessage;
 			}
 
@@ -242,7 +242,7 @@ export function normalise_tuples(
 				role: role,
 				content: message,
 				type: "component",
-				index: [i, index]
+				index: [i, index],
 			} as ComponentMessage;
 		});
 	});
@@ -250,14 +250,14 @@ export function normalise_tuples(
 }
 
 export function is_component_message(
-	message: NormalisedMessage
+	message: NormalisedMessage,
 ): message is ComponentMessage {
 	return message.type === "component";
 }
 
 export function is_last_bot_message(
 	messages: NormalisedMessage[],
-	all_messages: NormalisedMessage[]
+	all_messages: NormalisedMessage[],
 ): boolean {
 	const is_bot = messages[messages.length - 1].role === "assistant";
 	const last_index = messages[messages.length - 1].index;
@@ -272,7 +272,7 @@ export function is_last_bot_message(
 export function group_messages(
 	messages: NormalisedMessage[],
 	msg_format: "messages" | "tuples",
-	display_consecutive_in_same_bubble = true
+	display_consecutive_in_same_bubble = true,
 ): NormalisedMessage[][] {
 	const groupedMessages: NormalisedMessage[][] = [];
 	let currentGroup: NormalisedMessage[] = [];
@@ -310,7 +310,7 @@ export function group_messages(
 export async function load_components(
 	component_names: string[],
 	_components: Record<string, ComponentType<SvelteComponent>>,
-	load_component: Gradio["load_component"]
+	load_component: Gradio["load_component"],
 ): Promise<Record<string, ComponentType<SvelteComponent>>> {
 	let names: string[] = [];
 	let components: ReturnType<typeof load_component>["component"][] = [];
@@ -332,7 +332,7 @@ export async function load_components(
 	const resolved_components = await Promise.allSettled(components);
 	const supported_components: [number, LoadedComponent][] = resolved_components
 		.map((result, index) =>
-			result.status === "fulfilled" ? [index, result.value] : null
+			result.status === "fulfilled" ? [index, result.value] : null,
 		)
 		.filter((item): item is [number, LoadedComponent] => item !== null);
 
@@ -344,7 +344,7 @@ export async function load_components(
 }
 
 export function get_components_from_messages(
-	messages: NormalisedMessage[] | null
+	messages: NormalisedMessage[] | null,
 ): string[] {
 	if (!messages) return [];
 	let components: Set<string> = new Set();
@@ -393,7 +393,7 @@ export function all_text(message: TextMessage[] | TextMessage): string {
 }
 
 export function is_all_text(
-	message: NormalisedMessage[] | NormalisedMessage
+	message: NormalisedMessage[] | NormalisedMessage,
 ): message is TextMessage[] | TextMessage {
 	return (
 		(Array.isArray(message) &&

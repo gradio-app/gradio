@@ -4,7 +4,7 @@ Tags: MCP, TOOL, LLM, SERVER
 
 In this guide, we will describe how to launch your Gradio app so that it functions as an MCP Server.
 
-Punchline: it's as simple as setting `mcp_server=True` in `.launch()`. 
+Punchline: it's as simple as setting `mcp_server=True` in `.launch()`.
 
 ### Prerequisites
 
@@ -18,7 +18,7 @@ This will install the necessary dependencies, including the `mcp` package. Also,
 
 ## What is an MCP Server?
 
-An MCP (Model Control Protocol) server is a standardized way to expose tools so that they can be used by  LLMs. A tool can provide an LLM functionality that it does not have natively, such as the ability to generate images or calculate the prime factors of a number. 
+An MCP (Model Control Protocol) server is a standardized way to expose tools so that they can be used by LLMs. A tool can provide an LLM functionality that it does not have natively, such as the ability to generate images or calculate the prime factors of a number.
 
 ## Example: Counting Letters in a Word
 
@@ -33,6 +33,7 @@ Notice that we have: (1) included a detailed docstring for our function, and (2)
 3. Print the MCP server URL in the console
 
 The MCP server will be accessible at:
+
 ```
 http://your-server:port/gradio_api/mcp/sse
 ```
@@ -59,24 +60,25 @@ Now, all you need to do is add this URL endpoint to your MCP Client (e.g. Claude
 
 1. **Tool Conversion**: Each API endpoint in your Gradio app is automatically converted into an MCP tool with a corresponding name, description, and input schema. To view the tools and schemas, visit http://your-server:port/gradio_api/mcp/schema or go to the "View API" link in the footer of your Gradio app, and then click on "MCP".
 
-
 2. **Environment variable support**. There are two ways to enable the MCP server functionality:
 
-*  Using the `mcp_server` parameter, as shown above:
-   ```python
-   demo.launch(mcp_server=True)
-   ```
+- Using the `mcp_server` parameter, as shown above:
 
-* Using environment variables:
-   ```bash
-   export GRADIO_MCP_SERVER=True
-   ```
+  ```python
+  demo.launch(mcp_server=True)
+  ```
+
+- Using environment variables:
+  ```bash
+  export GRADIO_MCP_SERVER=True
+  ```
 
 3. **File Handling**: The Gradio MCP server automatically handles file data conversions, including:
+
    - Processing image files and returning them in the correct format
    - Managing temporary file storage
 
-    By default, the Gradio MCP server accepts input images and files as full URLs ("http://..." or "https:/..."). For convenience, an additional STDIO-based MCP server is also generated, which can be used to upload files to any remote Gradio app and which returns a URL that can be used for subsequent tool calls.
+   By default, the Gradio MCP server accepts input images and files as full URLs ("http://..." or "https:/..."). For convenience, an additional STDIO-based MCP server is also generated, which can be used to upload files to any remote Gradio app and which returns a URL that can be used for subsequent tool calls.
 
 4. **Hosted MCP Servers on 󠀠🤗 Spaces**: You can publish your Gradio application for free on Hugging Face Spaces, which will allow you to have a free hosted MCP server. Here's an example of such a Space: https://huggingface.co/spaces/abidlabs/mcp-tools. Notice that you can add this config to your MCP Client to start using the tools from this Space immediately:
 
@@ -91,7 +93,6 @@ Now, all you need to do is add this URL endpoint to your MCP Client (e.g. Claude
 ```
 
 <video src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/mcp_guide1.mp4" style="width:100%" controls preload> </video>
-
 
 ## Converting an Existing Space
 
@@ -122,7 +123,7 @@ You can use either a public Space or a private Space as an MCP server. If you'd 
 
 ## Authentication and Credentials
 
-You may wish to authenticate users more precisely or let them provide other kinds of credentials or tokens in order to provide a custom experience for different users. 
+You may wish to authenticate users more precisely or let them provide other kinds of credentials or tokens in order to provide a custom experience for different users.
 
 Gradio allows you to access the underlying `starlette.Request` that has made the tool call, which means that you can access headers, originating IP address, or any other information that is part of the network request. To do this, simply add a parameter in your function of the type `gr.Request`, and Gradio will automatically inject the request object as the parameter.
 
@@ -185,14 +186,13 @@ $code_mcp_progress
 
 [Here are the docs](https://www.gradio.app/docs/gradio/progress) for the `gr.Progress` class, which can also automatically track `tqdm` calls.
 
-
 ## Modifying Tool Descriptions
 
 Gradio automatically sets the tool name based on the name of your function, and the description from the docstring of your function. But you may want to change how the description appears to your LLM. You can do this by using the `api_description` parameter in `Interface`, `ChatInterface`, or any event listener. This parameter takes three different kinds of values:
 
-* `None` (default): the tool description is automatically created from the docstring of the function (or its parent's docstring if it does not have a docstring but inherits from a method that does.)
-* `False`: no tool description appears to the LLM.
-* `str`: an arbitrary string to use as the tool description.
+- `None` (default): the tool description is automatically created from the docstring of the function (or its parent's docstring if it does not have a docstring but inherits from a method that does.)
+- `False`: no tool description appears to the LLM.
+- `str`: an arbitrary string to use as the tool description.
 
 In addition to modifying the tool descriptions, you can also toggle which tools appear to the LLM. You can do this by setting the `show_api` parameter, which is by default `True`. Setting it to `False` hides the endpoint from the API docs and from the MCP server. If you expose multiple tools, users of your app will also be able to toggle which tools they'd like to add to their MCP server by checking boxes in the "view MCP or API" panel.
 
@@ -200,12 +200,9 @@ Here's an example that shows the `api_description` and `show_api` parameters in 
 
 $code_mcp_tools
 
-
-
 ## MCP Resources and Prompts
 
 In addition to tools (which execute functions generally and are the default for any function exposed through the Gradio MCP integration), MCP supports two other important primitives: **resources** (for exposing data) and **prompts** (for defining reusable templates). Gradio provides decorators to easily create MCP servers with all three capabilities.
-
 
 ### Creating MCP Resources
 
@@ -214,19 +211,20 @@ Use the `@gr.mcp.resource` decorator on any function to expose data through your
 $code_mcp_resources_and_prompts
 
 In this example:
+
 - The `get_greeting` function is exposed as a resource with a URI template `greeting://{name}`
 - When an MCP client requests `greeting://Alice`, it receives "Hello, Alice!"
 - Resources can also return images and other types of files or binary data. In order to return non-text data, you should specify the `mime_type` parameter in `@gr.mcp.resource()` and return a Base64 string from your function.
 
-### Creating MCP Prompts  
+### Creating MCP Prompts
 
 Prompts help standardize how users interact with your tools. They're especially useful for complex workflows that require specific formatting or multiple steps.
 
 The `greet_user` function in the example above is decorated with `@gr.mcp.prompt()`, which:
+
 - Makes it available as a prompt template in MCP clients
 - Accepts parameters (`name` and `style`) to customize the output
 - Returns a structured prompt that guides the LLM's behavior
-
 
 ## Adding MCP-Only Functions
 
@@ -252,7 +250,7 @@ from mcp.server.fastmcp import FastMCP
 from gradio_client import Client
 import sys
 import io
-import json 
+import json
 
 mcp = FastMCP("gradio-spaces")
 
@@ -268,10 +266,10 @@ def get_client(space_id: str) -> Client:
 @mcp.tool()
 async def generate_image(prompt: str, space_id: str = "ysharma/SanaSprint") -> str:
     """Generate an image using Flux.
-    
+
     Args:
         prompt: Text prompt describing the image to generate
-        space_id: HuggingFace Space ID to use 
+        space_id: HuggingFace Space ID to use
     """
     client = get_client(space_id)
     result = client.predict(
@@ -291,15 +289,15 @@ async def generate_image(prompt: str, space_id: str = "ysharma/SanaSprint") -> s
 @mcp.tool()
 async def run_dia_tts(prompt: str, space_id: str = "ysharma/Dia-1.6B") -> str:
     """Text-to-Speech Synthesis.
-    
+
     Args:
         prompt: Text prompt describing the conversation between speakers S1, S2
-        space_id: HuggingFace Space ID to use 
+        space_id: HuggingFace Space ID to use
     """
     client = get_client(space_id)
     result = client.predict(
             text_input=f"""{prompt}""",
-            audio_prompt_input=None, 
+            audio_prompt_input=None,
             max_new_tokens=3072,
             cfg_scale=3,
             temperature=1.3,
@@ -315,11 +313,12 @@ if __name__ == "__main__":
     import sys
     import io
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    
+
     mcp.run(transport='stdio')
 ```
 
 This server exposes two tools:
+
 1. `run_dia_tts` - Generates a conversation for the given transcript in the form of `[S1]first-sentence. [S2]second-sentence. [S1]...`
 2. `generate_image` - Generates images using a fast text-to-image model
 
@@ -331,21 +330,18 @@ To use this MCP Server with Claude Desktop (as MCP Client):
 
 ```json
 {
-    "mcpServers": {
-        "gradio-spaces": {
-            "command": "python",
-            "args": [
-                "/absolute/path/to/gradio_mcp_server.py"
-            ]
-        }
+  "mcpServers": {
+    "gradio-spaces": {
+      "command": "python",
+      "args": ["/absolute/path/to/gradio_mcp_server.py"]
     }
+  }
 }
 ```
 
 4. Restart Claude Desktop
 
 Now, when you ask Claude about generating an image or transcribing audio, it can use your Gradio-powered tools to accomplish these tasks.
-
 
 ## Troubleshooting your MCP Servers
 
@@ -425,4 +421,3 @@ Some MCP Clients, notably [Claude Desktop](https://claude.ai/download), do not y
 **4. Restart your MCP Client and MCP Server**
 
 Some MCP Clients require you to restart them every time you update the MCP configuration. Other times, if the connection between the MCP Client and servers breaks, you might need to restart the MCP server. If all else fails, try restarting both your MCP Client and MCP Servers!
-

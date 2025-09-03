@@ -6,7 +6,7 @@
  */
 export function click_outside(
 	node: Node,
-	callback: (arg: MouseEvent) => void
+	callback: (arg: MouseEvent) => void,
 ): any {
 	const handle_click = (event: MouseEvent): void => {
 		if (
@@ -23,6 +23,6 @@ export function click_outside(
 	return {
 		destroy() {
 			document.removeEventListener("mousedown", handle_click, true);
-		}
+		},
 	};
 }

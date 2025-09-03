@@ -28,26 +28,26 @@ Please create an HTML file and paste the following code:
 
 ```html
 <html>
-	<head>
-		<script type="module" crossorigin src="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js"></script>
-		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.css" />
-	</head>
-	<body>
-		<gradio-lite>
-import gradio as gr
-from transformers_js_py import pipeline
+  <head>
+    <script
+      type="module"
+      crossorigin
+      src="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.css"
+    />
+  </head>
+  <body>
+    <gradio-lite>
+      import gradio as gr from transformers_js_py import pipeline pipe = await
+      pipeline('sentiment-analysis') demo = gr.Interface.from_pipeline(pipe)
+      demo.launch()
 
-pipe = await pipeline('sentiment-analysis')
-
-demo = gr.Interface.from_pipeline(pipe)
-
-demo.launch()
-
-			<gradio-requirements>
-transformers-js-py
-			</gradio-requirements>
-		</gradio-lite>
-	</body>
+      <gradio-requirements> transformers-js-py </gradio-requirements>
+    </gradio-lite>
+  </body>
 </html>
 ```
 
@@ -131,34 +131,27 @@ Here's an example where the Python code inside the `<gradio-lite>` tag has been 
 
 ```html
 <html>
-	<head>
-		<script type="module" crossorigin src="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js"></script>
-		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.css" />
-	</head>
-	<body>
-		<gradio-lite>
-import gradio as gr
-from transformers_js_py import pipeline
+  <head>
+    <script
+      type="module"
+      crossorigin
+      src="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.css"
+    />
+  </head>
+  <body>
+    <gradio-lite>
+      import gradio as gr from transformers_js_py import pipeline pipe = await
+      pipeline('sentiment-analysis') async def fn(text): result = await
+      pipe(text) return result demo = gr.Interface( fn=fn, inputs=gr.Textbox(),
+      outputs=gr.JSON(), ) demo.launch()
 
-pipe = await pipeline('sentiment-analysis')
-
-async def fn(text):
-	result = await pipe(text)
-	return result
-
-demo = gr.Interface(
-	fn=fn,
-	inputs=gr.Textbox(),
-	outputs=gr.JSON(),
-)
-
-demo.launch()
-
-			<gradio-requirements>
-transformers-js-py
-			</gradio-requirements>
-		</gradio-lite>
-	</body>
+      <gradio-requirements> transformers-js-py </gradio-requirements>
+    </gradio-lite>
+  </body>
 </html>
 ```
 

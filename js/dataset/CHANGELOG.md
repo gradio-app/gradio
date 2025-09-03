@@ -117,7 +117,7 @@
 
 ### Fixes
 
-- [#11181](https://github.com/gradio-app/gradio/pull/11181) [`ee7f17e`](https://github.com/gradio-app/gradio/commit/ee7f17e25642bc4b86f2272b3b5cfcf77c08adf1) - Fix the `.select()` event in `gr.Dataset` in table layout.  Thanks @abidlabs!
+- [#11181](https://github.com/gradio-app/gradio/pull/11181) [`ee7f17e`](https://github.com/gradio-app/gradio/commit/ee7f17e25642bc4b86f2272b3b5cfcf77c08adf1) - Fix the `.select()` event in `gr.Dataset` in table layout. Thanks @abidlabs!
 
 ## 0.4.17
 
@@ -238,7 +238,7 @@
 
 ### Fixes
 
-- [#10369](https://github.com/gradio-app/gradio/pull/10369) [`eb85edf`](https://github.com/gradio-app/gradio/commit/eb85edf4b27b33038c0923387d6d1a6f57a73980) - Quick fix: 0 is ignored Slider/Number issue.  Thanks @dawoodkhan82!
+- [#10369](https://github.com/gradio-app/gradio/pull/10369) [`eb85edf`](https://github.com/gradio-app/gradio/commit/eb85edf4b27b33038c0923387d6d1a6f57a73980) - Quick fix: 0 is ignored Slider/Number issue. Thanks @dawoodkhan82!
 
 ### Dependency updates
 
@@ -258,7 +258,7 @@
 
 ### Features
 
-- [#10191](https://github.com/gradio-app/gradio/pull/10191) [`5ce2832`](https://github.com/gradio-app/gradio/commit/5ce28324971e974ae24dc9a229b2160793140fb2) - Support saving chat history in `gr.ChatInterface`.  Thanks @abidlabs!
+- [#10191](https://github.com/gradio-app/gradio/pull/10191) [`5ce2832`](https://github.com/gradio-app/gradio/commit/5ce28324971e974ae24dc9a229b2160793140fb2) - Support saving chat history in `gr.ChatInterface`. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -408,7 +408,7 @@
 
 ### Features
 
-- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -422,7 +422,7 @@
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -436,12 +436,12 @@
 
 ### Features
 
-- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages. Thanks @pngwn!
 
 ### Fixes
 
-- [#9093](https://github.com/gradio-app/gradio/pull/9093) [`60650d8`](https://github.com/gradio-app/gradio/commit/60650d84b2cfe93fd2ebf2d2997d6c0f382d5f1a) - Reset `Dataset` page to 0 when samples change.  Thanks @abidlabs!
-- [#8987](https://github.com/gradio-app/gradio/pull/8987) [`7b288cf`](https://github.com/gradio-app/gradio/commit/7b288cf6772ec3dc1fa603db859975e5dab90127) - Fix unexpected rendering of Dataset.  Thanks @Col0ring!
+- [#9093](https://github.com/gradio-app/gradio/pull/9093) [`60650d8`](https://github.com/gradio-app/gradio/commit/60650d84b2cfe93fd2ebf2d2997d6c0f382d5f1a) - Reset `Dataset` page to 0 when samples change. Thanks @abidlabs!
+- [#8987](https://github.com/gradio-app/gradio/pull/8987) [`7b288cf`](https://github.com/gradio-app/gradio/commit/7b288cf6772ec3dc1fa603db859975e5dab90127) - Fix unexpected rendering of Dataset. Thanks @Col0ring!
 
 ### Dependency updates
 
@@ -482,7 +482,7 @@
 
 ### Features
 
-- [#8733](https://github.com/gradio-app/gradio/pull/8733) [`fb0daf3`](https://github.com/gradio-app/gradio/commit/fb0daf3730ffbe6aab5ebe4210eae150729a40b1) - Improvements to `gr.Examples`: adds events as attributes and documents, them, adds `sample_labels`, and `visible` properties.  Thanks @abidlabs!
+- [#8733](https://github.com/gradio-app/gradio/pull/8733) [`fb0daf3`](https://github.com/gradio-app/gradio/commit/fb0daf3730ffbe6aab5ebe4210eae150729a40b1) - Improvements to `gr.Examples`: adds events as attributes and documents, them, adds `sample_labels`, and `visible` properties. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -503,7 +503,7 @@
 
 ### Fixes
 
-- [#8581](https://github.com/gradio-app/gradio/pull/8581) [`a1c21cb`](https://github.com/gradio-app/gradio/commit/a1c21cb69a688bd38139153fe9c85a50c6ae86f2) - fix dataset update.  Thanks @abidlabs!
+- [#8581](https://github.com/gradio-app/gradio/pull/8581) [`a1c21cb`](https://github.com/gradio-app/gradio/commit/a1c21cb69a688bd38139153fe9c85a50c6ae86f2) - fix dataset update. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -544,7 +544,7 @@
 
 ### Fixes
 
-- [#8364](https://github.com/gradio-app/gradio/pull/8364) [`6a1b58c`](https://github.com/gradio-app/gradio/commit/6a1b58cf3e4796ccb695db5baae190c894b30df0) - Add `--table-text-color` var to fix body text in `Examples`.  Thanks @hannahblair!
+- [#8364](https://github.com/gradio-app/gradio/pull/8364) [`6a1b58c`](https://github.com/gradio-app/gradio/commit/6a1b58cf3e4796ccb695db5baae190c894b30df0) - Add `--table-text-color` var to fix body text in `Examples`. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -602,7 +602,7 @@
 
 ### Fixes
 
-- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -615,7 +615,7 @@
 
 ### Fixes
 
-- [#8028](https://github.com/gradio-app/gradio/pull/8028) [`6fafce0`](https://github.com/gradio-app/gradio/commit/6fafce06704ab8f2cd5fe6fbdb58b842e144e44d) - ensure maps are correctly shallow cloned when updating state.  Thanks @pngwn!
+- [#8028](https://github.com/gradio-app/gradio/pull/8028) [`6fafce0`](https://github.com/gradio-app/gradio/commit/6fafce06704ab8f2cd5fe6fbdb58b842e144e44d) - ensure maps are correctly shallow cloned when updating state. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -651,7 +651,7 @@
 
 ### Fixes
 
-- [#7761](https://github.com/gradio-app/gradio/pull/7761) [`ca42748`](https://github.com/gradio-app/gradio/commit/ca42748590536e1d940b44ec7c9b6ea402905707) - Ensure `paginate` updates when samples value changes in `Dataset`.  Thanks @hannahblair!
+- [#7761](https://github.com/gradio-app/gradio/pull/7761) [`ca42748`](https://github.com/gradio-app/gradio/commit/ca42748590536e1d940b44ec7c9b6ea402905707) - Ensure `paginate` updates when samples value changes in `Dataset`. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -662,7 +662,7 @@
 
 ### Fixes
 
-- [#7564](https://github.com/gradio-app/gradio/pull/7564) [`5d1e8da`](https://github.com/gradio-app/gradio/commit/5d1e8dae5ac23f605c3b5f41dbe18751dff380a0) - batch UI updates on a per frame basis.  Thanks @pngwn!
+- [#7564](https://github.com/gradio-app/gradio/pull/7564) [`5d1e8da`](https://github.com/gradio-app/gradio/commit/5d1e8dae5ac23f605c3b5f41dbe18751dff380a0) - batch UI updates on a per frame basis. Thanks @pngwn!
 
 ### Dependency updates
 

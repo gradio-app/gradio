@@ -25,7 +25,7 @@ $demo_plot_guide_datetime
 
 Note how `gr.DateTime` can accept a full datetime string, or a shorthand using `now - [0-9]+[smhd]` format to refer to a past time.
 
-You will often have many time plots in which case you'd like to keep the x-axes in sync. The `DateTimeRange` custom component keeps a set of datetime plots in sync, and also uses the `.select` listener of plots to allow you to zoom into plots while keeping plots in sync. 
+You will often have many time plots in which case you'd like to keep the x-axes in sync. The `DateTimeRange` custom component keeps a set of datetime plots in sync, and also uses the `.select` listener of plots to allow you to zoom into plots while keeping plots in sync.
 
 Because it is a custom component, you first need to `pip install gradio_datetimerange`. Then run the following:
 
@@ -55,5 +55,3 @@ with gr.Blocks() as demo:
     plot1 = gr.BarPlot(get_data, x="time", y="price", every=timer)
     plot2 = gr.BarPlot(get_data, x="time", y="price", color="origin", every=timer)
 ```
-
-

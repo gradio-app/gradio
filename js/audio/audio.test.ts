@@ -15,7 +15,7 @@ const loading_status: LoadingStatus = {
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0,
-	show_progress: "full"
+	show_progress: "full",
 };
 
 const default_values = {
@@ -24,9 +24,9 @@ const default_values = {
 	value: {
 		url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
 		path: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-		orig_name: "SoundHelix-Song-1.mp3"
+		orig_name: "SoundHelix-Song-1.mp3",
 	},
-	show_label: true
+	show_label: true,
 };
 describe("Audio", () => {
 	setupi18n();
@@ -39,7 +39,7 @@ describe("Audio", () => {
 			interactive: true,
 			sources: ["microphone", "upload"],
 			pending: false,
-			streaming: false
+			streaming: false,
 		});
 
 		assert.exists(getAllByTestId("waveform-music"));
@@ -53,8 +53,8 @@ describe("Audio", () => {
 				streaming: false,
 				pending: false,
 				sources: ["microphone"],
-				interactive: true
-			}
+				interactive: true,
+			},
 		);
 
 		assert.exists(getAllByTestId("waveform-controls"));
@@ -74,7 +74,7 @@ describe("Audio", () => {
 			streaming: false,
 			pending: false,
 			sources: ["microphone"],
-			interactive: false
+			interactive: false,
 		});
 
 		assert.exists(getAllByTestId("waveform-controls"));
@@ -88,7 +88,7 @@ describe("Audio", () => {
 			streaming: false,
 			pending: false,
 			sources: ["microphone", "upload"],
-			interactive: true
+			interactive: true,
 		});
 
 		assert.exists(getByTestId("source-select"));
@@ -97,12 +97,12 @@ describe("Audio", () => {
 
 		assert.equal(
 			getByLabelText("Record audio").classList.contains("selected"),
-			true
+			true,
 		);
 
 		assert.equal(
 			getByLabelText("Upload file").classList.contains("selected"),
-			false
+			false,
 		);
 	});
 
@@ -112,7 +112,7 @@ describe("Audio", () => {
 			streaming: false,
 			pending: false,
 			sources: ["upload"],
-			interactive: true
+			interactive: true,
 		});
 
 		assert.notExists(queryByTestId("source-select"));

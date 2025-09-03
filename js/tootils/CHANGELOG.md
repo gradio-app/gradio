@@ -183,7 +183,7 @@
 
 ### Fixes
 
-- [#9528](https://github.com/gradio-app/gradio/pull/9528) [`9004b11`](https://github.com/gradio-app/gradio/commit/9004b110640bdb54995343a870bf080ee15da02d) - Fix Lite to work on FireFox.  Thanks @whitphx!
+- [#9528](https://github.com/gradio-app/gradio/pull/9528) [`9004b11`](https://github.com/gradio-app/gradio/commit/9004b110640bdb54995343a870bf080ee15da02d) - Fix Lite to work on FireFox. Thanks @whitphx!
 
 ## 0.7.1
 
@@ -206,7 +206,7 @@
 
 ### Features
 
-- [#9590](https://github.com/gradio-app/gradio/pull/9590) [`e853c41`](https://github.com/gradio-app/gradio/commit/e853c413583d91186aef3aceb0849d0ec0494834) - SSR e2e + fixes.  Thanks @pngwn!
+- [#9590](https://github.com/gradio-app/gradio/pull/9590) [`e853c41`](https://github.com/gradio-app/gradio/commit/e853c413583d91186aef3aceb0849d0ec0494834) - SSR e2e + fixes. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -248,7 +248,7 @@
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -287,11 +287,11 @@
 
 #### Support message format in chatbot 💬 ([#8422](https://github.com/gradio-app/gradio/pull/8422) [`4221290`](https://github.com/gradio-app/gradio/commit/4221290d847041024b1faa3df5585bba0775b8b3))
 
-`gr.Chatbot` and `gr.ChatInterface` now support the [Messages API](https://huggingface.co/docs/text-generation-inference/en/messages_api#messages-api), which is fully compatible with LLM API providers such as Hugging Face Text Generation Inference, OpenAI's chat completions API, and Llama.cpp server. 
+`gr.Chatbot` and `gr.ChatInterface` now support the [Messages API](https://huggingface.co/docs/text-generation-inference/en/messages_api#messages-api), which is fully compatible with LLM API providers such as Hugging Face Text Generation Inference, OpenAI's chat completions API, and Llama.cpp server.
 
-Building Gradio applications around these LLM solutions is now even easier! 
+Building Gradio applications around these LLM solutions is now even easier!
 
-`gr.Chatbot` and `gr.ChatInterface` now have a `type` parameter that can accept two values - `'tuples'` and `'messages'`. If set to `'tuples'`, the default chatbot data format is expected. If set to `'messages'`, a list of dictionaries with `content` and `role` keys is expected. See below - 
+`gr.Chatbot` and `gr.ChatInterface` now have a `type` parameter that can accept two values - `'tuples'` and `'messages'`. If set to `'tuples'`, the default chatbot data format is expected. If set to `'messages'`, a list of dictionaries with `content` and `role` keys is expected. See below -
 
 ```python
 def chat_greeter(msg, history):
@@ -302,7 +302,6 @@ def chat_greeter(msg, history):
 Additionally, gradio now exposes a `gr.ChatMessage` dataclass you can use for IDE type hints and auto completion.
 
 <img width="852" alt="image" src="https://github.com/freddyaboulton/freddyboulton/assets/41651716/d283e8f3-b194-466a-8194-c7e697dca9ad">
-
 
 #### Tool use in Chatbot 🛠️
 
@@ -366,15 +365,13 @@ if __name__ == "__main__":
     demo.launch()
 ```
 
-
-
 ![tool-box-demo](https://github.com/freddyaboulton/freddyboulton/assets/41651716/cf73ecc9-90ac-42ce-bca5-768e0cc00a48)
 
- Thanks @freddyaboulton!
+Thanks @freddyaboulton!
 
 ### Features
 
-- [#8222](https://github.com/gradio-app/gradio/pull/8222) [`3a6142f`](https://github.com/gradio-app/gradio/commit/3a6142fa4829aa6d65d7b8388fbba49cc8db8ab1) - Lite load perf ci.  Thanks @whitphx!
+- [#8222](https://github.com/gradio-app/gradio/pull/8222) [`3a6142f`](https://github.com/gradio-app/gradio/commit/3a6142fa4829aa6d65d7b8388fbba49cc8db8ab1) - Lite load perf ci. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -392,7 +389,7 @@ if __name__ == "__main__":
 
 ### Features
 
-- [#8417](https://github.com/gradio-app/gradio/pull/8417) [`96d8de2`](https://github.com/gradio-app/gradio/commit/96d8de231270321da5f310768643363276df3204) - add delete event to `File` component.  Thanks @pngwn!
+- [#8417](https://github.com/gradio-app/gradio/pull/8417) [`96d8de2`](https://github.com/gradio-app/gradio/commit/96d8de231270321da5f310768643363276df3204) - add delete event to `File` component. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -433,11 +430,11 @@ if __name__ == "__main__":
 
 ### Features
 
-- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9.  Thanks @renovate!
+- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9. Thanks @renovate!
 
 ### Fixes
 
-- [#8179](https://github.com/gradio-app/gradio/pull/8179) [`6a218b4`](https://github.com/gradio-app/gradio/commit/6a218b4148095aaa0c58d8c20973ba01c8764fc2) - rework upload to be a class method + pass client into each component.  Thanks @pngwn!
+- [#8179](https://github.com/gradio-app/gradio/pull/8179) [`6a218b4`](https://github.com/gradio-app/gradio/commit/6a218b4148095aaa0c58d8c20973ba01c8764fc2) - rework upload to be a class method + pass client into each component. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -466,14 +463,13 @@ demo.launch(max_file_size=5 * gr.FileSize.MB)
 
 ![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
 
-
 #### Error states can now be cleared
 
 When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
 
 ![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
 
- Thanks @freddyaboulton!
+Thanks @freddyaboulton!
 
 ### Dependency updates
 
@@ -510,7 +506,7 @@ When a component encounters an error, the error state shown in the UI can now be
 
 ### Features
 
-- [#7345](https://github.com/gradio-app/gradio/pull/7345) [`561579d`](https://github.com/gradio-app/gradio/commit/561579d9b7b860c5cb3f8131e0dced0c8114463f) - fix-tests.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#7345](https://github.com/gradio-app/gradio/pull/7345) [`561579d`](https://github.com/gradio-app/gradio/commit/561579d9b7b860c5cb3f8131e0dced0c8114463f) - fix-tests. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.2.3
 

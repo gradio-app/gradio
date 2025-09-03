@@ -1,7 +1,7 @@
 import { test, expect } from "@self/tootils";
 
 test("accordion stays open when interacting with the slider", async ({
-	page
+	page,
 }) => {
 	await page.getByRole("button", { name: "Open for More! ▼" }).click();
 

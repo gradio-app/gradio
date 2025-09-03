@@ -52,7 +52,7 @@ const BCP47_codes = [
 	"tr-TR",
 	"zh-CN",
 	"zh-HK",
-	"zh-TW"
+	"zh-TW",
 ];
 
 export default BCP47_codes;

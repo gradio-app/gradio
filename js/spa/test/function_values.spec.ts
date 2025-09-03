@@ -20,10 +20,10 @@ test("Test Random Country List", async ({ page }) => {
 	const first_country_value = await random_country_box.inputValue();
 	const first_countries_value = await random_countries_box.inputValue();
 	await expect(random_country_box).not.toHaveValue(
-		first_country_value as string
+		first_country_value as string,
 	);
 	await expect(random_countries_box).not.toHaveValue(
-		first_countries_value as string
+		first_countries_value as string,
 	);
 	await page.getByRole("button", { name: "Stop" }).click();
 	await page.waitForTimeout(2000);
@@ -31,13 +31,13 @@ test("Test Random Country List", async ({ page }) => {
 	const current_countries_value = await random_countries_box.inputValue();
 	await expect(random_country_box).toHaveValue(current_country_value as string);
 	await expect(random_countries_box).toHaveValue(
-		current_countries_value as string
+		current_countries_value as string,
 	);
 	await page.getByRole("button", { name: "Start" }).click();
 	await expect(random_country_box).not.toHaveValue(
-		current_country_value as string
+		current_country_value as string,
 	);
 	await expect(random_countries_box).not.toHaveValue(
-		current_countries_value as string
+		current_countries_value as string,
 	);
 });

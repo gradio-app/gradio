@@ -7,10 +7,9 @@ Contributed by <a href="https://huggingface.co/osanseviero">Omar Sanseviero</a> 
 
 ## Introduction
 
-The Hugging Face Hub is a central platform that has hundreds of thousands of [models](https://huggingface.co/models), [datasets](https://huggingface.co/datasets) and [demos](https://huggingface.co/spaces) (also known as Spaces). 
+The Hugging Face Hub is a central platform that has hundreds of thousands of [models](https://huggingface.co/models), [datasets](https://huggingface.co/datasets) and [demos](https://huggingface.co/spaces) (also known as Spaces).
 
 Gradio has multiple features that make it extremely easy to leverage existing models and Spaces on the Hub. This guide walks through these features.
-
 
 ## Demos with the Hugging Face Inference Endpoints
 
@@ -24,7 +23,7 @@ demo = gr.load("Helsinki-NLP/opus-mt-en-es", src="models")
 demo.launch()
 ```
 
-For any Hugging Face model supported in Inference Endpoints, Gradio automatically infers the expected input and output and make the underlying server calls, so you don't have to worry about defining the prediction function. 
+For any Hugging Face model supported in Inference Endpoints, Gradio automatically infers the expected input and output and make the underlying server calls, so you don't have to worry about defining the prediction function.
 
 Notice that we just put specify the model name and state that the `src` should be `models` (Hugging Face's Model Hub). There is no need to install any dependencies (except `gradio`) since you are not loading the model on your computer.
 
@@ -59,7 +58,6 @@ file_url = upload_file(
 
 Here, `create_repo` creates a gradio repo with the target name under a specific account using that account's Write Token. `repo_name` gets the full repo name of the related repo. Finally `upload_file` uploads a file inside the repo with the name `app.py`.
 
-
 ## Loading demos from Spaces
 
 You can also use and remix existing Gradio demos on Hugging Face Spaces. For example, you could take two existing Gradio demos on Spaces and put them as separate tabs and create a new demo. You can run this new demo locally, or upload it to Spaces, allowing endless possibilities to remix and create new demos!
@@ -78,9 +76,9 @@ with gr.Blocks() as demo:
 demo.launch()
 ```
 
-Notice that we use `gr.load()`, the same method we used to load models using Inference Endpoints. However, here we specify that the `src` is `spaces` (Hugging Face Spaces). 
+Notice that we use `gr.load()`, the same method we used to load models using Inference Endpoints. However, here we specify that the `src` is `spaces` (Hugging Face Spaces).
 
-Note: loading a Space in this way may result in slight differences from the original Space. In particular, any attributes that apply to the entire Blocks, such as the theme or custom CSS/JS, will not be loaded. You can copy these properties from the Space you are loading into your own `Blocks` object. 
+Note: loading a Space in this way may result in slight differences from the original Space. In particular, any attributes that apply to the entire Blocks, such as the theme or custom CSS/JS, will not be loaded. You can copy these properties from the Space you are loading into your own `Blocks` object.
 
 ## Demos with the `Pipeline` in `transformers`
 
@@ -120,7 +118,6 @@ demo.launch()
 The previous code produces the following interface, which you can try right here in your browser:
 
 <gradio-app space="gradio/en2es"></gradio-app>
-
 
 ## Recap
 

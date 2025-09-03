@@ -1,6 +1,6 @@
 # Documenting Custom Components
 
-In 4.15, we added a  new `gradio cc docs` command to the Gradio CLI to generate rich documentation for your custom component. This command will generate documentation for users automatically, but to get the most out of it, you need to do a few things.
+In 4.15, we added a new `gradio cc docs` command to the Gradio CLI to generate rich documentation for your custom component. This command will generate documentation for users automatically, but to get the most out of it, you need to do a few things.
 
 ## How do I use it?
 
@@ -61,16 +61,14 @@ To get the best documentation experience, you need to use Python `3.10` or great
 
 ### Type hints
 
-Python type hints are used extensively to provide helpful information for users. 
+Python type hints are used extensively to provide helpful information for users.
 
 <details> 
 <summary> What are type hints?</summary>
 
-
 If you need to become more familiar with type hints in Python, they are a simple way to express what Python types are expected for arguments and return values of functions and methods. They provide a helpful in-editor experience, aid in maintenance, and integrate with various other tools. These types can be simple primitives, like `list` `str` `bool`; they could be more compound types like `list[str]`, `str | None` or `tuple[str, float | int]`; or they can be more complex types using utility classed like [`TypedDict`](https://peps.python.org/pep-0589/#abstract).
 
 [Read more about type hints in Python.](https://realpython.com/lessons/type-hinting/)
-
 
 </details>
 
@@ -132,7 +130,6 @@ Docstrings are also used extensively to extract more meaningful, human-readable 
 <details> 
 <summary> What are docstrings?</summary>
 
-
 If you need to become more familiar with docstrings in Python, they are a way to annotate parts of your code with human-readable decisions and explanations. They offer a rich in-editor experience like type hints, but unlike type hints, they don't have any specific syntax requirements. They are simple strings and can take almost any form. The only requirement is where they appear. Docstrings should be "a string literal that occurs as the first statement in a module, function, class, or method definition".
 
 [Read more about Python docstrings.](https://peps.python.org/pep-0257/#what-is-a-docstring)
@@ -161,7 +158,7 @@ This can span multiple lines and can _contain_ *markdown*.
 """
 ```
 
-#### Methods and functions 
+#### Methods and functions
 
 Markdown in these descriptions will not be converted into formatted text.
 
@@ -237,7 +234,7 @@ These are only guidelines, and every situation is unique, but they are sound pri
 
 ##### Keep the demo compact
 
-Compact demos look better and make it easier for users to understand what the demo does. Try to remove as many extraneous UI elements as possible to focus the users' attention on the core use case. 
+Compact demos look better and make it easier for users to understand what the demo does. Try to remove as many extraneous UI elements as possible to focus the users' attention on the core use case.
 
 Sometimes, it might make sense to have a `demo/app.py` just for the docs and an additional, more complex app for your testing purposes. You can also create other spaces, showcasing more complex examples and linking to them from the main class docstring or the `pyproject.toml` description.
 
@@ -259,7 +256,7 @@ Only the `demo` directory will be uploaded to Hugging Face spaces in certain ins
 
 ### Additional URLs
 
-The documentation generator will generate a few buttons, providing helpful information and links to users. They are obtained automatically in some cases, but some need to be explicitly included in the `pyproject.yaml`. 
+The documentation generator will generate a few buttons, providing helpful information and links to users. They are obtained automatically in some cases, but some need to be explicitly included in the `pyproject.yaml`.
 
 - PyPi Version and link - This is generated automatically.
 - GitHub Repository - This is populated via the `pyproject.toml`'s `project.urls.repository`.

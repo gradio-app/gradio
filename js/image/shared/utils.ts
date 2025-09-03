@@ -1,5 +1,5 @@
 export const get_coordinates_of_clicked_image = (
-	evt: MouseEvent
+	evt: MouseEvent,
 ): [number, number] | null => {
 	let image;
 	if (evt.currentTarget instanceof Element) {

@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- [#11782](https://github.com/gradio-app/gradio/pull/11782) [`e132283`](https://github.com/gradio-app/gradio/commit/e132283b2289d3689927a8fa7f0b4ac8f8628a18) - remove dompurify, update mermaid.  Thanks @pngwn!
+- [#11782](https://github.com/gradio-app/gradio/pull/11782) [`e132283`](https://github.com/gradio-app/gradio/commit/e132283b2289d3689927a8fa7f0b4ac8f8628a18) - remove dompurify, update mermaid. Thanks @pngwn!
 
 ## 0.10.17
 
@@ -29,7 +29,7 @@
 
 ### Features
 
-- [#11543](https://github.com/gradio-app/gradio/pull/11543) [`ac95ac0`](https://github.com/gradio-app/gradio/commit/ac95ac0d8c2e65d1632376e632fb7d16131334b6) - Connection handling messaging.  Thanks @aliabid94!
+- [#11543](https://github.com/gradio-app/gradio/pull/11543) [`ac95ac0`](https://github.com/gradio-app/gradio/commit/ac95ac0d8c2e65d1632376e632fb7d16131334b6) - Connection handling messaging. Thanks @aliabid94!
 
 ## 0.10.14
 
@@ -47,7 +47,7 @@
 
 ### Fixes
 
-- [#11279](https://github.com/gradio-app/gradio/pull/11279) [`8ae434c`](https://github.com/gradio-app/gradio/commit/8ae434c58906fda5fe20a6b08a12b6007a47af09) - Ensure error text overflows as expected.  Thanks @hannahblair!
+- [#11279](https://github.com/gradio-app/gradio/pull/11279) [`8ae434c`](https://github.com/gradio-app/gradio/commit/8ae434c58906fda5fe20a6b08a12b6007a47af09) - Ensure error text overflows as expected. Thanks @hannahblair!
 
 ## 0.10.11
 
@@ -111,7 +111,7 @@
 
 ### Fixes
 
-- [#10390](https://github.com/gradio-app/gradio/pull/10390) [`9e6eded`](https://github.com/gradio-app/gradio/commit/9e6ededef144f3f1a8ebbc47076b55d60f5b2ef3) - Removes css tag that overrides Gradio theme setting.  Thanks @ericwu09!
+- [#10390](https://github.com/gradio-app/gradio/pull/10390) [`9e6eded`](https://github.com/gradio-app/gradio/commit/9e6ededef144f3f1a8ebbc47076b55d60f5b2ef3) - Removes css tag that overrides Gradio theme setting. Thanks @ericwu09!
 
 ## 0.10.1
 
@@ -124,7 +124,7 @@
 
 ### Features
 
-- [#10262](https://github.com/gradio-app/gradio/pull/10262) [`f3bedd4`](https://github.com/gradio-app/gradio/commit/f3bedd4011bdfdecc952eb1275a9dd96af3e8d71) - add gr.Success and update windows contributing.  Thanks @not-lain!
+- [#10262](https://github.com/gradio-app/gradio/pull/10262) [`f3bedd4`](https://github.com/gradio-app/gradio/commit/f3bedd4011bdfdecc952eb1275a9dd96af3e8d71) - add gr.Success and update windows contributing. Thanks @not-lain!
 
 ### Dependency updates
 
@@ -181,7 +181,7 @@
 
 ### Features
 
-- [#9681](https://github.com/gradio-app/gradio/pull/9681) [`2ed2361`](https://github.com/gradio-app/gradio/commit/2ed236187a9aab18e17fc4a8079eddef7dd195a5) - Allow setting title in gr.Info/Warning/Error.  Thanks @ABucket!
+- [#9681](https://github.com/gradio-app/gradio/pull/9681) [`2ed2361`](https://github.com/gradio-app/gradio/commit/2ed236187a9aab18e17fc4a8079eddef7dd195a5) - Allow setting title in gr.Info/Warning/Error. Thanks @ABucket!
 
 ### Dependency updates
 
@@ -191,7 +191,7 @@
 
 ### Features
 
-- [#9617](https://github.com/gradio-app/gradio/pull/9617) [`c163182`](https://github.com/gradio-app/gradio/commit/c163182d1b752ef91629f9caa13bf3cce0fb0869) - Fix dark mode detection and container height.  Thanks @pngwn!
+- [#9617](https://github.com/gradio-app/gradio/pull/9617) [`c163182`](https://github.com/gradio-app/gradio/commit/c163182d1b752ef91629f9caa13bf3cce0fb0869) - Fix dark mode detection and container height. Thanks @pngwn!
 
 ## 0.8.0
 
@@ -232,8 +232,8 @@
 
 ### Features
 
-- [#9261](https://github.com/gradio-app/gradio/pull/9261) [`73647a0`](https://github.com/gradio-app/gradio/commit/73647a07b0439efabe3dd218ff6c366ffa3b84a0) - Move icons into `IconButtonWrapper`.  Thanks @hannahblair!
-- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+- [#9261](https://github.com/gradio-app/gradio/pull/9261) [`73647a0`](https://github.com/gradio-app/gradio/commit/73647a07b0439efabe3dd218ff6c366ffa3b84a0) - Move icons into `IconButtonWrapper`. Thanks @hannahblair!
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -245,7 +245,7 @@
 
 ### Features
 
-- [#9201](https://github.com/gradio-app/gradio/pull/9201) [`5492e74`](https://github.com/gradio-app/gradio/commit/5492e742b1f1fa618208cce523f50ad22a6e86f1) - Move buttons from chat_interface into Chatbot.  Thanks @freddyaboulton!
+- [#9201](https://github.com/gradio-app/gradio/pull/9201) [`5492e74`](https://github.com/gradio-app/gradio/commit/5492e742b1f1fa618208cce523f50ad22a6e86f1) - Move buttons from chat_interface into Chatbot. Thanks @freddyaboulton!
 
 ### Dependency updates
 
@@ -257,13 +257,13 @@
 
 ### Features
 
-- [#8941](https://github.com/gradio-app/gradio/pull/8941) [`97a7bf6`](https://github.com/gradio-app/gradio/commit/97a7bf66a79179d1b91a3199d68e5c11216ca500) - Streaming inputs for 5.0.  Thanks @freddyaboulton!
+- [#8941](https://github.com/gradio-app/gradio/pull/8941) [`97a7bf6`](https://github.com/gradio-app/gradio/commit/97a7bf66a79179d1b91a3199d68e5c11216ca500) - Streaming inputs for 5.0. Thanks @freddyaboulton!
 
 ## 0.7.6
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -275,7 +275,7 @@
 
 ### Features
 
-- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -302,8 +302,8 @@
 
 ### Features
 
-- [#8817](https://github.com/gradio-app/gradio/pull/8817) [`34510db`](https://github.com/gradio-app/gradio/commit/34510db468daae19ad618c347cb88a4769816fb2) - Allow HTML in alert modals.  Thanks @abidlabs!
-- [#8821](https://github.com/gradio-app/gradio/pull/8821) [`cea3bf9`](https://github.com/gradio-app/gradio/commit/cea3bf990057391f699bdeeabbdb62fdad9b43f5) - Fix dependency loop with statustracker and markdown.  Thanks @aliabd!
+- [#8817](https://github.com/gradio-app/gradio/pull/8817) [`34510db`](https://github.com/gradio-app/gradio/commit/34510db468daae19ad618c347cb88a4769816fb2) - Allow HTML in alert modals. Thanks @abidlabs!
+- [#8821](https://github.com/gradio-app/gradio/pull/8821) [`cea3bf9`](https://github.com/gradio-app/gradio/commit/cea3bf990057391f699bdeeabbdb62fdad9b43f5) - Fix dependency loop with statustracker and markdown. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -313,7 +313,7 @@
 
 ### Fixes
 
-- [#8748](https://github.com/gradio-app/gradio/pull/8748) [`a9307c6`](https://github.com/gradio-app/gradio/commit/a9307c64525c5b323e56ea6f7475faa7c3dad4a4) - Chatbot generating scroll and click fix.  Thanks @freddyaboulton!
+- [#8748](https://github.com/gradio-app/gradio/pull/8748) [`a9307c6`](https://github.com/gradio-app/gradio/commit/a9307c64525c5b323e56ea6f7475faa7c3dad4a4) - Chatbot generating scroll and click fix. Thanks @freddyaboulton!
 
 ### Dependency updates
 
@@ -325,11 +325,11 @@
 
 ### Features
 
-- [#8489](https://github.com/gradio-app/gradio/pull/8489) [`c2a0d05`](https://github.com/gradio-app/gradio/commit/c2a0d056d679d90631d9ccd944dadd67e7e03b7f) - Control Display of Error, Info, Warning.  Thanks @freddyaboulton!
+- [#8489](https://github.com/gradio-app/gradio/pull/8489) [`c2a0d05`](https://github.com/gradio-app/gradio/commit/c2a0d056d679d90631d9ccd944dadd67e7e03b7f) - Control Display of Error, Info, Warning. Thanks @freddyaboulton!
 
 ### Fixes
 
-- [#8543](https://github.com/gradio-app/gradio/pull/8543) [`a4433be`](https://github.com/gradio-app/gradio/commit/a4433be25c183080d397413dc8c4330cd8c2b562) - Ability to disable orange progress animation for generators by setting `show_progress='minimal'` or `show_progress='hidden'` in the event definition. This is a small visual breaking change but it aligns better with the expected behavior of the `show_progress` parameter. Also added `show_progress` to `gr.Interface` and `gr.ChatInterface`.  Thanks @freddyaboulton!
+- [#8543](https://github.com/gradio-app/gradio/pull/8543) [`a4433be`](https://github.com/gradio-app/gradio/commit/a4433be25c183080d397413dc8c4330cd8c2b562) - Ability to disable orange progress animation for generators by setting `show_progress='minimal'` or `show_progress='hidden'` in the event definition. This is a small visual breaking change but it aligns better with the expected behavior of the `show_progress` parameter. Also added `show_progress` to `gr.Interface` and `gr.ChatInterface`. Thanks @freddyaboulton!
 
 ### Dependency updates
 
@@ -341,12 +341,12 @@
 
 ### Features
 
-- [#8398](https://github.com/gradio-app/gradio/pull/8398) [`945ac83`](https://github.com/gradio-app/gradio/commit/945ac837e779b120790814ea6f6f81bd2712f5f8) - Improve rendering.  Thanks @aliabid94!
-- [#8409](https://github.com/gradio-app/gradio/pull/8409) [`8028c33`](https://github.com/gradio-app/gradio/commit/8028c33bbc5a324a5e9e8b28906443db28683d79) - Render decorator documentation.  Thanks @aliabid94!
+- [#8398](https://github.com/gradio-app/gradio/pull/8398) [`945ac83`](https://github.com/gradio-app/gradio/commit/945ac837e779b120790814ea6f6f81bd2712f5f8) - Improve rendering. Thanks @aliabid94!
+- [#8409](https://github.com/gradio-app/gradio/pull/8409) [`8028c33`](https://github.com/gradio-app/gradio/commit/8028c33bbc5a324a5e9e8b28906443db28683d79) - Render decorator documentation. Thanks @aliabid94!
 
 ### Fixes
 
-- [#8372](https://github.com/gradio-app/gradio/pull/8372) [`89d6a17`](https://github.com/gradio-app/gradio/commit/89d6a176b39f713dd8144a1e6df1419303412ed2) - Change z-index of status tracker.  Thanks @hannahblair!
+- [#8372](https://github.com/gradio-app/gradio/pull/8372) [`89d6a17`](https://github.com/gradio-app/gradio/commit/89d6a176b39f713dd8144a1e6df1419303412ed2) - Change z-index of status tracker. Thanks @hannahblair!
 
 ## 0.5.5
 
@@ -359,13 +359,13 @@
 
 ### Features
 
-- [#8279](https://github.com/gradio-app/gradio/pull/8279) [`4350215`](https://github.com/gradio-app/gradio/commit/4350215348981aba6dea473884b047f096dcdf0f) - Link to troubleshooting guide in the custom component loading status.  Thanks @freddyaboulton!
+- [#8279](https://github.com/gradio-app/gradio/pull/8279) [`4350215`](https://github.com/gradio-app/gradio/commit/4350215348981aba6dea473884b047f096dcdf0f) - Link to troubleshooting guide in the custom component loading status. Thanks @freddyaboulton!
 
 ## 0.5.3
 
 ### Fixes
 
-- [#8261](https://github.com/gradio-app/gradio/pull/8261) [`719d596`](https://github.com/gradio-app/gradio/commit/719d5962bb7018412f073b55eb3b62d8b4e02d63) - Fix bug where status tracker was the target of pointer events.  Thanks @freddyaboulton!
+- [#8261](https://github.com/gradio-app/gradio/pull/8261) [`719d596`](https://github.com/gradio-app/gradio/commit/719d5962bb7018412f073b55eb3b62d8b4e02d63) - Fix bug where status tracker was the target of pointer events. Thanks @freddyaboulton!
 
 ## 0.5.2
 
@@ -404,18 +404,17 @@ demo.launch(max_file_size=5 * gr.FileSize.MB)
 
 ![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
 
-
 #### Error states can now be cleared
 
 When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
 
 ![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
 
- Thanks @freddyaboulton!
+Thanks @freddyaboulton!
 
 ### Fixes
 
-- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -455,7 +454,7 @@ When a component encounters an error, the error state shown in the UI can now be
 
 ### Fixes
 
-- [#7466](https://github.com/gradio-app/gradio/pull/7466) [`98a2719`](https://github.com/gradio-app/gradio/commit/98a2719bfb9c64338caf9009891b6c6b0b33ea89) - Fix z-index layer of orange generating border.  Thanks [@daviirodrig](https://github.com/daviirodrig)!
+- [#7466](https://github.com/gradio-app/gradio/pull/7466) [`98a2719`](https://github.com/gradio-app/gradio/commit/98a2719bfb9c64338caf9009891b6c6b0b33ea89) - Fix z-index layer of orange generating border. Thanks [@daviirodrig](https://github.com/daviirodrig)!
 
 ## 0.4.7
 

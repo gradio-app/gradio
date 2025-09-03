@@ -5,7 +5,7 @@ import {
 	drawSelection,
 	rectangularSelection,
 	crosshairCursor,
-	keymap
+	keymap,
 } from "@codemirror/view";
 export { EditorView } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
@@ -14,13 +14,13 @@ import {
 	indentOnInput,
 	syntaxHighlighting,
 	defaultHighlightStyle,
-	foldKeymap
+	foldKeymap,
 } from "@codemirror/language";
 import { history, defaultKeymap, historyKeymap } from "@codemirror/commands";
 import {
 	closeBrackets,
 	closeBracketsKeymap,
-	completionKeymap
+	completionKeymap,
 } from "@codemirror/autocomplete";
 import { lintKeymap } from "@codemirror/lint";
 
@@ -42,6 +42,6 @@ export const basicSetup: Extension = /*@__PURE__*/ ((): Extension[] => [
 		...historyKeymap,
 		...foldKeymap,
 		...completionKeymap,
-		...lintKeymap
-	])
+		...lintKeymap,
+	]),
 ])();

@@ -26,8 +26,7 @@ image_processor = RTDetrImageProcessor.from_pretrained("PekingU/rtdetr_r50vd")
 model = RTDetrForObjectDetection.from_pretrained("PekingU/rtdetr_r50vd").to("cuda")
 ```
 
-We're moving the model to the GPU. We'll be deploying our model to Hugging Face Spaces and running the inference in the [free ZeroGPU cluster](https://huggingface.co/zero-gpu-explorers). 
-
+We're moving the model to the GPU. We'll be deploying our model to Hugging Face Spaces and running the inference in the [free ZeroGPU cluster](https://huggingface.co/zero-gpu-explorers).
 
 ## The Inference Function
 
@@ -39,7 +38,7 @@ We will then draw the bounding boxes for each detected object in the frame and s
 The function will yield each output video in chunks of two seconds.
 
 In order to keep inference times as low as possible on ZeroGPU (there is a time-based quota),
-we will halve the original frames-per-second in the output video and resize the input frames to be half the original 
+we will halve the original frames-per-second in the output video and resize the input frames to be half the original
 size before running the model.
 
 The code for the inference function is below - we'll go over it piece by piece.
@@ -95,7 +94,7 @@ def stream_object_detection(video, conf_threshold):
                 outputs,
                 target_sizes=torch.tensor([(height, width)] * len(batch)),
                 threshold=conf_threshold)
-            
+
             for i, (array, box) in enumerate(zip(batch, boxes)):
                 pil_image = draw_bounding_boxes(Image.fromarray(array), box, model, conf_threshold)
                 frame = np.array(pil_image)
@@ -122,12 +121,11 @@ The `cap` variable is how we will read from the input video. Whenever we call `c
 In order to stream video in Gradio, we need to yield a different video file for each "chunk" of the output video.
 We create the next video file to write to with the `output_video = cv2.VideoWriter(output_video_name, video_codec, desired_fps, (width, height))` line. The `video_codec` is how we specify the type of video file. Only "mp4" and "ts" files are supported for video sreaming at the moment.
 
-
 2. **The Inference Loop**
 
-For each frame in the video, we will resize it to be half the size. OpenCV reads files in `BGR` format, so will convert to the expected `RGB` format of transfomers. That's what the first two lines of the while loop are doing. 
+For each frame in the video, we will resize it to be half the size. OpenCV reads files in `BGR` format, so will convert to the expected `RGB` format of transfomers. That's what the first two lines of the while loop are doing.
 
-We take every other frame and add it to a `batch` list so that the output video is half the original FPS. When the batch covers two seconds of video, we will run the model. The two second threshold was chosen to keep the processing time of each batch small enough so that video is smoothly displayed in the server while not requiring too many separate forward passes. In order for video streaming to work properly in Gradio, the batch size should be at least 1 second. 
+We take every other frame and add it to a `batch` list so that the output video is half the original FPS. When the batch covers two seconds of video, we will run the model. The two second threshold was chosen to keep the processing time of each batch small enough so that video is smoothly displayed in the server while not requiring too many separate forward passes. In order for video streaming to work properly in Gradio, the batch size should be at least 1 second.
 
 We run the forward pass of the model and then use the `post_process_object_detection` method of the model to scale the detected bounding boxes to the size of the input frame.
 
@@ -137,7 +135,7 @@ Once we have finished processing the batch, we create a new output video file fo
 
 ## The Gradio Demo
 
-The UI code is pretty similar to other kinds of Gradio apps. 
+The UI code is pretty similar to other kinds of Gradio apps.
 We'll use a standard two-column layout so that users can see the input and output videos side by side.
 
 In order for streaming to work, we have to set `streaming=True` in the output video. Setting the video
@@ -175,10 +173,9 @@ with gr.Blocks() as app:
 
 ```
 
-
 ## Conclusion
 
-You can check out our demo hosted on Hugging Face Spaces [here](https://huggingface.co/spaces/gradio/rt-detr-object-detection). 
+You can check out our demo hosted on Hugging Face Spaces [here](https://huggingface.co/spaces/gradio/rt-detr-object-detection).
 
 It is also embedded on this page below
 

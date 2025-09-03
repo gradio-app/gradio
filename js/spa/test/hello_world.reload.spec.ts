@@ -23,8 +23,8 @@ if __name__ == "__main__":
 		stdio: "pipe",
 		env: {
 			...process.env,
-			PYTHONUNBUFFERED: "true"
-		}
+			PYTHONUNBUFFERED: "true",
+		},
 	});
 });
 
@@ -35,8 +35,8 @@ test.afterAll(() => {
 		stdio: "pipe",
 		env: {
 			...process.env,
-			PYTHONUNBUFFERED: "true"
-		}
+			PYTHONUNBUFFERED: "true",
+		},
 	});
 });
 
@@ -47,7 +47,7 @@ test("gradio dev mode correctly reloads the page", async ({ page }) => {
 		const { _process: server_process, port: port } =
 			await launch_app_background(
 				`gradio ${join(process.cwd(), "run.py")}`,
-				process.cwd()
+				process.cwd(),
 			);
 		_process = server_process;
 		console.log("Connected to port", port);
@@ -70,8 +70,8 @@ if __name__ == "__main__":
 			stdio: "pipe",
 			env: {
 				...process.env,
-				PYTHONUNBUFFERED: "true"
-			}
+				PYTHONUNBUFFERED: "true",
+			},
 		});
 
 		await page.getByLabel("x").fill("Maria");

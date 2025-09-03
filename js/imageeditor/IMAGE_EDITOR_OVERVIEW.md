@@ -55,10 +55,14 @@ The editor implements a pluggable tool system where each tool follows the `Tool`
 
 ```typescript
 interface Tool {
-  name: string;
-  setup(context: ImageEditorContext, tool: ToolbarTool, subtool: Subtool): Promise<void>;
-  cleanup(): void;
-  set_tool(tool: ToolbarTool, subtool: Subtool): void;
+	name: string;
+	setup(
+		context: ImageEditorContext,
+		tool: ToolbarTool,
+		subtool: Subtool,
+	): Promise<void>;
+	cleanup(): void;
+	set_tool(tool: ToolbarTool, subtool: Subtool): void;
 }
 ```
 
@@ -89,8 +93,8 @@ The editor implements the Command pattern for undo/redo functionality:
 
 ```typescript
 interface Command {
-  execute(): void;
-  undo(): void;
+	execute(): void;
+	undo(): void;
 }
 ```
 
@@ -221,4 +225,4 @@ Potential areas for enhancement:
 
 ## Conclusion
 
-The Image Editor is a powerful, extensible system for image editing. Its modular architecture, command pattern implementation, and layer management system provide a solid foundation for a wide range of image editing operations. By understanding the high-level architecture and components, developers can more easily navigate and extend the codebase. 
+The Image Editor is a powerful, extensible system for image editing. Its modular architecture, command pattern implementation, and layer management system provide a solid foundation for a wide range of image editing operations. By understanding the high-level architecture and components, developers can more easily navigate and extend the codebase.

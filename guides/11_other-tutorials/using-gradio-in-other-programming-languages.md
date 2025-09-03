@@ -30,20 +30,20 @@ import subprocess
 
 def add_numbers(a, b):
     process = subprocess.Popen(
-        ['./add'], 
-        stdin=subprocess.PIPE, 
-        stdout=subprocess.PIPE, 
+        ['./add'],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
     output, error = process.communicate(input=f"{a} {b}\n".encode())
-    
+
     if error:
         return f"Error: {error.decode()}"
     return float(output.decode().strip())
 
 demo = gr.Interface(
-    fn=add_numbers, 
-    inputs=[gr.Number(label="Number 1"), gr.Number(label="Number 2")], 
+    fn=add_numbers,
+    inputs=[gr.Number(label="Number 1"), gr.Number(label="Number 2")],
     outputs=gr.Textbox(label="Result")
 )
 
@@ -108,19 +108,19 @@ import subprocess
 
 def apply_sepia(input_path):
     output_path = "output.png"
-    
+
     process = subprocess.Popen(
-        ['./target/release/sepia', input_path, output_path], 
-        stdout=subprocess.PIPE, 
+        ['./target/release/sepia', input_path, output_path],
+        stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
     process.wait()
-    
+
     return output_path
 
 demo = gr.Interface(
-    fn=apply_sepia, 
-    inputs=gr.Image(type="filepath", label="Input Image"), 
+    fn=apply_sepia,
+    inputs=gr.Image(type="filepath", label="Input Image"),
     outputs=gr.Image(label="Sepia Image")
 )
 
@@ -133,7 +133,7 @@ This setup showcases how you can integrate performance-critical or specialized c
 
 ## Using Gradio with R (via `reticulate`)
 
-Integrating Gradio with R is particularly straightforward thanks to the `reticulate` package, which allows you to run Python code directly in R. Let’s walk through an example of using Gradio in R. 
+Integrating Gradio with R is particularly straightforward thanks to the `reticulate` package, which allows you to run Python code directly in R. Let’s walk through an example of using Gradio in R.
 
 **Installation**
 
@@ -143,9 +143,7 @@ First, you need to install the `reticulate` package in R:
 install.packages("reticulate")
 ```
 
-
 Once installed, you can use the package to run Gradio directly from within an R script.
-
 
 ```r
 library(reticulate)
@@ -169,7 +167,7 @@ app <- gr$Interface(
   title = "Hello! &#128515 &#128075"
 )
 
-app$launch(server_name = "localhost", 
+app$launch(server_name = "localhost",
            server_port = as.integer(3000))
 ```
 

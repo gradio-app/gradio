@@ -5,13 +5,13 @@ const meta = {
 	title: "Core/I18n Multi-Language Test",
 	component: I18nMultiLanguageTestComponent,
 	parameters: {
-		layout: "centered"
-	}
+		layout: "centered",
+	},
 } satisfies Meta<I18nMultiLanguageTestComponent>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-	args: {}
+	args: {},
 };

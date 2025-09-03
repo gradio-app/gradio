@@ -2,11 +2,18 @@
 
 ```html
 <script>
-    import { BaseCode, BaseCopy, BaseDownload, BaseWidget, BaseExample} from "gradio/code";
+	import {
+		BaseCode,
+		BaseCopy,
+		BaseDownload,
+		BaseWidget,
+		BaseExample,
+	} from "gradio/code";
 </script>
 ```
 
 BaseCode
+
 ```javascript
 	export let class_names = "";
 	export let value = "";
@@ -21,23 +28,27 @@ BaseCode
 ```
 
 BaseCopy
+
 ```javascript
 	export let value: string;
 ```
 
 BaseDownload
+
 ```javascript
 	export let value: string;
 	export let language: string;
 ```
 
 BaseWidget
+
 ```javascript
 	export let value: string;
 	export let language: string;
 ```
 
 BaseExample
+
 ```
 	export let value: string;
 	export let type: "gallery" | "table";

@@ -4,7 +4,7 @@ const cases = ["not_cached", "cached"];
 
 for (const test_case of cases) {
 	test(`case ${test_case}: clicked example is added to history and passed to chat function`, async ({
-		page
+		page,
 	}) => {
 		if (cases.slice(1).includes(test_case)) {
 			await go_to_testcase(page, test_case);
@@ -14,7 +14,7 @@ for (const test_case of cases) {
 		await page.getByRole("button", { name: "hello" }).click();
 		await expect(page.locator(".user p")).toContainText("hello");
 		await expect(page.locator(".bot p")).toContainText(
-			"You wrote: hello and uploaded 0 files."
+			"You wrote: hello and uploaded 0 files.",
 		);
 		await expect(page.locator(".user img")).not.toBeVisible();
 
@@ -24,14 +24,14 @@ for (const test_case of cases) {
 		await expect(page.locator(".user img")).toBeVisible();
 		await expect(page.locator(".user p")).toContainText("hola");
 		await expect(page.locator(".bot p")).toContainText(
-			"You wrote: hola and uploaded 1 files."
+			"You wrote: hola and uploaded 1 files.",
 		);
 
 		// // Retry button works
 		await page.getByLabel("Retry").click();
 		await expect(page.locator(".user p")).toContainText("hola");
 		await expect(page.locator(".bot p")).toContainText(
-			"You wrote: hola and uploaded 1 files."
+			"You wrote: hola and uploaded 1 files.",
 		);
 		await expect(page.locator(".user img")).toBeVisible();
 

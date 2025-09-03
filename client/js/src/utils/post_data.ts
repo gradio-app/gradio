@@ -6,7 +6,7 @@ export async function post_data(
 	this: Client,
 	url: string,
 	body: unknown,
-	additional_headers?: any
+	additional_headers?: any,
 ): Promise<[PostResponse, number]> {
 	const headers: {
 		Authorization?: string;
@@ -20,7 +20,7 @@ export async function post_data(
 			method: "POST",
 			body: JSON.stringify(body),
 			headers: { ...headers, ...additional_headers },
-			credentials: "include"
+			credentials: "include",
 		});
 	} catch (e) {
 		return [{ error: BROKEN_CONNECTION_MSG }, 500];

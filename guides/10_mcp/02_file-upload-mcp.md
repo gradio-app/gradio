@@ -23,7 +23,7 @@ The command to start the MCP server takes two arguments:
 - The URL (or Hugging Face space id) of the gradio application to upload the files to. In this case, `http://127.0.0.1:7860`.
 - The local directory on your computer with which the server is allowed to upload files from (`<UPLOAD_DIRECTORY>`). For security, please make this directory as narrow as possible to prevent unintended file uploads.
 
-As stated in the image, you need to install [uv](https://docs.astral.sh/uv/getting-started/installation/) (a python package manager that can run python scripts) before connecting from your MCP client. 
+As stated in the image, you need to install [uv](https://docs.astral.sh/uv/getting-started/installation/) (a python package manager that can run python scripts) before connecting from your MCP client.
 
 If you have gradio installed locally and you don't want to install uv, you can replace the `uvx` command with the path to gradio binary. It should look like this:
 
@@ -45,4 +45,3 @@ After connecting to the upload server, your LLM agent will know when to upload f
 ## Conclusion
 
 In this guide, we've covered how you can connect to the Upload File MCP Server so that your agent can upload files before using Gradio MCP servers. Remember to set the `<UPLOAD_DIRECTORY>` as small as possible to prevent unintended file uploads!
-

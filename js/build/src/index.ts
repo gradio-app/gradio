@@ -11,19 +11,19 @@ export function inject_ejs(): Plugin {
 		transformIndexHtml: (html) => {
 			const replace_gradio_info_info_html = html.replace(
 				/%gradio_api_info%/,
-				`<script>window.gradio_api_info = {{ gradio_api_info | toorjson }};</script>`
+				`<script>window.gradio_api_info = {{ gradio_api_info | toorjson }};</script>`,
 			);
 			return replace_gradio_info_info_html.replace(
 				/%gradio_config%/,
-				`<script>window.gradio_config = {{ config | toorjson }};</script>`
+				`<script>window.gradio_config = {{ config | toorjson }};</script>`,
 			);
-		}
+		},
 	};
 }
 
 export function generate_cdn_entry({
 	version,
-	cdn_base
+	cdn_base,
 }: {
 	version: string;
 	cdn_base: string;
@@ -43,7 +43,7 @@ export function generate_cdn_entry({
 			const tree = parse(source);
 
 			const script = Array.from(
-				tree.querySelectorAll("script[type=module]")
+				tree.querySelectorAll("script[type=module]"),
 			).find((node) => node.attributes.src?.includes("assets"));
 
 			const output_location = join(config.dir, "gradio.js");
@@ -57,12 +57,12 @@ export function generate_cdn_entry({
 				`<script type="module" crossorigin src="${cdn_base}/${version}/gradio.js"></script>` +
 				(bundle["index.html"].source as string).substring(
 					script?.range[1],
-					source.length
+					source.length,
 				);
 
 			const share_html_location = join(config.dir, "share.html");
 			writeFileSync(share_html_location, transformed_html);
-		}
+		},
 	};
 }
 
@@ -83,9 +83,9 @@ export function generate_dev_entry({ enable }: { enable: boolean }): Plugin {
 
 			return {
 				code: new_code,
-				map: null
+				map: null,
 			};
-		}
+		},
 	};
 }
 
@@ -102,7 +102,7 @@ export function handle_ce_css(): Plugin {
 		writeBundle(config, bundle) {
 			let file_to_insert = {
 				filename: "",
-				source: ""
+				source: "",
 			};
 
 			if (
@@ -122,7 +122,7 @@ export function handle_ce_css(): Plugin {
 					if (found > -1)
 						file_to_insert = {
 							filename: join(config.dir, key),
-							source: _chunk.code
+							source: _chunk.code,
 						};
 				}
 			}
@@ -130,7 +130,7 @@ export function handle_ce_css(): Plugin {
 			const tree = parse(bundle["index.html"].source as string);
 
 			const { style, fonts } = Array.from(
-				tree.querySelectorAll("link[rel=stylesheet]")
+				tree.querySelectorAll("link[rel=stylesheet]"),
 			).reduce(
 				(acc, next) => {
 					if (/.*\/index(.*?)\.css/.test(next.attributes.href)) {
@@ -141,7 +141,7 @@ export function handle_ce_css(): Plugin {
 				{ fonts: [], style: undefined } as {
 					fonts: string[];
 					style: HTMLElement | undefined;
-				}
+				},
 			);
 
 			writeFileSync(
@@ -150,15 +150,15 @@ export function handle_ce_css(): Plugin {
 					.replace("__ENTRY_CSS__", style!.attributes.href)
 					.replace(
 						'"__FONTS_CSS__"',
-						`[${fonts.map((f) => `"${f}"`).join(",")}]`
-					)
+						`[${fonts.map((f) => `"${f}"`).join(",")}]`,
+					),
 			);
 
 			const share_html_location = join(config.dir, "share.html");
 			const share_html = readFileSync(share_html_location, "utf8");
 			const share_tree = parse(share_html);
 			const node = Array.from(
-				share_tree.querySelectorAll("link[rel=stylesheet]")
+				share_tree.querySelectorAll("link[rel=stylesheet]"),
 			).find((node) => /.*\/index(.*?)\.css/.test(node.attributes.href));
 
 			if (!node) return;
@@ -167,7 +167,7 @@ export function handle_ce_css(): Plugin {
 				share_html.substring(node.range[1], share_html.length);
 
 			writeFileSync(share_html_location, transformed_html);
-		}
+		},
 	};
 }
 
@@ -182,10 +182,10 @@ import { readdirSync, existsSync, readFileSync, statSync } from "fs";
 function get_export_path(
 	path: string,
 	root: string,
-	pkg_json: Record<string, any>
+	pkg_json: Record<string, any>,
 ): boolean {
 	if (!pkg_json.exports) return false;
-	if ( typeof pkg_json.exports[`${path}`] === "object") return true;
+	if (typeof pkg_json.exports[`${path}`] === "object") return true;
 	const _path = join(root, "..", `${pkg_json.exports[`${path}`]}`);
 
 	return existsSync(_path);
@@ -213,25 +213,32 @@ const ignore_list = [
 	"utils",
 	"wasm",
 	"sanitize",
-	"markdown-code"
+	"markdown-code",
 ];
 function generate_component_imports(): string {
 	const exports = readdirSync(join(__dirname, "..", ".."))
 		.map((dir) => {
 			if (ignore_list.includes(dir)) return undefined;
-			if (!statSync(join(__dirname, "..","..", dir)).isDirectory()) return undefined;
+			if (!statSync(join(__dirname, "..", "..", dir)).isDirectory())
+				return undefined;
 
-			const package_json_path = join(__dirname, "..","..", dir, "package.json");
+			const package_json_path = join(
+				__dirname,
+				"..",
+				"..",
+				dir,
+				"package.json",
+			);
 			if (existsSync(package_json_path)) {
 				const package_json = JSON.parse(
-					readFileSync(package_json_path, "utf8")
+					readFileSync(package_json_path, "utf8"),
 				);
 
 				const component = get_export_path(".", package_json_path, package_json);
 				const example = get_export_path(
 					"./example",
 					package_json_path,
-					package_json
+					package_json,
 				);
 
 				const base = get_export_path("./base", package_json_path, package_json);
@@ -242,13 +249,12 @@ function generate_component_imports(): string {
 					name: package_json.name,
 					component,
 					example,
-					base
+					base,
 				};
 			}
 			return undefined;
 		})
 		.filter((x) => x !== undefined);
-
 
 	const imports = exports.reduce((acc, _export) => {
 		if (!_export) return acc;
@@ -331,7 +337,7 @@ export function inject_component_loader({ mode }: { mode: string }): Plugin {
 			if (id === resolved_v_id) {
 				return load_virtual_component_loader(mode);
 			}
-		}
+		},
 	};
 }
 
@@ -357,11 +363,11 @@ export function resolve_svelte(enable: boolean): Plugin {
 					"frontend",
 					"assets",
 					"svelte",
-					"svelte.js"
+					"svelte.js",
 				);
 				return { id: mod, external: "absolute" };
 			}
-		}
+		},
 	};
 }
 
@@ -397,6 +403,6 @@ export function mock_modules(): Plugin {
 			) {
 				return `export default {}`;
 			}
-		}
+		},
 	};
 }

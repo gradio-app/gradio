@@ -6,7 +6,7 @@ import { Client } from "@gradio/client";
 import {
 	create_components,
 	type ComponentMeta,
-	type Dependency
+	type Dependency,
 } from "@gradio/core";
 import { get } from "svelte/store";
 import type { Config } from "@gradio/client";
@@ -17,7 +17,7 @@ import Login from "@gradio/core/login";
 
 export async function load({
 	url,
-	data: { server, port, local_dev_mode }
+	data: { server, port, local_dev_mode },
 }): Promise<{
 	Render: typeof Login | typeof Blocks;
 	config: Config;
@@ -33,7 +33,7 @@ export async function load({
 		app = await Client.connect(api_url, {
 			with_null_state: true,
 			events: ["data", "log", "status", "render"],
-			query_params: deepLink ? { deep_link: deepLink } : undefined
+			query_params: deepLink ? { deep_link: deepLink } : undefined,
 		});
 	} catch (error: any) {
 		const error_message = error.message || "";
@@ -76,11 +76,11 @@ export async function load({
 				show_api: false,
 				stylesheets: [],
 				protocol: "sse_v3",
-				username: ""
+				username: "",
 			},
 			api_url,
 			layout: {},
-			app: null
+			app: null,
 		};
 	}
 
@@ -99,8 +99,8 @@ export async function load({
 		layout: page_config.layout,
 		root: app.config.root + app.config.api_prefix,
 		options: {
-			fill_height: app.config.fill_height ?? false
-		}
+			fill_height: app.config.fill_height ?? false,
+		},
 	});
 
 	const layouts = get(layout);
@@ -112,6 +112,6 @@ export async function load({
 		config: page_config,
 		api_url,
 		layout: layouts,
-		app
+		app,
 	};
 }

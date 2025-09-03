@@ -9,7 +9,7 @@ export async function open_stream(this: Client): Promise<void> {
 		pending_stream_messages,
 		stream_status,
 		config,
-		jwt
+		jwt,
 	} = this;
 
 	const that = this;
@@ -22,7 +22,7 @@ export async function open_stream(this: Client): Promise<void> {
 
 	let stream: EventSource | null = null;
 	let params = new URLSearchParams({
-		session_hash: this.session_hash
+		session_hash: this.session_hash,
 	}).toString();
 
 	let url = new URL(`${config.root}${this.api_prefix}/${SSE_URL}?${params}`);
@@ -48,14 +48,14 @@ export async function open_stream(this: Client): Promise<void> {
 		if (!event_id) {
 			await Promise.all(
 				Object.keys(event_callbacks).map((event_id) =>
-					event_callbacks[event_id](_data)
-				)
+					event_callbacks[event_id](_data),
+				),
 			);
 		} else if (event_callbacks[event_id] && config) {
 			if (
 				_data.msg === "process_completed" &&
 				["sse", "sse_v1", "sse_v2", "sse_v2.1", "sse_v3"].includes(
-					config.protocol
+					config.protocol,
 				)
 			) {
 				unclosed_events.delete(event_id);
@@ -81,16 +81,16 @@ export async function open_stream(this: Client): Promise<void> {
 			Object.keys(event_callbacks).map((event_id) =>
 				event_callbacks[event_id]({
 					msg: "broken_connection",
-					message: BROKEN_CONNECTION_MSG
-				})
-			)
+					message: BROKEN_CONNECTION_MSG,
+				}),
+			),
 		);
 	};
 }
 
 export function close_stream(
 	stream_status: { open: boolean },
-	abort_controller: AbortController | null
+	abort_controller: AbortController | null,
 ): void {
 	if (stream_status) {
 		stream_status.open = false;
@@ -101,7 +101,7 @@ export function close_stream(
 export function apply_diff_stream(
 	pending_diff_streams: Record<string, any[][]>,
 	event_id: string,
-	data: any
+	data: any,
 ): void {
 	let is_first_generation = !pending_diff_streams[event_id];
 	if (is_first_generation) {
@@ -120,7 +120,7 @@ export function apply_diff_stream(
 
 export function apply_diff(
 	obj: any,
-	diff: [string, (number | string)[], any][]
+	diff: [string, (number | string)[], any][],
 ): any {
 	diff.forEach(([action, path, value]) => {
 		obj = apply_edit(obj, path, action, value);
@@ -133,7 +133,7 @@ function apply_edit(
 	target: any,
 	path: (number | string)[],
 	action: string,
-	value: any
+	value: any,
 ): any {
 	if (path.length === 0) {
 		if (action === "replace") {
@@ -179,7 +179,7 @@ function apply_edit(
 
 export function readable_stream(
 	input: RequestInfo | URL,
-	init: RequestInit = {}
+	init: RequestInit = {},
 ): EventSource {
 	const instance: EventSource & { readyState: number } = {
 		close: () => {
@@ -202,7 +202,7 @@ export function readable_stream(
 		},
 		removeEventListener: () => {
 			throw new Error("Method not implemented.");
-		}
+		},
 	};
 
 	stream(input, init)

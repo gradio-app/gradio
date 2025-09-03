@@ -7,7 +7,7 @@ import {
 	SLEEPTIME_URL,
 	UPLOAD_URL,
 	BROKEN_CONNECTION_MSG,
-	LOGIN_URL
+	LOGIN_URL,
 } from "../constants";
 import {
 	response_api_info,
@@ -16,7 +16,7 @@ import {
 	duplicate_response,
 	hardware_sleeptime_response,
 	discussions_response,
-	runtime_response
+	runtime_response,
 } from "./test_data";
 
 const root_url = "https://huggingface.co";
@@ -48,14 +48,14 @@ export const handlers: RequestHandler[] = [
 		return new HttpResponse(
 			JSON.stringify({
 				subdomain: "hmb-hello-world",
-				host: "https://hmb-hello-world.hf.space"
+				host: "https://hmb-hello-world.hf.space",
 			}),
 			{
 				status: 200,
 				headers: {
-					"Content-Type": "application/json"
-				}
-			}
+					"Content-Type": "application/json",
+				},
+			},
 		);
 	}),
 	http.get(`${root_url}/api/spaces/${broken_app_reference}/${HOST_URL}`, () => {
@@ -63,8 +63,8 @@ export const handlers: RequestHandler[] = [
 			status: 404,
 			headers: {
 				"Content-Type": "application/json",
-				hf_token: "hf_123"
-			}
+				hf_token: "hf_123",
+			},
 		});
 	}),
 	http.get(
@@ -73,16 +73,16 @@ export const handlers: RequestHandler[] = [
 			return new HttpResponse(
 				JSON.stringify({
 					subdomain: "hmb-private-auth-space",
-					host: "https://hmb-private-auth-space.hf.space"
+					host: "https://hmb-private-auth-space.hf.space",
 				}),
 				{
 					status: 200,
 					headers: {
-						"Content-Type": "application/json"
-					}
-				}
+						"Content-Type": "application/json",
+					},
+				},
 			);
-		}
+		},
 	),
 	http.get(
 		`${root_url}/api/spaces/${private_app_reference}/${HOST_URL}`,
@@ -93,24 +93,24 @@ export const handlers: RequestHandler[] = [
 				return new HttpResponse(null, {
 					status: 401,
 					headers: {
-						"Content-Type": "application/json"
-					}
+						"Content-Type": "application/json",
+					},
 				});
 			}
 
 			return new HttpResponse(
 				JSON.stringify({
 					subdomain: private_app_reference,
-					host: private_space_url
+					host: private_space_url,
 				}),
 				{
 					status: 200,
 					headers: {
-						"Content-Type": "application/json"
-					}
-				}
+						"Content-Type": "application/json",
+					},
+				},
 			);
-		}
+		},
 	),
 	http.get(
 		`${root_url}/api/spaces/${server_error_reference}/${HOST_URL}`,
@@ -118,16 +118,16 @@ export const handlers: RequestHandler[] = [
 			return new HttpResponse(
 				JSON.stringify({
 					subdomain: "hmb-server-test",
-					host: "https://hmb-server-test.hf.space"
+					host: "https://hmb-server-test.hf.space",
 				}),
 				{
 					status: 200,
 					headers: {
-						"Content-Type": "application/json"
-					}
-				}
+						"Content-Type": "application/json",
+					},
+				},
 			);
-		}
+		},
 	),
 	http.get(
 		`${root_url}/api/spaces/${server_test_app_reference}/${HOST_URL}`,
@@ -135,29 +135,29 @@ export const handlers: RequestHandler[] = [
 			return new HttpResponse(
 				JSON.stringify({
 					subdomain: "hmb-server-test",
-					host: "https://hmb-server-test.hf.space"
+					host: "https://hmb-server-test.hf.space",
 				}),
 				{
 					status: 200,
 					headers: {
-						"Content-Type": "application/json"
-					}
-				}
+						"Content-Type": "application/json",
+					},
+				},
 			);
-		}
+		},
 	),
 	http.get(`${root_url}/api/spaces/${auth_app_reference}/${HOST_URL}`, () => {
 		return new HttpResponse(
 			JSON.stringify({
 				subdomain: "hmb-auth-space",
-				host: "https://hmb-auth-space.hf.space"
+				host: "https://hmb-auth-space.hf.space",
 			}),
 			{
 				status: 200,
 				headers: {
-					"Content-Type": "application/json"
-				}
-			}
+					"Content-Type": "application/json",
+				},
+			},
 		);
 	}),
 	http.get(
@@ -166,16 +166,16 @@ export const handlers: RequestHandler[] = [
 			return new HttpResponse(
 				JSON.stringify({
 					subdomain: "hmb-invalid-auth-space",
-					host: "https://hmb-invalid-auth-space.hf.space"
+					host: "https://hmb-invalid-auth-space.hf.space",
 				}),
 				{
 					status: 200,
 					headers: {
-						"Content-Type": "application/json"
-					}
-				}
+						"Content-Type": "application/json",
+					},
+				},
 			);
-		}
+		},
 	),
 	http.get(
 		`${root_url}/api/spaces/${duplicate_app_reference}/${HOST_URL}`,
@@ -183,29 +183,29 @@ export const handlers: RequestHandler[] = [
 			return new HttpResponse(
 				JSON.stringify({
 					subdomain: "gradio-hello-world",
-					host: "https://gradio-hello-world.hf.space"
+					host: "https://gradio-hello-world.hf.space",
 				}),
 				{
 					status: 200,
 					headers: {
-						"Content-Type": "application/json"
-					}
-				}
+						"Content-Type": "application/json",
+					},
+				},
 			);
-		}
+		},
 	),
 	http.get(`${root_url}/api/spaces/${unauth_app_reference}/${HOST_URL}`, () => {
 		return new HttpResponse(
 			JSON.stringify({
 				subdomain: "hmb-unath-space",
-				host: "https://hmb-unauth-space.hf.space"
+				host: "https://hmb-unauth-space.hf.space",
 			}),
 			{
 				status: 200,
 				headers: {
-					"Content-Type": "application/json"
-				}
-			}
+					"Content-Type": "application/json",
+				},
+			},
 		);
 	}),
 	// /info requests
@@ -213,48 +213,48 @@ export const handlers: RequestHandler[] = [
 		return new HttpResponse(JSON.stringify(response_api_info), {
 			status: 200,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	http.get(`${upload_server_test_space_url}/${API_INFO_URL}`, () => {
 		return new HttpResponse(JSON.stringify(response_api_info), {
 			status: 200,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	http.get(`${private_space_url}/${API_INFO_URL}`, () => {
 		return new HttpResponse(JSON.stringify(response_api_info), {
 			status: 200,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	http.get(`${server_error_space_url}/${API_INFO_URL}`, () => {
 		return new HttpResponse(JSON.stringify(response_api_info), {
 			status: 200,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	http.get(`${auth_app_space_url}/${API_INFO_URL}`, async () => {
 		return new HttpResponse(JSON.stringify(response_api_info), {
 			status: 200,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	http.get(`${private_auth_space_url}/${API_INFO_URL}`, async () => {
 		return new HttpResponse(JSON.stringify(response_api_info), {
 			status: 200,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	// /config requests
@@ -262,74 +262,74 @@ export const handlers: RequestHandler[] = [
 		return new HttpResponse(JSON.stringify(config_response), {
 			status: 200,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	http.get(`${private_space_url}/${CONFIG_URL}`, () => {
 		return new HttpResponse(
 			JSON.stringify({
 				...config_response,
-				root: "https://hmb-secret-world.hf.space"
+				root: "https://hmb-secret-world.hf.space",
 			}),
 			{
 				status: 200,
 				headers: {
-					"Content-Type": "application/json"
-				}
-			}
+					"Content-Type": "application/json",
+				},
+			},
 		);
 	}),
 	http.get(`${upload_server_test_space_url}/${CONFIG_URL}`, () => {
 		return new HttpResponse(
 			JSON.stringify({
 				...config_response,
-				root: "https://hmb-server-test.hf.space"
+				root: "https://hmb-server-test.hf.space",
 			}),
 			{
 				status: 200,
 				headers: {
-					"Content-Type": "application/json"
-				}
-			}
+					"Content-Type": "application/json",
+				},
+			},
 		);
 	}),
 	http.get(`${private_auth_space_url}/${CONFIG_URL}`, () => {
 		return new HttpResponse(
 			JSON.stringify({
 				...config_response,
-				root: "https://hmb-private-auth-space.hf.space"
+				root: "https://hmb-private-auth-space.hf.space",
 			}),
 			{
 				status: 200,
 				headers: {
-					"Content-Type": "application/json"
-				}
-			}
+					"Content-Type": "application/json",
+				},
+			},
 		);
 	}),
 	http.get(`${direct_space_url}/${CONFIG_URL}`, () => {
 		return new HttpResponse(JSON.stringify(config_response), {
 			status: 500,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	http.get(`${server_error_space_url}/${CONFIG_URL}`, () => {
 		return new HttpResponse(JSON.stringify(config_response), {
 			status: 200,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	http.get(`${invalid_auth_space_url}/${CONFIG_URL}`, () => {
 		return new HttpResponse(JSON.stringify({ detail: "Unauthorized" }), {
 			status: 401,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	http.get(`${auth_app_space_url}/${CONFIG_URL}`, ({ request }) => {
@@ -337,27 +337,27 @@ export const handlers: RequestHandler[] = [
 			JSON.stringify({
 				...config_response,
 				root: "https://hmb-auth-space.hf.space",
-				space_id: "hmb/auth_space"
+				space_id: "hmb/auth_space",
 			}),
 			{
 				status: 200,
 				headers: {
-					"Content-Type": "application/json"
-				}
-			}
+					"Content-Type": "application/json",
+				},
+			},
 		);
 	}),
 	http.get(`${unauth_app_space_url}/${CONFIG_URL}`, () => {
 		return new HttpResponse(
 			JSON.stringify({
-				detail: "Unauthorized"
+				detail: "Unauthorized",
 			}),
 			{
 				status: 401,
 				headers: {
-					"Content-Type": "application/json"
-				}
-			}
+					"Content-Type": "application/json",
+				},
+			},
 		);
 	}),
 	// /whoami requests
@@ -366,8 +366,8 @@ export const handlers: RequestHandler[] = [
 			status: 200,
 			headers: {
 				"Content-Type": "application/json",
-				"hf-token": "hf_123"
-			}
+				"hf-token": "hf_123",
+			},
 		});
 	}),
 	// /duplicate requests
@@ -378,25 +378,25 @@ export const handlers: RequestHandler[] = [
 				throw new HttpResponse(null, {
 					status: 401,
 					headers: {
-						"Content-Type": "application/json"
-					}
+						"Content-Type": "application/json",
+					},
 				});
 			}
 			return new HttpResponse(JSON.stringify(duplicate_response), {
 				status: 200,
 				headers: {
-					"Content-Type": "application/json"
-				}
+					"Content-Type": "application/json",
+				},
 			});
-		}
+		},
 	),
 	// /sleeptime requests
 	http.post(`${root_url}/api/spaces/${app_reference}/${SLEEPTIME_URL}`, () => {
 		return new HttpResponse(JSON.stringify(hardware_sleeptime_response), {
 			status: 200,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	http.post(
@@ -405,10 +405,10 @@ export const handlers: RequestHandler[] = [
 			throw new HttpResponse(null, {
 				status: 500,
 				headers: {
-					"Content-Type": "application/json"
-				}
+					"Content-Type": "application/json",
+				},
 			});
-		}
+		},
 	),
 	// /runtime requests
 	http.get(
@@ -417,17 +417,17 @@ export const handlers: RequestHandler[] = [
 			return new HttpResponse(null, {
 				status: 404,
 				headers: {
-					"Content-Type": "application/json"
-				}
+					"Content-Type": "application/json",
+				},
 			});
-		}
+		},
 	),
 	http.get(`${root_url}/api/spaces/${app_reference}/${RUNTIME_URL}`, () => {
 		return new HttpResponse(JSON.stringify(hardware_sleeptime_response), {
 			status: 200,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	// queue requests
@@ -435,16 +435,16 @@ export const handlers: RequestHandler[] = [
 		return new HttpResponse(JSON.stringify({ event_id: "123" }), {
 			status: 200,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	http.post(`${direct_space_url}/queue/join`, () => {
 		return new HttpResponse(JSON.stringify({ event_id: "123" }), {
 			status: 200,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	// upload requests
@@ -452,16 +452,16 @@ export const handlers: RequestHandler[] = [
 		return new HttpResponse(JSON.stringify(["lion.jpg"]), {
 			status: 200,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	http.post(`${upload_server_test_space_url}/${UPLOAD_URL}`, () => {
 		throw new HttpResponse(JSON.parse("Internal Server Error"), {
 			status: 200,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	// discussions requests
@@ -469,8 +469,8 @@ export const handlers: RequestHandler[] = [
 		return new HttpResponse(JSON.stringify(discussions_response), {
 			status: 200,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	http.head(
@@ -481,11 +481,11 @@ export const handlers: RequestHandler[] = [
 				{
 					status: 403,
 					headers: {
-						"Content-Type": "application/json"
-					}
-				}
+						"Content-Type": "application/json",
+					},
+				},
 			);
-		}
+		},
 	),
 	// space requests
 	http.get(`${root_url}/api/spaces/${app_reference}`, () => {
@@ -494,95 +494,95 @@ export const handlers: RequestHandler[] = [
 			{
 				status: 200,
 				headers: {
-					"Content-Type": "application/json"
-				}
-			}
+					"Content-Type": "application/json",
+				},
+			},
 		);
 	}),
 	http.get(`${root_url}/api/spaces/hmb/paused_space`, () => {
 		return new HttpResponse(
 			JSON.stringify({
 				id: app_reference,
-				runtime: { ...runtime_response, stage: "PAUSED" }
+				runtime: { ...runtime_response, stage: "PAUSED" },
 			}),
 			{
 				status: 200,
 				headers: {
-					"Content-Type": "application/json"
-				}
-			}
+					"Content-Type": "application/json",
+				},
+			},
 		);
 	}),
 	http.get(`${root_url}/api/spaces/hmb/building_space`, () => {
 		return new HttpResponse(
 			JSON.stringify({
 				id: app_reference,
-				runtime: { ...runtime_response, stage: "BUILDING" }
+				runtime: { ...runtime_response, stage: "BUILDING" },
 			}),
 			{
 				status: 200,
 				headers: {
-					"Content-Type": "application/json"
-				}
-			}
+					"Content-Type": "application/json",
+				},
+			},
 		);
 	}),
 	http.get(`${root_url}/api/spaces/hmb/stopped_space`, () => {
 		return new HttpResponse(
 			JSON.stringify({
 				id: app_reference,
-				runtime: { ...runtime_response, stage: "STOPPED" }
+				runtime: { ...runtime_response, stage: "STOPPED" },
 			}),
 			{
 				status: 200,
 				headers: {
-					"Content-Type": "application/json"
-				}
-			}
+					"Content-Type": "application/json",
+				},
+			},
 		);
 	}),
 	http.get(`${root_url}/api/spaces/hmb/failed_space`, () => {
 		throw new HttpResponse(null, {
 			status: 500,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	http.get(`${root_url}/api/spaces/${unauth_app_reference}`, () => {
 		return new HttpResponse(
 			JSON.stringify({
 				id: unauth_app_reference,
-				runtime: { ...runtime_response }
+				runtime: { ...runtime_response },
 			}),
 			{
 				status: 200,
 				headers: {
-					"Content-Type": "application/json"
-				}
-			}
+					"Content-Type": "application/json",
+				},
+			},
 		);
 	}),
 	// jwt requests
 	http.get(`${root_url}/api/spaces/${app_reference}/jwt`, () => {
 		return new HttpResponse(
 			JSON.stringify({
-				token: "jwt_123"
+				token: "jwt_123",
 			}),
 			{
 				status: 200,
 				headers: {
-					"Content-Type": "application/json"
-				}
-			}
+					"Content-Type": "application/json",
+				},
+			},
 		);
 	}),
 	http.get(`${root_url}/api/spaces/${broken_app_reference}/jwt`, () => {
 		return new HttpResponse(null, {
 			status: 500,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	// post_data requests
@@ -590,16 +590,16 @@ export const handlers: RequestHandler[] = [
 		return new HttpResponse(JSON.stringify({}), {
 			status: 200,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	http.post(`${private_space_url}`, () => {
 		return new HttpResponse(JSON.stringify(BROKEN_CONNECTION_MSG), {
 			status: 500,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	// heartbeat requests
@@ -607,8 +607,8 @@ export const handlers: RequestHandler[] = [
 		return new HttpResponse(null, {
 			status: 200,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	// login requests
@@ -624,7 +624,7 @@ export const handlers: RequestHandler[] = [
 		if (username === "admin" && password === "pass1234") {
 			return new HttpResponse(
 				JSON.stringify({
-					success: true
+					success: true,
 				}),
 				{
 					status: 200,
@@ -634,25 +634,25 @@ export const handlers: RequestHandler[] = [
 							"access-token-123=abc; HttpOnly; Path=/; SameSite=none; Secure",
 						// @ts-ignore - multiple Set-Cookie headers are returned
 						"Set-Cookie":
-							"access-token-unsecure-123=abc; HttpOnly; Path=/; SameSite=none; Secure"
-					}
-				}
+							"access-token-unsecure-123=abc; HttpOnly; Path=/; SameSite=none; Secure",
+					},
+				},
 			);
 		}
 
 		return new HttpResponse(null, {
 			status: 401,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	http.post(`${invalid_auth_space_url}/${LOGIN_URL}`, async () => {
 		return new HttpResponse(null, {
 			status: 401,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
 	}),
 	http.post(`${private_auth_space_url}/${LOGIN_URL}`, async ({ request }) => {
@@ -667,7 +667,7 @@ export const handlers: RequestHandler[] = [
 		if (username === "admin" && password === "pass1234") {
 			return new HttpResponse(
 				JSON.stringify({
-					success: true
+					success: true,
 				}),
 				{
 					status: 200,
@@ -677,17 +677,17 @@ export const handlers: RequestHandler[] = [
 							"access-token-123=abc; HttpOnly; Path=/; SameSite=none; Secure",
 						// @ts-ignore - multiple Set-Cookie headers are returned
 						"Set-Cookie":
-							"access-token-unsecure-123=abc; HttpOnly; Path=/; SameSite=none; Secure"
-					}
-				}
+							"access-token-unsecure-123=abc; HttpOnly; Path=/; SameSite=none; Secure",
+					},
+				},
 			);
 		}
 
 		return new HttpResponse(null, {
 			status: 401,
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		});
-	})
+	}),
 ];

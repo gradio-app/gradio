@@ -39,7 +39,7 @@ export function mount_css(url: string, target: HTMLElement): Promise<void> {
 export function prefix_css(
 	string: string,
 	version: string,
-	style_element?: HTMLStyleElement
+	style_element?: HTMLStyleElement,
 ): string | null {
 	if (!supports_adopted_stylesheets) return string;
 	if (!style_element) {
@@ -73,7 +73,7 @@ export function prefix_css(
 					.split(",")
 					.map(
 						(s) =>
-							`${is_dark_rule ? ".dark" : ""} ${gradio_css_infix} ${s.trim()} `
+							`${is_dark_rule ? ".dark" : ""} ${gradio_css_infix} ${s.trim()} `,
 					)
 					.join(",");
 
@@ -94,7 +94,7 @@ export function prefix_css(
 							(s) =>
 								`${
 									is_dark_rule ? ".dark" : ""
-								} ${gradio_css_infix} ${s.trim()} `
+								} ${gradio_css_infix} ${s.trim()} `,
 						)
 						.join(",");
 					mediaCssString += innerRule.cssText.replace(selector, new_selector);

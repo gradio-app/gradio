@@ -24,8 +24,8 @@ if __name__ == "__main__":
 		stdio: "pipe",
 		env: {
 			...process.env,
-			PYTHONUNBUFFERED: "true"
-		}
+			PYTHONUNBUFFERED: "true",
+		},
 	});
 });
 
@@ -36,13 +36,13 @@ test.afterAll(() => {
 		stdio: "pipe",
 		env: {
 			...process.env,
-			PYTHONUNBUFFERED: "true"
-		}
+			PYTHONUNBUFFERED: "true",
+		},
 	});
 });
 
 test("gradio dev mode correctly reloads a stateful ChatInterface demo", async ({
-	page
+	page,
 }) => {
 	test.setTimeout(20 * 1000);
 
@@ -50,7 +50,7 @@ test("gradio dev mode correctly reloads a stateful ChatInterface demo", async ({
 		const { _process: server_process, port: port } =
 			await launch_app_background(
 				`gradio ${join(process.cwd(), demo_file)}`,
-				process.cwd()
+				process.cwd(),
 			);
 		_process = server_process;
 		console.log("Connected to port", port);
@@ -73,8 +73,8 @@ if __name__ == "__main__":
 			stdio: "pipe",
 			env: {
 				...process.env,
-				PYTHONUNBUFFERED: "true"
-			}
+				PYTHONUNBUFFERED: "true",
+			},
 		});
 
 		await expect(page.getByLabel("foo")).toBeVisible();
@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
 		await expect(textbox).toHaveValue("");
 		const response = page.locator(".bot  p", {
-			hasText: "You typed: hello"
+			hasText: "You typed: hello",
 		});
 		await expect(response).toBeVisible();
 	} finally {

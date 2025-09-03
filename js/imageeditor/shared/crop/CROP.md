@@ -111,6 +111,7 @@ The crop tool uses a PIXI.js mask with alpha=0 to make the mask invisible while 
 ### Scaling Considerations
 
 The tool handles scaling by:
+
 - Storing crop bounds in image coordinates (unscaled)
 - Applying scale when positioning UI elements
 - Converting between global and local coordinates for pointer events
@@ -118,6 +119,7 @@ The tool handles scaling by:
 ### Constraints
 
 The tool enforces several constraints:
+
 - Minimum crop size of 20x20 pixels
 - Crop area cannot extend beyond image boundaries
 - Handles cannot be dragged beyond valid positions
@@ -136,4 +138,4 @@ When modifying the crop tool, consider:
 
 - **Toolbar**: Controls tool selection
 - **ImageEditor**: Provides the context and manages the overall editor state
-- **LayerManager**: Manages image layers that the crop tool operates on 
+- **LayerManager**: Manages image layers that the crop tool operates on

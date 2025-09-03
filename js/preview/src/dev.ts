@@ -7,7 +7,7 @@ import type { PreprocessorGroup } from "svelte/compiler";
 
 const vite_messages_to_ignore = [
 	"Default and named imports from CSS files are deprecated.",
-	"The above dynamic import cannot be analyzed by Vite."
+	"The above dynamic import cannot be analyzed by Vite.",
 ];
 
 const logger = createLogger();
@@ -33,13 +33,13 @@ export async function create_server({
 	frontend_port,
 	backend_port,
 	host,
-	python_path
+	python_path,
 }: ServerOptions): Promise<void> {
 	process.env.gradio_mode = "dev";
 	const [imports, config] = await generate_imports(
 		component_dir,
 		root_dir,
-		python_path
+		python_path,
 	);
 
 	const svelte_dir = join(root_dir, "assets", "svelte");
@@ -54,14 +54,14 @@ export async function create_server({
 				port: frontend_port,
 				host: host,
 				fs: {
-					allow: [root_dir, component_dir]
-				}
+					allow: [root_dir, component_dir],
+				},
 			},
 			resolve: {
-				conditions: ["gradio"]
+				conditions: ["gradio"],
 			},
 			build: {
-				target: config.build.target
+				target: config.build.target,
 			},
 			optimizeDeps: config.optimizeDeps,
 			plugins: [
@@ -70,16 +70,16 @@ export async function create_server({
 					mode: "dev",
 					backend_port,
 					svelte_dir,
-					imports
+					imports,
 				}),
-				deepmerge_plugin
-			]
+				deepmerge_plugin,
+			],
 		});
 
 		await server.listen();
 
 		console.info(
-			`[orange3]Frontend Server[/] (Go here): ${server.resolvedUrls?.local}`
+			`[orange3]Frontend Server[/] (Go here): ${server.resolvedUrls?.local}`,
 		);
 	} catch (e) {
 		console.error(e);
@@ -133,7 +133,7 @@ export interface ComponentConfig {
 async function generate_imports(
 	component_dir: string,
 	root: string,
-	python_path: string
+	python_path: string,
 ): Promise<[string, ComponentConfig]> {
 	const components = find_frontend_folders(component_dir);
 
@@ -142,19 +142,19 @@ async function generate_imports(
 	});
 	if (component_entries.length === 0) {
 		console.info(
-			`No custom components were found in ${component_dir}. It is likely that dev mode does not work properly. Please pass the --gradio-path and --python-path CLI arguments so that gradio uses the right executables.`
+			`No custom components were found in ${component_dir}. It is likely that dev mode does not work properly. Please pass the --gradio-path and --python-path CLI arguments so that gradio uses the right executables.`,
 		);
 	}
 
 	let component_config: ComponentConfig = {
 		plugins: [],
 		svelte: {
-			preprocess: []
+			preprocess: [],
 		},
 		build: {
-			target: []
+			target: [],
 		},
-		optimizeDeps: {}
+		optimizeDeps: {},
 	};
 
 	await Promise.all(
@@ -173,33 +173,33 @@ async function generate_imports(
 				component_config.optimizeDeps = m.default.optimizeDeps || {};
 			} else {
 			}
-		})
+		}),
 	);
 
 	const imports = component_entries.reduce((acc, component) => {
 		const pkg = JSON.parse(
-			fs.readFileSync(join(component.frontend_dir, "package.json"), "utf-8")
+			fs.readFileSync(join(component.frontend_dir, "package.json"), "utf-8"),
 		);
 
 		const exports: Record<string, any | undefined> = {
 			component: pkg.exports["."],
-			example: pkg.exports["./example"]
+			example: pkg.exports["./example"],
 		};
 
 		if (!exports.component)
 			throw new Error(
-				"Could not find component entry point. Please check the exports field of your package.json."
+				"Could not find component entry point. Please check the exports field of your package.json.",
 			);
 
 		const example = exports.example
 			? `example: () => import("/@fs/${to_posix(
-					join(component.frontend_dir, exports.example.gradio)
+					join(component.frontend_dir, exports.example.gradio),
 				)}"),\n`
 			: "";
 		return `${acc}"${component.component_class_id}": {
 			${example}
 			component: () => import("/@fs/${to_posix(
-				join(component.frontend_dir, exports.component.gradio)
+				join(component.frontend_dir, exports.component.gradio),
 			)}")
 			},\n`;
 	}, "");

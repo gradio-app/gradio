@@ -10,30 +10,28 @@ The Gradio Chatbot can natively display intermediate thoughts and tool usage in 
 
 Each message in Gradio's chatbot is a dataclass of type `ChatMessage` (this is assuming that chatbot's `type="message"`, which is strongly recommended). The schema of `ChatMessage` is as follows:
 
- ```py
+```py
 @dataclass
 class ChatMessage:
-    content: str | Component
-    role: Literal["user", "assistant"]
-    metadata: MetadataDict = None
-    options: list[OptionDict] = None
+   content: str | Component
+   role: Literal["user", "assistant"]
+   metadata: MetadataDict = None
+   options: list[OptionDict] = None
 
 class MetadataDict(TypedDict):
-    title: NotRequired[str]
-    id: NotRequired[int | str]
-    parent_id: NotRequired[int | str]
-    log: NotRequired[str]
-    duration: NotRequired[float]
-    status: NotRequired[Literal["pending", "done"]]
+   title: NotRequired[str]
+   id: NotRequired[int | str]
+   parent_id: NotRequired[int | str]
+   log: NotRequired[str]
+   duration: NotRequired[float]
+   status: NotRequired[Literal["pending", "done"]]
 
 class OptionDict(TypedDict):
-    label: NotRequired[str]
-    value: str
- ```
-
+   label: NotRequired[str]
+   value: str
+```
 
 For our purposes, the most important key is the `metadata` key, which accepts a dictionary. If this dictionary includes a `title` for the message, it will be displayed in a collapsible accordion representing a thought. It's that simple! Take a look at this example:
-
 
 ```python
 import gradio as gr
@@ -43,11 +41,11 @@ with gr.Blocks() as demo:
         type="messages",
         value=[
             gr.ChatMessage(
-                role="user", 
+                role="user",
                 content="What is the weather in San Francisco?"
             ),
             gr.ChatMessage(
-                role="assistant", 
+                role="assistant",
                 content="I need to use the weather API tool?",
                 metadata={"title":  "🧠 Thinking"}
         ]
@@ -56,14 +54,12 @@ with gr.Blocks() as demo:
 demo.launch()
 ```
 
-
-
 In addition to `title`, the dictionary provided to `metadata` can take several optional keys:
 
-* `log`: an optional string value to be displayed in a subdued font next to the thought title.
-* `duration`: an optional numeric value representing the duration of the thought/tool usage, in seconds. Displayed in a subdued font next inside parentheses next to the thought title.
-* `status`: if set to `"pending"`, a spinner appears next to the thought title and the accordion is initialized open.  If `status` is `"done"`, the thought accordion is initialized closed. If `status` is not provided, the thought accordion is initialized open and no spinner is displayed.
-* `id` and `parent_id`: if these are provided, they can be used to nest thoughts inside other thoughts.
+- `log`: an optional string value to be displayed in a subdued font next to the thought title.
+- `duration`: an optional numeric value representing the duration of the thought/tool usage, in seconds. Displayed in a subdued font next inside parentheses next to the thought title.
+- `status`: if set to `"pending"`, a spinner appears next to the thought title and the accordion is initialized open. If `status` is `"done"`, the thought accordion is initialized closed. If `status` is not provided, the thought accordion is initialized open and no spinner is displayed.
+- `id` and `parent_id`: if these are provided, they can be used to nest thoughts inside other thoughts.
 
 Below, we show several complete examples of using `gr.Chatbot` and `gr.ChatInterface` to display tool use or thinking UIs.
 
@@ -75,7 +71,7 @@ We'll create a Gradio application simple agent that has access to a text-to-imag
 
 Tip: Make sure you read the [smolagents documentation](https://huggingface.co/docs/smolagents/index) first
 
-We'll start by importing the necessary classes from transformers and gradio. 
+We'll start by importing the necessary classes from transformers and gradio.
 
 ```python
 import gradio as gr
@@ -128,15 +124,13 @@ demo = gr.ChatInterface(
 
 You can see the full demo code [here](https://huggingface.co/spaces/gradio/agent_chatbot/blob/main/app.py).
 
-
 ![transformers_agent_code](https://github.com/freddyaboulton/freddyboulton/assets/41651716/c8d21336-e0e6-4878-88ea-e6fcfef3552d)
-
 
 ### A real example using langchain agents
 
 We'll create a UI for langchain agent that has access to a search engine.
 
-We'll begin with imports and setting up the langchain agent. Note that you'll need an .env file with the following environment variables set - 
+We'll begin with imports and setting up the langchain agent. Note that you'll need an .env file with the following environment variables set -
 
 ```
 SERPAPI_API_KEY=
@@ -208,12 +202,9 @@ demo.launch()
 
 That's it! See our finished langchain demo [here](https://huggingface.co/spaces/gradio/langchain-agent).
 
-
 ## Building with Visibly Thinking LLMs
 
-
 The Gradio Chatbot can natively display intermediate thoughts of a _thinking_ LLM. This makes it perfect for creating UIs that show how an AI model "thinks" while generating responses. Below guide will show you how to build a chatbot that displays Gemini AI's thought process in real-time.
-
 
 ### A real example using Gemini 2.0 Flash Thinking API
 
@@ -240,12 +231,12 @@ def stream_gemini_response(user_message: str, messages: list) -> Iterator[list]:
     """
     # Initialize response from Gemini
     response = model.generate_content(user_message, stream=True)
-    
+
     # Initialize buffers
     thought_buffer = ""
     response_buffer = ""
     thinking_complete = False
-    
+
     # Add initial thinking message
     messages.append(
         ChatMessage(
@@ -254,11 +245,11 @@ def stream_gemini_response(user_message: str, messages: list) -> Iterator[list]:
             metadata={"title": "⏳Thinking: *The thoughts produced by the Gemini2.0 Flash model are experimental"}
         )
     )
-    
+
     for chunk in response:
         parts = chunk.candidates[0].content.parts
         current_chunk = parts[0].text
-        
+
         if len(parts) == 2 and not thinking_complete:
             # Complete thought and start response
             thought_buffer += current_chunk
@@ -267,7 +258,7 @@ def stream_gemini_response(user_message: str, messages: list) -> Iterator[list]:
                 content=thought_buffer,
                 metadata={"title": "⏳Thinking: *The thoughts produced by the Gemini2.0 Flash model are experimental"}
             )
-            
+
             # Add response message
             messages.append(
                 ChatMessage(
@@ -276,7 +267,7 @@ def stream_gemini_response(user_message: str, messages: list) -> Iterator[list]:
                 )
             )
             thinking_complete = True
-            
+
         elif thinking_complete:
             # Continue streaming response
             response_buffer += current_chunk
@@ -284,7 +275,7 @@ def stream_gemini_response(user_message: str, messages: list) -> Iterator[list]:
                 role="assistant",
                 content=response_buffer
             )
-            
+
         else:
             # Continue streaming thoughts
             thought_buffer += current_chunk
@@ -293,7 +284,7 @@ def stream_gemini_response(user_message: str, messages: list) -> Iterator[list]:
                 content=thought_buffer,
                 metadata={"title": "⏳Thinking: *The thoughts produced by the Gemini2.0 Flash model are experimental"}
             )
-        
+
         yield messages
 ```
 
@@ -302,22 +293,22 @@ Then, let's create the Gradio interface:
 ```python
 with gr.Blocks() as demo:
     gr.Markdown("# Chat with Gemini 2.0 Flash and See its Thoughts 💭")
-    
+
     chatbot = gr.Chatbot(
         type="messages",
         label="Gemini2.0 'Thinking' Chatbot",
         render_markdown=True,
     )
-    
+
     input_box = gr.Textbox(
         lines=1,
         label="Chat Message",
         placeholder="Type your message here and press Enter..."
     )
-    
+
     # Set up event handlers
     msg_store = gr.State("")  # Store for preserving user message
-    
+
     input_box.submit(
         lambda msg: (msg, msg, ""),  # Store message and clear input
         inputs=[input_box],
@@ -343,14 +334,14 @@ This creates a chatbot that:
 - Streams the thoughts and final response in real-time
 - Maintains a clean chat history
 
- That's it! You now have a chatbot that not only responds to users but also shows its thinking process, creating a more transparent and engaging interaction. See our finished Gemini 2.0 Flash Thinking demo [here](https://huggingface.co/spaces/ysharma/Gemini2-Flash-Thinking).
+That's it! You now have a chatbot that not only responds to users but also shows its thinking process, creating a more transparent and engaging interaction. See our finished Gemini 2.0 Flash Thinking demo [here](https://huggingface.co/spaces/ysharma/Gemini2-Flash-Thinking).
 
-
- ## Building with Citations 
+## Building with Citations
 
 The Gradio Chatbot can display citations from LLM responses, making it perfect for creating UIs that show source documentation and references. This guide will show you how to build a chatbot that displays Claude's citations in real-time.
 
 ### A real example using Anthropic's Citations API
+
 Let's create a complete chatbot that shows both responses and their supporting citations. We'll use Anthropic's Claude API with citations enabled and Gradio for the UI.
 
 We'll begin with imports and setting up the Anthropic client. Note that you'll need an `ANTHROPIC_API_KEY` environment variable set:
@@ -375,7 +366,7 @@ def encode_pdf_to_base64(file_obj) -> str:
         return base64.b64encode(f.read()).decode('utf-8')
 
 def format_message_history(
-    history: list, 
+    history: list,
     enable_citations: bool,
     doc_type: str,
     text_input: str,
@@ -383,15 +374,15 @@ def format_message_history(
 ) -> List[Dict]:
     """Convert Gradio chat history to Anthropic message format."""
     formatted_messages = []
-    
+
     # Add previous messages
     for msg in history[:-1]:
         if msg["role"] == "user":
             formatted_messages.append({"role": "user", "content": msg["content"]})
-    
+
     # Prepare the latest message with document
     latest_message = {"role": "user", "content": []}
-    
+
     if enable_citations:
         if doc_type == "plain_text":
             latest_message["content"].append({
@@ -417,10 +408,10 @@ def format_message_history(
                     "title": pdf_file.name,
                     "citations": {"enabled": True}
                 })
-    
+
     # Add the user's question
     latest_message["content"].append({"type": "text", "text": history[-1]["content"]})
-    
+
     formatted_messages.append(latest_message)
     return formatted_messages
 ```
@@ -438,11 +429,11 @@ def bot_response(
     try:
         messages = format_message_history(history, enable_citations, doc_type, text_input, pdf_file)
         response = client.messages.create(model="claude-3-5-sonnet-20241022", max_tokens=1024, messages=messages)
-        
+
         # Initialize main response and citations
         main_response = ""
         citations = []
-        
+
         # Process each content block
         for block in response.content:
             if block.type == "text":
@@ -451,10 +442,10 @@ def bot_response(
                     for citation in block.citations:
                         if citation.cited_text not in citations:
                             citations.append(citation.cited_text)
-        
+
         # Add main response
         history.append({"role": "assistant", "content": main_response})
-        
+
         # Add citations in a collapsible section
         if enable_citations and citations:
             history.append({
@@ -462,9 +453,9 @@ def bot_response(
                 "content": "\n".join([f"• {cite}" for cite in citations]),
                 "metadata": {"title": "📚 Citations"}
             })
-        
+
         return history
-            
+
     except Exception as e:
         history.append({
             "role": "assistant",
@@ -478,18 +469,18 @@ Finally, let's create the Gradio interface:
 ```python
 with gr.Blocks() as demo:
     gr.Markdown("# Chat with Citations")
-    
+
     with gr.Row(scale=1):
         with gr.Column(scale=4):
             chatbot = gr.Chatbot(type="messages", bubble_full_width=False, show_label=False, scale=1)
             msg = gr.Textbox(placeholder="Enter your message here...", show_label=False, container=False)
-            
+
         with gr.Column(scale=1):
             enable_citations = gr.Checkbox(label="Enable Citations", value=True, info="Toggle citation functionality" )
             doc_type_radio = gr.Radio( choices=["plain_text", "pdf"], value="plain_text", label="Document Type", info="Choose the type of document to use")
             text_input = gr.Textbox(label="Document Content", lines=10, info="Enter the text you want to reference")
             pdf_input = gr.File(label="Upload PDF", file_types=[".pdf"], file_count="single", visible=False)
-    
+
     # Handle message submission
     msg.submit(
         user_message,
@@ -505,11 +496,11 @@ demo.launch()
 ```
 
 This creates a chatbot that:
-- Supports both plain text and PDF documents for Claude to cite from 
+
+- Supports both plain text and PDF documents for Claude to cite from
 - Displays Citations in collapsible sections using our `metadata` feature
 - Shows source quotes directly from the given documents
 
 The citations feature works particularly well with the Gradio Chatbot's `metadata` support, allowing us to create collapsible sections that keep the chat interface clean while still providing easy access to source documentation.
 
 That's it! You now have a chatbot that not only responds to users but also shows its sources, creating a more transparent and trustworthy interaction. See our finished Citations demo [here](https://huggingface.co/spaces/ysharma/anthropic-citations-with-gradio-metadata-key).
-

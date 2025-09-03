@@ -49,7 +49,7 @@
 
 ### Fixes
 
-- [#11650](https://github.com/gradio-app/gradio/pull/11650) [`81f9296`](https://github.com/gradio-app/gradio/commit/81f92968812e258d0f5e6f7c0ab7db6d6fb58719) - Fix some DeepLink Bugs.  Thanks @freddyaboulton!
+- [#11650](https://github.com/gradio-app/gradio/pull/11650) [`81f9296`](https://github.com/gradio-app/gradio/commit/81f92968812e258d0f5e6f7c0ab7db6d6fb58719) - Fix some DeepLink Bugs. Thanks @freddyaboulton!
 
 ### Dependency updates
 
@@ -72,7 +72,7 @@
 
 ### Fixes
 
-- [#11537](https://github.com/gradio-app/gradio/pull/11537) [`8eb253b`](https://github.com/gradio-app/gradio/commit/8eb253be32a01c0c67911d7a7a3762c52a76a87b) - fix html attribute spreading bug and pin `httpx`.  Thanks @abidlabs!
+- [#11537](https://github.com/gradio-app/gradio/pull/11537) [`8eb253b`](https://github.com/gradio-app/gradio/commit/8eb253be32a01c0c67911d7a7a3762c52a76a87b) - fix html attribute spreading bug and pin `httpx`. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -96,7 +96,7 @@
 
 ### Fixes
 
-- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -203,11 +203,11 @@
 
 ### Features
 
-- [#10635](https://github.com/gradio-app/gradio/pull/10635) [`2f68c9d`](https://github.com/gradio-app/gradio/commit/2f68c9d988dcbc53a0b8e53bdb1de49c9c8c65d8) - Refactor and redesign `ImageEditor` component.  Thanks @pngwn!
+- [#10635](https://github.com/gradio-app/gradio/pull/10635) [`2f68c9d`](https://github.com/gradio-app/gradio/commit/2f68c9d988dcbc53a0b8e53bdb1de49c9c8c65d8) - Refactor and redesign `ImageEditor` component. Thanks @pngwn!
 
 ### Fixes
 
-- [#10925](https://github.com/gradio-app/gradio/pull/10925) [`c37de0f`](https://github.com/gradio-app/gradio/commit/c37de0f9081f30ac963b0c837e8f1985461afbb1) - Tweak `rtl` UI in `gr.MultimodalTextbox`.  Thanks @hannahblair!
+- [#10925](https://github.com/gradio-app/gradio/pull/10925) [`c37de0f`](https://github.com/gradio-app/gradio/commit/c37de0f9081f30ac963b0c837e8f1985461afbb1) - Tweak `rtl` UI in `gr.MultimodalTextbox`. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -231,7 +231,7 @@
 
 ### Fixes
 
-- [#10902](https://github.com/gradio-app/gradio/pull/10902) [`b9b8d08`](https://github.com/gradio-app/gradio/commit/b9b8d08bd2cfb4c89444f5ca3066b1d733c8a807) - Fix disabling buttons in `MultimodalTextbox` when `interactive=False`.  Thanks @lara-gfaria!
+- [#10902](https://github.com/gradio-app/gradio/pull/10902) [`b9b8d08`](https://github.com/gradio-app/gradio/commit/b9b8d08bd2cfb4c89444f5ca3066b1d733c8a807) - Fix disabling buttons in `MultimodalTextbox` when `interactive=False`. Thanks @lara-gfaria!
 
 ## 0.9.12
 
@@ -323,7 +323,7 @@
 
 ### Fixes
 
-- [#10405](https://github.com/gradio-app/gradio/pull/10405) [`92dda15`](https://github.com/gradio-app/gradio/commit/92dda15f6d1c71929d3bdca1910734309db72458) - Hide the waveform when playing recorded audio if `show_recording_waveform` is `False`.  Thanks @abidlabs!
+- [#10405](https://github.com/gradio-app/gradio/pull/10405) [`92dda15`](https://github.com/gradio-app/gradio/commit/92dda15f6d1c71929d3bdca1910734309db72458) - Hide the waveform when playing recorded audio if `show_recording_waveform` is `False`. Thanks @abidlabs!
 
 ## 0.9.2
 
@@ -338,7 +338,7 @@
 
 ### Fixes
 
-- [#10322](https://github.com/gradio-app/gradio/pull/10322) [`d2691e7`](https://github.com/gradio-app/gradio/commit/d2691e7436f722781ee61db43ce3f2d5ccc3e253) - Quick Fix: Multimodal microphone audio not clearing.  Thanks @dawoodkhan82!
+- [#10322](https://github.com/gradio-app/gradio/pull/10322) [`d2691e7`](https://github.com/gradio-app/gradio/commit/d2691e7436f722781ee61db43ce3f2d5ccc3e253) - Quick Fix: Multimodal microphone audio not clearing. Thanks @dawoodkhan82!
 
 ### Dependency updates
 
@@ -354,7 +354,7 @@
 
 ### Features
 
-- [#10186](https://github.com/gradio-app/gradio/pull/10186) [`9b17032`](https://github.com/gradio-app/gradio/commit/9b17032a6564c8bda4ab1749989a9797c670919c) - Add Microphone Input to MultimodalTextbox.  Thanks @dawoodkhan82!
+- [#10186](https://github.com/gradio-app/gradio/pull/10186) [`9b17032`](https://github.com/gradio-app/gradio/commit/9b17032a6564c8bda4ab1749989a9797c670919c) - Add Microphone Input to MultimodalTextbox. Thanks @dawoodkhan82!
 
 ### Dependency updates
 
@@ -371,11 +371,11 @@
 
 ### Features
 
-- [#10135](https://github.com/gradio-app/gradio/pull/10135) [`3e93740`](https://github.com/gradio-app/gradio/commit/3e93740f057712278a7c2194a1702f48915683e1) - Improve pasted text behaviour in `Multimodaltextbox`.  Thanks @hannahblair!
+- [#10135](https://github.com/gradio-app/gradio/pull/10135) [`3e93740`](https://github.com/gradio-app/gradio/commit/3e93740f057712278a7c2194a1702f48915683e1) - Improve pasted text behaviour in `Multimodaltextbox`. Thanks @hannahblair!
 
 ### Fixes
 
-- [#10168](https://github.com/gradio-app/gradio/pull/10168) [`7d70596`](https://github.com/gradio-app/gradio/commit/7d70596d0b3343dc4b357758f85420a0afdb65a2) - Multimodal autofocus fix.  Thanks @dawoodkhan82!
+- [#10168](https://github.com/gradio-app/gradio/pull/10168) [`7d70596`](https://github.com/gradio-app/gradio/commit/7d70596d0b3343dc4b357758f85420a0afdb65a2) - Multimodal autofocus fix. Thanks @dawoodkhan82!
 
 ### Dependency updates
 
@@ -407,8 +407,8 @@
 
 ### Fixes
 
-- [#9946](https://github.com/gradio-app/gradio/pull/9946) [`a966e9f`](https://github.com/gradio-app/gradio/commit/a966e9f753af25eb9d813dfdbce39be6f3014d82) - Hide upload button after upload when `file_count="single"`.  Thanks @abidlabs!
-- [#9904](https://github.com/gradio-app/gradio/pull/9904) [`f523c91`](https://github.com/gradio-app/gradio/commit/f523c915d3732859ff4a8019a82cb597b5208ae2) - Ensure dropped files are validated in MultimediaTextbox.  Thanks @hannahblair!
+- [#9946](https://github.com/gradio-app/gradio/pull/9946) [`a966e9f`](https://github.com/gradio-app/gradio/commit/a966e9f753af25eb9d813dfdbce39be6f3014d82) - Hide upload button after upload when `file_count="single"`. Thanks @abidlabs!
+- [#9904](https://github.com/gradio-app/gradio/pull/9904) [`f523c91`](https://github.com/gradio-app/gradio/commit/f523c915d3732859ff4a8019a82cb597b5208ae2) - Ensure dropped files are validated in MultimediaTextbox. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -434,7 +434,7 @@
 
 ### Fixes
 
-- [#9831](https://github.com/gradio-app/gradio/pull/9831) [`767643f`](https://github.com/gradio-app/gradio/commit/767643fdeccb1ae1481e1d79034317082144b371) - Fix a bug in example textbox rendering when it is initially invisible.  Thanks @cornzz!
+- [#9831](https://github.com/gradio-app/gradio/pull/9831) [`767643f`](https://github.com/gradio-app/gradio/commit/767643fdeccb1ae1481e1d79034317082144b371) - Fix a bug in example textbox rendering when it is initially invisible. Thanks @cornzz!
 
 ### Dependency updates
 
@@ -481,7 +481,7 @@
 
 ### Features
 
-- [#9677](https://github.com/gradio-app/gradio/pull/9677) [`3a19e69`](https://github.com/gradio-app/gradio/commit/3a19e690ef8de12c4494429d52988b863065eed3) - Revert text disable.  Thanks @whitphx!
+- [#9677](https://github.com/gradio-app/gradio/pull/9677) [`3a19e69`](https://github.com/gradio-app/gradio/commit/3a19e690ef8de12c4494429d52988b863065eed3) - Revert text disable. Thanks @whitphx!
 
 ## 0.6.2
 
@@ -514,7 +514,6 @@
 
 ### Fixes
 
-
 - [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix File Types for MultimodalTextbox
 
 ### Dependencies
@@ -532,9 +531,9 @@
 
 ### Features
 
-- [#9437](https://github.com/gradio-app/gradio/pull/9437) [`c3d93be`](https://github.com/gradio-app/gradio/commit/c3d93bef94b9401747a363f7bad88a1d347d535b) - Adding new themes to Gradio 5.0.  Thanks @allisonwhilden!
-- [#9593](https://github.com/gradio-app/gradio/pull/9593) [`cc61fe7`](https://github.com/gradio-app/gradio/commit/cc61fe7047ac61779a61cce52c666400b9517daa) - Some more chatbot fixes.  Thanks @dawoodkhan82!
-- [#9583](https://github.com/gradio-app/gradio/pull/9583) [`b92a762`](https://github.com/gradio-app/gradio/commit/b92a7623e1ebd801587041e1ccca058a61058da9) - Disable the submit button and enter-key submit when the text is empty.  Thanks @whitphx!
+- [#9437](https://github.com/gradio-app/gradio/pull/9437) [`c3d93be`](https://github.com/gradio-app/gradio/commit/c3d93bef94b9401747a363f7bad88a1d347d535b) - Adding new themes to Gradio 5.0. Thanks @allisonwhilden!
+- [#9593](https://github.com/gradio-app/gradio/pull/9593) [`cc61fe7`](https://github.com/gradio-app/gradio/commit/cc61fe7047ac61779a61cce52c666400b9517daa) - Some more chatbot fixes. Thanks @dawoodkhan82!
+- [#9583](https://github.com/gradio-app/gradio/pull/9583) [`b92a762`](https://github.com/gradio-app/gradio/commit/b92a7623e1ebd801587041e1ccca058a61058da9) - Disable the submit button and enter-key submit when the text is empty. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -549,7 +548,7 @@
 
 ### Features
 
-- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown.  Thanks @dawoodkhan82!
+- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown. Thanks @dawoodkhan82!
 
 ### Dependency updates
 
@@ -593,13 +592,13 @@
 
 ### Features
 
-- [#8966](https://github.com/gradio-app/gradio/pull/8966) [`8e52b6a`](https://github.com/gradio-app/gradio/commit/8e52b6a3e75957462bc7fdbf6ff9c280084d5f08) - Chatbot Examples.  Thanks @dawoodkhan82!
-- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
-- [#9280](https://github.com/gradio-app/gradio/pull/9280) [`7122420`](https://github.com/gradio-app/gradio/commit/712242047fde3a594dfde7f48a44c7ea16239dc8) - Match style of textbox stop button to submit button.  Thanks @freddyaboulton!
+- [#8966](https://github.com/gradio-app/gradio/pull/8966) [`8e52b6a`](https://github.com/gradio-app/gradio/commit/8e52b6a3e75957462bc7fdbf6ff9c280084d5f08) - Chatbot Examples. Thanks @dawoodkhan82!
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2. Thanks @pngwn!
+- [#9280](https://github.com/gradio-app/gradio/pull/9280) [`7122420`](https://github.com/gradio-app/gradio/commit/712242047fde3a594dfde7f48a44c7ea16239dc8) - Match style of textbox stop button to submit button. Thanks @freddyaboulton!
 
 ### Fixes
 
-- [#9393](https://github.com/gradio-app/gradio/pull/9393) [`53ed0f0`](https://github.com/gradio-app/gradio/commit/53ed0f030551ad876a1fea28a9db9015ba6ec33e) - Fix File Types for MultimodalTextbox.  Thanks @dawoodkhan82!
+- [#9393](https://github.com/gradio-app/gradio/pull/9393) [`53ed0f0`](https://github.com/gradio-app/gradio/commit/53ed0f030551ad876a1fea28a9db9015ba6ec33e) - Fix File Types for MultimodalTextbox. Thanks @dawoodkhan82!
 
 ### Dependency updates
 
@@ -616,7 +615,7 @@
 
 ### Features
 
-- [#9235](https://github.com/gradio-app/gradio/pull/9235) [`f8b411f`](https://github.com/gradio-app/gradio/commit/f8b411fe282ff0316ed4abebc0a043b044bf4dd9) - Built-in submit and stop buttons in `gr.ChatInterface(multimodal=False)`, adding `submit_btn` and `stop_btn` props to `gr.Textbox()` and `gr.MultimodalText()`.  Thanks @whitphx!
+- [#9235](https://github.com/gradio-app/gradio/pull/9235) [`f8b411f`](https://github.com/gradio-app/gradio/commit/f8b411fe282ff0316ed4abebc0a043b044bf4dd9) - Built-in submit and stop buttons in `gr.ChatInterface(multimodal=False)`, adding `submit_btn` and `stop_btn` props to `gr.Textbox()` and `gr.MultimodalText()`. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -633,7 +632,7 @@
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -650,8 +649,8 @@
 
 ### Features
 
-- [#9031](https://github.com/gradio-app/gradio/pull/9031) [`04b7d32`](https://github.com/gradio-app/gradio/commit/04b7d327ec1227a693fc2dfea51b1e2729851bde) - Allow drag and replace image in `gr.Image` and Multimodal textbox.  Thanks @hannahblair!
-- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+- [#9031](https://github.com/gradio-app/gradio/pull/9031) [`04b7d32`](https://github.com/gradio-app/gradio/commit/04b7d327ec1227a693fc2dfea51b1e2729851bde) - Allow drag and replace image in `gr.Image` and Multimodal textbox. Thanks @hannahblair!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -680,7 +679,7 @@
 
 ### Fixes
 
-- [#8899](https://github.com/gradio-app/gradio/pull/8899) [`20444f9`](https://github.com/gradio-app/gradio/commit/20444f9b56f95240d00759f31a1b831b9eb53160) - Fix Chatbot Multimodal Examples.  Thanks @dawoodkhan82!
+- [#8899](https://github.com/gradio-app/gradio/pull/8899) [`20444f9`](https://github.com/gradio-app/gradio/commit/20444f9b56f95240d00759f31a1b831b9eb53160) - Fix Chatbot Multimodal Examples. Thanks @dawoodkhan82!
 
 ### Dependency updates
 
@@ -718,8 +717,8 @@
 
 ### Fixes
 
-- [#8608](https://github.com/gradio-app/gradio/pull/8608) [`c12f82a`](https://github.com/gradio-app/gradio/commit/c12f82a36dc75ff30918dc2ce5f24e583b676f22) - Bugfix: Add a `file_count` parameter to `gr.MultimodalTextbox`. Multiple files cab be uploaded by setting `file_count="multiple"`. Default is `"single"` to preserve the previous behavior.  Thanks @freddyaboulton!
-- [#8637](https://github.com/gradio-app/gradio/pull/8637) [`c348392`](https://github.com/gradio-app/gradio/commit/c34839293f7ebad91d71caced84eea4a3790a558) - Multimodal textbox buttons alignment.  Thanks @dawoodkhan82!
+- [#8608](https://github.com/gradio-app/gradio/pull/8608) [`c12f82a`](https://github.com/gradio-app/gradio/commit/c12f82a36dc75ff30918dc2ce5f24e583b676f22) - Bugfix: Add a `file_count` parameter to `gr.MultimodalTextbox`. Multiple files cab be uploaded by setting `file_count="multiple"`. Default is `"single"` to preserve the previous behavior. Thanks @freddyaboulton!
+- [#8637](https://github.com/gradio-app/gradio/pull/8637) [`c348392`](https://github.com/gradio-app/gradio/commit/c34839293f7ebad91d71caced84eea4a3790a558) - Multimodal textbox buttons alignment. Thanks @dawoodkhan82!
 
 ### Dependency updates
 
@@ -731,8 +730,8 @@
 
 ### Features
 
-- [#8131](https://github.com/gradio-app/gradio/pull/8131) [`bb504b4`](https://github.com/gradio-app/gradio/commit/bb504b494947a287d6386e0e7ead3860c0f15223) - Gradio components in `gr.Chatbot()`.  Thanks @dawoodkhan82!
-- [#8590](https://github.com/gradio-app/gradio/pull/8590) [`65afffd`](https://github.com/gradio-app/gradio/commit/65afffd34b79ba9117e8d9506ea82477204cb57d) - Fix multimodal chat look.  Thanks @aliabid94!
+- [#8131](https://github.com/gradio-app/gradio/pull/8131) [`bb504b4`](https://github.com/gradio-app/gradio/commit/bb504b494947a287d6386e0e7ead3860c0f15223) - Gradio components in `gr.Chatbot()`. Thanks @dawoodkhan82!
+- [#8590](https://github.com/gradio-app/gradio/pull/8590) [`65afffd`](https://github.com/gradio-app/gradio/commit/65afffd34b79ba9117e8d9506ea82477204cb57d) - Fix multimodal chat look. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -773,12 +772,12 @@
 
 ### Features
 
-- [#8377](https://github.com/gradio-app/gradio/pull/8377) [`341844f`](https://github.com/gradio-app/gradio/commit/341844f04efe0e7e512c7ca443f3f2b195a32fa7) - Click to preview images in chatbot.  Thanks @dawoodkhan82!
-- [#8455](https://github.com/gradio-app/gradio/pull/8455) [`a970589`](https://github.com/gradio-app/gradio/commit/a970589cf57c72650f45fbc6a82ad9c52a6e4712) - Fix multimodal textbox placeholder.  Thanks @dawoodkhan82!
+- [#8377](https://github.com/gradio-app/gradio/pull/8377) [`341844f`](https://github.com/gradio-app/gradio/commit/341844f04efe0e7e512c7ca443f3f2b195a32fa7) - Click to preview images in chatbot. Thanks @dawoodkhan82!
+- [#8455](https://github.com/gradio-app/gradio/pull/8455) [`a970589`](https://github.com/gradio-app/gradio/commit/a970589cf57c72650f45fbc6a82ad9c52a6e4712) - Fix multimodal textbox placeholder. Thanks @dawoodkhan82!
 
 ### Fixes
 
-- [#8369](https://github.com/gradio-app/gradio/pull/8369) [`4795c6e`](https://github.com/gradio-app/gradio/commit/4795c6e9e942b5ce489e4451ef84fa75128d89d2) - Fix multimodal textbox styling for certain themes.  Thanks @dawoodkhan82!
+- [#8369](https://github.com/gradio-app/gradio/pull/8369) [`4795c6e`](https://github.com/gradio-app/gradio/commit/4795c6e9e942b5ce489e4451ef84fa75128d89d2) - Fix multimodal textbox styling for certain themes. Thanks @dawoodkhan82!
 
 ## 0.4.7
 
@@ -838,11 +837,11 @@
 
 ### Features
 
-- [#8236](https://github.com/gradio-app/gradio/pull/8236) [`bf909bd`](https://github.com/gradio-app/gradio/commit/bf909bd14532a27e119fb401003a7d94c0618ffb) - Change upload icon for MultimodalTextbox.  Thanks @dawoodkhan82!
+- [#8236](https://github.com/gradio-app/gradio/pull/8236) [`bf909bd`](https://github.com/gradio-app/gradio/commit/bf909bd14532a27e119fb401003a7d94c0618ffb) - Change upload icon for MultimodalTextbox. Thanks @dawoodkhan82!
 
 ### Fixes
 
-- [#8252](https://github.com/gradio-app/gradio/pull/8252) [`22df61a`](https://github.com/gradio-app/gradio/commit/22df61a26adf8023f6dd49c051979990e8d3879a) - Client node fix.  Thanks @pngwn!
+- [#8252](https://github.com/gradio-app/gradio/pull/8252) [`22df61a`](https://github.com/gradio-app/gradio/commit/22df61a26adf8023f6dd49c051979990e8d3879a) - Client node fix. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -857,12 +856,12 @@
 
 ### Features
 
-- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9.  Thanks @renovate!
-- [#8209](https://github.com/gradio-app/gradio/pull/8209) [`b9afe93`](https://github.com/gradio-app/gradio/commit/b9afe93915401df5bd6737c89395c2477acfa585) - Rename `eventSource_Factory` and `fetch_implementation`.  Thanks @hannahblair!
+- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9. Thanks @renovate!
+- [#8209](https://github.com/gradio-app/gradio/pull/8209) [`b9afe93`](https://github.com/gradio-app/gradio/commit/b9afe93915401df5bd6737c89395c2477acfa585) - Rename `eventSource_Factory` and `fetch_implementation`. Thanks @hannahblair!
 
 ### Fixes
 
-- [#8179](https://github.com/gradio-app/gradio/pull/8179) [`6a218b4`](https://github.com/gradio-app/gradio/commit/6a218b4148095aaa0c58d8c20973ba01c8764fc2) - rework upload to be a class method + pass client into each component.  Thanks @pngwn!
+- [#8179](https://github.com/gradio-app/gradio/pull/8179) [`6a218b4`](https://github.com/gradio-app/gradio/commit/6a218b4148095aaa0c58d8c20973ba01c8764fc2) - rework upload to be a class method + pass client into each component. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -895,18 +894,17 @@ demo.launch(max_file_size=5 * gr.FileSize.MB)
 
 ![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
 
-
 #### Error states can now be cleared
 
 When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
 
 ![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
 
- Thanks @freddyaboulton!
+Thanks @freddyaboulton!
 
 ### Fixes
 
-- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -921,7 +919,7 @@ When a component encounters an error, the error state shown in the UI can now be
 
 ### Fixes
 
-- [#8002](https://github.com/gradio-app/gradio/pull/8002) [`8903415`](https://github.com/gradio-app/gradio/commit/8903415e49b1526d31ff454b2235ea238e319c2c) - Add show_progress prop to Upload Component to bring back upload progress animation.  Thanks @freddyaboulton!
+- [#8002](https://github.com/gradio-app/gradio/pull/8002) [`8903415`](https://github.com/gradio-app/gradio/commit/8903415e49b1526d31ff454b2235ea238e319c2c) - Add show_progress prop to Upload Component to bring back upload progress animation. Thanks @freddyaboulton!
 
 ### Dependency updates
 
@@ -948,7 +946,7 @@ When a component encounters an error, the error state shown in the UI can now be
 
 ### Features
 
-- [#7875](https://github.com/gradio-app/gradio/pull/7875) [`e6d051d`](https://github.com/gradio-app/gradio/commit/e6d051dc8a497fdd6b4cfbd57efd4c8015b97a66) - Paste Images into MultimodalTextbox.  Thanks @abidlabs!
+- [#7875](https://github.com/gradio-app/gradio/pull/7875) [`e6d051d`](https://github.com/gradio-app/gradio/commit/e6d051dc8a497fdd6b4cfbd57efd4c8015b97a66) - Paste Images into MultimodalTextbox. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -960,7 +958,7 @@ When a component encounters an error, the error state shown in the UI can now be
 
 ### Fixes
 
-- [#7848](https://github.com/gradio-app/gradio/pull/7848) [`8d7b3ca`](https://github.com/gradio-app/gradio/commit/8d7b3caebd8f95b1372f8412cadbb5862766c365) - Multimodal Textbox Loading + other fixes.  Thanks @dawoodkhan82!
+- [#7848](https://github.com/gradio-app/gradio/pull/7848) [`8d7b3ca`](https://github.com/gradio-app/gradio/commit/8d7b3caebd8f95b1372f8412cadbb5862766c365) - Multimodal Textbox Loading + other fixes. Thanks @dawoodkhan82!
 
 ### Dependency updates
 
@@ -983,7 +981,7 @@ When a component encounters an error, the error state shown in the UI can now be
 
 ### Features
 
-- [#7420](https://github.com/gradio-app/gradio/pull/7420) [`15da39f`](https://github.com/gradio-app/gradio/commit/15da39fca01d09a30cf47e7e72d7efa5052f61f8) - Multimodal Textbox (Chat Input Component).  Thanks @dawoodkhan82!
+- [#7420](https://github.com/gradio-app/gradio/pull/7420) [`15da39f`](https://github.com/gradio-app/gradio/commit/15da39fca01d09a30cf47e7e72d7efa5052f61f8) - Multimodal Textbox (Chat Input Component). Thanks @dawoodkhan82!
 
 ### Dependency updates
 

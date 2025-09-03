@@ -7,5 +7,5 @@ const out_path = resolve(__dirname, "../../../gradio/templates/node/build");
 
 writeFileSync(
 	resolve(out_path, "package.json"),
-	JSON.stringify({ name: "gradio-server-app", type: "module" }, null, 2)
+	JSON.stringify({ name: "gradio-server-app", type: "module" }, null, 2),
 );

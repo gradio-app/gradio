@@ -26,8 +26,8 @@ describe("bootstrap_custom_element", () => {
 			expect.objectContaining({
 				code: expect.stringMatching(/import gradio as gr/),
 				requirements: [],
-				files: undefined
-			})
+				files: undefined,
+			}),
 		);
 	});
 
@@ -50,8 +50,8 @@ scipy
 			expect.objectContaining({
 				code: expect.stringMatching(/import gradio as gr/),
 				requirements: ["numpy", "scipy"],
-				files: undefined
-			})
+				files: undefined,
+			}),
 		);
 	});
 
@@ -81,16 +81,16 @@ scipy
 			expect.objectContaining({
 				files: {
 					"app.py": {
-						data: expect.stringMatching(/import gradio as gr/)
+						data: expect.stringMatching(/import gradio as gr/),
 					},
 					"foo.py": {
-						data: expect.stringMatching(/def foo\(\):/)
-					}
+						data: expect.stringMatching(/def foo\(\):/),
+					},
 				},
 				entrypoint: "app.py",
 				code: undefined,
-				requirements: ["numpy", "scipy"]
-			})
+				requirements: ["numpy", "scipy"],
+			}),
 		);
 	});
 
@@ -106,8 +106,8 @@ scipy
 			expect.objectContaining({
 				code: expect.stringMatching(/^import gradio as gr/),
 				requirements: [],
-				files: undefined
-			})
+				files: undefined,
+			}),
 		);
 	});
 
@@ -125,8 +125,8 @@ scipy
 			expect.objectContaining({
 				code: expect.stringMatching(/^import gradio as gr/),
 				requirements: [],
-				files: undefined
-			})
+				files: undefined,
+			}),
 		);
 	});
 
@@ -155,19 +155,19 @@ scipy
 			expect.objectContaining({
 				files: {
 					"app.py": {
-						data: expect.stringMatching(/^import gradio as gr/)
+						data: expect.stringMatching(/^import gradio as gr/),
 					},
 					"foo.py": {
-						data: expect.stringMatching(/^def foo\(\):/)
+						data: expect.stringMatching(/^def foo\(\):/),
 					},
 					"data.txt": {
-						data: expect.stringMatching(/Hello, world!/)
-					}
+						data: expect.stringMatching(/Hello, world!/),
+					},
 				},
 				entrypoint: "app.py",
 				code: undefined,
-				requirements: []
-			})
+				requirements: [],
+			}),
 		);
 	});
 });

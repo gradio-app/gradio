@@ -13,7 +13,7 @@ const loading_status: LoadingStatus = {
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0,
-	show_progress: "full"
+	show_progress: "full",
 };
 
 describe("MultimodalTextbox", () => {
@@ -28,11 +28,11 @@ describe("MultimodalTextbox", () => {
 			value: { text: "hello world", files: [] },
 			label: "Textbox",
 			interactive: false,
-			root: ""
+			root: "",
 		});
 
 		const item: HTMLInputElement = getByDisplayValue(
-			"hello world"
+			"hello world",
 		) as HTMLInputElement;
 		assert.equal(item.value, "hello world");
 	});
@@ -48,8 +48,8 @@ describe("MultimodalTextbox", () => {
 				value: { text: "hi ", files: [] },
 				label: "MultimodalTextbox",
 				interactive: true,
-				root: ""
-			}
+				root: "",
+			},
 		);
 
 		const item: HTMLInputElement = getByDisplayValue("hi") as HTMLInputElement;
@@ -76,7 +76,7 @@ describe("MultimodalTextbox", () => {
 			label: "MultimodalTextbox",
 			interactive: true,
 			root: "",
-			sources: ["microphone"]
+			sources: ["microphone"],
 		});
 
 		component.$set({ mic_audio: { url: "test.mp3", mime_type: "audio/mp3" } });

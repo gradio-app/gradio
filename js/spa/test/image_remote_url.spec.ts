@@ -2,16 +2,16 @@ import { test, expect } from "@self/tootils";
 
 test("Image displays remote image correctly", async ({ page }) => {
 	const example_image = page.locator(
-		'div.block:has(div.label:has-text("Examples")) img'
+		'div.block:has(div.label:has-text("Examples")) img',
 	);
 	const input_image = page.locator(
-		'div.block:has(label:has-text("InputImage")) img'
+		'div.block:has(label:has-text("InputImage")) img',
 	);
 	const loopback_image = page.locator(
-		'div.block:has(label:has-text("Loopback")) img'
+		'div.block:has(label:has-text("Loopback")) img',
 	);
 	const remote_output_image = page.locator(
-		'div.block:has(label:has-text("RemoteImage")) img'
+		'div.block:has(label:has-text("RemoteImage")) img',
 	);
 	const submit_button = page.locator('button:has-text("Submit")');
 

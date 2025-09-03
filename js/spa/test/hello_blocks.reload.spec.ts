@@ -24,8 +24,8 @@ if __name__ == "__main__":
 		stdio: "pipe",
 		env: {
 			...process.env,
-			PYTHONUNBUFFERED: "true"
-		}
+			PYTHONUNBUFFERED: "true",
+		},
 	});
 });
 
@@ -36,8 +36,8 @@ test.afterAll(() => {
 		stdio: "pipe",
 		env: {
 			...process.env,
-			PYTHONUNBUFFERED: "true"
-		}
+			PYTHONUNBUFFERED: "true",
+		},
 	});
 });
 
@@ -48,7 +48,7 @@ test("gradio dev mode correctly reloads the page", async ({ page }) => {
 		const { _process: server_process, port: port } =
 			await launch_app_background(
 				`gradio ${join(process.cwd(), "run.py")}`,
-				process.cwd()
+				process.cwd(),
 			);
 
 		_process = server_process;
@@ -78,8 +78,8 @@ if __name__ == "__main__":
 			stdio: "pipe",
 			env: {
 				...process.env,
-				PYTHONUNBUFFERED: "true"
-			}
+				PYTHONUNBUFFERED: "true",
+			},
 		});
 
 		await expect(page.getByLabel("z")).toHaveValue("new");
@@ -108,8 +108,8 @@ if __name__ == "__main__":
 			stdio: "pipe",
 			env: {
 				...process.env,
-				PYTHONUNBUFFERED: "true"
-			}
+				PYTHONUNBUFFERED: "true",
+			},
 		});
 
 		await expect(page.getByLabel("x")).toHaveValue("gradio");
@@ -143,8 +143,8 @@ if __name__ == "__main__":
 			stdio: "pipe",
 			env: {
 				...process.env,
-				PYTHONUNBUFFERED: "true"
-			}
+				PYTHONUNBUFFERED: "true",
+			},
 		});
 
 		await expect(page.getByLabel("x")).toHaveValue("new");
@@ -160,7 +160,7 @@ if __name__ == "__main__":
 });
 
 test("gradio dev mode works with removing / changing existing elements", async ({
-	page
+	page,
 }) => {
 	test.setTimeout(20 * 1000);
 
@@ -168,7 +168,7 @@ test("gradio dev mode works with removing / changing existing elements", async (
 		const { _process: server_process, port: port } =
 			await launch_app_background(
 				`gradio ${join(process.cwd(), "run.py")}`,
-				process.cwd()
+				process.cwd(),
 			);
 
 		_process = server_process;
@@ -193,8 +193,8 @@ if __name__ == "__main__":
 			stdio: "pipe",
 			env: {
 				...process.env,
-				PYTHONUNBUFFERED: "true"
-			}
+				PYTHONUNBUFFERED: "true",
+			},
 		});
 
 		await expect(page.getByLabel("x")).toHaveValue("a");
@@ -217,8 +217,8 @@ if __name__ == "__main__":
 			stdio: "pipe",
 			env: {
 				...process.env,
-				PYTHONUNBUFFERED: "true"
-			}
+				PYTHONUNBUFFERED: "true",
+			},
 		});
 
 		await expect(page.getByLabel("x")).toHaveValue("a");
@@ -248,8 +248,8 @@ if __name__ == "__main__":
 			stdio: "pipe",
 			env: {
 				...process.env,
-				PYTHONUNBUFFERED: "true"
-			}
+				PYTHONUNBUFFERED: "true",
+			},
 		});
 
 		await page.getByLabel("a").fill("a");
@@ -292,8 +292,8 @@ if __name__ == "__main__":
 			stdio: "pipe",
 			env: {
 				...process.env,
-				PYTHONUNBUFFERED: "true"
-			}
+				PYTHONUNBUFFERED: "true",
+			},
 		});
 
 		await expect(page.getByLabel("a")).toHaveValue("e");
@@ -314,7 +314,7 @@ if __name__ == "__main__":
 });
 
 test("gradio dev mode works when switching between interface / blocks / chatinterface", async ({
-	page
+	page,
 }) => {
 	test.setTimeout(20 * 1000);
 
@@ -322,7 +322,7 @@ test("gradio dev mode works when switching between interface / blocks / chatinte
 		const { _process: server_process, port: port } =
 			await launch_app_background(
 				`gradio ${join(process.cwd(), "run.py")}`,
-				process.cwd()
+				process.cwd(),
 			);
 
 		_process = server_process;
@@ -350,8 +350,8 @@ if __name__ == "__main__":
 			stdio: "pipe",
 			env: {
 				...process.env,
-				PYTHONUNBUFFERED: "true"
-			}
+				PYTHONUNBUFFERED: "true",
+			},
 		});
 
 		await expect(page.getByText("Chatbot")).toBeVisible();
@@ -409,8 +409,8 @@ if __name__ == "__main__":
 			stdio: "pipe",
 			env: {
 				...process.env,
-				PYTHONUNBUFFERED: "true"
-			}
+				PYTHONUNBUFFERED: "true",
+			},
 		});
 
 		await page.getByLabel("Width").fill("100");
@@ -437,8 +437,8 @@ if __name__ == "__main__":
 			stdio: "pipe",
 			env: {
 				...process.env,
-				PYTHONUNBUFFERED: "true"
-			}
+				PYTHONUNBUFFERED: "true",
+			},
 		});
 
 		await expect(page.getByText("Error reloading")).toBeVisible();
@@ -464,8 +464,8 @@ if __name__ == "__main__":
 			stdio: "pipe",
 			env: {
 				...process.env,
-				PYTHONUNBUFFERED: "true"
-			}
+				PYTHONUNBUFFERED: "true",
+			},
 		});
 
 		await page.getByLabel("sentence").fill("We looove Gradio!");
@@ -484,7 +484,7 @@ test("gradio dev mode works with gr.render()", async ({ page }) => {
 		const { _process: server_process, port: port } =
 			await launch_app_background(
 				`gradio ${join(process.cwd(), "run.py")}`,
-				process.cwd()
+				process.cwd(),
 			);
 
 		_process = server_process;
@@ -514,8 +514,8 @@ if __name__ == "__main__":
 			stdio: "pipe",
 			env: {
 				...process.env,
-				PYTHONUNBUFFERED: "true"
-			}
+				PYTHONUNBUFFERED: "true",
+			},
 		});
 
 		await expect(page.getByLabel("Letter 1")).toHaveValue("-");
@@ -554,8 +554,8 @@ if __name__ == "__main__":
 			stdio: "pipe",
 			env: {
 				...process.env,
-				PYTHONUNBUFFERED: "true"
-			}
+				PYTHONUNBUFFERED: "true",
+			},
 		});
 
 		await expect(page.getByLabel("Letter 1")).toHaveValue("-");

@@ -18,13 +18,13 @@ test.afterAll(() => {
 });
 
 test("gradio reload mode works and updates UI after file edit", async ({
-	page
+	page,
 }) => {
 	test.setTimeout(30 * 1000);
 	try {
 		const { _process: server_process, port } = await launch_app_background(
 			`GRADIO_SERVER_PORT=7423 gradio ${demo_file}`,
-			process.cwd()
+			process.cwd(),
 		);
 		_process = server_process;
 		await page.goto(`http://localhost:${port}`);
@@ -35,7 +35,7 @@ test("gradio reload mode works and updates UI after file edit", async ({
 
 		let new_code = original_code.replace(
 			'gr.Button("Eat")',
-			'gr.Button("Eat🍔")'
+			'gr.Button("Eat🍔")',
 		);
 		fs.writeFileSync(demo_file, new_code, "utf8");
 

@@ -26,7 +26,7 @@ let pending = new Promise((res) => {
 async function get_index(): Promise<void> {
 	const modules = await Promise.all([
 		import("./Index.svelte"),
-		import("@gradio/core")
+		import("@gradio/core"),
 	]);
 	IndexComponent = modules[0].default;
 	mount_css = modules[1].mount_css;
@@ -35,7 +35,7 @@ async function get_index(): Promise<void> {
 
 function create_custom_element(): void {
 	const o = {
-		SvelteComponent: svelte.SvelteComponent
+		SvelteComponent: svelte.SvelteComponent,
 	};
 	for (const key in svelte) {
 		if (key === "SvelteComponent") continue;
@@ -100,7 +100,7 @@ function create_custom_element(): void {
 			const event = new CustomEvent("domchange", {
 				bubbles: true,
 				cancelable: false,
-				composed: true
+				composed: true,
 			});
 
 			const observer = new MutationObserver((mutations) => {
@@ -131,8 +131,8 @@ function create_custom_element(): void {
 					Client,
 					// for gradio docs
 					// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
-					app_mode: window.__gradio_mode__ === "app"
-				}
+					app_mode: window.__gradio_mode__ === "app",
+				},
 			});
 
 			if (this.updating) {
@@ -149,7 +149,7 @@ function create_custom_element(): void {
 		async attributeChangedCallback(
 			name: string,
 			old_val: string,
-			new_val: string
+			new_val: string,
 		): Promise<void> {
 			await pending;
 			if (
@@ -198,8 +198,8 @@ function create_custom_element(): void {
 						Client,
 						// for gradio docs
 						// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
-						app_mode: window.__gradio_mode__ === "app"
-					}
+						app_mode: window.__gradio_mode__ === "app",
+					},
 				});
 
 				this.updating = false;

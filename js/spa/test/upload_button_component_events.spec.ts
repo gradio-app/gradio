@@ -1,7 +1,7 @@
 import { test, expect } from "@self/tootils";
 
 test("UploadButton properly dispatches load event and click event for the single file case.", async ({
-	page
+	page,
 }) => {
 	await page.getByRole("button", { name: "Upload Single File" }).click();
 	const uploader = await page.getByTestId("Upload Single File-upload-button");
@@ -9,7 +9,7 @@ test("UploadButton properly dispatches load event and click event for the single
 
 	await expect(page.getByLabel("# Load Upload Single File")).toHaveValue("1");
 	await expect(
-		page.getByLabel("# Click Upload Single File Output")
+		page.getByLabel("# Click Upload Single File Output"),
 	).toHaveValue("1");
 
 	const downloadPromise = page.waitForEvent("download");
@@ -19,22 +19,22 @@ test("UploadButton properly dispatches load event and click event for the single
 });
 
 test.skip("UploadButton properly dispatches load event and click event for the multiple file case.", async ({
-	page
+	page,
 }) => {
 	await page.getByRole("button", { name: "Upload Multiple Files" }).click();
 	const uploader = await page.getByTestId(
-		"Upload Multiple Files-upload-button"
+		"Upload Multiple Files-upload-button",
 	);
 	await uploader.setInputFiles([
 		"./test/files/face.obj",
-		"./test/files/cheetah1.jpg"
+		"./test/files/cheetah1.jpg",
 	]);
 
 	await expect(page.getByLabel("# Load Upload Multiple Files")).toHaveValue(
-		"1"
+		"1",
 	);
 	await expect(
-		page.getByLabel("# Click Upload Multiple Files Output")
+		page.getByLabel("# Click Upload Multiple Files Output"),
 	).toHaveValue("1");
 
 	const downloadPromise = page.waitForEvent("download");

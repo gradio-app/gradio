@@ -12,7 +12,6 @@ In this Guide, we'll walk you through:
 - How to setup a Gradio demo using the Wandb integration for JoJoGAN
 - How to contribute your own Gradio demos after tracking your experiments on wandb to the Wandb organization on Hugging Face
 
-
 ## What is Wandb?
 
 Weights and Biases (W&B) allows data scientists and machine learning scientists to track their machine learning experiments at every stage, from training to production. Any metric can be aggregated over samples and shown in panels in a customizable and searchable dashboard, like below:
@@ -129,9 +128,10 @@ Let's get started!
    out_table = wandb.Table(data=samples, columns=column_names)
    wandb.log({"Current Samples": out_table})
    ```
+
 4. Save, Download, and Load Model
 
-    Here's how to save and download your model.
+   Here's how to save and download your model.
 
    ```python
    from PIL import Image
@@ -148,10 +148,10 @@ Let's get started!
    import lpips
    from model import *
    from e4e_projection import projection as e4e_projection
-   
+
    from copy import deepcopy
    import imageio
-   
+
    import os
    import sys
    import torchvision.transforms as transforms
@@ -160,11 +160,11 @@ Let's get started!
    from util import *
    from huggingface_hub import hf_hub_download
    from google.colab import files
-   
+
    torch.save({"g": generator.state_dict()}, "your-model-name.pt")
-   
+
    files.download('your-model-name.pt')
-   
+
    latent_dim = 512
    device="cuda"
    model_path_s = hf_hub_download(repo_id="akhaliq/jojogan-stylegan2-ffhq-config-f", filename="stylegan2-ffhq-config-f.pt")
@@ -172,15 +172,15 @@ Let's get started!
    ckpt = torch.load(model_path_s, map_location=lambda storage, loc: storage)
    original_generator.load_state_dict(ckpt["g_ema"], strict=False)
    mean_latent = original_generator.mean_latent(10000)
-   
+
    generator = deepcopy(original_generator)
-   
+
    ckpt = torch.load("/content/JoJoGAN/your-model-name.pt", map_location=lambda storage, loc: storage)
    generator.load_state_dict(ckpt["g"], strict=False)
    generator.eval()
-   
+
    plt.rcParams['figure.dpi'] = 150
-   
+
    transform = transforms.Compose(
        [
            transforms.Resize((1024, 1024)),
@@ -188,28 +188,28 @@ Let's get started!
            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
        ]
    )
-   
+
    def inference(img):
        img.save('out.jpg')
        aligned_face = align_face('out.jpg')
-   
+
        my_w = e4e_projection(aligned_face, "out.pt", device).unsqueeze(0)
        with torch.no_grad():
            my_sample = generator(my_w, input_is_latent=True)
-   
+
        npimage = my_sample[0].cpu().permute(1, 2, 0).detach().numpy()
        imageio.imwrite('filename.jpeg', npimage)
        return 'filename.jpeg'
-   ````
+   ```
 
 5. Build a Gradio Demo
 
    ```python
    import gradio as gr
-   
+
    title = "JoJoGAN"
    description = "Gradio Demo for JoJoGAN: One Shot Face Stylization. To use it, simply upload your image, or click one of the examples to load them. Read more at the links below."
-   
+
    demo = gr.Interface(
        inference,
        gr.Image(type="pil"),
@@ -217,7 +217,7 @@ Let's get started!
        title=title,
        description=description
    )
-   
+
    demo.launch(share=True)
    ```
 
@@ -232,7 +232,7 @@ Let's get started!
    Once you call integrate, a demo will be created and you can integrate it into your dashboard or report.
 
    Outside of W&B with Web components, using the `gradio-app` tags, anyone can embed Gradio demos on HF spaces directly into their blogs, websites, documentation, etc.:
-   
+
    ```html
    <gradio-app space="akhaliq/JoJoGAN"> </gradio-app>
    ```
@@ -246,15 +246,15 @@ Let's get started!
 
    ```python
    import gradio as gr
-   
+
    def wandb_report(url):
        iframe = f'<iframe src={url} style="border:none;height:1024px;width:100%">'
        return gr.HTML(iframe)
-   
+
    with gr.Blocks() as demo:
        report_url = 'https://wandb.ai/_scott/pytorch-sweeps-demo/reports/loss-22-10-07-16-00-17---VmlldzoyNzU2NzAx'
        report = wandb_report(report_url)
-   
+
    demo.launch(share=True)
    ```
 

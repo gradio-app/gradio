@@ -2,7 +2,6 @@
 
 Tags: DEPLOYMENT, DOCKER
 
-
 ### Introduction
 
 Gradio is a powerful and intuitive Python library designed for creating web apps that showcase machine learning models. These web apps can be run locally, or [deployed on Hugging Face Spaces ](https://huggingface.co/spaces)for free. Or, you can deploy them on your servers in Docker containers. Dockerizing Gradio apps offers several benefits:
@@ -47,6 +46,7 @@ CMD ["python", "app.py"]
 ```
 
 This Dockerfile performs the following steps:
+
 - Starts from a Python 3.10 slim image.
 - Sets the working directory and copies the app into the container.
 - Installs Gradio (you should install all other requirements as well).
@@ -71,7 +71,7 @@ When running Gradio applications in Docker, there are a few important things to 
 
 #### Running the Gradio app on `"0.0.0.0"` and exposing port 7860
 
-In the Docker environment, setting `GRADIO_SERVER_NAME="0.0.0.0"` as an environment variable (or directly in your Gradio app's `launch()` function) is crucial for allowing connections from outside the container. And the `EXPOSE 7860` directive in the Dockerfile tells Docker to expose Gradio's default port on the container to enable external access to the Gradio app. 
+In the Docker environment, setting `GRADIO_SERVER_NAME="0.0.0.0"` as an environment variable (or directly in your Gradio app's `launch()` function) is crucial for allowing connections from outside the container. And the `EXPOSE 7860` directive in the Dockerfile tells Docker to expose Gradio's default port on the container to enable external access to the Gradio app.
 
 #### Enable Stickiness for Multiple Replicas
 
@@ -80,4 +80,3 @@ When deploying Gradio apps with multiple replicas, such as on AWS ECS, it's impo
 #### Deploying Behind a Proxy
 
 If you're deploying your Gradio app behind a proxy, like Nginx, it's essential to configure the proxy correctly. Gradio provides a [Guide that walks through the necessary steps](https://www.gradio.app/guides/running-gradio-on-your-web-server-with-nginx). This setup ensures your app is accessible and performs well in production environments.
-

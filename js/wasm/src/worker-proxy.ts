@@ -5,7 +5,7 @@ import type {
 	InMessage,
 	InMessageAsgiRequest,
 	OutMessage,
-	ReplyMessage
+	ReplyMessage,
 } from "./message-types";
 import { PromiseDelegate } from "./promise-delegate";
 import {
@@ -13,12 +13,12 @@ import {
 	type HttpResponse,
 	asgiHeadersToRecord,
 	headersToASGI,
-	logHttpReqRes
+	logHttpReqRes,
 } from "./http";
 import type { ASGIScope, ReceiveEvent, SendEvent } from "./asgi-types";
 import type {
 	CodeCompletionRequest,
-	CodeCompletionResponse
+	CodeCompletionResponse,
 } from "./webworker/code-completion";
 
 export interface WorkerProxyOptions {
@@ -47,8 +47,8 @@ export class WorkerProxy extends EventTarget {
 		const workerMaker = new Worker(
 			new URL("../dist/webworker/webworker.js", import.meta.url),
 			{
-				/* @vite-ignore */ shared: sharedWorkerMode // `@vite-ignore` is needed to avoid an error `Vite is unable to parse the worker options as the value is not static.`
-			}
+				/* @vite-ignore */ shared: sharedWorkerMode, // `@vite-ignore` is needed to avoid an error `Vite is unable to parse the worker options as the value is not static.`
+			},
 		);
 
 		this.worker = workerMaker.worker;
@@ -66,23 +66,23 @@ export class WorkerProxy extends EventTarget {
 			type: "init-env",
 			data: {
 				gradioWheelUrl: options.gradioWheelUrl,
-				gradioClientWheelUrl: options.gradioClientWheelUrl
-			}
+				gradioClientWheelUrl: options.gradioClientWheelUrl,
+			},
 		})
 			.then(() => {
 				console.debug(
-					"WorkerProxy.constructor(): Environment initialization is done."
+					"WorkerProxy.constructor(): Environment initialization is done.",
 				);
 			})
 			.catch((error) => {
 				console.error(
 					"WorkerProxy.constructor(): Initialization failed.",
-					error
+					error,
 				);
 				this.dispatchEvent(
 					new CustomEvent("initialization-error", {
-						detail: error
-					})
+						detail: error,
+					}),
 				);
 			});
 
@@ -90,25 +90,25 @@ export class WorkerProxy extends EventTarget {
 			type: "init-app",
 			data: {
 				files: options.files,
-				requirements: options.requirements
-			}
+				requirements: options.requirements,
+			},
 		})
 			.then(() => {
 				this.dispatchEvent(
 					new CustomEvent("initialization-completed", {
-						detail: null
-					})
+						detail: null,
+					}),
 				);
 			})
 			.catch((error) => {
 				console.error(
 					"WorkerProxy.constructor(): Initialization failed.",
-					error
+					error,
 				);
 				this.dispatchEvent(
 					new CustomEvent("initialization-error", {
-						detail: error
-					})
+						detail: error,
+					}),
 				);
 			});
 	}
@@ -117,8 +117,8 @@ export class WorkerProxy extends EventTarget {
 		await this.postMessageAsync({
 			type: "run-python-code",
 			data: {
-				code
-			}
+				code,
+			},
 		});
 		this.firstRunPromiseDelegate.resolve();
 	}
@@ -127,8 +127,8 @@ export class WorkerProxy extends EventTarget {
 		await this.postMessageAsync({
 			type: "run-python-file",
 			data: {
-				path
-			}
+				path,
+			},
 		});
 		this.firstRunPromiseDelegate.resolve();
 	}
@@ -161,40 +161,40 @@ export class WorkerProxy extends EventTarget {
 			case "progress-update": {
 				this.dispatchEvent(
 					new CustomEvent("progress-update", {
-						detail: msg.data.log
-					})
+						detail: msg.data.log,
+					}),
 				);
 				break;
 			}
 			case "modules-auto-loaded": {
 				this.dispatchEvent(
 					new CustomEvent("modules-auto-loaded", {
-						detail: msg.data.packages
-					})
+						detail: msg.data.packages,
+					}),
 				);
 				break;
 			}
 			case "stdout": {
 				this.dispatchEvent(
 					new CustomEvent("stdout", {
-						detail: msg.data.output
-					})
+						detail: msg.data.output,
+					}),
 				);
 				break;
 			}
 			case "stderr": {
 				this.dispatchEvent(
 					new CustomEvent("stderr", {
-						detail: msg.data.output
-					})
+						detail: msg.data.output,
+					}),
 				);
 				break;
 			}
 			case "python-error": {
 				this.dispatchEvent(
 					new CustomEvent("python-error", {
-						detail: new Error(msg.data.traceback)
-					})
+						detail: new Error(msg.data.traceback),
+					}),
 				);
 				break;
 			}
@@ -212,8 +212,8 @@ export class WorkerProxy extends EventTarget {
 		const msg: InMessageAsgiRequest = {
 			type: "asgi-request",
 			data: {
-				scope
-			}
+				scope,
+			},
 		};
 		this.postMessageTarget.postMessage(msg, [channel.port2]);
 
@@ -236,7 +236,7 @@ export class WorkerProxy extends EventTarget {
 				type: "http",
 				asgi: {
 					version: "3.0",
-					spec_version: "2.1"
+					spec_version: "2.1",
 				},
 				http_version: "1.1",
 				scheme: "http",
@@ -244,7 +244,7 @@ export class WorkerProxy extends EventTarget {
 				path: decodeURIComponent(request.path),
 				query_string: decodeURIComponent(request.query_string),
 				root_path: "",
-				headers: headersToASGI(request.headers)
+				headers: headersToASGI(request.headers),
 			};
 
 			const asgiMessagePort = this.requestAsgi(asgiScope);
@@ -265,12 +265,12 @@ export class WorkerProxy extends EventTarget {
 						const response: HttpResponse = {
 							status,
 							headers,
-							body
+							body,
 						};
 						console.debug("HTTP response", response);
 
 						asgiMessagePort.postMessage({
-							type: "http.disconnect"
+							type: "http.disconnect",
 						} satisfies ReceiveEvent);
 
 						logHttpReqRes(request, response);
@@ -288,13 +288,13 @@ export class WorkerProxy extends EventTarget {
 				const reader = request.body.getReader();
 				reader.read().then(function process({
 					done,
-					value
+					value,
 				}): Promise<void> | void {
 					if (done) {
 						asgiMessagePort.postMessage({
 							type: "http.request",
 							more_body: false,
-							body: undefined
+							body: undefined,
 						} satisfies ReceiveEvent);
 						return;
 					}
@@ -302,7 +302,7 @@ export class WorkerProxy extends EventTarget {
 					asgiMessagePort.postMessage({
 						type: "http.request",
 						more_body: !done,
-						body: value
+						body: value,
 					} satisfies ReceiveEvent);
 
 					return reader.read().then(process);
@@ -311,7 +311,7 @@ export class WorkerProxy extends EventTarget {
 				asgiMessagePort.postMessage({
 					type: "http.request",
 					more_body: false,
-					body: request.body ?? undefined
+					body: request.body ?? undefined,
 				} satisfies ReceiveEvent);
 			}
 		});
@@ -320,15 +320,15 @@ export class WorkerProxy extends EventTarget {
 	public writeFile(
 		path: string,
 		data: string | ArrayBufferView,
-		opts?: Record<string, unknown>
+		opts?: Record<string, unknown>,
 	): Promise<void> {
 		return this.postMessageAsync({
 			type: "file:write",
 			data: {
 				path,
 				data,
-				opts
-			}
+				opts,
+			},
 		}) as Promise<void>;
 	}
 
@@ -337,8 +337,8 @@ export class WorkerProxy extends EventTarget {
 			type: "file:rename",
 			data: {
 				oldPath,
-				newPath
-			}
+				newPath,
+			},
 		}) as Promise<void>;
 	}
 
@@ -346,8 +346,8 @@ export class WorkerProxy extends EventTarget {
 		return this.postMessageAsync({
 			type: "file:unlink",
 			data: {
-				path
-			}
+				path,
+			},
 		}) as Promise<void>;
 	}
 
@@ -355,17 +355,17 @@ export class WorkerProxy extends EventTarget {
 		return this.postMessageAsync({
 			type: "install",
 			data: {
-				requirements
-			}
+				requirements,
+			},
 		}) as Promise<void>;
 	}
 
 	public getCodeCompletions(
-		request: CodeCompletionRequest
+		request: CodeCompletionRequest,
 	): Promise<CodeCompletionResponse> {
 		return this.postMessageAsync<CodeCompletionResponse>({
 			type: "code-completion",
-			data: request
+			data: request,
 		});
 	}
 
@@ -390,13 +390,13 @@ function isSharedWorker(worker: unknown): worker is SharedWorker {
 }
 
 function isDedicatedWorker(
-	obj: globalThis.Worker | SharedWorker
+	obj: globalThis.Worker | SharedWorker,
 ): obj is globalThis.Worker {
 	return "terminate" in obj;
 }
 
 function isMessagePort(
-	obj: globalThis.Worker | MessagePort
+	obj: globalThis.Worker | MessagePort,
 ): obj is MessagePort {
 	return "close" in obj;
 }

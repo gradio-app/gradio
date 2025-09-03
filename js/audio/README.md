@@ -2,12 +2,17 @@
 
 ```html
 <script>
-	import { BaseStaticAudio, BaseInteractiveAudio, BasePlayer, BaseExample } from "@gradio/audio";
+	import {
+		BaseStaticAudio,
+		BaseInteractiveAudio,
+		BasePlayer,
+		BaseExample,
+	} from "@gradio/audio";
 </script>
 ```
 
-
 BaseExample:
+
 ```javascript
 	export let value: string;
 	export let type: "gallery" | "table";
@@ -15,6 +20,7 @@ BaseExample:
 ```
 
 BaseStaticAudio:
+
 ```javascript
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
@@ -28,6 +34,7 @@ BaseStaticAudio:
 ```
 
 BaseInteractiveAudio:
+
 ```javascript
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
@@ -49,6 +56,7 @@ BaseInteractiveAudio:
 ```
 
 BasePlayer:
+
 ```javascript
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;

@@ -92,7 +92,7 @@ test("Dataframe search functionality works correctly", async ({ page }) => {
 
 	const restored_cells_text = await page.locator("td").allTextContents();
 	expect(restored_cells_text.length).toBeGreaterThanOrEqual(
-		all_cells_text.length
+		all_cells_text.length,
 	);
 });
 
@@ -187,7 +187,7 @@ test("Dataframe keyboard operations work as expected", async ({ page }) => {
 	await page.waitForTimeout(300);
 
 	const clipboard_value = await page.evaluate(() =>
-		navigator.clipboard.readText()
+		navigator.clipboard.readText(),
 	);
 	expect(clipboard_value).toBe("test_copy_value");
 });
@@ -214,7 +214,7 @@ test("Dataframe shift+click selection works", async ({ page }) => {
 	await page.keyboard.press("ControlOrMeta+c");
 
 	const clipboard_value = await page.evaluate(() =>
-		navigator.clipboard.readText()
+		navigator.clipboard.readText(),
 	);
 
 	expect(clipboard_value).toBe("0,6\n0,6");
@@ -235,7 +235,7 @@ test("Dataframe cmd + click selection works", async ({ page }) => {
 	await get_cell(df, 1, 2).click();
 
 	await get_cell(df, 2, 2).click({
-		modifiers: ["Shift"]
+		modifiers: ["Shift"],
 	});
 
 	await page.waitForTimeout(100);
@@ -243,7 +243,7 @@ test("Dataframe cmd + click selection works", async ({ page }) => {
 	await page.keyboard.press("ControlOrMeta+c");
 
 	const clipboard_value = await page.evaluate(() =>
-		navigator.clipboard.readText()
+		navigator.clipboard.readText(),
 	);
 
 	expect(clipboard_value).toBe("6\n8");
@@ -272,7 +272,7 @@ test("Static columns cannot be edited", async ({ page }) => {
 });
 
 test("Dataframe search functionality works correctly after data update", async ({
-	page
+	page,
 }) => {
 	const df = page.locator("#non-interactive-dataframe");
 	await page.getByRole("button", { name: "Update dataframe" }).click();
@@ -304,7 +304,7 @@ test("Dataframe search functionality works correctly after data update", async (
 });
 
 test("Dataframe displays custom display values with medal icons correctly", async ({
-	page
+	page,
 }) => {
 	await page.getByRole("button", { name: "Update dataframe" }).click();
 	await page.waitForTimeout(500);
@@ -368,7 +368,7 @@ test("Dataframe select events work as expected", async ({ page }) => {
 });
 
 test("Dataframe static columns cannot be cleared with Delete key", async ({
-	page
+	page,
 }) => {
 	const df = page.locator("#dataframe");
 

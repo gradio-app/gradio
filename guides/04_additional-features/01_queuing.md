@@ -42,7 +42,7 @@ In this example, all three event listeners share a queue identified by `"gpu_que
 
 ### Notes
 
-- To ensure unlimited concurrency for an event listener, set `concurrency_limit=None`.  This is useful if your function is calling e.g. an external API which handles the rate limiting of requests itself.
-- The default concurrency limit for all queues can be set globally using the `default_concurrency_limit` parameter in `Blocks.queue()`. 
+- To ensure unlimited concurrency for an event listener, set `concurrency_limit=None`. This is useful if your function is calling e.g. an external API which handles the rate limiting of requests itself.
+- The default concurrency limit for all queues can be set globally using the `default_concurrency_limit` parameter in `Blocks.queue()`.
 
 These configurations make it easy to manage the queuing behavior of your Gradio app.

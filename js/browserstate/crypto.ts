@@ -6,7 +6,7 @@ export function encrypt(data: string, key: string): string {
 	const encrypted = CryptoJS.AES.encrypt(data, hashedKey, {
 		iv: iv,
 		mode: CryptoJS.mode.CBC,
-		padding: CryptoJS.pad.Pkcs7
+		padding: CryptoJS.pad.Pkcs7,
 	});
 
 	const ivString = CryptoJS.enc.Base64.stringify(iv);
@@ -21,7 +21,7 @@ export function decrypt(encryptedData: string, key: string): string {
 	const decrypted = CryptoJS.AES.decrypt(cipherString, hashedKey, {
 		iv: iv,
 		mode: CryptoJS.mode.CBC,
-		padding: CryptoJS.pad.Pkcs7
+		padding: CryptoJS.pad.Pkcs7,
 	});
 
 	return decrypted.toString(CryptoJS.enc.Utf8);

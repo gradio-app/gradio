@@ -12,10 +12,9 @@ $demo_chatbot_retry_undo_like
 
 Tip: `gr.ChatInterface` automatically uses the `retry` and `.undo` events so it's best to start there in order get a fully working application quickly.
 
-
 ## The UI
 
-First, we'll build the UI without handling these events and build from there. 
+First, we'll build the UI without handling these events and build from there.
 We'll use the Hugging Face InferenceClient in order to get started without setting up
 any API keys.
 
@@ -87,7 +86,7 @@ We then pass this function to the `undo` event!
     chatbot.undo(handle_undo, chatbot, [chatbot, prompt])
 ```
 
-You'll notice that every bot response will now have an "undo icon" you can use to undo the response - 
+You'll notice that every bot response will now have an "undo icon" you can use to undo the response -
 
 ![undo_event](https://github.com/user-attachments/assets/180b5302-bc4a-4c3e-903c-f14ec2adcaa6)
 
@@ -135,7 +134,7 @@ chatbot.like(vote, None, None)
 
 ## The Edit Event
 
-Same idea with the edit listener! with `gr.Chatbot(editable=True)`, you can capture user edits. The `gr.EditData` object tells us the index of the message edited and the new text of the mssage. Below, we use this object to edit the history, and delete any subsequent messages. 
+Same idea with the edit listener! with `gr.Chatbot(editable=True)`, you can capture user edits. The `gr.EditData` object tells us the index of the message edited and the new text of the mssage. Below, we use this object to edit the history, and delete any subsequent messages.
 
 ```python
 def handle_edit(history, edit_data: gr.EditData):
@@ -190,6 +189,3 @@ This example also shows that you can use these events with `gr.ChatInterface` by
 ## Conclusion
 
 That's it! You now know how you can implement the retry, undo, like, and clear events for the Chatbot.
-
-
-

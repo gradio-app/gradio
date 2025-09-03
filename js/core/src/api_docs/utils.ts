@@ -2,7 +2,7 @@
 export function represent_value(
 	value: string,
 	type: string | undefined,
-	lang: "js" | "py" | "bash" | null = null
+	lang: "js" | "py" | "bash" | null = null,
 ): string | null | number | boolean | Record<string, unknown> {
 	if (type === undefined) {
 		return lang === "py" ? "None" : null;

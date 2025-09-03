@@ -12,7 +12,7 @@ import type {
 	UploadResponse,
 	client_return,
 	SubmitIterable,
-	GradioEvent
+	GradioEvent,
 } from "./types";
 import { view_api } from "./utils/view_api";
 import { upload_files } from "./utils/upload_files";
@@ -28,7 +28,7 @@ import {
 	resolve_cookies,
 	resolve_config,
 	get_jwt,
-	parse_and_set_cookies
+	parse_and_set_cookies,
 } from "./helpers/init_helpers";
 import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
@@ -37,7 +37,7 @@ import {
 	APP_ID_URL,
 	CONFIG_ERROR_MSG,
 	HEARTBEAT_URL,
-	COMPONENT_SERVER_URL
+	COMPONENT_SERVER_URL,
 } from "./constants";
 
 declare const BROWSER_BUILD: boolean;
@@ -101,11 +101,11 @@ export class Client {
 			current_page: page,
 			layout: config.page[page].layout,
 			components: config.components.filter((c) =>
-				config.page[page].components.includes(c.id)
+				config.page[page].components.includes(c.id),
 			),
 			dependencies: this.config.dependencies.filter((d) =>
-				config.page[page].dependencies.includes(d.id)
-			)
+				config.page[page].dependencies.includes(d.id),
+			),
 		};
 	}
 
@@ -142,7 +142,7 @@ export class Client {
 		this.stream_instance = readable_stream(url.toString(), {
 			credentials: "include",
 			headers: headers,
-			signal: this.abort_controller.signal
+			signal: this.abort_controller.signal,
 		});
 
 		return this.stream_instance;
@@ -152,42 +152,42 @@ export class Client {
 	upload_files: (
 		root_url: string,
 		files: (Blob | File)[],
-		upload_id?: string
+		upload_id?: string,
 	) => Promise<UploadResponse>;
 	upload: (
 		file_data: FileData[],
 		root_url: string,
 		upload_id?: string,
-		max_file_size?: number
+		max_file_size?: number,
 	) => Promise<(FileData | null)[] | null>;
 	handle_blob: (
 		endpoint: string,
 		data: unknown[],
-		endpoint_info: EndpointInfo<ApiData | JsApiData>
+		endpoint_info: EndpointInfo<ApiData | JsApiData>,
 	) => Promise<unknown[]>;
 	post_data: (
 		url: string,
 		body: unknown,
-		additional_headers?: any
+		additional_headers?: any,
 	) => Promise<unknown[]>;
 	submit: (
 		endpoint: string | number,
 		data: unknown[] | Record<string, unknown> | undefined,
 		event_data?: unknown,
 		trigger_id?: number | null,
-		all_events?: boolean
+		all_events?: boolean,
 	) => SubmitIterable<GradioEvent>;
 	predict: (
 		endpoint: string | number,
 		data: unknown[] | Record<string, unknown> | undefined,
-		event_data?: unknown
+		event_data?: unknown,
 	) => Promise<PredictReturn>;
 	open_stream: () => Promise<void>;
 	private resolve_config: (endpoint: string) => Promise<Config | undefined>;
 	private resolve_cookies: () => Promise<void>;
 	constructor(
 		app_reference: string,
-		options: ClientOptions = { events: ["data"] }
+		options: ClientOptions = { events: ["data"] },
 	) {
 		this.app_reference = app_reference;
 		this.deep_link = options.query_params?.deep_link || null;
@@ -228,7 +228,7 @@ export class Client {
 		}
 
 		await this._resolve_config().then(({ config }) =>
-			this._resolve_heartbeat(config)
+			this._resolve_heartbeat(config),
 		);
 
 		this.api_info = await this.view_api();
@@ -245,7 +245,7 @@ export class Client {
 					this.jwt = await get_jwt(
 						this.config.space_id,
 						this.options.hf_token,
-						this.cookies
+						this.cookies,
 					);
 				}
 			}
@@ -258,7 +258,7 @@ export class Client {
 		if (this.config && this.config.connect_heartbeat) {
 			// connect to the heartbeat endpoint via GET request
 			const heartbeat_url = new URL(
-				`${this.config.root}${this.api_prefix}/${HEARTBEAT_URL}/${this.session_hash}`
+				`${this.config.root}${this.api_prefix}/${HEARTBEAT_URL}/${this.session_hash}`,
 			);
 
 			// if the jwt is available, add it to the query params
@@ -276,8 +276,8 @@ export class Client {
 	static async connect(
 		app_reference: string,
 		options: ClientOptions = {
-			events: ["data"]
-		}
+			events: ["data"],
+		},
 	): Promise<Client> {
 		const client = new this(app_reference, options); // this refers to the class itself, not the instance
 		if (options.session_hash) {
@@ -289,7 +289,7 @@ export class Client {
 
 	async reconnect(): Promise<"connected" | "broken" | "changed"> {
 		const app_id_url = new URL(
-			`${this.config!.root}${this.api_prefix}/${APP_ID_URL}`
+			`${this.config!.root}${this.api_prefix}/${APP_ID_URL}`,
 		);
 		let app_id: string;
 		try {
@@ -319,8 +319,8 @@ export class Client {
 	static async duplicate(
 		app_reference: string,
 		options: DuplicateOptions = {
-			events: ["data"]
-		}
+			events: ["data"],
+		},
 	): Promise<Client> {
 		return duplicate(app_reference, options);
 	}
@@ -328,7 +328,7 @@ export class Client {
 	private async _resolve_config(): Promise<any> {
 		const { http_protocol, host, space_id } = await process_endpoint(
 			this.app_reference,
-			this.options.hf_token
+			this.options.hf_token,
 		);
 
 		const { status_callback } = this.options;
@@ -354,7 +354,7 @@ export class Client {
 				check_space_status(
 					space_id,
 					RE_SPACE_NAME.test(space_id) ? "space_name" : "subdomain",
-					this.handle_space_success
+					this.handle_space_success,
 				);
 			} else {
 				if (status_callback)
@@ -362,7 +362,7 @@ export class Client {
 						status: "error",
 						message: "Could not load this space.",
 						load_status: "error",
-						detail: "NOT_FOUND"
+						detail: "NOT_FOUND",
 					});
 				throw Error(e);
 			}
@@ -370,7 +370,7 @@ export class Client {
 	}
 
 	private async config_success(
-		_config: Config
+		_config: Config,
 	): Promise<Config | client_return> {
 		this.config = _config;
 		this.api_prefix = _config.api_prefix || "";
@@ -412,7 +412,7 @@ export class Client {
 						status: "error",
 						message: "Could not load this space.",
 						load_status: "error",
-						detail: "NOT_FOUND"
+						detail: "NOT_FOUND",
 					});
 				}
 				throw e;
@@ -423,7 +423,7 @@ export class Client {
 	public async component_server(
 		component_id: number,
 		fn_name: string,
-		data: unknown[] | { binary: boolean; data: Record<string, any> }
+		data: unknown[] | { binary: boolean; data: Record<string, any> },
 	): Promise<unknown> {
 		if (!this.config) {
 			throw new Error(CONFIG_ERROR_MSG);
@@ -443,7 +443,7 @@ export class Client {
 
 		let root_url: string;
 		let component = this.config.components.find(
-			(comp) => comp.id === component_id
+			(comp) => comp.id === component_id,
 		);
 		if (component?.props?.root_url) {
 			root_url = component.props.root_url;
@@ -467,7 +467,7 @@ export class Client {
 				data: data,
 				component_id,
 				fn_name,
-				session_hash
+				session_hash,
 			});
 
 			headers["Content-Type"] = "application/json";
@@ -484,13 +484,13 @@ export class Client {
 					method: "POST",
 					body: body,
 					headers,
-					credentials: "include"
-				}
+					credentials: "include",
+				},
 			);
 
 			if (!response.ok) {
 				throw new Error(
-					"Could not connect to component server: " + response.statusText
+					"Could not connect to component server: " + response.statusText,
 				);
 			}
 
@@ -511,7 +511,7 @@ export class Client {
 			predict: this.predict,
 			submit: this.submit,
 			view_api: this.view_api,
-			component_server: this.component_server
+			component_server: this.component_server,
 		};
 	}
 
@@ -587,8 +587,8 @@ export class Client {
 export async function client(
 	app_reference: string,
 	options: ClientOptions = {
-		events: ["data"]
-	}
+		events: ["data"],
+	},
 ): Promise<Client> {
 	return await Client.connect(app_reference, options);
 }
@@ -603,7 +603,7 @@ export async function client(
  */
 export async function duplicate_space(
 	app_reference: string,
-	options: DuplicateOptions
+	options: DuplicateOptions,
 ): Promise<Client> {
 	return await Client.duplicate(app_reference, options);
 }

@@ -3,17 +3,20 @@
 Tags: REAL-TIME, IMMERSIVE, FASTRTC, VIDEO, AUDIO, STREAMING, GEMINI, WEBRTC
 
 FastRTC is a library that lets you build low-latency real-time apps over WebRTC. In this guide, you’ll implement a fun demo where Gemini is an art critic and will critique your uploaded artwork:
+
 - Streams your webcam and microphone to a Gemini real-time session
 - Sends periodic video frames (and an optional uploaded image) to the model
 - Streams back the model’s audio responses in real time
 - Creates a polished full-screen Gradio `WebRTC` UI
 
 ### What you’ll build
+
 <video autoplay loop>
   <source src="https://github.com/gradio-app/gradio/blob/main/guides/assets/art-critic.mp4?raw=true" type="video/mp4" />
 </video>
 
 ### Prerequisites
+
 - Python 3.10+
 - A Gemini API key: `GEMINI_API_KEY`
 
@@ -24,6 +27,7 @@ pip install "fastrtc[vad, tts]" gradio google-genai python-dotenv websockets pil
 ```
 
 ## 1) Encoders for audio and images
+
 Encoder functions to send audio as base64-encoded data and images as base64-encoded JPEG.
 
 ```python
@@ -48,9 +52,10 @@ def encode_image(data: np.ndarray) -> dict:
     return {"mime_type": "image/jpeg", "data": base64_str}
 ```
 
-
 ## 2) Implement the Gemini audio-video handler
+
 This handler:
+
 - Opens a Gemini Live session on startup
 - Receives streaming audio from Gemini and yields it back to the client
 - Sends microphone audio as it arrives
@@ -152,8 +157,8 @@ class GeminiHandler(AsyncAudioVideoStreamHandler):
             self.quit.clear()
 ```
 
-
 ## 3) Setup Stream and Gradio UI
+
 We’ll add an optional `gr.Image` input alongside the `WebRTC` component. The handler will access this in `self.latest_args[1]` when sending frames to Gemini.
 
 ```python
@@ -194,6 +199,7 @@ if __name__ == "__main__":
 ```
 
 ### References
+
 - Gemini Audio Video Chat reference code: [Hugging Face Space](https://huggingface.co/spaces/gradio/gemini-audio-video/blob/main/app.py)
 - FastRTC docs: `https://fastrtc.org`
 - Audio + video user guide: `https://fastrtc.org/userguide/audio-video/`

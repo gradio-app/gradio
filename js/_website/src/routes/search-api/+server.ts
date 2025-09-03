@@ -22,7 +22,7 @@ function removeMarkdown(markdown) {
 
 export async function GET() {
 	const gradio_doc_paths = import.meta.glob(
-		"/src/lib/templates/gradio/**/*.svx"
+		"/src/lib/templates/gradio/**/*.svx",
 	);
 	const gradio_doc_pages = await Promise.all(
 		Object.entries(gradio_doc_paths).map(async ([path, content]) => {
@@ -41,11 +41,11 @@ export async function GET() {
 			content = content.replace(/<gradio-lite*?>([^]*?)<\/gradio-lite>/g, "");
 			content = content.replace(
 				/<pre[^>]*><code[^>]*>([^]*?)<\/code><\/pre>/g,
-				"```\n$1\n```"
+				"```\n$1\n```",
 			);
 			content = content.replace(
 				/<span[^>]*>|<\/span>|<\/?[^>]*(token)[^>]*>/g,
-				""
+				"",
 			);
 			content = content.replace(/<[^>]*>?/gm, "");
 			content = content.replace(/Open in 🎢.*?\n\t\t/g, "");
@@ -54,13 +54,13 @@ export async function GET() {
 				title: title,
 				slug: path,
 				content: content,
-				type: "DOCS"
+				type: "DOCS",
 			};
-		})
+		}),
 	);
 
 	const client_doc_paths = import.meta.glob(
-		"/src/lib/templates/python-client/**/*.svx"
+		"/src/lib/templates/python-client/**/*.svx",
 	);
 	const client_doc_pages = await Promise.all(
 		Object.entries(client_doc_paths).map(async ([path, content]) => {
@@ -77,15 +77,15 @@ export async function GET() {
 
 			content = content.replace(
 				/<pre[^>]*?language-(\w+)[^>]*?><code[^>]*?>([^]*?)<\/code><\/pre>/g,
-				"```$1\n$2\n```"
+				"```$1\n$2\n```",
 			);
 			content = content.replace(
 				/<span[^>]*>|<\/span>|<\/?[^>]*(token)[^>]*>/g,
-				""
+				"",
 			);
 			content = content.replace(
 				/<gradio-lite[^>]*>([^]*?)<\/gradio-lite>/g,
-				"```python\n$1\n```"
+				"```python\n$1\n```",
 			);
 			content = content.replace(/<[^>]*>?/gm, "");
 
@@ -93,9 +93,9 @@ export async function GET() {
 				title: title,
 				slug: path,
 				content: content,
-				type: "DOCS"
+				type: "DOCS",
 			};
-		})
+		}),
 	);
 
 	const guide_paths = import.meta.glob("/src/lib/json/guides/*.json");
@@ -109,9 +109,9 @@ export async function GET() {
 				title: content.pretty_name,
 				slug: content.url,
 				content: removeMarkdown(content.content.replaceAll(/<[^>]*>?/gm, "")),
-				type: "GUIDE"
+				type: "GUIDE",
 			};
-		})
+		}),
 	);
 
 	const jsons_path = import.meta.glob("/src/lib/json/docs.json");
@@ -121,7 +121,7 @@ export async function GET() {
 		title: "JavaScript Client Library",
 		slug: "/docs/js-client",
 		content: removeMarkdown(jsons_content.default.js_client),
-		type: "DOCS"
+		type: "DOCS",
 	};
 
 	const js_components = jsons_content.default.js;
@@ -131,9 +131,9 @@ export async function GET() {
 				title: name,
 				slug: "/docs/js/" + name,
 				content: removeMarkdown(content.replaceAll(/<[^>]*>?/gm, "")),
-				type: "DOCS"
+				type: "DOCS",
 			};
-		})
+		}),
 	);
 
 	let all_pages = gradio_doc_pages

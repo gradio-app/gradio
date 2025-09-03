@@ -2,28 +2,27 @@
 
 Tags: CHAT, DEPLOY, DISCORD
 
-You can make your Gradio app available as a Discord bot to let users in your Discord server interact with it directly. 
+You can make your Gradio app available as a Discord bot to let users in your Discord server interact with it directly.
 
 ## How does it work?
 
-The Discord bot will listen to messages mentioning it in channels. When it receives a message (which can include text as well as files), it will send it to your Gradio app via Gradio's built-in API. Your bot will reply with the response it receives from the API. 
+The Discord bot will listen to messages mentioning it in channels. When it receives a message (which can include text as well as files), it will send it to your Gradio app via Gradio's built-in API. Your bot will reply with the response it receives from the API.
 
-Because Gradio's API is very flexible, you can create Discord bots that support text, images, audio, streaming, chat history, and a wide variety of other features very easily. 
+Because Gradio's API is very flexible, you can create Discord bots that support text, images, audio, streaming, chat history, and a wide variety of other features very easily.
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/Screen%20Recording%202024-12-18%20at%204.26.55%E2%80%AFPM.gif)
 
 ## Prerequisites
 
-* Install the latest version of `gradio` and the `discord.py` libraries:
+- Install the latest version of `gradio` and the `discord.py` libraries:
 
 ```
 pip install --upgrade gradio discord.py~=2.0
 ```
 
-* Have a running Gradio app. This app can be running locally or on Hugging Face Spaces. In this example, we will be using the [Gradio Playground Space](https://huggingface.co/spaces/abidlabs/gradio-playground-bot), which takes in an image and/or text and generates the code to generate the corresponding Gradio app.
+- Have a running Gradio app. This app can be running locally or on Hugging Face Spaces. In this example, we will be using the [Gradio Playground Space](https://huggingface.co/spaces/abidlabs/gradio-playground-bot), which takes in an image and/or text and generates the code to generate the corresponding Gradio app.
 
 Now, we are ready to get started!
-
 
 ### 1. Create a Discord application
 
@@ -38,8 +37,6 @@ Then click on the "Reset Token" button. A new token will be generated. Copy it a
 Scroll down to the section that says "Privileged Gateway Intents". Your bot will need certain permissions to work correctly. In this tutorial, we will only be using the "Message Content Intent" so click the toggle to enable this intent. Save the changes.
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/discord-3.png)
-
-
 
 ### 2. Write a Discord bot
 
@@ -113,7 +110,7 @@ async def on_message(message):
                     image_path = download_image(attachment)
                     files.append(handle_file(image_path))
                     break
-        
+
         # Stream the responses to the channel
         for response in gradio_client.submit(
             message={"text": clean_message, "files": files},
@@ -129,12 +126,9 @@ Now we are ready to install the bot on our server. Go back to the [Discord apps 
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/discord-2.png)
 
-
-
 Then in "Bot Permissions" box that pops up underneath, enable the following permissions:
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/discord-1.png)
-
 
 Copy the generated URL that appears underneath, which should look something like:
 
@@ -144,18 +138,18 @@ https://discord.com/oauth2/authorize?client_id=1319011745452265575&permissions=3
 
 Paste it into your browser, which should allow you to add the Discord bot to any Discord server that you manage.
 
-
 ### 4. That's it!
 
 Now you can mention your bot from any channel in your Discord server, optionally attach an image, and it will respond with generated Gradio app code!
 
 The bot will:
+
 1. Listen for mentions
 2. Process any attached images
 3. Send the text and images to your Gradio app
 4. Stream the responses back to the Discord channel
 
- This is just a basic example - you can extend it to handle more types of files, add error handling, or integrate with different Gradio apps.
+This is just a basic example - you can extend it to handle more types of files, add error handling, or integrate with different Gradio apps.
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/Screen%20Recording%202024-12-18%20at%204.26.55%E2%80%AFPM.gif)
 

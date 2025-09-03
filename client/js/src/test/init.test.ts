@@ -5,14 +5,14 @@ import {
 	afterAll,
 	test,
 	expect,
-	vi
+	vi,
 } from "vitest";
 
 import { Client, client, duplicate } from "..";
 import {
 	transformed_api_info,
 	config_response,
-	response_api_info
+	response_api_info,
 } from "./test_data";
 import { initialise_server } from "./server";
 import { SPACE_METADATA_ERROR_MSG } from "../constants";
@@ -64,31 +64,31 @@ describe("Client class", () => {
 
 		test("connecting successfully to a private running app with a space reference", async () => {
 			const app = await Client.connect("hmb/secret_world", {
-				hf_token: "hf_123"
+				hf_token: "hf_123",
 			});
 
 			expect(app.config).toEqual({
 				...config_response,
-				root: "https://hmb-secret-world.hf.space"
+				root: "https://hmb-secret-world.hf.space",
 			});
 		});
 
 		test("connecting successfully to a private running app with a direct app URL ", async () => {
 			const app = await Client.connect(secret_direct_app_reference, {
-				hf_token: "hf_123"
+				hf_token: "hf_123",
 			});
 
 			expect(app.config).toEqual({
 				...config_response,
-				root: "https://hmb-secret-world.hf.space"
+				root: "https://hmb-secret-world.hf.space",
 			});
 		});
 
 		test("unsuccessfully attempting to connect to a private running app", async () => {
 			await expect(
 				Client.connect("hmb/secret_world", {
-					hf_token: "hf_bad_token"
-				})
+					hf_token: "hf_bad_token",
+				}),
 			).rejects.toThrowError(SPACE_METADATA_ERROR_MSG);
 		});
 
@@ -108,7 +108,7 @@ describe("Client class", () => {
 			const app = await duplicate("gradio/hello_world", {
 				hf_token: "hf_123",
 				private: true,
-				hardware: "cpu-basic"
+				hardware: "cpu-basic",
 			});
 
 			expect(app.config).toEqual(config_response);
@@ -118,7 +118,7 @@ describe("Client class", () => {
 			const duplicate = await Client.duplicate("gradio/hello_world", {
 				hf_token: "hf_123",
 				private: true,
-				hardware: "cpu-basic"
+				hardware: "cpu-basic",
 			});
 
 			expect(duplicate.config).toEqual(config_response);
@@ -127,7 +127,7 @@ describe("Client class", () => {
 		test("creating a duplicate of a running app without a token", async () => {
 			const duplicate = Client.duplicate("gradio/hello_world", {
 				private: true,
-				hardware: "cpu-basic"
+				hardware: "cpu-basic",
 			});
 
 			await expect(duplicate).rejects.toThrow("Error: Unauthorized");
@@ -146,9 +146,9 @@ describe("Client class", () => {
 			const mocked_fetch = vi.fn(
 				(input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
 					return Promise.resolve(
-						new Response(JSON.stringify({ data: "test" }))
+						new Response(JSON.stringify({ data: "test" })),
 					);
-				}
+				},
 			);
 
 			class CustomClient extends Client {

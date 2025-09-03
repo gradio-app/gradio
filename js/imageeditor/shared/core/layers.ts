@@ -6,7 +6,7 @@ import {
 	RenderTexture,
 	SCALE_MODES,
 	Texture,
-	Assets
+	Assets,
 } from "pixi.js";
 
 import { get_canvas_blob } from "../utils/pixi";
@@ -38,7 +38,7 @@ export class LayerManager {
 	}> = writable({
 		active_layer: "",
 
-		layers: []
+		layers: [],
 	});
 	private background_layer: Container | null = null;
 	private image_container: Container;
@@ -53,7 +53,7 @@ export class LayerManager {
 		fixed_canvas: boolean,
 		dark: boolean,
 		border_region: number,
-		layer_options: LayerOptions
+		layer_options: LayerOptions,
 	) {
 		this.image_container = image_container;
 		this.app = app;
@@ -70,7 +70,7 @@ export class LayerManager {
 			layer.visible = layer.container.visible;
 			this.layer_store.update((state) => ({
 				active_layer: state.active_layer,
-				layers: this.layers
+				layers: this.layers,
 			}));
 		}
 	}
@@ -89,7 +89,7 @@ export class LayerManager {
 			height,
 			resolution: window.devicePixelRatio,
 			antialias: true,
-			scaleMode: SCALE_MODES.NEAREST
+			scaleMode: SCALE_MODES.NEAREST,
 		});
 
 		const bg_sprite = new Sprite(bg_texture);
@@ -105,7 +105,7 @@ export class LayerManager {
 		this.app.renderer.render({
 			container: clear_graphics,
 			target: bg_texture,
-			clear: true
+			clear: true,
 		});
 
 		this.image_container.addChild(layer);
@@ -119,7 +119,7 @@ export class LayerManager {
 	set_layer_options(
 		layer_options: LayerOptions,
 		width: number,
-		height: number
+		height: number,
 	): void {
 		this.layer_options = layer_options;
 		this.reset_layers(width, height);
@@ -136,11 +136,11 @@ export class LayerManager {
 	async create_background_layer_from_url(
 		url: string,
 		width?: number,
-		height?: number
+		height?: number,
 	): Promise<Container> {
 		const layer = this.create_background_layer(
 			width || this.image_container.width,
-			height || this.image_container.height
+			height || this.image_container.height,
 		);
 
 		try {
@@ -156,11 +156,11 @@ export class LayerManager {
 			if (this.fixed_canvas) {
 				const effectiveContainerWidth = Math.max(
 					containerWidth - this.border_region * 2,
-					10
+					10,
 				);
 				const effectiveContainerHeight = Math.max(
 					containerHeight - this.border_region * 2,
-					10
+					10,
 				);
 
 				const imageAspectRatio = imageWidth / imageHeight;
@@ -225,7 +225,7 @@ export class LayerManager {
 		layer_name,
 		user_created,
 		layer_id = undefined,
-		make_active = false
+		make_active = false,
 	}: {
 		width: number;
 		height: number;
@@ -243,7 +243,7 @@ export class LayerManager {
 			id: _layer_id,
 			container: layer,
 			user_created,
-			visible: true
+			visible: true,
 		});
 
 		this.image_container.addChild(layer);
@@ -253,7 +253,7 @@ export class LayerManager {
 			height,
 			resolution: window.devicePixelRatio,
 			antialias: true,
-			scaleMode: SCALE_MODES.NEAREST
+			scaleMode: SCALE_MODES.NEAREST,
 		});
 
 		const canvas_sprite = new Sprite(draw_texture);
@@ -268,7 +268,7 @@ export class LayerManager {
 		this.app.renderer.render({
 			container: clear_graphics,
 			target: draw_texture,
-			clear: true
+			clear: true,
 		});
 
 		this.draw_textures.set(layer, draw_texture);
@@ -280,7 +280,7 @@ export class LayerManager {
 
 		this.layer_store.set({
 			active_layer: this.active_layer_id || "",
-			layers: this.layers
+			layers: this.layers,
 		});
 		return layer;
 	}
@@ -297,7 +297,7 @@ export class LayerManager {
 			width,
 			height,
 			layer_name: "Layer 1",
-			user_created: true
+			user_created: true,
 		});
 
 		const layerIndex = this.layers.findIndex((l) => l.container === layer);
@@ -385,7 +385,7 @@ export class LayerManager {
 			this.active_layer_id = id;
 			this.layer_store.set({
 				active_layer: id,
-				layers: this.layers
+				layers: this.layers,
 			});
 		}
 	}
@@ -426,7 +426,7 @@ export class LayerManager {
 					_layers.active_layer === id
 						? this.layers[this.layers.length - 1]?.id
 						: _layers.active_layer,
-				layers: this.layers
+				layers: this.layers,
 			}));
 
 			this.update_layer_order();
@@ -459,7 +459,7 @@ export class LayerManager {
 			this.update_layer_order();
 			this.layer_store.update((_layers) => ({
 				active_layer: id,
-				layers: this.layers
+				layers: this.layers,
 			}));
 		}
 	}
@@ -486,7 +486,7 @@ export class LayerManager {
 			| "bottom"
 			| "bottom-right",
 		oldCanvasWidth: number,
-		oldCanvasHeight: number
+		oldCanvasHeight: number,
 	): void {
 		const oldLayersById = new Map(this.layers.map((l) => [l.id, l]));
 		const oldBackgroundLayer = this.background_layer;
@@ -521,7 +521,7 @@ export class LayerManager {
 			newWidth,
 			newHeight,
 			scale,
-			calculateOffset
+			calculateOffset,
 		);
 
 		const processedLayers: {
@@ -536,7 +536,7 @@ export class LayerManager {
 			name: oldLayer.name,
 			user_created: oldLayer.user_created,
 			texture: this.draw_textures.get(oldLayer.container),
-			container: oldLayer.container
+			container: oldLayer.container,
 		}));
 
 		this.layers = [];
@@ -547,7 +547,7 @@ export class LayerManager {
 				newWidth,
 				newHeight,
 				scale,
-				calculateOffset
+				calculateOffset,
 			);
 			if (newLayer) {
 				processedLayers.push(newLayer);
@@ -556,7 +556,7 @@ export class LayerManager {
 
 		const currentActiveId = get(this.layer_store).active_layer;
 		const activeLayerExists = processedLayers.some(
-			(l) => l.id === currentActiveId
+			(l) => l.id === currentActiveId,
 		);
 
 		if (!activeLayerExists && processedLayers.length > 0) {
@@ -583,7 +583,7 @@ export class LayerManager {
 		newWidth: number,
 		newHeight: number,
 		scale: boolean,
-		calculateOffset: () => { offsetX: number; offsetY: number }
+		calculateOffset: () => { offsetX: number; offsetY: number },
 	): Container | null {
 		if (!oldBackgroundLayer) {
 			return this.create_background_layer(newWidth, newHeight);
@@ -592,12 +592,12 @@ export class LayerManager {
 		let backgroundImage: Sprite | null = oldBackgroundLayer.children.find(
 			(child) =>
 				child instanceof Sprite &&
-				child.texture !== (oldBackgroundLayer.children[0] as Sprite)?.texture
+				child.texture !== (oldBackgroundLayer.children[0] as Sprite)?.texture,
 		) as Sprite | null;
 
 		const newBackgroundLayer = this.create_background_layer(
 			newWidth,
-			newHeight
+			newHeight,
 		);
 
 		if (backgroundImage) {
@@ -613,7 +613,7 @@ export class LayerManager {
 				const { offsetX, offsetY } = calculateOffset();
 				newBgImage.position.set(
 					backgroundImage.x + offsetX,
-					backgroundImage.y + offsetY
+					backgroundImage.y + offsetY,
 				);
 			}
 			newBackgroundLayer.addChild(newBgImage);
@@ -636,7 +636,7 @@ export class LayerManager {
 		newWidth: number,
 		newHeight: number,
 		scale: boolean,
-		calculateOffset: () => { offsetX: number; offsetY: number }
+		calculateOffset: () => { offsetX: number; offsetY: number },
 	): {
 		name: string;
 		id: string;
@@ -645,7 +645,7 @@ export class LayerManager {
 	} | null {
 		if (!oldData.texture) {
 			console.warn(
-				`No texture found for layer ${oldData.id}, skipping cleanup.`
+				`No texture found for layer ${oldData.id}, skipping cleanup.`,
 			);
 			if (oldData.container && !oldData.container.destroyed) {
 				if (this.image_container.children.includes(oldData.container)) {
@@ -660,7 +660,7 @@ export class LayerManager {
 			width: newWidth,
 			height: newHeight,
 			layer_name: oldData.name,
-			user_created: oldData.user_created
+			user_created: oldData.user_created,
 		});
 
 		const newLayer = this.layers[this.layers.length - 1];
@@ -669,7 +669,7 @@ export class LayerManager {
 
 		if (!newTexture) {
 			console.error(
-				`Failed to get texture for newly created layer ${newLayer.id}. Cleaning up.`
+				`Failed to get texture for newly created layer ${newLayer.id}. Cleaning up.`,
 			);
 			if (newContainer && !newContainer.destroyed) {
 				if (this.image_container.children.includes(newContainer)) {
@@ -725,8 +725,8 @@ export class LayerManager {
 					width,
 					height,
 					x: 0,
-					y: 0
-				}
+					y: 0,
+				},
 			),
 			layers: await Promise.all(
 				this.layers.map(async (layer) => {
@@ -737,14 +737,14 @@ export class LayerManager {
 							width,
 							height,
 							x: 0,
-							y: 0
-						}
+							y: 0,
+						},
 					);
 					if (blob) {
 						return blob;
 					}
 					return null;
-				})
+				}),
 			),
 			composite: await get_canvas_blob(
 				this.app.renderer,
@@ -753,9 +753,9 @@ export class LayerManager {
 					width,
 					height,
 					x: 0,
-					y: 0
-				}
-			)
+					y: 0,
+				},
+			),
 		};
 
 		return blobs;
@@ -778,7 +778,7 @@ export class LayerManager {
 				user_created: this.layer_options.layers.find((l) => l === layer_name)
 					? false
 					: true,
-				layer_id: layer_id
+				layer_id: layer_id,
 			});
 		}
 
@@ -795,7 +795,7 @@ export class LayerManager {
 
 		this.layer_store.update((state) => ({
 			active_layer: this.active_layer_id || this.layers[0].id,
-			layers: this.layers
+			layers: this.layers,
 		}));
 	}
 
@@ -810,7 +810,7 @@ export class LayerManager {
 				height,
 				layer_name: layer,
 				user_created: false,
-				layer_id: `layer-${i}`
+				layer_id: `layer-${i}`,
 			});
 			i++;
 		}
@@ -819,7 +819,7 @@ export class LayerManager {
 		this.active_layer_id = this.layers[0].id;
 		this.layer_store.update((_layers) => ({
 			active_layer: this.layers[0].id,
-			layers: this.layers
+			layers: this.layers,
 		}));
 	}
 }
@@ -845,7 +845,7 @@ export class AddLayerCommand implements Command {
 			user_created: boolean;
 			layer_id?: string;
 			make_active?: boolean;
-		}
+		},
 	) {
 		this.width = options.width;
 		this.height = options.height;
@@ -859,7 +859,7 @@ export class AddLayerCommand implements Command {
 		this.name = "AddLayer";
 		const current_layers = this.context.layer_manager.get_layers();
 		const current_active = current_layers.find(
-			(l) => l.container === this.context.layer_manager.get_active_layer()
+			(l) => l.container === this.context.layer_manager.get_active_layer(),
 		);
 		this.previous_active_layer = current_active?.id || null;
 	}
@@ -875,7 +875,7 @@ export class AddLayerCommand implements Command {
 			layer_name: this.layer_name,
 			user_created: this.user_created,
 			layer_id: this.layer_id,
-			make_active: this.make_active
+			make_active: this.make_active,
 		});
 	}
 
@@ -905,7 +905,7 @@ export class RemoveLayerCommand implements Command {
 
 	constructor(
 		private context: ImageEditorContext,
-		layer_id: string
+		layer_id: string,
 	) {
 		this.name = "RemoveLayer";
 		const layers = this.context.layer_manager.get_layers();
@@ -929,7 +929,7 @@ export class RemoveLayerCommand implements Command {
 			name: layer_to_remove.name,
 			user_created: layer_to_remove.user_created,
 			visible: layer_to_remove.visible,
-			was_active
+			was_active,
 		};
 
 		this.captureTextureData(layer_id);
@@ -949,7 +949,7 @@ export class RemoveLayerCommand implements Command {
 			const texture_copy = RenderTexture.create({
 				width: original_texture.width,
 				height: original_texture.height,
-				resolution: window.devicePixelRatio || 1
+				resolution: window.devicePixelRatio || 1,
 			});
 
 			const sprite = new Sprite(original_texture);
@@ -982,19 +982,19 @@ export class RemoveLayerCommand implements Command {
 			layer_name: this.layer_data.name,
 			user_created: this.layer_data.user_created,
 			layer_id: this.layer_data.id,
-			make_active: this.layer_data.was_active
+			make_active: this.layer_data.was_active,
 		});
 
 		if (this.texture_copy) {
 			try {
 				const layer_textures = this.context.layer_manager.get_layer_textures(
-					this.layer_data.id
+					this.layer_data.id,
 				);
 				if (layer_textures) {
 					const sprite = new Sprite(this.texture_copy);
 
 					this.context.app.renderer.render(sprite, {
-						renderTexture: layer_textures.draw
+						renderTexture: layer_textures.draw,
 					});
 
 					sprite.destroy();
@@ -1038,7 +1038,7 @@ export class ReorderLayerCommand implements Command {
 	constructor(
 		private context: ImageEditorContext,
 		layer_id: string,
-		direction: "up" | "down"
+		direction: "up" | "down",
 	) {
 		this.layer_id = layer_id;
 		this.direction = direction;
@@ -1058,7 +1058,7 @@ export class ReorderLayerCommand implements Command {
 			this.new_order = [...this.original_order];
 			[this.new_order[index], this.new_order[new_index]] = [
 				this.new_order[new_index],
-				this.new_order[index]
+				this.new_order[index],
 			];
 		}
 	}

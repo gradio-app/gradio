@@ -4,7 +4,6 @@ As mentioned in the [Quickstart](/main/guides/quickstart), the `gr.Interface` cl
 
 $code_hello_world_4
 
-
 We see that the `Interface` class is initialized with three required parameters:
 
 - `fn`: the function to wrap a user interface (UI) around
@@ -15,7 +14,7 @@ In this Guide, we'll dive into `gr.Interface` and the various ways it can be cus
 
 ## Gradio Components
 
-Gradio includes more than 30 pre-built components (as well as many [community-built _custom components_](https://www.gradio.app/custom-components/gallery)) that can be used as inputs or outputs in your demo. These components correspond to common data types in machine learning and data science, e.g. the `gr.Image` component is designed to handle input or output images, the `gr.Label` component displays classification labels and probabilities, the `gr.LinePlot` component displays line plots, and so on. 
+Gradio includes more than 30 pre-built components (as well as many [community-built _custom components_](https://www.gradio.app/custom-components/gallery)) that can be used as inputs or outputs in your demo. These components correspond to common data types in machine learning and data science, e.g. the `gr.Image` component is designed to handle input or output images, the `gr.Label` component displays classification labels and probabilities, the `gr.LinePlot` component displays line plots, and so on.
 
 ## Components Attributes
 
@@ -30,7 +29,7 @@ $demo_hello_world_2
 
 ## Multiple Input and Output Components
 
-Suppose you had a more complex function, with multiple outputs as well. In the example below, we define a function that takes a string, boolean, and number, and returns a string and number. 
+Suppose you had a more complex function, with multiple outputs as well. In the example below, we define a function that takes a string, boolean, and number, and returns a string and number.
 
 $code_hello_world_3
 $demo_hello_world_3
@@ -44,7 +43,7 @@ Gradio supports many types of components, such as `Image`, `DataFrame`, `Video`,
 $code_sepia_filter
 $demo_sepia_filter
 
-When using the `Image` component as input, your function will receive a NumPy array with the shape `(height, width, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a NumPy array. 
+When using the `Image` component as input, your function will receive a NumPy array with the shape `(height, width, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a NumPy array.
 
 Gradio handles the preprocessing and postprocessing to convert images to NumPy arrays and vice versa. You can also control the preprocessing performed with the `type=` keyword argument. For example, if you wanted your function to take a file path to an image instead of a NumPy array, the input `Image` component could be written as:
 
@@ -93,4 +92,3 @@ Here's an example:
 
 $code_interface_with_additional_inputs
 $demo_interface_with_additional_inputs
-

@@ -2,7 +2,7 @@ import * as svelte from "svelte";
 const is_browser = typeof window !== "undefined";
 if (is_browser) {
 	const o = {
-		SvelteComponent: svelte.SvelteComponent
+		SvelteComponent: svelte.SvelteComponent,
 	};
 	for (const key in svelte) {
 		if (key === "SvelteComponent") continue;

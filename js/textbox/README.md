@@ -2,11 +2,12 @@
 
 ```html
 <script>
-    import { BaseTextbox, BaseExample } from "@gradio/textbox";
+	import { BaseTextbox, BaseExample } from "@gradio/textbox";
 </script>
 ```
 
 BaseTextbox
+
 ```javascript
 	export let value = "";
 	export let value_is_output = false;
@@ -28,6 +29,7 @@ BaseTextbox
 ```
 
 BaseExample
+
 ```javascript
 	export let value: string;
 	export let type: "gallery" | "table";

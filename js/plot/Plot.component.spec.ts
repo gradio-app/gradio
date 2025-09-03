@@ -11,12 +11,12 @@ const loading_status: LoadingStatus = {
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0,
-	show_progress: "full"
+	show_progress: "full",
 };
 
 test("gr.Plot triggers load and change events correctly", async ({ mount }) => {
 	const events = {
-		change: 0
+		change: 0,
 	};
 
 	function event(name: "change") {
@@ -38,15 +38,15 @@ test("gr.Plot triggers load and change events correctly", async ({ mount }) => {
 			gradio: {
 				dispatch: event,
 				i18n: (x: string) => x,
-				autoscroll: "false"
-			}
-		}
+				autoscroll: "false",
+			},
+		},
 	});
 
 	await component.update({
 		props: {
-			value: { plot: "fooo", type: "matplotlib" }
-		}
+			value: { plot: "fooo", type: "matplotlib" },
+		},
 	});
 
 	expect(events.change).toEqual(1);

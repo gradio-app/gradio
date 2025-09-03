@@ -5,6 +5,5 @@
 	import { Sidebar } from "@gradio/sidebar";
 </script>
 
-<Sidebar>
-</Sidebar>	
+<Sidebar> </Sidebar>
 ```

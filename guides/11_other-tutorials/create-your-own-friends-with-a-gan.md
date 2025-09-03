@@ -111,7 +111,6 @@ gr.Interface(
 ).launch()
 ```
 
-
 ## Step 4 — Even more punks!
 
 Generating 4 punks at a time is a good start, but maybe we'd like to control how many we want to make each time. Adding more inputs to our Gradio interface is as simple as adding another item to the `inputs` list that we pass to `gr.Interface`:

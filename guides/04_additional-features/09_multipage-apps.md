@@ -13,7 +13,7 @@ with demo.route("Test", "/test"):
 demo.launch()
 ```
 
-This allows you to define links to separate pages, each with a separate URL, which are  linked to the top of the Gradio app in an automatically-generated navbar. 
+This allows you to define links to separate pages, each with a separate URL, which are linked to the top of the Gradio app in an automatically-generated navbar.
 
 Here's a complete example:
 
@@ -81,5 +81,3 @@ if __name__ == "__main__":
 ```
 
 This allows you to run each page as an independent Gradio app for testing, while also creating a single file `app.py` that serves as the entrypoint for the complete multipage app.
-
-

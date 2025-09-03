@@ -2,11 +2,12 @@
 
 ```html
 <script>
-    import {BaseModel3D, BaseModel3DUpload, BaseExample } from `@gradio/model3d`;
+	import {BaseModel3D, BaseModel3DUpload, BaseExample } from `@gradio/model3d`;
 </script>
 ```
 
 BaseModel3D
+
 ```javascript
 	export let value: FileData | null;
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
@@ -24,6 +25,7 @@ BaseModel3D
 ```
 
 BaseModel3DUpload
+
 ```javascript
 	export let value: null | FileData;
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
@@ -42,6 +44,7 @@ BaseModel3DUpload
 ```
 
 BaseExample
+
 ```javascript
 	export let value: string;
 	export let type: "gallery" | "table";

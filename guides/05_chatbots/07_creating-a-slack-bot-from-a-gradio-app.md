@@ -2,25 +2,25 @@
 
 Tags: CHAT, DEPLOY, SLACK
 
-You can make your Gradio app available as a Slack bot to let users in your Slack workspace interact with it directly. 
+You can make your Gradio app available as a Slack bot to let users in your Slack workspace interact with it directly.
 
 ## How does it work?
 
-The Slack bot will listen to messages mentioning it in channels. When it receives a message (which can include text as well as files), it will send it to your Gradio app via Gradio's built-in API. Your bot will reply with the response it receives from the API. 
+The Slack bot will listen to messages mentioning it in channels. When it receives a message (which can include text as well as files), it will send it to your Gradio app via Gradio's built-in API. Your bot will reply with the response it receives from the API.
 
-Because Gradio's API is very flexible, you can create Slack bots that support text, images, audio, streaming, chat history, and a wide variety of other features very easily. 
+Because Gradio's API is very flexible, you can create Slack bots that support text, images, audio, streaming, chat history, and a wide variety of other features very easily.
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/Screen%20Recording%202024-12-19%20at%203.30.00%E2%80%AFPM.gif)
 
 ## Prerequisites
 
-* Install the latest version of `gradio` and the `slack-bolt` library:
+- Install the latest version of `gradio` and the `slack-bolt` library:
 
 ```bash
 pip install --upgrade gradio slack-bolt~=1.0
 ```
 
-* Have a running Gradio app. This app can be running locally or on Hugging Face Spaces. In this example, we will be using the [Gradio Playground Space](https://huggingface.co/spaces/abidlabs/gradio-playground-bot), which takes in an image and/or text and generates the code to generate the corresponding Gradio app.
+- Have a running Gradio app. This app can be running locally or on Hugging Face Spaces. In this example, we will be using the [Gradio Playground Space](https://huggingface.co/spaces/abidlabs/gradio-playground-bot), which takes in an image and/or text and generates the code to generate the corresponding Gradio app.
 
 Now, we are ready to get started!
 
@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
 If that is working, we are ready to add Gradio-specific code. We will be using the [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) to query the Gradio Playground Space mentioned above. Here's the updated `bot.py` file:
 
-```python
+````python
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
@@ -84,7 +84,7 @@ def download_image(url, filename):
         f.write(response.content)
     return image_path
 
-def slackify_message(message):   
+def slackify_message(message):
     # Replace markdown links with slack format and remove code language specifier after triple backticks
     pattern = r'\[(.*?)\]\((.*?)\)'
     cleaned = re.sub(pattern, r'<\2|\1>', message)
@@ -97,7 +97,7 @@ def handle_app_mention_events(body, say):
     text = body["event"]["text"]
     bot_user_id = body["authorizations"][0]["user_id"]
     clean_message = text.replace(f"<@{bot_user_id}>", "").strip()
-    
+
     # Handle images if present
     files = []
     if "files" in body["event"]:
@@ -106,7 +106,7 @@ def handle_app_mention_events(body, say):
                 image_path = download_image(file["url_private_download"], file["name"])
                 files.append(handle_file(image_path))
                 break
-    
+
     # Submit to Gradio and send responses back to Slack
     for response in gradio_client.submit(
         message={"text": clean_message, "files": files},
@@ -117,12 +117,14 @@ def handle_app_mention_events(body, say):
 if __name__ == "__main__":
     handler = SocketModeHandler(app, SLACK_APP_TOKEN)
     handler.start()
-```
+````
+
 ### 3. Add the bot to your Slack Workplace
 
 Now, create a new channel or navigate to an existing channel in your Slack workspace where you want to use the bot. Click the "+" button next to "Channels" in your Slack sidebar and follow the prompts to create a new channel.
 
 Finally, invite your bot to the channel:
+
 1. In your new channel, type `/invite @YourBotName`
 2. Select your bot from the dropdown
 3. Click "Invite to Channel"
@@ -132,6 +134,7 @@ Finally, invite your bot to the channel:
 Now you can mention your bot in any channel it's in, optionally attach an image, and it will respond with generated Gradio app code!
 
 The bot will:
+
 1. Listen for mentions
 2. Process any attached images
 3. Send the text and images to your Gradio app

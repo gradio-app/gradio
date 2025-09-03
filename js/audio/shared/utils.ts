@@ -18,10 +18,10 @@ export const process_audio = async (
 	audioBuffer: AudioBuffer,
 	start?: number,
 	end?: number,
-	waveform_sample_rate?: number
+	waveform_sample_rate?: number,
 ): Promise<Uint8Array> => {
 	const audioContext = new AudioContext({
-		sampleRate: waveform_sample_rate || audioBuffer.sampleRate
+		sampleRate: waveform_sample_rate || audioBuffer.sampleRate,
 	});
 	const numberOfChannels = audioBuffer.numberOfChannels;
 	const sampleRate = waveform_sample_rate || audioBuffer.sampleRate;
@@ -38,7 +38,7 @@ export const process_audio = async (
 	const trimmedAudioBuffer = audioContext.createBuffer(
 		numberOfChannels,
 		trimmedLength,
-		sampleRate
+		sampleRate,
 	);
 
 	for (let channel = 0; channel < numberOfChannels; channel++) {
@@ -54,7 +54,7 @@ export const process_audio = async (
 
 export function loaded(
 	node: HTMLAudioElement,
-	{ autoplay }: LoadedParams = {}
+	{ autoplay }: LoadedParams = {},
 ): void {
 	async function handle_playback(): Promise<void> {
 		if (!autoplay) return;
@@ -70,7 +70,7 @@ export const skip_audio = (waveform: WaveSurfer, amount: number): void => {
 
 export const get_skip_rewind_amount = (
 	audio_duration: number,
-	skip_length?: number | null
+	skip_length?: number | null,
 ): number => {
 	if (!skip_length) {
 		skip_length = 5;

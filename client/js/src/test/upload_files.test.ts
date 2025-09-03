@@ -14,7 +14,7 @@ describe("upload_files", () => {
 		const root_url = "https://hmb-hello-world.hf.space";
 
 		const client = await Client.connect("hmb/hello_world", {
-			hf_token: "hf_token"
+			hf_token: "hf_token",
 		});
 
 		const files = [new Blob([], { type: "image/jpeg" })];
@@ -36,7 +36,7 @@ describe("upload_files", () => {
 		const files = [new Blob([""], { type: "text/plain" })];
 
 		await expect(client.upload_files(root_url, files)).rejects.toThrow(
-			"Connection errored out. Failed to fetch"
+			"Connection errored out. Failed to fetch",
 		);
 	});
 });

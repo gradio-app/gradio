@@ -8,11 +8,11 @@ Users will be able to use all of Gradio's existing functions, such as `gr.Blocks
 
 You will need to have:
 
-* Python 3.10+ (<a href="https://www.python.org/downloads/" target="_blank">install here</a>)
-* pip 21.3+ (`python -m pip install --upgrade pip`)
-* Node.js 20+ (<a href="https://nodejs.dev/en/download/package-manager/" target="_blank">install here</a>)
-* npm 9+ (<a href="https://docs.npmjs.com/downloading-and-installing-node-js-and-npm/" target="_blank">install here</a>)
-* Gradio 5+ (`pip install --upgrade gradio`)
+- Python 3.10+ (<a href="https://www.python.org/downloads/" target="_blank">install here</a>)
+- pip 21.3+ (`python -m pip install --upgrade pip`)
+- Node.js 20+ (<a href="https://nodejs.dev/en/download/package-manager/" target="_blank">install here</a>)
+- npm 9+ (<a href="https://docs.npmjs.com/downloading-and-installing-node-js-and-npm/" target="_blank">install here</a>)
+- Gradio 5+ (`pip install --upgrade gradio`)
 
 ## The Workflow
 
@@ -45,6 +45,7 @@ Tip: Run `gradio cc show` to get a list of available component templates.
 The `create` command will:
 
 1. Create a directory with your component's name in lowercase with the following structure:
+
 ```directory
 - backend/ <- The python code for your custom component
 - frontend/ <- The javascript code for your custom component
@@ -107,13 +108,11 @@ This will guide you through the following process:
 1. Upload your distribution files to PyPi. This makes it easier to upload the demo to Hugging Face spaces. Otherwise your package must be at a publicly available url. If you decide to upload to PyPi, you will need a PyPI username and password. You can get one [here](https://pypi.org/account/register/).
 2. Upload a demo of your component to hugging face spaces. This is also optional.
 
-
 Here is an example of what publishing looks like:
 
 <video autoplay muted loop>
   <source src="https://gradio-builds.s3.amazonaws.com/assets/text_with_attachments_publish.mov" type="video/mp4" />
 </video>
-
 
 ## Conclusion
 

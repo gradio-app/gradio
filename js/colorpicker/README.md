@@ -2,11 +2,12 @@
 
 ```html
 <script>
-    import { BaseColorPicker, BaseExample } from "@gradio/colorpicker";
+	import { BaseColorPicker, BaseExample } from "@gradio/colorpicker";
 </script>
 ```
 
 BaseColorPicker
+
 ```javascript
 	export let value = "#000000";
 	export let value_is_output = false;
@@ -17,6 +18,7 @@ BaseColorPicker
 ```
 
 BaseExample
+
 ```javascript
 	export let value: string;
 	export let type: "gallery" | "table";

@@ -38,7 +38,7 @@ export function search_pages_index(search_term: string) {
 				slug,
 				title: replace_text_with_marker(title, match),
 				content: get_matches(content, match),
-				type
+				type,
 			};
 		});
 }
@@ -47,7 +47,7 @@ function replace_text_with_marker(text: string, match: string) {
 	const regex = new RegExp(match, "gi");
 	return text.replaceAll(
 		regex,
-		(match) => `<span class='mark'>${match}</span>`
+		(match) => `<span class='mark'>${match}</span>`,
 	);
 }
 

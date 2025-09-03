@@ -28,7 +28,7 @@ const output_svelte_dir = join(
 	"templates",
 	"frontend",
 	"assets",
-	"svelte"
+	"svelte",
 );
 
 const plugins = [node({ preferBuiltins: true }), json(), cjs(), ts(), terser()];
@@ -39,19 +39,19 @@ export default [
 		output: {
 			minify: true,
 			file: join(output_svelte_dir, "svelte-submodules.js"),
-			format: "esm"
+			format: "esm",
 		},
 		onwarn,
-		plugins
+		plugins,
 	},
 	{
 		input: "src/svelte-internal.ts",
 		output: {
 			minify: true,
 			file: join(output_svelte_dir, "svelte.js"),
-			format: "esm"
+			format: "esm",
 		},
 		onwarn,
-		plugins
-	}
+		plugins,
+	},
 ];

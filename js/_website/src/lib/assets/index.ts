@@ -36,23 +36,23 @@ export const logos = [
 	{ img: unify, contrast: false, description: "UnifyID logo" },
 	{ img: humans, contrast: true, description: "Humanise AI logo" },
 	{ img: factmata, contrast: true, description: "Factmata logo" },
-	{ img: wns, contrast: true, description: "WNS logo" }
+	{ img: wns, contrast: true, description: "WNS logo" },
 ];
 
 export const twitter_pics = (
 	Object.entries(import.meta.glob("./twitter/**", { eager: true })) as [
 		string,
-		{ default: string }
+		{ default: string },
 	][]
 ).reduce(
 	(a, [k, mod]) => {
 		a[k.replace("./twitter/", "")] = mod.default;
 		return a;
 	},
-	{} as Record<string, string>
+	{} as Record<string, string>,
 );
 
 export const tweets = _tweets.map((x) => ({
 	...x,
-	profile_pic: twitter_pics[x.profile_pic]
+	profile_pic: twitter_pics[x.profile_pic],
 }));

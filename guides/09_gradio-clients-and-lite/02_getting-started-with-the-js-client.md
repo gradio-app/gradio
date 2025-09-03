@@ -14,7 +14,7 @@ Here's the entire code to do it:
 import { Client, handle_file } from "@gradio/client";
 
 const response = await fetch(
-	"https://github.com/audio-samples/audio-samples.github.io/raw/master/samples/wav/ted_speakers/SalmanKhan/sample-1.wav"
+  "https://github.com/audio-samples/audio-samples.github.io/raw/master/samples/wav/ted_speakers/SalmanKhan/sample-1.wav",
 );
 const audio_file = await response.blob();
 
@@ -45,26 +45,26 @@ For quick addition to your web project, you can use the jsDelivr CDN to load the
 
 ```html
 <script type="module">
-	import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
-	...
+  import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+  ...
 </script>
 ```
 
 Be sure to add this to the `<head>` of your HTML. This will install the latest version but we advise hardcoding the version in production. You can find all available versions [here](https://www.jsdelivr.com/package/npm/@gradio/client). This approach is ideal for experimental or prototying purposes, though has some limitations. A complete example would look like this:
 
 ```html
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+  <head>
     <script type="module">
-        import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
-        const client = await Client.connect("abidlabs/en2fr");
-        const result = await client.predict("/predict", {
-            text: "My name is Hannah"
-        });
-        console.log(result);
+      import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+      const client = await Client.connect("abidlabs/en2fr");
+      const result = await client.predict("/predict", {
+        text: "My name is Hannah",
+      });
+      console.log(result);
     </script>
-</head>
+  </head>
 </html>
 ```
 
@@ -85,7 +85,9 @@ You can also connect to private Spaces by passing in your HF token with the `hf_
 ```js
 import { Client } from "@gradio/client";
 
-const app = await Client.connect("abidlabs/my-private-space", { hf_token: "hf_..." })
+const app = await Client.connect("abidlabs/my-private-space", {
+  hf_token: "hf_...",
+});
 ```
 
 ## Duplicating a Space for private use
@@ -98,7 +100,7 @@ While you can use any public Space as an API, you may get rate limited by Huggin
 import { Client, handle_file } from "@gradio/client";
 
 const response = await fetch(
-	"https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+  "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
 );
 const audio_file = await response.blob();
 
@@ -114,9 +116,9 @@ If you have previously duplicated a Space, re-running `Client.duplicate` will _n
 import { Client } from "@gradio/client";
 
 const app = await Client.duplicate("abidlabs/whisper", {
-	hf_token: "hf_...",
-	timeout: 60,
-	hardware: "a10g-small"
+  hf_token: "hf_...",
+  timeout: 60,
+  hardware: "a10g-small",
 });
 ```
 
@@ -137,12 +139,8 @@ If the Gradio application you are connecting to [requires a username and passwor
 ```js
 import { Client } from "@gradio/client";
 
-Client.connect(
-  space_name,
-  { auth: [username, password] }
-)
+Client.connect(space_name, { auth: [username, password] });
 ```
-
 
 ## Inspecting the API endpoints
 
@@ -164,25 +162,25 @@ And we will see the following:
 
 ```json
 {
-	"named_endpoints": {
-		"/predict": {
-			"parameters": [
-				{
-					"label": "text",
-					"component": "Textbox",
-					"type": "string"
-				}
-			],
-			"returns": [
-				{
-					"label": "output",
-					"component": "Textbox",
-					"type": "string"
-				}
-			]
-		}
-	},
-	"unnamed_endpoints": {}
+  "named_endpoints": {
+    "/predict": {
+      "parameters": [
+        {
+          "label": "text",
+          "component": "Textbox",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        {
+          "label": "output",
+          "component": "Textbox",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "unnamed_endpoints": {}
 }
 ```
 
@@ -192,12 +190,11 @@ We should also provide the `api_name='/predict'` argument to the `predict()` met
 
 ## The "View API" Page
 
-As an alternative to running the `.view_api()` method, you can click on the "Use via API" link in the footer of the Gradio app, which shows us the same information, along with example usage. 
+As an alternative to running the `.view_api()` method, you can click on the "Use via API" link in the footer of the Gradio app, which shows us the same information, along with example usage.
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api.png)
 
 The View API page also includes an "API Recorder" that lets you interact with the Gradio UI normally and converts your interactions into the corresponding code to run with the JS Client.
-
 
 ## Making a prediction
 
@@ -225,7 +222,7 @@ For certain inputs, such as images, you should pass in a `Buffer`, `Blob` or `Fi
 import { Client, handle_file } from "@gradio/client";
 
 const response = await fetch(
-	"https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+  "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
 );
 const audio_file = await response.blob();
 
@@ -241,18 +238,18 @@ If the API you are working with can return results over time, or you wish to acc
 import { Client } from "@gradio/client";
 
 function log_result(payload) {
-	const {
-		data: [translation]
-	} = payload;
+  const {
+    data: [translation],
+  } = payload;
 
-	console.log(`The translated result is: ${translation}`);
+  console.log(`The translated result is: ${translation}`);
 }
 
 const app = await Client.connect("abidlabs/en2fr");
 const job = app.submit("/predict", ["Hello"]);
 
 for await (const message of job) {
-	log_result(message);
+  log_result(message);
 }
 ```
 
@@ -260,12 +257,11 @@ for await (const message of job) {
 
 The event interface also allows you to get the status of the running job by instantiating the client with the `events` options passing `status` and `data` as an array:
 
-
 ```ts
 import { Client } from "@gradio/client";
 
 const app = await Client.connect("abidlabs/en2fr", {
-	events: ["status", "data"]
+  events: ["status", "data"],
 });
 ```
 
@@ -277,20 +273,20 @@ This ensures that status messages are also reported to the client.
 import { Client } from "@gradio/client";
 
 function log_status(status) {
-	console.log(
-		`The current status for this job is: ${JSON.stringify(status, null, 2)}.`
-	);
+  console.log(
+    `The current status for this job is: ${JSON.stringify(status, null, 2)}.`,
+  );
 }
 
 const app = await Client.connect("abidlabs/en2fr", {
-	events: ["status", "data"]
+  events: ["status", "data"],
 });
 const job = app.submit("/predict", ["Hello"]);
 
 for await (const message of job) {
-	if (message.type === "status") {
-		log_status(message);
-	}
+  if (message.type === "status") {
+    log_status(message);
+  }
 }
 ```
 
@@ -322,7 +318,7 @@ const app = await Client.connect("gradio/count_generator");
 const job = app.submit(0, [9]);
 
 for await (const message of job) {
-	console.log(message.data);
+  console.log(message.data);
 }
 ```
 
@@ -337,10 +333,10 @@ const app = await Client.connect("gradio/count_generator");
 const job = app.submit(0, [9]);
 
 for await (const message of job) {
-	console.log(message.data);
+  console.log(message.data);
 }
 
 setTimeout(() => {
-	job.cancel();
+  job.cancel();
 }, 3000);
 ```

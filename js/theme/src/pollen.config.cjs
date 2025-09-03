@@ -7,12 +7,12 @@ module.exports = defineConfig((pollen) => {
 		modules: {
 			line: {
 				...pollen.line,
-				sm: "1.4"
+				sm: "1.4",
 			},
 			font: {
 				...pollen.font,
 				sans: `IBM Plex Sans, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"`,
-				mono: `IBM Plex Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`
+				mono: `IBM Plex Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`,
 			},
 			radius: {
 				...pollen.radius,
@@ -23,14 +23,14 @@ module.exports = defineConfig((pollen) => {
 				lg: "8px",
 				xl: "12px",
 				"2xl": "16px",
-				"3xl": "22px"
+				"3xl": "22px",
 			},
 			size: {
 				...pollen.size,
 				0.5: "2px",
 				1.5: "6px",
 				2.5: "10px",
-				"screen-h": "100vh"
+				"screen-h": "100vh",
 			},
 			color: {
 				...pollen.color,
@@ -111,8 +111,8 @@ module.exports = defineConfig((pollen) => {
 				"yellow-700": "#a16207",
 				"yellow-800": "#854d0e",
 				"yellow-900": "#713f12",
-				"yellow-950": "#633112"
-			}
-		}
+				"yellow-950": "#633112",
+			},
+		},
 	};
 });

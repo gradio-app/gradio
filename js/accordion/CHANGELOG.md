@@ -198,7 +198,7 @@
 
 ### Features
 
-- [#9875](https://github.com/gradio-app/gradio/pull/9875) [`8305ff8`](https://github.com/gradio-app/gradio/commit/8305ff8712183f27174cfb891548ad7cc1c67fed) - Adds `.expand()` and `.collapse()` events to `gr.Accordion`.  Thanks @abidlabs!
+- [#9875](https://github.com/gradio-app/gradio/pull/9875) [`8305ff8`](https://github.com/gradio-app/gradio/commit/8305ff8712183f27174cfb891548ad7cc1c67fed) - Adds `.expand()` and `.collapse()` events to `gr.Accordion`. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -299,7 +299,7 @@
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -312,7 +312,7 @@
 
 ### Features
 
-- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -375,7 +375,7 @@
 
 ### Fixes
 
-- [#8284](https://github.com/gradio-app/gradio/pull/8284) [`2d705bc`](https://github.com/gradio-app/gradio/commit/2d705bcf7475eb46822358fed21dc081a800a73d) - Add body color to `gr.Accordion`.  Thanks @hannahblair!
+- [#8284](https://github.com/gradio-app/gradio/pull/8284) [`2d705bc`](https://github.com/gradio-app/gradio/commit/2d705bcf7475eb46822358fed21dc081a800a73d) - Add body color to `gr.Accordion`. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -422,7 +422,7 @@
 
 ### Fixes
 
-- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -465,7 +465,7 @@
 
 ### Fixes
 
-- [#7564](https://github.com/gradio-app/gradio/pull/7564) [`5d1e8da`](https://github.com/gradio-app/gradio/commit/5d1e8dae5ac23f605c3b5f41dbe18751dff380a0) - batch UI updates on a per frame basis.  Thanks @pngwn!
+- [#7564](https://github.com/gradio-app/gradio/pull/7564) [`5d1e8da`](https://github.com/gradio-app/gradio/commit/5d1e8dae5ac23f605c3b5f41dbe18751dff380a0) - batch UI updates on a per frame basis. Thanks @pngwn!
 
 ## 0.3.4
 

@@ -2,7 +2,7 @@ import { test, expect } from "@self/tootils";
 
 test("test inputs", async ({ page, browser }) => {
 	const context = await browser.newContext({
-		permissions: ["camera"]
+		permissions: ["camera"],
 	});
 	context.grantPermissions(["camera"]);
 
@@ -45,7 +45,7 @@ test("test outputs", async ({ page }) => {
 
 	const label = await page.getByTestId("label");
 	await expect(label).toContainText(
-		`  Label positive  positive  74%  negative  26%  neutral  0%`
+		`  Label positive  positive  74%  negative  26%  neutral  0%`,
 	);
 
 	const highlight_text_color_map = await page
@@ -55,15 +55,15 @@ test("test outputs", async ({ page }) => {
 		.getByTestId("highlighted-text")
 		.nth(1);
 	await expect(highlight_text_color_map).toContainText(
-		"  HighlightedText  The art quick brown adj fox nn jumped vrb testing testing testing  over prp the art testing  lazy adj dogs nn . punc test 0 test 0 test 1 test 1 test 2 test 2 test 3 test 3 test 4 test 4 test 5 test 5 test 6 test 6 test 7 test 7 test 8 test 8 test 9 test 9"
+		"  HighlightedText  The art quick brown adj fox nn jumped vrb testing testing testing  over prp the art testing  lazy adj dogs nn . punc test 0 test 0 test 1 test 1 test 2 test 2 test 3 test 3 test 4 test 4 test 5 test 5 test 6 test 6 test 7 test 7 test 8 test 8 test 9 test 9",
 	);
 	await expect(highlight_text_legend).toContainText(
-		"The testing testing testing over the testing lazy dogs . test test test test test test test test test test test test test test test test test test test test"
+		"The testing testing testing over the testing lazy dogs . test test test test test test test test test test test test test test test test test test test test",
 	);
 
 	const json = await page.locator("data-testid=json");
 	await expect(json).toContainText(
-		`{     "items": {     "item": [     "0": { Object(6) }    "id": "0001" ,   "type": null ,   "is_good": false ,   "ppu": 0.55 ,   "batters": { Object(1) } ,   "batter": [ Array(4) ]    "0": { Object(2) } ,   "id": "1001" ,   "type": "Regular"    } ,  "1": { Object(2) } ,   "id": "1002" ,   "type": "Chocolate"    } ,  "2": { Object(2) } ,   "id": "1003" ,   "type": "Blueberry"    } ,  "3": { Object(2) }    "id": "1004" ,   "type": "Devil's Food"    }   ]   } ,  "topping": [ Array(7) ]    "0": { Object(2) } ,   "id": "5001" ,   "type": "None"    } ,  "1": { Object(2) } ,   "id": "5002" ,   "type": "Glazed"    } ,  "2": { Object(2) } ,   "id": "5005" ,   "type": "Sugar"    } ,  "3": { Object(2) } ,   "id": "5007" ,   "type": "Powdered Sugar"    } ,  "4": { Object(2) } ,   "id": "5006" ,   "type": "Chocolate with Sprinkles"    } ,  "5": { Object(2) } ,   "id": "5003" ,   "type": "Chocolate"    } ,  "6": { Object(2) }    "id": "5004" ,   "type": "Maple"    }   ]   }   ]   }   } `
+		`{     "items": {     "item": [     "0": { Object(6) }    "id": "0001" ,   "type": null ,   "is_good": false ,   "ppu": 0.55 ,   "batters": { Object(1) } ,   "batter": [ Array(4) ]    "0": { Object(2) } ,   "id": "1001" ,   "type": "Regular"    } ,  "1": { Object(2) } ,   "id": "1002" ,   "type": "Chocolate"    } ,  "2": { Object(2) } ,   "id": "1003" ,   "type": "Blueberry"    } ,  "3": { Object(2) }    "id": "1004" ,   "type": "Devil's Food"    }   ]   } ,  "topping": [ Array(7) ]    "0": { Object(2) } ,   "id": "5001" ,   "type": "None"    } ,  "1": { Object(2) } ,   "id": "5002" ,   "type": "Glazed"    } ,  "2": { Object(2) } ,   "id": "5005" ,   "type": "Sugar"    } ,  "3": { Object(2) } ,   "id": "5007" ,   "type": "Powdered Sugar"    } ,  "4": { Object(2) } ,   "id": "5006" ,   "type": "Chocolate with Sprinkles"    } ,  "5": { Object(2) } ,   "id": "5003" ,   "type": "Chocolate"    } ,  "6": { Object(2) }    "id": "5004" ,   "type": "Maple"    }   ]   }   ]   }   } `,
 	);
 
 	const image = page.locator("#output-img img");

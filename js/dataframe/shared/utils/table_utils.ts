@@ -30,7 +30,7 @@ export function sort_table_data(
 	data: TableData,
 	display_value: string[][] | null,
 	styling: string[][] | null,
-	sort_columns: { col: number; direction: SortDirection }[]
+	sort_columns: { col: number; direction: SortDirection }[],
 ): void {
 	if (!sort_columns.length) return;
 	if (!data || !data.length) return;
@@ -63,7 +63,7 @@ export function filter_table_data(
 	}[],
 	original_data?: TableData,
 	original_display_value?: string[][] | null,
-	original_styling?: string[][] | null
+	original_styling?: string[][] | null,
 ): void {
 	const base_data = original_data ?? data;
 	const base_display_value = original_display_value ?? display_value;
@@ -75,7 +75,7 @@ export function filter_table_data(
 			display_value.splice(
 				0,
 				display_value.length,
-				...base_display_value.map((row) => [...row])
+				...base_display_value.map((row) => [...row]),
 			);
 		}
 		if (styling && base_styling) {
@@ -103,7 +103,7 @@ export function filter_table_data(
 
 export async function copy_table_data(
 	data: TableData,
-	selected_cells: [number, number][] | null
+	selected_cells: [number, number][] | null,
 ): Promise<void> {
 	if (!data || !data.length) return;
 
@@ -121,7 +121,7 @@ export async function copy_table_data(
 					: value;
 			return acc;
 		},
-		{}
+		{},
 	);
 
 	const rows = Object.keys(csv).sort((a, b) => +a - +b);
@@ -142,7 +142,7 @@ export async function copy_table_data(
 // File Import/Export
 export function guess_delimiter(
 	text: string,
-	possibleDelimiters: string[]
+	possibleDelimiters: string[],
 ): string[] {
 	return possibleDelimiters.filter(weedOut);
 
@@ -173,7 +173,7 @@ export function data_uri_to_blob(data_uri: string): Blob {
 export function handle_file_upload(
 	data_uri: string,
 	update_headers: (headers: Headers) => HeadersWithIDs[],
-	update_values: (values: (string | number)[][]) => void
+	update_values: (values: (string | number)[][]) => void,
 ): void {
 	const blob = data_uri_to_blob(data_uri);
 	const reader = new FileReader();

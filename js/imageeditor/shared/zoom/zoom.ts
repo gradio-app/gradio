@@ -1,7 +1,7 @@
 import {
 	Point,
 	type FederatedWheelEvent,
-	type FederatedPointerEvent
+	type FederatedPointerEvent,
 } from "pixi.js";
 import { type ImageEditorContext, type Tool } from "../core/editor";
 import { type Tool as ToolbarTool, type Subtool } from "../Toolbar.svelte";
@@ -32,7 +32,7 @@ export class ZoomTool implements Tool {
 	private local_scale = 1;
 	private local_dimensions: { width: number; height: number } = {
 		width: 0,
-		height: 0
+		height: 0,
 	};
 	private local_position: { x: number; y: number } = { x: 0, y: 0 };
 
@@ -41,7 +41,7 @@ export class ZoomTool implements Tool {
 	 * @param {FederatedWheelEvent | FederatedPointerEvent} event - The event to prevent default behavior for
 	 */
 	prevent_default(
-		event: FederatedWheelEvent | FederatedPointerEvent | WheelEvent
+		event: FederatedWheelEvent | FederatedPointerEvent | WheelEvent,
 	): void {
 		event.preventDefault();
 		event.stopPropagation();
@@ -65,7 +65,7 @@ export class ZoomTool implements Tool {
 	set_zoom(zoom_level: number | "fit"): void {
 		const fit_zoom = this.calculate_min_zoom(
 			this.local_dimensions.width,
-			this.local_dimensions.height
+			this.local_dimensions.height,
 		);
 
 		let target_zoom: number;
@@ -84,7 +84,7 @@ export class ZoomTool implements Tool {
 
 		center_point = {
 			x: canvas_width / 2,
-			y: canvas_height / 2
+			y: canvas_height / 2,
 		};
 
 		this.zoom_to_point(target_zoom, center_point, true, is_fit_zoom);
@@ -100,7 +100,7 @@ export class ZoomTool implements Tool {
 	async setup(
 		context: ImageEditorContext,
 		tool: ToolbarTool,
-		subtool: Subtool
+		subtool: Subtool,
 	): Promise<void> {
 		this.image_editor_context = context;
 		this.current_tool = tool;
@@ -128,7 +128,7 @@ export class ZoomTool implements Tool {
 
 		await this.image_editor_context.set_image_properties({
 			scale: min_zoom,
-			position: { x: initial_x, y: initial_y }
+			position: { x: initial_x, y: initial_y },
 		});
 
 		this.image_editor_context.dimensions.subscribe((dimensions) => {
@@ -163,29 +163,29 @@ export class ZoomTool implements Tool {
 		if ("ontouchstart" in window) {
 			stage.addEventListener(
 				"touchstart",
-				this.handle_touch_start.bind(this) as EventListener
+				this.handle_touch_start.bind(this) as EventListener,
 			);
 			stage.addEventListener(
 				"touchmove",
-				this.handle_touch_move.bind(this) as EventListener
+				this.handle_touch_move.bind(this) as EventListener,
 			);
 			stage.addEventListener(
 				"touchend",
-				this.handle_touch_end.bind(this) as EventListener
+				this.handle_touch_end.bind(this) as EventListener,
 			);
 		} else {
 			stage.addEventListener(
 				"pointerdown",
-				this.handle_pointer_down.bind(this)
+				this.handle_pointer_down.bind(this),
 			);
 			stage.addEventListener(
 				"pointermove",
-				this.handle_pointer_move.bind(this)
+				this.handle_pointer_move.bind(this),
 			);
 			stage.addEventListener("pointerup", this.handle_pointer_up.bind(this));
 			stage.addEventListener(
 				"pointerupoutside",
-				this.handle_pointer_up.bind(this)
+				this.handle_pointer_up.bind(this),
 			);
 		}
 	}
@@ -201,7 +201,7 @@ export class ZoomTool implements Tool {
 
 		if (event.altKey || event.metaKey) {
 			const local_point = this.image_editor_context.app.stage.toLocal(
-				event.global
+				event.global,
 			);
 			const zoom_delta = -event.deltaY * (is_trackpad ? 0.001 : 0.0005);
 			const new_scale = this.local_scale * (1 + zoom_delta);
@@ -211,7 +211,7 @@ export class ZoomTool implements Tool {
 			const delta_y = event.deltaY;
 			const raw_position = {
 				x: this.local_position.x - (delta_x / 100) * scroll_speed,
-				y: this.local_position.y - (delta_y / 100) * scroll_speed
+				y: this.local_position.y - (delta_y / 100) * scroll_speed,
 			};
 
 			const canvas = this.image_editor_context.app.screen;
@@ -231,7 +231,7 @@ export class ZoomTool implements Tool {
 				const right_bound = canvas.width - max_offset - scaled_width;
 				final_position.x = Math.min(
 					Math.max(raw_position.x, right_bound),
-					left_bound
+					left_bound,
 				);
 			}
 
@@ -245,13 +245,13 @@ export class ZoomTool implements Tool {
 					canvas.height - this.pad_bottom - max_offset - scaled_height;
 				final_position.y = Math.min(
 					Math.max(raw_position.y, bottom_bound),
-					top_bound
+					top_bound,
 				);
 			}
 
 			this.image_editor_context.set_image_properties({
 				scale: this.local_scale,
-				position: final_position
+				position: final_position,
 			});
 		}
 	}
@@ -267,29 +267,29 @@ export class ZoomTool implements Tool {
 		if ("ontouchstart" in window) {
 			stage.removeEventListener(
 				"touchstart",
-				this.handle_touch_start.bind(this) as EventListener
+				this.handle_touch_start.bind(this) as EventListener,
 			);
 			stage.removeEventListener(
 				"touchmove",
-				this.handle_touch_move.bind(this) as EventListener
+				this.handle_touch_move.bind(this) as EventListener,
 			);
 			stage.removeEventListener(
 				"touchend",
-				this.handle_touch_end.bind(this) as EventListener
+				this.handle_touch_end.bind(this) as EventListener,
 			);
 		} else {
 			stage.removeEventListener(
 				"pointerdown",
-				this.handle_pointer_down.bind(this)
+				this.handle_pointer_down.bind(this),
 			);
 			stage.removeEventListener(
 				"pointermove",
-				this.handle_pointer_move.bind(this)
+				this.handle_pointer_move.bind(this),
 			);
 			stage.removeEventListener("pointerup", this.handle_pointer_up.bind(this));
 			stage.removeEventListener(
 				"pointerupoutside",
-				this.handle_pointer_up.bind(this)
+				this.handle_pointer_up.bind(this),
 			);
 		}
 	}
@@ -306,7 +306,7 @@ export class ZoomTool implements Tool {
 		const bounds = this.image_editor_context.image_container.getLocalBounds();
 		return {
 			width: bounds.width,
-			height: bounds.height
+			height: bounds.height,
 		};
 	}
 
@@ -319,7 +319,7 @@ export class ZoomTool implements Tool {
 	 */
 	private calculate_min_zoom(
 		container_width: number,
-		container_height: number
+		container_height: number,
 	): number {
 		const canvas = this.image_editor_context.app.screen;
 		const viewport_width = canvas.width;
@@ -358,14 +358,14 @@ export class ZoomTool implements Tool {
 			this.is_pinching = true;
 			this.last_pinch_distance = Math.hypot(
 				touchEvent.touches[0].pageX - touchEvent.touches[1].pageX,
-				touchEvent.touches[0].pageY - touchEvent.touches[1].pageY
+				touchEvent.touches[0].pageY - touchEvent.touches[1].pageY,
 			);
 		} else if (touchEvent.touches && touchEvent.touches.length === 1) {
 			this.is_dragging = true;
 			const rect = this.image_editor_context.app.view.getBoundingClientRect();
 			this.last_touch_position = new Point(
 				touchEvent.touches[0].pageX - rect.left,
-				touchEvent.touches[0].pageY - rect.top
+				touchEvent.touches[0].pageY - rect.top,
 			);
 		}
 	}
@@ -388,7 +388,7 @@ export class ZoomTool implements Tool {
 			const rect = this.image_editor_context.app.view.getBoundingClientRect();
 			const current_distance = Math.hypot(
 				touchEvent.touches[0].pageX - touchEvent.touches[1].pageX,
-				touchEvent.touches[0].pageY - touchEvent.touches[1].pageY
+				touchEvent.touches[0].pageY - touchEvent.touches[1].pageY,
 			);
 
 			const pinch_center = {
@@ -397,7 +397,7 @@ export class ZoomTool implements Tool {
 					rect.left,
 				y:
 					(touchEvent.touches[0].pageY + touchEvent.touches[1].pageY) / 2 -
-					rect.top
+					rect.top,
 			};
 
 			const scale_val = current_distance / this.last_pinch_distance;
@@ -413,7 +413,7 @@ export class ZoomTool implements Tool {
 			const rect = this.image_editor_context.app.view.getBoundingClientRect();
 			const current_position = new Point(
 				touchEvent.touches[0].pageX - rect.left,
-				touchEvent.touches[0].pageY - rect.top
+				touchEvent.touches[0].pageY - rect.top,
 			);
 
 			const dx = current_position.x - this.last_touch_position.x;
@@ -422,8 +422,8 @@ export class ZoomTool implements Tool {
 			this.image_editor_context.set_image_properties({
 				position: {
 					x: this.local_position.x + dx,
-					y: this.local_position.y + dy
-				}
+					y: this.local_position.y + dy,
+				},
 			});
 
 			this.last_touch_position = current_position;
@@ -446,7 +446,7 @@ export class ZoomTool implements Tool {
 				const rect = this.image_editor_context.app.view.getBoundingClientRect();
 				this.last_touch_position = new Point(
 					touchEvent.touches[0].pageX - rect.left,
-					touchEvent.touches[0].pageY - rect.top
+					touchEvent.touches[0].pageY - rect.top,
 				);
 				this.is_dragging = true;
 			}
@@ -476,7 +476,7 @@ export class ZoomTool implements Tool {
 
 		const center_position = {
 			x: (canvas.width - scaled_width) / 2,
-			y: (canvas.height - scaled_height - this.pad_bottom) / 2
+			y: (canvas.height - scaled_height - this.pad_bottom) / 2,
 		};
 
 		if (scaled_width <= canvas.width && scaled_height <= canvas.height) {
@@ -519,7 +519,7 @@ export class ZoomTool implements Tool {
 		new_zoom: number,
 		point: { x: number; y: number },
 		hard?: boolean,
-		is_fit_zoom?: boolean
+		is_fit_zoom?: boolean,
 	): void {
 		const container = this.image_editor_context.image_container;
 		const current_world_pos = container.getGlobalPosition();
@@ -527,19 +527,19 @@ export class ZoomTool implements Tool {
 
 		const cursor_image_pixel = {
 			x: (point.x - current_world_pos.x) / current_scale,
-			y: (point.y - current_world_pos.y) / current_scale
+			y: (point.y - current_world_pos.y) / current_scale,
 		};
 
 		const fit_zoom = this.calculate_min_zoom(
 			this.local_dimensions.width,
-			this.local_dimensions.height
+			this.local_dimensions.height,
 		);
 		const min_zoom = Math.min(fit_zoom, 1);
 		new_zoom = Math.min(Math.max(new_zoom, min_zoom), this.max_zoom);
 
 		const new_container_world_pos = {
 			x: point.x - cursor_image_pixel.x * new_zoom,
-			y: point.y - cursor_image_pixel.y * new_zoom
+			y: point.y - cursor_image_pixel.y * new_zoom,
 		};
 
 		if (new_zoom === min_zoom || is_fit_zoom) {
@@ -556,7 +556,7 @@ export class ZoomTool implements Tool {
 		this.image_editor_context.set_image_properties({
 			scale: new_zoom,
 			position: new_container_world_pos,
-			animate: typeof hard === "boolean" ? !hard : new_zoom === min_zoom
+			animate: typeof hard === "boolean" ? !hard : new_zoom === min_zoom,
 		});
 		this.min_zoom.set(new_zoom === min_zoom);
 	}
@@ -584,7 +584,7 @@ export class ZoomTool implements Tool {
 		if (this.is_pointer_dragging && this.current_tool === "pan") {
 			const raw_position = {
 				x: event.global.x - this.drag_start.x,
-				y: event.global.y - this.drag_start.y
+				y: event.global.y - this.drag_start.y,
 			};
 
 			const canvas = this.image_editor_context.app.screen;
@@ -611,7 +611,7 @@ export class ZoomTool implements Tool {
 
 			this.image_editor_context.set_image_properties({
 				scale: this.local_scale,
-				position: final_position
+				position: final_position,
 			});
 		}
 	}
@@ -627,7 +627,7 @@ export class ZoomTool implements Tool {
 
 			const raw_position = {
 				x: event.global.x - this.drag_start.x,
-				y: event.global.y - this.drag_start.y
+				y: event.global.y - this.drag_start.y,
 			};
 
 			const canvas = this.image_editor_context.app.screen;
@@ -647,7 +647,7 @@ export class ZoomTool implements Tool {
 				const right_bound = canvas.width - max_offset - scaled_width;
 				final_position.x = Math.min(
 					Math.max(raw_position.x, right_bound),
-					left_bound
+					left_bound,
 				);
 			}
 
@@ -661,14 +661,14 @@ export class ZoomTool implements Tool {
 					canvas.height - this.pad_bottom - max_offset - scaled_height;
 				final_position.y = Math.min(
 					Math.max(raw_position.y, bottom_bound),
-					top_bound
+					top_bound,
 				);
 			}
 
 			this.image_editor_context.set_image_properties({
 				scale: this.local_scale,
 				position: final_position,
-				animate: true
+				animate: true,
 			});
 		}
 	}

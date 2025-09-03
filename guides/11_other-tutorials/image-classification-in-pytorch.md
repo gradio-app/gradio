@@ -81,7 +81,6 @@ This produces the following interface, which you can try right here in your brow
 
 <gradio-app space="gradio/pytorch-image-classifier">
 
-
 ---
 
 And you're done! That's all the code you need to build a web demo for an image classifier. If you'd like to share with others, try setting `share=True` when you `launch()` the Interface!

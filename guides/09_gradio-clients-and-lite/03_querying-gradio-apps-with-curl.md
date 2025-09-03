@@ -12,10 +12,10 @@ Here's the code to do it:
 
 ```bash
 $ curl -X POST https://abidlabs-en2fr.hf.space/call/predict -H "Content-Type: application/json" -d '{
-  "data": ["Hello, my friend."] 
+  "data": ["Hello, my friend."]
 }'
 
->> {"event_id": $EVENT_ID}   
+>> {"event_id": $EVENT_ID}
 ```
 
 ```bash
@@ -25,12 +25,11 @@ $ curl -N https://abidlabs-en2fr.hf.space/call/predict/$EVENT_ID
 >> data: ["Bonjour, mon ami."]
 ```
 
-
-Note: making a prediction and getting a result requires two `curl` requests: a `POST` and a `GET`. The `POST` request returns an `EVENT_ID` and prints  it to the console, which is used in the second `GET` request to fetch the results. You can combine these into a single command using `awk` and `read` to parse the results of the first command and pipe into the second, like this:
+Note: making a prediction and getting a result requires two `curl` requests: a `POST` and a `GET`. The `POST` request returns an `EVENT_ID` and prints it to the console, which is used in the second `GET` request to fetch the results. You can combine these into a single command using `awk` and `read` to parse the results of the first command and pipe into the second, like this:
 
 ```bash
 $ curl -X POST https://abidlabs-en2fr.hf.space/call/predict -H "Content-Type: application/json" -d '{
-  "data": ["Hello, my friend."] 
+  "data": ["Hello, my friend."]
 }' \
   | awk -F'"' '{ print $4}'  \
   | read EVENT_ID; curl -N https://abidlabs-en2fr.hf.space/call/predict/$EVENT_ID
@@ -40,7 +39,6 @@ $ curl -X POST https://abidlabs-en2fr.hf.space/call/predict -H "Content-Type: ap
 ```
 
 In the rest of this Guide, we'll explain these two steps in more detail and provide additional examples of querying Gradio apps with `curl`.
-
 
 **Prerequisites**: For this Guide, you do _not_ need to know how to build Gradio apps in great detail. However, it is helpful to have general familiarity with Gradio's concepts of input and output components.
 
@@ -52,13 +50,11 @@ You generally don't need to install cURL, as it comes pre-installed on many oper
 curl --version
 ```
 
-to confirm that `curl` is installed. If it is not already installed, you can install it by visiting https://curl.se/download.html. 
+to confirm that `curl` is installed. If it is not already installed, you can install it by visiting https://curl.se/download.html.
 
-
-## Step 0: Get the URL for your Gradio App 
+## Step 0: Get the URL for your Gradio App
 
 To query a Gradio app, you'll need its full URL. This is usually just the URL that the Gradio app is hosted on, for example: https://bec81a83-5b5c-471e.gradio.live
-
 
 **Hugging Face Spaces**
 
@@ -84,7 +80,7 @@ Now, we are ready to make the two `curl` requests.
 
 ## Step 1: Make a Prediction (POST)
 
-The first of the two `curl` requests is `POST` request that submits the input payload to the Gradio app. 
+The first of the two `curl` requests is `POST` request that submits the input payload to the Gradio app.
 
 The syntax of the `POST` request is as follows:
 
@@ -96,17 +92,17 @@ $ curl -X POST $URL/call/$API_NAME -H "Content-Type: application/json" -d '{
 
 Here:
 
-* `$URL` is the URL of the Gradio app as obtained in Step 0
-* `$API_NAME` is the name of the API endpoint for the event that you are running. You can get the API endpoint names by clicking the "view API" link at the bottom of the page.
-*  `$PAYLOAD` is a valid JSON data list containing the input payload, one element for each input component.
+- `$URL` is the URL of the Gradio app as obtained in Step 0
+- `$API_NAME` is the name of the API endpoint for the event that you are running. You can get the API endpoint names by clicking the "view API" link at the bottom of the page.
+- `$PAYLOAD` is a valid JSON data list containing the input payload, one element for each input component.
 
 When you make this `POST` request successfully, you will get an event id that is printed to the terminal in this format:
 
 ```bash
->> {"event_id": $EVENT_ID}   
+>> {"event_id": $EVENT_ID}
 ```
 
-This `EVENT_ID` will be needed in the subsequent `curl` request to fetch the results of the prediction. 
+This `EVENT_ID` will be needed in the subsequent `curl` request to fetch the results of the prediction.
 
 Here are some examples of how to make the `POST` request
 
@@ -116,7 +112,7 @@ Revisiting the example at the beginning of the page, here is how to make the `PO
 
 ```bash
 $ curl -X POST https://abidlabs-en2fr.hf.space/call/predict -H "Content-Type: application/json" -d '{
-  "data": ["Hello, my friend."] 
+  "data": ["Hello, my friend."]
 }'
 ```
 
@@ -136,13 +132,13 @@ As mentioned earlier, if you are making a request to a private Space, you will n
 
 ```bash
 $ curl -X POST https://private-space.hf.space/call/predict -H "Content-Type: application/json" -H "Authorization: Bearer $HF_TOKEN" -d '{
-  "data": ["Hello, my friend."] 
+  "data": ["Hello, my friend."]
 }'
 ```
 
 **Files**
 
-If you are using `curl` to query a Gradio application that requires file inputs, the files *need* to be provided as URLs, and The URL needs to be enclosed in a dictionary in this format:
+If you are using `curl` to query a Gradio application that requires file inputs, the files _need_ to be provided as URLs, and The URL needs to be enclosed in a dictionary in this format:
 
 ```bash
 {"path": $URL}
@@ -152,10 +148,9 @@ Here is an example `POST` request:
 
 ```bash
 $ curl -X POST https://gradio-image-mod.hf.space/call/predict -H "Content-Type: application/json" -d '{
-  "data": [{"path": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"}] 
+  "data": [{"path": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"}]
 }'
 ```
-
 
 **Stateful Demos**
 
@@ -182,11 +177,9 @@ curl -X POST https://gradio-chatinterface-random-response.hf.space/call/chat -H 
 }'
 ```
 
-
-
 ## Step 2: GET the result
 
-Once you have received the `EVENT_ID` corresponding to your prediction, you can stream the results. Gradio stores these results  in a least-recently-used cache in the Gradio app. By default, the cache can store 2,000 results (across all users and endpoints of the app). 
+Once you have received the `EVENT_ID` corresponding to your prediction, you can stream the results. Gradio stores these results in a least-recently-used cache in the Gradio app. By default, the cache can store 2,000 results (across all users and endpoints of the app).
 
 To stream the results for your prediction, make a `GET` request with the following syntax:
 
@@ -194,24 +187,24 @@ To stream the results for your prediction, make a `GET` request with the followi
 $ curl -N $URL/call/$API_NAME/$EVENT_ID
 ```
 
-
 Tip: If you are fetching results from a private Space, include a header with your HF token like this: `-H "Authorization: Bearer $HF_TOKEN"` in the `GET` request.
 
 This should produce a stream of responses in this format:
 
 ```bash
-event: ... 
+event: ...
 data: ...
-event: ... 
+event: ...
 data: ...
 ...
 ```
 
 Here: `event` can be one of the following:
-* `generating`: indicating an intermediate result
-* `complete`: indicating that the prediction is complete and the final result 
-* `error`: indicating that the prediction was not completed successfully
-* `heartbeat`: sent every 15 seconds to keep the request alive
+
+- `generating`: indicating an intermediate result
+- `complete`: indicating that the prediction is complete and the final result
+- `error`: indicating that the prediction was not completed successfully
+- `heartbeat`: sent every 15 seconds to keep the request alive
 
 The `data` is in the same format as the input payload: valid JSON data list containing the output result, one element for each output component.
 

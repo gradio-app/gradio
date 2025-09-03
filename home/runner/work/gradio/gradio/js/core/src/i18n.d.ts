@@ -1,6 +1,9 @@
-type LangsRecord = Record<string, {
+type LangsRecord = Record<
+  string,
+  {
     [key: string]: any;
-}>;
+  }
+>;
 export declare function process_langs(): LangsRecord;
 export declare const language_choices: [string, string][];
 export declare let all_common_keys: Set<string>;

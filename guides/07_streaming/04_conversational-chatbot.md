@@ -50,6 +50,7 @@ def process_audio(audio: tuple, state: AppState):
 ```
 
 This function takes two inputs:
+
 1. The current audio chunk (a tuple of `(sampling_rate, numpy array of audio)`)
 2. The current application state
 
@@ -83,7 +84,7 @@ from pydub import AudioSegment
 def response(state: AppState):
     if not state.pause_detected and not state.started_talking:
         return None, AppState()
-    
+
     audio_buffer = io.BytesIO()
 
     segment = AudioSegment(
@@ -96,11 +97,11 @@ def response(state: AppState):
 
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
         f.write(audio_buffer.getvalue())
-    
+
     state.conversation.append({"role": "user",
                                 "content": {"path": f.name,
                                 "mime_type": "audio/wav"}})
-    
+
     output_buffer = b""
 
     for mp3_bytes in speaking(audio_buffer.getvalue()):
@@ -109,7 +110,7 @@ def response(state: AppState):
 
     with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as f:
         f.write(output_buffer)
-    
+
     state.conversation.append({"role": "assistant",
                     "content": {"path": f.name,
                                 "mime_type": "audio/mp3"}})
@@ -117,6 +118,7 @@ def response(state: AppState):
 ```
 
 This function:
+
 1. Converts the user's audio to a WAV file
 2. Adds the user's message to the conversation history
 3. Generates and streams the chatbot's response using the `speaking` function
@@ -175,6 +177,7 @@ if __name__ == "__main__":
 ```
 
 This setup creates a user interface with:
+
 - An input audio component for recording user messages
 - A chatbot component to display the conversation history
 - An output audio component for the chatbot's responses

@@ -191,7 +191,7 @@
 
 ### Features
 
-- [#10132](https://github.com/gradio-app/gradio/pull/10132) [`6645518`](https://github.com/gradio-app/gradio/commit/6645518a66e01ebcd2746626a4e2a14239172e76) - Tweak Chatbot `bubble_full_width` behaviour.  Thanks @hannahblair!
+- [#10132](https://github.com/gradio-app/gradio/pull/10132) [`6645518`](https://github.com/gradio-app/gradio/commit/6645518a66e01ebcd2746626a4e2a14239172e76) - Tweak Chatbot `bubble_full_width` behaviour. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -213,7 +213,7 @@
 
 ### Features
 
-- [#9950](https://github.com/gradio-app/gradio/pull/9950) [`fc06fe4`](https://github.com/gradio-app/gradio/commit/fc06fe41f015678a0545f4e5c99f6ae2704f0031) - Add ability to read and write from LocalStorage.  Thanks @abidlabs!
+- [#9950](https://github.com/gradio-app/gradio/pull/9950) [`fc06fe4`](https://github.com/gradio-app/gradio/commit/fc06fe41f015678a0545f4e5c99f6ae2704f0031) - Add ability to read and write from LocalStorage. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -229,7 +229,7 @@
 
 ### Features
 
-- [#9794](https://github.com/gradio-app/gradio/pull/9794) [`70bda3b`](https://github.com/gradio-app/gradio/commit/70bda3bb187a7219f4707344cf47edd0a021da19) - fix storybook build.  Thanks @pngwn!
+- [#9794](https://github.com/gradio-app/gradio/pull/9794) [`70bda3b`](https://github.com/gradio-app/gradio/commit/70bda3bb187a7219f4707344cf47edd0a021da19) - fix storybook build. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -313,7 +313,7 @@
 
 ### Features
 
-- [#9311](https://github.com/gradio-app/gradio/pull/9311) [`c4afdcd`](https://github.com/gradio-app/gradio/commit/c4afdcdb1f1f80c5f95ab45d527236e9364ace82) - Added max lines and overflow scrollbar for `gr.Code`.  Thanks @micpst!
+- [#9311](https://github.com/gradio-app/gradio/pull/9311) [`c4afdcd`](https://github.com/gradio-app/gradio/commit/c4afdcdb1f1f80c5f95ab45d527236e9364ace82) - Added max lines and overflow scrollbar for `gr.Code`. Thanks @micpst!
 
 ### Dependency updates
 
@@ -324,8 +324,8 @@
 
 ### Features
 
-- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
-- [#9204](https://github.com/gradio-app/gradio/pull/9204) [`3c73f00`](https://github.com/gradio-app/gradio/commit/3c73f00e3016b16917ebfe0bad390f2dff683457) - 🔡 Update default core Gradio font.  Thanks @hannahblair!
+- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible. Thanks @pngwn!
+- [#9204](https://github.com/gradio-app/gradio/pull/9204) [`3c73f00`](https://github.com/gradio-app/gradio/commit/3c73f00e3016b16917ebfe0bad390f2dff683457) - 🔡 Update default core Gradio font. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -335,7 +335,7 @@
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -345,4 +345,4 @@
 
 ### Features
 
-- [#9138](https://github.com/gradio-app/gradio/pull/9138) [`de1f7a2`](https://github.com/gradio-app/gradio/commit/de1f7a2b89e8d2868c7b255bc1d6e6e5c0610d03) - Create test app for components  / SSR testing.  Thanks @pngwn!
+- [#9138](https://github.com/gradio-app/gradio/pull/9138) [`de1f7a2`](https://github.com/gradio-app/gradio/commit/de1f7a2b89e8d2868c7b255bc1d6e6e5c0610d03) - Create test app for components / SSR testing. Thanks @pngwn!

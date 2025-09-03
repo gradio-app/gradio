@@ -8,7 +8,7 @@ Automatic speech recognition (ASR), the conversion of spoken speech to text, is 
 
 Using `gradio`, you can easily build a demo of your ASR model and share that with a testing team, or test it yourself by speaking through the microphone on your device.
 
-This tutorial will show how to take a pretrained speech-to-text model and deploy it with a Gradio interface. We will start with a **_full-context_** model, in which the user speaks the entire audio before the prediction runs. Then we will adapt the demo to make it **_streaming_**, meaning that the audio model will convert speech as you speak. 
+This tutorial will show how to take a pretrained speech-to-text model and deploy it with a Gradio interface. We will start with a **_full-context_** model, in which the user speaks the entire audio before the prediction runs. Then we will adapt the demo to make it **_streaming_**, meaning that the audio model will convert speech as you speak.
 
 ### Prerequisites
 
@@ -51,7 +51,7 @@ The `transcribe` function takes a single parameter, `audio`, which is a numpy ar
 
 ## 3. Create a Streaming ASR Demo with Transformers
 
-To make this a *streaming* demo, we need to make these changes:
+To make this a _streaming_ demo, we need to make these changes:
 
 1. Set `streaming=True` in the `Audio` component
 2. Set `live=True` in the `Interface`
@@ -63,8 +63,8 @@ Take a look below.
 
 $code_stream_asr
 
-Notice that we now have a state variable because we need to track all the audio history. `transcribe` gets called whenever there is a new small chunk of audio, but we also need to keep track of all the audio spoken so far in the state. As the interface runs, the `transcribe` function gets called, with a record of all the previously spoken audio in the `stream` and the new chunk of audio as `new_chunk`. We return the new full audio to be stored back in its current state, and we also return the transcription. Here, we naively append the audio together and call the `transcriber` object on the entire audio. You can imagine more efficient ways of handling this, such as re-processing only the last 5 seconds of audio whenever a new chunk of audio is received. 
+Notice that we now have a state variable because we need to track all the audio history. `transcribe` gets called whenever there is a new small chunk of audio, but we also need to keep track of all the audio spoken so far in the state. As the interface runs, the `transcribe` function gets called, with a record of all the previously spoken audio in the `stream` and the new chunk of audio as `new_chunk`. We return the new full audio to be stored back in its current state, and we also return the transcription. Here, we naively append the audio together and call the `transcriber` object on the entire audio. You can imagine more efficient ways of handling this, such as re-processing only the last 5 seconds of audio whenever a new chunk of audio is received.
 
 $demo_stream_asr
 
-Now the ASR model will run inference as you speak! 
+Now the ASR model will run inference as you speak!

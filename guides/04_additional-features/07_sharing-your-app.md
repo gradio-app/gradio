@@ -34,13 +34,11 @@ This generates a public, shareable link that you can send to anybody! When you s
 
 ![sharing](https://github.com/gradio-app/gradio/blob/main/guides/assets/sharing.svg?raw=true)
 
-
 A share link usually looks something like this: **https://07ff8706ab.gradio.live**. Although the link is served through the Gradio Share Servers, these servers are only a proxy for your local server, and do not store any data sent through your app. Share links expire after 1 week. (it is [also possible to set up your own Share Server](https://github.com/huggingface/frp/) on your own cloud server to overcome this restriction.)
 
 Tip: Keep in mind that share links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. Or you can [add authentication to your Gradio app](#authentication) as discussed below.
 
 Note that by default, `share=False`, which means that your server is only running locally. (This is the default, except in Google Colab notebooks, where share links are automatically created). As an alternative to using share links, you can use use [SSH port-forwarding](https://www.ssh.com/ssh/tunneling/example) to share your local server with specific users.
-
 
 ## Hosting on HF Spaces
 
@@ -68,7 +66,6 @@ Let's see an example of how this works. Here's a simple Gradio chat ap that uses
 $code_deep_link
 $demo_deep_link
 
-
 ## Embedding Hosted Spaces
 
 Once you have hosted your app on Hugging Face Spaces (or on your own server), you may want to embed the demo on a different website, such as your blog or your portfolio. Embedding an interactive demo allows people to try out the machine learning model that you have built, without needing to download or install anything — right in their browser! The best part is that you can embed interactive demos even in static websites, such as GitHub pages.
@@ -87,8 +84,8 @@ To embed with Web Components:
 
 ```html
 <script
-	type="module"
-	src="https://gradio.s3-us-west-2.amazonaws.com/{GRADIO_VERSION}/gradio.js"
+  type="module"
+  src="https://gradio.s3-us-west-2.amazonaws.com/{GRADIO_VERSION}/gradio.js"
 ></script>
 ```
 
@@ -102,7 +99,7 @@ element where you want to place the app. Set the `src=` attribute to your Space'
 
 ```html
 <gradio-app
-	src="https://abidlabs-pytorch-image-classifier.hf.space"
+  src="https://abidlabs-pytorch-image-classifier.hf.space"
 ></gradio-app>
 ```
 
@@ -135,9 +132,9 @@ Here's an example of how to use these attributes to create a Gradio app that doe
 
 ```html
 <gradio-app
-	space="gradio/Echocardiogram-Segmentation"
-	eager="true"
-	initial_height="0px"
+  space="gradio/Echocardiogram-Segmentation"
+  eager="true"
+  initial_height="0px"
 ></gradio-app>
 ```
 
@@ -145,12 +142,12 @@ Here's another example of how to use the `render` event. An event listener is us
 
 ```html
 <script>
-	function handleLoadComplete() {
-		console.log("Embedded space has finished rendering");
-	}
+  function handleLoadComplete() {
+    console.log("Embedded space has finished rendering");
+  }
 
-	const gradioApp = document.querySelector("gradio-app");
-	gradioApp.addEventListener("render", handleLoadComplete);
+  const gradioApp = document.querySelector("gradio-app");
+  gradioApp.addEventListener("render", handleLoadComplete);
 </script>
 ```
 
@@ -219,7 +216,6 @@ $code_custom_path
 
 Note that this approach also allows you run your Gradio apps on custom paths (`http://localhost:8000/gradio` in the example above).
 
-
 ## Authentication
 
 ### Password-protected app
@@ -241,7 +237,6 @@ demo.launch(auth=same_auth)
 ```
 
 If you have multiple users, you may wish to customize the content that is shown depending on the user that is logged in. You can retrieve the logged in user by [accessing the network request directly](#accessing-the-network-request-directly) as discussed above, and then reading the `.username` attribute of the request. Here's an example:
-
 
 ```python
 import gradio as gr
@@ -274,7 +269,7 @@ with gr.Blocks() as demo:
 demo.launch(auth=[("Pete", "Pete"), ("Dawood", "Dawood")])
 ```
 
-Note: Gradio's built-in authentication provides a straightforward and basic layer of access control but does not offer robust security features for applications that require stringent access controls (e.g.  multi-factor authentication, rate limiting, or automatic lockout policies).
+Note: Gradio's built-in authentication provides a straightforward and basic layer of access control but does not offer robust security features for applications that require stringent access controls (e.g. multi-factor authentication, rate limiting, or automatic lockout policies).
 
 ### OAuth (Login via Hugging Face)
 
@@ -305,10 +300,9 @@ locally before deploying it. To test OAuth features locally, your machine must b
 
 **Security Note**: It is important to note that adding a `gr.LoginButton` does not restrict users from using your app, in the same way that adding [username-password authentication](/guides/sharing-your-app#password-protected-app) does. This means that users of your app who have not logged in with Hugging Face can still access and run events in your Gradio app -- the difference is that the `gr.OAuthProfile` or `gr.OAuthToken` will be `None` in the corresponding functions.
 
-
 ### OAuth (with external providers)
 
-It is also possible to authenticate with external OAuth providers (e.g. Google OAuth) in your Gradio apps. To do this, first mount your Gradio app within a FastAPI app ([as discussed above](#mounting-within-another-fast-api-app)). Then, you must write an *authentication function*, which gets the user's username from the OAuth provider and returns it. This function should be passed to the `auth_dependency` parameter in `gr.mount_gradio_app`.
+It is also possible to authenticate with external OAuth providers (e.g. Google OAuth) in your Gradio apps. To do this, first mount your Gradio app within a FastAPI app ([as discussed above](#mounting-within-another-fast-api-app)). Then, you must write an _authentication function_, which gets the user's username from the OAuth provider and returns it. This function should be passed to the `auth_dependency` parameter in `gr.mount_gradio_app`.
 
 Similar to [FastAPI dependency functions](https://fastapi.tiangolo.com/tutorial/dependencies/), the function specified by `auth_dependency` will run before any Gradio-related route in your FastAPI app. The function should accept a single parameter: the FastAPI `Request` and return either a string (representing a user's username) or `None`. If a string is returned, the user will be able to access the Gradio-related routes in your FastAPI app.
 
@@ -435,15 +429,15 @@ When publishing your app publicly, and making it available via API or via MCP se
 
 By default, Gradio collects certain analytics to help us better understand the usage of the `gradio` library. This includes the following information:
 
-* What environment the Gradio app is running on (e.g. Colab Notebook, Hugging Face Spaces)
-* What input/output components are being used in the Gradio app
-* Whether the Gradio app is utilizing certain advanced features, such as `auth` or `show_error`
-* The IP address which is used solely to measure the number of unique developers using Gradio
-* The version of Gradio that is running
+- What environment the Gradio app is running on (e.g. Colab Notebook, Hugging Face Spaces)
+- What input/output components are being used in the Gradio app
+- Whether the Gradio app is utilizing certain advanced features, such as `auth` or `show_error`
+- The IP address which is used solely to measure the number of unique developers using Gradio
+- The version of Gradio that is running
 
 No information is collected from _users_ of your Gradio app. If you'd like to disable analytics altogether, you can do so by setting the `analytics_enabled` parameter to `False` in `gr.Blocks`, `gr.Interface`, or `gr.ChatInterface`. Or, you can set the GRADIO_ANALYTICS_ENABLED environment variable to `"False"` to apply this to all Gradio apps created across your system.
 
-*Note*: this reflects the analytics policy as of `gradio>=4.32.0`.
+_Note_: this reflects the analytics policy as of `gradio>=4.32.0`.
 
 ## Progressive Web App (PWA)
 

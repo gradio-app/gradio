@@ -2,7 +2,6 @@
 
 Tags: DEPLOYMENT
 
-
 ### Introduction
 
 Gradio is a fantastic open-source Python library that allows you to build and share machine learning apps and demos with just a few lines of code. While Gradio offers free hosting on [Hugging Face Spaces](https://huggingface.co/spaces), you might want to deploy your app on your own server for more control, or to integrate it with other services.

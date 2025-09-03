@@ -1,7 +1,7 @@
 import { test, expect } from "@self/tootils";
 
 test.skip("Custom PDF component demo can be loaded and inference function works .", async ({
-	page
+	page,
 }) => {
 	await page
 		.getByRole("button", { name: "Drop PDF - or - Click to Upload" })

@@ -19,7 +19,7 @@ describe("UploadButton", () => {
 				...actual,
 				prepare_files: () => [],
 				// upload: vi.fn((f) => new Promise((res) => res([]))),
-				upload_files: vi.fn((f) => new Promise((res) => res({})))
+				upload_files: vi.fn((f) => new Promise((res) => res({}))),
 			};
 		});
 
@@ -31,7 +31,7 @@ describe("UploadButton", () => {
 			label: "file",
 			value: null,
 			root: "http://localhost:7860",
-			file_count: "1"
+			file_count: "1",
 		});
 
 		const item = getByTestId("file-upload-button"); // container.querySelectorAll("input")[0];
@@ -51,7 +51,7 @@ describe("UploadButton", () => {
 				...actual,
 				prepare_files: () => [],
 				// upload: vi.fn((f) => new Promise((res) => res([]))),
-				upload_files: vi.fn((f) => new Promise((res) => res({})))
+				upload_files: vi.fn((f) => new Promise((res) => res({}))),
 			};
 		});
 
@@ -63,8 +63,8 @@ describe("UploadButton", () => {
 				label: "file",
 				value: null,
 				root: "http://localhost:7860",
-				file_count: "1"
-			}
+				file_count: "1",
+			},
 		);
 
 		const item = getByTestId("file-upload-button"); //container.querySelectorAll("input")[0];

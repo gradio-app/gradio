@@ -7,6 +7,7 @@
 ```
 
 BaseJSON
+
 ```html
-	export let value: any = {};
+export let value: any = {};
 ```

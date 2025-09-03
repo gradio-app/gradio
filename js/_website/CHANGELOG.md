@@ -10,14 +10,14 @@
 
 ### Features
 
-- [#11766](https://github.com/gradio-app/gradio/pull/11766) [`dfc0e03`](https://github.com/gradio-app/gradio/commit/dfc0e0305068dbd16ce905afc73d139e1e51eb46) - Add JS Dataframe documentation to docs.  Thanks @pngwn!
-- [#11774](https://github.com/gradio-app/gradio/pull/11774) [`5a4ae49`](https://github.com/gradio-app/gradio/commit/5a4ae4926b9dadefd5cf9d0225f5e8ed69eebb51) - Fix markdown link rendering in docs descriptions.  Thanks @aliabd!
+- [#11766](https://github.com/gradio-app/gradio/pull/11766) [`dfc0e03`](https://github.com/gradio-app/gradio/commit/dfc0e0305068dbd16ce905afc73d139e1e51eb46) - Add JS Dataframe documentation to docs. Thanks @pngwn!
+- [#11774](https://github.com/gradio-app/gradio/pull/11774) [`5a4ae49`](https://github.com/gradio-app/gradio/commit/5a4ae4926b9dadefd5cf9d0225f5e8ed69eebb51) - Fix markdown link rendering in docs descriptions. Thanks @aliabd!
 
 ## 0.61.2
 
 ### Features
 
-- [#11704](https://github.com/gradio-app/gradio/pull/11704) [`0189862`](https://github.com/gradio-app/gradio/commit/0189862a61af54b718f43badf57ecee11b5deae4) - chore: remove no-op setting.  Thanks @benmccann!
+- [#11704](https://github.com/gradio-app/gradio/pull/11704) [`0189862`](https://github.com/gradio-app/gradio/commit/0189862a61af54b718f43badf57ecee11b5deae4) - chore: remove no-op setting. Thanks @benmccann!
 
 ### Dependency updates
 
@@ -37,7 +37,7 @@
 
 ### Features
 
-- [#11674](https://github.com/gradio-app/gradio/pull/11674) [`27d9aef`](https://github.com/gradio-app/gradio/commit/27d9aef4831d99ec46f9b5553fc7e149afe23f5f) - Add dialogue component to docs.  Thanks @aliabd!
+- [#11674](https://github.com/gradio-app/gradio/pull/11674) [`27d9aef`](https://github.com/gradio-app/gradio/commit/27d9aef4831d99ec46f9b5553fc7e149afe23f5f) - Add dialogue component to docs. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -61,13 +61,13 @@
 
 ### Features
 
-- [#11427](https://github.com/gradio-app/gradio/pull/11427) [`6b2bcd0`](https://github.com/gradio-app/gradio/commit/6b2bcd097ae5ef999a7fb273ecf7c7e4c0eab305) - Improve load times of the Gradio front-end.  Thanks @pngwn!
-- [#11505](https://github.com/gradio-app/gradio/pull/11505) [`3c20f9f`](https://github.com/gradio-app/gradio/commit/3c20f9f1007f8b7b305c92bbcbb95d2c44ee17ad) - Add back theme.css to fix website build.  Thanks @aliabd!
-- [#11517](https://github.com/gradio-app/gradio/pull/11517) [`40c87f1`](https://github.com/gradio-app/gradio/commit/40c87f180759434367538506df8310769d99346a) - Add more hackathon winners to gallery.  Thanks @aliabd!
+- [#11427](https://github.com/gradio-app/gradio/pull/11427) [`6b2bcd0`](https://github.com/gradio-app/gradio/commit/6b2bcd097ae5ef999a7fb273ecf7c7e4c0eab305) - Improve load times of the Gradio front-end. Thanks @pngwn!
+- [#11505](https://github.com/gradio-app/gradio/pull/11505) [`3c20f9f`](https://github.com/gradio-app/gradio/commit/3c20f9f1007f8b7b305c92bbcbb95d2c44ee17ad) - Add back theme.css to fix website build. Thanks @aliabd!
+- [#11517](https://github.com/gradio-app/gradio/pull/11517) [`40c87f1`](https://github.com/gradio-app/gradio/commit/40c87f180759434367538506df8310769d99346a) - Add more hackathon winners to gallery. Thanks @aliabd!
 
 ### Fixes
 
-- [#11430](https://github.com/gradio-app/gradio/pull/11430) [`4d4cd4b`](https://github.com/gradio-app/gradio/commit/4d4cd4b08d6daafc66e0189a2b274916da00d480) - fix exports + add browser build.  Thanks @pngwn!
+- [#11430](https://github.com/gradio-app/gradio/pull/11430) [`4d4cd4b`](https://github.com/gradio-app/gradio/commit/4d4cd4b08d6daafc66e0189a2b274916da00d480) - fix exports + add browser build. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -81,7 +81,7 @@
 
 ### Features
 
-- [#11437](https://github.com/gradio-app/gradio/pull/11437) [`7d98414`](https://github.com/gradio-app/gradio/commit/7d984145e7c0051424cd3f8f20152703966192b9) - Add support for markdown in tips and warnings.  Thanks @aliabd!
+- [#11437](https://github.com/gradio-app/gradio/pull/11437) [`7d98414`](https://github.com/gradio-app/gradio/commit/7d984145e7c0051424cd3f8f20152703966192b9) - Add support for markdown in tips and warnings. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -92,7 +92,7 @@
 
 ### Features
 
-- [#11410](https://github.com/gradio-app/gradio/pull/11410) [`8607c35`](https://github.com/gradio-app/gradio/commit/8607c35acf75661ae6b9ac5acc81071796e6b681) - Add gallery of hackathon winners to the website.  Thanks @aliabd!
+- [#11410](https://github.com/gradio-app/gradio/pull/11410) [`8607c35`](https://github.com/gradio-app/gradio/commit/8607c35acf75661ae6b9ac5acc81071796e6b681) - Add gallery of hackathon winners to the website. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -104,7 +104,7 @@
 
 ### Fixes
 
-- [#11370](https://github.com/gradio-app/gradio/pull/11370) [`992f84b`](https://github.com/gradio-app/gradio/commit/992f84bc0147ebacbf76bc6ca7d931ccdeb06839) - Fix zerogu-guide.  Thanks @freddyaboulton!
+- [#11370](https://github.com/gradio-app/gradio/pull/11370) [`992f84b`](https://github.com/gradio-app/gradio/commit/992f84bc0147ebacbf76bc6ca7d931ccdeb06839) - Fix zerogu-guide. Thanks @freddyaboulton!
 
 ### Dependency updates
 
@@ -132,7 +132,7 @@
 
 ### Fixes
 
-- [#11315](https://github.com/gradio-app/gradio/pull/11315) [`86f2feb`](https://github.com/gradio-app/gradio/commit/86f2feb20b406fb9b7357c8ce2d2ffb69c21c1b6) - Update tweets on the landing page.  Thanks @aliabd!
+- [#11315](https://github.com/gradio-app/gradio/pull/11315) [`86f2feb`](https://github.com/gradio-app/gradio/commit/86f2feb20b406fb9b7357c8ce2d2ffb69c21c1b6) - Update tweets on the landing page. Thanks @aliabd!
 
 ## 0.57.0
 
@@ -144,7 +144,7 @@
 
 ### Features
 
-- [#11268](https://github.com/gradio-app/gradio/pull/11268) [`7bf3161`](https://github.com/gradio-app/gradio/commit/7bf3161c0688e664053b9288a3867d001a306ba0) - Add hackathon to website banner.  Thanks @aliabd!
+- [#11268](https://github.com/gradio-app/gradio/pull/11268) [`7bf3161`](https://github.com/gradio-app/gradio/commit/7bf3161c0688e664053b9288a3867d001a306ba0) - Add hackathon to website banner. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -164,7 +164,7 @@
 
 ### Features
 
-- [#11173](https://github.com/gradio-app/gradio/pull/11173) [`d023b2e`](https://github.com/gradio-app/gradio/commit/d023b2e2ffdf872f531e22b0310bc7855a756c7d) - Adds docs for `gr.api()` which were previously missing from the website.  Thanks @abidlabs!
+- [#11173](https://github.com/gradio-app/gradio/pull/11173) [`d023b2e`](https://github.com/gradio-app/gradio/commit/d023b2e2ffdf872f531e22b0310bc7855a756c7d) - Adds docs for `gr.api()` which were previously missing from the website. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -175,7 +175,7 @@
 
 ### Features
 
-- [#11120](https://github.com/gradio-app/gradio/pull/11120) [`b2118d4`](https://github.com/gradio-app/gradio/commit/b2118d4b613f93b34e02c809e7d0faaa7545b875) - Docs mcp server.  Thanks @aliabd!
+- [#11120](https://github.com/gradio-app/gradio/pull/11120) [`b2118d4`](https://github.com/gradio-app/gradio/commit/b2118d4b613f93b34e02c809e7d0faaa7545b875) - Docs mcp server. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -185,7 +185,7 @@
 
 ### Features
 
-- [#11027](https://github.com/gradio-app/gradio/pull/11027) [`eff532b`](https://github.com/gradio-app/gradio/commit/eff532b913a3c8f06f10a4f9471d3177e3744053) - Add new `ImageSlider` component.  Thanks @pngwn!
+- [#11027](https://github.com/gradio-app/gradio/pull/11027) [`eff532b`](https://github.com/gradio-app/gradio/commit/eff532b913a3c8f06f10a4f9471d3177e3744053) - Add new `ImageSlider` component. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -197,7 +197,7 @@
 
 ### Fixes
 
-- [#11005](https://github.com/gradio-app/gradio/pull/11005) [`3def0ed`](https://github.com/gradio-app/gradio/commit/3def0ed9edc5a9194d69456948324ec4e2740b7d) - Ensure that the `.select()` event in `gr.DataFrame` carries the `.row_value` and `.col_value`.  Thanks @abidlabs!
+- [#11005](https://github.com/gradio-app/gradio/pull/11005) [`3def0ed`](https://github.com/gradio-app/gradio/commit/3def0ed9edc5a9194d69456948324ec4e2740b7d) - Ensure that the `.select()` event in `gr.DataFrame` carries the `.row_value` and `.col_value`. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -211,11 +211,11 @@
 
 ### Features
 
-- [#10966](https://github.com/gradio-app/gradio/pull/10966) [`191b936`](https://github.com/gradio-app/gradio/commit/191b936c9233d20fa5d83de0d7101688209df8eb) - Load lite js correctly in playground.  Thanks @aliabd!
+- [#10966](https://github.com/gradio-app/gradio/pull/10966) [`191b936`](https://github.com/gradio-app/gradio/commit/191b936c9233d20fa5d83de0d7101688209df8eb) - Load lite js correctly in playground. Thanks @aliabd!
 
 ### Fixes
 
-- [#10979](https://github.com/gradio-app/gradio/pull/10979) [`975feee`](https://github.com/gradio-app/gradio/commit/975feee3925e5b65e52ae00da5c5066d8889ae6a) - improve webcam options for the ImageEditor.  Thanks @pngwn!
+- [#10979](https://github.com/gradio-app/gradio/pull/10979) [`975feee`](https://github.com/gradio-app/gradio/commit/975feee3925e5b65e52ae00da5c5066d8889ae6a) - improve webcam options for the ImageEditor. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -227,9 +227,9 @@
 
 ### Features
 
-- [#10635](https://github.com/gradio-app/gradio/pull/10635) [`2f68c9d`](https://github.com/gradio-app/gradio/commit/2f68c9d988dcbc53a0b8e53bdb1de49c9c8c65d8) - Refactor and redesign `ImageEditor` component.  Thanks @pngwn!
-- [#10952](https://github.com/gradio-app/gradio/pull/10952) [`a8dc9f4`](https://github.com/gradio-app/gradio/commit/a8dc9f469ba49eb1f39f81e8c5c3b4acc7cd482c) - update website banner with 1m MAU announcement.  Thanks @yvrjsharma!
-- [#10936](https://github.com/gradio-app/gradio/pull/10936) [`e8b8eef`](https://github.com/gradio-app/gradio/commit/e8b8eef7e5cb4474fcc109aee871e006d7dd17f3) - Fix broken css on some param tables.  Thanks @aliabd!
+- [#10635](https://github.com/gradio-app/gradio/pull/10635) [`2f68c9d`](https://github.com/gradio-app/gradio/commit/2f68c9d988dcbc53a0b8e53bdb1de49c9c8c65d8) - Refactor and redesign `ImageEditor` component. Thanks @pngwn!
+- [#10952](https://github.com/gradio-app/gradio/pull/10952) [`a8dc9f4`](https://github.com/gradio-app/gradio/commit/a8dc9f469ba49eb1f39f81e8c5c3b4acc7cd482c) - update website banner with 1m MAU announcement. Thanks @yvrjsharma!
+- [#10936](https://github.com/gradio-app/gradio/pull/10936) [`e8b8eef`](https://github.com/gradio-app/gradio/commit/e8b8eef7e5cb4474fcc109aee871e006d7dd17f3) - Fix broken css on some param tables. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -241,8 +241,8 @@
 
 ### Features
 
-- [#10845](https://github.com/gradio-app/gradio/pull/10845) [`2521e8a`](https://github.com/gradio-app/gradio/commit/2521e8a1c76fe77253156bf8465500b9cb1db5c4) - Check if SharedWorker is available in the current runtime and fallback to DedicatedWorker if not available.  Thanks @whitphx!
-- [#10926](https://github.com/gradio-app/gradio/pull/10926) [`d81385b`](https://github.com/gradio-app/gradio/commit/d81385bdb939a81718339b806f0c3f71d64f6dc5) - Add status docs to MetadataDict.  Thanks @aliabd!
+- [#10845](https://github.com/gradio-app/gradio/pull/10845) [`2521e8a`](https://github.com/gradio-app/gradio/commit/2521e8a1c76fe77253156bf8465500b9cb1db5c4) - Check if SharedWorker is available in the current runtime and fallback to DedicatedWorker if not available. Thanks @whitphx!
+- [#10926](https://github.com/gradio-app/gradio/pull/10926) [`d81385b`](https://github.com/gradio-app/gradio/commit/d81385bdb939a81718339b806f0c3f71d64f6dc5) - Add status docs to MetadataDict. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -260,7 +260,7 @@
 
 ### Features
 
-- [#10733](https://github.com/gradio-app/gradio/pull/10733) [`731ab92`](https://github.com/gradio-app/gradio/commit/731ab92001c88d4cf1062acf0a4f1108a4513014) - Autocompletion on code editor component.  Thanks @whitphx!
+- [#10733](https://github.com/gradio-app/gradio/pull/10733) [`731ab92`](https://github.com/gradio-app/gradio/commit/731ab92001c88d4cf1062acf0a4f1108a4513014) - Autocompletion on code editor component. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -272,7 +272,7 @@
 
 ### Features
 
-- [#10744](https://github.com/gradio-app/gradio/pull/10744) [`a89fa28`](https://github.com/gradio-app/gradio/commit/a89fa288f42022bb489bac655562a8d1eb5030a5) - Add missing docs and fix gaps in website.  Thanks @aliabd!
+- [#10744](https://github.com/gradio-app/gradio/pull/10744) [`a89fa28`](https://github.com/gradio-app/gradio/commit/a89fa288f42022bb489bac655562a8d1eb5030a5) - Add missing docs and fix gaps in website. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -282,7 +282,7 @@
 
 ### Features
 
-- [#10677](https://github.com/gradio-app/gradio/pull/10677) [`92d5ac8`](https://github.com/gradio-app/gradio/commit/92d5ac8e67147e1dd7a701cc8c3e2a5193e832c6) - Static llms.txt route on the website.  Thanks @aliabd!
+- [#10677](https://github.com/gradio-app/gradio/pull/10677) [`92d5ac8`](https://github.com/gradio-app/gradio/commit/92d5ac8e67147e1dd7a701cc8c3e2a5193e832c6) - Static llms.txt route on the website. Thanks @aliabd!
 
 ## 0.50.4
 
@@ -294,13 +294,13 @@
 
 ### Features
 
-- [#10670](https://github.com/gradio-app/gradio/pull/10670) [`a15964d`](https://github.com/gradio-app/gradio/commit/a15964db8772d3cb34e730e75866c5d7460199ab) - Update banner to point to FastRTC.  Thanks @abidlabs!
+- [#10670](https://github.com/gradio-app/gradio/pull/10670) [`a15964d`](https://github.com/gradio-app/gradio/commit/a15964db8772d3cb34e730e75866c5d7460199ab) - Update banner to point to FastRTC. Thanks @abidlabs!
 
 ## 0.50.2
 
 ### Fixes
 
-- [#10669](https://github.com/gradio-app/gradio/pull/10669) [`d1b063f`](https://github.com/gradio-app/gradio/commit/d1b063fb0c9d893062d9b47919ed1ba9241a6e07) - Add load_chat documentation.  Thanks @aliabid94!
+- [#10669](https://github.com/gradio-app/gradio/pull/10669) [`d1b063f`](https://github.com/gradio-app/gradio/commit/d1b063fb0c9d893062d9b47919ed1ba9241a6e07) - Add load_chat documentation. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -318,17 +318,17 @@
 
 ### Features
 
-- [#10511](https://github.com/gradio-app/gradio/pull/10511) [`c4aa886`](https://github.com/gradio-app/gradio/commit/c4aa8864dabec4caeb59af91f6f1aaaf50e33b67) - Semantic search in the playground.  Thanks @aliabd!
+- [#10511](https://github.com/gradio-app/gradio/pull/10511) [`c4aa886`](https://github.com/gradio-app/gradio/commit/c4aa8864dabec4caeb59af91f6f1aaaf50e33b67) - Semantic search in the playground. Thanks @aliabd!
 
 ## 0.49.0
 
 ### Features
 
-- [#10552](https://github.com/gradio-app/gradio/pull/10552) [`ed25a10`](https://github.com/gradio-app/gradio/commit/ed25a1053a55ddd2cf7d3067c72bdf77185ada8d) - Add 1920px wide resolution for wide monitors.  Thanks @Oncorporation!
+- [#10552](https://github.com/gradio-app/gradio/pull/10552) [`ed25a10`](https://github.com/gradio-app/gradio/commit/ed25a1053a55ddd2cf7d3067c72bdf77185ada8d) - Add 1920px wide resolution for wide monitors. Thanks @Oncorporation!
 
 ### Fixes
 
-- [#10510](https://github.com/gradio-app/gradio/pull/10510) [`71e4cd4`](https://github.com/gradio-app/gradio/commit/71e4cd483e9b43b2aa770db9f834036bb70f9420) - Fixed wrong example usage of docs/gradio/selectdata.  Thanks @PatZer0!
+- [#10510](https://github.com/gradio-app/gradio/pull/10510) [`71e4cd4`](https://github.com/gradio-app/gradio/commit/71e4cd483e9b43b2aa770db9f834036bb70f9420) - Fixed wrong example usage of docs/gradio/selectdata. Thanks @PatZer0!
 
 ### Dependency updates
 
@@ -342,8 +342,8 @@
 
 ### Features
 
-- [#10480](https://github.com/gradio-app/gradio/pull/10480) [`90f90b7`](https://github.com/gradio-app/gradio/commit/90f90b7989081b0e4422384ee699cb98781723d1) - Add sidebar to the docs.  Thanks @aliabd!
-- [#10495](https://github.com/gradio-app/gradio/pull/10495) [`35fda36`](https://github.com/gradio-app/gradio/commit/35fda36de9745757298cafb3d8b91cbc1a4358c9) - Add an `anchor_links` parameter to `gr.ParamViewer` that allows linking to specific parameters.  Thanks @abidlabs!
+- [#10480](https://github.com/gradio-app/gradio/pull/10480) [`90f90b7`](https://github.com/gradio-app/gradio/commit/90f90b7989081b0e4422384ee699cb98781723d1) - Add sidebar to the docs. Thanks @aliabd!
+- [#10495](https://github.com/gradio-app/gradio/pull/10495) [`35fda36`](https://github.com/gradio-app/gradio/commit/35fda36de9745757298cafb3d8b91cbc1a4358c9) - Add an `anchor_links` parameter to `gr.ParamViewer` that allows linking to specific parameters. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -360,7 +360,7 @@
 
 ### Features
 
-- [#10443](https://github.com/gradio-app/gradio/pull/10443) [`f40747c`](https://github.com/gradio-app/gradio/commit/f40747c9fd12d160ac9f7b3c5273be6be815efac) - Fix error with website build in chatbot.svx.  Thanks @aliabd!
+- [#10443](https://github.com/gradio-app/gradio/pull/10443) [`f40747c`](https://github.com/gradio-app/gradio/commit/f40747c9fd12d160ac9f7b3c5273be6be815efac) - Fix error with website build in chatbot.svx. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -370,20 +370,20 @@
 
 ### Fixes
 
-- [#10419](https://github.com/gradio-app/gradio/pull/10419) [`efd358a`](https://github.com/gradio-app/gradio/commit/efd358a54a0f3ec0b201f17f3d61a2b28a733bc1) - Update chatbot.svx for issue#10413.  Thanks @NewJerseyStyle!
+- [#10419](https://github.com/gradio-app/gradio/pull/10419) [`efd358a`](https://github.com/gradio-app/gradio/commit/efd358a54a0f3ec0b201f17f3d61a2b28a733bc1) - Update chatbot.svx for issue#10413. Thanks @NewJerseyStyle!
 
 ## 0.47.0
 
 ### Features
 
-- [#10392](https://github.com/gradio-app/gradio/pull/10392) [`4d47e4b`](https://github.com/gradio-app/gradio/commit/4d47e4b4e2f07d4dd5b600f7d9180c7ad3e67a1f) - Add a `log` parameter to Chatbot metadata that allows displaying `str` content next to the thought title.  Thanks @abidlabs!
-- [#10346](https://github.com/gradio-app/gradio/pull/10346) [`43e05d7`](https://github.com/gradio-app/gradio/commit/43e05d72f43c9ac8dc18e4b885c9da08605b09e6) - Document additional helper classes for `gr.Chatbot`.  Thanks @abidlabs!
-- [#10388](https://github.com/gradio-app/gradio/pull/10388) [`812f2d8`](https://github.com/gradio-app/gradio/commit/812f2d8a3f6956546d7aae53ab3ee36f0c9f2857) - Playground fixes and refactoring.  Thanks @aliabd!
-- [#10355](https://github.com/gradio-app/gradio/pull/10355) [`070cab5`](https://github.com/gradio-app/gradio/commit/070cab5d2e5fd3aabf4b1020e46b892446308ace) - Expand token length for existing code and prompt in playground.  Thanks @aliabd!
+- [#10392](https://github.com/gradio-app/gradio/pull/10392) [`4d47e4b`](https://github.com/gradio-app/gradio/commit/4d47e4b4e2f07d4dd5b600f7d9180c7ad3e67a1f) - Add a `log` parameter to Chatbot metadata that allows displaying `str` content next to the thought title. Thanks @abidlabs!
+- [#10346](https://github.com/gradio-app/gradio/pull/10346) [`43e05d7`](https://github.com/gradio-app/gradio/commit/43e05d72f43c9ac8dc18e4b885c9da08605b09e6) - Document additional helper classes for `gr.Chatbot`. Thanks @abidlabs!
+- [#10388](https://github.com/gradio-app/gradio/pull/10388) [`812f2d8`](https://github.com/gradio-app/gradio/commit/812f2d8a3f6956546d7aae53ab3ee36f0c9f2857) - Playground fixes and refactoring. Thanks @aliabd!
+- [#10355](https://github.com/gradio-app/gradio/pull/10355) [`070cab5`](https://github.com/gradio-app/gradio/commit/070cab5d2e5fd3aabf4b1020e46b892446308ace) - Expand token length for existing code and prompt in playground. Thanks @aliabd!
 
 ### Fixes
 
-- [#10404](https://github.com/gradio-app/gradio/pull/10404) [`9dc5d15`](https://github.com/gradio-app/gradio/commit/9dc5d157aaf002f7699d3b2c1652f49d47e53e80) - Tweak behavior related to the `status` of `gr.Chatbot` thought messages.  Thanks @abidlabs!
+- [#10404](https://github.com/gradio-app/gradio/pull/10404) [`9dc5d15`](https://github.com/gradio-app/gradio/commit/9dc5d157aaf002f7699d3b2c1652f49d47e53e80) - Tweak behavior related to the `status` of `gr.Chatbot` thought messages. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -397,7 +397,7 @@
 
 ### Features
 
-- [#10305](https://github.com/gradio-app/gradio/pull/10305) [`be40307`](https://github.com/gradio-app/gradio/commit/be40307d1d11421e01bf91fa5e05ec4ab97b09d8) - Add support for thinking LLMs directly in `gr.ChatInterface`.  Thanks @abidlabs!
+- [#10305](https://github.com/gradio-app/gradio/pull/10305) [`be40307`](https://github.com/gradio-app/gradio/commit/be40307d1d11421e01bf91fa5e05ec4ab97b09d8) - Add support for thinking LLMs directly in `gr.ChatInterface`. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -408,7 +408,7 @@
 
 ### Features
 
-- [`6edf038`](https://github.com/gradio-app/gradio/commit/6edf0380b9c407e052e29a7fb23511c41ed3e6d9) - AI Playground Auto Fix Errors.  Thanks @aliabd!
+- [`6edf038`](https://github.com/gradio-app/gradio/commit/6edf0380b9c407e052e29a7fb23511c41ed3e6d9) - AI Playground Auto Fix Errors. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -421,8 +421,8 @@
 
 ### Features
 
-- [#10109](https://github.com/gradio-app/gradio/pull/10109) [`48e4aa9`](https://github.com/gradio-app/gradio/commit/48e4aa9d627b6958a0b215d6312de508845f669c) - adds a `run_examples_on_click` parameter to `gr.ChatInterface` mirroring the the `run_on_click` parameter in `gr.Examples`.  Thanks @abidlabs!
-- [#10126](https://github.com/gradio-app/gradio/pull/10126) [`a623faf`](https://github.com/gradio-app/gradio/commit/a623fafbcfef820243359fe942b356cbbaf09d9a) - Move requirements generation in playground to playground worker.  Thanks @aliabd!
+- [#10109](https://github.com/gradio-app/gradio/pull/10109) [`48e4aa9`](https://github.com/gradio-app/gradio/commit/48e4aa9d627b6958a0b215d6312de508845f669c) - adds a `run_examples_on_click` parameter to `gr.ChatInterface` mirroring the the `run_on_click` parameter in `gr.Examples`. Thanks @abidlabs!
+- [#10126](https://github.com/gradio-app/gradio/pull/10126) [`a623faf`](https://github.com/gradio-app/gradio/commit/a623fafbcfef820243359fe942b356cbbaf09d9a) - Move requirements generation in playground to playground worker. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -433,10 +433,10 @@
 
 ### Features
 
-- [#10096](https://github.com/gradio-app/gradio/pull/10096) [`ec10aa3`](https://github.com/gradio-app/gradio/commit/ec10aa3b9b42d8c3fe930aff9465c469626992d4) - Fix paramviewer descriptions to only render markdown links.  Thanks @aliabd!
-- [#10071](https://github.com/gradio-app/gradio/pull/10071) [`01b919f`](https://github.com/gradio-app/gradio/commit/01b919f04b69732fd8adb52f6d156e5683589221) - Support `additional_outputs` in `gr.ChatInterface`.  Thanks @abidlabs!
-- [#10073](https://github.com/gradio-app/gradio/pull/10073) [`873dab5`](https://github.com/gradio-app/gradio/commit/873dab5bce32de472523b851d443588106223e21) - Fix the Playground to ignore comments in the requirements text.  Thanks @whitphx!
-- [#9998](https://github.com/gradio-app/gradio/pull/9998) [`6cc13f5`](https://github.com/gradio-app/gradio/commit/6cc13f55e00ff29e833fd55493a53b654f23fbcc) - Playground exclude unavailable packages.  Thanks @whitphx!
+- [#10096](https://github.com/gradio-app/gradio/pull/10096) [`ec10aa3`](https://github.com/gradio-app/gradio/commit/ec10aa3b9b42d8c3fe930aff9465c469626992d4) - Fix paramviewer descriptions to only render markdown links. Thanks @aliabd!
+- [#10071](https://github.com/gradio-app/gradio/pull/10071) [`01b919f`](https://github.com/gradio-app/gradio/commit/01b919f04b69732fd8adb52f6d156e5683589221) - Support `additional_outputs` in `gr.ChatInterface`. Thanks @abidlabs!
+- [#10073](https://github.com/gradio-app/gradio/pull/10073) [`873dab5`](https://github.com/gradio-app/gradio/commit/873dab5bce32de472523b851d443588106223e21) - Fix the Playground to ignore comments in the requirements text. Thanks @whitphx!
+- [#9998](https://github.com/gradio-app/gradio/pull/9998) [`6cc13f5`](https://github.com/gradio-app/gradio/commit/6cc13f55e00ff29e833fd55493a53b654f23fbcc) - Playground exclude unavailable packages. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -446,7 +446,7 @@
 
 ### Fixes
 
-- [#10025](https://github.com/gradio-app/gradio/pull/10025) [`368ba73`](https://github.com/gradio-app/gradio/commit/368ba731069583b22fcf7ddc9501db349f6a2953) - Update Chat Interface examples and add more LLM libraries and API providers.  Thanks @abidlabs!
+- [#10025](https://github.com/gradio-app/gradio/pull/10025) [`368ba73`](https://github.com/gradio-app/gradio/commit/368ba731069583b22fcf7ddc9501db349f6a2953) - Update Chat Interface examples and add more LLM libraries and API providers. Thanks @abidlabs!
 
 ## 0.42.2
 
@@ -470,7 +470,7 @@
 
 ### Features
 
-- [#9726](https://github.com/gradio-app/gradio/pull/9726) [`b6725cf`](https://github.com/gradio-app/gradio/commit/b6725cf6c1fe9667dc10e1988976ed36d84d73d3) - Lite auto-load imported modules with `pyodide.loadPackagesFromImports`.  Thanks @whitphx!
+- [#9726](https://github.com/gradio-app/gradio/pull/9726) [`b6725cf`](https://github.com/gradio-app/gradio/commit/b6725cf6c1fe9667dc10e1988976ed36d84d73d3) - Lite auto-load imported modules with `pyodide.loadPackagesFromImports`. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -481,8 +481,8 @@
 
 ### Features
 
-- [#9811](https://github.com/gradio-app/gradio/pull/9811) [`7b6bd31`](https://github.com/gradio-app/gradio/commit/7b6bd3188199af1eac8f8d6d21b15a0bdc3d5619) - Fix the tab names in the playground.  Thanks @whitphx!
-- [#9647](https://github.com/gradio-app/gradio/pull/9647) [`7cce63e`](https://github.com/gradio-app/gradio/commit/7cce63e29f274b9fbd6c779914adeaab08ea60f7) - Ask LLM to generate the requirements.txt in the playground.  Thanks @whitphx!
+- [#9811](https://github.com/gradio-app/gradio/pull/9811) [`7b6bd31`](https://github.com/gradio-app/gradio/commit/7b6bd3188199af1eac8f8d6d21b15a0bdc3d5619) - Fix the tab names in the playground. Thanks @whitphx!
+- [#9647](https://github.com/gradio-app/gradio/pull/9647) [`7cce63e`](https://github.com/gradio-app/gradio/commit/7cce63e29f274b9fbd6c779914adeaab08ea60f7) - Ask LLM to generate the requirements.txt in the playground. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -495,8 +495,8 @@
 
 ### Fixes
 
-- [#9653](https://github.com/gradio-app/gradio/pull/9653) [`61cd768`](https://github.com/gradio-app/gradio/commit/61cd768490a12f5d63101d5434092bcd1cfc43a8) - Ensures tabs with visible set to false are not visible.  Thanks @hannahblair!
-- [#9738](https://github.com/gradio-app/gradio/pull/9738) [`2ade59b`](https://github.com/gradio-app/gradio/commit/2ade59b95d4c3610a1a461cc95f020fbf9627305) - Export `Tabs` type from `@gradio/tabs` and fix the Playground to be compatible with the new Tabs API.  Thanks @whitphx!
+- [#9653](https://github.com/gradio-app/gradio/pull/9653) [`61cd768`](https://github.com/gradio-app/gradio/commit/61cd768490a12f5d63101d5434092bcd1cfc43a8) - Ensures tabs with visible set to false are not visible. Thanks @hannahblair!
+- [#9738](https://github.com/gradio-app/gradio/pull/9738) [`2ade59b`](https://github.com/gradio-app/gradio/commit/2ade59b95d4c3610a1a461cc95f020fbf9627305) - Export `Tabs` type from `@gradio/tabs` and fix the Playground to be compatible with the new Tabs API. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -525,7 +525,7 @@
 
 ### Features
 
-- [#9635](https://github.com/gradio-app/gradio/pull/9635) [`67e4044`](https://github.com/gradio-app/gradio/commit/67e4044c9ca8358eceeb1fa72fa415df03397d20) - Add website banner for gradio 5.  Thanks @aliabd!
+- [#9635](https://github.com/gradio-app/gradio/pull/9635) [`67e4044`](https://github.com/gradio-app/gradio/commit/67e4044c9ca8358eceeb1fa72fa415df03397d20) - Add website banner for gradio 5. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -535,7 +535,7 @@
 
 ### Features
 
-- [#9615](https://github.com/gradio-app/gradio/pull/9615) [`204f3e1`](https://github.com/gradio-app/gradio/commit/204f3e13e110fc0528032a102c9521057e18919d) - fixes to website.  Thanks @pngwn!
+- [#9615](https://github.com/gradio-app/gradio/pull/9615) [`204f3e1`](https://github.com/gradio-app/gradio/commit/204f3e13e110fc0528032a102c9521057e18919d) - fixes to website. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -597,8 +597,8 @@
 
 ### Features
 
-- [#9460](https://github.com/gradio-app/gradio/pull/9460) [`7352a89`](https://github.com/gradio-app/gradio/commit/7352a89722da91461c32fd33588531f3edce9c48) - Playground requirements tab.  Thanks @whitphx!
-- [#9452](https://github.com/gradio-app/gradio/pull/9452) [`3ec8e63`](https://github.com/gradio-app/gradio/commit/3ec8e636766cc629444bc3cbc6b53deaf65f5ab1) - Expanding AI Playground Prompt for Qwen.  Thanks @aliabd!
+- [#9460](https://github.com/gradio-app/gradio/pull/9460) [`7352a89`](https://github.com/gradio-app/gradio/commit/7352a89722da91461c32fd33588531f3edce9c48) - Playground requirements tab. Thanks @whitphx!
+- [#9452](https://github.com/gradio-app/gradio/pull/9452) [`3ec8e63`](https://github.com/gradio-app/gradio/commit/3ec8e636766cc629444bc3cbc6b53deaf65f5ab1) - Expanding AI Playground Prompt for Qwen. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -618,10 +618,10 @@
 
 ### Features
 
-- [#9419](https://github.com/gradio-app/gradio/pull/9419) [`018c140`](https://github.com/gradio-app/gradio/commit/018c140ef86cacc8211df05b57b26924dab7fa08) - Start/stop recoding from the backend. Add guide on conversational chatbots.  Thanks @freddyaboulton!
-- [#9469](https://github.com/gradio-app/gradio/pull/9469) [`f7c3396`](https://github.com/gradio-app/gradio/commit/f7c3396f55a5b8364d3880a29d766bd092d7f840) - Fix. Triggered dataframe change event for header change.  Thanks @Joodith!
-- [#9426](https://github.com/gradio-app/gradio/pull/9426) [`4e54105`](https://github.com/gradio-app/gradio/commit/4e5410574002ea24067cf4e82b99a6a39f67632c) - Refactoring playground.  Thanks @whitphx!
-- [#9462](https://github.com/gradio-app/gradio/pull/9462) [`b622b1f`](https://github.com/gradio-app/gradio/commit/b622b1fcce888427e87aa1f70c9c2e60aa240e37) - Improve UI on the Playground.  Thanks @aliabd!
+- [#9419](https://github.com/gradio-app/gradio/pull/9419) [`018c140`](https://github.com/gradio-app/gradio/commit/018c140ef86cacc8211df05b57b26924dab7fa08) - Start/stop recoding from the backend. Add guide on conversational chatbots. Thanks @freddyaboulton!
+- [#9469](https://github.com/gradio-app/gradio/pull/9469) [`f7c3396`](https://github.com/gradio-app/gradio/commit/f7c3396f55a5b8364d3880a29d766bd092d7f840) - Fix. Triggered dataframe change event for header change. Thanks @Joodith!
+- [#9426](https://github.com/gradio-app/gradio/pull/9426) [`4e54105`](https://github.com/gradio-app/gradio/commit/4e5410574002ea24067cf4e82b99a6a39f67632c) - Refactoring playground. Thanks @whitphx!
+- [#9462](https://github.com/gradio-app/gradio/pull/9462) [`b622b1f`](https://github.com/gradio-app/gradio/commit/b622b1fcce888427e87aa1f70c9c2e60aa240e37) - Improve UI on the Playground. Thanks @aliabd!
 
 ## 0.39.0-beta.3
 
@@ -633,13 +633,13 @@
 
 ### Features
 
-- [#9326](https://github.com/gradio-app/gradio/pull/9326) [`7afb9a1`](https://github.com/gradio-app/gradio/commit/7afb9a14fa64310eb8b70f43a3bad373e46e36c1) - 5.0 merge take 2.  Thanks @pngwn!
-- [#9382](https://github.com/gradio-app/gradio/pull/9382) [`9e70832`](https://github.com/gradio-app/gradio/commit/9e7083286d5681b5fc623304a97d5a24fe6d6080) - Fixes website build in 5.0-dev.  Thanks @aliabd!
-- [#9379](https://github.com/gradio-app/gradio/pull/9379) [`0cad5f3`](https://github.com/gradio-app/gradio/commit/0cad5f348a846024b95b92fb48f88137ccfcd589) - Testing CI.  Thanks @aliabd!
-- [#9402](https://github.com/gradio-app/gradio/pull/9402) [`060acb3`](https://github.com/gradio-app/gradio/commit/060acb3b469530a3ea14275970b7028598052ef1) - Fixes annoying height bug in playground.  Thanks @aliabd!
-- [#9397](https://github.com/gradio-app/gradio/pull/9397) [`4be0933`](https://github.com/gradio-app/gradio/commit/4be0933d3a39099fd573d7db42416d7acef7f40f) - Fix gradio.js aws path.  Thanks @aliabd!
-- [#9343](https://github.com/gradio-app/gradio/pull/9343) [`322ac54`](https://github.com/gradio-app/gradio/commit/322ac5499ec5a8541039bf329e2525e9d24ed2cc) - Add info about Powershell client.  Thanks @abidlabs!
-- [#9233](https://github.com/gradio-app/gradio/pull/9233) [`9a85ccc`](https://github.com/gradio-app/gradio/commit/9a85cccf160118fccfb78dc1edcc7c51ff88de6c) - Adds LLM to the Playground.  Thanks @aliabd!
+- [#9326](https://github.com/gradio-app/gradio/pull/9326) [`7afb9a1`](https://github.com/gradio-app/gradio/commit/7afb9a14fa64310eb8b70f43a3bad373e46e36c1) - 5.0 merge take 2. Thanks @pngwn!
+- [#9382](https://github.com/gradio-app/gradio/pull/9382) [`9e70832`](https://github.com/gradio-app/gradio/commit/9e7083286d5681b5fc623304a97d5a24fe6d6080) - Fixes website build in 5.0-dev. Thanks @aliabd!
+- [#9379](https://github.com/gradio-app/gradio/pull/9379) [`0cad5f3`](https://github.com/gradio-app/gradio/commit/0cad5f348a846024b95b92fb48f88137ccfcd589) - Testing CI. Thanks @aliabd!
+- [#9402](https://github.com/gradio-app/gradio/pull/9402) [`060acb3`](https://github.com/gradio-app/gradio/commit/060acb3b469530a3ea14275970b7028598052ef1) - Fixes annoying height bug in playground. Thanks @aliabd!
+- [#9397](https://github.com/gradio-app/gradio/pull/9397) [`4be0933`](https://github.com/gradio-app/gradio/commit/4be0933d3a39099fd573d7db42416d7acef7f40f) - Fix gradio.js aws path. Thanks @aliabd!
+- [#9343](https://github.com/gradio-app/gradio/pull/9343) [`322ac54`](https://github.com/gradio-app/gradio/commit/322ac5499ec5a8541039bf329e2525e9d24ed2cc) - Add info about Powershell client. Thanks @abidlabs!
+- [#9233](https://github.com/gradio-app/gradio/pull/9233) [`9a85ccc`](https://github.com/gradio-app/gradio/commit/9a85cccf160118fccfb78dc1edcc7c51ff88de6c) - Adds LLM to the Playground. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -650,7 +650,7 @@
 
 ### Features
 
-- [#9204](https://github.com/gradio-app/gradio/pull/9204) [`3c73f00`](https://github.com/gradio-app/gradio/commit/3c73f00e3016b16917ebfe0bad390f2dff683457) - 🔡 Update default core Gradio font.  Thanks @hannahblair!
+- [#9204](https://github.com/gradio-app/gradio/pull/9204) [`3c73f00`](https://github.com/gradio-app/gradio/commit/3c73f00e3016b16917ebfe0bad390f2dff683457) - 🔡 Update default core Gradio font. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -661,16 +661,16 @@
 
 ### Features
 
-- [#9194](https://github.com/gradio-app/gradio/pull/9194) [`20c0836`](https://github.com/gradio-app/gradio/commit/20c0836ed0e0698dbc81d2a4bda04363fd857334) - Deprecate type='tuples for chatbot and focus chatbot docs on 'messages' type.  Thanks @freddyaboulton!
-- [#9213](https://github.com/gradio-app/gradio/pull/9213) [`ab4580b`](https://github.com/gradio-app/gradio/commit/ab4580bd5f755a07c9a9bd2a775220a9a2085f8c) - Remove grey background behind all components.  Thanks @hannahblair!
-- [#9206](https://github.com/gradio-app/gradio/pull/9206) [`bdbcf7b`](https://github.com/gradio-app/gradio/commit/bdbcf7b0e374c0769178767a1502cd310312278b) - Cloudflare migration.  Thanks @aliabd!
-- [#9156](https://github.com/gradio-app/gradio/pull/9156) [`8deeeb6`](https://github.com/gradio-app/gradio/commit/8deeeb6d1b83296e5174c2891b80fb317991289e) - File access security guide.  Thanks @freddyaboulton!
+- [#9194](https://github.com/gradio-app/gradio/pull/9194) [`20c0836`](https://github.com/gradio-app/gradio/commit/20c0836ed0e0698dbc81d2a4bda04363fd857334) - Deprecate type='tuples for chatbot and focus chatbot docs on 'messages' type. Thanks @freddyaboulton!
+- [#9213](https://github.com/gradio-app/gradio/pull/9213) [`ab4580b`](https://github.com/gradio-app/gradio/commit/ab4580bd5f755a07c9a9bd2a775220a9a2085f8c) - Remove grey background behind all components. Thanks @hannahblair!
+- [#9206](https://github.com/gradio-app/gradio/pull/9206) [`bdbcf7b`](https://github.com/gradio-app/gradio/commit/bdbcf7b0e374c0769178767a1502cd310312278b) - Cloudflare migration. Thanks @aliabd!
+- [#9156](https://github.com/gradio-app/gradio/pull/9156) [`8deeeb6`](https://github.com/gradio-app/gradio/commit/8deeeb6d1b83296e5174c2891b80fb317991289e) - File access security guide. Thanks @freddyaboulton!
 
 ## 0.39.1
 
 ### Features
 
-- [#9379](https://github.com/gradio-app/gradio/pull/9379) [`0cad5f3`](https://github.com/gradio-app/gradio/commit/0cad5f348a846024b95b92fb48f88137ccfcd589) - Testing CI.  Thanks @aliabd!
+- [#9379](https://github.com/gradio-app/gradio/pull/9379) [`0cad5f3`](https://github.com/gradio-app/gradio/commit/0cad5f348a846024b95b92fb48f88137ccfcd589) - Testing CI. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -681,17 +681,17 @@
 
 ### Features
 
-- [#9291](https://github.com/gradio-app/gradio/pull/9291) [`bcb3a2b`](https://github.com/gradio-app/gradio/commit/bcb3a2b9a0e4f1a0195aed92f3ecfd1eda324464) - chore: update error.svx.  Thanks @eltociear!
+- [#9291](https://github.com/gradio-app/gradio/pull/9291) [`bcb3a2b`](https://github.com/gradio-app/gradio/commit/bcb3a2b9a0e4f1a0195aed92f3ecfd1eda324464) - chore: update error.svx. Thanks @eltociear!
 
 ## 0.38.1
 
 ### Features
 
-- [#9206](https://github.com/gradio-app/gradio/pull/9206) [`bdbcf7b`](https://github.com/gradio-app/gradio/commit/bdbcf7b0e374c0769178767a1502cd310312278b) - Cloudflare migration.  Thanks @aliabd!
+- [#9206](https://github.com/gradio-app/gradio/pull/9206) [`bdbcf7b`](https://github.com/gradio-app/gradio/commit/bdbcf7b0e374c0769178767a1502cd310312278b) - Cloudflare migration. Thanks @aliabd!
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -702,10 +702,10 @@
 
 ### Features
 
-- [#9102](https://github.com/gradio-app/gradio/pull/9102) [`efdc323`](https://github.com/gradio-app/gradio/commit/efdc3231a7bde38cfe45d10086d0d36a24c1b9b4) - Initial SSR refactor.  Thanks @pngwn!
-- [#9104](https://github.com/gradio-app/gradio/pull/9104) [`cf02f7d`](https://github.com/gradio-app/gradio/commit/cf02f7d7854b8ead864533581f7379a3fe61840f) - Fix chatinterface e2e test.  Thanks @freddyaboulton!
-- [#9075](https://github.com/gradio-app/gradio/pull/9075) [`3258968`](https://github.com/gradio-app/gradio/commit/325896837113d1c45de0dcff1972a8686730f695) - Add warning to guides and change styling of tip.  Thanks @aliabd!
-- [#9108](https://github.com/gradio-app/gradio/pull/9108) [`474102a`](https://github.com/gradio-app/gradio/commit/474102a8b404c23ffcfa7e1396a78bed621a9585) - Better text styling on docs.  Thanks @aliabd!
+- [#9102](https://github.com/gradio-app/gradio/pull/9102) [`efdc323`](https://github.com/gradio-app/gradio/commit/efdc3231a7bde38cfe45d10086d0d36a24c1b9b4) - Initial SSR refactor. Thanks @pngwn!
+- [#9104](https://github.com/gradio-app/gradio/pull/9104) [`cf02f7d`](https://github.com/gradio-app/gradio/commit/cf02f7d7854b8ead864533581f7379a3fe61840f) - Fix chatinterface e2e test. Thanks @freddyaboulton!
+- [#9075](https://github.com/gradio-app/gradio/pull/9075) [`3258968`](https://github.com/gradio-app/gradio/commit/325896837113d1c45de0dcff1972a8686730f695) - Add warning to guides and change styling of tip. Thanks @aliabd!
+- [#9108](https://github.com/gradio-app/gradio/pull/9108) [`474102a`](https://github.com/gradio-app/gradio/commit/474102a8b404c23ffcfa7e1396a78bed621a9585) - Better text styling on docs. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -716,10 +716,10 @@
 
 ### Features
 
-- [#8965](https://github.com/gradio-app/gradio/pull/8965) [`d30432e`](https://github.com/gradio-app/gradio/commit/d30432e9c6d4cc1e5cfd989a1a3ae4aba7e21290) - harden CI.  Thanks @pngwn!
-- [#9043](https://github.com/gradio-app/gradio/pull/9043) [`890bae3`](https://github.com/gradio-app/gradio/commit/890bae3942cc19f2b9040cfb6792adaa3cd478b0) - Filter out type ignore comments from demos on website.  Thanks @aliabd!
-- [#8857](https://github.com/gradio-app/gradio/pull/8857) [`6584aac`](https://github.com/gradio-app/gradio/commit/6584aace9866df582a6a3ff64dd045f1747aba42) - Website fixes for mobile.  Thanks @aliabd!
-- [#9067](https://github.com/gradio-app/gradio/pull/9067) [`f29aef4`](https://github.com/gradio-app/gradio/commit/f29aef4528ad93ab2cb1cf25bd5e3362bb562839) - Fix trailing slash link on docs.  Thanks @aliabd!
+- [#8965](https://github.com/gradio-app/gradio/pull/8965) [`d30432e`](https://github.com/gradio-app/gradio/commit/d30432e9c6d4cc1e5cfd989a1a3ae4aba7e21290) - harden CI. Thanks @pngwn!
+- [#9043](https://github.com/gradio-app/gradio/pull/9043) [`890bae3`](https://github.com/gradio-app/gradio/commit/890bae3942cc19f2b9040cfb6792adaa3cd478b0) - Filter out type ignore comments from demos on website. Thanks @aliabd!
+- [#8857](https://github.com/gradio-app/gradio/pull/8857) [`6584aac`](https://github.com/gradio-app/gradio/commit/6584aace9866df582a6a3ff64dd045f1747aba42) - Website fixes for mobile. Thanks @aliabd!
+- [#9067](https://github.com/gradio-app/gradio/pull/9067) [`f29aef4`](https://github.com/gradio-app/gradio/commit/f29aef4528ad93ab2cb1cf25bd5e3362bb562839) - Fix trailing slash link on docs. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -730,9 +730,9 @@
 
 ### Features
 
-- [#8907](https://github.com/gradio-app/gradio/pull/8907) [`9b42ba8`](https://github.com/gradio-app/gradio/commit/9b42ba8f1006c05d60a62450d3036ce0d6784f86) - Update guides esp plots.  Thanks @aliabid94!
-- [#8871](https://github.com/gradio-app/gradio/pull/8871) [`7f1a78c`](https://github.com/gradio-app/gradio/commit/7f1a78c49ed69688ef1d39ef731c64ba934df645) - Add confirmation dialogue if leaving playground.  Thanks @aliabd!
-- [#8908](https://github.com/gradio-app/gradio/pull/8908) [`7c9fc9e`](https://github.com/gradio-app/gradio/commit/7c9fc9ebccf227fa54e3f28ee3abd1bd4f5cf412) - Add docs for Rust client to website.  Thanks @aliabd!
+- [#8907](https://github.com/gradio-app/gradio/pull/8907) [`9b42ba8`](https://github.com/gradio-app/gradio/commit/9b42ba8f1006c05d60a62450d3036ce0d6784f86) - Update guides esp plots. Thanks @aliabid94!
+- [#8871](https://github.com/gradio-app/gradio/pull/8871) [`7f1a78c`](https://github.com/gradio-app/gradio/commit/7f1a78c49ed69688ef1d39ef731c64ba934df645) - Add confirmation dialogue if leaving playground. Thanks @aliabd!
+- [#8908](https://github.com/gradio-app/gradio/pull/8908) [`7c9fc9e`](https://github.com/gradio-app/gradio/commit/7c9fc9ebccf227fa54e3f28ee3abd1bd4f5cf412) - Add docs for Rust client to website. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -743,19 +743,19 @@
 
 ### Features
 
-- [#8842](https://github.com/gradio-app/gradio/pull/8842) [`38c2ad4`](https://github.com/gradio-app/gradio/commit/38c2ad425a905431b1eb17b9498669f9e49f0dd5) - Add website to contributing readme.  Thanks @aliabd!
-- [#8784](https://github.com/gradio-app/gradio/pull/8784) [`2cc813a`](https://github.com/gradio-app/gradio/commit/2cc813a287ce326957f8b10106e574750b1db9be) - Fix OS detection for cross-browser compatibility.  Thanks @lappemic!
-- [#8825](https://github.com/gradio-app/gradio/pull/8825) [`b45d37f`](https://github.com/gradio-app/gradio/commit/b45d37f366ed4ef5dd77b2b4af90aa8174357298) - Fix param table rendering.  Thanks @aliabd!
-- [#8773](https://github.com/gradio-app/gradio/pull/8773) [`0b9e870`](https://github.com/gradio-app/gradio/commit/0b9e870f9cc45c2251806b3ac1654f6608ef27ed) - Hide embedded components while loading.  Thanks @aliabd!
-- [#8832](https://github.com/gradio-app/gradio/pull/8832) [`e75f2ca`](https://github.com/gradio-app/gradio/commit/e75f2ca2da4f41f25459b98bedaa940c887e6a93) - Fix build for pre-release.  Thanks @pngwn!
-- [#8618](https://github.com/gradio-app/gradio/pull/8618) [`aa4b7a7`](https://github.com/gradio-app/gradio/commit/aa4b7a71921fd5b7ad7e3c0cce7687a8f6d284da) - Improve styling of parameter tables in the docs.  Thanks @abidlabs!
-- [#8745](https://github.com/gradio-app/gradio/pull/8745) [`4030f28`](https://github.com/gradio-app/gradio/commit/4030f28af6ae9f3eb94bb4e9cae83fb7016cdaad) - Allows updating the dataset of a `gr.Examples`.  Thanks @abidlabs!
-- [#8757](https://github.com/gradio-app/gradio/pull/8757) [`6073736`](https://github.com/gradio-app/gradio/commit/60737366517f48d1a37ffce15425783a2887f305) - Document `FileData` class in docs.  Thanks @hannahblair!
+- [#8842](https://github.com/gradio-app/gradio/pull/8842) [`38c2ad4`](https://github.com/gradio-app/gradio/commit/38c2ad425a905431b1eb17b9498669f9e49f0dd5) - Add website to contributing readme. Thanks @aliabd!
+- [#8784](https://github.com/gradio-app/gradio/pull/8784) [`2cc813a`](https://github.com/gradio-app/gradio/commit/2cc813a287ce326957f8b10106e574750b1db9be) - Fix OS detection for cross-browser compatibility. Thanks @lappemic!
+- [#8825](https://github.com/gradio-app/gradio/pull/8825) [`b45d37f`](https://github.com/gradio-app/gradio/commit/b45d37f366ed4ef5dd77b2b4af90aa8174357298) - Fix param table rendering. Thanks @aliabd!
+- [#8773](https://github.com/gradio-app/gradio/pull/8773) [`0b9e870`](https://github.com/gradio-app/gradio/commit/0b9e870f9cc45c2251806b3ac1654f6608ef27ed) - Hide embedded components while loading. Thanks @aliabd!
+- [#8832](https://github.com/gradio-app/gradio/pull/8832) [`e75f2ca`](https://github.com/gradio-app/gradio/commit/e75f2ca2da4f41f25459b98bedaa940c887e6a93) - Fix build for pre-release. Thanks @pngwn!
+- [#8618](https://github.com/gradio-app/gradio/pull/8618) [`aa4b7a7`](https://github.com/gradio-app/gradio/commit/aa4b7a71921fd5b7ad7e3c0cce7687a8f6d284da) - Improve styling of parameter tables in the docs. Thanks @abidlabs!
+- [#8745](https://github.com/gradio-app/gradio/pull/8745) [`4030f28`](https://github.com/gradio-app/gradio/commit/4030f28af6ae9f3eb94bb4e9cae83fb7016cdaad) - Allows updating the dataset of a `gr.Examples`. Thanks @abidlabs!
+- [#8757](https://github.com/gradio-app/gradio/pull/8757) [`6073736`](https://github.com/gradio-app/gradio/commit/60737366517f48d1a37ffce15425783a2887f305) - Document `FileData` class in docs. Thanks @hannahblair!
 
 ### Fixes
 
-- [#8823](https://github.com/gradio-app/gradio/pull/8823) [`7b049e0`](https://github.com/gradio-app/gradio/commit/7b049e03577aac9853cd2cc1683d9e0b1e2f8d36) - Fix DateTime docs.  Thanks @aliabd!
-- [#8854](https://github.com/gradio-app/gradio/pull/8854) [`d1f0441`](https://github.com/gradio-app/gradio/commit/d1f044145ae93e5838042d9fb25f4f17def9c774) - Use covariant container types across the codebase and add typing to our demos.  Thanks @abidlabs!
+- [#8823](https://github.com/gradio-app/gradio/pull/8823) [`7b049e0`](https://github.com/gradio-app/gradio/commit/7b049e03577aac9853cd2cc1683d9e0b1e2f8d36) - Fix DateTime docs. Thanks @aliabd!
+- [#8854](https://github.com/gradio-app/gradio/pull/8854) [`d1f0441`](https://github.com/gradio-app/gradio/commit/d1f044145ae93e5838042d9fb25f4f17def9c774) - Use covariant container types across the codebase and add typing to our demos. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -768,11 +768,11 @@
 
 #### Support message format in chatbot 💬 ([#8422](https://github.com/gradio-app/gradio/pull/8422) [`4221290`](https://github.com/gradio-app/gradio/commit/4221290d847041024b1faa3df5585bba0775b8b3))
 
-`gr.Chatbot` and `gr.ChatInterface` now support the [Messages API](https://huggingface.co/docs/text-generation-inference/en/messages_api#messages-api), which is fully compatible with LLM API providers such as Hugging Face Text Generation Inference, OpenAI's chat completions API, and Llama.cpp server. 
+`gr.Chatbot` and `gr.ChatInterface` now support the [Messages API](https://huggingface.co/docs/text-generation-inference/en/messages_api#messages-api), which is fully compatible with LLM API providers such as Hugging Face Text Generation Inference, OpenAI's chat completions API, and Llama.cpp server.
 
-Building Gradio applications around these LLM solutions is now even easier! 
+Building Gradio applications around these LLM solutions is now even easier!
 
-`gr.Chatbot` and `gr.ChatInterface` now have a `type` parameter that can accept two values - `'tuples'` and `'messages'`. If set to `'tuples'`, the default chatbot data format is expected. If set to `'messages'`, a list of dictionaries with `content` and `role` keys is expected. See below - 
+`gr.Chatbot` and `gr.ChatInterface` now have a `type` parameter that can accept two values - `'tuples'` and `'messages'`. If set to `'tuples'`, the default chatbot data format is expected. If set to `'messages'`, a list of dictionaries with `content` and `role` keys is expected. See below -
 
 ```python
 def chat_greeter(msg, history):
@@ -783,7 +783,6 @@ def chat_greeter(msg, history):
 Additionally, gradio now exposes a `gr.ChatMessage` dataclass you can use for IDE type hints and auto completion.
 
 <img width="852" alt="image" src="https://github.com/freddyaboulton/freddyboulton/assets/41651716/d283e8f3-b194-466a-8194-c7e697dca9ad">
-
 
 #### Tool use in Chatbot 🛠️
 
@@ -847,24 +846,22 @@ if __name__ == "__main__":
     demo.launch()
 ```
 
-
-
 ![tool-box-demo](https://github.com/freddyaboulton/freddyboulton/assets/41651716/cf73ecc9-90ac-42ce-bca5-768e0cc00a48)
 
- Thanks @freddyaboulton!
+Thanks @freddyaboulton!
 
 ### Features
 
-- [#8733](https://github.com/gradio-app/gradio/pull/8733) [`fb0daf3`](https://github.com/gradio-app/gradio/commit/fb0daf3730ffbe6aab5ebe4210eae150729a40b1) - Improvements to `gr.Examples`: adds events as attributes and documents, them, adds `sample_labels`, and `visible` properties.  Thanks @abidlabs!
-- [#8686](https://github.com/gradio-app/gradio/pull/8686) [`64ac05b`](https://github.com/gradio-app/gradio/commit/64ac05b1114e08c21909d21653c02d1c45f05aee) - Better spacing for codeblocks on docs.  Thanks @aliabd!
-- [#8656](https://github.com/gradio-app/gradio/pull/8656) [`740364e`](https://github.com/gradio-app/gradio/commit/740364e5cee5f96625fe0da3ac8257d97e5f0815) - Add guide on best practices for ZeroGPU limits with the python client.  Thanks @freddyaboulton!
-- [#8689](https://github.com/gradio-app/gradio/pull/8689) [`edcd574`](https://github.com/gradio-app/gradio/commit/edcd5748f6c0faf2028a8e6a330aad5eccf103d5) - Fix playground to display errors.  Thanks @whitphx!
-- [#8624](https://github.com/gradio-app/gradio/pull/8624) [`ba59bb8`](https://github.com/gradio-app/gradio/commit/ba59bb824f77dd3cb57019c59d3c3b0755c68b85) - Add search to website.  Thanks @aliabd!
+- [#8733](https://github.com/gradio-app/gradio/pull/8733) [`fb0daf3`](https://github.com/gradio-app/gradio/commit/fb0daf3730ffbe6aab5ebe4210eae150729a40b1) - Improvements to `gr.Examples`: adds events as attributes and documents, them, adds `sample_labels`, and `visible` properties. Thanks @abidlabs!
+- [#8686](https://github.com/gradio-app/gradio/pull/8686) [`64ac05b`](https://github.com/gradio-app/gradio/commit/64ac05b1114e08c21909d21653c02d1c45f05aee) - Better spacing for codeblocks on docs. Thanks @aliabd!
+- [#8656](https://github.com/gradio-app/gradio/pull/8656) [`740364e`](https://github.com/gradio-app/gradio/commit/740364e5cee5f96625fe0da3ac8257d97e5f0815) - Add guide on best practices for ZeroGPU limits with the python client. Thanks @freddyaboulton!
+- [#8689](https://github.com/gradio-app/gradio/pull/8689) [`edcd574`](https://github.com/gradio-app/gradio/commit/edcd5748f6c0faf2028a8e6a330aad5eccf103d5) - Fix playground to display errors. Thanks @whitphx!
+- [#8624](https://github.com/gradio-app/gradio/pull/8624) [`ba59bb8`](https://github.com/gradio-app/gradio/commit/ba59bb824f77dd3cb57019c59d3c3b0755c68b85) - Add search to website. Thanks @aliabd!
 
 ### Fixes
 
-- [#8505](https://github.com/gradio-app/gradio/pull/8505) [`2943d6d`](https://github.com/gradio-app/gradio/commit/2943d6d68847314885dc6c5c0247083116017ca0) - Add Timer component.  Thanks @aliabid94!
-- [#8677](https://github.com/gradio-app/gradio/pull/8677) [`c946c6f`](https://github.com/gradio-app/gradio/commit/c946c6f31a34bfd888a6a16c3fb479fe34710206) - Allow supplying custom `gr.Chatbot` with events to `gr.ChatInterface`.  Thanks @abidlabs!
+- [#8505](https://github.com/gradio-app/gradio/pull/8505) [`2943d6d`](https://github.com/gradio-app/gradio/commit/2943d6d68847314885dc6c5c0247083116017ca0) - Add Timer component. Thanks @aliabid94!
+- [#8677](https://github.com/gradio-app/gradio/pull/8677) [`c946c6f`](https://github.com/gradio-app/gradio/commit/c946c6f31a34bfd888a6a16c3fb479fe34710206) - Allow supplying custom `gr.Chatbot` with events to `gr.ChatInterface`. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -874,8 +871,8 @@ if __name__ == "__main__":
 
 ### Features
 
-- [#8604](https://github.com/gradio-app/gradio/pull/8604) [`b6fa6b5`](https://github.com/gradio-app/gradio/commit/b6fa6b543f226540247cd50748019cde59b93005) - Add docs for `.on()`, `.then()`, and `.success()`, as well as the subclasses of `gr.EventData`.  Thanks @abidlabs!
-- [#8623](https://github.com/gradio-app/gradio/pull/8623) [`4c6e4e0`](https://github.com/gradio-app/gradio/commit/4c6e4e0ba9a6dc29f256d00d97f3062a516f5aac) - Fix CORS issues with Lite Component Demos.  Thanks @aliabd!
+- [#8604](https://github.com/gradio-app/gradio/pull/8604) [`b6fa6b5`](https://github.com/gradio-app/gradio/commit/b6fa6b543f226540247cd50748019cde59b93005) - Add docs for `.on()`, `.then()`, and `.success()`, as well as the subclasses of `gr.EventData`. Thanks @abidlabs!
+- [#8623](https://github.com/gradio-app/gradio/pull/8623) [`4c6e4e0`](https://github.com/gradio-app/gradio/commit/4c6e4e0ba9a6dc29f256d00d97f3062a516f5aac) - Fix CORS issues with Lite Component Demos. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -885,18 +882,18 @@ if __name__ == "__main__":
 
 ### Features
 
-- [#8489](https://github.com/gradio-app/gradio/pull/8489) [`c2a0d05`](https://github.com/gradio-app/gradio/commit/c2a0d056d679d90631d9ccd944dadd67e7e03b7f) - Control Display of Error, Info, Warning.  Thanks @freddyaboulton!
-- [#8593](https://github.com/gradio-app/gradio/pull/8593) [`d35c290`](https://github.com/gradio-app/gradio/commit/d35c290aadcb85113ee7ceea96a7ed7dc894b1d2) - Adding more docs for using components in chatbot.  Thanks @abidlabs!
-- [#8516](https://github.com/gradio-app/gradio/pull/8516) [`de6aa2b`](https://github.com/gradio-app/gradio/commit/de6aa2b67668605b65ad92842b2c798afa2c6d8a) - Add helper classes to docs.  Thanks @aliabd!
-- [#8605](https://github.com/gradio-app/gradio/pull/8605) [`fe83e64`](https://github.com/gradio-app/gradio/commit/fe83e6445a53c9376d92a7af9fd9a5ccf9376d7d) - Small fix to guide styling.  Thanks @aliabd!
-- [#8557](https://github.com/gradio-app/gradio/pull/8557) [`ed82a62`](https://github.com/gradio-app/gradio/commit/ed82a6237ec7873e2554c2ad0be438650cfebe8c) - Bring back embedded demos on component docs.  Thanks @aliabd!
+- [#8489](https://github.com/gradio-app/gradio/pull/8489) [`c2a0d05`](https://github.com/gradio-app/gradio/commit/c2a0d056d679d90631d9ccd944dadd67e7e03b7f) - Control Display of Error, Info, Warning. Thanks @freddyaboulton!
+- [#8593](https://github.com/gradio-app/gradio/pull/8593) [`d35c290`](https://github.com/gradio-app/gradio/commit/d35c290aadcb85113ee7ceea96a7ed7dc894b1d2) - Adding more docs for using components in chatbot. Thanks @abidlabs!
+- [#8516](https://github.com/gradio-app/gradio/pull/8516) [`de6aa2b`](https://github.com/gradio-app/gradio/commit/de6aa2b67668605b65ad92842b2c798afa2c6d8a) - Add helper classes to docs. Thanks @aliabd!
+- [#8605](https://github.com/gradio-app/gradio/pull/8605) [`fe83e64`](https://github.com/gradio-app/gradio/commit/fe83e6445a53c9376d92a7af9fd9a5ccf9376d7d) - Small fix to guide styling. Thanks @aliabd!
+- [#8557](https://github.com/gradio-app/gradio/pull/8557) [`ed82a62`](https://github.com/gradio-app/gradio/commit/ed82a6237ec7873e2554c2ad0be438650cfebe8c) - Bring back embedded demos on component docs. Thanks @aliabd!
 
 ### Fixes
 
-- [#8589](https://github.com/gradio-app/gradio/pull/8589) [`34430b9`](https://github.com/gradio-app/gradio/commit/34430b934dbab3bc525f56b390dbc054f76cf56c) - Handle GIFs correct in `gr.Image` preprocessing.  Thanks @abidlabs!
-- [#8581](https://github.com/gradio-app/gradio/pull/8581) [`a1c21cb`](https://github.com/gradio-app/gradio/commit/a1c21cb69a688bd38139153fe9c85a50c6ae86f2) - fix dataset update.  Thanks @abidlabs!
-- [#8537](https://github.com/gradio-app/gradio/pull/8537) [`81ae766`](https://github.com/gradio-app/gradio/commit/81ae7663b303ac7738bc216d9bf916f0515dd22e) - Many small fixes to website and docs.  Thanks @aliabd!
-- [#8559](https://github.com/gradio-app/gradio/pull/8559) [`483ecaa`](https://github.com/gradio-app/gradio/commit/483ecaae627145470ed68ed6872d42f2ac3a1980) - fix website build.  Thanks @pngwn!
+- [#8589](https://github.com/gradio-app/gradio/pull/8589) [`34430b9`](https://github.com/gradio-app/gradio/commit/34430b934dbab3bc525f56b390dbc054f76cf56c) - Handle GIFs correct in `gr.Image` preprocessing. Thanks @abidlabs!
+- [#8581](https://github.com/gradio-app/gradio/pull/8581) [`a1c21cb`](https://github.com/gradio-app/gradio/commit/a1c21cb69a688bd38139153fe9c85a50c6ae86f2) - fix dataset update. Thanks @abidlabs!
+- [#8537](https://github.com/gradio-app/gradio/pull/8537) [`81ae766`](https://github.com/gradio-app/gradio/commit/81ae7663b303ac7738bc216d9bf916f0515dd22e) - Many small fixes to website and docs. Thanks @aliabd!
+- [#8559](https://github.com/gradio-app/gradio/pull/8559) [`483ecaa`](https://github.com/gradio-app/gradio/commit/483ecaae627145470ed68ed6872d42f2ac3a1980) - fix website build. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -906,8 +903,8 @@ if __name__ == "__main__":
 
 ### Features
 
-- [#8491](https://github.com/gradio-app/gradio/pull/8491) [`ffd53fa`](https://github.com/gradio-app/gradio/commit/ffd53fa2dcb13d564fd07aa441d4016df8d2f155) - Remove broken guide redirect.  Thanks @aliabd!
-- [#8487](https://github.com/gradio-app/gradio/pull/8487) [`3a5d56e`](https://github.com/gradio-app/gradio/commit/3a5d56ea7bdbfc24357eaf8174f9275cb15fcf97) - Add Client Release Notes to Docs.  Thanks @freddyaboulton!
+- [#8491](https://github.com/gradio-app/gradio/pull/8491) [`ffd53fa`](https://github.com/gradio-app/gradio/commit/ffd53fa2dcb13d564fd07aa441d4016df8d2f155) - Remove broken guide redirect. Thanks @aliabd!
+- [#8487](https://github.com/gradio-app/gradio/pull/8487) [`3a5d56e`](https://github.com/gradio-app/gradio/commit/3a5d56ea7bdbfc24357eaf8174f9275cb15fcf97) - Add Client Release Notes to Docs. Thanks @freddyaboulton!
 
 ### Dependency updates
 
@@ -923,7 +920,7 @@ if __name__ == "__main__":
 
 ### Features
 
-- [#8471](https://github.com/gradio-app/gradio/pull/8471) [`a9e6595`](https://github.com/gradio-app/gradio/commit/a9e6595817b741c3dcf1eaedf58ee4f901784e57) - Tweak meta titles and descriptions for clients.  Thanks @aliabd!
+- [#8471](https://github.com/gradio-app/gradio/pull/8471) [`a9e6595`](https://github.com/gradio-app/gradio/commit/a9e6595817b741c3dcf1eaedf58ee4f901784e57) - Tweak meta titles and descriptions for clients. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -933,7 +930,7 @@ if __name__ == "__main__":
 
 ### Features
 
-- [#8456](https://github.com/gradio-app/gradio/pull/8456) [`881f11c`](https://github.com/gradio-app/gradio/commit/881f11c862c769c21710735604c0733e0cfefe66) - Add website banner for clients launch.  Thanks @aliabd!
+- [#8456](https://github.com/gradio-app/gradio/pull/8456) [`881f11c`](https://github.com/gradio-app/gradio/commit/881f11c862c769c21710735604c0733e0cfefe66) - Add website banner for clients launch. Thanks @aliabd!
 
 ## 0.31.1
 
@@ -945,7 +942,7 @@ if __name__ == "__main__":
 
 ### Features
 
-- [#8403](https://github.com/gradio-app/gradio/pull/8403) [`5efd35c`](https://github.com/gradio-app/gradio/commit/5efd35c7a06d894fdcb68898bdaaf9b457e608f1) - Editable Docs.  Thanks @aliabd!
+- [#8403](https://github.com/gradio-app/gradio/pull/8403) [`5efd35c`](https://github.com/gradio-app/gradio/commit/5efd35c7a06d894fdcb68898bdaaf9b457e608f1) - Editable Docs. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -961,7 +958,7 @@ if __name__ == "__main__":
 
 ### Features
 
-- [#8319](https://github.com/gradio-app/gradio/pull/8319) [`1f9a5f0`](https://github.com/gradio-app/gradio/commit/1f9a5f0aa395ab51731f7d2a6ef0268a319cdc1b) - Fix bad redirect breaking website build.  Thanks @aliabd!
+- [#8319](https://github.com/gradio-app/gradio/pull/8319) [`1f9a5f0`](https://github.com/gradio-app/gradio/commit/1f9a5f0aa395ab51731f7d2a6ef0268a319cdc1b) - Fix bad redirect breaking website build. Thanks @aliabd!
 
 ## 0.30.2
 
@@ -979,8 +976,8 @@ if __name__ == "__main__":
 
 ### Features
 
-- [#8278](https://github.com/gradio-app/gradio/pull/8278) [`4ae17a4`](https://github.com/gradio-app/gradio/commit/4ae17a4653fcf60de7b646e6243f1b77d7f8cd27) - Embedded Lite example apps in the docs.  Thanks @whitphx!
-- [#8262](https://github.com/gradio-app/gradio/pull/8262) [`d708ca8`](https://github.com/gradio-app/gradio/commit/d708ca8fca8c39bf878c70117c2910730a1bb76c) - Reorganize Guides in a more logical order.  Thanks @abidlabs!
+- [#8278](https://github.com/gradio-app/gradio/pull/8278) [`4ae17a4`](https://github.com/gradio-app/gradio/commit/4ae17a4653fcf60de7b646e6243f1b77d7f8cd27) - Embedded Lite example apps in the docs. Thanks @whitphx!
+- [#8262](https://github.com/gradio-app/gradio/pull/8262) [`d708ca8`](https://github.com/gradio-app/gradio/commit/d708ca8fca8c39bf878c70117c2910730a1bb76c) - Reorganize Guides in a more logical order. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -990,11 +987,11 @@ if __name__ == "__main__":
 
 ### Features
 
-- [#8224](https://github.com/gradio-app/gradio/pull/8224) [`6ee1f1f`](https://github.com/gradio-app/gradio/commit/6ee1f1f7215bc557c138e1f43d5a835775deacfc) - Display all custom components in the gallery.  Thanks @freddyaboulton!
+- [#8224](https://github.com/gradio-app/gradio/pull/8224) [`6ee1f1f`](https://github.com/gradio-app/gradio/commit/6ee1f1f7215bc557c138e1f43d5a835775deacfc) - Display all custom components in the gallery. Thanks @freddyaboulton!
 
 ### Fixes
 
-- [#8220](https://github.com/gradio-app/gradio/pull/8220) [`f176e1b`](https://github.com/gradio-app/gradio/commit/f176e1b509b7687b02c9173db1cd1ce25c3cd8f6) - Convert all demos on docs to lite.  Thanks @aliabd!
+- [#8220](https://github.com/gradio-app/gradio/pull/8220) [`f176e1b`](https://github.com/gradio-app/gradio/commit/f176e1b509b7687b02c9173db1cd1ce25c3cd8f6) - Convert all demos on docs to lite. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -1004,9 +1001,9 @@ if __name__ == "__main__":
 
 ### Features
 
-- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9.  Thanks @renovate!
-- [#8189](https://github.com/gradio-app/gradio/pull/8189) [`68dcae5`](https://github.com/gradio-app/gradio/commit/68dcae512c0fb699304446c3b1ae2afaba1a63d2) - Use workspace version for code in _website.  Thanks @aliabd!
-- [#8152](https://github.com/gradio-app/gradio/pull/8152) [`989fe25`](https://github.com/gradio-app/gradio/commit/989fe2566fc93e4f67dc86a869dc30e83404c7ab) - Make guide for tailwind more verbose.  Thanks @duerrsimon!
+- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9. Thanks @renovate!
+- [#8189](https://github.com/gradio-app/gradio/pull/8189) [`68dcae5`](https://github.com/gradio-app/gradio/commit/68dcae512c0fb699304446c3b1ae2afaba1a63d2) - Use workspace version for code in \_website. Thanks @aliabd!
+- [#8152](https://github.com/gradio-app/gradio/pull/8152) [`989fe25`](https://github.com/gradio-app/gradio/commit/989fe2566fc93e4f67dc86a869dc30e83404c7ab) - Make guide for tailwind more verbose. Thanks @duerrsimon!
 
 ### Dependency updates
 
@@ -1016,9 +1013,9 @@ if __name__ == "__main__":
 
 ### Features
 
-- [#8061](https://github.com/gradio-app/gradio/pull/8061) [`17e83c9`](https://github.com/gradio-app/gradio/commit/17e83c958ebb35b3e122ca486067d1bd5ce33a22) - Docs Reorg and Intro Page.  Thanks @aliabd!
-- [#8122](https://github.com/gradio-app/gradio/pull/8122) [`e089e4c`](https://github.com/gradio-app/gradio/commit/e089e4cb4a285e0d15593fc5b13b8f254b86c090) - update dependencies.  Thanks @pngwn!
-- [#8119](https://github.com/gradio-app/gradio/pull/8119) [`38a5482`](https://github.com/gradio-app/gradio/commit/38a5482df4d175d81e2aea319c2ffc525a76c538) - Be able to link to a custom component in the gallery directly.  Thanks @freddyaboulton!
+- [#8061](https://github.com/gradio-app/gradio/pull/8061) [`17e83c9`](https://github.com/gradio-app/gradio/commit/17e83c958ebb35b3e122ca486067d1bd5ce33a22) - Docs Reorg and Intro Page. Thanks @aliabd!
+- [#8122](https://github.com/gradio-app/gradio/pull/8122) [`e089e4c`](https://github.com/gradio-app/gradio/commit/e089e4cb4a285e0d15593fc5b13b8f254b86c090) - update dependencies. Thanks @pngwn!
+- [#8119](https://github.com/gradio-app/gradio/pull/8119) [`38a5482`](https://github.com/gradio-app/gradio/commit/38a5482df4d175d81e2aea319c2ffc525a76c538) - Be able to link to a custom component in the gallery directly. Thanks @freddyaboulton!
 
 ## 0.26.1
 
@@ -1030,11 +1027,11 @@ if __name__ == "__main__":
 
 ### Features
 
-- [#7945](https://github.com/gradio-app/gradio/pull/7945) [`328325a`](https://github.com/gradio-app/gradio/commit/328325a7ad812e7e152fe57a5a91a54b67adf728) - style changes for gradio website docs navbar.  Thanks @shafiqihtsham!
+- [#7945](https://github.com/gradio-app/gradio/pull/7945) [`328325a`](https://github.com/gradio-app/gradio/commit/328325a7ad812e7e152fe57a5a91a54b67adf728) - style changes for gradio website docs navbar. Thanks @shafiqihtsham!
 
 ### Fixes
 
-- [#7935](https://github.com/gradio-app/gradio/pull/7935) [`919afff`](https://github.com/gradio-app/gradio/commit/919afffcee87bee25a6905c488484936df92189d) - Adds a Guide on deploying Gradio apps with Docker.  Thanks @abidlabs!
+- [#7935](https://github.com/gradio-app/gradio/pull/7935) [`919afff`](https://github.com/gradio-app/gradio/commit/919afffcee87bee25a6905c488484936df92189d) - Adds a Guide on deploying Gradio apps with Docker. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -1056,8 +1053,8 @@ if __name__ == "__main__":
 
 ### Features
 
-- [#7684](https://github.com/gradio-app/gradio/pull/7684) [`755157f`](https://github.com/gradio-app/gradio/commit/755157f99c2961f2e5caeaa9b76d248b4225ea8f) - Do not reload code inside gr.NO_RELOAD context.  Thanks @freddyaboulton!
-- [#7661](https://github.com/gradio-app/gradio/pull/7661) [`c62a57e`](https://github.com/gradio-app/gradio/commit/c62a57e7f8f2f6dad0110d06e915c48e7f628073) - Convert Docs Demos to Lite.  Thanks @aliabd!
+- [#7684](https://github.com/gradio-app/gradio/pull/7684) [`755157f`](https://github.com/gradio-app/gradio/commit/755157f99c2961f2e5caeaa9b76d248b4225ea8f) - Do not reload code inside gr.NO_RELOAD context. Thanks @freddyaboulton!
+- [#7661](https://github.com/gradio-app/gradio/pull/7661) [`c62a57e`](https://github.com/gradio-app/gradio/commit/c62a57e7f8f2f6dad0110d06e915c48e7f628073) - Convert Docs Demos to Lite. Thanks @aliabd!
 
 ### Dependency updates
 

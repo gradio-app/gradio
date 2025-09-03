@@ -7,12 +7,12 @@ export async function resolve(specifier, context, nextResolve) {
 	// Take an `import` or `require` specifier and resolve it to a URL.
 	if (specifier === "svelte/internal" || specifier === "svelte") {
 		return nextResolve(
-			join(__dirname, "frontend", "assets", "svelte", "svelte.js")
+			join(__dirname, "frontend", "assets", "svelte", "svelte.js"),
 		);
 	}
 	if (specifier.startsWith("svelte/")) {
 		return nextResolve(
-			join(__dirname, "frontend", "assets", "svelte", "svelte-submodules.js")
+			join(__dirname, "frontend", "assets", "svelte", "svelte-submodules.js"),
 		);
 	}
 	return nextResolve(specifier);

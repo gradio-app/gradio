@@ -48,9 +48,9 @@ while the next `message` would be:
 "And what is its largest city?"
 ```
 
-Your chat function simply needs to return: 
+Your chat function simply needs to return:
 
-* a `str` value, which is the chatbot's response based on the chat `history` and most recent `message`, for example, in this case:
+- a `str` value, which is the chatbot's response based on the chat `history` and most recent `message`, for example, in this case:
 
 ```
 Paris is also the largest city.
@@ -77,7 +77,7 @@ Now, we can plug this into `gr.ChatInterface()` and call the `.launch()` method 
 import gradio as gr
 
 gr.ChatInterface(
-    fn=random_response, 
+    fn=random_response,
     type="messages"
 ).launch()
 ```
@@ -102,12 +102,12 @@ def alternatingly_agree(message, history):
         return "I don't think so"
 
 gr.ChatInterface(
-    fn=alternatingly_agree, 
+    fn=alternatingly_agree,
     type="messages"
 ).launch()
 ```
 
-We'll look at more realistic examples of chat functions in our next Guide, which shows [examples of using `gr.ChatInterface` with popular LLMs](../guides/chatinterface-examples). 
+We'll look at more realistic examples of chat functions in our next Guide, which shows [examples of using `gr.ChatInterface` with popular LLMs](../guides/chatinterface-examples).
 
 ## Streaming chatbots
 
@@ -123,7 +123,7 @@ def slow_echo(message, history):
         yield "You typed: " + message[: i+1]
 
 gr.ChatInterface(
-    fn=slow_echo, 
+    fn=slow_echo,
     type="messages"
 ).launch()
 ```
@@ -191,14 +191,14 @@ The placeholder appears vertically and horizontally centered in the chatbot.
 
 You may want to add multimodal capabilities to your chat interface. For example, you may want users to be able to upload images or files to your chatbot and ask questions about them. You can make your chatbot "multimodal" by passing in a single parameter (`multimodal=True`) to the `gr.ChatInterface` class.
 
-When `multimodal=True`, the signature of your chat function changes slightly: the first parameter of your function (what we referred to as `message` above) should accept a dictionary consisting of the submitted text and uploaded files that looks like this: 
+When `multimodal=True`, the signature of your chat function changes slightly: the first parameter of your function (what we referred to as `message` above) should accept a dictionary consisting of the submitted text and uploaded files that looks like this:
 
 ```py
 {
-    "text": "user input", 
+    "text": "user input",
     "files": [
         "updated_file_1_path.ext",
-        "updated_file_2_path.ext", 
+        "updated_file_2_path.ext",
         ...
     ]
 }
@@ -214,10 +214,9 @@ This second parameter of your chat function, `history`, will be in the same open
 ]
 ```
 
-The return type of your chat function does *not change* when setting `multimodal=True` (i.e. in the simplest case, you should still return a string value). We discuss more complex cases, e.g. returning files [below](#returning-complex-responses).
+The return type of your chat function does _not change_ when setting `multimodal=True` (i.e. in the simplest case, you should still return a string value). We discuss more complex cases, e.g. returning files [below](#returning-complex-responses).
 
 If you are customizing a multimodal chat interface, you should pass in an instance of `gr.MultimodalTextbox` to the `textbox` parameter. You can customize the `MultimodalTextbox` further by passing in the `sources` parameter, which is a list of sources to enable. Here's an example that illustrates how to set up and customize and multimodal chat interface:
- 
 
 ```python
 import gradio as gr
@@ -231,11 +230,11 @@ def count_images(message, history):
     return f"You just uploaded {num_images} images, total uploaded: {total_images+num_images}"
 
 demo = gr.ChatInterface(
-    fn=count_images, 
-    type="messages", 
+    fn=count_images,
+    type="messages",
     examples=[
         {"text": "No files", "files": []}
-    ], 
+    ],
     multimodal=True,
     textbox=gr.MultimodalTextbox(file_count="multiple", file_types=["image"], sources=["upload", "microphone"])
 )
@@ -247,7 +246,7 @@ demo.launch()
 
 You may want to add additional inputs to your chat function and expose them to your users through the chat UI. For example, you could add a textbox for a system prompt, or a slider that sets the number of tokens in the chatbot's response. The `gr.ChatInterface` class supports an `additional_inputs` parameter which can be used to add additional input components.
 
-The `additional_inputs` parameters accepts a component or a list of components. You can pass the component instances directly, or use their string shortcuts (e.g. `"textbox"` instead of `gr.Textbox()`). If you pass in component instances, and they have _not_ already been rendered, then the components will appear underneath the chatbot within a `gr.Accordion()`. 
+The `additional_inputs` parameters accepts a component or a list of components. You can pass the component instances directly, or use their string shortcuts (e.g. `"textbox"` instead of `gr.Textbox()`). If you pass in component instances, and they have _not_ already been rendered, then the components will appear underneath the chatbot within a `gr.Accordion()`.
 
 Here's a complete example:
 
@@ -294,17 +293,17 @@ $code_chatinterface_artifacts
 
 We mentioned earlier that in the simplest case, your chat function should return a `str` response, which will be rendered as Markdown in the chatbot. However, you can also return more complex responses as we discuss below:
 
-
 **Returning files or Gradio components**
 
 Currently, the following Gradio components can be displayed inside the chat interface:
-* `gr.Image`
-* `gr.Plot`
-* `gr.Audio`
-* `gr.HTML`
-* `gr.Video`
-* `gr.Gallery`
-* `gr.File`
+
+- `gr.Image`
+- `gr.Plot`
+- `gr.Audio`
+- `gr.HTML`
+- `gr.Video`
+- `gr.Gallery`
+- `gr.File`
 
 Simply return one of these components from your function to use it with `gr.ChatInterface`. Here's an example that returns an audio file:
 
@@ -332,35 +331,34 @@ You can return multiple assistant messages from your chat function simply by ret
 
 $code_chatinterface_echo_multimodal
 
-
 **Displaying intermediate thoughts or tool usage**
 
 The `gr.ChatInterface` class supports displaying intermediate thoughts or tool usage direct in the chatbot.
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/nested-thought.png)
 
- To do this, you will need to return a `gr.ChatMessage` object from your chat function. Here is the schema of the `gr.ChatMessage` data class as well as two internal typed dictionaries:
- 
- ```py
+To do this, you will need to return a `gr.ChatMessage` object from your chat function. Here is the schema of the `gr.ChatMessage` data class as well as two internal typed dictionaries:
+
+```py
 @dataclass
 class ChatMessage:
-    content: str | Component
-    metadata: MetadataDict = None
-    options: list[OptionDict] = None
+   content: str | Component
+   metadata: MetadataDict = None
+   options: list[OptionDict] = None
 
 class MetadataDict(TypedDict):
-    title: NotRequired[str]
-    id: NotRequired[int | str]
-    parent_id: NotRequired[int | str]
-    log: NotRequired[str]
-    duration: NotRequired[float]
-    status: NotRequired[Literal["pending", "done"]]
+   title: NotRequired[str]
+   id: NotRequired[int | str]
+   parent_id: NotRequired[int | str]
+   log: NotRequired[str]
+   duration: NotRequired[float]
+   status: NotRequired[Literal["pending", "done"]]
 
 class OptionDict(TypedDict):
-    label: NotRequired[str]
-    value: str
- ```
- 
+   label: NotRequired[str]
+   value: str
+```
+
 As you can see, the `gr.ChatMessage` dataclass is similar to the openai-style message format, e.g. it has a "content" key that refers to the chat message content. But it also includes a "metadata" key whose value is a dictionary. If this dictionary includes a "title" key, the resulting message is displayed as an intermediate thought with the title being displayed on top of the thought. Here's an example showing the usage:
 
 $code_chatinterface_thoughts
@@ -371,7 +369,7 @@ You can even show nested thoughts, which is useful for agent demos in which one 
 
 When returning an assistant message, you may want to provide preset options that a user can choose in response. To do this, again, you will again return a `gr.ChatMessage` instance from your chat function. This time, make sure to set the `options` key specifying the preset responses.
 
-As shown in the schema for `gr.ChatMessage` above, the value corresponding to the `options` key should be a list of dictionaries, each with a `value` (a string that is the value that should be sent to the chat function when this response is clicked) and an optional `label` (if provided, is the text displayed as the preset response instead of the `value`). 
+As shown in the schema for `gr.ChatMessage` above, the value corresponding to the `options` key should be a list of dictionaries, each with a `value` (a string that is the value that should be sent to the chat function when this response is clicked) and an optional `label` (if provided, is the text displayed as the preset response instead of the `value`).
 
 This example illustrates how to use preset responses:
 
@@ -391,9 +389,9 @@ Once you've built your Gradio chat interface and are hosting it on [Hugging Face
 
 To use the endpoint, you should use either the [Gradio Python Client](/guides/getting-started-with-the-python-client) or the [Gradio JS client](/guides/getting-started-with-the-js-client). Or, you can deploy your Chat Interface to other platforms, such as a:
 
-* Discord bot [[tutorial]](../guides/creating-a-discord-bot-from-a-gradio-app)
-* Slack bot [[tutorial]](../guides/creating-a-slack-bot-from-a-gradio-app)
-* Website widget [[tutorial]](../guides/creating-a-website-widget-from-a-gradio-chatbot)
+- Discord bot [[tutorial]](../guides/creating-a-discord-bot-from-a-gradio-app)
+- Slack bot [[tutorial]](../guides/creating-a-slack-bot-from-a-gradio-app)
+- Website widget [[tutorial]](../guides/creating-a-website-widget-from-a-gradio-chatbot)
 
 ## Chat History
 
@@ -403,7 +401,7 @@ To enable this feature, simply set `gr.ChatInterface(save_history=True)` (as sho
 
 ## Collecting User Feedback
 
-To gather feedback on your chat model, set `gr.ChatInterface(flagging_mode="manual")` and users will be able to thumbs-up or thumbs-down assistant responses. Each flagged response, along with the entire chat history, will get saved in a CSV file in the app working directory (this can be configured via the `flagging_dir` parameter). 
+To gather feedback on your chat model, set `gr.ChatInterface(flagging_mode="manual")` and users will be able to thumbs-up or thumbs-down assistant responses. Each flagged response, along with the entire chat history, will get saved in a CSV file in the app working directory (this can be configured via the `flagging_dir` parameter).
 
 You can also change the feedback options via `flagging_options` parameter. The default options are "Like" and "Dislike", which appear as the thumbs-up and thumbs-down icons. Any other options appear under a dedicated flag icon. This example shows a ChatInterface that has both chat history (mentioned in the previous section) and user feedback enabled:
 
@@ -415,8 +413,6 @@ Note that in this example, we set several flagging options: "Like", "Spam", "Ina
 
 Now that you've learned about the `gr.ChatInterface` class and how it can be used to create chatbot UIs quickly, we recommend reading one of the following:
 
-* [Our next Guide](../guides/chatinterface-examples) shows examples of how to use `gr.ChatInterface` with popular LLM libraries.
-* If you'd like to build very custom chat applications from scratch, you can build them using the low-level Blocks API, as [discussed in this Guide](../guides/creating-a-custom-chatbot-with-blocks).
-* Once you've deployed your Gradio Chat Interface, its easy to use in other applications because of the built-in API. Here's a tutorial on [how to deploy a Gradio chat interface as a Discord bot](../guides/creating-a-discord-bot-from-a-gradio-app).
-
-
+- [Our next Guide](../guides/chatinterface-examples) shows examples of how to use `gr.ChatInterface` with popular LLM libraries.
+- If you'd like to build very custom chat applications from scratch, you can build them using the low-level Blocks API, as [discussed in this Guide](../guides/creating-a-custom-chatbot-with-blocks).
+- Once you've deployed your Gradio Chat Interface, its easy to use in other applications because of the built-in API. Here's a tutorial on [how to deploy a Gradio chat interface as a Discord bot](../guides/creating-a-discord-bot-from-a-gradio-app).

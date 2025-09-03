@@ -13,7 +13,7 @@ const loading_status: LoadingStatus = {
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0,
-	show_progress: "full"
+	show_progress: "full",
 };
 
 describe("Chatbot", () => {
@@ -24,7 +24,7 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [["user message one", "bot message one"]],
-			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
+			latex_delimiters: [{ left: "$$", right: "$$", display: true }],
 		});
 
 		const bot = getAllByTestId("user")[0];
@@ -39,7 +39,7 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [[null, null]],
-			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
+			latex_delimiters: [{ left: "$$", right: "$$", display: true }],
 		});
 
 		const chatbot = getByRole("log");
@@ -58,7 +58,7 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [["", ""]],
-			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
+			latex_delimiters: [{ left: "$$", right: "$$", display: true }],
 		});
 
 		const userButton = container.querySelector(".user > div");
@@ -73,14 +73,14 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [["user message one", "bot message one"]],
-			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
+			latex_delimiters: [{ left: "$$", right: "$$", display: true }],
 		});
 
 		await component.$set({
 			value: [
 				["user message one", "bot message one"],
-				["user message two", "bot message two"]
-			]
+				["user message two", "bot message two"],
+			],
 		});
 
 		const user_2 = getAllByTestId("user");
@@ -98,24 +98,24 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: undefined,
-			latex_delimiters: []
+			latex_delimiters: [],
 		});
 
 		let value: [string | FileData | null, string | FileData | null][] = Array(
-			2
+			2,
 		).fill([
 			{
 				file: {
 					path: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah1.jpg",
 					url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah1.jpg",
 					mime_type: "image/jpeg",
-					alt_text: null
-				}
-			}
+					alt_text: null,
+				},
+			},
 		]);
 
 		await component.$set({
-			value: value
+			value: value,
 		});
 
 		const image = getAllByTestId("chatbot-image") as HTMLImageElement[];
@@ -129,7 +129,7 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			latex_delimiters: [],
-			theme_mode: "dark"
+			theme_mode: "dark",
 		});
 		let value: Array<[string | FileData | null, string | FileData | null]> =
 			Array(2).fill([
@@ -138,12 +138,12 @@ describe("Chatbot", () => {
 						path: "https://gradio-builds.s3.amazonaws.com/demo-files/video_sample.mp4",
 						url: "https://gradio-builds.s3.amazonaws.com/demo-files/video_sample.mp4",
 						mime_type: "video/mp4",
-						alt_text: null
-					}
-				}
+						alt_text: null,
+					},
+				},
 			]);
 		await component.$set({
-			value: value
+			value: value,
 		});
 
 		const video = getAllByTestId("chatbot-video") as HTMLVideoElement[];
@@ -156,7 +156,7 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			latex_delimiters: [],
-			theme_mode: "dark"
+			theme_mode: "dark",
 		});
 
 		let value = Array(2).fill([
@@ -165,13 +165,13 @@ describe("Chatbot", () => {
 					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
 					url: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
 					mime_type: "audio/wav",
-					alt_text: null
-				}
-			}
+					alt_text: null,
+				},
+			},
 		]);
 
 		await component.$set({
-			value: value
+			value: value,
 		});
 
 		const audio = getAllByTestId("chatbot-audio") as HTMLAudioElement[];
@@ -183,7 +183,7 @@ describe("Chatbot", () => {
 		const { component, getAllByTestId } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-			latex_delimiters: []
+			latex_delimiters: [],
 		});
 
 		let value = Array(2).fill([
@@ -192,13 +192,13 @@ describe("Chatbot", () => {
 					path: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
 					url: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
 					mime_type: "text/csv",
-					alt_text: null
-				}
-			}
+					alt_text: null,
+				},
+			},
 		]);
 
 		await component.$set({
-			value: value
+			value: value,
 		});
 
 		const file_link = getAllByTestId("chatbot-file") as HTMLAnchorElement[];
@@ -213,14 +213,14 @@ describe("Chatbot", () => {
 		Object.defineProperty(navigator, "clipboard", {
 			value: { writeText: clipboard_write_text_mock },
 			configurable: true,
-			writable: true
+			writable: true,
 		});
 
 		const { getByLabelText } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
 			value: [["user message one", "bot message one"]],
-			show_copy_all_button: true
+			show_copy_all_button: true,
 		});
 
 		const copy_button = getByLabelText("Copy conversation");
@@ -228,10 +228,10 @@ describe("Chatbot", () => {
 		fireEvent.click(copy_button);
 
 		expect(clipboard_write_text_mock).toHaveBeenCalledWith(
-			expect.stringContaining("user: user message one")
+			expect.stringContaining("user: user message one"),
 		);
 		expect(clipboard_write_text_mock).toHaveBeenCalledWith(
-			expect.stringContaining("assistant: bot message one")
+			expect.stringContaining("assistant: bot message one"),
 		);
 	});
 
@@ -240,13 +240,15 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [["user message", "<thinking>processing query...</thinking>"]],
-			allow_tags: ["thinking"]
+			allow_tags: ["thinking"],
 		});
 
 		const botMessage = container.querySelector(".bot > div");
 		assert.exists(botMessage);
 		assert.isTrue(
-			botMessage?.innerHTML.includes("<thinking>processing query...</thinking>")
+			botMessage?.innerHTML.includes(
+				"<thinking>processing query...</thinking>",
+			),
 		);
 	});
 
@@ -255,7 +257,7 @@ describe("Chatbot", () => {
 			{ role: "user", content: "Hello", type: "text", index: 0 },
 			{ role: "assistant", content: "Hi there", type: "text", index: 1 },
 			{ role: "assistant", content: "How can I help?", type: "text", index: 2 },
-			{ role: "user", content: "Thanks", type: "text", index: 3 }
+			{ role: "user", content: "Thanks", type: "text", index: 3 },
 		];
 
 		const grouped = group_messages(messages, "messages", true);
@@ -272,7 +274,7 @@ describe("Chatbot", () => {
 			{ role: "user", content: "Hello", type: "text", index: 0 },
 			{ role: "assistant", content: "Hi there", type: "text", index: 1 },
 			{ role: "assistant", content: "How can I help?", type: "text", index: 2 },
-			{ role: "user", content: "Thanks", type: "text", index: 3 }
+			{ role: "user", content: "Thanks", type: "text", index: 3 },
 		];
 
 		const grouped = group_messages(messages, "messages", false);
@@ -291,7 +293,7 @@ describe("Chatbot", () => {
 			{ role: "assistant", content: "Hi there" },
 			{ role: "assistant", content: "How can I help?" },
 			{ role: "user", content: "Thanks" },
-			{ role: "assistant", content: "You're welcome!" }
+			{ role: "assistant", content: "You're welcome!" },
 		];
 
 		const { container } = await render(Chatbot, {
@@ -302,7 +304,7 @@ describe("Chatbot", () => {
 			group_consecutive_messages: false,
 			show_copy_button: false,
 			feedback_options: ["Like", "Dislike"],
-			likeable: true
+			likeable: true,
 		});
 
 		// Count the number of like/dislike button panels

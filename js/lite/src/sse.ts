@@ -8,7 +8,7 @@ import { is_self_host } from "@gradio/wasm/network";
 
 export function wasm_proxied_stream_factory(
 	worker_proxy: WorkerProxy,
-	url: URL
+	url: URL,
 ): EventSource {
 	if (!is_self_host(url)) {
 		console.debug("Fallback to original WebSocket");

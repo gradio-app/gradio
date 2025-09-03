@@ -6,7 +6,7 @@ export async function upload_files(
 	this: Client,
 	root_url: string,
 	files: (Blob | File)[],
-	upload_id?: string
+	upload_id?: string,
 ): Promise<UploadResponse> {
 	const headers: {
 		Authorization?: string;
@@ -34,7 +34,7 @@ export async function upload_files(
 				method: "POST",
 				body: formData,
 				headers,
-				credentials: "include"
+				credentials: "include",
 			});
 		} catch (e) {
 			throw new Error(BROKEN_CONNECTION_MSG + (e as Error).message);

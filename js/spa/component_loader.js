@@ -9,7 +9,7 @@ export function load_component({ api_url, name, id, variant }) {
 	const _component_map = {
 		// eslint-disable-next-line no-undef
 		...component_map,
-		...(!comps ? {} : comps)
+		...(!comps ? {} : comps),
 	};
 
 	let _id = id || name;
@@ -28,7 +28,7 @@ export function load_component({ api_url, name, id, variant }) {
 
 		return {
 			name,
-			component: request_map[`${_id}-${variant}`]
+			component: request_map[`${_id}-${variant}`],
 		};
 	} catch (e) {
 		if (!_id) throw new Error(`Component not found: ${name}`);
@@ -36,12 +36,12 @@ export function load_component({ api_url, name, id, variant }) {
 			request_map[`${_id}-${variant}`] = get_component_with_css(
 				api_url,
 				_id,
-				variant
+				variant,
 			);
 
 			return {
 				name,
-				component: request_map[`${_id}-${variant}`]
+				component: request_map[`${_id}-${variant}`],
 			};
 		} catch (e) {
 			if (variant === "example") {
@@ -49,7 +49,7 @@ export function load_component({ api_url, name, id, variant }) {
 
 				return {
 					name,
-					component: request_map[`${_id}-${variant}`]
+					component: request_map[`${_id}-${variant}`],
 				};
 			}
 			console.error(`failed to load: ${name}`);
@@ -78,7 +78,7 @@ function get_component_with_css(api_url, id, variant) {
 		load_css(`${api_url}/custom_component/${id}/${variant}/style.css`),
 		import(
 			/* @vite-ignore */ `${api_url}/custom_component/${id}/client/${variant}/index.js`
-		)
+		),
 	]).then(([_, module]) => {
 		return module;
 	});

@@ -17,7 +17,7 @@ import {
 	LayerManager,
 	AddLayerCommand,
 	RemoveLayerCommand,
-	ReorderLayerCommand
+	ReorderLayerCommand,
 } from "./layers";
 
 export interface Tool {
@@ -25,7 +25,7 @@ export interface Tool {
 	setup(
 		context: ImageEditorContext,
 		tool: ToolbarTool,
-		subtool: Subtool
+		subtool: Subtool,
 	): Promise<void>;
 	cleanup(): void;
 	set_tool(tool: ToolbarTool, subtool: Subtool): void;
@@ -50,7 +50,7 @@ interface ImageEditorOptions {
 
 const core_tool_map = {
 	image: () => new ImageTool(),
-	zoom: () => new ZoomTool()
+	zoom: () => new ZoomTool(),
 } as const;
 
 export interface ImageEditorContext {
@@ -79,7 +79,7 @@ export interface ImageEditorContext {
 
 const spring_config = {
 	stiffness: 0.45,
-	damping: 0.8
+	damping: 0.8,
 };
 
 interface EditorStatePublic {
@@ -117,7 +117,7 @@ class EditorState {
 			get current_subtool() {
 				return this.current_subtool;
 			},
-			subscribe: this.subscribe.bind(this)
+			subscribe: this.subscribe.bind(this),
 		});
 	}
 
@@ -139,7 +139,7 @@ class EditorState {
 				property,
 				oldValue,
 				newValue,
-				timestamp: Date.now()
+				timestamp: Date.now(),
 			});
 		});
 	}
@@ -177,7 +177,7 @@ export class ImageEditor {
 	private position_value: { x: number; y: number } = { x: 0, y: 0 };
 	private dimensions_value: { width: number; height: number } = {
 		width: 0,
-		height: 0
+		height: 0,
 	};
 	layers: Writable<{
 		active_layer: string;
@@ -189,7 +189,7 @@ export class ImageEditor {
 		}[];
 	}> = writable({
 		active_layer: "",
-		layers: []
+		layers: [],
 	});
 	private outline_container!: Container;
 	private outline_graphics!: Graphics;
@@ -226,7 +226,7 @@ export class ImageEditor {
 				}
 
 				return [tool.name, tool];
-			})
+			}),
 		);
 
 		for (const tool of this.tools.values()) {
@@ -239,7 +239,7 @@ export class ImageEditor {
 
 		this.dimensions = spring(
 			{ width: this.width, height: this.height },
-			spring_config
+			spring_config,
 		);
 		this.scale = spring(1, spring_config);
 		this.position = spring({ x: 0, y: 0 }, spring_config);
@@ -248,7 +248,7 @@ export class ImageEditor {
 		this.layer_options = options.layer_options || {
 			allow_additional_layers: true,
 			layers: ["Layer 1"],
-			disabled: false
+			disabled: false,
 		};
 		this.scale.subscribe((scale) => {
 			this.state._set_scale(scale);
@@ -278,7 +278,7 @@ export class ImageEditor {
 			execute_command: this.execute_command.bind(this),
 			resize_canvas: this.resize_canvas.bind(this),
 			reset: this.reset.bind(this),
-			set_background_image: this.set_background_image.bind(this)
+			set_background_image: this.set_background_image.bind(this),
 		};
 	}
 
@@ -288,7 +288,7 @@ export class ImageEditor {
 			entries.forEach((entry) => {
 				this.resize_canvas(
 					entry.contentBoxSize[0].inlineSize,
-					entry.contentBoxSize[0].blockSize
+					entry.contentBoxSize[0].blockSize,
 				);
 			});
 		}).observe(this.target_element);
@@ -306,7 +306,7 @@ export class ImageEditor {
 			resolution: window.devicePixelRatio,
 			autoDensity: true,
 			antialias: true,
-			powerPreference: "high-performance"
+			powerPreference: "high-performance",
 		});
 
 		const canvas = this.app.canvas as HTMLCanvasElement;
@@ -351,22 +351,22 @@ export class ImageEditor {
 			this.image_container.scale.set(this.scale_value);
 			this.image_container.position.set(
 				this.position_value.x,
-				this.position_value.y
+				this.position_value.y,
 			);
 
 			const effective_width = this.dimensions_value.width * this.scale_value;
 			const effective_height = this.dimensions_value.height * this.scale_value;
 
 			const local_x = Math.round(
-				this.image_container.position.x - this.outline_container.position.x
+				this.image_container.position.x - this.outline_container.position.x,
 			);
 			const local_y = Math.round(
-				this.image_container.position.y - this.outline_container.position.y
+				this.image_container.position.y - this.outline_container.position.y,
 			);
 
 			this.overlay_container.position.set(
 				this.outline_container.position.x,
-				this.outline_container.position.y
+				this.outline_container.position.y,
 			);
 
 			this.outline_graphics.clear();
@@ -374,7 +374,7 @@ export class ImageEditor {
 				.rect(local_x, local_y, effective_width, effective_height)
 				.fill({
 					color: this.dark ? 0x333333 : 0xffffff,
-					alpha: 1
+					alpha: 1,
 				});
 
 			if (this.border_region > 0) {
@@ -392,7 +392,7 @@ export class ImageEditor {
 						color: 0x999999,
 						width: 1,
 						alpha: 0,
-						pixelLine: true
+						pixelLine: true,
 					});
 
 				const dashLength = 5;
@@ -406,7 +406,7 @@ export class ImageEditor {
 							x,
 							border_y,
 							Math.min(dashLength, border_x + border_width - x),
-							1
+							1,
 						)
 						.fill({ color: lineColor, alpha: 0.7 });
 
@@ -415,7 +415,7 @@ export class ImageEditor {
 							x,
 							border_y + border_height,
 							Math.min(dashLength, border_x + border_width - x),
-							1
+							1,
 						)
 						.fill({ color: lineColor, alpha: 0.7 });
 				}
@@ -426,7 +426,7 @@ export class ImageEditor {
 							border_x,
 							y,
 							1,
-							Math.min(dashLength, border_y + border_height - y)
+							Math.min(dashLength, border_y + border_height - y),
 						)
 						.fill({ color: lineColor, alpha: 0.7 });
 
@@ -435,7 +435,7 @@ export class ImageEditor {
 							border_x + border_width,
 							y,
 							1,
-							Math.min(dashLength, border_y + border_height - y)
+							Math.min(dashLength, border_y + border_height - y),
 						)
 						.fill({ color: lineColor, alpha: 0.7 });
 				}
@@ -450,7 +450,7 @@ export class ImageEditor {
 	private setup_containers(): void {
 		this.image_container = new Container({
 			eventMode: "static",
-			sortableChildren: true
+			sortableChildren: true,
 		});
 
 		this.image_container.width = this.width;
@@ -463,7 +463,7 @@ export class ImageEditor {
 		this.image_container.scale.set(1);
 
 		this.ui_container = new Container({
-			eventMode: "static"
+			eventMode: "static",
 		});
 		this.app.stage.addChild(this.ui_container);
 		this.ui_container.width = this.width;
@@ -476,7 +476,7 @@ export class ImageEditor {
 
 		this.outline_graphics.rect(0, 0, this.width, this.height).fill({
 			color: this.dark ? 0x333333 : 0xffffff,
-			alpha: 0
+			alpha: 0,
 		});
 
 		if (!this.dark) {
@@ -486,7 +486,7 @@ export class ImageEditor {
 				color: 0x000000,
 				offset: { x: 0, y: 0 },
 				quality: 4,
-				shadowOnly: false
+				shadowOnly: false,
 			});
 
 			this.outline_graphics.filters = [blurFilter];
@@ -508,7 +508,7 @@ export class ImageEditor {
 
 		this.overlay_graphics.rect(0, 0, this.width, this.height).fill({
 			color: 0x000000,
-			alpha: 0
+			alpha: 0,
 		});
 
 		const app_center_x = this.app.screen.width / 2;
@@ -523,7 +523,7 @@ export class ImageEditor {
 			this.fixed_canvas,
 			this.dark,
 			this.border_region,
-			this.layer_options
+			this.layer_options,
 		);
 		this.layers = this.layer_manager.layer_store;
 	}
@@ -585,7 +585,7 @@ export class ImageEditor {
 			this.height = properties.height;
 			const dimensions = this.dimensions.set(
 				{ width: properties.width, height: properties.height },
-				{ hard }
+				{ hard },
 			);
 			if (hard) {
 				await dimensions;
@@ -609,7 +609,7 @@ export class ImageEditor {
 
 	async add_image({
 		image,
-		resize = true
+		resize = true,
 	}: {
 		image: Blob | File;
 		resize?: boolean;
@@ -618,7 +618,7 @@ export class ImageEditor {
 		await image_tool.add_image({
 			image,
 			fixed_canvas: this.fixed_canvas,
-			border_region: this.border_region
+			border_region: this.border_region,
 		});
 	}
 
@@ -632,7 +632,7 @@ export class ImageEditor {
 		await image_tool.add_image({
 			image: texture,
 			fixed_canvas: this.fixed_canvas,
-			border_region: this.border_region
+			border_region: this.border_region,
 		});
 
 		const resize_tool = this.tools.get("resize") as any;
@@ -675,7 +675,7 @@ export class ImageEditor {
 			height: this.height,
 			scale: 1,
 			position: { x: 0, y: 0 },
-			animate: false
+			animate: false,
 		});
 
 		this.layer_manager.create_background_layer(this.width, this.height);
@@ -700,7 +700,7 @@ export class ImageEditor {
 			width: this.width,
 			height: this.height,
 			user_created: true,
-			make_active: true
+			make_active: true,
 		});
 
 		this.execute_command(add_layer_command);
@@ -722,7 +722,7 @@ export class ImageEditor {
 				width: this.width,
 				height: this.height,
 				layer_name: undefined,
-				user_created: false
+				user_created: false,
 			});
 			return;
 		}
@@ -757,7 +757,7 @@ export class ImageEditor {
 		const reorder_layer_command = new ReorderLayerCommand(
 			this.context,
 			id,
-			direction
+			direction,
 		);
 		this.execute_command(reorder_layer_command);
 		this.notify("change");
@@ -782,7 +782,7 @@ export class ImageEditor {
 			| "bottom-left"
 			| "bottom"
 			| "bottom-right",
-		scale: boolean
+		scale: boolean,
 	): void {
 		const oldWidth = this.width;
 		const oldHeight = this.height;
@@ -793,7 +793,7 @@ export class ImageEditor {
 			scale,
 			anchor,
 			oldWidth,
-			oldHeight
+			oldHeight,
 		);
 
 		this.width = width;
@@ -804,7 +804,7 @@ export class ImageEditor {
 			height,
 			scale: 1,
 			position: { x: 0, y: 0 },
-			animate: false
+			animate: false,
 		});
 		this.notify("change");
 	}
@@ -817,14 +817,14 @@ export class ImageEditor {
 	on(event: "change" | "input", callback: () => void): void {
 		this.event_callbacks.set(event, [
 			...(this.event_callbacks.get(event) || []),
-			callback
+			callback,
 		]);
 	}
 
 	off(event: "change", callback: () => void): void {
 		this.event_callbacks.set(
 			event,
-			this.event_callbacks.get(event)?.filter((cb) => cb !== callback) || []
+			this.event_callbacks.get(event)?.filter((cb) => cb !== callback) || [],
 		);
 	}
 
@@ -843,7 +843,7 @@ export class ImageEditor {
 	resize(width: number, height: number): void {
 		this.set_image_properties({
 			width,
-			height
+			height,
 		});
 
 		this.reset();
@@ -862,7 +862,7 @@ export class ImageEditor {
 
 		return {
 			image,
-			...crop_bounds
+			...crop_bounds,
 		};
 	}
 
@@ -875,7 +875,7 @@ export class ImageEditor {
 		this.layer_manager.set_layer_options(
 			layer_options,
 			this.width,
-			this.height
+			this.height,
 		);
 	}
 

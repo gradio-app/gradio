@@ -4,7 +4,7 @@ import type {
 	ASGIApplication,
 	ASGIScope,
 	ReceiveEvent,
-	SendEvent
+	SendEvent,
 } from "../asgi-types";
 
 // Connect the `messagePort` to the `asgiApp` so that
@@ -13,7 +13,7 @@ import type {
 export function makeAsgiRequest(
 	asgiApp: ASGIApplication,
 	scope: ASGIScope,
-	messagePort: MessagePort
+	messagePort: MessagePort,
 ): Promise<void> {
 	const receiveEventQueue = new AwaitableQueue<ReceiveEvent>();
 

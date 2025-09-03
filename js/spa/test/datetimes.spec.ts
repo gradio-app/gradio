@@ -9,12 +9,12 @@ test("gr.DateTime shows correct values", async ({ page }) => {
 		.fill("2020-10-01 10:50:00");
 	await page.locator("body").first().click();
 	await expect(page.getByLabel("Last Change")).toHaveValue(
-		"2020-10-01 10:50:00"
+		"2020-10-01 10:50:00",
 	);
 	await expect(page.getByLabel("Last Submit")).toHaveValue("");
 	await page.locator("#date1").getByRole("textbox").first().press("Enter");
 	await expect(page.getByLabel("Last Submit")).toHaveValue(
-		"2020-10-01 10:50:00"
+		"2020-10-01 10:50:00",
 	);
 	await expect(page.getByLabel("Last Load")).toHaveValue("");
 

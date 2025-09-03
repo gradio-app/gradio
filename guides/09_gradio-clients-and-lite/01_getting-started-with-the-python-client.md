@@ -54,7 +54,6 @@ from gradio_client import Client
 client = Client("abidlabs/my-private-space", hf_token="...")
 ```
 
-
 ## Duplicating a Space for private use
 
 While you can use any public Space as an API, you may get rate limited by Hugging Face if you make too many requests. For unlimited usage of a Space, simply duplicate the Space to create a private Space,
@@ -101,7 +100,6 @@ Client(
 )
 ```
 
-
 ## Inspecting the API endpoints
 
 Once you have connected to a Gradio app, you can view the APIs that are available to you by calling the `Client.view_api()` method. For the Whisper Space, we see the following:
@@ -113,18 +111,18 @@ Named API endpoints: 1
 
  - predict(audio, api_name="/predict") -> output
     Parameters:
-     - [Audio] audio: filepath (required)  
+     - [Audio] audio: filepath (required)
     Returns:
-     - [Textbox] output: str 
+     - [Textbox] output: str
 ```
 
-We see  that we have 1 API endpoint in this space, and shows us how to use the API endpoint to make a prediction: we should call the `.predict()` method (which we will explore below), providing a parameter `input_audio` of type `str`, which is a `filepath or URL`.
+We see that we have 1 API endpoint in this space, and shows us how to use the API endpoint to make a prediction: we should call the `.predict()` method (which we will explore below), providing a parameter `input_audio` of type `str`, which is a `filepath or URL`.
 
 We should also provide the `api_name='/predict'` argument to the `predict()` method. Although this isn't necessary if a Gradio app has only 1 named endpoint, it does allow us to call different endpoints in a single app if they are available.
 
 ## The "View API" Page
 
-As an alternative to running the `.view_api()` method, you can click on the "Use via API" link in the footer of the Gradio app, which shows us the same information, along with example usage. 
+As an alternative to running the `.view_api()` method, you can click on the "Use via API" link in the footer of the Gradio app, which shows us the same information, along with example usage.
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api.png)
 
@@ -155,7 +153,6 @@ client.predict(4, "add", 5)
 ```
 
 It is recommended to provide key-word arguments instead of positional arguments:
-
 
 ```python
 from gradio_client import Client
@@ -330,7 +327,7 @@ with gr.Blocks() as demo:
     textbox = gr.Textbox()
     number = gr.Number()
     textbox.submit(count, inputs=[textbox, words], outputs=[number, words])
-    
+
 demo.launch()
 ```
 
@@ -343,9 +340,9 @@ Named API endpoints: 1
 
  - predict(word, api_name="/count") -> value_31
     Parameters:
-     - [Textbox] word: str (required)  
+     - [Textbox] word: str (required)
     Returns:
-     - [Number] value_31: float 
+     - [Number] value_31: float
 ```
 
 That is because the Python client handles state automatically for you -- as you make a series of requests, the returned state from one request is stored internally and automatically supplied for the subsequent request. If you'd like to reset the state, you can do that by calling `Client.reset_session()`.

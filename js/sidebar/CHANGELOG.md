@@ -67,7 +67,7 @@
 
 ### Fixes
 
-- [#11270](https://github.com/gradio-app/gradio/pull/11270) [`636be09`](https://github.com/gradio-app/gradio/commit/636be09928448dd6d4ef29013dbf698f22787d3d) - A few frontend / UI fixes to `gr.Sidebar`.  Thanks @abidlabs!
+- [#11270](https://github.com/gradio-app/gradio/pull/11270) [`636be09`](https://github.com/gradio-app/gradio/commit/636be09928448dd6d4ef29013dbf698f22787d3d) - A few frontend / UI fixes to `gr.Sidebar`. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -135,14 +135,14 @@
 
 ### Features
 
-- [#10694](https://github.com/gradio-app/gradio/pull/10694) [`16244f3`](https://github.com/gradio-app/gradio/commit/16244f3c1cb1a65ac1f719142f8fab67512fbb25) - Event Listeners in gradio sketch.  Thanks @aliabid94!
-- [#10737](https://github.com/gradio-app/gradio/pull/10737) [`1cf992b`](https://github.com/gradio-app/gradio/commit/1cf992b04225580b9c7c4d4dd0c84e5a7ebe6ad3) - Sidebar fixed positioning.  Thanks @dawoodkhan82!
+- [#10694](https://github.com/gradio-app/gradio/pull/10694) [`16244f3`](https://github.com/gradio-app/gradio/commit/16244f3c1cb1a65ac1f719142f8fab67512fbb25) - Event Listeners in gradio sketch. Thanks @aliabid94!
+- [#10737](https://github.com/gradio-app/gradio/pull/10737) [`1cf992b`](https://github.com/gradio-app/gradio/commit/1cf992b04225580b9c7c4d4dd0c84e5a7ebe6ad3) - Sidebar fixed positioning. Thanks @dawoodkhan82!
 
 ## 0.1.5
 
 ### Fixes
 
-- [#10616](https://github.com/gradio-app/gradio/pull/10616) [`ae4ba46`](https://github.com/gradio-app/gradio/commit/ae4ba46cfb9235904f8bfc197c72ad22275edd67) - Change sidebar to absolute positioning and make accessible.  Thanks @dawoodkhan82!
+- [#10616](https://github.com/gradio-app/gradio/pull/10616) [`ae4ba46`](https://github.com/gradio-app/gradio/commit/ae4ba46cfb9235904f8bfc197c72ad22275edd67) - Change sidebar to absolute positioning and make accessible. Thanks @dawoodkhan82!
 
 ## 0.1.4
 
@@ -156,8 +156,8 @@
 
 ### Features
 
-- [#10579](https://github.com/gradio-app/gradio/pull/10579) [`b640df2`](https://github.com/gradio-app/gradio/commit/b640df2517dee166634f279fcfaac8ba5f5aef2f) - Fix Sidebar for mobile.  Thanks @dawoodkhan82!
-- [#10582](https://github.com/gradio-app/gradio/pull/10582) [`1299267`](https://github.com/gradio-app/gradio/commit/1299267a8a78546d3f9e13d6b3c58231cf88f2b9) - Change sidebar position.  Thanks @dawoodkhan82!
+- [#10579](https://github.com/gradio-app/gradio/pull/10579) [`b640df2`](https://github.com/gradio-app/gradio/commit/b640df2517dee166634f279fcfaac8ba5f5aef2f) - Fix Sidebar for mobile. Thanks @dawoodkhan82!
+- [#10582](https://github.com/gradio-app/gradio/pull/10582) [`1299267`](https://github.com/gradio-app/gradio/commit/1299267a8a78546d3f9e13d6b3c58231cf88f2b9) - Change sidebar position. Thanks @dawoodkhan82!
 
 ## 0.1.2
 
@@ -172,10 +172,10 @@
 
 ### Features
 
-- [#10483](https://github.com/gradio-app/gradio/pull/10483) [`3750082`](https://github.com/gradio-app/gradio/commit/3750082b266464487cd5b7684ae1590ae03d3bef) - Sidebar Fixes.  Thanks @dawoodkhan82!
+- [#10483](https://github.com/gradio-app/gradio/pull/10483) [`3750082`](https://github.com/gradio-app/gradio/commit/3750082b266464487cd5b7684ae1590ae03d3bef) - Sidebar Fixes. Thanks @dawoodkhan82!
 
 ## 0.1.0
 
 ### Features
 
-- [#10435](https://github.com/gradio-app/gradio/pull/10435) [`ef66fe5`](https://github.com/gradio-app/gradio/commit/ef66fe52b22448a5125a314581f2ec6c73c24145) - Sidebar Component.  Thanks @dawoodkhan82!
+- [#10435](https://github.com/gradio-app/gradio/pull/10435) [`ef66fe5`](https://github.com/gradio-app/gradio/commit/ef66fe52b22448a5125a314581f2ec6c73c24145) - Sidebar Component. Thanks @dawoodkhan82!

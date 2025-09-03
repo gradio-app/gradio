@@ -9,7 +9,7 @@ export function filter_data(
 		datatype: FilterDatatype;
 		filter: string;
 		value: string;
-	}[]
+	}[],
 ): number[] {
 	if (!data || !data.length || !data[0]) {
 		return [];
@@ -22,43 +22,43 @@ export function filter_data(
 				switch (column.filter) {
 					case "Contains":
 						row_indices = row_indices.filter((i) =>
-							data[i][column.col]?.value.toString().includes(column.value)
+							data[i][column.col]?.value.toString().includes(column.value),
 						);
 						break;
 					case "Does not contain":
 						row_indices = row_indices.filter(
 							(i) =>
-								!data[i][column.col]?.value.toString().includes(column.value)
+								!data[i][column.col]?.value.toString().includes(column.value),
 						);
 						break;
 					case "Starts with":
 						row_indices = row_indices.filter((i) =>
-							data[i][column.col]?.value.toString().startsWith(column.value)
+							data[i][column.col]?.value.toString().startsWith(column.value),
 						);
 						break;
 					case "Ends with":
 						row_indices = row_indices.filter((i) =>
-							data[i][column.col]?.value.toString().endsWith(column.value)
+							data[i][column.col]?.value.toString().endsWith(column.value),
 						);
 						break;
 					case "Is":
 						row_indices = row_indices.filter(
-							(i) => data[i][column.col]?.value.toString() === column.value
+							(i) => data[i][column.col]?.value.toString() === column.value,
 						);
 						break;
 					case "Is not":
 						row_indices = row_indices.filter(
-							(i) => !(data[i][column.col]?.value.toString() === column.value)
+							(i) => !(data[i][column.col]?.value.toString() === column.value),
 						);
 						break;
 					case "Is empty":
 						row_indices = row_indices.filter(
-							(i) => data[i][column.col]?.value.toString() === ""
+							(i) => data[i][column.col]?.value.toString() === "",
 						);
 						break;
 					case "Is not empty":
 						row_indices = row_indices.filter(
-							(i) => !(data[i][column.col]?.value.toString() === "")
+							(i) => !(data[i][column.col]?.value.toString() === ""),
 						);
 						break;
 				}
@@ -144,7 +144,7 @@ export function filter_data(
 						break;
 					case "Is empty":
 						row_indices = row_indices.filter(
-							(i) => data[i][column.col]?.value.toString() === ""
+							(i) => data[i][column.col]?.value.toString() === "",
 						);
 						break;
 					case "Is not empty":
@@ -176,11 +176,11 @@ export function filter_data_and_preserve_selection(
 	selected: [number, number] | false,
 	get_current_indices: (
 		id: string,
-		data: { id: string; value: string | number }[][]
+		data: { id: string; value: string | number }[][],
 	) => [number, number],
 	original_data?: { id: string; value: string | number }[][],
 	original_display_value?: string[][] | null,
-	original_styling?: string[][] | null
+	original_styling?: string[][] | null,
 ): { data: typeof data; selected: [number, number] | false } {
 	let id = null;
 	if (selected && selected[0] in data && selected[1] in data[selected[0]]) {
@@ -194,7 +194,7 @@ export function filter_data_and_preserve_selection(
 		filter_columns,
 		original_data,
 		original_display_value,
-		original_styling
+		original_styling,
 	);
 
 	let new_selected = selected;

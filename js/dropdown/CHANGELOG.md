@@ -31,7 +31,7 @@
 
 ### Features
 
-- [#11092](https://github.com/gradio-app/gradio/pull/11092) [`c8c17f1`](https://github.com/gradio-app/gradio/commit/c8c17f1a909952616a01967839482153d1419b78) - Add gr.Dialogue component.  Thanks @freddyaboulton!
+- [#11092](https://github.com/gradio-app/gradio/pull/11092) [`c8c17f1`](https://github.com/gradio-app/gradio/commit/c8c17f1a909952616a01967839482153d1419b78) - Add gr.Dialogue component. Thanks @freddyaboulton!
 
 ## 0.9.25
 
@@ -50,7 +50,7 @@
 
 ### Fixes
 
-- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -117,7 +117,7 @@
 
 ### Features
 
-- [#10891](https://github.com/gradio-app/gradio/pull/10891) [`17fed95`](https://github.com/gradio-app/gradio/commit/17fed951a9bd6ef02fc4430b2dc61e7cd358cd9e) - Fix empty array check in arrow key handling in `gr.Dropdown`.  Thanks @l2dy!
+- [#10891](https://github.com/gradio-app/gradio/pull/10891) [`17fed95`](https://github.com/gradio-app/gradio/commit/17fed951a9bd6ef02fc4430b2dc61e7cd358cd9e) - Fix empty array check in arrow key handling in `gr.Dropdown`. Thanks @l2dy!
 
 ## 0.9.15
 
@@ -137,7 +137,7 @@
 
 ### Fixes
 
-- [#10659](https://github.com/gradio-app/gradio/pull/10659) [`36309ea`](https://github.com/gradio-app/gradio/commit/36309ea55fba6017f8a7f2be1484989ecccdac1b) - Automatically restore last scroll position in multiple-choice dropdowns.  Thanks @XcantloadX!
+- [#10659](https://github.com/gradio-app/gradio/pull/10659) [`36309ea`](https://github.com/gradio-app/gradio/commit/36309ea55fba6017f8a7f2be1484989ecccdac1b) - Automatically restore last scroll position in multiple-choice dropdowns. Thanks @XcantloadX!
 
 ## 0.9.12
 
@@ -233,7 +233,7 @@
 
 ### Features
 
-- [#9699](https://github.com/gradio-app/gradio/pull/9699) [`ea2367c`](https://github.com/gradio-app/gradio/commit/ea2367ccb1b75827a086d1c19e2a4595d7a5aa0f) - allow setting initial value of `gr.Dropdown` to `None` to designate that no value should be initially selected.  Thanks @abidlabs!
+- [#9699](https://github.com/gradio-app/gradio/pull/9699) [`ea2367c`](https://github.com/gradio-app/gradio/commit/ea2367ccb1b75827a086d1c19e2a4595d7a5aa0f) - allow setting initial value of `gr.Dropdown` to `None` to designate that no value should be initially selected. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -266,7 +266,7 @@
 
 ### Features
 
-- [#9437](https://github.com/gradio-app/gradio/pull/9437) [`c3d93be`](https://github.com/gradio-app/gradio/commit/c3d93bef94b9401747a363f7bad88a1d347d535b) - Adding new themes to Gradio 5.0.  Thanks @allisonwhilden!
+- [#9437](https://github.com/gradio-app/gradio/pull/9437) [`c3d93be`](https://github.com/gradio-app/gradio/commit/c3d93bef94b9401747a363f7bad88a1d347d535b) - Adding new themes to Gradio 5.0. Thanks @allisonwhilden!
 
 ### Dependency updates
 
@@ -278,7 +278,7 @@
 
 ### Features
 
-- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown.  Thanks @dawoodkhan82!
+- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown. Thanks @dawoodkhan82!
 
 ### Dependency updates
 
@@ -289,13 +289,13 @@
 
 ### Features
 
-- [#9526](https://github.com/gradio-app/gradio/pull/9526) [`f60bb68`](https://github.com/gradio-app/gradio/commit/f60bb68f52cd0863d9087b3fbc56635e297adef1) - Fix single select dropdown.  Thanks @whitphx!
+- [#9526](https://github.com/gradio-app/gradio/pull/9526) [`f60bb68`](https://github.com/gradio-app/gradio/commit/f60bb68f52cd0863d9087b3fbc56635e297adef1) - Fix single select dropdown. Thanks @whitphx!
 
 ## 0.8.0-beta.3
 
 ### Features
 
-- [#9519](https://github.com/gradio-app/gradio/pull/9519) [`0ab6ac5`](https://github.com/gradio-app/gradio/commit/0ab6ac5dc01b69e4f2462d00c4910f3354441227) - Fix change triggers for dropdown and radio.  Thanks @dawoodkhan82!
+- [#9519](https://github.com/gradio-app/gradio/pull/9519) [`0ab6ac5`](https://github.com/gradio-app/gradio/commit/0ab6ac5dc01b69e4f2462d00c4910f3354441227) - Fix change triggers for dropdown and radio. Thanks @dawoodkhan82!
 
 ### Dependency updates
 
@@ -322,7 +322,7 @@
 
 ### Features
 
-- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -335,7 +335,7 @@
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -348,7 +348,7 @@
 
 ### Features
 
-- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -469,18 +469,17 @@ demo.launch(max_file_size=5 * gr.FileSize.MB)
 
 ![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
 
-
 #### Error states can now be cleared
 
 When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
 
 ![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
 
- Thanks @freddyaboulton!
+Thanks @freddyaboulton!
 
 ### Fixes
 
-- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -501,7 +500,7 @@ When a component encounters an error, the error state shown in the UI can now be
 
 ### Fixes
 
-- [#7918](https://github.com/gradio-app/gradio/pull/7918) [`be46ab1`](https://github.com/gradio-app/gradio/commit/be46ab1213b32a40e4ac1c399499d69eaf6ec0f1) - ensure entire dropdown is clickable.  Thanks @dawoodkhan82!
+- [#7918](https://github.com/gradio-app/gradio/pull/7918) [`be46ab1`](https://github.com/gradio-app/gradio/commit/be46ab1213b32a40e4ac1c399499d69eaf6ec0f1) - ensure entire dropdown is clickable. Thanks @dawoodkhan82!
 
 ### Dependency updates
 
@@ -528,7 +527,7 @@ When a component encounters an error, the error state shown in the UI can now be
 
 ### Fixes
 
-- [#7567](https://github.com/gradio-app/gradio/pull/7567) [`e340894`](https://github.com/gradio-app/gradio/commit/e340894b1cf2f44dd45e597fd8d9e547f408fbb3) - Quick fix: custom dropdown value.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#7567](https://github.com/gradio-app/gradio/pull/7567) [`e340894`](https://github.com/gradio-app/gradio/commit/e340894b1cf2f44dd45e597fd8d9e547f408fbb3) - Quick fix: custom dropdown value. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
 
 ## 0.6.2
 

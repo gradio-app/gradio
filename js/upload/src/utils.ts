@@ -20,7 +20,7 @@ export function create_drag(): {
 	return {
 		drag(
 			node: HTMLElement,
-			options: DragActionOptions = {}
+			options: DragActionOptions = {},
 		): {
 			update: (new_options: DragActionOptions) => void;
 			destroy: () => void;
@@ -128,7 +128,7 @@ export function create_drag(): {
 					node.removeEventListener("click", handle_click);
 					hidden_input.removeEventListener("change", handle_file_input_change);
 					hidden_input.remove();
-				}
+				},
 			};
 		},
 		open_file_upload(): void {
@@ -136,6 +136,6 @@ export function create_drag(): {
 				hidden_input.value = "";
 				hidden_input.click();
 			}
-		}
+		},
 	};
 }

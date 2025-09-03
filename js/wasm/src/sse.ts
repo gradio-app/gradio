@@ -49,7 +49,7 @@ export class WasmWorkerEventSource extends EventTarget {
 			type: "http",
 			asgi: {
 				version: "3.0",
-				spec_version: "2.1"
+				spec_version: "2.1",
 			},
 			http_version: "1.1",
 			scheme: "http",
@@ -57,14 +57,14 @@ export class WasmWorkerEventSource extends EventTarget {
 			path: url.pathname,
 			query_string: url.searchParams.toString(),
 			root_path: "",
-			headers: [["accept", "text/event-stream"]]
+			headers: [["accept", "text/event-stream"]],
 		};
 
 		this.port = workerProxy.requestAsgi(asgiScope);
 		this.port.addEventListener("message", this._handleAsgiSendEvent.bind(this));
 		this.port.start();
 		this.port.postMessage({
-			type: "http.request"
+			type: "http.request",
 		} satisfies ReceiveEvent);
 	}
 
@@ -74,7 +74,7 @@ export class WasmWorkerEventSource extends EventTarget {
 		}
 
 		this.port.postMessage({
-			type: "http.disconnect"
+			type: "http.disconnect",
 		} satisfies ReceiveEvent);
 		this.port.close();
 		this.readyState = 2;
@@ -88,7 +88,7 @@ export class WasmWorkerEventSource extends EventTarget {
 			const headers = asgiHeadersToRecord(asgiSendEvent.headers);
 			console.debug("[MessagePortEventSource] HTTP response start", {
 				status,
-				headers
+				headers,
 			});
 			const contentType = getHeaderValue(headers, "content-type");
 			if (
@@ -197,7 +197,7 @@ export class WasmWorkerEventSource extends EventTarget {
 			const event = new MessageEvent(eventType === "" ? "message" : eventType, {
 				data,
 				lastEventId,
-				origin: self.url.origin
+				origin: self.url.origin,
 			});
 			// 7. Set the data buffer and the event type buffer to the empty string.
 			data = "";

@@ -9,7 +9,7 @@ async function save_cell_value(
 	input_value: string,
 	ctx: DataFrameContext,
 	row: number,
-	col: number
+	col: number,
 ): Promise<void> {
 	if (!ctx.data || !ctx.data[row] || !ctx.data[row][col]) return;
 
@@ -23,7 +23,7 @@ async function save_cell_value(
 		ctx.dispatch("change", {
 			data: ctx.data.map((row) => row.map((cell) => cell.value)),
 			headers: ctx.headers?.map((h) => h.value) || [],
-			metadata: null
+			metadata: null,
 		});
 	}
 
@@ -33,7 +33,7 @@ async function save_cell_value(
 export async function handle_cell_blur(
 	event: FocusEvent,
 	ctx: DataFrameContext,
-	coords: [number, number]
+	coords: [number, number],
 ): Promise<void> {
 	if (!ctx.data || !ctx.headers || !ctx.els) return;
 
@@ -44,13 +44,13 @@ export async function handle_cell_blur(
 		input_el.type === "checkbox" ? String(input_el.checked) : input_el.value,
 		ctx,
 		coords[0],
-		coords[1]
+		coords[1],
 	);
 }
 
 function handle_header_navigation(
 	event: KeyboardEvent,
-	ctx: DataFrameContext
+	ctx: DataFrameContext,
 ): boolean {
 	const state = get(ctx.state);
 	const selected_header = state.ui_state.selected_header;
@@ -67,14 +67,14 @@ function handle_header_navigation(
 			return true;
 		case "ArrowLeft":
 			ctx.actions.set_selected_header(
-				selected_header > 0 ? selected_header - 1 : selected_header
+				selected_header > 0 ? selected_header - 1 : selected_header,
 			);
 			return true;
 		case "ArrowRight":
 			ctx.actions.set_selected_header(
 				selected_header < headers.length - 1
 					? selected_header + 1
-					: selected_header
+					: selected_header,
 			);
 			return true;
 		case "Escape":
@@ -94,7 +94,7 @@ function handle_header_navigation(
 // eslint-disable-next-line complexity
 function handle_delete_operation(
 	event: KeyboardEvent,
-	ctx: DataFrameContext
+	ctx: DataFrameContext,
 ): boolean {
 	if (!ctx.data || !ctx.headers || !ctx.els || !ctx.dispatch) return false;
 
@@ -133,7 +133,7 @@ function handle_delete_operation(
 		ctx.dispatch("change", {
 			data: new_data.map((row) => row.map((cell) => cell.value)),
 			headers: ctx.headers.map((h) => h.value),
-			metadata: null
+			metadata: null,
 		});
 	}
 	return true;
@@ -143,7 +143,7 @@ function handle_arrow_keys(
 	event: KeyboardEvent,
 	ctx: DataFrameContext,
 	i: number,
-	j: number
+	j: number,
 ): boolean {
 	const state = get(ctx.state);
 	const editing = state.ui_state.editing;
@@ -160,8 +160,8 @@ function handle_arrow_keys(
 			ctx.actions.set_selected_cells(
 				ctx.actions.get_range_selection(
 					selected_cells.length > 0 ? selected_cells[0] : [i, j],
-					next_coords
-				)
+					next_coords,
+				),
 			);
 			ctx.actions.set_editing(false);
 		} else {
@@ -182,7 +182,7 @@ async function handle_enter_key(
 	event: KeyboardEvent,
 	ctx: DataFrameContext,
 	i: number,
-	j: number
+	j: number,
 ): Promise<boolean> {
 	if (!ctx.data || !ctx.els) return false;
 
@@ -214,7 +214,7 @@ function handle_tab_key(
 	event: KeyboardEvent,
 	ctx: DataFrameContext,
 	i: number,
-	j: number
+	j: number,
 ): boolean {
 	if (!ctx.data) return false;
 
@@ -223,7 +223,7 @@ function handle_tab_key(
 	const next_cell = ctx.actions.get_next_cell_coordinates(
 		[i, j],
 		ctx.data,
-		event.shiftKey
+		event.shiftKey,
 	);
 	if (next_cell) {
 		ctx.actions.set_selected_cells([next_cell]);
@@ -239,7 +239,7 @@ function handle_default_key(
 	event: KeyboardEvent,
 	ctx: DataFrameContext,
 	i: number,
-	j: number
+	j: number,
 ): boolean {
 	const state = get(ctx.state);
 	if (!state.config.editable) return false;
@@ -255,7 +255,7 @@ function handle_default_key(
 
 async function handle_cell_navigation(
 	event: KeyboardEvent,
-	ctx: DataFrameContext
+	ctx: DataFrameContext,
 ): Promise<boolean> {
 	if (!ctx.data) return false;
 
@@ -306,7 +306,7 @@ async function handle_cell_navigation(
 
 export async function handle_keydown(
 	event: KeyboardEvent,
-	context: DataFrameContext
+	context: DataFrameContext,
 ): Promise<void> {
 	if (handle_header_navigation(event, context)) return;
 	if (handle_delete_operation(event, context)) return;

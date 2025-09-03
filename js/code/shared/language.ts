@@ -15,29 +15,29 @@ const sql_dialects = [
 	"gql",
 	"gpSQL",
 	"sparkSQL",
-	"esper"
+	"esper",
 ] as const;
 
 const lang_map: Record<string, (() => Promise<Extension>) | undefined> = {
 	python: () => import("@codemirror/lang-python").then((m) => m.python()),
 	c: () =>
 		import("@codemirror/legacy-modes/mode/clike").then((m) =>
-			StreamLanguage.define(m.c)
+			StreamLanguage.define(m.c),
 		),
 	cpp: () =>
 		import("@codemirror/legacy-modes/mode/clike").then((m) =>
-			StreamLanguage.define(m.cpp)
+			StreamLanguage.define(m.cpp),
 		),
 	markdown: async () => {
 		const [md, frontmatter] = await Promise.all([
 			import("@codemirror/lang-markdown"),
-			import("./frontmatter")
+			import("./frontmatter"),
 		]);
 		return md.markdown({ extensions: [frontmatter.frontmatter] });
 	},
 	latex: () =>
 		import("@codemirror/legacy-modes/mode/stex").then((m) =>
-			StreamLanguage.define(m.stex)
+			StreamLanguage.define(m.stex),
 		),
 	json: () => import("@codemirror/lang-json").then((m) => m.json()),
 	html: () => import("@codemirror/lang-html").then((m) => m.html()),
@@ -46,41 +46,41 @@ const lang_map: Record<string, (() => Promise<Extension>) | undefined> = {
 		import("@codemirror/lang-javascript").then((m) => m.javascript()),
 	jinja2: () =>
 		import("@codemirror/legacy-modes/mode/jinja2").then((m) =>
-			StreamLanguage.define(m.jinja2)
+			StreamLanguage.define(m.jinja2),
 		),
 	typescript: () =>
 		import("@codemirror/lang-javascript").then((m) =>
-			m.javascript({ typescript: true })
+			m.javascript({ typescript: true }),
 		),
 	yaml: () =>
 		import("@codemirror/legacy-modes/mode/yaml").then((m) =>
-			StreamLanguage.define(m.yaml)
+			StreamLanguage.define(m.yaml),
 		),
 	dockerfile: () =>
 		import("@codemirror/legacy-modes/mode/dockerfile").then((m) =>
-			StreamLanguage.define(m.dockerFile)
+			StreamLanguage.define(m.dockerFile),
 		),
 	shell: () =>
 		import("@codemirror/legacy-modes/mode/shell").then((m) =>
-			StreamLanguage.define(m.shell)
+			StreamLanguage.define(m.shell),
 		),
 	r: () =>
 		import("@codemirror/legacy-modes/mode/r").then((m) =>
-			StreamLanguage.define(m.r)
+			StreamLanguage.define(m.r),
 		),
 	sql: () =>
 		import("@codemirror/legacy-modes/mode/sql").then((m) =>
-			StreamLanguage.define(m.standardSQL)
+			StreamLanguage.define(m.standardSQL),
 		),
 	...Object.fromEntries(
 		sql_dialects.map((dialect) => [
 			"sql-" + dialect,
 			() =>
 				import("@codemirror/legacy-modes/mode/sql").then((m) =>
-					StreamLanguage.define(m[dialect])
-				)
-		])
-	)
+					StreamLanguage.define(m[dialect]),
+				),
+		]),
+	),
 } as const;
 
 const alias_map: Record<string, string> = {
@@ -88,11 +88,11 @@ const alias_map: Record<string, string> = {
 	md: "markdown",
 	js: "javascript",
 	ts: "typescript",
-	sh: "shell"
+	sh: "shell",
 };
 
 export async function getLanguageExtension(
-	lang: string
+	lang: string,
 ): Promise<Extension | undefined> {
 	const _lang = lang_map[lang] || lang_map[alias_map[lang]] || undefined;
 	if (_lang) {

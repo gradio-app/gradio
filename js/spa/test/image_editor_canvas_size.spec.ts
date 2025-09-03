@@ -1,11 +1,11 @@
 import { test, expect } from "@self/tootils";
 
 test("Image Editor canvas matches background image size if fixed_canvas=False", async ({
-	page
+	page,
 }) => {
 	const [fileChooser] = await Promise.all([
 		page.waitForEvent("filechooser"),
-		page.getByLabel("Click to upload or drop files").first().click()
+		page.getByLabel("Click to upload or drop files").first().click(),
 	]);
 	await fileChooser.setFiles(["./test/files/bike.jpeg"]);
 	await page.waitForTimeout(500);
@@ -16,11 +16,11 @@ test("Image Editor canvas matches background image size if fixed_canvas=False", 
 });
 
 test("Image Editor 300 x 300 canvas resizes to match uploaded image", async ({
-	page
+	page,
 }) => {
 	const [fileChooser] = await Promise.all([
 		page.waitForEvent("filechooser"),
-		page.getByLabel("Click to upload or drop files").nth(1).click()
+		page.getByLabel("Click to upload or drop files").nth(1).click(),
 	]);
 	await fileChooser.setFiles(["./test/files/bike.jpeg"]);
 	await page.waitForTimeout(500);
@@ -31,7 +31,7 @@ test("Image Editor 300 x 300 canvas resizes to match uploaded image", async ({
 });
 
 test("Image Editor 300 x 300 canvas maintains size while being drawn upon", async ({
-	page
+	page,
 }) => {
 	await page.locator("#small").getByLabel("Brush").click();
 	await page
@@ -52,11 +52,11 @@ test("Image Editor 300 x 300 canvas maintains size while being drawn upon", asyn
 });
 
 test("Image Editor reshapes image to fit fixed 500 x 500 canvas", async ({
-	page
+	page,
 }) => {
 	const [fileChooser] = await Promise.all([
 		page.waitForEvent("filechooser"),
-		page.getByLabel("Click to upload or drop files").nth(2).click()
+		page.getByLabel("Click to upload or drop files").nth(2).click(),
 	]);
 	await fileChooser.setFiles(["./test/files/bike.jpeg"]);
 	await page.waitForTimeout(500);

@@ -10,7 +10,7 @@
 
 ### Features
 
-- [#11747](https://github.com/gradio-app/gradio/pull/11747) [`513d21e`](https://github.com/gradio-app/gradio/commit/513d21ef002f56d8d5ea2bf8edc95d9638393362) - feat: Add autoscroll parameter to HTML component.  Thanks @Rishirandhawa!
+- [#11747](https://github.com/gradio-app/gradio/pull/11747) [`513d21e`](https://github.com/gradio-app/gradio/commit/513d21ef002f56d8d5ea2bf8edc95d9638393362) - feat: Add autoscroll parameter to HTML component. Thanks @Rishirandhawa!
 
 ### Dependency updates
 
@@ -80,7 +80,7 @@
 
 ### Fixes
 
-- [#11113](https://github.com/gradio-app/gradio/pull/11113) [`c32f8de`](https://github.com/gradio-app/gradio/commit/c32f8de99a6ab3a82da2f8d5f9f3176a04129f77) - Fix markdown change event.  Thanks @freddyaboulton!
+- [#11113](https://github.com/gradio-app/gradio/pull/11113) [`c32f8de`](https://github.com/gradio-app/gradio/commit/c32f8de99a6ab3a82da2f8d5f9f3176a04129f77) - Fix markdown change event. Thanks @freddyaboulton!
 
 ## 0.6.11
 
@@ -169,7 +169,7 @@
 
 ### Features
 
-- [#10155](https://github.com/gradio-app/gradio/pull/10155) [`23a2958`](https://github.com/gradio-app/gradio/commit/23a2958f5e2104b4f371915986251e8ea09bd44b) - Add a `.click()` event and `padding` parameter to the `HTML` component.  Thanks @abidlabs!
+- [#10155](https://github.com/gradio-app/gradio/pull/10155) [`23a2958`](https://github.com/gradio-app/gradio/commit/23a2958f5e2104b4f371915986251e8ea09bd44b) - Add a `.click()` event and `padding` parameter to the `HTML` component. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -180,13 +180,13 @@
 
 ### Fixes
 
-- [#10069](https://github.com/gradio-app/gradio/pull/10069) [`afd75de`](https://github.com/gradio-app/gradio/commit/afd75def9e979d9b255a6d22d33a3aee63b6f225) - Fix label placement in gr.HTML.  Thanks @hannahblair!
+- [#10069](https://github.com/gradio-app/gradio/pull/10069) [`afd75de`](https://github.com/gradio-app/gradio/commit/afd75def9e979d9b255a6d22d33a3aee63b6f225) - Fix label placement in gr.HTML. Thanks @hannahblair!
 
 ## 0.5.0
 
 ### Features
 
-- [#10014](https://github.com/gradio-app/gradio/pull/10014) [`4aa0e88`](https://github.com/gradio-app/gradio/commit/4aa0e887a6e4b0245c01aac5a57f2adce67ade9a) - Add `container parameter` to `gr.HTML` component.  Thanks @yinsumirage!
+- [#10014](https://github.com/gradio-app/gradio/pull/10014) [`4aa0e88`](https://github.com/gradio-app/gradio/commit/4aa0e887a6e4b0245c01aac5a57f2adce67ade9a) - Add `container parameter` to `gr.HTML` component. Thanks @yinsumirage!
 
 ### Dependency updates
 
@@ -290,7 +290,7 @@
 
 ### Features
 
-- [#9363](https://github.com/gradio-app/gradio/pull/9363) [`3ad28c7`](https://github.com/gradio-app/gradio/commit/3ad28c7e310e8589e0c53b7efee8031e129bece8) - Prevent HTML and Markdown height changing when status is hidden.  Thanks @hannahblair!
+- [#9363](https://github.com/gradio-app/gradio/pull/9363) [`3ad28c7`](https://github.com/gradio-app/gradio/commit/3ad28c7e310e8589e0c53b7efee8031e129bece8) - Prevent HTML and Markdown height changing when status is hidden. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -312,7 +312,7 @@
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -325,7 +325,7 @@
 
 ### Features
 
-- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -369,7 +369,7 @@
 
 ### Features
 
-- [#8555](https://github.com/gradio-app/gradio/pull/8555) [`7fc7455`](https://github.com/gradio-app/gradio/commit/7fc7455553c04c52c8e25d520f3d67f1b5609637) - support html in chatbot.  Thanks @pngwn!
+- [#8555](https://github.com/gradio-app/gradio/pull/8555) [`7fc7455`](https://github.com/gradio-app/gradio/commit/7fc7455553c04c52c8e25d520f3d67f1b5609637) - support html in chatbot. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -446,18 +446,17 @@ demo.launch(max_file_size=5 * gr.FileSize.MB)
 
 ![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
 
-
 #### Error states can now be cleared
 
 When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
 
 ![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
 
- Thanks @freddyaboulton!
+Thanks @freddyaboulton!
 
 ### Fixes
 
-- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling. Thanks @pngwn!
 
 ### Dependency updates
 

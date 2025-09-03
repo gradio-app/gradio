@@ -20,7 +20,7 @@ export function create_drag_handlers(
 	set_selected: (cell: CellCoordinate | false) => void,
 	handle_cell_click: (event: MouseEvent, row: number, col: number) => void,
 	show_row_numbers: boolean,
-	parent_element?: HTMLElement
+	parent_element?: HTMLElement,
 ): DragHandlers {
 	const start_drag = (event: MouseEvent, row: number, col: number): void => {
 		const target = event.target as HTMLElement;
@@ -100,6 +100,6 @@ export function create_drag_handlers(
 			}
 		},
 
-		handle_mouse_up: end_drag
+		handle_mouse_up: end_drag,
 	};
 }

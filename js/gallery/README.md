@@ -7,6 +7,7 @@
 ```
 
 BaseGallery
+
 ```javascript
 	export let show_label = true;
 	export let label: string;

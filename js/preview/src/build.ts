@@ -14,7 +14,7 @@ interface BuildOptions {
 export async function make_build({
 	component_dir,
 	root_dir,
-	python_path
+	python_path,
 }: BuildOptions): Promise<void> {
 	process.env.gradio_mode = "dev";
 	const svelte_dir = join(root_dir, "assets", "svelte");
@@ -23,7 +23,7 @@ export async function make_build({
 		component_dir,
 		root_dir,
 		python_path,
-		"build"
+		"build",
 	);
 	try {
 		for (const comp of module_meta) {
@@ -31,17 +31,17 @@ export async function make_build({
 			const source_dir = comp.frontend_dir;
 
 			const pkg = JSON.parse(
-				fs.readFileSync(join(source_dir, "package.json"), "utf-8")
+				fs.readFileSync(join(source_dir, "package.json"), "utf-8"),
 			);
 			let component_config = {
 				plugins: [],
 				svelte: {
-					preprocess: []
+					preprocess: [],
 				},
 				build: {
-					target: []
+					target: [],
 				},
-				optimizeDeps: {}
+				optimizeDeps: {},
 			};
 
 			if (
@@ -60,7 +60,7 @@ export async function make_build({
 
 			const exports: (string | any)[][] = [
 				["component", pkg.exports["."] as object],
-				["example", pkg.exports["./example"] as object]
+				["example", pkg.exports["./example"] as object],
 			].filter(([_, path]) => !!path);
 
 			for (const [entry, path] of exports) {
@@ -71,10 +71,10 @@ export async function make_build({
 						plugins: [
 							...plugins(component_config),
 							make_gradio_plugin({ mode: "build", svelte_dir }),
-							deepmerge_plugin
+							deepmerge_plugin,
 						],
 						resolve: {
-							conditions: ["gradio"]
+							conditions: ["gradio"],
 						},
 						build: {
 							target: component_config.build.target,
@@ -83,7 +83,7 @@ export async function make_build({
 							lib: {
 								entry: join(source_dir, (path as any).gradio),
 								fileName: "index.js",
-								formats: ["es"]
+								formats: ["es"],
 							},
 							minify: true,
 							rollupOptions: {
@@ -93,10 +93,10 @@ export async function make_build({
 											return "index.js";
 										}
 										return `${chunkInfo.name.toLocaleLowerCase()}.js`;
-									}
-								}
-							}
-						}
+									},
+								},
+							},
+						},
 					});
 				} catch (e) {
 					throw e;

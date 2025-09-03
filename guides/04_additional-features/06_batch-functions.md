@@ -24,10 +24,10 @@ With the `gr.Interface` class:
 
 ```python
 demo = gr.Interface(
-    fn=trim_words, 
-    inputs=["textbox", "number"], 
+    fn=trim_words,
+    inputs=["textbox", "number"],
     outputs=["output"],
-    batch=True, 
+    batch=True,
     max_batch_size=16
 )
 
@@ -55,5 +55,3 @@ demo.launch()
 In the example above, 16 requests could be processed in parallel (for a total inference time of 5 seconds), instead of each request being processed separately (for a total
 inference time of 80 seconds). Many Hugging Face `transformers` and `diffusers` models work very naturally with Gradio's batch mode: here's [an example demo using diffusers to
 generate images in batches](https://github.com/gradio-app/gradio/blob/main/demo/diffusers_with_batching/run.py)
-
-

@@ -44,19 +44,19 @@
 
 ### Features
 
-- [#11442](https://github.com/gradio-app/gradio/pull/11442) [`f114f7f`](https://github.com/gradio-app/gradio/commit/f114f7f56b50b0176526a13ad3fcf2a81c077491) - Downsample heavy line plots.  Thanks @aliabid94!
+- [#11442](https://github.com/gradio-app/gradio/pull/11442) [`f114f7f`](https://github.com/gradio-app/gradio/commit/f114f7f56b50b0176526a13ad3fcf2a81c077491) - Downsample heavy line plots. Thanks @aliabid94!
 
 ## 0.6.3
 
 ### Features
 
-- [#11418](https://github.com/gradio-app/gradio/pull/11418) [`e398c51`](https://github.com/gradio-app/gradio/commit/e398c51e610713d7dc1ed0a1ee43d7d313b8ca6a) - Full screen plots take full height.  Thanks @aliabid94!
+- [#11418](https://github.com/gradio-app/gradio/pull/11418) [`e398c51`](https://github.com/gradio-app/gradio/commit/e398c51e610713d7dc1ed0a1ee43d7d313b8ca6a) - Full screen plots take full height. Thanks @aliabid94!
 
 ## 0.6.2
 
 ### Fixes
 
-- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -73,13 +73,13 @@
 
 ### Features
 
-- [#11372](https://github.com/gradio-app/gradio/pull/11372) [`7282c9e`](https://github.com/gradio-app/gradio/commit/7282c9eb1ed0ce8608f9a1157f3243e8c1b0f597) - Plot re-render fixes.  Thanks @aliabid94!
+- [#11372](https://github.com/gradio-app/gradio/pull/11372) [`7282c9e`](https://github.com/gradio-app/gradio/commit/7282c9eb1ed0ce8608f9a1157f3243e8c1b0f597) - Plot re-render fixes. Thanks @aliabid94!
 
 ## 0.6.0
 
 ### Features
 
-- [#11306](https://github.com/gradio-app/gradio/pull/11306) [`6cd608d`](https://github.com/gradio-app/gradio/commit/6cd608d8f9b1a142c58f0d2db861845ec267f705) - Improvements for plots and event listeners in re-renders.  Thanks @aliabid94!
+- [#11306](https://github.com/gradio-app/gradio/pull/11306) [`6cd608d`](https://github.com/gradio-app/gradio/commit/6cd608d8f9b1a142c58f0d2db861845ec267f705) - Improvements for plots and event listeners in re-renders. Thanks @aliabid94!
 
 ## 0.5.17
 
@@ -97,7 +97,7 @@
 
 ### Features
 
-- [#11177](https://github.com/gradio-app/gradio/pull/11177) [`3068196`](https://github.com/gradio-app/gradio/commit/3068196d47234fd1c1634f33b9ddfc089f5cbbe0) - Improved, smoother fullscreen mode for components.  Thanks @aliabid94!
+- [#11177](https://github.com/gradio-app/gradio/pull/11177) [`3068196`](https://github.com/gradio-app/gradio/commit/3068196d47234fd1c1634f33b9ddfc089f5cbbe0) - Improved, smoother fullscreen mode for components. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -108,7 +108,7 @@
 
 ### Features
 
-- [#11183](https://github.com/gradio-app/gradio/pull/11183) [`ab0fbb3`](https://github.com/gradio-app/gradio/commit/ab0fbb32cdee752673313b5536c04eecadc1071e) - Plot brushing prevents chart refresh.  Thanks @aliabid94!
+- [#11183](https://github.com/gradio-app/gradio/pull/11183) [`ab0fbb3`](https://github.com/gradio-app/gradio/commit/ab0fbb32cdee752673313b5536c04eecadc1071e) - Plot brushing prevents chart refresh. Thanks @aliabid94!
 
 ## 0.5.14
 
@@ -137,7 +137,7 @@
 
 ### Fixes
 
-- [#10953](https://github.com/gradio-app/gradio/pull/10953) [`ede7428`](https://github.com/gradio-app/gradio/commit/ede74283d738f55e032a98fb1875605cb0b65d8a) - Fix gr.NativePlot sorting of labels as default behaviour.  Thanks @Rafalex04!
+- [#10953](https://github.com/gradio-app/gradio/pull/10953) [`ede7428`](https://github.com/gradio-app/gradio/commit/ede74283d738f55e032a98fb1875605cb0b65d8a) - Fix gr.NativePlot sorting of labels as default behaviour. Thanks @Rafalex04!
 
 ### Dependency updates
 
@@ -170,8 +170,8 @@
 
 ### Fixes
 
-- [#10546](https://github.com/gradio-app/gradio/pull/10546) [`27155cf`](https://github.com/gradio-app/gradio/commit/27155cfc0ca49b8d2727f3271ff413105b4da59e) - Native Plot respects the height parameters.  Thanks @freddyaboulton!
-- [#10531](https://github.com/gradio-app/gradio/pull/10531) [`a18ac9c`](https://github.com/gradio-app/gradio/commit/a18ac9c56a67dbc0a1d0fb464fa12f531998b170) - Fix bug where plots wouldn't load when initial value provided.  Thanks @freddyaboulton!
+- [#10546](https://github.com/gradio-app/gradio/pull/10546) [`27155cf`](https://github.com/gradio-app/gradio/commit/27155cfc0ca49b8d2727f3271ff413105b4da59e) - Native Plot respects the height parameters. Thanks @freddyaboulton!
+- [#10531](https://github.com/gradio-app/gradio/pull/10531) [`a18ac9c`](https://github.com/gradio-app/gradio/commit/a18ac9c56a67dbc0a1d0fb464fa12f531998b170) - Fix bug where plots wouldn't load when initial value provided. Thanks @freddyaboulton!
 
 ### Dependency updates
 
@@ -230,7 +230,7 @@
 
 ### Features
 
-- [#9800](https://github.com/gradio-app/gradio/pull/9800) [`d1cfe1e`](https://github.com/gradio-app/gradio/commit/d1cfe1e9defa06f927aec2671656fe77514dd0fa) - Allow plot tooltip to show extra columns.  Thanks @aliabid94!
+- [#9800](https://github.com/gradio-app/gradio/pull/9800) [`d1cfe1e`](https://github.com/gradio-app/gradio/commit/d1cfe1e9defa06f927aec2671656fe77514dd0fa) - Allow plot tooltip to show extra columns. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -301,7 +301,7 @@
 
 ### Features
 
-- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown.  Thanks @dawoodkhan82!
+- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown. Thanks @dawoodkhan82!
 
 ### Dependency updates
 
@@ -312,7 +312,7 @@
 
 ### Features
 
-- [#9497](https://github.com/gradio-app/gradio/pull/9497) [`d826faa`](https://github.com/gradio-app/gradio/commit/d826faa8c2584cf0772d4e66b4073e33b83f3a00) - Hide x axis labels.  Thanks @aliabid94!
+- [#9497](https://github.com/gradio-app/gradio/pull/9497) [`d826faa`](https://github.com/gradio-app/gradio/commit/d826faa8c2584cf0772d4e66b4073e33b83f3a00) - Hide x axis labels. Thanks @aliabid94!
 
 ## 0.4.0-beta.4
 
@@ -326,7 +326,7 @@
 
 ### Features
 
-- [#9464](https://github.com/gradio-app/gradio/pull/9464) [`3ac5d9c`](https://github.com/gradio-app/gradio/commit/3ac5d9c972576d82bc365a6532e6e12f55441a30) - Fix plots.  Thanks @pngwn!
+- [#9464](https://github.com/gradio-app/gradio/pull/9464) [`3ac5d9c`](https://github.com/gradio-app/gradio/commit/3ac5d9c972576d82bc365a6532e6e12f55441a30) - Fix plots. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -336,7 +336,7 @@
 
 ### Features
 
-- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -349,7 +349,7 @@
 
 ### Features
 
-- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -363,7 +363,7 @@
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -377,7 +377,7 @@
 
 ### Features
 
-- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -391,7 +391,7 @@
 
 ### Features
 
-- [#9064](https://github.com/gradio-app/gradio/pull/9064) [`4ba7b23`](https://github.com/gradio-app/gradio/commit/4ba7b238e22ac042de14a6b69aa9d61536ddffba) - Improve plot guide, add double clicking to plots.  Thanks @aliabid94!
+- [#9064](https://github.com/gradio-app/gradio/pull/9064) [`4ba7b23`](https://github.com/gradio-app/gradio/commit/4ba7b238e22ac042de14a6b69aa9d61536ddffba) - Improve plot guide, add double clicking to plots. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -403,8 +403,8 @@
 
 ### Features
 
-- [#8947](https://github.com/gradio-app/gradio/pull/8947) [`96d36d7`](https://github.com/gradio-app/gradio/commit/96d36d70ad3bee048027cfbf89533020a8aa6e63) - Restore plot label angles.  Thanks @aliabid94!
-- [#8907](https://github.com/gradio-app/gradio/pull/8907) [`9b42ba8`](https://github.com/gradio-app/gradio/commit/9b42ba8f1006c05d60a62450d3036ce0d6784f86) - Update guides esp plots.  Thanks @aliabid94!
+- [#8947](https://github.com/gradio-app/gradio/pull/8947) [`96d36d7`](https://github.com/gradio-app/gradio/commit/96d36d70ad3bee048027cfbf89533020a8aa6e63) - Restore plot label angles. Thanks @aliabid94!
+- [#8907](https://github.com/gradio-app/gradio/pull/8907) [`9b42ba8`](https://github.com/gradio-app/gradio/commit/9b42ba8f1006c05d60a62450d3036ce0d6784f86) - Update guides esp plots. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -417,7 +417,7 @@
 
 ### Features
 
-- [#8807](https://github.com/gradio-app/gradio/pull/8807) [`a238af4`](https://github.com/gradio-app/gradio/commit/a238af4d688c4e030e37c2ef01d5c80d6d940912) - Refactor plots to drop `altair` and use `vega.js` directly.  Thanks @aliabid94!
+- [#8807](https://github.com/gradio-app/gradio/pull/8807) [`a238af4`](https://github.com/gradio-app/gradio/commit/a238af4d688c4e030e37c2ef01d5c80d6d940912) - Refactor plots to drop `altair` and use `vega.js` directly. Thanks @aliabid94!
 
 ### Dependency updates
 

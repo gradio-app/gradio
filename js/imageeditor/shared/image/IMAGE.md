@@ -26,6 +26,7 @@ The `ImageTool` class implements the `Tool` interface defined in `editor.ts`. It
 #### `ImageTool` Class
 
 The main class that implements the `Tool` interface with methods:
+
 - `setup(context, tool, subtool)` - Initializes the tool with the editor context
 - `cleanup()` - Cleans up resources
 - `add_image(image, fixed_canvas)` - Adds an image to the canvas
@@ -34,6 +35,7 @@ The main class that implements the `Tool` interface with methods:
 #### `AddImageCommand` Class
 
 Implements the command pattern for adding images, allowing for undo/redo functionality:
+
 - `start()` - Initializes the image sprite and calculates dimensions
 - `execute()` - Adds the image to the canvas and updates the editor state
 - `undo()` - Removes the image from the canvas
@@ -46,13 +48,15 @@ Implements the command pattern for adding images, allowing for undo/redo functio
 ### Image Processing Flow
 
 1. **Image Acquisition**: The image is acquired as a Blob or File from one of the sources (upload, clipboard, webcam)
-2. **Image Processing**: 
+2. **Image Processing**:
+
    - The image is converted to a bitmap and then to a PIXI.js Texture
    - The dimensions are calculated based on whether fixed_canvas is true or false
    - If fixed_canvas is true, the image is scaled to fit the canvas while maintaining aspect ratio
    - If fixed_canvas is false, the canvas is resized to match the image dimensions
 
 3. **Canvas Integration**:
+
    - The editor's image properties are updated with the new dimensions
    - Existing layers are preserved and scaled to match the new dimensions
    - A new background layer is created with the image sprite
@@ -98,6 +102,7 @@ The image tool integrates with the editor through the `ImageEditorContext` inter
 The tool provides two modes for handling image dimensions:
 
 1. **Fixed Canvas Mode** (fixed_canvas = true):
+
    - The image is scaled to fit within the canvas dimensions
    - The aspect ratio is maintained
    - The canvas size remains unchanged
@@ -132,4 +137,4 @@ When modifying the image tool, consider:
 - **Toolbar**: Controls tool selection
 - **ImageEditor**: Provides the context and manages the overall editor state
 - **LayerManager**: Manages image layers
-- **Sources.svelte**: Provides UI for selecting image sources 
+- **Sources.svelte**: Provides UI for selecting image sources

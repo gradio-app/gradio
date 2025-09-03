@@ -50,7 +50,7 @@
 
 ### Features
 
-- [#11596](https://github.com/gradio-app/gradio/pull/11596) [`432abb0`](https://github.com/gradio-app/gradio/commit/432abb0418088fed54c4d486aed3e3bdf91f7b25) - Upgrade `gsplat`.  Thanks @dawoodkhan82!
+- [#11596](https://github.com/gradio-app/gradio/pull/11596) [`432abb0`](https://github.com/gradio-app/gradio/commit/432abb0418088fed54c4d486aed3e3bdf91f7b25) - Upgrade `gsplat`. Thanks @dawoodkhan82!
 
 ## 0.14.20
 
@@ -73,7 +73,7 @@
 
 ### Features
 
-- [#11447](https://github.com/gradio-app/gradio/pull/11447) [`58631ef`](https://github.com/gradio-app/gradio/commit/58631efdf3e2ff805ce625b7ef63e651f01af03e) - Revert .only marker in e2e tests.  Thanks @freddyaboulton!
+- [#11447](https://github.com/gradio-app/gradio/pull/11447) [`58631ef`](https://github.com/gradio-app/gradio/commit/58631efdf3e2ff805ce625b7ef63e651f01af03e) - Revert .only marker in e2e tests. Thanks @freddyaboulton!
 
 ### Dependency updates
 
@@ -120,7 +120,7 @@
 
 ### Fixes
 
-- [#11230](https://github.com/gradio-app/gradio/pull/11230) [`62a8d97`](https://github.com/gradio-app/gradio/commit/62a8d97fe8a92886f22af11b5fdef14bace69ea8) - Fix Model3D `camera_position` param.  Thanks @dawoodkhan82!
+- [#11230](https://github.com/gradio-app/gradio/pull/11230) [`62a8d97`](https://github.com/gradio-app/gradio/commit/62a8d97fe8a92886f22af11b5fdef14bace69ea8) - Fix Model3D `camera_position` param. Thanks @dawoodkhan82!
 
 ## 0.14.13
 
@@ -159,7 +159,7 @@
 
 ### Fixes
 
-- [#10993](https://github.com/gradio-app/gradio/pull/10993) [`1918baa`](https://github.com/gradio-app/gradio/commit/1918baa178066dc94a8e1a559d4d62a52a3d8db4) - Update babylon.js and ensure the Model3D component autoplays on load.  Thanks @CedricGuillemet!
+- [#10993](https://github.com/gradio-app/gradio/pull/10993) [`1918baa`](https://github.com/gradio-app/gradio/commit/1918baa178066dc94a8e1a559d4d62a52a3d8db4) - Update babylon.js and ensure the Model3D component autoplays on load. Thanks @CedricGuillemet!
 
 ### Dependency updates
 
@@ -181,7 +181,7 @@
 
 ### Features
 
-- [#10847](https://github.com/gradio-app/gradio/pull/10847) [`d5fde7c`](https://github.com/gradio-app/gradio/commit/d5fde7c390004ce5394072100b059f545d2d4eae) - Babylon update for model3D.  Thanks @CedricGuillemet!
+- [#10847](https://github.com/gradio-app/gradio/pull/10847) [`d5fde7c`](https://github.com/gradio-app/gradio/commit/d5fde7c390004ce5394072100b059f545d2d4eae) - Babylon update for model3D. Thanks @CedricGuillemet!
 
 ### Dependency updates
 
@@ -245,7 +245,7 @@
 
 ### Features
 
-- [#10478](https://github.com/gradio-app/gradio/pull/10478) [`afb96c6`](https://github.com/gradio-app/gradio/commit/afb96c64451e5a282bfee89445d831d1c87f9746) - Improve dataframe's upload accessibility.  Thanks @hannahblair!
+- [#10478](https://github.com/gradio-app/gradio/pull/10478) [`afb96c6`](https://github.com/gradio-app/gradio/commit/afb96c64451e5a282bfee89445d831d1c87f9746) - Improve dataframe's upload accessibility. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -446,10 +446,10 @@
 
 ### Features
 
-- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
-- [#9250](https://github.com/gradio-app/gradio/pull/9250) [`350b0a5`](https://github.com/gradio-app/gradio/commit/350b0a5cafb9176f914f62e7c90de51d4352cc77) - Improve Icon Button consistency.  Thanks @hannahblair!
-- [#9253](https://github.com/gradio-app/gradio/pull/9253) [`99648ec`](https://github.com/gradio-app/gradio/commit/99648ec7c4443e74799941e47b0015ac9ca581e1) - Adds ability to block event trigger when file is uploading.  Thanks @dawoodkhan82!
-- [#9377](https://github.com/gradio-app/gradio/pull/9377) [`618e9fe`](https://github.com/gradio-app/gradio/commit/618e9fe941744cef4a4a06eb7840763c64b15e32) - Update babylon.js to `v7` for `gr.Model3D`.  Thanks @abidlabs!
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2. Thanks @pngwn!
+- [#9250](https://github.com/gradio-app/gradio/pull/9250) [`350b0a5`](https://github.com/gradio-app/gradio/commit/350b0a5cafb9176f914f62e7c90de51d4352cc77) - Improve Icon Button consistency. Thanks @hannahblair!
+- [#9253](https://github.com/gradio-app/gradio/pull/9253) [`99648ec`](https://github.com/gradio-app/gradio/commit/99648ec7c4443e74799941e47b0015ac9ca581e1) - Adds ability to block event trigger when file is uploading. Thanks @dawoodkhan82!
+- [#9377](https://github.com/gradio-app/gradio/pull/9377) [`618e9fe`](https://github.com/gradio-app/gradio/commit/618e9fe941744cef4a4a06eb7840763c64b15e32) - Update babylon.js to `v7` for `gr.Model3D`. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -465,7 +465,7 @@
 
 ### Features
 
-- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -481,7 +481,7 @@
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -497,7 +497,7 @@
 
 ### Features
 
-- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -513,7 +513,7 @@
 
 ### Features
 
-- [#8975](https://github.com/gradio-app/gradio/pull/8975) [`3feea64`](https://github.com/gradio-app/gradio/commit/3feea64a65688d710184604bb44636d513bcc36a) - Prevent overflow in Model3D.  Thanks @hannahblair!
+- [#8975](https://github.com/gradio-app/gradio/pull/8975) [`3feea64`](https://github.com/gradio-app/gradio/commit/3feea64a65688d710184604bb44636d513bcc36a) - Prevent overflow in Model3D. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -547,7 +547,7 @@
 
 ### Features
 
-- [#8687](https://github.com/gradio-app/gradio/pull/8687) [`bc1d45d`](https://github.com/gradio-app/gradio/commit/bc1d45d8745a677bbe2a32f8d7553fe0d4ef3fd7) - Model3D point cloud and wireframe display modes.  Thanks @dawoodkhan82!
+- [#8687](https://github.com/gradio-app/gradio/pull/8687) [`bc1d45d`](https://github.com/gradio-app/gradio/commit/bc1d45d8745a677bbe2a32f8d7553fe0d4ef3fd7) - Model3D point cloud and wireframe display modes. Thanks @dawoodkhan82!
 
 ### Dependency updates
 
@@ -610,7 +610,7 @@
 
 ### Fixes
 
-- [#8376](https://github.com/gradio-app/gradio/pull/8376) [`aebd2e9`](https://github.com/gradio-app/gradio/commit/aebd2e952e3a19633b9b95a49f51664bc8a0c20d) - Model3D right-handed coordinate system.  Thanks @dylanebert!
+- [#8376](https://github.com/gradio-app/gradio/pull/8376) [`aebd2e9`](https://github.com/gradio-app/gradio/commit/aebd2e952e3a19633b9b95a49f51664bc8a0c20d) - Model3D right-handed coordinate system. Thanks @dylanebert!
 
 ### Dependency updates
 
@@ -655,7 +655,7 @@
 
 ### Fixes
 
-- [#8252](https://github.com/gradio-app/gradio/pull/8252) [`22df61a`](https://github.com/gradio-app/gradio/commit/22df61a26adf8023f6dd49c051979990e8d3879a) - Client node fix.  Thanks @pngwn!
+- [#8252](https://github.com/gradio-app/gradio/pull/8252) [`22df61a`](https://github.com/gradio-app/gradio/commit/22df61a26adf8023f6dd49c051979990e8d3879a) - Client node fix. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -669,11 +669,11 @@
 
 ### Features
 
-- [#8209](https://github.com/gradio-app/gradio/pull/8209) [`b9afe93`](https://github.com/gradio-app/gradio/commit/b9afe93915401df5bd6737c89395c2477acfa585) - Rename `eventSource_Factory` and `fetch_implementation`.  Thanks @hannahblair!
+- [#8209](https://github.com/gradio-app/gradio/pull/8209) [`b9afe93`](https://github.com/gradio-app/gradio/commit/b9afe93915401df5bd6737c89395c2477acfa585) - Rename `eventSource_Factory` and `fetch_implementation`. Thanks @hannahblair!
 
 ### Fixes
 
-- [#8179](https://github.com/gradio-app/gradio/pull/8179) [`6a218b4`](https://github.com/gradio-app/gradio/commit/6a218b4148095aaa0c58d8c20973ba01c8764fc2) - rework upload to be a class method + pass client into each component.  Thanks @pngwn!
+- [#8179](https://github.com/gradio-app/gradio/pull/8179) [`6a218b4`](https://github.com/gradio-app/gradio/commit/6a218b4148095aaa0c58d8c20973ba01c8764fc2) - rework upload to be a class method + pass client into each component. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -706,18 +706,17 @@ demo.launch(max_file_size=5 * gr.FileSize.MB)
 
 ![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
 
-
 #### Error states can now be cleared
 
 When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
 
 ![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
 
- Thanks @freddyaboulton!
+Thanks @freddyaboulton!
 
 ### Fixes
 
-- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling. Thanks @pngwn!
 
 ### Dependency updates
 

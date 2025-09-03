@@ -4,14 +4,14 @@ module.exports = {
 	content: [
 		"./src/*.{html,js,css}",
 		"./src/**/*.{html,js,svelte,ts,css}",
-		"**/@gradio/**/*.{html,js,svelte,ts,css}"
+		"**/@gradio/**/*.{html,js,svelte,ts,css}",
 	],
 
 	theme: {
 		extend: {
 			fontFamily: {
 				sans: ["IBM Plex Sans", ...defaultTheme.fontFamily.sans],
-				mono: ["IBM Plex Mono", ...defaultTheme.fontFamily.mono]
+				mono: ["IBM Plex Mono", ...defaultTheme.fontFamily.mono],
 			},
 			colors: {
 				orange: {
@@ -24,19 +24,19 @@ module.exports = {
 					600: "#EE7400",
 					700: "#CE6400",
 					800: "#A45000",
-					900: "#5C2D00"
-				}
-			}
-		}
+					900: "#5C2D00",
+				},
+			},
+		},
 	},
 	mode: "jit",
 	darkMode: "class", // or 'media' or 'class'
 
 	variants: {
 		extend: {
-			visibility: ["group-hover"]
-		}
+			visibility: ["group-hover"],
+		},
 	},
 
-	plugins: [require("@tailwindcss/forms"), require("@tailwindcss/typography")]
+	plugins: [require("@tailwindcss/forms"), require("@tailwindcss/typography")],
 };

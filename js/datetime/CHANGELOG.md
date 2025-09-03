@@ -44,7 +44,7 @@
 
 ### Fixes
 
-- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -61,7 +61,7 @@
 
 ### Fixes
 
-- [#11363](https://github.com/gradio-app/gradio/pull/11363) [`5e3ec9c`](https://github.com/gradio-app/gradio/commit/5e3ec9cf2c221fcd0d84f07d5757b63940cc1238) - Redesign the `gr.Datetime` component and ensure it works within an iframe (e.g. on Spaces).  Thanks @abidlabs!
+- [#11363](https://github.com/gradio-app/gradio/pull/11363) [`5e3ec9c`](https://github.com/gradio-app/gradio/commit/5e3ec9cf2c221fcd0d84f07d5757b63940cc1238) - Redesign the `gr.Datetime` component and ensure it works within an iframe (e.g. on Spaces). Thanks @abidlabs!
 
 ## 0.3.14
 
@@ -176,7 +176,7 @@
 
 ### Features
 
-- [#10013](https://github.com/gradio-app/gradio/pull/10013) [`5d36c80`](https://github.com/gradio-app/gradio/commit/5d36c8088d4d7f7dccce55a3f2be3bcd8b345332) - Add `gr.datetime` a param `interactive:bool`.  Thanks @yinsumirage!
+- [#10013](https://github.com/gradio-app/gradio/pull/10013) [`5d36c80`](https://github.com/gradio-app/gradio/commit/5d36c8088d4d7f7dccce55a3f2be3bcd8b345332) - Add `gr.datetime` a param `interactive:bool`. Thanks @yinsumirage!
 
 ### Dependency updates
 
@@ -188,7 +188,7 @@
 
 ### Fixes
 
-- [#9897](https://github.com/gradio-app/gradio/pull/9897) [`c0cf80b`](https://github.com/gradio-app/gradio/commit/c0cf80bddd99ad0f836e618cc3d2b13e73cb5611) - Allow datetime value to be null.  Thanks @hannahblair!
+- [#9897](https://github.com/gradio-app/gradio/pull/9897) [`c0cf80b`](https://github.com/gradio-app/gradio/commit/c0cf80bddd99ad0f836e618cc3d2b13e73cb5611) - Allow datetime value to be null. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -207,7 +207,7 @@
 
 ### Fixes
 
-- [#9825](https://github.com/gradio-app/gradio/pull/9825) [`f15808e`](https://github.com/gradio-app/gradio/commit/f15808eff361cdbba5237d1deb8b60128bc844e4) - fix: use system timezone in gr.DateTime with include_time=False.  Thanks @lcian!
+- [#9825](https://github.com/gradio-app/gradio/pull/9825) [`f15808e`](https://github.com/gradio-app/gradio/commit/f15808eff361cdbba5237d1deb8b60128bc844e4) - fix: use system timezone in gr.DateTime with include_time=False. Thanks @lcian!
 
 ### Dependency updates
 
@@ -260,7 +260,7 @@
 
 ### Features
 
-- [#9437](https://github.com/gradio-app/gradio/pull/9437) [`c3d93be`](https://github.com/gradio-app/gradio/commit/c3d93bef94b9401747a363f7bad88a1d347d535b) - Adding new themes to Gradio 5.0.  Thanks @allisonwhilden!
+- [#9437](https://github.com/gradio-app/gradio/pull/9437) [`c3d93be`](https://github.com/gradio-app/gradio/commit/c3d93bef94b9401747a363f7bad88a1d347d535b) - Adding new themes to Gradio 5.0. Thanks @allisonwhilden!
 
 ### Dependency updates
 
@@ -272,7 +272,7 @@
 
 ### Features
 
-- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown.  Thanks @dawoodkhan82!
+- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown. Thanks @dawoodkhan82!
 
 ### Dependency updates
 
@@ -315,7 +315,7 @@
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -328,7 +328,7 @@
 
 ### Features
 
-- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -358,7 +358,7 @@
 
 ### Features
 
-- [#8807](https://github.com/gradio-app/gradio/pull/8807) [`a238af4`](https://github.com/gradio-app/gradio/commit/a238af4d688c4e030e37c2ef01d5c80d6d940912) - Refactor plots to drop `altair` and use `vega.js` directly.  Thanks @aliabid94!
+- [#8807](https://github.com/gradio-app/gradio/pull/8807) [`a238af4`](https://github.com/gradio-app/gradio/commit/a238af4d688c4e030e37c2ef01d5c80d6d940912) - Refactor plots to drop `altair` and use `vega.js` directly. Thanks @aliabid94!
 
 ### Dependency updates
 

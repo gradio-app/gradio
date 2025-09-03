@@ -22,7 +22,7 @@
 
 ### Fixes
 
-- [#11692](https://github.com/gradio-app/gradio/pull/11692) [`0b91ca9`](https://github.com/gradio-app/gradio/commit/0b91ca914774fe617bc5987986e14bf1b81fcb8d) - Fix z-index of icon button wrapper.  Thanks @dawoodkhan82!
+- [#11692](https://github.com/gradio-app/gradio/pull/11692) [`0b91ca9`](https://github.com/gradio-app/gradio/commit/0b91ca914774fe617bc5987986e14bf1b81fcb8d) - Fix z-index of icon button wrapper. Thanks @dawoodkhan82!
 
 ## 0.16.3
 
@@ -34,7 +34,7 @@
 
 ### Fixes
 
-- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -56,13 +56,13 @@
 
 ### Features
 
-- [#11177](https://github.com/gradio-app/gradio/pull/11177) [`3068196`](https://github.com/gradio-app/gradio/commit/3068196d47234fd1c1634f33b9ddfc089f5cbbe0) - Improved, smoother fullscreen mode for components.  Thanks @aliabid94!
+- [#11177](https://github.com/gradio-app/gradio/pull/11177) [`3068196`](https://github.com/gradio-app/gradio/commit/3068196d47234fd1c1634f33b9ddfc089f5cbbe0) - Improved, smoother fullscreen mode for components. Thanks @aliabid94!
 
 ## 0.16.0
 
 ### Features
 
-- [#11027](https://github.com/gradio-app/gradio/pull/11027) [`eff532b`](https://github.com/gradio-app/gradio/commit/eff532b913a3c8f06f10a4f9471d3177e3744053) - Add new `ImageSlider` component.  Thanks @pngwn!
+- [#11027](https://github.com/gradio-app/gradio/pull/11027) [`eff532b`](https://github.com/gradio-app/gradio/commit/eff532b913a3c8f06f10a4f9471d3177e3744053) - Add new `ImageSlider` component. Thanks @pngwn!
 
 ## 0.15.2
 
@@ -81,14 +81,14 @@
 
 ### Features
 
-- [#10933](https://github.com/gradio-app/gradio/pull/10933) [`b768651`](https://github.com/gradio-app/gradio/commit/b7686515d99276123731698bfde09bb328b7d286) - Add `rtl` to Block Label.  Thanks @hannahblair!
-- [#10924](https://github.com/gradio-app/gradio/pull/10924) [`be46b94`](https://github.com/gradio-app/gradio/commit/be46b94f51c29d66fef9320d59a7f7e5a0df81b4) - Add `rtl` to gr.HighlightedText.  Thanks @hannahblair!
-- [#10635](https://github.com/gradio-app/gradio/pull/10635) [`2f68c9d`](https://github.com/gradio-app/gradio/commit/2f68c9d988dcbc53a0b8e53bdb1de49c9c8c65d8) - Refactor and redesign `ImageEditor` component.  Thanks @pngwn!
-- [#10923](https://github.com/gradio-app/gradio/pull/10923) [`8a62c7e`](https://github.com/gradio-app/gradio/commit/8a62c7e90b5e0945709d97e34f405a7f92675ab0) - Add `rtl` to `gr.Radio`.  Thanks @hannahblair!
+- [#10933](https://github.com/gradio-app/gradio/pull/10933) [`b768651`](https://github.com/gradio-app/gradio/commit/b7686515d99276123731698bfde09bb328b7d286) - Add `rtl` to Block Label. Thanks @hannahblair!
+- [#10924](https://github.com/gradio-app/gradio/pull/10924) [`be46b94`](https://github.com/gradio-app/gradio/commit/be46b94f51c29d66fef9320d59a7f7e5a0df81b4) - Add `rtl` to gr.HighlightedText. Thanks @hannahblair!
+- [#10635](https://github.com/gradio-app/gradio/pull/10635) [`2f68c9d`](https://github.com/gradio-app/gradio/commit/2f68c9d988dcbc53a0b8e53bdb1de49c9c8c65d8) - Refactor and redesign `ImageEditor` component. Thanks @pngwn!
+- [#10923](https://github.com/gradio-app/gradio/pull/10923) [`8a62c7e`](https://github.com/gradio-app/gradio/commit/8a62c7e90b5e0945709d97e34f405a7f92675ab0) - Add `rtl` to `gr.Radio`. Thanks @hannahblair!
 
 ### Fixes
 
-- [#10925](https://github.com/gradio-app/gradio/pull/10925) [`c37de0f`](https://github.com/gradio-app/gradio/commit/c37de0f9081f30ac963b0c837e8f1985461afbb1) - Tweak `rtl` UI in `gr.MultimodalTextbox`.  Thanks @hannahblair!
+- [#10925](https://github.com/gradio-app/gradio/pull/10925) [`c37de0f`](https://github.com/gradio-app/gradio/commit/c37de0f9081f30ac963b0c837e8f1985461afbb1) - Tweak `rtl` UI in `gr.MultimodalTextbox`. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -104,7 +104,7 @@
 
 ### Features
 
-- [#10778](https://github.com/gradio-app/gradio/pull/10778) [`373007b`](https://github.com/gradio-app/gradio/commit/373007b3e9d019ee41589d1dbb09a7511a024a51) - Allow sorting by multiple columns in dataframe.  Thanks @hannahblair!
+- [#10778](https://github.com/gradio-app/gradio/pull/10778) [`373007b`](https://github.com/gradio-app/gradio/commit/373007b3e9d019ee41589d1dbb09a7511a024a51) - Allow sorting by multiple columns in dataframe. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -114,7 +114,7 @@
 
 ### Features
 
-- [#10625](https://github.com/gradio-app/gradio/pull/10625) [`ce4fb99`](https://github.com/gradio-app/gradio/commit/ce4fb994e042489d8c6fbcab3e94d97b08369dce) - fix spelling of `resizable` parameter in `gr.Chatbot`.  Thanks @abidlabs!
+- [#10625](https://github.com/gradio-app/gradio/pull/10625) [`ce4fb99`](https://github.com/gradio-app/gradio/commit/ce4fb994e042489d8c6fbcab3e94d97b08369dce) - fix spelling of `resizable` parameter in `gr.Chatbot`. Thanks @abidlabs!
 
 ## 0.13.2
 
@@ -133,9 +133,9 @@
 
 ### Features
 
-- [#10272](https://github.com/gradio-app/gradio/pull/10272) [`a1f2649`](https://github.com/gradio-app/gradio/commit/a1f2649586752a013fb4d36b83d5fea2e137bb81) - Chat Interface flagging and chatbot feedback.  Thanks @aliabid94!
-- [#10292](https://github.com/gradio-app/gradio/pull/10292) [`f2bd72f`](https://github.com/gradio-app/gradio/commit/f2bd72f9ef23552f0c6018396320eca9baef04f5) - Reset flagged values when switching conversations in chat history.  Thanks @abidlabs!
-- [#10192](https://github.com/gradio-app/gradio/pull/10192) [`4fc7fb7`](https://github.com/gradio-app/gradio/commit/4fc7fb777c42af537e4af612423fa44029657d41) - Ensure components can be remounted with their previous data.  Thanks @pngwn!
+- [#10272](https://github.com/gradio-app/gradio/pull/10272) [`a1f2649`](https://github.com/gradio-app/gradio/commit/a1f2649586752a013fb4d36b83d5fea2e137bb81) - Chat Interface flagging and chatbot feedback. Thanks @aliabid94!
+- [#10292](https://github.com/gradio-app/gradio/pull/10292) [`f2bd72f`](https://github.com/gradio-app/gradio/commit/f2bd72f9ef23552f0c6018396320eca9baef04f5) - Reset flagged values when switching conversations in chat history. Thanks @abidlabs!
+- [#10192](https://github.com/gradio-app/gradio/pull/10192) [`4fc7fb7`](https://github.com/gradio-app/gradio/commit/4fc7fb777c42af537e4af612423fa44029657d41) - Ensure components can be remounted with their previous data. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -147,12 +147,12 @@
 
 ### Features
 
-- [#10149](https://github.com/gradio-app/gradio/pull/10149) [`9cd291b`](https://github.com/gradio-app/gradio/commit/9cd291b7f1c37ef0ffd3e8721fb2b648003b50fc) - Resizeable chatbot.  Thanks @aliabid94!
-- [#10098](https://github.com/gradio-app/gradio/pull/10098) [`9a6ce6f`](https://github.com/gradio-app/gradio/commit/9a6ce6f6b089d94c06da0b8620f28967f39f8383) - Refactor full screen logic to be reusable.  Thanks @hannahblair!
+- [#10149](https://github.com/gradio-app/gradio/pull/10149) [`9cd291b`](https://github.com/gradio-app/gradio/commit/9cd291b7f1c37ef0ffd3e8721fb2b648003b50fc) - Resizeable chatbot. Thanks @aliabid94!
+- [#10098](https://github.com/gradio-app/gradio/pull/10098) [`9a6ce6f`](https://github.com/gradio-app/gradio/commit/9a6ce6f6b089d94c06da0b8620f28967f39f8383) - Refactor full screen logic to be reusable. Thanks @hannahblair!
 
 ### Fixes
 
-- [#10161](https://github.com/gradio-app/gradio/pull/10161) [`3a053cc`](https://github.com/gradio-app/gradio/commit/3a053cc76c173c6386e0b5102b03e1a56786cbb9) - Fix chatbot `visible` prop not reacting to changes.  Thanks @freddyaboulton!
+- [#10161](https://github.com/gradio-app/gradio/pull/10161) [`3a053cc`](https://github.com/gradio-app/gradio/commit/3a053cc76c173c6386e0b5102b03e1a56786cbb9) - Fix chatbot `visible` prop not reacting to changes. Thanks @freddyaboulton!
 
 ## 0.11.2
 
@@ -170,17 +170,17 @@
 
 ### Features
 
-- [#9891](https://github.com/gradio-app/gradio/pull/9891) [`fc12496`](https://github.com/gradio-app/gradio/commit/fc124964a1b4922e54a4ca4755f0a536dfae1a21) - Allow uploading more files in gr.File.  Thanks @hannahblair!
+- [#9891](https://github.com/gradio-app/gradio/pull/9891) [`fc12496`](https://github.com/gradio-app/gradio/commit/fc124964a1b4922e54a4ca4755f0a536dfae1a21) - Allow uploading more files in gr.File. Thanks @hannahblair!
 
 ### Fixes
 
-- [#9882](https://github.com/gradio-app/gradio/pull/9882) [`6c8a064`](https://github.com/gradio-app/gradio/commit/6c8a064feeaa89a2ffc96260032f24f18eb032fa) - Ensure non-form elements are correctly positioned when scale is applied.  Thanks @hannahblair!
+- [#9882](https://github.com/gradio-app/gradio/pull/9882) [`6c8a064`](https://github.com/gradio-app/gradio/commit/6c8a064feeaa89a2ffc96260032f24f18eb032fa) - Ensure non-form elements are correctly positioned when scale is applied. Thanks @hannahblair!
 
 ## 0.10.1
 
 ### Fixes
 
-- [#9651](https://github.com/gradio-app/gradio/pull/9651) [`1163a37`](https://github.com/gradio-app/gradio/commit/1163a372a61cf84d110160c1711892b9b689d1d3) - Fixes component info font size.  Thanks @dawoodkhan82!
+- [#9651](https://github.com/gradio-app/gradio/pull/9651) [`1163a37`](https://github.com/gradio-app/gradio/commit/1163a372a61cf84d110160c1711892b9b689d1d3) - Fixes component info font size. Thanks @dawoodkhan82!
 
 ### Dependency updates
 
@@ -190,7 +190,7 @@
 
 ### Features
 
-- [#9756](https://github.com/gradio-app/gradio/pull/9756) [`92f337c`](https://github.com/gradio-app/gradio/commit/92f337cc85d545060ea343f1cee85c22b85f6444) - Fix website build issue.  Thanks @aliabd!
+- [#9756](https://github.com/gradio-app/gradio/pull/9756) [`92f337c`](https://github.com/gradio-app/gradio/commit/92f337cc85d545060ea343f1cee85c22b85f6444) - Fix website build issue. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -201,7 +201,7 @@
 
 ### Fixes
 
-- [#9730](https://github.com/gradio-app/gradio/pull/9730) [`39a0e8c`](https://github.com/gradio-app/gradio/commit/39a0e8c2fb038eb0afc213fa6290c9b2acee7941) - Fix chatbot component streaming bug and visible bug.  Thanks @freddyaboulton!
+- [#9730](https://github.com/gradio-app/gradio/pull/9730) [`39a0e8c`](https://github.com/gradio-app/gradio/commit/39a0e8c2fb038eb0afc213fa6290c9b2acee7941) - Fix chatbot component streaming bug and visible bug. Thanks @freddyaboulton!
 
 ### Dependency updates
 
@@ -211,7 +211,7 @@
 
 ### Fixes
 
-- [#9711](https://github.com/gradio-app/gradio/pull/9711) [`7134fc2`](https://github.com/gradio-app/gradio/commit/7134fc272e9e60be4b80dfd294ff8926d5995188) - Custom component fixes.  Thanks @freddyaboulton!
+- [#9711](https://github.com/gradio-app/gradio/pull/9711) [`7134fc2`](https://github.com/gradio-app/gradio/commit/7134fc272e9e60be4b80dfd294ff8926d5995188) - Custom component fixes. Thanks @freddyaboulton!
 
 ### Dependency updates
 
@@ -238,7 +238,7 @@
 
 ### Features
 
-- [#9437](https://github.com/gradio-app/gradio/pull/9437) [`c3d93be`](https://github.com/gradio-app/gradio/commit/c3d93bef94b9401747a363f7bad88a1d347d535b) - Adding new themes to Gradio 5.0.  Thanks @allisonwhilden!
+- [#9437](https://github.com/gradio-app/gradio/pull/9437) [`c3d93be`](https://github.com/gradio-app/gradio/commit/c3d93bef94b9401747a363f7bad88a1d347d535b) - Adding new themes to Gradio 5.0. Thanks @allisonwhilden!
 
 ### Dependency updates
 
@@ -248,14 +248,14 @@
 
 ### Features
 
-- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown.  Thanks @dawoodkhan82!
-- [#9571](https://github.com/gradio-app/gradio/pull/9571) [`148345d`](https://github.com/gradio-app/gradio/commit/148345d107763754710505281ad70368ebc6f3ec) - Fix chatinterface embedding height issues.  Thanks @aliabid94!
+- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown. Thanks @dawoodkhan82!
+- [#9571](https://github.com/gradio-app/gradio/pull/9571) [`148345d`](https://github.com/gradio-app/gradio/commit/148345d107763754710505281ad70368ebc6f3ec) - Fix chatinterface embedding height issues. Thanks @aliabid94!
 
 ## 0.9.0-beta.3
 
 ### Features
 
-- [#9504](https://github.com/gradio-app/gradio/pull/9504) [`d054262`](https://github.com/gradio-app/gradio/commit/d054262f611d5f1eb1a1c936db7152347a891f8e) - Centre components within `Block` when height and width are set.  Thanks @hannahblair!
+- [#9504](https://github.com/gradio-app/gradio/pull/9504) [`d054262`](https://github.com/gradio-app/gradio/commit/d054262f611d5f1eb1a1c936db7152347a891f8e) - Centre components within `Block` when height and width are set. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -265,9 +265,9 @@
 
 ### Features
 
-- [#9261](https://github.com/gradio-app/gradio/pull/9261) [`73647a0`](https://github.com/gradio-app/gradio/commit/73647a07b0439efabe3dd218ff6c366ffa3b84a0) - Move icons into `IconButtonWrapper`.  Thanks @hannahblair!
-- [#9313](https://github.com/gradio-app/gradio/pull/9313) [`1fef9d9`](https://github.com/gradio-app/gradio/commit/1fef9d9a26f0ebce4de18c486702661f6539b1c6) - Standardize `height` across components and add `max_height` and `min_height` parameters where appropriate.  Thanks @abidlabs!
-- [#9250](https://github.com/gradio-app/gradio/pull/9250) [`350b0a5`](https://github.com/gradio-app/gradio/commit/350b0a5cafb9176f914f62e7c90de51d4352cc77) - Improve Icon Button consistency.  Thanks @hannahblair!
+- [#9261](https://github.com/gradio-app/gradio/pull/9261) [`73647a0`](https://github.com/gradio-app/gradio/commit/73647a07b0439efabe3dd218ff6c366ffa3b84a0) - Move icons into `IconButtonWrapper`. Thanks @hannahblair!
+- [#9313](https://github.com/gradio-app/gradio/pull/9313) [`1fef9d9`](https://github.com/gradio-app/gradio/commit/1fef9d9a26f0ebce4de18c486702661f6539b1c6) - Standardize `height` across components and add `max_height` and `min_height` parameters where appropriate. Thanks @abidlabs!
+- [#9250](https://github.com/gradio-app/gradio/pull/9250) [`350b0a5`](https://github.com/gradio-app/gradio/commit/350b0a5cafb9176f914f62e7c90de51d4352cc77) - Improve Icon Button consistency. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -285,7 +285,7 @@
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -296,8 +296,8 @@
 
 ### Features
 
-- [#8930](https://github.com/gradio-app/gradio/pull/8930) [`41d5ab9`](https://github.com/gradio-app/gradio/commit/41d5ab987ba9728753be4509490c79041655809b) - Add `placeholder` param to Image and ImageEditor to replace upload image text.  Thanks @hannahblair!
-- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+- [#8930](https://github.com/gradio-app/gradio/pull/8930) [`41d5ab9`](https://github.com/gradio-app/gradio/commit/41d5ab987ba9728753be4509490c79041655809b) - Add `placeholder` param to Image and ImageEditor to replace upload image text. Thanks @hannahblair!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -321,7 +321,7 @@
 
 ### Fixes
 
-- [#8852](https://github.com/gradio-app/gradio/pull/8852) [`16b8200`](https://github.com/gradio-app/gradio/commit/16b820038df43905447ab7623d39d91ceb0d6238) - Fix gr.Image height inconsistencies.  Thanks @hannahblair!
+- [#8852](https://github.com/gradio-app/gradio/pull/8852) [`16b8200`](https://github.com/gradio-app/gradio/commit/16b820038df43905447ab7623d39d91ceb0d6238) - Fix gr.Image height inconsistencies. Thanks @hannahblair!
 
 ## 0.7.6
 
@@ -365,7 +365,7 @@
 
 ### Features
 
-- [#8042](https://github.com/gradio-app/gradio/pull/8042) [`92139f3`](https://github.com/gradio-app/gradio/commit/92139f3d7d6b832b649ff1f6c10c87e6fb522cde) - refresh the `ImageEditor` UI.  Thanks @pngwn!
+- [#8042](https://github.com/gradio-app/gradio/pull/8042) [`92139f3`](https://github.com/gradio-app/gradio/commit/92139f3d7d6b832b649ff1f6c10c87e6fb522cde) - refresh the `ImageEditor` UI. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -388,7 +388,7 @@
 
 ### Features
 
-- [#7732](https://github.com/gradio-app/gradio/pull/7732) [`2efb05e`](https://github.com/gradio-app/gradio/commit/2efb05ed99a8a3575aab0a6c14a8d8b91f4e9ed7) - Adds support for kwargs and default arguments in the python client, and improves how parameter information is displayed in the "view API" page.  Thanks @abidlabs!
+- [#7732](https://github.com/gradio-app/gradio/pull/7732) [`2efb05e`](https://github.com/gradio-app/gradio/commit/2efb05ed99a8a3575aab0a6c14a8d8b91f4e9ed7) - Adds support for kwargs and default arguments in the python client, and improves how parameter information is displayed in the "view API" page. Thanks @abidlabs!
 
 ## 0.5.3
 

@@ -81,7 +81,7 @@
 
 ### Features
 
-- [#11380](https://github.com/gradio-app/gradio/pull/11380) [`0b2b6cb`](https://github.com/gradio-app/gradio/commit/0b2b6cbd44562a2f5843af872fe6761c5f255185) - Truncate textbox examples to 70 chars.  Thanks @hannahblair!
+- [#11380](https://github.com/gradio-app/gradio/pull/11380) [`0b2b6cb`](https://github.com/gradio-app/gradio/commit/0b2b6cbd44562a2f5843af872fe6761c5f255185) - Truncate textbox examples to 70 chars. Thanks @hannahblair!
 
 ## 0.14.6
 
@@ -137,7 +137,7 @@
 
 ### Features
 
-- [#10982](https://github.com/gradio-app/gradio/pull/10982) [`a80b312`](https://github.com/gradio-app/gradio/commit/a80b312c081a03b5bd73477305e2f094da512b37) - Add latex to code component languages.  Thanks @ginazhouhuiwu!
+- [#10982](https://github.com/gradio-app/gradio/pull/10982) [`a80b312`](https://github.com/gradio-app/gradio/commit/a80b312c081a03b5bd73477305e2f094da512b37) - Add latex to code component languages. Thanks @ginazhouhuiwu!
 
 ### Dependency updates
 
@@ -166,7 +166,7 @@
 
 ### Features
 
-- [#10812](https://github.com/gradio-app/gradio/pull/10812) [`6384bcc`](https://github.com/gradio-app/gradio/commit/6384bcc11f13d22f4480e7ad7213486fecec8936) - Jedi-based Python code completion on `gr.Code`.  Thanks @whitphx!
+- [#10812](https://github.com/gradio-app/gradio/pull/10812) [`6384bcc`](https://github.com/gradio-app/gradio/commit/6384bcc11f13d22f4480e7ad7213486fecec8936) - Jedi-based Python code completion on `gr.Code`. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -179,7 +179,7 @@
 
 ### Features
 
-- [#10733](https://github.com/gradio-app/gradio/pull/10733) [`731ab92`](https://github.com/gradio-app/gradio/commit/731ab92001c88d4cf1062acf0a4f1108a4513014) - Autocompletion on code editor component.  Thanks @whitphx!
+- [#10733](https://github.com/gradio-app/gradio/pull/10733) [`731ab92`](https://github.com/gradio-app/gradio/commit/731ab92001c88d4cf1062acf0a4f1108a4513014) - Autocompletion on code editor component. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -204,7 +204,7 @@
 
 ### Features
 
-- [#10643](https://github.com/gradio-app/gradio/pull/10643) [`f0a920c`](https://github.com/gradio-app/gradio/commit/f0a920c4934880645fbad783077ae9c7519856ce) - added a show_line_numbers to toggle line numbers in gr.Code().  Thanks @lalitx17!
+- [#10643](https://github.com/gradio-app/gradio/pull/10643) [`f0a920c`](https://github.com/gradio-app/gradio/commit/f0a920c4934880645fbad783077ae9c7519856ce) - added a show_line_numbers to toggle line numbers in gr.Code(). Thanks @lalitx17!
 
 ## 0.10.18
 
@@ -392,13 +392,13 @@
 
 ### Features
 
-- [#9545](https://github.com/gradio-app/gradio/pull/9545) [`098a009`](https://github.com/gradio-app/gradio/commit/098a009c05243967bd9e5acc28864eb40a135f6a) - Add Jinja2 language to Code component.  Thanks @CISC!
+- [#9545](https://github.com/gradio-app/gradio/pull/9545) [`098a009`](https://github.com/gradio-app/gradio/commit/098a009c05243967bd9e5acc28864eb40a135f6a) - Add Jinja2 language to Code component. Thanks @CISC!
 
 ## 0.10.0-beta.5
 
 ### Features
 
-- [#9450](https://github.com/gradio-app/gradio/pull/9450) [`991883e`](https://github.com/gradio-app/gradio/commit/991883e217dc0a3512b3ae3245378812f373b8db) - Improve `gr.Code`.  Thanks @hannahblair!
+- [#9450](https://github.com/gradio-app/gradio/pull/9450) [`991883e`](https://github.com/gradio-app/gradio/commit/991883e217dc0a3512b3ae3245378812f373b8db) - Improve `gr.Code`. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -425,7 +425,7 @@
 
 ### Features
 
-- [#9311](https://github.com/gradio-app/gradio/pull/9311) [`c4afdcd`](https://github.com/gradio-app/gradio/commit/c4afdcdb1f1f80c5f95ab45d527236e9364ace82) - Added max lines and overflow scrollbar for `gr.Code`.  Thanks @micpst!
+- [#9311](https://github.com/gradio-app/gradio/pull/9311) [`c4afdcd`](https://github.com/gradio-app/gradio/commit/c4afdcdb1f1f80c5f95ab45d527236e9364ace82) - Added max lines and overflow scrollbar for `gr.Code`. Thanks @micpst!
 
 ### Dependency updates
 
@@ -440,7 +440,7 @@
 
 ### Features
 
-- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -455,7 +455,7 @@
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -470,8 +470,8 @@
 
 ### Features
 
-- [#9013](https://github.com/gradio-app/gradio/pull/9013) [`5350f1f`](https://github.com/gradio-app/gradio/commit/5350f1feb20cb7458d188403f319c5087052f695) - Add copy all messages button to chatbot.  Thanks @hannahblair!
-- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+- [#9013](https://github.com/gradio-app/gradio/pull/9013) [`5350f1f`](https://github.com/gradio-app/gradio/commit/5350f1feb20cb7458d188403f319c5087052f695) - Add copy all messages button to chatbot. Thanks @hannahblair!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -495,8 +495,8 @@
 
 ### Fixes
 
-- [#8949](https://github.com/gradio-app/gradio/pull/8949) [`1e16f67`](https://github.com/gradio-app/gradio/commit/1e16f67ba2a02761d4b73afd723f8edc3c3124e9) - Fix check icon in gr.JSON and gr.Code.  Thanks @hannahblair!
-- [#8931](https://github.com/gradio-app/gradio/pull/8931) [`4c2d37d`](https://github.com/gradio-app/gradio/commit/4c2d37db849848fd38ba733a23a5aaceeaf58faf) - Add background to gr.Code line numbers.  Thanks @hannahblair!
+- [#8949](https://github.com/gradio-app/gradio/pull/8949) [`1e16f67`](https://github.com/gradio-app/gradio/commit/1e16f67ba2a02761d4b73afd723f8edc3c3124e9) - Fix check icon in gr.JSON and gr.Code. Thanks @hannahblair!
+- [#8931](https://github.com/gradio-app/gradio/pull/8931) [`4c2d37d`](https://github.com/gradio-app/gradio/commit/4c2d37db849848fd38ba733a23a5aaceeaf58faf) - Add background to gr.Code line numbers. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -510,7 +510,7 @@
 
 ### Features
 
-- [#8804](https://github.com/gradio-app/gradio/pull/8804) [`1d09925`](https://github.com/gradio-app/gradio/commit/1d09925469a5f96e8d3a972a28841903fa1c7265) - Fix Lite's <Playground />.  Thanks @whitphx!
+- [#8804](https://github.com/gradio-app/gradio/pull/8804) [`1d09925`](https://github.com/gradio-app/gradio/commit/1d09925469a5f96e8d3a972a28841903fa1c7265) - Fix Lite's <Playground />. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -523,7 +523,7 @@
 
 ### Features
 
-- [#8665](https://github.com/gradio-app/gradio/pull/8665) [`3b8238c`](https://github.com/gradio-app/gradio/commit/3b8238c2e222a6537b19b8901198b7e369e8319a) - Add c/cpp code support.  Thanks @ginazhouhuiwu!
+- [#8665](https://github.com/gradio-app/gradio/pull/8665) [`3b8238c`](https://github.com/gradio-app/gradio/commit/3b8238c2e222a6537b19b8901198b7e369e8319a) - Add c/cpp code support. Thanks @ginazhouhuiwu!
 
 ### Dependency updates
 
@@ -652,18 +652,17 @@ demo.launch(max_file_size=5 * gr.FileSize.MB)
 
 ![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
 
-
 #### Error states can now be cleared
 
 When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
 
 ![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
 
- Thanks @freddyaboulton!
+Thanks @freddyaboulton!
 
 ### Fixes
 
-- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling. Thanks @pngwn!
 
 ### Dependency updates
 

@@ -2,11 +2,17 @@
 
 ```html
 <script>
-	import { BaseImageUploader, BaseStaticImage, Webcam, BaseExample } from "@gradio/image";
+	import {
+		BaseImageUploader,
+		BaseStaticImage,
+		Webcam,
+		BaseExample,
+	} from "@gradio/image";
 </script>
 ```
 
 BaseImageUploader
+
 ```javascript
 	export let sources: ("clipboard" | "webcam" | "upload")[] = [
 		"upload",
@@ -22,6 +28,7 @@ BaseImageUploader
 ```
 
 BaseStaticImage
+
 ```javascript
 	export let value: null | FileData;
 	export let label: string | undefined = undefined;
@@ -34,6 +41,7 @@ BaseStaticImage
 ```
 
 Webcam
+
 ```javascript
 	export let streaming = false;
 	export let pending = false;
@@ -45,6 +53,7 @@ Webcam
 ```
 
 BaseExample
+
 ```javascript
 	export let value: string;
 	export let samples_dir: string;

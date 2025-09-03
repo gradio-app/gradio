@@ -2,11 +2,12 @@
 
 ```html
 <script>
-    import {StatusTracker, Toast, Loader} from `@gradio/statustracker`;
+	import {StatusTracker, Toast, Loader} from `@gradio/statustracker`;
 </script>
 ```
 
 StatusTracker
+
 ```javascript
 	export let i18n: I18nFormatter;
 	export let eta: number | null = null;
@@ -28,11 +29,13 @@ StatusTracker
 ```
 
 Toast
+
 ```javascript
 	export let messages: ToastMessage[] = [];
 ```
 
 Loader
+
 ```javascript
-	export let margin = true;
+export let margin = true;
 ```

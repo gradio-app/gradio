@@ -1,27 +1,27 @@
 {
-	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
-	"extends": [
-		"github>whitesource/merge-confidence:beta",
-		"config:base",
-		":preserveSemverRanges",
-		"group:allNonMajor",
-		":semanticCommitTypeAll(chore)",
-		":disableDependencyDashboard"
-	],
-	"ignorePaths": [
-		"**/demo/**",
-		"**/requirements.txt",
-		"**/Dockerfile",
-		"**/website/**"
-	],
-	"ignoreDeps": [
-		"lazy-brush",
-		"babylonjs",
-		"babylonjs-loaders",
-		"postcss-load-config",
-		"postcss-nested",
-		"svelte",
-		"vite",
-		"vitest"
-	]
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "github>whitesource/merge-confidence:beta",
+    "config:base",
+    ":preserveSemverRanges",
+    "group:allNonMajor",
+    ":semanticCommitTypeAll(chore)",
+    ":disableDependencyDashboard"
+  ],
+  "ignorePaths": [
+    "**/demo/**",
+    "**/requirements.txt",
+    "**/Dockerfile",
+    "**/website/**"
+  ],
+  "ignoreDeps": [
+    "lazy-brush",
+    "babylonjs",
+    "babylonjs-loaders",
+    "postcss-load-config",
+    "postcss-nested",
+    "svelte",
+    "vite",
+    "vitest"
+  ]
 }

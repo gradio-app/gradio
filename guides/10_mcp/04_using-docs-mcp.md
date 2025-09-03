@@ -10,13 +10,13 @@ You will need an LLM application that supports tool calling using the MCP protoc
 
 ## Why an MCP Server?
 
-If you're using LLMs in your workflow, adding this server will augment them with just the right context on gradio - which makes your experience a lot faster and smoother. 
+If you're using LLMs in your workflow, adding this server will augment them with just the right context on gradio - which makes your experience a lot faster and smoother.
 
 <video src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/mcp-docs.mp4" style="width:100%" controls preload> </video>
 
-The server is running on Spaces and was launched entirely using Gradio, you can see all the code [here](https://huggingface.co/spaces/gradio/docs-mcp). For more on building an mcp server with gradio, see the [previous guide](./building-an-mcp-client-with-gradio). 
+The server is running on Spaces and was launched entirely using Gradio, you can see all the code [here](https://huggingface.co/spaces/gradio/docs-mcp). For more on building an mcp server with gradio, see the [previous guide](./building-an-mcp-client-with-gradio).
 
-## Installing in the Clients 
+## Installing in the Clients
 
 For clients that support SSE (e.g. Cursor, Windsurf, Cline), simply add the following configuration to your MCP config:
 
@@ -30,15 +30,14 @@ For clients that support SSE (e.g. Cursor, Windsurf, Cline), simply add the foll
 }
 ```
 
-We've included step-by-step instructions for Cursor below, but you can consult the docs for Windsurf [here](https://docs.windsurf.com/windsurf/mcp), and Cline [here](https://docs.cline.bot/mcp-servers/configuring-mcp-servers) which are similar to set up. 
+We've included step-by-step instructions for Cursor below, but you can consult the docs for Windsurf [here](https://docs.windsurf.com/windsurf/mcp), and Cline [here](https://docs.cline.bot/mcp-servers/configuring-mcp-servers) which are similar to set up.
 
+### Cursor
 
+1. Make sure you're using the latest version of Cursor, and go to Cursor > Settings > Cursor Settings > MCP
+2. Click on '+ Add new global MCP server'
+3. Copy paste this json into the file that opens and then save it.
 
-### Cursor 
-
-1. Make sure you're using the latest version of Cursor, and go to Cursor > Settings > Cursor Settings > MCP 
-2. Click on '+ Add new global MCP server' 
-3. Copy paste this json into the file that opens and then save it. 
 ```json
 {
   "mcpServers": {
@@ -48,15 +47,17 @@ We've included step-by-step instructions for Cursor below, but you can consult t
   }
 }
 ```
-4. That's it! You should see the tools load and the status go green in the settings page. You may have to click the refresh icon or wait a few seconds. 
+
+4. That's it! You should see the tools load and the status go green in the settings page. You may have to click the refresh icon or wait a few seconds.
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/cursor-mcp.png)
 
 ### Claude Desktop
 
-1. Since Claude Desktop only supports stdio, you will need to [install Node.js](https://nodejs.org/en/download/) to get this to work. 
-2. Make sure you're using the latest version of Claude Desktop, and go to Claude > Settings > Developer > Edit Config 
-3. Open the file with your favorite editor and copy paste this json, then save the file. 
+1. Since Claude Desktop only supports stdio, you will need to [install Node.js](https://nodejs.org/en/download/) to get this to work.
+2. Make sure you're using the latest version of Claude Desktop, and go to Claude > Settings > Developer > Edit Config
+3. Open the file with your favorite editor and copy paste this json, then save the file.
+
 ```json
 {
   "mcpServers": {
@@ -72,14 +73,15 @@ We've included step-by-step instructions for Cursor below, but you can consult t
   }
 }
 ```
-4. Quit and re-open Claude Desktop, and you should be good to go. You should see it loaded in the Search and Tools icon or on the developer settings page. 
- 
+
+4. Quit and re-open Claude Desktop, and you should be good to go. You should see it loaded in the Search and Tools icon or on the developer settings page.
+
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/claude-desktop-mcp.gif)
 
-## Tools 
+## Tools
 
-There are currently only two tools in the server: `gradio_docs_mcp_load_gradio_docs` and `gradio_docs_mcp_search_gradio_docs`. 
+There are currently only two tools in the server: `gradio_docs_mcp_load_gradio_docs` and `gradio_docs_mcp_search_gradio_docs`.
 
-1. `gradio_docs_mcp_load_gradio_docs`: This tool takes no arguments and will load an /llms.txt style summary of Gradio's latest, full documentation. Very useful context the LLM can parse before answering questions or generating code. 
+1. `gradio_docs_mcp_load_gradio_docs`: This tool takes no arguments and will load an /llms.txt style summary of Gradio's latest, full documentation. Very useful context the LLM can parse before answering questions or generating code.
 
 2. `gradio_docs_mcp_search_gradio_docs`: This tool takes a query as an argument and will run embedding search on Gradio's docs, guides, and demos to return the most useful context for the LLM to parse.

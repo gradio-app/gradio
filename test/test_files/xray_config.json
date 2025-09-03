@@ -1,540 +1,540 @@
 {
-	"version": "4.0.0-beta.15",
-	"mode": "blocks",
-	"app_id": 12713514255097080317,
-	"dev_mode": false,
-	"analytics_enabled": true,
-	"components": [
-		{
-			"id": 1,
-			"type": "markdown",
-			"props": {
-				"value": "# Detect Disease From Scan\nWith this model you can lorem ipsum\n- ipsum 1\n- ipsum 2",
-				"show_label": true,
-				"rtl": false,
-				"latex_delimiters": [
-					{
-						"left": "$$",
-						"right": "$$",
-						"display": true
-					}
-				],
-				"visible": true,
-				"elem_classes": [],
-				"sanitize_html": true,
-				"line_breaks": false,
-				"name": "markdown",
-				"_selectable": false
-			},
-			"skip_api": false,
-			"component_class_id": "2a898cb5332104cc88cf257315b11ea4",
-			"api_info": {
-				"type": "string"
-			},
-			"example_inputs": "# Hello!"
-		},
-		{
-			"id": 2,
-			"type": "checkboxgroup",
-			"props": {
-				"choices": [
-					["Covid", "Covid"],
-					["Malaria", "Malaria"],
-					["Lung Cancer", "Lung Cancer"]
-				],
-				"value": [],
-				"type": "value",
-				"label": "Disease to Scan For",
-				"show_label": true,
-				"container": true,
-				"min_width": 160,
-				"visible": true,
-				"elem_classes": [],
-				"name": "checkboxgroup",
-				"_selectable": false
-			},
-			"skip_api": false,
-			"component_class_id": "11c97b5640df7837ffa105fb84da3ae9",
-			"api_info": {
-				"items": {
-					"enum": ["Covid", "Malaria", "Lung Cancer"],
-					"type": "string"
-				},
-				"title": "Checkbox Group",
-				"type": "array"
-			},
-			"example_inputs": ["Covid"]
-		},
-		{
-			"id": 3,
-			"type": "tabs",
-			"props": {
-				"visible": true,
-				"name": "tabs"
-			},
-			"skip_api": true,
-			"component_class_id": "e61142ccfde3fef4129daddfbde09d1d"
-		},
-		{
-			"id": 4,
-			"type": "tabitem",
-			"props": {
-				"label": "X-ray",
-				"name": "tabitem"
-			},
-			"skip_api": true,
-			"component_class_id": "5bd3e9c3b4f178a29b12244d9e380208"
-		},
-		{
-			"id": 5,
-			"type": "row",
-			"props": {
-				"variant": "default",
-				"visible": true,
-				"equal_height": true,
-				"name": "row"
-			},
-			"skip_api": true,
-			"component_class_id": "36ecf7b36504149ed114c2cccbdf0fc7"
-		},
-		{
-			"id": 6,
-			"type": "image",
-			"props": {
-				"streamable": false,
-				"image_mode": "RGB",
-				"sources": ["upload", "webcam", "clipboard"],
-				"type": "numpy",
-				"show_label": true,
-				"show_download_button": true,
-				"container": true,
-				"min_width": 160,
-				"visible": true,
-				"streaming": false,
-				"elem_classes": [],
-				"mirror_webcam": true,
-				"show_share_button": false,
-				"name": "image",
-				"_selectable": false
-			},
-			"skip_api": false,
-			"component_class_id": "f71f72cdd1881d71f1ae51f211f9c011",
-			"api_info": {
-				"properties": {
-					"path": {
-						"title": "Path",
-						"type": "string"
-					},
-					"url": {
-						"anyOf": [
-							{
-								"type": "string"
-							},
-							{
-								"type": "null"
-							}
-						],
-						"default": null,
-						"title": "Url"
-					},
-					"size": {
-						"anyOf": [
-							{
-								"type": "integer"
-							},
-							{
-								"type": "null"
-							}
-						],
-						"default": null,
-						"title": "Size"
-					},
-					"orig_name": {
-						"anyOf": [
-							{
-								"type": "string"
-							},
-							{
-								"type": "null"
-							}
-						],
-						"default": null,
-						"title": "Orig Name"
-					},
-					"mime_type": {
-						"anyOf": [
-							{
-								"type": "string"
-							},
-							{
-								"type": "null"
-							}
-						],
-						"default": null,
-						"title": "Mime Type"
-					}
-				},
-				"required": ["path"],
-				"title": "FileData",
-				"type": "object"
-			},
-			"example_inputs": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
-		},
-		{
-			"id": 7,
-			"type": "json",
-			"props": {
-				"show_label": true,
-				"container": true,
-				"min_width": 160,
-				"visible": true,
-				"elem_classes": [],
-				"name": "json",
-				"_selectable": false
-			},
-			"skip_api": false,
-			"component_class_id": "fcea6c312d22236b50ff9994325f569c",
-			"api_info": {
-				"type": {},
-				"description": "any valid json"
-			},
-			"example_inputs": {
-				"foo": "bar"
-			}
-		},
-		{
-			"id": 8,
-			"type": "button",
-			"props": {
-				"value": "Run",
-				"variant": "secondary",
-				"visible": true,
-				"interactive": true,
-				"elem_classes": [],
-				"name": "button",
-				"_selectable": false
-			},
-			"skip_api": true,
-			"component_class_id": "c132173297f8baf01532d57505070fcb"
-		},
-		{
-			"id": 9,
-			"type": "tabitem",
-			"props": {
-				"label": "CT Scan",
-				"name": "tabitem"
-			},
-			"skip_api": true,
-			"component_class_id": "5bd3e9c3b4f178a29b12244d9e380208"
-		},
-		{
-			"id": 10,
-			"type": "row",
-			"props": {
-				"variant": "default",
-				"visible": true,
-				"equal_height": true,
-				"name": "row"
-			},
-			"skip_api": true,
-			"component_class_id": "36ecf7b36504149ed114c2cccbdf0fc7"
-		},
-		{
-			"id": 11,
-			"type": "image",
-			"props": {
-				"streamable": false,
-				"image_mode": "RGB",
-				"sources": ["upload", "webcam", "clipboard"],
-				"type": "numpy",
-				"show_label": true,
-				"show_download_button": true,
-				"container": true,
-				"min_width": 160,
-				"visible": true,
-				"streaming": false,
-				"elem_classes": [],
-				"mirror_webcam": true,
-				"show_share_button": false,
-				"name": "image",
-				"_selectable": false
-			},
-			"skip_api": false,
-			"component_class_id": "f71f72cdd1881d71f1ae51f211f9c011",
-			"api_info": {
-				"properties": {
-					"path": {
-						"title": "Path",
-						"type": "string"
-					},
-					"url": {
-						"anyOf": [
-							{
-								"type": "string"
-							},
-							{
-								"type": "null"
-							}
-						],
-						"default": null,
-						"title": "Url"
-					},
-					"size": {
-						"anyOf": [
-							{
-								"type": "integer"
-							},
-							{
-								"type": "null"
-							}
-						],
-						"default": null,
-						"title": "Size"
-					},
-					"orig_name": {
-						"anyOf": [
-							{
-								"type": "string"
-							},
-							{
-								"type": "null"
-							}
-						],
-						"default": null,
-						"title": "Orig Name"
-					},
-					"mime_type": {
-						"anyOf": [
-							{
-								"type": "string"
-							},
-							{
-								"type": "null"
-							}
-						],
-						"default": null,
-						"title": "Mime Type"
-					}
-				},
-				"required": ["path"],
-				"title": "FileData",
-				"type": "object"
-			},
-			"example_inputs": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
-		},
-		{
-			"id": 12,
-			"type": "json",
-			"props": {
-				"show_label": true,
-				"container": true,
-				"min_width": 160,
-				"visible": true,
-				"elem_classes": [],
-				"name": "json",
-				"_selectable": false
-			},
-			"skip_api": false,
-			"component_class_id": "fcea6c312d22236b50ff9994325f569c",
-			"api_info": {
-				"type": {},
-				"description": "any valid json"
-			},
-			"example_inputs": {
-				"foo": "bar"
-			}
-		},
-		{
-			"id": 13,
-			"type": "button",
-			"props": {
-				"value": "Run",
-				"variant": "secondary",
-				"visible": true,
-				"interactive": true,
-				"elem_classes": [],
-				"name": "button",
-				"_selectable": false
-			},
-			"skip_api": true,
-			"component_class_id": "c132173297f8baf01532d57505070fcb"
-		},
-		{
-			"id": 14,
-			"type": "textbox",
-			"props": {
-				"value": "",
-				"lines": 1,
-				"max_lines": 20,
-				"show_label": true,
-				"container": true,
-				"min_width": 160,
-				"visible": true,
-				"autofocus": false,
-				"autoscroll": true,
-				"elem_classes": [],
-				"type": "text",
-				"rtl": false,
-				"show_copy_button": false,
-				"name": "textbox",
-				"_selectable": false
-			},
-			"skip_api": false,
-			"component_class_id": "6e70d4b23e8253f030c2feac68200437",
-			"api_info": {
-				"type": "string"
-			},
-			"example_inputs": "Hello!!"
-		},
-		{
-			"id": 15,
-			"type": "form",
-			"props": {
-				"scale": 0,
-				"min_width": 0,
-				"name": "form"
-			},
-			"skip_api": true,
-			"component_class_id": "8fea15cef5f2ce37e63d1f9dbe974a39"
-		},
-		{
-			"id": 16,
-			"type": "form",
-			"props": {
-				"scale": 0,
-				"min_width": 0,
-				"name": "form"
-			},
-			"skip_api": true,
-			"component_class_id": "8fea15cef5f2ce37e63d1f9dbe974a39"
-		}
-	],
-	"css": null,
-	"title": "Gradio",
-	"space_id": null,
-	"enable_queue": true,
-	"show_error": true,
-	"show_api": true,
-	"is_colab": false,
-	"stylesheets": [
-		"https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&display=swap",
-		"https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap"
-	],
-	"theme": "default",
-	"protocol": "sse",
-	"layout": {
-		"id": 0,
-		"children": [
-			{
-				"id": 1
-			},
-			{
-				"id": 15,
-				"children": [
-					{
-						"id": 2
-					}
-				]
-			},
-			{
-				"id": 3,
-				"children": [
-					{
-						"id": 4,
-						"children": [
-							{
-								"id": 5,
-								"children": [
-									{
-										"id": 6
-									},
-									{
-										"id": 7
-									}
-								]
-							},
-							{
-								"id": 8
-							}
-						]
-					},
-					{
-						"id": 9,
-						"children": [
-							{
-								"id": 10,
-								"children": [
-									{
-										"id": 11
-									},
-									{
-										"id": 12
-									}
-								]
-							},
-							{
-								"id": 13
-							}
-						]
-					}
-				]
-			},
-			{
-				"id": 16,
-				"children": [
-					{
-						"id": 14
-					}
-				]
-			}
-		]
-	},
-	"dependencies": [
-		{
-			"targets": [[8, "click"]],
-			"inputs": [2, 6],
-			"outputs": [7],
-			"backend_fn": true,
-			"js": null,
-			"queue": null,
-			"api_name": "xray_model",
-			"scroll_to_output": false,
-			"show_progress": "full",
-			"every": null,
-			"batch": false,
-			"max_batch_size": 4,
-			"cancels": [],
-			"types": {
-				"generator": false
-			},
-			"collects_event_data": false,
-			"trigger_after": null,
-			"trigger_only_on_success": false,
-			"trigger_only_on_failure": false,
-			"trigger_mode": "once"
-		},
-		{
-			"targets": [[13, "click"]],
-			"inputs": [2, 11],
-			"outputs": [12],
-			"backend_fn": true,
-			"js": null,
-			"queue": null,
-			"api_name": "ct_model",
-			"scroll_to_output": false,
-			"show_progress": "full",
-			"every": null,
-			"batch": false,
-			"max_batch_size": 4,
-			"cancels": [],
-			"types": {
-				"generator": false
-			},
-			"collects_event_data": false,
-			"trigger_after": null,
-			"trigger_only_on_success": false,
-			"trigger_only_on_failure": false,
-			"trigger_mode": "once"
-		}
-	]
+  "version": "4.0.0-beta.15",
+  "mode": "blocks",
+  "app_id": 12713514255097080317,
+  "dev_mode": false,
+  "analytics_enabled": true,
+  "components": [
+    {
+      "id": 1,
+      "type": "markdown",
+      "props": {
+        "value": "# Detect Disease From Scan\nWith this model you can lorem ipsum\n- ipsum 1\n- ipsum 2",
+        "show_label": true,
+        "rtl": false,
+        "latex_delimiters": [
+          {
+            "left": "$$",
+            "right": "$$",
+            "display": true
+          }
+        ],
+        "visible": true,
+        "elem_classes": [],
+        "sanitize_html": true,
+        "line_breaks": false,
+        "name": "markdown",
+        "_selectable": false
+      },
+      "skip_api": false,
+      "component_class_id": "2a898cb5332104cc88cf257315b11ea4",
+      "api_info": {
+        "type": "string"
+      },
+      "example_inputs": "# Hello!"
+    },
+    {
+      "id": 2,
+      "type": "checkboxgroup",
+      "props": {
+        "choices": [
+          ["Covid", "Covid"],
+          ["Malaria", "Malaria"],
+          ["Lung Cancer", "Lung Cancer"]
+        ],
+        "value": [],
+        "type": "value",
+        "label": "Disease to Scan For",
+        "show_label": true,
+        "container": true,
+        "min_width": 160,
+        "visible": true,
+        "elem_classes": [],
+        "name": "checkboxgroup",
+        "_selectable": false
+      },
+      "skip_api": false,
+      "component_class_id": "11c97b5640df7837ffa105fb84da3ae9",
+      "api_info": {
+        "items": {
+          "enum": ["Covid", "Malaria", "Lung Cancer"],
+          "type": "string"
+        },
+        "title": "Checkbox Group",
+        "type": "array"
+      },
+      "example_inputs": ["Covid"]
+    },
+    {
+      "id": 3,
+      "type": "tabs",
+      "props": {
+        "visible": true,
+        "name": "tabs"
+      },
+      "skip_api": true,
+      "component_class_id": "e61142ccfde3fef4129daddfbde09d1d"
+    },
+    {
+      "id": 4,
+      "type": "tabitem",
+      "props": {
+        "label": "X-ray",
+        "name": "tabitem"
+      },
+      "skip_api": true,
+      "component_class_id": "5bd3e9c3b4f178a29b12244d9e380208"
+    },
+    {
+      "id": 5,
+      "type": "row",
+      "props": {
+        "variant": "default",
+        "visible": true,
+        "equal_height": true,
+        "name": "row"
+      },
+      "skip_api": true,
+      "component_class_id": "36ecf7b36504149ed114c2cccbdf0fc7"
+    },
+    {
+      "id": 6,
+      "type": "image",
+      "props": {
+        "streamable": false,
+        "image_mode": "RGB",
+        "sources": ["upload", "webcam", "clipboard"],
+        "type": "numpy",
+        "show_label": true,
+        "show_download_button": true,
+        "container": true,
+        "min_width": 160,
+        "visible": true,
+        "streaming": false,
+        "elem_classes": [],
+        "mirror_webcam": true,
+        "show_share_button": false,
+        "name": "image",
+        "_selectable": false
+      },
+      "skip_api": false,
+      "component_class_id": "f71f72cdd1881d71f1ae51f211f9c011",
+      "api_info": {
+        "properties": {
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Url"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Size"
+          },
+          "orig_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Orig Name"
+          },
+          "mime_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Mime Type"
+          }
+        },
+        "required": ["path"],
+        "title": "FileData",
+        "type": "object"
+      },
+      "example_inputs": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+    },
+    {
+      "id": 7,
+      "type": "json",
+      "props": {
+        "show_label": true,
+        "container": true,
+        "min_width": 160,
+        "visible": true,
+        "elem_classes": [],
+        "name": "json",
+        "_selectable": false
+      },
+      "skip_api": false,
+      "component_class_id": "fcea6c312d22236b50ff9994325f569c",
+      "api_info": {
+        "type": {},
+        "description": "any valid json"
+      },
+      "example_inputs": {
+        "foo": "bar"
+      }
+    },
+    {
+      "id": 8,
+      "type": "button",
+      "props": {
+        "value": "Run",
+        "variant": "secondary",
+        "visible": true,
+        "interactive": true,
+        "elem_classes": [],
+        "name": "button",
+        "_selectable": false
+      },
+      "skip_api": true,
+      "component_class_id": "c132173297f8baf01532d57505070fcb"
+    },
+    {
+      "id": 9,
+      "type": "tabitem",
+      "props": {
+        "label": "CT Scan",
+        "name": "tabitem"
+      },
+      "skip_api": true,
+      "component_class_id": "5bd3e9c3b4f178a29b12244d9e380208"
+    },
+    {
+      "id": 10,
+      "type": "row",
+      "props": {
+        "variant": "default",
+        "visible": true,
+        "equal_height": true,
+        "name": "row"
+      },
+      "skip_api": true,
+      "component_class_id": "36ecf7b36504149ed114c2cccbdf0fc7"
+    },
+    {
+      "id": 11,
+      "type": "image",
+      "props": {
+        "streamable": false,
+        "image_mode": "RGB",
+        "sources": ["upload", "webcam", "clipboard"],
+        "type": "numpy",
+        "show_label": true,
+        "show_download_button": true,
+        "container": true,
+        "min_width": 160,
+        "visible": true,
+        "streaming": false,
+        "elem_classes": [],
+        "mirror_webcam": true,
+        "show_share_button": false,
+        "name": "image",
+        "_selectable": false
+      },
+      "skip_api": false,
+      "component_class_id": "f71f72cdd1881d71f1ae51f211f9c011",
+      "api_info": {
+        "properties": {
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Url"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Size"
+          },
+          "orig_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Orig Name"
+          },
+          "mime_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Mime Type"
+          }
+        },
+        "required": ["path"],
+        "title": "FileData",
+        "type": "object"
+      },
+      "example_inputs": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+    },
+    {
+      "id": 12,
+      "type": "json",
+      "props": {
+        "show_label": true,
+        "container": true,
+        "min_width": 160,
+        "visible": true,
+        "elem_classes": [],
+        "name": "json",
+        "_selectable": false
+      },
+      "skip_api": false,
+      "component_class_id": "fcea6c312d22236b50ff9994325f569c",
+      "api_info": {
+        "type": {},
+        "description": "any valid json"
+      },
+      "example_inputs": {
+        "foo": "bar"
+      }
+    },
+    {
+      "id": 13,
+      "type": "button",
+      "props": {
+        "value": "Run",
+        "variant": "secondary",
+        "visible": true,
+        "interactive": true,
+        "elem_classes": [],
+        "name": "button",
+        "_selectable": false
+      },
+      "skip_api": true,
+      "component_class_id": "c132173297f8baf01532d57505070fcb"
+    },
+    {
+      "id": 14,
+      "type": "textbox",
+      "props": {
+        "value": "",
+        "lines": 1,
+        "max_lines": 20,
+        "show_label": true,
+        "container": true,
+        "min_width": 160,
+        "visible": true,
+        "autofocus": false,
+        "autoscroll": true,
+        "elem_classes": [],
+        "type": "text",
+        "rtl": false,
+        "show_copy_button": false,
+        "name": "textbox",
+        "_selectable": false
+      },
+      "skip_api": false,
+      "component_class_id": "6e70d4b23e8253f030c2feac68200437",
+      "api_info": {
+        "type": "string"
+      },
+      "example_inputs": "Hello!!"
+    },
+    {
+      "id": 15,
+      "type": "form",
+      "props": {
+        "scale": 0,
+        "min_width": 0,
+        "name": "form"
+      },
+      "skip_api": true,
+      "component_class_id": "8fea15cef5f2ce37e63d1f9dbe974a39"
+    },
+    {
+      "id": 16,
+      "type": "form",
+      "props": {
+        "scale": 0,
+        "min_width": 0,
+        "name": "form"
+      },
+      "skip_api": true,
+      "component_class_id": "8fea15cef5f2ce37e63d1f9dbe974a39"
+    }
+  ],
+  "css": null,
+  "title": "Gradio",
+  "space_id": null,
+  "enable_queue": true,
+  "show_error": true,
+  "show_api": true,
+  "is_colab": false,
+  "stylesheets": [
+    "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&display=swap",
+    "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap"
+  ],
+  "theme": "default",
+  "protocol": "sse",
+  "layout": {
+    "id": 0,
+    "children": [
+      {
+        "id": 1
+      },
+      {
+        "id": 15,
+        "children": [
+          {
+            "id": 2
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "children": [
+          {
+            "id": 4,
+            "children": [
+              {
+                "id": 5,
+                "children": [
+                  {
+                    "id": 6
+                  },
+                  {
+                    "id": 7
+                  }
+                ]
+              },
+              {
+                "id": 8
+              }
+            ]
+          },
+          {
+            "id": 9,
+            "children": [
+              {
+                "id": 10,
+                "children": [
+                  {
+                    "id": 11
+                  },
+                  {
+                    "id": 12
+                  }
+                ]
+              },
+              {
+                "id": 13
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "children": [
+          {
+            "id": 14
+          }
+        ]
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "targets": [[8, "click"]],
+      "inputs": [2, 6],
+      "outputs": [7],
+      "backend_fn": true,
+      "js": null,
+      "queue": null,
+      "api_name": "xray_model",
+      "scroll_to_output": false,
+      "show_progress": "full",
+      "every": null,
+      "batch": false,
+      "max_batch_size": 4,
+      "cancels": [],
+      "types": {
+        "generator": false
+      },
+      "collects_event_data": false,
+      "trigger_after": null,
+      "trigger_only_on_success": false,
+      "trigger_only_on_failure": false,
+      "trigger_mode": "once"
+    },
+    {
+      "targets": [[13, "click"]],
+      "inputs": [2, 11],
+      "outputs": [12],
+      "backend_fn": true,
+      "js": null,
+      "queue": null,
+      "api_name": "ct_model",
+      "scroll_to_output": false,
+      "show_progress": "full",
+      "every": null,
+      "batch": false,
+      "max_batch_size": 4,
+      "cancels": [],
+      "types": {
+        "generator": false
+      },
+      "collects_event_data": false,
+      "trigger_after": null,
+      "trigger_only_on_success": false,
+      "trigger_only_on_failure": false,
+      "trigger_mode": "once"
+    }
+  ]
 }

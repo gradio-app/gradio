@@ -16,7 +16,7 @@ btn.click(add, [num1, num2], output, api_name="addition")
 
 **Hiding API endpoints**
 
-When building a complex Gradio app, you might want to hide certain API endpoints from appearing on the view API page, e.g. if they correspond to functions that simply update the UI. You can set the  `show_api` parameter to `False` in any `Blocks` event listener to achieve this, e.g. 
+When building a complex Gradio app, you might want to hide certain API endpoints from appearing on the view API page, e.g. if they correspond to functions that simply update the UI. You can set the `show_api` parameter to `False` in any `Blocks` event listener to achieve this, e.g.
 
 ```python
 btn.click(add, [num1, num2], output, show_api=False)
@@ -24,7 +24,7 @@ btn.click(add, [num1, num2], output, show_api=False)
 
 **Disabling API endpoints**
 
-Hiding the API endpoint doesn't disable it. A user can still programmatically call the API endpoint if they know the name. If you want to disable an API endpoint altogether, set `api_name=False`, e.g. 
+Hiding the API endpoint doesn't disable it. A user can still programmatically call the API endpoint if they know the name. If you want to disable an API endpoint altogether, set `api_name=False`, e.g.
 
 ```python
 btn.click(add, [num1, num2], output, api_name=False)
@@ -69,12 +69,11 @@ print(result)
 
 ## The Clients
 
-This API page not only lists all of the endpoints that can be used to query the Gradio app, but also shows the usage of both [the Gradio Python client](https://gradio.app/guides/getting-started-with-the-python-client/), and [the Gradio JavaScript client](https://gradio.app/guides/getting-started-with-the-js-client/). 
+This API page not only lists all of the endpoints that can be used to query the Gradio app, but also shows the usage of both [the Gradio Python client](https://gradio.app/guides/getting-started-with-the-python-client/), and [the Gradio JavaScript client](https://gradio.app/guides/getting-started-with-the-js-client/).
 
 For each endpoint, Gradio automatically generates a complete code snippet with the parameters and their types, as well as example inputs, allowing you to immediately test an endpoint. Here's an example showing an image file input and `str` output:
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api-snippet.png)
-
 
 ## The API Recorder 🪄
 
@@ -84,7 +83,7 @@ Instead of reading through the view API page, you can also use Gradio's built-in
 
 ## MCP Server
 
-The API page also includes instructions on how to use the Gradio app as an Model Context Protocol (MCP) server, which is a standardized way to expose functions as tools so that they can be used by LLMs. 
+The API page also includes instructions on how to use the Gradio app as an Model Context Protocol (MCP) server, which is a standardized way to expose functions as tools so that they can be used by LLMs.
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api-mcp.png)
 

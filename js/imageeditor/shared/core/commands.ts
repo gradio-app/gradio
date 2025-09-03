@@ -103,7 +103,7 @@ export class CommandManager {
 
 	async replay(
 		full_history: CommandNode,
-		context: ImageEditorContext
+		context: ImageEditorContext,
 	): Promise<void> {
 		while (full_history.previous) {
 			full_history = full_history.previous;

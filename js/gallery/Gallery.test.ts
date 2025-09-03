@@ -13,7 +13,7 @@ const loading_status: LoadingStatus = {
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0,
-	show_progress: "full"
+	show_progress: "full",
 };
 
 describe("Gallery", () => {
@@ -34,16 +34,16 @@ describe("Gallery", () => {
 				{
 					image: {
 						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg"
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg",
 					},
-					caption: null
-				}
-			]
+					caption: null,
+				},
+			],
 		});
 		let item = getByTestId("detailed-image") as HTMLImageElement;
 		assert.equal(
 			item.src,
-			"https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg"
+			"https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg",
 		);
 	});
 
@@ -57,16 +57,16 @@ describe("Gallery", () => {
 				{
 					video: {
 						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/world.mp4",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/world.mp4"
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/world.mp4",
 					},
-					caption: null
-				}
-			]
+					caption: null,
+				},
+			],
 		});
 		let item = getByTestId("detailed-video") as HTMLVideoElement;
 		assert.equal(
 			item.src,
-			"https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/world.mp4"
+			"https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/world.mp4",
 		);
 	});
 
@@ -80,11 +80,11 @@ describe("Gallery", () => {
 				{
 					image: {
 						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg"
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg",
 					},
-					caption: null
-				}
-			]
+					caption: null,
+				},
+			],
 		});
 		const change_event = listen("change");
 
@@ -93,11 +93,11 @@ describe("Gallery", () => {
 				{
 					image: {
 						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg"
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg",
 					},
-					caption: null
-				}
-			]
+					caption: null,
+				},
+			],
 		});
 		assert.equal(change_event.callCount, 0);
 	});

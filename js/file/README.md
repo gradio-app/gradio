@@ -2,11 +2,17 @@
 
 ```html
 <script>
-	import { BaseFile, BaseFileUpload, FilePreview, BaseExample } from "@gradio/file";
+	import {
+		BaseFile,
+		BaseFileUpload,
+		FilePreview,
+		BaseExample,
+	} from "@gradio/file";
 </script>
 ```
 
 BaseFile
+
 ```javascript
 	export let value: FileData | FileData[] | null = null;
 	export let label: string;
@@ -17,6 +23,7 @@ BaseFile
 ```
 
 BaseFileUpload
+
 ```javascript
 	export let value: null | FileData | FileData[];
 	export let label: string;
@@ -30,6 +37,7 @@ BaseFileUpload
 ```
 
 FilePreview
+
 ```javascript
 	export let value: FileData | FileData[];
 	export let selectable = false;
@@ -38,6 +46,7 @@ FilePreview
 ```
 
 BaseExample
+
 ```javascript
 	export let value: FileData;
 	export let type: "gallery" | "table";

@@ -2,11 +2,12 @@
 
 ```html
 <script>
-    import { BaseUploadButton } from "@gradio/uploadbutton";
+	import { BaseUploadButton } from "@gradio/uploadbutton";
 </script>
 ```
 
 BaseUploadButton
+
 ```javascript
 	export let elem_id = "";
 	export let elem_classes: string[] = [];

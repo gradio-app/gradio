@@ -7,10 +7,10 @@ This is a sneak preview of what our finished component will look like:
 ![demo](https://gradio-builds.s3.amazonaws.com/assets/PDFDisplay.png)
 
 ## Step 0: Prerequisites
+
 Make sure you have gradio 5.0 or higher installed as well as node 20+.
 As of the time of publication, the latest release is 4.1.1.
 Also, please read the [Five Minute Tour](./custom-components-in-five-minutes) of custom components and the [Key Concepts](./key-component-concepts) guide before starting.
-
 
 ## Step 1: Creating the custom component
 
@@ -19,7 +19,6 @@ Navigate to a directory of your choosing and run the following command:
 ```bash
 gradio cc create PDF
 ```
-
 
 Tip: You should change the name of the component.
 Some of the screenshots assume the component is called `PDF` but the concepts are the same!
@@ -34,7 +33,7 @@ Tip: For this demo we are not templating off a current gradio component. But you
 
 ## Step 2: Frontend - modify javascript dependencies
 
-We're going to use the [pdfjs](https://mozilla.github.io/pdf.js/) javascript library to display the pdfs in the frontend. 
+We're going to use the [pdfjs](https://mozilla.github.io/pdf.js/) javascript library to display the pdfs in the frontend.
 Let's start off by adding it to our frontend project's dependencies, as well as adding a couple of other projects we'll need.
 
 From within the `frontend` directory, run `npm install @gradio/client @gradio/upload @gradio/icons @gradio/button` and `npm install --save-dev pdfjs-dist@3.11.174`.
@@ -73,8 +72,7 @@ The complete `package.json` should look like this:
 }
 ```
 
-
-Tip: Running `npm install` will install the latest version of the package available. You can install a specific version with `npm install package@<version>`.  You can find all of the gradio javascript package documentation [here](https://www.gradio.app/main/docs/js). It is recommended you use the same versions as me as the API can change.
+Tip: Running `npm install` will install the latest version of the package available. You can install a specific version with `npm install package@<version>`. You can find all of the gradio javascript package documentation [here](https://www.gradio.app/main/docs/js). It is recommended you use the same versions as me as the API can change.
 
 Navigate to `Index.svelte` and delete mentions of `JSONView`
 
@@ -92,13 +90,12 @@ Run the `dev` command to launch the development server.
 This will open the demo in `demo/app.py` in an environment where changes to the `frontend` and `backend` directories will reflect instantaneously in the launched app.
 
 After launching the dev server, you should see a link printed to your console that says `Frontend Server (Go here): ... `.
- 
+
 ![](https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/dev_server_terminal.png)
 
 You should see the following:
 
 ![](https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/frontend_start.png)
-
 
 Its not impressive yet but we're ready to start coding!
 
@@ -110,41 +107,40 @@ You may get some warnings from your code editor that some props are not used.
 That's ok.
 
 ```ts
-    import { tick } from "svelte";
-    import type { Gradio } from "@gradio/utils";
-    import { Block, BlockLabel } from "@gradio/atoms";
-    import { File } from "@gradio/icons";
-    import { StatusTracker } from "@gradio/statustracker";
-    import type { LoadingStatus } from "@gradio/statustracker";
-    import type { FileData } from "@gradio/client";
-    import { Upload, ModifyUpload } from "@gradio/upload";
+import { tick } from "svelte";
+import type { Gradio } from "@gradio/utils";
+import { Block, BlockLabel } from "@gradio/atoms";
+import { File } from "@gradio/icons";
+import { StatusTracker } from "@gradio/statustracker";
+import type { LoadingStatus } from "@gradio/statustracker";
+import type { FileData } from "@gradio/client";
+import { Upload, ModifyUpload } from "@gradio/upload";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible = true;
-	export let value: FileData | null = null;
-	export let container = true;
-	export let scale: number | null = null;
-	export let root: string;
-	export let height: number | null = 500;
-	export let label: string;
-	export let proxy_url: string;
-	export let min_width: number | undefined = undefined;
-	export let loading_status: LoadingStatus;
-	export let gradio: Gradio<{
-		change: never;
-		upload: never;
-	}>;
+export let elem_id = "";
+export let elem_classes: string[] = [];
+export let visible = true;
+export let value: FileData | null = null;
+export let container = true;
+export let scale: number | null = null;
+export let root: string;
+export let height: number | null = 500;
+export let label: string;
+export let proxy_url: string;
+export let min_width: number | undefined = undefined;
+export let loading_status: LoadingStatus;
+export let gradio: Gradio<{
+  change: never;
+  upload: never;
+}>;
 
-    let _value = value;
-    let old_value = _value;
+let _value = value;
+let old_value = _value;
 ```
-
 
 Tip: The `gradio`` object passed in here contains some metadata about the application as well as some utility methods. One of these utilities is a dispatch method. We want to dispatch change and upload events whenever our PDF is changed or updated. This line provides type hints that these are the only events we will be dispatching.
 
 We want our frontend component to let users upload a PDF document if there isn't one already loaded.
-If it is loaded, we want to display it underneath a "clear" button that lets our users upload a new document. 
+If it is loaded, we want to display it underneath a "clear" button that lets our users upload a new document.
 We're going to use the `Upload` and `ModifyUpload` components that come with the `@gradio/upload` package to do this.
 Underneath the `</script>` tag, delete all the current code and add the following:
 
@@ -183,14 +179,13 @@ You should see the following when you navigate to your app after saving your cur
 
 ## Step 5: Frontend - Nicer Upload Text
 
-The `Upload your PDF` text looks a bit small and barebones. 
+The `Upload your PDF` text looks a bit small and barebones.
 Lets customize it!
 
 Create a new file called `PdfUploadText.svelte` and copy the following code.
 Its creating a new div to display our "upload text" with some custom styling.
 
 Tip: Notice that we're leveraging Gradio core's existing css variables here: `var(--size-60)` and `var(--body-text-color-subdued)`. This allows our component to work nicely in light mode and dark mode, as well as with Gradio's built-in themes.
-
 
 ```svelte
 <script lang="ts">
@@ -279,52 +274,51 @@ With that out of the way, let's start off by importing `pdfjs` and loading the c
 Also create the following variables:
 
 ```ts
-    let pdfDoc;
-    let numPages = 1;
-    let currentPage = 1;
-    let canvasRef;
+let pdfDoc;
+let numPages = 1;
+let currentPage = 1;
+let canvasRef;
 ```
 
 Now, we will use `pdfjs` to render a given page of the PDF onto an `html` document.
 Add the following code to `Index.svelte`:
 
 ```ts
-    async function get_doc(value: FileData) {
-        const loadingTask = pdfjsLib.getDocument(value.url);
-        pdfDoc = await loadingTask.promise;
-        numPages = pdfDoc.numPages;
-        render_page();
-    }
+async function get_doc(value: FileData) {
+  const loadingTask = pdfjsLib.getDocument(value.url);
+  pdfDoc = await loadingTask.promise;
+  numPages = pdfDoc.numPages;
+  render_page();
+}
 
-    function render_page() {
-    // Render a specific page of the PDF onto the canvas
-        pdfDoc.getPage(currentPage).then(page => {
-            const ctx  = canvasRef.getContext('2d')
-            ctx.clearRect(0, 0, canvasRef.width, canvasRef.height);
-            let viewport = page.getViewport({ scale: 1 });
-            let scale = height / viewport.height;
-            viewport = page.getViewport({ scale: scale });
+function render_page() {
+  // Render a specific page of the PDF onto the canvas
+  pdfDoc.getPage(currentPage).then((page) => {
+    const ctx = canvasRef.getContext("2d");
+    ctx.clearRect(0, 0, canvasRef.width, canvasRef.height);
+    let viewport = page.getViewport({ scale: 1 });
+    let scale = height / viewport.height;
+    viewport = page.getViewport({ scale: scale });
 
-            const renderContext = {
-                canvasContext: ctx,
-                viewport,
-            };
-            canvasRef.width = viewport.width;
-            canvasRef.height = viewport.height;
-            page.render(renderContext);
-        });
-    }
+    const renderContext = {
+      canvasContext: ctx,
+      viewport,
+    };
+    canvasRef.width = viewport.width;
+    canvasRef.height = viewport.height;
+    page.render(renderContext);
+  });
+}
 
-    // If the value changes, render the PDF of the currentPage
-    $: if(JSON.stringify(old_value) != JSON.stringify(_value)) {
-        if (_value){
-            get_doc(_value);
-        }
-        old_value = _value;
-        gradio.dispatch("change");
-    }
+// If the value changes, render the PDF of the currentPage
+$: if (JSON.stringify(old_value) != JSON.stringify(_value)) {
+  if (_value) {
+    get_doc(_value);
+  }
+  old_value = _value;
+  gradio.dispatch("change");
+}
 ```
-
 
 Tip: The `$:` syntax in svelte is how you declare statements to be reactive. Whenever any of the inputs of the statement change, svelte will automatically re-run that statement.
 
@@ -354,20 +348,19 @@ Now for the fun part - actually rendering the PDF when the file is uploaded!
 Add the following functions to the `<script>` tag:
 
 ```ts
-    async function handle_clear() {
-        _value = null;
-        await tick();
-        gradio.dispatch("change");
-    }
+async function handle_clear() {
+  _value = null;
+  await tick();
+  gradio.dispatch("change");
+}
 
-    async function handle_upload({detail}: CustomEvent<FileData>): Promise<void> {
-        value = detail;
-        await tick();
-        gradio.dispatch("change");
-        gradio.dispatch("upload");
-    }
+async function handle_upload({ detail }: CustomEvent<FileData>): Promise<void> {
+  value = detail;
+  await tick();
+  gradio.dispatch("change");
+  gradio.dispatch("upload");
+}
 ```
-
 
 Tip: The `gradio.dispatch` method is actually what is triggering the `change` or `upload` events in the backend. For every event defined in the component's backend, we will explain how to do this in Step 9, there must be at least one `gradio.dispatch("<event-name>")` call. These are called `gradio` events and they can be listended from the entire Gradio application. You can dispatch a built-in `svelte` event with the `dispatch` function. These events can only be listened to from the component's direct parent. Learn about svelte events from the [official documentation](https://learn.svelte.dev/tutorial/component-events).
 
@@ -375,9 +368,9 @@ Now we will run these functions whenever the `Upload` component uploads a file a
 
 ```svelte
     <ModifyUpload i18n={gradio.i18n} on:clear={handle_clear} absolute />
-    
+
     ...
-    
+
     <Upload
         on:load={handle_upload}
         filetype={"application/pdf"}
@@ -440,7 +433,7 @@ Now we will add them underneath the canvas in a separate `<div>`
             ➡️
         </BaseButton>
     </div>
-    
+
     ...
 
 <style>
@@ -468,7 +461,6 @@ We're going to want users of our component to get a preview of the PDF if its us
 
 To do so, we're going to add some of the pdf rendering logic in `Index.svelte` to `Example.svelte`.
 
-
 ```svelte
 <script lang="ts">
 	export let value: string;
@@ -476,7 +468,7 @@ To do so, we're going to add some of the pdf rendering logic in `Index.svelte` t
 	export let selected = false;
 	import pdfjsLib from "pdfjs-dist";
 	pdfjsLib.GlobalWorkerOptions.workerSrc =  "https://cdn.bootcss.com/pdf.js/3.11.174/pdf.worker.js";
-	
+
 	let pdfDoc;
 	let canvasRef;
 
@@ -491,9 +483,9 @@ To do so, we're going to add some of the pdf rendering logic in `Index.svelte` t
 			pdfDoc.getPage(1).then(page => {
 				const ctx  = canvasRef.getContext('2d')
 				ctx.clearRect(0, 0, canvasRef.width, canvasRef.height);
-				
+
 				const viewport = page.getViewport({ scale: 0.2 });
-				
+
 				const renderContext = {
 					canvasContext: ctx,
 					viewport
@@ -503,7 +495,7 @@ To do so, we're going to add some of the pdf rendering logic in `Index.svelte` t
 				page.render(renderContext);
 			});
 		}
-	
+
 	$: get_doc(value);
 </script>
 
@@ -523,9 +515,7 @@ To do so, we're going to add some of the pdf rendering logic in `Index.svelte` t
 </style>
 ```
 
-
 Tip: Exercise for the reader - reduce the code duplication between `Index.svelte` and `Example.svelte` 😊
-
 
 You will not be able to render examples until we make some changes to the backend code in the next step!
 
@@ -535,11 +525,12 @@ The backend changes needed are smaller.
 We're almost done!
 
 What we're going to do is:
-* Add `change` and `upload` events to our component.
-* Add a `height` property to let users control the height of the PDF.
-* Set the `data_model` of our component to be `FileData`. This is so that Gradio can automatically cache and safely serve any files that are processed by our component.
-* Modify the `preprocess` method to return a string corresponding to the path of our uploaded PDF.
-* Modify the `postprocess` to turn a path to a PDF created in an event handler to a `FileData`.
+
+- Add `change` and `upload` events to our component.
+- Add a `height` property to let users control the height of the PDF.
+- Set the `data_model` of our component to be `FileData`. This is so that Gradio can automatically cache and safely serve any files that are processed by our component.
+- Modify the `preprocess` method to return a string corresponding to the path of our uploaded PDF.
+- Modify the `postprocess` to turn a path to a PDF created in an event handler to a `FileData`.
 
 When all is said an done, your component's backend code should look like this:
 
@@ -610,9 +601,7 @@ pdf2image
 pytesseract
 ```
 
-
 Tip: Remember to install these yourself and restart the dev server! You may need to install extra non-python dependencies for `pdf2image`. See [here](https://pypi.org/project/pdf2image/). Feel free to write your own demo if you have trouble.
-
 
 ```python
 import gradio as gr
@@ -652,7 +641,6 @@ See our demo in action below!
 Finally lets build our component with `gradio cc build` and publish it with the `gradio cc publish` command!
 This will guide you through the process of uploading your component to [PyPi](https://pypi.org/) and [HuggingFace Spaces](https://huggingface.co/spaces).
 
-
 Tip: You may need to add the following lines to the `Dockerfile` of your HuggingFace Space.
 
 ```Dockerfile
@@ -680,7 +668,6 @@ with gr.Blocks() as demo:
 
 demo.launch()
 ```
-
 
 I hope you enjoyed this tutorial!
 The complete source code for our component is [here](https://huggingface.co/spaces/freddyaboulton/gradio_pdf/tree/main/src).

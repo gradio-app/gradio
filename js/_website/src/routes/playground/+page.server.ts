@@ -14,6 +14,6 @@ type Category = {
 
 export async function load() {
 	return {
-		demos_by_category
+		demos_by_category,
 	};
 }

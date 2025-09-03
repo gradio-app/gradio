@@ -1,7 +1,6 @@
 # Blocks and Event Listeners
 
-We briefly described the Blocks class in the [Quickstart](/main/guides/quickstart#custom-demos-with-gr-blocks) as a way to build custom demos. Let's dive deeper. 
-
+We briefly described the Blocks class in the [Quickstart](/main/guides/quickstart#custom-demos-with-gr-blocks) as a way to build custom demos. Let's dive deeper.
 
 ## Blocks Structure
 
@@ -188,6 +187,7 @@ with gr.Blocks() as demo:
 ```
 
 This functionally the same as:
+
 ```python
 with gr.Blocks() as demo:
   num1 = gr.Number()
@@ -195,9 +195,9 @@ with gr.Blocks() as demo:
   product = gr.Number()
 
   gr.on(
-    [num1.change, num2.change, demo.load], 
-    lambda a, b: a * b, 
-    inputs=[num1, num2], 
+    [num1.change, num2.change, demo.load],
+    lambda a, b: a * b,
+    inputs=[num1, num2],
     outputs=product
   )
 ```

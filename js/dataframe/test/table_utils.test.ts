@@ -37,11 +37,11 @@ describe("table_utils", () => {
 			const test_result = process_data(
 				[
 					["1", "2"],
-					["3", "4"]
+					["3", "4"],
 				],
 				element_refs,
 				data_binding,
-				make_id
+				make_id,
 			);
 
 			expect(test_result[0].map((item) => item.value)).toEqual(["1", "2"]);
@@ -52,11 +52,11 @@ describe("table_utils", () => {
 			const test_result = process_data(
 				[
 					["1", "2"],
-					["3", "4"]
+					["3", "4"],
 				],
 				element_refs,
 				data_binding,
-				make_id
+				make_id,
 			);
 
 			expect(test_result.length).toBe(2);

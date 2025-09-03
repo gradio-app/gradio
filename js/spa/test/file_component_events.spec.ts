@@ -9,11 +9,11 @@ async function error_modal_showed(page) {
 }
 
 test("File component properly dispatches load event for the single file case.", async ({
-	page
+	page,
 }) => {
 	const [fileChooser] = await Promise.all([
 		page.waitForEvent("filechooser"),
-		page.getByLabel("Click to upload or drop files").first().click()
+		page.getByLabel("Click to upload or drop files").first().click(),
 	]);
 	await fileChooser.setFiles(["./test/files/cheetah1.jpg"]);
 
@@ -26,25 +26,25 @@ test("File component properly dispatches load event for the single file case.", 
 });
 
 test("File component drag-and-drop uploads a file to the server correctly.", async ({
-	page
+	page,
 }) => {
 	const uploader = await page.locator("input[type=file]").nth(1);
 	await uploader.setInputFiles(["./test/files/alphabet.txt"]);
 
 	await expect(
-		page.getByLabel("# Load Upload Multiple Files").first()
+		page.getByLabel("# Load Upload Multiple Files").first(),
 	).toHaveValue("1");
 });
 
 test("File component properly handles drag and drop of image and video files.", async ({
-	page
+	page,
 }) => {
 	const uploader = await page.locator("input[type=file]").nth(2);
 	await uploader.setInputFiles(["./test/files/cheetah1.jpg"]);
 
 	// Check that the image file was uploaded
 	await expect(
-		page.getByLabel("# Load Upload Multiple Files Image/Video")
+		page.getByLabel("# Load Upload Multiple Files Image/Video"),
 	).toHaveValue("1");
 
 	await page.getByLabel("Clear").click();
@@ -53,12 +53,12 @@ test("File component properly handles drag and drop of image and video files.", 
 
 	// Check that the video file was uploaded
 	await expect(
-		page.getByLabel("# Load Upload Multiple Files Image/Video")
+		page.getByLabel("# Load Upload Multiple Files Image/Video"),
 	).toHaveValue("2");
 });
 
 test("File component properly handles drag and drop of pdf file.", async ({
-	page
+	page,
 }) => {
 	const uploader = await page.locator("input[type=file]").nth(3);
 	await uploader.setInputFiles(["./test/files/contract.pdf"]);
@@ -68,7 +68,7 @@ test("File component properly handles drag and drop of pdf file.", async ({
 });
 
 test("File component properly handles invalid file_types.", async ({
-	page
+	page,
 }) => {
 	const locator = page.locator("input[type=file]").nth(4);
 	await drag_and_drop_file(
@@ -76,7 +76,7 @@ test("File component properly handles invalid file_types.", async ({
 		locator,
 		"./test/files/cheetah1.jpg",
 		"cheetah1.jpg",
-		"image/jpeg"
+		"image/jpeg",
 	);
 
 	await error_modal_showed(page);
@@ -90,13 +90,13 @@ test("Delete event is fired correctly", async ({ page }) => {
 		"./test/files/cheetah1.jpg",
 		"cheetah1.jpg",
 		"image/jpeg",
-		2
+		2,
 	);
 
 	await page.getByLabel("Remove this file").first().click();
 
 	await expect(page.getByLabel("# Deleted File")).toHaveValue("1");
 	expect(
-		(await page.getByLabel("Delete file data").inputValue()).length
+		(await page.getByLabel("Delete file data").inputValue()).length,
 	).toBeGreaterThan(5);
 });

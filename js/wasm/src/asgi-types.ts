@@ -6,7 +6,7 @@ export type ASGIScope = Record<string, unknown>;
 export type ASGIApplication = (
 	scope: ASGIScope,
 	receive: () => Promise<ReceiveEvent>,
-	send: (event: PyProxy) => Promise<void> // `event` is a `SendEvent` dict in Python and passed as a `PyProxy` in JS via Pyodide's type conversion (https://pyodide.org/en/stable/usage/type-conversions.html#type-translations-pyproxy-to-js).
+	send: (event: PyProxy) => Promise<void>, // `event` is a `SendEvent` dict in Python and passed as a `PyProxy` in JS via Pyodide's type conversion (https://pyodide.org/en/stable/usage/type-conversions.html#type-translations-pyproxy-to-js).
 ) => Promise<void>;
 
 export type ReceiveEvent = RequestReceiveEvent | DisconnectReceiveEvent;

@@ -28,7 +28,7 @@ We'll use OpenCV for image manipulation and the [Gradio WebRTC](https://github.c
 
 ## The Inference Function
 
-We'll download the YOLOv10 model from the Hugging Face hub and instantiate a custom inference class to use this model. 
+We'll download the YOLOv10 model from the Hugging Face hub and instantiate a custom inference class to use this model.
 
 The implementation of the inference class isn't covered in this guide, but you can find the source code [here](https://huggingface.co/spaces/freddyaboulton/webrtc-yolov10n/blob/main/inference.py#L9) if you're interested. This implementation borrows heavily from this [github repository](https://github.com/ibaiGorordo/ONNX-YOLOv8-Object-Detection).
 
@@ -58,9 +58,9 @@ The function returns a numpy array corresponding to the same input image with al
 
 The Gradio demo is straightforward, but we'll implement a few specific features:
 
-1. Use the `WebRTC` custom component to ensure input and output are sent to/from the server with WebRTC. 
+1. Use the `WebRTC` custom component to ensure input and output are sent to/from the server with WebRTC.
 2. The [WebRTC](https://github.com/freddyaboulton/gradio-webrtc) component will serve as both an input and output component.
-3. Utilize the `time_limit` parameter of the `stream` event. This parameter sets a processing time for each user's stream. In a multi-user setting, such as on Spaces, we'll stop processing the current user's stream after this period and move on to the next. 
+3. Utilize the `time_limit` parameter of the `stream` event. This parameter sets a processing time for each user's stream. In a multi-user setting, such as on Spaces, we'll stop processing the current user's stream after this period and move on to the next.
 
 We'll also apply custom CSS to center the webcam and slider on the page.
 
@@ -100,6 +100,6 @@ if __name__ == "__main__":
 
 ## Conclusion
 
-Our app is hosted on Hugging Face Spaces [here](https://huggingface.co/spaces/freddyaboulton/webrtc-yolov10n). 
+Our app is hosted on Hugging Face Spaces [here](https://huggingface.co/spaces/freddyaboulton/webrtc-yolov10n).
 
 You can use this app as a starting point to build real-time image applications with Gradio. Don't hesitate to open issues in the space or in the [WebRTC component GitHub repo](https://github.com/freddyaboulton/gradio-webrtc) if you have any questions or encounter problems.

@@ -99,8 +99,8 @@
 
 ### Features
 
-- [#10933](https://github.com/gradio-app/gradio/pull/10933) [`b768651`](https://github.com/gradio-app/gradio/commit/b7686515d99276123731698bfde09bb328b7d286) - Add `rtl` to Block Label.  Thanks @hannahblair!
-- [#10924](https://github.com/gradio-app/gradio/pull/10924) [`be46b94`](https://github.com/gradio-app/gradio/commit/be46b94f51c29d66fef9320d59a7f7e5a0df81b4) - Add `rtl` to gr.HighlightedText.  Thanks @hannahblair!
+- [#10933](https://github.com/gradio-app/gradio/pull/10933) [`b768651`](https://github.com/gradio-app/gradio/commit/b7686515d99276123731698bfde09bb328b7d286) - Add `rtl` to Block Label. Thanks @hannahblair!
+- [#10924](https://github.com/gradio-app/gradio/pull/10924) [`be46b94`](https://github.com/gradio-app/gradio/commit/be46b94f51c29d66fef9320d59a7f7e5a0df81b4) - Add `rtl` to gr.HighlightedText. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -172,7 +172,7 @@
 
 ### Fixes
 
-- [#10004](https://github.com/gradio-app/gradio/pull/10004) [`0879be7`](https://github.com/gradio-app/gradio/commit/0879be78b3ae220cb303ac275c8fd47d085aad18) - Ensure `show_label` param is used in HighlightedText.  Thanks @hannahblair!
+- [#10004](https://github.com/gradio-app/gradio/pull/10004) [`0879be7`](https://github.com/gradio-app/gradio/commit/0879be78b3ae220cb303ac275c8fd47d085aad18) - Ensure `show_label` param is used in HighlightedText. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -282,7 +282,7 @@
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -296,7 +296,7 @@
 
 ### Features
 
-- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -358,7 +358,7 @@
 
 ### Features
 
-- [#8355](https://github.com/gradio-app/gradio/pull/8355) [`33e8bab`](https://github.com/gradio-app/gradio/commit/33e8babb17b2094327860bc1996ab855d6c22d46) - Enable hiding the inline category in HighlightedText with a `show_inline_category` argument.  Thanks @xu-song!
+- [#8355](https://github.com/gradio-app/gradio/pull/8355) [`33e8bab`](https://github.com/gradio-app/gradio/commit/33e8babb17b2094327860bc1996ab855d6c22d46) - Enable hiding the inline category in HighlightedText with a `show_inline_category` argument. Thanks @xu-song!
 
 ### Dependency updates
 
@@ -397,7 +397,7 @@
 
 ### Features
 
-- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9.  Thanks @renovate!
+- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9. Thanks @renovate!
 
 ### Dependency updates
 
@@ -427,18 +427,17 @@ demo.launch(max_file_size=5 * gr.FileSize.MB)
 
 ![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
 
-
 #### Error states can now be cleared
 
 When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
 
 ![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
 
- Thanks @freddyaboulton!
+Thanks @freddyaboulton!
 
 ### Fixes
 
-- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling. Thanks @pngwn!
 
 ### Dependency updates
 

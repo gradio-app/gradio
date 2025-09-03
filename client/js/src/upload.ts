@@ -5,20 +5,20 @@ export async function upload(
 	file_data: FileData[],
 	root_url: string,
 	upload_id?: string,
-	max_file_size?: number
+	max_file_size?: number,
 ): Promise<(FileData | null)[] | null> {
 	let files = (Array.isArray(file_data) ? file_data : [file_data]).map(
-		(file_data) => file_data.blob!
+		(file_data) => file_data.blob!,
 	);
 
 	const oversized_files = files.filter(
-		(f) => f.size > (max_file_size ?? Infinity)
+		(f) => f.size > (max_file_size ?? Infinity),
 	);
 	if (oversized_files.length) {
 		throw new Error(
 			`File size exceeds the maximum allowed size of ${max_file_size} bytes: ${oversized_files
 				.map((f) => f.name)
-				.join(", ")}`
+				.join(", ")}`,
 		);
 	}
 
@@ -33,7 +33,7 @@ export async function upload(
 							const file = new FileData({
 								...file_data[i],
 								path: f,
-								url: `${root_url}${this.api_prefix}/file=${f}`
+								url: `${root_url}${this.api_prefix}/file=${f}`,
 							});
 							return file;
 						});
@@ -41,14 +41,14 @@ export async function upload(
 
 					return [];
 				}
-			}
-		)
+			},
+		),
 	);
 }
 
 export async function prepare_files(
 	files: File[],
-	is_stream?: boolean
+	is_stream?: boolean,
 ): Promise<FileData[]> {
 	return files.map(
 		(f) =>
@@ -58,8 +58,8 @@ export async function prepare_files(
 				blob: f,
 				size: f.size,
 				mime_type: f.type,
-				is_stream
-			})
+				is_stream,
+			}),
 	);
 }
 
@@ -84,7 +84,7 @@ export class FileData {
 		is_stream,
 		mime_type,
 		alt_text,
-		b64
+		b64,
 	}: {
 		path: string;
 		url?: string;

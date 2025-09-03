@@ -2,11 +2,15 @@
 
 ```html
 <script>
-    import { BaseMultimodalTextbox, BaseExample } from "@gradio/multimodaltextbox";
+	import {
+		BaseMultimodalTextbox,
+		BaseExample,
+	} from "@gradio/multimodaltextbox";
 </script>
 ```
 
 BaseMultimodalTextbox
+
 ```javascript
 	export let value = "";
 	export let value_is_output = false;
@@ -27,6 +31,7 @@ BaseMultimodalTextbox
 ```
 
 BaseExample
+
 ```javascript
 	export let value: string;
 	export let type: "gallery" | "table";

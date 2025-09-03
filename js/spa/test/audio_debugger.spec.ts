@@ -6,7 +6,7 @@ import { chromium } from "playwright";
 test("audio waveform", async ({ page }) => {
 	await expect(page.getByRole("tab", { name: "Audio" })).toHaveAttribute(
 		"aria-selected",
-		"true"
+		"true",
 	);
 	await page.getByRole("tab", { name: "Interface" }).click();
 	await page.getByRole("tab", { name: "Interface" }).click();
@@ -54,11 +54,11 @@ test("audio waveform", async ({ page }) => {
 
 test("audio streaming tab", async ({ page }) => {
 	const browser = await chromium.launch({
-		args: ["--use-fake-ui-for-media-stream"]
+		args: ["--use-fake-ui-for-media-stream"],
 	});
 
 	const context = await browser.newContext({
-		permissions: ["microphone"]
+		permissions: ["microphone"],
 	});
 
 	context.grantPermissions(["microphone"]);
@@ -66,17 +66,17 @@ test("audio streaming tab", async ({ page }) => {
 	await page.getByRole("tab", { name: "Streaming" }).click();
 
 	await expect(page.getByLabel("Select input device")).toContainText(
-		"Fake Default Audio InputFake Audio Input 1Fake Audio Input 2"
+		"Fake Default Audio InputFake Audio Input 1Fake Audio Input 2",
 	);
 });
 
 test("recording audio", async ({ page }) => {
 	const browser = await chromium.launch({
-		args: ["--use-fake-ui-for-media-stream"]
+		args: ["--use-fake-ui-for-media-stream"],
 	});
 
 	const context = await browser.newContext({
-		permissions: ["microphone"]
+		permissions: ["microphone"],
 	});
 
 	await page.getByRole("tab", { name: "Interface" }).click();
@@ -85,7 +85,7 @@ test("recording audio", async ({ page }) => {
 	context.grantPermissions(["microphone"]);
 
 	await expect(page.getByRole("combobox")).toContainText(
-		"Fake Default Audio InputFake Audio Input 1Fake Audio Input 2"
+		"Fake Default Audio InputFake Audio Input 1Fake Audio Input 2",
 	);
 
 	await page.getByRole("button", { name: "Record", exact: true }).click();

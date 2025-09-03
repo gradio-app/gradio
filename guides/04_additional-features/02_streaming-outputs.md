@@ -17,13 +17,13 @@ $demo_fake_diffusion
 
 Note that we've added a `time.sleep(1)` in the iterator to create an artificial pause between steps so that you are able to observe the steps of the iterator (in a real image generation model, this probably wouldn't be necessary).
 
-Similarly, Gradio can handle streaming inputs, e.g. an image generation model that reruns every time a user types a letter in a textbox. This is covered in more details in our guide on building [reactive Interfaces](/guides/reactive-interfaces). 
+Similarly, Gradio can handle streaming inputs, e.g. an image generation model that reruns every time a user types a letter in a textbox. This is covered in more details in our guide on building [reactive Interfaces](/guides/reactive-interfaces).
 
 ## Streaming Media
 
 Gradio can stream audio and video directly from your generator function.
 This lets your user hear your audio or see your video nearly as soon as it's `yielded` by your function.
-All you have to do is 
+All you have to do is
 
 1. Set `streaming=True` in your `gr.Audio` or `gr.Video` output component.
 2. Write a python generator that yields the next "chunk" of audio or video.

@@ -34,8 +34,8 @@ In that case, you can retry any custom async function until it passes using `toP
 
 ```js
 await expect(async () => {
-	const response = await page.request.get("https://api.example.com");
-	expect(response.status()).toBe(200);
+  const response = await page.request.get("https://api.example.com");
+  expect(response.status()).toBe(200);
 }).toPass();
 ```
 

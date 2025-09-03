@@ -5,7 +5,7 @@ import {
 	assert,
 	vi,
 	beforeEach,
-	afterEach
+	afterEach,
 } from "vitest";
 
 import languagesByAnyCode from "wikidata-lang/indexes/by_any_code";
@@ -23,12 +23,12 @@ vi.mock("svelte-i18n", () => ({
 
 	getLocaleFromNavigator: vi.fn(() => "en"),
 
-	waitLocale: vi.fn(() => Promise.resolve())
+	waitLocale: vi.fn(() => Promise.resolve()),
 }));
 
 vi.mock("svelte/store", () => ({
 	get: vi.fn((store) => store),
-	derived: vi.fn()
+	derived: vi.fn(),
 }));
 
 import { locale, addMessages } from "svelte-i18n";
@@ -40,7 +40,7 @@ import {
 	get_initial_locale,
 	load_translations,
 	changeLocale,
-	is_translation_metadata
+	is_translation_metadata,
 } from "./i18n";
 
 describe("i18n", () => {
@@ -70,7 +70,7 @@ describe("i18n", () => {
 					data = translation.data;
 				}
 				assert.ok(data.common);
-			})
+			}),
 		);
 	});
 
@@ -119,11 +119,11 @@ describe("i18n", () => {
 
 			const custom_translations = {
 				en: {
-					greeting: "Hello"
+					greeting: "Hello",
 				},
 				fr: {
-					greeting: "Bonjour"
-				}
+					greeting: "Bonjour",
+				},
 			};
 
 			load_translations({ processed_langs: {}, custom_translations });
@@ -131,11 +131,11 @@ describe("i18n", () => {
 			expect(mockAddMessages).toHaveBeenCalledTimes(loading_count + 2);
 			expect(mockAddMessages).toHaveBeenCalledWith(
 				"en",
-				custom_translations.en
+				custom_translations.en,
 			);
 			expect(mockAddMessages).toHaveBeenCalledWith(
 				"fr",
-				custom_translations.fr
+				custom_translations.fr,
 			);
 		});
 
@@ -153,8 +153,8 @@ describe("i18n", () => {
 			expect(
 				is_translation_metadata({
 					__type__: "translation_metadata" as const,
-					key: "test.key"
-				})
+					key: "test.key",
+				}),
 			).toBe(true);
 			expect(is_translation_metadata({ key: "test.key" })).toBe(false);
 

@@ -2,12 +2,12 @@
 
 ```html
 <script>
-    import { BaseStaticHighlightedText, BaseInteractiveHighlightedText } from `@gradio/highlightedtext`;
+	import { BaseStaticHighlightedText, BaseInteractiveHighlightedText } from `@gradio/highlightedtext`;
 </script>
 ```
 
-
 BaseStaticHighlightedText
+
 ```javascript
 	export let value: {
 		token: string;
@@ -20,6 +20,7 @@ BaseStaticHighlightedText
 ```
 
 BaseInteractiveHighlightedText
+
 ```javascript
 	export let value: {
 		token: string;

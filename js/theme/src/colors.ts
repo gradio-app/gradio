@@ -10,7 +10,7 @@ export const ordered_colors = [
 	"orange",
 	"cyan",
 	"lime",
-	"pink"
+	"pink",
 ] as const;
 interface ColorPair {
 	primary: string;
@@ -41,7 +41,7 @@ export const color_values = [
 	{ color: "orange", primary: 600, secondary: 100 },
 	{ color: "cyan", primary: 600, secondary: 100 },
 	{ color: "lime", primary: 500, secondary: 100 },
-	{ color: "pink", primary: 600, secondary: 100 }
+	{ color: "pink", primary: 600, secondary: 100 },
 ] as const;
 
 const tw_colors = {
@@ -61,7 +61,7 @@ const tw_colors = {
 		700: "#334155",
 		800: "#1e293b",
 		900: "#0f172a",
-		950: "#020617"
+		950: "#020617",
 	},
 	gray: {
 		50: "#f9fafb",
@@ -74,7 +74,7 @@ const tw_colors = {
 		700: "#374151",
 		800: "#1f2937",
 		900: "#111827",
-		950: "#030712"
+		950: "#030712",
 	},
 	zinc: {
 		50: "#fafafa",
@@ -87,7 +87,7 @@ const tw_colors = {
 		700: "#3f3f46",
 		800: "#27272a",
 		900: "#18181b",
-		950: "#09090b"
+		950: "#09090b",
 	},
 	neutral: {
 		50: "#fafafa",
@@ -100,7 +100,7 @@ const tw_colors = {
 		700: "#404040",
 		800: "#262626",
 		900: "#171717",
-		950: "#0a0a0a"
+		950: "#0a0a0a",
 	},
 	stone: {
 		50: "#fafaf9",
@@ -113,7 +113,7 @@ const tw_colors = {
 		700: "#44403c",
 		800: "#292524",
 		900: "#1c1917",
-		950: "#0c0a09"
+		950: "#0c0a09",
 	},
 	red: {
 		50: "#fef2f2",
@@ -126,7 +126,7 @@ const tw_colors = {
 		700: "#b91c1c",
 		800: "#991b1b",
 		900: "#7f1d1d",
-		950: "#450a0a"
+		950: "#450a0a",
 	},
 	orange: {
 		50: "#fff7ed",
@@ -139,7 +139,7 @@ const tw_colors = {
 		700: "#c2410c",
 		800: "#9a3412",
 		900: "#7c2d12",
-		950: "#431407"
+		950: "#431407",
 	},
 	amber: {
 		50: "#fffbeb",
@@ -152,7 +152,7 @@ const tw_colors = {
 		700: "#b45309",
 		800: "#92400e",
 		900: "#78350f",
-		950: "#451a03"
+		950: "#451a03",
 	},
 	yellow: {
 		50: "#fefce8",
@@ -165,7 +165,7 @@ const tw_colors = {
 		700: "#a16207",
 		800: "#854d0e",
 		900: "#713f12",
-		950: "#422006"
+		950: "#422006",
 	},
 	lime: {
 		50: "#f7fee7",
@@ -178,7 +178,7 @@ const tw_colors = {
 		700: "#4d7c0f",
 		800: "#3f6212",
 		900: "#365314",
-		950: "#1a2e05"
+		950: "#1a2e05",
 	},
 	green: {
 		50: "#f0fdf4",
@@ -191,7 +191,7 @@ const tw_colors = {
 		700: "#15803d",
 		800: "#166534",
 		900: "#14532d",
-		950: "#052e16"
+		950: "#052e16",
 	},
 	emerald: {
 		50: "#ecfdf5",
@@ -204,7 +204,7 @@ const tw_colors = {
 		700: "#047857",
 		800: "#065f46",
 		900: "#064e3b",
-		950: "#022c22"
+		950: "#022c22",
 	},
 	teal: {
 		50: "#f0fdfa",
@@ -217,7 +217,7 @@ const tw_colors = {
 		700: "#0f766e",
 		800: "#115e59",
 		900: "#134e4a",
-		950: "#042f2e"
+		950: "#042f2e",
 	},
 	cyan: {
 		50: "#ecfeff",
@@ -230,7 +230,7 @@ const tw_colors = {
 		700: "#0e7490",
 		800: "#155e75",
 		900: "#164e63",
-		950: "#083344"
+		950: "#083344",
 	},
 	sky: {
 		50: "#f0f9ff",
@@ -243,7 +243,7 @@ const tw_colors = {
 		700: "#0369a1",
 		800: "#075985",
 		900: "#0c4a6e",
-		950: "#082f49"
+		950: "#082f49",
 	},
 	blue: {
 		50: "#eff6ff",
@@ -256,7 +256,7 @@ const tw_colors = {
 		700: "#1d4ed8",
 		800: "#1e40af",
 		900: "#1e3a8a",
-		950: "#172554"
+		950: "#172554",
 	},
 	indigo: {
 		50: "#eef2ff",
@@ -269,7 +269,7 @@ const tw_colors = {
 		700: "#4338ca",
 		800: "#3730a3",
 		900: "#312e81",
-		950: "#1e1b4b"
+		950: "#1e1b4b",
 	},
 	violet: {
 		50: "#f5f3ff",
@@ -282,7 +282,7 @@ const tw_colors = {
 		700: "#6d28d9",
 		800: "#5b21b6",
 		900: "#4c1d95",
-		950: "#2e1065"
+		950: "#2e1065",
 	},
 	purple: {
 		50: "#faf5ff",
@@ -295,7 +295,7 @@ const tw_colors = {
 		700: "#7e22ce",
 		800: "#6b21a8",
 		900: "#581c87",
-		950: "#3b0764"
+		950: "#3b0764",
 	},
 	fuchsia: {
 		50: "#fdf4ff",
@@ -308,7 +308,7 @@ const tw_colors = {
 		700: "#a21caf",
 		800: "#86198f",
 		900: "#701a75",
-		950: "#4a044e"
+		950: "#4a044e",
 	},
 	pink: {
 		50: "#fdf2f8",
@@ -321,7 +321,7 @@ const tw_colors = {
 		700: "#be185d",
 		800: "#9d174d",
 		900: "#831843",
-		950: "#500724"
+		950: "#500724",
 	},
 	rose: {
 		50: "#fff1f2",
@@ -334,8 +334,8 @@ const tw_colors = {
 		700: "#be123c",
 		800: "#9f1239",
 		900: "#881337",
-		950: "#4c0519"
-	}
+		950: "#4c0519",
+	},
 };
 
 export const colors = color_values.reduce(
@@ -343,8 +343,8 @@ export const colors = color_values.reduce(
 		...acc,
 		[color]: {
 			primary: tw_colors[color][primary],
-			secondary: tw_colors[color][secondary]
-		}
+			secondary: tw_colors[color][secondary],
+		},
 	}),
-	{} as Colors
+	{} as Colors,
 );

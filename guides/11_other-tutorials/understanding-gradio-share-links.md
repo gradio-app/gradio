@@ -11,7 +11,7 @@ with gr.Blocks() as demo:
 demo.launch(share=True)
 ```
 
-This creates a publicly accessible **share link** (which looks like: `https://xxxxx.gradio.live`) to your Gradio application immediately, letting you share your app with anyone (while keeping the code and model running in your local environment). The link is created on Gradio's **share server**, which does not host your Gradio app, but instead creates a _tunnel_ to your locally-running Gradio app. 
+This creates a publicly accessible **share link** (which looks like: `https://xxxxx.gradio.live`) to your Gradio application immediately, letting you share your app with anyone (while keeping the code and model running in your local environment). The link is created on Gradio's **share server**, which does not host your Gradio app, but instead creates a _tunnel_ to your locally-running Gradio app.
 
 This is particlarly useful when you are prototyping and want to get immediate feedback on your machine learning app, without having to deal with the hassle of hosting or deploying your application.
 
@@ -38,15 +38,16 @@ Next, we'll dive deeper into both the FRP Client and FRP Server, as they are use
 We use a [modified version of the FRP Client](https://github.com/huggingface/frp/tree/tls/client), which runs on your machine. We package binaries for the most common operating systems, and the FRP Client for your system is downloaded the first time you create a share link on your machine.
 
 **Code**:
-* The complete Go code for the client can be found [in this directory](https://github.com/huggingface/frp/tree/tls/client).
-* We use this [Make script](https://github.com/huggingface/frp/blob/tls/Makefile) to package the Go code into binaries for each operating system.
+
+- The complete Go code for the client can be found [in this directory](https://github.com/huggingface/frp/tree/tls/client).
+- We use this [Make script](https://github.com/huggingface/frp/blob/tls/Makefile) to package the Go code into binaries for each operating system.
 
 **Troubleshooting**: Some antivirus programs (notably Windows Defender) block the download of the FRP Client. In this case, you'll see a message with details on how to install the file manually, something like:
 
 ```
-Could not create share link. Missing file: /Users/.../frpc_darwin_arm64_v0.3. 
+Could not create share link. Missing file: /Users/.../frpc_darwin_arm64_v0.3.
 
-Please check your internet connection. This can happen if your antivirus software blocks the download of this file. You can install manually by following these steps: 
+Please check your internet connection. This can happen if your antivirus software blocks the download of this file. You can install manually by following these steps:
 
 1. Download this file: https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_darwin_arm64
 2. Rename the downloaded file to: frpc_darwin_arm64_v0.3
@@ -59,18 +60,13 @@ If this does not work, you may need to [whitelist this file with your antivirus]
 
 Gradio runs a share server, which is a modified version of the FRP server. This server handles the public-facing side of the tunnel, receiving incoming connections from the internet and routing them to the appropriate FRP client running on your local machine.
 
-The official Gradio share server is hosted at `gradio.live`, and we make our best effort to keep it running reliably at all times. This is the server that's used by default when you set `share=True` in your Gradio applications. You can check the current operational status of the official Gradio share server at [https://status.gradio.app/](https://status.gradio.app/). 
+The official Gradio share server is hosted at `gradio.live`, and we make our best effort to keep it running reliably at all times. This is the server that's used by default when you set `share=True` in your Gradio applications. You can check the current operational status of the official Gradio share server at [https://status.gradio.app/](https://status.gradio.app/).
 
 If you prefer, you can also host your own FRP server. This gives you complete control over the tunneling infrastructure and can be useful for enterprise deployments or situations where you need custom domains or additional security measures, or if you want to avoid the 72 hour timeout that is in place for links created through Gradio's official share server. Here are the instructions for running your own [Gradio Share Server](https://github.com/huggingface/frp?tab=readme-ov-file#why-run-your-own-share-server).
 
-
 **Code**:
-* The complete Go code for the client can be found [in this directory](https://github.com/huggingface/frp/tree/dev/server).
-* The Dockerfile to launch [the FRP Server](https://github.com/huggingface/frp/blob/dev/dockerfiles/Dockerfile-for-frps) can be found here.
+
+- The complete Go code for the client can be found [in this directory](https://github.com/huggingface/frp/tree/dev/server).
+- The Dockerfile to launch [the FRP Server](https://github.com/huggingface/frp/blob/dev/dockerfiles/Dockerfile-for-frps) can be found here.
 
 **Troubleshooting**: Gradio's Share Server may occasionally go down, despite our best effort to keep it running. If the [status page](https://status.gradio.app/) shows that the Gradio server is down, we'll work on fixing it, no need to create an issue!
-
-
-
-
-

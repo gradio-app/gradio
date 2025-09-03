@@ -3,7 +3,7 @@
 import type {
 	create as createLiteAppFunc,
 	Options,
-	GradioAppController
+	GradioAppController,
 } from "..";
 import { clean_indent } from "./indent";
 
@@ -36,7 +36,7 @@ function parseRequirementsTxt(content: string): string[] {
 }
 
 export function bootstrap_custom_element(
-	create: typeof createLiteAppFunc
+	create: typeof createLiteAppFunc,
 ): void {
 	const CUSTOM_ELEMENT_NAME = "gradio-lite";
 
@@ -65,7 +65,7 @@ export function bootstrap_custom_element(
 					entrypoint: gradioLiteAppOptions.entrypoint,
 					playground: this.hasAttribute("playground"),
 					layout: this.getAttribute("layout"),
-					...gradioComponentOptions
+					...gradioComponentOptions,
 				});
 			});
 		}
@@ -111,7 +111,7 @@ export function bootstrap_custom_element(
 				autoScroll,
 				controlPageTitle,
 				appMode,
-				sharedWorkerMode
+				sharedWorkerMode,
 			};
 		}
 
@@ -174,7 +174,7 @@ export function bootstrap_custom_element(
 				} else {
 					if (codeElements.length > 1) {
 						console.warn(
-							"Multiple <gradio-code> elements are found. Only the first one will be used."
+							"Multiple <gradio-code> elements are found. Only the first one will be used.",
 						);
 					}
 					const firstCodeElement = codeElements[0];
@@ -184,11 +184,11 @@ export function bootstrap_custom_element(
 			}
 
 			const requirementsElements = this.getElementsByTagName(
-				"gradio-requirements"
+				"gradio-requirements",
 			);
 			if (requirementsElements.length > 1) {
 				console.warn(
-					"Multiple <gradio-requirements> elements are found. Only the first one will be used."
+					"Multiple <gradio-requirements> elements are found. Only the first one will be used.",
 				);
 			}
 			const firstRequirementsElement = requirementsElements[0];

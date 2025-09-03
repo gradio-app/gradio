@@ -37,7 +37,7 @@
 
 ### Fixes
 
-- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -60,7 +60,7 @@
 
 ### Fixes
 
-- [#11278](https://github.com/gradio-app/gradio/pull/11278) [`ac2bcea`](https://github.com/gradio-app/gradio/commit/ac2bcea619806ff99a44d98c15ca5c5969cdd54d) - Add gap around slider input in mobile.  Thanks @hannahblair!
+- [#11278](https://github.com/gradio-app/gradio/pull/11278) [`ac2bcea`](https://github.com/gradio-app/gradio/commit/ac2bcea619806ff99a44d98c15ca5c5969cdd54d) - Add gap around slider input in mobile. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -70,7 +70,7 @@
 
 ### Fixes
 
-- [#11228](https://github.com/gradio-app/gradio/pull/11228) [`0b7f753`](https://github.com/gradio-app/gradio/commit/0b7f753a8e400795b5e03fd3faf2a6d1f4426f05) - Improve slider alignment.  Thanks @hannahblair!
+- [#11228](https://github.com/gradio-app/gradio/pull/11228) [`0b7f753`](https://github.com/gradio-app/gradio/commit/0b7f753a8e400795b5e03fd3faf2a6d1f4426f05) - Improve slider alignment. Thanks @hannahblair!
 
 ## 0.6.9
 
@@ -141,7 +141,7 @@
 
 ### Features
 
-- [#10340](https://github.com/gradio-app/gradio/pull/10340) [`a91cb9c`](https://github.com/gradio-app/gradio/commit/a91cb9c42c02b70273b4cd55ab18148a7436fe57) - Add `show_reset_button` to `gr.slider` initialization.  Thanks @amanchauhan11!
+- [#10340](https://github.com/gradio-app/gradio/pull/10340) [`a91cb9c`](https://github.com/gradio-app/gradio/commit/a91cb9c42c02b70273b4cd55ab18148a7436fe57) - Add `show_reset_button` to `gr.slider` initialization. Thanks @amanchauhan11!
 
 ### Dependency updates
 
@@ -173,7 +173,7 @@
 
 ### Fixes
 
-- [#9988](https://github.com/gradio-app/gradio/pull/9988) [`2afcad8`](https://github.com/gradio-app/gradio/commit/2afcad80abd489111e47cf586a2a8221cc3dc9b6) - Allow negative values in gr.Slider.  Thanks @hannahblair!
+- [#9988](https://github.com/gradio-app/gradio/pull/9988) [`2afcad8`](https://github.com/gradio-app/gradio/commit/2afcad80abd489111e47cf586a2a8221cc3dc9b6) - Allow negative values in gr.Slider. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -221,7 +221,7 @@
 
 ### Fixes
 
-- [#9652](https://github.com/gradio-app/gradio/pull/9652) [`35bebf3`](https://github.com/gradio-app/gradio/commit/35bebf38eb0f61fe8e4f032ee093e92355baeecb) - Hide default slider background.  Thanks @hannahblair!
+- [#9652](https://github.com/gradio-app/gradio/pull/9652) [`35bebf3`](https://github.com/gradio-app/gradio/commit/35bebf38eb0f61fe8e4f032ee093e92355baeecb) - Hide default slider background. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -259,7 +259,7 @@
 
 ### Features
 
-- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown.  Thanks @dawoodkhan82!
+- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown. Thanks @dawoodkhan82!
 
 ### Dependency updates
 
@@ -270,7 +270,7 @@
 
 ### Features
 
-- [#9481](https://github.com/gradio-app/gradio/pull/9481) [`2510a6e`](https://github.com/gradio-app/gradio/commit/2510a6e978a49432d7820e9518f164a70cf8acc8) - Fix `slider-color` var.  Thanks @hannahblair!
+- [#9481](https://github.com/gradio-app/gradio/pull/9481) [`2510a6e`](https://github.com/gradio-app/gradio/commit/2510a6e978a49432d7820e9518f164a70cf8acc8) - Fix `slider-color` var. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -303,13 +303,13 @@
 
 ### Features
 
-- [#9197](https://github.com/gradio-app/gradio/pull/9197) [`6773c4d`](https://github.com/gradio-app/gradio/commit/6773c4da22f957a11b2a07f032ce13c7b4c94f8c) - Redesign `gr.Slider()`.  Thanks @hannahblair!
+- [#9197](https://github.com/gradio-app/gradio/pull/9197) [`6773c4d`](https://github.com/gradio-app/gradio/commit/6773c4da22f957a11b2a07f032ce13c7b4c94f8c) - Redesign `gr.Slider()`. Thanks @hannahblair!
 
 ## 0.4.13
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -321,7 +321,7 @@
 
 ### Features
 
-- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -436,18 +436,17 @@ demo.launch(max_file_size=5 * gr.FileSize.MB)
 
 ![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
 
-
 #### Error states can now be cleared
 
 When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
 
 ![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
 
- Thanks @freddyaboulton!
+Thanks @freddyaboulton!
 
 ### Fixes
 
-- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -482,7 +481,7 @@ When a component encounters an error, the error state shown in the UI can now be
 
 ### Features
 
-- [#7814](https://github.com/gradio-app/gradio/pull/7814) [`f7df92f`](https://github.com/gradio-app/gradio/commit/f7df92f3f3ff4bb1300ed6d6eb1828615a728acd) - Improve UX of non-interactive slider.  Thanks @Pythongor!
+- [#7814](https://github.com/gradio-app/gradio/pull/7814) [`f7df92f`](https://github.com/gradio-app/gradio/commit/f7df92f3f3ff4bb1300ed6d6eb1828615a728acd) - Improve UX of non-interactive slider. Thanks @Pythongor!
 
 ### Dependency updates
 

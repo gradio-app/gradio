@@ -2,7 +2,7 @@ import { test, expect, go_to_testcase } from "@self/tootils";
 
 for (const msg_format of ["tuples", "messages"]) {
 	test(`message format ${msg_format} - text input by a user should be shown in the chatbot as a paragraph`, async ({
-		page
+		page,
 	}) => {
 		if (msg_format === "tuples") {
 			await go_to_testcase(page, "tuples");
@@ -25,7 +25,7 @@ for (const msg_format of ["tuples", "messages"]) {
 	});
 
 	test(`message format ${msg_format} - images uploaded by a user should be shown in the chat`, async ({
-		page
+		page,
 	}) => {
 		if (msg_format === "tuples") {
 			await go_to_testcase(page, "tuples");
@@ -62,7 +62,7 @@ for (const msg_format of ["tuples", "messages"]) {
 	});
 
 	test(`message format ${msg_format} - audio uploaded by a user should be shown in the chatbot`, async ({
-		page
+		page,
 	}) => {
 		if (msg_format === "tuples") {
 			await go_to_testcase(page, "tuples");
@@ -82,13 +82,13 @@ for (const msg_format of ["tuples", "messages"]) {
 			.textContent();
 
 		await expect(
-			page.getByTestId("user").getByTestId("unlabelled-audio")
+			page.getByTestId("user").getByTestId("unlabelled-audio"),
 		).toBeVisible();
 		expect(bot_message).toBeTruthy();
 	});
 
 	test(`message format ${msg_format} - videos uploaded by a user should be shown in the chatbot`, async ({
-		page
+		page,
 	}) => {
 		if (msg_format === "tuples") {
 			await go_to_testcase(page, "tuples");
@@ -116,14 +116,14 @@ for (const msg_format of ["tuples", "messages"]) {
 	});
 
 	test(`message format ${msg_format} - markdown input by a user should be correctly formatted: bold, italics, links`, async ({
-		page
+		page,
 	}) => {
 		if (msg_format === "tuples") {
 			await go_to_testcase(page, "tuples");
 		}
 		const textbox = await page.getByTestId("textbox");
 		await textbox.fill(
-			"This is **bold text**. This is *italic text*. This is a [link](https://gradio.app)."
+			"This is **bold text**. This is *italic text*. This is a [link](https://gradio.app).",
 		);
 		await page.keyboard.press("Enter");
 		const user_message = await page
@@ -137,13 +137,13 @@ for (const msg_format of ["tuples", "messages"]) {
 			.getByRole("paragraph")
 			.textContent();
 		await expect(user_message).toContain(
-			'This is <strong>bold text</strong>. This is <em>italic text</em>. This is a <a href="https://gradio.app"'
+			'This is <strong>bold text</strong>. This is <em>italic text</em>. This is a <a href="https://gradio.app"',
 		);
 		await expect(bot_message).toBeTruthy();
 	});
 
 	test(`message format ${msg_format} - inline code markdown input by the user should be correctly formatted`, async ({
-		page
+		page,
 	}) => {
 		if (msg_format === "tuples") {
 			await go_to_testcase(page, "tuples");
@@ -166,7 +166,7 @@ for (const msg_format of ["tuples", "messages"]) {
 	});
 
 	test(`message format ${msg_format} - markdown code blocks input by a user should be rendered correctly with the correct language tag`, async ({
-		page
+		page,
 	}) => {
 		if (msg_format === "tuples") {
 			await go_to_testcase(page, "tuples");
@@ -189,7 +189,7 @@ for (const msg_format of ["tuples", "messages"]) {
 	});
 
 	test(`message format ${msg_format} - LaTeX input by a user should be rendered correctly`, async ({
-		page
+		page,
 	}) => {
 		if (msg_format === "tuples") {
 			await go_to_testcase(page, "tuples");
@@ -212,7 +212,7 @@ for (const msg_format of ["tuples", "messages"]) {
 	});
 
 	test(`message format ${msg_format} - when a new message is sent the chatbot should scroll to the latest message`, async ({
-		page
+		page,
 	}) => {
 		if (msg_format === "tuples") {
 			await go_to_testcase(page, "tuples");
@@ -231,7 +231,7 @@ for (const msg_format of ["tuples", "messages"]) {
 	});
 
 	test(`message format ${msg_format} - chatbot like and dislike functionality`, async ({
-		page
+		page,
 	}) => {
 		if (msg_format === "tuples") {
 			await go_to_testcase(page, "tuples");
@@ -240,7 +240,7 @@ for (const msg_format of ["tuples", "messages"]) {
 		await page.getByTestId("textbox").fill("hello");
 		await page.keyboard.press("Enter");
 		await expect(
-			page.getByTestId("bot").first().getByRole("paragraph")
+			page.getByTestId("bot").first().getByRole("paragraph"),
 		).toBeVisible();
 		await page.getByLabel("Like", { exact: true }).first().click();
 		await page.getByLabel("Dislike", { exact: true }).first().click();
@@ -250,7 +250,7 @@ for (const msg_format of ["tuples", "messages"]) {
 	});
 
 	test(`message format ${msg_format} - Users can upload multiple images and they will be shown as thumbnails`, async ({
-		page
+		page,
 	}) => {
 		if (msg_format === "tuples") {
 			await go_to_testcase(page, "tuples");
@@ -261,14 +261,14 @@ for (const msg_format of ["tuples", "messages"]) {
 		const fileChooser = await fileChooserPromise;
 		await fileChooser.setFiles([
 			"./test/files/cheetah1.jpg",
-			"./test/files/cheetah1.jpg"
+			"./test/files/cheetah1.jpg",
 		]);
 
 		await expect(page.locator(".thumbnail-image")).toHaveCount(2);
 	});
 
 	test(`message format ${msg_format} - pasting large text should create a file upload`, async ({
-		page
+		page,
 	}) => {
 		if (msg_format === "tuples") {
 			await go_to_testcase(page, "tuples");
@@ -282,7 +282,7 @@ for (const msg_format of ["tuples", "messages"]) {
 			const clipboardData = new ClipboardEvent("paste", {
 				clipboardData: dataTransfer,
 				bubbles: true,
-				cancelable: true
+				cancelable: true,
 			});
 			dataTransfer.setData("text/plain", text);
 			document.activeElement?.dispatchEvent(clipboardData);

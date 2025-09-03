@@ -6,13 +6,13 @@ In this Guide, we go through several examples of how to use `gr.ChatInterface` w
 
 We will cover the following libraries and API providers:
 
-* [Llama Index](#llama-index)
-* [LangChain](#lang-chain)
-* [OpenAI](#open-ai)
-* [Hugging Face `transformers`](#hugging-face-transformers)
-* [SambaNova](#samba-nova)
-* [Hyperbolic](#hyperbolic)
-* [Anthropic's Claude](#anthropics-claude)
+- [Llama Index](#llama-index)
+- [LangChain](#lang-chain)
+- [OpenAI](#open-ai)
+- [Hugging Face `transformers`](#hugging-face-transformers)
+- [SambaNova](#samba-nova)
+- [Hyperbolic](#hyperbolic)
+- [Anthropic's Claude](#anthropics-claude)
 
 For many LLM libraries and providers, there exist community-maintained integration libraries that make it even easier to spin up Gradio apps. We reference these libraries in the appropriate sections below.
 
@@ -28,14 +28,13 @@ Here's an example using `langchain` on top of `openai` to build a general-purpos
 
 $code_llm_langchain
 
-Tip: For quick prototyping, the community-maintained <a href='https://github.com/AK391/langchain-gradio'>langchain-gradio repo</a>  makes it even easier to build chatbots on top of LangChain.
+Tip: For quick prototyping, the community-maintained <a href='https://github.com/AK391/langchain-gradio'>langchain-gradio repo</a> makes it even easier to build chatbots on top of LangChain.
 
 ## OpenAI
 
 Of course, we could also use the `openai` library directy. Here a similar example to the LangChain , but this time with streaming as well:
 
-Tip: For quick prototyping, the  <a href='https://github.com/gradio-app/openai-gradio'>openai-gradio library</a> makes it even easier to build chatbots on top of OpenAI models.
-
+Tip: For quick prototyping, the <a href='https://github.com/gradio-app/openai-gradio'>openai-gradio library</a> makes it even easier to build chatbots on top of OpenAI models.
 
 ## Hugging Face `transformers`
 
@@ -49,7 +48,7 @@ The SambaNova Cloud API provides access to full-precision open-source models, su
 
 $code_llm_sambanova
 
-Tip: For quick prototyping, the  <a href='https://github.com/gradio-app/sambanova-gradio'>sambanova-gradio library</a> makes it even easier to build chatbots on top of SambaNova models.
+Tip: For quick prototyping, the <a href='https://github.com/gradio-app/sambanova-gradio'>sambanova-gradio library</a> makes it even easier to build chatbots on top of SambaNova models.
 
 ## Hyperbolic
 
@@ -57,13 +56,10 @@ The Hyperbolic AI API provides access to many open-source models, such as the Ll
 
 $code_llm_hyperbolic
 
-Tip: For quick prototyping, the  <a href='https://github.com/HyperbolicLabs/hyperbolic-gradio'>hyperbolic-gradio library</a> makes it even easier to build chatbots on top of Hyperbolic models.
+Tip: For quick prototyping, the <a href='https://github.com/HyperbolicLabs/hyperbolic-gradio'>hyperbolic-gradio library</a> makes it even easier to build chatbots on top of Hyperbolic models.
 
-
-## Anthropic's Claude 
+## Anthropic's Claude
 
 Anthropic's Claude model can also be used via API. Here's a simple 20 questions-style game built on top of the Anthropic API:
 
 $code_llm_claude
-
-

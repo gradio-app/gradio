@@ -16,7 +16,7 @@ import { is_self_host } from "@gradio/wasm/network";
 export async function wasm_proxied_fetch(
 	workerProxy: WorkerProxy,
 	input: RequestInfo | URL,
-	init?: RequestInit
+	init?: RequestInit,
 ): Promise<Response> {
 	console.debug("wasm_proxied_fetch", input, init);
 
@@ -51,10 +51,10 @@ export async function wasm_proxied_fetch(
 		query_string: url.searchParams.toString(), // The `query_string` field in the ASGI spec must not contain the leading `?`.
 		method,
 		headers,
-		body
+		body,
 	});
 	return new Response(response.body, {
 		status: response.status,
-		headers: new Headers(response.headers)
+		headers: new Headers(response.headers),
 	});
 }

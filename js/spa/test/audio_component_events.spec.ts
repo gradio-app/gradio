@@ -2,7 +2,7 @@ import { test, expect, drag_and_drop_file } from "@self/tootils";
 import { chromium } from "playwright";
 
 test("Audio events are dispatched correctly. File downloading works and file has correct name.", async ({
-	page
+	page,
 }) => {
 	const uploader = await page.locator("input[type=file]");
 	await uploader.setInputFiles(["../../test/test_files/audio_sample.wav"]);
@@ -27,27 +27,27 @@ test("Audio events are dispatched correctly. File downloading works and file has
 });
 
 test("Audio drag-and-drop uploads a file to the server correctly.", async ({
-	page
+	page,
 }) => {
 	await drag_and_drop_file(
 		page,
 		"input[type=file]",
 		"../../test/test_files/audio_sample.wav",
 		"audio_sample.wav",
-		"audio/wav"
+		"audio/wav",
 	);
 	await expect(page.getByLabel("# Input Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Input Upload Events")).toHaveValue("1");
 });
 
 test("Audio drag-and-drop displays a warning when the file is of the wrong mime type.", async ({
-	page
+	page,
 }) => {
 	await drag_and_drop_file(
 		page,
 		"input[type=file]",
 		"../../test/test_files/audio_sample.wav",
-		"audio_sample.wav"
+		"audio_sample.wav",
 	);
 	const toast = page.getByTestId("toast-body");
 	expect(toast).toContainText("Warning");
@@ -78,11 +78,11 @@ test.skip("Play, Pause, and stop events work correctly.", async ({ page }) => {
 });
 
 test.skip("Record, pause, and stop recording events work correctly.", async ({
-	page
+	page,
 }) => {
 	const browser = await chromium.launch();
 	const context = await browser.newContext({
-		permissions: ["microphone"]
+		permissions: ["microphone"],
 	});
 	context.grantPermissions(["microphone"]);
 
@@ -90,7 +90,7 @@ test.skip("Record, pause, and stop recording events work correctly.", async ({
 	await page.getByRole("button", { name: "Record", exact: true }).click();
 
 	expect(await page.getByLabel("# Input Start Recording Events")).toHaveValue(
-		"1"
+		"1",
 	);
 
 	await page.waitForTimeout(2000);
@@ -98,13 +98,13 @@ test.skip("Record, pause, and stop recording events work correctly.", async ({
 	await page.getByRole("button", { name: "Resume" }).click();
 
 	expect(await page.getByLabel("# Input Pause Recording Events")).toHaveValue(
-		"1"
+		"1",
 	);
 
 	await page.getByRole("button", { name: "Stop" }).click();
 
 	expect(await page.getByLabel("# Input Stop Recording Events")).toHaveValue(
-		"1"
+		"1",
 	);
 
 	expect(await page.getByLabel("# Input Change Events")).toHaveValue("1");

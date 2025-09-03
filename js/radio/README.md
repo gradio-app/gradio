@@ -2,11 +2,12 @@
 
 ```html
 <script>
-    import { BaseRadio, BaseExample } from "@gradio/radio"; 
+	import { BaseRadio, BaseExample } from "@gradio/radio";
 </script>
 ```
 
 BaseRadio
+
 ```javascript
 	export let display_value: string;
 	export let internal_value: string | number;
@@ -16,6 +17,7 @@ BaseRadio
 ```
 
 BaseExample
+
 ```javascript
 	export let value: string;
 	export let type: "gallery" | "table";

@@ -6,7 +6,7 @@ import {
 	LOGIN_URL,
 	MISSING_CREDENTIALS_MSG,
 	SPACE_METADATA_ERROR_MSG,
-	UNAUTHORIZED_MSG
+	UNAUTHORIZED_MSG,
 } from "../constants";
 import { Client } from "..";
 import { join_urls, process_endpoint } from "./api_info";
@@ -24,7 +24,7 @@ import { join_urls, process_endpoint } from "./api_info";
 export function resolve_root(
 	base_url: string,
 	root_path: string,
-	prioritize_base: boolean
+	prioritize_base: boolean,
 ): string {
 	if (root_path.startsWith("http://") || root_path.startsWith("https://")) {
 		return prioritize_base ? base_url : root_path;
@@ -35,14 +35,14 @@ export function resolve_root(
 export async function get_jwt(
 	space: string,
 	token: `hf_${string}`,
-	cookies?: string | null
+	cookies?: string | null,
 ): Promise<string | false> {
 	try {
 		const r = await fetch(`https://huggingface.co/api/spaces/${space}/jwt`, {
 			headers: {
 				Authorization: `Bearer ${token}`,
-				...(cookies ? { Cookie: cookies } : {})
-			}
+				...(cookies ? { Cookie: cookies } : {}),
+			},
 		});
 
 		const jwt = (await r.json()).token;
@@ -54,7 +54,7 @@ export async function get_jwt(
 }
 
 export function map_names_to_ids(
-	fns: Config["dependencies"]
+	fns: Config["dependencies"],
 ): Record<string, number> {
 	let apis: Record<string, number> = {};
 
@@ -66,7 +66,7 @@ export function map_names_to_ids(
 
 export async function resolve_config(
 	this: Client,
-	endpoint: string
+	endpoint: string,
 ): Promise<Config | undefined> {
 	const headers: Record<string, string> = this.options.hf_token
 		? { Authorization: `Bearer ${this.options.hf_token}` }
@@ -89,12 +89,12 @@ export async function resolve_config(
 	} else if (endpoint) {
 		let config_url = join_urls(
 			endpoint,
-			this.deep_link ? CONFIG_URL + "?deep_link=" + this.deep_link : CONFIG_URL
+			this.deep_link ? CONFIG_URL + "?deep_link=" + this.deep_link : CONFIG_URL,
 		);
 
 		const response = await this.fetch(config_url, {
 			headers,
-			credentials: "include"
+			credentials: "include",
 		});
 
 		return handleConfigResponse(response, endpoint, !!this.options.auth);
@@ -106,7 +106,7 @@ export async function resolve_config(
 async function handleConfigResponse(
 	response: Response,
 	endpoint: string,
-	authorized: boolean
+	authorized: boolean,
 ): Promise<Config> {
 	if (response?.status === 401 && !authorized) {
 		const error_data = await response.json();
@@ -135,7 +135,7 @@ async function handleConfigResponse(
 export async function resolve_cookies(this: Client): Promise<void> {
 	const { http_protocol, host } = await process_endpoint(
 		this.app_reference,
-		this.options.hf_token
+		this.options.hf_token,
 	);
 
 	try {
@@ -145,7 +145,7 @@ export async function resolve_cookies(this: Client): Promise<void> {
 				host,
 				this.options.auth,
 				this.fetch,
-				this.options.hf_token
+				this.options.hf_token,
 			);
 
 			if (cookie_header) this.set_cookies(cookie_header);
@@ -161,7 +161,7 @@ export async function get_cookie_header(
 	host: string,
 	auth: [string, string],
 	_fetch: typeof fetch,
-	hf_token?: `hf_${string}`
+	hf_token?: `hf_${string}`,
 ): Promise<string | null> {
 	const formData = new FormData();
 	formData.append("username", auth?.[0]);
@@ -177,7 +177,7 @@ export async function get_cookie_header(
 		headers,
 		method: "POST",
 		body: formData,
-		credentials: "include"
+		credentials: "include",
 	});
 
 	if (res.status === 200) {
@@ -200,7 +200,7 @@ export function determine_protocol(endpoint: string): {
 		return {
 			ws_protocol: protocol === "https:" ? "wss" : "ws",
 			http_protocol: protocol as "http:" | "https:",
-			host: host + (pathname !== "/" ? pathname : "")
+			host: host + (pathname !== "/" ? pathname : ""),
 		};
 	} else if (endpoint.startsWith("file:")) {
 		// This case is only expected to be used for the Wasm mode (Gradio-lite),
@@ -208,7 +208,7 @@ export function determine_protocol(endpoint: string): {
 		return {
 			ws_protocol: "ws",
 			http_protocol: "http:",
-			host: "lite.local" // Special fake hostname only used for this case. This matches the hostname allowed in `is_self_host()` in `js/wasm/network/host.ts`.
+			host: "lite.local", // Special fake hostname only used for this case. This matches the hostname allowed in `is_self_host()` in `js/wasm/network/host.ts`.
 		};
 	}
 
@@ -217,7 +217,7 @@ export function determine_protocol(endpoint: string): {
 	return {
 		ws_protocol: "wss",
 		http_protocol: "https:",
-		host: new URL(endpoint).host
+		host: new URL(endpoint).host,
 	};
 }
 

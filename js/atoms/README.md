@@ -2,11 +2,21 @@
 
 ```html
 <script lang="ts">
-	import { Block, BlockTitle, BlockLabel, IconButton, Empty, Info, ShareButton, UploadText} from "@gradio/atoms";
+	import {
+		Block,
+		BlockTitle,
+		BlockLabel,
+		IconButton,
+		Empty,
+		Info,
+		ShareButton,
+		UploadText,
+	} from "@gradio/atoms";
 </script>
 ```
 
 Block:
+
 ```javascript
 	export let height: number | undefined = undefined;
 	export let width: number | undefined = undefined;
@@ -26,12 +36,14 @@ Block:
 ```
 
 BlockTitle:
+
 ```javascript
 	export let show_label = true;
 	export let info: string | undefined = undefined;
 ```
 
 BlockLabel:
+
 ```javascript
 	export let label: string | null = null;
 	export let Icon: any;
@@ -41,6 +53,7 @@ BlockLabel:
 ```
 
 IconButton:
+
 ```javascript
 	export let Icon: any;
 	export let label = "";
@@ -49,12 +62,14 @@ IconButton:
 ```
 
 Empty:
+
 ```javascript
 	export let size: "small" | "large" = "small";
 	export let unpadded_box = false;
 ```
 
 ShareButton:
+
 ```javascript
 	export let formatter: (arg0: any) => Promise<string>;
 	export let value: any;
@@ -62,6 +77,7 @@ ShareButton:
 ```
 
 UploadText:
+
 ```javascript
 	export let type: "video" | "image" | "audio" | "file" | "csv" = "file";
 	export let i18n: I18nFormatter;

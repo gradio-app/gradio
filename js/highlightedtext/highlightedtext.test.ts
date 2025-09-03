@@ -13,7 +13,7 @@ const loading_status: LoadingStatus = {
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0,
-	show_progress: "full"
+	show_progress: "full",
 };
 
 describe("HighlightedText", () => {
@@ -34,9 +34,9 @@ describe("HighlightedText", () => {
 					{ token: "fox", class_or_confidence: "subject" },
 					{ token: " jumped ", class_or_confidence: "past tense verb" },
 					{ token: "over the", class_or_confidence: null },
-					{ token: "lazy dog", class_or_confidence: "object" }
-				]
-			}
+					{ token: "lazy dog", class_or_confidence: "object" },
+				],
+			},
 		);
 
 		const quick = getByText("quick");
@@ -58,8 +58,8 @@ describe("HighlightedText", () => {
 				{ token: "fox", class_or_confidence: "subject" },
 				{ token: " jumped ", class_or_confidence: "past tense  verb" },
 				{ token: "over the", class_or_confidence: null },
-				{ token: "lazy dog", class_or_confidence: "object" }
-			]
+				{ token: "lazy dog", class_or_confidence: "object" },
+			],
 		});
 
 		const mock = listen("change");

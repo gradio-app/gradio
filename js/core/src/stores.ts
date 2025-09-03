@@ -50,7 +50,7 @@ export function create_loading_status_store(): LoadingStatusStore {
 		eta = null,
 		message = null,
 		progress,
-		time_limit = null
+		time_limit = null,
 	}: {
 		fn_index: LoadingStatus["fn_index"];
 		status: LoadingStatus["status"];
@@ -98,7 +98,7 @@ export function create_loading_status_store(): LoadingStatusStore {
 				eta: eta,
 				status: new_status,
 				message: message,
-				progress: progress
+				progress: progress,
 			};
 		});
 
@@ -127,7 +127,7 @@ export function create_loading_status_store(): LoadingStatusStore {
 					eta,
 					status,
 					message,
-					progress
+					progress,
 				}) => {
 					outputs[id] = {
 						queue: queue,
@@ -137,9 +137,9 @@ export function create_loading_status_store(): LoadingStatusStore {
 						message: message,
 						progress,
 						status,
-						fn_index
+						fn_index,
 					};
-				}
+				},
 			);
 
 			return outputs;
@@ -161,7 +161,7 @@ export function create_loading_status_store(): LoadingStatusStore {
 		},
 		get_inputs_to_update() {
 			return inputs_to_update;
-		}
+		},
 	};
 }
 

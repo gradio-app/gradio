@@ -8,9 +8,9 @@ This guide will cover how.
 
 By default, all custom component packages are called `gradio_<component-name>` where `component-name` is the name of the component's python class in lowercase.
 
-As an example, let's walkthrough changing the name of a component from `gradio_mytextbox` to `supertextbox`. 
+As an example, let's walkthrough changing the name of a component from `gradio_mytextbox` to `supertextbox`.
 
-1. Modify the `name` in the `pyproject.toml` file. 
+1. Modify the `name` in the `pyproject.toml` file.
 
 ```bash
 [project]
@@ -33,12 +33,11 @@ packages = ["/backend/supertextbox"]
 mv backend/gradio_mytextbox backend/supertextbox
 ```
 
-
 Tip: Remember to change the import statement in `demo/app.py`!
 
 ## Top Level Python Exports
 
-By default, only the custom component python class is a top level export. 
+By default, only the custom component python class is a top level export.
 This means that when users type `from gradio_<component-name> import ...`, the only class that will be available is the custom component class.
 To add more classes as top level exports, modify the `__all__` property in `__init__.py`
 
@@ -56,7 +55,6 @@ You can add python dependencies by modifying the `dependencies` key in `pyprojec
 ```bash
 dependencies = ["gradio", "numpy", "PIL"]
 ```
-
 
 Tip: Remember to run `gradio cc install` when you add dependencies!
 
@@ -83,7 +81,7 @@ However, if you did want to this is what you would have to do:
 
 2. Place the JavaScript code in the subdirectory of your choosing.
 
-2. Add the `FRONTEND_DIR` property on the component python class. It must be the relative path from the file where the class is defined to the location of the JavaScript directory.
+3. Add the `FRONTEND_DIR` property on the component python class. It must be the relative path from the file where the class is defined to the location of the JavaScript directory.
 
 ```python
 class SuperTextbox(Component):
@@ -93,7 +91,6 @@ class SuperTextbox(Component):
 The JavaScript and Python directories must be under the same common directory!
 
 ## Conclusion
-
 
 Sticking to the defaults will make it easy for others to understand and contribute to your custom component.
 After all, the beauty of open source is that anyone can help improve your code!

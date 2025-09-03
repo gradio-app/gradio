@@ -7,7 +7,7 @@ interface ActionArgs {
 
 export function tooltip(
 	element: HTMLElement | SVGElement,
-	{ color, text }: ActionArgs
+	{ color, text }: ActionArgs,
 ): any {
 	let tooltipComponent: Tooltip;
 	function mouse_over(event: MouseEvent): MouseEvent {
@@ -16,9 +16,9 @@ export function tooltip(
 				text,
 				x: event.pageX,
 				y: event.pageY,
-				color
+				color,
 			},
-			target: document.body
+			target: document.body,
 		});
 
 		return event;
@@ -26,7 +26,7 @@ export function tooltip(
 	function mouseMove(event: MouseEvent): void {
 		tooltipComponent.$set({
 			x: event.pageX,
-			y: event.pageY
+			y: event.pageY,
 		});
 	}
 	function mouseLeave(): void {
@@ -44,6 +44,6 @@ export function tooltip(
 			el.removeEventListener("mouseover", mouse_over);
 			el.removeEventListener("mouseleave", mouseLeave);
 			el.removeEventListener("mousemove", mouseMove);
-		}
+		},
 	};
 }

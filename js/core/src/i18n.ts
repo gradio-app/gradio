@@ -4,7 +4,6 @@ import {
 	getLocaleFromNavigator,
 	locale,
 	register,
-	waitLocale
 } from "svelte-i18n";
 import { formatter } from "./gradio_helper";
 import { loading } from "./lang/loading";
@@ -40,7 +39,7 @@ const lang_map = {
 	ur: "اردو",
 	uz: "O'zbek",
 	"zh-CN": "简体中文",
-	"zh-TW": "繁體中文"
+	"zh-TW": "繁體中文",
 };
 
 const langs = import.meta.glob("./lang/*.json");
@@ -131,13 +130,13 @@ export function process_langs(): LangsRecord {
 	const lazy_langs = Object.fromEntries(
 		Object.entries(langs).map(([path, mod]) => [
 			path.split("/").pop()!.split(".")[0],
-			{ type: "lazy", data: mod }
-		])
+			{ type: "lazy", data: mod },
+		]),
 	);
 
 	return {
 		...lazy_langs,
-		en: { type: "static", data: en }
+		en: { type: "static", data: en },
 	};
 }
 
@@ -145,7 +144,7 @@ const processed_langs = process_langs();
 const available_locales = Object.keys(processed_langs);
 
 export const language_choices: [string, string][] = Object.entries(
-	processed_langs
+	processed_langs,
 ).map(([code]) => [lang_map[code as keyof typeof lang_map] || code, code]);
 
 export let all_common_keys: Set<string> = new Set();
@@ -153,13 +152,8 @@ export let all_common_keys: Set<string> = new Set();
 let i18n_initialized = false;
 let previous_translations: Record<string, Record<string, string>> | undefined;
 
-init({
-	fallbackLocale: "en",
-	initialLocale: getLocaleFromNavigator() || "en"
-});
-
 export async function setupi18n(
-	custom_translations?: Record<string, Record<string, string>>
+	custom_translations?: Record<string, Record<string, string>>,
 ): Promise<void> {
 	const should_reinitialize =
 		i18n_initialized && custom_translations !== previous_translations;
@@ -172,7 +166,7 @@ export async function setupi18n(
 
 	load_translations({
 		processed_langs,
-		custom_translations: custom_translations ?? {}
+		custom_translations: custom_translations ?? {},
 	});
 
 	const browser_locale = getLocaleFromNavigator();
@@ -192,7 +186,7 @@ export async function setupi18n(
 
 	await init({
 		fallbackLocale: "en",
-		initialLocale: initial_locale
+		initialLocale: initial_locale,
 	});
 
 	i18n_initialized = true;
@@ -205,7 +199,7 @@ export function changeLocale(new_locale: string): void {
 export function get_initial_locale(
 	browser_locale: string | null,
 	available_locales: string[],
-	fallback_locale = "en"
+	fallback_locale = "en",
 ): string {
 	if (!browser_locale) return fallback_locale;
 
@@ -245,7 +239,7 @@ export function load_translations(translations: {
 
 	for (const lang in loading) {
 		addMessages(lang, {
-			common: { loading: loading[lang as keyof typeof loading] }
+			common: { loading: loading[lang as keyof typeof loading] },
 		});
 	}
 }

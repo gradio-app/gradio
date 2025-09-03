@@ -2,7 +2,7 @@ import Amuchina from "amuchina";
 
 const is_external_url = (
 	link: string | null,
-	root = location.href
+	root = location.href,
 ): boolean => {
 	try {
 		return !!link && new URL(link).origin !== new URL(root).origin;
@@ -29,7 +29,7 @@ export function sanitize(source: string): string {
 function walk_nodes(
 	node: Node | null | HTMLElement,
 	test: string | ((node: Node | HTMLElement) => boolean),
-	callback: (node: Node | HTMLElement) => void
+	callback: (node: Node | HTMLElement) => void,
 ): void {
 	if (
 		node &&

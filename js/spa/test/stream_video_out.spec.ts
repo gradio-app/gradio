@@ -11,7 +11,7 @@ test.skip("video streams from ts files correctly", async ({ page }) => {
 				await page
 					.locator("#stream_video_output video")
 					// @ts-ignore
-					.evaluate((el) => el.currentTime)
+					.evaluate((el) => el.currentTime),
 		)
 		.toBeGreaterThan(0);
 });
@@ -27,7 +27,7 @@ test.skip("video streams from mp4 files correctly", async ({ page }) => {
 				await page
 					.locator("#stream_video_output video")
 					// @ts-ignore
-					.evaluate((el) => el.currentTime)
+					.evaluate((el) => el.currentTime),
 		)
 		.toBeGreaterThan(0);
 });

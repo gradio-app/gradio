@@ -2,11 +2,19 @@
 
 ```html
 <script>
-    import { Upload, ModifyUpload, normalise_file, get_fetchable_url_or_file, upload, prepare_files } from "@gradio/upload";
+	import {
+		Upload,
+		ModifyUpload,
+		normalise_file,
+		get_fetchable_url_or_file,
+		upload,
+		prepare_files,
+	} from "@gradio/upload";
 </script>
 ```
 
 Upload
+
 ```javascript
 	export let filetype: string | null = null;
 	export let dragging = false;
@@ -20,6 +28,7 @@ Upload
 ```
 
 ModifyUpload
+
 ```javascript
     export let editable = false;
 	export let undoable = false;

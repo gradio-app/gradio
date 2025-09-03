@@ -12,7 +12,6 @@ Here's a preview of what our multimodal chatbot component will look like:
 
 ![MultiModal Chatbot](https://gradio-builds.s3.amazonaws.com/assets/MultimodalChatbot.png)
 
-
 ## Part 1 - Creating our project
 
 For this demo we will be tweaking the existing Gradio `Chatbot` component to display text and media files in the same message.
@@ -58,14 +57,13 @@ class MultimodalChatbot(Component):
     data_model = ChatbotData
 ```
 
-
 Tip: The `data_model`s are implemented using `Pydantic V2`. Read the documentation [here](https://docs.pydantic.dev/latest/).
 
 We've done the hardest part already!
 
 ## Part 2b - The pre and postprocess methods
 
-For the `preprocess` method, we will keep it simple and pass a list of `MultimodalMessage`s to the python functions that use this component as input. 
+For the `preprocess` method, we will keep it simple and pass a list of `MultimodalMessage`s to the python functions that use this component as input.
 This will let users of our component access the chatbot data with `.text` and `.files` attributes.
 This is a design choice that you can modify in your implementation!
 We can return the list of messages with the `root` property of the `ChatbotData` like so:
@@ -80,10 +78,9 @@ def preprocess(
     return payload.root
 ```
 
-
 Tip: Learn about the reasoning behind the `preprocess` and `postprocess` methods in the [key concepts guide](./key-component-concepts)
 
-In the `postprocess` method we will coerce each message returned by the python function to be a `MultimodalMessage` class. 
+In the `postprocess` method we will coerce each message returned by the python function to be a `MultimodalMessage` class.
 We will also clean up any indentation in the `text` field so that it can be properly displayed as markdown in the frontend.
 
 We can leave the `postprocess` method as is and modify the `_postprocess_chat_messages`
@@ -120,20 +117,19 @@ The frontend for the `Chatbot` component is divided into two parts - the `Index.
 The `Index.svelte` file applies some processing to the data received from the server and then delegates the rendering of the conversation to the `shared/Chatbot.svelte` file.
 First we will modify the `Index.svelte` file to apply processing to the new data type the backend will return.
 
-Let's begin by porting our custom types  from our python `data_model` to typescript.
+Let's begin by porting our custom types from our python `data_model` to typescript.
 Open `frontend/shared/utils.ts` and add the following type definitions at the top of the file:
 
 ```ts
 export type FileMessage = {
-	file: FileData;
-	alt_text?: string;
+  file: FileData;
+  alt_text?: string;
 };
 
-
 export type MultimodalMessage = {
-	text: string;
-	files?: FileMessage[];
-}
+  text: string;
+  files?: FileMessage[];
+};
 ```
 
 Now let's import them in `Index.svelte` and modify the type annotations for `value` and `_value`.
@@ -141,15 +137,9 @@ Now let's import them in `Index.svelte` and modify the type annotations for `val
 ```ts
 import type { FileMessage, MultimodalMessage } from "./shared/utils";
 
-export let value: [
-    MultimodalMessage | null,
-    MultimodalMessage | null
-][] = [];
+export let value: [MultimodalMessage | null, MultimodalMessage | null][] = [];
 
-let _value: [
-    MultimodalMessage | null,
-    MultimodalMessage | null
-][];
+let _value: [MultimodalMessage | null, MultimodalMessage | null][];
 ```
 
 We need to normalize each message to make sure each file has a proper URL to fetch its contents from.
@@ -157,21 +147,23 @@ We also need to format any embedded file links in the `text` key.
 Let's add a `process_message` utility function and apply it whenever the `value` changes.
 
 ```ts
-function process_message(msg: MultimodalMessage | null): MultimodalMessage | null {
-    if (msg === null) {
-        return msg;
-    }
-    msg.text = redirect_src_url(msg.text);
-    msg.files = msg.files.map(normalize_messages);
+function process_message(
+  msg: MultimodalMessage | null,
+): MultimodalMessage | null {
+  if (msg === null) {
     return msg;
+  }
+  msg.text = redirect_src_url(msg.text);
+  msg.files = msg.files.map(normalize_messages);
+  return msg;
 }
 
 $: _value = value
-    ? value.map(([user_msg, bot_msg]) => [
-            process_message(user_msg),
-            process_message(bot_msg)
-        ])
-    : [];
+  ? value.map(([user_msg, bot_msg]) => [
+      process_message(user_msg),
+      process_message(bot_msg),
+    ])
+  : [];
 ```
 
 ## Part 3b - the Chatbot.svelte file
@@ -182,45 +174,36 @@ Import `Mulimodal` message at the top of the `<script>` section and use it to ty
 ```ts
 import type { MultimodalMessage } from "./utils";
 
-export let value:
-    | [
-            MultimodalMessage | null,
-            MultimodalMessage | null
-        ][]
-    | null;
-let old_value:
-    | [
-            MultimodalMessage | null,
-            MultimodalMessage | null
-        ][]
-    | null = null;
+export let value: [MultimodalMessage | null, MultimodalMessage | null][] | null;
+let old_value: [MultimodalMessage | null, MultimodalMessage | null][] | null =
+  null;
 ```
 
 We also need to modify the `handle_select` and `handle_like` functions:
 
 ```ts
 function handle_select(
-    i: number,
-    j: number,
-    message: MultimodalMessage | null
+  i: number,
+  j: number,
+  message: MultimodalMessage | null,
 ): void {
-    dispatch("select", {
-        index: [i, j],
-        value: message
-    });
+  dispatch("select", {
+    index: [i, j],
+    value: message,
+  });
 }
 
 function handle_like(
-    i: number,
-    j: number,
-    message: MultimodalMessage | null,
-    liked: boolean
+  i: number,
+  j: number,
+  message: MultimodalMessage | null,
+  liked: boolean,
 ): void {
-    dispatch("like", {
-        index: [i, j],
-        value: message,
-        liked: liked
-    });
+  dispatch("like", {
+    index: [i, j],
+    value: message,
+    liked: liked,
+  });
 }
 ```
 
@@ -310,7 +293,7 @@ We did it! 🎉
 ## Part 4 - The demo
 
 For this tutorial, let's keep the demo simple and just display a static conversation between a hypothetical user and a bot.
-This demo will show how both the user and the bot can send files. 
+This demo will show how both the user and the bot can send files.
 In part 2 of this tutorial series we will build a fully functional chatbot demo!
 
 The demo code will look like the following:
@@ -345,7 +328,6 @@ with gr.Blocks() as demo:
 
 demo.launch()
 ```
-
 
 Tip: Change the filepaths so that they correspond to files on your machine. Also, if you are running in development mode, make sure the files are located in the top level of your custom component directory.
 

@@ -7,7 +7,7 @@ import {
 	inject_component_loader,
 	inject_ejs,
 	mock_modules,
-	resolve_svelte
+	resolve_svelte,
 } from "@self/build";
 import { fileURLToPath, URL } from "node:url";
 
@@ -17,25 +17,25 @@ export default defineConfig({
 	resolve: {
 		conditions: ["gradio"],
 		alias: {
-			"@": fileURLToPath(new URL("./src", import.meta.url))
-		}
+			"@": fileURLToPath(new URL("./src", import.meta.url)),
+		},
 	},
 	optimizeDeps: {
 		exclude: [
 			"@gradio/video",
 			"@ffmpeg/ffmpeg",
 			"@ffmpeg/util",
-			"@gradio/utils"
-		]
+			"@gradio/utils",
+		],
 	},
 	assetsInclude: ["**/*.glb"],
 	server: {
 		headers: {
 			"Cross-Origin-Opener-Policy": "same-origin",
-			"Cross-Origin-Embedder-Policy": "require-corp"
+			"Cross-Origin-Embedder-Policy": "require-corp",
 		},
 		fs: {
-			allow: ["../.."]
-		}
-	}
+			allow: ["../.."],
+		},
+	},
 });

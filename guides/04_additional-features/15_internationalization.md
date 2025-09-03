@@ -28,7 +28,7 @@ with gr.Blocks() as demo:
     with gr.Row():
         input_text = gr.Textbox(label="Input")
         output_text = gr.Textbox(label="Output")
-    
+
     submit_btn = gr.Button(i18n("submit"))
 
 # Pass the i18n instance to the launch method

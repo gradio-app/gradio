@@ -55,9 +55,7 @@ You'll notice that when a user submits their message, we now _chain_ two event e
 
 2. The second method, `bot()` updates the chatbot history with the bot's response. Finally, we construct the message character by character and `yield` the intermediate outputs as they are being constructed. Gradio automatically turns any function with the `yield` keyword [into a streaming output interface](/guides/key-features/#iterative-outputs).
 
-
 Of course, in practice, you would replace `bot()` with your own more complex function, which might call a pretrained model or an API, to generate a response.
-
 
 ## Adding Markdown, Images, Audio, or Videos
 

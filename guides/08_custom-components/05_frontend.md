@@ -4,14 +4,14 @@ This guide will cover everything you need to know to implement your custom compo
 
 Tip: Gradio components use Svelte. Writing Svelte is fun! If you're not familiar with it, we recommend checking out their interactive [guide](https://learn.svelte.dev/tutorial/welcome-to-svelte).
 
-## The directory structure 
+## The directory structure
 
 The frontend code should have, at minimum, three files:
 
-* `Index.svelte`: This is the main export and where your component's layout and logic should live.
-* `Example.svelte`: This is where the example view of the component is defined.
+- `Index.svelte`: This is the main export and where your component's layout and logic should live.
+- `Example.svelte`: This is where the example view of the component is defined.
 
-Feel free to add additional files and subdirectories. 
+Feel free to add additional files and subdirectories.
 If you want to export any additional modules, remember to modify the `package.json` file
 
 ```json
@@ -31,8 +31,8 @@ import type { LoadingStatus } from "@gradio/statustracker";
 import type { Gradio } from "@gradio/utils";
 
 export let gradio: Gradio<{
-    event_1: never;
-    event_2: never;
+  event_1: never;
+  event_2: never;
 }>;
 
 export let elem_id = "";
@@ -43,15 +43,15 @@ export let loading_status: LoadingStatus | undefined = undefined;
 export let mode: "static" | "interactive";
 ```
 
-* `elem_id` and `elem_classes` allow Gradio app developers to target your component with custom CSS and JavaScript from the Python `Blocks` class.
+- `elem_id` and `elem_classes` allow Gradio app developers to target your component with custom CSS and JavaScript from the Python `Blocks` class.
 
-* `scale` and `min_width` allow Gradio app developers to control how much space your component takes up in the UI.
+- `scale` and `min_width` allow Gradio app developers to control how much space your component takes up in the UI.
 
-* `loading_status` is used to display a loading status over the component when it is the output of an event.
+- `loading_status` is used to display a loading status over the component when it is the output of an event.
 
-* `mode` is how the parent Gradio app tells your component whether the `interactive` or `static` version should be displayed.
+- `mode` is how the parent Gradio app tells your component whether the `interactive` or `static` version should be displayed.
 
-* `gradio`: The `gradio` object is created by the parent Gradio app. It stores some application-level configuration that will be useful in your component, like internationalization. You must use it to dispatch events from your component.
+- `gradio`: The `gradio` object is created by the parent Gradio app. It stores some application-level configuration that will be useful in your component, like internationalization. You must use it to dispatch events from your component.
 
 A minimal `Index.svelte` file would look like:
 
@@ -101,21 +101,21 @@ A minimal `Index.svelte` file would look like:
 The `Example.svelte` file should expose the following props:
 
 ```typescript
-    export let value: string;
-    export let type: "gallery" | "table";
-    export let selected = false;
-    export let index: number;
+export let value: string;
+export let type: "gallery" | "table";
+export let selected = false;
+export let index: number;
 ```
 
-* `value`: The example value that should be displayed.
+- `value`: The example value that should be displayed.
 
-* `type`: This is a variable that can be either `"gallery"` or `"table"` depending on how the examples are displayed. The `"gallery"` form is used when the examples correspond to a single input component, while the `"table"` form is used when a user has multiple input components, and the examples need to populate all of them. 
+- `type`: This is a variable that can be either `"gallery"` or `"table"` depending on how the examples are displayed. The `"gallery"` form is used when the examples correspond to a single input component, while the `"table"` form is used when a user has multiple input components, and the examples need to populate all of them.
 
-* `selected`: You can also adjust how the examples are displayed if a user "selects" a particular example by using the selected variable.
+- `selected`: You can also adjust how the examples are displayed if a user "selects" a particular example by using the selected variable.
 
-* `index`: The current index of the selected value.
+- `index`: The current index of the selected value.
 
-* Any additional props your "non-example" component takes!
+- Any additional props your "non-example" component takes!
 
 This is the `Example.svelte` file for the code `Radio` component:
 
@@ -143,7 +143,7 @@ This is the `Example.svelte` file for the code `Radio` component:
 
 ## Handling Files
 
-If your component deals with files, these files **should** be uploaded to the backend server. 
+If your component deals with files, these files **should** be uploaded to the backend server.
 The `@gradio/client` npm package provides the `upload` and `prepare_files` utility functions to help you do this.
 
 The `prepare_files` function will convert the browser's `File` datatype to gradio's internal `FileData` type.
@@ -152,7 +152,6 @@ You should use the `FileData` data in your component to keep track of uploaded f
 The `upload` function will upload an array of `FileData` values to the server.
 
 Here's an example of loading files from an `<input>` element when its value changes.
-
 
 ```svelte
 <script lang="ts">
@@ -193,7 +192,7 @@ Here's an example of loading files from an `<input>` element when its value chan
 />
 ```
 
-The component exposes a prop named `root`. 
+The component exposes a prop named `root`.
 This is passed down by the parent gradio app and it represents the base url that the files will be uploaded to and fetched from.
 
 For WASM support, you should get the upload function from the `Context` and pass that as the third parameter of the `upload` function.
@@ -214,7 +213,7 @@ For WASM support, you should get the upload function from the `Context` and pass
 
 Most of Gradio's frontend components are published on [npm](https://www.npmjs.com/), the javascript package repository.
 This means that you can use them to save yourself time while incorporating common patterns in your component, like uploading files.
-For example, the `@gradio/upload` package has `Upload` and `ModifyUpload` components for properly uploading files to the Gradio server. 
+For example, the `@gradio/upload` package has `Upload` and `ModifyUpload` components for properly uploading files to the Gradio server.
 Here is how you can use them to create a user interface to upload and display PDF files.
 
 ```svelte
@@ -238,12 +237,12 @@ Here is how you can use them to create a user interface to upload and display PD
     {/if}
     <iframe title={value.orig_name || "PDF"} src={value.data} height="{height}px" width="100%"></iframe>
 {:else}
-    <Empty size="large"> <File/> </Empty>	
+    <Empty size="large"> <File/> </Empty>
 {/if}
 ```
 
 You can also combine existing Gradio components to create entirely unique experiences.
-Like rendering a gallery of chatbot conversations. 
+Like rendering a gallery of chatbot conversations.
 The possibilities are endless, please read the documentation on our javascript packages [here](https://gradio.app/main/docs/js).
 We'll be adding more packages and documentation over the coming weeks!
 
@@ -262,9 +261,11 @@ If you want to make use of the vast vite ecosystem, you can use the `gradio.conf
 Currently, it is possible to configure the following:
 
 Vite options:
+
 - `plugins`: A list of vite plugins to use.
 
 Svelte options:
+
 - `preprocess`: A list of svelte preprocessors to use.
 - `extensions`: A list of file extensions to compile to `.svelte` files.
 - `build.target`: The target to build for, this may be necessary to support newer javascript features. See the [esbuild docs](https://esbuild.github.io/api/#target) for more information.
@@ -273,9 +274,9 @@ The `gradio.config.js` file should be placed in the root of your component's `fr
 
 ### Example for a Vite plugin
 
-Custom components can use Vite plugins to customize the build process. Check out the [Vite Docs](https://vitejs.dev/guide/using-plugins.html) for more information. 
+Custom components can use Vite plugins to customize the build process. Check out the [Vite Docs](https://vitejs.dev/guide/using-plugins.html) for more information.
 
-Here we configure [TailwindCSS](https://tailwindcss.com), a utility-first CSS framework. Setup is easiest using the version 4 prerelease. 
+Here we configure [TailwindCSS](https://tailwindcss.com), a utility-first CSS framework. Setup is easiest using the version 4 prerelease.
 
 ```
 npm install tailwindcss@next @tailwindcss/vite@next
@@ -286,7 +287,7 @@ In `gradio.config.js`:
 ```typescript
 import tailwindcss from "@tailwindcss/vite";
 export default {
-    plugins: [tailwindcss()]
+  plugins: [tailwindcss()],
 };
 ```
 
@@ -296,7 +297,7 @@ Then create a `style.css` file with the following content:
 @import "tailwindcss";
 ```
 
-Import this file into `Index.svelte`. Note, that you need to import the css file containing `@import` and cannot just use a `<style>` tag and use `@import` there. 
+Import this file into `Index.svelte`. Note, that you need to import the css file containing `@import` and cannot just use a `<style>` tag and use `@import` there.
 
 ```svelte
 <script lang="ts">
@@ -308,7 +309,7 @@ import "./style.css";
 
 ### Example for Svelte options
 
-In `gradio.config.js` you can also specify a some Svelte options to apply to the Svelte compilation. In this example we will add support for [`mdsvex`](https://mdsvex.pngwn.io), a Markdown preprocessor for Svelte. 
+In `gradio.config.js` you can also specify a some Svelte options to apply to the Svelte compilation. In this example we will add support for [`mdsvex`](https://mdsvex.pngwn.io), a Markdown preprocessor for Svelte.
 
 In order to do this we will need to add a [Svelte Preprocessor](https://svelte.dev/docs/svelte-compiler#preprocess) to the `svelte` object in `gradio.config.js` and configure the [`extensions`](https://github.com/sveltejs/vite-plugin-svelte/blob/HEAD/docs/config.md#config-file) field. Other options are not currently supported.
 
@@ -324,12 +325,10 @@ Then add the following to `gradio.config.js`:
 import { mdsvex } from "mdsvex";
 
 export default {
-    svelte: {
-        preprocess: [
-            mdsvex()
-        ],
-        extensions: [".svelte", ".svx"]
-    }
+  svelte: {
+    preprocess: [mdsvex()],
+    extensions: [".svelte", ".svx"],
+  },
 };
 ```
 
@@ -366,4 +365,3 @@ We can then use the `HelloWorld.svx` file in our components:
 ## Conclusion
 
 You now know how to create delightful frontends for your components!
-

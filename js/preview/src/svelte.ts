@@ -12,6 +12,6 @@ export {
 	hasContext,
 	tick,
 	createEventDispatcher,
-	SvelteComponentTyped
+	SvelteComponentTyped,
 	// @ts-ignore
 } from "svelte/internal";

@@ -14,7 +14,7 @@ export class ZoomableImage {
 	subscribers: (({
 		x,
 		y,
-		scale
+		scale,
 	}: {
 		x: number;
 		y: number;
@@ -179,13 +179,13 @@ export class ZoomableImage {
 			cursor_position: cursorX,
 			current_offset: this.offsetX,
 			new_scale: newScale,
-			old_scale: oldScale
+			old_scale: oldScale,
 		});
 		this.offsetY = this.compute_new_offset({
 			cursor_position: cursorY,
 			current_offset: this.offsetY,
 			new_scale: newScale,
-			old_scale: oldScale
+			old_scale: oldScale,
 		});
 
 		this.updateTransform(); // apply before constraints
@@ -203,7 +203,7 @@ export class ZoomableImage {
 	compute_new_position({
 		position,
 		scale,
-		anchor_position
+		anchor_position,
 	}: {
 		position: number;
 		scale: number;
@@ -216,7 +216,7 @@ export class ZoomableImage {
 		cursor_position,
 		current_offset,
 		new_scale,
-		old_scale
+		old_scale,
 	}: {
 		cursor_position: number;
 		current_offset: number;
@@ -248,7 +248,7 @@ export class ZoomableImage {
 			right:
 				this.real_image_size.left * this.scale +
 				this.offsetX +
-				this.real_image_size.width * this.scale
+				this.real_image_size.width * this.scale,
 		};
 
 		const real_image_size_right =
@@ -261,7 +261,7 @@ export class ZoomableImage {
 				this.offsetY = this.calculate_position(
 					this.real_image_size.top,
 					0,
-					"y"
+					"y",
 				);
 			} else if (onscreen.bottom < real_image_size_bottom) {
 				this.offsetY = this.calculate_position(real_image_size_bottom, 1, "y");
@@ -271,7 +271,7 @@ export class ZoomableImage {
 				this.offsetX = this.calculate_position(
 					this.real_image_size.left,
 					0,
-					"x"
+					"x",
 				);
 			} else if (onscreen.right < real_image_size_right) {
 				this.offsetX = this.calculate_position(real_image_size_right, 1, "x");
@@ -295,16 +295,16 @@ export class ZoomableImage {
 	}
 
 	subscribe(
-		cb: ({ x, y, scale }: { x: number; y: number; scale: number }) => void
+		cb: ({ x, y, scale }: { x: number; y: number; scale: number }) => void,
 	): void {
 		this.subscribers.push(cb);
 	}
 
 	unsubscribe(
-		cb: ({ x, y, scale }: { x: number; y: number; scale: number }) => void
+		cb: ({ x, y, scale }: { x: number; y: number; scale: number }) => void,
 	): void {
 		this.subscribers = this.subscribers.filter(
-			(subscriber) => subscriber !== cb
+			(subscriber) => subscriber !== cb,
 		);
 	}
 
@@ -334,7 +334,7 @@ export class ZoomableImage {
 				const touch2 = e.touches[1];
 				this.last_touch_distance = Math.hypot(
 					touch2.clientX - touch1.clientX,
-					touch2.clientY - touch1.clientY
+					touch2.clientY - touch1.clientY,
 				);
 			}
 		}
@@ -365,7 +365,7 @@ export class ZoomableImage {
 			top: offsetY,
 			left: offsetX,
 			width: displayedWidth,
-			height: displayedHeight
+			height: displayedHeight,
 		};
 	}
 
@@ -394,7 +394,7 @@ export class ZoomableImage {
 
 			const current_distance = Math.hypot(
 				touch2.clientX - touch1.clientX,
-				touch2.clientY - touch1.clientY
+				touch2.clientY - touch1.clientY,
 			);
 
 			if (this.last_touch_distance === 0) {
@@ -428,13 +428,13 @@ export class ZoomableImage {
 				cursor_position: midX,
 				current_offset: this.offsetX,
 				new_scale: newScale,
-				old_scale: oldScale
+				old_scale: oldScale,
 			});
 			this.offsetY = this.compute_new_offset({
 				cursor_position: midY,
 				current_offset: this.offsetY,
 				new_scale: newScale,
-				old_scale: oldScale
+				old_scale: oldScale,
 			});
 
 			this.updateTransform();
@@ -462,7 +462,7 @@ export class ZoomableImage {
 	calculate_position(
 		screen_coord: number,
 		image_anchor: number,
-		axis: "x" | "y"
+		axis: "x" | "y",
 	): number {
 		const containerRect = this.container.getBoundingClientRect();
 

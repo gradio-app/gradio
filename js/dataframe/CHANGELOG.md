@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- [#11782](https://github.com/gradio-app/gradio/pull/11782) [`e132283`](https://github.com/gradio-app/gradio/commit/e132283b2289d3689927a8fa7f0b4ac8f8628a18) - remove dompurify, update mermaid.  Thanks @pngwn!
+- [#11782](https://github.com/gradio-app/gradio/pull/11782) [`e132283`](https://github.com/gradio-app/gradio/commit/e132283b2289d3689927a8fa7f0b4ac8f8628a18) - remove dompurify, update mermaid. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -15,8 +15,8 @@
 
 ### Features
 
-- [#11766](https://github.com/gradio-app/gradio/pull/11766) [`dfc0e03`](https://github.com/gradio-app/gradio/commit/dfc0e0305068dbd16ce905afc73d139e1e51eb46) - Add JS Dataframe documentation to docs.  Thanks @pngwn!
-- [#11712](https://github.com/gradio-app/gradio/pull/11712) [`0025e1a`](https://github.com/gradio-app/gradio/commit/0025e1a157edef57def99e4bf24a3686ff38eaca) - Publish gr.Dataframe as standalone library.  Thanks @hannahblair!
+- [#11766](https://github.com/gradio-app/gradio/pull/11766) [`dfc0e03`](https://github.com/gradio-app/gradio/commit/dfc0e0305068dbd16ce905afc73d139e1e51eb46) - Add JS Dataframe documentation to docs. Thanks @pngwn!
+- [#11712](https://github.com/gradio-app/gradio/pull/11712) [`0025e1a`](https://github.com/gradio-app/gradio/commit/0025e1a157edef57def99e4bf24a3686ff38eaca) - Publish gr.Dataframe as standalone library. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -50,7 +50,7 @@
 
 ### Features
 
-- [#11688](https://github.com/gradio-app/gradio/pull/11688) [`56f3f09`](https://github.com/gradio-app/gradio/commit/56f3f09b6c629a5719088806dbbb37f272d8d4f5) - Fix column header logic in gr.Dataframe.  Thanks @hannahblair!
+- [#11688](https://github.com/gradio-app/gradio/pull/11688) [`56f3f09`](https://github.com/gradio-app/gradio/commit/56f3f09b6c629a5719088806dbbb37f272d8d4f5) - Fix column header logic in gr.Dataframe. Thanks @hannahblair!
 
 ## 0.18.5
 
@@ -64,7 +64,7 @@
 
 ### Fixes
 
-- [#11559](https://github.com/gradio-app/gradio/pull/11559) [`dd9d8f1`](https://github.com/gradio-app/gradio/commit/dd9d8f1ed677e2d09a3061764c312f40133ab50d) - `gr.Dataframe` returns a `number` \ `bool` when the corresponding column is edited.  Thanks @janosch6!
+- [#11559](https://github.com/gradio-app/gradio/pull/11559) [`dd9d8f1`](https://github.com/gradio-app/gradio/commit/dd9d8f1ed677e2d09a3061764c312f40133ab50d) - `gr.Dataframe` returns a `number` \ `bool` when the corresponding column is edited. Thanks @janosch6!
 
 ### Dependency updates
 
@@ -76,7 +76,7 @@
 
 ### Fixes
 
-- [#11534](https://github.com/gradio-app/gradio/pull/11534) [`5259f22`](https://github.com/gradio-app/gradio/commit/5259f229939177cc2027db5164c9321566fb3eeb) - Allow changing value with single click instead of double click.  Thanks @hannahblair!
+- [#11534](https://github.com/gradio-app/gradio/pull/11534) [`5259f22`](https://github.com/gradio-app/gradio/commit/5259f229939177cc2027db5164c9321566fb3eeb) - Allow changing value with single click instead of double click. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -90,13 +90,13 @@
 
 ### Fixes
 
-- [#11496](https://github.com/gradio-app/gradio/pull/11496) [`ee0da48`](https://github.com/gradio-app/gradio/commit/ee0da481446da5ffd79151a457cd3847db645bfb) - Prevent deletion of values in static columns.  Thanks @hannahblair!
+- [#11496](https://github.com/gradio-app/gradio/pull/11496) [`ee0da48`](https://github.com/gradio-app/gradio/commit/ee0da481446da5ffd79151a457cd3847db645bfb) - Prevent deletion of values in static columns. Thanks @hannahblair!
 
 ## 0.18.1
 
 ### Fixes
 
-- [#11436](https://github.com/gradio-app/gradio/pull/11436) [`f49b8da`](https://github.com/gradio-app/gradio/commit/f49b8da1c062dbd81acb8e7fdcdc9a09a272d02f) - Multi-Line DataFrame Editing.  Thanks @deckar01!
+- [#11436](https://github.com/gradio-app/gradio/pull/11436) [`f49b8da`](https://github.com/gradio-app/gradio/commit/f49b8da1c062dbd81acb8e7fdcdc9a09a272d02f) - Multi-Line DataFrame Editing. Thanks @deckar01!
 
 ### Dependency updates
 
@@ -112,11 +112,11 @@
 
 ### Features
 
-- [#11392](https://github.com/gradio-app/gradio/pull/11392) [`dc760a6`](https://github.com/gradio-app/gradio/commit/dc760a6dd7d3375f99913059803a826cdf0f7102) - Add column-specific filtering to `gr.Dataframe`.  Thanks @tiago-gsantos!
+- [#11392](https://github.com/gradio-app/gradio/pull/11392) [`dc760a6`](https://github.com/gradio-app/gradio/commit/dc760a6dd7d3375f99913059803a826cdf0f7102) - Add column-specific filtering to `gr.Dataframe`. Thanks @tiago-gsantos!
 
 ### Fixes
 
-- [#11407](https://github.com/gradio-app/gradio/pull/11407) [`f3f9590`](https://github.com/gradio-app/gradio/commit/f3f9590d539b9e6fe3937a1bdc48006ee174fb8f) - Fix Styled DataFrame Sorting.  Thanks @deckar01!
+- [#11407](https://github.com/gradio-app/gradio/pull/11407) [`f3f9590`](https://github.com/gradio-app/gradio/commit/f3f9590d539b9e6fe3937a1bdc48006ee174fb8f) - Fix Styled DataFrame Sorting. Thanks @deckar01!
 
 ### Dependency updates
 
@@ -128,7 +128,7 @@
 
 ### Fixes
 
-- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend.  Thanks @aliabid94!
+- [#11387](https://github.com/gradio-app/gradio/pull/11387) [`8245afc`](https://github.com/gradio-app/gradio/commit/8245afc669501e1e5f0d619f452455f68a3b7667) - Define root URL in frontend. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -144,8 +144,8 @@
 
 ### Fixes
 
-- [#11349](https://github.com/gradio-app/gradio/pull/11349) [`bed858b`](https://github.com/gradio-app/gradio/commit/bed858b62b9887e606618bea5fe8a2f212b4a645) - Fix DataFrame Scroll Divergence.  Thanks @deckar01!
-- [#11346](https://github.com/gradio-app/gradio/pull/11346) [`3a9a002`](https://github.com/gradio-app/gradio/commit/3a9a0025efd49942303517c5dbd426d41241b7f6) - Hide native Dataframe to screen readers.  Thanks @hannahblair!
+- [#11349](https://github.com/gradio-app/gradio/pull/11349) [`bed858b`](https://github.com/gradio-app/gradio/commit/bed858b62b9887e606618bea5fe8a2f212b4a645) - Fix DataFrame Scroll Divergence. Thanks @deckar01!
+- [#11346](https://github.com/gradio-app/gradio/pull/11346) [`3a9a002`](https://github.com/gradio-app/gradio/commit/3a9a0025efd49942303517c5dbd426d41241b7f6) - Hide native Dataframe to screen readers. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -158,7 +158,7 @@
 
 ### Features
 
-- [#11237](https://github.com/gradio-app/gradio/pull/11237) [`a6f6b40`](https://github.com/gradio-app/gradio/commit/a6f6b40dda5194fa5bc9926ef67f2a75f503e9a4) - Enhance boolean cell types in `gr.Dataframe`.  Thanks @hannahblair!
+- [#11237](https://github.com/gradio-app/gradio/pull/11237) [`a6f6b40`](https://github.com/gradio-app/gradio/commit/a6f6b40dda5194fa5bc9926ef67f2a75f503e9a4) - Enhance boolean cell types in `gr.Dataframe`. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -171,7 +171,7 @@
 
 ### Fixes
 
-- [#11282](https://github.com/gradio-app/gradio/pull/11282) [`9a6a6f5`](https://github.com/gradio-app/gradio/commit/9a6a6f524e8e9784144d45ea7b6327a1a7b3593c) - Fix DataFrame Group Flicker.  Thanks @deckar01!
+- [#11282](https://github.com/gradio-app/gradio/pull/11282) [`9a6a6f5`](https://github.com/gradio-app/gradio/commit/9a6a6f524e8e9784144d45ea7b6327a1a7b3593c) - Fix DataFrame Group Flicker. Thanks @deckar01!
 
 ### Dependency updates
 
@@ -192,11 +192,11 @@
 
 ### Features
 
-- [#11177](https://github.com/gradio-app/gradio/pull/11177) [`3068196`](https://github.com/gradio-app/gradio/commit/3068196d47234fd1c1634f33b9ddfc089f5cbbe0) - Improved, smoother fullscreen mode for components.  Thanks @aliabid94!
+- [#11177](https://github.com/gradio-app/gradio/pull/11177) [`3068196`](https://github.com/gradio-app/gradio/commit/3068196d47234fd1c1634f33b9ddfc089f5cbbe0) - Improved, smoother fullscreen mode for components. Thanks @aliabid94!
 
 ### Fixes
 
-- [#11221](https://github.com/gradio-app/gradio/pull/11221) [`5f3e84d`](https://github.com/gradio-app/gradio/commit/5f3e84d870572b2851a5243be341d7aab4e166c1) - Ensure Clear sort works as expected.  Thanks @hannahblair!
+- [#11221](https://github.com/gradio-app/gradio/pull/11221) [`5f3e84d`](https://github.com/gradio-app/gradio/commit/5f3e84d870572b2851a5243be341d7aab4e166c1) - Ensure Clear sort works as expected. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -232,13 +232,13 @@
 
 ### Fixes
 
-- [#11033](https://github.com/gradio-app/gradio/pull/11033) [`0dbc14f`](https://github.com/gradio-app/gradio/commit/0dbc14fa867ef57a2f810e0b869b7d13d98f2544) - Allow setting an empty value in `display_value` of `gr.Dataframe`.  Thanks @abidlabs!
+- [#11033](https://github.com/gradio-app/gradio/pull/11033) [`0dbc14f`](https://github.com/gradio-app/gradio/commit/0dbc14fa867ef57a2f810e0b869b7d13d98f2544) - Allow setting an empty value in `display_value` of `gr.Dataframe`. Thanks @abidlabs!
 
 ## 0.17.7
 
 ### Fixes
 
-- [#11005](https://github.com/gradio-app/gradio/pull/11005) [`3def0ed`](https://github.com/gradio-app/gradio/commit/3def0ed9edc5a9194d69456948324ec4e2740b7d) - Ensure that the `.select()` event in `gr.DataFrame` carries the `.row_value` and `.col_value`.  Thanks @abidlabs!
+- [#11005](https://github.com/gradio-app/gradio/pull/11005) [`3def0ed`](https://github.com/gradio-app/gradio/commit/3def0ed9edc5a9194d69456948324ec4e2740b7d) - Ensure that the `.select()` event in `gr.DataFrame` carries the `.row_value` and `.col_value`. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -264,8 +264,8 @@
 
 ### Fixes
 
-- [#10955](https://github.com/gradio-app/gradio/pull/10955) [`d654e60`](https://github.com/gradio-app/gradio/commit/d654e60ff61f76ebcf37f294f1d85305d344a70b) - Map search-filtered row indices to original data indices in gr.Dataframe.  Thanks @hannahblair!
-- [#10918](https://github.com/gradio-app/gradio/pull/10918) [`36da6d0`](https://github.com/gradio-app/gradio/commit/36da6d0d5466dd251f46359019959702523f1afc) - Fix value synchronisation issue in gr.Dataframe.  Thanks @hannahblair!
+- [#10955](https://github.com/gradio-app/gradio/pull/10955) [`d654e60`](https://github.com/gradio-app/gradio/commit/d654e60ff61f76ebcf37f294f1d85305d344a70b) - Map search-filtered row indices to original data indices in gr.Dataframe. Thanks @hannahblair!
+- [#10918](https://github.com/gradio-app/gradio/pull/10918) [`36da6d0`](https://github.com/gradio-app/gradio/commit/36da6d0d5466dd251f46359019959702523f1afc) - Fix value synchronisation issue in gr.Dataframe. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -287,7 +287,7 @@
 
 ### Fixes
 
-- [#10900](https://github.com/gradio-app/gradio/pull/10900) [`a018a46`](https://github.com/gradio-app/gradio/commit/a018a46a7fae0f7db25baca7e1c08e6fd5912ed2) - Fix wrap behaviour in dataframe.  Thanks @hannahblair!
+- [#10900](https://github.com/gradio-app/gradio/pull/10900) [`a018a46`](https://github.com/gradio-app/gradio/commit/a018a46a7fae0f7db25baca7e1c08e6fd5912ed2) - Fix wrap behaviour in dataframe. Thanks @hannahblair!
 
 ## 0.17.2
 
@@ -304,27 +304,27 @@
 
 ### Fixes
 
-- [#10819](https://github.com/gradio-app/gradio/pull/10819) [`ac075ad`](https://github.com/gradio-app/gradio/commit/ac075ad6aaea855bfd4839cef7140719a584498e) - Fix cell menu not showing in non-editable dataframes.  Thanks @hannahblair!
+- [#10819](https://github.com/gradio-app/gradio/pull/10819) [`ac075ad`](https://github.com/gradio-app/gradio/commit/ac075ad6aaea855bfd4839cef7140719a584498e) - Fix cell menu not showing in non-editable dataframes. Thanks @hannahblair!
 
 ## 0.17.0
 
 ### Features
 
-- [#10784](https://github.com/gradio-app/gradio/pull/10784) [`6812544`](https://github.com/gradio-app/gradio/commit/681254453a15dadde068feaec176bb984710292b) - On Windows OS, hide `gr.Dataframe` scrollbars while keeping scrolling functionality.  Thanks @abidlabs!
-- [#10802](https://github.com/gradio-app/gradio/pull/10802) [`9ec8898`](https://github.com/gradio-app/gradio/commit/9ec8898c0f5753fb548a89f9804b71b69797d00c) - Fix excess scroll bug in dataframe.  Thanks @hannahblair!
-- [#10805](https://github.com/gradio-app/gradio/pull/10805) [`8d03368`](https://github.com/gradio-app/gradio/commit/8d03368243b6365d279563cf38a18b67a0efaf69) - Fix max characters in non-editable dataframes.  Thanks @hannahblair!
-- [#10787](https://github.com/gradio-app/gradio/pull/10787) [`b3e8c26`](https://github.com/gradio-app/gradio/commit/b3e8c263be51f9553e9f19939be0f880092b44c9) - Implement cell selection via drag in dataframe.  Thanks @hannahblair!
-- [#10734](https://github.com/gradio-app/gradio/pull/10734) [`c44b8f4`](https://github.com/gradio-app/gradio/commit/c44b8f47b927258552af61c3af06f2e30449f571) - Add `static_columns` param for interactive dataframes.  Thanks @hannahblair!
-- [#10778](https://github.com/gradio-app/gradio/pull/10778) [`373007b`](https://github.com/gradio-app/gradio/commit/373007b3e9d019ee41589d1dbb09a7511a024a51) - Allow sorting by multiple columns in dataframe.  Thanks @hannahblair!
-- [#10804](https://github.com/gradio-app/gradio/pull/10804) [`39c30be`](https://github.com/gradio-app/gradio/commit/39c30be1628028a86400c1e4b993db51e91b2580) - Add parent focus for drag selection.  Thanks @hannahblair!
-- [#10777](https://github.com/gradio-app/gradio/pull/10777) [`3b48367`](https://github.com/gradio-app/gradio/commit/3b483672f4778f5b19d2f529328c1f71b3742f45) - Allow navigating down from header cells, as well as support cmd/ctrl + arrow keys.  Thanks @abidlabs!
-- [#10776](https://github.com/gradio-app/gradio/pull/10776) [`85f6132`](https://github.com/gradio-app/gradio/commit/85f6132f1f9f653329edfa22f627e342e8b42731) - Fix cell selection when using shift + arrow keys.  Thanks @abidlabs!
+- [#10784](https://github.com/gradio-app/gradio/pull/10784) [`6812544`](https://github.com/gradio-app/gradio/commit/681254453a15dadde068feaec176bb984710292b) - On Windows OS, hide `gr.Dataframe` scrollbars while keeping scrolling functionality. Thanks @abidlabs!
+- [#10802](https://github.com/gradio-app/gradio/pull/10802) [`9ec8898`](https://github.com/gradio-app/gradio/commit/9ec8898c0f5753fb548a89f9804b71b69797d00c) - Fix excess scroll bug in dataframe. Thanks @hannahblair!
+- [#10805](https://github.com/gradio-app/gradio/pull/10805) [`8d03368`](https://github.com/gradio-app/gradio/commit/8d03368243b6365d279563cf38a18b67a0efaf69) - Fix max characters in non-editable dataframes. Thanks @hannahblair!
+- [#10787](https://github.com/gradio-app/gradio/pull/10787) [`b3e8c26`](https://github.com/gradio-app/gradio/commit/b3e8c263be51f9553e9f19939be0f880092b44c9) - Implement cell selection via drag in dataframe. Thanks @hannahblair!
+- [#10734](https://github.com/gradio-app/gradio/pull/10734) [`c44b8f4`](https://github.com/gradio-app/gradio/commit/c44b8f47b927258552af61c3af06f2e30449f571) - Add `static_columns` param for interactive dataframes. Thanks @hannahblair!
+- [#10778](https://github.com/gradio-app/gradio/pull/10778) [`373007b`](https://github.com/gradio-app/gradio/commit/373007b3e9d019ee41589d1dbb09a7511a024a51) - Allow sorting by multiple columns in dataframe. Thanks @hannahblair!
+- [#10804](https://github.com/gradio-app/gradio/pull/10804) [`39c30be`](https://github.com/gradio-app/gradio/commit/39c30be1628028a86400c1e4b993db51e91b2580) - Add parent focus for drag selection. Thanks @hannahblair!
+- [#10777](https://github.com/gradio-app/gradio/pull/10777) [`3b48367`](https://github.com/gradio-app/gradio/commit/3b483672f4778f5b19d2f529328c1f71b3742f45) - Allow navigating down from header cells, as well as support cmd/ctrl + arrow keys. Thanks @abidlabs!
+- [#10776](https://github.com/gradio-app/gradio/pull/10776) [`85f6132`](https://github.com/gradio-app/gradio/commit/85f6132f1f9f653329edfa22f627e342e8b42731) - Fix cell selection when using shift + arrow keys. Thanks @abidlabs!
 
 ### Fixes
 
-- [#10757](https://github.com/gradio-app/gradio/pull/10757) [`b4342d2`](https://github.com/gradio-app/gradio/commit/b4342d24a88acaa4ed4028c8fdd44eea0d1b8b57) - Fix dataframe search and filter functionality.  Thanks @hannahblair!
-- [#10786](https://github.com/gradio-app/gradio/pull/10786) [`88941b6`](https://github.com/gradio-app/gradio/commit/88941b655e708ab14611341ed3fe57452fbbfc58) - Remove fixed layouts from dataframe.  Thanks @hannahblair!
-- [#10631](https://github.com/gradio-app/gradio/pull/10631) [`b5ca1dc`](https://github.com/gradio-app/gradio/commit/b5ca1dcfdf496292eade31347ae1974d3a0976c4) - Refactor `gr.Dataframe`.  Thanks @hannahblair!
+- [#10757](https://github.com/gradio-app/gradio/pull/10757) [`b4342d2`](https://github.com/gradio-app/gradio/commit/b4342d24a88acaa4ed4028c8fdd44eea0d1b8b57) - Fix dataframe search and filter functionality. Thanks @hannahblair!
+- [#10786](https://github.com/gradio-app/gradio/pull/10786) [`88941b6`](https://github.com/gradio-app/gradio/commit/88941b655e708ab14611341ed3fe57452fbbfc58) - Remove fixed layouts from dataframe. Thanks @hannahblair!
+- [#10631](https://github.com/gradio-app/gradio/pull/10631) [`b5ca1dc`](https://github.com/gradio-app/gradio/commit/b5ca1dcfdf496292eade31347ae1974d3a0976c4) - Refactor `gr.Dataframe`. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -354,13 +354,13 @@
 
 ### Features
 
-- [#10646](https://github.com/gradio-app/gradio/pull/10646) [`b01ce47`](https://github.com/gradio-app/gradio/commit/b01ce47056f5752fbf03e44600bf0f7dab69b64c) - Fixes cell-selection logic in `Table.svelte`.  Thanks @abidlabs!
+- [#10646](https://github.com/gradio-app/gradio/pull/10646) [`b01ce47`](https://github.com/gradio-app/gradio/commit/b01ce47056f5752fbf03e44600bf0f7dab69b64c) - Fixes cell-selection logic in `Table.svelte`. Thanks @abidlabs!
 
 ## 0.16.2
 
 ### Fixes
 
-- [#10597](https://github.com/gradio-app/gradio/pull/10597) [`8c87eb8`](https://github.com/gradio-app/gradio/commit/8c87eb83066278b0e28267a6648d4729d6f39aa9) - Fix issue where styling changes were overridden when value was updated simultaneously.  Thanks @abidlabs!
+- [#10597](https://github.com/gradio-app/gradio/pull/10597) [`8c87eb8`](https://github.com/gradio-app/gradio/commit/8c87eb83066278b0e28267a6648d4729d6f39aa9) - Fix issue where styling changes were overridden when value was updated simultaneously. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -373,27 +373,27 @@
 
 ### Fixes
 
-- [#10607](https://github.com/gradio-app/gradio/pull/10607) [`c354f5f`](https://github.com/gradio-app/gradio/commit/c354f5ff16c787d722f4e53d5a97f729abba955e) - Add empty dataframe functionality.  Thanks @hannahblair!
-- [#10596](https://github.com/gradio-app/gradio/pull/10596) [`a8bde76`](https://github.com/gradio-app/gradio/commit/a8bde76e2b0f65b3565019beb03ac8b1fd152963) - Fix margin above `gr.Dataframe` when no header is provided.  Thanks @abidlabs!
+- [#10607](https://github.com/gradio-app/gradio/pull/10607) [`c354f5f`](https://github.com/gradio-app/gradio/commit/c354f5ff16c787d722f4e53d5a97f729abba955e) - Add empty dataframe functionality. Thanks @hannahblair!
+- [#10596](https://github.com/gradio-app/gradio/pull/10596) [`a8bde76`](https://github.com/gradio-app/gradio/commit/a8bde76e2b0f65b3565019beb03ac8b1fd152963) - Fix margin above `gr.Dataframe` when no header is provided. Thanks @abidlabs!
 
 ## 0.16.0
 
 ### Features
 
-- [#10561](https://github.com/gradio-app/gradio/pull/10561) [`26494ce`](https://github.com/gradio-app/gradio/commit/26494cea570ffe0ead1f8b7a7135ab5a89c6bcbd) - Allow freezing columns in `gr.Dataframe`.  Thanks @hannahblair!
-- [#10554](https://github.com/gradio-app/gradio/pull/10554) [`b8ff5d6`](https://github.com/gradio-app/gradio/commit/b8ff5d6bfe1a9f3379580754b1e23857e2f0c96b) - Add optional search bar to `gr.Dataframe`'s toolbar.  Thanks @hannahblair!
-- [#10529](https://github.com/gradio-app/gradio/pull/10529) [`196b600`](https://github.com/gradio-app/gradio/commit/196b600b3962b85781b53c512e17708644b86f6f) - Select entire row or column in dataframe.  Thanks @hannahblair!
-- [#10558](https://github.com/gradio-app/gradio/pull/10558) [`1113002`](https://github.com/gradio-app/gradio/commit/111300242fdf135724a304920a93fc34a8037f7d) - Fix spacing issue with `gr.Dataframe` in Safari.  Thanks @hannahblair!
-- [#10553](https://github.com/gradio-app/gradio/pull/10553) [`4c08b9f`](https://github.com/gradio-app/gradio/commit/4c08b9f3c0bcafb0edc56330d8d81e78a6e3763b) - Prevent scrolling when the dataframe cell menu is open.  Thanks @hannahblair!
-- [#10541](https://github.com/gradio-app/gradio/pull/10541) [`e505fab`](https://github.com/gradio-app/gradio/commit/e505fabecb17c50e073483ed7d6aab2e04c9fcf2) - Add copy button feedback to `gr.Dataframe`.  Thanks @hannahblair!
-- [#10540](https://github.com/gradio-app/gradio/pull/10540) [`deeebfb`](https://github.com/gradio-app/gradio/commit/deeebfba46f15bb3641b86e25156215d2d727087) - Revert editable text changes.  Thanks @hannahblair!
+- [#10561](https://github.com/gradio-app/gradio/pull/10561) [`26494ce`](https://github.com/gradio-app/gradio/commit/26494cea570ffe0ead1f8b7a7135ab5a89c6bcbd) - Allow freezing columns in `gr.Dataframe`. Thanks @hannahblair!
+- [#10554](https://github.com/gradio-app/gradio/pull/10554) [`b8ff5d6`](https://github.com/gradio-app/gradio/commit/b8ff5d6bfe1a9f3379580754b1e23857e2f0c96b) - Add optional search bar to `gr.Dataframe`'s toolbar. Thanks @hannahblair!
+- [#10529](https://github.com/gradio-app/gradio/pull/10529) [`196b600`](https://github.com/gradio-app/gradio/commit/196b600b3962b85781b53c512e17708644b86f6f) - Select entire row or column in dataframe. Thanks @hannahblair!
+- [#10558](https://github.com/gradio-app/gradio/pull/10558) [`1113002`](https://github.com/gradio-app/gradio/commit/111300242fdf135724a304920a93fc34a8037f7d) - Fix spacing issue with `gr.Dataframe` in Safari. Thanks @hannahblair!
+- [#10553](https://github.com/gradio-app/gradio/pull/10553) [`4c08b9f`](https://github.com/gradio-app/gradio/commit/4c08b9f3c0bcafb0edc56330d8d81e78a6e3763b) - Prevent scrolling when the dataframe cell menu is open. Thanks @hannahblair!
+- [#10541](https://github.com/gradio-app/gradio/pull/10541) [`e505fab`](https://github.com/gradio-app/gradio/commit/e505fabecb17c50e073483ed7d6aab2e04c9fcf2) - Add copy button feedback to `gr.Dataframe`. Thanks @hannahblair!
+- [#10540](https://github.com/gradio-app/gradio/pull/10540) [`deeebfb`](https://github.com/gradio-app/gradio/commit/deeebfba46f15bb3641b86e25156215d2d727087) - Revert editable text changes. Thanks @hannahblair!
 
 ### Fixes
 
-- [#10490](https://github.com/gradio-app/gradio/pull/10490) [`178311b`](https://github.com/gradio-app/gradio/commit/178311b72d72a3c5f4a67bee5e0098be4232e68c) - Ensure row numbers functionality in dataframe works as expected.  Thanks @hannahblair!
-- [#10535](https://github.com/gradio-app/gradio/pull/10535) [`d909868`](https://github.com/gradio-app/gradio/commit/d9098681f8883686a617c8f98b22c77057febed1) - Ensure `max_height` is applied in `gr.Dataframe`.  Thanks @hannahblair!
-- [#10521](https://github.com/gradio-app/gradio/pull/10521) [`79937fd`](https://github.com/gradio-app/gradio/commit/79937fd76021b31abdbc3f8f2c32ef123fd676aa) - Change word-break prop in dataframe headers.  Thanks @hannahblair!
-- [#10520](https://github.com/gradio-app/gradio/pull/10520) [`2a1fc2a`](https://github.com/gradio-app/gradio/commit/2a1fc2a92888f622579e4b2daf86be487c73004d) - Ensure links work as expected in dataframe.  Thanks @hannahblair!
+- [#10490](https://github.com/gradio-app/gradio/pull/10490) [`178311b`](https://github.com/gradio-app/gradio/commit/178311b72d72a3c5f4a67bee5e0098be4232e68c) - Ensure row numbers functionality in dataframe works as expected. Thanks @hannahblair!
+- [#10535](https://github.com/gradio-app/gradio/pull/10535) [`d909868`](https://github.com/gradio-app/gradio/commit/d9098681f8883686a617c8f98b22c77057febed1) - Ensure `max_height` is applied in `gr.Dataframe`. Thanks @hannahblair!
+- [#10521](https://github.com/gradio-app/gradio/pull/10521) [`79937fd`](https://github.com/gradio-app/gradio/commit/79937fd76021b31abdbc3f8f2c32ef123fd676aa) - Change word-break prop in dataframe headers. Thanks @hannahblair!
+- [#10520](https://github.com/gradio-app/gradio/pull/10520) [`2a1fc2a`](https://github.com/gradio-app/gradio/commit/2a1fc2a92888f622579e4b2daf86be487c73004d) - Ensure links work as expected in dataframe. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -409,11 +409,11 @@
 
 ### Features
 
-- [#10456](https://github.com/gradio-app/gradio/pull/10456) [`8e40c15`](https://github.com/gradio-app/gradio/commit/8e40c15669ed1244d6f2288e55c2223279bd37a4) - Implement multiple cell selection.  Thanks @hannahblair!
-- [#10463](https://github.com/gradio-app/gradio/pull/10463) [`ed7a091`](https://github.com/gradio-app/gradio/commit/ed7a0919ab6b31184dc4d686b722dbeb013e9ce9) - Expand and collapse dataframe cells.  Thanks @hannahblair!
-- [#10478](https://github.com/gradio-app/gradio/pull/10478) [`afb96c6`](https://github.com/gradio-app/gradio/commit/afb96c64451e5a282bfee89445d831d1c87f9746) - Improve dataframe's upload accessibility.  Thanks @hannahblair!
-- [#10491](https://github.com/gradio-app/gradio/pull/10491) [`ff5f976`](https://github.com/gradio-app/gradio/commit/ff5f976bbb685fdd4f7c1faeda79e094f55a9f56) - Allow multiline headers in gr.Dataframe.  Thanks @hannahblair!
-- [#10494](https://github.com/gradio-app/gradio/pull/10494) [`10932a2`](https://github.com/gradio-app/gradio/commit/10932a291ac7f591bb1d56e4e353b51f10ecc6e3) - Ensure dataframe is not editable when `interactive` is False.  Thanks @hannahblair!
+- [#10456](https://github.com/gradio-app/gradio/pull/10456) [`8e40c15`](https://github.com/gradio-app/gradio/commit/8e40c15669ed1244d6f2288e55c2223279bd37a4) - Implement multiple cell selection. Thanks @hannahblair!
+- [#10463](https://github.com/gradio-app/gradio/pull/10463) [`ed7a091`](https://github.com/gradio-app/gradio/commit/ed7a0919ab6b31184dc4d686b722dbeb013e9ce9) - Expand and collapse dataframe cells. Thanks @hannahblair!
+- [#10478](https://github.com/gradio-app/gradio/pull/10478) [`afb96c6`](https://github.com/gradio-app/gradio/commit/afb96c64451e5a282bfee89445d831d1c87f9746) - Improve dataframe's upload accessibility. Thanks @hannahblair!
+- [#10491](https://github.com/gradio-app/gradio/pull/10491) [`ff5f976`](https://github.com/gradio-app/gradio/commit/ff5f976bbb685fdd4f7c1faeda79e094f55a9f56) - Allow multiline headers in gr.Dataframe. Thanks @hannahblair!
+- [#10494](https://github.com/gradio-app/gradio/pull/10494) [`10932a2`](https://github.com/gradio-app/gradio/commit/10932a291ac7f591bb1d56e4e353b51f10ecc6e3) - Ensure dataframe is not editable when `interactive` is False. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -425,8 +425,8 @@
 
 ### Features
 
-- [#10461](https://github.com/gradio-app/gradio/pull/10461) [`ca7c47e`](https://github.com/gradio-app/gradio/commit/ca7c47e5e50a309cd637c4f928ab90af6355b01d) - Add copy button to dataframe toolbar.  Thanks @hannahblair!
-- [#10420](https://github.com/gradio-app/gradio/pull/10420) [`a69b8e8`](https://github.com/gradio-app/gradio/commit/a69b8e83ad7c89c627db2bdd5d25b0142731aaac) - Support column/row deletion in `gr.DataFrame`.  Thanks @abidlabs!
+- [#10461](https://github.com/gradio-app/gradio/pull/10461) [`ca7c47e`](https://github.com/gradio-app/gradio/commit/ca7c47e5e50a309cd637c4f928ab90af6355b01d) - Add copy button to dataframe toolbar. Thanks @hannahblair!
+- [#10420](https://github.com/gradio-app/gradio/pull/10420) [`a69b8e8`](https://github.com/gradio-app/gradio/commit/a69b8e83ad7c89c627db2bdd5d25b0142731aaac) - Support column/row deletion in `gr.DataFrame`. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -437,7 +437,7 @@
 
 ### Features
 
-- [#10452](https://github.com/gradio-app/gradio/pull/10452) [`dd178f3`](https://github.com/gradio-app/gradio/commit/dd178f3dd5968df445b43f5e3b8cb86b11374913) - Tiny tweak to example dataframes.  Thanks @hannahblair!
+- [#10452](https://github.com/gradio-app/gradio/pull/10452) [`dd178f3`](https://github.com/gradio-app/gradio/commit/dd178f3dd5968df445b43f5e3b8cb86b11374913) - Tiny tweak to example dataframes. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -448,16 +448,16 @@
 
 ### Features
 
-- [#10377](https://github.com/gradio-app/gradio/pull/10377) [`feb1e81`](https://github.com/gradio-app/gradio/commit/feb1e81ecabf34fd3f9ec228dcf3bdaa4b0bd75e) - Add toolbar with fullscreen button to `gr.Dataframe`.  Thanks @hannahblair!
-- [#10376](https://github.com/gradio-app/gradio/pull/10376) [`2b7ba48`](https://github.com/gradio-app/gradio/commit/2b7ba4801398b6dd6b72496ea50245a0cd6852d6) - Add `show_row_numbers` param to gr.Dataframe.  Thanks @hannahblair!
-- [#10410](https://github.com/gradio-app/gradio/pull/10410) [`48809c7`](https://github.com/gradio-app/gradio/commit/48809c722bcbb3aaed72edfdb6c59de5413fdbc4) - Fix bug where dataframe `value` prop was not updating when an input value was changed manually.  Thanks @abidlabs!
+- [#10377](https://github.com/gradio-app/gradio/pull/10377) [`feb1e81`](https://github.com/gradio-app/gradio/commit/feb1e81ecabf34fd3f9ec228dcf3bdaa4b0bd75e) - Add toolbar with fullscreen button to `gr.Dataframe`. Thanks @hannahblair!
+- [#10376](https://github.com/gradio-app/gradio/pull/10376) [`2b7ba48`](https://github.com/gradio-app/gradio/commit/2b7ba4801398b6dd6b72496ea50245a0cd6852d6) - Add `show_row_numbers` param to gr.Dataframe. Thanks @hannahblair!
+- [#10410](https://github.com/gradio-app/gradio/pull/10410) [`48809c7`](https://github.com/gradio-app/gradio/commit/48809c722bcbb3aaed72edfdb6c59de5413fdbc4) - Fix bug where dataframe `value` prop was not updating when an input value was changed manually. Thanks @abidlabs!
 
 ### Fixes
 
-- [#10365](https://github.com/gradio-app/gradio/pull/10365) [`40e0c48`](https://github.com/gradio-app/gradio/commit/40e0c4832060cef457406896b2ad94639888897a) - Ensure clicking on a cell once enables editing mode.  Thanks @hannahblair!
-- [#10348](https://github.com/gradio-app/gradio/pull/10348) [`62cd4ef`](https://github.com/gradio-app/gradio/commit/62cd4ef302cd7529d1f8842b416f9d8fcf6b5750) - Handle `row_count=0` in gr.Dataframe.  Thanks @hannahblair!
-- [#10403](https://github.com/gradio-app/gradio/pull/10403) [`3219382`](https://github.com/gradio-app/gradio/commit/3219382eeea0a0047c74e0cdd2bf333e69f8f806) - Fix event triggers and recent regressions related to `gr.DataFrame`.  Thanks @abidlabs!
-- [#10360](https://github.com/gradio-app/gradio/pull/10360) [`31cccc3`](https://github.com/gradio-app/gradio/commit/31cccc3e79a3d1b4a840610d9becb235f8829b13) - Fix logic for detecting changes in `gr.Dataframe` table value.  Thanks @abidlabs!
+- [#10365](https://github.com/gradio-app/gradio/pull/10365) [`40e0c48`](https://github.com/gradio-app/gradio/commit/40e0c4832060cef457406896b2ad94639888897a) - Ensure clicking on a cell once enables editing mode. Thanks @hannahblair!
+- [#10348](https://github.com/gradio-app/gradio/pull/10348) [`62cd4ef`](https://github.com/gradio-app/gradio/commit/62cd4ef302cd7529d1f8842b416f9d8fcf6b5750) - Handle `row_count=0` in gr.Dataframe. Thanks @hannahblair!
+- [#10403](https://github.com/gradio-app/gradio/pull/10403) [`3219382`](https://github.com/gradio-app/gradio/commit/3219382eeea0a0047c74e0cdd2bf333e69f8f806) - Fix event triggers and recent regressions related to `gr.DataFrame`. Thanks @abidlabs!
+- [#10360](https://github.com/gradio-app/gradio/pull/10360) [`31cccc3`](https://github.com/gradio-app/gradio/commit/31cccc3e79a3d1b4a840610d9becb235f8829b13) - Fix logic for detecting changes in `gr.Dataframe` table value. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -500,7 +500,7 @@
 
 ### Fixes
 
-- [#9945](https://github.com/gradio-app/gradio/pull/9945) [`e9f0d03`](https://github.com/gradio-app/gradio/commit/e9f0d0315d27325f55a8b1c5c763d07e3d78fd06) - Ensure Enter is correctly handled in Safari and Firefox.  Thanks @hannahblair!
+- [#9945](https://github.com/gradio-app/gradio/pull/9945) [`e9f0d03`](https://github.com/gradio-app/gradio/commit/e9f0d0315d27325f55a8b1c5c763d07e3d78fd06) - Ensure Enter is correctly handled in Safari and Firefox. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -514,7 +514,7 @@
 
 ### Fixes
 
-- [#9949](https://github.com/gradio-app/gradio/pull/9949) [`cfb62bf`](https://github.com/gradio-app/gradio/commit/cfb62bfdb52d88295f27287f788fca977e37ae6d) - Allow dataframe column content to wrap.  Thanks @hannahblair!
+- [#9949](https://github.com/gradio-app/gradio/pull/9949) [`cfb62bf`](https://github.com/gradio-app/gradio/commit/cfb62bfdb52d88295f27287f788fca977e37ae6d) - Allow dataframe column content to wrap. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -529,7 +529,7 @@
 
 ### Fixes
 
-- [#9892](https://github.com/gradio-app/gradio/pull/9892) [`7d77024`](https://github.com/gradio-app/gradio/commit/7d77024cb8f9cfd39a6468de9534e58dcfa69f49) - Fix dataframe height increasing on scroll.  Thanks @abidlabs!
+- [#9892](https://github.com/gradio-app/gradio/pull/9892) [`7d77024`](https://github.com/gradio-app/gradio/commit/7d77024cb8f9cfd39a6468de9534e58dcfa69f49) - Fix dataframe height increasing on scroll. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -542,7 +542,7 @@
 
 ### Features
 
-- [#9649](https://github.com/gradio-app/gradio/pull/9649) [`b1b81c9`](https://github.com/gradio-app/gradio/commit/b1b81c9e1c10c2c14a5cb0661d2503259ece1a1b) - Hide option to add row/col when count is fixed in dataframe.  Thanks @hannahblair!
+- [#9649](https://github.com/gradio-app/gradio/pull/9649) [`b1b81c9`](https://github.com/gradio-app/gradio/commit/b1b81c9e1c10c2c14a5cb0661d2503259ece1a1b) - Hide option to add row/col when count is fixed in dataframe. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -557,11 +557,11 @@
 
 ### Features
 
-- [#9756](https://github.com/gradio-app/gradio/pull/9756) [`92f337c`](https://github.com/gradio-app/gradio/commit/92f337cc85d545060ea343f1cee85c22b85f6444) - Fix website build issue.  Thanks @aliabd!
+- [#9756](https://github.com/gradio-app/gradio/pull/9756) [`92f337c`](https://github.com/gradio-app/gradio/commit/92f337cc85d545060ea343f1cee85c22b85f6444) - Fix website build issue. Thanks @aliabd!
 
 ### Fixes
 
-- [#9654](https://github.com/gradio-app/gradio/pull/9654) [`cd7dab7`](https://github.com/gradio-app/gradio/commit/cd7dab7ba5c81983f133dfa9e90ac6f92ac4fa1f) - Improve select event behaviour in gr.Dataframe.  Thanks @hannahblair!
+- [#9654](https://github.com/gradio-app/gradio/pull/9654) [`cd7dab7`](https://github.com/gradio-app/gradio/commit/cd7dab7ba5c81983f133dfa9e90ac6f92ac4fa1f) - Improve select event behaviour in gr.Dataframe. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -585,7 +585,7 @@
 
 ### Fixes
 
-- [#9709](https://github.com/gradio-app/gradio/pull/9709) [`31418ef`](https://github.com/gradio-app/gradio/commit/31418ef388a2dc524069ee230c2735a4beaf55f1) - fix table type check.  Thanks @hannahblair!
+- [#9709](https://github.com/gradio-app/gradio/pull/9709) [`31418ef`](https://github.com/gradio-app/gradio/commit/31418ef388a2dc524069ee230c2735a4beaf55f1) - fix table type check. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -607,7 +607,7 @@
 
 ### Features
 
-- [#9614](https://github.com/gradio-app/gradio/pull/9614) [`5d98550`](https://github.com/gradio-app/gradio/commit/5d985509b4b71aa4aa6b28acc38fe83c278dbbfa) - Fix `retry` and `undo` reactivity in gr.Chatbot.  Thanks @hannahblair!
+- [#9614](https://github.com/gradio-app/gradio/pull/9614) [`5d98550`](https://github.com/gradio-app/gradio/commit/5d985509b4b71aa4aa6b28acc38fe83c278dbbfa) - Fix `retry` and `undo` reactivity in gr.Chatbot. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -639,8 +639,8 @@
 
 ### Features
 
-- [#9601](https://github.com/gradio-app/gradio/pull/9601) [`c078892`](https://github.com/gradio-app/gradio/commit/c07889223cb64661b17560b707b977248809470a) - Tweak gr.Dataframe menu UX.  Thanks @hannahblair!
-- [#9575](https://github.com/gradio-app/gradio/pull/9575) [`4ec2feb`](https://github.com/gradio-app/gradio/commit/4ec2feb04e452d2c77482c09543c59948567be67) - Update gr.Dataframe UI with action popover.  Thanks @hannahblair!
+- [#9601](https://github.com/gradio-app/gradio/pull/9601) [`c078892`](https://github.com/gradio-app/gradio/commit/c07889223cb64661b17560b707b977248809470a) - Tweak gr.Dataframe menu UX. Thanks @hannahblair!
+- [#9575](https://github.com/gradio-app/gradio/pull/9575) [`4ec2feb`](https://github.com/gradio-app/gradio/commit/4ec2feb04e452d2c77482c09543c59948567be67) - Update gr.Dataframe UI with action popover. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -665,7 +665,7 @@
 
 ### Features
 
-- [#9496](https://github.com/gradio-app/gradio/pull/9496) [`1647ebd`](https://github.com/gradio-app/gradio/commit/1647ebddc3e2ed6fc143a62629409e32afcc5801) - UI theme fixes.  Thanks @aliabid94!
+- [#9496](https://github.com/gradio-app/gradio/pull/9496) [`1647ebd`](https://github.com/gradio-app/gradio/commit/1647ebddc3e2ed6fc143a62629409e32afcc5801) - UI theme fixes. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -688,7 +688,7 @@
 
 ### Features
 
-- [#9469](https://github.com/gradio-app/gradio/pull/9469) [`f7c3396`](https://github.com/gradio-app/gradio/commit/f7c3396f55a5b8364d3880a29d766bd092d7f840) - Fix. Triggered dataframe change event for header change.  Thanks @Joodith!
+- [#9469](https://github.com/gradio-app/gradio/pull/9469) [`f7c3396`](https://github.com/gradio-app/gradio/commit/f7c3396f55a5b8364d3880a29d766bd092d7f840) - Fix. Triggered dataframe change event for header change. Thanks @Joodith!
 
 ## 0.11.0-beta.3
 
@@ -702,8 +702,8 @@
 
 ### Features
 
-- [#9313](https://github.com/gradio-app/gradio/pull/9313) [`1fef9d9`](https://github.com/gradio-app/gradio/commit/1fef9d9a26f0ebce4de18c486702661f6539b1c6) - Standardize `height` across components and add `max_height` and `min_height` parameters where appropriate.  Thanks @abidlabs!
-- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+- [#9313](https://github.com/gradio-app/gradio/pull/9313) [`1fef9d9`](https://github.com/gradio-app/gradio/commit/1fef9d9a26f0ebce4de18c486702661f6539b1c6) - Standardize `height` across components and add `max_height` and `min_height` parameters where appropriate. Thanks @abidlabs!
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -719,7 +719,7 @@
 
 ### Features
 
-- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -735,7 +735,7 @@
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -751,9 +751,9 @@
 
 ### Features
 
-- [#9128](https://github.com/gradio-app/gradio/pull/9128) [`747013b`](https://github.com/gradio-app/gradio/commit/747013bbacebae6bfdda554b45e541e80b2894e0) - Allow accessing the entire row of selected values in `gr.DataFrame`.  Thanks @abidlabs!
-- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
-- [#9102](https://github.com/gradio-app/gradio/pull/9102) [`efdc323`](https://github.com/gradio-app/gradio/commit/efdc3231a7bde38cfe45d10086d0d36a24c1b9b4) - Initial SSR refactor.  Thanks @pngwn!
+- [#9128](https://github.com/gradio-app/gradio/pull/9128) [`747013b`](https://github.com/gradio-app/gradio/commit/747013bbacebae6bfdda554b45e541e80b2894e0) - Allow accessing the entire row of selected values in `gr.DataFrame`. Thanks @abidlabs!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages. Thanks @pngwn!
+- [#9102](https://github.com/gradio-app/gradio/pull/9102) [`efdc323`](https://github.com/gradio-app/gradio/commit/efdc3231a7bde38cfe45d10086d0d36a24c1b9b4) - Initial SSR refactor. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -791,7 +791,7 @@
 
 ### Features
 
-- [#8745](https://github.com/gradio-app/gradio/pull/8745) [`4030f28`](https://github.com/gradio-app/gradio/commit/4030f28af6ae9f3eb94bb4e9cae83fb7016cdaad) - Allows updating the dataset of a `gr.Examples`.  Thanks @abidlabs!
+- [#8745](https://github.com/gradio-app/gradio/pull/8745) [`4030f28`](https://github.com/gradio-app/gradio/commit/4030f28af6ae9f3eb94bb4e9cae83fb7016cdaad) - Allows updating the dataset of a `gr.Examples`. Thanks @abidlabs!
 
 ### Dependency updates
 
@@ -806,7 +806,7 @@
 
 ### Fixes
 
-- [#8763](https://github.com/gradio-app/gradio/pull/8763) [`c1ecfde`](https://github.com/gradio-app/gradio/commit/c1ecfde50e55902140aafc3551968e26c1bb4cd0) - 8394 df hidden items.  Thanks @pngwn!
+- [#8763](https://github.com/gradio-app/gradio/pull/8763) [`c1ecfde`](https://github.com/gradio-app/gradio/commit/c1ecfde50e55902140aafc3551968e26c1bb4cd0) - 8394 df hidden items. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -926,7 +926,7 @@
 
 ### Fixes
 
-- [#8252](https://github.com/gradio-app/gradio/pull/8252) [`22df61a`](https://github.com/gradio-app/gradio/commit/22df61a26adf8023f6dd49c051979990e8d3879a) - Client node fix.  Thanks @pngwn!
+- [#8252](https://github.com/gradio-app/gradio/pull/8252) [`22df61a`](https://github.com/gradio-app/gradio/commit/22df61a26adf8023f6dd49c051979990e8d3879a) - Client node fix. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -941,12 +941,12 @@
 
 ### Features
 
-- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9.  Thanks @renovate!
-- [#8209](https://github.com/gradio-app/gradio/pull/8209) [`b9afe93`](https://github.com/gradio-app/gradio/commit/b9afe93915401df5bd6737c89395c2477acfa585) - Rename `eventSource_Factory` and `fetch_implementation`.  Thanks @hannahblair!
+- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9. Thanks @renovate!
+- [#8209](https://github.com/gradio-app/gradio/pull/8209) [`b9afe93`](https://github.com/gradio-app/gradio/commit/b9afe93915401df5bd6737c89395c2477acfa585) - Rename `eventSource_Factory` and `fetch_implementation`. Thanks @hannahblair!
 
 ### Fixes
 
-- [#8179](https://github.com/gradio-app/gradio/pull/8179) [`6a218b4`](https://github.com/gradio-app/gradio/commit/6a218b4148095aaa0c58d8c20973ba01c8764fc2) - rework upload to be a class method + pass client into each component.  Thanks @pngwn!
+- [#8179](https://github.com/gradio-app/gradio/pull/8179) [`6a218b4`](https://github.com/gradio-app/gradio/commit/6a218b4148095aaa0c58d8c20973ba01c8764fc2) - rework upload to be a class method + pass client into each component. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -980,18 +980,17 @@ demo.launch(max_file_size=5 * gr.FileSize.MB)
 
 ![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
 
-
 #### Error states can now be cleared
 
 When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
 
 ![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
 
- Thanks @freddyaboulton!
+Thanks @freddyaboulton!
 
 ### Fixes
 
-- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -1055,7 +1054,7 @@ When a component encounters an error, the error state shown in the UI can now be
 
 ### Fixes
 
-- [#7564](https://github.com/gradio-app/gradio/pull/7564) [`5d1e8da`](https://github.com/gradio-app/gradio/commit/5d1e8dae5ac23f605c3b5f41dbe18751dff380a0) - batch UI updates on a per frame basis.  Thanks @pngwn!
+- [#7564](https://github.com/gradio-app/gradio/pull/7564) [`5d1e8da`](https://github.com/gradio-app/gradio/commit/5d1e8dae5ac23f605c3b5f41dbe18751dff380a0) - batch UI updates on a per frame basis. Thanks @pngwn!
 
 ### Dependency updates
 

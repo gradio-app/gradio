@@ -12,7 +12,7 @@ const loading_status: LoadingStatus = {
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0,
-	show_progress: "full"
+	show_progress: "full",
 };
 
 describe("Markdown", () => {
@@ -26,7 +26,7 @@ describe("Markdown", () => {
 			lines: 1,
 			value: "Visit [Gradio](https://www.gradio.app/) for more information.",
 			label: "Markdown",
-			interactive: false
+			interactive: false,
 		});
 
 		const link: HTMLAnchorElement = getByText("Gradio") as HTMLAnchorElement;
@@ -41,11 +41,11 @@ describe("Markdown", () => {
 			lines: 1,
 			value: "Visit [Invalid URL](https://) for more information.",
 			label: "Markdown",
-			interactive: false
+			interactive: false,
 		});
 
 		const link: HTMLAnchorElement = getByText(
-			"Invalid URL"
+			"Invalid URL",
 		) as HTMLAnchorElement;
 		assert.equal(link.href, "https://");
 	});

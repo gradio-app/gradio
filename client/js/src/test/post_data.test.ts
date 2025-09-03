@@ -28,7 +28,7 @@ describe("post_data", () => {
 
 	it("should handle network errors", async () => {
 		const app = await Client.connect("hmb/secret_world", {
-			hf_token: "hf_123"
+			hf_token: "hf_123",
 		});
 
 		const url = "https://hmb-secret-world.hf.space";

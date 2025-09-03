@@ -69,7 +69,7 @@
 
 ### Features
 
-- [#11177](https://github.com/gradio-app/gradio/pull/11177) [`3068196`](https://github.com/gradio-app/gradio/commit/3068196d47234fd1c1634f33b9ddfc089f5cbbe0) - Improved, smoother fullscreen mode for components.  Thanks @aliabid94!
+- [#11177](https://github.com/gradio-app/gradio/pull/11177) [`3068196`](https://github.com/gradio-app/gradio/commit/3068196d47234fd1c1634f33b9ddfc089f5cbbe0) - Improved, smoother fullscreen mode for components. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -132,8 +132,8 @@
 
 ### Fixes
 
-- [#10544](https://github.com/gradio-app/gradio/pull/10544) [`9b87e12`](https://github.com/gradio-app/gradio/commit/9b87e12f1a44e1bcee1373a877a6d39f4e6395e9) - Fix gr.Plot change/load events and plotly css loaded.  Thanks @freddyaboulton!
-- [#10515](https://github.com/gradio-app/gradio/pull/10515) [`1269ad0`](https://github.com/gradio-app/gradio/commit/1269ad0f0096323d613e7c8d15728bb491bcc409) - Plotly 6.0 Fix: Install latest plotly js version.  Thanks @freddyaboulton!
+- [#10544](https://github.com/gradio-app/gradio/pull/10544) [`9b87e12`](https://github.com/gradio-app/gradio/commit/9b87e12f1a44e1bcee1373a877a6d39f4e6395e9) - Fix gr.Plot change/load events and plotly css loaded. Thanks @freddyaboulton!
+- [#10515](https://github.com/gradio-app/gradio/pull/10515) [`1269ad0`](https://github.com/gradio-app/gradio/commit/1269ad0f0096323d613e7c8d15728bb491bcc409) - Plotly 6.0 Fix: Install latest plotly js version. Thanks @freddyaboulton!
 
 ### Dependency updates
 
@@ -199,7 +199,7 @@
 
 ### Features
 
-- [#9805](https://github.com/gradio-app/gradio/pull/9805) [`78e3b51`](https://github.com/gradio-app/gradio/commit/78e3b517af97dd11a3a0465bd34360b9bd8945c1) - Allow setting plotly margins.  Thanks @aliabid94!
+- [#9805](https://github.com/gradio-app/gradio/pull/9805) [`78e3b51`](https://github.com/gradio-app/gradio/commit/78e3b517af97dd11a3a0465bd34360b9bd8945c1) - Allow setting plotly margins. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -210,7 +210,7 @@
 
 ### Features
 
-- [#9781](https://github.com/gradio-app/gradio/pull/9781) [`7579e92`](https://github.com/gradio-app/gradio/commit/7579e92971e67be3ae81dd00a3acfbb58dd9ba27) - Allow smoother plot changes.  Thanks @aliabid94!
+- [#9781](https://github.com/gradio-app/gradio/pull/9781) [`7579e92`](https://github.com/gradio-app/gradio/commit/7579e92971e67be3ae81dd00a3acfbb58dd9ba27) - Allow smoother plot changes. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -279,7 +279,7 @@
 
 ### Features
 
-- [#9464](https://github.com/gradio-app/gradio/pull/9464) [`3ac5d9c`](https://github.com/gradio-app/gradio/commit/3ac5d9c972576d82bc365a6532e6e12f55441a30) - Fix plots.  Thanks @pngwn!
+- [#9464](https://github.com/gradio-app/gradio/pull/9464) [`3ac5d9c`](https://github.com/gradio-app/gradio/commit/3ac5d9c972576d82bc365a6532e6e12f55441a30) - Fix plots. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -308,7 +308,7 @@
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -322,8 +322,8 @@
 
 ### Features
 
-- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
-- [#9102](https://github.com/gradio-app/gradio/pull/9102) [`efdc323`](https://github.com/gradio-app/gradio/commit/efdc3231a7bde38cfe45d10086d0d36a24c1b9b4) - Initial SSR refactor.  Thanks @pngwn!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages. Thanks @pngwn!
+- [#9102](https://github.com/gradio-app/gradio/pull/9102) [`efdc323`](https://github.com/gradio-app/gradio/commit/efdc3231a7bde38cfe45d10086d0d36a24c1b9b4) - Initial SSR refactor. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -361,7 +361,7 @@
 
 ### Features
 
-- [#8713](https://github.com/gradio-app/gradio/pull/8713) [`e3c7079`](https://github.com/gradio-app/gradio/commit/e3c7079e380880d5759d98d180eaf688122f1c69) - Time range component.  Thanks @aliabid94!
+- [#8713](https://github.com/gradio-app/gradio/pull/8713) [`e3c7079`](https://github.com/gradio-app/gradio/commit/e3c7079e380880d5759d98d180eaf688122f1c69) - Time range component. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -374,13 +374,13 @@
 
 ### Features
 
-- [#8131](https://github.com/gradio-app/gradio/pull/8131) [`bb504b4`](https://github.com/gradio-app/gradio/commit/bb504b494947a287d6386e0e7ead3860c0f15223) - Gradio components in `gr.Chatbot()`.  Thanks @dawoodkhan82!
-- [#8603](https://github.com/gradio-app/gradio/pull/8603) [`affce4c`](https://github.com/gradio-app/gradio/commit/affce4cbd9e2df14175c79da27408ccce57a74e9) - Fix resizer on altair.  Thanks @aliabid94!
-- [#8580](https://github.com/gradio-app/gradio/pull/8580) [`797621b`](https://github.com/gradio-app/gradio/commit/797621b81a0ab9b794e6872f8d43bf6d19a68b78) - Improved plot rendering to thematically match.  Thanks @aliabid94!/n  highlight:Expect visual changes in gr.Plot, gr.BarPlot, gr.LinePlot, gr.ScatterPlot, including changes to color and width sizing.
+- [#8131](https://github.com/gradio-app/gradio/pull/8131) [`bb504b4`](https://github.com/gradio-app/gradio/commit/bb504b494947a287d6386e0e7ead3860c0f15223) - Gradio components in `gr.Chatbot()`. Thanks @dawoodkhan82!
+- [#8603](https://github.com/gradio-app/gradio/pull/8603) [`affce4c`](https://github.com/gradio-app/gradio/commit/affce4cbd9e2df14175c79da27408ccce57a74e9) - Fix resizer on altair. Thanks @aliabid94!
+- [#8580](https://github.com/gradio-app/gradio/pull/8580) [`797621b`](https://github.com/gradio-app/gradio/commit/797621b81a0ab9b794e6872f8d43bf6d19a68b78) - Improved plot rendering to thematically match. Thanks @aliabid94!/n highlight:Expect visual changes in gr.Plot, gr.BarPlot, gr.LinePlot, gr.ScatterPlot, including changes to color and width sizing.
 
 ### Fixes
 
-- [#8594](https://github.com/gradio-app/gradio/pull/8594) [`530f8a0`](https://github.com/gradio-app/gradio/commit/530f8a0b056b35dabe9bdd148e1ab7c4577f017d) - chatbot component tweaks.  Thanks @pngwn!
+- [#8594](https://github.com/gradio-app/gradio/pull/8594) [`530f8a0`](https://github.com/gradio-app/gradio/commit/530f8a0b056b35dabe9bdd148e1ab7c4577f017d) - chatbot component tweaks. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -460,18 +460,17 @@ demo.launch(max_file_size=5 * gr.FileSize.MB)
 
 ![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
 
-
 #### Error states can now be cleared
 
 When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
 
 ![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
 
- Thanks @freddyaboulton!
+Thanks @freddyaboulton!
 
 ### Fixes
 
-- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling. Thanks @pngwn!
 
 ### Dependency updates
 

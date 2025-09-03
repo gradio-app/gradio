@@ -51,7 +51,7 @@ Learn more about Columns in the [docs](https://gradio.app/docs/column).
 
 # Fill Browser Height / Width
 
-To make an app take the full width of the browser by removing the side padding, use `gr.Blocks(fill_width=True)`. 
+To make an app take the full width of the browser by removing the side padding, use `gr.Blocks(fill_width=True)`.
 
 To make top level Components expand to take the full height of the browser, use `fill_height` and apply scale to the expanding Components.
 

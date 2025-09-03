@@ -54,7 +54,7 @@
 
 ### Features
 
-- [#11157](https://github.com/gradio-app/gradio/pull/11157) [`c207de9`](https://github.com/gradio-app/gradio/commit/c207de96f8ae2ce6c74026ff696c7fa4cf3a87c7) - Build the Gradio wheel for Lite before packaging.  Thanks @whitphx!
+- [#11157](https://github.com/gradio-app/gradio/pull/11157) [`c207de9`](https://github.com/gradio-app/gradio/commit/c207de96f8ae2ce6c74026ff696c7fa4cf3a87c7) - Build the Gradio wheel for Lite before packaging. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -188,7 +188,7 @@
 
 ### Features
 
-- [#10733](https://github.com/gradio-app/gradio/pull/10733) [`731ab92`](https://github.com/gradio-app/gradio/commit/731ab92001c88d4cf1062acf0a4f1108a4513014) - Autocompletion on code editor component.  Thanks @whitphx!
+- [#10733](https://github.com/gradio-app/gradio/pull/10733) [`731ab92`](https://github.com/gradio-app/gradio/commit/731ab92001c88d4cf1062acf0a4f1108a4513014) - Autocompletion on code editor component. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -218,8 +218,8 @@
 
 ### Features
 
-- [#10569](https://github.com/gradio-app/gradio/pull/10569) [`bd4895a`](https://github.com/gradio-app/gradio/commit/bd4895a95a29fa1f0d12fefde26a82a1d60954e9) - Update Lite to support multi-page apps.  Thanks @whitphx!
-- [#10575](https://github.com/gradio-app/gradio/pull/10575) [`866780a`](https://github.com/gradio-app/gradio/commit/866780a7cbeed05b83c1c67eab19013bb6e2cafa) - Independent scrolling of the code editor in an embedded Lite app in the playground mode.  Thanks @whitphx!
+- [#10569](https://github.com/gradio-app/gradio/pull/10569) [`bd4895a`](https://github.com/gradio-app/gradio/commit/bd4895a95a29fa1f0d12fefde26a82a1d60954e9) - Update Lite to support multi-page apps. Thanks @whitphx!
+- [#10575](https://github.com/gradio-app/gradio/pull/10575) [`866780a`](https://github.com/gradio-app/gradio/commit/866780a7cbeed05b83c1c67eab19013bb6e2cafa) - Independent scrolling of the code editor in an embedded Lite app in the playground mode. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -241,7 +241,7 @@
 
 ### Fixes
 
-- [#10466](https://github.com/gradio-app/gradio/pull/10466) [`8e2cf2f`](https://github.com/gradio-app/gradio/commit/8e2cf2f32c4ffe4540aed0dd8448089f0a19eedd) - Fix the wrapper function of micropip.install to throw the original error for better debug experience.  Thanks @whitphx!
+- [#10466](https://github.com/gradio-app/gradio/pull/10466) [`8e2cf2f`](https://github.com/gradio-app/gradio/commit/8e2cf2f32c4ffe4540aed0dd8448089f0a19eedd) - Fix the wrapper function of micropip.install to throw the original error for better debug experience. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -255,13 +255,13 @@
 
 ### Features
 
-- [#10505](https://github.com/gradio-app/gradio/pull/10505) [`b172c19`](https://github.com/gradio-app/gradio/commit/b172c19a1877d2b47be6189289b6a58b79f6b31e) - Workaround for Lite to work with multipage client API.  Thanks @whitphx!
+- [#10505](https://github.com/gradio-app/gradio/pull/10505) [`b172c19`](https://github.com/gradio-app/gradio/commit/b172c19a1877d2b47be6189289b6a58b79f6b31e) - Workaround for Lite to work with multipage client API. Thanks @whitphx!
 
 ## 5.15.0
 
 ### Features
 
-- [#10433](https://github.com/gradio-app/gradio/pull/10433) [`2e8dc74`](https://github.com/gradio-app/gradio/commit/2e8dc74f751be02f7217f78d241806b42fcdca04) - Allow building multipage Gradio apps.  Thanks @aliabid94!
+- [#10433](https://github.com/gradio-app/gradio/pull/10433) [`2e8dc74`](https://github.com/gradio-app/gradio/commit/2e8dc74f751be02f7217f78d241806b42fcdca04) - Allow building multipage Gradio apps. Thanks @aliabid94!
 
 ### Dependency updates
 
@@ -299,7 +299,7 @@
 
 ### Features
 
-- [#9984](https://github.com/gradio-app/gradio/pull/9984) [`45df1b1`](https://github.com/gradio-app/gradio/commit/45df1b1978e597546a208ecbf5b3aca56137edc5) - Lite: Capture stdout and stderr from the main thread.  Thanks @whitphx!
+- [#9984](https://github.com/gradio-app/gradio/pull/9984) [`45df1b1`](https://github.com/gradio-app/gradio/commit/45df1b1978e597546a208ecbf5b3aca56137edc5) - Lite: Capture stdout and stderr from the main thread. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -318,7 +318,7 @@
 
 ### Features
 
-- [#10077](https://github.com/gradio-app/gradio/pull/10077) [`bf03d54`](https://github.com/gradio-app/gradio/commit/bf03d54e2fa413a4c98c4e3d6797b8b6a0a790ae) - Fix to call bootstrap_custom_element() if the script is loaded after the DOMContentLoaded event.  Thanks @whitphx!
+- [#10077](https://github.com/gradio-app/gradio/pull/10077) [`bf03d54`](https://github.com/gradio-app/gradio/commit/bf03d54e2fa413a4c98c4e3d6797b8b6a0a790ae) - Fix to call bootstrap_custom_element() if the script is loaded after the DOMContentLoaded event. Thanks @whitphx!
 
 ## 5.7.0
 
@@ -338,8 +338,8 @@
 
 ### Features
 
-- [#9424](https://github.com/gradio-app/gradio/pull/9424) [`a1582a6`](https://github.com/gradio-app/gradio/commit/a1582a6dca494618c734208cade87acfdac91004) - Lite worker refactoring.  Thanks @whitphx!
-- [#9726](https://github.com/gradio-app/gradio/pull/9726) [`b6725cf`](https://github.com/gradio-app/gradio/commit/b6725cf6c1fe9667dc10e1988976ed36d84d73d3) - Lite auto-load imported modules with `pyodide.loadPackagesFromImports`.  Thanks @whitphx!
+- [#9424](https://github.com/gradio-app/gradio/pull/9424) [`a1582a6`](https://github.com/gradio-app/gradio/commit/a1582a6dca494618c734208cade87acfdac91004) - Lite worker refactoring. Thanks @whitphx!
+- [#9726](https://github.com/gradio-app/gradio/pull/9726) [`b6725cf`](https://github.com/gradio-app/gradio/commit/b6725cf6c1fe9667dc10e1988976ed36d84d73d3) - Lite auto-load imported modules with `pyodide.loadPackagesFromImports`. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -381,7 +381,7 @@
 
 ### Fixes
 
-- [#9528](https://github.com/gradio-app/gradio/pull/9528) [`9004b11`](https://github.com/gradio-app/gradio/commit/9004b110640bdb54995343a870bf080ee15da02d) - Fix Lite to work on FireFox.  Thanks @whitphx!
+- [#9528](https://github.com/gradio-app/gradio/pull/9528) [`9004b11`](https://github.com/gradio-app/gradio/commit/9004b110640bdb54995343a870bf080ee15da02d) - Fix Lite to work on FireFox. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -392,11 +392,11 @@
 
 ### Features
 
-- [#9617](https://github.com/gradio-app/gradio/pull/9617) [`c163182`](https://github.com/gradio-app/gradio/commit/c163182d1b752ef91629f9caa13bf3cce0fb0869) - Fix dark mode detection and container height.  Thanks @pngwn!
+- [#9617](https://github.com/gradio-app/gradio/pull/9617) [`c163182`](https://github.com/gradio-app/gradio/commit/c163182d1b752ef91629f9caa13bf3cce0fb0869) - Fix dark mode detection and container height. Thanks @pngwn!
 
 ### Fixes
 
-- [#9630](https://github.com/gradio-app/gradio/pull/9630) [`2eaa066`](https://github.com/gradio-app/gradio/commit/2eaa0667e1d1a0edd1089bf8c3ffa3f563b9bca2) - Fix duplicate attribute error.  Thanks @pngwn!
+- [#9630](https://github.com/gradio-app/gradio/pull/9630) [`2eaa066`](https://github.com/gradio-app/gradio/commit/2eaa0667e1d1a0edd1089bf8c3ffa3f563b9bca2) - Fix duplicate attribute error. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -431,7 +431,7 @@
 
 ### Features
 
-- [#9460](https://github.com/gradio-app/gradio/pull/9460) [`7352a89`](https://github.com/gradio-app/gradio/commit/7352a89722da91461c32fd33588531f3edce9c48) - Playground requirements tab.  Thanks @whitphx!
+- [#9460](https://github.com/gradio-app/gradio/pull/9460) [`7352a89`](https://github.com/gradio-app/gradio/commit/7352a89722da91461c32fd33588531f3edce9c48) - Playground requirements tab. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -461,8 +461,8 @@
 
 ### Features
 
-- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
-- [#9335](https://github.com/gradio-app/gradio/pull/9335) [`b543465`](https://github.com/gradio-app/gradio/commit/b543465d06d7d1b399c4d0755da05e022611a97f) - Remove lite/theme.css from the Git-managed file tree.  Thanks @whitphx!
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2. Thanks @pngwn!
+- [#9335](https://github.com/gradio-app/gradio/pull/9335) [`b543465`](https://github.com/gradio-app/gradio/commit/b543465d06d7d1b399c4d0755da05e022611a97f) - Remove lite/theme.css from the Git-managed file tree. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -475,8 +475,8 @@
 
 ### Features
 
-- [#9204](https://github.com/gradio-app/gradio/pull/9204) [`3c73f00`](https://github.com/gradio-app/gradio/commit/3c73f00e3016b16917ebfe0bad390f2dff683457) - 🔡 Update default core Gradio font.  Thanks @hannahblair!
-- [#9246](https://github.com/gradio-app/gradio/pull/9246) [`38cf712`](https://github.com/gradio-app/gradio/commit/38cf71234bf57fe9da6eea2d32b1d6e7ef35c700) - Stop using `multiprocessing` in `flagging.CSVLogger` on Lite v5.  Thanks @whitphx!
+- [#9204](https://github.com/gradio-app/gradio/pull/9204) [`3c73f00`](https://github.com/gradio-app/gradio/commit/3c73f00e3016b16917ebfe0bad390f2dff683457) - 🔡 Update default core Gradio font. Thanks @hannahblair!
+- [#9246](https://github.com/gradio-app/gradio/pull/9246) [`38cf712`](https://github.com/gradio-app/gradio/commit/38cf71234bf57fe9da6eea2d32b1d6e7ef35c700) - Stop using `multiprocessing` in `flagging.CSVLogger` on Lite v5. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -488,7 +488,7 @@
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -500,7 +500,7 @@
 
 ### Features
 
-- [#9102](https://github.com/gradio-app/gradio/pull/9102) [`efdc323`](https://github.com/gradio-app/gradio/commit/efdc3231a7bde38cfe45d10086d0d36a24c1b9b4) - Initial SSR refactor.  Thanks @pngwn!
+- [#9102](https://github.com/gradio-app/gradio/pull/9102) [`efdc323`](https://github.com/gradio-app/gradio/commit/efdc3231a7bde38cfe45d10086d0d36a24c1b9b4) - Initial SSR refactor. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -640,7 +640,7 @@
 
 ### Fixes
 
-- [#8245](https://github.com/gradio-app/gradio/pull/8245) [`c562a3d`](https://github.com/gradio-app/gradio/commit/c562a3d9a440c8f94ca070bd07b8d4121d6ab7b3) - Cancel  server progress from the python client.  Thanks @freddyaboulton!
+- [#8245](https://github.com/gradio-app/gradio/pull/8245) [`c562a3d`](https://github.com/gradio-app/gradio/commit/c562a3d9a440c8f94ca070bd07b8d4121d6ab7b3) - Cancel server progress from the python client. Thanks @freddyaboulton!
 
 ### Dependency updates
 
@@ -650,7 +650,7 @@
 
 ### Features
 
-- [#8052](https://github.com/gradio-app/gradio/pull/8052) [`1435d1d`](https://github.com/gradio-app/gradio/commit/1435d1d2dcfd1accf742726396f2213a54ae0837) - Extend Interface.from_pipeline() to support Transformers.js.py pipelines on Lite.  Thanks @whitphx!
+- [#8052](https://github.com/gradio-app/gradio/pull/8052) [`1435d1d`](https://github.com/gradio-app/gradio/commit/1435d1d2dcfd1accf742726396f2213a54ae0837) - Extend Interface.from_pipeline() to support Transformers.js.py pipelines on Lite. Thanks @whitphx!
 
 ### Dependency updates
 
@@ -691,7 +691,7 @@
 
 ### Features
 
-- [#7811](https://github.com/gradio-app/gradio/pull/7811) [`b43055b`](https://github.com/gradio-app/gradio/commit/b43055b297dfe1aa56fda4cd722d878f7297a1b5) - Lite playground design changes.  Thanks @aliabd!
+- [#7811](https://github.com/gradio-app/gradio/pull/7811) [`b43055b`](https://github.com/gradio-app/gradio/commit/b43055b297dfe1aa56fda4cd722d878f7297a1b5) - Lite playground design changes. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -720,7 +720,7 @@
 
 ### Features
 
-- [#7660](https://github.com/gradio-app/gradio/pull/7660) [`f739bef`](https://github.com/gradio-app/gradio/commit/f739bef6c70a2b012dd896456709eae5ee4de7d5) - Add Playground to Lite Custom Element.  Thanks @aliabd!
+- [#7660](https://github.com/gradio-app/gradio/pull/7660) [`f739bef`](https://github.com/gradio-app/gradio/commit/f739bef6c70a2b012dd896456709eae5ee4de7d5) - Add Playground to Lite Custom Element. Thanks @aliabd!
 
 ### Dependency updates
 
@@ -731,7 +731,7 @@
 
 ### Features
 
-- [#7647](https://github.com/gradio-app/gradio/pull/7647) [`57510f9`](https://github.com/gradio-app/gradio/commit/57510f9ce0b38d473cc90800a05e769f1a47be9b) - Lite version.  Thanks @pngwn!
+- [#7647](https://github.com/gradio-app/gradio/pull/7647) [`57510f9`](https://github.com/gradio-app/gradio/commit/57510f9ce0b38d473cc90800a05e769f1a47be9b) - Lite version. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -742,22 +742,22 @@
 
 ### Features
 
-- [#7345](https://github.com/gradio-app/gradio/pull/7345) [`561579d`](https://github.com/gradio-app/gradio/commit/561579d9b7b860c5cb3f8131e0dced0c8114463f) - fix-tests.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#7345](https://github.com/gradio-app/gradio/pull/7345) [`561579d`](https://github.com/gradio-app/gradio/commit/561579d9b7b860c5cb3f8131e0dced0c8114463f) - fix-tests. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 4.14.1
 
 ### Features
 
-- [#6999](https://github.com/gradio-app/gradio/pull/6999) [`576b7ce`](https://github.com/gradio-app/gradio/commit/576b7ce827f36b579384391e581e73760b7bfc53) - lite build fix: install build package.  Thanks [@abidlabs](https://github.com/abidlabs)!
-- [#7000](https://github.com/gradio-app/gradio/pull/7000) [`a7db8c1`](https://github.com/gradio-app/gradio/commit/a7db8c1b8a68c78f57088da1b1890e15dd0c5afe) - Add env to lite build.  Thanks [@aliabd](https://github.com/aliabd)!
-- [#6997](https://github.com/gradio-app/gradio/pull/6997) [`523c08f`](https://github.com/gradio-app/gradio/commit/523c08fe3036f9d72416f7599fe0c64c1a4af823) - Design changes to Playground.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6999](https://github.com/gradio-app/gradio/pull/6999) [`576b7ce`](https://github.com/gradio-app/gradio/commit/576b7ce827f36b579384391e581e73760b7bfc53) - lite build fix: install build package. Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7000](https://github.com/gradio-app/gradio/pull/7000) [`a7db8c1`](https://github.com/gradio-app/gradio/commit/a7db8c1b8a68c78f57088da1b1890e15dd0c5afe) - Add env to lite build. Thanks [@aliabd](https://github.com/aliabd)!
+- [#6997](https://github.com/gradio-app/gradio/pull/6997) [`523c08f`](https://github.com/gradio-app/gradio/commit/523c08fe3036f9d72416f7599fe0c64c1a4af823) - Design changes to Playground. Thanks [@aliabd](https://github.com/aliabd)!
 
 ## 4.14.0
 
 ### Features
 
-- [#6989](https://github.com/gradio-app/gradio/pull/6989) [`71aab1c`](https://github.com/gradio-app/gradio/commit/71aab1c6173665a7886399614dbb2dd864adbd6b) - Add README to @gradio/lite.  Thanks [@aliabd](https://github.com/aliabd)!
-- [#6996](https://github.com/gradio-app/gradio/pull/6996) [`0b1f68d`](https://github.com/gradio-app/gradio/commit/0b1f68d2dbdaea3588fea6366a0da991a6e07f77) - bump lite to match gradio.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6989](https://github.com/gradio-app/gradio/pull/6989) [`71aab1c`](https://github.com/gradio-app/gradio/commit/71aab1c6173665a7886399614dbb2dd864adbd6b) - Add README to @gradio/lite. Thanks [@aliabd](https://github.com/aliabd)!
+- [#6996](https://github.com/gradio-app/gradio/pull/6996) [`0b1f68d`](https://github.com/gradio-app/gradio/commit/0b1f68d2dbdaea3588fea6366a0da991a6e07f77) - bump lite to match gradio. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.4.4
 

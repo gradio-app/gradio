@@ -19,7 +19,7 @@ export type CodeCompletionResponse = CodeCompletion[];
 type GetCodeCompletionsPyFn = (
 	code: string,
 	line: number,
-	column: number
+	column: number,
 ) => PyProxy;
 
 export class CodeCompleter {
@@ -36,18 +36,18 @@ export class CodeCompleter {
 	private async setup(): Promise<GetCodeCompletionsPyFn> {
 		const micropip = this.pyodide.pyimport("micropip");
 		await micropip.install.callKwargs(["jedi"], {
-			keep_going: true
+			keep_going: true,
 		});
 
 		this.pyodide.runPython(code_completion_py);
 
 		return this.pyodide.globals.get(
-			"get_code_completions"
+			"get_code_completions",
 		) as GetCodeCompletionsPyFn;
 	}
 
 	public async getCodeCompletions(
-		request: CodeCompletionRequest
+		request: CodeCompletionRequest,
 	): Promise<CodeCompletionResponse> {
 		const getCodeCompletionsPyFn = await this.setupPromise;
 		if (!getCodeCompletionsPyFn) {
@@ -59,7 +59,7 @@ export class CodeCompleter {
 		const { code, line, column } = request;
 		const completionsPy = getCodeCompletionsPyFn(code, line, column);
 		const completions: CodeCompletionResponse = completionsPy.toJs({
-			dict_converter: Object.fromEntries // dict -> object
+			dict_converter: Object.fromEntries, // dict -> object
 		});
 		// > ... If the return value is a PyProxy, you must explicitly destroy it or else it will be leaked.
 		// https://pyodide.org/en/stable/usage/type-conversions.html#calling-python-objects-from-javascript

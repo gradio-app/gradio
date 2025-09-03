@@ -2,7 +2,6 @@
 
 General functions for handling events in Gradio Svelte components
 
-
 ```javascript
 export async function uploadToHuggingFace(
 		data: string,

@@ -4,7 +4,7 @@ export async function load({ params, parent }) {
 	const { on_main, wheel, pages, url_version, VERSION } = await parent();
 
 	const modules: any = import.meta.glob(
-		"/src/lib/templates*/python-client/**/*.svx"
+		"/src/lib/templates*/python-client/**/*.svx",
 	);
 
 	let name = params.doc;
@@ -42,6 +42,6 @@ export async function load({ params, parent }) {
 		url_version,
 		pages,
 		page_path,
-		module
+		module,
 	};
 }

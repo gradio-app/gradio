@@ -7,6 +7,7 @@
 ```
 
 BaseLabel
+
 ```javascript
 	export let value: {
 		label?: string;

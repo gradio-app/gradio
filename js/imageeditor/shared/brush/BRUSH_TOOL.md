@@ -67,6 +67,7 @@ The brush tool uses multiple PIXI.js textures and containers to manage the drawi
 ### BrushOptions.svelte
 
 Provides UI controls for:
+
 - Color selection (via color picker or swatches)
 - Brush size adjustment
 - Recent colors management
@@ -131,4 +132,4 @@ Potential areas for enhancement:
 2. **Pressure Sensitivity**: Integrate with pressure-sensitive devices
 3. **Performance Optimization**: Further optimize for large canvases
 4. **Layer Support**: Improve integration with the layer system
-5. **Undo/Redo**: Enhance undo/redo support for brush strokes 
+5. **Undo/Redo**: Enhance undo/redo support for brush strokes

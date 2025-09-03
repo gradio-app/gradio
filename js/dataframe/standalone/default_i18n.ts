@@ -28,5 +28,5 @@ export const default_i18n: Record<string, string> = {
 	"dataframe.reset": "Reset",
 	"dataframe.clear": "Clear",
 	"dataframe.undo": "Undo",
-	"dataframe.redo": "Redo"
+	"dataframe.redo": "Redo",
 };

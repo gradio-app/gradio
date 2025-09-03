@@ -15,7 +15,7 @@ export type {
 	RenderMessage,
 	LogMessage,
 	Payload,
-	Config
+	Config,
 } from "./types";
 
 export { MISSING_CREDENTIALS_MSG } from "./constants";

@@ -6,12 +6,12 @@ This guide will cover everything you need to know to implement your custom compo
 
 All components inherit from one of three classes `Component`, `FormComponent`, or `BlockContext`.
 You need to inherit from one so that your component behaves like all other gradio components.
-When you start from a template with `gradio cc create --template`, you don't need to worry about which one to choose since the template uses the correct one. 
+When you start from a template with `gradio cc create --template`, you don't need to worry about which one to choose since the template uses the correct one.
 For completeness, and in the event that you need to make your own component from scratch, we explain what each class is for.
 
-* `FormComponent`: Use this when you want your component to be grouped together in the same `Form` layout with other `FormComponents`. The `Slider`, `Textbox`, and `Number` components are all `FormComponents`.
-* `BlockContext`: Use this when you want to place other components "inside" your component. This enabled `with MyComponent() as component:` syntax.
-* `Component`: Use this for all other cases.
+- `FormComponent`: Use this when you want your component to be grouped together in the same `Form` layout with other `FormComponents`. The `Slider`, `Textbox`, and `Number` components are all `FormComponents`.
+- `BlockContext`: Use this when you want to place other components "inside" your component. This enabled `with MyComponent() as component:` syntax.
+- `Component`: Use this for all other cases.
 
 Tip: If your component supports streaming output, inherit from the `StreamingOutput` class.
 
@@ -36,7 +36,7 @@ Otherwise the Python interpreter will raise an error when you instantiate your c
 
 ### `preprocess` and `postprocess`
 
-Explained in the [Key Concepts](./key-component-concepts#the-value-and-how-it-is-preprocessed-postprocessed) guide. 
+Explained in the [Key Concepts](./key-component-concepts#the-value-and-how-it-is-preprocessed-postprocessed) guide.
 They handle the conversion from the data sent by the frontend to the format expected by the python function.
 
 ```python
@@ -55,7 +55,7 @@ They handle the conversion from the data sent by the frontend to the format expe
 
 ### `process_example`
 
-Takes in the original Python value and returns the modified value that should be displayed in the examples preview in the app. 
+Takes in the original Python value and returns the modified value that should be displayed in the examples preview in the app.
 If not provided, the `.postprocess()` method is used instead. Let's look at the following example from the `SimpleDropdown` component.
 
 ```python
@@ -65,12 +65,11 @@ def process_example(self, input_data):
 
 Since `self.choices` is a list of tuples corresponding to (`display_name`, `value`), this converts the value that a user provides to the display value (or if the value is not present in `self.choices`, it is converted to `None`).
 
-
 ### `api_info`
 
-A JSON-schema representation of the value that the `preprocess` expects. 
-This powers api usage via the gradio clients. 
-You do **not** need to implement this yourself if you components specifies a `data_model`. 
+A JSON-schema representation of the value that the `preprocess` expects.
+This powers api usage via the gradio clients.
+You do **not** need to implement this yourself if you components specifies a `data_model`.
 The `data_model` in the following section.
 
 ```python
@@ -84,7 +83,7 @@ def api_info(self) -> dict[str, list[str]]:
 ### `example_payload`
 
 An example payload for your component, e.g. something that can be passed into the `.preprocess()` method
-of your component. The example input is displayed in the `View API` page of a Gradio app that uses your custom component. 
+of your component. The example input is displayed in the `View API` page of a Gradio app that uses your custom component.
 Must be JSON-serializable. If your component expects a file, it is best to use a publicly accessible URL.
 
 ```python
@@ -111,7 +110,7 @@ def example_payload(self) -> Any:
 ### `flag`
 
 Write the component's value to a format that can be stored in the `csv` or `json` file used for flagging.
-You do **not** need to implement this yourself if you components specifies a `data_model`. 
+You do **not** need to implement this yourself if you components specifies a `data_model`.
 The `data_model` in the following section.
 
 ```python
@@ -120,8 +119,9 @@ def flag(self, x: Any | GradioDataModel, flag_dir: str | Path = "") -> str:
 ```
 
 ### `read_from_flag`
+
 Convert from the format stored in the `csv` or `json` file used for flagging to the component's python `value`.
-You do **not** need to implement this yourself if you components specifies a `data_model`. 
+You do **not** need to implement this yourself if you components specifies a `data_model`.
 The `data_model` in the following section.
 
 ```python
@@ -161,7 +161,7 @@ By adding these four lines of code, your component automatically implements the 
 It also has the added benefit of self-documenting your code.
 Anyone who reads your component code will know exactly the data it expects.
 
-Tip: If your component expects files to be uploaded from the frontend, your must use the `FileData` model! It will be explained in the following section. 
+Tip: If your component expects files to be uploaded from the frontend, your must use the `FileData` model! It will be explained in the following section.
 
 Tip: Read the pydantic docs [here](https://docs.pydantic.dev/latest/concepts/models/#basic-model-usage).
 
@@ -188,14 +188,13 @@ If your component expects uploaded files as input, or returns saved files to the
 
 When you use the `FileData`:
 
-* Gradio knows that it should allow serving this file to the frontend. Gradio automatically blocks requests to serve arbitrary files in the computer running the server.
+- Gradio knows that it should allow serving this file to the frontend. Gradio automatically blocks requests to serve arbitrary files in the computer running the server.
 
-* Gradio will automatically place the file in a cache so that duplicate copies of the file don't get saved.
+- Gradio will automatically place the file in a cache so that duplicate copies of the file don't get saved.
 
-* The client libraries will automatically know that they should upload input files prior to sending the request. They will also automatically download files.
+- The client libraries will automatically know that they should upload input files prior to sending the request. They will also automatically download files.
 
 If you do not use the `FileData`, your component will not work as expected!
-
 
 ## Adding Event Triggers To Your Component
 
@@ -220,8 +219,6 @@ class MyComponent(FormComponent):
     ]
 ```
 
-
 Tip: Don't forget to also handle these events in the JavaScript code!
 
 ## Conclusion
-

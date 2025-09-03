@@ -38,7 +38,7 @@
 
 ### Fixes
 
-- [#11667](https://github.com/gradio-app/gradio/pull/11667) [`07d19f7`](https://github.com/gradio-app/gradio/commit/07d19f7af3b60ff4a931d2c6740c9d61e6685dcb) - Fix the ImageEditor's auto-zoom, canvas resize, and zoom functionality.  Thanks @pngwn!
+- [#11667](https://github.com/gradio-app/gradio/pull/11667) [`07d19f7`](https://github.com/gradio-app/gradio/commit/07d19f7af3b60ff4a931d2c6740c9d61e6685dcb) - Fix the ImageEditor's auto-zoom, canvas resize, and zoom functionality. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -67,7 +67,7 @@
 
 ### Features
 
-- [#11427](https://github.com/gradio-app/gradio/pull/11427) [`6b2bcd0`](https://github.com/gradio-app/gradio/commit/6b2bcd097ae5ef999a7fb273ecf7c7e4c0eab305) - Improve load times of the Gradio front-end.  Thanks @pngwn!
+- [#11427](https://github.com/gradio-app/gradio/pull/11427) [`6b2bcd0`](https://github.com/gradio-app/gradio/commit/6b2bcd097ae5ef999a7fb273ecf7c7e4c0eab305) - Improve load times of the Gradio front-end. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -129,7 +129,7 @@
 
 ### Features
 
-- [#11192](https://github.com/gradio-app/gradio/pull/11192) [`a03736f`](https://github.com/gradio-app/gradio/commit/a03736f97c642b338aa701166d3a0b299a46d27a) - Add undo and redo to the `ImageEditor` component.  Thanks @pngwn!
+- [#11192](https://github.com/gradio-app/gradio/pull/11192) [`a03736f`](https://github.com/gradio-app/gradio/commit/a03736f97c642b338aa701166d3a0b299a46d27a) - Add undo and redo to the `ImageEditor` component. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -165,8 +165,8 @@
 
 ### Fixes
 
-- [#11070](https://github.com/gradio-app/gradio/pull/11070) [`0355ef6`](https://github.com/gradio-app/gradio/commit/0355ef644577791749499c64840bad5947764dc8) - Ensure it is possible to draw after uploading an image to the ImageEditor.  Thanks @pngwn!
-- [#11057](https://github.com/gradio-app/gradio/pull/11057) [`bb1b74c`](https://github.com/gradio-app/gradio/commit/bb1b74cb62208f1cc05b91902cd541f36a1f9b01) - Image Editor Clear Event.  Thanks @freddyaboulton!
+- [#11070](https://github.com/gradio-app/gradio/pull/11070) [`0355ef6`](https://github.com/gradio-app/gradio/commit/0355ef644577791749499c64840bad5947764dc8) - Ensure it is possible to draw after uploading an image to the ImageEditor. Thanks @pngwn!
+- [#11057](https://github.com/gradio-app/gradio/pull/11057) [`bb1b74c`](https://github.com/gradio-app/gradio/commit/bb1b74cb62208f1cc05b91902cd541f36a1f9b01) - Image Editor Clear Event. Thanks @freddyaboulton!
 
 ## 0.14.1
 
@@ -183,15 +183,15 @@
 
 ### Features
 
-- [#10981](https://github.com/gradio-app/gradio/pull/10981) [`0db230f`](https://github.com/gradio-app/gradio/commit/0db230f5c2f19d9b3b455adb1b30ed9374ae1791) - allow users to change the visibility of layers in the image editor.  Thanks @pngwn!
+- [#10981](https://github.com/gradio-app/gradio/pull/10981) [`0db230f`](https://github.com/gradio-app/gradio/commit/0db230f5c2f19d9b3b455adb1b30ed9374ae1791) - allow users to change the visibility of layers in the image editor. Thanks @pngwn!
 
 ### Fixes
 
-- [#10999](https://github.com/gradio-app/gradio/pull/10999) [`8c70819`](https://github.com/gradio-app/gradio/commit/8c70819f87027b75e44f49a13050ae2c3e8b3580) - implement download button for the ImageEditor.  Thanks @pngwn!
-- [#10997](https://github.com/gradio-app/gradio/pull/10997) [`45d5840`](https://github.com/gradio-app/gradio/commit/45d5840fb265328f3aa0c050ce9c6b87ae7dbbc5) - When custom layers are provided to the ImageEditor, always default to the first layer.  Thanks @pngwn!
-- [#10979](https://github.com/gradio-app/gradio/pull/10979) [`975feee`](https://github.com/gradio-app/gradio/commit/975feee3925e5b65e52ae00da5c5066d8889ae6a) - improve webcam options for the ImageEditor.  Thanks @pngwn!
-- [#10995](https://github.com/gradio-app/gradio/pull/10995) [`fc59815`](https://github.com/gradio-app/gradio/commit/fc598151aa9c77a84f6e7eaf9bcc0cae6ba49369) - ensure the image editor background respects the theme mode.  Thanks @pngwn!
-- [#10994](https://github.com/gradio-app/gradio/pull/10994) [`714015a`](https://github.com/gradio-app/gradio/commit/714015a1868168721ae79d6b5bc10fbc5bbb4290) - ensure images uploaded to the ImageEditor correctly initialise the canvas dimensions.  Thanks @pngwn!
+- [#10999](https://github.com/gradio-app/gradio/pull/10999) [`8c70819`](https://github.com/gradio-app/gradio/commit/8c70819f87027b75e44f49a13050ae2c3e8b3580) - implement download button for the ImageEditor. Thanks @pngwn!
+- [#10997](https://github.com/gradio-app/gradio/pull/10997) [`45d5840`](https://github.com/gradio-app/gradio/commit/45d5840fb265328f3aa0c050ce9c6b87ae7dbbc5) - When custom layers are provided to the ImageEditor, always default to the first layer. Thanks @pngwn!
+- [#10979](https://github.com/gradio-app/gradio/pull/10979) [`975feee`](https://github.com/gradio-app/gradio/commit/975feee3925e5b65e52ae00da5c5066d8889ae6a) - improve webcam options for the ImageEditor. Thanks @pngwn!
+- [#10995](https://github.com/gradio-app/gradio/pull/10995) [`fc59815`](https://github.com/gradio-app/gradio/commit/fc598151aa9c77a84f6e7eaf9bcc0cae6ba49369) - ensure the image editor background respects the theme mode. Thanks @pngwn!
+- [#10994](https://github.com/gradio-app/gradio/pull/10994) [`714015a`](https://github.com/gradio-app/gradio/commit/714015a1868168721ae79d6b5bc10fbc5bbb4290) - ensure images uploaded to the ImageEditor correctly initialise the canvas dimensions. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -205,7 +205,7 @@
 
 ### Features
 
-- [#10635](https://github.com/gradio-app/gradio/pull/10635) [`2f68c9d`](https://github.com/gradio-app/gradio/commit/2f68c9d988dcbc53a0b8e53bdb1de49c9c8c65d8) - Refactor and redesign `ImageEditor` component.  Thanks @pngwn!
+- [#10635](https://github.com/gradio-app/gradio/pull/10635) [`2f68c9d`](https://github.com/gradio-app/gradio/commit/2f68c9d988dcbc53a0b8e53bdb1de49c9c8c65d8) - Refactor and redesign `ImageEditor` component. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -286,7 +286,7 @@
 
 ### Features
 
-- [#10446](https://github.com/gradio-app/gradio/pull/10446) [`2cf449a`](https://github.com/gradio-app/gradio/commit/2cf449abb38815bb3414ac9bee1535f5f0f834ae) - Add more ImageEditor js tests.  Thanks @freddyaboulton!
+- [#10446](https://github.com/gradio-app/gradio/pull/10446) [`2cf449a`](https://github.com/gradio-app/gradio/commit/2cf449abb38815bb3414ac9bee1535f5f0f834ae) - Add more ImageEditor js tests. Thanks @freddyaboulton!
 
 ### Dependency updates
 
@@ -314,14 +314,14 @@
 
 ### Features
 
-- [#10370](https://github.com/gradio-app/gradio/pull/10370) [`71c8b8a`](https://github.com/gradio-app/gradio/commit/71c8b8abbfae0e47eb46561b0104bd452e5dffe8) - Clear Image Editor Value with None.  Thanks @freddyaboulton!
-- [#10416](https://github.com/gradio-app/gradio/pull/10416) [`3c2e12b`](https://github.com/gradio-app/gradio/commit/3c2e12b5ba52441f45565ae8e14cea46ea5b5b2c) - Fix ImageEditor Cropping - Cropping now crops the background image instead of the image + canvas.  Thanks @freddyaboulton!
+- [#10370](https://github.com/gradio-app/gradio/pull/10370) [`71c8b8a`](https://github.com/gradio-app/gradio/commit/71c8b8abbfae0e47eb46561b0104bd452e5dffe8) - Clear Image Editor Value with None. Thanks @freddyaboulton!
+- [#10416](https://github.com/gradio-app/gradio/pull/10416) [`3c2e12b`](https://github.com/gradio-app/gradio/commit/3c2e12b5ba52441f45565ae8e14cea46ea5b5b2c) - Fix ImageEditor Cropping - Cropping now crops the background image instead of the image + canvas. Thanks @freddyaboulton!
 
 ## 0.12.3
 
 ### Fixes
 
-- [#10357](https://github.com/gradio-app/gradio/pull/10357) [`43e7cce`](https://github.com/gradio-app/gradio/commit/43e7cce2bd8ddd274fcba890bfeaa7ead7f32434) - Fix ImageEditor Size Issues.  Thanks @freddyaboulton!
+- [#10357](https://github.com/gradio-app/gradio/pull/10357) [`43e7cce`](https://github.com/gradio-app/gradio/commit/43e7cce2bd8ddd274fcba890bfeaa7ead7f32434) - Fix ImageEditor Size Issues. Thanks @freddyaboulton!
 
 ### Dependency updates
 
@@ -334,7 +334,7 @@
 
 ### Fixes
 
-- [#10308](https://github.com/gradio-app/gradio/pull/10308) [`3543418`](https://github.com/gradio-app/gradio/commit/354341826a629d06640ce3ec5e5881bcccd6e339) - ImageEditor: Trigger input event even if change event not defined.  Thanks @freddyaboulton!
+- [#10308](https://github.com/gradio-app/gradio/pull/10308) [`3543418`](https://github.com/gradio-app/gradio/commit/354341826a629d06640ce3ec5e5881bcccd6e339) - ImageEditor: Trigger input event even if change event not defined. Thanks @freddyaboulton!
 
 ### Dependency updates
 
@@ -349,13 +349,13 @@
 
 ### Fixes
 
-- [#10306](https://github.com/gradio-app/gradio/pull/10306) [`9fc988e`](https://github.com/gradio-app/gradio/commit/9fc988ebaf4bea24b71308922bb1889f1d3f4f6e) - Fix bug where ImageEditor always sends empty layers list to the backend.  Thanks @freddyaboulton!
+- [#10306](https://github.com/gradio-app/gradio/pull/10306) [`9fc988e`](https://github.com/gradio-app/gradio/commit/9fc988ebaf4bea24b71308922bb1889f1d3f4f6e) - Fix bug where ImageEditor always sends empty layers list to the backend. Thanks @freddyaboulton!
 
 ## 0.12.0
 
 ### Features
 
-- [#10192](https://github.com/gradio-app/gradio/pull/10192) [`4fc7fb7`](https://github.com/gradio-app/gradio/commit/4fc7fb777c42af537e4af612423fa44029657d41) - Ensure components can be remounted with their previous data.  Thanks @pngwn!
+- [#10192](https://github.com/gradio-app/gradio/pull/10192) [`4fc7fb7`](https://github.com/gradio-app/gradio/commit/4fc7fb777c42af537e4af612423fa44029657d41) - Ensure components can be remounted with their previous data. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -387,8 +387,8 @@
 
 ### Fixes
 
-- [#10037](https://github.com/gradio-app/gradio/pull/10037) [`d0b74ba`](https://github.com/gradio-app/gradio/commit/d0b74ba281b37d8883a4e4fbb98c5922600ca41e) - Ensure toolbar stays visible for large images in ImageEditor.  Thanks @hannahblair!
-- [#10041](https://github.com/gradio-app/gradio/pull/10041) [`c1fa13c`](https://github.com/gradio-app/gradio/commit/c1fa13c9c057ce05a325782e58b409cde79383b8) - Ensure ImageEditor brush colour is updated when changed.  Thanks @hannahblair!
+- [#10037](https://github.com/gradio-app/gradio/pull/10037) [`d0b74ba`](https://github.com/gradio-app/gradio/commit/d0b74ba281b37d8883a4e4fbb98c5922600ca41e) - Ensure toolbar stays visible for large images in ImageEditor. Thanks @hannahblair!
+- [#10041](https://github.com/gradio-app/gradio/pull/10041) [`c1fa13c`](https://github.com/gradio-app/gradio/commit/c1fa13c9c057ce05a325782e58b409cde79383b8) - Ensure ImageEditor brush colour is updated when changed. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -509,7 +509,7 @@
 
 ### Features
 
-- [#9525](https://github.com/gradio-app/gradio/pull/9525) [`7c367b6`](https://github.com/gradio-app/gradio/commit/7c367b6cf0472d478671b7c7476e892b4c61c812) - Fix cut off in gr.ImageEditor.  Thanks @hannahblair!
+- [#9525](https://github.com/gradio-app/gradio/pull/9525) [`7c367b6`](https://github.com/gradio-app/gradio/commit/7c367b6cf0472d478671b7c7476e892b4c61c812) - Fix cut off in gr.ImageEditor. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -550,9 +550,9 @@
 
 ### Features
 
-- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
-- [#9250](https://github.com/gradio-app/gradio/pull/9250) [`350b0a5`](https://github.com/gradio-app/gradio/commit/350b0a5cafb9176f914f62e7c90de51d4352cc77) - Improve Icon Button consistency.  Thanks @hannahblair!
-- [#9371](https://github.com/gradio-app/gradio/pull/9371) [`7bf3e99`](https://github.com/gradio-app/gradio/commit/7bf3e9989392b7edcdc18c1d840fb8130b15040e) - Fix `gr.ImageEditor` toolbar cutoff.  Thanks @hannahblair!
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2. Thanks @pngwn!
+- [#9250](https://github.com/gradio-app/gradio/pull/9250) [`350b0a5`](https://github.com/gradio-app/gradio/commit/350b0a5cafb9176f914f62e7c90de51d4352cc77) - Improve Icon Button consistency. Thanks @hannahblair!
+- [#9371](https://github.com/gradio-app/gradio/pull/9371) [`7bf3e99`](https://github.com/gradio-app/gradio/commit/7bf3e9989392b7edcdc18c1d840fb8130b15040e) - Fix `gr.ImageEditor` toolbar cutoff. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -569,8 +569,8 @@
 
 ### Features
 
-- [#9201](https://github.com/gradio-app/gradio/pull/9201) [`5492e74`](https://github.com/gradio-app/gradio/commit/5492e742b1f1fa618208cce523f50ad22a6e86f1) - Move buttons from chat_interface into Chatbot.  Thanks @freddyaboulton!
-- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+- [#9201](https://github.com/gradio-app/gradio/pull/9201) [`5492e74`](https://github.com/gradio-app/gradio/commit/5492e742b1f1fa618208cce523f50ad22a6e86f1) - Move buttons from chat_interface into Chatbot. Thanks @freddyaboulton!
+- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -587,11 +587,11 @@
 
 ### Features
 
-- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible. Thanks @pngwn!
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -608,8 +608,8 @@
 
 ### Features
 
-- [#8930](https://github.com/gradio-app/gradio/pull/8930) [`41d5ab9`](https://github.com/gradio-app/gradio/commit/41d5ab987ba9728753be4509490c79041655809b) - Add `placeholder` param to Image and ImageEditor to replace upload image text.  Thanks @hannahblair!
-- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+- [#8930](https://github.com/gradio-app/gradio/pull/8930) [`41d5ab9`](https://github.com/gradio-app/gradio/commit/41d5ab987ba9728753be4509490c79041655809b) - Add `placeholder` param to Image and ImageEditor to replace upload image text. Thanks @hannahblair!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -626,7 +626,7 @@
 
 ### Features
 
-- [#8964](https://github.com/gradio-app/gradio/pull/8964) [`bf6bbd9`](https://github.com/gradio-app/gradio/commit/bf6bbd971acddbf78f03bea431ed7d1e0003ccf9) - Add min/max-imize button to gr.Image and gr.Gallery.  Thanks @hannahblair!
+- [#8964](https://github.com/gradio-app/gradio/pull/8964) [`bf6bbd9`](https://github.com/gradio-app/gradio/commit/bf6bbd971acddbf78f03bea431ed7d1e0003ccf9) - Add min/max-imize button to gr.Image and gr.Gallery. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -652,12 +652,12 @@
 
 ### Features
 
-- [#8803](https://github.com/gradio-app/gradio/pull/8803) [`e1a4040`](https://github.com/gradio-app/gradio/commit/e1a404093cfaf9d8f2a92bc1d28fb6aa254848d1) - Ensure all upload components have consistent upload regions.  Thanks @pngwn!
+- [#8803](https://github.com/gradio-app/gradio/pull/8803) [`e1a4040`](https://github.com/gradio-app/gradio/commit/e1a404093cfaf9d8f2a92bc1d28fb6aa254848d1) - Ensure all upload components have consistent upload regions. Thanks @pngwn!
 
 ### Fixes
 
-- [#8802](https://github.com/gradio-app/gradio/pull/8802) [`7b19474`](https://github.com/gradio-app/gradio/commit/7b19474cb2dd8f2c34d630f43edb0fcb0e05aa0c) - Ensure `ImageEditor` brush color can be updated with `gr.update`.  Thanks @pngwn!
-- [#8852](https://github.com/gradio-app/gradio/pull/8852) [`16b8200`](https://github.com/gradio-app/gradio/commit/16b820038df43905447ab7623d39d91ceb0d6238) - Fix gr.Image height inconsistencies.  Thanks @hannahblair!
+- [#8802](https://github.com/gradio-app/gradio/pull/8802) [`7b19474`](https://github.com/gradio-app/gradio/commit/7b19474cb2dd8f2c34d630f43edb0fcb0e05aa0c) - Ensure `ImageEditor` brush color can be updated with `gr.update`. Thanks @pngwn!
+- [#8852](https://github.com/gradio-app/gradio/pull/8852) [`16b8200`](https://github.com/gradio-app/gradio/commit/16b820038df43905447ab7623d39d91ceb0d6238) - Fix gr.Image height inconsistencies. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -784,7 +784,7 @@
 
 ### Fixes
 
-- [#8252](https://github.com/gradio-app/gradio/pull/8252) [`22df61a`](https://github.com/gradio-app/gradio/commit/22df61a26adf8023f6dd49c051979990e8d3879a) - Client node fix.  Thanks @pngwn!
+- [#8252](https://github.com/gradio-app/gradio/pull/8252) [`22df61a`](https://github.com/gradio-app/gradio/commit/22df61a26adf8023f6dd49c051979990e8d3879a) - Client node fix. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -799,13 +799,13 @@
 
 ### Features
 
-- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9.  Thanks @renovate!
-- [#8209](https://github.com/gradio-app/gradio/pull/8209) [`b9afe93`](https://github.com/gradio-app/gradio/commit/b9afe93915401df5bd6737c89395c2477acfa585) - Rename `eventSource_Factory` and `fetch_implementation`.  Thanks @hannahblair!
-- [#8127](https://github.com/gradio-app/gradio/pull/8127) [`24b2286`](https://github.com/gradio-app/gradio/commit/24b2286a22ed247b86ee299487174c8cea2988fe) - allow the canvas size to be set on the `ImageEditor`.  Thanks @pngwn!
+- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9. Thanks @renovate!
+- [#8209](https://github.com/gradio-app/gradio/pull/8209) [`b9afe93`](https://github.com/gradio-app/gradio/commit/b9afe93915401df5bd6737c89395c2477acfa585) - Rename `eventSource_Factory` and `fetch_implementation`. Thanks @hannahblair!
+- [#8127](https://github.com/gradio-app/gradio/pull/8127) [`24b2286`](https://github.com/gradio-app/gradio/commit/24b2286a22ed247b86ee299487174c8cea2988fe) - allow the canvas size to be set on the `ImageEditor`. Thanks @pngwn!
 
 ### Fixes
 
-- [#8179](https://github.com/gradio-app/gradio/pull/8179) [`6a218b4`](https://github.com/gradio-app/gradio/commit/6a218b4148095aaa0c58d8c20973ba01c8764fc2) - rework upload to be a class method + pass client into each component.  Thanks @pngwn!
+- [#8179](https://github.com/gradio-app/gradio/pull/8179) [`6a218b4`](https://github.com/gradio-app/gradio/commit/6a218b4148095aaa0c58d8c20973ba01c8764fc2) - rework upload to be a class method + pass client into each component. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -839,18 +839,17 @@ demo.launch(max_file_size=5 * gr.FileSize.MB)
 
 ![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
 
-
 #### Error states can now be cleared
 
 When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
 
 ![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
 
- Thanks @freddyaboulton!
+Thanks @freddyaboulton!
 
 ### Fixes
 
-- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -865,14 +864,14 @@ When a component encounters an error, the error state shown in the UI can now be
 
 ### Features
 
-- [#8042](https://github.com/gradio-app/gradio/pull/8042) [`92139f3`](https://github.com/gradio-app/gradio/commit/92139f3d7d6b832b649ff1f6c10c87e6fb522cde) - refresh the `ImageEditor` UI.  Thanks @pngwn!
-- [#8059](https://github.com/gradio-app/gradio/pull/8059) [`074ce38`](https://github.com/gradio-app/gradio/commit/074ce3805ada6ba829c17da3af5f186d9f5f9865) - ensure the `ImageEditor` works correctly with layers and `change` events.  Thanks @pngwn!
-- [#7845](https://github.com/gradio-app/gradio/pull/7845) [`dbb7373`](https://github.com/gradio-app/gradio/commit/dbb7373dde69d4ed2741942b5a1898f8620cec24) - ensure `ImageEditor` events work as expected.  Thanks @pngwn!
+- [#8042](https://github.com/gradio-app/gradio/pull/8042) [`92139f3`](https://github.com/gradio-app/gradio/commit/92139f3d7d6b832b649ff1f6c10c87e6fb522cde) - refresh the `ImageEditor` UI. Thanks @pngwn!
+- [#8059](https://github.com/gradio-app/gradio/pull/8059) [`074ce38`](https://github.com/gradio-app/gradio/commit/074ce3805ada6ba829c17da3af5f186d9f5f9865) - ensure the `ImageEditor` works correctly with layers and `change` events. Thanks @pngwn!
+- [#7845](https://github.com/gradio-app/gradio/pull/7845) [`dbb7373`](https://github.com/gradio-app/gradio/commit/dbb7373dde69d4ed2741942b5a1898f8620cec24) - ensure `ImageEditor` events work as expected. Thanks @pngwn!
 
 ### Fixes
 
-- [#8046](https://github.com/gradio-app/gradio/pull/8046) [`d6c289b`](https://github.com/gradio-app/gradio/commit/d6c289b34668f0011676737ee8edb4cb62b0620a) - round [x, y, w, h] before cropping to avoid unexpected interpolation on pixel values.  Thanks @ernestchu!
-- [#7959](https://github.com/gradio-app/gradio/pull/7959) [`2a5cb97`](https://github.com/gradio-app/gradio/commit/2a5cb978240960fd8b150a1eae6ae8328a5c0c59) - ensure `ImageEditor` always draws at the correct position.  Thanks @hrrbay!
+- [#8046](https://github.com/gradio-app/gradio/pull/8046) [`d6c289b`](https://github.com/gradio-app/gradio/commit/d6c289b34668f0011676737ee8edb4cb62b0620a) - round [x, y, w, h] before cropping to avoid unexpected interpolation on pixel values. Thanks @ernestchu!
+- [#7959](https://github.com/gradio-app/gradio/pull/7959) [`2a5cb97`](https://github.com/gradio-app/gradio/commit/2a5cb978240960fd8b150a1eae6ae8328a5c0c59) - ensure `ImageEditor` always draws at the correct position. Thanks @hrrbay!
 
 ### Dependency updates
 
@@ -888,7 +887,7 @@ When a component encounters an error, the error state shown in the UI can now be
 
 ### Fixes
 
-- [#7817](https://github.com/gradio-app/gradio/pull/7817) [`867ff16`](https://github.com/gradio-app/gradio/commit/867ff16cd47ceb5bbf076503538a262b6fe64638) - Trigger the "clear" event of Image Editor.  Thanks @uebian!
+- [#7817](https://github.com/gradio-app/gradio/pull/7817) [`867ff16`](https://github.com/gradio-app/gradio/commit/867ff16cd47ceb5bbf076503538a262b6fe64638) - Trigger the "clear" event of Image Editor. Thanks @uebian!
 
 ### Dependency updates
 

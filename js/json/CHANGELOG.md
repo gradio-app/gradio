@@ -69,7 +69,7 @@
 
 ### Fixes
 
-- [#11244](https://github.com/gradio-app/gradio/pull/11244) [`ed97e39`](https://github.com/gradio-app/gradio/commit/ed97e390f1790b77192368a77cd2d10c90a232c5) - Ensure `show_indices` works as expected in gr.JSON.  Thanks @hannahblair!
+- [#11244](https://github.com/gradio-app/gradio/pull/11244) [`ed97e39`](https://github.com/gradio-app/gradio/commit/ed97e390f1790b77192368a77cd2d10c90a232c5) - Ensure `show_indices` works as expected in gr.JSON. Thanks @hannahblair!
 
 ## 0.5.22
 
@@ -82,7 +82,7 @@
 
 ### Fixes
 
-- [#11184](https://github.com/gradio-app/gradio/pull/11184) [`f1a1c50`](https://github.com/gradio-app/gradio/commit/f1a1c5049ec1a5fcd3353b090a138fa63137790f) - Add Example component for JSON.  Thanks @freddyaboulton!
+- [#11184](https://github.com/gradio-app/gradio/pull/11184) [`f1a1c50`](https://github.com/gradio-app/gradio/commit/f1a1c5049ec1a5fcd3353b090a138fa63137790f) - Add Example component for JSON. Thanks @freddyaboulton!
 
 ## 0.5.20
 
@@ -279,8 +279,8 @@
 
 ### Features
 
-- [#9313](https://github.com/gradio-app/gradio/pull/9313) [`1fef9d9`](https://github.com/gradio-app/gradio/commit/1fef9d9a26f0ebce4de18c486702661f6539b1c6) - Standardize `height` across components and add `max_height` and `min_height` parameters where appropriate.  Thanks @abidlabs!
-- [#9250](https://github.com/gradio-app/gradio/pull/9250) [`350b0a5`](https://github.com/gradio-app/gradio/commit/350b0a5cafb9176f914f62e7c90de51d4352cc77) - Improve Icon Button consistency.  Thanks @hannahblair!
+- [#9313](https://github.com/gradio-app/gradio/pull/9313) [`1fef9d9`](https://github.com/gradio-app/gradio/commit/1fef9d9a26f0ebce4de18c486702661f6539b1c6) - Standardize `height` across components and add `max_height` and `min_height` parameters where appropriate. Thanks @abidlabs!
+- [#9250](https://github.com/gradio-app/gradio/pull/9250) [`350b0a5`](https://github.com/gradio-app/gradio/commit/350b0a5cafb9176f914f62e7c90de51d4352cc77) - Improve Icon Button consistency. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -302,13 +302,13 @@
 
 ### Features
 
-- [#9276](https://github.com/gradio-app/gradio/pull/9276) [`8362a10`](https://github.com/gradio-app/gradio/commit/8362a10a7e8a3c291fa0300a6f4a23a1ca997b8a) - Fix scrollbars everywhere.  Thanks @aliabid94!
+- [#9276](https://github.com/gradio-app/gradio/pull/9276) [`8362a10`](https://github.com/gradio-app/gradio/commit/8362a10a7e8a3c291fa0300a6f4a23a1ca997b8a) - Fix scrollbars everywhere. Thanks @aliabid94!
 
 ## 0.4.1
 
 ### Fixes
 
-- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -321,8 +321,8 @@
 
 ### Features
 
-- [#9023](https://github.com/gradio-app/gradio/pull/9023) [`87e3537`](https://github.com/gradio-app/gradio/commit/87e3537342017c7f19d012f0806a14bc264e09f9) - Add height param to gr.JSON.  Thanks @hannahblair!
-- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+- [#9023](https://github.com/gradio-app/gradio/pull/9023) [`87e3537`](https://github.com/gradio-app/gradio/commit/87e3537342017c7f19d012f0806a14bc264e09f9) - Add height param to gr.JSON. Thanks @hannahblair!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages. Thanks @pngwn!
 
 ### Dependency updates
 
@@ -343,13 +343,13 @@
 
 ### Features
 
-- [#8954](https://github.com/gradio-app/gradio/pull/8954) [`5010e95`](https://github.com/gradio-app/gradio/commit/5010e9579e5fdd5c3861b144c427551c2e5ead0f) - Add `overflow: wrap` to JSON to catch overflow in xs device widths.  Thanks @hannahblair!
-- [#8932](https://github.com/gradio-app/gradio/pull/8932) [`600c97c`](https://github.com/gradio-app/gradio/commit/600c97c807b648bca11c2dd5dfa0a6a692756bd9) - Allow viewing JSON as list or dict with `show_indices` param.  Thanks @hannahblair!
-- [#8929](https://github.com/gradio-app/gradio/pull/8929) [`3539787`](https://github.com/gradio-app/gradio/commit/3539787ebb39b3d00c34707b49d5de40fdc3d69a) - Add line numbering and collapse/expand logic to gr.JSON.  Thanks @hannahblair!
+- [#8954](https://github.com/gradio-app/gradio/pull/8954) [`5010e95`](https://github.com/gradio-app/gradio/commit/5010e9579e5fdd5c3861b144c427551c2e5ead0f) - Add `overflow: wrap` to JSON to catch overflow in xs device widths. Thanks @hannahblair!
+- [#8932](https://github.com/gradio-app/gradio/pull/8932) [`600c97c`](https://github.com/gradio-app/gradio/commit/600c97c807b648bca11c2dd5dfa0a6a692756bd9) - Allow viewing JSON as list or dict with `show_indices` param. Thanks @hannahblair!
+- [#8929](https://github.com/gradio-app/gradio/pull/8929) [`3539787`](https://github.com/gradio-app/gradio/commit/3539787ebb39b3d00c34707b49d5de40fdc3d69a) - Add line numbering and collapse/expand logic to gr.JSON. Thanks @hannahblair!
 
 ### Fixes
 
-- [#8949](https://github.com/gradio-app/gradio/pull/8949) [`1e16f67`](https://github.com/gradio-app/gradio/commit/1e16f67ba2a02761d4b73afd723f8edc3c3124e9) - Fix check icon in gr.JSON and gr.Code.  Thanks @hannahblair!
+- [#8949](https://github.com/gradio-app/gradio/pull/8949) [`1e16f67`](https://github.com/gradio-app/gradio/commit/1e16f67ba2a02761d4b73afd723f8edc3c3124e9) - Fix check icon in gr.JSON and gr.Code. Thanks @hannahblair!
 
 ### Dependency updates
 
@@ -453,18 +453,17 @@ demo.launch(max_file_size=5 * gr.FileSize.MB)
 
 ![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
 
-
 #### Error states can now be cleared
 
 When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
 
 ![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
 
- Thanks @freddyaboulton!
+Thanks @freddyaboulton!
 
 ### Fixes
 
-- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling. Thanks @pngwn!
 
 ### Dependency updates
 

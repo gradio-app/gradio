@@ -6,7 +6,7 @@ export type SortDirection = "asc" | "desc";
 export function get_sort_status(
 	name: string,
 	sort_columns: { col: number; direction: SortDirection }[],
-	headers: Headers
+	headers: Headers,
 ): "none" | "asc" | "desc" {
 	if (!sort_columns.length) return "none";
 
@@ -22,7 +22,7 @@ export function get_sort_status(
 
 export function sort_data(
 	data: { id: string; value: string | number }[][],
-	sort_columns: { col: number; direction: SortDirection }[]
+	sort_columns: { col: number; direction: SortDirection }[],
 ): number[] {
 	if (!data || !data.length || !data[0]) {
 		return [];
@@ -71,8 +71,8 @@ export function sort_data_and_preserve_selection(
 	selected: [number, number] | false,
 	get_current_indices: (
 		id: string,
-		data: { id: string; value: string | number }[][]
-	) => [number, number]
+		data: { id: string; value: string | number }[][],
+	) => [number, number],
 ): { data: typeof data; selected: [number, number] | false } {
 	let id = null;
 	if (selected && selected[0] in data && selected[1] in data[selected[0]]) {

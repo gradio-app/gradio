@@ -1,11 +1,11 @@
 import { test, expect, drag_and_drop_file } from "@self/tootils";
 
 test("Video click-to-upload uploads video successfuly. Clear, play, and pause buttons dispatch events correctly. Downloading the file works and has the correct name.", async ({
-	page
+	page,
 }) => {
 	let [fileChooser] = await Promise.all([
 		page.waitForEvent("filechooser"),
-		page.getByLabel("Drop a video file here to upload").first().click()
+		page.getByLabel("Drop a video file here to upload").first().click(),
 	]);
 	await fileChooser.setFiles(["./test/files/av1-video.mp4"]);
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
@@ -18,7 +18,7 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 
 	const [fileChooser_two] = await Promise.all([
 		page.waitForEvent("filechooser"),
-		page.getByLabel("Drop a video file here to upload").first().click()
+		page.getByLabel("Drop a video file here to upload").first().click(),
 	]);
 
 	await fileChooser_two.setFiles(["./test/files/av1-video.mp4"]);
@@ -35,7 +35,7 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 test.skip("Video play, pause events work correctly.", async ({ page }) => {
 	const [fileChooser] = await Promise.all([
 		page.waitForEvent("filechooser"),
-		page.getByLabel("Drop a video file here to upload").first().click()
+		page.getByLabel("Drop a video file here to upload").first().click(),
 	]);
 	await fileChooser.setFiles(["./test/files/av1-video.mp4"]);
 
@@ -51,27 +51,27 @@ test.skip("Video play, pause events work correctly.", async ({ page }) => {
 });
 
 test("Video drag-and-drop uploads a file to the server correctly.", async ({
-	page
+	page,
 }) => {
 	await drag_and_drop_file(
 		page,
 		"input[type=file]",
 		"./test/files/file_test.ogg",
 		"file_test.ogg",
-		"video/*"
+		"video/*",
 	);
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 });
 
 test("Video drag-and-drop displays a warning when the file is of the wrong mime type.", async ({
-	page
+	page,
 }) => {
 	await drag_and_drop_file(
 		page,
 		"input[type=file]",
 		"./test/files/file_test.ogg",
-		"file_test.ogg"
+		"file_test.ogg",
 	);
 	const toast = page.getByTestId("toast-body");
 	expect(toast).toContainText("Warning");

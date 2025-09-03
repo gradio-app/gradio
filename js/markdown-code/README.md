@@ -2,11 +2,12 @@
 
 ```html
 <script>
-    import { BaseMarkdown, MarkdownCode, BaseExample } from `@gradio/markdown`;
+	import { BaseMarkdown, MarkdownCode, BaseExample } from `@gradio/markdown`;
 </script>
 ```
 
 BaseMarkdown
+
 ```javascript
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -24,6 +25,7 @@ BaseMarkdown
 ```
 
 MarkdownCode
+
 ```javascript
 	export let chatbot = true;
 	export let message: string;
@@ -38,6 +40,7 @@ MarkdownCode
 ```
 
 BaseExample
+
 ```javascript
 	export let value: string;
 	export let type: "gallery" | "table";

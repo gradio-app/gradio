@@ -2,9 +2,9 @@
 
 When building a Gradio application with `gr.Blocks()`, you may want to share certain values between users (e.g. a count of visitors to your page), or persist values for a single user across certain interactions (e.g. a chat history). This referred to as **state** and there are three general ways to manage state in a Gradio application:
 
-* **Global state**: persist and share values among all users of your Gradio application while your Gradio application is running
-* **Session state**: persist values for each user of your Gradio application while they are using your Gradio application in a single session. If they refresh the page, session state will be reset.
-* **Browser state**: persist values for each user of your Gradio application in the browser's localStorage, allowing data to persist even after the page is refreshed or closed.
+- **Global state**: persist and share values among all users of your Gradio application while your Gradio application is running
+- **Session state**: persist values for each user of your Gradio application while they are using your Gradio application in a single session. If they refresh the page, session state will be reset.
+- **Browser state**: persist values for each user of your Gradio application in the browser's localStorage, allowing data to persist even after the page is refreshed or closed.
 
 ## Global State
 
@@ -23,7 +23,7 @@ def increment_counter():
     visitor_count += 1
     return visitor_count
 
-with gr.Blocks() as demo:    
+with gr.Blocks() as demo:
     number = gr.Textbox(label="Total Visitors", value="Counting...")
     demo.load(increment_counter, inputs=None, outputs=number)
 
@@ -47,12 +47,12 @@ $code_simple_state
 Notice how we do this with state:
 
 1. We store the cart items in a `gr.State()` object, initialized here to be an empty list.
-2. When adding items to the cart, the event listener uses the cart as both input and output - it returns the updated cart with all the items inside. 
+2. When adding items to the cart, the event listener uses the cart as both input and output - it returns the updated cart with all the items inside.
 3. We can attach a `.change` listener to cart, that uses the state variable as input as well.
 
 You can think of `gr.State` as an invisible Gradio component that can store any kind of value. Here, `cart` is not visible in the frontend but is used for calculations.
 
-The `.change` listener for a state variable triggers after any event listener changes the value of a state variable. If the state variable holds a sequence (like a `list`, `set`, or `dict`), a change is triggered if any of the elements inside change. If it holds an object or primitive, a change is triggered if the **hash** of the  value changes. So if you define a custom class and create a `gr.State` variable that is an instance of that class, make sure that the the class includes a sensible `__hash__` implementation.
+The `.change` listener for a state variable triggers after any event listener changes the value of a state variable. If the state variable holds a sequence (like a `list`, `set`, or `dict`), a change is triggered if any of the elements inside change. If it holds an object or primitive, a change is triggered if the **hash** of the value changes. So if you define a custom class and create a `gr.State` variable that is an instance of that class, make sure that the the class includes a sensible `__hash__` implementation.
 
 The value of a session State variable is cleared when the user refreshes the page. The value is stored on in the app backend for 60 minutes after the user closes the tab (this can be configured by the `delete_cache` parameter in `gr.Blocks`).
 
@@ -70,7 +70,7 @@ class NonDeepCopyable:
         from threading import Lock
         self.counter = 0
         self.lock = Lock()  # Lock objects cannot be deepcopied
-    
+
     def increment(self):
         with self.lock:
             self.counter += 1
@@ -98,11 +98,11 @@ with gr.Blocks() as demo:
     counter = gr.Number(label="Counter Value")
     increment_btn = gr.Button("Increment Counter")
     increment_btn.click(increment_counter, inputs=None, outputs=counter)
-    
+
     # Initialize instance when page loads
-    demo.load(initialize_instance, inputs=None, outputs=output)    
+    demo.load(initialize_instance, inputs=None, outputs=output)
     # Clean up instance when page is closed/refreshed
-    demo.unload(cleanup_instance)    
+    demo.unload(cleanup_instance)
 
 demo.launch()
 ```
