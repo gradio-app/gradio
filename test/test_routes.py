@@ -10,7 +10,6 @@ import time
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
 from threading import Thread
-from unittest.mock import patch
 
 import gradio_client as grc
 import httpx
@@ -32,7 +31,6 @@ from gradio import (
     Textbox,
     close_all,
     routes,
-    wasm_utils,
 )
 from gradio.route_utils import (
     API_PREFIX,
@@ -1102,6 +1100,34 @@ def test_show_api_queue_not_enabled():
     assert not io.show_api
 
 
+def test_config_show_api_reflects_launch_flag():
+    with gr.Blocks() as demo:
+        gr.Markdown("Hello")
+
+    app, _, _ = demo.launch(prevent_thread_lock=True, show_api=False)
+    client = TestClient(app)
+    config = client.get("/config").json()
+    assert config["show_api"] is False
+    demo.close()
+
+    app, _, _ = demo.launch(prevent_thread_lock=True, show_api=True)
+    client = TestClient(app)
+    config = client.get("/config").json()
+    assert config["show_api"] is True
+    demo.close()
+
+
+def test_config_show_api_reflects_mount_flag():
+    app = FastAPI()
+    with gr.Blocks() as demo:
+        gr.Markdown("Hello")
+
+    gr.mount_gradio_app(app, demo, path="/gr", show_api=False)
+    client = TestClient(app)
+    config = client.get("/gr/config").json()
+    assert config["show_api"] is False
+
+
 def test_orjson_serialization():
     df = pd.DataFrame(
         {
@@ -1221,22 +1247,6 @@ def test_api_name_set_for_all_events(connect):
         assert client.predict("freddy", api_name="/goodbye") == "Goodbye freddy"
         assert client.predict("freddy", api_name="/greet_me") == "Hello"
         assert client.predict("freddy", api_name="/Say__goodbye") == "Goodbye"
-
-
-class TestShowAPI:
-    @patch.object(wasm_utils, "IS_WASM", True)
-    def test_show_api_false_when_is_wasm_true(self):
-        interface = Interface(lambda x: x, "text", "text", examples=[["hannah"]])
-        assert interface.show_api_in_footer is False, (
-            "show_api should be False when IS_WASM is True"
-        )
-
-    @patch.object(wasm_utils, "IS_WASM", False)
-    def test_show_api_true_when_is_wasm_false(self):
-        interface = Interface(lambda x: x, "text", "text", examples=[["hannah"]])
-        assert interface.show_api_in_footer is True, (
-            "show_api should be True when IS_WASM is False"
-        )
 
 
 def test_component_server_endpoints(connect):
