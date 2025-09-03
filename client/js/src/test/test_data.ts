@@ -400,6 +400,7 @@ export const config_response: Config = {
 			collects_event_data: false,
 			trigger_after: null,
 			trigger_only_on_success: false,
+			trigger_only_on_failure: false,
 			trigger_mode: "once",
 			show_api: true,
 			zerogpu: false
@@ -426,6 +427,7 @@ export const config_response: Config = {
 			collects_event_data: false,
 			trigger_after: null,
 			trigger_only_on_success: false,
+			trigger_only_on_failure: false,
 			trigger_mode: "once",
 			show_api: false,
 			zerogpu: false
@@ -452,6 +454,7 @@ export const config_response: Config = {
 			collects_event_data: false,
 			trigger_after: null,
 			trigger_only_on_success: false,
+			trigger_only_on_failure: false,
 			trigger_mode: "once",
 			show_api: false,
 			zerogpu: false

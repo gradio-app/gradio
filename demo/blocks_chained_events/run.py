@@ -21,6 +21,7 @@ with gr.Blocks() as demo:
     with gr.Row():
         result = gr.Textbox(label="Result")
         result_2 = gr.Textbox(label="Consecutive Event")
+        result_failure = gr.Textbox(label="Failure Event")
     with gr.Row():
         success_btn = gr.Button(value="Trigger Success")
         success_btn_2 = gr.Button(value="Trigger Consecutive Success")
@@ -31,8 +32,12 @@ with gr.Blocks() as demo:
         trigger_info = gr.Button(value="Trigger Info")
 
         success_btn_2.click(success, None, None).success(lambda: "First Event Trigered", None, result).success(lambda: "Consecutive Event Triggered", None, result_2)
-        success_btn.click(success, None, None).success(lambda: "Success event triggered", inputs=None, outputs=result)
-        failure_btn.click(failure, None, None).success(lambda: "Should not be triggered", inputs=None, outputs=result)
+        success_event = success_btn.click(success, None, None)
+        success_event.success(lambda: "Success event triggered", inputs=None, outputs=result)
+        success_event.failure(lambda: "Should not be triggered", inputs=None, outputs=result_failure)
+        failure_event = failure_btn.click(failure, None, None)
+        failure_event.success(lambda: "Should not be triggered", inputs=None, outputs=result)
+        failure_event.failure(lambda: "Failure event triggered", inputs=None, outputs=result_failure)
         failure_exception.click(exception, None, None)
         trigger_warning.click(warning_fn, None, None)
         trigger_info.click(info_fn, None, None)

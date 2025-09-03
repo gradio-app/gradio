@@ -102,28 +102,20 @@ def safe_get_lock() -> asyncio.Lock:
     the main thread.
     """
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_closed():
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-        return asyncio.Lock()
+        loop = asyncio.get_running_loop()
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        return asyncio.Lock()
+    return asyncio.Lock()
 
 
 def safe_get_stop_event() -> asyncio.Event:
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_closed():
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-        return asyncio.Event()
+        loop = asyncio.get_running_loop()
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        return asyncio.Event()
+    return asyncio.Event()
 
 
 class DynamicBoolean(int):
@@ -154,6 +146,8 @@ class BaseReloader(ABC):
         demo.has_launched = True
         demo.max_file_size = self.running_app.blocks.max_file_size
         demo.is_running = True
+        demo.allowed_paths = self.running_app.blocks.allowed_paths
+        demo.blocked_paths = self.running_app.blocks.blocked_paths
         self.running_app.state_holder.set_blocks(demo)
         for session in self.running_app.state_holder.session_data.values():
             session.blocks_config = copy.copy(demo.default_config)
@@ -170,6 +164,7 @@ class SourceFileReloader(BaseReloader):
         watch_module: ModuleType,
         stop_event: threading.Event,
         demo_name: str = "demo",
+        encoding="utf-8",
     ) -> None:
         super().__init__()
         self.app = app
@@ -179,6 +174,7 @@ class SourceFileReloader(BaseReloader):
         self.demo_name = demo_name
         self.demo_file = Path(demo_file)
         self.watch_module = watch_module
+        self.encoding = encoding
 
     @property
     def running_app(self) -> App:
@@ -203,14 +199,14 @@ class SourceFileReloader(BaseReloader):
         self.alert_change("reload")
 
 
-def _remove_if_name_main_codeblock(file_path: str):
+def _remove_if_name_main_codeblock(file_path: str, encoding: str = "utf-8"):
     """Parse the file, remove the gr.no_reload code blocks, and write the file back to disk.
 
     Parameters:
         file_path (str): The path to the file to remove the no_reload code blocks from.
     """
 
-    with open(file_path, encoding="utf-8") as file:
+    with open(file_path, encoding=encoding) as file:
         code = file.read()
 
     tree = ast.parse(code)
@@ -310,7 +306,9 @@ def watchfn(reloader: SourceFileReloader):
     # Need to import the module in this thread so that the
     # module is available in the namespace of this thread
     module = reloader.watch_module
-    no_reload_source_code = _remove_if_name_main_codeblock(str(reloader.demo_file))
+    no_reload_source_code = _remove_if_name_main_codeblock(
+        str(reloader.demo_file), encoding=reloader.encoding
+    )
     # Reset the context to id 0 so that the loaded module is the same as the original
     # See https://github.com/gradio-app/gradio/issues/10253
     from gradio.context import Context
@@ -343,7 +341,7 @@ def watchfn(reloader: SourceFileReloader):
                 NO_RELOAD.set(False)
                 # Remove the gr.no_reload code blocks and exec in the new module's dict
                 no_reload_source_code = _remove_if_name_main_codeblock(
-                    str(reloader.demo_file)
+                    str(reloader.demo_file), encoding=reloader.encoding
                 )
                 exec(no_reload_source_code, module.__dict__)
 
@@ -495,7 +493,7 @@ def download_if_url(article: str) -> str:
     return article
 
 
-HASH_SEED_PATH = os.path.join(os.path.dirname(gradio.__file__), "hash_seed.txt")
+HASH_SEED_PATH = os.path.join(os.path.dirname(gradio.__file__), "hash_seed.txt")  # type: ignore
 
 
 def get_hash_seed() -> str:
@@ -1706,8 +1704,9 @@ def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[st
     Get the description of a function, its parameters, and return values by parsing the docstring.
     The docstring should be formatted as follows: first lines are the description
     of the function, then a line starts with "Args:", "Parameters:", or "Arguments:",
-    followed by lines of the form "param_name: description", then optionally a line
-    that starts with "Returns:" followed by descriptions of return values.
+    followed by lines of the form "param_name: description", then optionally lines
+    that starts with "Returns:" followed by descriptions of return values. All lines
+    after the "Returns:" line are added in the `returns` list (including e.g. "Examples").
 
     Parameters:
         fn: The function to get the docstring for.
@@ -1719,7 +1718,12 @@ def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[st
     """
     fn_docstring = inspect.getdoc(fn)
     description = ""
-    parameters = {}
+    try:  # This can fail if the function is a builtin
+        parameters: dict[str, str] = {
+            param.name: "" for param in inspect.signature(fn).parameters.values()
+        }
+    except ValueError:
+        parameters: dict[str, str] = {}
     returns = []
 
     if not fn_docstring:
@@ -1767,7 +1771,7 @@ def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[st
                 if ":" in line:
                     param_name, param_desc = line.split(":", 1)
                     param_name = param_name.split(" ")[0].strip()
-                    if param_name:
+                    if param_name and param_name in parameters:
                         parameters[param_name] = param_desc.strip()
             except Exception:
                 continue
@@ -1779,16 +1783,7 @@ def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[st
                 if not line:
                     continue
 
-                try:
-                    if line.startswith("-"):
-                        returns.append(line[1:].strip())
-                    elif ":" in line:
-                        _, return_desc = line.split(":", 1)
-                        returns.append(return_desc.strip())
-                    else:
-                        returns.append(line)
-                except Exception:
-                    continue
+                returns.append(line)
 
     except Exception:
         pass

@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/gallery",
-	"version": "0.15.28",
+	"version": "0.15.31",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -34,6 +34,11 @@
 			"gradio": "./shared/Gallery.svelte",
 			"svelte": "./dist/shared/Gallery.svelte",
 			"types": "./dist/shared/Gallery.svelte.d.ts"
+		},
+		"./example": {
+			"gradio": "./Example.svelte",
+			"svelte": "./dist/Example.svelte",
+			"types": "./dist/Example.svelte.d.ts"
 		}
 	},
 	"peerDependencies": {

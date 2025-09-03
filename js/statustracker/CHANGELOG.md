@@ -1,5 +1,30 @@
 # @gradio/statustracker
 
+## 0.10.18
+
+### Fixes
+
+- [#11782](https://github.com/gradio-app/gradio/pull/11782) [`e132283`](https://github.com/gradio-app/gradio/commit/e132283b2289d3689927a8fa7f0b4ac8f8628a18) - remove dompurify, update mermaid.  Thanks @pngwn!
+
+## 0.10.17
+
+### Dependency updates
+
+- @gradio/icons@0.13.1
+
+## 0.10.17
+
+### Dependency updates
+
+- @gradio/atoms@0.16.5
+- @gradio/icons@0.13.0
+
+## 0.10.16
+
+### Dependency updates
+
+- @gradio/atoms@0.16.4
+
 ## 0.10.15
 
 ### Features

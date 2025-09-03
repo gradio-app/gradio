@@ -10,7 +10,6 @@ import time
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
 from threading import Thread
-from unittest.mock import patch
 
 import gradio_client as grc
 import httpx
@@ -32,7 +31,6 @@ from gradio import (
     Textbox,
     close_all,
     routes,
-    wasm_utils,
 )
 from gradio.route_utils import (
     API_PREFIX,
@@ -451,6 +449,22 @@ class TestRoutes:
         assert demo.allowed_paths == ["test/test_files/bus.png"]
         assert demo.show_error
 
+    def test_mount_gradio_app_with_path_params(self):
+        app = FastAPI()
+
+        def print_id(_, request: gr.Request):
+            return request.path_params["id"]
+
+        demo = gr.Interface(print_id, "textbox", "textbox")
+        app = gr.mount_gradio_app(
+            app,
+            demo,
+            path="/project/{id}",
+        )
+        with TestClient(app) as client:
+            response = client.get("/project/123")
+            assert response.status_code == 200
+
     def test_mount_gradio_app_with_lifespan(self):
         @asynccontextmanager
         async def empty_lifespan(app: FastAPI):
@@ -476,7 +490,7 @@ class TestRoutes:
     def test_mount_gradio_app_with_startup(self):
         app = FastAPI()
 
-        @app.on_event("startup")
+        @app.on_event("startup")  # type: ignore
         async def empty_startup():
             return
 
@@ -1086,6 +1100,34 @@ def test_show_api_queue_not_enabled():
     assert not io.show_api
 
 
+def test_config_show_api_reflects_launch_flag():
+    with gr.Blocks() as demo:
+        gr.Markdown("Hello")
+
+    app, _, _ = demo.launch(prevent_thread_lock=True, show_api=False)
+    client = TestClient(app)
+    config = client.get("/config").json()
+    assert config["show_api"] is False
+    demo.close()
+
+    app, _, _ = demo.launch(prevent_thread_lock=True, show_api=True)
+    client = TestClient(app)
+    config = client.get("/config").json()
+    assert config["show_api"] is True
+    demo.close()
+
+
+def test_config_show_api_reflects_mount_flag():
+    app = FastAPI()
+    with gr.Blocks() as demo:
+        gr.Markdown("Hello")
+
+    gr.mount_gradio_app(app, demo, path="/gr", show_api=False)
+    client = TestClient(app)
+    config = client.get("/gr/config").json()
+    assert config["show_api"] is False
+
+
 def test_orjson_serialization():
     df = pd.DataFrame(
         {
@@ -1205,22 +1247,6 @@ def test_api_name_set_for_all_events(connect):
         assert client.predict("freddy", api_name="/goodbye") == "Goodbye freddy"
         assert client.predict("freddy", api_name="/greet_me") == "Hello"
         assert client.predict("freddy", api_name="/Say__goodbye") == "Goodbye"
-
-
-class TestShowAPI:
-    @patch.object(wasm_utils, "IS_WASM", True)
-    def test_show_api_false_when_is_wasm_true(self):
-        interface = Interface(lambda x: x, "text", "text", examples=[["hannah"]])
-        assert interface.show_api_in_footer is False, (
-            "show_api should be False when IS_WASM is True"
-        )
-
-    @patch.object(wasm_utils, "IS_WASM", False)
-    def test_show_api_true_when_is_wasm_false(self):
-        interface = Interface(lambda x: x, "text", "text", examples=[["hannah"]])
-        assert interface.show_api_in_footer is True, (
-            "show_api should be True when IS_WASM is False"
-        )
 
 
 def test_component_server_endpoints(connect):
@@ -1919,3 +1945,36 @@ def test_deep_link_unique_per_session():
                 ] == number and component["props"]["value"][0] == str(number)
 
     assert all(verified_configs)
+
+
+def test_server_fn_passes_request():
+    import requests
+
+    from gradio.components.base import server
+
+    def get_url(self, request: gr.Request):
+        return request.url
+
+    tb = gr.Textbox()
+    tb.get_url = server(get_url)  # type: ignore
+
+    iface = gr.Interface(lambda x: f"Hello {x}", inputs=tb, outputs="code")
+    component_id = None
+    for component in iface.config["components"]:
+        if component["type"] == "textbox":  # type: ignore
+            component_id = component["id"]  # type: ignore
+            break
+
+    assert component_id
+    _, local_url, _ = iface.launch(prevent_thread_lock=True)
+    print(local_url)
+
+    form_data = {
+        "session_hash": "foo",
+        "component_id": component_id,
+        "fn_name": "get_url",
+        "data": json.dumps({"foo": "bar"}),
+    }
+    response = requests.post(f"{local_url}/gradio_api/component_server", json=form_data)
+    assert response.status_code == 200
+    assert response.json()["_url"].endswith("/gradio_api/component_server")

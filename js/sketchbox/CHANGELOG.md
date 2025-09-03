@@ -1,5 +1,27 @@
 # @gradio/sketchbox
 
+## 0.6.15
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.18
+
+## 0.6.15
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.17
+- @gradio/atoms@0.16.5
+- @gradio/column@0.2.1
+
+## 0.6.14
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.16
+- @gradio/atoms@0.16.4
+- @gradio/column@0.2.1
+
 ## 0.6.13
 
 ### Dependency updates

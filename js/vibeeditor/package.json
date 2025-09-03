@@ -1,0 +1,37 @@
+{
+	"name": "@gradio/vibeeditor",
+	"version": "0.2.2",
+	"description": "Gradio VibeEditor component",
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"private": false,
+	"main_changeset": true,
+	"main": "Index.svelte",
+	"exports": {
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts",
+			"default": "./dist/Index.svelte"
+		},
+		"./package.json": "./package.json"
+	},
+	"dependencies": {
+		"@gradio/client": "workspace:^",
+		"@gradio/atoms": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/utils": "workspace:^"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/vibeeditor"
+	}
+}

@@ -1,48 +1,4 @@
 @font-face {
-	font-family: "ui-sans-serif";
-	src: url("static/fonts/ui-sans-serif/ui-sans-serif-Regular.woff2")
-		format("woff2");
-	font-weight: Regular;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "ui-sans-serif";
-	src: url("static/fonts/ui-sans-serif/ui-sans-serif-Bold.woff2")
-		format("woff2");
-	font-weight: Bold;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "system-ui";
-	src: url("static/fonts/system-ui/system-ui-Regular.woff2") format("woff2");
-	font-weight: Regular;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "system-ui";
-	src: url("static/fonts/system-ui/system-ui-Bold.woff2") format("woff2");
-	font-weight: Bold;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "sans-serif";
-	src: url("static/fonts/sans-serif/sans-serif-Regular.woff2") format("woff2");
-	font-weight: Regular;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "sans-serif";
-	src: url("static/fonts/sans-serif/sans-serif-Bold.woff2") format("woff2");
-	font-weight: Bold;
-	font-style: normal;
-}
-
-@font-face {
 	font-family: "IBM Plex Mono";
 	src: url("static/fonts/IBMPlexMono/IBMPlexMono-Regular.woff2") format("woff2");
 	font-weight: Regular;
@@ -52,49 +8,6 @@
 @font-face {
 	font-family: "IBM Plex Mono";
 	src: url("static/fonts/IBMPlexMono/IBMPlexMono-Bold.woff2") format("woff2");
-	font-weight: Bold;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "ui-monospace";
-	src: url("static/fonts/ui-monospace/ui-monospace-Regular.woff2")
-		format("woff2");
-	font-weight: Regular;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "ui-monospace";
-	src: url("static/fonts/ui-monospace/ui-monospace-Bold.woff2") format("woff2");
-	font-weight: Bold;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "Consolas";
-	src: url("static/fonts/Consolas/Consolas-Regular.woff2") format("woff2");
-	font-weight: Regular;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "Consolas";
-	src: url("static/fonts/Consolas/Consolas-Bold.woff2") format("woff2");
-	font-weight: Bold;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "monospace";
-	src: url("static/fonts/monospace/monospace-Regular.woff2") format("woff2");
-	font-weight: Regular;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "monospace";
-	src: url("static/fonts/monospace/monospace-Bold.woff2") format("woff2");
 	font-weight: Bold;
 	font-style: normal;
 }
@@ -155,8 +68,8 @@
 	--text-lg: 16px;
 	--text-xl: 22px;
 	--text-xxl: 26px;
-	--font: "Source Sans Pro", "ui-sans-serif", "system-ui", sans-serif;
-	--font-mono: "IBM Plex Mono", "ui-monospace", "Consolas", monospace;
+	--font: "Source Sans Pro", ui-sans-serif, system-ui, sans-serif;
+	--font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
 	--body-background-fill: var(--background-fill-primary);
 	--body-text-color: var(--neutral-800);
 	--body-text-size: var(--text-md);
@@ -492,8 +405,8 @@
 	--text-lg: 16px;
 	--text-xl: 22px;
 	--text-xxl: 26px;
-	--font: "Source Sans Pro", "ui-sans-serif", "system-ui", sans-serif;
-	--font-mono: "IBM Plex Mono", "ui-monospace", "Consolas", monospace;
+	--font: "Source Sans Pro", ui-sans-serif, system-ui, sans-serif;
+	--font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
 	--body-text-size: var(--text-md);
 	--body-text-weight: 400;
 	--embed-radius: var(--radius-sm);

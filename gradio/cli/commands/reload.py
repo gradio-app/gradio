@@ -15,7 +15,6 @@ import subprocess
 import sys
 import threading
 from pathlib import Path
-from typing import Optional
 
 import typer
 from rich import print
@@ -102,7 +101,7 @@ def _setup_config(
 def main(
     demo_path: Path,
     demo_name: str = "demo",
-    watch_dirs: Optional[list[str]] = None,
+    watch_dirs: list[str] | None = None,
     encoding: str = "utf-8",
     watch_library: bool = False,
 ):
@@ -113,15 +112,21 @@ def main(
 
     # Pass the following data as environment variables
     # so that we can set up reload mode correctly in the networking.py module
+    env_vars = dict(
+        os.environ,
+        GRADIO_WATCH_DIRS=",".join(watch_sources),
+        GRADIO_WATCH_MODULE_NAME=module_name,
+        GRADIO_WATCH_DEMO_NAME=demo_name,
+        GRADIO_WATCH_DEMO_PATH=str(path),
+        GRADIO_WATCH_ENCODING=encoding,
+    )
+
+    if "GRADIO_VIBE_MODE" in os.environ:
+        env_vars["GRADIO_VIBE_MODE"] = os.environ["GRADIO_VIBE_MODE"]
+
     popen = subprocess.Popen(
         [sys.executable, "-u", path],
-        env=dict(
-            os.environ,
-            GRADIO_WATCH_DIRS=",".join(watch_sources),
-            GRADIO_WATCH_MODULE_NAME=module_name,
-            GRADIO_WATCH_DEMO_NAME=demo_name,
-            GRADIO_WATCH_DEMO_PATH=str(path),
-        ),
+        env=env_vars,
     )
     if popen.poll() is None:
         try:

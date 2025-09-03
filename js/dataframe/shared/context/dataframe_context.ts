@@ -8,7 +8,7 @@ import {
 	get_next_cell_coordinates,
 	get_range_selection,
 	move_cursor
-} from "../selection_utils";
+} from "../utils/selection_utils";
 
 export const DATAFRAME_KEY = Symbol("dataframe");
 
@@ -220,9 +220,7 @@ function create_actions(
 		make_id: () => string,
 		index?: number
 	): { data: any[][]; headers: string[] } => {
-		const new_headers = context.headers
-			? [...headers.map((h) => context.headers![headers.indexOf(h)].value)]
-			: [...headers, `Header ${headers.length + 1}`];
+		const new_headers = [...headers, `Header ${headers.length + 1}`];
 		const new_data = data.map((row) => [...row, { value: "", id: make_id() }]);
 		if (index !== undefined) {
 			new_headers.splice(index, 0, new_headers.pop()!);

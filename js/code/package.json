@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/code",
-	"version": "0.14.12",
+	"version": "0.14.15",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -38,14 +38,16 @@
 	"main": "./Index.svelte",
 	"exports": {
 		".": {
+			"types": "./dist/Index.svelte.d.ts",
 			"gradio": "./Index.svelte",
 			"svelte": "./dist/Index.svelte",
-			"types": "./dist/Index.svelte.d.ts"
+			"default": "./dist/Index.svelte"
 		},
 		"./example": {
+			"types": "./dist/Example.svelte.d.ts",
 			"gradio": "./Example.svelte",
 			"svelte": "./dist/Example.svelte",
-			"types": "./dist/Example.svelte.d.ts"
+			"default": "./dist/Example.svelte"
 		},
 		"./package.json": "./package.json"
 	},

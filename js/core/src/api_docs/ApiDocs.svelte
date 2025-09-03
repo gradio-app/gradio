@@ -99,6 +99,7 @@
 	};
 
 	let js_info: Record<string, any>;
+	let analytics: Record<string, any>;
 
 	get_info().then((data) => {
 		info = data;
@@ -106,6 +107,18 @@
 
 	get_js_info().then((js_api_info) => {
 		js_info = js_api_info;
+	});
+
+	async function get_summary(): Promise<{
+		functions: any;
+	}> {
+		let response = await fetch(root.replace(/\/$/, "") + "/monitoring/summary");
+		let data = await response.json();
+		return data;
+	}
+
+	get_summary().then((summary) => {
+		analytics = summary.functions;
 	});
 
 	const dispatch = createEventDispatcher();
@@ -145,6 +158,11 @@
 		description: string;
 		parameters: Record<string, ToolParameter>;
 		expanded?: boolean;
+		meta: {
+			mcp_type: "tool" | "resource" | "prompt";
+			file_data_present: boolean;
+			endpoint_name: string;
+		};
 	}
 
 	let tools: Tool[] = [];
@@ -187,7 +205,9 @@
 				name: tool.name,
 				description: tool.description || "",
 				parameters: tool.inputSchema?.properties || {},
-				expanded: false
+				meta: tool.meta,
+				expanded: false,
+				endpoint_name: tool.endpoint_name
 			}));
 			selected_tools = new Set(tools.map((tool) => tool.name));
 			headers = schema.map((tool: any) => tool.meta?.headers || []).flat();
@@ -255,6 +275,9 @@
 	}
 
 	onMount(() => {
+		const controller = new AbortController();
+		const signal = controller.signal;
+
 		document.body.style.overflow = "hidden";
 		if ("parentIFrame" in window) {
 			window.parentIFrame?.scrollTo(0, 0);
@@ -266,7 +289,7 @@
 		}
 
 		// Check MCP server status and fetch tools if active
-		fetch(mcp_server_url)
+		fetch(mcp_server_url, { signal: signal })
 			.then((response) => {
 				mcp_server_active = response.ok;
 				if (mcp_server_active) {
@@ -279,6 +302,7 @@
 						current_language = "python";
 					}
 				}
+				controller.abort();
 			})
 			.catch(() => {
 				mcp_server_active = false;
@@ -290,7 +314,7 @@
 	});
 </script>
 
-{#if info}
+{#if info && analytics}
 	{#if api_count}
 		<div class="banner-wrap">
 			<ApiBanner
@@ -380,6 +404,7 @@
 								{mcp_json_stdio}
 								{file_data_present}
 								{mcp_docs}
+								{analytics}
 							/>
 						{:else}
 							1. Confirm that you have cURL installed on your system.
@@ -456,6 +481,7 @@
 									api_description={info.named_endpoints[
 										"/" + dependency.api_name
 									].description}
+									{analytics}
 								/>
 
 								<ParametersSnippet

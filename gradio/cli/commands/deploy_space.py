@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import os
 import re
-from typing import Annotated, Optional
+import shutil
+import subprocess
+from typing import Annotated
 
 import huggingface_hub
 from rich import print
@@ -117,15 +119,158 @@ def format_title(title: str):
     return title
 
 
+def check_gcloud_auth():
+    """Check if user is logged in to Google Cloud and has a project selected."""
+    try:
+        auth_result = subprocess.run(
+            ["gcloud", "auth", "list", "--filter=status:ACTIVE"],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+
+        if not auth_result.stdout.strip():
+            print("[bold yellow]You are not logged in to Google Cloud.[/bold yellow]")
+            print("Running 'gcloud init' to set up authentication...")
+            subprocess.run(["gcloud", "init"], check=True)
+
+        project_result = subprocess.run(
+            ["gcloud", "config", "get-value", "project"],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+
+        if not project_result.stdout.strip():
+            print("[bold yellow]No Google Cloud project is selected.[/bold yellow]")
+            project_id = input("Enter your Google Cloud project ID: ")
+            if not project_id:
+                print("[red]Project ID is required for deployment.[/red]")
+                return None
+            return project_id
+
+        print(f"[green]✓ Authenticated as: {auth_result.stdout.strip()}[/green]")
+        print(f"[green]✓ Project: {project_result.stdout.strip()}[/green]")
+        return project_result.stdout.strip()
+
+    except subprocess.CalledProcessError as e:
+        print(f"[bold red]Error checking Google Cloud configuration: {e}[/bold red]")
+        print("Running 'gcloud init' to set up configuration...")
+        try:
+            subprocess.run(["gcloud", "init"], check=True)
+        except subprocess.CalledProcessError as init_error:
+            print(f"[red]Failed to run 'gcloud init': {init_error}[/red]")
+            return False
+    except FileNotFoundError:
+        print(
+            "[bold red]gcloud CLI not found. Please install Google Cloud SDK.[/bold red]"
+        )
+        return False
+
+    return True
+
+
+def deploy_to_gcloud():
+    """Deploy a Gradio app to Google Cloud Run. Always uses app.py as the entry point."""
+    if not shutil.which("gcloud"):
+        print(
+            "[bold red]gcloud CLI is not installed.[/bold red]\n"
+            "Please install the Google Cloud SDK from: "
+            "[link]https://cloud.google.com/sdk/docs/install[/link]"
+        )
+        return
+
+    project_id = check_gcloud_auth()
+    if not project_id:
+        print(
+            "[bold red]Google Cloud configuration failed. Please run 'gcloud init' manually.[/bold red]"
+        )
+        return
+
+    if not os.path.exists("app.py") and not os.path.exists("main.py"):
+        print(
+            "[bold red]Error:[/bold red] app.py and main.py not found. Google Cloud Run deployment requires app.py or main.py as the entry point."
+        )
+        return
+
+    requirements_file = "requirements.txt"
+    if not os.path.exists(requirements_file):
+        if (
+            input(
+                f"A requirements.txt file is necessary for Google Cloud Run deployment. Create requirements.txt with gradio=={gr.__version__}? (y/n) [y]: "
+            ).lower()
+            != "n"
+        ):
+            with open(requirements_file, "w", encoding="utf-8") as f:
+                f.write(f"gradio=={gr.__version__}\n")
+            print(f"Created requirements.txt with gradio=={gr.__version__}")
+        else:
+            print("\n[yellow]Deployment cancelled.[/yellow]")
+            return
+    else:
+        with open(requirements_file, encoding="utf-8") as f:
+            requirements_content = f.read()
+
+        if "gradio" not in requirements_content and (
+            input(
+                f"Add gradio=={gr.__version__} to requirements.txt? (y/n) [y]: "
+            ).lower()
+            != "n"
+        ):
+            with open(requirements_file, "a", encoding="utf-8") as f:
+                f.write(f"gradio=={gr.__version__}\n")
+            print(f"Added gradio=={gr.__version__} to requirements.txt")
+
+    print("[bold]Deploying to Google Cloud Run...[/bold]")
+
+    try:
+        deploy_command = [
+            "gcloud",
+            "run",
+            "deploy",
+            "--source=.",
+            "--labels=created-by=gradio",
+        ]
+        if project_id:
+            deploy_command.extend(["--project", project_id])
+
+        subprocess.run(
+            deploy_command,
+            check=True,
+            text=True,
+            capture_output=False,
+        )
+        print("[green]✓ Deployment complete![/green]")
+    except subprocess.CalledProcessError as e:
+        print(f"[red]Deployment failed: {e}[/red]")
+        return
+    except KeyboardInterrupt:
+        print("\n[yellow]Deployment cancelled.[/yellow]")
+        return
+
+
 def deploy(
-    title: Annotated[Optional[str], Option(help="Spaces app title")] = None,
+    title: Annotated[str | None, Option(help="Spaces app title")] = None,
     app_file: Annotated[
-        Optional[str], Option(help="File containing the Gradio app")
+        str | None, Option(help="File containing the Gradio app")
     ] = None,
+    provider: Annotated[
+        str | None, Option(help="Deployment provider (spaces or gcloud)")
+    ] = "spaces",
 ):
-    if (
-        os.getenv("SYSTEM") == "spaces"
-    ):  # in case a repo with this function is uploaded to spaces
+    if provider == "gcloud":
+        if app_file and app_file != "app.py":
+            print(
+                "[yellow]Warning:[/yellow] --app-file is ignored for Google Cloud Run deployment. Using app.py as entry point."
+            )
+        deploy_to_gcloud()
+        return
+
+    if provider != "spaces":
+        print(f"[red]Unknown provider: {provider}. Use 'spaces' or 'gcloud'.[/red]")
+        return
+
+    if os.getenv("SYSTEM") == "spaces":
         return
 
     hf_api = huggingface_hub.HfApi()

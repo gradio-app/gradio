@@ -50,25 +50,32 @@ def connect(
 
 
 class TestClientInitialization:
-    @pytest.mark.flaky
-    def test_headers_constructed_correctly(self):
-        client = Client("gradio-tests/titanic-survival", hf_token=HF_TOKEN)
-        assert {"authorization": f"Bearer {HF_TOKEN}"}.items() <= client.headers.items()
-        client = Client(
-            "gradio-tests/titanic-survival",
-            hf_token=HF_TOKEN,
-            headers={"additional": "value"},
-        )
-        assert {
-            "authorization": f"Bearer {HF_TOKEN}",
-            "additional": "value",
-        }.items() <= client.headers.items()
-        client = Client(
-            "gradio-tests/titanic-survival",
-            hf_token=HF_TOKEN,
-            headers={"authorization": "Bearer abcde"},
-        )
-        assert {"authorization": "Bearer abcde"}.items() <= client.headers.items()
+    def test_headers_constructed_correctly(self, increment_demo):
+        if not HF_TOKEN:
+            pytest.skip("HF_TOKEN is not set, skipping test")
+        _, local_url, _ = increment_demo.launch(prevent_thread_lock=True)
+        try:
+            client = Client(local_url, hf_token=HF_TOKEN)
+            assert {
+                "x-hf-authorization": f"Bearer {HF_TOKEN}"
+            }.items() <= client.headers.items()
+            client = Client(
+                local_url,
+                hf_token=HF_TOKEN,
+                headers={"additional": "value"},
+            )
+            assert {
+                "x-hf-authorization": f"Bearer {HF_TOKEN}",
+                "additional": "value",
+            }.items() <= client.headers.items()
+            client = Client(
+                local_url,
+                hf_token=HF_TOKEN,
+                headers={"authorization": "Bearer abcde"},
+            )
+            assert {"authorization": "Bearer abcde"}.items() <= client.headers.items()
+        finally:
+            increment_demo.close()
 
     @pytest.mark.serial
     def test_many_endpoint_demo_loads_quickly(self, many_endpoint_demo):

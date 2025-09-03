@@ -25,7 +25,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Literal,
-    Optional,
     Union,
     cast,
 )
@@ -37,6 +36,7 @@ import orjson
 from fastapi import (
     APIRouter,
     BackgroundTasks,
+    Body,
     Depends,
     FastAPI,
     HTTPException,
@@ -77,8 +77,11 @@ from gradio.data_classes import (
     ResetBody,
     SimplePredictBody,
     UserProvidedPath,
+    VibeCodeBody,
+    VibeEditBody,
 )
 from gradio.exceptions import Error, InvalidPathError
+from gradio.helpers import special_args
 from gradio.i18n import I18n
 from gradio.node_server import (
     start_node_server,
@@ -119,6 +122,7 @@ from gradio.utils import (
 if TYPE_CHECKING:
     from gradio.blocks import Block
 
+import difflib
 import shutil
 import tempfile
 
@@ -296,7 +300,7 @@ class App(FastAPI):
         auth = blocks.auth
         if auth is not None:
             if not callable(auth):
-                self.auth = {account[0]: account[1] for account in auth}
+                self.auth = {account[0]: account[1] for account in auth}  # type: ignore
             else:
                 self.auth = auth
         else:
@@ -306,7 +310,7 @@ class App(FastAPI):
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
-        self.root_path = blocks.root_path or blocks.custom_mount_path or ""
+        self.root_path = blocks.root_path or ""
         self.state_holder.set_blocks(blocks)
 
     def get_blocks(self) -> gradio.Blocks:
@@ -451,7 +455,7 @@ class App(FastAPI):
 
         @router.get("/user")
         @router.get("/user/")
-        def get_current_user(request: fastapi.Request) -> Optional[str]:
+        def get_current_user(request: fastapi.Request) -> str | None:
             if app.auth_dependency is not None:
                 return app.auth_dependency(request)
             token = request.cookies.get(
@@ -531,7 +535,7 @@ class App(FastAPI):
                 return RedirectResponse(url=root, status_code=status.HTTP_302_FOUND)
             if (
                 not callable(app.auth)
-                and username in app.auth
+                and username in app.auth  # type: ignore
                 and compare_passwords_securely(password, app.auth[username])  # type: ignore
             ) or (callable(app.auth) and app.auth.__call__(username, password)):  # type: ignore
                 token = secrets.token_urlsafe(16)
@@ -651,7 +655,7 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request,
                 route_path=f"/{page}",
-                root_path=app.root_path,
+                root_path=app.root_path or blocks.custom_mount_path,
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
@@ -866,7 +870,9 @@ class App(FastAPI):
         def get_config(request: fastapi.Request, deep_link: str = ""):
             config = utils.safe_deepcopy(app.get_blocks().config)
             root = route_utils.get_root_url(
-                request=request, route_path="/config", root_path=app.root_path
+                request=request,
+                route_path="/config",
+                root_path=app.root_path or blocks.custom_mount_path,
             )
             config["username"] = get_current_user(request)
             if deep_link:
@@ -1049,7 +1055,7 @@ class App(FastAPI):
         @router.post("/stream/{event_id}")
         async def _(event_id: str, body: PredictBody, request: fastapi.Request):
             event = app.get_blocks()._queue.event_ids_to_events[event_id]
-            body = PredictBodyInternal(**body.model_dump(), request=request)
+            body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
             event.data = body
             event.signal.set()
             return {"msg": "success"}
@@ -1060,9 +1066,9 @@ class App(FastAPI):
             try:
                 while True:
                     data = await websocket.receive_json()
-                    body = PredictBody(**data)
+                    body = PredictBody(**data)  # type: ignore
                     event = app.get_blocks()._queue.event_ids_to_events[event_id]
-                    body_internal = PredictBodyInternal(
+                    body_internal = PredictBodyInternal(  # type: ignore
                         **body.model_dump(), request=None
                     )
                     event.data = body_internal
@@ -1252,7 +1258,7 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            body = PredictBodyInternal(**body.model_dump(), request=request)
+            body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=body
             )
@@ -1299,7 +1305,7 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            full_body = PredictBody(**body.model_dump(), simple_format=True)
+            full_body = PredictBody(**body.model_dump(), simple_format=True)  # type: ignore
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=full_body
             )
@@ -1334,7 +1340,7 @@ class App(FastAPI):
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     detail="Queue is stopped.",
                 )
-            body = PredictBodyInternal(**body.model_dump(), request=request)
+            body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
             success, event_id = await blocks._queue.push(
                 body=body, request=request, username=username
             )
@@ -1502,6 +1508,7 @@ class App(FastAPI):
             request: fastapi.Request,
         ) -> Union[ComponentServerJSONBody, ComponentServerBlobBody]:
             content_type = request.headers.get("Content-Type")
+            print("content_type", content_type)
 
             if isinstance(content_type, str) and content_type.startswith(
                 "multipart/form-data"
@@ -1576,10 +1583,16 @@ class App(FastAPI):
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="Function not found.",
                 )
+            processed_input, _, _ = special_args(
+                fn,
+                [body.data],
+                request,  # type: ignore
+                None,
+            )
             if inspect.iscoroutinefunction(fn):
-                return await fn(body.data)
+                return await fn(*processed_input)
             else:
-                return fn(body.data)
+                return fn(*processed_input)
 
         @router.get(
             "/queue/status",
@@ -1641,7 +1654,7 @@ class App(FastAPI):
         async def upload_file(
             request: fastapi.Request,
             bg_tasks: BackgroundTasks,
-            upload_id: Optional[str] = None,
+            upload_id: str | None = None,
         ):
             content_type_header = request.headers.get("Content-Type")
             content_type: bytes
@@ -1822,6 +1835,10 @@ class App(FastAPI):
             print(f"* Monitoring URL: {monitoring_url} *")
             return HTMLResponse("See console for monitoring URL.")
 
+        @app.get("/monitoring/summary")
+        async def _():
+            return app.get_blocks()._queue.cached_event_analytics_summary
+
         @app.get("/monitoring/{key}")
         async def analytics_dashboard(key: str):
             if not blocks.enable_monitoring:
@@ -1937,6 +1954,166 @@ class App(FastAPI):
                     background=BackgroundTask(lambda: cleanup_files([input_path])),
                 )
 
+        vibe_edit_history_dir = Path(DEFAULT_TEMP_DIR) / "vibe_edit_history"
+        vibe_edit_history_dir.mkdir(exist_ok=True, parents=True)
+
+        @router.post("/vibe-edit/")
+        @router.post("/vibe-edit")
+        async def vibe_edit(body: VibeEditBody):
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
+                )
+
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            with open(GRADIO_WATCH_DEMO_PATH) as f:
+                original_code = f.read()
+
+            snapshot_hash = secrets.token_hex(16)
+            snapshot_file = vibe_edit_history_dir / f"{snapshot_hash}.py"
+
+            with open(snapshot_file, "w") as f:
+                f.write(original_code)
+
+            from huggingface_hub import InferenceClient
+
+            client = InferenceClient()
+
+            content = ""
+            prompt = f"""
+You are a code generator for Gradio apps. Given the following existing code and prompt, return the full new code.
+Existing code:
+```python
+{original_code}
+```
+
+Prompt:
+{body.prompt}"""
+            system_prompt = load_system_prompt()
+            content = (
+                client.chat_completion(
+                    model="openai/gpt-oss-120b",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt},
+                    ],
+                    max_tokens=1000,
+                )
+                .choices[0]
+                .message.content
+            )
+
+            if content is None:
+                raise HTTPException(status_code=500, detail="Error generating code")
+
+            reasoning = None
+            if "<reasoning>" in content:
+                reasoning = content.split("<reasoning>")[1].split("</reasoning>")[0]
+                content = content.replace(
+                    f"<reasoning>{reasoning}</reasoning>", ""
+                ).strip()
+
+            if "```python\n" in content:
+                start = content.index("```python\n") + len("```python\n")
+                end = content.find("\n```", start)
+                content = content[start:end] if end != -1 else content[start:]
+
+            # Calculate diff stats
+            original_lines = original_code.splitlines(keepends=True)
+            new_lines = content.splitlines(keepends=True)
+            diff = list(difflib.unified_diff(original_lines, new_lines, n=0))
+
+            lines_added = 0
+            lines_removed = 0
+            for line in diff:
+                if line.startswith("+") and not line.startswith("+++"):
+                    lines_added += 1
+                elif line.startswith("-") and not line.startswith("---"):
+                    lines_removed += 1
+
+            with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
+                f.write(content)
+
+            return {
+                "hash": snapshot_hash,
+                "diff_stats": {
+                    "lines_added": lines_added,
+                    "lines_removed": lines_removed,
+                },
+                "reasoning": reasoning,
+            }
+
+        @router.post("/undo-vibe-edit/")
+        @router.post("/undo-vibe-edit")
+        async def undo_vibe_edit(hash: str = Body(..., embed=True)):
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
+                )
+
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            snapshot_file = vibe_edit_history_dir / f"{hash}.py"
+
+            if not snapshot_file.exists():
+                raise HTTPException(status_code=404, detail="Snapshot not found")
+
+            # Restore the file from the snapshot
+            with open(snapshot_file) as f:
+                saved_content = f.read()
+
+            with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
+                f.write(saved_content)
+
+            return {"success": True}
+
+        @router.get("/vibe-code/")
+        @router.get("/vibe-code")
+        async def get_vibe_code():
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
+                )
+
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            try:
+                with open(GRADIO_WATCH_DEMO_PATH) as f:
+                    code = f.read()
+                return {"code": code}
+            except FileNotFoundError:
+                raise HTTPException(
+                    status_code=404, detail="Demo file not found"
+                ) from None
+            except Exception as e:
+                raise HTTPException(
+                    status_code=500, detail=f"Error reading file: {str(e)}"
+                ) from e
+
+        @router.post("/vibe-code/")
+        @router.post("/vibe-code")
+        async def update_vibe_code(body: VibeCodeBody):
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
+                )
+
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            try:
+                with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
+                    f.write(body.code)
+                return {"success": True}
+            except Exception as e:
+                raise HTTPException(
+                    status_code=500, detail=f"Error writing file: {str(e)}"
+                ) from e
+
         def cleanup_files(files):
             for file in files:
                 try:
@@ -1952,6 +2129,48 @@ class App(FastAPI):
 ########
 # Helper functions
 ########
+
+
+def load_system_prompt():
+    prompt_rules = """Generate code for using the Gradio python library.
+
+The following RULES must be followed.  Whenever you are forming a response, ensure all rules have been followed otherwise start over.
+
+RULES:
+Respond with code written in valid Python syntax, along with one coherent explanation surrounded by <reasoning> tags.
+Any text that is not code, should be surrounded by one large <reasoning> tag.
+Never include backticks in your response such as ``` or ```python.
+Do not include any code that is not necessary for the app to run.
+Respond with a full Gradio app.
+Respond with a full Gradio app using correct syntax and features of the latest Gradio version. DO NOT write code that doesn't follow the signatures listed.
+Do not add comments explaining the code, unless they are very necessary to understand the code.
+Make sure the code includes all necessary imports.
+Clearly explain the changes, summary, or reasoning for the code you respond with, inside one large <reasoning> tag.
+
+
+Here's an example of a valid response:
+
+<reasoning>
+I created a simple Gradio app that greets the user. It defines a function then creates a gradio interface and launches it.
+</reasoning>
+
+import gradio as gr
+
+def greet(name):
+    return "Hello " + name + "!"
+
+demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
+
+demo.launch()
+"""
+    try:
+        with httpx.Client() as client:
+            response = client.get("https://www.gradio.app/llms.txt")
+            system_prompt = response.text
+    except Exception:
+        system_prompt = ""
+    system_prompt = prompt_rules + system_prompt + prompt_rules
+    return system_prompt
 
 
 def routes_safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
@@ -2141,6 +2360,7 @@ def mount_gradio_app(
 
     app.router.lifespan_context = new_lifespan  # type: ignore
 
+    print("new", path)
     app.mount(path, gradio_app)
     return app
 
