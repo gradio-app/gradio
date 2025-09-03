@@ -13,7 +13,7 @@
 			async function run(message, n) {
 				// console.log(client);
 				const req = client.submit("/chat", {
-					message,
+					message
 				});
 				console.log("start");
 				for await (const c of req) {

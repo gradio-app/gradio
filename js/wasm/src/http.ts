@@ -13,7 +13,7 @@ export interface HttpResponse {
 
 // Inspired by https://github.com/rstudio/shinylive/blob/v0.1.2/src/messageporthttp.ts
 export function headersToASGI(
-	headers: HttpRequest["headers"],
+	headers: HttpRequest["headers"]
 ): [string, string][] {
 	const result: [string, string][] = [];
 	for (const [key, value] of Object.entries(headers)) {
@@ -39,7 +39,7 @@ export function asgiHeadersToRecord(headers: any): Record<string, string> {
 
 export function getHeaderValue(
 	headers: HttpRequest["headers"],
-	key: string,
+	key: string
 ): string | undefined {
 	// The keys in `headers` are case-insensitive.
 	const unifiedKey = key.toLowerCase();
@@ -52,7 +52,7 @@ export function getHeaderValue(
 
 export function logHttpReqRes(
 	request: HttpRequest,
-	response: HttpResponse,
+	response: HttpResponse
 ): void {
 	if (Math.floor(response.status / 100) !== 2) {
 		let bodyText: string;
@@ -71,7 +71,7 @@ export function logHttpReqRes(
 			request,
 			response,
 			bodyText,
-			bodyJson,
+			bodyJson
 		});
 	}
 }

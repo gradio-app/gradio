@@ -2,7 +2,7 @@ import {
 	Container,
 	Graphics,
 	Sprite,
-	type FederatedPointerEvent,
+	type FederatedPointerEvent
 } from "pixi.js";
 import { type ImageEditorContext } from "../core/editor";
 import { type BrushState } from "./types";
@@ -32,7 +32,7 @@ export class BrushCursor {
 	constructor(
 		private image_editor_context: ImageEditorContext,
 		private state: BrushState,
-		private scale: number,
+		private scale: number
 	) {
 		this.initialize_cursor();
 		this.initialize_brush_preview();
@@ -61,11 +61,11 @@ export class BrushCursor {
 
 		this.image_editor_context.image_container.on(
 			"pointerenter",
-			this.on_image_container_pointer_enter.bind(this),
+			this.on_image_container_pointer_enter.bind(this)
 		);
 		this.image_editor_context.image_container.on(
 			"pointerleave",
-			this.on_image_container_pointer_leave.bind(this),
+			this.on_image_container_pointer_leave.bind(this)
 		);
 	}
 
@@ -89,7 +89,7 @@ export class BrushCursor {
 		this.image_editor_context.image_container.off("pointerleave");
 
 		this.cursor_position_check_timeout = clear_timeout(
-			this.cursor_position_check_timeout,
+			this.cursor_position_check_timeout
 		);
 	}
 
@@ -132,12 +132,12 @@ export class BrushCursor {
 			.stroke({
 				width: 1.5,
 				color: cursor_color,
-				alpha: 0.8,
+				alpha: 0.8
 			});
 
 		this.cursor_graphics.circle(0, 0, 1).fill({
 			color: cursor_color,
-			alpha: 0.8,
+			alpha: 0.8
 		});
 	}
 
@@ -149,11 +149,11 @@ export class BrushCursor {
 		if (!this.cursor_container) return;
 
 		const local_pos = this.image_editor_context.image_container.toLocal(
-			event.global,
+			event.global
 		);
 
 		const ui_pos = this.image_editor_context.ui_container.toLocal(
-			this.image_editor_context.image_container.toGlobal(local_pos),
+			this.image_editor_context.image_container.toGlobal(local_pos)
 		);
 
 		this.cursor_container.position.set(ui_pos.x, ui_pos.y);
@@ -234,7 +234,7 @@ export class BrushCursor {
 		if (this.brush_preview_container) {
 			if (this.brush_preview_container.parent) {
 				this.brush_preview_container.parent.removeChild(
-					this.brush_preview_container,
+					this.brush_preview_container
 				);
 			}
 			this.brush_preview_container.destroy({ children: true });
@@ -243,7 +243,7 @@ export class BrushCursor {
 
 		this.brush_preview_container = new Container();
 		this.image_editor_context.ui_container.addChild(
-			this.brush_preview_container,
+			this.brush_preview_container
 		);
 
 		this.brush_preview_graphics = new Graphics();
@@ -268,13 +268,13 @@ export class BrushCursor {
 
 		this.brush_preview_graphics.circle(0, 0, preview_size).fill({
 			color: preview_color,
-			alpha: this.state.mode === "draw" ? this.state.opacity : 0.3,
+			alpha: this.state.mode === "draw" ? this.state.opacity : 0.3
 		});
 
 		this.brush_preview_graphics.circle(0, 0, preview_size + 1).stroke({
 			width: 1,
 			color: 0x000000,
-			alpha: 0.5,
+			alpha: 0.5
 		});
 	}
 
@@ -339,7 +339,7 @@ export class BrushCursor {
 		if (this.brush_preview_container) {
 			if (this.brush_preview_container.parent) {
 				this.brush_preview_container.parent.removeChild(
-					this.brush_preview_container,
+					this.brush_preview_container
 				);
 			}
 			this.brush_preview_container.destroy({ children: true });

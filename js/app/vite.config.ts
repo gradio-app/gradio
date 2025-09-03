@@ -15,13 +15,13 @@ import {
 	handle_ce_css,
 	inject_component_loader,
 	resolve_svelte,
-	mock_modules,
+	mock_modules
 } from "@self/build";
 
 const version_path = resolve(__dirname, "../../gradio/package.json");
 const theme_token_path = resolve(__dirname, "../theme/src/tokens.css");
 const version_raw = JSON.parse(
-	readFileSync(version_path, { encoding: "utf-8" }),
+	readFileSync(version_path, { encoding: "utf-8" })
 ).version.trim();
 const version = version_raw.replace(/\./g, "-");
 
@@ -38,11 +38,11 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			open: "/",
 			proxy: {
 				"/manifest.json": "http://localhost:7860",
-				"^/static/.*": "http://localhost:7860",
-			},
+				"^/static/.*": "http://localhost:7860"
+			}
 		},
 		resolve: {
-			conditions: ["gradio"],
+			conditions: ["gradio"]
 		},
 		build: {
 			rollupOptions: {
@@ -50,11 +50,11 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 					"/svelte/svelte.js",
 					"/svelte/svelte-submodules.js",
 					"./svelte/svelte-submodules.js",
-					"./svelte/svelte.js",
-				],
+					"./svelte/svelte.js"
+				]
 			},
 			minify: true,
-			sourcemap: true,
+			sourcemap: true
 		},
 		define: {
 			BROWSER_BUILD: JSON.stringify(isSsrBuild),
@@ -62,7 +62,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			BACKEND_URL: production
 				? JSON.stringify("")
 				: JSON.stringify("http://127.0.0.1:7860/"),
-			GRADIO_VERSION: JSON.stringify(version),
+			GRADIO_VERSION: JSON.stringify(version)
 		},
 		css: {
 			postcss: {
@@ -82,15 +82,15 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 								return selector;
 							}
 							return prefixedSelector;
-						},
+						}
 					}),
-					custom_media(),
-				],
-			},
+					custom_media()
+				]
+			}
 		},
 		ssr: {
 			noExternal: ["@gradio/*", "@huggingface/space-header"],
-			external: mode === "development" ? [] : ["svelte", "svelte/*"],
+			external: mode === "development" ? [] : ["svelte", "svelte/*"]
 		},
 		optimizeDeps: {
 			exclude: [
@@ -98,8 +98,8 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				"svelte",
 				"svelte/*",
 				"./svelte/svelte-submodules.js",
-				"./svelte/svelte.js",
-			],
+				"./svelte/svelte.js"
+			]
 		},
 		plugins: [
 			sveltekit(),
@@ -120,12 +120,12 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 						if (id.startsWith("svelte/")) {
 							return {
 								id: "../../../svelte/svelte-submodules.js",
-								external: true,
+								external: true
 							};
 						}
 					}
-				},
-			},
-		],
+				}
+			}
+		]
 	};
 });

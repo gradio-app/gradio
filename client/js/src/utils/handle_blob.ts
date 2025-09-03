@@ -3,21 +3,21 @@ import {
 	Command,
 	type ApiData,
 	type EndpointInfo,
-	type JsApiData,
+	type JsApiData
 } from "../types";
 import { FileData } from "../upload";
 import type { Client } from "..";
 import {
 	FILE_PROCESSING_ERROR_MSG,
 	NODEJS_FS_ERROR_MSG,
-	ROOT_URL_ERROR_MSG,
+	ROOT_URL_ERROR_MSG
 } from "../constants";
 
 export async function handle_blob(
 	this: Client,
 	endpoint: string,
 	data: unknown[],
-	api_info: EndpointInfo<JsApiData | ApiData>,
+	api_info: EndpointInfo<JsApiData | ApiData>
 ): Promise<unknown[]> {
 	const self = this;
 
@@ -28,7 +28,7 @@ export async function handle_blob(
 		undefined,
 		[],
 		true,
-		api_info,
+		api_info
 	);
 
 	const results = await Promise.all(
@@ -44,9 +44,9 @@ export async function handle_blob(
 				name:
 					typeof File !== "undefined" && blob instanceof File
 						? blob?.name
-						: undefined,
+						: undefined
 			};
-		}),
+		})
 	);
 
 	results.forEach(({ path, file_url, type, name }) => {
@@ -63,7 +63,7 @@ export async function handle_blob(
 
 export async function process_local_file_commands(
 	client: Client,
-	data: unknown[],
+	data: unknown[]
 ): Promise<void> {
 	const root = client.config?.root || client.config?.root_url;
 
@@ -77,7 +77,7 @@ export async function process_local_file_commands(
 async function recursively_process_commands(
 	client: Client,
 	data: any,
-	path: string[] = [],
+	path: string[] = []
 ): Promise<void> {
 	for (const key in data) {
 		if (data[key] instanceof Command) {
@@ -91,7 +91,7 @@ async function recursively_process_commands(
 async function process_single_command(
 	client: Client,
 	data: any,
-	key: string,
+	key: string
 ): Promise<void> {
 	let cmd_item = data[key] as Command;
 	const root = client.config?.root || client.config?.root_url;
@@ -128,7 +128,7 @@ async function process_single_command(
 		if (file_url) {
 			const fileData = new FileData({
 				path: file_url,
-				orig_name: cmd_item.meta.name || "",
+				orig_name: cmd_item.meta.name || ""
 			});
 
 			// replace the command object with the fileData object

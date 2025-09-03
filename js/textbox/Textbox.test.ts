@@ -13,7 +13,7 @@ const loading_status: LoadingStatus = {
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0,
-	show_progress: "full",
+	show_progress: "full"
 };
 
 describe("Textbox", () => {
@@ -27,11 +27,11 @@ describe("Textbox", () => {
 			lines: 1,
 			value: "hello world",
 			label: "Textbox",
-			interactive: false,
+			interactive: false
 		});
 
 		const item: HTMLInputElement = getByDisplayValue(
-			"hello world",
+			"hello world"
 		) as HTMLInputElement;
 		assert.equal(item.value, "hello world");
 	});
@@ -44,7 +44,7 @@ describe("Textbox", () => {
 			lines: 1,
 			value: "hi ",
 			label: "Textbox",
-			interactive: true,
+			interactive: true
 		});
 
 		const item: HTMLInputElement = getByDisplayValue("hi") as HTMLInputElement;

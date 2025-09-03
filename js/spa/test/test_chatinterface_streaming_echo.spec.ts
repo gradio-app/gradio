@@ -5,12 +5,12 @@ const cases = [
 	"messages",
 	"multimodal_tuples",
 	"multimodal_messages",
-	"multimodal_non_stream",
+	"multimodal_non_stream"
 ];
 
 for (const test_case of cases) {
 	test(`test case ${test_case} chatinterface works with streaming functions and all buttons behave as expected`, async ({
-		page,
+		page
 	}) => {
 		if (cases.slice(1).includes(test_case)) {
 			await go_to_testcase(page, test_case);
@@ -23,7 +23,7 @@ for (const test_case of cases) {
 
 		await expect(textbox).toHaveValue("");
 		const expected_text_el_0 = page.locator(".bot  p", {
-			hasText: "Run 1 - You typed: hello",
+			hasText: "Run 1 - You typed: hello"
 		});
 		await expect(expected_text_el_0).toBeVisible();
 		await expect
@@ -34,7 +34,7 @@ for (const test_case of cases) {
 		await submit_button.click();
 		await expect(textbox).toHaveValue("");
 		const expected_text_el_1 = page.locator(".bot p", {
-			hasText: "Run 2 - You typed: hi",
+			hasText: "Run 2 - You typed: hi"
 		});
 		await expect(expected_text_el_1).toBeVisible();
 		await expect(page.locator(".bot.message")).toHaveCount(2);
@@ -45,7 +45,7 @@ for (const test_case of cases) {
 
 		await page.getByLabel("retry").first().click();
 		const expected_text_el_2 = page.locator(".bot p", {
-			hasText: "Run 3 - You typed: hello",
+			hasText: "Run 3 - You typed: hello"
 		});
 		await expect(expected_text_el_2).toBeVisible();
 
@@ -55,7 +55,7 @@ for (const test_case of cases) {
 		await submit_button.click();
 		await expect(textbox).toHaveValue("");
 		const expected_text_el_3 = page.locator(".bot p", {
-			hasText: "Run 4 - You typed: hi",
+			hasText: "Run 4 - You typed: hi"
 		});
 		await expect(expected_text_el_3).toBeVisible();
 		await expect(page.locator(".bot.message")).toHaveCount(2);
@@ -64,7 +64,7 @@ for (const test_case of cases) {
 	});
 
 	test(`test case ${test_case} the api recorder correctly records the api calls`, async ({
-		page,
+		page
 	}) => {
 		if (cases.slice(1).includes(test_case)) {
 			await go_to_testcase(page, test_case);
@@ -78,12 +78,12 @@ for (const test_case of cases) {
 		await submit_button.click();
 		await expect(textbox).toHaveValue("");
 		await expect(page.locator(".bot p").first()).toContainText(
-			/\- You typed: hi/,
+			/\- You typed: hi/
 		);
 		const api_recorder = await page.locator("#api-recorder");
 		await api_recorder.click();
 		await expect(page.locator("#num-recorded-api-calls")).toContainText(
-			`🪄 Recorded API Calls`,
+			`🪄 Recorded API Calls`
 		);
 	});
 }

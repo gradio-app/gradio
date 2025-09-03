@@ -7,7 +7,7 @@ import {
 	type DataType,
 	Command,
 	type Dependency,
-	type ComponentMeta,
+	type ComponentMeta
 } from "../types";
 import { FileData } from "../upload";
 
@@ -17,7 +17,7 @@ const is_node =
 export function update_object(
 	object: { [x: string]: any },
 	newValue: any,
-	stack: (string | number)[],
+	stack: (string | number)[]
 ): void {
 	while (stack.length > 1) {
 		const key = stack.shift();
@@ -41,7 +41,7 @@ export async function walk_and_store_blobs(
 	type: string | undefined = undefined,
 	path: string[] = [],
 	root = false,
-	endpoint_info: EndpointInfo<ApiData | JsApiData> | undefined = undefined,
+	endpoint_info: EndpointInfo<ApiData | JsApiData> | undefined = undefined
 ): Promise<BlobRef[]> {
 	if (Array.isArray(data)) {
 		let blob_refs: BlobRef[] = [];
@@ -58,11 +58,11 @@ export async function walk_and_store_blobs(
 						: type,
 					new_path,
 					false,
-					endpoint_info,
+					endpoint_info
 				);
 
 				blob_refs = blob_refs.concat(array_refs);
-			}),
+			})
 		);
 
 		return blob_refs;
@@ -74,8 +74,8 @@ export async function walk_and_store_blobs(
 			{
 				path: path,
 				blob: new Blob([data]),
-				type,
-			},
+				type
+			}
 		];
 	} else if (typeof data === "object" && data !== null) {
 		let blob_refs: BlobRef[] = [];
@@ -89,8 +89,8 @@ export async function walk_and_store_blobs(
 					undefined,
 					new_path,
 					false,
-					endpoint_info,
-				),
+					endpoint_info
+				)
 			);
 		}
 
@@ -112,7 +112,7 @@ export function skip_queue(id: number, config: Config): boolean {
 
 export function post_message<Res = any>(
 	message: any,
-	origin: string,
+	origin: string
 ): Promise<Res> {
 	return new Promise((res, _rej) => {
 		const channel = new MessageChannel();
@@ -125,7 +125,7 @@ export function post_message<Res = any>(
 }
 
 export function handle_file(
-	file_or_url: File | string | Blob | Buffer,
+	file_or_url: File | string | Blob | Buffer
 ): FileData | Blob | Command {
 	if (typeof file_or_url === "string") {
 		if (
@@ -136,7 +136,7 @@ export function handle_file(
 				path: file_or_url,
 				url: file_or_url,
 				orig_name: file_or_url.split("/").pop() ?? "unknown",
-				meta: { _type: "gradio.FileData" },
+				meta: { _type: "gradio.FileData" }
 			};
 		}
 
@@ -145,7 +145,7 @@ export function handle_file(
 			return new Command("upload_file", {
 				path: file_or_url,
 				name: file_or_url,
-				orig_path: file_or_url,
+				orig_path: file_or_url
 			});
 		}
 	} else if (typeof File !== "undefined" && file_or_url instanceof File) {
@@ -156,7 +156,7 @@ export function handle_file(
 		return file_or_url;
 	}
 	throw new Error(
-		"Invalid input: must be a URL, File, Blob, or Buffer object.",
+		"Invalid input: must be a URL, File, Blob, or Buffer object."
 	);
 }
 
@@ -175,7 +175,7 @@ export function handle_payload(
 	dependency: Dependency,
 	components: ComponentMeta[],
 	type: "input" | "output",
-	with_null_state = false,
+	with_null_state = false
 ): unknown[] {
 	if (type === "input" && !with_null_state) {
 		throw new Error("Invalid code path. Cannot skip state inputs for input.");

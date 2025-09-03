@@ -5,11 +5,11 @@ describe("apply_diff", () => {
 	it("delete_operation_works", () => {
 		const data = [
 			{ content: "Hi", role: "user" },
-			{ content: "How can I assist you?", role: "assistant" },
+			{ content: "How can I assist you?", role: "assistant" }
 		];
 		const diff: any = [
 			["delete", [0], null],
-			["delete", [0], null],
+			["delete", [0], null]
 		];
 		const result = apply_diff(data, diff);
 		expect(result).toEqual([]);
@@ -20,7 +20,7 @@ describe("apply_diff", () => {
 		const diff: any = [
 			["replace", [0], "d"],
 			["delete", [1], null],
-			["delete", [1], null],
+			["delete", [1], null]
 		];
 		const result = apply_diff(data, diff);
 		expect(result).toEqual(["d"]);

@@ -1,7 +1,7 @@
 import {
 	getQueriesForElement,
 	prettyDOM,
-	fireEvent as dtlFireEvent,
+	fireEvent as dtlFireEvent
 } from "@testing-library/dom";
 import { tick } from "svelte";
 import type { SvelteComponent } from "svelte";
@@ -11,7 +11,7 @@ import type {
 	Queries,
 	BoundFunction,
 	EventType,
-	FireObject,
+	FireObject
 } from "@testing-library/dom";
 import { spy, type Spy } from "tinyspy";
 import { Gradio } from "@gradio/utils";
@@ -27,7 +27,7 @@ type ComponentType<T extends SvelteComponent, Props> = new (args: {
 
 export type RenderResult<
 	C extends SvelteComponent,
-	Q extends Queries = typeof queries,
+	Q extends Queries = typeof queries
 > = {
 	container: HTMLElement;
 	component: C;
@@ -43,7 +43,7 @@ const loading_status: LoadingStatus = {
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0,
-	show_progress: "full",
+	show_progress: "full"
 };
 
 export interface RenderOptions<Q extends Queries = typeof queries> {
@@ -55,13 +55,13 @@ export async function render<
 	Events extends Record<string, any>,
 	Props extends Record<string, any>,
 	T extends SvelteComponent<Props, Events>,
-	X extends Record<string, any>,
+	X extends Record<string, any>
 >(
 	Component: ComponentType<T, Props> | { default: ComponentType<T, Props> },
 	props?: Omit<Props, "gradio" | "loading_status"> & {
 		loading_status?: LoadingStatus;
 	},
-	_container?: HTMLElement,
+	_container?: HTMLElement
 ): Promise<
 	RenderResult<T> & {
 		listen: typeof listen;
@@ -105,9 +105,9 @@ export async function render<
 				(s) => s,
 				// @ts-ignore
 				{ client: {} },
-				() => {},
-			),
-		},
+				() => {}
+			)
+		}
 	});
 
 	containerCache.set(container, { target, component });
@@ -159,7 +159,7 @@ export async function render<
 		},
 		...getQueriesForElement(container),
 		listen,
-		wait_for_event,
+		wait_for_event
 	};
 }
 
@@ -185,18 +185,18 @@ export const fireEvent = Object.keys(dtlFireEvent).reduce((acc, key) => {
 		...acc,
 		[_key]: async (
 			element: Document | Element | Window,
-			options: object = {},
+			options: object = {}
 		): Promise<boolean> => {
 			const event = dtlFireEvent[_key](element, options);
 			await tick();
 			return event;
-		},
+		}
 	};
 }, {} as FireObject);
 
 export type FireFunction = (
 	element: Document | Element | Window,
-	event: Event,
+	event: Event
 ) => Promise<boolean>;
 
 export * from "@testing-library/dom";

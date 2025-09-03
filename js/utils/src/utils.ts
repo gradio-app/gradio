@@ -44,7 +44,7 @@ export class ShareError extends Error {
 
 export async function uploadToHuggingFace(
 	data: string | { url?: string; path?: string },
-	type: "base64" | "url",
+	type: "base64" | "url"
 ): Promise<string> {
 	if (window.__gradio_space__ == null) {
 		throw new ShareError("Must be on Spaces to share.");
@@ -91,8 +91,8 @@ export async function uploadToHuggingFace(
 		body: file,
 		headers: {
 			"Content-Type": file.type,
-			"X-Requested-With": "XMLHttpRequest",
-		},
+			"X-Requested-With": "XMLHttpRequest"
+		}
 	});
 
 	// Check status of response
@@ -130,8 +130,7 @@ export function copy(node: HTMLDivElement): ActionReturn {
 		const path = event.composedPath() as HTMLButtonElement[];
 
 		const [copy_button] = path.filter(
-			(e) =>
-				e?.tagName === "BUTTON" && e.classList.contains("copy_code_button"),
+			(e) => e?.tagName === "BUTTON" && e.classList.contains("copy_code_button")
 		);
 
 		if (copy_button) {
@@ -139,7 +138,7 @@ export function copy(node: HTMLDivElement): ActionReturn {
 
 			const copy_text = copy_button.parentElement!.innerText.trim();
 			const copy_sucess_button = Array.from(
-				copy_button.children,
+				copy_button.children
 			)[1] as HTMLDivElement;
 
 			const copied = await copy_to_clipboard(copy_text);
@@ -158,7 +157,7 @@ export function copy(node: HTMLDivElement): ActionReturn {
 	return {
 		destroy(): void {
 			node.removeEventListener("click", handle_copy);
-		},
+		}
 	};
 }
 
@@ -246,7 +245,7 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 		max_file_size: number | null,
 		i18n: I18nFormatter = (x: string): string => x,
 		client: Client,
-		virtual_component_loader?: component_loader,
+		virtual_component_loader?: component_loader
 	) {
 		this.#id = id;
 		this.theme = theme;
@@ -266,7 +265,7 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 		if (!is_browser || !this.#el) return;
 		const e = new CustomEvent("gradio", {
 			bubbles: true,
-			detail: { data, id: this.#id, event: event_name },
+			detail: { data, id: this.#id, event: event_name }
 		});
 		this.#el.dispatchEvent(e);
 	}
@@ -275,12 +274,12 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 function _load_component(
 	this: Gradio,
 	name: string,
-	variant: "component" | "example" | "base" = "component",
+	variant: "component" | "example" | "base" = "component"
 ): ReturnType<component_loader> {
 	return this._load_component!({
 		name,
 		api_url: this.client.config?.root!,
-		variant,
+		variant
 	});
 }
 

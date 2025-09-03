@@ -5,7 +5,7 @@ import {
 	skip_queue,
 	post_message,
 	handle_file,
-	handle_payload,
+	handle_payload
 } from "../helpers/data";
 import { config_response, endpoint_info } from "./test_data";
 import { BlobRef, Command } from "../types";
@@ -29,7 +29,7 @@ describe("walk_and_store_blobs", () => {
 			undefined,
 			[],
 			true,
-			endpoint_info,
+			endpoint_info
 		);
 
 		expect(parts[0].blob).toBeInstanceOf(Blob);
@@ -62,13 +62,13 @@ describe("walk_and_store_blobs", () => {
 						{
 							data: [
 								{
-									image,
-								},
-							],
-						},
-					],
-				},
-			],
+									image
+								}
+							]
+						}
+					]
+				}
+			]
 		});
 
 		expect(parts[0].blob).toBeInstanceOf(Blob);
@@ -82,11 +82,11 @@ describe("walk_and_store_blobs", () => {
 				{
 					b: [
 						{
-							data: [[image], image, [image, [image]]],
-						},
-					],
-				},
-			],
+							data: [[image], image, [image, [image]]]
+						}
+					]
+				}
+			]
 		};
 		const parts = await walk_and_store_blobs(obj);
 
@@ -132,10 +132,10 @@ describe("walk_and_store_blobs", () => {
 			a: {
 				b: {
 					data: {
-						image: Buffer.from("test image"),
-					},
-				},
-			},
+						image: Buffer.from("test image")
+					}
+				}
+			}
 		};
 		const parts = await walk_and_store_blobs(param);
 
@@ -149,9 +149,9 @@ describe("update_object", () => {
 		const obj = {
 			a: {
 				b: {
-					c: "old value",
-				},
-			},
+					c: "old value"
+				}
+			}
 		};
 
 		const stack = ["a", "b", "c"];
@@ -166,9 +166,9 @@ describe("update_object", () => {
 		const obj = {
 			a: {
 				b: {
-					c: "value",
-				},
-			},
+					c: "value"
+				}
+			}
 		};
 
 		const stack = ["a", "b", true];
@@ -236,8 +236,8 @@ describe("post_message", () => {
 		global.window = {
 			// @ts-ignore
 			parent: {
-				postMessage: post_message_mock,
-			},
+				postMessage: post_message_mock
+			}
 		};
 
 		const message_channel_mock = {
@@ -245,9 +245,9 @@ describe("post_message", () => {
 				onmessage: (handler) => {
 					onmessage = handler;
 				},
-				close: vi.fn(),
+				close: vi.fn()
 			},
-			port2: {},
+			port2: {}
 		};
 
 		vi.stubGlobal("MessageChannel", function () {
@@ -264,7 +264,7 @@ describe("post_message", () => {
 
 		await expect(promise).resolves.toEqual(test_data);
 		expect(post_message_mock).toHaveBeenCalledWith(test_data, test_origin, [
-			message_channel_mock.port2,
+			message_channel_mock.port2
 		]);
 	});
 });
@@ -290,7 +290,7 @@ describe("handle_file", () => {
 			type: "command",
 			command: "upload_file",
 			meta: { path: "./owl.png", name: "./owl.png", orig_path: "./owl.png" },
-			fileData: undefined,
+			fileData: undefined
 		});
 	});
 
@@ -310,7 +310,7 @@ describe("handle_file", () => {
 			// @ts-ignore
 			handle_file(invalid_input);
 		}).toThrowError(
-			"Invalid input: must be a URL, File, Blob, or Buffer object.",
+			"Invalid input: must be a URL, File, Blob, or Buffer object."
 		);
 	});
 });
@@ -319,11 +319,11 @@ describe("handle_payload", () => {
 	it("should return an input payload with null in place of `state` when with_null_state is true", () => {
 		const resolved_payload = [2];
 		const dependency = {
-			inputs: [1, 2],
+			inputs: [1, 2]
 		};
 		const components = [
 			{ id: 1, type: "number" },
-			{ id: 2, type: "state" },
+			{ id: 2, type: "state" }
 		];
 		const with_null_state = true;
 		const result = handle_payload(
@@ -332,20 +332,20 @@ describe("handle_payload", () => {
 			dependency,
 			components,
 			"input",
-			with_null_state,
+			with_null_state
 		);
 		expect(result).toEqual([2, null]);
 	});
 	it("should return an input payload with null in place of two `state` components when with_null_state is true", () => {
 		const resolved_payload = ["hello", "goodbye"];
 		const dependency = {
-			inputs: [1, 2, 3, 4],
+			inputs: [1, 2, 3, 4]
 		};
 		const components = [
 			{ id: 1, type: "textbox" },
 			{ id: 2, type: "state" },
 			{ id: 3, type: "textbox" },
-			{ id: 4, type: "state" },
+			{ id: 4, type: "state" }
 		];
 		const with_null_state = true;
 		const result = handle_payload(
@@ -354,7 +354,7 @@ describe("handle_payload", () => {
 			dependency,
 			components,
 			"input",
-			with_null_state,
+			with_null_state
 		);
 		expect(result).toEqual(["hello", null, "goodbye", null]);
 	});
@@ -362,11 +362,11 @@ describe("handle_payload", () => {
 	it("should return an output payload without the state component value when with_null_state is false", () => {
 		const resolved_payload = ["hello", null];
 		const dependency = {
-			outputs: [2, 3],
+			outputs: [2, 3]
 		};
 		const components = [
 			{ id: 2, type: "textbox" },
-			{ id: 3, type: "state" },
+			{ id: 3, type: "state" }
 		];
 		const with_null_state = false;
 		const result = handle_payload(
@@ -375,7 +375,7 @@ describe("handle_payload", () => {
 			dependency,
 			components,
 			"output",
-			with_null_state,
+			with_null_state
 		);
 		expect(result).toEqual(["hello"]);
 	});
@@ -383,13 +383,13 @@ describe("handle_payload", () => {
 	it("should return an ouput payload without the two state component values when with_null_state is false", () => {
 		const resolved_payload = ["hello", null, "world", null];
 		const dependency = {
-			outputs: [2, 3, 4, 5],
+			outputs: [2, 3, 4, 5]
 		};
 		const components = [
 			{ id: 2, type: "textbox" },
 			{ id: 3, type: "state" },
 			{ id: 4, type: "textbox" },
-			{ id: 5, type: "state" },
+			{ id: 5, type: "state" }
 		];
 		const with_null_state = false;
 		const result = handle_payload(
@@ -398,7 +398,7 @@ describe("handle_payload", () => {
 			dependency,
 			components,
 			"output",
-			with_null_state,
+			with_null_state
 		);
 		expect(result).toEqual(["hello", "world"]);
 	});
@@ -406,13 +406,13 @@ describe("handle_payload", () => {
 	it("should return an ouput payload with the two state component values when with_null_state is true", () => {
 		const resolved_payload = ["hello", null, "world", null];
 		const dependency = {
-			outputs: [2, 3, 4, 5],
+			outputs: [2, 3, 4, 5]
 		};
 		const components = [
 			{ id: 2, type: "textbox" },
 			{ id: 3, type: "state" },
 			{ id: 4, type: "textbox" },
-			{ id: 5, type: "state" },
+			{ id: 5, type: "state" }
 		];
 		const with_null_state = true;
 		const result = handle_payload(
@@ -421,7 +421,7 @@ describe("handle_payload", () => {
 			dependency,
 			components,
 			"output",
-			with_null_state,
+			with_null_state
 		);
 		expect(result).toEqual(["hello", null, "world", null]);
 	});
@@ -429,11 +429,11 @@ describe("handle_payload", () => {
 	it("should return the same payload where no state components are defined", () => {
 		const resolved_payload = ["hello", "world"];
 		const dependency = {
-			inputs: [2, 3],
+			inputs: [2, 3]
 		};
 		const components = [
 			{ id: 2, type: "textbox" },
-			{ id: 3, type: "textbox" },
+			{ id: 3, type: "textbox" }
 		];
 		const with_null_state = true;
 		const result = handle_payload(
@@ -442,7 +442,7 @@ describe("handle_payload", () => {
 			dependency,
 			components,
 			"input",
-			with_null_state,
+			with_null_state
 		);
 		expect(result).toEqual(["hello", "world"]);
 	});

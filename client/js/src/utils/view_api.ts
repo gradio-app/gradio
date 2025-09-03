@@ -35,16 +35,16 @@ export async function view_api(this: Client): Promise<any> {
 					method: "POST",
 					body: JSON.stringify({
 						serialize: false,
-						config: JSON.stringify(config),
+						config: JSON.stringify(config)
 					}),
 					headers,
-					credentials: "include",
+					credentials: "include"
 				});
 			} else {
 				const url = join_urls(config.root, this.api_prefix, API_INFO_URL);
 				response = await this.fetch(url, {
 					headers,
-					credentials: "include",
+					credentials: "include"
 				});
 			}
 

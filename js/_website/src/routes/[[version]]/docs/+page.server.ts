@@ -13,17 +13,17 @@ const COLOR_SETS = [
 	"red",
 	"blue",
 	"pink",
-	"purple",
+	"purple"
 ];
 
 const DOCS_BUCKET = "https://gradio-docs-json.s3.us-west-2.amazonaws.com";
 const VERSION = version.version;
 
 async function load_release_guide_categories(
-	version: string,
+	version: string
 ): Promise<typeof import("$lib/json/guides/guides_by_category.json")> {
 	let docs_json = await fetch(
-		`${DOCS_BUCKET}/${version}/guides/guides_by_category.json`,
+		`${DOCS_BUCKET}/${version}/guides/guides_by_category.json`
 	);
 	return await docs_json.json();
 }
@@ -52,6 +52,6 @@ export async function load({ params, url }) {
 	return {
 		guides_by_category,
 		total_guides,
-		COLOR_SETS,
+		COLOR_SETS
 	};
 }

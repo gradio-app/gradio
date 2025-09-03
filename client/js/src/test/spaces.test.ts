@@ -3,7 +3,7 @@ import {
 	discussions_enabled,
 	get_space_hardware,
 	set_space_timeout,
-	check_space_status,
+	check_space_status
 } from "../helpers/spaces";
 import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
 
@@ -34,9 +34,9 @@ describe("set_space_timeout", () => {
 		const hf_token = "hf_123";
 
 		await expect(
-			set_space_timeout(space_id, timeout, hf_token),
+			set_space_timeout(space_id, timeout, hf_token)
 		).rejects.toThrow(
-			"Could not set sleep timeout on duplicated Space. Please visit *ADD HF LINK TO SETTINGS* to set a timeout manually to reduce billing charges.",
+			"Could not set sleep timeout on duplicated Space. Please visit *ADD HF LINK TO SETTINGS* to set a timeout manually to reduce billing charges."
 		);
 	});
 });
@@ -54,7 +54,7 @@ describe("get_space_hardware", () => {
 		const space_id = "hmb/bye_world";
 
 		await expect(get_space_hardware(space_id)).rejects.toThrow(
-			"Space hardware could not be obtained.",
+			"Space hardware could not be obtained."
 		);
 	});
 });
@@ -85,7 +85,7 @@ describe("check_space_status", () => {
 			status: "running",
 			load_status: "complete",
 			message: "Space is running.",
-			detail: "RUNNING",
+			detail: "RUNNING"
 		});
 	});
 
@@ -100,7 +100,7 @@ describe("check_space_status", () => {
 			message:
 				"This space has been paused by the author. If you would like to try this demo, consider duplicating the space.",
 			detail: "PAUSED",
-			discussions_enabled: true,
+			discussions_enabled: true
 		});
 	});
 
@@ -113,7 +113,7 @@ describe("check_space_status", () => {
 			status: "building",
 			load_status: "pending",
 			message: "Space is building...",
-			detail: "BUILDING",
+			detail: "BUILDING"
 		});
 	});
 
@@ -126,7 +126,7 @@ describe("check_space_status", () => {
 			status: "sleeping",
 			load_status: "pending",
 			message: "Space is asleep. Waking it up...",
-			detail: "STOPPED",
+			detail: "STOPPED"
 		});
 	});
 
@@ -139,7 +139,7 @@ describe("check_space_status", () => {
 			status: "error",
 			load_status: "error",
 			message: SPACE_STATUS_ERROR_MSG,
-			detail: "NOT_FOUND",
+			detail: "NOT_FOUND"
 		});
 	});
 });

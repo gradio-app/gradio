@@ -11,7 +11,7 @@ describe("Group", () => {
 	test("setting visible to false hides the Group", async () => {
 		render(Group, {
 			elem_id: "group",
-			visible: false,
+			visible: false
 		});
 
 		const groupElement = document.getElementById("group");
@@ -19,7 +19,7 @@ describe("Group", () => {
 		assert(groupElement !== null, "Group element not found.");
 		assert(
 			groupElement.classList.contains("hide"),
-			"Group element is not hidden.",
+			"Group element is not hidden."
 		);
 	});
 });

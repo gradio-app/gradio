@@ -31,7 +31,7 @@ const langs = {
 	svelte: "svelte",
 	sv: "svelte",
 	md: "markdown",
-	css: "css",
+	css: "css"
 };
 
 function highlight(code: string, lang: string | undefined) {
@@ -41,7 +41,7 @@ function highlight(code: string, lang: string | undefined) {
 		? `<pre class="language-${lang}"><code>${Prism.highlight(
 				code,
 				Prism.languages[_lang],
-				_lang,
+				_lang
 			)}</code></pre>`
 		: code;
 
@@ -64,7 +64,7 @@ export async function load() {
 					changelog_slug.push({
 						text: str_of_heading,
 						href: `#${slug}`,
-						level: parseInt(n.tagName.replace("h", "")),
+						level: parseInt(n.tagName.replace("h", ""))
 					});
 
 					if (!n.children) n.children = [];
@@ -75,7 +75,7 @@ export async function load() {
 						tagName: "a",
 						properties: {
 							href: `#${slug}`,
-							className: ["invisible", "group-hover-visible"],
+							className: ["invisible", "group-hover-visible"]
 						},
 						children: [
 							{
@@ -83,11 +83,11 @@ export async function load() {
 								tagName: "img",
 								properties: {
 									src: anchor,
-									className: ["anchor-img"],
+									className: ["anchor-img"]
 								},
-								children: [],
-							},
-						],
+								children: []
+							}
+						]
 					});
 				}
 			});
@@ -97,13 +97,13 @@ export async function load() {
 	const compiled = await compile(content, {
 		rehypePlugins: [plugin],
 		highlight: {
-			highlighter: highlight,
-		},
+			highlighter: highlight
+		}
 	});
 	content = (await compiled?.code) || "";
 
 	return {
 		content,
-		changelog_slug,
+		changelog_slug
 	};
 }

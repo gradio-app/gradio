@@ -6,7 +6,7 @@ import {
 	RenderTexture,
 	Sprite,
 	type Renderer,
-	Texture,
+	Texture
 } from "pixi.js";
 import { type ImageEditorContext, type Tool } from "../core/editor";
 import { type Tool as ToolbarTool, type Subtool } from "../Toolbar.svelte";
@@ -27,7 +27,7 @@ export class ImageTool implements Tool {
 	async setup(
 		context: ImageEditorContext,
 		tool: ToolbarTool,
-		subtool: Subtool,
+		subtool: Subtool
 	): Promise<void> {
 		this.context = context;
 		this.current_tool = tool;
@@ -39,7 +39,7 @@ export class ImageTool implements Tool {
 	async add_image({
 		image,
 		fixed_canvas,
-		border_region = 0,
+		border_region = 0
 	}: {
 		image: Blob | File | Texture;
 		fixed_canvas: boolean;
@@ -49,7 +49,7 @@ export class ImageTool implements Tool {
 			this.context,
 			image,
 			fixed_canvas,
-			border_region,
+			border_region
 		);
 
 		await this.context.execute_command(image_command);
@@ -97,7 +97,7 @@ export class AddImageCommand implements BgImageCommand {
 		context: ImageEditorContext,
 		background: Blob | File | Texture,
 		fixed_canvas: boolean,
-		border_region = 0,
+		border_region = 0
 	) {
 		this.name = "AddImage";
 		this.context = context;
@@ -123,7 +123,7 @@ export class AddImageCommand implements BgImageCommand {
 				height: bg.height,
 				x: bg.position.x,
 				y: bg.position.y,
-				border_region: stored_border_region,
+				border_region: stored_border_region
 			};
 		}
 	}
@@ -135,7 +135,7 @@ export class AddImageCommand implements BgImageCommand {
 		const render_texture = RenderTexture.create({
 			width: texture.width,
 			height: texture.height,
-			resolution: window.devicePixelRatio || 1,
+			resolution: window.devicePixelRatio || 1
 		});
 
 		const sprite = new Sprite(texture);
@@ -143,7 +143,7 @@ export class AddImageCommand implements BgImageCommand {
 		container.addChild(sprite);
 
 		this.context.app.renderer.render(container, {
-			renderTexture: render_texture,
+			renderTexture: render_texture
 		});
 
 		container.destroy({ children: true });
@@ -172,18 +172,18 @@ export class AddImageCommand implements BgImageCommand {
 		if (this.fixed_canvas) {
 			const effectiveCanvasWidth = Math.max(
 				this.current_canvas_size.width - this.border_region * 2,
-				10,
+				10
 			);
 			const effectiveCanvasHeight = Math.max(
 				this.current_canvas_size.height - this.border_region * 2,
-				10,
+				10
 			);
 
 			const { width, height, x, y } = fit_image_to_canvas(
 				this.sprite.width,
 				this.sprite.height,
 				effectiveCanvasWidth,
-				effectiveCanvasHeight,
+				effectiveCanvasHeight
 			);
 
 			this.sprite.width = width;
@@ -221,15 +221,15 @@ export class AddImageCommand implements BgImageCommand {
 			scale: 1,
 			position: {
 				x: this.context.app.screen.width / 2,
-				y: this.context.app.screen.height / 2,
+				y: this.context.app.screen.height / 2
 			},
 			width: this.fixed_canvas ? this.current_canvas_size.width : width,
-			height: this.fixed_canvas ? this.current_canvas_size.height : height,
+			height: this.fixed_canvas ? this.current_canvas_size.height : height
 		});
 
 		const background_layer = this.context.layer_manager.create_background_layer(
 			this.fixed_canvas ? this.current_canvas_size.width : width,
-			this.fixed_canvas ? this.current_canvas_size.height : height,
+			this.fixed_canvas ? this.current_canvas_size.height : height
 		);
 		this.sprite.zIndex = 0;
 		background_layer.addChild(this.sprite);
@@ -237,7 +237,7 @@ export class AddImageCommand implements BgImageCommand {
 		this.context.layer_manager.reset_layers(
 			this.fixed_canvas ? this.current_canvas_size.width : width,
 			this.fixed_canvas ? this.current_canvas_size.height : height,
-			true,
+			true
 		);
 
 		if (this.border_region > 0) {
@@ -259,7 +259,7 @@ export class AddImageCommand implements BgImageCommand {
 				previous_sprite.height = this.previous_image.height;
 				previous_sprite.position.set(
 					this.previous_image.x,
-					this.previous_image.y,
+					this.previous_image.y
 				);
 
 				if (this.previous_image.border_region > 0) {
@@ -271,16 +271,16 @@ export class AddImageCommand implements BgImageCommand {
 					scale: 1,
 					position: {
 						x: this.context.app.screen.width / 2,
-						y: this.context.app.screen.height / 2,
+						y: this.context.app.screen.height / 2
 					},
 					width: this.previous_image.width,
-					height: this.previous_image.height,
+					height: this.previous_image.height
 				});
 
 				const background_layer =
 					this.context.layer_manager.create_background_layer(
 						this.previous_image.width,
-						this.previous_image.height,
+						this.previous_image.height
 					);
 
 				previous_sprite.zIndex = 0;
@@ -289,7 +289,7 @@ export class AddImageCommand implements BgImageCommand {
 				this.context.layer_manager.reset_layers(
 					this.previous_image.width,
 					this.previous_image.height,
-					true,
+					true
 				);
 
 				this.context.set_background_image(previous_sprite);
@@ -298,20 +298,20 @@ export class AddImageCommand implements BgImageCommand {
 					scale: 1,
 					position: {
 						x: this.context.app.screen.width / 2,
-						y: this.context.app.screen.height / 2,
+						y: this.context.app.screen.height / 2
 					},
 					width: this.current_canvas_size.width,
-					height: this.current_canvas_size.height,
+					height: this.current_canvas_size.height
 				});
 
 				this.context.layer_manager.create_background_layer(
 					this.current_canvas_size.width,
-					this.current_canvas_size.height,
+					this.current_canvas_size.height
 				);
 
 				this.context.layer_manager.reset_layers(
 					this.current_canvas_size.width,
-					this.current_canvas_size.height,
+					this.current_canvas_size.height
 				);
 			}
 
@@ -347,7 +347,7 @@ export function add_bg_color(
 	color: ColorSource,
 	width: number,
 	height: number,
-	resize: (width: number, height: number) => void,
+	resize: (width: number, height: number) => void
 ): BgColorCommand {
 	let sprite: Sprite;
 	return {
@@ -357,7 +357,7 @@ export function add_bg_color(
 			const graphics = make_graphics(1);
 			const texture = RenderTexture.create({
 				width,
-				height,
+				height
 			});
 
 			renderer.render(graphics, { renderTexture: texture });
@@ -371,7 +371,7 @@ export function add_bg_color(
 		},
 		undo() {
 			container.removeChildren();
-		},
+		}
 	};
 }
 
@@ -387,7 +387,7 @@ export function fit_image_to_canvas(
 	image_width: number,
 	image_height: number,
 	canvas_width: number,
-	canvas_height: number,
+	canvas_height: number
 ): {
 	width: number;
 	height: number;
@@ -415,6 +415,6 @@ export function fit_image_to_canvas(
 		width: Math.round(new_width),
 		height: Math.round(new_height),
 		x,
-		y,
+		y
 	};
 }

@@ -5,7 +5,7 @@ import turbosnap from "vite-plugin-turbosnap";
 const config: StorybookConfig = {
 	stories: [
 		"../../js/**/*.mdx",
-		"../../js/**/*.@(mdx|stories.@(js|jsx|ts|tsx|svelte))",
+		"../../js/**/*.@(mdx|stories.@(js|jsx|ts|tsx|svelte))"
 	],
 	addons: [
 		"@storybook/addon-links",
@@ -13,15 +13,15 @@ const config: StorybookConfig = {
 		"@storybook/addon-interactions",
 		"@storybook/addon-svelte-csf",
 		"@storybook/addon-a11y",
-		"@chromatic-com/storybook",
+		"@chromatic-com/storybook"
 	],
 	framework: {
 		name: "@storybook/svelte-vite",
 		options: {
 			builder: {
-				viteConfigPath: "js/storybook/vite.config.js",
-			},
-		},
+				viteConfigPath: "js/storybook/vite.config.js"
+			}
+		}
 	},
 	staticDirs: ["./public"],
 	async viteFinal(config, { configType }) {
@@ -30,12 +30,12 @@ const config: StorybookConfig = {
 				configType === "PRODUCTION"
 					? [
 							turbosnap({
-								rootDir: `${process.cwd()}/js/storybook`,
-							}),
+								rootDir: `${process.cwd()}/js/storybook`
+							})
 						]
-					: [],
+					: []
 		});
 	},
-	docs: {},
+	docs: {}
 };
 export default config;

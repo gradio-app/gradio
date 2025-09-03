@@ -27,8 +27,8 @@ export default defineConfig({
 			input: path.join(__dirname, "src/webworker/index.ts"),
 			// Ref: https://github.com/rollup/rollup/issues/2616#issuecomment-1431551704
 			output: {
-				entryFileNames: "webworker.js",
-			},
-		},
-	},
+				entryFileNames: "webworker.js"
+			}
+		}
+	}
 });

@@ -18,7 +18,7 @@ export function wait(n: number): Promise<void> {
 
 const ROOT_DIR = path.resolve(
 	url.fileURLToPath(import.meta.url),
-	"../../../..",
+	"../../../.."
 );
 
 export const is_lite = !!process.env.GRADIO_E2E_TEST_LITE;
@@ -37,8 +37,8 @@ const test_normal = base.extend<{ setup: void }>({
 
 			await use();
 		},
-		{ auto: true },
-	],
+		{ auto: true }
+	]
 });
 
 const lite_url = "http://localhost:8000/for_e2e.html";
@@ -64,7 +64,7 @@ const test_lite = base.extend<{ setup: void }>({
 					const app_load_perf = performance.measure(
 						"app-load",
 						"opened",
-						"app-loaded",
+						"app-loaded"
 					);
 					const app_load_time = app_load_perf.duration;
 
@@ -73,7 +73,7 @@ const test_lite = base.extend<{ setup: void }>({
 					fsPromises
 						.writeFile(
 							path.resolve(ROOT_DIR, `./.lite-perf.json`),
-							perf_file_content,
+							perf_file_content
 						)
 						.catch((err) => {
 							console.error("Failed to write the performance data.", err);
@@ -96,11 +96,11 @@ const test_lite = base.extend<{ setup: void }>({
 						(dirent) =>
 							dirent.isFile() &&
 							!dirent.name.endsWith(".ipynb") &&
-							!dirent.name.endsWith(".pyc"),
-					),
+							!dirent.name.endsWith(".pyc")
+					)
 				)
 				.then((dirents) =>
-					dirents.map((dirent) => path.join(dirent.path, dirent.name)),
+					dirents.map((dirent) => path.join(dirent.path, dirent.name))
 				);
 			const demo_files = await Promise.all(
 				demo_file_paths.map(async (filepath) => {
@@ -108,15 +108,15 @@ const test_lite = base.extend<{ setup: void }>({
 					const buffer = await fsPromises.readFile(filepath);
 					return [
 						relpath,
-						buffer.toString("base64"), // To pass to the browser, we need to convert the buffer to base64.
+						buffer.toString("base64") // To pass to the browser, we need to convert the buffer to base64.
 					];
-				}),
+				})
 			);
 
 			// Mount the demo files and run the app in the mounted Gradio-lite app via its controller.
 			const controllerHandle = await page.waitForFunction(
 				// @ts-ignore
-				() => window.controller, // This controller object is set in the dev app.
+				() => window.controller // This controller object is set in the dev app.
 			);
 			console.debug("Controller obtained. Setting up the app.");
 			await controllerHandle.evaluate(
@@ -148,7 +148,7 @@ const test_lite = base.extend<{ setup: void }>({
 
 					await controller.run_file("run.py");
 				},
-				demo_files,
+				demo_files
 			);
 
 			console.debug("App setup done. Starting the test,", test_name, "\n");
@@ -156,15 +156,15 @@ const test_lite = base.extend<{ setup: void }>({
 
 			controllerHandle.dispose();
 		},
-		{ auto: true },
-	],
+		{ auto: true }
+	]
 });
 
 export const test = is_lite ? test_lite : test_normal;
 
 export async function wait_for_event(
 	component: SvelteComponent,
-	event: string,
+	event: string
 ): Promise<SpyFn> {
 	const mock = spy();
 	return new Promise((res) => {
@@ -177,7 +177,7 @@ export async function wait_for_event(
 
 export interface ActionReturn<
 	Parameter = never,
-	Attributes extends Record<string, any> = Record<never, any>,
+	Attributes extends Record<string, any> = Record<never, any>
 > {
 	update?: [Parameter] extends [never] ? never : (parameter: Parameter) => void;
 	destroy?: () => void;
@@ -198,7 +198,7 @@ export const drag_and_drop_file = async (
 	filePath: string,
 	fileName: string,
 	fileType = "",
-	count = 1,
+	count = 1
 ): Promise<void> => {
 	const buffer = (await fsPromises.readFile(filePath)).toString("base64");
 
@@ -209,7 +209,7 @@ export const drag_and_drop_file = async (
 			const blobData = await fetch(bufferData).then((res) => res.blob());
 
 			const file = new File([blobData], localFileName, {
-				type: localFileType,
+				type: localFileType
 			});
 
 			for (let i = 0; i < count; i++) {
@@ -221,8 +221,8 @@ export const drag_and_drop_file = async (
 			bufferData: `data:application/octet-stream;base64,${buffer}`,
 			localFileName: fileName,
 			localFileType: fileType,
-			count,
-		},
+			count
+		}
 	);
 
 	if (typeof selector === "string") {
@@ -234,7 +234,7 @@ export const drag_and_drop_file = async (
 
 export async function go_to_testcase(
 	page: Page,
-	test_case: string,
+	test_case: string
 ): Promise<void> {
 	const url = page.url();
 	await page.goto(`${url.substring(0, url.length - 1)}_${test_case}_testcase`);

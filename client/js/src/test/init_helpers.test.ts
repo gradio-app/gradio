@@ -2,7 +2,7 @@ import {
 	resolve_root,
 	get_jwt,
 	determine_protocol,
-	parse_and_set_cookies,
+	parse_and_set_cookies
 } from "../helpers/init_helpers";
 import { initialise_server } from "./server";
 import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
@@ -61,7 +61,7 @@ describe("determine_protocol", () => {
 		expect(result).toEqual({
 			ws_protocol: "ws",
 			http_protocol: "http:",
-			host: "huggingface.co",
+			host: "huggingface.co"
 		});
 	});
 
@@ -71,7 +71,7 @@ describe("determine_protocol", () => {
 		expect(result).toEqual({
 			ws_protocol: "wss",
 			http_protocol: "https:",
-			host: "huggingface.co",
+			host: "huggingface.co"
 		});
 	});
 
@@ -81,7 +81,7 @@ describe("determine_protocol", () => {
 		expect(result).toEqual({
 			ws_protocol: "ws",
 			http_protocol: "http:",
-			host: "lite.local",
+			host: "lite.local"
 		});
 	});
 });
@@ -103,7 +103,7 @@ describe("parse_and_set_cookies", () => {
 describe("resolve_cookies", () => {
 	it("should set the cookies when correct auth credentials are provided", async () => {
 		const client = await Client.connect("hmb/auth_space", {
-			auth: ["admin", "pass1234"],
+			auth: ["admin", "pass1234"]
 		});
 
 		const api = client.view_api();
@@ -113,7 +113,7 @@ describe("resolve_cookies", () => {
 	it("should connect to a private and authenticated space", async () => {
 		const client = await Client.connect("hmb/private_auth_space", {
 			hf_token: "hf_123",
-			auth: ["admin", "pass1234"],
+			auth: ["admin", "pass1234"]
 		});
 
 		const api = client.view_api();
@@ -123,14 +123,14 @@ describe("resolve_cookies", () => {
 	it("should not set the cookies when auth credentials are invalid", async () => {
 		await expect(
 			Client.connect("hmb/invalid_auth_space", {
-				auth: ["admin", "wrong_password"],
-			}),
+				auth: ["admin", "wrong_password"]
+			})
 		).rejects.toThrowError(INVALID_CREDENTIALS_MSG);
 	});
 
 	it("should not set the cookies when auth option is not provided in an auth space", async () => {
 		await expect(Client.connect("hmb/unauth_space")).rejects.toThrowError(
-			MISSING_CREDENTIALS_MSG,
+			MISSING_CREDENTIALS_MSG
 		);
 	});
 });

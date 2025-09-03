@@ -46,7 +46,7 @@ export class BrushTool implements Tool {
 		opacity: 1,
 		brush_size: 10,
 		color: "#000000",
-		mode: "draw",
+		mode: "draw"
 	};
 
 	/**
@@ -92,7 +92,7 @@ export class BrushTool implements Tool {
 	async setup(
 		context: ImageEditorContext,
 		tool: ToolbarTool,
-		subtool: Subtool,
+		subtool: Subtool
 	): Promise<void> {
 		this.image_editor_context = context;
 		this.current_tool = tool;
@@ -116,14 +116,14 @@ export class BrushTool implements Tool {
 		this.brush_cursor = new BrushCursor(
 			this.image_editor_context,
 			this.state,
-			this.scale,
+			this.scale
 		);
 
 		this.brush_cursor.set_active(tool === "draw" || tool === "erase");
 
 		this.brush_textures = new BrushTextures(
 			this.image_editor_context,
-			context.app,
+			context.app
 		);
 		this.brush_textures.initialize_textures();
 
@@ -140,7 +140,7 @@ export class BrushTool implements Tool {
 	private handle_cursors(tool: ToolbarTool): void {
 		recurse_set_cursor(
 			this.image_editor_context.image_container.children as Container[],
-			"none",
+			"none"
 		);
 	}
 
@@ -223,7 +223,7 @@ export class BrushTool implements Tool {
 		}
 
 		const local_pos = this.image_editor_context.image_container.toLocal(
-			event.global,
+			event.global
 		);
 
 		this.is_drawing = true;
@@ -239,7 +239,7 @@ export class BrushTool implements Tool {
 				this.state.brush_size,
 				this.state.color,
 				this.state.opacity,
-				this.state.mode,
+				this.state.mode
 			);
 		}
 	}
@@ -257,7 +257,7 @@ export class BrushTool implements Tool {
 		if (!this.is_drawing) return;
 
 		const local_pos = this.image_editor_context.image_container.toLocal(
-			event.global,
+			event.global
 		);
 
 		if (this.brush_textures) {
@@ -269,7 +269,7 @@ export class BrushTool implements Tool {
 				this.state.brush_size,
 				this.state.color,
 				this.state.opacity,
-				this.state.mode,
+				this.state.mode
 			);
 		}
 
@@ -449,14 +449,14 @@ export class BrushTool implements Tool {
 	on<T extends string>(event: T, callback: () => void): void {
 		this.event_callbacks.set(event, [
 			...(this.event_callbacks.get(event) || []),
-			callback,
+			callback
 		]);
 	}
 
 	off<T extends string>(event: T, callback: () => void): void {
 		this.event_callbacks.set(
 			event,
-			this.event_callbacks.get(event)?.filter((cb) => cb !== callback) || [],
+			this.event_callbacks.get(event)?.filter((cb) => cb !== callback) || []
 		);
 	}
 

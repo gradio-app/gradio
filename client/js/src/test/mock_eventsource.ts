@@ -7,7 +7,7 @@ if (process.env.TEST_MODE !== "node") {
 			close: vi.fn(() => {}),
 			addEventListener: vi.fn(),
 			onmessage: vi.fn((_event: MessageEvent) => {}),
-			onerror: vi.fn((_event: Event) => {}),
-		})),
+			onerror: vi.fn((_event: Event) => {})
+		}))
 	});
 }

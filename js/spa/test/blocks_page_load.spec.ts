@@ -6,7 +6,7 @@ test("renders the correct elements", async ({ page }) => {
 	await textbox.fill("Frank");
 	await expect(await textbox).toHaveValue("Frank");
 	await expect(await page.getByLabel("Output")).toHaveValue(
-		"Welcome! This page has loaded for Frank",
+		"Welcome! This page has loaded for Frank"
 	);
 });
 
@@ -15,6 +15,6 @@ test("renders the footer text", async ({ page }) => {
 
 	await expect(footer).toBeVisible();
 	await expect(
-		footer.getByText("Use via API  · Built with Gradio "),
+		footer.getByText("Use via API  · Built with Gradio ")
 	).toBeVisible();
 });

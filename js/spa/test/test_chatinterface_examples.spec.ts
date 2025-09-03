@@ -6,12 +6,12 @@ const cases = [
 	"multimodal_tuples_examples",
 	"multimodal_messages_examples",
 	"eager_caching_examples",
-	"lazy_caching_examples",
+	"lazy_caching_examples"
 ];
 
 for (const test_case of cases) {
 	test(`case ${test_case}: clicked example is added to history and passed to chat function`, async ({
-		page,
+		page
 	}) => {
 		if (cases.slice(1).includes(test_case)) {
 			await go_to_testcase(page, test_case);
@@ -28,19 +28,19 @@ for (const test_case of cases) {
 			.getByRole("button", { name: "Can you explain briefly to me" })
 			.click();
 		await expect(page.locator(".user p")).toContainText(
-			"Can you explain briefly to me what is the Python programming language?",
+			"Can you explain briefly to me what is the Python programming language?"
 		);
 		await expect(page.locator(".bot p")).toContainText(
-			"Can you explain briefly to me what is the Python programming language?",
+			"Can you explain briefly to me what is the Python programming language?"
 		);
 
 		// Retry button works
 		await page.getByLabel("Retry").click();
 		await expect(page.locator(".user p")).toContainText(
-			"Can you explain briefly to me what is the Python programming language?",
+			"Can you explain briefly to me what is the Python programming language?"
 		);
 		await expect(page.locator(".bot p")).toContainText(
-			"Can you explain briefly to me what is the Python programming language?",
+			"Can you explain briefly to me what is the Python programming language?"
 		);
 
 		// Undo message resets to the examples view

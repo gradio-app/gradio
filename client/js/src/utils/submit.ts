@@ -8,7 +8,7 @@ import type {
 	ApiInfo,
 	Config,
 	Dependency,
-	SubmitIterable,
+	SubmitIterable
 } from "../types";
 
 import { skip_queue, post_message, handle_payload } from "../helpers/data";
@@ -16,7 +16,7 @@ import { resolve_root } from "../helpers/init_helpers";
 import {
 	handle_message,
 	map_data_to_params,
-	process_endpoint,
+	process_endpoint
 } from "../helpers/api_info";
 import semiver from "semiver";
 import {
@@ -25,7 +25,7 @@ import {
 	SSE_URL,
 	SSE_DATA_URL,
 	RESET_URL,
-	CANCEL_URL,
+	CANCEL_URL
 } from "../constants";
 import { apply_diff_stream, close_stream } from "./stream";
 import { Client } from "../client";
@@ -36,7 +36,7 @@ export function submit(
 	data: unknown[] | Record<string, unknown> = {},
 	event_data?: unknown,
 	trigger_id?: number | null,
-	all_events?: boolean,
+	all_events?: boolean
 ): SubmitIterable<GradioEvent> {
 	try {
 		const { hf_token } = this.options;
@@ -54,7 +54,7 @@ export function submit(
 			unclosed_events,
 			post_data,
 			options,
-			api_prefix,
+			api_prefix
 		} = this;
 
 		const that = this;
@@ -66,7 +66,7 @@ export function submit(
 			api_info,
 			endpoint,
 			api_map,
-			config,
+			config
 		);
 
 		let resolved_data = map_data_to_params(data, endpoint_info);
@@ -93,7 +93,7 @@ export function submit(
 					acc[event] = true;
 					return acc;
 				},
-				{} as Record<string, boolean>,
+				{} as Record<string, boolean>
 			) || {};
 
 		// event subscription methods
@@ -129,18 +129,18 @@ export function submit(
 					await fetch(`${config.root}${api_prefix}/${CANCEL_URL}`, {
 						headers: { "Content-Type": "application/json" },
 						method: "POST",
-						body: JSON.stringify(cancel_request),
+						body: JSON.stringify(cancel_request)
 					});
 				}
 
 				await fetch(`${config.root}${api_prefix}/${RESET_URL}`, {
 					headers: { "Content-Type": "application/json" },
 					method: "POST",
-					body: JSON.stringify(reset_request),
+					body: JSON.stringify(reset_request)
 				});
 			} catch (e) {
 				console.warn(
-					"The `/reset` endpoint could not be called. Subsequent endpoint results may be unreliable.",
+					"The `/reset` endpoint could not be called. Subsequent endpoint results may be unreliable."
 				);
 			}
 		}
@@ -154,15 +154,15 @@ export function submit(
 			let render_id: number = render_config.render_id;
 			config.components = [
 				...config.components.filter((c) => c.props.rendered_in !== render_id),
-				...render_config.components,
+				...render_config.components
 			];
 			config.dependencies = [
 				...config.dependencies.filter((d) => d.rendered_in !== render_id),
-				...render_config.dependencies,
+				...render_config.dependencies
 			];
 			const any_state = config.components.some((c) => c.type === "state");
 			const any_unload = config.dependencies.some((d) =>
-				d.targets.some((t) => t[1] === "unload"),
+				d.targets.some((t) => t[1] === "unload")
 			);
 			config.connect_heartbeat = any_state || any_unload;
 			await resolve_heartbeat(config);
@@ -170,7 +170,7 @@ export function submit(
 				type: "render",
 				data: render_config,
 				endpoint: _endpoint,
-				fn_index,
+				fn_index
 			});
 		}
 
@@ -181,13 +181,13 @@ export function submit(
 					dependency,
 					config.components,
 					"input",
-					true,
+					true
 				);
 				payload = {
 					data: input_data || [],
 					event_data,
 					fn_index,
-					trigger_id,
+					trigger_id
 				};
 				if (skip_queue(fn_index, config)) {
 					fire_event({
@@ -196,7 +196,7 @@ export function submit(
 						stage: "pending",
 						queue: false,
 						fn_index,
-						time: new Date(),
+						time: new Date()
 					});
 
 					post_data(
@@ -205,8 +205,8 @@ export function submit(
 						}${url_params ? "?" + url_params : ""}`,
 						{
 							...payload,
-							session_hash,
-						},
+							session_hash
+						}
 					)
 						.then(([output, status_code]: any) => {
 							const data = output.data;
@@ -220,11 +220,11 @@ export function submit(
 										dependency,
 										config.components,
 										"output",
-										options.with_null_state,
+										options.with_null_state
 									),
 									time: new Date(),
 									event_data,
-									trigger_id,
+									trigger_id
 								});
 								if (output.render_config) {
 									handle_render_config(output.render_config);
@@ -237,7 +237,7 @@ export function submit(
 									stage: "complete",
 									eta: output.average_duration,
 									queue: false,
-									time: new Date(),
+									time: new Date()
 								});
 							} else {
 								fire_event({
@@ -247,7 +247,7 @@ export function submit(
 									fn_index,
 									message: output.error,
 									queue: false,
-									time: new Date(),
+									time: new Date()
 								});
 							}
 						})
@@ -259,13 +259,13 @@ export function submit(
 								endpoint: _endpoint,
 								fn_index,
 								queue: false,
-								time: new Date(),
+								time: new Date()
 							});
 						});
 				} else if (protocol == "ws") {
 					const { ws_protocol, host } = await process_endpoint(
 						app_reference,
-						hf_token,
+						hf_token
 					);
 
 					fire_event({
@@ -274,15 +274,15 @@ export function submit(
 						queue: true,
 						endpoint: _endpoint,
 						fn_index,
-						time: new Date(),
+						time: new Date()
 					});
 
 					let url = new URL(
 						`${ws_protocol}://${resolve_root(
 							host,
 							config.root as string,
-							true,
-						)}/queue/join${url_params ? "?" + url_params : ""}`,
+							true
+						)}/queue/join${url_params ? "?" + url_params : ""}`
 					);
 
 					if (this.jwt) {
@@ -301,7 +301,7 @@ export function submit(
 								queue: true,
 								endpoint: _endpoint,
 								fn_index,
-								time: new Date(),
+								time: new Date()
 							});
 						}
 					};
@@ -310,7 +310,7 @@ export function submit(
 						const _data = JSON.parse(event.data);
 						const { type, status, data } = handle_message(
 							_data,
-							last_status[fn_index],
+							last_status[fn_index]
 						);
 
 						if (type === "update" && status && !complete) {
@@ -320,7 +320,7 @@ export function submit(
 								endpoint: _endpoint,
 								fn_index,
 								time: new Date(),
-								...status,
+								...status
 							});
 							if (status.stage === "error") {
 								websocket.close();
@@ -341,7 +341,7 @@ export function submit(
 								endpoint: _endpoint,
 								duration: data.duration,
 								visible: data.visible,
-								fn_index,
+								fn_index
 							});
 						} else if (type === "generating") {
 							fire_event({
@@ -351,7 +351,7 @@ export function submit(
 								stage: status?.stage!,
 								queue: true,
 								endpoint: _endpoint,
-								fn_index,
+								fn_index
 							});
 						}
 						if (data) {
@@ -363,12 +363,12 @@ export function submit(
 									dependency,
 									config.components,
 									"output",
-									options.with_null_state,
+									options.with_null_state
 								),
 								endpoint: _endpoint,
 								fn_index,
 								event_data,
-								trigger_id,
+								trigger_id
 							});
 
 							if (complete) {
@@ -379,7 +379,7 @@ export function submit(
 									stage: status?.stage!,
 									queue: true,
 									endpoint: _endpoint,
-									fn_index,
+									fn_index
 								});
 								websocket.close();
 							}
@@ -390,7 +390,7 @@ export function submit(
 					//@ts-ignore
 					if (semiver(config.version || "2.0.0", "3.6") < 0) {
 						addEventListener("open", () =>
-							websocket.send(JSON.stringify({ hash: session_hash })),
+							websocket.send(JSON.stringify({ hash: session_hash }))
 						);
 					}
 				} else if (protocol == "sse") {
@@ -400,16 +400,16 @@ export function submit(
 						queue: true,
 						endpoint: _endpoint,
 						fn_index,
-						time: new Date(),
+						time: new Date()
 					});
 					var params = new URLSearchParams({
 						fn_index: fn_index.toString(),
-						session_hash: session_hash,
+						session_hash: session_hash
 					}).toString();
 					let url = new URL(
 						`${config.root}${api_prefix}/${SSE_URL}?${
 							url_params ? url_params + "&" : ""
-						}${params}`,
+						}${params}`
 					);
 
 					if (this.jwt) {
@@ -420,7 +420,7 @@ export function submit(
 
 					if (!stream) {
 						return Promise.reject(
-							new Error("Cannot connect to SSE endpoint: " + url.toString()),
+							new Error("Cannot connect to SSE endpoint: " + url.toString())
 						);
 					}
 
@@ -428,7 +428,7 @@ export function submit(
 						const _data = JSON.parse(event.data);
 						const { type, status, data } = handle_message(
 							_data,
-							last_status[fn_index],
+							last_status[fn_index]
 						);
 
 						if (type === "update" && status && !complete) {
@@ -438,7 +438,7 @@ export function submit(
 								endpoint: _endpoint,
 								fn_index,
 								time: new Date(),
-								...status,
+								...status
 							});
 							if (status.stage === "error") {
 								stream?.close();
@@ -450,8 +450,8 @@ export function submit(
 								{
 									...payload,
 									session_hash,
-									event_id,
-								},
+									event_id
+								}
 							);
 							if (status !== 200) {
 								fire_event({
@@ -461,7 +461,7 @@ export function submit(
 									queue: true,
 									endpoint: _endpoint,
 									fn_index,
-									time: new Date(),
+									time: new Date()
 								});
 								stream?.close();
 								close();
@@ -477,7 +477,7 @@ export function submit(
 								endpoint: _endpoint,
 								duration: data.duration,
 								visible: data.visible,
-								fn_index,
+								fn_index
 							});
 						} else if (type === "generating" || type === "streaming") {
 							fire_event({
@@ -487,7 +487,7 @@ export function submit(
 								stage: status?.stage!,
 								queue: true,
 								endpoint: _endpoint,
-								fn_index,
+								fn_index
 							});
 						}
 						if (data) {
@@ -499,12 +499,12 @@ export function submit(
 									dependency,
 									config.components,
 									"output",
-									options.with_null_state,
+									options.with_null_state
 								),
 								endpoint: _endpoint,
 								fn_index,
 								event_data,
-								trigger_id,
+								trigger_id
 							});
 
 							if (complete) {
@@ -515,7 +515,7 @@ export function submit(
 									stage: status?.stage!,
 									queue: true,
 									endpoint: _endpoint,
-									fn_index,
+									fn_index
 								});
 								stream?.close();
 								close();
@@ -536,7 +536,7 @@ export function submit(
 						queue: true,
 						endpoint: _endpoint,
 						fn_index,
-						time: new Date(),
+						time: new Date()
 					});
 					let hostname = "";
 					if (
@@ -564,9 +564,9 @@ export function submit(
 							`${config.root}${api_prefix}/${SSE_DATA_URL}?${url_params}`,
 							{
 								...payload,
-								session_hash,
+								session_hash
 							},
-							headers,
+							headers
 						);
 					});
 					post_data_promise.then(async ([response, status]: any) => {
@@ -578,7 +578,7 @@ export function submit(
 								queue: true,
 								endpoint: _endpoint,
 								fn_index,
-								time: new Date(),
+								time: new Date()
 							});
 						} else if (status !== 200) {
 							fire_event({
@@ -589,7 +589,7 @@ export function submit(
 								queue: true,
 								endpoint: _endpoint,
 								fn_index,
-								time: new Date(),
+								time: new Date()
 							});
 						} else {
 							event_id = response.event_id as string;
@@ -598,7 +598,7 @@ export function submit(
 								try {
 									const { type, status, data, original_msg } = handle_message(
 										_data,
-										last_status[fn_index],
+										last_status[fn_index]
 									);
 
 									if (type == "heartbeat") {
@@ -613,7 +613,7 @@ export function submit(
 											fn_index,
 											time: new Date(),
 											original_msg: original_msg,
-											...status,
+											...status
 										});
 									} else if (type === "complete") {
 										complete = status;
@@ -633,7 +633,7 @@ export function submit(
 											broken,
 											session_not_found: status?.session_not_found,
 											fn_index,
-											time: new Date(),
+											time: new Date()
 										});
 									} else if (type === "log") {
 										fire_event({
@@ -644,7 +644,7 @@ export function submit(
 											endpoint: _endpoint,
 											duration: data.duration,
 											visible: data.visible,
-											fn_index,
+											fn_index
 										});
 										return;
 									} else if (type === "generating" || type === "streaming") {
@@ -655,7 +655,7 @@ export function submit(
 											stage: status?.stage!,
 											queue: true,
 											endpoint: _endpoint,
-											fn_index,
+											fn_index
 										});
 										if (
 											data &&
@@ -674,10 +674,10 @@ export function submit(
 												dependency,
 												config.components,
 												"output",
-												options.with_null_state,
+												options.with_null_state
 											),
 											endpoint: _endpoint,
-											fn_index,
+											fn_index
 										});
 										if (data.render_config) {
 											await handle_render_config(data.render_config);
@@ -691,7 +691,7 @@ export function submit(
 												stage: status?.stage!,
 												queue: true,
 												endpoint: _endpoint,
-												fn_index,
+												fn_index
 											});
 											close();
 										}
@@ -717,7 +717,7 @@ export function submit(
 										queue: true,
 										endpoint: _endpoint,
 										fn_index,
-										time: new Date(),
+										time: new Date()
 									});
 									if (["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)) {
 										close_stream(stream_status, that.abort_controller);
@@ -729,7 +729,7 @@ export function submit(
 
 							if (event_id in pending_stream_messages) {
 								pending_stream_messages[event_id].forEach((msg) =>
-									callback(msg),
+									callback(msg)
 								);
 								delete pending_stream_messages[event_id];
 							}
@@ -742,13 +742,13 @@ export function submit(
 						}
 					});
 				}
-			},
+			}
 		);
 
 		let done = false;
 		const values: (IteratorResult<GradioEvent> | PromiseLike<never>)[] = [];
 		const resolvers: ((
-			value: IteratorResult<GradioEvent> | PromiseLike<never>,
+			value: IteratorResult<GradioEvent> | PromiseLike<never>
 		) => void)[] = [];
 
 		function close(): void {
@@ -756,12 +756,12 @@ export function submit(
 			while (resolvers.length > 0)
 				(resolvers.shift() as (typeof resolvers)[0])({
 					value: undefined,
-					done: true,
+					done: true
 				});
 		}
 
 		function push(
-			data: { value: GradioEvent; done: boolean } | PromiseLike<never>,
+			data: { value: GradioEvent; done: boolean } | PromiseLike<never>
 		): void {
 			if (resolvers.length > 0) {
 				(resolvers.shift() as (typeof resolvers)[0])(data);
@@ -798,7 +798,7 @@ export function submit(
 				return next();
 			},
 			cancel,
-			event_id: event_id_cb,
+			event_id: event_id_cb
 		};
 
 		return iterator;
@@ -812,8 +812,8 @@ function thenable_reject<T>(error: T): PromiseLike<never> {
 	return {
 		then: (
 			resolve: (value: never) => PromiseLike<never>,
-			reject: (error: T) => PromiseLike<never>,
-		) => reject(error),
+			reject: (error: T) => PromiseLike<never>
+		) => reject(error)
 	};
 }
 
@@ -821,7 +821,7 @@ function get_endpoint_info(
 	api_info: ApiInfo<JsApiData>,
 	endpoint: string | number,
 	api_map: Record<string, number>,
-	config: Config,
+	config: Config
 ): {
 	fn_index: number;
 	endpoint_info: EndpointInfo<JsApiData>;
@@ -841,13 +841,13 @@ function get_endpoint_info(
 		fn_index = api_map[trimmed_endpoint];
 		endpoint_info = api_info.named_endpoints[endpoint.trim()];
 		dependency = config.dependencies.find(
-			(dep) => dep.id == api_map[trimmed_endpoint],
+			(dep) => dep.id == api_map[trimmed_endpoint]
 		)!;
 	}
 
 	if (typeof fn_index !== "number") {
 		throw new Error(
-			"There is no endpoint matching that name of fn_index matching that number.",
+			"There is no endpoint matching that name of fn_index matching that number."
 		);
 	}
 	return { fn_index, endpoint_info, dependency };

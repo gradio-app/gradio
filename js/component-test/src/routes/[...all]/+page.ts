@@ -39,7 +39,7 @@ const comps = {
 	textbox: () => import("@gradio/textbox"),
 	timer: () => import("@gradio/timer"),
 	uploadbutton: () => import("@gradio/uploadbutton"),
-	video: () => import("@gradio/video"),
+	video: () => import("@gradio/video")
 };
 
 import type { PageLoad } from "./$types";
@@ -47,10 +47,10 @@ import type { PageLoad } from "./$types";
 export const load: PageLoad = async ({ url }) => {
 	const route_name = url.pathname.split("/").slice(-1)[0];
 	const interactive_component = config.find(
-		(c) => c.name === route_name && c.props.interactive,
+		(c) => c.name === route_name && c.props.interactive
 	);
 	const non_interactive_component = config.find(
-		(c) => c.name === route_name && !c.props.interactive,
+		(c) => c.name === route_name && !c.props.interactive
 	);
 
 	const comp =
@@ -62,6 +62,6 @@ export const load: PageLoad = async ({ url }) => {
 		component: comp,
 		interactive_component: interactive_component,
 		non_interactive_component: non_interactive_component,
-		name: route_name,
+		name: route_name
 	};
 };

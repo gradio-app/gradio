@@ -2,7 +2,7 @@ import type {
 	Element,
 	MarkdownExtension,
 	BlockContext,
-	Line,
+	Line
 } from "@lezer/markdown";
 import { parseMixed } from "@lezer/common";
 import { yaml } from "@codemirror/legacy-modes/mode/yaml";
@@ -16,19 +16,19 @@ export const frontmatter: MarkdownExtension = {
 	props: [
 		styleTags({
 			Frontmatter: [tags.documentMeta, tags.monospace],
-			FrontmatterMark: tags.processingInstruction,
+			FrontmatterMark: tags.processingInstruction
 		}),
 		foldNodeProp.add({
 			Frontmatter: foldInside,
-			FrontmatterMark: () => null,
-		}),
+			FrontmatterMark: () => null
+		})
 	],
 	wrap: parseMixed((node) => {
 		const { parser } = StreamLanguage.define(yaml);
 		if (node.type.name === "Frontmatter") {
 			return {
 				parser,
-				overlay: [{ from: node.from + 4, to: node.to - 4 }],
+				overlay: [{ from: node.from + 4, to: node.to - 4 }]
 			};
 		}
 		return null;
@@ -55,7 +55,7 @@ export const frontmatter: MarkdownExtension = {
 					return true;
 				}
 				return false;
-			},
-		},
-	],
+			}
+		}
+	]
 };

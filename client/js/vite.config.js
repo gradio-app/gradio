@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
 
 	if (mode === "preview") {
 		return {
-			entry: "index.html",
+			entry: "index.html"
 		};
 	}
 
@@ -19,23 +19,23 @@ export default defineConfig(({ mode }) => {
 			lib: {
 				entry: "src/index.ts",
 				formats: ["es"],
-				fileName: isBrowserBuild ? `browser` : `index`,
+				fileName: isBrowserBuild ? `browser` : `index`
 			},
 			rollupOptions: {
 				input: "src/index.ts",
 				output: {
-					dir: "dist",
-				},
-			},
+					dir: "dist"
+				}
+			}
 		},
 		plugins: [svelte()],
 		define: {
-			BROWSER_BUILD: JSON.stringify(isBrowserBuild),
+			BROWSER_BUILD: JSON.stringify(isBrowserBuild)
 		},
 		mode: process.env.MODE || "development",
 		test: {
 			include: ["./src/test/*.test.*"],
-			environment: TEST_MODE,
+			environment: TEST_MODE
 		},
 		ssr: {
 			target: "node",
@@ -45,8 +45,8 @@ export default defineConfig(({ mode }) => {
 				"semiver",
 				"bufferutil",
 				"@gradio/upload",
-				"fetch-event-stream",
-			],
-		},
+				"fetch-event-stream"
+			]
+		}
 	};
 });

@@ -11,7 +11,7 @@ import {
 	afterEach,
 	beforeAll,
 	afterAll,
-	beforeEach,
+	beforeEach
 } from "vitest";
 
 const server = initialise_server();
@@ -27,7 +27,7 @@ describe("open_stream", () => {
 		app = await Client.connect("hmb/hello_world");
 		app.stream = vi.fn().mockImplementation(() => {
 			app.stream_instance = readable_stream(
-				new URL(`${direct_space_url}/queue/data`),
+				new URL(`${direct_space_url}/queue/data`)
 			);
 			return app.stream_instance;
 		});
@@ -51,7 +51,7 @@ describe("open_stream", () => {
 		const eventsource_mock_call = (app.stream as Mock).mock.calls[0][0];
 
 		expect(eventsource_mock_call.href).toMatch(
-			/https:\/\/hmb-hello-world\.hf\.space\/queue\/data\?session_hash/,
+			/https:\/\/hmb-hello-world\.hf\.space\/queue\/data\?session_hash/
 		);
 
 		expect(app.stream).toHaveBeenCalledWith(eventsource_mock_call);

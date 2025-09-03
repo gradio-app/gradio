@@ -20,7 +20,7 @@ test(".failure should only run if function fails", async ({ page }) => {
 });
 
 test(".success event runs after function successfully completes", async ({
-	page,
+	page
 }) => {
 	const textbox = page.getByLabel("Result");
 	await page.click("text=Trigger Success");
@@ -28,7 +28,7 @@ test(".success event runs after function successfully completes", async ({
 });
 
 test("Consecutive .success event is triggered successfully", async ({
-	page,
+	page
 }) => {
 	const textbox = page.getByLabel("Consecutive Event");
 	const first = page.getByLabel("Result");
@@ -49,7 +49,7 @@ test("gr.Error makes the toast show up", async ({ page }) => {
 });
 
 test("ValueError makes the toast show up when show_error=True", async ({
-	page,
+	page
 }) => {
 	await page.click("text=Trigger Failure With ValueError");
 

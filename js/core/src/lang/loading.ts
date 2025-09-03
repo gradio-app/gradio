@@ -29,5 +29,5 @@ export const loading = {
 	ur: "لوڈ ہو رہا ہے",
 	uz: "Yuklanmoqda",
 	"zh-CN": "加载中",
-	"zh-TW": "載入中",
+	"zh-TW": "載入中"
 };

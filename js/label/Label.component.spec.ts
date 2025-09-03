@@ -12,12 +12,12 @@ const loading_status: LoadingStatus = {
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0,
-	show_progress: "full",
+	show_progress: "full"
 };
 
 test("gr.Label default value and label rendered with confidences", async ({
 	mount,
-	page,
+	page
 }) => {
 	const component = await mount(Label, {
 		props: {
@@ -25,16 +25,16 @@ test("gr.Label default value and label rendered with confidences", async ({
 				label: "Good",
 				confidences: [
 					{ label: "Good", confidence: 0.9 },
-					{ label: "Bad", confidence: 0.1 },
-				],
+					{ label: "Bad", confidence: 0.1 }
+				]
 			},
 			label: "My Label",
 			show_label: true,
 			loading_status: loading_status,
 			gradio: {
-				dispatch() {},
-			},
-		},
+				dispatch() {}
+			}
+		}
 	});
 	await expect(component).toContainText("My Label");
 	await expect(component.getByTestId("block-label")).toBeVisible();
@@ -50,35 +50,35 @@ test("gr.Label hides label when show_label=false", async ({ mount, page }) => {
 				label: "Good",
 				confidences: [
 					{ label: "Good", confidence: 0.9 },
-					{ label: "Bad", confidence: 0.1 },
-				],
+					{ label: "Bad", confidence: 0.1 }
+				]
 			},
 			label: "My Label",
 			show_label: false,
 			loading_status: loading_status,
 			gradio: {
-				dispatch() {},
-			},
-		},
+				dispatch() {}
+			}
+		}
 	});
 	await expect(component.getByTestId("block-label")).toBeHidden();
 });
 
 test("gr.Label confidence bars not rendered without confidences", async ({
-	mount,
+	mount
 }) => {
 	const component = await mount(Label, {
 		props: {
 			value: {
-				label: "Good",
+				label: "Good"
 			},
 			label: "My Label",
 			show_label: true,
 			loading_status: loading_status,
 			gradio: {
-				dispatch() {},
-			},
-		},
+				dispatch() {}
+			}
+		}
 	});
 	await expect(component).toContainText("My Label");
 	expect(await component.getByTestId("Good-confidence-set").count()).toEqual(0);
@@ -86,10 +86,10 @@ test("gr.Label confidence bars not rendered without confidences", async ({
 
 test("gr.Label confidence bars trigger select event when clicked", async ({
 	mount,
-	page,
+	page
 }) => {
 	const events = {
-		select: [0, null],
+		select: [0, null]
 	};
 
 	function event(name: "select", value: any) {
@@ -102,16 +102,16 @@ test("gr.Label confidence bars trigger select event when clicked", async ({
 				label: "Good",
 				confidences: [
 					{ label: "Good", confidence: 0.9 },
-					{ label: "Bad", confidence: 0.1 },
-				],
+					{ label: "Bad", confidence: 0.1 }
+				]
 			},
 			label: "My Label",
 			show_label: true,
 			loading_status: loading_status,
 			gradio: {
-				dispatch: event,
-			},
-		},
+				dispatch: event
+			}
+		}
 	});
 	await expect(component).toContainText("My Label");
 	await component.getByTestId("Bad-confidence-set").click();
@@ -121,7 +121,7 @@ test("gr.Label confidence bars trigger select event when clicked", async ({
 
 test("gr.Label triggers change event", async ({ mount, page }) => {
 	const events = {
-		change: 0,
+		change: 0
 	};
 
 	function event(name: "change") {
@@ -134,16 +134,16 @@ test("gr.Label triggers change event", async ({ mount, page }) => {
 				label: "Good",
 				confidences: [
 					{ label: "Good", confidence: 0.9 },
-					{ label: "Bad", confidence: 0.1 },
-				],
+					{ label: "Bad", confidence: 0.1 }
+				]
 			},
 			label: "My Label",
 			show_label: true,
 			loading_status: loading_status,
 			gradio: {
-				dispatch: event,
-			},
-		},
+				dispatch: event
+			}
+		}
 	});
 
 	await component.update({
@@ -152,10 +152,10 @@ test("gr.Label triggers change event", async ({ mount, page }) => {
 				label: "Good",
 				confidences: [
 					{ label: "Good", confidence: 0.1 },
-					{ label: "Bad", confidence: 0.9 },
-				],
-			},
-		},
+					{ label: "Bad", confidence: 0.9 }
+				]
+			}
+		}
 	});
 	expect(events.change).toEqual(2);
 });

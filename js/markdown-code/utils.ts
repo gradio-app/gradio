@@ -41,7 +41,7 @@ const escape_replacements: Record<string, any> = {
 	"<": "&lt;",
 	">": "&gt;",
 	'"': "&quot;",
-	"'": "&#39;",
+	"'": "&#39;"
 };
 
 const get_escape_replacement = (ch: string): string =>
@@ -69,11 +69,11 @@ interface Tokenizer {
 }
 
 function createLatexTokenizer(
-	delimiters: { left: string; right: string; display: boolean }[],
+	delimiters: { left: string; right: string; display: boolean }[]
 ): Tokenizer {
 	const delimiterPatterns = delimiters.map((delimiter) => ({
 		start: new RegExp(delimiter.left.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")),
-		end: new RegExp(delimiter.right.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")),
+		end: new RegExp(delimiter.right.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"))
 	}));
 
 	return {
@@ -91,20 +91,20 @@ function createLatexTokenizer(
 		tokenizer(src: string, tokens: any) {
 			for (const pattern of delimiterPatterns) {
 				const match = new RegExp(
-					`${pattern.start.source}([\\s\\S]+?)${pattern.end.source}`,
+					`${pattern.start.source}([\\s\\S]+?)${pattern.end.source}`
 				).exec(src);
 				if (match) {
 					return {
 						type: "latex",
 						raw: match[0],
-						text: match[1].trim(),
+						text: match[1].trim()
 					};
 				}
 			}
 		},
 		renderer(token: any) {
 			return `<div class="latex-block">${token.text}</div>`;
-		},
+		}
 	};
 }
 
@@ -121,14 +121,14 @@ function createMermaidTokenizer(): Tokenizer {
 				return {
 					type: "mermaid",
 					raw: match[0],
-					text: match[1].trim(),
+					text: match[1].trim()
 				};
 			}
 			return undefined;
 		},
 		renderer(token) {
 			return `<div class="mermaid">${token.text}</div>\n`;
-		},
+		}
 	};
 }
 
@@ -137,7 +137,7 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 		this: Renderer,
 		code: string,
 		infostring: string | undefined,
-		escaped: boolean,
+		escaped: boolean
 	) {
 		const lang = (infostring ?? "").match(/\S*/)?.[0] ?? "";
 		code = code.replace(/\n$/, "") + "\n";
@@ -164,7 +164,7 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 			(escaped ? code : escape(code, true)) +
 			"</code></pre></div>\n"
 		);
-	},
+	}
 };
 
 const slugger = new GithubSlugger();
@@ -172,7 +172,7 @@ const slugger = new GithubSlugger();
 export function create_marked({
 	header_links,
 	line_breaks,
-	latex_delimiters,
+	latex_delimiters
 }: {
 	header_links: boolean;
 	line_breaks: boolean;
@@ -184,7 +184,7 @@ export function create_marked({
 		{
 			gfm: true,
 			pedantic: false,
-			breaks: line_breaks,
+			breaks: line_breaks
 		},
 		markedHighlight({
 			highlight: (code: string, lang: string) => {
@@ -192,9 +192,9 @@ export function create_marked({
 					return Prism.highlight(code, Prism.languages[lang], lang);
 				}
 				return code;
-			},
+			}
 		}),
-		{ renderer },
+		{ renderer }
 	);
 
 	if (header_links) {
@@ -214,9 +214,9 @@ export function create_marked({
 						const text = this.parser.parseInline(token.tokens!);
 
 						return `<h${level} id="${id}"><a class="md-header-anchor" href="#${id}">${LINK_ICON_CODE}</a>${text}</h${level}>\n`;
-					},
-				},
-			],
+					}
+				}
+			]
 		});
 	}
 
@@ -224,7 +224,7 @@ export function create_marked({
 	const latexTokenizer = createLatexTokenizer(latex_delimiters);
 
 	marked.use({
-		extensions: [mermaidTokenizer, latexTokenizer],
+		extensions: [mermaidTokenizer, latexTokenizer]
 	});
 
 	return marked;
@@ -237,8 +237,7 @@ export function copy(node: HTMLDivElement): any {
 		const path = event.composedPath() as HTMLButtonElement[];
 
 		const [copy_button] = path.filter(
-			(e) =>
-				e?.tagName === "BUTTON" && e.classList.contains("copy_code_button"),
+			(e) => e?.tagName === "BUTTON" && e.classList.contains("copy_code_button")
 		);
 
 		if (copy_button) {
@@ -246,7 +245,7 @@ export function copy(node: HTMLDivElement): any {
 
 			const copy_text = copy_button.parentElement!.innerText.trim();
 			const copy_sucess_button = Array.from(
-				copy_button.children,
+				copy_button.children
 			)[1] as HTMLDivElement;
 
 			const copied = await copy_to_clipboard(copy_text);
@@ -265,7 +264,7 @@ export function copy(node: HTMLDivElement): any {
 	return {
 		destroy(): void {
 			node.removeEventListener("click", handle_copy);
-		},
+		}
 	};
 }
 

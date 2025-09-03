@@ -6,7 +6,7 @@ test("Search bar filters dataframe correctly.", async ({ page }) => {
 	await expect(
 		page
 			.getByRole("button", { name: "yam-peleg/Experiment26-7B", exact: true })
-			.first(),
+			.first()
 	).toBeInViewport();
 });
 
@@ -40,12 +40,12 @@ test("Column selection removes columns to the dataframe.", async ({ page }) => {
 
 test("Model Types Checkbox filters models from the table", async ({ page }) => {
 	await expect(
-		page.getByRole("button", { name: "Qwen/Qwen-72B", exact: true }).first(),
+		page.getByRole("button", { name: "Qwen/Qwen-72B", exact: true }).first()
 	).not.toBeInViewport();
 	await page.getByLabel("🔶").uncheck();
 	await page.getByLabel("💬").uncheck();
 	await page.getByLabel("🤝").uncheck();
 	await expect(
-		page.getByRole("button", { name: "Qwen/Qwen-72B", exact: true }).first(),
+		page.getByRole("button", { name: "Qwen/Qwen-72B", exact: true }).first()
 	).toBeInViewport();
 });

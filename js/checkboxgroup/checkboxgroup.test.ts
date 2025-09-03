@@ -14,7 +14,7 @@ const loading_status: LoadingStatus = {
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0,
-	show_progress: "full",
+	show_progress: "full"
 };
 
 beforeEach(() => {
@@ -30,8 +30,8 @@ describe("Values", () => {
 			label: "Dropdown",
 			choices: [
 				["Choice One", "choice_one"],
-				["Choice Two", "choice_two"],
-			],
+				["Choice Two", "choice_two"]
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -48,8 +48,8 @@ describe("Values", () => {
 			choices: [
 				["Choice One", "choice_one"],
 				["Choice Two", "choice_two"],
-				["Choice Three", "choice_three"],
-			],
+				["Choice Three", "choice_three"]
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -70,8 +70,8 @@ describe("Values", () => {
 			label: "Dropdown",
 			choices: [
 				["Choice One", 1],
-				["Choice Two", 2],
-			],
+				["Choice Two", 2]
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -88,8 +88,8 @@ describe("Values", () => {
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2],
-				["Choice Three", 3],
-			],
+				["Choice Three", 3]
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -108,8 +108,8 @@ describe("Values", () => {
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2],
-				["Choice Three", 3],
-			],
+				["Choice Three", 3]
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -130,8 +130,8 @@ describe("Values", () => {
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2],
-				["Choice Three", 3],
-			],
+				["Choice Three", 3]
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -155,8 +155,8 @@ describe("Values", () => {
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2],
-				["Choice Three", 3],
-			],
+				["Choice Three", 3]
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -184,8 +184,8 @@ describe("Events", () => {
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2],
-				["Choice Three", 3],
-			],
+				["Choice Three", 3]
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -212,8 +212,8 @@ describe("Events", () => {
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2],
-				["Choice Three", 3],
-			],
+				["Choice Three", 3]
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -237,8 +237,8 @@ describe("Events", () => {
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2],
-				["Choice Three", 3],
-			],
+				["Choice Three", 3]
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -256,8 +256,8 @@ describe("Events", () => {
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2],
-				["Choice Three", 3],
-			],
+				["Choice Three", 3]
+			]
 		});
 
 		const mock = listen("input");
@@ -273,8 +273,8 @@ describe("Events", () => {
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2],
-				["Choice Three", 3],
-			],
+				["Choice Three", 3]
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -292,8 +292,8 @@ describe("Events", () => {
 			choices: [
 				["Choice One", "val"],
 				["Choice Two", "val_two"],
-				["Choice Three", 3],
-			],
+				["Choice Three", 3]
+			]
 		});
 
 		const item = getByLabelText("Choice Two") as HTMLInputElement;
@@ -312,8 +312,8 @@ describe("Events", () => {
 			choices: [
 				["Choice One", "val"],
 				["Choice Two", "val_two"],
-				["Choice Three", 3],
-			],
+				["Choice Three", 3]
+			]
 		});
 
 		const item = getByLabelText("Choice Two") as HTMLInputElement;
@@ -336,8 +336,8 @@ describe("interactive vs static", () => {
 			interactive: true,
 			choices: [
 				["Choice One", 1],
-				["Choice Two", 2],
-			],
+				["Choice Two", 2]
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -354,8 +354,8 @@ describe("interactive vs static", () => {
 			interactive: false,
 			choices: [
 				["Choice One", 1],
-				["Choice Two", 2],
-			],
+				["Choice Two", 2]
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -372,8 +372,8 @@ describe("interactive vs static", () => {
 			interactive: true,
 			choices: [
 				["Choice One", 1],
-				["Choice Two", 2],
-			],
+				["Choice Two", 2]
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -390,8 +390,8 @@ describe("interactive vs static", () => {
 			interactive: false,
 			choices: [
 				["Choice One", 1],
-				["Choice Two", 2],
-			],
+				["Choice Two", 2]
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;

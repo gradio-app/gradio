@@ -7,7 +7,7 @@ const sizes = {
 	lg: "(min-width: 1024px)",
 	xl: "(min-width: 1280px)",
 	"2xl": "(min-width: 1536px)",
-	"3xl": "(min-width: 1920px)",
+	"3xl": "(min-width: 1920px)"
 } as const;
 
 const _default = {
@@ -16,7 +16,7 @@ const _default = {
 	lg: false,
 	xl: false,
 	"2xl": false,
-	"3xl": false,
+	"3xl": false
 };
 
 export const media_query = () => {

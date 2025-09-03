@@ -24,8 +24,8 @@ if __name__ == "__main__":
 		stdio: "pipe",
 		env: {
 			...process.env,
-			PYTHONUNBUFFERED: "true",
-		},
+			PYTHONUNBUFFERED: "true"
+		}
 	});
 });
 
@@ -36,13 +36,13 @@ test.afterAll(() => {
 		stdio: "pipe",
 		env: {
 			...process.env,
-			PYTHONUNBUFFERED: "true",
-		},
+			PYTHONUNBUFFERED: "true"
+		}
 	});
 });
 
 test("gradio dev mode respects allowed paths after reload", async ({
-	page,
+	page
 }) => {
 	test.setTimeout(20 * 1000);
 
@@ -50,7 +50,7 @@ test("gradio dev mode respects allowed paths after reload", async ({
 		const { _process: server_process, port: port } =
 			await launch_app_background(
 				`gradio ${join(process.cwd(), demo_file)}`,
-				process.cwd(),
+				process.cwd()
 			);
 		_process = server_process;
 		const demo = `
@@ -72,8 +72,8 @@ if __name__ == "__main__":
 			stdio: "pipe",
 			env: {
 				...process.env,
-				PYTHONUNBUFFERED: "true",
-			},
+				PYTHONUNBUFFERED: "true"
+			}
 		});
 
 		await expect(async () => {

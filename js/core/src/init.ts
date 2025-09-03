@@ -6,7 +6,7 @@ import type {
 	Dependency,
 	LayoutNode,
 	TargetMap,
-	LoadingComponent,
+	LoadingComponent
 } from "./types";
 import { load_component } from "virtual:component-loader";
 import type { client_return } from "@gradio/client";
@@ -31,12 +31,12 @@ const raf = is_browser
  */
 export function create_components(
 	{
-		initial_layout = undefined,
+		initial_layout = undefined
 	}: {
 		initial_layout: ComponentMeta | undefined;
 	} = {
-		initial_layout: undefined,
-	},
+		initial_layout: undefined
+	}
 ): {
 	layout: Writable<ComponentMeta>;
 	targets: Writable<TargetMap>;
@@ -111,7 +111,7 @@ export function create_components(
 		layout,
 		dependencies,
 		root,
-		options,
+		options
 	}: {
 		app: client_return;
 		components: ComponentMeta[];
@@ -132,7 +132,7 @@ export function create_components(
 				if (c.props.value == null && c.key) {
 					// If the component has a key, we preserve its value by finding a matching instance with the same key
 					const matching_instance = Object.values(instance_map).find(
-						(instance) => instance.key === c.key,
+						(instance) => instance.key === c.key
 					);
 					if (matching_instance) {
 						c.props.value = matching_instance.props.value;
@@ -161,7 +161,7 @@ export function create_components(
 			instance: null as unknown as ComponentMeta["instance"],
 			component: null as unknown as ComponentMeta["component"],
 			component_class_id: "",
-			key: null,
+			key: null
 		};
 
 		components.push(_rootNode);
@@ -170,13 +170,13 @@ export function create_components(
 			loading_status.register(
 				dep.id,
 				dep.inputs,
-				dep.show_progress_on || dep.outputs,
+				dep.show_progress_on || dep.outputs
 			);
 			dep.frontend_fn = process_frontend_fn(
 				dep.js,
 				!!dep.backend_fn,
 				dep.inputs.length,
-				dep.outputs.length,
+				dep.outputs.length
 			);
 			create_target_meta(dep.targets, dep.id, _target_map);
 			get_inputs_outputs(dep, inputs, outputs);
@@ -191,7 +191,7 @@ export function create_components(
 				acc[c.id] = c;
 				return acc;
 			},
-			{} as { [id: number]: ComponentMeta },
+			{} as { [id: number]: ComponentMeta }
 		);
 
 		await walk_layout(layout, root, _components);
@@ -208,7 +208,7 @@ export function create_components(
 		components,
 		layout,
 		root,
-		dependencies,
+		dependencies
 	}: {
 		render_id: number;
 		components: ComponentMeta[];
@@ -235,7 +235,7 @@ export function create_components(
 		let _constructor_map = preload_visible_components(
 			new_components,
 			layout,
-			root,
+			root
 		);
 		_constructor_map.forEach((v, k) => {
 			constructor_map.set(k, v);
@@ -249,7 +249,7 @@ export function create_components(
 				dep.js,
 				!!dep.backend_fn,
 				dep.inputs.length,
-				dep.outputs.length,
+				dep.outputs.length
 			);
 			create_target_meta(dep.targets, dep.id, _target_map);
 			get_inputs_outputs(dep, inputs, outputs);
@@ -273,7 +273,7 @@ export function create_components(
 			let _id = Number(id);
 			if (component.rendered_in === render_id) {
 				let replacement_component = replacement_components.find(
-					(c) => c.key === component.key,
+					(c) => c.key === component.key
 				);
 				if (component.key != null && replacement_component !== undefined) {
 					const instance = instance_map[component.id];
@@ -298,7 +298,7 @@ export function create_components(
 		});
 
 		const components_to_add = new_components.concat(
-			replacement_components.filter((c) => !instance_map[c.id]),
+			replacement_components.filter((c) => !instance_map[c.id])
 		);
 
 		components_to_add.forEach((c) => {
@@ -315,7 +315,7 @@ export function create_components(
 			layout,
 			root,
 			_components.concat(components),
-			current_element.parent,
+			current_element.parent
 		).then(() => {
 			layout_store.set(_rootNode);
 			keys_per_render_id[render_id] = components
@@ -330,7 +330,7 @@ export function create_components(
 		node: LayoutNode,
 		root: string,
 		components: ComponentMeta[],
-		parent?: ComponentMeta,
+		parent?: ComponentMeta
 	): Promise<ComponentMeta> {
 		const instance = instance_map[node.id];
 		if (!instance.component) {
@@ -349,7 +349,7 @@ export function create_components(
 				instance.component_class_id,
 				root,
 				components,
-				instance.props.components,
+				instance.props.components
 			).example_components;
 		}
 
@@ -362,20 +362,20 @@ export function create_components(
 			instance.props.interactive,
 			instance.props.value,
 			inputs,
-			outputs,
+			outputs
 		);
 
 		instance.props.server = process_server_fn(
 			instance.id,
 			instance.props.server_fns,
-			app,
+			app
 		);
 
 		_component_map.set(instance.id, instance);
 
 		if (node.children) {
 			instance.children = await Promise.all(
-				node.children.map((v) => walk_layout(v, root, components, instance)),
+				node.children.map((v) => walk_layout(v, root, components, instance))
 			);
 		}
 
@@ -389,13 +389,13 @@ export function create_components(
 						props: {
 							...(instance.props as any),
 							id: instance.props.id,
-							order: i,
-						},
+							order: i
+						}
 					};
 				}) || [];
 
 			const child_tab_items = tab_items_props.filter(
-				(child) => child.type === "tabitem",
+				(child) => child.type === "tabitem"
 			);
 
 			instance.props.initial_tabs = child_tab_items?.map((child) => ({
@@ -404,7 +404,7 @@ export function create_components(
 				visible:
 					typeof child.props.visible === "boolean" ? child.props.visible : true,
 				interactive: child.props.interactive,
-				order: child.props.order,
+				order: child.props.order
 			}));
 		}
 
@@ -427,12 +427,12 @@ export function create_components(
 	 */
 	async function load_newly_visible_components(
 		newly_visible_ids: Set<number>,
-		components: ComponentMeta[],
+		components: ComponentMeta[]
 	): Promise<void> {
 		if (newly_visible_ids.size === 0) return;
 
 		const components_to_load = components.filter((c) =>
-			newly_visible_ids.has(c.id),
+			newly_visible_ids.has(c.id)
 		);
 
 		for (const component of components_to_load) {
@@ -445,7 +445,7 @@ export function create_components(
 						component.type,
 						component.component_class_id,
 						current_root,
-						components,
+						components
 					);
 
 				constructor_map.set(constructor_key, loadable_component);
@@ -486,7 +486,7 @@ export function create_components(
 				if (update.prop === "selected" && instance.type === "tabs") return true;
 
 				return false;
-			}),
+			})
 		);
 	}
 
@@ -501,7 +501,7 @@ export function create_components(
 		if (had_visibility_changes && current_layout) {
 			previous_visible_ids = determine_visible_components(
 				current_layout,
-				all_components,
+				all_components
 			);
 		}
 
@@ -541,7 +541,7 @@ export function create_components(
 			raf(async () => {
 				const new_visible_ids = determine_visible_components(
 					current_layout,
-					all_components,
+					all_components
 				);
 				const newly_visible_ids = new Set<number>();
 
@@ -594,7 +594,7 @@ export function create_components(
 
 	function findComponentById(
 		node: ComponentMeta,
-		id: number,
+		id: number
 	): ComponentMeta | undefined {
 		if (node.id === id) {
 			return node;
@@ -612,7 +612,7 @@ export function create_components(
 
 	function modify_stream(
 		id: number,
-		state: "open" | "closed" | "waiting",
+		state: "open" | "closed" | "waiting"
 	): void {
 		const comp = _component_map.get(id);
 		if (comp && comp.instance?.modify_stream_state) {
@@ -621,7 +621,7 @@ export function create_components(
 	}
 
 	function get_stream_state(
-		id: number,
+		id: number
 	): "open" | "closed" | "waiting" | "not_set" {
 		const comp = _component_map.get(id);
 		if (comp?.instance?.get_stream_state)
@@ -648,7 +648,7 @@ export function create_components(
 		scheduled_updates: update_scheduled_store,
 		create_layout: create_layout,
 		rerender_layout,
-		value_change,
+		value_change
 	};
 }
 
@@ -656,7 +656,7 @@ export function create_components(
 export const AsyncFunction: new (
 	...args: string[]
 ) => (...args: any[]) => Promise<any> = Object.getPrototypeOf(
-	async function () {},
+	async function () {}
 ).constructor;
 
 /**
@@ -671,7 +671,7 @@ export function process_frontend_fn(
 	source: string | null | undefined | boolean,
 	backend_fn: boolean,
 	input_length: number,
-	output_length: number,
+	output_length: number
 ): ((...args: unknown[]) => Promise<unknown[]>) | null {
 	if (!source || source === true) return null;
 
@@ -681,7 +681,7 @@ export function process_frontend_fn(
 			"__fn_args",
 			`  let result = await (${source})(...__fn_args);
   if (typeof result === "undefined") return [];
-  return (${wrap} && !Array.isArray(result)) ? [result] : result;`,
+  return (${wrap} && !Array.isArray(result)) ? [result] : result;`
 		);
 	} catch (e) {
 		console.error("Could not parse custom js method.");
@@ -701,7 +701,7 @@ export function process_frontend_fn(
 export function create_target_meta(
 	targets: Dependency["targets"],
 	fn_id: number,
-	target_map: TargetMap,
+	target_map: TargetMap
 ): TargetMap {
 	targets.forEach(([id, trigger]) => {
 		if (!target_map[id]) {
@@ -730,7 +730,7 @@ export function create_target_meta(
 export function get_inputs_outputs(
 	dep: Dependency,
 	inputs: Set<number>,
-	outputs: Set<number>,
+	outputs: Set<number>
 ): [Set<number>, Set<number>] {
 	dep.inputs.forEach((input) => inputs.add(input));
 	dep.outputs.forEach((output) => outputs.add(output));
@@ -765,7 +765,7 @@ export function determine_interactivity(
 	interactive_prop: boolean | undefined,
 	value: any,
 	inputs: Set<number>,
-	outputs: Set<number>,
+	outputs: Set<number>
 ): boolean {
 	if (interactive_prop === false) {
 		return false;
@@ -793,7 +793,7 @@ type ServerFunctions = Record<string, (...args: any[]) => Promise<any>>;
 export function process_server_fn(
 	id: number,
 	server_fns: string[] | undefined,
-	app: client_return,
+	app: client_return
 ): ServerFunctions {
 	if (!server_fns) {
 		return {};
@@ -824,7 +824,7 @@ export function get_component(
 	class_id: string,
 	root: string,
 	components: ComponentMeta[],
-	example_components?: string[],
+	example_components?: string[]
 ): {
 	component: LoadingComponent;
 	name: ComponentMeta["type"];
@@ -846,7 +846,7 @@ export function get_component(
 					api_url: root,
 					name,
 					id: matching_component.component_class_id,
-					variant: "example",
+					variant: "example"
 				});
 				example_component_map.set(name, _c.component);
 			}
@@ -857,14 +857,14 @@ export function get_component(
 		api_url: root,
 		name: type,
 		id: class_id,
-		variant: "component",
+		variant: "component"
 	});
 
 	return {
 		component: _c.component,
 		name: _c.name,
 		example_components:
-			example_component_map.size > 0 ? example_component_map : undefined,
+			example_component_map.size > 0 ? example_component_map : undefined
 	};
 }
 
@@ -878,7 +878,7 @@ export function get_component(
 function is_tab_item_visible(
 	component: ComponentMeta,
 	component_visible: boolean,
-	parent_tabs_context?: { selected_tab_id?: string | number },
+	parent_tabs_context?: { selected_tab_id?: string | number }
 ): boolean {
 	const is_selected_tab =
 		parent_tabs_context?.selected_tab_id === component.id ||
@@ -896,7 +896,7 @@ function is_tab_item_visible(
 function get_selected_tab_id(
 	component: ComponentMeta,
 	layout: LayoutNode,
-	components: ComponentMeta[],
+	components: ComponentMeta[]
 ): string | number | undefined {
 	// Check if selected prop is a string or number
 	const selected = component.props.selected;
@@ -933,7 +933,7 @@ function get_selected_tab_id(
 function process_children_visibility(
 	layout: LayoutNode,
 	components: ComponentMeta[],
-	parent_tabs_context?: { selected_tab_id?: string | number },
+	parent_tabs_context?: { selected_tab_id?: string | number }
 ): Set<number> {
 	const visible_components: Set<number> = new Set();
 
@@ -943,7 +943,7 @@ function process_children_visibility(
 				child,
 				components,
 				true,
-				parent_tabs_context,
+				parent_tabs_context
 			);
 			child_visible.forEach((id) => visible_components.add(id));
 		}
@@ -964,7 +964,7 @@ function determine_visible_components(
 	layout: LayoutNode,
 	components: ComponentMeta[],
 	parent_visible = true,
-	parent_tabs_context?: { selected_tab_id?: string | number },
+	parent_tabs_context?: { selected_tab_id?: string | number }
 ): Set<number> {
 	const visible_components: Set<number> = new Set();
 	const component = components.find((c) => c.id === layout.id);
@@ -991,7 +991,7 @@ function determine_visible_components(
 			const child_visible = process_children_visibility(
 				layout,
 				components,
-				parent_tabs_context,
+				parent_tabs_context
 			);
 			child_visible.forEach((id) => visible_components.add(id));
 		}
@@ -1008,12 +1008,12 @@ function determine_visible_components(
 			const selected_tab_id = get_selected_tab_id(
 				component,
 				layout,
-				components,
+				components
 			);
 
 			// Process children with tabs context
 			const child_visible = process_children_visibility(layout, components, {
-				selected_tab_id,
+				selected_tab_id
 			});
 			child_visible.forEach((id) => visible_components.add(id));
 		}
@@ -1028,7 +1028,7 @@ function determine_visible_components(
 		const child_visible = process_children_visibility(
 			layout,
 			components,
-			parent_tabs_context,
+			parent_tabs_context
 		);
 		child_visible.forEach((id) => visible_components.add(id));
 	}
@@ -1047,14 +1047,14 @@ function determine_visible_components(
 export function preload_visible_components(
 	components: ComponentMeta[],
 	layout: LayoutNode,
-	root: string,
+	root: string
 ): Map<ComponentMeta["type"], LoadingComponent> {
 	let constructor_map: Map<ComponentMeta["type"], LoadingComponent> = new Map();
 
 	// Determine which components should be visible
 	const visible_component_ids = determine_visible_components(
 		layout,
-		components,
+		components
 	);
 
 	// Only preload visible components
@@ -1064,7 +1064,7 @@ export function preload_visible_components(
 				c.type,
 				c.component_class_id,
 				root,
-				components,
+				components
 			);
 
 			constructor_map.set(c.component_class_id || c.type, component);
@@ -1088,7 +1088,7 @@ export function preload_visible_components(
  */
 export function preload_all_components(
 	components: ComponentMeta[],
-	root: string,
+	root: string
 ): Map<ComponentMeta["type"], LoadingComponent> {
 	let constructor_map: Map<ComponentMeta["type"], LoadingComponent> = new Map();
 
@@ -1097,7 +1097,7 @@ export function preload_all_components(
 			c.type,
 			c.component_class_id,
 			root,
-			components,
+			components
 		);
 
 		constructor_map.set(c.component_class_id || c.type, component);

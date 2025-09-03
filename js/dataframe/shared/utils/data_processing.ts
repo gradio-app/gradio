@@ -7,7 +7,7 @@ export function make_headers(
 		string,
 		{ cell: null | HTMLTableCellElement; input: null | HTMLTextAreaElement }
 	>,
-	make_id: () => string,
+	make_id: () => string
 ): HeadersWithIDs {
 	let _h = _head || [];
 	if (col_count[1] === "fixed" && _h.length < col_count[0]) {
@@ -42,7 +42,7 @@ export function process_data(
 	>,
 	data_binding: Record<string, any>,
 	make_id: () => string,
-	display_value: string[][] | null = null,
+	display_value: string[][] | null = null
 ): { id: string; value: string | number; display_value?: string }[][] {
 	if (!values || values.length === 0) {
 		return [];
@@ -63,7 +63,7 @@ export function process_data(
 			return {
 				id: _id,
 				value,
-				display_value: display,
+				display_value: display
 			};
 		});
 	});

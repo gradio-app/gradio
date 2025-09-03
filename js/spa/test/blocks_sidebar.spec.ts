@@ -2,7 +2,7 @@ import { test, expect } from "@self/tootils";
 
 test("shows open sidebar and components in sidebar work", async ({ page }) => {
 	await expect(
-		page.getByRole("heading", { name: "🐾 Pet Name Generator" }),
+		page.getByRole("heading", { name: "🐾 Pet Name Generator" })
 	).toBeVisible();
 	await expect(page.getByLabel("Choose your pet type")).toBeVisible();
 	await expect(page.getByText("Personality type")).toBeVisible();
@@ -19,7 +19,7 @@ test("shows open sidebar and components in sidebar work", async ({ page }) => {
 	await page.getByLabel("Toggle Sidebar").click();
 
 	await expect(
-		page.getByRole("heading", { name: "🐾 Pet Name Generator" }),
+		page.getByRole("heading", { name: "🐾 Pet Name Generator" })
 	).not.toBeInViewport();
 	await expect(page.getByText("Choose your pet type")).not.toBeInViewport();
 	await expect(page.getByText("Personality type")).not.toBeInViewport();

@@ -10,14 +10,14 @@ describe("Radio", () => {
 	const choices = [
 		["dog", "dog"],
 		["cat", "cat"],
-		["turtle", "turtle"],
+		["turtle", "turtle"]
 	] as [string, string][];
 
 	test("renders provided value", async () => {
 		const { getAllByRole, getByTestId } = await render(Radio, {
 			choices: choices,
 			value: "cat",
-			label: "Radio",
+			label: "Radio"
 		});
 
 		const cat_radio = getAllByRole("radio")[1];
@@ -25,7 +25,7 @@ describe("Radio", () => {
 		expect(cat_radio).toBeChecked();
 
 		const radioButtons: HTMLOptionElement[] = getAllByRole(
-			"radio",
+			"radio"
 		) as HTMLOptionElement[];
 		assert.equal(radioButtons.length, 3);
 
@@ -38,7 +38,7 @@ describe("Radio", () => {
 		const { getByDisplayValue, getAllByRole } = await render(Radio, {
 			choices: choices,
 			value: "cat",
-			label: "Radio",
+			label: "Radio"
 		});
 
 		const dog_radio = getAllByRole("radio")[0];
@@ -62,7 +62,7 @@ describe("Radio", () => {
 		const { listen, getAllByTestId } = await render(Radio, {
 			choices: choices,
 			value: "cat",
-			label: "Radio",
+			label: "Radio"
 		});
 
 		const mock = listen("select");
@@ -75,7 +75,7 @@ describe("Radio", () => {
 		const { container } = await render(Radio, {
 			choices: choices,
 			value: "cat",
-			label: "Radio",
+			label: "Radio"
 		});
 
 		const { getAllByLabelText } = await render(
@@ -83,9 +83,9 @@ describe("Radio", () => {
 			{
 				choices: choices,
 				value: "dog",
-				label: "Radio",
+				label: "Radio"
 			},
-			container,
+			container
 		);
 
 		const items = getAllByLabelText("dog") as HTMLInputElement[];

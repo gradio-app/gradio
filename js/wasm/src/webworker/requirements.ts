@@ -13,7 +13,7 @@ export function verifyRequirements(requirements: string[]): void {
 		// Ref: The scheme checker in the micropip implementation is https://github.com/pyodide/micropip/blob/v0.1.0/micropip/_compat_in_pyodide.py#L23-L26
 		if (url.protocol === "emfs:" || url.protocol === "file:") {
 			throw new Error(
-				`"emfs:" and "file:" protocols are not allowed for the requirement (${req})`,
+				`"emfs:" and "file:" protocols are not allowed for the requirement (${req})`
 			);
 		}
 	});
@@ -41,7 +41,7 @@ function isAltair(pyodide: PyodideInterface, requirement: string): boolean {
 
 export function patchRequirements(
 	pyodide: PyodideInterface,
-	requirements: string[],
+	requirements: string[]
 ): string[] {
 	// XXX: `micropip` sometimes doesn't resolve the dependency version correctly.
 	// So we explicitly specify the version here for some packages.

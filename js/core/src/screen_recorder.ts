@@ -11,7 +11,7 @@ let root: string;
 let add_message_callback: (
 	title: string,
 	message: string,
-	type: ToastMessage["type"],
+	type: ToastMessage["type"]
 ) => void;
 let onRecordingStateChange: ((isRecording: boolean) => void) | null = null;
 let zoomEffects: {
@@ -25,9 +25,9 @@ export function initialize(
 	add_new_message: (
 		title: string,
 		message: string,
-		type: ToastMessage["type"],
+		type: ToastMessage["type"]
 	) => void,
-	recordingStateCallback?: (isRecording: boolean) => void,
+	recordingStateCallback?: (isRecording: boolean) => void
 ): void {
 	root = rootPath;
 	add_message_callback = add_new_message;
@@ -48,15 +48,15 @@ export async function startRecording(): Promise<void> {
 			video: {
 				width: { ideal: 1920 },
 				height: { ideal: 1080 },
-				frameRate: { ideal: 30 },
+				frameRate: { ideal: 30 }
 			},
 			audio: true,
-			selfBrowserSurface: "include",
+			selfBrowserSurface: "include"
 		} as MediaStreamConstraints);
 		document.title = originalTitle;
 
 		const options = {
-			videoBitsPerSecond: 5000000,
+			videoBitsPerSecond: 5000000
 		};
 
 		mediaRecorder = new MediaRecorder(stream, options);
@@ -77,7 +77,7 @@ export async function startRecording(): Promise<void> {
 		add_message_callback(
 			"Recording Error",
 			"Failed to start recording: " + error.message,
-			"error",
+			"error"
 		);
 	}
 }
@@ -128,7 +128,7 @@ export function addZoomEffect(
 			bottomRight: [number, number];
 		};
 		duration?: number;
-	},
+	}
 ): void {
 	if (!isRecording) {
 		return;
@@ -169,7 +169,7 @@ export function addZoomEffect(
 			zoomEffects.push({
 				boundingBox: params.boundingBox,
 				start_frame: currentFrame,
-				duration: newEffectDuration,
+				duration: newEffectDuration
 			});
 		}
 	}
@@ -178,7 +178,7 @@ export function addZoomEffect(
 export function zoom(
 	is_input: boolean,
 	elements: number[],
-	duration = 2.0,
+	duration = 2.0
 ): void {
 	if (!isRecording) {
 		return;
@@ -230,17 +230,17 @@ export function zoom(
 			}
 
 			const isSafari = /^((?!chrome|android).)*safari/i.test(
-				navigator.userAgent,
+				navigator.userAgent
 			);
 
 			let topLeft: [number, number] = [
 				Math.max(0, minLeft) / viewportWidth,
-				Math.max(0, minTop) / viewportHeight,
+				Math.max(0, minTop) / viewportHeight
 			];
 
 			let bottomRight: [number, number] = [
 				Math.min(maxRight, viewportWidth) / viewportWidth,
-				Math.min(maxBottom, viewportHeight) / viewportHeight,
+				Math.min(maxBottom, viewportHeight) / viewportHeight
 			];
 
 			if (isSafari) {
@@ -261,9 +261,9 @@ export function zoom(
 			addZoomEffect(is_input, {
 				boundingBox: {
 					topLeft,
-					bottomRight,
+					bottomRight
 				},
-				duration: duration,
+				duration: duration
 			});
 		}, 300);
 	} catch (error) {
@@ -284,7 +284,7 @@ function handleStop(): void {
 	}
 
 	const blob = new Blob(recordedChunks, {
-		type: "video/mp4",
+		type: "video/mp4"
 	});
 
 	handleRecordingComplete(blob);
@@ -303,7 +303,7 @@ async function handleRecordingComplete(recordedBlob: Blob): Promise<void> {
 		add_message_callback(
 			"Processing video",
 			"This may take a few seconds...",
-			"info",
+			"info"
 		);
 
 		const formData = new FormData();
@@ -320,12 +320,12 @@ async function handleRecordingComplete(recordedBlob: Blob): Promise<void> {
 
 		const response = await fetch(root + "/gradio_api/process_recording", {
 			method: "POST",
-			body: formData,
+			body: formData
 		});
 
 		if (!response.ok) {
 			throw new Error(
-				`Server returned ${response.status}: ${response.statusText}`,
+				`Server returned ${response.status}: ${response.statusText}`
 			);
 		}
 
@@ -337,7 +337,7 @@ async function handleRecordingComplete(recordedBlob: Blob): Promise<void> {
 		add_message_callback(
 			"Processing Error",
 			"Failed to process recording. Saving original version.",
-			"warning",
+			"warning"
 		);
 
 		const defaultFilename = `gradio-screen-recording-${new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "")}.mp4`;

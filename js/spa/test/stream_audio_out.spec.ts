@@ -14,13 +14,13 @@ test.skip("audio streams from wav file correctly", async ({ page }) => {
 				await page
 					.locator("#stream_as_file_output audio")
 					// @ts-ignore
-					.evaluate((el) => el.currentTime),
+					.evaluate((el) => el.currentTime)
 		)
 		.toBeGreaterThan(0);
 });
 
 test.skip("audio streams from wav file correctly as bytes", async ({
-	page,
+	page
 }) => {
 	test.skip(!!process.env.CI, "Not supported in CI");
 	await page.getByRole("gridcell", { name: "wav" }).first().click();
@@ -35,7 +35,7 @@ test.skip("audio streams from wav file correctly as bytes", async ({
 				await page
 					.locator("#stream_as_bytes_output audio")
 					// @ts-ignore
-					.evaluate((el) => el.currentTime),
+					.evaluate((el) => el.currentTime)
 		)
 		.toBeGreaterThan(0);
 });

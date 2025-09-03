@@ -2,7 +2,7 @@ import {
 	HOST_URL,
 	INVALID_URL_MSG,
 	QUEUE_FULL_MSG,
-	SPACE_METADATA_ERROR_MSG,
+	SPACE_METADATA_ERROR_MSG
 } from "../constants";
 import type {
 	ApiData,
@@ -10,7 +10,7 @@ import type {
 	Config,
 	JsApiData,
 	EndpointInfo,
-	Status,
+	Status
 } from "../types";
 import { determine_protocol } from "./init_helpers";
 
@@ -19,7 +19,7 @@ export const RE_SPACE_DOMAIN = /.*hf\.space\/{0,1}.*$/;
 
 export async function process_endpoint(
 	app_reference: string,
-	hf_token?: `hf_${string}`,
+	hf_token?: `hf_${string}`
 ): Promise<{
 	space_id: string | false;
 	host: string;
@@ -38,14 +38,14 @@ export async function process_endpoint(
 		try {
 			const res = await fetch(
 				`https://huggingface.co/api/spaces/${_app_reference}/${HOST_URL}`,
-				{ headers },
+				{ headers }
 			);
 
 			const _host = (await res.json()).host;
 
 			return {
 				space_id: app_reference,
-				...determine_protocol(_host),
+				...determine_protocol(_host)
 			};
 		} catch (e) {
 			throw new Error(SPACE_METADATA_ERROR_MSG);
@@ -61,13 +61,13 @@ export async function process_endpoint(
 			space_id: host.split("/")[0].replace(".hf.space", ""),
 			ws_protocol,
 			http_protocol,
-			host,
+			host
 		};
 	}
 
 	return {
 		space_id: false,
-		...determine_protocol(_app_reference),
+		...determine_protocol(_app_reference)
 	};
 }
 
@@ -86,11 +86,11 @@ export const join_urls = (...urls: string[]): string => {
 export function transform_api_info(
 	api_info: ApiInfo<ApiData>,
 	config: Config,
-	api_map: Record<string, number>,
+	api_map: Record<string, number>
 ): ApiInfo<JsApiData> {
 	const transformed_info: ApiInfo<JsApiData> = {
 		named_endpoints: {},
-		unnamed_endpoints: {},
+		unnamed_endpoints: {}
 	};
 
 	Object.keys(api_info).forEach((category) => {
@@ -103,7 +103,7 @@ export function transform_api_info(
 						config.dependencies.find(
 							(dep) =>
 								dep.api_name === endpoint ||
-								dep.api_name === endpoint.replace("/", ""),
+								dep.api_name === endpoint.replace("/", "")
 						)?.id ||
 						api_map[endpoint.replace("/", "")] ||
 						-1;
@@ -122,7 +122,7 @@ export function transform_api_info(
 						const components = config.dependencies
 							.find((dep) => dep.id == dependencyIndex)!
 							.inputs.map(
-								(input) => config.components.find((c) => c.id === input)?.type,
+								(input) => config.components.find((c) => c.id === input)?.type
 							);
 
 						try {
@@ -134,7 +134,7 @@ export function transform_api_info(
 										parameter_default: null,
 										parameter_has_default: true,
 										parameter_name: null,
-										hidden: true,
+										hidden: true
 									};
 
 									// @ts-ignore
@@ -150,24 +150,24 @@ export function transform_api_info(
 						data: ApiData,
 						component: string,
 						serializer: string,
-						signature_type: "return" | "parameter",
+						signature_type: "return" | "parameter"
 					): JsApiData => ({
 						...data,
 						description: get_description(data?.type, serializer),
 						type:
-							get_type(data?.type, component, serializer, signature_type) || "",
+							get_type(data?.type, component, serializer, signature_type) || ""
 					});
 
 					transformed_info[category][endpoint] = {
 						parameters: parameters.map((p: ApiData) =>
-							transform_type(p, p?.component, p?.serializer, "parameter"),
+							transform_type(p, p?.component, p?.serializer, "parameter")
 						),
 						returns: returns.map((r: ApiData) =>
-							transform_type(r, r?.component, r?.serializer, "return"),
+							transform_type(r, r?.component, r?.serializer, "return")
 						),
-						type: dependencyTypes,
+						type: dependencyTypes
 					};
-				},
+				}
 			);
 		}
 	});
@@ -179,7 +179,7 @@ export function get_type(
 	type: { type: any; description: string },
 	component: string,
 	serializer: string,
-	signature_type: "return" | "parameter",
+	signature_type: "return" | "parameter"
 ): string | undefined {
 	if (component === "Api") return type.type;
 	switch (type?.type) {
@@ -218,7 +218,7 @@ export function get_type(
 
 export function get_description(
 	type: { type: any; description: string },
-	serializer: string,
+	serializer: string
 ): string {
 	if (serializer === "GallerySerializable") {
 		return "array of [file, label] tuples";
@@ -233,7 +233,7 @@ export function get_description(
 /* eslint-disable complexity */
 export function handle_message(
 	data: any,
-	last_status: Status["stage"],
+	last_status: Status["stage"]
 ): {
 	type:
 		| "hash"
@@ -265,12 +265,12 @@ export function handle_message(
 					message: QUEUE_FULL_MSG,
 					stage: "error",
 					code: data.code,
-					success: data.success,
-				},
+					success: data.success
+				}
 			};
 		case "heartbeat":
 			return {
-				type: "heartbeat",
+				type: "heartbeat"
 			};
 		case "unexpected_error":
 			return {
@@ -280,8 +280,8 @@ export function handle_message(
 					message: data.message,
 					session_not_found: data.session_not_found,
 					stage: "error",
-					success: false,
-				},
+					success: false
+				}
 			};
 		case "broken_connection":
 			return {
@@ -290,8 +290,8 @@ export function handle_message(
 					queue,
 					message: data.message,
 					stage: "error",
-					success: false,
-				},
+					success: false
+				}
 			};
 		case "estimation":
 			return {
@@ -303,8 +303,8 @@ export function handle_message(
 					size: data.queue_size,
 					position: data.rank,
 					eta: data.rank_eta,
-					success: data.success,
-				},
+					success: data.success
+				}
 			};
 		case "progress":
 			return {
@@ -314,8 +314,8 @@ export function handle_message(
 					stage: "pending",
 					code: data.code,
 					progress_data: data.progress_data,
-					success: data.success,
-				},
+					success: data.success
+				}
 			};
 		case "log":
 			return { type: "log", data: data };
@@ -331,9 +331,9 @@ export function handle_message(
 					eta: data.average_duration,
 					changed_state_ids: data.success
 						? data.output.changed_state_ids
-						: undefined,
+						: undefined
 				},
-				data: data.success ? data.output : null,
+				data: data.success ? data.output : null
 			};
 		case "process_streaming":
 			return {
@@ -345,9 +345,9 @@ export function handle_message(
 					time_limit: data.time_limit,
 					code: data.code,
 					progress_data: data.progress_data,
-					eta: data.eta,
+					eta: data.eta
 				},
-				data: data.output,
+				data: data.output
 			};
 		case "process_completed":
 			if ("error" in data.output) {
@@ -361,8 +361,8 @@ export function handle_message(
 						duration: data.output.duration as number,
 						stage: "error",
 						code: data.code,
-						success: data.success,
-					},
+						success: data.success
+					}
 				};
 			}
 			return {
@@ -375,9 +375,9 @@ export function handle_message(
 					progress_data: data.progress_data,
 					changed_state_ids: data.success
 						? data.output.changed_state_ids
-						: undefined,
+						: undefined
 				},
-				data: data.success ? data.output : null,
+				data: data.success ? data.output : null
 			};
 
 		case "process_starts":
@@ -390,9 +390,9 @@ export function handle_message(
 					size: data.rank,
 					position: 0,
 					success: data.success,
-					eta: data.eta,
+					eta: data.eta
 				},
-				original_msg: "process_starts",
+				original_msg: "process_starts"
 			};
 	}
 
@@ -424,7 +424,7 @@ export function handle_message(
 
 export const map_data_to_params = (
 	data: unknown[] | Record<string, unknown> = [],
-	endpoint_info: EndpointInfo<JsApiData | ApiData>,
+	endpoint_info: EndpointInfo<JsApiData | ApiData>
 ): unknown[] => {
 	// Workaround for the case where the endpoint_info is undefined
 	// See https://github.com/gradio-app/gradio/pull/8820#issuecomment-2237381761
@@ -451,7 +451,7 @@ export const map_data_to_params = (
 			resolved_data[index] = param.parameter_default;
 		} else {
 			throw new Error(
-				`No value provided for required parameter: ${param.parameter_name}`,
+				`No value provided for required parameter: ${param.parameter_name}`
 			);
 		}
 	});
@@ -459,7 +459,7 @@ export const map_data_to_params = (
 	provided_keys.forEach((key) => {
 		if (!parameters.some((param) => param.parameter_name === key)) {
 			throw new Error(
-				`Parameter \`${key}\` is not a valid keyword argument. Please refer to the API for usage.`,
+				`Parameter \`${key}\` is not a valid keyword argument. Please refer to the API for usage.`
 			);
 		}
 	});
@@ -467,7 +467,7 @@ export const map_data_to_params = (
 	resolved_data.forEach((value, idx) => {
 		if (value === undefined && !parameters[idx].parameter_has_default) {
 			throw new Error(
-				`No value provided for required parameter: ${parameters[idx].parameter_name}`,
+				`No value provided for required parameter: ${parameters[idx].parameter_name}`
 			);
 		}
 	});

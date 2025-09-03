@@ -4,7 +4,7 @@ test("upload events work as expected", async ({ page }) => {
 	await page.getByLabel("Click to upload or drop files").first().click();
 	const [fileChooser] = await Promise.all([
 		page.waitForEvent("filechooser"),
-		page.getByLabel("Click to upload or drop files").first().click(),
+		page.getByLabel("Click to upload or drop files").first().click()
 	]);
 	await fileChooser.setFiles(["./test/files/cheetah1.jpg"]);
 
@@ -25,7 +25,7 @@ test("Image editor user can draw after upload", async ({ page }) => {
 	await page.getByLabel("Click to upload or drop files").first().click();
 	const [fileChooser] = await Promise.all([
 		page.waitForEvent("filechooser"),
-		page.getByLabel("Click to upload or drop files").first().click(),
+		page.getByLabel("Click to upload or drop files").first().click()
 	]);
 
 	// crucial to use a large image here
@@ -72,7 +72,7 @@ test("apply events work as expected", async ({ page }) => {
 });
 
 test("image editor can be cleared twice by setting value to None", async ({
-	page,
+	page
 }) => {
 	await page.getByLabel("Brush").first().click();
 	const canvas = page.locator("canvas").first();

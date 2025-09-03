@@ -3,8 +3,8 @@ export function toggle_header_menu(
 	col: number,
 	active_header_menu: { col: number; x: number; y: number } | null,
 	set_active_header_menu: (
-		menu: { col: number; x: number; y: number } | null,
-	) => void,
+		menu: { col: number; x: number; y: number } | null
+	) => void
 ): void {
 	event.stopPropagation();
 	if (active_header_menu && active_header_menu.col === col) {
@@ -24,8 +24,8 @@ export function toggle_cell_menu(
 	col: number,
 	active_cell_menu: { row: number; col: number; x: number; y: number } | null,
 	set_active_cell_menu: (
-		menu: { row: number; col: number; x: number; y: number } | null,
-	) => void,
+		menu: { row: number; col: number; x: number; y: number } | null
+	) => void
 ): void {
 	event.stopPropagation();
 	if (
@@ -47,7 +47,7 @@ export function add_row_at(
 	index: number,
 	position: "above" | "below",
 	add_row: (index?: number) => void,
-	clear_menus: () => void,
+	clear_menus: () => void
 ): void {
 	const row_index = position === "above" ? index : index + 1;
 	add_row(row_index);
@@ -58,7 +58,7 @@ export function add_col_at(
 	index: number,
 	position: "left" | "right",
 	add_col: (index?: number) => void,
-	clear_menus: () => void,
+	clear_menus: () => void
 ): void {
 	const col_index = position === "left" ? index : index + 1;
 	add_col(col_index);
@@ -68,7 +68,7 @@ export function add_col_at(
 export function delete_row_at(
 	index: number,
 	delete_row: (index: number) => void,
-	clear_menus: () => void,
+	clear_menus: () => void
 ): void {
 	delete_row(index);
 	clear_menus();
@@ -77,7 +77,7 @@ export function delete_row_at(
 export function delete_col_at(
 	index: number,
 	delete_col: (index: number) => void,
-	clear_menus: () => void,
+	clear_menus: () => void
 ): void {
 	delete_col(index);
 	clear_menus();
@@ -87,13 +87,13 @@ export function toggle_header_button(
 	col: number,
 	active_button: { type: "header" | "cell"; row?: number; col: number } | null,
 	set_active_button: (
-		button: { type: "header" | "cell"; row?: number; col: number } | null,
-	) => void,
+		button: { type: "header" | "cell"; row?: number; col: number } | null
+	) => void
 ): void {
 	set_active_button(
 		active_button?.type === "header" && active_button.col === col
 			? null
-			: { type: "header", col },
+			: { type: "header", col }
 	);
 }
 
@@ -102,14 +102,14 @@ export function toggle_cell_button(
 	col: number,
 	active_button: { type: "header" | "cell"; row?: number; col: number } | null,
 	set_active_button: (
-		button: { type: "header" | "cell"; row?: number; col: number } | null,
-	) => void,
+		button: { type: "header" | "cell"; row?: number; col: number } | null
+	) => void
 ): void {
 	set_active_button(
 		active_button?.type === "cell" &&
 			active_button.row === row &&
 			active_button.col === col
 			? null
-			: { type: "cell", row, col },
+			: { type: "cell", row, col }
 	);
 }

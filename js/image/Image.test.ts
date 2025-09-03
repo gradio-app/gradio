@@ -5,7 +5,7 @@ import {
 	afterEach,
 	vi,
 	beforeAll,
-	beforeEach,
+	beforeEach
 } from "vitest";
 import { cleanup, render } from "@self/tootils";
 import { setupi18n } from "../core/src/i18n";
@@ -21,7 +21,7 @@ const loading_status = {
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0,
-	show_progress: "full" as LoadingStatus["show_progress"],
+	show_progress: "full" as LoadingStatus["show_progress"]
 };
 
 describe("Image", () => {
@@ -39,7 +39,7 @@ describe("Image", () => {
 			value: {
 				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
 				orig_name: "bus.png",
-				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
 			},
 			streaming: false,
 			pending: false,
@@ -50,7 +50,7 @@ describe("Image", () => {
 			// brush_color: "#000000",
 			// brush_radius: 5,
 			// mask_opacity: 0.5,
-			interactive: true,
+			interactive: true
 		});
 
 		const mock = listen("change");
@@ -58,7 +58,7 @@ describe("Image", () => {
 		component.value = {
 			url: "https://github.com/gradio-app/gradio/blob/main/test/test_files/cheetah1.jpg",
 			orig_name: "bus.png",
-			path: "https://github.com/gradio-app/gradio/blob/main/test/test_files/cheetah1.jpg",
+			path: "https://github.com/gradio-app/gradio/blob/main/test/test_files/cheetah1.jpg"
 		};
 		assert.equal(mock.callCount, 1);
 	});

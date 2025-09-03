@@ -9,7 +9,7 @@ const make_data = (url: string): Record<string, any> => {
 		url: url,
 		path: url,
 		orig_name: url.split("/").pop(),
-		size: Math.random() * 1000000,
+		size: Math.random() * 1000000
 	};
 };
 
@@ -34,12 +34,12 @@ export default [
 				annotations: [
 					{
 						label: "buildings",
-						image: make_data(mask_image),
-					},
-				],
+						image: make_data(mask_image)
+					}
+				]
 			},
-			label: "Annotated Image",
-		},
+			label: "Annotated Image"
+		}
 	},
 	{
 		name: "audio",
@@ -66,14 +66,14 @@ export default [
 				show_recording_waveform: true,
 				show_controls: false,
 				skip_length: 5,
-				sample_rate: 44100,
+				sample_rate: 44100
 			},
 			loop: false,
 			name: "audio",
 			_selectable: false,
 			server: {},
-			value: make_data(audio),
-		},
+			value: make_data(audio)
+		}
 	},
 	{
 		name: "audio",
@@ -100,14 +100,14 @@ export default [
 				show_recording_waveform: true,
 				show_controls: false,
 				skip_length: 5,
-				sample_rate: 44100,
+				sample_rate: 44100
 			},
 			loop: false,
 			name: "audio",
 			_selectable: false,
 			server: {},
-			value: null,
-		},
+			value: null
+		}
 	},
 	{
 		name: "nativeplot",
@@ -314,15 +314,15 @@ export default [
 					[1609799589949, 60, 60, "indoor"],
 					[1609801326633, 71, 75, "outdoor"],
 					[1609803063316, 53, 59, "indoor"],
-					[1609804800000, 74, 78, "outdoor"],
+					[1609804800000, 74, 78, "outdoor"]
 				],
 				datatypes: {
 					time: "temporal",
 					temperature: "quantitative",
 					humidity: "quantitative",
-					location: "nominal",
+					location: "nominal"
 				},
-				mark: "line",
+				mark: "line"
 			},
 			x: "time",
 			y: "temperature",
@@ -337,8 +337,8 @@ export default [
 			_selectable: true,
 			attached_events: ["select"],
 			interactive: false,
-			server: {},
-		},
+			server: {}
+		}
 	},
 
 	{
@@ -351,8 +351,8 @@ export default [
 			elem_classes: [],
 			name: "button",
 			_selectable: false,
-			server: {},
-		},
+			server: {}
+		}
 	},
 	{
 		name: "button",
@@ -364,8 +364,8 @@ export default [
 			elem_classes: [],
 			name: "button",
 			_selectable: false,
-			server: {},
-		},
+			server: {}
+		}
 	},
 	{
 		name: "chatbot",
@@ -374,9 +374,9 @@ export default [
 			value: [
 				[
 					"This is **bold text**. This is *italic text*. This is a [link](https://gradio.app).",
-					"I love you",
+					"I love you"
 				],
-				["thanks.", "I love you"],
+				["thanks.", "I love you"]
 			],
 			type: "tuples",
 			show_label: true,
@@ -398,8 +398,8 @@ export default [
 			_selectable: false,
 			interactive: true,
 			server: {},
-			label: "Interactive Chatbot",
-		},
+			label: "Interactive Chatbot"
+		}
 	},
 	{
 		name: "checkbox",
@@ -414,8 +414,8 @@ export default [
 			name: "checkbox",
 			_selectable: false,
 			server: {},
-			label: "Static Checkbox",
-		},
+			label: "Static Checkbox"
+		}
 	},
 	{
 		name: "checkbox",
@@ -430,8 +430,8 @@ export default [
 			name: "checkbox",
 			_selectable: false,
 			server: {},
-			label: "Interactive Checkbox",
-		},
+			label: "Interactive Checkbox"
+		}
 	},
 	{
 		name: "checkboxgroup",
@@ -439,7 +439,7 @@ export default [
 			choices: [
 				["First Choice", "First Choice"],
 				["Second Choice", "Second Choice"],
-				["Third Choice", "Third Choice"],
+				["Third Choice", "Third Choice"]
 			],
 			value: ["First Choice"],
 			type: "value",
@@ -452,8 +452,8 @@ export default [
 			name: "checkboxgroup",
 			_selectable: false,
 			server: {},
-			label: "Static Checkbox Group",
-		},
+			label: "Static Checkbox Group"
+		}
 	},
 	{
 		name: "checkboxgroup",
@@ -461,7 +461,7 @@ export default [
 			choices: [
 				["First Choice", "First Choice"],
 				["Second Choice", "Second Choice"],
-				["Third Choice", "Third Choice"],
+				["Third Choice", "Third Choice"]
 			],
 			value: ["First Choice"],
 			type: "value",
@@ -474,8 +474,8 @@ export default [
 			name: "checkboxgroup",
 			_selectable: false,
 			server: {},
-			label: "Interactive Checkbox Group",
-		},
+			label: "Interactive Checkbox Group"
+		}
 	},
 	{
 		name: "code",
@@ -492,8 +492,8 @@ export default [
 			_selectable: false,
 			server: {},
 			value: `console.log("hello")`,
-			label: "Static Code",
-		},
+			label: "Static Code"
+		}
 	},
 	{
 		name: "code",
@@ -511,8 +511,8 @@ export default [
 			server: {},
 			value: `console.log("hello")`,
 			language: "js",
-			label: "Interactive Code",
-		},
+			label: "Interactive Code"
+		}
 	},
 	{
 		name: "colorpicker",
@@ -526,8 +526,8 @@ export default [
 			name: "colorpicker",
 			_selectable: false,
 			server: {},
-			label: "Static Color Picker",
-		},
+			label: "Static Color Picker"
+		}
 	},
 	{
 		name: "colorpicker",
@@ -541,8 +541,8 @@ export default [
 			name: "colorpicker",
 			_selectable: false,
 			server: {},
-			label: "Interactive Color Picker",
-		},
+			label: "Interactive Color Picker"
+		}
 	},
 	{
 		name: "dataframe",
@@ -554,7 +554,7 @@ export default [
 					[4, 2, 20, 3, 45],
 					[5, 54, 7, 6, 64],
 					[4, 3, 3, 2, 32],
-					[1, 2, 8, 6, 23],
+					[1, 2, 8, 6, 23]
 				],
 				metadata: {
 					display_value: [
@@ -562,7 +562,7 @@ export default [
 						["4", "2", "20", "3", "45"],
 						["5", "54", "7", "6", "64"],
 						["4", "3", "3", "2", "32"],
-						["1", "2", "8", "6", "23"],
+						["1", "2", "8", "6", "23"]
 					],
 					styling: [
 						[
@@ -570,7 +570,7 @@ export default [
 							"",
 							"background-color: lightgreen",
 							"background-color: lightgreen",
-							"",
+							""
 						],
 						["", "", "background-color: lightgreen", "", ""],
 						[
@@ -578,12 +578,12 @@ export default [
 							"background-color: lightgreen",
 							"",
 							"",
-							"background-color: lightgreen",
+							"background-color: lightgreen"
 						],
 						["", "", "", "", ""],
-						["", "", "", "", ""],
-					],
-				},
+						["", "", "", "", ""]
+					]
+				}
 			},
 			headers: ["1", "2", "3"],
 			row_count: [1, "dynamic"],
@@ -602,8 +602,8 @@ export default [
 			name: "dataframe",
 			_selectable: false,
 			server: {},
-			label: "Static DataFrame",
-		},
+			label: "Static DataFrame"
+		}
 	},
 	{
 		name: "dataframe",
@@ -615,7 +615,7 @@ export default [
 					[4, 2, 20, 3, 45],
 					[5, 54, 7, 6, 64],
 					[4, 3, 3, 2, 32],
-					[1, 2, 8, 6, 23],
+					[1, 2, 8, 6, 23]
 				],
 				metadata: {
 					display_value: [
@@ -623,7 +623,7 @@ export default [
 						["4", "2", "20", "3", "45"],
 						["5", "54", "7", "6", "64"],
 						["4", "3", "3", "2", "32"],
-						["1", "2", "8", "6", "23"],
+						["1", "2", "8", "6", "23"]
 					],
 					styling: [
 						[
@@ -631,7 +631,7 @@ export default [
 							"",
 							"background-color: lightgreen",
 							"background-color: lightgreen",
-							"",
+							""
 						],
 						["", "", "background-color: lightgreen", "", ""],
 						[
@@ -639,12 +639,12 @@ export default [
 							"background-color: lightgreen",
 							"",
 							"",
-							"background-color: lightgreen",
+							"background-color: lightgreen"
 						],
 						["", "", "", "", ""],
-						["", "", "", "", ""],
-					],
-				},
+						["", "", "", "", ""]
+					]
+				}
 			},
 			headers: ["1", "2", "3"],
 			row_count: [1, "dynamic"],
@@ -663,8 +663,8 @@ export default [
 			name: "dataframe",
 			_selectable: false,
 			server: {},
-			label: "Interactive DataFrame",
-		},
+			label: "Interactive DataFrame"
+		}
 	},
 	{
 		name: "dataset",
@@ -685,8 +685,8 @@ export default [
 			interactive: true,
 			server: {},
 			value: null,
-			label: "Interactive Dataset",
-		},
+			label: "Interactive Dataset"
+		}
 	},
 	{
 		name: "datetime",
@@ -702,8 +702,8 @@ export default [
 			interactive: true,
 			server: {},
 			value: "",
-			label: "Interactive DateTime",
-		},
+			label: "Interactive DateTime"
+		}
 	},
 	{
 		name: "downloadbutton",
@@ -715,8 +715,8 @@ export default [
 			elem_classes: [],
 			name: "downloadbutton",
 			_selectable: false,
-			server: {},
-		},
+			server: {}
+		}
 	},
 	{
 		name: "downloadbutton",
@@ -728,8 +728,8 @@ export default [
 			name: "downloadbutton",
 			_selectable: false,
 			server: {},
-			label: "Interactive Download Button",
-		},
+			label: "Interactive Download Button"
+		}
 	},
 	{
 		name: "dropdown",
@@ -737,7 +737,7 @@ export default [
 			choices: [
 				["First Choice", "First Choice"],
 				["Second Choice", "Second Choice"],
-				["Third Choice", "Third Choice"],
+				["Third Choice", "Third Choice"]
 			],
 			value: "First Choice",
 			type: "value",
@@ -752,8 +752,8 @@ export default [
 			name: "dropdown",
 			_selectable: false,
 			server: {},
-			label: "Static Dropdown",
-		},
+			label: "Static Dropdown"
+		}
 	},
 	{
 		name: "dropdown",
@@ -761,7 +761,7 @@ export default [
 			choices: [
 				["First Choice", "First Choice"],
 				["Second Choice", "Second Choice"],
-				["Third Choice", "Third Choice"],
+				["Third Choice", "Third Choice"]
 			],
 			value: "First Choice",
 			type: "value",
@@ -776,8 +776,8 @@ export default [
 			name: "dropdown",
 			_selectable: false,
 			server: {},
-			label: "Interactive Dropdown",
-		},
+			label: "Interactive Dropdown"
+		}
 	},
 
 	{
@@ -795,8 +795,8 @@ export default [
 			interactive: false,
 			server: {},
 			label: "Static File",
-			value: [make_data(base_image), make_data(mask_image)],
-		},
+			value: [make_data(base_image), make_data(mask_image)]
+		}
 	},
 	{
 		name: "file",
@@ -812,8 +812,8 @@ export default [
 			name: "file",
 			_selectable: false,
 			server: {},
-			label: "Interactive File",
-		},
+			label: "Interactive File"
+		}
 	},
 	{
 		name: "fileexplorer",
@@ -831,8 +831,8 @@ export default [
 			_selectable: false,
 			server_fns: ["ls"],
 			server: {},
-			label: "Static File Explorer",
-		},
+			label: "Static File Explorer"
+		}
 	},
 	{
 		name: "fileexplorer",
@@ -850,8 +850,8 @@ export default [
 			_selectable: false,
 			server_fns: ["ls"],
 			server: {},
-			label: "Interactive File Explorer",
-		},
+			label: "Interactive File Explorer"
+		}
 	},
 	{
 		name: "gallery",
@@ -862,7 +862,7 @@ export default [
 				{ image: make_data(base_image) },
 				{ image: make_data(mask_image) },
 				{ image: make_data(base_image) },
-				{ image: make_data(mask_image) },
+				{ image: make_data(mask_image) }
 			],
 			format: "webp",
 			show_label: true,
@@ -880,8 +880,8 @@ export default [
 			name: "gallery",
 			_selectable: false,
 			server: {},
-			label: "Static Gallery",
-		},
+			label: "Static Gallery"
+		}
 	},
 	{
 		name: "gallery",
@@ -892,7 +892,7 @@ export default [
 				{ image: make_data(base_image) },
 				{ image: make_data(mask_image) },
 				{ image: make_data(base_image) },
-				{ image: make_data(mask_image) },
+				{ image: make_data(mask_image) }
 			],
 			format: "webp",
 			show_label: true,
@@ -910,8 +910,8 @@ export default [
 			name: "gallery",
 			_selectable: false,
 			server: {},
-			label: "Interactive Gallery",
-		},
+			label: "Interactive Gallery"
+		}
 	},
 	{
 		name: "highlightedtext",
@@ -933,42 +933,42 @@ export default [
 			value: [
 				{
 					token: "The ",
-					class_or_confidence: null,
+					class_or_confidence: null
 				},
 				{
 					token: "fast",
-					class_or_confidence: "+",
+					class_or_confidence: "+"
 				},
 				{
 					token: "quick",
-					class_or_confidence: "-",
+					class_or_confidence: "-"
 				},
 				{
 					token: " brown fox jump",
-					class_or_confidence: null,
+					class_or_confidence: null
 				},
 				{
 					token: "s",
-					class_or_confidence: "+",
+					class_or_confidence: "+"
 				},
 				{
 					token: "ed",
-					class_or_confidence: "-",
+					class_or_confidence: "-"
 				},
 				{
 					token: " over",
-					class_or_confidence: null,
+					class_or_confidence: null
 				},
 				{
 					token: " the",
-					class_or_confidence: "-",
+					class_or_confidence: "-"
 				},
 				{
 					token: " lazy dogs.",
-					class_or_confidence: null,
-				},
-			],
-		},
+					class_or_confidence: null
+				}
+			]
+		}
 	},
 	{
 		name: "highlightedtext",
@@ -990,42 +990,42 @@ export default [
 			value: [
 				{
 					token: "The ",
-					class_or_confidence: null,
+					class_or_confidence: null
 				},
 				{
 					token: "fast",
-					class_or_confidence: "+",
+					class_or_confidence: "+"
 				},
 				{
 					token: "quick",
-					class_or_confidence: "-",
+					class_or_confidence: "-"
 				},
 				{
 					token: " brown fox jump",
-					class_or_confidence: null,
+					class_or_confidence: null
 				},
 				{
 					token: "s",
-					class_or_confidence: "+",
+					class_or_confidence: "+"
 				},
 				{
 					token: "ed",
-					class_or_confidence: "-",
+					class_or_confidence: "-"
 				},
 				{
 					token: " over",
-					class_or_confidence: null,
+					class_or_confidence: null
 				},
 				{
 					token: " the",
-					class_or_confidence: "-",
+					class_or_confidence: "-"
 				},
 				{
 					token: " lazy dogs.",
-					class_or_confidence: null,
-				},
-			],
-		},
+					class_or_confidence: null
+				}
+			]
+		}
 	},
 	{
 		name: "html",
@@ -1038,8 +1038,8 @@ export default [
 			interactive: true,
 			server: {},
 			value: "<h1>hello</h1>",
-			label: "Interactive HTML",
-		},
+			label: "Interactive HTML"
+		}
 	},
 	{
 		name: "image",
@@ -1064,8 +1064,8 @@ export default [
 			_selectable: false,
 			server: {},
 			value: make_data(base_image),
-			label: "Static Image",
-		},
+			label: "Static Image"
+		}
 	},
 	{
 		name: "image",
@@ -1090,8 +1090,8 @@ export default [
 			_selectable: false,
 			server: {},
 			value: null,
-			label: "Interactive Image",
-		},
+			label: "Interactive Image"
+		}
 	},
 	{
 		name: "imageeditor",
@@ -1118,10 +1118,10 @@ export default [
 					"rgb(173, 204, 50)",
 					"rgb(50, 204, 112)",
 					"rgb(50, 112, 204)",
-					"rgb(173, 50, 204)",
+					"rgb(173, 50, 204)"
 				],
 				default_color: "auto",
-				color_mode: "defaults",
+				color_mode: "defaults"
 			},
 			format: "webp",
 			layers: true,
@@ -1130,8 +1130,8 @@ export default [
 			server_fns: ["accept_blobs"],
 			server: {},
 			value: { background: null, layers: [], composite: null },
-			label: "Interactive Image Editor",
-		},
+			label: "Interactive Image Editor"
+		}
 	},
 	{
 		name: "json",
@@ -1155,12 +1155,12 @@ export default [
 					b: 2,
 					c: {
 						a: 1,
-						b: 2,
-					},
-				},
+						b: 2
+					}
+				}
 			},
-			label: "Interactive JSON",
-		},
+			label: "Interactive JSON"
+		}
 	},
 	{
 		name: "label",
@@ -1170,17 +1170,17 @@ export default [
 				confidences: [
 					{
 						label: "First Label",
-						confidence: 0.7,
+						confidence: 0.7
 					},
 					{
 						label: "Second Label",
-						confidence: 0.2,
+						confidence: 0.2
 					},
 					{
 						label: "Third Label",
-						confidence: 0.1,
-					},
-				],
+						confidence: 0.1
+					}
+				]
 			},
 			show_label: true,
 			container: true,
@@ -1191,8 +1191,8 @@ export default [
 			_selectable: false,
 			interactive: false,
 			server: {},
-			label: "Static Label",
-		},
+			label: "Static Label"
+		}
 	},
 	{
 		name: "markdown",
@@ -1212,8 +1212,8 @@ export default [
 			server: {},
 			value:
 				"This is **bold text**. This is *italic text*. This is a [link](https://gradio.app).",
-			label: "Interactive Markdown",
-		},
+			label: "Interactive Markdown"
+		}
 	},
 	{
 		name: "model3d",
@@ -1232,8 +1232,8 @@ export default [
 			_selectable: false,
 			server: {},
 			value: make_data(duck),
-			label: "Static 3D Model",
-		},
+			label: "Static 3D Model"
+		}
 	},
 	{
 		name: "model3d",
@@ -1252,8 +1252,8 @@ export default [
 			_selectable: false,
 			server: {},
 			value: null,
-			label: "Interactive 3D Model",
-		},
+			label: "Interactive 3D Model"
+		}
 	},
 	{
 		name: "multimodaltextbox",
@@ -1275,8 +1275,8 @@ export default [
 			name: "multimodaltextbox",
 			_selectable: false,
 			server: {},
-			label: "Static Multimodal Textbox",
-		},
+			label: "Static Multimodal Textbox"
+		}
 	},
 	{
 		name: "multimodaltextbox",
@@ -1298,8 +1298,8 @@ export default [
 			name: "multimodaltextbox",
 			_selectable: false,
 			server: {},
-			label: "Interactive Multimodal Textbox",
-		},
+			label: "Interactive Multimodal Textbox"
+		}
 	},
 	{
 		name: "number",
@@ -1315,8 +1315,8 @@ export default [
 			interactive: false,
 			server: {},
 			value: 0,
-			label: "Static Number",
-		},
+			label: "Static Number"
+		}
 	},
 	{
 		name: "number",
@@ -1332,8 +1332,8 @@ export default [
 			_selectable: false,
 			server: {},
 			value: 0,
-			label: "Interactive Number",
-		},
+			label: "Interactive Number"
+		}
 	},
 	{
 		name: "paramviewer",
@@ -1348,16 +1348,16 @@ export default [
 				number: {
 					type: "int | float",
 					description: "The number to round",
-					default: null,
+					default: null
 				},
 				ndigits: {
 					type: "int",
 					description: "The number of digits to round to",
-					default: "0",
-				},
+					default: "0"
+				}
 			},
-			label: "Interactive Parameter Viewer",
-		},
+			label: "Interactive Parameter Viewer"
+		}
 	},
 	{
 		name: "plot",
@@ -1374,8 +1374,8 @@ export default [
 			interactive: true,
 			server: {},
 			value: null,
-			label: "Interactive Plot",
-		},
+			label: "Interactive Plot"
+		}
 	},
 	{
 		name: "radio",
@@ -1383,7 +1383,7 @@ export default [
 			choices: [
 				["First Choice", "First Choice"],
 				["Second Choice", "Second Choice"],
-				["Third Choice", "Third Choice"],
+				["Third Choice", "Third Choice"]
 			],
 			value: "First Choice",
 			type: "value",
@@ -1396,8 +1396,8 @@ export default [
 			name: "radio",
 			_selectable: false,
 			server: {},
-			label: "Static Radio",
-		},
+			label: "Static Radio"
+		}
 	},
 	{
 		name: "radio",
@@ -1405,7 +1405,7 @@ export default [
 			choices: [
 				["First Choice", "First Choice"],
 				["Second Choice", "Second Choice"],
-				["Third Choice", "Third Choice"],
+				["Third Choice", "Third Choice"]
 			],
 			value: "First Choice",
 			type: "value",
@@ -1418,8 +1418,8 @@ export default [
 			name: "radio",
 			_selectable: false,
 			server: {},
-			label: "Interactive Radio",
-		},
+			label: "Interactive Radio"
+		}
 	},
 	{
 		name: "slider",
@@ -1437,8 +1437,8 @@ export default [
 			name: "slider",
 			_selectable: false,
 			server: {},
-			label: "Static Slider",
-		},
+			label: "Static Slider"
+		}
 	},
 	{
 		name: "slider",
@@ -1456,8 +1456,8 @@ export default [
 			name: "slider",
 			_selectable: false,
 			server: {},
-			label: "Interactive Slider",
-		},
+			label: "Interactive Slider"
+		}
 	},
 	{
 		name: "textbox",
@@ -1479,8 +1479,8 @@ export default [
 			_selectable: false,
 			server: {},
 			value: "Hello there\n\nHello again",
-			label: "Static Textbox",
-		},
+			label: "Static Textbox"
+		}
 	},
 	{
 		name: "textbox",
@@ -1502,8 +1502,8 @@ export default [
 			_selectable: false,
 			server: {},
 			value: "Hello there\n\nHello again",
-			label: "Interactive Textbox",
-		},
+			label: "Interactive Textbox"
+		}
 	},
 	{
 		name: "timer",
@@ -1514,8 +1514,8 @@ export default [
 			_selectable: false,
 			interactive: false,
 			server: {},
-			label: "Static Timer",
-		},
+			label: "Static Timer"
+		}
 	},
 	{
 		name: "uploadbutton",
@@ -1529,8 +1529,8 @@ export default [
 			name: "uploadbutton",
 			_selectable: false,
 			server: {},
-			label: "Interactive Upload Button",
-		},
+			label: "Interactive Upload Button"
+		}
 	},
 	{
 		name: "uploadbutton",
@@ -1544,8 +1544,8 @@ export default [
 			name: "uploadbutton",
 			_selectable: false,
 			server: {},
-			label: "Interactive Upload Button",
-		},
+			label: "Interactive Upload Button"
+		}
 	},
 	{
 		name: "video",
@@ -1566,8 +1566,8 @@ export default [
 			_selectable: false,
 			server: {},
 			value: { video: make_data(video) },
-			label: "Static Video",
-		},
+			label: "Static Video"
+		}
 	},
 	{
 		name: "video",
@@ -1588,8 +1588,8 @@ export default [
 			_selectable: false,
 			server: {},
 			value: null,
-			label: "Interactive Video",
-		},
+			label: "Interactive Video"
+		}
 	},
 	{
 		name: "form",
@@ -1600,10 +1600,10 @@ export default [
 			interactive: true,
 			server: {},
 			visible: true,
-			label: "Interactive Form",
-		},
+			label: "Interactive Form"
+		}
 	},
 
 	{ name: "column", props: { interactive: false, scale: null, server: {} } },
-	{ name: "row", props: { interactive: false, scale: null, server: {} } },
+	{ name: "row", props: { interactive: false, scale: null, server: {} } }
 ];

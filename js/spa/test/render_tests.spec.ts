@@ -53,7 +53,7 @@ test("Test examples work in render", async ({ page }) => {
 	await expect(page.getByLabel("input", { exact: true })).toHaveValue("test");
 	await page.getByRole("button", { name: "def", exact: true }).click();
 	await expect(page.getByLabel("little textbox", { exact: true })).toHaveValue(
-		"def",
+		"def"
 	);
 });
 

@@ -12,7 +12,7 @@ import { resolve } from "path";
 const version_path = resolve(__dirname, "../../gradio/package.json");
 const theme_token_path = resolve(__dirname, "../theme/src/tokens.css");
 const version_raw = JSON.parse(
-	readFileSync(version_path, { encoding: "utf-8" }),
+	readFileSync(version_path, { encoding: "utf-8" })
 ).version.trim();
 const version = version_raw.replace(/\./g, "-");
 
@@ -27,7 +27,7 @@ function convert_to_pypi_prerelease(version: string) {
 			} else {
 				return version;
 			}
-		},
+		}
 	);
 }
 
@@ -35,12 +35,12 @@ const python_version = convert_to_pypi_prerelease(version_raw);
 
 const client_version_path = resolve(
 	__dirname,
-	"../../client/python/gradio_client/package.json",
+	"../../client/python/gradio_client/package.json"
 );
 const client_version_raw = JSON.parse(
 	readFileSync(client_version_path, {
-		encoding: "utf-8",
-	}),
+		encoding: "utf-8"
+	})
 ).version.trim();
 
 const client_python_version = convert_to_pypi_prerelease(client_version_raw);
@@ -52,7 +52,7 @@ import {
 	handle_ce_css,
 	inject_component_loader,
 	resolve_svelte,
-	mock_modules,
+	mock_modules
 } from "@self/build";
 
 const GRADIO_VERSION = version_raw || "asd_stub_asd";
@@ -68,7 +68,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 		base: "./",
 		server: {
 			port: 9876,
-			open: "/",
+			open: "/"
 		},
 		build: {
 			sourcemap: true,
@@ -77,8 +77,8 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			outDir: "../../gradio/templates/frontend",
 			rollupOptions: {
 				external: ["./svelte/svelte.js"],
-				makeAbsoluteExternalsRelative: false,
-			},
+				makeAbsoluteExternalsRelative: false
+			}
 		},
 		define: {
 			BROWSER_BUILD: JSON.stringify(true),
@@ -86,7 +86,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			BACKEND_URL: production
 				? JSON.stringify("")
 				: JSON.stringify("http://localhost:7860/"),
-			GRADIO_VERSION: JSON.stringify(version),
+			GRADIO_VERSION: JSON.stringify(version)
 		},
 		css: {
 			postcss: {
@@ -106,11 +106,11 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 								return selector;
 							}
 							return prefixedSelector;
-						},
+						}
 					}),
-					custom_media(),
-				],
-			},
+					custom_media()
+				]
+			}
 		},
 		plugins: [
 			resolve_svelte(development),
@@ -119,7 +119,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				compilerOptions: {
 					dev: true,
 					discloseVersion: false,
-					accessors: true,
+					accessors: true
 				},
 				hot: !process.env.VITEST && !production,
 				preprocess: [
@@ -128,27 +128,27 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 						postcss: {
 							plugins: [
 								global_data({ files: [theme_token_path] }),
-								custom_media(),
-							],
-						},
-					}),
-				],
+								custom_media()
+							]
+						}
+					})
+				]
 			}),
 			generate_dev_entry({
-				enable: !development && mode !== "test",
+				enable: !development && mode !== "test"
 			}),
 			inject_ejs(),
 			generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
 			handle_ce_css(),
 			inject_component_loader({ mode }),
-			mode === "test" && mock_modules(),
+			mode === "test" && mock_modules()
 		],
 
 		optimizeDeps: {
-			exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"],
+			exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"]
 		},
 		resolve: {
-			conditions: ["gradio"],
+			conditions: ["gradio"]
 		},
 		test: {
 			setupFiles: [resolve(__dirname, "../../.config/setup_vite_tests.ts")],
@@ -161,7 +161,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			globals: true,
 			onConsoleLog(log, type) {
 				if (log.includes("was created with unknown prop")) return false;
-			},
-		},
+			}
+		}
 	};
 });

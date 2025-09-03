@@ -3,7 +3,7 @@ import { colors } from "@gradio/theme";
 export function name_to_rgba(
 	name: string,
 	a: number,
-	ctx: CanvasRenderingContext2D | null,
+	ctx: CanvasRenderingContext2D | null
 ): string {
 	if (!ctx) {
 		var canvas = document.createElement("canvas");
@@ -20,7 +20,7 @@ export function correct_color_map(
 	color_map: Record<string, string>,
 	_color_map: Record<string, { primary: string; secondary: string }>,
 	browser: any,
-	ctx: CanvasRenderingContext2D | null,
+	ctx: CanvasRenderingContext2D | null
 ): void {
 	for (const col in color_map) {
 		const _c = color_map[col].trim();
@@ -34,7 +34,7 @@ export function correct_color_map(
 					: color_map[col],
 				secondary: browser
 					? name_to_rgba(color_map[col], 0.5, ctx)
-					: color_map[col],
+					: color_map[col]
 			};
 		}
 	}
@@ -42,7 +42,7 @@ export function correct_color_map(
 
 export function merge_elements(
 	value: { token: string; class_or_confidence: string | number | null }[],
-	mergeMode: "empty" | "equal",
+	mergeMode: "empty" | "equal"
 ): { token: string; class_or_confidence: string | number | null }[] {
 	let result: typeof value = [];
 	let tempStr: string | null = null;
@@ -58,7 +58,7 @@ export function merge_elements(
 			if (tempStr !== null) {
 				result.push({
 					token: tempStr,
-					class_or_confidence: tempVal,
+					class_or_confidence: tempVal
 				});
 			}
 			tempStr = val.token;
@@ -69,7 +69,7 @@ export function merge_elements(
 	if (tempStr !== null) {
 		result.push({
 			token: tempStr,
-			class_or_confidence: tempVal,
+			class_or_confidence: tempVal
 		});
 	}
 

@@ -12,7 +12,7 @@ let cache = new Map();
 const components_to_document = ["dataframe", "js-client"];
 
 async function load_release_docs(
-	version: string,
+	version: string
 ): Promise<typeof import("$lib/json/docs.json")> {
 	if (cache.has(version)) {
 		return cache.get(version);
@@ -43,7 +43,7 @@ export async function load({ params, url }) {
 	let js = docs_json.js || {};
 	let js_pages =
 		docs_json.js_pages.filter((p: string) =>
-			components_to_document.includes(p),
+			components_to_document.includes(p)
 		) || [];
 	let js_client = docs_json.js_client;
 	let on_main = params.version === "main";
@@ -60,6 +60,6 @@ export async function load({ params, url }) {
 		pages,
 		js_client,
 		url_version,
-		VERSION,
+		VERSION
 	};
 }

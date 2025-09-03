@@ -8,7 +8,7 @@ test.skip("ImageEditor layers are properly set", async ({ page }) => {
 });
 
 test("Clicking on examples should properly run the function", async ({
-	page,
+	page
 }) => {
 	await page.locator(".gallery > .gallery-item").first().click();
 	await expect(page.getByLabel("Example Ran")).toHaveValue("1");

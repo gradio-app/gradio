@@ -7,7 +7,7 @@ import {
 	handle_selection,
 	get_next_cell_coordinates,
 	get_range_selection,
-	move_cursor,
+	move_cursor
 } from "../utils/selection_utils";
 
 export const DATAFRAME_KEY = Symbol("dataframe");
@@ -79,13 +79,13 @@ interface DataFrameActions {
 		col: number,
 		datatype: FilterDatatype,
 		filter: string,
-		value: string,
+		value: string
 	) => void;
 	get_sort_status: (name: string, headers: string[]) => "none" | "asc" | "desc";
 	sort_data: (
 		data: any[][],
 		display_value: string[][] | null,
-		styling: string[][] | null,
+		styling: string[][] | null
 	) => void;
 	update_row_order: (data: any[][]) => void;
 	filter_data: (data: any[][]) => any[][];
@@ -94,32 +94,32 @@ interface DataFrameActions {
 		data: any[][],
 		headers: string[],
 		make_id: () => string,
-		index?: number,
+		index?: number
 	) => { data: any[][]; headers: string[] };
 	add_row_at: (
 		data: any[][],
 		index: number,
 		position: "above" | "below",
-		make_id: () => string,
+		make_id: () => string
 	) => any[][];
 	add_col_at: (
 		data: any[][],
 		headers: string[],
 		index: number,
 		position: "left" | "right",
-		make_id: () => string,
+		make_id: () => string
 	) => { data: any[][]; headers: string[] };
 	delete_row: (data: any[][], index: number) => any[][];
 	delete_col: (
 		data: any[][],
 		headers: string[],
-		index: number,
+		index: number
 	) => { data: any[][]; headers: string[] };
 	delete_row_at: (data: any[][], index: number) => any[][];
 	delete_col_at: (
 		data: any[][],
 		headers: string[],
-		index: number,
+		index: number
 	) => { data: any[][]; headers: string[] };
 	trigger_change: (
 		data: any[][],
@@ -127,15 +127,15 @@ interface DataFrameActions {
 		previous_data: string[][],
 		previous_headers: string[],
 		value_is_output: boolean,
-		dispatch: (e: "change" | "input", detail?: any) => void,
+		dispatch: (e: "change" | "input", detail?: any) => void
 	) => Promise<void>;
 	reset_sort_state: () => void;
 	reset_filter_state: () => void;
 	set_active_cell_menu: (
-		menu: { row: number; col: number; x: number; y: number } | null,
+		menu: { row: number; col: number; x: number; y: number } | null
 	) => void;
 	set_active_header_menu: (
-		menu: { col: number; x: number; y: number } | null,
+		menu: { col: number; x: number; y: number } | null
 	) => void;
 	set_selected_cells: (cells: CellCoordinate[]) => void;
 	set_selected: (selected: CellCoordinate | false) => void;
@@ -158,7 +158,7 @@ interface DataFrameActions {
 		col: number;
 	} | null;
 	set_active_button: (
-		button: { type: "header" | "cell"; row?: number; col: number } | null,
+		button: { type: "header" | "cell"; row?: number; col: number } | null
 	) => void;
 	set_copy_flash: (value: boolean) => void;
 	handle_cell_click: (event: MouseEvent, row: number, col: number) => void;
@@ -191,16 +191,16 @@ export interface DataFrameContext {
 
 function create_actions(
 	state: ReturnType<typeof writable<DataFrameState>>,
-	context: DataFrameContext,
+	context: DataFrameContext
 ): DataFrameActions {
 	const update_state = (
-		updater: (s: DataFrameState) => Partial<DataFrameState>,
+		updater: (s: DataFrameState) => Partial<DataFrameState>
 	): void => state.update((s) => ({ ...s, ...updater(s) }));
 
 	const add_row = (
 		data: any[][],
 		make_id: () => string,
-		index?: number,
+		index?: number
 	): any[][] => {
 		const new_row = data[0]?.length
 			? Array(data[0].length)
@@ -218,7 +218,7 @@ function create_actions(
 		data: any[][],
 		headers: string[],
 		make_id: () => string,
-		index?: number,
+		index?: number
 	): { data: any[][]; headers: string[] } => {
 		const new_headers = [...headers, `Header ${headers.length + 1}`];
 		const new_data = data.map((row) => [...row, { value: "", id: make_id() }]);
@@ -231,7 +231,7 @@ function create_actions(
 
 	const update_array = (
 		source: { id: string; value: string | number }[][] | string[][] | null,
-		target: any[] | null | undefined,
+		target: any[] | null | undefined
 	): void => {
 		if (source && target) {
 			target.splice(0, target.length, ...JSON.parse(JSON.stringify(source)));
@@ -244,11 +244,11 @@ function create_actions(
 		handle_sort: (col, direction) =>
 			update_state((s) => {
 				const sort_cols = s.sort_state.sort_columns.filter(
-					(c) => c.col !== col,
+					(c) => c.col !== col
 				);
 				if (
 					!s.sort_state.sort_columns.some(
-						(c) => c.col === col && c.direction === direction,
+						(c) => c.col === col && c.direction === direction
 					)
 				) {
 					sort_cols.push({ col, direction });
@@ -264,7 +264,7 @@ function create_actions(
 									: null,
 								styling: context.styling
 									? JSON.parse(JSON.stringify(context.styling))
-									: null,
+									: null
 							}
 						: null);
 
@@ -272,19 +272,19 @@ function create_actions(
 					sort_state: {
 						...s.sort_state,
 						sort_columns: sort_cols.slice(-3),
-						initial_data: initial_data,
-					},
+						initial_data: initial_data
+					}
 				};
 			}),
 		handle_filter: (col, datatype, filter, value) =>
 			update_state((s) => {
 				const filter_cols = s.filter_state.filter_columns.some(
-					(c) => c.col === col,
+					(c) => c.col === col
 				)
 					? s.filter_state.filter_columns.filter((c) => c.col !== col)
 					: [
 							...s.filter_state.filter_columns,
-							{ col, datatype, filter, value },
+							{ col, datatype, filter, value }
 						];
 
 				const initial_data =
@@ -297,7 +297,7 @@ function create_actions(
 									: null,
 								styling: context.styling
 									? JSON.parse(JSON.stringify(context.styling))
-									: null,
+									: null
 							}
 						: null);
 
@@ -305,20 +305,20 @@ function create_actions(
 					filter_state: {
 						...s.filter_state,
 						filter_columns: filter_cols,
-						initial_data: initial_data,
-					},
+						initial_data: initial_data
+					}
 				};
 			}),
 		get_sort_status: (name, headers) => {
 			const s = get(state);
 			const sort_item = s.sort_state.sort_columns.find(
-				(item) => headers[item.col] === name,
+				(item) => headers[item.col] === name
 			);
 			return sort_item ? sort_item.direction : "none";
 		},
 		sort_data: (data, display_value, styling) => {
 			const {
-				sort_state: { sort_columns },
+				sort_state: { sort_columns }
 			} = get(state);
 			if (sort_columns.length)
 				sort_table_data(data, display_value, styling, sort_columns);
@@ -343,16 +343,16 @@ function create_actions(
 										}
 										return 0;
 									})
-							: [...Array(data.length)].map((_, i) => i),
-				},
+							: [...Array(data.length)].map((_, i) => i)
+				}
 			})),
 		filter_data: (data) => {
 			const query = get(state).current_search_query?.toLowerCase();
 			return query
 				? data.filter((row) =>
 						row.some((cell) =>
-							String(cell?.value).toLowerCase().includes(query),
-						),
+							String(cell?.value).toLowerCase().includes(query)
+						)
 					)
 				: data;
 		},
@@ -368,7 +368,7 @@ function create_actions(
 			headers.length > 1
 				? {
 						data: data.map((row) => row.filter((_, i) => i !== index)),
-						headers: headers.filter((_, i) => i !== index),
+						headers: headers.filter((_, i) => i !== index)
 					}
 				: { data, headers },
 		delete_row_at: (data, index) =>
@@ -380,9 +380,9 @@ function create_actions(
 				? {
 						data: data.map((row) => [
 							...row.slice(0, index),
-							...row.slice(index + 1),
+							...row.slice(index + 1)
 						]),
-						headers: [...headers.slice(0, index), ...headers.slice(index + 1)],
+						headers: [...headers.slice(0, index), ...headers.slice(index + 1)]
 					}
 				: { data, headers },
 		trigger_change: async (
@@ -391,14 +391,14 @@ function create_actions(
 			previous_data,
 			previous_headers,
 			value_is_output,
-			dispatch,
+			dispatch
 		) => {
 			const s = get(state);
 			if (s.current_search_query) return;
 
 			const current_headers = headers.map((h) => h.value);
 			const current_data = data.map((row) =>
-				row.map((cell) => String(cell.value)),
+				row.map((cell) => String(cell.value))
 			);
 
 			if (
@@ -408,13 +408,13 @@ function create_actions(
 				if (!dequal(current_headers, previous_headers)) {
 					update_state((s) => ({
 						sort_state: { sort_columns: [], row_order: [], initial_data: null },
-						filter_state: { filter_columns: [], initial_data: null },
+						filter_state: { filter_columns: [], initial_data: null }
 					}));
 				}
 				dispatch("change", {
 					data: data.map((row) => row.map((cell) => cell.value)),
 					headers: current_headers,
-					metadata: null,
+					metadata: null
 				});
 				if (!value_is_output) dispatch("input");
 			}
@@ -430,7 +430,7 @@ function create_actions(
 				}
 
 				return {
-					sort_state: { sort_columns: [], row_order: [], initial_data: null },
+					sort_state: { sort_columns: [], row_order: [], initial_data: null }
 				};
 			}),
 		reset_filter_state: () =>
@@ -444,20 +444,20 @@ function create_actions(
 				}
 
 				return {
-					filter_state: { filter_columns: [], initial_data: null },
+					filter_state: { filter_columns: [], initial_data: null }
 				};
 			}),
 		set_active_cell_menu: (menu) =>
 			update_state((s) => ({
-				ui_state: { ...s.ui_state, active_cell_menu: menu },
+				ui_state: { ...s.ui_state, active_cell_menu: menu }
 			})),
 		set_active_header_menu: (menu) =>
 			update_state((s) => ({
-				ui_state: { ...s.ui_state, active_header_menu: menu },
+				ui_state: { ...s.ui_state, active_header_menu: menu }
 			})),
 		set_selected_cells: (cells) =>
 			update_state((s) => ({
-				ui_state: { ...s.ui_state, selected_cells: cells },
+				ui_state: { ...s.ui_state, selected_cells: cells }
 			})),
 		set_selected: (selected) =>
 			update_state((s) => ({ ui_state: { ...s.ui_state, selected } })),
@@ -474,8 +474,8 @@ function create_actions(
 					header_edit: false,
 					selected_header: false,
 					active_button: null,
-					copy_flash: false,
-				},
+					copy_flash: false
+				}
 			})),
 		set_header_edit: (header_index) =>
 			update_state((s) => ({
@@ -483,8 +483,8 @@ function create_actions(
 					...s.ui_state,
 					selected_cells: [],
 					selected_header: header_index,
-					header_edit: header_index,
-				},
+					header_edit: header_index
+				}
 			})),
 		set_selected_header: (header_index) =>
 			update_state((s) => ({
@@ -492,8 +492,8 @@ function create_actions(
 					...s.ui_state,
 					selected_header: header_index,
 					selected: false,
-					selected_cells: [],
-				},
+					selected_cells: []
+				}
 			})),
 		handle_header_click: (col, editable) =>
 			update_state((s) => ({
@@ -504,13 +504,13 @@ function create_actions(
 					selected: false,
 					selected_cells: [],
 					selected_header: col,
-					header_edit: editable ? col : false,
-				},
+					header_edit: editable ? col : false
+				}
 			})),
 		end_header_edit: (key) => {
 			if (["Escape", "Enter", "Tab"].includes(key)) {
 				update_state((s) => ({
-					ui_state: { ...s.ui_state, selected: false, header_edit: false },
+					ui_state: { ...s.ui_state, selected: false, header_edit: false }
 				}));
 			}
 		},
@@ -519,7 +519,7 @@ function create_actions(
 		get_active_button: () => get(state).ui_state.active_button,
 		set_active_button: (button) =>
 			update_state((s) => ({
-				ui_state: { ...s.ui_state, active_button: button },
+				ui_state: { ...s.ui_state, active_button: button }
 			})),
 		set_copy_flash: (value) =>
 			update_state((s) => ({ ui_state: { ...s.ui_state, copy_flash: value } })),
@@ -538,7 +538,7 @@ function create_actions(
 						dataRow.some((cell) =>
 							String(cell?.value)
 								.toLowerCase()
-								.includes(s.current_search_query?.toLowerCase() || ""),
+								.includes(s.current_search_query?.toLowerCase() || "")
 						)
 					) {
 						filtered_indices.push(idx);
@@ -550,7 +550,7 @@ function create_actions(
 			const cells = handle_selection(
 				[actual_row, col],
 				s.ui_state.selected_cells,
-				event,
+				event
 			);
 			update_state((s) => ({
 				ui_state: {
@@ -560,16 +560,16 @@ function create_actions(
 					selected_header: false,
 					header_edit: false,
 					selected_cells: cells,
-					selected: cells[0],
-				},
+					selected: cells[0]
+				}
 			}));
 
 			if (s.config.editable && cells.length === 1) {
 				update_state((s) => ({
-					ui_state: { ...s.ui_state, editing: [actual_row, col] },
+					ui_state: { ...s.ui_state, editing: [actual_row, col] }
 				}));
 				tick().then(() =>
-					context.els![context.data![actual_row][col].id]?.input?.focus(),
+					context.els![context.data![actual_row][col].id]?.input?.focus()
 				);
 			} else {
 				// ensure parent has focus for keyboard navigation
@@ -584,7 +584,7 @@ function create_actions(
 				index: [actual_row, col],
 				col_value: context.get_column!(col),
 				row_value: context.get_row!(actual_row),
-				value: context.get_data_at!(actual_row, col),
+				value: context.get_data_at!(actual_row, col)
 			});
 		},
 		toggle_cell_menu: (event, row, col) => {
@@ -592,7 +592,7 @@ function create_actions(
 			const current_menu = get(state).ui_state.active_cell_menu;
 			if (current_menu?.row === row && current_menu.col === col) {
 				update_state((s) => ({
-					ui_state: { ...s.ui_state, active_cell_menu: null },
+					ui_state: { ...s.ui_state, active_cell_menu: null }
 				}));
 			} else {
 				const cell = (event.target as HTMLElement).closest("td");
@@ -601,8 +601,8 @@ function create_actions(
 					update_state((s) => ({
 						ui_state: {
 							...s.ui_state,
-							active_cell_menu: { row, col, x: rect.right, y: rect.bottom },
-						},
+							active_cell_menu: { row, col, x: rect.right, y: rect.bottom }
+						}
 					}));
 				}
 			}
@@ -616,7 +616,7 @@ function create_actions(
 					? null
 					: { type: "cell" as const, row, col };
 			update_state((s) => ({
-				ui_state: { ...s.ui_state, active_button: new_button },
+				ui_state: { ...s.ui_state, active_button: new_button }
 			}));
 		},
 		handle_select_column: (col) => {
@@ -627,34 +627,34 @@ function create_actions(
 					...s.ui_state,
 					selected_cells: cells,
 					selected: cells[0],
-					editing: false,
-				},
+					editing: false
+				}
 			}));
 			setTimeout(() => context.parent_element?.focus(), 0);
 		},
 		handle_select_row: (row) => {
 			if (!context.data || !context.data[0]) return;
 			const cells = context.data[0].map(
-				(_, col) => [row, col] as CellCoordinate,
+				(_, col) => [row, col] as CellCoordinate
 			);
 			update_state((s) => ({
 				ui_state: {
 					...s.ui_state,
 					selected_cells: cells,
 					selected: cells[0],
-					editing: false,
-				},
+					editing: false
+				}
 			}));
 			setTimeout(() => context.parent_element?.focus(), 0);
 		},
 		get_next_cell_coordinates,
 		get_range_selection,
-		move_cursor,
+		move_cursor
 	};
 }
 
 export function create_dataframe_context(
-	config: DataFrameState["config"],
+	config: DataFrameState["config"]
 ): DataFrameContext {
 	const state = writable<DataFrameState>({
 		config,
@@ -670,15 +670,15 @@ export function create_dataframe_context(
 			header_edit: false,
 			selected_header: false,
 			active_button: null,
-			copy_flash: false,
-		},
+			copy_flash: false
+		}
 	});
 
 	const context: DataFrameContext = { state, actions: null as any };
 	context.actions = create_actions(state, context);
 
 	const instance_id = Symbol(
-		`dataframe_${Math.random().toString(36).substring(2)}`,
+		`dataframe_${Math.random().toString(36).substring(2)}`
 	);
 	setContext(instance_id, context);
 	setContext(DATAFRAME_KEY, { instance_id, context });
@@ -688,7 +688,7 @@ export function create_dataframe_context(
 
 export function get_dataframe_context(): DataFrameContext {
 	const ctx = getContext<{ instance_id: symbol; context: DataFrameContext }>(
-		DATAFRAME_KEY,
+		DATAFRAME_KEY
 	);
 	return ctx?.context ?? getContext<DataFrameContext>(DATAFRAME_KEY);
 }

@@ -126,7 +126,7 @@ export const standardHtmlTags = [
 	"ul",
 	"var",
 	"video",
-	"wbr",
+	"wbr"
 ];
 
 // SVG tags
@@ -200,10 +200,10 @@ export const svgTags = [
 	"desc",
 	"title",
 	"metadata",
-	"switch",
+	"switch"
 ];
 
 export const standardHtmlAndSvgTags = [
 	...standardHtmlTags,
-	...svgTags.filter((tag) => !standardHtmlTags.includes(tag)),
+	...svgTags.filter((tag) => !standardHtmlTags.includes(tag))
 ];

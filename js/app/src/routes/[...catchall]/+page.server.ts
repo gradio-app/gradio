@@ -14,6 +14,6 @@ export async function load({ request }: { request: Request }): Promise<{
 	return {
 		server: server,
 		port: port,
-		local_dev_mode: local_dev_mode,
+		local_dev_mode: local_dev_mode
 	};
 }

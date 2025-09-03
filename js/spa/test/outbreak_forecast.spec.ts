@@ -1,7 +1,7 @@
 import { test, expect, is_lite } from "@self/tootils";
 
 test("selecting matplotlib should show matplotlib image and pressing clear should clear output", async ({
-	page,
+	page
 }) => {
 	await page.getByLabel("Plot Type").click();
 	await page.getByRole("option", { name: "Matplotlib" }).click();
@@ -21,11 +21,11 @@ test("selecting matplotlib should show matplotlib image and pressing clear shoul
 
 test("selecting plotly should show plotly plot and pressing clear should clear output", async ({
 	page,
-	browserName,
+	browserName
 }) => {
 	test.fixme(
 		browserName === "firefox" && is_lite,
-		"Plotly component can't be located on Lite on FireFox in the CI env for some reason",
+		"Plotly component can't be located on Lite on FireFox in the CI env for some reason"
 	);
 
 	await page.getByLabel("Plot Type").click();
@@ -44,7 +44,7 @@ test("selecting plotly should show plotly plot and pressing clear should clear o
 });
 
 test("selecting altair should show altair plot and pressing clear should clear output", async ({
-	page,
+	page
 }) => {
 	await page.getByLabel("Plot Type").click();
 	await page.getByRole("option", { name: "altair" }).click();
@@ -62,7 +62,7 @@ test("selecting altair should show altair plot and pressing clear should clear o
 });
 
 test("selecting bokeh should show bokeh plot and pressing clear should clear output", async ({
-	page,
+	page
 }) => {
 	await page.getByLabel("Plot Type").click();
 	await page.getByRole("option", { name: "bokeh" }).click();
@@ -81,11 +81,11 @@ test("selecting bokeh should show bokeh plot and pressing clear should clear out
 
 test("switching between all 4 plot types and pressing submit should update output component to corresponding plot type", async ({
 	page,
-	browserName,
+	browserName
 }) => {
 	test.fixme(
 		browserName === "firefox" && is_lite,
-		"Plotly component can't be located on Lite on FireFox in the CI env for some reason",
+		"Plotly component can't be located on Lite on FireFox in the CI env for some reason"
 	);
 
 	//Matplotlib

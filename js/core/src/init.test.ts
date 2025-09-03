@@ -9,7 +9,7 @@ import {
 	create_target_meta,
 	determine_interactivity,
 	process_server_fn,
-	get_component,
+	get_component
 } from "./init";
 
 describe("process_frontend_fn", () => {
@@ -126,7 +126,7 @@ describe("create_target_meta", () => {
 		const targets: Dependency["targets"] = [
 			[1, "change"],
 			[2, "input"],
-			[3, "load"],
+			[3, "load"]
 		];
 		const fn_index = 0;
 		const target_map = {};
@@ -135,7 +135,7 @@ describe("create_target_meta", () => {
 		expect(result).toEqual({
 			1: { change: [0] },
 			2: { input: [0] },
-			3: { load: [0] },
+			3: { load: [0] }
 		});
 	});
 
@@ -143,16 +143,16 @@ describe("create_target_meta", () => {
 		const targets: Dependency["targets"] = [
 			[1, "change"],
 			[1, "input"],
-			[1, "load"],
+			[1, "load"]
 		];
 		const fn_index = 1;
 		const target_map: TargetMap = {
-			1: { change: [0] },
+			1: { change: [0] }
 		};
 
 		const result = create_target_meta(targets, fn_index, target_map);
 		expect(result).toEqual({
-			1: { change: [0, 1], input: [1], load: [1] },
+			1: { change: [0, 1], input: [1], load: [1] }
 		});
 	});
 
@@ -160,20 +160,20 @@ describe("create_target_meta", () => {
 		const targets: Dependency["targets"] = [
 			[1, "change"],
 			[2, "change"],
-			[3, "change"],
+			[3, "change"]
 		];
 		const fn_index = 1;
 		const target_map: TargetMap = {
 			1: { change: [0] },
 			2: { change: [0] },
-			3: { change: [0] },
+			3: { change: [0] }
 		};
 
 		const result = create_target_meta(targets, fn_index, target_map);
 		expect(result).toEqual({
 			1: { change: [0, 1] },
 			2: { change: [0, 1] },
-			3: { change: [0, 1] },
+			3: { change: [0, 1] }
 		});
 	});
 
@@ -181,12 +181,12 @@ describe("create_target_meta", () => {
 		const targets: Dependency["targets"] = [[1, "change"]];
 		const fn_index = 1;
 		const target_map: TargetMap = {
-			1: { change: [0] },
+			1: { change: [0] }
 		};
 
 		const result = create_target_meta(targets, fn_index, target_map);
 		expect(result).toEqual({
-			1: { change: [0, 1] },
+			1: { change: [0, 1] }
 		});
 	});
 
@@ -194,12 +194,12 @@ describe("create_target_meta", () => {
 		const targets: Dependency["targets"] = [[1, "change"]];
 		const fn_index = 0;
 		const target_map: TargetMap = {
-			1: { change: [0] },
+			1: { change: [0] }
 		};
 
 		const result = create_target_meta(targets, fn_index, target_map);
 		expect(result).toEqual({
-			1: { change: [0] },
+			1: { change: [0] }
 		});
 	});
 });
@@ -211,7 +211,7 @@ describe("determine_interactivity", () => {
 			true,
 			"hi",
 			new Set([0]),
-			new Set([2]),
+			new Set([2])
 		);
 		expect(result).toBe(true);
 	});
@@ -222,7 +222,7 @@ describe("determine_interactivity", () => {
 			false,
 			"hi",
 			new Set([0]),
-			new Set([2]),
+			new Set([2])
 		);
 		expect(result).toBe(false);
 	});
@@ -233,7 +233,7 @@ describe("determine_interactivity", () => {
 			undefined,
 			"hi",
 			new Set([0]),
-			new Set([2]),
+			new Set([2])
 		);
 		expect(result).toBe(true);
 	});
@@ -244,7 +244,7 @@ describe("determine_interactivity", () => {
 			undefined,
 			"",
 			new Set([0]),
-			new Set([1]),
+			new Set([1])
 		);
 		expect(result).toBe(true);
 	});
@@ -255,7 +255,7 @@ describe("determine_interactivity", () => {
 			undefined,
 			[],
 			new Set([0]),
-			new Set([1]),
+			new Set([1])
 		);
 		expect(result).toBe(true);
 	});
@@ -266,7 +266,7 @@ describe("determine_interactivity", () => {
 			undefined,
 			false,
 			new Set([0]),
-			new Set([1]),
+			new Set([1])
 		);
 		expect(result).toBe(true);
 	});
@@ -277,7 +277,7 @@ describe("determine_interactivity", () => {
 			undefined,
 			undefined,
 			new Set([0]),
-			new Set([1]),
+			new Set([1])
 		);
 		expect(result).toBe(true);
 	});
@@ -288,7 +288,7 @@ describe("determine_interactivity", () => {
 			undefined,
 			null,
 			new Set([0]),
-			new Set([1]),
+			new Set([1])
 		);
 		expect(result).toBe(true);
 	});
@@ -299,7 +299,7 @@ describe("determine_interactivity", () => {
 			undefined,
 			0,
 			new Set([0]),
-			new Set([1]),
+			new Set([1])
 		);
 		expect(result).toBe(true);
 	});
@@ -310,7 +310,7 @@ describe("determine_interactivity", () => {
 			undefined,
 			"hello",
 			new Set([0]),
-			new Set([1]),
+			new Set([1])
 		);
 		expect(result).toBe(false);
 	});
@@ -331,7 +331,7 @@ describe("process_server_fn", () => {
 		const app = {
 			component_server: async (id: number, fn: string, args: any) => {
 				return args;
-			},
+			}
 		} as client_return;
 
 		const result = process_server_fn(1, ["fn1", "fn2"], app);
@@ -345,7 +345,7 @@ describe("process_server_fn", () => {
 		const app = {
 			component_server: async (id: number, fn: string, args: any) => {
 				return args;
-			},
+			}
 		} as client_return;
 
 		const result = process_server_fn(1, ["fn1", "fn2"], app);
@@ -358,7 +358,7 @@ describe("process_server_fn", () => {
 			return args;
 		});
 		const app = {
-			component_server: mock as any,
+			component_server: mock as any
 		} as client_return;
 
 		const result = process_server_fn(1, ["fn1", "fn2"], app as client_return);
@@ -384,7 +384,7 @@ describe("get_component", () => {
 		expect(Object.keys(result)).toEqual([
 			"component",
 			"name",
-			"example_components",
+			"example_components"
 		]);
 	});
 
@@ -406,7 +406,7 @@ describe("get_component", () => {
 			"test-component-one",
 			"class_id",
 			"root",
-			[],
+			[]
 		);
 
 		expect(result.component).toBe(result_two.component);
@@ -434,14 +434,14 @@ describe("get_component", () => {
 					id: 1,
 					props: {
 						value: "hi",
-						interactive: false,
+						interactive: false
 					},
 					has_modes: false,
 					instance: {} as any,
-					component: {} as any,
-				},
+					component: {} as any
+				}
 			],
-			["test-component-one"],
+			["test-component-one"]
 		);
 		expect(result.component).toBeTypeOf("object");
 		expect(result.example_components).toBeInstanceOf(Map);
@@ -459,20 +459,20 @@ describe("get_component", () => {
 					id: 1,
 					props: {
 						value: "hi",
-						interactive: false,
+						interactive: false
 					},
 					has_modes: false,
 					instance: {} as any,
-					component: {} as any,
-				},
+					component: {} as any
+				}
 			],
-			["test-component-one"],
+			["test-component-one"]
 		);
 		expect(result.example_components?.get("test-component-one")).toBeTypeOf(
-			"object",
+			"object"
 		);
 		expect(result.example_components?.get("test-component-one")).toBeInstanceOf(
-			Promise,
+			Promise
 		);
 	});
 
@@ -487,11 +487,11 @@ describe("get_component", () => {
 					return new HttpResponse('console.log("boo")', {
 						status: 200,
 						headers: {
-							"Content-Type": "text/css",
-						},
+							"Content-Type": "text/css"
+						}
 					});
-				},
-			),
+				}
+			)
 		];
 
 		// vi.mock calls are always hoisted out of the test function to the top of the file
@@ -506,10 +506,10 @@ describe("get_component", () => {
 				mock();
 				return {
 					default: {
-						default: "HELLO",
-					},
+						default: "HELLO"
+					}
 				};
-			},
+			}
 		);
 
 		const server = setupServer(...handlers);

@@ -30,7 +30,7 @@ export class GradioAppController extends EventTarget {
 		});
 		this.lite_svelte_app.$on("modules-auto-loaded", (event: CustomEvent) => {
 			this.dispatchEvent(
-				new CustomEvent("modules-auto-loaded", { detail: event.detail }),
+				new CustomEvent("modules-auto-loaded", { detail: event.detail })
 			);
 		});
 		this.lite_svelte_app.$on("stdout", (event: CustomEvent) => {
@@ -41,22 +41,22 @@ export class GradioAppController extends EventTarget {
 		});
 		this.lite_svelte_app.$on("initialization-error", (event: CustomEvent) => {
 			this.dispatchEvent(
-				new CustomEvent("initialization-error", { detail: event.detail }),
+				new CustomEvent("initialization-error", { detail: event.detail })
 			);
 		});
 		this.lite_svelte_app.$on("python-error", (event: CustomEvent) => {
 			this.dispatchEvent(
-				new CustomEvent("python-error", { detail: event.detail }),
+				new CustomEvent("python-error", { detail: event.detail })
 			);
 		});
 		this.lite_svelte_app.$on("init-code-run-error", (event: CustomEvent) => {
 			this.dispatchEvent(
-				new CustomEvent("init-code-run-error", { detail: event.detail }),
+				new CustomEvent("init-code-run-error", { detail: event.detail })
 			);
 		});
 		this.lite_svelte_app.$on("init-file-run-error", (event: CustomEvent) => {
 			this.dispatchEvent(
-				new CustomEvent("init-file-run-error", { detail: event.detail }),
+				new CustomEvent("init-file-run-error", { detail: event.detail })
 			);
 		});
 	}
@@ -70,7 +70,7 @@ export class GradioAppController extends EventTarget {
 	write = (
 		path: string,
 		data: string | ArrayBufferView,
-		opts: any,
+		opts: any
 	): Promise<void> => {
 		return this.lite_svelte_app.write(path, data, opts);
 	};
@@ -137,8 +137,8 @@ export function create(options: Options): GradioAppController {
 			sharedWorkerMode: options.sharedWorkerMode,
 			// For playground
 			playground: options.playground,
-			layout: options.layout,
-		},
+			layout: options.layout
+		}
 	});
 
 	return new GradioAppController(app);
@@ -184,7 +184,7 @@ if (BUILD_MODE === "dev") {
 		const DevApp = (await import("./dev/App.svelte")).default;
 
 		const app = new DevApp({
-			target: document.getElementById("dev-app")!,
+			target: document.getElementById("dev-app")!
 		});
 	})();
 }

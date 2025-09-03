@@ -2,10 +2,10 @@ import { test, expect } from "@self/tootils";
 import { readFileSync } from "fs";
 
 test("when a user closes the page, the unload event should be triggered", async ({
-	page,
+	page
 }) => {
 	const increment = await page.locator("button", {
-		hasText: /Increment/,
+		hasText: /Increment/
 	});
 
 	// if you click too fast, the page may close before the event is processed
@@ -23,7 +23,7 @@ test("when a user closes the page, the unload event should be triggered", async 
 
 	const data = readFileSync(
 		"../../demo/unload_event_test/output_log.txt",
-		"utf-8",
+		"utf-8"
 	);
 	expect(data).toContain("incremented 0");
 	expect(data).toContain("incremented 1");

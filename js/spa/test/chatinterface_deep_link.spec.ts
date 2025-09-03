@@ -3,7 +3,7 @@ import { isContext } from "vm";
 
 test("DeepLinkButton correctly saves and loads multimodal chatinterface conversation state", async ({
 	page,
-	context,
+	context
 }) => {
 	const textbox = await page.getByTestId("textbox");
 	await textbox.fill("hello");
@@ -11,13 +11,13 @@ test("DeepLinkButton correctly saves and loads multimodal chatinterface conversa
 	await page.keyboard.press("Enter");
 
 	await expect(
-		page.getByTestId("bot").first().getByRole("paragraph"),
+		page.getByTestId("bot").first().getByRole("paragraph")
 	).toContainText("You typed: hello");
 
 	await page.getByRole("button", { name: "Share via Link" }).click();
 	await page.waitForTimeout(1000);
 	const clipboardText: string = await page.evaluate(
-		"navigator.clipboard.readText()",
+		"navigator.clipboard.readText()"
 	);
 
 	// Open a new tab
@@ -26,20 +26,20 @@ test("DeepLinkButton correctly saves and loads multimodal chatinterface conversa
 	await newPage.goto(clipboardText);
 
 	await expect(
-		newPage.getByTestId("bot").first().getByRole("paragraph"),
+		newPage.getByTestId("bot").first().getByRole("paragraph")
 	).toContainText("You typed: hello");
 });
 
 test("DeepLinkButton correctly saves and loads cached_examples", async ({
 	page,
-	context,
+	context
 }) => {
 	await page.getByRole("link", { name: "cached_examples" }).click();
 	await page.locator(".table").first().click();
 	await page.getByRole("button", { name: "Share via Link" }).click();
 	await page.waitForTimeout(1000);
 	const clipboardText: string = await page.evaluate(
-		"navigator.clipboard.readText()",
+		"navigator.clipboard.readText()"
 	);
 
 	const newPage = await context.newPage();

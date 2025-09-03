@@ -13,7 +13,7 @@ type LaunchAppBackgroundReturn = {
 
 export const launch_app_background = async (
 	command: string,
-	cwd?: string,
+	cwd?: string
 ): Promise<LaunchAppBackgroundReturn> => {
 	const _process = spawn(command, {
 		shell: true,
@@ -21,8 +21,8 @@ export const launch_app_background = async (
 		cwd: cwd || process.cwd(),
 		env: {
 			...process.env,
-			PYTHONUNBUFFERED: "true",
-		},
+			PYTHONUNBUFFERED: "true"
+		}
 	});
 
 	_process.stdout.setEncoding("utf8");

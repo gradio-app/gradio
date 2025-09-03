@@ -36,7 +36,7 @@ export function clamp(n: number, min: number, max: number): number {
 export function get_canvas_blob(
 	renderer: Renderer,
 	obj: Container | null,
-	bounds?: { x: number; y: number; width: number; height: number },
+	bounds?: { x: number; y: number; width: number; height: number }
 ): Promise<Blob | null> {
 	return new Promise((resolve) => {
 		if (!obj) {
@@ -52,7 +52,7 @@ export function get_canvas_blob(
 		const src_canvas = renderer.extract.canvas({
 			target: obj,
 			resolution: 1,
-			frame,
+			frame
 		});
 
 		src_canvas.toBlob?.((blob) => {

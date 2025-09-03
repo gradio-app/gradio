@@ -1,7 +1,7 @@
 import {
 	INVALID_URL_MSG,
 	QUEUE_FULL_MSG,
-	SPACE_METADATA_ERROR_MSG,
+	SPACE_METADATA_ERROR_MSG
 } from "../constants";
 import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
 import {
@@ -10,7 +10,7 @@ import {
 	get_type,
 	process_endpoint,
 	join_urls,
-	map_data_to_params,
+	map_data_to_params
 } from "../helpers/api_info";
 import { initialise_server } from "./server";
 import { transformed_api_info } from "./test_data";
@@ -47,8 +47,8 @@ describe("handle_message", () => {
 				message: QUEUE_FULL_MSG,
 				stage: "error",
 				code: 500,
-				success: false,
-			},
+				success: false
+			}
 		});
 	});
 
@@ -69,8 +69,8 @@ describe("handle_message", () => {
 				queue: true,
 				message: "Something went wrong",
 				stage: "error",
-				success: false,
-			},
+				success: false
+			}
 		});
 	});
 
@@ -81,7 +81,7 @@ describe("handle_message", () => {
 			queue_size: 10,
 			rank: 5,
 			rank_eta: 60,
-			success: true,
+			success: true
 		};
 		const last_status = "pending";
 		const result = handle_message(data, last_status);
@@ -94,8 +94,8 @@ describe("handle_message", () => {
 				size: 10,
 				position: 5,
 				eta: 60,
-				success: true,
-			},
+				success: true
+			}
 		});
 	});
 
@@ -104,7 +104,7 @@ describe("handle_message", () => {
 			msg: "progress",
 			code: 200,
 			progress_data: { current: 50, total: 100 },
-			success: true,
+			success: true
 		};
 		const last_status = "pending";
 		const result = handle_message(data, last_status);
@@ -115,8 +115,8 @@ describe("handle_message", () => {
 				stage: "pending",
 				code: 200,
 				progress_data: { current: 50, total: 100 },
-				success: true,
-			},
+				success: true
+			}
 		});
 	});
 
@@ -126,7 +126,7 @@ describe("handle_message", () => {
 		const result = handle_message(data, last_status);
 		expect(result).toEqual({
 			type: "log",
-			data: { msg: "log", log_data: "Some log message" },
+			data: { msg: "log", log_data: "Some log message" }
 		});
 	});
 
@@ -137,7 +137,7 @@ describe("handle_message", () => {
 			code: 200,
 			progress_data: { current: 50, total: 100 },
 			average_duration: 120,
-			output: { result: "Some result" },
+			output: { result: "Some result" }
 		};
 		const last_status = "pending";
 		const result = handle_message(data, last_status);
@@ -149,9 +149,9 @@ describe("handle_message", () => {
 				stage: "generating",
 				code: 200,
 				progress_data: { current: 50, total: 100 },
-				eta: 120,
+				eta: 120
 			},
-			data: { result: "Some result" },
+			data: { result: "Some result" }
 		});
 	});
 
@@ -162,7 +162,7 @@ describe("handle_message", () => {
 			code: 500,
 			progress_data: { current: 50, total: 100 },
 			average_duration: 120,
-			output: { error: "Error" },
+			output: { error: "Error" }
 		};
 		const last_status = "pending";
 		const result = handle_message(data, last_status);
@@ -176,8 +176,8 @@ describe("handle_message", () => {
 				message: "Error",
 				stage: "error",
 				code: 500,
-				progress_data: { current: 50, total: 100 },
-			},
+				progress_data: { current: 50, total: 100 }
+			}
 		});
 	});
 
@@ -187,7 +187,7 @@ describe("handle_message", () => {
 			success: true,
 			code: 200,
 			progress_data: { current: 100, total: 100 },
-			output: { result: "Some result" },
+			output: { result: "Some result" }
 		};
 		const last_status = "pending";
 		const result = handle_message(data, last_status);
@@ -198,9 +198,9 @@ describe("handle_message", () => {
 				message: undefined,
 				stage: "complete",
 				code: 200,
-				progress_data: { current: 100, total: 100 },
+				progress_data: { current: 100, total: 100 }
 			},
-			data: { result: "Some result" },
+			data: { result: "Some result" }
 		});
 	});
 
@@ -210,7 +210,7 @@ describe("handle_message", () => {
 			success: false,
 			code: 500,
 			progress_data: { current: 100, total: 100 },
-			output: { error: "Some error message" },
+			output: { error: "Some error message" }
 		};
 		const last_status = "pending";
 		const result = handle_message(data, last_status);
@@ -221,8 +221,8 @@ describe("handle_message", () => {
 				message: "Some error message",
 				stage: "error",
 				code: 500,
-				success: false,
-			},
+				success: false
+			}
 		});
 	});
 
@@ -232,7 +232,7 @@ describe("handle_message", () => {
 			code: 200,
 			rank: 5,
 			success: true,
-			eta: 60,
+			eta: 60
 		};
 		const last_status = "pending";
 		const result = handle_message(data, last_status);
@@ -246,8 +246,8 @@ describe("handle_message", () => {
 				size: 5,
 				position: 0,
 				success: true,
-				eta: 60,
-			},
+				eta: 60
+			}
 		});
 	});
 
@@ -257,7 +257,7 @@ describe("handle_message", () => {
 		const result = handle_message(data, last_status);
 		expect(result).toEqual({
 			type: "none",
-			status: { stage: "error", queue: true },
+			status: { stage: "error", queue: true }
 		});
 	});
 });
@@ -381,7 +381,7 @@ describe("get_type", () => {
 		const signature_type = "return";
 		const result = get_type(type, component, serializer, signature_type);
 		expect(result).toEqual(
-			"{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}",
+			"{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}"
 		);
 	});
 
@@ -392,7 +392,7 @@ describe("get_type", () => {
 		const signature_type = "return";
 		const result = get_type(type, component, serializer, signature_type);
 		expect(result).toEqual(
-			"{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}",
+			"{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}"
 		);
 	});
 
@@ -412,7 +412,7 @@ describe("get_type", () => {
 		const signature_type = "return";
 		const result = get_type(type, component, serializer, signature_type);
 		expect(result).toEqual(
-			"[{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}, (string | null))][]",
+			"[{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}, (string | null))][]"
 		);
 	});
 });
@@ -427,7 +427,7 @@ describe("process_endpoint", () => {
 			space_id: app_reference,
 			host,
 			ws_protocol: "wss",
-			http_protocol: "https:",
+			http_protocol: "https:"
 		};
 
 		const result = await process_endpoint(app_reference, hf_token);
@@ -453,7 +453,7 @@ describe("process_endpoint", () => {
 			space_id: app_reference,
 			host,
 			ws_protocol: "wss",
-			http_protocol: "https:",
+			http_protocol: "https:"
 		};
 
 		const result = await process_endpoint("hmb/hello_world");
@@ -493,7 +493,7 @@ describe("process_endpoint", () => {
 		const response = await process_endpoint(app_reference);
 		expect(response.space_id).toBe("pngwn-pr-demos-test");
 		expect(response.host).toBe(
-			"pngwn-pr-demos-test.hf.space/demo/audio_debugger",
+			"pngwn-pr-demos-test.hf.space/demo/audio_debugger"
 		);
 
 		expect(response.http_protocol).toBe("https:");
@@ -503,33 +503,33 @@ describe("process_endpoint", () => {
 describe("join_urls", () => {
 	it("joins URLs correctly", () => {
 		expect(join_urls("http://localhost:7860", "/gradio")).toBe(
-			"http://localhost:7860/gradio",
+			"http://localhost:7860/gradio"
 		);
 		expect(join_urls("http://localhost:7860/", "/gradio")).toBe(
-			"http://localhost:7860/gradio",
+			"http://localhost:7860/gradio"
 		);
 		expect(join_urls("http://localhost:7860", "app/", "/gradio")).toBe(
-			"http://localhost:7860/app/gradio",
+			"http://localhost:7860/app/gradio"
 		);
 		expect(join_urls("http://localhost:7860/", "/app/", "/gradio/")).toBe(
-			"http://localhost:7860/app/gradio/",
+			"http://localhost:7860/app/gradio/"
 		);
 
 		expect(join_urls("http://127.0.0.1:8000/app", "/config")).toBe(
-			"http://127.0.0.1:8000/app/config",
+			"http://127.0.0.1:8000/app/config"
 		);
 
 		expect(join_urls("http://127.0.0.1:8000/app/gradio", "/config")).toBe(
-			"http://127.0.0.1:8000/app/gradio/config",
+			"http://127.0.0.1:8000/app/gradio/config"
 		);
 	});
 	it("throws an error when the URLs are not valid", () => {
 		expect(() => join_urls("localhost:7860", "/gradio")).toThrowError(
-			INVALID_URL_MSG,
+			INVALID_URL_MSG
 		);
 
 		expect(() => join_urls("localhost:7860", "/gradio", "app")).toThrowError(
-			INVALID_URL_MSG,
+			INVALID_URL_MSG
 		);
 	});
 });
@@ -546,12 +546,12 @@ describe("map_data_params", () => {
 			serializer: "",
 			python_type: {
 				type: "",
-				description: "",
+				description: ""
 			},
 			type: {
 				type: "",
-				description: "",
-			},
+				description: ""
+			}
 		},
 		{
 			parameter_name: "param2",
@@ -559,14 +559,14 @@ describe("map_data_params", () => {
 			label: "",
 			type: {
 				type: "",
-				description: "",
+				description: ""
 			},
 			component: "",
 			serializer: "",
 			python_type: {
 				type: "",
-				description: "",
-			},
+				description: ""
+			}
 		},
 		{
 			parameter_name: "param3",
@@ -575,15 +575,15 @@ describe("map_data_params", () => {
 			label: "",
 			type: {
 				type: "",
-				description: "",
+				description: ""
 			},
 			component: "",
 			serializer: "",
 			python_type: {
 				type: "",
-				description: "",
-			},
-		},
+				description: ""
+			}
+		}
 	];
 
 	let endpoint_info = test_data.named_endpoints["/predict"];
@@ -620,7 +620,7 @@ describe("map_data_params", () => {
 		const data = {
 			param1: 1,
 			param2: 2,
-			param3: 3,
+			param3: 3
 		};
 
 		const result = map_data_to_params(data, endpoint_info);
@@ -630,7 +630,7 @@ describe("map_data_params", () => {
 	it("should use the default value when a keyword argument is not provided and has a default value", () => {
 		const data = {
 			param1: 1,
-			param2: 2,
+			param2: 2
 		};
 
 		const result = map_data_to_params(data, endpoint_info);
@@ -642,11 +642,11 @@ describe("map_data_params", () => {
 			param1: 1,
 			param2: 2,
 			param3: 3,
-			param4: 4,
+			param4: 4
 		};
 
 		expect(() => map_data_to_params(data, endpoint_info)).toThrowError(
-			"Parameter `param4` is not a valid keyword argument. Please refer to the API for usage.",
+			"Parameter `param4` is not a valid keyword argument. Please refer to the API for usage."
 		);
 	});
 
@@ -654,7 +654,7 @@ describe("map_data_params", () => {
 		const data = {};
 
 		expect(() => map_data_to_params(data, endpoint_info)).toThrowError(
-			"No value provided for required parameter: param1",
+			"No value provided for required parameter: param1"
 		);
 	});
 });

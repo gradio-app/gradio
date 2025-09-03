@@ -39,7 +39,7 @@ async function run(): Promise<void> {
 		await make_build({
 			component_dir: parsed_args["component-directory"],
 			root_dir: parsed_args.root,
-			python_path: parsed_args["python-path"],
+			python_path: parsed_args["python-path"]
 		});
 	} else {
 		const [backend_port, frontend_port] = await find_free_ports(7860, 8860);
@@ -49,7 +49,7 @@ async function run(): Promise<void> {
 			frontend_port,
 			backend_port,
 			host: parsed_args.host,
-			...parsed_args,
+			...parsed_args
 		};
 		process.env.GRADIO_BACKEND_PORT = backend_port.toString();
 		const _process = spawn(
@@ -62,9 +62,9 @@ async function run(): Promise<void> {
 				env: {
 					...process.env,
 					GRADIO_SERVER_PORT: backend_port.toString(),
-					PYTHONUNBUFFERED: "true",
-				},
-			},
+					PYTHONUNBUFFERED: "true"
+				}
+			}
 		);
 
 		_process.stdout.setEncoding("utf8");
@@ -81,7 +81,7 @@ async function run(): Promise<void> {
 						frontend_port,
 						backend_port,
 						host: options.host,
-						python_path: parsed_args["python-path"],
+						python_path: parsed_args["python-path"]
 					});
 				}
 
@@ -107,7 +107,7 @@ run();
 
 export async function find_free_ports(
 	start_port: number,
-	end_port: number,
+	end_port: number
 ): Promise<[number, number]> {
 	let found_ports: number[] = [];
 
@@ -121,7 +121,7 @@ export async function find_free_ports(
 	}
 
 	throw new Error(
-		`Could not find free ports: there were not enough ports available.`,
+		`Could not find free ports: there were not enough ports available.`
 	);
 }
 
@@ -131,7 +131,7 @@ export function is_free_port(port: number): Promise<boolean> {
 		setTimeout(() => {
 			sock.destroy();
 			reject(
-				new Error(`Timeout while detecting free port with 127.0.0.1:${port} `),
+				new Error(`Timeout while detecting free port with 127.0.0.1:${port} `)
 			);
 		}, 3000);
 		sock.once("connect", () => {
@@ -158,15 +158,15 @@ export function examine_module(
 	component_dir: string,
 	root: string,
 	python_path: string,
-	mode: "build" | "dev",
+	mode: "build" | "dev"
 ): ComponentMeta[] {
 	const _process = spawnSync(
 		python_path,
 		[join(__dirname, "examine.py"), "-m", mode],
 		{
 			cwd: join(component_dir, "backend"),
-			stdio: "pipe",
-		},
+			stdio: "pipe"
+		}
 	);
 	const exceptions: string[] = [];
 
@@ -185,7 +185,7 @@ export function examine_module(
 					name: name.trim(),
 					template_dir: template_dir.trim(),
 					frontend_dir: frontend_dir.trim(),
-					component_class_id: component_class_id.trim(),
+					component_class_id: component_class_id.trim()
 				};
 			}
 			return false;
@@ -194,8 +194,8 @@ export function examine_module(
 	if (exceptions.length > 0) {
 		console.info(
 			`While searching for gradio custom component source directories in ${component_dir}, the following exceptions were raised. If dev mode does not work properly please pass the --gradio-path and --python-path CLI arguments so that gradio uses the right executables: ${exceptions.join(
-				"\n",
-			)}`,
+				"\n"
+			)}`
 		);
 	}
 	return components;

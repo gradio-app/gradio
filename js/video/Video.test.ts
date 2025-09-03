@@ -6,7 +6,7 @@ import {
 	vi,
 	beforeAll,
 	beforeEach,
-	expect,
+	expect
 } from "vitest";
 import { spyOn } from "tinyspy";
 import { cleanup, render } from "@self/tootils";
@@ -24,7 +24,7 @@ const loading_status = {
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0,
-	show_progress: "full" as LoadingStatus["show_progress"],
+	show_progress: "full" as LoadingStatus["show_progress"]
 };
 
 describe("Video", () => {
@@ -42,9 +42,9 @@ describe("Video", () => {
 			value: {
 				video: {
 					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 				},
-				subtitles: null,
+				subtitles: null
 			},
 			label: "Test Label",
 			root: "foo",
@@ -56,13 +56,13 @@ describe("Video", () => {
 			interactive: true,
 			webcam_options: {
 				mirror: true,
-				constraints: null,
-			},
+				constraints: null
+			}
 		});
 		let vid = getByTestId("Test Label-player") as HTMLVideoElement;
 		assert.equal(
 			vid.src,
-			"https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+			"https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 		);
 		assert.equal(queryAllByText("Test Label").length, 1);
 	});
@@ -74,9 +74,9 @@ describe("Video", () => {
 			value: {
 				video: {
 					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 				},
-				subtitles: null,
+				subtitles: null
 			},
 			label: "Video Component",
 			root: "foo",
@@ -88,8 +88,8 @@ describe("Video", () => {
 			interactive: true,
 			webcam_options: {
 				mirror: true,
-				constraints: null,
-			},
+				constraints: null
+			}
 		});
 		assert.equal(queryAllByText("Video Component").length, 1);
 	});
@@ -101,9 +101,9 @@ describe("Video", () => {
 			value: {
 				video: {
 					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 				},
-				subtitles: null,
+				subtitles: null
 			},
 			root: "foo",
 			proxy_url: null,
@@ -114,13 +114,13 @@ describe("Video", () => {
 			mode: "static",
 			webcam_options: {
 				mirror: true,
-				constraints: null,
-			},
+				constraints: null
+			}
 		});
 		let vid = getByTestId("test-player") as HTMLVideoElement;
 		assert.equal(
 			vid.src,
-			"https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+			"https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 		);
 	});
 
@@ -132,9 +132,9 @@ describe("Video", () => {
 			value: {
 				video: {
 					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 				},
-				subtitles: null,
+				subtitles: null
 			},
 			root: "foo",
 			proxy_url: null,
@@ -144,8 +144,8 @@ describe("Video", () => {
 			autoplay: true,
 			webcam_options: {
 				mirror: true,
-				constraints: null,
-			},
+				constraints: null
+			}
 		});
 		const startButton = getByTestId("test-player") as HTMLVideoElement;
 		const fn = spyOn(startButton, "play");
@@ -160,9 +160,9 @@ describe("Video", () => {
 			value: {
 				video: {
 					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 				},
-				subtitles: null,
+				subtitles: null
 			},
 			root: "foo",
 			proxy_url: null,
@@ -172,8 +172,8 @@ describe("Video", () => {
 			autoplay: true,
 			webcam_options: {
 				mirror: true,
-				constraints: null,
-			},
+				constraints: null
+			}
 		});
 		const startButton = getByTestId("test-player") as HTMLVideoElement;
 		const fn = spyOn(startButton, "play");
@@ -189,9 +189,9 @@ describe("Video", () => {
 			value: {
 				video: {
 					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 				},
-				subtitles: null,
+				subtitles: null
 			},
 			root: "foo",
 			proxy_url: null,
@@ -201,8 +201,8 @@ describe("Video", () => {
 			autoplay: true,
 			webcam_options: {
 				mirror: true,
-				constraints: null,
-			},
+				constraints: null
+			}
 		});
 		const startButton = getByTestId("test-player") as HTMLVideoElement;
 		const fn = spyOn(startButton, "play");
@@ -210,9 +210,9 @@ describe("Video", () => {
 		component.$set({
 			value: {
 				video: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-				},
-			},
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+				}
+			}
 		});
 		startButton.dispatchEvent(new Event("loadeddata"));
 		assert.equal(fn.callCount, 2);
@@ -226,9 +226,9 @@ describe("Video", () => {
 			value: {
 				video: {
 					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 				},
-				subtitles: null,
+				subtitles: null
 			},
 			root: "foo",
 			proxy_url: null,
@@ -238,8 +238,8 @@ describe("Video", () => {
 			autoplay: true,
 			webcam_options: {
 				mirror: true,
-				constraints: null,
-			},
+				constraints: null
+			}
 		});
 		const startButton = getByTestId("test-player") as HTMLVideoElement;
 		const fn = spyOn(startButton, "play");
@@ -248,10 +248,10 @@ describe("Video", () => {
 			value: {
 				video: {
 					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 				},
-				subtitles: null,
-			},
+				subtitles: null
+			}
 		});
 		startButton.dispatchEvent(new Event("loadeddata"));
 		assert.equal(fn.callCount, 2);
@@ -260,8 +260,8 @@ describe("Video", () => {
 		const data = {
 			video: {
 				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-			},
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+			}
 		};
 		const results = await render(Video, {
 			interactive: false,
@@ -271,16 +271,16 @@ describe("Video", () => {
 			root: "https://localhost:8000",
 			webcam_options: {
 				mirror: true,
-				constraints: null,
-			},
+				constraints: null
+			}
 		});
 
 		const downloadButton = results.getAllByTestId("download-div")[0];
 		expect(
-			downloadButton.getElementsByTagName("a")[0].getAttribute("href"),
+			downloadButton.getElementsByTagName("a")[0].getAttribute("href")
 		).toBe(data.video.path);
 		expect(
-			downloadButton.getElementsByTagName("button").length,
+			downloadButton.getElementsByTagName("button").length
 		).toBeGreaterThan(0);
 	});
 
@@ -291,8 +291,8 @@ describe("Video", () => {
 			interactive: true,
 			value: [
 				{
-					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-				},
+					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+				}
 			],
 			root: "foo",
 			proxy_url: null,
@@ -302,16 +302,16 @@ describe("Video", () => {
 			autoplay: true,
 			webcam_options: {
 				mirror: true,
-				constraints: null,
-			},
+				constraints: null
+			}
 		});
 
 		const mock = listen("change");
 
 		(component.value = [
 			{
-				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/b.mp4",
-			},
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/b.mp4"
+			}
 		]),
 			assert.equal(mock.callCount, 1);
 	});

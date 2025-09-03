@@ -8,6 +8,6 @@ export async function load({ fetch }: any) {
 	return {
 		logos,
 		tweets,
-		star_count,
+		star_count
 	};
 }

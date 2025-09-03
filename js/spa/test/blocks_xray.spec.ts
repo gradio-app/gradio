@@ -21,6 +21,6 @@ test("can run an api request and display the data", async ({ page }) => {
 
 	const json = await page.getByTestId("json").first();
 	await expect(json).toHaveText(
-		`      [     \"0\": {     \"Covid\": 0.25 ,   \"Lung Cancer\": 0.5    }   ] `,
+		`      [     \"0\": {     \"Covid\": 0.25 ,   \"Lung Cancer\": 0.5    }   ] `
 	);
 });

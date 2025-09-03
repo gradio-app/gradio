@@ -1,7 +1,7 @@
 import { test, expect } from "@self/tootils";
 
 test("Components value can be set via callable to a non-None value", async ({
-	page,
+	page
 }) => {
 	const textBoxValue = await page.getByLabel(`component_00`).inputValue();
 	expect(textBoxValue.length).toBeGreaterThan(1);

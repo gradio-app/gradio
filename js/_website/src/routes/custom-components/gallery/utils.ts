@@ -34,7 +34,7 @@ export const classToEmojiMapping: { [key: string]: string } = {
 	Model3D: "🗿",
 	State: "🔢",
 	UploadButton: "📤",
-	Video: "🎥",
+	Video: "🎥"
 };
 
 export function clickOutside(element: HTMLDivElement, callbackFunction: any) {
@@ -55,6 +55,6 @@ export function clickOutside(element: HTMLDivElement, callbackFunction: any) {
 		},
 		destroy() {
 			document.body.removeEventListener("click", onClick);
-		},
+		}
 	};
 }

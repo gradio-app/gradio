@@ -8,26 +8,26 @@ export default defineConfig({
 	base: "",
 	server: {
 		fs: {
-			allow: [".."],
-		},
+			allow: [".."]
+		}
 	},
 
 	plugins: [
 		svelte({
 			inspector: false,
 			hot: {
-				preserveLocalState: true,
+				preserveLocalState: true
 			},
 			preprocess: sveltePreprocess({
 				sourceMap: false,
 				postcss: {
-					plugins: [autoprefixer()],
-				},
-			}),
+					plugins: [autoprefixer()]
+				}
+			})
 		}),
-		inject_component_loader({ mode: "storybook" }),
+		inject_component_loader({ mode: "storybook" })
 	],
 	resolve: {
-		conditions: ["gradio"],
-	},
+		conditions: ["gradio"]
+	}
 });

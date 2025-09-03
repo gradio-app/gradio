@@ -26,7 +26,7 @@ export function hsva_to_rgba(hsva: {
 
 export function format_color(
 	color: string,
-	mode: "hex" | "rgb" | "hsl",
+	mode: "hex" | "rgb" | "hsl"
 ): string {
 	if (mode === "hex") {
 		return tinycolor(color).toHexString();

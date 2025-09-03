@@ -15,22 +15,22 @@ describe("Dataframe", () => {
 			headers: ["A", "B", "C"],
 			values: [
 				["1", "2", "3"],
-				["4", "5", "6"],
+				["4", "5", "6"]
 			],
 			col_count: [3, "fixed"],
 			row_count: [2, "fixed"],
 			editable: true,
 			datatype: "str",
-			root: "",
+			root: ""
 		});
 		const mock = listen("change");
 		component.value = {
 			data: [
 				["11", "22", "33"],
-				["44", "55", "66"],
+				["44", "55", "66"]
 			],
 			headers: ["A", "B", "C"],
-			metadata: null,
+			metadata: null
 		};
 		assert.equal(mock.callCount, 1);
 	});

@@ -6,16 +6,16 @@ export function set_config(
 	spec: Spec,
 	computed_style: CSSStyleDeclaration,
 	chart_type: string,
-	colors: string[],
+	colors: string[]
 ): Spec {
 	let accentColor = computed_style.getPropertyValue("--color-accent");
 	let bodyTextColor = computed_style.getPropertyValue("--body-text-color");
 	let borderColorPrimary = computed_style.getPropertyValue(
-		"--border-color-primary",
+		"--border-color-primary"
 	);
 	let fontFamily = computed_style.fontFamily;
 	let titleWeight = computed_style.getPropertyValue(
-		"--block-title-text-weight",
+		"--block-title-text-weight"
 	) as "bold" | "normal" | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
 	const fontToPxVal = (font: string): number => {
 		return font.endsWith("px") ? parseFloat(font.slice(0, -2)) : 12;
@@ -36,7 +36,7 @@ export function set_config(
 			titleFontSize: textSizeSm,
 			labelFontWeight: "normal",
 			domain: false,
-			labelAngle: 0,
+			labelAngle: 0
 		},
 		legend: {
 			labelColor: bodyTextColor,
@@ -46,18 +46,18 @@ export function set_config(
 			titleFontWeight: "normal",
 			titleFontSize: textSizeSm,
 			labelFontWeight: "normal",
-			offset: 2,
+			offset: 2
 		},
 		title: {
 			color: bodyTextColor,
 			font: fontFamily,
 			fontSize: textSizeMd,
 			fontWeight: titleWeight,
-			anchor: "middle",
+			anchor: "middle"
 		},
 		view: {
-			stroke: borderColorPrimary,
-		},
+			stroke: borderColorPrimary
+		}
 	};
 	spec.config = config;
 	// @ts-ignore (unsure why the following are not typed in Spec)
@@ -69,7 +69,7 @@ export function set_config(
 			spec.config.mark = { stroke: accentColor };
 			if (encoding.color && encoding.color.type == "nominal") {
 				encoding.color.scale.range = encoding.color.scale.range.map(
-					(_: string, i: number) => get_color(colors, i),
+					(_: string, i: number) => get_color(colors, i)
 				);
 			} else if (encoding.color && encoding.color.type == "quantitative") {
 				encoding.color.scale.range = ["#eff6ff", "#1e3a8a"];
@@ -81,7 +81,7 @@ export function set_config(
 			layer.forEach((d: any) => {
 				if (d.encoding.color) {
 					d.encoding.color.scale.range = d.encoding.color.scale.range.map(
-						(_: any, i: any) => get_color(colors, i),
+						(_: any, i: any) => get_color(colors, i)
 					);
 				}
 			});
@@ -90,7 +90,7 @@ export function set_config(
 			spec.config.mark = { opacity: 0.8, fill: accentColor };
 			if (encoding.color) {
 				encoding.color.scale.range = encoding.color.scale.range.map(
-					(_: any, i: any) => get_color(colors, i),
+					(_: any, i: any) => get_color(colors, i)
 				);
 			}
 			break;

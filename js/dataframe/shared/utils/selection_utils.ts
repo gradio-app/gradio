@@ -4,7 +4,7 @@ export type CellData = { id: string; value: string | number };
 
 export function is_cell_in_selection(
 	coords: [number, number],
-	selected_cells: [number, number][],
+	selected_cells: [number, number][]
 ): boolean {
 	const [row, col] = coords;
 	return selected_cells.some(([r, c]) => r === row && c === col);
@@ -12,7 +12,7 @@ export function is_cell_in_selection(
 
 export function is_cell_selected(
 	cell: CellCoordinate,
-	selected_cells: CellCoordinate[],
+	selected_cells: CellCoordinate[]
 ): string {
 	const [row, col] = cell;
 	if (!selected_cells.some(([r, c]) => r === row && c === col)) return "";
@@ -27,7 +27,7 @@ export function is_cell_selected(
 
 export function get_range_selection(
 	start: CellCoordinate,
-	end: CellCoordinate,
+	end: CellCoordinate
 ): CellCoordinate[] {
 	const [start_row, start_col] = start;
 	const [end_row, end_col] = end;
@@ -54,12 +54,12 @@ export function get_range_selection(
 export function handle_selection(
 	current: CellCoordinate,
 	selected_cells: CellCoordinate[],
-	event: { shiftKey: boolean; metaKey: boolean; ctrlKey: boolean },
+	event: { shiftKey: boolean; metaKey: boolean; ctrlKey: boolean }
 ): CellCoordinate[] {
 	if (event.shiftKey && selected_cells.length > 0) {
 		return get_range_selection(
 			selected_cells[selected_cells.length - 1],
-			current,
+			current
 		);
 	}
 
@@ -77,7 +77,7 @@ export function handle_selection(
 
 export function handle_delete_key(
 	data: CellData[][],
-	selected_cells: CellCoordinate[],
+	selected_cells: CellCoordinate[]
 ): CellData[][] {
 	const new_data = data.map((row) => [...row]);
 	selected_cells.forEach(([row, col]) => {
@@ -91,7 +91,7 @@ export function handle_delete_key(
 export function should_show_cell_menu(
 	cell: CellCoordinate,
 	selected_cells: CellCoordinate[],
-	editable: boolean,
+	editable: boolean
 ): boolean {
 	const [row, col] = cell;
 	return (
@@ -105,7 +105,7 @@ export function should_show_cell_menu(
 export function get_next_cell_coordinates(
 	current: CellCoordinate,
 	data: CellData[][],
-	shift_key: boolean,
+	shift_key: boolean
 ): CellCoordinate | false {
 	const [row, col] = current;
 	const direction = shift_key ? -1 : 1;
@@ -131,14 +131,14 @@ export function get_next_cell_coordinates(
 export function move_cursor(
 	event: KeyboardEvent,
 	current_coords: CellCoordinate,
-	data: CellData[][],
+	data: CellData[][]
 ): CellCoordinate | false {
 	const key = event.key as "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp";
 	const dir = {
 		ArrowRight: [0, 1],
 		ArrowLeft: [0, -1],
 		ArrowDown: [1, 0],
-		ArrowUp: [-1, 0],
+		ArrowUp: [-1, 0]
 	}[key];
 
 	let i, j;
@@ -176,23 +176,23 @@ export function move_cursor(
 
 export function get_current_indices(
 	id: string,
-	data: CellData[][],
+	data: CellData[][]
 ): [number, number] {
 	return data.reduce(
 		(acc, arr, i) => {
 			const j = arr.reduce(
 				(_acc, _data, k) => (id === _data.id ? k : _acc),
-				-1,
+				-1
 			);
 			return j === -1 ? acc : [i, j];
 		},
-		[-1, -1],
+		[-1, -1]
 	);
 }
 
 export function handle_click_outside(
 	event: Event,
-	parent: HTMLElement,
+	parent: HTMLElement
 ): boolean {
 	const [trigger] = event.composedPath() as HTMLElement[];
 	return !parent.contains(trigger);
@@ -211,7 +211,7 @@ export function calculate_selection_positions(
 	data: { id: string; value: string | number }[][],
 	els: Record<string, { cell: HTMLTableCellElement | null }>,
 	parent: HTMLElement,
-	table: HTMLElement,
+	table: HTMLElement
 ): { col_pos: string; row_pos: string | undefined } {
 	const [row, col] = selected;
 	if (!data[row]?.[col]) {

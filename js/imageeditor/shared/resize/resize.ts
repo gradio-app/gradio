@@ -4,7 +4,7 @@ import {
 	Point,
 	Rectangle,
 	FederatedPointerEvent,
-	type FederatedOptions,
+	type FederatedOptions
 } from "pixi.js";
 import { type ImageEditorContext, type Tool } from "../core/editor";
 import { type Tool as ToolbarTool, type Subtool } from "../Toolbar.svelte";
@@ -30,7 +30,7 @@ export class ResizeCommand implements Command {
 		private context: ImageEditorContext,
 		original_state: { width: number; height: number; x: number; y: number },
 		new_state: { width: number; height: number; x: number; y: number },
-		reset_ui: () => void,
+		reset_ui: () => void
 	) {
 		this.name = "Resize";
 		this.original_width = original_state.width;
@@ -66,7 +66,7 @@ export class ResizeCommand implements Command {
 		this.context.background_image.height = this.original_height;
 		this.context.background_image.position.set(
 			this.original_x,
-			this.original_y,
+			this.original_y
 		);
 
 		this.reset_ui();
@@ -98,7 +98,7 @@ export class ResizeTool implements Tool {
 	private resize_ui_container: Container | null = null;
 	private dimensions: { width: number; height: number } = {
 		width: 0,
-		height: 0,
+		height: 0
 	};
 	private position: { x: number; y: number } = { x: 0, y: 0 };
 	private scale = 1;
@@ -128,7 +128,7 @@ export class ResizeTool implements Tool {
 	async setup(
 		context: ImageEditorContext,
 		tool: ToolbarTool,
-		subtool: Subtool,
+		subtool: Subtool
 	): Promise<void> {
 		this.image_editor_context = context;
 		this.current_tool = tool;
@@ -305,7 +305,7 @@ export class ResizeTool implements Tool {
 	private async init_resize_ui(): Promise<void> {
 		this.resize_ui_container = this.make_resize_ui(
 			this.dimensions.width * this.scale,
-			this.dimensions.height * this.scale,
+			this.dimensions.height * this.scale
 		);
 
 		this.resize_ui_container.position.set(this.position.x, this.position.y);
@@ -332,7 +332,7 @@ export class ResizeTool implements Tool {
 			width: 1,
 			color: 0x000000,
 			alignment: 0,
-			alpha: 0.3,
+			alpha: 0.3
 		});
 
 		const dotted_outline = new Graphics();
@@ -341,7 +341,7 @@ export class ResizeTool implements Tool {
 			width: 1,
 			color: 0x000000,
 			alpha: 0.7,
-			pixelLine: true,
+			pixelLine: true
 		});
 
 		const dash_length = 5;
@@ -409,7 +409,7 @@ export class ResizeTool implements Tool {
 			-hit_size / 2,
 			-hit_size / 2,
 			hit_size,
-			hit_size,
+			hit_size
 		);
 
 		return handle;
@@ -427,7 +427,7 @@ export class ResizeTool implements Tool {
 	private create_edge_handles(
 		container: Container,
 		width: number,
-		height: number,
+		height: number
 	): void {
 		[-1, 1].forEach((i, index) => {
 			const handle = this.create_handle(true);
@@ -470,13 +470,13 @@ export class ResizeTool implements Tool {
 	private create_corner_handles(
 		container: Container,
 		width: number,
-		height: number,
+		height: number
 	): void {
 		const corners = [
 			{ x: 0, y: 0, cursor: "nwse-resize" },
 			{ x: width, y: 0, cursor: "nesw-resize" },
 			{ x: 0, y: height, cursor: "nesw-resize" },
-			{ x: width, y: height, cursor: "nwse-resize" },
+			{ x: width, y: height, cursor: "nwse-resize" }
 		];
 
 		corners.forEach(({ x, y, cursor }, i) => {
@@ -508,7 +508,7 @@ export class ResizeTool implements Tool {
 		event: FederatedPointerEvent,
 		handle: Container,
 		corner_index: number,
-		edge_index: number,
+		edge_index: number
 	): void {
 		if (this.current_subtool !== "size") return;
 
@@ -520,7 +520,7 @@ export class ResizeTool implements Tool {
 		this.active_edge_index = edge_index;
 
 		const local_pos = this.image_editor_context.image_container.toLocal(
-			event.global,
+			event.global
 		);
 		this.last_pointer_position = new Point(local_pos.x, local_pos.y);
 
@@ -530,7 +530,7 @@ export class ResizeTool implements Tool {
 				width: bg.width,
 				height: bg.height,
 				x: bg.position.x,
-				y: bg.position.y,
+				y: bg.position.y
 			};
 		}
 	}
@@ -547,7 +547,7 @@ export class ResizeTool implements Tool {
 		new_width: number,
 		new_height: number,
 		original_aspect_ratio: number,
-		delta: Point,
+		delta: Point
 	): { width: number; height: number } {
 		const abs_delta_x = Math.abs(delta.x);
 		const abs_delta_y = Math.abs(delta.y);
@@ -577,7 +577,7 @@ export class ResizeTool implements Tool {
 	private limit_dimensions(
 		width: number,
 		height: number,
-		maintain_aspect_ratio: boolean,
+		maintain_aspect_ratio: boolean
 	): { width: number; height: number } {
 		const max_width = this.dimensions.width;
 		const max_height = this.dimensions.height;
@@ -617,7 +617,7 @@ export class ResizeTool implements Tool {
 		old_width: number,
 		old_height: number,
 		new_width: number,
-		new_height: number,
+		new_height: number
 	): { x: number; y: number } {
 		let delta_x = 0;
 		let delta_y = 0;
@@ -701,7 +701,7 @@ export class ResizeTool implements Tool {
 	 */
 	private update_resize_bounds(
 		delta: Point,
-		maintain_aspect_ratio = false,
+		maintain_aspect_ratio = false
 	): void {
 		const background_image = this.image_editor_context.background_image;
 
@@ -720,25 +720,25 @@ export class ResizeTool implements Tool {
 				case 0:
 					current_position = new Point(
 						original_x - delta.x,
-						original_y - delta.y,
+						original_y - delta.y
 					);
 					break;
 				case 1:
 					current_position = new Point(
 						original_x + original_width + delta.x,
-						original_y - delta.y,
+						original_y - delta.y
 					);
 					break;
 				case 2:
 					current_position = new Point(
 						original_x - delta.x,
-						original_y + original_height + delta.y,
+						original_y + original_height + delta.y
 					);
 					break;
 				case 3:
 					current_position = new Point(
 						original_x + original_width + delta.x,
-						original_y + original_height + delta.y,
+						original_y + original_height + delta.y
 					);
 					break;
 				default:
@@ -752,7 +752,7 @@ export class ResizeTool implements Tool {
 				original_x,
 				original_y,
 				original_aspect_ratio,
-				maintain_aspect_ratio,
+				maintain_aspect_ratio
 			);
 
 			background_image.width = dimensions.width;
@@ -763,25 +763,25 @@ export class ResizeTool implements Tool {
 				case 0:
 					current_position = new Point(
 						original_x + original_width / 2,
-						original_y - delta.y,
+						original_y - delta.y
 					);
 					break;
 				case 1:
 					current_position = new Point(
 						original_x + original_width / 2,
-						original_y + original_height + delta.y,
+						original_y + original_height + delta.y
 					);
 					break;
 				case 2:
 					current_position = new Point(
 						original_x - delta.x,
-						original_y + original_height / 2,
+						original_y + original_height / 2
 					);
 					break;
 				case 3:
 					current_position = new Point(
 						original_x + original_width + delta.x,
-						original_y + original_height / 2,
+						original_y + original_height / 2
 					);
 					break;
 				default:
@@ -793,7 +793,7 @@ export class ResizeTool implements Tool {
 				original_width,
 				original_height,
 				original_x,
-				original_y,
+				original_y
 			);
 
 			background_image.width = dimensions.width;
@@ -825,7 +825,7 @@ export class ResizeTool implements Tool {
 
 		this.resize_ui_container.position.set(
 			container_global_pos.x + bg_pos_x,
-			container_global_pos.y + bg_pos_y,
+			container_global_pos.y + bg_pos_y
 		);
 
 		const scaled_width = background_image.width * this.scale;
@@ -844,7 +844,7 @@ export class ResizeTool implements Tool {
 			width: 1,
 			color: 0x000000,
 			alpha: 0.7,
-			pixelLine: true,
+			pixelLine: true
 		});
 
 		if (
@@ -866,7 +866,7 @@ export class ResizeTool implements Tool {
 						x,
 						scaled_height - 1,
 						Math.min(dash_length, scaled_width - x),
-						1,
+						1
 					)
 					.fill(0x000000);
 			}
@@ -881,7 +881,7 @@ export class ResizeTool implements Tool {
 						scaled_width - 1,
 						y,
 						1,
-						Math.min(dash_length, scaled_height - y),
+						Math.min(dash_length, scaled_height - y)
 					)
 					.fill(0x000000);
 			}
@@ -913,7 +913,7 @@ export class ResizeTool implements Tool {
 			{ x: 0, y: 0 },
 			{ x: width, y: 0 },
 			{ x: 0, y: height },
-			{ x: width, y: height },
+			{ x: width, y: height }
 		];
 
 		corners.forEach((handle, i) => {
@@ -984,7 +984,7 @@ export class ResizeTool implements Tool {
 					width: bg.width,
 					height: bg.height,
 					x: bg.position.x,
-					y: bg.position.y,
+					y: bg.position.y
 				};
 
 				e.preventDefault();
@@ -1030,7 +1030,7 @@ export class ResizeTool implements Tool {
 					width: bg.width,
 					height: bg.height,
 					x: bg.position.x,
-					y: bg.position.y,
+					y: bg.position.y
 				};
 
 				if (
@@ -1043,7 +1043,7 @@ export class ResizeTool implements Tool {
 						this.image_editor_context,
 						this.original_state,
 						new_state,
-						this.update_resize_ui.bind(this),
+						this.update_resize_ui.bind(this)
 					);
 
 					this.image_editor_context.execute_command(resize_command);
@@ -1108,7 +1108,7 @@ export class ResizeTool implements Tool {
 		if (this.current_subtool !== "size") return;
 
 		const local_pos = this.image_editor_context.image_container.toLocal(
-			event.global,
+			event.global
 		);
 		const current_position = new Point(local_pos.x, local_pos.y);
 
@@ -1139,7 +1139,7 @@ export class ResizeTool implements Tool {
 					original_x,
 					original_y,
 					original_aspect_ratio,
-					maintain_aspect_ratio,
+					maintain_aspect_ratio
 				);
 			} else if (this.active_edge_index !== -1) {
 				dimensions = this.handle_direct_edge_resize(
@@ -1147,7 +1147,7 @@ export class ResizeTool implements Tool {
 					original_width,
 					original_height,
 					original_x,
-					original_y,
+					original_y
 				);
 			} else {
 				return;
@@ -1159,7 +1159,7 @@ export class ResizeTool implements Tool {
 				original_y,
 				original_width,
 				original_height,
-				maintain_aspect_ratio,
+				maintain_aspect_ratio
 			);
 
 			bg.width = dimensions.width;
@@ -1263,7 +1263,7 @@ export class ResizeTool implements Tool {
 		original_x: number,
 		original_y: number,
 		original_aspect_ratio: number,
-		maintain_aspect_ratio: boolean,
+		maintain_aspect_ratio: boolean
 	): { width: number; height: number; x: number; y: number } {
 		let raw_width = 0;
 		let raw_height = 0;
@@ -1298,7 +1298,7 @@ export class ResizeTool implements Tool {
 		if (maintain_aspect_ratio) {
 			const diagonal_vector = {
 				x: current_position.x - (original_x + original_width / 2),
-				y: current_position.y - (original_y + original_height / 2),
+				y: current_position.y - (original_y + original_height / 2)
 			};
 
 			const angle = Math.abs(Math.atan2(diagonal_vector.y, diagonal_vector.x));
@@ -1343,7 +1343,7 @@ export class ResizeTool implements Tool {
 		original_width: number,
 		original_height: number,
 		original_x: number,
-		original_y: number,
+		original_y: number
 	): { width: number; height: number; x: number; y: number } {
 		let new_width = original_width;
 		let new_height = original_height;
@@ -1354,7 +1354,7 @@ export class ResizeTool implements Tool {
 			case 0:
 				new_height = Math.max(
 					20,
-					original_y + original_height - current_position.y,
+					original_y + original_height - current_position.y
 				);
 				new_y = current_position.y;
 				break;
@@ -1364,7 +1364,7 @@ export class ResizeTool implements Tool {
 			case 2:
 				new_width = Math.max(
 					20,
-					original_x + original_width - current_position.x,
+					original_x + original_width - current_position.x
 				);
 				new_x = current_position.x;
 				break;
@@ -1393,13 +1393,13 @@ export class ResizeTool implements Tool {
 		original_y: number,
 		original_width: number,
 		original_height: number,
-		maintain_aspect_ratio: boolean,
+		maintain_aspect_ratio: boolean
 	): { width: number; height: number; x: number; y: number } {
 		let {
 			width: new_width,
 			height: new_height,
 			x: new_x,
-			y: new_y,
+			y: new_y
 		} = dimensions;
 
 		const effective_container_width =
@@ -1416,7 +1416,7 @@ export class ResizeTool implements Tool {
 			effective_container_width,
 			effective_container_height,
 			maintain_aspect_ratio,
-			pre_limit_width / pre_limit_height,
+			pre_limit_width / pre_limit_height
 		);
 
 		new_width = size_limited.width;
@@ -1428,7 +1428,7 @@ export class ResizeTool implements Tool {
 			original_x,
 			original_y,
 			original_width,
-			original_height,
+			original_height
 		);
 
 		new_x = position_adjusted.x;
@@ -1440,7 +1440,7 @@ export class ResizeTool implements Tool {
 			new_x,
 			new_y,
 			maintain_aspect_ratio,
-			pre_limit_width / pre_limit_height,
+			pre_limit_width / pre_limit_height
 		);
 
 		return border_constrained;
@@ -1456,7 +1456,7 @@ export class ResizeTool implements Tool {
 		max_width: number,
 		max_height: number,
 		maintain_aspect_ratio: boolean,
-		aspect_ratio: number,
+		aspect_ratio: number
 	): { width: number; height: number } {
 		let new_width = width;
 		let new_height = height;
@@ -1504,7 +1504,7 @@ export class ResizeTool implements Tool {
 		original_x: number,
 		original_y: number,
 		original_width: number,
-		original_height: number,
+		original_height: number
 	): { x: number; y: number } {
 		let new_x = original_x;
 		let new_y = original_y;
@@ -1548,7 +1548,7 @@ export class ResizeTool implements Tool {
 		x: number,
 		y: number,
 		maintain_aspect_ratio: boolean,
-		aspect_ratio: number,
+		aspect_ratio: number
 	): { width: number; height: number; x: number; y: number } {
 		const top_left_constrained = this.apply_top_left_constraints(
 			width,
@@ -1556,7 +1556,7 @@ export class ResizeTool implements Tool {
 			x,
 			y,
 			maintain_aspect_ratio,
-			aspect_ratio,
+			aspect_ratio
 		);
 
 		const all_constrained = this.apply_bottom_right_constraints(
@@ -1565,7 +1565,7 @@ export class ResizeTool implements Tool {
 			top_left_constrained.x,
 			top_left_constrained.y,
 			maintain_aspect_ratio,
-			aspect_ratio,
+			aspect_ratio
 		);
 
 		all_constrained.width = Math.max(20, all_constrained.width);
@@ -1584,7 +1584,7 @@ export class ResizeTool implements Tool {
 		x: number,
 		y: number,
 		maintain_aspect_ratio: boolean,
-		aspect_ratio: number,
+		aspect_ratio: number
 	): { width: number; height: number; x: number; y: number } {
 		let new_width = width;
 		let new_height = height;
@@ -1632,7 +1632,7 @@ export class ResizeTool implements Tool {
 		x: number,
 		y: number,
 		maintain_aspect_ratio: boolean,
-		aspect_ratio: number,
+		aspect_ratio: number
 	): { width: number; height: number; x: number; y: number } {
 		let new_width = width;
 		let new_height = height;
@@ -1716,14 +1716,14 @@ export class ResizeTool implements Tool {
 	on<T extends string>(event: T, callback: () => void): void {
 		this.event_callbacks.set(event, [
 			...(this.event_callbacks.get(event) || []),
-			callback,
+			callback
 		]);
 	}
 
 	off<T extends string>(event: T, callback: () => void): void {
 		this.event_callbacks.set(
 			event,
-			this.event_callbacks.get(event)?.filter((cb) => cb !== callback) || [],
+			this.event_callbacks.get(event)?.filter((cb) => cb !== callback) || []
 		);
 	}
 

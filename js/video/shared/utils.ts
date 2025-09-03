@@ -23,7 +23,7 @@ export const playable = (): boolean => {
 
 export function loaded(
 	node: HTMLVideoElement,
-	{ autoplay }: { autoplay: boolean },
+	{ autoplay }: { autoplay: boolean }
 ): any {
 	async function handle_playback(): Promise<void> {
 		if (!autoplay) return;
@@ -35,7 +35,7 @@ export function loaded(
 	return {
 		destroy(): void {
 			node.removeEventListener("loadeddata", handle_playback);
-		},
+		}
 	};
 }
 
@@ -45,7 +45,7 @@ export default async function loadFfmpeg(): Promise<FFmpeg> {
 
 	await ffmpeg.load({
 		coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-		wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
+		wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm")
 	});
 
 	return ffmpeg;
@@ -64,7 +64,7 @@ export async function trimVideo(
 	ffmpeg: FFmpeg,
 	startTime: number,
 	endTime: number,
-	videoElement: HTMLVideoElement,
+	videoElement: HTMLVideoElement
 ): Promise<any> {
 	const videoUrl = videoElement.src;
 	const mimeType = lookup(videoElement.src) || "video/mp4";
@@ -82,7 +82,7 @@ export async function trimVideo(
 
 		await ffmpeg.writeFile(
 			inputName,
-			new Uint8Array(await vidBlob.arrayBuffer()),
+			new Uint8Array(await vidBlob.arrayBuffer())
 		);
 
 		let command = [
@@ -92,13 +92,13 @@ export async function trimVideo(
 			...(endTime !== 0 ? ["-to", endTime.toString()] : []),
 			"-c:a",
 			"copy",
-			outputName,
+			outputName
 		];
 
 		await ffmpeg.exec(command);
 		const outputData = await ffmpeg.readFile(outputName);
 		const outputBlob = new Blob([outputData], {
-			type: `video/${type}`,
+			type: `video/${type}`
 		});
 
 		return outputBlob;
@@ -139,7 +139,7 @@ const getVideoExtensionFromMimeType = (mimeType: string): string | null => {
 		"video/x-ms-wmx": "wmx",
 		"video/x-ms-wvx": "wvx",
 		"video/x-sgi-movie": "movie",
-		"video/x-smv": "smv",
+		"video/x-smv": "smv"
 	};
 
 	return videoMimeToExtensionMap[mimeType] || null;

@@ -4,7 +4,7 @@
 import type {
 	PackageData,
 	PyodideInterface,
-	loadPyodide as loadPyodideValue,
+	loadPyodide as loadPyodideValue
 } from "pyodide";
 import type { PyProxy } from "pyodide/ffi";
 import type {
@@ -13,13 +13,13 @@ import type {
 	InMessageInitApp,
 	OutMessage,
 	ReplyMessageError,
-	ReplyMessageSuccess,
+	ReplyMessageSuccess
 } from "../message-types";
 import {
 	writeFileWithParents,
 	renameWithParents,
 	getAppHomeDir,
-	resolveAppHomeBasedPath,
+	resolveAppHomeBasedPath
 } from "./file";
 import { patchRequirements, verifyRequirements } from "./requirements";
 import { makeAsgiRequest } from "./asgi";
@@ -38,18 +38,18 @@ let call_asgi_app_from_js: (
 	appId: string,
 	scope: unknown,
 	receive: () => Promise<unknown>,
-	send: (event: any) => Promise<void>,
+	send: (event: any) => Promise<void>
 ) => Promise<void>;
 let run_code: (
 	appId: string,
 	home_dir: string,
 	code: string,
-	path?: string,
+	path?: string
 ) => Promise<void>;
 let run_script: (
 	appId: string,
 	home_dir: string,
-	path: string,
+	path: string
 ) => Promise<void>;
 let unload_local_modules: (target_dir_path?: string) => void;
 
@@ -57,7 +57,7 @@ async function installPackages(
 	pyodide: PyodideInterface,
 	micropip: PyProxy,
 	requirements: string[],
-	retries = 3,
+	retries = 3
 ): Promise<void> {
 	// A wrapper function to install packages with retries and requirement patching.
 	// Ref: https://github.com/pyodide/micropip/issues/170#issuecomment-2558887851
@@ -69,7 +69,7 @@ async function installPackages(
 		const isLastTry = i === retries - 1;
 		try {
 			return micropip.install.callKwargs(patchedRequirements, {
-				keep_going: true,
+				keep_going: true
 			});
 		} catch (error) {
 			if (isLastTry) {
@@ -89,13 +89,13 @@ async function initializeEnvironment(
 	options: InMessageInitEnv["data"],
 	updateProgress: (log: string) => void,
 	stdout: (output: string) => void,
-	stderr: (output: string) => void,
+	stderr: (output: string) => void
 ): Promise<GradioLitePyodideEnvironment> {
 	console.debug("Loading Pyodide.");
 	updateProgress("Loading Pyodide");
 	const pyodide = await loadPyodide({
 		stdout,
-		stderr,
+		stderr
 	});
 	console.debug("Pyodide is loaded.");
 
@@ -107,7 +107,7 @@ async function initializeEnvironment(
 
 	const gradioWheelUrls = [
 		options.gradioWheelUrl,
-		options.gradioClientWheelUrl,
+		options.gradioClientWheelUrl
 	];
 	console.debug("Loading Gradio wheels.", gradioWheelUrls);
 	updateProgress("Loading Gradio wheels");
@@ -207,7 +207,7 @@ anyio.to_thread.run_sync = mocked_anyio_to_thread_run_sync
 	return {
 		pyodide,
 		micropip,
-		codeCompleter,
+		codeCompleter
 	};
 }
 
@@ -217,12 +217,12 @@ async function initializeApp(
 	appId: string,
 	options: InMessageInitApp["data"],
 	updateProgress: (log: string) => void,
-	onModulesAutoLoaded: (packages: PackageData[]) => void,
+	onModulesAutoLoaded: (packages: PackageData[]) => void
 ): Promise<void> {
 	const appHomeDir = getAppHomeDir(appId);
 	console.debug("Creating a home directory for the app.", {
 		appId,
-		appHomeDir,
+		appHomeDir
 	});
 	pyodide.FS.mkdir(appHomeDir);
 
@@ -251,7 +251,7 @@ async function initializeApp(
 			if (typeof data === "string" && path.endsWith(".py")) {
 				pythonFileContents.push(data);
 			}
-		}),
+		})
 	);
 	console.debug("Files are mounted.");
 
@@ -262,7 +262,7 @@ async function initializeApp(
 
 	console.debug("Auto-loading modules.");
 	const loadedPackagesArr = await Promise.all(
-		pythonFileContents.map((source) => pyodide.loadPackagesFromImports(source)),
+		pythonFileContents.map((source) => pyodide.loadPackagesFromImports(source))
 	);
 	const loadedPackagesSet = new Set(loadedPackagesArr.flat()); // Remove duplicates
 	const loadedPackages = Array.from(loadedPackagesSet);
@@ -332,8 +332,8 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 		receiver.postMessage({
 			type: "progress-update",
 			data: {
-				log,
-			},
+				log
+			}
 		} satisfies OutMessage);
 	};
 	const stdout = (output: string): void => {
@@ -341,8 +341,8 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 		receiver.postMessage({
 			type: "stdout",
 			data: {
-				output,
-			},
+				output
+			}
 		} satisfies OutMessage);
 	};
 	const stderr = (output: string): void => {
@@ -350,8 +350,8 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 		receiver.postMessage({
 			type: "stderr",
 			data: {
-				output,
-			},
+				output
+			}
 		} satisfies OutMessage);
 	};
 	const onPythonError = (traceback: string): void => {
@@ -359,16 +359,16 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 		receiver.postMessage({
 			type: "python-error",
 			data: {
-				traceback: traceback,
-			},
+				traceback: traceback
+			}
 		} satisfies OutMessage);
 	};
 	const onModulesAutoLoaded = (packages: PackageData[]) => {
 		const message: OutMessage = {
 			type: "modules-auto-loaded",
 			data: {
-				packages,
-			},
+				packages
+			}
 		};
 		receiver.postMessage(message);
 	};
@@ -377,7 +377,7 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 	let appReadyPromise: Promise<void> | undefined = undefined;
 
 	receiver.onmessage = async function (
-		event: MessageEvent<InMessage>,
+		event: MessageEvent<InMessage>
 	): Promise<void> {
 		const msg = event.data;
 		console.debug("worker.onmessage", msg);
@@ -391,11 +391,11 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 						msg.data,
 						updateProgress,
 						stdout,
-						stderr,
+						stderr
 					);
 				} else {
 					updateProgress(
-						"Pyodide environment initialization is ongoing in another session",
+						"Pyodide environment initialization is ongoing in another session"
 					);
 				}
 
@@ -403,14 +403,14 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 					.then(() => {
 						const replyMessage: ReplyMessageSuccess = {
 							type: "reply:success",
-							data: null,
+							data: null
 						};
 						messagePort.postMessage(replyMessage);
 					})
 					.catch((error) => {
 						const replyMessage: ReplyMessageError = {
 							type: "reply:error",
-							error,
+							error
 						};
 						messagePort.postMessage(replyMessage);
 					});
@@ -432,12 +432,12 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 					appId,
 					msg.data,
 					updateProgress,
-					onModulesAutoLoaded,
+					onModulesAutoLoaded
 				);
 
 				const replyMessage: ReplyMessageSuccess = {
 					type: "reply:success",
-					data: null,
+					data: null
 				};
 				messagePort.postMessage(replyMessage);
 				return;
@@ -452,7 +452,7 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				case "echo": {
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
-						data: msg.data,
+						data: msg.data
 					};
 					messagePort.postMessage(replyMessage);
 					break;
@@ -462,7 +462,7 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 
 					console.debug(`Auto install the requirements`);
 					const loadedPackages = await pyodide.loadPackagesFromImports(
-						msg.data.code,
+						msg.data.code
 					);
 					if (loadedPackages.length > 0) {
 						onModulesAutoLoaded(loadedPackages);
@@ -473,7 +473,7 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
-						data: null, // We don't send back the execution result because it's not needed for our purpose, and sometimes the result is of type `pyodide.ffi.PyProxy` which cannot be cloned across threads and causes an error.
+						data: null // We don't send back the execution result because it's not needed for our purpose, and sometimes the result is of type `pyodide.ffi.PyProxy` which cannot be cloned across threads and causes an error.
 					};
 					messagePort.postMessage(replyMessage);
 					break;
@@ -485,7 +485,7 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
-						data: null,
+						data: null
 					};
 					messagePort.postMessage(replyMessage);
 					break;
@@ -495,7 +495,7 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 					makeAsgiRequest(
 						call_asgi_app_from_js.bind(null, appId),
 						msg.data.scope,
-						messagePort,
+						messagePort
 					); // This promise is not awaited because it won't resolves until the HTTP connection is closed.
 					break;
 				}
@@ -519,7 +519,7 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
-						data: null,
+						data: null
 					};
 					messagePort.postMessage(replyMessage);
 					break;
@@ -534,7 +534,7 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
-						data: null,
+						data: null
 					};
 					messagePort.postMessage(replyMessage);
 					break;
@@ -549,7 +549,7 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
-						data: null,
+						data: null
 					};
 					messagePort.postMessage(replyMessage);
 					break;
@@ -578,7 +578,7 @@ except ImportError:
 
 							const replyMessage: ReplyMessageSuccess = {
 								type: "reply:success",
-								data: null,
+								data: null
 							};
 							messagePort.postMessage(replyMessage);
 						});
@@ -589,7 +589,7 @@ except ImportError:
 					const completions = await codeCompleter.getCodeCompletions(request);
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
-						data: completions,
+						data: completions
 					};
 					messagePort.postMessage(replyMessage);
 					break;
@@ -615,7 +615,7 @@ except ImportError:
 
 			const replyMessage: ReplyMessageError = {
 				type: "reply:error",
-				error: cloneableError,
+				error: cloneableError
 			};
 			messagePort.postMessage(replyMessage);
 		}

@@ -1,6 +1,6 @@
 import type {
 	CompletionContext,
-	CompletionResult,
+	CompletionResult
 } from "@codemirror/autocomplete";
 import { getWorkerProxyContext } from "@gradio/wasm/svelte";
 import type { WorkerProxy } from "@gradio/wasm";
@@ -8,11 +8,11 @@ import type { WorkerProxy } from "@gradio/wasm";
 // Jedi's completion types to CodeMirror's completion types.
 // If not defined here, Jedi's completion types will be used.
 const completion_type_map: Record<string, string> = {
-	module: "namespace",
+	module: "namespace"
 };
 
 type CodeMirrorAutocompleteAsyncFn = (
-	context: CompletionContext,
+	context: CompletionContext
 ) => Promise<CompletionResult | null>;
 
 export function create_pyodide_autocomplete(): CodeMirrorAutocompleteAsyncFn | null {
@@ -29,7 +29,7 @@ export function create_pyodide_autocomplete(): CodeMirrorAutocompleteAsyncFn | n
 	const worker_proxy = maybe_worker_proxy;
 
 	return async function pyodide_autocomplete(
-		context: CompletionContext,
+		context: CompletionContext
 	): Promise<CompletionResult | null> {
 		try {
 			const completions = await worker_proxy.getCodeCompletions({
@@ -38,7 +38,7 @@ export function create_pyodide_autocomplete(): CodeMirrorAutocompleteAsyncFn | n
 					.number,
 				column:
 					context.state.selection.main.head -
-					context.state.doc.lineAt(context.state.selection.main.head).from,
+					context.state.doc.lineAt(context.state.selection.main.head).from
 			});
 			if (completions.length === 0) {
 				return null;
@@ -52,8 +52,8 @@ export function create_pyodide_autocomplete(): CodeMirrorAutocompleteAsyncFn | n
 					type: completion_type_map[completion.type] ?? completion.type,
 					documentation: completion.docstring,
 					// Items starting with "_" are private attributes and should be sorted last.
-					boost: completion.label.startsWith("_") ? -1 : 0,
-				})),
+					boost: completion.label.startsWith("_") ? -1 : 0
+				}))
 			};
 		} catch (e) {
 			console.error("Error getting completions", e);

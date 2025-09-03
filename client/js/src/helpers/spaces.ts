@@ -1,7 +1,7 @@
 import {
 	RUNTIME_URL,
 	SLEEPTIME_URL,
-	SPACE_STATUS_ERROR_MSG,
+	SPACE_STATUS_ERROR_MSG
 } from "../constants";
 import { RE_SPACE_NAME } from "./api_info";
 import type { SpaceStatusCallback } from "../types";
@@ -9,7 +9,7 @@ import type { SpaceStatusCallback } from "../types";
 export async function check_space_status(
 	id: string,
 	type: "subdomain" | "space_name",
-	status_callback: SpaceStatusCallback,
+	status_callback: SpaceStatusCallback
 ): Promise<void> {
 	let endpoint =
 		type === "subdomain"
@@ -29,7 +29,7 @@ export async function check_space_status(
 			status: "error",
 			load_status: "error",
 			message: SPACE_STATUS_ERROR_MSG,
-			detail: "NOT_FOUND",
+			detail: "NOT_FOUND"
 		});
 		return;
 	}
@@ -37,7 +37,7 @@ export async function check_space_status(
 	if (!response || _status !== 200) return;
 	const {
 		runtime: { stage },
-		id: space_name,
+		id: space_name
 	} = response;
 
 	switch (stage) {
@@ -47,7 +47,7 @@ export async function check_space_status(
 				status: "sleeping",
 				load_status: "pending",
 				message: "Space is asleep. Waking it up...",
-				detail: stage,
+				detail: stage
 			});
 
 			setTimeout(() => {
@@ -61,7 +61,7 @@ export async function check_space_status(
 				message:
 					"This space has been paused by the author. If you would like to try this demo, consider duplicating the space.",
 				detail: stage,
-				discussions_enabled: await discussions_enabled(space_name),
+				discussions_enabled: await discussions_enabled(space_name)
 			});
 			break;
 		case "RUNNING":
@@ -70,7 +70,7 @@ export async function check_space_status(
 				status: "running",
 				load_status: "complete",
 				message: "Space is running.",
-				detail: stage,
+				detail: stage
 			});
 			break;
 		case "BUILDING":
@@ -78,7 +78,7 @@ export async function check_space_status(
 				status: "building",
 				load_status: "pending",
 				message: "Space is building...",
-				detail: stage,
+				detail: stage
 			});
 
 			setTimeout(() => {
@@ -90,7 +90,7 @@ export async function check_space_status(
 				status: "starting",
 				load_status: "pending",
 				message: "Space is starting...",
-				detail: stage,
+				detail: stage
 			});
 
 			setTimeout(() => {
@@ -103,7 +103,7 @@ export async function check_space_status(
 				load_status: "error",
 				message: "This space is experiencing an issue.",
 				detail: stage,
-				discussions_enabled: await discussions_enabled(space_name),
+				discussions_enabled: await discussions_enabled(space_name)
 			});
 			break;
 	}
@@ -111,7 +111,7 @@ export async function check_space_status(
 
 export const check_and_wake_space = async (
 	space_id: string,
-	status_callback: SpaceStatusCallback,
+	status_callback: SpaceStatusCallback
 ): Promise<void> => {
 	let retries = 0;
 	const max_retries = 12;
@@ -145,7 +145,7 @@ export const check_and_wake_space = async (
 						resolve();
 					}
 				}
-			},
+			}
 		);
 	});
 };
@@ -157,8 +157,8 @@ export async function discussions_enabled(space_id: string): Promise<boolean> {
 		const r = await fetch(
 			`https://huggingface.co/api/spaces/${space_id}/discussions`,
 			{
-				method: "HEAD",
-			},
+				method: "HEAD"
+			}
 		);
 
 		const error = r.headers.get("x-error-message");
@@ -172,7 +172,7 @@ export async function discussions_enabled(space_id: string): Promise<boolean> {
 
 export async function get_space_hardware(
 	space_id: string,
-	hf_token?: `hf_${string}` | undefined,
+	hf_token?: `hf_${string}` | undefined
 ): Promise<(typeof hardware_types)[number]> {
 	const headers: { Authorization?: string } = {};
 	if (hf_token) {
@@ -182,7 +182,7 @@ export async function get_space_hardware(
 	try {
 		const res = await fetch(
 			`https://huggingface.co/api/spaces/${space_id}/${RUNTIME_URL}`,
-			{ headers },
+			{ headers }
 		);
 
 		if (res.status !== 200)
@@ -199,7 +199,7 @@ export async function get_space_hardware(
 export async function set_space_timeout(
 	space_id: string,
 	timeout: number,
-	hf_token?: `hf_${string}`,
+	hf_token?: `hf_${string}`
 ): Promise<any> {
 	const headers: { Authorization?: string } = {};
 	if (hf_token) {
@@ -209,7 +209,7 @@ export async function set_space_timeout(
 	const body: {
 		seconds?: number;
 	} = {
-		seconds: timeout,
+		seconds: timeout
 	};
 
 	try {
@@ -218,13 +218,13 @@ export async function set_space_timeout(
 			{
 				method: "POST",
 				headers: { "Content-Type": "application/json", ...headers },
-				body: JSON.stringify(body),
-			},
+				body: JSON.stringify(body)
+			}
 		);
 
 		if (res.status !== 200) {
 			throw new Error(
-				"Could not set sleep timeout on duplicated Space. Please visit *ADD HF LINK TO SETTINGS* to set a timeout manually to reduce billing charges.",
+				"Could not set sleep timeout on duplicated Space. Please visit *ADD HF LINK TO SETTINGS* to set a timeout manually to reduce billing charges."
 			);
 		}
 
@@ -248,5 +248,5 @@ export const hardware_types = [
 	"a100-large",
 	"zero-a10g",
 	"h100",
-	"h100x8",
+	"h100x8"
 ] as const;

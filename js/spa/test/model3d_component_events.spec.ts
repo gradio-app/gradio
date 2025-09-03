@@ -1,7 +1,7 @@
 import { test, expect, drag_and_drop_file } from "@self/tootils";
 
 test("Model3D click-to-upload uploads file successfuly. Upload and clear events work correctly. Downloading works.", async ({
-	page,
+	page
 }) => {
 	const uploader = await page.locator("input[type=file]");
 	const change_counter = await page.getByLabel("# Change Events");
@@ -25,13 +25,13 @@ test("Model3D click-to-upload uploads file successfuly. Upload and clear events 
 });
 
 test("Model3D drag-and-drop uploads a file to the server correctly.", async ({
-	page,
+	page
 }) => {
 	await drag_and_drop_file(
 		page,
 		"input[type=file]",
 		"./test/files/face.obj",
-		"face.obj",
+		"face.obj"
 	);
 	await expect(await page.getByLabel("# Change Events")).toHaveValue("1");
 	await expect(await page.getByLabel("# Upload Events")).toHaveValue("1");

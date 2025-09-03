@@ -4,7 +4,7 @@ import type { Dependency, PredictReturn } from "../types";
 export async function predict(
 	this: Client,
 	endpoint: string | number,
-	data: unknown[] | Record<string, unknown> = {},
+	data: unknown[] | Record<string, unknown> = {}
 ): Promise<PredictReturn> {
 	let data_returned = false;
 	let status_complete = false;
@@ -19,7 +19,7 @@ export async function predict(
 	} else {
 		const trimmed_endpoint = endpoint.replace(/^\//, "");
 		dependency = this.config.dependencies.find(
-			(dep) => dep.id == this.api_map[trimmed_endpoint],
+			(dep) => dep.id == this.api_map[trimmed_endpoint]
 		)!;
 	}
 

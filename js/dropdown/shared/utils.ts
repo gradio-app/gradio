@@ -4,7 +4,7 @@ function positive_mod(n: number, m: number): number {
 
 export function handle_filter(
 	choices: [string, string | number][],
-	input_text: string,
+	input_text: string
 ): number[] {
 	return choices.reduce((filtered_indices, o, index) => {
 		if (
@@ -19,7 +19,7 @@ export function handle_filter(
 export function handle_change(
 	dispatch: any,
 	value: string | number | (string | number)[] | undefined,
-	value_is_output: boolean,
+	value_is_output: boolean
 ): void {
 	dispatch("change", value);
 	if (!value_is_output) {
@@ -30,7 +30,7 @@ export function handle_change(
 export function handle_shared_keys(
 	e: KeyboardEvent,
 	active_index: number | null,
-	filtered_indices: number[],
+	filtered_indices: number[]
 ): [boolean, number | null] {
 	if (e.key === "Escape") {
 		return [false, active_index];

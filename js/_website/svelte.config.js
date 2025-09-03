@@ -18,11 +18,11 @@ const get_version = async () => {
 			"src",
 			"lib",
 			"json",
-			"version.json",
+			"version.json"
 		);
 		if (!fs.existsSync(versionPath)) {
 			console.error(
-				"Using fallback version 4.0.0 as version.json was not found. Run `generate_jsons/generate.py` to get the latest version.",
+				"Using fallback version 4.0.0 as version.json was not found. Run `generate_jsons/generate.py` to get the latest version."
 			);
 			return version;
 		} else {
@@ -32,7 +32,7 @@ const get_version = async () => {
 		}
 	} catch (error) {
 		console.error(
-			"Using fallback version 4.0.0 as version.json was not found. Run `generate_jsons/generate.py` to get the latest version.",
+			"Using fallback version 4.0.0 as version.json was not found. Run `generate_jsons/generate.py` to get the latest version."
 		);
 	}
 	return version;
@@ -58,7 +58,7 @@ function plugin() {
 				doc_slug.push({
 					text: str_of_heading,
 					href: `#${slug}`,
-					level: parseInt(n.tagName.replace("h", "")),
+					level: parseInt(n.tagName.replace("h", ""))
 				});
 
 				if (!n.children) n.children = [];
@@ -69,7 +69,7 @@ function plugin() {
 					tagName: "a",
 					properties: {
 						href: `#${slug}`,
-						className: ["invisible", "group-hover-visible"],
+						className: ["invisible", "group-hover-visible"]
 					},
 					children: [
 						{
@@ -77,11 +77,11 @@ function plugin() {
 							tagName: "img",
 							properties: {
 								src: "https://raw.githubusercontent.com/gradio-app/gradio/main/js/_website/src/lib/assets/img/anchor.svg",
-								className: ["anchor-img-small"],
+								className: ["anchor-img-small"]
 							},
-							children: [],
-						},
-					],
+							children: []
+						}
+					]
 				});
 			}
 		});
@@ -99,13 +99,13 @@ const config = {
 				highlighter: async (code, lang) => {
 					const h = (await code_highlighter(code, lang, "")).replace(
 						/\{@html `|`\}/g,
-						"",
+						""
 					);
 					return `<div class="codeblock"><CopyButton content={\`${code}\`}/>${h}</div>`;
-				},
-			},
+				}
+			}
 		}),
-		vitePreprocess(),
+		vitePreprocess()
 	],
 	kit: {
 		prerender: {
@@ -124,17 +124,17 @@ const config = {
 				`/main/docs/js/`,
 				...Object.keys(redirects),
 				`/4.44.1/docs`,
-				`/4.44.1/guides`,
+				`/4.44.1/guides`
 			],
-			handleMissingId: "warn",
+			handleMissingId: "warn"
 		},
 		adapter: adapter({
-			fallback: "404.html",
+			fallback: "404.html"
 		}),
 		paths: {
-			relative: false,
-		},
-	},
+			relative: false
+		}
+	}
 };
 
 export default config;

@@ -2,11 +2,11 @@ import { test, expect, drag_and_drop_file } from "@self/tootils";
 import fs from "fs";
 
 test("Image events are dispatched correctly. Downloading the file works and has the correct name.", async ({
-	page,
+	page
 }) => {
 	const uploader = await page.locator("input[type=file]");
 	const change_counter = await page.getByLabel("# Change Events", {
-		exact: true,
+		exact: true
 	});
 	const input_counter = await page.getByLabel("# Input Events");
 	const clear_counter = await page.getByLabel("# Clear Events");
@@ -50,7 +50,7 @@ test("Image drag-to-upload uploads image successfuly.", async ({ page }) => {
 		"input[type=file]",
 		"./test/files/cheetah1.jpg",
 		"cheetag1.jpg",
-		"image/*",
+		"image/*"
 	);
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
@@ -58,7 +58,7 @@ test("Image drag-to-upload uploads image successfuly.", async ({ page }) => {
 
 test("Image drag-to-upload replaces an image successfully.", async ({
 	page,
-	context,
+	context
 }) => {
 	const initialPages = context.pages();
 	await drag_and_drop_file(
@@ -66,7 +66,7 @@ test("Image drag-to-upload replaces an image successfully.", async ({
 		"input[type=file]",
 		"./test/files/cheetah1.jpg",
 		"cheetah1.jpg",
-		"image/*",
+		"image/*"
 	);
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
@@ -76,7 +76,7 @@ test("Image drag-to-upload replaces an image successfully.", async ({
 		"input[type=file]",
 		"./test/files/bus.png",
 		"bus.png",
-		"image/*",
+		"image/*"
 	);
 
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("2");
@@ -91,7 +91,7 @@ test("Image copy from clipboard dispatches upload event.", async ({ page }) => {
 	await page.evaluate(async () => {
 		const blob = await (
 			await fetch(
-				`https://gradio-builds.s3.amazonaws.com/assets/PDFDisplay.png`,
+				`https://gradio-builds.s3.amazonaws.com/assets/PDFDisplay.png`
 			)
 		).blob();
 		navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
@@ -103,7 +103,7 @@ test("Image copy from clipboard dispatches upload event.", async ({ page }) => {
 });
 
 test("Image paste to clipboard via the Upload component works", async ({
-	page,
+	page
 }) => {
 	await page.evaluate(async () => {
 		navigator.clipboard.writeText("123");
@@ -113,7 +113,7 @@ test("Image paste to clipboard via the Upload component works", async ({
 	await page.evaluate(async () => {
 		const blob = await (
 			await fetch(
-				`https://gradio-builds.s3.amazonaws.com/assets/PDFDisplay.png`,
+				`https://gradio-builds.s3.amazonaws.com/assets/PDFDisplay.png`
 			)
 		).blob();
 		navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);

@@ -64,7 +64,7 @@ export class Command {
 
 	constructor(
 		command: string,
-		meta: { path: string; name: string; orig_path: string },
+		meta: { path: string; name: string; orig_path: string }
 	) {
 		this.type = "command";
 		this.command = command;
@@ -78,13 +78,13 @@ export type SubmitFunction = (
 	endpoint: string | number,
 	data?: unknown[] | Record<string, unknown>,
 	event_data?: unknown,
-	trigger_id?: number | null,
+	trigger_id?: number | null
 ) => SubmitIterable<GradioEvent>;
 
 export type PredictFunction = (
 	endpoint: string | number,
 	data?: unknown[] | Record<string, unknown>,
-	event_data?: unknown,
+	event_data?: unknown
 ) => Promise<PredictReturn>;
 
 export type client_return = {
@@ -94,7 +94,7 @@ export type client_return = {
 	component_server: (
 		component_id: number,
 		fn_name: string,
-		data: unknown[],
+		data: unknown[]
 	) => any;
 	view_api: (_fetch: typeof fetch) => Promise<ApiInfo<JsApiData>>;
 };

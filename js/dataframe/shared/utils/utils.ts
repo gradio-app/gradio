@@ -28,7 +28,7 @@ export type DataframeValue = {
  */
 export function cast_value_to_type(
 	v: any,
-	t: Datatype,
+	t: Datatype
 ): string | number | boolean {
 	if (t === "number") {
 		const n = Number(v);

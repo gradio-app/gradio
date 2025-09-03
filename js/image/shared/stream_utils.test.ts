@@ -3,7 +3,7 @@ import {
 	get_devices,
 	get_video_stream,
 	set_available_devices,
-	set_local_stream,
+	set_local_stream
 } from "./stream_utils";
 import * as stream_utils from "./stream_utils";
 
@@ -16,8 +16,8 @@ let test_device: MediaDeviceInfo = {
 		deviceId: "test-device",
 		kind: "videoinput",
 		label: "Test Device",
-		groupId: "camera",
-	}),
+		groupId: "camera"
+	})
 };
 
 const mock_enumerateDevices = vi.fn(async () => {
@@ -36,8 +36,8 @@ window.MediaStream = vi.fn().mockImplementation(() => ({}));
 Object.defineProperty(global.navigator, "mediaDevices", {
 	value: {
 		getUserMedia: mock_getUserMedia,
-		enumerateDevices: mock_enumerateDevices,
-	},
+		enumerateDevices: mock_enumerateDevices
+	}
 });
 
 describe("stream_utils", () => {
@@ -52,7 +52,7 @@ describe("stream_utils", () => {
 		const mock_video_source = {
 			srcObject: null,
 			muted: false,
-			play: vi.fn(),
+			play: vi.fn()
 		};
 
 		// @ts-ignore
@@ -75,7 +75,7 @@ describe("stream_utils", () => {
 
 		expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({
 			video: { width: { ideal: 1920 }, height: { ideal: 1440 } },
-			audio: true,
+			audio: true
 		});
 
 		const spy_set_local_stream = vi.spyOn(stream_utils, "set_local_stream");
@@ -83,7 +83,7 @@ describe("stream_utils", () => {
 
 		expect(spy_set_local_stream).toHaveBeenCalledWith(
 			mock_stream,
-			mock_video_source,
+			mock_video_source
 		);
 		spy_set_local_stream.mockRestore();
 	});
@@ -99,8 +99,8 @@ describe("stream_utils", () => {
 					deviceId: "camera1",
 					kind: "videoinput",
 					label: "Camera 1",
-					groupId: "camera",
-				}),
+					groupId: "camera"
+				})
 			},
 			{
 				deviceId: "camera2",
@@ -111,8 +111,8 @@ describe("stream_utils", () => {
 					deviceId: "camera2",
 					kind: "videoinput",
 					label: "Camera 2",
-					groupId: "camera",
-				}),
+					groupId: "camera"
+				})
 			},
 			{
 				deviceId: "audio1",
@@ -123,9 +123,9 @@ describe("stream_utils", () => {
 					deviceId: "audio1",
 					kind: "audioinput",
 					label: "Audio 2",
-					groupId: "audio",
-				}),
-			},
+					groupId: "audio"
+				})
+			}
 		];
 
 		const videoDevices = set_available_devices(mockDevices);

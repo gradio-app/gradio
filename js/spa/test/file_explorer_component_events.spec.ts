@@ -1,7 +1,7 @@
 import { test, expect } from "@self/tootils";
 
 test("File Explorer is interactive and re-runs the server_fn when root is updated", async ({
-	page,
+	page
 }) => {
 	await page
 		.locator("span")
@@ -30,11 +30,11 @@ test("File Explorer is interactive and re-runs the server_fn when root is update
 	await page.locator("#input-box").getByTestId("textbox").fill("test");
 
 	await expect(
-		page.locator("span").filter({ hasText: "baz.png" }).getByRole("checkbox"),
+		page.locator("span").filter({ hasText: "baz.png" }).getByRole("checkbox")
 	).toBeChecked();
 
 	await expect(
-		page.locator("span").filter({ hasText: "foo.png" }).getByRole("checkbox"),
+		page.locator("span").filter({ hasText: "foo.png" }).getByRole("checkbox")
 	).toBeChecked();
 
 	await page
@@ -47,7 +47,7 @@ test("File Explorer is interactive and re-runs the server_fn when root is update
 });
 
 test("File Explorer correctly displays both directories and files. Directories included in value.", async ({
-	page,
+	page
 }) => {
 	await page.getByLabel("Select File Explorer Root").click();
 	await page.getByLabel(new RegExp("/dir3$"), { exact: true }).first().click();
@@ -93,7 +93,7 @@ test("File Explorer correctly displays both directories and files. Directories i
 });
 
 test("File Explorer selects all children when top level directory is selected.", async ({
-	page,
+	page
 }) => {
 	await page.getByLabel("Select File Explorer Root").click();
 	await page.getByLabel(new RegExp("/dir3$"), { exact: true }).first().click();
@@ -118,7 +118,7 @@ test("File Explorer selects all children when top level directory is selected.",
 test("File Explorer correctly displays only text files", async ({ page }) => {
 	const check = page.getByRole("checkbox", {
 		name: "Show only text files",
-		exact: true,
+		exact: true
 	});
 	await check.click();
 
@@ -142,11 +142,11 @@ test("File Explorer correctly displays only text files", async ({ page }) => {
 });
 
 test("File Explorer correctly excludes text files when ignore_glob is '*.txt'.", async ({
-	page,
+	page
 }) => {
 	const check = page.getByRole("checkbox", {
 		name: "Ignore text files in glob",
-		exact: true,
+		exact: true
 	});
 	await check.click();
 

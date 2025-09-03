@@ -7,7 +7,7 @@ import type { Preprocessor, PreprocessorGroup } from "svelte/compiler";
 import { deepmerge } from "./_deepmerge_internal";
 
 const svelte_codes_to_ignore: Record<string, string> = {
-	"reactive-component": "Icon",
+	"reactive-component": "Icon"
 };
 
 const RE_SVELTE_IMPORT =
@@ -22,7 +22,7 @@ export function plugins(config: ComponentConfig): PluginOption[] {
 				return ext;
 			}
 			return `.${ext.trim()}`;
-		},
+		}
 	);
 
 	if (!_svelte_extensions.includes(".svelte")) {
@@ -46,7 +46,7 @@ export function plugins(config: ComponentConfig): PluginOption[] {
 			hot: true,
 			compilerOptions: {
 				discloseVersion: false,
-				hydratable: true,
+				hydratable: true
 			},
 			extensions: _svelte_extensions,
 			preprocess: [
@@ -54,14 +54,14 @@ export function plugins(config: ComponentConfig): PluginOption[] {
 					typescript: {
 						compilerOptions: {
 							declaration: false,
-							declarationMap: false,
-						},
-					},
+							declarationMap: false
+						}
+					}
 				}),
-				...(_additional_svelte_preprocess as PreprocessorGroup[]),
-			],
+				...(_additional_svelte_preprocess as PreprocessorGroup[])
+			]
 		}),
-		..._additional_plugins,
+		..._additional_plugins
 	];
 }
 
@@ -76,7 +76,7 @@ export function make_gradio_plugin({
 	mode,
 	svelte_dir,
 	backend_port,
-	imports,
+	imports
 }: GradioPluginOptions): Plugin {
 	const v_id = "virtual:component-loader";
 	const resolved_v_id = "\0" + v_id;
@@ -92,13 +92,13 @@ export function make_gradio_plugin({
 						: $1.trim();
 					return `const ${identifier.replace(
 						" as ",
-						": ",
+						": "
 					)} = window.__gradio__svelte__internal;`;
 				})
 				.replace(RE_BARE_SVELTE_IMPORT, "");
 			return {
 				code: new_code,
-				map: null,
+				map: null
 			};
 		},
 		resolveId(id) {
@@ -125,11 +125,11 @@ export function make_gradio_plugin({
 							tag: "script",
 							children: `window.__GRADIO_DEV__ = "dev";
         window.__GRADIO__SERVER_PORT__ = ${backend_port};
-        window.__GRADIO__CC__ = ${imports};`,
-						},
+        window.__GRADIO__CC__ = ${imports};`
+						}
 					]
 				: undefined;
-		},
+		}
 	};
 }
 
@@ -145,5 +145,5 @@ export const deepmerge_plugin: Plugin = {
 		if (id === "deepmerge_internal") {
 			return deepmerge;
 		}
-	},
+	}
 };

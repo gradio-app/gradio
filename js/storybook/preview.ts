@@ -14,7 +14,7 @@ setupi18n();
 
 const withI18n = (
 	storyFn: any,
-	context: { globals: { locale?: string } },
+	context: { globals: { locale?: string } }
 ): any => {
 	if (context.globals.locale) {
 		locale.set(context.globals.locale);
@@ -37,10 +37,10 @@ const preview: Preview = {
 					{ value: "fr", title: "French" },
 					{ value: "de", title: "German" },
 					{ value: "es", title: "Spanish" },
-					{ value: "ar", title: "Arabic", right: true },
-				],
-			},
-		},
+					{ value: "ar", title: "Arabic", right: true }
+				]
+			}
+		}
 	},
 
 	args: {
@@ -54,29 +54,29 @@ const preview: Preview = {
 			null,
 			formatter,
 			// @ts-ignore
-			{ client: { fetch() {}, upload() {} } },
-		),
+			{ client: { fetch() {}, upload() {} } }
+		)
 	},
 
 	argTypes: {
 		gradio: {
 			table: {
-				disable: true,
-			},
-		},
+				disable: true
+			}
+		}
 	},
 
 	parameters: {
 		controls: {
 			matchers: {
 				color: /(background|color)$/i,
-				date: /Date$/,
-			},
+				date: /Date$/
+			}
 		},
 		options: {
 			storySort: {
-				order: ["Design System", "Components"],
-			},
+				order: ["Design System", "Components"]
+			}
 		},
 		viewport: {
 			viewports: {
@@ -84,13 +84,13 @@ const preview: Preview = {
 				tablet: { name: "tablet", styles: { width: "640px", height: "800px" } },
 				desktop: {
 					name: "desktop",
-					styles: { width: "1024px", height: "1000px" },
-				},
-			},
-		},
+					styles: { width: "1024px", height: "1000px" }
+				}
+			}
+		}
 	},
 
-	tags: ["autodocs"],
+	tags: ["autodocs"]
 };
 
 export default preview;

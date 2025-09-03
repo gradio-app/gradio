@@ -5,25 +5,25 @@ export const runtime_response = {
 	stage: "RUNNING",
 	hardware: {
 		current: "cpu-basic",
-		requested: "cpu-basic",
+		requested: "cpu-basic"
 	},
 	storage: {
 		current: null,
-		requested: null,
+		requested: null
 	},
 	gcTimeout: 86400,
 	replicas: {
 		current: 1,
-		requested: 1,
+		requested: 1
 	},
 	devMode: false,
 	domains: [
 		{
 			domain: "hmb-hello-world.hf.space",
 			isCustom: false,
-			stage: "READY",
-		},
-	],
+			stage: "READY"
+		}
+	]
 };
 
 export const transformed_api_info: ApiInfo<ApiData> = {
@@ -35,19 +35,19 @@ export const transformed_api_info: ApiInfo<ApiData> = {
 					type: "string",
 					python_type: { type: "str", description: "" },
 					component: "Textbox",
-					example_input: "Hello!!",
-				},
+					example_input: "Hello!!"
+				}
 			],
 			returns: [
 				{
 					label: "output",
 					type: "string",
 					python_type: { type: "str", description: "" },
-					component: "Textbox",
-				},
+					component: "Textbox"
+				}
 			],
-			type: { generator: false, cancel: false },
-		},
+			type: { generator: false, cancel: false }
+		}
 	},
 	unnamed_endpoints: {
 		"0": {
@@ -57,20 +57,20 @@ export const transformed_api_info: ApiInfo<ApiData> = {
 					type: "string",
 					python_type: { type: "str", description: "" },
 					component: "Textbox",
-					example_input: "Hello!!",
-				},
+					example_input: "Hello!!"
+				}
 			],
 			returns: [
 				{
 					label: "output",
 					type: "string",
 					python_type: { type: "str", description: "" },
-					component: "Textbox",
-				},
+					component: "Textbox"
+				}
 			],
-			type: { generator: false, cancel: false },
-		},
-	},
+			type: { generator: false, cancel: false }
+		}
+	}
 };
 
 export const response_api_info: ApiInfo<ApiData> = {
@@ -80,32 +80,32 @@ export const response_api_info: ApiInfo<ApiData> = {
 				{
 					label: "name",
 					type: {
-						type: "string",
+						type: "string"
 					},
 					python_type: {
 						type: "str",
-						description: "",
+						description: ""
 					},
 					component: "Textbox",
-					example_input: "Hello!!",
-				},
+					example_input: "Hello!!"
+				}
 			],
 			returns: [
 				{
 					label: "output",
 					type: {
-						type: "string",
+						type: "string"
 					},
 					python_type: {
 						type: "str",
-						description: "",
+						description: ""
 					},
-					component: "Textbox",
-				},
-			],
-		},
+					component: "Textbox"
+				}
+			]
+		}
 	},
-	unnamed_endpoints: {},
+	unnamed_endpoints: {}
 };
 
 export const config_response: Config = {
@@ -122,10 +122,10 @@ export const config_response: Config = {
 				variant: "default",
 				visible: true,
 				equal_height: false,
-				name: "row",
+				name: "row"
 			},
 			skip_api: true,
-			component_class_id: "",
+			component_class_id: ""
 		},
 		{
 			id: 4,
@@ -135,10 +135,10 @@ export const config_response: Config = {
 				min_width: 320,
 				variant: "panel",
 				visible: true,
-				name: "column",
+				name: "column"
 			},
 			skip_api: true,
-			component_class_id: "",
+			component_class_id: ""
 		},
 		{
 			id: 5,
@@ -148,10 +148,10 @@ export const config_response: Config = {
 				min_width: 320,
 				variant: "default",
 				visible: true,
-				name: "column",
+				name: "column"
 			},
 			skip_api: true,
-			component_class_id: "",
+			component_class_id: ""
 		},
 		{
 			id: 1,
@@ -171,14 +171,14 @@ export const config_response: Config = {
 				rtl: false,
 				show_copy_button: false,
 				name: "textbox",
-				_selectable: false,
+				_selectable: false
 			},
 			skip_api: false,
 			component_class_id: "",
 			api_info: {
-				type: "string",
+				type: "string"
 			},
-			example_inputs: "Hello!!",
+			example_inputs: "Hello!!"
 		},
 		{
 			id: 6,
@@ -186,10 +186,10 @@ export const config_response: Config = {
 			props: {
 				scale: 0,
 				min_width: 0,
-				name: "form",
+				name: "form"
 			},
 			skip_api: true,
-			component_class_id: "",
+			component_class_id: ""
 		},
 		{
 			id: 7,
@@ -198,10 +198,10 @@ export const config_response: Config = {
 				variant: "default",
 				visible: true,
 				equal_height: true,
-				name: "row",
+				name: "row"
 			},
 			skip_api: true,
-			component_class_id: "",
+			component_class_id: ""
 		},
 		{
 			id: 8,
@@ -214,10 +214,10 @@ export const config_response: Config = {
 				elem_classes: [],
 				show_api: false,
 				name: "button",
-				_selectable: false,
+				_selectable: false
 			},
 			skip_api: true,
-			component_class_id: "",
+			component_class_id: ""
 		},
 		{
 			id: 9,
@@ -229,10 +229,10 @@ export const config_response: Config = {
 				interactive: true,
 				elem_classes: [],
 				name: "button",
-				_selectable: false,
+				_selectable: false
 			},
 			skip_api: true,
-			component_class_id: "",
+			component_class_id: ""
 		},
 		{
 			id: 10,
@@ -242,10 +242,10 @@ export const config_response: Config = {
 				min_width: 320,
 				variant: "panel",
 				visible: true,
-				name: "column",
+				name: "column"
 			},
 			skip_api: true,
-			component_class_id: "",
+			component_class_id: ""
 		},
 		{
 			id: 2,
@@ -266,14 +266,14 @@ export const config_response: Config = {
 				rtl: false,
 				show_copy_button: false,
 				name: "textbox",
-				_selectable: false,
+				_selectable: false
 			},
 			skip_api: false,
 			component_class_id: "",
 			api_info: {
-				type: "string",
+				type: "string"
 			},
-			example_inputs: "Hello!!",
+			example_inputs: "Hello!!"
 		},
 		{
 			id: 11,
@@ -282,10 +282,10 @@ export const config_response: Config = {
 				variant: "default",
 				visible: true,
 				equal_height: true,
-				name: "row",
+				name: "row"
 			},
 			skip_api: true,
-			component_class_id: "",
+			component_class_id: ""
 		},
 		{
 			id: 12,
@@ -293,11 +293,11 @@ export const config_response: Config = {
 			props: {
 				scale: 0,
 				min_width: 0,
-				name: "form",
+				name: "form"
 			},
 			skip_api: true,
-			component_class_id: "",
-		},
+			component_class_id: ""
+		}
 	],
 	css: null,
 	js: null,
@@ -315,7 +315,7 @@ export const config_response: Config = {
 		body_background_fill: "white",
 		body_text_color: "#1f2937",
 		body_background_fill_dark: "#0b0f19",
-		body_text_color_dark: "#f3f4f6",
+		body_text_color_dark: "#f3f4f6"
 	},
 	fill_height: false,
 	layout: {
@@ -334,24 +334,24 @@ export const config_response: Config = {
 										id: 6,
 										children: [
 											{
-												id: 1,
-											},
-										],
-									},
-								],
+												id: 1
+											}
+										]
+									}
+								]
 							},
 							{
 								id: 7,
 								children: [
 									{
-										id: 8,
+										id: 8
 									},
 									{
-										id: 9,
-									},
-								],
-							},
-						],
+										id: 9
+									}
+								]
+							}
+						]
 					},
 					{
 						id: 10,
@@ -360,26 +360,26 @@ export const config_response: Config = {
 								id: 12,
 								children: [
 									{
-										id: 2,
-									},
-								],
+										id: 2
+									}
+								]
 							},
 							{
 								id: 11,
-								children: [],
-							},
-						],
-					},
-				],
-			},
-		],
+								children: []
+							}
+						]
+					}
+				]
+			}
+		]
 	},
 	dependencies: [
 		{
 			id: 0,
 			targets: [
 				[9, "click"],
-				[1, "submit"],
+				[1, "submit"]
 			],
 			inputs: [1],
 			outputs: [2],
@@ -395,7 +395,7 @@ export const config_response: Config = {
 			cancels: [],
 			types: {
 				generator: false,
-				cancel: false,
+				cancel: false
 			},
 			collects_event_data: false,
 			trigger_after: null,
@@ -403,7 +403,7 @@ export const config_response: Config = {
 			trigger_only_on_failure: false,
 			trigger_mode: "once",
 			show_api: true,
-			zerogpu: false,
+			zerogpu: false
 		},
 		{
 			id: 1,
@@ -422,7 +422,7 @@ export const config_response: Config = {
 			cancels: [],
 			types: {
 				generator: false,
-				cancel: false,
+				cancel: false
 			},
 			collects_event_data: false,
 			trigger_after: null,
@@ -430,7 +430,7 @@ export const config_response: Config = {
 			trigger_only_on_failure: false,
 			trigger_mode: "once",
 			show_api: false,
-			zerogpu: false,
+			zerogpu: false
 		},
 		{
 			id: 2,
@@ -449,7 +449,7 @@ export const config_response: Config = {
 			cancels: [],
 			types: {
 				generator: false,
-				cancel: false,
+				cancel: false
 			},
 			collects_event_data: false,
 			trigger_after: null,
@@ -457,11 +457,11 @@ export const config_response: Config = {
 			trigger_only_on_failure: false,
 			trigger_mode: "once",
 			show_api: false,
-			zerogpu: false,
-		},
+			zerogpu: false
+		}
 	],
 	root: "https://hmb-hello-world.hf.space",
-	path: "",
+	path: ""
 };
 
 export const whoami_response = {
@@ -480,35 +480,35 @@ export const whoami_response = {
 		type: "access_token",
 		accessToken: {
 			displayName: "Gradio Client",
-			role: "write",
-		},
-	},
+			role: "write"
+		}
+	}
 };
 
 export const duplicate_response = {
-	url: "https://huggingface.co/spaces/hmb/hello_world",
+	url: "https://huggingface.co/spaces/hmb/hello_world"
 };
 
 export const hardware_sleeptime_response = {
 	stage: "RUNNING",
 	hardware: {
 		current: "cpu-basic",
-		requested: "cpu-upgrade",
+		requested: "cpu-upgrade"
 	},
 	storage: null,
 	gcTimeout: 300,
 	replicas: {
 		current: 1,
-		requested: 1,
+		requested: 1
 	},
 	devMode: false,
 	domains: [
 		{
 			domain: "hmb-hello-world.hf.space",
 			isCustom: false,
-			stage: "READY",
-		},
-	],
+			stage: "READY"
+		}
+	]
 };
 
 export const endpoint_info: EndpointInfo<ApiData> = {
@@ -521,22 +521,22 @@ export const endpoint_info: EndpointInfo<ApiData> = {
 			type: "",
 			python_type: {
 				type: "Dict(background: filepath | None, layers: List[filepath], composite: filepath | None, id: str | None)",
-				description: "",
+				description: ""
 			},
 			component: "Imageeditor",
 			example_input: {
 				background: {
 					path: "",
 					meta: {
-						_type: "gradio.FileData",
+						_type: "gradio.FileData"
 					},
 					orig_name: "bus.png",
-					url: "",
+					url: ""
 				},
 				layers: [],
-				composite: null,
-			},
-		},
+				composite: null
+			}
+		}
 	],
 	returns: [
 		{
@@ -544,19 +544,19 @@ export const endpoint_info: EndpointInfo<ApiData> = {
 			type: "string",
 			python_type: {
 				type: "filepath",
-				description: "",
+				description: ""
 			},
-			component: "Image",
-		},
+			component: "Image"
+		}
 	],
 	type: {
-		generator: false,
-	},
+		generator: false
+	}
 };
 
 export const discussions_response = {
 	discussions: [],
 	count: 0,
 	start: 0,
-	numClosedDiscussions: 0,
+	numClosedDiscussions: 0
 };

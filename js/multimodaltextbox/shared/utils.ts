@@ -9,7 +9,7 @@ interface Value {
 export async function resize(
 	target: HTMLTextAreaElement | HTMLInputElement,
 	lines: number,
-	max_lines: number,
+	max_lines: number
 ): Promise<void> {
 	await tick();
 	if (lines === max_lines) return;
@@ -41,7 +41,7 @@ export async function resize(
 
 export function text_area_resize(
 	_el: HTMLTextAreaElement,
-	_value: Value,
+	_value: Value
 ): any | undefined {
 	if (_value.lines === _value.max_lines) return;
 	_el.style.overflowY = "scroll";
@@ -55,6 +55,6 @@ export function text_area_resize(
 	resize(_el, _value.lines, _value.max_lines);
 
 	return {
-		destroy: () => _el.removeEventListener("input", handle_input),
+		destroy: () => _el.removeEventListener("input", handle_input)
 	};
 }

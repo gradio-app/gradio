@@ -13,7 +13,7 @@ const loading_status: LoadingStatus = {
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0,
-	show_progress: "full",
+	show_progress: "full"
 };
 
 test("Slider Default Value And Label rendered", async ({ mount }) => {
@@ -28,16 +28,16 @@ test("Slider Default Value And Label rendered", async ({ mount }) => {
 			interactive: true,
 			loading_status: loading_status,
 			gradio: {
-				dispatch() {},
-			},
-		},
+				dispatch() {}
+			}
+		}
 	});
 	await expect(component).toContainText("My Slider");
 
 	expect(
 		component.getByRole("spinbutton", {
-			name: "My Slider",
-		}),
+			name: "My Slider"
+		})
 	).toHaveValue("3");
 });
 
@@ -53,9 +53,9 @@ test("Slider respects show_label", async ({ mount, page }) => {
 			interactive: true,
 			loading_status: loading_status,
 			gradio: {
-				dispatch() {},
-			},
-		},
+				dispatch() {}
+			}
+		}
 	});
 	await expect(component.getByTestId("block-title")).toBeHidden();
 });
@@ -72,9 +72,9 @@ test("Slider respects show_reset_button", async ({ mount, page }) => {
 			interactive: true,
 			loading_status: loading_status,
 			gradio: {
-				dispatch() {},
-			},
-		},
+				dispatch() {}
+			}
+		}
 	});
 	await expect(component.getByTestId("reset-button")).toBeVisible();
 });
@@ -91,17 +91,17 @@ test("Slider Maximum/Minimum values", async ({ mount, page }) => {
 			interactive: true,
 			loading_status: loading_status,
 			gradio: {
-				dispatch() {},
-			},
-		},
+				dispatch() {}
+			}
+		}
 	});
 
 	const sliderNumberInput = component.getByRole("spinbutton", {
-		name: "My Slider",
+		name: "My Slider"
 	});
 
 	const sliderRangeInput = component.getByRole("slider", {
-		name: "range slider for My Slider",
+		name: "range slider for My Slider"
 	});
 
 	await expect(sliderNumberInput).toHaveValue("3");
@@ -132,7 +132,7 @@ test("Slider Maximum/Minimum values", async ({ mount, page }) => {
 test("Slider Change event", async ({ mount, page }) => {
 	const events = {
 		change: 0,
-		release: 0,
+		release: 0
 	};
 
 	function event(name: "change" | "release") {
@@ -150,17 +150,17 @@ test("Slider Change event", async ({ mount, page }) => {
 			interactive: true,
 			loading_status: loading_status,
 			gradio: {
-				dispatch: event,
-			},
-		},
+				dispatch: event
+			}
+		}
 	});
 
 	const sliderNumberInput = component.getByRole("spinbutton", {
-		name: "My Slider",
+		name: "My Slider"
 	});
 
 	const sliderRangeInput = component.getByRole("slider", {
-		name: "range slider for My Slider",
+		name: "range slider for My Slider"
 	});
 
 	await expect(sliderNumberInput).toHaveValue("3");

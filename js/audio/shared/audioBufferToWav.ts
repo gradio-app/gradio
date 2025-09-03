@@ -9,7 +9,7 @@ export function audioBufferToWav(audioBuffer: AudioBuffer): Uint8Array {
 	const writeString = function (
 		view: DataView,
 		offset: number,
-		string: string,
+		string: string
 	): void {
 		for (let i = 0; i < string.length; i++) {
 			view.setUint8(offset + i, string.charCodeAt(i));
@@ -48,7 +48,7 @@ export function audioBufferToWav(audioBuffer: AudioBuffer): Uint8Array {
 		for (let channel = 0; channel < numOfChan; channel++) {
 			const sample = Math.max(
 				-1,
-				Math.min(1, audioBuffer.getChannelData(channel)[i]),
+				Math.min(1, audioBuffer.getChannelData(channel)[i])
 			);
 			view.setInt16(offset, sample * 0x7fff, true);
 			offset += 2;

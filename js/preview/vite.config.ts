@@ -12,14 +12,14 @@ export default defineConfig({
 	build: {
 		lib: {
 			entry: "./src/index.ts",
-			formats: ["es"],
+			formats: ["es"]
 		},
 		outDir: "dist",
 		rollupOptions: {
-			external: ["fsevents", "vite", "@sveltejs/vite-plugin-svelte"],
-		},
+			external: ["fsevents", "vite", "@sveltejs/vite-plugin-svelte"]
+		}
 	},
-	plugins: [copy_files()],
+	plugins: [copy_files()]
 });
 
 export function copy_files() {
@@ -32,8 +32,8 @@ export function copy_files() {
 			cpSync(
 				join(template_dir, "frontend", "assets", "svelte"),
 				join(template_dir, "node", "build", "client", "_app"),
-				{ recursive: true },
+				{ recursive: true }
 			);
-		},
+		}
 	};
 }

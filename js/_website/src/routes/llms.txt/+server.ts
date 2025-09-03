@@ -17,13 +17,13 @@ export async function GET({ url }) {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
-			Origin: url.origin,
+			Origin: url.origin
 		},
 		body: JSON.stringify({
 			prompt_to_embed: query,
 			SYSTEM_PROMPT: SYSTEM_PROMPT.SYSTEM,
-			FALLBACK_PROMPT: SYSTEM_PROMPT.FALLBACK,
-		}),
+			FALLBACK_PROMPT: SYSTEM_PROMPT.FALLBACK
+		})
 	});
 
 	const data = await response.json();
@@ -34,8 +34,8 @@ export async function GET({ url }) {
 		return new Response(data.SYS_PROMPT, {
 			headers: {
 				"Content-Type": "text/plain",
-				"Cache-Control": "public, max-age=3600",
-			},
+				"Cache-Control": "public, max-age=3600"
+			}
 		});
 	}
 }
