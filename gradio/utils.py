@@ -154,6 +154,22 @@ class BaseReloader(ABC):
         self.running_app.blocks = demo
 
 
+class JuriggedReloader(BaseReloader):
+    def __init__(
+        self,
+        app: App,
+        watch_module: ModuleType,
+        demo_name: str = "demo",
+    ):
+        self.app = app
+        self.demo_name = demo_name
+        self.watch_module = watch_module
+
+    @property
+    def running_app(self) -> App:
+        return self.app
+
+
 class SourceFileReloader(BaseReloader):
     def __init__(
         self,
@@ -242,6 +258,24 @@ def _find_module(source_file: Path) -> ModuleType | None:
         ):
             return v
     return None
+
+
+def watchfn_jurigged(reloader: JuriggedReloader):
+    from jurigged import watch
+
+    def prerun(*args, **kwargs):
+        NO_RELOAD.set(False)
+
+    def postrun(*args, **kwargs):
+        NO_RELOAD.set(True)
+        demo = getattr(reloader.watch_module, reloader.demo_name)
+        reloader.swap_blocks(demo)
+
+    watcher = watch(autostart=False)
+    watcher.prerun.register(prerun)
+    watcher.postrun.register(postrun)
+    watcher.start()
+    watcher.join()
 
 
 def watchfn(reloader: SourceFileReloader):
