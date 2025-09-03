@@ -17,7 +17,8 @@
 	let stepper_container: HTMLDivElement;
 	let show_labels_for_all = true;
 	let measurement_container: HTMLDivElement;
-
+	let step_labels: HTMLSpanElement[] = [];
+	let label_height = 0;
 	$: has_tabs = tabs.length > 0;
 
 	const selected_tab = writable<false | number | string>(
@@ -41,12 +42,30 @@
 		await tick();
 
 		// Measure if content fits
-		const containerWidth = stepper_container.offsetWidth;
+		const containerWidth = stepper_container.getBoundingClientRect().width;
 		const contentWidth = measurement_container.scrollWidth;
 
+		let max_height = 0;
+		let is_overlapping = false;
+		let last_right = false;
+
+		for (const label of step_labels) {
+			const { height, width, left, right } = label.getBoundingClientRect();
+			if (height > max_height) {
+				max_height = height;
+			}
+			console.log({ left, right, last_right, is_overlapping });
+			if (last_right && left - 0 < last_right && !is_overlapping) {
+				is_overlapping = true;
+			}
+			last_right = right;
+		}
+		label_height = max_height;
+
+		console.log({ max_height, containerWidth, contentWidth });
+
 		// If content doesn't fit, hide non-active labels
-		if (contentWidth > containerWidth + 10) {
-			// 10px buffer
+		if (is_overlapping) {
 			show_labels_for_all = false;
 		}
 	}
@@ -135,7 +154,11 @@
 	style:flex-grow={tab_scale}
 >
 	{#if has_tabs}
-		<div class="stepper-wrapper" bind:this={stepper_container}>
+		<div
+			class="stepper-wrapper"
+			bind:this={stepper_container}
+			style:--label-height={label_height + "px"}
+		>
 			<div
 				class="stepper-container"
 				bind:this={measurement_container}
@@ -144,12 +167,6 @@
 				{#each tabs as t, i}
 					{#if t?.visible}
 						<div class="step-item">
-							{#if i < tabs.length - 1}
-								<div
-									class="step-connector"
-									class:completed={i < $selected_tab_index}
-								></div>
-							{/if}
 							<button
 								role="tab"
 								class="step-button"
@@ -190,13 +207,24 @@
 										{i + 1}
 									{/if}
 								</span>
-								{#if show_labels_for_all || i === $selected_tab_index}
-									<span class="step-label">
-										{t?.label !== undefined ? t?.label : "Step " + (i + 1)}
-									</span>
-								{/if}
+								<!-- {#if show_labels_for_all || i === $selected_tab_index} -->
+								<span
+									bind:this={step_labels[i]}
+									class="step-label"
+									class:visible={show_labels_for_all ||
+										i === $selected_tab_index}
+								>
+									{t?.label !== undefined ? t?.label : "Step " + (i + 1)}
+								</span>
+								<!-- {/if} -->
 							</button>
 						</div>
+						{#if i < tabs.length - 1}
+							<div
+								class="step-connector"
+								class:completed={i < $selected_tab_index}
+							></div>
+						{/if}
 					{/if}
 				{/each}
 			</div>
@@ -221,14 +249,14 @@
 		display: flex;
 		align-items: center;
 		position: relative;
-		padding: var(--size-4) 0;
-		overflow: hidden;
+		padding-top: var(--size-4);
+		padding-bottom: calc(var(--label-height) + var(--size-4));
 	}
 
 	.stepper-container {
 		display: flex;
 		justify-content: space-between;
-		align-items: center;
+		align-items: flex-start;
 		width: 100%;
 		position: relative;
 	}
@@ -242,6 +270,7 @@
 	}
 
 	.step-button {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -270,8 +299,8 @@
 	}
 
 	.step-button.active {
-		color: var(--color-accent);
-		font-weight: var(--weight-semibold);
+		color: var(--body-text-color);
+		/* font-weight: var(--weight-semibold); */
 	}
 
 	.step-button.completed {
@@ -313,21 +342,29 @@
 	}
 
 	.step-label {
-		font-size: var(--text-sm);
+		font-size: var(--text-md);
 		line-height: 1.2;
 		text-align: center;
 		max-width: 120px;
+		position: absolute;
+		bottom: -20px;
+		display: none;
+	}
+
+	.step-label.visible {
+		display: block;
 	}
 
 	.step-connector {
-		position: absolute;
-		left: 50%;
+		/* position: absolute; */
+		/* left: 50%; */
 		width: 100%;
 		height: 2px;
 		background-color: var(--border-color-primary);
 		transition: background-color 0.3s ease;
-		top: 16px;
+		/* top: 16px; */
 		z-index: 0;
+		transform: translate(0, 23px);
 	}
 
 	.step-connector.completed {
