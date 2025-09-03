@@ -7,16 +7,10 @@ import {
 	beforeEach,
 	afterEach
 } from "vitest";
-import { Lang, process_langs } from "./i18n";
+
 import languagesByAnyCode from "wikidata-lang/indexes/by_any_code";
 import BCP47 from "./lang/BCP47_codes";
-import {
-	translate_if_needed,
-	get_initial_locale,
-	load_translations,
-	changeLocale,
-	is_translation_metadata
-} from "./i18n";
+
 import { loading } from "./lang/loading";
 
 const loading_count = Object.keys(loading).length;
@@ -25,7 +19,13 @@ vi.mock("svelte-i18n", () => ({
 	locale: { set: vi.fn() },
 	_: vi.fn((key) => `translated_${key}`),
 	addMessages: vi.fn(),
-	init: vi.fn().mockResolvedValue(undefined)
+	init: vi.fn().mockResolvedValue(undefined),
+
+	
+	getLocaleFromNavigator: vi.fn(() => "en"),
+
+	
+	waitLocale: vi.fn(() => Promise.resolve())
 }));
 
 vi.mock("svelte/store", () => ({
@@ -33,7 +33,18 @@ vi.mock("svelte/store", () => ({
 	derived: vi.fn()
 }));
 
-import { locale, init, addMessages } from "svelte-i18n";
+import { locale, addMessages } from "svelte-i18n";
+
+import {
+  Lang,
+  process_langs,
+  translate_if_needed,
+  get_initial_locale,
+  load_translations,
+  changeLocale,
+  is_translation_metadata
+} from "./i18n";
+
 
 describe("i18n", () => {
 	test("languages are loaded correctly", () => {
