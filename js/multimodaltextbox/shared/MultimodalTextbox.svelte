@@ -130,6 +130,9 @@
 		if (can_scroll && autoscroll) {
 			scroll();
 		}
+		if (autofocus && el !== null) {
+			el.focus();
+		}
 		value_is_output = false;
 	});
 
@@ -445,7 +448,6 @@
 			{placeholder}
 			rows={lines}
 			{disabled}
-			{autofocus}
 			on:keypress={handle_keypress}
 			on:blur
 			on:select={handle_select}
