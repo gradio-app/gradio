@@ -108,3 +108,43 @@ class TestQueueing:
 
         add_job_statuses = [add_job_1.status(), add_job_2.status(), add_job_3.status()]
         assert sorted([s.code.value for s in add_job_statuses]) == statuses
+
+
+def test_analytics_summary(monkeypatch):
+    """Test that the analytics summary endpoint is correctly being computed every N requests,
+    where N is set by the GRADIO_ANALYTICS_CACHE_FREQUENCY environment variable."""
+    monkeypatch.setenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", 2)
+    with gr.Blocks() as demo:
+        name = gr.Textbox()
+        output = gr.Textbox()
+
+        def greet(x):
+            return f"Hello, {x}!"
+
+        name.submit(greet, name, output, api_name="predict")
+
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(demo.app)
+    client = grc.Client(local_url)
+    with test_client as tc:
+        event_analytics = tc.get("/monitoring/summary").json()
+        assert event_analytics == {"functions": {}}
+        client.predict(
+            "a",
+            api_name="/predict",
+        )
+        client.predict(
+            "a",
+            api_name="/predict",
+        )
+        event_analytics = tc.get("/monitoring/summary").json()
+        assert "predict" in event_analytics["functions"]
+        assert event_analytics["functions"]["predict"]["total_requests"] == 2
+        client.predict("a", api_name="/predict")
+        event_analytics = tc.get("/monitoring/summary").json()
+        assert "predict" in event_analytics["functions"]
+        assert event_analytics["functions"]["predict"]["total_requests"] == 2
+        client.predict("a", api_name="/predict")
+        event_analytics = tc.get("/monitoring/summary").json()
+        assert "predict" in event_analytics["functions"]
+        assert event_analytics["functions"]["predict"]["total_requests"] == 4

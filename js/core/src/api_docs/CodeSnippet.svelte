@@ -22,6 +22,7 @@
 	export let username: string | null;
 	export let current_language: "python" | "javascript" | "bash";
 	export let api_description: string | null = null;
+	export let analytics: Record<string, any>;
 
 	let python_code: HTMLElement;
 	let js_code: HTMLElement;
@@ -44,6 +45,7 @@
 	<EndpointDetail
 		api_name={dependency.api_name}
 		description={api_description}
+		{analytics}
 	/>
 	{#if current_language === "python"}
 		<Block>
@@ -56,13 +58,13 @@
 							class="highlight">import</span
 						> Client{#if has_file_path}, handle_file{/if}
 
-client = Client(<span class="token string">"{space_id || root}"</span
+	client = Client(<span class="token string">"{space_id || root}"</span
 						>{#if username !== null}, auth=("{username}", **password**){/if})
-result = client.<span class="highlight">predict</span
+	result = client.<span class="highlight">predict</span
 						>(<!--
--->{#each endpoint_parameters as { python_type, example_input, parameter_name, parameter_has_default, parameter_default }, i}<!--
-        -->
-		{parameter_name
+	-->{#each endpoint_parameters as { python_type, example_input, parameter_name, parameter_has_default, parameter_default }, i}<!--
+			-->
+			{parameter_name
 								? parameter_name + "="
 								: ""}<span
 								>{represent_value(
@@ -72,11 +74,11 @@ result = client.<span class="highlight">predict</span
 								)}</span
 							>,{/each}<!--
 
-		-->
-		api_name=<span class="api-name">"/{dependency.api_name}"</span><!--
-		-->
-)
-<span class="highlight">print</span>(result)</pre>
+			-->
+			api_name=<span class="api-name">"/{dependency.api_name}"</span><!--
+			-->
+	)
+	<span class="highlight">print</span>(result)</pre>
 				</div>
 			</code>
 		</Block>
@@ -88,44 +90,44 @@ result = client.<span class="highlight">predict</span
 				</div>
 				<div bind:this={js_code}>
 					<pre>import &lbrace; Client &rbrace; from "@gradio/client";
-{#each blob_examples as { component, example_input }, i}<!--
--->
-const response_{i} = await fetch("{example_input.url}");
-const example{component} = await response_{i}.blob();
+	{#each blob_examples as { component, example_input }, i}<!--
+	-->
+	const response_{i} = await fetch("{example_input.url}");
+	const example{component} = await response_{i}.blob();
 						{/each}<!--
--->
-const client = await Client.connect(<span class="token string"
+	-->
+	const client = await Client.connect(<span class="token string"
 							>"{space_id || root}"</span
 						>{#if username !== null}, &lbrace;auth: ["{username}", **password**]&rbrace;{/if});
-const result = await client.predict(<span class="api-name"
+	const result = await client.predict(<span class="api-name"
 							>"/{dependency.api_name}"</span
 						>, &lbrace; <!--
--->{#each endpoint_parameters as { label, parameter_name, type, python_type, component, example_input, serializer }, i}<!--
-		-->{#if blob_components.includes(component)}<!--
-	-->
-				<span
+	-->{#each endpoint_parameters as { label, parameter_name, type, python_type, component, example_input, serializer }, i}<!--
+			-->{#if blob_components.includes(component)}<!--
+		-->
+					<span
 									class="example-inputs"
 									>{parameter_name}: example{component}</span
 								>, <!--
-		--><span class="desc"><!--
-		--></span
+			--><span class="desc"><!--
+			--></span
 								><!--
-		-->{:else}<!--
-	-->		
-		<span class="example-inputs"
+			-->{:else}<!--
+		-->		
+			<span class="example-inputs"
 									>{parameter_name}: {represent_value(
 										example_input,
 										python_type.type,
 										"js"
 									)}</span
 								>, <!--
---><!--
--->{/if}
+	--><!--
+	-->{/if}
 						{/each}
-&rbrace;);
+	&rbrace;);
 
-console.log(result.data);
-</pre>
+	console.log(result.data);
+	</pre>
 				</div>
 			</code>
 		</Block>
@@ -138,18 +140,18 @@ console.log(result.data);
 
 				<div bind:this={bash_post_code}>
 					<pre>curl -X POST {normalised_root}{normalised_api_prefix}/call/{dependency.api_name} -s -H "Content-Type: application/json" -d '{"{"}
-  "data": [{#each endpoint_parameters as { label, parameter_name, type, python_type, component, example_input, serializer }, i}
+	"data": [{#each endpoint_parameters as { label, parameter_name, type, python_type, component, example_input, serializer }, i}
 							<!-- 
--->{represent_value(
+	-->{represent_value(
 								example_input,
 								python_type.type,
 								"bash"
 							)}{#if i < endpoint_parameters.length - 1},
 							{/if}
 						{/each}
-]{"}"}' \
-  | awk -F'"' '{"{"} print $4{"}"}'  \
-  | read EVENT_ID; curl -N {normalised_root}{normalised_api_prefix}/call/{dependency.api_name}/$EVENT_ID</pre>
+	]{"}"}' \
+	| awk -F'"' '{"{"} print $4{"}"}'  \
+	| read EVENT_ID; curl -N {normalised_root}{normalised_api_prefix}/call/{dependency.api_name}/$EVENT_ID</pre>
 				</div>
 			</code>
 		</Block>
