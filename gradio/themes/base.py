@@ -1788,13 +1788,17 @@ class Base(ThemeClass):
         self.button_cancel_shadow_hover_dark = (
             button_cancel_shadow_hover_dark
             or getattr(
-                self, "button_cancel_shadow_hover_dark", "*button_secondary_shadow_hover"
+                self,
+                "button_cancel_shadow_hover_dark",
+                "*button_secondary_shadow_hover",
             )
         )
         self.button_cancel_shadow_active_dark = (
             button_cancel_shadow_active_dark
             or getattr(
-                self, "button_cancel_shadow_active_dark", "*button_secondary_shadow_active"
+                self,
+                "button_cancel_shadow_active_dark",
+                "*button_secondary_shadow_active",
             )
         )
 
