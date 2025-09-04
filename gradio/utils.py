@@ -163,6 +163,21 @@ class ServerReloader(BaseReloader):
     def stop(self) -> None:
         self.stop_event.set()
 
+    def find_demo_name(self, module: ModuleType, default_name: str) -> str:
+        log = lambda v: print("GRADIO_HOT_RELOAD:", v)
+        if (demo := self.running_app.blocks) is None:
+            log("Unexpected undefined blocks in launching app")
+            return default_name
+        if module.__dict__.get(default_name) is demo:
+            return default_name
+        warn_message = f"'{default_name}' in {module.__name__} does not match launching demo"
+        for name, value in module.__dict__.copy().items():
+            if value is demo:
+                log(f"{warn_message} (using '{name}' name instead)")
+                return name
+        log(warn_message)
+        return default_name
+
 
 class JuriggedReloader(ServerReloader):
     def __init__(
@@ -174,7 +189,7 @@ class JuriggedReloader(ServerReloader):
         demo_name: str = "demo",
     ):
         self.app = app
-        self.demo_name = demo_name
+        self.demo_name = self.find_demo_name(watch_module, demo_name)
         self.watch_dirs = watch_dirs
         self.watch_module = watch_module
         self._stop_event = stop_event
@@ -205,7 +220,7 @@ class SourceFileReloader(ServerReloader):
         self.watch_dirs = watch_dirs
         self.watch_module_name = watch_module_name
         self._stop_event = stop_event
-        self.demo_name = demo_name
+        self.demo_name = self.find_demo_name(watch_module, demo_name)
         self.demo_file = Path(demo_file)
         self.watch_module = watch_module
         self.encoding = encoding
