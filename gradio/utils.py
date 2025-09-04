@@ -293,9 +293,9 @@ def watchfn_jurigged(reloader: JuriggedReloader):
         reloader.swap_blocks(demo)
 
     if reloader.watch_dirs:
-        watcher = watch(autostart=False)
-    else:
         watcher = watch(autostart=False, pattern=reloader.watch_dirs)
+    else:
+        watcher = watch(autostart=False)
     watcher.prerun.register(prerun)
     watcher.postrun.register(postrun)
     watcher.start()
