@@ -98,25 +98,6 @@ class Error(AppError):
         return repr(self.message)
 
 
-class ValidatorError(AppError):
-    """Raised when a validator function raises an error."""
-
-    def __init__(
-        self,
-        message: str = "Error raised.",
-        duration: float | None = 10,
-        visible: bool = True,
-        title: str = "Error",
-        print_exception: bool = True,
-    ):
-        super().__init__(
-            message, duration, visible, title, print_exception, code="validator_error"
-        )
-
-    def __str__(self):
-        return repr(self.message)
-
-
 class ComponentDefinitionError(NotImplementedError):
     pass
 

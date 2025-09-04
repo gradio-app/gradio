@@ -695,111 +695,43 @@ class EventListener(str):
                 block if _has_trigger else None, _event_name
             )
 
-            if validator is not None:
-                validator_dep, validator_index = root_block.set_event_trigger(
-                    [event_target],
-                    validator,
-                    inputs,
-                    None,
-                    preprocess=preprocess,
-                    postprocess=True,
-                    scroll_to_output=False,
-                    show_progress="hidden",
-                    show_progress_on=None,
-                    api_name=False,
-                    api_description=False,
-                    js=js,
-                    concurrency_limit=concurrency_limit,
-                    concurrency_id=concurrency_id,
-                    queue=False,
-                    batch=False,
-                    max_batch_size=max_batch_size,
-                    trigger_after=_trigger_after,
-                    trigger_only_on_success=_trigger_only_on_success,
-                    trigger_only_on_failure=_trigger_only_on_failure,
-                    trigger_mode=trigger_mode,
-                    show_api=False,
-                    connection=_connection,
-                    time_limit=time_limit,
-                    stream_every=stream_every,
-                    like_user_message=False,
-                    event_specific_args=[
-                        d["name"]
-                        for d in _event_specific_args
-                        if d.get("component_prop", "true") != "false"
-                    ]
-                    if _event_specific_args
-                    else None,
-                    key=None,
-                )
-
-                dep, dep_index = root_block.set_event_trigger(
-                    [],
-                    fn,
-                    inputs,
-                    outputs,
-                    preprocess=preprocess,
-                    postprocess=postprocess,
-                    scroll_to_output=scroll_to_output,
-                    show_progress=show_progress,
-                    show_progress_on=show_progress_on,
-                    api_name=api_name,
-                    api_description=api_description,
-                    js=None,
-                    concurrency_limit=concurrency_limit,
-                    concurrency_id=concurrency_id,
-                    queue=queue,
-                    batch=batch,
-                    max_batch_size=max_batch_size,
-                    trigger_after=validator_index,
-                    trigger_only_on_success=True,
-                    trigger_only_on_failure=False,
-                    trigger_mode=trigger_mode,
-                    show_api=show_api,
-                    connection=_connection,
-                    time_limit=time_limit,
-                    stream_every=stream_every,
-                    like_user_message=like_user_message,
-                    event_specific_args=None,
-                    key=key,
-                )
-            else:
-                dep, dep_index = root_block.set_event_trigger(
-                    [event_target],
-                    fn,
-                    inputs,
-                    outputs,
-                    preprocess=preprocess,
-                    postprocess=postprocess,
-                    scroll_to_output=scroll_to_output,
-                    show_progress=show_progress,
-                    show_progress_on=show_progress_on,
-                    api_name=api_name,
-                    api_description=api_description,
-                    js=js,
-                    concurrency_limit=concurrency_limit,
-                    concurrency_id=concurrency_id,
-                    queue=queue,
-                    batch=batch,
-                    max_batch_size=max_batch_size,
-                    trigger_after=_trigger_after,
-                    trigger_only_on_success=_trigger_only_on_success,
-                    trigger_only_on_failure=_trigger_only_on_failure,
-                    trigger_mode=trigger_mode,
-                    show_api=show_api,
-                    connection=_connection,
-                    time_limit=time_limit,
-                    stream_every=stream_every,
-                    like_user_message=like_user_message,
-                    event_specific_args=[
-                        d["name"]
-                        for d in _event_specific_args
-                        if d.get("component_prop", "true") != "false"
-                    ]
-                    if _event_specific_args
-                    else None,
-                    key=key,
-                )
+            dep, dep_index = root_block.set_event_trigger(
+                [event_target],
+                fn,
+                inputs,
+                outputs,
+                preprocess=preprocess,
+                postprocess=postprocess,
+                scroll_to_output=scroll_to_output,
+                show_progress=show_progress,
+                show_progress_on=show_progress_on,
+                api_name=api_name,
+                api_description=api_description,
+                js=js,
+                concurrency_limit=concurrency_limit,
+                concurrency_id=concurrency_id,
+                queue=queue,
+                batch=batch,
+                max_batch_size=max_batch_size,
+                trigger_after=_trigger_after,
+                trigger_only_on_success=_trigger_only_on_success,
+                trigger_only_on_failure=_trigger_only_on_failure,
+                trigger_mode=trigger_mode,
+                show_api=show_api,
+                connection=_connection,
+                time_limit=time_limit,
+                stream_every=stream_every,
+                like_user_message=like_user_message,
+                event_specific_args=[
+                    d["name"]
+                    for d in _event_specific_args
+                    if d.get("component_prop", "true") != "false"
+                ]
+                if _event_specific_args
+                else None,
+                key=key,
+                validator=validator,
+            )
             set_cancel_events(
                 [event_target],
                 cancels,

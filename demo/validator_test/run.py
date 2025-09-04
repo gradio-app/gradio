@@ -1,26 +1,23 @@
-"""Demo to test the validator parameter functionality."""
-
 import gradio as gr
-import time
 
 
-def validate_input(text):
-    if not text or len(text) < 3:
-        raise gr.ValidatorError("Input must be at least 3 characters long!")
+def validate_input(age, location):
+    is_age_valid = True
+    is_location_valid = True
+    if not age or age < 3:
+        is_age_valid = False
+    if "london" in location.lower():
+        is_location_valid = False
 
-    if "error" in text.lower():
-        raise gr.ValidatorError("Input cannot contain the word 'error'!")
+    return [
+        gr.validate(is_age_valid, "Age must be at least 3"),
+        gr.validate(is_location_valid, "Location must not be in London"),
+    ]
 
 
-def process_text(text):
-    time.sleep(1)
-    result = f"Processed: {text.upper()}"
+def process_text(age, location):
+    result = f"Processed: {age} -- {location.upper()}"
     return result
-
-
-def process_without_validation(text):
-    time.sleep(1)
-    return f"Direct: {text.upper()}"
 
 
 with gr.Blocks() as demo:
@@ -28,60 +25,27 @@ with gr.Blocks() as demo:
 
     with gr.Row():
         with gr.Column():
-            input_text = gr.Textbox(
-                label="Enter text (min 3 chars, no 'error' word)",
-                placeholder="Type something here...",
+            age = gr.Number(
+                label="Enter age",
+                placeholder="Enter age",
+            )
+            location = gr.Textbox(
+                max_lines=3,
+                label="Enter location",
+                placeholder="Enter location",
             )
 
-            with gr.Row():
-                validate_btn = gr.Button("Process with Validation", variant="primary")
-                direct_btn = gr.Button("Process without Validation")
+    validate_btn = gr.Button("Process with Validation", variant="primary")
 
-        with gr.Column():
-            output_with_validation = gr.Textbox(
-                label="Output (with validation)", interactive=False
-            )
-            output_without_validation = gr.Textbox(
-                label="Output (without validation)", interactive=False
-            )
-            status = gr.Textbox(label="Status", interactive=False)
+    output_with_validation = gr.Textbox(
+        label="Output (with validation)", interactive=False
+    )
 
     validate_btn.click(
         fn=process_text,
         validator=validate_input,
-        inputs=input_text,
+        inputs=[age, location],
         outputs=output_with_validation,
-    ).success(
-        lambda: "✅ Validation passed and processing completed!",
-        outputs=status,
-        queue=False,
-    ).failure(lambda: "❌ Validation failed! Check your input.", outputs=status)
-
-    direct_btn.click(
-        fn=process_without_validation,
-        inputs=input_text,
-        outputs=output_without_validation,
-        queue=True,
-    ).success(lambda: "✅ Direct processing completed!", outputs=status)
-
-    gr.Markdown("---")
-    gr.Markdown("### Comparison with manual .then() chaining")
-
-    with gr.Row():
-        manual_input = gr.Textbox(label="Manual chaining input")
-        manual_btn = gr.Button("Process with manual .then()")
-        manual_output = gr.Textbox(label="Manual chaining output")
-
-    manual_btn.click(
-        fn=validate_input,
-        inputs=manual_input,
-        outputs=None,
-        queue=False,
-    ).then(
-        fn=process_text,
-        inputs=manual_input,
-        outputs=manual_output,
-        queue=True,
     )
 
 

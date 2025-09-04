@@ -9,7 +9,7 @@ import traceback
 import uuid
 from collections import defaultdict
 from queue import Queue as ThreadQueue
-from typing import TYPE_CHECKING, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import fastapi
 
@@ -39,8 +39,11 @@ from gradio.utils import (
     set_task_name,
 )
 
+from .block_function import BlockFunction
+
 if TYPE_CHECKING:
-    from gradio.blocks import BlockFunction, Blocks
+    from gradio.block_function import BlockFunction
+    from gradio.blocks import Blocks
 
 
 class Event:
@@ -211,13 +214,18 @@ class Queue:
 
     async def push(
         self, body: PredictBodyInternal, request: fastapi.Request, username: str | None
-    ) -> tuple[bool, str]:
+    ) -> tuple[
+        bool,
+        str | list[dict[str, Any]],
+        Literal["success", "error", "queue_full", "validator_error"],
+    ]:
         if body.fn_index is None:
-            return False, "No function index provided."
+            return False, "No function index provided.", "error"
         if self.max_size is not None and len(self) >= self.max_size:
             return (
                 False,
                 f"Queue is full. Max size is {self.max_size} and size is {len(self)}.",
+                "queue_full",
             )
 
         if body.session_hash:
@@ -228,6 +236,77 @@ class Queue:
 
         fn = route_utils.get_fn(self.blocks, None, body)
         self.create_event_queue_for_fn(fn)
+        if fn.validator is not None:
+            gr_request = route_utils.compile_gr_request(
+                body=body,
+                fn=fn,
+                username=username,
+                request=None,
+            )
+            assert body.request is not None  # noqa: S101
+            api_route_path = route_utils.get_api_call_path(request=body.request)
+            root_path = route_utils.get_root_url(
+                request=body.request,
+                route_path=api_route_path,
+                root_path=self.blocks.app.root_path,
+            )
+            validator_fn = BlockFunction(
+                fn=fn.validator,
+                api_name=False,
+                batch=fn.batch,
+                concurrency_id=fn.concurrency_id,
+                concurrency_limit=fn.concurrency_limit,
+                inputs=fn.inputs,
+                outputs=fn.inputs,
+                preprocess=fn.preprocess,
+                postprocess=False,
+                inputs_as_dict=fn.inputs_as_dict,
+                targets=fn.targets,
+                _id=fn._id,
+                max_batch_size=fn.max_batch_size,
+                tracks_progress=fn.tracks_progress,
+                js=None,
+                show_progress="hidden",
+                show_progress_on=fn.show_progress_on,
+                cancels=fn.cancels,
+                collects_event_data=fn.collects_event_data,
+            )
+
+            event = Event(
+                body.session_hash,
+                validator_fn,
+                request,
+                username,
+            )
+            try:
+                response = await route_utils.call_process_api(
+                    app=self.blocks.app,
+                    body=body,
+                    gr_request=gr_request,
+                    fn=validator_fn,
+                    root_path=root_path,
+                )
+
+                validation_response: list[dict[str, Any]] | dict[str, Any] | None = (
+                    response.get("data")
+                )
+
+                if validation_response is not None:
+                    (is_valid, validation_data) = process_validation_response(
+                        validation_response
+                    )
+
+                    if is_valid is False:
+                        return (
+                            False,
+                            validation_data,
+                            "validator_error",
+                        )
+
+            except Exception as e:
+                print(str(e))
+                return False, "Internal server error", "error"
+
         event = Event(
             body.session_hash,
             fn,
@@ -260,7 +339,7 @@ class Queue:
         }
 
         self.broadcast_estimations(event.concurrency_id, len(event_queue.queue) - 1)
-        return True, event._id
+        return True, event._id, "success"
 
     def _cancel_asyncio_tasks(self):
         for task in self._asyncio_tasks:
@@ -816,3 +895,29 @@ class Queue:
             del app.iterators[event_id]
             app.iterators_to_reset.add(event_id)
         return
+
+
+def process_validation_response(
+    validation_response: list[dict[str, Any]] | dict[str, Any],
+) -> tuple[bool, list[dict[str, Any]]]:
+    validation_data: list[dict[str, Any]] = []
+    if isinstance(validation_response, list):
+        for data in validation_response:
+            if isinstance(data, dict) and data.get("__type__", None) == "validate":
+                validation_data.append(data)
+            else:
+                validation_data.append({"is_valid": True, "message": ""})
+
+    elif (
+        isinstance(validation_data, dict)
+        and validation_data.get("is_valid", None) is False
+    ):
+        validation_data.append(
+            validation_response,
+        )
+    else:
+        validation_data.append({"is_valid": True, "message": ""})
+
+    return all(
+        x.get("is_valid", None) is True for x in validation_data
+    ), validation_data

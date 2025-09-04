@@ -30,6 +30,7 @@
 	export let step: number | null = null;
 	export let interactive: boolean;
 	export let placeholder = "";
+	export let validation_error: string | undefined = undefined;
 
 	if (value === null && placeholder === "") {
 		value = 0;
@@ -75,8 +76,14 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	<label class="block" class:container>
-		<BlockTitle {show_label} {info}>{label}</BlockTitle>
+		<BlockTitle {show_label} {info}
+			>{label}
+			{#if validation_error}
+				<span class="validation-error">{validation_error}</span>
+			{/if}</BlockTitle
+		>
 		<input
+			class:validation-error={validation_error}
 			aria-label={label}
 			type="number"
 			bind:value
@@ -84,6 +91,7 @@
 			max={maximum}
 			{step}
 			{placeholder}
+			on:input={() => (validation_error = undefined)}
 			on:keypress={handle_keypress}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
@@ -132,5 +140,20 @@
 
 	input:out-of-range {
 		border: var(--input-border-width) solid var(--error-border-color);
+	}
+
+	span.validation-error {
+		margin-left: var(--spacing-lg);
+		color: var(--error-icon-color);
+		font-size: var(--font-sans);
+		font-size: var(--button-small-text-size);
+	}
+
+	label.container input.validation-error,
+	label.container textarea.validation-error {
+		border-color: transparent !important;
+		box-shadow:
+			0 0 3px 1px var(--error-icon-color),
+			var(--shadow-inset) !important;
 	}
 </style>
