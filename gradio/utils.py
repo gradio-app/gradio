@@ -163,20 +163,22 @@ class ServerReloader(BaseReloader):
     def stop(self) -> None:
         self.stop_event.set()
 
-    def find_demo_name(self, module: ModuleType, default_name: str) -> str:
+    def get_demo_name(self, module: ModuleType, default_name: str) -> str:
         log = lambda v: print("GRADIO_HOT_RELOAD:", v)
         if (demo := self.running_app.blocks) is None:
             log("Unexpected undefined blocks in launching app")
             return default_name
-        if module.__dict__.get(default_name) is demo:
+        if default_name:
+            if not module.__dict__.get(default_name) is demo:
+                log(f"'{default_name}' in {module.__name__} does not match launching demo")
             return default_name
-        warn_message = f"'{default_name}' in {module.__name__} does not match launching demo"
         for name, value in module.__dict__.copy().items():
             if value is demo:
-                log(f"{warn_message} (using '{name}' name instead)")
+                if name != "demo":
+                    log(f"Using '{name}' for demo name")
                 return name
-        log(warn_message)
-        return default_name
+        log(f"Launching demo not found in {module.__name__}. Using 'demo'")
+        return "demo"
 
 
 class JuriggedReloader(ServerReloader):
@@ -186,10 +188,10 @@ class JuriggedReloader(ServerReloader):
         watch_dirs: list[str],
         watch_module: ModuleType,
         stop_event: threading.Event,
-        demo_name: str = "demo",
+        demo_name: str,
     ):
         self.app = app
-        self.demo_name = self.find_demo_name(watch_module, demo_name)
+        self.demo_name = self.get_demo_name(watch_module, demo_name)
         self.watch_dirs = watch_dirs
         self.watch_module = watch_module
         self._stop_event = stop_event
@@ -212,7 +214,7 @@ class SourceFileReloader(ServerReloader):
         demo_file: str,
         watch_module: ModuleType,
         stop_event: threading.Event,
-        demo_name: str = "demo",
+        demo_name: str,
         encoding="utf-8",
     ) -> None:
         super().__init__()
@@ -220,7 +222,7 @@ class SourceFileReloader(ServerReloader):
         self.watch_dirs = watch_dirs
         self.watch_module_name = watch_module_name
         self._stop_event = stop_event
-        self.demo_name = self.find_demo_name(watch_module, demo_name)
+        self.demo_name = self.get_demo_name(watch_module, demo_name)
         self.demo_file = Path(demo_file)
         self.watch_module = watch_module
         self.encoding = encoding

@@ -35,7 +35,7 @@ GRADIO_WATCH_DIRS = (
     os.getenv("GRADIO_WATCH_DIRS", "").split(",") if should_watch else []
 )
 GRADIO_WATCH_MODULE_NAME = os.getenv("GRADIO_WATCH_MODULE_NAME", "app")
-GRADIO_WATCH_DEMO_NAME = os.getenv("GRADIO_WATCH_DEMO_NAME", "demo")
+GRADIO_WATCH_DEMO_NAME = os.getenv("GRADIO_WATCH_DEMO_NAME", "")
 GRADIO_WATCH_DEMO_PATH = os.getenv("GRADIO_WATCH_DEMO_PATH", "")
 
 
