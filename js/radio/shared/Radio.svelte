@@ -13,17 +13,16 @@
 	const dispatch = createEventDispatcher<{ input: string | number }>();
 	let is_selected = false;
 
-	async function handle_input(
-		selected: string | null,
-		internal_value: string | number
-	): Promise<void> {
-		is_selected = selected === internal_value;
-		if (is_selected) {
+	$: is_selected = selected === internal_value;
+
+	function handle_input(
+		e: Event & { currentTarget: EventTarget & HTMLInputElement }
+	): void {
+		is_selected = e.currentTarget.checked;
+		if (e.currentTarget.checked) {
 			dispatch("input", internal_value);
 		}
 	}
-
-	$: handle_input(selected, internal_value);
 </script>
 
 <label
@@ -39,6 +38,7 @@
 		value={internal_value}
 		aria-checked={is_selected}
 		bind:group={selected}
+		on:input={handle_input}
 	/>
 	<span>{display_value}</span>
 </label>
