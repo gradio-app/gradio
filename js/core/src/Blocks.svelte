@@ -623,6 +623,33 @@
 
 			/* eslint-disable complexity */
 			function handle_status_update(message: StatusMessage): void {
+				if (message.code === "validation_error") {
+					const dep = dependencies.find((dep) => dep.id === message.fn_index);
+					const validation_error_data = [];
+
+					message.message.forEach((message, i) => {
+						if (message.is_valid) {
+							return;
+						}
+						validation_error_data.push({
+							id: dep.inputs[i],
+							prop: "validation_error",
+							value: message.message
+						});
+					});
+
+					update_value(validation_error_data);
+					loading_status.update({
+						status: "complete",
+						fn_index: message.fn_index,
+						eta: 0,
+						queue: false,
+						queue_position: null
+					});
+					set_status($loading_status);
+
+					return;
+				}
 				if (message.broken && !broken_connection) {
 					messages = [
 						new_message(
