@@ -2404,6 +2404,7 @@ Received inputs:
             "pwa": self.pwa,
             "pages": self.pages,
             "page": {},
+            "navbar": self.get_navbar_config(),
             "mcp_server": self.mcp_server,
             "i18n_translations": (
                 getattr(self.i18n_instance, "translations_dict", None)
@@ -2531,8 +2532,37 @@ Received inputs:
                         "another event without enabling the queue. Both can be solved by calling .queue() "
                         "before .launch()"
                     )
-            if dep.batch and dep.queue is False:
-                raise ValueError("In order to use batching, the queue must be enabled.")
+
+    def validate_navbar_settings(self):
+        """Validates that only one Navbar component exists in the Blocks app."""
+        from gradio.components.navbar import Navbar
+
+        navbar_components = [
+            block for block in self.blocks.values() if isinstance(block, Navbar)
+        ]
+
+        if len(navbar_components) > 1:
+            raise ValueError(
+                "Only one gr.Navbar component can exist per Blocks app. "
+                f"Found {len(navbar_components)} Navbar components. "
+                "Please remove the extra Navbar components."
+            )
+
+    def get_navbar_config(self) -> dict | None:
+        """Gets the configuration from the Navbar component if it exists."""
+        from gradio.components.navbar import Navbar
+
+        navbar_components = [
+            block for block in self.blocks.values() if isinstance(block, Navbar)
+        ]
+
+        if navbar_components:
+            navbar = navbar_components[0]
+            return {
+                "visible": navbar.visible,
+                "home_page_title": navbar.home_page_title,
+            }
+        return None
 
     def launch(
         self,
@@ -2712,6 +2742,7 @@ Received inputs:
             raise ValueError("`blocked_paths` must be a list of directories.")
 
         self.validate_queue_settings()
+        self.validate_navbar_settings()
         self.max_file_size = utils._parse_file_size(max_file_size)
 
         if self.dev_mode:

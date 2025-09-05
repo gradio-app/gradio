@@ -82,4 +82,63 @@ if __name__ == "__main__":
 
 This allows you to run each page as an independent Gradio app for testing, while also creating a single file `app.py` that serves as the entrypoint for the complete multipage app.
 
+## Customizing the Navbar
+
+By default, Gradio automatically generates a navigation bar for multipage apps that displays all your pages with "Home" as the title for the main page. You can customize the navbar behavior using the `gr.Navbar` component:
+
+```python
+import gradio as gr
+
+with gr.Blocks() as demo:
+    # Customize the navbar
+    navbar = gr.Navbar(
+        visible=True,                    # Show/hide the navbar
+        home_page_title="Dashboard"      # Custom title for the home page
+    )
+    
+    gr.Textbox(label="Main page content")
+
+with demo.route("Settings"):
+    gr.Textbox(label="Settings page")
+
+demo.launch()
+```
+
+The `gr.Navbar` component accepts the following parameters:
+
+- `visible` (bool, default: True): Whether the navbar is visible. Set to `False` to hide the navbar entirely.
+- `home_page_title` (str, default: "Home"): The title to display for the home page in the navbar.
+
+**Important Notes:**
+- Only one `gr.Navbar` component can exist per Blocks app. If you try to add multiple navbar components, an error will be raised.
+- The `gr.Navbar` component can be placed anywhere within your main Blocks context - its properties apply globally to the entire multipage app.
+- If no `gr.Navbar` component is present, the default navbar behavior is used (visible with "Home" as the home page title).
+
+Here's an example showing different navbar configurations:
+
+```python
+import gradio as gr
+
+# Example 1: Custom home page title
+with gr.Blocks(title="My App") as demo1:
+    navbar = gr.Navbar(home_page_title="Dashboard")
+    gr.Markdown("Welcome to the dashboard!")
+
+with demo1.route("About"):
+    gr.Markdown("About page")
+
+# Example 2: Hidden navbar
+with gr.Blocks(title="No Navbar App") as demo2:
+    navbar = gr.Navbar(visible=False)
+    gr.Markdown("This app has no visible navbar")
+
+with demo2.route("Hidden Page"):
+    gr.Markdown("You won't see navigation to this page")
+
+demo1.launch(server_port=7860)
+# demo2.launch(server_port=7861)  # Uncomment to test the second example
+```
+
+You can also dynamically update the navbar properties using standard Gradio event handling, just like with any other component.
+
 

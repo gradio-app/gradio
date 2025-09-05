@@ -16,9 +16,20 @@
 	export let pages: [string, string][] = [];
 	export let current_page = "";
 	export let root: string;
+	export let navbar: {visible: boolean, home_page_title: string} | null = null;
 
 	const set_page: ((page: string) => void) | undefined =
 		getContext("set_lite_page");
+	
+	// Computed properties for navbar configuration
+	$: show_navbar = pages.length > 1 && (navbar === null || navbar.visible);
+	$: effective_pages = navbar && navbar.home_page_title !== "Home" 
+		? pages.map(([route, label], index) => 
+			index === 0 && route === "" && label === "Home"
+				? [route, navbar.home_page_title] as [string, string]
+				: [route, label] as [string, string]
+		  )
+		: pages;
 </script>
 
 <div
@@ -31,10 +42,10 @@
 	style:flex-grow={!display ? "1" : "auto"}
 	data-iframe-height
 >
-	{#if pages.length > 1}
+	{#if show_navbar}
 		<div class="nav-holder">
 			<nav class="fillable" class:fill_width>
-				{#each pages as [route, label], i}
+				{#each effective_pages as [route, label], i}
 					{#if is_lite}
 						<button
 							class:active={route === current_page}

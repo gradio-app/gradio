@@ -532,6 +532,7 @@
 	{pages}
 	{current_page}
 	{root}
+	navbar={config?.navbar}
 	{is_lite}
 	bind:wrapper
 >
