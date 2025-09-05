@@ -23,24 +23,19 @@
 	const set_page: ((page: string) => void) | undefined =
 		getContext("set_lite_page");
 	
-	// Initialize navbar from components list on first load
 	let navbar_component = components.find(c => c.type === "navbar");
 	let navbar = navbar_component ? {
 		visible: navbar_component.props.visible,
 		home_page_title: navbar_component.props.home_page_title
 	} : null;
 	
-	// Set initial value in store if navbar exists
 	if (navbar) {
 		navbar_config.set(navbar);
 	}
 	
-	// Subscribe to navbar store for dynamic updates
 	$: if ($navbar_config) {
 		navbar = $navbar_config;
 	}
-	
-	// Computed properties for navbar configuration
 	$: show_navbar = pages.length > 1 && (navbar === null || navbar.visible);
 	$: effective_pages = navbar && navbar.home_page_title !== "Home" 
 		? pages.map(([route, label], index) => 
