@@ -323,8 +323,8 @@ def postprocess_image(
     | str
     | Path
     | tuple[
-        np.ndarray | PIL.Image.Image | str | Path,
-        np.ndarray | PIL.Image.Image | str | Path,
+        np.ndarray | PIL.Image.Image | str | Path | None,
+        np.ndarray | PIL.Image.Image | str | Path | None,
     ]
     | None,
     cache_dir: str,
