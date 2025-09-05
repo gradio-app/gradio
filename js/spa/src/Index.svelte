@@ -533,7 +533,6 @@
 	{current_page}
 	{root}
 	components={config?.components || []}
-	navbar_update_id={config?.navbar_update_id || 0}
 	{is_lite}
 	bind:wrapper
 >
