@@ -17,16 +17,29 @@
 	export let current_page = "";
 	export let root: string;
 	export let components: any[] = [];
+	export let navbar_update_id: number = 0;
 
 	const set_page: ((page: string) => void) | undefined =
 		getContext("set_lite_page");
 	
-	// Find navbar component from components list
+	// Find navbar component from components list - reactive to navbar_update_id
 	$: navbar_component = components.find(c => c.type === "navbar");
 	$: navbar = navbar_component ? {
 		visible: navbar_component.props.visible,
 		home_page_title: navbar_component.props.home_page_title
 	} : null;
+	
+	// Force reactivity to navbar_update_id changes - this will re-trigger navbar extraction
+	$: if (navbar_update_id >= 0) {
+		// Re-extract navbar when update ID changes
+		const updated_navbar_component = components.find(c => c.type === "navbar");
+		if (updated_navbar_component) {
+			navbar = {
+				visible: updated_navbar_component.props.visible,
+				home_page_title: updated_navbar_component.props.home_page_title
+			};
+		}
+	}
 	
 	// Computed properties for navbar configuration
 	$: show_navbar = pages.length > 1 && (navbar === null || navbar.visible);
