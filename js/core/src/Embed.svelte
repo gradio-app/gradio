@@ -3,7 +3,7 @@
 	import space_logo from "./images/spaces.svg";
 	import { _ } from "svelte-i18n";
 	import { navbar_config } from "./navbar_store";
-	
+
 	export let wrapper: HTMLDivElement;
 	export let version: string;
 	export let initial_height: string;
@@ -22,28 +22,36 @@
 
 	const set_page: ((page: string) => void) | undefined =
 		getContext("set_lite_page");
-	
-	let navbar_component = components.find(c => c.type === "navbar");
-	let navbar = navbar_component ? {
-		visible: navbar_component.props.visible,
-		home_page_title: navbar_component.props.home_page_title
-	} : null;
-	
+
+	let navbar_component = components.find((c) => c.type === "navbar");
+	let navbar: { visible: boolean; home_page_title: string } | null =
+		navbar_component
+			? {
+					visible: navbar_component.props.visible,
+					home_page_title: navbar_component.props.home_page_title
+				}
+			: null;
+
 	if (navbar) {
 		navbar_config.set(navbar);
 	}
-	
+
 	$: if ($navbar_config) {
-		navbar = $navbar_config;
+		navbar = {
+			visible: $navbar_config.visible ?? true,
+			home_page_title: $navbar_config.home_page_title ?? "Home"
+		};
 	}
-	$: show_navbar = pages.length > 1 && (navbar === null || navbar.visible);
-	$: effective_pages = navbar && navbar.home_page_title !== "Home" 
-		? pages.map(([route, label], index) => 
-			index === 0 && route === "" && label === "Home"
-				? [route, navbar.home_page_title] as [string, string]
-				: [route, label] as [string, string]
-		  )
-		: pages;
+	$: show_navbar =
+		pages.length > 1 && (navbar === null || navbar.visible !== false);
+	$: effective_pages =
+		navbar && navbar.home_page_title !== "Home"
+			? pages.map(([route, label], index) =>
+					index === 0 && route === "" && label === "Home"
+						? ([route, navbar!.home_page_title] as [string, string])
+						: ([route, label] as [string, string])
+				)
+			: pages;
 </script>
 
 <div
