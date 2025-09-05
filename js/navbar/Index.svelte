@@ -17,22 +17,16 @@
 		clear_status: LoadingStatus;
 	}>;
 
-	// Initialize store only once, then let network updates in Blocks.svelte handle it
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	
 	onMount(() => {
-		// Only initialize if store is empty/null
 		const current_store = get(navbar_config);
 		if (!current_store) {
-			const navbar_data = {
+			navbar_config.set({
 				visible: visible,
 				home_page_title: value?.home_page_title || "Home"
-			};
-			console.log("Navbar component initializing store:", navbar_data);
-			navbar_config.set(navbar_data);
-		} else {
-			console.log("Navbar component found existing store, not overriding:", current_store);
+			});
 		}
 	});
 </script>
