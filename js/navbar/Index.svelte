@@ -1,3 +1,4 @@
+<!-- Configuration-only component that stores navbar props in a global store. The actual navbar UI is in Embed.svelte -->
 <script lang="ts">
 	import { navbar_config } from "@gradio/core/navbar_store";
 	import { onMount } from 'svelte';
@@ -8,7 +9,6 @@
 	export let visible = true;
 	export let home_page_title = "Home";
 	
-	// Get all navbar-specific props dynamically
 	$: navbar_props = { visible, home_page_title };
 	
 	onMount(() => {
@@ -18,7 +18,6 @@
 		}
 	});
 	
-	// Update store when props change (for network updates)
 	$: {
 		navbar_config.set(navbar_props);
 	}

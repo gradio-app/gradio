@@ -255,7 +255,7 @@
 		});
 		update_value(updates);
 
-		// Handle navbar updates - update the global navbar store
+		// Handle navbar updates separately since they need to be updated in the store.
 		updates.forEach((update) => {
 			const component = components.find((comp) => comp.id === update.id);
 			if (component && component.type === "navbar") {
