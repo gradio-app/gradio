@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 from typing import Annotated, Any
 
-import requests
+import httpx
 import tomlkit as toml
 from typer import Argument, Option
 
@@ -122,7 +122,7 @@ def run_command(
     with open(_demo_path, encoding="utf-8") as f:
         demo = f.read()
 
-    pypi_exists = requests.get(f"https://pypi.org/pypi/{name}/json").status_code
+    pypi_exists = httpx.get(f"https://pypi.org/pypi/{name}/json").status_code
 
     pypi_exists = pypi_exists == 200 or False
 
