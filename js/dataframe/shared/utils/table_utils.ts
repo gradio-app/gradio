@@ -1,4 +1,10 @@
-import type { Headers, HeadersWithIDs, TableCell, TableData } from "../types";
+import type {
+	CellValue,
+	Headers,
+	HeadersWithIDs,
+	TableCell,
+	TableData
+} from "../types";
 import { sort_data } from "./sort_utils";
 import { filter_data } from "./filter_utils";
 import type { SortDirection } from "./sort_utils";
@@ -173,7 +179,7 @@ export function data_uri_to_blob(data_uri: string): Blob {
 export function handle_file_upload(
 	data_uri: string,
 	update_headers: (headers: Headers) => HeadersWithIDs[],
-	update_values: (values: (string | number)[][]) => void
+	update_values: (values: CellValue[][]) => void
 ): void {
 	const blob = data_uri_to_blob(data_uri);
 	const reader = new FileReader();
