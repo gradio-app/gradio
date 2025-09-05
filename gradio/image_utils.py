@@ -155,7 +155,7 @@ def open_image(orig_img: np.ndarray | PIL.Image.Image | str | Path) -> PIL.Image
         open_img = orig_img
     else:
         raise ValueError(
-            "Expected filepath for image of type png, bmp or jpeg; PIL image; or numpy array. Received  "
+            "Expected filepath for image of type webp, png, bmp or jpeg; PIL image; or numpy array. Received  "
             + str(type(orig_img))
         )
     return open_img
@@ -345,7 +345,7 @@ def postprocess_image(
             url=f"data:image/svg+xml,{quote(svg_content)}",
         )
     # Handling for watermark files. This currently loses the option for svg content.
-    elif isinstance(value, (tuple, list)):
+    if isinstance(value, tuple):
         if value[0] is None:
             return None
         if len(value) != 2:
@@ -354,15 +354,15 @@ def postprocess_image(
             )
         if not (
             isinstance(value[0], (np.ndarray, PIL.Image.Image, str, Path))
-            and isinstance(value[1], (str, Path))
+            and isinstance(value[1], (np.ndarray, PIL.Image.Image, str, Path))
         ):
             raise TypeError(
                 f"If a tuple is provided, the first must be an Image, string, or Path object for the base image, and the second must be an Image, string, or Path object for the watermarking image. Received: {value}"
             )
-        if (isinstance(value[0], (str, Path)) and value[0].endswith("svg")) or (
-            isinstance(value[1], (str, Path)) and value[1].endswith("svg")
+        if (isinstance(value[0], (str, Path)) and str(value[0]).lower().endswith("svg")) or (
+            isinstance(value[1], (str, Path)) and str(value[1]).lower().endswith("svg")
         ):
-            raise Error("SVG files are not currently supported for watermarking.")
+            raise Error("SVG files are not currently supported for watermarking, sorry!")
         base_img = value[0]
         watermark_file = value[1]
         watermarked_image = add_watermark(base_img, watermark_file)
