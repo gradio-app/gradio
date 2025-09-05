@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-feat:Remove requests
+fix:Remove requests
