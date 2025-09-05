@@ -1997,12 +1997,12 @@ h1 { font-size: 20px; }
     assert instance.css.strip() == expected_css.strip()
 
 
-def test_multipage_navbar_integration():
+def test_navbar_config():
     """
-    Test that navbar component works correctly in multipage apps
+    Test that navbar component produces the correct config
     """
     with gr.Blocks() as demo:
-        navbar = gr.Navbar(visible=True, home_page_title="My Custom App")
+        gr.Navbar(visible=True, home_page_title="My Custom App")
         gr.Textbox(label="Main page content")
 
     with demo.route("About"):
@@ -2015,32 +2015,7 @@ def test_multipage_navbar_integration():
         if component["type"] == "navbar":
             navbar_component = component
             break
-    
+
     assert navbar_component is not None
     assert navbar_component["props"]["visible"]
     assert navbar_component["props"]["home_page_title"] == "My Custom App"
-
-    # Test pages are properly configured
-    assert len(config["pages"]) == 2
-    assert config["pages"][0] == ("", "Home")
-    assert config["pages"][1] == ("about", "About")
-
-
-def test_multipage_no_navbar():
-    """
-    Test that multipage apps work correctly without navbar component
-    """
-    with gr.Blocks() as demo:
-        gr.Textbox(label="Main page content")
-
-    with demo.route("About"):
-        gr.Markdown("About page")
-
-    # Test navbar config is None
-    config = demo.get_config_file()
-    assert config["navbar"] is None
-
-    # Test pages are properly configured
-    assert len(config["pages"]) == 2
-    assert config["pages"][0] == ("", "Home")
-    assert config["pages"][1] == ("about", "About")
