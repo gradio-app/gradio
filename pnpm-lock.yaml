@@ -2005,6 +2005,9 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
+      '@gradio/core':
+        specifier: workspace:^
+        version: link:../core
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker

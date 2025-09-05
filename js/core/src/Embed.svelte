@@ -2,6 +2,8 @@
 	import { getContext } from "svelte";
 	import space_logo from "./images/spaces.svg";
 	import { _ } from "svelte-i18n";
+	import { navbar_config } from "./navbar_store";
+	
 	export let wrapper: HTMLDivElement;
 	export let version: string;
 	export let initial_height: string;
@@ -17,28 +19,25 @@
 	export let current_page = "";
 	export let root: string;
 	export let components: any[] = [];
-	export let navbar_update_id: number = 0;
 
 	const set_page: ((page: string) => void) | undefined =
 		getContext("set_lite_page");
 	
-	// Find navbar component from components list - reactive to navbar_update_id
-	$: navbar_component = components.find(c => c.type === "navbar");
-	$: navbar = navbar_component ? {
+	// Initialize navbar from components list on first load
+	let navbar_component = components.find(c => c.type === "navbar");
+	let navbar = navbar_component ? {
 		visible: navbar_component.props.visible,
 		home_page_title: navbar_component.props.home_page_title
 	} : null;
 	
-	// Force reactivity to navbar_update_id changes - this will re-trigger navbar extraction
-	$: if (navbar_update_id >= 0) {
-		// Re-extract navbar when update ID changes
-		const updated_navbar_component = components.find(c => c.type === "navbar");
-		if (updated_navbar_component) {
-			navbar = {
-				visible: updated_navbar_component.props.visible,
-				home_page_title: updated_navbar_component.props.home_page_title
-			};
-		}
+	// Set initial value in store if navbar exists
+	if (navbar) {
+		navbar_config.set(navbar);
+	}
+	
+	// Subscribe to navbar store for dynamic updates
+	$: if ($navbar_config) {
+		navbar = $navbar_config;
 	}
 	
 	// Computed properties for navbar configuration

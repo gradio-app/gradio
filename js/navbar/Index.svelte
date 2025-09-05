@@ -2,6 +2,7 @@
 	import type { Gradio } from "@gradio/utils";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
+	import { navbar_config } from "@gradio/core/navbar_store";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -15,6 +16,17 @@
 		change: never;
 		clear_status: LoadingStatus;
 	}>;
+
+	// Update the global navbar store whenever value or visible changes
+	$: navbar_data = {
+		visible: visible,
+		home_page_title: value?.home_page_title || "Home"
+	};
+	
+	$: {
+		console.log("Navbar component updating store with:", navbar_data);
+		navbar_config.set(navbar_data);
+	}
 </script>
 
 <!-- 

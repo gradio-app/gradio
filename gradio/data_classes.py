@@ -412,7 +412,6 @@ class BlocksConfigDict(TypedDict):
     current_page: NotRequired[str]
     i18n_translations: NotRequired[dict[str, dict[str, str]] | None]
     mcp_server: NotRequired[bool]
-    navbar_update_id: NotRequired[int]
 
 
 class MediaStreamChunk(TypedDict):

@@ -2404,7 +2404,6 @@ Received inputs:
             "pwa": self.pwa,
             "pages": self.pages,
             "page": {},
-            "navbar_update_id": getattr(self, "_navbar_update_id", 0),
             "mcp_server": self.mcp_server,
             "i18n_translations": (
                 getattr(self.i18n_instance, "translations_dict", None)

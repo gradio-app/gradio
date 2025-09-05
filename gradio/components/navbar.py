@@ -104,13 +104,6 @@ class Navbar(Component):
             if "home_page_title" in value:
                 self.home_page_title = value["home_page_title"]
             
-            # Signal that navbar has been updated by changing the navbar_update_id
-            # This will trigger frontend to refresh navbar config
-            from gradio.blocks import Context
-            if hasattr(Context, 'root_block') and Context.root_block:
-                if not hasattr(Context.root_block, '_navbar_update_id'):
-                    Context.root_block._navbar_update_id = 0
-                Context.root_block._navbar_update_id += 1
         
         return value
 
