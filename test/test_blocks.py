@@ -2008,7 +2008,6 @@ def test_navbar_config():
     with demo.route("About"):
         gr.Markdown("About page")
 
-    # Test navbar config is properly integrated
     config = demo.get_config_file()
     navbar_component = None
     for component in config["components"]:
