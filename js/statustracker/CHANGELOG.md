@@ -1,5 +1,16 @@
 # @gradio/statustracker
 
+## 0.10.19
+
+### Fixes
+
+- [#11816](https://github.com/gradio-app/gradio/pull/11816) [`77deb72`](https://github.com/gradio-app/gradio/commit/77deb72cb29b412b415a86908255a2294e8b50d9) - Set Progress Animation to cover component height.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/icons@0.14.0
+- @gradio/atoms@0.16.6
+
 ## 0.10.18
 
 ### Fixes
