@@ -357,7 +357,7 @@ def postprocess_image(
             and isinstance(value[1], (str, Path))
         ):
             raise TypeError(
-                f"If a tuple is provided, the first must be an Image, string, or Path object for the base image, and the second must be a string or Path object for the watermarking image. Received: {value}"
+                f"If a tuple is provided, the first must be an Image, string, or Path object for the base image, and the second must be an Image, string, or Path object for the watermarking image. Received: {value}"
             )
         if (isinstance(value[0], (str, Path)) and value[0].endswith("svg")) or (
             isinstance(value[1], (str, Path)) and value[1].endswith("svg")
