@@ -260,18 +260,27 @@
 			const component = components.find((comp) => comp.id === update.id);
 			if (component && component.type === "navbar") {
 				console.log("Navbar component updated via network response:", update);
+				console.log("Update prop:", update.prop, "Update value:", update.value);
 				// Import the navbar_config store dynamically to avoid circular imports
 				import("./navbar_store").then(({ navbar_config }) => {
 					if (update.prop === "visible") {
+						console.log("Updating navbar visibility to:", update.value);
 						navbar_config.update((current) => ({
 							visible: update.value,
 							home_page_title: current?.home_page_title || "Home"
 						}));
 					} else if (update.prop === "value" && typeof update.value === "object") {
+						console.log("Updating navbar value to:", update.value);
 						navbar_config.set({
 							visible: update.value.visible ?? true,
 							home_page_title: update.value.home_page_title ?? "Home"
 						});
+					} else if (update.prop === "home_page_title") {
+						console.log("Updating navbar home_page_title to:", update.value);
+						navbar_config.update((current) => ({
+							visible: current?.visible ?? true,
+							home_page_title: update.value
+						}));
 					}
 				});
 			}
