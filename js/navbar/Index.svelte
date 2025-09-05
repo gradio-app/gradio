@@ -8,15 +8,20 @@
 	export let visible = true;
 	export let home_page_title = "Home";
 	
+	// Get all navbar-specific props dynamically
+	$: navbar_props = { visible, home_page_title };
+	
 	onMount(() => {
 		const current_store = get(navbar_config);
 		if (!current_store) {
-			navbar_config.set({
-				visible: visible,
-				home_page_title: home_page_title
-			});
+			navbar_config.set(navbar_props);
 		}
 	});
+	
+	// Update store when props change (for network updates)
+	$: {
+		navbar_config.set(navbar_props);
+	}
 </script>
 
 <div style="display: none;" {elem_id} class={elem_classes.join(" ")}>

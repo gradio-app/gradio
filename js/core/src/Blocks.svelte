@@ -260,22 +260,10 @@
 			const component = components.find((comp) => comp.id === update.id);
 			if (component && component.type === "navbar") {
 				import("./navbar_store").then(({ navbar_config }) => {
-					if (update.prop === "visible") {
-						navbar_config.update((current) => ({
-							visible: update.value,
-							home_page_title: current?.home_page_title || "Home"
-						}));
-					} else if (update.prop === "value" && typeof update.value === "object") {
-						navbar_config.set({
-							visible: update.value.visible ?? true,
-							home_page_title: update.value.home_page_title ?? "Home"
-						});
-					} else if (update.prop === "home_page_title") {
-						navbar_config.update((current) => ({
-							visible: current?.visible ?? true,
-							home_page_title: update.value
-						}));
-					}
+					navbar_config.update((current) => ({
+						...current,
+						[update.prop]: update.value
+					}));
 				});
 			}
 		});
