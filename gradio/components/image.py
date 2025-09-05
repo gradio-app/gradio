@@ -236,7 +236,9 @@ class Image(StreamingInput, Component):
             Returns the image as a `FileData` object.
         """
         if self.watermark is not None:
-            value = (value, self.watermark)
+            return image_utils.postprocess_image(
+                (value, self.watermark), cache_dir=self.GRADIO_CACHE, format=self.format
+            )
         return image_utils.postprocess_image(
             value,
             cache_dir=self.GRADIO_CACHE,
