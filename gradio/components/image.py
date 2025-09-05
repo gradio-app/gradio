@@ -92,6 +92,7 @@ class Image(StreamingInput, Component):
         placeholder: str | None = None,
         show_fullscreen_button: bool = True,
         webcam_constraints: dict[str, Any] | None = None,
+        watermark: str | Path | PIL.Image.Image | np.ndarray | None = None,
     ):
         """
         Parameters:
@@ -123,6 +124,7 @@ class Image(StreamingInput, Component):
             placeholder: Custom text for the upload area. Overrides default upload messages when provided. Accepts new lines and `#` to designate a heading.
             show_fullscreen_button: If True, will show a fullscreen icon in the corner of the component that allows user to view the image in fullscreen mode. If False, icon does not appear.
             webcam_constraints: A dictionary that allows developers to specify custom media constraints for the webcam stream. This parameter provides flexibility to control the video stream's properties, such as resolution and front or rear camera on mobile devices. See $demo/webcam_constraints
+            watermark: an image or image filepath to be included as a watermark on the video. The image is scaled to 1/5th the original image size and is displayed on the bottom right of the image. Valid tested formats for the image are: jpeg, png, bmp.
         """
         self.format = format
 
@@ -178,6 +180,7 @@ class Image(StreamingInput, Component):
         )
         self.show_fullscreen_button = show_fullscreen_button
         self.placeholder = placeholder
+        self.watermark = watermark
 
         super().__init__(
             label=label,
@@ -232,6 +235,8 @@ class Image(StreamingInput, Component):
         Returns:
             Returns the image as a `FileData` object.
         """
+        if self.watermark is not None:
+            value = (value, self.watermark)
         return image_utils.postprocess_image(
             value,
             cache_dir=self.GRADIO_CACHE,
