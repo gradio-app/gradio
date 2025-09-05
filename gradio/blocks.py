@@ -2404,7 +2404,6 @@ Received inputs:
             "pwa": self.pwa,
             "pages": self.pages,
             "page": {},
-            "navbar": self.get_navbar_config(),
             "mcp_server": self.mcp_server,
             "i18n_translations": (
                 getattr(self.i18n_instance, "translations_dict", None)
@@ -2547,22 +2546,6 @@ Received inputs:
                 f"Found {len(navbar_components)} Navbar components. "
                 "Please remove the extra Navbar components."
             )
-
-    def get_navbar_config(self) -> dict | None:
-        """Gets the configuration from the Navbar component if it exists."""
-        from gradio.components.navbar import Navbar
-
-        navbar_components = [
-            block for block in self.blocks.values() if isinstance(block, Navbar)
-        ]
-
-        if navbar_components:
-            navbar = navbar_components[0]
-            return {
-                "visible": navbar.visible,
-                "home_page_title": navbar.home_page_title,
-            }
-        return None
 
     def launch(
         self,

@@ -532,7 +532,7 @@
 	{pages}
 	{current_page}
 	{root}
-	navbar={config?.navbar}
+	components={config?.components || []}
 	{is_lite}
 	bind:wrapper
 >

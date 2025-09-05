@@ -2010,9 +2010,15 @@ def test_multipage_navbar_integration():
 
     # Test navbar config is properly integrated
     config = demo.get_config_file()
-    assert config["navbar"] is not None
-    assert config["navbar"]["visible"] == True
-    assert config["navbar"]["home_page_title"] == "My Custom App"
+    navbar_component = None
+    for component in config["components"]:
+        if component["type"] == "navbar":
+            navbar_component = component
+            break
+    
+    assert navbar_component is not None
+    assert navbar_component["props"]["visible"]
+    assert navbar_component["props"]["home_page_title"] == "My Custom App"
 
     # Test pages are properly configured
     assert len(config["pages"]) == 2

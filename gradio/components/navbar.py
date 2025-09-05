@@ -2,17 +2,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any
 
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.events import Events
-from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
-    from gradio.components import Timer
+    pass
 
 
 @document()
@@ -43,6 +41,7 @@ class Navbar(Component):
 
     def __init__(
         self,
+        value: dict | None = None,
         *,
         visible: bool = True,
         home_page_title: str = "Home",
@@ -53,6 +52,7 @@ class Navbar(Component):
     ):
         """
         Parameters:
+            value: Dummy parameter for compatibility (unused).
             visible: If True, the navbar will be visible. If False, the navbar will be hidden.
             home_page_title: The title to display for the home page in the navbar.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -68,6 +68,7 @@ class Navbar(Component):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            visible=visible,
             value={"visible": visible, "home_page_title": home_page_title},
         )
 

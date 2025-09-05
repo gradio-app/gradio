@@ -16,10 +16,17 @@
 	export let pages: [string, string][] = [];
 	export let current_page = "";
 	export let root: string;
-	export let navbar: {visible: boolean, home_page_title: string} | null = null;
+	export let components: any[] = [];
 
 	const set_page: ((page: string) => void) | undefined =
 		getContext("set_lite_page");
+	
+	// Find navbar component from components list
+	$: navbar_component = components.find(c => c.type === "navbar");
+	$: navbar = navbar_component ? {
+		visible: navbar_component.props.visible,
+		home_page_title: navbar_component.props.home_page_title
+	} : null;
 	
 	// Computed properties for navbar configuration
 	$: show_navbar = pages.length > 1 && (navbar === null || navbar.visible);

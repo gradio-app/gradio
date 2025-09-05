@@ -87,10 +87,17 @@ class TestNavbar:
             navbar = gr.Navbar(visible=False, home_page_title="Custom Home")
             gr.Textbox(label="Content")
 
-        navbar_config = demo.get_navbar_config()
-        assert navbar_config is not None
-        assert navbar_config["visible"] == False
-        assert navbar_config["home_page_title"] == "Custom Home"
+        # Get full config and find navbar component
+        config = demo.get_config_file()
+        navbar_component = None
+        for component in config["components"]:
+            if component["type"] == "navbar":
+                navbar_component = component
+                break
+        
+        assert navbar_component is not None
+        assert not navbar_component["props"]["visible"]
+        assert navbar_component["props"]["home_page_title"] == "Custom Home"
 
     def test_no_navbar_config_integration(self):
         """
@@ -99,5 +106,12 @@ class TestNavbar:
         with gr.Blocks() as demo:
             gr.Textbox(label="Content")
 
-        navbar_config = demo.get_navbar_config()
-        assert navbar_config is None
+        # Get full config and check no navbar component exists
+        config = demo.get_config_file()
+        navbar_component = None
+        for component in config["components"]:
+            if component["type"] == "navbar":
+                navbar_component = component
+                break
+        
+        assert navbar_component is None
