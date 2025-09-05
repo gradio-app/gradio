@@ -385,8 +385,6 @@
 	pages={config.pages}
 	current_page={config.current_page}
 	root={config.root}
-	components={config.components}
-	navbar_update_id={config.navbar_update_id || 0}
 	loaded={loader_status === "complete"}
 	fill_width={config?.fill_width || false}
 	bind:wrapper
