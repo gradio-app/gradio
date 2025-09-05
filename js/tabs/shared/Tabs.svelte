@@ -49,6 +49,7 @@
 	let tab_els: Record<string | number, HTMLElement> = {};
 
 	onMount(() => {
+		if (!tab_nav_el) return;
 		const observer = new IntersectionObserver((entries) => {
 			handle_menu_overflow();
 		});
@@ -188,6 +189,7 @@
 						<button
 							role="tab"
 							class:selected={t.id === $selected_tab}
+							class:completed={$selected_tab > t.id}
 							aria-selected={t.id === $selected_tab}
 							aria-controls={t.elem_id}
 							disabled={!t.interactive}
@@ -222,7 +224,9 @@
 					{#each overflow_tabs as t}
 						{#if t?.visible}
 							<button
-								on:click={() => change_tab(t?.id)}
+								on:click={() => {
+									change_tab(t?.id);
+								}}
 								class:selected={t?.id === $selected_tab}
 							>
 								{t?.label}
@@ -266,7 +270,7 @@
 		height: var(--size-8);
 	}
 
-	.tab-container::after {
+	.tabs .tab-container::after {
 		content: "";
 		position: absolute;
 		bottom: 0;
@@ -281,7 +285,7 @@
 		margin-left: var(--size-2);
 	}
 
-	button {
+	.tabs button {
 		margin-bottom: 0;
 		border: none;
 		border-radius: 0;
@@ -298,23 +302,23 @@
 		position: relative;
 	}
 
-	button:disabled {
+	.tabs button:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
 
-	button:hover:not(:disabled):not(.selected) {
+	.tabs button:hover:not(:disabled):not(.selected) {
 		background-color: var(--background-fill-secondary);
 		color: var(--body-text-color);
 	}
 
-	.selected {
+	.tabs .selected {
 		background-color: transparent;
 		color: var(--color-accent);
 		position: relative;
 	}
 
-	.selected::after {
+	.tabs .selected::after {
 		content: "";
 		position: absolute;
 		bottom: 0;

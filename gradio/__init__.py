@@ -105,6 +105,8 @@ from gradio.layouts import (
     Tab,
     TabItem,
     Tabs,
+    Walkthrough,
+    WalkthroughStep,
 )
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.renderable import render
@@ -242,6 +244,8 @@ __all__ = [
     "UndoData",
     "UploadButton",
     "Video",
+    "Walkthrough",
+    "WalkthroughStep",
     "Warning",
     "WaveformOptions",
     "WebcamOptions",
