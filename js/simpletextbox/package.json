@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/simpletextbox",
-	"version": "0.3.28",
+	"version": "0.3.29",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
