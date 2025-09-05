@@ -92,8 +92,8 @@ import gradio as gr
 with gr.Blocks() as demo:
     # Customize the navbar
     navbar = gr.Navbar(
-        visible=True,                    # Show/hide the navbar
-        home_page_title="Dashboard"      # Custom title for the home page
+        visible=True,
+        home_page_title="Dashboard"
     )
     
     gr.Textbox(label="Main page content")
@@ -103,11 +103,6 @@ with demo.route("Settings"):
 
 demo.launch()
 ```
-
-The `gr.Navbar` component accepts the following parameters:
-
-- `visible` (bool, default: True): Whether the navbar is visible. Set to `False` to hide the navbar entirely.
-- `home_page_title` (str, default: "Home"): The title to display for the home page in the navbar.
 
 **Important Notes:**
 - Only one `gr.Navbar` component can exist per Blocks app. If you try to add multiple navbar components, an error will be raised.
