@@ -41,7 +41,8 @@ def bot(history, response_type):
         }
     elif response_type == "video":
         msg = {"role": "assistant",
-               "content": gr.Video("https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4")
+               "content": gr.Video("https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4",
+                                   label="test")
         }
     elif response_type == "audio":
         msg = {"role": "assistant",
