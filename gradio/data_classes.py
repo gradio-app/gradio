@@ -127,6 +127,7 @@ class ResetBody(BaseModel):
 
 class VibeEditBody(BaseModel):
     prompt: str
+    files: list[FileData] = []
 
 
 class VibeCodeBody(BaseModel):
