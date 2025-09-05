@@ -305,6 +305,9 @@ importers:
       '@gradio/nativeplot':
         specifier: workspace:^
         version: link:js/nativeplot
+      '@gradio/navbar':
+        specifier: workspace:^
+        version: link:js/navbar
       '@gradio/number':
         specifier: workspace:^
         version: link:js/number
@@ -1992,6 +1995,25 @@ importers:
       vega-lite:
         specifier: ^5.17.0
         version: 5.17.0(vega@5.23.0)
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
+
+  js/navbar:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
