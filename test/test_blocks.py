@@ -1995,3 +1995,26 @@ h1 { font-size: 20px; }
         """
 
     assert instance.css.strip() == expected_css.strip()
+
+
+def test_navbar_config():
+    """
+    Test that navbar component produces the correct config
+    """
+    with gr.Blocks() as demo:
+        gr.Navbar(visible=True, home_page_title="My Custom App")
+        gr.Textbox(label="Main page content")
+
+    with demo.route("About"):
+        gr.Markdown("About page")
+
+    config = demo.get_config_file()
+    navbar_component = None
+    for component in config["components"]:
+        if component["type"] == "navbar":
+            navbar_component = component
+            break
+
+    assert navbar_component is not None
+    assert navbar_component["props"]["visible"]
+    assert navbar_component["props"]["home_page_title"] == "My Custom App"
