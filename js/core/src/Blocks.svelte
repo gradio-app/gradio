@@ -255,6 +255,28 @@
 		});
 		update_value(updates);
 
+		// Handle navbar updates - update the global navbar store
+		updates.forEach((update) => {
+			const component = components.find((comp) => comp.id === update.id);
+			if (component && component.type === "navbar") {
+				console.log("Navbar component updated via network response:", update);
+				// Import the navbar_config store dynamically to avoid circular imports
+				import("./navbar_store").then(({ navbar_config }) => {
+					if (update.prop === "visible") {
+						navbar_config.update((current) => ({
+							visible: update.value,
+							home_page_title: current?.home_page_title || "Home"
+						}));
+					} else if (update.prop === "value" && typeof update.value === "object") {
+						navbar_config.set({
+							visible: update.value.visible ?? true,
+							home_page_title: update.value.home_page_title ?? "Home"
+						});
+					}
+				});
+			}
+		});
+
 		await tick();
 	}
 

@@ -69,49 +69,20 @@ class Navbar(Component):
             render=render,
             key=key,
             visible=visible,
-            value={"visible": visible, "home_page_title": home_page_title},
+            value=value,
         )
 
-    def example_payload(self) -> Any:
-        return {"visible": True, "home_page_title": "Home"}
+    def preprocess(self, payload: None) -> None:
+        pass
 
-    def example_value(self) -> Any:
-        return {"visible": True, "home_page_title": "Home"}
-
-    def preprocess(self, payload: dict | None) -> dict | None:
-        """
-        Parameters:
-            payload: Dictionary containing navbar configuration
-        Returns:
-            The same dictionary (no preprocessing needed for navbar config)
-        """
-        return payload
-
-    def postprocess(self, value: dict | None) -> dict | None:
-        """
-        Parameters:
-            value: Dictionary containing navbar configuration with visible and home_page_title keys
-        Returns:
-            Returns the navbar configuration dictionary.
-        """
-        if value is None:
-            return {"visible": True, "home_page_title": "Home"}
-        
-        # Update the component's internal state when postprocessed
-        if isinstance(value, dict):
-            if "visible" in value:
-                self.visible = value["visible"]
-            if "home_page_title" in value:
-                self.home_page_title = value["home_page_title"]
-            
-        
-        return value
+    def postprocess(self, value: None) -> None:
+        pass
 
     def api_info(self) -> dict[str, Any]:
-        return {
-            "type": "object",
-            "properties": {
-                "visible": {"type": "boolean"},
-                "home_page_title": {"type": "string"},
-            },
-        }
+        return {}
+
+    def example_payload(self) -> None:
+        pass
+
+    def example_value(self) -> None:
+        pass
