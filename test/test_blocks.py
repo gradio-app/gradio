@@ -1973,7 +1973,7 @@ def test_navbar_config():
     Test that navbar component produces the correct config
     """
     with gr.Blocks() as demo:
-        gr.Navbar(visible=True, main_page_name="My Custom App")
+        gr.Navbar([("About2", "/about2")], visible=True, main_page_name="My Custom App")
         gr.Textbox(label="Main page content")
 
     with demo.route("About"):
@@ -1987,6 +1987,7 @@ def test_navbar_config():
             break
 
     assert navbar_component is not None
+    assert navbar_component["props"]["value"] == [["About2", "/about2"]]
     assert navbar_component["props"]["visible"]
     assert navbar_component["props"]["main_page_name"] == "My Custom App"
 

@@ -72,18 +72,18 @@ class Navbar(Component):
     def preprocess(
         self, payload: list[tuple[str, str]] | None
     ) -> list[tuple[str, str]] | None:
-        pass
+        return payload
 
     def postprocess(
         self, value: list[tuple[str, str]] | None
     ) -> list[tuple[str, str]] | None:
-        pass
+        return value
 
     def api_info(self) -> dict[str, Any]:
         return {}
 
-    def example_payload(self) -> None:
-        pass
+    def example_payload(self) -> list[tuple[str, str]] | None:
+        return None
 
-    def example_value(self) -> None:
-        pass
+    def example_value(self) -> list[tuple[str, str]] | None:
+        return None
