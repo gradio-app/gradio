@@ -54,7 +54,7 @@
 </script>
 
 <div
-	class="prose markdown {elem_classes?.join(' ') || ''}"
+	class="prose gr-markdown-container {elem_classes?.join(' ') || ''}"
 	class:hide={!visible}
 	data-testid="markdown"
 	dir={rtl ? "rtl" : "ltr"}
@@ -105,7 +105,7 @@
 	.hide {
 		display: none;
 	}
-	.markdown {
+	.gr-markdown-container {
 		white-space: pre-wrap;
 	}
 </style>
