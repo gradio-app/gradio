@@ -1362,4 +1362,3 @@ def extract_validation_message(req: httpx.Response) -> str | None:
             and detail[0]["__type__"] == "validate"
         ):
             return detail[0].get("message", "")
-        return None
