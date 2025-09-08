@@ -6,6 +6,7 @@
 "@gradio/statustracker": minor
 "@gradio/textbox": minor
 "gradio": minor
+"gradio_client": minor
 ---
 
 feat:add validation support
