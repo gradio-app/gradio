@@ -89,7 +89,7 @@ def add_watermark(
     base_img: np.ndarray | PIL.Image.Image | str | Path,
     watermark: np.ndarray | PIL.Image.Image | str | Path,
 ) -> PIL.Image.Image:
-    """Overlays a watermark image on a base image.
+    """Overlays a watermark image on a base image. Watermark is placed bottom right, 10 pixels from the right and bottom of the base image.
     Parameters:
         base_img: Base image onto which the watermark is applied. Can be an array; an Image; a filepath.
         watermark: Watermark image. Can be an array; an Image; a filepath.
@@ -99,42 +99,16 @@ def add_watermark(
     base_img = open_image(base_img)
     base_img_width, base_img_height = base_img.size
     watermark = open_image(watermark)
-    # This automatically scales the watermark image to be 1/5th the size of the base image.
-    watermark.thumbnail((int(base_img_width / 5), int(base_img_height / 5)))
     watermark_width, watermark_height = watermark.size
-
-    # Calculate watermark position (bottom right, 10 px offset, similar to video).
     x = base_img.width - watermark_width - 10
     y = base_img.height - watermark_height - 10
     watermark_position = (x, y)
 
-    # We have to do more image processing if the watermark has transparency and we want to preserve that.
-    if "transparency" in watermark.info or watermark.mode in (
-        "1",
-        "L",
-        "I",
-        "P",
-        "RGBA",
-        "LAB",
-    ):
-        # Get original image mode to convert it back after adding watermark.
-        orig_img_mode = base_img.mode
-
-        # Create transparent layer to paste the watermark on
-        transparent_layer = PIL.Image.new("RGBA", base_img.size, (0, 0, 0, 0))
-        transparent_layer.paste(watermark, watermark_position)
-
-        # Paste watermark onto original image
-        watermarked_img = PIL.Image.alpha_composite(
-            base_img.convert("RGBA"), transparent_layer
-        )
-
-        # Convert back to desired image format
-        watermarked_img = watermarked_img.convert(orig_img_mode)
-    else:
-        base_img.paste(watermark, watermark_position)
-        watermarked_img = base_img
-    return watermarked_img
+    orig_img_mode = base_img.mode
+    base_img.convert("RGBA").alpha_composite(watermark.convert("RGBA"), watermark_position)
+    base_img.convert(orig_img_mode)
+    
+    return base_img
 
 
 # TODO: Add support for svg images and gifs.
@@ -142,9 +116,9 @@ def open_image(orig_img: np.ndarray | PIL.Image.Image | str | Path) -> PIL.Image
     """
     Provided an array, PIL Image or filepath, return a PIL Image.
     Parameters:
-        orig_img: Local image file. If a filepath, it must be a png, jpeg, or bmp.
+        orig_img: Local image file. If a filepath, it must be a webp, png, jpeg, or bmp.
     Returns:
-        open_img: An Image.
+        open_img: A PIL.Image.Image.
     """
 
     if isinstance(orig_img, np.ndarray):
@@ -322,17 +296,19 @@ def postprocess_image(
     | PIL.Image.Image
     | str
     | Path
-    | tuple[
-        np.ndarray | PIL.Image.Image | str | Path | None,
-        np.ndarray | PIL.Image.Image | str | Path | None,
-    ]
     | None,
     cache_dir: str,
     format: str,
+    watermark: np.ndarray
+    | PIL.Image.Image
+    | str
+    | Path
+    | None = None,
 ) -> ImageData | None:
     """
     Parameters:
-        value: Expects a `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is displayed, or a `Tuple[numpy.array | PIL.Image | str | pathlib.Path, np.ndarray | PIL.Image.Image | str | Path ]` where the first element is an image or filepath to an image and the second element is an image or filepath to a watermark image.
+        value: Expects a `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is displayed, 
+        watermark: An optional `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is pasted on the lower right of `value`.
     Returns:
         Returns the image as a `FileData` object.
     """
@@ -340,33 +316,14 @@ def postprocess_image(
         return None
     if isinstance(value, str) and value.lower().endswith(".svg"):
         svg_content = extract_svg_content(value)
+        if watermark is not None:
+            raise Warning("Watermarking for svg images is currently not supported.")
         return ImageData(
             orig_name=Path(value).name,
             url=f"data:image/svg+xml,{quote(svg_content)}",
         )
-    # Handling for watermark files. This currently loses the option for svg content.
-    if isinstance(value, tuple):
-        if value[0] is None:
-            return None
-        if len(value) != 2:
-            raise ValueError(
-                f"Expected lists of length 2 or tuples of length 2. Received: {value}"
-            )
-        if not (
-            isinstance(value[0], (np.ndarray, PIL.Image.Image, str, Path))
-            and isinstance(value[1], (np.ndarray, PIL.Image.Image, str, Path))
-        ):
-            raise TypeError(
-                f"If a tuple is provided, the first must be an Image, string, or Path object for the base image, and the second must be an Image, string, or Path object for the watermarking image. Received: {value}"
-            )
-        if (isinstance(value[0], (str, Path)) and str(value[0]).lower().endswith("svg")) or (
-            isinstance(value[1], (str, Path)) and str(value[1]).lower().endswith("svg")
-        ):
-            raise Error("SVG files are not currently supported for watermarking, sorry!")
-        base_img = value[0]
-        watermark_file = value[1]
-        watermarked_image = add_watermark(base_img, watermark_file)
-        value = watermarked_image
+    if watermark is not None:
+        value = add_watermark(value, watermark)
     saved = save_image(value, cache_dir=cache_dir, format=format)
     orig_name = Path(saved).name if Path(saved).exists() else None
     return ImageData(path=saved, orig_name=orig_name)
