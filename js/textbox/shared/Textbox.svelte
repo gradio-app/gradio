@@ -263,7 +263,7 @@
 	<BlockTitle {show_label} {info}
 		>{label}
 		{#if validation_error}
-			<span class="validation-error">{validation_error}</span>
+			<div class="validation-error">{validation_error}</div>
 		{/if}
 	</BlockTitle>
 
@@ -539,11 +539,11 @@
 		padding: 0 10px;
 	}
 
-	span.validation-error {
-		margin-left: var(--spacing-lg);
+	div.validation-error {
 		color: var(--error-icon-color);
 		font-size: var(--font-sans);
-		font-size: var(--button-small-text-size);
+		margin-top: var(--spacing-sm);
+		font-weight: var(--weight-semibold);
 	}
 
 	label.container input.validation-error,

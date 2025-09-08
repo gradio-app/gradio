@@ -20,33 +20,58 @@ def process_text(age, location):
     return result
 
 
+def validate_image(image):
+    # we don't want to error when a user is clearing the image
+    if not image:
+        return None
+    is_portrait = image.width < image.height
+
+    return gr.validate(is_portrait, "Image must be in portrait mode")
+
+
+def process_image(image):
+    if not image:
+        return "No image uploaded"
+    return "HELLO IMAGE!!!"
+
+
 with gr.Blocks() as demo:
-    gr.Markdown("# Validator Parameter Test Demo")
+    with gr.Tab("Text"):
+        gr.Markdown("# Validator Parameter Test Demo")
 
-    with gr.Row():
-        with gr.Column():
-            age = gr.Number(
-                label="Enter age",
-                placeholder="Enter age",
-            )
-            location = gr.Textbox(
-                max_lines=3,
-                label="Enter location",
-                placeholder="Enter location",
-            )
+        with gr.Row():
+            with gr.Column():
+                age = gr.Number(
+                    label="Enter age",
+                    placeholder="Enter age",
+                )
+                location = gr.Textbox(
+                    max_lines=3,
+                    label="Enter location",
+                    placeholder="Enter location",
+                )
 
-    validate_btn = gr.Button("Process with Validation", variant="primary")
+        validate_btn = gr.Button("Process with Validation", variant="primary")
 
-    output_with_validation = gr.Textbox(
-        label="Output (with validation)", interactive=False
-    )
+        output_with_validation = gr.Textbox(
+            label="Output (with validation)", interactive=False
+        )
 
-    validate_btn.click(
-        fn=process_text,
-        validator=validate_input,
-        inputs=[age, location],
-        outputs=output_with_validation,
-    )
+        validate_btn.click(
+            fn=process_text,
+            validator=validate_input,
+            inputs=[age, location],
+            outputs=output_with_validation,
+        )
+    with gr.Tab("Image"):
+        im = gr.Image(label="Enter image", placeholder="Enter image", type="pil")
+        t = gr.Textbox(label="Enter text", placeholder="Enter text")
+        im.change(
+            fn=process_image,
+            validator=validate_image,
+            inputs=im,
+            outputs=t,
+        )
 
 
 if __name__ == "__main__":

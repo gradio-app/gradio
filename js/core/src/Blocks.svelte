@@ -625,7 +625,20 @@
 			function handle_status_update(message: StatusMessage): void {
 				if (message.code === "validation_error") {
 					const dep = dependencies.find((dep) => dep.id === message.fn_index);
-					const validation_error_data = [];
+					if (
+						dep === undefined ||
+						message.message === undefined ||
+						typeof message.message === "string"
+					) {
+						return;
+					}
+
+					console.log(message.message);
+					const validation_error_data: {
+						id: number;
+						prop: string;
+						value: unknown;
+					}[] = [];
 
 					message.message.forEach((message, i) => {
 						if (message.is_valid) {
@@ -635,6 +648,12 @@
 							id: dep.inputs[i],
 							prop: "validation_error",
 							value: message.message
+						});
+
+						validation_error_data.push({
+							id: dep.inputs[i],
+							prop: "loading_status",
+							value: { validation_error: message.message }
 						});
 					});
 
@@ -756,7 +775,7 @@
 					!broken_connection &&
 					!message.session_not_found
 				) {
-					if (status.message) {
+					if (status.message && typeof status.message === "string") {
 						const _message = status.message.replace(
 							MESSAGE_QUOTE_RE,
 							(_, b) => b
@@ -841,6 +860,13 @@
 		target.addEventListener("prop_change", (e: Event) => {
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
 			const { id, prop, value } = e.detail;
+			if (prop === "value") {
+				console.log("prop_change", prop, value);
+
+				update_value([
+					{ id, prop: "loading_status", value: { validation_error: undefined } }
+				]);
+			}
 			update_value([{ id, prop, value }]);
 			if (prop === "input_ready" && value === false) {
 				inputs_waiting.push(id);

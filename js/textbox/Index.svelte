@@ -50,10 +50,8 @@
 	export let interactive: boolean;
 	export let max_length: number | undefined = undefined;
 	export let html_attributes: InputHTMLAttributes | null = null;
-	export let validation_error: string | undefined = undefined;
 
 	function handle_change(value: string): void {
-		validation_error = undefined;
 		gradio.dispatch("change", value);
 	}
 </script>
@@ -72,6 +70,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			show_validation_error={false}
 			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 	{/if}
@@ -96,8 +95,8 @@
 		{autoscroll}
 		{max_length}
 		{html_attributes}
-		{validation_error}
-		on:change={handle_change}
+		validation_error={loading_status?.validation_error}
+		on:change={(e) => handle_change(e.detail)}
 		on:input={() => gradio.dispatch("input")}
 		on:submit={() => gradio.dispatch("submit")}
 		on:blur={() => gradio.dispatch("blur")}

@@ -30,13 +30,13 @@
 	export let step: number | null = null;
 	export let interactive: boolean;
 	export let placeholder = "";
-	export let validation_error: string | undefined = undefined;
 
 	if (value === null && placeholder === "") {
 		value = 0;
 	}
 
 	function handle_change(): void {
+		console.log("handle_change", value);
 		if (value !== null && !isNaN(value)) {
 			gradio.dispatch("change");
 			if (!value_is_output) {
@@ -73,17 +73,20 @@
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
 		{...loading_status}
+		show_validation_error={false}
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	<label class="block" class:container>
 		<BlockTitle {show_label} {info}
 			>{label}
-			{#if validation_error}
-				<span class="validation-error">{validation_error}</span>
-			{/if}</BlockTitle
-		>
+
+			{#if loading_status?.validation_error}
+				<div class="validation-error">{loading_status?.validation_error}</div>
+			{/if}
+		</BlockTitle>
+
 		<input
-			class:validation-error={validation_error}
+			class:validation-error={loading_status?.validation_error}
 			aria-label={label}
 			type="number"
 			bind:value
@@ -91,7 +94,6 @@
 			max={maximum}
 			{step}
 			{placeholder}
-			on:input={() => (validation_error = undefined)}
 			on:keypress={handle_keypress}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
@@ -142,15 +144,14 @@
 		border: var(--input-border-width) solid var(--error-border-color);
 	}
 
-	span.validation-error {
-		margin-left: var(--spacing-lg);
+	div.validation-error {
 		color: var(--error-icon-color);
 		font-size: var(--font-sans);
-		font-size: var(--button-small-text-size);
+		margin-top: var(--spacing-sm);
+		font-weight: var(--weight-semibold);
 	}
 
-	label.container input.validation-error,
-	label.container textarea.validation-error {
+	label.container input.validation-error {
 		border-color: transparent !important;
 		box-shadow:
 			0 0 3px 1px var(--error-icon-color),
