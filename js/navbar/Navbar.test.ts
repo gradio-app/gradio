@@ -18,13 +18,19 @@ describe("Navbar Component", () => {
 		const { component } = await render(Navbar, {
 			visible: true,
 			main_page_name: "Dashboard",
-			value: [["", "Main"], ["settings", "Settings"]]
+			value: [
+				["", "Main"],
+				["settings", "Settings"]
+			]
 		});
 
 		const store_value = get(navbar_config);
 		assert.equal(store_value?.visible, true);
 		assert.equal(store_value?.main_page_name, "Dashboard");
-		assert.deepEqual(store_value?.value, [["", "Main"], ["settings", "Settings"]]);
+		assert.deepEqual(store_value?.value, [
+			["", "Main"],
+			["settings", "Settings"]
+		]);
 	});
 
 	test("setting elem_id and elem_classes applies to the navbar", async () => {
@@ -50,15 +56,21 @@ describe("Navbar Component", () => {
 		assert.equal(store_value?.visible, true);
 		assert.equal(store_value?.main_page_name, "Home");
 		assert.equal(store_value?.value, null);
-		
+
 		component.visible = false;
 		component.main_page_name = "Admin Panel";
-		component.value = [["", "Dashboard"], ["users", "Users"]];
+		component.value = [
+			["", "Dashboard"],
+			["users", "Users"]
+		];
 
 		store_value = get(navbar_config);
 		assert.equal(store_value?.visible, false);
 		assert.equal(store_value?.main_page_name, "Admin Panel");
-		assert.deepEqual(store_value?.value, [["", "Dashboard"], ["users", "Users"]]);
+		assert.deepEqual(store_value?.value, [
+			["", "Dashboard"],
+			["users", "Users"]
+		]);
 	});
 
 	test("main_page_name can be set to false", async () => {

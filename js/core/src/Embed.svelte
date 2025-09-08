@@ -24,10 +24,10 @@
 		getContext("set_lite_page");
 
 	let navbar_component = components.find((c) => c.type === "navbar");
-	let navbar: { 
-		visible: boolean; 
-		main_page_name: string | false; 
-		value: [string, string][] | null 
+	let navbar: {
+		visible: boolean;
+		main_page_name: string | false;
+		value: [string, string][] | null;
 	} | null = navbar_component
 		? {
 				visible: navbar_component.props.visible,
@@ -47,12 +47,15 @@
 			value: $navbar_config.value ?? null
 		};
 	}
-	
-	$: show_navbar = pages.length > 1 && (navbar === null || navbar.visible !== false);
-	
-	$: effective_pages = navbar?.value 
+
+	$: show_navbar =
+		pages.length > 1 && (navbar === null || navbar.visible !== false);
+
+	$: effective_pages = navbar?.value
 		? navbar.value
-		: navbar && navbar.main_page_name !== false && navbar.main_page_name !== "Home"
+		: navbar &&
+			  navbar.main_page_name !== false &&
+			  navbar.main_page_name !== "Home"
 			? pages.map(([route, label], index) =>
 					index === 0 && route === "" && label === "Home"
 						? ([route, navbar!.main_page_name] as [string, string])

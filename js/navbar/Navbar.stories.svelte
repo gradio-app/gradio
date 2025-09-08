@@ -1,7 +1,7 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import { Embed } from "@gradio/core";
-	
+
 	/** @type {HTMLDivElement} */
 	let wrapper;
 	const pages = /** @type {[string, string][]} */ ([
@@ -23,13 +23,15 @@
 		},
 		main_page_name: {
 			control: "text",
-			description: "The name to display for the main page in the navbar. Set to false to use default 'Home'",
+			description:
+				"The name to display for the main page in the navbar. Set to false to use default 'Home'",
 			name: "main_page_name",
 			value: "Home"
 		},
 		value: {
 			control: "object",
-			description: "List of [route, name] tuples for custom navbar pages. If provided, overrides default pages",
+			description:
+				"List of [route, name] tuples for custom navbar pages. If provided, overrides default pages",
 			name: "value",
 			value: null
 		}
@@ -38,7 +40,9 @@
 
 <Template let:args>
 	{#key `${args.visible}-${args.main_page_name}-${JSON.stringify(args.value)}`}
-		<div style="width: 100%; min-height: 400px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+		<div
+			style="width: 100%; min-height: 400px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;"
+		>
 			<Embed
 				bind:wrapper
 				version="4.0.0"
@@ -50,26 +54,36 @@
 				display={true}
 				info={false}
 				loaded={true}
-				pages={pages}
+				{pages}
 				current_page=""
 				root=""
-				components={[{
-					id: 1,
-					type: "navbar",
-					props: {
-						visible: args.visible,
-						main_page_name: args.main_page_name,
-						value: args.value
+				components={[
+					{
+						id: 1,
+						type: "navbar",
+						props: {
+							visible: args.visible,
+							main_page_name: args.main_page_name,
+							value: args.value
+						}
 					}
-				}]}
+				]}
 			>
 				<div style="padding: 20px;">
 					<h2>Navbar Storybook Demo</h2>
 					<p>The navbar above shows:</p>
 					<ul>
-						<li><strong>Visibility:</strong> {args.visible ? "Visible" : "Hidden"}</li>
+						<li>
+							<strong>Visibility:</strong>
+							{args.visible ? "Visible" : "Hidden"}
+						</li>
 						<li><strong>Main Page Name:</strong> {args.main_page_name}</li>
-						<li><strong>Custom Pages:</strong> {args.value ? JSON.stringify(args.value) : "None (using default pages)"}</li>
+						<li>
+							<strong>Custom Pages:</strong>
+							{args.value
+								? JSON.stringify(args.value)
+								: "None (using default pages)"}
+						</li>
 					</ul>
 					<p>Use the controls panel to change the navbar properties.</p>
 				</div>

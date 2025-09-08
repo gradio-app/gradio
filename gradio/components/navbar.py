@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from gradio_client.documentation import document
 
@@ -24,7 +24,7 @@ class Navbar(Component):
         import gradio as gr
 
         with gr.Blocks() as demo:
-            navbar = gr.Navbar(visible=True, home_page_title="My App")
+            navbar = gr.Navbar(visible=True, main_page_name="My App")
             gr.Textbox(label="Main page content")
 
         with demo.route("About"):
@@ -41,7 +41,7 @@ class Navbar(Component):
         value: list[tuple[str, str]] | None = None,
         *,
         visible: bool = True,
-        main_page_name: str | False = "Home",
+        main_page_name: str | Literal[False] = "Home",
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
