@@ -1348,3 +1348,18 @@ def construct_args(
         )
 
     return _args
+
+
+def extract_validation_message(req: httpx.Response) -> str | None:
+    """
+    If the request is a 422 error and the detail contains a validation error message, return the message. Otherwise, return None.
+    """
+    if req.status_code == 422:
+        detail = req.json().get("detail", [])
+        if (
+            len(detail)
+            and "__type__" in detail[0]
+            and detail[0]["__type__"] == "validate"
+        ):
+            return detail[0].get("message", "")
+        return None
