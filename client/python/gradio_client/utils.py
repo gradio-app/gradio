@@ -1356,9 +1356,18 @@ def extract_validation_message(req: httpx.Response) -> str | None:
     """
     if req.status_code == 422:
         detail = req.json().get("detail", [])
-        if (
-            len(detail)
-            and "__type__" in detail[0]
-            and detail[0]["__type__"] == "validate"
-        ):
-            return detail[0].get("message", "")
+        validation_messages = []
+        for index, error_info in enumerate(detail):
+            if (
+                error_info.get("__type__", "") == "validate"
+                and error_info.get("is_valid") is False
+            ):
+                param_name = error_info.get("parameter_name", f"parameter_{index}")
+                validation_messages.append(
+                    f"- {param_name}: {error_info.get('message', '')}"
+                )
+        validation_messages.insert(
+            0, f"{len(validation_messages)} parameter(s) failed validation:"
+        )
+        if validation_messages:
+            return "\n".join(validation_messages)

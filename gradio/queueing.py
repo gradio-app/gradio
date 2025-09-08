@@ -334,7 +334,7 @@ class Queue:
 
                 if validation_response is not None:
                     (is_valid, validation_data) = process_validation_response(
-                        validation_response
+                        validation_response, fn
                     )
 
                     if is_valid is False:
@@ -942,12 +942,25 @@ class Queue:
 
 def process_validation_response(
     validation_response: list[dict[str, Any]] | dict[str, Any],
+    fn: BlockFunction | None = None,
 ) -> tuple[bool, list[dict[str, Any]]]:
     validation_data: list[dict[str, Any]] = []
+
+    param_names = []
+    if fn and fn.fn:
+        import inspect
+
+        sig = inspect.signature(fn.fn)
+        param_names = list(sig.parameters.keys())
+
     if isinstance(validation_response, list):
-        for data in validation_response:
+        for i, data in enumerate(validation_response):
             if isinstance(data, dict) and data.get("__type__", None) == "validate":
-                validation_data.append(data)
+                param_name = (
+                    param_names[i] if i < len(param_names) else f"parameter_{i}"
+                )
+                data_with_name = {**data, "parameter_name": param_name}
+                validation_data.append(data_with_name)
             else:
                 validation_data.append({"is_valid": True, "message": ""})
 
