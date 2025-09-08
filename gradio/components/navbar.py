@@ -25,7 +25,7 @@ class Navbar(Component):
 
         with gr.Blocks() as demo:
             navbar = gr.Navbar(
-                visible=True, 
+                visible=True,
                 main_page_name="My App",
                 value=[("Analytics", "analytics"), ("About", "https://twitter.com/abidlabs")]
             )
