@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.events import Events
-
-if TYPE_CHECKING:
-    pass
 
 
 @document()
@@ -41,7 +38,7 @@ class Navbar(Component):
 
     def __init__(
         self,
-        value: dict | None = None,
+        value: list[tuple[str, str]] | None = None,
         *,
         visible: bool = True,
         home_page_title: str = "Home",
@@ -52,7 +49,7 @@ class Navbar(Component):
     ):
         """
         Parameters:
-            value: Dummy parameter for compatibility (unused).
+            value: If a list of tuples of (page_title, link_to_page) is provided, the navbar will display the provided pages. Otherwise, the navbar will display the pages defined in the Blocks app using the `Blocks.route` method.
             visible: If True, the navbar will be visible. If False, the navbar will be hidden.
             home_page_title: The title to display for the home page in the navbar.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -72,10 +69,14 @@ class Navbar(Component):
             value=value,
         )
 
-    def preprocess(self, payload: None) -> None:
+    def preprocess(
+        self, payload: list[tuple[str, str]] | None
+    ) -> list[tuple[str, str]] | None:
         pass
 
-    def postprocess(self, value: None) -> None:
+    def postprocess(
+        self, value: list[tuple[str, str]] | None
+    ) -> list[tuple[str, str]] | None:
         pass
 
     def api_info(self) -> dict[str, Any]:
