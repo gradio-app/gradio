@@ -1,5 +1,5 @@
 import type { Preview } from "@storybook/svelte";
-// import "./theme.css";
+import "./theme.css";
 import { setupi18n } from "../core/src/i18n";
 import { Gradio, formatter } from "../core/src/gradio_helper";
 import "../theme/src/reset.css";
