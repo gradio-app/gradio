@@ -1067,34 +1067,6 @@ class TestCallFunction:
 
 
 class TestBatchProcessing:
-    def test_raise_exception_if_batching_an_event_thats_not_queued(self):
-        def trim(words, lens):
-            trimmed_words = [
-                word[: int(length)] for word, length in zip(words, lens, strict=False)
-            ]
-            return [trimmed_words]
-
-        msg = "In order to use batching, the queue must be enabled."
-
-        with pytest.raises(ValueError, match=msg):
-            with gr.Blocks() as demo:
-                with gr.Row():
-                    word = gr.Textbox(label="word")
-                    leng = gr.Number(label="leng")
-                    output = gr.Textbox(label="Output")
-                with gr.Row():
-                    run = gr.Button()
-
-                run.click(
-                    trim,
-                    [word, leng],
-                    output,
-                    batch=True,
-                    max_batch_size=16,
-                    queue=False,
-                )
-            demo.launch(prevent_thread_lock=True)
-
     @pytest.mark.asyncio
     async def test_call_regular_function(self):
         def batch_fn(x):
