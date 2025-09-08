@@ -1,6 +1,6 @@
 ---
-"@gradio/markdown": minor
-"gradio": minor
+"@gradio/markdown": patch
+"gradio": patch
 ---
 
-feat:Fix Custom CSS e2e Test
+fix:Fix Custom CSS e2e Test
