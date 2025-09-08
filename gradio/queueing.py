@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import inspect
 import os
 import random
 import time
@@ -948,8 +949,6 @@ def process_validation_response(
 
     param_names = []
     if fn and fn.fn:
-        import inspect
-
         sig = inspect.signature(fn.fn)
         param_names = list(sig.parameters.keys())
 
