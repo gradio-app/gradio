@@ -155,7 +155,7 @@ def open_image(orig_img: np.ndarray | PIL.Image.Image | str | Path) -> PIL.Image
         open_img = orig_img
     else:
         raise ValueError(
-            "Expected filepath for image of type webp, png, bmp or jpeg; PIL image; or numpy array. Received  "
+            "Expected image or path to image of type webp, png, bmp or jpeg; PIL image; or numpy array. Received  "
             + str(type(orig_img))
         )
     return open_img
