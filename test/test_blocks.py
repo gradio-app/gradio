@@ -1093,7 +1093,6 @@ class TestBatchProcessing:
                     max_batch_size=16,
                     queue=False,
                 )
-            demo.queue()
             demo.launch(prevent_thread_lock=True)
 
     @pytest.mark.asyncio

@@ -51,16 +51,14 @@
 	$: show_navbar =
 		pages.length > 1 && (navbar === null || navbar.visible !== false);
 
-	$: effective_pages = navbar?.value
+	$: effective_pages = navbar?.value 
 		? navbar.value
-		: navbar &&
-			  navbar.main_page_name !== false &&
-			  navbar.main_page_name !== "Home"
+		: navbar && navbar.main_page_name !== false && navbar.main_page_name !== "Home"
 			? pages.map(([route, label], index) =>
-					index === 0 && route === "" && label === "Home"
-						? ([route, navbar!.main_page_name] as [string, string])
-						: ([route, label] as [string, string])
-				)
+				index === 0 && route === "" && label === "Home"
+					? ([route, navbar!.main_page_name] as [string, string])
+					: ([route, label] as [string, string])
+			)
 			: pages;
 </script>
 
