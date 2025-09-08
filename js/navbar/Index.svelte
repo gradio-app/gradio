@@ -7,9 +7,10 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let home_page_title = "Home";
+	export let main_page_name: string | false = "Home";
+	export let value: [string, string][] | null = null;
 
-	$: navbar_props = { visible, home_page_title };
+	$: navbar_props = { visible, main_page_name, value };
 
 	onMount(() => {
 		const current_store = get(navbar_config);

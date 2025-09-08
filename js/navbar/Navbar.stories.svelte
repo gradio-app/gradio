@@ -21,17 +21,23 @@
 			control: { type: "boolean" },
 			defaultValue: true
 		},
-		home_page_title: {
+		main_page_name: {
 			control: "text",
-			description: "The title to display for the home page in the navbar",
-			name: "home_page_title",
+			description: "The name to display for the main page in the navbar. Set to false to use default 'Home'",
+			name: "main_page_name",
 			value: "Home"
+		},
+		value: {
+			control: "object",
+			description: "List of [route, name] tuples for custom navbar pages. If provided, overrides default pages",
+			name: "value",
+			value: null
 		}
 	}}
 />
 
 <Template let:args>
-	{#key `${args.visible}-${args.home_page_title}`}
+	{#key `${args.visible}-${args.main_page_name}-${JSON.stringify(args.value)}`}
 		<div style="width: 100%; min-height: 400px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
 			<Embed
 				bind:wrapper
@@ -52,7 +58,8 @@
 					type: "navbar",
 					props: {
 						visible: args.visible,
-						home_page_title: args.home_page_title
+						main_page_name: args.main_page_name,
+						value: args.value
 					}
 				}]}
 			>
@@ -61,7 +68,8 @@
 					<p>The navbar above shows:</p>
 					<ul>
 						<li><strong>Visibility:</strong> {args.visible ? "Visible" : "Hidden"}</li>
-						<li><strong>Home Page Title:</strong> {args.home_page_title}</li>
+						<li><strong>Main Page Name:</strong> {args.main_page_name}</li>
+						<li><strong>Custom Pages:</strong> {args.value ? JSON.stringify(args.value) : "None (using default pages)"}</li>
 					</ul>
 					<p>Use the controls panel to change the navbar properties.</p>
 				</div>
@@ -74,15 +82,31 @@
 	name="Default"
 	args={{
 		visible: true,
-		home_page_title: "Home"
+		main_page_name: "Home",
+		value: null
 	}}
 />
 
 <Story
-	name="Custom Home Title"
+	name="Custom Main Page Name"
 	args={{
 		visible: true,
-		home_page_title: "Dashboard"
+		main_page_name: "Dashboard",
+		value: null
+	}}
+/>
+
+<Story
+	name="Custom Pages"
+	args={{
+		visible: true,
+		main_page_name: "Home",
+		value: [
+			["", "Main"],
+			["dashboard", "Dashboard"],
+			["analytics", "Analytics"],
+			["settings", "Settings"]
+		]
 	}}
 />
 
@@ -90,6 +114,7 @@
 	name="Hidden Navbar"
 	args={{
 		visible: false,
-		home_page_title: "Home"
+		main_page_name: "Home",
+		value: null
 	}}
 />

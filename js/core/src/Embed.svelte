@@ -24,13 +24,17 @@
 		getContext("set_lite_page");
 
 	let navbar_component = components.find((c) => c.type === "navbar");
-	let navbar: { visible: boolean; home_page_title: string } | null =
-		navbar_component
-			? {
-					visible: navbar_component.props.visible,
-					home_page_title: navbar_component.props.home_page_title
-				}
-			: null;
+	let navbar: { 
+		visible: boolean; 
+		main_page_name: string | false; 
+		value: [string, string][] | null 
+	} | null = navbar_component
+		? {
+				visible: navbar_component.props.visible,
+				main_page_name: navbar_component.props.main_page_name,
+				value: navbar_component.props.value
+			}
+		: null;
 
 	if (navbar) {
 		navbar_config.set(navbar);
@@ -39,16 +43,19 @@
 	$: if ($navbar_config) {
 		navbar = {
 			visible: $navbar_config.visible ?? true,
-			home_page_title: $navbar_config.home_page_title ?? "Home"
+			main_page_name: $navbar_config.main_page_name ?? "Home",
+			value: $navbar_config.value ?? null
 		};
 	}
-	$: show_navbar =
-		pages.length > 1 && (navbar === null || navbar.visible !== false);
-	$: effective_pages =
-		navbar && navbar.home_page_title !== "Home"
+	
+	$: show_navbar = pages.length > 1 && (navbar === null || navbar.visible !== false);
+	
+	$: effective_pages = navbar?.value 
+		? navbar.value
+		: navbar && navbar.main_page_name !== false && navbar.main_page_name !== "Home"
 			? pages.map(([route, label], index) =>
 					index === 0 && route === "" && label === "Home"
-						? ([route, navbar!.home_page_title] as [string, string])
+						? ([route, navbar!.main_page_name] as [string, string])
 						: ([route, label] as [string, string])
 				)
 			: pages;

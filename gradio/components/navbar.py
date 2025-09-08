@@ -41,7 +41,7 @@ class Navbar(Component):
         value: list[tuple[str, str]] | None = None,
         *,
         visible: bool = True,
-        home_page_title: str = "Home",
+        main_page_name: str | False = "Home",
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
@@ -49,16 +49,16 @@ class Navbar(Component):
     ):
         """
         Parameters:
-            value: If a list of tuples of (page_title, link_to_page) is provided, the navbar will display the provided pages. Otherwise, the navbar will display the pages defined in the Blocks app using the `Blocks.route` method.
+            value: If a list of tuples of (page_name, page_path) are provided, the navbar will display the provided pages, in addition to the main page. Otherwise, the navbar will display the pages defined in the Blocks app using the `Blocks.route` method.
             visible: If True, the navbar will be visible. If False, the navbar will be hidden.
-            home_page_title: The title to display for the home page in the navbar.
+            main_page_name: The title to display in the navbar for the main page of the Gradio. If False, the main page will not be displayed in the navbar.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component.
         """
         self.visible = visible
-        self.home_page_title = home_page_title
+        self.main_page_name = main_page_name
 
         super().__init__(
             elem_id=elem_id,
