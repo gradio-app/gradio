@@ -2469,6 +2469,7 @@ Received inputs:
             block_fn.tracks_progress for block_fn in self.fns.values()
         )
         self.page = ""
+        self.validate_navbar_settings()
         self.exited = True
 
     def clear(self):
@@ -2725,7 +2726,6 @@ Received inputs:
             raise ValueError("`blocked_paths` must be a list of directories.")
 
         self.validate_queue_settings()
-        self.validate_navbar_settings()
         self.max_file_size = utils._parse_file_size(max_file_size)
 
         if self.dev_mode:

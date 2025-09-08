@@ -2018,3 +2018,12 @@ def test_navbar_config():
     assert navbar_component is not None
     assert navbar_component["props"]["visible"]
     assert navbar_component["props"]["home_page_title"] == "My Custom App"
+
+
+def test_multiple_navbar_components_raise_error():
+    with pytest.raises(ValueError):
+        with gr.Blocks():
+            gr.Navbar()
+            gr.Textbox()
+            gr.Navbar()
+            gr.Textbox()
