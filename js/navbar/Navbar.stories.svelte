@@ -31,7 +31,7 @@
 		value: {
 			control: "object",
 			description:
-				"List of [route, name] tuples for custom navbar pages. If provided, overrides default pages",
+				"List of [route, name] tuples for additional navbar pages. These are added to the existing pages",
 			name: "value",
 			value: null
 		}
@@ -111,15 +111,13 @@
 />
 
 <Story
-	name="Custom Pages"
+	name="Additional Pages"
 	args={{
 		visible: true,
 		main_page_name: "Home",
 		value: [
-			["", "Main"],
-			["dashboard", "Dashboard"],
-			["analytics", "Analytics"],
-			["settings", "Settings"]
+			["Analytics", "analytics"],
+			["Twitter", "https://twitter.com/abidlabs"]
 		]
 	}}
 />

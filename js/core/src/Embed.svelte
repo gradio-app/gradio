@@ -51,15 +51,25 @@
 	$: show_navbar =
 		pages.length > 1 && (navbar === null || navbar.visible !== false);
 
-	$: effective_pages = navbar?.value 
-		? navbar.value
-		: navbar && navbar.main_page_name !== false && navbar.main_page_name !== "Home"
+	$: effective_pages = (() => {
+		let base_pages = navbar && navbar.main_page_name !== false && navbar.main_page_name !== "Home"
 			? pages.map(([route, label], index) =>
 				index === 0 && route === "" && label === "Home"
 					? ([route, navbar!.main_page_name] as [string, string])
 					: ([route, label] as [string, string])
 			)
 			: pages;
+
+		if (navbar?.value && navbar.value.length > 0) {
+			const existing_routes = new Set(base_pages.map(([route]) => route));
+			const additional_pages = navbar.value
+				.map(([page_name, page_path]) => [page_path, page_name] as [string, string])
+				.filter(([route]) => !existing_routes.has(route));
+			return [...base_pages, ...additional_pages];
+		}
+
+		return base_pages;
+	})();
 </script>
 
 <div
@@ -87,9 +97,11 @@
 						</button>
 					{:else}
 						<a
-							href={`${root}/${route}`}
+							href={route.startsWith('http://') || route.startsWith('https://') ? route : `${root}/${route}`}
 							class:active={route === current_page}
 							data-sveltekit-reload
+							target={route.startsWith('http://') || route.startsWith('https://') ? '_blank' : '_self'}
+							rel={route.startsWith('http://') || route.startsWith('https://') ? 'noopener noreferrer' : ''}
 							>{label}
 						</a>
 					{/if}

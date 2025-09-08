@@ -24,7 +24,11 @@ class Navbar(Component):
         import gradio as gr
 
         with gr.Blocks() as demo:
-            navbar = gr.Navbar(visible=True, main_page_name="My App")
+            navbar = gr.Navbar(
+                visible=True, 
+                main_page_name="My App",
+                value=[("Analytics", "analytics"), ("About", "https://twitter.com/abidlabs")]
+            )
             gr.Textbox(label="Main page content")
 
         with demo.route("About"):
@@ -49,7 +53,7 @@ class Navbar(Component):
     ):
         """
         Parameters:
-            value: If a list of tuples of (page_name, page_path) are provided, the navbar will display the provided pages, in addition to the main page. Otherwise, the navbar will display the pages defined in the Blocks app using the `Blocks.route` method.
+            value: If a list of tuples of (page_name, page_path) are provided, these additional pages will be added to the navbar alongside the existing pages defined in the Blocks app. The page_path can be either a relative path for internal Gradio app pages (e.g., "analytics") or an absolute URL for external links (e.g., "https://twitter.com/username"). Otherwise, only the pages defined using the `Blocks.route` method will be displayed. Example: [("Dashboard", "dashboard"), ("About", "https://twitter.com/abidlabs")]
             visible: If True, the navbar will be visible. If False, the navbar will be hidden.
             main_page_name: The title to display in the navbar for the main page of the Gradio. If False, the main page will not be displayed in the navbar.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.

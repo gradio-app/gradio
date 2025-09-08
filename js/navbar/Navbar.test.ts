@@ -19,8 +19,8 @@ describe("Navbar Component", () => {
 			visible: true,
 			main_page_name: "Dashboard",
 			value: [
-				["", "Main"],
-				["settings", "Settings"]
+				["Main", ""],
+				["Settings", "settings"]
 			]
 		});
 
@@ -28,8 +28,8 @@ describe("Navbar Component", () => {
 		assert.equal(store_value?.visible, true);
 		assert.equal(store_value?.main_page_name, "Dashboard");
 		assert.deepEqual(store_value?.value, [
-			["", "Main"],
-			["settings", "Settings"]
+			["Main", ""],
+			["Settings", "settings"]
 		]);
 	});
 
@@ -60,16 +60,16 @@ describe("Navbar Component", () => {
 		component.visible = false;
 		component.main_page_name = "Admin Panel";
 		component.value = [
-			["", "Dashboard"],
-			["users", "Users"]
+			["Dashboard", ""],
+			["Users", "users"]
 		];
 
 		store_value = get(navbar_config);
 		assert.equal(store_value?.visible, false);
 		assert.equal(store_value?.main_page_name, "Admin Panel");
 		assert.deepEqual(store_value?.value, [
-			["", "Dashboard"],
-			["users", "Users"]
+			["Dashboard", ""],
+			["Users", "users"]
 		]);
 	});
 

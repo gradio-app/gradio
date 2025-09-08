@@ -1,8 +1,7 @@
 import gradio as gr
 
 with gr.Blocks(title="Navbar Demo") as demo:
-    navbar = gr.Navbar([("Second page", "/second-page")], visible=True, main_page_name="Dashboard")
-
+    navbar = gr.Navbar(value=[("About Me", "https://x.com/abidlabs")], visible=True, main_page_name="Dashboard")
     gr.Markdown("# Dashboard Page")
     hide_btn = gr.Button("Hide Navbar")
     hide_btn.click(fn=lambda : gr.Navbar(visible=False), outputs=navbar)
