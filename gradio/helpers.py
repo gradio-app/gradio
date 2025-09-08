@@ -1017,7 +1017,7 @@ def special_args(
 
                 # Inject user token
                 elif type_hint in (Optional[oauth.OAuthToken], oauth.OAuthToken):
-                    oauth_info = session.get("oauth_info", None)
+                    oauth_info = session.get("oauth_info")
                     oauth_token = (
                         oauth.OAuthToken(
                             token=oauth_info["access_token"],
