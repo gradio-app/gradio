@@ -633,7 +633,6 @@
 						return;
 					}
 
-					console.log(message.message);
 					const validation_error_data: {
 						id: number;
 						prop: string;
@@ -657,17 +656,19 @@
 						});
 					});
 
-					update_value(validation_error_data);
-					loading_status.update({
-						status: "complete",
-						fn_index: message.fn_index,
-						eta: 0,
-						queue: false,
-						queue_position: null
-					});
-					set_status($loading_status);
+					if (validation_error_data.length > 0) {
+						update_value(validation_error_data);
+						loading_status.update({
+							status: "complete",
+							fn_index: message.fn_index,
+							eta: 0,
+							queue: false,
+							queue_position: null
+						});
+						set_status($loading_status);
 
-					return;
+						return;
+					}
 				}
 				if (message.broken && !broken_connection) {
 					messages = [
@@ -861,8 +862,6 @@
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
 			const { id, prop, value } = e.detail;
 			if (prop === "value") {
-				console.log("prop_change", prop, value);
-
 				update_value([
 					{ id, prop: "loading_status", value: { validation_error: undefined } }
 				]);

@@ -87,8 +87,6 @@
 	export let validation_error: string | null = null;
 	export let show_validation_error = true;
 
-	$: console.log(validation_error);
-
 	let el: HTMLDivElement;
 
 	let _timer = false;

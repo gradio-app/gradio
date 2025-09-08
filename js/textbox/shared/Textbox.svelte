@@ -226,7 +226,6 @@
 		_el: HTMLTextAreaElement,
 		_value: string
 	): any | undefined {
-		// Don't add resize behavior for single-line or fixed height textareas
 		if (lines === _max_lines || (lines === 1 && _max_lines === 1)) return;
 
 		_el.style.overflowY = "scroll";

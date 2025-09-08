@@ -1512,7 +1512,6 @@ def error_payload(
             content["duration"] = error.duration
             content["visible"] = error.visible
             content["title"] = error.title
-            content["code"] = error.code
         else:
             content["error"] = str(error)
     return content

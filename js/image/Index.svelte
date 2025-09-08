@@ -125,8 +125,6 @@
 			}
 		}
 	};
-
-	$: console.log(loading_status);
 </script>
 
 {#if !interactive}

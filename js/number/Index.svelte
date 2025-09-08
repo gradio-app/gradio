@@ -36,7 +36,6 @@
 	}
 
 	function handle_change(): void {
-		console.log("handle_change", value);
 		if (value !== null && !isNaN(value)) {
 			gradio.dispatch("change");
 			if (!value_is_output) {

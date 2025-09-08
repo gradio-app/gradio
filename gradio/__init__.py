@@ -241,7 +241,6 @@ __all__ = [
     "Timer",
     "UndoData",
     "UploadButton",
-    "ValidatorError",
     "Video",
     "Warning",
     "WaveformOptions",

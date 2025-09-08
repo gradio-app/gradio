@@ -20,7 +20,6 @@ class AppError(ValueError):
         visible: bool = True,
         title: str = "Error",
         print_exception: bool = True,
-        code: str | None = None,
     ):
         """
         Parameters:
@@ -29,9 +28,7 @@ class AppError(ValueError):
             visible: Whether the error message should be displayed in the UI.
             title: The title to be displayed to the user at the top of the error modal.
             print_exception: Whether to print traceback of the error to the console when the error is raised.
-            code: The error code to be displayed to the user.
         """
-        self.code = code
         self.title = title
         self.message = message
         self.duration = duration
