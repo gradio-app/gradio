@@ -155,7 +155,8 @@ let i18n_initialized = false;
 let previous_translations: Record<string, Record<string, string>> | undefined;
 
 export async function setupi18n(
-	custom_translations?: Record<string, Record<string, string>>
+	custom_translations?: Record<string, Record<string, string>>,
+	preferred_locale?: string
 ): Promise<void> {
 	const should_reinitialize =
 		i18n_initialized && custom_translations !== previous_translations;
@@ -171,7 +172,7 @@ export async function setupi18n(
 		custom_translations: custom_translations ?? {}
 	});
 
-	const browser_locale = getLocaleFromNavigator();
+	const browser_locale = preferred_locale ?? getLocaleFromNavigator();
 
 	let initial_locale =
 		browser_locale && available_locales.includes(browser_locale)

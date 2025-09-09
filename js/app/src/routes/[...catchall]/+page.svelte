@@ -1,6 +1,5 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	import { setupi18n } from "@gradio/core";
 
 	import type { Client as ClientType } from "@gradio/client";
 
@@ -240,11 +239,6 @@
 	let pending_deep_link_error = false;
 
 	let gradio_dev_mode = "";
-	let i18n_ready: boolean;
-
-	setupi18n(app.config?.i18n_translations || undefined).then(() => {
-		i18n_ready = true;
-	});
 
 	onMount(async () => {
 		//@ts-ignore
@@ -404,7 +398,7 @@
 			space_id={space}
 			{app_mode}
 		/>
-	{:else if config && app && i18n_ready}
+	{:else if config && app}
 		<svelte:component
 			this={data.Render}
 			{app}
