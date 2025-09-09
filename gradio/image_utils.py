@@ -305,12 +305,14 @@ def postprocess_image(
     Returns:
         Returns the image as a `FileData` object.
     """
+    from gradio import Warning
+
     if value is None:
         return None
     if isinstance(value, str) and value.lower().endswith(".svg"):
         svg_content = extract_svg_content(value)
         if watermark is not None:
-            raise Warning("Watermarking for svg images is currently not supported.")
+            Warning("Watermarking for svg images is currently not supported.")
         return ImageData(
             orig_name=Path(value).name,
             url=f"data:image/svg+xml,{quote(svg_content)}",
