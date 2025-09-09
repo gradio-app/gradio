@@ -71,13 +71,14 @@ export function is_translation_metadata(obj: any): obj is I18nData {
 	return result;
 }
 
+export const i18n_marker = "__i18n__";
+
 // handles strings with embedded JSON metadata of shape "__i18n__{"key": "some.key"}"
 export function translate_if_needed(value: any): string {
 	if (typeof value !== "string") {
 		return value;
 	}
 
-	const i18n_marker = "__i18n__";
 	const marker_index = value.indexOf(i18n_marker);
 
 	if (marker_index === -1) {
