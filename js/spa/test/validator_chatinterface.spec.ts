@@ -1,4 +1,4 @@
-import { test, expect, go_to_testcase } from "@self/tootils";
+import { test, expect } from "@self/tootils";
 
 test(`Chatinterface correctly validates user message and displays error message`, async ({
 	page
