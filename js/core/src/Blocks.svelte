@@ -255,6 +255,19 @@
 		});
 		update_value(updates);
 
+		// Handle navbar updates separately since they need to be updated in the store.
+		updates.forEach((update) => {
+			const component = components.find((comp) => comp.id === update.id);
+			if (component && component.type === "navbar") {
+				import("./navbar_store").then(({ navbar_config }) => {
+					navbar_config.update((current) => ({
+						...current,
+						[update.prop]: update.value
+					}));
+				});
+			}
+		});
+
 		await tick();
 	}
 
