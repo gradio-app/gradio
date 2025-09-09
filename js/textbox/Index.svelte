@@ -55,8 +55,6 @@
 	function handle_change(value: string): void {
 		gradio.dispatch("change", value);
 	}
-
-	$: console.log("submit_btn || stop_btn", submit_btn, stop_btn);
 </script>
 
 <Block
@@ -103,7 +101,7 @@
 		on:input={() => gradio.dispatch("input")}
 		on:submit={() => {
 			validation_error = null;
-			gradio.dispatch("submit")
+			gradio.dispatch("submit");
 		}}
 		on:blur={() => gradio.dispatch("blur")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}

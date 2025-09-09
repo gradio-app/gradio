@@ -364,20 +364,20 @@
 				lang={html_attributes?.lang}
 			/>
 		{/if}
-		{#if submit_btn || validation_error}
+		{#if submit_btn}
 			<button
 				class="submit-button"
 				class:padded-button={submit_btn !== true}
 				on:click={handle_submit}
 			>
-				{#if submit_btn === true || validation_error}
+				{#if submit_btn === true}
 					<Send />
-				{:else if typeof submit_btn === "string" || validation_error}
+				{:else}
 					{submit_btn}
 				{/if}
 			</button>
 		{/if}
-		{#if stop_btn && !validation_error}
+		{#if stop_btn}
 			<button
 				class="stop-button"
 				class:padded-button={stop_btn !== true}

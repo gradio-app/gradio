@@ -596,25 +596,23 @@ class ChatInterface(Blocks):
             "queue": False,
         }
 
-        submit_event = (
-            self.textbox.submit(
-                self._clear_and_save_textbox,
-                [self.textbox],
-                [self.textbox, self.saved_input],
-                show_api=False,
-                queue=bool(self.validator),
-                validator=self.validator,
-            )
-            .then(  # The reason we do this outside of the submit_fn is that we want to update the chatbot UI with the user message immediately, before the submit_fn is called
-                self._append_message_to_history,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
-                show_api=False,
-                queue=False,
-            )
-            .then(
-                **submit_fn_kwargs,
-            )
+        user_submit = self.textbox.submit(
+            self._clear_and_save_textbox,
+            [self.textbox],
+            [self.textbox, self.saved_input],
+            show_api=False,
+            queue=bool(self.validator),
+            validator=self.validator,
+        )
+
+        submit_event = user_submit.then(  # The reason we do this outside of the submit_fn is that we want to update the chatbot UI with the user message immediately, before the submit_fn is called
+            self._append_message_to_history,
+            [self.saved_input, self.chatbot],
+            [self.chatbot],
+            show_api=False,
+            queue=False,
+        ).then(
+            **submit_fn_kwargs,
         )
         submit_event.then(**synchronize_chat_state_kwargs).then(
             lambda: update(value=None, interactive=True),
@@ -695,11 +693,11 @@ class ChatInterface(Blocks):
 
         self._setup_stop_events(
             event_triggers=[
-                self.textbox.submit,
                 self.chatbot.retry,
                 self.chatbot.example_select,
             ],
             events_to_cancel=events_to_cancel,
+            after_success=user_submit,
         )
 
         self.chatbot.undo(
@@ -794,9 +792,22 @@ class ChatInterface(Blocks):
         self,
         event_triggers: list[Callable],
         events_to_cancel: list[Dependency],
+        after_success: Dependency,
     ) -> None:
         textbox_component = MultimodalTextbox if self.multimodal else Textbox
         original_submit_btn = self.textbox.submit_btn
+        after_success.success(
+            utils.async_lambda(
+                lambda: textbox_component(
+                    submit_btn=False,
+                    stop_btn=self.original_stop_btn,
+                )
+            ),
+            None,
+            [self.textbox],
+            show_api=False,
+            queue=False,
+        )
         for event_trigger in event_triggers:
             event_trigger(
                 utils.async_lambda(
