@@ -1341,15 +1341,18 @@ class App(FastAPI):
                     detail="Queue is stopped.",
                 )
             body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
-            success, event_id = await blocks._queue.push(
+            success, event_id, state = await blocks._queue.push(
                 body=body, request=request, username=username
             )
+            error_map = {
+                "queue_full": status.HTTP_503_SERVICE_UNAVAILABLE,
+                "validator_error": status.HTTP_422_UNPROCESSABLE_ENTITY,
+                "error": status.HTTP_400_BAD_REQUEST,
+                "success": status.HTTP_200_OK,
+            }
+
             if not success:
-                status_code = (
-                    status.HTTP_503_SERVICE_UNAVAILABLE
-                    if "Queue is full." in event_id
-                    else status.HTTP_400_BAD_REQUEST
-                )
+                status_code = error_map[state]
                 raise HTTPException(status_code=status_code, detail=event_id)
             return {"event_id": event_id}
 

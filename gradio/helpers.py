@@ -1109,6 +1109,14 @@ def update(
 
 
 @document()
+def validate(is_valid: bool, message: str):
+    """
+    A special function that can be returned from a Gradio function to set the validation error of an output component.
+    """
+    return {"__type__": "validate", "is_valid": is_valid, "message": message}
+
+
+@document()
 def skip() -> dict:
     """
     A special function that can be returned from a Gradio function to skip updating the output component. This may be useful when
