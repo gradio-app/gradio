@@ -130,6 +130,7 @@
 		"@gradio/markdown": "workspace:^",
 		"@gradio/model3d": "workspace:^",
 		"@gradio/multimodaltextbox": "workspace:^",
+		"@gradio/navbar": "workspace:^",
 		"@gradio/nativeplot": "workspace:^",
 		"@gradio/number": "workspace:^",
 		"@gradio/paramviewer": "workspace:^",

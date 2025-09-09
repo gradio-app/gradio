@@ -53,6 +53,7 @@ from gradio.components import (
     MessageDict,
     Model3D,
     MultimodalTextbox,
+    Navbar,
     Number,
     ParamViewer,
     Plot,

@@ -2469,6 +2469,7 @@ Received inputs:
             block_fn.tracks_progress for block_fn in self.fns.values()
         )
         self.page = ""
+        self.validate_navbar_settings()
         self.exited = True
 
     def clear(self):
@@ -2531,8 +2532,21 @@ Received inputs:
                         "another event without enabling the queue. Both can be solved by calling .queue() "
                         "before .launch()"
                     )
-            if dep.batch and dep.queue is False:
-                raise ValueError("In order to use batching, the queue must be enabled.")
+
+    def validate_navbar_settings(self):
+        """Validates that only one Navbar component exists in the Blocks app."""
+        from gradio.components.navbar import Navbar
+
+        navbar_components = [
+            block for block in self.blocks.values() if isinstance(block, Navbar)
+        ]
+
+        if len(navbar_components) > 1:
+            raise ValueError(
+                "Only one gr.Navbar component can exist per Blocks app. "
+                f"Found {len(navbar_components)} Navbar components. "
+                "Please remove the extra Navbar components."
+            )
 
     def launch(
         self,

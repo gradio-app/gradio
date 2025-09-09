@@ -532,6 +532,7 @@
 	{pages}
 	{current_page}
 	{root}
+	components={config?.components || []}
 	{is_lite}
 	bind:wrapper
 >
