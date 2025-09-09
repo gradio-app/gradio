@@ -338,7 +338,6 @@ class Queue:
                     (is_valid, validation_data) = process_validation_response(
                         validation_response, fn
                     )
-
                     if is_valid is False:
                         return (
                             False,

@@ -251,7 +251,7 @@
 			/>
 		</IconButtonWrapper>
 	{/if}
-	<BlockTitle {show_label} {info}
+	<BlockTitle show_label={validation_error ? true : show_label} {info}
 		>{label}
 		{#if validation_error}
 			<div class="validation-error">{validation_error}</div>
@@ -364,20 +364,20 @@
 				lang={html_attributes?.lang}
 			/>
 		{/if}
-		{#if submit_btn}
+		{#if submit_btn || validation_error}
 			<button
 				class="submit-button"
 				class:padded-button={submit_btn !== true}
 				on:click={handle_submit}
 			>
-				{#if submit_btn === true}
+				{#if submit_btn === true || validation_error}
 					<Send />
-				{:else}
+				{:else if typeof submit_btn === "string" || validation_error}
 					{submit_btn}
 				{/if}
 			</button>
 		{/if}
-		{#if stop_btn}
+		{#if stop_btn && !validation_error}
 			<button
 				class="stop-button"
 				class:padded-button={stop_btn !== true}

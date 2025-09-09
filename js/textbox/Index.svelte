@@ -50,10 +50,13 @@
 	export let interactive: boolean;
 	export let max_length: number | undefined = undefined;
 	export let html_attributes: InputHTMLAttributes | null = null;
+	export let validation_error: string | null = null;
 
 	function handle_change(value: string): void {
 		gradio.dispatch("change", value);
 	}
+
+	$: console.log("submit_btn || stop_btn", submit_btn, stop_btn);
 </script>
 
 <Block
@@ -95,10 +98,13 @@
 		{autoscroll}
 		{max_length}
 		{html_attributes}
-		validation_error={loading_status?.validation_error}
+		validation_error={loading_status?.validation_error || validation_error}
 		on:change={(e) => handle_change(e.detail)}
 		on:input={() => gradio.dispatch("input")}
-		on:submit={() => gradio.dispatch("submit")}
+		on:submit={() => {
+			validation_error = null;
+			gradio.dispatch("submit")
+		}}
 		on:blur={() => gradio.dispatch("blur")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		on:focus={() => gradio.dispatch("focus")}

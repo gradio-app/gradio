@@ -623,6 +623,7 @@
 
 			/* eslint-disable complexity */
 			function handle_status_update(message: StatusMessage): void {
+				console.log("message", message)
 				if (message.code === "validation_error") {
 					const dep = dependencies.find((dep) => dep.id === message.fn_index);
 					if (
@@ -630,6 +631,7 @@
 						message.message === undefined ||
 						typeof message.message === "string"
 					) {
+						console.log("no dep or message");
 						return;
 					}
 

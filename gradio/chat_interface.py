@@ -371,7 +371,7 @@ class ChatInterface(Blocks):
                     )
                     self.textbox = textbox_component(
                         show_label=False,
-                        label="Message",
+                        label="",
                         placeholder="Type a message...",
                         scale=7,
                         autofocus=self.autofocus,
@@ -602,7 +602,8 @@ class ChatInterface(Blocks):
                 [self.textbox],
                 [self.textbox, self.saved_input],
                 show_api=False,
-                queue=False,
+                queue=bool(self.validator),
+                validator=self.validator,
             )
             .then(  # The reason we do this outside of the submit_fn is that we want to update the chatbot UI with the user message immediately, before the submit_fn is called
                 self._append_message_to_history,
@@ -613,7 +614,6 @@ class ChatInterface(Blocks):
             )
             .then(
                 **submit_fn_kwargs,
-                validator=self.validator,
             )
         )
         submit_event.then(**synchronize_chat_state_kwargs).then(
@@ -791,7 +791,9 @@ class ChatInterface(Blocks):
         ).then(**synchronize_chat_state_kwargs)
 
     def _setup_stop_events(
-        self, event_triggers: list[Callable], events_to_cancel: list[Dependency]
+        self,
+        event_triggers: list[Callable],
+        events_to_cancel: list[Dependency],
     ) -> None:
         textbox_component = MultimodalTextbox if self.multimodal else Textbox
         original_submit_btn = self.textbox.submit_btn
