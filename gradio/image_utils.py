@@ -311,7 +311,9 @@ def postprocess_image(
     if isinstance(value, str) and value.lower().endswith(".svg"):
         svg_content = extract_svg_content(value)
         if watermark is not None:
-            Warning("Watermarking for SVG images is currently not supported. No watermark will be applied.")
+            Warning(
+                "Watermarking for SVG images is currently not supported. No watermark will be applied."
+            )
         return ImageData(
             orig_name=Path(value).name,
             url=f"data:image/svg+xml,{quote(svg_content)}",
