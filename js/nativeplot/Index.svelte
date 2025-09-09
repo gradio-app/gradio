@@ -325,6 +325,7 @@
 				chart_element.offsetWidth !== 0 &&
 				value.datatypes[x] === "nominal"
 			) {
+				// a bug where when a nominal chart is first loaded, the width is 0, it doesn't resize
 				load_chart();
 			} else {
 				const width_change = Math.abs(old_width - el[0].target.offsetWidth);
