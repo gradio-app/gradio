@@ -347,7 +347,7 @@ class Queue:
 
             except Exception as e:
                 print(str(e))
-                return False, "Internal server error", "error"
+                return False, str(e), "error"
 
         event = Event(
             body.session_hash,

@@ -35,6 +35,10 @@ def process_image(image):
     return "HELLO IMAGE!!!"
 
 
+def raise_error():
+    raise ValueError("test error")
+
+
 with gr.Blocks() as demo:
     with gr.Tab("Text"):
         gr.Markdown("# Validator Parameter Test Demo")
@@ -71,6 +75,14 @@ with gr.Blocks() as demo:
             validator=validate_image,
             inputs=im,
             outputs=t,
+        )
+    with gr.Tab("Validation Error"):
+        error_btn = gr.Button("Raise Validation Error", variant="primary")
+        error_btn.click(
+            validator=raise_error,
+            fn=raise_error,
+            inputs=[],
+            outputs=[],
         )
 
 

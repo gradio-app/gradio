@@ -596,8 +596,8 @@ export function submit(
 							fire_event({
 								type: "status",
 								stage: "error",
-								broken: true,
-								message: BROKEN_CONNECTION_MSG,
+								broken: false,
+								message: response.detail,
 								queue: true,
 								endpoint: _endpoint,
 								fn_index,

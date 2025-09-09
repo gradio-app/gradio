@@ -491,8 +491,7 @@
 		right: 0;
 		z-index: var(--layer-3);
 		padding: var(--size-1) var(--size-2);
-		font-size: var(--text-sm);
-		font-family: var(--font-mono);
+		font-size: var(--text-md);
 		text-align: center;
 		border-bottom-left-radius: var(--radius-sm);
 		border-bottom: 1px solid var(--error-border-color);
