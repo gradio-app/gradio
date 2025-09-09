@@ -72,11 +72,20 @@
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
 		{...loading_status}
+		show_validation_error={false}
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	<label class="block" class:container>
-		<BlockTitle {show_label} {info}>{label}</BlockTitle>
+		<BlockTitle {show_label} {info}
+			>{label}
+
+			{#if loading_status?.validation_error}
+				<div class="validation-error">{loading_status?.validation_error}</div>
+			{/if}
+		</BlockTitle>
+
 		<input
+			class:validation-error={loading_status?.validation_error}
 			aria-label={label}
 			type="number"
 			bind:value
@@ -132,5 +141,19 @@
 
 	input:out-of-range {
 		border: var(--input-border-width) solid var(--error-border-color);
+	}
+
+	div.validation-error {
+		color: var(--error-icon-color);
+		font-size: var(--font-sans);
+		margin-top: var(--spacing-sm);
+		font-weight: var(--weight-semibold);
+	}
+
+	label.container input.validation-error {
+		border-color: transparent !important;
+		box-shadow:
+			0 0 3px 1px var(--error-icon-color),
+			var(--shadow-inset) !important;
 	}
 </style>
