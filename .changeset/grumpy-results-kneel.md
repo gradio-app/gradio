@@ -3,6 +3,7 @@
 "@gradio/navbar": minor
 "@self/app": minor
 "@self/spa": minor
+"@self/storybook": minor
 "gradio": minor
 ---
 
