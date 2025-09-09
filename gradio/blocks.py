@@ -42,6 +42,7 @@ from gradio import (
     utils,
     wasm_utils,
 )
+from gradio.block_function import BlockFunction
 from gradio.blocks_events import BLOCKS_EVENTS, BlocksEvents, BlocksMeta
 from gradio.context import (
     Context,
@@ -540,160 +541,6 @@ class BlockContext(Block):
         return y
 
 
-class BlockFunction:
-    def __init__(
-        self,
-        fn: Callable | None,
-        inputs: Sequence[Component | BlockContext],
-        outputs: Sequence[Component | BlockContext],
-        preprocess: bool,
-        postprocess: bool,
-        inputs_as_dict: bool,
-        targets: list[tuple[int | None, str]],
-        _id: int,
-        batch: bool = False,
-        max_batch_size: int = 4,
-        concurrency_limit: int | None | Literal["default"] = "default",
-        concurrency_id: str | None = None,
-        tracks_progress: bool = False,
-        api_name: str | Literal[False] = False,
-        api_description: str | None | Literal[False] = None,
-        js: str | Literal[True] | None = None,
-        show_progress: Literal["full", "minimal", "hidden"] = "full",
-        show_progress_on: Sequence[Component] | None = None,
-        cancels: list[int] | None = None,
-        collects_event_data: bool = False,
-        trigger_after: int | None = None,
-        trigger_only_on_success: bool = False,
-        trigger_only_on_failure: bool = False,
-        trigger_mode: Literal["always_last", "once", "multiple"] = "once",
-        queue: bool = True,
-        scroll_to_output: bool = False,
-        show_api: bool = True,
-        renderable: Renderable | None = None,
-        rendered_in: Renderable | None = None,
-        render_iteration: int | None = None,
-        is_cancel_function: bool = False,
-        connection: Literal["stream", "sse"] = "sse",
-        time_limit: float | None = None,
-        stream_every: float = 0.5,
-        like_user_message: bool = False,
-        event_specific_args: list[str] | None = None,
-        page: str = "",
-        js_implementation: str | None = None,
-        key: str | int | tuple[int | str, ...] | None = None,
-    ):
-        self.fn = fn
-        self._id = _id
-        self.inputs = inputs
-        self.outputs = outputs
-        self.preprocess = preprocess
-        self.postprocess = postprocess
-        self.tracks_progress = tracks_progress
-        self.concurrency_limit: int | None | Literal["default"] = concurrency_limit
-        self.concurrency_id = concurrency_id or str(id(fn))
-        self.batch = batch
-        self.max_batch_size = max_batch_size
-        self.total_runtime = 0
-        self.total_runs = 0
-        self.inputs_as_dict = inputs_as_dict
-        self.targets = targets
-        self.name = getattr(fn, "__name__", "fn") if fn is not None else None
-        self.api_name = api_name
-        self.api_description = api_description
-        self.js = js
-        self.show_progress = show_progress
-        self.show_progress_on = show_progress_on
-        self.cancels = cancels or []
-        self.collects_event_data = collects_event_data
-        self.trigger_after = trigger_after
-        self.trigger_only_on_success = trigger_only_on_success
-        self.trigger_only_on_failure = trigger_only_on_failure
-        self.trigger_mode = trigger_mode
-        self.queue = False if fn is None else queue
-        self.scroll_to_output = False if utils.get_space() else scroll_to_output
-        self.show_api = show_api
-        self.types_generator = inspect.isgeneratorfunction(
-            self.fn
-        ) or inspect.isasyncgenfunction(self.fn)
-        self.renderable = renderable
-        self.rendered_in = rendered_in
-        self.render_iteration = render_iteration
-        self.page = page
-        if js_implementation:
-            self.fn.__js_implementation__ = js_implementation  # type: ignore
-
-        # We need to keep track of which events are cancel events
-        # so that the client can call the /cancel route directly
-        self.is_cancel_function = is_cancel_function
-        self.time_limit = time_limit
-        self.stream_every = stream_every
-        self.connection = connection
-        self.like_user_message = like_user_message
-        self.event_specific_args = event_specific_args
-        self.key = key
-
-        self.spaces_auto_wrap()
-
-    def spaces_auto_wrap(self):
-        if spaces is None:
-            return
-        if utils.get_space() is None:
-            return
-        self.fn = spaces.gradio_auto_wrap(self.fn)
-
-    def __str__(self):
-        return str(
-            {
-                "fn": self.name,
-                "preprocess": self.preprocess,
-                "postprocess": self.postprocess,
-            }
-        )
-
-    def __repr__(self):
-        return str(self)
-
-    def get_config(self):
-        return {
-            "id": self._id,
-            "targets": self.targets,
-            "inputs": [block._id for block in self.inputs],
-            "outputs": [block._id for block in self.outputs],
-            "backend_fn": self.fn is not None,
-            "js": self.js,
-            "queue": self.queue,
-            "api_name": self.api_name,
-            "api_description": self.api_description,
-            "scroll_to_output": self.scroll_to_output,
-            "show_progress": self.show_progress,
-            "show_progress_on": None
-            if self.show_progress_on is None
-            else [block._id for block in self.show_progress_on],
-            "batch": self.batch,
-            "max_batch_size": self.max_batch_size,
-            "cancels": self.cancels,
-            "types": {
-                "generator": self.types_generator,
-                "cancel": self.is_cancel_function,
-            },
-            "collects_event_data": self.collects_event_data,
-            "trigger_after": self.trigger_after,
-            "trigger_only_on_success": self.trigger_only_on_success,
-            "trigger_only_on_failure": self.trigger_only_on_failure,
-            "trigger_mode": self.trigger_mode,
-            "show_api": self.show_api,
-            "rendered_in": self.rendered_in._id if self.rendered_in else None,
-            "render_id": self.renderable._id if self.renderable else None,
-            "connection": self.connection,
-            "time_limit": self.time_limit,
-            "stream_every": self.stream_every,
-            "like_user_message": self.like_user_message,
-            "event_specific_args": self.event_specific_args,
-            "js_implementation": getattr(self.fn, "__js_implementation__", None),
-        }
-
-
 def postprocess_update_dict(
     block: Component | BlockContext, update_dict: dict, postprocess: bool = True
 ):
@@ -802,6 +649,7 @@ class BlocksConfig:
         event_specific_args: list[str] | None = None,
         js_implementation: str | None = None,
         key: str | int | tuple[int | str, ...] | None = None,
+        validator: Callable | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -835,6 +683,7 @@ class BlocksConfig:
             connection: The connection format, either "sse" or "stream".
             time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
             stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
+            validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input.
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -986,6 +835,7 @@ class BlocksConfig:
             page=self.root_block.current_page,
             js_implementation=js_implementation,
             key=key,
+            validator=validator,
         )
 
         self.fns[fn_id] = block_fn
@@ -2280,6 +2130,7 @@ Received inputs:
                 in_event_listener,
                 state,
             )
+
             data = await self.postprocess_data(block_fn, result["prediction"], state)
             if state:
                 changed_state_ids = [
