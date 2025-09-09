@@ -102,11 +102,11 @@ from gradio.layouts import (
     Group,
     Row,
     Sidebar,
+    Step,
     Tab,
     TabItem,
     Tabs,
     Walkthrough,
-    Step,
 )
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.renderable import render

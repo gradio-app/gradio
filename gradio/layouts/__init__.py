@@ -6,7 +6,7 @@ from .group import Group
 from .row import Row
 from .sidebar import Sidebar
 from .tabs import Tab, TabItem, Tabs
-from .walkthrough import Walkthrough, Step
+from .walkthrough import Step, Walkthrough
 
 __all__ = [
     "Accordion",
