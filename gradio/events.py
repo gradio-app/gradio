@@ -91,7 +91,6 @@ class Dependency(dict):
         dep_index,
         fn,
         associated_timer: Timer | None = None,
-        validator: Callable | None = None,
     ):
         """
         The Dependency object is usualy not created directly but is returned when an event listener is set up. It contains the configuration

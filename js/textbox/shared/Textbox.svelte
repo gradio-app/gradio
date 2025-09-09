@@ -31,7 +31,7 @@
 	export let autoscroll = true;
 	export let max_length: number | undefined = undefined;
 	export let html_attributes: InputHTMLAttributes | null = null;
-	export let validation_error: string | undefined = undefined;
+	export let validation_error: string | null | undefined = undefined;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
