@@ -279,7 +279,6 @@ class Queue:
         fn = route_utils.get_fn(self.blocks, None, body)
         self.create_event_queue_for_fn(fn)
         if fn.validator is not None:
-            print("VALIDATOR", fn.validator)
             gr_request = route_utils.compile_gr_request(
                 body=body,
                 fn=fn,
@@ -348,7 +347,6 @@ class Queue:
             except Exception as e:
                 print(str(e))
                 return False, str(e), "error"
-        print("FN", fn)
         event = Event(
             body.session_hash,
             fn,

@@ -906,7 +906,6 @@ class ChatInterface(Blocks):
         if not isinstance(message, list):
             message = [message]
         for msg in message:
-            print("MSG", msg)
             if isinstance(msg, Message):
                 message_dicts.append(msg.model_dump())
             elif isinstance(msg, ChatMessage):

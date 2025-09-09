@@ -630,7 +630,6 @@
 						message.message === undefined ||
 						typeof message.message === "string"
 					) {
-						console.log("no dep or message");
 						return;
 					}
 
