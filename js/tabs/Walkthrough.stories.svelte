@@ -63,7 +63,7 @@
 	</Tabs>
 </Template>
 
-<Story name="Tabs" args={{}} />
+<Story name="Tabs Walkthrough" args={{}} />
 
 <Story name="TabsLastInvisible" args={{}}>
 	<Tabs selected="tab-1" gradio={undefined} name="walkthrough">
