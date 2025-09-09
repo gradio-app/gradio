@@ -996,6 +996,10 @@ def special_args(
                         "SessionMiddleware must be installed to access request.session"
                         in str(e)
                     ):
+                        warnings.warn(
+                            "Empty session being created. Install gradio[oauth] and add a gr.LoginButton to your app to enable OAuth login.",
+                            UserWarning,
+                        )
                         session = {}
                     else:
                         raise e
