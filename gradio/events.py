@@ -85,7 +85,13 @@ def set_cancel_events(
 @document()
 class Dependency(dict):
     def __init__(
-        self, trigger, key_vals, dep_index, fn, associated_timer: Timer | None = None
+        self,
+        trigger,
+        key_vals,
+        dep_index,
+        fn,
+        associated_timer: Timer | None = None,
+        validator: Callable | None = None,
     ):
         """
         The Dependency object is usualy not created directly but is returned when an event listener is set up. It contains the configuration
@@ -791,6 +797,7 @@ def on(
     time_limit: int | None = None,
     stream_every: float = 0.5,
     key: int | str | tuple[int | str, ...] | None = None,
+    validator: Callable | None = None,
 ) -> Dependency:
     """
     Sets up an event listener that triggers a function when the specified event(s) occur. This is especially
@@ -819,6 +826,7 @@ def on(
         show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
         time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
         stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
+        validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function and should return a `gr.validate()` for each input value.
     Example:
         import gradio as gr
         with gr.Blocks() as demo:
@@ -869,6 +877,7 @@ def on(
                 time_limit=time_limit,
                 stream_every=stream_every,
                 key=key,
+                validator=validator,
             )
 
             @wraps(func)
@@ -928,6 +937,7 @@ def on(
         time_limit=time_limit,
         stream_every=stream_every,
         key=key,
+        validator=validator,
     )
     set_cancel_events(methods, cancels)
     return Dependency(None, dep.get_config(), dep_index, fn)

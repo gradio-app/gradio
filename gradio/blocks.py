@@ -683,6 +683,7 @@ class BlocksConfig:
             connection: The connection format, either "sse" or "stream".
             time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
             stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
+            validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input.
         Returns: dependency information, dependency index
         """
         # Support for singular parameter

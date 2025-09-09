@@ -279,6 +279,7 @@ class Queue:
         fn = route_utils.get_fn(self.blocks, None, body)
         self.create_event_queue_for_fn(fn)
         if fn.validator is not None:
+            print("VALIDATOR", fn.validator)
             gr_request = route_utils.compile_gr_request(
                 body=body,
                 fn=fn,
@@ -296,15 +297,15 @@ class Queue:
                 fn=fn.validator,
                 api_name=False,
                 batch=fn.batch,
-                concurrency_id=fn.concurrency_id,
-                concurrency_limit=fn.concurrency_limit,
+                concurrency_id=None,
+                concurrency_limit=None,
                 inputs=fn.inputs,
                 outputs=fn.inputs,
                 preprocess=fn.preprocess,
                 postprocess=False,
                 inputs_as_dict=fn.inputs_as_dict,
-                targets=fn.targets,
-                _id=fn._id,
+                targets=[],
+                _id=-1,
                 max_batch_size=fn.max_batch_size,
                 tracks_progress=fn.tracks_progress,
                 js=None,
@@ -348,7 +349,7 @@ class Queue:
             except Exception as e:
                 print(str(e))
                 return False, str(e), "error"
-
+        print("FN", fn)
         event = Event(
             body.session_hash,
             fn,

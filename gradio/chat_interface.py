@@ -114,6 +114,7 @@ class ChatInterface(Blocks):
         api_description: str | None | Literal[False] = None,
         show_api: bool = True,
         save_history: bool = False,
+        validator: Callable | None = None,
     ):
         """
         Parameters:
@@ -157,6 +158,7 @@ class ChatInterface(Blocks):
             api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
             show_api: whether to show the chat endpoint in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
             save_history: if True, will save the chat history to the browser's local storage and display previous conversations in a side panel.
+            validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -188,6 +190,7 @@ class ChatInterface(Blocks):
         self.is_generator = inspect.isgeneratorfunction(
             self.fn
         ) or inspect.isasyncgenfunction(self.fn)
+        self.validator = validator
         self.provided_chatbot = chatbot is not None
         self.examples = examples
         self.examples_messages = self._setup_example_messages(
@@ -608,7 +611,10 @@ class ChatInterface(Blocks):
                 show_api=False,
                 queue=False,
             )
-            .then(**submit_fn_kwargs)
+            .then(
+                **submit_fn_kwargs,
+                validator=self.validator,
+            )
         )
         submit_event.then(**synchronize_chat_state_kwargs).then(
             lambda: update(value=None, interactive=True),
@@ -887,6 +893,7 @@ class ChatInterface(Blocks):
         if not isinstance(message, list):
             message = [message]
         for msg in message:
+            print("MSG", msg)
             if isinstance(msg, Message):
                 message_dicts.append(msg.model_dump())
             elif isinstance(msg, ChatMessage):
