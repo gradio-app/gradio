@@ -1,6 +1,6 @@
 ---
-"@gradio/nativeplot": minor
-"gradio": minor
+"@gradio/nativeplot": patch
+"gradio": patch
 ---
 
-feat:Fixes to native plots
+feat:Fix native plots with long y-axis titles
