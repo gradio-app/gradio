@@ -6,4 +6,4 @@
 "gradio": minor
 ---
 
-feat: Add Walkthrough and WalkthroughStep compoents to facilitate multi-step workflows.
+feat: Add Walkthrough and Step compoents to facilitate multi-step workflows.

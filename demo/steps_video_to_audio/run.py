@@ -66,19 +66,19 @@
 
 # with gr.Blocks() as demo:
 #     with gr.Walkthrough(selected=0) as walkthrough:
-#         with gr.WalkthroughStep("Upload a Video", id=0):
+#         with gr.Step("Upload a Video", id=0):
 #             video = gr.Video(height=300)
 #             num_thumbnails = gr.Number(value=5, label="Number of candidate thumbnails")
 #             next_button = gr.Button("Next", variant="primary", interactive=False)
 #             video.upload(lambda: gr.Button(interactive=True), outputs=[next_button])
-#         with gr.WalkthroughStep("Select a thumbnail", id=1):
+#         with gr.Step("Select a thumbnail", id=1):
 #             gr.Markdown("## Select the thumbnail you want to use for the audio")
 #             selected_image = gr.State()
 #             thumbnail_candidates = gr.Gallery(preview=True)
 #             generate_audio_button = gr.Button("Generate audio", variant="primary")
 #             thumbnail_candidates.select(select_image, outputs=selected_image)
 #             generate_audio_button.click(lambda: gr.Walkthrough(selected=2), outputs=walkthrough)
-#         with gr.WalkthroughStep("Download Audio", id=2):
+#         with gr.Step("Download Audio", id=2):
 #             audio = gr.Audio()
 #             download_audio_file = gr.File()
 
@@ -100,47 +100,47 @@ import gradio as gr
 
 with gr.Blocks() as demo:
     with gr.Walkthrough(selected=0) as walkthrough:
-        with gr.WalkthroughStep("Upload a Video", id=0):
+        with gr.Step("Upload a Video", id=0):
             gr.Button("Next").click(
                 lambda: gr.Walkthrough(selected=1), outputs=walkthrough
             )
             pass
-        with gr.WalkthroughStep("Select a thumbnail", id=1):
+        with gr.Step("Select a thumbnail", id=1):
             gr.Button("Next").click(
                 lambda: gr.Walkthrough(selected=2), outputs=walkthrough
             )
             pass
-        with gr.WalkthroughStep("Download Audio", id=2):
+        with gr.Step("Download Audio", id=2):
             gr.Button("Next").click(
                 lambda: gr.Walkthrough(selected=3), outputs=walkthrough
             )
             pass
-        with gr.WalkthroughStep("Upload a Video", id=3):
+        with gr.Step("Upload a Video", id=3):
             gr.Button("Next").click(
                 lambda: gr.Walkthrough(selected=4), outputs=walkthrough
             )
             pass
-        with gr.WalkthroughStep("Select a thumbnail", id=4):
+        with gr.Step("Select a thumbnail", id=4):
             gr.Button("Next").click(
                 lambda: gr.Walkthrough(selected=5), outputs=walkthrough
             )
             pass
-        with gr.WalkthroughStep("Download Audio", id=5):
+        with gr.Step("Download Audio", id=5):
             gr.Button("Next").click(
                 lambda: gr.Walkthrough(selected=6), outputs=walkthrough
             )
             pass
-        with gr.WalkthroughStep("Download Audio", id=6):
+        with gr.Step("Download Audio", id=6):
             gr.Button("Next").click(
                 lambda: gr.Walkthrough(selected=7), outputs=walkthrough
             )
             pass
-        with gr.WalkthroughStep("Download Audio", id=7):
+        with gr.Step("Download Audio", id=7):
             gr.Button("Next").click(
                 lambda: gr.Walkthrough(selected=8), outputs=walkthrough
             )
             pass
-        with gr.WalkthroughStep("Download Audio", id=8):
+        with gr.Step("Download Audio", id=8):
             pass
 
 

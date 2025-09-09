@@ -49,9 +49,9 @@ class Walkthrough(Tabs, metaclass=ComponentMeta):
 
 
 @document()
-class WalkthroughStep(TabItem, metaclass=ComponentMeta):
+class Step(TabItem, metaclass=ComponentMeta):
     """
-    WalkthroughStep is a layout element. A step is a single step in a step-by-step workflow.
+    Step is a layout element. A step is a single step in a step-by-step workflow.
     """
 
     def __init__(

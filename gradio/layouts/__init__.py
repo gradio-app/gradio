@@ -6,7 +6,7 @@ from .group import Group
 from .row import Row
 from .sidebar import Sidebar
 from .tabs import Tab, TabItem, Tabs
-from .walkthrough import Walkthrough, WalkthroughStep
+from .walkthrough import Walkthrough, Step
 
 __all__ = [
     "Accordion",
@@ -20,5 +20,5 @@ __all__ = [
     "TabItem",
     "Sidebar",
     "Walkthrough",
-    "WalkthroughStep",
+    "Step",
 ]
