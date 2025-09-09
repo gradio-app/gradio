@@ -31,6 +31,7 @@
 	export let autoscroll = true;
 	export let max_length: number | undefined = undefined;
 	export let html_attributes: InputHTMLAttributes | null = null;
+	export let validation_error: string | null | undefined = undefined;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -39,6 +40,7 @@
 	let previous_scroll_top = 0;
 	let user_has_scrolled_up = false;
 	let _max_lines: number;
+	let ghost_element: HTMLTextAreaElement | null = null;
 
 	const show_textbox_border = !submit_btn;
 
@@ -52,7 +54,9 @@
 		_max_lines = Math.max(max_lines, lines);
 	}
 
-	$: value, el && lines !== _max_lines && resize({ target: el });
+	$: value,
+		validation_error,
+		el && lines !== _max_lines && lines > 1 && resize({ target: el });
 
 	$: if (value === null) value = "";
 
@@ -222,7 +226,8 @@
 		_el: HTMLTextAreaElement,
 		_value: string
 	): any | undefined {
-		if (lines === _max_lines) return;
+		if (lines === _max_lines || (lines === 1 && _max_lines === 1)) return;
+
 		_el.style.overflowY = "scroll";
 		_el.addEventListener("input", resize);
 
@@ -246,7 +251,12 @@
 			/>
 		</IconButtonWrapper>
 	{/if}
-	<BlockTitle {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle show_label={validation_error ? true : show_label} {info}
+		>{label}
+		{#if validation_error}
+			<div class="validation-error">{validation_error}</div>
+		{/if}
+	</BlockTitle>
 
 	<div class="input-container">
 		{#if lines === 1 && _max_lines === 1}
@@ -266,6 +276,7 @@
 					on:blur
 					on:select={handle_select}
 					on:focus
+					class:validation-error={validation_error}
 					style={text_align ? "text-align: " + text_align : ""}
 					autocapitalize={html_attributes?.autocapitalize}
 					autocorrect={html_attributes?.autocorrect}
@@ -290,6 +301,7 @@
 					on:blur
 					on:select={handle_select}
 					on:focus
+					class:validation-error={validation_error}
 					autocomplete=""
 					autocapitalize={html_attributes?.autocapitalize}
 					autocorrect={html_attributes?.autocorrect}
@@ -313,6 +325,7 @@
 					on:blur
 					on:select={handle_select}
 					on:focus
+					class:validation-error={validation_error}
 					autocomplete="email"
 					autocapitalize={html_attributes?.autocapitalize}
 					autocorrect={html_attributes?.autocorrect}
@@ -340,6 +353,7 @@
 				on:select={handle_select}
 				on:focus
 				on:scroll={handle_scroll}
+				class:validation-error={validation_error}
 				style={text_align ? "text-align: " + text_align : ""}
 				autocapitalize={html_attributes?.autocapitalize}
 				autocorrect={html_attributes?.autocorrect}
@@ -405,6 +419,7 @@
 		line-height: var(--line-sm);
 		border: none;
 	}
+
 	textarea.no-label {
 		padding-top: 5px;
 		padding-bottom: 5px;
@@ -492,5 +507,20 @@
 	}
 	.padded-button {
 		padding: 0 10px;
+	}
+
+	div.validation-error {
+		color: var(--error-icon-color);
+		font-size: var(--font-sans);
+		margin-top: var(--spacing-sm);
+		font-weight: var(--weight-semibold);
+	}
+
+	label.container input.validation-error,
+	label.container textarea.validation-error {
+		border-color: transparent !important;
+		box-shadow:
+			0 0 3px 1px var(--error-icon-color),
+			var(--shadow-inset) !important;
 	}
 </style>

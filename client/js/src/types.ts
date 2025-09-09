@@ -362,6 +362,11 @@ export interface Render {
 	};
 }
 
+export interface ValidationError {
+	is_valid: boolean;
+	message: string;
+}
+
 export interface Status {
 	queue: boolean;
 	code?: string;
@@ -374,7 +379,7 @@ export interface Status {
 	position?: number;
 	eta?: number;
 	title?: string;
-	message?: string;
+	message?: string | ValidationError[];
 	progress_data?: {
 		progress: number | null;
 		index: number | null;
