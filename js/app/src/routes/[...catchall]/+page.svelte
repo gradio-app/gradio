@@ -391,6 +391,7 @@
 	pages={config.pages}
 	current_page={config.current_page}
 	root={config.root}
+	components={config.components}
 	loaded={loader_status === "complete"}
 	fill_width={config?.fill_width || false}
 	bind:wrapper

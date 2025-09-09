@@ -139,6 +139,7 @@ class Interface(Blocks):
         time_limit: int | None = 30,
         stream_every: float = 0.5,
         deep_link: str | DeepLinkButton | bool | None = None,
+        validator: Callable | None = None,
         **kwargs,
     ):
         """
@@ -185,6 +186,8 @@ class Interface(Blocks):
             time_limit: The time limit for the stream to run. Default is 30 seconds. Parameter only used for streaming images or audio if the interface is live and the input components are set to "streaming=True".
             stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for streaming images or audio if the interface is live and the input components are set to "streaming=True".
             deep_link: a string or `gr.DeepLinkButton` object that creates a unique URL you can use to share your app and all components **as they currently are** with others. Automatically enabled on Hugging Face Spaces unless explicitly set to False.
+            validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input.
+
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -349,6 +352,7 @@ class Interface(Blocks):
 
         self.api_mode = _api_mode
         self.fn = fn
+        self.validator = validator
         self.fn_durations = [0, 0]
         self.__name__ = getattr(fn, "__name__", "fn")
         self.live = live
@@ -725,6 +729,7 @@ class Interface(Blocks):
                     postprocess=not (self.api_mode),
                     batch=self.batch,
                     max_batch_size=self.max_batch_size,
+                    validator=self.validator,
                 )
             else:
                 events: list[Callable] = []
@@ -749,6 +754,7 @@ class Interface(Blocks):
                     trigger_mode="always_last" if not streaming_event else "multiple",
                     time_limit=self.time_limit,
                     stream_every=self.stream_every,
+                    validator=self.validator,
                 )
         else:
             if _submit_btn is None:
@@ -800,6 +806,7 @@ class Interface(Blocks):
                     max_batch_size=self.max_batch_size,
                     concurrency_limit=self.concurrency_limit,
                     show_progress=self.show_progress,
+                    validator=self.validator,
                 )
 
                 final_event = predict_event.then(
@@ -835,6 +842,7 @@ class Interface(Blocks):
                     max_batch_size=self.max_batch_size,
                     concurrency_limit=self.concurrency_limit,
                     show_progress=self.show_progress,
+                    validator=self.validator,
                 )
 
     def attach_clear_events(

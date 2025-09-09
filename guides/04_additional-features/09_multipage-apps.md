@@ -3,10 +3,10 @@
 Your Gradio app can support multiple pages with the `Blocks.route()` method. Here's what a multipage Gradio app generally looks like:
 
 ```python
-with gr.Blocks() as demo:
+with gr.Blocks() as demo:  # Main page
     name = gr.Textbox(label="Name")
     ...
-with demo.route("Test", "/test"):
+with demo.route("Second page", "/second"):
     num = gr.Number()
     ...
 
@@ -82,4 +82,35 @@ if __name__ == "__main__":
 
 This allows you to run each page as an independent Gradio app for testing, while also creating a single file `app.py` that serves as the entrypoint for the complete multipage app.
 
+## Customizing the Navbar
+
+By default, Gradio automatically generates a navigation bar for multipage apps that displays all your pages with "Home" as the title for the main page. You can customize the navbar behavior using the `gr.Navbar` component:
+
+```python
+import gradio as gr
+
+with gr.Blocks() as demo:
+    # Customize the navbar
+    navbar = gr.Navbar(
+        visible=True,
+        home_page_title="Dashboard"
+    )
+    
+    gr.Textbox(label="Main page content")
+
+with demo.route("Settings"):
+    gr.Textbox(label="Settings page")
+
+demo.launch()
+```
+
+**Important Notes:**
+- Only one `gr.Navbar` component can exist per Blocks app. If you try to add multiple navbar components, an error will be raised.
+- The `gr.Navbar` component can be placed anywhere within your main Blocks context - its properties apply globally to the entire multipage app.
+- If no `gr.Navbar` component is present, the default navbar behavior is used (visible with "Home" as the home page title).
+- You can  update the navbar properties using standard Gradio event handling, just like with any other component.
+
+Here's an example that demonstrates the last point:
+
+$code_navbar_customization
 
