@@ -25,7 +25,7 @@
 	export let max_height: number | string | undefined;
 	export let file_count: "single" | "multiple" = "multiple";
 	export let root_dir: string;
-	export let glob: string;
+	export let glob: string | string[];
 	export let ignore_glob: string;
 	export let loading_status: LoadingStatus;
 	export let container = true;
