@@ -7,3 +7,9 @@ export type WaveformOptions = {
 	show_recording_waveform?: boolean;
 	sample_rate?: number;
 };
+
+export interface SubtitleData {
+	start: number;
+	end: number;
+	text: string;
+}

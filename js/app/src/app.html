@@ -32,7 +32,8 @@
 		<script data-gradio-mode>
 			window.__gradio_mode__ = "app";
 			window.iFrameResizer = {
-				heightCalculationMethod: "taggedElement"
+				autoResize: false,
+				sizeWidth: false
 			};
 			window.parent?.postMessage(
 				{ type: "SET_SCROLLING", enabled: false },

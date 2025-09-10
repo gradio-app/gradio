@@ -1,5 +1,13 @@
 <script lang="ts">
-	import { Play, Pause, Forward, Backward, Undo, Trim } from "@gradio/icons";
+	import {
+		Play,
+		Pause,
+		Forward,
+		Backward,
+		ClosedCaption,
+		Undo,
+		Trim
+	} from "@gradio/icons";
 	import { get_skip_rewind_amount } from "../shared/utils";
 	import type { I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
@@ -24,7 +32,8 @@
 	export let trim_region_settings: WaveformOptions = {};
 	export let show_volume_slider = false;
 	export let editable = true;
-
+	export let subtitles_toggle = true;
+	export let show_subtitles = false;
 	export let trimDuration = 0;
 
 	let playbackSpeeds = [0.5, 1, 1.5, 2];
@@ -120,6 +129,10 @@
 			mode = "edit";
 			addTrimRegion();
 		}
+	};
+
+	const toggleSubtitles = (): void => {
+		subtitles_toggle = !subtitles_toggle;
 	};
 
 	const adjustRegionHandles = (handle: string, key: string): void => {
@@ -243,6 +256,18 @@
 	</div>
 
 	<div class="settings-wrapper">
+		{#if show_subtitles}
+			<button
+				class="action icon cc-button"
+				data-testid="subtitles-toggle"
+				style="color: {subtitles_toggle
+					? 'var(--color-accent)'
+					: 'var(--neutral-400)'}"
+				on:click={toggleSubtitles}
+			>
+				<ClosedCaption /></button
+			>
+		{/if}
 		{#if editable && interactive}
 			{#if show_redo && mode === ""}
 				<button
@@ -356,6 +381,9 @@
 		display: flex;
 		justify-self: center;
 		grid-area: playback;
+	}
+	.cc-button {
+		width: var(--size-8);
 	}
 
 	@media (max-width: 600px) {

@@ -766,6 +766,12 @@ class Base(ThemeClass):
         button_cancel_text_color_dark=None,
         button_cancel_text_color_hover=None,
         button_cancel_text_color_hover_dark=None,
+        button_cancel_shadow=None,
+        button_cancel_shadow_hover=None,
+        button_cancel_shadow_active=None,
+        button_cancel_shadow_dark=None,
+        button_cancel_shadow_hover_dark=None,
+        button_cancel_shadow_active_dark=None,
     ) -> Base:
         """
         Parameters:
@@ -972,6 +978,12 @@ class Base(ThemeClass):
             button_cancel_text_color_dark: The text color of a button of "cancel" variant in dark mode.
             button_cancel_text_color_hover: The text color of a button of "cancel" variant when hovered over.
             button_cancel_text_color_hover_dark: The text color of a button of "cancel" variant when hovered over in dark mode.
+            button_cancel_shadow: The shadow under a button of "cancel" variant.
+            button_cancel_shadow_hover: The shadow under a button of "cancel" variant when hovered over.
+            button_cancel_shadow_active: The shadow under a button of "cancel" variant when pressed.
+            button_cancel_shadow_dark: The shadow under a button of "cancel" variant in dark mode.
+            button_cancel_shadow_hover_dark: The shadow under a button of "cancel" variant when hovered over in dark mode.
+            button_cancel_shadow_active_dark: The shadow under a button of "cancel" variant when pressed in dark mode.
             button_large_padding: The padding of a button with the default "large" size.
             button_large_radius: The corner radius of a button with the default "large" size.
             button_large_text_size: The text size of a button with the default "large" size.
@@ -1759,6 +1771,35 @@ class Base(ThemeClass):
         self.button_cancel_text_color_hover_dark = (
             button_cancel_text_color_hover_dark
             or getattr(self, "button_cancel_text_color_hover_dark", "white")
+        )
+
+        self.button_cancel_shadow = button_cancel_shadow or getattr(
+            self, "button_cancel_shadow", "*button_secondary_shadow"
+        )
+        self.button_cancel_shadow_hover = button_cancel_shadow_hover or getattr(
+            self, "button_cancel_shadow_hover", "*button_secondary_shadow_hover"
+        )
+        self.button_cancel_shadow_active = button_cancel_shadow_active or getattr(
+            self, "button_cancel_shadow_active", "*button_secondary_shadow_active"
+        )
+        self.button_cancel_shadow_dark = button_cancel_shadow_dark or getattr(
+            self, "button_cancel_shadow_dark", "*button_secondary_shadow"
+        )
+        self.button_cancel_shadow_hover_dark = (
+            button_cancel_shadow_hover_dark
+            or getattr(
+                self,
+                "button_cancel_shadow_hover_dark",
+                "*button_secondary_shadow_hover",
+            )
+        )
+        self.button_cancel_shadow_active_dark = (
+            button_cancel_shadow_active_dark
+            or getattr(
+                self,
+                "button_cancel_shadow_active_dark",
+                "*button_secondary_shadow_active",
+            )
         )
 
         self.button_transform_hover = button_transform_hover or getattr(

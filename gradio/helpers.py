@@ -983,13 +983,26 @@ def special_args(
         ):
             if inputs is not None:
                 # Retrieve session from gr.Request, if it exists (i.e. if user is logged in)
-                session = (
-                    # request.session (if fastapi.Request obj i.e. direct call)
-                    getattr(request, "session", {})
-                    or
-                    # or request.request.session (if gr.Request obj i.e. websocket call)
-                    getattr(getattr(request, "request", None), "session", {})
-                )
+                try:
+                    session = (
+                        # request.session (if fastapi.Request obj i.e. direct call)
+                        getattr(request, "session", {})
+                        or
+                        # or request.request.session (if gr.Request obj i.e. websocket call)
+                        getattr(getattr(request, "request", None), "session", {})
+                    )
+                except AssertionError as e:
+                    if (
+                        "SessionMiddleware must be installed to access request.session"
+                        in str(e)
+                    ):
+                        warnings.warn(
+                            "Empty session being created. Install gradio[oauth] and add a gr.LoginButton to your app to enable OAuth login.",
+                            UserWarning,
+                        )
+                        session = {}
+                    else:
+                        raise e
 
                 # Inject user profile
                 if type_hint in (Optional[oauth.OAuthProfile], oauth.OAuthProfile):
@@ -1008,7 +1021,7 @@ def special_args(
 
                 # Inject user token
                 elif type_hint in (Optional[oauth.OAuthToken], oauth.OAuthToken):
-                    oauth_info = session.get("oauth_info", None)
+                    oauth_info = session.get("oauth_info")
                     oauth_token = (
                         oauth.OAuthToken(
                             token=oauth_info["access_token"],
@@ -1097,6 +1110,14 @@ def update(
     if visible is not None:
         kwargs["visible"] = visible
     return kwargs
+
+
+@document()
+def validate(is_valid: bool, message: str):
+    """
+    A special function that can be returned from a Gradio function to set the validation error of an output component.
+    """
+    return {"__type__": "validate", "is_valid": is_valid, "message": message}
 
 
 @document()

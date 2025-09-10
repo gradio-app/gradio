@@ -11,6 +11,11 @@ declare global {
 		__is_colab__: boolean;
 		parentIFrame?: {
 			scrollTo: (x: number, y: number) => void;
+			size: (height: number) => void;
+			autoResize: (auto: boolean) => void;
+			getPageInfo: (
+				callback: (info: { scrollTop: number; offsetTop: number }) => void
+			) => void;
 		};
 		supports_zerogpu_headers?: boolean;
 	}

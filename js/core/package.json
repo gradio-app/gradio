@@ -80,6 +80,11 @@
 			"svelte": "./dist/src/Login.svelte",
 			"types": "./dist/src/Login.svelte.d.ts"
 		},
+		"./navbar_store": {
+			"gradio": "./src/navbar_store.ts",
+			"import": "./src/navbar_store.ts",
+			"types": "./src/navbar_store.ts"
+		},
 		"./package.json": "./package.json",
 		".": {
 			"gradio": "./index.ts",

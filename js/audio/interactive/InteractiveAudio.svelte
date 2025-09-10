@@ -12,9 +12,10 @@
 	import AudioRecorder from "../recorder/AudioRecorder.svelte";
 	import StreamAudio from "../streaming/StreamAudio.svelte";
 	import { SelectSource } from "@gradio/atoms";
-	import type { WaveformOptions } from "../shared/types";
+	import type { WaveformOptions, SubtitleData } from "../shared/types";
 
 	export let value: null | FileData = null;
+	export let subtitles: null | FileData | SubtitleData[] = null;
 	export let label: string;
 	export let root: string;
 	export let loop: boolean;
@@ -305,6 +306,7 @@
 		<AudioPlayer
 			bind:mode
 			{value}
+			subtitles={Array.isArray(subtitles) ? subtitles : subtitles?.url}
 			{label}
 			{i18n}
 			{dispatch_blob}

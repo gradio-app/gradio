@@ -1,6 +1,7 @@
 import { test, describe, assert, afterEach } from "vitest";
 
 import { cleanup, render } from "@self/tootils";
+import { tick } from "svelte";
 import event from "@testing-library/user-event";
 
 import Radio from "./Index.svelte";
@@ -95,5 +96,24 @@ describe("Radio", () => {
 
 		expect([items[0].checked, items[1].checked]).toEqual([true, true]);
 		cleanup();
+	});
+
+	test("dispatches change and should not dispatch select/input on programmatic value update", async () => {
+		const { component, listen } = await render(Radio, {
+			choices: choices,
+			value: "cat",
+			label: "Radio"
+		});
+
+		const select_mock = listen("select" as never);
+		const input_mock = listen("input" as never);
+		const change_mock = listen("change" as never);
+
+		component.$set({ value: "dog" });
+		await tick();
+
+		expect(select_mock.callCount).toBe(0);
+		expect(input_mock.callCount).toBe(0);
+		expect(change_mock.callCount).toBe(1);
 	});
 });
