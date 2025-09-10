@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/svelte";
 import I18nMultiLanguageTestComponent from "./I18nMultiLanguageTestComponent.svelte";
 
 const meta = {
-	title: "Core/I18n Multi-Language Test",
+	// title: "Core/I18n Multi-Language Test",
 	component: I18nMultiLanguageTestComponent,
 	parameters: {
 		layout: "centered"
