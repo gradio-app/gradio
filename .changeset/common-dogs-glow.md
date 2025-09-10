@@ -1,4 +1,5 @@
 ---
+"@gradio/fileexplorer": patch
 "gradio": patch
 ---
 
