@@ -73,15 +73,15 @@ $demo_tictactoe
 
 ## Validation
 
-For certain apps, it is important to validate inputs prior to using them. While this can be dome in the main event function, events also support a `validation` function dedicated to this task.
+For certain apps, it is important to validate inputs prior to using them. While this can be done in the main event function, events also support a `validator` function dedicated to this task.
 
-This feature allows for a far better user experience than placing this logic in your main function for the follwing reasons:
+This feature allows for a far better user experience than placing this logic in your main function for the following reasons:
 
 - Input validation is performed immediately, bypassing the queue, giving the end user almost instant feedback.
-- Validation errors retruned from the `validate` function are displayed differently in the UI.
-- The validation function allows for greater granularity. Rather than raising a generic exception, you can return a validation message and status for each input individually.
+- Validation errors retruned from the `validator` function are displayed differently in the UI.
+- The validator function allows for greater granularity. Rather than raising a generic exception, you can return a validation message and status for each input individually.
 
-The `validation` kwarg should be a function that returns a `gr.validate()` object for each input. `gr.validate` takes two arguments
+The `validator` kwarg should be a function that returns a `gr.validate` object for each input. `gr.validate` takes two arguments:
 
 - `is_valid` - whether or not the input is valid
 - `message` - the message to display if validation fails.
