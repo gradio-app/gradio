@@ -4,7 +4,6 @@
 "@self/app": patch
 "@self/build": patch
 "@self/spa": patch
-"@self/spaces-test": patch
 "gradio": patch
 ---
 
