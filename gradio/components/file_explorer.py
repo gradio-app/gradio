@@ -90,7 +90,10 @@ class FileExplorer(Component):
         if not os.path.isdir(abs_root_dir):
             raise ValueError(f"The specified root_dir is not a directory: {root_dir}")
         self.root_dir = DeveloperPath(abs_root_dir)
-        self.glob = glob
+        if isinstance(glob, str):
+            self.glob = [glob]
+        else:
+            self.glob = glob
         self.ignore_glob = ignore_glob
         valid_file_count = ["single", "multiple"]
         if file_count not in valid_file_count:
@@ -187,27 +190,20 @@ class FileExplorer(Component):
         try:
             subdir_items = sorted(os.listdir(full_subdir_path))
         except (FileNotFoundError, PermissionError):
-            # Return empty list if directory doesn't exist or we don't have permission
             return []
 
         files, folders = [], []
         for item in subdir_items:
             full_path = os.path.join(full_subdir_path, item)
 
-            # Try to check if it's a file/directory, but handle permission errors
             try:
                 is_file = not os.path.isdir(full_path)
             except (PermissionError, OSError):
-                # If we can't access the item, skip it
                 continue
 
-            # Check if file matches any of the glob patterns
-            if isinstance(self.glob, list):
-                valid_by_glob = any(
-                    fnmatch.fnmatch(full_path, pattern) for pattern in self.glob
-                )
-            else:
-                valid_by_glob = fnmatch.fnmatch(full_path, self.glob)
+            valid_by_glob = any(
+                fnmatch.fnmatch(full_path, pattern) for pattern in self.glob
+            )
 
             if is_file and not valid_by_glob:
                 continue
