@@ -37,7 +37,7 @@ class FileExplorer(Component):
 
     def __init__(
         self,
-        glob: str | list[str] = "**/*",
+        glob: str = "**/*",
         *,
         value: str | list[str] | Callable | None = None,
         file_count: Literal["single", "multiple"] = "multiple",
@@ -63,7 +63,7 @@ class FileExplorer(Component):
     ):
         """
         Parameters:
-            glob: The glob-style pattern(s) used to select which files to display. Can be a single string pattern (e.g. "*.png") or a list of patterns (e.g. ["*.png", "*.jpg", "*.txt"]). When a list is provided, files matching ANY of the patterns will be displayed. The default value "**/*" matches all files and folders recursively. See the Python glob documentation at https://docs.python.org/3/library/glob.html for more information.
+            glob: The glob-style pattern used to select which files to display, e.g. "*" to match all files, "*.png" to match all .png files, "**/*.txt" to match any .txt file in any subdirectory, etc. The default value matches all files and folders recursively. See the Python glob documentation at https://docs.python.org/3/library/glob.html for more information.
             value: The file (or list of files, depending on the `file_count` parameter) to show as "selected" when the component is first loaded. If a callable is provided, it will be called when the app loads to set the initial value of the component. If not provided, no files are shown as selected.
             file_count: Whether to allow single or multiple files to be selected. If "single", the component will return a single absolute file path as a string. If "multiple", the component will return a list of absolute file paths as a list of strings.
             root_dir: Path to root directory to select files from. If not provided, defaults to current working directory. Raises ValueError if the directory does not exist.
@@ -198,12 +198,7 @@ class FileExplorer(Component):
             except (PermissionError, OSError):
                 continue
 
-            if isinstance(self.glob, list):
-                valid_by_glob = any(
-                    fnmatch.fnmatch(full_path, pattern) for pattern in self.glob
-                )
-            else:
-                valid_by_glob = fnmatch.fnmatch(full_path, self.glob)
+            valid_by_glob = fnmatch.fnmatch(full_path, self.glob)
 
             if is_file and not valid_by_glob:
                 continue

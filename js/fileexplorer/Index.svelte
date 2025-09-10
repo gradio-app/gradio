@@ -16,8 +16,8 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: string[][];
-	let old_value: string[][];
+	export let value: string[][] = [];
+	let old_value: string[][] = [];
 	export let label: string;
 	export let show_label: boolean;
 	export let height: number | string | undefined;
@@ -25,7 +25,7 @@
 	export let max_height: number | string | undefined;
 	export let file_count: "single" | "multiple" = "multiple";
 	export let root_dir: string;
-	export let glob: string | string[];
+	export let glob: string;
 	export let ignore_glob: string;
 	export let loading_status: LoadingStatus;
 	export let container = true;
