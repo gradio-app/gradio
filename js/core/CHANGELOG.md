@@ -1,5 +1,40 @@
 # @gradio/core
 
+## 0.28.0
+
+### Features
+
+- [#11814](https://github.com/gradio-app/gradio/pull/11814) [`013784a`](https://github.com/gradio-app/gradio/commit/013784a7086047651e8e661a38bde7d5c7f10db7) - add validation support.  Thanks @pngwn!
+- [#11833](https://github.com/gradio-app/gradio/pull/11833) [`a446fcb`](https://github.com/gradio-app/gradio/commit/a446fcba6f3fe59c32194beb7f27fb6f80b61347) - Add gr.Navbar component for multipage apps.  Thanks @abidlabs!
+- [#11783](https://github.com/gradio-app/gradio/pull/11783) [`f407daf`](https://github.com/gradio-app/gradio/commit/f407daf8046f37e042ab8b86730ff0ab8d174bcf) - Add Walkthrough and Step compoents to facilitate multi-step workflows.  Thanks @pngwn!
+
+### Fixes
+
+- [#11815](https://github.com/gradio-app/gradio/pull/11815) [`1a477c5`](https://github.com/gradio-app/gradio/commit/1a477c5202c13097d1089fb70a32a08db22d7660) - Fix i18n string visible during load and i18n not respecting HTML.  Thanks @freddyaboulton!
+- [#11749](https://github.com/gradio-app/gradio/pull/11749) [`70f4532`](https://github.com/gradio-app/gradio/commit/70f4532a4dc7576dbdbe1d0a43a05644a0dfcf43) - fix various iFrame related UI issues when deploying to spaces.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/client@1.18.0
+- @gradio/icons@0.14.0
+- @gradio/atoms@0.17.0
+- @gradio/statustracker@0.11.0
+- @gradio/gallery@0.15.32
+- @gradio/plot@0.9.23
+- @gradio/upload@0.16.17
+- @gradio/file@0.12.29
+- @gradio/image@0.22.18
+- @gradio/video@0.15.1
+- @gradio/tabitem@0.6.0
+- @gradio/tabs@0.5.0
+- @gradio/code@0.14.16
+- @gradio/paramviewer@0.7.16
+- @gradio/column@0.2.1
+- @gradio/textbox@0.11.0
+- @gradio/dropdown@0.10.3
+- @gradio/button@0.5.12
+- @gradio/checkbox@0.4.29
+
 ## 0.27.2
 
 ### Features
