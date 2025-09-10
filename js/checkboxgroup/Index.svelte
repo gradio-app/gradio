@@ -256,7 +256,13 @@
 
 	.select-all-checkbox:indeterminate {
 		border-color: var(--checkbox-border-color-selected);
-		background-image: linear-gradient(to right, transparent 25%, var(--checkbox-border-color-selected) 25%, var(--checkbox-border-color-selected) 75%, transparent 75%);
+		background-image: linear-gradient(
+			to right,
+			transparent 25%,
+			var(--checkbox-border-color-selected) 25%,
+			var(--checkbox-border-color-selected) 75%,
+			transparent 75%
+		);
 		background-color: var(--checkbox-background-color);
 		background-size: 100% 2px;
 		background-repeat: no-repeat;
@@ -265,7 +271,13 @@
 
 	.select-all-checkbox:indeterminate:hover {
 		border-color: var(--checkbox-border-color-selected);
-		background-image: linear-gradient(to right, transparent 25%, var(--checkbox-border-color-selected) 25%, var(--checkbox-border-color-selected) 75%, transparent 75%);
+		background-image: linear-gradient(
+			to right,
+			transparent 25%,
+			var(--checkbox-border-color-selected) 25%,
+			var(--checkbox-border-color-selected) 75%,
+			transparent 75%
+		);
 		background-color: var(--checkbox-background-color);
 		background-size: 100% 2px;
 		background-repeat: no-repeat;
