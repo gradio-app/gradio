@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix bugs in `FileExplorer`
+fix:Fix bugs in `FileExplorer`
