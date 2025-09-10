@@ -1055,6 +1055,40 @@
 			screen_recorder.startRecording();
 		}
 	}
+
+	let footer_height = 0;
+
+	let root_container: HTMLElement;
+	$: root_node = $_layout && get_root_node(root_container);
+
+	function get_root_node(container: HTMLElement | null): HTMLElement | null {
+		if (!container) return null;
+		return container.children[container.children.length - 1] as HTMLElement;
+	}
+
+	onMount(() => {
+		if ("parentIFrame" in window) {
+			window.parentIFrame?.autoResize(false);
+		}
+
+		const mut = new MutationObserver((mutations) => {
+			if ("parentIFrame" in window) {
+				const box = root_node?.getBoundingClientRect();
+				if (!box) return;
+				window.parentIFrame?.size(box.bottom + footer_height + 32);
+			}
+		});
+
+		mut.observe(root_container, {
+			childList: true,
+			subtree: true,
+			attributes: true
+		});
+
+		return () => {
+			mut.disconnect();
+		};
+	});
 </script>
 
 <svelte:head>
@@ -1070,6 +1104,7 @@
 	<div
 		class="contain"
 		style:flex-grow={app_mode ? "1" : "auto"}
+		bind:this={root_container}
 		style:margin-right={vibe_mode ? `${vibe_editor_width}px` : "0"}
 	>
 		{#if $_layout && app.config}
@@ -1088,7 +1123,7 @@
 	</div>
 
 	{#if show_footer}
-		<footer>
+		<footer bind:clientHeight={footer_height}>
 			{#if show_api}
 				<button
 					on:click={() => {

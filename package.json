@@ -27,7 +27,8 @@
 		"chromatic": "chromatic",
 		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts",
 		"website": "pnpm --filter @gradio/website build",
-		"package": "pnpm --filter @gradio/* --filter=!@gradio/wasm --filter=!@gradio/lite --filter=!@gradio/client --filter=!@gradio/preview exec svelte-package --input=. --cwd=../../.config/"
+		"package": "pnpm --filter @gradio/* --filter=!@gradio/wasm --filter=!@gradio/lite --filter=!@gradio/client --filter=!@gradio/preview exec svelte-package --input=. --cwd=../../.config/",
+		"spaces:dev": "pnpm css && pnpm --filter @gradio/preview build && pnpm --filter @self/spaces-test dev"
 	},
 	"type": "module",
 	"author": "",

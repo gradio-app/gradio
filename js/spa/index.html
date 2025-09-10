@@ -73,17 +73,6 @@
 		/>
 		<meta name="twitter:image" content="{{ config['thumbnail'] or '' }}" />
 
-		<script data-gradio-mode>
-			window.__gradio_mode__ = "app";
-			window.iFrameResizer = {
-				heightCalculationMethod: "taggedElement"
-			};
-			window.parent?.postMessage(
-				{ type: "SET_SCROLLING", enabled: false },
-				"*"
-			);
-		</script>
-
 		%gradio_config%%gradio_api_info%
 
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -96,7 +85,17 @@
 			src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/iframeResizer.contentWindow.min.js"
 			async
 		></script>
-
+		<script data-gradio-mode>
+			window.__gradio_mode__ = "app";
+			window.iFrameResizer = {
+				autoResize: false,
+				sizeWidth: false
+			};
+			window.parent?.postMessage(
+				{ type: "SET_SCROLLING", enabled: false },
+				"*"
+			);
+		</script>
 		<link rel="manifest" href="/manifest.json" />
 	</head>
 

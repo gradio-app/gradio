@@ -11,11 +11,17 @@
 		"lint": "prettier --plugin-search-dir . --check .",
 		"format": "prettier --plugin-search-dir . --write ."
 	},
-	"devDependencies": {},
 	"type": "module",
 	"dependencies": {
 		"@gradio/client": "workspace:^",
 		"@gradio/form": "workspace:^",
-		"@gradio/theme": "workspace:^"
+		"@gradio/theme": "workspace:^",
+		"@self/spa": "workspace:^",
+		"@sveltejs/adapter-auto": "^6.0.1",
+		"@sveltejs/kit": "^2.22.2",
+		"iframe-resizer": "^4.3.1"
+	},
+	"devDependencies": {
+		"@types/iframe-resizer": "^4.0.0"
 	}
 }
