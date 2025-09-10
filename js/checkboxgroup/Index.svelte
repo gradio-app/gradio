@@ -242,46 +242,17 @@
 	}
 
 	.select-all-checkbox:checked,
+	.select-all-checkbox:checked:hover,
 	.select-all-checkbox:checked:focus {
 		border-color: var(--checkbox-border-color-selected);
 		background-image: var(--checkbox-check);
 		background-color: var(--checkbox-background-color-selected);
 	}
 
-	.select-all-checkbox:checked:hover {
-		border-color: var(--checkbox-border-color-selected);
-		background-image: var(--checkbox-check);
-		background-color: var(--checkbox-background-color-selected);
-	}
-
-	.select-all-checkbox:indeterminate {
-		border-color: var(--checkbox-border-color-selected);
-		background-image: linear-gradient(
-			to right,
-			transparent 25%,
-			var(--checkbox-border-color-selected) 25%,
-			var(--checkbox-border-color-selected) 75%,
-			transparent 75%
-		);
-		background-color: var(--checkbox-background-color);
-		background-size: 100% 2px;
-		background-repeat: no-repeat;
-		background-position: center;
-	}
-
+	.select-all-checkbox:indeterminate,
 	.select-all-checkbox:indeterminate:hover {
 		border-color: var(--checkbox-border-color-selected);
-		background-image: linear-gradient(
-			to right,
-			transparent 25%,
-			var(--checkbox-border-color-selected) 25%,
-			var(--checkbox-border-color-selected) 75%,
-			transparent 75%
-		);
-		background-color: var(--checkbox-background-color);
-		background-size: 100% 2px;
-		background-repeat: no-repeat;
-		background-position: center;
+		background-color: var(--checkbox-background-color-selected);
 	}
 
 	.select-all-checkbox:not(:indeterminate):not(:checked):hover {
