@@ -37,6 +37,7 @@ class CheckboxGroup(FormComponent):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
+        show_select_all: bool = False,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -58,6 +59,7 @@ class CheckboxGroup(FormComponent):
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: If True, will display label.
+            show_select_all: If True, will display a select/deselect all checkbox next to the label. Only available when show_label is True.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: Relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: Minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
@@ -82,6 +84,9 @@ class CheckboxGroup(FormComponent):
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
+        if show_select_all and show_label is False:
+            raise ValueError("show_select_all requires show_label to be True")
+        self.show_select_all = show_select_all
         super().__init__(
             label=label,
             info=info,

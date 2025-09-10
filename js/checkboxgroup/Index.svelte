@@ -23,6 +23,7 @@
 	export let label = gradio.i18n("checkbox.checkbox_group");
 	export let info: string | undefined = undefined;
 	export let show_label = true;
+	export let show_select_all = false;
 
 	export let loading_status: LoadingStatus;
 	export let interactive = true;
@@ -36,6 +37,25 @@
 		}
 		gradio.dispatch("input");
 	}
+
+	function toggle_select_all(): void {
+		const all_values = choices.map(([, internal_value]) => internal_value);
+		if (value.length === all_values.length) {
+			// All selected, deselect all
+			value = [];
+		} else {
+			// Not all selected, select all
+			value = all_values.slice();
+		}
+		gradio.dispatch("input");
+	}
+
+	$: select_all_state = (() => {
+		const all_values = choices.map(([, internal_value]) => internal_value);
+		if (value.length === 0) return "unchecked";
+		if (value.length === all_values.length) return "checked";
+		return "indeterminate";
+	})();
 
 	$: disabled = !interactive;
 
@@ -60,7 +80,26 @@
 		{...loading_status}
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
-	<BlockTitle {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle {show_label} {info}>
+		{#if show_label && show_select_all}
+			<div class="select-all-container">
+				<label class="select-all-label" class:disabled>
+					<input
+						class="select-all-checkbox"
+						{disabled}
+						on:change={toggle_select_all}
+						checked={select_all_state === "checked"}
+						indeterminate={select_all_state === "indeterminate"}
+						type="checkbox"
+						title="Select/Deselect All"
+					/>
+				</label>
+				<span class="label-text" on:click={toggle_select_all}>{label}</span>
+			</div>
+		{:else}
+			{label}
+		{/if}
+	</BlockTitle>
 
 	<div class="wrap" data-testid="checkbox-group">
 		{#each choices as [display_value, internal_value], i}
@@ -174,5 +213,88 @@
 
 	input:hover {
 		cursor: pointer;
+	}
+
+	.select-all-container {
+		display: flex;
+		align-items: center;
+		gap: var(--size-2);
+	}
+
+	.select-all-label {
+		display: flex;
+		align-items: center;
+		cursor: pointer;
+		margin: 0;
+		padding: 0;
+		background: none;
+		border: none;
+		box-shadow: none;
+	}
+
+	.select-all-checkbox {
+		--ring-color: transparent;
+		position: relative;
+		box-shadow: var(--checkbox-shadow);
+		border: var(--checkbox-border-width) solid var(--checkbox-border-color);
+		border-radius: var(--checkbox-border-radius);
+		background-color: var(--checkbox-background-color);
+		line-height: var(--line-sm);
+		margin: 0;
+	}
+
+	.select-all-checkbox:checked,
+	.select-all-checkbox:checked:focus {
+		border-color: var(--checkbox-border-color-selected);
+		background-image: var(--checkbox-check);
+		background-color: var(--checkbox-background-color-selected);
+	}
+
+	.select-all-checkbox:checked:hover {
+		border-color: var(--checkbox-border-color-selected);
+		background-image: var(--checkbox-check);
+		background-color: var(--checkbox-background-color-selected);
+	}
+
+	.select-all-checkbox:indeterminate {
+		border-color: var(--checkbox-border-color-selected);
+		background-image: linear-gradient(to right, transparent 25%, var(--checkbox-border-color-selected) 25%, var(--checkbox-border-color-selected) 75%, transparent 75%);
+		background-color: var(--checkbox-background-color);
+		background-size: 100% 2px;
+		background-repeat: no-repeat;
+		background-position: center;
+	}
+
+	.select-all-checkbox:indeterminate:hover {
+		border-color: var(--checkbox-border-color-selected);
+		background-image: linear-gradient(to right, transparent 25%, var(--checkbox-border-color-selected) 25%, var(--checkbox-border-color-selected) 75%, transparent 75%);
+		background-color: var(--checkbox-background-color);
+		background-size: 100% 2px;
+		background-repeat: no-repeat;
+		background-position: center;
+	}
+
+	.select-all-checkbox:not(:indeterminate):not(:checked):hover {
+		border-color: var(--checkbox-border-color-hover);
+		background-color: var(--checkbox-background-color-hover);
+		cursor: pointer;
+	}
+
+	.select-all-checkbox:not(:checked):focus {
+		border-color: var(--checkbox-border-color-focus);
+	}
+
+	.select-all-checkbox[disabled],
+	.select-all-label.disabled {
+		cursor: not-allowed;
+	}
+
+	.label-text {
+		margin: 0;
+		cursor: pointer;
+	}
+
+	.disabled .label-text {
+		cursor: not-allowed;
 	}
 </style>
