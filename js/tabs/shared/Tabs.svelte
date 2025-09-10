@@ -189,7 +189,6 @@
 						<button
 							role="tab"
 							class:selected={t.id === $selected_tab}
-							class:completed={$selected_tab > t.id}
 							aria-selected={t.id === $selected_tab}
 							aria-controls={t.elem_id}
 							disabled={!t.interactive}
@@ -224,9 +223,7 @@
 					{#each overflow_tabs as t}
 						{#if t?.visible}
 							<button
-								on:click={() => {
-									change_tab(t?.id);
-								}}
+								on:click={() => change_tab(t?.id)}
 								class:selected={t?.id === $selected_tab}
 							>
 								{t?.label}
@@ -270,7 +267,7 @@
 		height: var(--size-8);
 	}
 
-	.tabs .tab-container::after {
+	.tab-container::after {
 		content: "";
 		position: absolute;
 		bottom: 0;
@@ -285,7 +282,7 @@
 		margin-left: var(--size-2);
 	}
 
-	.tabs button {
+	button {
 		margin-bottom: 0;
 		border: none;
 		border-radius: 0;
@@ -302,23 +299,23 @@
 		position: relative;
 	}
 
-	.tabs button:disabled {
+	button:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
 
-	.tabs button:hover:not(:disabled):not(.selected) {
+	button:hover:not(:disabled):not(.selected) {
 		background-color: var(--background-fill-secondary);
 		color: var(--body-text-color);
 	}
 
-	.tabs .selected {
+	.selected {
 		background-color: transparent;
 		color: var(--color-accent);
 		position: relative;
 	}
 
-	.tabs .selected::after {
+	.selected::after {
 		content: "";
 		position: absolute;
 		bottom: 0;
