@@ -70,5 +70,3 @@ class TestFileExplorer:
 
         with pytest.raises(InvalidPathError):
             file_explorer.ls(["../file.txt"])
-
-
