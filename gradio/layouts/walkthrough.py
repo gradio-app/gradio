@@ -2,16 +2,26 @@ from __future__ import annotations
 
 from gradio_client.documentation import document
 
+from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
+from gradio.events import Events
 from gradio.i18n import I18nData
 
-from .tabs import TabItem, Tabs
 
-
-class Walkthrough(Tabs, metaclass=ComponentMeta):
+class Walkthrough(BlockContext, metaclass=ComponentMeta):
     """
     Walkthrough is a layout element within Blocks that can contain multiple "Step" Components, which can be used to create a step-by-step workflow.
+    Example:
+        with gr.Walkthrough():
+            with gr.Step("Step 1", id=1):
+                txt_1 = gr.Textbox("Step 1")
+                txt_1.change(lambda x: gr.Walkthrough(selected=1), outputs=walkthrough)
+            with gr.Step("Step 2", id=2):
+                txt_2 = gr.Textbox("Step 2")
+                txt_2.change(lambda x: gr.Walkthrough(selected=2), outputs=walkthrough)
     """
+
+    EVENTS = [Events.change, Events.select]
 
     def __init__(
         self,
@@ -34,8 +44,8 @@ class Walkthrough(Tabs, metaclass=ComponentMeta):
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
         """
-        super().__init__(
-            selected=selected,
+        BlockContext.__init__(
+            self,
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
@@ -43,16 +53,19 @@ class Walkthrough(Tabs, metaclass=ComponentMeta):
             key=key,
             preserved_by_key=preserved_by_key,
         )
+        self.selected = selected
 
     def get_block_name(self):
         return "walkthrough"
 
 
 @document()
-class Step(TabItem, metaclass=ComponentMeta):
+class Step(BlockContext, metaclass=ComponentMeta):
     """
     Step is a layout element. A step is a single step in a step-by-step workflow.
     """
+
+    EVENTS = [Events.select]
 
     def __init__(
         self,
@@ -79,19 +92,19 @@ class Step(TabItem, metaclass=ComponentMeta):
             visible: If False, Step will be hidden.
             interactive: If False, Step will not be clickable.
         """
-
-        super().__init__(
-            label=label,
-            visible=visible,
-            interactive=interactive,
-            id=id,
+        BlockContext.__init__(
+            self,
             elem_id=elem_id,
             elem_classes=elem_classes,
-            scale=scale,
             render=render,
             key=key,
             preserved_by_key=preserved_by_key,
         )
+        self.label = label
+        self.id = id
+        self.visible = visible
+        self.scale = scale
+        self.interactive = interactive
 
     def get_expected_parent(self) -> type[Walkthrough]:
         return Walkthrough

@@ -1,2 +1,0 @@
-opencv-python
-mutagen
