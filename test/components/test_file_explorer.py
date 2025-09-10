@@ -15,7 +15,7 @@ class TestFileExplorer:
         file_explorer = gr.FileExplorer(file_count="single")
 
         config = file_explorer.get_config()
-        assert config["glob"] == ["**/*"]
+        assert config["glob"] == "**/*"
         assert config["value"] is None
         assert config["file_count"] == "single"
         assert config["server_fns"] == ["ls"]
@@ -32,7 +32,7 @@ class TestFileExplorer:
         file_explorer = gr.FileExplorer(file_count="multiple")
 
         config = file_explorer.get_config()
-        assert config["glob"] == ["**/*"]
+        assert config["glob"] == "**/*"
         assert config["value"] is None
         assert config["file_count"] == "multiple"
         assert config["server_fns"] == ["ls"]
