@@ -78,7 +78,7 @@ For certain apps, it is important to validate inputs prior to using them. While 
 This feature allows for a far better user experience than placing this logic in your main function for the following reasons:
 
 - Input validation is performed immediately, bypassing the queue, giving the end user almost instant feedback.
-- Validation errors retruned from the `validator` function are displayed differently in the UI.
+- Validation errors returned from the `validator` function are displayed differently in the UI.
 - The validator function allows for greater granularity. Rather than raising a generic exception, you can return a validation message and status for each input individually.
 
 The `validator` kwarg should be a function that returns a `gr.validate` object for each input. `gr.validate` takes two arguments:
