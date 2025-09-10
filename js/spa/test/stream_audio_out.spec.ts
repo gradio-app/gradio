@@ -1,8 +1,6 @@
 import { test, expect } from "@self/tootils";
 
-test.skip("audio streams from wav file correctly @firefox", async ({
-	page
-}) => {
+test.skip("audio streams from wav file correctly", async ({ page }) => {
 	test.skip(!!process.env.CI, "Not supported in CI");
 	await page.getByRole("gridcell", { name: "wav" }).first().click();
 	await page.getByRole("button", { name: "Stream as File" }).click();
@@ -21,7 +19,7 @@ test.skip("audio streams from wav file correctly @firefox", async ({
 		.toBeGreaterThan(0);
 });
 
-test.skip("audio streams from wav file correctly as bytes @firefox", async ({
+test.skip("audio streams from wav file correctly as bytes", async ({
 	page
 }) => {
 	test.skip(!!process.env.CI, "Not supported in CI");

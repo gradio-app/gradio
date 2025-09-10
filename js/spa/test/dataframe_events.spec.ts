@@ -29,7 +29,7 @@ test("Dataframe edit events work as expected", async ({ page }) => {
 	);
 });
 
-test("Dataframe input events work as expected @firefox", async ({ page }) => {
+test("Dataframe input events work as expected", async ({ page }) => {
 	const input_events = page.getByLabel("Input events");
 	await expect(input_events).toHaveValue("0");
 
