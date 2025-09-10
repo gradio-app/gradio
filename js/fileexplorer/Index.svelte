@@ -16,8 +16,8 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: string[][] = [];
-	let old_value: string[][] = [];
+	export let value: string[][];
+	let old_value: string[][];
 	export let label: string;
 	export let show_label: boolean;
 	export let height: number | string | undefined;
