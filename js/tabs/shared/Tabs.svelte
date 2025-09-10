@@ -49,6 +49,7 @@
 	let tab_els: Record<string | number, HTMLElement> = {};
 
 	onMount(() => {
+		if (!tab_nav_el) return;
 		const observer = new IntersectionObserver((entries) => {
 			handle_menu_overflow();
 		});

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher, tick, onMount } from "svelte";
-	import { BlockTitle } from "@gradio/atoms";
+	import { BlockTitle, IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import { Copy, Check, Send, Plus, Trash } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import { BaseDropdown, BaseDropdownOptions } from "@gradio/dropdown";
@@ -454,21 +454,13 @@
 
 <label class:container>
 	{#if show_label && show_copy_button}
-		{#if copied}
-			<button
-				in:fade={{ duration: 300 }}
-				class="copy-button"
-				aria-label="Copied"
-				aria-roledescription="Text copied"><Check /></button
-			>
-		{:else}
-			<button
+		<IconButtonWrapper>
+			<IconButton
+				Icon={copied ? Check : Copy}
 				on:click={handle_copy}
-				class="copy-button"
-				aria-label="Copy"
-				aria-roledescription="Copy text"><Copy /></button
-			>
-		{/if}
+				label={copied ? "Copied" : "Copy"}
+			/>
+		</IconButtonWrapper>
 	{/if}
 
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
@@ -931,27 +923,6 @@
 	.submit-button :global(svg) {
 		height: 22px;
 		width: 22px;
-	}
-
-	.copy-button {
-		display: flex;
-		position: absolute;
-		top: var(--block-label-margin);
-		right: var(--block-label-margin);
-		align-items: center;
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--border-color-primary);
-		border-top: none;
-		border-right: none;
-		border-radius: var(--block-label-right-radius);
-		background: var(--block-label-background-fill);
-		padding: 5px;
-		width: 22px;
-		height: 22px;
-		overflow: hidden;
-		color: var(--block-label-color);
-		font: var(--font-sans);
-		font-size: var(--button-small-text-size);
 	}
 
 	.tag-menu {

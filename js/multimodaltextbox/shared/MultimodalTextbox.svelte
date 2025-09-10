@@ -130,6 +130,9 @@
 		if (can_scroll && autoscroll) {
 			scroll();
 		}
+		if (autofocus && el !== null) {
+			el.focus();
+		}
 		value_is_output = false;
 	});
 
@@ -429,7 +432,6 @@
 				<Microphone />
 			</button>
 		{/if}
-		<!-- svelte-ignore a11y-autofocus -->
 		<textarea
 			data-testid="textbox"
 			use:text_area_resize={{
@@ -445,7 +447,6 @@
 			{placeholder}
 			rows={lines}
 			{disabled}
-			{autofocus}
 			on:keypress={handle_keypress}
 			on:blur
 			on:select={handle_select}

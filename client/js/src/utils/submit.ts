@@ -580,12 +580,24 @@ export function submit(
 								fn_index,
 								time: new Date()
 							});
+						} else if (status === 422) {
+							fire_event({
+								type: "status",
+								stage: "error",
+								message: response.detail,
+								queue: true,
+								endpoint: _endpoint,
+								fn_index,
+								code: "validation_error",
+								time: new Date()
+							});
+							close();
 						} else if (status !== 200) {
 							fire_event({
 								type: "status",
 								stage: "error",
-								broken: true,
-								message: BROKEN_CONNECTION_MSG,
+								broken: false,
+								message: response.detail,
 								queue: true,
 								endpoint: _endpoint,
 								fn_index,

@@ -10,6 +10,12 @@ class AuthenticationError(ValueError):
     pass
 
 
+class ValidationError(ValueError):
+    """Raised when the data that is passed into the Gradio app fails developer-defined validation."""
+
+    pass
+
+
 class AppError(ValueError):
     """Raised when the upstream Gradio app throws an error because of the value submitted by the client."""
 

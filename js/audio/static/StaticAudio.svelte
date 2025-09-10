@@ -13,9 +13,10 @@
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/client";
 	import { DownloadLink } from "@gradio/wasm/svelte";
-	import type { WaveformOptions } from "../shared/types";
+	import type { WaveformOptions, SubtitleData } from "../shared/types";
 
 	export let value: null | FileData = null;
+	export let subtitles: null | FileData | SubtitleData[] = null;
 	export let label: string;
 	export let show_label = true;
 	export let show_download_button = true;
@@ -78,6 +79,7 @@
 
 	<AudioPlayer
 		{value}
+		subtitles={Array.isArray(subtitles) ? subtitles : subtitles?.url}
 		{label}
 		{i18n}
 		{waveform_settings}
