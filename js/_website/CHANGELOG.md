@@ -1,5 +1,18 @@
 # website
 
+## 0.62.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.18
+
+## 0.62.0
+
+### Features
+
+- [#11766](https://github.com/gradio-app/gradio/pull/11766) [`dfc0e03`](https://github.com/gradio-app/gradio/commit/dfc0e0305068dbd16ce905afc73d139e1e51eb46) - Add JS Dataframe documentation to docs.  Thanks @pngwn!
+- [#11774](https://github.com/gradio-app/gradio/pull/11774) [`5a4ae49`](https://github.com/gradio-app/gradio/commit/5a4ae4926b9dadefd5cf9d0225f5e8ed69eebb51) - Fix markdown link rendering in docs descriptions.  Thanks @aliabd!
+
 ## 0.61.2
 
 ### Features

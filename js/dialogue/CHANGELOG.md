@@ -2,6 +2,18 @@
 
 ## 0.2.1
 
+### Dependency updates
+
+- @gradio/statustracker@0.10.18
+
+## 0.2.1
+
+### Dependency updates
+
+- @gradio/icons@0.13.1
+
+## 0.2.1
+
 ### Features
 
 - [#11743](https://github.com/gradio-app/gradio/pull/11743) [`a420ef4`](https://github.com/gradio-app/gradio/commit/a420ef42e895fb78f78c835923f10c5da8fb873c) - Remove unneeded `svelte-ignore` lines in gr.Dialogue.  Thanks @hannahblair!

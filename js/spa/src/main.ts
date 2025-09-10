@@ -2,14 +2,11 @@ import "@gradio/theme/reset.css";
 import "@gradio/theme/global.css";
 import "@gradio/theme/pollen.css";
 import "@gradio/theme/typography.css";
-import { Client } from "@gradio/client";
-import { mount_css } from "@gradio/core";
-import type Index from "./Index.svelte";
-
-import type { ThemeMode } from "@gradio/core";
-
 //@ts-ignore
 import * as svelte from "./svelte/svelte.js";
+import { Client } from "@gradio/client";
+import type Index from "./Index.svelte";
+import type { ThemeMode } from "@gradio/core";
 
 declare let BUILD_MODE: string;
 declare let GRADIO_VERSION: string;
@@ -21,12 +18,18 @@ let FONTS: string | [];
 FONTS = "__FONTS_CSS__";
 
 let IndexComponent: typeof Index;
+let mount_css: typeof import("@gradio/core").mount_css;
 let _res: (value?: unknown) => void;
 let pending = new Promise((res) => {
 	_res = res;
 });
 async function get_index(): Promise<void> {
-	IndexComponent = (await import("./Index.svelte")).default;
+	const modules = await Promise.all([
+		import("./Index.svelte"),
+		import("@gradio/core")
+	]);
+	IndexComponent = modules[0].default;
+	mount_css = modules[1].mount_css;
 	_res();
 }
 

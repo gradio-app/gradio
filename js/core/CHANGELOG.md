@@ -1,5 +1,26 @@
 # @gradio/core
 
+## 0.27.2
+
+### Features
+
+- [#11764](https://github.com/gradio-app/gradio/pull/11764) [`e6ce731`](https://github.com/gradio-app/gradio/commit/e6ce731bbcf2889c8147e57bc2ca97e2c731ddf5) - Display performance metrics for API/MCP requests in View API page.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.18
+
+## 0.27.1
+
+### Features
+
+- [#11767](https://github.com/gradio-app/gradio/pull/11767) [`f67faa4`](https://github.com/gradio-app/gradio/commit/f67faa464add0ef6a4a58d60eb2ae850125ebb87) - Use icons instead of Emojis in MCP page.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/icons@0.13.1
+- @gradio/upload@0.16.16
+
 ## 0.27.0
 
 ### Features

@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/core",
-	"version": "0.27.0",
+	"version": "0.27.2",
 	"type": "module",
 	"devDependencies": {
 		"@gradio/accordion": "workspace:^",
@@ -79,6 +79,11 @@
 			"gradio": "./src/Login.svelte",
 			"svelte": "./dist/src/Login.svelte",
 			"types": "./dist/src/Login.svelte.d.ts"
+		},
+		"./navbar_store": {
+			"gradio": "./src/navbar_store.ts",
+			"import": "./src/navbar_store.ts",
+			"types": "./src/navbar_store.ts"
 		},
 		"./package.json": "./package.json",
 		".": {

@@ -53,6 +53,7 @@ from gradio.components import (
     MessageDict,
     Model3D,
     MultimodalTextbox,
+    Navbar,
     Number,
     ParamViewer,
     Plot,
@@ -91,11 +92,21 @@ from gradio.flagging import (
     FlaggingCallback,
     SimpleCSVLogger,
 )
-from gradio.helpers import Info, Progress, Success, Warning, skip, update
+from gradio.helpers import Info, Progress, Success, Warning, skip, update, validate
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.i18n import I18n
 from gradio.interface import Interface, TabbedInterface, close_all
-from gradio.layouts import Accordion, Column, Group, Row, Sidebar, Tab, TabItem, Tabs
+from gradio.layouts import (
+    Accordion,
+    Column,
+    Draggable,
+    Group,
+    Row,
+    Sidebar,
+    Tab,
+    TabItem,
+    Tabs,
+)
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.renderable import render
 from gradio.route_utils import Header
@@ -252,4 +263,5 @@ __all__ = [
     "update",
     "DeepLinkButton",
     "mcp",
+    "validate",
 ]

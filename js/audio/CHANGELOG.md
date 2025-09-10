@@ -1,5 +1,22 @@
 # @gradio/audio
 
+## 0.17.26
+
+### Fixes
+
+- [#11769](https://github.com/gradio-app/gradio/pull/11769) [`b4299fe`](https://github.com/gradio-app/gradio/commit/b4299feab01e1f8ce06043cc743b093612749ad4) - Fix reactive feedback loop in audio player causing a crash.  Thanks @its5Q!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.18
+
+## 0.17.25
+
+### Dependency updates
+
+- @gradio/icons@0.13.1
+- @gradio/upload@0.16.16
+
 ## 0.17.25
 
 ### Dependency updates

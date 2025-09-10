@@ -1,5 +1,28 @@
 # @gradio/dataframe
 
+## 0.19.1
+
+### Fixes
+
+- [#11782](https://github.com/gradio-app/gradio/pull/11782) [`e132283`](https://github.com/gradio-app/gradio/commit/e132283b2289d3689927a8fa7f0b4ac8f8628a18) - remove dompurify, update mermaid.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.18
+- @gradio/markdown-code@0.5.1
+
+## 0.19.0
+
+### Features
+
+- [#11766](https://github.com/gradio-app/gradio/pull/11766) [`dfc0e03`](https://github.com/gradio-app/gradio/commit/dfc0e0305068dbd16ce905afc73d139e1e51eb46) - Add JS Dataframe documentation to docs.  Thanks @pngwn!
+- [#11712](https://github.com/gradio-app/gradio/pull/11712) [`0025e1a`](https://github.com/gradio-app/gradio/commit/0025e1a157edef57def99e4bf24a3686ff38eaca) - Publish gr.Dataframe as standalone library.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/icons@0.13.1
+- @gradio/upload@0.16.16
+
 ## 0.18.8
 
 ### Dependency updates

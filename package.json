@@ -109,6 +109,7 @@
 		"@gradio/column": "workspace:^",
 		"@gradio/core": "workspace:^",
 		"@gradio/dialogue": "workspace:^",
+		"@gradio/draggable": "workspace:^",
 		"@gradio/dataframe": "workspace:^",
 		"@gradio/dataset": "workspace:^",
 		"@gradio/datetime": "workspace:^",
@@ -130,6 +131,7 @@
 		"@gradio/markdown": "workspace:^",
 		"@gradio/model3d": "workspace:^",
 		"@gradio/multimodaltextbox": "workspace:^",
+		"@gradio/navbar": "workspace:^",
 		"@gradio/nativeplot": "workspace:^",
 		"@gradio/number": "workspace:^",
 		"@gradio/paramviewer": "workspace:^",
@@ -167,7 +169,7 @@
 		"chromatic": "^11.3.0",
 		"eslint-plugin-jsdoc": "^48.2.3",
 		"storybook": "^8.3.6",
-		"wikidata-lang": "^4.1.2"
+		"wikidata-lang": "4.1.2"
 	},
 	"engines": {
 		"node": ">=18.0.0",
