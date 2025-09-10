@@ -12,6 +12,7 @@ import { load_component } from "virtual:component-loader";
 import type { client_return } from "@gradio/client";
 import { create_loading_status_store } from "./stores";
 import { _ } from "svelte-i18n";
+import { i18n_marker } from "./i18n";
 
 export interface UpdateTransaction {
 	id: number;
@@ -405,7 +406,7 @@ export function create_components(
 			);
 
 			instance.props.initial_tabs = child_tab_items?.map((child) => ({
-				label: child.props.label,
+				label: child.props.label.includes(i18n_marker) ? "" : child.props.label,
 				id: child.props.id,
 				visible:
 					typeof child.props.visible === "boolean" ? child.props.visible : true,
