@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -72,7 +73,7 @@ class CheckboxGroup(FormComponent):
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
         """
         self.choices = (
-            # Although we expect choices to be a list of tuples, it can be a list of tuples if the Gradio app	
+            # Although we expect choices to be a list of tuples, it can be a list of tuples if the Gradio app
             # is loaded with gr.load() since Python tuples are converted to lists in JSON.
             [tuple(c) if isinstance(c, (tuple, list)) else (str(c), c) for c in choices]
             if choices
@@ -85,7 +86,7 @@ class CheckboxGroup(FormComponent):
             )
         self.type = type
         if show_select_all and show_label is False:
-            raise ValueError("show_select_all requires show_label to be True")
+            warnings.warn("`show_select_all` requires `show_label` to be True")
         self.show_select_all = show_select_all
         super().__init__(
             label=label,
