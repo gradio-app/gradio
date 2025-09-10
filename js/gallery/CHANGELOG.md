@@ -1,5 +1,22 @@
 # @gradio/gallery
 
+## 0.15.32
+
+### Fixes
+
+- [#11787](https://github.com/gradio-app/gradio/pull/11787) [`b19576c`](https://github.com/gradio-app/gradio/commit/b19576c45f0748ca655864f4d80ff835318f1299) - Allow deleting and uploading additional images to interactive `gr.Gallery` and other fixes.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@1.18.0
+- @gradio/icons@0.14.0
+- @gradio/atoms@0.17.0
+- @gradio/statustracker@0.11.0
+- @gradio/upload@0.16.17
+- @gradio/file@0.12.29
+- @gradio/image@0.22.18
+- @gradio/video@0.15.1
+
 ## 0.15.31
 
 ### Dependency updates

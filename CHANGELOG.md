@@ -1,5 +1,32 @@
 # gradio
 
+## 5.45.0
+
+### Features
+
+- [#11814](https://github.com/gradio-app/gradio/pull/11814) [`013784a`](https://github.com/gradio-app/gradio/commit/013784a7086047651e8e661a38bde7d5c7f10db7) - add validation support.  Thanks @pngwn!
+- [#11833](https://github.com/gradio-app/gradio/pull/11833) [`a446fcb`](https://github.com/gradio-app/gradio/commit/a446fcba6f3fe59c32194beb7f27fb6f80b61347) - Add gr.Navbar component for multipage apps.  Thanks @abidlabs!
+- [#11783](https://github.com/gradio-app/gradio/pull/11783) [`f407daf`](https://github.com/gradio-app/gradio/commit/f407daf8046f37e042ab8b86730ff0ab8d174bcf) - Add Walkthrough and Step compoents to facilitate multi-step workflows.  Thanks @pngwn!
+- [#11825](https://github.com/gradio-app/gradio/pull/11825) [`910a524`](https://github.com/gradio-app/gradio/commit/910a5249397a68d215dd97d6a347718f0d994e04) - Fix the stop variant button in citrus theme.  Thanks @abidlabs!
+- [#11831](https://github.com/gradio-app/gradio/pull/11831) [`49d66c7`](https://github.com/gradio-app/gradio/commit/49d66c7e6fb22d67b6a95d791b3777afc39419fa) - Add Image Watermarking.  Thanks @meg-huggingface!
+- [#11832](https://github.com/gradio-app/gradio/pull/11832) [`e40df25`](https://github.com/gradio-app/gradio/commit/e40df252064e41d532472a535c42e3539877aa06) - Consolidate copy button implementations to use IconButton.  Thanks @abidlabs!
+- [#11843](https://github.com/gradio-app/gradio/pull/11843) [`a30f485`](https://github.com/gradio-app/gradio/commit/a30f485e1d906f97c64b578ca4570405bc50542e) - Fix native plots with long y-axis titles.  Thanks @abidlabs!
+- [#11763](https://github.com/gradio-app/gradio/pull/11763) [`c9e50d3`](https://github.com/gradio-app/gradio/commit/c9e50d3f071a416b2ca7ba30c7f25539986dfc4a) - Audio subtitles.  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#11815](https://github.com/gradio-app/gradio/pull/11815) [`1a477c5`](https://github.com/gradio-app/gradio/commit/1a477c5202c13097d1089fb70a32a08db22d7660) - Fix i18n string visible during load and i18n not respecting HTML.  Thanks @freddyaboulton!
+- [#11749](https://github.com/gradio-app/gradio/pull/11749) [`70f4532`](https://github.com/gradio-app/gradio/commit/70f4532a4dc7576dbdbe1d0a43a05644a0dfcf43) - fix various iFrame related UI issues when deploying to spaces.  Thanks @pngwn!
+- [#11826](https://github.com/gradio-app/gradio/pull/11826) [`a7ae61c`](https://github.com/gradio-app/gradio/commit/a7ae61c631980442e5068b8ef67622343d587444) - Allow passing props to components displayed in Chatbot.  Thanks @freddyaboulton!
+- [#11787](https://github.com/gradio-app/gradio/pull/11787) [`b19576c`](https://github.com/gradio-app/gradio/commit/b19576c45f0748ca655864f4d80ff835318f1299) - Allow deleting and uploading additional images to interactive `gr.Gallery` and other fixes.  Thanks @abidlabs!
+- [#11839](https://github.com/gradio-app/gradio/pull/11839) [`b8fcb71`](https://github.com/gradio-app/gradio/commit/b8fcb716d8bd4d372249585b103140d145365239) - Fix Custom CSS e2e Test.  Thanks @freddyaboulton!
+- [#11808](https://github.com/gradio-app/gradio/pull/11808) [`076ffe4`](https://github.com/gradio-app/gradio/commit/076ffe40a003d7fa3f9f68dade311f77e4600b71) - Ensure `show_api` works as expected.  Thanks @hannahblair!
+- [#11810](https://github.com/gradio-app/gradio/pull/11810) [`daf7f1e`](https://github.com/gradio-app/gradio/commit/daf7f1e1a8d65b74623f131aaf8bd82f8f661edb) - Ensure input events fires as expected in gr.Radio.  Thanks @hannahblair!
+- [#11838](https://github.com/gradio-app/gradio/pull/11838) [`231a448`](https://github.com/gradio-app/gradio/commit/231a448b5b5322d218c07329cd18cb1ba268af67) - Suppress assertion error when gr.OauthProfile is used without login button.  Thanks @freddyaboulton!
+- [#11830](https://github.com/gradio-app/gradio/pull/11830) [`c172398`](https://github.com/gradio-app/gradio/commit/c172398e5e662f22aba1aaae44f4849e7c67a3bd) - Remove requests.  Thanks @freddyaboulton!
+- [#11822](https://github.com/gradio-app/gradio/pull/11822) [`c9a5424`](https://github.com/gradio-app/gradio/commit/c9a5424e30bee42f4052d0fd1cef8dd61e8382f5) - Fix bug where multimodal textbox was not auto focused after updates.  Thanks @freddyaboulton!
+- [#11816](https://github.com/gradio-app/gradio/pull/11816) [`77deb72`](https://github.com/gradio-app/gradio/commit/77deb72cb29b412b415a86908255a2294e8b50d9) - Set Progress Animation to cover component height.  Thanks @freddyaboulton!
+
 ## 5.44.1
 
 ### Features

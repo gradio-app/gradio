@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.13.0
+
+### Features
+
+- [#11814](https://github.com/gradio-app/gradio/pull/11814) [`013784a`](https://github.com/gradio-app/gradio/commit/013784a7086047651e8e661a38bde7d5c7f10db7) - add validation support.  Thanks @pngwn!
+
 ## 1.12.1
 
 ### Features

@@ -1,5 +1,17 @@
 # @gradio/nativeplot
 
+## 0.7.5
+
+### Features
+
+- [#11843](https://github.com/gradio-app/gradio/pull/11843) [`a30f485`](https://github.com/gradio-app/gradio/commit/a30f485e1d906f97c64b578ca4570405bc50542e) - Fix native plots with long y-axis titles.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/icons@0.14.0
+- @gradio/atoms@0.17.0
+- @gradio/statustracker@0.11.0
+
 ## 0.7.4
 
 ### Dependency updates
