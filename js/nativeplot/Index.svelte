@@ -328,11 +328,18 @@
 				// a bug where when a nominal chart is first loaded, the width is 0, it doesn't resize
 				load_chart();
 			} else {
-				view.signal("width", el[0].target.offsetWidth).run();
-			}
-			if (old_height !== el[0].target.offsetHeight && fullscreen) {
-				view.signal("height", el[0].target.offsetHeight).run();
-				old_height = el[0].target.offsetHeight;
+				const width_change = Math.abs(old_width - el[0].target.offsetWidth);
+				const height_change = Math.abs(old_height - el[0].target.offsetHeight);
+				if (width_change > 100 || height_change > 100) {
+					old_width = el[0].target.offsetWidth;
+					old_height = el[0].target.offsetHeight;
+					load_chart();
+				} else {
+					view.signal("width", el[0].target.offsetWidth).run();
+					if (fullscreen) {
+						view.signal("height", el[0].target.offsetHeight).run();
+					}
+				}
 			}
 		});
 
@@ -473,7 +480,8 @@
 					titleFontSize: text_size_sm,
 					labelFontWeight: "normal",
 					domain: false,
-					labelAngle: 0
+					labelAngle: 0,
+					titleLimit: chart_element.offsetHeight * 0.8
 				},
 				legend: {
 					labelColor: body_text_color,

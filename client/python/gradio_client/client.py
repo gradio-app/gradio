@@ -40,7 +40,7 @@ from gradio_client import utils
 from gradio_client.compatibility import EndpointV3Compatibility
 from gradio_client.data_classes import ParameterInfo
 from gradio_client.documentation import document
-from gradio_client.exceptions import AppError, AuthenticationError
+from gradio_client.exceptions import AppError, AuthenticationError, ValidationError
 from gradio_client.utils import (
     Communicator,
     JobStatus,
@@ -325,6 +325,8 @@ class Client:
         )
         if req.status_code == 503:
             raise QueueError("Queue is full! Please try again.")
+        if (validation_message := utils.extract_validation_message(req)) is not None:
+            raise ValidationError(validation_message)
         req.raise_for_status()
         resp = req.json()
         event_id = resp["event_id"]
@@ -494,7 +496,6 @@ class Client:
             client.predict(5, "add", 4, api_name="/predict")
             >> 9.0
         """
-        self._infer_fn_index(api_name, fn_index)
         return self.submit(
             *args, api_name=api_name, fn_index=fn_index, headers=headers, **kwargs
         ).result()

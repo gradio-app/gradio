@@ -254,7 +254,7 @@ def organize_docs(d):
                 with open(os.path.join(JS_DIR, js_component, "README.md")) as f:
                     readme_content = f.read()
 
-                try: 
+                try:
                     latest_npm = requests.get(f"https://registry.npmjs.org/@gradio/{js_component}/latest").json()["version"]
                     latest_npm = f" [v{latest_npm}](https://www.npmjs.com/package/@gradio/{js_component})"
                     readme_content = readme_content.split("\n")
