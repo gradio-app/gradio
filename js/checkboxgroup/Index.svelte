@@ -41,10 +41,8 @@
 	function toggle_select_all(): void {
 		const all_values = choices.map(([, internal_value]) => internal_value);
 		if (value.length === all_values.length) {
-			// All selected, deselect all
 			value = [];
 		} else {
-			// Not all selected, select all
 			value = all_values.slice();
 		}
 		gradio.dispatch("input");
@@ -278,10 +276,6 @@
 		border-color: var(--checkbox-border-color-hover);
 		background-color: var(--checkbox-background-color-hover);
 		cursor: pointer;
-	}
-
-	.select-all-checkbox:not(:checked):focus {
-		border-color: var(--checkbox-border-color-focus);
 	}
 
 	.select-all-checkbox[disabled],
