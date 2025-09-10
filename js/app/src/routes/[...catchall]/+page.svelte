@@ -239,7 +239,7 @@
 	let pending_deep_link_error = false;
 
 	let gradio_dev_mode = "";
-	let i18n_ready: boolean;
+
 	onMount(async () => {
 		//@ts-ignore
 		config = data.config;
