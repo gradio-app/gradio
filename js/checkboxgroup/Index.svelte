@@ -253,6 +253,18 @@
 	.select-all-checkbox:indeterminate:hover {
 		border-color: var(--checkbox-border-color-selected);
 		background-color: var(--checkbox-background-color-selected);
+		position: relative;
+	}
+
+	.select-all-checkbox:indeterminate::after {
+		content: "";
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		transform: translate(-50%, -50%);
+		width: 60%;
+		height: 2px;
+		background-color: white;
 	}
 
 	.select-all-checkbox:not(:indeterminate):not(:checked):hover {
