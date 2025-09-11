@@ -184,7 +184,6 @@ __all__ = [
     "Highlight",
     "HighlightedText",
     "Highlightedtext",
-    "IS_WASM",
     "Image",
     "ImageEditor",
     "ImageSlider",
