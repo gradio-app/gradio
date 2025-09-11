@@ -32,7 +32,7 @@ class Model3D(Component):
 
     def __init__(
         self,
-        value: str | Callable | None = None,
+        value: str | None = None,
         *,
         display_mode: Literal["solid", "point_cloud", "wireframe"] | None = None,
         clear_color: tuple[float, float, float, float] | None = None,
