@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
 	import { Download, Check } from "@gradio/icons";
-	import { DownloadLink } from "@gradio/wasm/svelte";
+	import { DownloadLink } from "@gradio/atoms";
 	import { IconButton } from "@gradio/atoms";
 
 	export let value: string;

@@ -1,5 +1,19 @@
 # website
 
+## 0.62.1
+
+### Fixes
+
+- [#11838](https://github.com/gradio-app/gradio/pull/11838) [`231a448`](https://github.com/gradio-app/gradio/commit/231a448b5b5322d218c07329cd18cb1ba268af67) - Suppress assertion error when gr.OauthProfile is used without login button.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.0
+- @gradio/tabitem@0.6.0
+- @gradio/tabs@0.5.0
+- @gradio/code@0.14.16
+- @gradio/paramviewer@0.7.16
+
 ## 0.62.0
 
 ### Dependency updates

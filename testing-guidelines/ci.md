@@ -52,7 +52,6 @@ This is a simple breakdown of our current quality checks:
 | JavaScript | Type-checking   | linux            | `test-js.yml`              |                                              |
 | JavaScript | Unit tests      | linux            | `test-js.yml`              |                                              |
 | n/a        | Functional      | linux            | `test-functional.yml`      |                                              |
-| n/a        | Functional Lite | linux            | `test-functional-lite.yml` |                                              |
 | n/a        | Visual          | linux            | `deploy+test-visual/yml`   |                                              |
 | n/a        | Large files     | linux            | `test-hygiene.yml`         | Checks that all files are below 5 MB         |
 | n/a        | Notebooks match | linux            | `test-hygiene.yml`         | Ensures that notebooks and demos are in sync |

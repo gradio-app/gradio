@@ -45,15 +45,6 @@ jobs:
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           python_version: "3.12"
-          build_lite: "true"
-      - name: Package Lite NPM package
-        working-directory: js/lite
-        run: pnpm pack --pack-destination .
-      - name: Upload Lite NPM package
-        uses: actions/upload-artifact@v4
-        with:
-          name: gradio-lite-tar
-          path: js/lite/gradio-lite-*.tgz
       - name: install deps
         run: python -m pip install build
       - name: Build pr package

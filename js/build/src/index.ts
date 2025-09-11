@@ -200,7 +200,6 @@ const ignore_list = [
 	"atoms",
 	"fallback",
 	"icons",
-	"lite",
 	"preview",
 	"simpledropdown",
 	"simpleimage",
@@ -211,7 +210,6 @@ const ignore_list = [
 	"tooltip",
 	"upload",
 	"utils",
-	"wasm",
 	"sanitize",
 	"markdown-code"
 ];

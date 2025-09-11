@@ -52,8 +52,6 @@ jobs:
           skip_build: true
       - name: build client
         run: pnpm --filter @gradio/client build
-      - name: build the wasm module
-        run: pnpm --filter @gradio/wasm build
       - name: format check
         run: pnpm format:check
       - name: lint

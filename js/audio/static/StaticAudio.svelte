@@ -5,6 +5,7 @@
 		ShareButton,
 		IconButton,
 		BlockLabel,
+		DownloadLink,
 		IconButtonWrapper
 	} from "@gradio/atoms";
 	import { Download, Music } from "@gradio/icons";
@@ -12,7 +13,6 @@
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/client";
-	import { DownloadLink } from "@gradio/wasm/svelte";
 	import type { WaveformOptions, SubtitleData } from "../shared/types";
 
 	export let value: null | FileData = null;

@@ -1,5 +1,16 @@
 # @gradio/radio
 
+## 0.7.11
+
+### Fixes
+
+- [#11810](https://github.com/gradio-app/gradio/pull/11810) [`daf7f1e`](https://github.com/gradio-app/gradio/commit/daf7f1e1a8d65b74623f131aaf8bd82f8f661edb) - Ensure input events fires as expected in gr.Radio.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.17.0
+- @gradio/statustracker@0.11.0
+
 ## 0.7.10
 
 ### Dependency updates

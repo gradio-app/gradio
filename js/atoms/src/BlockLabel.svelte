@@ -57,7 +57,7 @@
 	}
 
 	.hide {
-		height: 0;
+		display: none;
 	}
 
 	span {

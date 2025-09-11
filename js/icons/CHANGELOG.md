@@ -1,5 +1,11 @@
 # @gradio/icons
 
+## 0.14.0
+
+### Features
+
+- [#11763](https://github.com/gradio-app/gradio/pull/11763) [`c9e50d3`](https://github.com/gradio-app/gradio/commit/c9e50d3f071a416b2ca7ba30c7f25539986dfc4a) - Audio subtitles.  Thanks @dawoodkhan82!
+
 ## 0.13.1
 
 ### Features

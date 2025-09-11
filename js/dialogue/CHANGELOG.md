@@ -1,5 +1,19 @@
 # @gradio/dialogue
 
+## 0.2.2
+
+### Features
+
+- [#11832](https://github.com/gradio-app/gradio/pull/11832) [`e40df25`](https://github.com/gradio-app/gradio/commit/e40df252064e41d532472a535c42e3539877aa06) - Consolidate copy button implementations to use IconButton.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/icons@0.14.0
+- @gradio/atoms@0.17.0
+- @gradio/statustracker@0.11.0
+- @gradio/textbox@0.11.0
+- @gradio/dropdown@0.10.3
+
 ## 0.2.1
 
 ### Dependency updates

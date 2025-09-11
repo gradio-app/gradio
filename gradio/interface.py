@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
-from gradio import Examples, utils, wasm_utils
+from gradio import Examples, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
@@ -32,7 +32,7 @@ from gradio.exceptions import RenderError
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.i18n import I18nData
 from gradio.layouts import Accordion, Column, Row, Tab, Tabs
-from gradio.pipelines import load_from_js_pipeline, load_from_pipeline
+from gradio.pipelines import load_from_pipeline
 from gradio.themes import ThemeClass as Theme
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -78,10 +78,7 @@ class Interface(Blocks):
             pipe = pipeline("image-classification")
             gr.Interface.from_pipeline(pipe).launch()
         """
-        if wasm_utils.IS_WASM:
-            interface_info = load_from_js_pipeline(pipeline)
-        else:
-            interface_info = load_from_pipeline(pipeline)
+        interface_info = load_from_pipeline(pipeline)
         kwargs = dict(interface_info, **kwargs)
         interface = cls(**kwargs)
         return interface
@@ -209,7 +206,7 @@ class Interface(Blocks):
             deep_link = DeepLinkButton(render=False, interactive=False)
         if utils.get_space() and deep_link is None:
             deep_link = DeepLinkButton(render=False, interactive=False)
-        if wasm_utils.IS_WASM or deep_link is False:
+        if deep_link is False:
             deep_link = None
         self.deep_link = deep_link
         self.time_limit = time_limit

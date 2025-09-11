@@ -3,7 +3,7 @@
 	import { prettyBytes } from "./utils";
 	import { createEventDispatcher } from "svelte";
 	import type { I18nFormatter, SelectData } from "@gradio/utils";
-	import { DownloadLink } from "@gradio/wasm/svelte";
+	import { DownloadLink } from "@gradio/atoms";
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;

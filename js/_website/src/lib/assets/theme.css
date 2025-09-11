@@ -207,6 +207,9 @@
 	);
 	--button-cancel-text-color: white;
 	--button-cancel-text-color-hover: white;
+	--button-cancel-shadow: var(--button-secondary-shadow);
+	--button-cancel-shadow-hover: var(--button-secondary-shadow-hover);
+	--button-cancel-shadow-active: var(--button-secondary-shadow-active);
 	--button-transform-hover: none;
 	--button-transform-active: none;
 	--button-transition: all 0.2s ease;
@@ -332,6 +335,9 @@
 	);
 	--button-cancel-text-color: white;
 	--button-cancel-text-color-hover: white;
+	--button-cancel-shadow: var(--button-secondary-shadow);
+	--button-cancel-shadow-hover: var(--button-secondary-shadow-hover);
+	--button-cancel-shadow-active: var(--button-secondary-shadow-active);
 	--button-primary-background-fill: var(--primary-600);
 	--button-primary-background-fill-hover: var(--primary-700);
 	--button-primary-border-color: var(--primary-600);

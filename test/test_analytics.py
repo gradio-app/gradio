@@ -1,12 +1,9 @@
-import asyncio
 import json
 import os
 import warnings
 from unittest.mock import patch
 
-import pytest
-
-from gradio import analytics, wasm_utils
+from gradio import analytics
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -38,24 +35,3 @@ class TestAnalytics:
     def test_error_analytics_successful(self, mock_post, monkeypatch):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         analytics.error_analytics("placeholder")
-
-    @patch.object(wasm_utils, "IS_WASM", True)
-    @patch("gradio.analytics.pyodide_pyfetch")
-    @pytest.mark.asyncio
-    async def test_error_analytics_successful_in_wasm_mode(
-        self, pyodide_pyfetch, monkeypatch
-    ):
-        loop = asyncio.get_event_loop()
-        monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
-
-        analytics.error_analytics("placeholder")
-
-        # Await all background tasks.
-        # Ref: https://superfastpython.com/asyncio-wait-for-tasks/#How_to_Wait_for_All_Background_Tasks
-        all_tasks = asyncio.all_tasks(loop)
-        current_task = asyncio.current_task()
-        assert current_task
-        all_tasks.remove(current_task)
-        await asyncio.wait(all_tasks)
-
-        pyodide_pyfetch.assert_called()

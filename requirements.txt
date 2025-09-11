@@ -5,7 +5,7 @@ brotli>=1.1.0
 fastapi>=0.115.2,<1.0
 ffmpy
 groovy~=0.1
-gradio_client==1.12.1
+gradio_client==1.13.0
 httpx>=0.24.1,<1.0
 huggingface_hub>=0.33.5,<1.0
 Jinja2<4.0
@@ -19,12 +19,11 @@ pydantic>=2.0,<2.12
 python-multipart>=0.0.18 # required for fastapi forms.
 pydub
 pyyaml>=5.0,<7.0
-ruff>=0.9.3; sys.platform != 'emscripten'  # needed here for custom component docs generation
+ruff>=0.9.3 # needed here for custom component docs generation
 safehttpx>=0.1.6,<0.2.0
 semantic_version~=2.0
-starlette>=0.40.0,<1.0; sys.platform != 'emscripten'
+starlette>=0.40.0,<1.0
 tomlkit>=0.12.0,<0.14.0
-typer>=0.12,<1.0; sys.platform != 'emscripten'
+typer>=0.12,<1.0
 typing_extensions~=4.0
-urllib3~=2.0; sys.platform == 'emscripten'  # urllib3 is used for Lite support. Version spec can be omitted because urllib3==2.1.0 is prebuilt for Pyodide and urllib>=2.2.0 supports Pyodide as well.
-uvicorn>=0.14.0; sys.platform != 'emscripten'
+uvicorn>=0.14.0

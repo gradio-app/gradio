@@ -74,16 +74,6 @@ describe("determine_protocol", () => {
 			host: "huggingface.co"
 		});
 	});
-
-	it('should return the correct protocols and host when the endpoint starts with "file"', () => {
-		const endpoint = "file:///path/to/app.html";
-		const result = determine_protocol(endpoint);
-		expect(result).toEqual({
-			ws_protocol: "ws",
-			http_protocol: "http:",
-			host: "lite.local"
-		});
-	});
 });
 
 describe("parse_and_set_cookies", () => {
