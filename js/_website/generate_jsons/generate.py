@@ -74,7 +74,7 @@ def get_latest_release():
                     "gradio_install": f"pip install https://gradio-builds.s3.amazonaws.com/{sha}/gradio-{version}-py3-none-any.whl",
                     "gradio_py_client_install": f"pip install 'gradio-client @ git+https://github.com/gradio-app/gradio@{sha}#subdirectory=client/python'",
                     "gradio_js_client_install": f"npm install https://gradio-builds.s3.amazonaws.com/{sha}/gradio-client-{js_client_version}.tgz",
-                    "gradio_lite_url": f"https://gradio-lite-previews.s3.amazonaws.com/{sha}",
+                    "gradio_lite_url": f"https://cdn.jsdelivr.net/npm/@gradio/lite@5.45.0",
                 },
                 j,
             )
@@ -106,7 +106,9 @@ create_dir_if_not_exists(make_dir(WEBSITE_DIR, "src/lib/json/guides"))
 
 demos.generate(make_dir(WEBSITE_DIR, "src/lib/json/demos.json"))
 guides.generate(make_dir(WEBSITE_DIR, "src/lib/json/guides/") + "/")
-SYSTEM_PROMPT, FALLBACK_PROMPT = docs.generate(make_dir(WEBSITE_DIR, "src/lib/json/docs.json"))
+SYSTEM_PROMPT, FALLBACK_PROMPT = docs.generate(
+    make_dir(WEBSITE_DIR, "src/lib/json/docs.json")
+)
 _, _ = docs.generate(make_dir(WEBSITE_DIR, "src/lib/templates/docs.json"))
 changelog.generate(make_dir(WEBSITE_DIR, "src/lib/json/changelog.json"))
 get_latest_release()
