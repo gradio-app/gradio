@@ -26,7 +26,7 @@ import safehttpx as sh
 from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, ImageSequence, PngImagePlugin
 
-from gradio import utils, wasm_utils
+from gradio import utils
 from gradio.context import LocalContext
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, JsonData
 from gradio.exceptions import Error, InvalidPathError
@@ -37,85 +37,8 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
     from pydub import AudioSegment
 
-if wasm_utils.IS_WASM:
-    import pyodide.http  # type: ignore
-    import urllib3
-
-    # NOTE: In the Wasm env, we use urllib3 to make HTTP requests. See https://github.com/gradio-app/gradio/issues/6837.
-    class Urllib3ResponseSyncByteStream(httpx.SyncByteStream):
-        def __init__(self, response: urllib3.HTTPResponse) -> None:
-            self.response = response
-
-        def __iter__(self):
-            yield from self.response.stream(decode_content=True)
-
-    class Urllib3Transport(httpx.BaseTransport):
-        def __init__(self):
-            self.pool = urllib3.PoolManager()
-
-        def handle_request(self, request: httpx.Request) -> httpx.Response:
-            url = str(request.url)
-            method = str(request.method)
-            headers = dict(request.headers)
-            body = None if method in ["GET", "HEAD"] else request.read()
-
-            response = self.pool.request(
-                headers=headers,
-                method=method,
-                url=url,
-                body=body,
-                preload_content=False,  # Stream the content
-            )
-
-            # HTTPX's gzip decoder sometimes fails to decode the content in the Wasm env as https://github.com/gradio-app/gradio/pull/9333#issuecomment-2348048882,
-            # so we avoid it by removing the content-encoding header passed to httpx.Response,
-            # and handle the decoding in `Urllib3ResponseSyncByteStream.__iter__()` with `urllib3`'s implementation.
-            response_headers = response.headers.copy()
-            response_headers.discard("content-encoding")
-
-            return httpx.Response(
-                status_code=response.status,
-                headers=response_headers,
-                stream=Urllib3ResponseSyncByteStream(response),  # type: ignore
-            )
-
-    sync_transport = Urllib3Transport()
-
-    class PyodideHttpResponseAsyncByteStream(httpx.AsyncByteStream):
-        def __init__(self, response: pyodide.http.FetchResponse) -> None:
-            self.response = response
-
-        async def __aiter__(self):
-            yield await self.response.bytes()
-
-    class PyodideHttpTransport(httpx.AsyncBaseTransport):
-        async def handle_async_request(
-            self,
-            request: httpx.Request,
-        ) -> httpx.Response:
-            url = str(request.url)
-            method = request.method
-
-            headers = dict(request.headers)
-            # User-agent header is automatically set by the browser.
-            # More importantly, setting it causes an error on FireFox where a preflight request is made and it leads to a CORS error.
-            # Maybe related to https://bugzilla.mozilla.org/show_bug.cgi?id=1629921
-            del headers["user-agent"]
-
-            body = None if method in ["GET", "HEAD"] else await request.aread()
-            response = await pyodide.http.pyfetch(
-                url, method=method, headers=headers, body=body
-            )
-            return httpx.Response(
-                status_code=response.status,
-                headers=response.headers,
-                stream=PyodideHttpResponseAsyncByteStream(response),
-            )
-
-    async_transport = PyodideHttpTransport()
-else:
-    sync_transport = None
-    async_transport = None
+sync_transport = None
+async_transport = None
 
 sync_client = httpx.Client(transport=sync_transport)
 
@@ -420,12 +343,7 @@ def unsafe_download(url: str, cache_dir: str) -> str:
 
 
 def ssrf_protected_download(url: str, cache_dir: str) -> str:
-    if wasm_utils.IS_WASM:
-        return unsafe_download(url, cache_dir)
-    else:
-        return client_utils.synchronize_async(
-            async_ssrf_protected_download, url, cache_dir
-        )
+    return client_utils.synchronize_async(async_ssrf_protected_download, url, cache_dir)
 
 
 # Custom components created with versions of gradio < 5.0 may be using the processing_utils.save_url_to_cache method, so we alias to ssrf_protected_download to preserve backwards-compatibility
@@ -738,10 +656,6 @@ def audio_from_file(
         )
         raise RuntimeError(msg) from e
     except OSError as e:
-        if wasm_utils.IS_WASM:
-            raise wasm_utils.WasmUnsupportedError(
-                "Audio format conversion is not supported in the Wasm mode."
-            ) from e
         raise e
     if crop_min != 0 or crop_max != 100:
         audio_start = len(audio) * crop_min / 100
@@ -756,10 +670,7 @@ def audio_from_file(
 def audio_to_file(sample_rate, data, filename, format="wav"):
     if format == "wav":
         data = convert_to_16_bit_wav(data)
-    elif wasm_utils.IS_WASM:
-        raise wasm_utils.WasmUnsupportedError(
-            "Audio formats other than .wav are not supported in the Wasm mode."
-        )
+
     audio = AudioSegment(
         data.tobytes(),
         frame_rate=sample_rate,
@@ -1106,10 +1017,6 @@ def _convert(image, dtype, force_copy=False, uniform=False):
 
 
 def ffmpeg_installed() -> bool:
-    if wasm_utils.IS_WASM:
-        # TODO: Support ffmpeg in WASM
-        return False
-
     return shutil.which("ffmpeg") is not None
 
 
@@ -1170,10 +1077,6 @@ def convert_video_to_playable_mp4(video_path: str) -> str:
 
 
 def get_video_length(video_path: str | Path):
-    if wasm_utils.IS_WASM:
-        raise wasm_utils.WasmUnsupportedError(
-            "Video duration is not supported in the Wasm mode."
-        )
     duration = subprocess.check_output(
         [
             "ffprobe",

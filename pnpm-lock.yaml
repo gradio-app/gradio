@@ -600,9 +600,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
       svelte:
         specifier: ^4.0.0
         version: 4.2.15
@@ -622,9 +619,6 @@ importers:
       '@gradio/theme':
         specifier: workspace:^
         version: link:../theme
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
       '@huggingface/space-header':
         specifier: ^1.0.4
         version: 1.0.4
@@ -704,9 +698,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
       '@types/wavesurfer.js':
         specifier: ^6.0.10
         version: 6.0.10
@@ -833,9 +824,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
       '@types/katex':
         specifier: ^0.16.0
         version: 0.16.0
@@ -959,9 +947,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
       '@lezer/common':
         specifier: ^1.2.3
         version: 1.2.3
@@ -1237,9 +1222,6 @@ importers:
       '@gradio/video':
         specifier: workspace:^
         version: link:../video
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
 
   js/dataframe:
     dependencies:
@@ -1464,9 +1446,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
       svelte:
         specifier: ^4.0.0
         version: 4.2.15
@@ -1654,9 +1633,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
       cropperjs:
         specifier: ^1.5.12
         version: 1.5.12
@@ -1697,9 +1673,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
       '@types/tinycolor2':
         specifier: ^1.4.6
         version: 1.4.6
@@ -1740,9 +1713,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
       '@types/d3-drag':
         specifier: ^3.0.7
         version: 3.0.7
@@ -1806,33 +1776,6 @@ importers:
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
-
-  js/lite:
-    devDependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../atoms
-      '@gradio/core':
-        specifier: workspace:^
-        version: link:../core
-      '@gradio/theme':
-        specifier: workspace:^
-        version: link:../theme
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
-      '@self/build':
-        specifier: workspace:^
-        version: link:../build
-      '@self/spa':
-        specifier: workspace:^
-        version: link:../spa
-      glob:
-        specifier: ^11.0.2
-        version: 11.0.2
-      gradio:
-        specifier: workspace:^
-        version: link:../../gradio
 
   js/markdown:
     dependencies:
@@ -1928,9 +1871,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
       '@types/babylon':
         specifier: ^6.16.6
         version: 6.16.6
@@ -2313,9 +2253,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
       cropperjs:
         specifier: ^1.5.12
         version: 1.5.12
@@ -2411,9 +2348,6 @@ importers:
       '@gradio/theme':
         specifier: workspace:^
         version: link:../theme
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
       '@huggingface/space-header':
         specifier: ^1.0.4
         version: 1.0.4
@@ -2562,9 +2496,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
       svelte:
         specifier: ^4.0.0
         version: 4.2.15
@@ -2648,9 +2579,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
       hls.js:
         specifier: ^1.5.13
         version: 1.5.13
@@ -2664,21 +2592,6 @@ importers:
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
-
-  js/wasm:
-    dependencies:
-      '@types/path-browserify':
-        specifier: ^1.0.0
-        version: 1.0.0
-      path-browserify:
-        specifier: ^1.0.1
-        version: 1.0.1
-      pyodide:
-        specifier: 0.27.3
-        version: 0.27.3(bufferutil@4.0.7)
-      svelte:
-        specifier: ^4.0.0
-        version: 4.2.15
 
 packages:
 
@@ -5228,9 +5141,6 @@ packages:
   '@types/node@20.12.8':
     resolution: {integrity: sha512-NU0rJLJnshZWdE/097cdCBbyW1h4hEg0xpovcoAQYHl8dnEyp/NAOiE45pvc+Bd1Dt+2r94v2eGFpQJ4R7g+2w==}
 
-  '@types/path-browserify@1.0.0':
-    resolution: {integrity: sha512-XMCcyhSvxcch8b7rZAtFAaierBYdeHXVvg2iYnxOV0MCQHmPuRRmGZPFDRzPayxcGiiSL1Te9UIO+f3cuj0tfw==}
-
   '@types/prismjs@1.26.1':
     resolution: {integrity: sha512-Q7jDsRbzcNHIQje15CS/piKhu6lMLb9jwjxSfEIi4KcFKXW23GoJMkwQiJ8VObyfx+VmUaDcJxXaWN+cTCjVog==}
 
@@ -6883,11 +6793,6 @@ packages:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
     hasBin: true
 
-  glob@11.0.2:
-    resolution: {integrity: sha512-YT7U7Vye+t5fZ/QMkBFrTJ7ZQxInIUjwyAjVj84CYXqgBdv30MFUPGnBR6sQaVq6Is15wYJUsnzTuWaGRBhBAQ==}
-    engines: {node: 20 || >=22}
-    hasBin: true
-
   glob@7.1.6:
     resolution: {integrity: sha512-LwaxwyZ72Lk7vZINtNNrywX0ZuLyStrdDtabefZKAY5ZGJhVtgdznluResxNmPitE0SAO+O26sWTHeKSI2wMBA==}
     deprecated: Glob versions prior to v9 are no longer supported
@@ -7193,10 +7098,6 @@ packages:
 
   jackspeak@3.4.3:
     resolution: {integrity: sha512-OGlZQpz2yfahA/Rd1Y8Cd9SIEsqvXkLVoSw/cgwhnhFMDbsQFeZYoJJ7bIZBS9BcamUW96asq/npPWugM+RQBw==}
-
-  jackspeak@4.1.0:
-    resolution: {integrity: sha512-9DDdhb5j6cpeitCbvLO7n7J4IxnbM6hoF6O1g4HQ5TfhvvKN8ywDM7668ZhMHRqVmxqhps/F6syWK2KcPxYlkw==}
-    engines: {node: 20 || >=22}
 
   javascript-stringify@2.1.0:
     resolution: {integrity: sha512-JVAfqNPTvNq3sB/VHQJAFxN/sPgKnsKrCwyRt15zwNCdrMMJDdcEOdubuy+DuJYYdm0ox1J4uzEuYKkN+9yhVg==}
@@ -7528,10 +7429,6 @@ packages:
     resolution: {integrity: sha512-9hp3Vp2/hFQUiIwKo8XCeFVnrg8Pk3TYNPIR7tJADKi5YfcF7vEaK7avFHTlSy3kOKYaJQaalfEo6YuXdceBOQ==}
     engines: {node: 14 || >=16.14}
 
-  lru-cache@11.1.0:
-    resolution: {integrity: sha512-QIXZUBJUx+2zHUdQujWejBkcD9+cs94tLn0+YL8UrCh+D5sCXZ4c7LaEH48pNwRY3MLDgqUFyhlCyjJPf1WP0A==}
-    engines: {node: 20 || >=22}
-
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
@@ -7668,10 +7565,6 @@ packages:
     resolution: {integrity: sha512-4BhLGpssQxM/O6TZmJ10GkT3wBJK6emFkZ3V87/HyvQmVt8zMxEBvyw5uv6kdtp+7F54Nw6IKFJjPUL8rFVQrQ==}
     engines: {node: '>=16.13'}
     hasBin: true
-
-  minimatch@10.0.1:
-    resolution: {integrity: sha512-ethXTt3SGGR+95gudmqJ1eNhRO7eGEGIgYA9vnPatK4/etz2MEVDno5GMCibdMTuBMyElzIlgxMna3K94XDIDQ==}
-    engines: {node: 20 || >=22}
 
   minimatch@3.1.2:
     resolution: {integrity: sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==}
@@ -7936,9 +7829,6 @@ packages:
   pascal-case@3.1.2:
     resolution: {integrity: sha512-uWlGT3YSnK9x3BQJaOdcZwrnV6hPpd8jFH1/ucpiLRPh/2zCVJKS19E4GvYHvaCcACn3foXZ0cLB9Wrx1KGe5g==}
 
-  path-browserify@1.0.1:
-    resolution: {integrity: sha512-b7uo2UCUOYZcnF/3ID0lulOJi/bafxa1xPe7ZPsammBSpjSWQkjNxlt635YGS2MiR9GjvuXCtz2emr3jbsz98g==}
-
   path-data-parser@0.1.0:
     resolution: {integrity: sha512-NOnmBpt5Y2RWbuv0LMzsayp3lVylAHLPUTut412ZA3l+C4uw4ZVkQbjShYCQ8TCpUMdPapr4YjUqLYD6v68j+w==}
 
@@ -7964,10 +7854,6 @@ packages:
   path-scurry@1.11.1:
     resolution: {integrity: sha512-Xa4Nw17FS9ApQFJ9umLiJS4orGjm7ZzwUrwamcGQuHSzDyth9boKDaycYdDcZDuqYATXw4HFXgaqWTctW/v1HA==}
     engines: {node: '>=16 || 14 >=14.18'}
-
-  path-scurry@2.0.0:
-    resolution: {integrity: sha512-ypGJsmGtdXUOeM5u93TyeIEfEhM6s+ljAhrk5vAvSx8uyY/02OvrZnA0YNGUrPXfpJMgI1ODd3nwz8Npx4O4cg==}
-    engines: {node: 20 || >=22}
 
   path-to-regexp@6.2.1:
     resolution: {integrity: sha512-JLyh7xT1kizaEvcaXOQwOc2/Yhw6KZOvPf1S8401UyLk86CU79LN3vl7ztXGm/pZ+YjoyAJ4rxmHwbkBXJX+yw==}
@@ -8295,10 +8181,6 @@ packages:
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
-
-  pyodide@0.27.3:
-    resolution: {integrity: sha512-6NwKEbPk0M3Wic2T1TCZijgZH9VE4RkHp1VGljS1sou0NjGdsmY2R/fG5oLmdDkjTRMI1iW7WYaY9pofX8gg1g==}
-    engines: {node: '>=18.0.0'}
 
   quansync@0.2.10:
     resolution: {integrity: sha512-t41VRkMYbkHyCYmOvx/6URnN80H7k4X0lLdBMGsz+maAwrJQYB1djpV6vHrQIBE0WBSGqhtEHrK9U3DWWH8v7A==}
@@ -12172,8 +12054,6 @@ snapshots:
     dependencies:
       undici-types: 5.26.5
 
-  '@types/path-browserify@1.0.0': {}
-
   '@types/prismjs@1.26.1': {}
 
   '@types/prismjs@1.26.3': {}
@@ -14037,15 +13917,6 @@ snapshots:
       package-json-from-dist: 1.0.0
       path-scurry: 1.11.1
 
-  glob@11.0.2:
-    dependencies:
-      foreground-child: 3.1.1
-      jackspeak: 4.1.0
-      minimatch: 10.0.1
-      minipass: 7.1.2
-      package-json-from-dist: 1.0.0
-      path-scurry: 2.0.0
-
   glob@7.1.6:
     dependencies:
       fs.realpath: 1.0.0
@@ -14344,10 +14215,6 @@ snapshots:
       '@isaacs/cliui': 8.0.2
     optionalDependencies:
       '@pkgjs/parseargs': 0.11.0
-
-  jackspeak@4.1.0:
-    dependencies:
-      '@isaacs/cliui': 8.0.2
 
   javascript-stringify@2.1.0: {}
 
@@ -14663,8 +14530,6 @@ snapshots:
 
   lru-cache@10.2.2: {}
 
-  lru-cache@11.1.0: {}
-
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
@@ -14839,10 +14704,6 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
-
-  minimatch@10.0.1:
-    dependencies:
-      brace-expansion: 2.0.1
 
   minimatch@3.1.2:
     dependencies:
@@ -15109,8 +14970,6 @@ snapshots:
       no-case: 3.0.4
       tslib: 2.6.2
 
-  path-browserify@1.0.1: {}
-
   path-data-parser@0.1.0: {}
 
   path-exists@4.0.0: {}
@@ -15126,11 +14985,6 @@ snapshots:
   path-scurry@1.11.1:
     dependencies:
       lru-cache: 10.2.2
-      minipass: 7.1.2
-
-  path-scurry@2.0.0:
-    dependencies:
-      lru-cache: 11.1.0
       minipass: 7.1.2
 
   path-to-regexp@6.2.1: {}
@@ -15494,13 +15348,6 @@ snapshots:
       pug-strip-comments: 2.0.0
 
   punycode@2.3.1: {}
-
-  pyodide@0.27.3(bufferutil@4.0.7):
-    dependencies:
-      ws: 8.18.0(bufferutil@4.0.7)
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
 
   quansync@0.2.10: {}
 
