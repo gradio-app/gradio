@@ -32,6 +32,16 @@
 				value: pageConfig.value ?? null
 			};
 		}
+		
+		let navbar_component = components.find((c) => c.type === "navbar");
+		if (navbar_component) {
+			return {
+				visible: navbar_component.props.visible,
+				main_page_name: navbar_component.props.main_page_name,
+				value: navbar_component.props.value
+			};
+		}
+		
 		return null;
 	})()
 
