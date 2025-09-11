@@ -1161,6 +1161,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         self.pages: list[tuple[str, str]] = [("", "Home")]
         self.current_page = ""
+        self.page_navbar_configs: dict[str, dict[str, Any]] = {}
 
         if self.analytics_enabled:
             is_custom_theme = not any(
@@ -2255,6 +2256,7 @@ Received inputs:
             "pwa": self.pwa,
             "pages": self.pages,
             "page": {},
+            "page_navbar_configs": self.page_navbar_configs,
             "mcp_server": self.mcp_server,
             "i18n_translations": (
                 getattr(self.i18n_instance, "translations_dict", None)
@@ -2385,19 +2387,33 @@ Received inputs:
                     )
 
     def validate_navbar_settings(self):
-        """Validates that only one Navbar component exists in the Blocks app."""
+        """Store navbar configurations per page."""
         from gradio.components.navbar import Navbar
 
-        navbar_components = [
-            block for block in self.blocks.values() if isinstance(block, Navbar)
-        ]
-
-        if len(navbar_components) > 1:
-            raise ValueError(
-                "Only one gr.Navbar component can exist per Blocks app. "
-                f"Found {len(navbar_components)} Navbar components. "
-                "Please remove the extra Navbar components."
-            )
+        # Clear previous navbar configs
+        self.page_navbar_configs = {}
+        
+        # Store navbar configs for each page
+        for block in self.blocks.values():
+            if isinstance(block, Navbar):
+                # Get the page this navbar belongs to
+                page_key = getattr(block, 'page', '')
+                
+                # Only one navbar per page is allowed
+                if page_key in self.page_navbar_configs:
+                    raise ValueError(
+                        f"Only one gr.Navbar component can exist per page. "
+                        f"Found multiple Navbar components on page '{page_key or 'Home'}'. "
+                        "Please remove the extra Navbar components."
+                    )
+                # Store the navbar configuration for this page
+                self.page_navbar_configs[page_key] = {
+                    "visible": block.visible,
+                    "main_page_name": getattr(block, 'main_page_name', 'Home'),
+                    "value": block.value,
+                    "elem_id": block.elem_id,
+                    "elem_classes": block.elem_classes,
+                }
 
     def launch(
         self,

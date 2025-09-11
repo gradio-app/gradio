@@ -17,36 +17,46 @@
 	export let loaded: boolean;
 	export let pages: [string, string][] = [];
 	export let current_page = "";
+	export let page_navbar_configs: Record<string, any> = {};
 	export let root: string;
 	export let components: any[] = [];
 
 	const set_page: ((page: string) => void) | undefined =
 		getContext("set_lite_page");
 
-	let navbar_component = components.find((c) => c.type === "navbar");
-	let navbar: {
-		visible: boolean;
-		main_page_name: string | false;
-		value: [string, string][] | null;
-	} | null = navbar_component
-		? {
+	// Get navbar config for current page
+	$: navbar = (() => {
+		// First check if there's a page-specific navbar config
+		const pageConfig = page_navbar_configs[current_page];
+		if (pageConfig) {
+			return {
+				visible: pageConfig.visible ?? true,
+				main_page_name: pageConfig.main_page_name ?? "Home",
+				value: pageConfig.value ?? null
+			};
+		}
+		
+		// Fall back to global navbar config from store
+		if ($navbar_config) {
+			return {
+				visible: $navbar_config.visible ?? true,
+				main_page_name: $navbar_config.main_page_name ?? "Home",
+				value: $navbar_config.value ?? null
+			};
+		}
+		
+		// Finally fall back to navbar component if it exists
+		let navbar_component = components.find((c) => c.type === "navbar");
+		if (navbar_component) {
+			return {
 				visible: navbar_component.props.visible,
 				main_page_name: navbar_component.props.main_page_name,
 				value: navbar_component.props.value
-			}
-		: null;
-
-	if (navbar) {
-		navbar_config.set(navbar);
-	}
-
-	$: if ($navbar_config) {
-		navbar = {
-			visible: $navbar_config.visible ?? true,
-			main_page_name: $navbar_config.main_page_name ?? "Home",
-			value: $navbar_config.value ?? null
-		};
-	}
+			};
+		}
+		
+		return null;
+	})()
 
 	$: show_navbar =
 		pages.length > 1 && (navbar === null || navbar.visible !== false);
