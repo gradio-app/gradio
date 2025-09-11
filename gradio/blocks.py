@@ -2388,16 +2388,16 @@ Received inputs:
         """Validates that only one Navbar component exists per page."""
         from gradio.components.navbar import Navbar
 
-        navbar_by_page = set()
+        navbar_pages = set()
         for block in self.blocks.values():
             if isinstance(block, Navbar):
-                if block.page in navbar_by_page:
+                if block.page in navbar_pages:
                     raise ValueError(
                         f"Only one gr.Navbar component can exist per page. "
                         f"Found multiple Navbar components on page '{block.page or 'Home'}'. "
                         "Please remove the extra Navbar components."
                     )
-                navbar_by_page.add(block.page)
+                navbar_pages.add(block.page)
 
     def launch(
         self,
