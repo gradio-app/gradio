@@ -6,7 +6,6 @@
 	import { skip_audio, process_audio } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import { Empty } from "@gradio/atoms";
-	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 	import type { FileData } from "@gradio/client";
 	import type { WaveformOptions, SubtitleData } from "../shared/types";
 	import { createEventDispatcher } from "svelte";
@@ -76,11 +75,9 @@
 			}
 		}
 
-		resolve_wasm_src(value?.url).then((resolved_src) => {
-			if (resolved_src && waveform) {
-				return waveform.load(resolved_src);
-			}
-		});
+		if (value?.url && waveform) {
+			waveform.load(value?.url);
+		}
 
 		waveform?.on("decode", (duration: any) => {
 			audio_duration = duration;
@@ -152,14 +149,12 @@
 
 	async function load_audio(data: string): Promise<void> {
 		stream_active = false;
-		await resolve_wasm_src(data).then((resolved_src) => {
-			if (!resolved_src || value?.is_stream) return;
-			if (waveform_options.show_recording_waveform) {
-				waveform?.load(resolved_src);
-			} else if (audio_player) {
-				audio_player.src = resolved_src;
-			}
-		});
+
+		if (waveform_options.show_recording_waveform) {
+			waveform?.load(data);
+		} else if (audio_player) {
+			audio_player.src = data;
+		}
 	}
 
 	$: url && load_audio(url);

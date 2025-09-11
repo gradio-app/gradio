@@ -16,7 +16,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 import gradio as gr
-from gradio import processing_utils, utils, wasm_utils
+from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingOutput
 from gradio.components.image_editor import WebcamOptions
 from gradio.data_classes import FileData, GradioModel, MediaStreamChunk
@@ -27,9 +27,7 @@ if TYPE_CHECKING:
     from gradio.components import Timer
 
 
-if not wasm_utils.IS_WASM:
-    # TODO: Support ffmpeg on Wasm
-    from ffmpy import FFmpeg
+from ffmpy import FFmpeg
 
 
 class VideoData(GradioModel):
@@ -253,10 +251,7 @@ class Video(StreamingOutput, Component):
             output_filepath = Path(output_file_name)
             if output_filepath.exists():
                 return str(output_filepath.resolve())
-            if wasm_utils.IS_WASM:
-                raise wasm_utils.WasmUnsupportedError(
-                    "Video formatting is not supported in the Wasm mode."
-                )
+
             ff = FFmpeg(  # type: ignore
                 inputs={str(file_name): None},
                 outputs={output_file_name: output_options},
@@ -267,10 +262,7 @@ class Video(StreamingOutput, Component):
             output_file_name = str(file_name.with_name(f"muted_{file_name.name}"))
             if Path(output_file_name).exists():
                 return output_file_name
-            if wasm_utils.IS_WASM:
-                raise wasm_utils.WasmUnsupportedError(
-                    "include_audio=False is not supported in the Wasm mode."
-                )
+
             ff = FFmpeg(  # type: ignore
                 inputs={str(file_name): None},
                 outputs={output_file_name: ["-an"]},
@@ -361,10 +353,6 @@ class Video(StreamingOutput, Component):
         if (
             self.format is not None and returned_format != self.format
         ) or self.watermark:
-            if wasm_utils.IS_WASM:
-                raise wasm_utils.WasmUnsupportedError(
-                    "Modifying a video is not supported in the Wasm mode."
-                )
             global_option_list = ["-y"]
             inputs_dict = {video: None}
             output_file_name = video[0 : video.rindex(".") + 1]
@@ -443,11 +431,6 @@ class Video(StreamingOutput, Component):
 
     @staticmethod
     def get_video_duration_ffprobe(filename: str):
-        if wasm_utils.IS_WASM:
-            raise wasm_utils.WasmUnsupportedError(
-                "ffprobe is not supported in the Wasm mode."
-            )
-
         result = subprocess.run(
             [
                 "ffprobe",
@@ -478,11 +461,6 @@ class Video(StreamingOutput, Component):
 
     @staticmethod
     async def async_convert_mp4_to_ts(mp4_file, ts_file):
-        if wasm_utils.IS_WASM:
-            raise wasm_utils.WasmUnsupportedError(
-                "Streaming is not supported in the Wasm mode."
-            )
-
         ff = FFmpeg(  # type: ignore
             inputs={mp4_file: None},
             outputs={
@@ -517,10 +495,6 @@ class Video(StreamingOutput, Component):
         Do not take desired_output_format into consideration as
         mp4 is a safe format for playing in browser.
         """
-        if wasm_utils.IS_WASM:
-            raise wasm_utils.WasmUnsupportedError(
-                "Streaming is not supported in the Wasm mode."
-            )
 
         # Use an mp4 extension here so that the cached example
         # is playable in the browser

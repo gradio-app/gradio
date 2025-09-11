@@ -17,7 +17,6 @@
 		"@gradio/theme": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/wasm": "workspace:^",
 		"@types/katex": "^0.16.0",
 		"@types/prismjs": "1.26.4",
 		"dequal": "^2.0.2"

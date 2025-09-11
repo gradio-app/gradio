@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Any, Literal, Optional
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
-from gradio import components, oauth, processing_utils, routes, utils, wasm_utils
+from gradio import components, oauth, processing_utils, routes, utils
 from gradio.context import Context, LocalContext, get_blocks_context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Dependency, EventData
@@ -507,17 +507,7 @@ class Examples:
                     )
                     break
         if self.cache_examples is True:
-            if wasm_utils.IS_WASM:
-                # In the Wasm mode, the `threading` module is not supported,
-                # so `client_utils.synchronize_async` is also not available.
-                # And `self.cache()` should be waited for to complete before this method returns,
-                # (otherwise, an error "Cannot cache examples if not in a Blocks context" will be raised anyway)
-                # so `eventloop.create_task(self.cache())` is also not an option.
-                warnings.warn(
-                    "Setting `cache_examples=True` is not supported in the Wasm mode. You can set `cache_examples='lazy'` to cache examples after first use."
-                )
-            else:
-                await self.cache()
+            await self.cache()
 
     async def cache(self, example_id: int | None = None) -> None:
         """

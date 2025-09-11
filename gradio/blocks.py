@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import copy
 import dataclasses
 import hashlib
@@ -40,7 +39,6 @@ from gradio import (
     queueing,
     themes,
     utils,
-    wasm_utils,
 )
 from gradio.block_function import BlockFunction
 from gradio.blocks_events import BLOCKS_EVENTS, BlocksEvents, BlocksMeta
@@ -1117,9 +1115,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             else analytics.analytics_enabled()
         )
         if self.analytics_enabled:
-            if not wasm_utils.IS_WASM:
-                t = threading.Thread(target=analytics.version_check)
-                t.start()
+            t = threading.Thread(target=analytics.version_check)
+            t.start()
         else:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         self.enable_monitoring: bool | None = None
@@ -1200,11 +1197,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     @property
     def _is_running_in_reload_thread(self):
-        if wasm_utils.IS_WASM:
-            # Wasm (Pyodide) doesn't support threading,
-            # so the return value is always False.
-            return False
-
         from gradio.cli.commands.reload import reload_thread
 
         return getattr(reload_thread, "running_reload", False)
@@ -2423,7 +2415,7 @@ Received inputs:
         ssl_keyfile_password: str | None = None,
         ssl_verify: bool = True,
         quiet: bool = False,
-        show_api: bool = not wasm_utils.IS_WASM,
+        show_api: bool = True,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
         root_path: str | None = None,
@@ -2590,18 +2582,12 @@ Received inputs:
         self.transpile_to_js(quiet=quiet)
 
         self.ssr_mode = (
-            False
-            if wasm_utils.IS_WASM
-            else (
-                ssr_mode
-                if ssr_mode is not None
-                else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
-            )
+            ssr_mode
+            if ssr_mode is not None
+            else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
         )
         if self.ssr_mode:
-            self.node_path = os.environ.get(
-                "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
-            )
+            self.node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
             self.node_server_name, self.node_process, self.node_port = (
                 start_node_server(
                     server_name=node_server_name,
@@ -2638,31 +2624,21 @@ Received inputs:
                     "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
                 )
         else:
-            if wasm_utils.IS_WASM:
-                server_name = "xxx"
-                server_port = 99999
-                local_url = ""
-                server = None
-                # In the Wasm environment, we only need the app object
-                # which the frontend app will directly communicate with through the Worker API,
-                # and we don't need to start a server.
-                wasm_utils.register_app(self.app)
-            else:
-                from gradio import http_server
+            from gradio import http_server
 
-                (
-                    server_name,
-                    server_port,
-                    local_url,
-                    server,
-                ) = http_server.start_server(
-                    app=self.app,
-                    server_name=server_name,
-                    server_port=server_port,
-                    ssl_keyfile=ssl_keyfile,
-                    ssl_certfile=ssl_certfile,
-                    ssl_keyfile_password=ssl_keyfile_password,
-                )
+            (
+                server_name,
+                server_port,
+                local_url,
+                server,
+            ) = http_server.start_server(
+                app=self.app,
+                server_name=server_name,
+                server_port=server_port,
+                ssl_keyfile=ssl_keyfile,
+                ssl_certfile=ssl_certfile,
+                ssl_keyfile_password=ssl_keyfile_password,
+            )
             self.server_name = server_name
             self.local_url = local_url
             self.local_api_url = f"{self.local_url.rstrip('/')}{API_PREFIX}/"
@@ -2685,7 +2661,7 @@ Received inputs:
                 if self.local_url.startswith("https") or self.is_colab
                 else "http"
             )
-            if not wasm_utils.IS_WASM and not self.is_colab and not quiet:
+            if not self.is_colab and not quiet:
                 s = (
                     "* Running on local URL:  {}://{}:{}, with SSR ⚡ (experimental, to disable set `ssr_mode=False` in `launch()`)"
                     if self.ssr_mode
@@ -2695,30 +2671,15 @@ Received inputs:
 
             self._queue.set_server_app(self.server_app)
 
-            if not wasm_utils.IS_WASM:
-                # Cannot run async functions in background other than app's scope.
-                # Workaround by triggering the app endpoint
-                resp = httpx.get(
-                    f"{self.local_api_url}startup-events",
-                    verify=ssl_verify,
-                    timeout=None,
+            resp = httpx.get(
+                f"{self.local_api_url}startup-events",
+                verify=ssl_verify,
+                timeout=None,
+            )
+            if not resp.is_success:
+                raise Exception(
+                    f"Couldn't start the app because '{resp.url}' failed (code {resp.status_code}). Check your network or proxy settings to ensure localhost is accessible."
                 )
-                if not resp.is_success:
-                    raise Exception(
-                        f"Couldn't start the app because '{resp.url}' failed (code {resp.status_code}). Check your network or proxy settings to ensure localhost is accessible."
-                    )
-            else:
-                # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
-                # that `self._queue.start()` is called in another thread which is managed by the HTTP server, `uvicorn`
-                # so all the asyncio tasks created by the queue runs in an event loop in that thread and
-                # will be cancelled just by stopping the server.
-                # In contrast, in the Wasm env, we can't do that because `threading` is not supported and all async tasks will run in the same event loop, `pyodide.webloop.WebLoop` in the main thread.
-                # So we need to manually cancel them. See `self.close()`..
-                self.run_startup_events()
-                # In the normal mode, self.run_extra_startup_events() is awaited like https://github.com/gradio-app/gradio/blob/2afcad80abd489111e47cf586a2a8221cc3dc9b6/gradio/routes.py#L1442.
-                # But in the Wasm env, we need to call the start up events here as described above, so we can't await it as here is not in an async function.
-                # So we use create_task() instead. This is a best-effort fallback in the Wasm env but it doesn't guarantee that all the tasks are completed before they are needed.
-                asyncio.create_task(self.run_extra_startup_events())
 
         if share is None:
             if self.is_colab or self.is_hosted_notebook:
@@ -2743,12 +2704,7 @@ Received inputs:
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
-        if (
-            _frontend
-            and not wasm_utils.IS_WASM
-            and not networking.url_ok(self.local_url)
-            and not self.share
-        ):
+        if _frontend and not networking.url_ok(self.local_url) and not self.share:
             raise ValueError(
                 "When localhost is not accessible, a shareable link must be created. Please set share=True or check your proxy settings to allow access to localhost."
             )
@@ -2767,17 +2723,9 @@ Received inputs:
                     "Note: opening Chrome Inspector may crash demo inside Colab notebooks."
                 )
 
-        if self.share:
-            if self.space_id:
-                warnings.warn(
-                    "Setting share=True is not supported on Hugging Face Spaces"
-                )
-                self.share = False
-            if wasm_utils.IS_WASM:
-                warnings.warn(
-                    "Setting share=True is not supported in the Wasm environment"
-                )
-                self.share = False
+        if self.share and self.space_id:
+            warnings.warn("Setting share=True is not supported on Hugging Face Spaces")
+            self.share = False
 
         if self.share:
             try:
@@ -2816,7 +2764,7 @@ Received inputs:
                         f"\nCould not create share link. Missing file: {BINARY_PATH}. \n\nPlease check your internet connection. This can happen if your antivirus software blocks the download of this file. You can install manually by following these steps: \n\n1. Download this file: {BINARY_URL}\n2. Rename the downloaded file to: {BINARY_FILENAME}\n3. Move the file to this location: {BINARY_FOLDER}"
                     )
         else:
-            if not quiet and not wasm_utils.IS_WASM:
+            if not quiet:
                 print("* To create a public link, set `share=True` in `launch()`.")
             self.share_url = None
 
@@ -2828,7 +2776,7 @@ Received inputs:
                 f"\n* [Deprecated] SSE URL: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
             )
 
-        if inbrowser and not wasm_utils.IS_WASM:
+        if inbrowser:
             link = self.share_url if self.share and self.share_url else self.local_url
             webbrowser.open(link)
 
@@ -2906,14 +2854,11 @@ Received inputs:
         if (
             debug
             or int(os.getenv("GRADIO_DEBUG", "0")) == 1
-            and not wasm_utils.IS_WASM
             or (
                 # Block main thread if running in a script to stop script from exiting
-                not prevent_thread_lock
-                and not is_in_interactive_mode
+                not prevent_thread_lock and not is_in_interactive_mode
                 # In the Wasm env, we don't have to block the main thread because the server won't be shut down after the execution finishes.
                 # Moreover, we MUST NOT do it because there is only one thread in the Wasm env and blocking it will stop the subsequent code from running.
-                and not wasm_utils.IS_WASM
             )
         ):
             self.block_thread()
@@ -2989,16 +2934,6 @@ Received inputs:
             return
 
         try:
-            if wasm_utils.IS_WASM:
-                # NOTE:
-                # Normally, queue-related async tasks whose async tasks are started at the `/queue/data` endpoint function)
-                # are running in an event loop in the server thread,
-                # so they will be cancelled by `self.server.close()` below.
-                # However, in the Wasm env, we don't have the `server` and
-                # all async tasks are running in the same event loop, `pyodide.webloop.WebLoop` in the main thread,
-                # so we have to cancel them explicitly so that these tasks won't run after a new app is launched.
-                self._queue._cancel_asyncio_tasks()
-                self.server_app._cancel_asyncio_tasks()
             self._queue.close()
             # set this before closing server to shut down heartbeats
             self.is_running = False

@@ -17,7 +17,6 @@
 		"@gradio/client": "workspace:^",
 		"@gradio/core": "workspace:^",
 		"@gradio/theme": "workspace:^",
-		"@gradio/wasm": "workspace:^",
 		"@huggingface/space-header": "^1.0.4",
 		"@self/build": "workspace:^",
 		"@types/eventsource": "^1.1.15",

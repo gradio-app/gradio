@@ -27,8 +27,7 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/client": "workspace:^",
-		"@gradio/wasm": "workspace:^"
+		"@gradio/client": "workspace:^"
 	},
 	"repository": {
 		"type": "git",

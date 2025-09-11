@@ -13,7 +13,6 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/wasm": "workspace:^",
 		"@types/babylon": "^6.16.6",
 		"@babylonjs/viewer": "^8.2.0",
 		"@babylonjs/core": "^8.2.0",

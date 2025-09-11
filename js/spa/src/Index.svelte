@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	import { mount_css as default_mount_css, prefix_css } from "@gradio/core";
+	import { mount_css, prefix_css } from "@gradio/core";
 
 	import type { Client as ClientType } from "@gradio/client";
 
@@ -86,8 +86,6 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "@gradio/core";
-	import type { WorkerProxy } from "@gradio/wasm";
-	import { setWorkerProxyContext } from "@gradio/wasm/svelte";
 	import { init } from "@huggingface/space-header";
 
 	let i18n_ready = false;
@@ -113,17 +111,7 @@
 	let root: string;
 
 	// These utilities are exported to be injectable for the Wasm version.
-	export let mount_css: typeof default_mount_css = default_mount_css;
 	export let Client: typeof ClientType;
-	export let worker_proxy: WorkerProxy | undefined = undefined;
-	if (worker_proxy) {
-		setWorkerProxyContext(worker_proxy);
-
-		worker_proxy.addEventListener("progress-update", (event) => {
-			loading_text = (event as CustomEvent).detail + "...";
-		});
-	}
-	let is_lite = worker_proxy !== undefined;
 
 	export let space: string | null;
 	export let src: string | null;
@@ -533,7 +521,6 @@
 	{current_page}
 	{root}
 	components={config?.components || []}
-	{is_lite}
 	bind:wrapper
 >
 	{#if i18n_ready}
