@@ -78,7 +78,10 @@
 		{...loading_status}
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
-	<BlockTitle show_label={show_label || (show_select_all && interactive)} {info}>
+	<BlockTitle
+		show_label={show_label || (show_select_all && interactive)}
+		{info}
+	>
 		{#if show_select_all && interactive}
 			<div class="select-all-container">
 				<label class="select-all-label">
@@ -91,11 +94,7 @@
 						title="Select/Deselect All"
 					/>
 				</label>
-				<button
-					type="button"
-					class="label-text"
-					on:click={toggle_select_all}
-				>
+				<button type="button" class="label-text" on:click={toggle_select_all}>
 					{show_label ? label : "Select All"}
 				</button>
 			</div>
