@@ -85,8 +85,6 @@ class CheckboxGroup(FormComponent):
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        if show_select_all and show_label is False:
-            warnings.warn("`show_select_all` requires `show_label` to be True")
         self.show_select_all = show_select_all
         super().__init__(
             label=label,
