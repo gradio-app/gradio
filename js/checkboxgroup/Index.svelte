@@ -92,7 +92,14 @@
 						title="Select/Deselect All"
 					/>
 				</label>
-				<span class="label-text" on:click={toggle_select_all}>{label}</span>
+				<button
+					type="button"
+					class="label-text"
+					on:click={toggle_select_all}
+					{disabled}
+				>
+					{label}
+				</button>
 			</div>
 		{:else}
 			{label}
@@ -281,9 +288,15 @@
 	.label-text {
 		margin: 0;
 		cursor: pointer;
+		background: none;
+		border: none;
+		padding: 0;
+		font: inherit;
+		color: inherit;
+		text-align: left;
 	}
 
-	.disabled .label-text {
+	.label-text:disabled {
 		cursor: not-allowed;
 	}
 </style>
