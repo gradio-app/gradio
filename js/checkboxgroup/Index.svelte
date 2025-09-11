@@ -78,13 +78,12 @@
 		{...loading_status}
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
-	<BlockTitle {show_label} {info}>
-		{#if show_label && show_select_all}
+	<BlockTitle show_label={show_label || (show_select_all && interactive)} {info}>
+		{#if show_select_all && interactive}
 			<div class="select-all-container">
-				<label class="select-all-label" class:disabled>
+				<label class="select-all-label">
 					<input
 						class="select-all-checkbox"
-						{disabled}
 						on:change={toggle_select_all}
 						checked={select_all_state === "checked"}
 						indeterminate={select_all_state === "indeterminate"}
@@ -96,12 +95,11 @@
 					type="button"
 					class="label-text"
 					on:click={toggle_select_all}
-					{disabled}
 				>
-					{label}
+					{show_label ? label : "Select All"}
 				</button>
 			</div>
-		{:else}
+		{:else if show_label}
 			{label}
 		{/if}
 	</BlockTitle>
@@ -280,11 +278,6 @@
 		cursor: pointer;
 	}
 
-	.select-all-checkbox[disabled],
-	.select-all-label.disabled {
-		cursor: not-allowed;
-	}
-
 	.label-text {
 		margin: 0;
 		cursor: pointer;
@@ -294,9 +287,5 @@
 		font: inherit;
 		color: inherit;
 		text-align: left;
-	}
-
-	.label-text:disabled {
-		cursor: not-allowed;
 	}
 </style>
