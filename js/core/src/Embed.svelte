@@ -2,6 +2,7 @@
 	import { getContext, onMount } from "svelte";
 	import space_logo from "./images/spaces.svg";
 	import { _ } from "svelte-i18n";
+	import { navbar_config } from "./navbar_store";
 
 	export let wrapper: HTMLDivElement;
 	export let version: string;
@@ -22,28 +23,30 @@
 	const set_page: ((page: string) => void) | undefined =
 		getContext("set_lite_page");
 
-	$: navbar = (() => {
-		let navbar_components = components.filter((c) => c.type === "navbar");
-		
-		let navbar_component;
-		for (let component of navbar_components) {
-			let component_page = component.page || "";
-			if (component_page === current_page) {
-				navbar_component = component;
-				break;
-			}
-		}
-		
-		if (navbar_component) {
-			return {
+	let navbar_component = components.find((c) => c.type === "navbar");
+	let navbar: {
+		visible: boolean;
+		main_page_name: string | false;
+		value: [string, string][] | null;
+	} | null = navbar_component
+		? {
 				visible: navbar_component.props.visible,
 				main_page_name: navbar_component.props.main_page_name,
 				value: navbar_component.props.value
-			};
-		}
-		
-		return null;
-	})()
+			}
+		: null;
+
+	if (navbar) {
+		navbar_config.set(navbar);
+	}
+
+	$: if ($navbar_config) {
+		navbar = {
+			visible: $navbar_config.visible ?? true,
+			main_page_name: $navbar_config.main_page_name ?? "Home",
+			value: $navbar_config.value ?? null
+		};
+	}
 
 	$: show_navbar =
 		pages.length > 1 && (navbar === null || navbar.visible !== false);
