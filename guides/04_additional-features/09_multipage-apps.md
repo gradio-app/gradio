@@ -88,7 +88,7 @@ By default, Gradio automatically generates a navigation bar for multipage apps t
 
 ### Per-Page Navbar Configuration
 
-Starting with Gradio 5.46+, you can have different navbar configurations for each page of your app:
+You can have different navbar configurations for each page of your app:
 
 ```python
 import gradio as gr

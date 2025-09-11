@@ -2402,13 +2402,7 @@ Received inputs:
                         f"Found multiple Navbar components on page '{page_key or 'Home'}'. "
                         "Please remove the extra Navbar components."
                     )
-                self.page_navbar_configs[page_key] = {
-                    "visible": block.visible,
-                    "main_page_name": getattr(block, 'main_page_name', 'Home'),
-                    "value": block.value,
-                    "elem_id": block.elem_id,
-                    "elem_classes": block.elem_classes,
-                }
+                self.page_navbar_configs[page_key] = block.get_config()
 
     def launch(
         self,
