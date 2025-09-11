@@ -6,7 +6,6 @@ HERE = Path(__file__).parent
 WEBSITE_DIR = HERE.joinpath("../../..").resolve()
 PROJECT_ROOT = WEBSITE_DIR.joinpath("../..").resolve()
 GRADIO_DEMO_DIR = PROJECT_ROOT / "demo"
-LITE_DEMO_DIR = PROJECT_ROOT / "js/lite/examples"
 
 
 def get_code_description_and_reqs(demo_dir):
@@ -133,23 +132,12 @@ demos_by_category = [
             },
         ],
     },
-    {
-        "category": "Transformers",
-        "demos": [
-            {
-                "name": "Basic",
-                "dir": "transformers_basic",
-                "lite": True,
-            }
-        ],
-    },
 ]
 
 
 for category in demos_by_category:
     for demo in category["demos"]:
-        is_lite = demo.get("lite", False)
-        base_dir = LITE_DEMO_DIR if is_lite else GRADIO_DEMO_DIR
+        base_dir = GRADIO_DEMO_DIR
         demo_dir = base_dir / demo["dir"]
 
         code, description, requirements = get_code_description_and_reqs(demo_dir)
