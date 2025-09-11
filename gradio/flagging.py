@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import contextlib
 import csv
 import datetime
 import json
@@ -17,7 +16,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 import gradio as gr
-from gradio import utils, wasm_utils
+from gradio import utils
 from gradio.events import LikeData
 
 if TYPE_CHECKING:
@@ -228,9 +227,7 @@ class CSVLogger(FlaggingCallback):
         self.simplify_file_data = simplify_file_data
         self.verbose = verbose
         self.dataset_file_name = dataset_file_name
-        self.lock = (
-            Lock() if not wasm_utils.IS_WASM else contextlib.nullcontext()
-        )  # The multiprocessing module doesn't work on Lite.
+        self.lock = Lock()  # The multiprocessing module doesn't work on Lite.
 
     def setup(
         self,

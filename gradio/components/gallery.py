@@ -20,7 +20,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import is_http_url_like
 
-from gradio import image_utils, processing_utils, utils, wasm_utils
+from gradio import image_utils, processing_utils, utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, ImageData
 from gradio.events import EventListener, Events
@@ -302,13 +302,9 @@ class Gallery(Component):
                     caption=caption,
                 )
 
-        if wasm_utils.IS_WASM:
-            for img in value:
-                output.append(_save(img))
-        else:
-            with ThreadPoolExecutor() as executor:
-                for o in executor.map(_save, value):
-                    output.append(o)
+        with ThreadPoolExecutor() as executor:
+            for o in executor.map(_save, value):
+                output.append(o)
         return GalleryData(root=output)
 
     @staticmethod

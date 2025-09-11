@@ -9,7 +9,6 @@
 	export let initial_height: string;
 	export let fill_width: boolean;
 	export let is_embed: boolean;
-	export let is_lite: boolean;
 
 	export let space: string | null;
 	export let display: boolean;
@@ -19,9 +18,6 @@
 	export let current_page = "";
 	export let root: string;
 	export let components: any[] = [];
-
-	const set_page: ((page: string) => void) | undefined =
-		getContext("set_lite_page");
 
 	let navbar_component = components.find((c) => c.type === "navbar");
 	let navbar: {
@@ -91,32 +87,20 @@
 		<div class="nav-holder">
 			<nav class="fillable" class:fill_width>
 				{#each effective_pages as [route, label], i}
-					{#if is_lite}
-						<button
-							class:active={route === current_page}
-							on:click={(e) => {
-								e.preventDefault();
-								set_page?.(route);
-							}}
-							>{label}
-						</button>
-					{:else}
-						<a
-							href={route.startsWith("http://") || route.startsWith("https://")
-								? route
-								: `${root}/${route}`}
-							class:active={route === current_page}
-							data-sveltekit-reload
-							target={route.startsWith("http://") ||
-							route.startsWith("https://")
-								? "_blank"
-								: "_self"}
-							rel={route.startsWith("http://") || route.startsWith("https://")
-								? "noopener noreferrer"
-								: ""}
-							>{label}
-						</a>
-					{/if}
+					<a
+						href={route.startsWith("http://") || route.startsWith("https://")
+							? route
+							: `${root}/${route}`}
+						class:active={route === current_page}
+						data-sveltekit-reload
+						target={route.startsWith("http://") || route.startsWith("https://")
+							? "_blank"
+							: "_self"}
+						rel={route.startsWith("http://") || route.startsWith("https://")
+							? "noopener noreferrer"
+							: ""}
+						>{label}
+					</a>
 				{/each}
 			</nav>
 		</div>
