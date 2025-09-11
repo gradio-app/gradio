@@ -1,6 +1,5 @@
 import importlib.resources
 import json
-import os
 import tempfile
 from copy import deepcopy
 from enum import Enum
