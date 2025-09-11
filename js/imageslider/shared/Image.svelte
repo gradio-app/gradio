@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Slider from "./Slider.svelte";
 	import { createEventDispatcher, tick } from "svelte";
-	import { BlockLabel, Empty, IconButton } from "@gradio/atoms";
+	import { BlockLabel, Empty, IconButton, DownloadLink } from "@gradio/atoms";
 	import { Download } from "@gradio/icons";
 	import { Image } from "@gradio/icons";
 	import { type SelectData, type I18nFormatter } from "@gradio/utils";
@@ -9,7 +9,6 @@
 	import ImageEl from "./ImageEl.svelte";
 
 	import { Upload } from "@gradio/upload";
-	import { DownloadLink } from "@gradio/wasm/svelte";
 
 	import { type FileData, type Client } from "@gradio/client";
 

@@ -63,7 +63,7 @@ from starlette.datastructures import UploadFile as StarletteUploadFile
 from starlette.responses import RedirectResponse
 
 import gradio
-from gradio import ranged_response, route_utils, utils, wasm_utils
+from gradio import ranged_response, route_utils, utils
 from gradio.brotli_middleware import BrotliMiddleware
 from gradio.context import Context
 from gradio.data_classes import (
@@ -408,13 +408,12 @@ class App(FastAPI):
 
         app.configure_app(blocks)
 
-        if not wasm_utils.IS_WASM:
-            app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
-            app.add_middleware(
-                BrotliMiddleware,
-                quality=4,
-                excluded_handlers=[mcp_subpath],
-            )
+        app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
+        app.add_middleware(
+            BrotliMiddleware,
+            quality=4,
+            excluded_handlers=[mcp_subpath],
+        )
 
         if ssr_mode:
 
@@ -1926,7 +1925,7 @@ class App(FastAPI):
                 shutil.copyfileobj(video_file.file, input_file)
                 input_path = input_file.name
 
-            if wasm_utils.IS_WASM or shutil.which("ffmpeg") is None:
+            if shutil.which("ffmpeg") is None:
                 return FileResponse(
                     input_path,
                     media_type="video/mp4",
@@ -2318,19 +2317,13 @@ def mount_gradio_app(
         blocks.root_path = root_path
 
     blocks.ssr_mode = (
-        False
-        if wasm_utils.IS_WASM
-        else (
-            ssr_mode
-            if ssr_mode is not None
-            else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
-        )
+        ssr_mode
+        if ssr_mode is not None
+        else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
     )
 
     if blocks.ssr_mode:
-        blocks.node_path = os.environ.get(
-            "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
-        )
+        blocks.node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
 
         blocks.node_server_name = node_server_name
         blocks.node_port = node_port

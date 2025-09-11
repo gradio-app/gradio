@@ -5,12 +5,12 @@
 		Empty,
 		IconButton,
 		ShareButton,
-		IconButtonWrapper
+		IconButtonWrapper,
+		DownloadLink
 	} from "@gradio/atoms";
 	import type { FileData, Client } from "@gradio/client";
 	import { Video, Download } from "@gradio/icons";
 	import { uploadToHuggingFace } from "@gradio/utils";
-	import { DownloadLink } from "@gradio/wasm/svelte";
 
 	import Player from "./Player.svelte";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
