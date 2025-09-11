@@ -2,7 +2,6 @@
 	import { getContext, onMount } from "svelte";
 	import space_logo from "./images/spaces.svg";
 	import { _ } from "svelte-i18n";
-	import { navbar_config } from "./navbar_store";
 
 	export let wrapper: HTMLDivElement;
 	export let version: string;
@@ -24,9 +23,7 @@
 	const set_page: ((page: string) => void) | undefined =
 		getContext("set_lite_page");
 
-	// Get navbar config for current page
 	$: navbar = (() => {
-		// First check if there's a page-specific navbar config
 		const pageConfig = page_navbar_configs[current_page];
 		if (pageConfig) {
 			return {
@@ -35,26 +32,6 @@
 				value: pageConfig.value ?? null
 			};
 		}
-		
-		// Fall back to global navbar config from store
-		if ($navbar_config) {
-			return {
-				visible: $navbar_config.visible ?? true,
-				main_page_name: $navbar_config.main_page_name ?? "Home",
-				value: $navbar_config.value ?? null
-			};
-		}
-		
-		// Finally fall back to navbar component if it exists
-		let navbar_component = components.find((c) => c.type === "navbar");
-		if (navbar_component) {
-			return {
-				visible: navbar_component.props.visible,
-				main_page_name: navbar_component.props.main_page_name,
-				value: navbar_component.props.value
-			};
-		}
-		
 		return null;
 	})()
 

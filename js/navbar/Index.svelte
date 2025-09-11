@@ -1,4 +1,3 @@
-<!-- Configuration-only component. The navbar configuration is now stored per-page in the backend. The actual navbar UI is in Embed.svelte -->
 <script lang="ts">
 	export let elem_id = "";
 	export let elem_classes: string[] = [];

@@ -2390,23 +2390,18 @@ Received inputs:
         """Store navbar configurations per page."""
         from gradio.components.navbar import Navbar
 
-        # Clear previous navbar configs
         self.page_navbar_configs = {}
         
-        # Store navbar configs for each page
         for block in self.blocks.values():
             if isinstance(block, Navbar):
-                # Get the page this navbar belongs to
                 page_key = getattr(block, 'page', '')
                 
-                # Only one navbar per page is allowed
                 if page_key in self.page_navbar_configs:
                     raise ValueError(
                         f"Only one gr.Navbar component can exist per page. "
                         f"Found multiple Navbar components on page '{page_key or 'Home'}'. "
                         "Please remove the extra Navbar components."
                     )
-                # Store the navbar configuration for this page
                 self.page_navbar_configs[page_key] = {
                     "visible": block.visible,
                     "main_page_name": getattr(block, 'main_page_name', 'Home'),

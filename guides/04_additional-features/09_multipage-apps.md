@@ -115,27 +115,6 @@ with demo.route("Settings"):
 demo.launch()
 ```
 
-### Global Navbar Configuration
-
-You can also use a single navbar configuration for all pages by placing it only in the main Blocks context:
-
-```python
-import gradio as gr
-
-with gr.Blocks() as demo:
-    # This navbar configuration applies to all pages
-    navbar = gr.Navbar(
-        visible=True,
-        main_page_name="Dashboard"
-    )
-    
-    gr.Textbox(label="Main page content")
-
-with demo.route("Settings"):
-    gr.Textbox(label="Settings page")
-
-demo.launch()
-```
 
 **Important Notes:**
 - You can have one `gr.Navbar` component per page. Each page's navbar configuration is independent.

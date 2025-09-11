@@ -6,5 +6,4 @@ export interface NavbarConfig {
 	value?: [string, string][] | null;
 }
 
-export const navbar_config = writable<NavbarConfig | null>(null);
 export const page_navbar_configs = writable<Record<string, NavbarConfig>>({});
