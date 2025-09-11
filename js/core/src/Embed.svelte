@@ -146,16 +146,14 @@
 		margin: 0 auto;
 		padding: 0 var(--size-8);
 	}
-	nav a,
-	button {
+	nav a {
 		padding: var(--size-1) var(--size-2);
 		border-radius: var(--block-radius);
 		border-width: var(--block-border-width);
 		border-color: transparent;
 		color: var(--body-text-color-subdued);
 	}
-	nav a.active,
-	button.active {
+	nav a.active {
 		color: var(--body-text-color);
 		border-color: var(--block-border-color);
 		background-color: var(--block-background-fill);
