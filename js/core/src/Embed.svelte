@@ -16,7 +16,6 @@
 	export let loaded: boolean;
 	export let pages: [string, string][] = [];
 	export let current_page = "";
-	export let page_navbar_configs: Record<string, any> = {};
 	export let root: string;
 	export let components: any[] = [];
 
@@ -24,16 +23,17 @@
 		getContext("set_lite_page");
 
 	$: navbar = (() => {
-		const pageConfig = page_navbar_configs[current_page];
-		if (pageConfig) {
-			return {
-				visible: pageConfig.visible ?? true,
-				main_page_name: pageConfig.main_page_name ?? "Home",
-				value: pageConfig.value ?? null
-			};
+		let navbar_components = components.filter((c) => c.type === "navbar");
+		
+		let navbar_component;
+		for (let component of navbar_components) {
+			let component_page = component.page || "";
+			if (component_page === current_page) {
+				navbar_component = component;
+				break;
+			}
 		}
 		
-		let navbar_component = components.find((c) => c.type === "navbar");
 		if (navbar_component) {
 			return {
 				visible: navbar_component.props.visible,

@@ -1161,7 +1161,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         self.pages: list[tuple[str, str]] = [("", "Home")]
         self.current_page = ""
-        self.page_navbar_configs: dict[str, dict[str, Any]] = {}
 
         if self.analytics_enabled:
             is_custom_theme = not any(
@@ -2256,7 +2255,6 @@ Received inputs:
             "pwa": self.pwa,
             "pages": self.pages,
             "page": {},
-            "page_navbar_configs": self.page_navbar_configs,
             "mcp_server": self.mcp_server,
             "i18n_translations": (
                 getattr(self.i18n_instance, "translations_dict", None)
@@ -2387,22 +2385,20 @@ Received inputs:
                     )
 
     def validate_navbar_settings(self):
-        """Store navbar configurations per page."""
+        """Validates that only one Navbar component exists per page."""
         from gradio.components.navbar import Navbar
 
-        self.page_navbar_configs = {}
-        
+        navbar_by_page = {}
         for block in self.blocks.values():
             if isinstance(block, Navbar):
                 page_key = getattr(block, 'page', '')
-                
-                if page_key in self.page_navbar_configs:
+                if page_key in navbar_by_page:
                     raise ValueError(
                         f"Only one gr.Navbar component can exist per page. "
                         f"Found multiple Navbar components on page '{page_key or 'Home'}'. "
                         "Please remove the extra Navbar components."
                     )
-                self.page_navbar_configs[page_key] = block.get_config()
+                navbar_by_page[page_key] = block
 
     def launch(
         self,

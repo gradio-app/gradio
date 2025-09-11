@@ -384,7 +384,6 @@
 	{space}
 	pages={config.pages}
 	current_page={config.current_page}
-	page_navbar_configs={config.page_navbar_configs || {}}
 	root={config.root}
 	components={config.components}
 	loaded={loader_status === "complete"}
