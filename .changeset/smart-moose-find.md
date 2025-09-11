@@ -1,7 +1,4 @@
 ---
-"@gradio/core": patch
-"@gradio/navbar": patch
-"@self/app": patch
 "gradio": patch
 "website": patch
 ---
