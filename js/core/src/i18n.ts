@@ -155,6 +155,23 @@ export let all_common_keys: Set<string> = new Set();
 let i18n_initialized = false;
 let previous_translations: Record<string, Record<string, string>> | undefined;
 
+function get_lang_from_preferred_locale(header: string): string | null {
+	const options = header
+		.split(",")
+		.map((value) =>
+			value.includes(";") ? value.split(";").slice(0, 2) : [value, 1]
+		);
+	options.sort(
+		(a, b) => parseFloat(b[1] as string) - parseFloat(a[1] as string)
+	);
+	for (const [lang, _] of options) {
+		if (available_locales.includes(lang as string)) {
+			return lang as string;
+		}
+	}
+	return null;
+}
+
 export async function setupi18n(
 	custom_translations?: Record<string, Record<string, string>>,
 	preferred_locale?: string
@@ -173,12 +190,16 @@ export async function setupi18n(
 		custom_translations: custom_translations ?? {}
 	});
 
-	const browser_locale = preferred_locale ?? getLocaleFromNavigator();
-
-	let initial_locale =
-		browser_locale && available_locales.includes(browser_locale)
-			? browser_locale
-			: null;
+	let initial_locale: string | null = null;
+	const browser_locale = getLocaleFromNavigator();
+	if (preferred_locale) {
+		initial_locale = get_lang_from_preferred_locale(preferred_locale);
+	} else {
+		initial_locale =
+			browser_locale && available_locales.includes(browser_locale)
+				? browser_locale
+				: null;
+	}
 
 	if (!initial_locale) {
 		const normalized_locale = browser_locale?.split("-")[0];
