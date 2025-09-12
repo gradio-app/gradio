@@ -233,7 +233,7 @@
 	}
 
 	.example-text-content {
-		margin-top: auto;
+		margin-top: var(--spacing-sm);
 		text-align: left;
 	}
 
@@ -247,7 +247,6 @@
 	.example-icons-grid {
 		display: flex;
 		gap: var(--spacing-sm);
-		margin-bottom: var(--spacing-lg);
 		width: 100%;
 	}
 
@@ -283,7 +282,6 @@
 		border-radius: var(--radius-lg);
 		overflow: hidden;
 		position: relative;
-		margin-bottom: var(--spacing-lg);
 	}
 
 	.example-image-container :global(img) {
