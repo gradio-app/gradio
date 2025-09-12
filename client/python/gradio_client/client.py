@@ -1200,14 +1200,14 @@ class Endpoint:
     def make_end_to_end_fn(self, helper: Communicator):
         _predict = self.make_predict(helper)
 
-        def _inner(*data):
+        def _inner(*data, **kwargs):
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
 
             if self.client._skip_components:
                 data = self.insert_empty_state(*data)
             data = self.process_input_files(*data)
-            predictions = _predict(*data)
+            predictions = _predict(*data, **kwargs)
             predictions = self.process_predictions(*predictions)
 
             # Append final output only if not already present
@@ -1294,11 +1294,12 @@ class Endpoint:
         return _cancel
 
     def make_predict(self, helper: Communicator):
-        def _predict(*data) -> tuple:
+        def _predict(*data, **kwargs) -> tuple:
             data = {
-                "data": data,
+                "data": data or [],
                 "fn_index": self.fn_index,
                 "session_hash": self.client.session_hash,
+                **kwargs,
             }
 
             hash_data = {
