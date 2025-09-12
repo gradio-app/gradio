@@ -9,8 +9,11 @@
 	import type { SortDirection } from "./context/dataframe_context";
 	import CellMenuIcons from "./CellMenuIcons.svelte";
 	import type { FilterDatatype } from "./context/dataframe_context";
+	import type { Datatype } from "./utils/utils";
+	import { BaseCheckbox } from "@gradio/checkbox";
 	export let value: string;
 	export let i: number;
+	export let datatype: Datatype = "str";
 	export let actual_pinned_columns: number;
 	export let header_edit: number | false;
 	export let selected_header: number | false;
@@ -39,8 +42,13 @@
 	export let el: HTMLTextAreaElement | null;
 	export let is_static: boolean;
 	export let col_count: [number, "fixed" | "dynamic"];
+	export let data: any[] = [];
+	export let on_select_all: ((col: number, checked: boolean) => void) | undefined = undefined;
 
 	$: can_add_columns = col_count && col_count[1] === "dynamic";
+	$: is_bool_column = datatype === "bool";
+	$: all_selected = is_bool_column && data.length > 0 && 
+		data.every((row) => row[i]?.value === true || row[i]?.value === "true");
 	$: sort_index = sort_columns.findIndex((item) => item.col === i);
 	$: filter_index = filter_columns.findIndex((item) => item.col === i);
 	$: sort_priority = sort_index !== -1 ? sort_index + 1 : null;
@@ -143,6 +151,16 @@
 					</div>
 				{/if}
 			</button>
+			{#if is_bool_column && editable && on_select_all}
+				<div class="select-all-checkbox">
+					<BaseCheckbox
+						value={all_selected}
+						label=""
+						interactive={true}
+						on:change={(e) => on_select_all && on_select_all(i, e.detail)}
+					/>
+				</div>
+			{/if}
 			{#if is_static}
 				<Padlock />
 			{/if}
@@ -278,5 +296,20 @@
 		position: sticky;
 		z-index: 5;
 		border-right: none;
+	}
+
+	.select-all-checkbox {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-left: var(--size-1);
+	}
+
+	.select-all-checkbox :global(label) {
+		margin: 0;
+	}
+
+	.select-all-checkbox :global(span) {
+		display: none;
 	}
 </style>

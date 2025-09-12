@@ -755,6 +755,23 @@
 		df_actions.reset_sort_state();
 	}
 
+	function handle_select_all(col: number, checked: boolean): void {
+		if (!editable) return;
+		const dtype = Array.isArray(datatype) ? datatype[col] : datatype;
+		if (dtype !== "bool") return;
+		
+		data = data.map((row) => {
+			const new_row = [...row];
+			if (new_row[col]) {
+				new_row[col] = {
+					...new_row[col],
+					value: checked
+				};
+			}
+			return new_row;
+		});
+	}
+
 	let is_dragging = false;
 	let drag_start: [number, number] | null = null;
 	let mouse_down_pos: { x: number; y: number } | null = null;
@@ -877,6 +894,9 @@
 							{i18n}
 							bind:el={els[id].input}
 							{col_count}
+							datatype={Array.isArray(datatype) ? datatype[i] : datatype}
+							{data}
+							on_select_all={handle_select_all}
 						/>
 					{/each}
 				</tr>
@@ -980,6 +1000,9 @@
 								{i18n}
 								bind:el={els[id].input}
 								{col_count}
+								datatype={Array.isArray(datatype) ? datatype[i] : datatype}
+								{data}
+								on_select_all={handle_select_all}
 							/>
 						{/each}
 					</tr>
