@@ -629,7 +629,10 @@ def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
                 predict_fns.append(fn)
         else:
             predict_fns.append(None)
-    return gr.Blocks.from_config(client.config, predict_fns, client.src)  # type: ignore
+    blocks = gr.Blocks.from_config(client.config, predict_fns, client.src)  # type: ignore
+    with blocks:
+        blocks.load(lambda: client.reset_session(), None, None)
+    return blocks
 
 
 def from_spaces_interface(
