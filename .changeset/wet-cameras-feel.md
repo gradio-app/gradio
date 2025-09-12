@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix DD change and input events
+fix:Fix Dropdown change and input events
