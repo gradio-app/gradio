@@ -7,7 +7,7 @@ from gradio.component_meta import ComponentMeta
 from gradio.events import Events
 from gradio.i18n import I18nData
 
-
+@document()
 class Walkthrough(BlockContext, metaclass=ComponentMeta):
     """
     Walkthrough is a layout element within Blocks that can contain multiple "Step" Components, which can be used to create a step-by-step workflow.
