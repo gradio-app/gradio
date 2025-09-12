@@ -756,10 +756,6 @@
 	}
 
 	function handle_select_all(col: number, checked: boolean): void {
-		if (!editable) return;
-		const dtype = Array.isArray(datatype) ? datatype[col] : datatype;
-		if (dtype !== "bool") return;
-		
 		data = data.map((row) => {
 			const new_row = [...row];
 			if (new_row[col]) {
