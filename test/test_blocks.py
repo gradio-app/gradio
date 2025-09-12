@@ -1992,10 +1992,19 @@ def test_navbar_config():
     assert navbar_component["props"]["main_page_name"] == "My Custom App"
 
 
-def test_multiple_navbar_components_raise_error():
+def test_multiple_navbar_components_in_same_page_raise_error():
+    # This SHOULD raise an error since we have multiple navbar components in the same page
     with pytest.raises(ValueError):
-        with gr.Blocks():
+        with gr.Blocks() as demo:
             gr.Navbar()
             gr.Textbox()
-            gr.Navbar()
+            gr.Navbar()  # This should raise an error
             gr.Textbox()
+
+    # This should NOT raise an error since each navbar is on a different page
+    with gr.Blocks() as demo:
+        gr.Navbar()
+        gr.Textbox()
+    with demo.route("Page 2"):
+        gr.Navbar()
+        gr.Textbox()
