@@ -43,19 +43,23 @@
 	export let is_static: boolean;
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let data: any[] = [];
-	export let on_select_all: ((col: number, checked: boolean) => void) | undefined = undefined;
+	export let on_select_all:
+		| ((col: number, checked: boolean) => void)
+		| undefined = undefined;
 
 	$: can_add_columns = col_count && col_count[1] === "dynamic";
 	$: is_bool_column = datatype === "bool";
-	
+
 	$: select_all_state = (() => {
 		if (!is_bool_column || data.length === 0) return "unchecked";
-		const true_count = data.filter((row) => row[i]?.value === true || row[i]?.value === "true").length;
+		const true_count = data.filter(
+			(row) => row[i]?.value === true || row[i]?.value === "true"
+		).length;
 		if (true_count === 0) return "unchecked";
 		if (true_count === data.length) return "checked";
 		return "indeterminate";
 	})();
-	
+
 	$: sort_index = sort_columns.findIndex((item) => item.col === i);
 	$: filter_index = filter_columns.findIndex((item) => item.col === i);
 	$: sort_priority = sort_index !== -1 ? sort_index + 1 : null;
@@ -104,7 +108,7 @@
 	<div class="cell-wrap">
 		<div class="header-content">
 			{#if is_bool_column && editable && on_select_all}
-				<div 
+				<div
 					class="select-all-checkbox"
 					on:click|stopPropagation
 					on:mousedown|stopPropagation

@@ -761,7 +761,7 @@
 			if (new_row[col]) {
 				new_row[col] = {
 					...new_row[col],
-					value: checked
+					value: checked.toString()
 				};
 			}
 			return new_row;
