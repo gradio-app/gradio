@@ -10,6 +10,7 @@
 	import CellMenuIcons from "./CellMenuIcons.svelte";
 	import type { FilterDatatype } from "./context/dataframe_context";
 	import type { Datatype } from "./utils/utils";
+	import { BaseCheckbox } from "@gradio/checkbox";
 	export let value: string;
 	export let i: number;
 	export let datatype: Datatype = "str";
@@ -103,22 +104,24 @@
 	<div class="cell-wrap">
 		<div class="header-content">
 			{#if is_bool_column && editable && on_select_all}
-				<label 
+				<div 
 					class="select-all-checkbox"
 					on:click|stopPropagation
 					on:mousedown|stopPropagation
 				>
-					<input
-						type="checkbox"
-						checked={select_all_state === "checked"}
+					<BaseCheckbox
+						value={select_all_state === "checked"}
 						indeterminate={select_all_state === "indeterminate"}
+						label=""
+						interactive={true}
 						on:change={() => {
-							const new_value = select_all_state !== "checked";
-							on_select_all && on_select_all(i, new_value);
+							if (on_select_all) {
+								const new_value = select_all_state !== "checked";
+								on_select_all(i, new_value);
+							}
 						}}
-						title="Select/Deselect All"
 					/>
-				</label>
+				</div>
 			{/if}
 			<button
 				class="header-button"
@@ -318,46 +321,13 @@
 		justify-content: center;
 		margin-right: var(--size-1);
 		flex-shrink: 0;
-		cursor: pointer;
 	}
 
-	.select-all-checkbox input[type="checkbox"] {
-		--ring-color: transparent;
-		position: relative;
-		box-shadow: var(--checkbox-shadow);
-		border: 1px solid var(--checkbox-border-color);
-		border-radius: var(--checkbox-border-radius);
-		background-color: var(--checkbox-background-color);
-		line-height: var(--line-sm);
-		width: var(--checkbox-check-size);
-		height: var(--checkbox-check-size);
-		cursor: pointer;
+	.select-all-checkbox :global(label) {
+		margin: 0;
 	}
 
-	.select-all-checkbox input[type="checkbox"]:checked {
-		background-color: var(--checkbox-background-color-selected);
-		border-color: var(--checkbox-border-color-selected);
-	}
-
-	.select-all-checkbox input[type="checkbox"]:checked::after {
-		content: "✓";
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		color: var(--checkbox-check-color);
-		font-size: var(--checkbox-check-size);
-		line-height: 1;
-	}
-
-	.select-all-checkbox input[type="checkbox"]:indeterminate::after {
-		content: "";
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		width: 8px;
-		height: 2px;
-		background-color: var(--checkbox-check-color);
+	.select-all-checkbox :global(span) {
+		display: none;
 	}
 </style>
