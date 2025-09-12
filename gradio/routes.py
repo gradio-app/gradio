@@ -579,10 +579,8 @@ class App(FastAPI):
                 response.delete_cookie(
                     key=f"access-token-unsecure-{app.cookie_id}", path="/"
                 )
-                # A user may have multiple tokens, so we need to delete all of them.
-                for token in list(app.tokens.keys()):
-                    if app.tokens[token] == user:
-                        del app.tokens[token]
+                # Delete only the token associated with the current cookie.
+                del app.tokens[request.cookies.get(f"access-token-{app.cookie_id}")]
                 return response
 
         ###############
