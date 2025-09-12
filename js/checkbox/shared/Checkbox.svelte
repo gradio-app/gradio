@@ -12,7 +12,9 @@
 		select: SelectData;
 	}>();
 
-	// Don't dispatch change event on prop changes, only on user interaction
+	// When the value changes, dispatch the change event via handle_change()
+	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
+	$: value, dispatch("change", value);
 	$: disabled = !interactive;
 
 	async function handle_enter(
@@ -32,7 +34,6 @@
 		event: Event & { currentTarget: EventTarget & HTMLInputElement }
 	): Promise<void> {
 		value = event.currentTarget.checked;
-		dispatch("change", value);
 		dispatch("select", {
 			index: 0,
 			value: event.currentTarget.checked,

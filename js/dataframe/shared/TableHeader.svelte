@@ -114,7 +114,7 @@
 						indeterminate={select_all_state === "indeterminate"}
 						label=""
 						interactive={true}
-						on:change={() => {
+						on:select={() => {
 							if (on_select_all) {
 								const new_value = select_all_state !== "checked";
 								on_select_all(i, new_value);
