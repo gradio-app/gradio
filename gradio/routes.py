@@ -568,7 +568,7 @@ class App(FastAPI):
         else:
 
             @app.get("/logout")
-            def logout(request: fastapi.Request, user: str = Depends(get_current_user)):
+            def logout(request: fastapi.Request):
                 root = route_utils.get_root_url(
                     request=request,
                     route_path="/logout",
