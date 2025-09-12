@@ -84,31 +84,44 @@ This allows you to run each page as an independent Gradio app for testing, while
 
 ## Customizing the Navbar
 
-By default, Gradio automatically generates a navigation bar for multipage apps that displays all your pages with "Home" as the title for the main page. You can customize the navbar behavior using the `gr.Navbar` component:
+By default, Gradio automatically generates a navigation bar for multipage apps that displays all your pages with "Home" as the title for the main page. You can customize the navbar behavior using the `gr.Navbar` component.
+
+### Per-Page Navbar Configuration
+
+You can have different navbar configurations for each page of your app:
 
 ```python
 import gradio as gr
 
 with gr.Blocks() as demo:
-    # Customize the navbar
+    # Navbar for the main page
     navbar = gr.Navbar(
         visible=True,
-        home_page_title="Dashboard"
+        main_page_name="Dashboard",
+        value=[("About", "https://example.com/about")]
     )
     
     gr.Textbox(label="Main page content")
 
 with demo.route("Settings"):
+    # Different navbar for the Settings page
+    navbar = gr.Navbar(
+        visible=True,
+        main_page_name="Home",
+        value=[("Documentation", "https://docs.example.com")]
+    )
     gr.Textbox(label="Settings page")
 
 demo.launch()
 ```
 
+
 **Important Notes:**
-- Only one `gr.Navbar` component can exist per Blocks app. If you try to add multiple navbar components, an error will be raised.
-- The `gr.Navbar` component can be placed anywhere within your main Blocks context - its properties apply globally to the entire multipage app.
-- If no `gr.Navbar` component is present, the default navbar behavior is used (visible with "Home" as the home page title).
-- You can  update the navbar properties using standard Gradio event handling, just like with any other component.
+- You can have one `gr.Navbar` component per page. Each page's navbar configuration is independent.
+- The `main_page_name` parameter customizes the title of the home page link in the navbar.
+- The `value` parameter allows you to add additional links to the navbar, which can be internal pages or external URLs.
+- If no `gr.Navbar` component is present on a page, the default navbar behavior is used (visible with "Home" as the home page title).
+- You can update the navbar properties using standard Gradio event handling, just like with any other component.
 
 Here's an example that demonstrates the last point:
 
