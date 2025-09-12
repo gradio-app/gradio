@@ -110,7 +110,14 @@
 			{#if is_bool_column && editable && on_select_all}
 				<div
 					class="select-all-checkbox"
+					role="button"
+					tabindex="0"
 					on:click|stopPropagation
+					on:keydown|stopPropagation={(e) => {
+						if (e.key === "Enter" || e.key === " ") {
+							e.preventDefault();
+						}
+					}}
 					on:mousedown|stopPropagation
 				>
 					<BaseCheckbox
