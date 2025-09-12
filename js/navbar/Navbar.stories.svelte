@@ -49,7 +49,6 @@
 				initial_height="400px"
 				fill_width={true}
 				is_embed={false}
-				is_lite={false}
 				space={null}
 				display={true}
 				info={false}

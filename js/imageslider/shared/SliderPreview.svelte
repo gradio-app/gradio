@@ -6,12 +6,12 @@
 		Empty,
 		IconButton,
 		IconButtonWrapper,
-		FullscreenButton
+		FullscreenButton,
+		DownloadLink
 	} from "@gradio/atoms";
 	import { Image, Download, Undo, Clear } from "@gradio/icons";
 	import { type FileData } from "@gradio/client";
 	import type { I18nFormatter } from "@gradio/utils";
-	import { DownloadLink } from "@gradio/wasm/svelte";
 	import { ZoomableImage } from "./zoom";
 	import { onMount } from "svelte";
 	import { tweened, type Tweened } from "svelte/motion";

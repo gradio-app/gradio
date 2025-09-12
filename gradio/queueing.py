@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 from anyio.to_thread import run_sync
 
-from gradio import route_utils, routes, wasm_utils
+from gradio import route_utils, routes
 from gradio.data_classes import (
     PredictBodyInternal,
 )
@@ -764,7 +764,6 @@ class Queue:
                 err = e
                 for event in awake_events:
                     content = error_payload(err, app.get_blocks().show_error)
-                    wasm_utils.send_error(err)
                     self.send_message(
                         event,
                         ProcessCompletedMessage(
@@ -858,7 +857,6 @@ class Queue:
                     success = False
                     error = err or old_err
                     output = error_payload(error, app.get_blocks().show_error)
-                    wasm_utils.send_error(error)
                 for event in awake_events:
                     self.send_message(
                         event, ProcessCompletedMessage(output=output, success=success)
