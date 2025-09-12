@@ -8,15 +8,10 @@ test("No errors on generation", async ({ page }) => {
 	const num_c = page.getByLabel("c", { exact: true });
 	const num_d = page.getByLabel("d", { exact: true });
 
-	await expect
-		.poll(
-			async () => {
-				const text = await conversation.textContent();
-				return text?.includes("26 26 26 26 26 26 26 26") || false;
-			},
-			{ timeout: 30000 }
-		)
-		.toBe(true);
+	await expect(conversation).toContainText("26 26 26 26 26 26 26 26", {
+		timeout: 30000
+	});
+
 	await expect(num_a).toHaveValue("52");
 	await expect(num_b).toHaveValue("51");
 	await expect(num_c).toHaveValue("52");
