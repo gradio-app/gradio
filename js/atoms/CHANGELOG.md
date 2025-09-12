@@ -1,5 +1,15 @@
 # @gradio/atoms
 
+## 0.18.0
+
+### Features
+
+- [#11858](https://github.com/gradio-app/gradio/pull/11858) [`3f8ea13`](https://github.com/gradio-app/gradio/commit/3f8ea13a8ca92abf0ad34392e403a449fda3c6c2) - remove lite.  Thanks @pngwn!
+
+### Fixes
+
+- [#11853](https://github.com/gradio-app/gradio/pull/11853) [`0d0699b`](https://github.com/gradio-app/gradio/commit/0d0699b0348dfd4e5e0ac82d438a405cf7a2228d) - Fix bugs in `FileExplorer`.  Thanks @abidlabs!
+
 ## 0.17.0
 
 ### Features

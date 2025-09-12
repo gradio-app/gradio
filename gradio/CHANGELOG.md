@@ -1,5 +1,19 @@
 # gradio
 
+## 5.46.0
+
+### Features
+
+- [#11894](https://github.com/gradio-app/gradio/pull/11894) [`cf10724`](https://github.com/gradio-app/gradio/commit/cf107246c104f3d8be1adf7a4c3d85558a0a5497) - Remove additional indentation in python API docs.  Thanks @freddyaboulton!
+- [#11858](https://github.com/gradio-app/gradio/pull/11858) [`3f8ea13`](https://github.com/gradio-app/gradio/commit/3f8ea13a8ca92abf0ad34392e403a449fda3c6c2) - remove lite.  Thanks @pngwn!
+- [#11891](https://github.com/gradio-app/gradio/pull/11891) [`8d06ab7`](https://github.com/gradio-app/gradio/commit/8d06ab7d899cb8b1ab2a9575f19b8960999aba78) - Add select all checkbox for boolean columns in Dataframe.  Thanks @abidlabs!
+- [#11854](https://github.com/gradio-app/gradio/pull/11854) [`ee3dbd8`](https://github.com/gradio-app/gradio/commit/ee3dbd837ef02d24e127a2923126ff35750317ab) - Add show_select_all parameter to CheckboxGroup.  Thanks @abidlabs!
+
+### Fixes
+
+- [#11853](https://github.com/gradio-app/gradio/pull/11853) [`0d0699b`](https://github.com/gradio-app/gradio/commit/0d0699b0348dfd4e5e0ac82d438a405cf7a2228d) - Fix bugs in `FileExplorer`.  Thanks @abidlabs!
+- [#11865](https://github.com/gradio-app/gradio/pull/11865) [`be70c9b`](https://github.com/gradio-app/gradio/commit/be70c9b68bbbe0792a84efa4c988f8a987149197) - Support per-page navbar configuration in multipage apps.  Thanks @abidlabs!
+
 ## 5.45.0
 
 ### Features
