@@ -56,29 +56,29 @@
 				<div bind:this={python_code}>
 					<pre><span class="highlight">from</span> gradio_client <span
 							class="highlight">import</span
-						> Client{#if has_file_path}, handle_file{/if}
+					> Client{#if has_file_path}, handle_file{/if}
 
-	client = Client(<span class="token string">"{space_id || root}"</span
-						>{#if username !== null}, auth=("{username}", **password**){/if})
-	result = client.<span class="highlight">predict</span
-						>(<!--
-	-->{#each endpoint_parameters as { python_type, example_input, parameter_name, parameter_has_default, parameter_default }, i}<!--
-			-->
-			{parameter_name
-								? parameter_name + "="
-								: ""}<span
-								>{represent_value(
-									parameter_has_default ? parameter_default : example_input,
-									python_type.type,
-									"py"
-								)}</span
-							>,{/each}<!--
+client = Client(<span class="token string">"{space_id || root}"</span
+					>{#if username !== null}, auth=("{username}", **password**){/if})
+result = client.<span class="highlight">predict</span
+					>(<!--
+-->{#each endpoint_parameters as { python_type, example_input, parameter_name, parameter_has_default, parameter_default }, i}<!--
+		-->
+	{parameter_name
+						? parameter_name + "="
+						: ""}<span
+						>{represent_value(
+							parameter_has_default ? parameter_default : example_input,
+							python_type.type,
+							"py"
+						)}</span
+					>,{/each}<!--
 
-			-->
-			api_name=<span class="api-name">"/{dependency.api_name}"</span><!--
-			-->
-	)
-	<span class="highlight">print</span>(result)</pre>
+	-->
+	api_name=<span class="api-name">"/{dependency.api_name}"</span><!--
+	-->
+)
+<span class="highlight">print</span>(result)</pre>
 				</div>
 			</code>
 		</Block>
