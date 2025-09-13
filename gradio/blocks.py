@@ -3146,7 +3146,7 @@ Received inputs:
         Parameters:
             name: The name of the page as it appears in the nav bar.
             path: The URL suffix appended after your Gradio app's root URL to access this page (e.g. if path="/test", the page may be accessible e.g. at http://localhost:7860/test). If not provided, the path is generated from the name by converting to lowercase and replacing spaces with hyphens. Any leading or trailing forward slashes are stripped.
-            show_in_navbar: If True, the page will appear in the navbar. If False, the page will be accessible via URL but not shown in the navbar. Defaults to True.
+            show_in_navbar: If True, the page will appear in the navbar. If False, the page will be accessible via URL but not shown in the navbar.
         Example:
             with gr.Blocks() as demo:
                 name = gr.Textbox(label="Name")
