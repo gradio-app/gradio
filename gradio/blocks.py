@@ -3138,7 +3138,9 @@ Received inputs:
         return target_events
 
     @document()
-    def route(self, name: str, path: str | None = None, show_in_navbar: bool = True) -> Blocks:
+    def route(
+        self, name: str, path: str | None = None, show_in_navbar: bool = True
+    ) -> Blocks:
         """
         Adds a new page to the Blocks app.
         Parameters:

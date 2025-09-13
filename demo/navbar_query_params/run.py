@@ -1,3 +1,5 @@
+"""This is a demo of a custom navbar that preserves query parameters between the pages."""
+
 import gradio as gr
 
 def update_navbar_with_query(choice):
