@@ -2246,7 +2246,7 @@ Received inputs:
             "fill_width": self.fill_width,
             "theme_hash": self.theme_hash,
             "pwa": self.pwa,
-            "pages": [(p[0], p[1], p[2] if len(p) > 2 else True) for p in self.pages],
+            "pages": self.pages,
             "page": {},
             "mcp_server": self.mcp_server,
             "i18n_translations": (
