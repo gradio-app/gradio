@@ -5,15 +5,19 @@ import gradio as gr
 def update_navbar_with_query(choice):
     """Updates navbar links to preserve query parameters"""
     if choice:
-        return [("Main Page", f"?option={choice.lower().replace(' ', '_')}"), ("Page 2", f"page-2/?option={choice.lower().replace(' ', '_')}")]
-    return [("Main Page", ""), ("Page 2", "page-2")]
+        return [("Main Page", f"?option={choice}"), ("Page 2", f"second?option={choice}")]
+    return [("Main Page", ""), ("Page 2", "second")]
+
+def update_dropdown_based_on_query(request: gr.Request):
+    """Updates dropdown based on query parameters"""
+    return request.query_params.get("option")
 
 update_url_js = """
 (choice) => {
     console.log("choice", choice);
     if (choice) {
         const url = new URL(window.location);
-        url.searchParams.set('option', choice.toLowerCase().replace(' ', '_'));
+        url.searchParams.set('option', choice);
         window.history.replaceState({}, '', url);
     }
     return choice;
@@ -21,14 +25,16 @@ update_url_js = """
 """
 
 with gr.Blocks() as demo:
+    gr.Markdown("If you select an option, and go to the second page, the option will be preserved.")
+
     navbar1 = gr.Navbar(
-        value=[("Main Page", ""),("Page 2", "page-2")],
+        value=[("Main Page", ""),("Page 2", "second")],
         visible=True,
         main_page_name=False,
     )
 
     dropdown1 = gr.Dropdown(
-        choices=["Option A", "Option B", "Option C"],
+        choices=["America", "Canada", "Pakistan"],
         label="Select an option",
         value=None
     )
@@ -40,23 +46,20 @@ with gr.Blocks() as demo:
         js=update_url_js
     )
 
-with demo.route("Page 2", show_in_navbar=False):
+with demo.route("second", show_in_navbar=False) as second_page:
     navbar2 = gr.Navbar(
         visible=True,
         main_page_name=False,
+        value=[("Main Page", ""),("Page 2", "second")]
     )
     
     dropdown2 = gr.Dropdown(
-        choices=["Value 1", "Value 2", "Value 3"],
+        choices=["America", "Canada", "Pakistan"],
         label="Select a value",
         value=None
     )
-    dropdown2.change(
-        fn=update_navbar_with_query,
-        inputs=[dropdown2],
-        outputs=[navbar2],
-        js=update_url_js
-    )
+
+    second_page.load(update_dropdown_based_on_query, None, dropdown2)
 
 if __name__ == "__main__":
     demo.launch()
