@@ -19,6 +19,7 @@
 	export let linkify: string[] = [];
 	export let header: string | null;
 	export let anchor_links: string | boolean = false;
+	export let max_height: number | string | undefined = undefined;
 
 	let component_root: HTMLElement;
 	let _docs: Param[];
@@ -114,9 +115,26 @@
 			detail.scrollIntoView({ behavior: "smooth" });
 		}
 	}
+
+	const get_dimension = (
+		dimension_value: string | number | undefined
+	): string | undefined => {
+		if (dimension_value === undefined) {
+			return undefined;
+		}
+		if (typeof dimension_value === "number") {
+			return dimension_value + "px";
+		} else if (typeof dimension_value === "string") {
+			return dimension_value;
+		}
+	};
 </script>
 
-<div class="wrap" bind:this={component_root}>
+<div
+	class="wrap"
+	bind:this={component_root}
+	style:max-height={get_dimension(max_height)}
+>
 	{#if header !== null}
 		<div class="header">
 			<span class="title">{header}</span>
@@ -130,37 +148,39 @@
 		</div>
 	{/if}
 	{#if _docs}
-		{#each _docs as { type, description, default: _default, name } (name)}
-			<details
-				class="param md"
-				id={anchor_links ? create_slug(name || "", anchor_links) : undefined}
-			>
-				<summary class="type">
-					{#if anchor_links}
-						<a
-							href="#{create_slug(name || '', anchor_links)}"
-							class="param-link"
-						>
-							<span class="link-icon">🔗</span>
-						</a>
+		<div class="param-content">
+			{#each _docs as { type, description, default: _default, name } (name)}
+				<details
+					class="param md"
+					id={anchor_links ? create_slug(name || "", anchor_links) : undefined}
+				>
+					<summary class="type">
+						{#if anchor_links}
+							<a
+								href="#{create_slug(name || '', anchor_links)}"
+								class="param-link"
+							>
+								<span class="link-icon">🔗</span>
+							</a>
+						{/if}
+						<pre class="language-{lang}"><code
+								>{name}{#if type}: {@html type}{/if}</code
+							></pre>
+					</summary>
+					{#if _default}
+						<div class="default" class:last={!description}>
+							<span style:padding-right={"4px"}>default</span>
+							<code>= {@html _default}</code>
+						</div>
 					{/if}
-					<pre class="language-{lang}"><code
-							>{name}{#if type}: {@html type}{/if}</code
-						></pre>
-				</summary>
-				{#if _default}
-					<div class="default" class:last={!description}>
-						<span style:padding-right={"4px"}>default</span>
-						<code>= {@html _default}</code>
-					</div>
-				{/if}
-				{#if description}
-					<div class="description">
-						<p>{@html render_links(description)}</p>
-					</div>
-				{/if}
-			</details>
-		{/each}
+					{#if description}
+						<div class="description">
+							<p>{@html render_links(description)}</p>
+						</div>
+					{/if}
+				</details>
+			{/each}
+		</div>
 	{/if}
 </div>
 
@@ -252,6 +272,8 @@
 		width: 100%;
 		line-height: var(--line-sm);
 		color: var(--body-text-color);
+		display: grid;
+		grid-template-rows: auto 1fr;
 	}
 
 	.type {
@@ -340,5 +362,9 @@
 
 	.param-link:hover {
 		opacity: 1 !important;
+	}
+
+	.param-content {
+		overflow-y: auto;
 	}
 </style>
