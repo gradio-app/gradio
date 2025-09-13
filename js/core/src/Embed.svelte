@@ -48,13 +48,10 @@
 		pages.length > 1 && (navbar === null || navbar.visible !== false);
 
 	$: effective_pages = (() => {
-		// Filter pages based on visibility
 		let visible_pages = pages.filter(([route, label, show], index) => {
-			// Handle main page visibility
 			if (index === 0 && route === "") {
 				return navbar?.main_page_name !== false;
 			}
-			// Handle other pages visibility (default to true if not specified)
 			return show !== false;
 		});
 
