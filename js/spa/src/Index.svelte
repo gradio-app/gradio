@@ -34,7 +34,7 @@
 		username: string | null;
 		api_prefix?: string;
 		max_file_size?: number;
-		pages: [string, string][];
+		pages: [string, string, boolean][];
 		current_page: string;
 		deep_link_state?: "valid" | "invalid" | "none";
 		page: Record<
