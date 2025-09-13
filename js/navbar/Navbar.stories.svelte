@@ -4,11 +4,11 @@
 
 	/** @type {HTMLDivElement} */
 	let wrapper;
-	const pages = /** @type {[string, string][]} */ ([
-		["", "Home"],
-		["page1", "Page 1"],
-		["page2", "Page 2"],
-		["settings", "Settings"]
+	const pages = /** @type {[string, string, boolean][]} */ ([
+		["", "Home", true],
+		["page1", "Page 1", true],
+		["page2", "Page 2", true],
+		["settings", "Settings", true]
 	]);
 </script>
 

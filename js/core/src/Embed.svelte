@@ -64,7 +64,9 @@
 							? ([route, navbar!.main_page_name] as [string, string])
 							: ([route, label] as [string, string])
 					)
-				: visible_pages.map(([route, label]) => [route, label] as [string, string]);
+				: visible_pages.map(
+						([route, label]) => [route, label] as [string, string]
+					);
 
 		if (navbar?.value && navbar.value.length > 0) {
 			const existing_routes = new Set(base_pages.map(([route]) => route));

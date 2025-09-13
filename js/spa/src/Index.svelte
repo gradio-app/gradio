@@ -106,7 +106,7 @@
 	export let info: boolean;
 	export let eager: boolean;
 	let stream: EventSource;
-	let pages: [string, string][] = [];
+	let pages: [string, string, boolean][] = [];
 	let current_page: string;
 	let root: string;
 
