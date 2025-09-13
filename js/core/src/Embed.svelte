@@ -14,7 +14,7 @@
 	export let display: boolean;
 	export let info: boolean;
 	export let loaded: boolean;
-	export let pages: [string, string][] = [];
+	export let pages: [string, string, boolean][] = [];
 	export let current_page = "";
 	export let root: string;
 	export let components: any[] = [];
@@ -48,16 +48,25 @@
 		pages.length > 1 && (navbar === null || navbar.visible !== false);
 
 	$: effective_pages = (() => {
+		let visible_pages = pages.filter(([route, label, show], index) => {
+			if (index === 0 && route === "") {
+				return navbar?.main_page_name !== false;
+			}
+			return show !== false;
+		});
+
 		let base_pages =
 			navbar &&
 			navbar.main_page_name !== false &&
 			navbar.main_page_name !== "Home"
-				? pages.map(([route, label], index) =>
+				? visible_pages.map(([route, label, show], index) =>
 						index === 0 && route === "" && label === "Home"
 							? ([route, navbar!.main_page_name] as [string, string])
 							: ([route, label] as [string, string])
 					)
-				: pages;
+				: visible_pages.map(
+						([route, label]) => [route, label] as [string, string]
+					);
 
 		if (navbar?.value && navbar.value.length > 0) {
 			const existing_routes = new Set(base_pages.map(([route]) => route));
