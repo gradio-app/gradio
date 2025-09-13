@@ -1,4 +1,4 @@
-"""This is a demo of a custom navbar that preserves query parameters between the pages."""
+"""This is a demo of a custom navbar that preserves query parameters from one page to the next."""
 
 import gradio as gr
 
