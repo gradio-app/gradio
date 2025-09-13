@@ -20,10 +20,15 @@
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import { type Client } from "@gradio/client";
 	import VirtualTable from "./VirtualTable.svelte";
-	import type { Headers, DataframeValue, Datatype } from "./utils/utils";
+	import type {
+		Headers,
+		DataframeValue,
+		Datatype,
+		EditData
+	} from "./utils/utils";
 	import CellMenu from "./CellMenu.svelte";
 	import Toolbar from "./Toolbar.svelte";
-	import type { CellCoordinate } from "./types";
+	import type { CellCoordinate, CellValue } from "./types";
 	import {
 		is_cell_selected,
 		should_show_cell_menu,
@@ -37,7 +42,6 @@
 		handle_file_upload
 	} from "./utils/table_utils";
 	import { make_headers, process_data } from "./utils/data_processing";
-	import { cast_value_to_type } from "./utils/utils";
 	import { handle_keydown, handle_cell_blur } from "./utils/keyboard_utils";
 	import {
 		create_drag_handlers,
@@ -51,7 +55,7 @@
 	export let label: string | null = null;
 	export let show_label = true;
 	export let headers: Headers = [];
-	export let values: (string | number)[][] = [];
+	export let values: CellValue[][] = [];
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let latex_delimiters: {
@@ -163,6 +167,7 @@
 		input: undefined;
 		select: SelectData;
 		search: string | null;
+		edit: EditData;
 	}>();
 
 	let els: Record<
@@ -172,12 +177,11 @@
 	let data_binding: Record<string, (typeof data)[0][0]> = {};
 	let _headers = make_headers(headers, col_count, els, make_id);
 	let old_headers: string[] = headers;
-	let data: { id: string; value: string | number; display_value?: string }[][] =
-		[[]];
-	let old_val: undefined | (string | number)[][] = undefined;
+	let data: { id: string; value: CellValue; display_value?: string }[][] = [[]];
+	let old_val: undefined | CellValue[][] = undefined;
 	let search_results: {
 		id: string;
-		value: string | number;
+		value: CellValue;
 		display_value?: string;
 		styling?: string;
 	}[][] = [[]];
@@ -196,13 +200,13 @@
 		);
 	});
 
-	const get_data_at = (row: number, col: number): string | number =>
+	const get_data_at = (row: number, col: number): CellValue =>
 		data?.[row]?.[col]?.value;
 
-	const get_column = (col: number): (string | number)[] =>
+	const get_column = (col: number): CellValue[] =>
 		data?.map((row) => row[col]?.value) ?? [];
 
-	const get_row = (row: number): (string | number)[] =>
+	const get_row = (row: number): CellValue[] =>
 		data?.[row]?.map((cell) => cell.value) ?? [];
 
 	$: {
@@ -248,13 +252,14 @@
 				(values[0] && old_val[0] && values[0].length !== old_val[0].length));
 
 		data = process_data(
-			values as (string | number)[][],
+			values as CellValue[][],
 			els,
 			data_binding,
 			make_id,
-			display_value
+			display_value,
+			datatype
 		);
-		old_val = JSON.parse(JSON.stringify(values)) as (string | number)[][];
+		old_val = JSON.parse(JSON.stringify(values)) as CellValue[][];
 
 		if (is_reset || is_different_structure) {
 			df_actions.reset_sort_state();
@@ -326,27 +331,19 @@
 	}
 
 	let previous_headers = _headers.map((h) => h.value);
-	let previous_data = data.map((row) => row.map((cell) => String(cell.value)));
+	let previous_data = data.map((row) => row.map((cell) => cell.value));
 
 	$: {
 		if (data || _headers) {
 			df_actions.trigger_change(
-				data.map((row, rowIdx) =>
-					row.map((cell, colIdx) => {
-						const dtype = Array.isArray(datatype) ? datatype[colIdx] : datatype;
-						return {
-							...cell,
-							value: cast_value_to_type(cell.value, dtype)
-						};
-					})
-				),
+				data,
 				_headers,
 				previous_data,
 				previous_headers,
 				value_is_output,
 				dispatch
 			);
-			previous_data = data.map((row) => row.map((cell) => String(cell.value)));
+			previous_data = data.map((row) => row.map((cell) => cell.value));
 			previous_headers = _headers.map((h) => h.value);
 		}
 	}
@@ -675,12 +672,12 @@
 
 	function commit_filter(): void {
 		if ($df_state.current_search_query && show_search === "filter") {
-			const filtered_data: (string | number)[][] = [];
+			const filtered_data: CellValue[][] = [];
 			const filtered_display_values: string[][] = [];
 			const filtered_styling: string[][] = [];
 
 			search_results.forEach((row) => {
-				const data_row: (string | number)[] = [];
+				const data_row: CellValue[] = [];
 				const display_row: string[] = [];
 				const styling_row: string[] = [];
 
