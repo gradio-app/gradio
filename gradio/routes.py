@@ -586,7 +586,8 @@ class App(FastAPI):
                             del app.tokens[token]
                 else:
                     # Delete only the token associated with the current session.
-                    del app.tokens[request.cookies.get(f"access-token-{app.cookie_id}")]
+                    if request.cookies.get(f"access-token-{app.cookie_id}") in app.tokens:
+                        del app.tokens[request.cookies.get(f"access-token-{app.cookie_id}")]
                 return response
 
         ###############
