@@ -568,7 +568,7 @@ class App(FastAPI):
         else:
 
             @app.get("/logout")
-            def logout(request: fastapi.Request):
+            def logout(request: fastapi.Request, user: str = Depends(get_current_user), all_session: bool = True):
                 root = route_utils.get_root_url(
                     request=request,
                     route_path="/logout",
@@ -579,8 +579,14 @@ class App(FastAPI):
                 response.delete_cookie(
                     key=f"access-token-unsecure-{app.cookie_id}", path="/"
                 )
-                # Delete only the token associated with the current cookie.
-                del app.tokens[request.cookies.get(f"access-token-{app.cookie_id}")]
+                if all_session:
+                    # Delete the tokens of all sessions associated with the current user.
+                    for token in list(app.tokens.keys()):
+                        if app.tokens[token] == user:
+                            del app.tokens[token]
+                else:
+                    # Delete only the token associated with the current session.
+                    del app.tokens[request.cookies.get(f"access-token-{app.cookie_id}")]
                 return response
 
         ###############
