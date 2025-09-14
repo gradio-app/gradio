@@ -14,6 +14,7 @@ from .commands import (
     reload,
     sketch,
     upload_mcp,
+    openaichat,
 )
 
 app = typer.Typer()
@@ -28,13 +29,17 @@ app.command("deploy-discord", help="Deploy a Gradio app to Discord.")(
     deploy_discord.main
 )
 app.command("sketch", help="Open the Sketch app to design a Gradio app.")(sketch)
+app.command(
+    "openaichat",
+    help="Launch an OpenAI-compatible chat UI using gradio.external.load_chat.",
+)(openaichat)
 
 
 def cli():
     args = sys.argv[1:]
     if len(args) == 0:
         raise ValueError("No file specified.")
-    if args[0] in {"deploy", "environment", "deploy-discord", "sketch"}:
+    if args[0] in {"deploy", "environment", "deploy-discord", "sketch", "openaichat"}:
         app()
     elif args[0] in {"cc", "component"}:
         sys.argv = sys.argv[1:]

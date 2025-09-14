@@ -5,6 +5,7 @@ from .hf_login import hf_login
 from .reload import main as reload
 from .sketch import launch as sketch
 from .upload_mcp import main as upload_mcp
+from .openaichat import main as openaichat
 
 __all__ = [
     "deploy",
@@ -14,4 +15,5 @@ __all__ = [
     "sketch",
     "upload_mcp",
     "hf_login",
+    "openaichat",
 ]
