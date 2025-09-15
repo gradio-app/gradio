@@ -2,7 +2,7 @@
 	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";
 	import { Edit, Clear, Undo, Download } from "@gradio/icons";
-	import { DownloadLink } from "@gradio/wasm/svelte";
+	import { DownloadLink } from "@gradio/atoms";
 
 	import { createEventDispatcher } from "svelte";
 

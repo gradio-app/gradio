@@ -8,6 +8,7 @@ import gradio.templates
 from gradio import components, layouts, mcp, themes
 from gradio.blocks import Blocks
 from gradio.chat_interface import ChatInterface
+from gradio.cli import deploy
 from gradio.components import (
     HTML,
     JSON,
@@ -53,6 +54,7 @@ from gradio.components import (
     MessageDict,
     Model3D,
     MultimodalTextbox,
+    Navbar,
     Number,
     ParamViewer,
     Plot,
@@ -91,10 +93,11 @@ from gradio.flagging import (
     FlaggingCallback,
     SimpleCSVLogger,
 )
-from gradio.helpers import Info, Progress, Success, Warning, skip, update
+from gradio.helpers import Info, Progress, Success, Warning, skip, update, validate
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.i18n import I18n
 from gradio.interface import Interface, TabbedInterface, close_all
+from gradio.ipython_ext import load_ipython_extension
 from gradio.layouts import (
     Accordion,
     Column,
@@ -102,9 +105,11 @@ from gradio.layouts import (
     Group,
     Row,
     Sidebar,
+    Step,
     Tab,
     TabItem,
     Tabs,
+    Walkthrough,
 )
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.renderable import render
@@ -125,11 +130,6 @@ from gradio.templates import (
 )
 from gradio.themes import Base as Theme
 from gradio.utils import NO_RELOAD, FileSize, get_package_version, set_static_paths
-from gradio.wasm_utils import IS_WASM
-
-if not IS_WASM:
-    from gradio.cli import deploy
-    from gradio.ipython_ext import load_ipython_extension
 
 __version__ = get_package_version()
 
@@ -184,7 +184,6 @@ __all__ = [
     "Highlight",
     "HighlightedText",
     "Highlightedtext",
-    "IS_WASM",
     "Image",
     "ImageEditor",
     "ImageSlider",
@@ -242,6 +241,8 @@ __all__ = [
     "UndoData",
     "UploadButton",
     "Video",
+    "Walkthrough",
+    "Step",
     "Warning",
     "WaveformOptions",
     "WebcamOptions",
@@ -262,4 +263,5 @@ __all__ = [
     "update",
     "DeepLinkButton",
     "mcp",
+    "validate",
 ]

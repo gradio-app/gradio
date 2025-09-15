@@ -141,3 +141,17 @@ function stringify_except_file_function(obj: any): string {
 	const regexNone = /"UNQUOTEDNone"/g;
 	return jsonString.replace(regexNone, "None");
 }
+
+export function format_latency(val: number): string {
+	if (val < 1) return `${Math.round(val * 1000)} ms`;
+	return `${val.toFixed(2)} s`;
+}
+
+export function get_color_from_success_rate(success_rate: number): string {
+	if (success_rate > 0.9) {
+		return "color: green;";
+	} else if (success_rate > 0.1) {
+		return "color: orange;";
+	}
+	return "color: red;";
+}

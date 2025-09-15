@@ -41,6 +41,7 @@ from gradio.components.markdown import Markdown
 from gradio.components.model3d import Model3D
 from gradio.components.multimodal_textbox import MultimodalTextbox
 from gradio.components.native_plot import BarPlot, LinePlot, NativePlot, ScatterPlot
+from gradio.components.navbar import Navbar
 from gradio.components.number import Number
 from gradio.components.paramviewer import ParamViewer
 from gradio.components.plot import Plot
@@ -125,6 +126,7 @@ __all__ = [
     "ImageSlider",
     "ParamViewer",
     "MultimodalTextbox",
+    "Navbar",
     "NativePlot",
     "DeepLinkButton",
     "InputHTMLAttributes",

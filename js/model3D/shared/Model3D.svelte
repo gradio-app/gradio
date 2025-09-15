@@ -64,8 +64,6 @@
 			current_settings = { camera_position, zoom_speed, pan_speed };
 		}
 	}
-
-	let resolved_url: string | undefined;
 </script>
 
 <BlockLabel
@@ -86,7 +84,7 @@
 				/>
 			{/if}
 			<a
-				href={resolved_url}
+				href={value.url}
 				target={window.__is_colab__ ? "_blank" : null}
 				download={window.__is_colab__ ? null : value.orig_name || value.path}
 			>
@@ -97,7 +95,6 @@
 		{#if use_3dgs}
 			<svelte:component
 				this={Canvas3DGSComponent}
-				bind:resolved_url
 				{value}
 				{zoom_speed}
 				{pan_speed}
@@ -106,7 +103,6 @@
 			<svelte:component
 				this={Canvas3DComponent}
 				bind:this={canvas3d}
-				bind:resolved_url
 				{value}
 				{display_mode}
 				{clear_color}

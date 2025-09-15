@@ -20,7 +20,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import is_http_url_like
 
-from gradio import image_utils, processing_utils, utils, wasm_utils
+from gradio import image_utils, processing_utils, utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, ImageData
 from gradio.events import EventListener, Events
@@ -54,13 +54,14 @@ class Gallery(Component):
     Creates a gallery component that allows displaying a grid of images or videos, and optionally captions. If used as an input, the user can upload images or videos to the gallery.
     If used as an output, the user can click on individual images or videos to view them at a higher resolution.
 
-    Demos: fake_gan
+    Demos: fake_gan, gif_maker
     """
 
     EVENTS = [
         Events.select,
         Events.upload,
         Events.change,
+        Events.delete,
         EventListener(
             "preview_close",
             doc="This event is triggered when the Gallery preview is closed by the user",
@@ -155,6 +156,10 @@ class Gallery(Component):
             else show_download_button
         )
         self.selected_index = selected_index
+        if type not in ["numpy", "pil", "filepath"]:
+            raise ValueError(
+                f"Invalid type: {type}. Must be one of ['numpy', 'pil', 'filepath']"
+            )
         self.type = type
         self.show_fullscreen_button = show_fullscreen_button
         self.file_types = file_types
@@ -297,13 +302,9 @@ class Gallery(Component):
                     caption=caption,
                 )
 
-        if wasm_utils.IS_WASM:
-            for img in value:
-                output.append(_save(img))
-        else:
-            with ThreadPoolExecutor() as executor:
-                for o in executor.map(_save, value):
-                    output.append(o)
+        with ThreadPoolExecutor() as executor:
+            for o in executor.map(_save, value):
+                output.append(o)
         return GalleryData(root=output)
 
     @staticmethod

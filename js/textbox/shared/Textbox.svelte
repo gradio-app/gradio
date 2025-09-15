@@ -5,7 +5,7 @@
 		createEventDispatcher,
 		tick
 	} from "svelte";
-	import { BlockTitle } from "@gradio/atoms";
+	import { BlockTitle, IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import { Copy, Check, Send, Square } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData, CopyData } from "@gradio/utils";
@@ -31,6 +31,7 @@
 	export let autoscroll = true;
 	export let max_length: number | undefined = undefined;
 	export let html_attributes: InputHTMLAttributes | null = null;
+	export let validation_error: string | null | undefined = undefined;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -39,6 +40,7 @@
 	let previous_scroll_top = 0;
 	let user_has_scrolled_up = false;
 	let _max_lines: number;
+	let ghost_element: HTMLTextAreaElement | null = null;
 
 	const show_textbox_border = !submit_btn;
 
@@ -52,7 +54,9 @@
 		_max_lines = Math.max(max_lines, lines);
 	}
 
-	$: value, el && lines !== _max_lines && resize({ target: el });
+	$: value,
+		validation_error,
+		el && lines !== _max_lines && lines > 1 && resize({ target: el });
 
 	$: if (value === null) value = "";
 
@@ -222,7 +226,8 @@
 		_el: HTMLTextAreaElement,
 		_value: string
 	): any | undefined {
-		if (lines === _max_lines) return;
+		if (lines === _max_lines || (lines === 1 && _max_lines === 1)) return;
+
 		_el.style.overflowY = "scroll";
 		_el.addEventListener("input", resize);
 
@@ -238,23 +243,20 @@
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container class:show_textbox_border>
 	{#if show_label && show_copy_button}
-		{#if copied}
-			<button
-				in:fade={{ duration: 300 }}
-				class="copy-button"
-				aria-label="Copied"
-				aria-roledescription="Text copied"><Check /></button
-			>
-		{:else}
-			<button
+		<IconButtonWrapper>
+			<IconButton
+				Icon={copied ? Check : Copy}
 				on:click={handle_copy}
-				class="copy-button"
-				aria-label="Copy"
-				aria-roledescription="Copy text"><Copy /></button
-			>
-		{/if}
+				label={copied ? "Copied" : "Copy"}
+			/>
+		</IconButtonWrapper>
 	{/if}
-	<BlockTitle {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle show_label={validation_error ? true : show_label} {info}
+		>{label}
+		{#if validation_error}
+			<div class="validation-error">{validation_error}</div>
+		{/if}
+	</BlockTitle>
 
 	<div class="input-container">
 		{#if lines === 1 && _max_lines === 1}
@@ -274,6 +276,7 @@
 					on:blur
 					on:select={handle_select}
 					on:focus
+					class:validation-error={validation_error}
 					style={text_align ? "text-align: " + text_align : ""}
 					autocapitalize={html_attributes?.autocapitalize}
 					autocorrect={html_attributes?.autocorrect}
@@ -298,6 +301,7 @@
 					on:blur
 					on:select={handle_select}
 					on:focus
+					class:validation-error={validation_error}
 					autocomplete=""
 					autocapitalize={html_attributes?.autocapitalize}
 					autocorrect={html_attributes?.autocorrect}
@@ -321,6 +325,7 @@
 					on:blur
 					on:select={handle_select}
 					on:focus
+					class:validation-error={validation_error}
 					autocomplete="email"
 					autocapitalize={html_attributes?.autocapitalize}
 					autocorrect={html_attributes?.autocorrect}
@@ -348,6 +353,7 @@
 				on:select={handle_select}
 				on:focus
 				on:scroll={handle_scroll}
+				class:validation-error={validation_error}
 				style={text_align ? "text-align: " + text_align : ""}
 				autocapitalize={html_attributes?.autocapitalize}
 				autocorrect={html_attributes?.autocorrect}
@@ -413,6 +419,7 @@
 		line-height: var(--line-sm);
 		border: none;
 	}
+
 	textarea.no-label {
 		padding-top: 5px;
 		padding-bottom: 5px;
@@ -447,27 +454,6 @@
 	input::placeholder,
 	textarea::placeholder {
 		color: var(--input-placeholder-color);
-	}
-
-	.copy-button {
-		display: flex;
-		position: absolute;
-		top: var(--block-label-margin);
-		right: var(--block-label-margin);
-		align-items: center;
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--border-color-primary);
-		border-top: none;
-		border-right: none;
-		border-radius: var(--block-label-right-radius);
-		background: var(--block-label-background-fill);
-		padding: 5px;
-		width: 22px;
-		height: 22px;
-		overflow: hidden;
-		color: var(--block-label-color);
-		font: var(--font-sans);
-		font-size: var(--button-small-text-size);
 	}
 
 	/* Same submit button style as MultimodalTextbox for the consistent UI */
@@ -521,5 +507,20 @@
 	}
 	.padded-button {
 		padding: 0 10px;
+	}
+
+	div.validation-error {
+		color: var(--error-icon-color);
+		font-size: var(--font-sans);
+		margin-top: var(--spacing-sm);
+		font-weight: var(--weight-semibold);
+	}
+
+	label.container input.validation-error,
+	label.container textarea.validation-error {
+		border-color: transparent !important;
+		box-shadow:
+			0 0 3px 1px var(--error-icon-color),
+			var(--shadow-inset) !important;
 	}
 </style>

@@ -2,8 +2,7 @@ name: "update-checks"
 
 on:
   workflow_run:
-    workflows:
-      ["python", "js", "functional", "functional-lite", "generate-changeset"]
+    workflows: ["python", "js", "functional", "generate-changeset"]
     types:
       - completed
 
@@ -57,9 +56,6 @@ jobs:
       - name: set functional check name
         if: github.event.workflow_run.name == 'functional'
         run: echo "CHECK_NAME=functional / functional-test (pull_request)" >> $GITHUB_ENV
-      - name: set functional-lite check name
-        if: github.event.workflow_run.name == 'functional-lite'
-        run: echo "CHECK_NAME=functional-lite / functional-test-lite (pull_request)" >> $GITHUB_ENV
       - name: set changeset approval status
         if: github.event.workflow_run.name == 'generate-changeset'
         run: echo "CHECK_NAME=changeset-approval (pull_request)" >> $GITHUB_ENV

@@ -1,5 +1,17 @@
 # @gradio/button
 
+## 0.5.12
+
+### Features
+
+- [#11825](https://github.com/gradio-app/gradio/pull/11825) [`910a524`](https://github.com/gradio-app/gradio/commit/910a5249397a68d215dd97d6a347718f0d994e04) - Fix the stop variant button in citrus theme.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@1.18.0
+- @gradio/upload@0.16.17
+- @gradio/image@0.22.18
+
 ## 0.5.11
 
 ### Dependency updates

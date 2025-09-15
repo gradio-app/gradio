@@ -941,6 +941,20 @@ def test_check_event_data_in_cache():
         )
 
 
+def test_request_session_none_without_sessionmiddleware():
+    from starlette.requests import Request
+
+    def foo(a: int, prof: gr.OAuthProfile | None = None):
+        return a
+
+    inputs, _, _ = helpers.special_args(
+        foo,
+        inputs=[5],
+        request=Request(scope={"type": "http"}),  # type: ignore
+    )
+    assert inputs == [5, None]
+
+
 def test_examples_no_cache_optional_inputs():
     def foo(a, b, c, d):
         return {"a": a, "b": b, "c": c, "d": d}

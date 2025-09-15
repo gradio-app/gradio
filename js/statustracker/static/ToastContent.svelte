@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Error, Info, Warning, Success } from "@gradio/icons";
-	import DOMPurify from "dompurify";
+	import { sanitize } from "@gradio/sanitize";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { fade } from "svelte/transition";
 	import type { ToastMessage } from "./types";
@@ -12,23 +12,7 @@
 	export let duration: number | null = 10;
 	export let visible = true;
 
-	const is_external_url = (link: string | null): boolean => {
-		try {
-			return !!link && new URL(link, location.href).origin !== location.origin;
-		} catch (e) {
-			return false;
-		}
-	};
-
-	DOMPurify.addHook("afterSanitizeAttributes", function (node) {
-		if ("target" in node) {
-			if (is_external_url(node.getAttribute("href"))) {
-				node.setAttribute("target", "_blank");
-				node.setAttribute("rel", "noopener noreferrer");
-			}
-		}
-	});
-	$: message = DOMPurify.sanitize(message);
+	$: message = sanitize(message);
 	$: display = visible;
 	$: duration = duration || null;
 

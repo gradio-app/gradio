@@ -1,12 +1,30 @@
 <script lang="ts">
 	export let api_name: string | null = null;
 	export let description: string | null = null;
+	export let analytics: Record<string, any>;
+	import { format_latency, get_color_from_success_rate } from "./utils";
+
+	const success_rate = api_name ? analytics[api_name]?.success_rate : 0;
+	const color = get_color_from_success_rate(success_rate);
 </script>
 
 <h3>
 	API name:
 	<span class="post">{"/" + api_name}</span>
 	<span class="desc">{description}</span>
+	{#if analytics && api_name && analytics[api_name]}
+		<span class="analytics">
+			Total requests: {analytics[api_name].total_requests} (<span style={color}
+				>{Math.round(success_rate * 100)}%</span
+			>
+			successful) &nbsp;|&nbsp; p50/p90/p99:
+			{format_latency(analytics[api_name].process_time_percentiles["50th"])}
+			/
+			{format_latency(analytics[api_name].process_time_percentiles["90th"])}
+			/
+			{format_latency(analytics[api_name].process_time_percentiles["99th"])}
+		</span>
+	{/if}
 </h3>
 
 <style>
@@ -28,8 +46,13 @@
 		font-weight: var(--weight-semibold);
 	}
 
-	.desc {
+	.analytics {
 		color: var(--body-text-color-subdued);
+		margin-top: var(--size-1);
+	}
+
+	.desc {
+		color: var(--body-text-color);
 		font-size: var(--text-lg);
 		margin-top: var(--size-1);
 	}

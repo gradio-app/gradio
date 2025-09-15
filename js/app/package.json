@@ -1,6 +1,6 @@
 {
 	"name": "@self/app",
-	"version": "1.50.9",
+	"version": "1.51.0",
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",
@@ -27,7 +27,6 @@
 		"@gradio/client": "workspace:^",
 		"@gradio/core": "workspace:^",
 		"@gradio/theme": "workspace:^",
-		"@gradio/wasm": "workspace:^",
 		"@huggingface/space-header": "^1.0.4",
 		"@self/build": "workspace:^",
 		"@sveltejs/adapter-node": "^5.2.2",

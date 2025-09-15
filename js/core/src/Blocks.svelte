@@ -255,6 +255,19 @@
 		});
 		update_value(updates);
 
+		// Handle navbar updates separately since they need to be updated in the store.
+		updates.forEach((update) => {
+			const component = components.find((comp) => comp.id === update.id);
+			if (component && component.type === "navbar") {
+				import("./navbar_store").then(({ navbar_config }) => {
+					navbar_config.update((current) => ({
+						...current,
+						[update.prop]: update.value
+					}));
+				});
+			}
+		});
+
 		await tick();
 	}
 
@@ -623,6 +636,53 @@
 
 			/* eslint-disable complexity */
 			function handle_status_update(message: StatusMessage): void {
+				if (message.code === "validation_error") {
+					const dep = dependencies.find((dep) => dep.id === message.fn_index);
+					if (
+						dep === undefined ||
+						message.message === undefined ||
+						typeof message.message === "string"
+					) {
+						return;
+					}
+
+					const validation_error_data: {
+						id: number;
+						prop: string;
+						value: unknown;
+					}[] = [];
+
+					message.message.forEach((message, i) => {
+						if (message.is_valid) {
+							return;
+						}
+						validation_error_data.push({
+							id: dep.inputs[i],
+							prop: "validation_error",
+							value: message.message
+						});
+
+						validation_error_data.push({
+							id: dep.inputs[i],
+							prop: "loading_status",
+							value: { validation_error: message.message }
+						});
+					});
+
+					if (validation_error_data.length > 0) {
+						update_value(validation_error_data);
+						loading_status.update({
+							status: "complete",
+							fn_index: message.fn_index,
+							eta: 0,
+							queue: false,
+							queue_position: null
+						});
+						set_status($loading_status);
+
+						return;
+					}
+				}
 				if (message.broken && !broken_connection) {
 					messages = [
 						new_message(
@@ -729,7 +789,7 @@
 					!broken_connection &&
 					!message.session_not_found
 				) {
-					if (status.message) {
+					if (status.message && typeof status.message === "string") {
 						const _message = status.message.replace(
 							MESSAGE_QUOTE_RE,
 							(_, b) => b
@@ -814,6 +874,11 @@
 		target.addEventListener("prop_change", (e: Event) => {
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
 			const { id, prop, value } = e.detail;
+			if (prop === "value") {
+				update_value([
+					{ id, prop: "loading_status", value: { validation_error: undefined } }
+				]);
+			}
 			update_value([{ id, prop, value }]);
 			if (prop === "input_ready" && value === false) {
 				inputs_waiting.push(id);
@@ -990,6 +1055,40 @@
 			screen_recorder.startRecording();
 		}
 	}
+
+	let footer_height = 0;
+
+	let root_container: HTMLElement;
+	$: root_node = $_layout && get_root_node(root_container);
+
+	function get_root_node(container: HTMLElement | null): HTMLElement | null {
+		if (!container) return null;
+		return container.children[container.children.length - 1] as HTMLElement;
+	}
+
+	onMount(() => {
+		if ("parentIFrame" in window) {
+			window.parentIFrame?.autoResize(false);
+		}
+
+		const mut = new MutationObserver((mutations) => {
+			if ("parentIFrame" in window) {
+				const box = root_node?.getBoundingClientRect();
+				if (!box) return;
+				window.parentIFrame?.size(box.bottom + footer_height + 32);
+			}
+		});
+
+		mut.observe(root_container, {
+			childList: true,
+			subtree: true,
+			attributes: true
+		});
+
+		return () => {
+			mut.disconnect();
+		};
+	});
 </script>
 
 <svelte:head>
@@ -1005,6 +1104,7 @@
 	<div
 		class="contain"
 		style:flex-grow={app_mode ? "1" : "auto"}
+		bind:this={root_container}
 		style:margin-right={vibe_mode ? `${vibe_editor_width}px` : "0"}
 	>
 		{#if $_layout && app.config}
@@ -1023,7 +1123,7 @@
 	</div>
 
 	{#if show_footer}
-		<footer>
+		<footer bind:clientHeight={footer_height}>
 			{#if show_api}
 				<button
 					on:click={() => {

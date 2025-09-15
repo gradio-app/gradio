@@ -1,6 +1,6 @@
 {
 	"name": "@self/spa",
-	"version": "0.10.3",
+	"version": "0.11.0",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -17,7 +17,6 @@
 		"@gradio/client": "workspace:^",
 		"@gradio/core": "workspace:^",
 		"@gradio/theme": "workspace:^",
-		"@gradio/wasm": "workspace:^",
 		"@huggingface/space-header": "^1.0.4",
 		"@self/build": "workspace:^",
 		"@types/eventsource": "^1.1.15",
@@ -30,10 +29,17 @@
 		"svelte": "^4.0.0"
 	},
 	"main_changeset": true,
-	"main": "./src/Index.svelte",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/gradio-app/gradio.git",
 		"directory": "js/spa"
+	},
+	"exports": {
+		".": "./src/Index.svelte",
+		"./webcomponent": {
+			"gradio": "./src/main.ts",
+			"import": "./src/main.ts",
+			"default": "./src/main.ts"
+		}
 	}
 }

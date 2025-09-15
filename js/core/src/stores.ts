@@ -18,6 +18,7 @@ export interface LoadingStatus {
 		unit: string | null;
 		desc: string | null;
 	}[];
+	validation_error?: string | null;
 }
 
 export type LoadingStatusCollection = Record<number, LoadingStatus>;
@@ -28,6 +29,10 @@ interface LoadingStatusStore {
 	register: (index: number, inputs: number[], outputs: number[]) => void;
 	get_status_for_fn: (i: number) => LoadingStatus["status"];
 	get_inputs_to_update: () => Map<number, string>;
+	update_component_status: (
+		index: number,
+		status: Partial<LoadingStatus>
+	) => void;
 }
 
 export function create_loading_status_store(): LoadingStatusStore {
@@ -152,8 +157,22 @@ export function create_loading_status_store(): LoadingStatusStore {
 		fn_outputs[index] = outputs;
 	}
 
+	function update_component_status(
+		index: number,
+		status: Partial<LoadingStatus>
+	): void {
+		store.update((outputs: LoadingStatusCollection) => {
+			outputs[index] = {
+				...outputs[index],
+				...status
+			};
+			return outputs;
+		});
+	}
+
 	return {
 		update,
+		update_component_status,
 		register,
 		subscribe: store.subscribe,
 		get_status_for_fn(i: number) {

@@ -101,6 +101,20 @@ $code_blocks_sidebar
 
 Learn more about [Sidebar](https://gradio.app/docs/gradio/sidebar) in the docs.
 
+
+## Multi-step walkthroughs
+
+In order to provide a guided set of ordered steps, a controlled workflow, you can use the `Walkthrough` component with accompanying `Step` components.
+
+The `Walkthrough` component has a visual style and user experience tailored for this usecase.
+
+Authoring this component is very similar to `Tab`, except it is the app developers responsibility to progress through each step, by setting the appropriate ID for the parent `Walkthrough` which should correspond to an ID provided to an indvidual `Step`. 
+
+$demo_walkthrough
+
+Learn more about [Walkthrough](https://gradio.app/docs/gradio/walkthrough) in the docs.
+
+
 ## Visibility
 
 Both Components and Layout elements have a `visible` argument that can set initially and also updated. Setting `gr.Column(visible=...)` on a Column can be used to show or hide a set of Components.
@@ -143,3 +157,4 @@ with gr.Blocks() as demo:
 
 demo.launch()
 ```
+

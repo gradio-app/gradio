@@ -1,6 +1,5 @@
 import importlib.resources
 import json
-import os
 import tempfile
 from copy import deepcopy
 from enum import Enum
@@ -10,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
-from huggingface_hub import HfFolder
+from huggingface_hub import get_token
 
 from gradio_client import media_data, utils
 
@@ -21,7 +20,7 @@ types["MultipleFile"] = {
 }
 types["SingleFile"] = {"type": "string", "description": "filepath or URL to file"}
 types["FileWithAdditionalProperties"] = {"type": "object", "additionalProperties": True}
-HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
+HF_TOKEN = get_token()
 
 
 class TestEnum(Enum):

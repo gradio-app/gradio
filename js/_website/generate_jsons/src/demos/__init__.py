@@ -6,7 +6,6 @@ HERE = Path(__file__).parent
 WEBSITE_DIR = HERE.joinpath("../../..").resolve()
 PROJECT_ROOT = WEBSITE_DIR.joinpath("../..").resolve()
 GRADIO_DEMO_DIR = PROJECT_ROOT / "demo"
-LITE_DEMO_DIR = PROJECT_ROOT / "js/lite/examples"
 
 
 def get_code_description_and_reqs(demo_dir):
@@ -16,14 +15,14 @@ def get_code_description_and_reqs(demo_dir):
     description = ""
     description_path = demo_dir.joinpath("DESCRIPTION.md")
     if description_path.exists():
-      with description_path.open() as f:
-        description = f.read()
+        with description_path.open() as f:
+            description = f.read()
 
     requirements = []
     requirements_path = demo_dir.joinpath("requirements.txt")
     if requirements_path.exists():
-      with requirements_path.open() as f:
-        requirements = [line.strip() for line in f.read().strip().split("\n")]
+        with requirements_path.open() as f:
+            requirements = [line.strip() for line in f.read().strip().split("\n")]
 
     return code, description, requirements
 
@@ -48,9 +47,7 @@ demos_by_category = [
                 "name": "Diff Texts",
                 "dir": "diff_texts",
             },
-
-
-        ]
+        ],
     },
     {
         "category": "Media",
@@ -71,23 +68,14 @@ demos_by_category = [
                 "name": "Generate Tone",
                 "dir": "generate_tone",
             },
-        ]
+        ],
     },
     {
         "category": "Tabular",
         "demos": [
-            {
-                "name": "Filter Records",
-                "dir": "filter_records"
-            },
-            {
-                "name": "Transpose Matrix",
-                "dir": "matrix_transpose"
-            },
-            {
-                "name": "Tax Calculator",
-                "dir": "tax_calculator"
-            },
+            {"name": "Filter Records", "dir": "filter_records"},
+            {"name": "Transpose Matrix", "dir": "matrix_transpose"},
+            {"name": "Tax Calculator", "dir": "tax_calculator"},
             {
                 "name": "Kinematics",
                 "dir": "blocks_kinematics",
@@ -96,7 +84,7 @@ demos_by_category = [
                 "name": "Stock Forecast",
                 "dir": "stock_forecast",
             },
-        ]
+        ],
     },
     {
         "category": "Chatbots",
@@ -117,7 +105,7 @@ demos_by_category = [
                 "name": "Chatinterface with Code",
                 "dir": "chatinterface_artifacts",
             },
-        ]
+        ],
     },
     {
         "category": "Other",
@@ -141,26 +129,15 @@ demos_by_category = [
             {
                 "name": "Change Listener",
                 "dir": "blocks_hello",
-            }
-        ]
+            },
+        ],
     },
-    {
-        "category": "Transformers",
-        "demos": [
-            {
-                "name": "Basic",
-                "dir": "transformers_basic",
-                "lite": True,
-            }
-        ]
-    }
 ]
 
 
 for category in demos_by_category:
     for demo in category["demos"]:
-        is_lite = demo.get("lite", False)
-        base_dir = LITE_DEMO_DIR if is_lite else GRADIO_DEMO_DIR
+        base_dir = GRADIO_DEMO_DIR
         demo_dir = base_dir / demo["dir"]
 
         code, description, requirements = get_code_description_and_reqs(demo_dir)
@@ -170,7 +147,7 @@ for category in demos_by_category:
 
 
 def generate(json_path):
-    with open(json_path, 'w+') as f:
+    with open(json_path, "w+") as f:
         json.dump(demos_by_category, f)
 
 

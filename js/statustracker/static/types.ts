@@ -16,6 +16,7 @@ export interface LoadingStatus {
 		desc: string | null;
 	}[];
 	time_limit?: number | null;
+	validation_error?: string | null;
 }
 
 export interface ToastMessage {

@@ -5,9 +5,6 @@ inputs:
   skip_build:
     description: "Skip build"
     default: "false"
-  build_lite:
-    description: "Build lite"
-    default: "false"
 
 runs:
   using: "composite"
@@ -19,13 +16,6 @@ runs:
         path: |
           gradio/templates/**
         key: gradio-lib-front-end-${{ hashFiles('js/**', 'client/js/**')}}
-    - uses: actions/cache@v4
-      id: frontend-lite-cache
-      if: inputs.build_lite == 'true'
-      with:
-        path: |
-          js/lite/dist/**
-        key: gradio-lib-front-end-lite-${{ hashFiles('js/**', 'client/js/**', 'gradio/**', 'requirements.txt')}}
     - name: Install pnpm
       uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # @v4
       with:
@@ -45,10 +35,3 @@ runs:
       if: inputs.skip_build == 'false' && steps.frontend-core-cache.outputs.cache-hit != 'true'
       shell: bash
       run: pnpm build
-    - name: Build frontend lite
-      if: inputs.build_lite == 'true' && steps.frontend-lite-cache.outputs.cache-hit != 'true'
-      shell: bash
-      run: |
-        . ${{ env.VENV_ACTIVATE }}
-        uv pip install -U --prerelease allow build hatch virtualenv pyodide-build==0.30.5 packaging
-        pnpm build:lite
