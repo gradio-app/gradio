@@ -13,5 +13,6 @@ permissions: {}
 jobs:
   changeset:
     runs-on: ubuntu-22.04
+    if: github.event.sender.login != 'gradio-pr-bot'
     steps:
       - run: echo "Requesting changeset"
