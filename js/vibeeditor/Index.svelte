@@ -298,9 +298,9 @@
 			Powered by: <a
 				style="text-decoration: underline;"
 				href={hasImages
-					? "https://hf.co/baidu/ERNIE-4.5-VL-424B-A47B-Base-PT"
+					? "https://hf.co/zai-org/GLM-4.5V"
 					: "https://hf.co/openai/gpt-oss-120b"}
-				target="_blank">{hasImages ? "ERNIE-4.5-VL" : "gpt-oss"}</a
+				target="_blank">{hasImages ? "GLM-4.5V" : "gpt-oss"}</a
 			>
 		</div>
 		<BaseMultimodalTextbox

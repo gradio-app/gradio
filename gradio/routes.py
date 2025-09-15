@@ -1997,8 +1997,8 @@ class App(FastAPI):
             has_images = len(body.files) > 0
 
             if has_images:
-                # Use ERNIE model for image processing
-                model = "baidu/ERNIE-4.5-VL-424B-A47B-Base-PT"
+                # Use GLM-4.5V model for image processing
+                model = "zai-org/GLM-4.5V"
 
                 image_messages = []
                 for file in body.files:
@@ -2056,7 +2056,7 @@ Prompt:
                 client.chat_completion(
                     model=model,
                     messages=messages,
-                    max_tokens=1000,
+                    max_tokens=3000,
                 )
                 .choices[0]
                 .message.content
