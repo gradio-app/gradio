@@ -13,8 +13,9 @@ from gradio.events import Events
 @document()
 class Navbar(Component):
     """
-    Creates a navigation bar component for multipage Gradio apps. The navbar allows customization
-    of visibility and the home page title. Only one Navbar component can exist per Blocks app.
+    Creates a navigation bar component for multipage Gradio apps. The navbar component allows customizing the
+    appearance of the navbar for that page. Only one Navbar component can exist per page in a Blocks app,
+    and it can be placed anywhere within the page.
 
     The Navbar component is designed to control the appearance of the navigation bar in multipage
     applications. When present in a Blocks app, its properties override the default navbar behavior.

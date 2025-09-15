@@ -44,6 +44,7 @@ class ParamViewer(Component):
         preserved_by_key: list[str] | str | None = "value",
         header: str | None = "Parameters",
         anchor_links: bool | str = False,
+        max_height: int | str | None = None,
     ):
         """
         Parameters:
@@ -57,12 +58,14 @@ class ParamViewer(Component):
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             header: The header to display above the table of parameters, also includes a toggle button that closes/opens all details at once. If None, no header will be displayed.
             anchor_links: If True, creates anchor links for each parameter that can be used to link directly to that parameter. If a string, creates anchor links with the given string as the prefix to prevent conflicts with other ParamViewer components.
+            max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If content exceeds the height, the parameter table will scroll vertically while the header remains fixed in place. If content is shorter than the height, the component will shrink to fit the content.
         """
         self.value = value or {}
         self.language = language
         self.linkify = linkify
         self.header = header
         self.anchor_links = anchor_links
+        self.max_height = max_height
         super().__init__(
             every=every,
             inputs=inputs,
