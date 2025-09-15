@@ -248,11 +248,7 @@
 									<div class="message-files">
 										{#each message.files as file}
 											{#if file.mime_type && file.mime_type.includes("image")}
-												<img
-													src={file.url}
-													alt=""
-													class="message-image"
-												/>
+												<img src={file.url} alt="" class="message-image" />
 											{/if}
 										{/each}
 									</div>
