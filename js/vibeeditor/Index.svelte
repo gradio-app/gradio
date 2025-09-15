@@ -250,7 +250,7 @@
 											{#if file.mime_type && file.mime_type.includes("image")}
 												<img
 													src={file.url}
-													alt="Uploaded image"
+													alt=""
 													class="message-image"
 												/>
 											{/if}
