@@ -63,7 +63,7 @@ from starlette.datastructures import UploadFile as StarletteUploadFile
 from starlette.responses import RedirectResponse
 
 import gradio
-from gradio import ranged_response, route_utils, utils, wasm_utils
+from gradio import ranged_response, route_utils, utils
 from gradio.brotli_middleware import BrotliMiddleware
 from gradio.context import Context
 from gradio.data_classes import (
@@ -408,13 +408,12 @@ class App(FastAPI):
 
         app.configure_app(blocks)
 
-        if not wasm_utils.IS_WASM:
-            app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
-            app.add_middleware(
-                BrotliMiddleware,
-                quality=4,
-                excluded_handlers=[mcp_subpath],
-            )
+        app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
+        app.add_middleware(
+            BrotliMiddleware,
+            quality=4,
+            excluded_handlers=[mcp_subpath],
+        )
 
         if ssr_mode:
 
@@ -569,7 +568,11 @@ class App(FastAPI):
         else:
 
             @app.get("/logout")
-            def logout(request: fastapi.Request, user: str = Depends(get_current_user)):
+            def logout(
+                request: fastapi.Request,
+                user: str = Depends(get_current_user),
+                all_session: bool = True,
+            ):
                 root = route_utils.get_root_url(
                     request=request,
                     route_path="/logout",
@@ -580,10 +583,14 @@ class App(FastAPI):
                 response.delete_cookie(
                     key=f"access-token-unsecure-{app.cookie_id}", path="/"
                 )
-                # A user may have multiple tokens, so we need to delete all of them.
-                for token in list(app.tokens.keys()):
-                    if app.tokens[token] == user:
-                        del app.tokens[token]
+                if all_session:
+                    # Delete the tokens of all sessions associated with the current user.
+                    for token in list(app.tokens.keys()):
+                        if app.tokens[token] == user:
+                            del app.tokens[token]
+                # Delete only the token associated with the current session.
+                elif request.cookies.get(f"access-token-{app.cookie_id}") in app.tokens:
+                    del app.tokens[request.cookies.get(f"access-token-{app.cookie_id}")]
                 return response
 
         ###############
@@ -1341,15 +1348,18 @@ class App(FastAPI):
                     detail="Queue is stopped.",
                 )
             body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
-            success, event_id = await blocks._queue.push(
+            success, event_id, state = await blocks._queue.push(
                 body=body, request=request, username=username
             )
+            error_map = {
+                "queue_full": status.HTTP_503_SERVICE_UNAVAILABLE,
+                "validator_error": status.HTTP_422_UNPROCESSABLE_ENTITY,
+                "error": status.HTTP_400_BAD_REQUEST,
+                "success": status.HTTP_200_OK,
+            }
+
             if not success:
-                status_code = (
-                    status.HTTP_503_SERVICE_UNAVAILABLE
-                    if "Queue is full." in event_id
-                    else status.HTTP_400_BAD_REQUEST
-                )
+                status_code = error_map[state]
                 raise HTTPException(status_code=status_code, detail=event_id)
             return {"event_id": event_id}
 
@@ -1835,6 +1845,10 @@ class App(FastAPI):
             print(f"* Monitoring URL: {monitoring_url} *")
             return HTMLResponse("See console for monitoring URL.")
 
+        @app.get("/monitoring/summary")
+        async def _():
+            return app.get_blocks()._queue.cached_event_analytics_summary
+
         @app.get("/monitoring/{key}")
         async def analytics_dashboard(key: str):
             if not blocks.enable_monitoring:
@@ -1919,7 +1933,7 @@ class App(FastAPI):
                 shutil.copyfileobj(video_file.file, input_file)
                 input_path = input_file.name
 
-            if wasm_utils.IS_WASM or shutil.which("ffmpeg") is None:
+            if shutil.which("ffmpeg") is None:
                 return FileResponse(
                     input_path,
                     media_type="video/mp4",
@@ -2358,19 +2372,13 @@ def mount_gradio_app(
         blocks.root_path = root_path
 
     blocks.ssr_mode = (
-        False
-        if wasm_utils.IS_WASM
-        else (
-            ssr_mode
-            if ssr_mode is not None
-            else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
-        )
+        ssr_mode
+        if ssr_mode is not None
+        else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
     )
 
     if blocks.ssr_mode:
-        blocks.node_path = os.environ.get(
-            "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
-        )
+        blocks.node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
 
         blocks.node_server_name = node_server_name
         blocks.node_port = node_port

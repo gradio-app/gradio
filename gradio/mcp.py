@@ -290,9 +290,10 @@ class GradioMCPServer:
             request_headers.pop("content-length", None)
             step = 0
             output = {"data": []}
-            async for update in client.submit(
+            job = client.submit(
                 *processed_args, api_name=endpoint_name, headers=request_headers
-            ):
+            )
+            async for update in job:
                 if update.type == "status" and progress_token is not None:
                     update = cast(StatusUpdate, update)
 
@@ -347,6 +348,8 @@ class GradioMCPServer:
                             msg = "Error!"
                         # Need to raise an error so that call_tool returns an error payload
                         raise RuntimeError(msg)
+            if job.exception():
+                raise job.exception()
             processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
             route_path = self.get_route_path(context_request)
             root_url = route_utils.get_root_url(
@@ -836,7 +839,11 @@ class GradioMCPServer:
             if hasattr(block_fn.fn, "_mcp_type"):
                 mcp_type = block_fn.fn._mcp_type
 
-            meta = {"file_data_present": file_data_present, "mcp_type": mcp_type}
+            meta = {
+                "file_data_present": file_data_present,
+                "mcp_type": mcp_type,
+                "endpoint_name": block_fn.api_name,
+            }
             if required_headers:
                 meta["headers"] = required_headers
 

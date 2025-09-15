@@ -1,5 +1,21 @@
 # @self/spa
 
+## 0.11.0
+
+### Features
+
+- [#11833](https://github.com/gradio-app/gradio/pull/11833) [`a446fcb`](https://github.com/gradio-app/gradio/commit/a446fcba6f3fe59c32194beb7f27fb6f80b61347) - Add gr.Navbar component for multipage apps.  Thanks @abidlabs!
+
+### Fixes
+
+- [#11749](https://github.com/gradio-app/gradio/pull/11749) [`70f4532`](https://github.com/gradio-app/gradio/commit/70f4532a4dc7576dbdbe1d0a43a05644a0dfcf43) - fix various iFrame related UI issues when deploying to spaces.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/core@0.28.0
+- @gradio/client@1.18.0
+- @self/build@0.3.0
+
 ## 0.10.3
 
 ### Dependency updates

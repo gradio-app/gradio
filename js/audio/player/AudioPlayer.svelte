@@ -6,14 +6,14 @@
 	import { skip_audio, process_audio } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import { Empty } from "@gradio/atoms";
-	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 	import type { FileData } from "@gradio/client";
-	import type { WaveformOptions } from "../shared/types";
+	import type { WaveformOptions, SubtitleData } from "../shared/types";
 	import { createEventDispatcher } from "svelte";
 
 	import Hls from "hls.js";
 
 	export let value: null | FileData = null;
+	export let subtitles: null | string | SubtitleData[] = null;
 	$: url = value?.url;
 	export let label: string;
 	export let i18n: I18nFormatter;
@@ -34,6 +34,8 @@
 	let waveform: WaveSurfer | undefined;
 	let playing = false;
 
+	let subtitle_container: HTMLDivElement;
+
 	let timeRef: HTMLTimeElement;
 	let durationRef: HTMLTimeElement;
 	let audio_duration: number;
@@ -44,6 +46,8 @@
 	let audio_player: HTMLAudioElement;
 
 	let stream_active = false;
+	let subtitles_toggle = true;
+	let subtitle_event_handlers: (() => void)[] = [];
 
 	const dispatch = createEventDispatcher<{
 		stop: undefined;
@@ -62,10 +66,57 @@
 			container: container,
 			...waveform_settings
 		});
-		resolve_wasm_src(value?.url).then((resolved_src) => {
-			if (resolved_src && waveform) {
-				return waveform.load(resolved_src);
+
+		if (subtitles && waveform) {
+			if (subtitles_toggle) {
+				add_subtitles_to_waveform(waveform, subtitles);
+			} else {
+				hide_subtitles();
 			}
+		}
+
+		if (value?.url && waveform) {
+			waveform.load(value?.url);
+		}
+
+		waveform?.on("decode", (duration: any) => {
+			audio_duration = duration;
+			durationRef && (durationRef.textContent = format_time(duration));
+		});
+
+		waveform?.on(
+			"timeupdate",
+			(currentTime: any) =>
+				timeRef && (timeRef.textContent = format_time(currentTime))
+		);
+
+		waveform?.on("ready", () => {
+			if (!waveform_settings.autoplay) {
+				waveform?.stop();
+			} else {
+				waveform?.play();
+			}
+		});
+
+		waveform?.on("finish", () => {
+			if (loop) {
+				waveform?.play();
+			} else {
+				playing = false;
+				dispatch("stop");
+			}
+		});
+		waveform?.on("pause", () => {
+			playing = false;
+			dispatch("pause");
+		});
+		waveform?.on("play", () => {
+			playing = true;
+			dispatch("play");
+		});
+
+		waveform?.on("load", () => {
+			dispatch("load");
 		});
 	};
 
@@ -75,46 +126,6 @@
 		create_waveform();
 		playing = false;
 	}
-
-	$: waveform?.on("decode", (duration: any) => {
-		audio_duration = duration;
-		durationRef && (durationRef.textContent = format_time(duration));
-	});
-
-	$: waveform?.on(
-		"timeupdate",
-		(currentTime: any) =>
-			timeRef && (timeRef.textContent = format_time(currentTime))
-	);
-
-	$: waveform?.on("ready", () => {
-		if (!waveform_settings.autoplay) {
-			waveform?.stop();
-		} else {
-			waveform?.play();
-		}
-	});
-
-	$: waveform?.on("finish", () => {
-		if (loop) {
-			waveform?.play();
-		} else {
-			playing = false;
-			dispatch("stop");
-		}
-	});
-	$: waveform?.on("pause", () => {
-		playing = false;
-		dispatch("pause");
-	});
-	$: waveform?.on("play", () => {
-		playing = true;
-		dispatch("play");
-	});
-
-	$: waveform?.on("load", () => {
-		dispatch("load");
-	});
 
 	const handle_trim_audio = async (
 		start: number,
@@ -138,17 +149,23 @@
 
 	async function load_audio(data: string): Promise<void> {
 		stream_active = false;
-		await resolve_wasm_src(data).then((resolved_src) => {
-			if (!resolved_src || value?.is_stream) return;
-			if (waveform_options.show_recording_waveform) {
-				waveform?.load(resolved_src);
-			} else if (audio_player) {
-				audio_player.src = resolved_src;
-			}
-		});
+
+		if (waveform_options.show_recording_waveform) {
+			waveform?.load(data);
+		} else if (audio_player) {
+			audio_player.src = data;
+		}
 	}
 
 	$: url && load_audio(url);
+
+	$: if (subtitles && waveform) {
+		if (subtitles_toggle) {
+			add_subtitles_to_waveform(waveform, subtitles);
+		} else {
+			hide_subtitles();
+		}
+	}
 
 	function load_stream(value: FileData | null): void {
 		if (!value || !value.is_stream || !value.url) return;
@@ -208,6 +225,97 @@
 			}
 		});
 	});
+
+	async function add_subtitles_to_waveform(
+		wavesurfer: WaveSurfer,
+		subtitle_data: string | SubtitleData[]
+	): Promise<void> {
+		clear_subtitles();
+		try {
+			let subtitles: SubtitleData[];
+			if (Array.isArray(subtitle_data)) {
+				subtitles = subtitle_data;
+			} else {
+				const response = await fetch(subtitle_data);
+				const subtitle_content = await response.text();
+				subtitles = parse_subtitles(subtitle_content);
+			}
+
+			if (subtitles.length > 0) {
+				let current_subtitle = "";
+				if (subtitle_container) {
+					subtitle_container.style.display = "";
+					const audioProcessHandler = (time: number): void => {
+						const subtitle = subtitles.find(
+							(s) => time >= s.start && time <= s.end
+						);
+						if (subtitle && subtitle.text !== current_subtitle) {
+							current_subtitle = subtitle.text;
+							subtitle_container.textContent = current_subtitle;
+						} else if (!subtitle && current_subtitle !== "") {
+							current_subtitle = "";
+							subtitle_container.textContent = "";
+						}
+					};
+					wavesurfer.on("audioprocess", audioProcessHandler);
+					subtitle_event_handlers.push(() => {
+						wavesurfer.un("audioprocess", audioProcessHandler);
+					});
+				}
+			}
+		} catch (error) {}
+	}
+
+	function hide_subtitles(): void {
+		if (subtitle_container) {
+			subtitle_container.style.display = "none";
+		}
+	}
+
+	function clear_subtitles(): void {
+		if (subtitle_container) {
+			subtitle_container.textContent = "";
+		}
+		subtitle_event_handlers.forEach((handler) => handler());
+		subtitle_event_handlers = [];
+	}
+
+	function parse_subtitles(subtitle_content: string): SubtitleData[] {
+		const lines = subtitle_content.split("\n");
+		const subtitles: SubtitleData[] = [];
+
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i].trim();
+			if (line.includes(" --> ")) {
+				const [start_time, end_time] = line.split(" --> ");
+				const start = parse_time_to_seconds(start_time);
+				const end = parse_time_to_seconds(end_time);
+
+				let text = "";
+				for (let j = i + 1; j < lines.length && lines[j].trim() !== ""; j++) {
+					if (text) text += " ";
+					text += lines[j].trim();
+				}
+
+				if (text) {
+					subtitles.push({ start, end, text });
+				}
+			}
+		}
+
+		return subtitles;
+	}
+
+	function parse_time_to_seconds(time_str: string): number {
+		const parts = time_str.split(":");
+		if (parts.length === 3) {
+			const hours = parseInt(parts[0]);
+			const minutes = parseInt(parts[1]);
+			const seconds = parseFloat(parts[2]);
+			return hours * 3600 + minutes * 60 + seconds;
+		}
+		return 0;
+	}
 </script>
 
 <audio
@@ -219,6 +327,7 @@
 	bind:this={audio_player}
 	on:ended={() => dispatch("stop")}
 	on:play={() => dispatch("play")}
+	preload="metadata"
 />
 {#if value === null}
 	<Empty size="small">
@@ -247,6 +356,12 @@
 			</div>
 		</div>
 
+		<div
+			bind:this={subtitle_container}
+			class="subtitle-display"
+			data-testid="subtitle-display"
+		></div>
+
 		<WaveformControls
 			{container}
 			{waveform}
@@ -258,11 +373,13 @@
 			bind:mode
 			bind:trimDuration
 			bind:show_volume_slider
+			bind:subtitles_toggle
 			show_redo={interactive}
 			{handle_reset_value}
 			{waveform_options}
 			{trim_region_settings}
 			{editable}
+			show_subtitles={subtitles !== null}
 		/>
 	</div>
 {/if}
@@ -315,7 +432,23 @@
 		padding: var(--size-2);
 	}
 
-	.hidden {
+	.subtitle-display {
+		color: var(--text-secondary);
+		font-size: var(--text-lg);
+		text-align: center;
+		max-width: 600px;
+		line-height: 1.3;
+		min-height: var(--size-4);
+		font-family: var(--font-sans);
+		font-weight: normal;
+		margin: var(--size-2) auto;
+		padding: var(--size-1) var(--size-2);
+		border-radius: 2px;
+		transition: opacity 0.2s ease-in-out;
+	}
+
+	.hidden,
+	.subtitle-display:empty {
 		display: none;
 	}
 </style>

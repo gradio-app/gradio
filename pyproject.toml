@@ -78,14 +78,6 @@ artifacts = [
   "/gradio/py.typed",
 ]
 
-[tool.hatch.build.targets.lite]
-artifacts = ["!gradio/templates", "!*.pyi", "!/gradio/test_data", "!/gradio/_frontend_code", "!/gradio/node"]
-directory = "dist-lite"
-dependencies = ["lite-builder @ {root:uri}/../.config/lite-builder"]
-
-[tool.hatch.build.targets.lite.hooks.custom]
-path = ".config/pycompile-lite-wheel.py"
-
 [tool.hatch.build.targets.wheel.hooks.custom]
 path = ".config/copy_frontend.py"
 
@@ -105,18 +97,14 @@ include = [
 environment.extra-paths = ["gradio/stubs"]
 
 [tool.ty.src]
-include = [
-  "gradio/**/*.py",
-  "demo/**/*.py",
-  "test/**/*.py",
-]
+include = ["gradio/**/*.py", "demo/**/*.py", "test/**/*.py"]
 exclude = [
   "gradio/themes/",
   "gradio/_frontend_code/",
   "gradio/components/*_plot.py",
   "gradio/node/*.py",
   "gradio/_frontend_code/*.py",
-  "gradio/cli/commands/cli_env_info.py"
+  "gradio/cli/commands/cli_env_info.py",
 ]
 
 [tool.ruff]
@@ -175,7 +163,7 @@ ignore = [
 ]
 "gradio/cli/commands/files/NoTemplateComponent.py" = ["ALL"]
 "client/python/gradio_client/serializing.py" = [
-  "ARG",  # contains backward compatibility code, so args need to be named as such
+  "ARG", # contains backward compatibility code, so args need to be named as such
 ]
 "client/python/test/*" = [
   "ARG",
@@ -186,9 +174,12 @@ ignore = [
   "S101", # tests may use assertions
 ]
 "client/python/test/test_client.py" = [
-  "PLW0603" # using global to keep track of server progress
+  "PLW0603", # using global to keep track of server progress
 ]
 
 [tool.pytest.ini_options]
 GRADIO_ANALYTICS_ENABLED = "False"
-filterwarnings = ["ignore::UserWarning:gradio.*:", "ignore::DeprecationWarning:gradio.*:"]
+filterwarnings = [
+  "ignore::UserWarning:gradio.*:",
+  "ignore::DeprecationWarning:gradio.*:",
+]
