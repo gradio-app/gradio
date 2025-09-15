@@ -2377,19 +2377,19 @@ Received inputs:
                     )
 
     def validate_navbar_settings(self):
-        """Validates that only one Navbar component exists in the Blocks app."""
+        """Validates that only one Navbar component exists per page."""
         from gradio.components.navbar import Navbar
 
-        navbar_components = [
-            block for block in self.blocks.values() if isinstance(block, Navbar)
-        ]
-
-        if len(navbar_components) > 1:
-            raise ValueError(
-                "Only one gr.Navbar component can exist per Blocks app. "
-                f"Found {len(navbar_components)} Navbar components. "
-                "Please remove the extra Navbar components."
-            )
+        navbar_pages = set()
+        for block in self.blocks.values():
+            if isinstance(block, Navbar):
+                if block.page in navbar_pages:
+                    raise ValueError(
+                        f"Only one gr.Navbar component can exist per page. "
+                        f"Found multiple Navbar components on page '{block.page or 'Home'}'. "
+                        "Please remove the extra Navbar components."
+                    )
+                navbar_pages.add(block.page)
 
     def launch(
         self,
