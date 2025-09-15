@@ -1,6 +1,6 @@
 ---
-"@gradio/core": minor
-"gradio": minor
+"@gradio/core": patch
+"gradio": patch
 ---
 
-feat:enhanced_the_arabic_translation
+fix:enhanced_the_arabic_translation
