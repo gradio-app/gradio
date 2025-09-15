@@ -1,10 +1,10 @@
 {
   "mode": "pre",
-  "tag": "6.0.rc1",
+  "tag": "dev",
   "initialVersions": {
-    "@gradio/client": "1.18.0",
-    "gradio_client": "1.13.0",
-    "gradio": "5.45.0",
+    "@gradio/client": "2.0.0",
+    "gradio_client": "2.0.0",
+    "gradio": "6.0.0",
     "@self/cdn-test": "0.0.1",
     "@self/spaces-test": "0.0.1",
     "website": "0.62.1",
