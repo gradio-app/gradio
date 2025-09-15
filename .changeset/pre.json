@@ -83,5 +83,12 @@
     "@gradio/vibeeditor": "0.2.3",
     "@gradio/video": "0.15.1"
   },
-  "changesets": []
+  "changesets": [
+    "blue-carrots-pull",
+    "common-dogs-glow",
+    "fuzzy-spies-unite",
+    "many-foxes-write",
+    "nasty-phones-try",
+    "smart-moose-find"
+  ]
 }

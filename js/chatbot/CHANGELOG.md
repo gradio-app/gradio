@@ -1,5 +1,22 @@
 # @gradio/chatbot
 
+## 0.27.0-dev.0
+
+### Features
+
+- [#11858](https://github.com/gradio-app/gradio/pull/11858) [`3f8ea13`](https://github.com/gradio-app/gradio/commit/3f8ea13a8ca92abf0ad34392e403a449fda3c6c2) - remove lite.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.1-dev.0
+- @gradio/atoms@0.18.0-dev.0
+- @gradio/client@1.19.0-dev.0
+- @gradio/upload@0.17.0-dev.0
+- @gradio/gallery@0.15.33-dev.0
+- @gradio/plot@0.9.24-dev.0
+- @gradio/image@0.23.0-dev.0
+- @gradio/video@0.16.0-dev.0
+
 ## 0.26.24
 
 ### Fixes
