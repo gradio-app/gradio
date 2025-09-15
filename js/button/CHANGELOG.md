@@ -1,5 +1,13 @@
 # @gradio/button
 
+## 0.5.13-dev.0
+
+### Dependency updates
+
+- @gradio/client@1.19.0-dev.0
+- @gradio/upload@0.17.0-dev.0
+- @gradio/image@0.23.0-dev.0
+
 ## 0.5.12
 
 ### Features

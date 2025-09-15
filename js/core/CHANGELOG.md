@@ -1,5 +1,31 @@
 # @gradio/core
 
+## 0.29.0-dev.0
+
+### Features
+
+- [#11894](https://github.com/gradio-app/gradio/pull/11894) [`cf10724`](https://github.com/gradio-app/gradio/commit/cf107246c104f3d8be1adf7a4c3d85558a0a5497) - Remove additional indentation in python API docs.  Thanks @freddyaboulton!
+- [#11858](https://github.com/gradio-app/gradio/pull/11858) [`3f8ea13`](https://github.com/gradio-app/gradio/commit/3f8ea13a8ca92abf0ad34392e403a449fda3c6c2) - remove lite.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.1-dev.0
+- @gradio/atoms@0.18.0-dev.0
+- @gradio/checkbox@0.4.30-dev.0
+- @gradio/client@1.19.0-dev.0
+- @gradio/upload@0.17.0-dev.0
+- @gradio/button@0.5.13-dev.0
+- @gradio/gallery@0.15.33-dev.0
+- @gradio/plot@0.9.24-dev.0
+- @gradio/image@0.23.0-dev.0
+- @gradio/code@0.15.0-dev.0
+- @gradio/paramviewer@0.7.17-dev.0
+- @gradio/column@0.2.1
+- @gradio/textbox@0.11.1-dev.0
+- @gradio/dropdown@0.10.4-dev.0
+- @gradio/file@0.13.0-dev.0
+- @gradio/video@0.16.0-dev.0
+
 ## 0.28.0
 
 ### Features

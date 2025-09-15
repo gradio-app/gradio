@@ -1,5 +1,12 @@
 # @gradio/radio
 
+## 0.7.12-dev.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.1-dev.0
+- @gradio/atoms@0.18.0-dev.0
+
 ## 0.7.11
 
 ### Fixes

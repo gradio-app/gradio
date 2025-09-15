@@ -2,6 +2,12 @@
 
 ## 0.6.0
 
+### Dependency updates
+
+- @gradio/column@0.2.1
+
+## 0.6.0
+
 ### Features
 
 - [#11783](https://github.com/gradio-app/gradio/pull/11783) [`f407daf`](https://github.com/gradio-app/gradio/commit/f407daf8046f37e042ab8b86730ff0ab8d174bcf) - Add Walkthrough and Step compoents to facilitate multi-step workflows.  Thanks @pngwn!
