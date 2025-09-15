@@ -1,8 +1,8 @@
 import sys
 
-import typer
 from gradio_client.cli import deploy_discord  # type: ignore
 from rich.console import Console
+import typer
 
 from gradio import analytics
 
