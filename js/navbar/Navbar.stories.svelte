@@ -7,7 +7,7 @@
 	const pages = /** @type {[string, string, boolean][]} */ ([
 		["", "Home", true],
 		["page1", "Page 1", true],
-		["page2", "Page 2", true],
+		["page2", "Page 2", false],
 		["settings", "Settings", true]
 	]);
 </script>
