@@ -148,3 +148,20 @@ def test_component_example_payloads(io_components):
             elif issubclass(c.data_model, GradioRootModel):  # type: ignore
                 data = c.data_model(root=data)  # type: ignore
         c.preprocess(data)  # type: ignore
+
+
+def test_all_io_components_are_pickleable(io_components):
+    import pickle
+
+    for component in io_components:
+        if component == PDF:
+            continue
+        elif component in [gr.BarPlot, gr.LinePlot, gr.ScatterPlot]:
+            c: Component = component(x="x", y="y")
+        elif component == gr.FileExplorer:
+            c: Component = component(root_dir="gradio")
+        else:
+            c: Component = component()
+        pickled = pickle.dumps(c)
+        unpickled = pickle.loads(pickled)
+        assert c.get_config() == unpickled.get_config()
