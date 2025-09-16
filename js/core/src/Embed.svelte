@@ -125,11 +125,11 @@
 						>
 					</span>
 					<span>
-						{$_("common.built_with")}
+						<!-- {$_("common.built_with")} -->
 						<a class="gradio" href="https://gradio.app">Gradio</a>.
 					</span>
 					<span>
-						{$_("common.hosted_on")}
+						<!-- {$_("common.hosted_on")} -->
 						<a class="hf" href="https://huggingface.co/spaces"
 							><span class="space-logo">
 								<img src={space_logo} alt="Hugging Face Space" />

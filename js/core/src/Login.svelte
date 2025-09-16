@@ -35,22 +35,22 @@
 
 <div class="wrap" class:min-h-screen={app_mode}>
 	<Column variant="panel" min_width={480}>
-		<h2>{$_("login.login")}</h2>
+		<!-- <h2>{$_("login.login")}</h2> -->
 		{#if auth_message}
 			<p class="auth">{@html auth_message}</p>
 		{/if}
 		{#if space_id}
 			<p class="auth">
-				{$_("login.enable_cookies")}
+				{""}
 			</p>
 		{/if}
 		{#if incorrect_credentials}
-			<p class="creds">{$_("login.incorrect_credentials")}</p>
+			<p class="creds">{""}</p>
 		{/if}
 		<Form>
 			<Block>
 				<Textbox
-					label={$_("login.username")}
+					label={""}
 					lines={1}
 					show_label={true}
 					max_lines={1}
@@ -61,7 +61,7 @@
 
 			<Block>
 				<Textbox
-					label={$_("login.password")}
+					label={""}
 					lines={1}
 					show_label={true}
 					max_lines={1}
@@ -72,9 +72,7 @@
 			</Block>
 		</Form>
 
-		<BaseButton size="lg" variant="primary" on:click={submit}
-			>{$_("login.login")}</BaseButton
-		>
+		<BaseButton size="lg" variant="primary" on:click={submit}>{""}</BaseButton>
 	</Column>
 </div>
 

@@ -1066,18 +1066,21 @@
 		return container.children[container.children.length - 1] as HTMLElement;
 	}
 
+	function handle_resize(): void {
+		if ("parentIFrame" in window) {
+			const box = root_node?.getBoundingClientRect();
+			if (!box) return;
+			window.parentIFrame?.size(box.bottom + footer_height + 32);
+		}
+	}
+
 	onMount(() => {
 		if ("parentIFrame" in window) {
 			window.parentIFrame?.autoResize(false);
 		}
 
-		const mut = new MutationObserver((mutations) => {
-			if ("parentIFrame" in window) {
-				const box = root_node?.getBoundingClientRect();
-				if (!box) return;
-				window.parentIFrame?.size(box.bottom + footer_height + 32);
-			}
-		});
+		const mut = new MutationObserver(handle_resize);
+		const res = new ResizeObserver(handle_resize);
 
 		mut.observe(root_container, {
 			childList: true,
@@ -1085,8 +1088,11 @@
 			attributes: true
 		});
 
+		res.observe(root_container);
+
 		return () => {
 			mut.disconnect();
+			res.disconnect();
 		};
 	});
 </script>
