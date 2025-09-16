@@ -63,7 +63,7 @@
 		} else if (!samples) {
 			samples = [];
 		}
-		if (samples !== old_samples) {
+		if (JSON.stringify(samples) !== JSON.stringify(old_samples)) {
 			page = 0;
 			old_samples = samples;
 		}
