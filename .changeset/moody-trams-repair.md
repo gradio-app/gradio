@@ -1,6 +1,6 @@
 ---
-"@gradio/dataframe": patch
-"gradio": patch
+"@gradio/dataframe": minor
+"gradio": minor
 ---
 
-fix:Dataframe Edit Event
+feat:test 
