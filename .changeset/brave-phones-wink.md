@@ -1,6 +1,6 @@
 ---
-"@gradio/core": minor
-"gradio": minor
+"@gradio/core": patch
+"gradio": patch
 ---
 
-feat:ensure spaces iframe resizes when images load
+fix:ensure spaces iframe resizes when images load
