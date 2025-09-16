@@ -15,7 +15,7 @@
 				select: SelectData;
 		  }>
 		| undefined;
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let interactive = true;
 	export let order: number;
 	export let scale: number;

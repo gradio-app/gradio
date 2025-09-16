@@ -39,7 +39,7 @@ class DeepLinkButton(Button):
         size: Literal["sm", "md", "lg"] = "lg",
         icon: str | Path | None = utils.get_icon_path("link.svg"),
         link: str | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         interactive: bool = True,
         elem_id: str | None = None,  # noqa: ARG002
         elem_classes: list[str] | str | None = None,

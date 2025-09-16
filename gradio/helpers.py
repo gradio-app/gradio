@@ -55,7 +55,7 @@ def create_examples(
     batch: bool = False,
     *,
     example_labels: list[str] | None = None,
-    visible: bool = True,
+    visible: bool | Literal["hidden"] = True,
     preload: int | Literal[False] = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
@@ -119,7 +119,7 @@ class Examples:
         batch: bool = False,
         *,
         example_labels: list[str] | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         preload: int | Literal[False] = False,
         _initiated_directly: bool = True,
     ):
@@ -1064,7 +1064,7 @@ def special_args(
 def update(
     elem_id: str | None = None,
     elem_classes: list[str] | str | None = None,
-    visible: bool | None = None,
+    visible: bool | Literal["hidden"] | None = None,
     **kwargs: Any,
 ) -> dict[str, Any]:
     """

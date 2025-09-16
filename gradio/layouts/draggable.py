@@ -24,7 +24,7 @@ class Draggable(BlockContext, metaclass=ComponentMeta):
         self,
         *,
         orientation: Literal["row", "column"] = "column",
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,

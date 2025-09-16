@@ -131,7 +131,7 @@ class Block:
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         proxy_url: str | None = None,
     ):
         key_to_id_map = LocalContext.key_to_id_map.get(None)
@@ -438,7 +438,7 @@ class BlockContext(Block):
         self,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = None,

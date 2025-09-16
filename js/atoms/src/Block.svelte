@@ -12,7 +12,7 @@
 	export let test_id: string | undefined = undefined;
 	export let explicit_call = false;
 	export let container = true;
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let allow_overflow = true;
 	export let overflow_behavior: "visible" | "auto" = "auto";
 	export let scale: number | null = null;
@@ -81,6 +81,8 @@
 		window.addEventListener("mousemove", onMouseMove);
 		window.addEventListener("mouseup", onMouseUp);
 	};
+
+	$: console.log("visible", visible);
 </script>
 
 <svelte:element
@@ -88,7 +90,7 @@
 	bind:this={element}
 	data-testid={test_id}
 	id={elem_id}
-	class:hidden={visible === false}
+	class:hidden={visible === false || visible === "hidden"}
 	class="block {elem_classes?.join(' ') || ''}"
 	class:padded={padding}
 	class:flex

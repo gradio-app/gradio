@@ -12,7 +12,7 @@
 		collapse: never;
 	}>;
 	export let width: number | string;
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 </script>
 
 <StatusTracker

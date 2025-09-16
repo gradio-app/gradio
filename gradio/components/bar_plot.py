@@ -70,7 +70,7 @@ class BarPlot(Plot):
         min_width: int = 160,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,

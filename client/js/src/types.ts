@@ -226,6 +226,7 @@ interface SharedProps {
 	components?: string[];
 	server_fns?: string[];
 	interactive: boolean;
+	visible: boolean | "hidden";
 	[key: string]: unknown;
 	root_url?: string;
 }

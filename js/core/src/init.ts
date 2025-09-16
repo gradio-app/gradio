@@ -156,7 +156,11 @@ export function create_components(
 		_rootNode = {
 			id: layout.id,
 			type: "column",
-			props: { interactive: false, scale: options.fill_height ? 1 : null },
+			props: {
+				interactive: false,
+				scale: options.fill_height ? 1 : null,
+				visible: true
+			},
 			has_modes: false,
 			instance: null as unknown as ComponentMeta["instance"],
 			component: null as unknown as ComponentMeta["component"],
@@ -379,6 +383,8 @@ export function create_components(
 			);
 		}
 
+		// Form visibility is handled reactively in Render.svelte based on children visibility
+
 		if (instance.type === "tabs" && !instance.props.initial_tabs) {
 			const tab_items_props =
 				node.children?.map((c, i) => {
@@ -402,7 +408,10 @@ export function create_components(
 				label: child.props.label,
 				id: child.props.id,
 				visible:
-					typeof child.props.visible === "boolean" ? child.props.visible : true,
+					typeof child.props.visible === "boolean" ||
+					child.props.visible === "hidden"
+						? child.props.visible
+						: true,
 				interactive: child.props.interactive,
 				order: child.props.order
 			}));
@@ -533,6 +542,9 @@ export function create_components(
 					}
 				}
 			}
+
+			// Form visibility is handled reactively in Render.svelte based on children visibility
+			
 			return layout;
 		});
 
@@ -561,6 +573,7 @@ export function create_components(
 				}
 			});
 		}
+
 
 		pending_updates = [];
 		update_scheduled = false;
@@ -974,15 +987,59 @@ function determine_visible_components(
 		return visible_components;
 	}
 
-	// disabled for now
-	// add everything to the visible components set
-	const child_visible = process_children_visibility(
-		layout,
-		components,
-		parent_tabs_context
-	);
-	child_visible.forEach((id) => visible_components.add(id));
-	visible_components.add(layout.id);
+	// Check component visibility
+	const component_visible = component.props.visible !== false && parent_visible;
+
+	// Components with visible === "hidden" should be loaded but not displayed
+	// They count as "visible" for loading purposes
+	const should_load = component.props.visible === "hidden" || component_visible;
+
+	if (!should_load) {
+		return visible_components;
+	}
+
+	// Handle tabs component specially
+	if (component.type === "tabs") {
+		const selected_tab_id = get_selected_tab_id(component, layout, components);
+		const tabs_context = { selected_tab_id };
+
+		// Add the tabs component itself
+		visible_components.add(layout.id);
+
+		// Process children with the tabs context
+		const child_visible = process_children_visibility(
+			layout,
+			components,
+			tabs_context
+		);
+		child_visible.forEach((id) => visible_components.add(id));
+	} else if (component.type === "tabitem") {
+		// Handle tab items
+		if (
+			is_tab_item_visible(component, component_visible, parent_tabs_context)
+		) {
+			visible_components.add(layout.id);
+
+			// Process children of visible tab items
+			const child_visible = process_children_visibility(
+				layout,
+				components,
+				parent_tabs_context
+			);
+			child_visible.forEach((id) => visible_components.add(id));
+		}
+	} else {
+		// Regular components
+		visible_components.add(layout.id);
+
+		// Process children
+		const child_visible = process_children_visibility(
+			layout,
+			components,
+			parent_tabs_context
+		);
+		child_visible.forEach((id) => visible_components.add(id));
+	}
 
 	return visible_components;
 }
@@ -1063,6 +1120,11 @@ export function preload_all_components(
 }
 
 function is_visible(component: ComponentMeta): boolean {
+	// "hidden" components are technically visible for state updates
+	// They're just visually hidden with CSS
+	if (component.props.visible === "hidden") {
+		return true;
+	}
 	if (
 		typeof component.props.visible === "boolean" &&
 		component.props.visible === false

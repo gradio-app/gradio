@@ -8,7 +8,7 @@
 	export let elem_classes: string[] = [];
 	export let label: string;
 	export let id: string | number | object = {};
-	export let visible: boolean;
+	export let visible: boolean | "hidden";
 	export let interactive: boolean;
 	export let order: number;
 	export let scale: number;
@@ -37,7 +37,7 @@
 	id={elem_id}
 	class="tabitem {elem_classes.join(' ')}"
 	class:grow-children={scale >= 1}
-	style:display={$selected_tab === id && visible ? "flex" : "none"}
+	style:display={$selected_tab === id && visible !== false ? "flex" : "none"}
 	style:flex-grow={scale}
 	role="tabpanel"
 >

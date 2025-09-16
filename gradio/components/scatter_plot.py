@@ -96,7 +96,7 @@ class ScatterPlot(Plot):
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
