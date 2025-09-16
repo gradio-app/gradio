@@ -58,7 +58,7 @@
 			const allChildrenInvisible = node.children?.every(
 				(c) => c.props.visible === false || c.props.visible === "hidden"
 			);
-			
+
 			if (allChildrenInvisible) {
 				// Check if any child is "hidden" vs false
 				const hasHiddenChild = node.children?.some(
