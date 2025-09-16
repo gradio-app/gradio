@@ -34,7 +34,7 @@
 		username: string | null;
 		api_prefix?: string;
 		max_file_size?: number;
-		pages: [string, string][];
+		pages: [string, string, boolean][];
 		current_page: string;
 		deep_link_state?: "valid" | "invalid" | "none";
 		page: Record<
@@ -106,7 +106,7 @@
 	export let info: boolean;
 	export let eager: boolean;
 	let stream: EventSource;
-	let pages: [string, string][] = [];
+	let pages: [string, string, boolean][] = [];
 	let current_page: string;
 	let root: string;
 
