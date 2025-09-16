@@ -14,7 +14,7 @@ test("Dataframe change events work as expected", async ({ page }) => {
 	await expect(page.getByLabel("Change events")).toHaveValue("1");
 });
 
-test.skip("Dataframe input events work as expected @firefox", async ({ page }) => {
+test("Dataframe input events work as expected @firefox", async ({ page }) => {
 	const input_events = page.getByLabel("Input events");
 	await expect(input_events).toHaveValue("0");
 
