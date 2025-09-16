@@ -1,5 +1,6 @@
 import gradio as gr
 import time
+import os
 
 
 def greet():
@@ -9,6 +10,8 @@ def greet():
     time.sleep(1)
     raise Exception("test")
 
+
+im = os.path.join(os.path.dirname(__file__), "cheetah.jpg")
 
 with gr.Blocks() as demo:
     with gr.Tab("Accordions"):
@@ -28,17 +31,17 @@ with gr.Blocks() as demo:
     """
             )
     with gr.Tab("Images"):
-        gr.Image(value="./cheetah.jpg")
-        gr.Image(value="./cheetah.jpg")
-        gr.Image(value="./cheetah.jpg")
-        gr.Image(value="./cheetah.jpg")
-        gr.Image(value="./cheetah.jpg")
-        gr.Image(value="./cheetah.jpg")
-        gr.Image(value="./cheetah.jpg")
-        gr.Image(value="./cheetah.jpg")
-        gr.Image(value="./cheetah.jpg")
-        gr.Image(value="./cheetah.jpg")
-        gr.Image(value="./cheetah.jpg")
+        gr.Image(value=im)
+        gr.Image(value=im)
+        gr.Image(value=im)
+        gr.Image(value=im)
+        gr.Image(value=im)
+        gr.Image(value=im)
+        gr.Image(value=im)
+        gr.Image(value=im)
+        gr.Image(value=im)
+        gr.Image(value=im)
+        gr.Image(value=im)
 
 
 if __name__ == "__main__":
