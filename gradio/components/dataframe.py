@@ -55,7 +55,7 @@ class Dataframe(Component):
     Demos: filter_records, matrix_transpose, tax_calculator, sort_records
     """
 
-    EVENTS = [Events.change, Events.input, Events.select, Events.edit]
+    EVENTS = [Events.change, Events.input, Events.select, Events]
 
     data_model = DataframeData
 

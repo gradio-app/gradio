@@ -22,14 +22,6 @@ def increment_select_counter(evt: gr.SelectData, count):
     count_val = 1 if count is None else count + 1
     return count_val, evt.index, evt.value
 
-def edit_dataframe(evt: gr.EditData, count):
-    event_data = ", ".join([
-        f"index: {evt.index}",
-        f"value: {evt.value}",
-        f"previous_value: {evt.previous_value}",
-    ])
-    return event_data, count + 1
-
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column(scale=1):
@@ -141,7 +133,6 @@ with gr.Blocks() as demo:
     update_btn.click(fn=update_dataframe, outputs=[df, df_view])
     clear_btn.click(fn=clear_dataframes, outputs=[df, df_view, df_tall])
     df.change(fn=lambda x: x + 1, inputs=[change_events], outputs=[change_events])
-    df.edit(edit_dataframe, inputs=[edit_events], outputs=[edit_data, edit_events])
     df.input(fn=lambda x: x + 1, inputs=[input_events], outputs=[input_events])
     df.select(
         fn=increment_select_counter,
