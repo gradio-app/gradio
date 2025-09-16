@@ -63,7 +63,8 @@
 		} else if (!samples) {
 			samples = [];
 		}
-		if (samples !== old_samples) {
+		if (JSON.stringify(samples) !== JSON.stringify(old_samples)) {
+			console.log("Samples changed", samples);
 			page = 0;
 			old_samples = samples;
 		}
