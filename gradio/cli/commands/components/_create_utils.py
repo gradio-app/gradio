@@ -214,6 +214,32 @@ OVERRIDES = {
         python_file_name="download_button.py",
         js_dir="downloadbutton",
     ),
+    "Walkthrough": ComponentFiles(
+        template="Walkthrough",
+        js_dir="tabs",
+        demo_code=textwrap.dedent(
+            """
+        with gr.Blocks() as demo:
+            with {name}():
+                with gr.Tab("Tab 1"):
+                    gr.Textbox(value="foo", interactive=True)
+                with gr.Tab("Tab 2"):
+                    gr.Number(value=10, interactive=True)
+        """
+        ),
+    ),
+    "Step": ComponentFiles(
+        template="Step",
+        js_dir="tabitem",
+        python_file_name="walkthrough.py",
+        demo_code=textwrap.dedent(
+            """
+        with gr.Blocks() as demo:
+            with {name}():
+                gr.Textbox(value="foo", interactive=True)
+        """
+        ),
+    ),
 }
 
 

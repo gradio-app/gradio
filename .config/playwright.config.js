@@ -72,4 +72,4 @@ const lite = defineConfig(base, {
 	].filter(Boolean)
 });
 
-export default !!process.env.GRADIO_E2E_TEST_LITE ? lite : normal;
+export default normal;

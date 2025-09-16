@@ -147,7 +147,7 @@
 		background: var(--button-cancel-background-fill);
 		color: var(--button-cancel-text-color);
 		border: var(--button-border-width) solid var(--button-cancel-border-color);
-		box-shadow: var(--button-secondary-shadow);
+		box-shadow: var(--button-cancel-shadow);
 	}
 
 	.stop:hover,
@@ -157,10 +157,10 @@
 
 	.stop:hover {
 		border-color: var(--button-cancel-border-color-hover);
-		box-shadow: var(--button-secondary-shadow-hover);
+		box-shadow: var(--button-cancel-shadow-hover);
 	}
 	.stop:active {
-		box-shadow: var(--button-secondary-shadow-active);
+		box-shadow: var(--button-cancel-shadow-active);
 	}
 
 	.stop[disabled] {

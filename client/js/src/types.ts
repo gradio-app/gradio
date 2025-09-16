@@ -190,7 +190,7 @@ export interface Config {
 			layout: any;
 		}
 	>;
-	pages: [string, string][];
+	pages: [string, string, boolean][];
 	protocol: "sse_v3" | "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws";
 	max_file_size?: number;
 	theme_hash?: number;
@@ -362,6 +362,11 @@ export interface Render {
 	};
 }
 
+export interface ValidationError {
+	is_valid: boolean;
+	message: string;
+}
+
 export interface Status {
 	queue: boolean;
 	code?: string;
@@ -374,7 +379,7 @@ export interface Status {
 	position?: number;
 	eta?: number;
 	title?: string;
-	message?: string;
+	message?: string | ValidationError[];
 	progress_data?: {
 		progress: number | null;
 		index: number | null;

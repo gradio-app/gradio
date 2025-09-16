@@ -73,6 +73,7 @@ class TestAudio:
             "key": None,
             "preserved_by_key": ["value"],
             "loop": False,
+            "subtitles": None,
         }
         assert audio_input.preprocess(None) is None
 
@@ -132,6 +133,7 @@ class TestAudio:
             "key": None,
             "preserved_by_key": ["value"],
             "loop": False,
+            "subtitles": None,
         }
 
         output1 = audio_output.postprocess(y_audio.name).model_dump()  # type: ignore

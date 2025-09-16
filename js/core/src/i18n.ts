@@ -71,13 +71,14 @@ export function is_translation_metadata(obj: any): obj is I18nData {
 	return result;
 }
 
+export const i18n_marker = "__i18n__";
+
 // handles strings with embedded JSON metadata of shape "__i18n__{"key": "some.key"}"
 export function translate_if_needed(value: any): string {
 	if (typeof value !== "string") {
 		return value;
 	}
 
-	const i18n_marker = "__i18n__";
 	const marker_index = value.indexOf(i18n_marker);
 
 	if (marker_index === -1) {
@@ -154,8 +155,26 @@ export let all_common_keys: Set<string> = new Set();
 let i18n_initialized = false;
 let previous_translations: Record<string, Record<string, string>> | undefined;
 
+function get_lang_from_preferred_locale(header: string): string | null {
+	const options = header
+		.split(",")
+		.map((value) =>
+			value.includes(";") ? value.split(";").slice(0, 2) : [value, 1]
+		);
+	options.sort(
+		(a, b) => parseFloat(b[1] as string) - parseFloat(a[1] as string)
+	);
+	for (const [lang, _] of options) {
+		if (available_locales.includes(lang as string)) {
+			return lang as string;
+		}
+	}
+	return null;
+}
+
 export async function setupi18n(
-	custom_translations?: Record<string, Record<string, string>>
+	custom_translations?: Record<string, Record<string, string>>,
+	preferred_locale?: string
 ): Promise<void> {
 	const should_reinitialize =
 		i18n_initialized && custom_translations !== previous_translations;
@@ -171,12 +190,16 @@ export async function setupi18n(
 		custom_translations: custom_translations ?? {}
 	});
 
+	let initial_locale: string | null = null;
 	const browser_locale = getLocaleFromNavigator();
-
-	let initial_locale =
-		browser_locale && available_locales.includes(browser_locale)
-			? browser_locale
-			: null;
+	if (preferred_locale) {
+		initial_locale = get_lang_from_preferred_locale(preferred_locale);
+	} else {
+		initial_locale =
+			browser_locale && available_locales.includes(browser_locale)
+				? browser_locale
+				: null;
+	}
 
 	if (!initial_locale) {
 		const normalized_locale = browser_locale?.split("-")[0];

@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/upload",
-	"version": "0.16.16",
+	"version": "0.16.17",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "src/index.ts",
@@ -10,8 +10,7 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/client": "workspace:^",
-		"@gradio/utils": "workspace:^",
-		"@gradio/wasm": "workspace:^"
+		"@gradio/utils": "workspace:^"
 	},
 	"main_changeset": true,
 	"exports": {

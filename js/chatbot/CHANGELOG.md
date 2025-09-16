@@ -1,5 +1,23 @@
 # @gradio/chatbot
 
+## 0.26.24
+
+### Fixes
+
+- [#11826](https://github.com/gradio-app/gradio/pull/11826) [`a7ae61c`](https://github.com/gradio-app/gradio/commit/a7ae61c631980442e5068b8ef67622343d587444) - Allow passing props to components displayed in Chatbot.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@1.18.0
+- @gradio/icons@0.14.0
+- @gradio/atoms@0.17.0
+- @gradio/statustracker@0.11.0
+- @gradio/gallery@0.15.32
+- @gradio/plot@0.9.23
+- @gradio/upload@0.16.17
+- @gradio/image@0.22.18
+- @gradio/video@0.15.1
+
 ## 0.26.23
 
 ### Fixes

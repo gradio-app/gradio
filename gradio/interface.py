@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
-from gradio import Examples, utils, wasm_utils
+from gradio import Examples, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
@@ -32,7 +32,7 @@ from gradio.exceptions import RenderError
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.i18n import I18nData
 from gradio.layouts import Accordion, Column, Row, Tab, Tabs
-from gradio.pipelines import load_from_js_pipeline, load_from_pipeline
+from gradio.pipelines import load_from_pipeline
 from gradio.themes import ThemeClass as Theme
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -78,10 +78,7 @@ class Interface(Blocks):
             pipe = pipeline("image-classification")
             gr.Interface.from_pipeline(pipe).launch()
         """
-        if wasm_utils.IS_WASM:
-            interface_info = load_from_js_pipeline(pipeline)
-        else:
-            interface_info = load_from_pipeline(pipeline)
+        interface_info = load_from_pipeline(pipeline)
         kwargs = dict(interface_info, **kwargs)
         interface = cls(**kwargs)
         return interface
@@ -139,6 +136,7 @@ class Interface(Blocks):
         time_limit: int | None = 30,
         stream_every: float = 0.5,
         deep_link: str | DeepLinkButton | bool | None = None,
+        validator: Callable | None = None,
         **kwargs,
     ):
         """
@@ -185,6 +183,8 @@ class Interface(Blocks):
             time_limit: The time limit for the stream to run. Default is 30 seconds. Parameter only used for streaming images or audio if the interface is live and the input components are set to "streaming=True".
             stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for streaming images or audio if the interface is live and the input components are set to "streaming=True".
             deep_link: a string or `gr.DeepLinkButton` object that creates a unique URL you can use to share your app and all components **as they currently are** with others. Automatically enabled on Hugging Face Spaces unless explicitly set to False.
+            validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input.
+
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -206,7 +206,7 @@ class Interface(Blocks):
             deep_link = DeepLinkButton(render=False, interactive=False)
         if utils.get_space() and deep_link is None:
             deep_link = DeepLinkButton(render=False, interactive=False)
-        if wasm_utils.IS_WASM or deep_link is False:
+        if deep_link is False:
             deep_link = None
         self.deep_link = deep_link
         self.time_limit = time_limit
@@ -349,6 +349,7 @@ class Interface(Blocks):
 
         self.api_mode = _api_mode
         self.fn = fn
+        self.validator = validator
         self.fn_durations = [0, 0]
         self.__name__ = getattr(fn, "__name__", "fn")
         self.live = live
@@ -725,6 +726,7 @@ class Interface(Blocks):
                     postprocess=not (self.api_mode),
                     batch=self.batch,
                     max_batch_size=self.max_batch_size,
+                    validator=self.validator,
                 )
             else:
                 events: list[Callable] = []
@@ -749,6 +751,7 @@ class Interface(Blocks):
                     trigger_mode="always_last" if not streaming_event else "multiple",
                     time_limit=self.time_limit,
                     stream_every=self.stream_every,
+                    validator=self.validator,
                 )
         else:
             if _submit_btn is None:
@@ -800,6 +803,7 @@ class Interface(Blocks):
                     max_batch_size=self.max_batch_size,
                     concurrency_limit=self.concurrency_limit,
                     show_progress=self.show_progress,
+                    validator=self.validator,
                 )
 
                 final_event = predict_event.then(
@@ -835,6 +839,7 @@ class Interface(Blocks):
                     max_batch_size=self.max_batch_size,
                     concurrency_limit=self.concurrency_limit,
                     show_progress=self.show_progress,
+                    validator=self.validator,
                 )
 
     def attach_clear_events(

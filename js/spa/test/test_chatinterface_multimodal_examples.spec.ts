@@ -38,5 +38,12 @@ for (const test_case of cases) {
 		// Undo message resets to the examples view
 		await page.getByLabel("Undo", { exact: true }).click();
 		await expect(page.getByRole("button", { name: "hello" })).toBeVisible();
+
+		const textbox = page.getByTestId("textbox").first();
+		const submit_button = page.locator(".submit-button");
+
+		await textbox.fill("Awesome");
+		await submit_button.click();
+		await expect(textbox).toBeFocused();
 	});
 }
